@@ -459,7 +459,7 @@
 (define file-exists?
   (if (provided? 'posix)
       (lambda (str)
-	(access? str F_OK))
+	(->bool (false-if-exception (stat str))))
       (lambda (str)
 	(let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
 			   (lambda args #f))))
