@@ -311,8 +311,8 @@ uvec_equalp (SCM a, SCM b)
     result = SCM_BOOL_F;
   else if(SCM_UVEC_LENGTH (a) != SCM_UVEC_LENGTH (b))
     result = SCM_BOOL_F;
-  else if(memcmp(SCM_UVEC_BASE (a), SCM_UVEC_BASE (b), SCM_UVEC_LENGTH (a))
-          != 0)
+  else if(memcmp(SCM_UVEC_BASE (a), SCM_UVEC_BASE (b),
+		 SCM_UVEC_LENGTH (a) * uvec_sizes[SCM_UVEC_TYPE(a)]) != 0)
     result = SCM_BOOL_F;
 
   scm_remember_upto_here_2 (a, b);
