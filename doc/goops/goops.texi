@@ -2664,12 +2664,6 @@ The default @code{class-redefinition} method, specialized for classes
 with the default metaclass @code{<class>}, has the following internal
 protocol.
 
-[ *fixme*  I'm not sure that I understand this sufficiently to explain
-it.  Also, the internals of the default class redefinition method are
-extremely implementation-specific, and I'm not sure that there is that
-much point trying to describe the internal protocol such that it could
-be customized without going to look at the source code. ]
-
 @code{class-redefinition @var{(old <class>)} @var{(new <class>)}}
 (method)
 
@@ -2685,15 +2679,13 @@ be customized without going to look at the source code. ]
 @end itemize
 
 The default @code{update-direct-subclass!} method invokes
-@code{class-redefinition} recursively to handle the redefinition of the
-subclass.
+@code{class-redefinition} recursively to handle the redefinition of
+subclasses.
 
 When a class is redefined, any existing instance of the redefined class
 will be modified for the new class definition before the next time that
 any of the instance's slot is referenced or set.  GOOPS modifies each
-instance by calling the generic function @code{change-class}.  [ *fixme*
-Actually it sometimes calls @code{change-class} and sometimes
-@code{change-object-class}, and I don't understand why. ]
+instance by calling the generic function @code{change-class}.
 
 The default @code{change-class} method copies slot values from the old
 to the modified instance, and initializes new slots, as described in
