@@ -46,5 +46,7 @@ qtmdc.c:
 qtdmdb.s:
 	${LN_S} ${srcdir}/${qtdmdb_s} qtdmdb.s
 
+CLEANFILES = qtmds.s qtmdc.c qtmdb.s
+
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
 	Makefile.base config
