@@ -36,7 +36,7 @@ scripts_sources =		\
 	snarf-check-and-output-texi \
 	snarf-guile-m4-docs
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
 
 EXTRA_DIST = $(scripts_sources)
