@@ -3191,11 +3191,9 @@ Like @code{delete!}, but only deletes the first occurrence of
 @node List Searching
 @subsection List Searching
 
-@c FIXME::martin: Review me!
-
 The following procedures search lists for particular elements.  They use
 different comparison predicates for comparing list elements with the
-object to be seached.  When they fail, they return @code{#f}, otherwise
+object to be searched.  When they fail, they return @code{#f}, otherwise
 they return the sublist whose car is equal to the search object, where
 equality depends on the equality predicate used.
 
@@ -3229,7 +3227,7 @@ the non-empty lists returned by @code{(list-tail @var{lst}
 empty list) is returned.
 @end deffn
 
-[FIXME: is there any reason to have the `sloppy' functions available at
+[FIXME: Is there any reason to have the `sloppy' functions available at
 high level at all?  Maybe these docs should be relegated to a "Guile
 Internals" node or something. -twp]
 
