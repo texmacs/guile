@@ -1,3 +1,8 @@
+2001-10-14  Gary Houston  <ghouston@arglist.com>
+
+	* version.c (scm_version): use sprintf instead of snprintf,
+	for portability.  thanks to Bill Schottstaedt.
+
 2001-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_libguile_la_SOURCES): Added "mkstemp.c".
