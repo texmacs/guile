@@ -230,7 +230,6 @@ posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
 # if we're dependent on GNU make we can just enable this all the time.
-eval.lo: CFLAGS := $(filter-out -Werror,${CFLAGS})
 numbers.lo: CFLAGS := $(filter-out -Werror,${CFLAGS})
 
 include $(top_srcdir)/am/pre-inst-guile
