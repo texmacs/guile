@@ -217,19 +217,22 @@ to which new docstrings should be added.")
                                          (match-end 1))))
           (if (string-equal matched "@c module ")
               (setq module (read (current-buffer)))
-            (setq matched
-                  (concat (buffer-substring (match-beginning 2)
-                                            (match-end 2))
-                          " "
-                          (buffer-substring (match-beginning 3)
-                                            (match-end 3))))
-            (message "Found docstring: %S: %s" module matched)
-            (let ((descriptions (assoc module alist)))
-              (setq alist
-                    (cons (cons module (cons matched (cdr-safe descriptions)))
-                          (if descriptions
-                              (delete descriptions alist)
-                            alist))))))))
+	    (let ((type (buffer-substring (match-beginning 2)
+					  (match-end 2))))
+	      (if (string-equal type "{C Function}")
+		  nil
+		(setq matched
+		      (concat type
+			      " "
+			      (buffer-substring (match-beginning 3)
+						(match-end 3))))
+		(message "Found docstring: %S: %s" module matched)
+		(let ((descriptions (assoc module alist)))
+		  (setq alist
+			(cons (cons module (cons matched (cdr-safe descriptions)))
+			      (if descriptions
+				  (delete descriptions alist)
+				alist))))))))))
     alist))
 
 ;; Return the docstring from the specified LOCATION.  LOCATION is a
@@ -428,6 +431,7 @@ new snarfed docstring file.\n\n")
     (insert "\n")
 
     (goto-char (point-min))
+    (local-set-key "d" 'docstring-ediff-this-line)
 
     ;; Popup the issues buffer.
     (let ((pop-up-frames t))
@@ -534,6 +538,64 @@ new snarfed docstring file.\n\n")
 ;(find-manual-docstring '(guile) "primitive sloppy-assq")
 ;(find-tracking-docstring '(guile) "primitive sloppy-assq")
 ;(find-snarfed-docstring '(guile) "primitive sloppy-assq")
+
+(defvar docstring-libguile-directory (expand-file-name "libguile"
+						       guile-core-dir)
+  "*The directory containing the C source for libguile.")
+
+(defun docstring-display-location (file line)
+  (let ((buffer (find-file-noselect
+		 (expand-file-name file docstring-libguile-directory))))
+    (if buffer
+	(let* ((window (or (get-buffer-window buffer)
+			   (display-buffer buffer)))
+	       (pos (save-excursion
+		      (set-buffer buffer)
+		      (goto-line line)
+		      (point))))
+	  (set-window-point window pos)))))
+
+(defun docstring-show-source ()
+  "Given that point is sitting in a docstring in one of the Texinfo
+source files for the Guile manual, and that that docstring may be
+snarfed automatically from a libguile C file, determine whether the
+docstring is from libguile and, if it is, display the relevant C file
+at the line from which the docstring was snarfed.
+
+Why?  When updating snarfed docstrings, you should usually edit the C
+source rather than the Texinfo source, so that your updates benefit
+Guile's online help as well.  This function locates the C source for a
+docstring so that it is easy for you to do this."
+  (interactive)
+  (let* ((deffn-line
+	   (save-excursion
+	     (end-of-line)
+	     (or (re-search-backward "^@deffn " nil t)
+		 (error "No docstring here!"))
+	     (buffer-substring (point)
+			       (progn
+				 (end-of-line)
+				 (point)))))
+	 (guile-texi-file
+	  (expand-file-name "guile.texi" docstring-libguile-directory))
+	 (source-location
+	  (save-excursion
+	    (set-buffer (find-file-noselect guile-texi-file))
+	    (save-excursion
+	      (goto-char (point-min))
+	      (or (re-search-forward (concat "^"
+					     (regexp-quote deffn-line)
+					     "$")
+				     nil t)
+		  (error "Docstring not from libguile"))
+	      (forward-line -1)
+	      (if (looking-at "^@c snarfed from \\([^:]+\\):\\([0-9]+\\)$")
+		  (cons (match-string 1)
+			(string-to-int (match-string 2)))
+		(error "Corrupt docstring entry in guile.texi"))))))
+    (docstring-display-location (car source-location)
+				(cdr source-location))))
+
 
 (provide 'docstring)
 
