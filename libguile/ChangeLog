@@ -1,6 +1,6 @@
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
-	* eq.c (scm_equal_p): Turned into a primitive generic.
+	* eq.c (scm_eqv_p, scm_equal_p): Turned into a primitive generics.
 
 	* snarf.h (SCM_PRIMITIVE_GENERIC, SCM_PRIMITIVE_GENERIC_1): New
 	macros.

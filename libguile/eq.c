@@ -67,7 +67,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
+SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "The @code{eqv?} procedure defines a useful equivalence relation on objects.\n"
 	     "Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be\n"
@@ -110,7 +110,10 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 			 && SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y));
       }
     }
-  return SCM_BOOL_F;
+  if (SCM_UNPACK (g_scm_eqv_p))
+    return scm_call_generic_2 (g_scm_eqv_p, x, y);
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

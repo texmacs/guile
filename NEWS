@@ -56,10 +56,10 @@ methods from their accessors.
 This makes the <active-class> metaclass in (oop goops active-slot)
 working again.
 
-** equal? is now a primitive generic
+** eqv? and equal? are now primitive generic functions
 
 This means that it is possible to provide custom comparisons for new
-classes by specializing `equal?' to those classes.
+classes by specializing `eqv?' and `equal?' to those classes.
 
 * Changes to the C interface 
 

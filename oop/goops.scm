@@ -658,7 +658,8 @@
 ;;; Methods to compare objects
 ;;;
 
-(define-method (equal? x y) #f)
+(define-method (eqv? x y)   #f)
+(define-method (equal? x y) (eqv? x y))
 
 ;;; These following two methods are for backward compatibility only.
 ;;; They are not called by the Guile interpreter.
