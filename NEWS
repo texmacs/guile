@@ -12,9 +12,15 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
-Changes since Guile 1.6.3:
+Changes since Guile 1.6.3 (AKA changes for 1.6.4):
 
 * Changes to the distribution
+
+** Various architecture (and likely compiler) related bugs fixed.
+
+These changes should improve the situation on at least ia64, alpha,
+and powerpc.
+
 * Changes to the stand-alone interpreter
 
 ** Readline prompt problem fixed.
@@ -78,7 +84,7 @@ Changes since Guile 1.6.0:
 
 * Changes to the distribution
 
-** Guile now provide and uses an "effective" version number.
+** Guile now provides and uses an "effective" version number.
 
 Guile now provides scm_effective_version and effective-version
 functions which return the "effective" version number.  This is just

@@ -1,3 +1,13 @@
+2003-04-11  Rob Browning  <rlb@defaultvalue.org>
+
+	* eval.c (SCM_CEVAL): fixed a couple of mysterious (probably
+	optimization related) bugs on powerpc by altering some
+          "while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))"
+	style constructs so that the assignment doesn't happen inside the guard.
+
+	* throw.c (scm_ithrow): removed winds "asm" protection in favor of
+	scm_remember_upto_here_1.
+
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc_os_dep.c: Added defines for sparc-unknown-netbsdelf1.5 from
