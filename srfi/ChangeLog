@@ -1,3 +1,9 @@
+2004-04-18  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-11.scm (let-values): Use gensym instead of gentemp, to avoid
+	deprecation warning from the latter.  Reported by Andreas Rottmann.
+	(Same change made by Marius in the cvs head.)
+
 2004-02-01  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-31.scm: new file.
