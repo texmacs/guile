@@ -1,3 +1,7 @@
+2003-02-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hooks.c (scm_c_hook_add): Fixed bug in append mode.
+
 2003-02-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* debug.c (scm_procedure_source): Handle all objects for which
