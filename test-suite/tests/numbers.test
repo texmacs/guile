@@ -42,7 +42,6 @@
 
 (use-modules (ice-9 documentation))
 
-
 ;;;
 ;;; miscellaneous
 ;;;
@@ -1290,6 +1289,20 @@
 ;;;
 ;;; ceiling
 ;;;
+
+;;;
+;;; sqrt
+;;;
+
+;;;
+;;; expt
+;;;
+
+(with-test-prefix "expt"
+  (pass-if "(= 1 (expt 0 0))" (= 1 (expt 0 0)))
+  (pass-if "(= 1 (expt 0 0.0))" (= 1 (expt 0 0.0)))
+  (pass-if "(= 1 (expt 0.0 0))" (= 1 (expt 0.0 0)))
+  (pass-if "(= 1 (expt 0.0 0.0))" (= 1 (expt 0.0 0.0))))
 
 ;;;
 ;;; make-rectangular
