@@ -1,3 +1,58 @@
+2004-08-07  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-4.c: major overhaul -- essentially all functions affected.
+	Changes fix various type related issues, including 64-bit print
+	problems.  Uniform vector lengths are now officially a size_t
+	stored in a cell.
+	(VALIDATE_UVEC, RANGE_CHECK_AND_COPY_UVEC_INDEX): new macros.
+	(print_int64, print_uint64, print_uint32): new helper functions.
+	(uvec_print): reworked to use a union.
+	(uvec_equalp): new function.
+	(make_uvec): reworked -- now checks for possible overflow.
+	(uvec_length): new helper function.
+
+	(scm_u8vector_p, scm_make_u8vector, scm_u8vector): reworked.
+	(scm_u8vector_length): reworked.
+	(scm_u8vector_ref, scm_u8vector_set_x): reworked.
+	(scm_u8vector_to_list, scm_list_to_u8vector): reworked.
+
+	(scm_s8vector_p, scm_make_s8vector, scm_s8vector): reworked.
+	(scm_s8vector_length): reworked.
+	(scm_s8vector_ref, scm_s8vector_set_x): reworked.
+	(scm_s8vector_to_list, scm_list_to_s8vector): reworked.
+
+	(scm_u16vector_p, scm_make_u16vector, scm_u16vector): reworked.
+	(scm_u16vector_length): reworked.
+	(scm_u16vector_ref, scm_u16vector_set_x): reworked.
+	(scm_u16vector_to_list, scm_list_to_u16vector): reworked.
+
+	(scm_s16vector_p, scm_make_s16vector, scm_s16vector): reworked.
+	(scm_s16vector_length): reworked.
+	(scm_s16vector_ref, scm_s16vector_set_x): reworked.
+	(scm_s16vector_to_list, scm_list_to_s16vector): reworked.
+
+	(scm_u32vector_p, scm_make_u32vector, scm_u32vector): reworked.
+	(scm_u32vector_length): reworked.
+	(scm_u32vector_ref, scm_u32vector_set_x): reworked.
+	(scm_u32vector_to_list, scm_list_to_u32vector): reworked.
+
+	(scm_s32vector_p, scm_make_s32vector, scm_s32vector): reworked.
+	(scm_s32vector_length): reworked.
+	(scm_s32vector_ref, scm_s32vector_set_x): reworked.
+	(scm_s32vector_to_list, scm_list_to_s32vector): reworked.
+
+	(scm_u64vector_p, scm_make_u64vector, scm_u64vector): reworked.
+	(scm_u64vector_length): reworked.
+	(scm_u64vector_ref, scm_u64vector_set_x): reworked.
+	(scm_u64vector_to_list, scm_list_to_u64vector): reworked.
+
+	(scm_s64vector_p, scm_make_s64vector, scm_s64vector): reworked.
+	(scm_s64vector_length): reworked.
+	(scm_s64vector_ref, scm_s64vector_set_x): reworked.
+	(scm_s64vector_to_list, scm_list_to_s64vector): reworked.
+
+	(scm_init_srfi_4): added check to make sure a size_t fits in a cell.
+	
 2004-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_every): Correction to initial "res" value,

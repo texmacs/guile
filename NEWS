@@ -39,6 +39,12 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** srfi-4 has been overhauled
+
+Bugs have been fixed, and performance may be improved in certain
+situations.  Among other things, large 64-bit values should print
+correctly now.
+
 ** gethost no longer causes an exception when trying to throw an exception
 
 ** call-with-output-string doesn't segv on closed port
