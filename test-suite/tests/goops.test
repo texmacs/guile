@@ -222,21 +222,28 @@
     (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
 
 (with-test-prefix "object comparison"
-  (pass-if "eqv?"
+  (pass-if "default method"
 	   (eval '(begin
 		    (define-class <c> ()
 		      (x #:accessor x #:init-keyword #:x)
 		      (y #:accessor y #:init-keyword #:y))
-		    (define-method (eqv? (a <c>) (b <c>))
-		      (equal? (x a) (x b)))
 		    (define o1 (make <c> #:x '(1) #:y '(2)))
 		    (define o2 (make <c> #:x '(1) #:y '(3)))
 		    (define o3 (make <c> #:x '(4) #:y '(3)))
 		    (define o4 (make <c> #:x '(4) #:y '(3)))
+		    (not (eqv? o1 o2)))
+		 (current-module)))
+  (pass-if "eqv?"
+	   (eval '(begin
+		    (define-method (eqv? (a <c>) (b <c>))
+		      (equal? (x a) (x b)))
 		    (eqv? o1 o2))
 		 (current-module)))
   (pass-if "not eqv?"
 	   (eval '(not (eqv? o2 o3))
+		 (current-module)))
+  (pass-if "transfer eqv? => equal?"
+	   (eval '(equal? o1 o2)
 		 (current-module)))
   (pass-if "equal?"
 	   (eval '(begin
