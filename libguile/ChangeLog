@@ -1,3 +1,9 @@
+2003-11-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc_os_dep.c (scm_get_stack_base): Provide a definition that
+	return NULL when the machine type is unknown.  Previously,
+	gc_os_dep.c would refuse to compile.
+
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
 	* dynl.c (scm_dynamic_unlink): Need scm_list_1 on error message
