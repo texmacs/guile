@@ -874,7 +874,6 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
       errno = save_errno;
       SCM_SYSERROR;
     }
-  SCM_SYSERROR;
   result = scm_mem2string (wd, strlen (wd));
   scm_must_free (wd);
   return result;
