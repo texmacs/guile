@@ -1,3 +1,8 @@
+2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/getopt-long.test ("apples-blimps-catalexis example",
+	"multiple occurances"): New top-level sections.
+
 2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/srfi-19.test (test-time-comparision,
