@@ -12,6 +12,25 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
+Changes since Guile 1.6.5 (changes in 1.6.6):
+
+* Changes to the distribution
+
+** srfi-39 should work now - a file was missing from the distribution.
+
+** A libltdl related build problem has been fixed.
+
+* Changes to the stand-alone interpreter
+
+* Changes to Scheme functions and syntax
+
+* Changes to the C interface 
+
+** A bug has been fixed that caused uvec_equalp to function improperly.
+
+** In scm_charnames and scm_charnums, sp is now an alias for space.
+
+
 Changes since Guile 1.6.4 (changes in 1.6.5):
 
 * Changes to the distribution

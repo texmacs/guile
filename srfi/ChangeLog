@@ -1,3 +1,7 @@
+2004-11-11  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (srfi_DATA): add srfi-39.scm.
+
 2004-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c (make_uvec): Use ((size_t)-1) instead of SIZE_MAX, for
