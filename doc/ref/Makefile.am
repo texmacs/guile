@@ -32,7 +32,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	appendices.texi indices.texi script-getopt.texi data-rep.texi \
-	autoconf.texi autoconf-macros.texi \
+	autoconf.texi autoconf-macros.texi tools.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
 
 include $(top_srcdir)/am/pre-inst-guile
