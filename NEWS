@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -22,6 +22,8 @@ Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 
 (use-modules (srfi srfi-31)) will now provide support for SRFI-31.
 See the Guile info pages for more documentation.
+
+** SRFI-39 has been added (parameter objects)
 
 ** Guile is now compiled with -fno-strict-aliasing when gcc is detected.
 
