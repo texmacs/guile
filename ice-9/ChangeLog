@@ -1,3 +1,8 @@
+2003-10-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* ftw.scm (directory-files): Close dir-stream when done.  Thanks
+	to Paul Jarc!
+
 2003-09-26  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (EXTRA_DIST): add compile-psyntax.scm.
