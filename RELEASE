@@ -136,10 +136,6 @@ Spiffing checklist:
     (If the above steps are not done, the dependencies won't be properly
     included in the generated Makefile.in files.)
 
-  + Add a note to the ChangeLog indicating the release.
-
-  + Tag the release "cvs tag release_1-5-2".
-
   + Run 'make dist'.
 
   + Check that the dependencies in guile-readline/Makefile look OK.
@@ -147,7 +143,21 @@ Spiffing checklist:
     by automake so that Guile can be built in a directory separate
     from the source tree also with non-GNU make programs.)
 
-* Give the test disty to various people to try.  Here's what you should do:
+  + Add a note to the ChangeLog indicating the release, and commit
+    this change.
+
+  + Tag the release "cvs tag release_1-5-2".
+
+  + Run 'make dist' again to get the official tarfile.
+
+* Test the tarfile yourself using the instructions under "Testing a
+  release candidate tarfile" below.
+
+* Give the test disty to various people to try.  They should follow
+  the same instructions under "Testing a release candidate tarfile"
+  below.
+
+* Testing a release candidate tarfile:
   + Unset GUILE_LOAD_PATH.
   + Remove automake and autoconf from your path, or turn off their
     execute bits, or something.  (Users must be able to build the
