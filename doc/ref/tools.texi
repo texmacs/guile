@@ -90,6 +90,9 @@ non-zero status.
 If env var CPP is set, use its value instead of the C pre-processor
 determined at Guile configure-time.
 
+During snarfing, the pre-processor macro @code{SCM_MAGIC_SNARFER} is
+defined.
+
 @xref{Macros guile-snarf recognizes}, for a list of the special (some would
 say magic) cpp macros you can use, including the list of deprecated macros.
 
