@@ -254,7 +254,18 @@
 (define (xcons d a)
   (cons a d))
 
+;; internal helper, similar to (scsh utilities) check-arg.
+(define (check-arg-type pred arg caller)
+  (if (pred arg)
+      arg
+      (scm-error 'wrong-type-arg caller
+		 "Wrong type argument: ~S" (list arg) '())))
+
+;; the srfi spec doesn't seem to forbid inexact integers.
+(define (non-negative-integer? x) (and (integer? x) (>= x 0)))
+
 (define (list-tabulate n init-proc)
+  (check-arg-type non-negative-integer? n "list-tabulate")
   (let lp ((n n) (acc '()))
     (if (<= n 0)
       acc
@@ -272,6 +283,7 @@
 	  (lp (cdr r) (cdr p)))))))
 
 (define (iota count . rest)
+  (check-arg-type non-negative-integer? count "iota")
   (let ((start (if (pair? rest) (car rest) 0))
 	(step (if (and (pair? rest) (pair? (cdr rest))) (cadr rest) 1)))
     (let lp ((n 0) (acc '()))
@@ -725,11 +737,16 @@
 ;;; Filtering & partitioning
 
 (define (filter pred list)
-  (if (null? list)
-    '()
-    (if (pred (car list))
-      (cons (car list) (filter pred (cdr list)))
-      (filter pred (cdr list)))))
+  (check-arg-type list? list "filter")  ; reject circular lists.
+  (letrec ((filiter (lambda (pred rest result)
+		      (if (null? rest)
+			  (reverse! result)
+			  (filiter pred (cdr rest)
+				   (cond ((pred (car rest))
+					  (cons (car rest) result))
+					 (else
+					  result)))))))
+    (filiter pred list '())))
 
 (define (partition pred list)
   (if (null? list)
@@ -741,11 +758,7 @@
 	       (values in (cons (car list) out))))))
 
 (define (remove pred list)
-  (if (null? list)
-    '()
-    (if (pred (car list))
-      (remove pred (cdr list))
-      (cons (car list) (remove pred (cdr list))))))
+  (filter (lambda (x) (not (pred x))) list))
 
 (define (filter! pred list)
   (filter pred list))			; XXX:optimize
