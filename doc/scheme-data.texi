@@ -1389,7 +1389,7 @@ characters enclosed in double quotes (@code{"}). @footnote{Actually, the
 current implementation restricts strings to a length of 2^24
 characters.}  If you want to insert a double quote character into a
 string literal, it must be prefixed with a backslash @code{\} character
-(called an @emph{escape character}).
+(called an @dfn{escape character}).
 
 The following are examples of string literals:
 
@@ -1410,8 +1410,7 @@ fulfills some specified property.
 
 @rnindex string?
 @deffn primitive string? obj
-Return @code{#t} iff @var{obj} is a string, else returns
-@code{#f}.
+Return @code{#t} iff @var{obj} is a string, else @code{#f}.
 @end deffn
 
 @deffn primitive string-null? str
@@ -2311,7 +2310,7 @@ association lists (@pxref{Association Lists}) or hash tables
 lot, and does not cause any performance loss.
 
 The read syntax for symbols is a sequence of letters, digits, and
-@emph{extended alphabetic characters} that begins with a character that
+@dfn{extended alphabetic characters} that begins with a character that
 cannot begin a number is an identifier.  In addition, @code{+},
 @code{-}, and @code{...} are identifiers.
 
@@ -2799,7 +2798,7 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 Pairs are used to combine two Scheme objects into one compound object.
 Hence the name: A pair stores a pair of objects.
 
-The data type @emph{pair} is extremely important in Scheme, just like in
+The data type @dfn{pair} is extremely important in Scheme, just like in
 any other Lisp dialect.  The reason is that pairs are not only used to
 make two values available as one object, but that pairs are used for
 constructing lists of values.  Because lists are so important in Scheme,
@@ -2836,7 +2835,7 @@ examples is as follows.
 A new pair is made by calling the procedure @code{cons} with two
 arguments.  Then the argument values are stored into a newly allocated
 pair, and the pair is returned.  The name @code{cons} stands for
-@emph{construct}.  Use the procedure @code{pair?} to test whether a
+"construct".  Use the procedure @code{pair?} to test whether a
 given Scheme object is a pair or not.
 
 @rnindex cons
@@ -2852,8 +2851,8 @@ Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
 
-The two parts of a pair are traditionally called @emph{car} and
-@emph{cdr}.  They can be retrieved with procedures of the same name
+The two parts of a pair are traditionally called @dfn{car} and
+@dfn{cdr}.  They can be retrieved with procedures of the same name
 (@code{car} and @code{cdr}), and can be modified with the procedures
 @code{set-car!} and @code{set-cdr!}.  Since a very common operation in
 Scheme programs is to access the car of a pair, or the car of the cdr of
@@ -2898,8 +2897,8 @@ by @code{set-cdr!} is unspecified.
 
 A very important data type in Scheme---as well as in all other Lisp
 dialects---is the data type @dfn{list}.@footnote{Strictly speaking,
-Scheme does not have a real datatype @emph{list}.  Lists are made up of
-chained @emph{pairs}, and only exist by definition---a list is a chain
+Scheme does not have a real datatype @dfn{list}.  Lists are made up of
+@dfn{chained pairs}, and only exist by definition---a list is a chain
 of pairs which looks like a list.}
 
 This is the short definition of what a list is:
@@ -3287,10 +3286,10 @@ return value is not specified.
 
 Vectors are sequences of Scheme objects.  Unlike lists, the length of a
 vector, once the vector is created, cannot be changed.  The advantage of
-vectors over lists is that the time required to access one element of a
-vector given its @emph{position} (synonymous with @emph{index}) is
-constant, whereas lists have an access time linear to the position of
-the accessed element in the list.
+vectors over lists is that the time required to access one element of a vector
+given its @dfn{position} (synonymous with @dfn{index}), a zero-origin number,
+is constant, whereas lists have an access time linear to the position of the
+accessed element in the list.
 
 Note that the vectors documented in this section can contain any kind of
 Scheme object, it is even possible to have different types of objects in
@@ -3419,14 +3418,11 @@ Return the contents of position @var{k} of @var{vector}.
 @node Records
 @section Records
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
 A @dfn{record type} is a first class object representing a user-defined
 data type.  A @dfn{record} is an instance of a record type.
 
 @deffn procedure record? obj
-Returns @code{#t} if @var{obj} is a record of any type and @code{#f}
+Return @code{#t} if @var{obj} is a record of any type and @code{#f}
 otherwise.
 
 Note that @code{record?} may be true of any Scheme value; there is no
@@ -3434,17 +3430,17 @@ promise that records are disjoint with other Scheme types.
 @end deffn
 
 @deffn procedure make-record-type type-name field-names
-Returns a @dfn{record-type descriptor}, a value representing a new data
+Return a @dfn{record-type descriptor}, a value representing a new data
 type disjoint from all others.  The @var{type-name} argument must be a
 string, but is only used for debugging purposes (such as the printed
 representation of a record of the new type).  The @var{field-names}
 argument is a list of symbols naming the @dfn{fields} of a record of the
 new type.  It is an error if the list contains any duplicates.  It is
-unspecified how record-type descriptors are represented.@refill
+unspecified how record-type descriptors are represented.
 @end deffn
 
 @deffn procedure record-constructor rtd [field-names]
-Returns a procedure for constructing new members of the type represented
+Return a procedure for constructing new members of the type represented
 by @var{rtd}.  The returned procedure accepts exactly as many arguments
 as there are symbols in the given list, @var{field-names}; these are
 used, in order, as the initial values of those fields in a new record,
@@ -3453,28 +3449,28 @@ fields not named in that list are unspecified.  The @var{field-names}
 argument defaults to the list of field names in the call to
 @code{make-record-type} that created the type represented by @var{rtd};
 if the @var{field-names} argument is provided, it is an error if it
-contains any duplicates or any symbols not in the default list.@refill
+contains any duplicates or any symbols not in the default list.
 @end deffn
 
 @deffn procedure record-predicate rtd
-Returns a procedure for testing membership in the type represented by
+Return a procedure for testing membership in the type represented by
 @var{rtd}.  The returned procedure accepts exactly one argument and
 returns a true value if the argument is a member of the indicated record
-type; it returns a false value otherwise.@refill
+type; it returns a false value otherwise.
 @end deffn
 
 @deffn procedure record-accessor rtd field-name
-Returns a procedure for reading the value of a particular field of a
+Return a procedure for reading the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly one argument which must be a record of the appropriate
 type; it returns the current value of the field named by the symbol
 @var{field-name} in that record.  The symbol @var{field-name} must be a
 member of the list of field-names in the call to @code{make-record-type}
-that created the type represented by @var{rtd}.@refill
+that created the type represented by @var{rtd}.
 @end deffn
 
 @deffn procedure record-modifier rtd field-name
-Returns a procedure for writing the value of a particular field of a
+Return a procedure for writing the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly two arguments: first, a record of the appropriate type,
 and second, an arbitrary Scheme value; it modifies the field named by
@@ -3482,31 +3478,31 @@ the symbol @var{field-name} in that record to contain the given value.
 The returned value of the modifier procedure is unspecified.  The symbol
 @var{field-name} must be a member of the list of field-names in the call
 to @code{make-record-type} that created the type represented by
-@var{rtd}.@refill
+@var{rtd}.
 @end deffn
 
 @deffn procedure record-type-descriptor record
-Returns a record-type descriptor representing the type of the given
+Return a record-type descriptor representing the type of the given
 record.  That is, for example, if the returned descriptor were passed to
 @code{record-predicate}, the resulting predicate would return a true
 value when passed the given record.  Note that it is not necessarily the
 case that the returned descriptor is the one that was passed to
 @code{record-constructor} in the call that created the constructor
-procedure that created the given record.@refill
+procedure that created the given record.
 @end deffn
 
 @deffn procedure record-type-name rtd
-Returns the type-name associated with the type represented by rtd.  The
+Return the type-name associated with the type represented by rtd.  The
 returned value is @code{eqv?} to the @var{type-name} argument given in
 the call to @code{make-record-type} that created the type represented by
-@var{rtd}.@refill
+@var{rtd}.
 @end deffn
 
 @deffn procedure record-type-fields rtd
-Returns a list of the symbols naming the fields in members of the type
+Return a list of the symbols naming the fields in members of the type
 represented by @var{rtd}.  The returned value is @code{equal?} to the
 field-names argument given in the call to @code{make-record-type} that
-created the type represented by @var{rtd}.@refill
+created the type represented by @var{rtd}.
 @end deffn
 
 
@@ -3630,7 +3626,7 @@ A pair object in which the first field is held constant could be:
 "prpw"
 @end example
 
-Binary fields, (fields of type "u"), hold one @emph{word} each.  The
+Binary fields, (fields of type "u"), hold one @dfn{word} each.  The
 size of a word is a machine dependent value defined to be equal to the
 value of the C expression: @code{sizeof (long)}.
 
