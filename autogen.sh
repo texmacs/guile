@@ -1,7 +1,7 @@
 #!/bin/sh
 # Usage: sh -x ./autogen.sh [WORKBOOK]
 
-set -e -x
+set -e
 
 [ -f GUILE-VERSION ] || {
   echo "autogen.sh: run this command only at the top of guile-core."
