@@ -1,14 +1,12 @@
 Guile NEWS --- history of user-visible changes.  -*- text -*-
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.4:
 
-* Changes to the distribution
-
-** A top-level TODO file is included.
+* General Changes
 
 ** Guile now uses a versioning scheme similar to that of the Linux kernel.
 
@@ -31,11 +29,6 @@ micro version number.
 
 In addition, ./GUILE-VERSION now defines GUILE_MICRO_VERSION.
 
-** New preprocessor definitions are available for checking versions.
-
-version.h now #defines SCM_MAJOR_VERSION, SCM_MINOR_VERSION, and
-SCM_MICRO_VERSION to the appropriate integer values.
-
 ** Guile now actively warns about deprecated features.
 
 The new configure option `--enable-deprecated=LEVEL' and the
@@ -49,21 +42,7 @@ cases on Alpha and ia64 based machines now.  Thanks to John Goerzen
 for the use of a test machine, and thanks to Stefan Jahn for ia64
 patches.
 
-** New functions: setitimer and getitimer.
-
-These implement a fairly direct interface to the libc functions of the
-same name.
-
-** The #. reader extension is now disabled by default.
-
-For safety reasons, #. evaluation is disabled by default.  To
-re-enable it, set the fluid read-eval? to #t.  For example:
-
-  (fluid-set! read-eval? #t)
-
-but make sure you realize the potential security risks involved.  With
-read-eval?  enabled, reading a data file from an untrusted source can
-be dangerous.
+* Changes to the distribution
 
 ** New SRFI modules have been added:
 
@@ -129,8 +108,7 @@ guile-tools is copied to the standard $bindir on "make install".
 
 ** Snarfing news
 
-The installed program guile-snarf is now documented in the manual,
-including how to use it to detect deprecated macros.
+The installed program guile-snarf is now documented in the manual.
 
 These programs are no longer installed:
 
@@ -306,6 +284,22 @@ Usage: (help NAME) gives documentation about objects named NAME (a symbol)
 The starred items are new.
 
 * Changes to Scheme functions and syntax
+
+** New functions: setitimer and getitimer.
+
+These implement a fairly direct interface to the libc functions of the
+same name.
+
+** The #. reader extension is now disabled by default.
+
+For safety reasons, #. evaluation is disabled by default.  To
+re-enable it, set the fluid read-eval? to #t.  For example:
+
+  (fluid-set! read-eval? #t)
+
+but make sure you realize the potential security risks involved.  With
+read-eval?  enabled, reading a data file from an untrusted source can
+be dangerous.
 
 ** Character classifiers work for non-ASCII characters.
 
@@ -865,6 +859,11 @@ the same name in the GNU C library.
 
 * Changes to the C interface
 
+** New preprocessor definitions are available for checking versions.
+
+version.h now #defines SCM_MAJOR_VERSION, SCM_MINOR_VERSION, and
+SCM_MICRO_VERSION to the appropriate integer values.
+
 ** Types have been renamed from scm_*_t to scm_t_*.
 
 This has been done for POSIX sake.  It reserves identifiers ending
@@ -1207,7 +1206,7 @@ been made more similar to the high-level Scheme module system.
     scm_c_export, scm_c_resolve_module.
 
 They mostly work like their Scheme namesakes.  scm_c_define_module
-takes a function that is called a context where the new module is
+takes a function that is called in a context where the new module is
 current.
 
 *** Deprecated functions: scm_the_root_module, scm_make_module,
@@ -1239,7 +1238,7 @@ oddly named.
    scm_ptob_descriptor, scm_debug_info, scm_debug_frame, scm_fport,
    scm_option, scm_rstate, scm_rng, scm_array, scm_array_dim.
 
-Made more compliant with the naming policy by adding a _t at the end.
+Made more compliant with the naming policy by moving to a scm_t_ prefix.
 
 ** Deprecated functions: scm_mkbig, scm_big2num, scm_adjbig,
    scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl
