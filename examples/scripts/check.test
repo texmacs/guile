@@ -2,6 +2,14 @@
 
 # must be run from this directory
 guile=${GUILE-../../libguile/guile}
+if [ -x $guile ] ; then
+    :
+else
+    echo could not find guile interpreter.
+    echo '(are you running this script from' `dirname $0` '?)'
+    echo GUILE env var: ${GUILE-not set}
+    exit 1
+fi
 
 set -e
 
@@ -36,6 +44,6 @@ rm -f TMP
 #
 # fact
 #
-case `guile -s fact 5` in 120) ;; *) echo $0: error: fact 5 ;; esac
+case `$guile -s fact 5` in 120) ;; *) echo $0: error: fact 5 ;; esac
 
 # check.test ends here
