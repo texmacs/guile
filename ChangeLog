@@ -2,6 +2,8 @@
 
 	* Makefile.am (SUBDIRS): Add `am'.
 
+	* pre-inst-guile.in: Typofix; nfc.
+
 2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* pre-inst-guile.in: New file.
