@@ -40,7 +40,7 @@ ETAGS_ARGS = $(subpkgdata_DATA)
 
 install-data-local:
 	-$(INSTALL_DATA) $(srcdir)/and-let-star-compat.scm \
-           $(subpkgdatadir)/'and-let*.scm'
+           $(DESTDIR)$(subpkgdatadir)/'and-let*.scm'
 
 ## test.scm is not currently installed.
 EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
