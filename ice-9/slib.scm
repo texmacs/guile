@@ -1,6 +1,6 @@
 ;;;; slib.scm --- definitions needed to get SLIB to work with Guile
 ;;;;
-;;;;	Copyright (C) 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+;;;;	Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GUILE.
 ;;;; 
@@ -51,6 +51,7 @@
 	   scheme-implementation-type
 	   scheme-implementation-version
 	   make-random-state
+	   <? <=? =? >? >=?
 	   require)
   :no-backtrace)
 
@@ -221,6 +222,15 @@
 		  (require 'object->string)
 		  (set! seed (object->limited-string seed 50)))))
     (seed->random-state seed)))
+
+;;; {rev2-procedures}
+;;;
+
+(define <?  <)
+(define <=? <=)
+(define =?  =)
+(define >?  >)
+(define >=? >=)
 
 ;;; {Time}
 ;;;
