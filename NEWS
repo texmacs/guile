@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -8,6 +8,21 @@ Each release reports the NEWS in the following sections:
 
 * Changes to the distribution
 * Changes to the stand-alone interpreter
+* Changes to Scheme functions and syntax
+* Changes to the C interface 
+
+
+Changes since Guile 1.6.3:
+
+* Changes to the distribution
+* Changes to the stand-alone interpreter
+
+** Readline prompt problem fixed.
+
+Previously, the readline prompt disappeared when running Guile in
+non-echoing terminal mode (for example under GDB in Emacs).  This has
+been fixed.
+
 * Changes to Scheme functions and syntax
 * Changes to the C interface 
 
