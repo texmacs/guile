@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1304,15 +1304,26 @@ scm_init_socket ()
   scm_c_define ("INADDR_LOOPBACK", scm_ulong2num (INADDR_LOOPBACK));
 #endif
 
-  /* socket types.  */
+  /* socket types.
+
+     SOCK_PACKET is deliberately omitted, the GNU/Linux socket(2) and
+     packet(7) man pages advise that it's obsolete and strongly
+     deprecated.  */
+
 #ifdef SOCK_STREAM
   scm_c_define ("SOCK_STREAM", SCM_MAKINUM (SOCK_STREAM));
 #endif
 #ifdef SOCK_DGRAM
   scm_c_define ("SOCK_DGRAM", SCM_MAKINUM (SOCK_DGRAM));
 #endif
+#ifdef SOCK_SEQPACKET
+  scm_c_define ("SOCK_SEQPACKET", SCM_MAKINUM (SOCK_SEQPACKET));
+#endif
 #ifdef SOCK_RAW
   scm_c_define ("SOCK_RAW", SCM_MAKINUM (SOCK_RAW));
+#endif
+#ifdef SOCK_RDM
+  scm_c_define ("SOCK_RDM", SCM_MAKINUM (SOCK_RDM));
 #endif
 
   /* setsockopt level.  */
