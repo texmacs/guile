@@ -17,4 +17,5 @@ libltdl
 libtool
 ltconfig
 ltmain.sh
+pre-inst-guile
 stamp-h1
