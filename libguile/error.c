@@ -308,7 +308,7 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
   else
     {
       /* numerical error code.  */
-      int error = (int) pos;
+      int error = (intptr_t) pos;
 
       switch (error)
 	{
