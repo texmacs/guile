@@ -36,7 +36,7 @@
 
 (if (not (feature? 'readline))
     (dynamic-call "scm_init_readline"
-                  (dynamic-link "libguilereadline-lt-15-0-2")))
+                  (dynamic-link "libguilereadline-v-12")))
 
 (if (not (feature? 'readline))
     (scm-error 'misc-error
