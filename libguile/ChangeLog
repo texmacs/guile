@@ -1,3 +1,13 @@
+2001-08-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* gc.c: Fix omission bug: Add `heap_segment' forward decl
+	(proto) in the case when either `GUILE_DEBUG' or
+	`GUILE_DEBUG_FREELIST' preprocessor symbols are defined.
+
+	(map_free_list): Fix typo: Ref `f' correctly.
+
+	Thanks to Chris Cramer.
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libguile_la_LDFLAGS): use libtool interface version
