@@ -217,6 +217,7 @@
 	  ;; Run the tests.
 	  (for-each (lambda (test)
 		      (with-test-prefix test
+                        (display (string-append "Running " test "\n"))
 			(load (test-file-name test))))
 		    tests)
 
