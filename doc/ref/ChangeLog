@@ -1,3 +1,16 @@
+2002-04-28  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gh.texi, data-rep.texi: Moved `@deftyp {Data type} SCM' line
+	from gh.texi to data-rep.texi.  Both files already had similar
+	descriptions for SCM.  Given that gh.texi is deprecated, looking
+	up `SCM' in the index should take one to the primary location
+	rather than deprecated section.  Hence this change.  Added
+	`@deftp' for scm_t_bits data type so that a proper index entry is
+	added for this.  Thanks to Richard Y. Kim!
+	
+	* data-rep.texi (Subrs): Changed scm_make_gsubr to
+	scm_c_define_gsubr.  Thanks to Richard Y. Kim!
+
 2002-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-intro.texi (Scheme Layout), scm.texi (Reference Layout):
