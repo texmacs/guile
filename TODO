@@ -86,9 +86,11 @@ See also file HACKING.
 + Scan the ChangeLogs for user-visible changes, marked with an asterisk
   at the left margin. [martin: there were none]
 
-- Update NEWS and the Texinfo documentation as appropriate.
++ Update NEWS and the Texinfo documentation as appropriate.
+  [martin: there were none]
 
-- Remove the user-visible markers from the log entries once they're documented.
++ Remove the user-visible markers from the log entries once they're documented.
+  [martin: there were none]
 
 + Check for any [[incomplete]] sections of NEWS.
 
