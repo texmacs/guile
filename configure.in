@@ -152,7 +152,7 @@ fi
 
 #--------------------------------------------------------------------
 
-AC_LIBLTDL_CONVENIENCE
+AC_LIBLTDL_INSTALLABLE
 AC_CONFIG_SUBDIRS(libltdl)
 
 AC_PROG_CC
