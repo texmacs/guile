@@ -1,6 +1,6 @@
 2001-09-05  Rob Browning  <rlb@defaultvalue.org>
 
-	* Release 1.5.2.
+	* Guile beta 1.5.2 released.
 
 	* GUILE-VERSION (GUILE_MICRO_VERSION): bump for beta release.
 

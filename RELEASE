@@ -150,7 +150,7 @@ Spiffing checklist:
     by automake so that Guile can be built in a directory separate
     from the source tree also with non-GNU make programs.)
 
-  * Add a note to the ChangeLog indicating the release.
+  * Add a "Guile beta N.M released." entry to the top-level ChangeLog.
 
   * Now commit all your changes to CVS.
 
