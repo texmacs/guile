@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,13 +134,6 @@ current_input_getc (FILE *in SCM_UNUSED)
       promptp = 0;
     }
   return scm_getc (input_port);
-}
-
-static void
-redisplay ()
-{
-  rl_redisplay ();
-  /* promptp = 1; */
 }
 
 static int in_readline = 0;
@@ -546,7 +539,6 @@ scm_init_readline ()
   scm_readline_completion_function_var
     = scm_c_define ("*readline-completion-function*", SCM_BOOL_F);
   rl_getc_function = current_input_getc;
-  rl_redisplay_function = redisplay;
 #if defined (_RL_FUNCTION_TYPEDEF)
   rl_completion_entry_function = (rl_compentry_func_t*) completion_function;
 #else  
