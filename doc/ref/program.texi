@@ -11,7 +11,31 @@ as the application developer, @emph{and your users}, reap the benefits
 that flow from being able to extend the application in a high level
 extension language rather than in plain old C.
 
-Underlying this argument is the assumption that programming in a high
+In abstract terms, it's difficult to explain what this really means and
+what the integration process involves, so instead let's begin by jumping
+straight into an example of how you might integrate Guile into an
+existing program, and what you could expect to gain by so doing.  With
+that example under our belts, we'll then return to a more general
+analysis of the arguments involved and the range of programming options
+available.
+
+@menu
+* Extending Dia::               How one might extend Dia using Guile.
+* Scheme vs C::                 Why Scheme is more hackable than C.
+* Testbed Example::             Example: using Guile in a testbed.
+* Programming Options::         Options for Guile programming.
+* User Programming::            How about application users?
+@end menu
+
+
+@node Extending Dia
+@section How One Might Extend Dia Using Guile
+
+
+@node Scheme vs C
+@section Why Scheme is More Hackable Than C
+
+Underlying Guile's argument is the assumption that programming in a high
 level language, specifically Guile's implementation of Scheme, is
 necessarily better in some way than programming in C.  What do we mean
 by this claim, and how can we be so sure?
@@ -50,12 +74,6 @@ eco-system for Guile-based applications as well, such as Lilypond and
 GnuCash.  It is close to inconceivable that similar amounts of
 functionality could have been added to these applications just by
 writing new code in their base implementation languages.
-
-@menu
-* Testbed Example::             Example: using Guile in a testbed.
-* Programming Options::         Options for Guile programming.
-* User Programming::            How about application users?
-@end menu
 
 
 @node Testbed Example

@@ -1,3 +1,11 @@
+2002-04-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* program.texi (Scheme vs C): New node, with existing material
+	taken from chapter intro.
+	(Programming Overview): New intro para to introduce example of
+	Guile integration:
+	(Extending Dia): New node.
+
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tools.texi (guile-snarf): Updated.
