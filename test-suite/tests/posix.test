@@ -1,4 +1,5 @@
-;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
+;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
+
 ;;;; Copyright (C) 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
