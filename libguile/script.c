@@ -366,10 +366,12 @@ char *scm_usage_name = 0;
 void
 scm_shell_usage (int fatal, char *message)
 {
-  if (message)
-    fprintf (stderr, "%s\n", message);
+  FILE  *fp = (fatal ? stderr : stdout);
 
-  fprintf (stderr, 
+  if (message)
+    fprintf (fp, "%s\n", message);
+
+  fprintf (fp, 
            "Usage: %s OPTION ...\n"
            "Evaluate Scheme code, interactively or from a script.\n"
            "\n"
