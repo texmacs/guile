@@ -1,3 +1,8 @@
+2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* chars.h (SCM_MAKE_CHAR): Use `scm_t_bits' instead of `intptr_t'.
+	Thanks to Golubev I. N.
+
 2001-09-25  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c (scm_drain_input): extended the docstring.  thanks to
@@ -91,7 +96,7 @@
 
 	* gc.c (allocated_mark, MARK, heap_segment,
 	scm_gc_mark_cell_conservatively, scm_init_storage), gc.h
-	(scm_gc_mark_cell_conservatively):  Remove function 
+	(scm_gc_mark_cell_conservatively):  Remove function
 	scm_gc_mark_cell_conservatively and update the corresponding
 	comments and uses accordingly.  Thanks to Christopher Cramer for
 	the patch.  (Minor corrections by me.)
@@ -104,7 +109,7 @@
 
 	* num2integral.i.c (NUM2INTEGRAL): when converting a bignum to
 	unsigned, ensure that it's positive.  thanks to Martin Baulig!
-	
+
 2001-08-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* ports.c, ports.h, fprots.c, gc.c, ioext.c: Replaced
