@@ -1371,7 +1371,6 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 		     wouldn't have contiguous elements.  */
 SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
            (SCM ra, SCM strict),
-	    "@deffnx {Scheme Procedure} array-contents array strict\n"
 	    "If @var{array} may be @dfn{unrolled} into a one dimensional shared array\n"
 	    "without changing their order (last subscript changing fastest), then\n"
 	    "@code{array-contents} returns that shared array, otherwise it returns\n"

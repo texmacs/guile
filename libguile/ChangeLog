@@ -1,5 +1,21 @@
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* posix.c (scm_execl): Remove spurious whitespace from docstring.
+
+	* unif.c (scm_array_contents): Remove duplicate @deffnx line.
+
+	* struct.c (scm_struct_p, scm_struct_vtable_p): Align variable
+	name in docstring with C parameter name.
+
+	* sort.c (scm_merge), stacks.c (scm_make_stack): Take clearer
+	docstrings from unstable branch.
+
+	* print.c (scm_newline): Say what if port arg is omitted.
+
+	* objprop.c (scm_object_properties, scm_set_object_properties_x,
+	scm_object_property, scm_set_object_property_x): Remove incorrect
+	@deffnx lines from docstrings.
+
 	* debug.c (scm_debug_options): Change incorrect @var in docstring
 	to @code.
 
