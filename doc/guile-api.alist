@@ -1,9 +1,9 @@
-;; Generated Fri Mar 1 00:41:25 PST 2002 by guile-scripts/scan-api -- do not edit!
+;; Generated Tue Apr 23 15:37:48 PDT 2002 by guile-scripts/scan-api -- do not edit!
 (
 (meta (GUILE_LOAD_PATH . "")
       (LTDL_LIBRARY_PATH . "")
       (guile . "pre-inst-guile")
-      (sofile . "libguile/.libs/libguile.so.15.0.0"))
+      (sofile . "libguile/.libs/libguile.so.14.1.0"))
 (scheme
 ($abs "#<primitive-procedure $abs>")
 ($acos "#<primitive-procedure $acos>")
@@ -1543,7 +1543,6 @@
 (zero? "#<primitive-procedure zero?>")
 ) ;; end of scheme
 (C
-(collisionp B)
 (coop_abort T)
 (coop_condition_variable_destroy T)
 (coop_condition_variable_init T)
@@ -1588,7 +1587,6 @@
 (gdb_print T)
 (gdb_read T)
 (gdb_result B)
-(gexceptfds B)
 (gh_append T)
 (gh_append2 T)
 (gh_append3 T)
@@ -1700,13 +1698,6 @@
 (gh_vector_ref T)
 (gh_vector_set_x T)
 (gh_write T)
-(gnfds B)
-(greadfds B)
-(gwritefds B)
-(issued_msgs B)
-(rexceptfds B)
-(rreadfds B)
-(rwritefds B)
 (scm_2ulong2big T)
 (scm_I_am_dead B)
 (scm_abs T)
@@ -2307,6 +2298,7 @@
 (scm_i_ptrdiff2big T)
 (scm_i_short2big T)
 (scm_i_size2big T)
+(scm_i_terminating B)
 (scm_i_uint2big T)
 (scm_i_ulong2big T)
 (scm_i_ulong_long2big T)
@@ -2977,12 +2969,12 @@
 (scm_sloppy_memv T)
 (scm_slot_bound_p T)
 (scm_slot_bound_using_class_p T)
+(scm_slot_exists_p T)
 (scm_slot_exists_using_class_p T)
 (scm_slot_ref T)
 (scm_slot_ref_using_class T)
 (scm_slot_set_using_class_x T)
 (scm_slot_set_x T)
-(scm_slots_exists_p T)
 (scm_smob_class D)
 (scm_smob_free T)
 (scm_smob_prehistory T)
@@ -3302,6 +3294,5 @@
 (scm_yield T)
 (scm_your_base D)
 (scm_zero_p T)
-(terminating B)
 ) ;; end of C
 ) ;; eof
