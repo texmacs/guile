@@ -1,3 +1,9 @@
+2004-01-13  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am
+	(numbers.lo): remove -Werror for now since gcc 3.3 will choke.
+	(eval.lo): remove -Werror for now since gcc 3.3 will choke.
+
 2004-01-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* guile-snarf.in: Use mktemp to create a truely unique temporary

@@ -1,3 +1,8 @@
+2004-01-13  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in (have_libc_stack_end): fix check.
+	Patch by Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
+
 2003-06-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in (HAVE_LIBC_STACK_END): New check, to be used in
