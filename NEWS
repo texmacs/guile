@@ -27,6 +27,12 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** call-with-output-string doesn't segv on closed port
+
+Previously call-with-output-string would give a segmentation fault if
+the string port was closed by the called function.  An exception is
+raised now.
+
 ** (ice-9 popen) duplicate pipe fd fix
 
 open-pipe, open-input-pipe and open-output-pipe left an extra copy of
