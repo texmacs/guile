@@ -25,39 +25,39 @@
 ;;;
 
 (with-test-prefix "hash"
-  (pass-if (->bool (object-documentation hash)))
+  (pass-if "doc" (->bool (object-documentation hash)))
   (pass-if-exception "hash #t -1" exception:out-of-range
     (hash #t -1))
   (pass-if-exception "hash #t 0" exception:out-of-range
     (hash #t 0))
-  (pass-if (= 0 (hash #t 1)))
-  (pass-if (= 0 (hash #f 1)))
-  (pass-if (= 0 (hash noop 1))))
+  (pass-if "size=1 -> 0 on #t" (= 0 (hash #t 1)))
+  (pass-if "size=1 -> 0 on #f" (= 0 (hash #f 1)))
+  (pass-if "size=1 -> 0 on noop" (= 0 (hash noop 1))))
 
 ;;;
 ;;; hashv
 ;;;
 
 (with-test-prefix "hashv"
-  (pass-if (->bool (object-documentation hashv)))
+  (pass-if "doc" (->bool (object-documentation hashv)))
   (pass-if-exception "hashv #t -1" exception:out-of-range
     (hashv #t -1))
   (pass-if-exception "hashv #t 0" exception:out-of-range
     (hashv #t 0))
-  (pass-if (= 0 (hashv #t 1)))
-  (pass-if (= 0 (hashv #f 1)))
-  (pass-if (= 0 (hashv noop 1))))
+  (pass-if "size=1 -> 0 on #t" (= 0 (hashv #t 1)))
+  (pass-if "size=1 -> 0 on #f" (= 0 (hashv #f 1)))
+  (pass-if "size=1 -> 0 on noop" (= 0 (hashv noop 1))))
 
 ;;;
 ;;; hashq
 ;;;
 
 (with-test-prefix "hashq"
-  (pass-if (->bool (object-documentation hashq)))
+  (pass-if "doc" (->bool (object-documentation hashq)))
   (pass-if-exception "hashq #t -1" exception:out-of-range
     (hashq #t -1))
   (pass-if-exception "hashq #t 0" exception:out-of-range
     (hashq #t 0))
-  (pass-if (= 0 (hashq #t 1)))
-  (pass-if (= 0 (hashq #f 1)))
-  (pass-if (= 0 (hashq noop 1))))
+  (pass-if "size=1 -> 0 on #t" (= 0 (hashq #t 1)))
+  (pass-if "size=1 -> 0 on #f" (= 0 (hashq #f 1)))
+  (pass-if "size=1 -> 0 on noop" (= 0 (hashq noop 1))))
