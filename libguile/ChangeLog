@@ -1,5 +1,9 @@
 2003-04-12  Rob Browning  <rlb@defaultvalue.org>
 
+	* backtrace.c (display_backtrace_file): correct a couple of
+	instances of "file == SCM_BOOL_F" to "SCM_FALSEP (file)"
+	(shouldn't be comparing values directly).
+
 	* __scm.h (SCM_FLUSH_REGISTER_WINDOWS): don't just rely on "sparc"
 	test.  Instead use
 	#if defined (sparc) || defined (__sparc__) || defined (__sparc)
