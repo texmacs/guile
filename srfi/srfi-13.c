@@ -2637,7 +2637,7 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
 
 
 SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
-	    (SCM s, SCM proc, SCM start, SCM end),
+	    (SCM proc, SCM s, SCM start, SCM end),
 	    "@var{proc} is mapped over @var{s} in left-to-right order.  The\n"
 	    "return value is not specified.")
 #define FUNC_NAME s_scm_string_for_each
@@ -2645,13 +2645,35 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
   char * cstr;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  SCM_VALIDATE_PROC (2, proc);
   while (cstart < cend)
     {
       scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
+      cstart++;
+    }
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
+	    (SCM proc, SCM s, SCM start, SCM end),
+	    "@var{proc} is mapped over @var{s} in left-to-right order.  The\n"
+	    "return value is not specified.")
+#define FUNC_NAME s_scm_string_for_each
+{
+  char * cstr;
+  int cstart, cend;
+
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
+				    3, start, cstart,
+				    4, end, cend);
+  while (cstart < cend)
+    {
+      scm_call_1 (proc, SCM_MAKINUM (cstart));
       cstart++;
     }
   return SCM_UNSPECIFIED;
