@@ -1,3 +1,9 @@
+2002-02-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* acinclude.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): Use [] rather than
+	"" for multiword string.  Thanks to Christopher Cramer for
+	pointing this out.
+
 2002-02-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
         * Makefile.am (EXTRA_DIST): Added pre-inst-guile and
