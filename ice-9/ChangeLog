@@ -1,3 +1,7 @@
+2001-09-08  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* and-let-star-compat.scm: Use `re-export-syntax'.
+
 2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* getopt-long.scm (process-options, getopt-long): Fix omission
