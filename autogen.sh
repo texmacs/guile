@@ -1,7 +1,7 @@
 #!/bin/sh
 # Usage: sh -x ./autogen.sh [WORKBOOK]
 
-set -e
+set -e -x
 
 [ -f GUILE-VERSION ] || {
   echo "autogen.sh: run this command only at the top of guile-core."
@@ -28,6 +28,7 @@ for f in $workbookdistfiles ; do
 done
 rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
+ln -s $workbook/tasks/TODO TODO
 ######################################################################
 
 ./guile-aclocal.sh
