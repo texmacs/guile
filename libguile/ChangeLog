@@ -1,3 +1,8 @@
+2003-11-09  Kevin Ryde  <user42@zip.com.au>
+
+	* dynl.c (scm_dynamic_unlink): Need scm_list_1 on error message
+	argument.  Reported by Mike Gran.
+
 2003-10-11  Rob Browning  <rlb@defaultvalue.org>
 
 	* list.c (s_scm_append): add patch from Kevin Ryde to track argnum
