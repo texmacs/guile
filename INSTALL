@@ -102,6 +102,14 @@ switches specific to Guile you may find useful in some circumstances.
   thread support do not affect you if you don't actually use threads.
 
 
+--disable-linuxthreads  ---  Disable pthread compatability hack on Linux
+
+  If you experience problems on GNU/Linux that are related to
+  pthreads, you might try this option.  Guile with then not link with
+  the pthreads library, but will also not try to be compatible to
+  programs that use both libguile and libpthread.
+
+
 --with-modules  ---  Specify statically linked `modules'
 
   Guile can dynamically load `plugin modules' during runtime, using
