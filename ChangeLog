@@ -1,5 +1,9 @@
 2002-03-03  Rob Browning  <rlb@defaultvalue.org>
 
+	* Guile beta 1.5.5 released.
+
+	* GUILE-VERSION: bump minor version for release.
+
 	* .cvsignore: add pre-inst-guile.
 
 2002-02-27  Thien-Thi Nguyen  <ttn@giblet.glug.org>

@@ -63,7 +63,7 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
-- Check with Thi about library version numbers.
+- Check with ttn about library version numbers.
 
 - Check with Martin about scm_t_? fix.
 

@@ -1,5 +1,9 @@
 2002-03-03  Rob Browning  <rlb@defaultvalue.org>
 
+	* LIBGUILEREADLINE-VERSION (LIBGUILEREADLINE_INTERFACE_CURRENT):
+	change interface to 15 to match other lib's jump for now.  Will
+	probably change again after finishing discussion with ttn.
+
 	* Makefile.am (EXTRA_DIST): add LIBGUILEREADLINE-VERSION.
 
 2002-02-25  Thien-Thi Nguyen  <ttn@giblet.glug.org>
