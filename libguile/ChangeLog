@@ -1,3 +1,10 @@
+2003-04-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc.c (SCM_MTRIGGER_HYSTERESIS): Removed.
+	(scm_i_minyield_malloc, check_mtrigger): New.
+	(scm_must_malloc, scm_must_realloc, scm_done_malloc): Use it
+	instead of explicit code.  Thanks to Han-Wen Nienhuys!
+	
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (TEST_CHANGE_CLASS): Update variable class after class

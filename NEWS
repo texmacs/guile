@@ -49,6 +49,13 @@ protect, is now initialized correctly.
 The class redefinition protocol now properly removes the old accessor
 methods from their accessors.
 
+** Garbage collection frequency improved for large malloc heaps
+
+The decision when to run the GC is now done in a way that avoids GCs
+with a small yield for heaps with a large amount of malloced storage.
+The minimum expected yield for malloc storage is now relative to the
+heap size, and not a fixed amount as it was previously.
+
 * Changes to Scheme functions and syntax
 
 ** %fast-slot-ref no longer checks slot boundness
