@@ -46,7 +46,11 @@ uninstall-local:
 	rm -f $(DESTDIR)$(subpkgdatadir)/'and-let*.scm'
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
+EXTRA_DIST = \
+  $(ice9_sources) \
+  test.scm \
+  and-let-star-compat.scm \
+  compile-psyntax.scm
 
 if MAINTAINER_MODE
 # We expect this to never be invoked when there is not already
