@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.1.2.5 2002-04-28 14:53:21 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.1.2.6 2002-08-27 17:35:15 mvo Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1170,7 +1170,7 @@ This reference can be decoded to a C pointer to a heap cell using the
 @code{SCM} value is done using the @code{PTR2SCM} macro.
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro (scm_t_cell *) SCM2PTR (SCM @var{x})
+@deftypefn Macro {(scm_t_cell *)} SCM2PTR (SCM @var{x})
 Extract and return the heap cell pointer from a non-immediate @code{SCM}
 object @var{x}.
 @end deftypefn
