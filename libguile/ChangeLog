@@ -1,3 +1,13 @@
+2004-02-29  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_execl, scm_execlp, scm_execle): Avoid memory leak under
+	error throw.
+
+	* stime.c (scm_localtime, scm_gmtime, scm_mktime): Provide a default
+	errno EINVAL in case localtime and gmtime don't set it.
+	(scm_mktime, scm_strptime): Forcibly use errno EINVAL for our
+	SCM_SYSERROR, since mktime and strptime generally don't set errno.
+
 2004-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_crypt): Use new HAVE_CRYPT.
