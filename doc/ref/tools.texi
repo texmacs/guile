@@ -70,14 +70,15 @@ generate a file of calls to @code{scm_c_define_gsubr} which you can
 @cindex guile-snarf invocation
 @cindex guile-snarf example
 
-Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
+Usage: guile-snarf [-o OUTFILE] INFILE [CPP-OPTIONS ...]
 
 What @code{guile-snarf} does:
 
 Process INFILE using the C pre-processor and some other programs.
-Write output to a file, named OUTFILE if specified, or STEM.x if
-INFILE looks like STEM.c and no OUTFILE is specified.  Ignore
-lines from the input matching grep(1) regular expression:
+Write output to a file named OUTFILE or to the standard output when no
+OUTFILE has been specified or when OUTFILE is @code{-}.  When writing
+to a file, ignore lines from the input matching the following grep(1)
+regular expression:
 
 @example
       ^#include ".*OUTFILE"
@@ -85,10 +86,6 @@ lines from the input matching grep(1) regular expression:
 
 If there are errors during processing, delete OUTFILE and exit with
 non-zero status.
-
-Optional arg "-d" means grep INFILE for deprecated macros and
-issue a warning if any are found.  Alternatively, "-D" means
-do the same thing but signal error and exit with non-zero status.
 
 If env var CPP is set, use its value instead of the C pre-processor
 determined at Guile configure-time.
@@ -136,7 +133,7 @@ Assuming the text above lives in a file named @file{image-type.c}, you will
 need to execute the following command to prepare this file for compilation:
 
 @example
-guile-snarf image-type.c
+guile-snarf -o image-type.x image-type.c
 @end example
 
 This scans @file{image-type.c} for @code{SCM_DEFINE}
@@ -235,21 +232,21 @@ Also, it's a good idea to define @var{FUNC_NAME} immediately after using
 @code{SCM_DEFINE} (and similar), and then the function body, and then
 @code{#undef FUNC_NAME}.
 
-Here is the list of deprecated macros:
+@c Here is the list of deprecated macros:
 
-@c reminder: sync w/ libguile/guile-snarf.in var `deprecated_list'
-@example
- SCM_CONST_LONG
- SCM_VCELL
- SCM_VCELL_INIT
- SCM_GLOBAL_VCELL
- SCM_GLOBAL_VCELL_INIT
-@end example
+@c @c reminder: sync w/ libguile/guile-snarf.in var `deprecated_list'
+@c @example
+@c  SCM_CONST_LONG
+@c  SCM_VCELL
+@c  SCM_VCELL_INIT
+@c  SCM_GLOBAL_VCELL
+@c  SCM_GLOBAL_VCELL_INIT
+@c @end example
 
-Some versions of guile (and guile-snarf) will continue to recognize them but
-at some point they will no longer work.  You can pass either @code{-d} or
-@code{-D} option to have guile-snarf warn or signal error, respectively, if
-any of these are found in the input file.
+@c Some versions of guile (and guile-snarf) will continue to recognize them but
+@c at some point they will no longer work.  You can pass either @code{-d} or
+@c @code{-D} option to have guile-snarf warn or signal error, respectively, if
+@c any of these are found in the input file.
 
 @xref{How guile-snarf works}, and also libguile source, for examples.
 @xref{Subrs}, for details on argument passing and how to write C
