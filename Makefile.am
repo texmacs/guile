@@ -34,6 +34,8 @@ EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS TODO \
 
 TESTS = check-guile
 
+DISTCLEANFILES = check-guile.log
+
 # The rule will cd to $(top_srcdir).
 ACLOCAL = ./guile-aclocal.sh
 
