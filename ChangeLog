@@ -1,3 +1,9 @@
+2001-08-31  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* HACKING (Sample GDB Initialization File): New section.
+
+	* TODO (1.8.0): Add "move .gdbinit" entry.
+
 2001-08-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* HACKING: Mention libtool ./configure-regeneration requirement.
