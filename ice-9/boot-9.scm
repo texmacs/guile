@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -2761,8 +2761,8 @@
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
-     (begin-deprecated
-      (fluid-set! scm:eval-transformer (module-transformer (current-module)))))
+     (fluid-set! scm:eval-transformer (module-transformer (current-module)))
+     *unspecified*)
     (else
      (error "use-syntax can only be used at the top level"))))
 

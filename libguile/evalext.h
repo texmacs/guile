@@ -2,7 +2,7 @@
 
 #ifndef EVALEXTH
 #define EVALEXTH
-/*	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 extern SCM scm_m_generalized_set_x (SCM xorig, SCM env);
 extern SCM scm_definedp (SCM sym, SCM env);
 extern SCM scm_m_undefine (SCM x, SCM env);
+extern SCM scm_self_evaluating_p (SCM obj);
 extern void scm_init_evalext (void);
 
 #endif  /* EVALEXTH */

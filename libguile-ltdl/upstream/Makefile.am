@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 2002 Free Software Foundation, Inc.
+##  	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -34,7 +34,7 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
 EXTRA_DIST := ltdl.h ltdl.c ltdl.h.diff ltdl.c.diff
 BUILT_SOURCES := ltdl.h.diff ltdl.c.diff
 
-ltdl.h.diff: ltdl.h $(srcdir)/../raw-ltdl.h
+ltdl.h.diff: $(srcdir)/ltdl.h $(srcdir)/../raw-ltdl.h
 	cp $(srcdir)/../raw-ltdl.h raw-ltdl.guilemod.h.tmp
 	perl -pi \
 	  -e 's/SCMLTXT/extern/go;' \
@@ -43,10 +43,10 @@ ltdl.h.diff: ltdl.h $(srcdir)/../raw-ltdl.h
 	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.h.tmp
 	mv raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
-	diff -ru ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
+	diff -ru $(srcdir)/ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
 	  test "$$?" -eq 1
 
-ltdl.c.diff: ltdl.c $(srcdir)/../raw-ltdl.c
+ltdl.c.diff: $(srcdir)/ltdl.c $(srcdir)/../raw-ltdl.c
 	cp $(srcdir)/../raw-ltdl.c raw-ltdl.guilemod.c.tmp
 	perl -pi \
 	  -e 's/SCMLTXT/extern/go;' \
@@ -55,7 +55,7 @@ ltdl.c.diff: ltdl.c $(srcdir)/../raw-ltdl.c
 	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.c.tmp
 	mv raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
-	diff -ru ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
+	diff -ru $(srcdir)/ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
 	  test "$$?" -eq 1
 
 CLEANFILES := \

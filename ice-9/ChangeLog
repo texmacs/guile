@@ -1,3 +1,9 @@
+2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* syncase.scm, psyntax.ss, psyntax.pp: Imported fixes from trunk.
+
+	* boot-9.scm (use-syntax): Return *unspecified*.
+
 2002-12-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* optargs.scm (improper-list-copy): New.

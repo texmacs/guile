@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :export-syntax (sc-macro define-syntax eval-when fluid-let-syntax
+  :export-syntax (sc-macro define-syntax define-syntax-public 
+                  eval-when fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
 		  with-syntax
@@ -65,40 +66,38 @@
 
 
 
+(define expansion-eval-closure (make-fluid))
+
+(define (env->eval-closure env)
+  (or (and env
+	   (car (last-pair env)))
+      (module-eval-closure the-root-module)))
+
 (define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
-      (sc-expand exp))))
+      (with-fluids ((expansion-eval-closure (env->eval-closure env)))
+        (sc-expand exp)))))
 
 ;;; Exported variables
 
 (define sc-expand #f)
 (define sc-expand3 #f)
+(define sc-chi #f)
 (define install-global-transformer #f)
 (define syntax-dispatch #f)
 (define syntax-error #f)
 
 (define bound-identifier=? #f)
 (define datum->syntax-object #f)
-(define define-syntax sc-macro)
-(define eval-when sc-macro)
-(define fluid-let-syntax sc-macro)
 (define free-identifier=? #f)
 (define generate-temporaries #f)
 (define identifier? #f)
-(define identifier-syntax sc-macro)
-(define let-syntax sc-macro)
-(define letrec-syntax sc-macro)
-(define syntax sc-macro)
-(define syntax-case sc-macro)
 (define syntax-object->datum #f)
-(define syntax-rules sc-macro)
-(define with-syntax sc-macro)
-(define include sc-macro)
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
-			      and let let* cond do quasiquote unquote
-			      unquote-splicing case))
+			   and let let* cond do quasiquote unquote
+			   unquote-splicing case))
 
 (for-each (lambda (symbol)
 	    (set-symbol-property! symbol 'primitive-syntax #t))
@@ -135,26 +134,53 @@
 			  '())))
 
 (define the-syncase-module (current-module))
+(define the-syncase-eval-closure (module-eval-closure the-syncase-module))
+
+(fluid-set! expansion-eval-closure the-syncase-eval-closure)
 
 (define (putprop symbol key binding)
-  (let* ((m (current-module))
-	 (v (or (module-variable m symbol)
-		(module-make-local-var! m symbol))))
-    (if (symbol-property symbol 'primitive-syntax)
-	(if (eq? (current-module) the-syncase-module)
-	    (set-object-property! (module-variable the-root-module symbol)
-				  key
-				  binding))
+  (let* ((eval-closure (fluid-ref expansion-eval-closure))
+	 ;; Why not simply do (eval-closure symbol #t)?
+	 ;; Answer: That would overwrite imported bindings
+	 (v (or (eval-closure symbol #f) ;lookup
+		(eval-closure symbol #t) ;create it locally
+		)))
+    ;; Don't destroy Guile macros corresponding to
+    ;; primitive syntax when syncase boots.
+    (if (not (and (symbol-property symbol 'primitive-syntax)
+		  (eq? eval-closure the-syncase-eval-closure)))
 	(variable-set! v sc-macro))
+    ;; Properties are tied to variable objects
     (set-object-property! v key binding)))
 
 (define (getprop symbol key)
-  (let* ((m (current-module))
-	 (v (module-variable m symbol)))
-    (and v (or (object-property v key)
-	       (let ((root-v (module-local-variable the-root-module symbol)))
-		 (and (equal? root-v v)
-		      (object-property root-v key)))))))
+  (let* ((v ((fluid-ref expansion-eval-closure) symbol #f)))
+    (and v
+	 (or (object-property v key)
+	     (and (variable-bound? v)
+		  (macro? (variable-ref v))
+		  (macro-transformer (variable-ref v)) ;non-primitive
+		  guile-macro)))))
+
+(define guile-macro
+  (cons 'external-macro
+	(lambda (e r w s)
+	  (let ((e (syntax-object->datum e)))
+	    (if (symbol? e)
+		;; pass the expression through
+		e
+		(let* ((eval-closure (fluid-ref expansion-eval-closure))
+		       (m (variable-ref (eval-closure (car e) #f))))
+		  (if (eq? (macro-type m) 'syntax)
+		      ;; pass the expression through
+		      e
+		      ;; perform Guile macro transform
+		      (let ((e ((macro-transformer m)
+				e
+				(append r (list eval-closure)))))
+			(if (null? r)
+			    (sc-expand e)
+			    (sc-chi e r w))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
@@ -237,4 +263,18 @@
 			    '*sc-expander*
 			    '(define))))
 
-(define syncase sc-expand)
+(define (syncase exp)
+  (with-fluids ((expansion-eval-closure
+		 (module-eval-closure (current-module))))
+    (sc-expand exp)))
+
+(set-module-transformer! the-syncase-module syncase)
+
+(define-syntax define-syntax-public
+  (syntax-rules ()
+    ((_ name rules ...)
+     (begin
+       ;(eval-case ((load-toplevel) (export-syntax name)))
+       (define-syntax name rules ...)))))
+
+(fluid-set! expansion-eval-closure (env->eval-closure #f))

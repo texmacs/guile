@@ -1,3 +1,10 @@
+2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* evalext.c, evalext.h (s_scm_self_evaluating_p): Needed by
+	syntax-case macro fix.
+
+	* Makefile.am (c-tokenize.c): Look for it in $(srcdir).
+
 2003-01-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (scm_sys_prep_layout_x): Bugfix: Only create layout for

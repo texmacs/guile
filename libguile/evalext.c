@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,6 +142,60 @@ scm_m_undefine (SCM x, SCM env)
 }
 
 SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
+
+#define scm_tcs_struct scm_tcs_cons_gloc
+
+SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
+	    (SCM obj),
+	    "Return #t for objects which Guile considers self-evaluating")
+#define FUNC_NAME s_scm_self_evaluating_p
+{
+  switch (SCM_ITAG3 (obj))
+    {
+    case scm_tc3_int_1:
+    case scm_tc3_int_2:
+      /* inum */
+      return SCM_BOOL_T;
+    case scm_tc3_imm24:
+	/* characters, booleans, other immediates */
+      return SCM_BOOL (!SCM_NULLP (obj));
+    case scm_tc3_cons:
+      switch (SCM_TYP7 (obj))
+	{
+	case scm_tcs_closures:
+	case scm_tc7_vector:
+	case scm_tc7_wvect:
+#ifdef HAVE_ARRAYS
+	case scm_tc7_bvect:
+	case scm_tc7_byvect:
+	case scm_tc7_svect:
+	case scm_tc7_ivect:
+	case scm_tc7_uvect:
+	case scm_tc7_fvect:
+	case scm_tc7_dvect:
+	case scm_tc7_cvect:
+#ifdef HAVE_LONG_LONGS
+	case scm_tc7_llvect:
+#endif
+#endif
+	case scm_tc7_string:
+	case scm_tc7_smob:
+	case scm_tc7_cclo:
+	case scm_tc7_pws:
+	case scm_tcs_subrs:
+	case scm_tcs_struct:
+	  return SCM_BOOL_T;
+	default:
+	  return SCM_BOOL_F;
+	}
+    }
+  SCM_MISC_ERROR ("Internal error: Object ~S has unknown type",
+		  scm_list_1 (obj));
+  return SCM_UNSPECIFIED; /* never reached */
+}
+#undef FUNC_NAME
+
+#undef scm_tcs_struct
 
 void 
 scm_init_evalext ()

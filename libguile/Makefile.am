@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -256,8 +256,8 @@ guile-procedures.txt: guile-procedures.texi
 
 endif
 
-c-tokenize.c: c-tokenize.lex
-	flex -t c-tokenize.lex > $@ || { rm $@; false; }
+c-tokenize.c: $(srcdir)/c-tokenize.lex
+	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
 
 schemelibdir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
 schemelib_DATA = guile-procedures.txt
