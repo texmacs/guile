@@ -1,3 +1,8 @@
+2001-10-04  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* error.c (scm_wta): Replace `intptr_t' use w/ `scm_t_bits'.
+	Thanks to I. N. Golubev.
+
 2001-10-03  Gary Houston  <ghouston@arglist.com>
 
 	* continuations.h, unif.h: in the descriptions of the bit patterns
