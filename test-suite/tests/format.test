@@ -39,6 +39,24 @@
 	    "xyz\nabc\n")))
 
 ;;;
+;;; ~d
+;;;
+
+(with-test-prefix "~d decimal integer"
+
+  (with-test-prefix "~@d"
+
+    (pass-if "-1"
+      (string=? (format #f "~@d" -1) "-1"))
+    ;; in guile 1.6.4 and earlier, ~@d gave "0" but we think "+0" is what the
+    ;; common lisp spec intendes
+    (pass-if "+0"
+      (string=? (format #f "~@d" 0) "+0"))
+
+    (pass-if "+1"
+      (string=? (format #f "~@d" 1) "+1"))))
+
+;;;
 ;;; ~{
 ;;;
 
