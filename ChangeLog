@@ -1,3 +1,7 @@
+2003-04-21  Rob Browning  <rlb@defaultvalue.org>
+
+	* Guile 1.6.3 released.
+
 2003-04-11  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (CLEANFILES): add guile-procedures.txt.

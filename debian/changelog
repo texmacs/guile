@@ -1,12 +1,14 @@
-guile-1.6 (1.6.3-5) unstable; urgency=low
+guile-1.6 (1.6.4-1) unstable; urgency=low
 
   * remove --list-missing from debian/rules. (closes: bug#187926)
   * try fix for libqthreads-12 per-arch build problem. Try just producing
     an empty libqthreads-12 .install file on unsupported arches.
     (closes: bug#183686)
   * fix alpha qt assembly bugs. (closes: bug#186981)
+  * upstream arch related fixes.
+    (closes: bug#189316, bug#189315, bug#186981, bug#186877, bug#184773)
 
- --
+ -- Rob Browning <rlb@defaultvalue.org>  Mon, 21 Apr 2003 13:11:35 -0500
 
 guile-1.6 (1.6.3-4) unstable; urgency=low
 
