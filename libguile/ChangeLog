@@ -3,7 +3,7 @@
 	* Makefile.am: Distribute num2float.i.c.
 
 	* num2float.i.c: New file, multiply included by numbers.c, used
-	to "templatize" the floatl <-> num conversion routines.
+	to "templatize" the float <-> num conversion routines.
 
 	* numbers.c: New functions: scm_num2float, scm_float2num,
 	scm_num2double, scm_double2num.
