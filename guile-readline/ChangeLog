@@ -1,3 +1,11 @@
+2001-11-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* readline.scm: load libguilereadline, not libguilereadline.so --
+	newer libltdl won't work otherwise.
+
+	* Makefile.am (libguilereadline_la_LIBADD): add libguile.la --
+	links fail otherwise -- fix from unstable branch.
+
 2001-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.scm (call-with-readline-completion-function): New.

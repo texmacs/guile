@@ -1,3 +1,8 @@
+2001-11-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (libqthreads_la_LDFLAGS): add -no-undefined from
+	unstable branch.
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libqthreads_la_LDFLAGS): use libtool interface version
