@@ -1,3 +1,8 @@
+2004-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-0): Add srfi-6 to the identifiers provided
+	by default.
+
 2004-07-01  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gh.texi, data-rep.texi: Make sure there is a space between
