@@ -1,3 +1,7 @@
+2001-10-12  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* validate.h (SCM_VALIDATE_DOUBLE_DEF_COPY): New macro.
+	
 2001-10-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc.c: support ia64 register backing store.
