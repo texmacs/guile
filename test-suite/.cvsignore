@@ -1,3 +1,5 @@
+Makefile
+Makefile.in
 guile.log
 tmp1
 tmp2
