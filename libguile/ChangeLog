@@ -1,3 +1,8 @@
+2002-03-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (bin_SCRIPTS): Revive this decl, w/ initial element
+	"guile-snarf" moved back from `noinst_SCRIPTS'.
+
 2002-03-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debug.h (SCM_MAX_FRAME_SIZE): Remove incorrect comment about use
