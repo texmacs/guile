@@ -1021,3 +1021,21 @@
 
   (pass-if "upcase"
     (string=? "FOO" (string-map char-upcase "foo"))))
+
+(with-test-prefix "string-for-each"
+
+  (pass-if "copy"
+     (let* ((foo "foo")
+            (bar (make-string (string-length foo)))
+            (i 0))
+       (string-for-each
+        (lambda (c) (string-set! bar i c) (set! i (1+ i))) foo)
+       (string=? foo bar)))
+
+  (pass-if "index"
+     (let* ((foo "foo")
+            (bar (make-string (string-length foo))))
+       (string-for-each-index
+        (lambda (i) (string-set! bar i (string-ref foo i))) foo)
+       (string=? foo bar))))
+
