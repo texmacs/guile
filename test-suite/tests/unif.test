@@ -197,10 +197,50 @@
       (pass-if "scm"     (eq? #t (array? scm      '()))))))
 
 ;;;
+;;; array-fill!
+;;;
+
+(with-test-prefix "array-fill!"
+
+  (with-test-prefix "byte"
+    (let ((a (make-uniform-vector 1 #\nul)))
+      (pass-if "0"    (array-fill! a 0)    #t)
+      (pass-if "127"  (array-fill! a 127)  #t)
+      (pass-if "-128" (array-fill! a -128) #t)
+      (pass-if-exception "128" exception:out-of-range
+	(array-fill! a 128))
+      (pass-if-exception "-129" exception:out-of-range
+	(array-fill! a -129))
+      (pass-if-exception "symbol" exception:wrong-type-arg
+	(array-fill! a 'symbol)))))
+
+;;;
 ;;; array-set!
 ;;;
 
 (with-test-prefix "array-set!"
+
+  (with-test-prefix "byte"
+
+    (let ((a (make-uniform-array #\nul 1)))
+
+      (pass-if "-128"
+	(begin (array-set! a -128 0) #t))
+      (pass-if "0"
+	(begin (array-set! a 0 0) #t))
+      (pass-if "127"
+	(begin (array-set! a 127 0) #t))
+      (pass-if-exception "-129" exception:out-of-range
+	(begin (array-set! a -129 0) #t))
+      (pass-if-exception "128" exception:out-of-range
+	(begin (array-set! a 128 0) #t))
+
+      (pass-if "#\\nul"
+	(begin (array-set! a #\nul 0) #t))
+      (pass-if "#\\del"
+	(begin (array-set! a #\del 0) #t))
+      (pass-if "char 255"
+	(begin (array-set! a (integer->char 255) 0) #t))))
 
   (with-test-prefix "short"
 
@@ -271,3 +311,43 @@
 	(uniform-array-set1! a 'y '(4 . 8)))
       (pass-if-exception "three improper indexes" exception:wrong-num-args
 	(uniform-array-set1! a 'y '(4 8 . 0))))))
+
+;;;
+;;; uniform-vector-ref
+;;;
+
+(with-test-prefix "uniform-vector-ref"
+
+  (with-test-prefix "byte"
+
+    (let ((a (make-uniform-array #\nul 1)))
+
+      (pass-if "0"
+	(begin
+	  (array-set! a 0 0)
+	  (= 0 (uniform-vector-ref a 0))))
+      (pass-if "127"
+	(begin
+	  (array-set! a 127 0)
+	  (= 127 (uniform-vector-ref a 0))))
+      (pass-if "-128"
+	(begin
+	  (array-set! a -128 0)
+	  (= -128 (uniform-vector-ref a 0))))
+
+      (pass-if "#\\nul"
+	(begin
+	  (array-set! a #\nul 0)
+	  (= 0 (uniform-vector-ref a 0))))
+      (pass-if "#\\del"
+	(begin
+	  (array-set! a #\del 0)
+	  (= 127 (uniform-vector-ref a 0))))
+      (pass-if "char 255"
+	(begin
+	  (array-set! a (integer->char 255) 0)
+	  (= -1 (uniform-vector-ref a 0))))
+      (pass-if "char 128"
+	(begin
+	  (array-set! a (integer->char 128) 0)
+	  (= -128 (uniform-vector-ref a 0)))))))
