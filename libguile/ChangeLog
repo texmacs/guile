@@ -1,3 +1,8 @@
+2004-07-31  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_copy_file): Avoid fd leak when destination file
+	cannot be opened.
+
 2004-07-28  Kevin Ryde  <user42@zip.com.au>
 
 	* regex-posix.c (scm_make_regexp): Use SCM_VALIDATE_INT_COPY on flag
