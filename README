@@ -4,14 +4,10 @@ your applications to give them their own scripting language.  Guile
 will eventually support other languages as well, giving users of
 Guile-based applications a choice of languages.
 
-(This release is not actually 1.6.1, it's whatever it says in
- ./GUILE-VERSION, but it's a candidate for the 1.6.1 release.  We're in
- testing...)
-
-This release is version 1.6.1.  Any bugs found will be addressed by
-further bugfix releases numbered 1.6.2, 1.6.3, and so on.  The next
+This release is version 1.6.0.  Any bugs found will be addressed by
+further bugfix releases numbered 1.6.1, 1.6.2, and so on.  The next
 stable Guile release with significant functional improvements will be
-version 1.8.1.
+version 1.8.0.
 
 In between 1.6.x and 1.8.x, you can follow Guile development in CVS
 and in the Guile mailing lists (see ANON-CVS and HACKING).  Guile
@@ -258,7 +254,7 @@ Obtaining Guile ======================================================
 
 The latest official Guile release is available via anonymous FTP from
 
-ftp://ftp.gnu.org/pub/gnu/guile/guile-1.4.tar.gz
+ftp://ftp.gnu.org/pub/gnu/guile/guile-1.6.0.tar.gz
 
 The mailing list `guile-user@gnu.org' carries discussions, questions,
 and often answers, about Guile.  To subscribe, use the Mailman mailing
