@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -3892,9 +3892,20 @@ scm_atanh (double x)
 
 
 
-SCM_GPROC1 (s_truncate, "truncate", scm_tc7_cxr, (SCM (*)()) scm_truncate, g_truncate);
-/* "Round the inexact number @var{x} towards zero."
- */
+SCM_PRIMITIVE_GENERIC (scm_truncate_number, "truncate", 1, 0, 0,
+		       (SCM x),
+                       "Round the inexact number @var{x} towards zero.")
+#define FUNC_NAME s_scm_truncate_number
+{
+  if (SCM_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_make_real (scm_truncate (SCM_REAL_VALUE (x)));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_truncate_number, x, 1, s_scm_truncate_number);
+}
+#undef FUNC_NAME
+
 double
 scm_truncate (double x)
 {
@@ -3930,10 +3941,6 @@ scm_truncate (double x)
    already.  And if it's not then the exponent must be small enough to allow
    an 0.5 to be represented, and hence added without a bad rounding.  */
 
-SCM_GPROC1 (s_round, "round", scm_tc7_cxr, (SCM (*)()) scm_round, g_round);
-/* "Round the inexact number @var{x}. If @var{x} is halfway between two\n"
- * "numbers, round towards even."
- */
 double
 scm_round (double x)
 {
@@ -3949,6 +3956,23 @@ scm_round (double x)
     ? result - 1 : result;
 }
 
+SCM_PRIMITIVE_GENERIC (scm_round_number, "round", 1, 0, 0,
+		       (SCM x),
+                       "Round the number @var{x} towards the nearest integer. "
+                       "When it is exactly halfway between two integers, "
+                       "round towards the even one.")
+#define FUNC_NAME s_scm_round_number
+{
+  if (SCM_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_make_real (scm_round (SCM_REAL_VALUE (x)));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_round_number, x, 1, s_scm_round_number);
+}
+#undef FUNC_NAME
+
+
 
 
 SCM_GPROC1 (s_exact_to_inexact, "exact->inexact", scm_tc7_cxr, (SCM (*)()) scm_exact_to_inexact, g_exact_to_inexact);
@@ -3961,12 +3985,35 @@ scm_exact_to_inexact (double z)
 }
 
 
-SCM_GPROC1 (s_i_floor, "floor", scm_tc7_cxr, (SCM (*)()) floor, g_i_floor);
-/* "Round the number @var{x} towards minus infinity."
- */
-SCM_GPROC1 (s_i_ceil, "ceiling", scm_tc7_cxr, (SCM (*)()) ceil, g_i_ceil);
-/* "Round the number @var{x} towards infinity."
- */
+SCM_PRIMITIVE_GENERIC (scm_floor, "floor", 1, 0, 0,
+		       (SCM x),
+		       "Round the number @var{x} towards minus infinity.")
+#define FUNC_NAME s_scm_floor
+{
+  if (SCM_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_make_real (floor (SCM_REAL_VALUE (x)));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_floor, x, 1, s_scm_floor);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
+		       (SCM x),
+		       "Round the number @var{x} towards infinity.")
+#define FUNC_NAME s_scm_ceiling
+{
+  if (SCM_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_make_real (ceil (SCM_REAL_VALUE (x)));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_ceiling, x, 1, s_scm_ceiling);
+}
+#undef FUNC_NAME
+
+
 SCM_GPROC1 (s_i_sqrt, "$sqrt", scm_tc7_cxr, (SCM (*)()) sqrt, g_i_sqrt);
 /* "Return the square root of the real number @var{x}."
  */
