@@ -1,3 +1,7 @@
+2003-05-08  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Bitwise Operations): Fix lognot to ones-complement.
+
 2003-04-11  Rob Browning  <rlb@defaultvalue.org>
 
 	* guile.texi: change MANUAL_EDITION to MANUAL-EDITION so we don't
