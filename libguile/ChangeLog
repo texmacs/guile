@@ -1,3 +1,10 @@
+2004-08-31  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* init.c (scm_init_guile_1): move scm_weaks_prehistory before
+	scm_struct_prehistory. The effect is that structs are freed before
+	weak vectors are cleaned up. This fixes a bug reported by Kevin
+	Ryde (putting a struct into a weak vector exposes a freed cell).
+
 2004-08-29  Rob Browning  <rlb@defaultvalue.org>
 
 	* ramap.c (s_scm_array_map_x): update documentation; rename ra0 to
