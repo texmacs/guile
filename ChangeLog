@@ -2,6 +2,7 @@
 
 	* autogen.sh: Also link TODO from $workbook/tasks/TODO.
 	* Makefile.am (dist-hook): Removed.
+	(DISTCLEANFILES): Added check-guile.log.
 
 2002-04-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 

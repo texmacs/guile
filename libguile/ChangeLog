@@ -1,3 +1,8 @@
+2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Added cpp_err_symbols.c and
+	cpp_sig_symbols.c.
+
 2002-03-31  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf.in: Install the trap for removing $cleanfile only

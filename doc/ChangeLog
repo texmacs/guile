@@ -1,3 +1,8 @@
+2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (dist-hook): Simplified to not use "cd"; now it
+	works for relative pathnames in $(distdir).
+
 2002-03-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-api.alist: Update.
