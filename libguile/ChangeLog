@@ -1,3 +1,9 @@
+2004-09-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc.h (SCM_SET_FREE_CELL_TYPE): New macro.
+        * gc.c (init_heap_seg): Use it instead of SCM_SET_CELL_TYPE, which
+	might cause unwanted checking with SCM_DEBUG_CELL_ACCESSES.
+
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_nice): Correction to error detection.  Reported by
