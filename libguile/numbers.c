@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -1120,8 +1120,9 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   SCM acc = SCM_MAKINUM (1L);
   int i2;
 #ifdef SCM_BIGDIG
+  /* 0^0 == 1 according to R5RS */
   if (SCM_EQ_P (n, SCM_INUM0) || SCM_EQ_P (n, acc))
-    return acc;
+    return SCM_EQ_P (k, SCM_INUM0)? acc : n;
   else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
     return SCM_FALSEP (scm_even_p (k)) ? n : acc;
 #endif
