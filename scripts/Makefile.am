@@ -32,7 +32,8 @@ scripts_sources =		\
 	punify			\
 	read-scheme-source	\
 	use2dot                 \
-	snarf-check-and-output-texi
+	snarf-check-and-output-texi \
+	snarf-guile-m4-docs
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
