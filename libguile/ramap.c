@@ -1415,21 +1415,27 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 
 
 static int
-ramap_1 (SCM ra0,SCM proc,SCM ras)
+ramap_1 (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_ARRAY_BASE (ra0), i1 = SCM_ARRAY_BASE (ra1);
-  long inc0 = SCM_ARRAY_DIMS (ra0)->inc, inc1 = SCM_ARRAY_DIMS (ra1)->inc;
+  unsigned long i0 = SCM_ARRAY_BASE (ra0);
+  unsigned long i1 = SCM_ARRAY_BASE (ra1);
+  long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
+  long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  ra1 = SCM_ARRAY_V (ra1);
+  ra1 = SCM_ARRAY_V (ra1);  
   if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
     for (; n-- > 0; i0 += inc0, i1 += inc1)
-      scm_array_set_x (ra0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED)), SCM_MAKINUM (i0));
+      scm_array_set_x (ra0,
+                       SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED)),
+                       SCM_MAKINUM (i0));
   else
     for (; n-- > 0; i0 += inc0, i1 += inc1)
-      scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra1, i1, e1)), SCM_MAKINUM (i0));
+      scm_array_set_x (ra0,
+                       SCM_SUBRF (proc) (RVREF (ra1, i1, e1)),
+                       SCM_MAKINUM (i0));
   return 1;
 }
 
@@ -1511,86 +1517,91 @@ SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_ar
 
 
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
-	    (SCM ra0, SCM proc, SCM lra),
-	    "@deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra\n"
-	    "@var{array1}, @dots{} must have the same number of dimensions as\n"
-	    "@var{array0} and have a range for each index which includes the range\n"
-	    "for the corresponding index in @var{array0}.  @var{proc} is applied to\n"
-	    "each tuple of elements of @var{array1} @dots{} and the result is stored\n"
-	    "as the corresponding element in @var{array0}.  The value returned is\n"
-	    "unspecified.  The order of application is unspecified.")
+	    (SCM dest, SCM proc, SCM sources),
+	    "@var{dest} must be an array, and @var{sources} must be a non-empty list\n"
+            "of arrays where each element must have the same number of dimensions as\n"
+            "@var{dest} and must have a range for each index which includes the range\n"
+	    "for the corresponding index in @var{dest}.  @var{proc} is applied to\n"
+	    "each tuple of elements of @var{sources} and the result is stored as the\n"
+            "corresponding element in @var{dest}.  The value returned is unspecified, and\n"
+            "the order of application is unspecified.\n")
 #define FUNC_NAME s_scm_array_map_x
 {
   SCM_VALIDATE_PROC (2,proc);
-  SCM_VALIDATE_REST_ARGUMENT (lra);
+
+  if (!(SCM_CONSP (sources) && SCM_CONSP (SCM_CDR (sources))))
+    {
+      SCM_MISC_ERROR ("At least one source array is required.", SCM_EOL);
+    }
+
   switch (SCM_TYP7 (proc))
     {
     default:
     gencase:
- scm_ramapc (ramap, proc, ra0, lra, FUNC_NAME);
- return SCM_UNSPECIFIED;
+      scm_ramapc (ramap, proc, dest, sources, FUNC_NAME);
+      return SCM_UNSPECIFIED;
     case scm_tc7_subr_1:
-      scm_ramapc (ramap_1, proc, ra0, lra, FUNC_NAME);
+      scm_ramapc (ramap_1, proc, dest, sources, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_subr_2:
     case scm_tc7_subr_2o:
-      scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
+      scm_ramapc (ramap_2o, proc, dest, sources, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_cxr:
       if (!SCM_SUBRF (proc))
 	goto gencase;
-      scm_ramapc (ramap_cxr, proc, ra0, lra, FUNC_NAME);
+      scm_ramapc (ramap_cxr, proc, dest, sources, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_rpsubr:
       {
 	ra_iproc *p;
-	if (SCM_FALSEP (scm_array_p (ra0, SCM_BOOL_T)))
+	if (SCM_FALSEP (scm_array_p (dest, SCM_BOOL_T)))
 	  goto gencase;
-	scm_array_fill_x (ra0, SCM_BOOL_T);
+	scm_array_fill_x (dest, SCM_BOOL_T);
 	for (p = ra_rpsubrs; p->name; p++)
 	  if (SCM_EQ_P (proc, p->sproc))
 	    {
-	      while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
+	      while (SCM_NNULLP (sources) && SCM_NNULLP (SCM_CDR (sources)))
 		{
-		  scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
-		  lra = SCM_CDR (lra);
+		  scm_ramapc (p->vproc, SCM_UNDEFINED, dest, sources, FUNC_NAME);
+		  sources = SCM_CDR (sources);
 		}
 	      return SCM_UNSPECIFIED;
 	    }
-	while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
+	while (SCM_NNULLP (sources) && SCM_NNULLP (SCM_CDR (sources)))
 	  {
-	    scm_ramapc (ramap_rp, proc, ra0, lra, FUNC_NAME);
-	    lra = SCM_CDR (lra);
+	    scm_ramapc (ramap_rp, proc, dest, sources, FUNC_NAME);
+	    sources = SCM_CDR (sources);
 	  }
 	return SCM_UNSPECIFIED;
       }
     case scm_tc7_asubr:
-      if (SCM_NULLP (lra))
+      if (SCM_NULLP (sources))
 	{
 	  SCM prot, fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
 	  if (SCM_INUMP(fill))
 	    {
-	      prot = scm_array_prototype (ra0);
+	      prot = scm_array_prototype (dest);
 	      if (SCM_INEXACTP (prot))
 		fill = scm_make_real ((double) SCM_INUM (fill));
 	    }
 
-	  scm_array_fill_x (ra0, fill);
+	  scm_array_fill_x (dest, fill);
 	}
       else
 	{
-	  SCM tail, ra1 = SCM_CAR (lra);
-	  SCM v0 = (SCM_ARRAYP (ra0) ? SCM_ARRAY_V (ra0) : ra0);
+	  SCM tail, ra1 = SCM_CAR (sources);
+	  SCM v0 = (SCM_ARRAYP (dest) ? SCM_ARRAY_V (dest) : dest);
 	  ra_iproc *p;
 	  /* Check to see if order might matter.
 	     This might be an argument for a separate
 	     SERIAL-ARRAY-MAP! */
 	  if (SCM_EQ_P (v0, ra1) 
 	      || (SCM_ARRAYP (ra1) && SCM_EQ_P (v0, SCM_ARRAY_V (ra1))))
-	    if (!SCM_EQ_P (ra0, ra1) 
-		|| (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
+	    if (!SCM_EQ_P (dest, ra1) 
+		|| (SCM_ARRAYP(dest) && !SCM_ARRAY_CONTP(dest)))
 	      goto gencase;
-	  for (tail = SCM_CDR (lra); SCM_NNULLP (tail); tail = SCM_CDR (tail))
+	  for (tail = SCM_CDR (sources); SCM_NNULLP (tail); tail = SCM_CDR (tail))
 	    {
 	      ra1 = SCM_CAR (tail);
 	      if (SCM_EQ_P (v0, ra1) 
@@ -1600,22 +1611,22 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  for (p = ra_asubrs; p->name; p++)
 	    if (SCM_EQ_P (proc, p->sproc))
 	      {
-		if (!SCM_EQ_P (ra0, SCM_CAR (lra)))
-		  scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), FUNC_NAME);
-		lra = SCM_CDR (lra);
+		if (!SCM_EQ_P (dest, SCM_CAR (sources)))
+		  scm_ramapc (scm_array_identity, SCM_UNDEFINED, dest, scm_cons (SCM_CAR (sources), SCM_EOL), FUNC_NAME);
+		sources = SCM_CDR (sources);
 		while (1)
 		  {
-		    scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
-		    if (SCM_IMP (lra) || SCM_IMP (SCM_CDR (lra)))
+		    scm_ramapc (p->vproc, SCM_UNDEFINED, dest, sources, FUNC_NAME);
+		    if (SCM_IMP (sources) || SCM_IMP (SCM_CDR (sources)))
 		      return SCM_UNSPECIFIED;
-		    lra = SCM_CDR (lra);
+		    sources = SCM_CDR (sources);
 		  }
 	      }
-	  scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
-	  lra = SCM_CDR (lra);
-	  if (SCM_NIMP (lra))
-	    for (lra = SCM_CDR (lra); SCM_NIMP (lra); lra = SCM_CDR (lra))
-	      scm_ramapc (ramap_a, proc, ra0, lra, FUNC_NAME);
+	  scm_ramapc (ramap_2o, proc, dest, sources, FUNC_NAME);
+	  sources = SCM_CDR (sources);
+	  if (SCM_NIMP (sources))
+	    for (sources = SCM_CDR (sources); SCM_NIMP (sources); sources = SCM_CDR (sources))
+	      scm_ramapc (ramap_a, proc, dest, sources, FUNC_NAME);
 	}
       return SCM_UNSPECIFIED;
     }
