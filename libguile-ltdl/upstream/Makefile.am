@@ -45,6 +45,7 @@ ltdl.h.diff: $(srcdir)/ltdl.h $(srcdir)/../raw-ltdl.h
 	mv raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
 	diff -ru $(srcdir)/ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
 	  test "$$?" -eq 1
+	rm -f raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
 
 ltdl.c.diff: $(srcdir)/ltdl.c $(srcdir)/../raw-ltdl.c
 	cp $(srcdir)/../raw-ltdl.c raw-ltdl.guilemod.c.tmp
@@ -57,6 +58,7 @@ ltdl.c.diff: $(srcdir)/ltdl.c $(srcdir)/../raw-ltdl.c
 	mv raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
 	diff -ru $(srcdir)/ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
 	  test "$$?" -eq 1
+	rm -f raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
 
 CLEANFILES := \
   raw-ltdl.guilemod.h raw-ltdl.guilemod.c \
