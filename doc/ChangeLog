@@ -1,3 +1,8 @@
+2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* AUTHORS: Removed.  Authorship information for each manual is now
+	in the top-level Texinfo file for that manual.
+
 2001-08-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (guile_tut_TEXINFOS): remove guile-tut.texi.  It's
