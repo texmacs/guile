@@ -1141,7 +1141,7 @@ SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0,
 
   f = scm_num2ulong (value, 3, FUNC_NAME);
 #if SIZEOF_LONG > 4
-  SCM_ASSERT_RANGE (2, fill, (f <= (int_u32) 0xFFFFFFFFUL));
+  SCM_ASSERT_RANGE (2, value, (f <= (int_u32) 0xFFFFFFFFUL));
 #endif
 
   ((int_u32 *) SCM_UVEC_BASE (uvec))[idx] = (int_u32) f;
