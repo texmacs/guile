@@ -1,3 +1,10 @@
+2003-04-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (scm_sys_prep_layout_x): Instance allocation is now
+	indicated through extra fields in getters-n-setters.
+	(scm_add_slot): Adapted to new format of getters_n_setters slot.
+	(Thanks to Andy Wingo.)
+
 2003-04-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* backtrace.c (display_backtrace_file): correct a couple of

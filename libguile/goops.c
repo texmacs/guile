@@ -471,6 +471,22 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+/* NOTE: The following macros are interdependent with code
+ *       in goops.scm:compute-getters-n-setters
+ */
+#define SCM_GNS_INSTANCE_ALLOCATED_P(gns)	\
+  (SCM_INUMP (SCM_CDDR (gns))			\
+   || (SCM_CONSP (SCM_CDDR (gns))		\
+       && SCM_CONSP (SCM_CDDDR (gns))		\
+       && SCM_CONSP (SCM_CDDDDR (gns))))
+#define SCM_GNS_INDEX(gns)			\
+  (SCM_INUMP (SCM_CDDR (gns))			\
+   ? SCM_INUM (SCM_CDDR (gns))			\
+   : SCM_INUM (SCM_CAR (SCM_CDDDDR (gns))))
+#define SCM_GNS_SIZE(gns)			\
+  (SCM_INUMP (SCM_CDDR (gns))			\
+   ? 1						\
+   : SCM_INUM (SCM_CADR (SCM_CDDDDR (gns))))
 
 SCM_KEYWORD (k_class, "class");
 SCM_KEYWORD (k_allocation, "allocation");
@@ -481,12 +497,13 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_prep_layout_x
 {
-  long i, n, len;
-  char *s, p, a;
-  SCM nfields, slots, type, allocation;
+  SCM slots, getters_n_setters, nfields;
+  unsigned long int n, i;
+  char *s;
 
   SCM_VALIDATE_INSTANCE (1, class);
   slots = SCM_SLOT (class, scm_si_slots);
+  getters_n_setters = SCM_SLOT (class, scm_si_getters_n_setters);
   nfields = SCM_SLOT (class, scm_si_nfields);
   if (!SCM_INUMP (nfields) || SCM_INUM (nfields) < 0)
     SCM_MISC_ERROR ("bad value in nfields slot: ~S",
@@ -498,46 +515,79 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 		    scm_list_1 (nfields));
 
   s  = n > 0 ? scm_must_malloc (n, FUNC_NAME) : 0;
-  for (i = 0; i < n; i += 2)
+  i = 0;
+  while (SCM_CONSP (getters_n_setters))
     {
-      if (!SCM_CONSP (slots))
-	SCM_MISC_ERROR ("to few slot definitions", SCM_EOL);
-      len = scm_ilength (SCM_CDAR (slots));
-      allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
-				      len, k_instance, FUNC_NAME);
-      while (!SCM_EQ_P (allocation, k_instance))
+      if (SCM_GNS_INSTANCE_ALLOCATED_P (SCM_CAR (getters_n_setters)))
 	{
-	  slots = SCM_CDR (slots);
-	  len = scm_ilength (SCM_CDAR (slots));
-	  allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
-					  len, k_instance, FUNC_NAME);
-	}
-      type = scm_i_get_keyword (k_class, SCM_CDAR (slots),
-				len, SCM_BOOL_F, FUNC_NAME);
-      if (SCM_NIMP (type) && SCM_SUBCLASSP (type, scm_class_foreign_slot))
-	{
-	  if (SCM_SUBCLASSP (type, scm_class_self))
-	    p = 's';
-	  else if (SCM_SUBCLASSP (type, scm_class_protected))
-	    p = 'p';
-	  else
-	    p = 'u';
+	  SCM type;
+	  int len, index, size;
+	  char p, a;
 
-	  if (SCM_SUBCLASSP (type, scm_class_opaque))
-	    a = 'o';
-	  else if (SCM_SUBCLASSP (type, scm_class_read_only))
-	    a = 'r';
+	  if (i >= n || !SCM_CONSP (slots))
+	    goto inconsistent;
+	  
+	  /* extract slot type */
+	  len = scm_ilength (SCM_CDAR (slots));
+	  type = scm_i_get_keyword (k_class, SCM_CDAR (slots),
+				    len, SCM_BOOL_F, FUNC_NAME);
+	  /* determine slot GC protection and access mode */
+	  if (SCM_FALSEP (type))
+	    {
+	      p = 'p';
+	      a = 'w';
+	    }
 	  else
-	    a = 'w';
+	    {
+	      if (!SCM_CLASSP (type))
+		{
+		  if (s)
+		    free (s);
+		  SCM_MISC_ERROR ("bad slot class", SCM_EOL);
+		}
+	      else if (SCM_SUBCLASSP (type, scm_class_foreign_slot))
+		{
+		  if (SCM_SUBCLASSP (type, scm_class_self))
+		    p = 's';
+		  else if (SCM_SUBCLASSP (type, scm_class_protected))
+		    p = 'p';
+		  else
+		    p = 'u';
+
+		  if (SCM_SUBCLASSP (type, scm_class_opaque))
+		    a = 'o';
+		  else if (SCM_SUBCLASSP (type, scm_class_read_only))
+		    a = 'r';
+		  else
+		    a = 'w';
+		}
+	      else
+		{
+		  p = 'p';
+		  a = 'w';
+		}
+	    }
+      
+	  index = SCM_GNS_INDEX (SCM_CAR (getters_n_setters));
+	  if (index != (i >> 1))
+	    goto inconsistent;
+	  size = SCM_GNS_SIZE (SCM_CAR (getters_n_setters));
+	  while (size)
+	    {
+	      s[i++] = p;
+	      s[i++] = a;
+	      --size;
+	    }
 	}
-      else
-	{
-	  p = 'p';
-	  a = 'w';
-	}
-      s[i] = p;
-      s[i + 1] = a;
       slots = SCM_CDR (slots);
+      getters_n_setters = SCM_CDR (getters_n_setters);
+    }
+  if (!SCM_NULLP (slots))
+    {
+    inconsistent:
+      if (s)
+	free (s);
+      SCM_MISC_ERROR ("inconsistent getters-n-setters", SCM_EOL);
     }
   SCM_SET_SLOT (class, scm_si_layout, scm_mem2symbol (s, n));
   if (s)
@@ -2541,8 +2591,6 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 			     slot_class,
 			     setter ? k_accessor : k_getter,
 			     gf);
-      SCM gns = scm_list_4 (name, SCM_BOOL_F, get, set);
-
       scm_add_method (gf, scm_make (scm_list_5 (scm_class_accessor,
 						k_specializers,
 						scm_list_1 (class),
@@ -2559,15 +2607,15 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
       SCM_SET_SLOT (class, scm_si_slots,
 		    scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_slots),
 					      scm_list_1 (slot))));
-      SCM_SET_SLOT (class, scm_si_getters_n_setters,
-		    scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_getters_n_setters),
-					      scm_list_1 (gns))));
+      {
+	SCM n = SCM_SLOT (class, scm_si_nfields);
+	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, SCM_MAKINUM (1));
+	SCM_SET_SLOT (class, scm_si_getters_n_setters,
+		      scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_getters_n_setters),
+						scm_list_1 (gns))));
+	SCM_SET_SLOT (class, scm_si_nfields, SCM_MAKINUM (SCM_INUM (n) + 1));
+      }
     }
-  }
-  {
-    long n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
-
-    SCM_SET_SLOT (class, scm_si_nfields, SCM_MAKINUM (n + 1));
   }
 }
 

@@ -1,3 +1,11 @@
+2003-04-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (compute-getters-n-setters/verify-accessors): Better
+	check of format of value returned by compute-get-n-set.
+	(compute-getters-n-setters): Extended format of slot
+	getters-n-setters to indicate position and size of slot memory
+	allocated in instances.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
