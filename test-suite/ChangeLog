@@ -1,3 +1,7 @@
+2004-08-27  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/regexp.test (regexp-quote): New tests.
+
 2004-08-25  Kevin Ryde  <user42@zip.com.au>
 
 	* and-let-star.scm (and-let*): Give #t for an empty body, per srfi-2
