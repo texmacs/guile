@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -390,7 +390,9 @@ scm_shell_usage (int fatal, char *message)
 	   "                 which is a list of numbers like \"2,13,14\"\n"
            "  -h, --help     display this help and exit\n"
            "  -v, --version  display version information and exit\n"
-	   "  \\              read arguments from following script lines\n",
+	   "  \\              read arguments from following script lines\n"
+           "\n"
+	   "Report bugs to bug-guile@gnu.org\n",
            scm_usage_name);
 
   if (fatal)
