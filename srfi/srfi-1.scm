@@ -902,7 +902,7 @@
     (let lp ((l list))
       (if (null? l)
 	'()
-	(if (l= (car l) x)
+	(if (l= x (car l))
 	  (lp (cdr l))
 	  (cons (car l) (lp (cdr l))))))))
 
