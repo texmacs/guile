@@ -1,3 +1,10 @@
+2004-08-05  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_copy_file): Use fstat on the input fd rather than
+	stat on the filename, to be certain a file rename can't mean we get
+	info on one filesystem object but open another.  This fstat usage is
+	similar to Emacs copy-file.
+	
 2004-08-04  Marius Vollmer  <mvo@zagadka.de>
 
 	Backported MacOS X fix from HEAD.
