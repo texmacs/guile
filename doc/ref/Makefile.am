@@ -35,7 +35,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	autoconf.texi autoconf-macros.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
 
-include $(top_srcdir)/pre-inst-guile.am
+include $(top_srcdir)/am/pre-inst-guile
 
 # Automated snarfing
 
