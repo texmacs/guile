@@ -1,3 +1,8 @@
+2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am, md/Makefile.am, time/Makefile.am
+	(AUTOMAKE_OPTIONS): Replace "foreign" with "gnu".
+
 2001-12-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (OMIT_DEPENDENCIES): Delete macro (obsolete

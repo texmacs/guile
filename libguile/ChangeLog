@@ -1,5 +1,9 @@
 2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
+	* Makefile.am (AUTOMAKE_OPTIONS): Replace "foreign" with "gnu".
+
+2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
 	* gsubr.c (create_gsubr): On "too many args" error,
 	also display arg count and name.  Thanks to Bill Schottstaedt.
 

@@ -1,3 +1,8 @@
+2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am, goops/Makefile.am (AUTOMAKE_OPTIONS):
+	Replace "foreign" with "gnu".
+
 2001-10-18  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* goops.scm, goops/active-slot.scm, goops/compile.scm,
@@ -37,7 +42,7 @@
 	* goops.scm (initialize-object-procedure): Use
 	`valid-object-procedure?' instead of explicit tag magic.
 	(object-procedure-tags): Removed.
-	
+
 	* goops/util.scm (top-level-env): Use `current-module' instead of
 	the deprecated *top-level-lookup-closure*.
 
@@ -68,7 +73,7 @@
 	* Makefile.am: Added old-define-method.scm.
 
 	* goops/old-define-method.scm: New file.
-	
+
 	* goops.scm, goops/save.scm, goops/composite-slot.scm,
 	goops/active-slot.scm: Use new method syntax.
 
@@ -82,7 +87,7 @@
 	Quote empty list.
 	(initialize <method>): Supply `dummy-procedure' as default instead
 	of creating a new closure.
-	
+
 	* goops/internal.scm: Re-export (oop goops) without copying
 	bindings.
 
