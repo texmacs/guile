@@ -1,3 +1,8 @@
+2001-08-23  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* srfi-13.c (string-map): Swapped order of string and proc args to
+	conform with the srfi.  (Thanks to Alex Shinn.)
+
 2001-07-31  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.c (scm_char_set_diff_plus_intersection): wasn't correctly
@@ -10,7 +15,7 @@
 	(scm_char_set_xor_x): disabled the side-effecting code, since it
 	gives inconsistent results to scm_char_set_xor for the case
 	(char-set-xor! a a a).
-	
+
 	(scm_char_set_diff_plus_intersection_x): added cs2 argument, since
 	two arguments are compulsory in final spec.  also similar changes
 	as for scm_char_set_diff_plus_intersection.
@@ -31,7 +36,7 @@
 
 	* srfi-14.c: Okay.  Now I got it.  Really.  This time it's fixed.
 	Guaranteed. (Maybe)
-	
+
 	* srfi-19.scm: Define `current-time' before exporting it.
 
 2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
@@ -39,7 +44,7 @@
 	* srfi-14.c: Fix for bug caused by brain-malfunctioning on my
 	side.  Bit sets were handled wrong because I couldn't tell bit
 	counts from byte counts.  Also, the bit array should be 256 / 8
-	bytes long.  Thank you, Gary!	
+	bytes long.  Thank you, Gary!
 
 	Removed unnecessary protoype for scm_char_set_copy.
 
@@ -65,7 +70,7 @@
 	more values.
 
 2001-07-15  Gary Houston  <ghouston@arglist.com>
-	
+
 	* srfi-14.c (scm_char_set_hash): recognise 0 instead of #f in the
 	opt arg to give default bound, as in final spec.  don't allow
 	negative bounds.
@@ -101,7 +106,7 @@
 	delete!, assoc): roll back the previous change.  instead place
 	dummy definitions in a deprecated block at the beginning as in
 	srfi-13.scm.
-	
+
 2001-07-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-19.scm (priv:locale-reader): don't need open-output-string.
@@ -189,10 +194,10 @@
 	properly and relied on non-R5RS-isms like passing reals to
 	`quotient'.  For Guile, some additional fixes were needed because
 	of the incomplete numeric tower implementation.  See also
-	srfi-19.test. 
-	
+	srfi-19.test.
+
 	* srfi-19.scm (date-zone-offset): Fixed typo in export clause.
-	(add-duration): Renamed from priv:add-duration. 
+	(add-duration): Renamed from priv:add-duration.
 	(priv:time-normalize!): Handle fractional nanoseconds; remove
 	duplicate definition.
 	(priv:current-time-tai): Fixed typo.
@@ -207,15 +212,15 @@
 	DST effects.
 	(time-utc->date, time-tai->date, time-monotonic->date): Handle the
 	changed signature of priv:local-tz-offset. Don't pass non-integer
-	arguments to quotient (non-R5RS, not supported by Guile). 
+	arguments to quotient (non-R5RS, not supported by Guile).
 	(date->time-utc): Ensure that seconds in a date structure are
 	always exact integers.  Handle DST properly.
 	(current-date, julian-day->date, modified-julian-day->date):
-	Handle the changed signature of priv:local-tz-offset.  
+	Handle the changed signature of priv:local-tz-offset.
 	(julian-day->time-utc): Reverted earlier inexact->exact hack;
 	make-time now handles inexact arguments.
 	(priv:locale-print-time-zone): At least print the numerical time
-	zone. 
+	zone.
 	(priv:integer-reader): Fixed named let iteration.
 	(priv:read-directives): Use set-date-month! instead of
 	priv:set-date-month! etc.
@@ -294,7 +299,7 @@
 2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Avoid using module operations from C.
-	
+
 	* srfi-13.c (scm_init_srfi_13_14): Removed.
 	* srfi-14.h, srfi-14.c (scm_c_init_srfi_14): New.  Contains
 	initializations needed by C clients of srfi-14.
@@ -347,7 +352,7 @@
 	* srfi-10.scm: New file.
 
 	* srfi-17.scm: New file, contributed by Matthias Koeppe.  Thanks a
-	lot!  
+	lot!
 	Added `Commentary:' tag.
 
 	* srfi-9.scm: Added `Commentary:' tag.
@@ -392,7 +397,7 @@
 
 	Changed two procedure names to match final SRFI document.  Thanks
 	to Rob Browning for spotting this.
-	
+
 	* srfi-13.scm (string-concatenate-reverse),
 	(string-concatenate-reverse/shared): Rename from
 	reverse-string-concatenate[/shared].
@@ -434,7 +439,7 @@
 2001-04-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	Integrated the guile-srfi package into the Guile distribution.
-	
+
 	* srfi-13.c: All procedures so specified in the SRFI now accept
 	character set arguments.
 
@@ -475,7 +480,7 @@
 	to 0.0.3.
 
 	* Released version 0.0.2.
-	
+
 	* Makefile.am: Added rules for builing the SRFI-14 library.
 
 	* srfi-14.c, srfi-14.scm: New files, implementing SRFI-14
