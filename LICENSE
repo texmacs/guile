@@ -5,13 +5,13 @@
 Section: Terms
 -----------------
 
-This file describes the LICENSE for GUILE.  It is intended to be an
-accurate summary of the licensing terms for GUILE, but in no way
+This file describes the LICENSE for Guile.  It is intended to be an
+accurate summary of the licensing terms for Guile, but in no way
 supersedes what each individual source file may say regarding its
 license.  Any discrepancy regarding licensing terms between this
 document and any given source file is a bug, please report it.
 
-The overall intent of the GUILE license is for the source to be
+The overall intent of the Guile license is for the source to be
 covered under the GNU Public License, along with whatever additional
 exceptions are necessary so that just linking an application against
 Guile doesn't (by itself) make that application subject to the
