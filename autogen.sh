@@ -7,10 +7,14 @@
 
 ./guile-aclocal.sh
 
-libtoolize --copy --automake --ltdl
+libtoolize --force --copy --automake --ltdl
 autoheader
 autoconf
 automake --add-missing
+
+# Make sure that libltdl uses the same autoconf version as the rest.
+#
+( echo "libltdl..."; cd libltdl; autoconf )
 
 ( echo "guile-readline..."; cd guile-readline; ./autogen.sh )
 
