@@ -54,6 +54,18 @@
     (if (not (proc x (car lst)))
 	(set! ret (cons (car lst) ret)))))
 
+(define (ref-delete-duplicates lst . proc)
+  "Reference implemenation of srfi-1 `delete-duplicates'."
+  (set! proc (if (null? proc) equal? (car proc)))
+  (if (null? lst)
+      '()
+      (do ((keep '()))
+	  ((null? lst)
+	   (reverse! keep))
+	(let ((elem (car lst)))
+	  (set! keep (cons elem keep))
+	  (set! lst  (ref-delete elem lst proc))))))
+
 ;;
 ;; alist-copy
 ;;
@@ -371,6 +383,72 @@
        (pass-if lst
 	 (equal? (delete!    #f lst)
 		 (ref-delete #f lst)))))))
+
+;;
+;; delete-duplicates and delete-duplicates!
+;;
+
+(let ()	
+  ;; Call (PROC lst) for all lists of length 1 <= n <= 4, with all
+  ;; combinations of numbers 1 to n in the elements
+  (define (test-lists proc)
+    (do ((n 1 (1+ n)))
+	((> n 4))
+      (do ((limit (integer-expt n n))
+	   (i 0 (1+ i)))
+	  ((>= i limit))
+	(let ((lst '()))
+	  (do ((j 0 (1+ j))
+	       (rem i (quotient rem n)))
+	      ((>= j n))
+	    (set! lst (cons (remainder rem n) lst)))
+	  (proc lst)))))
+
+  (define (common-tests delete-duplicates-proc)
+    (pass-if-exception "too few args" exception:wrong-num-args
+      (delete-duplicates-proc))
+    
+    (pass-if "empty"
+      (eq? '() (delete-duplicates-proc '())))
+    
+    (pass-if "equal? (the default)"
+      (equal? '((2))
+	      (delete-duplicates-proc '((2) (2) (2)))))
+    
+    (pass-if "eq?"
+      (equal? '((2) (2) (2))
+	      (delete-duplicates-proc '((2) (2) (2)) eq?)))
+
+    (pass-if "called arg order"
+      (let ((ok #t))
+	(delete-duplicates-proc '(1 2 3 4 5)
+				(lambda (x y)
+				  (if (> x y)
+				      (set! ok #f))
+				  #f))
+	ok)))
+  
+  (with-test-prefix "delete-duplicates"
+    (common-tests delete-duplicates)
+    
+    (test-lists
+     (lambda (lst)
+       (let ((lst-copy (list-copy lst)))
+	 (with-test-prefix lst-copy
+	   (pass-if "result"
+	     (equal? (delete-duplicates     lst)
+		     (ref-delete-duplicates lst)))
+	   (pass-if "non-destructive"
+	     (equal? lst-copy lst)))))))  
+  
+  (with-test-prefix "delete-duplicates!"
+    (common-tests delete-duplicates!)
+    
+    (test-lists
+     (lambda (lst)
+       (pass-if lst
+	 (equal? (delete-duplicates!    lst)
+		 (ref-delete-duplicates lst)))))))
 
 ;;
 ;; filter-map
