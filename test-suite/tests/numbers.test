@@ -851,6 +851,32 @@
 ;;; string->number
 ;;;
 
+
+(with-test-prefix "string->number"
+
+  (pass-if "documented?"
+    (documented? string->number))
+
+  ;; Prior to Guile 1.6.7 the bignum size calculation (used for strings >=
+  ;; 6 chars) was wrong (for bases other than 2, 10 and 16), resulting in
+  ;; numerical overflow errors for certain conversions.
+  ;;
+  ;; The following exercises string->number of strings like "999999" (each
+  ;; digit is base-1) in bases 2 to 16.
+  ;;
+  (do ((base 2 (1+ base)))
+      ((> base 16))
+
+    (with-test-prefix (list 'base base)
+
+      (do ((digit (string-ref (number->string (1- base) base) 0))
+	   (want  (1- base)   (+ (* want base) base -1))
+	   (len   1           (1+ len)))
+	  ((> len 300))
+
+	(pass-if (list 'length len)
+	  (eqv? want (string->number (make-string len digit) base)))))))
+
 ;;;
 ;;; number?
 ;;;
