@@ -1,3 +1,7 @@
+2004-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* cpp_sig_symbols.in: Add SIGSYS.
+
 2004-03-20  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_gethostname): Preserve errno across scm_must_free().
