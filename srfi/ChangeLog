@@ -1,6 +1,6 @@
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
-	* srfi-1.scm (filter-map): Change to a tail-recursive form.
+	* srfi-1.scm (count, filter-map): Change to a tail-recursive form.
 
 2004-11-11  Rob Browning  <rlb@defaultvalue.org>
 
