@@ -1,3 +1,8 @@
+2001-07-25  Gary Houston  <ghouston@arglist.com>
+
+	* numbers.c (scm_logand, scm_logior, scm_logxor): adjusted the
+	docstrings to reflect the n-ary implementation.
+
 2001-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tags.h: Include inttypes.h when we have it.
