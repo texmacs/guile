@@ -1,3 +1,8 @@
+2003-11-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* ports.c (scm_drain_input): Bug fix: only access the port after
+	checking that it indeed is one.
+
 2003-11-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc_os_dep.c (scm_get_stack_base): Provide a definition that
