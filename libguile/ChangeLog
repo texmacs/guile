@@ -1,3 +1,9 @@
+2004-01-07  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (scm_aind): Test SCM_CONSP rather than !SCM_NULLP while
+	traversing the args list, fixes segv if an improper list is given.
+	Reported by Rouben Rostamian.
+
 2003-11-21  Marius Vollmer  <mvo@zagadka.de>
 
 	* ports.c (scm_drain_input): Bug fix: only access the port after
