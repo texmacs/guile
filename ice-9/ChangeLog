@@ -1,3 +1,9 @@
+2001-08-12  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* getopt-long.scm: Rewrite.
+	Touch up docstrings.
+	Augment commentary.
+
 2001-08-02  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* getopt-long.scm: Refill to fit in 80 columns.
@@ -72,7 +78,7 @@
 
 	Changes to support tracing other than inside the repl-stack that
 	is set up by the REPL code in boot-9.scm.
-	
+
 	* debug.scm (trace-entry, trace-exit): Conditionalize tracing on
 	whether the current stack id is in `traced-stack-ids'.
 	(traced-stack-ids, trace-all-stacks?, trace-stack, untrace-stack):
@@ -87,7 +93,7 @@
 
 	* debug.scm (trace): Set evaluator trap options to handle tracing.
 	Don't reset trace-level to 0.
-	
+
 	* boot-9.scm (lazy-handler-dispatch): Remove enter-frame-handler,
 	apply-frame-handler and exit-frame-handler.  (They're replaced by
 	evaluator trap options.)
