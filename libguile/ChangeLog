@@ -1,3 +1,8 @@
+2003-03-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc_os_dep.c: Added defines for sparc-unknown-netbsdelf1.5 from
+	Adrian Bunk.  Thanks!
+
 2003-02-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* hooks.c (scm_c_hook_add): Fixed bug in append mode.
