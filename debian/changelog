@@ -1,3 +1,9 @@
+guile-1.6 (1.6.2-1) unstable; urgency=low
+
+  * new upstream release (still not ready for Debian proper yet).
+
+ -- Rob Browning <rlb@defaultvalue.org>  Thu, 30 Jan 2003 14:17:23 -0600
+
 guile-1.6 (1.6.1-3) unstable; urgency=low
 
   * handle non-qthreads architectures properly.

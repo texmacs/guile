@@ -4,7 +4,7 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-Each release reports NEWS in the following sections:
+Each release reports the NEWS in the following sections:
 
 * Changes to the distribution
 * Changes to the stand-alone interpreter
@@ -16,7 +16,23 @@ Changes since Guile 1.6.1:
 
 * Changes to the distribution
 
-** Debian/ files have been added in preparation for new Debian packages.
+** GOOPS longer creates layout entries for non-instance slots.
+
+** syntax-case bugs have been fixed
+
+   a) Macro expansion is no longer disturbed if the value of
+      (current-module) changes.  This was the cause of a number of
+      different bugs people have reported.
+
+   b) Syntax-case now expands Guile's own macros as a part of the
+      macro expansion process.  Previously, Guile macro calls were
+      treated as applications.
+
+   c) Objects which are constant data and which Guile considers
+      self-evaluating are no longer quoted.
+
+   One good consequence of these fixes is that it's now possible to
+   use syntax-case macro expansion together with GOOPS code.
 
 * Changes to the stand-alone interpreter
 
