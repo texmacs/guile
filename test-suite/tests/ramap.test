@@ -57,16 +57,16 @@
     (array-map! (make-array #f 5)))
 
   ;; in Guile 1.6.4 and earlier this resulted in a segv
-  (pass-if-exception "two args" '(misc-error . ".*")
+  (pass-if-exception "no sources" exception:wrong-num-args
     (array-map! (make-array #f 5) noop))
 
   ;; in Guile 1.6.5 and 1.6.6 this was an error
-  (pass-if "two args"
+  (pass-if "one source"
     (let ((a (make-array #f 5)))
       (array-map! a 1+ (make-array 123 5))
       (equal? a (make-array 124 5))))
 
-  (pass-if "three args"
+  (pass-if "two sources"
     (let ((a (make-array #f 4)))
       (array-map! a + #(1 2 3 4) #(5 6 7 8))
       (equal? a #(6 8 10 12)))))
