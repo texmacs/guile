@@ -1,3 +1,8 @@
+2004-12-16  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ramap.test: New file, test array-map!.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2004-12-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (string->number): New tests.
