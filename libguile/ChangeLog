@@ -1,3 +1,9 @@
+2004-08-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* net_db.c (scm_resolv_error): don't put bad_value in the format string
+	value arguments when calling scm_error since none of the format
+	strings actually have escapes for the values.
+
 2004-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_fill_x): For byvect char fill, force signed char

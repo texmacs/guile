@@ -39,6 +39,8 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** gethost no longer causes an exception when trying to throw an exception
+
 ** call-with-output-string doesn't segv on closed port
 
 Previously call-with-output-string would give a segmentation fault if
