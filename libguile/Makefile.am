@@ -138,7 +138,7 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
 modinclude_DATA = scmconfig.h
 
 bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
-    guile-snarf-docs-texi guile-func-name-check
+    guile-func-name-check
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
@@ -202,9 +202,14 @@ error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
-	cat $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) | ./guile-snarf-docs-texi > $@ \
-	|| { rm $@; false; }
+include $(top_srcdir)/pre-inst-guile.am
+
+alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
+snarf2checkedtexi = $(preinstguiletool)/snarf-check-and-output-texi
+dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
+
+guile.texi: $(alldotdocfiles) guile
+	$(dotdoc2texi) > $@ || { rm $@; false; }
 
 if HAVE_MAKEINFO
 
