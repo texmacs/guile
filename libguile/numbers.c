@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -4580,7 +4580,7 @@ SCM
 scm_dbl2big (double d)
 {
   scm_c_issue_deprecation_warning ("`scm_dbl2big' is deprecated. "
-				   "Use `scm_dbl2num' instead,"
+				   "Use `scm_double2num' instead,"
                                    "or `scm_i_dbl2big'.");
   return scm_i_dbl2big (d);
 }

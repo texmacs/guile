@@ -1,3 +1,14 @@
+2003-06-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc_os_dep.c (scm_get_stack_base): New version using
+	__libc_stack_end, when available.
+
+2003-06-09  Marius Vollmer  <mvo@zagadka.de>
+
+	* numbers.c (scm_dbl2big): Fix deprecation message to mention
+	scm_double2num instead of scm_dbl2num, which doesn't exist.
+	Thanks to Mike Gran!
+
 2003-04-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc.c (SCM_MTRIGGER_HYSTERESIS): Removed.
