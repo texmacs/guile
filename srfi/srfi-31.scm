@@ -1,4 +1,4 @@
-;;; srfi-34.scm --- Time/Date Library
+;;; srfi-31.scm --- special form for recursive evaluation
 
 ;; 	Copyright (C) 2004 Free Software Foundation, Inc.
 ;;
@@ -54,4 +54,5 @@
    ((list? arg-form)
     `(letrec ((,(car arg-form) (lambda ,(cdr arg-form) ,@body)))
        ,(car arg-form)))
-   (else "syntax error in rec form" `(rec ,arg-form ,@body))))
+   (else
+    (error "syntax error in rec form" `(rec ,arg-form ,@body)))))
