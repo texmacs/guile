@@ -1,5 +1,13 @@
 2004-04-25  Kevin Ryde  <user42@zip.com.au>
 
+	* chars.c (scm_char_upcase, scm_char_downcase, scm_upcase,
+	scm_downcase): Use ctype.h toupper and tolower.  This will be useful
+	in 8-bit locales, and ensures consistency with char-upper-case? and
+	char-lower-case? which already use ctype.h.
+	(scm_upcase_table, scm_downcase_table, scm_lowers, scm_uppers):
+	Remove.
+	* chars.c, chars.h, init.c (scm_tables_prehistory): Remove.
+
 	* filesys.c (scm_getcwd, scm_readlink): Avoid memory leak on errors.
 
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
