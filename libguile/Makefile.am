@@ -120,23 +120,23 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h coop-defs.h debug.h debug-malloc.h deprecation.h  \
-    dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h	      \
-    extensions.h feature.h filesys.h fluids.h fports.h gc.h		      \
-    gdb_interface.h gdbint.h						      \
-    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h ioext.h	      \
-    iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h    \
-    net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h  \
-    regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
-    rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
-    snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
-    strop.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
-    throw.h unif.h values.h variable.h vectors.h version.h vports.h weaks.h
-
-## This file is generated at configure time.  That is why it is DATA
-## and not a header -- headers are included in the distribution.
-modinclude_DATA = scmconfig.h
+modinclude_HEADERS =							   \
+  __scm.h alist.h arbiters.h async.h backtrace.h boolean.h		   \
+  chars.h continuations.h coop-defs.h debug.h debug-malloc.h		   \
+  deprecation.h								   \
+  dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h		   \
+  extensions.h feature.h filesys.h fluids.h fports.h gc.h		   \
+  gdb_interface.h gdbint.h						   \
+  goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h ioext.h	   \
+  iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h   \
+  net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h \
+  regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h   \
+  rdelim.h read.h root.h rw.h scmconfig.h scmsigs.h validate.h		   \
+  script.h simpos.h smob.h						   \
+  snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h  \
+  strop.h strorder.h strports.h struct.h symbols.h tags.h threads.h	   \
+  throw.h unif.h values.h variable.h vectors.h version.h vports.h weaks.h  \
+  scmconfig.h
 
 bin_SCRIPTS = guile-snarf
 
@@ -151,6 +151,14 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads	\
     c-tokenize.lex
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
+
+# This is a temporary fix -- we'll be generating this file by hand
+# soon, but don't want to make changes that major right now.
+scmconfig.h: $(top_builddir)/config.h
+	rm -f scmconfig.h
+	sed -e 's|\(#define PACKAGE_.*\)|/* do not publish: \1 */|' \
+	  < $(top_builddir)/config.h > scmconfig.h.tmp
+	mv scmconfig.h.tmp scmconfig.h
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
@@ -284,7 +292,8 @@ check_errnos:
 
 MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
-	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
+	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new \
+	scmconfig.h
 
 CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
 
