@@ -63,7 +63,7 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
-- sync srfi-modules.texi [ttn]
++ sync srfi-modules.texi [ttn]
 
 - Update the version numbers in GUILE-VERSION and README. [rlb]
 
