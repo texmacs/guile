@@ -2,7 +2,7 @@
 
 #ifndef SCM_CHARSH
 #define SCM_CHARSH
-/*	Copyright (C) 1995,1996, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2004 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,6 @@ extern SCM scm_char_to_integer (SCM chr);
 extern SCM scm_integer_to_char (SCM n);
 extern SCM scm_char_upcase (SCM chr);
 extern SCM scm_char_downcase (SCM chr);
-extern void scm_tables_prehistory (void);
 extern int scm_upcase (unsigned int c);
 extern int scm_downcase (unsigned int c);
 extern void scm_init_chars (void);

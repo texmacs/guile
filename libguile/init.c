@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -465,7 +465,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   
   scm_ports_prehistory ();
   scm_smob_prehistory ();
-  scm_tables_prehistory ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
