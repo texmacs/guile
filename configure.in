@@ -43,7 +43,7 @@ AC_CONFIG_SUBDIRS(guile-readline)
 #
 #--------------------------------------------------------------------
 
-GUILE_ERROR_ON_WARNING="yes"
+GUILE_ERROR_ON_WARNING="no"
 
 AC_ARG_ENABLE(error-on-warning,
   [  --enable-error-on-warning    treat compile warnings as errors],
