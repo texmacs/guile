@@ -1,3 +1,7 @@
+2003-08-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-19.test (date-week-number): Add tests.
+
 2003-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srcprop.test: New file.
