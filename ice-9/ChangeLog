@@ -1,3 +1,8 @@
+2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* r5rs.scm: Use `re-export' instead of `export' for re-exported
+	primitives.  Thanks Neil!
+
 2001-07-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger.scm (run-last-command): Return current state if
