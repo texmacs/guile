@@ -1,3 +1,8 @@
+2001-11-20  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* Makefile.am (libpath.h): In SCM_BUILD_INFO,
+	also include `buildstamp'.
+
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libguile_la_LDFLAGS): port changes from 1.7 branch
