@@ -186,26 +186,26 @@
 
 
 #define jit_floorr_d_i(rd,rs)  (MTFSFIri(7,3), \
-                                  FCTIWrr(31,(rs)),    \
+                                  FCTIWrr(7,(rs)),    \
                                   MOVEIri(JIT_AUX,-4), \
-                                  STFIWXrrr(31,JIT_SP,JIT_AUX),   \
+                                  STFIWXrrr(7,JIT_SP,JIT_AUX),   \
                                   LWZrm((rd),-4,JIT_SP))
 
 #define jit_ceilr_d_i(rd,rs)   (MTFSFIri(7,2), \
-                                  FCTIWrr(31,(rs)),    \
+                                  FCTIWrr(7,(rs)),    \
                                   MOVEIri(JIT_AUX,-4), \
-                                  STFIWXrrr(31,JIT_SP,JIT_AUX),   \
+                                  STFIWXrrr(7,JIT_SP,JIT_AUX),   \
                                   LWZrm((rd),-4,JIT_SP))
 
 #define jit_roundr_d_i(rd,rs)  (MTFSFIri(7,0), \
-                                  FCTIWrr(31,(rs)),    \
+                                  FCTIWrr(7,(rs)),    \
                                   MOVEIri(JIT_AUX,-4), \
-                                  STFIWXrrr(31,JIT_SP,JIT_AUX),   \
+                                  STFIWXrrr(7,JIT_SP,JIT_AUX),   \
                                   LWZrm((rd),-4,JIT_SP))
 
-#define jit_truncr_d_i(rd,rs)  (FCTIWZrr(31,(rs)), \
+#define jit_truncr_d_i(rd,rs)  (FCTIWZrr(7,(rs)), \
                                   MOVEIri(JIT_AUX,-4), \
-                                  STFIWXrrr(31,JIT_SP,JIT_AUX),   \
+                                  STFIWXrrr(7,JIT_SP,JIT_AUX),   \
                                   LWZrm((rd),-4,JIT_SP))
 
 #endif /* __lightning_asm_h */

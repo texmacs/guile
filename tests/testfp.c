@@ -39,11 +39,12 @@
 
 static jit_insn codeBuffer[300];
 static double a;
+int i;
 
 void
 int_test(char *what, jit_code code, double b, double c, double d, double e, double f)
 {
-  a = b; printf("%s\t\t%d ", what, code.iptr());
+  a = b; printf("%s\t\t%d ", what, code.iptr ());
   a = c; printf("%d ", code.iptr());
   a = d; printf("%d ", code.iptr());
   a = e; printf("%d ", code.iptr());
