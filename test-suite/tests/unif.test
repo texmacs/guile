@@ -19,6 +19,182 @@
 (define-module (test-suite test-unif)
   #:use-module (test-suite lib))
 
+;; true if long long uniform arrays are available
+(define have-llvect?  (false-if-exception (make-uniform-vector 1 'l)))
+
+
+;;;
+;;; array?
+;;;
+
+(with-test-prefix "array?"
+
+  (let ((bool     (make-uniform-array #t    '(5 6)))
+	(char     (make-uniform-array #\a   '(5 6)))
+	(byte     (make-uniform-array #\nul '(5 6)))
+	(short    (make-uniform-array 's    '(5 6)))
+	(ulong    (make-uniform-array 1     '(5 6)))
+	(long     (make-uniform-array -1    '(5 6)))
+	(longlong (and have-llvect?
+		       (make-uniform-array 'l '(5 6))))
+	(float    (make-uniform-array 1.0   '(5 6)))
+	(double   (make-uniform-array 1/3   '(5 6)))
+	(complex  (make-uniform-array 0+i   '(5 6)))
+	(scm      (make-uniform-array '()   '(5 6))))
+
+    (with-test-prefix "is bool"
+      (pass-if "bool"  (eq? #t (array? bool  	  #t)))
+      (pass-if "char"  (eq? #f (array? char  	  #t)))
+      (pass-if "byte"  (eq? #f (array? byte  	  #t)))
+      (pass-if "short" (eq? #f (array? short 	  #t)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  #t)))
+      (pass-if "long"  (eq? #f (array? long  	  #t)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong #t))))
+      (pass-if "float"   (eq? #f (array? float    #t)))
+      (pass-if "double"  (eq? #f (array? double   #t)))
+      (pass-if "complex" (eq? #f (array? complex  #t)))
+      (pass-if "scm"     (eq? #f (array? scm      #t))))
+
+    (with-test-prefix "is char"
+      (pass-if "bool"  (eq? #f (array? bool  	  #\a)))
+      (pass-if "char"  (eq? #t (array? char  	  #\a)))
+      (pass-if "byte"  (eq? #f (array? byte  	  #\a)))
+      (pass-if "short" (eq? #f (array? short 	  #\a)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  #\a)))
+      (pass-if "long"  (eq? #f (array? long  	  #\a)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong #\a))))
+      (pass-if "float"   (eq? #f (array? float    #\a)))
+      (pass-if "double"  (eq? #f (array? double   #\a)))
+      (pass-if "complex" (eq? #f (array? complex  #\a)))
+      (pass-if "scm"     (eq? #f (array? scm      #\a))))
+
+    (with-test-prefix "is byte"
+      (pass-if "bool"  (eq? #f (array? bool  	  #\nul)))
+      (pass-if "char"  (eq? #f (array? char  	  #\nul)))
+      (pass-if "byte"  (eq? #t (array? byte  	  #\nul)))
+      (pass-if "short" (eq? #f (array? short 	  #\nul)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  #\nul)))
+      (pass-if "long"  (eq? #f (array? long  	  #\nul)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong #\nul))))
+      (pass-if "float"   (eq? #f (array? float    #\nul)))
+      (pass-if "double"  (eq? #f (array? double   #\nul)))
+      (pass-if "complex" (eq? #f (array? complex  #\nul)))
+      (pass-if "scm"     (eq? #f (array? scm      #\nul))))
+
+    (with-test-prefix "is short"
+      (pass-if "bool"  (eq? #f (array? bool  	  's)))
+      (pass-if "char"  (eq? #f (array? char  	  's)))
+      (pass-if "byte"  (eq? #f (array? byte  	  's)))
+      (pass-if "short" (eq? #t (array? short 	  's)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  's)))
+      (pass-if "long"  (eq? #f (array? long  	  's)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong 's))))
+      (pass-if "float"   (eq? #f (array? float    's)))
+      (pass-if "double"  (eq? #f (array? double   's)))
+      (pass-if "complex" (eq? #f (array? complex  's)))
+      (pass-if "scm"     (eq? #f (array? scm      's))))
+
+    (with-test-prefix "is ulong"
+      (pass-if "bool"  (eq? #f (array? bool  	  1)))
+      (pass-if "char"  (eq? #f (array? char  	  1)))
+      (pass-if "byte"  (eq? #f (array? byte  	  1)))
+      (pass-if "short" (eq? #f (array? short 	  1)))
+      (pass-if "ulong" (eq? #t (array? ulong 	  1)))
+      (pass-if "long"  (eq? #f (array? long  	  1)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong 1))))
+      (pass-if "float"   (eq? #f (array? float    1)))
+      (pass-if "double"  (eq? #f (array? double   1)))
+      (pass-if "complex" (eq? #f (array? complex  1)))
+      (pass-if "scm"     (eq? #f (array? scm      1))))
+
+    (with-test-prefix "is long"
+      (pass-if "bool"  (eq? #f (array? bool  	  -1)))
+      (pass-if "char"  (eq? #f (array? char  	  -1)))
+      (pass-if "byte"  (eq? #f (array? byte  	  -1)))
+      (pass-if "short" (eq? #f (array? short 	  -1)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  -1)))
+      (pass-if "long"  (eq? #t (array? long  	  -1)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong -1))))
+      (pass-if "float"   (eq? #f (array? float    -1)))
+      (pass-if "double"  (eq? #f (array? double   -1)))
+      (pass-if "complex" (eq? #f (array? complex  -1)))
+      (pass-if "scm"     (eq? #f (array? scm      -1))))
+
+    (with-test-prefix "is long long"
+      (pass-if "bool"  (eq? #f (array? bool  	  'l)))
+      (pass-if "char"  (eq? #f (array? char  	  'l)))
+      (pass-if "byte"  (eq? #f (array? byte  	  'l)))
+      (pass-if "short" (eq? #f (array? short 	  'l)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  'l)))
+      (pass-if "long"  (eq? #f (array? long  	  'l)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #t (array? longlong 'l))))
+      (pass-if "float"   (eq? #f (array? float    'l)))
+      (pass-if "double"  (eq? #f (array? double   'l)))
+      (pass-if "complex" (eq? #f (array? complex  'l)))
+      (pass-if "scm"     (eq? #f (array? scm      'l))))
+
+    (with-test-prefix "is float"
+      (pass-if "bool"  (eq? #f (array? bool  	  1.0)))
+      (pass-if "char"  (eq? #f (array? char  	  1.0)))
+      (pass-if "byte"  (eq? #f (array? byte  	  1.0)))
+      (pass-if "short" (eq? #f (array? short 	  1.0)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  1.0)))
+      (pass-if "long"  (eq? #f (array? long  	  1.0)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong 1.0))))
+      (pass-if "float"   (eq? #t (array? float    1.0)))
+      (pass-if "double"  (eq? #f (array? double   1.0)))
+      (pass-if "complex" (eq? #f (array? complex  1.0)))
+      (pass-if "scm"     (eq? #f (array? scm      1.0))))
+
+    (with-test-prefix "is double"
+      (pass-if "bool"  (eq? #f (array? bool  	  1/3)))
+      (pass-if "char"  (eq? #f (array? char  	  1/3)))
+      (pass-if "byte"  (eq? #f (array? byte  	  1/3)))
+      (pass-if "short" (eq? #f (array? short 	  1/3)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  1/3)))
+      (pass-if "long"  (eq? #f (array? long  	  1/3)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong 1/3))))
+      (pass-if "float"   (eq? #f (array? float    1/3)))
+      (pass-if "double"  (eq? #t (array? double   1/3)))
+      (pass-if "complex" (eq? #f (array? complex  1/3)))
+      (pass-if "scm"     (eq? #f (array? scm      1/3))))
+
+    (with-test-prefix "is complex"
+      (pass-if "bool"  (eq? #f (array? bool  	  0+i)))
+      (pass-if "char"  (eq? #f (array? char  	  0+i)))
+      (pass-if "byte"  (eq? #f (array? byte  	  0+i)))
+      (pass-if "short" (eq? #f (array? short 	  0+i)))
+      (pass-if "ulong" (eq? #f (array? ulong 	  0+i)))
+      (pass-if "long"  (eq? #f (array? long  	  0+i)))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong 0+i))))
+      (pass-if "float"   (eq? #f (array? float    0+i)))
+      (pass-if "double"  (eq? #f (array? double   0+i)))
+      (pass-if "complex" (eq? #t (array? complex  0+i)))
+      (pass-if "scm"     (eq? #f (array? scm      0+i))))
+
+    (with-test-prefix "is scm"
+      (pass-if "bool"  (eq? #f (array? bool  	  '())))
+      (pass-if "char"  (eq? #f (array? char  	  '())))
+      (pass-if "byte"  (eq? #f (array? byte  	  '())))
+      (pass-if "short" (eq? #f (array? short 	  '())))
+      (pass-if "ulong" (eq? #f (array? ulong 	  '())))
+      (pass-if "long"  (eq? #f (array? long  	  '())))
+      (if have-llvect?
+	  (pass-if "longlong" (eq? #f (array? longlong '()))))
+      (pass-if "float"   (eq? #f (array? float    '())))
+      (pass-if "double"  (eq? #f (array? double   '())))
+      (pass-if "complex" (eq? #f (array? complex  '())))
+      (pass-if "scm"     (eq? #t (array? scm      '()))))))
 
 ;;;
 ;;; uniform-array-set1!
