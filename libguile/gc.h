@@ -246,6 +246,8 @@ typedef unsigned long scm_t_c_bvec_limb;
   (SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [1]))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
   (((scm_t_bits *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
+#define SCM_SET_FREE_CELL_TYPE(x) \
+  (((scm_t_bits *) SCM2PTR (x)) [0] = scm_tc_free_cell)
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)

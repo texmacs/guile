@@ -2294,7 +2294,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
                 last_card = card;
               }
 
-	    SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
+	    SCM_SET_FREE_CELL_TYPE (scmptr);
 	    SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (nxt));
 
             ptr = nxt;
