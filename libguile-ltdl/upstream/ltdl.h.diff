@@ -1,0 +1,49 @@
+--- ./ltdl.h	2003-10-12 12:43:05.000000000 -0500
++++ raw-ltdl.guilemod.h	2003-10-12 13:13:55.000000000 -0500
+@@ -1,5 +1,5 @@
+ /* ltdl.h -- generic dlopen functions
+-   Copyright (C) 1998-2000 Free Software Foundation, Inc.
++   Copyright (C) 1998-2000, 2002 Free Software Foundation, Inc.
+    Originally by Thomas Tanner <tanner@ffii.org>
+    This file is part of GNU Libtool.
+ 
+@@ -28,15 +28,13 @@
+ #ifndef LTDL_H
+ #define LTDL_H 1
+ 
++#include "guile-ltdl.h"
++
+ #include <sys/types.h>		/* for size_t declaration */
+ 
+ 
+ /* --- MACROS FOR PORTABILITY --- */
+ 
+-
+-/* Saves on those hard to debug '\0' typos....  */
+-#define LT_EOS_CHAR	'\0'
+-
+ /* LTDL_BEGIN_C_DECLS should be used at the beginning of your declarations,
+    so that C++ compilers don't mangle their names.  Use LTDL_END_C_DECLS at
+    the end of C declarations. */
+@@ -341,21 +339,6 @@
+ 
+ 
+ 
+-
+-/* --- SOURCE COMPATIBILITY WITH OLD LIBLTDL --- */
+-
+-
+-#ifdef LT_NON_POSIX_NAMESPACE
+-#  define lt_ptr_t		lt_ptr
+-#  define lt_module_t		lt_module
+-#  define lt_module_open_t	lt_module_open
+-#  define lt_module_close_t	lt_module_close
+-#  define lt_find_sym_t		lt_find_sym
+-#  define lt_dlloader_exit_t	lt_dlloader_exit
+-#  define lt_dlloader_t		lt_dlloader
+-#  define lt_dlloader_data_t	lt_user_data
+-#endif
+-
+ LT_END_C_DECLS
+ 
+ #endif /* !LTDL_H */
