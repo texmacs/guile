@@ -1366,7 +1366,11 @@ SCM_DEFINE (scm_nice, "nice", 1, 0, 0,
 #define FUNC_NAME s_scm_nice
 {
   SCM_VALIDATE_INUM (1,incr);
-  if (nice(SCM_INUM(incr)) != 0)
+  /* nice() returns "prio-NZERO" on success or -1 on error, but -1 can arise
+     from "prio-NZERO", so an error must be detected from errno changed */
+  errno = 0;
+  nice(SCM_INUM(incr));
+  if (errno != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
