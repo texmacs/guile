@@ -1,3 +1,11 @@
+2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-13.c (s_scm_string_tokenize): Only take character sets as
+	the second arg.  Collect characters belonging to this set into
+	tokens (as specified by the SRFI), instead of splitting at these
+	characters.  Default to an equivalent of char-set:graphic instead
+	of everything-but-whitespace.  Thanks to Matthias Koeppe!
+
 2002-04-09  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.scm:  hack around dynamic-link problems by
