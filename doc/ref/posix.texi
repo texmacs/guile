@@ -2084,7 +2084,8 @@ Return a new socket port of the type specified by @var{family},
 integers.  Supported values for @var{family} are
 @code{PF_UNIX}, @code{PF_INET} and @code{PF_INET6}.
 Typical values for @var{style} are @code{SOCK_STREAM},
-@code{SOCK_DGRAM} and @code{SOCK_RAW}.
+@code{SOCK_DGRAM}, @code{SOCK_RAW}, @code{SOCK_RDM} and
+@code{SOCK_SEQPACKET}.
 
 @var{proto} can be obtained from a protocol name using
 @code{getprotobyname}.  A value of zero specifies the default
@@ -2592,3 +2593,8 @@ terminating newline character are discarded.  While reading
 the password, echoing and the generation of signals by special
 characters is disabled.
 @end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
