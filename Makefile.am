@@ -33,6 +33,9 @@ EXTRA_DIST = HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
 
 TESTS = check-guile
 
+# clean up check-guile.in symlink...
+CLEANFILES = guile-procedures.txt
+
 DISTCLEANFILES = check-guile.log
 
 # The rule will cd to $(top_srcdir).
