@@ -1,3 +1,9 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am: Include $(top_srcdir)/pre-inst-guile.am.
+
+	(psyntax.pp): Use $(preinstguile).
+
 2002-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* syncase.scm (ice-9): Define 'eval' before exporting it.  This
