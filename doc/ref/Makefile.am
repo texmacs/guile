@@ -35,11 +35,14 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	autoconf.texi autoconf-macros.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
 
+GUILE = $(top_builddir)/libguile/guile
+
 # Automated snarfing
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(top_srcdir)/scripts/snarf-guile-m4-docs $< > $@
+	GUILE=$(GUILE) \
+	$(top_srcdir)/scripts/snarf-guile-m4-docs $< > $(srcdir)/$@
 
 # Optionally support building an HTML version of the reference manual.
 
