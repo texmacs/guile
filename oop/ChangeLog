@@ -3,6 +3,7 @@
 	* goops.scm (eqv?, equal?): Provide default methods for `eqv?' and
 	`equal?'.
 	(compute-getters-n-setters): Check for bad init-thunks.
+	(update-direct-method!): Use eq? instead of eqv?.
 
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

@@ -936,7 +936,7 @@
     ;; So we can work as if we had only proper lists.
     (if (pair? l)       	  
 	(begin
-	  (if (eqv? (car l) old)  
+	  (if (eq? (car l) old)  
 	      (set-car! l new))
 	  (loop (cdr l))))))
 
