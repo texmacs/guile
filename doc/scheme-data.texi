@@ -3006,7 +3006,7 @@ Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
 The predicate @code{null?} is often used in list-processing code to
 tell whether a given list has run out of elements.  That is, a loop
 somehow deals with the elements of a list until the list satisfies
-@code{null?}.  Then, teh algorithm terminates.
+@code{null?}.  Then, the algorithm terminates.
 
 @rnindex null?
 @deffn primitive null? x
