@@ -1,3 +1,8 @@
+2004-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_nice): Correction to error detection.  Reported by
+	Matthias Koeppe.
+
 2004-08-31  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* init.c (scm_init_guile_1): move scm_weaks_prehistory before
