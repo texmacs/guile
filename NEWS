@@ -105,8 +105,10 @@ using a module.
 Subdirectory "scripts" contains Scheme modules that are packaged to
 also be executable as scripts.  At this time, these scripts are available:
 
+     autofrisk
      display-commentary
      doc-snarf
+     frisk
      generate-autoload
      punify
      read-scheme-source
@@ -231,6 +233,21 @@ manuals.
 See the README file in the `doc' directory for more details.
 
 ** There are a couple of examples in the examples/ directory now.
+
+** Autoconf support for scheme modules
+
+New macros:
+  GUILE_PROGS
+  GUILE_SITE_DIR
+  GUILE_CHECK
+  GUILE_MODULE_CHECK
+  GUILE_MODULE_AVAILABLE
+  GUILE_MODULE_REQUIRED
+  GUILE_MODULE_EXPORTS
+  GUILE_MODULE_REQUIRED_EXPORT
+
+Also, scripts/autofrisk provides AUTOFRISK_CHECKS and AUTOFRISK_SUMAMRY.
+See "Autoconf Support" chapter in the reference manual for details.
 
 * Changes to the stand-alone interpreter
 
