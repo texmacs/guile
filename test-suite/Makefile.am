@@ -37,6 +37,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/syncase.test			\
 	    tests/syntax.test			\
 	    tests/time.test			\
+	    tests/unif.test			\
 	    tests/version.test			\
 	    tests/weaks.test
 
