@@ -21,10 +21,10 @@
 
 all: libbox-module
 
-EXTRA_DIST = README box.c box-module.scm box-mixed.scm
+EXTRA_DIST = README box.c box-module.scm box-mixed.scm check.test
 
 CFLAGS=-I../..
-LIBS=`GUILE_LOAD_PATH=../.. ../../libguile/guile -e main -s ../../guile-config/guile-config link` -L../../libguile
+LIBS=`GUILE_LOAD_PATH=$(top_srcdir) $(top_builddir)/libguile/guile -e main -s $(top_builddir)/guile-config/guile-config link` -L$(top_builddir)/libguile -L$(top_builddir)/qt
 
 TESTS = check.test
 

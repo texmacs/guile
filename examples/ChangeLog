@@ -1,3 +1,14 @@
+2001-07-19  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-dynamic-module/Makefile.am, box-dynamic/Makefile.am,
+	box-module/Makefile.am, box/Makefile.am: Use $(top_srcdir) to get
+	at GUILE_LOAD_PATH, and $(top_builddir) for the guile and
+	guile-config programs and for the link paths.  Add check.test to
+	EXTRA_DIST.
+
+	* box-dynamic-module/Makefile.am, box-dynamic/Makefile.am,
+	box-module/Makefile.am, box/Makefile.am: Add -L../../qt to LIBS.
+
 2001-07-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* box-module/.cvsignore: add .deps
