@@ -1,3 +1,24 @@
+2002-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Integrated libguile-ltdl/ from HEAD branch.
+
+	* Makefile.am (INCLUDES): Include from ../libguile-ltdl/ instead
+	of from $(INCLTDL).
+	(libguile_la_LIBADD): Use ../libguile-ltdl/libguile-ltdl.la
+	instead of $(LIBLTDL).
+
+	* guile.c: Include "guile-ltdl.h" instead of "libltdl/ltdl.h".
+	(main): switch to scm_lt_dlset_preloaded_symbols;
+
+	* dynl.c: Include "guile-ltdl.h" instead of "libltdl/ltdl.h".
+	(sysdep_dynl_link): switch to scm_lt_dlhandle, scm_lt_dlopenext,
+	and scm_lt_dlerror.
+	(sysdep_dynl_unlink): switch to scm_lt_dlhandle, scm_lt_dlclose,
+	and scm_lt_dlerror.
+	(sysdep_dynl_func): switch to scm_lt_dlhandle, scm_lt_dlsym, and
+	scm_lt_dlerror.
+	(sysdep_dynl_init): switch to scm_lt_dlinit();
+
 2002-10-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.h: Include "libguile/struct.h" instead of just "struct.h".
