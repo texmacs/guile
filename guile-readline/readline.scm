@@ -35,7 +35,8 @@
 ;;; but only when it isn't already present.
 
 (if (not (feature? 'readline))
-    (dynamic-call "scm_init_readline" (dynamic-link "libguilereadline")))
+    (dynamic-call "scm_init_redline"
+                  (dynamic-link "libguilereadline-lt-15-0-2")))
 
 (if (not (feature? 'readline))
     (scm-error 'misc-error
