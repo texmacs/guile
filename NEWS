@@ -1090,6 +1090,11 @@ Instead, create a fresh vector of the desired size and copy the contents.
 
 scm_gensym now only takes one argument.
 
+** Deprecated function: scm_gentemp.
+
+Along with obarrays, scm_gentemp has been deprecated.  Use scm_gensym
+instead, or roll your own.
+
 ** Deprecated type tags:  scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols,
 scm_tc7_lvector
 
