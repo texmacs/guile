@@ -1,3 +1,8 @@
+2003-02-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* debug.c (scm_procedure_source): Handle all objects for which
+	procedure? is #t.  (Thanks to Bill Schottstaedt.)
+
 2003-02-01  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am: move built files to nodist_ targets so they don't
