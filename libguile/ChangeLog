@@ -1,3 +1,8 @@
+2003-10-11  Rob Browning  <rlb@defaultvalue.org>
+
+	* list.c (s_scm_append): add patch from Kevin Ryde to track argnum
+	in error messages.
+
 2003-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* strports.c (scm_call_with_output_string): scm_get_output_string
