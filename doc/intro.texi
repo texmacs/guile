@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12.2.3 2001-07-18 07:01:46 ttn Exp $
+@c $Id: intro.texi,v 1.12.2.4 2001-07-18 07:06:00 ttn Exp $
 
 @page
 @node What is Guile?
@@ -359,7 +359,7 @@ manual.  Once you've compiled your source files, you need to link them
 against the Guile object code library, @code{libguile}.
 
 On most systems, you should not need to do tell the compiler and linker
-explicitely where they can find @file{libguile.h} and @file{libguile}.
+explicitly where they can find @file{libguile.h} and @file{libguile}.
 When Guile has been installed in a peculiar way, or when you are on a
 peculiar system, things might not be so easy and you might need to pass
 additional @code{-I} or @code{-L} options to the compiler.  Guile
@@ -840,7 +840,7 @@ is the current one.  Thus, the call to @code{scm_c_define_gsubr} will
 put the new definition for @code{j0} into it, just as we want it.
 
 The definitions made in the C code are not automatically exported from
-a module.  You need to explicitely list the ones you want to export in
+a module.  You need to explicitly list the ones you want to export in
 @code{export} statements or with the @code{:export} option of
 @code{define-module}.
 
