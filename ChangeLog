@@ -1,5 +1,9 @@
 2002-08-19  Rob Browning  <rlb@defaultvalue.org>
 
+	* Guile beta 1.5.7 released.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): bump for release.
+
 	* .cvsignore: add config.h.
 
 	* autogen.sh (mscripts): (one more time) change from ../scripts to
