@@ -1,5 +1,7 @@
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
+	* configure.in (GUILE_EFFECTIVE_VERSION): AC_SUBST.
+
 	* Makefile.am (ice9dir): VERSION -> GUILE_EFFECTIVE_VERSION.
 
 2002-10-21  Mikael Djurfeldt  <mdj@linnaeus>
