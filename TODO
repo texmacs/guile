@@ -65,10 +65,6 @@ See also file HACKING.
 
 - Wait for reply from ttn about version numbers.
 
-- Set AGE=1 for everything that had a previous release.
-
-- Check with Martin about scm_t_? fix.
-
 - Update the version numbers in GUILE-VERSION and README. [rlb]
 
 - perform testing cycles.
