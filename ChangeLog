@@ -1,3 +1,14 @@
+2002-10-28  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: accidentally turned -Werror on by default -- turn
+	it off.
+	
+	* configure.in: rearrange things so that --enable-error-on-warning
+	uses GUILE_ERROR_ON_WARNING as an indicator and actually set the
+	value of CFLAGS to include -Werror at the end of configure.in so
+	it doesn't break any of the non-Werror clean configure tests.
+	Add check for assert.h since it's used in config.h.in.
+
 2002-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Integrated libguile-ltdl/ from HEAD branch.
