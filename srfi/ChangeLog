@@ -1,3 +1,8 @@
+2004-04-24  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (list-copy): New function, allowing improper lists as per
+	SRFI-1 spec, which the core list-copy doesn't do.
+
 2004-04-18  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-11.scm (let-values): Use gensym instead of gentemp, to avoid
