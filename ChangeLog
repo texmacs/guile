@@ -1,8 +1,8 @@
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* autogen.sh: Also link TODO from $workbook/tasks/TODO.
 	* Makefile.am (dist-hook): Removed.
 	(DISTCLEANFILES): Added check-guile.log.
+	(EXTRA_DIST): Don't distribute TODO.
 
 2002-04-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
