@@ -1,3 +1,12 @@
+2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* autoconf.texi, data-rep.texi, guile.texi, indices.texi,
+	scheme-binding.texi, scheme-debug.texi, scheme-evaluation.texi,
+	scheme-ideas.texi, scheme-io.texi, scheme-options.texi,
+	scheme-procedures.texi, scheme-utility.texi, scm.texi,
+	misc-modules.texi, intro.texi: Various minor/trivial enhancements
+	backported from the unstable CVS branch.
+
 2002-03-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* tools.texi (Miscellaneous Tools): New node/chapter.

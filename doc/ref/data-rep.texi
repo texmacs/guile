@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.1.2.3 2002-03-01 20:53:03 dirk Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.1.2.4 2002-03-12 20:51:25 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1077,7 +1077,7 @@ with @code{SCM} values.  Values are converted between C data types and
 the @code{SCM} type with utility functions and macros.
 
 @item
-@code{scm_bits_t} is an integral data type that is guaranteed to be
+@code{scm_t_bits} is an integral data type that is guaranteed to be
 large enough to hold all information that is required to represent any
 Scheme object.  While this data type is mostly used to implement Guile's
 internals, the use of this type is also necessary to write certain kinds
@@ -1085,7 +1085,7 @@ of extensions to Guile.
 @end itemize
 
 @menu
-* Relationship between SCM and scm_bits_t::
+* Relationship between SCM and scm_t_bits::
 * Immediate objects::
 * Non-immediate objects::
 * Heap Cell Type Information::
@@ -1094,11 +1094,11 @@ of extensions to Guile.
 @end menu
 
 
-@node Relationship between SCM and scm_bits_t
-@subsubsection Relationship between @code{SCM} and @code{scm_bits_t}
+@node Relationship between SCM and scm_t_bits
+@subsubsection Relationship between @code{SCM} and @code{scm_t_bits}
 
 A variable of type @code{SCM} is guaranteed to hold a valid Scheme
-object.  A variable of type @code{scm_bits_t}, on the other hand, may
+object.  A variable of type @code{scm_t_bits}, on the other hand, may
 hold a representation of a @code{SCM} value as a C integral type, but
 may also hold any C value, even if it does not correspond to a valid
 Scheme object.
@@ -1107,21 +1107,21 @@ For a variable @var{x} of type @code{SCM}, the Scheme object's type
 information is stored in a form that is not directly usable.  To be able
 to work on the type encoding of the scheme value, the @code{SCM}
 variable has to be transformed into the corresponding representation as
-a @code{scm_bits_t} variable @var{y} by using the @code{SCM_UNPACK}
+a @code{scm_t_bits} variable @var{y} by using the @code{SCM_UNPACK}
 macro.  Once this has been done, the type of the scheme object @var{x}
-can be derived from the content of the bits of the @code{scm_bits_t}
+can be derived from the content of the bits of the @code{scm_t_bits}
 value @var{y}, in the way illustrated by the example earlier in this
 chapter (@pxref{Cheaper Pairs}).  Conversely, a valid bit encoding of a
-Scheme value as a @code{scm_bits_t} variable can be transformed into the
+Scheme value as a @code{scm_t_bits} variable can be transformed into the
 corresponding @code{SCM} value using the @code{SCM_PACK} macro.
 
-@deftypefn Macro scm_bits_t SCM_UNPACK (SCM @var{x})
+@deftypefn Macro scm_t_bits SCM_UNPACK (SCM @var{x})
 Transforms the @code{SCM} value @var{x} into its representation as an
 integral type.  Only after applying @code{SCM_UNPACK} it is possible to
 access the bits and contents of the @code{SCM} value.
 @end deftypefn
 
-@deftypefn Macro SCM SCM_PACK (scm_bits_t @var{x})
+@deftypefn Macro SCM SCM_PACK (scm_t_bits @var{x})
 Takes a valid integral representation of a Scheme object and transforms
 it into its representation as a @code{SCM} value.
 @end deftypefn
@@ -1153,7 +1153,7 @@ Given a Scheme object @var{x} of unknown type, check first
 with @code{SCM_IMP (@var{x})} if it is an immediate object.
 @item
 If so, all of the type and value information can be determined from the
-@code{scm_bits_t} value that is delivered by @code{SCM_UNPACK
+@code{scm_t_bits} value that is delivered by @code{SCM_UNPACK
 (@var{x})}.
 @end itemize
 
@@ -1180,7 +1180,7 @@ pointer @var{x}.
 @end deftypefn
 
 Note that it is also possible to transform a non-immediate @code{SCM}
-value by using @code{SCM_UNPACK} into a @code{scm_bits_t} variable.
+value by using @code{SCM_UNPACK} into a @code{scm_t_bits} variable.
 However, the result of @code{SCM_UNPACK} may not be used as a pointer to
 a @code{scm_t_cell}: only @code{SCM2PTR} is guaranteed to transform a
 @code{SCM} object into a valid pointer to a heap cell.  Also, it is not
@@ -1205,18 +1205,18 @@ Don't use @code{PTR2SCM} for anything but a cell pointer!
 @subsubsection Heap Cell Type Information
 
 Heap cells contain a number of entries, each of which is either a scheme
-object of type @code{SCM} or a raw C value of type @code{scm_bits_t}.
+object of type @code{SCM} or a raw C value of type @code{scm_t_bits}.
 Which of the cell entries contain Scheme objects and which contain raw C
 values is determined by the first entry of the cell, which holds the
 cell type information.
 
-@deftypefn Macro scm_bits_t SCM_CELL_TYPE (SCM @var{x})
+@deftypefn Macro scm_t_bits SCM_CELL_TYPE (SCM @var{x})
 For a non-immediate Scheme object @var{x}, deliver the content of the
 first entry of the heap cell referenced by @var{x}.  This value holds
 the information about the cell type.
 @end deftypefn
 
-@deftypefn Macro void SCM_SET_CELL_TYPE (SCM @var{x}, scm_bits_t @var{t})
+@deftypefn Macro void SCM_SET_CELL_TYPE (SCM @var{x}, scm_t_bits @var{t})
 For a non-immediate Scheme object @var{x}, write the value @var{t} into
 the first entry of the heap cell referenced by @var{x}.  The value
 @var{t} must hold a valid cell type.
@@ -1233,7 +1233,7 @@ hold Scheme objects and which cell entries hold raw C data.  To access
 the different cell entries appropriately, the following macros are
 provided.
 
-@deftypefn Macro scm_bits_t SCM_CELL_WORD (SCM @var{x}, unsigned int @var{n})
+@deftypefn Macro scm_t_bits SCM_CELL_WORD (SCM @var{x}, unsigned int @var{n})
 Deliver the cell entry @var{n} of the heap cell referenced by the
 non-immediate Scheme object @var{x} as raw data.  It is illegal, to
 access cell entries that hold Scheme objects by using these macros.  For
@@ -1268,7 +1268,7 @@ SCM_CELL_OBJECT_@var{n} (@var{x}) @result{} SCM_CELL_OBJECT (@var{x},
 @end itemize
 @end deftypefn
 
-@deftypefn Macro void SCM_SET_CELL_WORD (SCM @var{x}, unsigned int @var{n}, scm_bits_t @var{w})
+@deftypefn Macro void SCM_SET_CELL_WORD (SCM @var{x}, unsigned int @var{n}, scm_t_bits @var{w})
 Write the raw C value @var{w} into entry number @var{n} of the heap cell
 referenced by the non-immediate Scheme value @var{x}.  Values that are
 written into cells this way may only be read from the cells using the
@@ -1432,7 +1432,7 @@ never @code{equal?} unless they are @code{eq?}.
 
 To actually register the new smob type, call @code{scm_make_smob_type}:
 
-@deftypefun scm_bits_t scm_make_smob_type (const char *name, size_t size)
+@deftypefun scm_t_bits scm_make_smob_type (const char *name, size_t size)
 This function implements the standard way of adding a new smob type,
 named @var{name}, with instance size @var{size}, to the system.  The
 return value is a tag that is used in creating instances of the type.
@@ -1451,22 +1451,22 @@ special function for a given type.  Each function is intended to be used
 only zero or one time per type, and the call should be placed
 immediately following the call to @code{scm_make_smob_type}.
 
-@deftypefun void scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM))
+@deftypefun void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM))
 This function sets the smob marking procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 @end deftypefun
 
-@deftypefun void scm_set_smob_free (scm_bits_t tc, size_t (*free) (SCM))
+@deftypefun void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM))
 This function sets the smob freeing procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 @end deftypefun
 
-@deftypefun void scm_set_smob_print (scm_bits_t tc, int (*print) (SCM, SCM, scm_print_state*))
+@deftypefun void scm_set_smob_print (scm_t_bits tc, int (*print) (SCM, SCM, scm_print_state*))
 This function sets the smob printing procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 @end deftypefun
 
-@deftypefun void scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM))
+@deftypefun void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM))
 This function sets the smob equality-testing predicate for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 @end deftypefun
@@ -1500,7 +1500,7 @@ representing eight-bit gray-scale images:
 @example
 #include <libguile.h>
 
-static scm_bits_t image_tag;
+static scm_t_bits image_tag;
 
 void
 init_image_type (void)
@@ -1529,9 +1529,9 @@ or @code{SCM_NEWSMOB3}:@footnote{The @code{SCM_NEWSMOB2} and
 @code{SCM_NEWSMOB3} variants will allocate double cells and thus use
 twice as much memory as smobs created by @code{SCM_NEWSMOB}.}
 
-@deftypefn Macro void SCM_NEWSMOB(SCM value, scm_bits_t tag, void *data)
-@deftypefnx Macro void SCM_NEWSMOB2(SCM value, scm_bits_t tag, void *data1, void *data2)
-@deftypefnx Macro void SCM_NEWSMOB3(SCM value, scm_bits_t tag, void *data1, void *data2, void *data3)
+@deftypefn Macro void SCM_NEWSMOB(SCM value, scm_t_bits tag, void *data)
+@deftypefnx Macro void SCM_NEWSMOB2(SCM value, scm_t_bits tag, void *data1, void *data2)
+@deftypefnx Macro void SCM_NEWSMOB3(SCM value, scm_t_bits tag, void *data1, void *data2, void *data3)
 Make @var{value} contain a smob instance of the type with tag @var{tag}
 and smob data @var{data} (or @var{data1}, @var{data2}, and @var{data3}).
 @var{value} must be previously declared as C type @code{SCM}.
@@ -1541,13 +1541,14 @@ Since it is often the case (e.g., in smob constructors) that you will
 create a smob instance and return it, there is also a slightly specialized
 macro for this situation:
 
-@deftypefn Macro fn_returns SCM_RETURN_NEWSMOB(scm_bits_t tag, void *data)
-@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB2(scm_bits_t tag, void *data1, void *data2)
-@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB3(scm_bits_t tag, void *data1, void *data2, void *data3)
+@deftypefn Macro fn_returns SCM_RETURN_NEWSMOB(scm_t_bits tag, void *data)
+@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB2(scm_t_bits tag, void *data1, void *data2)
+@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB3(scm_t_bits tag, void *data1, void *data2, void *data3)
 This macro expands to a block of code that creates a smob instance of
 the type with tag @var{tag} and smob data @var{data} (or @var{data1},
-@var{data2}, and @var{data3}), and returns that @code{SCM} value.  It
-should be the last piece of code in a block.
+@var{data2}, and @var{data3}), and causes the surrounding function to
+return that @code{SCM} value.  It should be the last piece of code in
+a block.
 @end deftypefn
 
 Guile provides the following functions for managing memory, which are
@@ -1942,7 +1943,7 @@ Guile shell, extended with the datatypes described here.)
 #include <stdlib.h>
 #include <libguile.h>
 
-static scm_bits_t image_tag;
+static scm_t_bits image_tag;
 
 struct image @{
   int width, height;

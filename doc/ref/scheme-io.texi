@@ -696,7 +696,7 @@ implementation dependent.
 @end deffn
 
 @deffn primitive port-mode port
-Returns the port modes associated with the open port @var{port}.  These
+Return the port modes associated with the open port @var{port}.  These
 will not necessarily be identical to the modes used when the port was
 opened, since modes such as "append" which are used only during
 port creation are not retained.

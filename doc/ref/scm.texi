@@ -17,6 +17,7 @@ the convention for passing non-required arguments to this function.
 @c * Exceptions to the regularity::
 @end menu
 
+
 @node Transforming Scheme name to C name
 @section Transforming Scheme name to C name
 
@@ -90,6 +91,7 @@ Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
       (setq transforms (cdr transforms))))
   (insert (if use-gh "gh_" "scm_") name))
 @end example
+
 
 @node Structuring argument lists for C functions
 @section Structuring argument lists for C functions

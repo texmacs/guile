@@ -182,8 +182,11 @@ this procedure directly, use the procedures @code{read-enable},
 @rnindex eval
 @c ARGFIXME environment/environment specifier
 @deffn primitive eval exp environment
-Evaluate @var{exp}, a list representing a Scheme expression, in the
-environment given by @var{environment specifier}.
+Evaluate @var{exp}, a list representing a Scheme expression,
+in the top-level environment specified by @var{environment}.
+While @var{exp} is evaluated (using @code{primitive-eval}),
+@var{environment} is made the current module.  The current module
+is reset to its previous value when @var{eval} returns.
 @end deffn
 
 @rnindex interaction-environment

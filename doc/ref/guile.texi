@@ -4,6 +4,7 @@
 @setfilename guile.info
 @settitle Guile Reference Manual
 @set guile
+@set MANUAL_EDITION 1.0
 @c %**end of header
 
 @c Notes: (distilled from Jim's and Tim's notes, and kept up to date)
@@ -25,8 +26,9 @@
 @c that are not in the reference manual.  If you have worked with some
 @c of these concepts, implemented them, or just happen to know what they
 @c do, please write up a little explanation -- it would be a big help.
-@c Alternatively, if you know of a great reason why some of these should
-@c *not* go in the manual, please let me know.
+@c Alternatively, if you know of any reason why some of these should
+@c *not* go in the manual, please let the mailing list
+@c <guile-devel@gnu.org> know.
 
 @c Define indices that are used in the Guile Scheme part of the
 @c reference manual to group stuff according to whether it is R5RS or a
@@ -80,7 +82,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.8 2002-03-08 21:31:41 ttn Exp $
+@subtitle $Id: guile.texi,v 1.2.2.9 2002-03-12 20:51:25 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -175,8 +177,8 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions.  It describes how to use Guile in many useful
 and interesting ways.
 
-This Info file contains edition 1.0 of the reference manual,
-corresponding to Guile version @value{VERSION}.
+This Info file contains edition @value{MANUAL_EDITION} of the reference
+manual, corresponding to Guile version @value{VERSION}.
 @end ifinfo
 
 @menu

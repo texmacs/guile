@@ -6,7 +6,7 @@
 
 This chapter contains information about procedures which are not cleanly
 tied to a specific data type.  Because of their wide range of
-applications, they are collected in a @dfn{utlity} chapter.
+applications, they are collected in a @dfn{utility} chapter.
 
 @menu
 * Equality::                    When are two values `the same'?

@@ -55,6 +55,7 @@ Guile's object types as the builtin procedures.  This is particularly
 important for smobs, for which a write procedure can be defined and be
 used by @code{write}, but not by @code{pretty-print}.
 
+
 @page
 @node Formatted Output
 @chapter Formatted Output
