@@ -12,6 +12,22 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
+Changes since Guile 1.6.6 (changes in 1.6.7):
+
+* Changes to the distribution
+
+* Changes to the stand-alone interpreter
+
+* Changes to Scheme functions and syntax
+
+** SRFI-1 alist-delete equality argument order fixed.
+
+In the srfi-1 module alist-delete and alist-delete!, the order of the
+arguments to the "=" procedure now matches the SRFI-1 specification.
+
+* Changes to the C interface 
+
+
 Changes since Guile 1.6.5 (changes in 1.6.6):
 
 * Changes to the distribution
