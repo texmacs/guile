@@ -1,3 +1,8 @@
+2001-11-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (install-data-local): Prepend $(DESTDIR) to target
+	location.
+
 2001-10-18  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* and-let-star-compat.scm, and-let-star.scm, calling.scm,
