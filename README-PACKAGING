@@ -1,6 +1,6 @@
 -*-text-*-
 Guile Packaging Guide
-Copyright (C) 2002 Free Software Foundation, Inc.
+Copyright (C) 2002,2004 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -26,32 +26,51 @@ Guile to coexist peacefully can be tricky.  Some initial care in this
 regard can save a lot of work later on.
 
 Below is an initial set of issues that are important to consider, and
-keep in mind that you're always welcome to consult guile-devel.  There
-we should be able to help with any issues that haven't made it here
-yet.
+again, you're always welcome to consult guile-devel.  We should be
+able to help with any issues that haven't made it here yet.
 
 Libraries:
 ----------
 
-  Under most packaging systems, it is very important to package each
-  shared library in a separate package and you should generally
-  include the library's major version number in the name of the
-  package.  For example, rather than libguile.deb or libguile.rpm, you
-  might have libguile9.deb or libguile9.rpm.  This makes it possible
-  for you or someone else to provide a libguile10 package later that
-  can peacefully coexist with libguile9.  This means that applications
+  Under most packaging systems, it can be very important to package
+  each shared library in a separate package.  However, Guile follows
+  some conventions that make it's requirements somewhat different.  In
+  order to explain the situaion, we'll first give a brief explanation
+  of the general issue, followed by a description of how Guile
+  differs.
+
+  For most projects providing shared libraries, it can be important to
+  place each library in a separate package and to put the the
+  library's major version number in the name of the package.  For
+  example, rather than libguile.deb or libguile.rpm, you might have
+  libguile9.deb or libguile9.rpm.  This makes it possible for you or
+  someone else to provide a libguile10 package later that can
+  peacefully coexist with libguile9.  This means that applications
   that were compiled against libguile9 can continue to function even
   when some new version of Guile providing libguile10 is installed.
 
-  One question might be "Why separate library packages?  Why not just
-  have a giant guile-A package and later a giant guile-B package, each
-  of which contains all of the needed libraries and other files?"  One
-  problem with this approach is that it prevents a new version of
-  Guile from including some libraries whose major numbers have changed
-  and some whose major numbers haven't.  The older and newer Guile
-  packages would have overlapping files, but the newer package
-  wouldn't be a complete and transparent replacement for the older
-  one.
+  If you put more than one library in a package, say libfoo.so.10 and
+  libbar.so.10, and then in the next release, the upstream developers
+  increment libfoo to libfoo.so.11, but leave libbar alone, then you
+  have a problem.  Your next library package will conflict with the
+  previous one because both will contain libbar.so.10 (presuming that
+  your packaging system considers duplicate files an error).  This
+  means that the old and new library packages cannot be installed
+  simultaneously, and of course, if the new library package is
+  installed, and the old one is removed, any software that was linked
+  against libbar.so.10 will now be broken until it is recompiled.  On
+  the other hand, if libfoo and libbar had been in separate packages,
+  there would have been no problem.
+
+  However, Guile is somewhat unusual because it promises to increment
+  all of the major versions of all of its shared libraries with the
+  start of every new stable series (i.e. at release 1.6.0, 1.8.0,
+  etc.) and Guile also promises that there will be no backward
+  incompatibilities for libraries released during a stable series
+  (i.e. when going from 1.6.X to 1.6.Y).  This means that unlike many
+  other projects, it is actually safe to place all of Guile's shared
+  libraries in one package.  For example, Debian places all of the
+  shared libraries in a guile-1.6-libs package.
 
 Executables:
 ------------
@@ -68,12 +87,10 @@ Executables:
     etc.
 
   Debian, for example would handle these symlinks via the
-  update-alternatives mechanism so that the local admin would have
-  control over which version of Guile was the default, if they didn't
-  want the one specified by the packages.
+  update-alternatives mechanism so that the local admin would be able
+  to control which version of Guile was the default.
 
   Of course for this to be a really solid approach, we should be
   naming things this way upstream and should either use the versioned
-  names in scripts, i.e. #!/usr/bin/guile-1.6, or haves some other way
+  names in scripts, i.e. #!/usr/bin/guile-1.6, or have some other way
   to make sure the script gets the version of guile it needs.
-
