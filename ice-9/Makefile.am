@@ -38,7 +38,7 @@ subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = $(ice9_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
-install-data-local:
+install-data-hook:
 	-$(INSTALL_DATA) $(srcdir)/and-let-star-compat.scm \
            $(DESTDIR)$(subpkgdatadir)/'and-let*.scm'
 
