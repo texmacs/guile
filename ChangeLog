@@ -1,5 +1,10 @@
 2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/ppc/testfp.c: Always flush code before
+	testing it.
+
+2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/ppc/fp.h: Do not clobber f31.
 
 2004-11-08  Paolo Bonzini  <bonzini@gnu.org>

@@ -39,7 +39,6 @@
 
 static jit_insn codeBuffer[300];
 static double a;
-int i;
 
 void
 int_test(char *what, jit_code code, double b, double c, double d, double e, double f)
@@ -102,6 +101,8 @@ main()
   jit_ldi_d(JIT_FPR0, &a);
   jit_truncr_d_i(JIT_RET, JIT_FPR0);
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
 #endif
@@ -114,6 +115,8 @@ main()
   jit_ldi_d(JIT_FPR0, &a);
   jit_ceilr_d_i(JIT_RET, JIT_FPR0);
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
 #endif
@@ -126,6 +129,8 @@ main()
   jit_ldi_d(JIT_FPR0, &a);
   jit_floorr_d_i(JIT_RET, JIT_FPR0);
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
 #endif
@@ -138,6 +143,8 @@ main()
   jit_ldi_d(JIT_FPR0, &a);
   jit_roundr_d_i(JIT_RET, JIT_FPR0);
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
 #endif
@@ -154,6 +161,8 @@ main()
     )
   );
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
@@ -170,6 +179,8 @@ main()
     )
   );
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
@@ -186,6 +197,8 @@ main()
     )
   );
   jit_ret();
+
+  jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
 #ifdef LIGHTNING_DISASSEMBLE
   disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
