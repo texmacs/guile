@@ -208,13 +208,13 @@ guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in gui
 
 if HAVE_MAKEINFO
 
-guile-procedures.txt: guile-procedures.texi
+guile-procedures.txt: guile.texi
 	rm -f $@
 	makeinfo --force -o $@ $< || test -f $@
 
 else
 
-guile-procedures.txt: guile-procedures.texi
+guile-procedures.txt: guile.texi
 	cp $< $@
 
 endif
