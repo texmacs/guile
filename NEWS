@@ -34,6 +34,11 @@ correctly with source-properties.
 In the srfi-1 module delete and delete!, the order of the arguments to
 the "=" procedure now matches the SRFI-1 specification.
 
+** SRFI-19 date-week-number fix
+
+date-week-number now correctly respects the requested day of week
+starting the week.
+
 * Changes to the C interface 
 
 
