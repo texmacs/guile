@@ -1941,13 +1941,17 @@ dispatch:
     case SCM_BIT8(SCM_IM_AND):
       x = SCM_CDR (x);
       t.arg1 = x;
-      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
-	if (SCM_FALSEP (EVALCAR (x, env)))
-	  {
-	    RETURN (SCM_BOOL_F);
-	  }
-	else
-	  x = t.arg1;
+      t.arg1 = SCM_CDR (t.arg1);
+      while (SCM_NNULLP (t.arg1))
+        {
+          if (SCM_FALSEP (EVALCAR (x, env)))
+            {
+              RETURN (SCM_BOOL_F);
+            }
+          else
+            x = t.arg1;
+          t.arg1 = SCM_CDR (t.arg1);
+        }
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
@@ -1983,7 +1987,8 @@ dispatch:
       x = SCM_CDR (x);
     nontoplevel_begin:
       t.arg1 = x;
-      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+      t.arg1 = SCM_CDR (t.arg1);
+      while (!SCM_NULLP (t.arg1))
 	{
 	  if (SCM_IMP (SCM_CAR (x)))
 	    {
@@ -1998,6 +2003,7 @@ dispatch:
 	  else
 	    SCM_CEVAL (SCM_CAR (x), env);
 	  x = t.arg1;
+          t.arg1 = SCM_CDR (t.arg1);
 	}
       
     carloop:			/* scm_eval car of last form in list */
