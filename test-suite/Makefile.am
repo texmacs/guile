@@ -1,4 +1,5 @@
 SCM_TESTS = tests/alist.test			\
+	    tests/and-let-star.test		\
 	    tests/bit-operations.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
@@ -26,6 +27,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/posix.test			\
 	    tests/r4rs.test			\
 	    tests/reader.test			\
+	    tests/receive.test			\
 	    tests/regexp.test			\
 	    tests/slib.test			\
 	    tests/srcprop.test			\
