@@ -2124,7 +2124,7 @@ void
 scm_done_malloc (long size)
 {
   if (size < 0) {
-    if (scm_mallocated < size)
+    if (scm_mallocated < -size)
       /* The byte count of allocated objects has underflowed.  This is
          probably because you forgot to report the sizes of objects you
          have allocated, by calling scm_done_malloc or some such.  When
