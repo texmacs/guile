@@ -37,12 +37,4 @@ TESTS = check-guile
 # The rule will cd to $(top_srcdir).
 ACLOCAL = ./guile-aclocal.sh
 
-if MAINTAINER_MODE
-# Fill dist tree.
-include $(top_srcdir)/am/maintainer-dirs
-dist-hook:
-	( echo 'This is a snapshot of the TODO file.' ; date ; echo ; \
-	  cat $(workbook)/tasks/TODO ) > TODO
-endif
-
 # Makefile.am ends here
