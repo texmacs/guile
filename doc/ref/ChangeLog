@@ -1,3 +1,8 @@
+2002-07-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-options.texi (Debugger options): New subsection
+	describing stack overflow and what to do about it.
+
 2002-04-28  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gh.texi, data-rep.texi: Moved `@deftyp {Data type} SCM' line
