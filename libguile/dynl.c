@@ -237,13 +237,13 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 
 #ifdef DYNAMIC_LINKING
 
-#include "libltdl/ltdl.h"
+#include "guile-ltdl.h"
 
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
-  lt_dlhandle handle;
-  handle = lt_dlopenext (fname);
+  scm_lt_dlhandle handle;
+  handle = scm_lt_dlopenext (fname);
   if (NULL == handle)
     {
       SCM fn;
@@ -251,7 +251,7 @@ sysdep_dynl_link (const char *fname, const char *subr)
 
       SCM_ALLOW_INTS;
       fn = scm_makfrom0str (fname);
-      msg = scm_makfrom0str (lt_dlerror ());
+      msg = scm_makfrom0str (scm_lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
   return (void *) handle;
@@ -260,10 +260,10 @@ sysdep_dynl_link (const char *fname, const char *subr)
 static void
 sysdep_dynl_unlink (void *handle, const char *subr)
 {
-  if (lt_dlclose ((lt_dlhandle) handle))
+  if (scm_lt_dlclose ((scm_lt_dlhandle) handle))
     {
       SCM_ALLOW_INTS;
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
     }
 }
    
@@ -272,11 +272,11 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 {
   void *fptr;
 
-  fptr = lt_dlsym ((lt_dlhandle) handle, symb);
+  fptr = scm_lt_dlsym ((scm_lt_dlhandle) handle, symb);
   if (!fptr)
     {
       SCM_ALLOW_INTS;
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
     }
   return fptr;
 }
@@ -284,7 +284,7 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 static void
 sysdep_dynl_init ()
 {
-  lt_dlinit ();
+  scm_lt_dlinit ();
 }
 
 #else

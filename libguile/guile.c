@@ -51,8 +51,9 @@
 #ifdef HAVE_CONFIG_H
 #include <libguile/scmconfig.h>
 #endif
+
 #ifdef DYNAMIC_LINKING
-#include <libltdl/ltdl.h>
+#include "guile-ltdl.h"
 #endif
 
 #ifdef HAVE_WINSOCK2_H
@@ -86,7 +87,9 @@ int
 main (int argc, char **argv)
 {
 #ifdef DYNAMIC_LINKING
-  LTDL_SET_PRELOADED_SYMBOLS ();
+  /* libtool automagically inserts this variable into your executable... */
+  extern const scm_lt_dlsymlist lt_preloaded_symbols[];
+  scm_lt_dlpreload_default (lt_preloaded_symbols);
 #endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
