@@ -2,7 +2,7 @@
 
 #ifndef NUMBERSH
 #define NUMBERSH
-/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,6 +295,10 @@ extern double scm_atanh (double x);
 extern double scm_truncate (double x);
 extern double scm_round (double x);
 extern double scm_exact_to_inexact (double z);
+extern SCM scm_truncate_number (SCM x);
+extern SCM scm_round_number (SCM x);
+extern SCM scm_floor (SCM x);
+extern SCM scm_ceiling (SCM x);
 extern SCM scm_sys_expt (SCM z1, SCM z2);
 extern SCM scm_sys_atan2 (SCM z1, SCM z2);
 extern SCM scm_make_rectangular (SCM z1, SCM z2);
