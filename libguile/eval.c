@@ -2310,7 +2310,9 @@ dispatch:
 	    if (first)
 	      t.arg1 = val;
 	    else
-	      RETURN (val);
+              {
+                RETURN (val);
+              }
 	  }
 	  proc = SCM_CDR (x);
 	  proc = evalcar (proc, env);
