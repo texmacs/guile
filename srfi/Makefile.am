@@ -49,7 +49,7 @@ libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LIBADD = ../libgu
 libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LDFLAGS = -export-dynamic \
   -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
-srfidir = $(datadir)/guile/$(VERSION)/srfi
+srfidir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/srfi
 srfi_DATA = srfi-1.scm \
             srfi-2.scm \
 	    srfi-4.scm \
