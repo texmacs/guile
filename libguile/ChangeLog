@@ -4,6 +4,9 @@
 	than size>=0, since 0<=hash<size cannot be satisfied for size==0, and
 	such a size causes divide-by-zeros in scm_hasher.
 
+        * regex-posix.c (scm_make_regexp): Free rx on error, to avoid memory
+	leak.
+
 2004-06-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc_os_dep.c: update ifdefery for macosx.
