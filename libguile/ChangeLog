@@ -1,3 +1,9 @@
+2003-10-02  Kevin Ryde  <user42@zip.com.au>
+
+	* strports.c (scm_call_with_output_string): scm_get_output_string
+	rather than scm_strport_to_string, so as to guard against the port
+	having been closed by the called procedure.
+
 2003-10-01  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc.c (scm_done_malloc): fix sign error in scm_malloc_done, was
