@@ -5,9 +5,10 @@
 @menu
 * Shared And Read Only Strings::
 * Sloppy Membership::           `Sloppy' list membership procedures.
-* Strange Eval::                Strange variations on `eval'.
+* Strange Eval::                Strange variations on @code{eval}.
 * Close All Ports::             Closing all ports except some ...
 * C Module Reg::                Old method for registering C modules.
+* Obarray Symbols::             Obarray symbol manipulation.
 * Removed Items::               Previously deprecated, now removed.
 @end menu
 
@@ -43,8 +44,8 @@ substring is an object that mostly behaves just like an ordinary
 substring, except that it actually shares storage space with its parent
 string.
 
-@deffn {Scheme Procedure} make-shared-substring str [start [end]]
-@deffnx {C Function} scm_make_shared_substring (str, start, end)
+@deffn {Deprecated Scheme Procedure} make-shared-substring str [start [end]]
+@deffnx {Deprecated C Function} scm_make_shared_substring (str, start, end)
 Return a shared substring of @var{str}.  The arguments are the
 same as for the @code{substring} function: the shared substring
 returned includes all of the text from @var{str} between
@@ -138,8 +139,8 @@ now require strings:
 ERROR: Wrong type argument (expecting STRINGP): /home/
 @end lisp
 
-@deffn {Scheme Procedure} read-only-string? obj
-@deffnx {C Function} scm_read_only_string_p (obj)
+@deffn {Deprecated Scheme Procedure} read-only-string? obj
+@deffnx {Deprecated C Function} scm_read_only_string_p (obj)
 Return @code{#t} if @var{obj} is either a string or a symbol,
 otherwise return @code{#f}.
 @end deffn
@@ -153,22 +154,22 @@ The following are equivalent to @code{memq}, @code{memv} and
 arguments that they are given.  They are deprecated because the lack of
 proper type-checking makes them dangerous.
 
-@deffn {Scheme Procedure} sloppy-memq x lst
-@deffnx {C Function} scm_sloppy_memq (x, lst)
+@deffn {Deprecated Scheme Procedure} sloppy-memq x lst
+@deffnx {Deprecated C Function} scm_sloppy_memq (x, lst)
 This procedure behaves like @code{memq}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
-@deffn {Scheme Procedure} sloppy-memv x lst
-@deffnx {C Function} scm_sloppy_memv (x, lst)
+@deffn {Deprecated Scheme Procedure} sloppy-memv x lst
+@deffnx {Deprecated C Function} scm_sloppy_memv (x, lst)
 This procedure behaves like @code{memv}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
-@deffn {Scheme Procedure} sloppy-member x lst
-@deffnx {C Function} scm_sloppy_member (x, lst)
+@deffn {Deprecated Scheme Procedure} sloppy-member x lst
+@deffnx {Deprecated C Function} scm_sloppy_member (x, lst)
 This procedure behaves like @code{member}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
@@ -176,7 +177,7 @@ not for high-level Scheme programs.
 
 
 @node Strange Eval
-@section Strange Variations on `eval'
+@section Strange Variations on @code{eval}
 
 @code{eval2} was useful in previous Guile releases because the
 @code{eval} in those releases was a single argument @code{eval} that did
@@ -186,8 +187,8 @@ which to evaluate the specified code expression).  Hence @code{eval} is
 now R5RS-compliant, and @code{eval2} is obsolete and therefore
 deprecated.
 
-@deffn {Scheme Procedure} eval2 obj env_thunk
-@deffnx {C Function} scm_eval2 (obj, env_thunk)
+@deffn {Deprecated Scheme Procedure} eval2 obj env_thunk
+@deffnx {Deprecated C Function} scm_eval2 (obj, env_thunk)
 Evaluate @var{exp}, a Scheme expression, in the environment
 designated by @var{lookup}, a symbol-lookup function.
 Do not use this version of eval, it does not play well
@@ -205,8 +206,8 @@ invented.
 In this Guile release, evaluation always preserves source property
 information.  So @code{read-and-eval!} is now unnecessary.
 
-@deffn {Scheme Procedure} read-and-eval! [port]
-@deffnx {C Function} scm_read_and_eval_x (port)
+@deffn {Deprecated Scheme Procedure} read-and-eval! [port]
+@deffnx {Deprecated C Function} scm_read_and_eval_x (port)
 Read a form from @var{port} (standard input by default), and evaluate it
 (memoizing it in the process) in the top-level environment.  If no data
 is left to be read from @var{port}, an @code{end-of-file} error is
@@ -217,8 +218,8 @@ signalled.
 @node Close All Ports
 @section Closing All Ports Except Some @dots{}
 
-@deffn {Scheme Procedure} close-all-ports-except . ports
-@deffnx {C Function} scm_close_all_ports_except (ports)
+@deffn {Deprecated Scheme Procedure} close-all-ports-except . ports
+@deffnx {Deprecated C Function} scm_close_all_ports_except (ports)
 [DEPRECATED] Close all open file ports used by the interpreter
 except for those supplied as arguments.  This procedure
 was intended to be used before an exec call to close file descriptors
@@ -252,6 +253,99 @@ For example, place this into a file "foo/bar.scm"
     (define-module (foo bar))
 
     (load-extension "libguile-foo-bar" "foobar_init")
+
+
+@node Obarray Symbols
+@section Obarray Symbol Manipulation
+
+Guile's module mechanism uses @dfn{obarrays}, which are hash tables that
+map symbols to variables.  Guile 1.4 included a group of primitives that
+could be used for the manipulation of the symbol-variable mappings in
+such obarrays.
+
+However, considering the availability both of low-level procedures for
+operating on hash tables in general (@pxref{Hash Tables}), and of a
+dedicated API for module-related operations (@pxref{Modules}), the
+intermediate set of obarray primitives is no longer useful, and ---
+which is worse --- makes it more difficult to evolve the implementation
+of Guile's module system.  Hence this set of primitives has now been
+deprecated.
+
+If you have code using these functions, please change it to use either
+hash table or module-related operations.
+
+@deffn {Deprecated Scheme Procedure} gentemp [prefix [obarray]]
+@deffnx {Deprecated C Function} scm_gentemp (prefix, obarray)
+Create a new symbol with a name unique in an obarray.
+The name is constructed from an optional string @var{prefix}
+and a counter value.  The default prefix is @code{t}.  The
+@var{obarray} is specified as a second optional argument.
+Default is the system obarray where all normal symbols are
+interned.  The counter is increased by 1 at each
+call.  There is no provision for resetting the counter.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} intern-symbol obarray string
+@deffnx {Deprecated C Function} scm_intern_symbol (obarray, string)
+Add a new symbol to @var{obarray} with name @var{string}, bound to an
+unspecified initial value.  The symbol table is not modified if a symbol
+with this name is already present.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} symbol-interned? obarray string
+@deffnx {Deprecated C Function} scm_symbol_interned_p (obarray, string)
+Return @code{#t} if @var{obarray} contains a symbol with name
+@var{string}, and @code{#f} otherwise.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} unintern-symbol obarray string
+@deffnx {Deprecated C Function} scm_unintern_symbol (obarray, string)
+Remove the symbol with name @var{string} from @var{obarray}.  This
+function returns @code{#t} if the symbol was present and @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} string->obarray-symbol obarray string [soft?]
+@deffnx {Deprecated C Function} scm_string_to_obarray_symbol (obarray, string, soft_p)
+Intern a new symbol in @var{obarray}, a symbol table, with name
+@var{string}.
+
+If @var{obarray} is @code{#f}, use the default system symbol table.  If
+@var{obarray} is @code{#t}, the symbol should not be interned in any
+symbol table; merely return the pair (@var{symbol}
+. @var{#<undefined>}).
+
+The @var{soft?} argument determines whether new symbol table entries
+should be created when the specified symbol is not already present in
+@var{obarray}.  If @var{soft?} is specified and is a true value, then
+new entries should not be added for symbols not already present in the
+table; instead, simply return @code{#f}.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} symbol-binding obarray string
+@deffnx {Deprecated C Function} scm_symbol_binding (obarray, string)
+Look up in @var{obarray} the symbol whose name is @var{string}, and
+return the value to which it is bound.  If @var{obarray} is @code{#f},
+use the global symbol table.  If @var{string} is not interned in
+@var{obarray}, an error is signalled.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} symbol-bound? obarray string
+@deffnx {Deprecated C Function} scm_symbol_bound_p (obarray, string)
+Return @code{#t} if @var{obarray} contains a symbol with name
+@var{string} bound to a defined value.  This differs from
+@var{symbol-interned?} in that the mere mention of a symbol
+usually causes it to be interned; @code{symbol-bound?}
+determines whether a symbol has been given any meaningful
+value.
+@end deffn
+
+@deffn {Deprecated Scheme Procedure} symbol-set! obarray string value
+@deffnx {Deprecated C Function} scm_symbol_set_x (obarray, string, value)
+Find the symbol in @var{obarray} whose name is @var{string}, and rebind
+it to @var{value}.  An error is signalled if @var{string} is not present
+in @var{obarray}.
+@end deffn
 
 
 @node Removed Items

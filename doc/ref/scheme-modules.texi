@@ -633,6 +633,10 @@ XXX - document @code{load-extension}, @code{scm_register_extension}
 @section Variables
 @tpindex Variables
 
+Each module has its own hash table, sometimes known as an @dfn{obarray},
+that maps the names defined in that module to their corresponding
+variable objects.
+
 Variables are objects with two fields.  They contain a value and they
 can contain a symbol, which is the name of the variable.  A variable is
 said to be bound if it does not contain the object denoting unbound

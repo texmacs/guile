@@ -1,3 +1,27 @@
+2002-04-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Symbols): Reorganized node substructure and
+	added lots of explanatory text around the @deffn's.
+
+2002-03-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* deprecated.texi (Deprecated): Ensure all @def categories for
+	items in this chapter begin with `Deprecated '.
+
+	* scheme-modules.texi (Variables): Mention obarrays.
+
+	* scheme-data.texi (String Miscellanea): Removed, since it only
+	contained duplicate doc for string-ci->symbol.
+	(Symbol Tables): Move doc for gensym to Symbol Primitives; rest of
+	section removed.
+
+	* scheme-data.texi (Symbol Tables, Symbol Props): Deprecated
+	operations moved to ...
+
+	* deprecated.texi (Obarray Symbols): New section for deprecated
+	symbol operations moved here from `Symbol Tables' and `Symbol
+	Props'.
+
 2002-03-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scm.texi (Scheme Primitives): Renamed `Guile API', updates
