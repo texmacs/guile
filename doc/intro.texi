@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12.2.1 2001-07-18 06:46:09 ttn Exp $
+@c $Id: intro.texi,v 1.12.2.2 2001-07-18 06:55:12 ttn Exp $
 
 @page
 @node What is Guile?
@@ -632,7 +632,7 @@ available to Scheme.  First we need to write the appropriate glue code
 to convert the arguments and return values of the functions from Scheme
 to C and back.  Additionally, we need a function that will add them to
 the set of Guile primitives.  Because this is just an example, we will
-only implement this for the @code{j0} function, tho.
+only implement this for the @code{j0} function.
 
 Consider the following file @file{bessel.c}.
 
