@@ -105,6 +105,7 @@ using a module.
 Subdirectory "scripts" contains Scheme modules that are packaged to
 also be executable as scripts.  At this time, these scripts are available:
 
+     api-diff
      autofrisk
      display-commentary
      doc-snarf
