@@ -1,5 +1,7 @@
 2004-02-16  Kevin Ryde  <user42@zip.com.au>
 
+	* list.c (scm_list_n): Add va_end.
+
 	* script.c (scm_shell_usage): Print bug-guile email address, as per
 	GNU standard.  Reported by Han-Wen Nienhuys.
 
