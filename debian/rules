@@ -127,7 +127,6 @@ binary-common:
 	dh_installman
 #	dh_installcron
 	dh_installinfo
-	dh_undocumented
 	dh_strip
 	dh_link
 	dh_compress

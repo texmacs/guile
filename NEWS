@@ -12,11 +12,11 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
-Changes since Guile 1.6.3 (AKA changes for 1.6.4):
+Changes since Guile 1.6.3 (i.e. changes for 1.6.4):
 
 * Changes to the distribution
 
-** Various architecture (and likely compiler) related bugs fixed.
+** Various architecture (and compiler optimization) related bugs fixed.
 
 These changes should improve the situation on at least ia64, alpha,
 and powerpc.
