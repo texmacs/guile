@@ -27,7 +27,7 @@ AC_CONFIG_SRCDIR([Makefile.in])
 . $srcdir/GUILE-VERSION
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 AM_MAINTAINER_MODE
-AM_CONFIG_HEADER(libguile/scmconfig.h)
+AM_CONFIG_HEADER(config.h)
 
 #--------------------------------------------------------------------
 #
