@@ -2,6 +2,9 @@
 
 	* punify (write-punily): Handle symbols w/ ":" prefix specially.
 
+	* use2dot (ferret): New proc.
+	(grok): Use `ferret'.
+
 2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* read-scheme-source (quoted?, clump): New procs, exported.
