@@ -1,3 +1,9 @@
+2002-03-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* ftw.scm: New file.
+
+	* Makefile.am (ice9_sources): Add ftw.scm.
+
 2002-03-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* syncase.scm (gensym): fix bad let.
