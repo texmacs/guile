@@ -101,6 +101,7 @@ See also file HACKING.
     in format.scm, remove kluge at top
     in srfi-13.scm, likewise
     in srfi-1.scm, likewise
+    in syncase.scm, likewise
 
 - remove deprecated subr and gsubr functions
     in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,

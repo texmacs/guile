@@ -1,3 +1,8 @@
+2002-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* syncase.scm (ice-9): Define 'eval' before exporting it.  This
+	avoids a deprecation warning.
+
 2001-11-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* format.scm (string-index, list-head): Removed, we already these
