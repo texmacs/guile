@@ -681,9 +681,7 @@ scm_shell (int argc, char **argv)
 void
 scm_init_script ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/script.x"
-#endif
 }
 
 /*

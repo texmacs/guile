@@ -261,9 +261,7 @@ scm_init_fluids ()
 {
   scm_tc16_fluid = scm_make_smob_type ("fluid", 0);
   scm_set_smob_print (scm_tc16_fluid, fluid_print);
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/fluids.x"
-#endif
 }
 
 #if SCM_DEBUG_DEPRECATED == 0

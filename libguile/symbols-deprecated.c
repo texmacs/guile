@@ -621,9 +621,7 @@ void
 scm_init_symbols_deprecated ()
 {
   gentemp_counter = 0;
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/symbols-deprecated.x"
-#endif
 }
 
 #endif /* SCM_ENABLE_VCELLS */

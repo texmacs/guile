@@ -237,9 +237,7 @@ void
 scm_init_options ()
 {
   protected_objects = scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/options.x"
-#endif
 }
 
 /*

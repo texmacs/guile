@@ -254,8 +254,6 @@ scm_debug_malloc_prehistory ()
 void
 scm_init_debug_malloc ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/debug-malloc.x"
-#endif
 }
 

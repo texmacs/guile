@@ -197,9 +197,7 @@ scm_init_variable ()
   scm_set_smob_print (scm_tc16_variable, variable_print);
   scm_set_smob_equalp (scm_tc16_variable, variable_equalp);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"
-#endif
 }
 
 /*

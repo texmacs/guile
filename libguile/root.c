@@ -429,9 +429,7 @@ scm_init_root ()
   scm_set_smob_mark (scm_tc16_root, root_mark);
   scm_set_smob_print (scm_tc16_root, root_print);
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/root.x"
-#endif
 }
 
 /*

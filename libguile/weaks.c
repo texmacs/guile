@@ -363,9 +363,7 @@ scm_weaks_prehistory ()
 void
 scm_init_weaks ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/weaks.x"
-#endif
 }
 
 

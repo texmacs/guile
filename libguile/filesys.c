@@ -1545,9 +1545,7 @@ scm_init_filesys ()
   scm_c_define ("FD_CLOEXEC", scm_long2num (FD_CLOEXEC));
 #endif
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/filesys.x"
-#endif
 }
 
 /*

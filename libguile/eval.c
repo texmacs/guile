@@ -4195,9 +4195,7 @@ scm_init_eval ()
     scm_c_define ("scm:eval-transformer", scm_make_fluid ());
 #endif
 
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/eval.x"
-#endif
 
   scm_c_define ("nil", scm_lisp_nil);
   scm_c_define ("t", scm_lisp_t);

@@ -396,9 +396,7 @@ scm_init_subr_table ()
 void
 scm_init_procs ()
 {
-#ifndef SCM_MAGIC_SNARFER
 #include "libguile/procs.x"
-#endif
 }
 
 #if SCM_DEBUG_DEPRECATED == 0
