@@ -1522,9 +1522,9 @@ exact integers satisfying:
 @node String Modification
 @subsection String Modification
 
-These procedures are for modifying strings in-place.  That means, that
-not a new string is the result of a string operation, but that the
-actual memory representation of a string is modified.
+These procedures are for modifying strings in-place.  This means that the
+result of the operation is not a new string; instead, the original string's
+memory representation is modified.
 
 @rnindex string-set!
 @deffn primitive string-set! str k chr
