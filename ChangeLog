@@ -1,3 +1,7 @@
+2004-11-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h (_jit_epilog): Remove unused variable.
+
 2004-11-13  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/funcs.h [__linux__]: Include sys/mman.h.

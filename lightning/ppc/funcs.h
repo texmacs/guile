@@ -89,7 +89,7 @@ static void
 _jit_epilog(jit_state *jit)
 {
   int n = _jitl.nbArgs;
-  int frame_size, i, ofs;
+  int frame_size, ofs;
   int first_saved_reg = JIT_AUX - n;
   int num_saved_regs = 32 - first_saved_reg;
 
