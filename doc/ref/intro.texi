@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.1.2.5 2002-03-12 20:51:25 ossau Exp $
+@c $Id: intro.texi,v 1.1.2.6 2002-03-15 09:23:18 ossau Exp $
 
 
 @page
@@ -200,8 +200,8 @@ As another example, here is a simple replacement for the POSIX
 (newline)
 @end example
 
-@deffn procedure command-line
-@deffnx primitive program-arguments
+@deffn {Scheme Procedure} command-line
+@deffnx {Scheme Procedure} program-arguments
 Return a list of the command-line arguments passed to the currently
 running program.  If the program invoked Guile with the @samp{-s},
 @samp{-c} or @samp{--} switches, these procedures ignore everything up

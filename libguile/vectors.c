@@ -167,7 +167,7 @@ SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 */
 SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
-	    "@deffnx primitive list->vector l\n"
+	    "@deffnx {Scheme Procedure} list->vector l\n"
 	    "Return a newly allocated vector whose elements contain the\n"
 	    "given arguments.  Analogous to @code{list}.\n"
 	    "\n"

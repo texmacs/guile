@@ -363,12 +363,12 @@ be @code{#f} if no additional objects are required.
 In addition to @code{catch} and @code{throw}, the following Scheme
 facilities are available:
 
-@deffn primitive scm-error key subr message args rest
+@deffn {Scheme Procedure} scm-error key subr message args rest
 Throw an error, with arguments
 as described above.
 @end deffn
 
-@deffn procedure error msg arg @dots{}
+@deffn {Scheme Procedure} error msg arg @dots{}
 Throw an error using the key @code{'misc-error}.  The error
 message is created by displaying @var{msg} and writing the @var{args}.
 @end deffn

@@ -77,13 +77,14 @@
 #ifdef SCM_MAGIC_SNARF_INITS
 # define SCM_SNARF_HERE(X)
 # define SCM_SNARF_INIT(X) ^^ X
-# define SCM_SNARF_DOCS(TYPE, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+# define SCM_SNARF_DOCS(TYPE, CNAME, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 #else
 # ifdef SCM_MAGIC_SNARF_DOCS
 #  define SCM_SNARF_HERE(X)
 #  define SCM_SNARF_INIT(X)
-#  define SCM_SNARF_DOCS(TYPE, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING) \
+#  define SCM_SNARF_DOCS(TYPE, CNAME, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING) \
 ^^ { \
+cname CNAME ^^ \
 fname FNAME ^^ \
 type TYPE ^^ \
 location __FILE__ __LINE__ ^^ \
@@ -93,7 +94,7 @@ DOCSTRING ^^ }
 # else
 #  define SCM_SNARF_HERE(X) X
 #  define SCM_SNARF_INIT(X)
-#  define SCM_SNARF_DOCS(TYPE, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+#  define SCM_SNARF_DOCS(TYPE, CNAME, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 # endif
 #endif
 
@@ -106,7 +107,7 @@ SCM_SNARF_INIT(\
 scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
                     (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
-SCM_SNARF_DOCS(primitive, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
 #define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
@@ -114,7 +115,7 @@ static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(scm_c_define_subr (s_ ## FNAME, TYPE, FNAME); ) \
-SCM_SNARF_DOCS(1, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
+SCM_SNARF_DOCS(1, FNAME, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
@@ -125,7 +126,7 @@ SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
 SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
                                    (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
-SCM_SNARF_DOCS(register, STR, (), REQ, OPT, VAR, \
+SCM_SNARF_DOCS(register, CFN, STR, (), REQ, OPT, VAR, \
                "implemented by the C function \"" #CFN "\"")
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \

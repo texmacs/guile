@@ -1,3 +1,43 @@
+2002-03-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* strop.c (scm_string_split): Correct quoting in docstring.
+	(scm_string_ci_to_symbol): Correct hyphen.
+
+	* ports.c (scm_sys_make_void_port): Add @file to docstring.
+
+	* numbers.c (scm_number_p, scm_real_p): In docstring, change
+	`else' to `otherwise'.
+
+	* macros.c (scm_makmacro, scm_makmmacro): Correct docstring.
+	(scm_macro_type): Correct spelling mistake.
+	
+	* eval.c (scm_eval, scm_eval_options_interface), read.c
+	(scm_read_options): Change incorrect @var in docstring to @code.
+
+	* backtrace.c (scm_display_error), filesys.c (scm_umask,
+	scm_select, scm_basename), goops.c (scm_method_generic_function),
+	numbers.c (scm_integer_length), ports.c
+	(scm_close_all_ports_except), posix.c (scm_getgroups, scm_execl,
+	scm_setlocale, scm_flock), socket.c (scm_shutdown): Correct
+	spelling mistakes.
+	
+	* alist.c (scm_acons, scm_assq), ramap.c (scm_array_fill_x,
+	scm_array_copy_x, scm_array_for_each, scm_array_index_map_x),
+	sort.c (scm_merge), strings.c (scm_string_p), unif.c
+	(scm_array_set_x, scm_uniform_array_read_x, scm_bit_invert_x):
+	Change active verb in docstring to imperative.
+
+	* snarf.h (SCM_SNARF_DOCS, SCM_DEFINE, SCM_DEFINE1,
+	SCM_REGISTER_PROC): Include C function name in snarf docs output.
+
+	* Makefile.am (guile-procedures.texi): Build two copies of snarfed
+	documentation, one for the manual and one for online help.
+
+	* alist.c, feature.c, list.c, net_db.c, objprop.c, ports.c,
+	ramap.c, strings.c, struct.c, unif.c, vectors.c, version.c,
+	weaks.c: In docstrings, replace all occurrences of the @deffn
+	category `primitive' by `{Scheme Procedure}'.
+
 2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-snarf.in: Update copyright.

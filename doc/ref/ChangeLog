@@ -1,3 +1,15 @@
+2002-03-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* appendices.texi, deprecated.texi, intro.texi, misc-modules.texi,
+	new-docstrings.texi, posix.texi, scheme-binding.texi,
+	scheme-control.texi, scheme-data.texi, scheme-debug.texi,
+	scheme-evaluation.texi, scheme-io.texi, scheme-memory.texi,
+	scheme-modules.texi, scheme-options.texi, scheme-procedures.texi,
+	scheme-scheduling.texi, scheme-translation.texi,
+	scheme-utility.texi, scm.texi, script-getopt.texi,
+	srfi-modules.texi: Change all occurrences of @deffn categories
+	`primitive' and `procedure' to `{Scheme Procedure}'.
+
 2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (guile_toc.html): Look for guile.texi in $(srcdir).
