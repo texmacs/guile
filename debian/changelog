@@ -1,3 +1,32 @@
+guile-1.6 (1.6.3-5) unstable; urgency=low
+
+  * remove --list-missing from debian/rules. (closes: bug#187926)
+  * try fix for libqthreads-12 per-arch build problem. (closes: bug#183686)
+  * fix alpha qt assembly bugs. (closes: bug#186981)
+
+ --
+
+guile-1.6 (1.6.3-4) unstable; urgency=low
+
+  * first 1.6 upload to unstable.
+
+ -- Rob Browning <rlb@defaultvalue.org>  Thu, 27 Feb 2003 18:49:46 -0600
+
+guile-1.6 (1.6.3-3) unstable; urgency=low
+
+  * change some /usr/bin/guile references to /usr/bin/guile-1.6 so we make
+    sure to get the right version (thanks Dale).
+  * unreleased test version.
+
+ -- Rob Browning <rlb@defaultvalue.org>  Fri,  7 Feb 2003 12:09:34 -0600
+
+guile-1.6 (1.6.3-2) unstable; urgency=low
+
+  * rearrange guile so it allows guile1.4 and guile-1.6 to coexist.
+  * unreleased test version.
+
+ -- Rob Browning <rlb@defaultvalue.org>  Wed,  5 Feb 2003 15:09:16 -0600
+
 guile-1.6 (1.6.3-1) unstable; urgency=low
 
   * unreleased test version.
