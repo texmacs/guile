@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -2887,13 +2887,17 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0
+;;;   guile r5rs srfi-0 srfi-6
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 
 (define %cond-expand-features
   ;; Adjust the above comment when changing this.
-  '(guile r5rs srfi-0))
+  '(guile
+    r5rs
+    srfi-0   ;; cond-expand itself
+    srfi-6   ;; open-input-string etc, in the guile core
+    ))
 
 ;; This table maps module public interfaces to the list of features.
 ;;
