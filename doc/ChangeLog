@@ -3,7 +3,8 @@
 	* scheme-data.texi: Replace some uses of "else" with "otherwise".
 	Fix spelling errors.
 	(String Modification): Reword intro.
-	
+	(Regular Expressions): Add missing close-paren.
+
 2001-07-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* intro.texi: Fix spelling errors.
