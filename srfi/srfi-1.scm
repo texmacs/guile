@@ -646,10 +646,11 @@
 (define (map f list1 . rest)
   (if (null? rest)
     (map1 f list1)
-    (let lp ((l (cons list1 rest)))
+    (let lp ((l (cons list1 rest))
+	     (rl '()))
       (if (any1 null? l)
-	'()
-	(cons (apply f (map1 car l)) (lp (map1 cdr l)))))))
+	(reverse! rl)
+	(lp (map1 cdr l) (cons (apply f (map1 car l)) rl))))))
 
 ;; extended to lists of unequal length.
 (define map-in-order map)
