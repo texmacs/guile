@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.1.2.2 2002-01-08 09:22:36 ttn Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.1.2.3 2002-03-01 20:53:03 dirk Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1168,13 +1168,13 @@ This reference can be decoded to a C pointer to a heap cell using the
 @code{SCM} value is done using the @code{PTR2SCM} macro.
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro (scm_cell *) SCM2PTR (SCM @var{x})
+@deftypefn Macro (scm_t_cell *) SCM2PTR (SCM @var{x})
 Extract and return the heap cell pointer from a non-immediate @code{SCM}
 object @var{x}.
 @end deftypefn
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro SCM PTR2SCM (scm_cell * @var{x})
+@deftypefn Macro SCM PTR2SCM (scm_t_cell * @var{x})
 Return a @code{SCM} value that encodes a reference to the heap cell
 pointer @var{x}.
 @end deftypefn
@@ -1182,7 +1182,7 @@ pointer @var{x}.
 Note that it is also possible to transform a non-immediate @code{SCM}
 value by using @code{SCM_UNPACK} into a @code{scm_bits_t} variable.
 However, the result of @code{SCM_UNPACK} may not be used as a pointer to
-a @code{scm_cell}: only @code{SCM2PTR} is guaranteed to transform a
+a @code{scm_t_cell}: only @code{SCM2PTR} is guaranteed to transform a
 @code{SCM} object into a valid pointer to a heap cell.  Also, it is not
 allowed to apply @code{PTR2SCM} to anything that is not a valid pointer
 to a heap cell.
@@ -1194,7 +1194,7 @@ Summary:
 Only use @code{SCM2PTR} on @code{SCM} values for which @code{SCM_IMP} is
 false!
 @item
-Don't use @code{(scm_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
+Don't use @code{(scm_t_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
 (@var{x})} instead!
 @item
 Don't use @code{PTR2SCM} for anything but a cell pointer!
