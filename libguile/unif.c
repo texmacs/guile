@@ -1339,8 +1339,8 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 	= scm_num2long (obj, SCM_ARG2, FUNC_NAME);
       break;
     case scm_tc7_svect:
-      SCM_ASRTGO (SCM_INUMP (obj), badobj);
-      ((short *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
+      ((short *) SCM_UVECTOR_BASE (v))[pos]
+	= scm_num2short (obj, SCM_ARG2, FUNC_NAME);
       break;
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
