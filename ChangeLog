@@ -1,3 +1,8 @@
+2002-04-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* autogen.sh: Removed dirt from a previous, careless commit: call
+	guile-aclocal.sh instead of aclocal.  Sorry.
+
 2002-04-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (AUTOMAKE_OPTIONS): New, to request version 1.5. 
