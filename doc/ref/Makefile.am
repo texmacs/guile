@@ -23,7 +23,7 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = guile.texi
 
-guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
+guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
 	scheme-ideas.texi scheme-data.texi scheme-procedures.texi \
 	scheme-utility.texi scheme-binding.texi scheme-control.texi \
 	scheme-io.texi scheme-evaluation.texi scheme-memory.texi \

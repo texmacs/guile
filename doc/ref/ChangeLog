@@ -1,3 +1,7 @@
+2002-04-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (guile_TEXINFOS): Add program.texi.
+
 2002-04-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-intro.texi (Scheme Layout): Remove reference to defunct
