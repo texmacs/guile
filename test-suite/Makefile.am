@@ -19,6 +19,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/multilingual.nottest		\
 	    tests/numbers.test			\
 	    tests/optargs.test			\
+	    tests/popen.test			\
 	    tests/ports.test			\
 	    tests/r4rs.test			\
 	    tests/reader.test			\
