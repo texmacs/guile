@@ -1,3 +1,10 @@
+2002-04-23  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* goops.h (scm_slot_exists_p): Rename from scm_slots_exists_p.
+	* goops.c (scm_slot_exists_p): Rename from scm_slots_exists_p.
+	(s_scm_slot_exists_p): Rename from s_scm_slots_exists_p.
+	Thanks to Andreas Rottmann.
+
 2002-04-09  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (guile.texi): EXEEXT fix.
