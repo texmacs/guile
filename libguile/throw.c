@@ -622,14 +622,6 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 	}
     }
 
-#ifdef __GNUC__
-  /* Dirk:FIXME:: This bugfix should be removed some time. */
-  /* GCC 2.95.2 has a bug in its optimizer that makes it generate
-     incorrect code sometimes.  This barrier stops it from being too
-     clever. */
-  asm volatile ("" : "=g" (winds));
-#endif
-
   /* If we didn't find anything, print a message and abort the process
      right here.  If you don't want this, establish a catch-all around
      any code that might throw up. */
@@ -640,8 +632,14 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
     }
 
   /* If the wind list is malformed, bail.  */
+  /* remember calls added below to fix segfaults on ia64 and (I think)
+     powerpc */
   if (!SCM_CONSP (winds))
-    abort ();
+    {
+      scm_remember_upto_here_1 (winds);
+      abort ();
+    }
+  scm_remember_upto_here_1 (winds);  
       
   jmpbuf = SCM_CDR (dynpair);
   
