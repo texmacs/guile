@@ -1,5 +1,8 @@
 2002-03-16  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* hooks.c (scm_t_c_hookype_t), hooks.h (scm_t_c_hookype_t):
+	Corrected everywhere to `scm_t_c_hook_type'.
+
 	* filesys.c (scm_close): Fix stale cross reference in docstring.
 
 2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
