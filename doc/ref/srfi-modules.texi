@@ -1752,8 +1752,9 @@ cannot copy a string on top of itself.
 @subsection Miscellaneous
 
 @code{string-replace} is for replacing a portion of a string with
-another string and @code{string-tokenize} splits a string into a list of
-strings, breaking it up at a specified character.
+another string and @code{string-tokenize} splits a string into a list
+of strings, breaking it up on characters not belonging to a specified
+character set.
 
 @deffn {Scheme Procedure} string-replace s1 s2 [start1 end1 start2 end2]
 Return the string @var{s1}, but with the characters
