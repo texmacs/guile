@@ -5,8 +5,9 @@
 
 2004-08-12  Kevin Ryde  <user42@zip.com.au>
 
-	* srfi-modules.texi (SRFI-13 Miscellaneous): Correction to token set
-	parameter, as per Marius in the cvs head.  Reported by Mike Small.
+	* srfi-modules.texi (SRFI-13 Miscellaneous): In string-tokenize,
+	correction to token set parameter, as per Marius in the cvs head.
+	Reported by Mike Small.
 
 2004-07-10  Kevin Ryde  <user42@zip.com.au>
 
