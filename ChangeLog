@@ -1,3 +1,7 @@
+2001-11-19  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* BUGS (11): Set "fixed: no-need".
+
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: switch to AC_LIBLTDL_INSTALLABLE so we'll use the
@@ -5,6 +9,10 @@
 	to prefer installed shared libs, this means other apps that link
 	with libguile and also use libltdl will be more likely to work
 	right.
+
+2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* BUGS (4): Set "fixed: 2001-11-17 (1.7.x)".
 
 2001-11-15  Thien-Thi Nguyen  <ttn@glug.org>
 
