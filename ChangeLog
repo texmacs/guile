@@ -1,3 +1,19 @@
+2002-07-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in (LIBGUILE_SRFI_SRFI_4_MAJOR): replaces
+	LIBGUILE_SRFI_SRFI_4_LTHACK.
+	(LIBGUILE_SRFI_SRFI_13_14_MAJOR): replaces
+	LIBGUILE_SRFI_SRFI_13_14_LTHACK.
+
+	* autogen.sh (mscripts): change from ../scripts to
+	../guile-scripts to match the module name in the cvs repository.
+
+	* GUILE-VERSION: adjust versions and just name dlsymable libs with
+	their major version number, not the whole version.  That should be
+	sufficient for now.
+
+	* Makefile.am (EXTRA_DIST): add README-PACKAGING
+
 2002-07-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* autogen.sh: Patch libltdl/ltdl.c to avoid a nasty bug in

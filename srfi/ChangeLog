@@ -1,3 +1,15 @@
+2002-07-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-4.scm: load libguile-srfi-srfi-4-v-MAJOR now.
+
+	* srfi-14.scm: load libguile-srfi-srfi-13-14-v-MAJOR now.
+
+	* srfi-13.scm: load libguile-srfi-srfi-13-14-v-MAJOR now.
+
+	* Makefile.am (lib_LTLIBRARIES): just name dlsymable libs with
+	their major version number, not the whole version.  That should be
+	sufficient for now.
+
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-14.h (SCM_CHARSET_GET): Cast IDX to unsigned char so that
