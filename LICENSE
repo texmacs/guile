@@ -12,10 +12,10 @@ license.  Any discrepancy regarding licensing terms between this
 document and any given source file is a bug, please report it.
 
 The overall intent of the Guile license is for the source to be
-covered under the GNU Public License, along with whatever additional
-exceptions are necessary so that just linking an application against
-Guile doesn't (by itself) make that application subject to the
-restrictions of the GPL.
+covered under the GNU General Public License, along with whatever
+additional exceptions are necessary so that just linking an
+application against Guile doesn't (by itself) make that application
+subject to the restrictions of the GPL.
 
 More specifically, most files in Guile are covered under the terms of
 the GNU General Public License, which should be included with the
@@ -25,7 +25,7 @@ copy of this license from the Free Software Foundation, Inc., 59
 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 In addition, all of the files that actually become a part of the final
-Guile executables are subject to a special exception to the GNU
+Guile library "libguile" are subject to a special exception to the GNU
 General Public License.  This exception is included in the section
 titled "Guile GPL Exception" below, and will henceforth be referred to
 as the Guile GPL Exception.
@@ -36,8 +36,15 @@ alone.  Examples include many files used only while building Guile,
 example files, etc.
 
 Finally, some of the files in the guile-readline directory are covered
-only by the GNU Public License, but Guile has been designed to load
-these files in a way that will not violate the GNU Public License.
+only by the GNU Public License, but Guile does not make use of these
+files by default.  If you decide to use guile-readline for your
+application, you must (as always) respect the license terms of it and
+consequently, the exception granted for libguile becomes ineffective.
+
+The same is true for any other additional code that you might want to
+use with Guile.  The exception is only granted for the core of Guile,
+the library libguile, and is not automatically extended to other code
+that relates to Guile.
 
 Section: GUILE GPL EXCEPTION
 ----------------------------
