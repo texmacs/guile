@@ -1,3 +1,9 @@
+2001-07-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* box-module/.cvsignore: add .deps
+
+	* box/.cvsignore: add .deps.
+
 2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-module/Makefile.am (TESTS): New variable.

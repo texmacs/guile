@@ -72,8 +72,8 @@ See also file HACKING.
 - Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
-- if we can agree on the interface quickly, add setitmer and getitimer
-  functions..
+- Decide if setitimer and getitimer should accept bignum arguments
+  instead, and fix them if so.
 
 - rewrite RELEASE to take CVS stable/unstable branching approach into
   account.
