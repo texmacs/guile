@@ -53,7 +53,7 @@
 #include "srfi-14.h"
 
 SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
-            (SCM pred, SCM s, SCM start, SCM end),
+            (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for any character in\n"
 	    "the string @var{s}, proceeding from left (index @var{start}) to\n"
 	    "right (index @var{end}).  If @code{string-any} returns true,\n"
@@ -65,18 +65,34 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
   int cstart, cend;
   SCM res;
 
-  SCM_VALIDATE_PROC (1, pred);
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  cstr += cstart;
-  while (cstart < cend)
+  if (SCM_CHARP (char_pred))
     {
-      res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
-      if (!SCM_FALSEP (res))
-	return res;
-      cstr++;
-      cstart++;
+      return (memchr (cstr+cstart, (int) SCM_CHAR (char_pred),
+                      cend-cstart) == NULL
+              ? SCM_BOOL_F : SCM_BOOL_T);
+    }
+  else if (SCM_CHARSETP (char_pred))
+    {
+      int i;
+      for (i = cstart; i < cend; i++)
+        if (SCM_CHARSET_GET (char_pred, cstr[i]))
+          return SCM_BOOL_T;
+    }
+  else
+    {
+      SCM_VALIDATE_PROC (1, char_pred);
+      cstr += cstart;
+      while (cstart < cend)
+        {
+          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (*cstr));
+          if (!SCM_FALSEP (res))
+            return res;
+          cstr++;
+          cstart++;
+        }
     }
   return SCM_BOOL_F;
 }
@@ -84,7 +100,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 
 
 SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
-            (SCM pred, SCM s, SCM start, SCM end),
+            (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for every character\n"
 	    "in the string @var{s}, proceeding from left (index @var{start})\n"
 	    "to right (index @var{end}).  If @code{string-every} returns\n"
@@ -96,21 +112,41 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   int cstart, cend;
   SCM res;
 
-  SCM_VALIDATE_PROC (1, pred);
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  res = SCM_BOOL_T;
-  cstr += cstart;
-  while (cstart < cend)
+  if (SCM_CHARP (char_pred))
     {
-      res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
-      if (SCM_FALSEP (res))
-	return res;
-      cstr++;
-      cstart++;
+      char cchr = SCM_CHAR (char_pred);
+      int i;
+      for (i = cstart; i < cend; i++)
+        if (cstr[i] != cchr)
+          return SCM_BOOL_F;
+      return SCM_BOOL_T;
     }
-  return res;
+  else if (SCM_CHARSETP (char_pred))
+    {
+      int i;
+      for (i = cstart; i < cend; i++)
+        if (! SCM_CHARSET_GET (char_pred, cstr[i]))
+          return SCM_BOOL_F;
+      return SCM_BOOL_T;
+    }
+  else
+    {
+      SCM_VALIDATE_PROC (1, char_pred);
+      res = SCM_BOOL_T;
+      cstr += cstart;
+      while (cstart < cend)
+        {
+          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (*cstr));
+          if (SCM_FALSEP (res))
+            return res;
+          cstr++;
+          cstart++;
+        }
+      return res;
+    }
 }
 #undef FUNC_NAME
 
