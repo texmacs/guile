@@ -15,6 +15,11 @@ Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
    of the Free Software Foundation are approved by the Foundation.
 
 
+
+Note to Guile Packagers (Distributors) ====================================
+
+Please see ./README-PACKAGING.
+
 Brief Installation Instructions ===========================================
 
 To build Guile on unix, there are two basic steps:
