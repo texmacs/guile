@@ -2715,7 +2715,7 @@
   (for-each (lambda (mif-args)
 	      (let ((mod-iface (apply resolve-interface mif-args)))
 		(or mod-iface
-		    (error "no such module" mif-spec))
+		    (error "no such module" mif-args))
 		(module-use! (current-module) mod-iface)))
 	    module-interface-args))
 
