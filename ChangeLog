@@ -1,3 +1,10 @@
+2004-07-31  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (GUILE_FUNC_DECLARED): Quote AC_DEFUN name as required
+	by autoconf 1.8.
+	* acinclude.m4 (GUILE_STRUCT_UTIMBUF, GUILE_NAMED_CHECK_FUNC): Ditto.
+	Reported by Maciej W. Rozycki.
+
 2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Removed code for --enable-htmldoc; support for
