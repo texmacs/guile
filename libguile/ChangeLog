@@ -1,3 +1,7 @@
+2001-11-02  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* unif.c (scm_ra2contig): Fixed memory overwrite bug.
+
 2001-10-28  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* unif.c (scm_uniform_array_read_x, scm_uniform_array_write):
