@@ -1,3 +1,8 @@
+2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Also link TODO from $workbook/tasks/TODO.
+	* Makefile.am (dist-hook): Removed.
+
 2002-04-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* RELEASE: bye bye

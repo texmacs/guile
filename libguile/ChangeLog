@@ -1,3 +1,8 @@
+2002-03-31  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-snarf.in: Install the trap for removing $cleanfile only
+	when the value of $cleanfile is actually known.
+
 2002-03-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* modules.c (scm_the_root_module): Correct typo in deprecation
@@ -6,7 +11,7 @@
 2002-03-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf.in: Do not warn about deprecated things, this will
-	likely be done directly from snarf.h.  when the output filename is
+	likely be done directly from snarf.h.  When the output filename is
 	"-", write to stdout.  When no "-o" option is given, use "-" as
 	the output filename (i.e., stdout).  Only 'clean' the inputfile or
 	remove the output file on error when the output file name is not
