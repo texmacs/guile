@@ -1,3 +1,8 @@
+2001-11-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* format.scm (string-index, list-head): Removed, we already these
+	in the core.
+
 2001-11-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (install-data-local): Prepend $(DESTDIR) to target
