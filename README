@@ -4,15 +4,15 @@ your applications to give them their own scripting language.  Guile
 will eventually support other languages as well, giving users of
 Guile-based applications a choice of languages.
 
-This release is version 1.6.0.  Any bugs found will be addressed by
-further bugfix releases numbered 1.6.1, 1.6.2, and so on.  The next
+This release is version 1.6.1.  Any bugs found will be addressed by
+further bugfix releases numbered 1.6.2, 1.6.3, and so on.  The next
 stable Guile release with significant functional improvements will be
 version 1.8.0.
 
 In between 1.6.x and 1.8.x, you can follow Guile development in CVS
 and in the Guile mailing lists (see ANON-CVS and HACKING).  Guile
-builds from the development branch of CVS will have version number
-1.7.0.
+builds from the development branch of CVS will have version numbers
+1.7.*.
 
 Guile versions with an odd middle number, i.e. 1.5.* are unstable
 development versions.  Even middle numbers indicate stable versions.

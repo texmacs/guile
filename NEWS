@@ -4,15 +4,22 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-Changes since guile 1.6.0:
+Changes since Guile 1.6.0:
 
 * Changes to the distribution
 
-** Guile now includes its own version of libltdl.
+** Guile now uses it's own version of libltdl.
 
-We now use a modified version of libltdl that allows us to make
-improvements to it without having to rely on libtool releases.
+Guile now uses its own modified version of libltdl (1.4.3) found in
+./guile-libltdl which includes a variety of bugfixes and enhancements.
+We auto generate patches against copies of the upstream source so it's
+easy to forward our modifications to the libtool developers.
 
+** The Emacs interface has been fixed.
+
+** The SRFI C headers are now installed.
+
+
 Changes since Guile 1.4:
 
 * General Changes
