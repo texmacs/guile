@@ -31,9 +31,9 @@ titled "Guile GPL Exception" below, and will henceforth be referred to
 as the Guile GPL Exception.
 
 The rest of the files may or may not be covered by the Guile GPL
-Exception, and are usually just covered by the GNU General Public
-License alone.  Examples include many files used only while building
-Guile, example files, etc.
+Exception, and are usually covered by the GNU General Public License
+alone.  Examples include many files used only while building Guile,
+example files, etc.
 
 Also some of the files in the guile-readline directory are covered
 only under the GNU Public License, but Guile has been designed to load
