@@ -70,15 +70,14 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
       return res;
     }
   else if (SCM_REALP (num))
-    { /* inexact */
-    
-      double u = SCM_REAL_VALUE (num);
-      ITYPE res = u;
-      if ((double) res == u)
-        return res;
-      else
-        scm_out_of_range (s_caller, num);
-    }
+    /* Temporary special treatment of this case since behavior has changed */
+    scm_error (scm_arg_type_key,
+	       s_caller,
+	       (pos == 0) ? "Wrong type (inexact) argument: ~S"
+	       : "Wrong type (inexact) argument in position ~A: ~S",
+	       (pos == 0) ? scm_list_1 (num)
+	       : scm_list_2 (SCM_MAKINUM (pos), num),
+	       SCM_BOOL_F);
   else
     scm_wrong_type_arg (s_caller, pos, num);
 }
