@@ -6,9 +6,9 @@ guile=${GUILE-../../libguile/guile}
 set -e
 
 #
-# ./safe untrusted.scm
+# ./main test
 #
-$guile -s main > TMP
+GUILE_LOAD_PATH=../.. $guile -s main > TMP
 cat <<EOF | diff -u - TMP
 module-0 foo
 module-0 bar

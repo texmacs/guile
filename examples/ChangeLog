@@ -1,3 +1,24 @@
+2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-module/Makefile.am (TESTS): New variable.
+	Create `box' on `make all'.
+
+	* box-module/check.test, box-dynamic-module/check.test,
+	* box-dynamic/check.test: New files.
+
+	* box-dynamic/Makefile.am (libbox): Create box library on `make
+	all'.
+	(TESTS): New variable.
+
+	* box/Makefile.am (TESTS): New variable.  
+	Create `box' program on `make all', use freshly built Guile for
+	building.
+
+	* box/check.test: New file.
+
+	* modules/check.test, safe/check.test, scripts/check.test: Set
+	GUILE_LOAD_PATH to make the tests run without installed Guile.
+
 2001-07-16  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* scripts/check.test: Add check for guile interpreter.

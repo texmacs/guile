@@ -19,13 +19,17 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
+all: libbox
+
 EXTRA_DIST = README box.c
 
-CFLAGS=`guile-config compile`
-LIBS=`guile-config link`
+CFLAGS=-I../..
+LIBS=`GUILE_LOAD_PATH=../.. ../../libguile/guile -e main -s ../../guile-config/guile-config link` -L../../libguile
+
+TESTS = check.test
 
 libbox: box.lo
 	sh ../../libtool --mode=link $(CC) $< $(LIBS) -rpath $(prefix)/lib -o libbox.la
 
 box.lo: box.c
-	sh ../../libtool --mode=compile $(CC) $(CFLAGS) -c $< 
+	sh ../../libtool --mode=compile $(CC) $(CFLAGS) -c $<

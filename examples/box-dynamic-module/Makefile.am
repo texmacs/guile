@@ -19,10 +19,17 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
+all: libbox-module
+
 EXTRA_DIST = README box.c box-module.scm box-mixed.scm
 
-CFLAGS=`guile-config compile`
-LIBS=`guile-config link`
+CFLAGS=-I../..
+LIBS=`GUILE_LOAD_PATH=../.. ../../libguile/guile -e main -s ../../guile-config/guile-config link` -L../../libguile
+
+TESTS = check.test
+
+#CFLAGS=`guile-config compile`
+#LIBS=`guile-config link`
 
 libbox-module: box.lo
 	sh ../../libtool --mode=link $(CC) $< $(LIBS) -rpath $(prefix)/lib -o libbox-module.la
