@@ -1,3 +1,8 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Sockets and Communication): Add SOCK_RDM and
+	SOCK_SEQPACKET.
+
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-13 Predicates): Add string-any and
