@@ -2,7 +2,7 @@
 
 #ifndef CONTINUATIONSH
 #define CONTINUATIONSH
-/*	Copyright (C) 1995,1996, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 #include "libguile/__scm.h"
 
 #ifdef __ia64__
-#include <sys/ucontext.h>
+#include <ucontext.h>
 extern unsigned long  __libc_ia64_register_backing_store_base;
 #endif
 
