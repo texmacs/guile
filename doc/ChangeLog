@@ -4,6 +4,8 @@
 	Fix spelling errors.
 	(String Modification): Reword intro.
 	(Regular Expressions): Add missing close-paren.
+	(List Modification): Rewrite intro.
+	Fix node name spelling error (also in menu).
 
 2001-07-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
