@@ -224,6 +224,8 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
   SCM old_handler;
 
   SCM_VALIDATE_INUM_COPY (1,signum,csig);
+  if (csig < 0 || csig >= NSIG)
+    SCM_OUT_OF_RANGE (1, signum);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
