@@ -1560,3 +1560,38 @@
 ;;;
 ;;; inexact->exact
 ;;;
+
+;;;
+;;; logbit?
+;;;
+
+(with-test-prefix "logbit?"
+  (pass-if "0 0"  (eq? #f (logbit?  0 0)))
+  (pass-if "1 0"  (eq? #f (logbit?  1 0)))
+  (pass-if "31 0" (eq? #f (logbit? 31 0)))
+  (pass-if "32 0" (eq? #f (logbit? 32 0)))
+  (pass-if "33 0" (eq? #f (logbit? 33 0)))
+  (pass-if "63 0" (eq? #f (logbit? 63 0)))
+  (pass-if "64 0" (eq? #f (logbit? 64 0)))
+  (pass-if "65 0" (eq? #f (logbit? 65 0)))
+
+  ;; prior to guile 1.6.5, testing bit 32, 64 etc of value 1 would wrap
+  ;; around and return #t where it ought to be #f
+  (pass-if "0 1"  (eq? #t (logbit?  0 1)))
+  (pass-if "1 1"  (eq? #f (logbit?  1 1)))
+  (pass-if "31 1" (eq? #f (logbit? 31 1)))
+  (pass-if "32 1" (eq? #f (logbit? 32 1)))
+  (pass-if "33 1" (eq? #f (logbit? 33 1)))
+  (pass-if "63 1" (eq? #f (logbit? 63 1)))
+  (pass-if "64 1" (eq? #f (logbit? 64 1)))
+  (pass-if "65 1" (eq? #f (logbit? 65 1)))
+  (pass-if "128 1" (eq? #f (logbit? 128 1)))
+
+  (pass-if "0 -1"  (eq? #t (logbit?  0 -1)))
+  (pass-if "1 -1"  (eq? #t (logbit?  1 -1)))
+  (pass-if "31 -1" (eq? #t (logbit? 31 -1)))
+  (pass-if "32 -1" (eq? #t (logbit? 32 -1)))
+  (pass-if "33 -1" (eq? #t (logbit? 33 -1)))
+  (pass-if "63 -1" (eq? #t (logbit? 63 -1)))
+  (pass-if "64 -1" (eq? #t (logbit? 64 -1)))
+  (pass-if "65 -1" (eq? #t (logbit? 65 -1))))
