@@ -17,6 +17,12 @@ Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 * Changes to the distribution
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
+
+** SRFI-1 delete equality argument order fixed.
+
+In the srfi-1 module delete and delete!, the order of the arguments to
+the "=" procedure now matches the SRFI-1 specification.
+
 * Changes to the C interface 
 
 
