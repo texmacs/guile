@@ -77,9 +77,9 @@ typedef struct scm_t_stack {
 # define scm_stack scm_t_stack
 #endif
 
-extern SCM scm_t_stackype;
+extern SCM scm_stack_type;
 
-#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_t_stackype))
+#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_stack_type))
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) \

@@ -1,3 +1,11 @@
+2002-02-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* stacks.c, stacks.h (scm_t_stackype): Renamed to scm_stack_type
+	everywhere.
+
+	* unif.c (scm_array_to_list): Correct name, which had been
+	accidentally changed to scm_t_arrayo_list!
+
 2002-02-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (bin_PROGRAMS): Move `guile_filter_doc_snarfage'
