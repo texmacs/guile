@@ -3,6 +3,10 @@
 	* AUTHORS: Removed.  Authorship information for each manual is now
 	in the top-level Texinfo file for that manual.
 
+2001-08-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am: Split documentation into per-manual subdirectories.
+
 2001-08-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (guile_tut_TEXINFOS): remove guile-tut.texi.  It's
