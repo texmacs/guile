@@ -1177,6 +1177,11 @@ Use scm_c_define or scm_c_lookup instead, as appropriate.
 
 These functions work with variables instead of with vcells.
 
+*** snarf macros deprecated: SCM_CONST_LONG, SCM_VCELL, SCM_VCELL_INIT,
+    SCM_GLOBAL_VCELL, SCM_GLOBAL_VCELL_INIT
+
+See reference manual node "Macros guile-snarf recognizes" for more info.
+
 ** New functions for creating and defining `subr's and `gsubr's.
 
 The new functions more clearly distinguish between creating a subr (or
