@@ -318,34 +318,44 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	{
  	case scm_tc7_bvect:
  	  protp = (SCM_EQ_P (prot, SCM_BOOL_T));
+          break;
  	case scm_tc7_string:
  	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
+          break;
  	case scm_tc7_byvect:
  	  protp = SCM_EQ_P (prot, SCM_MAKE_CHAR ('\0'));
+          break;
  	case scm_tc7_uvect:
  	  protp = SCM_INUMP(prot) && SCM_INUM(prot)>0;
+          break;
  	case scm_tc7_ivect:
  	  protp = SCM_INUMP(prot) && SCM_INUM(prot)<=0;
-          
+          break;
  	case scm_tc7_svect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
  	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
+          break;
 #ifdef HAVE_LONG_LONGS
  	case scm_tc7_llvect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_SYMBOL_LENGTH (prot))
- 	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
+ 	    && ('l' == SCM_SYMBOL_CHARS (prot)[0]);
+          break;
 #endif
  	case scm_tc7_fvect:
- 	  protp = singp (prot);
+ 	  protp = (SCM_NIMP (prot) && singp (prot));
+          break;
  	case scm_tc7_dvect:
- 	  protp = SCM_REALP(prot);
+ 	  protp = (SCM_REALP (prot) && ! singp (prot));
+          break;
  	case scm_tc7_cvect:
  	  protp = SCM_COMPLEXP(prot);
+          break;
  	case scm_tc7_vector:
  	case scm_tc7_wvect:
  	  protp = SCM_NULLP(prot);
+          break;
  	default:
  	  /* no default */
  	  ;
