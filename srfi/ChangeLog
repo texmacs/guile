@@ -1,4 +1,4 @@
-2004-05-11  Marius Vollmer  <mvo@zagadka.de>
+2004-05-11  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_trim, scm_string_trim_right,
 	scm_string_trim_both): Cast to unsigned char for isspace.
