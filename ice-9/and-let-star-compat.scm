@@ -3,11 +3,10 @@
 ;;;; (and-let-star) instead.
 
 (define-module (ice-9 and-let*)
-  :use-module (ice-9 and-let-star))
+  :use-module (ice-9 and-let-star)
+  :re-export-syntax (and-let*))
 
 (display ";;; The module name (ice-9 and-let*) is deprecated.\n"
 	 (current-error-port))
 (display ";;; Use (ice-9 and-let-star) instead.\n\n"
 	 (current-error-port))
-
-(re-export-syntax and-let*)

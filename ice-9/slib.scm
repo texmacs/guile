@@ -1,6 +1,6 @@
 ;;;; slib.scm --- definitions needed to get SLIB to work with Guile
 ;;;;
-;;;;	Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
+;;;;	Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GUILE.
 ;;;; 
@@ -44,8 +44,16 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;;
 (define-module (ice-9 slib)
+  :export (slib:load
+	   implementation-vicinity
+	   library-vicinity
+	   home-vicinity
+	   scheme-implementation-type
+	   scheme-implementation-version
+	   make-random-state
+	   require)
   :no-backtrace)
-  
+
 
 
 (define (eval-load <filename> evl)
@@ -162,7 +170,7 @@
 ;;; changing catalog:get in slib/require.scm, and I don't expect
 ;;; Aubrey will integrate such a change.  So I'm just going to punt
 ;;; for the time being.
-(define-public (slib:load name)
+(define (slib:load name)
   (save-module-excursion
    (lambda ()
      (set-current-module slib-module)
@@ -189,15 +197,15 @@
 	(substring path 0 (- (string-length path) 17))
 	(error "Could not find slib/require.scm in " %load-path))))
 
-(define-public (implementation-vicinity)
+(define (implementation-vicinity)
   (string-append slib-parent-dir "/"))
-(define-public (library-vicinity)
+(define (library-vicinity)
   (string-append (implementation-vicinity) "slib/"))
-(define-public home-vicinity
+(define home-vicinity
   (let ((home-path (getenv "HOME")))
     (lambda () home-path)))
-(define-public (scheme-implementation-type) 'guile)
-(define-public (scheme-implementation-version) "")
+(define (scheme-implementation-type) 'guile)
+(define (scheme-implementation-version) "")
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
@@ -205,7 +213,7 @@
 
 ;;; {Random numbers}
 ;;;
-(define-public (make-random-state . args)
+(define (make-random-state . args)
   (let ((seed (if (null? args) *random-state* (car args))))
     (cond ((string? seed))
 	  ((number? seed) (set! seed (number->string seed)))
@@ -251,7 +259,7 @@ no other easy or unambiguous way of detecting such features."
 
 (slib:load (in-vicinity (library-vicinity) "require.scm"))
 
-(define-public require require:require)
+(define require require:require)
 
 ;; {Extensions to the require system so that the user can add new
 ;;  require modules easily.}
