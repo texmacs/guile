@@ -101,7 +101,7 @@ by the Free Software Foundation.
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL_EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.2.2.16 2002-04-20 19:22:28 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.17 2002-09-25 00:12:21 ossau Exp $
 
 @c AUTHORS
 
@@ -253,7 +253,7 @@ Part IV: Guile API Reference
 * Objects::                     Low level object orientation support.
 * Modules::                     Designing reusable code libraries.
 * Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
-* Options and Config::          Runtime options and configuration.
+* Options and Config::          Configuration, features and runtime options.
 * Translation::                 Support for translating other languages.
 * Debugging::                   Internal debugging interface.
 * Deprecated::                  Features that are planned to disappear.
