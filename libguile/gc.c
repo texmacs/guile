@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 
 #ifdef __ia64__
 #include <ucontext.h>
@@ -240,12 +241,6 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
  *
  * INIT_MALLOC_LIMIT is the initial amount of malloc usage which will
  * trigger a GC.
- *
- * SCM_MTRIGGER_HYSTERESIS is the amount of malloc storage that must be
- * reclaimed by a GC triggered by must_malloc. If less than this is
- * reclaimed, the trigger threshold is raised. [I don't know what a
- * good value is. I arbitrarily chose 1/10 of the INIT_MALLOC_LIMIT to
- * work around a oscillation that caused almost constant GC.]
  */
 
 /*
@@ -282,10 +277,14 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 #  define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
 # endif
 #endif
+
 /* Make heap grow with factor 1.5 */
 #define SCM_EXPHEAP(scm_heap_size) (scm_heap_size / 2)
-#define SCM_INIT_MALLOC_LIMIT 100000
-#define SCM_MTRIGGER_HYSTERESIS (SCM_INIT_MALLOC_LIMIT/10)
+
+/*
+  At startup GUILE takes about 100k bytes.  
+ */
+#define SCM_INIT_MALLOC_LIMIT 200000
 
 /* CELL_UP and CELL_DN are used by scm_init_heap_seg to find (scm_t_cell * span)
    aligned inner bounds for allocated storage */
@@ -314,7 +313,8 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 /* scm_freelists
  */
 
-typedef struct scm_t_freelist {
+typedef struct scm_t_freelist
+{
   /* collected cells */
   SCM cells;
   /* number of cells left to collect before cluster is full */
@@ -347,7 +347,8 @@ typedef struct scm_t_freelist {
    * belonging to this list.
    */
   unsigned long heap_size;
-} scm_t_freelist;
+}
+scm_t_freelist;
 
 SCM scm_freelist = SCM_EOL;
 scm_t_freelist scm_master_freelist = {
@@ -1938,6 +1939,43 @@ scm_gc_sweep ()
  * during garbage collection.
  */
 
+/*
+ * scm_i_minyield_malloc is the minimum expected amount of malloc
+ * storage freed during a GC triggered by scm_must_malloc, etc, in
+ * percent of the size of the malloc heap.  When this yield is not
+ * reached, the malloc heap is allowed to grow larger before
+ * triggering the next GC.
+ */
+
+static int scm_i_minyield_malloc = 40;
+
+static void
+check_mtrigger (char const * what )
+{
+  if (scm_mallocated > scm_mtrigger)
+    {
+      long prev_alloced  = scm_mallocated;
+      float yield;
+      scm_igc (what);
+      yield = (prev_alloced - scm_mallocated) / (float) prev_alloced;
+
+      if (yield < scm_i_minyield_malloc /  100.0)
+      {
+        /*
+          If you have a program that builds up a lot of data in
+          strings, then the desired yield will never be satisfied.
+          So we make the trigger a little larger, even.
+
+          Instead of getting bogged down, we let the mtrigger grow
+          strongly with it.
+
+        */
+        scm_mtrigger = (int)((scm_mallocated * 110.0)
+			     / (100 - scm_i_minyield_malloc));
+      }
+    }
+}
+
 /* scm_must_malloc
  * Return newly malloced storage or throw an error.
  *
@@ -1949,65 +1987,43 @@ scm_gc_sweep ()
  *
  * The limit scm_mtrigger may be raised by this allocation.
  */
+
 void *
 scm_must_malloc (size_t size, const char *what)
 {
   void *ptr;
-  unsigned long nm = scm_mallocated + size;
+    
+  unsigned long nm;
 
-  if (nm < size)
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
-  if (nm <= scm_mtrigger)
-    {
-      SCM_SYSCALL (ptr = malloc (size));
-      if (NULL != ptr)
-	{
-	  scm_mallocated = nm;
-#ifdef GUILE_DEBUG_MALLOC
-	  scm_malloc_register (ptr, what);
-#endif
-	  return ptr;
-	}
-    }
-
-  scm_igc (what);
-
-  nm = scm_mallocated + size;
-
-  if (nm < size)
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
+  /*
+    run a slight risk here, in the unlikely event that realloc would
+    return NULL, but wouldn't if we did the GC in check_mtrigger.
+  */
+  
+  scm_mallocated += size;
   SCM_SYSCALL (ptr = malloc (size));
+  check_mtrigger (what);
+  
+  nm = scm_mallocated;
+  if (nm  < size)
+    /* The byte count of allocated objects has overflowed.  This is
+       probably because you forgot to report the correct size of freed
+       memory in some of your smob free methods. */
+    abort ();
+  
   if (NULL != ptr)
     {
-      scm_mallocated = nm;
-      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
-	if (nm > scm_mtrigger)
-	  scm_mtrigger = nm + nm / 2;
-	else
-	  scm_mtrigger += scm_mtrigger / 2;
-      }
 #ifdef GUILE_DEBUG_MALLOC
       scm_malloc_register (ptr, what);
 #endif
-
       return ptr;
     }
 
   scm_memory_error (what);
+  assert (0);
+  return NULL;
 }
-
-
-/* scm_must_realloc
- * is similar to scm_must_malloc.
- */
+ 
 void *
 scm_must_realloc (void *where,
 		  size_t old_size,
@@ -2015,59 +2031,44 @@ scm_must_realloc (void *where,
 		  const char *what)
 {
   void *ptr;
-  unsigned long nm;
-
+    
   if (size <= old_size)
     return where;
 
-  nm = scm_mallocated + size - old_size;
 
-  if (nm < (size - old_size))
+  /*
+    run a slight risk here, in the unlikely event that realloc would
+    return NULL, but wouldn't if we did the GC in check_mtrigger.
+  */
+  if (scm_mallocated  < 0)
     /* The byte count of allocated objects has overflowed.  This is
        probably because you forgot to report the correct size of freed
        memory in some of your smob free methods. */
     abort ();
 
-  if (nm <= scm_mtrigger)
-    {
-      SCM_SYSCALL (ptr = realloc (where, size));
-      if (NULL != ptr)
-	{
-	  scm_mallocated = nm;
-#ifdef GUILE_DEBUG_MALLOC
-	  scm_malloc_reregister (where, ptr, what);
-#endif
-	  return ptr;
-	}
-    }
-
-  scm_igc (what);
-
-  nm = scm_mallocated + size - old_size;
-
-  if (nm < (size - old_size))
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
+  /*
+    We don't want to get 0 back if we try to alloc 0 bytes, because
+    scm_must_free() won't take NULL.
+  */
+  scm_mallocated += size - old_size;
   SCM_SYSCALL (ptr = realloc (where, size));
+
+  check_mtrigger (what);
+  
   if (NULL != ptr)
     {
-      scm_mallocated = nm;
-      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
-	if (nm > scm_mtrigger)
-	  scm_mtrigger = nm + nm / 2;
-	else
-	  scm_mtrigger += scm_mtrigger / 2;
-      }
 #ifdef GUILE_DEBUG_MALLOC
-      scm_malloc_reregister (where, ptr, what);
+      if(where)
+	scm_malloc_reregister (where, ptr, what);
+      else
+	scm_malloc_register (ptr, what);
 #endif
       return ptr;
     }
 
   scm_memory_error (what);
+  assert(0);
+  return NULL;
 }
 
 char *
@@ -2135,18 +2136,7 @@ scm_done_malloc (long size)
   }
 
   scm_mallocated += size;
-
-  if (scm_mallocated > scm_mtrigger)
-    {
-      scm_igc ("foreign mallocs");
-      if (scm_mallocated > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS)
-	{
-	  if (scm_mallocated > scm_mtrigger)
-	    scm_mtrigger = scm_mallocated + scm_mallocated / 2;
-	  else
-	    scm_mtrigger += scm_mtrigger / 2;
-	}
-    }
+  check_mtrigger ("foreign mallocs");
 }
 
 void
