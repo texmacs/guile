@@ -1,3 +1,19 @@
+2004-08-10  Kevin Ryde  <user42@zip.com.au>
+
+	* slib.scm (*features*): Remove array and array-for-each, core
+	definitions are insufficient for latest slib.
+	(t, nil): New constants slib says are supposed to exist.
+	(call-with-open-ports, browse-url): New functions for latest slib.
+	Implementations taken from Template.scm (public domain).
+	(open-file): Extend core definition to accept symbols for the mode,
+	required by latest slib.
+	(delete-file): Replace core definition with version returning #t/#f as
+	per slib spec.
+	(slib:exit, slib:error, slib:warn, slib:eval, slib:eval-load,
+	slib:tab, slib:form-feed, slib:load-source, output-port-width,
+	output-port-height, difftime, offset-time): Export these, they're
+	meant to be public.
+
 2004-08-09  Marius Vollmer  <mvo@zagadka.de>
 
 	From Matthias Koeppe.  Thanks!
