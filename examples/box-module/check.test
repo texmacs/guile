@@ -8,7 +8,7 @@ set -e
 #
 # ./box test #1
 #
-GUILE_LOAD_PATH=../..:. ./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline)))' > TMP
+./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 EOF
@@ -17,7 +17,7 @@ rm -f TMP
 #
 # ./box test #2
 #
-GUILE_LOAD_PATH=../..:. ./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline)))' > TMP
+./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 #<box 1>
@@ -27,7 +27,7 @@ rm -f TMP
 #
 # ./box test #3
 #
-GUILE_LOAD_PATH=../..:. ./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline) (display (box-ref b)) (newline)))' > TMP
+./box -c '(begin (use-modules (box-module)) (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline) (display (box-ref b)) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 #<box 1>

@@ -3,12 +3,16 @@
 # must be run from this directory
 guile=${GUILE-../../libguile/guile}
 
+if test "X$srcdir" = X; then
+    srcdir=.
+fi
+
 set -e
 
 #
 # ./main test
 #
-GUILE_LOAD_PATH=../.. $guile -s main > TMP
+$guile -s $srcdir/main > TMP
 cat <<EOF | diff -u - TMP
 module-0 foo
 module-0 bar

@@ -1,3 +1,8 @@
+2001-07-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	All examples are now built and tested on `make installcheck'
+	rather than `make check'.
+
 2001-07-19  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-dynamic-module/Makefile.am, box-dynamic/Makefile.am,

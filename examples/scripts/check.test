@@ -11,12 +11,16 @@ else
     exit 1
 fi
 
+if test "X$srcdir" = X; then
+    srcdir=.
+fi
+
 set -e
 
 #
 # simple-hello.scm
 #
-GUILE_LOAD_PATH=../.. $guile -s simple-hello.scm > TMP
+$guile -s $srcdir/simple-hello.scm > TMP
 cat <<EOF | diff -u - TMP
 Hello, World!
 EOF
@@ -25,15 +29,15 @@ rm -f TMP
 #
 # hello
 #
-GUILE_LOAD_PATH=../.. $guile -s hello > TMP
+$guile -s $srcdir/hello > TMP
 echo "Hello, World!" | diff -u - TMP
 rm -f TMP
 
-GUILE_LOAD_PATH=../.. $guile -s hello --version > TMP
+$guile -s $srcdir/hello --version > TMP
 echo "hello 0.0.1" | diff -u - TMP
 rm -f TMP
 
-GUILE_LOAD_PATH=../.. $guile -s hello --help > TMP
+$guile -s $srcdir/hello --help > TMP
 cat <<EOF | diff -u - TMP
 Usage: hello [options...]
   --help, -h           Show this usage information
@@ -44,6 +48,6 @@ rm -f TMP
 #
 # fact
 #
-case `GUILE_LOAD_PATH=../.. $guile -s fact 5` in 120) ;; *) echo $0: error: fact 5 ;; esac
+case `$guile -s $srcdir/fact 5` in 120) ;; *) echo $0: error: fact 5 ;; esac
 
 # check.test ends here

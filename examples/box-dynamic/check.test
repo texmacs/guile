@@ -8,7 +8,7 @@ set -e
 #
 # ./box test #1
 #
-LTDL_LIBRARY_PATH=.libs GUILE_LOAD_PATH=../..:. ../../libguile/guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline)))' > TMP
+$guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 EOF
@@ -17,7 +17,7 @@ rm -f TMP
 #
 # ./box test #2
 #
-LTDL_LIBRARY_PATH=.libs GUILE_LOAD_PATH=../..:. ../../libguile/guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline)))' > TMP
+$guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 #<box 1>
@@ -27,7 +27,7 @@ rm -f TMP
 #
 # ./box test #3
 #
-LTDL_LIBRARY_PATH=.libs GUILE_LOAD_PATH=../..:. ../../libguile/guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline) (display (box-ref b)) (newline)))' > TMP
+$guile -c '(begin (load-extension "libbox" "scm_init_box") (let ((b (make-box))) (display b) (newline) (box-set! b 1) (display b) (newline) (display (box-ref b)) (newline)))' > TMP
 cat <<EOF | diff -u - TMP
 #<box #f>
 #<box 1>
