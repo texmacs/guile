@@ -1,5 +1,8 @@
 2002-08-08  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* posix.texi, scheme-evaluation.texi, scheme-memory.texi,
+	scheme-modules.texi: More interbranch syncing.
+
 	* new-docstrings.texi, posix.texi, scheme-memory.texi,
 	scheme-modules.texi: Merge recent updates from unstable branch.
 

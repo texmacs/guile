@@ -1120,7 +1120,6 @@ value is @code{#f} unless a string of the form @code{NAME=VALUE} is
 found, in which case the string @code{VALUE} is returned.
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "setenv")
 @deffn {Scheme Procedure} setenv name value
 Modifies the environment of the current process, which is
 also the default environment inherited by child processes.
