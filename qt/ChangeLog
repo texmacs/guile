@@ -1,3 +1,7 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (libqthreads_la_LDFLAGS): use @LIBQTHREADS_INTERFACE@.
+
 2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am, md/Makefile.am, time/Makefile.am
