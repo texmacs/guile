@@ -12,6 +12,14 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
+Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
+
+* Changes to the distribution
+* Changes to the stand-alone interpreter
+* Changes to Scheme functions and syntax
+* Changes to the C interface 
+
+
 Changes since Guile 1.6.3 (i.e. changes for 1.6.4):
 
 * Changes to the distribution
