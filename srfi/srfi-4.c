@@ -47,6 +47,8 @@
 
 #include "srfi-4.h"
 
+#include <string.h>
+#include <stdio.h>
 
 /* For brevity and maintainability, we define our own types for the
    various integer and floating point types.  */
@@ -56,15 +58,19 @@ typedef unsigned short int_u16;
 typedef signed short int_s16;
 typedef unsigned int int_u32;
 typedef signed int int_s32;
-#if HAVE_LONG_LONGS
+
 #if SIZEOF_LONG == 8
 typedef unsigned long int_u64;
 typedef signed long int_s64;
-#else
+#define HAVE_UVEC_64 1
+#elif SIZEOF_LONG_LONG == 8
 typedef unsigned long long int_u64;
 typedef signed long long int_s64;
-#endif /* SIZEOF_LONG */
-#endif /* HAVE_LONG_LONGS */
+#define HAVE_UVEC_64 1
+#else
+#define HAVE_UVEC_64 0
+#endif /* no 64-bit integer support */
+
 typedef float float_f32;
 typedef double float_f64;
 
@@ -97,10 +103,121 @@ int scm_tc16_uvec = 0;
 #define SCM_UVEC_F32 	8
 #define SCM_UVEC_F64 	9
 
+#define VALIDATE_UVEC(pos, obj, type) \
+  do { \
+    SCM_VALIDATE_SMOB (pos, obj, uvec); \
+    if (SCM_UVEC_TYPE (obj) != type) \
+      scm_wrong_type_arg (FUNC_NAME, 1, obj); \
+  } while (0)
+
+#define RANGE_CHECK_AND_COPY_UVEC_INDEX(pos, uvec, i, cindex) \
+  do { \
+    cindex = scm_num2size (i, pos, FUNC_NAME); \
+    if (cindex < 0 || cindex >= SCM_UVEC_LENGTH (uvec)) \
+      scm_out_of_range_pos (FUNC_NAME, i, SCM_MAKINUM (pos)); \
+  } while (0)
+
 
 /* This array maps type tags to the size of the elements.  */
-static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
+static const int uvec_sizes[] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
+/* This array maps type tags to the bit shifts related to the sizes. */
+static const int uvec_shifts[] = {0, 0, 1, 1, 2, 2, 3, 3, 2, 3};
 
+#if HAVE_UVEC_64
+
+/* This is a modified version of scm_iint2str and should go away once
+   we have a public scm_print_integer or similar. */
+
+static void
+print_int64 (int_s64 num, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  char *p = num_buf;
+  const int rad = 10;
+  size_t num_chars = 1;
+  size_t i;
+  int_u64 n = (num < 0) ? -num : num;
+
+  for (n /= rad; n > 0; n /= rad)
+    num_chars++;
+
+  i = num_chars;
+  if (num < 0)
+    {
+      *p++ = '-';
+      num_chars++;
+      n = -num;
+    }
+  else
+    n = num;
+  while (i--)
+    {
+      int d = n % rad;
+
+      n /= rad;
+      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+    }
+
+  scm_lfwrite (num_buf, num_chars, port);
+}
+
+/* This is a modified version of scm_iint2str and should go away once
+   we have a public scm_print_integer or similar. */
+
+static void
+print_uint64 (int_u64 num, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  char *p = num_buf;
+  const int rad = 10;
+  size_t num_chars = 1;
+  size_t i;
+  int_u64 n = num;
+
+  for (n /= rad; n > 0; n /= rad)
+    num_chars++;
+
+  i = num_chars;
+  n = num;
+  while (i--)
+    {
+      int d = n % rad;
+
+      n /= rad;
+      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+    }
+
+  scm_lfwrite (num_buf, num_chars, port);
+}
+
+
+#endif /* HAVE_UVEC_64 */
+
+static void
+print_uint32 (int_u32 num, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  char *p = num_buf;
+  const int rad = 10;
+  size_t num_chars = 1;
+  size_t i;
+  int_u32 n = num;
+
+  for (n /= rad; n > 0; n /= rad)
+    num_chars++;
+
+  i = num_chars;
+  n = num;
+  while (i--)
+    {
+      int d = n % rad;
+
+      n /= rad;
+      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+    }
+
+  scm_lfwrite (num_buf, num_chars, port);
+}
 
 /* ================================================================ */
 /* SMOB procedures.                                                 */
@@ -111,238 +228,97 @@ static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 static int
 uvec_print (SCM uvec, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  switch (SCM_UVEC_TYPE (uvec))
-    {
-    case SCM_UVEC_U8:
-      {
-	int_u8 * p = (int_u8 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u8(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S8:
-      {
-	int_s8 * p = (int_s8 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s8(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_U16:
-      {
-	int_u16 * p = (int_u16 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u16(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S16:
-      {
-	int_s16 * p = (int_s16 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s16(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_U32:
-      {
-	int_u32 * p = (int_u32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S32:
-      {
-	int_s32 * p = (int_s32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-#if HAVE_LONG_LONGS
-    case SCM_UVEC_U64:
-      {
-	int_u64 * p = (int_u64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S64:
-      {
-	int_s64 * p = (int_s64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
+  union {
+    int_u8 *u8;
+    int_s8 *s8;
+    int_u16 *u16;
+    int_s16 *s16;
+    int_u32 *u32;
+    int_s32 *s32;
+#if HAVE_UVEC_64
+    int_u64 *u64;
+    int_s64 *s64;
 #endif
+    float_f32 *f32;
+    float_f64 *f64;
+  } np;
 
-    case SCM_UVEC_F32:
-      {
-	float_f32 * p = (float_f32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
+  size_t i = 0; /* since SCM_UVEC_LENGTH will return something this size. */
+  const size_t uvlen = SCM_UVEC_LENGTH (uvec);
+  char *tagstr;
+  void *uptr = SCM_UVEC_BASE (uvec);
 
-	scm_puts ("#f32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_iprin1 (scm_make_real (*p), port, pstate);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_iprin1 (scm_make_real (*p), port, pstate);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_F64:
-      {
-	float_f64 * p = (float_f64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#f64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_iprin1 (scm_make_real (*p), port, pstate);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_iprin1 (scm_make_real (*p), port, pstate);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
+  switch (SCM_UVEC_TYPE (uvec))
+  {
+    case SCM_UVEC_U8: tagstr = "u8"; np.u8 = (int_u8 *) uptr; break;
+    case SCM_UVEC_S8: tagstr = "s8"; np.s8 = (int_s8 *) uptr; break;
+    case SCM_UVEC_U16: tagstr = "u16"; np.u16 = (int_u16 *) uptr; break;
+    case SCM_UVEC_S16: tagstr = "s16"; np.s16 = (int_s16 *) uptr; break;
+    case SCM_UVEC_U32: tagstr = "u32"; np.u32 = (int_u32 *) uptr; break;
+    case SCM_UVEC_S32: tagstr = "s32"; np.s32 = (int_s32 *) uptr; break;
+#if HAVE_UVEC_64
+    case SCM_UVEC_U64: tagstr = "u64"; np.u64 = (int_u64 *) uptr; break;
+    case SCM_UVEC_S64: tagstr = "s64"; np.s64 = (int_s64 *) uptr; break;
+#endif
+    case SCM_UVEC_F32: tagstr = "f32"; np.f32 = (float_f32 *) uptr; break;
+    case SCM_UVEC_F64: tagstr = "f64"; np.f64 = (float_f64 *) uptr; break;
     default:
       abort ();			/* Sanity check.  */
+      break;
+  }
+
+  scm_putc ('#', port);
+  scm_puts (tagstr, port);
+  scm_putc ('(', port);
+
+  while (i < uvlen)
+  {
+    if (i != 0) scm_puts (" ", port);
+    switch (SCM_UVEC_TYPE (uvec))
+    {
+      case SCM_UVEC_U8: scm_intprint (*np.u8, 10, port); np.u8++; break;
+      case SCM_UVEC_S8: scm_intprint (*np.s8, 10, port); np.s8++; break;
+      case SCM_UVEC_U16: scm_intprint (*np.u16, 10, port); np.u16++; break;
+      case SCM_UVEC_S16: scm_intprint (*np.s16, 10, port); np.s16++; break;
+      case SCM_UVEC_U32: print_uint32 (*np.u32, port); np.u32++; break;
+      case SCM_UVEC_S32: scm_intprint (*np.s32, 10, port); np.s32++; break;
+#if HAVE_UVEC_64
+      case SCM_UVEC_U64: print_uint64(*np.u64, port); np.u64++; break;
+      case SCM_UVEC_S64: print_int64(*np.s64, port); np.s64++; break;
+#endif
+      case SCM_UVEC_F32: scm_iprin1 (scm_make_real (*np.f32), port, pstate);
+        np.f32++;
+        break;
+      case SCM_UVEC_F64: scm_iprin1 (scm_make_real (*np.f64), port, pstate);
+        np.f64++;
+        break;
+      default:
+        abort ();			/* Sanity check.  */
+        break;
     }
+    i++;
+  }
+  scm_remember_upto_here_1 (uvec);
+  scm_puts (")", port);
   return 1;
 }
 
+static SCM
+uvec_equalp (SCM a, SCM b)
+{
+  SCM result = SCM_BOOL_T;
+  if(SCM_UVEC_TYPE (a) != SCM_UVEC_TYPE (b))
+    result = SCM_BOOL_F;
+  else if(SCM_UVEC_LENGTH (a) != SCM_UVEC_LENGTH (b))
+    result = SCM_BOOL_F;
+  else if(memcmp(SCM_UVEC_BASE (a), SCM_UVEC_BASE (b), SCM_UVEC_LENGTH (a))
+          != 0)
+    result = SCM_BOOL_F;
 
-/* Smob free hook for homogeneous numeric vectors. */
+  scm_remember_upto_here_2 (a, b);
+  return result;
+}
+
 static size_t
 uvec_free (SCM uvec)
 {
@@ -358,13 +334,31 @@ uvec_free (SCM uvec)
 
 /* Create a new, uninitialized homogeneous numeric vector of type TYPE
    with space for LEN elements.  */
-static SCM
-make_uvec (const char * func_name, int type, int len)
+inline static SCM
+make_uvec (const int pos, const char * func_name, int type, size_t len)
 {
-  void * p;
+  if (len > ((size_t) SIZE_MAX >> uvec_shifts[type]))
+  {
+    if(pos < 0)
+      scm_out_of_range (func_name, scm_size2num (len)); 
+    else
+      scm_out_of_range_pos (func_name, scm_size2num (len), SCM_MAKINUM (pos)); 
+  }
+  else
+  {
+    void *p = scm_must_malloc (len * uvec_sizes[type], func_name);
+    SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, p);
+  }
+}
 
-  p = scm_must_malloc (len * uvec_sizes[type], func_name);
-  SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, p);
+inline static SCM
+uvec_length (SCM uvec, const int required_type, const char *FUNC_NAME)
+{
+  SCM result;
+  VALIDATE_UVEC (1, uvec, required_type);
+  result = scm_size2num (SCM_UVEC_LENGTH (uvec));
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 
 
@@ -379,8 +373,10 @@ SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u8vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U8);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
+                         && (SCM_UVEC_TYPE (obj) == SCM_UVEC_U8));
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -394,25 +390,19 @@ SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
 #define FUNC_NAME s_scm_make_u8vector
 {
   SCM uvec;
-  int_u8 * p;
   int_u8 f;
-  int count;
-
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U8, count);
+  const size_t count = scm_num2size (n, 1, s_scm_make_u8vector);
+  uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_U8, count);
   if (SCM_UNBNDP (fill))
     f = 0;
   else
-    {
-      unsigned int s = scm_num2uint (fill, 2, FUNC_NAME);
-      f = s;
-      if ((unsigned int) f != s)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
-    }
-  p = (int_u8 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    unsigned int s = scm_num2uint (fill, 2, FUNC_NAME);
+    f = s;
+    if ((unsigned int) f != s)
+      scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
+  }
+  memset(SCM_UVEC_BASE (uvec), f, count);
   return uvec;
 }
 #undef FUNC_NAME
@@ -436,10 +426,7 @@ SCM_DEFINE (scm_u8vector_length, "u8vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_u8vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_U8, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -450,17 +437,14 @@ SCM_DEFINE (scm_u8vector_ref, "u8vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_u8vector_ref
 {
-  int idx;
+  SCM result;
+  size_t idx;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_short2num (((int_u8 *) SCM_UVEC_BASE (uvec))[idx]);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U8);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_short2num (((int_u8 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -470,26 +454,21 @@ SCM_DEFINE (scm_u8vector_set_x, "u8vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_u8vector_ref
+#define FUNC_NAME s_scm_u8vector_set_x
 {
-  int idx;
+  size_t idx;
   int_u8 f;
   unsigned int s;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U8);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
   s = scm_num2uint (value, 3, FUNC_NAME);
   f = s;
   if ((unsigned int) f != s)
     scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
 
   ((int_u8 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -500,21 +479,20 @@ SCM_DEFINE (scm_u8vector_to_list, "u8vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u8vector_to_list
 {
-  int idx;
+  size_t idx;
   int_u8 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U8);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_u8 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (SCM_MAKINUM (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -529,26 +507,23 @@ SCM_DEFINE (scm_list_to_u8vector, "list->u8vector", 1, 0, 0,
   SCM uvec;
   SCM tmp;
   int_u8 * p;
-  int n;
-  int arg_pos = 1;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U8, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_U8, n);
   p = (int_u8 *) SCM_UVEC_BASE (uvec);
   tmp = l;
   while (SCM_CONSP (tmp))
-    {
-      int_u8 f;
-      unsigned int s = scm_num2uint (SCM_CAR (tmp), 2, FUNC_NAME);
-      f = s;
-      if ((unsigned int) f != s)
-	scm_out_of_range (FUNC_NAME, SCM_CAR (tmp));
-      *p++ = f;
-      tmp = SCM_CDR (tmp);
-      arg_pos++;
-    }
-  scm_remember_upto_here_1 (l);
+  {
+    int_u8 f;
+    unsigned int s = scm_num2uint (SCM_CAR (tmp), 2, FUNC_NAME);
+    f = s;
+    if ((unsigned int) f != s)
+      scm_out_of_range (FUNC_NAME, SCM_CAR (tmp));
+    *p++ = f;
+    tmp = SCM_CDR (tmp);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -565,8 +540,10 @@ SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s8vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S8);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
+                         && (SCM_UVEC_TYPE (obj) == SCM_UVEC_S8));
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -580,25 +557,19 @@ SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
 #define FUNC_NAME s_scm_make_s8vector
 {
   SCM uvec;
-  int_s8 * p;
   int_s8 f;
-  int count;
-
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S8, count);
+  size_t count = scm_num2size (n, 1, s_scm_make_s8vector);
+  uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_S8, count);
   if (SCM_UNBNDP (fill))
     f = 0;
   else
-    {
-      signed int s = scm_num2int (fill, 2, FUNC_NAME);
-      f = s;
-      if ((signed int) f != s)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
-    }
-  p = (int_s8 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    int s = scm_num2int (fill, 2, FUNC_NAME);
+    f = s;
+    if ((signed int) f != s)
+      scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
+  }
+  memset(SCM_UVEC_BASE (uvec), f, count);
   return uvec;
 }
 #undef FUNC_NAME
@@ -622,10 +593,7 @@ SCM_DEFINE (scm_s8vector_length, "s8vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_s8vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_S8, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -636,17 +604,14 @@ SCM_DEFINE (scm_s8vector_ref, "s8vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_s8vector_ref
 {
-  int idx;
+  SCM result;
+  size_t idx;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_short2num (((int_s8 *) SCM_UVEC_BASE (uvec))[idx]);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S8);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_short2num (((int_s8 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -656,26 +621,21 @@ SCM_DEFINE (scm_s8vector_set_x, "s8vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_s8vector_ref
+#define FUNC_NAME s_scm_s8vector_set_x
 {
-  int idx;
+  size_t idx;
   int_s8 f;
   signed int s;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S8);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
   s = scm_num2int (value, 3, FUNC_NAME);
   f = s;
   if ((signed int) f != s)
     scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
 
   ((int_s8 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -686,21 +646,19 @@ SCM_DEFINE (scm_s8vector_to_list, "s8vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s8vector_to_list
 {
-  int idx;
+  size_t idx;
   int_s8 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S8)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S8);
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_s8 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (SCM_MAKINUM (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -715,28 +673,25 @@ SCM_DEFINE (scm_list_to_s8vector, "list->s8vector", 1, 0, 0,
   SCM uvec;
   SCM tmp;
   int_s8 * p;
-  int n;
-  int arg_pos = 1;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S8, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_S8, n);
   p = (int_s8 *) SCM_UVEC_BASE (uvec);
   tmp = l;
   while (SCM_CONSP (tmp))
-    {
-      int_s8 f;
-      signed int s;
-
-      s = scm_num2int (SCM_CAR (tmp), 2, FUNC_NAME);
-      f = s;
-      if ((signed int) f != s)
-	scm_out_of_range (FUNC_NAME, SCM_CAR (tmp));
-      *p++ = f;
-      tmp = SCM_CDR (tmp);
-      arg_pos++;
-    }
-  scm_remember_upto_here_1 (l);
+  {
+    int_s8 f;
+    signed int s;
+    
+    s = scm_num2int (SCM_CAR (tmp), 2, FUNC_NAME);
+    f = s;
+    if ((signed int) f != s)
+      scm_out_of_range (FUNC_NAME, SCM_CAR (tmp));
+    *p++ = f;
+    tmp = SCM_CDR (tmp);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -753,8 +708,10 @@ SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u16vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U16);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
+                         && SCM_UVEC_TYPE (obj) == SCM_UVEC_U16);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -767,21 +724,25 @@ SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_u16vector
 {
-  SCM uvec;
-  int_u16 * p;
-  int_u16 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_u16vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_U16, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U16, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_u16));
   else
-    f = scm_num2ushort (fill, 2, FUNC_NAME);
-  p = (int_u16 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    /* if we had SIZEOF_SHORT we could be more efficient here */
+    int_u16 * p;
+    const unsigned int f = scm_num2uint (fill, 2, FUNC_NAME);
+
+#if SIZEOF_INT > 2
+    SCM_ASSERT_RANGE (2, fill, (f <= (int_u16) 65535));
+#endif
+
+    p = (int_u16 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -805,10 +766,7 @@ SCM_DEFINE (scm_u16vector_length, "u16vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_u16vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_U16, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -819,17 +777,14 @@ SCM_DEFINE (scm_u16vector_ref, "u16vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_u16vector_ref
 {
-  int idx;
+  SCM result;
+  size_t idx;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_ushort2num (((int_u16 *) SCM_UVEC_BASE (uvec))[idx]);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U16);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_ushort2num (((int_u16 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (result);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -839,22 +794,22 @@ SCM_DEFINE (scm_u16vector_set_x, "u16vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_u16vector_ref
+#define FUNC_NAME s_scm_u16vector_set_x
 {
-  int idx;
-  int_u16 f;
+  size_t idx;
+  unsigned int f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U16);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  /* if we had SIZEOF_SHORT we could be more efficient here */
+  f = scm_num2uint (value, 3, FUNC_NAME);
+#if SIZEOF_INT > 2
+  SCM_ASSERT_RANGE (2, value, (f <= (int_u16) 65535));
+#endif
 
-  f = scm_num2ushort (value, 3, FUNC_NAME);
-
-  ((int_u16 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_u16 *) SCM_UVEC_BASE (uvec))[idx] = (int_u16) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -865,21 +820,20 @@ SCM_DEFINE (scm_u16vector_to_list, "u16vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u16vector_to_list
 {
-  int idx;
+  size_t idx;
   int_u16 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U16);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_u16 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (SCM_MAKINUM (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -893,24 +847,21 @@ SCM_DEFINE (scm_list_to_u16vector, "list->u16vector", 1, 0, 0,
 {
   SCM uvec;
   int_u16 * p;
-  int n;
-  int arg_pos = 1;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U16, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_U16, n);
   p = (int_u16 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      int_u16 f = scm_num2ushort (SCM_CAR (l), 2, FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    int_u16 f = scm_num2ushort (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
-
 
 /* ================================================================ */
 /* S16 procedures.                                                   */
@@ -923,8 +874,10 @@ SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s16vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S16);
+  const SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
+                               && SCM_UVEC_TYPE (obj) == SCM_UVEC_S16);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -938,20 +891,26 @@ SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0,
 #define FUNC_NAME s_scm_make_s16vector
 {
   SCM uvec;
-  int_s16 * p;
-  int_s16 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_s16vector);
+  uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_S16, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S16, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_s16));
   else
-    f = scm_num2short (fill, 2, FUNC_NAME);
-  p = (int_s16 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    /* if we had SIZEOF_SHORT we could be more efficient here */
+    int_s16 * p;
+    int f = scm_num2int (fill, 2, FUNC_NAME);
+
+#if SIZEOF_INT > 2
+    SCM_ASSERT_RANGE (2, fill,
+                      (f >= (int_s16) -32768) && (f <= (int_s16) 32767));
+#endif
+    
+    p = (int_s16 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -975,10 +934,7 @@ SCM_DEFINE (scm_s16vector_length, "s16vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_s16vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_S16, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -989,17 +945,14 @@ SCM_DEFINE (scm_s16vector_ref, "s16vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_s16vector_ref
 {
-  int idx;
+  SCM result;
+  size_t idx;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_short2num (((int_s16 *) SCM_UVEC_BASE (uvec))[idx]);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S16);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_short2num (((int_s16 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1009,22 +962,23 @@ SCM_DEFINE (scm_s16vector_set_x, "s16vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_s16vector_ref
+#define FUNC_NAME s_scm_s16vector_set_x
 {
-  int idx;
-  int_s16 f;
+  size_t idx;
+  int f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S16);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  /* if we had SIZEOF_SHORT we could be more efficient here */
+  f = scm_num2int (value, 3, FUNC_NAME);
+#if SIZEOF_INT > 2
+  SCM_ASSERT_RANGE (2, value,
+                    (f >= (int_s16) -32768) && (f <= (int_s16) 32767));
+#endif
 
-  f = scm_num2short (value, 3, FUNC_NAME);
-
-  ((int_s16 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_s16 *) SCM_UVEC_BASE (uvec))[idx] = (int_s16) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1035,21 +989,20 @@ SCM_DEFINE (scm_s16vector_to_list, "s16vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s16vector_to_list
 {
-  int idx;
+  size_t idx;
   int_s16 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S16)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S16);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_s16 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (SCM_MAKINUM (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (SCM_MAKINUM (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1064,22 +1017,19 @@ SCM_DEFINE (scm_list_to_s16vector, "list->s16vector", 1, 0, 0,
   SCM uvec;
   SCM tmp;
   int_s16 * p;
-  int n;
-  int arg_pos = 1;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S16, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_S16, n);
   p = (int_s16 *) SCM_UVEC_BASE (uvec);
   tmp = l;
   while (SCM_CONSP (tmp))
-    {
-      int_s16 f = scm_num2short (SCM_CAR (tmp), 2, FUNC_NAME);
-      *p++ = f;
-      tmp = SCM_CDR (tmp);
-      arg_pos++;
-    }
-  scm_remember_upto_here_1 (l);
+  {
+    int_s16 f = scm_num2short (SCM_CAR (tmp), 2, FUNC_NAME);
+    *p++ = f;
+    tmp = SCM_CDR (tmp);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -1096,8 +1046,10 @@ SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U32);
+  const SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
+                               && SCM_UVEC_TYPE (obj) == SCM_UVEC_U32);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1110,21 +1062,25 @@ SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_u32vector
 {
-  SCM uvec;
-  int_u32 * p;
-  int_u32 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_u32vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_U32, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U32, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_u32));
   else
-    f = scm_num2uint (fill, 2, FUNC_NAME);
-  p = (int_u32 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    int_u32 * p;
+    const unsigned long f = scm_num2ulong (fill, 2, FUNC_NAME);
+
+#if SIZEOF_LONG > 4
+    SCM_ASSERT_RANGE (2, fill, (f <= (int_u32) 0xFFFFFFFFUL));
+#endif
+    
+    p = (int_u32 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
+
   return uvec;
 }
 #undef FUNC_NAME
@@ -1148,10 +1104,7 @@ SCM_DEFINE (scm_u32vector_length, "u32vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_u32vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_U32, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1162,17 +1115,13 @@ SCM_DEFINE (scm_u32vector_ref, "u32vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_u32vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_uint2num (((int_u32 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_ulong2num (((int_u32 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1182,22 +1131,21 @@ SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_u32vector_ref
+#define FUNC_NAME s_scm_u32vector_set_x
 {
-  int idx;
-  int_u32 f;
+  size_t idx;
+  unsigned long f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  f = scm_num2ulong (value, 3, FUNC_NAME);
+#if SIZEOF_LONG > 4
+  SCM_ASSERT_RANGE (2, fill, (f <= (int_u32) 0xFFFFFFFFUL));
+#endif
 
-  f = scm_num2uint (value, 3, FUNC_NAME);
-
-  ((int_u32 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_u32 *) SCM_UVEC_BASE (uvec))[idx] = (int_u32) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1208,21 +1156,20 @@ SCM_DEFINE (scm_u32vector_to_list, "u32vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u32vector_to_list
 {
-  int idx;
+  size_t idx;
   int_u32 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U32);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_u32 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_uint2num (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_ulong2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1235,22 +1182,19 @@ SCM_DEFINE (scm_list_to_u32vector, "list->u32vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_u32vector
 {
   SCM uvec;
-  int_u32 * p;
-  int n;
-  int arg_pos = 1;
+  int_u32 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U32, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_U32, n);
   p = (int_u32 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      int_u32 f;
-      f = scm_num2uint (SCM_CAR (l), 2, FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    int_u32 f = scm_num2ulong (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -1267,8 +1211,10 @@ SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S32);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+                         SCM_UVEC_TYPE (obj) == SCM_UVEC_S32);
+  scm_remember_upto_here_1 (result);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1281,21 +1227,27 @@ SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_s32vector
 {
-  SCM uvec;
-  int_s32 * p;
-  int_s32 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_s32vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_S32, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S32, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_s32));
   else
-    f = scm_num2int (fill, 2, FUNC_NAME);
-  p = (int_s32 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    int_s32 * p;
+    const long f = scm_num2long (fill, 2, FUNC_NAME);
+
+#if SIZEOF_LONG > 4
+    SCM_ASSERT_RANGE (2, fill,
+                      (f >= (int_s32) -2147483648)
+                      && (f <= (int_s32) 2147483647));
+#endif
+    
+    p = (int_s32 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
+  
   return uvec;
 }
 #undef FUNC_NAME
@@ -1319,10 +1271,7 @@ SCM_DEFINE (scm_s32vector_length, "s32vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_s32vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_S32, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1333,17 +1282,13 @@ SCM_DEFINE (scm_s32vector_ref, "s32vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_s32vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_int2num (((int_s32 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_long2num (((int_s32 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1353,22 +1298,23 @@ SCM_DEFINE (scm_s32vector_set_x, "s32vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_s32vector_ref
+#define FUNC_NAME s_scm_s32vector_set_x
 {
-  int idx;
-  int_s32 f;
+  size_t idx;
+  long f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  f = scm_num2long (value, 3, FUNC_NAME);
+#if SIZEOF_LONG > 4
+  SCM_ASSERT_RANGE (2, value,
+                    (f >= (int_s32) -2147483648)
+                    && (f <= (int_s32) 2147483647));
+#endif
 
-  f = scm_num2int (value, 3, FUNC_NAME);
-
-  ((int_s32 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_s32 *) SCM_UVEC_BASE (uvec))[idx] = (int_s32) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1379,21 +1325,20 @@ SCM_DEFINE (scm_s32vector_to_list, "s32vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s32vector_to_list
 {
-  int idx;
+  size_t idx;
   int_s32 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S32);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_s32 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_int2num (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_long2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1406,28 +1351,25 @@ SCM_DEFINE (scm_list_to_s32vector, "list->s32vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_s32vector
 {
   SCM uvec;
-  int_s32 * p;
-  int n;
-  int arg_pos = 1;
+  int_s32 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S32, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_S32, n);
   p = (int_s32 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      int_s32 f;
-      f = scm_num2int (SCM_CAR (l), 2, FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    int_s32 f = scm_num2long (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
 
 
-#if HAVE_LONG_LONGS
+#if HAVE_UVEC_64
 
 /* ================================================================ */
 /* U64 procedures.                                                   */
@@ -1440,8 +1382,10 @@ SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U64);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+                         SCM_UVEC_TYPE (obj) == SCM_UVEC_U64);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1454,21 +1398,25 @@ SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_u64vector
 {
-  SCM uvec;
-  int_u64 * p;
-  int_u64 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_u64vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_U64, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U64, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_u64));
   else
-    f = scm_num2ulong_long (fill, 2, FUNC_NAME);
-  p = (int_u64 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    int_u64 * p;
+    const unsigned long long f = scm_num2ulong_long (fill, 2, FUNC_NAME);
+
+#if SIZEOF_LONG_LONG > 8
+    SCM_ASSERT_RANGE (2, fill, (f <= (int_u64) 0xFFFFFFFFFFFFFFFFUL));
+#endif
+    
+    p = (int_u64 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
+
   return uvec;
 }
 #undef FUNC_NAME
@@ -1492,10 +1440,7 @@ SCM_DEFINE (scm_u64vector_length, "u64vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_u64vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_U64, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1506,17 +1451,13 @@ SCM_DEFINE (scm_u64vector_ref, "u64vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_u64vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_ulong_long2num (((int_u64 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_ulong_long2num (((int_u64 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1526,22 +1467,21 @@ SCM_DEFINE (scm_u64vector_set_x, "u64vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_u64vector_ref
+#define FUNC_NAME s_scm_u64vector_set_x
 {
-  int idx;
-  int_u64 f;
+  size_t idx;
+  unsigned long long f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
   f = scm_num2ulong_long (value, 3, FUNC_NAME);
+#if SIZEOF_LONG_LONG > 8
+  SCM_ASSERT_RANGE (2, fill, (f <= (int_u64) 0xFFFFFFFFFFFFFFFFUL));
+#endif
 
-  ((int_u64 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_u64 *) SCM_UVEC_BASE (uvec))[idx] = (int_u64) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1552,21 +1492,20 @@ SCM_DEFINE (scm_u64vector_to_list, "u64vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u64vector_to_list
 {
-  int idx;
+  size_t idx;
   int_u64 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_U64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_U64);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_u64 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_long_long2num (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_ulong_long2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1579,22 +1518,19 @@ SCM_DEFINE (scm_list_to_u64vector, "list->u64vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_u64vector
 {
   SCM uvec;
-  int_u64 * p;
-  int n;
-  int arg_pos = 1;
+  int_u64 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_U64, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_U64, n);
   p = (int_u64 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      int_u64 f;
-      f = scm_num2ulong_long (SCM_CAR (l), 2, FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    int_u64 f = scm_num2ulong_long (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -1604,15 +1540,16 @@ SCM_DEFINE (scm_list_to_u64vector, "list->u64vector", 1, 0, 0,
 /* S64 procedures.                                                   */
 /* ================================================================ */
 
-
 SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type s64,\n"
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S64);
+  const SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+                               SCM_UVEC_TYPE (obj) == SCM_UVEC_S64);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1625,21 +1562,27 @@ SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_s64vector
 {
-  SCM uvec;
-  int_s64 * p;
-  int_s64 f;
-  int count;
+  size_t count = scm_num2size (n, 1, s_scm_make_s64vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_S64, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S64, count);
   if (SCM_UNBNDP (fill))
-    f = 0;
+    memset (SCM_UVEC_BASE (uvec), 0, count * sizeof (int_s64));
   else
-    f = scm_num2long_long (fill, 2, FUNC_NAME);
-  p = (int_s64 *) SCM_UVEC_BASE (uvec);
-  while (count-- > 0)
-    *p++ = f;
+  {
+    int_s64 * p;
+    const long long f = scm_num2long_long (fill, 2, FUNC_NAME);
+
+#if SIZEOF_LONG_LONG > 8
+    SCM_ASSERT_RANGE (2, fill,
+                      (f >= (int_s64) -9223372036854775808)
+                      && (f <= (int_s64) 9223372036854775807));
+#endif
+    
+    p = (int_s64 *) SCM_UVEC_BASE (uvec);
+    while (count-- > 0)
+      *p++ = f;
+  }
+  
   return uvec;
 }
 #undef FUNC_NAME
@@ -1663,10 +1606,7 @@ SCM_DEFINE (scm_s64vector_length, "s64vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_s64vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_S64, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1677,17 +1617,13 @@ SCM_DEFINE (scm_s64vector_ref, "s64vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_s64vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_long_long2num (((int_s64 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_long_long2num (((int_s64 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1697,22 +1633,23 @@ SCM_DEFINE (scm_s64vector_set_x, "s64vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_s64vector_ref
+#define FUNC_NAME s_scm_s64vector_set_x
 {
-  int idx;
-  int_s64 f;
+  size_t idx;
+  long long f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
   f = scm_num2long_long (value, 3, FUNC_NAME);
+#if SIZEOF_LONG_LONG > 8
+    SCM_ASSERT_RANGE (2, value,
+                      (f >= (int_s64) -9223372036854775808)
+                      && (f <= (int_s64) 9223372036854775807));
+#endif
 
-  ((int_s64 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  ((int_s64 *) SCM_UVEC_BASE (uvec))[idx] = (int_s64) f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1723,21 +1660,20 @@ SCM_DEFINE (scm_s64vector_to_list, "s64vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s64vector_to_list
 {
-  int idx;
+  size_t idx;
   int_s64 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_S64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_S64);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (int_s64 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_long_long2num (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_long_long2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1750,27 +1686,24 @@ SCM_DEFINE (scm_list_to_s64vector, "list->s64vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_s64vector
 {
   SCM uvec;
-  int_s64 * p;
-  int n;
-  int arg_pos = 1;
+  int_s64 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_S64, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_S64, n);
   p = (int_s64 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      int_s64 f;
-      f = scm_num2long_long (SCM_CAR (l), 2, FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    int_s64 f = scm_num2long_long (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
 
-#endif /* HAVE_LONG_LONGS */
+#endif /* HAVE_UVEC_64 */
 
 
 /* ================================================================ */
@@ -1784,8 +1717,10 @@ SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_f32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_F32);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+                         SCM_UVEC_TYPE (obj) == SCM_UVEC_F32);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1798,30 +1733,20 @@ SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_f32vector
 {
-  SCM uvec;
-  float_f32 * p;
   float_f32 f;
-  int count;
+  float_f32 *p;
+  size_t count = scm_num2size (n, 1, s_scm_make_f32vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_F32, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_F32, count);
   if (SCM_UNBNDP (fill))
     f = 0;
   else
-    {
-      double d = scm_num2dbl (fill, FUNC_NAME);
-      f = d;
-#if 0
-      /* This test somehow fails for even the simplest inexact
-	 numbers, like 3.1.  Must find out how to check properly.  */
-      if (f != d)
-	scm_out_of_range_pos (FUNC_NAME, fill, SCM_MAKINUM (2));
-#endif /* 0 */
-    }
+    f = scm_num2float (fill, 2, FUNC_NAME);
+
   p = (float_f32 *) SCM_UVEC_BASE (uvec);
   while (count-- > 0)
     *p++ = f;
+  
   return uvec;
 }
 #undef FUNC_NAME
@@ -1845,10 +1770,7 @@ SCM_DEFINE (scm_f32vector_length, "f32vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_f32vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_F32, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1859,17 +1781,13 @@ SCM_DEFINE (scm_f32vector_ref, "f32vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_f32vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_make_real (((float_f32 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_make_real (((float_f32 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1879,30 +1797,17 @@ SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_f32vector_ref
+#define FUNC_NAME s_scm_f32vector_set_x
 {
-  int idx;
-  float_f32 f;
-  double d;
+  size_t idx;
+  float f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F32);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  d = scm_num2dbl (value, FUNC_NAME);
-  f = d;
-#if 0
-      /* This test somehow fails for even the simplest inexact
-	 numbers, like 3.1.  Must find out how to check properly.  */
-  if (f != d)
-    scm_out_of_range_pos (FUNC_NAME, value, SCM_MAKINUM (3));
-#endif /* 0 */
-
+  f = scm_num2float (value, 3, FUNC_NAME);
   ((float_f32 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1913,21 +1818,20 @@ SCM_DEFINE (scm_f32vector_to_list, "f32vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_f32vector_to_list
 {
-  int idx;
+  size_t idx;
   float_f32 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F32)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F32);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (float_f32 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_make_real (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_float2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -1940,30 +1844,19 @@ SCM_DEFINE (scm_list_to_f32vector, "list->f32vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_f32vector
 {
   SCM uvec;
-  float_f32 * p;
-  int n;
-  int arg_pos = 1;
+  float_f32 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_F32, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_F32, n);
   p = (float_f32 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      float_f32 f;
-      double d;
-      d = scm_num2dbl (SCM_CAR (l), FUNC_NAME);
-      f = d;
-#if 0
-      /* This test somehow fails for even the simplest inexact
-	 numbers, like 3.1.  Must find out how to check properly.  */
-      if (d != f)
-	scm_out_of_range_pos (FUNC_NAME, l, SCM_MAKINUM (1));
-#endif /* 0 */
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    float_f32 f = scm_num2float (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -1980,8 +1873,10 @@ SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_f64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_F64);
+  SCM result = SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+                         SCM_UVEC_TYPE (obj) == SCM_UVEC_F64);
+  scm_remember_upto_here_1 (obj);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1994,21 +1889,20 @@ SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0,
 	    "is unspecified.")
 #define FUNC_NAME s_scm_make_f64vector
 {
-  SCM uvec;
-  float_f64 * p;
   float_f64 f;
-  int count;
+  float_f64 *p;
+  size_t count = scm_num2size (n, 1, s_scm_make_f64vector);
+  SCM uvec = make_uvec (1, FUNC_NAME, SCM_UVEC_F64, count);
 
-  SCM_VALIDATE_INUM (1, n);
-  count = SCM_INUM (n);
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_F64, count);
   if (SCM_UNBNDP (fill))
     f = 0;
   else
-    f = scm_num2dbl (fill, FUNC_NAME);
+    f = scm_num2double (fill, 2, FUNC_NAME);
+
   p = (float_f64 *) SCM_UVEC_BASE (uvec);
   while (count-- > 0)
     *p++ = f;
+  
   return uvec;
 }
 #undef FUNC_NAME
@@ -2032,10 +1926,7 @@ SCM_DEFINE (scm_f64vector_length, "f64vector-length", 1, 0, 0,
 	    "@var{uvec}.")
 #define FUNC_NAME s_scm_f64vector_length
 {
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-  return scm_int2num (SCM_UVEC_LENGTH (uvec));
+  return uvec_length (uvec, SCM_UVEC_F64, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -2046,17 +1937,13 @@ SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0,
 	    "vector @var{uvec}.")
 #define FUNC_NAME s_scm_f64vector_ref
 {
-  int idx;
-
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
-
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  return scm_make_real (((float_f64 *) SCM_UVEC_BASE (uvec))[idx]);
+  SCM result;
+  size_t idx;
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
+  result = scm_make_real (((float_f64 *) SCM_UVEC_BASE (uvec))[idx]);
+  scm_remember_upto_here_1 (uvec);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -2066,22 +1953,17 @@ SCM_DEFINE (scm_f64vector_set_x, "f64vector-set!", 3, 0, 0,
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
 	    "specified.")
-#define FUNC_NAME s_scm_f64vector_ref
+#define FUNC_NAME s_scm_f64vector_set_x
 {
-  int idx;
-  float_f64 f;
+  size_t idx;
+  float f;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F64);
+  RANGE_CHECK_AND_COPY_UVEC_INDEX (2, uvec, index, idx);
 
-  idx = scm_num2int (index, 2, FUNC_NAME);
-  if (idx < 0 || idx >= SCM_UVEC_LENGTH (uvec))
-    scm_out_of_range_pos (FUNC_NAME, index, SCM_MAKINUM (2));
-
-  f = scm_num2dbl (value, FUNC_NAME);
-
+  f = scm_num2double (value, 3, FUNC_NAME);
   ((float_f64 *) SCM_UVEC_BASE (uvec))[idx] = f;
+  scm_remember_upto_here_1 (uvec);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2092,21 +1974,20 @@ SCM_DEFINE (scm_f64vector_to_list, "f64vector->list", 1, 0, 0,
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_f64vector_to_list
 {
-  int idx;
+  size_t idx;
   float_f64 * p;
   SCM res = SCM_EOL;
 
-  SCM_VALIDATE_SMOB (1, uvec, uvec);
-  if (SCM_UVEC_TYPE (uvec) != SCM_UVEC_F64)
-    scm_wrong_type_arg (FUNC_NAME, 1, uvec);
+  VALIDATE_UVEC (1, uvec, SCM_UVEC_F64);
 
   idx = SCM_UVEC_LENGTH (uvec);
   p = (float_f64 *) SCM_UVEC_BASE (uvec) + idx;
   while (idx-- > 0)
-    {
-      p--;
-      res = scm_cons (scm_make_real (*p), res);
-    }
+  {
+    p--;
+    res = scm_cons (scm_double2num (*p), res);
+  }
+  scm_remember_upto_here_1 (uvec);
   return res;
 }
 #undef FUNC_NAME
@@ -2119,21 +2000,19 @@ SCM_DEFINE (scm_list_to_f64vector, "list->f64vector", 1, 0, 0,
 #define FUNC_NAME s_scm_list_to_f64vector
 {
   SCM uvec;
-  float_f64 * p;
-  int n;
-  int arg_pos = 1;
+  float_f64 *p;
+  long n; /* to match COPYLEN */
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, n);
 
-  uvec = make_uvec (FUNC_NAME, SCM_UVEC_F64, n);
+  uvec = make_uvec (-1, FUNC_NAME, SCM_UVEC_F64, n);
   p = (float_f64 *) SCM_UVEC_BASE (uvec);
   while (SCM_CONSP (l))
-    {
-      float_f64 f = scm_num2dbl (SCM_CAR (l), FUNC_NAME);
-      *p++ = f;
-      l = SCM_CDR (l);
-      arg_pos++;
-    }
+  {
+    float_f64 f = scm_num2double (SCM_CAR (l), 2, FUNC_NAME);
+    *p++ = f;
+    l = SCM_CDR (l);
+  }
   return uvec;
 }
 #undef FUNC_NAME
@@ -2144,10 +2023,16 @@ SCM_DEFINE (scm_list_to_f64vector, "list->f64vector", 1, 0, 0,
 void
 scm_init_srfi_4 (void)
 {
+  /* this will be a compilation-time test in future versions of guile */
+  if(sizeof(size_t) > sizeof(scm_t_bits))
+  {
+    fprintf(stderr, "fatal: size_t will not fit in a cell (srfi-4)\n");
+    abort();
+  }
+
   scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
+  scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
   scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
 #include "srfi/srfi-4.x"
 }
-
-/* End of srfi-4.c.  */
