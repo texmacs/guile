@@ -24,6 +24,13 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** (ice-9 popen) duplicate pipe fd fix
+
+open-pipe, open-input-pipe and open-output-pipe left an extra copy of
+their pipe file descriptor in the child, which was normally harmless,
+but it can prevent the parent seeing eof or a broken pipe immediately
+and has now been fixed.
+
 ** source-properties and set-source-properties! fix
 
 Properties set with set-source-properties! can now be read back
