@@ -1,6 +1,6 @@
 ;;; srfi-1.scm --- List Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -66,6 +66,7 @@
  ;; of `export' is deprecated and will disappear in one of the next
  ;; releases.
  (define iota #f)
+ (define list-copy #f)
  (define map #f)
  (define map-in-order #f)
  (define for-each #f)
@@ -83,7 +84,7 @@
  ;; cons*				<= in the core
  ;; make-list				<= in the core
  list-tabulate
- ;; list-copy				<= in the core
+ list-copy				; Extended.
  circular-list
  iota					; Extended.
 
@@ -271,6 +272,14 @@
     (if (<= n 0)
       acc
       (lp (- n 1) (cons (init-proc (- n 1)) acc)))))
+
+(define (list-copy lst)
+  (let ((ret (cons #f lst)))
+    (do ((lst lst (cdr lst))
+	 (end ret (cdr end)))
+	((not (pair? lst))
+	 (cdr ret))
+      (set-cdr! end (cons (car lst) (cdr lst))))))
 
 (define (circular-list elt1 . rest)
   (let ((start (cons elt1 '())))
