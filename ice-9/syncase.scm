@@ -43,6 +43,7 @@
 
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug)
+  :use-module (ice-9 threads)
   :export-syntax (sc-macro define-syntax eval-when fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
@@ -166,27 +167,39 @@
 ;; readable symbols, and they only need be unique with respect to
 ;; multiple calls to gensym, not globally unique.
 ;;
+
 (define gensym
-  (let ((counter 0)
-        (symlock (make-mutex)))
+  (let ((counter 0))
+
+    (define next-id
+      (if (provided? 'threads)
+          (let ((symlock (make-mutex)))
+            (lambda ()
+              (let ((result #f))
+                (with-mutex symlock
+                  (set! result counter)
+                  (set! counter (+ counter 1)))
+                result)))
+          ;; faster, non-threaded case.
+          (lambda ()
+            (let ((result counter))
+              (set! counter (+ counter 1))
+              result))))
+    
+    ;; actual gensym body code.
     (lambda (. rest)
-      (let ((counter-val #f))
-        (lock-mutex symlock)
-        (set! counter-val counter)
-        (set! counter (+ counter 1))
-        (unlock-mutex symlock)
-        (let* ((valstr (number->string counter-val)))
+      (let* ((next-val (next-id))
+             (valstr (number->string next-val)))
           (cond
            ((null? rest)
             (string->symbol (string-append "syntmp-" valstr)))
            ((null? (cdr rest))
             (string->symbol (string-append "syntmp-" (car rest) "-" valstr)))
            (else
-            (if (eq? result 'bad-args)
-                (error
-                 (string-append
-                  "syncase's gensym expected 0 or 1 arguments, got "
-                  (length rest)))))))))))
+            (error
+             (string-append
+              "syncase's gensym expected 0 or 1 arguments, got "
+              (length rest)))))))))
 
 ;;; Load the preprocessed code
 
