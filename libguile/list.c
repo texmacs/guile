@@ -260,6 +260,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
     SCM res = SCM_EOL;
     SCM *lloc = &res;
     SCM arg = SCM_CAR (args);
+    int argnum = 1;
     args = SCM_CDR (args);
     while (!SCM_NULLP (args)) {
       while (SCM_CONSP (arg)) {
@@ -267,9 +268,10 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 	lloc = SCM_CDRLOC (*lloc);
 	arg = SCM_CDR (arg);
       }
-      SCM_VALIDATE_NULL (SCM_ARGn, arg);
+      SCM_VALIDATE_NULL (argnum, arg);
       arg = SCM_CAR (args);
       args = SCM_CDR (args);
+      argnum++;
     };
     *lloc = arg;
     return res;
