@@ -1,3 +1,9 @@
+2004-02-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* sort.c (scm_cmp_function): Always return applyless, do not try
+	to be clever.
+	(subr2less, subr2oless, lsubrless, closureless): Removed.
+
 2004-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* unif.c (scm_array_p): Add missing "break"s in switch, fix llvect
