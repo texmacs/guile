@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -34,11 +34,11 @@
 ;;; Dynamically link the glue code for accessing the readline library,
 ;;; but only when it isn't already present.
 
-(if (not (feature? 'readline))
+(if (not (provided? 'readline))
     (dynamic-call "scm_init_readline"
                   (dynamic-link "libguilereadline-v-12")))
 
-(if (not (feature? 'readline))
+(if (not (provided? 'readline))
     (scm-error 'misc-error
 	       #f
 	       "readline is not provided in this Guile installation"
@@ -169,7 +169,7 @@
 (define-public (set-readline-read-hook! h)
   (set! read-hook h))
 
-(if (feature? 'regex)
+(if (provided? 'regex)
     (begin
       (define-public apropos-completion-function
 	(let ((completions '()))

@@ -1,3 +1,7 @@
+2002-09-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.scm: Replaced 'feature?' with 'provided?' thru-out.
+
 2002-07-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* readline.scm: dynamic-link libguilereadline-v-MAJOR now.
