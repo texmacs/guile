@@ -1,6 +1,7 @@
 /* dynl.c - dynamic linking
  *
- * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+ * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2003
+ * Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -394,7 +395,7 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
   /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG1, dobj, dynamic_obj);
   if (DYNL_HANDLE (dobj) == NULL) {
-    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+    SCM_MISC_ERROR ("Already unlinked: ~S", scm_list_1 (dobj));
   } else {
     SCM_DEFER_INTS;
     sysdep_dynl_unlink (DYNL_HANDLE (dobj), FUNC_NAME);
