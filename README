@@ -125,17 +125,17 @@ It works like this:
   variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
   "summary" and "shutup" is changed to "no", however.
 
-  When GUILE_WARN_DEPRECATION has the value "no", nothing special will
+  When GUILE_WARN_DEPRECATED has the value "no", nothing special will
   happen when a deprecated feature is used.
 
-  When GUILE_WARN_DEPRECATION has the value "summary", and a deprecated
+  When GUILE_WARN_DEPRECATED has the value "summary", and a deprecated
   feature has been used, Guile will print this message at exit:
 
     Some deprecated features have been used.  Set the environment
     variable GUILE_WARN_DEPRECATED to "detailed" and rerun the program
     to get more information.  Set it to "no" to suppress this message.
 
-  When GUILE_WARN_DEPRECATION has the value "detailed", a detailed
+  When GUILE_WARN_DEPRECATED has the value "detailed", a detailed
   warning is emitted immediatly for the first use of a deprecated
   feature.
 
@@ -190,7 +190,7 @@ Support files, in ${prefix}/share/guile/<version>:
  	       read-eval-print loop, some R5RS code and other
 	       infrastructure.
  oop/*     --- the Guile Object-Oriented Programming System (GOOPS)
- scripts/* --- executable modules, i.e., scheme programs that can be 
+ scripts/* --- executable modules, i.e., scheme programs that can be
 	       both called as an executable from the shell, and loaded
                and used as a module from scheme code.  See
                scripts/README for more info.
@@ -204,7 +204,7 @@ Documentation in Info format, in ${prefix}/info:
 
  guile.info     --- The Guile Reference Manual
  guile-tut.info --- The Guile Tutorial
- goops.info     --- Reference Manual and Tutorial for GOOPS, Guile's 
+ goops.info     --- Reference Manual and Tutorial for GOOPS, Guile's
 		    Object-Oriented Programming System
  r5rs.info      --- The Revised^5 Report on Scheme, the official Scheme
 		    language definition.
