@@ -3,17 +3,17 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 /* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -62,11 +62,11 @@
 #define SCM_CLASS_CLASS_LAYOUT "pruosrpwpopopwururururururururpwpwpwpwpwpwpwpwpwpwpwpw"
 
 #define scm_si_layout		  0 /* the struct layout */
-#define scm_si_vcell		  1 
-#define scm_si_vtable		  2 
+#define scm_si_vcell		  1
+#define scm_si_vtable		  2
 #define scm_si_print		  3 /* the struct print closure */
 #define scm_si_proc		  4
-#define scm_si_setter		  5 
+#define scm_si_setter		  5
 
 #define scm_si_goops_fields	  6
 
@@ -80,10 +80,10 @@
 #define scm_si_direct_subclasses 18 /* (class ...) */
 #define scm_si_direct_methods	 19 /* (methods ...) */
 #define scm_si_cpl		 20 /* (class ...) */
-#define scm_si_slotdef_class	 21 
+#define scm_si_slotdef_class	 21
 #define scm_si_slots		 22 /* ((name . options) ...) */
-#define scm_si_name_access	 23 
-#define scm_si_keyword_access	 24 
+#define scm_si_name_access	 23
+#define scm_si_keyword_access	 24
 #define scm_si_nfields		 25 /* an integer */
 #define scm_si_environment	 26 /* The environment in which class is built  */
 #define SCM_N_CLASS_SLOTS	 27
@@ -239,37 +239,37 @@ SCM scm_m_atdispatch (SCM xorig, SCM env);
 SCM scm_pure_generic_p (SCM obj);
 #endif
 
-SCM scm_sys_compute_slots (SCM c); 
-SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr); 
-SCM scm_get_keyword (SCM key, SCM l, SCM default_value); 
-SCM scm_sys_initialize_object (SCM obj, SCM initargs); 
-SCM scm_sys_prep_layout_x (SCM c); 
-SCM scm_sys_inherit_magic_x (SCM c, SCM dsupers); 
-SCM scm_instance_p (SCM obj); 
-SCM scm_class_name (SCM obj); 
-SCM scm_class_direct_supers (SCM obj); 
-SCM scm_class_direct_slots (SCM obj); 
-SCM scm_class_direct_subclasses (SCM obj); 
-SCM scm_class_direct_methods (SCM obj); 
-SCM scm_class_precedence_list (SCM obj); 
-SCM scm_class_slots (SCM obj); 
-SCM scm_class_environment (SCM obj); 
-SCM scm_generic_function_name (SCM obj); 
-SCM scm_generic_function_methods (SCM obj); 
-SCM scm_method_generic_function (SCM obj); 
-SCM scm_method_specializers (SCM obj); 
-SCM scm_method_procedure (SCM obj); 
+SCM scm_sys_compute_slots (SCM c);
+SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr);
+SCM scm_get_keyword (SCM key, SCM l, SCM default_value);
+SCM scm_sys_initialize_object (SCM obj, SCM initargs);
+SCM scm_sys_prep_layout_x (SCM c);
+SCM scm_sys_inherit_magic_x (SCM c, SCM dsupers);
+SCM scm_instance_p (SCM obj);
+SCM scm_class_name (SCM obj);
+SCM scm_class_direct_supers (SCM obj);
+SCM scm_class_direct_slots (SCM obj);
+SCM scm_class_direct_subclasses (SCM obj);
+SCM scm_class_direct_methods (SCM obj);
+SCM scm_class_precedence_list (SCM obj);
+SCM scm_class_slots (SCM obj);
+SCM scm_class_environment (SCM obj);
+SCM scm_generic_function_name (SCM obj);
+SCM scm_generic_function_methods (SCM obj);
+SCM scm_method_generic_function (SCM obj);
+SCM scm_method_specializers (SCM obj);
+SCM scm_method_procedure (SCM obj);
 SCM scm_accessor_method_slot_definition (SCM obj);
 SCM scm_sys_tag_body (SCM body);
-SCM scm_sys_fast_slot_ref (SCM obj, SCM index); 
-SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value); 
-SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_set_using_class_x (SCM cls, SCM obj, SCM slot_name, SCM value); 
-SCM scm_slot_bound_using_class_p (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_exists_using_class_p (SCM cls, SCM obj, SCM slot_name); 
-SCM scm_slot_bound_p (SCM obj, SCM slot_name); 
-SCM scm_slots_exists_p (SCM obj, SCM slot_name); 
-SCM scm_sys_modify_instance (SCM old, SCM newinst); 
+SCM scm_sys_fast_slot_ref (SCM obj, SCM index);
+SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value);
+SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name);
+SCM scm_slot_set_using_class_x (SCM cls, SCM obj, SCM slot_name, SCM value);
+SCM scm_slot_bound_using_class_p (SCM cls, SCM obj, SCM slot_name);
+SCM scm_slot_exists_using_class_p (SCM cls, SCM obj, SCM slot_name);
+SCM scm_slot_bound_p (SCM obj, SCM slot_name);
+SCM scm_slot_exists_p (SCM obj, SCM slot_name);
+SCM scm_sys_modify_instance (SCM old, SCM newinst);
 SCM scm_sys_modify_class (SCM old, SCM newcls);
 SCM scm_sys_invalidate_class (SCM cls);
 SCM scm_make_method_cache (SCM gf);
@@ -277,13 +277,13 @@ SCM scm_sys_invalidate_method_cache_x (SCM gf);
 SCM scm_generic_capability_p (SCM proc);
 SCM scm_enable_primitive_generic_x (SCM subrs);
 SCM scm_primitive_generic_generic (SCM subr);
-SCM stklos_version (void); 
-SCM scm_make (SCM args); 
-SCM scm_find_method (SCM args); 
-SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs); 
+SCM stklos_version (void);
+SCM scm_make (SCM args);
+SCM scm_find_method (SCM args);
+SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 
 SCM scm_init_goops_builtins (void);
-void scm_init_goops (void); 
+void scm_init_goops (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
