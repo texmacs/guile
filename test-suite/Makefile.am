@@ -23,6 +23,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/r4rs.test			\
 	    tests/reader.test			\
 	    tests/regexp.test			\
+	    tests/srcprop.test			\
 	    tests/srfi-10.test			\
 	    tests/srfi-13.test			\
 	    tests/srfi-14.test			\
