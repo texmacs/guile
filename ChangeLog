@@ -1,3 +1,24 @@
+2002-04-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: autoconf 2.53 compliance.  Add documentation for
+	many AC_DEFINEs.  Convert LIBOBJS uses to AC_LIBOBJ.  Fix
+	LIBLOBJS, EXTRA_DOT_DOC_FILES, and EXTRA_DOT_X_FILES LIBLOBJS
+	computation to match template in autoconf info pages.  Add
+	LIBGUILE_SRFI_SRFI_4_LTHACK and LIBGUILE_SRFI_SRFI_13_14_LTHACK
+	substs.
+
+	* acinclude.m4: add documentation for AC_DEFINEs.
+
+	* acconfig.h: removed -- newer autoconf doesn't like it, and now
+	we don't need it.
+
+	* GUILE-VERSION: hack around dynamic-link problems by using
+	painfully explicit lib names.
+	(LIBGUILE_SRFI_SRFI_4_LTHACK): new var (1.6 only).
+	(LIBGUILE_SRFI_SRFI_13_14_LTHACK): new var (1.6 only).
+
+	* .cvsignore: add autom4te.cache.
+
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (dist-hook): Removed.
