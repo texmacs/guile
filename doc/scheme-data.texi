@@ -3311,7 +3311,7 @@ parentheses, all elements of the vector in their respective read syntax,
 and finally a closing parentheses.  The following are examples of the
 read syntax for vectors; where the first vector only contains numbers
 and the second three different object types: a string, a symbol and a
-number in hexidecimal notation.
+number in hexadecimal notation.
 
 @lisp
 #(1 2 3)
