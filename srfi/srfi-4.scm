@@ -101,7 +101,7 @@
 
 ;; Load the compiled primitives from the shared library.
 ;;
-(load-extension "libguile-srfi-srfi-4-lt-1-0-0" "scm_init_srfi_4")
+(load-extension "libguile-srfi-srfi-4-v-1" "scm_init_srfi_4")
 
 
 ;; Reader extension for #f32() and #f64() vectors.
