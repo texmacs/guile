@@ -1,3 +1,11 @@
+2001-08-02  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* getopt-long.scm: Refill to fit in 80 columns.
+
+	(process-long-option): Fix bug: Keep track of `optional'
+	value-required info and use this to determine whether or not the
+	next element is to be taken as the option arg.
+
 2001-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (psyntax.pp): Enable rule for psyntax.pp only in
