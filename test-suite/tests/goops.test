@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -97,4 +97,205 @@
       (eq? (class-name <class>) '<class>))
 
     (pass-if "direct superclass"
-      (equal? (class-direct-supers <class>) (list <object>)))))
+      (equal? (class-direct-supers <class>) (list <object>))))
+
+  (with-test-prefix "class-precedence-list"
+    (for-each (lambda (class)
+		(run-test (if (slot-bound? class 'name)
+			      (class-name class)
+			      (with-output-to-string
+				(lambda ()
+				  (display class))))
+			  #t
+			  (lambda ()
+			    (catch #t
+				   (lambda ()
+				     (equal? (class-precedence-list class)
+					     (compute-cpl class)))
+				   (lambda args #t)))))
+	      (let ((table (make-hash-table 31)))
+		(let rec ((class <top>))
+		  (hash-create-handle! table class #f)
+		  (for-each rec (class-direct-subclasses class)))
+		(hash-fold (lambda (class ignore classes)
+			     (cons class classes))
+			   '()
+			   table))))
+  )
+
+(with-test-prefix "defining classes"
+
+  (with-test-prefix "define-class"
+
+    (pass-if "creating a new binding"
+      (eval '(define <foo> #f) (current-module))
+      (eval '(undefine <foo>) (current-module))
+      (eval '(define-class <foo> ()) (current-module))
+      (eval '(is-a? <foo> <class>) (current-module)))
+
+    (pass-if "overwriting a binding to a non-class"
+      (eval '(define <foo> #f) (current-module))
+      (eval '(define-class <foo> ()) (current-module))
+      (eval '(is-a? <foo> <class>) (current-module)))
+
+    (expect-fail "bad init-thunk"
+		 (catch #t
+			(lambda ()
+			  (eval '(define-class <foo> ()
+				   (x #:init-thunk (lambda (x) 1)))
+				(current-module))
+			  #t)
+			(lambda args
+			  #f)))
+    ))
+
+(with-test-prefix "defining generics"
+
+  (with-test-prefix "define-generic"
+
+    (pass-if "creating a new top-level binding"
+      (eval '(define foo #f) (current-module))
+      (eval '(undefine foo) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a non-generic"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (= 1 (length (generic-function-methods foo))))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a generic"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(define-generic foo) (current-module))
+      (eval '(and (is-a? foo <generic>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))))
+
+(with-test-prefix "defining accessors"
+
+  (with-test-prefix "define-accessor"
+
+    (pass-if "creating a new top-level binding"
+      (eval '(define foo #f) (current-module))
+      (eval '(undefine foo) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to a non-accessor"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (= 1 (length (generic-function-methods foo))))
+	    (current-module)))
+
+    (pass-if "overwriting a top-level binding to an accessor"
+      (eval '(define (foo) #f) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(define-accessor foo) (current-module))
+      (eval '(and (is-a? foo <generic-with-setter>)
+		  (null? (generic-function-methods foo)))
+	    (current-module)))))
+
+(with-test-prefix "object update"
+  (pass-if "defining class"
+    (eval '(define-class <foo> ()
+	     (x #:accessor x #:init-value 123)
+	     (z #:accessor z #:init-value 789))
+	  (current-module))
+    (eval '(is-a? <foo> <class>) (current-module)))
+  (pass-if "making instance"
+    (eval '(define foo (make <foo>)) (current-module))
+    (eval '(and (is-a? foo <foo>) (= (x foo) 123)) (current-module)))
+  (pass-if "redefining class"
+    (eval '(define-class <foo> ()
+	     (x #:accessor x #:init-value 123)
+	     (y #:accessor y #:init-value 456)
+	     (z #:accessor z #:init-value 789))
+	  (current-module))
+    (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
+
+(with-test-prefix "equal?"
+  (pass-if "equal"
+	   (eval '(begin
+		    (define-class <c> ()
+		      (x #:accessor x #:init-keyword #:x)
+		      (y #:accessor y #:init-keyword #:y))
+		    (define-method (equal? (a <c>) (b <c>))
+		      (equal? (y a) (y b)))
+		    (define o1 (make <c> #:x '(1) #:y '(3)))
+		    (define o2 (make <c> #:x '(2) #:y '(3)))
+		    (define o3 (make <c> #:x '(2) #:y '(4)))
+		    (equal? o1 o2))
+		 (current-module)))
+  (pass-if "not equal"
+	   (eval '(not (equal? o2 o3))
+		 (current-module))))
+
+(use-modules (oop goops active-slot))
+
+(with-test-prefix "active-slot"
+  (pass-if "defining class with active slot"
+    (eval '(begin
+	     (define z '())
+	     (define-class <bar> ()
+	       (x #:accessor x
+		  #:init-value 1
+		  #:allocation #:active
+		  #:before-slot-ref
+		  (lambda (o)
+		    (set! z (cons 'before-ref z))
+		    #t)
+		  #:after-slot-ref
+		  (lambda (o)
+		    (set! z (cons 'after-ref z)))
+		  #:before-slot-set!
+		  (lambda (o v)
+		    (set! z (cons* v 'before-set! z)))
+		  #:after-slot-set!
+		  (lambda (o v)
+		    (set! z (cons* v (x o) 'after-set! z))))
+	       #:metaclass <active-class>)
+	     (define bar (make <bar>))
+	     (x bar)
+	     (set! (x bar) 2)
+	     (equal? (reverse z)
+		     '(before-ref before-set! 1 before-ref after-ref
+		       after-set! 1 1 before-ref after-ref
+		       before-set! 2 before-ref after-ref after-set! 2 2)))
+	  (current-module))))
+
+(use-modules (oop goops composite-slot))
+
+(with-test-prefix "composite-slot"
+  (pass-if "creating instance with propagated slot"
+    (eval '(begin
+	     (define-class <a> ()
+	       (x #:accessor x #:init-keyword #:x)
+	       (y #:accessor y #:init-keyword #:y))
+	     (define-class <c> ()
+	       (o1 #:accessor o1 #:init-form (make <a> #:x 1 #:y 2))
+	       (o2 #:accessor o2 #:init-form (make <a> #:x 3 #:y 4))
+	       (x #:accessor x
+		  #:allocation #:propagated
+		  #:propagate-to '(o1 (o2 y)))
+	       #:metaclass <composite-class>)
+	     (define o (make <c>))
+	     (is-a? o <c>))
+	  (current-module)))
+  (pass-if "reading propagated slot"
+	   (eval '(= (x o) 1) (current-module)))
+  (pass-if "writing propagated slot"
+	   (eval '(begin
+		    (set! (x o) 5)
+		    (and (= (x (o1 o)) 5)
+			 (= (y (o1 o)) 2)
+			 (= (x (o2 o)) 3)
+			 (= (y (o2 o)) 5)))
+		 (current-module))))

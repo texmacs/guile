@@ -658,6 +658,11 @@
 ;;; Methods to compare objects
 ;;;
 
+(define-method (equal? x y) #f)
+
+;;; These following two methods are for backward compatibility only.
+;;; They are not called by the Guile interpreter.
+;;;
 (define-method (object-eqv? x y)    #f)
 (define-method (object-equal? x y)  (eqv? x y))
 
@@ -1039,8 +1044,14 @@
 ;;; 
 (define (compute-getters-n-setters class slots env)
 
-  (define (compute-slot-init-function s)
-    (or (slot-definition-init-thunk s)
+  (define (compute-slot-init-function name s)
+    (or (let ((thunk (slot-definition-init-thunk s)))
+	  (and thunk
+	       (if (not (and (closure? thunk)
+			     (thunk? thunk)))
+		   (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
+				name class thunk))
+	       thunk))
 	(let ((init (slot-definition-init-value s)))
 	  (and (not (unbound? init))
 	       (lambda () init)))))
@@ -1080,7 +1091,7 @@
 	   ;;   '() for other slots
 	   (verify-accessors name g-n-s)
 	   (cons name
-		 (cons (compute-slot-init-function s)
+		 (cons (compute-slot-init-function name s)
 		       (if (or (integer? g-n-s)
 			       (zero? size))
 			   g-n-s

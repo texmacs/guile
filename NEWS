@@ -56,7 +56,17 @@ methods from their accessors.
 This makes the <active-class> metaclass in (oop goops active-slot)
 working again.
 
+** equal? is now a primitive generic
+
+This means that it is possible to provide custom comparisons for new
+classes by specializing `equal?' to those classes.
+
 * Changes to the C interface 
+
+** New snarf macros: SCM_PRIMITIVE_GENERIC, SCM_PRIMITIVE_GENERIC_1
+
+These provide a way of adding primitive generics which is equivalent
+to SCM_DEFINE and SCM_DEFINE1.
 
 
 Changes since Guile 1.6.2:

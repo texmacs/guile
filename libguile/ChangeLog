@@ -1,3 +1,10 @@
+2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* eq.c (scm_equal_p): Turned into a primitive generic.
+
+	* snarf.h (SCM_PRIMITIVE_GENERIC, SCM_PRIMITIVE_GENERIC_1): New
+	macros.
+
 2003-04-16  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc_os_dep.c: Added patch for UnixWare and OpenUNIX support.
