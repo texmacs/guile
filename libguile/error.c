@@ -164,7 +164,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_SYMBOL (scm_system_error_key, "system-error");
+SCM_GLOBAL_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (const char *subr)
 {
@@ -187,7 +187,7 @@ scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
 	     scm_cons (SCM_MAKINUM (eno), SCM_EOL));
 }
 
-SCM_SYMBOL (scm_num_overflow_key, "numerical-overflow");
+SCM_GLOBAL_SYMBOL (scm_num_overflow_key, "numerical-overflow");
 void
 scm_num_overflow (const char *subr)
 {
@@ -198,7 +198,7 @@ scm_num_overflow (const char *subr)
 	     SCM_BOOL_F);
 }
 
-SCM_SYMBOL (scm_out_of_range_key, "out-of-range");
+SCM_GLOBAL_SYMBOL (scm_out_of_range_key, "out-of-range");
 void
 scm_out_of_range (const char *subr, SCM bad_value)
 {
@@ -220,7 +220,7 @@ scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
 }
 
 
-SCM_SYMBOL (scm_args_number_key, "wrong-number-of-args");
+SCM_GLOBAL_SYMBOL (scm_args_number_key, "wrong-number-of-args");
 void
 scm_wrong_num_args (SCM proc)
 {
@@ -243,7 +243,7 @@ scm_error_num_args_subr (const char *subr)
 }
 
 
-SCM_SYMBOL (scm_arg_type_key, "wrong-type-arg");
+SCM_GLOBAL_SYMBOL (scm_arg_type_key, "wrong-type-arg");
 void
 scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 {
@@ -275,7 +275,7 @@ scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *sz
 }
 
 
-SCM_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
+SCM_GLOBAL_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void
 scm_memory_error (const char *subr)
 {
@@ -286,7 +286,7 @@ scm_memory_error (const char *subr)
 	     SCM_BOOL_F);
 }
 
-SCM_SYMBOL (scm_misc_error_key, "misc-error");
+SCM_GLOBAL_SYMBOL (scm_misc_error_key, "misc-error");
 void
 scm_misc_error (const char *subr, const char *message, SCM args)
 {
