@@ -20,3 +20,5 @@
 ##   330, Boston, MA 02111-1307 USA
 
 EXTRA_DIST = README safe untrusted.scm evil.scm
+
+TESTS = check.test

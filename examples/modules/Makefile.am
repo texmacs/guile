@@ -20,3 +20,5 @@
 ##   330, Boston, MA 02111-1307 USA
 
 EXTRA_DIST = README module-0.scm module-1.scm module-2.scm main
+
+TESTS = check.test

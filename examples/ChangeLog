@@ -1,3 +1,10 @@
+2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* modules/check.test, safe/check.test: New files.
+
+	* modules/Makefile.am (TESTS), safe/Makefile.am (TESTS): New
+	variables.
+
 2001-07-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* scripts/check.test: New file.
