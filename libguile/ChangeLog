@@ -1,3 +1,9 @@
+2004-09-09  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c (scm_getc, scm_lfwrite): Recognise \a \b and \r for port
+	column.
+	* ports.h (SCM_ZEROCOL, SCM_DECCOL): New macros.
+
 2004-09-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gc.h (SCM_SET_FREE_CELL_TYPE): New macro.
