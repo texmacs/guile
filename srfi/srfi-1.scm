@@ -924,10 +924,10 @@
 
 (define (delete-duplicates list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp ((list list))
+    (let lp ((list list) (rl '()))
       (if (null? list)
-	'()
-	(cons (car list) (lp (delete (car list) (cdr list) l=)))))))
+	(reverse! rl)
+	(lp (delete (car list) (cdr list) l=) (cons (car list) rl))))))
 
 (define (delete-duplicates! list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
