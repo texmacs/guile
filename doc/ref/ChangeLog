@@ -1,7 +1,7 @@
 2004-07-01  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gh.texi, data-rep.texi: Make sure there is a space between
-	function name and the following opening parentheses everywhere.
+	function names and the following opening parentheses everywhere.
 	texinfo.tex relies on this.
 
 2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
