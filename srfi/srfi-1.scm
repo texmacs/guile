@@ -683,20 +683,21 @@
 
 (define (map! f list1 . rest)
   (if (null? rest)
-    (let lp ((l list1))
-      (if (null? l)
-	'()
-	(begin
-	  (set-car! l (f (car l)))
-	  (set-cdr! l (lp (cdr l)))
-	  l)))
-    (let lp ((l (cons list1 rest)) (res list1))
-      (if (any1 null? l)
-	'()
-	(begin
-	  (set-car! res (apply f (map1 car l)))
-	  (set-cdr! res (lp (map1 cdr l) (cdr res)))
-	  res)))))
+      (let lp ((l list1))
+	(if (null? l)
+	    list1
+	    (begin
+	      (set-car! l (f (car l)))
+	      (lp (cdr l)))))
+      (let ((res (cons 123 list1)))
+	(let lp ((l (cons list1 rest)) (endcell res))
+	  (if (any1 null? l)
+	      (begin
+		(set-cdr! endcell '()) ;; in case list1 was not the shortest
+		(cdr res))
+	      (begin
+		(set-car! (car l) (apply f (map1 car l)))
+		(lp (map1 cdr l) (car l))))))))
 
 (define (pair-for-each f clist1 . rest)
   (if (null? rest)
