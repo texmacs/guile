@@ -1,3 +1,16 @@
+2001-08-24  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* srfi-13.h (scm_string_map, scm_string_map_x,
+	scm_string_for_each): Reverse order of first two args.
+	(scm_string_for_each_index): New proc.
+
+	* srfi-13.c (scm_string_for_each): Reverse order of first 2 args.
+	(scm_string_for_each_index): New func.
+
+	* srfi-13.scm (string-for-each-index): New exported proc.
+
+	Thanks to Alex Shinn.
+
 2001-08-23  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* srfi-13.c (string-map): Swapped order of string and proc args to
