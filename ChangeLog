@@ -1,3 +1,23 @@
+2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning.h: New name of...
+	* lightning-inst.h: ... this file.
+	* lightning.h.in: Removed.
+
+	* opcodes/disass.c: Include config.h.
+	* tests/add.c: Include config.h.
+	* tests/bp.c: Include config.h.
+	* tests/fib.c: Include config.h.
+	* tests/fibdelay.c: Include config.h.
+	* tests/fibit.c: Include config.h.
+	* tests/funcfp.c: Include config.h.
+	* tests/incr.c: Include config.h.
+	* tests/printf.c: Include config.h.
+	* tests/printf2.c: Include config.h.
+	* tests/rpn.c: Include config.h.
+	* tests/rpnfp.c: Include config.h.
+	* tests/testfp.c: Include config.h.
+
 2004-10-12  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp.h: Fix bugs in conditional branches.

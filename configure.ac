@@ -10,14 +10,11 @@ dnl ----------------------------- HOST SYSTEM ----------------------------------
 AC_PREREQ(2.54)
 AC_INIT([GNU lightning], 1.2a, bonzini@gnu.org, lightning)
 AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_SRCDIR([lightning.h.in])
+AC_CONFIG_SRCDIR([lightning.h])
 
 AC_CANONICAL_TARGET
-AM_CONFIG_HEADER(lightning.h)
+AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE
-
-# We don't use autoheader.
-AUTOHEADER="touch lightning.h.in"
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -34,9 +31,12 @@ BACKENDS="i386 sparc ppc"
 AC_SUBST(BACKENDS)
 
 case "$target_cpu" in
-	i?86)	 cpu=i386; AC_DEFINE(LIGHTNING_I386, 1)		;;
-	sparc*)	 cpu=sparc; AC_DEFINE(LIGHTNING_SPARC, 1)	;;
-	powerpc) cpu=ppc; AC_DEFINE(LIGHTNING_PPC, 1)		;;
+	i?86)	 cpu=i386; AC_DEFINE(LIGHTNING_I386, 1,
+		   [Define if lightning is targeting the x86 architecture]) ;;
+	sparc*)	 cpu=sparc; AC_DEFINE(LIGHTNING_SPARC, 1,
+		   [Define if lightning is targeting the x86 architecture]) ;;
+	powerpc) cpu=ppc; AC_DEFINE(LIGHTNING_PPC, 1,
+		   [Define if lightning is targeting the x86 architecture]) ;;
 	*)	 AC_MSG_ERROR([cpu $target_cpu not supported])	;;
 esac
 
@@ -49,12 +49,14 @@ AC_ARG_ENABLE( disassembling,
 
 AM_CONDITIONAL(REGRESSION_TESTING, test "$host_cpu" = "$target_cpu")
 if test "$host_cpu" != "$target_cpu"; then
-  AC_DEFINE(LIGHTNING_CROSS, 1)
+  AC_DEFINE(LIGHTNING_CROSS, 1,
+    [Define if test programs should not run the compiled code])
   enable_disassembling=yes
 fi
 
 if test "$enable_disassembling" != no; then
-  AC_DEFINE(LIGHTNING_DISASSEMBLE, 1)
+  AC_DEFINE(LIGHTNING_DISASSEMBLE, 1,
+    [Define if the test programs should disassemble the code they produce])
 fi
 LIBDISASS=""
 AM_CONDITIONAL(DISASS, test "$enable_disassembling" != no)
@@ -65,7 +67,7 @@ AC_ARG_ENABLE( assertions,
 , enable_assertions=no)
 
 if test "$enable_assertions" != no; then
-  AC_DEFINE(_ASM_SAFETY, 1)
+  AC_DEFINE(_ASM_SAFETY, 1, [Define to enable assertions])
 fi
 
 AM_CONDITIONAL(LIGHTNING_MAIN, :)

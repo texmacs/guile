@@ -30,6 +30,10 @@
  ***********************************************************************/
 
 #include <stdio.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "lightning.h"
 
 static jit_insn codeBuffer[1024];

@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "lightning.h"
+#include "config.h"
 #include "dis-asm.h"
 
 void disassemble(stream, from, to)
