@@ -1,3 +1,7 @@
+2002-07-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* slib.scm (make-exchanger): Added.  Thanks to Clinton Ebadi!
+
 2002-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (file-set-position): Make third argument optional,
