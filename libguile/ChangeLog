@@ -1,3 +1,8 @@
+2002-08-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* script.c (scm_compile_shell_switches): Added "2002" to Copyright
+	years.  Thanks to Martin Grabmüller!
+
 2002-08-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf.in: Do not expect the input file to be the first
