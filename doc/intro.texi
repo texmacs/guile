@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12.2.2 2001-07-18 06:55:12 ttn Exp $
+@c $Id: intro.texi,v 1.12.2.3 2001-07-18 07:01:46 ttn Exp $
 
 @page
 @node What is Guile?
@@ -729,7 +729,7 @@ guile -c '(write %load-path) (newline)'
 Suppose you want to use the procedures and variables exported by the
 module @code{(ice-9 popen)}, which provides the means for communicating
 with other processes over pipes.  Add the following line to your
-currently running Guile REPL or the top of you script file.
+currently running Guile REPL or the top of your script file.
 
 @lisp
 (use-modules (ice-9 popen))
