@@ -910,20 +910,6 @@
 
 (define (delete-duplicates list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp0 ((l1 list))
-      (if (null? l1)
-	'()
-	(if (let lp1 ((l2 (cdr l1)))
-	      (if (null? l2)
-		#f
-		(if (l= (car l1) (car l2))
-		  #t
-		  (lp1 (cdr l2)))))
-	  (lp0 (cdr l1))
-	  (cons (car l1) (lp0 (cdr l1))))))))
-
-(define (delete-duplicates list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
     (let lp ((list list) (rl '()))
       (if (null? list)
 	(reverse! rl)
