@@ -1,3 +1,10 @@
+2002-04-25  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* autogen.sh: Remove explicit "set -x", which can be
+	enabled by the user on the command line,
+	and which construction is not portable.
+	Thanks to Matthias Koeppe.
+
 2002-04-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* autogen.sh: Removed dirt from a previous, careless commit: call
@@ -8,12 +15,12 @@
         * autogen.sh: Call automake twice for guile-core so that two
 	copies of mdate-sh get a chance of being installed (one in
 	doc/ref/ and one in doc/tutorial/).
-	
+
 2002-04-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* Makefile.am (AUTOMAKE_OPTIONS): New, to request version 1.5. 
+	* Makefile.am (AUTOMAKE_OPTIONS): New, to request version 1.5.
 	(EXTRA_DIST): Don't distribute acconfig.h, which is gone.
-	
+
 	* configure.in: Bump required autoconf version to 2.53.  Move uses
 	of AC_LIBOBJ after AC_PROG_CC.  AC_LIBOBJ needs OBJEXT which is
 	set by AC_PROG_CC.
