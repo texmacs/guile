@@ -2,6 +2,7 @@
 
 	* guile-aclocal.sh: Replaced with a simple invocation of "aclocal
 	-I guile-config".  This works as of automake 1.5.
+	* qthreads.m4: Moved to guile-config/. 
 
 2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
