@@ -297,7 +297,7 @@ typedef signed long scm_t_signed_bits;
 
 
 
-#define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define SCM_CELLP(x) 	(((sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 #define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
 /* See numbers.h for macros relating to immediate integers.
