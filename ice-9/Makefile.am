@@ -46,6 +46,13 @@ install-data-local:
 EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
 
 if MAINTAINER_MODE
+# We expect this to never be invoked when there is not already
+# ice-9/psyntax.pp in %load-path, since compile-psyntax.scm depends
+# on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax.pp")'.
+# In other words, to bootstrap this file, you need to do something like:
+#    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax.pp
+include $(top_srcdir)/pre-inst-guile.am
 psyntax.pp: psyntax.ss
-	GUILE_LOAD_PATH=$(srcdir)/..:.. ../libguile/guile -s $(srcdir)/compile-psyntax.scm $(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
+	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
+		$(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
 endif
