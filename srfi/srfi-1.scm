@@ -674,27 +674,10 @@
 
 
 (define (append-map f clist1 . rest)
-  (if (null? rest)
-    (let lp ((l clist1))
-      (if (null? l)
-	'()
-	(append (f (car l)) (lp (cdr l)))))
-    (let lp ((l (cons clist1 rest)))
-      (if (any1 null? l)
-	'()
-	(append (apply f (map1 car l)) (lp (map1 cdr l)))))))
-
-
+  (apply append (apply map f clist1 rest)))
+  
 (define (append-map! f clist1 . rest)
-  (if (null? rest)
-    (let lp ((l clist1))
-      (if (null? l)
-	'()
-	(append! (f (car l)) (lp (cdr l)))))
-    (let lp ((l (cons clist1 rest)))
-      (if (any1 null? l)
-	'()
-	(append! (apply f (map1 car l)) (lp (map1 cdr l)))))))
+  (apply append! (apply map f clist1 rest)))
 
 (define (map! f list1 . rest)
   (if (null? rest)
