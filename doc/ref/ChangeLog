@@ -1,3 +1,8 @@
+2003-05-12  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-control.texi (Handling Errors): Fix regexp error key, should
+	be `regular-expression-syntax'.
+
 2003-05-08  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Bitwise Operations): Fix lognot to ones-complement.
