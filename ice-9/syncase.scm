@@ -170,23 +170,24 @@
   (let ((counter 0)
         (symlock (make-mutex)))
     (lambda (. rest)
-      (lock-mutex symlock)
-      (let* ((val (number->string counter))
-             (result
-              (set! counter (+ counter 1))
-              (cond
-               ((null? rest)
-                (string->symbol (string-append "syntmp-" val)))
-               ((null? (cdr rest))
-                (string->symbol (string-append "syntmp-" (car rest) "-" val)))
-               (else
-                'bad-args))))
+      (let ((counter-val #f))
+        (lock-mutex symlock)
+        (set! counter-val counter)
+        (set! counter (+ counter 1))
         (unlock-mutex symlock)
-        (if (eq? result 'bad-args)
-            (error
-             "syncase's gensym called with the wrong number of arguments")
-            result)))))
-      
+        (let* ((valstr (number->string counter-val)))
+          (cond
+           ((null? rest)
+            (string->symbol (string-append "syntmp-" valstr)))
+           ((null? (cdr rest))
+            (string->symbol (string-append "syntmp-" (car rest) "-" valstr)))
+           (else
+            (if (eq? result 'bad-args)
+                (error
+                 (string-append
+                  "syncase's gensym expected 0 or 1 arguments, got "
+                  (length rest)))))))))))
+
 ;;; Load the preprocessed code
 
 (let ((old-debug #f)
