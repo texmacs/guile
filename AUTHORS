@@ -235,6 +235,10 @@ In the subdirectory doc, changes to:
     scheme-data.texi            scheme-modules.texi
     scheme-procedures.texi	scheme-scheduling.texi
     scm.texi
+In the subdirectory test-suite, changes to:
+    guile-test		lib.scm
+In the subdirectory test-suite/tests, changes to:
+    exceptions.test	eval.test
 
 Robert Merkel:
 In the subdirectory doc, co-wrote:
