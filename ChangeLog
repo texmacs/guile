@@ -30,7 +30,7 @@
 	* Makefile.am (EXTRA_DIST, SUBDIRS): Move test-suite from
 	EXTRA_DIST to SUBDIRS.
 
-	* configure.in: Added "test-suite/Makefile.am".
+	* configure.in: Added "test-suite/Makefile".
 
 2001-08-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
