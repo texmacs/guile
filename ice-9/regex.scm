@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -68,6 +68,11 @@
 	   string-match regexp-substitute fold-matches list-matches
 	   regexp-substitute/global))
 
+;; References:
+;;
+;; POSIX spec:
+;; http://www.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap09.html
+
 ;;; FIXME:
 ;;;   It is not clear what should happen if a `match' function
 ;;;   is passed a `match number' which is out of bounds for the
@@ -103,6 +108,21 @@
 		(loop (+ 1 i)))
 	       (else #f)))))
 
+;; * . \ ^ $ and [ are special in both regexp/basic and regexp/extended and
+;; can be backslash escaped.
+;;
+;; ( ) + ? { } and | are special in regexp/extended so must be quoted.  But
+;; that can't be done with a backslash since in regexp/basic where they're
+;; not special, adding a backslash makes them become special.  Character
+;; class forms [(] etc are used instead.
+;;
+;; ) is not special when not preceded by a (, and * and ? are not special at
+;; the start of a string, but we quote all of these always, so the result
+;; can be concatenated or merged into some larger regexp.
+;;
+;; ] is not special outside a [ ] character class, so doesn't need to be
+;; quoted.
+;;
 (define (regexp-quote string)
   (call-with-output-string
    (lambda (p)
@@ -110,9 +130,15 @@
        (and (< i (string-length string))
 	    (begin
 	      (case (string-ref string i)
-		((#\* #\. #\( #\) #\+ #\? #\\ #\^ #\$ #\{ #\})
-		 (write-char #\\ p)))
-	      (write-char (string-ref string i) p)
+		((#\* #\. #\\ #\^ #\$ #\[)
+		 (write-char #\\ p)
+		 (write-char (string-ref string i) p))
+		((#\( #\) #\+ #\? #\{ #\} #\|)
+		 (write-char #\[ p)
+		 (write-char (string-ref string i) p)
+		 (write-char #\] p))
+		(else
+		 (write-char (string-ref string i) p)))
 	      (loop (1+ i))))))))
 
 (define (match:start match . args)
