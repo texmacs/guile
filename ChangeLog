@@ -1,3 +1,15 @@
+2002-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Integrated libguile-ltdl/ from HEAD branch.
+
+	* configure.in: Do not call AC_LTDL_INSTALLABLE and do not recurse
+	into libltdl subdirectory.  Call AC_LIB_LTDL.  Do not substitute
+	INCLLTDL and LIBLTDL, they are not needed.  Create
+	libguile-ltdl/Makefile.am and libguile-ltdl/upstream/Makefile.am.
+	* libguile-ltdl/: Copied from HEAD branch.
+	* autogen.sh: Do not populate libltdl/ directory. 
+	* Makefile.am (SUBDIRS): Use libguile-ltdl instead of libltdl.
+
 2002-09-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* Guile 1.6.0 released.

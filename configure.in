@@ -143,9 +143,6 @@ AC_DEFINE(READER_EXTENSIONS, 1,
 
 #--------------------------------------------------------------------
 
-AC_LIBLTDL_INSTALLABLE
-AC_CONFIG_SUBDIRS(libltdl)
-
 AC_PROG_CC
 AC_PROG_CPP
 AC_LIBTOOL_DLOPEN
@@ -156,6 +153,7 @@ AC_MINIX
 
 AM_PROG_CC_STDC
 AM_PROG_LIBTOOL
+AC_LIB_LTDL
 
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
@@ -260,8 +258,11 @@ if test "$use_modules" != no; then
     done
   fi
 fi
-AC_SUBST(INCLTDL)
-AC_SUBST(LIBLTDL)
+
+# FIXME: check to see if we still need these.
+#AC_SUBST(INCLTDL)
+#AC_SUBST(LIBLTDL)
+
 AC_SUBST(DLPREOPEN)
 
 AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer)
@@ -699,6 +700,8 @@ AC_CONFIG_FILES([
   libguile/guile-func-name-check
   libguile/guile-snarf-docs
   libguile/version.h
+  libguile-ltdl/Makefile
+  libguile-ltdl/upstream/Makefile
   ice-9/Makefile
   oop/Makefile
   oop/goops/Makefile
