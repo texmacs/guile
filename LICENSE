@@ -7,37 +7,37 @@ Section: Terms
 
 This file describes the LICENSE for GUILE.  It is intended to be an
 accurate summary of the licensing terms for GUILE, but in no way
-superceeds what each individual source file may say regarding its
+supersedes what each individual source file may say regarding its
 license.  Any discrepancy regarding licensing terms between this
 document and any given source file is a bug, please report it.
 
-The overall intent of the GUILE license is... (put summary of intent
-here -- allowing linking with *all* apps, etc...)
+The overall intent of the GUILE license is for the source to be
+covered under the GNU Public License, along with whatever additional
+exceptions are necessary so that just linking an application against
+Guile doesn't (by itself) make that application subject to the
+restrictions of the GPL.
 
-Unless otherwise noted, all files in Guile are covered under the terms
-of the GNU General Public License, which should be included with the
+More specifically, most files in Guile are covered under the terms of
+the GNU General Public License, which should be included with the
 distribution in the file COPYING, and is duplicated in the section
 titled "GNU General Public License" below.  You may also request a
 copy of this license from the Free Software Foundation, Inc., 59
-Temple Place, Suite 330, Boston, MA 02111-1307 USA
+Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-In addition, unless otherwise noted all files are also subject to a
-special exception to the GNU General Public License.  This execption
-is included in the section titled "Guile GPL Exception" below, and
-will henceforth be referred to as the Guile GPL Exception.
+In addition, all of the files that actually become a part of the final
+Guile executables are subject to a special exception to the GNU
+General Public License.  This exception is included in the section
+titled "Guile GPL Exception" below, and will henceforth be referred to
+as the Guile GPL Exception.
 
-The following list indicates the files in guile that are covered under
-a license other than a combination of the GNU General Public License
-and the Guile GPL Exception:
+The rest of the files may or may not be covered by the Guile GPL
+Exception, and are usually just covered by the GNU General Public
+License alone.  Examples include many files used only while building
+Guile, example files, etc.
 
-  * Files covered solely under the GNU Public License -- files not
-    covered by the Guile GPL Exception:
-
-    * all files in the guile-readline directory.
-
-    * all files in the test-suite directory.
-
-
+Also some of the files in the guile-readline directory are covered
+only under the GNU Public License, but Guile has been designed to load
+these files in a way that will not violate the GNU Public License.
 
 Section: GUILE GPL EXCEPTION
 ----------------------------
