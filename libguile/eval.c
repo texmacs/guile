@@ -4141,7 +4141,7 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
 SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
 	    "Evaluate @var{exp}, a Scheme expression, in the environment\n"
-	    "designated by @var{lookup}, a symbol-lookup function."
+	    "designated by @var{lookup}, a symbol-lookup function.\n"
 	    "Do not use this version of eval, it does not play well\n"
 	    "with the module system.  Use @code{eval} or\n"
 	    "@code{primitive-eval} instead.")

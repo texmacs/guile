@@ -119,8 +119,20 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 @deffn primitive drain-input port
-Drain @var{port}'s read buffers (including any pushed-back
-characters) and return the content as a single string.
+This procedure clears a port's input buffers, similar
+to the way that force-output clears the output buffer.  The
+contents of the buffers are returned as a single string, e.g.,
+
+@lisp
+(define p (open-input-file ...))
+(drain-input p) => empty string, nothing buffered yet.
+(unread-char (read-char p) p)
+(drain-input p) => initial chars from p, up to the buffer size.
+@end lisp
+
+Draining the buffers may be useful for cleanly finishing
+buffered I/O so that the file descriptor can be used directly
+for further input.
 @end deffn
 
 @deffn primitive port-column port
@@ -162,7 +174,7 @@ escaped), and characters are rendered as if with @code{write-char}.
 
 @rnindex newline
 @deffn primitive newline [port]
-Send a newline to @var{port}.
+Send a newline to @var{port} (default @var{current-output-port} if omitted).
 @end deffn
 
 @deffn primitive port-with-print-state port pstate
@@ -419,7 +431,7 @@ The Block-string-I/O module can be accessed with:
 It currently contains procedures that help to implement the
 @code{(scsh rw)} module in guile-scsh.
 
-@deffn primitive read-string!/partial str [port_or_fdes start end]
+@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
 Read characters from a port or file descriptor into a
 string @var{str}.  A port must have an underlying file
 descriptor --- a so-called fport.  This procedure is

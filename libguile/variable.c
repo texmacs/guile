@@ -88,7 +88,7 @@ make_variable (SCM init)
 
 SCM_DEFINE (scm_make_variable, "make-variable", 1, 0, 0, 
             (SCM init),
-            "Return a variable initialized to value @var{init}.\n")
+            "Return a variable initialized to value @var{init}.")
 #define FUNC_NAME s_scm_make_variable
 {
   return make_variable (init);
@@ -98,7 +98,7 @@ SCM_DEFINE (scm_make_variable, "make-variable", 1, 0, 0,
 
 SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 0, 0, 
             (),
-            "Return a variable that is initially unbound.\n")
+            "Return a variable that is initially unbound.")
 #define FUNC_NAME s_scm_make_undefined_variable
 {
   return make_variable (SCM_UNDEFINED);
@@ -109,7 +109,7 @@ SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 0, 0,
 SCM_DEFINE (scm_variable_p, "variable?", 1, 0, 0, 
             (SCM obj),
             "Return @code{#t} iff @var{obj} is a variable object, else\n"
-	    "return @code{#f}\n")
+	    "return @code{#f}.")
 #define FUNC_NAME s_scm_variable_p
 {
   return SCM_BOOL (SCM_VARIABLEP (obj));
@@ -137,7 +137,7 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
             (SCM var, SCM val),
             "Set the value of the variable @var{var} to @var{val}.\n"
             "@var{var} must be a variable object, @var{val} can be any\n"
-	    "value. Return an unspecified value.\n")
+	    "value. Return an unspecified value.")
 #define FUNC_NAME s_scm_variable_set_x
 {
   SCM_VALIDATE_VARIABLE (1, var);
@@ -149,7 +149,7 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
 SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
             (SCM var),
             "Return @code{#t} iff @var{var} is bound to a value.\n"
-            "Throws an error if @var{var} is not a variable object.\n")
+            "Throws an error if @var{var} is not a variable object.")
 #define FUNC_NAME s_scm_variable_bound_p
 {
   SCM_VALIDATE_VARIABLE (1, var);
@@ -177,7 +177,7 @@ SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0,
             (SCM name),
             "Return the built-in variable with the name @var{name}.\n"
             "@var{name} must be a symbol (not a string).\n"
-            "Then use @code{variable-ref} to access its value.\n")
+            "Then use @code{variable-ref} to access its value.")
 #define FUNC_NAME s_scm_builtin_variable
 {
   SCM_VALIDATE_SYMBOL (1,name);

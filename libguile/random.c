@@ -364,9 +364,9 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
             (SCM n, SCM state),
             "Return a number in [0,N).\n"
             "\n"
-            "Accepts a positive integer or real n and returns a \n"
-            "number of the same type between zero (inclusive) and \n"
-            "N (exclusive). The values returned have a uniform \n"
+            "Accepts a positive integer or real n and returns a\n"
+            "number of the same type between zero (inclusive) and\n"
+            "N (exclusive). The values returned have a uniform\n"
             "distribution.\n"
             "\n"
             "The optional argument @var{state} must be of the type produced\n"
@@ -490,9 +490,9 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
             (SCM v, SCM state),
             "Fills vect with inexact real random numbers\n"
             "the sum of whose squares is less than 1.0.\n"
-            "Thinking of vect as coordinates in space of \n"
-            "dimension n = (vector-length vect), the coordinates \n"
-            "are uniformly distributed within the unit n-shere.\n"
+            "Thinking of vect as coordinates in space of\n"
+            "dimension n = (vector-length vect), the coordinates\n"
+            "are uniformly distributed within the unit n-sphere.\n"
             "The sum of the squares of the numbers is returned.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
@@ -513,10 +513,10 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
             (SCM v, SCM state),
             "Fills vect with inexact real random numbers\n"
             "the sum of whose squares is equal to 1.0.\n"
-            "Thinking of vect as coordinates in space of \n"
+            "Thinking of vect as coordinates in space of\n"
             "dimension n = (vector-length vect), the coordinates\n"
-            "are uniformly distributed over the surface of the \n"
-            "unit n-shere.")
+            "are uniformly distributed over the surface of the\n"
+            "unit n-sphere.")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);

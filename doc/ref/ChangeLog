@@ -1,5 +1,14 @@
 2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-data.texi, scheme-evaluation.texi, scheme-io.texi: Merge
+	appropriate recent doc enhancements from unstable branch.
+
+	* new-docstrings.texi, posix.texi, scheme-binding.texi,
+	scheme-control.texi, scheme-data.texi, scheme-debug.texi,
+	scheme-evaluation.texi, scheme-io.texi, scheme-memory.texi,
+	scheme-options.texi: Automatic updates corresponding to changed
+	docstrings in libguile's C source code.
+
 	* scheme-data.texi (String Predicates): Correct doc for
 	string-null?.  Thanks to Scott Lenser!
 
