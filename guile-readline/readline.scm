@@ -200,8 +200,9 @@
 
 (define-public (activate-readline)
   (if (and (isatty? (current-input-port))
-	   (not (and (module-defined? the-root-module 'use-emacs-interface)
-		     (module-ref the-root-module 'use-emacs-interface))))
+	   (not (let ((guile-user-module (resolve-module '(guile-user))))
+		  (and (module-defined? guile-user-module 'use-emacs-interface)
+		       (module-ref guile-user-module 'use-emacs-interface)))))
       (let ((read-hook (lambda () (run-hook before-read-hook))))
 	(set-current-input-port (readline-port))
 	(set! repl-reader
