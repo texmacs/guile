@@ -38,6 +38,14 @@ Flushes the glocs for @var{name}, or all glocs if @var{name}
 is @code{#t}.
 @end deffn
 
+@deffn {Scheme Procedure} malloc-stats
+Return an alist ((@var{what} . @var{n}) ...) describing number
+of malloced objects.
+@var{what} is the second argument to @code{scm_must_malloc},
+@var{n} is the number of objects of that type currently
+allocated.
+@end deffn
+
 
 @node Weak References
 @section Weak References
