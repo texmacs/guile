@@ -6,8 +6,8 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions.  It describes how to use Guile in many useful
 and interesting ways.
 
-This is edition 1.0 of the reference manual, and corresponds to Guile
-version @value{VERSION}.
+This is edition @value{MANUAL_EDITION} of the reference manual, and
+corresponds to Guile version @value{VERSION}.
 @end iftex
 
 
@@ -93,12 +93,13 @@ organized by functionality rather than by the defining standards.
 
 @strong{Part III: Guile Modules} describes some important modules,
 distributed as part of the Guile distribution, that extend the
-functionality provided by the Guile Scheme core, most notably:
+functionality provided by the Guile Scheme core.  Two important examples
+are:
 
 @itemize @bullet
 @item
 the POSIX module, which provides Scheme level procedures for system and
-network programming, conforming to the POSIX standard
+network programming that conform to the POSIX standard
 
 @item
 the SLIB module, which makes Aubrey Jaffer's portable Scheme library

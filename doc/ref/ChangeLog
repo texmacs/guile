@@ -1,3 +1,28 @@
+2002-03-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Hooks): Further updates merged from
+	unstable branch.
+
+	* guile.texi (Top): Remove menu items for Handling Errors and I/O
+	Extensions chapters.  Move item for Obtaining and Installing
+	Guile.
+
+	* appendices.texi (Obtaining and Installing Guile): Moved to
+	intro.texi.
+
+	* scheme-indices.texi (R5RS Index): Make index chapters
+	unnumbered.
+
+	* scm.texi (Handling Errors): Chapter moved to section in
+	scheme-control.texi.
+	(I/O Extensions): Chapter moved to section in scheme-io.texi.
+	
+	* scheme-options.texi (Install Config): Copy doc for
+	%guile-build-info from unstable branch.
+	(Feature Tracking): New, copied from unstable branch.
+
+	* scheme-utility.texi (Hooks): Merge updates from unstable branch.
+
 2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* tools.texi (guile-1.4 guile-snarf): Remove this node.

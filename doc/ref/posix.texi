@@ -263,10 +263,11 @@ a port.
 
 @deffn {Scheme Procedure} close fd_or_port
 @deffnx {C Function} scm_close (fd_or_port)
-Similar to close-port (@pxref{Closing, close-port}), but also works on
-file descriptors.  A side effect of closing a file descriptor is that
-any ports using that file descriptor are moved to a different file
-descriptor and have their revealed counts set to zero.
+Similar to close-port (@pxref{Closing, close-port}),
+but also works on file descriptors.  A side
+effect of closing a file descriptor is that any ports using that file
+descriptor are moved to a different file descriptor and have
+their revealed counts set to zero.
 @end deffn
 
 @deffn {Scheme Procedure} close-fdes fd

@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.10 2002-03-15 14:12:58 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.11 2002-03-16 13:35:23 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -204,6 +204,7 @@ Part I: Introduction to Guile
 
 * What is Guile?::              And what does it do?
 * Whirlwind Tour::              An introductory whirlwind tour.
+* Obtaining and Installing Guile::
 * Reporting Bugs::              Reporting bugs in Guile or this manual.
 
 Part II: Guile Scheme
@@ -252,13 +253,10 @@ Part V: Extending Applications Using Guile
 * Libguile Intro::              Using Guile as an extension language.
 * Data Representation::         Data representation in Guile.
 * Scheme Primitives::           Writing Scheme primitives in C.
-* I/O Extensions::              Using and extending ports in C.
-* Handling Errors::             How to handle errors in C code.
 * GH::                          The deprecated GH interface.
 
 Appendices
 
-* Obtaining and Installing Guile::
 * Debugger User Interface::
 
 Indices
