@@ -1,3 +1,17 @@
+2002-04-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (guile.texi): EXEEXT fix.
+	($(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)): EXEEXT fix.
+	(BUILT_SOURCES): add guile-procedures.texi.
+
+	* .cvsignore: add *.c.clean.c. and re-sort.
+
+	* Makefile.am ($(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)): use
+	$(EXEEXT) for guile_filter_doc_snarfage on cygwin.
+	(guile.texi): add $(EXEEXT) for guile on cygwin.
+
+	* .cvsignore: add guile-procedures.texi
+
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf.in: Do not clean input file.  This would write to

@@ -1,3 +1,20 @@
+2002-04-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* readline.scm: hack around dynamic-link problems by
+	using painfully explicit lib names.
+
+	* configure.in: add documentation for AC_DEFINEs and add
+	LIBGUILEREADLINE_LTHACK.
+
+	* Makefile.am: hack around dynamic-link problems by
+	using painfully explicit lib names.
+
+	* LIBGUILEREADLINE-VERSION: hack around dynamic-link problems by
+	using painfully explicit lib names.
+	(LIBGUILEREADLINE_LTHACK): new var.
+
+	* .cvsignore: add *.c.clean.c.
+
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (dist-hook): Make sure $(distdir)/Makefile.in is
