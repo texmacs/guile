@@ -112,6 +112,7 @@ also be executable as scripts.  At this time, these scripts are available:
      read-scheme-source
      use2dot
      snarf-check-and-output-texi
+     snarf-guile-m4-docs
 
 See README there for more info.
 
