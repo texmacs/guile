@@ -1,5 +1,7 @@
 2002-07-20  Rob Browning  <rlb@defaultvalue.org>
 
+	* autogen.sh (mscripts): change back to ../scripts for now.
+
 	* configure.in (LIBGUILE_SRFI_SRFI_4_MAJOR): replaces
 	LIBGUILE_SRFI_SRFI_4_LTHACK.
 	(LIBGUILE_SRFI_SRFI_13_14_MAJOR): replaces
