@@ -128,6 +128,19 @@ For example:
 
 guile-tools is copied to the standard $bindir on "make install".
 
+** Snarfing news
+
+The program guile-snarf is now documented in the manual.
+
+These programs are no longer installed:
+
+  guile-doc-snarf
+  guile-func-name-check
+  guile-snarf.awk
+
+They (or functional equivalents) will return at some point in the
+future when doc snarfing methodology/documentation is more mature.
+
 ** New module (ice-9 stack-catch):
 
 stack-catch is like catch, but saves the current state of the stack in
