@@ -33,8 +33,10 @@ guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
         slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	debugging.texi indices.texi script-getopt.texi data-rep.texi \
-	autoconf.texi autoconf-macros.texi tools.texi \
+	autoconf.texi tools.texi \
 	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
+
+nodist_guile_TEXINFOS = autoconf-macros.texi
 
 include $(top_srcdir)/am/pre-inst-guile
 
@@ -42,7 +44,7 @@ include $(top_srcdir)/am/pre-inst-guile
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(preinstguiletool)/snarf-guile-m4-docs $< > $(srcdir)/$@
+	$(preinstguiletool)/snarf-guile-m4-docs $< > $@
 
 # Optionally support building an HTML version of the reference manual.
 
