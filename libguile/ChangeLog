@@ -1,3 +1,8 @@
+2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debug.c (scm_debug_options): Change incorrect @var in docstring
+	to @code.
+
 2002-03-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* strop.c (scm_string_split): Correct quoting in docstring.
