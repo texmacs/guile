@@ -63,7 +63,9 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
-- Check with ttn about library version numbers.
+- Wait for reply from ttn about version numbers.
+
+- Set AGE=1 for everything that had a previous release.
 
 - Check with Martin about scm_t_? fix.
 
