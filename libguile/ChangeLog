@@ -1,3 +1,7 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_init_socket): Add SOCK_SEQPACKET and SOCK_RDM.
+
 2004-08-11  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc.c, procprop.c (scm_init_storage, scm_stand_in_procs,
