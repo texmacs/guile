@@ -1,3 +1,10 @@
+2004-06-15  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc_os_dep.c: update ifdefery for macosx.
+	(scm_get_stack_base): separate result initialization from
+	declaration to slience warnings with macosx and hp-ux using gcc
+	3.3.  Thanks to Andreas Vögele.
+
 2004-05-14  Kevin Ryde  <user42@zip.com.au>
 
 	* scmsigs.c (scm_sigaction): Check signum is within range, as per
