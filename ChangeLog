@@ -1,6 +1,7 @@
 2004-08-10  Kevin Ryde  <user42@zip.com.au>
 
-	* configure.in (AC_CHECK_FUNCS): Add unsetenv.
+	* configure.in (AC_CHECK_FUNCS): Add unsetenv and _NSGetEnviron.
+	(AC_CHECK_HEADERS): Add crt_externs.h.
 
 2004-08-10  Marius Vollmer  <mvo@zagadka.de>
 

@@ -1,3 +1,9 @@
+2004-08-10  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_putenv): Use unsetenv to remove entries (ie. no "="),
+	when available, for the benefit of FreeBSD and other systems where
+	putenv() doesn't do that itself.
+
 2004-08-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* net_db.c (scm_resolv_error): don't put bad_value in the format string
