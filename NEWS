@@ -31,6 +31,12 @@ including octal literal constants in code or the reader.
 In the srfi-1 module alist-delete and alist-delete!, the order of the
 arguments to the "=" procedure now matches the SRFI-1 specification.
 
+** SRFI-13 string-any and string-every tail calls
+
+string-any and string-every now make a tail call to their predicate
+function on reaching the last character in the string, per the SRFI-13
+specification.
+
 * Changes to the C interface 
 
 
