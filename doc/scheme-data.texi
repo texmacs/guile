@@ -3291,9 +3291,10 @@ given its @dfn{position} (synonymous with @dfn{index}), a zero-origin number,
 is constant, whereas lists have an access time linear to the position of the
 accessed element in the list.
 
-Note that the vectors documented in this section can contain any kind of
-Scheme object, it is even possible to have different types of objects in
-the same vector.
+Vectors can contain any kind of Scheme object; it is even possible to have
+different types of objects in the same vector.  For vectors containing
+vectors, you may wish to use arrays, instead.  Note, too, that some array
+procedures operate happily on vectors (@pxref{Arrays}).
 
 @subsection Vector Read Syntax
 
@@ -3840,7 +3841,7 @@ Return the vtable tag of the structure @var{handle}.
 @node Conventional Arrays
 @subsection Conventional Arrays
 
-@dfn{Conventional arrays} are a collection of cells organised into an
+@dfn{Conventional arrays} are a collection of cells organized into an
 arbitrary number of dimensions.  Each cell can hold any kind of Scheme
 value and can be accessed in constant time by supplying an index for
 each dimension.  This contrasts with uniform arrays, which use memory
@@ -3849,7 +3850,7 @@ where inserting and deleting cells is more efficient, but more time
 is usually required to access a particular cell.
 
 A conventional array is displayed as @code{#} followed by the @dfn{rank}
-(number of dimensions) followed by the cells, organised into dimensions
+(number of dimensions) followed by the cells, organized into dimensions
 using parentheses.  The nesting depth of the parentheses is equal to
 the rank.
 
@@ -3887,8 +3888,13 @@ and is described elsewhere.
 @end deffn
 
 @deffn procedure make-array initial-value bound1 bound2 @dots{}
-Creates and returns an array that has as many dimensions as there are
-@var{bound}s and fills it with @var{initial-value}.
+Create and return an array that has as many dimensions as there are
+@var{bound}s and fill it with @var{initial-value}.  Each @var{bound}
+may be a positive non-zero integer @var{N}, in which case the index for
+that dimension can range from 0 through @var{N-1}; or an explicit index
+range specifier in the form @code{(LOWER UPPER)}, where both @var{lower}
+and @var{upper} are integers, possibly less than zero, and possibly the
+same number (however, @var{lower} cannot be greater than @var{upper}).
 @end deffn
 
 @c array-ref's type is `compiled-closure'.  There's some weird stuff
@@ -3905,9 +3911,10 @@ Return @code{#t} if its arguments would be acceptable to
 @code{array-ref}.
 @end deffn
 
+@c fixme: why do these sigs differ?  -ttn 2001/07/19 01:14:12
 @deffn primitive array-set! v obj . args
 @deffnx primitive uniform-array-set1! v obj args
-Sets the element at the @code{(index1, index2)} element in @var{array} to
+Set the element at the @code{(index1, index2)} element in @var{array} to
 @var{new-value}.  The value returned by array-set! is unspecified.
 @end deffn
 
@@ -3988,7 +3995,7 @@ examples:
 @end deffn
 
 @deffn procedure array-shape array
-Returns a list of inclusive bounds of integers.
+Return a list of inclusive bounds of integers.
 @example
 (array-shape (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) (0 4))
 @end example
@@ -4014,20 +4021,20 @@ Return a list consisting of all the elements, in order, of
 
 @deffn primitive array-copy! src dst
 @deffnx primitive array-copy-in-order! src dst
-Copies every element from vector or array @var{source} to the
+Copy every element from vector or array @var{source} to the
 corresponding element of @var{destination}.  @var{destination} must have
 the same rank as @var{source}, and be at least as large in each
 dimension.  The order is unspecified.
 @end deffn
 
 @deffn primitive array-fill! ra fill
-Stores @var{fill} in every element of @var{array}.  The value returned
+Store @var{fill} in every element of @var{array}.  The value returned
 is unspecified.
 @end deffn
 
 @c begin (texi-doc-string "guile" "array-equal?")
 @deffn primitive array-equal? ra0 ra1
-Returns @code{#t} iff all arguments are arrays with the same shape, the
+Return @code{#t} iff all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?}  or @code{array-equal?}.  This function differs from
 @code{equal?} in that a one dimensional shared array may be
@@ -4038,7 +4045,7 @@ same type, and have corresponding elements which are either
 @deffnx primitive array-contents array strict
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
 without changing their order (last subscript changing fastest), then
-@code{array-contents} returns that shared array, otherwise it returns
+@code{array-contents} return that shared array, otherwise return
 @code{#f}.  All arrays made by @var{make-array} and
 @var{make-uniform-array} may be unrolled, some arrays made by
 @var{make-shared-array} may not be.
@@ -4062,12 +4069,12 @@ unspecified.  The order of application is unspecified.
 @end deffn
 
 @deffn primitive array-for-each proc ra0 . lra
-@var{proc} is applied to each tuple of elements of @var{array0} @dots{}
+Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
 in row-major order.  The value returned is unspecified.
 @end deffn
 
 @deffn primitive array-index-map! ra proc
-applies @var{proc} to the indices of each element of @var{array} in
+Apply @var{proc} to the indices of each element of @var{array} in
 turn, storing the result in the corresponding element.  The value
 returned and the order of application are unspecified.
 
@@ -4145,16 +4152,16 @@ except that a single character from the above table is put between
 long integers is displayed in the form @code{'#e(3 5 9)}.
 
 @deffn primitive array? v [prot]
-Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.
+Return @code{#t} if the @var{obj} is an array, and @code{#f} if not.
 
 The @var{prototype} argument is used with uniform arrays and is described
 elsewhere.
 @end deffn
 
 @deffn procedure make-uniform-array prototype bound1 bound2 @dots{}
-Creates and returns a uniform array of type corresponding to
+Create and return a uniform array of type corresponding to
 @var{prototype} that has as many dimensions as there are @var{bound}s
-and fills it with @var{prototype}.
+and fill it with @var{prototype}.
 @end deffn
 
 @deffn primitive array-prototype ra
@@ -4172,7 +4179,7 @@ done.
 @end deffn
 
 @deffn primitive uniform-vector-fill! uve fill
-Stores @var{fill} in every element of @var{uve}.  The value returned is
+Store @var{fill} in every element of @var{uve}.  The value returned is
 unspecified.
 @end deffn
 
@@ -4192,7 +4199,7 @@ fill the array, otherwise @var{prototype} is used.
 
 @deffn primitive uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]
-Attempts to read all elements of @var{ura}, in lexicographic order, as
+Attempt to read all elements of @var{ura}, in lexicographic order, as
 binary objects from @var{port-or-fdes}.
 If an end of file is encountered during
 uniform-array-read! the objects up to that point only are put into @var{ura}
@@ -4210,7 +4217,7 @@ returned by @code{(current-input-port)}.
 
 @deffn primitive uniform-array-write v [port_or_fd [start [end]]]
 @deffnx primitive uniform-vector-write uve [port-or-fdes] [start] [end]
-Writes all elements of @var{ura} as binary objects to
+Write all elements of @var{ura} as binary objects to
 @var{port-or-fdes}.
 
 The optional arguments @var{start}
@@ -4254,7 +4261,7 @@ within the specified range @code{#f} is returned.
 @end deffn
 
 @deffn primitive bit-invert! v
-Modifies @var{bv} by replacing each element with its negation.
+Modify @var{bv} by replacing each element with its negation.
 @end deffn
 
 @deffn primitive bit-set*! v kv obj
