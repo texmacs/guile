@@ -4,6 +4,15 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes since guile 1.6.0:
+
+* Changes to the distribution
+
+** Guile now includes its own version of libltdl.
+
+We now use a modified version of libltdl that allows us to make
+improvements to it without having to rely on libtool releases.
+
 Changes since Guile 1.4:
 
 * General Changes
