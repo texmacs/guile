@@ -28,7 +28,7 @@ bin_SCRIPTS = guile-tools
 
 include_HEADERS = libguile.h
 
-EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
+EXTRA_DIST = HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
 	     $(ACLOCAL) BUGS
 
 TESTS = check-guile
