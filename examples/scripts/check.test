@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# must be run from this directory
+guile=${GUILE-../../libguile/guile}
+
+set -e
+
+#
+# simple-hello.scm
+#
+$guile -s simple-hello.scm > TMP
+cat <<EOF | diff -u - TMP
+Hello, World!
+EOF
+rm -f TMP
+
+#
+# hello
+#
+$guile -s hello > TMP
+echo "Hello, World!" | diff -u - TMP
+rm -f TMP
+
+$guile -s hello --version > TMP
+echo "hello 0.0.1" | diff -u - TMP
+rm -f TMP
+
+$guile -s hello --help > TMP
+cat <<EOF | diff -u - TMP
+Usage: hello [options...]
+  --help, -h           Show this usage information
+  --version, -v        Show version information
+EOF
+rm -f TMP
+
+#
+# fact
+#
+case `guile -s fact 5` in 120) ;; *) echo $0: error: fact 5 ;; esac
+
+# check.test ends here
