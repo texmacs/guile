@@ -1005,6 +1005,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   for (i = 0; exec_env[i] != NULL; i++)
     free (exec_env[i]);
   free (exec_env);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
