@@ -63,6 +63,9 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
+- Write instructions to distributors on how to build a generic Guile
+  for including in a distribution.
+
 - Wait for reply from ttn about version numbers.
 
 - Update the version numbers in GUILE-VERSION and README. [rlb]
