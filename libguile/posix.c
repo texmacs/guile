@@ -1238,6 +1238,18 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   char *ptr;
 
   SCM_VALIDATE_STRING (1, str);
+
+  /* No '=' in the argument means we should remove the variable from the
+     environment.  Not all putenv()s understand this (for instance FreeBSD
+     4.8 doesn't).  To be safe, we do it explicitely using unsetenv. */
+#ifdef HAVE_UNSETENV
+  if (strchr (SCM_STRING_CHARS (str), '=') == NULL)
+    {
+      unsetenv (SCM_STRING_CHARS (str));
+      return SCM_UNSPECIFIED;
+    }
+#endif
+
   /* must make a new copy to be left in the environment, safe from gc.  */
   ptr = malloc (SCM_STRING_LENGTH (str) + 1);
   if (ptr == NULL)
