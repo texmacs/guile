@@ -65,7 +65,7 @@ See also file HACKING.
 
 + write "make check" tests for subdir `examples'
 
-- Make sure that the deprecation mechanism explained in INSTALL and
++ Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
 - Decide if setitimer and getitimer should accept bignum arguments
@@ -81,7 +81,7 @@ See also file HACKING.
   and looking for files you know you've worked on a lot.
   [martin: done]
 
-- Make sure NEWS, INSTALL, AUTHORS and THANKS and the docs are up to date
++ Make sure NEWS, INSTALL, AUTHORS and THANKS and the docs are up to date
 
 + Scan the ChangeLogs for user-visible changes, marked with an asterisk
   at the left margin. [martin: there were none]
@@ -94,12 +94,12 @@ See also file HACKING.
 
 + Check for any [[incomplete]] sections of NEWS.
 
-- Fact-check INSTALL. (rlb: INSTALL looks pretty good to me, but can
++ Fact-check INSTALL. (rlb: INSTALL looks pretty good to me, but can
   someone make sure that in the "Using Guile without installing it"
   section, we don't need to mention setting LTDL_LIBRARY_PATH or
   LD_LIBRARY_PATH.)
 
-- Make sure the downloading addresses and filenames in README are
++ Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
 
 - Make sure we have appropriate interface numbers for shared
@@ -108,7 +108,7 @@ See also file HACKING.
 
 - Update the version numbers in GUILE-VERSION and README. [rlb]
 
-- Reformat the names in THANKS.
++ Reformat the names in THANKS.
 
 - update this TODO file, removing all "+" relevant to 1.6.0 after
   making sure that user-visible changes are reflected in NEWS (and

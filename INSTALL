@@ -210,6 +210,17 @@ or if you're using CSH or one of its variants:
 
   setenv GUILE_LOAD_PATH /home/jimb/guile-snap
 
+You will additionally need to set your `LTDL_LIBRARY_PATH' environment
+variable to the directory in which the compiled SRFI support modules
+are created if you want to use the modules for SRFI-4, SRFI-13 or
+SRFI-14 support.  Similar to the example above, this will be,
+
+  export LTDL_LIBRARY_PATH=/home/jimb/guile-snap/srfi/.libs
+
+or if you're using CSH or one of its variants:
+
+  setenv LTDL_LIBRARY_PATH /home/jimb/guile-snap/srfi/.libs
+
 
 Installing SLIB ===========================================================
 
