@@ -2,7 +2,7 @@
 
 	* strports.c (scm_call_with_output_string): scm_get_output_string
 	rather than scm_strport_to_string, so as to guard against the port
-	having been closed by the called procedure.
+	having been closed by the called procedure.  Reported by Nic Ferrier.
 
 2003-10-01  Rob Browning  <rlb@defaultvalue.org>
 
