@@ -345,4 +345,11 @@ Thomas Wawrzinek sez:
 > a wrong usage error or something?
 
 
+bug 13 -- (expt 0 0) -> 0
+reported-by: rlb / 2001-03-21
+fixed: not-yet
+
+According to R5RS (expt 0 0) -> 1
+
+
 [BUGS ends here]
