@@ -1,3 +1,7 @@
+2001-07-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* TODO: Mention "make check" tests for subdir `examples'.
+
 2001-07-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* INSTALL: Point to HACKING for tool versions.
