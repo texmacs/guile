@@ -1,6 +1,7 @@
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_init_socket): Add SOCK_SEQPACKET and SOCK_RDM.
+	Reported by Michael Tuexen.
 
 2004-08-11  Marius Vollmer  <mvo@zagadka.de>
 
