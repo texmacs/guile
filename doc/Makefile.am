@@ -38,14 +38,5 @@ dist-hook:
 	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
         done
 
-EXTRA_DIST = groupings.alist guile-api.alist
-
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
-
-if MAINTAINER_MODE
-include $(top_srcdir)/am/maintainer-dirs
-guile-api.alist: guile-api.alist-FORCE
-	( cd $(top_builddir) ; $(mscripts)/update-guile-api.alist )
-guile-api.alist-FORCE:
-endif
