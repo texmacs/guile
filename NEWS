@@ -241,6 +241,19 @@ Previously, scripts executed via the `-s' option would run in the
 Now every user action takes place in the `(guile-user)' module by
 default.
 
+** The `help' facility now handles quoted symbols and lists of symbols.
+
+Here is the updated usage info:
+
+Usage: (help NAME) gives documentation about objects named NAME (a symbol)
+       (help REGEXP) ditto for objects with names matching REGEXP (a string)
+      *(help 'NAME) gives documentation for NAME, even if it is not an object
+       (help ,EXPR) gives documentation for object returned by EXPR
+      *(help (my module)) gives module commentary for `(my module)'
+       (help) gives this text
+
+The starred items are new.
+
 * Changes to Scheme functions and syntax
 
 ** Previously deprecated Scheme functions have been removed:
@@ -1185,9 +1198,7 @@ This is useful when debugging your .guile init file or scripts.
 
 Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
-       (help 'NAME) gives documentation for NAME, even if it is not an object
        (help ,EXPR) gives documentation for object returned by EXPR
-       (help (my module)) gives module commentary for `(my module)'
        (help) gives this text
 
 `help' searches among bindings exported from loaded modules, while
