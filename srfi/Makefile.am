@@ -52,20 +52,22 @@ libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LDFLAGS = -export
   -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
 srfidir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/srfi
-srfi_DATA = srfi-1.scm \
-            srfi-2.scm \
-	    srfi-4.scm \
-            srfi-6.scm \
-            srfi-8.scm \
-            srfi-9.scm \
-            srfi-10.scm \
-            srfi-11.scm \
-            srfi-13.scm \
-            srfi-14.scm \
-	    srfi-16.scm \
-            srfi-17.scm \
-            srfi-19.scm \
-            srfi-31.scm
+srfi_DATA = \
+  srfi-1.scm \
+  srfi-2.scm \
+  srfi-4.scm \
+  srfi-6.scm \
+  srfi-8.scm \
+  srfi-9.scm \
+  srfi-10.scm \
+  srfi-11.scm \
+  srfi-13.scm \
+  srfi-14.scm \
+  srfi-16.scm \
+  srfi-17.scm \
+  srfi-19.scm \
+  srfi-31.scm \
+  srfi-39.scm
 
 EXTRA_DIST = $(srfi_DATA)
 
