@@ -1,5 +1,7 @@
 2002-04-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* tools.texi (guile-snarf): Updated.
+
 	* Makefile.am (guile_TEXINFOS): Add scheme-compound.texi.
 	(CLEANFILES): Added guile.cps, guile.fns, guile.rns, guile.tps,
 	guile.vrs.
