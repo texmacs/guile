@@ -111,6 +111,7 @@ also be executable as scripts.  At this time, these scripts are available:
      doc-snarf
      frisk
      generate-autoload
+     lint
      punify
      read-scheme-source
      use2dot
