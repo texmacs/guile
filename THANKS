@@ -1,14 +1,9 @@
-The Guile maintainer committee consists of
-
-	    Jim Blandy
-	 Mikael Djurfeldt
-	 Maciej Stachowiak
-	 Marius Vollmer
-
 Contributors since the last release:
 
+	    Jim Blandy
            Jost Boekemeier
 	    Rob Browning
+	 Mikael Djurfeldt
 	   Will Fitzgerald
 	 Martin Grabmueller
 	   Dirk Herrmann
@@ -18,6 +13,8 @@ Contributors since the last release:
 	Michael Livshin
 	Keisuke Nishida
       Thien-Thi Nguyen
+	 Maciej Stachowiak
+	 Marius Vollmer
 	  Niibe Yutaka
 
 Sponsors since the last release:
