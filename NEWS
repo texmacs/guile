@@ -6,6 +6,24 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.6.0:
 
+* General Changes
+
+** Guile now provide and uses an "effective" version number.
+
+Guile now provides scm_effective_version and effective-version
+functions which return the "effective" version number.  This is just
+the normal full version string without the final micro-version number,
+so the current effective-version is "1.6".  The effective version
+should remain unchanged during a stable series, and should be used for
+items like the versioned share directory name
+i.e. /usr/share/guile/1.6.
+
+Providing an unchanging version number during a stable release for
+things like the versioned share directory can be particularly
+important for Guile "add-on" packages, since it provides a directory
+that they can install to that won't be changed out from under them
+with each micro release during a stable series.
+
 * Changes to the distribution
 
 ** Guile now uses it's own version of libltdl.
@@ -18,6 +36,16 @@ easy to forward our modifications to the libtool developers.
 ** The Emacs interface has been fixed.
 
 ** The SRFI C headers are now installed.
+
+* Changes to the stand-alone interpreter
+
+* Changes to Scheme functions and syntax
+
+** New function: effective-version -- see "General Changes" above.
+
+* Changes to the C interface 
+
+** New function: scm_effective_version -- see "General Changes" above.
 
 
 Changes since Guile 1.4:
