@@ -1,5 +1,7 @@
 2001-09-20  Rob Browning  <rlb@defaultvalue.org>
 
+	* .cvsignore: add version.h
+
 	* versiondat.h.in: removed (obsolete).
 
 	* version.h.in: renamed from version.h.
