@@ -1,3 +1,8 @@
+2004-02-16  Kevin Ryde  <user42@zip.com.au>
+
+	* script.c (scm_shell_usage): Print bug-guile email address, as per
+	GNU standard.  Reported by Han-Wen Nienhuys.
+
 2004-02-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* sort.c (scm_cmp_function): Always return applyless, do not try
