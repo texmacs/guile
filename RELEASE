@@ -123,7 +123,7 @@ Spiffing checklist:
   * configure the source tree for build in the same tree with these
     configuration options:
       --enable-maintainer-mode --enable-debug-malloc --with-threads
-      --enable-error-on-warning
+      --enable-error-on-warning --prefix=/wherever/you/want
 
   * Make sure that readline was enabled correctly.
 
@@ -131,9 +131,11 @@ Spiffing checklist:
     dependencies won't be properly included in the generated
     Makefile.in files.)
 
-  * Verify that Guile builds and runs in your working directory.
+  * Run a "make", "make check", and a "make install".  Make sure to
+    delete your previous install tree before the "make install".
 
-  * Run a "make check".
+  * Look at the install tree (with "find | sort" or similar) and make
+    sure nothing seems obviously amiss.
 
   * Run 'make dist'.
 
@@ -162,7 +164,7 @@ Spiffing checklist:
   + Remove automake and autoconf from your path, or turn off their
     execute bits, or something.  (Users must be able to build the
     disty without installing those tools.)
-  + Configure, make, and install.
+  + Configure, make, make check, and make install.
   + Make sure LD_LIBRARY_PATH doesn't include anything unnecessary.
   + Run the test suite on the installed version.
   + You might try the example code in the doc directory.
