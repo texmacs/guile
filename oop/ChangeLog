@@ -1,6 +1,7 @@
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
-	* goops.scm (equal?): Provide default method for `equal?'.
+	* goops.scm (eqv?, equal?): Provide default methods for `eqv?' and
+	`equal?'.
 	(compute-getters-n-setters): Check for bad init-thunks.
 
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
