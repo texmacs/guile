@@ -30,7 +30,9 @@ rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
 ######################################################################
 
-./guile-aclocal.sh
+# Make sure this matches the ACLOCAL invokation in Makefile.am
+
+aclocal -I guile-config
 
 ######################################################################
 ### Libtool setup.
@@ -48,6 +50,12 @@ rm libltdl/configure.tmp
 
 autoheader
 autoconf
+
+# Automake has a bug that will let it only add one copy of a missing
+# file.  We nned two mdate-sh, tho, one in doc/ref/ and one in
+# doc/tutorial/.  We run automake twice as a workaround.
+
+automake --add-missing
 automake --add-missing
 
 # Make sure that libltdl uses the same autoconf version as the rest.
