@@ -600,7 +600,8 @@ scm_m_case (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM proc, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_clauses, s_case);
-  while (SCM_NIMP (x = SCM_CDR (x)))
+  x = SCM_CDR (x);
+  while (SCM_NIMP (x))
     {
       proc = SCM_CAR (x);
       SCM_ASSYNT (scm_ilength (proc) >= 2, scm_s_clauses, s_case);
@@ -608,6 +609,7 @@ scm_m_case (SCM xorig, SCM env SCM_UNUSED)
 		  || (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)) 
 		      && SCM_NULLP (SCM_CDR (x))),
 		  scm_s_clauses, s_case);
+      x = SCM_CDR (x);
     }
   return scm_cons (SCM_IM_CASE, cdrx);
 }
@@ -930,8 +932,9 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env SCM_UNUSED)
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);
+      proc = SCM_CDR (proc);
     }
-  while (SCM_NIMP (proc = SCM_CDR (proc)));
+  while (SCM_NIMP (proc));
 
   return scm_cons2 (op, vars,
 		    scm_cons (inits, scm_m_body (imm, SCM_CDR (x), what)));
@@ -1449,15 +1452,21 @@ unmemocopy (SCM x, SCM env)
 			  env);
     }
 loop:
-  while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
-    {
+  
+  x = SCM_CDR (x);
+  while (SCM_CELLP (x) && SCM_ECONSP (x))
+  {
       if (SCM_ISYMP (SCM_CAR (x)))
-	/* skip body markers */
-	continue;
+	{
+          /* skip body markers */
+          x = SCM_CDR (x);
+          continue;
+        }
       SCM_SETCDR (z, unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
 					  SCM_UNSPECIFIED),
 				env));
       z = SCM_CDR (z);
+      x = SCM_CDR (x);
     }
   SCM_SETCDR (z, x);
 #ifdef DEBUG_EXTENSIONS
@@ -1562,7 +1571,8 @@ scm_eval_body (SCM code, SCM env)
   SCM next;
  again:
   next = code;
-  while (SCM_NNULLP (next = SCM_CDR (next)))
+  next = SCM_CDR (next);
+  while (SCM_NNULLP (next))
     {
       if (SCM_IMP (SCM_CAR (code)))
 	{
@@ -1575,6 +1585,7 @@ scm_eval_body (SCM code, SCM env)
       else
 	SCM_XEVAL (SCM_CAR (code), env);
       code = next;
+      next = SCM_CDR (next);
     }
   return SCM_XEVALCAR (code, env);
 }
@@ -1970,11 +1981,13 @@ dispatch:
 	{
 	  t.arg1 = x;
 	  UPDATE_TOPLEVEL_ENV (env);
-	  while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+          t.arg1 = SCM_CDR (t.arg1);
+	  while (!SCM_NULLP (t.arg1))
 	    {
 	      EVALCAR (x, env);
 	      x = t.arg1;
 	      UPDATE_TOPLEVEL_ENV (env);
+              t.arg1 = SCM_CDR (t.arg1);
 	    }
 	  goto carloop;
 	}
@@ -2026,7 +2039,8 @@ dispatch:
     case SCM_BIT8(SCM_IM_CASE):
       x = SCM_CDR (x);
       t.arg1 = EVALCAR (x, env);
-      while (SCM_NIMP (x = SCM_CDR (x)))
+      x = SCM_CDR (x);
+      while (SCM_NIMP (x))
 	{
 	  proc = SCM_CAR (x);
 	  if (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)))
@@ -2046,12 +2060,13 @@ dispatch:
 		}
 	      proc = SCM_CDR (proc);
 	    }
+          x = SCM_CDR (x);
 	}
       RETURN (SCM_UNSPECIFIED)
 
-
     case SCM_BIT8(SCM_IM_COND):
-      while (!SCM_IMP (x = SCM_CDR (x)))
+      x = SCM_CDR (x);
+      while (!SCM_IMP (x))
 	{
 	  proc = SCM_CAR (x);
 	  t.arg1 = EVALCAR (proc, env);
@@ -2076,6 +2091,7 @@ dispatch:
 		goto umwrongnumargs;
 	      goto evap1;
 	    }
+          x = SCM_CDR (x);
 	}
       RETURN (SCM_UNSPECIFIED)
 
@@ -2091,18 +2107,21 @@ dispatch:
 	}
       env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (SCM_CDR (x));
-      while (proc = SCM_CAR (x), SCM_FALSEP (EVALCAR (proc, env)))
+      proc = SCM_CAR (x);
+      while (SCM_FALSEP (EVALCAR (proc, env)))
 	{
 	  for (proc = SCM_CADR (x); SCM_NIMP (proc); proc = SCM_CDR (proc))
 	    {
 	      t.arg1 = SCM_CAR (proc); /* body */
 	      SIDEVAL (t.arg1, env);
 	    }
+          /* FIXME */
 	  for (t.arg1 = SCM_EOL, proc = SCM_CDDR (x);
 	       SCM_NIMP (proc);
 	       proc = SCM_CDR (proc))
 	    t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1); /* steps */
 	  env = EXTEND_ENV (SCM_CAR (SCM_CAR (env)), t.arg1, SCM_CDR (env));
+          proc = SCM_CAR (x);
 	}
       x = SCM_CDR (proc);
       if (SCM_NULLP (x))
@@ -2115,10 +2134,14 @@ dispatch:
       x = SCM_CDR (x);
       if (SCM_NFALSEP (EVALCAR (x, env)))
 	x = SCM_CDR (x);
-      else if (SCM_IMP (x = SCM_CDR (SCM_CDR (x))))
-	{
-	  RETURN (SCM_UNSPECIFIED);
-	}
+      else
+        {
+          x = SCM_CDR (SCM_CDR (x));
+          if (SCM_IMP (x))
+            {
+              RETURN (SCM_UNSPECIFIED);
+            }
+        }
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
@@ -2130,8 +2153,9 @@ dispatch:
       do
 	{
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
+          proc = SCM_CDR (proc);
 	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
+      while (SCM_NIMP (proc));
       env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (x);
       goto nontoplevel_cdrxnoap;
@@ -2146,8 +2170,9 @@ dispatch:
       do
 	{
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
+          proc = SCM_CDR (proc);
 	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
+      while (SCM_NIMP (proc));
       SCM_SETCDR (SCM_CAR (env), t.arg1);
       goto nontoplevel_cdrxnoap;
 
@@ -2165,14 +2190,16 @@ dispatch:
 	  t.arg1 = SCM_CAR (proc);
 	  proc = SCM_CDR (proc);
 	  env = EXTEND_ENV (t.arg1, EVALCAR (proc, env), env);
-	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
+          proc = SCM_CDR (proc);
+        }
+      while (SCM_NIMP (proc));
       goto nontoplevel_cdrxnoap;
 
     case SCM_BIT8(SCM_IM_OR):
       x = SCM_CDR (x);
       t.arg1 = x;
-      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
+      t.arg1 = SCM_CDR (t.arg1);
+      while (!SCM_NULLP (t.arg1))
 	{
 	  x = EVALCAR (x, env);
 	  if (!SCM_FALSEP (x))
@@ -2180,6 +2207,7 @@ dispatch:
 	      RETURN (x);
 	    }
 	  x = t.arg1;
+          t.arg1 = SCM_CDR (t.arg1);
 	}
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
@@ -2256,12 +2284,13 @@ dispatch:
 	      else
 		{
 		  argl = tl = scm_cons (SCM_CAR (t.arg1), SCM_UNSPECIFIED);
-		  while (SCM_NIMP (t.arg1 = SCM_CDR (t.arg1))
-			 && SCM_CONSP (t.arg1))
+                  t.arg1 = SCM_CDR (t.arg1);
+		  while (SCM_NIMP (t.arg1) && SCM_CONSP (t.arg1))
 		    {
 		      SCM_SETCDR (tl, scm_cons (SCM_CAR (t.arg1),
 						SCM_UNSPECIFIED));
 		      tl = SCM_CDR (tl);
+                      t.arg1 = SCM_CDR (t.arg1);
 		    }
 		  SCM_SETCDR (tl, t.arg1);
 		}
@@ -2311,10 +2340,12 @@ dispatch:
 	    {
 	      arg2 = scm_cons (EVALCAR (proc, env), SCM_EOL);
 	      t.lloc = SCM_CDRLOC (arg2);
-	      while (SCM_NIMP (proc = SCM_CDR (proc)))
+              proc = SCM_CDR (proc);
+	      while (SCM_NIMP (proc))
 		{
 		  *t.lloc = scm_cons (EVALCAR (proc, env), SCM_EOL);
 		  t.lloc = SCM_CDRLOC (*t.lloc);
+                  proc = SCM_CDR (proc);
 		}
 	    }
 	  
@@ -2407,10 +2438,11 @@ dispatch:
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
-	  while (SCM_NIMP (x = SCM_CDR (proc)))
+          x = SCM_CDR (proc);
+	  while (SCM_NIMP (x))
 	    {
-	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || SCM_EQ_P (t.arg1, scm_lisp_nil)))
+              t.arg1 = EVALCAR (proc, env);
+	      if (!(SCM_FALSEP (t.arg1) || SCM_EQ_P (t.arg1, scm_lisp_nil)))
 		{
 		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
@@ -2418,6 +2450,7 @@ dispatch:
 		  goto carloop;
 		}
 	      proc = SCM_CDR (x);
+              x = SCM_CDR (proc);
 	    }
 	  x = proc;
 	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2435,10 +2468,11 @@ dispatch:
 	    
 	case (SCM_ISYMNUM (SCM_IM_0_COND)):
 	  proc = SCM_CDR (x);
-	  while (SCM_NIMP (x = SCM_CDR (proc)))
+          x = SCM_CDR (proc);
+	  while (SCM_NIMP (x))
 	    {
-	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || SCM_EQ_P (t.arg1, SCM_INUM0)))
+              t.arg1 = EVALCAR (proc, env);
+	      if (!(SCM_FALSEP (t.arg1) || SCM_EQ_P (t.arg1, SCM_INUM0)))
 		{
 		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
@@ -2446,6 +2480,7 @@ dispatch:
 		  goto carloop;
 		}
 	      proc = SCM_CDR (x);
+              x = SCM_CDR (proc);
 	    }
 	  x = proc;
 	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2481,10 +2516,12 @@ dispatch:
 	  scm_dynwinds = scm_acons (t.arg1, SCM_CDAR (env), scm_dynwinds);
 	  
 	  arg2 = x = SCM_CDR (x);
-	  while (SCM_NNULLP (arg2 = SCM_CDR (arg2)))
+          arg2 = SCM_CDR (arg2);
+	  while (SCM_NNULLP (arg2))
 	    {
 	      SIDEVAL (SCM_CAR (x), env);
 	      x = arg2;
+              arg2 = SCM_CDR (arg2);
 	    }
 	  proc = EVALCAR (x, env);
 	  
@@ -2645,7 +2682,8 @@ dispatch:
 		  SCM_ALLOW_INTS;
 		  goto loopnoap;
 		case 1:
-		  if (SCM_NIMP (x = t.arg1))
+                  x = t.arg1;
+		  if (SCM_NIMP (x))
 		    goto loopnoap;
 		case 0:
 		  RETURN (t.arg1);
@@ -3579,11 +3617,13 @@ tail:
       else
 	{
 	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
-	  while (arg1 = SCM_CDR (arg1), SCM_CONSP (arg1))
+          arg1 = SCM_CDR (arg1);
+	  while (SCM_CONSP (arg1))
 	    {
 	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1),
 					SCM_UNSPECIFIED));
 	      tl = SCM_CDR (tl);
+              arg1 = SCM_CDR (arg1);
 	    }
 	  SCM_SETCDR (tl, arg1);
 	}
@@ -3592,7 +3632,8 @@ tail:
       proc = SCM_CDR (SCM_CODE (proc));
     again:
       arg1 = proc;
-      while (SCM_NNULLP (arg1 = SCM_CDR (arg1)))
+      arg1 = SCM_CDR (arg1);
+      while (SCM_NNULLP (arg1))
 	{
 	  if (SCM_IMP (SCM_CAR (proc)))
 	    {
@@ -3607,6 +3648,7 @@ tail:
 	  else
 	    SCM_CEVAL (SCM_CAR (proc), args);
 	  proc = arg1;
+          arg1 = SCM_CDR (arg1);
 	}
       RETURN (EVALCAR (proc, args));
     case scm_tc7_smob:
@@ -3963,11 +4005,13 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
   ans = tl = scm_cons_source (obj,
 			      scm_copy_tree (SCM_CAR (obj)),
 			      SCM_UNSPECIFIED);
-  while (obj = SCM_CDR (obj), SCM_CONSP (obj))
+  obj = SCM_CDR (obj);
+  while (SCM_CONSP (obj))
     {
       SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
 				SCM_UNSPECIFIED));
       tl = SCM_CDR (tl);
+      obj = SCM_CDR (obj);
     }
   SCM_SETCDR (tl, obj);
   return ans;
