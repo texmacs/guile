@@ -11,6 +11,6 @@ u_lightning_TEXINFOS = body.texi toc.texi using.texi version.texi
 p_lightning_TEXINFOS = body.texi toc.texi porting.texi version.texi
 
 lightningize.1: $(top_srcdir)/lightningize.in $(top_srcdir)/configure.ac
-	cd $(top_srcdir) && $(MAKE) lightningize
-	$(HELP2MAN) -p lightning $(top_srcdir)/lightningize > $(srcdir)/lightningize.1
+	cd $(top_builddir) && $(MAKE) lightningize
+	$(HELP2MAN) -p lightning $(top_builddir)/lightningize > $(srcdir)/lightningize.1
  
