@@ -466,8 +466,8 @@ display_backtrace_file (frame, last_file, port, pstate)
   *last_file = file;
 
   scm_puts ("In ", port);
-  if (file == SCM_BOOL_F)
-    if (line == SCM_BOOL_F)
+  if (SCM_FALSEP (file))
+    if (SCM_FALSEP (line))
       scm_puts ("unknown file", port);
     else
       scm_puts ("current input", port);
