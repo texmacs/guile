@@ -2,7 +2,7 @@
 
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 
 #include "libguile/__scm.h"
 
-#include "struct.h"
+#include "libguile/struct.h"
 
 
 
