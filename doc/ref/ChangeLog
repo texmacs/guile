@@ -1,3 +1,10 @@
+2002-01-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (autoconf-macros.texi): Fix build bug: Write this
+	file to srcdir.  Also, attempt to use guile from
+	$(top_builddir)/libguile.  There are still problems with modules
+	and running makeinfo when builddir != srcdir.
+
 2002-01-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* data-rep.texi, gh.texi, guile.texi, intro.texi,
