@@ -20,6 +20,12 @@ Changes since Guile 1.6.6 (changes in 1.6.7):
 
 * Changes to Scheme functions and syntax
 
+** string->number and octal constant bignums
+
+An incorrect bignum size calculation has been fixed, this caused
+overflow errors in string->number on bases other than 2, 10 and 16,
+including octal literal constants in code or the reader.
+
 ** SRFI-1 alist-delete equality argument order fixed.
 
 In the srfi-1 module alist-delete and alist-delete!, the order of the

@@ -1,3 +1,18 @@
+2004-12-09  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_istr2int): Correction to overflow test, should be
+	"blen >= j" not "blen > j", since after blen++ the k<blen loop will
+	have k==j which is past the end of the j length array and overwrites
+	data, leading to segvs in certain circumstances.  And put the test
+	only before the blen++, which is the only place it can overflow, and
+	since we can legitimately get to blen==j with t2==0 when filling the
+	high word of the bignum.
+
+	* numbers.c (scm_istr2int): Correction to bignum size calculation for
+	bases other than 2, 10, 16.  This avoids overflows, in particular in
+	octal string->number and constants (other bases are undocumented, but
+	reach here so may as well work).
+
 2004-12-02  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_execle): Correction to memory leak change, need to
