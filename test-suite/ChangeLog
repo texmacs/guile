@@ -2,6 +2,11 @@
 
 	* tests/ports.test (call-with-output-string): Test proc closing port.
 	
+2003-09-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/popen.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2003-08-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-19.test (date-week-number): Add tests.
