@@ -1,6 +1,6 @@
 ;;; srfi-11.scm --- let-values and let*-values
 
-;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -214,7 +214,7 @@
 
   (define (let-values-helper vars body prev-let-vars)
     (let* ((var-binding (car vars))
-           (new-tmps (map-1-dot (lambda (sym) (gentemp))
+           (new-tmps (map-1-dot (lambda (sym) (gensym))
                                 (car var-binding)))
            (let-vars (map (lambda (sym tmp) (list sym tmp))
                           (undot-list (car var-binding))
