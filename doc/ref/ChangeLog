@@ -1,3 +1,13 @@
+2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (String Predicates): Correct doc for
+	string-null?.  Thanks to Scott Lenser!
+
+2001-11-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (String Searching): Add missing "for".  Thanks
+	to Scott Lenser.
+
 2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* srfi-modules.texi (SRFI-19, SRFI-19 Constants, SRFI-19 Current

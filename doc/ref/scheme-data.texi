@@ -1414,7 +1414,7 @@ Return @code{#t} iff @var{obj} is a string, else @code{#f}.
 @end deffn
 
 @deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and
+Return @code{#t} if @var{str}'s length is zero, and
 @code{#f} otherwise.
 @lisp
 (string-null? "")  @result{} #t
@@ -1689,8 +1689,8 @@ equal to @var{s2} regardless of case.
 @node String Searching
 @subsection String Searching
 
-When searching the index of a character in a string, these procedures
-can be used.
+When searching for the index of a character in a string, these
+procedures can be used.
 
 @deffn primitive string-index str chr [frm [to]]
 Return the index of the first occurrence of @var{chr} in

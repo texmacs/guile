@@ -1,3 +1,8 @@
+2001-11-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* docstring.el, README: Sync up with unstable version of these
+	files.
+
 2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile.texi: Automated docstring merging.
