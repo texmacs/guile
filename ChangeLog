@@ -1,3 +1,7 @@
+2004-04-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: add --fno-strict-aliasing when compiling with gcc.
+
 2004-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (crypt): Test with AC_SEARCH_LIBS, for the benefit of

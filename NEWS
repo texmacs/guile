@@ -23,6 +23,8 @@ Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 (use-modules (srfi srfi-31)) will now provide support for SRFI-31.
 See the Guile info pages for more documentation.
 
+** Guile is now compiled with -fno-strict-aliasing when gcc is detected.
+
 * Changes to the stand-alone interpreter
 
 ** GC bug fixed.
