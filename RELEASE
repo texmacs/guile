@@ -125,24 +125,13 @@ Spiffing checklist:
       --enable-maintainer-mode --enable-debug-malloc --with-threads
       --enable-error-on-warning --prefix=/wherever/you/want
 
-  * Make sure that readline was enabled correctly.
-
   * Build the tree.  (If the above two steps are not done first, the
     dependencies won't be properly included in the generated
     Makefile.in files.)
 
-  * Run a "make", "make check", and a "make install".  Make sure to
-    delete your previous install tree before the "make install".
+  * Run "make" and "make check".
 
-  * Look at the install tree (with "find | sort" or similar) and make
-    sure nothing seems obviously amiss.
-
-  * Run 'make dist'.
-
-  * Check that the dependencies in guile-readline/Makefile look OK.
-    (We currently use a kludge which edits the dependencies generated
-    by automake so that Guile can be built in a directory separate
-    from the source tree also with non-GNU make programs.)
+  * Run "make dist".
 
   * test the resultant tarfile yourself using the instructions under
     "Testing a release candidate tarfile" below.
@@ -160,14 +149,31 @@ Spiffing checklist:
   below.
 
 * Testing a release candidate tarfile:
-  + Unset GUILE_LOAD_PATH.
-  + Remove automake and autoconf from your path, or turn off their
-    execute bits, or something.  (Users must be able to build the
-    disty without installing those tools.)
-  + Configure, make, make check, and make install.
-  + Make sure LD_LIBRARY_PATH doesn't include anything unnecessary.
-  + Run the test suite on the installed version.
-  + You might try the example code in the doc directory.
+
+  * Unset GUILE_LOAD_PATH.
+
+  * Remove automake and autoconf from your path, or turn off their
+    execute bits, or something.  (Users must be able to build from the
+    tarfile without installing those tools.)
+
+  * Configure, "make", "make check", and "make install".  Make sure to
+    remove your previous install tree before the "make install".
+
+  * Make sure LD_LIBRARY_PATH doesn't include anything unnecessary.
+
+  * Run the test suite on the installed version.
+
+  * Look at the install tree (with "find | sort" or similar) and make
+    sure nothing seems obviously amiss.
+
+  * Check that the dependencies in guile-readline/Makefile look OK.
+    (We currently use a kludge which edits the dependencies generated
+    by automake so that Guile can be built in a directory separate
+    from the source tree also with non-GNU make programs.)
+
+  * Make sure readline works.
+
+  * You might try the example code in the doc directory.
 
 Once you've got a disty that seems pretty solid:
 
