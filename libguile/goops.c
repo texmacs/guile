@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -473,6 +473,8 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 
 
 SCM_KEYWORD (k_class, "class");
+SCM_KEYWORD (k_allocation, "allocation");
+SCM_KEYWORD (k_instance, "instance");
 
 SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	    (SCM class),
@@ -481,7 +483,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 {
   long i, n, len;
   char *s, p, a;
-  SCM nfields, slots, type;
+  SCM nfields, slots, type, allocation;
 
   SCM_VALIDATE_INSTANCE (1, class);
   slots = SCM_SLOT (class, scm_si_slots);
@@ -501,8 +503,17 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
       if (!SCM_CONSP (slots))
 	SCM_MISC_ERROR ("to few slot definitions", SCM_EOL);
       len = scm_ilength (SCM_CDAR (slots));
-      type = scm_i_get_keyword (k_class, SCM_CDAR (slots), len, SCM_BOOL_F,
-				FUNC_NAME);
+      allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
+				      len, k_instance, FUNC_NAME);
+      while (!SCM_EQ_P (allocation, k_instance))
+	{
+	  slots = SCM_CDR (slots);
+	  len = scm_ilength (SCM_CDAR (slots));
+	  allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
+					  len, k_instance, FUNC_NAME);
+	}
+      type = scm_i_get_keyword (k_class, SCM_CDAR (slots),
+				len, SCM_BOOL_F, FUNC_NAME);
       if (SCM_NIMP (type) && SCM_SUBCLASSP (type, scm_class_foreign_slot))
 	{
 	  if (SCM_SUBCLASSP (type, scm_class_self))

@@ -1,3 +1,8 @@
+2003-01-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (scm_sys_prep_layout_x): Bugfix: Only create layout for
+	slots with instance allocation.
+	
 2002-12-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (EXTRA_DIST): add version.h.in to EXTRA_DIST.
