@@ -1,3 +1,8 @@
+2001-07-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger.scm (run-last-command): Return current state if
+	last-command fluid is not yet set.
+
 2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* safe-r5rs.scm: Use `re-export' instead of `export' for
