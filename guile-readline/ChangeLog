@@ -1,3 +1,8 @@
+2002-01-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* readline.scm (with-readline-completion-function): Renamed from
+	`call-with-readline-completion-function'.
+
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* readline.scm: load libguilereadline, not libguilereadline.so --
