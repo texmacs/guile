@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2002 Free Software Foundation, Inc.
+##  	Copyright (C) 2001 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -32,13 +32,9 @@ scripts_sources =		\
 	lint			\
 	punify			\
 	read-scheme-source	\
-	read-text-outline	\
 	use2dot                 \
 	snarf-check-and-output-texi \
-	summarize-guile-TODO	\
-	scan-api		\
-	api-diff		\
-	read-rfc822
+	snarf-guile-m4-docs
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
