@@ -1,7 +1,9 @@
 guile-1.6 (1.6.3-5) unstable; urgency=low
 
   * remove --list-missing from debian/rules. (closes: bug#187926)
-  * try fix for libqthreads-12 per-arch build problem. (closes: bug#183686)
+  * try fix for libqthreads-12 per-arch build problem. Try just producing
+    an empty libqthreads-12 .install file on unsupported arches.
+    (closes: bug#183686)
   * fix alpha qt assembly bugs. (closes: bug#186981)
 
  --

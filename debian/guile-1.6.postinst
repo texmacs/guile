@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" != "upgrade" ] ; then
+    update-alternatives \
+      --install /usr/bin/guile guile /usr/bin/guile-1.6 160 \
+      --slave /usr/bin/guile-config guile-config /usr/bin/guile-1.6-config \
+      --slave /usr/bin/guile-snarf guile-snarf /usr/bin/guile-1.6-snarf \
+      --slave /usr/bin/guile-tools guile-tools /usr/bin/guile-1.6-tools
+fi
+
+#DEBHELPER#

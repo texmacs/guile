@@ -9,7 +9,6 @@ Package: guile-1.6
 Section: interpreters
 Architecture: any
 Provides: guile
-Conflicts: guile
 Depends: ${shlibs:Depends}
 Suggests: guile-1.6-doc
 Description: The GNU extension language and Scheme interpreter
@@ -64,7 +63,7 @@ Description: Main Guile libraries
 
 Package: libqthreads-12
 Section: libs
-Architecture: i386 alpha
+Architecture: any
 Depends: ${shlibs:Depends}
 Description: QuickThreads library for Guile
  Guile is a Scheme implementation designed for real world programming,

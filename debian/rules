@@ -39,7 +39,6 @@ QTHREADS_DOT_INSTALLS := \
   $(foreach arch,${WORKING_QTHREADS_ARCHS},debian/guile-1.6-dev.install.${arch})
 
 ${QTHREADS_DOT_INSTALLS}: debian/guile-1.6-dev.install
-	echo ${DEBIAN_ARCHFILES}
 	cat $< > $@ && echo debian/tmp/usr/lib/libqthreads.la >> $@
 
 configure_args = \
@@ -52,6 +51,9 @@ configure_args = \
 	${ENABLE_THREADS}
 
 config-stamp: configure ${QTHREADS_DOT_INSTALLS}
+	$(foreach arch,${WORKING_QTHREADS_ARCHS},\
+	  echo 'debian/tmp/usr/lib/libqthreads.so.*' \
+	    > debian/libqthreads-12.install.${arch};)
 	@if test -d CVS || test -d .svn; \
 	then \
 	  echo ./configure --enable-maintainer-mode ${configure_args}; \
@@ -73,6 +75,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f config-stamp build-stamp ${QTHREADS_DOT_INSTALLS}
+	rm -f debian/libqthreads-12.install.*
 
 	-$(MAKE) clean
 	-$(MAKE) distclean
@@ -86,7 +89,20 @@ install: build
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
-	dh_install --list-missing
+	dh_install
+
+	perl -p \
+	  -e 's|^#!\s*/usr/bin/guile([^-])|#!/usr/bin/guile-1.6$$1|o' \
+	  -e ' if $$. == 1;' \
+	  debian/guile-1.6/usr/bin/guile-config \
+	  debian/guile-1.6/usr/bin/guile-snarf \
+	  debian/guile-1.6/usr/bin/guile-tools
+
+	cd debian/guile-1.6/usr/bin/ \
+	  && mv guile guile-1.6 \
+	  && mv guile-config guile-1.6-config \
+	  && mv guile-snarf guile-1.6-snarf \
+	  && mv guile-tools guile-1.6-tools
 
 	mkdir -p debian/guile-1.6-slib/usr/share/guile/1.6
 	cd debian/guile-1.6-slib/usr/share/guile/1.6 && ln -s ../../slib .

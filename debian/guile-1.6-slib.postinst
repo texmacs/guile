@@ -2,6 +2,6 @@
 
 set -e
 
-/usr/bin/guile -c "(use-modules (ice-9 slib)) (require 'new-catalog)"
+/usr/bin/guile-1.6 -c "(use-modules (ice-9 slib)) (require 'new-catalog)"
 
 #DEBHELPER#
