@@ -5,7 +5,7 @@
 	"-", write to stdout.  When no "-o" option is given, use "-" as
 	the output filename (i.e., stdout).  Only 'clean' the inputfile or
 	remove the output file on error when the output file name is not
-	"-".
+	"-".  Define the preprocessor macro SCM_MAGIC_SNARFER while snarfing.
 
 	* Makefile.am (.c.x): Pass "-o $@" to guile-snarf.
 
