@@ -1,3 +1,7 @@
+2002-12-15  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (EXTRA_DIST): add version.h.in to EXTRA_DIST.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* version.h.in (SCM_MICRO_VERSION): use @--@ substitution now.
