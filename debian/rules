@@ -7,6 +7,10 @@
 # You can build any of the binary packages independantly, via
 # binary-<package> targets.
 
+# dpatch bits
+include /usr/share/dpatch/dpatch.make
+PACKAGE := guile-1.6
+
 # Uncomment this to turn on verbose mode. 
 #export DH_VERBOSE=1
 
@@ -50,7 +54,7 @@ configure_args = \
 	--enable-maintainer-mode \
 	${ENABLE_THREADS}
 
-config-stamp: configure ${QTHREADS_DOT_INSTALLS}
+config-stamp: patch-stamp ${QTHREADS_DOT_INSTALLS}
 	$(foreach arch,${WORKING_QTHREADS_ARCHS},\
 	  echo 'debian/tmp/usr/lib/libqthreads.so.*' \
 	    > debian/libqthreads-12.install.${arch};)
@@ -71,7 +75,7 @@ build-stamp: config-stamp
 	$(MAKE) check
 	touch build-stamp
 
-clean:
+clean: unpatch
 	dh_testdir
 	dh_testroot
 	rm -f config-stamp build-stamp ${QTHREADS_DOT_INSTALLS}

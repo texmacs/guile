@@ -1,3 +1,40 @@
+guile-1.6 (1.6.4-4) unstable; urgency=low
+
+  * Fix release oversight (forgot to delete beta pkg warning(s)).
+
+ -- Rob Browning <rlb@defaultvalue.org>  Fri, 29 Aug 2003 15:21:05 -0500
+
+guile-1.6 (1.6.4-3) unstable; urgency=low
+
+  * patch 50_gc-realloc fixes snd gc segfault. Thanks to Sam Hocevar
+    <sam@zoy.org>. (closes: #198896)
+  * patch 50_m68k-smob-crash fixes m68k build crash.  Thanks to Sam
+    Hocevar <sam@zoy.org>. (closes: #193870)
+  * patch 50_ia64-ucontext fixes ia64 ucontext related build failure.
+    Thanks to Sam Hocevar <sam@zoy.org>. (closes: #193868)
+  * fix guile-1.6 conflicts with libguile-dev -- didn't have epoch so
+    wasn't having any effect.  guile-1.6 needs to conflict with earlier
+    libguile-dev versions because they didn't use update-alternatives for
+    bin/guile-X.Y*.  It can't conflict with later versions
+    (i.e. guile-1.6-dev and on) because guile-X.Y-dev is supposed to
+    provide/conflict with libguile-dev. (closes: #198858)
+
+ -- Rob Browning <rlb@defaultvalue.org>  Fri, 29 Aug 2003 11:13:02 -0500
+
+guile-1.6 (1.6.4-2) unstable; urgency=low
+
+  * continuations.h: include ucontext.h rather than sys/ucontext.h on
+    ia64.  This fixes a compilation problem for things that use libguile.
+    Thanks to James Treacy. (closes: bug#191464)
+  * make guile-1.6 conflict with libguile-dev since libguile-dev didn't
+    use update-alternatives for guile-config and guile-tools.  I believe
+    this is what has been hosing guile-config in guile-1.6.
+    (closes: bug#183977, bug#188322)
+  * really fix debian/rules to avoid --enable-maintainer-mode during
+    normal package builds.
+
+ -- Rob Browning <rlb@defaultvalue.org>  Mon, 12 May 2003 23:21:57 -0500
+
 guile-1.6 (1.6.4-1) unstable; urgency=low
 
   * remove --list-missing from debian/rules. (closes: bug#187926)

@@ -1,7 +1,7 @@
 Source: guile-1.6
 Priority: optional
 Maintainer: Rob Browning <rlb@defaultvalue.org>
-Build-Depends: libtool, debhelper (>= 4), libncurses5-dev, libreadline4-dev
+Build-Depends: libtool, debhelper (>= 4), libncurses5-dev, libreadline4-dev, dpatch (>= 1.11)
 Build-Conflicts: ash (<= 0.3.8-31)
 Standards-Version: 3.2.1.0
 
@@ -9,6 +9,7 @@ Package: guile-1.6
 Section: interpreters
 Architecture: any
 Provides: guile
+Conflicts: libguile-dev (<= 1:1.4-24)
 Depends: ${shlibs:Depends}
 Suggests: guile-1.6-doc
 Description: The GNU extension language and Scheme interpreter
@@ -88,4 +89,7 @@ Section: devel
 Architecture: all
 Depends: guile-1.6, slib
 Description: Guile SLIB support
- Arranges for Guile to be able to use slib via (use-modules (ice-9 slib)).
+ SLIB is a portable scheme library meant to provide compatibility and
+ utility functions for all standard scheme implementations.  Once this
+ package is installed SLIB should be available within Guile via
+ (use-modules (ice-9 slib)).
