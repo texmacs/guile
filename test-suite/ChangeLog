@@ -1,3 +1,8 @@
+2002-09-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (dist-hook): Do not distribute CVS directories.
+	Thanks to Greg Troxel.
+
 2002-05-16  Rob Browning  <rlb@defaultvalue.org>
 
 	* tests/numbers.test ("expt"): add expt tests.
