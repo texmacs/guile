@@ -843,6 +843,12 @@ After:
         2 required arguments: `a' and `b', 1 optional argument: `c',
         the rest in `r'.
 
+** New module: (ice-9 ftw)
+
+This module provides procs `ftw' and `nftw', which perform general
+filesystem tree walking.  Their behavior roughly mimics functions by
+the same name in the GNU C library.
+
 * Changes to the C interface
 
 ** Types have been renamed from scm_*_t to scm_t_*.
