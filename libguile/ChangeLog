@@ -1,3 +1,9 @@
+2004-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (scm_array_p): Add missing "break"s in switch, fix llvect
+	test look for "l" not "s", fix fvect need NIMP before singp, fix dvect
+	to be false for singp(prot) since such a value is for fvect.
+
 2004-01-13  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am
