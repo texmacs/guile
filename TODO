@@ -67,6 +67,8 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
+- [ttn] write "make check" tests for subdir `examples'
+
 - Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
