@@ -142,6 +142,9 @@ Spiffing checklist:
     by automake so that Guile can be built in a directory separate
     from the source tree also with non-GNU make programs.)
 
+  * test the resultant tarfile yourself using the instructions under
+    "Testing a release candidate tarfile" below.
+
   * Add a "Guile beta N.M released." entry to the top-level ChangeLog.
 
   * Now commit all your changes to CVS.
@@ -149,9 +152,6 @@ Spiffing checklist:
   * Tag the release "cvs tag release_1-5-2".
 
   * Run 'make dist' again to get the official tarfile.
-
-* Test the tarfile yourself using the instructions under "Testing a
-  release candidate tarfile" below.
 
 * Give the test disty to various people to try.  They should follow
   the same instructions under "Testing a release candidate tarfile"
@@ -174,21 +174,11 @@ Once you've got a disty that seems pretty solid:
   the libtool info pages.  Guile is going to be versioning it's shared
   libraries independently, so follow the libtool rules for choosing
   version numbers, but make sure to keep in mind that not everyone is
-  as good about this as they should be.  If a library even changes the
-  layout of a data structure that's part of it's API in a backward
-  incompatible way, even if that data structure is handled as an
-  opaque object in the API, that library is probably no longer
-  compatible with previous versions.
-
-  A canonical ugly problem is this.  Imagine you have libfoo and
-  libbar that both are linked against libbaz.  Now imagine that you
-  create a libwhatever that uses both libfoo and libbar.  What you
-  don't want to have happen is libfoo and libbar to be linked against
-  different versions of libbaz that produce incompatible instances of
-  the "same" data structure, and then have libwhatever get one version
-  of this data structure from libbaz via libfoo, and pass it back to a
-  different version of libbaz via libbar, a version of libbaz that
-  can't handle the newer/older struct from the other libbaz.
+  as good about this as they should be.  In any case, note that if
+  your library passes through data structures that were produced by
+  some sub-library, and that sub-libraries data has changed
+  in a publically incompatible way, then this may mean that *your*
+  library's API has changed in a publically incompatible way.
 
 * In general, there will be a number of libraries in guile that will
   have to be versioned, and it would be best if the people who know
@@ -218,7 +208,7 @@ Punting checklist:
 * Add "Guile X.Y.Z released." entry to the top-level ChangeLog, and commit it.
 
 * Tag the entire source tree with a tag of the form "release_X-Y-Z",
-  i.e for release 1.6.0, use release_1-6-0
+  i.e for release 1.6.1, use release_1-6-1
 
 * Do a 'make dist'.
 
