@@ -2015,6 +2015,7 @@ scm_array_equal_p (SCM ra0, SCM ra1)
     case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
+    case scm_tc7_svect:
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
@@ -2034,6 +2035,7 @@ scm_array_equal_p (SCM ra0, SCM ra1)
     case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
+    case scm_tc7_svect:
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
