@@ -1163,7 +1163,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return SCM_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
+      return SCM_MAKINUM (((signed char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
     return scm_ulong2num (((unsigned long *) SCM_VELTS (v))[pos]);
   case scm_tc7_ivect:
@@ -1326,8 +1326,10 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (obj))
-	obj = SCM_MAKINUM ((char) SCM_CHAR (obj));
+	obj = SCM_MAKINUM ((signed char) SCM_CHAR (obj));
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
+      SCM_ASSERT_RANGE (SCM_ARG2, obj,
+                        -128 <= SCM_INUM (obj) && SCM_INUM (obj) < 128);
       ((char *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
     case scm_tc7_uvect:
