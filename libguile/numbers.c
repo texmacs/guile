@@ -2383,10 +2383,10 @@ scm_istr2int (char *str, long len, long radix)
 	      ds[k++] = SCM_BIGLO (t2);
 	      t2 = SCM_BIGDN (t2);
 	    }
-	  if (blen > j)
-	    scm_num_overflow ("bignum");
 	  if (t2)
 	    {
+              if (blen >= j)
+                scm_num_overflow ("bignum");
 	      blen++;
 	      goto moretodo;
 	    }
