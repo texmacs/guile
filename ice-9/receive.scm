@@ -1,6 +1,6 @@
 ;;;; SRFI-8
 
-;;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
@@ -49,3 +49,5 @@
 (define-macro (receive vars vals . body)
   `(call-with-values (lambda () ,vals)
      (lambda ,vars ,@body)))
+
+(cond-expand-provide (current-module) '(srfi-8))
