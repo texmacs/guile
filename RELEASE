@@ -136,7 +136,11 @@ Spiffing checklist:
     (If the above steps are not done, the dependencies won't be properly
     included in the generated Makefile.in files.)
 
-  + Then do 'make dist'.
+  + Add a note to the ChangeLog indicating the release.
+
+  + Tag the release "cvs tag release_1-5-2".
+
+  + Run 'make dist'.
 
   + Check that the dependencies in guile-readline/Makefile look OK.
     (We currently use a kludge which edits the dependencies generated
