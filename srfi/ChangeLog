@@ -1,3 +1,13 @@
+2003-02-01  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am: move built files to nodist_ targets so they don't
+	end up in the dist tarfile.
+	(libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_SOURCES):
+	remove srfi-4.x.
+	(nodist_libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_SOURCES): add srfi-4.x.
+	(libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_SOURCES): remove srfi-13.x srfi-14.x.
+	(nodist_libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_SOURCES): add srfi-13.x srfi-14.x.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (srfidir): VERSION -> GUILE_EFFECTIVE_VERSION.

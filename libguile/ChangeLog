@@ -1,3 +1,10 @@
+2003-02-01  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am: move built files to nodist_ targets so they don't
+	end up in the dist tarfile.
+	(modinclude_HEADERS): remove version.h and scmconfig.h.
+	(nodist_modinclude_HEADERS): add version.h and scmconfig.h.
+
 2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* evalext.c, evalext.h (s_scm_self_evaluating_p): Needed by

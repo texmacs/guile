@@ -1,3 +1,7 @@
+2003-02-01  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (CLEANFILES): add qtmds.s qtmdc.c qtmdb.s
+
 2002-02-24  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libqthreads_la_LDFLAGS): use @LIBQTHREADS_INTERFACE@.
