@@ -1,7 +1,7 @@
 (use-modules (ice-9 syncase))
 
 ;; XXX - We need to be inside (ice-9 syncase) since psyntax.ss calls
-;; `eval' int he `interaction-environment' aka the current module and
+;; `eval' in the `interaction-environment' aka the current module and
 ;; it expects to have `andmap' there.  The reason for this escapes me
 ;; at the moment.
 ;;
