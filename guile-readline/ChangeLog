@@ -1,3 +1,7 @@
+2002-04-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* readline.scm: fix typo...
+
 2002-04-09  Rob Browning  <rlb@defaultvalue.org>
 
 	* readline.scm: hack around dynamic-link problems by
