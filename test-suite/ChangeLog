@@ -1,3 +1,8 @@
+2003-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srcprop.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* tests/goops.test: New tests.
