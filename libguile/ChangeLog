@@ -1,3 +1,8 @@
+2004-07-28  Kevin Ryde  <user42@zip.com.au>
+
+	* regex-posix.c (scm_make_regexp): Use SCM_VALIDATE_INT_COPY on flag
+	arguments, previously type was not checked.
+
 2004-07-10  Kevin Ryde  <user42@zip.com.au>
 
 	* hash.c (scm_hashq, scm_hashv, scm_hash): Restrict to size>=1 rather
