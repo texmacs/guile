@@ -346,40 +346,7 @@ quicksort (void *const pbase,
 }				/* quicksort */
 
 
-/* comparison routines */
-
-static int 
-subr2less (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (SCM_SUBRF (less) (*(SCM *) a, *(SCM *) b));
-}				/* subr2less */
-
-static int 
-subr2oless (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (SCM_SUBRF (less) (*(SCM *) a,
-					*(SCM *) b,
-					SCM_UNDEFINED));
-}				/* subr2oless */
-
-static int 
-lsubrless (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (SCM_SUBRF (less)
-		      (scm_cons (*(SCM *) a,
-				 scm_cons (*(SCM *) b, SCM_EOL))));
-}				/* lsubrless */
-
-static int 
-closureless (SCM code, const void *a, const void *b)
-{
-  SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
-			    scm_cons (*(SCM *) a,
-				      scm_cons (*(SCM *) b, SCM_EOL)),
-			    SCM_ENV (code));
-  /* Evaluate the closure body */
-  return SCM_NFALSEP (scm_eval_body (SCM_CDR (SCM_CODE (code)), env));
-}				/* closureless */
+/* comparison routine */
 
 static int 
 applyless (SCM less, const void *a, const void *b)
@@ -390,21 +357,13 @@ applyless (SCM less, const void *a, const void *b)
 static cmp_fun_t
 scm_cmp_function (SCM p)
 {
-  switch (SCM_TYP7 (p))
-    {
-    case scm_tc7_subr_2:
-    case scm_tc7_rpsubr:
-    case scm_tc7_asubr:
-      return subr2less;
-    case scm_tc7_subr_2o:
-      return subr2oless;
-    case scm_tc7_lsubr:
-      return lsubrless;
-    case scm_tcs_closures:
-      return closureless;
-    default:
-      return applyless;
-    }
+  /* We used to return an optimized invocation routine for certain
+     types of subrs.  This is too much hassle to do correctly and
+     means too much code duplication with eval.c.  So just use
+     'applyless' for all kinds of procedures.
+  */
+
+  return applyless;
 }				/* scm_cmp_function */
 
 
