@@ -77,8 +77,8 @@ general are stored.  On Unix-like systems, this is usually
 Return the name of the directory where the Guile Scheme files that
 belong to the core Guile installation (as opposed to files from a 3rd
 party package) are installed.  On Unix-like systems, this is usually
-@file{/usr/local/share/guile/<VERSION>} or
-@file{/usr/share/guile/<VERSION>}, for example:
+@file{/usr/local/share/guile/<GUILE_EFFECTIVE_VERSION>} or
+@file{/usr/share/guile/<GUILE_EFFECTIVE_VERSION>}, for example:
 @file{/usr/local/share/guile/1.6}.
 @end deffn
 
