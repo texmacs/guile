@@ -33,7 +33,7 @@
 # If there are errors during processing, delete OUTFILE and exit with
 # non-zero status.
 #
-# During snarfing, the pre-processor macro @code{SCM_MAGIC_SNARFER} is
+# During snarfing, the pre-processor macro SCM_MAGIC_SNARFER is
 # defined.
 #
 # If env var CPP is set, use its value instead of the C pre-processor
@@ -74,7 +74,7 @@ cpp_ok_p=false
 temp="/tmp/snarf.$$"
 if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
-trap "rm -f $temp $clean_infile" 0 1 2 15
+trap "rm -f $temp" 0 1 2 15
 
 if [ ! "$outfile" = "-" ] ; then
     self_blind_regexp='^#include ".*'`basename $outfile`'"'
@@ -83,6 +83,7 @@ if [ ! "$outfile" = "-" ] ; then
                                         # (e.g., see libguile/eval.c).
                                         # use .c to satisfy cpp heuristics.
     # clean input file
+    trap "rm -f $cleanfile" 0 1 2 15
     grep -v "$self_blind_regexp" $infile > $clean_infile
     modern_snarf "$@" $clean_infile > $outfile
 else
