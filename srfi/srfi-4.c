@@ -331,13 +331,12 @@ uvec_free (SCM uvec)
 /* Utility procedures.                                              */
 /* ================================================================ */
 
-
 /* Create a new, uninitialized homogeneous numeric vector of type TYPE
    with space for LEN elements.  */
 inline static SCM
 make_uvec (const int pos, const char * func_name, int type, size_t len)
 {
-  if (len > ((size_t) SIZE_MAX >> uvec_shifts[type]))
+  if (len > (((size_t)-1) >> uvec_shifts[type]))
   {
     if(pos < 0)
       scm_out_of_range (func_name, scm_size2num (len)); 
