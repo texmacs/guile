@@ -4506,7 +4506,7 @@ use @code{list-copy} to copy the old association list before modifying
 it.
 
 @deffn primitive acons key value alist
-Adds a new key-value pair to @var{alist}.  A new pair is
+Add a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
 pair is consed onto @var{alist}, and the new list is returned.  This
 function is @emph{not} destructive; @var{alist} is not modified.
@@ -4540,12 +4540,12 @@ is @code{(KEY . VALUE)}, not just the value.
 @deffn primitive assq key alist
 @deffnx primitive assv key alist
 @deffnx primitive assoc key alist
-Fetches the entry in @var{alist} that is associated with @var{key}.  To
+Fetch the entry in @var{alist} that is associated with @var{key}.  To
 decide whether the argument @var{key} matches a particular entry in
 @var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
 uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}
 cannot be found in @var{alist} (according to whichever equality
-predicate is in use), then @code{#f} is returned.  These functions
+predicate is in use), then return @code{#f}.  These functions
 return the entire alist entry found (i.e. both the key and the value).
 @end deffn
 
