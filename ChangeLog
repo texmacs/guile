@@ -1,3 +1,8 @@
+2004-08-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* guile-tools.in (guileversion): Use effective version. Thanks to
+	Francesco Salvestrini!
+
 2004-07-31  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (GUILE_FUNC_DECLARED): Quote AC_DEFUN name as required
