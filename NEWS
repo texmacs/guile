@@ -24,6 +24,11 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** source-properties and set-source-properties! fix
+
+Properties set with set-source-properties! can now be read back
+correctly with source-properties.
+
 ** SRFI-1 delete equality argument order fixed.
 
 In the srfi-1 module delete and delete!, the order of the arguments to
