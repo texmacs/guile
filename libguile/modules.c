@@ -186,21 +186,24 @@ static SCM module_export_x_var;
 void
 scm_c_export (const char *name, ...)
 {
-  va_list ap;
-  SCM names = scm_cons (scm_str2symbol (name), SCM_EOL);
-  SCM *tail = SCM_CDRLOC (names);
-  va_start (ap, name);
-  while (1)
+  if (name)
     {
-      const char *n = va_arg (ap, const char *);
-      if (n == NULL)
-	break;
-      *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
-      tail = SCM_CDRLOC (*tail);
+      va_list ap;
+      SCM names = scm_cons (scm_str2symbol (name), SCM_EOL);
+      SCM *tail = SCM_CDRLOC (names);
+      va_start (ap, name);
+      while (1)
+	{
+	  const char *n = va_arg (ap, const char *);
+	  if (n == NULL)
+	    break;
+	  *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
+	  tail = SCM_CDRLOC (*tail);
+	}
+      va_end (ap);
+      scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
+		  scm_current_module (), names);
     }
-  va_end (ap);
-  scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
-	      scm_current_module (), names);
 }
 
 /* Environments */
