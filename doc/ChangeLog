@@ -1,8 +1,11 @@
 2001-07-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
-	* intro.texi: Fix spelling error.
+	* intro.texi: Fix spelling errors.
 
 	* intro.texi, scheme-modules.texi: Remove unnecessary "tho".
+
+	* intro.texi: Use "Scheme" instead of "Lisp".
+	Mention two ways of using gdb, one when also using GNU Libtool.
 
 2001-07-11  Gary Houston  <ghouston@arglist.com>
 
