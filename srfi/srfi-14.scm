@@ -121,7 +121,7 @@
 
 (cond-expand-provide (current-module) '(srfi-14))
 
-(load-extension "libguile-srfi-srfi-13-14-lt-1-0-0" "scm_init_srfi_14")
+(load-extension "libguile-srfi-srfi-13-14-v-1" "scm_init_srfi_14")
 
 (define (->char-set x)
   (cond
