@@ -1,3 +1,10 @@
+2004-08-29  Rob Browning  <rlb@defaultvalue.org>
+
+	* ramap.c (s_scm_array_map_x): update documentation; rename ra0 to
+	dest, and lra to sources; don't allow (and segfault on) calls
+	without source arrays, i.e. don't allow (array-map! x proc).
+	(ramap_1): minor code reformatting.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_fill_sockaddr): Use HAVE_STRUCT_SOCKADDR_SIN_LEN and

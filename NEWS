@@ -41,6 +41,11 @@ trigger a GC scan of a free()d block of memory. This is now fixed.
 
 * Changes to Scheme functions and syntax
 
+** array-map! and array-map-in-order! now require at least one source array.
+
+Previously a call without any source arrays like (array-map! array
+proc) would cause a segfault.  Now such calls are properly rejected.
+
 ** srfi-4 has been overhauled
 
 Bugs have been fixed, and performance may be improved in certain
