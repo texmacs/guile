@@ -1,3 +1,8 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/and-let-star.test, tests/receive.test: New files.
+	* Makefile.am (SCM_TESTS): Add them.
+
 2004-08-15  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/srfi-39.test: New, from Jose A Ortega Ruiz.  Thanks!
