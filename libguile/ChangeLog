@@ -1,3 +1,7 @@
+2002-05-16  Rob Browning  <rlb@defaultvalue.org>
+
+	* numbers.c (s_scm_integer_expt): (expt 0 0) -> 1 now as per r5rs.
+
 2002-05-14  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* gc_os_dep.c: For I386/OPENBSD, allow for `__i386__'
