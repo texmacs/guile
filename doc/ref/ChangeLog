@@ -1,3 +1,11 @@
+2003-04-11  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile.texi: change MANUAL_EDITION to MANUAL-EDITION so we don't
+	choke TeX (thanks to Dale P. Smith).
+
+	* preface.texi: change MANUAL_EDITION to MANUAL-EDITION so we
+	don't choke TeX (thanks to Dale P. Smith).
+
 2003-02-01  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am: move built files to nodist_ targets so they don't
