@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12.2.4 2001-07-18 07:06:00 ttn Exp $
+@c $Id: intro.texi,v 1.12.2.5 2001-07-18 07:09:43 ttn Exp $
 
 @page
 @node What is Guile?
@@ -961,7 +961,7 @@ Of course, if the bug is that Guile gets a fatal signal, then one can't
 miss it.  But if the bug is incorrect results, the maintainer might fail
 to notice what is wrong.  Why leave it to chance?
 
-If the manifestation of the bug is an Guile error message, it is
+If the manifestation of the bug is a Guile error message, it is
 important to report the precise text of the error message, and a
 backtrace showing how the Scheme program arrived at the error.
 
