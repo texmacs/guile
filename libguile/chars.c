@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 
 #include <ctype.h>
+#include <limits.h>
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
 
@@ -284,7 +285,7 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_upcase
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_MAKE_CHAR(scm_upcase(SCM_CHAR(chr)));
+  return SCM_MAKE_CHAR(toupper(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -295,39 +296,18 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_downcase
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_MAKE_CHAR(scm_downcase(SCM_CHAR(chr)));
+  return SCM_MAKE_CHAR(tolower(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
 
 
 
-
-static unsigned char scm_upcase_table[SCM_CHAR_CODE_LIMIT];
-static unsigned char scm_downcase_table[SCM_CHAR_CODE_LIMIT];
-static const unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
-static const unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-
-void 
-scm_tables_prehistory ()
-{
-  int i;
-  for (i = 0; i < SCM_CHAR_CODE_LIMIT; i++)
-    scm_upcase_table[i] = scm_downcase_table[i] = i;
-  for (i = 0; i < (int) (sizeof scm_lowers / sizeof (scm_lowers[0])); i++)
-    {
-      scm_upcase_table[scm_lowers[i]] = scm_uppers[i];
-      scm_downcase_table[scm_uppers[i]] = scm_lowers[i];
-    }
-}
-
-
 int
 scm_upcase (unsigned int c)
 {
-  if (c < sizeof (scm_upcase_table))
-    return scm_upcase_table[c];
+  if (c <= UCHAR_MAX)
+    return toupper (c);
   else
     return c;
 }
@@ -336,8 +316,8 @@ scm_upcase (unsigned int c)
 int
 scm_downcase (unsigned int c)
 {
-  if (c < sizeof (scm_downcase_table))
-    return scm_downcase_table[c];
+  if (c <= UCHAR_MAX)
+    return tolower (c);
   else
     return c;
 }
