@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -868,7 +868,13 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
       wd = scm_must_malloc (size, FUNC_NAME);
     }
   if (rv == 0)
-    SCM_SYSERROR;
+    {
+      int save_errno = errno;
+      free (wd);
+      errno = save_errno;
+      SCM_SYSERROR;
+    }
+  SCM_SYSERROR;
   result = scm_mem2string (wd, strlen (wd));
   scm_must_free (wd);
   return result;
@@ -1296,7 +1302,12 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
       buf = scm_must_malloc (size, FUNC_NAME);
     }
   if (rv == -1)
-    SCM_SYSERROR;
+    {
+      int save_errno = errno;
+      free (buf);
+      errno = save_errno;
+      SCM_SYSERROR;
+    }
   result = scm_mem2string (buf, rv);
   scm_must_free (buf);
   return result;
