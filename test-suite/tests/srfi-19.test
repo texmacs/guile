@@ -150,7 +150,15 @@ incomplete numerical tower implementation.)"
          (time2 (make-time time-monotonic 385907 998360432))
          (diff (time-difference time2 time1)))
     (test-time-arithmetic add-duration time1 diff time2)
-    (test-time-arithmetic subtract-duration time2 diff time1)))
+    (test-time-arithmetic subtract-duration time2 diff time1))
+
+  (with-test-prefix "date-week-number"
+    (pass-if "1Jan84"
+      (= 0 (date-week-number (make-date 0 0 0 0 1 1 1984 0) 0)))
+    (pass-if "7Jan84"
+      (= 0 (date-week-number (make-date 0 0 0 0 7 1 1984 0) 0)))
+    (pass-if "8Jan84"
+      (= 1 (date-week-number (make-date 0 0 0 0 8 1 1984 0) 0)))))
 
 ;; Local Variables:
 ;; eval: (put 'with-tz 'scheme-indent-function 1)
