@@ -1,7 +1,9 @@
 2003-04-16  Rob Browning  <rlb@defaultvalue.org>
 
-	* gc_os_dep.c (mach_type_known): added patch for UnixWare and
-	OpenUNIX support.  Thanks to Boyd Gerber.
+	* gc_os_dep.c Added patch for UnixWare and OpenUNIX support.
+	Thanks to Boyd Gerber.
+	Added check for __arm__ in addition to arm for LINUX.  Thanks to
+	James Treacy for reporting the problem.
 
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
