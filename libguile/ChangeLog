@@ -1,3 +1,8 @@
+2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* strop.c (scm_string_null_p): Docfix; nfc.
+	Thanks to Scott Lenser.
+
 2001-11-02  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* print.c (scm_iprin1): Mark print state as revealed when
@@ -33,7 +38,7 @@
 2001-10-12  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* validate.h (SCM_VALIDATE_DOUBLE_DEF_COPY): New macro.
-	
+
 2001-10-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc.c: support ia64 register backing store.
@@ -52,7 +57,7 @@
 
 	These changes fixes a race condition in the Guile coop - pthread
 	compatibility code.
-	
+
 	* coop.c (mother_awake_p): New variable.
 	(coop_create): Set mother_awake_p before creating or signalling
 	mother; wait until mother is going to sleep before returning.
