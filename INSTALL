@@ -50,10 +50,31 @@ you install gcc and the package; you need to use the
 --with-local-prefix option as well.  See the gcc documentation for
 more details.
 
-It is probably necessary to set LD_LIBRARY_PATH or some other
-environment variable properly so that Guile can find its dynamically
-linked libraries.  When you have installed Guile with --prefix DIR,
-you need to include DIR/lib in LD_LIBRARY_PATH.
+If you install guile anywhere other than the normal system location
+(/usr or /usr/local on most systems), it will probably be necessary to
+set LD_LIBRARY_PATH properly so that Guile can find its dynamically
+linked libraries.  If you installed Guile with --prefix=DIR, you will
+need to include DIR/lib in LD_LIBRARY_PATH.
+
+Note that for libraries loaded via dynamic-link at runtime, just
+placing the libraries in a directory that ld.so (via ld.conf) knows
+how to find is not sufficient.  This is because dynamic-link uses
+libtool's libltdl and libltdl does not pay attention to ld.so's
+config.  Practically, this means that if you install guile to
+/usr/local/, for example, you'll probably need to make sure
+/usr/local/lib is in your LD_LIBRARY_PATH or LTDL_LIBRARY_PATH.
+Otherwise the readline module, (srfi srfi-14), (srfi srfi-13),
+etc. will not be able to load.
+
+To summarize, on most systems, if you install to /opt/guile/, for
+example, you will need something like the following in order to be
+able to run guile and have it successfully print its version number
+(example presumes an sh shell):
+
+  LD_LIBRARY_PATH=/opt/guile/lib \
+    PATH=/opt/guile/bin:"${PATH}" \
+      guile --version
+
 
 Special Instructions For Some Systems =====================================
 
@@ -451,3 +472,7 @@ operates.
      script, and exit.
 
 `configure' also accepts some other, not widely useful, options.
+
+Local Variables:
+mode: text
+End:
