@@ -20,6 +20,7 @@
 ##   330, Boston, MA 02111-1307 USA
 
 AUTOMAKE_OPTIONS = foreign
+SUBDIRS = ice-9
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@
@@ -41,15 +42,12 @@ BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-ice9dir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/ice-9
-ice9_DATA = readline.scm
-
 snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
-EXTRA_DIST = LIBGUILEREADLINE-VERSION readline.scm
+EXTRA_DIST = LIBGUILEREADLINE-VERSION
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
