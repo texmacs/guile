@@ -1,5 +1,5 @@
 Guile Installation Guide
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -50,6 +50,10 @@ you install gcc and the package; you need to use the
 --with-local-prefix option as well.  See the gcc documentation for
 more details.
 
+It is probably necessary to set LD_LIBRARY_PATH or some other
+environment variable properly so that Guile can find its dynamically
+linked libraries.  When you have installed Guile with --prefix DIR,
+you need to include DIR/lib in LD_LIBRARY_PATH.
 
 Special Instructions For Some Systems =====================================
 
