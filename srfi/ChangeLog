@@ -1,3 +1,8 @@
+2004-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.c (make_uvec): Use ((size_t)-1) instead of SIZE_MAX, for
+	better portability.
+
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c (uvec_equalp): Bugfix; multiply length with type size
