@@ -7,7 +7,6 @@
 * Installation::          Configuring and installing GNU lightning
 * The instruction set::   The RISC instruction set used i GNU lightning
 * GNU lightning macros::  GNU lightning's macros
-* Floating-point::        Doing floating point computations.
 * Reentrancy::            Re-entrant usage of GNU lightning
 * Autoconf support::      Using @code{autoconf} with GNU lightning
 @end ifset

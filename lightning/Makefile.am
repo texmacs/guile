@@ -12,5 +12,5 @@ dist_pkgdata_DATA = Makefile.am
 nobase_dist_lightning_HEADERS = $(LIGHTNING_FILES)
 nodist_lightning_HEADERS = asm.h core.h funcs.h fp.h 
 else
-dist_noinst_HEADERS = $(LIGHTNING_FILES) lightning.h
+dist_noinst_HEADERS = $(LIGHTNING_FILES)
 endif

@@ -1,3 +1,217 @@
+2004-10-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Fix bugs in conditional branches.
+
+2004-10-10  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h: Fix pasto in jit_flush_code.
+
+2004-10-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/fp.h: Optimized conditional branches.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/asm.h: Fix more typos.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/asm.h: Fix typos, replace `26' with JIT_AUX.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/fp.h: Added conditional branches.
+
+2004-09-18  Laurent Michel  <ldm@thorgal.homelinux.org>
+
+	* lightning/ppc/fp.h (jit_unler_d, jit_unltr_d, jit_unger_d,
+	jit_ungtr_d, jit_ltgt_d, jit_uneq_d): Implemented missing tests
+	to fully support testfp.
+	(jit_floorr_d_i, jit_ceilr_d_i, jit_roundr_d_i, jit_truncr_d_i):
+	New macros.
+	* lightning/ppc/asm.h: Added missing opcodes FCTIWZ and MTFSFI.
+	* lightning/ppc/funcs.h (_jit_prolog): Fixed minor mistake in
+	the initialization of _jitl.nextarg_geti, relying on the
+	JIT_AUX macro as well to get the register offset.
+
+2004-09-07  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Fix typo.
+
+2004-09-06  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/funcfp.c: Use %g.  Remove C99 variable declarations.
+	* tests/testfp.c: Don't use __builtin_nan.
+
+	* lightning/ppc/core.h: Add three V registers.
+	* lightning/ppc/funcs.h: Adjust.
+
+	* lightning/sparc/core.h: Some fixes related to FP argument passing.
+	Move R0 to %g2, use %o7 for JIT_BIG2.
+	* lightning/sparc/fp.h: Some fixes related to FP argument passing.
+
+2004-09-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/core.h: Add another V register,
+	move R0 to %o7.
+
+2004-07-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h: Implement jit_flush_code,
+	in order to support Fedora's exec-shield.
+
+2004-07-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add more jit_extr_*_* macros.
+	* lightning/doc/using.texi: Be clearer about the order
+	of arguments in jit_extr_*_*.
+	* lightning/doc/porting.texi: Add more jit_extr_*_* macros.
+	* lightning/i386/fp.h: Fix typo in jit_extr_i_d.
+
+2004-07-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Adjust offset of LR into
+	stack frame if running under the Darwin ABI.
+
+2004-07-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Rename jit_exti_d to jit_extr_i_d.
+
+2004-07-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Fix thinko.
+
+	* lightning/i386/core.h: Fix jit_lti_ui.
+	* lightning/core-common.h: Add missing macros.
+
+	* lightning/ppc/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/i386/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/sparc/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/fp-common.h: Rename jit_neg_* to jit_negr_*.
+	* doc/porting.texi: Add undocumented macros.
+
+2004-07-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* doc/porting.texi: Add missing macros.
+
+2004-07-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Don't generate trampolines.
+	Separate prolog and epilog generation.
+	* lightning/ppc/core.h: Generate epilog explicitly.
+	Don't reserve r31 anymore.
+	* lightning/core-common.h: Remove call to jit_setup_code.
+
+2004-07-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/lightning.h.in: Avoid preprocessor warnings.
+	* lightning/lightning-inst.h: Likewise.
+
+	* lightning/i386/core.h: Define JIT_R, JIT_R_NUM, JIT_V,
+	JIT_V_NUM.
+	* lightning/ppc/core.h: Likewise.
+	* lightning/sparc/core.h: Likewise.
+	* lightning/i386/fp.h: Define JIT_FPR, JIT_FPR_NUM.
+	* lightning/ppc/fp.h: Likewise.
+	* lightning/sparc/fp.h: Likewise.
+	* lightning/core-common.h: Define fixed register names.
+	* lightning/fp-common.h: Likewise for FP regs.
+
+2004-07-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Fix location where return address
+	is stored.
+	* lightning/i386/asm.h: Add a trailing _ to opcodes without
+	any parameter.
+	* lightning/i386/core.h: Adjust for the above.
+
+2004-04-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Change "and" to "_and"
+	to satisfy C++ compilers.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Use memcpy to implement jit_movi.
+	* lightning/ppc/fp.h: Use memcpy to implement jit_movi.
+	Move floating-point opcodes...
+	* lightning/ppc/asm.h: ... here.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add jit_finishr.
+	* lightning/ppc/core.h: Add jit_callr and jit_finishr.
+	* lightning/i386/core.h: Add jit_callr.
+	* lightning/sparc/core.h: Add jit_callr.  Fix typo.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: Fix pasto in jit_b*_ui.
+
+2004-03-30  Laurent Michel
+
+	* lightning/ppc: Implement PowerPC floating point
+	(ChangeLog entry missing).
+
+2004-03-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/fp-common.h: Load/store macros are not the
+	same for floats and doubles anywhere, but jit_retval may be.
+	* lightning/i386/asm.h: Fix = mistaken for == in ESCrri.
+	* lightning/i386/core.h: Fix typo in jit_prepare_[fd].
+	* lightning/i386/fp.h: Rewritten.
+	* tests/testfp.c: Add tests for unordered comparisons.
+	* tests/testfp.ok: Add results.
+
+2004-03-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	Merge changes from Laurent Michel.
+
+	* lightning/asm-common.h: Add _jit_I_noinc.
+	* lightning/core-common.h: Support jit_init,
+	jit_setup_code, jit_patch_at.  Return patchable IP from
+	jit_movi_p.
+	* lightning/funcs-common.h: Provide defaults
+	for jit_setup_code, jit_start_pfx, jit_end_pfx
+	* lightning/i386/core.h: Add jit_patch_at, jit_patch_movi.
+	* lightning/ppc/core.h: Likewise.
+	* lightning/sparc/core.h: Likewise.
+	* lightning/ppc/asm.h: Fix generation of branch destination
+	displacements in _FB and _BB
+	* lightning/ppc/core.h: Generate trampolines in the user
+	area.
+	* lightning/ppc/funcs.h: Add a few casts.
+	* tests/bc.c: New testcase.
+
+	* lightning/i386/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+	* lightning/ppc/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+	* lightning/sparc/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+
+
+2004-03-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Rewrite.  Move macros for
+	FP code generation...
+	* lightning/sparc/asm.h: ... here.
+	* lightning/sparc/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/ppc/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/i386/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/core-common.h: Provide backwards
+	compatible synonyms for the above.
+	* lightning/fp-common.h: Rewrite.
+	* lightning-inst.h: Include fp unconditionally.
+	* lightning.h.in: Include fp unconditionally.
+	* tests/Makefile.am: Enable fp tests.
+	* tests/fib.c: Use jit_retval_i.
+	* tests/fibit.c: Cast codeBuffer to char *.
+	* tests/funcfp.c: Use new fp macros.
+	* tests/printf.c: Use jit_retval_i.
+	* tests/rpnfp.c: Use new fp macros.
+	* tests/testfp.c: Use new fp macros.
+
 2004-03-02  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core.h: generate correct code when

@@ -45,4 +45,10 @@ jit_fail(const char *msg, const char *file, int line, const char *function)
   abort();
 }
 
+
+#ifndef jit_start_pfx
+#define jit_start_pfx()                 ( (jit_insn*)0x4)
+#define jit_end_pfx()                   ( (jit_insn*)0x0)
+#endif
+
 #endif /* __lightning_funcs_common_h */

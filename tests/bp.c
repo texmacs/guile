@@ -1,14 +1,14 @@
 /******************************** -*- C -*- ****************************
  *
- *	Sample example of recursion and forward references
+ *	Simple example of recursion and forward references
  *
  ***********************************************************************/
 
 
 /***********************************************************************
  *
- * Copyright 2000 Free Software Foundation, Inc.
- * Written by Paolo Bonzini.
+ * Copyright 2000, 2004 Free Software Foundation, Inc.
+ * Written by Paolo Bonzini and Laurent Michel.
  *
  * This file is part of GNU lightning.
  *
@@ -41,21 +41,31 @@ int main()
   pifi      nfibs = (pifi) (jit_set_ip(codeBuffer).iptr);
   int	    in;				/* offset of the argument */
   jit_insn  *ref;			/* to patch the forward reference */
+  jit_insn  *mref;                     /* ref of move to backpatch */
+  jit_insn  *tp;                       /* location to patch */
 
         jit_prolog   (1);
   in =  jit_arg_ui   ();
         jit_getarg_ui(JIT_V0, in);              /* V0 = n */
+  mref= jit_movi_p(JIT_V2,jit_forward ());      /* Generate a dumb movi */
+        jit_jmpr(JIT_V2);
+        /* generate some dump filler that will never be executed!*/
+        jit_addi_ui(JIT_V0,JIT_V0,1);
+        jit_addi_ui(JIT_V0,JIT_V0,1);        
+        jit_addi_ui(JIT_V0,JIT_V0,1);        
+        jit_addi_ui(JIT_V0,JIT_V0,1);        
+  tp  = jit_get_label ();
   ref = jit_blti_ui  (jit_forward(), JIT_V0, 2);
         jit_subi_ui  (JIT_V1, JIT_V0, 1);       /* V1 = n-1 */
         jit_subi_ui  (JIT_V2, JIT_V0, 2);       /* V2 = n-2 */
-        jit_prepare_i(1);
+        jit_prepare  (1);
           jit_pusharg_ui(JIT_V1);
         jit_finish(nfibs);
-        jit_retval_i (JIT_V1);                   /* V1 = nfibs(n-1) */
-        jit_prepare_i(1);
+        jit_retval(JIT_V1);                     /* V1 = nfibs(n-1) */
+        jit_prepare(1);
           jit_pusharg_ui(JIT_V2);
         jit_finish(nfibs);
-        jit_retval_i (JIT_V2);                   /* V2 = nfibs(n-2) */
+        jit_retval(JIT_V2);                     /* V2 = nfibs(n-2) */
         jit_addi_ui(JIT_V1,  JIT_V1,  1);
         jit_addr_ui(JIT_RET, JIT_V1, JIT_V2);   /* RET = V1 + V2 + 1 */
         jit_ret();
@@ -64,11 +74,13 @@ int main()
         jit_movi_i(JIT_RET, 1);                 /* RET = 1 */
         jit_ret();
 
+  jit_patch_movi(mref,tp);                      /* Ok. Do the back-patching */
+
   /* call the generated code, passing 32 as an argument */
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
 
 #ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, codeBuffer, jit_get_ip().ptr);
+  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
 #endif
 #ifndef LIGHTNING_CROSS
   printf("nfibs(%d) = %d\n", 32, nfibs(32));

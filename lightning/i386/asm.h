@@ -43,6 +43,7 @@
 
 typedef _uc		jit_insn;
 
+#ifndef LIGHTNING_DEBUG
 #define _b00		0
 #define _b01		1
 #define _b10		2
@@ -340,10 +341,10 @@ typedef _uc		jit_insn;
 
 #define CALLsm(D,B,I,S)			_O_r_X	(0xff	     ,_b010	,(int)(D),B,I,S		)
 
-#define CBW()				_O		(0x98								)
-#define CLC()				_O		(0xf8								)
-#define CLTD()				_O		(0x99								)
-#define CMC()				_O		(0xf5								)
+#define CBW_()				_O		(0x98								)
+#define CLC_()				_O		(0xf8								)
+#define CLTD_()				_O		(0x99								)
+#define CMC_()				_O		(0xf5								)
 
 
 #define CMPBrr(RS, RD)			_O_Mrm		(0x38		,_b11,_r1(RS),_r1(RD)				)
@@ -365,7 +366,7 @@ typedef _uc		jit_insn;
 #define CMPLim(IM, MD, MB, MI, MS)	_O_r_X_L	(0x81		     ,_b111		,MD,MB,MI,MS	,IM	)
 
 
-#define CWD()				_O		(0x99								)
+#define CWD_()				_O		(0x99								)
 
 
 #define CMPXCHGBrr(RS,RD)		_OO_Mrm		(0x0fb0		,_b11,_r1(RS),_r1(RD)				)
@@ -399,7 +400,7 @@ typedef _uc		jit_insn;
 
 
 #define ENTERii(W, B)			_O_W_B		(0xc8						  ,_su16(W),_su8(B))
-#define HLT()				_O		(0xf4								)
+#define HLT_()				_O		(0xf4								)
 
 
 #define IDIVBr(RS)			_O_Mrm		(0xf6		,_b11,_b111  ,_r1(RS)				)
@@ -443,7 +444,7 @@ typedef _uc		jit_insn;
 #define INCLm(MD,MB,MI,MS)		_O_r_X		(0xff		     ,_b000		,MD,MB,MI,MS		)
 
 
-#define INVD()				_OO		(0x0f08								)
+#define INVD_()				_OO		(0x0f08								)
 #define INVLPGm(MD, MB, MI, MS)		_OO_r_X		(0x0f01		     ,_b111		,MD,MB,MI,MS		)
 
 
@@ -523,9 +524,9 @@ typedef _uc		jit_insn;
 #define JMPsm(D,B,I,S)			_O_r_X	(0xff	     ,_b100	,(int)(D),B,I,S		)
 
 
-#define LAHF()				_O		(0x9f								)
+#define LAHF_()				_O		(0x9f								)
 #define LEALmr(MD, MB, MI, MS, RD)	_O_r_X		(0x8d		     ,_r4(RD)		,MD,MB,MI,MS		)
-#define LEAVE()				_O		(0xc9								)
+#define LEAVE_()			_O		(0xc9								)
 
 
 #define LMSWr(RS)			_OO_Mrm		(0x0f01		,_b11,_b110,_r4(RS)				)
@@ -600,7 +601,7 @@ typedef _uc		jit_insn;
 #define NEGLm(MD,MB,MI,MS)		_O_r_X		(0xf7		     ,_b011		,MD,MB,MI,MS		)
 
 
-#define NOP()				_O		(0x90								)
+#define NOP_()				_O		(0x90								)
 
 
 #define NOTBr(RD)			_O_Mrm		(0xf6		,_b11,_b010  ,_r1(RD)				)
@@ -639,11 +640,11 @@ typedef _uc		jit_insn;
 #define POPLm(MD,MB,MI,MS)		_O_r_X		(0x8f		     ,_b000		,MD,MB,MI,MS		)
 
 
-#define POPA()				_wO		(0x61								)
-#define POPAD()				_O		(0x61								)
+#define POPA_()				_wO		(0x61								)
+#define POPAD_()			_O		(0x61								)
 
-#define POPF()				_wO		(0x9d								)
-#define POPFD()				_O		(0x9d								)
+#define POPF_()				_wO		(0x9d								)
+#define POPFD_()			_O		(0x9d								)
 
 
 #define PUSHWr(R)			_wOr		(0x50,_r2(R)							)
@@ -655,13 +656,13 @@ typedef _uc		jit_insn;
 #define PUSHLi(IM)			_Os_sL		(0x68							,IM	)
 
 
-#define PUSHA()				_wO		(0x60								)
-#define PUSHAD()			_O		(0x60								)
+#define PUSHA_()			_wO		(0x60								)
+#define PUSHAD_()			_O		(0x60								)
 
-#define PUSHF()				_O		(0x9c								)
-#define PUSHFD()			_wO		(0x9c								)
+#define PUSHF_()			_O		(0x9c								)
+#define PUSHFD_()			_wO		(0x9c								)
 
-#define RET()				_O		(0xc3								)
+#define RET_()				_O		(0xc3								)
 #define RETi(IM)			_O_W		(0xc2							,_su16(IM))
 
 
@@ -721,7 +722,7 @@ typedef _uc		jit_insn;
 						JITFAIL		("source register must be CL"				) )
 
 
-#define SAHF()					_O	(0x9e								)
+#define SAHF_()					_O	(0x9e								)
 
 
 #define SALBir	SHLBir
@@ -904,7 +905,7 @@ typedef _uc		jit_insn;
 						JITFAIL		("source register must be CL"				) )
 
 
-#define STC()				_O		(0xf9								)
+#define STC_()				_O		(0xf9								)
 
 
 #define SUBBrr(RS, RD)			_O_Mrm		(0x28		,_b11,_r1(RS),_r1(RD)				)
@@ -985,8 +986,8 @@ typedef _uc		jit_insn;
 #define ESCmi(D,B,I,S,OP)	_O_r_X(0xd8|(OP >> 3), (OP & 7), D,B,I,S)
 #define ESCri(RD,OP)		_O_Mrm(0xd8|(OP >> 3), _b11, (OP & 7), RD)
 
-#define ESCrri(RS,RD,OP)	((RS) = _ST0 ? ESCri(RD,(OP|040))			\
-				 : (RD) = _ST0 ? ESCri(RS,OP)				\
+#define ESCrri(RS,RD,OP)	((RS) == _ST0 ? ESCri(RD,(OP|040))			\
+				 : (RD) == _ST0 ? ESCri(RS,OP)				\
 				 : JITFAIL ("coprocessor instruction without st0"))
 
 #define FLDSm(D,B,I,S)		ESCmi(D,B,I,S,010)     /* fld m32real  */
@@ -1036,7 +1037,7 @@ typedef _uc		jit_insn;
 #define FNSTSWr(RD)		((RD == _AX || RD == _EAX) ? _OO (0xdfe0)		\
 				 : JITFAIL ("AX or EAX expected"))
 /* N byte NOPs */
-#define _NOPi(N)	(((  (N)    >= 8) ? (_jit_B(0x8d),_jit_B(0xb4),_jit_B(0x26),_jit_L(0x00),_jit_B(0x90)) : (void) 0), \
+#define NOPi(N)		(((  (N)    >= 8) ? (_jit_B(0x8d),_jit_B(0xb4),_jit_B(0x26),_jit_L(0x00),_jit_B(0x90)) : (void) 0), \
 			 (( ((N)&7) == 7) ? (_jit_B(0x8d),_jit_B(0xb4),_jit_B(0x26),_jit_L(0x00)) : \
 			  ( ((N)&7) == 6) ? (_jit_B(0x8d),_jit_B(0xb6),_jit_L(0x00)) : \
 			  ( ((N)&7) == 5) ? (_jit_B(0x90),_jit_B(0x8d),_jit_B(0x74),_jit_B(0x26),_jit_B(0x00)) : \
@@ -1056,5 +1057,6 @@ typedef _uc		jit_insn;
 /* [2] "Intel Architecture Software Developer's Manual Volume 2: Instruction Set Reference",	*/
 /*     Intel Corporation 1997.									*/
 
+#endif
 #endif /* __lightning_asm_h */
 

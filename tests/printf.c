@@ -48,7 +48,7 @@ int main()
   ofs = jit_arg_i();
   jit_movi_p(JIT_R0, "looks like %d bytes sufficed\n");
   jit_getarg_i(JIT_R1, ofs);
-  jit_prepare(2);
+  jit_prepare_i(2);
     jit_pusharg_i(JIT_R1);		/* push in reverse order */
     jit_pusharg_p(JIT_R0);
   jit_finish(printf);

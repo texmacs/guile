@@ -353,16 +353,20 @@ that make up the platform-independent interface provided by
 Implementation of forward references takes place in:
 
 @itemize @bullet
-@bulletize The branch macros
-@bulletize The @code{jit_patch} macros
+@item
+The branch macros
+
+@item
+The @code{jit_patch_at} macros
 @end itemize
 
 Roughly speaking, the branch macros, as seen in @usingref{GNU lightning
 macros, Generating code at run-time}, return a value that later calls
-to @code{jit_patch} use to complete the assembly of the forward
-reference.  This value is usually the contents of the program counter
-after the branch instruction is compiled (which is accessible in the
-@code{_jit.pc} variable).  Let's see an example from the x86 back-end:
+to @code{jit_patch} or @code{jit_patch_at} use to complete the assembly
+of the forward reference.  This value is usually the contents of the
+program counter after the branch instruction is compiled (which is
+accessible in the @code{_jit.pc} variable).  Let's see an example from
+the x86 back-end:
 
 @example
 #define jit_bmsr_i(label, s1, s2)                            \
@@ -374,7 +378,7 @@ the combination of a @code{TEST} instruction (bit-wise @sc{and} between
 the two operands) and a @code{JNZ} instruction (jump if non-zero).  The
 macro then returns the final value of the program counter.
 
-@code{jit_patch} is one of the few macros that need to possess a
+@code{jit_patch_at} is one of the few macros that need to possess a
 knowledge of the machine's instruction formats.  Its purpose is to
 patch a branch instruction (identified by the value returned at the
 moment the branch was compiled) to jump to the current position (that
@@ -382,11 +386,11 @@ is, to the address identified by @code{_jit.pc}).
 
 On the x86, the displacement between the jump and the landing point is
 expressed as a 32-bit signed integer lying in the last four bytes of the
-jump instruction.  The definition of @code{_jit_patch} is:
+jump instruction.  The definition of @code{_jit_patch_at} is:
 
 @example
-#define jit_patch(jump_pc)      (*_PSL((jump_pc) - 4) = \
-				  _jit.pc - (jump_pc))
+#define jit_patch(jump_pc, pv)    (*_PSL((jump_pc) - 4) = \
+				   (pv) - (jump_pc))
 @end example
 
 The @code{_PSL} macro is nothing more than a cast to @code{long *},
@@ -394,42 +398,69 @@ and is used here to shorten the definition and avoid cluttering it with
 excessive parentheses.  These type-cast macros are:
 
 @itemize @bullet
-@bulletize @code{_PUC(X)} to cast to a @code{unsigned char *}.
-@bulletize @code{_PUS(X)} to cast to a @code{unsigned short *}.
-@bulletize @code{_PUI(X)} to cast to a @code{unsigned int *}.
-@bulletize @code{_PSL(X)} to cast to a @code{long *}.
-@bulletize @code{_PUL(X)} to cast to a @code{unsigned long *}.
+@item
+@code{_PUC(X)} to cast to a @code{unsigned char *}.
+
+@item
+@code{_PUS(X)} to cast to a @code{unsigned short *}.
+
+@item
+@code{_PUI(X)} to cast to a @code{unsigned int *}.
+
+@item
+@code{_PSL(X)} to cast to a @code{long *}.
+
+@item
+@code{_PUL(X)} to cast to a @code{unsigned long *}.
 @end itemize
 
 On other platforms, notably RISC ones, the displacement is embedded into
-the instruction itself.  In this case, @code{jit_patch} must first zero
+the instruction itself.  In this case, @code{jit_patch_at} must first zero
 out the field, and then @sc{or} in the correct displacement.  The SPARC,
 for example, encodes the displacement in the bottom 22 bits; in addition
 the right-most two bits are suppressed, which are always zero because
 instruction have to be word-aligned.
 
 @example
-#define jit_patch(delay_pc)   jit_patch_ ( ((delay_pc) - 1) )
+#define jit_patch_at(delay_pc, pv)   jit_patch_ (((delay_pc) - 1), (pv))
 
 @rem{/* branch instructions return the address of the @emph{delay}
  * instruction---this is just a helper macro that makes the code more
  * readable.
  */}
-#define jit_patch_(jump_pc)   (*jump_pc =		    \
+#define jit_patch_(jump_pc, pv)   (*jump_pc =		    \
 	 (*jump_pc & ~_MASK(22)) |			    \
-         ((_UL(_jit.pc) - _UL(jump_pc)) >> 2) & _MASK(22))
+         ((_UL(pv) - _UL(jump_pc)) >> 2) & _MASK(22))
 @end example
 
 This introduces more predefined shortcut macros:
 @itemize @bullet
-@bulletize @code{_UC(X)} to cast to a @code{unsigned char}.
-@bulletize @code{_US(X)} to cast to a @code{unsigned short}.
-@bulletize @code{_UI(X)} to cast to a @code{unsigned int}.
-@bulletize @code{_SL(X)} to cast to a @code{long}.
-@bulletize @code{_UL(X)} to cast to a @code{unsigned long}.
-@bulletize @code{_MASK(N)} gives a binary number made of N ones.
+@item
+@code{_UC(X)} to cast to a @code{unsigned char}.
+
+@item
+@code{_US(X)} to cast to a @code{unsigned short}.
+
+@item
+@code{_UI(X)} to cast to a @code{unsigned int}.
+
+@item
+@code{_SL(X)} to cast to a @code{long}.
+
+@item
+@code{_UL(X)} to cast to a @code{unsigned long}.
+
+@item
+@code{_MASK(N)} gives a binary number made of N ones.
 @end itemize
 
+Dual to branches and @code{jit_patch_at} are @code{jit_movi_p}
+and @code{jit_patch_movi}, since they can also be used to implement
+forward references.  @code{jit_movi_p} should be carefully implemented
+to use an encoding that is as long as possible, and it should return
+an address which is then passed to @code{jit_patch_movi}.  The
+implementation of @code{jit_patch_movi} is similar to
+@code{jit_patch_at}.
 
 @node Common features
 @section Common features supported by @file{core-common.h}
@@ -448,14 +479,16 @@ avoids compiler warnings about redefined macros, but there should be
 no need to define them.  They are:
 @example
 #define jit_extr_c_ui(d, rs)
-#define jit_extr_i_ul(d, rs)
 #define jit_extr_s_ui(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_ul(d, rs)
 #define jit_negr_i(d, rs)
 #define jit_negr_l(d, rs)
 @end example
 
 @item Support for the @sc{abi}
-Both @code{jit_prolog}, @code{jit_leaf} and @code{jit_finish} are not
+All of @code{jit_prolog}, @code{jit_leaf} and @code{jit_finish} are not
 mandatory.  If not defined, they will be defined respectively as an
 empty macro, as a synonym for @code{jit_prolog}, and as a synonym for
 @code{jit_calli}.  Whether to define them or not in the port-specific
@@ -471,8 +504,12 @@ and ``reverse subtraction'' (that is, REG2@math{=}IMM@math{-}REG1):
 @example
 #define jit_extr_c_i(d, rs)
 #define jit_extr_s_i(d, rs)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_i_l(d, rs)
 #define jit_rsbi_i(d, rs, is)
 #define jit_rsbi_l(d, rs, is)
+#define jit_rsbi_p(d, rs, is)
 @end example
 
 @item Conversion between network and host byte ordering
@@ -510,7 +547,7 @@ unsigned integers is exactly the same as adding two signed integers
 @lightning{} provides both @code{jit_addr_i} and @code{jit_addr_ui}
 macros.  Similarly, pointers and unsigned long integers behave in the
 same way, but @lightning{} has separate instruction for the two data
-types---those that operate on pointers usually comprise a typecast
+types---those that operate on pointers usually include a typecast
 that makes programs clearer.
 
 @item Shortcuts
@@ -553,7 +590,7 @@ instruction to be scheduled in the delay slot with the branch
 instruction.  The only parameter accepted by the macro is a call
 to a branch macro, which must be expanded @strong{exactly once} by
 @code{jit_fill_delay_after}.  The client must be able to pass the
-return value of @code{jit_fill_delay_after} to @code{jit_patch}.
+return value of @code{jit_fill_delay_after} to @code{jit_patch_at}.
 
 There are two possible approaches that can be used in
 @code{jit_fill_delay_after}.  They are summarized in the following
@@ -701,9 +738,9 @@ in @file{core-common.h} (@pxref{Common features, , Common features
 supported by @file{core-common.h}}).
 
 @example
-#define jit_prepare(numargs)  (_jitl.pusharg = _Ro(numargs))
-#define jit_pusharg_i(rs)     (--_jitl.pusharg,         \
-                               MOVrr((rs), _jitl.pusharg))
+#define jit_prepare_i(numargs)  (_jitl.pusharg = _Ro(numargs))
+#define jit_pusharg_i(rs)       (--_jitl.pusharg,         \
+                                 MOVrr((rs), _jitl.pusharg))
 @end example
 
 Remember that arguments pushing takes place in reverse order, thus
@@ -759,18 +796,18 @@ epilog code.
 @code{jit_pusharg} uses a hardware push operation, which is commonly
 available on CISC machines (where this approach is most likely
 followed).  Since the stack has to be cleaned up after the call,
-@code{jit_prepare} remembers how many parameters have been put there,
+@code{jit_prepare_i} remembers how many parameters have been put there,
 and @code{jit_finish} adjusts the stack pointer after the call.
 
 @example
-#define jit_prepare(numargs) (_jitl.args += (numargs))
-#define jit_pusharg_i(rs)    PUSHLr(rs)
-#define jit_finish(sub)      (jit_calli((sub)),              \
-                             ADDLir(4 * _jitl.args, JIT_SP), \
-                             _jitl.numargs = 0)
+#define jit_prepare_i(numargs) (_jitl.args += (numargs))
+#define jit_pusharg_i(rs)      PUSHLr(rs)
+#define jit_finish(sub)        (jit_calli((sub)),              \
+                               ADDLir(4 * _jitl.args, JIT_SP), \
+                               _jitl.numargs = 0)
 @end example
 
-Note the usage of @code{+=} in @code{jit_prepare}.  This is done
+Note the usage of @code{+=} in @code{jit_prepare_i}.  This is done
 so that one can defer the popping of the arguments that were saved
 on the stack (@dfn{stack pollution}).  To do so, it is sufficient to
 use @code{jit_calli} instead of @code{jit_finish} in all but the
@@ -823,12 +860,12 @@ operations:
 @table @b
 @item Register names (all mandatory but the last two)
 @example
-#define JIT_R0
-#define JIT_R1
-#define JIT_R2
-#define JIT_V0
-#define JIT_V1
-#define JIT_V2
+#define JIT_R
+#define JIT_R_NUM
+#define JIT_V
+#define JIT_V_NUM
+#define JIT_FPR
+#define JIT_FPR_NUM
 #define JIT_SP
 #define JIT_FP
 #define JIT_RZERO
@@ -850,57 +887,81 @@ operations:
 #define jit_arg_ui()
 #define jit_arg_ul()
 #define jit_arg_us()
+#define jit_abs_d(rd,rs)
 #define jit_addi_i(d, rs, is)
+#define jit_addr_d(rd,s1,s2)
 #define jit_addr_i(d, s1, s2)
 #define jit_addxi_i(d, rs, is)
 #define jit_addxr_i(d, s1, s2)
 #define jit_andi_i(d, rs, is)
 #define jit_andr_i(d, s1, s2)
 #define jit_beqi_i(label, rs, is)
+#define jit_beqr_d(label, s1, s2)
 #define jit_beqr_i(label, s1, s2)
 #define jit_bgei_i(label, rs, is)
 #define jit_bgei_ui(label, rs, is)
+#define jit_bger_d(label, s1, s2)
 #define jit_bger_i(label, s1, s2)
 #define jit_bger_ui(label, s1, s2)
 #define jit_bgti_i(label, rs, is)
 #define jit_bgti_ui(label, rs, is)
+#define jit_bgtr_d(label, s1, s2)
 #define jit_bgtr_i(label, s1, s2)
 #define jit_bgtr_ui(label, s1, s2)
 #define jit_blei_i(label, rs, is)
 #define jit_blei_ui(label, rs, is)
+#define jit_bler_d(label, s1, s2)
 #define jit_bler_i(label, s1, s2)
 #define jit_bler_ui(label, s1, s2)
+#define jit_bltgtr_d(label, s1, s2)
 #define jit_blti_i(label, rs, is)
 #define jit_blti_ui(label, rs, is)
+#define jit_bltr_d(label, s1, s2)
 #define jit_bltr_i(label, s1, s2)
 #define jit_bltr_ui(label, s1, s2)
-#define jit_boaddi_i(label, rs, is)
-#define jit_boaddi_ui(label, rs, is)
-#define jit_boaddr_i(label, s1, s2)
-#define jit_boaddr_ui(label, s1, s2)
-#define jit_bosubi_i(label, rs, is)
-#define jit_bosubi_ui(label, rs, is)
-#define jit_bosubr_i(label, s1, s2)
-#define jit_bosubr_ui(label, s1, s2)
 #define jit_bmci_i(label, rs, is)
 #define jit_bmcr_i(label, s1, s2)
 #define jit_bmsi_i(label, rs, is)
 #define jit_bmsr_i(label, s1, s2)
 #define jit_bnei_i(label, rs, is)
+#define jit_bner_d(label, s1, s2)
 #define jit_bner_i(label, s1, s2)
+#define jit_boaddi_i(label, rs, is)
+#define jit_boaddi_ui(label, rs, is)
+#define jit_boaddr_i(label, s1, s2)
+#define jit_boaddr_ui(label, s1, s2)
+#define jit_bordr_d(label, s1, s2)
+#define jit_bosubi_i(label, rs, is)
+#define jit_bosubi_ui(label, rs, is)
+#define jit_bosubr_i(label, s1, s2)
+#define jit_bosubr_ui(label, s1, s2)
+#define jit_buneqr_d(label, s1, s2)
+#define jit_bunger_d(label, s1, s2)
+#define jit_bungtr_d(label, s1, s2)
+#define jit_bunler_d(label, s1, s2)
+#define jit_bunltr_d(label, s1, s2)
+#define jit_bunordr_d(label, s1, s2)
 #define jit_calli(label)
+#define jit_callr(label)
+#define jit_ceilr_d_i(rd, rs)
 #define jit_divi_i(d, rs, is)
 #define jit_divi_ui(d, rs, is)
+#define jit_divr_d(rd,s1,s2)
 #define jit_divr_i(d, s1, s2)
 #define jit_divr_ui(d, s1, s2)
 #define jit_eqi_i(d, rs, is)
+#define jit_eqr_d(d, s1, s2)
 #define jit_eqr_i(d, s1, s2)
+#define jit_extr_i_d(rd, rs)
+#define jit_floorr_d_i(rd, rs)
 #define jit_gei_i(d, rs, is)
 #define jit_gei_ui(d, s1, s2)
+#define jit_ger_d(d, s1, s2)
 #define jit_ger_i(d, s1, s2)
 #define jit_ger_ui(d, s1, s2)
 #define jit_gti_i(d, rs, is)
 #define jit_gti_ui(d, s1, s2)
+#define jit_gtr_d(d, s1, s2)
 #define jit_gtr_i(d, s1, s2)
 #define jit_gtr_ui(d, s1, s2)
 #define jit_hmuli_i(d, rs, is)
@@ -909,61 +970,93 @@ operations:
 #define jit_hmulr_ui(d, s1, s2)
 #define jit_jmpi(label)
 #define jit_jmpr(reg)
+#define jit_ldxi_f(rd, rs, is)
+#define jit_ldxr_f(rd, s1, s2)
 #define jit_ldxi_c(d, rs, is)
+#define jit_ldxi_d(rd, rs, is)
 #define jit_ldxi_i(d, rs, is)
 #define jit_ldxi_s(d, rs, is)
 #define jit_ldxi_uc(d, rs, is)
 #define jit_ldxi_us(d, rs, is)
 #define jit_ldxr_c(d, s1, s2)
+#define jit_ldxr_d(rd, s1, s2)
 #define jit_ldxr_i(d, s1, s2)
 #define jit_ldxr_s(d, s1, s2)
 #define jit_ldxr_uc(d, s1, s2)
 #define jit_ldxr_us(d, s1, s2)
 #define jit_lei_i(d, rs, is)
 #define jit_lei_ui(d, s1, s2)
+#define jit_ler_d(d, s1, s2)
 #define jit_ler_i(d, s1, s2)
 #define jit_ler_ui(d, s1, s2)
 #define jit_lshi_i(d, rs, is)
 #define jit_lshr_i(d, r1, r2)
+#define jit_ltgtr_d(d, s1, s2)
 #define jit_lti_i(d, rs, is)
 #define jit_lti_ui(d, s1, s2)
+#define jit_ltr_d(d, s1, s2)
 #define jit_ltr_i(d, s1, s2)
 #define jit_ltr_ui(d, s1, s2)
 #define jit_modi_i(d, rs, is)
 #define jit_modi_ui(d, rs, is)
 #define jit_modr_i(d, s1, s2)
 #define jit_modr_ui(d, s1, s2)
+#define jit_movi_d(rd,immd)
+#define jit_movi_f(rd,immf)
 #define jit_movi_i(d, is)
+#define jit_movi_p(d, is)
+#define jit_movr_d(rd,rs)
 #define jit_movr_i(d, rs)
 #define jit_muli_i(d, rs, is)
 #define jit_muli_ui(d, rs, is)
+#define jit_mulr_d(rd,s1,s2)
 #define jit_mulr_i(d, s1, s2)
 #define jit_mulr_ui(d, s1, s2)
+#define jit_negr_d(rd,rs)
 #define jit_nei_i(d, rs, is)
+#define jit_ner_d(d, s1, s2)
 #define jit_ner_i(d, s1, s2)
 #define jit_nop()
+#define jit_ordr_d(d, s1, s2)
 #define jit_ori_i(d, rs, is)
 #define jit_orr_i(d, s1, s2)
-#define jit_patch(jump_pc)
+#define jit_patch_at(jump_pc, value)
+#define jit_patch_movi(jump_pc, value)
 #define jit_pop_i(rs)
-#define jit_prepare(numargs)
+#define jit_prepare_d(numargs)
+#define jit_prepare_f(numargs)
+#define jit_prepare_i(numargs)
 #define jit_push_i(rs)
 #define jit_pusharg_i(rs)
 #define jit_ret()
 #define jit_retval_i(rd)
+#define jit_roundr_d_i(rd, rs)
 #define jit_rshi_i(d, rs, is)
 #define jit_rshi_ui(d, rs, is)
 #define jit_rshr_i(d, r1, r2)
 #define jit_rshr_ui(d, r1, r2)
+#define jit_sqrt_d(rd,rs)
 #define jit_stxi_c(rd, id, rs)
+#define jit_stxi_d(id, rd, rs)
+#define jit_stxi_f(id, rd, rs)
 #define jit_stxi_i(rd, id, rs)
 #define jit_stxi_s(rd, id, rs)
 #define jit_stxr_c(d1, d2, rs)
+#define jit_stxr_d(d1, d2, rs)
+#define jit_stxr_f(d1, d2, rs)
 #define jit_stxr_i(d1, d2, rs)
 #define jit_stxr_s(d1, d2, rs)
+#define jit_subr_d(rd,s1,s2)
 #define jit_subr_i(d, s1, s2)
 #define jit_subxi_i(d, rs, is)
 #define jit_subxr_i(d, s1, s2)
+#define jit_truncr_d_i(rd, rs)
+#define jit_uneqr_d(d, s1, s2)
+#define jit_unger_d(d, s1, s2)
+#define jit_ungtr_d(d, s1, s2)
+#define jit_unler_d(d, s1, s2)
+#define jit_unltr_d(d, s1, s2)
+#define jit_unordr_d(d, s1, s2)
 #define jit_xori_i(d, rs, is)
 #define jit_xorr_i(d, s1, s2)
 @end example
@@ -971,17 +1064,20 @@ operations:
 @item Non mandatory---there should be no need to define them:
 @example
 #define jit_extr_c_ui(d, rs)
-#define jit_extr_i_ul(d, rs)
 #define jit_extr_s_ui(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_ul(d, rs)
 #define jit_negr_i(d, rs)
 #define jit_negr_l(d, rs)
 @end example
 
 @item Non mandatory---whether to define them depends on the @sc{abi}:
 @example
-#define jit_prolog()
-#define jit_finish()
-#define jit_leaf()
+#define jit_prolog(n)
+#define jit_finish(sub)
+#define jit_finishr(reg)
+#define jit_leaf(n)
 #define jit_getarg_c(reg, ofs)
 #define jit_getarg_i(reg, ofs)
 #define jit_getarg_l(reg, ofs)
@@ -991,12 +1087,17 @@ operations:
 #define jit_getarg_ui(reg, ofs)
 #define jit_getarg_ul(reg, ofs)
 #define jit_getarg_us(reg, ofs)
+#define jit_getarg_f(reg, ofs)
+#define jit_getarg_d(reg, ofs)
 @end example
 
 @item Non mandatory---define them if instructions that do this exist:
 @example
 #define jit_extr_c_i(d, rs)
 #define jit_extr_s_i(d, rs)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_i_l(d, rs)
 #define jit_rsbi_i(d, rs, is)
 #define jit_rsbi_l(d, rs, is)
 @end example
@@ -1037,6 +1138,14 @@ operations:
 #define jit_str_c(rd, rs)
 #define jit_str_i(rd, rs)
 #define jit_str_s(rd, rs)
+#define jit_ldi_f(rd, is)
+#define jit_sti_f(id, rs)
+#define jit_ldi_d(rd, is)
+#define jit_sti_d(id, rs)
+#define jit_ldr_f(rd, rs)
+#define jit_str_f(rd, rs)
+#define jit_ldr_d(rd, rs)
+#define jit_str_d(rd, rs)
 @end example
 
 @item Synonyms---don't define them:
@@ -1085,14 +1194,20 @@ operations:
 #define jit_eqr_p(d, s1, s2)
 #define jit_eqr_ui(d, s1, s2)
 #define jit_eqr_ul(d, s1, s2)
+#define jit_extr_c_s(d, rs)
+#define jit_extr_c_us(d, rs)
+#define jit_extr_uc_s(d, rs)
+#define jit_extr_uc_us(d, rs)
 #define jit_extr_uc_i(d, rs)
 #define jit_extr_uc_ui(d, rs)
-#define jit_extr_ui_l(d, rs)
-#define jit_extr_ui_l(d, rs)
-#define jit_extr_ui_ul(d, rs)
-#define jit_extr_ui_ul(d, rs)
 #define jit_extr_us_i(d, rs)
 #define jit_extr_us_ui(d, rs)
+#define jit_extr_uc_l(d, rs)
+#define jit_extr_uc_ul(d, rs)
+#define jit_extr_us_l(d, rs)
+#define jit_extr_us_ul(d, rs)
+#define jit_extr_ui_l(d, rs)
+#define jit_extr_ui_ul(d, rs)
 #define jit_gei_p(d, rs, is)
 #define jit_ger_p(d, s1, s2)
 #define jit_gti_p(d, rs, is)
@@ -1145,8 +1260,10 @@ operations:
 #define jit_retval_ui(rd)
 #define jit_retval_ul(rd)
 #define jit_retval_us(rd)
+#define jit_rsbi_p(d, rs, is)
 #define jit_rsbi_ui(d, rs, is)
 #define jit_rsbi_ul(d, rs, is)
+#define jit_rsbr_p(d, rs, is)
 #define jit_rsbr_ui(d, s1, s2)
 #define jit_rsbr_ul(d, s1, s2)
 #define jit_sti_p(d, is)
@@ -1175,6 +1292,12 @@ operations:
 #define jit_subr_p(d, s1, s2)
 #define jit_subr_ui(d, s1, s2)
 #define jit_subr_ul(d, s1, s2)
+#define jit_subxi_p(d, rs, is)
+#define jit_subxi_ui(d, rs, is)
+#define jit_subxi_ul(d, rs, is)
+#define jit_subxr_p(d, s1, s2)
+#define jit_subxr_ui(d, s1, s2)
+#define jit_subxr_ul(d, s1, s2)
 #define jit_xori_ui(d, rs, is)
 #define jit_xori_ul(d, rs, is)
 #define jit_xorr_ui(d, s1, s2)
@@ -1183,6 +1306,19 @@ operations:
 
 @item Shortcuts---don't define them:
 @example
+#define JIT_R0
+#define JIT_R1
+#define JIT_R2
+#define JIT_V0
+#define JIT_V1
+#define JIT_V2
+#define JIT_FPR0
+#define JIT_FPR1
+#define JIT_FPR2
+#define JIT_FPR3
+#define JIT_FPR4
+#define JIT_FPR5
+#define jit_patch(jump_pc)
 #define jit_notr_c(d, rs)
 #define jit_notr_i(d, rs)
 #define jit_notr_l(d, rs)
@@ -1191,10 +1327,59 @@ operations:
 #define jit_notr_ui(d, rs)
 #define jit_notr_ul(d, rs)
 #define jit_notr_us(d, rs)
+#define jit_rsbr_d(d, s1, s2)
 #define jit_rsbr_i(d, s1, s2)
 #define jit_rsbr_l(d, s1, s2)
 #define jit_subi_i(d, rs, is)
 #define jit_subi_l(d, rs, is)
+@end example
+
+@item Mandatory unless target arithmetic is always done in the same precision:
+@example
+#define jit_abs_f(rd,rs)
+#define jit_addr_f(rd,s1,s2)
+#define jit_beqr_f(label, s1, s2)
+#define jit_bger_f(label, s1, s2)
+#define jit_bgtr_f(label, s1, s2)
+#define jit_bler_f(label, s1, s2)
+#define jit_bltgtr_f(label, s1, s2)
+#define jit_bltr_f(label, s1, s2)
+#define jit_bner_f(label, s1, s2)
+#define jit_bordr_f(label, s1, s2)
+#define jit_buneqr_f(label, s1, s2)
+#define jit_bunger_f(label, s1, s2)
+#define jit_bungtr_f(label, s1, s2)
+#define jit_bunler_f(label, s1, s2)
+#define jit_bunltr_f(label, s1, s2)
+#define jit_bunordr_f(label, s1, s2)
+#define jit_ceilr_f_i(rd, rs)
+#define jit_divr_f(rd,s1,s2)
+#define jit_eqr_f(d, s1, s2)
+#define jit_extr_d_f(rs, rd)
+#define jit_extr_f_d(rs, rd)
+#define jit_extr_i_f(rd, rs)
+#define jit_floorr_f_i(rd, rs)
+#define jit_ger_f(d, s1, s2)
+#define jit_gtr_f(d, s1, s2)
+#define jit_ler_f(d, s1, s2)
+#define jit_ltgtr_f(d, s1, s2)
+#define jit_ltr_f(d, s1, s2)
+#define jit_movr_f(rd,rs)
+#define jit_mulr_f(rd,s1,s2)
+#define jit_negr_f(rd,rs)
+#define jit_ner_f(d, s1, s2)
+#define jit_ordr_f(d, s1, s2)
+#define jit_roundr_f_i(rd, rs)
+#define jit_rsbr_f(d, s1, s2)
+#define jit_sqrt_f(rd,rs)
+#define jit_subr_f(rd,s1,s2)
+#define jit_truncr_f_i(rd, rs)
+#define jit_uneqr_f(d, s1, s2)
+#define jit_unger_f(d, s1, s2)
+#define jit_ungtr_f(d, s1, s2)
+#define jit_unler_f(d, s1, s2)
+#define jit_unltr_f(d, s1, s2)
+#define jit_unordr_f(d, s1, s2)
 @end example
 
 @item Mandatory if sizeof(long) != sizeof(int)---don't define them on other systems:
@@ -1241,6 +1426,12 @@ operations:
 #define jit_divr_ul(d, s1, s2)
 #define jit_eqi_l(d, rs, is)
 #define jit_eqr_l(d, s1, s2)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_l(d, rs)
+#define jit_extr_i_ul(d, rs)
 #define jit_gei_l(d, rs, is)
 #define jit_gei_ul(d, rs, is)
 #define jit_ger_l(d, s1, s2)

@@ -1,9 +1,16 @@
 NEWS FROM VERSION 1.1.2 TO 1.2
 
-o   Floating-point interface rewritten, uses a common register
-    file architecture rather than a stack.
+o   Floating-point interface rewritten, uses a register file
+    architecture rather than a stack.
 
 o   Many bug fixes.
+
+o   jit_prepare and jit_retval are now jit_prepare_i and
+    jit_retval_i.
+
+o   Support for Fedora Core 1's exec-shield feature.
+
+o   PPC supports both SysV and Darwin ABIs.
 
 o   More (and more complete) examples provided.
 

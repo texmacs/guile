@@ -51,7 +51,7 @@ There are no Secondary Sections, no Cover Texts and no Invariant Sections
 Info documentation, constitutes the Title Page.
 @end titlepage
 
-@ifclear ISTEX
+@ifnottex
 @node Top
 @top @lightning{}
 
@@ -61,17 +61,17 @@ which are usually either inefficient or non-portable, @lightning{} is
 both retargetable and very fast.
 
 @include toc.texi
-@end ifclear
+@end ifnottex
 
 @node Overview
 @chapter Introduction to @lightning{}
 
-@ifset ISTEX
+@iftex
 This document describes @value{TOPIC} the @lightning{} library for
 dynamic code generation.  Unlike other dynamic code generation systems,
 which are usually either inefficient or non-portable, @lightning{} is
 both retargetable and very fast.
-@end ifset
+@end iftex
 
 @ifclear USING
 This manual assumes that you are pretty comfortable with the usage of

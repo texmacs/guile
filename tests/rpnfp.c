@@ -38,19 +38,18 @@ static jit_insn codeBuffer[1024];
 
 typedef double (*pdfd) (double);	/* Pointer to Double Function of Double */
 
+static int regs[6] = { JIT_FPR0, JIT_FPR1, JIT_FPR2, JIT_FPR3, JIT_FPR4, JIT_FPR5 };
 
 pdfd
 compile_rpn (char *expr)
 {
   pdfd fn;
   int ofs, sp = 1;
-  struct jit_fp buffer[300], *stack[10];
 
-  jitfp_begin (buffer);
   fn = (pdfd) (jit_get_ip ().dptr);
   jit_leaf (1);
   ofs = jit_arg_d ();
-  stack[0] = jitfp_getarg_d (ofs);
+  jit_getarg_d (regs[0], ofs);
 
   while (*expr)
     {
@@ -62,26 +61,27 @@ compile_rpn (char *expr)
 	{
 	  double d = strtod (buf, NULL);
 	  expr += n - 1;
-	  stack[sp++] = jitfp_imm (d);
+	  jit_movi_d (regs[sp], d);
+	  sp++;
 	}
       else if (*expr == '+')
 	{
-	  stack[sp - 2] = jitfp_add (stack[sp - 2], stack[sp - 1]);
+	  jit_addr_d (regs[sp - 2], regs[sp - 2], regs[sp - 1]);
 	  sp--;
 	}
       else if (*expr == '-')
 	{
-	  stack[sp - 2] = jitfp_sub (stack[sp - 2], stack[sp - 1]);
+	  jit_subr_d (regs[sp - 2], regs[sp - 2], regs[sp - 1]);
 	  sp--;
 	}
       else if (*expr == '*')
 	{
-	  stack[sp - 2] = jitfp_mul (stack[sp - 2], stack[sp - 1]);
+	  jit_mulr_d (regs[sp - 2], regs[sp - 2], regs[sp - 1]);
 	  sp--;
 	}
       else if (*expr == '/')
 	{
-	  stack[sp - 2] = jitfp_div (stack[sp - 2], stack[sp - 1]);
+	  jit_divr_d (regs[sp - 2], regs[sp - 2], regs[sp - 1]);
 	  sp--;
 	}
       else
@@ -91,7 +91,7 @@ compile_rpn (char *expr)
 	}
       ++expr;
     }
-  jitfp_retval (stack[0]);
+  jit_retval_d (regs[0]);
   jit_ret ();
 
   jit_flush_code ((char *) fn, jit_get_ip ().ptr);

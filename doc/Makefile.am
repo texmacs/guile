@@ -1,5 +1,3 @@
-EXTRA_DIST=lightning.info lightning.info-1 lightning.info-2 lightning.info-3
-
 TEXI2DVI=$(top_srcdir)/config/texi2dvi
 HELP2MAN = $(top_srcdir)/config/help2man
 

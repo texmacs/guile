@@ -49,9 +49,14 @@ that closely match those of most existing RISC architectures, or
 that can be easily syntesized if absent.  Each instruction is composed
 of:
 @itemize @bullet
-@bulletize an operation (like @code{sub} or @code{mul})
-@bulletize sometimes, an register/immediate flag (@code{r} or @code{i})
-@bulletize a type identifier (occasionally, two)
+@item
+an operation, like @code{sub} or @code{mul}
+
+@item
+sometimes, an register/immediate flag (@code{r} or @code{i})
+
+@item
+a type identifier or, occasionally, two
 @end itemize
 
 The second and third field are separated by an underscore; thus,
@@ -75,6 +80,8 @@ following table together with the C types they represent:
      ui         @r{unsigned int}
      l          @r{long}
      ul         @r{unsigned long}
+     f          @r{float}
+     d          @r{double}
      p          @r{void *}
 @end example
 
@@ -82,26 +89,30 @@ Some of these types may not be distinct: for example, (e.g., @code{l}
 is equivalent to @code{i} on 32-bit machines, and @code{p} is
 substantially equivalent to @code{ul}).
 
-There are seven registers, of which six are general-purpose, while
-the last is used to contain the stack pointer (@code{SP}).  The
-stack pointer can be used to allocate and access local variables
-on the stack (which is supposed to grow downwards in memory on all 
-architectures).
+There are at least seven integer registers, of which six are
+general-purpose, while the last is used to contain the stack pointer
+(@code{SP}).  The stack pointer can be used to allocate and access local
+variables on the stack (which is supposed to grow downwards in memory
+on all architectures).
 
-Of the six general-purpose registers, three are guaranteed to be
+Of the general-purpose registers, at least three are guaranteed to be
 preserved across function calls (@code{V0}, @code{V1} and
-@code{V2}) and three are not (@code{R0}, @code{R1} and
-@code{R2}).@footnote{Six registers are not very much, but this
+@code{V2}) and at least three are not (@code{R0}, @code{R1} and
+@code{R2}).  Six registers are not very much, but this
 restriction was forced by the need to target CISC architectures
-which, like the x86, are poor of registers.  Anyway, consider
-that even on a RISC architecture you don't have many more registers
-which are not devoted to function calls: on the SPARC, you have nine
-(@code{%g1} and the eight registers @code{%l0} through @code{%l7}).}
+which, like the x86, are poor of registers; anyway, backends can
+specify the actual number of available caller- and callee-save
+registers.
 
 In addition, there is a special @code{RET} register which contains
 the return value.  You should always remember, however, that writing
 this register could overwrite either a general-purpose register or
 an incoming parameter, depending on the architecture.
+
+There are at least six floating-point registers, named @code{FPR0} to
+@code{FPR5}.  These are separate from the integer registers on
+all the supported architectures; on Intel architectures, the
+register stack is mapped to a flat register file.
 
 The complete instruction set follows; as you can see, most non-memory
 operations only take integers, long integers (either signed or
@@ -113,60 +124,116 @@ signed and in an unsigned way.
 
 @table @b
 @item Binary ALU operations
-These accept three operands, of which the last can be an immediate
-value.  @code{addx} operations must directly follow @code{addc}, and
+These accept three operands; the last one can be an immediate
+value for integer operands, or a register for all operand types.
+@code{addx} operations must directly follow @code{addc}, and
 @code{subx} must follow @code{subc}; otherwise, results are undefined.
 @example
-addr/addi    i  ui l  ul p  O1 = O2 + O3
-addxr/addxi  i  ui l  ul    O1 = O2 + (O3 + carry)
-addcr/addci  i  ui l  ul    O1 = O2 + O3, set carry
-subr/subi    i  ui l  ul p  O1 = O2 - O3
-subxr/subxi  i  ui l  ul    O1 = O2 - (O3 + carry)
-subcr/subci  i  ui l  ul    O1 = O2 - O3, set carry
-rsbr/rsbi    i  ui l  ul p  O1 = O3 - O2
-mulr/muli    i  ui l  ul    O1 = O2 * O3
-hmulr/hmuli  i  ui l  ul    O1 = @r{high bits of} O2 * O3
-divr/divi    i  ui l  ul    O1 = O2 / O3
-modr/modi    i  ui l  ul    O1 = O2 % O3
-andr/andi    i  ui l  ul    O1 = O2 & O3
-orr/ori      i  ui l  ul    O1 = O2 | O3
-xorr/xori    i  ui l  ul    O1 = O2 ^ O3
-lshr/lshi    i  ui l  ul    O1 = O2 << O3
-rshr/rshi    i  ui l  ul    O1 = O2 >> O3@footnote{The sign bit is propagated for signed types.}
+addr     i  ui  l  ul  p  f  d  O1 = O2 + O3
+addi     i  ui  l  ul  p        O1 = O2 + O3
+addxr    i  ui  l  ul           O1 = O2 + (O3 + carry)
+addxi    i  ui  l  ul           O1 = O2 + (O3 + carry)
+addcr    i  ui  l  ul           O1 = O2 + O3, set carry
+addci    i  ui  l  ul           O1 = O2 + O3, set carry
+subr     i  ui  l  ul  p  f  d  O1 = O2 - O3
+subi     i  ui  l  ul  p        O1 = O2 - O3
+subxr    i  ui  l  ul           O1 = O2 - (O3 + carry)
+subxi    i  ui  l  ul           O1 = O2 - (O3 + carry)
+subcr    i  ui  l  ul           O1 = O2 - O3, set carry
+subci    i  ui  l  ul           O1 = O2 - O3, set carry
+rsbr     i  ui  l  ul  p  f  d  O1 = O3 - O2
+rsbi     i  ui  l  ul  p        O1 = O3 - O2
+mulr     i  ui  l  ul     f  d  O1 = O2 * O3
+muli     i  ui  l  ul           O1 = O2 * O3
+hmulr    i  ui  l  ul           O1 = @r{high bits of} O2 * O3
+hmuli    i  ui  l  ul           O1 = @r{high bits of} O2 * O3
+divr     i  ui  l  ul     f  d  O1 = O2 / O3
+divi     i  ui  l  ul           O1 = O2 / O3
+modr     i  ui  l  ul           O1 = O2 % O3
+modi     i  ui  l  ul           O1 = O2 % O3
+andr     i  ui  l  ul           O1 = O2 & O3
+andi     i  ui  l  ul           O1 = O2 & O3
+orr      i  ui  l  ul           O1 = O2 | O3
+ori      i  ui  l  ul           O1 = O2 | O3
+xorr     i  ui  l  ul           O1 = O2 ^ O3
+xori     i  ui  l  ul           O1 = O2 ^ O3
+lshr     i  ui  l  ul           O1 = O2 << O3
+lshi     i  ui  l  ul           O1 = O2 << O3
+rshr     i  ui  l  ul           O1 = O2 >> O3@footnote{The sign bit is propagated for signed types.}
+rshi     i  ui  l  ul           O1 = O2 >> O3@footnote{The sign bit is propagated for signed types.}
 @end example
 
 @item Unary ALU operations
 These accept two operands, both of which must be registers.
 @example
-negr        i     l         O1 = -O2
-notr        i  ui l  ul     O1 = ~O2
+negr     i     l         f  d  O1 = -O2
+notr     i  ui l  ul           O1 = ~O2
 @end example
 
 @item Compare instructions
-These accept three operands, of which the last can be an immediate
-value.  The last two operands are compared, and the first operand is
-set to either 0 or 1, according to whether the given condition was
-met or not.
+These accept three operands; again, the last can be an immediate
+value for integer data types.  The last two operands are compared,
+and the first operand is set to either 0 or 1, according to
+whether the given condition was met or not.
+
+The conditions given below are for the standard behavior of C,
+where the ``unordered'' comparison result is mapped to false.
 
 @example
-ltr/lti     i ui l  ul p     O1 = (O2 <  O3)
-ler/lei     i ui l  ul p     O1 = (O2 <= O3)
-gtr/gti     i ui l  ul p     O1 = (O2 >  O3)
-ger/gei     i ui l  ul p     O1 = (O2 >= O3)
-eqr/eqi     i ui l  ul p     O1 = (O2 == O3)
-ner/nei     i ui l  ul p     O1 = (O2 != O3)
+ltr      i  ui  l  ul  p  f  d  O1 = (O2 <  O3)
+lti      i  ui  l  ul  p        O1 = (O2 <  O3)
+ler      i  ui  l  ul  p  f  d  O1 = (O2 <= O3)
+lei      i  ui  l  ul  p        O1 = (O2 <= O3)
+gtr      i  ui  l  ul  p  f  d  O1 = (O2 >  O3)
+gti      i  ui  l  ul  p        O1 = (O2 >  O3)
+ger      i  ui  l  ul  p  f  d  O1 = (O2 >= O3)
+gei      i  ui  l  ul  p        O1 = (O2 >= O3)
+eqr      i  ui  l  ul  p  f  d  O1 = (O2 == O3)
+eqi      i  ui  l  ul  p        O1 = (O2 == O3)
+ner      i  ui  l  ul  p  f  d  O1 = (O2 != O3)
+nei      i  ui  l  ul  p        O1 = (O2 != O3)
+unltr                     f  d  O1 = !(O2 >= O3)
+unler                     f  d  O1 = !(O2 >  O3)
+ungtr                     f  d  O1 = !(O2 <= O3)
+unger                     f  d  O1 = !(O2 <  O3)
+uneqr                     f  d  O1 = !(O2 <  O3) && !(O2 >  O3)
+ltgtr                     f  d  O1 = !(O2 >= O3) || !(O2 <= O3)
+ordr                      f  d  O1 =  (O2 == O2) &&  (O3 == O3)
+unordr                    f  d  O1 =  (O2 != O2) ||  (O3 != O3)
 @end example
 
 @item Transfer operations
 These accept two operands; for @code{ext} both of them must be
 registers, while @code{mov} accepts an immediate value as the second
-operand. @code{ext} needs @strong{two} data type specifications, of
-which the first must be smaller in size than the second; for example
-@code{extr_c_ui} is correct while @code{extr_ul_us} is not.
+operand.
+
+Unlike @code{movr} and @code{movi}, the other instructions are applied
+between operands of different data types, and they need @strong{two}
+data type specifications.  You can use @code{extr} to convert between
+integer data types, in which case the first must be smaller in size
+than the second; for example @code{extr_c_ui} is correct while
+@code{extr_ul_us} is not.  You can also use @code{extr} to convert
+an integer to a floating point value: the only available possibilities
+are @code{extr_i_f} and @code{extr_i_d}.  The other instructions
+convert a floating point value to an integer, so the possible
+suffixes are @code{_f_i} and @code{_d_i}.
+
 @example
-movr/movi               i  ui l  ul p   O1 = O2
-extr        c  uc s  us i  ui l  ul     O1 = O2@footnote{Unlike @code{movr} and @code{movi}, @code{extr} is applied between operands of different sizes.}
+movr                      i  ui  l  ul  p  f  d  O1 = O2
+movi                      i  ui  l  ul  p  f  d  O1 = O2
+extr        c  uc  s  us  i  ui  l  ul     f  d  O1 = O2
+roundr                    i                f  d  O1 = round(O2)
+truncr                    i                f  d  O1 = trunc(O2)
+floorr                    i                f  d  O1 = floor(O2)
+ceilr                     i                f  d  O1 = ceil(O2)
 @end example
+
+Note that the order of the arguments is @emph{destination first,
+source second} as for all other @lightning{} instructions, but
+the order of the types is always reversed with respect to that
+of the arguments: @emph{shorter}---source---@emph{first,
+longer}---destination---@emph{second}.  This happens for historical
+reasons.
 
 @item Network extensions
 These accept two operands, both of which must be registers; these
@@ -185,8 +252,10 @@ in both cases, the last can be either a register or an immediate
 value. Values are extended (with or without sign, according to
 the data type specification) to fit a whole register.
 @example
-ldr/ldi     c  uc s  us i  ui l  ul p   O1 = *O2
-ldxr/ldxi   c  uc s  us i  ui l  ul p   O1 = *(O2+O3)
+ldr     c  uc  s  us  i  ui  l  ul  p  f  d  O1 = *O2
+ldi     c  uc  s  us  i  ui  l  ul  p  f  d  O1 = *O2
+ldxr    c  uc  s  us  i  ui  l  ul  p  f  d  O1 = *(O2+O3)
+ldxi    c  uc  s  us  i  ui  l  ul  p  f  d  O1 = *(O2+O3)
 @end example
 
 @item Store operations
@@ -194,8 +263,10 @@ ldxr/ldxi   c  uc s  us i  ui l  ul p   O1 = *(O2+O3)
 both cases, the first can be either a register or an immediate
 value. Values are sign-extended to fit a whole register.
 @example
-str/sti     c  uc s  us i  ui l  ul p   *O1 = O2
-stxr/stxi   c  uc s  us i  ui l  ul p   *(O1+O2) = O3
+str     c  uc  s  us  i  ui  l  ul  p  f  d  *O1 = O2
+sti     c  uc  s  us  i  ui  l  ul  p  f  d  *O1 = O2
+stxr    c  uc  s  us  i  ui  l  ul  p  f  d  *(O1+O2) = O3
+stxi    c  uc  s  us  i  ui  l  ul  p  f  d  *(O1+O2) = O3
 @end example
 
 @item Stack management
@@ -203,26 +274,27 @@ These accept a single register parameter.  These operations are not
 guaranteed to be efficient on all architectures.
 
 @example
-pushr                   i  ui l  ul p   @r{push }O1@r{ on the stack}
-popr                    i  ui l  ul p   @r{pop }O1@r{ off the stack}
+pushr                     i  ui  l  ul  p   @r{push }O1@r{ on the stack}
+popr                      i  ui  l  ul  p   @r{pop }O1@r{ off the stack}
 @end example
 
 @item Argument management
 These are:
 @example
-prepare     (not specified)
-pusharg     c  uc s  us i  ui l  ul p
-getarg      c  uc s  us i  ui l  ul p
-arg         c  uc s  us i  ui l  ul p
+prepare                   i                f  d
+pusharg     c  uc  s  us  i  ui  l  ul  p  f  d
+getarg      c  uc  s  us  i  ui  l  ul  p  f  d
+arg         c  uc  s  us  i  ui  l  ul  p  f  d
 @end example
 
 Of these, the first two are used by the caller, while the last two
 are used by the callee.  A code snippet that wants to call another
 procedure and has to pass registers must, in order: use the
 @code{prepare} instruction, giving the number of arguments to
-be passed to the procedure; use @code{pusharg} to push the arguments
-@strong{in reverse order}; and use @code{calli} or @code{finish}
-(explained below) to perform the actual call.
+be passed to the procedure (once for each data type); use
+@code{pusharg} to push the arguments @strong{in reverse order};
+and use @code{calli} or @code{finish} (explained below) to
+perform the actual call.
 
 @code{arg} and @code{getarg} are used by the callee.
 @code{arg} is different from other instruction in that it does not
@@ -269,18 +341,36 @@ is to be used to compile forward branches as explained in
 destination of the branch and two operands to be compared; of these,
 the last can be either a register or an immediate.  They are:
 @example
-bltr/blti     i ui l  ul p    @r{if }O2 <  O3@r{ goto }O1
-bler/blei     i ui l  ul p    @r{if }O2 <= O3@r{ goto }O1
-bgtr/bgti     i ui l  ul p    @r{if }O2 >  O3@r{ goto }O1
-bger/bgei     i ui l  ul p    @r{if }O2 >= O3@r{ goto }O1
-beqr/beqi     i ui l  ul p    @r{if }O2 == O3@r{ goto }O1
-bner/bnei     i ui l  ul p    @r{if }O2 != O3@r{ goto }O1
+bltr      i  ui  l  ul  p  f  d  @r{if }(O2 <  O3)@r{ goto }O1
+blti      i  ui  l  ul  p        @r{if }(O2 <  O3)@r{ goto }O1
+bler      i  ui  l  ul  p  f  d  @r{if }(O2 <= O3)@r{ goto }O1
+blei      i  ui  l  ul  p        @r{if }(O2 <= O3)@r{ goto }O1
+bgtr      i  ui  l  ul  p  f  d  @r{if }(O2 >  O3)@r{ goto }O1
+bgti      i  ui  l  ul  p        @r{if }(O2 >  O3)@r{ goto }O1
+bger      i  ui  l  ul  p  f  d  @r{if }(O2 >= O3)@r{ goto }O1
+bgei      i  ui  l  ul  p        @r{if }(O2 >= O3)@r{ goto }O1
+beqr      i  ui  l  ul  p  f  d  @r{if }(O2 == O3)@r{ goto }O1
+beqi      i  ui  l  ul  p        @r{if }(O2 == O3)@r{ goto }O1
+bner      i  ui  l  ul  p  f  d  @r{if }(O2 != O3)@r{ goto }O1
+bnei      i  ui  l  ul  p        @r{if }(O2 != O3)@r{ goto }O1
 
-bmsr/bmsi     i ui l  ul      @r{if }O2 &  O3@r{ goto }O1
-bmcr/bmci     i ui l  ul      @r{if }!(O2 & O3)@r{ goto }O1@footnote{These two mnemonics mean, respectively, @dfn{branch if mask set} and @dfn{branch if mask cleared}.}
+bunltr                     f  d  @r{if }!(O2 >= O3)@r{ goto }O1
+bunler                     f  d  @r{if }!(O2 >  O3)@r{ goto }O1
+bungtr                     f  d  @r{if }!(O2 <= O3)@r{ goto }O1
+bunger                     f  d  @r{if }!(O2 <  O3)@r{ goto }O1
+buneqr                     f  d  @r{if }!(O2 <  O3) && !(O2 >  O3)@r{ goto }O1
+bltgtr                     f  d  @r{if }!(O2 >= O3) || !(O2 <= O3)@r{ goto }O1
+bordr                      f  d  @r{if } (O2 == O2) &&  (O3 == O3)@r{ goto }O1
+bunordr                    f  d  @r{if }!(O2 != O2) ||  (O3 != O3)@r{ goto }O1
 
-boaddr/boaddi i ui l  ul      O2 += O3@r{, goto }O1@r{ on overflow}
-bosubr/bosubi i ui l  ul      O2 -= O3@r{, goto }O1@r{ on overflow}
+bmsr      i ui l  ul             @r{if }O2 &  O3@r{ goto }O1
+bmsi      i ui l  ul             @r{if }O2 &  O3@r{ goto }O1
+bmcr      i ui l  ul             @r{if }!(O2 & O3)@r{ goto }O1
+bmci      i ui l  ul             @r{if }!(O2 & O3)@r{ goto }O1@footnote{These mnemonics mean, respectively, @dfn{branch if mask set} and @dfn{branch if mask cleared}.}
+boaddr    i ui l  ul             O2 += O3@r{, goto }O1@r{ on overflow}
+boaddi    i ui l  ul             O2 += O3@r{, goto }O1@r{ on overflow}
+bosubr    i ui l  ul             O2 -= O3@r{, goto }O1@r{ on overflow}
+bosubi    i ui l  ul             O2 -= O3@r{, goto }O1@r{ on overflow}
 @end example
 
 @item Jump and return operations
@@ -291,14 +381,16 @@ and the former must @strong{always} follow a @code{prepare}
 instruction.  Results are undefined when using function calls
 in a leaf function.
 @example
-calli     (not specified)            @r{function call to O1}
-finish    (not specified)            @r{function call to O1}
-jmpi/jmpr (not specified)            @r{unconditional jump to O1}
-prolog    (not specified)            @r{function prolog for O1 args}
-leaf      (not specified)            @r{the same for leaf functions}
-ret       (not specified)            @r{return from subroutine}
-retval    c  uc s  us i  ui l  ul p  @r{move return value}
-                                     @r{to register}
+calli     (not specified)                  @r{function call to O1}
+callr     (not specified)                  @r{function call to a register}
+finish    (not specified)                  @r{function call to O1}
+finishr   (not specified)                  @r{function call to a register}
+jmpi/jmpr (not specified)                  @r{unconditional jump to O1}
+prolog    (not specified)                  @r{function prolog for O1 args}
+leaf      (not specified)                  @r{the same for leaf functions}
+ret       (not specified)                  @r{return from subroutine}
+retval    c  uc s  us i  ui l  ul p  f  d  @r{move return value}
+                                           @r{to register}
 @end example
 
 Like branch instruction, @code{jmpi} also returns a value which is to
@@ -353,7 +445,7 @@ between parentheses, just like with every other @sc{cpp} macro.
 
 This small tutorial presents three examples:
 
-@ifset ISTEX
+@iftex
 @itemize @bullet
 @item
 The @code{incr} function found in @ref{The instruction set, ,
@@ -368,15 +460,15 @@ An RPN calculator.
 @item
 Fibonacci numbers
 @end itemize
-@end ifset
-@ifclear ISTEX
+@end iftex
+@ifnottex
 @menu
 * incr::             A function which increments a number by one
 * printf::           A simple function call to printf
 * RPN calculator::   A more complex example, an RPN calculator
 * Fibonacci::        Calculating Fibonacci numbers
 @end menu
-@end ifclear
+@end ifnottex
 
 @node incr
 @section A function which increments a number by one
@@ -931,8 +1023,23 @@ instruction; otherwise, it emits the delay instruction before the branch
 instruction.  The delay instruction must not depend on being executed
 before or after the branch.
 
-@node Floating-point
-@chapter Doing floating point computations
+Instead of @code{jit_patch}, you can use @code{jit_patch_at}, which
+takes two arguments: the first is the same as for @code{jit_patch}, and
+the second is the valued to be patched in.  In other words, these two
+invocations have the same effect:
+
+@example
+  jit_patch (jump_pc);
+  jit_patch_at (jump_pc, jit_get_ip ());
+@end example
+
+Dual to branches and @code{jit_patch_at} are @code{jit_movi_p}
+and @code{jit_patch_movi}, which can also be used to implement
+forward references.  @code{jit_movi_p} is carefully implemented
+to use an encoding that is as long as possible, so that it can
+always be patched; in addition, like branches, it will return
+an address which is then passed to @code{jit_patch_movi}.  The
+usage of @code{jit_patch_movi} is similar to @code{jit_patch_at}.
 
 @node Reentrancy
 @chapter Re-entrant usage of @lightning{}
@@ -1039,6 +1146,22 @@ extern void _opt_muli_i(struct jit_state *, int, int, int);
 #define opt_muli_i(rd, rs, n)	_opt_muli_i(&_jit, (rd), (rs), (n))
 @end example
 
+
+@section Registers
+@chapter Accessing the whole register file
+
+As mentioned earlier in this chapter, all @lightning{} back-ends
+are guaranteed to have at least six integer registers and six
+floating-point registers, but many back-ends will have more.
+
+To access the entire register files, you can use the
+@code{JIT_R}, @code{JIT_V} and @code{JIT_FPR} macros.  They
+accept a parameter that identifies the register number, which
+must be strictly less than @code{JIT_R_NUM}, @code{JIT_V_NUM}
+and @code{JIT_FPR_NUM} respectively; the number need not be
+constant.  Of course, expressions like @code{JIT_R0} and
+@code{JIT_R(0)} denote the same register, and likewise for
+integer callee-saved, or floating-point, registers.
 
 @node Autoconf support
 @chapter Using @code{autoconf} with @lightning{}
