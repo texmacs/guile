@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -846,8 +846,13 @@
     (modulo (- day-of-week-starting-week fdweek-day)
             7)))
 
+;; The "-1" here is a fix for the reference implementation, to make a new
+;; week start on the given day-of-week-starting-week.  date-year-day returns
+;; a day starting from 1 for 1st Jan.
+;;
 (define (date-week-number date day-of-week-starting-week)
   (quotient (- (date-year-day date)
+	       1
                (priv:days-before-first-week  date day-of-week-starting-week))
             7))
 
