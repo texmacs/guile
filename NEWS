@@ -20,6 +20,11 @@ Changes since Guile 1.6.6 (changes in 1.6.7):
 
 * Changes to Scheme functions and syntax
 
+** array-map! and array-map-in-order! now correctly require at least one source
+
+A mistake caused a call with just one source array to be rejected,
+this has been fixed.
+
 ** string->number and octal constant bignums
 
 An incorrect bignum size calculation has been fixed, this caused
