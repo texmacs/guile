@@ -1,3 +1,9 @@
+2004-12-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (alist-copy, alist-delete, break, delete, delete!,
+	map, map!, span): New tests.
+	(partition): New tests, by Matthias Koeppe.
+
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (append-map, count, filter-map): New tests.
