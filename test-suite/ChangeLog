@@ -2,6 +2,10 @@
 
 	* tests/regexp.test (regexp-quote): New tests.
 
+	* tests/srfi-31.test: Use define-module to keep bindings out of
+	further tests.  Use-module (test-suite lib) for stand-alone operation.
+	(rec): Exercise bad args.
+
 2004-08-25  Kevin Ryde  <user42@zip.com.au>
 
 	* and-let-star.scm (and-let*): Give #t for an empty body, per srfi-2
