@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -679,6 +679,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   SCM handle = SCM_BOOL_F; /* Will GC protect the handle whilst unlinked */
   SCM pstate_scm;
   scm_print_state *pstate;
+  int old_writingp;
 
   /* If PORT is a print-state/port pair, use that.  Else create a new
      print-state. */
@@ -704,8 +705,10 @@ scm_prin1 (SCM exp, SCM port, int writingp)
     }
 
   pstate = SCM_PRINT_STATE (pstate_scm);
+  old_writingp = pstate->writingp;
   pstate->writingp = writingp;
   scm_iprin1 (exp, port, pstate);
+  pstate->writingp = old_writingp;
 
   /* Return print state to pool if it has been created above and
      hasn't escaped to Scheme. */

@@ -1,3 +1,7 @@
+2003-04-14  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* print.c (scm_prin1): Remember old state of pstate->writingp.
+
 2003-04-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (scm_sys_prep_layout_x): Instance allocation is now

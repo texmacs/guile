@@ -29,6 +29,21 @@ Previously, the readline prompt disappeared when running Guile in
 non-echoing terminal mode (for example under GDB in Emacs).  This has
 been fixed.
 
+** Printing bug fixed.
+
+Previously, the state of writingp in the print state could be altered
+by recursive calls to printing functions.
+
+** Append mode in hooks.
+
+Append mode in hooks (adding the hook last in the list) now works
+correctly.
+
+** GOOPS/GC bug fixed.
+
+The class layout slot, which informs the GC about which slots to GC
+protect, is now initialized correctly.
+
 * Changes to Scheme functions and syntax
 * Changes to the C interface 
 
