@@ -1,0 +1,72 @@
+;;;; ramap.test --- test array mapping functions -*- scheme -*-
+;;;; 
+;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.  
+
+(define-module (test-suite test-ramap)
+  #:use-module (test-suite lib))
+
+;;;
+;;; array-map!
+;;;
+
+(with-test-prefix "array-map!"
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (array-map!))
+
+  (pass-if-exception "one args" exception:wrong-num-args
+    (array-map! (make-array #f 5)))
+
+  ;; in Guile 1.6.4 and earlier this resulted in a segv
+  (pass-if-exception "two args" '(misc-error . ".*")
+    (array-map! (make-array #f 5) noop))
+
+  ;; in Guile 1.6.5 and 1.6.6 this was an error
+  (pass-if "two args"
+    (let ((a (make-array #f 5)))
+      (array-map! a 1+ (make-array 123 5))
+      (equal? a (make-array 124 5))))
+
+  (pass-if "three args"
+    (let ((a (make-array #f 4)))
+      (array-map! a + #(1 2 3 4) #(5 6 7 8))
+      (equal? a #(6 8 10 12)))))
