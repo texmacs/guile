@@ -1,3 +1,8 @@
+2001-10-28  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* unif.c (scm_uniform_array_read_x, scm_uniform_array_write):
+	Don't apply scm_uniform_vector_length on arrays.
+
 2001-10-15  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* read.c (scm_lreadr): When user-defined hash procedure returns
