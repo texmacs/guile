@@ -2051,10 +2051,15 @@ scm_must_realloc (void *where,
     scm_must_free() won't take NULL.
   */
   scm_mallocated += size - old_size;
-  SCM_SYSCALL (ptr = realloc (where, size));
 
+  /*
+    The realloc must be after check_mtrigger(), since realloc might
+    munge the old block of memory, which will be scanned by GC.
+   */
   check_mtrigger (what);
   
+  SCM_SYSCALL (ptr = realloc (where, size));
+
   if (NULL != ptr)
     {
 #ifdef GUILE_DEBUG_MALLOC

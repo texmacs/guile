@@ -1,3 +1,8 @@
+2003-07-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc.c (scm_must_realloc): bugfix: do mtrigger before
+	realloc. Thanks to Sam Hocevar for reporting this bug
+
 2003-06-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc_os_dep.c (scm_get_stack_base): New version using

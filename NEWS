@@ -16,6 +16,12 @@ Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 
 * Changes to the distribution
 * Changes to the stand-alone interpreter
+
+** GC bug fixed.
+
+The use of scm_must_realloc() for memory which is scanned by GC, could
+trigger a GC scan of a free()d block of memory. This is now fixed.
+
 * Changes to Scheme functions and syntax
 
 ** SRFI-1 delete equality argument order fixed.
