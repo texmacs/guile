@@ -1,3 +1,17 @@
+2003-09-26  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (EXTRA_DIST): add compile-psyntax.scm.
+
+	* compile-psyntax.scm: migrate missing with-fluids wrapper from
+	HEAD -- may have been overlooked during the 2003-01-27 merge.
+	Fixes one of two errors when trying to recompile psyntax.pp.
+
+	* syncase.scm: remove vestigal (pre-compile-psyntax.scm) load of
+	psyntax.ss (used to be needed during syntax-case development, but
+	now only caused problems with the top-of-the-file eval export.
+	Enabling the code as the comments instructed caused the other
+	error when trying to recompile psyntax.pp.
+	
 2003-09-19  Kevin Ryde  <user42@zip.com.au>
 
 	* popen.scm (open-process): Close input-fdes, output-fdes and

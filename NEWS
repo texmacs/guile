@@ -15,6 +15,9 @@ Each release reports the NEWS in the following sections:
 Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 
 * Changes to the distribution
+
+** Bugs have been fixed that prevented the (re)generation of psyntax.pp.
+
 * Changes to the stand-alone interpreter
 
 ** GC bug fixed.
