@@ -26,7 +26,7 @@
 @c of these concepts, implemented them, or just happen to know what they
 @c do, please write up a little explanation -- it would be a big help.
 @c Alternatively, if you know of a great reason why some of these should
-@c *not* go in the manual, please let me know. 
+@c *not* go in the manual, please let me know.
 
 @c Define indices that are used in the Guile Scheme part of the
 @c reference manual to group stuff according to whether it is R5RS or a
@@ -80,7 +80,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.5 2001-10-27 16:56:35 ghouston Exp $
+@subtitle $Id: guile.texi,v 1.2.2.6 2002-01-03 00:16:03 ttn Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -189,7 +189,7 @@ Preface
 Part I: Introduction to Guile
 
 * What is Guile?::              And what does it do?
-* Whirlwind Tour::              An introductory whirlwind tour.      
+* Whirlwind Tour::              An introductory whirlwind tour.
 * Reporting Bugs::              Reporting bugs in Guile or this manual.
 
 Part II: Guile Scheme
@@ -211,6 +211,7 @@ Part II: Guile Scheme
 * Translation::                 Support for translating other languages.
 * Debugging::                   Internal debugging interface.
 * Deprecated::                  Features that are planned to disappear.
+* Autoconf Support::            Guile-specific configure.in macros.
 * Further Reading::             Where to find out more about Scheme programming.
 
 Part III: Guile Modules
@@ -230,7 +231,7 @@ Part IV: Guile Scripting
 
 * Guile Scripting::             How to write Guile scripts.
 * Command Line Handling::       Command line options and arguments.
- 
+
 Part V: Extending Applications Using Guile
 
 * Libguile Intro::              Using Guile as an extension language.
@@ -289,6 +290,7 @@ Indices
 @include scheme-translation.texi
 @include scheme-debug.texi
 @include deprecated.texi
+@include autoconf.texi
 @include scheme-reading.texi
 @include scheme-indices.texi
 
