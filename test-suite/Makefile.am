@@ -26,6 +26,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/ports.test			\
 	    tests/posix.test			\
 	    tests/r4rs.test			\
+	    tests/ramap.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\
