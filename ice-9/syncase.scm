@@ -52,7 +52,15 @@
 	   syntax-dispatch syntax-error bound-identifier=?
 	   datum->syntax-object free-identifier=?
 	   generate-temporaries identifier? syntax-object->datum
-	   void eval syncase))
+	   void syncase))
+
+;; This is to avoid a deprecation warning about re-exporting eval.
+;; When the re-exporting behavior of export is removed, removed this
+;; code and include 'eval' in the export clause of define-module,
+;; above.
+
+(define eval #f)
+(export eval)
 
 
 
