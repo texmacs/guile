@@ -16,6 +16,11 @@ Changes since Guile 1.6.6 (changes in 1.6.7):
 
 * Changes to the distribution
 
+** A (probably autotools related) build problem has been fixed.
+
+Previously, on some systems, the build would fail when libguile-ltdl
+couldn't be found during the build.  This should be fixed.
+
 * Changes to the stand-alone interpreter
 
 * Changes to Scheme functions and syntax
