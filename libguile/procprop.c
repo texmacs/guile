@@ -52,6 +52,7 @@
 #include "libguile/smob.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/hashtab.h"
 
 #include "libguile/validate.h"
 #include "libguile/procprop.h"
@@ -159,15 +160,16 @@ scm_i_procedure_arity (SCM proc)
 static SCM
 scm_stand_in_scm_proc(SCM proc)
 {
-  SCM answer;
-  answer = scm_assoc (proc, scm_stand_in_procs);
-  if (SCM_FALSEP (answer))
+  SCM handle, answer;
+  handle = scm_hashq_get_handle (scm_stand_in_procs, proc);
+  if (SCM_FALSEP (handle))
     {
       answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
-      scm_stand_in_procs = scm_acons (proc, answer, scm_stand_in_procs);
+      scm_hashq_set_x (scm_stand_in_procs, proc, answer);
     }
-  else
-    answer = SCM_CDR (answer);
+  else {
+    answer = SCM_CDR(handle);
+  }
   return answer;
 }
 
