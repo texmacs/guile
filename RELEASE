@@ -78,9 +78,15 @@ Branching checklist:
 
 Spiffing checklist:
 
+  NOTE: Unless you're *SURE* you know what you're doing, please
+  perform the following actions in order.  The ordering is important
+  in places below.
+
 * Make sure you're working on the stable branch (see HACKING for
   details).  Note that after following the branch checklist above, you
   won't necessarily be.
+
+* Make sure you've got the latest files "cvs -qz3 update -Pd".
 
 * Check for files that have changed a lot, but do not have up-to-date
   copyright notices.  This can be as simple as doing:
@@ -108,47 +114,49 @@ Spiffing checklist:
   Make specifically sure that the files in libltdl are generated using
   the same tools as the rest.
 
-* Rebuild all generated files in the source tree:
-  + run ./autogen.sh
+* Run ./autogen.sh to rebuild all generated files in the source tree.
 
-* Verify that Guile builds and runs in your working directory.
+* Build the test distribution
 
-* Run a "make check".
+  NOTE: during this section, don't commit any of your changes to CVS
+  until the instructions tell you to below.  This is important so that
+  someone doesn't check out CVS and think that they have a finished
+  copy of a particular release when they actually don't.
 
-* Commit all changes to the CVS repository.
+  * update GUILE-VERSION to reflect the current test distribution, but
+    don't commit this change to CVS yet (see below).  For example,
+    just before the 1.6.0 release, we went through some number of
+    1.5.X test releases.
 
-* Build a test distribution.
-
-  + update GUILE-VERSION each time you make a test distribution.  For
-    example, just before the 1.6.0 release, we went through some
-    number of 1.5.X test releases.
-
-  + BEFORE doing 'make dist', configure the source tree for build
-    in the same tree with these configuration options:
-      --enable-maintainer-mode
-      --enable-debug-malloc
-      --with-threads
+  * configure the source tree for build in the same tree with these
+    configuration options:
+      --enable-maintainer-mode --enable-debug-malloc --with-threads
       --enable-error-on-warning
 
-  + Make sure that readline was enabled correctly.
+  * Make sure that readline was enabled correctly.
 
-  + Build the tree.
-    (If the above steps are not done, the dependencies won't be properly
-    included in the generated Makefile.in files.)
+  * Build the tree.  (If the above two steps are not done first, the
+    dependencies won't be properly included in the generated
+    Makefile.in files.)
 
-  + Run 'make dist'.
+  * Verify that Guile builds and runs in your working directory.
 
-  + Check that the dependencies in guile-readline/Makefile look OK.
+  * Run a "make check".
+
+  * Run 'make dist'.
+
+  * Check that the dependencies in guile-readline/Makefile look OK.
     (We currently use a kludge which edits the dependencies generated
     by automake so that Guile can be built in a directory separate
     from the source tree also with non-GNU make programs.)
 
-  + Add a note to the ChangeLog indicating the release, and commit
-    this change.
+  * Add a note to the ChangeLog indicating the release.
 
-  + Tag the release "cvs tag release_1-5-2".
+  * Now commit all your changes to CVS.
 
-  + Run 'make dist' again to get the official tarfile.
+  * Tag the release "cvs tag release_1-5-2".
+
+  * Run 'make dist' again to get the official tarfile.
 
 * Test the tarfile yourself using the instructions under "Testing a
   release candidate tarfile" below.
