@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -158,7 +158,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads	\
 ## usual @...@, so autoconf doesn't go and substitute the values
 ## directly into the left-hand sides of the sed substitutions.  *sigh*
 version.h: version.h.in
-	sed < version.h.in > $@.tmp \
+	sed < $(srcdir)/version.h.in > $@.tmp \
 	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
 	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
