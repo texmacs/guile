@@ -1,3 +1,8 @@
+2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* srfi-19.scm (time-monotonic->time-monotonic): Spurious;
+	remove from exports.
+
 2001-10-31  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* srfi-14.c (scm_string_to_char_set, scm_string_to_char_set_x):
