@@ -1,3 +1,8 @@
+2002-07-26  Rob Browning  <rlb@defaultvalue.org>
+
+	* api-diff: removed -- see doc/ChangeLog -- this may be a great
+	idea, but it'll have to wait for post 1.6.1.
+
 2002-04-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* PROGRAM: Update copyright; nfc.
