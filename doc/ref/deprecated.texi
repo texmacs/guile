@@ -347,6 +347,12 @@ it to @var{value}.  An error is signalled if @var{string} is not present
 in @var{obarray}.
 @end deffn
 
+@deffn {Deprecated Scheme Procedure} builtin-bindings
+@deffnx {Deprecated C Function} scm_builtin_bindings
+Create and return a copy of the global symbol table, removing all
+unbound symbols.
+@end deffn
+
 
 @node Removed Items
 @section Previously Deprecated Items Now Removed

@@ -1,5 +1,39 @@
 2002-04-01  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-intro.texi (Scheme Layout): Remove reference to defunct
+	Guile Extensions index.
+
+	* guile.texi: Removed Guile Extensions index.
+
+	* scheme-indices.texi (Guile Extensions Index): Removed.
+
+	* guile.texi: Update copyright years.
+
+	* preface.texi (Manual Layout): Update according to following
+	organizational changes.
+
+	* guile.texi (Reference Intro): New, introductory para for
+	reference part of manual (copied from unstable).
+	(Debugger User Interface, Autoconf Support, Miscellaneous Tools,
+	Further Reading): Moved to Part II.
+	(Guile Scripting, Command Line Handling): Moved to Part II.
+	(Libguile Intro, Data Representation, Guile API, GH): Moved to
+	Part II.
+	(Top): Remove Parts V and VI, which are now empty.
+	(Scheme Intro, Basic Ideas): Moved to Part II.
+
+	* program.texi: New file (copied from unstable).
+
+	* guile.texi (Top): Create new Part II, Programming with Guile,
+	shuffle up other part numbers, and rename Part III to Guile API
+	Reference.
+
+	* deprecated.texi (Obarray Symbols): Add builtin-bindings
+
+	* scheme-compound.texi (Vectors): Make subsections into nodes.
+	(Vectors): Review, slightly reorg and clarify docs in this
+	section.
+
 	* scheme-data.texi (Symbols): Reorganized node substructure and
 	added lots of explanatory text around the @deffn's.
 

@@ -46,7 +46,6 @@
 @c reference manual to group stuff according to whether it is R5RS or a
 @c Guile extension.
 @defcodeindex rn
-@defcodeindex ge
 
 @include version.texi
 
@@ -66,7 +65,8 @@ Guile Reference Manual
 Copyright (C) 1996 Free Software Foundation @*
 Copyright (C) 1997 Free Software Foundation @*
 Copyright (C) 2000 Free Software Foundation @*
-Copyright (C) 2001 Free Software Foundation
+Copyright (C) 2001 Free Software Foundation @*
+Copyright (C) 2002 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.14 2002-03-29 20:11:13 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.15 2002-04-01 18:37:00 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -159,6 +159,10 @@ Copyright @copyright{} 1997 Free Software Foundation
 
 Copyright @copyright{} 2000 Free Software Foundation
 
+Copyright @copyright{} 2001 Free Software Foundation
+
+Copyright @copyright{} 2002 Free Software Foundation
+
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
 are preserved on all copies.
@@ -207,10 +211,26 @@ Part I: Introduction to Guile
 * Obtaining and Installing Guile::
 * Reporting Bugs::              Reporting bugs in Guile or this manual.
 
-Part II: Guile Scheme
+Part II: Programming with Guile
 
+* Programming Intro::           Introduction to this part.
+* Programming Overview::        An overview of Guile programming.
 * Scheme Intro::                Introduction to Guile Scheme.
 * Basic Ideas::                 Basic ideas in Scheme.
+* Guile Scripting::             How to write Guile scripts.
+* Command Line Handling::       Command line options and arguments.
+* Libguile Intro::              Using Guile as an extension language.
+* Guile API::                   Overview of the Guile API.
+* Data Representation::         Data representation in Guile.
+* GH::                          The deprecated GH interface.
+* Debugger User Interface::
+* Autoconf Support::            Guile-specific configure.in macros.
+* Miscellaneous Tools::         Snarfing, linting, etc.
+* Further Reading::             Where to find out more about Scheme programming.
+
+Part III: Guile API Reference
+
+* Reference Intro::             Introduction to the Guile API reference.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
 * Procedures and Macros::       Procedures and macros.
@@ -227,12 +247,8 @@ Part II: Guile Scheme
 * Translation::                 Support for translating other languages.
 * Debugging::                   Internal debugging interface.
 * Deprecated::                  Features that are planned to disappear.
-* Debugger User Interface::
-* Autoconf Support::            Guile-specific configure.in macros.
-* Miscellaneous Tools::         Snarfing, linting, etc.
-* Further Reading::             Where to find out more about Scheme programming.
 
-Part III: Guile Modules
+Part IV: Guile Modules
 
 * SLIB::                        Using the SLIB Scheme library.
 * POSIX::                       POSIX system calls and networking.
@@ -244,19 +260,6 @@ Part III: Guile Modules
 * Rx Regexps::                  The Rx regular expression library.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
-@c * Tcl/Tk Interface::
-
-Part IV: Guile Scripting
-
-* Guile Scripting::             How to write Guile scripts.
-* Command Line Handling::       Command line options and arguments.
-
-Part V: Extending Applications Using Guile
-
-* Libguile Intro::              Using Guile as an extension language.
-* Data Representation::         Data representation in Guile.
-* Guile API::                   Overview of the Guile API.
-* GH::                          The deprecated GH interface.
 
 Indices
 
@@ -265,7 +268,6 @@ Indices
 * Variable Index::
 * Type Index::
 * R5RS Index::
-* Guile Extensions Index::
 
 @end menu
 
@@ -278,14 +280,44 @@ Indices
 
 @include intro.texi
 
-@c programming in Scheme
-@iftex
 @page
-@unnumbered{Part II: Guile Scheme}
-@end iftex
+@node Programming Intro
+@unnumbered Part II: Programming with Guile
 
+In this part of the manual, we aim to present a wide ranging picture of
+what it means to program using Guile, to provide guidance, practical
+guidelines and tips for @emph{how} to program in Guile, and to document
+the tools that are available to help you with your programming.  For
+detailed reference information on the variables, functions etc. that
+make up Guile's application programming interface (API), please refer to
+Part III (@pxref{Reference Intro,,Part III --- Guile API Reference}).
+
+We begin in the first chapter of this part by looking at the programming
+options available.
+
+@include program.texi
 @include scheme-intro.texi
 @include scheme-ideas.texi
+@include scripts.texi
+@include script-getopt.texi
+@include extend.texi
+@include scm.texi
+@include data-rep.texi
+@include gh.texi
+@include debugging.texi
+@include autoconf.texi
+@include tools.texi
+@include scheme-reading.texi
+
+@page
+@node Reference Intro
+@unnumbered Part III: Guile API Reference
+
+Guile provides an application programming interface (@dfn{API}) to
+developers in two core languages: Scheme and C.  This part of the manual
+contains reference documentation for all of the functionality that is
+available through both Scheme and C interfaces.
+
 @include scheme-data.texi
 @include scheme-compound.texi
 @include scheme-procedures.texi
@@ -302,14 +334,10 @@ Indices
 @include scheme-translation.texi
 @include scheme-debug.texi
 @include deprecated.texi
-@include debugging.texi
-@include autoconf.texi
-@include tools.texi
-@include scheme-reading.texi
 
 @iftex
 @page
-@unnumbered{Part III: Guile Modules}
+@unnumbered{Part IV: Guile Modules}
 @end iftex
 
 @include slib.texi
@@ -319,27 +347,6 @@ Indices
 @include misc-modules.texi
 @include expect.texi
 @include scsh.texi
-@c @include tcltk.texi
-
-@c Guile as an scripting language
-@iftex
-@page
-@unnumbered{Part IV: Guile Scripting}
-@end iftex
-
-@include scripts.texi
-@include script-getopt.texi
-
-@c Guile as an extension language
-@iftex
-@page
-@unnumbered{Part V: Extending Applications Using Guile}
-@end iftex
-
-@include extend.texi
-@include data-rep.texi
-@include scm.texi
-@include gh.texi
 
 @iftex
 @page
