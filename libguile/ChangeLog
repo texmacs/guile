@@ -1,3 +1,7 @@
+2002-07-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc_os_dep.c: HURD fixes.
+
 2002-06-18  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (scm_simple_format): Print missing part of format before
