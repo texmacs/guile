@@ -3,6 +3,10 @@
 	* posix.texi (Network Sockets and Communication): Add SOCK_RDM and
 	SOCK_SEQPACKET.
 
+	* posix.texi (Internet Socket Client, Internet Socket Server):
+	Correction to socket calls, should be PF_INET not AF_INET (though
+	generally the two are the same value).
+
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-13 Predicates): Add string-any and
