@@ -756,7 +756,96 @@ the Guile contrib archive to make @file{libffi} accessible from Guile.
 @node Extensions
 @subsection Writing Dynamically Loadable Extensions
 
-XXX - document @code{load-extension}, @code{scm_register_extension}
+Higher level linking routines allow you to manage loadable modules when
+multiple scheme modules require the same dynamically linked library.  As
+we described in section @xref{A Sample Guile Extension}, we write a C
+module which contains an init function, and then use the
+@code{load-extension} to link the library and run the init function.
+However, let's assume that we had two scheme modules (for example, (math
+general) and (science electrons)) which both required the
+@code{libguile-bessel} routines.  We would not want to link the shared
+file twice because it wastes memory, and even if we were not concerned
+with that, it would create symbol conflicts.  We cannot designate one to
+do the loading, since we may only want one or the other (or both) at any
+given time.  These routines solve this problem.
+
+@deffn {Scheme Procedure} load-extension lib init
+@deffnx {C Function} scm_load_extension (SCM lib, SCM init)
+@deffnx {C Function} scm_c_load_extension (const char *lib, const char *init)
+@end deffn
+
+Most of the time, when this function is called, it is equivalent to
+calling @code{(dynamic-call init (dynamic-link lib))}.  It simply uses
+the low-level dynamic linking routines to link the shared file, and call
+its init function.  However, if the library and init function has been
+pre-registered, it skips the linking of the shared file, and calls the
+replacement init function which was designated by the registration.
+That way both of our modules can contain the line
+
+@smalllisp
+(load-extension "libguile-bessel" "init_bessel")
+@end smalllisp
+
+If, for example, (math general) gets loaded first, then it will do the
+standard thing and links the shared file, and calls init_bessel.  When
+(science electrons) gets loaded, the load-extension line does not cause
+the shared file to be linked.  Instead it simply causes the replacement
+init function to be run.
+
+@deffn {C Function} scm_c_register_extension (const char *lib, const char *init, void (*func) (void *), void *data)
+@end deffn
+
+We utilize @code{scm_c_register_extension} from the init function of our
+module to register our replacement function.  The bessel function
+example would then look like
+
+@smallexample
+#include <math.h>
+#include <libguile.h>
+
+static double pi; /* Random Global Variable */
+
+SCM
+j0_wrapper (SCM x)
+@{
+  return scm_make_real (j0 (scm_num2dbl (x, "j0")));
+@}
+
+void 
+define_functions (void *data)
+@{
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
+@}
+
+void
+init_bessel ()
+@{
+  pi = 3.14159265; /* Initialize our global var */
+  define_functions (NULL);
+  scm_c_register_extension ("libguile-bessel", "init_bessel", 
+                            define_functions, NULL);
+@}
+
+@end smallexample
+
+This way the first time @code{load-extension} is called, the shared
+library is linked, the global variable is initialized, the proper scheme
+functions (@code{j0}) are defined, and the replacement init function is
+registered.  The second time @code{load-extension} is called, it finds
+the replacement function and calls @code{define_functions}, without
+redundantly attempting to link the shared file, or reinitializing our
+global variables.
+
+The fourth argument to @code{scm_c_register_extension} is a pointer
+which gets passed to the replacement init function which you can use
+for anything your init function might need.
+
+The first (@code{lib}) argument is allowed to be NULL. In which case
+only the @code{init} argument is used when searching through the
+registered extensions.  This is useful when you don't know the library
+name (which isn't really relevant anyway in a completely linked
+program) and you are sure that INIT is unique (which it must be for
+static linking).
 
 
 @node Variables

@@ -1,3 +1,8 @@
+2003-08-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-modules.texi (Extensions): New text contributed by Aaron
+	VanDevender.
+
 2003-06-14  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Arithmetic): round is to nearest even.
