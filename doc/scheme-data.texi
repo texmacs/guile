@@ -2279,8 +2279,6 @@ Test whether obj is a compiled regular expression.
 @node Symbols and Variables
 @section Symbols and Variables
 
-@c FIXME::martin: Review me!
-
 Symbols are a data type with a special property.  On the one hand,
 symbols are used for denoting variables in a Scheme program, on the
 other they can be used as literal data as well.
@@ -2300,8 +2298,6 @@ be used for interacting with the module system.
 @node Symbols
 @subsection Symbols
 @tpindex Symbols
-
-@c FIXME::martin: Review me!
 
 Symbols are especially useful because two symbols which are spelled the
 same way are equivalent in the sense of @code{eq?}.  That means that
@@ -2417,8 +2413,6 @@ standard case is lower case:
 @node Symbol Tables
 @subsection Symbol Tables
 
-@c FIXME::martin: Review me!
-
 @c FIXME::martin: Are all these procedures still relevant?
 
 Guile symbol tables are hash tables.  Each hash table, also called an
@@ -2427,14 +2421,6 @@ Each entry in the alists is a pair (@var{SYMBOL} . @var{VALUE}).  To
 @dfn{intern} a symbol in a symbol table means to return its
 (@var{SYMBOL} . @var{VALUE}) pair, adding a new entry to the symbol
 table (with an undefined value) if none is yet present.
-
-@c FIXME::martin: According to NEWS, removed.  Remove here too, or
-@c leave for compatibility?
-@c @c docstring begin (texi-doc-string "guile" "builtin-bindings")
-@c @deffn primitive builtin-bindings
-@c Create and return a copy of the global symbol table, removing all
-@c unbound symbols.
-@c @end deffn
 
 @deffn primitive gensym [prefix]
 Create a new symbol with a name constructed from a prefix and
@@ -2521,8 +2507,6 @@ otherwise.
 @node Variables
 @subsection Variables
 @tpindex Variables
-
-@c FIXME::martin: Review me!
 
 Variables are objects with two fields.  They contain a value and they
 can contain a symbol, which is the name of the variable.  A variable is
@@ -2766,8 +2750,6 @@ ABORT: (unbound-variable)
 @node Keyword Procedures
 @subsection Keyword Procedures
 
-@c FIXME::martin: Review me!
-
 The following procedures can be used for converting symbols to keywords
 and back.
 
@@ -2813,8 +2795,6 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 @node Pairs
 @section Pairs
 @tpindex Pairs
-
-@c FIXME::martin: Review me!
 
 Pairs are used to combine two Scheme objects into one compound object.
 Hence the name: A pair stores a pair of objects.
@@ -2916,8 +2896,6 @@ by @code{set-cdr!} is unspecified.
 @section Lists
 @tpindex Lists
 
-@c FIXME::martin: Review me!
-
 A very important data type in Scheme---as well as in all other Lisp
 dialects---is the data type @dfn{list}.@footnote{Strictly speaking,
 Scheme does not have a real datatype @emph{list}.  Lists are made up of
@@ -2948,15 +2926,13 @@ or a pair which has a list in its cdr.
 * List Constructors::           Creating new lists.
 * List Selection::              Selecting from lists, getting their length.
 * Append/Reverse::              Appending and reversing lists.
-* List Modifification::         Modifying list structure.
+* List Modification::           Modifying existing lists.
 * List Searching::              Searching for list elements
 * List Mapping::                Applying procedures to lists.
 @end menu
 
 @node List Syntax
 @subsection List Read Syntax
-
-@c FIXME::martin: Review me!
 
 The syntax for lists is an opening parentheses, then all the elements of
 the list (separated by whitespace) and finally a closing
@@ -2990,8 +2966,6 @@ applications (@pxref{Simple Invocation}).
 
 @node List Predicates
 @subsection List Predicates
-
-@c FIXME::martin: Review me!
 
 Often it is useful to test whether a given Scheme object is a list or
 not.  List-processing procedures could use this information to test
@@ -3057,8 +3031,6 @@ use the procedure @code{copy-tree} (@pxref{Copying}).
 @node List Selection
 @subsection List Selection
 
-@c FIXME::martin: Review me!
-
 These procedures are used to get some information about a list, or to
 retrieve one or more elements of a list.
 
@@ -3095,8 +3067,6 @@ return it.
 
 @node Append/Reverse
 @subsection Append and Reverse
-
-@c FIXME::martin: Review me!
 
 @code{append} and @code{append!} are used to concatenate two or more
 lists in order to form a new list.  @code{reverse} and @code{reverse!}
@@ -3154,14 +3124,11 @@ of the modified list is not lost, it is wise to save the return value of
 @code{reverse!}
 @end deffn
 
-@node List Modifification
+@node List Modification
 @subsection List Modification
 
-@c FIXME::martin: Review me!
-
-The following procedures modify existing list.  @code{list-set!}  and
-@code{list-cdr-set!} change which elements a list contains, the various
-deletion procedures @code{delq}, @code{delv} etc.
+The following procedures modify an existing list, either by changing
+elements of the list, or by changing the list structure itself.
 
 @deffn primitive list-set! list k val
 Set the @var{k}th element of @var{list} to @var{val}.
