@@ -704,9 +704,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	soka = (struct sockaddr_in *) malloc (sizeof (struct sockaddr_in));
 	if (!soka)
 	  scm_memory_error (proc);
-	/* 4.4BSD-style interface includes sin_len member and defines SIN_LEN,
-	   4.3BSD  does not.  */
-#ifdef SIN_LEN
+#if HAVE_STRUCT_SOCKADDR_SIN_LEN
 	soka->sin_len = sizeof (struct sockaddr_in);
 #endif
 	soka->sin_family = AF_INET;
@@ -742,7 +740,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	soka = (struct sockaddr_in6 *) malloc (sizeof (struct sockaddr_in6));
 	if (!soka)
 	  scm_memory_error (proc);
-#ifdef SIN_LEN6
+#if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
 	soka->sin6_family = AF_INET6;
