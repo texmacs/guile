@@ -1726,6 +1726,9 @@
   (lambda (symbol)
     (symbol-append prefix symbol)))
 
+;; This function is called from "modules.c".  If you change it, be
+;; sure to update "modules.c" as well.
+
 (define (process-define-module args)
   (let* ((module-id (car args))
          (module (resolve-module module-id #f))
@@ -1819,6 +1822,9 @@
 ;;; {Autoloading modules}
 
 (define autoloads-in-progress '())
+
+;; This function is called from "modules.c".  If you change it, be
+;; sure to update "modules.c" as well.
 
 (define (try-module-autoload module-name)
   (let* ((reverse-name (reverse module-name))
@@ -2791,7 +2797,10 @@
 	 (defmacro ,@args))))))
 
 ;; Export a local variable
-;;
+
+;; This function is called from "modules.c".  If you change it, be
+;; sure to update "modules.c" as well.
+
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
