@@ -1,3 +1,11 @@
+2001-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Added "mkstemp.c".
+
+	* backtrace.c (display_backtrace_file_and_line): Only use
+	scm_basename when POSIX support is compiled in.  Thanks to Chris
+	Cramer.
+
 2001-10-12  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* validate.h (SCM_VALIDATE_DOUBLE_DEF_COPY): New macro.
