@@ -1657,7 +1657,7 @@
 	     (eq? (car (last-pair use-list)) the-scm-module))
 	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
-;; Return a module that is a interface to the module designated by
+;; Return a module that is an interface to the module designated by
 ;; NAME.
 ;;
 ;; `resolve-interface' takes two keyword arguments:
@@ -1669,7 +1669,7 @@
 ;; is the name in the used module and SEEN is the name in the using
 ;; module.  Note that SEEN is also passed through RENAMER, below.  The
 ;; default is to select all bindings.  If you specify no selection but
-;; a renamer, only the bindings that already exists in the used module
+;; a renamer, only the bindings that already exist in the used module
 ;; are made available in the interface.  Bindings that are added later
 ;; are not picked up.
 ;;
