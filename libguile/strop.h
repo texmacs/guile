@@ -67,8 +67,12 @@ extern SCM scm_string_capitalize (SCM v);
 extern SCM scm_string_split (SCM str, SCM chr);
 extern SCM scm_string_ci_to_symbol (SCM v);
 
+#if SCM_DEBUG_DEPRECATED == 0
+
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x
+
+#endif
 
 #endif  /* STROPH */
 
