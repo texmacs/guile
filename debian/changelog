@@ -1,3 +1,9 @@
+guile-1.6 (1.6.5-0.1) unstable; urgency=low
+
+  * CVS changelog -- not an official Debian release.
+
+ --
+
 guile-1.6 (1.6.4-4) unstable; urgency=low
 
   * Fix release oversight (forgot to delete beta pkg warning(s)).
