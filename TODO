@@ -63,19 +63,6 @@ See also file HACKING.
 (Also, please try to fold any relevant changes you make into the
  unstable tree as well.)
 
-+ sync srfi-modules.texi [ttn]
-
-- Update the version numbers in GUILE-VERSION and README. [rlb]
-
-- find out if we need to put a mutex around syncase.scm's custom
-  gensym code.
-
-- rearrange guile-config not to spit out {/usr,}/{include,lib} flags.
-
-+ centralize pre-inst guile usage [ttn]
-  + write devel/build/pre-inst-guile
-  + write pre-inst-guile{-tools}, convert Makefile.am callers
-
 - Update the version numbers in GUILE-VERSION and README. [rlb]
 
 - perform testing cycles.

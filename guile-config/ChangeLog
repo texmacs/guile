@@ -1,3 +1,8 @@
+2002-03-03  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile-config.in (build-link): don't output -L/usr/lib.
+	(build-compile): don't output -I/usr/include.
+
 2002-01-02  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* guile.m4: Rewrite comments in texi.
