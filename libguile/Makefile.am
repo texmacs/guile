@@ -35,7 +35,7 @@ lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile guile_filter_doc_snarfage
 
 guile_SOURCES = guile.c
-guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
+guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@
 
 guile_filter_doc_snarfage_SOURCES = c-tokenize.c
@@ -116,8 +116,8 @@ noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
 		 num2integral.i.c num2float.i.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)
-libguile_la_LDFLAGS = -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic
+libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL) $(THREAD_LIBS_LOCAL)
+libguile_la_LDFLAGS = -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h> 
 pkginclude_HEADERS = gh.h
