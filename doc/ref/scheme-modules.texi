@@ -76,8 +76,7 @@ module system.
 
 In 1996 Tom Lord implemented a full-featured module system for Guile which
 allows loading Scheme source files into a private name space.  This system has
-been in available since Guile version 1.4.
-@c fixme: Actually, was it available before?  1.4 seems a bit late...
+been in available since at least Guile version 1.1.
 
 For Guile version 1.5.0 and later, the system has been improved to have better
 integration from C code, more fine-grained user control over interfaces, and
@@ -548,7 +547,7 @@ ignored.  When @var{function} is something returned by
 When @var{func} is a string , look it up in @var{dynobj}; this
 is equivalent to
 @smallexample
-(dynamic-call (dynamic-func @var{func} @var{dobj} #f))
+(dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
 @end smallexample
 
 Interrupts are deferred while the C function is executing (with

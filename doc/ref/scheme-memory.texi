@@ -12,13 +12,11 @@
 @node Garbage Collection
 @section Garbage Collection
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
-no longer accessible.
+no longer accessible.  You normally don't need to call this function
+explicitly.  It is called automatically when appropriate.
 @end deffn
 
 @deffn {Scheme Procedure} gc-stats
@@ -113,6 +111,8 @@ would modify regular hash tables. (@pxref{Hash Tables})
 @deffnx {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {Scheme Procedure} doubly-weak-hash-table? obj
 @deffnx {C Function} scm_weak_key_hash_table_p (obj)
+@deffnx {C Function} scm_weak_value_hash_table_p (obj)
+@deffnx {C Function} scm_doubly_weak_hash_table_p (obj)
 Return @code{#t} if @var{obj} is the specified weak hash
 table. Note that a doubly weak hash table is neither a weak key
 nor a weak value hash table.

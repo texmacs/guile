@@ -1,3 +1,8 @@
+2002-08-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* new-docstrings.texi, posix.texi, scheme-memory.texi,
+	scheme-modules.texi: Merge recent updates from unstable branch.
+
 2002-08-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-binding.texi: Don't talk about 'bound?' which is gone.
