@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -894,10 +894,16 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 #define FUNC_NAME s_scm_execl
 {
   char **execargv;
+  int save_errno, i;
   SCM_VALIDATE_STRING (1, filename);
   SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execv (SCM_STRING_CHARS (filename), execargv);
+  save_errno = errno;
+  for (i = 0; execargv[i] != NULL; i++)
+    free (execargv[i]);
+  free (execargv);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -915,10 +921,16 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 #define FUNC_NAME s_scm_execlp
 {
   char **execargv;
+  int save_errno, i;
   SCM_VALIDATE_STRING (1, filename);
   SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execvp (SCM_STRING_CHARS (filename), execargv);
+  save_errno = errno;
+  for (i = 0; execargv[i] != NULL; i++)
+    free (execargv[i]);
+  free (execargv);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -967,6 +979,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
 {
   char **execargv;
   char **exec_env;
+  int save_errno, i;
 
   SCM_VALIDATE_STRING (1, filename);
   SCM_STRING_COERCE_0TERMINATION_X (filename);
@@ -974,6 +987,13 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
   exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
   execve (SCM_STRING_CHARS (filename), execargv, exec_env);
+  save_errno = errno;
+  for (i = 0; execargv[i] != NULL; i++)
+    free (execargv[i]);
+  free (execargv);
+  for (i = 0; exec_env[i] != NULL; i++)
+    free (exec_env[i]);
+  free (exec_env);
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
