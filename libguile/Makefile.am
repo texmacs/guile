@@ -231,17 +231,17 @@ if HAVE_MAKEINFO
 
 guile-procedures.txt: guile-procedures.texi
 	rm -f $@
-	makeinfo --force -o $@ $< || test -f $@
+	makeinfo --force -o $@ guile-procedures.texi || test -f $@
 
 else
 
 guile-procedures.txt: guile-procedures.texi
-	cp $< $@
+	cp guile-procedures.texi $@
 
 endif
 
 c-tokenize.c: c-tokenize.lex
-	flex -t $< > $@ || { rm $@; false; }
+	flex -t c-tokenize.lex > $@ || { rm $@; false; }
 
 schemelibdir = $(pkgdatadir)/$(VERSION)
 schemelib_DATA = guile-procedures.txt
