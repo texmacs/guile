@@ -65,6 +65,10 @@ See also file HACKING.
 
 + sync srfi-modules.texi [ttn]
 
+- centralize pre-inst guile usage [ttn]
+  - write devel/build/pre-inst-guile
+  - write pre-inst-guile{-tools}, convert Makefile.am callers
+
 - Update the version numbers in GUILE-VERSION and README. [rlb]
 
 - perform testing cycles.
