@@ -49,6 +49,13 @@ protect, is now initialized correctly.
 The class redefinition protocol now properly removes the old accessor
 methods from their accessors.
 
+** GOOPS method dispatch bug fixed.
+
+Previously, the code updating the method cache in generic functions
+got confused if handed method code created in a null environment
+(environment = empty list).  It now stands every environment
+imaginable (think about it!).
+
 ** Garbage collection frequency improved for large malloc heaps
 
 The decision when to run the GC is now done in a way that avoids GCs
