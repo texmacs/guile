@@ -1,3 +1,20 @@
+2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-aclocal.sh: Replaced with a simple invocation of "aclocal
+	-I guile-config".  This works as of automake 1.5.
+
+2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Also include <sys/types.h> (when we have it) when
+	checking for IPv6 support.  This is needed for NetBSD-1.5.2.
+	Thanks to Greg Troxel!
+
+2002-04-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Call automake twice for guile-core so that two
+	copies of mdate-sh get a chance of being installed (one in
+	doc/ref/ and one in doc/tutorial/).
+
 2002-04-25  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* autogen.sh: Remove explicit "set -x", which can be

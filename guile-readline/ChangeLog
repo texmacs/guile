@@ -1,3 +1,8 @@
+2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Change to parent dir before invoking
+	guile-aclocal.sh.
+
 2002-04-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* readline.scm: fix typo...
