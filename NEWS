@@ -130,16 +130,8 @@ guile-tools is copied to the standard $bindir on "make install".
 
 ** Snarfing news
 
-The program guile-snarf is now documented in the manual, including how
-to use the current guile-snarf to handle code using the guile-1.4 snarf
-macros within the guile-1.6 environment.  Specifically, these macros are
-either renamed or no longer supported:
-
-  SCM_VCELL
-  SCM_GLOBAL_VCELL
-  SCM_VCELL_INIT
-  SCM_GLOBAL_VCELL_INIT
-  SCM_CONST_LONG
+The installed program guile-snarf is now documented in the manual,
+including how to use it to detect deprecated macros.
 
 These programs are no longer installed:
 
