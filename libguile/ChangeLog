@@ -1,3 +1,19 @@
+2001-09-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+        The following patch partially undoes my patch from 2001-06-30,
+	where I added the function scm_gc_mark_cell_conservatively.  The
+	function is buggy, since it breaks guile during conservative
+	marking if a pointer on the stack points directly into the list of
+	free cells on the heap:  With conservative cell marking this will
+	cause the whole free list to be scanned and marked - boom!
+
+	* gc.c (allocated_mark, MARK, heap_segment,
+	scm_gc_mark_cell_conservatively, scm_init_storage), gc.h
+	(scm_gc_mark_cell_conservatively):  Remove function 
+	scm_gc_mark_cell_conservatively and update the corresponding
+	comments and uses accordingly.  Thanks to Christopher Cramer for
+	the patch.  (Minor corrections by me.)
+
 2001-09-01  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* numbers.c (scm_sys_check_number_conversions): new function,
