@@ -1,3 +1,8 @@
+2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* Makefile.am (install-data-local): Look in `$(srcdir)'
+	for file and-let-star-compat.scm.
+
 2001-09-24  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* boot-9.scm (process-define-module): Added :re-export.
