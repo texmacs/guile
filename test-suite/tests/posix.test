@@ -68,3 +68,58 @@
     (execle "./nosuchprog" '() "./nosuchprog" "some arg"))
   (pass-if-exception "./nosuchprog" '(system-error . ".*")
     (execle "./nosuchprog" '("FOO=1" "BAR=2") "./nosuchprog" "some arg")))
+
+;;
+;; putenv
+;;
+
+(with-test-prefix "putenv"
+  
+  (pass-if "something"
+    (putenv "FOO=something")
+    (equal? "something" (getenv "FOO")))
+  
+  (pass-if "replacing"
+    (putenv "FOO=one")
+    (putenv "FOO=two")
+    (equal? "two" (getenv "FOO")))
+  
+  (pass-if "empty"
+    (putenv "FOO=")
+    (equal? "" (getenv "FOO")))
+  
+  (pass-if "removing"
+    (putenv "FOO=bar")
+    (putenv "FOO")
+    (not (getenv "FOO")))
+  
+  (pass-if "modifying string doesn't change env"
+    (let ((s (string-copy "FOO=bar")))
+      (putenv s)
+      (string-set! s 5 #\x)
+      (equal? "bar" (getenv "FOO")))))
+
+;;
+;; setenv
+;;
+
+(with-test-prefix "setenv"
+  
+  (pass-if "something"
+    (setenv "FOO" "something")
+    (equal? "something" (getenv "FOO")))
+  
+  (pass-if "replacing"
+    (setenv "FOO" "one")
+    (setenv "FOO" "two")
+    (equal? "two" (getenv "FOO")))
+
+  (pass-if "empty"
+    (setenv "FOO" "")
+    (equal? "" (getenv "FOO")))
+  
+  (pass-if "removing"
+    (setenv "FOO" "something")
+    (setenv "FOO" #f)
+    (not (getenv "FOO"))))
+  
