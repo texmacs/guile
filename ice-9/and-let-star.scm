@@ -1,7 +1,7 @@
 ;;;; and-let-star.scm --- and-let* syntactic form (draft SRFI-2) for Guile
 ;;;; written by Michael Livshin <mike@olan.com>
 ;;;;
-;;;; 	Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -69,3 +69,5 @@
       (error "not a proper list" vars))))
 
   (expand vars body))
+
+(cond-expand-provide (current-module) '(srfi-2))
