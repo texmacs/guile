@@ -1,0 +1,10 @@
+debian/tmp/usr/lib/libguile.so.*
+debian/tmp/usr/lib/libguile-srfi*.so.*
+debian/tmp/usr/lib/libguile-srfi-srfi-13-14-v-1.la
+debian/tmp/usr/lib/libguile-srfi-srfi-4-v-1.la
+debian/tmp/usr/lib/libguilereadline-v-12.la
+debian/tmp/usr/lib/libguilereadline-v-12.so.*
+debian/tmp/usr/share/guile/1.6/guile-procedures.txt
+debian/tmp/usr/share/guile/1.6/ice-9/*
+debian/tmp/usr/share/guile/1.6/oop/*
+debian/tmp/usr/share/guile/1.6/srfi/*

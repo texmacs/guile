@@ -1,0 +1,140 @@
+#!/usr/bin/make -f
+# debian/rules file for Guile.
+#
+# This file was derived from a public domain file, originally written
+# by Joey Hess (from file included in examples in debhelper package).
+#
+# You can build any of the binary packages independantly, via
+# binary-<package> targets.
+
+# Uncomment this to turn on verbose mode. 
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+export DH_COMPAT := 4
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -g
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+# If you change this please change the debian/control qthreads entry and the
+# arch-specific .install targets below too.
+WORKING_QTHREADS_ARCHS := i386 alpha
+
+ifeq ($(findstring ${DEB_HOST_ARCH},${WORKING_QTHREADS_ARCHS}),${DEB_HOST_ARCH})
+ENABLE_THREADS := --with-threads=yes
+endif
+
+QTHREADS_DOT_INSTALLS := \
+  $(foreach arch,${WORKING_QTHREADS_ARCHS},debian/guile-1.6-dev.install.${arch})
+
+${QTHREADS_DOT_INSTALLS}: debian/guile-1.6-dev.install
+	echo ${DEBIAN_ARCHFILES}
+	cat $< > $@ && echo debian/tmp/usr/lib/libqthreads.la >> $@
+
+configure_args = \
+	--host=$(DEB_HOST_GNU_TYPE) \
+	--build=$(DEB_BUILD_GNU_TYPE) \
+	--prefix=/usr \
+	--with-gnu-ld \
+	--enable-dynamic-linking \
+	--enable-maintainer-mode \
+	${ENABLE_THREADS}
+
+config-stamp: configure ${QTHREADS_DOT_INSTALLS}
+	@if test -d CVS || test -d .svn; \
+	then \
+	  echo ./configure --enable-maintainer-mode ${configure_args}; \
+	  ./configure --enable-maintainer-mode ${configure_args}; \
+	else \
+	  echo ./configure ${configure_args}; \
+	  ./configure ${configure_args}; \
+	fi
+	touch config-stamp
+
+build: build-stamp
+build-stamp: config-stamp
+	dh_testdir
+	$(MAKE)
+	$(MAKE) check
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f config-stamp build-stamp ${QTHREADS_DOT_INSTALLS}
+
+	-$(MAKE) clean
+	-$(MAKE) distclean
+
+	dh_clean
+
+install: DH_OPTIONS=
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	dh_install --list-missing
+
+	mkdir -p debian/guile-1.6-slib/usr/share/guile/1.6
+	cd debian/guile-1.6-slib/usr/share/guile/1.6 && ln -s ../../slib .
+
+# This single target is used to build all the packages, all at once, or
+# one at a time. So keep in mind: any options passed to commands here will
+# affect _all_ packages. Anything you want to only affect one package
+# should be put in another target, such as the install target.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_installexamples
+	dh_installmenu
+#	dh_installdebconf
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+	dh_installman
+#	dh_installcron
+	dh_installinfo
+	dh_undocumented
+	dh_strip
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+#	dh_perl
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture independant packages using the common target.
+binary-indep: build install
+	 $(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build install
+	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
+
+# Any other binary targets build just one binary package at a time.
+binary-%: build install
+	make -f debian/rules binary-common DH_OPTIONS=-p$*
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

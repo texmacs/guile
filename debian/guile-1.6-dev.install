@@ -1,0 +1,6 @@
+debian/tmp/usr/include/*
+debian/tmp/usr/lib/*.a
+debian/tmp/usr/lib/*.so
+debian/tmp/usr/lib/libguile-ltdl.la
+debian/tmp/usr/lib/libguile.la
+debian/tmp/usr/share/aclocal/guile.m4

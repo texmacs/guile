@@ -1,0 +1,5 @@
+debian/tmp/usr/bin/guile
+debian/tmp/usr/bin/guile-config
+debian/tmp/usr/bin/guile-snarf
+debian/tmp/usr/bin/guile-tools
+debian/tmp/usr/share/guile/*/scripts/*

@@ -1,0 +1,92 @@
+Source: guile-1.6
+Priority: optional
+Maintainer: Rob Browning <rlb@defaultvalue.org>
+Build-Depends: libtool, debhelper (>= 4), libncurses5-dev, libreadline4-dev
+Build-Conflicts: ash (<= 0.3.8-31)
+Standards-Version: 3.2.1.0
+
+Package: guile-1.6
+Section: interpreters
+Architecture: any
+Provides: guile
+Conflicts: guile
+Depends: ${shlibs:Depends}
+Suggests: guile-1.6-doc
+Description: The GNU extension language and Scheme interpreter
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: guile-1.6-dev
+Section: devel
+Architecture: any
+Provides: libguile-dev
+Conflicts: libguile-dev
+Depends: ${shlibs:Depends}, guile-1.6, libc6-dev, libncurses5-dev, libreadline4-dev
+Description: Development files for Guile 1.6
+ This package contains files needed for development using Guile 1.6.
+ .
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: guile-1.6-doc
+Architecture: all
+Section: doc
+Conflicts: guile-doc, guile1.4-doc, goops-doc
+Replaces: guile-doc, goops-doc
+Provides: guile-doc
+Description: Reference and tutorial documentation for Guile 1.6
+ This package contains the documentation for guile 1.6, including both
+ a reference manual (via "info guile") and a tutorial (via "info
+ guile-tut").
+ .
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: guile-1.6-libs
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Main Guile libraries
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: libqthreads-12
+Section: libs
+Architecture: i386 alpha
+Depends: ${shlibs:Depends}
+Description: QuickThreads library for Guile
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: libguile-ltdl-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Guile's patched version of libtool's libltdl
+ Guile is a Scheme implementation designed for real world programming,
+ providing a rich Unix interface, a module system, an interpreter, and
+ many extension languages.  Guile can be used as a standard #! style
+ interpreter, via #!/usr/bin/guile, or as an extension language for
+ other applications via libguile.
+
+Package: guile-1.6-slib
+Section: devel
+Architecture: all
+Depends: guile-1.6, slib
+Description: Guile SLIB support
+ Arranges for Guile to be able to use slib via (use-modules (ice-9 slib)).

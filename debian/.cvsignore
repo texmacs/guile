@@ -1,0 +1,12 @@
+*.debhelper
+*.substvars
+files
+libqthreads12
+libguile-ltdl-1
+guile-1.6
+guile-1.6-dev
+guile-1.6-dev.install.alpha
+guile-1.6-dev.install.i386
+guile-1.6-doc
+guile-1.6-libs
+tmp

@@ -1,0 +1,5 @@
+?package(guile-1.6): \
+  needs="text" \
+  section="Apps/Programming" \
+  title="Guile 1.6"\
+  command="/usr/bin/guile"
