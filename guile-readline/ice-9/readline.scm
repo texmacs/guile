@@ -35,7 +35,8 @@
 ;;; but only when it isn't already present.
 
 (if (not (provided? 'readline))
-    (load-extension "libguilereadline-v-16" "scm_init_readline"))
+    (dynamic-call "scm_init_readline"
+                  (dynamic-link "libguilereadline-v-12")))
 
 (if (not (provided? 'readline))
     (scm-error 'misc-error
