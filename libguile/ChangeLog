@@ -1,10 +1,17 @@
+2004-09-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* smob.c (scm_set_smob_apply): Back out scm_remember_upto_here_1
+	addition from yesterday.  It worked, but wasn't the "right" fix
+	since tc is not subject to GC and has the wrong type.  Instead,
+	rearrange the code in a way that also avoids the segfault.
+	Thanks to Sam Hocevar.
+
 2004-09-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* smob.c (scm_set_smob_apply): protect tc value with
 	scm_remember_upto_here_1.  Problem was noticed when m68k build
 	segfaulted on document generation.
-	Reported by Sam Hocevar <sam@zoy.org> (thanks).
-
+	
 2004-09-09  Kevin Ryde  <user42@zip.com.au>
 
 	* ports.c (scm_getc, scm_lfwrite): Recognise \a \b and \r for port

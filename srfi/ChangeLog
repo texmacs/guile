@@ -1,3 +1,7 @@
+2004-09-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-4.c: Update copyright notice.
+
 2004-08-29  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.c (s_scm_u32vector_set_x): fix typo in SCM_ASSERT_RANGE call.
