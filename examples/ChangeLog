@@ -1,3 +1,8 @@
+2001-07-16  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scripts/check.test: Add check for guile interpreter.
+	Fix bug: Use `$guile' everywhere.  Thanks to Martin Grabmueller.
+
 2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* modules/check.test, safe/check.test: New files.
