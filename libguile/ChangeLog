@@ -1,3 +1,7 @@
+2001-07-21  Gary Houston  <ghouston@arglist.com>
+
+	* scmsigs.c: include sys/time.h for itimer stuff.
+
 2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* alist.c, arbiters.c, async.h, backtrace.h, boolean.c, chars.c,
