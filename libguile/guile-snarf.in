@@ -20,14 +20,15 @@
 
 # Commentary:
 
-# Usage: guile-snarf [-o OUTFILE] INFILE [CPP-OPTIONS ...]
+# Usage: guile-snarf [-o OUTFILE] [CPP-ARGS ...]
+ 
+# Initialization actions are extracted to OUTFILE or to standard
+# output when no OUTFILE has been specified or when OUTFILE is "-".
+# The C preprocessor is called with CPP-ARGS (which usually include a
+# input file) and the output is filtered for the actions.
 # 
-# Process INFILE using the C pre-processor and some other programs.
-# Write output to a file named OUTFILE or to the standard output when no
-# OUTFILE has been specified or when OUTFILE is "-".
-# 
-# If there are errors during processing, delete OUTFILE and exit with
-# non-zero status.
+# If there are errors during processing, OUTFILE is deleted and the
+# program exits with non-zero status.
 # 
 # During snarfing, the pre-processor macro SCM_MAGIC_SNARFER is
 # defined.  You can use this to avoid including snarfer output files
@@ -37,8 +38,8 @@
 #   #include "foo.x"
 #   #endif
 # 
-# If env var CPP is set, use its value instead of the C pre-processor
-# determined at Guile configure-time: "@CPP@".
+# If the environment variable CPP is set, use its value instead of the
+# C pre-processor determined at Guile configure-time: "@CPP@".
 
 # Code:
 
@@ -48,7 +49,6 @@ modern_snarf ()                         # writes stdout
 {
     ## Apparently, AIX's preprocessor is unhappy if you try to #include an
     ## empty file.
-    echo "/* source: $infile */" ;
     echo "/* cpp arguments: $@ */" ;
     ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
     grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//"
@@ -63,12 +63,9 @@ if [ x"$1" = x--help ] ; then
     exit 0
 fi
 if [ x"$1" = x-o ]
-    then outfile="$2" ; shift ; shift ; infile="$1" ; shift
-    else  outfile="-" ; infile="$1" ; shift
+    then outfile="$2" ; shift ; shift ;
+    else  outfile="-" ;
 fi
-
-[ x"$infile" = x ] && { echo $0: No input file ; exit 1 ; }
-[ ! -f "$infile" ] && { echo $0: No such file: $infile ; exit 1 ; }
 
 # set vars and handler -- handle CPP override
 cpp_ok_p=false
@@ -78,9 +75,9 @@ if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 trap "rm -f $temp" 0 1 2 15
 
 if [ ! "$outfile" = "-" ] ; then
-    modern_snarf "$@" $infile > $outfile
+    modern_snarf "$@" > $outfile
 else
-    modern_snarf "$@" $infile
+    modern_snarf "$@"
 fi
 
 # zonk outfile if errors occurred
