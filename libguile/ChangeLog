@@ -1,3 +1,8 @@
+2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* strop.c (string_capitalize_x): Treat characters as unsigned so
+	that 8-bit chars work.  Thanks to David Pirotte!
+
 2002-03-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (bin_SCRIPTS): Revive this decl, w/ initial element
