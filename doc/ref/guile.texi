@@ -73,6 +73,7 @@ Copyright (C) 1997 Free Software Foundation @*
 Copyright (C) 2000 Free Software Foundation @*
 Copyright (C) 2001 Free Software Foundation @*
 Copyright (C) 2002 Free Software Foundation
+Copyright (C) 2004 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -101,7 +102,7 @@ by the Free Software Foundation.
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.2.2.18 2003-04-12 01:17:51 rlb Exp $
+@subtitle $Id: guile.texi,v 1.2.2.19 2004-07-10 00:28:05 kryde Exp $
 
 @c AUTHORS
 
@@ -168,6 +169,8 @@ Copyright @copyright{} 2000 Free Software Foundation
 Copyright @copyright{} 2001 Free Software Foundation
 
 Copyright @copyright{} 2002 Free Software Foundation
+
+Copyright @copyright{} 2004 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
