@@ -1,15 +1,15 @@
 /* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -89,7 +89,7 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 			 args,
 			 rest);
   scm_ithrow (key, arg_list, 1);
-  
+
   /* No return, but just in case: */
   {
     const char msg[] = "guile:scm_error:scm_ithrow returned!\n";
@@ -100,7 +100,7 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 }
 
 /* Scheme interface to scm_error.  */
-SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0, 
+SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
            (SCM key, SCM subr, SCM message, SCM args, SCM data),
 	    "Raise an error with key @var{key}.  @var{subr} can be a string\n"
 	    "naming the procedure associated with the error, or @code{#f}.\n"
@@ -153,7 +153,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0, 
+SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
             (SCM err),
 	    "Return the Unix error message corresponding to @var{err}, which\n"
 	    "must be an integer value.")
@@ -169,7 +169,7 @@ void
 scm_syserror (const char *subr)
 {
   int save_errno = errno;
-  
+
   scm_error (scm_system_error_key,
 	     subr,
 	     "~A",
@@ -308,7 +308,7 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
   else
     {
       /* numerical error code.  */
-      int error = (intptr_t) pos;
+      scm_t_bits error = (scm_t_bits) pos;
 
       switch (error)
 	{
