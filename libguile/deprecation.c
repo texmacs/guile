@@ -58,7 +58,7 @@
 /* This is either a boolean (when a summary should be printed) or a
    hashtab (when detailed warnings shouold be printed).
 */
-SCM issued_msgs;
+static SCM issued_msgs;
 
 void
 scm_c_issue_deprecation_warning (const char *msg)
