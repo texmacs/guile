@@ -39,6 +39,7 @@ The following procedures and variables provide information about how
 Guile was configured, built and installed on your system.
 
 @deffn {Scheme Procedure} version
+@deffnx {Scheme Procedure} effective-version
 @deffnx {Scheme Procedure} major-version
 @deffnx {Scheme Procedure} minor-version
 @deffnx {Scheme Procedure} micro-version
@@ -51,8 +52,9 @@ Return a string describing Guile's full version number, effective
 version number, major, minor or micro version number, respectively.
 The @code{effective-version} function returns the version name that
 should remain unchanged during a stable series.  Currently that means
-that it omits the micro version.  It should be used for things like
-the versioned share directory name i.e. @file{/usr/share/guile/1.6/}
+that it omits the micro version.  The effective version should be used
+for items like the versioned share directory name
+i.e. @file{/usr/share/guile/1.6/}
 
 @lisp
 (version) @result{} "1.6.0"
@@ -60,20 +62,6 @@ the versioned share directory name i.e. @file{/usr/share/guile/1.6/}
 (major-version) @result{} "1"
 (minor-version) @result{} "6"
 (micro-version) @result{} "0"
-@end lisp
-@end deffn
-
-@deffn {Scheme Procedure} effective-version
-@deffnx {C Function} scm_effective_version ()
-Return a string describing Guile's ``effective'' version number, one
-that should remain unchanged during a stable series.  Currently that
-means that it is the same as the result of @code{version} but without
-the micro version.  It should be used for things like the versioned
-share directory name i.e. @file{/usr/share/guile/1.6/}.
-
-@lisp
-(version) @result{} "1.6.0"
-(effective-version) @result{} "1.6"
 @end lisp
 @end deffn
 
