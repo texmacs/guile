@@ -41,7 +41,7 @@
 ;; whether to permit this exception to apply to your modifications.
 ;; If you do not wish that, delete this exception notice.
 
-;;; Author: Rob Browning <rlb@cs.utexas.edu>
+;;; Author: Rob Browning <rlb@defaultvalue.org>
 ;;;         Originally from SRFI reference implementation by Will Fitzgerald.
 
 ;;; Commentary:

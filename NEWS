@@ -18,6 +18,11 @@ Changes since Guile 1.6.4 (i.e. changes for 1.6.5):
 
 ** Bugs have been fixed that prevented the (re)generation of psyntax.pp.
 
+** SRFI-31 has been added (special form `rec' for recursive evaluation)
+
+(use-modules (srfi srfi-31)) will now provide support for SRFI-31.
+See the Guile info pages for more documentation.
+
 * Changes to the stand-alone interpreter
 
 ** GC bug fixed.

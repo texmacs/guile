@@ -1,3 +1,7 @@
+2004-02-01  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-modules.texi (SRFI-31): document.
+
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Random): In random, use @code for *random-state*.
