@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12.2.5 2001-07-18 07:09:43 ttn Exp $
+@c $Id: intro.texi,v 1.12.2.6 2001-07-18 07:14:01 ttn Exp $
 
 @page
 @node What is Guile?
@@ -978,7 +978,7 @@ programs that you must load into Guile in order to cause the problem to
 occur.
 
 @item
-If the problem does depend on an init file or other Lisp programs that
+If the problem does depend on an init file or other Scheme programs that
 are not part of the standard Guile distribution, then you should make
 sure it is not a bug in those programs by complaining to their
 maintainers first.  After they verify that they are using Guile in a way
@@ -988,7 +988,7 @@ that is supposed to work, they should report the bug.
 If you wish to mention something in the Guile source, show the line of
 code with a few lines of context.  Don't just give a line number.
 
-The line numbers in the development sources don't match those in your
+The line numbers in the development sources might not match those in your
 sources.  It would take extra work for the maintainers to determine what
 code is in your version at a given line number, and we could not be
 certain.
@@ -1001,8 +1001,7 @@ very long, and using GDB is easy.  You can find the GDB distribution,
 including the GDB manual in online form, in most of the same places you
 can find the Guile distribution.  To run Guile under GDB, you should
 switch to the @file{libguile} subdirectory in which Guile was compiled, then
-do @code{gdb .libs/guile}.
-@c fixme: libguile/.libs is for libtool-enabled systems -- what about rest?
+do @code{gdb guile} or @code{gdb .libs/guile} (if using GNU Libtool).
 
 However, you need to think when you collect the additional information
 if you want it to show what causes the bug.
