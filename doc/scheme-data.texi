@@ -1125,7 +1125,7 @@ the sum of whose squares is equal to 1.0.
 Thinking of vect as coordinates in space of
 dimension n = (vector-length vect), the coordinates
 are uniformly distributed over the surface of the
-unit n-shere.
+unit n-sphere.
 @end deffn
 
 @deffn primitive random:normal [state]
@@ -1146,7 +1146,7 @@ Fills vect with inexact real random numbers
 the sum of whose squares is less than 1.0.
 Thinking of vect as coordinates in space of
 dimension n = (vector-length vect), the coordinates
-are uniformly distributed within the unit n-shere.
+are uniformly distributed within the unit n-sphere.
 The sum of the squares of the numbers is returned.
 @end deffn
 
