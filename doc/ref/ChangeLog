@@ -1,8 +1,34 @@
+2002-03-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (guile_TEXINFOS): Remove appendices.texi, add
+	debugging.texi.
+
 2002-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Pairs, Lists, Vectors, Records, Structures,
+	Arrays, Association Lists and Hash Tables): Move into a new
+	chapter ...
+	(Data Types): Renamed `Simple Data Types'; improvements ported
+	from unstable branch.
+	(Symbols and Variables): Renamed `Symbols'; improvements ported
+	from unstable branch.  `Variables' subsection moved to
+	scheme-modules.texi.
+	
+	* scheme-compound.texi: New file.
+	
+	* scheme-data.texi (Rx Regexps): Move section so that it becomes a
+	chapter in misc-modules.texi, in the Modules section of the manual.
+
+	* guile.texi (Top): Remove anything to do with appendices, as
+	there's no appendix material anymore.
+
+	* appendices.texi (Debugger User Interface): Moved to non-appendix
+	chapter in Part II; file renamed `debugging.texi'.
 
 	* guile.texi (Top), intro.texi (What is Guile?, The Basic Guile
 	Package): Use @ifnottex instead of @ifinfo, so that HTML
 	generation works correctly.
+	(Top): Move scheme-indices.texi after other indices at end.
 
 2002-03-20  Marius Vollmer  <mvo@zagadka.ping.de>
 

@@ -32,10 +32,14 @@ designed languages: ML, Python, Perl, and Modula 3 all allow the
 clutter the global name space.
 @cindex name space - private
 
+In addition, Guile offers variables as first-class objects.  They can
+be used for interacting with the module system.
+
 @menu
 * Scheme and modules::          How modules are handled in standard Scheme.
 * The Guile module system::     How Guile does it.
 * Dynamic Libraries::           Loading libraries of compiled code at run time.
+* Variables::                   First-class variables.
 @end menu
 
 
@@ -623,6 +627,67 @@ the Guile contrib archive to make @file{libffi} accessible from Guile.
 @subsection Writing Dynamically Loadable Extensions
 
 XXX - document @code{load-extension}, @code{scm_register_extension}
+
+
+@node Variables
+@section Variables
+@tpindex Variables
+
+Variables are objects with two fields.  They contain a value and they
+can contain a symbol, which is the name of the variable.  A variable is
+said to be bound if it does not contain the object denoting unbound
+variables in the value slot.
+
+Variables do not have a read syntax, they have to be created by calling
+one of the constructor procedures @code{make-variable} or
+@code{make-undefined-variable} or retrieved by @code{builtin-variable}.
+
+First-class variables are especially useful for interacting with the
+current module system (@pxref{The Guile module system}).
+
+@deffn {Scheme Procedure} builtin-variable name
+@deffnx {C Function} scm_builtin_variable (name)
+Return the built-in variable with the name @var{name}.
+@var{name} must be a symbol (not a string).
+Then use @code{variable-ref} to access its value.
+@end deffn
+
+@deffn {Scheme Procedure} make-undefined-variable
+@deffnx {C Function} scm_make_undefined_variable ()
+Return a variable that is initially unbound.
+@end deffn
+
+@deffn {Scheme Procedure} make-variable init
+@deffnx {C Function} scm_make_variable (init)
+Return a variable initialized to value @var{init}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-bound? var
+@deffnx {C Function} scm_variable_bound_p (var)
+Return @code{#t} iff @var{var} is bound to a value.
+Throws an error if @var{var} is not a variable object.
+@end deffn
+
+@deffn {Scheme Procedure} variable-ref var
+@deffnx {C Function} scm_variable_ref (var)
+Dereference @var{var} and return its value.
+@var{var} must be a variable object; see @code{make-variable}
+and @code{make-undefined-variable}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-set! var val
+@deffnx {C Function} scm_variable_set_x (var, val)
+Set the value of the variable @var{var} to @var{val}.
+@var{var} must be a variable object, @var{val} can be any
+value. Return an unspecified value.
+@end deffn
+
+@deffn {Scheme Procedure} variable? obj
+@deffnx {C Function} scm_variable_p (obj)
+Return @code{#t} iff @var{obj} is a variable object, else
+return @code{#f}.
+@end deffn
+
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

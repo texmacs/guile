@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.12 2002-03-24 19:07:08 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.13 2002-03-27 21:48:16 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -211,7 +211,8 @@ Part II: Guile Scheme
 
 * Scheme Intro::                Introduction to Guile Scheme.
 * Basic Ideas::                 Basic ideas in Scheme.
-* Data Types::                  Data types for generic use.
+* Simple Data Types::           Numbers, strings, booleans and so on.
+* Compound Data Types::         Data types for holding other data.
 * Procedures and Macros::       Procedures and macros.
 * Utility Functions::           General utility functions.
 * Binding Constructs::          Definitions and variable bindings.
@@ -226,6 +227,7 @@ Part II: Guile Scheme
 * Translation::                 Support for translating other languages.
 * Debugging::                   Internal debugging interface.
 * Deprecated::                  Features that are planned to disappear.
+* Debugger User Interface::
 * Autoconf Support::            Guile-specific configure.in macros.
 * Miscellaneous Tools::         Snarfing, linting, etc.
 * Further Reading::             Where to find out more about Scheme programming.
@@ -239,6 +241,7 @@ Part III: Guile Modules
 * Value History::               Maintaining a value history in the REPL.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
+* Rx Regexps::                  The Rx regular expression library.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 @c * Tcl/Tk Interface::
@@ -254,10 +257,6 @@ Part V: Extending Applications Using Guile
 * Data Representation::         Data representation in Guile.
 * Scheme Primitives::           Writing Scheme primitives in C.
 * GH::                          The deprecated GH interface.
-
-Appendices
-
-* Debugger User Interface::
 
 Indices
 
@@ -288,6 +287,7 @@ Indices
 @include scheme-intro.texi
 @include scheme-ideas.texi
 @include scheme-data.texi
+@include scheme-compound.texi
 @include scheme-procedures.texi
 @include scheme-utility.texi
 @include scheme-binding.texi
@@ -302,10 +302,10 @@ Indices
 @include scheme-translation.texi
 @include scheme-debug.texi
 @include deprecated.texi
+@include debugging.texi
 @include autoconf.texi
 @include tools.texi
 @include scheme-reading.texi
-@include scheme-indices.texi
 
 @iftex
 @page
@@ -341,21 +341,13 @@ Indices
 @include scm.texi
 @include gh.texi
 
-@c Appendices
-@iftex
-@page
-@unnumbered{Appendices}
-@end iftex
-
-@include appendices.texi
-
-@c Indices
 @iftex
 @page
 @unnumbered{Indices}
 @end iftex
 
 @include indices.texi
+@include scheme-indices.texi
 
 @contents
 

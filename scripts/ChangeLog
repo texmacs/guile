@@ -1,3 +1,8 @@
+2002-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* snarf-guile-m4-docs (display-texi): Strip off `# ' from start of
+	docstring lines if possible, rather than just `#'.
+
 2002-03-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	These changes add a @deffnx C function declaration and function
