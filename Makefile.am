@@ -29,7 +29,7 @@ bin_SCRIPTS = guile-tools
 include_HEADERS = libguile.h
 
 EXTRA_DIST = HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
-	     $(ACLOCAL) BUGS
+	     $(ACLOCAL) BUGS README-PACKAGING
 
 TESTS = check-guile
 
