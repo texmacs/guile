@@ -490,30 +490,6 @@ the non-empty lists returned by @code{(list-tail @var{lst}
 empty list) is returned.
 @end deffn
 
-[FIXME: Is there any reason to have the `sloppy' functions available at
-high level at all?  Maybe these docs should be relegated to a "Guile
-Internals" node or something. -twp]
-
-@deffn {Scheme Procedure} sloppy-memq x lst
-@deffnx {C Function} scm_sloppy_memq (x, lst)
-This procedure behaves like @code{memq}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
-
-@deffn {Scheme Procedure} sloppy-memv x lst
-@deffnx {C Function} scm_sloppy_memv (x, lst)
-This procedure behaves like @code{memv}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
-
-@deffn {Scheme Procedure} sloppy-member x lst
-@deffnx {C Function} scm_sloppy_member (x, lst)
-This procedure behaves like @code{member}, but does no type or error checking.
-Its use is recommended only in writing Guile internals,
-not for high-level Scheme programs.
-@end deffn
 
 @node List Mapping
 @subsection List Mapping

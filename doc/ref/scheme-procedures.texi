@@ -373,18 +373,18 @@ information, such as debug hints.
 Return @var{obj}'s property list.
 @end deffn
 
-@deffn {Scheme Procedure} procedure-property p k
-@deffnx {C Function} scm_procedure_property (p, k)
+@deffn {Scheme Procedure} procedure-property obj key
+@deffnx {C Function} scm_procedure_property (obj, key)
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
-@deffn {Scheme Procedure} set-procedure-properties! proc new_val
-@deffnx {C Function} scm_set_procedure_properties_x (proc, new_val)
+@deffn {Scheme Procedure} set-procedure-properties! proc alist
+@deffnx {C Function} scm_set_procedure_properties_x (proc, alist)
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
-@deffn {Scheme Procedure} set-procedure-property! p k v
-@deffnx {C Function} scm_set_procedure_property_x (p, k, v)
+@deffn {Scheme Procedure} set-procedure-property! obj key value
+@deffnx {C Function} scm_set_procedure_property_x (obj, key, value)
 In @var{obj}'s property list, set the property named @var{key} to
 @var{value}.
 @end deffn

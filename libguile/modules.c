@@ -657,7 +657,7 @@ SCM
 scm_the_root_module ()
 {
   scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
-				   "Use `scm_c_resolve_module (\"guile\") "
+				   "Use `scm_c_resolve_module (\"guile\")' "
 				   "instead.");
 
   return the_root_module ();

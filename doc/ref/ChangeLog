@@ -1,4 +1,24 @@
+2002-03-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (Scheme Primitives): Renamed `Guile API', updates
+	merged from unstable branch.
+
+	* guile.texi (Top): Change `Scheme Primitives' menu entry to
+	`Guile API'.
+
+	* intro.texi (Linking Programs With Guile): Change `Scheme
+	Primitives' reference to `Primitives'.
+
 2002-03-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-evaluation.texi (Fly Evaluation): Move docs for eval2 and
+	read-and-eval! to deprecated.texi.
+
+	* posix.texi (Ports and File Descriptors): Move doc for
+	close-all-ports-except to deprecated.texi
+
+	* scheme-compound.texi (List Searching): Move docs for sloppy-memq
+	etc. to deprecated.texi.
 
 	* Makefile.am (guile_TEXINFOS): Remove appendices.texi, add
 	debugging.texi.

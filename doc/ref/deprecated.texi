@@ -4,6 +4,11 @@
 
 @menu
 * Shared And Read Only Strings::
+* Sloppy Membership::           `Sloppy' list membership procedures.
+* Strange Eval::                Strange variations on `eval'.
+* Close All Ports::             Closing all ports except some ...
+* C Module Reg::                Old method for registering C modules.
+* Removed Items::               Previously deprecated, now removed.
 @end menu
 
 
@@ -138,3 +143,120 @@ ERROR: Wrong type argument (expecting STRINGP): /home/
 Return @code{#t} if @var{obj} is either a string or a symbol,
 otherwise return @code{#f}.
 @end deffn
+
+
+@node Sloppy Membership
+@section `Sloppy' List Membership Procedures
+
+The following are equivalent to @code{memq}, @code{memv} and
+@code{member} respectively, except that they do not fully type-check the
+arguments that they are given.  They are deprecated because the lack of
+proper type-checking makes them dangerous.
+
+@deffn {Scheme Procedure} sloppy-memq x lst
+@deffnx {C Function} scm_sloppy_memq (x, lst)
+This procedure behaves like @code{memq}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+@deffn {Scheme Procedure} sloppy-memv x lst
+@deffnx {C Function} scm_sloppy_memv (x, lst)
+This procedure behaves like @code{memv}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+@deffn {Scheme Procedure} sloppy-member x lst
+@deffnx {C Function} scm_sloppy_member (x, lst)
+This procedure behaves like @code{member}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+
+@node Strange Eval
+@section Strange Variations on `eval'
+
+@code{eval2} was useful in previous Guile releases because the
+@code{eval} in those releases was a single argument @code{eval} that did
+not conform to R5RS.  Guile's standard @code{eval} now requires a second
+environment-specifier argument (which Guile interprets as the module in
+which to evaluate the specified code expression).  Hence @code{eval} is
+now R5RS-compliant, and @code{eval2} is obsolete and therefore
+deprecated.
+
+@deffn {Scheme Procedure} eval2 obj env_thunk
+@deffnx {C Function} scm_eval2 (obj, env_thunk)
+Evaluate @var{exp}, a Scheme expression, in the environment
+designated by @var{lookup}, a symbol-lookup function.
+Do not use this version of eval, it does not play well
+with the module system.  Use @code{eval} or
+@code{primitive-eval} instead.
+@end deffn
+
+In previous Guile releases, the implementation of expressions like
+@code{(eval (read port))} was deficient in that source properties
+associated with the expression returned by the @code{read} would be lost
+during the @code{eval}.  To provide a way of performing a read and
+evaluation without losing source properties, @code{read-and-eval!} was
+invented.
+
+In this Guile release, evaluation always preserves source property
+information.  So @code{read-and-eval!} is now unnecessary.
+
+@deffn {Scheme Procedure} read-and-eval! [port]
+@deffnx {C Function} scm_read_and_eval_x (port)
+Read a form from @var{port} (standard input by default), and evaluate it
+(memoizing it in the process) in the top-level environment.  If no data
+is left to be read from @var{port}, an @code{end-of-file} error is
+signalled.
+@end deffn
+
+
+@node Close All Ports
+@section Closing All Ports Except Some @dots{}
+
+@deffn {Scheme Procedure} close-all-ports-except . ports
+@deffnx {C Function} scm_close_all_ports_except (ports)
+[DEPRECATED] Close all open file ports used by the interpreter
+except for those supplied as arguments.  This procedure
+was intended to be used before an exec call to close file descriptors
+which are not needed in the new process.  However it has the
+undesirable side effect of flushing buffers, so it's deprecated.
+Use port-for-each instead.
+@end deffn
+
+
+@node C Module Reg
+@section Old Method for Registering C Modules.
+
+** Auto-loading of compiled-code modules is deprecated.
+
+Guile used to be able to automatically find and link a shared
+library to satisfy requests for a module.  For example, the module
+`(foo bar)' could be implemented by placing a shared library named
+"foo/libbar.so" (or with a different extension) in a directory on the
+load path of Guile.
+
+This has been found to be too tricky, and is no longer supported.  The
+shared libraries are now called "extensions".  You should now write a
+small Scheme file that calls `load-extension' to load the shared
+library and initialize it explicitely.
+
+The shared libraries themselves should be installed in the usual
+places for shared libraries, with names like "libguile-foo-bar".
+
+For example, place this into a file "foo/bar.scm"
+
+    (define-module (foo bar))
+
+    (load-extension "libguile-foo-bar" "foobar_init")
+
+
+@node Removed Items
+@section Previously Deprecated Items Now Removed
+
+tag
+fseek
+list*

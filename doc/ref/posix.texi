@@ -396,16 +396,6 @@ the port was opened, since modes such as "append" which are
 used only during port creation are not retained.
 @end deffn
 
-@deffn {Scheme Procedure} close-all-ports-except . ports
-@deffnx {C Function} scm_close_all_ports_except (ports)
-[DEPRECATED] Close all open file ports used by the interpreter
-except for those supplied as arguments.  This procedure
-was intended to be used before an exec call to close file descriptors
-which are not needed in the new process.  However it has the
-undesirable side effect of flushing buffers, so it's deprecated.
-Use port-for-each instead.
-@end deffn
-
 @deffn {Scheme Procedure} port-for-each proc
 @deffnx {C Function} scm_port_for_each (proc)
 Apply @var{proc} to each port in the Guile port table

@@ -28,7 +28,7 @@ is Scheme's end-of-list.
 @deffnx {C Function} scm_nil_cons (x, y)
 Create a new cons cell with @var{x} as the car and @var{y} as
 the cdr, but convert @var{y} to Scheme's end-of-list if it is
-a LISP nil.
+a Lisp nil.
 @end deffn
 
 @deffn {Scheme Procedure} nil-eq x y
@@ -38,8 +38,8 @@ Compare @var{x} and @var{y} and return Lisp's t if they are
 
 @deffn {Scheme Procedure} null x
 @deffnx {C Function} scm_null (x)
-Return LISP's @code{t} if @var{x} is nil in the LISP sense,
-return LISP's nil otherwise.
+Return Lisp's @code{t} if @var{x} is nil in the LISP sense,
+return Lisp's nil otherwise.
 @end deffn
 
 

@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.13 2002-03-27 21:48:16 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.14 2002-03-29 20:11:13 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -255,7 +255,7 @@ Part V: Extending Applications Using Guile
 
 * Libguile Intro::              Using Guile as an extension language.
 * Data Representation::         Data representation in Guile.
-* Scheme Primitives::           Writing Scheme primitives in C.
+* Guile API::                   Overview of the Guile API.
 * GH::                          The deprecated GH interface.
 
 Indices
