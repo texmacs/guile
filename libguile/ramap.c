@@ -1529,10 +1529,8 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 {
   SCM_VALIDATE_PROC (2,proc);
 
-  if (!(SCM_CONSP (sources) && SCM_CONSP (SCM_CDR (sources))))
-    {
-      SCM_MISC_ERROR ("At least one source array is required.", SCM_EOL);
-    }
+  if (!(SCM_CONSP (sources)))
+    SCM_WRONG_NUM_ARGS ();
 
   switch (SCM_TYP7 (proc))
     {
