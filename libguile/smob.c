@@ -449,6 +449,7 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
+  scm_remember_upto_here_1 (tc);
 }
 
 SCM
