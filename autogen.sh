@@ -52,7 +52,7 @@ autoheader
 autoconf
 
 # Automake has a bug that will let it only add one copy of a missing
-# file.  We nned two mdate-sh, tho, one in doc/ref/ and one in
+# file.  We need two mdate-sh, tho, one in doc/ref/ and one in
 # doc/tutorial/.  We run automake twice as a workaround.
 
 automake --add-missing
