@@ -1,3 +1,7 @@
+2002-06-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* mkstemp.c: Added exception notice to license statement.
+
 2002-05-16  Rob Browning  <rlb@defaultvalue.org>
 
 	* numbers.c (s_scm_integer_expt): (expt 0 0) -> 1 now as per r5rs.
