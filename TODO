@@ -95,9 +95,10 @@ See also file HACKING.
 
 - Check for any [[incomplete]] sections of NEWS.
 
-- Fact-check INSTALL.
-
-- Make sure AUTHORS and THANKS are up-to-date.
+- Fact-check INSTALL. (rlb: INSTALL looks pretty good to me, but can
+  someone make sure that in the "Using Guile without installing it"
+  section, we don't need to mention setting LTDL_LIBRARY_PATH or
+  LD_LIBRARY_PATH.)
 
 - Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
