@@ -68,6 +68,8 @@ See also file HACKING.
 + Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
+- [ttn] Fix scripts prelude per post by Daniel Skarda.
+
 - Decide if setitimer and getitimer should accept bignum arguments
   instead, and fix them if so (make sure to migrate choice to unstable
   branch if needed).
