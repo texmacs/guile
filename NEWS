@@ -1,4 +1,4 @@
-Guile NEWS --- history of user-visible changes.  -*- text -*-
+Guile NEWS --- history of user-visible changes.
 Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -6,7 +6,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.6.0:
 
-* General Changes
+* Changes to the distribution
 
 ** Guile now provide and uses an "effective" version number.
 
@@ -24,8 +24,6 @@ important for Guile "add-on" packages, since it provides a directory
 that they can install to that won't be changed out from under them
 with each micro release during a stable series.
 
-* Changes to the distribution
-
 ** Guile now uses it's own version of libltdl.
 
 Guile now uses its own modified version of libltdl (1.4.3) found in
@@ -41,16 +39,24 @@ easy to forward our modifications to the libtool developers.
 
 * Changes to Scheme functions and syntax
 
-** New function: effective-version -- see "General Changes" above.
+** New function: effective-version
+
+Returns the "effective" version number.  This is just the normal full
+version string without the final micro-version number.  See "Changes
+to the distribution" above.
 
 * Changes to the C interface 
 
-** New function: scm_effective_version -- see "General Changes" above.
+** New function: scm_effective_version
+
+Returns the "effective" version number.  This is just the normal full
+version string without the final micro-version number.  See "Changes
+to the distribution" above.
 
 
 Changes since Guile 1.4:
 
-* General Changes
+* Changes to the distribution
 
 ** Guile now uses a versioning scheme similar to that of the Linux kernel.
 
@@ -85,8 +91,6 @@ Guile now compiles and passes "make check" with only two UNRESOLVED GC
 cases on Alpha and ia64 based machines now.  Thanks to John Goerzen
 for the use of a test machine, and thanks to Stefan Jahn for ia64
 patches.
-
-* Changes to the distribution
 
 ** New SRFI modules have been added:
 
