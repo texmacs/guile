@@ -1,3 +1,8 @@
+2004-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-13 Predicates): Add string-any and
+	string-every support for char and charset predicates.
+
 2004-08-12  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-13 Miscellaneous): Correction to token set
