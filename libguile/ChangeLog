@@ -1,3 +1,7 @@
+2004-04-25  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_getcwd, scm_readlink): Avoid memory leak on errors.
+
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_round): Test for x already an integer, to avoid bad
