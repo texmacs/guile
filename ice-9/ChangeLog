@@ -1,3 +1,9 @@
+2004-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* slib.scm (<?, <=?, =?, >?, >=?): Define as aliases for <, <=, =, >,
+	>= respectively, required by slib 'rev2-procedures but no longer in
+	the guile core.
+
 2003-10-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* ftw.scm (directory-files): Close dir-stream when done.  Thanks
