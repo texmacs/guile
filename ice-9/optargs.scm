@@ -204,7 +204,7 @@
 ;; "#&optional" instead of "#:optional"
 
 (read-hash-extend #\& (lambda (c port)
-			(issue-deprecation-warning 
+			(issue-deprecation-warning
 			 "`#&' is deprecated, use `#:' instead.")
 			(case (read port)
 			  ((optional) #:optional)
@@ -275,27 +275,36 @@
      (if (not (or (symbol? rest-arg) (eq? #f rest-arg)))
 	 (error "Syntax error in rest argument declaration."))
      ;; generate the code.
-     (let ((rest-gensym (or rest-arg (gensym "lambda*:G"))))
+     (let ((rest-gensym (or rest-arg (gensym "lambda*:G")))
+	   (lambda-gensym (gensym "lambda*:L")))
        (if (not (and (null? optionals) (null? keys)))
-	   `(lambda (,@non-optional-args . ,rest-gensym)
-	      ;; Make sure that if the proc had a docstring, we put it
-	      ;; here where it will be visible.
-	      ,@(if (and (not (null? BODY))
-			 (string? (car BODY)))
-		    (list (car BODY))
-		    '())
-	      (let-optional*
-	       ,rest-gensym
-	       ,optionals
-	       (let-keywords* ,rest-gensym
-			      ,aok?
-			      ,keys
-			      ,@(if (and (not rest-arg) (null? keys))
-				    `((if (not (null? ,rest-gensym))
-					  (error "Too many arguments.")))
-				    '())
-			      (let ()
-				,@BODY))))
+	   `(let ((,lambda-gensym
+		   (lambda (,@non-optional-args . ,rest-gensym)
+		     ;; Make sure that if the proc had a docstring, we put it
+		     ;; here where it will be visible.
+		     ,@(if (and (not (null? BODY))
+				(string? (car BODY)))
+			   (list (car BODY))
+			   '())
+		     (let-optional*
+		      ,rest-gensym
+		      ,optionals
+		      (let-keywords* ,rest-gensym
+				     ,aok?
+				     ,keys
+				     ,@(if (and (not rest-arg) (null? keys))
+					   `((if (not (null? ,rest-gensym))
+						 (error "Too many arguments.")))
+					   '())
+				     (let ()
+				       ,@BODY))))))
+	      (set-procedure-property! ,lambda-gensym 'arglist
+				       '(,non-optional-args
+					 ,optionals
+					 ,keys
+					 ,aok?
+					 ,rest-arg))
+	      ,lambda-gensym)
 	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '()))
 	      ,@BODY))))))
 
