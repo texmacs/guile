@@ -1,3 +1,8 @@
+2001-11-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* strop.h, strop.c (scm_substring_move_left_x,
+	scm_substring_move_right_x): Deprecated.
+
 2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* strop.c (scm_string_null_p): Docfix; nfc.
