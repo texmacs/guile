@@ -1,3 +1,8 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (resolve-interface): Get variables from the public
+	interface of a module instead of from the module itselfs.
+
 2001-08-12  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* getopt-long.scm: Rewrite.
