@@ -1,11 +1,20 @@
 2001-07-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
-	* scheme-data.texi: Replace some uses of "else" with "otherwise".
+	* scheme-data.texi:
+	Replace some uses of "else" with "otherwise".
 	Fix spelling errors.
+
 	(String Modification): Reword intro.
 	(Regular Expressions): Add missing close-paren.
 	(List Modification): Rewrite intro.
 	Fix node name spelling error (also in menu).
+	(Vectors): Reword intro slightly, introducing term
+	`position' and synonym `index'.  Throughout this node,
+	reword to use `position' instead of `element'.
+	Reword some procedure documentation for style consistency.
+	Remove example: `vector-set!' on constant => error.
+	Add "NOTE" to R5RS non-conformance note.
+	Add crossrefs to `String Modification' node.
 
 2001-07-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
