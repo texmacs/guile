@@ -42,6 +42,9 @@ install-data-hook:
 	-$(INSTALL_DATA) $(srcdir)/and-let-star-compat.scm \
            $(DESTDIR)$(subpkgdatadir)/'and-let*.scm'
 
+uninstall-local:
+	rm -f $(DESTDIR)$(subpkgdatadir)/'and-let*.scm'
+
 ## test.scm is not currently installed.
 EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
 
