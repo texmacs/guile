@@ -353,6 +353,14 @@ extern unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
 				      const char *s_caller);
 #endif
 
+extern float scm_num2float (SCM num, unsigned long int pos,
+                            const char *s_caller);
+extern SCM scm_float2num (float n);
+
+extern double scm_num2double (SCM num, unsigned long int pos,
+                            const char *s_caller);
+extern SCM scm_double2num (double n);
+
 extern void scm_init_numbers (void);
 
 #endif  /* NUMBERSH */
