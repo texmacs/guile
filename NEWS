@@ -44,7 +44,18 @@ correctly.
 The class layout slot, which informs the GC about which slots to GC
 protect, is now initialized correctly.
 
+** GOOPS class redefinition bug fixed.
+
+The class redefinition protocol now properly removes the old accessor
+methods from their accessors.
+
 * Changes to Scheme functions and syntax
+
+** %fast-slot-ref no longer checks slot boundness
+
+This makes the <active-class> metaclass in (oop goops active-slot)
+working again.
+
 * Changes to the C interface 
 
 
