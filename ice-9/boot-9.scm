@@ -82,11 +82,11 @@
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
-;;; presumably deprecated.
-(define (feature? sym)
-  (issue-deprecation-warning
-   "`feature?' is deprecated.  Use `provided?' instead.")
-  (provided? sym))
+(begin-deprecated
+ (define (feature? sym)
+   (issue-deprecation-warning
+    "`feature?' is deprecated.  Use `provided?' instead.")
+   (provided? sym)))
 
 ;;; let format alias simple-format until the more complete version is loaded
 (define format simple-format)
