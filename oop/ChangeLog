@@ -1,3 +1,10 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
+	* goops/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
 2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am, goops/Makefile.am (AUTOMAKE_OPTIONS):
