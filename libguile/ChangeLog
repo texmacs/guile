@@ -1,3 +1,10 @@
+2003-04-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* __scm.h (SCM_FLUSH_REGISTER_WINDOWS): don't just rely on "sparc"
+	test.  Instead use
+	#if defined (sparc) || defined (__sparc__) || defined (__sparc)
+	as gc_os_dep.c suggests is appropriate.
+
 2003-04-11  Rob Browning  <rlb@defaultvalue.org>
 
 	* goops.c (prep_hashsets): make static to match prototype.

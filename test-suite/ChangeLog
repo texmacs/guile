@@ -1,3 +1,9 @@
+2003-04-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile-test: added "Running test FOO" output by default.  There
+	may be a good reason to remove this, but the output can be helpful
+	in determining where a failure occurred.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* tests/version.test: test (effective-version).
