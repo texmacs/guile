@@ -36,6 +36,7 @@
 
 #ifdef __linux__
 #include <unistd.h>
+#include <sys/mman.h>
 #endif
 
 static void

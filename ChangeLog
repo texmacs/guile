@@ -1,3 +1,7 @@
+2004-11-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h [__linux__]: Include sys/mman.h.
+
 2004-11-09  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/sparc/fp.h: Fix fp-to-integer conversions.
