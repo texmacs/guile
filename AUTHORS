@@ -232,8 +232,9 @@ In the subdirectory libguile, changes to:
     guile-doc-snarf.in	regex-posix.c
 In the subdirectory doc, changes to:
     intro.texi			preface.texi
-    scheme-modules.texi		scheme-procedures.texi
-    scheme-scheduling.texi
+    scheme-data.texi            scheme-modules.texi
+    scheme-procedures.texi	scheme-scheduling.texi
+    scm.texi
 
 Robert Merkel:
 In the subdirectory doc, co-wrote:
