@@ -254,7 +254,7 @@ Obtaining Guile ======================================================
 
 The latest official Guile release is available via anonymous FTP from
 
-ftp://ftp.gnu.org/pub/gnu/guile/guile-1.6.0.tar.gz
+ftp://ftp.gnu.org/pub/gnu/guile/guile-1.6.1.tar.gz
 
 The mailing list `guile-user@gnu.org' carries discussions, questions,
 and often answers, about Guile.  To subscribe, use the Mailman mailing
