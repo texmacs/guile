@@ -1,3 +1,9 @@
+2003-10-01  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc.c (scm_done_malloc): fix sign error in scm_malloc_done, was
+	comparing (scm_mallocated < size) when scm_mallocated is unsigned
+	and size is signed, and size is known to be negative.
+
 2003-09-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* continuations.h: Include <ucontext.h> on IA64 instead of
