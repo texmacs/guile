@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.1.2.2 2002-01-06 07:50:01 ttn Exp $
+@c $Id: intro.texi,v 1.1.2.3 2002-01-07 20:49:03 ossau Exp $
 
 @page
 @node What is Guile?
@@ -358,7 +358,7 @@ head of any C source file that uses identifiers described in this
 manual.  Once you've compiled your source files, you need to link them
 against the Guile object code library, @code{libguile}.
 
-On most systems, you should not need to do tell the compiler and linker
+On most systems, you should not need to tell the compiler and linker
 explicitly where they can find @file{libguile.h} and @file{libguile}.
 When Guile has been installed in a peculiar way, or when you are on a
 peculiar system, things might not be so easy and you might need to pass
