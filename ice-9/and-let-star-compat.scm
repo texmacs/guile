@@ -1,6 +1,6 @@
 ;;;; This file will be installed as "and-let*.scm" on systems that
 ;;;; support it.  It will go away in the future, use the module
-;;;; (and-let-star) instead.
+;;;; (ice-9 and-let-star) instead.
 
 (define-module (ice-9 and-let*)
   :use-module (ice-9 and-let-star)
