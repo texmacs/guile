@@ -1,3 +1,13 @@
+2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-snarf.in: Remove "--compat=1.4" support.
+	Add "-d" and "-D" support.
+
+	(deprecated_list): New var.
+	(compat_mode_clean_xxx): Delete.
+	(grep_deprecated): New func.
+	("main"): If "-d" or "-D", call `grep_deprecated'.
+
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.c (scm_execl): Remove spurious whitespace from docstring.
@@ -31,7 +41,7 @@
 
 	* macros.c (scm_makmacro, scm_makmmacro): Correct docstring.
 	(scm_macro_type): Correct spelling mistake.
-	
+
 	* eval.c (scm_eval, scm_eval_options_interface), read.c
 	(scm_read_options): Change incorrect @var in docstring to @code.
 
@@ -41,7 +51,7 @@
 	(scm_close_all_ports_except), posix.c (scm_getgroups, scm_execl,
 	scm_setlocale, scm_flock), socket.c (scm_shutdown): Correct
 	spelling mistakes.
-	
+
 	* alist.c (scm_acons, scm_assq), ramap.c (scm_array_fill_x,
 	scm_array_copy_x, scm_array_for_each, scm_array_index_map_x),
 	sort.c (scm_merge), strings.c (scm_string_p), unif.c
