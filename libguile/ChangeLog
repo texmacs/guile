@@ -3,7 +3,15 @@
 	* eval.c (SCM_CEVAL): fixed a couple of mysterious (probably
 	optimization related) bugs on powerpc by altering some
           "while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))"
-	style constructs so that the assignment doesn't happen inside the guard.
+        or
+          "if (...foo = bar...)"
+	style constructs to move the assignments outside the guards.
+	(scm_m_case): move some assignments outside guards as above.
+	(scm_m_letrec1): move some assignments outside guards as above.
+	(unmemocopy): move some assignments outside guards as above.
+	(scm_eval_body): move some assignments outside guards as above.
+	(SCM_APPLY): move some assignments outside guards as above.
+	(s_scm_copy_tree): move some assignments outside guards as above.
 
 	* throw.c (scm_ithrow): removed winds "asm" protection in favor of
 	scm_remember_upto_here_1.
