@@ -1,0 +1,6 @@
+Makefile
+Makefile.in
+raw-ltdl.guilemod.c
+raw-ltdl.guilemod.c.tmp
+raw-ltdl.guilemod.h
+raw-ltdl.guilemod.h.tmp
