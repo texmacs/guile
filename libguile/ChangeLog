@@ -1,3 +1,14 @@
+2004-05-02  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (version.h): Change $^ to $(srcdir)/version.h.in, since
+	$^ is apparently not available on AIX 5.1.  Reported by Keith Crane.
+
+	* list.c (varargs.h): Remove, leave just stdarg.h which is all the
+	code has support for.  Fixes building with AIX cc, which is ansi but
+	doesn't define __STDC__.  Reported by Keith Crane.
+	(var_start): Remove macro, this variation no longer required.
+	(scm_list_n): Use va_start directly.
+
 2004-04-28  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_floor, scm_ceiling, scm_truncate_number,
