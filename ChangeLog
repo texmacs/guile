@@ -2,6 +2,8 @@
 
 	* TODO (sync srfi-modules.texi): New, done.
 
+	* BUGS (9): New.
+
 2001-10-26  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS (7, 8): New.
