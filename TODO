@@ -1,4 +1,4 @@
-[ID: $Id: TODO,v 1.18.2.1 2001-07-08 21:03:27 mvo Exp $]
+-*-text-*-
 
 These TODO items are grouped by target release version.  The first group is
 the "Eventually" group, which is not associated w/ any particular version.
@@ -62,12 +62,70 @@ See also file HACKING.
 - Implement a thread-safe alternative to SCM's environment caches
 
 
-=== In release 1.6.0:
+=== Before releasing 1.6.0:
+
+(Also, please try to fold any relevant changes you make into the
+ unstable tree as well.)
 
 - Make sure that the deprecation mechanism explained in INSTALL and
   README is completed and works.
 
-=== In release 1.8.0:
+- if we can agree on the interface quickly, add setitmer and getitimer
+  functions..
+
+- rewrite RELEASE to take CVS stable/unstable branching approach into
+  account.
+
+- Check for files that have changed a lot, but do not have up-to-date
+  copyright notices.  This can be as simple as doing:
+ 	grep 'Copyright' * | grep -v 1999
+  and looking for files you know you've worked on a lot.
+
+- Make sure NEWS, INSTALL, AUTHORS and THANKS and the docs are up to date
+
+- Scan the ChangeLogs for user-visible changes, marked with an asterisk
+  at the left margin.
+
+- Update NEWS and the Texinfo documentation as appropriate.
+
+- Remove the user-visible markers from the log entries once they're documented.
+
+- Check for any [[incomplete]] sections of NEWS.
+
+- Fact-check INSTALL.
+
+- Make sure AUTHORS and THANKS are up-to-date.
+
+- Make sure the downloading addresses and filenames in README are
+  current.  (But don't bump the version number yet.  We do that below.)
+
+- Make sure we have appropriate interface numbers for shared
+  libraries, and that we document and use the libtool
+  conventions. [rlb].
+
+- Update the version numbers in GUILE-VERSION and README. [rlb]
+
+- Reformat the names in THANKS.
+
+- update this TODO file, removing all "+" relevant to 1.6.0 after
+  making sure that user-visible changes are reflected in NEWS (and
+  that proper credit is applied :-).
+
+- perform testing cycles.
+
+- wait for rlb to release.
+
+=== Before releasing 1.8.0:
+
+- Make sure we have appropriate interface numbers for shared
+  libraries, and that we document and use the libtool
+  conventions. [rlb].
+
+- Update the version numbers in GUILE-VERSION and README. [rlb]
+
+- Start a new section of the NEWS file.
+
+- Start a new THANKS file.
 
 - remove deprecated functions scm_read_0str, scm_eval_0str.
 
