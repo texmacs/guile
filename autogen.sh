@@ -32,7 +32,7 @@ ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
 
 # Make sure this matches the ACLOCAL invokation in Makefile.am
 
-aclocal -I guile-config
+./guile-aclocal.sh
 
 ######################################################################
 ### Libtool setup.
