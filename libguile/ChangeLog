@@ -1,5 +1,7 @@
 2004-09-20  Rob Browning  <rlb@defaultvalue.org>
 
+	* script.c (scm_compile_shell_switches): Update copyright.
+
 	* smob.c (scm_set_smob_apply): Back out scm_remember_upto_here_1
 	addition from yesterday.  It worked, but wasn't the "right" fix
 	since tc is not subject to GC and has the wrong type.  Instead,
