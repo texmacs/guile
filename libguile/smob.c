@@ -349,7 +349,8 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
   SCM (*apply_1) (SCM, SCM);
   SCM (*apply_2) (SCM, SCM, SCM);
   SCM (*apply_3) (SCM, SCM, SCM, SCM);
-  int type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+  const int type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+  const long i = SCM_TC2SMOBNUM (tc);
 
   if (rst > 1 || req + opt + rst > 3)
     {
@@ -443,13 +444,15 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
       apply_3 = scm_smob_apply_3_error; break;
     }
 
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply   = apply;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_0 = apply_0;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_1 = apply_1;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
-  scm_remember_upto_here_1 (tc);
+  /* We compute i above and use it below because just using
+     SCM_TC2SMOBNUM (tc) directly as the array index below was causing
+     a build segfault on m68k machines */ 
+  scm_smobs[i].apply   = apply;
+  scm_smobs[i].apply_0 = apply_0;
+  scm_smobs[i].apply_1 = apply_1;
+  scm_smobs[i].apply_2 = apply_2;
+  scm_smobs[i].apply_3 = apply_3;
+  scm_smobs[i].gsubr_type = type;
 }
 
 SCM
