@@ -3,6 +3,29 @@ Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation,
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
+
+Each release reports NEWS in the following sections:
+
+* Changes to the distribution
+* Changes to the stand-alone interpreter
+* Changes to Scheme functions and syntax
+* Changes to the C interface 
+
+
+Changes since Guile 1.6.1:
+
+* Changes to the distribution
+
+** Debian/ files have been added in preparation for new Debian packages.
+
+* Changes to the stand-alone interpreter
+
+* Changes to Scheme functions and syntax
+
+* Changes to the C interface 
+
+** scm_readline now checks that it's using an output (not input) port.
+
 
 Changes since Guile 1.6.0:
 
