@@ -1,3 +1,7 @@
+2001-07-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scheme-data.texi: Replace some uses of "else" with "otherwise".
+
 2001-07-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* intro.texi: Fix spelling errors.
