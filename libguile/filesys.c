@@ -1348,7 +1348,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
 #define FUNC_NAME s_scm_copy_file
 {
   int oldfd, newfd;
-  int n;
+  int n, rv;
   char buf[BUFSIZ];
   struct stat oldstat;
 
@@ -1356,17 +1356,21 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   SCM_STRING_COERCE_0TERMINATION_X (oldfile);
   SCM_VALIDATE_STRING (2, newfile);
   SCM_STRING_COERCE_0TERMINATION_X (newfile);
-  if (stat (SCM_STRING_CHARS (oldfile), &oldstat) == -1)
-    SCM_SYSERROR;
+
   oldfd = open (SCM_STRING_CHARS (oldfile), O_RDONLY);
   if (oldfd == -1)
     SCM_SYSERROR;
+
+  SCM_SYSCALL (rv = fstat (oldfd, &oldstat));
+  if (rv == -1)
+    goto err_close_oldfd;
 
   /* use POSIX flags instead of 07777?.  */
   newfd = open (SCM_STRING_CHARS (newfile), O_WRONLY | O_CREAT | O_TRUNC,
 		oldstat.st_mode & 07777);
   if (newfd == -1)
     {
+    err_close_oldfd:
       close (oldfd);
       SCM_SYSERROR;
     }
