@@ -73,7 +73,8 @@ See also file HACKING.
   README is completed and works.
 
 - Decide if setitimer and getitimer should accept bignum arguments
-  instead, and fix them if so.
+  instead, and fix them if so (make sure to migrate choice to unstable
+  branch if needed).
 
 - rewrite RELEASE to take CVS stable/unstable branching approach into
   account.
