@@ -2331,12 +2331,42 @@ scm_istr2int (char *str, long len, long radix)
   if (len < 6)
     return scm_small_istr2int (str, len, radix);
 
-  if (16 == radix)
-    j = 1 + (4 * len * sizeof (char)) / (SCM_BITSPERDIG);
-  else if (10 <= radix)
-    j = 1 + (84 * len * sizeof (char)) / (SCM_BITSPERDIG * 25);
-  else
-    j = 1 + (len * sizeof (char)) / (SCM_BITSPERDIG);
+  /* table[] is the number of bits used by each digit in the given base,
+     ie. log(base)/log(2).  A scale factor of 25 is applied, so eg. base 8
+     has 75 for 3 bits per digit.  When the number is not exact (any non
+     power-of-2 base) it's rounded up, ensuring the size calculated will be
+     no less than what's needed.  Eg. 25*log(10)/log(2) is 83.04 which gets
+     rounded up to 84.  The following spot of perl generates the table
+
+     use POSIX;
+     foreach $i (2 .. 16) {
+       print POSIX::ceil(log($i)/log(2)*25),", /","* $i *","/\n";
+     }
+
+     The factor 25 is more or less arbitrary, it gives enough precision and
+     is what the code had in the past for base 10.  */
+  {
+    static const unsigned table[] = {
+      25, /* 2 */
+      40, /* 3 */
+      50, /* 4 */
+      59, /* 5 */
+      65, /* 6 */
+      71, /* 7 */
+      75, /* 8 */
+      80, /* 9 */
+      84, /* 10 */
+      87, /* 11 */
+      90, /* 12 */
+      93, /* 13 */
+      96, /* 14 */
+      98, /* 15 */
+      100, /* 16 */
+    };
+    /* FIXME: What is sizeof(char) for? */
+    j = 1 + (table[radix-2] * len * sizeof (char)) / (SCM_BITSPERDIG * 25);
+  }
+
   switch (str[0])
     {				/* leading sign */
     case '-':
