@@ -2,8 +2,10 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+build-stamp
 check-guile
 check-guile.log
+config-stamp
 config.build-subdirs
 config.cache
 config.guess
