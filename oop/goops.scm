@@ -508,7 +508,7 @@
 (define method
   (letrec ((specializers
 	    (lambda (ls)
-	      (cond ((null? ls) '('()))
+	      (cond ((null? ls) (list (list 'quote '())))
 		    ((pair? ls) (cons (if (pair? (car ls))
 					  (cadar ls)
 					  '<top>)
@@ -1042,17 +1042,20 @@
 (define standard-set (standard-accessor-method make-set standard-set-methods))
 
 ;;; compute-getters-n-setters
-;;; 
+;;;
+(define (make-thunk thunk)
+  (lambda () (thunk)))
+
 (define (compute-getters-n-setters class slots env)
 
   (define (compute-slot-init-function name s)
     (or (let ((thunk (slot-definition-init-thunk s)))
 	  (and thunk
-	       (if (not (and (closure? thunk)
-			     (thunk? thunk)))
-		   (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
-				name class thunk))
-	       thunk))
+	       (cond ((not (thunk? thunk))
+		      (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
+				   name class thunk))
+		     ((closure? thunk) thunk)
+		     (else (make-thunk thunk)))))
 	(let ((init (slot-definition-init-value s)))
 	  (and (not (unbound? init))
 	       (lambda () init)))))

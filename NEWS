@@ -56,6 +56,13 @@ got confused if handed method code created in a null environment
 (environment = empty list).  It now stands every environment
 imaginable (think about it!).
 
+** GOOPS init-thunks can now be primitive procedures
+
+Previously, attempts to provide something else than a closure as value
+for the #:init-thunk slot option would yield a segmentation fault.
+Now, it's possible to supply a primitive procedure as init-thunk.
+Non-allowed values result in an error.
+
 ** Garbage collection frequency improved for large malloc heaps
 
 The decision when to run the GC is now done in a way that avoids GCs
