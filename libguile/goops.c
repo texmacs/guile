@@ -1,15 +1,15 @@
 /* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -246,12 +246,12 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
   tmp = SCM_CAAR (l);
   if (!SCM_SYMBOLP (tmp))
     scm_misc_error ("%compute-slots", "bad slot name ~S", scm_list_1 (tmp));
-  
+
   if (SCM_FALSEP (scm_c_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
     slots_already_seen = scm_cons (tmp, slots_already_seen);
   }
-  
+
   return remove_duplicate_slots (SCM_CDR (l), res, slots_already_seen);
 }
 
@@ -287,7 +287,7 @@ SCM_DEFINE (scm_sys_compute_slots, "%compute-slots", 1, 0, 0,
 	    (SCM class),
 	    "Return a list consisting of the names of all slots belonging to\n"
 	    "class @var{class}, i. e. the slots of @var{class} and of all of\n"
-	    "its superclasses.") 
+	    "its superclasses.")
 #define FUNC_NAME s_scm_sys_compute_slots
 {
   SCM_VALIDATE_CLASS (1, class);
@@ -300,8 +300,8 @@ SCM_DEFINE (scm_sys_compute_slots, "%compute-slots", 1, 0, 0,
 /******************************************************************************
  *
  * compute-getters-n-setters
- *  
- *   This version doesn't handle slot options. It serves only for booting 
+ *
+ *   This version doesn't handle slot options. It serves only for booting
  * classes and will be overloaded in Scheme.
  *
  ******************************************************************************/
@@ -405,10 +405,10 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
   SCM_VALIDATE_INSTANCE (1, obj);
   n_initargs = scm_ilength (initargs);
   SCM_ASSERT ((n_initargs & 1) == 0, initargs, SCM_ARG2, FUNC_NAME);
-  
+
   get_n_set = SCM_SLOT (class, scm_si_getters_n_setters);
   slots     = SCM_SLOT (class, scm_si_slots);
-  
+
   /* See for each slot how it must be initialized */
   for (;
        SCM_NNULLP (slots);
@@ -416,7 +416,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
     {
       SCM slot_name  = SCM_CAR (slots);
       SCM slot_value = 0;
-    
+
       if (SCM_NIMP (SCM_CDR (slot_name)))
 	{
 	  /* This slot admits (perhaps) to be initialized at creation time */
@@ -466,7 +466,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	    }
 	}
     }
-  
+
   return obj;
 }
 #undef FUNC_NAME
@@ -494,7 +494,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
       && SCM_SUBCLASSP (class, scm_class_class))
     SCM_MISC_ERROR ("class object doesn't have enough fields: ~S",
 		    scm_list_1 (nfields));
-  
+
   s  = n > 0 ? scm_must_malloc (n, FUNC_NAME) : 0;
   for (i = 0; i < n; i += 2)
     {
@@ -511,7 +511,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	    p = 'p';
 	  else
 	    p = 'u';
-	  
+
 	  if (SCM_SUBCLASSP (type, scm_class_opaque))
 	    a = 'o';
 	  else if (SCM_SUBCLASSP (type, scm_class_read_only))
@@ -581,7 +581,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
   SCM_SET_CLASS_FLAGS (class, flags);
 
   prep_hashsets (class);
-  
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -737,7 +737,7 @@ create_basic_classes (void)
   SCM_SET_SLOT (scm_class_class, scm_si_direct_supers, SCM_EOL);  /* will be changed */
   /* SCM_SET_SLOT (scm_class_class, scm_si_direct_slots, slots_of_class); */
   SCM_SET_SLOT (scm_class_class, scm_si_direct_subclasses, SCM_EOL);
-  SCM_SET_SLOT (scm_class_class, scm_si_direct_methods, SCM_EOL);  
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_methods, SCM_EOL);
   SCM_SET_SLOT (scm_class_class, scm_si_cpl, SCM_EOL);  /* will be changed */
   /* SCM_SET_SLOT (scm_class_class, scm_si_slots, slots_of_class); */
   SCM_SET_SLOT (scm_class_class, scm_si_nfields, SCM_MAKINUM (SCM_N_CLASS_SLOTS));
@@ -759,7 +759,7 @@ create_basic_classes (void)
 						    SCM_EOL));
 
   DEFVAR(name, scm_class_top);
-  
+
   /**** <scm_class_object> ****/
   name	 = scm_str2symbol ("<object>");
   scm_class_object = scm_permanent_object (scm_basic_make_class (scm_class_class,
@@ -789,7 +789,7 @@ SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
 
 
 /******************************************************************************
- * 
+ *
  * Meta object accessors
  *
  ******************************************************************************/
@@ -1003,7 +1003,7 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
   SCM_VALIDATE_INSTANCE (1, obj);
   SCM_VALIDATE_INUM (2, index);
   i = SCM_INUM (index);
-  
+
   SCM_ASSERT_RANGE (2, index, i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj));
   return scm_at_assert_bound_ref (obj, index);
 }
@@ -1058,7 +1058,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
     return SCM_SLOT (obj, SCM_INUM (access));
   else
     {
-      /* We must evaluate (apply (car access) (list obj)) 
+      /* We must evaluate (apply (car access) (list obj))
        * where (car access) is known to be a closure of arity 1  */
       register SCM code, env;
 
@@ -1254,10 +1254,10 @@ SCM_DEFINE (scm_slot_bound_p, "slot-bound?", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_slots_exists_p, "slot-exists?", 2, 0, 0,
+SCM_DEFINE (scm_slot_exists_p, "slot-exists?", 2, 0, 0,
 	    (SCM obj, SCM slot_name),
 	    "Return @code{#t} if @var{obj} has a slot named @var{slot_name}.")
-#define FUNC_NAME s_scm_slots_exists_p
+#define FUNC_NAME s_scm_slot_exists_p
 {
   SCM class;
 
@@ -1283,7 +1283,7 @@ wrap_init (SCM class, SCM *m, long n)
 {
   SCM z;
   long i;
-  
+
   /* Set all slots to unbound */
   for (i = 0; i < n; i++)
     m[i] = SCM_GOOPS_UNBOUND;
@@ -1315,13 +1315,13 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
       m = (SCM *) scm_must_malloc (n * sizeof (SCM), "instance");
       return wrap_init (class, m, n);
     }
-  
+
   /* Foreign objects */
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_FOREIGN)
     return scm_make_foreign_object (class, initargs);
 
   n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
-  
+
   /* Entities */
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_ENTITY)
     {
@@ -1340,7 +1340,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
       else
 	return wrap_init (class, m, n);
     }
-  
+
   /* Class objects */
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_METACLASS)
     {
@@ -1360,7 +1360,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 
       return z;
     }
-  
+
   /* Non-light instances */
   {
     m = (SCM *) scm_alloc_struct (n,
@@ -1393,7 +1393,7 @@ SCM_DEFINE (scm_sys_set_object_setter_x, "%set-object-setter!", 2, 0, 0,
 /******************************************************************************
  *
  * %modify-instance (used by change-class to modify in place)
- * 
+ *
  ******************************************************************************/
 
 SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
@@ -1404,7 +1404,7 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
   SCM_VALIDATE_INSTANCE (1, old);
   SCM_VALIDATE_INSTANCE (2, new);
 
-  /* Exchange the data contained in old and new. We exchange rather than 
+  /* Exchange the data contained in old and new. We exchange rather than
    * scratch the old value with new to be correct with GC.
    * See "Class redefinition protocol above".
    */
@@ -1528,16 +1528,16 @@ scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
 
 /******************************************************************************
  *
- *   GGGG                FFFFF          
- *  G                    F    
- *  G  GG                FFF    
- *  G   G                F      
+ *   GGGG                FFFFF
+ *  G                    F
+ *  G  GG                FFF
+ *  G   G                F
  *   GGG  E N E R I C    F    U N C T I O N S
  *
  * This implementation provides
  *	- generic functions (with class specializers)
  *	- multi-methods
- *	- next-method 
+ *	- next-method
  *	- a hard-coded MOP for standard gf, which can be overloaded for non-std gf
  *
  ******************************************************************************/
@@ -1644,17 +1644,17 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 #undef FUNC_NAME
 
 /******************************************************************************
- * 
+ *
  * Protocol for calling a generic fumction
- * This protocol is roughly equivalent to (parameter are a little bit different 
+ * This protocol is roughly equivalent to (parameter are a little bit different
  * for efficiency reasons):
  *
  * 	+ apply-generic (gf args)
  *		+ compute-applicable-methods (gf args ...)
  *			+ sort-applicable-methods (methods args)
  *		+ apply-methods (gf methods args)
- *				
- * apply-methods calls make-next-method to build the "continuation" of a a 
+ *
+ * apply-methods calls make-next-method to build the "continuation" of a a
  * method.  Applying a next-method will call apply-next-method which in
  * turn will call  apply again to call effectively the following method.
  *
@@ -1672,14 +1672,14 @@ more_specificp (SCM m1, SCM m2, SCM *targs)
 {
   register SCM s1, s2;
   register long i;
-  /* 
-   * Note: 
-   *   m1 and m2 can have != length (i.e. one can be one element longer than the 
+  /*
+   * Note:
+   *   m1 and m2 can have != length (i.e. one can be one element longer than the
    * other when we have a dotted parameter list). For instance, with the call
    *   (M 1)
    * with
    *   (define-method M (a . l) ....)
-   *   (define-method M (a) ....) 
+   *   (define-method M (a) ....)
    *
    * we consider that the second method is more specific.
    *
@@ -1693,7 +1693,7 @@ more_specificp (SCM m1, SCM m2, SCM *targs)
     if (SCM_NULLP(s2)) return 0;
     if (SCM_CAR(s1) != SCM_CAR(s2)) {
       register SCM l, cs1 = SCM_CAR(s1), cs2 = SCM_CAR(s2);
-      
+
       for (l = SCM_SLOT (targs[i], scm_si_cpl);   ; l = SCM_CDR(l)) {
 	if (cs1 == SCM_CAR(l))
 	  return 1;
@@ -1713,7 +1713,7 @@ scm_i_vector2list (SCM l, long len)
 {
   long j;
   SCM z = scm_c_make_vector (len, SCM_UNDEFINED);
-  
+
   for (j = 0; j < len; j++, l = SCM_CDR (l)) {
     SCM_VELTS (z)[j] = SCM_CAR (l);
   }
@@ -1740,7 +1740,7 @@ sort_applicable_methods (SCM method_list, long size, SCM *targs)
 	  method_list = SCM_CDR (method_list);
 	}
       v = buffer;
-    } 
+    }
   else
     {
       /* Too many elements in method_list to keep everything locally */
@@ -1748,7 +1748,7 @@ sort_applicable_methods (SCM method_list, long size, SCM *targs)
       v      = SCM_VELTS (vector);
     }
 
-  /* Use a simple shell sort since it is generally faster than qsort on 
+  /* Use a simple shell sort since it is generally faster than qsort on
    * small vectors (which is probably mostly the case when we have to
    * sort a list of applicable methods).
    */
@@ -1780,7 +1780,7 @@ sort_applicable_methods (SCM method_list, long size, SCM *targs)
 	}
       return save;
     }
-  /* If we are here, that's that we did it the hard way... */ 
+  /* If we are here, that's that we did it the hard way... */
   return scm_vector_to_list (vector);
 }
 
@@ -1793,7 +1793,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   SCM save = args;
   SCM buffer[BUFFSIZE], *types, *p;
   SCM tmp;
- 
+
   /* Build the list of arguments types */
   if (len >= BUFFSIZE) {
     tmp   = scm_c_make_vector (len, SCM_UNDEFINED);
@@ -1804,10 +1804,10 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   }
   else
     types = p = buffer;
-  
-  for (  ; SCM_NNULLP (args); args = SCM_CDR (args)) 
+
+  for (  ; SCM_NNULLP (args); args = SCM_CDR (args))
     *p++ = scm_class_of (SCM_CAR (args));
- 
+
   /* Build a list of all applicable methods */
   for (l = SCM_SLOT (gf, scm_si_methods); SCM_NNULLP (l); l = SCM_CDR (l))
     {
@@ -1975,7 +1975,7 @@ scm_memoize_method (SCM x, SCM args)
  * A simple make (which will be redefined later in Scheme)
  * This version handles only creation of gf, methods and classes (no instances)
  *
- * Since this code will disappear when Goops will be fully booted, 
+ * Since this code will disappear when Goops will be fully booted,
  * no precaution is taken to be efficient.
  *
  ******************************************************************************/
@@ -2034,19 +2034,19 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	  || class == scm_class_simple_method
 	  || class == scm_class_accessor)
 	{
-	  SCM_SET_SLOT (z, scm_si_generic_function, 
+	  SCM_SET_SLOT (z, scm_si_generic_function,
 	    scm_i_get_keyword (k_gf,
 			       args,
 			       len - 1,
 			       SCM_BOOL_F,
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_specializers, 
+	  SCM_SET_SLOT (z, scm_si_specializers,
 	    scm_i_get_keyword (k_specializers,
 			       args,
 			       len - 1,
 			       SCM_EOL,
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_procedure, 
+	  SCM_SET_SLOT (z, scm_si_procedure,
 	    scm_i_get_keyword (k_procedure,
 			       args,
 			       len - 1,
@@ -2057,19 +2057,19 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
       else
 	{
 	  /* In all the others case, make a new class .... No instance here */
-	  SCM_SET_SLOT (z, scm_si_name, 
+	  SCM_SET_SLOT (z, scm_si_name,
 	    scm_i_get_keyword (k_name,
 			       args,
 			       len - 1,
 			       scm_str2symbol ("???"),
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_direct_supers, 
+	  SCM_SET_SLOT (z, scm_si_direct_supers,
 	    scm_i_get_keyword (k_dsupers,
 			       args,
 			       len - 1,
 			       SCM_EOL,
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_direct_slots, 
+	  SCM_SET_SLOT (z, scm_si_direct_slots,
 	    scm_i_get_keyword (k_slots,
 			       args,
 			       len - 1,
@@ -2123,12 +2123,12 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
   return more_specificp (m1, m2, SCM_VELTS(v)) ? SCM_BOOL_T: SCM_BOOL_F;
 }
 #undef FUNC_NAME
-  
-  
+
+
 
 /******************************************************************************
  *
- * Initializations 
+ * Initializations
  *
  ******************************************************************************/
 
@@ -2137,7 +2137,7 @@ static void
 make_stdcls (SCM *var, char *name, SCM meta, SCM super, SCM slots)
 {
    SCM tmp = scm_str2symbol (name);
-   
+
    *var = scm_permanent_object (scm_basic_make_class (meta,
 						      tmp,
 						      SCM_CONSP (super)
@@ -2154,8 +2154,8 @@ static void
 create_standard_classes (void)
 {
   SCM slots;
-  SCM method_slots = scm_list_4 (scm_str2symbol ("generic-function"), 
-				 scm_str2symbol ("specializers"), 
+  SCM method_slots = scm_list_4 (scm_str2symbol ("generic-function"),
+				 scm_str2symbol ("specializers"),
 				 scm_str2symbol ("procedure"),
 				 scm_str2symbol ("code-table"));
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_str2symbol ("slot-definition"),
@@ -2210,13 +2210,13 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_foreign_slot,	   SCM_EOL);
 
   /* Continue initialization of class <class> */
-  
+
   slots = build_class_class_slots ();
   SCM_SET_SLOT (scm_class_class, scm_si_direct_slots, slots);
   SCM_SET_SLOT (scm_class_class, scm_si_slots, slots);
   SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
 		compute_getters_n_setters (slots));
-  
+
   make_stdcls (&scm_class_foreign_class, "<foreign-class>",
 	       scm_class_class, scm_class_class,
 	       scm_list_2 (scm_list_3 (scm_str2symbol ("constructor"),
@@ -2260,7 +2260,7 @@ create_standard_classes (void)
 	       SCM_EOL);
 #if 0
   /* Patch cpl since compute_cpl doesn't support multiple inheritance. */
-  SCM_SET_SLOT (scm_class_generic_with_setter, scm_si_cpl, 
+  SCM_SET_SLOT (scm_class_generic_with_setter, scm_si_cpl,
     scm_append (scm_list_3 (scm_list_2 (scm_class_generic_with_setter,
 					scm_class_generic),
 			    SCM_SLOT (scm_class_entity_with_setter,
@@ -2368,7 +2368,7 @@ create_smob_classes (void)
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_real)] = scm_class_real;
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_complex)] = scm_class_complex;
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_keyword)] = scm_class_keyword;
-  
+
   for (i = 0; i < scm_numsmob; ++i)
     if (!scm_smob_class[i])
       scm_smob_class[i] = scm_make_extended_class (SCM_SMOBNAME (i));
@@ -2412,7 +2412,7 @@ create_port_classes (void)
 }
 
 static SCM
-make_struct_class (void *closure SCM_UNUSED, SCM key SCM_UNUSED, 
+make_struct_class (void *closure SCM_UNUSED, SCM key SCM_UNUSED,
 		   SCM data, SCM prev SCM_UNUSED)
 {
   if (SCM_NFALSEP (SCM_STRUCT_TABLE_NAME (data)))
@@ -2485,7 +2485,7 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
       SCM_SET_CLASS_DESTRUCTOR (class, scm_struct_free_light);
       SCM_SET_CLASS_INSTANCE_SIZE (class, size);
     }
-  
+
   SCM_SET_SLOT (class, scm_si_layout, scm_str2symbol (""));
   SCM_SET_SLOT (class, scm_si_constructor, (SCM) constructor);
 
@@ -2544,7 +2544,7 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					    k_procedure,
 					    setm)));
       DEFVAR (aname, gf);
-      
+
       SCM_SET_SLOT (class, scm_si_slots,
 		    scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_slots),
 					      scm_list_1 (slot))));
@@ -2553,7 +2553,7 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					      scm_list_1 (gns))));
     }
   }
-  {  
+  {
     long n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
 
     SCM_SET_SLOT (class, scm_si_nfields, SCM_MAKINUM (n + 1));
@@ -2650,7 +2650,7 @@ scm_init_goops_builtins (void)
   scm_module_goops = scm_current_module ();
   scm_goops_lookup_closure = scm_module_lookup_closure (scm_module_goops);
 
-  /* Not really necessary right now, but who knows... 
+  /* Not really necessary right now, but who knows...
    */
   scm_permanent_object (scm_module_goops);
   scm_permanent_object (scm_goops_lookup_closure);
