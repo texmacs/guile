@@ -1,3 +1,10 @@
+2004-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* optargs.scm (let-optional-template, let-keywords-template): Change
+	"(begin body)" to "(let () body)" for empty bindings, since the former
+	allows "internal defines" in body leak out to the surrounding
+	environment.
+
 2004-09-04  Kevin Ryde  <user42@zip.com.au>
 
 	* streams.scm (stream-for-each-many): Correction, should recurse into
