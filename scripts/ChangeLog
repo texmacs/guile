@@ -1,3 +1,11 @@
+2002-03-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (scripts_sources): Add `lint'.
+
+	* lint: New script.
+
+	* frisk (grok-proc): Handle `#:xxx' as well as `:xxx'.
+
 2002-03-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (scripts_sources): add snarf-guile-m4-docs.

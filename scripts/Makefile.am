@@ -29,6 +29,7 @@ scripts_sources =		\
 	doc-snarf		\
 	frisk			\
 	generate-autoload	\
+	lint			\
 	punify			\
 	read-scheme-source	\
 	use2dot                 \
