@@ -1,3 +1,8 @@
+2002-10-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (srfiinclude_HEADERS, srfiincludedir): install the
+	srfi headers into guile/srfi/.
+
 2002-07-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.scm: load libguile-srfi-srfi-4-v-MAJOR now.
