@@ -25,6 +25,11 @@ See the Guile info pages for more documentation.
 
 ** Guile is now compiled with -fno-strict-aliasing when gcc is detected.
 
+** The --enable-htmldoc option has been removed from 'configure'.
+
+Support for translating the documentation into HTML is now always
+provided.  Use 'make html'.
+
 * Changes to the stand-alone interpreter
 
 ** GC bug fixed.
