@@ -1,3 +1,8 @@
+2004-08-29  Rob Browning  <rlb@defaultvalue.org>
+
+	* pre-inst-guile.in: modify to handle move of readline.scm to
+	ice-9 subdir of guile-readline.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_MEMBERS): Add struct sockaddr.sin_len and

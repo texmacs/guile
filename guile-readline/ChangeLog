@@ -1,3 +1,21 @@
+2004-08-29  Rob Browning  <rlb@defaultvalue.org>
+
+	Port ice-9 subdir approach from 1.7 tree.
+
+	* configure.in: add AC_CONFIG_FILES for ice-9/Makefile.
+
+        * readline.c: add HAVE_CONFIG_H test guarding #include config.h.
+
+        * Makefile.am: move support for readline.scm to ice-9/ subdir.
+
+        * readline.scm: moved to ./ice-9/
+
+        * ice-9/Makefile.am: new file.
+
+        * ice-9/readline.scm: moved here from ../
+
+        * ice-9/.cvsignore: new file.
+
 2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	The intended side-effect of the following change is to make the
