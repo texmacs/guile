@@ -1,3 +1,7 @@
+2001-07-15  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* HACKING: Remove onerous authorship-info deletion clause.
+
 2001-07-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* TODO: Mention "make check" tests for subdir `examples'.
