@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -284,7 +284,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_NIM (2,handler);
+      SCM_VALIDATE_PROC (2,handler);
 #ifdef HAVE_SIGACTION
       action.sa_handler = take_signal;
       if (orig_handlers[csig].sa_handler == SIG_ERR)
