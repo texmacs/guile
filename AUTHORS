@@ -124,10 +124,12 @@ In the subdirectory doc, changes to:
     appendices.texi posix.texi
 
 Rob Browning:
+  rewrote srfi/srfi-4.scm.
   wrote initial srfi/srfi-2.scm.
   wrote initial srfi/srfi-6.scm.
   wrote initial srfi/srfi-8.scm.
   wrote initial srfi/srfi-11.scm.
+  setup libguile-ltdl.
   ported srfi/srfi-19.scm to Guile.
   and many other changes throughout Guile.
 
