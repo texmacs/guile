@@ -106,8 +106,6 @@ Spiffing checklist:
   Make specifically sure that the files in libltdl are generated using
   the same tools as the rest.
 
-* Run ./autogen.sh to rebuild all generated files in the source tree.
-
 * Build the test distribution
 
   NOTE: during this section, don't commit any of your changes to CVS
@@ -119,6 +117,8 @@ Spiffing checklist:
     don't commit this change to CVS yet (see below).  For example,
     just before the 1.6.0 release, we went through some number of
     1.5.X test releases.
+
+  * Run ./autogen.sh to rebuild all generated files in the source tree.
 
   * configure the source tree for build in the same tree with these
     configuration options:
