@@ -1,7 +1,7 @@
 2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* Makefile.am (install-data-local): Look in `$(srcdir)'
-	for file and-let-star-compat.scm.
+	for file and-let-star-compat.scm.  Thanks to I. N. Golubev.
 
 2001-09-24  Mikael Djurfeldt  <mdj@linnaeus>
 
