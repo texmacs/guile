@@ -51,7 +51,6 @@ configure_args = \
 	--prefix=/usr \
 	--with-gnu-ld \
 	--enable-dynamic-linking \
-	--enable-maintainer-mode \
 	${ENABLE_THREADS}
 
 config-stamp: patch-stamp ${QTHREADS_DOT_INSTALLS}
