@@ -1,3 +1,9 @@
+2002-08-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-snarf.in: Do not expect the input file to be the first
+	argument after the optional "-o" option, just pass everything to
+	the pre-processor without extracting the input file name.
+
 2002-08-05  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (modinclude_HEADERS): add scmconfig.h.
