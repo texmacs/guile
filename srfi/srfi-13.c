@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -619,7 +619,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
     {
       while (cstart < cend)
 	{
-	  if (!isspace(cstr[cstart]))
+	  if (!isspace((int) (unsigned char) cstr[cstart]))
 	    break;
 	  cstart++;
 	}
@@ -694,7 +694,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
     {
       while (cstart < cend)
 	{
-	  if (!isspace(cstr[cend - 1]))
+	  if (!isspace((int) (unsigned char) cstr[cend - 1]))
 	    break;
 	  cend--;
 	}
@@ -769,13 +769,13 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
     {
       while (cstart < cend)
 	{
-	  if (!isspace(cstr[cstart]))
+	  if (!isspace((int) (unsigned char) cstr[cstart]))
 	    break;
 	  cstart++;
 	}
       while (cstart < cend)
 	{
-	  if (!isspace(cstr[cend - 1]))
+	  if (!isspace((int) (unsigned char) cstr[cend - 1]))
 	    break;
 	  cend--;
 	}
