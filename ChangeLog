@@ -1,3 +1,8 @@
+2002-12-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* debian/: initial set of Debian packaging files (rewritten from
+	scratch).  Not yet ready for prime time, but close.
+
 2002-12-16  Rob Browning  <rlb@defaultvalue.org>
 
 	* Guile 1.6.1 released.
