@@ -1,3 +1,8 @@
+2003-09-19  Kevin Ryde  <user42@zip.com.au>
+
+	* popen.scm (open-process): Close input-fdes, output-fdes and
+	error-fdes after duping them to 0, 1 and 2.
+
 2003-09-13  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (file-exists?): Use stat rather than access?, so as to
