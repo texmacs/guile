@@ -65,9 +65,10 @@ GUILE_SNARF = ../libguile/guile-snarf
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
+snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
 SUFFIXES = .x
 .c.x:
-	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
-	|| { rm $@; false; }
+	$(GUILE_SNARF) $< $(snarfcppopts)
 
 CLEANFILES = *.x
