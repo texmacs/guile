@@ -1,3 +1,8 @@
+2001-08-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (AC_CONFIG_FILES): Add Makefiles for per-manual
+	subdirectories.
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in

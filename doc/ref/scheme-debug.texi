@@ -139,30 +139,8 @@ Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
 either a debug object or a continuation).
-
-@var{args} should be a list containing any combination of
-integer, procedure and @code{#t} values.
-
-These values specify various ways of cutting away uninteresting
-stack frames from the top and bottom of the stack that
-@code{make-stack} returns.  They come in pairs like this:
-@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}
-@var{outer_cut_2} @dots{})}.
-
-Each @var{inner_cut_N} can be @code{#t}, an integer, or a
-procedure.  @code{#t} means to cut away all frames up to but
-excluding the first user module frame.  An integer means to cut
-away exactly that number of frames.  A procedure means to cut
-away all frames up to but excluding the application frame whose
-procedure matches the specified one.
-
-Each @var{outer_cut_N} can be an integer or a procedure.  An
-integer means to cut away that number of frames.  A procedure
-means to cut away frames down to but excluding the application
-frame whose procedure matches the specified one.
-
-If the @var{outer_cut_N} of the last pair is missing, it is
-taken as 0.
+@var{args} must be a list of integers and specifies how the
+resulting stack will be narrowed.
 @end deffn
 
 @deffn primitive stack-id stack
