@@ -95,7 +95,7 @@ Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
 @section Structuring argument lists for C functions
 
 The C function's arguments will be all of the Scheme procedure's
-argumements, both required and optional; if the Scheme procedure takes a
+arguments, both required and optional; if the Scheme procedure takes a
 ``rest'' argument, that will be a final argument to the C function.  The
 C function's arguments, as well as its return type, will be @code{SCM}.
 
@@ -146,7 +146,7 @@ string is used as the buffer.
 Special treatment is required for ports which can be seeked at random.
 Before various operations, such as seeking the port or changing from
 input to output on a bidirectional port or vice versa, the port
-implemention must be given a chance to update its state.  The write
+implementation must be given a chance to update its state.  The write
 buffer is updated by calling the @code{flush} ptob procedure and the
 input buffer is updated by calling the @code{end_input} ptob procedure.
 In the case of an fport, @code{flush} causes buffered output to be
@@ -276,7 +276,7 @@ Complete the processing of buffered output data.  Reset the value of
 Set using @code{scm_set_port_flush}.
 
 @item end_input
-Perform any synchronisation required when switching from input to output
+Perform any synchronization required when switching from input to output
 on the port.  Reset the value of @code{rw_active} to @code{SCM_PORT_NEITHER}.
 Set using @code{scm_set_port_end_input}.
 
@@ -377,7 +377,7 @@ in which they are used:
 @itemize @bullet
 @item
 @code{error-signal}: thrown after receiving an unhandled fatal signal
-such as SIGSEV, SIGBUS, SIGFPE etc.  The @var{rest} argument in the throw
+such as SIGSEGV, SIGBUS, SIGFPE etc.  The @var{rest} argument in the throw
 contains the coded signal number (at present this is not the same as the
 usual Unix signal number).
 
@@ -394,7 +394,7 @@ errno value.
 accepted domain.
 
 @item
-@code{wrong-type-arg}: an argument to a procedure has the wrong thpe.
+@code{wrong-type-arg}: an argument to a procedure has the wrong type.
 
 @item
 @code{wrong-number-of-args}: a procedure was called with the wrong number

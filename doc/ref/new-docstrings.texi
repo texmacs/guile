@@ -291,7 +291,7 @@ Change the signature of export environment @var{env}.
 @deffn primitive %compute-slots class
 Return a list consisting of the names of all slots belonging to
 class @var{class}, i. e. the slots of @var{class} and of all of
-its superclasses.
+its super-classes.
 @end deffn
 
 @deffn primitive get-keyword key l default_value
@@ -426,7 +426,7 @@ Return specializers of the method @var{obj}.
 @end deffn
 
 @deffn primitive method-generic-function obj
-Return the generic function fot the method @var{obj}.
+Return the generic function for the method @var{obj}.
 @end deffn
 
 @deffn primitive generic-function-methods obj
@@ -462,7 +462,7 @@ Return the direct slots of the class @var{obj}.
 @end deffn
 
 @deffn primitive class-direct-supers obj
-Return the direct superclasses of the class @var{obj}.
+Return the direct super-classes of the class @var{obj}.
 @end deffn
 
 @deffn primitive class-name obj
