@@ -167,18 +167,25 @@
 ;; multiple calls to gensym, not globally unique.
 ;;
 (define gensym
-  (let ((counter 0))
+  (let ((counter 0)
+        (symlock (make-mutex)))
     (lambda (. rest)
-      (let ((val (number->string counter)))
-        (set! counter (+ counter 1))
-        (cond
-         ((null? rest)
-          (string->symbol (string-append "syntmp-" val)))
-         ((null? (cdr rest))
-          (string->symbol (string-append "syntmp-" (car rest) "-" val)))
-         (else
-          (error
-           "syncase's gensym called with the wrong number of arguments")))))))
+      (lock-mutex symlock)
+      (let* ((val (number->string counter))
+             (result
+              (set! counter (+ counter 1))
+              (cond
+               ((null? rest)
+                (string->symbol (string-append "syntmp-" val)))
+               ((null? (cdr rest))
+                (string->symbol (string-append "syntmp-" (car rest) "-" val)))
+               (else
+                'bad-args))))
+        (unlock-mutex symlock)
+        (if (eq? result 'bad-args)
+            (error
+             "syncase's gensym called with the wrong number of arguments")
+            result)))))
       
 ;;; Load the preprocessed code
 
