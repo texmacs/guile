@@ -1,3 +1,8 @@
+2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* HACKING: Restrict documentation change log
+	waiver to only apply to ChangeLog files.
+
 2001-11-10  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS (11): New.
