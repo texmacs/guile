@@ -28,7 +28,6 @@ for f in $workbookdistfiles ; do
 done
 rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
-ln -s $workbook/tasks/TODO TODO
 ######################################################################
 
 ./guile-aclocal.sh
