@@ -154,7 +154,20 @@ Spiffing checklist:
 
   * Remove automake and autoconf from your path, or turn off their
     execute bits, or something.  (Users must be able to build from the
-    tarfile without installing those tools.)
+    tarfile without installing those tools.)  As an example, you could
+    disable the tools during the test like so:
+
+      mkdir /tmp/stub
+      cat > /tmp/stub/do-nothing <<EOF
+      #!/bin/sh
+      echo warning: $0 called
+      sleep 10
+      exit 0
+      EOF
+      chmod +x /tmp/stub/do-nothing
+      ln /tmp/stub/do-nothing /tmp/stub/automake
+      ln /tmp/stub/do-nothing /tmp/stub/autoconf	# etc
+      PATH=/tmp/stub:$PATH
 
   * Configure, "make", "make check", and "make install".  Make sure to
     remove your previous install tree before the "make install".
@@ -162,6 +175,7 @@ Spiffing checklist:
   * Make sure LD_LIBRARY_PATH doesn't include anything unnecessary.
 
   * Run the test suite on the installed version.
+        ./check-guile -i [INSTALL_PATH]/bin/guile
 
   * Look at the install tree (with "find | sort" or similar) and make
     sure nothing seems obviously amiss.
