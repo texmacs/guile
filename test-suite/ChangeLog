@@ -1,5 +1,7 @@
 2004-09-09  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/ports.test (port-column): Further tests, of new \a \b \r.
+
 	* tests/streams.test: New file.
 
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
