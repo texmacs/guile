@@ -1,5 +1,15 @@
 2003-04-11  Rob Browning  <rlb@defaultvalue.org>
 
+	* goops.c (prep_hashsets): make static to match prototype.
+	(scm_sym_args): SCM_SYMBOL -> SCM_GLOBAL_SYMBOL.  Thanks to Albert
+	Chin.
+
+	* c-tokenize.lex: remove trailing comma from enum.  Thanks to
+	Albert Chin.
+
+	* gc_os_dep.c: add NetBSD powerpc config info.  Thanks to Thomas
+	Klausner.
+
 	* eval.c (SCM_CEVAL): fixed a couple of mysterious (probably
 	optimization related) bugs on powerpc by altering some
           "while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))"
