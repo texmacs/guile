@@ -1552,55 +1552,9 @@ y
 @end deffn
 
 @deffn primitive substring-move! str1 start1 end1 str2 start2
-@deffnx primitive substring-move-left! str1 start1 end1 str2 start2
-@deffnx primitive substring-move-right! str1 start1 end1 str2 start2
 Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
 into @var{str2} beginning at position @var{start2}.
-@code{substring-move-right!} begins copying from the rightmost character
-and moves left, and @code{substring-move-left!} copies from the leftmost
-character moving right.
-
-It is useful to have two functions that copy in different directions so
-that substrings can be copied back and forth within a single string.  If
-you wish to copy text from the left-hand side of a string to the
-right-hand side of the same string, and the source and destination
-overlap, you must be careful to copy the rightmost characters of the
-text first, to avoid clobbering your data.  Hence, when @var{str1} and
-@var{str2} are the same string, you should use
-@code{substring-move-right!} when moving text from left to right, and
-@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}
-are different strings, it does not matter which function you use.
-
-@example
-(define x (make-string 10 #\a))
-(define y "bcd")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaa"
-
-x
-@result{} "aaaaaaaaaa"
-
-(define y "bcdefg")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaaefg"
-
-(define y "abcdefg")
-(substring-move-left! y 2 5 y 3)
-y
-@result{} "abccccg"
-
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 0)
-y
-@result{} "ededefg"
-
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 3)
-y
-@result{} "abccdeg"
-@end example
+@var{str1} and @var{str2} can be the same string.
 @end deffn
 
 
@@ -3389,13 +3343,25 @@ returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 @deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!} (@pxref{String
-Modification}).
+Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
+to @var{vec2} starting at position @var{start2}.  @var{start1} and
+@var{start2} are inclusive indices; @var{end1} is exclusive.
+
+@code{vector-move-left!} copies elements in leftmost order.
+Therefore, in the case where @var{vec1} and @var{vec2} refer to the
+same vector, @code{vector-move-left!} is usually appropriate when
+@var{start1} is greater than @var{start2}.
 @end deffn
 
 @deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!} (@pxref{String
-Modification}).
+Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
+to @var{vec2} starting at position @var{start2}.  @var{start1} and
+@var{start2} are inclusive indices; @var{end1} is exclusive.
+
+@code{vector-move-right!} copies elements in rightmost order.
+Therefore, in the case where @var{vec1} and @var{vec2} refer to the
+same vector, @code{vector-move-right!} is usually appropriate when
+@var{start1} is less than @var{start2}.
 @end deffn
 
 @subsection Vector Selection

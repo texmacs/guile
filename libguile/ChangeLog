@@ -1,3 +1,10 @@
+2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* vectors.c (scm_vector_move_left_x, scm_vector_move_right_x):
+	Rewrite docstrings without reference to substring-move-left/right,
+	because the latter are now deprecated and don't in fact differ in
+	their left/right behaviour.
+
 2001-11-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_c_export): Call va_end after collecting the
