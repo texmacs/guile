@@ -70,7 +70,7 @@ See also file HACKING.
 
 + Fix scripts prelude per bug report by Daniel Skarda.
 
-- [ttn] Fix `(ice-9 getopt-long)' irregularities reported by Daniel Skarda.
++ Fix `(ice-9 getopt-long)' irregularities reported by Daniel Skarda.
 
 - Decide if setitimer and getitimer should accept bignum arguments
   instead, and fix them if so (make sure to migrate choice to unstable
