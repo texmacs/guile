@@ -184,7 +184,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 {
   SCM flag;
   regex_t *rx;
-  int status, cflags;
+  int status, cflags, argnum;
 
   SCM_VALIDATE_STRING (1, pat);
   SCM_VALIDATE_REST_ARGUMENT (flags);
@@ -194,13 +194,17 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
      turn off REG_EXTENDED flag (on by default). */
   cflags = REG_EXTENDED;
   flag = flags;
+  argnum = 2;
   while (!SCM_NULLP (flag))
     {
-      if (SCM_INUM (SCM_CAR (flag)) == REG_BASIC)
+      int f;
+      SCM_VALIDATE_INT_COPY (argnum, SCM_CAR (flag), f);
+      if (f == REG_BASIC)
 	cflags &= ~REG_EXTENDED;
       else
-	cflags |= SCM_INUM (SCM_CAR (flag));
+	cflags |= f;
       flag = SCM_CDR (flag);
+      argnum++;
     }
 
   rx = SCM_MUST_MALLOC_TYPE (regex_t);
