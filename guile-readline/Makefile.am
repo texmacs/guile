@@ -49,7 +49,7 @@ SUFFIXES = .x
 	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
-EXTRA_DIST = readline.scm
+EXTRA_DIST = LIBGUILEREADLINE-VERSION readline.scm
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
