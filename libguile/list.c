@@ -47,13 +47,7 @@
 #include "libguile/validate.h"
 #include "libguile/list.h"
 
-#ifdef __STDC__
 #include <stdarg.h>
-#define var_start(x, y) va_start(x, y)
-#else
-#include <varargs.h>
-#define var_start(x, y) va_start(x)
-#endif
 
 
 /* creating lists */
@@ -111,7 +105,7 @@ scm_list_n (SCM elt, ...)
   SCM answer = SCM_EOL;
   SCM *pos = &answer;
 
-  var_start (foo, elt);
+  va_start (foo, elt);
   while (! SCM_UNBNDP (elt))
     {
       *pos = scm_cons (elt, SCM_EOL);
