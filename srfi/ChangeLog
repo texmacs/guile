@@ -1,3 +1,8 @@
+2004-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_any, scm_string_every): Add support for char
+	and charset as predicates, per SRFI-13 spec.
+
 2004-08-07  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.c: major overhaul -- essentially all functions affected.
