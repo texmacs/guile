@@ -1,3 +1,22 @@
+2001-07-19  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scheme-data.texi:
+	Replace some instances of `@emph' with more proper `@dfn'.
+
+	(Vectors): Mention that `position' and `index' are 0-origin numbers.
+	Cross-ref to `Arrays'.
+
+	(Records): Remove anachronistic `@refill' directives.
+	Replace "Returns" with "Return" in procedure documentation.
+
+	(Conventional Arrays): For `make-array' add `bounds' documentation.
+
+	(Arrays, Adding or Setting Alist Entries): Use first-person
+	for procedure doc verbs (stylistic consistency).
+
+	* scm.texi: Use "@@" in elisp code.
+	Use American English spelling for "initialize[d]".
+
 2001-07-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* scheme-data.texi:
