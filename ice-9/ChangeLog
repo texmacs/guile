@@ -1,3 +1,8 @@
+2002-05-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (install-data-hook): Fix scheduling bug:
+	Rename from `install-data-local'.
+
 2002-03-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* syncase.scm (gensym): fix failure on non-threaded systems.
