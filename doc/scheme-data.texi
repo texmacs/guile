@@ -3252,14 +3252,12 @@ not for high-level Scheme programs.
 @node List Mapping
 @subsection List Mapping
 
-@c FIXME::martin: Review me!
-
 List processing is very convenient in Scheme because the process of
 iterating over the elements of a list can be highly abstracted.  The
 procedures in this section are the most basic iterating procedures for
 lists.  They take a procedure and one or more lists as arguments, and
-apply the procedure to each element of the list.  They differ in what
-the result of the invocation is.
+apply the procedure to each element of the list.  They differ in their
+return value.
 
 @rnindex map
 @c begin (texi-doc-string "guile" "map")
@@ -3287,16 +3285,12 @@ return value is not specified.
 @section Vectors
 @tpindex Vectors
 
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Should the subsections of this section be nodes
-@c of their own, or are the resulting nodes too short, then?
-
 Vectors are sequences of Scheme objects.  Unlike lists, the length of a
 vector, once the vector is created, cannot be changed.  The advantage of
 vectors over lists is that the time required to access one element of a
-vector is constant, whereas lists have an access time linear to the
-index of the accessed element in the list.
+vector given its @emph{position} (synonymous with @emph{index}) is
+constant, whereas lists have an access time linear to the position of
+the accessed element in the list.
 
 Note that the vectors documented in this section can contain any kind of
 Scheme object, it is even possible to have different types of objects in
@@ -3331,8 +3325,8 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 @rnindex make-vector
 @deffn primitive make-vector k [fill]
 Return a newly allocated vector of @var{k} elements.  If a
-second argument is given, then each element is initialized to
-@var{fill}.  Otherwise the initial contents of each element is
+second argument is given, then each position is initialized to
+@var{fill}.  Otherwise the initial contents of each position are
 unspecified.
 @end deffn
 
@@ -3340,8 +3334,8 @@ unspecified.
 @rnindex list->vector
 @deffn primitive vector . l
 @deffnx primitive list->vector l
-Return a newly allocated vector whose elements contain the
-given arguments.  Analogous to @code{list}.
+Return a newly allocated vector composed of the given arguments.
+Analogous to @code{list}.
 
 @lisp
 (vector 'a 'b 'c) @result{} #(a b c)
@@ -3350,8 +3344,7 @@ given arguments.  Analogous to @code{list}.
 
 @rnindex vector->list
 @deffn primitive vector->list v
-Return a newly allocated list of the objects contained in the
-elements of @var{vector}.
+Return a newly allocated list composed of the elements of @var{v}.
 
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
@@ -3365,35 +3358,37 @@ A vector created by any of the vector constructor procedures
 (@pxref{Vectors}) documented above can be modified using the
 following procedures.
 
-According to R5RS, using any of these procedures on literally entered
-vectors is an error, because these vectors are considered to be
-constant, although Guile currently does not detect this error.
+@emph{NOTE:} According to R5RS, using any of these procedures on
+literally entered vectors is an error, because these vectors are
+considered to be constant, although Guile currently does not detect this
+error.
 
 @rnindex vector-set!
 @deffn primitive vector-set! vector k obj
+Store @var{obj} in position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
-@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
 The value returned by @samp{vector-set!} is unspecified.
 @lisp
 (let ((vec (vector 0 '(2 2 2 2) "Anna")))
   (vector-set! vec 1 '("Sue" "Sue"))
   vec) @result{}  #(0 ("Sue" "Sue") "Anna")
-(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
 @end lisp
 @end deffn
 
 @rnindex vector-fill!
 @deffn primitive vector-fill! v fill
-Store @var{fill} in every element of @var{vector}.  The value
+Store @var{fill} in every position of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 @deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!}.
+Vector version of @code{substring-move-left!} (@pxref{String
+Modification}).
 @end deffn
 
 @deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!}.
+Vector version of @code{substring-move-right!} (@pxref{String
+Modification}).
 @end deffn
 
 @subsection Vector Selection
@@ -3403,14 +3398,13 @@ size or what elements are contained in the vector.
 
 @rnindex vector-length
 @deffn primitive vector-length vector
-Returns the number of elements in @var{vector} as an exact integer.
+Return the number of elements in @var{vector} as an exact integer.
 @end deffn
 
 @rnindex vector-ref
 @deffn primitive vector-ref vector k
+Return the contents of position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
-@samp{Vector-ref} returns the contents of element @var{k} of
-@var{vector}.
 @lisp
 (vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
 (vector-ref '#(1 1 2 3 5 8 13 21)
