@@ -1,3 +1,9 @@
+2002-08-05  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (modinclude_HEADERS): add scmconfig.h.
+	(scmconfig.h): new target -- generate file from ../config.h.
+	(MOSTLYCLEANFILES): add scmconfig.h.
+
 2002-07-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc_os_dep.c: HURD fixes.

@@ -1,3 +1,16 @@
+2002-08-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add config.h.
+
+	* autogen.sh (mscripts): (one more time) change from ../scripts to
+	../guile-scripts to match the module name in the cvs repository.
+
+2002-08-05  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: change our config header from libguile/scmconfig.h
+	to be the traditional ./config.h.  libguile/scmconfig.h is now
+	built from that during the build process.
+
 2002-07-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* autogen.sh (mscripts): change back to ../scripts for now.
