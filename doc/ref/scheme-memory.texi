@@ -54,8 +54,8 @@ as soon as the value is no longer in use. Entries in a doubly weak hash
 disappear when either the key or the value are not used anywhere else
 anymore.
 
-Property lists offer the same kind of functionality as weak key hashes
-in many situations. (@pxref{Property Lists})
+Object properties offer the same kind of functionality as weak key
+hashes in many situations. (@pxref{Object Properties})
 
 Here's an example (a little bit strained perhaps, but one of the
 examples is actually used in Guile):
@@ -91,6 +91,8 @@ they constitute a doubly-weak table has to be used.
 @deffnx {Scheme Procedure} make-weak-value-hash-table size
 @deffnx {Scheme Procedure} make-doubly-weak-hash-table size
 @deffnx {C Function} scm_make_weak_key_hash_table (size)
+@deffnx {C Function} scm_make_weak_value_hash_table (size)
+@deffnx {C Function} scm_make_doubly_weak_hash_table (size)
 Return a weak hash table with @var{size} buckets. As with any
 hash table, choosing a good size for the table requires some
 caution.

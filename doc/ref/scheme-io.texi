@@ -189,7 +189,8 @@ escaped), and characters are rendered as if with @code{write-char}.
 @rnindex newline
 @deffn {Scheme Procedure} newline [port]
 @deffnx {C Function} scm_newline (port)
-Send a newline to @var{port} (default @var{current-output-port} if omitted).
+Send a newline to @var{port}.
+If @var{port} is omitted, send to the current output port.
 @end deffn
 
 @deffn {Scheme Procedure} port-with-print-state port pstate

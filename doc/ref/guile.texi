@@ -7,18 +7,30 @@
 @set MANUAL_EDITION 1.0
 @c %**end of header
 
-@c Notes: (distilled from Jim's and Tim's notes, and kept up to date)
+@c Notes
 @c
-@c Remember to use "primitive" whereever appropriate.
-@c FIXME: gotta change existing "subr" uses to "Primitive".
-@c [JimB:] In my text for the Guile snarfer, I've used the term "subr"
-@c to denote a C function made available to the Scheme world as a
-@c function.  This terminology is weird, but consistent with the
-@c function names and also with Emacs Lisp, which I assume takes
-@c Maclisp's lead.
+@c We no longer use the category "primitive" to distinguish C-defined
+@c Scheme procedures from those defined in Scheme.  Instead, the
+@c reference manual now includes a C declaration as well as a Scheme
+@c declaration for each procedure that is available in both Scheme and
+@c C.
 @c
-@c When adding a new function to the Guile manual, please document
-@c it with @deffn as one of `primitive', `procedure', or `syntax'.
+@c When adding a new reference entry to the Guile manual, please
+@c document it with @deffn using one of the following categories:
+@c
+@c   {Scheme Procedure}
+@c   {Scheme Syntax}
+@c   {C Function}
+@c   {C Macro}
+@c
+@c If the entry is for a new primitive, it should have both a @deffn
+@c {Scheme Procedure} line and a @deffnx {C Function} line; see the
+@c manual source for plenty of existing examples of this.
+@c
+@c For {C Function} entries where the return type and all parameter
+@c types are SCM, we omit the SCMs.  This is easier to read and also
+@c gets round the problem that Texinfo doesn't allow a @deftypefnx
+@c inside a @deffn.
 @c
 @c For a list of Guile primitives that are not yet incorporated into the
 @c reference manual, see the file `new-docstrings.texi', which holds all
@@ -82,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.2.2.9 2002-03-12 20:51:25 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2.2.10 2002-03-15 14:12:58 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -262,7 +274,6 @@ Indices
 
 @include preface.texi
 
-@c preliminary
 @iftex
 @page
 @unnumbered{Part I: Introduction to Guile}
@@ -298,7 +309,6 @@ Indices
 @include scheme-reading.texi
 @include scheme-indices.texi
 
-@c Unix system interface
 @iftex
 @page
 @unnumbered{Part III: Guile Modules}

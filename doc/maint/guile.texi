@@ -391,7 +391,7 @@ Return the lowercase character version of @var{chr}.
 @deffnx {C Function} scm_debug_options (setting)
 Option interface for the debug options. Instead of using
 this procedure directly, use the procedures @code{debug-enable},
-@code{debug-disable}, @code{debug-set!} and @var{debug-options}.
+@code{debug-disable}, @code{debug-set!} and @code{debug-options}.
 @end deffn
 
 with-traps
@@ -2859,28 +2859,24 @@ specified by @var{layout}.
 
 object-properties
 @deffn {Scheme Procedure} object-properties obj
-@deffnx {Scheme Procedure} procedure-properties obj
 @deffnx {C Function} scm_object_properties (obj)
 Return @var{obj}'s property list.
 @end deffn
 
 set-object-properties!
 @deffn {Scheme Procedure} set-object-properties! obj alist
-@deffnx {Scheme Procedure} set-procedure-properties! obj alist
 @deffnx {C Function} scm_set_object_properties_x (obj, alist)
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
 object-property
 @deffn {Scheme Procedure} object-property obj key
-@deffnx {Scheme Procedure} procedure-property obj key
 @deffnx {C Function} scm_object_property (obj, key)
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
 set-object-property!
 @deffn {Scheme Procedure} set-object-property! obj key value
-@deffnx {Scheme Procedure} set-procedure-property! obj key value
 @deffnx {C Function} scm_set_object_property_x (obj, key, value)
 In @var{obj}'s property list, set the property named @var{key}
 to @var{value}.
@@ -3310,6 +3306,7 @@ containing the formatted text. Does not add a trailing newline.
 @deffn {Scheme Procedure} newline [port]
 @deffnx {C Function} scm_newline (port)
 Send a newline to @var{port}.
+If @var{port} is omitted, send to the current output port.
 @end deffn
 
 write-char
@@ -3902,9 +3899,10 @@ applied to all elements i - 1 and i
 merge
 @deffn {Scheme Procedure} merge alist blist less
 @deffnx {C Function} scm_merge (alist, blist, less)
-Take two lists @var{alist} and @var{blist} such that
-@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
-returns a new list in which the elements of @var{alist} and
+Merge two already sorted lists into one.
+Given two lists @var{alist} and @var{blist}, such that
+@code{(sorted? alist less?)} and @code{(sorted? blist less?)},
+return a new list in which the elements of @var{alist} and
 @var{blist} have been stably interleaved so that
 @code{(sorted? (merge alist blist less?) less?)}.
 Note:  this does _not_ accept vectors.
@@ -4014,8 +4012,30 @@ Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
 either a debug object or a continuation).
-@var{args} must be a list of integers and specifies how the
-resulting stack will be narrowed.
+
+@var{args} should be a list containing any combination of
+integer, procedure and @code{#t} values.
+
+These values specify various ways of cutting away uninteresting
+stack frames from the top and bottom of the stack that
+@code{make-stack} returns.  They come in pairs like this:
+@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}
+@var{outer_cut_2} @dots{})}.
+
+Each @var{inner_cut_N} can be @code{#t}, an integer, or a
+procedure.  @code{#t} means to cut away all frames up to but
+excluding the first user module frame.  An integer means to cut
+away exactly that number of frames.  A procedure means to cut
+away all frames up to but excluding the application frame whose
+procedure matches the specified one.
+
+Each @var{outer_cut_N} can be an integer or a procedure.  An
+integer means to cut away that number of frames.  A procedure
+means to cut away frames down to but excluding the application
+frame whose procedure matches the specified one.
+
+If the @var{outer_cut_N} of the last pair is missing, it is
+taken as 0.
 @end deffn
 
 stack-id
@@ -4671,14 +4691,14 @@ indicate that the field is a tail-array.
 struct?
 @deffn {Scheme Procedure} struct? x
 @deffnx {C Function} scm_struct_p (x)
-Return @code{#t} iff @var{obj} is a structure object, else
+Return @code{#t} iff @var{x} is a structure object, else
 @code{#f}.
 @end deffn
 
 struct-vtable?
 @deffn {Scheme Procedure} struct-vtable? x
 @deffnx {C Function} scm_struct_vtable_p (x)
-Return @code{#t} iff obj is a vtable structure.
+Return @code{#t} iff @var{x} is a vtable structure.
 @end deffn
 
 make-struct
@@ -5655,7 +5675,6 @@ Set the element at the @code{(index1, index2)} element in @var{array} to
 
 array-contents
 @deffn {Scheme Procedure} array-contents ra [strict]
-@deffnx {Scheme Procedure} array-contents array strict
 @deffnx {C Function} scm_array_contents (ra, strict)
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
 without changing their order (last subscript changing fastest), then
@@ -6443,7 +6462,7 @@ Executes the file named by @var{path} as a new process image.
 The remaining arguments are supplied to the process; from a C program
 they are accessible as the @code{argv} argument to @code{main}.
 Conventionally the first @var{arg} is the same as @var{path}.
-All arguments must be strings.  
+All arguments must be strings.
 
 If @var{arg} is missing, @var{path} is executed with a null
 argument list, which may have system-dependent side-effects.

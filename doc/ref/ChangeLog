@@ -1,3 +1,21 @@
+2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Object Properties): Revamp documentation on
+	object properties.
+
+	* scheme-memory.texi (Weak References): Update reference to Object
+	Properties node.
+
+	* scheme-data.texi: Move `Hooks' section to scheme-utility.texi.
+
+	* guile.texi: Update notes about @deffn categories.
+
+	* scripts.texi (Invoking Guile): Document `--debug' switch.
+
+	* scheme-data.texi, scheme-debug.texi, scheme-procedures.texi,
+	scheme-utility.texi, scheme-io.texi: Automatic updates from
+	snarfed libguile docstrings.
+
 2002-03-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* appendices.texi, deprecated.texi, intro.texi, misc-modules.texi,
