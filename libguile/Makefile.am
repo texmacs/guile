@@ -149,7 +149,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads	\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk		\
-    c-tokenize.lex
+    c-tokenize.lex version.h.in
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
@@ -227,6 +227,9 @@ $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filte
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
+
+# if we're dependent on GNU make we can just enable this all the time.
+#numbers.lo: CFLAGS := $(filter-out -Werror,${CFLAGS})
 
 include $(top_srcdir)/am/pre-inst-guile
 
