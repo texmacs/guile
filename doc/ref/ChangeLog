@@ -1,3 +1,8 @@
+2002-02-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* autoconf.texi (Autofrisk, Using Autofrisk): New sections.
+	(Autoconf Support): Add new sections to menu.
+
 2002-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (autoconf-macros.texi): Also set GUILE_LOAD_PATH
