@@ -1,3 +1,9 @@
+2001-10-31  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* srfi-14.c (scm_string_to_char_set, scm_string_to_char_set_x):
+	Use `size_t' instead of deprecated `scm_sizet'.
+	Thanks to Ian Grant.
+
 2001-10-18  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* srfi-2.scm, srfi-4.scm, srfi-8.scm, srfi-9.scm, srfi-10.scm,
