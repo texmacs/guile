@@ -1,3 +1,10 @@
+2002-05-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* autogen.sh: Add call to $mscripts/render-bugs
+	to create BUGS file.
+
+	* BUGS: bye bye
+
 2002-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (EXTRA_DIST): Do not distribute qthtreads.m4.
@@ -6,7 +13,7 @@
 
 	* guile-aclocal.sh: Replaced with a simple invocation of "aclocal
 	-I guile-config".  This works as of automake 1.5.
-	* qthreads.m4: Moved to guile-config/. 
+	* qthreads.m4: Moved to guile-config/.
 
 2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
