@@ -1,5 +1,5 @@
 ;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -1274,9 +1274,146 @@
 ;;; truncate
 ;;;
 
+(with-test-prefix "truncate"
+  (with-test-prefix "inum"
+    (pass-if "0"
+      (and (= 0    (truncate 0))
+	   (exact? (truncate 0))))
+
+    (pass-if "1"
+      (and (= 1    (truncate 1))
+	   (exact? (truncate 1))))
+
+    (pass-if "-1"
+      (and (= -1   (truncate -1))
+	   (exact? (truncate -1)))))
+
+  (with-test-prefix "bignum"
+    (let ((x (1+ most-positive-fixnum)))
+      (pass-if "(1+ most-positive-fixnum)"
+	(and (= x    (truncate x))
+	     (exact? (truncate x)))))
+
+    (let ((x (1- most-negative-fixnum)))
+      (pass-if "(1- most-negative-fixnum)"
+	(and (= x    (truncate x))
+	     (exact? (truncate x))))))
+
+  (with-test-prefix "real"
+    (pass-if "0.0"
+      (and (= 0.0    (truncate 0.0))
+	   (inexact? (truncate 0.0))))
+
+    (pass-if "1.0"
+      (and (= 1.0    (truncate 1.0))
+	   (inexact? (truncate 1.0))))
+
+    (pass-if "-1.0"
+      (and (= -1.0   (truncate -1.0))
+	   (inexact? (truncate -1.0))))
+
+    (pass-if "3.9"
+      (and (= 3.0    (truncate 3.9))
+	   (inexact? (truncate 3.9))))
+
+    (pass-if "-3.9"
+      (and (= -3.0   (truncate -3.9))
+	   (inexact? (truncate -3.9))))))
+
 ;;;
 ;;; round
 ;;;
+
+(with-test-prefix "round"
+  (with-test-prefix "inum"
+    (pass-if "0"
+      (and (= 0    (round 0))
+	   (exact? (round 0))))
+
+    (pass-if "1"
+      (and (= 1    (round 1))
+	   (exact? (round 1))))
+
+    (pass-if "-1"
+      (and (= -1   (round -1))
+	   (exact? (round -1)))))
+
+  (with-test-prefix "bignum"
+    (let ((x (1+ most-positive-fixnum)))
+      (pass-if "(1+ most-positive-fixnum)"
+	(and (= x    (round x))
+	     (exact? (round x)))))
+
+    (let ((x (1- most-negative-fixnum)))
+      (pass-if "(1- most-negative-fixnum)"
+	(and (= x    (round x))
+	     (exact? (round x))))))
+
+  (with-test-prefix "real"
+    (pass-if "0.0"
+      (and (= 0.0    (round 0.0))
+	   (inexact? (round 0.0))))
+
+    (pass-if "1.0"
+      (and (= 1.0    (round 1.0))
+	   (inexact? (round 1.0))))
+
+    (pass-if "-1.0"
+      (and (= -1.0   (round -1.0))
+	   (inexact? (round -1.0))))
+
+    (pass-if "-3.1"
+      (and (= -3.0   (round -3.1))
+	   (inexact? (round -3.1))))
+
+    (pass-if "3.1"
+      (and (= 3.0    (round 3.1))
+	   (inexact? (round 3.1))))
+
+    (pass-if "3.9"
+      (and (= 4.0    (round 3.9))
+	   (inexact? (round 3.9))))
+
+    (pass-if "-3.9"
+      (and (= -4.0   (round -3.9))
+	   (inexact? (round -3.9))))
+
+    (pass-if "1.5"
+      (and (= 2.0    (round 1.5))
+	   (inexact? (round 1.5))))
+
+    (pass-if "2.5"
+      (and (= 2.0    (round 2.5))
+	   (inexact? (round 2.5))))
+
+    (pass-if "3.5"
+      (and (= 4.0    (round 3.5))
+	   (inexact? (round 3.5))))
+
+    (pass-if "-1.5"
+      (and (= -2.0   (round -1.5))
+	   (inexact? (round -1.5))))
+
+    (pass-if "-2.5"
+      (and (= -2.0   (round -2.5))
+	   (inexact? (round -2.5))))
+
+    (pass-if "-3.5"
+      (and (= -4.0   (round -3.5))
+	   (inexact? (round -3.5))))
+
+    ;; prior to guile 1.6.5, on an IEEE system an inexact 2^53-1 (ie. a
+    ;; float with mantissa all ones) came out as 2^53 from `round' (except
+    ;; on i386 and m68k systems using the coprocessor and optimizing, where
+    ;; extra precision hid the problem)
+    (pass-if "2^53-1"
+      (let ((x (exact->inexact (1- (ash 1 53)))))
+	(and (= x      (round x))
+	     (inexact? (round x)))))
+    (pass-if "-(2^53-1)"
+      (let ((x (exact->inexact (- (1- (ash 1 53))))))
+	(and (= x      (round x))
+	     (inexact? (round x)))))))
 
 ;;;
 ;;; exact->inexact
@@ -1286,9 +1423,101 @@
 ;;; floor
 ;;;
 
+(with-test-prefix "floor"
+  (with-test-prefix "inum"
+    (pass-if "0"
+      (and (= 0    (floor 0))
+	   (exact? (floor 0))))
+
+    (pass-if "1"
+      (and (= 1    (floor 1))
+	   (exact? (floor 1))))
+
+    (pass-if "-1"
+      (and (= -1   (floor -1))
+	   (exact? (floor -1)))))
+
+  (with-test-prefix "bignum"
+    (let ((x (1+ most-positive-fixnum)))
+      (pass-if "(1+ most-positive-fixnum)"
+	(and (= x    (floor x))
+	     (exact? (floor x)))))
+
+    (let ((x (1- most-negative-fixnum)))
+      (pass-if "(1- most-negative-fixnum)"
+	(and (= x    (floor x))
+	     (exact? (floor x))))))
+
+  (with-test-prefix "real"
+    (pass-if "0.0"
+      (and (= 0.0    (floor 0.0))
+	   (inexact? (floor 0.0))))
+
+    (pass-if "1.0"
+      (and (= 1.0    (floor 1.0))
+	   (inexact? (floor 1.0))))
+
+    (pass-if "-1.0"
+      (and (= -1.0   (floor -1.0))
+	   (inexact? (floor -1.0))))
+
+    (pass-if "3.9"
+      (and (= 3.0    (floor 3.9))
+	   (inexact? (floor 3.9))))
+
+    (pass-if "-3.9"
+      (and (= -4.0   (floor -3.9))
+	   (inexact? (floor -3.9))))))
+
 ;;;
 ;;; ceiling
 ;;;
+
+(with-test-prefix "ceiling"
+  (with-test-prefix "inum"
+    (pass-if "0"
+      (and (= 0    (ceiling 0))
+	   (exact? (ceiling 0))))
+
+    (pass-if "1"
+      (and (= 1    (ceiling 1))
+	   (exact? (ceiling 1))))
+
+    (pass-if "-1"
+      (and (= -1   (ceiling -1))
+	   (exact? (ceiling -1)))))
+
+  (with-test-prefix "bignum"
+    (let ((x (1+ most-positive-fixnum)))
+      (pass-if "(1+ most-positive-fixnum)"
+	(and (= x    (ceiling x))
+	     (exact? (ceiling x)))))
+
+    (let ((x (1- most-negative-fixnum)))
+      (pass-if "(1- most-negative-fixnum)"
+	(and (= x    (ceiling x))
+	     (exact? (ceiling x))))))
+
+  (with-test-prefix "real"
+    (pass-if "0.0"
+      (and (= 0.0    (ceiling 0.0))
+	   (inexact? (ceiling 0.0))))
+
+    (pass-if "1.0"
+      (and (= 1.0    (ceiling 1.0))
+	   (inexact? (ceiling 1.0))))
+
+    (pass-if "-1.0"
+      (and (= -1.0   (ceiling -1.0))
+	   (inexact? (ceiling -1.0))))
+
+    (pass-if "3.9"
+      (and (= 4.0    (ceiling 3.9))
+	   (inexact? (ceiling 3.9))))
+
+    (pass-if "-3.9"
+      (and (= -3.0   (ceiling -3.9))
+	   (inexact? (ceiling -3.9))))))
 
 ;;;
 ;;; sqrt
