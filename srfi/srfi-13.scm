@@ -1,6 +1,6 @@
 ;;; srfi-13.scm --- String Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -157,6 +157,32 @@
 (cond-expand-provide (current-module) '(srfi-13))
 
 (load-extension "libguile-srfi-srfi-13-14-v-1" "scm_init_srfi_13")
+
+;; this is scheme wrapping the C code so the final pred call is a tail call
+(define (string-any char_pred s . rest)
+  (let ((start (if (null? rest)
+		   0 (car rest)))
+	(end   (if (or (null? rest) (null? (cdr rest)))
+		   (string-length s) (cadr rest))))
+    (if (and (procedure? char_pred)
+	     (> end start)
+	     (<= end (string-length s))) ;; let c-code handle range error
+	(or (string-any-c-code char_pred s start (1- end))
+	    (char_pred (string-ref s (1- end))))
+	(string-any-c-code char_pred s start end))))
+
+;; this is scheme wrapping the C code so the final pred call is a tail call
+(define (string-every char_pred s . rest)
+  (let ((start (if (null? rest)
+		   0 (car rest)))
+	(end   (if (or (null? rest) (null? (cdr rest)))
+		   (string-length s) (cadr rest))))
+    (if (and (procedure? char_pred)
+	     (> end start)
+	     (<= end (string-length s))) ;; let c-code handle range error
+	(and (string-every-c-code char_pred s start (1- end))
+	     (char_pred (string-ref s (1- end))))
+	(string-every-c-code char_pred s start end))))
 
 (define string-hash
   (lambda (s . rest)
