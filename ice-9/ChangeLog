@@ -1,3 +1,8 @@
+2002-05-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (uninstall-local): New, to remove the file installed
+	by install-data-hook.
+
 2002-05-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (install-data-hook): Fix scheduling bug:
