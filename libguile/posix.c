@@ -159,6 +159,10 @@ extern char ** environ;
 # include <sys/file.h>
 #endif
 
+#if HAVE_CRT_EXTERNS_H
+#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
+#endif
+
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
    this seems safe enough... */
 #ifndef R_OK
@@ -195,6 +199,13 @@ extern char ** environ;
 /* Please don't add any more #includes or #defines here.  The hack
    above means that _POSIX_SOURCE may be #defined, which will
    encourage header files to do strange things.  */
+
+/* On Apple Darwin in a shared library there's no "environ" to access
+   directly, instead the address of that variable must be obtained with
+   _NSGetEnviron().  */
+#if HAVE__NSGETENVIRON && defined (PIC)
+#define environ (*_NSGetEnviron())
+#endif
 
 
 SCM_SYMBOL (sym_read_pipe, "read pipe");
