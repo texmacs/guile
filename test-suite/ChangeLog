@@ -1,3 +1,8 @@
+2004-04-28  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (truncate, round, floor, ceiling): Add tests, in
+	particular exercising exactness fixes and scm_round 2^53-1 fix.
+
 2004-04-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test: New file, exercising extended list-copy.

@@ -1,3 +1,11 @@
+2004-04-28  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_floor, scm_ceiling, scm_truncate_number,
+	scm_round_number): New functions, replacing scm_tc7_cxr definitions,
+	and ensuring exact arguments give exact results, as required by R5RS.
+	Derived in part from the same by Marius in the cvs head.  Reported by
+	Ray Lehtiniemi.
+
 2004-04-25  Kevin Ryde  <user42@zip.com.au>
 
 	* chars.c (scm_char_upcase, scm_char_downcase, scm_upcase,
