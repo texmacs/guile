@@ -1,17 +1,17 @@
 /* srfi-4.c --- Homogeneous numeric vector datatypes.
  *
  * 	Copyright (C) 2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -362,7 +362,7 @@ static SCM
 make_uvec (const char * func_name, int type, int len)
 {
   void * p;
-  
+
   p = scm_must_malloc (len * uvec_sizes[type], func_name);
   SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, p);
 }
@@ -373,7 +373,7 @@ make_uvec (const char * func_name, int type, int len)
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0, 
+SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type u8,\n"
 	    "@code{#f} otherwise.")
@@ -385,7 +385,7 @@ SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -418,7 +418,7 @@ SCM_DEFINE (scm_make_u8vector, "make-u8vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u8vector, "u8vector", 0, 0, 1, 
+SCM_DEFINE (scm_u8vector, "u8vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -430,7 +430,7 @@ SCM_DEFINE (scm_u8vector, "u8vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u8vector_length, "u8vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_u8vector_length, "u8vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -444,7 +444,7 @@ SCM_DEFINE (scm_u8vector_length, "u8vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u8vector_ref, "u8vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_u8vector_ref, "u8vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -465,7 +465,7 @@ SCM_DEFINE (scm_u8vector_ref, "u8vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u8vector_set_x, "u8vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_u8vector_set_x, "u8vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -495,7 +495,7 @@ SCM_DEFINE (scm_u8vector_set_x, "u8vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u8vector_to_list, "u8vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_u8vector_to_list, "u8vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u8vector_to_list
@@ -559,7 +559,7 @@ SCM_DEFINE (scm_list_to_u8vector, "list->u8vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0, 
+SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type s8,\n"
 	    "@code{#f} otherwise.")
@@ -571,7 +571,7 @@ SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -604,7 +604,7 @@ SCM_DEFINE (scm_make_s8vector, "make-s8vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s8vector, "s8vector", 0, 0, 1, 
+SCM_DEFINE (scm_s8vector, "s8vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -616,7 +616,7 @@ SCM_DEFINE (scm_s8vector, "s8vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s8vector_length, "s8vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_s8vector_length, "s8vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -630,7 +630,7 @@ SCM_DEFINE (scm_s8vector_length, "s8vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s8vector_ref, "s8vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_s8vector_ref, "s8vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -651,7 +651,7 @@ SCM_DEFINE (scm_s8vector_ref, "s8vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s8vector_set_x, "s8vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_s8vector_set_x, "s8vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -681,7 +681,7 @@ SCM_DEFINE (scm_s8vector_set_x, "s8vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s8vector_to_list, "s8vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_s8vector_to_list, "s8vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s8vector_to_list
@@ -747,7 +747,7 @@ SCM_DEFINE (scm_list_to_s8vector, "list->s8vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0, 
+SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type u16,\n"
 	    "@code{#f} otherwise.")
@@ -759,7 +759,7 @@ SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -787,7 +787,7 @@ SCM_DEFINE (scm_make_u16vector, "make-u16vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u16vector, "u16vector", 0, 0, 1, 
+SCM_DEFINE (scm_u16vector, "u16vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -799,7 +799,7 @@ SCM_DEFINE (scm_u16vector, "u16vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u16vector_length, "u16vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_u16vector_length, "u16vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -813,7 +813,7 @@ SCM_DEFINE (scm_u16vector_length, "u16vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u16vector_ref, "u16vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_u16vector_ref, "u16vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -834,7 +834,7 @@ SCM_DEFINE (scm_u16vector_ref, "u16vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u16vector_set_x, "u16vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_u16vector_set_x, "u16vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -860,7 +860,7 @@ SCM_DEFINE (scm_u16vector_set_x, "u16vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u16vector_to_list, "u16vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_u16vector_to_list, "u16vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u16vector_to_list
@@ -917,7 +917,7 @@ SCM_DEFINE (scm_list_to_u16vector, "list->u16vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0, 
+SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type s16,\n"
 	    "@code{#f} otherwise.")
@@ -929,7 +929,7 @@ SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -957,7 +957,7 @@ SCM_DEFINE (scm_make_s16vector, "make-s16vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s16vector, "s16vector", 0, 0, 1, 
+SCM_DEFINE (scm_s16vector, "s16vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -969,7 +969,7 @@ SCM_DEFINE (scm_s16vector, "s16vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s16vector_length, "s16vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_s16vector_length, "s16vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -983,7 +983,7 @@ SCM_DEFINE (scm_s16vector_length, "s16vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s16vector_ref, "s16vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_s16vector_ref, "s16vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1004,7 +1004,7 @@ SCM_DEFINE (scm_s16vector_ref, "s16vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s16vector_set_x, "s16vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_s16vector_set_x, "s16vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1030,7 +1030,7 @@ SCM_DEFINE (scm_s16vector_set_x, "s16vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s16vector_to_list, "s16vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_s16vector_to_list, "s16vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s16vector_to_list
@@ -1090,7 +1090,7 @@ SCM_DEFINE (scm_list_to_s16vector, "list->s16vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0, 
+SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type u32,\n"
 	    "@code{#f} otherwise.")
@@ -1102,7 +1102,7 @@ SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -1130,7 +1130,7 @@ SCM_DEFINE (scm_make_u32vector, "make-u32vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u32vector, "u32vector", 0, 0, 1, 
+SCM_DEFINE (scm_u32vector, "u32vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -1142,7 +1142,7 @@ SCM_DEFINE (scm_u32vector, "u32vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u32vector_length, "u32vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_u32vector_length, "u32vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -1156,7 +1156,7 @@ SCM_DEFINE (scm_u32vector_length, "u32vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u32vector_ref, "u32vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_u32vector_ref, "u32vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1177,7 +1177,7 @@ SCM_DEFINE (scm_u32vector_ref, "u32vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1203,7 +1203,7 @@ SCM_DEFINE (scm_u32vector_set_x, "u32vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u32vector_to_list, "u32vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_u32vector_to_list, "u32vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u32vector_to_list
@@ -1261,7 +1261,7 @@ SCM_DEFINE (scm_list_to_u32vector, "list->u32vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0, 
+SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type s32,\n"
 	    "@code{#f} otherwise.")
@@ -1273,7 +1273,7 @@ SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -1301,7 +1301,7 @@ SCM_DEFINE (scm_make_s32vector, "make-s32vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s32vector, "s32vector", 0, 0, 1, 
+SCM_DEFINE (scm_s32vector, "s32vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -1313,7 +1313,7 @@ SCM_DEFINE (scm_s32vector, "s32vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s32vector_length, "s32vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_s32vector_length, "s32vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -1327,7 +1327,7 @@ SCM_DEFINE (scm_s32vector_length, "s32vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s32vector_ref, "s32vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_s32vector_ref, "s32vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1348,7 +1348,7 @@ SCM_DEFINE (scm_s32vector_ref, "s32vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s32vector_set_x, "s32vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_s32vector_set_x, "s32vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1374,7 +1374,7 @@ SCM_DEFINE (scm_s32vector_set_x, "s32vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s32vector_to_list, "s32vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_s32vector_to_list, "s32vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s32vector_to_list
@@ -1434,7 +1434,7 @@ SCM_DEFINE (scm_list_to_s32vector, "list->s32vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0, 
+SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type u64,\n"
 	    "@code{#f} otherwise.")
@@ -1446,7 +1446,7 @@ SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -1474,7 +1474,7 @@ SCM_DEFINE (scm_make_u64vector, "make-u64vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u64vector, "u64vector", 0, 0, 1, 
+SCM_DEFINE (scm_u64vector, "u64vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -1486,7 +1486,7 @@ SCM_DEFINE (scm_u64vector, "u64vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u64vector_length, "u64vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_u64vector_length, "u64vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -1500,7 +1500,7 @@ SCM_DEFINE (scm_u64vector_length, "u64vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u64vector_ref, "u64vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_u64vector_ref, "u64vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1521,7 +1521,7 @@ SCM_DEFINE (scm_u64vector_ref, "u64vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u64vector_set_x, "u64vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_u64vector_set_x, "u64vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1547,7 +1547,7 @@ SCM_DEFINE (scm_u64vector_set_x, "u64vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_u64vector_to_list, "u64vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_u64vector_to_list, "u64vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_u64vector_to_list
@@ -1605,7 +1605,7 @@ SCM_DEFINE (scm_list_to_u64vector, "list->u64vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0, 
+SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type s64,\n"
 	    "@code{#f} otherwise.")
@@ -1617,7 +1617,7 @@ SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -1645,7 +1645,7 @@ SCM_DEFINE (scm_make_s64vector, "make-s64vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s64vector, "s64vector", 0, 0, 1, 
+SCM_DEFINE (scm_s64vector, "s64vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -1657,7 +1657,7 @@ SCM_DEFINE (scm_s64vector, "s64vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s64vector_length, "s64vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_s64vector_length, "s64vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -1671,7 +1671,7 @@ SCM_DEFINE (scm_s64vector_length, "s64vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s64vector_ref, "s64vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_s64vector_ref, "s64vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1692,7 +1692,7 @@ SCM_DEFINE (scm_s64vector_ref, "s64vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s64vector_set_x, "s64vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_s64vector_set_x, "s64vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1718,7 +1718,7 @@ SCM_DEFINE (scm_s64vector_set_x, "s64vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_s64vector_to_list, "s64vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_s64vector_to_list, "s64vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_s64vector_to_list
@@ -1778,7 +1778,7 @@ SCM_DEFINE (scm_list_to_s64vector, "list->s64vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0, 
+SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type f32,\n"
 	    "@code{#f} otherwise.")
@@ -1790,7 +1790,7 @@ SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -1827,7 +1827,7 @@ SCM_DEFINE (scm_make_f32vector, "make-f32vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f32vector, "f32vector", 0, 0, 1, 
+SCM_DEFINE (scm_f32vector, "f32vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -1839,7 +1839,7 @@ SCM_DEFINE (scm_f32vector, "f32vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f32vector_length, "f32vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_f32vector_length, "f32vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -1853,7 +1853,7 @@ SCM_DEFINE (scm_f32vector_length, "f32vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f32vector_ref, "f32vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_f32vector_ref, "f32vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -1874,7 +1874,7 @@ SCM_DEFINE (scm_f32vector_ref, "f32vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -1908,7 +1908,7 @@ SCM_DEFINE (scm_f32vector_set_x, "f32vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f32vector_to_list, "f32vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_f32vector_to_list, "f32vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_f32vector_to_list
@@ -1974,7 +1974,7 @@ SCM_DEFINE (scm_list_to_f32vector, "list->f32vector", 1, 0, 0,
 /* ================================================================ */
 
 
-SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0, 
+SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a vector of type f64,\n"
 	    "@code{#f} otherwise.")
@@ -1986,7 +1986,7 @@ SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0, 
+SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0,
             (SCM n, SCM fill),
 	    "Create a newly allocated homogeneous numeric vector which can\n"
 	    "hold @var{len} elements.  If @var{fill} is given, it is used to\n"
@@ -2014,7 +2014,7 @@ SCM_DEFINE (scm_make_f64vector, "make-f64vector", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f64vector, "f64vector", 0, 0, 1, 
+SCM_DEFINE (scm_f64vector, "f64vector", 0, 0, 1,
             (SCM l),
 	    "Create a newly allocated homogeneous numeric vector containing\n"
 	    "all argument values.")
@@ -2026,7 +2026,7 @@ SCM_DEFINE (scm_f64vector, "f64vector", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f64vector_length, "f64vector-length", 1, 0, 0, 
+SCM_DEFINE (scm_f64vector_length, "f64vector-length", 1, 0, 0,
             (SCM uvec),
 	    "Return the number of elements in the homogeneous numeric vector\n"
 	    "@var{uvec}.")
@@ -2040,7 +2040,7 @@ SCM_DEFINE (scm_f64vector_length, "f64vector-length", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0, 
+SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0,
             (SCM uvec, SCM index),
 	    "Return the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec}.")
@@ -2061,7 +2061,7 @@ SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f64vector_set_x, "f64vector-set!", 3, 0, 0, 
+SCM_DEFINE (scm_f64vector_set_x, "f64vector-set!", 3, 0, 0,
             (SCM uvec, SCM index, SCM value),
 	    "Set the element at @var{index} in the homogeneous numeric\n"
 	    "vector @var{uvec} to @var{value}.  The return value is not\n"
@@ -2087,7 +2087,7 @@ SCM_DEFINE (scm_f64vector_set_x, "f64vector-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_f64vector_to_list, "f64vector->list", 1, 0, 0, 
+SCM_DEFINE (scm_f64vector_to_list, "f64vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_f64vector_to_list
@@ -2147,9 +2147,7 @@ scm_init_srfi_4 (void)
   scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
   scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
-#ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-4.x"
-#endif
 }
 
 /* End of srfi-4.c.  */

@@ -1447,9 +1447,7 @@ scm_init_srfi_14 (void)
   scm_c_init_srfi_14 ();
 
   /* Install the charset primitives.  */
-#ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-14.x"
-#endif
 }
 
 /* End of srfi-14.c.  */
