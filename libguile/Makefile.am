@@ -206,9 +206,18 @@ guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in gui
 	cat $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) | ./guile-snarf-docs-texi > $@ \
 	|| { rm $@; false; }
 
-guile-procedures.txt: guile.texi
+if HAVE_MAKEINFO
+
+guile-procedures.txt: guile-procedures.texi
 	rm -f $@
 	makeinfo --force -o $@ $< || test -f $@
+
+else
+
+guile-procedures.txt: guile-procedures.texi
+	cp $< $@
+
+endif
 
 c-tokenize.c: c-tokenize.lex
 	flex -t $< > $@ || { rm $@; false; }
