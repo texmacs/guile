@@ -1,3 +1,8 @@
+2003-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* srcprop.c (scm_source_properties): Return plist from hash if it's a
+	list set by source-properties! rather than an SRCPROPS object,
+
 2003-07-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc.c (scm_must_realloc): bugfix: do mtrigger before
