@@ -54,7 +54,7 @@
 	* tags.h (SCM_UNBOUND): Make it the 34th isym/iflag, the 33th slot
 	os taken by the new SCM_IM_CALL_WITH_VALUES.
 	* print.c (scm_isymnames): Update table accordingly.
-	
+
 2001-07-22  Gary Houston  <ghouston@arglist.com>
 
 	* regex-posix.c (s_scm_regexp_exec): use scm_long2num not
@@ -799,7 +799,7 @@
 
 	* print.c (scm_simple_format): Support "~~" and "~%".  Signal
 	error for unsupported format controls and for superflous
-	arguments.  Thanks to David Skarda!
+	arguments.  Thanks to Daniel Skarda!
 
 	* print.h, print.c (scm_print_symbol_name): Factored out of
 	scm_iprin1.
