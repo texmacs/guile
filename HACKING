@@ -250,7 +250,7 @@ baz-bax.  The conventions are as follows:
   on the main trunk as well as on the branch.  So please use a tag of
   the form
 
-    branch-root-release-1-X
+    branch-root_release-1-X
 
   or more generally, for other non-release branches:
 
