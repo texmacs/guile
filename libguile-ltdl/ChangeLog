@@ -1,3 +1,22 @@
+2003-10-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* raw-ltdl.c: merged changes from libtool 1.5.  Looks like most of
+	our bugfixes have been incorporated upstream.
+
+	* upstream/ltdl.c: update to libtool 1.5 version.
+
+	* upstream/ltdl.c.diff: added.
+
+	* upstream/ltdl.h.diff: added.
+
+	* upstream/Makefile.am (ltdl.h.diff): cleanup temp files.
+	(ltdl.c.diff): cleanup temp files.
+
+	* upstream/.cvsignore: remove ltdl.c.diff and ltdl.h.diff -- these
+	should probably be in the source tree so we're more likely to
+	notice any unintentional changes, and so it's easier for people to
+	find the diffs.
+
 2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): Look for ltdl.h

@@ -1,0 +1,39 @@
+-*-text-*-
+
+This subtree contains a locally modified version of libltdl from
+libtool.
+
+guile-ltdl.h describes the interface that Guile actually uses.
+
+guile-ltdl.c is the main source file which directly #includes
+raw-ltdl.h and raw-ltdl.c
+
+The two raw-* files are Guile's patched versions of the
+upstream/ltdl.* files, the latter of which are the original libtool
+source from which the current raw-* files are derived.
+
+We use this unusual inclusion trick, along with a few modifications
+to the raw-* files and some #defines in guile-ltdl.c to allow us to
+use the upstream source with as few unnecessary changes as possible,
+while still making all of the upstream symbols non-extern.  This
+means that libguile-ltdl *only* exports the few symbols that Guile
+actually needs right now.
+
+In general libguile-ltdl exports the needed libltdl functions and
+data structures with scm_ prepended to them, so we have
+scm_lt_dlinit, etc.
+
+The upstream/* subdirectory contains the clean upstream source from
+which the raw-ltdl.h and raw-ltdl.c files were derived, and an
+automatically generated diff from the upstream.  Note that during
+the diff process we automatically remove a set of changes we've made
+to the upstream source (mostly related to making all of the upstream
+exports static) that are uninteresting outside of Guile.
+
+We hope that taking these steps will make it easier to fold our
+changes back into the main version of libltdl, and in fact, it looks
+like most, if not all of our original serious bug fixes have been
+incorporated upstream, leaving essentially only the scoping related
+changes mentioned above in our filtered upstream/*.diff files.
+
+The current upstream/* source is from libtool version 1.5.
