@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,6 +118,7 @@ scm_list_n (SCM elt, ...)
       pos = SCM_CDRLOC (*pos);
       elt = va_arg (foo, SCM);
     }
+  va_end (foo);
   return answer;
 }
 
