@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.12 2001-06-14 17:36:41 mvo Exp $
+@c $Id: intro.texi,v 1.12.2.1 2001-07-18 06:46:09 ttn Exp $
 
 @page
 @node What is Guile?
@@ -410,7 +410,7 @@ Why must the caller do all the real work from @var{main_func}?  Guile's
 garbage collector scans the stack to find all local variables that
 reference Scheme objects.  To do this, it needs to know the bounds of
 the stack that might contain such references.  Because there is no
-protable way in C to find the base of the stack, @code{scm_boot_guile}
+portable way in C to find the base of the stack, @code{scm_boot_guile}
 assumes that all references are above its own stack frame.  If you try
 to manipulate Scheme objects after this function returns, it's the luck
 of the draw whether Guile's storage manager will be able to find the
