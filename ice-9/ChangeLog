@@ -1,3 +1,8 @@
+2004-09-04  Kevin Ryde  <user42@zip.com.au>
+
+	* streams.scm (stream-for-each-many): Correction, should recurse into
+	itself, not stream-for-each-one.
+
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* format.scm (format:out): Ignore excess arguments, per common lisp.
