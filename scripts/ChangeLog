@@ -1,3 +1,10 @@
+2001-09-30  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* display-commentary (module-name->filename-frag,
+	display-module-commentary): New procs.
+	(display-commentary): Also handle refs that look like module
+	names.
+
 2001-08-07  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf-check-and-output-texi: print optional args in a prettier
