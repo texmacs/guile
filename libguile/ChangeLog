@@ -1,3 +1,8 @@
+2001-11-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (install-exec-hook): Prepend $(DESTDIR) to filename.
+	Thanks to Eric Gillespie, Jr!
+
 2001-11-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_c_export): Do nothing when the first argument is
