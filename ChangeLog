@@ -1,0 +1,75 @@
+2004-03-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: generate correct code when
+	doing lt/le/ge/etc. on ESI and EDI.  Use MOVZX/MOVSX
+	where possible.
+	* lightning/i386/asm.h: Add macros for MOVZX/MOVSX.
+	Move macros for x87 here, and add many of them.
+	* lightning/i386/fp.h: Use new macros for x87.
+
+2004-02-06  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: avoid generating MOV reg, reg.
+	* lightning/sparc/core.h: fix several bugs.
+	* lightning/ppc/core.h: fix several bugs.
+	* tests/rpn.c: rewritten.
+
+2004-01-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/rpnfp.c: new example, suggested by Basile
+	Starynkevitch.
+	* tests/rpnfp.ok: new example.
+
+2003-12-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/add.c: new test, suggested by Steve Dekorte.
+	* tests/add.c: new test.
+
+2003-11-14  Paolo Bonzini  <bonzini@gnu.org>
+	    John Redford <eirenik@hotmail.com>
+
+	* lightning/asm-common.h: change the 'pc' field of _jit to
+	be a union of various data types, because ISO C99 doesn't
+	permit using ++ on a = cast.  Change the incremented casts of
+	_jit.pc to be _jit.x.uc_pc, _jit.x.us_pc, etc.
+	* all files: change all non-cast instances of _jit.pc to be
+	_jit.x.pc.
+	* lightning/i386/core.h: remove casts from jit_might.
+
+2003-05-25  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: use JITSORRY in jit_replace
+	* lightning/asm-common.h: define JITSORRY
+
+2003-05-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: fix missing comma in several
+	load/store macros.
+	* lightning/core-common.h: fix long/unsigned long/pointer
+	jit_pushr/jit_popr.
+	* lightning/ppc/funcs.h: correctly align stack pointer
+
+No changelogs for the assemblers (lightning directory) until 1.0
+	
+2003-03-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/printf2.c: new test
+
+2001-05-03  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/printf.c: made the message platform independent
+
+2001-01-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.in: support cross-assembling
+	
+	* disass/bfd.h, disass/dis-asm.h, disass/dis-buf.c,
+	disass/i386-dis.c, disass/i386.h, disass/ppc-dis.c,
+	disass/ppc.h, disass/ppc-opc.c, disass/sparc-dis.c,
+	disass/sparc.h, disass/sparc-opc.c: new files, from GDB
+
+	* disass/disass.c, disass/Makefile.am: new files
+
+	* tests/fib.c, tests/fibit.c, tests/incr.c, tests/printf.c,
+	tests/rpn.c, tests/testfp.c, tests/Makefile.am: support
+	disassembling
