@@ -1,3 +1,11 @@
+2004-12-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (guile_LDADD): add libguile-ltdl.la to keep
+	./pre-inst-guile (actually ./.libs/lt-guile) from failing on some
+	architectures.  The unconfirmed suspicion is that this is some
+	problem with autotools (automake, autoconf, and/or libtool) since
+	libguile already includes a libguile-ltdl.la dependency.
+
 2004-12-16  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_map_x): Correction to sources list check, only
