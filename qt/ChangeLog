@@ -1,3 +1,8 @@
+2001-12-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (OMIT_DEPENDENCIES): Delete macro (obsolete
+	mechanism).
+
 2001-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (libqthreads_la_LDFLAGS): add -no-undefined from
@@ -24,7 +29,7 @@
 	and we don't want that.
 	(INCLUDES): Removed all -I options except for the root source
 	directory and the root build directory.
-	
+
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in, md/Makefile.in, time/Makefile.in: Deleted from CVS
