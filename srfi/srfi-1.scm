@@ -897,12 +897,12 @@
 
 (define (delete x list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp ((l list))
+    (let lp ((l list) (rl '()))
       (if (null? l)
-	'()
+	(reverse! rl)
 	(if (l= x (car l))
-	  (lp (cdr l))
-	  (cons (car l) (lp (cdr l))))))))
+	  (lp (cdr l) rl)
+	  (lp (cdr l) (cons (car l) rl)))))))
 
 (define (delete! x list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
