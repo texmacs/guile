@@ -35,6 +35,8 @@
 #ifndef __lightning_asm_fp_h
 #define __lightning_asm_fp_h
 
+#include <float.h>
+
 #define JIT_FPR_NUM	6
 #define JIT_FPR(i)	(30-(i)*2)
 #define JIT_FPTMP	18
@@ -88,37 +90,90 @@
 #define jit_stxr_f(d1, d2, rs)		STFrx((rs), (d1), (d2))
 #define jit_stxr_d(d1, d2, rs)		STDFrx((rs), (d1), (d2))
 
-#define jit_do_round(mode, rd, freg, macro)	(		\
-	_1(_jit.x.pc + 3),					\
-	SETHIir(_HI(mode << 29), JIT_BIG),			\
-	NOP(),							\
-	STFSRm(_Ro(7), 8),		/* store fsr */		\
-	LDmr(_Ro(7), 8, rd),					\
-	XORrrr(rd, JIT_BIG, JIT_BIG),	/* adjust mode */	\
-	STrm(JIT_BIG, _Ro(7), 8),				\
-	LDFSRm(_Ro(7), 8),		/* load fsr */		\
-	macro,			 	/* truncate */		\
-	STrm(rd, _Ro(7), 8),		/* load old fsr */	\
-	LDFSRm(_Ro(7), 8),					\
-	STFrm(JIT_FPTMP, _Ro(7), 8),	/* store truncated value */ \
-	LDmr(_Ro(7), 8, rd))		/* load it into rd */
+#define jit_truncr_f_i(rd, rs) (		\
+	_1(_jit.x.pc + 3),			\
+	FSTOIrr((rs), JIT_FPTMP),		\
+	NOP(),					\
+	STFrm(JIT_FPTMP, _Ro(7), 8),		\
+	LDmr(_Ro(7), 8, (rd)))
 
-#define jit_do_round_no_fsr(macro1, macro2) (		\
-	_1(_jit.x.pc + 3),				\
-	macro1,						\
-	NOP(),						\
-	macro2)
+#define jit_truncr_d_i(rd, rs) (		\
+	_1(_jit.x.pc + 3),			\
+	FDTOIrr((rs), JIT_FPTMP),		\
+	NOP(),					\
+	STFrm(JIT_FPTMP, _Ro(7), 8),		\
+	LDmr(_Ro(7), 8, (rd)))
 
-#define jit_extr_i_d(rd, rs)		jit_do_round_no_fsr (NOP(), 		       (STrm((rs), _Ro(7), 8), LDFmr(_Ro(7), 8, (rd)), FITODrr((rd), (rd))))
-#define jit_extr_i_f(rd, rs)		jit_do_round_no_fsr (NOP(), 		       (STrm((rs), _Ro(7), 8), LDFmr(_Ro(7), 8, (rd)), FITOSrr((rd), (rd))))
-#define jit_roundr_d_i(rd, rs)		jit_do_round_no_fsr (FDTOIrr((rs), JIT_FPTMP), (STFrm(JIT_FPTMP, _Ro(7), 8), LDmr(_Ro(7), 8, (rd))))
-#define jit_roundr_f_i(rd, rs)		jit_do_round_no_fsr (FSTOIrr((rs), JIT_FPTMP), (STFrm(JIT_FPTMP, _Ro(7), 8), LDmr(_Ro(7), 8, (rd))))
-#define jit_floorr_d_i(rd, rs)		jit_do_round(3, (rd), (rs), FDTOIrr((rs), JIT_FPTMP))
-#define jit_ceilr_d_i(rd, rs)		jit_do_round(2, (rd), (rs), FDTOIrr((rs), JIT_FPTMP))
-#define jit_truncr_d_i(rd, rs)		jit_do_round(1, (rd), (rs), FDTOIrr((rs), JIT_FPTMP))
-#define jit_floorr_f_i(rd, rs)		jit_do_round(3, (rd), (rs), FSTOIrr((rs), JIT_FPTMP))
-#define jit_ceilr_f_i(rd, rs)		jit_do_round(2, (rd), (rs), FSTOIrr((rs), JIT_FPTMP))
-#define jit_truncr_f_i(rd, rs)		jit_do_round(1, (rd), (rs), FSTOIrr((rs), JIT_FPTMP))
+#define jit_extr_i_d(rd, rs)		(_1 (_jit.x.pc + 3), NOP(), NOP(), STrm((rs), _Ro(7), 8), LDFmr(_Ro(7), 8, (rd)), FITODrr((rd), (rd)))
+#define jit_extr_i_f(rd, rs)		(_1 (_jit.x.pc + 3), NOP(), NOP(), STrm((rs), _Ro(7), 8), LDFmr(_Ro(7), 8, (rd)), FITOSrr((rd), (rd)))
+
+#define jit_do_round_f(rd, rs, fixup, mode) do {		\
+	jit_movi_f (JIT_FPTMP, fixup);				\
+        _1(_jit.x.pc + 4);                                      \
+        SETHIir(_HI(mode << 29), JIT_BIG);                      \
+        NOP();                                                  \
+        NOP();                                                  \
+        STFSRm(_Ro(7), 8);              /* store fsr */         \
+        LDmr(_Ro(7), 8, rd);                                    \
+        XORrrr(rd, JIT_BIG, JIT_BIG);   /* adjust mode */       \
+        STrm(JIT_BIG, _Ro(7), 12);                              \
+        LDFSRm(_Ro(7), 12);              /* load fsr */         \
+	FADDSrrr ((rs), JIT_FPTMP, JIT_FPTMP);			\
+        LDFSRm(_Ro(7), 8);                                      \
+        FSTOIrr(JIT_FPTMP, JIT_FPTMP);   		        \
+        STFrm(JIT_FPTMP, _Ro(7), 8);			        \
+        LDmr(_Ro(7), 8, (rd));					\
+	ADDCCrrr ((rd), (rd), 0);				\
+	SUBXrrr ((rd), 0, (rd));				\
+  } while (0);
+
+#define jit_do_round_d(rd, rs, fixup, mode) do {		\
+	jit_movi_d (JIT_FPTMP, fixup);				\
+        _1(_jit.x.pc + 4);                                      \
+        SETHIir(_HI(mode << 29), JIT_BIG);                      \
+        NOP();                                                  \
+        NOP();                                                  \
+        STFSRm(_Ro(7), 8);              /* store fsr */         \
+        LDmr(_Ro(7), 8, rd);                                    \
+        XORrrr(rd, JIT_BIG, JIT_BIG);   /* adjust mode */       \
+        STrm(JIT_BIG, _Ro(7), 12);                              \
+        LDFSRm(_Ro(7), 12);              /* load fsr */         \
+	FADDDrrr ((rs), JIT_FPTMP, JIT_FPTMP);			\
+        LDFSRm(_Ro(7), 8);                                      \
+        FDTOIrr(JIT_FPTMP, JIT_FPTMP);   		        \
+        STFrm(JIT_FPTMP, _Ro(7), 8);			        \
+        LDmr(_Ro(7), 8, (rd));					\
+	ADDCCrrr ((rd), (rd), 0);				\
+	SUBXrrr ((rd), 0, (rd));				\
+  } while (0);
+
+#define jit_roundr_f_i(rd, rs) do {			\
+	jit_movi_f (JIT_FPTMP, 0.5);			\
+	FADDSrrr ((rs), JIT_FPTMP, JIT_FPTMP);		\
+	jit_truncr_f_i ((rd), JIT_FPTMP);		\
+	ADDCCrrr ((rd), (rd), 0);			\
+	SUBXrrr ((rd), 0, (rd));			\
+  } while (0)
+
+#define jit_roundr_d_i(rd, rs) do {			\
+	jit_movi_d (JIT_FPTMP, 0.5);			\
+	FADDDrrr ((rs), JIT_FPTMP, JIT_FPTMP);		\
+	jit_truncr_d_i ((rd), JIT_FPTMP);		\
+	ADDCCrrr ((rd), (rd), 0);			\
+	SUBXrrr ((rd), 0, (rd));			\
+  } while (0)
+
+#define jit_ceilr_f_i(rd, rs) 				\
+	jit_do_round_f ((rd), (rs), 1.0f - FLT_EPSILON, 3)
+
+#define jit_ceilr_d_i(rd, rs) 				\
+	jit_do_round_d ((rd), (rs), 1.0 - DBL_EPSILON, 3)
+
+#define jit_floorr_f_i(rd, rs) 				\
+	jit_do_round_f ((rd), (rs), FLT_EPSILON, 2)
+
+#define jit_floorr_d_i(rd, rs) 				\
+	jit_do_round_d ((rd), (rs), DBL_EPSILON, 2)
 
 #define jit_ltr_d(d, s1, s2)            (FCMPDrr ((s1), (s2)), FBLi(_jit.x.pc + 3), MOVir (1, (d)), MOVir (0, (d)))
 #define jit_ltr_f(d, s1, s2)            (FCMPSrr ((s1), (s2)), FBLi(_jit.x.pc + 3), MOVir (1, (d)), MOVir (0, (d)))

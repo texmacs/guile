@@ -1,3 +1,10 @@
+2004-11-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Fix fp-to-integer conversions.
+	* lightning/ppc/testfp.c: Test fp-to-integer conversions
+	of integer numbers.
+	* lightning/ppc/testfp.ok: Adjust for the above.
+
 2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/ppc/testfp.c: Always flush code before

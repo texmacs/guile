@@ -108,6 +108,7 @@ main()
 #endif
 #ifndef LIGHTNING_CROSS
   int_test("trunc", code, -2.6, -2.4, 0, 2.4, 2.6);
+  int_test("trunc", code, -3, -2, 0, 2, 3);
 #endif
 
   jit_set_ip(codeBuffer);
@@ -122,6 +123,7 @@ main()
 #endif
 #ifndef LIGHTNING_CROSS
   int_test("ceil", code, -2.6, -2.4, 0, 2.4, 2.6);
+  int_test("ceil", code, -3, -2, 0, 2, 3);
 #endif
 
   jit_set_ip(codeBuffer);
@@ -136,6 +138,7 @@ main()
 #endif
 #ifndef LIGHTNING_CROSS
   int_test("floor", code, -2.6, -2.4, 0, 2.4, 2.6);
+  int_test("floor", code, -3, -2, 0, 2, 3);
 #endif
 
   jit_set_ip(codeBuffer);
@@ -150,6 +153,7 @@ main()
 #endif
 #ifndef LIGHTNING_CROSS
   int_test("round", code, -2.6, -2.4, 0, 2.4, 2.6);
+  int_test("round", code, -3, -2, 0, 2, 3);
 #endif
 
 #if 0 && defined JIT_TRANSCENDENTAL
