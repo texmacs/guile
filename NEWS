@@ -12,6 +12,22 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
+Changes since Guile 1.6.2:
+
+* Changes to the distribution
+
+** Some minor problems with the distribution tarfile have been fixed.
+
+A few files that are automatically generated at build time were
+removed from the distribution tarfile.  These changes should not
+affect most people, but are relevant to those trying to generate a
+post "make distclean" diff against the release tarfile.
+
+* Changes to the stand-alone interpreter
+* Changes to Scheme functions and syntax
+* Changes to the C interface 
+
+
 Changes since Guile 1.6.1:
 
 * Changes to the distribution

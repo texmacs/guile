@@ -4,7 +4,7 @@ your applications to give them their own scripting language.  Guile
 will eventually support other languages as well, giving users of
 Guile-based applications a choice of languages.
 
-This release is version 1.6.2.  Any bugs found will be addressed by
+This release is version 1.6.3.  Any bugs found will be addressed by
 further bugfix releases numbered 1.6.*.  The next stable Guile release
 with significant functional improvements will be version 1.8.0.
 

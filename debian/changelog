@@ -1,3 +1,9 @@
+guile-1.6 (1.6.3-1) unstable; urgency=low
+
+  * unreleased test version.
+
+ -- Rob Browning <rlb@defaultvalue.org>  Sat,  1 Feb 2003 10:16:48 -0600
+
 guile-1.6 (1.6.2-1) unstable; urgency=low
 
   * new upstream release (still not ready for Debian proper yet).
@@ -22,6 +28,3 @@ guile-1.6 (1.6.1-1) unstable; urgency=low
   * trial pkg.
 
  -- Rob Browning <rlb@defaultvalue.org>  Mon, 11 Nov 2002 10:52:58 -0600
-
-  
- 
