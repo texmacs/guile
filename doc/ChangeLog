@@ -1,3 +1,7 @@
+2002-03-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-api.alist: Update.
+
 2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* AUTHORS: Removed.  Authorship information for each manual is now
