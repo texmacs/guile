@@ -2,6 +2,8 @@
 
 	* intro.texi: Fix spelling error.
 
+	* intro.texi, scheme-modules.texi: Remove unnecessary "tho".
+
 2001-07-11  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-evaluation.texi: Added `load-from-path'.  Corrected `load':
