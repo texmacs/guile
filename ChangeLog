@@ -1,3 +1,7 @@
+2005-04-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h (JCm, JCSm, JNCm, JNCSm): New.
+
 2004-11-26  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/ppc/funcs.h (_jit_epilog): Remove unused variable.
