@@ -16,7 +16,7 @@ License as published by the Free Software Foundation; either version 1.1, or
 
 You should have received a copy of the GNU Free Documentation License along
 with GNU lightning; see the file @file{COPYING.DOC}.  If not, write to the Free
-Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
+Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
 
 There are no Secondary Sections, no Cover Texts and no Invariant Sections
 (as defined in the license); this text, along with its equivalent in the
@@ -43,8 +43,8 @@ License as published by the Free Software Foundation; either version 1.1, or
 
 You should have received a copy of the @sc{gnu} Free Documentation License
 along with @sc{gnu} @i{lightning}; see the file @file{COPYING.DOC}.  If not,
-write to the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA.  
+write to the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.  
 
 There are no Secondary Sections, no Cover Texts and no Invariant Sections
 (as defined in the license); this text, along with its equivalent in the
