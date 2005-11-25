@@ -1,3 +1,8 @@
+2005-11-25  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Fix header comment.
+	* lightning/ppc/fp.h: Fix header comment.
+
 2005-04-27  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm.h (JCm, JCSm, JNCm, JNCSm): New.
