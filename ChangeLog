@@ -1,3 +1,7 @@
+2006-01-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Fix comments in config.h.in.
+	
 2005-11-25  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/sparc/fp.h: Fix header comment.

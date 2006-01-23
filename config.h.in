@@ -12,10 +12,10 @@
 /* Define if lightning is targeting the x86 architecture */
 #undef LIGHTNING_I386
 
-/* Define if lightning is targeting the x86 architecture */
+/* Define if lightning is targeting the PowerPC architecture */
 #undef LIGHTNING_PPC
 
-/* Define if lightning is targeting the x86 architecture */
+/* Define if lightning is targeting the SPARC architecture */
 #undef LIGHTNING_SPARC
 
 /* Name of package */
