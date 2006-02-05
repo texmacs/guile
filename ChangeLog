@@ -1,3 +1,11 @@
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	Branched for 1.8 series.
+
+	* GUILE-VERSION: Bumped version numbers.
+	
+	* configure.in: Removed --enable-arrays option.
+
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* NEWS: Remove entry claiming that breakpoints have been added,
