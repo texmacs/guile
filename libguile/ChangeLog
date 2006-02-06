@@ -53,6 +53,10 @@
 	scm_i_with_continuation_barrier with scm_handle_by_message_noexit
 	as the pre-unwind handler.
 
+2006-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-mark.c (scm_mark_all): Fix c99-isms "loops" and "again" variables.
+
 2006-02-03  Kevin Ryde  <user42@zip.com.au>
 
 	* list.c, list.h (scm_list): Restore this function for use from C.
