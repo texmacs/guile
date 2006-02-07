@@ -1,3 +1,7 @@
+2006-02-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/poe.test (pure-funcq): New tests.
+
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/exceptions.test: 19 new test cases.
