@@ -2970,7 +2970,7 @@ scm_eval_body (SCM code, SCM env)
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
 	      scm_dynwind_begin (0);
-	      scm_dynwind_pthread_mutex_lock (&source_mutex);
+	      scm_i_dynwind_pthread_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
 		m_expand_body (code, env);
@@ -3369,7 +3369,7 @@ dispatch:
                   if (SCM_ISYMP (form))
                     {
 		      scm_dynwind_begin (0);
-		      scm_dynwind_pthread_mutex_lock (&source_mutex);
+		      scm_i_dynwind_pthread_mutex_lock (&source_mutex);
                       /* check for race condition */
                       if (SCM_ISYMP (SCM_CAR (x)))
                         m_expand_body (x, env);
@@ -4969,7 +4969,7 @@ tail:
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
 		  scm_dynwind_begin (0);
-		  scm_dynwind_pthread_mutex_lock (&source_mutex);
+		  scm_i_dynwind_pthread_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
 		    m_expand_body (proc, args);

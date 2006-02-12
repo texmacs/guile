@@ -1,3 +1,10 @@
+2006-02-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* eval.c (scm_eval_body): Use scm_i_dynwind_pthread_mutex_lock
+	oinstead of scm_dynwind_pthread_mutex_lock so that it works when
+	configured --without-threads.
+	(SCM_APPLY, CEVAL): Likewise.  Thanks to Han-Wen Nienhuys!
+
 2006-02-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.c (scm_dimensions_to_uniform_array): Use the prototype for
