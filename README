@@ -1,9 +1,9 @@
-This version 1.7.90 of Guile (a release candidate for 1.8.0), Project
-GNU's extension language library.  Guile is an interpreter for Scheme,
-packaged as a library that you can link into your applications to give
-them their own scripting language.  Guile will eventually support
-other languages as well, giving users of Guile-based applications a
-choice of languages.
+This is version 1.7.90 of Guile (a release candidate for 1.8.0),
+Project GNU's extension language library.  Guile is an interpreter for
+Scheme, packaged as a library that you can link into your applications
+to give them their own scripting language.  Guile will eventually
+support other languages as well, giving users of Guile-based
+applications a choice of languages.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -66,7 +66,7 @@ If you run the configure script with no arguments, it should examine
 your system and set things up appropriately.  However, there are a few
 switches specific to Guile you may find useful in some circumstances.
 
---with-threads  ---  Build with thread support
+--without-threads  ---  Build without thread support
 
   Build a Guile executable and library that supports multi-threading.
 
