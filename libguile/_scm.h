@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
