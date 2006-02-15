@@ -1,3 +1,13 @@
+2006-02-14  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * strings.c (scm_i_take_stringbufn): Register LEN+1 bytes instead of
+	LEN.  Without this, too much collectable memory gets unregistered,
+	which results in an underflow of SCM_MALLOCATED in
+	`decrease_mtrigger()'.
+
+        * gc-malloc.c (decrease_mtrigger): Make sure SIZE is lower than or
+	equal to SCM_MALLOCATED.
+
 2006-02-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* eval.c (scm_eval_body): Use scm_i_dynwind_pthread_mutex_lock
