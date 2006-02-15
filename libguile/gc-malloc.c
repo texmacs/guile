@@ -184,6 +184,16 @@ static void
 decrease_mtrigger (size_t size, const char * what)
 {
   scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
+
+  if (size > scm_mallocated)
+    {
+      fprintf (stderr, "`scm_mallocated' underflow.  This means that more "
+	       "memory was unregistered\n"
+	       "via `scm_gc_unregister_collectable_memory ()' than "
+	       "registered.\n");
+      abort ();
+    }
+
   scm_mallocated -= size;
   scm_gc_malloc_collected += size;
   scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);
