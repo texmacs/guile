@@ -1,3 +1,7 @@
+2006-02-16  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Fix jit_ldxi_* with big displacement.
+
 2006-01-23  Paolo Bonzini  <bonzini@gnu.org>
 
 	* configure.ac: Fix comments in config.h.in.
