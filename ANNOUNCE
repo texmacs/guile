@@ -1,15 +1,16 @@
-We are pleased to announce the release of Guile 1.7.91.  This is a
-release candidate for Guile 1.8.  It can be found here:
+We are pleased to announce the release of Guile 1.8.0.  It can be
+found here:
 
-    ftp://alpha.gnu.org/gnu/guile/guile-1.7.91.tar.gz
+    ftp://ftp.gnu.org/gnu/guile/guile-1.8.0.tar.gz
 
-Its MD5 checksum is
+Its SHA1 checksum is
 
-    b2106c1b574e22ec67c4c2178074b5ec  guile-1.7.91.tar.gz
+    22462680feeda1e5400195c01dee666162503d66  guile-1.8.0.tar.gz
 
-The plan is to release version 1.8.0 next weekend, 2006-01-19, if all
-goes well.
+We already know about some issues with 1.8.0, please check the mailing
+lists:
 
+    http://www.gnu.org/software/guile/mail/mail.html
 
 The NEWS file is quite long.  Here are the most interesting entries:
 
