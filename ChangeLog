@@ -1,3 +1,9 @@
+2006-02-20  Marius Vollmer  <mvo@zagadka.de>
+
+	Released 1.8.0.
+
+	* GUILE-VERSION: Set version.
+
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	Branched for 1.8 series.
