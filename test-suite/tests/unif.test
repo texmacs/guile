@@ -325,6 +325,20 @@
 
 (with-test-prefix "array-set!"
 
+  (with-test-prefix "bitvector"
+
+    ;; in Guile 1.8.0 a bug in bitvector_set() caused a segv in array-set!
+    ;; on a bitvector like the following
+    (let ((a (make-bitvector 1)))
+      (pass-if "one elem set #t"
+	(begin
+	  (array-set! a #t 0)
+	  (eq? #t (array-ref a 0))))
+      (pass-if "one elem set #f"
+	(begin
+	  (array-set! a #f 0)
+	  (eq? #f (array-ref a 0))))))
+
   (with-test-prefix "byte"
 
     (let ((a (make-s8vector 1)))
