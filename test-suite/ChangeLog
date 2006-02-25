@@ -1,3 +1,14 @@
+2006-02-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/strings.test (string<?, string-ci<?, string<=?, string-ci<=?,
+	string>?, string-ci>?, string>=?, string-ci>=?): Check ordering is the
+	same as char<? etc.  Use a define-module to keep private test bits
+	private.
+	* tests/srfi-13.test (string-compare, string-compare-ci): Ditto.
+
+	* tests/unif.test (array-set!): Exercise bitvector case, which had
+	been seg faulting.
+
 2006-02-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/poe.test (pure-funcq): New tests.
