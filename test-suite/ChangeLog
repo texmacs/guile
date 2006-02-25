@@ -1,5 +1,7 @@
 2006-02-26  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/filesys.test (opendir etc): Exercise a little.
+
 	* tests/strings.test (string<?, string-ci<?, string<=?, string-ci<=?,
 	string>?, string-ci>?, string>=?, string-ci>=?): Check ordering is the
 	same as char<? etc.  Use a define-module to keep private test bits
