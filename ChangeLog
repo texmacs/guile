@@ -1,3 +1,7 @@
+2006-02-26  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add dirfd.
+
 2006-02-20  Marius Vollmer  <mvo@zagadka.de>
 
 	Released 1.8.0.

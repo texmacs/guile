@@ -1,5 +1,9 @@
 2006-02-26  Kevin Ryde  <user42@zip.com.au>
 
+	* filesys.c (scm_readdir): Use fpathconf for the dirent size when
+	NAME_MAX is not available, which is so on Solaris 10.  Report and help
+	by Bill Schottstaedt.
+
 	* srfi-13.c (MY_VALIDATE_SUBSTRING_SPEC_UCOPY): New macro.
 	(scm_string_compare, scm_string_compare_ci, scm_string_lt,
 	scm_string_gt, scm_string_le, scm_string_ge, scm_string_ci_lt,
