@@ -37,3 +37,25 @@
     (let ((old-next (next-fd)))
       (false-if-exception (copy-file "/dev/null" "no/such/dir/foo"))
       (= old-next (next-fd)))))
+
+;;;
+;;; opendir and friends
+;;;
+
+(with-test-prefix "opendir"
+
+  (with-test-prefix "root directory"
+    (let ((d (opendir "/")))
+      (pass-if "not empty"
+	(string? (readdir d)))
+      (pass-if "all entries are strings"
+	(let more ()
+	  (let ((f (readdir d)))
+	    (cond ((string? f)
+		   (more))
+		  ((eof-object? f)
+		   #t)
+		  (else
+		   #f)))))
+      (closedir d))))
+
