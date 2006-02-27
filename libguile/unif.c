@@ -380,9 +380,9 @@ bitvector_set (scm_t_array_handle *h, ssize_t pos, SCM val)
   pos += scm_array_handle_bit_elements_offset (h);
   mask = 1l << (pos % 32);
   if (scm_to_bool (val))
-    ((scm_t_uint32 *)h->elements)[pos/32] |= mask;
+    ((scm_t_uint32 *)h->writable_elements)[pos/32] |= mask;
   else
-    ((scm_t_uint32 *)h->elements)[pos/32] &= ~mask;
+    ((scm_t_uint32 *)h->writable_elements)[pos/32] &= ~mask;
 }
 
 static void
