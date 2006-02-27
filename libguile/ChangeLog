@@ -1,3 +1,7 @@
+2006-02-28  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (bitvector_set): Use h->writable_elements not h->elements.
+
 2006-02-26  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c (scm_readdir): Use fpathconf for the dirent size when
