@@ -1,3 +1,8 @@
+2006-03-04  Kevin Ryde  <user42@zip.com.au>
+
+	* deprecated.c (scm_i_defer_ints_etc): Show SCM_DEFER_INTS in message,
+	not SCM_CRITICAL_SECTION_START.
+
 2006-02-28  Kevin Ryde  <user42@zip.com.au>
 
 	* unif.c (bitvector_set): Use h->writable_elements not h->elements.
