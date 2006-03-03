@@ -1,3 +1,8 @@
+2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* test-suite/tests/modules.test: New file.
+	* test-suite/Makefile.am (SCM_TESTS): Added it.
+
 2006-02-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/filesys.test (opendir etc): Exercise a little.
