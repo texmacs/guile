@@ -12,6 +12,12 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
+Changes in 1.8.1:
+
+* Bug fixes.
+** array-set! with bit vector.
+
+
 Changes since the 1.6.x series:
 
 * Changes to the distribution
