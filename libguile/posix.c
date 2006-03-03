@@ -1877,7 +1877,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
     {
       const int save_errno = errno;
 
-      // No guile exceptions can occur before we have freed p's memory.
+      /* No guile exceptions can occur before we have freed p's memory. */
       scm_dynwind_end ();
       free (p);
 
@@ -1889,7 +1889,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
       /* scm_from_locale_string may throw an exception.  */
       const SCM name = scm_from_locale_string (p);
 
-      // No guile exceptions can occur before we have freed p's memory.
+      /* No guile exceptions can occur before we have freed p's memory. */
       scm_dynwind_end ();
       free (p);
 

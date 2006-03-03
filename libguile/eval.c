@@ -5695,8 +5695,8 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
  * hare-and-tortoise implementation, found several times in guile.  */
 
 struct t_trace {
-  struct t_trace *trace;  // These pointers form a trace along the stack.
-  SCM obj;                // The object handled at the respective stack frame.
+  struct t_trace *trace; /* These pointers form a trace along the stack. */
+  SCM obj;               /* The object handled at the respective stack frame.*/
 };
 
 static SCM
@@ -5751,7 +5751,7 @@ copy_tree (
 
           return new_vector;
         }
-      else // scm_is_pair (hare->obj)
+      else /* scm_is_pair (hare->obj) */
         {
           SCM result;
           SCM tail;
