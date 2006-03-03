@@ -1435,7 +1435,7 @@ void
 scm_i_defer_ints_etc ()
 {
   scm_c_issue_deprecation_warning
-    ("SCM_CRITICAL_SECTION_START etc are deprecated.  "
+    ("SCM_DEFER_INTS etc are deprecated.  "
      "Use a mutex instead if appropriate.");
 }
 
