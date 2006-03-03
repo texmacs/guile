@@ -3,6 +3,9 @@
 	* deprecated.c (scm_i_defer_ints_etc): Show SCM_DEFER_INTS in message,
 	not SCM_CRITICAL_SECTION_START.
 
+	* eval.c, posix.c: Change comments from C++ to C style.  Reported by
+	Mike Gran.
+
 2006-02-28  Kevin Ryde  <user42@zip.com.au>
 
 	* unif.c (bitvector_set): Use h->writable_elements not h->elements.
