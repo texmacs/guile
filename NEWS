@@ -16,6 +16,7 @@ Changes in 1.8.1:
 
 * Bug fixes.
 ** array-set! with bit vector.
+** string<? and friends follow char<? etc order on 8-bit chars.
 
 
 Changes since the 1.6.x series:
