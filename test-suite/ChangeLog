@@ -1,3 +1,8 @@
+2006-03-05  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (make-shared-array): Add example usages from the
+	manual, two of which currently fail.
+
 2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* test-suite/tests/modules.test: New file.

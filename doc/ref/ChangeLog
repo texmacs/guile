@@ -1,3 +1,9 @@
+2006-03-05  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Array Procedures): @pxref for `equal?'.
+	(Shared Arrays): Correction to make-shared-array stride example, need
+	`list' on the mapper return value.
+
 2006-02-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-utility.texi (Object Properties): Removed confusing

@@ -1,3 +1,7 @@
+2006-03-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* goops.texi (Slot Options): Note init-value is shared.
+
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* goops.texi (Basic Generic Function Creation): Added blurb about
