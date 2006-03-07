@@ -422,6 +422,50 @@
 
 (with-test-prefix "make-shared-array"
 
+  (pass-if "truncate columns"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i)) list 3 2)
+		  #2((a b) (d e) (g h))))
+
+  (pass-if "pick one column"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i) (list i 2))
+				     '(0 2))
+		  #(c f i)))
+
+  (pass-if "diagonal"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i) (list i i))
+				     '(0 2))
+		  #(a e i)))
+
+  ;; this failed in guile 1.8.0
+  (pass-if "2 dims from 1 dim"
+    (array-equal? (make-shared-array #1(a b c d e f g h i j k l)
+				     (lambda (i j) (list (+ (* i 3) j)))
+				     4 3)
+		  #2((a b c) (d e f) (g h i) (j k l))))
+
+  (pass-if "reverse columns"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i j) (list i (- 2 j)))
+				     3 3)
+		  #2((c b a) (f e d) (i h g))))
+
+  (pass-if "fixed offset, 0 based becomes 1 based"
+    (let* ((x #2((a b c) (d e f) (g h i)))
+	   (y (make-shared-array x
+				 (lambda (i j) (list (1- i) (1- j)))
+				 '(1 3) '(1 3))))
+      (and (eq? (array-ref x 0 0) 'a)
+	   (eq? (array-ref y 1 1) 'a))))
+
+  ;; this failed in guile 1.8.0
+  (pass-if "stride every third element"
+    (array-equal? (make-shared-array #1(a b c d e f g h i j k l)
+				     (lambda (i) (list (* i 3)))
+				     4)
+		  #1(a d g j)))
+
   (pass-if "shared of shared"
     (let* ((a  #2((1 2 3) (4 5 6) (7 8 9)))
 	   (s1 (make-shared-array a (lambda (i) (list i 1)) 3))
