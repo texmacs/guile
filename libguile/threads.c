@@ -1397,7 +1397,7 @@ scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 }
 
 static void
-unlock (void *data)
+do_unlock (void *data)
 {
   scm_i_pthread_mutex_unlock ((scm_i_pthread_mutex_t *)data);
 }
@@ -1406,7 +1406,7 @@ void
 scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
   scm_i_scm_pthread_mutex_lock (mutex);
-  scm_dynwind_unwind_handler (unlock, mutex, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (do_unlock, mutex, SCM_F_WIND_EXPLICITLY);
 }
 
 int

@@ -1,3 +1,8 @@
+2006-03-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* threads.c (do_unlock): Renamed from "unlock", which is defined
+	in unistd.h on QNX.  (Reported by Matt Kraai.)
+
 2006-03-04  Kevin Ryde  <user42@zip.com.au>
 
 	* deprecated.c (scm_i_defer_ints_etc): Show SCM_DEFER_INTS in message,
