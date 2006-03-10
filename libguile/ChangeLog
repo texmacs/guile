@@ -1,5 +1,8 @@
 2006-03-10  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* unif.c (scm_make_shared_array): Don't use SCM_I_ARRAY_BASE when
+	oldra is not an array.  (Reported by Steve Juranich.)
+
 	* threads.c (do_unlock): Renamed from "unlock", which is defined
 	in unistd.h on QNX.  (Reported by Matt Kraai.)
 

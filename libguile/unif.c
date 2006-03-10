@@ -861,7 +861,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   SCM imap;
   size_t k;
   ssize_t i;
-  long old_min, new_min, old_max, new_max;
+  long old_base, old_min, new_min, old_max, new_max;
   scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (dims);
@@ -873,7 +873,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   if (SCM_I_ARRAYP (oldra))
     {
       SCM_I_ARRAY_V (ra) = SCM_I_ARRAY_V (oldra);
-      old_min = old_max = SCM_I_ARRAY_BASE (oldra);
+      old_base = old_min = old_max = SCM_I_ARRAY_BASE (oldra);
       s = scm_array_handle_dims (&old_handle);
       k = scm_array_handle_rank (&old_handle);
       while (k--)
@@ -887,7 +887,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   else
     {
       SCM_I_ARRAY_V (ra) = oldra;
-      old_min = 0;
+      old_base = old_min = 0;
       old_max = scm_c_generalized_vector_length (oldra) - 1;
     }
 
@@ -909,7 +909,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 
   imap = scm_apply_0 (mapfunc, scm_reverse (inds));
   i = scm_array_handle_pos (&old_handle, imap);
-  SCM_I_ARRAY_BASE (ra) = new_min = new_max = i + SCM_I_ARRAY_BASE (oldra);
+  SCM_I_ARRAY_BASE (ra) = new_min = new_max = i + old_base;
   indptr = inds;
   k = SCM_I_ARRAY_NDIM (ra);
   while (k--)
