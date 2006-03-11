@@ -850,7 +850,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
   ssize_t inc;
   size_t cstart, cend;
   size_t remaining, off;
-  void *base;
+  char *base;
 
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_current_input_port ();
@@ -963,7 +963,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
   ssize_t inc;
   size_t cstart, cend;
   size_t amount, off;
-  const void *base;
+  const char *base;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 

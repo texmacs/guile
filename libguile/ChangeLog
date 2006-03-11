@@ -1,3 +1,10 @@
+2006-03-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* srfi-4.c (scm_uniform_vector_read_x): Declare base as char*
+	rather than void*, so we can do pointer arithmetic on it.
+	(Reported by Mike Gran.)
+	(s_scm_uniform_vector_write): Ditto.
+
 2006-03-10  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* unif.c (scm_make_shared_array): Don't use SCM_I_ARRAY_BASE when
