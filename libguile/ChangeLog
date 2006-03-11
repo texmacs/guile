@@ -1,5 +1,8 @@
 2006-03-11  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* unif.c (string_set): Don't return in a void function.  (Reported
+	by Mike Gran.)
+
 	* srfi-4.c (scm_uniform_vector_read_x): Declare base as char*
 	rather than void*, so we can do pointer arithmetic on it.
 	(Reported by Mike Gran.)

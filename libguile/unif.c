@@ -368,9 +368,9 @@ string_set (scm_t_array_handle *h, ssize_t pos, SCM val)
 {
   pos += h->base;
   if (SCM_I_ARRAYP (h->array))
-    return scm_c_string_set_x (SCM_I_ARRAY_V (h->array), pos, val);
+    scm_c_string_set_x (SCM_I_ARRAY_V (h->array), pos, val);
   else
-    return scm_c_string_set_x (h->array, pos, val);
+    scm_c_string_set_x (h->array, pos, val);
 }
 
 static void
