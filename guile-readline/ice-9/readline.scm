@@ -216,3 +216,27 @@
 		      (set-readline-prompt! "" "")
 		      (set-readline-read-hook! #f)))))
 	(set! (using-readline?) #t))))
+
+(define-public (make-completion-function strings)
+  "Construct and return a completion function for a list of strings.
+The returned function is suitable for passing to
+@code{with-readline-completion-function.  The argument @var{strings}
+should be a list of strings, where each string is one of the possible
+completions."
+  (letrec ((strs '())
+	   (regexp #f)
+	   (completer (lambda (text continue?)
+			(if continue?
+			    (if (null? strs)
+				#f
+				(let ((str (car strs)))
+				  (set! strs (cdr strs))
+				  (if (string-match regexp str)
+				      str
+				      (completer text #t))))
+			    (begin
+			      (set! strs strings)
+			      (set! regexp
+				    (string-append "^" (regexp-quote text)))
+			      (completer text #t))))))
+    completer))
