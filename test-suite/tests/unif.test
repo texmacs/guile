@@ -420,7 +420,24 @@
 ;;; make-shared-array
 ;;;
 
+(define exception:mapping-out-of-range
+  (cons 'misc-error "^mapping out of range"))  ;; per scm_make_shared_array
+
 (with-test-prefix "make-shared-array"
+
+  ;; this failed in guile 1.8.0
+  (pass-if "vector unchanged"
+    (let* ((a (make-array #f '(0 7)))
+	   (s (make-shared-array a list '(0 7))))
+      (array-equal? a s)))
+
+  (pass-if-exception "vector, high too big" exception:mapping-out-of-range
+    (let* ((a (make-array #f '(0 7))))
+      (make-shared-array a list '(0 8))))
+
+  (pass-if-exception "vector, low too big" exception:out-of-range
+    (let* ((a (make-array #f '(0 7))))
+      (make-shared-array a list '(-1 7))))
 
   (pass-if "truncate columns"
     (array-equal? (make-shared-array #2((a b c) (d e f) (g h i)) list 3 2)
