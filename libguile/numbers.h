@@ -215,7 +215,8 @@ SCM_API SCM scm_number_to_string (SCM x, SCM radix);
 SCM_API int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
-SCM_API SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
+SCM_API SCM scm_c_locale_stringn_to_number (const char *mem, size_t len,
+					    unsigned int radix);
 SCM_API SCM scm_string_to_number (SCM str, SCM radix);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
