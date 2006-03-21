@@ -327,7 +327,7 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
   if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ','
       || quote_keywordish_symbol (str, len)
       || (str[0] == '.' && len == 1)
-      || scm_is_true (scm_i_mem2number(str, len, 10)))
+      || scm_is_true (scm_c_locale_stringn_to_number (str, len, 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
