@@ -1,3 +1,10 @@
+2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * numbers.c (scm_i_mem2number): Renamed to
+	scm_c_locale_stringn_to_number.
+	* numbers.c, print.c, read.c: Updated callers.
+        * numbers.h: Update function declaration.
+
 2006-03-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* unif.c (string_set): Don't return in a void function.  (Reported
