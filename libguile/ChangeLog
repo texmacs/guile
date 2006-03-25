@@ -1,3 +1,13 @@
+2006-03-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.c (get_thread_stack_base): Use scm_get_stack_base
+	instead of accessing __libc_stack_end directly, and only do this
+	when pthread_attr_getstack is known not to work for the main
+	thread or when not using pthreads at all.
+
+	* gc_os_dep.c (scm_get_stack_base): Abort when the machine type is
+	unknown instead of returning NULL.
+
 2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * numbers.c (scm_i_mem2number): Renamed to

@@ -401,6 +401,7 @@ typedef int GC_bool;
 void *
 scm_get_stack_base ()
 {
+  ABORT ("Can't determine stack base");
   return NULL;
 }
 
