@@ -1,3 +1,9 @@
+2006-03-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Added check that defines
+	PTHREAD_ATTR_GETSTACK_WORKS when pthread_attr_getstack works for
+	the main thread.
+
 2006-02-26  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Add dirfd.
