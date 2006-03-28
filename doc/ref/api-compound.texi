@@ -885,7 +885,7 @@ Evaluates to the element at position @var{idx} in the simple vector
 @var{vec}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Macro} void SCM_SIMPLE_VECTOR_SET_X (SCM vec, size_t idx, SCM val)
+@deftypefn {C Macro} void SCM_SIMPLE_VECTOR_SET (SCM vec, size_t idx, SCM val)
 Sets the element at position @var{idx} in the simple vector
 @var{vec} to @var{val}.  No type or range checking is done.
 @end deftypefn
