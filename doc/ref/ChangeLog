@@ -1,3 +1,9 @@
+2006-03-28  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Vector Accessing from C): Show
+	SCM_SIMPLE_VECTOR_SET not SCM_SIMPLE_VECTOR_SET_X, the former is
+	what's in vector.h.
+
 2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-data.texi (Conversion): Add scm_c_locale_stringn_to_number.
