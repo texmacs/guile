@@ -1,3 +1,9 @@
+2006-03-31  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (socklen_t): Enhance test for this type, coping with
+	need for <sys/socket.h> on MacOS X.  Reported by Michael Tuexen and
+	Jay Cotton.
+
 2006-03-26  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Added check that defines
