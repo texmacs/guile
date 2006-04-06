@@ -1,3 +1,8 @@
+2006-04-06  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c (scm_setvbuf): Fix for not _IOLBF, clear SCM_BUFLINE
+	instead of toggling it.  Reported by Ludovic Courtès.
+	
 2006-03-26  Marius Vollmer  <mvo@zagadka.de>
 
 	* threads.c (get_thread_stack_base): Use scm_get_stack_base
