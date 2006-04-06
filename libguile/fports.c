@@ -155,7 +155,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
     }
   else
     {
-      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) ^ SCM_BUFLINE);
+      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) & ~(scm_t_bits)SCM_BUFLINE);
     }
 
   if (SCM_UNBNDP (size))
