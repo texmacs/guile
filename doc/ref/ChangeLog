@@ -1,3 +1,8 @@
+2006-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* api-scheduling.texi (System asyncs): "{void *}" in @deffnx to keep
+	the "*" out of the name in the index.
+
 2006-04-06  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Ports and File Descriptors): Clarify fcntl a bit,
