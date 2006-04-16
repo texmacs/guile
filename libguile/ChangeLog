@@ -1,3 +1,13 @@
+2006-04-16  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_stat2scm, scm_stat, scm_lstat): Use stat or stat64.
+	(scm_readdir): Use readdir64.
+	(scm_copy_file): Use open64 and fstat64, to cope with >2Gb files.
+	* ports.c (scm_truncate_file): Use truncate64.  Correction truncate
+	and ftruncate take off_t not size_t.
+	* _scm.h (stat_or_stat64 etc): Macros for selecting LFS64 when
+	available.
+
 2006-04-06  Kevin Ryde  <user42@zip.com.au>
 
 	* fports.c (scm_setvbuf): Fix for not _IOLBF, clear SCM_BUFLINE
