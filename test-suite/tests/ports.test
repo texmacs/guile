@@ -538,6 +538,42 @@
 	(while (not (eof-object? (read-char port))))
 	(= 8 (port-column port))))))
 
+;;;
+;;; truncate-file
+;;;
+
+(with-test-prefix "truncate-file"
+
+  (with-test-prefix "filename"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (truncate-file (test-file) 1)
+      (eqv? 1 (stat:size (stat (test-file))))))
+
+  (with-test-prefix "file descriptor"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((fd (open-fdes (test-file) O_RDWR)))
+	(truncate-file fd 1)
+	(close-fdes fd))
+      (eqv? 1 (stat:size (stat (test-file))))))
+
+  (with-test-prefix "file port"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((port (open-file (test-file) "r+")))
+	(truncate-file port 1))
+      (eqv? 1 (stat:size (stat (test-file)))))))
+
 
 ;;;; testing read-delimited and friends
 
