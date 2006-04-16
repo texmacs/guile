@@ -20,6 +20,7 @@
 
 /* See stime.c for comments on why _POSIX_C_SOURCE is not always defined. */
 #define _GNU_SOURCE              /* ask glibc for everything */
+#define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 #ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r */
 #endif
@@ -475,12 +476,12 @@ SCM_SYMBOL (scm_sym_sock, "socket");
 SCM_SYMBOL (scm_sym_unknown, "unknown");
 
 static SCM 
-scm_stat2scm (struct stat *stat_temp)
+scm_stat2scm (struct stat_or_stat64 *stat_temp)
 {
   SCM ans = scm_c_make_vector (15, SCM_UNSPECIFIED);
   
   SCM_SIMPLE_VECTOR_SET(ans, 0, scm_from_ulong (stat_temp->st_dev));
-  SCM_SIMPLE_VECTOR_SET(ans, 1, scm_from_ulong (stat_temp->st_ino));
+  SCM_SIMPLE_VECTOR_SET(ans, 1, scm_from_ino_t_or_ino64_t (stat_temp->st_ino));
   SCM_SIMPLE_VECTOR_SET(ans, 2, scm_from_ulong (stat_temp->st_mode));
   SCM_SIMPLE_VECTOR_SET(ans, 3, scm_from_ulong (stat_temp->st_nlink));
   SCM_SIMPLE_VECTOR_SET(ans, 4, scm_from_ulong (stat_temp->st_uid));
@@ -490,7 +491,7 @@ scm_stat2scm (struct stat *stat_temp)
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 6, SCM_BOOL_F);
 #endif
-  SCM_SIMPLE_VECTOR_SET(ans, 7, scm_from_ulong (stat_temp->st_size));
+  SCM_SIMPLE_VECTOR_SET(ans, 7, scm_from_off_t_or_off64_t (stat_temp->st_size));
   SCM_SIMPLE_VECTOR_SET(ans, 8, scm_from_ulong (stat_temp->st_atime));
   SCM_SIMPLE_VECTOR_SET(ans, 9, scm_from_ulong (stat_temp->st_mtime));
   SCM_SIMPLE_VECTOR_SET(ans, 10, scm_from_ulong (stat_temp->st_ctime));
@@ -500,7 +501,7 @@ scm_stat2scm (struct stat *stat_temp)
   SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (4096L));
 #endif
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-  SCM_SIMPLE_VECTOR_SET(ans, 12, scm_from_ulong (stat_temp->st_blocks));
+  SCM_SIMPLE_VECTOR_SET(ans, 12, scm_from_blkcnt_t_or_blkcnt64_t (stat_temp->st_blocks));
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 12, SCM_BOOL_F);
 #endif
@@ -652,14 +653,14 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 {
   int rv;
   int fdes;
-  struct stat stat_temp;
+  struct stat_or_stat64 stat_temp;
 
   if (scm_is_integer (object))
     {
 #ifdef __MINGW32__
       SCM_SYSCALL (rv = fstat_Win32 (scm_to_int (object), &stat_temp));
 #else
-      SCM_SYSCALL (rv = fstat (scm_to_int (object), &stat_temp));
+      SCM_SYSCALL (rv = fstat_or_fstat64 (scm_to_int (object), &stat_temp));
 #endif
     }
   else if (scm_is_string (object))
@@ -671,7 +672,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       while (p > file && (*p == '/' || *p == '\\'))
 	*p-- = '\0';
 #endif
-      SCM_SYSCALL (rv = stat (file, &stat_temp));
+      SCM_SYSCALL (rv = stat_or_stat64 (file, &stat_temp));
       free (file);
     }
   else
@@ -682,7 +683,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 #ifdef __MINGW32__
       SCM_SYSCALL (rv = fstat_Win32 (fdes, &stat_temp));
 #else
-      SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
+      SCM_SYSCALL (rv = fstat_or_fstat64 (fdes, &stat_temp));
 #endif
     }
 
@@ -868,7 +869,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 	    "end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
-  struct dirent *rdent;
+  struct dirent_or_dirent64 *rdent;
 
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
@@ -890,7 +891,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
      fdopendir(), if the latter is available.  That'd let us hold the fd
      somewhere in the smob, or just the dirent size calculated once.  */
   {
-    struct dirent de; /* just for sizeof */
+    struct dirent_or_dirent64 de; /* just for sizeof */
     DIR    *ds = (DIR *) SCM_CELL_WORD_1 (port);
     size_t namlen;
 #ifdef NAME_MAX
@@ -906,7 +907,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 #endif
 
     errno = 0;
-    SCM_SYSCALL (readdir_r (ds, (struct dirent *) buf, &rdent));
+    SCM_SYSCALL (readdir_r_or_readdir64_r (ds, (struct dirent_or_dirent64 *) buf, &rdent));
     if (errno != 0)
       SCM_SYSERROR;
     if (! rdent)
@@ -924,7 +925,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
     scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
     errno = 0;
-    SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
+    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_CELL_WORD_1 (port)));
     if (errno != 0)
       SCM_SYSERROR;
 
@@ -1486,9 +1487,9 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
 #define FUNC_NAME s_scm_lstat
 {
   int rv;
-  struct stat stat_temp;
+  struct stat_or_stat64 stat_temp;
 
-  STRING_SYSCALL (str, c_str, rv = lstat (c_str, &stat_temp));
+  STRING_SYSCALL (str, c_str, rv = lstat_or_lstat64 (c_str, &stat_temp));
   if (rv != 0)
     {
       int en = errno;
@@ -1512,7 +1513,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   int oldfd, newfd;
   int n, rv;
   char buf[BUFSIZ];
-  struct stat oldstat;
+  struct stat_or_stat64 oldstat;
 
   scm_dynwind_begin (0);
   
@@ -1521,21 +1522,21 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   c_newfile = scm_to_locale_string (newfile);
   scm_dynwind_free (c_newfile);
 
-  oldfd = open (c_oldfile, O_RDONLY);
+  oldfd = open_or_open64 (c_oldfile, O_RDONLY);
   if (oldfd == -1)
     SCM_SYSERROR;
 
 #ifdef __MINGW32__
   SCM_SYSCALL (rv = fstat_Win32 (oldfd, &oldstat));
 #else
-  SCM_SYSCALL (rv = fstat (oldfd, &oldstat));
+  SCM_SYSCALL (rv = fstat_or_fstat64 (oldfd, &oldstat));
 #endif
   if (rv == -1)
     goto err_close_oldfd;
 
   /* use POSIX flags instead of 07777?.  */
-  newfd = open (c_newfile, O_WRONLY | O_CREAT | O_TRUNC,
-		oldstat.st_mode & 07777);
+  newfd = open_or_open64 (c_newfile, O_WRONLY | O_CREAT | O_TRUNC,
+                          oldstat.st_mode & 07777);
   if (newfd == -1)
     {
     err_close_oldfd:
