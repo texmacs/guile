@@ -17,7 +17,14 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-filesys)
-  #:use-module (test-suite lib))
+  #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test))
+
+(define (test-file)
+  (data-file-name "filesys-test.tmp"))
+(define (test-symlink)
+  (data-file-name "filesys-test-link.tmp"))
+
 
 ;;;
 ;;; copy-file
@@ -39,6 +46,29 @@
       (= old-next (next-fd)))))
 
 ;;;
+;;; lstat
+;;;
+
+(with-test-prefix "lstat"
+
+  (pass-if "normal file"
+    (call-with-output-file (test-file)
+      (lambda (port)
+	(display "hello" port)))
+    (eqv? 5 (stat:size (lstat (test-file)))))
+
+  (call-with-output-file (test-file)
+    (lambda (port)
+      (display "hello" port)))
+  (delete-file (test-symlink))
+  (if (not (false-if-exception
+	    (begin (symlink (test-file) (test-symlink)) #t)))
+      (display "cannot create symlink, lstat test skipped\n")
+      (pass-if "symlink"
+	;; not much to test, except that it works
+	(->bool (lstat (test-symlink))))))
+
+;;;
 ;;; opendir and friends
 ;;;
 
@@ -58,4 +88,40 @@
 		  (else
 		   #f)))))
       (closedir d))))
+
+;;;
+;;; stat
+;;;
+
+(with-test-prefix "stat"
+
+  (with-test-prefix "filename"
+
+    (pass-if "size"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (eqv? 5 (stat:size (stat (test-file))))))
+
+  (with-test-prefix "file descriptor"
+
+    (pass-if "size"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let* ((fd (open-fdes (test-file) O_RDONLY))
+	     (st (stat fd)))
+	(close-fdes fd)
+	(eqv? 5 (stat:size st)))))
+
+  (with-test-prefix "port"
+
+    (pass-if "size"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let* ((port (open-file (test-file) "r+"))
+	     (st   (stat port)))
+	(close-port port)
+	(eqv? 5 (stat:size st))))))
 
