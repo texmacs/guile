@@ -74,9 +74,7 @@
 	the same as `char<?' etc, and is also the same as guile 1.6 did.
 	Reported by Sven Hartrumpf.
 
-2006-02-20  Marius Vollmer  <mvo@zagadka.de>
-
-        From Mikael Djurfeldt  <mdj@neurologic.cc>:
+2006-02-19  Mikael Djurfeldt  <mdj@neurologic.cc>
 
 	* random.c: Test for SCM_HAVE_T_UINT64 instead of
 	SCM_HAVE_T_INT64.
