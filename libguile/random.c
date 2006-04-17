@@ -80,7 +80,7 @@ scm_t_rng scm_the_rng;
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
-  scm_t_uint64 x = (scm_t_int64) A * state->w + state->c;
+  scm_t_uint64 x = (scm_t_uint64) A * state->w + state->c;
   scm_t_uint32 w = x & 0xffffffffUL;
   state->w = w;
   state->c = x >> 32L;
