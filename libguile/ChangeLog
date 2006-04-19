@@ -1,3 +1,8 @@
+2006-04-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* _scm.h: Add back error if the size of off_t is unknown.  The bug
+	was actually in guile-readline's configuration.
+
 2006-04-18  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_mkstemp): Update docstring from the manual, in
