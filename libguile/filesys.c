@@ -349,7 +349,7 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
 
   iflags = SCM_NUM2INT (2, flags);
   imode = SCM_NUM2INT_DEF (3, mode, 0666);
-  STRING_SYSCALL (path, c_path, fd = open (c_path, iflags, imode));
+  STRING_SYSCALL (path, c_path, fd = open_or_open64 (c_path, iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
   return scm_from_int (fd);
@@ -1706,6 +1706,9 @@ scm_init_filesys ()
 #endif 	       
 #ifdef O_SYNC  
   scm_c_define ("O_SYNC", scm_from_long (O_SYNC));
+#endif 
+#ifdef O_LARGEFILE  
+  scm_c_define ("O_LARGEFILE", scm_from_long (O_LARGEFILE));
 #endif 
 
 #ifdef F_DUPFD  
