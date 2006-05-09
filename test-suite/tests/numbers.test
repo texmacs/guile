@@ -2745,7 +2745,17 @@
 	 (n    (- (ash     1   (+ 2 dbl-mant-dig)) 1)   (1- (* 2 n)))
 	 (want (+ (ash-flo 1.0 (+ 2 dbl-mant-dig)) 4.0) (* 2.0 want)))
 	((> i 100))
-      (try-i i n want))))
+      (try-i i n want)))
+
+  (pass-if "frac big/big"
+    (let ((big (ash 1 256)))
+      (= 1.0 (exact->inexact (/ (1+ big) big)))))
+
+  ;; In guile 1.8.0 this failed, giving back "nan" because it tried to
+  ;; convert the num and den to doubles, resulting in infs.
+  (pass-if "frac big/big, exceeding double"
+    (let ((big (ash 1 4096)))
+      (= 1.0 (exact->inexact (/ (1+ big) big))))))
 
 ;;;
 ;;; floor
