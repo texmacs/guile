@@ -1,3 +1,18 @@
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* api-control.texi (Multiple Values): In `receive', add an example,
+	cross ref SRFI-8, tweak wording.
+
+	* api-io.texi (Port Implementation): @defun style for
+	scm_make_port_type and the various set functions.
+
+	* posix.texi (Ports and File Descriptors): Tweaks to fcntl.
+
+2006-04-29  Kevin Ryde  <user42@zip.com.au>
+
+	* api-scheduling.texi (Threads): In call-with-new-thread, handler arg
+	is optional (as of 1.8.0).
+
 2006-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* api-scheduling.texi (System asyncs): "{void *}" in @deffnx to keep
