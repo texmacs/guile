@@ -1,3 +1,9 @@
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (exact->inexact): Test fractions big/big.
+
+	* tests/threads.test (n-par-for-each, n-for-each-par-map): New tests.
+
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/filesys.test (lstat): Allow for test-symlink not existing yet.
