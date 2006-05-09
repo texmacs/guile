@@ -1,3 +1,16 @@
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_i_divide): For big/big wanting inexact, use mpq_get_d
+	rather than converting to doubles, to avoid inf or nan when the inputs
+	are too big for a double but the quotient does fit.  This affects
+	conversions exact->inexact of big fractions.
+
+	* filesys.c (scm_open_fdes): Use open64.
+	(scm_init_filesys): Add O_LARGEFILE.
+
+	* ports.c (scm_seek): Use lseek64.
+	(scm_truncate_file): Use ftruncate64.
+
 2006-05-08  Marius Vollmer  <mvo@zagadka.de>
 
 	* private-gc.h (CELL_P): Also check that the potential pointer is
