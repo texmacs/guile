@@ -1372,37 +1372,36 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_seek
 {
-  off_t off;
-  off_t rv;
   int how;
 
   fd_port = SCM_COERCE_OUTPORT (fd_port);
 
-  if (sizeof (off_t) == sizeof (scm_t_intmax))
-    off = scm_to_intmax (offset);
-  else
-    off = scm_to_long (offset);
   how = scm_to_int (whence);
-
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
+
   if (SCM_OPPORTP (fd_port))
     {
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
+      off_t off = scm_to_off_t (offset);
+      off_t rv;
 
       if (!ptob->seek)
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
       else
 	rv = ptob->seek (fd_port, off, how);
+      return scm_from_off_t (rv);
     }
   else /* file descriptor?.  */
     {
-      rv = lseek (scm_to_int (fd_port), off, how);
+      off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
+      off_t_or_off64_t rv;
+      rv = lseek_or_lseek64 (scm_to_int (fd_port), off, how);
       if (rv == -1)
 	SCM_SYSERROR;
+      return scm_from_off_t_or_off64_t (rv);
     }
-  return scm_from_intmax (rv);
 }
 #undef FUNC_NAME
 
@@ -1450,8 +1449,9 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
   object = SCM_COERCE_OUTPORT (object);
   if (scm_is_integer (object))
     {
-      off_t c_length = scm_to_off_t (length);
-      SCM_SYSCALL (rv = ftruncate (scm_to_int (object), c_length));
+      off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
+      SCM_SYSCALL (rv = ftruncate_or_ftruncate64 (scm_to_int (object),
+                                                  c_length));
     }
   else if (SCM_OPOUTPORTP (object))
     {
