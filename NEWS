@@ -14,10 +14,18 @@ Each release reports the NEWS in the following sections:
 
 Changes in 1.8.1:
 
+* Changes to the C interface 
+** New function scm_c_locale_stringn_to_number.
+
 * Bug fixes.
 ** array-set! with bit vector.
+** make-shared-array fixes, including examples in the manual which failed.
 ** string<? and friends follow char<? etc order on 8-bit chars.
-** n-par-for-each, n-for-each-par-map failed on "futures" variable rename.
+** n-par-for-each, n-for-each-par-map for "futures" variable.
+** module autoload and explicit use-modules cooperate.
+** ice-9 format ~f with infs and nans.
+** exact->inexact overflows on fractions with big num/den but small result.
+** Build problems on MacOS, SunOS, QNX.
 
 
 Changes since the 1.6.x series:
