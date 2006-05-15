@@ -1,3 +1,14 @@
+2006-05-16  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (struct stat st_blocks): Change AC_STRUCT_ST_BLOCKS to
+	a plain AC_CHECK_MEMBERS, we don't want AC_LIBOBJ(fileblocks) which
+	the former gives.  Remove the commented-out code that was to have
+	munged fileblocks out of LIBOBJS.  This fixes mingw, where the lack of
+	st_blocks and absense of the fileblocks.c replacement caused build
+	failure.  Reported by "The Senator".
+	(struct stat st_rdev, st_blksize): Combine into a single
+	AC_CHECK_MEMBERS.
+
 2006-04-18  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: Add AC_CONFIG_AUX_DIR([.]) as suggested in the
