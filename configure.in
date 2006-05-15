@@ -920,10 +920,16 @@ then
   AC_ERROR([No native alloca found.])
 fi
 
-AC_CHECK_MEMBERS([struct stat.st_rdev])
-AC_CHECK_MEMBERS([struct stat.st_blksize])
-
-AC_STRUCT_ST_BLOCKS
+# Reasons for checking:
+#
+#     st_rdev
+#     st_blksize
+#     st_blocks   not in mingw
+#
+# Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
+# AC_LIBOBJ(fileblocks) replacement which that macro gives.
+#
+AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
 
 AC_CACHE_CHECK([for S_ISLNK in sys/stat.h], ac_cv_macro_S_ISLNK,
   [AC_TRY_CPP([#include <sys/stat.h>
@@ -1137,15 +1143,6 @@ case "$GCC" in
     fi
     ;;
 esac
-
-## NOTE the code below sets LIBOBJS directly and so is now forbidden
-## -- I'm disabling it for now in the hopes that the newer autoconf
-## will DTRT -- if not, we need to fix up the sed command to match the
-## others...
-##
-## Remove fileblocks.o from the object list.  This file gets added by
-## the Autoconf macro AC_STRUCT_ST_BLOCKS.  But there is no need.
-#LIBOBJS="`echo ${LIBOBJS} | sed 's/fileblocks\.o//g'`"
 
 ## If we're creating a shared library (using libtool!), then we'll
 ## need to generate a list of .lo files corresponding to the .o files
