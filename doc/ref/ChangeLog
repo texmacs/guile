@@ -1,3 +1,7 @@
+2006-05-15  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Processes): Add primitive-_exit.
+
 2006-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* intro.texi (Linking Guile into Programs): Enhance example program,
