@@ -14,6 +14,9 @@ Each release reports the NEWS in the following sections:
 
 Changes in 1.8.1:
 
+* Changes to the distribution
+** New primitive-_exit giving the _exit() system call.
+
 * Changes to the C interface 
 ** New function scm_c_locale_stringn_to_number.
 
