@@ -1652,10 +1652,28 @@ Example: (system* "echo" "foo" "bar")
 @end deffn
 
 @deffn {Scheme Procedure} primitive-exit [status]
+@deffnx {Scheme Procedure} primitive-_exit [status]
 @deffnx {C Function} scm_primitive_exit (status)
-Terminate the current process without unwinding the Scheme stack.
-This is would typically be useful after a fork.  The exit status
-is @var{status} if supplied, otherwise zero.
+@deffnx {C Function} scm_primitive__exit (status)
+Terminate the current process without unwinding the Scheme stack.  The
+exit status is @var{status} if supplied, otherwise zero.
+
+@code{primitive-exit} uses the C @code{exit} function and hence runs
+usual C level cleanups (flush output streams, call @code{atexit}
+functions, etc, see @ref{Normal Termination,,, libc, The GNU C Library
+Reference Manual})).
+
+@code{primitive-_exit} is the @code{_exit} system call
+(@pxref{Termination Internals,,, libc, The GNU C Library Reference
+Manual}).  This terminates the program immediately, with neither
+Scheme-level nor C-level cleanups.
+
+The typical use for @code{primitive-_exit} is from a child process
+created with @code{primitive-fork}.  For example in a Gdk program the
+child process inherits the X server connection and a C-level
+@code{atexit} cleanup which will close that connection.  But closing
+in the child would upset the protocol in the parent, so
+@code{primitive-_exit} should be used to exit without that.
 @end deffn
 
 @deffn {Scheme Procedure} execl filename . args
