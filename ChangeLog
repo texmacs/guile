@@ -1,3 +1,8 @@
+2006-05-18  Matthew Flatt  <mflatt@cs.utah.edu>
+
+	* lightning/i386/asm.h: Fix test for extending the mprotect area
+	towards lower addresses.
+
 2006-05-16  Bruno Haible  <bruno@clisp.org>
 
 	* lightning/asm-common.h: Don't use __func__ nor __FUNCTION__ if
