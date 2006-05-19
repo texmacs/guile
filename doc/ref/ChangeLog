@@ -1,3 +1,15 @@
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Pairs): Cross reference SRFI-1 second, third,
+	fourth.
+	(List Modification): Cross reference SRFI-1 delete and lset-difference.
+	(List Searching): Cross reference SRFI-1 member.
+	(List Mapping): Cross reference SRFI-1 map etc.
+	(Retrieving Alist Entries): Cross reference SRFI-1 assoc.
+
+	* srfi-modules.texi (SRFI-1 Association Lists): Describe argument
+	order for "=" procedure.
+
 2006-05-15  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Processes): Add primitive-_exit.
