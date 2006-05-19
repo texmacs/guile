@@ -207,7 +207,7 @@ SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (chart_primitive__exit, "primitive-_exit", 0, 1, 0,
+SCM_DEFINE (scm_primitive__exit, "primitive-_exit", 0, 1, 0,
             (SCM status),
 	    "Terminate the current process using the _exit() system call and\n"
 	    "without unwinding the Scheme stack.  The exit status is\n"
@@ -216,7 +216,7 @@ SCM_DEFINE (chart_primitive__exit, "primitive-_exit", 0, 1, 0,
 	    "This function is typically useful after a fork, to ensure no\n"
 	    "Scheme cleanups or @code{atexit} handlers are run (those\n"
 	    "usually belonging in the parent rather than the child).")
-#define FUNC_NAME s_chart_primitive__exit
+#define FUNC_NAME s_scm_primitive__exit
 {
   int cstatus = 0;
   if (!SCM_UNBNDP (status))
