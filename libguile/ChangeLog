@@ -1,6 +1,17 @@
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_stat2scm): Test #ifdef S_ISLNK directly, rather than
+	HAVE_S_ISLNK from configure (it was only a #ifdef test anyway).
+
+	* posix.c (scm_mknod): Test #ifdef S_IFLNK before using that (for
+	symlink).  Probably can't create symlinks with mknod anyway though.
+
+	* inline.h (scm_is_pair): Add a workaround for i386 gcc 2.95 bad code
+	generation.
+
 2006-05-15  Kevin Ryde  <user42@zip.com.au>
 
-	* simpos.c (scm_primitive__exit): New function.
+	* simpos.c, simpos.h (scm_primitive__exit): New function.
 	(scm_primitive_exit): Update docstring, no longer the best exit after
 	a fork.
 
