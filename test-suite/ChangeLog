@@ -1,3 +1,11 @@
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (assoc): A few tests, in particular "=" argument
+	order which had been wrong.
+
+	* tests/srfi-60.test (test-srfi-60): Use #:duplicates (last) to
+	suppress warning about replacing bit-count.
+
 2006-05-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (exact->inexact): Test fractions big/big.
