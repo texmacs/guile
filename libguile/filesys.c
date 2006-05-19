@@ -466,7 +466,7 @@ SCM_DEFINE (scm_close_fdes, "close-fdes", 1, 0, 0,
 
 SCM_SYMBOL (scm_sym_regular, "regular");
 SCM_SYMBOL (scm_sym_directory, "directory");
-#ifdef HAVE_S_ISLNK
+#ifdef S_ISLNK
 SCM_SYMBOL (scm_sym_symlink, "symlink");
 #endif
 SCM_SYMBOL (scm_sym_block_special, "block-special");
@@ -512,7 +512,8 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_regular);
     else if (S_ISDIR (mode))
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_directory);
-#ifdef HAVE_S_ISLNK
+#ifdef S_ISLNK
+    /* systems without symlinks probably don't have S_ISLNK */
     else if (S_ISLNK (mode))
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_symlink);
 #endif
