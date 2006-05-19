@@ -1428,8 +1428,11 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
     ctype = S_IFREG;
   else if (strcmp (p, "directory") == 0)
     ctype = S_IFDIR;
+#ifdef S_IFLNK
+  /* systems without symlinks probably don't have S_IFLNK defined */
   else if (strcmp (p, "symlink") == 0)
     ctype = S_IFLNK;
+#endif
   else if (strcmp (p, "block-special") == 0)
     ctype = S_IFBLK;
   else if (strcmp (p, "char-special") == 0)
