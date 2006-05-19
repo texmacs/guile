@@ -28,6 +28,7 @@ Changes in 1.8.1:
 ** module autoload and explicit use-modules cooperate.
 ** ice-9 format ~f with infs and nans.
 ** exact->inexact overflows on fractions with big num/den but small result.
+** srfi-1 assoc "=" procedure argument order.
 ** Build problems on MacOS, SunOS, QNX.
 
 
