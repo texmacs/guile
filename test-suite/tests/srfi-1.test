@@ -202,6 +202,41 @@
       (equal? '(1 2) (append-map noop '((1) (2)) '(9 9))))))
   
 ;;
+;; assoc
+;;
+
+(with-test-prefix "assoc"
+
+  (pass-if "not found"
+    (let ((alist '((a . 1)
+		   (b . 2)
+		   (c . 3))))
+      (eqv? #f (assoc 'z alist))))
+
+  (pass-if "found"
+    (let ((alist '((a . 1)
+		   (b . 2)
+		   (c . 3))))
+      (eqv? (second alist) (assoc 'b alist))))
+
+  ;; this was wrong in guile 1.8.0 (a gremlin newly introduced in the 1.8
+  ;; series, 1.6.x and earlier was ok)
+  (pass-if "= arg order"
+    (let ((alist '((b . 1)))
+	  (good  #f))
+      (assoc 'a alist (lambda (x y)
+			(set! good (and (eq? x 'a)
+					(eq? y 'b)))))
+      good))
+
+  ;; likewise this one bad in guile 1.8.0
+  (pass-if "srfi-1 example <"
+    (let ((alist '((1 . a)
+		   (5 . b)
+		   (6 . c))))
+      (eq? (third alist) (assoc 5 alist <)))))
+
+;;
 ;; break
 ;;
 
