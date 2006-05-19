@@ -1,6 +1,6 @@
 2006-05-15  Kevin Ryde  <user42@zip.com.au>
 
-	* simpos.c (chart_primitive__exit): New function.
+	* simpos.c (scm_primitive__exit): New function.
 	(scm_primitive_exit): Update docstring, no longer the best exit after
 	a fork.
 
