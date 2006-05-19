@@ -1557,7 +1557,7 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
       SCM tmp = SCM_CAR (ls);
       SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
-      if (scm_is_true (equal_p (pred, SCM_CAR (tmp), key)))
+      if (scm_is_true (equal_p (pred, key, SCM_CAR (tmp))))
 	return tmp;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
