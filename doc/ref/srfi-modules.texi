@@ -937,12 +937,21 @@ Lists}.  The present section only documents the additional procedures
 for dealing with association lists defined by SRFI-1.
 
 @deffn {Scheme Procedure} assoc key alist [=]
-Return the pair from @var{alist} which matches @var{key}.  Equality is
-determined by @var{=}, which defaults to @code{equal?} if not given.
-@var{alist} must be an association lists---a list of pairs.
+Return the pair from @var{alist} which matches @var{key}.  This
+extends the core @code{assoc} (@pxref{Retrieving Alist Entries}) by
+taking an optional @var{=} comparison procedure.
 
-This function extends the core @code{assoc} by accepting an equality
-predicate.  (@pxref{Association Lists})
+The default comparison is @code{equal?}.  If an @var{=} parameter is
+given it's called @code{(@var{=} @var{key} @var{alistcar})}, ie. the
+given target @var{key} is the first argument, and a @code{car} from
+@var{alist} is second.
+
+For example a case-insensitive string lookup,
+
+@example
+(assoc "yy" '(("XX" . 1) ("YY" . 2)) string-ci=?)
+@result{} ("YY" . 2)
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} alist-cons key datum alist
