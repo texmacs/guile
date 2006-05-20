@@ -931,18 +931,6 @@ fi
 #
 AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
 
-AC_CACHE_CHECK([for S_ISLNK in sys/stat.h], ac_cv_macro_S_ISLNK,
-  [AC_TRY_CPP([#include <sys/stat.h>
-               #ifndef S_ISLNK
-               #error no S_ISLNK
-               #endif],
-               ac_cv_macro_S_ISLNK=yes,
-               ac_cv_macro_S_ISLNK=no)])
-if test $ac_cv_macro_S_ISLNK = yes; then
-  AC_DEFINE(HAVE_S_ISLNK, 1,
-    [Define this if your system defines S_ISLNK in sys/stat.h.])
-fi
-
 AC_STRUCT_TIMEZONE
 GUILE_STRUCT_UTIMBUF
 
