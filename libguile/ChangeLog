@@ -1,3 +1,8 @@
+2006-05-23  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c: Remove "fwrite" declaration under "! HAVE_UNISTD_H".
+	It's unused and will be in stdio.h anyway (if it's anywhere).
+
 2006-05-20  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c (scm_stat2scm): Test #ifdef S_ISLNK directly, rather than
