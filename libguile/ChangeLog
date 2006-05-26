@@ -1,3 +1,11 @@
+2006-05-26  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c (fport_input_waiting): For ioctl, check HAVE_IOCTL as well
+	as defined(FIONREAD), since mingw has FIONREAD but not ioctl().
+	Reported by "The Senator".
+	For select and ioctl, move fdes into those conditionals, to avoid
+	unused variable warning when neither of those used.
+
 2006-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* fports.c: Remove "fwrite" declaration under "! HAVE_UNISTD_H".
