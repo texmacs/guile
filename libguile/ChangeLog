@@ -1,3 +1,8 @@
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c, filesys.c: Add malloc.h to get alloca() on mingw.  Reported
+	by "The Senator".
+
 2006-05-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.c, strings.c: Replace SCM_C_INLINE with
