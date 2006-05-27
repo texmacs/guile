@@ -414,9 +414,13 @@ have a limit on the number of arguments a function takes, which the
 
 @deffn {Scheme Procedure} append-reverse rev-head tail
 @deffnx {Scheme Procedure} append-reverse! rev-head tail
-Reverse @var{rev-head}, append @var{tail} and return the result.  This
-is equivalent to @code{(append (reverse @var{rev-head}) @var{tail})},
-but more efficient.
+Reverse @var{rev-head}, append @var{tail} to it, and return the
+result.  This is equivalent to @code{(append (reverse @var{rev-head})
+@var{tail})}, but its implementation is more efficient.
+
+@example
+(append-reverse '(1 2 3) '(4 5 6)) @result{} (3 2 1 4 5 6)
+@end example
 
 @code{append-reverse!} may modify @var{rev-head} in order to produce
 the result.
