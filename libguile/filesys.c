@@ -45,6 +45,9 @@ char *alloca ();
 #  endif
 # endif
 #endif
+#if HAVE_MALLOC_H
+#include <malloc.h> /* alloca on mingw, though its not used on that system */
+#endif
 
 #include <stdio.h>
 #include <errno.h>
