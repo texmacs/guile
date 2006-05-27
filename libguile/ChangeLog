@@ -1,3 +1,8 @@
+2006-05-27  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-4.c, strings.c: Replace SCM_C_INLINE with
+	SCM_C_INLINE_KEYWORD.  Thanks to Mark Gran!
+
 2006-05-26  Kevin Ryde  <user42@zip.com.au>
 
 	* fports.c (fport_input_waiting): For ioctl, check HAVE_IOCTL as well
