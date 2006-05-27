@@ -1,3 +1,10 @@
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (number->string): Disable 11.333 and 1.324e44
+	tests, as these can't be expected to come out precisely in the current
+	implementation, and in fact don't under gcc 4.  Reported by Hector
+	Herrera.
+
 2006-05-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/ports.test, tests/filesys.test: Delete test file after all
