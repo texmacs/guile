@@ -1,3 +1,8 @@
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Length Append etc): Add an append-reverse
+	example.
+
 2006-05-20  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Pairs): Cross reference SRFI-1 second, third,

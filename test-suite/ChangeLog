@@ -5,6 +5,8 @@
 	implementation, and in fact don't under gcc 4.  Reported by Hector
 	Herrera.
 
+	* tests/srfi-1.test (append-reverse, append-reverse!): New tests.
+
 2006-05-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/ports.test, tests/filesys.test: Delete test file after all
