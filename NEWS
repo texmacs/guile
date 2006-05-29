@@ -15,12 +15,19 @@ Each release reports the NEWS in the following sections:
 Changes in 1.8.1:
 
 * Changes to the distribution
+
 ** New primitive-_exit giving the _exit() system call.
 
+* Changes to Scheme functions and syntax
+
+** A one-dimenisonal array can now be 'equal?' to a vector.
+
 * Changes to the C interface 
+
 ** New function scm_c_locale_stringn_to_number.
 
 * Bug fixes.
+
 ** array-set! with bit vector.
 ** make-shared-array fixes, including examples in the manual which failed.
 ** string<? and friends follow char<? etc order on 8-bit chars.

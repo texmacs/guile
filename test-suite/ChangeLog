@@ -1,3 +1,7 @@
+2006-05-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/unif.test ("vector equal? one-dimensional array"): New.
+
 2006-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (number->string): Disable 11.333 and 1.324e44
