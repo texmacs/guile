@@ -165,50 +165,50 @@ scm_make_port_type (char *name,
 }
 
 void
-scm_set_port_mark (long tc, SCM (*mark) (SCM))
+scm_set_port_mark (scm_t_bits tc, SCM (*mark) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].mark = mark;
 }
 
 void
-scm_set_port_free (long tc, size_t (*free) (SCM))
+scm_set_port_free (scm_t_bits tc, size_t (*free) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].free = free;
 }
 
 void
-scm_set_port_print (long tc, int (*print) (SCM exp, SCM port,
+scm_set_port_print (scm_t_bits tc, int (*print) (SCM exp, SCM port,
 					   scm_print_state *pstate))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].print = print;
 }
 
 void
-scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM))
+scm_set_port_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].equalp = equalp;
 }
 
 void
-scm_set_port_flush (long tc, void (*flush) (SCM port))
+scm_set_port_flush (scm_t_bits tc, void (*flush) (SCM port))
 {
    scm_ptobs[SCM_TC2PTOBNUM (tc)].flush = flush;
 }
 
 void
-scm_set_port_end_input (long tc, void (*end_input) (SCM port, int offset))
+scm_set_port_end_input (scm_t_bits tc, void (*end_input) (SCM port, int offset))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].end_input = end_input;
 }
 
 void
-scm_set_port_close (long tc, int (*close) (SCM))
+scm_set_port_close (scm_t_bits tc, int (*close) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].close = close;
 }
 
 void
-scm_set_port_seek (long tc, off_t (*seek) (SCM port,
+scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port,
 					   off_t OFFSET,
 					   int WHENCE))
 {
@@ -216,13 +216,13 @@ scm_set_port_seek (long tc, off_t (*seek) (SCM port,
 }
 
 void
-scm_set_port_truncate (long tc, void (*truncate) (SCM port, off_t length))
+scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].truncate = truncate;
 }
 
 void
-scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
+scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].input_waiting = input_waiting;
 }
