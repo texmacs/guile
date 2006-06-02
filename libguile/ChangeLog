@@ -1,3 +1,26 @@
+2006-06-03  Kevin Ryde  <user42@zip.com.au>
+
+	* read.c (s_vector): Conditionalize on SCM_ENABLE_ELISP, to avoid
+	unused variable warning when elisp disabled.  Reported by Ryan
+	VanderBijl.
+
+	* throw.c (scm_handle_by_message): Add dummy return value to avoid
+	compiler warning on cygwin.  Reported by Ryan VanderBijl.
+	
+	* Makefile.am (EXTRA_DOT_X_FILES): Typo in dependency rule, was a
+	duplicate of EXTRA_DOT_DOC_FILES.
+	(DOT_X_FILES, EXTRA_DOT_X_FILES, DOT_DOC_FILES, EXTRA_DOT_DOC_FILES):
+	Add scmconfig.h to dependencies, since these all run cpp.  Helps a
+	parallel "make -j2".  Reported by Mattias Holm.
+
+2006-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c, ports.h (scm_set_port_mark, scm_set_port_free,
+	scm_set_port_print, scm_set_port_equalp, scm_set_port_flush,
+	scm_set_port_end_input, scm_set_port_close, scm_set_port_seek,
+	scm_set_port_truncate, scm_set_port_input_waiting): Use scm_t_bits for
+	port type descriptor, same as scm_make_port_type return value.
+
 2006-05-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* eq.c (scm_equal_p): Use scm_array_equal_p explicitely when one
