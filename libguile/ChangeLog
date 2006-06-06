@@ -1,3 +1,9 @@
+2006-06-06  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (BUILT_SOURCES): Remove guile.texi, only used by
+	maintainers (with doc/maint/docstring.el).  Fixes parallel "make -j2"
+	reported by Mattias Holm.
+	
 2006-06-03  Kevin Ryde  <user42@zip.com.au>
 
 	* read.c (s_vector): Conditionalize on SCM_ENABLE_ELISP, to avoid
