@@ -1,3 +1,14 @@
+2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
+
+	* eq.c: Include "struct.h", "goops.h" and "objects.h".
+	(scm_equal_p): Invoke `scm_i_struct_equalp ()' on structures that
+	are not GOOPS instances.
+	* struct.c: Include "eq.h".
+	(scm_free_structs): Use `SCM_STRUCT_VTABLE_DATA ()' instead of
+	hand-written code.
+	(scm_i_struct_equalp): New.
+	* struct.h (scm_i_struct_equalp): New declaration.
+
 2006-06-06  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (BUILT_SOURCES): Remove guile.texi, only used by
