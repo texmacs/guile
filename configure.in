@@ -923,6 +923,7 @@ fi
 #     st_rdev
 #     st_blksize
 #     st_blocks   not in mingw
+#     tm_gmtoff   BSD+GNU, not in C99
 #
 # Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
 # AC_LIBOBJ(fileblocks) replacement which that macro gives.
@@ -930,7 +931,21 @@ fi
 AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
 
 AC_STRUCT_TIMEZONE
+AC_CHECK_MEMBERS([struct tm.tm_gmtoff],,,
+[#include <time.h>
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+])
 GUILE_STRUCT_UTIMBUF
+
 
 #--------------------------------------------------------------------
 #
