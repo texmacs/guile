@@ -1,3 +1,8 @@
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Time): In tm:gmtoff, give example values, note not the
+	same as C tm_gmtoff.
+
 2006-06-16  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-utility.texi (Equality): Mentioned the behavior of `equal?'
