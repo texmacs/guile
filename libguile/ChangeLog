@@ -1,3 +1,12 @@
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c (bdtime2c): tm_gmtoff is seconds East, so take negative of
+	tm:gmtoff which is seconds West.  Reported by Aaron VanDevender.
+	(bdtime2c): Test HAVE_STRUCT_TM_TM_GMTOFF for tm_gmtoff, rather than
+	HAVE_TM_ZONE.
+	(scm_strptime): Use tm_gmtoff from the strptime result when that field
+	exists, it's set by glibc strptime "%s".
+	
 2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
 
 	* eq.c: Include "struct.h", "goops.h" and "objects.h".
