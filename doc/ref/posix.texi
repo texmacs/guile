@@ -1170,6 +1170,13 @@ Daylight saving indicator (0 for ``no'', greater than 0 for ``yes'', less than
 @deffn {Scheme Procedure} tm:gmtoff tm
 @deffnx {Scheme Procedure} set-tm:gmtoff tm val
 Time zone offset in seconds west of @acronym{UTC} (-46800 to 43200).
+For example on East coast USA (zone @samp{EST+5}) this would be 18000
+(ie.@: @m{5\times60\times60,5*60*60}) in winter, or 14400
+(ie.@: @m{4\times60\times60,4*60*60}) during daylight savings.
+
+Note @code{tm:gmtoff} is not the same as @code{tm_gmtoff} in the C
+@code{tm} structure.  @code{tm_gmtoff} is seconds east and hence the
+negative of the value here.
 @end deffn
 @deffn {Scheme Procedure} tm:zone tm
 @deffnx {Scheme Procedure} set-tm:zone tm val
