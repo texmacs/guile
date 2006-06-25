@@ -498,7 +498,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   lt->tm_yday = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 7));
   lt->tm_isdst = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 8));
 #ifdef HAVE_TM_ZONE
-  lt->tm_gmtoff = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 9));
+  lt->tm_gmtoff = - scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 9));
   if (scm_is_false (SCM_SIMPLE_VECTOR_REF (sbd_time, 10)))
     lt->tm_zone = NULL;
   else
