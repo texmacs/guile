@@ -245,9 +245,9 @@
       (let ((tm (localtime 86400)))
 	(string=? "+0000" (strftime "%z" tm))))
 
-    ;; prior to guile 1.8.1 this test failed, getting "+0500", because we
-    ;; didn't adjust for tm:gmtoff being west of Greenwich versus tm_gmtoff
-    ;; being east of Greenwich
+    ;; prior to guile 1.6.9 and 1.8.1 this test failed, getting "+0500",
+    ;; because we didn't adjust for tm:gmtoff being west of Greenwich versus
+    ;; tm_gmtoff being east of Greenwich
     (pass-if "EST+5"
       (or have-strftime-%z (throw 'unsupported))
       (putenv "TZ=EST+5")
@@ -291,7 +291,8 @@
       (let ((tm (car (strptime "%s" "86400"))))
 	(eqv? 0 (tm:gmtoff tm))))
 
-    ;; prior to guile 1.8.1 we didn't pass tm_gmtoff back from strptime
+    ;; prior to guile 1.6.9 and 1.8.1 we didn't pass tm_gmtoff back from
+    ;; strptime
     (pass-if "gmtoff on EST+5"
       (or have-strptime-%s (throw 'unsupported))
       (putenv "TZ=EST+5")
