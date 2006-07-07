@@ -1,3 +1,13 @@
+2006-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* environments.c (core_environments_unobserve): Use if/else rather
+	than ?: for "SET" bits, avoiding complaints from AIX xlc compiler
+	about them not being rvalues.  Reported by Mike Gran.
+
+	* Makefile.am (version.h): Don't use $< in an explicit rule, it's not
+	portable and in particular fails on OpenBSD and AIX (see autoconf
+	manual too).  Reported by Mike Gran.
+
 2006-06-25  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (bdtime2c): tm_gmtoff is seconds East, so take negative of
