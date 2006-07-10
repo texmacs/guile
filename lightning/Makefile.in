@@ -66,7 +66,7 @@ DATA = $(dist_pkgdata_DATA)
 am__dist_noinst_HEADERS_DIST = funcs-common.h core-common.h \
 	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
 	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
-	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
+	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h lightning.h
 am__nobase_dist_lightning_HEADERS_DIST = funcs-common.h core-common.h \
 	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
 	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
@@ -183,7 +183,7 @@ LIGHTNING_FILES = funcs-common.h core-common.h fp-common.h \
 @LIGHTNING_MAIN_TRUE@dist_pkgdata_DATA = Makefile.am
 @LIGHTNING_MAIN_TRUE@nobase_dist_lightning_HEADERS = $(LIGHTNING_FILES)
 @LIGHTNING_MAIN_TRUE@nodist_lightning_HEADERS = asm.h core.h funcs.h fp.h 
-@LIGHTNING_MAIN_FALSE@dist_noinst_HEADERS = $(LIGHTNING_FILES)
+@LIGHTNING_MAIN_FALSE@dist_noinst_HEADERS = $(LIGHTNING_FILES) lightning.h
 all: all-am
 
 .SUFFIXES:
