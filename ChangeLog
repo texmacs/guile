@@ -1,6 +1,13 @@
 2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludovic.courtes@laas.fr>
 
+	* doc/using.texi: Clarify "Using autoconf" section
+	and rename it to "Bundling lightning"
+	* lightning.m4: Work also if lightning is not bundled.
+
+2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludovic.courtes@laas.fr>
+
 	* lightning/ppc/core.h (_jit_mod): Replace with...
 	(_jit_mod_big, _jit_mod_small): ... these.
 	(jit_modi_i, jit_modi_ui): Rewrite.

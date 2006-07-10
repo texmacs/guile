@@ -4,11 +4,11 @@
 
 @macro usingmenu{}
 @ifset USING
-* Installation::          Configuring and installing GNU lightning
-* The instruction set::   The RISC instruction set used i GNU lightning
-* GNU lightning macros::  GNU lightning's macros
-* Reentrancy::            Re-entrant usage of GNU lightning
-* Autoconf support::      Using @code{autoconf} with GNU lightning
+* Installation::            Configuring and installing GNU lightning
+* The instruction set::     The RISC instruction set used i GNU lightning
+* GNU lightning macros::    GNU lightning's macros
+* Reentrancy::              Re-entrant usage of GNU lightning
+* Bundling GNU lightning::  Using GNU lightning in your programs
 @end ifset
 @end macro
 

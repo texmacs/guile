@@ -18,12 +18,13 @@ else
 	powerpc) cpu_subdir=ppc						;;
 	*)	 ;;
   esac
-  test -n "$cpu_subdir" && lightning=yes
+  test -n "$cpu_subdir" && test -d "$srcdir/lightning/$cpu_subdir" && \
+  lightning=yes
 fi
 
 ifdef([AC_HELP_STRING], [
   dnl autoconf 2.50 style
-  if test -n "$cpu_subdir"; then
+  if test -n "$cpu_subdir" && test -d "$srcdir/lightning/$cpu_subdir"; then
     AC_CONFIG_LINKS(lightning/asm.h:lightning/$cpu_subdir/asm.h
 		    lightning/core.h:lightning/$cpu_subdir/core.h
 		    lightning/fp.h:lightning/$cpu_subdir/fp.h
@@ -34,7 +35,7 @@ ifdef([AC_HELP_STRING], [
 ], [
   dnl autoconf 2.13 style
   AC_OUTPUT_COMMANDS([
-    if test -n "$cpu_subdir"; then
+    if test -n "$cpu_subdir" && test -d "$srcdir/lightning/$cpu_subdir"; then
       for i in asm fp core funcs; do
         echo linking $srcdir/lightning/$cpu_subdir/$i.h to lightning/$i.h 
         (cd lightning && $LN_S -f $srcdir/$cpu_subdir/$i.h $i.h)

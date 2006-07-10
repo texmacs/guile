@@ -40,7 +40,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(dist_aclocal_DATA) \
-	$(noinst_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(include_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(srcdir)/lightningize.in \
 	$(top_srcdir)/configure AUTHORS COPYING COPYING.DOC \
 	COPYING.LESSER ChangeLog INSTALL NEWS THANKS \
@@ -57,7 +57,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = lightningize
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(aclocaldir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(aclocaldir)" \
+	"$(DESTDIR)$(includedir)"
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
 SOURCES =
@@ -76,7 +77,8 @@ am__vpath_adj = case $$p in \
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 dist_aclocalDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(dist_aclocal_DATA)
-HEADERS = $(noinst_HEADERS)
+includeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = $(SUBDIRS)
@@ -190,7 +192,7 @@ target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = 1.7 gnu
 SUBDIRS = . doc lightning opcode tests
 EXTRA_DIST = config/texi2dvi config/help2man
-noinst_HEADERS = lightning.h
+include_HEADERS = lightning.h
 aclocaldir = $(datadir)/aclocal
 dist_aclocal_DATA = lightning.m4
 bin_SCRIPTS = lightningize
@@ -286,6 +288,23 @@ uninstall-dist_aclocalDATA:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(aclocaldir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(aclocaldir)/$$f"; \
+	done
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(includedir)" || $(mkdir_p) "$(DESTDIR)$(includedir)"
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(includeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(includedir)/$$f'"; \
+	  $(includeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(includedir)/$$f"; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(includedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(includedir)/$$f"; \
 	done
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -567,7 +586,7 @@ check: check-recursive
 all-am: Makefile $(SCRIPTS) $(DATA) $(HEADERS) config.h
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(aclocaldir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(aclocaldir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-recursive
@@ -613,7 +632,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-dist_aclocalDATA
+install-data-am: install-dist_aclocalDATA install-includeHEADERS
 
 install-exec-am: install-binSCRIPTS
 
@@ -642,7 +661,7 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-binSCRIPTS uninstall-dist_aclocalDATA \
-	uninstall-info-am
+	uninstall-includeHEADERS uninstall-info-am
 
 uninstall-info: uninstall-info-recursive
 
@@ -654,13 +673,14 @@ uninstall-info: uninstall-info-recursive
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binSCRIPTS \
 	install-data install-data-am install-dist_aclocalDATA \
-	install-exec install-exec-am install-info install-info-am \
-	install-man install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic maintainer-clean-recursive \
-	mostlyclean mostlyclean-generic mostlyclean-recursive pdf \
-	pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-binSCRIPTS uninstall-dist_aclocalDATA \
+	install-exec install-exec-am install-includeHEADERS \
+	install-info install-info-am install-man install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-binSCRIPTS \
+	uninstall-dist_aclocalDATA uninstall-includeHEADERS \
 	uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

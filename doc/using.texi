@@ -1163,8 +1163,8 @@ constant.  Of course, expressions like @code{JIT_R0} and
 @code{JIT_R(0)} denote the same register, and likewise for
 integer callee-saved, or floating-point, registers.
 
-@node Autoconf support
-@chapter Using @code{autoconf} with @lightning{}
+@node Bundling GNU lightning
+@chapter Using @lightning{} in your programs
 
 It is very easy to include @lightning{}'s source code (without the
 documentation and examples) into your program's distribution 
@@ -1180,10 +1180,13 @@ distribution directory.
 @end example
 
 @noindent
-If you're using Automake, you might be pleased to know that
+This will copy the source code for the @lightning{} back ends
+into the @file{lightning} directory of your package.
+
+@item If you're using Automake, you might be pleased to know that
 @file{Makefile.am} files will be already there.
 
-@item If you're not using Automake and @code{aclocal}, instead,
+If you're not using Automake and @code{aclocal}, instead,
 you should delete the @file{Makefile.am} files (they are of no use
 to you) and copy the contents of the @file{lightning.m4} file, found in
 @command{aclocal}'s macro repository (usually @file{/usr/share/aclocal},
@@ -1195,12 +1198,12 @@ macro in your @file{configure.in} file.
 
 @code{LIGHTNING_CONFIGURE_IF_NOT_FOUND} will first look for a
 pre-installed copy of @lightning{} and, if it can be found, it will
-use it; otherwise, it will do exactly the same things that
-@lightning{}'s own configure script does.  If @lightning{} is
-already installed, or if the configuration process succeeds, it
-will define the @code{HAVE_LIGHTNING} symbol.
+use it; otherwise, it will test if there is a back-end for the host
+system.  If @lightning{} is already installed, or if the system is
+supported by lightning, it will define the @code{HAVE_LIGHTNING}
+symbol.
 
-In addtion, an Automake conditional named @code{HAVE_INSTALLED_LIGHTNING}
+In addition, an Automake conditional named @code{HAVE_INSTALLED_LIGHTNING}
 will be set if @lightning{} is already installed, which can be used to
 set up include paths appropriately.
 
