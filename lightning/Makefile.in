@@ -66,7 +66,7 @@ DATA = $(dist_pkgdata_DATA)
 am__dist_noinst_HEADERS_DIST = funcs-common.h core-common.h \
 	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
 	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
-	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h lightning.h
+	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
 am__nobase_dist_lightning_HEADERS_DIST = funcs-common.h core-common.h \
 	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
 	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
@@ -183,7 +183,7 @@ LIGHTNING_FILES = funcs-common.h core-common.h fp-common.h \
 @LIGHTNING_MAIN_TRUE@dist_pkgdata_DATA = Makefile.am
 @LIGHTNING_MAIN_TRUE@nobase_dist_lightning_HEADERS = $(LIGHTNING_FILES)
 @LIGHTNING_MAIN_TRUE@nodist_lightning_HEADERS = asm.h core.h funcs.h fp.h 
-@LIGHTNING_MAIN_FALSE@dist_noinst_HEADERS = $(LIGHTNING_FILES) lightning.h
+@LIGHTNING_MAIN_FALSE@dist_noinst_HEADERS = $(LIGHTNING_FILES)
 all: all-am
 
 .SUFFIXES:
@@ -318,6 +318,7 @@ GTAGS:
 
 distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
+@LIGHTNING_MAIN_TRUE@dist-hook:
 
 distdir: $(DISTFILES)
 	$(mkdir_p) $(distdir)/i386 $(distdir)/ppc $(distdir)/sparc
@@ -347,6 +348,9 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 check-am: all-am
 check: check-am
 all-am: Makefile $(DATA) $(HEADERS)
@@ -430,11 +434,12 @@ uninstall-am: uninstall-dist_pkgdataDATA uninstall-info-am \
 	uninstall-nodist_lightningHEADERS
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	ctags distclean distclean-generic distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_pkgdataDATA \
-	install-exec install-exec-am install-info install-info-am \
-	install-man install-nobase_dist_lightningHEADERS \
+	ctags dist-hook distclean distclean-generic distclean-tags \
+	distdir dvi dvi-am html html-am info info-am install \
+	install-am install-data install-data-am \
+	install-dist_pkgdataDATA install-exec install-exec-am \
+	install-info install-info-am install-man \
+	install-nobase_dist_lightningHEADERS \
 	install-nodist_lightningHEADERS install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
@@ -443,6 +448,9 @@ uninstall-am: uninstall-dist_pkgdataDATA uninstall-info-am \
 	uninstall-nobase_dist_lightningHEADERS \
 	uninstall-nodist_lightningHEADERS
 
+
+@LIGHTNING_MAIN_FALSE@dist-hook:
+@LIGHTNING_MAIN_FALSE@	cp -p $(srcdir)/lightning.h $(distdir)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
