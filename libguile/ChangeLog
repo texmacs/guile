@@ -1,3 +1,8 @@
+2006-07-12  Ludovic Courtès <ludovic.courtes@laas.fr>
+
+	* numbers.c (guile_ieee_init): Use regular ANSI C casts rather
+	than C++-style `X_CAST ()'.  Patch posted by by Mike Gran.
+
 2006-07-08  Kevin Ryde  <user42@zip.com.au>
 
 	* environments.c (core_environments_unobserve): Use if/else rather
