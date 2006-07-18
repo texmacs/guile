@@ -14,7 +14,6 @@
 
 @SET_MAKE@
 
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -38,10 +37,10 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-noinst_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
+check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 	printf2$(EXEEXT) rpn$(EXEEXT) fib$(EXEEXT) fibdelay$(EXEEXT) \
 	add$(EXEEXT) bp$(EXEEXT) testfp$(EXEEXT) funcfp$(EXEEXT) \
-	rpnfp$(EXEEXT) modi$(EXEEXT)
+	rpnfp$(EXEEXT) modi$(EXEEXT) ldxi$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -51,7 +50,6 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-PROGRAMS = $(noinst_PROGRAMS)
 add_SOURCES = add.c
 add_OBJECTS = add.$(OBJEXT)
 add_LDADD = $(LDADD)
@@ -81,6 +79,10 @@ incr_SOURCES = incr.c
 incr_OBJECTS = incr.$(OBJEXT)
 incr_LDADD = $(LDADD)
 @DISASS_TRUE@incr_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
+ldxi_SOURCES = ldxi.c
+ldxi_OBJECTS = ldxi.$(OBJEXT)
+ldxi_LDADD = $(LDADD)
+@DISASS_TRUE@ldxi_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
 modi_SOURCES = modi.c
 modi_OBJECTS = modi.$(OBJEXT)
 modi_LDADD = $(LDADD)
@@ -113,10 +115,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = add.c bp.c fib.c fibdelay.c fibit.c funcfp.c incr.c modi.c \
-	printf.c printf2.c rpn.c rpnfp.c testfp.c
-DIST_SOURCES = add.c bp.c fib.c fibdelay.c fibit.c funcfp.c incr.c \
+SOURCES = add.c bp.c fib.c fibdelay.c fibit.c funcfp.c incr.c ldxi.c \
 	modi.c printf.c printf2.c rpn.c rpnfp.c testfp.c
+DIST_SOURCES = add.c bp.c fib.c fibdelay.c fibit.c funcfp.c incr.c \
+	ldxi.c modi.c printf.c printf2.c rpn.c rpnfp.c testfp.c
 DATA = $(noinst_DATA)
 ETAGS = etags
 CTAGS = ctags
@@ -216,10 +218,10 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir)
-noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok bp.ok modi.ok
+noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok bp.ok modi.ok ldxi.ok
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a
-@REGRESSION_TESTING_TRUE@TESTS = fib fibit fibdelay incr printf printf2 rpn add bp testfp funcfp rpnfp modi
+@REGRESSION_TESTING_TRUE@TESTS = fib fibit fibdelay incr printf printf2 rpn add bp testfp funcfp rpnfp modi ldxi
 @REGRESSION_TESTING_TRUE@TESTS_ENVIRONMENT = $(srcdir)/run-test
 all: all-am
 
@@ -255,8 +257,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-clean-noinstPROGRAMS:
-	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+clean-checkPROGRAMS:
+	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
 add$(EXEEXT): $(add_OBJECTS) $(add_DEPENDENCIES) 
 	@rm -f add$(EXEEXT)
 	$(LINK) $(add_LDFLAGS) $(add_OBJECTS) $(add_LDADD) $(LIBS)
@@ -278,6 +280,9 @@ funcfp$(EXEEXT): $(funcfp_OBJECTS) $(funcfp_DEPENDENCIES)
 incr$(EXEEXT): $(incr_OBJECTS) $(incr_DEPENDENCIES) 
 	@rm -f incr$(EXEEXT)
 	$(LINK) $(incr_LDFLAGS) $(incr_OBJECTS) $(incr_LDADD) $(LIBS)
+ldxi$(EXEEXT): $(ldxi_OBJECTS) $(ldxi_DEPENDENCIES) 
+	@rm -f ldxi$(EXEEXT)
+	$(LINK) $(ldxi_LDFLAGS) $(ldxi_OBJECTS) $(ldxi_LDADD) $(LIBS)
 modi$(EXEEXT): $(modi_OBJECTS) $(modi_DEPENDENCIES) 
 	@rm -f modi$(EXEEXT)
 	$(LINK) $(modi_LDFLAGS) $(modi_OBJECTS) $(modi_LDADD) $(LIBS)
@@ -310,6 +315,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fibit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/funcfp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/incr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldxi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printf2.Po@am__quote@
@@ -481,9 +487,10 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(PROGRAMS) $(DATA)
+all-am: Makefile $(DATA)
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -511,7 +518,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinstPROGRAMS mostlyclean-am
+clean-am: clean-checkPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -559,7 +566,7 @@ ps-am:
 uninstall-am: uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-generic clean-noinstPROGRAMS ctags distclean \
+	clean-checkPROGRAMS clean-generic ctags distclean \
 	distclean-compile distclean-generic distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-exec install-exec-am \

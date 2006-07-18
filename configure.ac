@@ -8,7 +8,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl ----------------------------- HOST SYSTEM -----------------------------------
 
 AC_PREREQ(2.54)
-AC_INIT([GNU lightning], 1.2a, bonzini@gnu.org, lightning)
+AC_INIT([GNU lightning], 1.2b, bonzini@gnu.org, lightning)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_SRCDIR([lightning.h])
 
