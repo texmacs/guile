@@ -1,3 +1,10 @@
+2006-07-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* continuations.c: Add __attribute__ ((returns_twice)) to the
+	ia64_getcontext prototype so that gcc will make the right
+	arrangements and avoid an illegal instruction during
+	call-with-current-continuation.
+
 2006-07-12  Ludovic Courtès <ludovic.courtes@laas.fr>
 
 	* numbers.c (guile_ieee_init): Use regular ANSI C casts rather
