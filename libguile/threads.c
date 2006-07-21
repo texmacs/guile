@@ -27,6 +27,11 @@
 #endif
 #include <stdio.h>
 #include <assert.h>
+
+#ifdef HAVE_STRING_H
+#include <string.h>   /* for memset used by FD_ZERO on Solaris 10 */
+#endif
+
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
