@@ -29,24 +29,22 @@
 #  include <config.h>
 #endif
 
-/* AIX requires this to be the first thing in the file.  The #pragma
-   directive is indented so pre-ANSI compilers will ignore it, rather
-   than choke on it.  */
-#ifndef __GNUC__
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
-#   pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
+/* This blob per the Autoconf manual (under "Particular Functions"). */
+#if HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
 # endif
-#endif
-#if HAVE_MALLOC_H
-#include <malloc.h> /* alloca on mingw, though its not used on that system */
+void *alloca (size_t);
 #endif
 
 #include <stdio.h>
