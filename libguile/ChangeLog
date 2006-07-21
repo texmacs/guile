@@ -1,3 +1,12 @@
+2006-07-21  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c, filesys.c (alloca): Update <alloca.h> etc blob, per current
+	autoconf recommendation.  Should fix Solaris 10 reported by Claes
+	Wallin.
+
+	* threads.c: Include <string.h>, needed for memset() which is used by
+	FD_ZERO() on Solaris 10.  Reported by Claes Wallin.
+
 2006-07-18  Rob Browning  <rlb@defaultvalue.org>
 
 	* continuations.c: Add __attribute__ ((returns_twice)) to the
