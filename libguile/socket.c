@@ -98,9 +98,7 @@ SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
-
-  return scm_from_ulong (htonl (c_in));
+  return scm_from_ulong (htonl (scm_to_uint32 (value)));
 }
 #undef FUNC_NAME
 
@@ -111,9 +109,7 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
-
-  return scm_from_ulong (ntohl (c_in));
+  return scm_from_ulong (ntohl (scm_to_uint32 (value)));
 }
 #undef FUNC_NAME
 
