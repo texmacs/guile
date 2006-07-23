@@ -1,3 +1,11 @@
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/socket.test (htonl, ntohl): New tests.
+
+2006-07-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/time.test (localtime, mktime, strptime): More tests.
+
 2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (SCM_TESTS): Added `tests/structs.test'.
