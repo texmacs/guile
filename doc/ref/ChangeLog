@@ -1,3 +1,9 @@
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* api-evaluation.texi (Fly Evaluation): Add scm_c_eval_string.
+	(Loading): Add scm_c_primitive_load.
+	Reported by Jon Wilson.
+	
 2006-06-25  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Time): In tm:gmtoff, give example values, note not the
