@@ -1,5 +1,8 @@
 2006-07-24  Kevin Ryde  <user42@zip.com.au>
 
+	* posix.c (sethostname): Give prototype if not HAVE_DECL_SETHOSTNAME,
+	for the benefit of Solaris 10.  Reported by Claes Wallin.
+
 	* socket.c (scm_htonl, scm_ntohl): Use scm_to_uint32 rather than
 	NUM2ULONG, to enforce 32-bit range check on systems with 64-bit long.
 
