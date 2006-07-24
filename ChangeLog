@@ -1,3 +1,9 @@
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_DECLS): Add sethostname for Solaris 10.
+	(AC_CHECK_FUNCS): Remove dirfd, it's a macro.
+	Reported by Claes Wallin.
+	
 2006-06-25  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_MEMBERS): Test struct tm.tm_gmtoff.

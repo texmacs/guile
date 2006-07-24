@@ -1,5 +1,8 @@
 2006-07-24  Kevin Ryde  <user42@zip.com.au>
 
+	* filesys.c (dirfd): Test with #ifndef rather than HAVE_DIRFD, since
+	it's a macro on MacOS X.  Reported by Claes Wallin.
+
 	* posix.c (sethostname): Give prototype if not HAVE_DECL_SETHOSTNAME,
 	for the benefit of Solaris 10.  Reported by Claes Wallin.
 
