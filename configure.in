@@ -605,9 +605,12 @@ AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid g
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw
+#   sethostname - the function itself check because it's not in mingw,
+#       the DECL is checked because Solaris 10 doens't have in any header
 #
 AC_CHECK_HEADERS(crypt.h netdb.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
+AC_CHECK_DECLS([sethostname])
 
 # crypt() may or may not be available, for instance in some countries there
 # are restrictions on cryptography.
@@ -877,10 +880,9 @@ AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 # Reasons for testing:
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
 #                                older systems
-#   dirfd - mainly BSD derived, not in older systems
 #   sincos - GLIBC extension
 #
-AC_CHECK_FUNCS(asinh acosh atanh copysign dirfd finite sincos trunc)
+AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 
 # C99 specifies isinf and isnan as macros.
 # HP-UX provides only macros, no functions.
