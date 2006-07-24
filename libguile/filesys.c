@@ -200,9 +200,11 @@ void *alloca (size_t);
 # define fchmod(fd, mode) (-1)
 #endif /* __MINGW32__ */
 
-/* This definition is for Solaris 10, it's probably not right elsewhere, but
-   that's ok, it shouldn't be used elsewhere.  */
-#if ! HAVE_DIRFD
+/* dirfd() returns the file descriptor underlying a "DIR*" directory stream.
+   Found on MacOS X for instance.  The following definition is for Solaris
+   10, it's probably not right elsewhere, but that's ok, it shouldn't be
+   used elsewhere.  */
+#ifndef dirfd
 #define dirfd(dirstream) (dirstream->dd_fd)
 #endif
 
