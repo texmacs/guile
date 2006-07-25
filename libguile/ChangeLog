@@ -1,3 +1,9 @@
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (get_thread_stack_base): Restrict HAVE_PTHREAD_GETATTR_NP
+	on pthreads version, since pthread_getattr_np not available on solaris
+	and macos.  Reported by Claes Wallin.
+
 2006-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c (dirfd): Test with #ifndef rather than HAVE_DIRFD, since
