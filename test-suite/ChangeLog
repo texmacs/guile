@@ -6,6 +6,10 @@
 	scm_init_guile, for the benefit of those systems where we can't
 	implement the latter.  Reported by Claes Wallin.
 
+	* standalone/test-require-extension: Use "&& exit 1" instead of "!" to
+	invert the sense of exit statuses, as the latter doesn't work on
+	Solaris 10.  Reported by Claes Wallin.
+
 2006-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/socket.test (htonl, ntohl): New tests.
