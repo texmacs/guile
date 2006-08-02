@@ -1,3 +1,10 @@
+2006-08-02  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (%record-type-check): New function.
+	(record-accessor, record-modifier): Use it for a strict type check of
+	the given record.  Previously an accessor returned #f on a wrong
+	record type, and modifier silently did nothing.
+
 2006-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* documentation.scm (file-commentary): Move make-regexp into
