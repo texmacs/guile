@@ -429,13 +429,20 @@
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
 
+(define (%record-type-check rtd obj)  ;; private helper
+  (or (eq? rtd (record-type-descriptor obj))
+      (scm-error 'wrong-type-arg "%record-type-check"
+		 "Wrong type record (want `~S'): ~S"
+		 (list (record-type-name rtd) obj)
+		 #f)))
+
 (define (record-accessor rtd field-name)
   (let* ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj)
-		   (and (eq? ',rtd (record-type-descriptor obj))
-			(struct-ref obj ,pos)))
+		   (%record-type-check ',rtd obj)
+		   (struct-ref obj ,pos))
 		the-root-environment)))
 
 (define (record-modifier rtd field-name)
@@ -443,8 +450,8 @@
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj val)
-		   (and (eq? ',rtd (record-type-descriptor obj))
-			(struct-set! obj ,pos val)))
+		   (%record-type-check ',rtd obj)
+		   (struct-set! obj ,pos val))
 		the-root-environment)))
 
 
