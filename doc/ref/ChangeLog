@@ -1,3 +1,8 @@
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* api-i18n.texi (Internationalization): Cross reference gettext manual
+	on plural forms.
+
 2006-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* api-evaluation.texi (Fly Evaluation): Add scm_c_eval_string.

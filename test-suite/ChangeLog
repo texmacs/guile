@@ -1,3 +1,8 @@
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-9.test: More tests, in particular check for exceptions on
+	wrong record types passed to accessor and modifier funcs.
+
 2006-07-25  Kevin Ryde  <user42@zip.com.au>
 
 	* standalone/test-conversion.c, standalone/test-gh.c,

@@ -1,3 +1,8 @@
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in: Test if need braces around PTHREAD_ONCE_INIT, set
+	AC_OUTPUT of SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT.
+
 2006-07-25  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Add pthread_getattr_np.
