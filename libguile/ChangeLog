@@ -1,3 +1,13 @@
+2006-08-12  Kevin Ryde  <user42@zip.com.au>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT):
+	New, set from configure.
+	* gen-scmconfig.c (SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT): New output
+	to scmconfig.h.
+	* pthread-threads.h (SCM_I_PTHREAD_ONCE_INIT): Use
+	SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT to cope with Solaris.
+	Reported by Claes Wallin.
+
 2006-07-25  Kevin Ryde  <user42@zip.com.au>
 
 	* threads.c (get_thread_stack_base): Restrict HAVE_PTHREAD_GETATTR_NP
