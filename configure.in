@@ -1021,13 +1021,37 @@ case "$with_threads" in
       with_threads="pthreads",
       with_threads="null")
 
+    old_CFLAGS="$CFLAGS"
+    CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
+
     # Reasons for testing:
     #     pthread_getattr_np - "np" meaning "non portable" says it
     #         all; not present on MacOS X or Solaris 10
     #
-    old_CFLAGS="$CFLAGS"
-    CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
     AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np)
+
+    # On past versions of Solaris, believe 8 through 10 at least, you
+    # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".
+    # This is contrary to posix:
+    # http://www.opengroup.org/onlinepubs/000095399/functions/pthread_once.html
+    # Check here if this style is required.
+    #
+    # glibc (2.3.6 at least) works both with or without braces, so the
+    # test checks whether it works without.
+    #
+    AC_CACHE_CHECK([whether PTHREAD_ONCE_INIT needs braces],
+      guile_cv_need_braces_on_pthread_once_init,
+      [AC_TRY_COMPILE([#include <pthread.h>],
+        [pthread_once_t foo = PTHREAD_ONCE_INIT;],
+        [guile_cv_need_braces_on_pthread_once_init=no],
+        [guile_cv_need_braces_on_pthread_once_init=yes])])
+    if test "$guile_cv_need_braces_on_pthread_once_init" = yes; then
+      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT=1
+    else
+      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT=0
+    fi
+    AC_SUBST(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT)
+
     CFLAGS="$old_CFLAGS"
 
     # On Solaris, sched_yield lives in -lrt.
