@@ -1013,6 +1013,8 @@ AC_SUBST([SCM_I_GSC_USE_NULL_THREADS])
 AC_ARG_WITH(threads, [  --with-threads          thread interface],
             , with_threads=yes)
 
+AC_SUBST(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT, 0)
+
 case "$with_threads" in
   "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
     ACX_PTHREAD(CC="$PTHREAD_CC"
@@ -1047,10 +1049,7 @@ case "$with_threads" in
         [guile_cv_need_braces_on_pthread_once_init=yes])])
     if test "$guile_cv_need_braces_on_pthread_once_init" = yes; then
       SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT=1
-    else
-      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT=0
     fi
-    AC_SUBST(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT)
 
     CFLAGS="$old_CFLAGS"
 
