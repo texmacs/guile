@@ -1,3 +1,10 @@
+2006-08-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/popen.test (open-input-pipe, open-output-pipe): In the "no
+	duplicate" tests, close parent side of signalling pipe, to hopefully
+	generate an error instead of a hang if something bad in the child
+	means it doesn't write anything.
+
 2006-08-22  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-9.test: More tests, in particular check for exceptions on
