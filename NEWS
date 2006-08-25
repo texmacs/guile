@@ -16,10 +16,9 @@ Changes in 1.8.1 (since 1.8.0):
 
 * Changes to the distribution
 
-** New primitive-_exit giving the _exit() system call.
-
 * Changes to Scheme functions and syntax
 
+** New function primitive-_exit giving the _exit() system call.
 ** A one-dimenisonal array can now be 'equal?' to a vector.
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
 ** `record-accessor' and `record-modifier' strict type checks
