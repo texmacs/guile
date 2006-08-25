@@ -22,6 +22,10 @@ Changes in 1.8.1 (since 1.8.0):
 
 ** A one-dimenisonal array can now be 'equal?' to a vector.
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
+** `record-accessor' and `record-modifier' strict type checks
+Record accessor and modifier procedures now throw an error if the
+record type of the record they're given is not the type expected
+(previously accessors returned #f and modifiers silently did nothing).
 
 * Changes to the C interface 
 
@@ -36,6 +40,8 @@ Changes in 1.8.1 (since 1.8.0):
 ** module autoload and explicit use-modules cooperate.
 ** ice-9 format ~f with infs and nans.
 ** exact->inexact overflows on fractions with big num/den but small result.
+** srfi-9 accessor and modifier procedures have strict record type checks
+(As per the srfi-9 specification.)
 ** srfi-1 assoc "=" procedure argument order.
 ** Build problems on MacOS, SunOS, QNX.
 
