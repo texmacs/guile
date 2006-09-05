@@ -1,5 +1,5 @@
-TEXI2DVI=$(top_srcdir)/config/texi2dvi
-HELP2MAN = $(top_srcdir)/config/help2man
+TEXI2DVI=$(top_srcdir)/build-aux/texi2dvi
+HELP2MAN = $(top_srcdir)/build-aux/help2man
 
 dist_man1_MANS = lightningize.1
 info_TEXINFOS = lightning.texi 

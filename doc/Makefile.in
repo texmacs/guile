@@ -50,8 +50,8 @@ CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
 INFO_DEPS = $(srcdir)/lightning.info
-TEXINFO_TEX = $(top_srcdir)/config/texinfo.tex
-am__TEXINFO_TEX_DIR = $(top_srcdir)/config
+TEXINFO_TEX = $(top_srcdir)/build-aux/texinfo.tex
+am__TEXINFO_TEX_DIR = $(top_srcdir)/build-aux
 DVIS = lightning.dvi
 PDFS = lightning.pdf
 PSS = lightning.ps
@@ -119,8 +119,6 @@ SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__include = @am__include@
@@ -135,23 +133,30 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -160,8 +165,8 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-TEXI2DVI = $(top_srcdir)/config/texi2dvi
-HELP2MAN = $(top_srcdir)/config/help2man
+TEXI2DVI = $(top_srcdir)/build-aux/texi2dvi
+HELP2MAN = $(top_srcdir)/build-aux/help2man
 dist_man1_MANS = lightningize.1
 info_TEXINFOS = lightning.texi 
 EXTRA_TEXINFOS = u-lightning.texi p-lightning.texi
@@ -255,7 +260,7 @@ lightning.html: lightning.texi $(srcdir)/version.texi $(lightning_TEXINFOS)
 $(srcdir)/version.texi:  $(srcdir)/stamp-vti
 $(srcdir)/stamp-vti: lightning.texi $(top_srcdir)/configure
 	@(dir=.; test -f ./lightning.texi || dir=$(srcdir); \
-	set `$(SHELL) $(top_srcdir)/config/mdate-sh $$dir/lightning.texi`; \
+	set `$(SHELL) $(top_srcdir)/build-aux/mdate-sh $$dir/lightning.texi`; \
 	echo "@set UPDATED $$1 $$2 $$3"; \
 	echo "@set UPDATED-MONTH $$2 $$3"; \
 	echo "@set EDITION $(VERSION)"; \

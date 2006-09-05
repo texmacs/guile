@@ -9,7 +9,8 @@ dnl ----------------------------- HOST SYSTEM ----------------------------------
 
 AC_PREREQ(2.54)
 AC_INIT([GNU lightning], 1.2b, bonzini@gnu.org, lightning)
-AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_AUX_DIR(build-aux)
+AC_CONFIG_MACRO_DIR(build-aux)
 AC_CONFIG_SRCDIR([lightning.h])
 
 AC_CANONICAL_TARGET
@@ -24,8 +25,6 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PATH_PROG(INSTALL_INFO, install-info, :, $PATH:/sbin)
 AC_EXEEXT
-
-AC_CHECK_FUNCS(memcpy)
 
 BACKENDS="i386 sparc ppc"
 AC_SUBST(BACKENDS)

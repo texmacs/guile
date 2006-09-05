@@ -3,8 +3,4 @@
 
 #include "lightning.h"
 
-#ifndef HAVE_MEMCPY
-#define memcpy(d, s, n)  bcopy((s),(d),(n))
-#endif
-
 #endif
