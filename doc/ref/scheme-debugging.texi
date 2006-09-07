@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -43,6 +43,8 @@ the error occurred.  By default, Guile then displays only the most
 immediate information about where and why the error occurred, for
 example:
 
+@c  Note: line break in "enter the debugger" to avoid an over-long
+@c  line in both info and DVI.
 @lisp
 (make-string (* 4 (+ 3 #\s)) #\space)
 @print{}
@@ -50,7 +52,8 @@ standard input:2:19: In procedure + in expression (+ 3 #\s):
 standard input:2:19: Wrong type argument: #\s
 ABORT: (wrong-type-arg)
 
-Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
+Type "(backtrace)" to get more information or "(debug)" to enter
+the debugger.
 @end lisp
 
 @noindent
@@ -1043,3 +1046,8 @@ behaviour as well as the more traditional @code{trace-here}.
 The older mechanism will probably become obsolete eventually, but it's
 worth keeping it around for a while until we are sure that the new
 mechanism is correct and does what programmers need.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
