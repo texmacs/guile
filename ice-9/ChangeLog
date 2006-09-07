@@ -1,3 +1,10 @@
+2006-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* format.scm: Module "(ice-9 threads)" no longer used, now no mutex.
+	(format:parse-float): Fix normalization of leading zeros like "02.5"
+	to "2.5".  left-zeros was zeroed before adjusting format:fn-dot,
+	resulting in the latter being unchanged.
+
 2006-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (%record-type-check): New function.
