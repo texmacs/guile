@@ -1,3 +1,7 @@
+2006-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/format.test (~f): Test leading zeros bugfix.
+
 2006-08-25  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/popen.test (open-input-pipe, open-output-pipe): In the "no
