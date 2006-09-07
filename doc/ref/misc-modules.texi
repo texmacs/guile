@@ -270,13 +270,13 @@ With no parameters output is in words as a cardinal like ``ten'', or
 @end example
 
 And also with no parameters, @nicode{~@@r} gives roman numerals and
-@nicode{~@@:r} gives old roman numerals.  In old roman numerals
+@nicode{~:@@r} gives old roman numerals.  In old roman numerals
 there's no ``subtraction'', so 9 is @nicode{VIIII} instead of
 @nicode{IX}.  In both cases only positive numbers can be output.
 
 @example
 (format #t "~@@r" 89)  @print{} LXXXIX     ;; roman
-(format #t "~@@:r" 89) @print{} LXXXVIIII  ;; old roman
+(format #t "~:@@r" 89) @print{} LXXXVIIII  ;; old roman
 @end example
 
 When a parameter is given it means numeric output in the specified
@@ -507,7 +507,7 @@ puts the padding after the sign.
 @example
 (format #f "~,,8$" -1.5)   @result{} "   -1.50"
 (format #f "~,,8:$" -1.5)  @result{} "-   1.50"
-(format #f "~,,8,'.@@:$" 3) @result{} "+...3.00"
+(format #f "~,,8,'.:@@$" 3) @result{} "+...3.00"
 @end example
 
 Note that floating point for dollar amounts is generally not a good
@@ -567,7 +567,7 @@ one, which can be convenient when printing some sort of count.
 
 @example
 (format #t "~d cat~:p" 9)   @print{} 9 cats
-(format #t "~d pupp~@@:p" 5) @print{} 5 puppies
+(format #t "~d pupp~:@@p" 5) @print{} 5 puppies
 @end example
 
 @nicode{~p} is designed for English plurals and there's no attempt to
@@ -777,14 +777,14 @@ The modifiers on @nicode{~(} control the conversion.
 @c  rest lower case.
 @c
 @item
-@nicode{~@@:(} --- upper case.
+@nicode{~:@@(} --- upper case.
 @end itemize
 
 For example,
 
 @example
 (format #t "~(Hello~)")   @print{} hello
-(format #t "~@@:(Hello~)") @print{} HELLO
+(format #t "~:@@(Hello~)") @print{} HELLO
 @end example
 
 In the future it's intended the modifiers @nicode{:} and @nicode{@@}
@@ -813,8 +813,10 @@ elements from it.  This is a convenient way to output a whole list.
 @nicode{~:@{} takes a single argument which is a list of lists, each
 of those contained lists gives the arguments for the iterated format.
 
+@c  @print{} on a new line here to avoid overflowing page width in DVI
 @example
-(format #t "~:@{~dx~d ~@}" '((1 2) (3 4) (5 6))) @print{} 1x2 3x4 5x6
+(format #t "~:@{~dx~d ~@}" '((1 2) (3 4) (5 6)))
+@print{} 1x2 3x4 5x6
 @end example
 
 @nicode{~@@@{} takes arguments directly, with each iteration
@@ -825,11 +827,13 @@ successively consuming arguments.
 (format #t "~@@@{~s=~d ~@}" "x" 1 "y" 2) @print{} "x"=1 "y"=2
 @end example
 
-@nicode{~@@:@{} takes list arguments, one argument for each iteration,
+@nicode{~:@@@{} takes list arguments, one argument for each iteration,
 using that list for the format.
 
+@c  @print{} on a new line here to avoid overflowing page width in DVI
 @example
-(format #t "~@@:@{~dx~d ~@}" '(1 2) '(3 4) '(5 6)) @print{} 1x2 3x4 5x6
+(format #t "~:@@@{~dx~d ~@}" '(1 2) '(3 4) '(5 6))
+@print{} 1x2 3x4 5x6
 @end example
 
 Iterating stops when there are no more arguments or when the
