@@ -1,3 +1,8 @@
+2006-09-22  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Scientific): In sqrt, note it's the positive root
+	which is returned (as per R5RS).
+
 2006-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Formatted Output): Show ":@" rather than "@:",
