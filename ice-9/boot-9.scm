@@ -786,21 +786,6 @@
 ;;; See the file `COPYING' for terms applying to this program.
 ;;;
 
-(define (exp z)
-  (if (real? z) ($exp z)
-      (make-polar ($exp (real-part z)) (imag-part z))))
-
-(define (log z)
-  (if (and (real? z) (>= z 0))
-      ($log z)
-      (make-rectangular ($log (magnitude z)) (angle z))))
-
-(define (sqrt z)
-  (if (real? z)
-      (if (negative? z) (make-rectangular 0 ($sqrt (- z)))
-          ($sqrt z))
-      (make-polar ($sqrt (magnitude z)) (/ (angle z) 2))))
-
 (define expt
   (let ((integer-expt integer-expt))
     (lambda (z1 z2)
@@ -874,9 +859,6 @@
       (if (real? z) ($atan z)
 	  (/ (log (/ (- +i z) (+ +i z))) +2i))
       ($atan2 z (car y))))
-
-(define (log10 arg)
-  (/ (log arg) (log 10)))
 
 
 
