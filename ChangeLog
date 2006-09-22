@@ -1,3 +1,7 @@
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (complex.h, complex double, csqrt): New tests.
+
 2006-08-22  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in: Test if need braces around PTHREAD_ONCE_INIT, set
