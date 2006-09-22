@@ -18,8 +18,10 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib)
-	     (ice-9 format))
+(define-module (test-format)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 format))
+
 
 ;;; FORMAT Basic Output
 
