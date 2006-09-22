@@ -1,3 +1,7 @@
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (exp, log, log10, sqrt): New tests.
+
 2006-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/format.test (~f): Test leading zeros bugfix.

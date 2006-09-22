@@ -1,3 +1,8 @@
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c, numbers.h (scm_log, scm_log10, scm_exp, scm_sqrt): New
+	functions.
+
 2006-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_init_socket): Add MSG_DONTWAIT.

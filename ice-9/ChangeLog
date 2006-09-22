@@ -1,3 +1,8 @@
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (log, log10, exp, sqrt): Remove, now in
+	libguile/numbers.c.
+
 2006-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* format.scm: Module "(ice-9 threads)" no longer used, now no mutex.
