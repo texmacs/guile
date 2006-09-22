@@ -523,13 +523,21 @@ AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 
 # Reasons for testing:
+#   complex.h - new in C99
 #   fenv.h - available in C99, but not older systems
 #
-AC_CHECK_HEADERS([fenv.h io.h libc.h limits.h malloc.h memory.h string.h \
+AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h string.h \
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h])
+
+# "complex double" is new in C99, and "complex" is only a keyword if
+# <complex.h> is included
+AC_CHECK_TYPES(complex double,,,
+[#if HAVE_COMPLEX_H
+#include <complex.h>
+#endif])
 
 # On MacOS X <sys/socklen.h> contains socklen_t, so must include that
 # when testing.
@@ -628,6 +636,38 @@ AC_CHECK_DECLS([sethostname])
 AC_SEARCH_LIBS(crypt, crypt,
   [AC_DEFINE(HAVE_CRYPT,1,
              [Define to 1 if you have the `crypt' function.])])
+
+# glibc 2.3.6 and various prior versions had a bug where csqrt(-i)
+# returned a negative real part, when it should be positive for the
+# principal root.
+#
+if test "$ac_cv_type_complex_double" = yes; then
+  AC_CACHE_CHECK([whether csqrt is usable],
+    guile_cv_use_csqrt,
+    [AC_TRY_RUN([
+#include <complex.h>
+/* "volatile" is meant to prevent gcc from calculating the sqrt as a
+   constant, we want to test libc. */
+volatile complex double z = - _Complex_I;
+int
+main (void)
+{
+  z = csqrt (z);	
+  if (creal (z) > 0.0)
+    return 0;  /* good */
+  else
+    return 1;  /* bad */
+}],
+    [guile_cv_use_csqrt=yes],
+    [guile_cv_use_csqrt="no, glibc 2.3 bug"],
+    [guile_cv_use_csqrt="yes, hopefully (cross-compiling)"])])
+  case $guile_cv_use_csqrt in
+    yes*)
+      AC_DEFINE(HAVE_USABLE_CSQRT, 1, [Define to 1 if csqrt is bug-free])
+      ;;
+  esac
+fi
+
 
 dnl GMP tests
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
