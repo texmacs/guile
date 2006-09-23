@@ -203,9 +203,11 @@ void *alloca (size_t);
 /* dirfd() returns the file descriptor underlying a "DIR*" directory stream.
    Found on MacOS X for instance.  The following definition is for Solaris
    10, it's probably not right elsewhere, but that's ok, it shouldn't be
-   used elsewhere.  */
+   used elsewhere.  Crib note: If we need more then gnulib has a dirfd.m4
+   figuring out how to get the fd (dirfd function, dirfd macro, dd_fd field,
+   or d_fd field).  */
 #ifndef dirfd
-#define dirfd(dirstream) (dirstream->dd_fd)
+#define dirfd(dirstream) ((dirstream)->dd_fd)
 #endif
 
 
