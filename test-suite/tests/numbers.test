@@ -88,7 +88,7 @@
 
 ;; return true if OBJ is negative infinity
 (define (negative-infinity? obj)
-  (and (number? obj)
+  (and (real? obj)
        (negative? obj)
        (inf? obj)))
 
@@ -231,6 +231,9 @@
 ;;;
 
 (with-test-prefix "exp"
+  (pass-if "documented?"
+    (documented? exp))
+
   (pass-if-exception "no args" exception:wrong-num-args
     (exp))
   (pass-if-exception "two args" exception:wrong-num-args
@@ -2988,12 +2991,16 @@
 ;;;
 
 (with-test-prefix "log"
+  (pass-if "documented?"
+    (documented? log))
+
   (pass-if-exception "no args" exception:wrong-num-args
     (log))
   (pass-if-exception "two args" exception:wrong-num-args
     (log 123 456))
 
   (pass-if (negative-infinity? (log 0)))
+  (pass-if (negative-infinity? (log 0.0)))
   (pass-if (eqv? 0.0 (log 1)))
   (pass-if (eqv? 0.0 (log 1.0)))
   (pass-if (eqv-loosely? 1.0  (log const-e)))
@@ -3001,19 +3008,27 @@
   (pass-if (eqv-loosely? -1.0 (log const-1/e)))
 
   (pass-if (eqv-loosely? 1.0+1.57079i (log 0+2.71828i)))
-  (pass-if (eqv-loosely? 1.0-1.57079i (log 0-2.71828i))))
+  (pass-if (eqv-loosely? 1.0-1.57079i (log 0-2.71828i)))
+
+  (pass-if (eqv-loosely? 0.0+3.14159i (log -1.0)))
+  (pass-if (eqv-loosely? 1.0+3.14159i (log -2.71828)))
+  (pass-if (eqv-loosely? 2.0+3.14159i (log (* -2.71828 2.71828)))))
 
 ;;;
 ;;; log10
 ;;;
 
 (with-test-prefix "log10"
+  (pass-if "documented?"
+    (documented? log10))
+
   (pass-if-exception "no args" exception:wrong-num-args
     (log10))
   (pass-if-exception "two args" exception:wrong-num-args
     (log10 123 456))
 
   (pass-if (negative-infinity? (log10 0)))
+  (pass-if (negative-infinity? (log10 0.0)))
   (pass-if (eqv? 0.0 (log10 1)))
   (pass-if (eqv? 0.0 (log10 1.0)))
   (pass-if (eqv-loosely? 1.0  (log10 10.0)))
@@ -3021,7 +3036,11 @@
   (pass-if (eqv-loosely? -1.0 (log10 0.1)))
 
   (pass-if (eqv-loosely? 1.0+0.68218i (log10 0+10.0i)))
-  (pass-if (eqv-loosely? 1.0-0.68218i (log10 0-10.0i))))
+  (pass-if (eqv-loosely? 1.0-0.68218i (log10 0-10.0i)))
+
+  (pass-if (eqv-loosely? 0.0+1.36437i (log10 -1)))
+  (pass-if (eqv-loosely? 1.0+1.36437i (log10 -10)))
+  (pass-if (eqv-loosely? 2.0+1.36437i (log10 -100))))
 
 ;;;
 ;;; logbit?
@@ -3134,6 +3153,9 @@
 ;;;
 
 (with-test-prefix "sqrt"
+  (pass-if "documented?"
+    (documented? sqrt))
+
   (pass-if-exception "no args" exception:wrong-num-args
     (sqrt))
   (pass-if-exception "two args" exception:wrong-num-args
