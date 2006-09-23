@@ -70,9 +70,12 @@
 
 #include "libguile/discouraged.h"
 
-/* value per glibc, if not already defined */
+/* values per glibc, if not already defined */
 #ifndef M_LOG10E
 #define M_LOG10E   0.43429448190325182765
+#endif
+#ifndef M_PI
+#define M_PI       3.14159265358979323846
 #endif
 
 
@@ -6028,7 +6031,12 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
     {
       /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
          although the value itself overflows.  */
-      return scm_from_double (log (scm_to_double (z)));
+      double re = scm_to_double (z);
+      double l = log (fabs (re));
+      if (re >= 0.0)
+        return scm_from_double (l);
+      else
+        return scm_c_make_rectangular (l, M_PI);
     }
 }
 #undef FUNC_NAME
@@ -6054,7 +6062,12 @@ SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
     {
       /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
          although the value itself overflows.  */
-      return scm_from_double (log10 (scm_to_double (z)));
+      double re = scm_to_double (z);
+      double l = log10 (fabs (re));
+      if (re >= 0.0)
+        return scm_from_double (l);
+      else
+        return scm_c_make_rectangular (l, M_LOG10E * M_PI);
     }
 }
 #undef FUNC_NAME
