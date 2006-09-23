@@ -32,15 +32,9 @@
 	      (pass-if (list "in another thread after error" t)
 		(or (provided? 'threads) (throw 'unsupported))
 
-		;; actually this test is perfectly good, but the "internal
-		;; define - missing body expression" in syntax.test somehow
-		;; ends up leaving SCM_DEFER_INTS, making the test here hang
-		;;
-		(throw 'unresolved)
-
 		(alarm 5)
 		(false-if-exception (gmtime t))
-		(thread-join (begin-thread (catch 'out-of-range
+		(join-thread (begin-thread (catch 'out-of-range
 						  (lambda () (gmtime t))
 						  (lambda args #f))))
 		(alarm 0)
@@ -265,16 +259,10 @@
     (or (defined? 'strptime) (throw 'unsupported))
     (or (provided? 'threads) (throw 'unsupported))
 
-    ;; actually this test is perfectly good, but the "internal define -
-    ;; missing body expression" in syntax.test somehow ends up leaving
-    ;; SCM_DEFER_INTS, making the test here hang
-    ;;
-    (throw 'unresolved)
-
     (alarm 5)
     (false-if-exception
      (strptime "%a" "nosuchday"))
-    (thread-join (begin-thread (strptime "%d" "1")))
+    (join-thread (begin-thread (strptime "%d" "1")))
     (alarm 0)
     #t)
 
