@@ -2,6 +2,13 @@
 
 	* tests/numbers.test (exp, log, log10, sqrt): New tests.
 
+	* tests/format.test, tests/srfi-1.test: Use define-module to prevent
+	redefined funcs in those modules extending on to subsequent tests.
+
+	* tests/time.test (gmtime, strptime): Remove the "unresolved" throws,
+	the error+thread tests seem ok now (previously were upset by something
+	leaking out of syntax.test).
+
 2006-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/format.test (~f): Test leading zeros bugfix.
