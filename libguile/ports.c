@@ -1429,12 +1429,17 @@ static int truncate (char *file, int length)
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
-	    "Truncates the object referred to by @var{object} to at most\n"
-	    "@var{length} bytes.  @var{object} can be a string containing a\n"
-	    "file name or an integer file descriptor or a port.\n"
-	    "@var{length} may be omitted if @var{object} is not a file name,\n"
-	    "in which case the truncation occurs at the current port\n"
-	    "position.  The return value is unspecified.")
+	    "Truncate @var{file} to @var{length} bytes.  @var{file} can be a\n"
+	    "filename string, a port object, or an integer file descriptor.\n"
+	    "The return value is unspecified.\n"
+	    "\n"
+	    "For a port or file descriptor @var{length} can be omitted, in\n"
+	    "which case the file is truncated at the current position (per\n"
+	    "@code{ftell} above).\n"
+	    "\n"
+	    "On most systems a file can be extended by giving a length\n"
+	    "greater than the current size, but this is not mandatory in the\n"
+	    "POSIX standard.")
 #define FUNC_NAME s_scm_truncate_file
 {
   int rv;
