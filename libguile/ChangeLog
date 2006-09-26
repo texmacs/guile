@@ -1,3 +1,13 @@
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* _scm.h (scm_to_off64_t, scm_from_off64_t): New macros.
+	* fports.c (scm_open_file): Use open_or_open64.
+	(fport_seek_or_seek64): New function, adapting fport_seek.
+	* fports.c, fports.h (scm_i_fport_seek, scm_i_fport_truncate): New
+	functions.
+	* ports.c (scm_seek, scm_truncate_file): Use scm_i_fport_seek and
+	scm_i_fport_truncate to allow 64-bit seeks and truncates on fports.
+
 2006-09-23  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c, numbers.h (scm_log, scm_log10, scm_exp, scm_sqrt): New
