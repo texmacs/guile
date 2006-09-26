@@ -1,3 +1,9 @@
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* api-io.texi (Random Access): In truncate-file, tweak wording for
+	clarity, note cannot always extend file this way.
+	(Ports): File access uses LFS.
+
 2006-09-22  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Scientific): In sqrt, note it's the positive root
