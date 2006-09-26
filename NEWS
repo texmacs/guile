@@ -26,6 +26,7 @@ Changes in 1.8.1 (since 1.8.0):
 Record accessor and modifier procedures now throw an error if the
 record type of the record they're given is not the type expected
 (previously accessors returned #f and modifiers silently did nothing).
+** File access uses LFS funcs to get 64-bit files on 32-bit systems.
 
 * Changes to the C interface 
 
