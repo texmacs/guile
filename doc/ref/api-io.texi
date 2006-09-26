@@ -64,6 +64,10 @@ rely on that to keep it away from system limits.  An explicit call to
 If program flow makes it hard to be certain when to close then this
 may be an acceptable way to control resource usage.
 
+All file access uses the ``LFS'' large file support functions when
+available, so files bigger than 2 Gbytes (@math{2^31} bytes) can be
+read and written on a 32-bit system.
+
 @rnindex input-port?
 @deffn {Scheme Procedure} input-port? x
 @deffnx {C Function} scm_input_port_p (x)
