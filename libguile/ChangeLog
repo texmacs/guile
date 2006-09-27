@@ -3,6 +3,10 @@
 	* numbers.c (scm_log10): Check HAVE_CLOG10, clog10() is not available
 	in mingw.
 
+	* posix.c (scm_execl, scm_execlp, scm_execle): Cast "const char *
+	const *" for mingw to suppress warnings from gcc (which are errors
+	under the configure default -Werror).  Reported by Nils Durner.
+
 2006-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* _scm.h (scm_to_off64_t, scm_from_off64_t): New macros.
