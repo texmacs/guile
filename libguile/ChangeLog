@@ -1,3 +1,8 @@
+2006-09-27  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_log10): Check HAVE_CLOG10, clog10() is not available
+	in mingw.
+
 2006-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* _scm.h (scm_to_off64_t, scm_from_off64_t): New macros.
@@ -7,6 +12,8 @@
 	functions.
 	* ports.c (scm_seek, scm_truncate_file): Use scm_i_fport_seek and
 	scm_i_fport_truncate to allow 64-bit seeks and truncates on fports.
+
+	* ports.c (scm_truncate_file): Update docstring per manual.
 
 2006-09-23  Kevin Ryde  <user42@zip.com.au>
 
