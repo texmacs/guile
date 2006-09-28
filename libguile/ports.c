@@ -1422,8 +1422,9 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifdef __MINGW32__
-/* Define this function since it is not supported under Windows. */
+/* Mingw has ftruncate(), perhaps implemented above using chsize, but
+   doesn't have the filename version truncate(), hence this code.  */
+#if HAVE_FTRUNCATE && ! HAVE_TRUNCATE
 static int truncate (char *file, int length)
 {
   int ret = -1, fdes;
@@ -1434,7 +1435,7 @@ static int truncate (char *file, int length)
     }
   return ret;
 }
-#endif /* __MINGW32__ */
+#endif /* HAVE_FTRUNCATE && ! HAVE_TRUNCATE */
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
