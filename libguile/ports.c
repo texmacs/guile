@@ -1422,18 +1422,32 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 /* Mingw has ftruncate(), perhaps implemented above using chsize, but
    doesn't have the filename version truncate(), hence this code.  */
 #if HAVE_FTRUNCATE && ! HAVE_TRUNCATE
-static int truncate (char *file, int length)
+static int
+truncate (const char *file, off_t length)
 {
-  int ret = -1, fdes;
-  if ((fdes = open (file, O_BINARY | O_WRONLY)) != -1)
+  int ret, fdes;
+
+  fdes = open (file, O_BINARY | O_WRONLY);
+  if (fdes == -1)
+    return -1;
+
+  ret = ftruncate (fdes, length);
+  if (ret == -1)
     {
-      ret = chsize (fdes, length);
+      int save_errno = errno;
       close (fdes);
+      errno = save_errno;
+      return -1;
     }
-  return ret;
+
+  return close (fdes);
 }
 #endif /* HAVE_FTRUNCATE && ! HAVE_TRUNCATE */
 
