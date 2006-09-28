@@ -69,7 +69,19 @@
 
 #ifdef __MINGW32__
 #include <fcntl.h>
+#endif
+
+/* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
+   already, but have this code here in case that wasn't so in past versions,
+   or perhaps to help other minimal DOS environments.
+
+   gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
+   might be possibilities if we've got other systems without ftruncate.  */
+
+#if HAVE_CHSIZE && ! HAVE_FTRUNCATE
 #define ftruncate(fd, size) chsize (fd, size)
+#undef HAVE_FTRUNCATE
+#define HAVE_FTRUNCATE 1
 #endif
 
 
