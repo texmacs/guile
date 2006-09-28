@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>  /* for chsize on mingw */
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -65,10 +66,6 @@
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif
-
-#ifdef __MINGW32__
-#include <fcntl.h>
 #endif
 
 /* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
