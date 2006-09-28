@@ -1,3 +1,18 @@
+2006-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c, ports.c (ftruncate): Use "HAVE_CHSIZE && ! HAVE_FTRUNCATE"
+	for chsize fallback, instead of hard-coding mingw.  Mingw in fact
+	supplies ftruncate itself these days.
+
+	* ports.c (fcntl.h): Can include this unconditionally, no need for
+	__MINGW32__.
+
+	* ports.c (truncate): Conditionalize on "HAVE_FTRUNCATE && !
+	HAVE_TRUNCATE" so as not to hard-code mingw.  Use "const char *" and
+	"off_t" for parameters, per usual definition of this function, rather
+	than "char *" and "int".  Use ftruncate instead of chsize.  Check for
+	error on final close.
+
 2006-09-27  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_log10): Check HAVE_CLOG10, clog10() is not available
