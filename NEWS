@@ -45,6 +45,7 @@ record type of the record they're given is not the type expected
 (As per the srfi-9 specification.)
 ** srfi-1 assoc "=" procedure argument order.
 ** Build problems on MacOS, SunOS, QNX.
+** apply arg count checking fix on "1 or 2 arg" functions such as make-vector
 
 
 Changes since the 1.6.x series:
