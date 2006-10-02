@@ -4849,7 +4849,16 @@ tail:
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2o:
-      args = scm_is_null (args) ? SCM_UNDEFINED : SCM_CAR (args);
+      if (SCM_UNBNDP (arg1))
+	scm_wrong_num_args (proc);
+      if (scm_is_null (args))
+        args = SCM_UNDEFINED;
+      else
+        {
+          if (! scm_is_null (SCM_CDR (args)))
+            scm_wrong_num_args (proc);
+          args = SCM_CAR (args);
+        }
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_2:
       if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
