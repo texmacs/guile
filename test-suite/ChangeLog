@@ -1,3 +1,8 @@
+2006-10-03  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/eval.test (apply): New tests, exercising scm_tc7_subr_2o which
+	had lacked some arg count checking.
+
 2006-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ports.test (seek): New tests.
