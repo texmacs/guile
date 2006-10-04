@@ -1008,8 +1008,8 @@ return value is unspecified.
 @end deffn
 
 @deffn {Scheme Procedure} getpwent
-Return the next entry in the user database, using the stream set by
-@code{setpwent}.
+Read the next entry in the user database stream.  The return is a
+passwd user object as above, or @code{#f} when no more entries.
 @end deffn
 
 @deffn {Scheme Procedure} endpwent
