@@ -77,6 +77,8 @@ strings that you want to complete against.
 ** srfi-9 accessor and modifier procedures have strict record type checks
 (As per the srfi-9 specification.)
 
+** ice-9 ftw fix for same inodes across different devices
+
 
 Changes in 1.8.0 (changes since the 1.6.x series):
 
