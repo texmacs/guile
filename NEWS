@@ -16,13 +16,13 @@ Changes in 1.8.1 (since 1.8.0):
 
 * Changes to the distribution
 
-** It should now be OK use both autoload and use-modules on a given module.
+** It is now OK to use both autoload and use-modules on a given module.
 
 ** A number of build problems on MacOS, SunOS, and QNX have been fixed.
 
 ** The evaluator now checks the number of arguments more correctly.
 
-Previously the evaluator wasn't checking the number arguments
+Previously the evaluator wasn't checking the number of arguments
 correctly for functions like make-vector that accept one or two
 arguments.  Now it does.
 
@@ -30,7 +30,7 @@ arguments.  Now it does.
 
 ** A primitive-_exit function which calls _exit() has been added.
 
-** A one-dimenisonal array can now be 'equal?' to a vector.
+** A one-dimensional array can now be 'equal?' to a vector.
 
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
 
@@ -39,14 +39,14 @@ arguments.  Now it does.
 ** `record-accessor' and `record-modifier' strict type checks
 
 Record accessor and modifier procedures now throw an error if the
-record type of the record they're given is not the type expected
-(previously accessors returned #f and modifiers silently did nothing).
+record type of the record they're given is not the type expected.
+(Previously accessors returned #f and modifiers silently did nothing).
 
-** File access uses LFS funcs to get 64-bit files on 32-bit systems.
+** File access uses LFS functions to get 64-bit files on 32-bit systems.
 
 ** A bug in n-par-for-each and n-for-each-par-map has been fixed.
 
-** The array-set! function should no longer segfault when given a bit vector.
+** The array-set! function no longer segfaults when given a bit vector.
 
 ** The srfi-1 assoc function now calls its equality predicate properly.
 
