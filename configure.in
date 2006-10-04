@@ -643,9 +643,9 @@ AC_SEARCH_LIBS(crypt, crypt,
   [AC_DEFINE(HAVE_CRYPT,1,
              [Define to 1 if you have the `crypt' function.])])
 
-# glibc 2.3.6 and various prior versions had a bug where csqrt(-i)
-# returned a negative real part, when it should be positive for the
-# principal root.
+# glibc 2.3.6 (circa 2006) and various prior versions had a bug where
+# csqrt(-i) returned a negative real part, when it should be positive
+# for the principal root.
 #
 if test "$ac_cv_type_complex_double" = yes; then
   AC_CACHE_CHECK([whether csqrt is usable],
