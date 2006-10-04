@@ -53,6 +53,13 @@ record type of the record they're given is not the type expected.
 Previously srfi-1 assoc would call the equality predicate with the key
 last.  According to the SRFI, the key should be first.
 
+** New `make-completion-function' procedure in (ice-9 readline)
+
+This is a convenience procedure for building a completion function -
+i.e. something that can be passed to
+`with-readline-completion-function' - from the list of possible
+strings that you want to complete against.
+
 * Changes to the C interface 
 
 ** New function scm_c_locale_stringn_to_number.
