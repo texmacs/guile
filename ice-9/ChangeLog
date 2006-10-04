@@ -1,3 +1,11 @@
+2006-10-05  Kevin Ryde  <user42@zip.com.au>
+
+	* ftw.scm (visited?-proc): Use hashv since we know we're getting
+	numbers.  Incorporate stat:dev, since stat:ino is only unique within a
+	single device.  This fixes a bug where if two files with the same
+	inode on different devices where seen only the first would be returned
+	by ftw (and nftw).
+
 2006-09-23  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (log, log10, exp, sqrt): Remove, now in
