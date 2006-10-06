@@ -4,80 +4,69 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-Each release reports the NEWS in the following sections:
-
-* Changes to the distribution
-* Changes to the stand-alone interpreter
-* Changes to Scheme functions and syntax
-* Changes to the C interface 
-
 
 Changes in 1.8.1 (since 1.8.0):
 
-* Changes to the distribution
+* LFS functions are now used to access 64-bit files on 32-bit systems.
 
-** It is now OK to use both autoload and use-modules on a given module.
+* New procedures added (see the manual for details)
 
-** A number of build problems on MacOS, SunOS, and QNX have been fixed.
+** primitive-_exit - [Scheme] the-root-module
 
-** The evaluator now checks the number of arguments more correctly.
+** make-completion-function - [Scheme] (ice-9 readline)
 
-Previously the evaluator wasn't checking the number of arguments
-correctly for functions like make-vector that accept one or two
-arguments.  Now it does.
+** scm_c_locale_stringn_to_number() - [C]
 
-* Changes to Scheme functions and syntax
+* Bugs fixed
 
-** A primitive-_exit function which calls _exit() has been added.
+** Build problems have been fixed on MacOS, SunOS, and QNX.
 
 ** A one-dimensional array can now be 'equal?' to a vector.
 
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
 
-** SRFI-14 standard char sets are now recomputed upon successful `setlocale'.
+** SRFI-14 standard char sets are recomputed upon a successful `setlocale'.
 
-** `record-accessor' and `record-modifier' strict type checks
+** `record-accessor' and `record-modifier' now have strict type checks.
 
 Record accessor and modifier procedures now throw an error if the
 record type of the record they're given is not the type expected.
 (Previously accessors returned #f and modifiers silently did nothing).
 
-** File access uses LFS functions to get 64-bit files on 32-bit systems.
+** It is now OK to use both autoload and use-modules on a given module.
 
-** A bug in n-par-for-each and n-for-each-par-map has been fixed.
+** The evaluator checks the number of arguments more correctly.
 
-** The array-set! function no longer segfaults when given a bit vector.
+Previously the evaluator wasn't checking the number of arguments
+correctly for procedures like make-vector that accept one or two
+arguments.  Now it does.
 
 ** The srfi-1 assoc function now calls its equality predicate properly.
 
 Previously srfi-1 assoc would call the equality predicate with the key
 last.  According to the SRFI, the key should be first.
 
-** New `make-completion-function' procedure in (ice-9 readline)
+** A bug in n-par-for-each and n-for-each-par-map has been fixed.
 
-This is a convenience procedure for building a completion function -
-i.e. something that can be passed to
-`with-readline-completion-function' - from the list of possible
-strings that you want to complete against.
+** The array-set! procedure no longer segfaults when given a bit vector.
 
-* Changes to the C interface 
+** Bugs in make-shared-array have been fixed.
 
-** New function scm_c_locale_stringn_to_number.
+** string<? and friends now follow char<? etc order on 8-bit chars.
 
-* Bug fixes.
+** The format procedure now handles inf and nan values for ~f correctly.
 
-** make-shared-array fixes, including examples in the manual which failed.
+** exact->inexact should no longer overflow when given certain large fractions.
 
-** string<? and friends follow char<? etc order on 8-bit chars.
+** srfi-9 accessor and modifier procedures now have strict record type checks.
 
-** ice-9 format ~f with infs and nans.
+This matches the srfi-9 specification.
 
-** exact->inexact overflows on fractions with big num/den but small result.
+** (ice-9 ftw) procedures won't ignore different files with same inode number.
 
-** srfi-9 accessor and modifier procedures have strict record type checks
-(As per the srfi-9 specification.)
-
-** ice-9 ftw fix for same inodes across different devices
+Previously the (ice-9 ftw) procedures would ignore any file that had
+the same inode number as a file they had already seen, even if that
+file was on a different device.
 
 
 Changes in 1.8.0 (changes since the 1.6.x series):
