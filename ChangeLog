@@ -1,3 +1,14 @@
+2006-10-06  Rob Browning  <rlb@defaultvalue.org>
+
+	Guile 1.8.1 released.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Increment for release.
+	(LIBGUILE_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_1_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Increment for release.
+
 2006-09-28  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (chsize, ftruncate, truncate): New tests, for mingw.

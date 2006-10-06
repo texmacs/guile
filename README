@@ -1,9 +1,8 @@
-This is version 1.7.90 of Guile (a release candidate for 1.8.0),
-Project GNU's extension language library.  Guile is an interpreter for
-Scheme, packaged as a library that you can link into your applications
-to give them their own scripting language.  Guile will eventually
-support other languages as well, giving users of Guile-based
-applications a choice of languages.
+This is version 1.8.1 of Guile, Project GNU's extension language
+library.  Guile is an interpreter for Scheme, packaged as a library
+that you can link into your applications to give them their own
+scripting language.  Guile will eventually support other languages as
+well, giving users of Guile-based applications a choice of languages.
 
 Please send bug reports to bug-guile@gnu.org.
 

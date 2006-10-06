@@ -1,3 +1,8 @@
+2006-10-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* LIBGUILEREADLINE-VERSION (LIBGUILEREADLINE_INTERFACE_REVISION):
+	Increment for release.
+
 2006-10-05  Kevin Ryde  <user42@zip.com.au>
 
 	* ice-9/readline.scm (filename-completion-function): Export this.
