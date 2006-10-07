@@ -9,6 +9,8 @@
 	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_REVISION): Increment for release.
 	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Increment for release.
 
+	* Makefile.am (EXTRA_DIST): Add LICENSE.
+
 2006-09-28  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (chsize, ftruncate, truncate): New tests, for mingw.

@@ -9,13 +9,18 @@ Changes in 1.8.1 (since 1.8.0):
 
 * LFS functions are now used to access 64-bit files on 32-bit systems.
 
-* New procedures added (see the manual for details)
+* New procedures (see the manual for details)
 
 ** primitive-_exit - [Scheme] the-root-module
-
+** scm_primitive__exit - [C]
 ** make-completion-function - [Scheme] (ice-9 readline)
-
-** scm_c_locale_stringn_to_number() - [C]
+** scm_c_locale_stringn_to_number - [C]
+** scm_srfi1_append_reverse [C]
+** scm_srfi1_append_reverse_x [C]
+** scm_log - [C]
+** scm_log10 - [C]
+** scm_exp - [C]
+** scm_sqrt - [C]
 
 * Bugs fixed
 
