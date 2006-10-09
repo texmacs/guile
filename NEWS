@@ -40,11 +40,10 @@ record type of the record they're given is not the type expected.
 
 ** It is now OK to use both autoload and use-modules on a given module.
 
-** The evaluator checks the number of arguments more correctly.
+** `apply' checks the number of arguments more carefully on "0 or 1" funcs.
 
-Previously the evaluator wasn't checking the number of arguments
-correctly for procedures like make-vector that accept one or two
-arguments.  Now it does.
+Previously there was no checking on primatives like make-vector that
+accept "one or two" arguments.  Now there is.
 
 ** The srfi-1 assoc function now calls its equality predicate properly.
 
