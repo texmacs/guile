@@ -67,7 +67,6 @@
 	(scm_setlocale): Invoke `scm_srfi_14_compute_char_sets ()' after a
 	successful `setlocale ()' call.
 
-
 2006-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_init_socket): Add MSG_DONTWAIT.
