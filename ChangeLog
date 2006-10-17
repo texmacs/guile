@@ -1,3 +1,7 @@
+2006-10-16  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/i386.h (jit_flush_code): Fix syntax error. :-(
+
 2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludovic.courtes@laas.fr>
 
