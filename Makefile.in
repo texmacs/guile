@@ -43,13 +43,14 @@ DIST_COMMON = README $(am__configure_deps) $(dist_aclocal_DATA) \
 	$(include_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(srcdir)/lightningize.in \
 	$(top_srcdir)/configure AUTHORS COPYING COPYING.DOC \
-	COPYING.LESSER ChangeLog INSTALL NEWS THANKS \
+	COPYING.LESSER ChangeLog INSTALL NEWS THANKS TODO \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
 	build-aux/install-sh build-aux/mdate-sh build-aux/missing \
 	build-aux/texinfo.tex
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/build-aux/lightning.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -159,6 +160,7 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cpu = @cpu@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -194,12 +196,13 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 
 # Automake requirements:
-AUTOMAKE_OPTIONS = 1.7 gnu
+AUTOMAKE_OPTIONS = 1.8 gnu
+ACLOCAL_AMFLAGS = -I build-aux
 SUBDIRS = . doc lightning opcode tests
 EXTRA_DIST = build-aux/texi2dvi build-aux/help2man
 include_HEADERS = lightning.h
 aclocaldir = $(datadir)/aclocal
-dist_aclocal_DATA = lightning.m4
+dist_aclocal_DATA = build-aux/lightning.m4
 bin_SCRIPTS = lightningize
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive

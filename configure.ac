@@ -26,18 +26,16 @@ AC_PROG_MAKE_SET
 AC_PATH_PROG(INSTALL_INFO, install-info, :, $PATH:/sbin)
 AC_EXEEXT
 
-BACKENDS="i386 sparc ppc"
+BACKENDS="LIGHTNING_BACKENDS"
 AC_SUBST(BACKENDS)
 
-case "$target_cpu" in
-	i?86)	 cpu=i386; AC_DEFINE(LIGHTNING_I386, 1,
-		   [Define if lightning is targeting the x86 architecture]) ;;
-	sparc*)	 cpu=sparc; AC_DEFINE(LIGHTNING_SPARC, 1,
-		   [Define if lightning is targeting the SPARC architecture]) ;;
-	powerpc) cpu=ppc; AC_DEFINE(LIGHTNING_PPC, 1,
-		   [Define if lightning is targeting the PowerPC architecture]) ;;
-	*)	 AC_MSG_ERROR([cpu $target_cpu not supported])	;;
-esac
+LIGHTNING_CONFIGURE_LINKS(
+  [AC_DEFINE_UNQUOTED(LIGHTNING_TARGET, [AS_TR_CPP([LIGHTNING_$cpu$suffix])],
+		      [Used to pick the appropriate disassembler, for debugging])],
+  [AC_MSG_ERROR([cpu $target_cpu not supported])])
+
+AC_SUBST(cpu)
+AM_CONDITIONAL(LIGHTNING_MAIN, :)
 
 dnl ---------------------------- COMMAND LINE ---------------------------------
 
@@ -56,10 +54,13 @@ fi
 if test "$enable_disassembling" != no; then
   AC_DEFINE(LIGHTNING_DISASSEMBLE, 1,
     [Define if the test programs should disassemble the code they produce])
+  LIBDISASS="libdisass.a"
+else
+  LIBDISASS=
 fi
-LIBDISASS=""
 AM_CONDITIONAL(DISASS, test "$enable_disassembling" != no)
-test "$enable_disassembling" != no && LIBDISASS="libdisass.a"
+test "$enable_disassembling" != no && 
+AC_SUBST(LIBDISASS)
 
 AC_ARG_ENABLE( assertions,
 [  --enable-assertions     perform internal consistency checks],
@@ -69,18 +70,7 @@ if test "$enable_assertions" != no; then
   AC_DEFINE(_ASM_SAFETY, 1, [Define to enable assertions])
 fi
 
-AM_CONDITIONAL(LIGHTNING_MAIN, :)
-
 dnl --------------------------- PRODUCE OUTPUT --------------------------------
-
-cpu_dir=lightning/$cpu
-AC_CONFIG_LINKS(lightning/asm.h:$cpu_dir/asm.h			dnl
-                lightning/fp.h:$cpu_dir/fp.h			dnl
-                lightning/core.h:$cpu_dir/core.h		dnl
-                lightning/funcs.h:$cpu_dir/funcs.h, [],
-  [cpu_dir=$cpu_dir])
-
-AC_SUBST(LIBDISASS)
 
 AC_CONFIG_FILES(Makefile doc/Makefile tests/Makefile opcode/Makefile
 	lightning/Makefile)
@@ -90,6 +80,6 @@ AC_OUTPUT
 
 # A small sanity check
 echo "#include <stdio.h>" > confdefs.h		# dummy input file
-CPPFLAGS="$CPPFLAGS -I. -I$srcdir"
+CPPFLAGS="$CPPFLAGS -I. -I$srcdir -I$srcdir/lightning/$cpu"
 AC_TRY_COMPILE([#include "lightning.h"], , ,
   AC_MSG_WARN(the compiler that was found could not compile GNU lightning))

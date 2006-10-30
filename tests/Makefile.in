@@ -44,7 +44,8 @@ check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/build-aux/lightning.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -189,6 +190,7 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cpu = @cpu@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -222,7 +224,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/lightning/$(cpu)
 noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok bp.ok modi.ok ldxi.ok
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a

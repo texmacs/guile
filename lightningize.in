@@ -33,10 +33,9 @@ VERSION=@VERSION@
 
 # Directory names.
 prefix=@prefix@
+datarootdir=@datarootdir@
 datadir=@datadir@
 includedir=@includedir@
-pkgdatadir=${datadir}/lightning
-pkgincludedir=${includedir}/lightning
 aclocaldir=${datadir}/aclocal
 
 BACKENDS="@BACKENDS@"
@@ -136,8 +135,13 @@ else
   exit 1
 fi
 
+if test "$automake" = yes; then
+  if egrep "^$macro_name" $configure_ac >/dev/null 2>&1; then :
+  else
+    echo "Remember to add \`$macro_name' to \`$configure_ac' and reconfigure your package."
+  fi
 
-if test -z "$automake"; then
+else
   if egrep "^$macro_name" $configure_ac >/dev/null 2>&1; then :
   else
     echo "Remember to add \`$macro_name' to \`$configure_ac'."
@@ -186,9 +190,11 @@ for i in $file_base_names; do
   files="$files lightning:$pkgincludedir/$i-common.h"
 done
 for j in $BACKENDS; do
-  dirs="$dirs lightning/$j"
+  dir=`expr $j : '\([^:]*\)' `
+  suffix=`expr $j : '.*:\(.*\)' `
+  dirs="$dirs lightning/$dir"
   for i in $file_base_names; do
-    files="$files lightning/$j:$pkgincludedir/$j/$i.h"
+    files="$files lightning/$j:$pkgincludedir/$j/$i$suffix.h"
   done
 done
 

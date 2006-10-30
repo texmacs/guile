@@ -655,16 +655,17 @@ LN_S
 RANLIB
 INSTALL_INFO
 BACKENDS
+cpu
+LIGHTNING_MAIN_TRUE
+LIGHTNING_MAIN_FALSE
 REGRESSION_TESTING_TRUE
 REGRESSION_TESTING_FALSE
 DISASS_TRUE
 DISASS_FALSE
-LIGHTNING_MAIN_TRUE
-LIGHTNING_MAIN_FALSE
 LIBDISASS
 LIBOBJS
 LTLIBOBJS'
-ac_subst_files=''
+ac_subst_files='lightning_frag'
       ac_precious_vars='build_alias
 host_alias
 target_alias
@@ -3995,29 +3996,68 @@ fi
 
 
 
-BACKENDS="i386 sparc ppc"
+BACKENDS="i386:-32 i386:-64 sparc ppc"
 
 
-case "$target_cpu" in
-	i?86)	 cpu=i386;
-cat >>confdefs.h <<\_ACEOF
-#define LIGHTNING_I386 1
-_ACEOF
- ;;
-	sparc*)	 cpu=sparc;
-cat >>confdefs.h <<\_ACEOF
-#define LIGHTNING_SPARC 1
-_ACEOF
- ;;
-	powerpc) cpu=ppc;
-cat >>confdefs.h <<\_ACEOF
-#define LIGHTNING_PPC 1
-_ACEOF
- ;;
-	*)	 { { echo "$as_me:$LINENO: error: cpu $target_cpu not supported" >&5
-echo "$as_me: error: cpu $target_cpu not supported" >&2;}
-   { (exit 1); exit 1; }; }	;;
+
+
+suffix=
+case "$host_cpu" in
+  i?86)	   cpu=i386; suffix=-32 ;;
+  x86_64)  cpu=i386; suffix=-64 ;;
+  sparc*)  cpu=sparc	        ;;
+  powerpc) cpu=ppc	        ;;
+  *)			        ;;
 esac
+if test -n "$cpu" && test -d "$srcdir/lightning/$cpu"; then
+
+cat >>confdefs.h <<_ACEOF
+#define LIGHTNING_TARGET `echo "LIGHTNING_$cpu$suffix" | $as_tr_cpp`
+_ACEOF
+
+  lightning_frag=`cd $srcdir && pwd`/lightning/$cpu/Makefile.frag
+  test -f $lightning_frag || lightning_frag=/dev/null
+
+  asm_src=lightning/$cpu/asm.h
+  test -f $srcdir/lightning/$cpu/asm$suffix.h && asm_src=lightning/$cpu/asm$suffix.h
+  ac_config_links="$ac_config_links lightning/asm.h:$asm_src"
+
+
+  fp_src=lightning/$cpu/fp.h
+  test -f $srcdir/lightning/$cpu/fp$suffix.h && fp_src=lightning/$cpu/fp$suffix.h
+  ac_config_links="$ac_config_links lightning/fp.h:$fp_src"
+
+
+  core_src=lightning/$cpu/core.h
+  test -f $srcdir/lightning/$cpu/core$suffix.h && core_src=lightning/$cpu/core$suffix.h
+  ac_config_links="$ac_config_links lightning/core.h:$core_src"
+
+
+  funcs_src=lightning/$cpu/funcs.h
+  test -f $srcdir/lightning/$cpu/funcs$suffix.h && funcs_src=lightning/$cpu/funcs$suffix.h
+  ac_config_links="$ac_config_links lightning/funcs.h:$funcs_src"
+
+else
+  { { echo "$as_me:$LINENO: error: cpu $target_cpu not supported" >&5
+echo "$as_me: error: cpu $target_cpu not supported" >&2;}
+   { (exit 1); exit 1; }; }
+  lightning_frag=/dev/null
+fi
+
+
+
+
+
+
+
+if :; then
+  LIGHTNING_MAIN_TRUE=
+  LIGHTNING_MAIN_FALSE='#'
+else
+  LIGHTNING_MAIN_TRUE='#'
+  LIGHTNING_MAIN_FALSE=
+fi
+
 
 
 # Check whether --enable-disassembling was given.
@@ -4053,8 +4093,10 @@ cat >>confdefs.h <<\_ACEOF
 #define LIGHTNING_DISASSEMBLE 1
 _ACEOF
 
+  LIBDISASS="libdisass.a"
+else
+  LIBDISASS=
 fi
-LIBDISASS=""
 
 
 if test "$enable_disassembling" != no; then
@@ -4065,7 +4107,8 @@ else
   DISASS_FALSE=
 fi
 
-test "$enable_disassembling" != no && LIBDISASS="libdisass.a"
+test "$enable_disassembling" != no &&
+
 
 # Check whether --enable-assertions was given.
 if test "${enable_assertions+set}" = set; then
@@ -4082,23 +4125,6 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
-
-
-
-if :; then
-  LIGHTNING_MAIN_TRUE=
-  LIGHTNING_MAIN_FALSE='#'
-else
-  LIGHTNING_MAIN_TRUE='#'
-  LIGHTNING_MAIN_FALSE=
-fi
-
-
-
-cpu_dir=lightning/$cpu
-ac_config_links="$ac_config_links lightning/asm.h:$cpu_dir/asm.h lightning/fp.h:$cpu_dir/fp.h lightning/core.h:$cpu_dir/core.h lightning/funcs.h:$cpu_dir/funcs.h"
-
-
 
 
 ac_config_files="$ac_config_files Makefile doc/Makefile tests/Makefile opcode/Makefile lightning/Makefile"
@@ -4216,6 +4242,13 @@ echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${LIGHTNING_MAIN_TRUE}" && test -z "${LIGHTNING_MAIN_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"LIGHTNING_MAIN\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"LIGHTNING_MAIN\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${REGRESSION_TESTING_TRUE}" && test -z "${REGRESSION_TESTING_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"REGRESSION_TESTING\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -4227,13 +4260,6 @@ if test -z "${DISASS_TRUE}" && test -z "${DISASS_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"DISASS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"DISASS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${LIGHTNING_MAIN_TRUE}" && test -z "${LIGHTNING_MAIN_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"LIGHTNING_MAIN\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"LIGHTNING_MAIN\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -4685,7 +4711,10 @@ cat >>$CONFIG_STATUS <<_ACEOF
 # INIT-COMMANDS
 #
 AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
-cpu_dir=$cpu_dir
+asm_src=$asm_src
+fp_src=$fp_src
+core_src=$core_src
+funcs_src=$funcs_src
 
 _ACEOF
 
@@ -4697,10 +4726,10 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
-    "lightning/asm.h") CONFIG_LINKS="$CONFIG_LINKS lightning/asm.h:$cpu_dir/asm.h" ;;
-    "lightning/fp.h") CONFIG_LINKS="$CONFIG_LINKS lightning/fp.h:$cpu_dir/fp.h" ;;
-    "lightning/core.h") CONFIG_LINKS="$CONFIG_LINKS lightning/core.h:$cpu_dir/core.h" ;;
-    "lightning/funcs.h") CONFIG_LINKS="$CONFIG_LINKS lightning/funcs.h:$cpu_dir/funcs.h" ;;
+    "lightning/asm.h") CONFIG_LINKS="$CONFIG_LINKS lightning/asm.h:$asm_src" ;;
+    "lightning/fp.h") CONFIG_LINKS="$CONFIG_LINKS lightning/fp.h:$fp_src" ;;
+    "lightning/core.h") CONFIG_LINKS="$CONFIG_LINKS lightning/core.h:$core_src" ;;
+    "lightning/funcs.h") CONFIG_LINKS="$CONFIG_LINKS lightning/funcs.h:$funcs_src" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
@@ -4764,6 +4793,11 @@ $debug ||
 if test -n "$CONFIG_FILES"; then
 
 _ACEOF
+
+# Create sed commands to just substitute file output variables.
+
+# Remaining file output variables are in a fragment that also has non-file
+# output varibles.
 
 
 
@@ -4861,15 +4895,12 @@ LN_S!$LN_S$ac_delim
 RANLIB!$RANLIB$ac_delim
 INSTALL_INFO!$INSTALL_INFO$ac_delim
 BACKENDS!$BACKENDS$ac_delim
-REGRESSION_TESTING_TRUE!$REGRESSION_TESTING_TRUE$ac_delim
-REGRESSION_TESTING_FALSE!$REGRESSION_TESTING_FALSE$ac_delim
-DISASS_TRUE!$DISASS_TRUE$ac_delim
-DISASS_FALSE!$DISASS_FALSE$ac_delim
+cpu!$cpu$ac_delim
 LIGHTNING_MAIN_TRUE!$LIGHTNING_MAIN_TRUE$ac_delim
 LIGHTNING_MAIN_FALSE!$LIGHTNING_MAIN_FALSE$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 94; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -4889,6 +4920,10 @@ fi
 cat >>$CONFIG_STATUS <<_ACEOF
 cat >"\$tmp/subs-1.sed" <<\CEOF$ac_eof
 /@[a-zA-Z_][a-zA-Z_0-9]*@/!b
+/^[	 ]*@lightning_frag@[	 ]*$/{
+r $lightning_frag
+d
+}
 _ACEOF
 sed '
 s/[,\\&]/\\&/g; s/@/@|#_!!_#|/g
@@ -4908,12 +4943,16 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+REGRESSION_TESTING_TRUE!$REGRESSION_TESTING_TRUE$ac_delim
+REGRESSION_TESTING_FALSE!$REGRESSION_TESTING_FALSE$ac_delim
+DISASS_TRUE!$DISASS_TRUE$ac_delim
+DISASS_FALSE!$DISASS_FALSE$ac_delim
 LIBDISASS!$LIBDISASS$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 3; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -5534,7 +5573,7 @@ fi
 
 # A small sanity check
 echo "#include <stdio.h>" > confdefs.h		# dummy input file
-CPPFLAGS="$CPPFLAGS -I. -I$srcdir"
+CPPFLAGS="$CPPFLAGS -I. -I$srcdir -I$srcdir/lightning/$cpu"
 
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */

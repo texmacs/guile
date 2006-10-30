@@ -34,6 +34,11 @@
 #include "config.h"
 #include "dis-asm.h"
 
+#define LIGHTNING_I386_32 0
+#define LIGHTNING_I386_64 1
+#define LIGHTNING_PPC 2
+#define LIGHTNING_SPARC 3
+
 void disassemble(stream, from, to)
      FILE *stream;
      char *from, *to;
@@ -50,14 +55,14 @@ void disassemble(stream, from, to)
   while (pc < end) {
     fprintf_vma(stream, pc);
     putc('\t', stream);
-#ifdef LIGHTNING_I386
+#if LIGHTNING_TARGET == LIGHTNING_I386_32
     pc += print_insn_i386(pc, &info);
-#endif
-#ifdef LIGHTNING_PPC
+#elif LIGHTNING_TARGET == LIGHTNING_PPC
     pc += print_insn_big_powerpc(pc, &info);
-#endif
-#ifdef LIGHTNING_SPARC
+#elif LIGHTNING_TARGET == LIGHTNING_SPARC
     pc += print_insn_sparc(pc, &info);
+#else
+#   error disassembling not yet supported for your architecture
 #endif
     putc('\n', stream);
   }

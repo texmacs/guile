@@ -39,12 +39,12 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = lightning
-DIST_COMMON = $(am__dist_noinst_HEADERS_DIST) \
-	$(am__dist_pkgdata_DATA_DIST) \
-	$(am__nobase_dist_lightning_HEADERS_DIST) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(am__dist_lightning_HEADERS_DIST) \
+	$(am__dist_pkgdata_DATA_DIST) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/build-aux/lightning.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -60,21 +60,13 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(pkgdatadir)" \
-	"$(DESTDIR)$(lightningdir)" "$(DESTDIR)$(lightningdir)"
+	"$(DESTDIR)$(lightningdir)"
 dist_pkgdataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(dist_pkgdata_DATA)
-am__dist_noinst_HEADERS_DIST = funcs-common.h core-common.h \
-	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
-	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
-	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
-am__nobase_dist_lightning_HEADERS_DIST = funcs-common.h core-common.h \
-	fp-common.h asm-common.h i386/asm.h i386/core.h i386/funcs.h \
-	i386/fp.h sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
-	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
-nobase_dist_lightningHEADERS_INSTALL = $(install_sh_DATA)
-nodist_lightningHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(dist_noinst_HEADERS) $(nobase_dist_lightning_HEADERS) \
-	$(nodist_lightning_HEADERS)
+am__dist_lightning_HEADERS_DIST = funcs-common.h core-common.h \
+	fp-common.h asm-common.h asm.h core.h funcs.h fp.h
+dist_lightningHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(dist_lightning_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -144,6 +136,7 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cpu = @cpu@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -178,17 +171,20 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 DISTCLEANFILES = asm.h core.h funcs.h fp.h
-LIGHTNING_FILES = funcs-common.h core-common.h fp-common.h \
-	asm-common.h \
-	i386/asm.h i386/core.h i386/funcs.h i386/fp.h \
-	sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
-	ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
+EXTRA_DIST = i386/Makefile.frag \
+        i386/asm-32.h i386/asm-64.h i386/asm-i386.h \
+        i386/core-32.h i386/core-64.h i386/core-i386.h \
+        i386/fp-32.h i386/fp-64.h \
+        i386/funcs.h \
+        sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
+        ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
+
+LIGHTNING_FILES = funcs-common.h core-common.h fp-common.h asm-common.h \
+	asm.h core.h funcs.h fp.h $(LIGHTNING_TARGET_FILES)
 
 @LIGHTNING_MAIN_TRUE@lightningdir = $(includedir)/lightning
 @LIGHTNING_MAIN_TRUE@dist_pkgdata_DATA = Makefile.am
-@LIGHTNING_MAIN_TRUE@nobase_dist_lightning_HEADERS = $(LIGHTNING_FILES)
-@LIGHTNING_MAIN_TRUE@nodist_lightning_HEADERS = asm.h core.h funcs.h fp.h 
-@LIGHTNING_MAIN_FALSE@dist_noinst_HEADERS = $(LIGHTNING_FILES)
+@LIGHTNING_MAIN_TRUE@dist_lightning_HEADERS = $(LIGHTNING_FILES)
 all: all-am
 
 .SUFFIXES:
@@ -239,38 +235,19 @@ uninstall-dist_pkgdataDATA:
 	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
 	done
-install-nobase_dist_lightningHEADERS: $(nobase_dist_lightning_HEADERS)
+install-dist_lightningHEADERS: $(dist_lightning_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(lightningdir)" || $(mkdir_p) "$(DESTDIR)$(lightningdir)"
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_dist_lightning_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  $(am__vpath_adj) \
-	  echo " $(nobase_dist_lightningHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(lightningdir)/$$f'"; \
-	  $(nobase_dist_lightningHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(lightningdir)/$$f"; \
-	done
-
-uninstall-nobase_dist_lightningHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_dist_lightning_HEADERS)'; for p in $$list; do \
-	  $(am__vpath_adj) \
-	  echo " rm -f '$(DESTDIR)$(lightningdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(lightningdir)/$$f"; \
-	done
-install-nodist_lightningHEADERS: $(nodist_lightning_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(lightningdir)" || $(mkdir_p) "$(DESTDIR)$(lightningdir)"
-	@list='$(nodist_lightning_HEADERS)'; for p in $$list; do \
+	@list='$(dist_lightning_HEADERS)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(nodist_lightningHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(lightningdir)/$$f'"; \
-	  $(nodist_lightningHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(lightningdir)/$$f"; \
+	  echo " $(dist_lightningHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(lightningdir)/$$f'"; \
+	  $(dist_lightningHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(lightningdir)/$$f"; \
 	done
 
-uninstall-nodist_lightningHEADERS:
+uninstall-dist_lightningHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(nodist_lightning_HEADERS)'; for p in $$list; do \
+	@list='$(dist_lightning_HEADERS)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(lightningdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(lightningdir)/$$f"; \
@@ -360,7 +337,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(lightningdir)" "$(DESTDIR)$(lightningdir)"; do \
+	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(lightningdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -406,9 +383,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_pkgdataDATA \
-	install-nobase_dist_lightningHEADERS \
-	install-nodist_lightningHEADERS
+install-data-am: install-dist_lightningHEADERS \
+	install-dist_pkgdataDATA
 
 install-exec-am:
 
@@ -434,25 +410,31 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_pkgdataDATA uninstall-info-am \
-	uninstall-nobase_dist_lightningHEADERS \
-	uninstall-nodist_lightningHEADERS
+uninstall-am: uninstall-dist_lightningHEADERS \
+	uninstall-dist_pkgdataDATA uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	ctags dist-hook distclean distclean-generic distclean-tags \
 	distdir dvi dvi-am html html-am info info-am install \
 	install-am install-data install-data-am \
-	install-dist_pkgdataDATA install-exec install-exec-am \
-	install-info install-info-am install-man \
-	install-nobase_dist_lightningHEADERS \
-	install-nodist_lightningHEADERS install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-dist_pkgdataDATA uninstall-info-am \
-	uninstall-nobase_dist_lightningHEADERS \
-	uninstall-nodist_lightningHEADERS
+	install-dist_lightningHEADERS install-dist_pkgdataDATA \
+	install-exec install-exec-am install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
+	uninstall uninstall-am uninstall-dist_lightningHEADERS \
+	uninstall-dist_pkgdataDATA uninstall-info-am
 
+
+@lightning_frag@
+
+@LIGHTNING_MAIN_FALSE@all-am:
+@LIGHTNING_MAIN_FALSE@	@set frob $(LIGHTNING_TARGET_FILES); shift; \
+@LIGHTNING_MAIN_FALSE@	for i; \
+@LIGHTNING_MAIN_FALSE@	do \
+@LIGHTNING_MAIN_FALSE@	  echo $(LN_S) $(srcdir)/$$i `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	  $(LN_S) $(srcdir)/$$i `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	done
 
 @LIGHTNING_MAIN_FALSE@dist-hook:
 @LIGHTNING_MAIN_FALSE@	cp -p $(srcdir)/lightning.h $(distdir)

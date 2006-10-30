@@ -1,10 +1,59 @@
 2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/Makefile.am: Use "ln -sf".
+	* lightning/core-common.h: Define jit_negr_l if necessary.
+
+2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/asm.h (MOVS*, MOVZ*): Use correct _r[124] macros.
+
+2006-10-29  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Use lightning.m4 macros.
+	* lightning.m4: Refactor to use common code in configure.ac.  Move...
+	* build-aux/lightning.m4: ... here.
+	* lightningize.in: Support suffixes.
+	* opcode/disass.in: Adapt to changes in configure.ac.
+
+	* lightning/ppc/funcs.h: Use __APPLE__ instead of _CALL_DARWIN.
+	* lightning/i386/core-32.h: Likewise.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Fix compilation test.
+	* lightning/Makefile.am: Symlink LIGHTNING_TARGET_FILES in
+	non-distribution mode.
+	* lightning/i386/Makefile.frag: Use LIGHTNING_TARGET_FILES.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Subst cpu.
+	* lightning/core-common.h: Make tests pass on i386.
+	* lightning/i386/asm-32.h: Make tests pass on i386.
+	* lightning/i386/asm-64.h: Make tests pass on i386.
+	* lightning/i386/asm-i386.h: Make tests pass on i386.
+	* lightning/i386/core-32.h: Make tests pass on i386.
+	* lightning/i386/core-64.h: Make tests pass on i386.
+	* lightning/i386/core-i386.h: Make tests pass on i386.
+	* tests/Makefile.am: Include files from cpu directory.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h: Move to asm-i386.h
+	* lightning/i386/asm-32.h: New, from Matthew Flatt.
+	* lightning/i386/asm-64.h: New, from Matthew Flatt.
+	* lightning/i386/core.h: Move to core-i386.h
+	* lightning/i386/core-32.h: New, from Matthew Flatt.
+	* lightning/i386/core-64.h: New, from Matthew Flatt.
+	* lightning/i386/fp.h: Move to fp-32.h
+	* lightning/i386/fp-64.h: New, dummy.
+	* lightning/i386/Makefile.frag: New.
+	* lightning/Makefile.am: Support per-target Makefile fragments.
+	* configure.ac: Support per-target Makefile fragments and CPU suffixes.
 
 2006-10-16  Paolo Bonzini  <bonzini@gnu.org>
 
-	* lightning/i386/funcs.h (jit_flush_code): Fix syntax error. :-(
+	* lightning/i386/i386.h (jit_flush_code): Fix syntax error. :-(
 
 2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludovic.courtes@laas.fr>

@@ -6,14 +6,8 @@
 /* Define if the test programs should disassemble the code they produce */
 #undef LIGHTNING_DISASSEMBLE
 
-/* Define if lightning is targeting the x86 architecture */
-#undef LIGHTNING_I386
-
-/* Define if lightning is targeting the PowerPC architecture */
-#undef LIGHTNING_PPC
-
-/* Define if lightning is targeting the SPARC architecture */
-#undef LIGHTNING_SPARC
+/* Used to pick the appropriate disassembler, for debugging */
+#undef LIGHTNING_TARGET
 
 /* Name of package */
 #undef PACKAGE
