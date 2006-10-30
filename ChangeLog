@@ -1,6 +1,10 @@
+2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h (MOVS*, MOVZ*): Use correct _r[124] macros.
+
 2006-10-16  Paolo Bonzini  <bonzini@gnu.org>
 
-	* lightning/i386/i386.h (jit_flush_code): Fix syntax error. :-(
+	* lightning/i386/funcs.h (jit_flush_code): Fix syntax error. :-(
 
 2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludovic.courtes@laas.fr>
