@@ -104,10 +104,12 @@ which, like the x86, are poor of registers; anyway, backends can
 specify the actual number of available caller- and callee-save
 registers.
 
-In addition, there is a special @code{RET} register which contains
-the return value.  You should always remember, however, that writing
-this register could overwrite either a general-purpose register or
-an incoming parameter, depending on the architecture.
+In addition, there is a special @code{RET} register which contains the
+return value of the current function (@emph{not} the return value of
+callees---use the @code{retval} instruction for this).  You should
+always remember, however, that writing this register could overwrite
+either a general-purpose register or an incoming parameter, depending
+on the architecture.
 
 There are at least six floating-point registers, named @code{FPR0} to
 @code{FPR5}.  These are separate from the integer registers on
@@ -285,6 +287,7 @@ prepare                   i                f  d
 pusharg     c  uc  s  us  i  ui  l  ul  p  f  d
 getarg      c  uc  s  us  i  ui  l  ul  p  f  d
 arg         c  uc  s  us  i  ui  l  ul  p  f  d
+retval      c  uc  s  us  i  ui  l  ul  p
 @end example
 
 Of these, the first two are used by the caller, while the last two
@@ -314,6 +317,13 @@ related to the usage of the @lightning{} instruction set in code
 that generates other code, so they will be treated more
 specifically in @ref{GNU lightning macros, , Generating code at
 run-time}.
+
+Finally, the @code{retval} instruction fetches the return value of a
+called function in a register.  The @code{retval} instruction takes a
+register argument and copies the return value of the previously called
+function in that register.  A function should put its own return value
+in the @code{RET} register before returning.  @xref{Fibonacci, the
+Fibonacci numbers}, for an example.
 
 You should observe a few rules when using these macros.  First of
 all, it is not allowed to call functions with more than six arguments;
