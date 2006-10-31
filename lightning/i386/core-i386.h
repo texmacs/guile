@@ -34,7 +34,7 @@
 #ifndef __lightning_core_i386_h
 #define __lightning_core_i386_h
 
-#define JIT_FP			_EBP
+#define JIT_AP			_EBP
 #define JIT_SP			_ESP
 #define JIT_RET			_EAX
 

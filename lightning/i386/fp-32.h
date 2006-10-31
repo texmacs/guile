@@ -314,8 +314,6 @@ union jit_double_imm {
 #define jit_bordr_d(d, s1, s2)          jit_fp_btest((d), (s1), (s2), 11, 0, 0, JNCm)
 #define jit_bunordr_d(d, s1, s2)        jit_fp_btest((d), (s1), (s2), 11, 0, 0, JCm)
 
-#define jit_getarg_f(rd, ofs)        jit_ldxi_f((rd), JIT_FP,(ofs))
-#define jit_getarg_d(rd, ofs)        jit_ldxi_d((rd), JIT_FP,(ofs))
 #define jit_pusharg_d(rs)            (jit_subi_i(JIT_SP,JIT_SP,sizeof(double)), jit_str_d(JIT_SP,(rs)))
 #define jit_pusharg_f(rs)            (jit_subi_i(JIT_SP,JIT_SP,sizeof(float)), jit_str_f(JIT_SP,(rs)))
 #define jit_retval_d(op1)            jit_movr_d(0, (op1))

@@ -84,3 +84,15 @@
 #define jit_unordr_f(d, s1, s2)		jit_unordr_d(d, s1, s2)
 #define jit_retval_f(rs)		jit_retval_d(rs)
 #endif
+
+ 
+#ifndef jit_getarg_f
+#ifndef JIT_AP
+#define jit_getarg_f(reg, ofs)         jit_movr_f    ((reg), (ofs))
+#define jit_getarg_d(reg, ofs)         jit_movr_d    ((reg), (ofs))
+#else  
+#define jit_getarg_f(reg, ofs)         jit_ldxi_f((reg), JIT_AP, (ofs));
+#define jit_getarg_d(reg, ofs)         jit_ldxi_d((reg), JIT_AP, (ofs));
+#endif
+#endif
+

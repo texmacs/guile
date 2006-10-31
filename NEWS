@@ -1,6 +1,15 @@
-NEWS FROM VERSION 1.2 TO 1.2a
+NEWS FROM VERSION 1.2 TO 1.3
 
-This is a bug fix release with no visible changes.
+o   Initial support for x86-64 back-end.
+    [a promise for now, code is there but is untested!]
+
+o   Many bug fixes.
+
+o   Support for stack-allocated variables.  Because of this,
+    backends defining JIT_FP should now rename it to JIT_AP.
+    JIT_FP is now a user-visible register used in ldxi/ldxr
+    to access stack-allocated variables.
+    [a promise for now, not yet implemented!]
 
 
 ---

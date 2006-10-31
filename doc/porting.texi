@@ -833,16 +833,16 @@ to employ them automatically.  If you do not define the
 presume that you intend to pass parameters through either the registers
 or the stack.
 
-If you define @code{JIT_FP}, stack-based parameter passing will be
+If you define @code{JIT_AP}, stack-based parameter passing will be
 employed and the @code{jit_getarg} macros will be defined like this:
 
 @example
-#define jit_getarg_c(reg, ofs)  jit_ldxi_c((reg), JIT_FP, (ofs));
+#define jit_getarg_c(reg, ofs)  jit_ldxi_c((reg), JIT_AP, (ofs));
 @end example
 
 In other words, the @code{jit_arg} macros (which are still to be defined
 by the platform-specific back-end) shall return an offset into the stack
-frame.  On the other hand, if you don't define @code{JIT_FP},
+frame.  On the other hand, if you don't define @code{JIT_AP},
 register-based parameter passing will be employed and the @code{jit_arg}
 macros shall return a register number; in this case, @code{jit_getarg}
 will be implemented in terms of @code{jit_extr} and @code{jit_movr}
@@ -867,7 +867,7 @@ operations:
 #define JIT_FPR
 #define JIT_FPR_NUM
 #define JIT_SP
-#define JIT_FP
+#define JIT_AP
 #define JIT_RZERO
 @end example
 

@@ -1,4 +1,20 @@
 2006-10-31  Paolo Bonzini  <bonzini@gnu.org>
+
+	* doc/porting.texi: Rename JIT_FP to JIT_AP.
+	* lightning/core-common.h: Likewise.
+	* lightning/i386/core-i386.h: Likewise.
+	* lightning/fp-common.h: Provide default versions of jit_getarg_[fd].
+	* lightning/i386/fp-32.h: Don't provide jit_getarg_[fd].
+	* lightning/ppc/fp.h: Likewise.
+
+2006-10-31  Ludovic Courtes  <ludo@chbouib.org>
+
+        * doc/using.texi (The instruction set): Clarified the use of `JIT_RET' and
+        documented `jit_retval'.
+        * tests/ret.c (generate_function_proxy): After `jit_finish', use
+        `jit_retval_i' to move FUNC's return value into the correct register.
+
+2006-10-31  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludo@chbouib.org>
 
 	* tests/divi.c, tests/divi.ok, tests/movi.c, tests/movi.ok: New.
