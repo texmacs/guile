@@ -46,8 +46,8 @@ extern "C" {
 
 #include <lightning/core.h>
 #include <lightning/core-common.h>
-#include <lightning/funcs.h>
 #include <lightning/funcs-common.h>
+#include <lightning/funcs.h>
 #include <lightning/fp.h>
 #include <lightning/fp-common.h>
 

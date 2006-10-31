@@ -20,7 +20,7 @@ typedef char (* loader_t) (int);
 /* Check `ldxi' with a big operand (OPERAND is assumed to be ``big'', e.g.,
    more than one octet-long on PowerPC).  */
 static loader_t
-generate_ldxi_big_operand (void *operand)
+generate_ldxi_big_operand (const void *operand)
 {
   static char buffer[1024];
   loader_t result;
@@ -47,14 +47,23 @@ int
 main (int argc, char *argv[])
 {
   static const char the_array[] = "GNU Lightning";
+  char the_on_stack_array[] = "GNU Lightning";
   unsigned i;
-  loader_t array_loader = generate_ldxi_big_operand ((void *)the_array);
+  loader_t array_loader;
+  const char *large_pointer;
+
+  if (the_array > the_on_stack_array)
+    large_pointer = the_array;
+  else
+    large_pointer = the_on_stack_array;
+
+  array_loader = generate_ldxi_big_operand (large_pointer);
 
   for (i = 0; i < sizeof (the_array) - 1; i++)
     {
       printf ("array[%i] = %c, array_loader (%i) = %c\n",
-	      i, the_array[i], i, array_loader (i));
-      if (the_array[i] != array_loader (i))
+	      i, large_pointer[i], i, array_loader (i));
+      if (large_pointer[i] != array_loader (i))
 	return 1;
     }
 

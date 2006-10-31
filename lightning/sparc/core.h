@@ -1,13 +1,13 @@
 /******************************** -*- C -*- ****************************
  *
- *	Platform-independent layer (Sparc version)
+ *	Platform-independent layer (SPARC version)
  *
  ***********************************************************************/
 
 
 /***********************************************************************
  *
- * Copyright 2000, 2001, 2002 Free Software Foundation, Inc.
+ * Copyright 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
  * Written by Paolo Bonzini.
  *
  * This file is part of GNU lightning.
@@ -98,17 +98,17 @@ struct jit_local_state {
          jit_mul (JIT_BIG, JIT_BIG, s2),        \
          jit_subr_i (d, s1, JIT_BIG))
 
-#define jit_modi(jit_divi, jit_muli, jit_divr, jit_mulr, d, rs, is)     \
-        (_siP(13,(imm))                                                 \
-         ? (jit_divi (JIT_BIG, rs, is),                                 \
-            jit_muli (JIT_BIG, JIT_BIG, is),                            \
-            jit_subr_i (d, rs, JIT_BIG))                                \
-         : (SETir ((is), JIT_BIG2),                                     \
+#define jit_modi(jit_divi, jit_muli, jit_divr, jit_mulr, d, rs, is)	\
+        (_siP(13,(is))							\
+         ? (jit_divi (JIT_BIG, rs, is),					\
+            jit_muli (JIT_BIG, JIT_BIG, is),				\
+            jit_subr_i (d, rs, JIT_BIG))				\
+         : (SETir ((is), JIT_BIG2),					\
             jit_modr (jit_divr, jit_mulr, d, rs, JIT_BIG2)))
 
 /* How many instruction are needed to put imm in a register.  */
 #define jit_immsize(imm)	(!(imm) ? 0 :			\
-				(!_siP((imm), 13) && ((imm) & 0x3ff)  ? 2 : 1))
+				(!_siP(13,(imm)) && ((imm) & 0x3ff)  ? 2 : 1))
 
 
 /* branch instructions return the address of the *delay* instruction -- this

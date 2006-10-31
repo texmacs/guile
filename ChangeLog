@@ -1,3 +1,12 @@
+2006-10-31  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludo@chbouib.org>
+
+	* tests/divi.c, tests/divi.ok, tests/movi.c, tests/movi.ok: New.
+	* tests/ldxi.c: Ensure large pointer is generated.
+	* tests/Makefile.am: Point to new tests.
+	* lightning.h: Include funcs-common.h before funcs.h.
+	* lightning/sparc/core.h: Fix bugs in modi/divi.
+
 2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/Makefile.am: Use "ln -sf".
