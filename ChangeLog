@@ -1,5 +1,9 @@
 2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
 
+	* tests/rpn.c: Remove pushr/popr.
+
+2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/ppc/core.h: Implement jit_allocai, define JIT_FP to be R1.
 	* lightning/ppc/funcs.h: Store frame size into _jitl.  Store R1 before
 	the STMW, so that the offset is unchanged when we patch the STMW.

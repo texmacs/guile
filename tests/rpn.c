@@ -172,6 +172,20 @@ gen_reg_reg (int src1, int src2, int tok)
     }
 }
 
+static void
+pushr (int reg, int *sp)
+{
+  jit_stxi_i (*sp, JIT_FP, reg);
+  *sp += sizeof (int);
+}
+
+static void
+popr (int reg, int *sp)
+{
+  *sp -= sizeof (int);
+  jit_ldxi_i (reg, JIT_FP, *sp);
+}
+
 /* This function does all of lexing, parsing, and picking a good
    order of evaluation...  Needless to say, this is not the best
    possible design, but it avoids cluttering everything with globals. */
@@ -181,12 +195,15 @@ compile_rpn (char *expr)
   struct stack_element stack[32];
   int sp = 0;
   int curr_tos = -1;		/* stack element currently in R0 */
+  int spill_base, spill_sp;
 
   pifi fn;
   int ofs;
   fn = (pifi) (jit_get_ip ().iptr);
   jit_leaf (1);
   ofs = jit_arg_i ();
+
+  spill_sp = spill_base = jit_allocai (32 * sizeof (int));
 
   while (*expr)
     {
@@ -333,7 +350,7 @@ compile_rpn (char *expr)
 	      src2 = JIT_R0;
 	    }
 	  else
-	    jit_popr_i (JIT_V0);
+	    popr (JIT_V0, &spill_sp);
 
 	  curr_tos = -1;
 	  break;
@@ -350,7 +367,7 @@ compile_rpn (char *expr)
 	  /* LHS is an immediate, check if we must spill the top of stack.  */
 	  if (curr_tos != -1)
 	    {
-	      jit_pushr_i (JIT_R0);
+	      pushr (JIT_R0, &spill_sp);
 	      curr_tos = -1;
 	    }
 
@@ -361,7 +378,7 @@ compile_rpn (char *expr)
 	  /* LHS is an expression, check if it is already in JIT_R0.  */
 	  if (curr_tos != sp - 2)
 	    {
-	      jit_popr_i (src1);
+	      popr (src1, &spill_sp);
 	      curr_tos = -1;
 	    }
 	  else
@@ -371,7 +388,7 @@ compile_rpn (char *expr)
 	case ARG:
 	  if (curr_tos != -1)
 	    {
-	      jit_pushr_i (JIT_R0);
+	      pushr (JIT_R0, &spill_sp);
 	      curr_tos = -1;
 	    }
 
