@@ -41,6 +41,8 @@
 #define JIT_BIG			_Rg(1)	/* %g1 used to make 32-bit operands */
 #define JIT_BIG2		_Ro(7)	/* %o7 used to make 32-bit compare operands */
 #define JIT_SP			_Ro(6)
+#define JIT_FP			_Ri(6)
+
 #define JIT_RZERO		_Rg(0)
 #define JIT_RET			_Ri(0)
 
@@ -59,11 +61,59 @@
  *		`--- _jit.x.pc			
  */
 
+
+/* Implementation of `allocai'.
+ *
+ * The SysV ABI for SPARC is specified in "System V Application Binary
+ * Interface, SPARC Processor Supplement, Third Edition", available from
+ * http://www.sparc.org/resource.htm .
+ *
+ * According to the SysV ABI specs: "At all times the stack pointer must
+ * point to a doubleword aligned, 16- word window save area." (p 3-12).  The
+ * stack layout is shown in Figure 3-16 and the layout of a C stack frame is
+ * given in Figure 3-47: the area between %sp and %sp+104 is reserved for
+ * specific purposes, and automatic variables go between %sp+104 and %fp and
+ * are typically addressed using negative offsets relative to %fp.
+ *
+ * Stack space may be allocated dynamically as decribed in Section
+ * "Allocating Stack Space Dynamically", p. 3-36, and shown in Figure 3-49.
+ * `allocai' is implementing by patching a function prolog's `save'
+ * instruction in order to increase the initial frame size.  Thus,
+ * %fp and below is used for the memory allocated via `allocai'.  */
+
+
 struct jit_local_state {
   int	nextarg_put;	/* Next %o reg. to be written */
   int	nextarg_get;	/* Next %i reg. to be read */
+  jit_insn *save;	/* Pointer to the `save' instruction */
+  unsigned  frame_size;	/* Current frame size as allocated by `save' */
+  int       alloca_offset; /* Current offset to the alloca'd memory (negative
+			      offset relative to %fp) */
   jit_insn delay;
 };
+
+/* Minimum size of a stack frame.  */
+#define JIT_SPARC_MIN_FRAME_SIZE  104
+
+
+/* Round AMOUNT to the closest higher multiple of 2^ALIGNMENT.  */
+#define _jit_round(alignment, amount)				\
+  (((amount) & (_MASK (alignment)))				\
+   ? (((amount) & (~_MASK (alignment))) + (1 << (alignment)))	\
+   : (amount))
+
+/* Patch a `save' instruction (with immediate operand) so that it increases
+   %sp by AMOUNT.  AMOUNT is rounded so that %sp remains 8-octet aligned.  */
+#define jit_patch_save(amount)					\
+  (* (_jitl).save &= ~_MASK (13),				\
+   * (_jitl).save |= _ck_d (13, -_jit_round (3, amount)))
+
+/* Allocate AMOUNT octets on the frame by patching the `save' instruction.  */
+#define jit_allocai(amount)				\
+  (jit_patch_save ((_jitl).frame_size + (amount)),	\
+   (_jitl).frame_size += (amount),			\
+   (_jitl).alloca_offset -= (amount),			\
+   (_jitl).alloca_offset)
 
 #define jit_fill_delay_after(branch) (_jitl.delay = *--_jit.x.pc, 					 \
 	((branch) == _jit.x.pc					  /* check if NOP was inserted */		 \
@@ -240,7 +290,7 @@ struct jit_local_state {
 #define jit_patch_at(delay_pc, pv)	jit_patch_ (((delay_pc) - 1) , (pv))
 #define jit_popr_i(rs)			(LDmr(JIT_SP, 0, (rs)), ADDrir(JIT_SP, 8, JIT_SP))
 #define jit_prepare_i(num)		(_jitl.nextarg_put += (num))
-#define jit_prolog(numargs)		(SAVErir(JIT_SP, -120, JIT_SP), _jitl.nextarg_get = _Ri(0))
+#define jit_prolog(numargs)		(_jitl.save = (jit_insn *) _jit.x.pc, SAVErir (JIT_SP, -JIT_SPARC_MIN_FRAME_SIZE, JIT_SP), _jitl.frame_size = JIT_SPARC_MIN_FRAME_SIZE, _jitl.alloca_offset = 0, _jitl.nextarg_get = _Ri(0), _jitl.next_push = 0)
 #define jit_pushr_i(rs)			(STrm((rs), JIT_SP, -8), SUBrir(JIT_SP, 8, JIT_SP))
 #define jit_pusharg_i(rs)		(--_jitl.nextarg_put, MOVrr((rs), _Ro(_jitl.nextarg_put)))
 #define jit_ret()			(RET(), RESTORE())
