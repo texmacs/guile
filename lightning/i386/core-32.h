@@ -41,21 +41,43 @@
 struct jit_local_state {
   int	framesize;
   int	argssize;
+  int	alloca_offset;
+  int	alloca_slack;
 };
 
 #define jit_base_prolog() (PUSHLr(_EBP), MOVLrr(_ESP, _EBP), PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI))
-#define jit_prolog(n) (_jitl.framesize = 8, jit_base_prolog())
+#define jit_prolog(n) (_jitl.framesize = 8, _jitl.alloca_offset = -12, jit_base_prolog())
 
-/* The += allows for stack pollution */
+/* Used internally.  SLACK is used by the Darwin ABI which keeps the stack
+   aligned to 16-bytes.  */
+
+#define jit_allocai_internal(amount, slack)				  \
+  (((amount) < _jitl.alloca_slack					  \
+    ? 0									  \
+    : (_jitl.alloca_slack += (amount) + (slack),			  \
+       ((amount) + (slack) == sizeof (int)				  \
+        ? PUSHLr(_EAX)							  \
+        : SUBLir((amount) + (slack), _ESP)))),				  \
+   _jitl.alloca_slack -= (amount),					  \
+   _jitl.alloca_offset -= (amount))
+   
+/* The += in argssize allows for stack pollution */
 
 #ifdef __APPLE__
-  /* Stack must stay 16-byte aligned: */
+/* Stack must stay 16-byte aligned: */
 # define jit_prepare_i(ni)	(((ni & 0x3) \
                                   ? SUBLir(4 * ((((ni) + 3) & ~(0x3)) - (ni)), JIT_SP) \
                                   : (void)0), \
                                  _jitl.argssize += (((ni) + 3) & ~(0x3)))
+
+#define jit_allocai(n)						\
+  jit_allocai_internal ((n), (_jitl.alloca_slack - (n)) & 15)
+
 #else
 # define jit_prepare_i(ni)	(_jitl.argssize += (ni))
+
+#define jit_allocai(n)						\
+  jit_allocai_internal ((n), 0)
 #endif
 
 #define jit_pusharg_i(rs)	PUSHLr(rs)
@@ -74,7 +96,7 @@ struct jit_local_state {
 
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
-#define jit_ret() (POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), POPLr(_EBP), RET_())
+#define jit_ret()		(POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), (_jitl.alloca_offset < -12 ? LEAVE_() : POPLr(_EBP)), RET_())
 
 #endif /* __lightning_core_h */
 

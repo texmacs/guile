@@ -42,18 +42,33 @@ struct jit_local_state {
    int	nextarg_geti;  /* Next r20-r25 reg. to be read */
    int	nextarg_getd;  /* The FP args are picked up from FPR1 -> FPR10 */
    int  nbArgs;        /* Number of arguments for the prolog */
+
+   int  frame_size, slack;
+   jit_insn *stwu;
 };
 
+/* Patch a `stwu' instruction (with immediate operand) so that it decreases
+   r1 by AMOUNT.  AMOUNT should already be rounded so that %sp remains quadword
+   aligned.  */
+#define jit_patch_stwu(amount)                               \
+  (*(_jitl.stwu) &= ~_MASK (16),                               \
+   *(_jitl.stwu) |= _s16 ((amount)))
+
+#define jit_allocai(n)							  \
+   (_jitl.frame_size += (n),						  \
+    ((n) <= _jitl.slack							  \
+     ? 0 : jit_patch_stwu (-((_jitl.frame_size + 15) & ~15))),		  \
+    _jitl.slack = ((_jitl.frame_size + 15) & ~15) - _jitl.frame_size,	  \
+    _jitl.frame_size - (n))
+
 #define JIT_SP			1
+#define JIT_FP			1
 #define JIT_RET			3
 #define JIT_R_NUM		3
 #define JIT_V_NUM		7
 #define JIT_R(i)		(9+(i))
 #define JIT_V(i)		(31-(i))
 #define JIT_AUX			JIT_V(JIT_V_NUM)  /* for 32-bit operands & shift counts */
-
-#define jit_pfx_start()   (_jit.jitl.trampolines)
-#define jit_pfx_end()     (_jit.jitl.free)
 
 /* If possible, use the `small' instruction (rd, rs, imm)
  * else load imm into r26 and use the `big' instruction (rd, rs, r26)

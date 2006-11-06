@@ -40,7 +40,22 @@ struct jit_local_state {
   int   long_jumps;
   int   nextarg_geti;
   int	argssize;
+  int   alloca_offset;
+  int   alloca_slack;
 };
+
+
+/* Keep the stack 16-byte aligned, the SSE hardware prefers it this way.  */
+#define jit_allocai_internal(amount, slack)                           \
+  (((amount) < _jitl.alloca_slack                                     \
+    ? 0                                                               \
+    : (_jitl.alloca_slack += (amount) + (slack),                      \
+      SUBQir((amount) + (slack), _ESP))),                             \
+   _jitl.alloca_slack -= (amount),                                    \
+   _jitl.alloca_offset -= (amount))
+
+#define jit_allocai(n)                                                \
+  jit_allocai_internal ((n), (_jitl.alloca_slack - (n)) & 15)
 
 /* 3-parameter operation */
 #define jit_qopr_(d, s1, s2, op1d, op2d)				\
@@ -95,7 +110,7 @@ struct jit_local_state {
 #define jit_popr_l(rs)		POPQr(rs)
 
 #define jit_base_prolog() (PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13))
-#define jit_prolog(n) (_jitl.nextarg_geti = 0, jit_base_prolog())
+#define jit_prolog(n) (_jitl.nextarg_geti = 0, _jitl.alloca_offset = -24, jit_base_prolog())
 
 /* Stack isn't used for arguments: */
 #define jit_prepare_i(ni)	(_jitl.argssize = 0)
@@ -154,7 +169,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v)))
 #define jit_patch_short_at(jump_pc,v)  (*_PSI((jump_pc) - sizeof(int)) = _jit_SI((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v) (_jitl.long_jumps ? jit_patch_long_at((jump_pc)-3, v) : jit_patch_short_at(jump_pc, v))
-#define jit_ret() (POPQr(_R13), POPQr(_R12), POPQr(_EBX), POPQr(_EBP), RET_())
+#define jit_ret() (POPQr(_R13), POPQr(_R12), POPQr(_EBX), (_jitl.alloca_offset < -24 ? LEAVE_() : POPQr(_EBP)), RET_())
 
 #define _jit_ldi_l(d, is)		MOVQmr((is), 0,    0,    0,  (d))
 #define jit_ldr_l(d, rs)		MOVQmr(0,    (rs), 0,    0,  (d))

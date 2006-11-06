@@ -1,3 +1,20 @@
+2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Implement jit_allocai, define JIT_FP to be R1.
+	* lightning/ppc/funcs.h: Store frame size into _jitl.  Store R1 before
+	the STMW, so that the offset is unchanged when we patch the STMW.
+	* lightning/i386/core.h: Define JIT_FP to be EBP.
+	* lightning/i386/core-32.h: Implement jit_allocai, put LEAVE in the
+	epilog if jit_allocai was used.
+	* lightning/i386/core-64.h: Implement jit_allocai, put LEAVE in the
+	epilog if jit_allocai was used.
+
+2006-11-04  Ludovic Courtes  <ludo@chbouib.org>
+
+	* lightning/sparc/core.h: Implement jit_allocai.
+	* tests/allocai.c: New.
+	* tests/Makefile.am: Point to new tests.
+
 2006-11-03  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/ppc/core.h: Fix jit_bms using BNE rather than BGT.

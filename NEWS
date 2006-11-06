@@ -9,7 +9,6 @@ o   Support for stack-allocated variables.  Because of this,
     backends defining JIT_FP should now rename it to JIT_AP.
     JIT_FP is now a user-visible register used in ldxi/ldxr
     to access stack-allocated variables.
-    [a promise for now, not yet implemented!]
 
 
 ---
