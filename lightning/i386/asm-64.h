@@ -49,6 +49,10 @@
 #define JIT_CALLTMPSTART 0x48
 #define JIT_REXTMP       0x4B
 
+#define _r_8B(	R, D,B    )	(_qMrm(_b10,_rN(R),_r8(B))		             ,_jit_I((long)(D)))
+#define _r_8IS( R, D,I,S)	(_qMrm(_b00,_rN(R),_b100 ),_SIB(_SCL(S),_r8(I),_b101 ),_jit_I((long)(D)))
+#define _r_8BIS(R, D,B,I,S)	(_qMrm(_b10,_rN(R),_b100 ),_SIB(_SCL(S),_r8(I),_r8(B)),_jit_I((long)(D)))
+
 #define _qMrm(Md,R,M)	_jit_B((_M(Md)<<6)|(_r((R & 0x7))<<3)|_m((M & 0x7)))
 #define _r_D(	R, D	  )	(_Mrm(_b00,_rN(R),_b100 ),_SIB(0,_b100,_b101)	     ,_jit_I((long)(D)))
 #define _r_Q(	R, D	  )	(_qMrm(_b00,_rN(R),_b100 ),_SIB(0,_b100,_b101)        ,_jit_I((long)(D)))
@@ -137,5 +141,4 @@
 
 #endif
 #endif /* __lightning_asm_h */
-
 

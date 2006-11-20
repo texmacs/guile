@@ -1,4 +1,10 @@
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Merge 64-bit cleanliness changes from mzscheme.
+	Add SSE.
+	* lightning/i386/asm-64.h: Likewise.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludo@chbouib.org>
 
 	* lightning/i386/core-32.h: Disable jit_push and jit_pop if stack not needed.
