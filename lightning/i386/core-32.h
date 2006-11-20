@@ -34,9 +34,10 @@
 #ifndef __lightning_core_h
 #define __lightning_core_h
 
-#include "core-i386.h"
-
 #define JIT_CAN_16 1
+#define JIT_AP			_EBP
+
+#include "core-i386.h"
 
 struct jit_local_state {
   int	framesize;
@@ -61,6 +62,10 @@ struct jit_local_state {
    _jitl.alloca_slack -= (amount),					  \
    _jitl.alloca_offset -= (amount))
    
+/* Stack */
+#define jit_pushr_i(rs)		PUSHLr(rs)
+#define jit_popr_i(rs)		POPLr(rs)
+
 /* The += in argssize allows for stack pollution */
 
 #ifdef __APPLE__

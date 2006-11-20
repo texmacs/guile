@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include "lightning.h"
 
+#ifdef JIT_FPR
 static jit_insn codeBuffer[300];
 
 typedef int (*intFunc) (int, int);
@@ -175,3 +176,10 @@ main (int argc, char *argv[])
 
   return 0;
 }
+#else
+int
+main()
+{       
+  return (77);
+} 
+#endif

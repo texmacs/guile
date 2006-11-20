@@ -111,6 +111,8 @@ typedef _uc		jit_insn;
 #define _r4(R)		((_rS(R)==4) ? _rN(R) : JITFAIL("32-bit register required"))
 #endif
 
+#define _r8(R)		_r4(R)
+
 /*** ASSEMBLER ***/
 
 #define _OFF4(D)        (_jit_UL(D) - _jit_UL(_jit.x.pc))

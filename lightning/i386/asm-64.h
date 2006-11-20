@@ -57,6 +57,13 @@
 #define  _qO(	     OP, R,X,B			)  ( _REX(R,X,B), _jit_B(  OP	) )
 #define  _qOr(	     OP,R			)  ( _REX(0,0,R), _jit_B( (OP)|_r(R&0x7))				  )
 #define  _qOs(	     OP, B, R, M	       	)  ( _REX(0, M, R), _Os(OP, B) )
+#define	 _qOr_Q(     OP,R		    ,Q	)  (	   _qOr	    (  OP,R)			      ,_jit_L(Q)	  )
+#define	 _qO_Mrm(    OP	 ,MO,R,M		)  (	    _qO	    (  OP,R,0,M),_qMrm(MO,R,M	    )		  )
+#define	 _qO_Mrm_L(  OP	 ,MO,R,M	    ,L	)  (	   _qO	    (  OP,R,0,M),_qMrm(MO,R,M	    ) ,_jit_I(L)	  )
+#define	 _qOs_Mrm_sL(OP	 ,MO,R,M	    ,L	)  (	   _qOs	    (  OP,L,R,M),_qMrm(MO,R,M	    ),_sL(L)	  )
+#define	 _qO_r_X(    OP	    ,R	,MD,MB,MI,MS	)  (	   _qO	    (  OP,R,0,MS),_qr_X(R,MD,MB,MI,MS)		  )
+#define	 _qO_r_XB(   OP	    ,R	,MD,MB,MI,MS	)  (	   _qO	    (  OP,R,0,MB),_qr_X(R,MD,MB,MI,MS)		  )
+
 
 #define ADDQrr(RS, RD)			_qO_Mrm		(0x01		,_b11,_r8(RS),_r8(RD)				)
 #define ADDQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b000  ,_r8(RD)			,IM	)

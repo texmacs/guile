@@ -1,3 +1,17 @@
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/asm-common.h: Make 64-bit safe.
+	* lightning/i386/funcs.h: Make 64-bit safe.
+
+	* lightning/i386/asm-64.h: More merge from mzscheme.
+	* lightning/i386/asm-i386.h: More merge from mzscheme.
+	* lightning/i386/core-32.h: More merge from mzscheme.
+	* lightning/i386/core-64.h: More merge from mzscheme.
+	* lightning/i386/core-i386.h: More merge from mzscheme.
+
+	* tests/rpnfp.c, tests/testfp.c, tests/funcfp.c: Skip if no floating-point
+	support.
+
 2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
 
 	* tests/rpn.c: Remove pushr/popr.

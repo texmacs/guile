@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include "lightning.h"
 
+#ifdef JIT_FPR
 static jit_insn codeBuffer[1024];
 
 typedef double (*pdfd) (double);	/* Pointer to Double Function of Double */
@@ -136,3 +137,10 @@ main ()
 #endif
   return 0;
 }
+#else
+int
+main()
+{       
+	  return (77);
+} 
+#endif

@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include "lightning.h"
 
+#ifdef JIT_FPR
 static jit_insn codeBuffer[300];
 static double a;
 
@@ -215,3 +216,10 @@ main()
 
   return (0);
 }
+#else
+int
+main()
+{
+  return (77);
+}
+#endif

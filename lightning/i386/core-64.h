@@ -34,6 +34,9 @@
 #ifndef __lightning_core_h
 #define __lightning_core_h
 
+/* Used to implement ldc, stc, ... */
+#define JIT_CAN_16 0
+
 #include "core-i386.h"
 
 struct jit_local_state {
@@ -77,9 +80,6 @@ struct jit_local_state {
 #define jit_bra_l0(rs, is, op, op0)					\
 	( (is) == 0 ? (TESTQrr(rs, rs), op0, _jit.x.pc) : jit_bra_l(rs, is, op))
 
-/* Used to implement ldc, stc, ... */
-#define JIT_CAN_16 0
-
 #define jit_reduceQ(op, is, rs)							\
 	(_u8P(is) && jit_check8(rs) ? jit_reduce_(op##Bir(is, jit_reg8(rs))) :	\
 	jit_reduce_(op##Qir(is, rs)) )
@@ -106,8 +106,8 @@ struct jit_local_state {
 #define jit_rshr_ul(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_ ((d), (r1), SHRQrr(_CL,  (d)) ))
 
 /* Stack */
-#define jit_pushr_l(rs)		PUSHQr(rs)
-#define jit_popr_l(rs)		POPQr(rs)
+#define jit_pushr_i(rs)		PUSHQr(rs)
+#define jit_popr_i(rs)		POPQr(rs)
 
 #define jit_base_prolog() (PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13))
 #define jit_prolog(n) (_jitl.nextarg_geti = 0, _jitl.alloca_offset = -24, jit_base_prolog())
@@ -140,10 +140,16 @@ struct jit_local_state {
     (MOVQrr(_R12, _ESI), MOVQrr(_R13, _EDI))
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
-#define	jit_arg_i()	        (_jitl.nextarg_geti++)
-#define	jit_arg_l()	        (_jitl.nextarg_geti++)
-#define	jit_arg_p()	        (_jitl.nextarg_geti++)
-#define jit_arg_reg(p)          (jit_arg_reg_order[p])
+#define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_uc()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_s()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_us()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_i()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_ui()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_l()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_ul()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_p()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define	jit_arg_up()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
 static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )

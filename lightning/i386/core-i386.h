@@ -34,7 +34,6 @@
 #ifndef __lightning_core_i386_h
 #define __lightning_core_i386_h
 
-#define JIT_AP			_EBP
 #define JIT_FP			_EBP
 #define JIT_SP			_ESP
 #define JIT_RET			_EAX
@@ -107,11 +106,6 @@
 	        : jit_replace(_EBX, rs, _EAX, MOVBrm(_AL, dd, db, di, ds)))
 
 /* Reduce arguments of XOR/OR/TEST */
-#ifdef JIT_X86_64
-# define JIT_CAN_16 0
-#else
-# define JIT_CAN_16 1
-#endif
 #define jit_reduce_(op)	op
 #define jit_reduce(op, is, rs)							\
 	(_u8P(is) && jit_check8(rs) ? jit_reduce_(op##Bir(is, jit_reg8(rs))) :	\
@@ -261,9 +255,6 @@
 #define jit_rshr_ui(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_op_ ((d), (r1), SHRLrr(_CL,  (d)) ))
 
 /* Stack */
-#define jit_pushr_i(rs)		PUSHLr(rs)
-#define jit_popr_i(rs)		POPLr(rs)
-
 #define jit_prepare_f(nf)	(_jitl.argssize += (nf))
 #define jit_prepare_d(nd)	(_jitl.argssize += 2 * (nd))
 #define jit_retval_i(rd)	((void)jit_movr_i ((rd), _EAX))
