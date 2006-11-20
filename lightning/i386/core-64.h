@@ -156,6 +156,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )
 #define jit_movr_l(d, rs)	((void)((rs) == (d) ? 0 : MOVQrr((rs), (d))))
+#define jit_movi_p(d, is)       (MOVQir(((long)(is)), (d)), _jit.x.pc)
 #define jit_movi_l(d, is)	((is) \
                                  ? (_u32P((long)(is)) \
                                     ? MOVLir((is), (d)) \
@@ -177,7 +178,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v)))
 #define jit_patch_short_at(jump_pc,v)  (*_PSI((jump_pc) - sizeof(int)) = _jit_SI((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v) (_jitl.long_jumps ? jit_patch_long_at((jump_pc)-3, v) : jit_patch_short_at(jump_pc, v))
-#define jit_ret() ((_jitl.alloca_offset < -24 ? LEAVE_() : POPQr(_EBP)), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
+#define jit_ret() ((_jitl.alloca_offset < 0 ? LEAVE_() : POPQr(_EBP)), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
 
 #define _jit_ldi_l(d, is)		MOVQmr((is), 0,    0,    0,  (d))
 #define jit_ldr_l(d, rs)		MOVQmr(0,    (rs), 0,    0,  (d))
@@ -193,14 +194,21 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_sti_l(id, rs)		(_u32P((long)(id)) ? _jit_sti_l(id, rs) : (jit_movi_l(JIT_REXTMP, id), jit_str_l (JIT_REXTMP, (rs))))
 
 /* Memory */
+
+/* Used to implement ldc, stc, ... We have SIL and friends which simplify it all.  */
+#define jit_check8(rs)          1
+#define jit_reg8(rs)            (_rN(rs) | _AL )
+#define jit_reg16(rs)           (_rN(rs) | _AX )
+#define jit_movbrm(rs, dd, db, di, ds)         MOVBrm(jit_reg8(rs), dd, db, di, ds)
+
 #define jit_ldi_c(d, is)                (_u32P((long)(is)) ? MOVSBLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_c(d, JIT_REXTMP)))
 #define jit_ldxi_c(d, rs, is)           (_u32P((long)(is)) ? MOVSBLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_c(d, rs, JIT_REXTMP)))
 
 #define jit_ldi_uc(d, is)               (_u32P((long)(is)) ? MOVZBLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_uc(d, JIT_REXTMP)))
 #define jit_ldxi_uc(d, rs, is)          (_u32P((long)(is)) ? MOVZBLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_uc(d, rs, JIT_REXTMP)))
 
-#define jit_sti_c(id, rs)               (_u32P((long)(id)) ? jit_movbrm((rs), (id), 0,    0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_str_c(JIT_REXTMP, rs)))
-#define jit_stxi_c(id, rd, rs)          (_u32P((long)(id)) ? jit_movbrm((rs), (id), (rd), 0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_stxr_c(JIT_REXTMP, rd, rs)))
+#define jit_sti_c(id, rs)               (_u32P((long)(id)) ? MOVBrm(jit_reg8(rs), (id), 0,    0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_str_c(JIT_REXTMP, rs)))
+#define jit_stxi_c(id, rd, rs)          (_u32P((long)(id)) ? MOVBrm(jit_reg8(rs), (id), (rd), 0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_stxr_c(JIT_REXTMP, rd, rs)))
 
 #define jit_ldi_s(d, is)                (_u32P((long)(is)) ? MOVSWLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_s(d, JIT_REXTMP)))
 #define jit_ldxi_s(d, rs, is)           (_u32P((long)(is)) ? MOVSWLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_s(d, rs, JIT_REXTMP)))

@@ -40,6 +40,11 @@ static char codeBuffer[1024];
 
 typedef void (*pvfi)(int);	/* Pointer to Void Function of Int */
 
+static void display_message (char *msg, int value)
+{
+  printf (msg, value);
+}
+
 int main()
 {
   pvfi		myFunction;		/* ptr to generated code */
@@ -55,7 +60,7 @@ int main()
   jit_prepare_i(2);
     jit_pusharg_i(JIT_R1);		/* push in reverse order */
     jit_pusharg_p(JIT_R0);
-  jit_finish(printf);
+  jit_finish(display_message);
   jit_ret();
   end = jit_get_ip().ptr;
 

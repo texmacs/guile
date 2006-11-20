@@ -99,11 +99,22 @@ struct jit_local_state {
 #define	jit_arg_ul()		((_jitl.framesize += sizeof(long)) - sizeof(long))
 #define	jit_arg_p()		((_jitl.framesize += sizeof(long)) - sizeof(long))
 
+#define jit_movi_p(d, is)       (jit_movi_l(d, ((long)(is))), _jit.x.pc)
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
 #define jit_ret()		((_jitl.alloca_offset < 0 ? LEAVE_() : POPLr(_EBP)), POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
 
 /* Memory */
+
+#define jit_check8(rs)          ( (rs) <= _EBX )
+#define jit_reg8(rs)            ( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
+#define jit_reg16(rs)           ( _rN(rs) | _AX )
+
+/* In jit_replace below, _EBX is dummy */
+#define jit_movbrm(rs, dd, db, di, ds)                                                \
+        (jit_check8(rs)                                                         \
+                ? MOVBrm(jit_reg8(rs), dd, db, di, ds)                          \
+                : jit_replace(_EBX, rs, _EAX, MOVBrm(_AL, dd, db, di, ds)))
 
 #define jit_ldi_c(d, is)                MOVSBLmr((is), 0,    0,    0, (d))
 #define jit_ldxi_c(d, rs, is)           MOVSBLmr((is), (rs), 0,    0, (d))

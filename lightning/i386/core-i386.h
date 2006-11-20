@@ -94,17 +94,6 @@
 #define jit_bra_i0(rs, is, op, op0)					\
 	( (is) == 0 ? (TESTLrr(rs, rs), op0, _jit.x.pc) : (CMPLir(is, rs), op, _jit.x.pc))
 
-/* Used to implement ldc, stc, ... */
-#define jit_check8(rs)		( (rs) <= _EBX )
-#define jit_reg8(rs)		( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
-#define jit_reg16(rs)		( _rN(rs) | _AX )
-
-/* In jit_replace below, _EBX is dummy */
-#define jit_movbrm(rs, dd, db, di, ds)                                                \
-	(jit_check8(rs)                                                         \
-	        ? MOVBrm(jit_reg8(rs), dd, db, di, ds)                          \
-	        : jit_replace(_EBX, rs, _EAX, MOVBrm(_AL, dd, db, di, ds)))
-
 /* Reduce arguments of XOR/OR/TEST */
 #define jit_reduce_(op)	op
 #define jit_reduce(op, is, rs)							\
@@ -267,7 +256,6 @@
 
 #define jit_movr_i(d, rs)	((void)((rs) == (d) ? 0 : MOVLrr((rs), (d))))
 #define jit_movi_i(d, is)	((is) ? MOVLir((is), (d)) : XORLrr ((d), (d)) )
-#define jit_movi_p(d, is)       (jit_movi_l(d, ((long)(is))), _jit.x.pc)
 #define jit_patch_movi(pa,pv)   (*_PSL((pa) - sizeof(long)) = _jit_SL((pv)))
 
 #define jit_ntoh_ui(d, rs)	jit_op_((d), (rs), BSWAPLr(d))
