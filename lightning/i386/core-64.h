@@ -36,6 +36,8 @@
 
 /* Used to implement ldc, stc, ... */
 #define JIT_CAN_16 0
+#define JIT_CALLTMPSTART 0x48
+#define JIT_REXTMP       0x4B
 
 #include "core-i386.h"
 
@@ -106,13 +108,11 @@ struct jit_local_state {
 #define jit_rshr_ul(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_ ((d), (r1), SHRQrr(_CL,  (d)) ))
 
 /* Stack */
-#ifdef JIT_NEED_PUSH_POP
 #define jit_pushr_i(rs)		PUSHQr(rs)
 #define jit_popr_i(rs)		POPQr(rs)
-#endif
 
-#define jit_base_prolog() (PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13))
-#define jit_prolog(n) (_jitl.nextarg_geti = 0, _jitl.alloca_offset = -24, jit_base_prolog())
+#define jit_base_prolog() (PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
+#define jit_prolog(n) (_jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, jit_base_prolog())
 
 /* Stack isn't used for arguments: */
 #define jit_prepare_i(ni)	(_jitl.argssize = 0)
@@ -122,7 +122,7 @@ struct jit_local_state {
 #define jit_reg_is_arg(reg) ((reg == _EDI) || (reg ==_ESI) || (reg == _EDX))
 #define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
                                  jit_shift_args(), \
-                                 jit_reg_is_arg((reg)) ? CALQsr((JIT_REXTMP)) : jit_callr((reg)), \
+                                 jit_reg_is_arg((reg)) ? CALLsr((JIT_REXTMP)) : jit_callr((reg)), \
                                  jit_restore_locals())
 
 /* R12 and R13 are callee-save, instead of EDI and ESI.  Can be improved. */
@@ -162,22 +162,22 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
                                     : MOVQir((is), (d))) \
                                  : XORLrr ((d), (d)) )
 
-#define jit_bmsr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JNZm(label,0,0,0), _jit.x.pc)
-#define jit_bmcr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JZm(label,0,0,0),  _jit.x.pc)
-#define jit_boaddr_l(label, s1, s2)	(ADDQrr((s2), (s1)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_bosubr_l(label, s1, s2)	(SUBQrr((s2), (s1)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_boaddr_ul(label, s1, s2)	(ADDQrr((s2), (s1)), JCm(label,0,0,0), _jit.x.pc)
-#define jit_bosubr_ul(label, s1, s2)	(SUBQrr((s2), (s1)), JCm(label,0,0,0), _jit.x.pc)
+#define jit_bmsr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JNZm(label), _jit.x.pc)
+#define jit_bmcr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JZm(label),  _jit.x.pc)
+#define jit_boaddr_l(label, s1, s2)	(ADDQrr((s2), (s1)), JOm(label), _jit.x.pc)
+#define jit_bosubr_l(label, s1, s2)	(SUBQrr((s2), (s1)), JOm(label), _jit.x.pc)
+#define jit_boaddr_ul(label, s1, s2)	(ADDQrr((s2), (s1)), JCm(label), _jit.x.pc)
+#define jit_bosubr_ul(label, s1, s2)	(SUBQrr((s2), (s1)), JCm(label), _jit.x.pc)
 
-#define jit_boaddi_l(label, rs, is)	(ADDQir((is), (rs)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_bosubi_l(label, rs, is)	(SUBQir((is), (rs)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_boaddi_ul(label, rs, is)	(ADDQir((is), (rs)), JCm(label,0,0,0), _jit.x.pc)
-#define jit_bosubi_ul(label, rs, is)	(SUBQir((is), (rs)), JCm(label,0,0,0), _jit.x.pc)
+#define jit_boaddi_l(label, rs, is)	(ADDQir((is), (rs)), JOm(label), _jit.x.pc)
+#define jit_bosubi_l(label, rs, is)	(SUBQir((is), (rs)), JOm(label), _jit.x.pc)
+#define jit_boaddi_ul(label, rs, is)	(ADDQir((is), (rs)), JCm(label), _jit.x.pc)
+#define jit_bosubi_ul(label, rs, is)	(SUBQir((is), (rs)), JCm(label), _jit.x.pc)
 
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v)))
 #define jit_patch_short_at(jump_pc,v)  (*_PSI((jump_pc) - sizeof(int)) = _jit_SI((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v) (_jitl.long_jumps ? jit_patch_long_at((jump_pc)-3, v) : jit_patch_short_at(jump_pc, v))
-#define jit_ret() (POPQr(_R13), POPQr(_R12), POPQr(_EBX), (_jitl.alloca_offset < -24 ? LEAVE_() : POPQr(_EBP)), RET_())
+#define jit_ret() ((_jitl.alloca_offset < -24 ? LEAVE_() : POPQr(_EBP)), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
 
 #define _jit_ldi_l(d, is)		MOVQmr((is), 0,    0,    0,  (d))
 #define jit_ldr_l(d, rs)		MOVQmr(0,    (rs), 0,    0,  (d))
@@ -189,19 +189,44 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_stxr_l(d1, d2, rs)		MOVQrm((rs), 0,    (d1), (d2), 1)
 #define jit_stxi_l(id, rd, rs)		MOVQrm((rs), (id), (rd), 0,    0)
 
-#define jit_ldi_l(d, is) (_u32P((long)(is)) ? _jit_ldi_l(d, is) : (jit_movi_l(d, is), jit_ldr_l(d, d)))
-#define jit_sti_l(id, rs) (_u32P((long)(id)) ? _jit_sti_l(id, rs) : (jit_movi_l(JIT_REXTMP, id), MOVQrQm(rs, 0, JIT_REXTMP, 0, 0)))
+#define jit_ldi_l(d, is)		(_u32P((long)(is)) ? _jit_ldi_l((d), (is)) : (jit_movi_l(JIT_REXTMP, (is)), jit_ldr_l(JIT_REXTMP)))
+#define jit_sti_l(id, rs)		(_u32P((long)(id)) ? _jit_sti_l(id, rs) : (jit_movi_l(JIT_REXTMP, id), jit_str_l (JIT_REXTMP, (rs))))
 
-#define jit_blti_l(label, rs, is)	jit_bra_l0((rs), (is), JLm(label, 0,0,0), JSm(label, 0,0,0) )
-#define jit_blei_l(label, rs, is)	jit_bra_l ((rs), (is), JLEm(label,0,0,0)		    )
-#define jit_bgti_l(label, rs, is)	jit_bra_l ((rs), (is), JGm(label, 0,0,0)		    )
-#define jit_bgei_l(label, rs, is)	jit_bra_l0((rs), (is), JGEm(label,0,0,0), JNSm(label,0,0,0) )
-#define jit_beqi_l(label, rs, is)	jit_bra_l0((rs), (is), JEm(label, 0,0,0), JEm(label, 0,0,0) )
-#define jit_bnei_l(label, rs, is)	jit_bra_l0((rs), (is), JNEm(label,0,0,0), JNEm(label,0,0,0) )
-#define jit_blti_ul(label, rs, is)	jit_bra_l ((rs), (is), JBm(label, 0,0,0)		    )
-#define jit_blei_ul(label, rs, is)	jit_bra_l0((rs), (is), JBEm(label,0,0,0), JEm(label, 0,0,0) )
-#define jit_bgti_ul(label, rs, is)	jit_bra_l0((rs), (is), JAm(label, 0,0,0), JNEm(label,0,0,0) )
-#define jit_bgei_ul(label, rs, is)	jit_bra_l ((rs), (is), JAEm(label,0,0,0)		    )
+/* Memory */
+#define jit_ldi_c(d, is)                (_u32P((long)(is)) ? MOVSBLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_c(d, JIT_REXTMP)))
+#define jit_ldxi_c(d, rs, is)           (_u32P((long)(is)) ? MOVSBLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_c(d, rs, JIT_REXTMP)))
+
+#define jit_ldi_uc(d, is)               (_u32P((long)(is)) ? MOVZBLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_uc(d, JIT_REXTMP)))
+#define jit_ldxi_uc(d, rs, is)          (_u32P((long)(is)) ? MOVZBLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_uc(d, rs, JIT_REXTMP)))
+
+#define jit_sti_c(id, rs)               (_u32P((long)(id)) ? jit_movbrm((rs), (id), 0,    0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_str_c(JIT_REXTMP, rs)))
+#define jit_stxi_c(id, rd, rs)          (_u32P((long)(id)) ? jit_movbrm((rs), (id), (rd), 0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_stxr_c(JIT_REXTMP, rd, rs)))
+
+#define jit_ldi_s(d, is)                (_u32P((long)(is)) ? MOVSWLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_s(d, JIT_REXTMP)))
+#define jit_ldxi_s(d, rs, is)           (_u32P((long)(is)) ? MOVSWLmr((is), (rs), 0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_s(d, rs, JIT_REXTMP)))
+
+#define jit_ldi_us(d, is)               (_u32P((long)(is)) ? MOVZWLmr((is), 0,    0,    0,  (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_us(d, JIT_REXTMP)))
+#define jit_ldxi_us(d, rs, is)          (_u32P((long)(is)) ? MOVZWLmr((is), (rs), 0,    0,  (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_us(d, rs, JIT_REXTMP)))
+
+#define jit_sti_s(id, rs)               (_u32P((long)(id)) ? MOVWrm(jit_reg16(rs), (id), 0,    0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_str_s(JIT_REXTMP, rs)))
+#define jit_stxi_s(id, rd, rs)          (_u32P((long)(id)) ? MOVWrm(jit_reg16(rs), (id), (rd), 0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_stxr_s(JIT_REXTMP, rd, rs)))
+
+#define jit_ldi_i(d, is)                (_u32P((long)(is)) ? MOVLmr((is), 0,    0,    0,  (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_i(d, JIT_REXTMP)))
+#define jit_ldxi_i(d, rs, is)           (_u32P((long)(is)) ? MOVLmr((is), (rs), 0,    0,  (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldxr_i(d, rs, JIT_REXTMP)))
+
+#define jit_sti_i(id, rs)               (_u32P((long)(id)) ? MOVLrm((rs), (id), 0,    0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_str_i(JIT_REXTMP, rs)))
+#define jit_stxi_i(id, rd, rs)          (_u32P((long)(id)) ? MOVLrm((rs), (id), (rd), 0,    0) : (jit_movi_l(JIT_REXTMP, id), jit_stxr_i(JIT_REXTMP, rd, rs)))
+
+#define jit_blti_l(label, rs, is)	jit_bra_l0((rs), (is), JLm(label), JSm(label) )
+#define jit_blei_l(label, rs, is)	jit_bra_l ((rs), (is), JLEm(label)		    )
+#define jit_bgti_l(label, rs, is)	jit_bra_l ((rs), (is), JGm(label)		    )
+#define jit_bgei_l(label, rs, is)	jit_bra_l0((rs), (is), JGEm(label), JNSm(label) )
+#define jit_beqi_l(label, rs, is)	jit_bra_l0((rs), (is), JEm(label), JEm(label) )
+#define jit_bnei_l(label, rs, is)	jit_bra_l0((rs), (is), JNEm(label), JNEm(label) )
+#define jit_blti_ul(label, rs, is)	jit_bra_l ((rs), (is), JBm(label)		    )
+#define jit_blei_ul(label, rs, is)	jit_bra_l0((rs), (is), JBEm(label), JEm(label) )
+#define jit_bgti_ul(label, rs, is)	jit_bra_l0((rs), (is), JAm(label), JNEm(label) )
+#define jit_bgei_ul(label, rs, is)	jit_bra_l ((rs), (is), JAEm(label)		    )
 #define jit_bmsi_l(label, rs, is) jit_bmsi_i(label, rs, is)
 #define jit_bmci_l(label, rs, is) jit_bmci_i(label, rs, is)
 
@@ -210,16 +235,16 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 
 #define jit_pusharg_l(rs) jit_pusharg_i(rs)
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
-#define jit_bltr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JLm(label, 0,0,0) )
-#define jit_bler_l(label, s1, s2)	jit_bra_qr((s1), (s2), JLEm(label,0,0,0) )
-#define jit_bgtr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JGm(label, 0,0,0) )
-#define jit_bger_l(label, s1, s2)	jit_bra_qr((s1), (s2), JGEm(label,0,0,0) )
-#define jit_beqr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JEm(label, 0,0,0) )
-#define jit_bner_l(label, s1, s2)	jit_bra_qr((s1), (s2), JNEm(label,0,0,0) )
-#define jit_bltr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JBm(label, 0,0,0) )
-#define jit_bler_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JBEm(label,0,0,0) )
-#define jit_bgtr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAm(label, 0,0,0) )
-#define jit_bger_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAEm(label,0,0,0) )
+#define jit_bltr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JLm(label) )
+#define jit_bler_l(label, s1, s2)	jit_bra_qr((s1), (s2), JLEm(label) )
+#define jit_bgtr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JGm(label) )
+#define jit_bger_l(label, s1, s2)	jit_bra_qr((s1), (s2), JGEm(label) )
+#define jit_beqr_l(label, s1, s2)	jit_bra_qr((s1), (s2), JEm(label) )
+#define jit_bner_l(label, s1, s2)	jit_bra_qr((s1), (s2), JNEm(label) )
+#define jit_bltr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JBm(label) )
+#define jit_bler_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JBEm(label) )
+#define jit_bgtr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAm(label) )
+#define jit_bger_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAEm(label) )
 
 #endif /* __lightning_core_h */
 

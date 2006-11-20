@@ -66,13 +66,13 @@
 /* An operand is forced into a register */
 #define jit_replace(rd, rs, forced, op)					\
 	((rd == forced) ? JITSORRY("Register conflict for " # op) :	\
-	 (rs == forced) ? op : (PUSHLr(forced), MOVLrr(rs, forced), op, POPLr(forced)))
+	 (rs == forced) ? op : (jit_pushr_i(forced), MOVLrr(rs, forced), op, jit_popr_i(forced)))
 
 /* For LT, LE, ... */
 #define jit_replace8(d, op)						\
 	(jit_check8(d)							\
 	  ? (MOVLir(0, d), op(d))					\
-	  : (PUSHLr(_EAX), MOVLir(0, _EAX), op(_EAX), MOVLrr(_EAX, (d)), POPLr(_EAX)))
+	  : (jit_pushr_i(_EAX), MOVLir(0, _EAX), op(_EAX), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))
 
 #define jit_bool_r(d, s1, s2, op)					\
 	(CMPLrr(s2, s1), jit_replace8(d, op))
@@ -96,8 +96,8 @@
 
 /* Used to implement ldc, stc, ... */
 #define jit_check8(rs)		( (rs) <= _EBX )
-#define jit_reg8(rs)		( ((rs) == _SI || (rs) == _DI) ? _AL : ((rs) & _BH) | _AL )
-#define jit_reg16(rs)		( ((rs) & _BH) | _AX )
+#define jit_reg8(rs)		( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
+#define jit_reg16(rs)		( _rN(rs) | _AX )
 
 /* In jit_replace below, _EBX is dummy */
 #define jit_movbrm(rs, dd, db, di, ds)                                                \
@@ -129,62 +129,62 @@
 	 IMULLr(rs == _EAX ? _EDX : rs))
 
 #define jit_divi_i_(result, d, rs, is)			\
-	(jit_might (d,    _EAX, PUSHLr(_EAX)),		\
-	jit_might (d,    _ECX, PUSHLr(_ECX)),		\
-	jit_might (d,    _EDX, PUSHLr(_EDX)),		\
+	(jit_might (d,    _EAX, jit_pushr_i(_EAX)),		\
+	jit_might (d,    _ECX, jit_pushr_i(_ECX)),		\
+	jit_might (d,    _EDX, jit_pushr_i(_EDX)),		\
 	jit_might (rs,   _EAX, MOVLrr(rs, _EAX)),	\
 	jit_might (rs,   _EDX, MOVLrr(rs, _EDX)),	\
 	MOVLir(is, _ECX),				\
 	SARLir(31, _EDX),				\
 	IDIVLr(_ECX),					\
 	jit_might(d,    result, MOVLrr(result, d)),	\
-	jit_might(d,     _EDX,  POPLr(_EDX)),		\
-	jit_might(d,     _ECX,  POPLr(_ECX)),		\
-	jit_might(d,     _EAX,  POPLr(_EAX)))
+	jit_might(d,     _EDX,  jit_popr_i(_EDX)),		\
+	jit_might(d,     _ECX,  jit_popr_i(_ECX)),		\
+	jit_might(d,     _EAX,  jit_popr_i(_EAX)))
 
 #define jit_divr_i_(result, d, s1, s2)			\
-	(jit_might (d,    _EAX, PUSHLr(_EAX)),		\
-	jit_might (d,    _ECX, PUSHLr(_ECX)),		\
-	jit_might (d,    _EDX, PUSHLr(_EDX)),		\
-	((s1 == _ECX) ? PUSHLr(_ECX) : 0),		\
+	(jit_might (d,    _EAX, jit_pushr_i(_EAX)),		\
+	jit_might (d,    _ECX, jit_pushr_i(_ECX)),		\
+	jit_might (d,    _EDX, jit_pushr_i(_EDX)),		\
+	((s1 == _ECX) ? jit_pushr_i(_ECX) : 0),		\
 	jit_might (s2,   _ECX, MOVLrr(s2, _ECX)),	\
-	((s1 == _ECX) ? POPLr(_EDX) :			\
+	((s1 == _ECX) ? jit_popr_i(_EDX) :			\
 	jit_might (s1,   _EDX, MOVLrr(s1, _EDX))),	\
 	MOVLrr(_EDX, _EAX),				\
 	SARLir(31, _EDX),				\
 	IDIVLr(_ECX),					\
 	jit_might(d,    result, MOVLrr(result, d)),	\
-	jit_might(d,     _EDX,  POPLr(_EDX)),		\
-	jit_might(d,     _ECX,  POPLr(_ECX)),		\
-	jit_might(d,     _EAX,  POPLr(_EAX)))
+	jit_might(d,     _EDX,  jit_popr_i(_EDX)),		\
+	jit_might(d,     _ECX,  jit_popr_i(_ECX)),		\
+	jit_might(d,     _EAX,  jit_popr_i(_EAX)))
 
 #define jit_divi_ui_(result, d, rs, is)			\
-	(jit_might (d,    _EAX, PUSHLr(_EAX)),		\
-	jit_might (d,    _ECX, PUSHLr(_ECX)),		\
-	jit_might (d,    _EDX, PUSHLr(_EDX)),		\
+	(jit_might (d,    _EAX, jit_pushr_i(_EAX)),		\
+	jit_might (d,    _ECX, jit_pushr_i(_ECX)),		\
+	jit_might (d,    _EDX, jit_pushr_i(_EDX)),		\
 	jit_might (rs,   _EAX, MOVLrr(rs, _EAX)),	\
 	MOVLir(is, _ECX),				\
 	XORLrr(_EDX, _EDX),				\
 	DIVLr(_ECX),					\
 	jit_might(d,    result, MOVLrr(result, d)),	\
-	jit_might(d,     _EDX,  POPLr(_EDX)),		\
-	jit_might(d,     _ECX,  POPLr(_ECX)),		\
-	jit_might(d,     _EAX,  POPLr(_EAX)))
+	jit_might(d,     _EDX,  jit_popr_i(_EDX)),		\
+	jit_might(d,     _ECX,  jit_popr_i(_ECX)),		\
+	jit_might(d,     _EAX,  jit_popr_i(_EAX)))
 
 #define jit_divr_ui_(result, d, s1, s2)			\
-	(jit_might (d,    _EAX, PUSHLr(_EAX)),		\
-	jit_might (d,    _ECX, PUSHLr(_ECX)),		\
-	jit_might (d,    _EDX, PUSHLr(_EDX)),		\
-	((s1 == _ECX) ? PUSHLr(_ECX) : 0),		\
+	(jit_might (d,    _EAX, jit_pushr_i(_EAX)),		\
+	jit_might (d,    _ECX, jit_pushr_i(_ECX)),		\
+	jit_might (d,    _EDX, jit_pushr_i(_EDX)),		\
+	((s1 == _ECX) ? jit_pushr_i(_ECX) : 0),		\
 	jit_might (s2,   _ECX, MOVLrr(s2, _ECX)),	\
-	((s1 == _ECX) ? POPLr(_EAX) :			\
+	((s1 == _ECX) ? jit_popr_i(_EAX) :			\
 	jit_might (s1,   _EAX, MOVLrr(s1, _EAX))),	\
 	XORLrr(_EDX, _EDX),				\
 	DIVLr(_ECX),					\
 	jit_might(d,    result, MOVLrr(result, d)),	\
-	jit_might(d,     _EDX,  POPLr(_EDX)),		\
-	jit_might(d,     _ECX,  POPLr(_ECX)),		\
-	jit_might(d,     _EAX,  POPLr(_EAX)))
+	jit_might(d,     _EDX,  jit_popr_i(_EDX)),		\
+	jit_might(d,     _ECX,  jit_popr_i(_ECX)),		\
+	jit_might(d,     _EAX,  jit_popr_i(_EAX)))
 
 
 /* ALU */
@@ -217,24 +217,24 @@
 #define jit_mulr_ui(d, s1, s2)	jit_opr_((d), (s1), (s2), IMULLrr((s1), (d)), IMULLrr((s2), (d)) )
 
 #define jit_hmuli_i(d, rs, is)														\
-	((d) == _EDX ? (	      PUSHLr(_EAX), jit_muli_i_((is), (rs)), 				     POPLr(_EAX)		) :	\
-	((d) == _EAX ? (PUSHLr(_EDX),		    jit_muli_i_((is), (rs)), MOVLrr(_EDX, _EAX),	     POPLr(_EDX) ) :	\
-	               (PUSHLr(_EDX), PUSHLr(_EAX), jit_muli_i_((is), (rs)), MOVLrr(_EDX, (d)), POPLr(_EAX), POPLr(_EDX) )))
+	((d) == _EDX ? (	      jit_pushr_i(_EAX), jit_muli_i_((is), (rs)), 				     jit_popr_i(_EAX)		) :	\
+	((d) == _EAX ? (jit_pushr_i(_EDX),		    jit_muli_i_((is), (rs)), MOVLrr(_EDX, _EAX),	     jit_popr_i(_EDX) ) :	\
+	               (jit_pushr_i(_EDX), jit_pushr_i(_EAX), jit_muli_i_((is), (rs)), MOVLrr(_EDX, (d)), jit_popr_i(_EAX), jit_popr_i(_EDX) )))
 
 #define jit_hmulr_i(d, s1, s2)													\
-	((d) == _EDX ? (	      PUSHLr(_EAX), jit_mulr_i_((s1), (s2)), 			  POPLr(_EAX)		    ) :	\
-	((d) == _EAX ? (PUSHLr(_EDX),		    jit_mulr_i_((s1), (s2)), MOVLrr(_EDX, _EAX), 	       POPLr(_EDX)  ) :	\
-	 	       (PUSHLr(_EDX), PUSHLr(_EAX), jit_mulr_i_((s1), (s2)), MOVLrr(_EDX, (d)),   POPLr(_EAX), POPLr(_EDX)  )))
+	((d) == _EDX ? (	      jit_pushr_i(_EAX), jit_mulr_i_((s1), (s2)), 			  jit_popr_i(_EAX)		    ) :	\
+	((d) == _EAX ? (jit_pushr_i(_EDX),		    jit_mulr_i_((s1), (s2)), MOVLrr(_EDX, _EAX), 	       jit_popr_i(_EDX)  ) :	\
+	 	       (jit_pushr_i(_EDX), jit_pushr_i(_EAX), jit_mulr_i_((s1), (s2)), MOVLrr(_EDX, (d)),   jit_popr_i(_EAX), jit_popr_i(_EDX)  )))
 
 #define jit_hmuli_ui(d, rs, is)														\
-	((d) == _EDX ? (	      PUSHLr(_EAX), jit_muli_ui_((is), (rs)), 				      POPLr(_EAX)		) :	\
-	((d) == _EAX ? (PUSHLr(_EDX),		    jit_muli_ui_((is), (rs)), MOVLrr(_EDX, _EAX),	      POPLr(_EDX) ) :	\
-	               (PUSHLr(_EDX), PUSHLr(_EAX), jit_muli_ui_((is), (rs)), MOVLrr(_EDX, (d)), POPLr(_EAX), POPLr(_EDX) )))
+	((d) == _EDX ? (	      jit_pushr_i(_EAX), jit_muli_ui_((is), (rs)), 				      jit_popr_i(_EAX)		) :	\
+	((d) == _EAX ? (jit_pushr_i(_EDX),		    jit_muli_ui_((is), (rs)), MOVLrr(_EDX, _EAX),	      jit_popr_i(_EDX) ) :	\
+	               (jit_pushr_i(_EDX), jit_pushr_i(_EAX), jit_muli_ui_((is), (rs)), MOVLrr(_EDX, (d)), jit_popr_i(_EAX), jit_popr_i(_EDX) )))
 
 #define jit_hmulr_ui(d, s1, s2)													\
-	((d) == _EDX ? (	      PUSHLr(_EAX), jit_mulr_ui_((s1), (s2)), 			  POPLr(_EAX)		    ) :	\
-	((d) == _EAX ? (PUSHLr(_EDX),		    jit_mulr_ui_((s1), (s2)), MOVLrr(_EDX, _EAX), 	       POPLr(_EDX)  ) :	\
-	 	       (PUSHLr(_EDX), PUSHLr(_EAX), jit_mulr_ui_((s1), (s2)), MOVLrr(_EDX, (d)),  POPLr(_EAX), POPLr(_EDX)  )))
+	((d) == _EDX ? (	      jit_pushr_i(_EAX), jit_mulr_ui_((s1), (s2)), 			  jit_popr_i(_EAX)		    ) :	\
+	((d) == _EAX ? (jit_pushr_i(_EDX),		    jit_mulr_ui_((s1), (s2)), MOVLrr(_EDX, _EAX), 	       jit_popr_i(_EDX)  ) :	\
+	 	       (jit_pushr_i(_EDX), jit_pushr_i(_EAX), jit_mulr_ui_((s1), (s2)), MOVLrr(_EDX, (d)),  jit_popr_i(_EAX), jit_popr_i(_EDX)  )))
 
 #define jit_divi_i(d, rs, is)	jit_divi_i_(_EAX, (d), (rs), (is))
 #define jit_divi_ui(d, rs, is)	jit_divi_ui_(_EAX, (d), (rs), (is))
@@ -297,88 +297,71 @@
 #define jit_gei_ui(d, rs, is)	jit_bool_i0((d), (rs), (is), SETAEr, INCLr  )
 
 /* Jump */
-#define jit_bltr_i(label, s1, s2)	jit_bra_r((s1), (s2), JLm(label, 0,0,0) )
-#define jit_bler_i(label, s1, s2)	jit_bra_r((s1), (s2), JLEm(label,0,0,0) )
-#define jit_bgtr_i(label, s1, s2)	jit_bra_r((s1), (s2), JGm(label, 0,0,0) )
-#define jit_bger_i(label, s1, s2)	jit_bra_r((s1), (s2), JGEm(label,0,0,0) )
-#define jit_beqr_i(label, s1, s2)	jit_bra_r((s1), (s2), JEm(label, 0,0,0) )
-#define jit_bner_i(label, s1, s2)	jit_bra_r((s1), (s2), JNEm(label,0,0,0) )
-#define jit_bltr_ui(label, s1, s2)	jit_bra_r((s1), (s2), JBm(label, 0,0,0) )
-#define jit_bler_ui(label, s1, s2)	jit_bra_r((s1), (s2), JBEm(label,0,0,0) )
-#define jit_bgtr_ui(label, s1, s2)	jit_bra_r((s1), (s2), JAm(label, 0,0,0) )
-#define jit_bger_ui(label, s1, s2)	jit_bra_r((s1), (s2), JAEm(label,0,0,0) )
-#define jit_bmsr_i(label, s1, s2)	(TESTLrr((s1), (s2)), JNZm(label,0,0,0), _jit.x.pc)
-#define jit_bmcr_i(label, s1, s2)	(TESTLrr((s1), (s2)), JZm(label,0,0,0),  _jit.x.pc)
-#define jit_boaddr_i(label, s1, s2)	(ADDLrr((s2), (s1)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_bosubr_i(label, s1, s2)	(SUBLrr((s2), (s1)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_boaddr_ui(label, s1, s2)	(ADDLrr((s2), (s1)), JCm(label,0,0,0), _jit.x.pc)
-#define jit_bosubr_ui(label, s1, s2)	(SUBLrr((s2), (s1)), JCm(label,0,0,0), _jit.x.pc)
+#define jit_bltr_i(label, s1, s2)	jit_bra_r((s1), (s2), JLm(label) )
+#define jit_bler_i(label, s1, s2)	jit_bra_r((s1), (s2), JLEm(label) )
+#define jit_bgtr_i(label, s1, s2)	jit_bra_r((s1), (s2), JGm(label) )
+#define jit_bger_i(label, s1, s2)	jit_bra_r((s1), (s2), JGEm(label) )
+#define jit_beqr_i(label, s1, s2)	jit_bra_r((s1), (s2), JEm(label) )
+#define jit_bner_i(label, s1, s2)	jit_bra_r((s1), (s2), JNEm(label) )
+#define jit_bltr_ui(label, s1, s2)	jit_bra_r((s1), (s2), JBm(label) )
+#define jit_bler_ui(label, s1, s2)	jit_bra_r((s1), (s2), JBEm(label) )
+#define jit_bgtr_ui(label, s1, s2)	jit_bra_r((s1), (s2), JAm(label) )
+#define jit_bger_ui(label, s1, s2)	jit_bra_r((s1), (s2), JAEm(label) )
+#define jit_bmsr_i(label, s1, s2)	(TESTLrr((s1), (s2)), JNZm(label), _jit.x.pc)
+#define jit_bmcr_i(label, s1, s2)	(TESTLrr((s1), (s2)), JZm(label),  _jit.x.pc)
+#define jit_boaddr_i(label, s1, s2)	(ADDLrr((s2), (s1)), JOm(label), _jit.x.pc)
+#define jit_bosubr_i(label, s1, s2)	(SUBLrr((s2), (s1)), JOm(label), _jit.x.pc)
+#define jit_boaddr_ui(label, s1, s2)	(ADDLrr((s2), (s1)), JCm(label), _jit.x.pc)
+#define jit_bosubr_ui(label, s1, s2)	(SUBLrr((s2), (s1)), JCm(label), _jit.x.pc)
 
-#define jit_blti_i(label, rs, is)	jit_bra_i0((rs), (is), JLm(label, 0,0,0), JSm(label, 0,0,0) )
-#define jit_blei_i(label, rs, is)	jit_bra_i ((rs), (is), JLEm(label,0,0,0)		    )
-#define jit_bgti_i(label, rs, is)	jit_bra_i ((rs), (is), JGm(label, 0,0,0)		    )
-#define jit_bgei_i(label, rs, is)	jit_bra_i0((rs), (is), JGEm(label,0,0,0), JNSm(label,0,0,0) )
-#define jit_beqi_i(label, rs, is)	jit_bra_i0((rs), (is), JEm(label, 0,0,0), JEm(label, 0,0,0) )
-#define jit_bnei_i(label, rs, is)	jit_bra_i0((rs), (is), JNEm(label,0,0,0), JNEm(label,0,0,0) )
-#define jit_blti_ui(label, rs, is)	jit_bra_i ((rs), (is), JBm(label, 0,0,0)		    )
-#define jit_blei_ui(label, rs, is)	jit_bra_i0((rs), (is), JBEm(label,0,0,0), JEm(label, 0,0,0) )
-#define jit_bgti_ui(label, rs, is)	jit_bra_i0((rs), (is), JAm(label, 0,0,0), JNEm(label,0,0,0) )
-#define jit_bgei_ui(label, rs, is)	jit_bra_i ((rs), (is), JAEm(label,0,0,0)		    )
-#define jit_boaddi_i(label, rs, is)	(ADDLir((is), (rs)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_bosubi_i(label, rs, is)	(SUBLir((is), (rs)), JOm(label,0,0,0), _jit.x.pc)
-#define jit_boaddi_ui(label, rs, is)	(ADDLir((is), (rs)), JCm(label,0,0,0), _jit.x.pc)
-#define jit_bosubi_ui(label, rs, is)	(SUBLir((is), (rs)), JCm(label,0,0,0), _jit.x.pc)
+#define jit_blti_i(label, rs, is)	jit_bra_i0((rs), (is), JLm(label), JSm(label) )
+#define jit_blei_i(label, rs, is)	jit_bra_i ((rs), (is), JLEm(label)		    )
+#define jit_bgti_i(label, rs, is)	jit_bra_i ((rs), (is), JGm(label)		    )
+#define jit_bgei_i(label, rs, is)	jit_bra_i0((rs), (is), JGEm(label), JNSm(label) )
+#define jit_beqi_i(label, rs, is)	jit_bra_i0((rs), (is), JEm(label), JEm(label) )
+#define jit_bnei_i(label, rs, is)	jit_bra_i0((rs), (is), JNEm(label), JNEm(label) )
+#define jit_blti_ui(label, rs, is)	jit_bra_i ((rs), (is), JBm(label)		    )
+#define jit_blei_ui(label, rs, is)	jit_bra_i0((rs), (is), JBEm(label), JEm(label) )
+#define jit_bgti_ui(label, rs, is)	jit_bra_i0((rs), (is), JAm(label), JNEm(label) )
+#define jit_bgei_ui(label, rs, is)	jit_bra_i ((rs), (is), JAEm(label)		    )
+#define jit_boaddi_i(label, rs, is)	(ADDLir((is), (rs)), JOm(label), _jit.x.pc)
+#define jit_bosubi_i(label, rs, is)	(SUBLir((is), (rs)), JOm(label), _jit.x.pc)
+#define jit_boaddi_ui(label, rs, is)	(ADDLir((is), (rs)), JCm(label), _jit.x.pc)
+#define jit_bosubi_ui(label, rs, is)	(SUBLir((is), (rs)), JCm(label), _jit.x.pc)
 
-#define jit_bmsi_i(label, rs, is)	(jit_reduce(TEST, (is), (rs)), JNZm(label,0,0,0), _jit.x.pc)
-#define jit_bmci_i(label, rs, is)	(jit_reduce(TEST, (is), (rs)), JZm(label,0,0,0),  _jit.x.pc)
+#define jit_bmsi_i(label, rs, is)	(jit_reduce(TEST, (is), (rs)), JNZm(label), _jit.x.pc)
+#define jit_bmci_i(label, rs, is)	(jit_reduce(TEST, (is), (rs)), JZm(label),  _jit.x.pc)
 
-#define jit_jmpi(label)		(JMPm( ((unsigned long) (label)),	0, 0, 0), _jit.x.pc)
-#define jit_calli(label)	(CALLm( ((unsigned long) (label)),	0, 0, 0), _jit.x.pc)
-#define jit_callr(reg)		(CALLsr(reg))
-#define jit_jmpr(reg)		JMPsr(reg)
+#define jit_jmpi(label)			(JMPm( ((unsigned long) (label))), _jit.x.pc)
+#define jit_calli(label)		(CALLm( ((unsigned long) (label))), _jit.x.pc)
+#define jit_callr(reg)			CALLsr(reg)
+#define jit_jmpr(reg)			JMPsr(reg)
 
 /* Memory */
-#define jit_ldi_c(d, is)		MOVSBLmr((is), 0,    0,    0, (d))
-#define jit_ldr_c(d, rs)		MOVSBLmr(0,    (rs), 0,    0, (d))
-#define jit_ldxr_c(d, s1, s2)		MOVSBLmr(0,    (s1), (s2), 1, (d))
-#define jit_ldxi_c(d, rs, is)		MOVSBLmr((is), (rs), 0,    0, (d))
-
-#define jit_ldi_uc(d, is)		MOVZBLmr((is), 0,    0,    0, (d))
-#define jit_ldr_uc(d, rs)		MOVZBLmr(0,    (rs), 0,    0, (d))
-#define jit_ldxr_uc(d, s1, s2)		MOVZBLmr(0,    (s1), (s2), 1, (d))
-#define jit_ldxi_uc(d, rs, is)		MOVZBLmr((is), (rs), 0,    0, (d))
-
-#define jit_sti_c(id, rs)               jit_movbrm((rs), (id), 0,    0,    0)
+#define jit_ldr_c(d, rs)                MOVSBLmr(0,    (rs), 0,    0, (d))
+#define jit_ldxr_c(d, s1, s2)           MOVSBLmr(0,    (s1), (s2), 1, (d))
+							    
+#define jit_ldr_uc(d, rs)               MOVZBLmr(0,    (rs), 0,    0, (d))
+#define jit_ldxr_uc(d, s1, s2)          MOVZBLmr(0,    (s1), (s2), 1, (d))
+							    
 #define jit_str_c(rd, rs)               jit_movbrm((rs), 0,    (rd), 0,    0)
 #define jit_stxr_c(d1, d2, rs)          jit_movbrm((rs), 0,    (d1), (d2), 1)
-#define jit_stxi_c(id, rd, rs)          jit_movbrm((rs), (id), (rd), 0,    0)
-
-#define jit_ldi_s(d, is)		MOVSWLmr((is), 0,    0,    0, (d))
-#define jit_ldr_s(d, rs)		MOVSWLmr(0,    (rs), 0,    0, (d))
-#define jit_ldxr_s(d, s1, s2)		MOVSWLmr(0,    (s1), (s2), 1, (d))
-#define jit_ldxi_s(d, rs, is)		MOVSWLmr((is), (rs), 0,    0, (d))
-
-#define jit_ldi_us(d, is)		MOVZWLmr((is), 0,    0,    0,  (d))
-#define jit_ldr_us(d, rs)		MOVZWLmr(0,    (rs), 0,    0,  (d))
-#define jit_ldxr_us(d, s1, s2)		MOVZWLmr(0,    (s1), (s2), 1,  (d))
-#define jit_ldxi_us(d, rs, is)		MOVZWLmr((is), (rs), 0,    0,  (d))
-
-#define jit_sti_s(id, rs)		MOVWrm(jit_reg16(rs), (id), 0,    0,    0)
-#define jit_str_s(rd, rs)		MOVWrm(jit_reg16(rs), 0,    (rd), 0,    0)
-#define jit_stxr_s(d1, d2, rs)		MOVWrm(jit_reg16(rs), 0,    (d1), (d2), 1)
-#define jit_stxi_s(id, rd, rs)		MOVWrm(jit_reg16(rs), (id), (rd), 0,    0)
-
-#define jit_ldi_i(d, is)		MOVLmr((is), 0,    0,    0,  (d))
-#define jit_ldr_i(d, rs)		MOVLmr(0,    (rs), 0,    0,  (d))
-#define jit_ldxr_i(d, s1, s2)		MOVLmr(0,    (s1), (s2), 1,  (d))
-#define jit_ldxi_i(d, rs, is)		MOVLmr((is), (rs), 0,    0,  (d))
-
-#define jit_sti_i(id, rs)		MOVLrm((rs), (id), 0,    0,    0)
-#define jit_str_i(rd, rs)		MOVLrm((rs), 0,    (rd), 0,    0)
-#define jit_stxr_i(d1, d2, rs)		MOVLrm((rs), 0,    (d1), (d2), 1)
-#define jit_stxi_i(id, rd, rs)		MOVLrm((rs), (id), (rd), 0,    0)
-
-
+							    
+#define jit_ldr_s(d, rs)                MOVSWLmr(0,    (rs), 0,    0, (d))
+#define jit_ldxr_s(d, s1, s2)           MOVSWLmr(0,    (s1), (s2), 1, (d))
+							    
+#define jit_ldr_us(d, rs)               MOVZWLmr(0,    (rs), 0,    0,  (d))
+#define jit_ldxr_us(d, s1, s2)          MOVZWLmr(0,    (s1), (s2), 1,  (d))
+							    
+#define jit_str_s(rd, rs)               MOVWrm(jit_reg16(rs), 0,    (rd), 0,    0)
+#define jit_stxr_s(d1, d2, rs)          MOVWrm(jit_reg16(rs), 0,    (d1), (d2), 1)
+							    
+#define jit_ldr_i(d, rs)                MOVLmr(0,    (rs), 0,    0,  (d))
+#define jit_ldxr_i(d, s1, s2)           MOVLmr(0,    (s1), (s2), 1,  (d))
+							    
+#define jit_str_i(rd, rs)               MOVLrm((rs), 0,    (rd), 0,    0)
+#define jit_stxr_i(d1, d2, rs)          MOVLrm((rs), 0,    (d1), (d2), 1)
+							    
 /* Extra */
 #define jit_nop()			NOP_()
 

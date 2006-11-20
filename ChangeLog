@@ -1,5 +1,16 @@
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/asm-i386.h: Check in rewrite from aranym.
+	* lightning/i386/asm-32.h: Adjust.
+	* lightning/i386/asm-64.h: Adjust.
+	* lightning/i386/fp-32.h: Adjust.
+
+	* lightning/i386/core-32.h: Adjust.  Add jit_{ld,ldx,st,stx}i*.
+	* lightning/i386/core-64.h: Adjust.  Add jit_{ld,ldx,st,stx}i*.
+	* lightning/i386/core-i386.h: Adjust. Remove these patterns.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/asm-i386.h: Merge 64-bit cleanliness changes from mzscheme.
 	Add SSE.
 	* lightning/i386/asm-64.h: Likewise.

@@ -222,10 +222,10 @@ union jit_double_imm {
 	POPLr(rd),				\
 	TESTLrr(aux, aux),			\
 	POPLr(aux),				\
-	JSSm(_jit.x.pc + 11, 0, 0, 0),		\
+	JSSm(_jit.x.pc + 11),			\
 	ADDLir(0x7FFFFFFF, aux),	/* 6 */	\
 	SBBLir(0, rd),			/* 3 */ \
-	JMPSm(_jit.x.pc + 10, 0, 0, 0),	/* 2 */ \
+	JMPSm(_jit.x.pc + 10),		/* 2 */ \
 	TESTLrr(aux, aux),		/* 2 */ \
 	SETGr(jit_reg8(aux)),		/* 3 */ \
 	SHRLir(1, aux),			/* 2 */ \

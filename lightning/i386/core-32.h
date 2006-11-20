@@ -46,8 +46,8 @@ struct jit_local_state {
   int	alloca_slack;
 };
 
-#define jit_base_prolog() (PUSHLr(_EBP), MOVLrr(_ESP, _EBP), PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI))
-#define jit_prolog(n) (_jitl.framesize = 8, _jitl.alloca_offset = -12, jit_base_prolog())
+#define jit_base_prolog() (PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
+#define jit_prolog(n) (_jitl.framesize = 20, _jitl.alloca_offset = 0, jit_base_prolog())
 
 /* Used internally.  SLACK is used by the Darwin ABI which keeps the stack
    aligned to 16-bytes.  */
@@ -63,10 +63,8 @@ struct jit_local_state {
    _jitl.alloca_offset -= (amount))
    
 /* Stack */
-#ifdef JIT_NEED_PUSH_POP
 #define jit_pushr_i(rs)		PUSHLr(rs)
 #define jit_popr_i(rs)		POPLr(rs)
-#endif
 
 /* The += in argssize allows for stack pollution */
 
@@ -103,7 +101,33 @@ struct jit_local_state {
 
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
-#define jit_ret()		(POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), (_jitl.alloca_offset < -12 ? LEAVE_() : POPLr(_EBP)), RET_())
+#define jit_ret()		((_jitl.alloca_offset < 0 ? LEAVE_() : POPLr(_EBP)), POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
+
+/* Memory */
+
+#define jit_ldi_c(d, is)                MOVSBLmr((is), 0,    0,    0, (d))
+#define jit_ldxi_c(d, rs, is)           MOVSBLmr((is), (rs), 0,    0, (d))
+
+#define jit_ldi_uc(d, is)               MOVZBLmr((is), 0,    0,    0, (d))
+#define jit_ldxi_uc(d, rs, is)          MOVZBLmr((is), (rs), 0,    0, (d))
+
+#define jit_sti_c(id, rs)               jit_movbrm((rs), (id), 0,    0,    0)
+#define jit_stxi_c(id, rd, rs)          jit_movbrm((rs), (id), (rd), 0,    0)
+
+#define jit_ldi_s(d, is)                MOVSWLmr((is), 0,    0,    0, (d))
+#define jit_ldxi_s(d, rs, is)           MOVSWLmr((is), (rs), 0,    0, (d))
+
+#define jit_ldi_us(d, is)               MOVZWLmr((is), 0,    0,    0,  (d))
+#define jit_ldxi_us(d, rs, is)          MOVZWLmr((is), (rs), 0,    0,  (d))
+
+#define jit_sti_s(id, rs)               MOVWrm(jit_reg16(rs), (id), 0,    0,    0)
+#define jit_stxi_s(id, rd, rs)          MOVWrm(jit_reg16(rs), (id), (rd), 0,    0)
+
+#define jit_ldi_i(d, is)                MOVLmr((is), 0,    0,    0,  (d))
+#define jit_ldxi_i(d, rs, is)           MOVLmr((is), (rs), 0,    0,  (d))
+
+#define jit_sti_i(id, rs)               MOVLrm((rs), (id), 0,    0,    0)
+#define jit_stxi_i(id, rd, rs)          MOVLrm((rs), (id), (rd), 0,    0)
 
 #endif /* __lightning_core_h */
 

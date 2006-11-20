@@ -31,7 +31,7 @@ generate_ldxi_big_operand (const void *operand)
   result = (loader_t)(jit_set_ip (buffer).iptr);
   jit_leaf (1);
   arg = jit_arg_i ();
-  jit_getarg_i (JIT_R1, arg);
+  jit_getarg_p (JIT_R1, arg);
 
   jit_ldxi_c (JIT_R0, JIT_R1, operand);
   jit_movr_i (JIT_RET, JIT_R0);

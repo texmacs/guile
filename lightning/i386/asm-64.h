@@ -34,6 +34,8 @@
 #ifndef __lightning_asm_h
 #define __lightning_asm_h
 
+#ifndef LIGHTNING_DEBUG
+
 #include "asm-i386.h"
 
 /*	OPCODE	+ i		= immediate operand
@@ -43,101 +45,102 @@
  */
 
 
-#ifndef LIGHTNING_DEBUG
-#define _R12            0x4C
-#define _R13            0x4D
-#define JIT_CALLTMPSTART 0x48
-#define JIT_REXTMP       0x4B
+#define _rA(R)          _r8(R)
 
-#define _r_8B(	R, D,B    )	(_qMrm(_b10,_rN(R),_r8(B))		             ,_jit_I((long)(D)))
-#define _r_8IS( R, D,I,S)	(_qMrm(_b00,_rN(R),_b100 ),_SIB(_SCL(S),_r8(I),_b101 ),_jit_I((long)(D)))
-#define _r_8BIS(R, D,B,I,S)	(_qMrm(_b10,_rN(R),_b100 ),_SIB(_SCL(S),_r8(I),_r8(B)),_jit_I((long)(D)))
+/* Use RIP-addressing in 64-bit mode, if possible */
+#if 0
+#define _x86_RIP_addressing_possible(D,O)	(X86_RIP_RELATIVE_ADDR && \
+						((unsigned long)x86_get_target() + 4 + (O) - (D) <= 0xffffffff))
 
-#define _qMrm(Md,R,M)	_jit_B((_M(Md)<<6)|(_r((R & 0x7))<<3)|_m((M & 0x7)))
-#define _r_D(	R, D	  )	(_Mrm(_b00,_rN(R),_b100 ),_SIB(0,_b100,_b101)	     ,_jit_I((long)(D)))
-#define _r_Q(	R, D	  )	(_qMrm(_b00,_rN(R),_b100 ),_SIB(0,_b100,_b101)        ,_jit_I((long)(D)))
-
-#define  _REX(R,X,B)                              ( _jit_B(0x48|((R&0x8)>>1)|((X&0x8)>>2)|((B&0x8)>>3)) )
-#define  _qO(	     OP, R,X,B			)  ( _REX(R,X,B), _jit_B(  OP	) )
-#define  _qOr(	     OP,R			)  ( _REX(0,0,R), _jit_B( (OP)|_r(R&0x7))				  )
-#define  _qOs(	     OP, B, R, M	       	)  ( _REX(0, M, R), _Os(OP, B) )
-#define	 _qOr_Q(     OP,R		    ,Q	)  (	   _qOr	    (  OP,R)			      ,_jit_L(Q)	  )
-#define	 _qO_Mrm(    OP	 ,MO,R,M		)  (	    _qO	    (  OP,R,0,M),_qMrm(MO,R,M	    )		  )
-#define	 _qO_Mrm_L(  OP	 ,MO,R,M	    ,L	)  (	   _qO	    (  OP,R,0,M),_qMrm(MO,R,M	    ) ,_jit_I(L)	  )
-#define	 _qOs_Mrm_sL(OP	 ,MO,R,M	    ,L	)  (	   _qOs	    (  OP,L,R,M),_qMrm(MO,R,M	    ),_sL(L)	  )
-#define	 _qO_r_X(    OP	    ,R	,MD,MB,MI,MS	)  (	   _qO	    (  OP,R,0,MS),_qr_X(R,MD,MB,MI,MS)		  )
-#define	 _qO_r_XB(   OP	    ,R	,MD,MB,MI,MS	)  (	   _qO	    (  OP,R,0,MB),_qr_X(R,MD,MB,MI,MS)		  )
-
-
-#define ADDQrr(RS, RD)			_qO_Mrm		(0x01		,_b11,_r8(RS),_r8(RD)				)
-#define ADDQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b000  ,_r8(RD)			,IM	)
-
-#define ANDQrr(RS, RD)			_qO_Mrm		(0x21		,_b11,_r8(RS),_r8(RD)				)
-#define ANDQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b100  ,_r8(RD)			,IM	)
-
-#define CALLm(D,B,I,S)	                (MOVQir((D), JIT_REXTMP), CALLQsr(JIT_REXTMP))
-
-#define CALLsr(R)			_O_Mrm	(0xff	,_b11,_b010,_r4(R)			)
-#define CALLQsr(R)                       _qO_Mrm (0xff	,_b11,_b010,_r8(R))
-
-#define CMPQrr(RS, RD)			_qO_Mrm		(0x39		,_b11,_r8(RS),_r8(RD)				)
-#define CMPQir(IM, RD)			_qO_Mrm_L	(0x81		,_b11,_b111  ,_r8(RD)			,IM	)
-
-#define JCCim(CC,D,B,I,S) (!_jitl.long_jumps \
-                               ? _OO_D32(0x0f80|(CC), (long)(D) ) \
-                               : (_O_D8(0x71^(CC), _jit_UL(_jit.x.pc) + 13), JMPm((long)D, 0, 0, 0)))
-
-#define JMPm(D,B,I,S) (!_jitl.long_jumps \
-                       ? _O_D32(0xe9, (long)(D)) \
-                       : (MOVQir((D), JIT_REXTMP), _qO_Mrm(0xff,_b11,_b100,_r8(JIT_REXTMP))))
-
-#define LEAQmr(MD, MB, MI, MS, RD)	_qO_r_X		(0x8d		     ,_r8(RD)		,MD,MB,MI,MS		)
-#define MOVQmr(MD, MB, MI, MS, RD)	_qO_r_X		(0x8b		     ,_r8(RD)		,MD,MB,MI,MS		)
-#define MOVQrm(RS, MD, MB, MI, MS)	_qO_r_X		(0x89		     ,_r8(RS)		,MD,MB,MI,MS		)
-#define MOVQrQm(RS, MD, MB, MI, MS)	_qO_r_XB      	(0x89		     ,_r8(RS)		,MD,MB,MI,MS		)
-#define MOVQir(IM,  R)			_qOr_Q	        (0xb8,_r8(R)			,IM	)
-
-#define MOVQrr(RS, RD)			_qO_Mrm		(0x89		,_b11,_r8(RS),_r8(RD)				)
-
-#define NEGQr(RD)			_qO_Mrm		(0xf7		,_b11,_b011  ,_r8(RD)				)
-
-#define ORQrr(RS, RD)			_qO_Mrm		(0x09		,_b11,_r8(RS),_r8(RD)				)
-#define ORQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b001  ,_r8(RD)			,IM	)
-
-#define POPQr(RD)			_qOr		(0x58,_r8(RD)							)
-
-#define PUSHQr(R)			_qOr		(0x50,_r8(R)							)
-#define SALQir	SHLQir
-#define SALQim	SHLQim
-#define SALQrr	SHLQrr
-#define SALQrm	SHLQrm
-
-#define SARQir(IM,RD)		(((IM)==1) ?	_qO_Mrm		(0xd1	,_b11,_b111,_r8(RD)				) : \
-						_qO_Mrm_B	(0xc1	,_b11,_b111,_r4(RD)			,_u8(IM) ) )
-#define SARQrr(RS,RD)		(((RS)==_CL) ?	_qO_Mrm		(0xd3	,_b11,_b111,_r8(RD)				) : \
-						JITFAIL		("source register must be CL"				) )
+#define _r_X(   R, D,B,I,S,O)	(_r0P(I) ? (_r0P(B)    ? (!X86_TARGET_64BIT ? _r_D(R,D) : \
+					                 (_x86_RIP_addressing_possible(D, O) ? \
+				                          _r_D(R, (D) - ((unsigned long)x86_get_target() + 4 + (O))) : \
+				                          _r_DSIB(R,D))) : \
+					                 _r_DSIB(R,D                ))  : \
+				           (_rIP(B)    ? _r_D   (R,D                )   : \
+				           (_rsp12P(B) ? _r_DBIS(R,D,_RSP,_RSP,1)   : \
+						         _r_DB  (R,D,     B       ))))  : \
+				 (_r0P(B)	       ? _r_4IS (R,D,	         I,S)   : \
+				 (!_rspP(I)            ? _r_DBIS(R,D,     B,     I,S)   : \
+						         JITFAIL("illegal index register: %esp"))))
+#else
+#define _r_X(   R, D,B,I,S,O)	(_r0P(I) ? (_r0P(B)    ? _r_DSIB(R,D                )   : \
+				           (_rIP(B)    ? _r_D   (R,D                )   : \
+				           (_rsp12P(B) ? _r_DBIS(R,D,_RSP,_RSP,1)   : \
+						         _r_DB  (R,D,     B       ))))  : \
+				 (_r0P(B)	       ? _r_4IS (R,D,	         I,S)   : \
+				 (!_rspP(I)            ? _r_DBIS(R,D,     B,     I,S)   : \
+						         JITFAIL("illegal index register: %esp"))))
+#endif
 
 
-#define SHLQir(IM,RD)		(((IM)==1) ?	_qO_Mrm		(0xd1	,_b11,_b100,_r8(RD)				) : \
-						_qO_Mrm_B	(0xc1	,_b11,_b100,_r8(RD)			,_u8(IM) ) )
-#define SHLQrr(RS,RD)		(((RS)==_CL) ?	_qO_Mrm		(0xd3	,_b11,_b100,_r8(RD)				) : \
-						JITFAIL		("source register must be CL"				) )
+#define _m32only(X)		(JITFAIL("invalid instruction in 64-bit mode"))
+#define _m64only(X)		(X)
+#define _m64(X)			(X)
 
+#define CALLsr(R)			CALLQsr(R)
+#define JMPsr(R)			JMPQsr(R)
 
-#define SHRQir(IM,RD)		(((IM)==1) ?	_qO_Mrm		(0xd1	,_b11,_b101,_r8(RD)				) : \
-						_qO_Mrm_B	(0xc1	,_b11,_b101,_r8(RD)			,_u8(IM) ) )
-#define SHRQrr(RS,RD)		(((RS)==_CL) ?	_qO_Mrm		(0xd3	,_b11,_b101,_r8(RD)				) : \
-						JITFAIL		("source register must be CL"				) )
+#define _SPL		0x14
+#define _BPL		0x15
+#define _SIL		0x16
+#define _DIL		0x17
+#define _R8B		0x18
+#define _R9B		0x19
+#define _R10B		0x1A
+#define _R11B		0x1B
+#define _R12B		0x1C
+#define _R13B		0x1D
+#define _R14B		0x1E
+#define _R15B		0x1F
 
+#define _R8W		0x38
+#define _R9W		0x39
+#define _R10W		0x3A
+#define _R11W		0x3B
+#define _R12W		0x3C
+#define _R13W		0x3D
+#define _R14W		0x3E
+#define _R15W		0x3F
+#define _R8D		0x48
+#define _R9D		0x49
+#define _R10D		0x4A
+#define _R11D		0x4B
+#define _R12D		0x4C
+#define _R13D		0x4D
+#define _R14D		0x4E
+#define _R15D		0x4F
 
-#define SUBQrr(RS, RD)			_qO_Mrm		(0x29		,_b11,_r8(RS),_r8(RD)				)
-#define SUBQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b101  ,_r8(RD)			,IM	)
+#define _RAX		0x50
+#define _RCX		0x51
+#define _RDX		0x52
+#define _RBX		0x53
+#define _RSP		0x54
+#define _RBP		0x55
+#define _RSI		0x56
+#define _RDI		0x57
+#define _R8		0x48
+#define _R9		0x49
+#define _R10		0x4A
+#define _R11		0x4B
+#define _R12		0x4C
+#define _R13		0x4D
+#define _R14		0x4E
+#define _R15		0x4F
+#define _RIP		-2
 
-#define TESTQrr(RS, RD)			_qO_Mrm		(0x85		,_b11,_r8(RS),_r8(RD)				)
-#define TESTQir(IM, RD)			_qO_Mrm_L	(0xf7		,_b11,_b000  ,_r8(RD)			,IM	)
+#if 0
+#define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : JITFAIL("64-bit register required"))
+#else
+#define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : _r4(R))
+#endif
 
-#define XORQrr(RS, RD)			_qO_Mrm		(0x31		,_b11,_r8(RS),_r8(RD)				)
-#define XORQir(IM, RD)			_qOs_Mrm_sL	(0x81		,_b11,_b110  ,_r8(RD)			,IM	)
+#define _r1e8lP(R)	((int)(R) >= _SPL && (int)(R) <= _DIL)
+
+#define DECWr(RD)	(_d16(), _REXLrr(0, RD),	_O_Mrm		(0xff		,_b11,_b001  ,_r2(RD)				))
+#define DECLr(RD)	(_REXLrr(0, RD),		_O_Mrm		(0xff		,_b11,_b001  ,_r4(RD)				))
+#define INCWr(RD)	(_d16(), _REXLrr(0, RD),	_O_Mrm		(0xff		,_b11,_b000  ,_r2(RD)				))
+#define INCLr(RD)	(_REXLrr(0, RD),		_O_Mrm		(0xff		,_b11,_b000  ,_r4(RD)				))
 
 #endif
 #endif /* __lightning_asm_h */
