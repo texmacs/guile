@@ -1,5 +1,10 @@
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/asm-i386.h:  Add an underscore to macros without
+	a parameter.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-i386.h: Move jit_movip, jit_check8, jit_reg8,
 	jit_reg16, jit_movbrm...
 	* lightning/i386/core-32.h: ... here.

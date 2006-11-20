@@ -1178,14 +1178,14 @@ enum {
 #define PUSHQm(MD, MB, MI, MS)		_m64only((_REXQm(MB, MI),	_O_r_X		(0xff		     ,_b110		,MD,MB,MI,MS		)))
 #define PUSHQi(IM)			_m64only(			_Os_sL		(0x68							,IM	))
 
-#define POPA()				(_d16(),			_O		(0x61								))
-#define POPAD()								_O		(0x61								)
+#define POPA_()				(_d16(),			_O		(0x61								))
+#define POPAD_()							_O		(0x61								)
 
-#define PUSHA()				(_d16(),			_O		(0x60								))
-#define PUSHAD()							_O		(0x60								)
+#define PUSHA_()			(_d16(),			_O		(0x60								))
+#define PUSHAD_()							_O		(0x60								)
 
-#define POPF()								_O		(0x9d								)
-#define PUSHF()								_O		(0x9c								)
+#define POPF_()								_O		(0x9d								)
+#define PUSHF_()							_O		(0x9c								)
 
 
 /* --- Test instructions --------------------------------------------------- */
@@ -1343,28 +1343,28 @@ enum {
 #define BSWAPLr(R)			(_REXLrr(0, R),			_OOr		(0x0fc8,_r4(R)							))
 #define BSWAPQr(R)			(_REXQrr(0, R),			_OOr		(0x0fc8,_r8(R)							))
 
-#define CLC()								_O		(0xf8								)
-#define STC()								_O		(0xf9								)
+#define CLC_()								_O		(0xf8								)
+#define STC_()								_O		(0xf9								)
 
-#define CMC()								_O		(0xf5								)
-#define CLD()								_O		(0xfc								)
-#define STD()								_O		(0xfd								)
+#define CMC_()								_O		(0xf5								)
+#define CLD_()								_O		(0xfc								)
+#define STD_()								_O		(0xfd								)
 
-#define CBTW()				(_d16(),			_O		(0x98								))
-#define CWTL()								_O		(0x98								)
-#define CLTQ()				_m64only(_REXQrr(0, 0),		_O		(0x98								))
+#define CBTW_()				(_d16(),			_O		(0x98								))
+#define CWTL_()								_O		(0x98								)
+#define CLTQ_()				_m64only(_REXQrr(0, 0),		_O		(0x98								))
 
-#define CBW				CBTW
-#define CWDE				CWTL
-#define CDQE				CLTQ
+#define CBW_()				CBTW_()
+#define CWDE_()				CWTL_()
+#define CDQE_()				CLTQ_()
 
-#define CWTD()				(_d16(),			_O		(0x99								))
-#define CLTD()								_O		(0x99								)
-#define CQTO()				_m64only(_REXQrr(0, 0),		_O		(0x99								))
+#define CWTD_()				(_d16(),			_O		(0x99								))
+#define CLTD_()								_O		(0x99								)
+#define CQTO_()				_m64only(_REXQrr(0, 0),		_O		(0x99								))
 
-#define CWD				CWTD
-#define CDQ				CLTD
-#define CQO				CQTO
+#define CWD_()				CWTD_()
+#define CDQ_()				CLTD_()
+#define CQO_()				CQTO_()
 
 #define LAHF_()				_m32only(			_O		(0x9f								))
 #define SAHF_()				_m32only(			_O		(0x9e								))
