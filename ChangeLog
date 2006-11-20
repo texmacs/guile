@@ -1,4 +1,16 @@
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludo@chbouib.org>
+
+	* lightning/i386/core-32.h: Disable jit_push and jit_pop if stack not needed.
+	* lightning/i386/core-64.h: Disable jit_push and jit_pop if stack not needed.
+	* lightning/sparc/core.h: Merge final implementation of jit_pushr and jit_popr.
+	* lightning/ppc/core.h: Fix implementation of jit_pushr and jit_popr to
+	work (more or less) across function calls.
+
+	* tests/push-pop.c, tests/push-pop.ok: New test.
+	* tests/Makefile.am: Run it.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/asm-common.h: Make 64-bit safe.
 	* lightning/i386/funcs.h: Make 64-bit safe.

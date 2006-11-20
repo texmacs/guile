@@ -257,12 +257,16 @@ struct jit_local_state {
 #define jit_nop()			NOP()
 #define jit_ori_i(d, rs, is)		jit_chk_imu((is), ORIrri((d), (rs), (is)), ORrrr((d), (rs), JIT_AUX))
 #define jit_orr_i(d, s1, s2)				  ORrrr((d), (s1), (s2))
-#define jit_popr_i(rs)			(LWZrm((rs), 0, 1), ADDIrri(1, 1, 4))
+
+#ifdef JIT_NEED_PUSH_POP
+#define jit_popr_i(rs)			(LWZrm((rs), 8, 1), ADDIrri(1, 1, 4))
+#define jit_pushr_i(rs)			(STWrm((rs), 4, 1), ADDIrri (1, 1, -4))
+#endif
+
 #define jit_prepare_i(numi)		(_jitl.nextarg_puti = numi)
 #define jit_prepare_f(numf)		(_jitl.nextarg_putf = numf)
 #define jit_prepare_d(numd)		(_jitl.nextarg_putd = numd)
 #define jit_prolog(n)			_jit_prolog(&_jit, (n))
-#define jit_pushr_i(rs)			STWUrm((rs), -4, 1)
 #define jit_pusharg_i(rs)		(--_jitl.nextarg_puti, MRrr((3 + _jitl.nextarg_putd * 2 + _jitl.nextarg_putf + _jitl.nextarg_puti), (rs)))
 #define jit_ret()			_jit_epilog(&_jit)
 #define jit_retval_i(rd)		MRrr((rd), 3)

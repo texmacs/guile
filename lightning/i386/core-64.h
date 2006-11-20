@@ -106,8 +106,10 @@ struct jit_local_state {
 #define jit_rshr_ul(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_ ((d), (r1), SHRQrr(_CL,  (d)) ))
 
 /* Stack */
+#ifdef JIT_NEED_PUSH_POP
 #define jit_pushr_i(rs)		PUSHQr(rs)
 #define jit_popr_i(rs)		POPQr(rs)
+#endif
 
 #define jit_base_prolog() (PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13))
 #define jit_prolog(n) (_jitl.nextarg_geti = 0, _jitl.alloca_offset = -24, jit_base_prolog())

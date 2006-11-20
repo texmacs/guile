@@ -768,16 +768,16 @@ variables, and pass the address around.
 typedef int (*pifi)(int);       @rem{/* Pointer to Int Function of Int */}
 
 void stack_push(int reg, int *sp)
-{
+@{
   jit_stxi_i (*sp, JIT_FP, reg);
   *sp += sizeof (int);
-}
+@}
 
 void stack_pop(int reg, int *sp)
-{
+@{
   *sp -= sizeof (int);
   jit_ldxi_i (reg, JIT_FP, *sp);
-}
+@}
 
 pifi compile_rpn(char *expr)
 @{

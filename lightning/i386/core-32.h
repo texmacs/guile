@@ -63,8 +63,10 @@ struct jit_local_state {
    _jitl.alloca_offset -= (amount))
    
 /* Stack */
+#ifdef JIT_NEED_PUSH_POP
 #define jit_pushr_i(rs)		PUSHLr(rs)
 #define jit_popr_i(rs)		POPLr(rs)
+#endif
 
 /* The += in argssize allows for stack pollution */
 
