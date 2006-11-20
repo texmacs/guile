@@ -5,6 +5,10 @@ o   Initial support for x86-64 back-end.
 
 o   Many bug fixes.
 
+o   jit_pushr/jit_popr are deprecated, you need to #define
+    JIT_NEED_PUSH_POP prior to including lightning.h if you
+    want to use them.
+
 o   Support for stack-allocated variables.  Because of this,
     backends defining JIT_FP should now rename it to JIT_AP.
     JIT_FP is now a user-visible register used in ldxi/ldxr

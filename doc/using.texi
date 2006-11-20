@@ -90,10 +90,9 @@ is equivalent to @code{i} on 32-bit machines, and @code{p} is
 substantially equivalent to @code{ul}).
 
 There are at least seven integer registers, of which six are
-general-purpose, while the last is used to contain the stack pointer
-(@code{SP}).  The stack pointer can be used to allocate and access local
-variables on the stack (which is supposed to grow downwards in memory
-on all architectures).
+general-purpose, while the last is used to contain the frame pointer
+(@code{FP}).  The frame pointer can be used to allocate and access local
+variables on the stack, using the @code{allocai} instruction.
 
 Of the general-purpose registers, at least three are guaranteed to be
 preserved across function calls (@code{V0}, @code{V1} and
@@ -271,15 +270,6 @@ stxr    c  uc  s  us  i  ui  l  ul  p  f  d  *(O1+O2) = O3
 stxi    c  uc  s  us  i  ui  l  ul  p  f  d  *(O1+O2) = O3
 @end example
 
-@item Stack management
-These accept a single register parameter.  These operations are not
-guaranteed to be efficient on all architectures.
-
-@example
-pushr                     i  ui  l  ul  p   @r{push }O1@r{ on the stack}
-popr                      i  ui  l  ul  p   @r{pop }O1@r{ off the stack}
-@end example
-
 @item Argument management
 These are:
 @example
@@ -388,16 +378,13 @@ These accept one argument except @code{ret} which has none; the
 difference between @code{finish} and @code{calli} is that the
 latter does not clean the stack from pushed parameters (if any)
 and the former must @strong{always} follow a @code{prepare}
-instruction.  Results are undefined when using function calls
-in a leaf function.
+instruction.
 @example
 calli     (not specified)                  @r{function call to O1}
 callr     (not specified)                  @r{function call to a register}
 finish    (not specified)                  @r{function call to O1}
 finishr   (not specified)                  @r{function call to a register}
 jmpi/jmpr (not specified)                  @r{unconditional jump to O1}
-prolog    (not specified)                  @r{function prolog for O1 args}
-leaf      (not specified)                  @r{the same for leaf functions}
 ret       (not specified)                  @r{return from subroutine}
 retval    c  uc s  us i  ui l  ul p  f  d  @r{move return value}
                                            @r{to register}
@@ -407,6 +394,26 @@ Like branch instruction, @code{jmpi} also returns a value which is to
 be used to compile forward branches. @xref{Fibonacci, , Fibonacci
 numbers}.
 
+@item Function prolog
+
+These macros are used to set up the function prolog, in particular to
+declare the number of arguments accepted by a function, and to reserve
+space on the stack to be used for variables.  They accept a single
+numeric argument.
+
+@example
+prolog    (not specified)                  @r{function prolog for O1 args}
+leaf      (not specified)                  @r{the same for leaf functions}
+allocai   (not specified)                  @r{reserve space on the stack}
+@end example
+
+Results are undefined when using function calls in a leaf function.
+
+@code{allocai} receives the number of bytes to allocate and returns
+the offset from the frame pointer register @code{FP} to the base of
+the area.  The area is aligned to an @code{int}; future versions of
+@lightning{} may provide more fine-grained control on the alignment of
+stack-allocated variables.
 @end table
 
 As a small appetizer, here is a small function that adds 1 to the input
@@ -740,39 +747,72 @@ and is able to compile different formulas to different functions.
 Here is the code for the expression compiler; a sample usage will
 follow.
 
+Since @lightning{} does not provide push/pop instruction, this
+example uses a stack-allocated area to store the data.  Such an
+area can be allocated using the macro @code{jit_allocai}, which
+receives the number of bytes to allocate and returns the offset
+from the frame pointer register @code{JIT_FP} to the base of the
+area.  The area is aligned to an @code{int}; future versions
+of @lightning{} may provide more fine-grained control on the
+alignment of stack-allocated variables.
+
+Usually, you will use the @code{ldxi} and @code{stxi} instruction
+to access stack-allocated variables.  However, it is possible to
+use operations such as @code{add} to compute the address of the
+variables, and pass the address around.
+
 @example
 #include <stdio.h>
 #include "lightning.h"
 
 typedef int (*pifi)(int);       @rem{/* Pointer to Int Function of Int */}
 
+void stack_push(int reg, int *sp)
+{
+  jit_stxi_i (*sp, JIT_FP, reg);
+  *sp += sizeof (int);
+}
+
+void stack_pop(int reg, int *sp)
+{
+  *sp -= sizeof (int);
+  jit_ldxi_i (reg, JIT_FP, *sp);
+}
+
 pifi compile_rpn(char *expr)
 @{
   pifi fn;
+  int stack_base, stack_ptr;
   int in;
+
   fn = (pifi) (jit_get_ip().iptr);
   jit_leaf(1);
   in = jit_arg_i();
-  jit_getarg_i(JIT_R0, in);
+  stack_ptr = stack_base = jit_allocai (32 * sizeof (int));
+
+  jit_getarg_i(JIT_R2, in);
 
   while (*expr) @{
     char buf[32];
     int n;
     if (sscanf(expr, "%[0-9]%n", buf, &n)) @{
       expr += n - 1;
-      jit_push_i(JIT_R0);
+      stack_push(JIT_R0, &stack_ptr);
       jit_movi_i(JIT_R0, atoi(buf));
+    @} else if (*expr == 'x') @{
+      stack_push(JIT_R0, &stack_ptr);
+      jit_movi_i(JIT_R0, JIT_R2);
     @} else if (*expr == '+') @{
-      jit_pop_i(JIT_R1);
+      stack_pop(JIT_R1, &stack_ptr);
       jit_addr_i(JIT_R0, JIT_R1, JIT_R0);
     @} else if (*expr == '-') @{
-      jit_pop_i(JIT_R1);
+      stack_pop(JIT_R1, &stack_ptr);
       jit_subr_i(JIT_R0, JIT_R1, JIT_R0);
     @} else if (*expr == '*') @{
-      jit_pop_i(JIT_R1);
+      stack_pop(JIT_R1, &stack_ptr);
       jit_mulr_i(JIT_R0, JIT_R1, JIT_R0);
     @} else if (*expr == '/') @{
-      jit_pop_i(JIT_R1);
+      stack_pop(JIT_R1, &stack_ptr);
       jit_divr_i(JIT_R0, JIT_R1, JIT_R0);
     @} else @{
       fprintf(stderr, "cannot compile: %s\n", expr);
@@ -786,13 +826,20 @@ pifi compile_rpn(char *expr)
 @}
 @end example
 
-The principle on which the calculator is based is easy: the stack
-top is held in R0, while the remaining items of the stack are held
-on the hardware stack.  Compiling an operand pushes the old stack
-top onto the stack and moves the operand into R0; compiling an
-operator pops the second operand off the stack into R1, and
-compiles the operation so that the result goes into R0, thus
-becoming the new stack top.
+The principle on which the calculator is based is easy: the stack top
+is held in R0, while the remaining items of the stack are held in the
+memory area that we allocate with @code{allocai}.  Compiling a numeric
+operand or the argument @code{x} pushes the old stack top onto the
+stack and moves the operand into R0; compiling an operator pops the
+second operand off the stack into R1, and compiles the operation so
+that the result goes into R0, thus becoming the new stack top.
+
+This example allocates a fixed area for 32 @code{int}s.  This is not
+a problem when the function is a leaf like in this case; in a full-blown
+compiler you will want to analyze the input and determine the number
+of needed stack slots---a very simple example of register allocation.
+The area is then managed like a stack using @code{stack_push} and
+@code{stack_pop}.
 
 Try to locate a call to @code{jit_set_ip} in the source code.  You
 will not find one; this means that the client has to manually set
@@ -814,8 +861,8 @@ int main()
   int i;
 
   jit_set_ip(codeBuffer);
-  c2f = compile_rpn("9*5/32+");
-  f2c = compile_rpn("32-5*9/");
+  c2f = compile_rpn("32x9*5/+");
+  f2c = compile_rpn("x32-5*9/");
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
 
   printf("\nC:");
@@ -845,9 +892,9 @@ generation so powerful.
 
 The @file{rpn.c} file in the @lightning{} distribution includes a more
 complete (and more complex) implementation of @code{compile_rpn},
-which does constant folding, allows the argument to the functions
-to be used more than once, and is able to assemble instructions with
-an immediate parameter.
+which does constant folding and is able to assemble instructions with
+an immediate parameter.  Still, it is based on the same principle and
+also uses @code{allocai} to allocate space for the stack.
 
 @node Fibonacci
 @section Fibonacci numbers
@@ -1160,9 +1207,9 @@ extern void _opt_muli_i(struct jit_state *, int, int, int);
 @section Registers
 @chapter Accessing the whole register file
 
-As mentioned earlier in this chapter, all @lightning{} back-ends
-are guaranteed to have at least six integer registers and six
-floating-point registers, but many back-ends will have more.
+As mentioned earlier in this chapter, all @lightning{} back-ends are
+guaranteed to have at least six general-purpose integer registers and
+six floating-point registers, but many back-ends will have more.
 
 To access the entire register files, you can use the
 @code{JIT_R}, @code{JIT_V} and @code{JIT_FPR} macros.  They

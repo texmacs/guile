@@ -858,7 +858,7 @@ operations:
 @section Macros composing the platform-independent layer
 
 @table @b
-@item Register names (all mandatory but the last two)
+@item Register names (all mandatory but the last three)
 @example
 #define JIT_R
 #define JIT_R_NUM
@@ -866,6 +866,7 @@ operations:
 #define JIT_V_NUM
 #define JIT_FPR
 #define JIT_FPR_NUM
+#define JIT_FP
 #define JIT_SP
 #define JIT_AP
 #define JIT_RZERO
@@ -878,6 +879,7 @@ operations:
 
 @item Mandatory:
 @example
+#define jit_allocai()
 #define jit_arg_c()
 #define jit_arg_i()
 #define jit_arg_l()
@@ -1022,11 +1024,9 @@ operations:
 #define jit_orr_i(d, s1, s2)
 #define jit_patch_at(jump_pc, value)
 #define jit_patch_movi(jump_pc, value)
-#define jit_pop_i(rs)
 #define jit_prepare_d(numargs)
 #define jit_prepare_f(numargs)
 #define jit_prepare_i(numargs)
-#define jit_push_i(rs)
 #define jit_pusharg_i(rs)
 #define jit_ret()
 #define jit_retval_i(rd)
@@ -1242,10 +1242,6 @@ operations:
 #define jit_ori_ul(d, rs, is)
 #define jit_orr_ui(d, s1, s2)
 #define jit_orr_ul(d, s1, s2)
-#define jit_pop_ui(rs)
-#define jit_pop_ul(rs)
-#define jit_push_ui(rs)
-#define jit_push_ul(rs)
 #define jit_pusharg_c(rs)
 #define jit_pusharg_p(rs)
 #define jit_pusharg_s(rs)
@@ -1478,8 +1474,6 @@ operations:
 #define jit_ner_l(d, s1, s2)
 #define jit_ori_l(d, rs, is)
 #define jit_orr_l(d, s1, s2)
-#define jit_pop_l(rs)
-#define jit_push_l(rs)
 #define jit_pusharg_l(rs)
 #define jit_retval_l(rd)
 #define jit_rshi_l(d, rs, is)
