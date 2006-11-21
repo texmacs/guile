@@ -8,6 +8,8 @@
 /***********************************************************************
  *
  * Copyright 1999, 2000, 2001, 2002 Ian Piumarta
+ * Copyright 2003 Gwenole Beauchesne
+ * Copyright 2006 Free Software Foundation
  *
  * This file is part of GNU lightning.
  *

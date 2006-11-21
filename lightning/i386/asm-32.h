@@ -7,6 +7,7 @@
 
 /***********************************************************************
  *
+ * Copyright 2003 Gwenole Beauchesne
  * Copyright 2006 Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.

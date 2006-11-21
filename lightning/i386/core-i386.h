@@ -7,8 +7,8 @@
 
 /***********************************************************************
  *
- * Copyright 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
- * Written by Paolo Bonzini.
+ * Copyright 2000, 2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+ * Written by Paolo Bonzini and Matthew Flatt.
  *
  * This file is part of GNU lightning.
  *
