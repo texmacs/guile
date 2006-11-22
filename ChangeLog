@@ -1,3 +1,15 @@
+2006-11-22  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Move x86-64 instructions...
+	* lightning/i386/asm-64.h: ... here.
+	* lightning/i386/fp-32.h: Fix bugfixes worked around in froofyJIT.
+	Add JIT_FPRET.
+	* lightning/sparc/fp.h: Likewise.
+	* lightning/ppc/fp.h: Likewise.
+	* lightning/fp-common.h: Adjust for JIT_FPRET.
+	* tests/funcfp.c: Adjust for JIT_FPRET.
+	* tests/rpnfp.c: Adjust for JIT_FPRET.
+
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-i386.h:  Add an underscore to macros without

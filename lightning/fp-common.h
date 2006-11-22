@@ -85,6 +85,13 @@
 #define jit_retval_f(rs)		jit_retval_d(rs)
 #endif
 
+#ifndef jit_retval_f
+#define jit_retval_f(op1)            jit_movr_f((op1), JIT_FPRET)
+#endif
+
+#ifndef jit_retval_d
+#define jit_retval_d(op1)            jit_movr_d((op1), JIT_FPRET)
+#endif
  
 #ifndef jit_getarg_f
 #ifndef JIT_AP

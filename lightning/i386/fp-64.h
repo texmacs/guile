@@ -1,6 +1,6 @@
 /******************************** -*- C -*- ****************************
  *
- *	Run-time assembler & support macros for the i386 math coprocessor
+ *	Support macros for SSE floating-point math
  *
  ***********************************************************************/
 

@@ -1,9 +1,11 @@
 NEWS FROM VERSION 1.2 TO 1.3
 
-o   Initial support for x86-64 back-end.
-    [a promise for now, code is there but is untested!]
+o   Initial support for x86-64 back-end (mostly untested).
 
 o   Many bug fixes.
+
+o   JIT_FPRET is used as JIT_RET to move return values.
+    jit_retval_[fd] is used to retrieve return values.
 
 o   jit_pushr/jit_popr are deprecated, you need to #define
     JIT_NEED_PUSH_POP prior to including lightning.h if you

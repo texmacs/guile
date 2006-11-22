@@ -60,7 +60,7 @@ makeDblFunc ()
   jit_getarg_d (JIT_FPR0, dbl1);
   jit_getarg_d (JIT_FPR1, dbl2);
   jit_addr_d (JIT_FPR0, JIT_FPR0, JIT_FPR1);
-  jit_retval_d (JIT_FPR0);
+  jit_movr_d (JIT_FPRET, JIT_FPR0);
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
@@ -87,7 +87,7 @@ makeFloatFunc ()
   jit_getarg_f (JIT_FPR0, dbl1);
   jit_getarg_f (JIT_FPR1, dbl2);
   jit_addr_f (JIT_FPR0, JIT_FPR0, JIT_FPR1);
-  jit_retval_f (JIT_FPR0);
+  jit_movr_f (JIT_FPRET, JIT_FPR0);
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
@@ -115,6 +115,7 @@ makeCallFunc (dblFunc theFunc)
   jit_pusharg_d (JIT_FPR1);
   jit_pusharg_d (JIT_FPR0);
   jit_finish ((void *) theFunc);
+  jit_retval_d (JIT_FPRET);
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
@@ -142,6 +143,7 @@ makeCallFloatFunc (floatFunc theFunc)
   jit_pusharg_f (JIT_FPR1);
   jit_pusharg_f (JIT_FPR0);
   jit_finish ((void *) theFunc);
+  jit_retval_f (JIT_FPRET);
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 

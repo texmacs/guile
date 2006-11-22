@@ -37,6 +37,7 @@
 
 
 #define JIT_FPR_NUM	       6
+#define JIT_FPRET	       1
 #define JIT_FPR(i)	       (8+(i))
 
 
@@ -178,8 +179,6 @@
 
 #define jit_pusharg_d(rs)	     (_jitl.nextarg_putd--,jit_movr_d((_jitl.nextarg_putf+_jitl.nextarg_putd+1), (rs)))
 #define jit_pusharg_f(rs)	     (_jitl.nextarg_putf--,jit_movr_f((_jitl.nextarg_putf+_jitl.nextarg_putd+1), (rs)))
-#define jit_retval_d(op1)            jit_movr_d(1, (op1))
-#define jit_retval_f(op1)            jit_movr_f(1, (op1))
 
 
 #define jit_floorr_d_i(rd,rs)  (MTFSFIri(7,3), \

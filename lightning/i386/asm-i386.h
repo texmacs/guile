@@ -353,11 +353,6 @@ enum {
 #define ADCLir(IM, RD)			_ALULir(X86_ADC, IM, RD)
 #define ADCLim(IM, MD, MB, MI, MS)	_ALULim(X86_ADC, IM, MD, MB, MI, MS)
 
-#define ADCQrr(RS, RD)			_ALUQrr(X86_ADC, RS, RD)
-#define ADCQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_ADC, MD, MB, MI, MS, RD)
-#define ADCQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_ADC, RS, MD, MB, MI, MS)
-#define ADCQir(IM, RD)			_ALUQir(X86_ADC, IM, RD)
-#define ADCQim(IM, MD, MB, MI, MS)	_ALUQim(X86_ADC, IM, MD, MB, MI, MS)
 
 #define ADDBrr(RS, RD)			_ALUBrr(X86_ADD, RS, RD)
 #define ADDBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_ADD, MD, MB, MI, MS, RD)
@@ -377,11 +372,6 @@ enum {
 #define ADDLir(IM, RD)			_ALULir(X86_ADD, IM, RD)
 #define ADDLim(IM, MD, MB, MI, MS)	_ALULim(X86_ADD, IM, MD, MB, MI, MS)
 
-#define ADDQrr(RS, RD)			_ALUQrr(X86_ADD, RS, RD)
-#define ADDQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_ADD, MD, MB, MI, MS, RD)
-#define ADDQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_ADD, RS, MD, MB, MI, MS)
-#define ADDQir(IM, RD)			_ALUQir(X86_ADD, IM, RD)
-#define ADDQim(IM, MD, MB, MI, MS)	_ALUQim(X86_ADD, IM, MD, MB, MI, MS)
 
 #define ANDBrr(RS, RD)			_ALUBrr(X86_AND, RS, RD)
 #define ANDBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_AND, MD, MB, MI, MS, RD)
@@ -401,11 +391,6 @@ enum {
 #define ANDLir(IM, RD)			_ALULir(X86_AND, IM, RD)
 #define ANDLim(IM, MD, MB, MI, MS)	_ALULim(X86_AND, IM, MD, MB, MI, MS)
 
-#define ANDQrr(RS, RD)			_ALUQrr(X86_AND, RS, RD)
-#define ANDQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_AND, MD, MB, MI, MS, RD)
-#define ANDQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_AND, RS, MD, MB, MI, MS)
-#define ANDQir(IM, RD)			_ALUQir(X86_AND, IM, RD)
-#define ANDQim(IM, MD, MB, MI, MS)	_ALUQim(X86_AND, IM, MD, MB, MI, MS)
 
 #define CMPBrr(RS, RD)			_ALUBrr(X86_CMP, RS, RD)
 #define CMPBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_CMP, MD, MB, MI, MS, RD)
@@ -425,11 +410,6 @@ enum {
 #define CMPLir(IM, RD)			_ALULir(X86_CMP, IM, RD)
 #define CMPLim(IM, MD, MB, MI, MS)	_ALULim(X86_CMP, IM, MD, MB, MI, MS)
 
-#define CMPQrr(RS, RD)			_ALUQrr(X86_CMP, RS, RD)
-#define CMPQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_CMP, MD, MB, MI, MS, RD)
-#define CMPQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_CMP, RS, MD, MB, MI, MS)
-#define CMPQir(IM, RD)			_ALUQir(X86_CMP, IM, RD)
-#define CMPQim(IM, MD, MB, MI, MS)	_ALUQim(X86_CMP, IM, MD, MB, MI, MS)
 
 #define ORBrr(RS, RD)			_ALUBrr(X86_OR, RS, RD)
 #define ORBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_OR, MD, MB, MI, MS, RD)
@@ -449,11 +429,6 @@ enum {
 #define ORLir(IM, RD)			_ALULir(X86_OR, IM, RD)
 #define ORLim(IM, MD, MB, MI, MS)	_ALULim(X86_OR, IM, MD, MB, MI, MS)
 
-#define ORQrr(RS, RD)			_ALUQrr(X86_OR, RS, RD)
-#define ORQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_OR, MD, MB, MI, MS, RD)
-#define ORQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_OR, RS, MD, MB, MI, MS)
-#define ORQir(IM, RD)			_ALUQir(X86_OR, IM, RD)
-#define ORQim(IM, MD, MB, MI, MS)	_ALUQim(X86_OR, IM, MD, MB, MI, MS)
 
 #define SBBBrr(RS, RD)			_ALUBrr(X86_SBB, RS, RD)
 #define SBBBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_SBB, MD, MB, MI, MS, RD)
@@ -473,11 +448,6 @@ enum {
 #define SBBLir(IM, RD)			_ALULir(X86_SBB, IM, RD)
 #define SBBLim(IM, MD, MB, MI, MS)	_ALULim(X86_SBB, IM, MD, MB, MI, MS)
 
-#define SBBQrr(RS, RD)			_ALUQrr(X86_SBB, RS, RD)
-#define SBBQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_SBB, MD, MB, MI, MS, RD)
-#define SBBQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_SBB, RS, MD, MB, MI, MS)
-#define SBBQir(IM, RD)			_ALUQir(X86_SBB, IM, RD)
-#define SBBQim(IM, MD, MB, MI, MS)	_ALUQim(X86_SBB, IM, MD, MB, MI, MS)
 
 #define SUBBrr(RS, RD)			_ALUBrr(X86_SUB, RS, RD)
 #define SUBBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_SUB, MD, MB, MI, MS, RD)
@@ -497,11 +467,6 @@ enum {
 #define SUBLir(IM, RD)			_ALULir(X86_SUB, IM, RD)
 #define SUBLim(IM, MD, MB, MI, MS)	_ALULim(X86_SUB, IM, MD, MB, MI, MS)
 
-#define SUBQrr(RS, RD)			_ALUQrr(X86_SUB, RS, RD)
-#define SUBQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_SUB, MD, MB, MI, MS, RD)
-#define SUBQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_SUB, RS, MD, MB, MI, MS)
-#define SUBQir(IM, RD)			_ALUQir(X86_SUB, IM, RD)
-#define SUBQim(IM, MD, MB, MI, MS)	_ALUQim(X86_SUB, IM, MD, MB, MI, MS)
 
 #define XORBrr(RS, RD)			_ALUBrr(X86_XOR, RS, RD)
 #define XORBmr(MD, MB, MI, MS, RD)	_ALUBmr(X86_XOR, MD, MB, MI, MS, RD)
@@ -521,11 +486,6 @@ enum {
 #define XORLir(IM, RD)			_ALULir(X86_XOR, IM, RD)
 #define XORLim(IM, MD, MB, MI, MS)	_ALULim(X86_XOR, IM, MD, MB, MI, MS)
 
-#define XORQrr(RS, RD)			_ALUQrr(X86_XOR, RS, RD)
-#define XORQmr(MD, MB, MI, MS, RD)	_ALUQmr(X86_XOR, MD, MB, MI, MS, RD)
-#define XORQrm(RS, MD, MB, MI, MS)	_ALUQrm(X86_XOR, RS, MD, MB, MI, MS)
-#define XORQir(IM, RD)			_ALUQir(X86_XOR, IM, RD)
-#define XORQim(IM, MD, MB, MI, MS)	_ALUQim(X86_XOR, IM, MD, MB, MI, MS)
 
 
 /* --- Shift/Rotate instructions ------------------------------------------- */
@@ -609,10 +569,6 @@ enum {
 #define ROLLrr(RS, RD)			_ROTSHILrr(X86_ROL, RS, RD)
 #define ROLLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_ROL, RS, MD, MB, MI, MS)
 
-#define ROLQir(IM, RD)			_ROTSHIQir(X86_ROL, IM, RD)
-#define ROLQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_ROL, IM, MD, MB, MI, MS)
-#define ROLQrr(RS, RD)			_ROTSHIQrr(X86_ROL, RS, RD)
-#define ROLQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_ROL, RS, MD, MB, MI, MS)
 
 #define RORBir(IM, RD)			_ROTSHIBir(X86_ROR, IM, RD)
 #define RORBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_ROR, IM, MD, MB, MI, MS)
@@ -629,10 +585,6 @@ enum {
 #define RORLrr(RS, RD)			_ROTSHILrr(X86_ROR, RS, RD)
 #define RORLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_ROR, RS, MD, MB, MI, MS)
 
-#define RORQir(IM, RD)			_ROTSHIQir(X86_ROR, IM, RD)
-#define RORQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_ROR, IM, MD, MB, MI, MS)
-#define RORQrr(RS, RD)			_ROTSHIQrr(X86_ROR, RS, RD)
-#define RORQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_ROR, RS, MD, MB, MI, MS)
 
 #define RCLBir(IM, RD)			_ROTSHIBir(X86_RCL, IM, RD)
 #define RCLBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_RCL, IM, MD, MB, MI, MS)
@@ -649,10 +601,6 @@ enum {
 #define RCLLrr(RS, RD)			_ROTSHILrr(X86_RCL, RS, RD)
 #define RCLLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_RCL, RS, MD, MB, MI, MS)
 
-#define RCLQir(IM, RD)			_ROTSHIQir(X86_RCL, IM, RD)
-#define RCLQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_RCL, IM, MD, MB, MI, MS)
-#define RCLQrr(RS, RD)			_ROTSHIQrr(X86_RCL, RS, RD)
-#define RCLQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_RCL, RS, MD, MB, MI, MS)
 
 #define RCRBir(IM, RD)			_ROTSHIBir(X86_RCR, IM, RD)
 #define RCRBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_RCR, IM, MD, MB, MI, MS)
@@ -669,10 +617,6 @@ enum {
 #define RCRLrr(RS, RD)			_ROTSHILrr(X86_RCR, RS, RD)
 #define RCRLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_RCR, RS, MD, MB, MI, MS)
 
-#define RCRQir(IM, RD)			_ROTSHIQir(X86_RCR, IM, RD)
-#define RCRQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_RCR, IM, MD, MB, MI, MS)
-#define RCRQrr(RS, RD)			_ROTSHIQrr(X86_RCR, RS, RD)
-#define RCRQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_RCR, RS, MD, MB, MI, MS)
 
 #define SHLBir(IM, RD)			_ROTSHIBir(X86_SHL, IM, RD)
 #define SHLBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_SHL, IM, MD, MB, MI, MS)
@@ -689,10 +633,6 @@ enum {
 #define SHLLrr(RS, RD)			_ROTSHILrr(X86_SHL, RS, RD)
 #define SHLLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_SHL, RS, MD, MB, MI, MS)
 
-#define SHLQir(IM, RD)			_ROTSHIQir(X86_SHL, IM, RD)
-#define SHLQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_SHL, IM, MD, MB, MI, MS)
-#define SHLQrr(RS, RD)			_ROTSHIQrr(X86_SHL, RS, RD)
-#define SHLQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_SHL, RS, MD, MB, MI, MS)
 
 #define SHRBir(IM, RD)			_ROTSHIBir(X86_SHR, IM, RD)
 #define SHRBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_SHR, IM, MD, MB, MI, MS)
@@ -709,10 +649,6 @@ enum {
 #define SHRLrr(RS, RD)			_ROTSHILrr(X86_SHR, RS, RD)
 #define SHRLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_SHR, RS, MD, MB, MI, MS)
 
-#define SHRQir(IM, RD)			_ROTSHIQir(X86_SHR, IM, RD)
-#define SHRQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_SHR, IM, MD, MB, MI, MS)
-#define SHRQrr(RS, RD)			_ROTSHIQrr(X86_SHR, RS, RD)
-#define SHRQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_SHR, RS, MD, MB, MI, MS)
 
 #define SALBir				SHLBir
 #define SALBim				SHLBim
@@ -729,10 +665,6 @@ enum {
 #define SALLrr				SHLLrr
 #define SALLrm				SHLLrm
 
-#define SALQir				SHLQir
-#define SALQim				SHLQim
-#define SALQrr				SHLQrr
-#define SALQrm				SHLQrm
 
 #define SARBir(IM, RD)			_ROTSHIBir(X86_SAR, IM, RD)
 #define SARBim(IM, MD, MB, MI, MS)	_ROTSHIBim(X86_SAR, IM, MD, MB, MI, MS)
@@ -749,10 +681,6 @@ enum {
 #define SARLrr(RS, RD)			_ROTSHILrr(X86_SAR, RS, RD)
 #define SARLrm(RS, MD, MB, MI, MS)	_ROTSHILrm(X86_SAR, RS, MD, MB, MI, MS)
 
-#define SARQir(IM, RD)			_ROTSHIQir(X86_SAR, IM, RD)
-#define SARQim(IM, MD, MB, MI, MS)	_ROTSHIQim(X86_SAR, IM, MD, MB, MI, MS)
-#define SARQrr(RS, RD)			_ROTSHIQrr(X86_SAR, RS, RD)
-#define SARQrm(RS, MD, MB, MI, MS)	_ROTSHIQrm(X86_SAR, RS, MD, MB, MI, MS)
 
 
 /* --- Bit test instructions ----------------------------------------------- */
@@ -791,10 +719,6 @@ enum {
 #define BTLrr(RS, RD)			_BTLrr(X86_BT, RS, RD)
 #define BTLrm(RS, MD, MB, MI, MS)	_BTLrm(X86_BT, RS, MD, MB, MI, MS)
 
-#define BTQir(IM, RD)			_BTQir(X86_BT, IM, RD)
-#define BTQim(IM, MD, MB, MI, MS)	_BTQim(X86_BT, IM, MD, MB, MI, MS)
-#define BTQrr(RS, RD)			_BTQrr(X86_BT, RS, RD)
-#define BTQrm(RS, MD, MB, MI, MS)	_BTQrm(X86_BT, RS, MD, MB, MI, MS)
 
 #define BTCWir(IM, RD)			_BTWir(X86_BTC, IM, RD)
 #define BTCWim(IM, MD, MB, MI, MS)	_BTWim(X86_BTC, IM, MD, MI, MS)
@@ -806,10 +730,6 @@ enum {
 #define BTCLrr(RS, RD)			_BTLrr(X86_BTC, RS, RD)
 #define BTCLrm(RS, MD, MB, MI, MS)	_BTLrm(X86_BTC, RS, MD, MB, MI, MS)
 
-#define BTCQir(IM, RD)			_BTQir(X86_BTC, IM, RD)
-#define BTCQim(IM, MD, MB, MI, MS)	_BTQim(X86_BTC, IM, MD, MB, MI, MS)
-#define BTCQrr(RS, RD)			_BTQrr(X86_BTC, RS, RD)
-#define BTCQrm(RS, MD, MB, MI, MS)	_BTQrm(X86_BTC, RS, MD, MB, MI, MS)
 
 #define BTRWir(IM, RD)			_BTWir(X86_BTR, IM, RD)
 #define BTRWim(IM, MD, MB, MI, MS)	_BTWim(X86_BTR, IM, MD, MI, MS)
@@ -821,10 +741,6 @@ enum {
 #define BTRLrr(RS, RD)			_BTLrr(X86_BTR, RS, RD)
 #define BTRLrm(RS, MD, MB, MI, MS)	_BTLrm(X86_BTR, RS, MD, MB, MI, MS)
 
-#define BTRQir(IM, RD)			_BTQir(X86_BTR, IM, RD)
-#define BTRQim(IM, MD, MB, MI, MS)	_BTQim(X86_BTR, IM, MD, MB, MI, MS)
-#define BTRQrr(RS, RD)			_BTQrr(X86_BTR, RS, RD)
-#define BTRQrm(RS, MD, MB, MI, MS)	_BTQrm(X86_BTR, RS, MD, MB, MI, MS)
 
 #define BTSWir(IM, RD)			_BTWir(X86_BTS, IM, RD)
 #define BTSWim(IM, MD, MB, MI, MS)	_BTWim(X86_BTS, IM, MD, MI, MS)
@@ -836,10 +752,6 @@ enum {
 #define BTSLrr(RS, RD)			_BTLrr(X86_BTS, RS, RD)
 #define BTSLrm(RS, MD, MB, MI, MS)	_BTLrm(X86_BTS, RS, MD, MB, MI, MS)
 
-#define BTSQir(IM, RD)			_BTQir(X86_BTS, IM, RD)
-#define BTSQim(IM, MD, MB, MI, MS)	_BTQim(X86_BTS, IM, MD, MB, MI, MS)
-#define BTSQrr(RS, RD)			_BTQrr(X86_BTS, RS, RD)
-#define BTSQrm(RS, MD, MB, MI, MS)	_BTQrm(X86_BTS, RS, MD, MB, MI, MS)
 
 
 /* --- Move instructions --------------------------------------------------- */
@@ -864,11 +776,6 @@ enum {
 #define MOVLir(IM,  R)			(_REXLrr(0, R),			_Or_L		(0xb8,_r4(R)						,IM	))
 #define MOVLim(IM, MD, MB, MI, MS)	(_REXLrm(0, MB, MI),		_O_X_L		(0xc7					,MD,MB,MI,MS	,IM	))
 
-#define MOVQrr(RS, RD)			(_REXQrr(RS, RD),		_O_Mrm		(0x89		,_b11,_r8(RS),_r8(RD)				))
-#define MOVQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_O_r_X		(0x8b		     ,_r8(RD)		,MD,MB,MI,MS		))
-#define MOVQrm(RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_O_r_X		(0x89		     ,_r8(RS)		,MD,MB,MI,MS		))
-#define MOVQir(IM,  R)			(_REXQrr(0, R),			_Or_Q		(0xb8,_r8(R)						,IM	))
-#define MOVQim(IM, MD, MB, MI, MS)	(_REXQrm(0, MB, MI),		_O_X_L		(0xc7					,MD,MB,MI,MS	,IM	))
 
 
 /* --- Unary and Multiply/Divide instructions ------------------------------ */
@@ -899,8 +806,6 @@ enum {
 #define NOTWm(MD, MB, MI, MS)		_UNARYWm(X86_NOT, MD, MB, MI, MS)
 #define NOTLr(RS)			_UNARYLr(X86_NOT, RS)
 #define NOTLm(MD, MB, MI, MS)		_UNARYLm(X86_NOT, MD, MB, MI, MS)
-#define NOTQr(RS)			_UNARYQr(X86_NOT, RS)
-#define NOTQm(MD, MB, MI, MS)		_UNARYQm(X86_NOT, MD, MB, MI, MS)
 
 #define NEGBr(RS)			_UNARYBr(X86_NEG, RS)
 #define NEGBm(MD, MB, MI, MS)		_UNARYBm(X86_NEG, MD, MB, MI, MS)
@@ -908,8 +813,6 @@ enum {
 #define NEGWm(MD, MB, MI, MS)		_UNARYWm(X86_NEG, MD, MB, MI, MS)
 #define NEGLr(RS)			_UNARYLr(X86_NEG, RS)
 #define NEGLm(MD, MB, MI, MS)		_UNARYLm(X86_NEG, MD, MB, MI, MS)
-#define NEGQr(RS)			_UNARYQr(X86_NEG, RS)
-#define NEGQm(MD, MB, MI, MS)		_UNARYQm(X86_NEG, MD, MB, MI, MS)
 
 #define MULBr(RS)			_UNARYBr(X86_MUL, RS)
 #define MULBm(MD, MB, MI, MS)		_UNARYBm(X86_MUL, MD, MB, MI, MS)
@@ -917,8 +820,6 @@ enum {
 #define MULWm(MD, MB, MI, MS)		_UNARYWm(X86_MUL, MD, MB, MI, MS)
 #define MULLr(RS)			_UNARYLr(X86_MUL, RS)
 #define MULLm(MD, MB, MI, MS)		_UNARYLm(X86_MUL, MD, MB, MI, MS)
-#define MULQr(RS)			_UNARYQr(X86_MUL, RS)
-#define MULQm(MD, MB, MI, MS)		_UNARYQm(X86_MUL, MD, MB, MI, MS)
 
 #define IMULBr(RS)			_UNARYBr(X86_IMUL, RS)
 #define IMULBm(MD, MB, MI, MS)		_UNARYBm(X86_IMUL, MD, MB, MI, MS)
@@ -926,8 +827,6 @@ enum {
 #define IMULWm(MD, MB, MI, MS)		_UNARYWm(X86_IMUL, MD, MB, MI, MS)
 #define IMULLr(RS)			_UNARYLr(X86_IMUL, RS)
 #define IMULLm(MD, MB, MI, MS)		_UNARYLm(X86_IMUL, MD, MB, MI, MS)
-#define IMULQr(RS)			_UNARYQr(X86_IMUL, RS)
-#define IMULQm(MD, MB, MI, MS)		_UNARYQm(X86_IMUL, MD, MB, MI, MS)
 
 #define DIVBr(RS)			_UNARYBr(X86_DIV, RS)
 #define DIVBm(MD, MB, MI, MS)		_UNARYBm(X86_DIV, MD, MB, MI, MS)
@@ -935,8 +834,6 @@ enum {
 #define DIVWm(MD, MB, MI, MS)		_UNARYWm(X86_DIV, MD, MB, MI, MS)
 #define DIVLr(RS)			_UNARYLr(X86_DIV, RS)
 #define DIVLm(MD, MB, MI, MS)		_UNARYLm(X86_DIV, MD, MB, MI, MS)
-#define DIVQr(RS)			_UNARYQr(X86_DIV, RS)
-#define DIVQm(MD, MB, MI, MS)		_UNARYQm(X86_DIV, MD, MB, MI, MS)
 
 #define IDIVBr(RS)			_UNARYBr(X86_IDIV, RS)
 #define IDIVBm(MD, MB, MI, MS)		_UNARYBm(X86_IDIV, MD, MB, MI, MS)
@@ -944,8 +841,6 @@ enum {
 #define IDIVWm(MD, MB, MI, MS)		_UNARYWm(X86_IDIV, MD, MB, MI, MS)
 #define IDIVLr(RS)			_UNARYLr(X86_IDIV, RS)
 #define IDIVLm(MD, MB, MI, MS)		_UNARYLm(X86_IDIV, MD, MB, MI, MS)
-#define IDIVQr(RS)			_UNARYQr(X86_IDIV, RS)
-#define IDIVQm(MD, MB, MI, MS)		_UNARYQm(X86_IDIV, MD, MB, MI, MS)
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
 
@@ -959,15 +854,10 @@ enum {
 #define IMULLrr(RS, RD)			(_REXLrr(RD, RS),		_OO_Mrm		(0x0faf		,_b11,_r4(RD),_r4(RS)				))
 #define IMULLmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0faf		     ,_r4(RD)		,MD,MB,MI,MS		))
 
-#define IMULQir(IM, RD)			(_REXQrr(0, RD),		_Os_Mrm_sL	(0x69		,_b11,_r8(RD),_r8(RD)			,IM	))
-#define IMULQrr(RS, RD)			(_REXQrr(RD, RS),		_OO_Mrm		(0x0faf		,_b11,_r8(RD),_r8(RS)				))
-#define IMULQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0faf		     ,_r8(RD)		,MD,MB,MI,MS		))
 
 #define IMULLirr(IM,RS,RD)		(_REXLrr(RS, RD),		_Os_Mrm_sL	(0x69		,_b11,_r4(RS),_r4(RD)			,IM	))
 #define IMULLimr(IM,MD,MB,MI,MS,RD)	(_REXLmr(MB, MI, RD),		_Os_r_X_sL	(0x69		     ,_r4(RD)		,MD,MB,MI,MS	,IM	))
 
-#define IMULQirr(IM,RS,RD)		(_REXQrr(RS, RD),		_Os_Mrm_sL	(0x69		,_b11,_r8(RS),_r8(RD)			,IM	))
-#define IMULQimr(IM,MD,MB,MI,MS,RD)	(_REXQmr(MB, MI, RD),		_Os_r_X_sL	(0x69		     ,_r8(RD)		,MD,MB,MI,MS	,IM	))
 
 
 /* --- Control Flow related instructions ----------------------------------- */
@@ -1010,14 +900,12 @@ enum {
 // FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit mode
 #define CALLm(M)							_O_D32		(0xe8					,(int)(M)		)
 #define CALLLsr(R)			(_REXLrr(0, R),			_O_Mrm		(0xff		,_b11,_b010,_r4(R)				))
-#define CALLQsr(R)			(_REXQrr(0, R),			_O_Mrm		(0xff		,_b11,_b010,_r8(R)				))
 #define CALLsm(D,B,I,S)			(_REXLrm(0, B, I),		_O_r_X		(0xff		     ,_b010		,(int)(D),B,I,S		))
 
 // FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit mode
 #define JMPSm(M)							_O_D8		(0xeb					,(int)(M)		)
 #define JMPm(M)								_O_D32		(0xe9					,(int)(M)		)
 #define JMPLsr(R)			(_REXLrr(0, R),			_O_Mrm		(0xff		,_b11,_b100,_r4(R)				))
-#define JMPQsr(R)			(_REXQrr(0, R),			_O_Mrm		(0xff		,_b11,_b100,_r8(R)				))
 #define JMPsm(D,B,I,S)			(_REXLrm(0, B, I),		_O_r_X		(0xff		     ,_b100		,(int)(D),B,I,S		))
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
@@ -1151,8 +1039,6 @@ enum {
 #define CMOVWmr(CC,MD,MB,MI,MS,RD)	(_d16(), _REXLmr(MB, MI, RD),	_OO_r_X		(0x0f40|(CC)	     ,_r2(RD)		,MD,MB,MI,MS		))
 #define CMOVLrr(CC,RS,RD)		(_REXLrr(RD, RS),		_OO_Mrm		(0x0f40|(CC)	,_b11,_r4(RD),_r4(RS)				))
 #define CMOVLmr(CC,MD,MB,MI,MS,RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0f40|(CC)	     ,_r4(RD)		,MD,MB,MI,MS		))
-#define CMOVQrr(CC,RS,RD)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0f40|(CC)	,_b11,_r8(RD),_r8(RS)				))
-#define CMOVQmr(CC,MD,MB,MI,MS,RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0f40|(CC)	     ,_r8(RD)		,MD,MB,MI,MS		))
 
 
 /* --- Push/Pop instructions ----------------------------------------------- */
@@ -1165,8 +1051,6 @@ enum {
 #define POPLr(RD)			_m32only(			_Or		(0x58,_r4(RD)							))
 #define POPLm(MD, MB, MI, MS)		_m32only(			_O_r_X		(0x8f		     ,_b000		,MD,MB,MI,MS		))
 
-#define POPQr(RD)			_m64only((_REXQr(RD),		_Or		(0x58,_r8(RD)							)))
-#define POPQm(MD, MB, MI, MS)		_m64only((_REXQm(MB, MI), 	_O_r_X		(0x8f		     ,_b000		,MD,MB,MI,MS		)))
 
 #define PUSHWr(RS)			_m32only((_d16(),		_Or		(0x50,_r2(RS)							)))
 #define PUSHWm(MD, MB, MI, MS)		_m32only((_d16(),		_O_r_X		(0xff,		     ,_b110		,MD,MB,MI,MS		)))
@@ -1176,9 +1060,6 @@ enum {
 #define PUSHLm(MD, MB, MI, MS)		_m32only(			_O_r_X		(0xff		     ,_b110		,MD,MB,MI,MS		))
 #define PUSHLi(IM)			_m32only(			_Os_sL		(0x68							,IM	))
 
-#define PUSHQr(RS)			_m64only((_REXQr(RS),		_Or		(0x50,_r8(RS)							)))
-#define PUSHQm(MD, MB, MI, MS)		_m64only((_REXQm(MB, MI),	_O_r_X		(0xff		     ,_b110		,MD,MB,MI,MS		)))
-#define PUSHQi(IM)			_m64only(			_Os_sL		(0x68							,IM	))
 
 #define POPA_()				(_d16(),			_O		(0x61								))
 #define POPAD_()							_O		(0x61								)
@@ -1215,12 +1096,6 @@ enum {
 					(_REXLrr(0, RD),		_O_Mrm_L	(0xf7		,_b11,_b000  ,_r4(RD)			,IM	)) )
 #define TESTLim(IM, MD, MB, MI, MS)	(_REXLrm(0, MB, MI),		_O_r_X_L	(0xf7		     ,_b000		,MD,MB,MI,MS	,IM	))
 
-#define TESTQrr(RS, RD)			(_REXQrr(RS, RD),		_O_Mrm		(0x85		,_b11,_r8(RS),_r8(RD)				))
-#define TESTQrm(RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_O_r_X		(0x85		     ,_r8(RS)		,MD,MB,MI,MS		))
-#define TESTQir(IM, RD)			(!_s8P(IM) && (RD) == _RAX ? \
-					(_REXQrr(0, RD),		_O_L		(0xa9							,IM	)) : \
-					(_REXQrr(0, RD),		_O_Mrm_L	(0xf7		,_b11,_b000  ,_r8(RD)			,IM	)) )
-#define TESTQim(IM, MD, MB, MI, MS)	(_REXQrm(0, MB, MI),		_O_r_X_L	(0xf7		     ,_b000		,MD,MB,MI,MS	,IM	))
 
 
 /* --- Exchange instructions ----------------------------------------------- */
@@ -1236,8 +1111,6 @@ enum {
 #define CMPXCHGLrr(RS, RD)		(_REXLrr(RS, RD),		_OO_Mrm		(0x0fb1		,_b11,_r4(RS),_r4(RD)				))
 #define CMPXCHGLrm(RS, MD, MB, MI, MS)	(_REXLrm(RS, MB, MI),		_OO_r_X		(0x0fb1		     ,_r4(RS)		,MD,MB,MI,MS		))
 
-#define CMPXCHGQrr(RS, RD)		(_REXQrr(RS, RD),		_OO_Mrm		(0x0fb1		,_b11,_r8(RS),_r8(RD)				))
-#define CMPXCHGQrm(RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_OO_r_X		(0x0fb1		     ,_r8(RS)		,MD,MB,MI,MS		))
 
 #define XADDBrr(RS, RD)			(_REXBrr(RS, RD),		_OO_Mrm		(0x0fc0		,_b11,_r1(RS),_r1(RD)				))
 #define XADDBrm(RS, MD, MB, MI, MS)	(_REXBrm(RS, MB, MI),		_OO_r_X		(0x0fc0		     ,_r1(RS)		,MD,MB,MI,MS		))
@@ -1248,8 +1121,6 @@ enum {
 #define XADDLrr(RS, RD)			(_REXLrr(RS, RD),		_OO_Mrm		(0x0fc1		,_b11,_r4(RS),_r4(RD)				))
 #define XADDLrm(RS, MD, MB, MI, MS)	(_REXLrm(RS, MB, MI),		_OO_r_X		(0x0fc1		     ,_r4(RS)		,MD,MB,MI,MS		))
 
-#define XADDQrr(RS, RD)			(_REXQrr(RS, RD),		_OO_Mrm		(0x0fc1		,_b11,_r8(RS),_r8(RD)				))
-#define XADDQrm(RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_OO_r_X		(0x0fc1		     ,_r8(RS)		,MD,MB,MI,MS		))
 
 #define XCHGBrr(RS, RD)			(_REXBrr(RS, RD),		_O_Mrm		(0x86		,_b11,_r1(RS),_r1(RD)				))
 #define XCHGBrm(RS, MD, MB, MI, MS)	(_REXBrm(RS, MB, MI),		_O_r_X		(0x86		     ,_r1(RS)		,MD,MB,MI,MS		))
@@ -1260,8 +1131,6 @@ enum {
 #define XCHGLrr(RS, RD)			(_REXLrr(RS, RD),		_O_Mrm		(0x87		,_b11,_r4(RS),_r4(RD)				))
 #define XCHGLrm(RS, MD, MB, MI, MS)	(_REXLrm(RS, MB, MI),		_O_r_X		(0x87		     ,_r4(RS)		,MD,MB,MI,MS		))
 
-#define XCHGQrr(RS, RD)			(_REXQrr(RS, RD),		_O_Mrm		(0x87		,_b11,_r8(RS),_r8(RD)				))
-#define XCHGQrm(RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_O_r_X		(0x87		     ,_r8(RS)		,MD,MB,MI,MS		))
 
 
 /* --- Increment/Decrement instructions ------------------------------------ */
@@ -1275,8 +1144,6 @@ enum {
 
 #define DECLm(MD, MB, MI, MS)		(_REXLrm(0, MB, MI),		_O_r_X		(0xff		     ,_b001		,MD,MB,MI,MS		))
 
-#define DECQm(MD, MB, MI, MS)		(_REXQrm(0, MB, MI),		_O_r_X		(0xff		     ,_b001		,MD,MB,MI,MS		))
-#define DECQr(RD)			(_REXQrr(0, RD),		_O_Mrm		(0xff		,_b11,_b001  ,_r8(RD)				))
 
 #define INCBm(MD, MB, MI, MS)		(_REXBrm(0, MB, MI),		_O_r_X		(0xfe		     ,_b000		,MD,MB,MI,MS		))
 #define INCBr(RD)			(_REXBrr(0, RD),		_O_Mrm		(0xfe		,_b11,_b000  ,_r1(RD)				))
@@ -1285,8 +1152,6 @@ enum {
 
 #define INCLm(MD, MB, MI, MS)		(_REXLrm(0, MB, MI),		_O_r_X		(0xff		     ,_b000		,MD,MB,MI,MS		))
 
-#define INCQm(MD, MB, MI, MS)		(_REXQrm(0, MB, MI),		_O_r_X		(0xff		     ,_b000		,MD,MB,MI,MS		))
-#define INCQr(RD)			(_REXQrr(0, RD),		_O_Mrm		(0xff		,_b11,_b000  ,_r8(RD)				))
 
 
 /* --- Misc instructions --------------------------------------------------- */
@@ -1303,10 +1168,6 @@ enum {
 #define BSRLrr(RS, RD)			(_REXLrr(RD, RS),		_OO_Mrm		(0x0fbd		,_b11,_r4(RD),_r4(RS)				))
 #define BSRLmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0fbd		     ,_r4(RD)		,MD,MB,MI,MS		))
 
-#define BSFQrr(RS, RD)			(_REXQrr(RD, RS),		_OO_Mrm		(0x0fbc		,_b11,_r8(RD),_r8(RS)				))
-#define BSFQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fbc		     ,_r8(RD)		,MD,MB,MI,MS		))
-#define BSRQrr(RS, RD)			(_REXQrr(RD, RS),		_OO_Mrm		(0x0fbd		,_b11,_r8(RD),_r8(RS)				))
-#define BSRQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fbd		     ,_r8(RD)		,MD,MB,MI,MS		))
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
 
@@ -1320,30 +1181,19 @@ enum {
 #define MOVZBLrr(RS, RD)		(_REXBLrr(RD, RS),		_OO_Mrm		(0x0fb6		,_b11,_r4(RD),_r1(RS)				))
 #define MOVZBLmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0fb6		     ,_r4(RD)		,MD,MB,MI,MS		))
 
-#define MOVSBQrr(RS, RD)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0fbe		,_b11,_r8(RD),_r1(RS)				))
-#define MOVSBQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fbe		     ,_r8(RD)		,MD,MB,MI,MS		))
-#define MOVZBQrr(RS, RD)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0fb6		,_b11,_r8(RD),_r1(RS)				))
-#define MOVZBQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fb6		     ,_r8(RD)		,MD,MB,MI,MS		))
 
 #define MOVSWLrr(RS, RD)		(_REXLrr(RD, RS),		_OO_Mrm		(0x0fbf		,_b11,_r4(RD),_r2(RS)				))
 #define MOVSWLmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0fbf		     ,_r4(RD)		,MD,MB,MI,MS		))
 #define MOVZWLrr(RS, RD)		(_REXLrr(RD, RS),		_OO_Mrm		(0x0fb7		,_b11,_r4(RD),_r2(RS)				))
 #define MOVZWLmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_OO_r_X		(0x0fb7		     ,_r4(RD)		,MD,MB,MI,MS		))
 
-#define MOVSWQrr(RS, RD)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0fbf		,_b11,_r8(RD),_r2(RS)				))
-#define MOVSWQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fbf		     ,_r8(RD)		,MD,MB,MI,MS		))
-#define MOVZWQrr(RS, RD)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0fb7		,_b11,_r8(RD),_r2(RS)				))
-#define MOVZWQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0fb7		     ,_r8(RD)		,MD,MB,MI,MS		))
 
-#define MOVSLQrr(RS, RD)		_m64only((_REXQrr(RD, RS),	_O_Mrm		(0x63		,_b11,_r8(RD),_r4(RS)				)))
-#define MOVSLQmr(MD, MB, MI, MS, RD)	_m64only((_REXQmr(MB, MI, RD),	_O_r_X		(0x63		     ,_r8(RD)		,MD,MB,MI,MS		)))
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
 
 #define LEALmr(MD, MB, MI, MS, RD)	(_REXLmr(MB, MI, RD),		_O_r_X		(0x8d		     ,_r4(RD)		,MD,MB,MI,MS		))
 
 #define BSWAPLr(R)			(_REXLrr(0, R),			_OOr		(0x0fc8,_r4(R)							))
-#define BSWAPQr(R)			(_REXQrr(0, R),			_OOr		(0x0fc8,_r8(R)							))
 
 #define CLC_()								_O		(0xf8								)
 #define STC_()								_O		(0xf9								)

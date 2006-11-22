@@ -96,7 +96,7 @@ compile_rpn (char *expr)
 	}
       ++expr;
     }
-  jit_retval_d (regs[0]);
+  jit_movr_d (JIT_FPRET, regs[0]);
   jit_ret ();
 
   jit_flush_code ((char *) fn, jit_get_ip ().ptr);
