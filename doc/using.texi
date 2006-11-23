@@ -100,20 +100,24 @@ preserved across function calls (@code{V0}, @code{V1} and
 @code{R2}).  Six registers are not very much, but this
 restriction was forced by the need to target CISC architectures
 which, like the x86, are poor of registers; anyway, backends can
-specify the actual number of available caller- and callee-save
-registers with the macros @code{JIT_R_NUM} and @code{JIT_V_NUM}.
+specify the actual number of available registers with the macros
+@code{JIT_R_NUM} (for caller-save registers) and @code{JIT_V_NUM}
+(for callee-save registers).
 
-In addition, there is a special @code{RET} register which contains the
-return value of the current function (@emph{not} the return value of
-callees---use the @code{retval} instruction for this).  You should
+In addition, there is a special @code{RET} register which contains
+the return value of the current function (@emph{not} the return value
+of callees---use the @code{retval} instruction for this).  You should
 always remember, however, that writing this register could overwrite
 either a general-purpose register or an incoming parameter, depending
 on the architecture.
 
 There are at least six floating-point registers, named @code{FPR0} to
-@code{FPR5}.  These are separate from the integer registers on
-all the supported architectures; on Intel architectures, the
-register stack is mapped to a flat register file.
+@code{FPR5}.  These are caller-save and are separate from the integer
+registers on all the supported architectures; on Intel architectures,
+the register stack is mapped to a flat register file.  As for the
+integer registers, the macro @code{JIT_FPR_NUM} yields the number of
+floating-point registers, and the special @code{FPRET} register contains
+the return value of the current function.
 
 The complete instruction set follows; as you can see, most non-memory
 operations only take integers, long integers (either signed or
