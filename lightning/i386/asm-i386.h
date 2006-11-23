@@ -252,7 +252,7 @@ typedef _uc		jit_insn;
 #define __REX_reg(RR)		(__REXwrxb(0,0,0,00,_BIT(_rXP(RR))))
 #define __REX_mem(MB,MI)	(__REXwrxb(0,0,0,_BIT(_rXP(MI)),_BIT(_rXP(MB))))
 
-// FIXME: can't mix new (SPL,BPL,SIL,DIL) with (AH,BH,CH,DH)
+/* FIXME: can't mix new (SPL,BPL,SIL,DIL) with (AH,BH,CH,DH) */
 #define _REXBrr(RR,MR)		_m64(__REXw_x_(_r1e8lP(RR)||_r1e8lP(MR),0,RR,0,MR))
 #define _REXBmr(MB,MI,RD)	_m64(__REXw_x_(_r1e8lP(RD)||_r1e8lP(MB),0,RD,_BIT(_rXP(MI)),MB))
 #define _REXBrm(RS,MB,MI)	_REXBmr(MB,MI,RS)
@@ -896,12 +896,14 @@ enum {
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
 
-// FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit mode
+/* FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit
+   mode */
 #define CALLm(M)							_O_D32		(0xe8					,(int)(M)		)
 #define CALLLsr(R)			(_REXLrr(0, R),			_O_Mrm		(0xff		,_b11,_b010,_r4(R)				))
 #define CALLsm(D,B,I,S)			(_REXLrm(0, B, I),		_O_r_X		(0xff		     ,_b010		,(int)(D),B,I,S		))
 
-// FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit mode
+/* FIXME: no prefix is availble to encode a 32-bit operand size in 64-bit
+   mode */
 #define JMPSm(M)							_O_D8		(0xeb					,(int)(M)		)
 #define JMPm(M)								_O_D32		(0xe9					,(int)(M)		)
 #define JMPLsr(R)			(_REXLrr(0, R),			_O_Mrm		(0xff		,_b11,_b100,_r4(R)				))

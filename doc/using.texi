@@ -101,7 +101,7 @@ preserved across function calls (@code{V0}, @code{V1} and
 restriction was forced by the need to target CISC architectures
 which, like the x86, are poor of registers; anyway, backends can
 specify the actual number of available caller- and callee-save
-registers.
+registers with the macros @code{JIT_R_NUM} and @code{JIT_V_NUM}.
 
 In addition, there is a special @code{RET} register which contains the
 return value of the current function (@emph{not} the return value of
