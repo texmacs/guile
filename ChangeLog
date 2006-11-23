@@ -1,3 +1,17 @@
+2006-11-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add casts in "*i_p" variants.
+	* lightning/i386/asm-32.h: Add _r1.
+	* lightning/i386/asm-64.h: Likewise, and add SSE instructions.
+	* lightning/i386/asm-i386.h: Merge SSE instructions from Gwenole.
+	Use short form for 16-bit AX instructions.  Remove _r1
+	* lightning/i386/core-64.h: Add FP ABI support in its infancy.
+	* lightning/i386/core-i386.h: Move jit_arg_f and jit_arg_d...
+	* lightning/i386/core-32.h: ... and jit_prepare_f and jit_prepare_d...
+	* lightning/i386/fp-32.h: ... here.
+	* lightning/i386/fp-64.h: Write the code.
+	* lightning/sparc/fp.h: Fix jit_extr_{f_d,d_f} register order.
+	
 2006-11-22  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-i386.h: Move x86-64 instructions...

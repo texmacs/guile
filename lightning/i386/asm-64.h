@@ -127,6 +127,8 @@
 #define _R15		0x4F
 #define _RIP		-2
 
+#define _r1(R)          ( ((unsigned) _rC((R) - 16)) < (0x30 - 16)      ? _rN(R) : JITFAIL( "8-bit register required"))
+
 #if 0
 #define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : JITFAIL("64-bit register required"))
 #else
@@ -334,6 +336,40 @@
 #define MOVSLQmr(MD, MB, MI, MS, RD)	_m64only((_REXQmr(MB, MI, RD),	_O_r_X		(0x63		     ,_r8(RD)		,MD,MB,MI,MS		)))
 
 #define BSWAPQr(R)			(_REXQrr(0, R),			_OOr		(0x0fc8,_r8(R)							))
+
+
+
+#define __SSEQrr(OP,RS,RSA,RD,RDA)		(_REXQrr(RD, RS),		_OO_Mrm		(0x0f00|(OP)	,_b11,RDA(RD),RSA(RS)				))
+#define __SSEQmr(OP,MD,MB,MI,MS,RD,RDA)		(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0f00|(OP)	     ,RDA(RD)		,MD,MB,MI,MS		))
+#define __SSEQrm(OP,RS,RSA,MD,MB,MI,MS)		(_REXQrm(RS, MB, MI),		_OO_r_X		(0x0f00|(OP)	     ,RSA(RS)		,MD,MB,MI,MS		))
+#define __SSEQ1rm(OP,RS,RSA,MD,MB,MI,MS)	(_REXQrm(RS, MB, MI),		_OO_r_X		(0x0f01|(OP)	     ,RSA(RS)		,MD,MB,MI,MS		))
+
+#define _SSEQrr(PX,OP,RS,RSA,RD,RDA)					(_jit_B(PX), __SSEQrr(OP, RS, RSA, RD, RDA))
+#define _SSEQmr(PX,OP,MD,MB,MI,MS,RD,RDA)				(_jit_B(PX), __SSEQmr(OP, MD, MB, MI, MS, RD, RDA))
+#define _SSEQrm(PX,OP,RS,RSA,MD,MB,MI,MS)				(_jit_B(PX), __SSEQrm(OP, RS, RSA, MD, MB, MI, MS))
+#define _SSEQ1rm(PX,OP,RS,RSA,MD,MB,MI,MS)				(_jit_B(PX), __SSEQ1rm(OP, RS, RSA, MD, MB, MI, MS))
+
+#define CVTSS2SIQrr(RS, RD)		 _SSEQrr(0xf3, X86_SSE_CVTSI, RS,_rX, RD,_r8)
+#define CVTSS2SIQmr(MD, MB, MI, MS, RD)	 _SSEQmr(0xf3, X86_SSE_CVTSI, MD, MB, MI, MS, RD,_r8)
+#define CVTSD2SIQrr(RS, RD)		 _SSEQrr(0xf2, X86_SSE_CVTSI, RS,_rX, RD,_r8)
+#define CVTSD2SIQmr(MD, MB, MI, MS, RD)	 _SSEQmr(0xf2, X86_SSE_CVTSI, MD, MB, MI, MS, RD,_r8)
+
+#define CVTSI2SSQrr(RS, RD)		 _SSEQrr(0xf3, X86_SSE_CVTIS, RS,_r8, RD,_rX)
+#define CVTSI2SSQmr(MD, MB, MI, MS, RD)	 _SSEQmr(0xf3, X86_SSE_CVTIS, MD, MB, MI, MS, RD,_rX)
+#define CVTSI2SDQrr(RS, RD)		 _SSEQrr(0xf2, X86_SSE_CVTIS, RS,_r8, RD,_rX)
+#define CVTSI2SDQmr(MD, MB, MI, MS, RD)	 _SSEQmr(0xf2, X86_SSE_CVTIS, MD, MB, MI, MS, RD,_rX)
+
+#define MOVDQXrr(RS, RD)		 _SSEQrr(0x66, 0x6e, RS,_r8, RD,_rX)
+#define MOVDQXmr(MD, MB, MI, MS, RD)	 _SSEQmr(0x66, 0x6e, MD, MB, MI, MS, RD,_rX)
+
+#define MOVDXQrr(RS, RD)		 _SSEQrr(0x66, 0x7e, RS,_rX, RD,_r8)
+#define MOVDXQrm(RS, MD, MB, MI, MS)	 _SSEQrm(0x66, 0x7e, RS,_rX, MD, MB, MI, MS)
+#define MOVDQMrr(RS, RD)		__SSEQrr(      0x6e, RS,_r8, RD,_rM)
+#define MOVDQMmr(MD, MB, MI, MS, RD)	__SSEQmr(      0x6e, MD, MB, MI, MS, RD,_rM)
+#define MOVDMQrr(RS, RD)		__SSEQrr(      0x7e, RS,_rM, RD,_r8)
+#define MOVDMQrm(RS, MD, MB, MI, MS)	__SSEQrm(      0x7e, RS,_rM, MD, MB, MI, MS)
+
+
 
 #define CALLsr(R)			CALLQsr(R)
 #define JMPsr(R)			JMPQsr(R)

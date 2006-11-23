@@ -60,8 +60,8 @@
 #define jit_abs_f(rd,rs)	FABSDrr((rs), (rd))
 #define jit_negr_f(rd,rs)	FNEGDrr((rs), (rd))
 #define jit_sqrt_f(rd,rs)	FSQRTDrr((rs), (rd))
-#define jit_extr_f_d(rs, rd)	FSTODrr((rs), (rd))
-#define jit_extr_d_f(rs, rd)	FDTOSrr((rs), (rd))
+#define jit_extr_f_d(rd, rs)	FSTODrr((rs), (rd))
+#define jit_extr_d_f(rd, rs)	FDTOSrr((rs), (rd))
 
 #define jit_movi_f(rd,immf)			  \
     do {					  \

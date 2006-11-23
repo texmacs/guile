@@ -45,6 +45,7 @@
 
 #include "asm-i386.h"
 
+#define _r1(R)          ( ((R) & ~3) == _AL || ((R) & ~3) == _AH ? _rN(R) : JITFAIL( "8-bit register required"))
 #define _rA(R)          _r4(R)
 
 /* Use RIP-addressing in 64-bit mode, if possible */
@@ -58,13 +59,13 @@
 #define _m64only(X)		JITFAIL("invalid instruction in 32-bit mode")
 #define _m64(X)			((void)0)
 
-#define CALLsr(R)			CALLLsr(R)
-#define JMPsr(R)			JMPLsr(R)
-
 #define _AH		0x24
 #define _CH		0x25
 #define _DH		0x26
 #define _BH		0x27
+
+#define CALLsr(R)			CALLLsr(R)
+#define JMPsr(R)			JMPLsr(R)
 
 #define DECWr(RD)	(_d16(),	_Or		(0x48,_r2(RD)							))
 #define DECLr(RD)		 	_Or		(0x48,_r4(RD)							)

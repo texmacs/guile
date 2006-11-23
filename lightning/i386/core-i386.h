@@ -244,12 +244,7 @@
 #define jit_rshr_ui(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_op_ ((d), (r1), SHRLrr(_CL,  (d)) ))
 
 /* Stack */
-#define jit_prepare_f(nf)	(_jitl.argssize += (nf))
-#define jit_prepare_d(nd)	(_jitl.argssize += 2 * (nd))
 #define jit_retval_i(rd)	((void)jit_movr_i ((rd), _EAX))
-
-#define	jit_arg_f()		((_jitl.framesize += sizeof(float)) - sizeof(float))
-#define	jit_arg_d()		((_jitl.framesize += sizeof(double)) - sizeof(double))
 
 /* Unary */
 #define jit_negr_i(d, rs)	jit_opi_((d), (rs), NEGLr(d), (XORLrr((d), (d)), SUBLrr((rs), (d))) )

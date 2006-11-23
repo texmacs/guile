@@ -346,4 +346,9 @@ union jit_double_imm {
 			 _OO(0xd9f1))			/* fyl2x */
 #endif
 
+#define jit_prepare_f(nf)       (_jitl.argssize += (nf))
+#define jit_prepare_d(nd)       (_jitl.argssize += 2 * (nd))
+#define jit_arg_f()             ((_jitl.framesize += sizeof(float)) - sizeof(float))
+#define jit_arg_d()             ((_jitl.framesize += sizeof(double)) - sizeof(double))
+
 #endif /* __lightning_asm_h */

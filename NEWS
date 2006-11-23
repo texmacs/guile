@@ -2,6 +2,11 @@ NEWS FROM VERSION 1.2 TO 1.3
 
 o   Initial support for x86-64 back-end (mostly untested).
 
+o   lightning is more strict on casts from integer to pointer.
+    Be sure to use the _p variants when your immediates are
+    of pointer type.  This was done to ease 64-bit cleanliness
+    tests.
+
 o   Many bug fixes.
 
 o   JIT_FPRET is used as JIT_RET to move return values.
