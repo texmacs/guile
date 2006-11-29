@@ -1,3 +1,7 @@
+2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* configure.in (AC_INIT): Set bug address to bug-guile.
+
 2006-10-06  Rob Browning  <rlb@defaultvalue.org>
 
 	Guile 1.8.1 released.
