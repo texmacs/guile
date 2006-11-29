@@ -1,4 +1,4 @@
-2006-11-29  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/vectors.c (scm_vector_to_list): Fixed list
 	construction: elements were not copied when INC is zero (see
