@@ -1,3 +1,9 @@
+2006-11-29  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* test-suite/tests/vectors.test: Use `define-module'.
+	(vector->list): New test prefix.  "Shared array" test contributed
+	by Szavai Gyula.
+
 2006-10-26  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a

@@ -1,3 +1,10 @@
+2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* libguile/vectors.c (scm_vector_to_list): Fixed list
+	construction: elements were not copied when INC is zero (see
+	"shared array" example in `vectors.test').  Reported by
+	Szavai Gyula.
+
 2006-10-03  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (SCM_APPLY): For scm_tc7_subr_2o, throw wrong-num-args on 0
