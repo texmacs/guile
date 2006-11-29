@@ -1,6 +1,7 @@
 2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
-	* configure.in (AC_INIT): Set bug address to bug-guile.
+	* configure.in: Pass `bug-guile@gnu.org' as a third argument to
+	`AC_INIT'.
 
 2006-10-06  Rob Browning  <rlb@defaultvalue.org>
 
