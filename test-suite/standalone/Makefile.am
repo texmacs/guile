@@ -29,7 +29,7 @@ BUILT_SOURCES =
 
 TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
-test_cflags := \
+test_cflags = \
   -I$(top_srcdir)/test-suite/standalone \
   -I$(top_srcdir) \
   -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS) $(GUILE_CFLAGS)
