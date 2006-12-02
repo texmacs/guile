@@ -167,6 +167,10 @@ union jit_double_imm {
 #define jit_roundr_f_i(rd, rs)	CVTSS2SILrr((rs), (rd))
 #define jit_roundr_d_l(rd, rs)	CVTSD2SIQrr((rs), (rd))
 #define jit_roundr_f_l(rd, rs)	CVTSS2SIQrr((rs), (rd))
+#define jit_truncr_d_i(rd, rs)	CVTTSD2SILrr((rs), (rd))
+#define jit_truncr_f_i(rd, rs)	CVTTSS2SILrr((rs), (rd))
+#define jit_truncr_d_l(rd, rs)	CVTTSD2SIQrr((rs), (rd))
+#define jit_truncr_f_l(rd, rs)	CVTTSS2SIQrr((rs), (rd))
 
 
 #define jit_ceilr_f_i(rd, rs) do {			\
@@ -183,26 +187,16 @@ union jit_double_imm {
 	ADCLir (0, (rd));				\
   } while (0)
 
-#define jit_truncr_f_i(rd, rs) do {			\
-	jit_roundr_f_i ((rd), (rs));			\
-	jit_extr_i_f (JIT_FPTMP, (rd));			\
-	TESTLrr ((rd), (rd));				\
-	JSm (_jit.x.pc + 9);				\
-	UCOMISSrr (JIT_FPTMP, (rs));			\
-	SBBLir (0, (rd));				\
-	JMPSm (_jit.x.pc + 7);				\
+#define jit_ceilr_f_l(rd, rs) do {			\
+	jit_roundr_f_l ((rd), (rs));		\
+	jit_extr_l_f (JIT_FPTMP, (rd));			\
 	UCOMISSrr ((rs), JIT_FPTMP);			\
 	ADCLir (0, (rd));				\
   } while (0)
 
-#define jit_truncr_d_i(rd, rs) do {			\
-	jit_roundr_d_i ((rd), (rs));		\
-	jit_extr_i_d (JIT_FPTMP, (rd));			\
-	TESTLrr ((rd), (rd));				\
-	JSm (_jit.x.pc + 9);				\
-	UCOMISDrr (JIT_FPTMP, (rs));			\
-	SBBLir (0, (rd));				\
-	JMPSm (_jit.x.pc + 7);				\
+#define jit_ceilr_d_l(rd, rs) do {			\
+	jit_roundr_d_l ((rd), (rs));		\
+	jit_extr_l_d (JIT_FPTMP, (rd));			\
 	UCOMISDrr ((rs), JIT_FPTMP);			\
 	ADCLir (0, (rd));				\
   } while (0)
@@ -217,6 +211,20 @@ union jit_double_imm {
 #define jit_floorr_d_i(rd, rs) do {			\
 	jit_roundr_d_i ((rd), (rs));		\
 	jit_extr_i_d (JIT_FPTMP, (rd));			\
+	UCOMISDrr (JIT_FPTMP, (rs));			\
+	SBBLir (0, (rd));				\
+  } while (0)
+
+#define jit_floorr_f_l(rd, rs) do {			\
+	jit_roundr_f_l ((rd), (rs));		\
+	jit_extr_l_f (JIT_FPTMP, (rd));			\
+	UCOMISSrr (JIT_FPTMP, (rs));			\
+	SBBLir (0, (rd));				\
+  } while (0)
+
+#define jit_floorr_d_l(rd, rs) do {			\
+	jit_roundr_d_l ((rd), (rs));		\
+	jit_extr_l_d (JIT_FPTMP, (rd));			\
 	UCOMISDrr (JIT_FPTMP, (rs));			\
 	SBBLir (0, (rd));				\
   } while (0)

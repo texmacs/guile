@@ -1311,6 +1311,7 @@ enum {
   X86_SSE_MOVHP  = 0x16,
   X86_SSE_MOVA   = 0x28,
   X86_SSE_CVTIS  = 0x2a,
+  X86_SSE_CVTTSI = 0x2c,
   X86_SSE_CVTSI  = 0x2d,
   X86_SSE_UCOMI  = 0x2e,
   X86_SSE_COMI   = 0x2f,
@@ -1531,6 +1532,11 @@ enum {
 #define CVTSS2SDmr(MD, MB, MI, MS, RD)	 _SSELmr(0xf3, X86_SSE_CVTSD, MD, MB, MI, MS, RD,_rX)
 #define CVTSD2SSrr(RS, RD)		 _SSELrr(0xf2, X86_SSE_CVTSD, RS,_rX, RD,_rX)
 #define CVTSD2SSmr(MD, MB, MI, MS, RD)	 _SSELmr(0xf2, X86_SSE_CVTSD, MD, MB, MI, MS, RD,_rX)
+
+#define CVTTSS2SILrr(RS, RD)		 _SSELrr(0xf3, X86_SSE_CVTTSI, RS,_rX, RD,_r4)
+#define CVTTSS2SILmr(MD, MB, MI, MS, RD) _SSELmr(0xf3, X86_SSE_CVTTSI, MD, MB, MI, MS, RD,_r4)
+#define CVTTSD2SILrr(RS, RD)		 _SSELrr(0xf2, X86_SSE_CVTTSI, RS,_rX, RD,_r4)
+#define CVTTSD2SILmr(MD, MB, MI, MS, RD) _SSELmr(0xf2, X86_SSE_CVTTSI, MD, MB, MI, MS, RD,_r4)
 
 #define CVTSS2SILrr(RS, RD)		 _SSELrr(0xf3, X86_SSE_CVTSI, RS,_rX, RD,_r4)
 #define CVTSS2SILmr(MD, MB, MI, MS, RD)	 _SSELmr(0xf3, X86_SSE_CVTSI, MD, MB, MI, MS, RD,_r4)

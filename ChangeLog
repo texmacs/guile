@@ -1,3 +1,11 @@
+2006-12-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Add CVTTS?2SIL.
+	* lightning/i386/asm-64.h: Add CVTTS?2SIQ.
+	* lightning/i386/fp-64.h: Use it.
+
+	* lightning/Makefile.am: Place files in nodist_lightning_HEADERS.
+
 2006-11-23  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/core-common.h: Add casts in "*i_p" variants.

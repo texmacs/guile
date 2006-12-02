@@ -349,6 +349,11 @@
 #define _SSEQrm(PX,OP,RS,RSA,MD,MB,MI,MS)				(_jit_B(PX), __SSEQrm(OP, RS, RSA, MD, MB, MI, MS))
 #define _SSEQ1rm(PX,OP,RS,RSA,MD,MB,MI,MS)				(_jit_B(PX), __SSEQ1rm(OP, RS, RSA, MD, MB, MI, MS))
 
+#define CVTTSS2SIQrr(RS, RD)		 _SSEQrr(0xf3, X86_SSE_CVTTSI, RS,_rX, RD,_r8)
+#define CVTTSS2SIQmr(MD, MB, MI, MS, RD) _SSEQmr(0xf3, X86_SSE_CVTTSI, MD, MB, MI, MS, RD,_r8)
+#define CVTTSD2SIQrr(RS, RD)		 _SSEQrr(0xf2, X86_SSE_CVTTSI, RS,_rX, RD,_r8)
+#define CVTTSD2SIQmr(MD, MB, MI, MS, RD) _SSEQmr(0xf2, X86_SSE_CVTTSI, MD, MB, MI, MS, RD,_r8)
+
 #define CVTSS2SIQrr(RS, RD)		 _SSEQrr(0xf3, X86_SSE_CVTSI, RS,_rX, RD,_r8)
 #define CVTSS2SIQmr(MD, MB, MI, MS, RD)	 _SSEQmr(0xf3, X86_SSE_CVTSI, MD, MB, MI, MS, RD,_r8)
 #define CVTSD2SIQrr(RS, RD)		 _SSEQrr(0xf2, X86_SSE_CVTSI, RS,_rX, RD,_r8)
