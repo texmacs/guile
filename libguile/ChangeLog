@@ -1,3 +1,11 @@
+2006-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (.c.doc): Remove the "test -n" apparently attempting to
+	allow $AWK from the environment to override.  It had syntax gremlins,
+	and the presence of a $(AWK) variable set by AC_PROG_AWK in the
+	Makefile stopped it having any effect.  Use just $(AWK), which can be
+	overridden with "make AWK=xxx" in the usual way if desired.
+
 2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/vectors.c (scm_vector_to_list): Fixed list
