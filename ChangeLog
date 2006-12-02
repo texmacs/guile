@@ -1,3 +1,9 @@
+2006-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Bump to automake 1.10 required, so
+	that config.rpath from gettext will go into the dist (and give an
+	error if not).
+
 2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* configure.in: Pass `bug-guile@gnu.org' as a third argument to
