@@ -38,7 +38,8 @@ AM_LDFLAGS = $(GUILE_CFLAGS)
 
 snarfcppopts = \
   $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
-%.x: %.c
+SUFFIXES = .x
+.c.x:
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
 
 CLEANFILES = *.x
