@@ -5,6 +5,14 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 1.8.2 (since 1.8.1):
+
+* Bugs fixed
+
+** srfi-60 copy-bit failed on 64-bit systems
+
+
+
 Changes in 1.8.1 (since 1.8.0):
 
 * LFS functions are now used to access 64-bit files on 32-bit systems.
