@@ -4,6 +4,9 @@
 	that config.rpath from gettext will go into the dist (and give an
 	error if not).
 
+	* configure.in (AM_PROG_CC_C_O): New macro, needed by automake 1.10
+	for per-target cflags in libguile/Makefile.am.
+
 2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* configure.in: Pass `bug-guile@gnu.org' as a third argument to
