@@ -1,3 +1,9 @@
+2006-12-05  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_product): For flonum*inum and complex*inum, return
+	exact 0 if inum==0.  Already done for inum*flonum and inum*complex,
+	and as per R5RS section "Exactness".
+
 2006-12-03  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (.c.doc): Remove the "test -n" apparently attempting to
