@@ -3397,9 +3397,7 @@
 					  '(ice-9 debugger) '(debug)))
     (module-use! guile-user-module (resolve-interface '(ice-9 session)))
     (module-use! guile-user-module (resolve-interface '(ice-9 debug)))
-    ;; so that builtin bindings will be checked first
     (module-use! guile-user-module (resolve-interface '(ice-9 r5rs)))
-    (module-use! guile-user-module (resolve-interface '(guile)))
 
     (set-current-module guile-user-module)
 
