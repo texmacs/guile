@@ -1,3 +1,10 @@
+2006-12-09  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (top-repl): Remove module-use! of the core `(guile)'
+	module.  It's already in `(guile-user)' and the module-use! elevates
+	it making core bindings override those from elsewhere, such as `iota'
+	under a run of "guile --use-srfi=1".  Reported by Sven Hartrumpf.
+
 2006-11-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (environment-module): Change eval-closure-module call
