@@ -103,6 +103,9 @@ test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
+# test-use-srfi
+TESTS += test-use-srfi
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
