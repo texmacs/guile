@@ -2459,10 +2459,52 @@
 
 (with-test-prefix "*"
 
+  (with-test-prefix "inum * bignum"
+
+    (pass-if "0 * 2^256 = 0"
+      (eqv? 0 (* 0 (ash 1 256)))))
+
+  (with-test-prefix "inum * flonum"
+
+    (pass-if "0 * 1.0 = 0"
+      (eqv? 0 (* 0 1.0))))
+
+  (with-test-prefix "inum * complex"
+
+    (pass-if "0 * 1+1i = 0"
+      (eqv? 0 (* 0 1+1i))))
+
+  (with-test-prefix "inum * frac"
+
+    (pass-if "0 * 2/3 = 0"
+      (eqv? 0 (* 0 2/3))))
+
+  (with-test-prefix "bignum * inum"
+
+    (pass-if "2^256 * 0 = 0"
+      (eqv? 0 (* (ash 1 256) 0))))
+
+  (with-test-prefix "flonum * inum"
+
+    ;; in guile 1.6.8 and 1.8.1 and earlier this returned inexact 0.0
+    (pass-if "1.0 * 0 = 0"
+      (eqv? 0 (* 1.0 0))))
+
+  (with-test-prefix "complex * inum"
+
+    ;; in guile 1.6.8 and 1.8.1 and earlier this returned inexact 0.0
+    (pass-if "1+1i * 0 = 0"
+      (eqv? 0 (* 1+1i 0))))
+
   (pass-if "complex * bignum"
     (let ((big (ash 1 90)))
       (= (make-rectangular big big)
-	 (* 1+1i big)))))
+	 (* 1+1i big))))
+
+  (with-test-prefix "frac * inum"
+
+    (pass-if "2/3 * 0 = 0"
+      (eqv? 0 (* 2/3 0)))))
 
 ;;;
 ;;; /
