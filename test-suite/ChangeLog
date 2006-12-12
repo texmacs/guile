@@ -1,6 +1,7 @@
 2006-12-13  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/eval.test: Exercise top-level define setting procedure-name.
+	* tests/srfi-17.test (car): Check procedure-name property.
 
 2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
