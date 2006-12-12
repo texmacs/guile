@@ -4,6 +4,9 @@
 	scm_procedure_p, not just SCM_CLOSUREP.  In particular this picks up
 	procedures with setters as used in srfi-17.
 
+	* posix.c (scm_crypt): Check for NULL return from crypt(), which the
+	linux man page says is a possibility.
+
 2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/unif.c (read_decimal_integer): Let RESP be SIGN * RES

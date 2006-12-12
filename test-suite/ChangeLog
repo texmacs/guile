@@ -3,6 +3,8 @@
 	* tests/eval.test: Exercise top-level define setting procedure-name.
 	* tests/srfi-17.test (car): Check procedure-name property.
 
+	* tests/numbers.test (*): Exercise multiply by exact 0 giving exact 0.
+
 2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/unif.test (syntax): New test prefix.  Check syntax for
