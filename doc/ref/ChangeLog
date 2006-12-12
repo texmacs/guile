@@ -1,3 +1,10 @@
+2006-12-13  Kevin Ryde  <user42@zip.com.au>
+
+	* api-control.texi (Handling Errors): Cross reference "Error
+	Reporting" for `scm-error', not just "above".
+
+	* srfi-modules.texi (SRFI-17): Expand variously.
+
 2006-10-05  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (File Tree Walk): Corrections to BASE parameter
