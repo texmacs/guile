@@ -3169,12 +3169,13 @@ Please note that the procedures in this section are not suited for
 strong encryption, they are only interfaces to the well-known and
 common system library functions of the same name.  They are just as good
 (or bad) as the underlying functions, so you should refer to your system
-documentation before using them.
+documentation before using them (@pxref{crypt,, Encrypting Passwords,
+libc, The GNU C Library Reference Manual}).
 
 @deffn {Scheme Procedure} crypt key salt
 @deffnx {C Function} scm_crypt (key, salt)
-Encrypt @var{key} using @var{salt} as the salt value to the
-crypt(3) library call.
+Encrypt @var{key}, with the addition of @var{salt} (both strings),
+using the @code{crypt} C library call.
 @end deffn
 
 Although @code{getpass} is not an encryption procedure per se, it
