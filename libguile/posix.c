@@ -1546,7 +1546,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 #define FUNC_NAME s_scm_crypt
 {
   SCM ret;
-  char *c_key, *c_salt;
+  char *c_key, *c_salt, *c_ret;
 
   scm_dynwind_begin (0);
   scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
@@ -1556,8 +1556,14 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   c_salt = scm_to_locale_string (salt);
   scm_dynwind_free (c_salt);
 
-  ret = scm_from_locale_string (crypt (c_key, c_salt));
+  /* The Linux crypt(3) man page says crypt will return NULL and set errno
+     on error.  (Eg. ENOSYS if legal restrictions mean it cannot be
+     implemented).  */
+  c_ret = crypt (c_key, c_salt);
+  if (c_ret == NULL)
+    SCM_SYSERROR;
 
+  ret = scm_from_locale_string (c_ret);
   scm_dynwind_end ();
   return ret;
 }
