@@ -3313,13 +3313,11 @@
 ;; numbers, which are the numbers of the SRFIs to be loaded on startup.
 ;;
 (define (use-srfis srfis)
-  (let lp ((s srfis))
-    (if (pair? s)
-        (let* ((srfi (string->symbol
-                      (string-append "srfi-" (number->string (car s)))))
-               (mod-i (resolve-interface (list 'srfi srfi))))
-          (module-use! (current-module) mod-i)
-          (lp (cdr s))))))
+  (process-use-modules
+   (map (lambda (num)
+	  (list (list 'srfi (string->symbol
+			     (string-append "srfi-" (number->string num))))))
+	srfis)))
 
 
 
@@ -3387,19 +3385,23 @@
 
     ;; Use some convenient modules (in reverse order)
 
-    (if (provided? 'regex)
-	(module-use! guile-user-module (resolve-interface '(ice-9 regex))))
-    (if (provided? 'threads)
-	(module-use! guile-user-module (resolve-interface '(ice-9 threads))))
+    (set-current-module guile-user-module)
+    (process-use-modules 
+     (append
+      '(((ice-9 r5rs))
+	((ice-9 session))
+	((ice-9 debug)))
+      (if (provided? 'regex)
+	  '(((ice-9 regex)))
+	  '())
+      (if (provided? 'threads)
+	  '(((ice-9 threads)))
+	  '())))
     ;; load debugger on demand
     (module-use! guile-user-module
 		 (make-autoload-interface guile-user-module
 					  '(ice-9 debugger) '(debug)))
-    (module-use! guile-user-module (resolve-interface '(ice-9 session)))
-    (module-use! guile-user-module (resolve-interface '(ice-9 debug)))
-    (module-use! guile-user-module (resolve-interface '(ice-9 r5rs)))
 
-    (set-current-module guile-user-module)
 
     (let ((old-handlers #f)
 	  (signals (if (provided? 'posix)
