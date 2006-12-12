@@ -10,6 +10,10 @@ Changes in 1.8.2 (since 1.8.1):
 * Bugs fixed
 
 ** srfi-60 copy-bit failed on 64-bit systems
+** "guile --use-srfi" option at the REPL lets srfi functions replace the core
+(Programs run with that option were ok, but in the interactive REPL
+the core bindings got priority, preventing SRFI replacements or
+extensions.)
 
 
 
