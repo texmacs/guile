@@ -622,10 +622,12 @@ AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw
+#   pthread.h - only available with pthreads.  ACX_PTHREAD doesn't
+#       check this specifically, we need it for the timespec test below.
 #   sethostname - the function itself check because it's not in mingw,
 #       the DECL is checked because Solaris 10 doens't have in any header
 #
-AC_CHECK_HEADERS(crypt.h netdb.h sys/param.h sys/resource.h sys/file.h)
+AC_CHECK_HEADERS(crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
 AC_CHECK_DECLS([sethostname])
 
@@ -1034,17 +1036,22 @@ if test $scm_cv_struct_linger = yes; then
 fi
 
 
+# On mingw, struct timespec is in <pthread.h>.
+#
 AC_MSG_CHECKING(for struct timespec)
 AC_CACHE_VAL(scm_cv_struct_timespec,
 	AC_TRY_COMPILE([
-#include <time.h>],
+#include <time.h>
+#if HAVE_PTHREAD_H
+#include <pthread.h>
+#endif],
 			[struct timespec t;  t.tv_nsec = 100],
 			scm_cv_struct_timespec="yes",
 			scm_cv_struct_timespec="no"))
 AC_MSG_RESULT($scm_cv_struct_timespec)
 if test $scm_cv_struct_timespec = yes; then
   AC_DEFINE(HAVE_STRUCT_TIMESPEC, 1,
-    [Define this if your system defines struct timespec via <time.h>.])
+    [Define this if your system defines struct timespec via either <time.h> or <pthread.h>.])
 fi
 
 #--------------------------------------------------------------------
