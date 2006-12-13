@@ -1,3 +1,9 @@
+2006-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* api-procedures.texi (let-keywords Reference): Expand variously to
+	make it clear what's actually taken and done.  Shortfalls reported by
+	Han-Wen Nienhuys.
+
 2006-12-13  Kevin Ryde  <user42@zip.com.au>
 
 	* api-control.texi (Handling Errors): Cross reference "Error
