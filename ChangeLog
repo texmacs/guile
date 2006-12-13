@@ -2,6 +2,7 @@
 
 	* configure.in (struct timespec, pthread.h): Look for struct timespec
 	in <pthread.h> as well as <time.h>, it's in pthread.h on mingw.
+	Reported by Nils Durner.
 
 2006-12-03  Kevin Ryde  <user42@zip.com.au>
 

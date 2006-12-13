@@ -1,3 +1,9 @@
+2006-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (thread_print): Cope with the case where pthread_t is a
+	struct, as found on mingw.  Can't just cast to size_t for printing.
+	Reported by Nils Durner.
+
 2006-12-13  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (scm_m_define): Set 'name procedure property on any
