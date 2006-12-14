@@ -22,6 +22,8 @@
 #  include <config.h>
 #endif
 
+#include <fcntl.h>      /* for mingw */
+#include <process.h>    /* for mingw */
 #include <signal.h>
 #include <stdio.h>
 #include <errno.h>
@@ -51,6 +53,7 @@
 #define sleep(sec) (Sleep ((sec) * 1000), 0)
 #define usleep(usec) (Sleep ((usec) / 1000), 0)
 #define kill(pid, sig) raise (sig)
+#define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif
 
 
