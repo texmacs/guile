@@ -261,7 +261,7 @@ keyword mandatory is to throw an error of some sort as the default.
 (let-keywords* args #t
       ((start 0)
        (stop  (error "missing #:stop argument")))
-  (display bar))
+  ...)
 @result{} ERROR: missing #:stop argument
 @end example
 @end deffn
