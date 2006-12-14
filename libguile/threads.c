@@ -146,7 +146,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
      the struct case, hence we go via a union, and extract according to the
      size of pthread_t.  */
   union {
-    pthread_t p;
+    scm_i_pthread_t p;
     unsigned short us;
     unsigned int   ui;
     unsigned long  ul;
