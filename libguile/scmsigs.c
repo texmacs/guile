@@ -23,7 +23,6 @@
 #endif
 
 #include <fcntl.h>      /* for mingw */
-#include <process.h>    /* for mingw */
 #include <signal.h>
 #include <stdio.h>
 #include <errno.h>
@@ -37,6 +36,14 @@
 
 #include "libguile/validate.h"
 #include "libguile/scmsigs.h"
+
+#ifdef HAVE_IO_H
+#include <io.h>  /* for mingw _pipe() */
+#endif
+
+#ifdef HAVE_PROCESS_H
+#include <process.h>    /* for mingw */
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
