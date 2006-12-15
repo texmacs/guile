@@ -59,7 +59,6 @@
 /* This weird comma expression is because Sleep is void under Windows. */
 #define sleep(sec) (Sleep ((sec) * 1000), 0)
 #define usleep(usec) (Sleep ((usec) / 1000), 0)
-#define kill(pid, sig) raise (sig)
 #define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif
 
@@ -626,7 +625,7 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  if (kill (getpid (), scm_to_int (sig)) != 0)
+  if (raise (scm_to_int (sig)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
