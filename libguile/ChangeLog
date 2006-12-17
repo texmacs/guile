@@ -1,3 +1,9 @@
+2006-12-16  Kevin Ryde  <user42@zip.com.au>
+
+	* scmsigs.c (scm_raise): Use raise() rather than kill(), as this is
+	more direct for a procedure called raise.
+	(kill): Remove mingw fake fallback.
+
 2006-12-15  Kevin Ryde  <user42@zip.com.au>
 
 	* scmsigs.c: Conditionalize process.h, add io.h believe needed for
