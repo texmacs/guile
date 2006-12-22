@@ -55,7 +55,6 @@ AC_CONFIG_SUBDIRS(guile-readline)
 
 dnl Some more checks for Win32
 AC_CYGWIN
-AC_MINGW32
 AC_LIBTOOL_WIN32_DLL
 
 AC_PROG_INSTALL
@@ -561,9 +560,11 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-if test $MINGW32 = no; then
-	AC_CHECK_LIB(m, main)
-fi
+# On mingw -lm is empty, so this test is unnecessary, but it's
+# harmless so we don't hard-code to suppress it.
+#
+AC_CHECK_LIB(m, cos)
+
 AC_CHECK_FUNCS(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
     AC_CHECK_LIB(nsl, gethostbyname)
@@ -578,7 +579,8 @@ dnl
 dnl Check for Winsock and other functionality on Win32 (*not* CygWin)
 dnl
 EXTRA_DEFS=""
-if test "$MINGW32" = "yes" ; then
+case $host in
+  *-*-mingw*)
     AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1,
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
@@ -592,7 +594,8 @@ if test "$MINGW32" = "yes" ; then
       AC_DEFINE(USE_DLL_IMPORT, 1,
         [Define if you need additional CPP macros on Win32 platforms.])
     fi
-fi
+    ;;
+esac
 AC_SUBST(EXTRA_DEFS)
 
 # Reasons for testing:
@@ -798,7 +801,7 @@ AC_CACHE_VAL(guile_cv_have_uint32_t,
 		   #if HAVE_STDINT_H
 		   #include <stdint.h>
                    #endif
-		   #ifndef __MINGW32__
+		   #ifndef HAVE_NETDB_H
 	           #include <netdb.h>
 		   #endif],
 		  [uint32_t a;],
