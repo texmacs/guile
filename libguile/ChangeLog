@@ -1,3 +1,8 @@
+2006-12-24  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_kill): When only raise() is available, throw an ENOSYS
+	error if pid is not our own process, instead of silently doing nothing.
+
 2006-12-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* numbers.c (scm_i_fraction_reduce): move logic into
