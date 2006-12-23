@@ -487,11 +487,25 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
   /* Signal values are interned in scm_init_posix().  */
 #ifdef HAVE_KILL
   if (kill (scm_to_int (pid), scm_to_int  (sig)) != 0)
+    SCM_SYSERROR;
 #else
+  /* Mingw has raise(), but not kill().  (Other raw DOS environments might
+     be similar.)  Use raise() when the requested pid is our own process,
+     otherwise bomb.  */
   if (scm_to_int (pid) == getpid ())
-    if (raise (scm_to_int (sig)) != 0)
+    {
+      if (raise (scm_to_int (sig)) != 0)
+        {
+        err:
+          SCM_SYSERROR;
+        }
+      else
+        {
+          errno = ENOSYS;
+          goto err;
+        }
+    }
 #endif
-      SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
