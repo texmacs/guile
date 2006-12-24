@@ -3,6 +3,13 @@
 	* posix.c (scm_kill): When only raise() is available, throw an ENOSYS
 	error if pid is not our own process, instead of silently doing nothing.
 
+	* print.c (scm_write, scm_display, scm_write_char): Disable port close
+	on EPIPE.  This was previously disabled but introduction of HAVE_PIPE
+	check in configure.in unintentionally enabled it.  Believe that
+	testing errno after scm_prin1 or scm_putc is bogus, a long ago error
+	can leave errno in that state.  popen.test "no duplicates" output test
+	provoked that.
+
 2006-12-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* numbers.c (scm_i_fraction_reduce): move logic into
