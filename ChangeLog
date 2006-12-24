@@ -1,3 +1,7 @@
+2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* autogen.sh (mscripts): only execute render-bugs if it exists.
+
 2006-12-23  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (-lm): No need to suppress libm on mingw, it's not
