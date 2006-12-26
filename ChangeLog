@@ -1,6 +1,6 @@
 2006-12-27  Kevin Ryde  <user42@zip.com.au>
 
-	* configure.in (pthread_get_stackaddr_np): New test.
+	* configure.in (pthread_get_stackaddr_np, pthread_sigmask): New tests.
 
 2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
