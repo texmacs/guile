@@ -594,9 +594,11 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 }
 
 #if SCM_USE_PTHREAD_THREADS
-/* pthread_getattr_np not available on MacOS X and Solaris 10. */
-#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
 
+#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
+/* This method for GNU/Linux and perhaps some other systems.
+   It's not for MacOS X or Solaris 10, since pthread_getattr_np is not
+   available on them.  */
 #define HAVE_GET_THREAD_STACK_BASE
 
 static SCM_STACKITEM *
@@ -629,7 +631,19 @@ get_thread_stack_base ()
     }
 }
 
-#endif /* HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP */
+#elif defined (__MINGW32__)
+/* This method for mingw.  In mingw the basic scm_get_stack_base can be used
+   in any thread.  We don't like hard-coding the name of a system, but there
+   doesn't seem to be a cleaner way of knowing scm_get_stack_base can
+   work.  */
+#define HAVE_GET_THREAD_STACK_BASE
+static SCM_STACKITEM *
+get_thread_stack_base ()
+{
+  return scm_get_stack_base ();
+}
+
+#endif /* pthread methods of get_thread_stack_base */
 
 #else /* !SCM_USE_PTHREAD_THREADS */
 
