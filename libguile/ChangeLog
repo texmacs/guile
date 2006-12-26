@@ -1,3 +1,8 @@
+2006-12-27  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (get_thread_stack_base): In mingw with pthreads we can use
+	the basic scm_get_stack_base.  As advised by Nils Durner.
+
 2006-12-24  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_kill): When only raise() is available, throw an ENOSYS
