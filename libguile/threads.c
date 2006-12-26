@@ -631,6 +631,15 @@ get_thread_stack_base ()
     }
 }
 
+#elif HAVE_PTHREAD_GET_STACKADDR_NP
+/* This method for MacOS X.  */
+#define HAVE_GET_THREAD_STACK_BASE
+static SCM_STACKITEM *
+get_thread_stack_base ()
+{
+  return pthread_get_stackaddr_np (pthread_self ());
+}
+
 #elif defined (__MINGW32__)
 /* This method for mingw.  In mingw the basic scm_get_stack_base can be used
    in any thread.  We don't like hard-coding the name of a system, but there
