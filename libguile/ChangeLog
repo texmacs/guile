@@ -5,6 +5,7 @@
 
 	* threads.c (get_thread_stack_base): Add a version using
 	pthread_get_stackaddr_np (when available), for the benefit of MacOS.
+	As advised by Heikki Lindholm.
 
 2006-12-24  Kevin Ryde  <user42@zip.com.au>
 
