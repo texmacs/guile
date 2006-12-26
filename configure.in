@@ -1091,8 +1091,10 @@ case "$with_threads" in
     # Reasons for testing:
     #     pthread_getattr_np - "np" meaning "non portable" says it
     #         all; not present on MacOS X or Solaris 10
+    #     pthread_get_stackaddr_np - "np" meaning "non portable" says it
+    #         all; specific to MacOS X
     #
-    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np)
+    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np pthread_get_stackaddr_np)
 
     # On past versions of Solaris, believe 8 through 10 at least, you
     # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".
