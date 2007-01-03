@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -3403,14 +3403,20 @@
 					  '(ice-9 debugger) '(debug)))
 
 
+    ;; Note: SIGFPE, SIGSEGV and SIGBUS are actually "query-only" (see
+    ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
+    ;; no effect.
     (let ((old-handlers #f)
 	  (signals (if (provided? 'posix)
 		       `((,SIGINT . "User interrupt")
 			 (,SIGFPE . "Arithmetic error")
-			 (,SIGBUS . "Bad memory access (bus error)")
 			 (,SIGSEGV
 			  . "Bad memory access (Segmentation violation)"))
 		       '())))
+      ;; no SIGBUS on mingw
+      (if (defined? 'SIGBUS)
+	  (set! signals (acons SIGBUS "Bad memory access (bus error)"
+			       signals)))
 
       (dynamic-wind
 
