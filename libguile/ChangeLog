@@ -1,3 +1,10 @@
+2007-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* deprecated.h (scm_create_hook), version.h.in (scm_major_version,
+	scm_minor_version, scm_micro_version, scm_effective_version,
+	scm_version, scm_init_version): Use SCM_API instead of just extern,
+	for the benefit of mingw.  Reported by Cesar Strauss.
+
 2006-12-27  Kevin Ryde  <user42@zip.com.au>
 
 	* threads.c (get_thread_stack_base): In mingw with pthreads we can use
