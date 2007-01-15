@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1665,7 +1665,7 @@ The SRFI specifies @code{setter} (@pxref{Procedures with Setters}) as
 a procedure with setter, allowing the setter for a procedure to be
 changed, eg.@: @code{(set! (setter foo) my-new-setter-handler)}.
 Currently Guile does not implement this, a setter can only be
-specified on creation (@code{getter-with-setter} above).
+specified on creation (@code{getter-with-setter} below).
 
 @defun getter-with-setter
 The same as the Guile core @code{make-procedure-with-setter}
