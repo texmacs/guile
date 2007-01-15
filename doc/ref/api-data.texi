@@ -3518,7 +3518,7 @@ string.
 @item @var{make_final} is applied to the terminal seed
 value (on which @var{p} returns true) to produce
 the final/rightmost portion of the constructed string.
-It defaults to @code{(lambda (x) )}.
+The default is nothing extra.
 @end itemize
 @end deffn
 
