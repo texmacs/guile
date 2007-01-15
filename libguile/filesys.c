@@ -1718,28 +1718,28 @@ scm_init_filesys ()
 #endif 
 
 #ifdef F_DUPFD  
-  scm_c_define ("F_DUPFD", scm_from_long (F_DUPFD));
+  scm_c_define ("F_DUPFD", scm_from_int (F_DUPFD));
 #endif 
 #ifdef F_GETFD  
-  scm_c_define ("F_GETFD", scm_from_long (F_GETFD));
+  scm_c_define ("F_GETFD", scm_from_int (F_GETFD));
 #endif 
 #ifdef F_SETFD  
-  scm_c_define ("F_SETFD", scm_from_long (F_SETFD));
+  scm_c_define ("F_SETFD", scm_from_int (F_SETFD));
 #endif 
 #ifdef F_GETFL  
-  scm_c_define ("F_GETFL", scm_from_long (F_GETFL));
+  scm_c_define ("F_GETFL", scm_from_int (F_GETFL));
 #endif 
 #ifdef F_SETFL  
-  scm_c_define ("F_SETFL", scm_from_long (F_SETFL));
+  scm_c_define ("F_SETFL", scm_from_int (F_SETFL));
 #endif 
 #ifdef F_GETOWN  
-  scm_c_define ("F_GETOWN", scm_from_long (F_GETOWN));
+  scm_c_define ("F_GETOWN", scm_from_int (F_GETOWN));
 #endif 
 #ifdef F_SETOWN  
-  scm_c_define ("F_SETOWN", scm_from_long (F_SETOWN));
+  scm_c_define ("F_SETOWN", scm_from_int (F_SETOWN));
 #endif 
 #ifdef FD_CLOEXEC  
-  scm_c_define ("FD_CLOEXEC", scm_from_long (FD_CLOEXEC));
+  scm_c_define ("FD_CLOEXEC", scm_from_int (FD_CLOEXEC));
 #endif
 
 #include "libguile/filesys.x"
