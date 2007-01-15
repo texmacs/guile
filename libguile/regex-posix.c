@@ -296,14 +296,14 @@ scm_init_regex_posix ()
   scm_set_smob_free (scm_tc16_regex, regex_free);
 
   /* Compilation flags.  */
-  scm_c_define ("regexp/basic", scm_from_long (REG_BASIC));
-  scm_c_define ("regexp/extended", scm_from_long (REG_EXTENDED));
-  scm_c_define ("regexp/icase", scm_from_long (REG_ICASE));
-  scm_c_define ("regexp/newline", scm_from_long (REG_NEWLINE));
+  scm_c_define ("regexp/basic",    scm_from_int (REG_BASIC));
+  scm_c_define ("regexp/extended", scm_from_int (REG_EXTENDED));
+  scm_c_define ("regexp/icase",    scm_from_int (REG_ICASE));
+  scm_c_define ("regexp/newline",  scm_from_int (REG_NEWLINE));
 
   /* Execution flags.  */
-  scm_c_define ("regexp/notbol", scm_from_long (REG_NOTBOL));
-  scm_c_define ("regexp/noteol", scm_from_long (REG_NOTEOL));
+  scm_c_define ("regexp/notbol", scm_from_int (REG_NOTBOL));
+  scm_c_define ("regexp/noteol", scm_from_int (REG_NOTEOL));
 
 #include "libguile/regex-posix.x"
 
