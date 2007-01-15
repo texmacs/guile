@@ -1,3 +1,32 @@
+2007-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* feature.c, feature.h (scm_set_program_arguments_scm): New function,
+	implementing `set-program-arguments'.
+
+	* filesys.c (scm_init_filesys): Use scm_from_int rather than
+	scm_from_long for O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL,
+	O_NOCTTY, O_TRUNC, O_APPEND, O_NONBLOCK, O_NDELAY, O_SYNC and
+	O_LARGEFILE.  These are all int not long, per arg to open().
+	(scm_init_filesys): Use scm_from_int rather than scm_from_long for
+	F_DUPFD, F_GETFD, F_SETFD, F_GETFL, F_SETFL, F_GETOWN, F_SETOWN, these
+	are all ints (per command arg to fcntl).  Likewise FD_CLOEXEC which is
+	an int arg to fcntl.
+
+	* posix.c (scm_putenv): Correction to "len" variable, was defined only
+	for __MINGW32__ but used under any !HAVE_UNSETENV (such as solaris).
+	Move it to where it's used.  Reported by Hugh Sasse.
+
+	* regex-posix.c (scm_regexp_exec): Remove SCM_CRITICAL_SECTION_START
+	and SCM_CRITICAL_SECTION_END, believe not needed.  Their placement
+	meant #\nul in the input (detected by scm_to_locale_string) and a bad
+	flags arg (detected by scm_to_int) would throw from a critical
+	section, causing an abort().
+
+	* regex-posix.c (scm_init_regex_posix): Use scm_from_int for
+	REG_BASIC, REG_EXTENDED, REG_ICASE, REG_NEWLINE, REG_NOTBOL,
+	REG_NOTEOL; they're all ints not longs (per args to regcomp and
+	regexec).
+
 2007-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* deprecated.h (scm_create_hook), version.h.in (scm_major_version,
