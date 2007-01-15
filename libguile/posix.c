@@ -1326,9 +1326,6 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 {
   int rv;
   char *c_str = scm_to_locale_string (str);
-#ifdef __MINGW32__
-  size_t len = strlen (c_str);
-#endif
 
   if (strchr (c_str, '=') == NULL)
     {
@@ -1343,6 +1340,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
 	 environment variable 'name'. */
       int e;
+      size_t len = strlen (c_str);
       char *ptr = scm_malloc (len + 2);
       strcpy (ptr, c_str);
       strcpy (ptr+len, "=");
@@ -1362,26 +1360,29 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
          by getenv.  It's not enough just to modify the string we set,
          because MINGW putenv copies it.  */
 
-      if (c_str[len-1] == '=')
-        {
-	  char *ptr = scm_malloc (len+2);
-	  strcpy (ptr, c_str);
-	  strcpy (ptr+len, " ");
-	  rv = putenv (ptr);
-	  if (rv < 0)
-	    {
-	      int eno = errno;
-	      free (c_str);
-	      errno = eno;
-	      SCM_SYSERROR;
-	    }
-	  /* truncate to just the name */
-	  c_str[len-1] = '\0';
-	  ptr = getenv (c_str);
-	  if (ptr)
-	    ptr[0] = '\0';
-	  return SCM_UNSPECIFIED;
-        }
+      {
+        size_t len = strlen (c_str);
+        if (c_str[len-1] == '=')
+          {
+            char *ptr = scm_malloc (len+2);
+            strcpy (ptr, c_str);
+            strcpy (ptr+len, " ");
+            rv = putenv (ptr);
+            if (rv < 0)
+              {
+                int eno = errno;
+                free (c_str);
+                errno = eno;
+                SCM_SYSERROR;
+              }
+            /* truncate to just the name */
+            c_str[len-1] = '\0';
+            ptr = getenv (c_str);
+            if (ptr)
+              ptr[0] = '\0';
+            return SCM_UNSPECIFIED;
+          }
+      }
 #endif /* __MINGW32__ */
 
       /* Leave c_str in the environment.  */
