@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -27,8 +27,15 @@ Boston, MA 02110-1301, USA.
 
 AC_PREREQ(2.53)
 
-AC_INIT(m4_esyscmd(. ./GUILE-VERSION && echo -n ${PACKAGE}),
-        m4_esyscmd(. ./GUILE-VERSION && echo -n ${GUILE_VERSION}),
+dnl  `patsubst' here deletes the newline which "echo" prints.  We can't use
+dnl  "echo -n" since -n is not portable (see autoconf manual "Limitations of
+dnl  Builtins"), in particular on solaris it results in a literal "-n" in
+dnl  the output.
+dnl
+AC_INIT(patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${PACKAGE}),[
+]),
+        patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${GUILE_VERSION}),[
+]),
         [bug-guile@gnu.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
