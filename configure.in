@@ -224,6 +224,9 @@ fi
 
 AC_C_CONST
 
+# "volatile" is used in a couple of tests below.
+AC_C_VOLATILE
+
 AC_C_INLINE
 if test "$ac_cv_c_inline" != no; then
   SCM_I_GSC_C_INLINE="\"${ac_cv_c_inline}\""
@@ -958,17 +961,19 @@ AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 # use <math.h> so doesn't detect on macro-only systems like HP-UX.
 #
 AC_MSG_CHECKING([for isinf])
-AC_LINK_IFELSE(
-[#include <math.h>
-int main () { return (isinf(0.0) != 0); }],
+AC_LINK_IFELSE(AC_LANG_SOURCE(
+[[#include <math.h>
+volatile double x = 0.0;
+int main () { return (isinf(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISINF, 1,
              [Define to 1 if you have the `isinf' macro or function.])],
   [AC_MSG_RESULT([no])])
 AC_MSG_CHECKING([for isnan])
-AC_LINK_IFELSE(
-[#include <math.h>
-int main () { return (isnan(0.0) != 0); }],
+AC_LINK_IFELSE(AC_LANG_SOURCE(
+[[#include <math.h>
+volatile double x = 0.0;
+int main () { return (isnan(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISNAN, 1,
              [Define to 1 if you have the `isnan' macro or function.])],
