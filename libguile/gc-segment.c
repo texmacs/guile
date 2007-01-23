@@ -170,8 +170,13 @@ scm_i_sweep_some_cards (scm_t_heap_segment *seg)
   scm_gc_cells_collected += collected * seg->span;
 
   if (!seg->first_time)
-    scm_cells_allocated -= collected * seg->span;
-  
+    {
+      scm_gc_cells_allocated_acc +=
+	(scm_cells_allocated - scm_last_cells_allocated);
+
+      scm_cells_allocated -= collected * seg->span;
+      scm_last_cells_allocated = scm_cells_allocated;
+    }
   seg->freelist->collected += collected  * seg->span;
   
 
@@ -202,14 +207,24 @@ scm_i_sweep_segment (scm_t_heap_segment * seg)
   int yield = scm_gc_cells_collected;
   int coll = seg->freelist->collected;
   unsigned long alloc = scm_cells_allocated ;
+  unsigned long last_alloc = scm_last_cells_allocated;
+  double last_total
+    = scm_gc_cells_allocated_acc
+    + (alloc - last_alloc);
   
   while (scm_i_sweep_some_cards (seg) != SCM_EOL)
     ;
-
-  scm_gc_cells_collected = yield;
-  scm_cells_allocated = alloc;
-  seg->freelist->collected = coll; 
   
+  scm_gc_cells_collected = yield;
+
+  /*
+   * restore old stats. 
+   */
+  scm_gc_cells_allocated_acc = last_total;
+  scm_cells_allocated = alloc;
+  scm_last_cells_allocated = alloc;
+
+  seg->freelist->collected = coll; 
   seg->next_free_card =p;
 }
 

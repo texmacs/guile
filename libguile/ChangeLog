@@ -1,3 +1,15 @@
+2007-01-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* gc.c (s_scm_gc_stats): return total cells allocated in a run as
+	'total-cells-allocated in gc-stats output. This allows profiling
+	of a program's memory use.
+
+	* gc-segment.c (scm_i_sweep_some_cards): update
+	scm_gc_cells_allocated_acc when sweeping happens.
+
+	* gc.h: add scm_gc_cells_allocated_acc, scm_last_cells_allocated.
+	
+
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* struct.c (scm_i_struct_equalp): Skip comparison if both FIELD1

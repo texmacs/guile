@@ -278,10 +278,12 @@ SCM_API unsigned long scm_gc_cells_collected;
 SCM_API unsigned long scm_gc_malloc_collected;
 SCM_API unsigned long scm_gc_ports_collected;
 SCM_API unsigned long scm_cells_allocated;
+SCM_API unsigned long scm_last_cells_allocated;
 SCM_API int scm_gc_cell_yield_percentage;
 SCM_API int scm_gc_malloc_yield_percentage;
 SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_mtrigger;
+SCM_API double scm_gc_cells_allocated_acc;
 
 
 

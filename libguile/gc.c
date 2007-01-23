@@ -213,6 +213,7 @@ unsigned long scm_mtrigger;
 /* GC Statistics Keeping
  */
 unsigned long scm_cells_allocated = 0;
+unsigned long scm_last_cells_allocated;
 unsigned long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
 unsigned long scm_gc_cells_collected_1 = 0; /* previous GC yield */
@@ -225,6 +226,7 @@ unsigned long scm_gc_times = 0;
 unsigned long scm_gc_cells_swept = 0;
 double scm_gc_cells_marked_acc = 0.;
 double scm_gc_cells_swept_acc = 0.;
+double scm_gc_cells_allocated_acc = 0.;
 int scm_gc_cell_yield_percentage =0;
 int scm_gc_malloc_yield_percentage = 0;
 unsigned long protected_obj_count = 0;
@@ -243,6 +245,7 @@ SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
 SCM_SYMBOL (sym_protected_objects, "protected-objects");
+SCM_SYMBOL (sym_total_cells_allocated, "total-cells-allocated");
 
 
 
@@ -315,6 +318,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_protected_obj_count;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
+  double local_scm_total_cells_allocated;
   SCM answer;
   unsigned long *bounds = 0;
   int table_size = scm_i_heap_segment_table_size;  
@@ -356,6 +360,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     +(double) scm_gc_cells_swept 
     -(double) scm_gc_cells_collected;
 
+  local_scm_total_cells_allocated = scm_gc_cells_allocated_acc
+    + (double) (scm_cells_allocated - scm_last_cells_allocated);
+
   for (i = table_size; i--;)
     {
       heap_segs = scm_cons (scm_cons (scm_from_ulong (bounds[2*i]),
@@ -369,6 +376,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_ulong (local_scm_gc_time_taken)),
 		scm_cons (sym_cells_allocated,
 			  scm_from_ulong (local_scm_cells_allocated)),
+		scm_cons (sym_total_cells_allocated,
+			  scm_from_ulong (local_scm_total_cells_allocated)),
 		scm_cons (sym_heap_size,
 			  scm_from_ulong (local_scm_heap_size)),
 		scm_cons (sym_mallocated,
