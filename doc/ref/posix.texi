@@ -1836,7 +1836,13 @@ specified processes.
 @subsection Signals
 @cindex signal
 
-Procedures to raise, handle and wait for signals.
+The following procedures raise, handle and wait for signals.
+
+Scheme code signal handlers are run via a system async (@pxref{System
+asyncs}), so they're called in the handler's thread at the next safe
+opportunity.  Generally this is after any currently executing
+primitive procedure finishes (which could be a long time for
+primitives that wait for an external event).
 
 @deffn {Scheme Procedure} kill pid sig
 @deffnx {C Function} scm_kill (pid, sig)
