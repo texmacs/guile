@@ -1,3 +1,9 @@
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/time.test (gmtime in another thread): Catch #t all errors from
+	gmtime in the thread, since it can be a system error not a scheme
+	out-of-range on 64-bit systems.  Reported by Marijn Schouten.
+
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/eval.test (values): New test prefix.  Values are structs,
