@@ -2,7 +2,7 @@
 
 	* sort.c (scm_stable_sort): Return empty list for input empty list, as
 	done in guile 1.6 and as always done by plain `sort'.  Was falling
-	through to SCM_WRONG_TYPE_ARG.
+	through to SCM_WRONG_TYPE_ARG.  Reported by Ales Hvezda.
 
 2007-01-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
