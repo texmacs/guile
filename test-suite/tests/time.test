@@ -1,5 +1,5 @@
 ;;;; time.test --- test suite for Guile's time functions     -*- scheme -*-
-;;;; Jim Blandy <jimb@red-bean.com> --- June 1999, 2004
+;;;; Jim Blandy <jimb@red-bean.com> --- June 1999, 2004, 2007
 ;;;;
 ;;;; 	Copyright (C) 1999, 2004, 2006 Free Software Foundation, Inc.
 ;;;; 
@@ -34,9 +34,9 @@
 
 		(alarm 5)
 		(false-if-exception (gmtime t))
-		(join-thread (begin-thread (catch 'out-of-range
-						  (lambda () (gmtime t))
-						  (lambda args #f))))
+		(join-thread (begin-thread (catch #t
+					     (lambda () (gmtime t))
+					     (lambda args #f))))
 		(alarm 0)
 		#t))
 
