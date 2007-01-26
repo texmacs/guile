@@ -60,13 +60,14 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(pkgdatadir)" \
-	"$(DESTDIR)$(lightningdir)"
+	"$(DESTDIR)$(lightningdir)" "$(DESTDIR)$(lightningdir)"
 dist_pkgdataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(dist_pkgdata_DATA)
 am__dist_lightning_HEADERS_DIST = funcs-common.h core-common.h \
-	fp-common.h asm-common.h asm.h core.h funcs.h fp.h
+	fp-common.h asm-common.h
 dist_lightningHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(dist_lightning_HEADERS)
+nodist_lightningHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(dist_lightning_HEADERS) $(nodist_lightning_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -179,12 +180,11 @@ EXTRA_DIST = i386/Makefile.frag \
         sparc/asm.h sparc/core.h sparc/funcs.h sparc/fp.h \
         ppc/asm.h ppc/core.h ppc/funcs.h ppc/fp.h
 
-LIGHTNING_FILES = funcs-common.h core-common.h fp-common.h asm-common.h \
-	asm.h core.h funcs.h fp.h $(LIGHTNING_TARGET_FILES)
-
+LIGHTNING_COMMON_FILES = funcs-common.h core-common.h fp-common.h asm-common.h
 @LIGHTNING_MAIN_TRUE@lightningdir = $(includedir)/lightning
 @LIGHTNING_MAIN_TRUE@dist_pkgdata_DATA = Makefile.am
-@LIGHTNING_MAIN_TRUE@dist_lightning_HEADERS = $(LIGHTNING_FILES)
+@LIGHTNING_MAIN_TRUE@dist_lightning_HEADERS = $(LIGHTNING_COMMON_FILES)
+@LIGHTNING_MAIN_TRUE@nodist_lightning_HEADERS = asm.h core.h funcs.h fp.h $(LIGHTNING_TARGET_FILES)
 all: all-am
 
 .SUFFIXES:
@@ -248,6 +248,23 @@ install-dist_lightningHEADERS: $(dist_lightning_HEADERS)
 uninstall-dist_lightningHEADERS:
 	@$(NORMAL_UNINSTALL)
 	@list='$(dist_lightning_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(lightningdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(lightningdir)/$$f"; \
+	done
+install-nodist_lightningHEADERS: $(nodist_lightning_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(lightningdir)" || $(mkdir_p) "$(DESTDIR)$(lightningdir)"
+	@list='$(nodist_lightning_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(nodist_lightningHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(lightningdir)/$$f'"; \
+	  $(nodist_lightningHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(lightningdir)/$$f"; \
+	done
+
+uninstall-nodist_lightningHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_lightning_HEADERS)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(lightningdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(lightningdir)/$$f"; \
@@ -337,7 +354,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(lightningdir)"; do \
+	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(lightningdir)" "$(DESTDIR)$(lightningdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -365,9 +382,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@LIGHTNING_MAIN_TRUE@clean-local:
 clean: clean-am
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
@@ -384,7 +402,7 @@ info: info-am
 info-am:
 
 install-data-am: install-dist_lightningHEADERS \
-	install-dist_pkgdataDATA
+	install-dist_pkgdataDATA install-nodist_lightningHEADERS
 
 install-exec-am:
 
@@ -411,19 +429,21 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-dist_lightningHEADERS \
-	uninstall-dist_pkgdataDATA uninstall-info-am
+	uninstall-dist_pkgdataDATA uninstall-info-am \
+	uninstall-nodist_lightningHEADERS
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	ctags dist-hook distclean distclean-generic distclean-tags \
-	distdir dvi dvi-am html html-am info info-am install \
-	install-am install-data install-data-am \
+	clean-local ctags dist-hook distclean distclean-generic \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
 	install-dist_lightningHEADERS install-dist_pkgdataDATA \
 	install-exec install-exec-am install-info install-info-am \
-	install-man install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
-	uninstall uninstall-am uninstall-dist_lightningHEADERS \
-	uninstall-dist_pkgdataDATA uninstall-info-am
+	install-man install-nodist_lightningHEADERS install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-dist_lightningHEADERS uninstall-dist_pkgdataDATA \
+	uninstall-info-am uninstall-nodist_lightningHEADERS
 
 
 @lightning_frag@
@@ -432,8 +452,16 @@ uninstall-am: uninstall-dist_lightningHEADERS \
 @LIGHTNING_MAIN_FALSE@	@set frob $(LIGHTNING_TARGET_FILES); shift; \
 @LIGHTNING_MAIN_FALSE@	for i; \
 @LIGHTNING_MAIN_FALSE@	do \
-@LIGHTNING_MAIN_FALSE@	  echo $(LN_S) $(srcdir)/$$i `basename $$i`; \
-@LIGHTNING_MAIN_FALSE@	  $(LN_S) $(srcdir)/$$i `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	  echo $(LN_S) -f $(srcdir)/$$i `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	  $(LN_S) -f $(srcdir)/$$i `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	done
+
+@LIGHTNING_MAIN_FALSE@clean-local:
+@LIGHTNING_MAIN_FALSE@	@set frob $(LIGHTNING_TARGET_FILES); shift; \
+@LIGHTNING_MAIN_FALSE@	for i; \
+@LIGHTNING_MAIN_FALSE@	do \
+@LIGHTNING_MAIN_FALSE@	  echo rm -f `basename $$i`; \
+@LIGHTNING_MAIN_FALSE@	  rm -f `basename $$i`; \
 @LIGHTNING_MAIN_FALSE@	done
 
 @LIGHTNING_MAIN_FALSE@dist-hook:

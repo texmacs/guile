@@ -1,3 +1,7 @@
+2007-01-26  Thomas Girard  <thomas.g.girard@free.fr>
+
+	* lightning/Makefile.am: Add clean-local target.
+
 2006-12-02  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-i386.h: Add CVTTS?2SIL.
