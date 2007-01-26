@@ -89,7 +89,7 @@ scm_i_input_error (char const *function,
   scm_simple_format (string_port,
 		     scm_from_locale_string ("~A:~S:~S: ~A"),
 		     scm_list_4 (fn,
-				 scm_from_int (SCM_LINUM (port) + 1),
+				 scm_from_long (SCM_LINUM (port) + 1),
 				 scm_from_int (SCM_COL (port) + 1),
 				 scm_from_locale_string (message)));
     
@@ -406,7 +406,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	SCM sharp = scm_get_hash_procedure (c);
 	if (scm_is_true (sharp))
 	  {
-	    int line = SCM_LINUM (port);
+	    long line = SCM_LINUM (port);
 	    int column = SCM_COL (port) - 2;
 	    SCM got;
 
@@ -532,7 +532,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 
 	    if (scm_is_true (sharp))
 	      {
-		int line = SCM_LINUM (port);
+		long line = SCM_LINUM (port);
 		int column = SCM_COL (port) - 2;
 		SCM got;
 
@@ -822,7 +822,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   register SCM tl, tl2 = SCM_EOL;
   SCM ans, ans2 = SCM_EOL;
   /* Need to capture line and column numbers here. */
-  int line = SCM_LINUM (port);
+  long line = SCM_LINUM (port);
   int column = SCM_COL (port) - 1;
 
   c = scm_flush_ws (port, name);

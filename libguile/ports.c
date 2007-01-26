@@ -1539,7 +1539,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  return scm_from_int (SCM_LINUM (port));
+  return scm_from_long (SCM_LINUM (port));
 }
 #undef FUNC_NAME
 
@@ -1551,7 +1551,7 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  SCM_PTAB_ENTRY (port)->line_number = scm_to_int (line);
+  SCM_PTAB_ENTRY (port)->line_number = scm_to_long (line);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
