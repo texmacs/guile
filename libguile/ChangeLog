@@ -1,3 +1,11 @@
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c (scm_port_line, scm_set_port_line_x), read.c
+	(scm_i_input_error, scm_lreadr, scm_lreadrecparen): Corrections to
+	port line number type, should be "long" not "int", as per line_number
+	field of scm_t_port.  (Makes a difference only on 64-bit systems, and
+	only then for a linenum above 2Gig.)
+
 2007-01-25  Kevin Ryde  <user42@zip.com.au>
 
 	* sort.c (scm_stable_sort): Return empty list for input empty list, as
