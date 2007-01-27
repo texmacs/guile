@@ -1,3 +1,8 @@
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (port-line): Check not truncated to "int" on 64-bit
+	systems.
+
 2007-01-25  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/sort.test (stable-sort): New test, exercising empty list
