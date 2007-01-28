@@ -171,6 +171,42 @@
 	"shared array" example in `vectors.test').  Reported by
 	Szavai Gyula.
 
+2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	(Merged from CVS HEAD on 2007-01-28.)
+	
+	IA64 HP-UX GC patch from Hrvoje Nikšić.  (Thanks!)
+	
+	* threads.c (SCM_MARK_BACKING_STORE): Use scm_ia64_ar_bsp() and
+	scm_ia64_register_backing_store_base() instead of Linux-specific
+	implementations.
+
+	* gc.h (scm_ia64_register_backing_store_base, scm_ia64_ar_bsp):
+	New declarations.
+
+	* gc.c (__libc_ia64_register_backing_store_base): Declaration
+	removed.
+	(scm_ia64_register_backing_store_base, scm_ia64_ar_bsp): New, with
+	implementations for Linux and HP-UX.
+
+	* coop-pthreads.c (SCM_MARK_BACKING_STORE): Use scm_ia64_ar_bsp()
+	and scm_ia64_register_backing_store_base() instead of
+	Linux-specific implementations.
+
+	* continuations.h (__libc_ia64_register_backing_store_base):
+	Declaration removed.
+	(scm_t_contregs): New "fresh" field.
+
+	* continuations.c (ia64_getcontext): Removed.
+	(scm_make_continuation): Use continuation fresh field instead of
+	interpreting getcontext return values (which isn't portable).  Use
+	scm_ia64_ar_bsp() and scm_ia64_register_backing_store_base()
+	instead of Linux-specific implementations.
+	(copy_stack_and_call): Use scm_ia64_register_backing_store_base()
+	instead of Linux-specific implementation.
+
+	* _scm.h (__ia64__): Also detect __ia64.
+
 2006-10-03  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (SCM_APPLY): For scm_tc7_subr_2o, throw wrong-num-args on 0
