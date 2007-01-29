@@ -52,7 +52,7 @@
 
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
-	* lightning/i386/asm-i386.h: Check in rewrite from aranym.
+	* lightning/i386/asm-i386.h: Check in rewrite from Basilisk II.
 	* lightning/i386/asm-32.h: Adjust.
 	* lightning/i386/asm-64.h: Adjust.
 	* lightning/i386/fp-32.h: Adjust.
@@ -63,16 +63,20 @@
 
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 
-	* lightning/i386/asm-i386.h: Merge 64-bit cleanliness changes from mzscheme.
+	* lightning/i386/asm-i386.h: Merge 64-bit cleanliness changes from
+	mzscheme.
 	Add SSE.
 	* lightning/i386/asm-64.h: Likewise.
 
 2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
 	    Ludovic Courtes  <ludo@chbouib.org>
 
-	* lightning/i386/core-32.h: Disable jit_push and jit_pop if stack not needed.
-	* lightning/i386/core-64.h: Disable jit_push and jit_pop if stack not needed.
-	* lightning/sparc/core.h: Merge final implementation of jit_pushr and jit_popr.
+	* lightning/i386/core-32.h: Disable jit_push and jit_pop if stack not
+	needed.
+	* lightning/i386/core-64.h: Disable jit_push and jit_pop if stack not
+	needed.
+	* lightning/sparc/core.h: Merge final implementation of jit_pushr and
+	jit_popr.
 	* lightning/ppc/core.h: Fix implementation of jit_pushr and jit_popr to
 	work (more or less) across function calls.
 
@@ -90,8 +94,8 @@
 	* lightning/i386/core-64.h: More merge from mzscheme.
 	* lightning/i386/core-i386.h: More merge from mzscheme.
 
-	* tests/rpnfp.c, tests/testfp.c, tests/funcfp.c: Skip if no floating-point
-	support.
+	* tests/rpnfp.c, tests/testfp.c, tests/funcfp.c: Skip if no
+	floating-point support.
 
 2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
 
