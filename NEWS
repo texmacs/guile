@@ -52,6 +52,8 @@ Changes in 1.8.1 (since 1.8.0):
 
 ** Build problems have been fixed on MacOS, SunOS, and QNX.
 
+** `strftime' fix sign of %z timezone offset.
+
 ** A one-dimensional array can now be 'equal?' to a vector.
 
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
