@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -2611,14 +2611,22 @@ Note that @code{record?} may be true of any Scheme value; there is no
 promise that records are disjoint with other Scheme types.
 @end deffn
 
-@deffn {Scheme Procedure} make-record-type type-name field-names
-Return a @dfn{record-type descriptor}, a value representing a new data
-type disjoint from all others.  The @var{type-name} argument must be a
-string, but is only used for debugging purposes (such as the printed
-representation of a record of the new type).  The @var{field-names}
-argument is a list of symbols naming the @dfn{fields} of a record of the
-new type.  It is an error if the list contains any duplicates.  It is
-unspecified how record-type descriptors are represented.
+@deffn {Scheme Procedure} make-record-type type-name field-names [print]
+Create and return a new @dfn{record-type descriptor}.
+
+@var{type-name} is a string naming the type.  Currently it's only used
+in the printed representation of records, and in diagnostics.
+@var{field-names} is a list of symbols naming the fields of a record
+of the type.  Duplicates are not allowed among these symbols.
+
+@example
+(make-record-type "employee" '(name age salary))
+@end example
+
+The optional @var{print} argument is a function used by
+@code{display}, @code{write}, etc, for printing a record of the new
+type.  It's called as @code{(@var{print} record port)} and should look
+at @var{record} and write to @var{port}.
 @end deffn
 
 @deffn {Scheme Procedure} record-constructor rtd [field-names]
