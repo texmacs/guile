@@ -1,3 +1,10 @@
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* struct.c (scm_make_struct): Move SCM_CRITICAL_SECTION_END up so that
+	scm_struct_init is not within that section.  scm_struct_init can
+	thrown an error, which within a critical section results in an
+	abort().
+
 2007-01-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	IA64 HP-UX GC patch from Hrvoje Nikšić.  (Thanks!)
