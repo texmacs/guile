@@ -446,8 +446,17 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   handle = scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (vtable))
 			     + scm_tc3_struct),
 			    (scm_t_bits) data, 0, 0);
-  scm_struct_init (handle, layout, data, tail_elts, init);
   SCM_CRITICAL_SECTION_END;
+
+  /* In guile 1.8.1 and earlier, the SCM_CRITICAL_SECTION_END above covered
+     also the following scm_struct_init.  But that meant if scm_struct_init
+     finds an invalid type for a "u" field then there's an error throw in a
+     critical section, which results in an abort().  Not sure if we need any
+     protection across scm_struct_init.  The data array contains garbage at
+     this point, but until we return it's not visible to anyone except
+     `gc'.  */
+  scm_struct_init (handle, layout, data, tail_elts, init);
+
   return handle;
 }
 #undef FUNC_NAME
