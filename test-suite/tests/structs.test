@@ -102,6 +102,18 @@
 	      (equal? (make-ball red "Bob") (make-ball red "Bill"))))))
 
 
+(with-test-prefix "make-struct"
+
+  ;; in guile 1.8.1 and earlier, this caused an error throw out of an
+  ;; SCM_CRITICAL_SECTION_START / SCM_CRITICAL_SECTION_END, which abort()ed
+  ;; the program
+  ;;
+  (pass-if-exception "wrong type for `u' field" exception:wrong-type-arg
+    (let* ((vv (make-vtable-vtable "" 0))
+	   (v  (make-struct vv 0 (make-struct-layout "uw"))))
+      (make-struct v 0 'x))))
+
+
 ;;; Local Variables:
 ;;; coding: latin-1
 ;;; End:
