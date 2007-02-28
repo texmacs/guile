@@ -612,3 +612,5 @@ hardcode_direct="$hardcode_direct"
 hardcode_minus_L="$hardcode_minus_L"
 
 EOF
+
+# arch-tag: e570f9f7-f3d2-4307-bb9e-96437eaa305d
