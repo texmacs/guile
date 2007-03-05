@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -430,6 +430,27 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
+
+  /* A tail array is only allowed if the layout fields string ends in "R",
+     "W" or "O". */
+  if (tail_elts != 0)
+    {
+      SCM layout_str, last_char;
+      int last_c;
+      
+      if (basic_size == 0)
+        {
+        bad_tail: 
+          SCM_MISC_ERROR ("tail array not allowed unless layout ends R, W, or O", SCM_EOL);
+        }
+
+      layout_str = scm_symbol_to_string (layout);
+      last_char = scm_string_ref (layout_str,
+                                  scm_from_size_t (2 * basic_size - 1));
+      if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
+        goto bad_tail;
+    }
+    
   SCM_CRITICAL_SECTION_START;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
