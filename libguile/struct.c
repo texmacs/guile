@@ -436,7 +436,6 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   if (tail_elts != 0)
     {
       SCM layout_str, last_char;
-      int last_c;
       
       if (basic_size == 0)
         {
