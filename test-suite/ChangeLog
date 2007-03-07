@@ -1,3 +1,9 @@
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/structs.test (make-struct): Exercise the error check on tail
+	array size != 0 when layout spec doesn't have tail array.
+	(make-vtable): Exercise this.
+
 2007-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/structs.test (make-struct): New test of type check on a "u"

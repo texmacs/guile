@@ -3,6 +3,8 @@
 	* api-compound.texi (Structures): Revise and expand variously, add
 	make-vtable.
 
+	* api-io.texi: Add various @cindex entries.
+
 2007-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Signals): Merge sleep and usleep, note usleep not
