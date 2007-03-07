@@ -5,6 +5,11 @@
 
 	* api-io.texi: Add various @cindex entries.
 
+	* slib.texi (SLIB): Shorten the bit about core funcs overridden.
+	Don't want to duplicate the SLIB specs, and the set of modified bits
+	is likely to change over time and don't want to have to keep up with
+	that.
+
 2007-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Signals): Merge sleep and usleep, note usleep not
