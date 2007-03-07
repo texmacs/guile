@@ -560,6 +560,28 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 #undef FUNC_NAME
 
 
+static SCM scm_i_vtable_vtable_no_extra_fields;
+
+SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
+            (SCM fields, SCM printer),
+	    "Create a vtable, for creating structures with the given\n"
+	    "@var{fields}.\n"
+	    "\n"
+	    "The optional @var{printer} argument is a function to be called\n"
+	    "@code{(@var{printer} struct port)} on the structures created.\n"
+	    "It should look at @var{struct} and write to @var{port}.")
+#define FUNC_NAME s_scm_make_vtable
+{
+  if (SCM_UNBNDP (printer))
+    printer = SCM_BOOL_F;
+
+  return scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+                          scm_list_2 (scm_make_struct_layout (fields),
+                                      printer));
+}
+#undef FUNC_NAME
+
+
 /* Return true if S1 and S2 are equal structures, i.e., if their vtable and
    contents are the same.  Field protections are honored.  Thus, it is an
    error to test the equality of structures that contain opaque fields.  */
@@ -879,6 +901,11 @@ scm_init_struct ()
     = scm_permanent_object (scm_make_weak_key_hash_table (scm_from_int (31)));
   required_vtable_fields = scm_from_locale_string ("prsrpw");
   scm_permanent_object (required_vtable_fields);
+
+  scm_i_vtable_vtable_no_extra_fields =
+    scm_permanent_object
+    (scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL));
+
   scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
   scm_c_define ("vtable-index-vtable", scm_from_int (scm_vtable_index_vtable));
   scm_c_define ("vtable-index-printer",
