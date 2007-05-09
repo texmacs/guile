@@ -1,3 +1,9 @@
+2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/srfi-19.test ((current-time time-tai) works): Use `time?'.
+	((current-time time-process) works): New test, catches a bug
+	reported by Scott Shedden.
+
 2007-03-08  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/structs.test (make-struct): Exercise the error check on tail
