@@ -1,3 +1,9 @@
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* posix.c (scm_ttyname): Check whether RESULT is NULL before
+	making a string from it (reported by Dan McMahill).  Don't call
+	`scm_from_locale_string ()' before the mutex is released.
+
 2007-03-08  Kevin Ryde  <user42@zip.com.au>
 
 	* struct.c, struct.h (scm_make_vtable): New function, providing

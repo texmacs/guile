@@ -1,3 +1,10 @@
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* lib.scm (exception:system-error): New variable.
+
+	* tests/posix.test (ttyname): New test prefix.  Catches a bug
+	reported by Dan McMahill.
+
 2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/srfi-19.test ((current-time time-tai) works): Use `time?'.
