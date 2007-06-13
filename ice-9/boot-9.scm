@@ -1515,19 +1515,10 @@
 	       (module-modified m)
 	       b)))
 
-      ;; No local variable yet, so we need to create a new one.  That
-      ;; new variable is initialized with the old imported value of V,
-      ;; if there is one.
-      (let ((imported-var (module-variable m v))
-	    (local-var (or (and (module-binder m)
-				((module-binder m) m v #t))
-			   (begin
-			     (let ((answer (make-undefined-variable)))
-			       (module-add! m v answer)
-			       answer)))))
-	(if (and imported-var (not (variable-bound? local-var)))
-	    (variable-set! local-var (variable-ref imported-var)))
-	local-var)))
+      ;; Create a new local variable.
+      (let ((local-var (make-undefined-variable)))
+        (module-add! m v local-var)
+        local-var)))
 
 ;; module-ensure-local-variable! module symbol
 ;;

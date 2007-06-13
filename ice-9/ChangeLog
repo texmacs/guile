@@ -1,3 +1,9 @@
+2007-06-13  Ludovic Courtès  <ludo@chbouib.org>
+
+	* boot-9.scm (module-make-local-var!): Simplified.  No need to
+	check for the value of a same-named imported binding since the
+	newly created variable is systematically assigned afterwards.
+
 2007-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (top-repl): Check (defined? 'SIGBUS) before using that

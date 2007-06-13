@@ -12,6 +12,16 @@ Changes in 1.8.2 (since 1.8.1):
 ** set-program-arguments
 ** make-vtable
 
+* Incompatible changes
+
+** The body of a top-level `define' no longer sees the binding being created
+
+In a top-level `define', the binding being created is no longer visible
+from the `define' body.  This breaks code like
+"(define foo (begin (set! foo 1) (+ foo 1)))", where `foo' is now
+unbound in the body.  However, such code was not R5RS-compliant anyway,
+per Section 5.2.1.
+
 * Bugs fixed
 
 ** Fractions were not `equal?' if stored in unreduced form.
