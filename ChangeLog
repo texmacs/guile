@@ -1,3 +1,7 @@
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention fixed memory leaks.
+
 2007-06-13  Ludovic Courtès  <ludo@chbouib.org>
 
 	* NEWS: Mention top-level define incompatible change.

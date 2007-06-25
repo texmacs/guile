@@ -1,3 +1,9 @@
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/socket.test (htonl): Only executed if `htonl' is defined.
+	(ntohl): Likewise.  Reported by Marijn Schouten (hkBst)
+	<hkBst@gentoo.org>.
+
 2007-06-13  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/syntax.test (top-level define)[binding is created before
