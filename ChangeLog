@@ -1,3 +1,49 @@
+2007-06-29  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/bp.c: Upgrade to GPL/LGPLv3.
+	* lightning/i386/asm-32.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/asm-64.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/core-32.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/core-64.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/fp-64.h: Upgrade to GPL/LGPLv3.
+	* lightning/sparc/asm.h: Upgrade to GPL/LGPLv3.
+	* lightning/sparc/core.h: Upgrade to GPL/LGPLv3.
+	* lightning/sparc/fp.h: Upgrade to GPL/LGPLv3.
+	* lightning/sparc/funcs.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/asm-i386.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/core-i386.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/fp-32.h: Upgrade to GPL/LGPLv3.
+	* lightning/i386/funcs.h: Upgrade to GPL/LGPLv3.
+	* lightning/ppc/asm.h: Upgrade to GPL/LGPLv3.
+	* lightning/ppc/core.h: Upgrade to GPL/LGPLv3.
+	* lightning/ppc/fp.h: Upgrade to GPL/LGPLv3.
+	* lightning/ppc/funcs.h: Upgrade to GPL/LGPLv3.
+	* lightning.h: Upgrade to GPL/LGPLv3.
+	* tests/add.c: Upgrade to GPL/LGPLv3.
+	* tests/fib.c: Upgrade to GPL/LGPLv3.
+	* tests/testfp.c: Upgrade to GPL/LGPLv3.
+	* tests/fibdelay.c: Upgrade to GPL/LGPLv3.
+	* tests/fibit.c: Upgrade to GPL/LGPLv3.
+	* tests/funcfp.c: Upgrade to GPL/LGPLv3.
+	* tests/incr.c: Upgrade to GPL/LGPLv3.
+	* tests/printf.c: Upgrade to GPL/LGPLv3.
+	* tests/printf2.c: Upgrade to GPL/LGPLv3.
+	* tests/rpn.c: Upgrade to GPL/LGPLv3.
+	* tests/rpnfp.c: Upgrade to GPL/LGPLv3.
+	* lightning/asm-common.h: Upgrade to GPL/LGPLv3.
+	* lightning/core-common.h: Upgrade to GPL/LGPLv3.
+	* lightning/fp-common.h: Upgrade to GPL/LGPLv3.
+	* lightning/funcs-common.h: Upgrade to GPL/LGPLv3.
+	* opcode/dis-buf.c: Upgrade to GPL/LGPLv3.
+	* opcode/disass.c: Upgrade to GPL/LGPLv3.
+	* opcode/i386-dis.c: Upgrade to GPL/LGPLv3.
+	* opcode/sparc-dis.c: Upgrade to GPL/LGPLv3.
+	* opcode/sparc-opc.c: Upgrade to GPL/LGPLv3.
+	* lightningize.in: Upgrade to GPL/LGPLv3.
+	* opcode/bfd.h: Upgrade to GPL/LGPLv3.
+	* opcode/i386.h: Upgrade to GPL/LGPLv3.
+	* opcode/sparc.h: Upgrade to GPL/LGPLv3.
+
 2007-01-26  Thomas Girard  <thomas.g.girard@free.fr>
 
 	* lightning/Makefile.am: Add clean-local target.
