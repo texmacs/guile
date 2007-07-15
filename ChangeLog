@@ -2,6 +2,8 @@
 
 	Guile 1.8.2 released.
 
+	* NEWS: Mention HP-UX/IA64 build fixes.
+
 	* THANKS: Added people who reported bugs or sent patches since
 	1.8.1.  Converted to UTF-8.
 
