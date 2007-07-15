@@ -1,4 +1,4 @@
-This is version 1.8.1 of Guile, Project GNU's extension language
+This is version 1.8.2 of Guile, Project GNU's extension language
 library.  Guile is an interpreter for Scheme, packaged as a library
 that you can link into your applications to give them their own
 scripting language.  Guile will eventually support other languages as

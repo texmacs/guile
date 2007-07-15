@@ -1,5 +1,12 @@
 2007-07-15  Ludovic Courtès  <ludo@gnu.org>
 
+	Guile 1.8.2 released.
+
+	* THANKS: Added people who reported bugs or sent patches since
+	1.8.1.  Converted to UTF-8.
+
+	* README: Updated version number.
+
 	* GUILE-VERSION (GUILE_MICRO_VERSION): Set to 2.
 	(LIBGUILE_INTERFACE_CURRENT): Incremented due to new symbols.
 	(LIBGUILE_INTERFACE_REVISION): Set to 0.
