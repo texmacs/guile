@@ -7,6 +7,14 @@
 
 	* README: Updated version number.
 
+	* Makefile.am (EXTRA_DIST): Removed `BUGS' (was outdated).
+
+	* ANON-CVS, HACKING, SNAPSHOTS: New, from the `workbook'
+	directory of the CVS repository.
+
+	* autogen.sh: Removed dependency on the `workbook' CVS
+	directory.
+
 	* GUILE-VERSION (GUILE_MICRO_VERSION): Set to 2.
 	(LIBGUILE_INTERFACE_CURRENT): Incremented due to new symbols.
 	(LIBGUILE_INTERFACE_REVISION): Set to 0.
