@@ -5,6 +5,13 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 1.8.3 (since 1.8.2)
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-37)'
+
+
 Changes in 1.8.2 (since 1.8.1):
 
 * New procedures (see the manual for details)
