@@ -1,3 +1,10 @@
+2007-07-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-17.test (%some-variable): New.
+	(set!)[target uses macro]: New test prefix.  The
+	"(set! (@@ ...) 1)" test is in accordance with Marius Vollmer's
+	change in `libguile' dated 2003-11-17.
+
 2007-07-18  Stephen Compall  <s11@member.fsf.org>
 
 	* tests/syntax.test: Add SRFI-61 `cond' tests.
