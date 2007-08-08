@@ -1,3 +1,12 @@
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* boot-9.scm (%record-type-check): Renamed to
+	`%record-type-error'.
+	(record-accessor): Directly use `struct-vtable' and
+	`struct-ref', thereby avoiding indirections and procedure-call
+	overhead.
+	(record-modifier): Likewise.
+
 2007-06-13  Ludovic Courtès  <ludo@chbouib.org>
 
 	* boot-9.scm (module-make-local-var!): Simplified.  No need to
