@@ -1,5 +1,16 @@
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
+	* tests/reader.test: Added a proper header and `define-module'.
+	(exception:unterminated-block-comment,
+	exception:unknown-character-name,
+	exception:unknown-sharp-object, exception:eof-in-string,
+	exception:illegal-escape, with-read-options): New.
+	(reading)[block comment, unprintable symbol]: New tests.
+	(exceptions): New test prefix.
+	(read-options): New test prefix.
+
+2007-08-11  Ludovic Courtès  <ludo@gnu.org>
+
 	* tests/srfi-35.test: New file.
 	* Makefile.am (SCM_TESTS): Added `tests/srfi-35.test'.
 
