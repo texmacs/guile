@@ -2,6 +2,8 @@
 
 	* NEWS: Mention SRFI-35.
 
+	* configure.in: Check for <strings.h> and `strncasecmp ()'.
+
 2007-08-08  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention changes to `record-accessor' and
