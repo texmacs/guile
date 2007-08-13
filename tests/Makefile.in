@@ -41,7 +41,8 @@ check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 	printf2$(EXEEXT) rpn$(EXEEXT) fib$(EXEEXT) fibdelay$(EXEEXT) \
 	add$(EXEEXT) bp$(EXEEXT) testfp$(EXEEXT) funcfp$(EXEEXT) \
 	rpnfp$(EXEEXT) modi$(EXEEXT) ldxi$(EXEEXT) divi$(EXEEXT) \
-	movi$(EXEEXT) ret$(EXEEXT) allocai$(EXEEXT) push-pop$(EXEEXT)
+	movi$(EXEEXT) ret$(EXEEXT) allocai$(EXEEXT) push-pop$(EXEEXT) \
+	sete$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -128,6 +129,10 @@ rpnfp_SOURCES = rpnfp.c
 rpnfp_OBJECTS = rpnfp.$(OBJEXT)
 rpnfp_LDADD = $(LDADD)
 @DISASS_TRUE@rpnfp_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
+sete_SOURCES = sete.c
+sete_OBJECTS = sete.$(OBJEXT)
+sete_LDADD = $(LDADD)
+@DISASS_TRUE@sete_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
 testfp_SOURCES = testfp.c
 testfp_OBJECTS = testfp.$(OBJEXT)
 testfp_LDADD = $(LDADD)
@@ -141,10 +146,10 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
 	funcfp.c incr.c ldxi.c modi.c movi.c printf.c printf2.c \
-	push-pop.c ret.c rpn.c rpnfp.c testfp.c
+	push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
 DIST_SOURCES = add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
 	funcfp.c incr.c ldxi.c modi.c movi.c printf.c printf2.c \
-	push-pop.c ret.c rpn.c rpnfp.c testfp.c
+	push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
 DATA = $(noinst_DATA)
 ETAGS = etags
 CTAGS = ctags
@@ -253,13 +258,13 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/lightning/$(cpu)
 noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok	\
 	fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok	\
 	bp.ok modi.ok ldxi.ok divi.ok movi.ok ret.ok		\
-	allocai.ok push-pop.ok
+	allocai.ok push-pop.ok sete.ok
 
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a
 @REGRESSION_TESTING_TRUE@TESTS = fib fibit fibdelay incr printf printf2 rpn add bp	\
 @REGRESSION_TESTING_TRUE@	testfp funcfp rpnfp modi ldxi divi movi ret allocai	\
-@REGRESSION_TESTING_TRUE@	push-pop
+@REGRESSION_TESTING_TRUE@	push-pop sete
 
 @REGRESSION_TESTING_TRUE@TESTS_ENVIRONMENT = $(srcdir)/run-test
 all: all-am
@@ -352,6 +357,9 @@ rpn$(EXEEXT): $(rpn_OBJECTS) $(rpn_DEPENDENCIES)
 rpnfp$(EXEEXT): $(rpnfp_OBJECTS) $(rpnfp_DEPENDENCIES) 
 	@rm -f rpnfp$(EXEEXT)
 	$(LINK) $(rpnfp_LDFLAGS) $(rpnfp_OBJECTS) $(rpnfp_LDADD) $(LIBS)
+sete$(EXEEXT): $(sete_OBJECTS) $(sete_DEPENDENCIES) 
+	@rm -f sete$(EXEEXT)
+	$(LINK) $(sete_LDFLAGS) $(sete_OBJECTS) $(sete_LDADD) $(LIBS)
 testfp$(EXEEXT): $(testfp_OBJECTS) $(testfp_DEPENDENCIES) 
 	@rm -f testfp$(EXEEXT)
 	$(LINK) $(testfp_LDFLAGS) $(testfp_OBJECTS) $(testfp_LDADD) $(LIBS)
@@ -380,6 +388,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ret.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpnfp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testfp.Po@am__quote@
 
 .c.o:

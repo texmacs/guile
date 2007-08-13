@@ -69,22 +69,22 @@
 	 (rs == forced) ? op : (jit_pushr_i(forced), MOVLrr(rs, forced), op, jit_popr_i(forced)))
 
 /* For LT, LE, ... */
-#define jit_replace8(d, op)						\
+#define jit_replace8(d, cmp, op)					\
 	(jit_check8(d)							\
-	  ? (MOVLir(0, d), op(d))					\
-	  : (jit_pushr_i(_EAX), MOVLir(0, _EAX), op(_EAX), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))
+	  ? (XORLrr(d, d), (cmp), op(_rN(d) | _AL))				\
+	  : (jit_pushr_i(_EAX), XORLrr(_EAX, _EAX), (cmp), op(_AL), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))
 
 #define jit_bool_r(d, s1, s2, op)					\
-	(CMPLrr(s2, s1), jit_replace8(d, op))
+	(jit_replace8(d, CMPLrr(s2, s1), op))
 
 #define jit_bool_i(d, rs, is, op)					\
-	(CMPLir(is, rs), jit_replace8(d, op))
+	(jit_replace8(d, CMPLir(is, rs), op))
 
 /* When CMP with 0 can be replaced with TEST */
 #define jit_bool_i0(d, rs, is, op, op0)					\
 	((is) != 0							\
-	  ? (CMPLir(is, rs), jit_replace8(d, op)) 			\
-	  : (TESTLrr(rs, rs), jit_replace8(d, op0)))
+	  ? (jit_replace8(d, CMPLir(is, rs), op)) 			\
+	  : (jit_replace8(d, TESTLrr(rs, rs), op0)))
 
 /* For BLT, BLE, ... */
 #define jit_bra_r(s1, s2, op)		(CMPLrr(s2, s1), op, _jit.x.pc)

@@ -1,3 +1,10 @@
+2007-08-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-i386.h: Improve encoding of set* instructions.
+	* lightning/i386/core-64.h: Fix jit_bra_l.
+	* tests/sete.c: New.
+	* tests/sete.ok: New.
+
 2007-06-29  Paolo Bonzini  <bonzini@gnu.org>
 
 	* tests/bp.c: Upgrade to GPL/LGPLv3.
