@@ -1,3 +1,10 @@
+2007-08-23  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (scm_read_quote): Record position and copy source
+	expression when asked to.  Reported by Kevin Ryde.
+
+	* stime.c: Define `_REENTRANT' only if not already defined.
+
 2007-08-21  Kevin Ryde  <user42@zip.com.au>
 
 	* gc-card.c (scm_i_card_statistics): Record scm_tc7_number types as
