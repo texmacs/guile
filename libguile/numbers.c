@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -6011,7 +6011,7 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG
       return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6077,7 +6077,7 @@ SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE
+#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP
       return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
 #else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
