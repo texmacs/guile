@@ -1,3 +1,8 @@
+2007-09-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* socket.c (scm_make_socket_address): Free C_ADDRESS after use.
+	This fixes a memory leak.
+
 2007-08-23  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (scm_read_quote): Record position and copy source
