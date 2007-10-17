@@ -5,6 +5,13 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 1.8.4 (since 1.8.3)
+
+* Bugs fixed
+
+** CR (ASCII 0x0d) is (again) recognized as a token delimiter by the reader
+
+
 Changes in 1.8.3 (since 1.8.2)
 
 * New modules (see the manual for details)
@@ -26,7 +33,6 @@ Changes in 1.8.3 (since 1.8.2)
 
 ** The reader is now faster, which reduces startup time
 ** Procedures returned by `record-accessor' and `record-modifier' are faster
-
 
 
 Changes in 1.8.2 (since 1.8.1):
