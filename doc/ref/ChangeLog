@@ -1,3 +1,29 @@
+2007-10-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Removing material about breakpoint-related features that aren't
+	actually present in the 1.8.x series...
+	
+	* api-debug.texi (Breakpoints): Removed.
+
+	* scheme-debugging.texi (Debugging Features): Breakpoint-related
+	text removed.
+	(Intro to Breakpoints, Breakpoints Overview, Source Breakpoints,
+	Procedural Breakpoints, Setting Breakpoints, break! trace!
+	trace-subtree!, Accessing Breakpoints, Breakpoint Behaviours,
+	Enabling and Disabling, Deleting Breakpoints, Breakpoint
+	Information, Other Breakpoint Types, Single Stepping, Run To Frame
+	Exit, Continue Execution, New Tracing, Tracing Compared): Removed.
+	(Old Tracing): Text moved to parent Tracing node.
+	(Tracing): Removed introductory statement about two tracing
+	implementations.
+	(Display Backtrace): Remove ref to Backtrace Format node.
+	(Backtrace Format): Removed (as it was empty).
+	(Interactive Debugger, Frame Selection, Frame Information, Frame
+	Evaluation): Merge textual improvements from CVS HEAD.
+	(Leave Debugger): Removed.
+	(Interactive Debugger): Document quit command here, as in CVS
+	HEAD.
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* slib.texi (SLIB installation): Don't recommend using the site
