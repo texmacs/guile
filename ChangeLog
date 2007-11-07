@@ -1,3 +1,7 @@
+2007-11-07  Paolo Bonzini  <bonzini@gnu.org>
+
+	* opcode/Makefile.am: Fix AM_CPPFLAGS.
+
 2007-08-12  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-i386.h: Improve encoding of set* instructions.
