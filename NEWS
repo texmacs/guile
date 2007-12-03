@@ -13,6 +13,10 @@ Changes in 1.8.4 (since 1.8.3)
 ** Fixed a segmentation fault which occurred when displaying the
 backtrace of a stack with a promise object (made by `delay') in it.
 
+* New modules (see the manual for details)
+
+** `(srfi srfi-69)'
+
 
 Changes in 1.8.3 (since 1.8.2)
 

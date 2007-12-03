@@ -1,3 +1,7 @@
+2007-12-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Add SRFI-69.
+
 2007-10-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention reader bug-fix.
