@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -319,10 +319,12 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 
 
 /* Shortcut macros to simplify syntax error handling. */
-#define ASSERT_SYNTAX(cond, message, form) \
-  { if (!(cond)) syntax_error (message, form, SCM_UNDEFINED); }
-#define ASSERT_SYNTAX_2(cond, message, form, expr) \
-  { if (!(cond)) syntax_error (message, form, expr); }
+#define ASSERT_SYNTAX(cond, message, form)		\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, SCM_UNDEFINED); }
+#define ASSERT_SYNTAX_2(cond, message, form, expr)	\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, expr); }
 
 
 
@@ -3717,7 +3719,7 @@ dispatch:
 #ifdef DEVAL
               debug.info->a.args = arg1;
 #endif
-              if (scm_badargsp (formals, arg1))
+              if (SCM_UNLIKELY (scm_badargsp (formals, arg1)))
                 scm_wrong_num_args (proc);
               ENTER_APPLY;
               /* Copy argument list */
@@ -4161,7 +4163,7 @@ dispatch:
       case scm_tcs_closures:
         {
           const SCM formals = SCM_CLOSURE_FORMALS (proc);
-          if (scm_is_pair (formals))
+          if (SCM_UNLIKELY (scm_is_pair (formals)))
             goto wrongnumargs;
           x = SCM_CLOSURE_BODY (proc);
           env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
@@ -4205,7 +4207,7 @@ dispatch:
 
   /* must handle macros by here */
   x = SCM_CDR (x);
-  if (scm_is_pair (x))
+  if (SCM_LIKELY (scm_is_pair (x)))
     arg1 = EVALCAR (x, env);
   else
     scm_wrong_num_args (proc);
@@ -4284,8 +4286,9 @@ dispatch:
             {
               /* clos1: */
               const SCM formals = SCM_CLOSURE_FORMALS (proc);
-              if (scm_is_null (formals)
-                  || (scm_is_pair (formals) && scm_is_pair (SCM_CDR (formals))))
+              if (SCM_UNLIKELY (scm_is_null (formals)
+				|| (scm_is_pair (formals) &&
+				    scm_is_pair (SCM_CDR (formals)))))
                 goto wrongnumargs;
               x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
@@ -4334,7 +4337,7 @@ dispatch:
 	    goto badfun;
 	  }
       }
-    if (scm_is_pair (x))
+    if (SCM_LIKELY (scm_is_pair (x)))
       arg2 = EVALCAR (x, env);
     else
       scm_wrong_num_args (proc);
@@ -4438,11 +4441,12 @@ dispatch:
             {
               /* clos2: */
               const SCM formals = SCM_CLOSURE_FORMALS (proc);
-              if (scm_is_null (formals)
-                  || (scm_is_pair (formals)
-                      && (scm_is_null (SCM_CDR (formals))
-                          || (scm_is_pair (SCM_CDR (formals))
-                              && scm_is_pair (SCM_CDDR (formals))))))
+              if (SCM_UNLIKELY
+		  (scm_is_null (formals)
+		   || (scm_is_pair (formals)
+		       && (scm_is_null (SCM_CDR (formals))
+			   || (scm_is_pair (SCM_CDR (formals))
+			       && scm_is_pair (SCM_CDDR (formals)))))))
                 goto wrongnumargs;
 #ifdef DEVAL
               env = SCM_EXTEND_ENV (formals,
@@ -4458,7 +4462,7 @@ dispatch:
             }
 	  }
       }
-      if (!scm_is_pair (x))
+      if (SCM_UNLIKELY (!scm_is_pair (x)))
 	scm_wrong_num_args (proc);
 #ifdef DEVAL
       debug.info->a.args = scm_cons2 (arg1, arg2,
@@ -4472,7 +4476,7 @@ dispatch:
 	{			/* have 3 or more arguments */
 #ifdef DEVAL
 	case scm_tc7_subr_3:
-	  if (!scm_is_null (SCM_CDR (x)))
+	  if (SCM_UNLIKELY (!scm_is_null (SCM_CDR (x))))
 	    scm_wrong_num_args (proc);
 	  else
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2,
@@ -4536,7 +4540,7 @@ dispatch:
           }
 #else /* DEVAL */
 	case scm_tc7_subr_3:
-	  if (!scm_is_null (SCM_CDR (x)))
+	  if (SCM_UNLIKELY (!scm_is_null (SCM_CDR (x))))
 	    scm_wrong_num_args (proc);
 	  else
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2, EVALCAR (x, env)));
@@ -4859,37 +4863,37 @@ tail:
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2o:
-      if (SCM_UNBNDP (arg1))
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1)))
 	scm_wrong_num_args (proc);
       if (scm_is_null (args))
         args = SCM_UNDEFINED;
       else
         {
-          if (! scm_is_null (SCM_CDR (args)))
+          if (SCM_UNLIKELY (!scm_is_null (SCM_CDR (args))))
             scm_wrong_num_args (proc);
           args = SCM_CAR (args);
         }
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_2:
-      if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
+      if (SCM_UNLIKELY (scm_is_null (args) || !scm_is_null (SCM_CDR (args))))
 	scm_wrong_num_args (proc);
       args = SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_0:
-      if (!SCM_UNBNDP (arg1))
+      if (SCM_UNLIKELY (!SCM_UNBNDP (arg1)))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) ());
     case scm_tc7_subr_1:
-      if (SCM_UNBNDP (arg1))
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1)))
 	scm_wrong_num_args (proc);
     case scm_tc7_subr_1o:
-      if (!scm_is_null (args))
+      if (SCM_UNLIKELY (!scm_is_null (args)))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1));
     case scm_tc7_dsubr:
-      if (SCM_UNBNDP (arg1) || !scm_is_null (args))
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
 	scm_wrong_num_args (proc);
       if (SCM_I_INUMP (arg1))
         {
@@ -4910,13 +4914,13 @@ tail:
       SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
                           SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
     case scm_tc7_cxr:
-      if (SCM_UNBNDP (arg1) || !scm_is_null (args))
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
 	scm_wrong_num_args (proc);
       RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
     case scm_tc7_subr_3:
-      if (scm_is_null (args)
-	  || scm_is_null (SCM_CDR (args))
-	  || !scm_is_null (SCM_CDDR (args)))
+      if (SCM_UNLIKELY (scm_is_null (args)
+			|| scm_is_null (SCM_CDR (args))
+			|| !scm_is_null (SCM_CDDR (args))))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CADR (args)));
@@ -4927,7 +4931,7 @@ tail:
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args)));
 #endif
     case scm_tc7_lsubr_2:
-      if (!scm_is_pair (args))
+      if (SCM_UNLIKELY (!scm_is_pair (args)))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)));
@@ -4959,7 +4963,7 @@ tail:
 #else
       arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
-      if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1))
+      if (SCM_UNLIKELY (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1)))
 	scm_wrong_num_args (proc);
       
       /* Copy argument list */
