@@ -52,6 +52,9 @@ TESTS += test-system-cmds
 check_SCRIPTS += test-require-extension
 TESTS += test-require-extension
 
+check_SCRIPTS += test-bad-identifiers
+TESTS += test-bad-identifiers
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
