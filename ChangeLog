@@ -1,3 +1,9 @@
+2008-01-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp-32.h: Fix sub(a,b,a) with a ~= JIT_FPR0.
+	* lightning/tests/3to2.c: New.
+	* lightning/tests/3to2.ok: New.
+
 2007-11-07  Paolo Bonzini  <bonzini@gnu.org>
 
 	* opcode/Makefile.am: Fix AM_CPPFLAGS.

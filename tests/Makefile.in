@@ -42,7 +42,7 @@ check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 	add$(EXEEXT) bp$(EXEEXT) testfp$(EXEEXT) funcfp$(EXEEXT) \
 	rpnfp$(EXEEXT) modi$(EXEEXT) ldxi$(EXEEXT) divi$(EXEEXT) \
 	movi$(EXEEXT) ret$(EXEEXT) allocai$(EXEEXT) push-pop$(EXEEXT) \
-	sete$(EXEEXT)
+	sete$(EXEEXT) 3to2$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -53,6 +53,10 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
+3to2_SOURCES = 3to2.c
+3to2_OBJECTS = 3to2.$(OBJEXT)
+3to2_LDADD = $(LDADD)
+@DISASS_TRUE@3to2_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
 add_SOURCES = add.c
 add_OBJECTS = add.$(OBJEXT)
 add_LDADD = $(LDADD)
@@ -144,12 +148,12 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
+SOURCES = 3to2.c add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
 	funcfp.c incr.c ldxi.c modi.c movi.c printf.c printf2.c \
 	push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
-DIST_SOURCES = add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
-	funcfp.c incr.c ldxi.c modi.c movi.c printf.c printf2.c \
-	push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
+DIST_SOURCES = 3to2.c add.c allocai.c bp.c divi.c fib.c fibdelay.c \
+	fibit.c funcfp.c incr.c ldxi.c modi.c movi.c printf.c \
+	printf2.c push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
 DATA = $(noinst_DATA)
 ETAGS = etags
 CTAGS = ctags
@@ -258,13 +262,13 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/lightning/$(cpu)
 noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok	\
 	fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok	\
 	bp.ok modi.ok ldxi.ok divi.ok movi.ok ret.ok		\
-	allocai.ok push-pop.ok sete.ok
+	allocai.ok push-pop.ok sete.ok 3to2.ok
 
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a
 @REGRESSION_TESTING_TRUE@TESTS = fib fibit fibdelay incr printf printf2 rpn add bp	\
 @REGRESSION_TESTING_TRUE@	testfp funcfp rpnfp modi ldxi divi movi ret allocai	\
-@REGRESSION_TESTING_TRUE@	push-pop sete
+@REGRESSION_TESTING_TRUE@	push-pop sete 3to2
 
 @REGRESSION_TESTING_TRUE@TESTS_ENVIRONMENT = $(srcdir)/run-test
 all: all-am
@@ -303,6 +307,9 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-checkPROGRAMS:
 	-test -z "$(check_PROGRAMS)" || rm -f $(check_PROGRAMS)
+3to2$(EXEEXT): $(3to2_OBJECTS) $(3to2_DEPENDENCIES) 
+	@rm -f 3to2$(EXEEXT)
+	$(LINK) $(3to2_LDFLAGS) $(3to2_OBJECTS) $(3to2_LDADD) $(LIBS)
 add$(EXEEXT): $(add_OBJECTS) $(add_DEPENDENCIES) 
 	@rm -f add$(EXEEXT)
 	$(LINK) $(add_LDFLAGS) $(add_OBJECTS) $(add_LDADD) $(LIBS)
@@ -370,6 +377,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/3to2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/add.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocai.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bp.Po@am__quote@

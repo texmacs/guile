@@ -173,7 +173,7 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 EXTRA_LIBRARIES = libdisass.a
 noinst_LIBRARIES = @LIBDISASS@
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/lightning/$(cpu)
 libdisass_a_SOURCES = dis-buf.c i386-dis.c ppc-dis.c ppc-opc.c sparc-dis.c \
 	sparc-opc.c disass.c
 
