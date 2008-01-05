@@ -1,3 +1,9 @@
+2008-01-05  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp-32.h: Fix sub(a,0,a).
+	* lightning/tests/3to2.c: Add new testcases.
+	* lightning/tests/3to2.ok: Add new testcases.
+
 2008-01-02  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp-32.h: Fix sub(a,b,a) with a ~= JIT_FPR0.

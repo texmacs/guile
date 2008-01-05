@@ -114,6 +114,10 @@ main ()
   test_double (JIT_FPR3, JIT_FPR1, JIT_FPR3);
   test_double (JIT_FPR3, JIT_FPR1, JIT_FPR2);
 
+  test_double (JIT_FPR3, JIT_FPR0, JIT_FPR0);
+  test_double (JIT_FPR3, JIT_FPR0, JIT_FPR3);
+  test_double (JIT_FPR3, JIT_FPR3, JIT_FPR0);
+
   test_int (JIT_R0, JIT_R0, JIT_R0);
   test_int (JIT_R0, JIT_R0, JIT_R1);
   test_int (JIT_R0, JIT_R1, JIT_R0);
@@ -123,6 +127,10 @@ main ()
   test_int (JIT_V0, JIT_V0, JIT_R1);
   test_int (JIT_V0, JIT_R1, JIT_V0);
   test_int (JIT_V0, JIT_R1, JIT_R2);
+
+  test_int (JIT_V0, JIT_R0, JIT_R0);
+  test_int (JIT_V0, JIT_R0, JIT_V0);
+  test_int (JIT_V0, JIT_V0, JIT_R0);
 
   return 0;
 }
