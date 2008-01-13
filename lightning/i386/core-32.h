@@ -85,6 +85,9 @@ struct jit_local_state {
   jit_allocai_internal ((n), 0)
 #endif
 
+#define jit_calli(label)	(CALLm( ((unsigned long) (label))), _jit.x.pc)
+#define jit_callr(reg)		CALLsr(reg)
+
 #define jit_pusharg_i(rs)	PUSHLr(rs)
 #define jit_finish(sub)        ((void)jit_calli((sub)), ADDLir(sizeof(long) * _jitl.argssize, JIT_SP), _jitl.argssize = 0)
 #define jit_finishr(reg)	(jit_callr((reg)), ADDLir(sizeof(long) * _jitl.argssize, JIT_SP), _jitl.argssize = 0)

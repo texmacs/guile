@@ -1,3 +1,9 @@
+2008-01-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-i386.h: Move jit_calli and jit_callr...
+	* lightning/i386/core-32.h: ... here.
+	* lightning/i386/core-64.h: Redefine them.
+
 2008-01-05  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp-32.h: Fix sub(a,0,a).

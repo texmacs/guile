@@ -316,8 +316,6 @@
 #define jit_bmci_i(label, rs, is)	(jit_reduce(TEST, (is), (rs)), JZm(label),  _jit.x.pc)
 
 #define jit_jmpi(label)			(JMPm( ((unsigned long) (label))), _jit.x.pc)
-#define jit_calli(label)		(CALLm( ((unsigned long) (label))), _jit.x.pc)
-#define jit_callr(reg)			CALLsr(reg)
 #define jit_jmpr(reg)			JMPsr(reg)
 
 /* Memory */
