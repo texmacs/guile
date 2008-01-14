@@ -120,8 +120,8 @@ struct jit_local_state {
 #define jit_base_prolog() (PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
 #define jit_prolog(n) (_jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, jit_base_prolog())
 
-#define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLLsr(JIT_REXTMP))
-#define jit_callr(reg)		CALLLsr((reg))
+#define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLsr(JIT_REXTMP))
+#define jit_callr(reg)		CALLsr((reg))
 
 /* Stack isn't used for arguments: */
 #define jit_prepare_i(ni)	(_jitl.argssize = 0)
@@ -129,12 +129,12 @@ struct jit_local_state {
 #define jit_pusharg_i(rs)	(_jitl.argssize++, MOVQrr(rs, JIT_CALLTMPSTART + _jitl.argssize - 1))
 #define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
 				 jit_shift_args(), \
-				 CALLLsr(JIT_REXTMP), \
+				 CALLsr(JIT_REXTMP), \
 				 jit_restore_locals())
 #define jit_reg_is_arg(reg)     ((reg == _EDI) || (reg ==_ESI) || (reg == _EDX))
 #define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
                                  jit_shift_args(), \
-                                 CALLLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)), \
+                                 CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)), \
                                  jit_restore_locals())
 
 /* R12 and R13 are callee-save, instead of EDI and ESI.  Can be improved. */

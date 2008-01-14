@@ -1,3 +1,7 @@
+2008-01-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-64.h: Use CALLsr, not CALLLsr.
+
 2008-01-13  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-i386.h: Move jit_calli and jit_callr...
