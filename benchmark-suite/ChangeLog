@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2006-05-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* Makefile.am (SCM_BENCHMARKS_DIRS, dist-hook): Removed, they are
