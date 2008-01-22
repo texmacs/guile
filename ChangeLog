@@ -1,5 +1,7 @@
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* README: Should say version 1.8.3, not 1.8.2.
+
 	* LICENSE: Change COPYING.LIB to COPYING.LESSER.
 
 	* COPYING.LESSER: Renamed, previously COPYING.LIB.
