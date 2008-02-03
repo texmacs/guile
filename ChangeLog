@@ -1,3 +1,8 @@
+2008-02-03  Paolo Bonzini  <bonzini@gnu.org>
+
+	* build-aux/lightning.m4: Add --with-lightning-prefix option, suggested
+	by Sam Steingold.
+
 2008-01-14  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-64.h: Use CALLsr, not CALLLsr.

@@ -44,7 +44,20 @@ AC_SUBST_FILE(lightning_frag)
 AC_DEFUN([LIGHTNING_CONFIGURE_IF_NOT_FOUND], [
 AC_REQUIRE([AC_PROG_LN_S])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
+
+AC_ARG_WITH(lightning-prefix,
+AS_HELP_STRING([--with-lightning-prefix=PFX], [Prefix where GNU lightning is installed]),
+[], [with_lightning_prefix=])
+saveCFLAGS="$CFLAGS"
+if test "x$with_lightning_prefix" != x; then 
+  INCLIGHTNING="-I${with_lightning_prefix}/include"
+  CFLAGS="$CFLAGS $INCLIGHTNING"
+else
+  INCLIGHTNING=
+fi
 AC_CHECK_HEADER(lightning.h)
+CFLAGS="$saveCFLAGS"
+
 AM_CONDITIONAL(LIGHTNING_MAIN, (exit 1))
 AM_CONDITIONAL(HAVE_INSTALLED_LIGHTNING, test "$ac_cv_header_lightning_h" = yes)
 
