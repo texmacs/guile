@@ -317,7 +317,7 @@ scm_gc_malloc (size_t size, const char *what)
      to write it the program is killed with signal 11. --hwn
   */
 
-  void *ptr = scm_malloc (size);
+  void *ptr = size ? scm_malloc (size) : NULL;
   scm_gc_register_collectable_memory (ptr, size, what);
   return ptr;
 }
@@ -363,7 +363,8 @@ void
 scm_gc_free (void *mem, size_t size, const char *what)
 {
   scm_gc_unregister_collectable_memory (mem, size, what);
-  free (mem);
+  if (mem)
+    free (mem);
 }
 
 char *
