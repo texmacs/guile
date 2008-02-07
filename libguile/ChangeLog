@@ -1,3 +1,9 @@
+2008-02-07  Julian Graham  <joolean@gmail.com>
+
+	* throw.c (make_jmpbuf): Don't enter critical section during thread
+	spawn -- there is a possibility of deadlock if other threads are
+	exiting.
+	
 2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gc-malloc.c (scm_gc_malloc): Return NULL if requested size is 0.

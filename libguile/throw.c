@@ -71,13 +71,9 @@ static SCM
 make_jmpbuf (void)
 {
   SCM answer;
-  SCM_CRITICAL_SECTION_START;
-  {
-    SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
-    SETJBJMPBUF(answer, (jmp_buf *)0);
-    DEACTIVATEJB(answer);
-  }
-  SCM_CRITICAL_SECTION_END;
+  SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
+  SETJBJMPBUF(answer, (jmp_buf *)0);
+  DEACTIVATEJB(answer);
   return answer;
 }
 
