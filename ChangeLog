@@ -1,3 +1,8 @@
+2008-02-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Don't define _VOID, reported
+	by Reini Urban.
+
 2008-02-03  Paolo Bonzini  <bonzini@gnu.org>
 
 	* build-aux/lightning.m4: Add --with-lightning-prefix option, suggested

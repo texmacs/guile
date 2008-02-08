@@ -242,11 +242,11 @@ typedef _uc		jit_insn;
 
 /* --- REX prefixes -------------------------------------------------------- */
 
-#define _VOID()			((void)0)
+
 #define _BIT(X)			(!!(X))
 #define _d64(W,R,X,B)		(_jit_B(0x40|(W)<<3|(R)<<2|(X)<<1|(B)))
 
-#define __REXwrxb(L,W,R,X,B)	((W|R|X|B) || (L) ? _d64(W,R,X,B) : _VOID())
+#define __REXwrxb(L,W,R,X,B)	((W|R|X|B) || (L) ? _d64(W,R,X,B) : ((void)0))
 #define __REXwrx_(L,W,R,X,MR)	(__REXwrxb(L,W,R,X,_BIT(_rIP(MR)?0:_rXP(MR))))
 #define __REXw_x_(L,W,R,X,MR)	(__REXwrx_(L,W,_BIT(_rXP(R)),X,MR))
 #define __REX_reg(RR)		(__REXwrxb(0,0,0,00,_BIT(_rXP(RR))))
