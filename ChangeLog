@@ -1,3 +1,9 @@
+2008-02-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-32.h: Avoid redefinition of _r1, reported by
+	Sam Steingold.
+	* lightning/i386/asm-64.h: Likewise.
+
 2008-02-08  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-i386.h: Don't define _VOID, reported

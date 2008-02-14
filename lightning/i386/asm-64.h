@@ -127,12 +127,14 @@
 #define _R15		0x4F
 #define _RIP		-2
 
+#if defined(_ASM_SAFETY)
 #define _r1(R)          ( ((unsigned) _rC((R) - 16)) < (0x30 - 16)      ? _rN(R) : JITFAIL( "8-bit register required"))
 
 #if 0
 #define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : JITFAIL("64-bit register required"))
 #else
 #define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : _r4(R))
+#endif
 #endif
 
 #define _r1e8lP(R)	((int)(R) >= _SPL && (int)(R) <= _DIL)

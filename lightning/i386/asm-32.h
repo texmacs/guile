@@ -45,7 +45,10 @@
 
 #include "asm-i386.h"
 
+#if defined(_ASM_SAFETY)
 #define _r1(R)          ( ((R) & ~3) == _AL || ((R) & ~3) == _AH ? _rN(R) : JITFAIL( "8-bit register required"))
+#endif
+
 #define _rA(R)          _r4(R)
 
 /* Use RIP-addressing in 64-bit mode, if possible */
