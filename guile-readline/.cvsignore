@@ -8,8 +8,10 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+config.guess
 config.log
 config.status
+config.sub
 configure
 depcomp
 guile-readline-config.h
