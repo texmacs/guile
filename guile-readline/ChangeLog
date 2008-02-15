@@ -1,9 +1,3 @@
-2008-02-14  Neil Jerram  <neil@ossau.uklinux.net>
-
-	* config.guess, config.sub: 2008-01-07 versions added to Guile
-	CVS, to ensure that Guile developers are using new enough versions
-	(in particular for AIX 6.1 support).
-
 2008-01-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.c (scm_init_readline): Only do init_bouncing_parens ()
