@@ -5,6 +5,13 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 1.8.5 (since 1.8.4)
+
+* Bugs fixed
+
+** `scm add_slot ()' no longer segfaults (fixes bug #22369)
+
+
 Changes in 1.8.4 (since 1.8.3)
 
 * Bugs fixed
