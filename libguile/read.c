@@ -181,6 +181,10 @@ static SCM *scm_read_hash_procedures;
   (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
 
 
+#ifndef HAVE_DECL_STRNCASECMP
+extern int strncasecmp (char const *s1, char const *s2, size_t n);
+#endif
+
 #ifndef HAVE_STRNCASECMP
 /* XXX: Use Gnulib's `strncasecmp ()'.  */
 
