@@ -117,7 +117,12 @@ struct jit_local_state {
 #define jit_movbrm(rs, dd, db, di, ds)                                                \
         (jit_check8(rs)                                                         \
                 ? MOVBrm(jit_reg8(rs), dd, db, di, ds)                          \
-                : jit_replace(_EBX, rs, _EAX, MOVBrm(_AL, dd, db, di, ds)))
+                : jit_replace(_EBX, rs,                                         \
+                              ((dd != _EAX && db != _EAX) ? _EAX :              \
+                              ((dd != _ECX && db != _ECX) ? _ECX : _EDX)),      \
+                              MOVBrm(((dd != _EAX && db != _EAX) ? _AL :        \
+                                     ((dd != _ECX && db != _ECX) ? _CL : _DL)), \
+                                     dd, db, di, ds)))
 
 #define jit_ldi_c(d, is)                MOVSBLmr((is), 0,    0,    0, (d))
 #define jit_ldxi_c(d, rs, is)           MOVSBLmr((is), (rs), 0,    0, (d))

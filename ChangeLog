@@ -1,3 +1,7 @@
+2008-03-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-32.h: Fix stxr_c(_EAX, _EBX, _ESI).
+
 2008-02-13  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-32.h: Avoid redefinition of _r1, reported by
