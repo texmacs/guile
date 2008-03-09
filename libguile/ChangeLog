@@ -1,3 +1,8 @@
+2008-03-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c: Only define scm_from_complex_double if it will
+	actually be used.
+
 2008-03-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c (scm_eval): If MODULE_OR_STATE is not a dynamic state,
