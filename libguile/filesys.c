@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,22 +29,25 @@
 #  include <config.h>
 #endif
 
-/* This blob per the Autoconf manual (under "Particular Functions"). */
-#if HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
+/* This blob per the Autoconf manual (under "Particular Functions"), updated
+   to match that of Gnulib.  */
+#ifndef alloca
+# if HAVE_ALLOCA_H
+#  include <alloca.h>
+# elif defined __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _AIX
+#  define alloca __alloca
+# elif defined _MSC_VER
+#  include <malloc.h>
+#  define alloca _alloca
+# else
+#  include <stddef.h>
+#  ifdef  __cplusplus
 extern "C"
-# endif
+#  endif
 void *alloca (size_t);
+# endif
 #endif
 
 #include <stdio.h>
