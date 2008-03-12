@@ -1,3 +1,8 @@
+2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am, gds-scheme.el, gds-server.el, gds.el: New (merged
+	with modifications from CVS HEAD).
+
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am, REAME.GDS, gds-client.scm, gds-problems.txt,

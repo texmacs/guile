@@ -1,3 +1,13 @@
+2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugging/Makefile.am, debugging/example-fns.scm,
+	debugging/ice-9-debugger-extensions.scm, debugging/steps.scm,
+	debugging/trace.scm, debugging/traps.scm, debugging/trc.scm: New
+	(merged with modifications from CVS HEAD).
+
+	* gds-client.scm, gds-server.scm: New (merged with modifications
+	from CVS HEAD).
+
 2008-02-22  Ludovic Courtès  <ludo@gnu.org>
 
 	* match.scm: Export `match:andmap'.  This fixes evaluation of

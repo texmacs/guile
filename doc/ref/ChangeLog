@@ -1,3 +1,8 @@
+2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi: New (merged with modifications from CVS
+	HEAD).
+
 2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-data.texi (Random): New text about the default random state,
