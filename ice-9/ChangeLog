@@ -1,5 +1,7 @@
 2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* debugging/.cvsignore: New.
+
 	* debugger/commands.scm (evaluate, info-args, info-frame,
 	position, up, down): Improve/fix doc strings.
 
