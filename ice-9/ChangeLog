@@ -1,5 +1,11 @@
 2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* debugger/commands.scm (evaluate, info-args, info-frame,
+	position, up, down): Improve/fix doc strings.
+
+	* Makefile.am (SUBDIRS): Add debugging.
+	(ice9_sources): Add gds-client.scm and gds-server.scm.
+
 	* debugging/Makefile.am, debugging/example-fns.scm,
 	debugging/ice-9-debugger-extensions.scm, debugging/steps.scm,
 	debugging/trace.scm, debugging/traps.scm, debugging/trc.scm: New

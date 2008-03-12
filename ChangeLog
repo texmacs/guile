@@ -1,3 +1,10 @@
+2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (AC_CONFIG_FILES): Add emacs/Makefile and
+	ice-9/debugging/Makefile.
+
+	* Makefile.am (SUBDIRS): Add emacs.
+
 2008-02-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* FAQ: New file.

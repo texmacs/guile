@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.44.2.1 2006-10-04 21:40:24 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.44.2.2 2008-03-12 00:57:40 ossau Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -219,14 +219,15 @@ etc. that make up Guile's application programming interface (API),
 * Basic Ideas::                 Basic ideas in Scheme.
 * Guile Scheme::                Guile's implementation of Scheme.
 * Guile Scripting::             How to write Guile scripts.
-* Debugging Features::          Features for finding errors.
+* Using Guile Interactively::   Guile's REPL features.
+* Using Guile in Emacs::        Guile and Emacs.
 * Further Reading::             Where to find out more about Scheme.
 @end menu
 
 @include scheme-ideas.texi
 @include scheme-intro.texi
 @include scheme-scripts.texi
-@include scheme-debugging.texi
+@include scheme-using.texi
 @include scheme-reading.texi
 
 @node Programming in C
@@ -302,7 +303,7 @@ available through both Scheme and C interfaces.
 * Options and Config::          Configuration, features and runtime options.
 * Translation::                 Support for translating other languages.
 * Internationalization::        Support for gettext, etc.
-* Debugging::                   Internal debugging interface.
+* Debugging::                   Debugging infrastructure and Scheme interface.
 * GH::                          The deprecated GH interface.
 @end menu
 
@@ -347,6 +348,7 @@ available through both Scheme and C interfaces.
 * Buffered Input::              Ports made from a reader function.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
+* Tracing::                     Tracing program execution.
 @end menu
 
 @include slib.texi
@@ -357,6 +359,7 @@ available through both Scheme and C interfaces.
 @include misc-modules.texi
 @include expect.texi
 @include scsh.texi
+@include scheme-debugging.texi
 
 @include data-rep.texi
 @include fdl.texi

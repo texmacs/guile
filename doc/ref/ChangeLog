@@ -1,5 +1,41 @@
 2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-debugging.texi: Remove lots of text that is now
+	duplicated (exactly) elsewhere, leaving only the `Tracing' node.
+
+	* guile.texi: Replace `Debugging Features' (scheme-debugging.texi)
+	by `Using Guile Interactively' and `Using Guile in Emacs'
+	(scheme-using.texi).  Move the `Tracing' content of
+	scheme-debugging.texi to the Modules section.
+
+	* api-options.texi (Evaluator trap options): Move doc for
+	with-traps and debug-object? to here.
+
+	* api-modules.texi (Included Guile Modules): Change reference from
+	`Debugging Features' to `Tracing'.
+
+	* api-evaluation.texi (Evaluator Behaviour): Add reference to
+	`Evaluator trap options'.
+
+	* api-debug.texi (Examining the Stack): Minor improvements to
+	display-backtrace doc.
+
+	* api-debug.texi (Debug on Error): New text on how to catch errors
+	and the error stack.
+
+	* api-debug.texi (High Level Traps): New.
+	
+	* api-debug.texi (Debugging): New intro text.  New subsection
+	"Evaluation Model".  Moved existing subsections "Capturing the
+	Stack or Innermost Stack Frame", "Examining the Stack", "Examining
+	Stack Frames", "Source Properties", "Decoding Memoized Source
+	Expressions" and "Starting a New Stack" under "Evaluation Model".
+	(Capturing the Stack or Innermost Stack Frame): Some new text, and
+	correction to doc for last-stack-frame.
+	(Debug on Error): Renamed from "Interactive Debugging".
+
+	* Makefile (guile_TEXINFOS): Add scheme-using.texi.
+
 	* scheme-using.texi: New (merged with modifications from CVS
 	HEAD).
 
