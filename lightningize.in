@@ -32,10 +32,11 @@ PACKAGE=@PACKAGE@
 VERSION=@VERSION@
 
 # Directory names.
-prefix=@prefix@
-datarootdir=@datarootdir@
-datadir=@datadir@
-includedir=@includedir@
+prefix="@prefix@"
+datarootdir="@datarootdir@"
+datadir="@datadir@"
+includedir="@includedir@"
+pkgincludedir=$includedir/$PACKAGE
 aclocaldir=${datadir}/aclocal
 
 BACKENDS="@BACKENDS@"
@@ -190,16 +191,17 @@ for i in $file_base_names; do
   files="$files lightning:$pkgincludedir/$i-common.h"
 done
 for j in $BACKENDS; do
-  dir=`expr $j : '\([^:]*\)' `
-  suffix=`expr $j : '.*:\(.*\)' `
+  dir=`echo $j | sed -e 's,:.*,,' `
+  suffix=`echo $j | sed -ne 's,.*:,,p' `
   dirs="$dirs lightning/$dir"
   for i in $file_base_names; do
-    files="$files lightning/$j:$pkgincludedir/$j/$i$suffix.h"
+    files="$files lightning/$dir:$pkgincludedir/$dir/$i$suffix.h"
   done
 done
 
 for dir in $dirs; do
-  if $mkdir $dir; then :
+  if test -d $dir; then :
+  elif $mkdir $dir; then :
   else
     echo "$progname: cannot create \`$dir'" 1>&2
     status=1

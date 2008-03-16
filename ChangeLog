@@ -1,5 +1,9 @@
 2008-03-14  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightningize.in: Fix some problems (not all).
+
+2008-03-14  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-32.h: Avoid some "value computed is not used"
 	warnings; reported by Sam Steingold.
 
