@@ -54,8 +54,8 @@ struct jit_local_state {
 
 #define jit_allocai_internal(amount, slack)				  \
   (((amount) < _jitl.alloca_slack					  \
-    ? 0									  \
-    : (_jitl.alloca_slack += (amount) + (slack),			  \
+    ? (void)0								  \
+    : (void)(_jitl.alloca_slack += (amount) + (slack),			  \
        ((amount) + (slack) == sizeof (int)				  \
         ? PUSHLr(_EAX)							  \
         : SUBLir((amount) + (slack), _ESP)))),				  \

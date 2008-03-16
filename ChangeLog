@@ -1,3 +1,8 @@
+2008-03-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-32.h: Avoid some "value computed is not used"
+	warnings; reported by Sam Steingold.
+
 2008-03-08  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-32.h: Fix stxr_c(_EAX, _EBX, _ESI).
