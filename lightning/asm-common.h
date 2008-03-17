@@ -55,7 +55,7 @@
 #endif
 
 #ifdef __GNUC__
-#define JIT_UNUSED		__attribute__((unused))
+#define JIT_UNUSED		__attribute__((__unused__))
 #else
 #define JIT_UNUSED
 #endif

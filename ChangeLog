@@ -1,5 +1,10 @@
 2008-03-15  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/asm-common.h: Add underscores around __unused__
+	attribute.
+
+2008-03-15  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/ppc/core.h: Avoid some "value computed is not used"
 	warnings.
 	* lightnings/tests/allocai.c: Silence other warnings.
