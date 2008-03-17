@@ -92,7 +92,6 @@ _jit_epilog(jit_state *jit)
 {
   int n = _jitl.nbArgs;
   int first_saved_reg = JIT_AUX - n;
-  int num_saved_regs = 32 - first_saved_reg;
   int frame_size = (_jitl.frame_size + 15) & ~15;
 
 #ifdef __APPLE__
@@ -123,7 +122,7 @@ _jit_epilog(jit_state *jit)
 static void
 _jit_prolog(jit_state *jit, int n)
 {
-  int orig_frame_size, frame_size;
+  int frame_size;
   int i;
   int first_saved_reg = JIT_AUX - n;
   int num_saved_regs = 32 - first_saved_reg;

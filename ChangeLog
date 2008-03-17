@@ -1,3 +1,9 @@
+2008-03-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Avoid some "value computed is not used"
+	warnings.
+	* lightnings/tests/allocai.c: Silence other warnings.
+
 2008-03-14  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightningize.in: Fix some problems (not all).

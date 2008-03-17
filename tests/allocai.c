@@ -69,10 +69,10 @@ generate_function_proxy (int_return_int_t func)
 
   /* Display a failure message.  */
   jit_patch (branch);
-  jit_movi_p (JIT_R2, failure_message);
+  (void)jit_movi_p (JIT_R2, failure_message);
   jit_prepare (1);
   jit_pusharg_p (JIT_R2);
-  jit_finish (printf);
+  (void)jit_finish (printf);
 
   /* Leave.  */
   jit_movr_i (JIT_RET, JIT_V1);
