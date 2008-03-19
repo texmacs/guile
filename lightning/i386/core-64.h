@@ -91,7 +91,7 @@ struct jit_local_state {
 	( (is) == 0 ? (TESTQrr(rs, rs), op0, _jit.x.pc) : jit_bra_l(rs, is, op))
 
 #define jit_reduceQ(op, is, rs)							\
-	(_u8P(is) && jit_check8(rs) ? jit_reduce_(op##Bir(is, jit_reg8(rs))) :	\
+	(_u8P(is) ? jit_reduce_(op##Bir(is, jit_reg8(rs))) :	\
 	jit_reduce_(op##Qir(is, rs)) )
 
 #define jit_addi_l(d, rs, is)	jit_opi_((d), (rs),       ADDQir((is), (d)), 			LEAQmr((is), (rs), 0, 0, (d))  )
@@ -277,6 +277,42 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_bgtr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAm(label) )
 #define jit_bger_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAEm(label) )
 
+/* Bool operations.  */
+#define jit_bool_qr(d, s1, s2, op)                                      \
+        (jit_replace8(d, CMPQrr(s2, s1), op))
+
+#define jit_bool_qi(d, rs, is, op)                                      \
+        (jit_replace8(d, CMPQir(is, rs), op))
+
+/* When CMP with 0 can be replaced with TEST */
+#define jit_bool_qi0(d, rs, is, op, op0)                                \
+        ((is) != 0                                                      \
+          ? (jit_replace8(d, CMPQir(is, rs), op))                       \
+          : (jit_replace8(d, TESTQrr(rs, rs), op0)))
+
+#define jit_ltr_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETLr  )
+#define jit_ler_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETLEr )
+#define jit_gtr_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETGr  )
+#define jit_ger_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETGEr )
+#define jit_eqr_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETEr  )
+#define jit_ner_l(d, s1, s2)    jit_bool_qr((d), (s1), (s2), SETNEr )
+#define jit_ltr_ul(d, s1, s2)   jit_bool_qr((d), (s1), (s2), SETBr  )
+#define jit_ler_ul(d, s1, s2)   jit_bool_qr((d), (s1), (s2), SETBEr )
+#define jit_gtr_ul(d, s1, s2)   jit_bool_qr((d), (s1), (s2), SETAr  )
+#define jit_ger_ul(d, s1, s2)   jit_bool_qr((d), (s1), (s2), SETAEr )
+
+#define jit_lti_l(d, rs, is)    jit_bool_qi0((d), (rs), (is), SETLr,  SETSr  )
+#define jit_lei_l(d, rs, is)    jit_bool_qi ((d), (rs), (is), SETLEr         )
+#define jit_gti_l(d, rs, is)    jit_bool_qi ((d), (rs), (is), SETGr          )
+#define jit_gei_l(d, rs, is)    jit_bool_qi0((d), (rs), (is), SETGEr, SETNSr )
+#define jit_eqi_l(d, rs, is)    jit_bool_qi0((d), (rs), (is), SETEr,  SETEr  )
+#define jit_nei_l(d, rs, is)    jit_bool_qi0((d), (rs), (is), SETNEr, SETNEr )
+#define jit_lti_ul(d, rs, is)   jit_bool_qi ((d), (rs), (is), SETBr          )
+#define jit_lei_ul(d, rs, is)   jit_bool_qi0((d), (rs), (is), SETBEr, SETEr  )
+#define jit_gti_ul(d, rs, is)   jit_bool_qi0((d), (rs), (is), SETAr,  SETNEr )
+#define jit_gei_ul(d, rs, is)   jit_bool_qi0((d), (rs), (is), SETAEr, INCLr  )
+
+/* Multiplication/division.  */
 #define jit_muli_l_(is, rs)                             \
         (MOVQir(is, rs == _RAX ? _RDX : _RAX),          \
          IMULQr(rs == _RAX ? _RDX : rs))
