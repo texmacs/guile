@@ -268,5 +268,108 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_bgtr_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAm(label) )
 #define jit_bger_ul(label, s1, s2)	jit_bra_qr((s1), (s2), JAEm(label) )
 
+#define jit_muli_l_(is, rs)                             \
+        (MOVQir(is, rs == _RAX ? _RDX : _RAX),          \
+         IMULQr(rs == _RAX ? _RDX : rs))
+
+#define jit_muli_ul_(is, rs)                            \
+        (MOVQir(is, rs == _RAX ? _RDX : _RAX),          \
+         IMULQr(rs == _RAX ? _RDX : rs))
+
+#define jit_divi_l_(result, d, rs, is)                  \
+        (jit_might (d,    _RAX, jit_pushr_l(_RAX)),             \
+        jit_might (d,    _RCX, jit_pushr_l(_RCX)),              \
+        jit_might (d,    _RDX, jit_pushr_l(_RDX)),              \
+        jit_might (rs,   _RAX, MOVQrr(rs, _RAX)),       \
+        jit_might (rs,   _RDX, MOVQrr(rs, _RDX)),       \
+        MOVQir(is, _RCX),                               \
+        SARQir(63, _RDX),                               \
+        IDIVQr(_RCX),                                   \
+        jit_might(d,    result, MOVQrr(result, d)),     \
+        jit_might(d,     _RDX,  jit_popr_l(_RDX)),              \
+        jit_might(d,     _RCX,  jit_popr_l(_RCX)),              \
+        jit_might(d,     _RAX,  jit_popr_l(_RAX)))
+
+#define jit_divr_l_(result, d, s1, s2)                  \
+        (jit_might (d,    _RAX, jit_pushr_l(_RAX)),             \
+        jit_might (d,    _RCX, jit_pushr_l(_RCX)),              \
+        jit_might (d,    _RDX, jit_pushr_l(_RDX)),              \
+        ((s1 == _RCX) ? jit_pushr_l(_RCX) : 0),         \
+        jit_might (s2,   _RCX, MOVQrr(s2, _RCX)),       \
+        ((s1 == _RCX) ? jit_popr_l(_RDX) :                      \
+        jit_might (s1,   _RDX, MOVQrr(s1, _RDX))),      \
+        MOVQrr(_RDX, _RAX),                             \
+        SARQir(63, _RDX),                               \
+        IDIVQr(_RCX),                                   \
+        jit_might(d,    result, MOVQrr(result, d)),     \
+        jit_might(d,     _RDX,  jit_popr_l(_RDX)),              \
+        jit_might(d,     _RCX,  jit_popr_l(_RCX)),              \
+        jit_might(d,     _RAX,  jit_popr_l(_RAX)))
+
+#define jit_divi_ul_(result, d, rs, is)                 \
+        (jit_might (d,    _RAX, jit_pushr_l(_RAX)),             \
+        jit_might (d,    _RCX, jit_pushr_l(_RCX)),              \
+        jit_might (d,    _RDX, jit_pushr_l(_RDX)),              \
+        jit_might (rs,   _RAX, MOVQrr(rs, _RAX)),       \
+        MOVQir(is, _RCX),                               \
+        XORQrr(_RDX, _RDX),                             \
+        DIVQr(_RCX),                                    \
+        jit_might(d,    result, MOVQrr(result, d)),     \
+        jit_might(d,     _RDX,  jit_popr_l(_RDX)),              \
+        jit_might(d,     _RCX,  jit_popr_l(_RCX)),              \
+        jit_might(d,     _RAX,  jit_popr_l(_RAX)))
+
+#define jit_divr_ul_(result, d, s1, s2)                 \
+        (jit_might (d,    _RAX, jit_pushr_l(_RAX)),             \
+        jit_might (d,    _RCX, jit_pushr_l(_RCX)),              \
+        jit_might (d,    _RDX, jit_pushr_l(_RDX)),              \
+        ((s1 == _RCX) ? jit_pushr_l(_RCX) : 0),         \
+        jit_might (s2,   _RCX, MOVQrr(s2, _RCX)),       \
+        ((s1 == _RCX) ? jit_popr_l(_RAX) :                      \
+        jit_might (s1,   _RAX, MOVQrr(s1, _RAX))),      \
+        XORQrr(_RDX, _RDX),                             \
+        DIVQr(_RCX),                                    \
+        jit_might(d,    result, MOVQrr(result, d)),     \
+        jit_might(d,     _RDX,  jit_popr_l(_RDX)),              \
+        jit_might(d,     _RCX,  jit_popr_l(_RCX)),              \
+        jit_might(d,     _RAX,  jit_popr_l(_RAX)))
+
+#define jit_muli_l(d, rs, is)	jit_op_ ((d), (rs),       IMULQir((is), (d)) 		       )
+#define jit_mulr_l(d, s1, s2)	jit_opr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
+
+/* As far as low bits are concerned, signed and unsigned multiplies are
+   exactly the same. */
+#define jit_muli_ul(d, rs, is)	jit_op_ ((d), (rs),       IMULQir((is), (d)) 		       )
+#define jit_mulr_ul(d, s1, s2)	jit_opr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
+
+#define jit_hmuli_l(d, rs, is)														\
+	((d) == _RDX ? (	      jit_pushr_l(_RAX), jit_muli_l_((is), (rs)), 				     jit_popr_l(_RAX)		) :	\
+	((d) == _RAX ? (jit_pushr_l(_RDX),		    jit_muli_l_((is), (rs)), MOVQrr(_RDX, _RAX),	     jit_popr_l(_RDX) ) :	\
+	               (jit_pushr_l(_RDX), jit_pushr_l(_RAX), jit_muli_l_((is), (rs)), MOVQrr(_RDX, (d)), jit_popr_l(_RAX), jit_popr_l(_RDX) )))
+
+#define jit_hmulr_l(d, s1, s2)													\
+	((d) == _RDX ? (	      jit_pushr_l(_RAX), jit_mulr_l_((s1), (s2)), 			  jit_popr_l(_RAX)		    ) :	\
+	((d) == _RAX ? (jit_pushr_l(_RDX),		    jit_mulr_l_((s1), (s2)), MOVQrr(_RDX, _RAX), 	       jit_popr_l(_RDX)  ) :	\
+	 	       (jit_pushr_l(_RDX), jit_pushr_l(_RAX), jit_mulr_l_((s1), (s2)), MOVQrr(_RDX, (d)),   jit_popr_l(_RAX), jit_popr_l(_RDX)  )))
+
+#define jit_hmuli_ul(d, rs, is)														\
+	((d) == _RDX ? (	      jit_pushr_l(_RAX), jit_muli_ul_((is), (rs)), 				      jit_popr_l(_RAX)		) :	\
+	((d) == _RAX ? (jit_pushr_l(_RDX),		    jit_muli_ul_((is), (rs)), MOVQrr(_RDX, _RAX),	      jit_popr_l(_RDX) ) :	\
+	               (jit_pushr_l(_RDX), jit_pushr_l(_RAX), jit_muli_ul_((is), (rs)), MOVQrr(_RDX, (d)), jit_popr_l(_RAX), jit_popr_l(_RDX) )))
+
+#define jit_hmulr_ul(d, s1, s2)													\
+	((d) == _RDX ? (	      jit_pushr_l(_RAX), jit_mulr_ul_((s1), (s2)), 			  jit_popr_l(_RAX)		    ) :	\
+	((d) == _RAX ? (jit_pushr_l(_RDX),		    jit_mulr_ul_((s1), (s2)), MOVQrr(_RDX, _RAX), 	       jit_popr_l(_RDX)  ) :	\
+	 	       (jit_pushr_l(_RDX), jit_pushr_l(_RAX), jit_mulr_ul_((s1), (s2)), MOVQrr(_RDX, (d)),  jit_popr_l(_RAX), jit_popr_l(_RDX)  )))
+
+#define jit_divi_l(d, rs, is)	jit_divi_l_(_RAX, (d), (rs), (is))
+#define jit_divi_ul(d, rs, is)	jit_divi_ul_(_RAX, (d), (rs), (is))
+#define jit_modi_l(d, rs, is)	jit_divi_l_(_RDX, (d), (rs), (is))
+#define jit_modi_ul(d, rs, is)	jit_divi_ul_(_RDX, (d), (rs), (is))
+#define jit_divr_l(d, s1, s2)	jit_divr_l_(_RAX, (d), (s1), (s2))
+#define jit_divr_ul(d, s1, s2)	jit_divr_ul_(_RAX, (d), (s1), (s2))
+#define jit_modr_l(d, s1, s2)	jit_divr_l_(_RDX, (d), (s1), (s2))
+#define jit_modr_ul(d, s1, s2)	jit_divr_ul_(_RDX, (d), (s1), (s2))
+
 #endif /* __lightning_core_h */
 

@@ -1,5 +1,9 @@
 2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/core-64.h: Implement long mul/div/mod.
+
+2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/asm-i386.h: Cast memory address to long for JCCim.
 
 2008-03-15  Paolo Bonzini  <bonzini@gnu.org>
