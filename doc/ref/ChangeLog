@@ -1,5 +1,10 @@
 2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-using.texi (Interactive Debugger): Cover continuing
+	execution.
+	(Stepping and Continuing): New (from CVS HEAD).
+	(GDS Introduction): Mention traps and continuing execution.
+
 	* api-debug.texi (Location Traps): Corrected to reflect that
 	location traps now specify a specific position, not a range of
 	positions.
