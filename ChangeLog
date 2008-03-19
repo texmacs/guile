@@ -1,5 +1,9 @@
 2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/core-64.h: Misc bugfixes.
+
+2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-i386.c: Remove jit_ldr_i, jit_ldxr_i.
 	* lightning/i386/core-32.h: Add jit_ldr_i, jit_ldxr_i.
 	* lightning/i386/core-64.h: Add jit_ld{r,xr,i,xi}_{ui,l,ul};
