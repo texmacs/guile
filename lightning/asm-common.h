@@ -131,6 +131,7 @@ typedef unsigned long	_ul;
 #define _s0P(I)		((I)==0)
 #define _s8P(I)		_siP(8,I)
 #define _s16P(I)	_siP(16,I)
+#define _s32P(I)	_siP(32,I)
 #define _u8P(I)		_uiP(8,I)
 #define _u16P(I)	_uiP(16,I)
 #define _u32P(I)	_uiP(32,I)
