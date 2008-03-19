@@ -1,5 +1,7 @@
 2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* api-debug.texi (Debugging Examples): New (from CVS HEAD).
+
 	* scheme-using.texi (Interactive Debugger): Cover continuing
 	execution.
 	(Stepping and Continuing): New (from CVS HEAD).
