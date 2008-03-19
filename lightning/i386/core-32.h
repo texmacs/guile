@@ -145,6 +145,9 @@ struct jit_local_state {
 #define jit_ldi_i(d, is)                MOVLmr((is), 0,    0,    0,  (d))
 #define jit_ldxi_i(d, rs, is)           MOVLmr((is), (rs), 0,    0,  (d))
 
+#define jit_ldr_i(d, rs)                MOVLmr(0,    (rs), 0,    0,  (d))
+#define jit_ldxr_i(d, s1, s2)           MOVLmr(0,    (s1), (s2), 1,  (d))
+							    
 #define jit_sti_i(id, rs)               MOVLrm((rs), (id), 0,    0,    0)
 #define jit_stxi_i(id, rd, rs)          MOVLrm((rs), (id), (rd), 0,    0)
 

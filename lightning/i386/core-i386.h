@@ -337,9 +337,6 @@
 #define jit_str_s(rd, rs)               MOVWrm(jit_reg16(rs), 0,    (rd), 0,    0)
 #define jit_stxr_s(d1, d2, rs)          MOVWrm(jit_reg16(rs), 0,    (d1), (d2), 1)
 							    
-#define jit_ldr_i(d, rs)                MOVLmr(0,    (rs), 0,    0,  (d))
-#define jit_ldxr_i(d, s1, s2)           MOVLmr(0,    (s1), (s2), 1,  (d))
-							    
 #define jit_str_i(rd, rs)               MOVLrm((rs), 0,    (rd), 0,    0)
 #define jit_stxr_i(d1, d2, rs)          MOVLrm((rs), 0,    (d1), (d2), 1)
 							    
