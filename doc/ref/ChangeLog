@@ -1,3 +1,10 @@
+2008-03-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Traps): Minor edits.
+
+	* scheme-using.texi (Using Guile in Emacs, GDS Getting Started):
+	Minor edits.
+
 2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-debugging.texi: Remove lots of text that is now

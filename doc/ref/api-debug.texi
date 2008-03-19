@@ -17,7 +17,7 @@ infrastructure that builds on top of those calls.
 @menu
 * Evaluation Model::            Evaluation and the Scheme stack.
 * Debug on Error::              Debugging when an error occurs.
-* High Level Traps::
+* Traps::
 @end menu
 
 @node Evaluation Model
@@ -608,8 +608,8 @@ Invoke the Guile debugger to explore the context of the last error.
 @end deffn
 
 
-@node High Level Traps
-@subsection High Level Traps
+@node Traps
+@subsection Traps
 
 @cindex Traps
 @cindex Evaluator trap calls
@@ -644,8 +644,8 @@ and @code{behaviour} slots contain @code{my-factorial} and
 @code{debug-trap} would be a trap that enters the command line
 debugger when the @code{my-factorial} procedure is invoked.
 
-The following subsubsections describe all this in greater detail, for both
-the user wanting to use traps, and the developer interested in
+The following subsections describe all this in detail, for both the
+user wanting to use traps, and the developer interested in
 understanding how the interface hangs together.
 
 

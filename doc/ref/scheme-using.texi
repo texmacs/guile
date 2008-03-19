@@ -320,15 +320,15 @@ may be continued over multiple lines.
 @node Using Guile in Emacs
 @section Using Guile in Emacs
 
-There are quite a few options for working on Guile Scheme code in
-Emacs.  The simplest options are to use Emacs's standard
-@code{scheme-mode} for editing code, and to run the interpreter when you
-need it by typing ``guile'' at the prompt of a @code{*shell*} buffer,
-but there are Emacs libraries available which add various bells and
-whistles to this.  The following diagram shows these libraries and how
-they relate to each other, with the arrows indicating ``builds on'' or
-``extends''.  For example, the Quack library builds on cmuscheme, which
-in turn builds on the standard scheme mode.
+There are several options for working on Guile Scheme code in Emacs.
+The simplest are to use Emacs's standard @code{scheme-mode} for
+editing code, and to run the interpreter when you need it by typing
+``guile'' at the prompt of a @code{*shell*} buffer, but there are
+Emacs libraries available which add various bells and whistles to
+this.  The following diagram shows these libraries and how they relate
+to each other, with the arrows indicating ``builds on'' or
+``extends''.  For example, the Quack library builds on cmuscheme,
+which in turn builds on the standard scheme mode.
 
 @example
             scheme
@@ -369,23 +369,22 @@ interpreters and remembers which one you used last time; and so on.
 Quack is available from @uref{http://www.neilvandyke.org/quack}.
 
 @dfn{GDS}, written by Neil Jerram, also builds on the scheme/cmuscheme
-combination, but with a fundamental change to the way that Scheme code
-fragments are sent to the interpreter for evaluation.  cmuscheme and
-Quack send code fragments to the interpreter's standard input, on the
-assumption that the interpreter is expecting to read Scheme expressions
-there, and then monitor the interpreter's standard output to infer what
-the result of the evaluation is.  GDS doesn't use standard input and
+combination, but with a change to the way that Scheme code fragments
+are sent to the interpreter for evaluation.  cmuscheme and Quack send
+code fragments to the interpreter's standard input, on the assumption
+that the interpreter is expecting to read Scheme expressions there,
+and then monitor the interpreter's standard output to infer what the
+result of the evaluation is.  GDS doesn't use standard input and
 output like this.  Instead, it sets up a socket connection between the
 Scheme interpreter and Emacs, and sends and receives messages using a
 simple protocol through this socket.  The messages include requests to
 evaluate Scheme code, and responses conveying the results of an
-evaluation, thus providing similar function to cmuscheme or Quack.  They
-also include requests for stack exploration and
-debugging, which go beyond what cmuscheme or Quack can do.  The price of
-this extra power, however, is that GDS is Guile-specific.  GDS requires
-the Scheme interpreter to run
-some GDS-specific library code; currently this code is written as a
-Guile module and uses features that are
+evaluation, thus providing similar function to cmuscheme or Quack.
+They also include requests for stack exploration and debugging, which
+go beyond what cmuscheme or Quack can do.  The price of this extra
+power, however, is that GDS is Guile-specific.  GDS requires the
+Scheme interpreter to run some GDS-specific library code; currently
+this code is written as a Guile module and uses features that are
 specific to Guile.  GDS is now included in the Guile distribution; for
 previous Guile releases (1.8.4 and earlier) it can be obtained as part
 of the @code{guile-debugging} package from
@@ -588,7 +587,7 @@ expressions.
 When you want to use GDS to work on an independent Guile
 application, you need to add something to that application's Scheme code
 to cause it to connect to and interact with GDS at the right times.  The
-following subsections describe the various ways of doing this.
+following subsections describe the ways of doing this.
 
 @subsubsection Invoking GDS when an Exception Occurs
 
@@ -622,7 +621,7 @@ is pre-1.8) around the code of interest like this:
     (gds-debug-trap (throw->trap-context key args))))
 @end lisp
 
-In all cases you will need to use the @code{(ice-9 gds-client)} and
+Either way, you will need to use the @code{(ice-9 gds-client)} and
 @code{(ice-9 debugging traps)} modules.
 
 Two special cases of this are the lazy-catch that the Guile REPL code
@@ -637,7 +636,6 @@ procedure as follows.
 @lisp
 (use-modules (ice-9 gds-client)
              (ice-9 debugging traps))
-
 (on-lazy-handler-dispatch gds-debug-trap)
 @end lisp
 
@@ -686,34 +684,34 @@ This approach is not yet implemented, though.
 
 @subsubsection Utility Guile Implementation
 
-We conclude this subsection with an aside, by noting that the
-``utility'' Guile client described above is nothing more than a
-combination of the previous options.
-
-To be precise, the code for the utility Guile client is essentially just
-this:
+The ``utility'' Guile client mentioned above is a simple combination
+of the mechanisms that we have just described.  In fact the code for
+the utility Guile client is essentially just this:
 
 @lisp
 (use-modules (ice-9 gds-client))
-
 (named-module-use! '(guile-user) '(ice-9 session))
 (gds-accept-input #f))
 @end lisp
 
-The
-@code{named-module-use!} line ensures that the client can process
+The @code{named-module-use!} line ensures that the client can process
 @code{help} and @code{apropos} expressions, to implement lookups in
-Guile's online help.  The @code{#f} parameter to @code{gds-accept-input}
-means that the @code{continue} instruction will not cause the
-instruction loop to exit, which makes sense here because the utility
-client has nothing to do except to process GDS instructions.
+Guile's online help.  The @code{#f} parameter to
+@code{gds-accept-input} means that the @code{continue} instruction
+will not cause the instruction loop to exit, which makes sense here
+because the utility client has nothing to do except to process GDS
+instructions.
 
-(The utility client does not use @code{on-lazy-handler-dispatch},
-because it has its own mechanism for catching and reporting exceptions
-in the code that it is asked to evaluate.  This mechanism summarizes the
-exception and gives the user a button they can click to see the full
-stack, so the end result is very similar to what
-@code{on-lazy-handler-dispatch} provides.)
+The utility client does not use @code{on-lazy-handler-dispatch} at its
+top level, because it has its own mechanism for catching and reporting
+exceptions in the code that it is asked to evaluate.  This mechanism
+summarizes the exception and gives the user a button they can click to
+see the full stack, so the end result is very similar to what
+@code{on-lazy-handler-dispatch} provides.  Deep inside
+@code{gds-accept-input}, in the part that handles evaluating
+expressions from Emacs, the GDS client code uses
+@code{throw->trap-context} and @code{gds-debug-trap} to implement
+this.
 
 
 @node Working with GDS in Scheme Buffers
@@ -745,7 +743,7 @@ or before the cursor but can also be entered or edited in the
 minibuffer.  The available help is popped up in a temporary Emacs
 window.
 
-@item C-h C-g
+@item C-h G
 @findex gds-apropos
 List all accessible Guile symbols matching a given regular expression,
 with the same results as if you had typed @code{(apropos REGEXP)} into
