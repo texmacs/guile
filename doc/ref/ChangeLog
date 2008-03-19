@@ -1,3 +1,10 @@
+2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Location Traps): Corrected to reflect that
+	location traps now specify a specific position, not a range of
+	positions.
+	(Trap Shorthands): Depersonalize.
+
 2008-03-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Traps): Minor edits.

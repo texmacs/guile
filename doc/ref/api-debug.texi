@@ -1560,16 +1560,16 @@ following subsubsection.
 @subsubsection Location Traps
 
 The @code{<location-trap>} class implements traps that are triggered
-by evaluation of code at a specific source location or within a
-specified range of source locations.  When compared with source traps,
-they are easier to set, and do not become irrelevant when the relevant
-code is reloaded; but unfortunately they are considerably less
-efficient, as they require running some ``are we in the right place
-for a trap'' code on every low level frame entry trap call.
+by evaluation of code at a specific source location.  When compared
+with source traps, they are easier to set, and do not become
+irrelevant when the relevant code is reloaded; but unfortunately they
+are a lot less efficient, as they require running some ``are we in the
+right place for a trap'' code on every low level frame entry trap
+call.
 
 @deffn {Class} <location-trap>
 Class for traps triggered by evaluation of code at a specific source
-location or in a specified range of source locations.
+location.
 @end deffn
 
 @deffn {Trap Option} #:file-regexp regexp
@@ -1577,31 +1577,27 @@ A regular expression specifying the filenames that will match this
 trap.  This option must be specified when creating a location trap.
 @end deffn
 
-@deffn {Trap Option} #:line line-spec
-If specified, @var{line-spec} describes either a single line, in which
-case it is a single integer, or a range of lines, in which case it is
-a pair of the form @code{(@var{min-line} . @var{max-line})}.  All line
-numbers are 0-based, and the range form is inclusive-inclusive.  If
-@code{#f} or not specified, the trap is not restricted by line number.
-(Default value @code{#f}.)
+@deffn {Trap Option} #:line line
+The line number (0-based) of the source location at which the trap
+should be triggered.  This option must be specified when creating a
+location trap.
 @end deffn
 
-@deffn {Trap Option} #:column column-spec
-If specified, @var{column-spec} describes either a single column, in
-which case it is a single integer, or a range of columns, in which
-case it is a pair of the form @code{(@var{min-column}
-. @var{max-column})}.  All column numbers are 0-based, and the range
-form is inclusive-inclusive.  If @code{#f} or not specified, the trap
-is not restricted by column number.  (Default value @code{#f}.)
+@deffn {Trap Option} #:column column
+The column number (0-based) of the source location at which the trap
+should be triggered.  This option must be specified when creating a
+location trap.
 @end deffn
 
 @noindent
-Example:
+Here is an example, which matches the @code{(facti (- n 1) (* a n))}
+expression in @file{ice-9/debugging/example-fns.scm}:
 
 @lisp
 (install-trap (make <location-trap>
                 #:file-regexp "example-fns.scm"
-                #:line '(11 . 13)
+                #:line 11
+                #:column 6
                 #:behaviour gds-debug-trap))
 @end lisp
 
@@ -1612,8 +1608,7 @@ Example:
 If the code described in the preceding subsubsections for creating and
 manipulating traps seems a little long-winded, it is of course
 possible to define more convenient shorthand forms for typical usage
-patterns.  For example, my own @file{.guile} file contains the
-following definitions for setting breakpoints and for tracing.
+patterns.  Here are some examples.
 
 @lisp
 (define (break! proc)
