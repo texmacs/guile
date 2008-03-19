@@ -1,5 +1,9 @@
 2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/core-64.h: Fix uses of jit_qop_.
+
+2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-64.h: Add boolean operations.
 
 2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
