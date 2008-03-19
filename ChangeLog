@@ -1,3 +1,7 @@
+2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Cast memory address to long for JCCim.
+
 2008-03-15  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/asm-common.h: Add underscores around __unused__

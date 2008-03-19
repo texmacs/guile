@@ -942,8 +942,7 @@ enum {
 #define JGSm(D)				JCCSim(0xf, D)
 
 /*									_format		Opcd		,Mod ,r	    ,m		,mem=dsp+sib	,imm... */
-#define JCCii(CC, D)							_OO_L		(0x0f80|(CC)				,(int)(D)		)
-#define JCCim(CC, D)							_OO_D32		(0x0f80|(CC)				,(int)(D)		)
+#define JCCim(CC, D)							_OO_D32		(0x0f80|(CC)				,(long)(D)		)
 #define JOm(D)				JCCim(0x0, D)
 #define JNOm(D)				JCCim(0x1, D)
 #define JBm(D)				JCCim(0x2, D)
