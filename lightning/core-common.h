@@ -365,6 +365,11 @@ typedef union jit_code {
 #define jit_ldxr_p(rd, s1, s2)		jit_ldxr_l((rd), (s1), (s2))
 #define jit_ldxi_p(rd, rs, is)		jit_ldxi_l((rd), (rs), (is))
 
+#define jit_ldr_ul(d, rs)		jit_ldr_l((d), (rs))
+#define jit_ldi_ul(d, is)		jit_ldi_l((d), (is))
+#define jit_ldxr_ul(d, s1, s2)		jit_ldxr_l((d), (s1), (s2))
+#define jit_ldxi_ul(d, rs, is)		jit_ldxi_l((d), (rs), (is))
+
 
 /* Boolean & branch synonyms */
 #define jit_eqr_ui(d, s1, s2)		jit_eqr_i((d), (s1), (s2))
@@ -554,8 +559,6 @@ typedef union jit_code {
 #define jit_sti_l(d, is)		jit_sti_i((d), (is))
 #define jit_ldr_ui(d, rs)		jit_ldr_i((d), (rs))
 #define jit_ldi_ui(d, is)		jit_ldi_i((d), (is))
-#define jit_ldr_ul(d, rs)		jit_ldr_ui((d), (rs))
-#define jit_ldi_ul(d, is)		jit_ldi_ui((d), (is))
 #endif
 
 #define jit_ldxr_l(d, s1, s2)		jit_ldxr_i((d), (s1), (s2))
@@ -564,8 +567,6 @@ typedef union jit_code {
 #define jit_stxi_l(d, rs, is)		jit_stxi_i((d), (rs), (is))
 #define jit_ldxr_ui(d, s1, s2)		jit_ldxr_i((d), (s1), (s2))
 #define jit_ldxi_ui(d, rs, is)		jit_ldxi_i((d), (rs), (is))
-#define jit_ldxr_ul(d, s1, s2)		jit_ldxr_ui((d), (s1), (s2))
-#define jit_ldxi_ul(d, rs, is)		jit_ldxi_ui((d), (rs), (is))
 
 
 /* Boolean */

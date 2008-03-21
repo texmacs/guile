@@ -1,3 +1,11 @@
+2008-03-21  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-64.h: Fix jit_{ld,st}{,x}i_{i,l}.
+	Remove jit_ld{,x}i_ul.
+	* lightning/core-common.h: Make jit_ld{,x}{i,r}_ul
+	always a synonym of the _l variant.
+	* doc/porting.texi: Document this.
+
 2008-03-19  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-64.h: Fix uses of jit_qop_.
