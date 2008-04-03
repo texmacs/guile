@@ -1,3 +1,10 @@
+2008-04-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* inline.h (SCM_C_EXTERN_INLINE): New macro, addresses the
+	"extern inline" semantic change in C99 mode with GCC 4.3 and
+	later and the warning in C99 mode with GCC 4.2.  Use it in the
+	inline function definitions.
+
 2008-03-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c, filesys.c: Enclose `alloca' blob in `#ifndef alloca',
