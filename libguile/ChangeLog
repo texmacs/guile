@@ -1,5 +1,17 @@
 2008-04-16  Ludovic Courtès  <ludo@gnu.org>
 
+	Copy Han-Wen's srcprop reimplementation from the 1.9 branch,
+	dated 2007-01-19.  Fixes a deadlock with `scm_make_srcprops ()':
+	http://lists.gnu.org/archive/html/guile-devel/2008-03/msg00014.html .
+
+	* srcprop.c: use double cell for storing source-properties.  Put
+        filename in the plist, and share between srcprops if possible.
+        Remove specialized storage.
+        * srcprop.h: remove macros without SCM_ prefix from
+        interface. Remove specialized storage/type definitions.
+
+2008-04-16  Ludovic Courtès  <ludo@gnu.org>
+
 	* ports.c (scm_getc, scm_putc, scm_puts): Moved...
 	* inline.h: ... here.  Noticeably improves `read' performance.
 
