@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -23,10 +23,16 @@ AUTOMAKE_OPTIONS = gnu
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@
+
+# Override Automake's `DEFAULT_INCLUDES'.  By default, it contains
+# "-I$(srcdir)", which causes problems on Tru64 where our "random.h"
+# is picked up by <stdlib.h> instead of the libc's <random.h>.
+DEFAULT_INCLUDES =
+
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(top_srcdir)
+INCLUDES = -I.. -I$(top_srcdir) -I$(top_builddir)
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
