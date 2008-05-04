@@ -1,3 +1,9 @@
+2008-05-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* guile.texi (Guile Modules): Include `autoconf.texi'.
+	* autoconf.texi (Autoconf Support): Mention `pkg-config'.
+	(Autoconf Macros): Document `pkg-config' support.
+
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-modules.texi (SRFI-88): New section.
@@ -2582,3 +2588,8 @@
 	The change log for files in this directory continues backwards
 	from 2001-08-27 in ../ChangeLog, as all the Guile documentation
 	prior to this date was contained in a single directory.
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
