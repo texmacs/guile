@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -84,6 +84,7 @@ include $(top_srcdir)/am/pre-inst-guile
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(preinstguiletool)/snarf-guile-m4-docs $< > $(srcdir)/$@
+	$(preinstguiletool)/snarf-guile-m4-docs $(top_srcdir)/guile-config/guile.m4 \
+	  > $(srcdir)/$@
 
 MAINTAINERCLEANFILES = autoconf-macros.texi
