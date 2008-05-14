@@ -109,9 +109,9 @@ typedef struct
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
 } scm_t_port;
 
-SCM_API scm_t_port **scm_i_port_table;
-SCM_API long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
-SCM_API scm_i_pthread_mutex_t scm_i_port_table_mutex;
+SCM_INTERNAL scm_t_port **scm_i_port_table;
+SCM_INTERNAL long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
+SCM_INTERNAL scm_i_pthread_mutex_t scm_i_port_table_mutex;
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -195,7 +195,7 @@ typedef struct scm_t_ptob_descriptor
 
 SCM_API scm_t_ptob_descriptor *scm_ptobs;
 SCM_API long scm_numptob;
-SCM_API long scm_i_port_table_room;
+SCM_INTERNAL long scm_i_port_table_room;
 
 
 
@@ -288,7 +288,7 @@ SCM_API void scm_print_port_mode (SCM exp, SCM port);
 SCM_API void scm_ports_prehistory (void);
 SCM_API SCM scm_void_port (char * mode_str);
 SCM_API SCM scm_sys_make_void_port (SCM mode);
-SCM_API void scm_init_ports (void);
+SCM_INTERNAL void scm_init_ports (void);
 
 
 #if SCM_ENABLE_DEPRECATED==1
@@ -302,8 +302,8 @@ SCM_API SCM scm_pt_member (SCM member);
 
 /* internal */
 
-SCM_API long scm_i_mode_bits (SCM modes);
-SCM_API void scm_i_dynwind_current_load_port (SCM port);
+SCM_INTERNAL long scm_i_mode_bits (SCM modes);
+SCM_INTERNAL void scm_i_dynwind_current_load_port (SCM port);
 
 
 #endif  /* SCM_PORTS_H */

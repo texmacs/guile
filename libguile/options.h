@@ -3,7 +3,7 @@
 #ifndef SCM_OPTIONS_H
 #define SCM_OPTIONS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ typedef struct scm_t_option
 
 SCM_API SCM scm_options (SCM, scm_t_option [], unsigned int, const char*);
 SCM_API void scm_init_opts (SCM (*) (SCM), scm_t_option [], unsigned int n);
-SCM_API void scm_init_options (void);
+SCM_INTERNAL void scm_init_options (void);
 
 #endif  /* SCM_OPTIONS_H */
 

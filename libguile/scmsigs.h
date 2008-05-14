@@ -3,7 +3,7 @@
 #ifndef SCM_SCMSIGS_H
 #define SCM_SCMSIGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2002, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ SCM_API SCM scm_pause (void);
 SCM_API SCM scm_sleep (SCM i);
 SCM_API SCM scm_usleep (SCM i);
 SCM_API SCM scm_raise (SCM sig);
-SCM_API void scm_init_scmsigs (void);
+SCM_INTERNAL void scm_init_scmsigs (void);
 
 #endif  /* SCM_SCMSIGS_H */
 
