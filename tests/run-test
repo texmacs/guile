@@ -1,6 +1,6 @@
 #! /bin/sh
 
-./$1 > $1.log
+./$1 | tr -d \\r > $1.log
 if test $? = 77; then
   exit 77
 fi

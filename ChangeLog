@@ -1,3 +1,7 @@
+2008-05-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/run-test: Avoid CRLF issues on mingw.
+
 2008-03-21  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-64.h: Fix jit_{ld,st}{,x}i_{i,l}.
