@@ -69,10 +69,14 @@
 	 (rs == forced) ? op : (jit_pushr_i(forced), MOVLrr(rs, forced), op, jit_popr_i(forced)))
 
 /* For LT, LE, ... */
-#define jit_replace8(d, cmp, op)					\
-	(jit_check8(d)							\
-	  ? (XORLrr(d, d), (cmp), op(_rN(d) | _AL))				\
-	  : (jit_pushr_i(_EAX), XORLrr(_EAX, _EAX), (cmp), op(_AL), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))
+#define jit_replace8(d, cmp, op)				\
+	(jit_check8(d)						\
+	 ? ((cmp),						\
+             MOVLir(0, (d)),					\
+             op(_rN(d) | _AL))					\
+	 : (jit_pushr_i(_EAX), (cmp),				\
+            MOVLir(0, _EAX),					\
+            op(_AL), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))
 
 #define jit_bool_r(d, s1, s2, op)					\
 	(jit_replace8(d, CMPLrr(s2, s1), op))

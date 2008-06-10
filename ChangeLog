@@ -1,3 +1,8 @@
+2008-06-10  Laurent Michel  <ldm@engr.uconn.edu>
+
+	* lightning/i386/core-i386.h: Fix jit_replace8 for
+	case when one of the operands is _EAX.
+
 2008-05-19  Paolo Bonzini  <bonzini@gnu.org>
 
 	* tests/run-test: Avoid CRLF issues on mingw.
