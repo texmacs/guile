@@ -111,7 +111,7 @@ struct jit_local_state {
 #define	jit_arg_ul()		((_jitl.framesize += sizeof(long)) - sizeof(long))
 #define	jit_arg_p()		((_jitl.framesize += sizeof(long)) - sizeof(long))
 
-#define jit_movi_p(d, is)       (jit_movi_l(d, ((long)(is))), _jit.x.pc)
+#define jit_movi_p(d, is)       (MOVLir (((long)(is)), (d)), _jit.x.pc)
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
 

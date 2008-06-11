@@ -1,5 +1,10 @@
 2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/core-32.h: Use MOVLir instead of jit_movi_l
+	to implement jit_movi_p.
+
+2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-32.h: Use separate __APPLE__ and SysV
 	prolog/ret macros.  Subtract 12 bytes in __APPLE__ case to
 	keep stack aligned, and always use LEAVE in the epilog.
