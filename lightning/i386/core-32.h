@@ -46,8 +46,11 @@ struct jit_local_state {
   int	alloca_slack;
 };
 
-#define jit_base_prolog() (PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
-#define jit_prolog(n) (_jitl.framesize = 20, _jitl.alloca_offset = 0, jit_base_prolog())
+#define jit_base_prolog() (_jitl.framesize = 20, _jitl.alloca_offset = 0, \
+  PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
+#define jit_ret(ofs)							  \
+  (((ofs) < 0 ? LEAVE_() : POPLr(_EBP)),				  \
+   POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
 
 /* Used internally.  SLACK is used by the Darwin ABI which keeps the stack
    aligned to 16-bytes.  */
@@ -78,11 +81,17 @@ struct jit_local_state {
 #define jit_allocai(n)						\
   jit_allocai_internal ((n), (_jitl.alloca_slack - (n)) & 15)
 
+#define jit_prolog(n)		(jit_base_prolog(), jit_subi_i (JIT_SP, JIT_SP, 12))
+#define jit_ret()		jit_base_ret (-12)
+
 #else
 # define jit_prepare_i(ni)	(_jitl.argssize += (ni))
 
 #define jit_allocai(n)						\
   jit_allocai_internal ((n), 0)
+
+#define jit_prolog(n)		jit_base_prolog()
+#define jit_ret()		jit_base_ret (_jitl.alloca_offset)
 #endif
 
 #define jit_calli(label)	(CALLm( ((unsigned long) (label))), _jit.x.pc)
@@ -105,7 +114,6 @@ struct jit_local_state {
 #define jit_movi_p(d, is)       (jit_movi_l(d, ((long)(is))), _jit.x.pc)
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
-#define jit_ret()		((_jitl.alloca_offset < 0 ? LEAVE_() : POPLr(_EBP)), POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
 
 /* Memory */
 

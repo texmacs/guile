@@ -1,5 +1,11 @@
 2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/core-32.h: Use separate __APPLE__ and SysV
+	prolog/ret macros.  Subtract 12 bytes in __APPLE__ case to
+	keep stack aligned, and always use LEAVE in the epilog.
+
+2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-i386.h: Fix C++ incompatibility.
 
 2008-06-10  Laurent Michel  <ldm@engr.uconn.edu>
