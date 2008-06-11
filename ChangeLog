@@ -1,3 +1,7 @@
+2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-i386.h: Fix C++ incompatibility.
+
 2008-06-10  Laurent Michel  <ldm@engr.uconn.edu>
 
 	* lightning/i386/core-i386.h: Fix jit_replace8 for

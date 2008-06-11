@@ -71,7 +71,7 @@ struct jit_local_state {
 #ifdef __APPLE__
 /* Stack must stay 16-byte aligned: */
 # define jit_prepare_i(ni)	(((ni & 0x3) \
-                                  ? SUBLir(4 * ((((ni) + 3) & ~(0x3)) - (ni)), JIT_SP) \
+                                  ? (void)SUBLir(4 * ((((ni) + 3) & ~(0x3)) - (ni)), JIT_SP) \
                                   : (void)0), \
                                  _jitl.argssize += (((ni) + 3) & ~(0x3)))
 
