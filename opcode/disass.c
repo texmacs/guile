@@ -34,10 +34,10 @@
 #include "config.h"
 #include "dis-asm.h"
 
-#define LIGHTNING_I386_32 0
-#define LIGHTNING_I386_64 1
-#define LIGHTNING_PPC 2
-#define LIGHTNING_SPARC 3
+#define LIGHTNING_I386		0
+#define LIGHTNING_X86_64	1
+#define LIGHTNING_PPC		2
+#define LIGHTNING_SPARC		3
 
 void disassemble(stream, from, to)
      FILE *stream;

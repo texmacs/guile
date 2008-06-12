@@ -39,8 +39,6 @@
 #define JIT_CALLTMPSTART 0x48
 #define JIT_REXTMP       0x4B
 
-#include "core-i386.h"
-
 struct jit_local_state {
   int   long_jumps;
   int   nextarg_getfp;

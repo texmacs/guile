@@ -37,8 +37,6 @@
 
 #ifndef LIGHTNING_DEBUG
 
-#include "asm-i386.h"
-
 /*	OPCODE	+ i		= immediate operand
  *		+ r		= register operand
  *		+ m		= memory operand (disp,base,index,scale)

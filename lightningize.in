@@ -195,7 +195,8 @@ for j in $BACKENDS; do
   suffix=`echo $j | sed -ne 's,.*:,,p' `
   dirs="$dirs lightning/$dir"
   for i in $file_base_names; do
-    files="$files lightning/$dir:$pkgincludedir/$dir/$i$suffix.h"
+    test -f "$pkgincludedir/$dir/$i$suffix.h" && \
+      files="$files lightning/$dir:$pkgincludedir/$dir/$i$suffix.h"
   done
 done
 

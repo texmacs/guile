@@ -43,8 +43,6 @@
  *		+ sr/sm		= a star preceding a register or memory
  */
 
-#include "asm-i386.h"
-
 #if defined(_ASM_SAFETY)
 #define _r1(R)          ( ((R) & ~3) == _AL || ((R) & ~3) == _AH ? _rN(R) : JITFAIL( "8-bit register required"))
 #endif

@@ -3896,23 +3896,30 @@ fi
 
 
 
-BACKENDS="i386:-32 i386:-64 sparc ppc"
+BACKENDS="i386 i386:-32 i386:-64 sparc ppc"
 
 
+case "$target_cpu" in
+  i?86)    LIGHTNING_TARGET=LIGHTNING_I386	;;
+  x86_64)  LIGHTNING_TARGET=LIGHTNING_X86_64	;;
+  sparc*)  LIGHTNING_TARGET=LIGHTNING_SPARC	;;
+  powerpc) LIGHTNING_TARGET=LIGHTNING_PPC	;;
+  *)					        ;;
+esac
 
 
 suffix=
-case "$host_cpu" in
-  i?86)	   cpu=i386; suffix=-32 ;;
-  x86_64)  cpu=i386; suffix=-64 ;;
-  sparc*)  cpu=sparc	        ;;
-  powerpc) cpu=ppc	        ;;
-  *)			        ;;
+case "$target_cpu" in
+  i?86)  cpu=i386	;;
+  x86_64)  cpu=i386	;;
+  sparc*)  cpu=sparc	;;
+  powerpc) cpu=ppc      ;;
+  *)		        ;;
 esac
 if test -n "$cpu" && test -d "$srcdir/lightning/$cpu"; then
 
 cat >>confdefs.h <<_ACEOF
-#define LIGHTNING_TARGET `echo "LIGHTNING_$cpu$suffix" | $as_tr_cpp`
+#define LIGHTNING_TARGET `echo "$LIGHTNING_TARGET" | $as_tr_cpp`
 _ACEOF
 
   lightning_frag=`cd $srcdir && pwd`/lightning/$cpu/Makefile.frag

@@ -1,5 +1,27 @@
 2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
 
+	* build-aux/lightning.m4: Adjust LIGHTNING_BACKENDS, don't
+	use suffix support to distinguish i386/x86_64.
+	* lightning/i386/Makefile.frag: Use LIGHTNING_TARGET_FILES
+	to distribute *-32.h and *-64.h files now.
+	* lightning/i386/asm-i386: Moved to...
+	* lightning/i386/asm.h: Include the appropriate subtarget file.
+	* lightning/i386/core-i386: Moved to...
+	* lightning/i386/core.h: Include the appropriate subtarget file.
+	* lightning/i386/fp.h: New, include the appropriate subtarget file.
+	* lightning/i386/asm-32: Do not include asm-i386.h.
+	* lightning/i386/asm-64.h: Likewise.
+	* lightning/i386/core-32: Do not include core-i386.h.
+	* lightning/i386/core-64.h: Likewise.
+	* lightning/Makefile.am: Adjust for renamed files.
+
+	* configure.ac: Define LIGHTNING_TARGET here.
+	* opcode/disass.c: Change list of valid LIGHTNING_TARGET values.
+
+	* lightningize.in: Robustify against missing subtarget files.
+
+2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core-32.h: Use MOVLir instead of jit_movi_l
 	to implement jit_movi_p.
 

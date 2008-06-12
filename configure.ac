@@ -29,8 +29,15 @@ AC_EXEEXT
 BACKENDS="LIGHTNING_BACKENDS"
 AC_SUBST(BACKENDS)
 
+case "$target_cpu" in
+  i?86)    LIGHTNING_TARGET=LIGHTNING_I386	;;
+  x86_64)  LIGHTNING_TARGET=LIGHTNING_X86_64	;;
+  sparc*)  LIGHTNING_TARGET=LIGHTNING_SPARC	;;
+  powerpc) LIGHTNING_TARGET=LIGHTNING_PPC	;;
+  *)					        ;;
+esac
 LIGHTNING_CONFIGURE_LINKS(
-  [AC_DEFINE_UNQUOTED(LIGHTNING_TARGET, [AS_TR_CPP([LIGHTNING_$cpu$suffix])],
+  [AC_DEFINE_UNQUOTED(LIGHTNING_TARGET, [AS_TR_CPP([$LIGHTNING_TARGET])],
 		      [Used to pick the appropriate disassembler, for debugging])],
   [AC_MSG_ERROR([cpu $target_cpu not supported])])
 

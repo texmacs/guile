@@ -30,8 +30,8 @@
  ***********************************************************************/
 
 
-#ifndef __lightning_asm_fp_h
-#define __lightning_asm_fp_h
+#ifndef __lightning_fp_h
+#define __lightning_fp_h
 
 /* We really must map the x87 stack onto a flat register file.  In practice,
    we can provide something sensible and make it work on the x86 using the
@@ -353,4 +353,4 @@ union jit_double_imm {
 #define jit_arg_f()             ((_jitl.framesize += sizeof(float)) - sizeof(float))
 #define jit_arg_d()             ((_jitl.framesize += sizeof(double)) - sizeof(double))
 
-#endif /* __lightning_asm_h */
+#endif /* __lightning_fp_h */

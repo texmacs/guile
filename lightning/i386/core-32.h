@@ -37,8 +37,6 @@
 #define JIT_CAN_16 1
 #define JIT_AP			_EBP
 
-#include "core-i386.h"
-
 struct jit_local_state {
   int	framesize;
   int	argssize;
@@ -48,7 +46,7 @@ struct jit_local_state {
 
 #define jit_base_prolog() (_jitl.framesize = 20, _jitl.alloca_offset = 0, \
   PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
-#define jit_ret(ofs)							  \
+#define jit_base_ret(ofs)						  \
   (((ofs) < 0 ? LEAVE_() : POPLr(_EBP)),				  \
    POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
 
