@@ -1,3 +1,10 @@
+2008-06-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: Move JIT_V definition...
+	* lightning/i386/core-32.h: ... here.
+	* lightning/i386/core-64.h: ... and here.  Avoid dancing between
+	RSI/RDI and R12/R13, and place JIT_V1/JIT_V2 in R12/R13.
+
 2008-06-11  Paolo Bonzini  <bonzini@gnu.org>
 
 	* build-aux/lightning.m4: Adjust LIGHTNING_BACKENDS, don't

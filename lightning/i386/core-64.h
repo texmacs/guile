@@ -39,6 +39,9 @@
 #define JIT_CALLTMPSTART 0x48
 #define JIT_REXTMP       0x4B
 
+#define JIT_V_NUM               3
+#define JIT_V(i)                ((i) == 0 ? _EBX : _R11D + (i))
+
 struct jit_local_state {
   int   long_jumps;
   int   nextarg_getfp;
@@ -127,17 +130,13 @@ struct jit_local_state {
 #define jit_pusharg_i(rs)	(_jitl.argssize++, MOVQrr(rs, JIT_CALLTMPSTART + _jitl.argssize - 1))
 #define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
 				 jit_shift_args(), \
-				 CALLsr(JIT_REXTMP), \
-				 jit_restore_locals())
+				 CALLsr(JIT_REXTMP))
 #define jit_reg_is_arg(reg)     ((reg == _EDI) || (reg ==_ESI) || (reg == _EDX))
 #define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
                                  jit_shift_args(), \
-                                 CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)), \
-                                 jit_restore_locals())
+                                 CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)))
 
-/* R12 and R13 are callee-save, instead of EDI and ESI.  Can be improved. */
 #define jit_shift_args() \
-   (MOVQrr(_ESI, _R12), MOVQrr(_EDI, _R13), \
    (_jitl.argssize--  \
     ? (MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[0]),  \
        (_jitl.argssize--  \
@@ -146,10 +145,7 @@ struct jit_local_state {
             ? MOVQrr(JIT_CALLTMPSTART, jit_arg_reg_order[2])  \
             : (void)0)) \
         : (void)0)) \
-    : (void)0))
-
-#define jit_restore_locals() \
-    (MOVQrr(_R12, _ESI), MOVQrr(_R13, _EDI))
+    : (void)0)
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
 #define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])

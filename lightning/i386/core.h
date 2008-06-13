@@ -39,9 +39,7 @@
 #define JIT_RET			_EAX
 
 #define JIT_R_NUM		3
-#define JIT_V_NUM		3
 #define JIT_R(i)		(_EAX + (i))
-#define JIT_V(i)		((i) == 0 ? _EBX : _ESI + (i) - 1)
 
 
 /* 3-parameter operation */

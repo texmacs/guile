@@ -36,6 +36,8 @@
 
 #define JIT_CAN_16 1
 #define JIT_AP			_EBP
+#define JIT_V_NUM		3
+#define JIT_V(i)		((i) == 0 ? _EBX : _ESI + (i) - 1)
 
 struct jit_local_state {
   int	framesize;
