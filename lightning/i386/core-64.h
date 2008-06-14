@@ -138,11 +138,11 @@ struct jit_local_state {
 
 #define jit_shift_args() \
    (_jitl.argssize--  \
-    ? (MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[0]),  \
+    ? ((void)MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[0]), \
        (_jitl.argssize--  \
-        ? (MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[1]),  \
+        ? ((void)MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[1]), \
            (_jitl.argssize--  \
-            ? MOVQrr(JIT_CALLTMPSTART, jit_arg_reg_order[2])  \
+            ? (void)MOVQrr(JIT_CALLTMPSTART, jit_arg_reg_order[2])      \
             : (void)0)) \
         : (void)0)) \
     : (void)0)
