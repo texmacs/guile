@@ -1,3 +1,11 @@
+2008-06-14  Laurent Michel  <ldm@thorgal.homelinux.org>
+
+	* lightning/i386/core-64.h (jit_movi_l): When the operand is 0,
+	the XOR should be on a quadword.
+	* lightning/i386/core-64.h (jit_prolog): Keep 16-byte stack
+	alignment.
+	(jit_ret): Always use LEAVE.
+
 2008-06-13  Laurent Michel  <ldm@thorgal.homelinux.org>
 
 	* lightning/i386/core-64.h: Add (void) casts for C++ compatibility.

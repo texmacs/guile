@@ -118,8 +118,10 @@ struct jit_local_state {
 #define jit_pushr_i(rs)		PUSHQr(rs)
 #define jit_popr_i(rs)		POPQr(rs)
 
-#define jit_base_prolog() (PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
-#define jit_prolog(n) (_jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, jit_base_prolog())
+/* A return address is 8 bytes, plus 4 registers = 32 byte, total = 40 bytes.
+   The final push of EBX keeps the stack aligned to 16 bytes.  */
+#define jit_prolog(n) (_jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
+		       PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX))
 
 #define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLsr(JIT_REXTMP))
 #define jit_callr(reg)		CALLsr((reg))
@@ -167,7 +169,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
                                  ? (_u32P((long)(is)) \
                                     ? MOVLir((is), (d)) \
                                     : MOVQir((is), (d))) \
-                                 : XORLrr ((d), (d)) )
+                                 : XORQrr ((d), (d)) )
 
 #define jit_bmsr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JNZm(label), _jit.x.pc)
 #define jit_bmcr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JZm(label),  _jit.x.pc)
@@ -184,7 +186,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v)))
 #define jit_patch_short_at(jump_pc,v)  (*_PSI((jump_pc) - sizeof(int)) = _jit_SI((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v) (_jitl.long_jumps ? jit_patch_long_at((jump_pc)-3, v) : jit_patch_short_at(jump_pc, v))
-#define jit_ret() ((_jitl.alloca_offset < 0 ? LEAVE_() : POPQr(_EBP)), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
+#define jit_ret()			(LEAVE_(), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
 
 /* Memory */
 
