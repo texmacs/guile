@@ -1,3 +1,8 @@
+2008-06-15  Paolo Bonzini  <bonzini@gnu.org>
+
+        * lightning/i386/core-64.h: Rewrite argument passing to
+	support up to 6 arguments and generate less code.
+
 2008-06-14  Laurent Michel  <ldm@thorgal.homelinux.org>
 
 	* lightning/i386/core-64.h (jit_movi_l): When the operand is 0,

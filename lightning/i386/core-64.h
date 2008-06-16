@@ -36,8 +36,7 @@
 
 /* Used to implement ldc, stc, ... */
 #define JIT_CAN_16 0
-#define JIT_CALLTMPSTART 0x48
-#define JIT_REXTMP       0x4B
+#define JIT_REXTMP		_R9D
 
 #define JIT_V_NUM               3
 #define JIT_V(i)                ((i) == 0 ? _EBX : _R11D + (i))
@@ -127,27 +126,20 @@ struct jit_local_state {
 #define jit_callr(reg)		CALLsr((reg))
 
 /* Stack isn't used for arguments: */
-#define jit_prepare_i(ni)	(_jitl.argssize = 0)
+#define jit_prepare_i(ni)	(_jitl.argssize = (ni))
 
-#define jit_pusharg_i(rs)	(_jitl.argssize++, MOVQrr(rs, JIT_CALLTMPSTART + _jitl.argssize - 1))
-#define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
-				 jit_shift_args(), \
+#define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_temp[_jitl.argssize]))
+#define jit_finish(sub)         (jit_shift_args(), \
+				 MOVQir((long) (sub), JIT_REXTMP), \
 				 CALLsr(JIT_REXTMP))
-#define jit_reg_is_arg(reg)     ((reg == _EDI) || (reg ==_ESI) || (reg == _EDX))
+#define jit_reg_is_arg(reg)     ((reg) == _ECX || (reg) == _EDX)
 #define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
                                  jit_shift_args(), \
                                  CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)))
 
 #define jit_shift_args() \
-   (_jitl.argssize--  \
-    ? ((void)MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[0]), \
-       (_jitl.argssize--  \
-        ? ((void)MOVQrr(JIT_CALLTMPSTART + _jitl.argssize, jit_arg_reg_order[1]), \
-           (_jitl.argssize--  \
-            ? (void)MOVQrr(JIT_CALLTMPSTART, jit_arg_reg_order[2])      \
-            : (void)0)) \
-        : (void)0)) \
-    : (void)0)
+   ((_jitl.argssize >= 3 ? (void) (MOVQrr(_R10D, _RDX)) : (void) 0), \
+    (_jitl.argssize >= 4 ? (void) (MOVQrr(_R11D, _RCX)) : (void) 0))
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
 #define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
@@ -159,8 +151,9 @@ struct jit_local_state {
 #define	jit_arg_l()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
 #define	jit_arg_ul()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
 #define	jit_arg_p()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_up()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX };
+
+static int jit_arg_reg_temp[] = { _EDI, _ESI, _R10D, _R11D, _R8D, _R9D };
+static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )
 #define jit_movr_l(d, rs)	((void)((rs) == (d) ? 0 : MOVQrr((rs), (d))))
