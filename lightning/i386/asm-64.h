@@ -276,10 +276,10 @@
 #define IDIVQr(RS)			_UNARYQr(X86_IDIV, RS)
 #define IDIVQm(MD, MB, MI, MS)		_UNARYQm(X86_IDIV, MD, MB, MI, MS)
 
-#define IMULQir(IM, RD)			(_REXQrr(0, RD),		_Os_Mrm_sL	(0x69		,_b11,_r8(RD),_r8(RD)			,IM	))
+#define IMULQir(IM, RD)			IMULQirr(IM, RD, RD)
 #define IMULQrr(RS, RD)			(_REXQrr(RD, RS),		_OO_Mrm		(0x0faf		,_b11,_r8(RD),_r8(RS)				))
 #define IMULQmr(MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_OO_r_X		(0x0faf		     ,_r8(RD)		,MD,MB,MI,MS		))
-#define IMULQirr(IM,RS,RD)		(_REXQrr(RS, RD),		_Os_Mrm_sL	(0x69		,_b11,_r8(RS),_r8(RD)			,IM	))
+#define IMULQirr(IM,RS,RD)		(_REXQrr(RD, RS),		_Os_Mrm_sL	(0x69		,_b11,_r8(RS),_r8(RD)			,IM	))
 #define IMULQimr(IM,MD,MB,MI,MS,RD)	(_REXQmr(MB, MI, RD),		_Os_r_X_sL	(0x69		     ,_r8(RD)		,MD,MB,MI,MS	,IM	))
 
 #define CALLQsr(R)			(_REXQrr(0, R),			_O_Mrm		(0xff		,_b11,_b010,_r8(R)				))
