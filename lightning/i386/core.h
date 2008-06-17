@@ -72,7 +72,7 @@
 	(jit_check8(d)						\
 	 ? ((cmp),						\
              MOVLir(0, (d)),					\
-             op(_rN(d) | _AL))					\
+             op(_rR(d) | _AL))					\
 	 : (jit_pushr_i(_EAX), (cmp),				\
             MOVLir(0, _EAX),					\
             op(_AL), MOVLrr(_EAX, (d)), jit_popr_i(_EAX)))

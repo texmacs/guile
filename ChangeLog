@@ -1,3 +1,7 @@
+2008-06-17  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: Fix _rN vs. _rR.
+
 2008-06-16  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core.h: Use jit_save in jit_replace.  Move JIT_R
