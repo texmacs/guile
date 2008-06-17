@@ -38,6 +38,8 @@
 #define JIT_CAN_16 0
 #define JIT_REXTMP		_R9D
 
+#define JIT_R_NUM		3
+#define JIT_R(i)                ((i) == 0 ? _EAX : _R9D + (i))
 #define JIT_V_NUM               3
 #define JIT_V(i)                ((i) == 0 ? _EBX : _R11D + (i))
 
@@ -51,6 +53,9 @@ struct jit_local_state {
   int   alloca_slack;
 };
 
+/* Whether a register in the "low" bank is used for the user-accessible
+   registers.  */
+#define jit_save(reg)		((reg) == _EAX || (reg) == _EBX)
 
 /* Keep the stack 16-byte aligned, the SSE hardware prefers it this way.  */
 #define jit_allocai_internal(amount, slack)                           \
@@ -128,18 +133,12 @@ struct jit_local_state {
 /* Stack isn't used for arguments: */
 #define jit_prepare_i(ni)	(_jitl.argssize = (ni))
 
-#define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_temp[_jitl.argssize]))
-#define jit_finish(sub)         (jit_shift_args(), \
-				 MOVQir((long) (sub), JIT_REXTMP), \
+#define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_order[_jitl.argssize]))
+#define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
 				 CALLsr(JIT_REXTMP))
 #define jit_reg_is_arg(reg)     ((reg) == _ECX || (reg) == _EDX)
 #define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
-                                 jit_shift_args(), \
                                  CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)))
-
-#define jit_shift_args() \
-   ((_jitl.argssize >= 3 ? (void) (MOVQrr(_R10D, _RDX)) : (void) 0), \
-    (_jitl.argssize >= 4 ? (void) (MOVQrr(_R11D, _RCX)) : (void) 0))
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
 #define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
@@ -152,7 +151,6 @@ struct jit_local_state {
 #define	jit_arg_ul()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
 #define	jit_arg_p()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
 
-static int jit_arg_reg_temp[] = { _EDI, _ESI, _R10D, _R11D, _R8D, _R9D };
 static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )
@@ -185,8 +183,8 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
 /* Used to implement ldc, stc, ... We have SIL and friends which simplify it all.  */
 #define jit_check8(rs)          1
-#define jit_reg8(rs)            (_rN(rs) | _AL )
-#define jit_reg16(rs)           (_rN(rs) | _AX )
+#define jit_reg8(rs)            (_rR(rs) | _AL )
+#define jit_reg16(rs)           (_rR(rs) | _AX )
 #define jit_movbrm(rs, dd, db, di, ds)         MOVBrm(jit_reg8(rs), dd, db, di, ds)
 
 #define jit_ldi_c(d, is)                (_u32P((long)(is)) ? MOVSBLmr((is), 0,    0,    0, (d)) :  (jit_movi_l(JIT_REXTMP, is), jit_ldr_c(d, JIT_REXTMP)))

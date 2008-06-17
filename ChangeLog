@@ -1,3 +1,13 @@
+2008-06-16  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: Use jit_save in jit_replace.  Move JIT_R
+	definition...
+	* lightning/i386/core-32.h: ... here; define jit_save so that
+	the core.h has no effect on the 32-bit backend.
+	* lightning/i386/core-64.h: Place JIT_R1/JIT_R2 in R10/R11,
+	place outgoing arguments in the right spot from the beginning,
+	define jit_save, fix jit_reg8/jit_reg16.
+
 2008-06-15  Paolo Bonzini  <bonzini@gnu.org>
 
         * lightning/i386/core-64.h: Rewrite argument passing to

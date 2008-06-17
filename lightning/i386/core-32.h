@@ -36,6 +36,9 @@
 
 #define JIT_CAN_16 1
 #define JIT_AP			_EBP
+
+#define JIT_R_NUM		3
+#define JIT_R(i)		(_EAX + (i))
 #define JIT_V_NUM		3
 #define JIT_V(i)		((i) == 0 ? _EBX : _ESI + (i) - 1)
 
@@ -45,6 +48,9 @@ struct jit_local_state {
   int	alloca_offset;
   int	alloca_slack;
 };
+
+/* Whether a register is used for the user-accessible registers.  */
+#define jit_save(reg)		1
 
 #define jit_base_prolog() (_jitl.framesize = 20, _jitl.alloca_offset = 0, \
   PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))

@@ -38,9 +38,6 @@
 #define JIT_SP			_ESP
 #define JIT_RET			_EAX
 
-#define JIT_R_NUM		3
-#define JIT_R(i)		(_EAX + (i))
-
 
 /* 3-parameter operation */
 #define jit_opr_(d, s1, s2, op1d, op2d)					\
@@ -64,7 +61,11 @@
 /* An operand is forced into a register */
 #define jit_replace(rd, rs, forced, op)					\
 	((rd == forced) ? JITSORRY("Register conflict for " # op) :	\
-	 (rs == forced) ? op : (jit_pushr_i(forced), MOVLrr(rs, forced), op, jit_popr_i(forced)))
+	 (rs == forced)	? op :						\
+	 jit_save (forced)						\
+	  ? (jit_pushr_i(forced), jit_movr_l(rs, forced), op,		\
+	     jit_popr_i(forced))					\
+	  : (jit_movr_l(rs, forced), op))
 
 /* For LT, LE, ... */
 #define jit_replace8(d, cmp, op)				\
