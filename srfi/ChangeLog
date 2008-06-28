@@ -1,3 +1,8 @@
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-19.scm (priv:read-tai-utc-data): Use `eof-object?'
+	instead of comparing LINE with `eof'.
+
 2008-04-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-1.c (scm_srfi1_partition): Properly type-check LIST.
