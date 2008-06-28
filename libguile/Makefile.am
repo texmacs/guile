@@ -32,7 +32,7 @@ DEFAULT_INCLUDES =
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(top_srcdir) -I$(top_builddir)
+AM_CPPFLAGS = -I.. -I$(top_srcdir) -I$(top_builddir)
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
@@ -48,7 +48,7 @@ gen_scmconfig_SOURCES = gen-scmconfig.c
 ## For some reason, OBJEXT does not include the dot
 gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
@@ -76,7 +76,7 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(AM_CPPFLAGS) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
@@ -270,7 +270,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@mv libpath.tmp libpath.h
 
 
-snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x .doc
 .c.x:
@@ -320,7 +320,7 @@ schemelibdir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
 schemelib_DATA = guile-procedures.txt
 
 ## Add -MG to make the .x magic work with auto-dep code.
-MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 cpp_err_symbols.c: cpp_err_symbols.in cpp_cnvt.awk
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
