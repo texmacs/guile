@@ -7,6 +7,10 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 1.8.6 (since 1.8.5)
 
+* New features (see the manual for details)
+
+** New convenience function `scm_c_symbol_length ()'
+
 * Bugs fixed
 
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
