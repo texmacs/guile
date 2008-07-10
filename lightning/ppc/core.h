@@ -259,8 +259,8 @@ struct jit_local_state {
 #define jit_orr_i(d, s1, s2)				  ORrrr((d), (s1), (s2))
 
 #ifdef JIT_NEED_PUSH_POP
-#define jit_popr_i(rs)			(LWZrm((rs), 8, 1), ADDIrri(1, 1, 4))
-#define jit_pushr_i(rs)			(STWrm((rs), 4, 1), ADDIrri (1, 1, -4))
+#define jit_popr_i(rs)			(LWZrm((rs),  0, 1), ADDIrri(1, 1, 4))
+#define jit_pushr_i(rs)			(STWrm((rs), -4, 1), ADDIrri (1, 1, -4))
 #endif
 
 #define jit_prepare_i(numi)		(_jitl.nextarg_puti = numi)

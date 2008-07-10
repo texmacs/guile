@@ -67,8 +67,8 @@ jit_flush_code(void *start, void *end)
         break;
   }
 
-  start -= ((long) start) & (cache_line_size - 1);
-  end -= ((long) end) & (cache_line_size - 1);
+  start =(void*)( (long)start - (((long) start) & (cache_line_size - 1)));
+  end   =(void*)( (long)end   - (((long) end) & (cache_line_size - 1)));
 
   /* Force data cache write-backs */
   for (ddest = (char *) start; ddest <= (char *) end; ddest += cache_line_size) {

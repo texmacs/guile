@@ -1,3 +1,13 @@
+2008-07-02  Laurent Michel  <ldm@engr.uconn.edu>
+
+	* lightning/ppc/funcs.h (jit_flush_code): modified the computation
+	of start/end. The pointer arithmetic was done without casting. It
+	prevented compilation with recent gcc versions. 
+	* lightning/ppc/core.h (jit_pushr_i): The offset for the store was
+	incorrect. Should have been 4 bytes below SP (not above).
+	* lightning/ppc/core.h (jit_popr_i): The offset for the load was 
+	incorrect. Should have been 0 (not +8). 
+
 2008-06-17  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/asm-64.h: Forward IMULQir to IMULQirr,
