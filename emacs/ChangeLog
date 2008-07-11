@@ -1,3 +1,9 @@
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-scheme.el (gds-eval-region, gds-eval-expression)
+	(gds-eval-defun, gds-eval-last-sexp): Support `C-u' prefix,
+	meaning that user wants to single step through the code.
+
 2008-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am, gds-scheme.el, gds-server.el, gds.el: New (merged

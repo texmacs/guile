@@ -352,7 +352,7 @@ Thanks!\n\n"
 
     ((eval)
      (set! last-lazy-trap-context #f)
-     (apply (lambda (correlator module port-name line column code)
+     (apply (lambda (correlator module port-name line column code flags)
               (with-input-from-string code
                 (lambda ()
                   (set-port-filename! (current-input-port) port-name)
@@ -380,7 +380,13 @@ Thanks!\n\n"
                                            (+ n 1))))
                               ;; Another complete expression read; add
                               ;; it to the list.
-			      (loop (cons x exprs) (read)))))
+			      (begin
+				(if (and (pair? x)
+					 (memq 'debug flags))
+				    (install-trap (make <source-trap>
+						    #:expression x
+						    #:behaviour gds-debug-trap)))
+				(loop (cons x exprs) (read))))))
                       (lambda (key . args)
                         (write-form `(eval-results
                                       ,correlator
