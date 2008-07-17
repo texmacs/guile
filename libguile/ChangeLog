@@ -1,3 +1,13 @@
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	From Thiemo Seufer <ths@networkno.de>:
+	
+	* gc_os_dep.c (CPP_WORDSZ, ALIGN_DOUBLE, DATAEND,
+        DYNAMIC_LOADING): Added #defines.
+        (_fdata, _end): Added declarations.
+        (DATASTART): Use _fdata instead of __data_start.
+        (STACKBOTTOM): Changed from 0x80000000 to 0x7fff8000.
+
 2008-07-05  Ludovic Courtès  <ludo@gnu.org>
 
 	* strings.c (scm_c_symbol_length): New function.
