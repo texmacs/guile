@@ -1,3 +1,9 @@
+2008-08-14  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Remove incorrect and pointless
+	`AC_CONFIG_MACRO_DIR' invocation.  Reported as Gentoo bug
+	#220339.
+
 2008-08-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (SCM_I_GSC_STACK_GROWS_UP): Remove use of
