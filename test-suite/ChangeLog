@@ -15,11 +15,6 @@
 	<inttypes.h> doesn't define `PRIiMAX'.  Reported by Peter
 	O'Gorman <pogma@thewrittenword.com>.
 
-2008-05-31  Ludovic Courtès  <ludo@gnu.org>
-
-	* standalone/test-gh.c (string_equal): Use `scm_c_string_length ()'
-	instead of `scm_i_string_length ()'.
-	
 2008-04-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-1.test (partition)[with improper list]: New test.
