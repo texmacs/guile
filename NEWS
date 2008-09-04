@@ -19,11 +19,6 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 
 * Bugs fixed
 
-** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
-
-This makes these internal functions technically not callable from
-application code.
-
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
