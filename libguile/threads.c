@@ -1030,9 +1030,9 @@ fat_mutex_lock (SCM mutex)
     {
       while (1)
 	{
-	  block_self (m->waiting, mutex, &m->lock, NULL);
 	  if (scm_is_eq (m->owner, thread))
 	    break;
+	  block_self (m->waiting, mutex, &m->lock, NULL);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&m->lock);

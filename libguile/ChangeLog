@@ -1,3 +1,8 @@
+2008-09-06  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (fat_mutex_lock): Resolve a deadlock caused by not
+	checking mutex state after calling `SCM_TICK'.
+
 2008-08-20  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c, filesys.c, gc.c, numbers.c, posix.c, srfi-14.c,
