@@ -65,6 +65,8 @@ AC_LANG([C])
 dnl Some more checks for Win32
 AC_CANONICAL_HOST
 
+AB_INIT
+
 AC_LIBTOOL_WIN32_DLL
 
 AC_PROG_INSTALL
