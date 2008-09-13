@@ -30,15 +30,17 @@ EXTRA_DIST =
 
 TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
-test_cflags = \
-  -I$(top_srcdir)/test-suite/standalone \
-  -I$(top_srcdir) \
+test_cflags =					\
+  -I$(top_srcdir)/test-suite/standalone		\
+  -I$(top_srcdir) -I$(top_builddir)		\
   $(EXTRA_DEFS) $(GUILE_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
-snarfcppopts = \
-  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
+snarfcppopts =						\
+  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)	\
+  -I$(top_srcdir) -I$(top_builddir)
+
 SUFFIXES = .x
 .c.x:
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
