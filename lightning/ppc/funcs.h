@@ -67,6 +67,9 @@ jit_flush_code(void *start, void *end)
         break;
   }
 
+  /* Point end to the last byte being flushed.  */
+  end   =(void*)( (long)(end - 1));
+
   start =(void*)( (long)start - (((long) start) & (cache_line_size - 1)));
   end   =(void*)( (long)end   - (((long) end) & (cache_line_size - 1)));
 

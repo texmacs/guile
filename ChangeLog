@@ -1,3 +1,8 @@
+2008-10-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h (jit_flush_code): Subtract 1 from end.
+	Reported by Eli Barzilay and Matthew Flatt.
+
 2008-08-23  Nix  <nix@esperi.org.uk>
 
 	* lightning/i386/Makefile.frag: fp-32.h and fp-64.h are target files.
