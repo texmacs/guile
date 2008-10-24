@@ -218,7 +218,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
     c-tokenize.lex version.h.in						\
-    scmconfig.h.top gettext.h
+    scmconfig.h.top gettext.h measure-hwm.scm
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
