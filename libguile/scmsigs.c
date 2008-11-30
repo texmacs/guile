@@ -127,8 +127,10 @@ static int signal_pipe[2];
 static SIGRETTYPE
 take_signal (int signum)
 {
+  size_t count;
   char sigbyte = signum;
-  write (signal_pipe[1], &sigbyte, 1);
+
+  count = write (signal_pipe[1], &sigbyte, 1);
 
 #ifndef HAVE_SIGACTION
   signal (signum, take_signal);
