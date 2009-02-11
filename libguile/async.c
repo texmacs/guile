@@ -152,7 +152,7 @@ scm_async_click ()
      invoked even when pending_asyncs is zero.
   */
 
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  scm_i_pthread_mutex_lock (&async_mutex);
   t->pending_asyncs = 0;
   if (t->block_asyncs == 0)
     {
@@ -197,7 +197,7 @@ scm_i_queue_async_cell (SCM c, scm_i_thread *t)
   int sleep_fd;
   SCM p;
   
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  scm_i_pthread_mutex_lock (&async_mutex);
   p = t->active_asyncs;
   SCM_SETCDR (c, SCM_EOL);
   if (!scm_is_pair (p))
@@ -263,7 +263,7 @@ scm_i_setup_sleep (scm_i_thread *t,
 {
   int pending;
 
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  scm_i_pthread_mutex_lock (&async_mutex);
   pending = t->pending_asyncs;
   if (!pending)
     {
@@ -278,7 +278,7 @@ scm_i_setup_sleep (scm_i_thread *t,
 void
 scm_i_reset_sleep (scm_i_thread *t)
 {
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
+  scm_i_pthread_mutex_lock (&async_mutex);
   t->sleep_object = SCM_BOOL_F;
   t->sleep_mutex = NULL;
   t->sleep_fd = -1;
