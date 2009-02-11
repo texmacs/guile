@@ -465,13 +465,19 @@ guilify_self_1 (SCM_STACKITEM *base)
 
   scm_i_pthread_setspecific (scm_i_thread_key, t);
 
-  scm_i_pthread_mutex_lock (&t->heap_mutex);
-
+  /* As soon as this thread adds itself to the global thread list, the
+     GC may think that it has a stack that needs marking.  Therefore
+     initialize t->top to be the same as t->base, just in case GC runs
+     before the thread can lock its heap_mutex for the first time. */
+  t->top = t->base;
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
   all_threads = t;
   thread_count++;
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
+  /* Enter Guile mode. */
+  scm_enter_guile (t);
 }
 
 /* Perform second stage of thread initialisation, in guile mode.
