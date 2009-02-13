@@ -38,8 +38,6 @@
 
 
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-
 struct issued_warning {
   struct issued_warning *prev;
   const char *message;
@@ -135,8 +133,6 @@ print_deprecation_summary (void)
     }
 }
 
-#endif /* SCM_ENABLE_DEPRECATED == 1 */
-
 SCM_DEFINE(scm_include_deprecated_features,
 	   "include-deprecated-features", 0, 0, 0,
 	   (),
@@ -154,7 +150,6 @@ SCM_DEFINE(scm_include_deprecated_features,
 void
 scm_init_deprecation ()
 {
-#if (SCM_ENABLE_DEPRECATED == 1)
   const char *level = getenv ("GUILE_WARN_DEPRECATED");
   if (level == NULL)
     level = SCM_WARN_DEPRECATED_DEFAULT;
@@ -167,7 +162,6 @@ scm_init_deprecation ()
       SCM_WARN_DEPRECATED = 0;
       atexit (print_deprecation_summary);
     }
-#endif
 #include "libguile/deprecation.x"
 }
 
