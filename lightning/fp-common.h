@@ -85,6 +85,23 @@
 #define jit_retval_f(rs)		jit_retval_d(rs)
 #endif
 
+#ifndef jit_beqr_f
+#define jit_beqr_f(lab, a, b)		jit_beqr_d(lab, a, b)
+#define jit_bner_f(lab, a, b)		jit_bner_d(lab, a, b)
+#define jit_bgtr_f(lab, a, b)		jit_bgtr_d(lab, a, b)
+#define jit_bger_f(lab, a, b)		jit_bger_d(lab, a, b)
+#define jit_bltr_f(lab, a, b)		jit_bltr_d(lab, a, b)
+#define jit_bler_f(lab, a, b)		jit_bler_d(lab, a, b)
+#define jit_buneqr_f(lab, a, b)		jit_buneqr_d(lab, a, b)
+#define jit_bltgtr_f(lab, a, b)		jit_bltgtr_d(lab, a, b)
+#define jit_bungtr_f(lab, a, b)		jit_bungtr_d(lab, a, b)
+#define jit_bunger_f(lab, a, b)		jit_bunger_d(lab, a, b)
+#define jit_bunltr_f(lab, a, b)		jit_bunltr_d(lab, a, b)
+#define jit_bunler_f(lab, a, b)		jit_bunler_d(lab, a, b)
+#define jit_bordr_f(lab, a, b)		jit_bordr_d(lab, a, b)
+#define jit_bunordr_f(lab, a, b)	jit_bunordr_d(lab, a, b)
+#endif
+
 #ifndef jit_retval_f
 #define jit_retval_f(op1)            jit_movr_f((op1), JIT_FPRET)
 #endif

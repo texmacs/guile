@@ -1,3 +1,10 @@
+2009-02-17  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/fp-common.h: Define double branches if missing.
+	* lightning/i386/asm.h: Define JC and JNC mnemonics.
+	* lightning/i386/fp-32.h: Fix jit_fp_btest.  All reported
+	by Mike Spivey.
+
 2008-10-09  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/ppc/funcs.h (jit_flush_code): Subtract 1 from end.
