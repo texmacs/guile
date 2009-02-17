@@ -262,7 +262,7 @@ union jit_double_imm {
         ((cmp) ? CMPLir ((cmp), _AL) : 0),                     \
         POPLr(_EAX),                                           \
         res ((d)),					       \
-	_jit.x.ppc)
+	_jit.x.pc)
 
 #define jit_nothing_needed(x)
 

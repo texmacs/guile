@@ -1,5 +1,9 @@
 2009-02-17  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/fp-32.h: Another fix to jit_fp_btest.
+
+2009-02-17  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/fp-common.h: Define double branches if missing.
 	* lightning/i386/asm.h: Define JC and JNC mnemonics.
 	* lightning/i386/fp-32.h: Fix jit_fp_btest.  All reported
