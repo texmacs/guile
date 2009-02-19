@@ -63,7 +63,7 @@
 	((rd == forced) ? JITSORRY("Register conflict for " # op) :	\
 	 (rs == forced)	? op :						\
 	 jit_save (forced)						\
-	  ? (jit_pushr_i(forced), jit_movr_l(rs, forced), op,		\
+	  ? (jit_pushr_i(forced), jit_movr_l(forced, rs), op,		\
 	     jit_popr_i(forced))					\
 	  : (jit_movr_l(rs, forced), op))
 

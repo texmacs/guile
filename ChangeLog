@@ -1,3 +1,7 @@
+2009-02-17  Mike Spivey  <mike@comlab.ox.ac.uk>
+
+	* lightning/i386/core.h: Fix blunder in operand order.
+
 2009-02-17  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp-32.h: Another fix to jit_fp_btest.
