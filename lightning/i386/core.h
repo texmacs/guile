@@ -58,15 +58,6 @@
 #define jit_opi_(d, rs, opdi, opdri)			\
 	((rs == d) ? opdi : opdri)
 
-/* An operand is forced into a register */
-#define jit_replace(rd, rs, forced, op)					\
-	((rd == forced) ? JITSORRY("Register conflict for " # op) :	\
-	 (rs == forced)	? op :						\
-	 jit_save (forced)						\
-	  ? (jit_pushr_i(forced), jit_movr_l(forced, rs), op,		\
-	     jit_popr_i(forced))					\
-	  : (jit_movr_l(rs, forced), op))
-
 /* For LT, LE, ... */
 #define jit_replace8(d, cmp, op)				\
 	(jit_check8(d)						\
@@ -239,12 +230,32 @@
 
 
 /* Shifts */
+#define jit_shift(d, s1, s2, m)					\
+     ((d) == _ECX || (d) == (s2)				\
+      ? ((s2) == _EAX						\
+	 ? jit_fixd(d, _EDX, jit_shift2(_EDX, s1, s2, m))	\
+	 : jit_fixd(d, _EAX, jit_shift2(_EAX, s1, s2, m)))	\
+      : jit_shift2(d, s1, s2, m))
+
+/* Shift operation, assuming d != s2 or ECX */
+#define jit_shift2(d, s1, s2, m)				\
+     jit_op_(d, s1, jit_cfixs(s2, _ECX, m(_CL, d)))
+
+/* Substitute x for destination register d */
+#define jit_fixd(d, x, op)					\
+     (jit_pushr_i(x), op, jit_movr_i(d, x), jit_popr_i(x))
+
+/* Conditionally substitute y for source register s */
+#define jit_cfixs(s, y, op)					\
+     ((s) == (y) ? op :						\
+      (jit_pushr_i(y), jit_movr_i(y, s), op, jit_popr_i(y)))
+
 #define jit_lshi_i(d, rs, is)	((is) <= 3 ?   LEALmr(0, 0, (rs), 1 << (is), (d))   :   jit_op_ ((d), (rs), SHLLir((is), (d)) ))
 #define jit_rshi_i(d, rs, is)								jit_op_ ((d), (rs), SARLir((is), (d))  )
 #define jit_rshi_ui(d, rs, is)								jit_op_ ((d), (rs), SHRLir((is), (d))  )
-#define jit_lshr_i(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_op_ ((d), (r1), SHLLrr(_CL,  (d)) ))
-#define jit_rshr_i(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_op_ ((d), (r1), SARLrr(_CL,  (d)) ))
-#define jit_rshr_ui(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_op_ ((d), (r1), SHRLrr(_CL,  (d)) ))
+#define jit_lshr_i(d, r1, r2)	jit_shift((d), (r1), (r2), SHLLrr)
+#define jit_rshr_i(d, r1, r2)	jit_shift((d), (r1), (r2), SARLrr)
+#define jit_rshr_ui(d, r1, r2)	jit_shift((d), (r1), (r2), SHRLrr)
 
 /* Stack */
 #define jit_retval_i(rd)	((void)jit_movr_i ((rd), _EAX))

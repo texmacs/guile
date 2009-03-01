@@ -114,9 +114,10 @@ struct jit_local_state {
 #define jit_lshi_l(d, rs, is)	((is) <= 3 ?   LEAQmr(0, 0, (rs), 1 << (is), (d))   :   jit_qop_small ((d), (rs), SHLQir((is), (d)) ))
 #define jit_rshi_l(d, rs, is)								jit_qop_small ((d), (rs), SARQir((is), (d))  )
 #define jit_rshi_ul(d, rs, is)								jit_qop_small ((d), (rs), SHRQir((is), (d))  )
-#define jit_lshr_l(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_small ((d), (r1), SHLQrr(_CL,  (d)) ))
-#define jit_rshr_l(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_small ((d), (r1), SARQrr(_CL,  (d)) ))
-#define jit_rshr_ul(d, r1, r2)	jit_replace((r1), (r2), _ECX, 				jit_qop_small ((d), (r1), SHRQrr(_CL,  (d)) ))
+#define jit_lshr_l(d, r1, r2)	jit_shift((d), (r1), (r2), SHLQrr)
+#define jit_rshr_l(d, r1, r2)	jit_shift((d), (r1), (r2), SARQrr)
+#define jit_rshr_ul(d, r1, r2)	jit_shift((d), (r1), (r2), SHRQrr)
+
 
 /* Stack */
 #define jit_pushr_i(rs)		PUSHQr(rs)

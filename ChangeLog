@@ -1,3 +1,13 @@
+2009-03-01  Paolo Bonzini  <bonzini@gnu.org>
+
+        * lightning/i386/core-64.h: Use Mike's macros for x86-64 too.
+        * lightning/i386/core.h: Remove jit_replace.
+
+	2009-02-27  Mike Spivey  <mike@comlab.ox.ac.uk>
+
+        * lightning/i386/core.h: Rewrite shift-handling macros.
+        * lightning/fp-common.h: Fix jit_extr_{f_d,d_f}.
+
 2009-02-17  Mike Spivey  <mike@comlab.ox.ac.uk>
 
 	* lightning/i386/core.h: Fix blunder in operand order.
