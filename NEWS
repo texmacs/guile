@@ -22,6 +22,7 @@ Now it works as you would expect (giving the value of the specified
 module binding).
 
 ** Have `scm_take_locale_symbol ()' return an interned symbol (bug #25865)
+** Fix potential deadlocks when running on multiple threads
 
 
 Changes in 1.8.6 (since 1.8.5)
