@@ -1527,13 +1527,6 @@ AC_CONFIG_FILES([
   doc/tutorial/Makefile
   emacs/Makefile
   examples/Makefile
-  examples/box-dynamic-module/Makefile
-  examples/box-dynamic/Makefile
-  examples/box-module/Makefile
-  examples/box/Makefile
-  examples/modules/Makefile
-  examples/safe/Makefile
-  examples/scripts/Makefile
   guile-config/Makefile
   ice-9/Makefile
   ice-9/debugger/Makefile
