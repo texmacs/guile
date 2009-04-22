@@ -734,10 +734,12 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #       declaration is only found if `_BSD' is defined; it's marked as
 #       discouraged in <stdlib.h> and has type `void' instead of `int'
 #       anyway.
+#   hstrerror - on Tru64 5.1b the symbol is available in libc but the
+#       declaration isn't anywhere.
 #
 AC_CHECK_HEADERS(crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
-AC_CHECK_DECLS([sethostname, strncasecmp, unsetenv])
+AC_CHECK_DECLS([sethostname, strncasecmp, unsetenv, hstrerror])
 
 # crypt() may or may not be available, for instance in some countries there
 # are restrictions on cryptography.
