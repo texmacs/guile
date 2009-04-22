@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -1335,7 +1336,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       /* We want no "=" in the argument to mean remove the variable from the
 	 environment, but not all putenv()s understand this, for example
 	 FreeBSD 4.8 doesn't.  Getting it happening everywhere is a bit
-	 painful.  What unsetenv() exists, we use that, of course.
+	 painful.  When unsetenv() exists, we use that, of course.
 
          Traditionally putenv("NAME") removes a variable, for example that's
          what we have to do on Solaris 9 (it doesn't have an unsetenv).
@@ -1359,7 +1360,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
          build would be to try "NAME" then "NAME=" at runtime, if that's not
          too much like overkill.  */
 
-#if HAVE_UNSETENV
+#if defined HAVE_UNSETENV && HAVE_DECL_UNSETENV
       /* when unsetenv() exists then we use it */
       unsetenv (c_str);
       free (c_str);
