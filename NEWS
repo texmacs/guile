@@ -15,6 +15,7 @@ Changes in 1.8.7 (since 1.8.6)
 ** Fix build problem when scm_t_timespec is different from struct timespec
 ** Fix build when compiled with -Wundef -Werror
 ** More build fixes for `alphaev56-dec-osf5.1b' (Tru64)
+** With GCC, always compile with `-mieee' on `alpha*' and `sh*'
 
 ** Allow @ macro to work with (ice-9 syncase)
 

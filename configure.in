@@ -222,6 +222,40 @@ case "$use_64_calls" in
     ;;
 esac
 
+AC_MSG_CHECKING([whether the compiler defaults to IEEE floating point behavior])
+# The following snippet was taken from Gnulib's `fpieee'.  See also the definition
+# of `guile_NaN' in `numbers.c'.
+
+# IEEE behaviour is the default on all CPUs except Alpha and SH
+# (according to the test results of Bruno Haible's ieeefp/fenv_default.m4
+# and the GCC 4.1.2 manual).
+case "$host_cpu" in
+alpha*)
+  # On Alpha systems, a compiler option provides the behaviour.
+  # See the ieee(3) manual page, also available at
+  # <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V51B_HTML/MAN/MAN3/0600____.HTM>
+  AC_MSG_RESULT([no])
+  if test -n "$GCC"; then
+    # GCC has the option -mieee.
+    CPPFLAGS="$CPPFLAGS -mieee"
+  else
+    # Compaq (ex-DEC) C has the option -ieee.
+    CPPFLAGS="$CPPFLAGS -ieee"
+  fi
+  ;;
+sh*)
+  AC_MSG_RESULT([no])
+  if test -n "$GCC"; then
+    # GCC has the option -mieee.
+    CPPFLAGS="$CPPFLAGS -mieee"
+  fi
+  ;;
+*)
+  AC_MSG_RESULT([yes])
+  ;;
+esac
+
+
 #--------------------------------------------------------------------
 
 dnl Check for dynamic linking

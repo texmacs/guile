@@ -637,6 +637,13 @@ guile_ieee_init (void)
 
 #if defined (HAVE_ISNAN)
 
+#if defined __GNUC__ && defined __alpha__ && !defined _IEEE_FP
+  /* On Alpha GCC must be passed `-mieee' to provide proper NaN handling.
+     See http://lists.gnu.org/archive/html/bug-gnulib/2009-05/msg00010.html
+     for more details.  */
+# error NaN handling will not work when compiling without -mieee
+#endif
+
 #ifdef NAN
   /* C99 NAN, when available */
   guile_NaN = NAN;
