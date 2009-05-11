@@ -1856,6 +1856,13 @@ static int flock (int fd, int operation)
 #endif /* __MINGW32__ */
 
 #if HAVE_FLOCK || defined (__MINGW32__)
+
+#ifndef __MINGW32__
+# if !HAVE_DECL_FLOCK
+extern int flock (int, int);
+# endif
+#endif
+
 SCM_DEFINE (scm_flock, "flock", 2, 0, 0, 
             (SCM file, SCM operation),
 	    "Apply or remove an advisory lock on an open file.\n"

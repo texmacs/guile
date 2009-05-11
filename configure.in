@@ -774,10 +774,12 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #       declaration isn't anywhere.
 #   cuserid - on Tru64 5.1b the declaration is documented to be available
 #       only with `_XOPEN_SOURCE' or some such.
+#   flock - on Tru64 5.1b the declaration is available from <sys/fcntl.h>
+#       but only if `_BSD' is defined.
 #
 AC_CHECK_HEADERS(crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
-AC_CHECK_DECLS([sethostname, strncasecmp, unsetenv, hstrerror, cuserid])
+AC_CHECK_DECLS([sethostname, strncasecmp, unsetenv, hstrerror, cuserid, flock])
 
 # crypt() may or may not be available, for instance in some countries there
 # are restrictions on cryptography.
