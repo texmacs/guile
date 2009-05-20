@@ -934,17 +934,14 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
   scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
 
   t = SCM_I_THREAD_DATA (thread);
-  if (!t->exited)
+  while (!t->exited)
     {
-      while (1)
-	{
-	  block_self (t->join_queue, thread, &thread_admin_mutex, NULL);
-	  if (t->exited)
-	    break;
-	  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
-	  SCM_TICK;
-	  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
-	}
+      block_self (t->join_queue, thread, &thread_admin_mutex, NULL);
+      if (t->exited)
+	break;
+      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+      SCM_TICK;
+      scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
     }
   res = t->result;
 
