@@ -80,11 +80,12 @@
 #include <crt_externs.h>  /* for Darwin _NSGetEnviron */
 #endif
 
+#if defined (__MINGW32__)
+# define tzname _tzname
+#else
 #ifndef tzname /* For SGI.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
-#if defined (__MINGW32__)
-# define tzname _tzname
 #endif
 
 #if ! HAVE_DECL_STRPTIME
