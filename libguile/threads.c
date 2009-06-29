@@ -1680,6 +1680,10 @@ scm_dynwind_critical_section (SCM mutex)
 /*** Initialization */
 
 scm_i_pthread_key_t scm_i_freelist, scm_i_freelist2;
+#ifdef __MINGW32__
+scm_i_pthread_key_t *scm_i_freelist_ptr = &scm_i_freelist;
+scm_i_pthread_key_t *scm_i_freelist2_ptr = &scm_i_freelist2;
+#endif
 scm_i_pthread_mutex_t scm_i_misc_mutex;
 
 #if SCM_USE_PTHREAD_THREADS

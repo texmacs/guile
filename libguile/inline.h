@@ -109,10 +109,18 @@ SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM z;
+#ifdef __MINGW32__
+  SCM *freelist = SCM_FREELIST_LOC (*scm_i_freelist_ptr);
+#else
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
+#endif
 
   if (scm_is_null (*freelist))
+#ifdef __MINGW32__
+    z = scm_gc_for_newcell (scm_i_master_freelist_ptr, freelist);
+#else
     z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
+#endif
   else
     {
       z = *freelist;
@@ -180,10 +188,18 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
+#ifdef __MINGW32__
+  SCM *freelist = SCM_FREELIST_LOC (*scm_i_freelist2_ptr);
+#else
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
+#endif
 
   if (scm_is_null (*freelist))
+#ifdef __MINGW32__
+    z = scm_gc_for_newcell (scm_i_master_freelist2_ptr, freelist);
+#else
     z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
+#endif
   else
     {
       z = *freelist;

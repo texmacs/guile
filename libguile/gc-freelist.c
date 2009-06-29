@@ -29,7 +29,10 @@
 
 scm_t_cell_type_statistics scm_i_master_freelist;
 scm_t_cell_type_statistics scm_i_master_freelist2;
-
+#ifdef __MINGW32__
+scm_t_cell_type_statistics *scm_i_master_freelist_ptr = &scm_i_master_freelist;
+scm_t_cell_type_statistics *scm_i_master_freelist2_ptr = &scm_i_master_freelist2;
+#endif
 
 
 
