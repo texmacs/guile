@@ -29,12 +29,15 @@
 
 #include <srfi/srfi-13.h>
 
+void scm_init_srfi_13_no_clash_with_libguile (void);
+void scm_init_srfi_13_14_no_clash_with_libguile (void);
+
 void
-scm_init_srfi_13 (void)
+scm_init_srfi_13_no_clash_with_libguile (void)
 {
 }
 
 void
-scm_init_srfi_13_14 (void)
+scm_init_srfi_13_14_no_clash_with_libguile (void)
 {
 }

@@ -28,8 +28,10 @@
 
 #include <srfi/srfi-4.h>
 
+void scm_init_srfi_4_no_clash_with_libguile (void);
+
 void
-scm_init_srfi_4 (void)
+scm_init_srfi_4_no_clash_with_libguile (void)
 {
 }
 
