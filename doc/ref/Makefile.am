@@ -86,7 +86,7 @@ include $(top_srcdir)/am/pre-inst-guile
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(preinstguiletool)/snarf-guile-m4-docs $(top_srcdir)/guile-config/guile.m4 \
+	GUILE="$(GUILE_FOR_BUILD)" $(top_srcdir)/scripts/snarf-guile-m4-docs $(top_srcdir)/guile-config/guile.m4 \
 	  > $(srcdir)/$@
 
 MAINTAINERCLEANFILES = autoconf-macros.texi
