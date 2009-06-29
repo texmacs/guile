@@ -22,9 +22,9 @@
 #endif
 
 #include <libguile.h>
-#include <libguile/private-gc.h>  /* for SCM_MIN */
 #include <srfi/srfi-60.h>
 
+#define SCM_MIN(A, B) ((A) < (B) ? (A) : (B))
 
 SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,
             (SCM n),
