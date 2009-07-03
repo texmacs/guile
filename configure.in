@@ -1564,8 +1564,6 @@ AC_CONFIG_FILES([
   examples/Makefile
   guile-config/Makefile
   ice-9/Makefile
-  ice-9/debugger/Makefile
-  ice-9/debugging/Makefile
   lang/Makefile
   libguile/Makefile
   oop/Makefile

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##   Copyright (C) 1998,1999,2000,2001,2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+##   Copyright (C) 1998,1999,2000,2001,2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,8 +21,6 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = debugger debugging
-
 # These should be installed and distributed.
 ice9_sources =								   \
 	and-let-star.scm boot-9.scm calling.scm common-list.scm		   \
@@ -38,12 +36,25 @@ ice9_sources =								   \
 	weak-vector.scm deprecated.scm list.scm serialize.scm		   \
 	gds-client.scm gds-server.scm
 
+ice9_debugger_sources =						\
+  debugger/command-loop.scm debugger/commands.scm		\
+  debugger/state.scm debugger/trc.scm debugger/utils.scm
+
+ice9_debugging_sources =					\
+  debugging/example-fns.scm					\
+  debugging/ice-9-debugger-extensions.scm			\
+  debugging/steps.scm debugging/trace.scm debugging/traps.scm	\
+  debugging/trc.scm
+
 subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
-subpkgdata_DATA = $(ice9_sources)
-TAGS_FILES = $(subpkgdata_DATA)
+nobase_subpkgdata_DATA =						\
+  $(ice9_sources) $(ice9_debugger_sources) $(ice9_debugging_sources)
+
+TAGS_FILES = $(nobase_subpkgdata_DATA)
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm ChangeLog-2008
+EXTRA_DIST = test.scm compile-psyntax.scm ChangeLog-2008		\
+  $(ice9_sources) $(ice9_debugger_sources) $(ice9_debugging_sources)
 
 # We expect this to never be invoked when there is not already
 # ice-9/psyntax.pp in %load-path, since compile-psyntax.scm depends
