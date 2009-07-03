@@ -1,4 +1,4 @@
-This is version 1.8.5 of Guile, Project GNU's extension language
+This is version 1.8.7 of Guile, Project GNU's extension language
 library.  Guile is an interpreter for Scheme, packaged as a library
 that you can link into your applications to give them their own
 scripting language.  Guile will eventually support other languages as
@@ -49,15 +49,6 @@ Guile requires the following external packages:
     libltdl is used for loading extensions at run-time.  It is
     available from http://www.gnu.org/software/libtool/
 
-
-Special Instructions For Some Systems =====================================
-
-We would like Guile to build on all systems using the simple
-instructions above, but it seems that a few systems still need special
-treatment.  If you can send us fixes for these problems, we'd be
-grateful.
-
-   <none yet listed>
 
 Guile specific flags Accepted by Configure =================================
 
@@ -188,14 +179,32 @@ switches specific to Guile you may find useful in some circumstances.
 
 Cross building Guile  =====================================================
 
-As of guile-1.5.x, the build process uses compiled C files for
-snarfing, and (indirectly, through libtool) for linking, and uses the
-guile executable for generating documentation.
+Guile can be cross-compiled for Windows using the i586-mingw32msvc
+cross-compiler.  To do this, you first need to cross-build Guile's
+prerequisites - GNU MP and libtool/libltdl (as described above) - and
+then cross-build Guile itself.
 
-When cross building guile, you first need to configure, build and
-install guile for your build host.
+For each of these steps, configure using an invocation like this:
 
-Then, you may configure guile for cross building, eg:
+CPPFLAGS=-I/usr/local/i586-mingw32msvc/include \
+LDFLAGS=-L/usr/local/i586-mingw32msvc/lib \
+GUILE_FOR_BUILD=/usr/local/bin/guile \
+./configure --prefix=/usr/local/i586-mingw32msvc --host=i586-mingw32msvc
+
+Then run `make' - which should complete without any errors - and `sudo
+make install'.  (`make check' doesn't work when cross-compiling,
+because the built DLLs and program cannot be run on GNU/Linux.)
+
+The `GUILE_FOR_BUILD=...' setting is needed because some later steps
+of the build process use Guile itself.  In the non-cross-compiling
+case this is the version of Guile that has just been built.  When
+cross-compiling, you have to set GUILE_FOR_BUILD to tell the build
+where it can find a native version of Guile, to use for these steps.
+
+Cross-compiling for other hosts may also work, using the following
+instructions; but this has not been recently tested.
+
+To configure Guile for cross building, for example for Cygwin:
 
     ./configure --host=i686-pc-cygwin --disable-shared
 

@@ -30,6 +30,14 @@ module binding).
 ** Have `scm_take_locale_symbol ()' return an interned symbol (bug #25865)
 ** Fix potential deadlocks when running on multiple threads
 
+** Fix problems building with the i586-mingw32msvc cross-compiler
+
+It's now possible to build Guile for Windows by using the
+i586-mingw32msvc cross-compiler on GNU/Linux.  This kind of build
+produces DLLs and a main program that can be copied to and used on a
+Windows PC.  For how to do this, see the `Cross building Guile'
+section in `README'.
+
 
 Changes in 1.8.6 (since 1.8.5)
 
