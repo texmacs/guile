@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,9 @@
 
 /* Windows defines. */
 #ifdef __MINGW32__
-#define vsnprintf _vsnprintf
+# define vsnprintf _vsnprintf
+#elif !HAVE_DECL_VSNPRINTF
+extern int vsnprintf (char *, size_t, const char *, va_list);
 #endif
 
 
