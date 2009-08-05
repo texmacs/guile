@@ -127,7 +127,7 @@ scm_make_continuation (int *first)
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
 
-  *first = !setjmp (continuation->jmpbuf);
+  *first = !SCM_I_SETJMP (continuation->jmpbuf);
   if (*first)
     {
 #ifdef __ia64__
@@ -224,12 +224,12 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   scm_i_set_last_debug_frame (continuation->dframe);
 
   continuation->throw_value = val;
-  longjmp (continuation->jmpbuf, 1);
+  SCM_I_LONGJMP (continuation->jmpbuf, 1);
 }
 
 #ifdef __ia64__
 void
-scm_ia64_longjmp (jmp_buf *JB, int VAL)
+scm_ia64_longjmp (scm_i_jmp_buf *JB, int VAL)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
