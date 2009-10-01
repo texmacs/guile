@@ -347,7 +347,7 @@ scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
       scm_remember_upto_here_1 (src);
     }
   else
-    scm_wrong_type_arg (NULL, 0, src);
+    scm_wrong_type_arg_msg ("scm_to_ipv6", 0, src, "integer");
 }
 
 #ifdef HAVE_INET_PTON
@@ -1167,7 +1167,8 @@ scm_to_sockaddr (SCM address, size_t *address_size)
 	  {
 	    struct sockaddr_in6 c_inet6;
 
-	    scm_to_ipv6 (c_inet6.sin6_addr.s6_addr, address);
+	    scm_to_ipv6 (c_inet6.sin6_addr.s6_addr,
+			 SCM_SIMPLE_VECTOR_REF (address, 1));
 	    c_inet6.sin6_port =
 	      htons (scm_to_ushort (SCM_SIMPLE_VECTOR_REF (address, 2)));
 	    c_inet6.sin6_flowinfo =
