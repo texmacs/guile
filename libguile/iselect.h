@@ -38,7 +38,12 @@
 #ifdef FD_SET
 
 #define SELECT_TYPE fd_set
+#if defined(__INTERIX) && FD_SETSIZE == 4096
+/* Interix defines FD_SETSIZE 4096 but select rejects that. */
+#define SELECT_SET_SIZE 1024
+#else
 #define SELECT_SET_SIZE FD_SETSIZE
+#endif
 
 #else /* no FD_SET */
 
