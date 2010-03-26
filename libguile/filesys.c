@@ -23,6 +23,9 @@
 #ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r */
 #endif
+#if defined(__INTERIX) && !defined(_REENTRANT)
+# define _REENTRANT   /* ask Interix for readdir_r prototype */
+#endif
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>

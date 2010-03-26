@@ -15,6 +15,7 @@ Changes in 1.8.8 (since 1.8.7)
 ** Fix `wrong type arg' exceptions with IPv6 addresses
 ** Fix typos in `(srfi srfi-19)'
 ** Have `(srfi srfi-35)' provide named struct vtables
+** Fix some Interix build problems
 
 
 Changes in 1.8.7 (since 1.8.6)
