@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -911,74 +911,6 @@ SCM_DEFINE (scm_hashx_remove_x, "hashx-remove!", 4, 0, 0,
 
 /* Hash table iterators */
 
-static const char s_scm_hash_fold[];
-
-SCM
-scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
-{
-  long i, n;
-  SCM buckets, result = init;
-  
-  if (SCM_HASHTABLE_P (table))
-    buckets = SCM_HASHTABLE_VECTOR (table);
-  else
-    buckets = table;
-  
-  n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
-  for (i = 0; i < n; ++i)
-    {
-      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
-      while (!scm_is_null (ls))
-	{
-	  if (!scm_is_pair (ls))
-	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
-	  handle = SCM_CAR (ls);
-	  if (!scm_is_pair (handle))
-	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
-	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
-	  ls = SCM_CDR (ls);
-	}
-    }
-
-  return result;
-}
-
-/* The following redundant code is here in order to be able to support
-   hash-for-each-handle.  An alternative would have been to replace
-   this code and scm_internal_hash_fold above with a single
-   scm_internal_hash_fold_handles, but we don't want to promote such
-   an API. */
-
-static const char s_scm_hash_for_each[];
-
-void
-scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
-{
-  long i, n;
-  SCM buckets;
-  
-  if (SCM_HASHTABLE_P (table))
-    buckets = SCM_HASHTABLE_VECTOR (table);
-  else
-    buckets = table;
-  
-  n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
-  for (i = 0; i < n; ++i)
-    {
-      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
-      while (!scm_is_null (ls))
-	{
-	  if (!scm_is_pair (ls))
-	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
-	  handle = SCM_CAR (ls);
-	  if (!scm_is_pair (handle))
-	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
-	  fn (closure, handle);
-	  ls = SCM_CDR (ls);
-	}
-    }
-}
-
 SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
             (SCM proc, SCM init, SCM table),
 	    "An iterator over hash-table elements.\n"
@@ -1064,6 +996,72 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 				 table);
 }
 #undef FUNC_NAME
+
+
+
+SCM
+scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
+{
+  long i, n;
+  SCM buckets, result = init;
+  
+  if (SCM_HASHTABLE_P (table))
+    buckets = SCM_HASHTABLE_VECTOR (table);
+  else
+    buckets = table;
+  
+  n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
+  for (i = 0; i < n; ++i)
+    {
+      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
+      while (!scm_is_null (ls))
+	{
+	  if (!scm_is_pair (ls))
+	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+	  handle = SCM_CAR (ls);
+	  if (!scm_is_pair (handle))
+	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
+	  ls = SCM_CDR (ls);
+	}
+    }
+
+  return result;
+}
+
+/* The following redundant code is here in order to be able to support
+   hash-for-each-handle.  An alternative would have been to replace
+   this code and scm_internal_hash_fold above with a single
+   scm_internal_hash_fold_handles, but we don't want to promote such
+   an API. */
+
+void
+scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
+{
+  long i, n;
+  SCM buckets;
+  
+  if (SCM_HASHTABLE_P (table))
+    buckets = SCM_HASHTABLE_VECTOR (table);
+  else
+    buckets = table;
+  
+  n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
+  for (i = 0; i < n; ++i)
+    {
+      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
+      while (!scm_is_null (ls))
+	{
+	  if (!scm_is_pair (ls))
+	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	  handle = SCM_CAR (ls);
+	  if (!scm_is_pair (handle))
+	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	  fn (closure, handle);
+	  ls = SCM_CDR (ls);
+	}
+    }
+}
 
 
 
