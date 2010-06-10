@@ -13,8 +13,8 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions.  This is edition @value{MANUAL-EDITION}
 corresponding to Guile @value{VERSION}.
 
-Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005 Free
-Software Foundation.
+Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+2007, 2008, 2009, 2010 Free Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
