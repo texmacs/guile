@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -620,7 +620,14 @@ guile_ieee_init (void)
 #elif HAVE_DINFINITY
   /* OSF */
   extern unsigned int DINFINITY[2];
-  guile_Inf = (*((double *) (DINFINITY)));
+  union
+  {
+    double d;
+    int i[2];
+  } alias;
+  alias.i[0] = DINFINITY[0];
+  alias.i[1] = DINFINITY[1];
+  guile_Inf = alias.d;
 #else
   double tmp = 1e+10;
   guile_Inf = tmp;
@@ -651,7 +658,14 @@ guile_ieee_init (void)
   {
     /* OSF */
     extern unsigned int DQNAN[2];
-    guile_NaN = (*((double *)(DQNAN)));
+    union
+    {
+      double d;
+      int i[2];
+    } alias;
+    alias.i[0] = DQNAN[0];
+    alias.i[1] = DQNAN[1];
+    guile_NaN = alias.d;
   }
 #else
   guile_NaN = guile_Inf / guile_Inf;
