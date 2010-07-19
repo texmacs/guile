@@ -1,6 +1,16 @@
 2010-07-19  Paolo Bonzini  <bonzini@gnu.org>
 
 	* build-aux/lightning.m4: Always set and replace lightning_frag.
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+	* config.h.in: Regenerate.
+	* configure: Regenerate.
+	* doc/Makefile.in: Regenerate.
+	* doc/lightningize.1: Regenerate.
+	* doc/version.texi: Regenerate.
+	* lightning/Makefile.in: Regenerate.
+	* opcode/Makefile.in: Regenerate.
+	* tests/Makefile.in: Regenerate.
 
 2009-03-01  Paolo Bonzini  <bonzini@gnu.org>
 
