@@ -35,9 +35,7 @@ if test -n "$cpu" && test -d "$srcdir/lightning/$cpu"; then
   AC_CONFIG_LINKS(lightning/funcs.h:$funcs_src, [], [funcs_src=$funcs_src])
 else
   $2
-  lightning_frag=/dev/null
 fi
-AC_SUBST_FILE(lightning_frag)
 
 ])
 
@@ -62,11 +60,13 @@ AM_CONDITIONAL(LIGHTNING_MAIN, (exit 1))
 AM_CONDITIONAL(HAVE_INSTALLED_LIGHTNING, test "$ac_cv_header_lightning_h" = yes)
 
 lightning=
+lightning_frag=/dev/null
 if test "$ac_cv_header_lightning_h" = yes; then
   lightning=yes
 else
   LIGHTNING_CONFIGURE_LINKS(lightning=yes, lightning=no)
 fi
+AC_SUBST_FILE(lightning_frag)
 
 AS_IF([test "$lightning" = yes], [
   AC_DEFINE(HAVE_LIGHTNING, 1, [Define if GNU lightning can be used])

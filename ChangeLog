@@ -1,3 +1,7 @@
+2010-07-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* build-aux/lightning.m4: Always set and replace lightning_frag.
+
 2009-03-01  Paolo Bonzini  <bonzini@gnu.org>
 
         * lightning/i386/core-64.h: Use Mike's macros for x86-64 too.
