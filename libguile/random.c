@@ -178,11 +178,11 @@ scm_c_exp1 (scm_t_rstate *state)
 
 unsigned char scm_masktab[256];
 
+/* Returns 32 random bits. */
 unsigned long
 scm_c_random (scm_t_rstate *state, unsigned long m)
 {
-  unsigned long r, mask;
-#if SCM_SIZEOF_UNSIGNED_LONG == 4
+  scm_t_uint32 r, mask;
   mask = (m < 0x100
 	  ? scm_masktab[m]
 	  : (m < 0x10000
@@ -191,31 +191,6 @@ scm_c_random (scm_t_rstate *state, unsigned long m)
 		? scm_masktab[m >> 16] << 16 | 0xffff
 		: scm_masktab[m >> 24] << 24 | 0xffffff)));
   while ((r = scm_the_rng.random_bits (state) & mask) >= m);
-#elif SCM_SIZEOF_UNSIGNED_LONG == 8
-  mask = (m < 0x100
-	  ? scm_masktab[m]
-	  : (m < 0x10000
-	     ? scm_masktab[m >> 8] << 8 | 0xff
-	     : (m < 0x1000000
-		? scm_masktab[m >> 16] << 16 | 0xffff
-                : (m < (1UL << 32)
-                   ? scm_masktab[m >> 24] << 24 | 0xffffff
-                   : (m < (1UL << 40)
-                      ? ((unsigned long) scm_masktab[m >> 32] << 32
-                         | 0xffffffffUL)
-                      : (m < (1UL << 48)
-                         ? ((unsigned long) scm_masktab[m >> 40] << 40
-                            | 0xffffffffffUL)
-                         : (m < (1UL << 56)
-                            ? ((unsigned long) scm_masktab[m >> 48] << 48
-                               | 0xffffffffffffUL)
-                            : ((unsigned long) scm_masktab[m >> 56] << 56
-                               | 0xffffffffffffffUL))))))));
-  while ((r = ((scm_the_rng.random_bits (state) << 32
-                | scm_the_rng.random_bits (state))) & mask) >= m);
-#else
-#error "Cannot deal with this platform's unsigned long size"
-#endif
   return r;
 }
 
@@ -239,24 +214,24 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
   SCM result = scm_i_mkbig ();
   const size_t m_bits = mpz_sizeinbase (SCM_I_BIG_MPZ (m), 2);
-  /* how many bits would only partially fill the last unsigned long? */
-  const size_t end_bits = m_bits % (sizeof (unsigned long) * SCM_CHAR_BIT);
-  unsigned long *random_chunks = NULL;
-  const unsigned long num_full_chunks =
-    m_bits / (sizeof (unsigned long) * SCM_CHAR_BIT);
-  const unsigned long num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
+  /* how many bits would only partially fill the last u32? */
+  const size_t end_bits = m_bits % (sizeof (scm_t_uint32) * SCM_CHAR_BIT);
+  scm_t_uint32 *random_chunks = NULL;
+  const scm_t_uint32 num_full_chunks =
+    m_bits / (sizeof (scm_t_uint32) * SCM_CHAR_BIT);
+  const scm_t_uint32 num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
 
   /* we know the result will be this big */
   mpz_realloc2 (SCM_I_BIG_MPZ (result), m_bits);
 
   random_chunks =
-    (unsigned long *) scm_gc_calloc (num_chunks * sizeof (unsigned long),
+    (scm_t_uint32 *) scm_gc_calloc (num_chunks * sizeof (scm_t_uint32),
                                      "random bignum chunks");
 
   do
     {
-      unsigned long *current_chunk = random_chunks + (num_chunks - 1);
-      unsigned long chunks_left = num_chunks;
+      scm_t_uint32 *current_chunk = random_chunks + (num_chunks - 1);
+      scm_t_uint32 chunks_left = num_chunks;
 
       mpz_set_ui (SCM_I_BIG_MPZ (result), 0);
       
@@ -265,23 +240,23 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
           /* generate a mask with ones in the end_bits position, i.e. if
              end_bits is 3, then we'd have a mask of ...0000000111 */
           const unsigned long rndbits = scm_the_rng.random_bits (state);
-          int rshift = (sizeof (unsigned long) * SCM_CHAR_BIT) - end_bits;
-          unsigned long mask = ((unsigned long) ULONG_MAX) >> rshift;
-          unsigned long highest_bits = rndbits & mask;
+          int rshift = (sizeof (scm_t_uint32) * SCM_CHAR_BIT) - end_bits;
+          scm_t_uint32 mask = 0xffffffff >> rshift;
+          scm_t_uint32 highest_bits = ((scm_t_uint32) rndbits) & mask;
           *current_chunk-- = highest_bits;
           chunks_left--;
         }
       
       while (chunks_left)
         {
-          /* now fill in the remaining unsigned long sized chunks */
+          /* now fill in the remaining scm_t_uint32 sized chunks */
           *current_chunk-- = scm_the_rng.random_bits (state);
           chunks_left--;
         }
       mpz_import (SCM_I_BIG_MPZ (result),
                   num_chunks,
                   -1,
-                  sizeof (unsigned long),
+                  sizeof (scm_t_uint32),
                   0,
                   0,
                   random_chunks);
@@ -289,7 +264,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 	 all bits in order not to get a distorted distribution) */
     } while (mpz_cmp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (m)) >= 0);
   scm_gc_free (random_chunks,
-               num_chunks * sizeof (unsigned long),
+               num_chunks * sizeof (scm_t_uint32),
                "random bignum chunks");
   return scm_i_normbig (result);
 }
