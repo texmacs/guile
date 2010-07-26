@@ -1,3 +1,8 @@
+2010-07-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-32.h (jit_replace): Move here (removed
+	2009-03-01).
+
 2010-07-19  Paolo Bonzini  <bonzini@gnu.org>
 
 	* build-aux/lightning.m4: Always set and replace lightning_frag.

@@ -127,11 +127,15 @@ struct jit_local_state {
 #define jit_reg8(rs)            ( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
 #define jit_reg16(rs)           ( _rN(rs) | _AX )
 
-/* In jit_replace below, _EBX is dummy */
-#define jit_movbrm(rs, dd, db, di, ds)                                                \
+#define jit_replace(s, rep, cmp, op)                         \
+        (jit_pushr_i(rep),                                   \
+         MOVLir((s), (rep)),                                 \
+         op, jit_popr_i(rep))
+
+#define jit_movbrm(rs, dd, db, di, ds)                                          \
         (jit_check8(rs)                                                         \
                 ? MOVBrm(jit_reg8(rs), dd, db, di, ds)                          \
-                : jit_replace(_EBX, rs,                                         \
+                : jit_replace(rs,                                               \
                               ((dd != _EAX && db != _EAX) ? _EAX :              \
                               ((dd != _ECX && db != _ECX) ? _ECX : _EDX)),      \
                               MOVBrm(((dd != _EAX && db != _EAX) ? _AL :        \
