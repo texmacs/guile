@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -84,11 +84,7 @@ static const int uvec_sizes[12] = {
   1, 1,
   2, 2,
   4, 4,
-#if SCM_HAVE_T_INT64
   8, 8,
-#else
-  sizeof (SCM), sizeof (SCM),
-#endif
   sizeof(float), sizeof(double),
   2*sizeof(float), 2*sizeof(double)
 };
@@ -127,10 +123,8 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
     scm_t_int16 *s16;
     scm_t_uint32 *u32;
     scm_t_int32 *s32;
-#if SCM_HAVE_T_INT64
     scm_t_uint64 *u64;
     scm_t_int64 *s64;
-#endif
     float *f32;
     double *f64;
     SCM *fake_64;
@@ -148,13 +142,8 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
     case SCM_UVEC_S16: np.s16 = (scm_t_int16 *) uptr; break;
     case SCM_UVEC_U32: np.u32 = (scm_t_uint32 *) uptr; break;
     case SCM_UVEC_S32: np.s32 = (scm_t_int32 *) uptr; break;
-#if SCM_HAVE_T_INT64
     case SCM_UVEC_U64: np.u64 = (scm_t_uint64 *) uptr; break;
     case SCM_UVEC_S64: np.s64 = (scm_t_int64 *) uptr; break;
-#else
-    case SCM_UVEC_U64:
-    case SCM_UVEC_S64: np.fake_64 = (SCM *) uptr; break;
-#endif      
     case SCM_UVEC_F32: np.f32 = (float *) uptr; break;
     case SCM_UVEC_F64: np.f64 = (double *) uptr; break;
     case SCM_UVEC_C32: np.f32 = (float *) uptr; break;
@@ -179,14 +168,8 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
 	case SCM_UVEC_S16: scm_intprint (*np.s16, 10, port); np.s16++; break;
 	case SCM_UVEC_U32: scm_uintprint (*np.u32, 10, port); np.u32++; break;
 	case SCM_UVEC_S32: scm_intprint (*np.s32, 10, port); np.s32++; break;
-#if SCM_HAVE_T_INT64
 	case SCM_UVEC_U64: scm_uintprint (*np.u64, 10, port); np.u64++; break;
 	case SCM_UVEC_S64: scm_intprint (*np.s64, 10, port); np.s64++; break;
-#else
-	case SCM_UVEC_U64:
-	case SCM_UVEC_S64: scm_iprin1 (*np.fake_64, port, pstate);
-	  np.fake_64++; break;
-#endif
 	case SCM_UVEC_F32: scm_i_print_double (*np.f32, port); np.f32++; break;
 	case SCM_UVEC_F64: scm_i_print_double (*np.f64, port); np.f64++; break;
 	case SCM_UVEC_C32:
@@ -222,20 +205,6 @@ uvec_equalp (SCM a, SCM b)
     result = SCM_BOOL_F;
   else if (SCM_UVEC_LENGTH (a) != SCM_UVEC_LENGTH (b))
     result = SCM_BOOL_F;
-#if SCM_HAVE_T_INT64 == 0
-  else if (SCM_UVEC_TYPE (a) == SCM_UVEC_U64
-	   || SCM_UVEC_TYPE (a) == SCM_UVEC_S64)
-    {
-      SCM *aptr = (SCM *)SCM_UVEC_BASE (a), *bptr = (SCM *)SCM_UVEC_BASE (b);
-      size_t len = SCM_UVEC_LENGTH (a), i;
-      for (i = 0; i < len; i++)
-	if (scm_is_false (scm_num_eq_p (*aptr++, *bptr++)))
-	  {
-	    result = SCM_BOOL_F;
-	    break;
-	  }
-    }
-#endif
   else if (memcmp (SCM_UVEC_BASE (a), SCM_UVEC_BASE (b),
 		   SCM_UVEC_LENGTH (a) * uvec_sizes[SCM_UVEC_TYPE(a)]) != 0)
     result = SCM_BOOL_F;
@@ -243,24 +212,6 @@ uvec_equalp (SCM a, SCM b)
   scm_remember_upto_here_2 (a, b);
   return result;
 }
-
-/* Mark hook.  Only used when U64 and S64 are implemented as SCMs. */
-
-#if SCM_HAVE_T_INT64 == 0
-static SCM
-uvec_mark (SCM uvec)
-{
-  if (SCM_UVEC_TYPE (uvec) == SCM_UVEC_U64
-      || SCM_UVEC_TYPE (uvec) == SCM_UVEC_S64)
-    {
-      SCM *ptr = (SCM *)SCM_UVEC_BASE (uvec);
-      size_t len = SCM_UVEC_LENGTH (uvec), i;
-      for (i = 0; i < len; i++)
-	scm_gc_mark (*ptr++);
-    }
-  return SCM_BOOL_F;
-}
-#endif
 
 /* Smob free hook for uniform numeric vectors. */
 static size_t
@@ -318,15 +269,6 @@ alloc_uvec (int type, size_t len)
   if (len > SCM_I_SIZE_MAX / uvec_sizes[type])
     scm_out_of_range (NULL, scm_from_size_t (len));
   base = scm_gc_malloc (len * uvec_sizes[type], uvec_names[type]);
-#if SCM_HAVE_T_INT64 == 0
-  if (type == SCM_UVEC_U64 || type == SCM_UVEC_S64)
-    {
-      SCM *ptr = (SCM *)base;
-      size_t i;
-      for (i = 0; i < len; i++)
-	*ptr++ = SCM_UNSPECIFIED;
-    }
-#endif
   return take_uvec (type, base, len);
 }
 
@@ -349,17 +291,10 @@ uvec_fast_ref (int type, const void *base, size_t c_idx)
     return scm_from_uint32 (((scm_t_uint32*)base)[c_idx]);
   else if (type == SCM_UVEC_S32)
     return scm_from_int32 (((scm_t_int32*)base)[c_idx]);
-#if SCM_HAVE_T_INT64
   else if (type == SCM_UVEC_U64)
     return scm_from_uint64 (((scm_t_uint64*)base)[c_idx]);
   else if (type == SCM_UVEC_S64)
     return scm_from_int64 (((scm_t_int64*)base)[c_idx]);
-#else
-  else if (type == SCM_UVEC_U64)
-    return ((SCM *)base)[c_idx];
-  else if (type == SCM_UVEC_S64)
-    return ((SCM *)base)[c_idx];
-#endif
   else if (type == SCM_UVEC_F32)
     return scm_from_double (((float*)base)[c_idx]);
   else if (type == SCM_UVEC_F64)
@@ -373,22 +308,6 @@ uvec_fast_ref (int type, const void *base, size_t c_idx)
   else
     return SCM_BOOL_F;
 }
-
-#if SCM_HAVE_T_INT64 == 0
-static SCM scm_uint64_min, scm_uint64_max;
-static SCM scm_int64_min, scm_int64_max;
-
-static void
-assert_exact_integer_range (SCM val, SCM min, SCM max)
-{
-  if (!scm_is_integer (val)
-      || scm_is_false (scm_exact_p (val)))
-    scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
-  if (scm_is_true (scm_less_p (val, min))
-      || scm_is_true (scm_gr_p (val, max)))
-    scm_out_of_range (NULL, val);
-}
-#endif
 
 static SCM_C_INLINE_KEYWORD void
 uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
@@ -405,23 +324,10 @@ uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
     (((scm_t_uint32*)base)[c_idx]) = scm_to_uint32 (val);
   else if (type == SCM_UVEC_S32)
     (((scm_t_int32*)base)[c_idx]) = scm_to_int32 (val);
-#if SCM_HAVE_T_INT64
   else if (type == SCM_UVEC_U64)
     (((scm_t_uint64*)base)[c_idx]) = scm_to_uint64 (val);
   else if (type == SCM_UVEC_S64)
     (((scm_t_int64*)base)[c_idx]) = scm_to_int64 (val);
-#else
-  else if (type == SCM_UVEC_U64)
-    {
-      assert_exact_integer_range (val, scm_uint64_min, scm_uint64_max);
-      ((SCM *)base)[c_idx] = val;
-    }
-  else if (type == SCM_UVEC_S64)
-    {
-      assert_exact_integer_range (val, scm_int64_min, scm_int64_max);
-      ((SCM *)base)[c_idx] = val;
-    }
-#endif
   else if (type == SCM_UVEC_F32)
     (((float*)base)[c_idx]) = scm_to_double (val);
   else if (type == SCM_UVEC_F64)
@@ -1027,16 +933,12 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 
 #define TYPE  SCM_UVEC_U64
 #define TAG   u64
-#if SCM_HAVE_T_UINT64
 #define CTYPE scm_t_uint64
-#endif
 #include "libguile/srfi-4.i.c"
 
 #define TYPE  SCM_UVEC_S64
 #define TAG   s64
-#if SCM_HAVE_T_INT64
 #define CTYPE scm_t_int64
-#endif
 #include "libguile/srfi-4.i.c"
 
 #define TYPE  SCM_UVEC_F32
@@ -1094,22 +996,8 @@ scm_init_srfi_4 (void)
 {
   scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
   scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
-#if SCM_HAVE_T_INT64 == 0
-  scm_set_smob_mark (scm_tc16_uvec, uvec_mark);
-#endif
   scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
-
-#if SCM_HAVE_T_INT64 == 0
-  scm_uint64_min =
-    scm_permanent_object (scm_from_int (0));
-  scm_uint64_max =
-    scm_permanent_object (scm_c_read_string ("18446744073709551615"));
-  scm_int64_min =
-    scm_permanent_object (scm_c_read_string ("-9223372036854775808"));
-  scm_int64_max =
-    scm_permanent_object (scm_c_read_string ("9223372036854775807"));
-#endif
 
 #include "libguile/srfi-4.x"
 

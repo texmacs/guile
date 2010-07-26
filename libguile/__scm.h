@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -359,11 +359,9 @@
 #define SCM_T_INT32_MIN   SCM_I_TYPE_MIN(scm_t_int32,SCM_T_UINT32_MAX)
 #define SCM_T_INT32_MAX   SCM_I_TYPE_MAX(scm_t_int32,SCM_T_UINT32_MAX)
 
-#if SCM_HAVE_T_INT64
 #define SCM_T_UINT64_MAX  SCM_I_UTYPE_MAX(scm_t_uint64)
 #define SCM_T_INT64_MIN   SCM_I_TYPE_MIN(scm_t_int64,SCM_T_UINT64_MAX)
 #define SCM_T_INT64_MAX   SCM_I_TYPE_MAX(scm_t_int64,SCM_T_UINT64_MAX)
-#endif
 
 #if SCM_SIZEOF_LONG_LONG
 #define SCM_I_ULLONG_MAX  SCM_I_UTYPE_MAX(unsigned long long)

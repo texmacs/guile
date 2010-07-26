@@ -315,28 +315,10 @@ main (int argc, char *argv[])
     return 1;
 
   pf ("\n");
-  pf ("/* 64-bit integer -- if available SCM_HAVE_T_INT64 will be 1 and\n"
-      "   scm_t_int64 will be a suitable type, otherwise SCM_HAVE_T_INT64\n"
-      "   will be 0. */\n");
-  if (SCM_I_GSC_T_INT64)
-  {
-    pf ("#define SCM_HAVE_T_INT64 1 /* 0 or 1 */\n");
-    pf ("typedef %s scm_t_int64;\n", SCM_I_GSC_T_INT64);
-  }
-  else
-    pf ("#define SCM_HAVE_T_INT64 0 /* 0 or 1 */\n");
-
-  pf ("\n");
-  pf ("/* 64-bit unsigned integer -- if available SCM_HAVE_T_UINT64 will\n"
-      "   be 1 and scm_t_uint64 will be a suitable type, otherwise\n"
-      "   SCM_HAVE_T_UINT64 will be 0. */\n");
-  if (SCM_I_GSC_T_UINT64)
-  {
-    pf ("#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */\n");
-    pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
-  }
-  else
-    pf ("#define SCM_HAVE_T_UINT64 0 /* 0 or 1 */\n");
+  pf ("#define SCM_HAVE_T_INT64 1 /* 0 or 1 */\n");
+  pf ("typedef %s scm_t_int64;\n", SCM_I_GSC_T_INT64);
+  pf ("#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */\n");
+  pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
 
   pf ("\n");
   pf ("/* scm_t_ptrdiff_t and size, always defined -- defined to long if\n"
