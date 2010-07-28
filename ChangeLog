@@ -1,3 +1,10 @@
+2010-07-28  Paolo Bonzini  <bonzini@gnu.org>
+
+	* THANKS: Add Paulo Cesar Pereira de Andrade.
+	* doc/porting.texi: Fix ordering of arguments in jit_stxi.
+	* lightning/i386/core-32.h (jit_replace): Remove cmp argument.
+	* lightning/i386/fp-64.h (jit_movi_f): Fix.
+
 2010-07-26  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/core-32.h (jit_replace): Move here (removed

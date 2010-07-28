@@ -140,11 +140,10 @@
 
 #define jit_movi_f(rd,immf)                     \
  ((immf) == 0.0 ? XORSSrr ((rd), (rd)) :					      \
-        (_O (0x50),                            \
-         MOVLim (0x12345678L, 0, _ESP, 0, 0),				       \
+        (PUSHQi (0x12345678L),		       \
          *((float *) (_jit.x.uc_pc - 4)) = (float) immf, \
         jit_ldr_f((rd), _ESP),                 \
-        ADDLir(4, _ESP)))
+        ADDQir(8, _ESP)))
 
 union jit_double_imm {
   double d;

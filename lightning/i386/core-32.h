@@ -127,9 +127,9 @@ struct jit_local_state {
 #define jit_reg8(rs)            ( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
 #define jit_reg16(rs)           ( _rN(rs) | _AX )
 
-#define jit_replace(s, rep, cmp, op)                         \
-        (jit_pushr_i(rep),                                   \
-         MOVLir((s), (rep)),                                 \
+#define jit_replace(s, rep, op)                         \
+        (jit_pushr_i(rep),                              \
+         MOVLir((s), (rep)),                            \
          op, jit_popr_i(rep))
 
 #define jit_movbrm(rs, dd, db, di, ds)                                          \
