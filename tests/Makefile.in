@@ -40,7 +40,7 @@ check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 	add$(EXEEXT) bp$(EXEEXT) testfp$(EXEEXT) funcfp$(EXEEXT) \
 	rpnfp$(EXEEXT) modi$(EXEEXT) ldxi$(EXEEXT) divi$(EXEEXT) \
 	movi$(EXEEXT) ret$(EXEEXT) allocai$(EXEEXT) push-pop$(EXEEXT) \
-	sete$(EXEEXT) 3to2$(EXEEXT)
+	sete$(EXEEXT) 3to2$(EXEEXT) ldst$(EXEEXT)
 @REGRESSION_TESTING_TRUE@TESTS = fib$(EXEEXT) fibit$(EXEEXT) \
 @REGRESSION_TESTING_TRUE@	fibdelay$(EXEEXT) incr$(EXEEXT) \
 @REGRESSION_TESTING_TRUE@	printf$(EXEEXT) printf2$(EXEEXT) \
@@ -50,7 +50,8 @@ check_PROGRAMS = fibit$(EXEEXT) incr$(EXEEXT) printf$(EXEEXT) \
 @REGRESSION_TESTING_TRUE@	ldxi$(EXEEXT) divi$(EXEEXT) \
 @REGRESSION_TESTING_TRUE@	movi$(EXEEXT) ret$(EXEEXT) \
 @REGRESSION_TESTING_TRUE@	allocai$(EXEEXT) push-pop$(EXEEXT) \
-@REGRESSION_TESTING_TRUE@	sete$(EXEEXT) 3to2$(EXEEXT)
+@REGRESSION_TESTING_TRUE@	sete$(EXEEXT) 3to2$(EXEEXT) \
+@REGRESSION_TESTING_TRUE@	ldst$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -104,6 +105,10 @@ incr_SOURCES = incr.c
 incr_OBJECTS = incr.$(OBJEXT)
 incr_LDADD = $(LDADD)
 @DISASS_TRUE@incr_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
+ldst_SOURCES = ldst.c
+ldst_OBJECTS = ldst.$(OBJEXT)
+ldst_LDADD = $(LDADD)
+@DISASS_TRUE@ldst_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
 ldxi_SOURCES = ldxi.c
 ldxi_OBJECTS = ldxi.$(OBJEXT)
 ldxi_LDADD = $(LDADD)
@@ -159,10 +164,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = 3to2.c add.c allocai.c bp.c divi.c fib.c fibdelay.c fibit.c \
-	funcfp.c incr.c ldxi.c modi.c movi.c printf.c printf2.c \
+	funcfp.c incr.c ldst.c ldxi.c modi.c movi.c printf.c printf2.c \
 	push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
 DIST_SOURCES = 3to2.c add.c allocai.c bp.c divi.c fib.c fibdelay.c \
-	fibit.c funcfp.c incr.c ldxi.c modi.c movi.c printf.c \
+	fibit.c funcfp.c incr.c ldst.c ldxi.c modi.c movi.c printf.c \
 	printf2.c push-pop.c ret.c rpn.c rpnfp.c sete.c testfp.c
 DATA = $(noinst_DATA)
 ETAGS = etags
@@ -276,7 +281,7 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/lightning/$(cpu)
 noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok	\
 	fib.ok fibdelay.ok testfp.ok funcfp.ok rpnfp.ok add.ok	\
 	bp.ok modi.ok ldxi.ok divi.ok movi.ok ret.ok		\
-	allocai.ok push-pop.ok sete.ok 3to2.ok
+	allocai.ok push-pop.ok sete.ok 3to2.ok ldst.ok
 
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a
@@ -348,6 +353,9 @@ funcfp$(EXEEXT): $(funcfp_OBJECTS) $(funcfp_DEPENDENCIES)
 incr$(EXEEXT): $(incr_OBJECTS) $(incr_DEPENDENCIES) 
 	@rm -f incr$(EXEEXT)
 	$(LINK) $(incr_OBJECTS) $(incr_LDADD) $(LIBS)
+ldst$(EXEEXT): $(ldst_OBJECTS) $(ldst_DEPENDENCIES) 
+	@rm -f ldst$(EXEEXT)
+	$(LINK) $(ldst_OBJECTS) $(ldst_LDADD) $(LIBS)
 ldxi$(EXEEXT): $(ldxi_OBJECTS) $(ldxi_DEPENDENCIES) 
 	@rm -f ldxi$(EXEEXT)
 	$(LINK) $(ldxi_OBJECTS) $(ldxi_LDADD) $(LIBS)
@@ -398,6 +406,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fibit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/funcfp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/incr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldst.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldxi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/movi.Po@am__quote@
