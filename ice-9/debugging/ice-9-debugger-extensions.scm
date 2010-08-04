@@ -39,7 +39,8 @@
       (else
        (define-module (ice-9 debugger))))
 
-(use-modules (ice-9 debugging steps))
+(use-modules (ice-9 debugging steps)
+             (ice-9 debugging trace))
 
 (define (assert-continuable state)
   ;; Check that debugger is in a state where `continuing' makes sense.
