@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -465,7 +465,9 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
-  j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
+  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) < len2);
+  j = scm_to_unsigned_integer (start2, 0, len2);
+  SCM_ASSERT_RANGE (SCM_ARG5, start2, j <= len2 - (e - i));
   
   i *= inc1;
   e *= inc1;
@@ -503,7 +505,11 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
-  j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
+  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) < len2);
+  j = scm_to_unsigned_integer (start2, 0, len2);
+  SCM_ASSERT_RANGE (SCM_ARG5, start2, j <= len2 - (e - i));
+  
+  j += (e - i);
   
   i *= inc1;
   e *= inc1;
