@@ -80,6 +80,8 @@ SCM_API double scm_c_normal01 (scm_t_rstate *);
 SCM_API double scm_c_exp1 (scm_t_rstate *);
 /* Though this returns an unsigned long, it's only 32 bits of randomness. */
 SCM_API unsigned long scm_c_random (scm_t_rstate *, unsigned long m);
+/* This one returns 64 bits of randomness. */
+SCM_API scm_t_uint64 scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m);
 SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 
 
