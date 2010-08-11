@@ -61,8 +61,6 @@
 #define jit_abs_f(rd,rs)		jit_abs_d(rd,rs)
 #define jit_negr_f(rd,rs)		jit_negr_d(rd,rs)
 #define jit_sqrt_f(rd,rs)		jit_sqrt_d(rd,rs)
-#define jit_extr_f_d(rs, rd)		jit_movr_d(rd, rs)
-#define jit_extr_d_f(rs, rd)		jit_movr_d(rd, rs)
 #define jit_extr_i_f(rd, rs)		jit_extr_i_d(rd, rs)
 #define jit_roundr_f_i(rd, rs)		jit_roundr_d_i(rd, rs)
 #define jit_floorr_f_i(rd, rs)		jit_floorr_d_i(rd, rs)
@@ -83,6 +81,14 @@
 #define jit_ordr_f(d, s1, s2)		jit_ordr_d(d, s1, s2)
 #define jit_unordr_f(d, s1, s2)		jit_unordr_d(d, s1, s2)
 #define jit_retval_f(rs)		jit_retval_d(rs)
+#endif
+
+#ifndef jit_extr_f_d
+#define jit_extr_f_d(rd, rs)		jit_movr_d(rd, rs)
+#endif
+
+#ifndef jit_extr_d_f
+#define jit_extr_d_f(rd, rs)		jit_movr_d(rd, rs)
 #endif
 
 #ifndef jit_beqr_f

@@ -162,6 +162,8 @@ union jit_double_imm {
 #define jit_extr_i_f(rd, rs)	CVTSI2SSLrr((rs), (rd))
 #define jit_extr_l_d(rd, rs)	CVTSI2SDQrr((rs), (rd))
 #define jit_extr_l_f(rd, rs)	CVTSI2SSQrr((rs), (rd))
+#define jit_extr_f_d(rd, rs)	CVTSS2SDrr((rs), (rd))
+#define jit_extr_d_f(rd, rs)	CVTSD2SSrr((rs), (rd))
 #define jit_roundr_d_i(rd, rs)	CVTSD2SILrr((rs), (rd))
 #define jit_roundr_f_i(rd, rs)	CVTSS2SILrr((rs), (rd))
 #define jit_roundr_d_l(rd, rs)	CVTSD2SIQrr((rs), (rd))

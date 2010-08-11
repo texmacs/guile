@@ -1,3 +1,11 @@
+2010-08-10  Paulo César Pereira de Andrade <pcpa@mandriva.com.br>
+	    Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-32.h (jit_replace): Use MOVLrr, not MOVLir.
+	(jit_movbrm): Check index register as well.
+	* lightning/i386/fp-64.h: Add jit_extr_f_d and jit_extr_d_f.
+	* lightning/fp-common.h: Add jit_extr_f_d and jit_extr_d_f.
+
 2010-07-28  Paolo Bonzini  <bonzini@gnu.org>
 
 	* tests/Makefile.am: Add ldst test.
