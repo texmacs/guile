@@ -1,5 +1,10 @@
 2010-08-15  Paolo Bonzini  <bonzini@gnu.org>
 
+	* tests/ldst.c: Update.
+	* tests/Makefile.am: Use -ffloat-store to compile it.
+
+2010-08-15  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/core.h (jit_ldr_c, jit_ldxr_c, jit_ldr_s,
 	jit_ldxr_s): Move...
 	* lightning/i386/core-32.h: ... here.

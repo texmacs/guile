@@ -106,9 +106,11 @@ incr_OBJECTS = incr.$(OBJEXT)
 incr_LDADD = $(LDADD)
 @DISASS_TRUE@incr_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
 ldst_SOURCES = ldst.c
-ldst_OBJECTS = ldst.$(OBJEXT)
+ldst_OBJECTS = ldst-ldst.$(OBJEXT)
 ldst_LDADD = $(LDADD)
 @DISASS_TRUE@ldst_DEPENDENCIES = $(top_builddir)/opcode/libdisass.a
+ldst_LINK = $(CCLD) $(ldst_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 ldxi_SOURCES = ldxi.c
 ldxi_OBJECTS = ldxi.$(OBJEXT)
 ldxi_LDADD = $(LDADD)
@@ -286,6 +288,7 @@ noinst_DATA = fibit.ok incr.ok printf.ok printf2.ok rpn.ok	\
 EXTRA_DIST = $(noinst_DATA) run-test
 @DISASS_TRUE@LDADD = $(top_builddir)/opcode/libdisass.a
 @REGRESSION_TESTING_TRUE@TESTS_ENVIRONMENT = $(srcdir)/run-test
+ldst_CFLAGS = -ffloat-store
 all: all-am
 
 .SUFFIXES:
@@ -355,7 +358,7 @@ incr$(EXEEXT): $(incr_OBJECTS) $(incr_DEPENDENCIES)
 	$(LINK) $(incr_OBJECTS) $(incr_LDADD) $(LIBS)
 ldst$(EXEEXT): $(ldst_OBJECTS) $(ldst_DEPENDENCIES) 
 	@rm -f ldst$(EXEEXT)
-	$(LINK) $(ldst_OBJECTS) $(ldst_LDADD) $(LIBS)
+	$(ldst_LINK) $(ldst_OBJECTS) $(ldst_LDADD) $(LIBS)
 ldxi$(EXEEXT): $(ldxi_OBJECTS) $(ldxi_DEPENDENCIES) 
 	@rm -f ldxi$(EXEEXT)
 	$(LINK) $(ldxi_OBJECTS) $(ldxi_LDADD) $(LIBS)
@@ -406,7 +409,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fibit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/funcfp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/incr.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldst.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldst-ldst.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldxi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/movi.Po@am__quote@
@@ -432,6 +435,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+ldst-ldst.o: ldst.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldst_CFLAGS) $(CFLAGS) -MT ldst-ldst.o -MD -MP -MF $(DEPDIR)/ldst-ldst.Tpo -c -o ldst-ldst.o `test -f 'ldst.c' || echo '$(srcdir)/'`ldst.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ldst-ldst.Tpo $(DEPDIR)/ldst-ldst.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ldst.c' object='ldst-ldst.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldst_CFLAGS) $(CFLAGS) -c -o ldst-ldst.o `test -f 'ldst.c' || echo '$(srcdir)/'`ldst.c
+
+ldst-ldst.obj: ldst.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldst_CFLAGS) $(CFLAGS) -MT ldst-ldst.obj -MD -MP -MF $(DEPDIR)/ldst-ldst.Tpo -c -o ldst-ldst.obj `if test -f 'ldst.c'; then $(CYGPATH_W) 'ldst.c'; else $(CYGPATH_W) '$(srcdir)/ldst.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ldst-ldst.Tpo $(DEPDIR)/ldst-ldst.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ldst.c' object='ldst-ldst.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldst_CFLAGS) $(CFLAGS) -c -o ldst-ldst.obj `if test -f 'ldst.c'; then $(CYGPATH_W) 'ldst.c'; else $(CYGPATH_W) '$(srcdir)/ldst.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

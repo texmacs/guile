@@ -22,3 +22,5 @@ TESTS = fib fibit fibdelay incr printf printf2 rpn add bp	\
 
 TESTS_ENVIRONMENT=$(srcdir)/run-test
 endif
+
+ldst_CFLAGS = -ffloat-store
