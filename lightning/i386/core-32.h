@@ -142,6 +142,12 @@ struct jit_local_state {
                                      ((dd != _ECX && db != _ECX && di != _ECX) ? _CL : _DL)), \
                                      dd, db, di, ds)))
 
+#define jit_ldr_c(d, rs)                MOVSBLmr(0,    (rs), 0,    0, (d))
+#define jit_ldxr_c(d, s1, s2)           MOVSBLmr(0,    (s1), (s2), 1, (d))
+							    
+#define jit_ldr_s(d, rs)                MOVSWLmr(0,    (rs), 0,    0, (d))
+#define jit_ldxr_s(d, s1, s2)           MOVSWLmr(0,    (s1), (s2), 1, (d))
+							    
 #define jit_ldi_c(d, is)                MOVSBLmr((is), 0,    0,    0, (d))
 #define jit_ldxi_c(d, rs, is)           MOVSBLmr((is), (rs), 0,    0, (d))
 

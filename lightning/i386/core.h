@@ -333,17 +333,11 @@
 #define jit_jmpr(reg)			JMPsr(reg)
 
 /* Memory */
-#define jit_ldr_c(d, rs)                MOVSBLmr(0,    (rs), 0,    0, (d))
-#define jit_ldxr_c(d, s1, s2)           MOVSBLmr(0,    (s1), (s2), 1, (d))
-							    
 #define jit_ldr_uc(d, rs)               MOVZBLmr(0,    (rs), 0,    0, (d))
 #define jit_ldxr_uc(d, s1, s2)          MOVZBLmr(0,    (s1), (s2), 1, (d))
 							    
 #define jit_str_c(rd, rs)               jit_movbrm((rs), 0,    (rd), 0,    0)
 #define jit_stxr_c(d1, d2, rs)          jit_movbrm((rs), 0,    (d1), (d2), 1)
-							    
-#define jit_ldr_s(d, rs)                MOVSWLmr(0,    (rs), 0,    0, (d))
-#define jit_ldxr_s(d, s1, s2)           MOVSWLmr(0,    (s1), (s2), 1, (d))
 							    
 #define jit_ldr_us(d, rs)               MOVZWLmr(0,    (rs), 0,    0,  (d))
 #define jit_ldxr_us(d, s1, s2)          MOVZWLmr(0,    (s1), (s2), 1,  (d))

@@ -1,5 +1,13 @@
+2010-08-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h (jit_ldr_c, jit_ldxr_c, jit_ldr_s,
+	jit_ldxr_s): Move...
+	* lightning/i386/core-32.h: ... here.
+	* lightning/i386/core-64.h (jit_ldr_c, jit_ldxr_c, jit_ldr_s,
+	Use movsbq and movswq.
+
 2010-08-10  Paulo César Pereira de Andrade <pcpa@mandriva.com.br>
-	    Paolo Bonzini  <bonzini@gnu.org>
+	    
 
 	* lightning/i386/core-32.h (jit_replace): Use MOVLrr, not MOVLir.
 	(jit_movbrm): Check index register as well.
