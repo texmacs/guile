@@ -259,7 +259,7 @@ union jit_double_imm {
         FNSTSWr(_EAX),                                         \
         SHRLir(n, _EAX),                                       \
         ((_and) ? ANDLir ((_and), _EAX) : 0),                  \
-        ((cmp) ? CMPLir ((cmp), _AL) : 0),                     \
+        ((cmp) ? CMPLir ((cmp), _EAX) : 0),                    \
         POPLr(_EAX),                                           \
         res ((d)),					       \
 	_jit.x.pc)

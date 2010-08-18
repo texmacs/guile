@@ -1,3 +1,8 @@
+2010-08-18  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp-32.h: Fix -D_ASM_SAFETY compilation.
+	Reported by Paulo César Pereira de Andrade.
+
 2010-08-15  Paolo Bonzini  <bonzini@gnu.org>
 
 	* tests/ldst.c: Update.
@@ -12,7 +17,6 @@
 	Use movsbq and movswq.
 
 2010-08-10  Paulo César Pereira de Andrade <pcpa@mandriva.com.br>
-	    
 
 	* lightning/i386/core-32.h (jit_replace): Use MOVLrr, not MOVLir.
 	(jit_movbrm): Check index register as well.
