@@ -1,5 +1,9 @@
 2010-08-18  Paolo Bonzini  <bonzini@gnu.org>
 
+	* lightning/i386/fp-64.h: Fix jp in jit_bner_{f,d}.
+
+2010-08-18  Paolo Bonzini  <bonzini@gnu.org>
+
 	* lightning/i386/fp-32.h: Fix -D_ASM_SAFETY compilation.
 	Reported by Paulo César Pereira de Andrade.
 

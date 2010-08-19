@@ -233,7 +233,7 @@ union jit_double_imm {
 #define jit_bltr_f(d, s1, s2)            (UCOMISSrr ((s1), (s2)), JAm ((d)))
 #define jit_bler_f(d, s1, s2)            (UCOMISSrr ((s1), (s2)), JAEm ((d)))
 #define jit_beqr_f(d, s1, s2)            (UCOMISSrr ((s1), (s2)), _OO (0x7a06), JEm ((d)))
-#define jit_bner_f(d, s1, s2)            (UCOMISSrr ((s1), (s2)), _OO (0x7a03), _OO (0x7405), JMPm (((d)))) /* JP to JMP, JZ past JMP */
+#define jit_bner_f(d, s1, s2)            (UCOMISSrr ((s1), (s2)), _OO (0x7a02), _OO (0x7405), JMPm (((d)))) /* JP to JMP, JZ past JMP */
 #define jit_bger_f(d, s1, s2)            (UCOMISSrr ((s2), (s1)), JAEm ((d)))
 #define jit_bgtr_f(d, s1, s2)            (UCOMISSrr ((s2), (s1)), JAm ((d)))
 #define jit_bunltr_f(d, s1, s2)          (UCOMISSrr ((s2), (s1)), JNAEm ((d)))
@@ -248,7 +248,7 @@ union jit_double_imm {
 #define jit_bltr_d(d, s1, s2)            (UCOMISDrr ((s1), (s2)), JAm ((d)))
 #define jit_bler_d(d, s1, s2)            (UCOMISDrr ((s1), (s2)), JAEm ((d)))
 #define jit_beqr_d(d, s1, s2)            (UCOMISDrr ((s1), (s2)), _OO (0x7a06), JEm ((d)))
-#define jit_bner_d(d, s1, s2)            (UCOMISDrr ((s1), (s2)), _OO (0x7a03), _OO (0x7405), JMPm (((d)))) /* JP to JMP, JZ past JMP */ 
+#define jit_bner_d(d, s1, s2)            (UCOMISDrr ((s1), (s2)), _OO (0x7a02), _OO (0x7405), JMPm (((d)))) /* JP to JMP, JZ past JMP */ 
 #define jit_bger_d(d, s1, s2)            (UCOMISDrr ((s2), (s1)), JAEm ((d)))
 #define jit_bgtr_d(d, s1, s2)            (UCOMISDrr ((s2), (s1)), JAm ((d)))
 #define jit_bunltr_d(d, s1, s2)          (UCOMISDrr ((s2), (s1)), JNAEm ((d)))
