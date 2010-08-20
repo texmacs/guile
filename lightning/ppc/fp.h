@@ -143,24 +143,29 @@
 
 #define jit_fpbr(d, s1, s2, rcbit) (		\
 	FCMPOrrr(_cr0,(s1),(s2)),		\
-	BTii ((rcbit), (d)))
+	BTii ((rcbit), (d)),			\
+	_jit.x.pc)
 
 #define jit_fpbr_neg(d, s1, s2,rcbit) (	\
 	FCMPOrrr(_cr0,(s1),(s2)),		\
-	BFii ((rcbit), (d)))
+	BFii ((rcbit), (d)),			\
+	_jit.x.pc)
 
 #define jit_fpbur(d, s1, s2, rcbit) (		\
 	FCMPUrrr(_cr0,(s1),(s2)),		\
-	BTii ((rcbit), (d)))
+	BTii ((rcbit), (d)),			\
+	_jit.x.pc)
 
 #define jit_fpbur_neg(d, s1, s2,rcbit) (	\
 	FCMPUrrr(_cr0,(s1),(s2)),		\
-	BFii ((rcbit), (d)))
+	BFii ((rcbit), (d)),			\
+	_jit.x.pc)
 
 #define jit_fpbur_or(d, s1, s2, bit1, bit2) (	\
 	FCMPUrrr(_cr0,(s1),(s2)),		\
 	CRORiii((bit1), (bit1), (bit2)),	\
-	BTii ((bit1), (d)))
+	BTii ((bit1), (d)),			\
+	_jit.x.pc)
 
 #define jit_bgtr_d(d, s1, s2)      jit_fpbr ((d),(s1),(s2),_gt)   
 #define jit_bger_d(d, s1, s2)      jit_fpbr_neg((d),(s1),(s2),_lt)   

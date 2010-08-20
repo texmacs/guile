@@ -1,3 +1,10 @@
+2010-08-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp-64.h: Return patch address from jit_bXYr_{f,d}.
+	Reported by Paulo César Pereira de Andrade.
+	* lightning/ppc/fp.h: Likewise.
+	* lightning/sparc/fp.h: Implement FP branches.
+
 2010-08-18  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp-64.h: Fix jp in jit_bner_{f,d}.
