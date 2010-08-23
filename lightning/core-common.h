@@ -455,14 +455,14 @@ typedef union jit_code {
 
 #ifndef jit_getarg_c
 #ifndef JIT_AP
-#define jit_getarg_c(reg, ofs)		jit_extr_c_i  ((reg), (ofs))
-#define jit_getarg_i(reg, ofs)		jit_movr_i    ((reg), (ofs))
+#define jit_getarg_c(reg, ofs)		jit_extr_c_l  ((reg), (ofs))
+#define jit_getarg_i(reg, ofs)		jit_extr_i_l  ((reg), (ofs))
 #define jit_getarg_l(reg, ofs)		jit_movr_l    ((reg), (ofs))
 #define jit_getarg_p(reg, ofs)		jit_movr_p    ((reg), (ofs))
-#define jit_getarg_s(reg, ofs)		jit_extr_s_i  ((reg), (ofs))
-#define jit_getarg_uc(reg, ofs)		jit_extr_uc_ui((reg), (ofs))
-#define jit_getarg_ui(reg, ofs)		jit_movr_ui   ((reg), (ofs))
-#define jit_getarg_ul(reg, ofs)		jit_extr_uc_ul((reg), (ofs))
+#define jit_getarg_s(reg, ofs)		jit_extr_s_l  ((reg), (ofs))
+#define jit_getarg_uc(reg, ofs)		jit_extr_uc_ul((reg), (ofs))
+#define jit_getarg_ui(reg, ofs)		jit_extr_ui_ul((reg), (ofs))
+#define jit_getarg_ul(reg, ofs)		jit_movr_ul   ((reg), (ofs))
 #define jit_getarg_us(reg, ofs)		jit_extr_us_ul((reg), (ofs))
 #else
 #define jit_getarg_c(reg, ofs)		jit_ldxi_c((reg), JIT_AP, (ofs));
