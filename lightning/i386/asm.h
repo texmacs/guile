@@ -103,6 +103,14 @@ typedef _uc		jit_insn;
 #define _XMM5		0x75
 #define _XMM6		0x76
 #define _XMM7		0x77
+#define _XMM8		0x78
+#define _XMM9		0x79
+#define _XMM10		0x7a
+#define _XMM11		0x7b
+#define _XMM12		0x7c
+#define _XMM13		0x7d
+#define _XMM14		0x7e
+#define _XMM15		0x7f
 
 #define _ST0		0
 #define _ST1		1

@@ -35,10 +35,10 @@
 
 #include <float.h>
 
-#define JIT_FPR_NUM	9
+#define JIT_FPR_NUM	8
 #define JIT_FPRET	_XMM0
-#define JIT_FPR(i)	(_XMM7 + (i))
-#define JIT_FPTMP	_XMM6
+#define JIT_FPR(i)	(_XMM8 + (i))
+#define JIT_FPTMP	_XMM15
 
 /* Either use a temporary register that is finally AND/OR/XORed with RS = RD,
    or use RD as the temporary register and to the AND/OR/XOR with RS.  */
