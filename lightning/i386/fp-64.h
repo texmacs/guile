@@ -290,8 +290,13 @@ union jit_double_imm {
 #define jit_ordr_d(d, s1, s2)           (XORLrr ((d), (d)), UCOMISDrr ((s1), (s2)), SETNPr (jit_reg8((d))))
 #define jit_unordr_d(d, s1, s2)         (XORLrr ((d), (d)), UCOMISDrr ((s1), (s2)), SETPr (jit_reg8((d))))
 
+#if !defined(_ASM_SAFETY)
 #define jit_prepare_f(num)              (_jitl.nextarg_putfp = _XMM0 + (num))
 #define jit_prepare_d(num)              (_jitl.nextarg_putfp = _XMM0 + (num))
+#else
+#define jit_prepare_f(num)              ((num) <= JIT_FP_ARG_MAX ? (_jitl.nextarg_putfp = _XMM0 + (num)) : JITFAIL("too many float arguments"))
+#define jit_prepare_d(num)              ((num) <= JIT_FP_ARG_MAX ? (_jitl.nextarg_putfp = _XMM0 + (num)) : JITFAIL("too many float arguments"))
+#endif
 
 #define jit_arg_f()                     (_XMM0 + _jitl.nextarg_getfp++)
 #define jit_arg_d()                     (_XMM0 + _jitl.nextarg_getfp++)

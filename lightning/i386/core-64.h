@@ -38,6 +38,12 @@
 #define JIT_CAN_16 0
 #define JIT_REXTMP		_R9D
 
+/* Number or integer argument registers */
+#define JIT_ARG_MAX		6
+
+/* Number of float argument registers */
+#define JIT_FP_ARG_MAX		8
+
 #define JIT_R_NUM		3
 #define JIT_R(i)                ((i) == 0 ? _EAX : _R9D + (i))
 #define JIT_V_NUM               3
@@ -132,7 +138,12 @@ struct jit_local_state {
 #define jit_callr(reg)		CALLsr((reg))
 
 /* Stack isn't used for arguments: */
+#if !defined(_ASM_SAFETY)
 #define jit_prepare_i(ni)	(_jitl.argssize = (ni))
+#else
+#define jit_prepare_i(ni)	((ni) <= JIT_ARG_MAX ? _jitl.argssize = (ni) : JITFAIL("too many integer arguments"))
+#endif
+ 
 
 #define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_order[_jitl.argssize]))
 #define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
