@@ -36,7 +36,7 @@
 
 /* Used to implement ldc, stc, ... */
 #define JIT_CAN_16 0
-#define JIT_REXTMP		_R9D
+#define JIT_REXTMP		_R9
 
 /* Number or integer argument registers */
 #define JIT_ARG_MAX		6
@@ -45,9 +45,9 @@
 #define JIT_FP_ARG_MAX		8
 
 #define JIT_R_NUM		3
-#define JIT_R(i)                ((i) == 0 ? _EAX : _R9D + (i))
+#define JIT_R(i)                ((i) == 0 ? _EAX : _R9 + (i))
 #define JIT_V_NUM               3
-#define JIT_V(i)                ((i) == 0 ? _EBX : _R11D + (i))
+#define JIT_V(i)                ((i) == 0 ? _EBX : _R11 + (i))
 
 struct jit_local_state {
   int   long_jumps;

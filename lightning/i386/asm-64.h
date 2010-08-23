@@ -115,14 +115,14 @@
 #define _RBP		0x55
 #define _RSI		0x56
 #define _RDI		0x57
-#define _R8		0x48
-#define _R9		0x49
-#define _R10		0x4A
-#define _R11		0x4B
-#define _R12		0x4C
-#define _R13		0x4D
-#define _R14		0x4E
-#define _R15		0x4F
+#define _R8		0x58
+#define _R9		0x59
+#define _R10		0x5A
+#define _R11		0x5B
+#define _R12		0x5C
+#define _R13		0x5D
+#define _R14		0x5E
+#define _R15		0x5F
 #define _RIP		-2
 
 #if defined(_ASM_SAFETY)
