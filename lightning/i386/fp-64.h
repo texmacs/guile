@@ -290,21 +290,36 @@ union jit_double_imm {
 #define jit_ordr_d(d, s1, s2)           (XORLrr ((d), (d)), UCOMISDrr ((s1), (s2)), SETNPr (jit_reg8((d))))
 #define jit_unordr_d(d, s1, s2)         (XORLrr ((d), (d)), UCOMISDrr ((s1), (s2)), SETPr (jit_reg8((d))))
 
-#if !defined(_ASM_SAFETY)
-#define jit_prepare_f(num)		(_jitl.fprssize += (num), _jitl.nextarg_putfp = _XMM0 + _jitl.fprssize)
-#define jit_prepare_d(num)		(_jitl.fprssize += (num), _jitl.nextarg_putfp = _XMM0 + _jitl.fprssize)
-#else
-#define jit_prepare_f(num)              (_jitl.fprssize += (num) <= JIT_FP_ARG_MAX ? (_jitl.nextarg_putfp = _XMM0 + _jitl.fprssize) : JITFAIL("too many float arguments"))
-#define jit_prepare_d(num)              (_jitl.fprssize += (num) <= JIT_FP_ARG_MAX ? (_jitl.nextarg_putfp = _XMM0 + _jitl.fprssize) : JITFAIL("too many float arguments"))
-#endif
+#define jit_prepare_f(num)		((_jitl.nextarg_putfp + (num) > JIT_FP_ARG_MAX \
+					 ? (_jitl.argssize += _jitl.nextarg_putfp + (num) - JIT_FP_ARG_MAX, \
+					    _jitl.fprssize = JIT_FP_ARG_MAX) \
+					 : (_jitl.fprssize += (num))), \
+					 _jitl.nextarg_putfp += (num))
+#define jit_prepare_d(num)		((_jitl.nextarg_putfp + (num) > JIT_FP_ARG_MAX \
+					 ? (_jitl.argssize += _jitl.nextarg_putfp + (num) - JIT_FP_ARG_MAX, \
+					    _jitl.fprssize = JIT_FP_ARG_MAX) \
+					 : (_jitl.fprssize += (num))), \
+					 _jitl.nextarg_putfp += (num))
 
-#define jit_arg_f()                     (_XMM0 + _jitl.nextarg_getfp++)
-#define jit_arg_d()                     (_XMM0 + _jitl.nextarg_getfp++)
+#define jit_arg_f()			(_jitl.nextarg_getfp < JIT_FP_ARG_MAX \
+					 ? _jitl.nextarg_getfp++ \
+					 : ((_jitl.framesize += sizeof(double)) - sizeof(double)))
+#define jit_arg_d()			(_jitl.nextarg_getfp < JIT_FP_ARG_MAX \
+					 ? _jitl.nextarg_getfp++ \
+					 : ((_jitl.framesize += sizeof(double)) - sizeof(double)))
 
-#define jit_getarg_f(rd, ofs)           (jit_movr_f ((rd), (ofs)))
-#define jit_getarg_d(rd, ofs)           (jit_movr_d ((rd), (ofs)))
+#define jit_getarg_f(reg, ofs)		((ofs) < JIT_FP_ARG_MAX \
+					 ? jit_movr_f((reg), _XMM0 + (ofs)) \
+					 : jit_ldxi_f((reg), JIT_FP, (ofs)))
+#define jit_getarg_d(reg, ofs)		((ofs) < JIT_FP_ARG_MAX \
+					 ? jit_movr_d((reg), _XMM0 + (ofs)) \
+					 : jit_ldxi_d((reg), JIT_FP, (ofs)))
 
-#define jit_pusharg_f(rs)               (--_jitl.nextarg_putfp, jit_movr_f (_jitl.nextarg_putfp, (rs)))
-#define jit_pusharg_d(rs)               (--_jitl.nextarg_putfp, jit_movr_d (_jitl.nextarg_putfp, (rs)))
+#define jit_pusharg_f(rs)		(--_jitl.nextarg_putfp >= JIT_FP_ARG_MAX \
+					 ? (SUBQir(sizeof(double), JIT_SP), jit_str_f(JIT_SP,(rs))) \
+					 : jit_movr_f(_XMM0 + _jitl.nextarg_putfp, (rs)))
+#define jit_pusharg_d(rs)		(--_jitl.nextarg_putfp >= JIT_FP_ARG_MAX \
+					 ? (SUBQir(sizeof(double), JIT_SP), jit_str_d(JIT_SP,(rs))) \
+					 : jit_movr_d(_XMM0 + _jitl.nextarg_putfp, (rs)))
 
 #endif /* __lightning_fp_h */

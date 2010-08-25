@@ -54,6 +54,8 @@ struct jit_local_state {
   int   nextarg_getfp;
   int   nextarg_putfp;
   int   nextarg_geti;
+  int	nextarg_puti;
+  int	framesize;
   int	argssize;
   int	fprssize;
   int   alloca_offset;
@@ -131,44 +133,82 @@ struct jit_local_state {
 #define jit_popr_i(rs)		POPQr(rs)
 
 /* A return address is 8 bytes, plus 5 registers = 40 bytes, total = 48 bytes. */
-#define jit_prolog(n) (_jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
+#define jit_prolog(n) (_jitl.framesize = 48, _jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
 		       PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_R14), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
 
 #define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLsr(JIT_REXTMP))
 #define jit_callr(reg)		CALLsr((reg))
 
-/* Stack isn't used for arguments: */
-#if !defined(_ASM_SAFETY)
-#define jit_prepare_i(ni)	(_jitl.argssize = (ni))
-#else
-#define jit_prepare_i(ni)	((ni) <= JIT_ARG_MAX ? _jitl.argssize = (ni) : JITFAIL("too many integer arguments"))
-#endif
- 
+#define jit_prepare_i(ni)	(_jitl.nextarg_puti = (ni), \
+				 _jitl.argssize = _jitl.nextarg_puti > JIT_ARG_MAX \
+				 ? _jitl.nextarg_puti - JIT_ARG_MAX : 0)
+#define jit_pusharg_i(rs)	(--_jitl.nextarg_puti >= JIT_ARG_MAX \
+				 ? PUSHQr(rs) :	MOVQrr(rs, jit_arg_reg_order[_jitl.nextarg_puti]))
 
-#define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_order[_jitl.argssize]))
-#define jit_finish(sub)		(MOVBir(_jitl.fprssize < JIT_FP_ARG_MAX \
-				 ? _jitl.fprssize \
-				 : JIT_FP_ARG_MAX, _AL), \
-				 jit_calli(sub))
+#define jit_finish(sub)		(_jitl.fprssize \
+				 ? (MOVBir(_jitl.fprssize, _AL), _jitl.fprssize = 0) \
+				 : MOVBir(0, _AL), \
+				 ((_jitl.argssize & 1) \
+				   ? (PUSHQr(_EAX), ++_jitl.argssize) : 0), \
+				 jit_calli(sub), \
+				 (_jitl.argssize \
+				  ? (ADDQir(sizeof(long) * _jitl.argssize, JIT_SP), _jitl.argssize = 0) \
+				  : 0))
 #define jit_reg_is_arg(reg)     ((reg) == _ECX || (reg) == _EDX)
-#define jit_finishr(reg)	(MOVBir(_jitl.fprssize < JIT_FP_ARG_MAX \
-				 ? _jitl.fprssize \
-				 : JIT_FP_ARG_MAX, _AL), \
+
+#define jit_finishr(reg)	(_jitl.fprssize \
+				 ? (MOVBir(_jitl.fprssize, _AL), _jitl.fprssize = 0) \
+				 : MOVBir(0, _AL), \
+				 ((_jitl.argssize & 1) \
+				   ? (PUSHQr(_EAX), ++_jitl.argssize) : 0), \
 				 (jit_reg_is_arg((reg)) \
-				 ? (MOVQrr(reg, JIT_REXTMP), \
-				    jit_callr(JIT_REXTMP)) \
-				 : jit_callr(reg)))
+				  ? (MOVQrr(reg, JIT_REXTMP), \
+				     jit_callr(JIT_REXTMP)) \
+				  : jit_callr(reg)), \
+				 (_jitl.argssize \
+				  ? (ADDQir(sizeof(long) * _jitl.argssize, JIT_SP), _jitl.argssize = 0) \
+				  : 0))
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
-#define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_uc()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_s()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_us()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_i()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_ui()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_l()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_ul()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
-#define	jit_arg_p()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
+#define jit_arg_i()		(_jitl.nextarg_geti < JIT_ARG_MAX \
+				 ? _jitl.nextarg_geti++ \
+				 : ((_jitl.framesize += sizeof(long)) - sizeof(long)))
+#define jit_arg_c()		jit_arg_i()
+#define jit_arg_uc()		jit_arg_i()
+#define jit_arg_s()		jit_arg_i()
+#define jit_arg_us()		jit_arg_i()
+#define jit_arg_ui()		jit_arg_i()
+#define jit_arg_l()		jit_arg_i()
+#define jit_arg_ul()		jit_arg_i()
+#define jit_arg_p()		jit_arg_i()
+
+#define jit_getarg_c(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_extr_c_l((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_c((reg), JIT_FP, (ofs)))
+#define jit_getarg_uc(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_extr_uc_ul((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_uc((reg), JIT_FP, (ofs)))
+#define jit_getarg_s(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_extr_s_l((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_s((reg), JIT_FP, (ofs)))
+#define jit_getarg_us(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_extr_us_ul((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_us((reg), JIT_FP, (ofs)))
+#define jit_getarg_i(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_movr_l((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_i((reg), JIT_FP, (ofs)))
+#define jit_getarg_ui(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_movr_ul((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_ui((reg), JIT_FP, (ofs)))
+#define jit_getarg_l(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_movr_l((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_l((reg), JIT_FP, (ofs)))
+#define jit_getarg_ul(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_movr_ul((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_ul((reg), JIT_FP, ofs))
+#define jit_getarg_p(reg, ofs)	((ofs) < JIT_ARG_MAX \
+				 ? jit_movr_p((reg), jit_arg_reg_order[(ofs)]) \
+				 : jit_ldxi_p((reg), JIT_FP, (ofs)))
 
 static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
