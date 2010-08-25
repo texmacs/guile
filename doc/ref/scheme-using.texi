@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2006
+@c Copyright (C) 2006, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -597,6 +597,12 @@ somewhere in your @file{.emacs} file.  This will cause Emacs to load the
 GDS Emacs Lisp code when starting up, and to start the inferior GDS
 server process so that it is ready and waiting for any Guile programs
 that want to use GDS.
+
+The Scheme side of GDS is installed automatically by Guile. The Emacs
+Lisp side, however, is not. You will have to grab
+@file{gds-server.el}, @file{gds-scheme.el}, and @file{gds.el} from
+Guile's source distribution, and make sure they end up in Emacs' load
+path.
 
 (If GDS's Scheme code is not installed in one of the locations in
 Guile's load path, you may find that the server process fails to start.
