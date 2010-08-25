@@ -36,7 +36,7 @@
 
 /* Used to implement ldc, stc, ... */
 #define JIT_CAN_16 0
-#define JIT_REXTMP		_R9
+#define JIT_REXTMP		_R12
 
 /* Number or integer argument registers */
 #define JIT_ARG_MAX		6
@@ -47,7 +47,7 @@
 #define JIT_R_NUM		3
 #define JIT_R(i)                ((i) == 0 ? _EAX : _R9 + (i))
 #define JIT_V_NUM               3
-#define JIT_V(i)                ((i) == 0 ? _EBX : _R11 + (i))
+#define JIT_V(i)                ((i) == 0 ? _EBX : _R12 + (i))
 
 struct jit_local_state {
   int   long_jumps;
@@ -129,10 +129,9 @@ struct jit_local_state {
 #define jit_pushr_i(rs)		PUSHQr(rs)
 #define jit_popr_i(rs)		POPQr(rs)
 
-/* A return address is 8 bytes, plus 4 registers = 32 byte, total = 40 bytes.
-   The final push of EBX keeps the stack aligned to 16 bytes.  */
+/* A return address is 8 bytes, plus 5 registers = 40 bytes, total = 48 bytes. */
 #define jit_prolog(n) (_jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
-		       PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_EBP), MOVQrr(_ESP, _EBP), PUSHQr(_EBX))
+		       PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_R14), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
 
 #define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLsr(JIT_REXTMP))
 #define jit_callr(reg)		CALLsr((reg))
@@ -189,7 +188,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v)))
 #define jit_patch_short_at(jump_pc,v)  (*_PSI((jump_pc) - sizeof(int)) = _jit_SI((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v) (_jitl.long_jumps ? jit_patch_long_at((jump_pc)-3, v) : jit_patch_short_at(jump_pc, v))
-#define jit_ret()			(LEAVE_(), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
+#define jit_ret()			(LEAVE_(), POPQr(_R14), POPQr(_R13), POPQr(_R12), POPQr(_EBX), RET_())
 
 /* Memory */
 
