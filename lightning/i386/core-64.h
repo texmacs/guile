@@ -133,7 +133,7 @@ struct jit_local_state {
 #define jit_popr_i(rs)		POPQr(rs)
 
 /* A return address is 8 bytes, plus 5 registers = 40 bytes, total = 48 bytes. */
-#define jit_prolog(n) (_jitl.framesize = 48, _jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
+#define jit_prolog(n) (_jitl.framesize = ((n) & 1) ? 56 : 48, _jitl.nextarg_getfp = _jitl.nextarg_geti = 0, _jitl.alloca_offset = 0, \
 		       PUSHQr(_EBX), PUSHQr(_R12), PUSHQr(_R13), PUSHQr(_R14), PUSHQr(_EBP), MOVQrr(_ESP, _EBP))
 
 #define jit_calli(sub)          (MOVQir((long) (sub), JIT_REXTMP), CALLsr(JIT_REXTMP))
