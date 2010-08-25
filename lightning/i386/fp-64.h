@@ -35,7 +35,7 @@
 
 #include <float.h>
 
-#define JIT_FPR_NUM	8
+#define JIT_FPR_NUM	7
 #define JIT_FPRET	_XMM0
 #define JIT_FPR(i)	(_XMM8 + (i))
 #define JIT_FPTMP	_XMM15
