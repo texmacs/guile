@@ -55,6 +55,7 @@ struct jit_local_state {
   int   nextarg_putfp;
   int   nextarg_geti;
   int	argssize;
+  int	fprssize;
   int   alloca_offset;
   int   alloca_slack;
 };
@@ -145,11 +146,18 @@ struct jit_local_state {
  
 
 #define jit_pusharg_i(rs)	(--_jitl.argssize, MOVQrr(rs, jit_arg_reg_order[_jitl.argssize]))
-#define jit_finish(sub)         (MOVQir((long) (sub), JIT_REXTMP), \
-				 CALLsr(JIT_REXTMP))
+#define jit_finish(sub)		(MOVBir(_jitl.fprssize < JIT_FP_ARG_MAX \
+				 ? _jitl.fprssize \
+				 : JIT_FP_ARG_MAX, _AL), \
+				 jit_calli(sub))
 #define jit_reg_is_arg(reg)     ((reg) == _ECX || (reg) == _EDX)
-#define jit_finishr(reg)	((jit_reg_is_arg((reg)) ? MOVQrr(reg, JIT_REXTMP) : (void)0), \
-                                 CALLsr(jit_reg_is_arg((reg)) ? JIT_REXTMP : (reg)))
+#define jit_finishr(reg)	(MOVBir(_jitl.fprssize < JIT_FP_ARG_MAX \
+				 ? _jitl.fprssize \
+				 : JIT_FP_ARG_MAX, _AL), \
+				 (jit_reg_is_arg((reg)) \
+				 ? (MOVQrr(reg, JIT_REXTMP), \
+				    jit_callr(JIT_REXTMP)) \
+				 : jit_callr(reg)))
 
 #define jit_retval_l(rd)	((void)jit_movr_l ((rd), _EAX))
 #define	jit_arg_c()	        (jit_arg_reg_order[_jitl.nextarg_geti++])
