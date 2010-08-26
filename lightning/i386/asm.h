@@ -337,9 +337,15 @@ enum {
 #define _ALUQrr(OP, RS, RD)		(_REXQrr(RS, RD),		_O_Mrm		(((OP) << 3) + 1,_b11,_r8(RS),_r8(RD)				))
 #define _ALUQmr(OP, MD, MB, MI, MS, RD)	(_REXQmr(MB, MI, RD),		_O_r_X		(((OP) << 3) + 3     ,_r8(RD)		,MD,MB,MI,MS		))
 #define _ALUQrm(OP, RS, MD, MB, MI, MS)	(_REXQrm(RS, MB, MI),		_O_r_X		(((OP) << 3) + 1     ,_r8(RS)		,MD,MB,MI,MS		))
-#define _ALUQir(OP, IM, RD)		(!_s8P(IM) && (RD) == _RAX ? \
-					(_REXQrr(0, RD),		_O_L		(((OP) << 3) + 5					,IM	)) : \
-					(_REXQrr(0, RD),		_Os_Mrm_sL	(0x81		,_b11,OP     ,_r8(RD)			,IM	)) )
+#define _ALUQir(OP, IM, RD)						\
+    /* Immediate fits in 32 bits? */					\
+    (_s32P((long)(IM))							\
+     /* Yes. Immediate does not fit in 8 bits and reg is %rax? */	\
+     ? (!_s8P(IM) && (RD) == _RAX					\
+	? (_REXQrr(0, RD), _O_L(((OP) << 3) + 5, IM))			\
+	: (_REXQrr(0, RD), _Os_Mrm_sL(0x81, _b11, OP, _r8(RD), IM)))	\
+     /* No. Need immediate in a register */				\
+     : (MOVQir(IM, JIT_REXTMP), _ALUQrr(OP, JIT_REXTMP, RD)))
 #define _ALUQim(OP, IM, MD, MB, MI, MS)	(_REXQrm(0, MB, MI),		_Os_r_X_sL	(0x81		     ,OP		,MD,MB,MI,MS	,IM	))
 
 #define ADCBrr(RS, RD)			_ALUBrr(X86_ADC, RS, RD)

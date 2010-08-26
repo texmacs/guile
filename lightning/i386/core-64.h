@@ -98,7 +98,7 @@ struct jit_local_state {
 
 #define jit_bra_l(rs, is, op) (_s32P((long)(is)) \
                                ? _jit_bra_l(rs, is, op) \
-                               : (MOVQir(is, JIT_REXTMP), jit_bra_qr(JIT_REXTMP, rs, op)))
+                               : (MOVQir(is, JIT_REXTMP), jit_bra_qr(rs, JIT_REXTMP, op)))
 
 /* When CMP with 0 can be replaced with TEST */
 #define jit_bra_l0(rs, is, op, op0)					\
@@ -307,8 +307,8 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 #define jit_blei_ul(label, rs, is)	jit_bra_l0((rs), (is), JBEm(label), JEm(label) )
 #define jit_bgti_ul(label, rs, is)	jit_bra_l0((rs), (is), JAm(label), JNEm(label) )
 #define jit_bgei_ul(label, rs, is)	jit_bra_l ((rs), (is), JAEm(label)		    )
-#define jit_bmsi_l(label, rs, is) jit_bmsi_i(label, rs, is)
-#define jit_bmci_l(label, rs, is) jit_bmci_i(label, rs, is)
+#define jit_bmsi_l(label, rs, is)	(jit_reduceQ(TEST, (is), (rs)), JNZm(label), _jit.x.pc)
+#define jit_bmci_l(label, rs, is)	(jit_reduceQ(TEST, (is), (rs)), JZm(label),  _jit.x.pc)
 
 #define jit_pushr_l(rs) jit_pushr_i(rs)
 #define jit_popr_l(rs)  jit_popr_i(rs)
