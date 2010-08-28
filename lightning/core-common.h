@@ -543,8 +543,10 @@ typedef union jit_code {
 #define jit_extr_i_ul(d, rs)		jit_movr_i(d, rs)
 
 /* Unary */
+#ifndef jit_movi_l
 #define jit_movi_l(d, rs)		jit_movi_i((d), (rs))
 #define jit_movr_l(d, rs)		jit_movr_i((d), (rs))
+#endif
 
 /* Stack */
 #define jit_pushr_l(rs)			jit_pushr_i(rs)

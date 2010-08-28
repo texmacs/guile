@@ -122,11 +122,6 @@ struct jit_local_state {
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
 
 /* Memory */
-
-#define jit_check8(rs)          ( (rs) <= _EBX )
-#define jit_reg8(rs)            ( ((rs) == _SI || (rs) == _DI) ? _AL : (_rN(rs) | _AL ))
-#define jit_reg16(rs)           ( _rN(rs) | _AX )
-
 #define jit_replace(s, rep, op)                         \
         (jit_pushr_i(rep),                              \
          MOVLrr((s), (rep)),                            \

@@ -43,11 +43,59 @@
  *		+ sr/sm		= a star preceding a register or memory
  */
 
-#if defined(_ASM_SAFETY)
-#define _r1(R)          ( ((R) & ~3) == _AL || ((R) & ~3) == _AH ? _rN(R) : JITFAIL( "8-bit register required"))
+#if !_ASM_SAFETY
+#  define _r1(R)		_rN(R)
+#  define _r2(R)		_rN(R)
+#  define _r4(R)		_rN(R)
+#  define _r8(R)		_rN(R)
+#  define _rM(R)		_rN(R)
+#  define _rX(R)		_rN(R)
+#else
+/* _r1() used to check only for _AL and _AH but there is
+ * usage of _CL and _DL when _*AX is already an operand */
+#  define _r1(R)							\
+    /* Valid 32 bit register? */					\
+    ((!((R) & ~0x77)							\
+	/* 32, 16 or 8 bit register? */					\
+	&& (((_rC(R) == 0x40 || _rC(R) == 0x30 || _rC(R) == 0x10)	\
+	    /* Yes. Register is _AL, _CL or _DL? */			\
+	    && (   (_rN(R) | 0x10) == _AL				\
+		|| (_rN(R) | 0x10) == _CL				\
+		|| (_rN(R) | 0x10) == _DL))				\
+	    /* No. Register is _AH? */					\
+	|| ((_rC(R) == 0x20 && (_rN(R) | 0x20) == _AH))))		\
+	? _rN(R) : JITFAIL("bad 8-bit register " #R))
+#  define _r2(R)							\
+    /* Valid 32 bit register? */					\
+    ((!((R) & ~0x77)							\
+	/* 32, 16 or 8 bit register? */					\
+	&& (_rC(R) == 0x40 || _rC(R) == 0x30 || _rC(R) == 0x10))	\
+	? _rN(R) : JITFAIL("bad 16-bit register " #R))
+#  define _r4(R)							\
+    /* Valid 32 bit register? */					\
+    ((!((R) & ~0x77)							\
+	/* 32, 16 or 8 bit register? */					\
+	&& (_rC(R) == 0x40 || _rC(R) == 0x30 || _rC(R) == 0x10))	\
+	? _rN(R) : JITFAIL("bad 32-bit register " #R))
+#  define _r8(R)							\
+	JITFAIL("bad 64-bit register " #R)
+#  define _rM(R)							\
+    /* Valid MMX register? */						\
+    ((!((R) & ~0x67) && _rC(R) == 0x60)					\
+	? _rN(R) : JITFAIL("bad MMX register " #R))
+#  define _rX(R)							\
+    /* Valid SSE register? */						\
+    ((!((R) & ~0x77) && _rC(R) == 0x70)					\
+	? _rN(R) : JITFAIL("bad SSE register " #R))
 #endif
 
-#define _rA(R)          _r4(R)
+#define _rA(R)			_r4(R)
+
+#define jit_check8(rs)		((_rN(rs) | _AL) == _AL)
+#define jit_reg8(rs)							\
+    ((jit_reg16(rs) == _SI || jit_reg16(rs) == _DI)			\
+	? _AL : (_rN(rs) | _AL))
+#define jit_reg16(rs)		(_rN(rs) | _AX)
 
 /* Use RIP-addressing in 64-bit mode, if possible */
 #define _r_X(   R, D,B,I,S,O)	(_r0P(I) ? (_r0P(B)    ? _r_D   (R,D                ) : \

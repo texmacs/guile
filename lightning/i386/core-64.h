@@ -241,9 +241,6 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 /* Memory */
 
 /* Used to implement ldc, stc, ... We have SIL and friends which simplify it all.  */
-#define jit_check8(rs)          1
-#define jit_reg8(rs)            (_rR(rs) | _AL )
-#define jit_reg16(rs)           (_rR(rs) | _AX )
 #define jit_movbrm(rs, dd, db, di, ds)         MOVBrm(jit_reg8(rs), dd, db, di, ds)
 
 #define jit_ldr_c(d, rs)                MOVSBQmr(0,    (rs), 0,    0, (d))

@@ -43,8 +43,57 @@
  *		+ sr/sm		= a star preceding a register or memory
  */
 
+#if !_ASM_SAFETY
+#  define _r1(R)		_rN(R)
+#  define _r2(R)		_rN(R)
+#  define _r4(R)		_rN(R)
+#  define _r8(R)		_rN(R)
+#  define _rM(R)		_rN(R)
+#  define _rX(R)		_rN(R)
+#else
+#  define _r1(R)							\
+    /* Valid 64 bit register? */					\
+    ((!((R) & ~0xff)							\
+	/* 64, 32, 16 or 8 bit register? */				\
+	&& (_rC(R) == 0x50 || _rC(R) == 0x40				\
+		|| _rC(R) == 0x30 || _rC(R) == 0x10))			\
+	? _rN(R) : JITFAIL("bad 8-bit register " #R))
+#  define _r2(R)							\
+    /* Valid 64 bit register? */					\
+    ((!((R) & ~0xff)							\
+	/* 64, 32, 16 or 8 bit register? */				\
+	&& (_rC(R) == 0x50 || _rC(R) == 0x40				\
+		|| _rC(R) == 0x30 || _rC(R) == 0x10))			\
+	? _rN(R) : JITFAIL("bad 16-bit register " #R))
+#  define _r4(R)							\
+    /* Valid 64 bit register? */					\
+    ((!((R) & ~0xff)							\
+	/* 64, 32, 16 or 8 bit register? */				\
+	&& (_rC(R) == 0x50 || _rC(R) == 0x40				\
+		|| _rC(R) == 0x30 || _rC(R) == 0x10))			\
+	? _rN(R) : JITFAIL("bad 32-bit register " #R))
+#  define _r8(R)							\
+    /* Valid 64 bit register? */					\
+    ((!((R) & ~0xff)							\
+	/* 64, 32, 16 or 8 bit register? */				\
+	&& (_rC(R) == 0x50 || _rC(R) == 0x40				\
+		|| _rC(R) == 0x30 || _rC(R) == 0x10))			\
+	? _rN(R) : JITFAIL("bad 64-bit register " #R))
+#  define _rM(R)							\
+    /* Valid MMX* register? */						\
+    ((!((R) & ~0x6f) && _rC(R) == 0x60)					\
+	? _rN(R) : JITFAIL("bad MMX register " #R))
+#  define _rX(R)							\
+    /* Valid SSE2 register? */						\
+    ((!((R) & ~0x7f) && _rC(R) == 0x70)					\
+	? _rN(R) : JITFAIL("bad SSE2 register " #R))
+#endif
 
-#define _rA(R)          _r8(R)
+#define _rA(R)			_r8(R)
+
+#define jit_check8(rs)		1
+#define jit_reg8(rs)		(_rR(rs) | _AL)
+#define jit_reg16(rs)		(_rR(rs) | _AX)
 
 /* Use RIP-addressing in 64-bit mode, if possible */
 #if 0
@@ -124,16 +173,6 @@
 #define _R14		0x5E
 #define _R15		0x5F
 #define _RIP		-2
-
-#if defined(_ASM_SAFETY)
-#define _r1(R)          ( ((unsigned) _rC((R) - 16)) < (0x30 - 16)      ? _rN(R) : JITFAIL( "8-bit register required"))
-
-#if 0
-#define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : JITFAIL("64-bit register required"))
-#else
-#define _r8(R)		( (_rC(R) == 0x50)			? _rN(R) : _r4(R))
-#endif
-#endif
 
 #define _r1e8lP(R)	((int)(R) >= _SPL && (int)(R) <= _DIL)
 

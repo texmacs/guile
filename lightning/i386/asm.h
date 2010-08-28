@@ -129,20 +129,6 @@ typedef _uc		jit_insn;
 #define _rN(R)		((R) & 0x07)
 #define _rXP(R)		((R) > 0 && _rR(R) > 7)
 
-#if !defined(_ASM_SAFETY)
-#define _r1(R)		_rN(R)
-#define _r2(R)		_rN(R)
-#define _r4(R)		_rN(R)
-#define _r8(R)		_rN(R)
-#define _rM(R)		_rN(R)
-#define _rX(R)		_rN(R)
-#else
-#define _r2(R)		( (_rC(R) == 0x30)			? _rN(R) : JITFAIL("16-bit register required"))
-#define _r4(R)		( (_rC(R) == 0x40)			? _rN(R) : JITFAIL("32-bit register required"))
-#define _rM(R)		( (_rC(R) == 0x60)			? _rN(R) : JITFAIL("MMX register required"))
-#define _rX(R)		( (_rC(R) == 0x70)			? _rN(R) : JITFAIL("SSE register required"))
-#endif
-
 #define _rbpP(R)	(_rR(R) == _rR(_EBP))
 #define _rspP(R)	(_rR(R) == _rR(_ESP))
 #define _rbp13P(R)	(_rN(R) == _rN(_EBP))
