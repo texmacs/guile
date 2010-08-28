@@ -91,6 +91,27 @@
 #define jit_extr_d_f(rd, rs)		jit_movr_d(rd, rs)
 #endif
 
+#if !defined(__WORDSIZE) || __WORDSIZE == 32
+#  if !defined(jit_extr_l_f)
+#    define jit_extr_l_f(rd, rs)	jit_extr_i_f(rd, rs)
+#  endif
+#  if !defined(jit_extr_l_d)
+#    define jit_extr_l_d(rd, rs)	jit_extr_i_d(rd, rs)
+#  endif
+#  if !defined(jit_roundr_f_l)
+#    define jit_roundr_f_l(rd, rs)	jit_roundr_f_i(rd, rs)
+#    define jit_truncr_f_l(rd, rs)	jit_truncr_f_i(rd, rs)
+#    define jit_floorr_f_l(rd, rs)	jit_floorr_f_i(rd, rs)
+#    define jit_ceilr_f_l(rd, rs)	jit_ceilr_f_i(rd, rs)
+#  endif
+#  if !defined(jit_roundr_d_l)
+#    define jit_roundr_d_l(rd, rs)	jit_roundr_d_i(rd, rs)
+#    define jit_truncr_d_l(rd, rs)	jit_truncr_d_i(rd, rs)
+#    define jit_floorr_d_l(rd, rs)	jit_floorr_d_i(rd, rs)
+#    define jit_ceilr_d_l(rd, rs)	jit_ceilr_d_i(rd, rs)
+#  endif
+#endif
+
 #ifndef jit_beqr_f
 #define jit_beqr_f(lab, a, b)		jit_beqr_d(lab, a, b)
 #define jit_bner_f(lab, a, b)		jit_bner_d(lab, a, b)
