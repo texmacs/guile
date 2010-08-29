@@ -91,7 +91,7 @@ struct jit_local_state {
 #define jit_qop_(d, s1, is, op2d, op2i)					\
 	(_s32P((long)(is))						\
 	 ? jit_qop_small ((d), (s1), (op2d))				\
-	 : (MOVQrr ((is), JIT_REXTMP), jit_qop_small ((d), (s1), (op2i))))
+	 : (MOVQir ((is), JIT_REXTMP), jit_qop_small ((d), (s1), (op2i))))
 
 #define jit_bra_qr(s1, s2, op)		(CMPQrr(s2, s1), op, _jit.x.pc)
 #define _jit_bra_l(rs, is, op)		(CMPQir(is, rs), op, _jit.x.pc)
@@ -108,7 +108,22 @@ struct jit_local_state {
 	(_u8P(is) ? jit_reduce_(op##Bir(is, jit_reg8(rs))) :	\
 	jit_reduce_(op##Qir(is, rs)) )
 
-#define jit_addi_l(d, rs, is)	jit_opi_((d), (rs),       ADDQir((is), (d)), 			LEAQmr((is), (rs), 0, 0, (d))  )
+#define jit_addi_l(d, rs, is)						\
+    /* Value is not zero? */						\
+    ((is)								\
+	/* Yes. Value is unsigned and fits in signed 32 bits? */	\
+	? (_uiP(31, is)							\
+	    /* Yes. d == rs? */						\
+	    ? jit_opi_((d), (rs),					\
+		/* Yes. Use add opcode */				\
+		ADDQir((is), (d)),					\
+		/* No. Use lea opcode */				\
+		LEAQmr((is), (rs), 0, 0, (d)))				\
+	    /* No. Need value in a register */				\
+	    : (jit_movi_l(JIT_REXTMP, is),				\
+	       jit_addr_l(d, rs, JIT_REXTMP)))				\
+	/* No. Do nothing. */						\
+	: 0)
 #define jit_addr_l(d, s1, s2)	jit_opo_((d), (s1), (s2), ADDQrr((s2), (d)), ADDQrr((s1), (d)), LEAQmr(0, (s1), (s2), 1, (d))  )
 #define jit_andi_l(d, rs, is)	jit_qop_ ((d), (rs), (is), ANDQir((is), (d)), ANDQrr(JIT_REXTMP, (d)))
 #define jit_andr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2), ANDQrr((s1), (d)), ANDQrr((s2), (d)) )
@@ -214,12 +229,18 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )
 #define jit_movr_l(d, rs)	((void)((rs) == (d) ? 0 : MOVQrr((rs), (d))))
-#define jit_movi_p(d, is)       (MOVQir(((long)(is)), (d)), _jit.x.pc)
-#define jit_movi_l(d, is)	((is) \
-                                 ? (_u32P((long)(is)) \
-                                    ? MOVLir((is), (d)) \
-                                    : MOVQir((is), (d))) \
-                                 : XORQrr ((d), (d)) )
+#define jit_movi_p(d, is)	(jit_movi_ul(d, is), _jit.x.pc)
+#define jit_movi_l(d, is)						\
+    /* Value is not zero? */						\
+    ((is)								\
+	/* Yes. Value is unsigned and fits in signed 32 bits? */	\
+	? (_uiP(31, is)							\
+	    /* Yes. Use 32 bits opcode */				\
+	    ? MOVLir(is, (d))						\
+	    /* No. Use 64 bits opcode */				\
+	    : MOVQir(is, (d)))						\
+	/* No. Set register to zero. */					\
+	: XORQrr ((d), (d)))
 
 #define jit_bmsr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JNZm(label), _jit.x.pc)
 #define jit_bmcr_l(label, s1, s2)	(TESTQrr((s1), (s2)), JZm(label),  _jit.x.pc)
