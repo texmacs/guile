@@ -1,5 +1,5 @@
 /*
- * Copyright 1988, 1989 Hans-J. Boehm, Alan J. Demers
+ * Copyright 1988, 1989, 2010 Hans-J. Boehm, Alan J. Demers
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1996-1999 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999 by Hewlett-Packard Company.  All rights reserved.
@@ -706,11 +706,18 @@ scm_get_stack_base ()
     extern int etext;
 #   ifdef SUNOS5
 #	define OS_TYPE "SUNOS5"
-	extern int _etext;
-	extern int _end;
-	extern char * GC_SysVGetDataStart();
-#       define DATASTART (ptr_t)GC_SysVGetDataStart(0x10000, &_etext)
-#	define DATAEND (&_end)
+#	define OS_TYPE "SUNOS5"
+        extern int _etext[], _end[];
+        ptr_t GC_SysVGetDataStart(size_t, ptr_t);
+#       define DATASTART GC_SysVGetDataStart(0x1000, (ptr_t)_etext)
+#       define DATAEND (ptr_t)(_end)
+/*      # define STACKBOTTOM ((ptr_t)(_start)) worked through 2.7,      */
+/*      but reportedly breaks under 2.8.  It appears that the stack     */
+/*      base is a property of the executable, so this should not break  */
+/*      old executables.                                                */
+/*      HEURISTIC2 probably works, but this appears to be preferable.   */
+#       include <sys/vm.h>
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 #	ifndef USE_MMAP
 #	    define USE_MMAP
 #	endif
@@ -797,10 +804,17 @@ scm_get_stack_base ()
 #   endif
 #   ifdef SUNOS5
 #	define OS_TYPE "SUNOS5"
-  	extern int etext, _start;
-  	extern char * GC_SysVGetDataStart();
-#       define DATASTART GC_SysVGetDataStart(0x1000, &etext)
-#	define STACKBOTTOM ((ptr_t)(&_start))
+        extern int _etext[], _end[];
+        ptr_t GC_SysVGetDataStart(size_t, ptr_t);
+#       define DATASTART GC_SysVGetDataStart(0x1000, (ptr_t)_etext)
+#       define DATAEND (ptr_t)(_end)
+/*      # define STACKBOTTOM ((ptr_t)(_start)) worked through 2.7,      */
+/*      but reportedly breaks under 2.8.  It appears that the stack     */
+/*      base is a property of the executable, so this should not break  */
+/*      old executables.                                                */
+/*      HEURISTIC2 probably works, but this appears to be preferable.   */
+#       include <sys/vm.h>
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 /** At least in Solaris 2.5, PROC_VDB gives wrong values for dirty bits. */
 /*#	define PROC_VDB*/
 #	define DYNAMIC_LOADING
