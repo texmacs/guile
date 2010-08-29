@@ -229,7 +229,7 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 
 #define jit_negr_l(d, rs)	jit_opi_((d), (rs), NEGQr(d), (XORQrr((d), (d)), SUBQrr((rs), (d))) )
 #define jit_movr_l(d, rs)	((void)((rs) == (d) ? 0 : MOVQrr((rs), (d))))
-#define jit_movi_p(d, is)	(jit_movi_ul(d, is), _jit.x.pc)
+#define jit_movi_p(d, is)	(MOVQir(((long)(is)), (d)), _jit.x.pc)
 #define jit_movi_l(d, is)						\
     /* Value is not zero? */						\
     ((is)								\
