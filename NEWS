@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -10,12 +10,26 @@ Changes in 1.8.8 (since 1.8.7)
 * Bugs fixed
 
 ** Fix possible buffer overruns when parsing numbers
+** Fix random number generator on 64-bit platforms
+
+Previously the `scm_c_random' function would crash or return only 32-bit
+worth of randomness.  In addition, the new `scm_c_random64' function
+explicitly returns 64 bits of randomness.
+
+** Add missing range checks in `vector-move-left!' and `vector-move-right!'
+
+Previously these procedures could write past the end of a vector.
+
 ** Avoid clash with system setjmp/longjmp on IA64
 ** Don't dynamically link an extension that is already registered
 ** Fix `wrong type arg' exceptions with IPv6 addresses
 ** Fix typos in `(srfi srfi-19)'
 ** Have `(srfi srfi-35)' provide named struct vtables
+** Fix C documentation extraction ("snarfing") with recent GCC versions
 ** Fix some Interix build problems
+** Fix Tru64 build problems
+** Fix GC-related build issues on Solaris 10 x86 with Sun Studio 12
+** Several small documentation fixes
 
 
 Changes in 1.8.7 (since 1.8.6)
