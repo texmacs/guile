@@ -598,11 +598,12 @@ GDS Emacs Lisp code when starting up, and to start the inferior GDS
 server process so that it is ready and waiting for any Guile programs
 that want to use GDS.
 
-The Scheme side of GDS is installed automatically by Guile. The Emacs
-Lisp side, however, is not. You will have to grab
-@file{gds-server.el}, @file{gds-scheme.el}, and @file{gds.el} from
-Guile's source distribution, and make sure they end up in Emacs' load
-path.
+The Scheme side of GDS is systematically installed with Guile, whereas
+the Emacs Lisp side (the @file{gds-server.el}, @file{gds-scheme.el}, and
+@file{gds.el} files) is only installed if Emacs was detected at
+@command{configure}-time.  Before using GDS, make sure these files are
+installed and are in Emacs' load path (@pxref{Lisp Libraries,
+@code{load-path},, emacs, GNU Emacs Manual}).
 
 (If GDS's Scheme code is not installed in one of the locations in
 Guile's load path, you may find that the server process fails to start.
