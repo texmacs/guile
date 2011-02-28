@@ -1,3 +1,8 @@
+2011-02-28  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-64.h: Add jit_add{c,x}{i,r}_l, jit_mulr_{l,ul}_,
+	fix jit_mul{i,r}_{l,ul}.
+
 2010-08-20  Paolo Bonzini  <bonzini@gnu.org>
 
 	* lightning/i386/fp-64.h: Return patch address from jit_bXYr_{f,d}.

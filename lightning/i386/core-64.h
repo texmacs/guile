@@ -125,6 +125,10 @@ struct jit_local_state {
 	/* No. Do nothing. */						\
 	: 0)
 #define jit_addr_l(d, s1, s2)	jit_opo_((d), (s1), (s2), ADDQrr((s2), (d)), ADDQrr((s1), (d)), LEAQmr(0, (s1), (s2), 1, (d))  )
+#define jit_addci_l(d, rs, is)	jit_qop_ ((d), (rs), (is), ADCQir((is), (d)), ADCQrr(JIT_REXTMP, (d)))
+#define jit_addcr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2), ADCQrr((s1), (d)), ADCQrr((s2), (d)) )
+#define jit_addxi_l(d, rs, is)	jit_qop_ ((d), (rs), (is), ADDQir((is), (d)), ADDQrr(JIT_REXTMP, (d)))
+#define jit_addxr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2), ADDQrr((s1), (d)), ADDQrr((s2), (d)) )
 #define jit_andi_l(d, rs, is)	jit_qop_ ((d), (rs), (is), ANDQir((is), (d)), ANDQrr(JIT_REXTMP, (d)))
 #define jit_andr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2), ANDQrr((s1), (d)), ANDQrr((s2), (d)) )
 #define jit_orr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2),  ORQrr((s1), (d)),  ORQrr((s2), (d)) )
@@ -380,6 +384,12 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
 #define jit_gei_ul(d, rs, is)   jit_bool_qi0((d), (rs), (is), SETAEr, INCLr  )
 
 /* Multiplication/division.  */
+#define jit_mulr_ul_(s1, s2)				\
+        jit_qopr_(_RAX, s1, s2, MULQr(s1), MULQr(s2))
+
+#define jit_mulr_l_(s1, s2)				\
+        jit_qopr_(_RAX, s1, s2, IMULQr(s1), IMULQr(s2))
+
 #define jit_muli_l_(is, rs)                             \
         (MOVQir(is, rs == _RAX ? _RDX : _RAX),          \
          IMULQr(rs == _RAX ? _RDX : rs))
@@ -446,13 +456,13 @@ static int jit_arg_reg_order[] = { _EDI, _ESI, _EDX, _ECX, _R8D, _R9D };
         jit_might(d,     _RCX,  jit_popr_l(_RCX)),              \
         jit_might(d,     _RAX,  jit_popr_l(_RAX)))
 
-#define jit_muli_l(d, rs, is)	jit_op_ ((d), (rs),       IMULQir((is), (d)) 		       )
-#define jit_mulr_l(d, s1, s2)	jit_opr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
+#define jit_muli_l(d, rs, is)	jit_qop_ ((d), (rs), (is), IMULQir((is), (d)), IMULQrr(JIT_REXTMP, (d)) )
+#define jit_mulr_l(d, s1, s2)	jit_qopr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
 
 /* As far as low bits are concerned, signed and unsigned multiplies are
    exactly the same. */
-#define jit_muli_ul(d, rs, is)	jit_op_ ((d), (rs),       IMULQir((is), (d)) 		       )
-#define jit_mulr_ul(d, s1, s2)	jit_opr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
+#define jit_muli_ul(d, rs, is)	jit_qop_ ((d), (rs), (is), IMULQir((is), (d)), IMULQrr(JIT_REXTMP, (d)) )
+#define jit_mulr_ul(d, s1, s2)	jit_qopr_((d), (s1), (s2), IMULQrr((s1), (d)), IMULQrr((s2), (d)) )
 
 #define jit_hmuli_l(d, rs, is)														\
 	((d) == _RDX ? (	      jit_pushr_l(_RAX), jit_muli_l_((is), (rs)), 				     jit_popr_l(_RAX)		) :	\
