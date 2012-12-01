@@ -68,12 +68,7 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("compare", code, -2.6, -2.4, 0, 2.4, 2.6);
-#endif
 
 #ifdef __GNUC__
   jit_set_ip(codeBuffer);
@@ -87,12 +82,7 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("nans", code, x / x, 1 / (a - a), -1 / (a - a), 0.0, -2.0);
-#endif
 #else
   printf ("nans\t\t1 3 3 0 3\n");
 #endif
@@ -104,13 +94,8 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("trunc", code, -2.6, -2.4, 0, 2.4, 2.6);
   int_test("trunc", code, -3, -2, 0, 2, 3);
-#endif
 
   jit_set_ip(codeBuffer);
   jit_leaf(0);
@@ -119,13 +104,8 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("ceil", code, -2.6, -2.4, 0, 2.4, 2.6);
   int_test("ceil", code, -3, -2, 0, 2, 3);
-#endif
 
   jit_set_ip(codeBuffer);
   jit_leaf(0);
@@ -134,13 +114,8 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("floor", code, -2.6, -2.4, 0, 2.4, 2.6);
   int_test("floor", code, -3, -2, 0, 2, 3);
-#endif
 
   jit_set_ip(codeBuffer);
   jit_leaf(0);
@@ -149,13 +124,8 @@ main()
   jit_ret();
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   int_test("round", code, -2.6, -2.4, 0, 2.4, 2.6);
   int_test("round", code, -3, -2, 0, 2, 3);
-#endif
 
 #if 0 && defined JIT_TRANSCENDENTAL
   jit_set_ip(codeBuffer);
@@ -169,12 +139,7 @@ main()
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   printf("log e = \t%f\n", a);
-#endif
 
   jit_set_ip(codeBuffer);
   jit_leaf(0);
@@ -187,12 +152,7 @@ main()
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   printf("pi =         \t%f\n", a*3);
-#endif
 
   jit_set_ip(codeBuffer);
   jit_leaf(0);
@@ -205,12 +165,7 @@ main()
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
   code.vptr();
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *)codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   printf("tan^2 pi/3 = \t%f\n", a*a);
-#endif
 
 #endif /* JIT_TRANSCEDENTAL */
 

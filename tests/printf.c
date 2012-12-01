@@ -66,12 +66,7 @@ int main()
 
   jit_flush_code(codeBuffer, end);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, codeBuffer, end);
-#endif
-#ifndef LIGHTNING_CROSS
   /* call the generated code, passing its size as argument */
   myFunction(sizeof(codeBuffer));
-#endif
   return 0;
 }

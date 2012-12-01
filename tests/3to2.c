@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include "lightning.h"
 
-#ifdef JIT_FPR
 static jit_insn codeBuffer[1024];
 
 double
@@ -59,14 +58,8 @@ test_double (int a, int b, int c)
 
   jit_flush_code ((char *) codeBuffer, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) codeBuffer, jit_get_ip ().ptr);
-#endif
-
-#ifndef LIGHTNING_CROSS
   x = ((double (*) (double, double)) codeBuffer) (3.0, 2.0);
   printf ("%g %g\n", ((b == c) ? 0.0 : 1.0), x);
-#endif
 
   return x;
 }
@@ -89,14 +82,8 @@ test_int (int a, int b, int c)
 
   jit_flush_code ((char *) codeBuffer, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) codeBuffer, jit_get_ip ().ptr);
-#endif
-
-#ifndef LIGHTNING_CROSS
   x = ((int (*) (int, int)) codeBuffer) (3, 2);
   printf ("%d %d\n", ((b == c) ? 0 : 1), x);
-#endif
 
   return x;
 }
@@ -134,10 +121,3 @@ main ()
 
   return 0;
 }
-#else
-int
-main()
-{       
-	  return (77);
-} 
-#endif

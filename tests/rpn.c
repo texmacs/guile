@@ -428,9 +428,6 @@ compile_rpn (char *expr)
   jit_ret ();
   jit_flush_code ((char *) fn, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) fn, jit_get_ip ().ptr);
-#endif
   return fn;
 }
 
@@ -445,7 +442,6 @@ main ()
   c2f = compile_rpn ("32 x 9 * 5 / +");
   f2c = compile_rpn ("5 x 32_ + * 9 /");
 
-#ifndef LIGHTNING_CROSS
   printf ("\nC:");
   for (i = 0; i <= 100; i += 10)
     printf ("%3d ", i);
@@ -461,6 +457,5 @@ main ()
   for (i = 32; i <= 212; i += 10)
     printf ("%3d ", f2c (i));
   printf ("\n");
-#endif
   return 0;
 }

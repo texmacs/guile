@@ -1594,9 +1594,7 @@ enum {
 /* [2] "Intel Architecture Software Developer's Manual Volume 2: Instruction Set Reference",	*/
 /*     Intel Corporation 1997.									*/
 
-#if LIGHTNING_CROSS \
-	? LIGHTNING_TARGET == LIGHTNING_X86_64 \
-	: defined (__x86_64__)
+#if defined (__x86_64__)
 #include "asm-64.h"
 #else
 #include "asm-32.h"

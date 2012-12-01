@@ -355,9 +355,7 @@
 #define jit_align(n) 			NOPi(_jit_alignment(_jit_UL(_jit.x.pc), (n)))
 
 
-#if LIGHTNING_CROSS \
-	? LIGHTNING_TARGET == LIGHTNING_X86_64 \
-	: defined (__x86_64__)
+#if defined (__x86_64__)
 #include "core-64.h"
 #else
 #include "core-32.h"

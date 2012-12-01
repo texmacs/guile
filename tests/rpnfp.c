@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include "lightning.h"
 
-#ifdef JIT_FPR
 static jit_insn codeBuffer[1024];
 
 typedef double (*pdfd) (double);	/* Pointer to Double Function of Double */
@@ -101,9 +100,6 @@ compile_rpn (char *expr)
 
   jit_flush_code ((char *) fn, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) fn, jit_get_ip ().ptr);
-#endif
   return fn;
 }
 
@@ -118,7 +114,6 @@ main ()
   c2f = compile_rpn ("9*5/32+");
   f2c = compile_rpn ("32-5*9/");
 
-#ifndef LIGHTNING_CROSS
   printf ("\nC:");
   for (i = 0; i <= 100; i += 10)
     printf ("%6.1f", i);
@@ -134,13 +129,5 @@ main ()
   for (i = 32; i <= 212; i += 10)
     printf ("%6.1f", f2c (i));
   printf ("\n");
-#endif
   return 0;
 }
-#else
-int
-main()
-{       
-	  return (77);
-} 
-#endif

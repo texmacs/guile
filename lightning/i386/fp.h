@@ -34,9 +34,7 @@
 #ifndef __lightning_fp_i386_h
 #define __lightning_fp_i386_h
 
-#if LIGHTNING_CROSS \
-	? LIGHTNING_TARGET == LIGHTNING_X86_64 \
-	: defined (__x86_64__)
+#if defined (__x86_64__)
 #include "fp-64.h"
 #else
 #include "fp-32.h"

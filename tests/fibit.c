@@ -68,12 +68,7 @@ int main()
 
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, (char *) codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   /* call the generated code, passing 36 as an argument */
   printf("nfibs(%d) = %d\n", 36, nfibs(36));
-#endif
   return 0;
 }

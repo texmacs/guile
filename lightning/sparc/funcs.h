@@ -48,7 +48,6 @@
 static void
 jit_flush_code(void* start, void* end)
 {
-#ifndef LIGHTNING_CROSS
   register char *dest;
 
   __asm__ __volatile__ ("stbar");
@@ -58,7 +57,6 @@ jit_flush_code(void* start, void* end)
 
   /* [SPARC Architecture Manual v8, page 139, implementation note #5] */
   __asm__ __volatile__ ("nop; nop; nop; nop; nop");
-#endif
 }
 #endif
 

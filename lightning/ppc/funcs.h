@@ -43,7 +43,6 @@
 static void
 jit_flush_code(void *start, void *end)
 {
-#ifndef LIGHTNING_CROSS
   register char *ddest, *idest;
 
   static int cache_line_size;
@@ -84,7 +83,6 @@ jit_flush_code(void *start, void *end)
     __asm__ __volatile__ ("icbi 0,%0" : : "r"(idest));
   }
   __asm__ __volatile__ ("isync" : : );
-#endif /* !LIGHTNING_CROSS */
 }
 #endif /* __GNUC__ || __GNUG__ */
 

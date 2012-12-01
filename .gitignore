@@ -1,2 +1,17 @@
 +*
 autom4te.cache
+aclocal.m4
+INSTALL
+Makefile.in
+config.h.in
+configure
+build-aux/config.guess
+build-aux/config.sub
+build-aux/depcomp
+build-aux/install-sh
+build-aux/mdate-sh
+build-aux/missing
+build-aux/texinfo.tex
+doc/Makefile.in
+lightning/Makefile.in
+tests/Makefile.in

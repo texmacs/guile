@@ -34,11 +34,7 @@
 #define __lightning_core_h
 
 #define JIT_R_NUM		3
-#ifdef JIT_NEED_PUSH_POP
-# define JIT_V_NUM		7
-#else
-# define JIT_V_NUM		8
-#endif
+#define JIT_V_NUM		8
 
 #define JIT_R(i)		_Rg(2 + (i))
 #define JIT_V(i)		_Rl(i)
@@ -103,21 +99,7 @@ struct jit_local_state {
   jit_insn delay;
 };
 
-#ifdef JIT_NEED_PUSH_POP
-/* Maximum size for the "automatic variables" area on the stack (the area
-   that starts from %fp-1 and ends at %sp+104, see the ABI doc).  This must
-   be a multiple of 8 so that %sp remains double-word aligned as required by
-   SysV ABI (see page 3-10).  In lightning, this effectively limits the
-   number of registers that can be pushed with `pushr'.
-
-   Initialize %l7 to contain the (negative) offset relative to %fp of the last
-   register pushed.  */
-# define JIT_SPARC_MAX_STACK_REGISTER_AREA  (8 * sizeof (void *))
-# define JIT_SPARC_INIT_PUSH_POP()          (MOVrr (_Rg(0), _Rl(7)))
-#else
-# define JIT_SPARC_MAX_STACK_REGISTER_AREA  0
-# define JIT_SPARC_INIT_PUSH_POP()          ((void)0)
-#endif
+#define JIT_SPARC_MAX_STACK_REGISTER_AREA  0
 
 /* Minimum size of a stack frame.  */
 #define JIT_SPARC_MIN_FRAME_SIZE  (104 + JIT_SPARC_MAX_STACK_REGISTER_AREA)
@@ -316,7 +298,7 @@ struct jit_local_state {
 #define jit_orr_i(d, s1, s2)				  ORrrr((s1), (s2), (d))
 #define jit_patch_at(delay_pc, pv)	jit_patch_ (((delay_pc) - 1) , (pv))
 #define jit_prepare_i(num)		(_jitl.nextarg_put += (num))
-#define jit_prolog(numargs)		(_jitl.save = (jit_insn *) _jit.x.pc, SAVErir (JIT_SP, -JIT_SPARC_MIN_FRAME_SIZE, JIT_SP), _jitl.frame_size = JIT_SPARC_MIN_FRAME_SIZE, _jitl.alloca_offset = -JIT_SPARC_MAX_STACK_REGISTER_AREA, _jitl.nextarg_get = _Ri(0), JIT_SPARC_INIT_PUSH_POP ())
+#define jit_prolog(numargs)		(_jitl.save = (jit_insn *) _jit.x.pc, SAVErir (JIT_SP, -JIT_SPARC_MIN_FRAME_SIZE, JIT_SP), _jitl.frame_size = JIT_SPARC_MIN_FRAME_SIZE, _jitl.alloca_offset = -JIT_SPARC_MAX_STACK_REGISTER_AREA, _jitl.nextarg_get = _Ri(0), 0)
 
 #define jit_pusharg_i(rs)		(--_jitl.nextarg_put, MOVrr((rs), _Ro(_jitl.nextarg_put)))
 #define jit_ret()			(RET(), RESTORE())
@@ -337,10 +319,5 @@ struct jit_local_state {
 #define jit_subxr_i(d, s1, s2)				  SUBXCCrrr((s1), (s2), (d))
 #define jit_xori_i(d, rs, is)		jit_chk_imm((is), XORrir((rs), (is), (d)), XORrrr((rs), JIT_BIG, (d)))
 #define jit_xorr_i(d, s1, s2)				  XORrrr((s1), (s2), (d))
-
-#ifdef JIT_NEED_PUSH_POP
-# define jit_pushr_i(rs)		(SUBrir(_Rl(7), sizeof (void *), _Rl(7)), STWrx((rs), JIT_FP, _Rl(7)))
-# define jit_popr_i(rd)			(LDSWxr(_Rl(7), JIT_FP, (rd)), ADDrir(_Rl(7), sizeof (void *), _Rl(7)))
-#endif
 
 #endif /* __lightning_core_h */

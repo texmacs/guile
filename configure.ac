@@ -44,30 +44,9 @@ LIGHTNING_CONFIGURE_LINKS(
 AC_SUBST(cpu)
 AM_CONDITIONAL(LIGHTNING_MAIN, :)
 
-dnl ---------------------------- COMMAND LINE ---------------------------------
-
-AC_ARG_ENABLE( disassembling,
-[  --enable-disassembling  make the test programs disassemble the code
-			   enabled by default if host != target],
-, enable_disassembling=no)
-
 AM_CONDITIONAL(REGRESSION_TESTING, test "$host_cpu" = "$target_cpu")
-if test "$host_cpu" != "$target_cpu"; then
-  AC_DEFINE(LIGHTNING_CROSS, 1,
-    [Define if test programs should not run the compiled code])
-  enable_disassembling=yes
-fi
 
-if test "$enable_disassembling" != no; then
-  AC_DEFINE(LIGHTNING_DISASSEMBLE, 1,
-    [Define if the test programs should disassemble the code they produce])
-  LIBDISASS="libdisass.a"
-else
-  LIBDISASS=
-fi
-AM_CONDITIONAL(DISASS, test "$enable_disassembling" != no)
-test "$enable_disassembling" != no && 
-AC_SUBST(LIBDISASS)
+dnl ---------------------------- COMMAND LINE ---------------------------------
 
 AC_ARG_ENABLE( assertions,
 [  --enable-assertions     perform internal consistency checks],
@@ -79,9 +58,8 @@ fi
 
 dnl --------------------------- PRODUCE OUTPUT --------------------------------
 
-AC_CONFIG_FILES(Makefile doc/Makefile tests/Makefile opcode/Makefile
+AC_CONFIG_FILES(Makefile doc/Makefile tests/Makefile
 	lightning/Makefile)
-AC_CONFIG_FILES(lightningize, chmod +x lightningize)
 
 AC_OUTPUT
 

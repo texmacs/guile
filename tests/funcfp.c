@@ -37,7 +37,6 @@
 #include <stdio.h>
 #include "lightning.h"
 
-#ifdef JIT_FPR
 static jit_insn codeBuffer[300];
 
 typedef int (*intFunc) (int, int);
@@ -64,10 +63,6 @@ makeDblFunc ()
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) retVal, jit_get_ip ().ptr);
-#endif
-
   return retVal;
 }
 
@@ -90,10 +85,6 @@ makeFloatFunc ()
   jit_movr_f (JIT_FPRET, JIT_FPR0);
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
-
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) retVal, jit_get_ip ().ptr);
-#endif
 
   return retVal;
 }
@@ -119,10 +110,6 @@ makeCallFunc (dblFunc theFunc)
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) retVal, jit_get_ip ().ptr);
-#endif
-
   return retVal;
 }
 
@@ -147,10 +134,6 @@ makeCallFloatFunc (floatFunc theFunc)
   jit_ret ();
   jit_flush_code ((char *) retVal, jit_get_ip ().ptr);
 
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble (stderr, (char *) retVal, jit_get_ip ().ptr);
-#endif
-
   return retVal;
 }
 
@@ -168,20 +151,11 @@ main (int argc, char *argv[])
   myFunc3 = makeFloatFunc ();
   callIt1 = makeCallFunc (myFunc2);
   callIt2 = makeCallFloatFunc (myFunc3);
-#ifndef LIGHTNING_CROSS
   y = callIt1 (10.5, 15.3);
   a = 1.5;
   b = 10.5;
   z = callIt2 (a, b);
   printf ("result is %.5g\t %.5g\n", y, z);
-#endif
 
   return 0;
 }
-#else
-int
-main()
-{       
-  return (77);
-} 
-#endif

@@ -53,11 +53,6 @@ int main()
   jit_flush_code(codeBuffer, jit_get_ip().ptr);
 
   /* call the generated code, passing its size as argument */
-#ifdef LIGHTNING_DISASSEMBLE
-  disassemble(stderr, codeBuffer, jit_get_ip().ptr);
-#endif
-#ifndef LIGHTNING_CROSS
   printf("%d + 1 = %d\n", 5, myFunction(5));
-#endif
   return 0;
 }
