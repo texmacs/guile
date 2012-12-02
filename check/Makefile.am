@@ -31,9 +31,12 @@ EXTRA_DIST =				\
 	bp.tst		bp.ok		\
 	divi.tst	divi.ok		\
 	fib.tst		fib.ok		\
+	check.sh			\
 	all.tst
 
 TESTS = 3to2 add allocai bp divi fib
+
+CLEANFILES = $(TESTS)
 
 # Not so pretty but good for a prototype
 $(TESTS):	check.sh
