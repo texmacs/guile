@@ -1,3 +1,14 @@
+2012-12-02 Paulo Andrade <pcpa@gnu.org>
+	* .cvsignore: Removed for extra cleanup.
+
+	* build-aux: Rename directory to m4.
+
+	* m4: Renamed to "default" name and for consistency with merge
+	with code rework to be imported in lightning.
+
+	* .gitignore, configure.ac, Makefile.am, doc/Makefile.am:
+	Update for build-aux to m4 rename.
+
 2012-12-01 Paulo Andrade <pcpa@gnu.org>
 
 	* opcode/Makefile.am, opcode/Makefile.in, opcode/ansidecl.h,
