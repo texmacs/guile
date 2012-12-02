@@ -1,4 +1,60 @@
 2012-12-02 Paulo Andrade <pcpa@gnu.org>
+
+	* tests/Makefile.am, tests/3to2.c, tests/3to2.ok, tests/add.c,
+	tests/add.ok, tests/allocai.c, tests/allocai.ok, tests/bp.c,
+	tests/bp.ok, tests/divi.c, tests/divi.ok, tests/fib.c, tests/fib.ok,
+	tests/fibdelay.c, tests/fibdelay.ok, tests/fibit.c, tests/fibit.ok,
+	tests/funcfp.c, tests/funcfp.ok, tests/incr.c, tests/incr.ok,
+	tests/ldst.c, tests/ldst.ok, tests/ldxi.c, tests/ldxi.ok,
+	tests/modi.c, tests/modi.ok, tests/movi.c, tests/movi.ok,
+	tests/printf.c, tests/printf.ok, tests/printf2.c, tests/printf2.ok,
+	tests/ret.c, tests/ret.ok, tests/rpn.c, tests/rpn.ok, tests/rpnfp.c,
+	tests/rpnfp.ok, tests/sete.c, tests/sete.ok, tests/testfp.c,
+	tests/testfp.ok, tests-run-test: Removed previous test suite, in
+	favor of a newer one in the check subdirectory.
+
+	* check/3to2.ok, check/3to2.tst, check/add.ok, check/add.tst,
+	check/allocai.ok, check/allocai.tst, check/bp.ok, check/bp.tst,
+	check/divi.ok, check/divi.tst, check/fib.ok, check/fib.tst:
+	New sample input for the new test program, loosely matching
+	several of the previous test cases.
+
+	* check/Makefile.am: New test suite makefile.
+
+	* check/check.sh, check/run-test: New wrapper files for the
+	new test suite.
+
+	* check/lightning.c: New file. The main driver of the new test
+	suite, that compiles to a parser of a very simple assembly like
+	language, generates jit and executes it.
+
+	* check/all.tst: New file. A generic debug and sample test file
+	with a directive to prevent it from being executed, and useful to
+	read disassembly of all possible instructions, using a fixed set
+	of registers.
+
+	* include/Makefile.am, include/lightning.h,
+	include/lightning/Makefile.am, include/lightning/jit_arm.h,
+	include/lightning/jit_mips.h, include/lightning/jit_ppc.h,
+	include/lightning/jit_private.h, include/lightning/jit_x86.h,
+	lib/Makefile.am, lib/jit_disasm.c, lib/jit_print.c,
+	lib/jit_x86-cpu.c, lib/jit_x86-sse.c, lib/jit_x86-x87.c,
+	lib/jit_x86.c, lib/lightning.c: New files. These files are
+	written from scratch, only by <pcpa@gnu.org>, and have now
+	copyright assignment to the FSF. This is the core of the new
+	lightning rework. Previously it was integrated in code with
+	a garbage collector and several custom types like vectors and
+	hash tables, so this first code merge with lightning converts
+	that code into a library extracting only the jit bits, and at
+	first only for x86_64 GNU/Linux.
+
+	* lightning.h, m4/lightning.m4: Removed. These are no longer
+	required in the new lightning code.
+
+	.gitignore, Makefile.am, configure.ac: Update for the new
+	lightning code.
+
+2012-12-02 Paulo Andrade <pcpa@gnu.org>
 	* .cvsignore: Removed for extra cleanup.
 
 	* build-aux: Rename directory to m4.

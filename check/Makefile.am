@@ -1,0 +1,43 @@
+#
+# Copyright 2012 Free Software Foundation, Inc.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
+
+check_PROGRAMS = lightning
+
+lightning_LDADD = $(top_srcdir)/lib/liblightning.la -ldl
+
+lightning_SOURCES =			\
+	lightning.c
+
+EXTRA_DIST =				\
+	3to2.tst	3to2.ok		\
+	add.tst		add.ok		\
+	allocai.tst	allocai.ok	\
+	bp.tst		bp.ok		\
+	divi.tst	divi.ok		\
+	fib.tst		fib.ok		\
+	all.tst
+
+TESTS = 3to2 add allocai bp divi fib
+
+# Not so pretty but good for a prototype
+$(TESTS):	check.sh
+	$(LN_S) check.sh $@
+
+TESTS_ENVIRONMENT=$(srcdir)/run-test
+
+debug:		$(check_PROGRAMS)
+	$(LIBTOOL) --mode=execute gdb $(check_PROGRAMS)
+

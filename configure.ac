@@ -1,70 +1,76 @@
-dnl Hey Emacs, I want this in -*- autoconf -*- mode, please.
+dnl
+dnl Copyright 2000, 2001, 2002, 2012 Free Software Foundation, Inc.
+dnl
+dnl This is free software; you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation; either version 3 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl This software is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
 
-dnl Copyright 2000, 2001, 2002 Free Software Foundation, Inc.
-dnl Please see COPYING for a description your rights and responsibilities
-dnl with this software.
-dnl Process this file with autoconf to produce a configure script.
-
-dnl ----------------------------- HOST SYSTEM -----------------------------------
-
-AC_PREREQ(2.54)
-AC_INIT([GNU lightning], 1.2c, bonzini@gnu.org, lightning)
-AC_CONFIG_AUX_DIR(m4)
-AC_CONFIG_MACRO_DIR(m4)
-AC_CONFIG_SRCDIR([lightning.h])
-
+AC_PREREQ(2.57)
+AC_INIT([GNU lightning], 2.0, pcpa@gnu.org, lightning)
 AC_CANONICAL_TARGET
-AC_CONFIG_HEADERS(config.h)
-AM_INIT_AUTOMAKE
+AC_CONFIG_SRCDIR([Makefile.am])
+AM_INIT_AUTOMAKE([dist-bzip2])
+AC_CONFIG_MACRO_DIR(m4)
+
+AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_LN_S
-AC_PROG_RANLIB
 AC_PROG_INSTALL
-AC_PROG_MAKE_SET
-AC_PATH_PROG(INSTALL_INFO, install-info, :, $PATH:/sbin)
-AC_EXEEXT
+AC_PROG_LIBTOOL
 
-BACKENDS="LIGHTNING_BACKENDS"
-AC_SUBST(BACKENDS)
+AC_CHECK_LIB(gmp, __gmpz_init, ,
+	[AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
 
-case "$target_cpu" in
-  i?86)    LIGHTNING_TARGET=LIGHTNING_I386	;;
-  x86_64)  LIGHTNING_TARGET=LIGHTNING_X86_64	;;
-  sparc*)  LIGHTNING_TARGET=LIGHTNING_SPARC	;;
-  powerpc) LIGHTNING_TARGET=LIGHTNING_PPC	;;
-  *)					        ;;
-esac
-LIGHTNING_CONFIGURE_LINKS(
-  [AC_DEFINE_UNQUOTED(LIGHTNING_TARGET, [AS_TR_CPP([$LIGHTNING_TARGET])],
-		      [Used to pick the appropriate disassembler, for debugging])],
-  [AC_MSG_ERROR([cpu $target_cpu not supported])])
-
-AC_SUBST(cpu)
-AM_CONDITIONAL(LIGHTNING_MAIN, :)
-
-AM_CONDITIONAL(REGRESSION_TESTING, test "$host_cpu" = "$target_cpu")
-
-dnl ---------------------------- COMMAND LINE ---------------------------------
-
-AC_ARG_ENABLE( assertions,
-[  --enable-assertions     perform internal consistency checks],
-, enable_assertions=no)
-
-if test "$enable_assertions" != no; then
-  AC_DEFINE(_ASM_SAFETY, 1, [Define to enable assertions])
+AC_ARG_ENABLE(disassembler,
+	      AS_HELP_STRING([--enable-disassembler],
+			     [Enable jit disassembler using binutils]),
+	      [DISASSEMBLER=$enableval], [DISASSEMBLER=auto])
+if test "x$DISASSEMBLER" != "xno"; then
+    # FIXME need to check for libiberty first or will fail to link
+    AC_CHECK_LIB(iberty, htab_try_create, ,
+		 [HAVE_IBERTY="no"])
+    AC_CHECK_LIB(bfd, bfd_init, ,
+		 [HAVE_BFD="no"])
+    AC_CHECK_LIB(opcodes, init_disassemble_info, ,
+		 [HAVE_OPCODES="no"])
+    if test "x$HAVE_IBERTY"  = "xno" -o \
+	    "x$HAVE_BFD"     = "xno" -o \
+	    "x$HAVE_OPCODES" = "xno"; then
+	if test "x$DISASSEMBLER" != "xauto"; then
+	    AC_MSG_ERROR([binutils not found, see http://www.gnu.org/software/binutils/])
+	else
+	    AC_MSG_WARN([binutils not found, see http://www.gnu.org/software/binutils/])
+	    DISASSEMBLER="no"
+	fi
+    fi
+fi
+AM_CONDITIONAL(with_disassembler, [test "x$DISASSEMBLER" != "xno"])
+if test "x$DISASSEMBLER" != "xno"; then
+    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
 fi
 
-dnl --------------------------- PRODUCE OUTPUT --------------------------------
+cpu=
+case "$target_cpu" in
+    i?x86|x86_64)	cpu=x86	;;
+    *)				;;
+esac
+if test x$cpu = x; then
+    AC_MSG_ERROR([cpu $target_cpu not supported])
+fi
+AM_CONDITIONAL(cpu_x86, [test cpu-$cpu = cpu-x86])
 
-AC_CONFIG_FILES(Makefile doc/Makefile tests/Makefile
-	lightning/Makefile)
+AC_SUBST([LIGHTNING_CFLAGS])
 
-AC_OUTPUT
-
-# A small sanity check
-echo "#include <stdio.h>" > confdefs.h		# dummy input file
-CPPFLAGS="$CPPFLAGS -I. -I$srcdir -I$srcdir/lightning/$cpu"
-AC_TRY_COMPILE([#include "lightning.h"], , ,
-  AC_MSG_WARN(the compiler that was found could not compile GNU lightning))
+AC_OUTPUT([Makefile
+	   doc/Makefile
+	   include/Makefile
+	   include/lightning/Makefile
+	   lib/Makefile
+	   check/Makefile])

@@ -12,10 +12,17 @@
 # GNU General Public License for more details.
 #
 
-ACLOCAL_AMFLAGS = -I m4
+AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE $(LIGHTNING_CFLAGS)
+liblightning_LTLIBRARIES = liblightning.la
 
-SUBDIRS =		\
-	check		\
-	doc		\
-	include		\
-	lib
+liblightningdir = $(libdir)
+liblightning_la_SOURCES =	\
+	jit_disasm.c		\
+	jit_print.c		\
+	lightning.c
+
+EXTRA_DIST =			\
+	jit_x86.c		\
+	jit_x86-cpu.c		\
+	jit_x86-sse.c		\
+	jit_x86-x87.c

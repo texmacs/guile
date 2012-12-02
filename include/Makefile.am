@@ -12,10 +12,6 @@
 # GNU General Public License for more details.
 #
 
-ACLOCAL_AMFLAGS = -I m4
-
+include_HEADERS = lightning.h
 SUBDIRS =		\
-	check		\
-	doc		\
-	include		\
-	lib
+	lightning

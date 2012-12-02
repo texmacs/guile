@@ -12,10 +12,12 @@
 # GNU General Public License for more details.
 #
 
-ACLOCAL_AMFLAGS = -I m4
+includedir = $(includedir)/lightning
 
-SUBDIRS =		\
-	check		\
-	doc		\
-	include		\
-	lib
+EXTRA_DIST =		\
+	jit_private.h
+
+if cpu_x86
+include_HEADERS = 	\
+	jit_x86.h
+endif
