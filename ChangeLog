@@ -1,5 +1,12 @@
 2012-12-02 Paulo Andrade <pcpa@gnu.org>
 
+	* .gitignore: Update pattern of ignored files.
+
+	* check/Makefile.am: Add rule to build liblightning.la dependency
+	in case of running "make check" before building the library.
+
+2012-12-02 Paulo Andrade <pcpa@gnu.org>
+
 	* lightning/Makefile.am, lightning/asm-common.h,
 	lightning/core-common.h, lightning/fp-common.h,
 	lightning/funcs-common.h, lightning/i386/Makefile.frag,
