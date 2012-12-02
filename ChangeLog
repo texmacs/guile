@@ -1,5 +1,23 @@
 2012-12-02 Paulo Andrade <pcpa@gnu.org>
 
+	* lightning/Makefile.am, lightning/asm-common.h,
+	lightning/core-common.h, lightning/fp-common.h,
+	lightning/funcs-common.h, lightning/i386/Makefile.frag,
+	lightning/i386/asm-32.h, lightning/i386/asm-64.h,
+	lightning/i386/asm.h, lightning/i386/core-32.h,
+	lightning/i386/core-64.h, lightning/i386/core.h,
+	lightning/i386/fp-32.h, lightning/i386/fp-64.h,
+	lightning/i386/fp.h, lightning/i386/funcs.h,
+	lightning/ppc/asm.h, lightning/ppc/core.h,
+	lightning/ppc/fp.h, lightning/ppc/funcs.h,
+	lightning/sparc/asm.h, lightning/sparc/core.h,
+	lightning/sparc/fp.h, lightning/sparc/funcs.h:
+	Removed. The core logic is used in the new code, and new mips
+	and arm ports will be added. At first, sparc will not be
+	supported as it has not yet been ported to the new engine.
+
+2012-12-02 Paulo Andrade <pcpa@gnu.org>
+
 	* tests/Makefile.am, tests/3to2.c, tests/3to2.ok, tests/add.c,
 	tests/add.ok, tests/allocai.c, tests/allocai.ok, tests/bp.c,
 	tests/bp.ok, tests/divi.c, tests/divi.ok, tests/fib.c, tests/fib.ok,
