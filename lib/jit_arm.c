@@ -189,7 +189,7 @@ void
 _jit_init(jit_state_t *_jit)
 {
     jit_int32_t		regno;
-    _jit->reglen = esize(_rvs) - 1;
+    _jit->reglen = jit_size(_rvs) - 1;
     /* jit_get_cpu() should have been already called, and only once */
     if (!jit_cpu.vfp) {
 	/* cause register to never be allocated, because simple
@@ -212,7 +212,7 @@ _jit_prolog(jit_state_t *_jit)
 	jit_epilog();
     assert(jit_regset_cmp_ui(_jit->regarg, 0) == 0);
     jit_regset_set_ui(_jit->regsav, 0);
-    offset = _jit->functions->offset;
+    offset = _jit->functions.offset;
     if (offset >= _jit->functions.length) {
 	_jit->functions.ptr = realloc(_jit->functions.ptr,
 				      (_jit->functions.length + 16) *
@@ -320,7 +320,6 @@ void
 _jit_epilog(jit_state_t *_jit)
 {
     assert(_jit->function);
-
     _jit->function->stack = ((_jit->function->self.alen -
 			      /* align stack at 8 bytes */
 			      _jit->function->self.aoff) + 7) & -8;
@@ -344,7 +343,7 @@ _jit_arg(jit_state_t *_jit)
     return (offset);
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (offset >= 0 && offset < 4);
@@ -367,7 +366,7 @@ _jit_arg_f(jit_state_t *_jit)
     return (offset);
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (jit_arg_reg_p(offset));
@@ -402,7 +401,7 @@ _jit_arg_d(jit_state_t *_jit)
     return (offset);
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (jit_arg_reg_p(offset));
@@ -543,7 +542,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 }
 
 void
-_jit_pushargi_f(jit_state_t *_jit, efloat32_t u)
+_jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 {
     jit_int32_t		regno;
 
@@ -598,7 +597,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 }
 
 void
-_jit_pushargi_d(jit_state_t *_jit, efloat64_t u)
+_jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 {
     jit_int32_t		regno;
 
@@ -746,22 +745,24 @@ _jit_emit(jit_state_t *_jit)
 	jit_node_t	*node;
 	jit_uint8_t	*data;
 	jit_word_t	 word;
+	jit_uword_t	 thumb;
 	jit_int32_t	 info_offset;
 	jit_int32_t	 const_offset;
 	jit_int32_t	 patch_offset;
     } undo;
 
-    jit_epilog();
+    if (_jit->function)
+	jit_epilog();
     jit_optimize();
 
     _jit->emit = 1;
 
-    _jit->code_length = 16 * 1024 * 1024;
-    _jit->code = mmap(NULL, _jit->code_length,
-		      PROT_EXEC | PROT_READ | PROT_WRITE,
-		      MAP_PRIVATE | MAP_ANON, -1, 0);
+    _jit->code.length = 16 * 1024 * 1024;
+    _jit->code.ptr = mmap(NULL, _jit->code.length,
+			  PROT_EXEC | PROT_READ | PROT_WRITE,
+			  MAP_PRIVATE | MAP_ANON, -1, 0);
     assert(_jit->code.ptr != MAP_FAILED);
-    _jit->pc.uc = _jit->code;
+    _jit->pc.uc = _jit->code.ptr;
 
     /* clear jit_flag_patch from label nodes if reallocating buffer
      * and starting over
@@ -774,6 +775,7 @@ _jit_emit(jit_state_t *_jit)
     undo.word = 0;
     undo.node = NULL;
     undo.data = NULL;
+    undo.thumb = 0;
     undo.info_offset = undo.const_offset = undo.patch_offset = 0;
 #  define assert_data(node)		/**/
 #define case_rr(name, type)						\
@@ -1147,6 +1149,7 @@ _jit_emit(jit_state_t *_jit)
 		case_vvf(div);
 		case_vv(abs, _f);
 		case_vv(neg, _f);
+		case_vv(sqrt, _f);
 		case_vv(ext, _f);
 		case_vv(ld, _f);
 		case_vw(ld, _f);
@@ -1231,6 +1234,7 @@ _jit_emit(jit_state_t *_jit)
 		case_vvd(div);
 		case_vv(abs, _d);
 		case_vv(neg, _d);
+		case_vv(sqrt, _d);
 		case_vv(ext, _d);
 		case_vv(ld, _d);
 		case_vw(ld, _d);
@@ -1344,9 +1348,10 @@ _jit_emit(jit_state_t *_jit)
 		undo.node = node;
 		undo.word = _jit->pc.w;
 		undo.data = _jit->consts.data;
+		undo.thumb = _jit->thumb;
 		undo.const_offset = _jit->consts.offset;
 		undo.patch_offset = _jit->patches.offset;
-		if (_jit->data_info)
+		if (_jit->data_info.ptr)
 		    undo.info_offset = _jit->data_info.offset;
 	    restart_function:
 		_jit->again = 0;
@@ -1365,9 +1370,10 @@ _jit_emit(jit_state_t *_jit)
 		    _jit->pc.w = undo.word;
 		    invalidate_consts();
 		    _jit->consts.data = undo.data;
+		    _jit->thumb = undo.thumb;
 		    _jit->consts.offset = undo.const_offset;
 		    _jit->patches.offset = undo.patch_offset;
-		    if (_jit->data_info)
+		    if (_jit->data_info.ptr)
 			_jit->data_info.offset = undo.info_offset;
 		    goto restart_function;
 		}
@@ -1423,9 +1429,9 @@ _jit_emit(jit_state_t *_jit)
 
     flush_consts();
     for (offset = 0; offset < _jit->patches.offset; offset++) {
-	assert(patches[offset] & arm_patch_node);
+	assert(_jit->patches.ptr[offset].kind & arm_patch_node);
 	node = _jit->patches.ptr[offset].node;
-	word = _jit->patches[offset].inst;
+	word = _jit->patches.ptr[offset].inst;
 	if (node->code == jit_code_movi) {
 	    if (jit_thumb_p())
 		value = node->v.n->u.w;
@@ -1446,7 +1452,7 @@ _jit_emit(jit_state_t *_jit)
 	}
 	else
 	    value = node->u.n->u.w;
-	patch_at(patches[offset] & ~arm_patch_node, word, value);
+	patch_at(_jit->patches.ptr[offset].kind & ~arm_patch_node, word, value);
     }
 
     __clear_cache(_jit->code.ptr, _jit->pc.uc);
@@ -1618,7 +1624,6 @@ _flush_consts(jit_state_t *_jit)
 {
     jit_word_t		 word;
     jit_int32_t		 offset;
-    jit_word_t		*vector;
 
     /* if no forward constants */
     if (!_jit->consts.length)
@@ -1632,12 +1637,18 @@ _flush_consts(jit_state_t *_jit)
     memcpy(_jit->consts.data, _jit->consts.values, _jit->consts.size);
     _jit->pc.w += _jit->consts.size;
 
-    if (_jit->data_info) {
-	if (_jit->data_info->offset + 2 >= _jit->data_info->length)
-	    erenew_vector(_jit->data_info, _jit->data_info->length + 1024);
-	vector = _jit->data_info->v.obj;
-	vector[_jit->data_info->offset++] = word;
-	vector[_jit->data_info->offset++] = _jit->consts.size;
+    if (_jit->data_info.ptr) {
+	if (_jit->data_info.offset >= _jit->data_info.length) {
+	    _jit->data_info.ptr = realloc(_jit->data_info.ptr,
+					  (_jit->data_info.length + 1024) *
+					  sizeof(jit_data_info_t));
+	    memset(_jit->data_info.ptr + _jit->data_info.length, 0,
+		   1024 * sizeof(jit_data_info_t));
+	    _jit->data_info.length += 1024;
+	}
+	_jit->data_info.ptr[_jit->data_info.offset].code = word;
+	_jit->data_info.ptr[_jit->data_info.offset].length = _jit->consts.size;
+	++_jit->data_info.offset;
     }
 
     for (offset = 0; offset < _jit->consts.offset; offset += 2)
@@ -1687,7 +1698,7 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 	_jit->patches.length += 1024;
     }
     _jit->patches.ptr[_jit->patches.offset].kind = kind;
-    _jit->patches.ptr[_jit->patches.offset].instr = instr;
+    _jit->patches.ptr[_jit->patches.offset].inst = instr;
     _jit->patches.ptr[_jit->patches.offset].node = node;
     ++_jit->patches.offset;
 }

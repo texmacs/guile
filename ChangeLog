@@ -1,5 +1,25 @@
 2012-12-03 Paulo Andrade <pcpa@gnu.org>
 
+	* configure.ac, include/lightning/jit_private.h, lib/jit_arm-cpu.c,
+	lib/jit_arm-swf.c, lib/jit_arm.c, check/Makefile.am: Correct
+	implementation of the arm backend port to build and pass the
+	current test cases. Tested on armv7 with softfp abi.
+
+	* lib/jit_disasm.c: Rename and change prototype of static
+	disassemble function as in the arm backend it is required
+	to access state information stored in the jit_state_t object.
+
+	* check/3to2.tst, check/add.tst: Correct test case code assuming
+	JIT_RO and JIT_RET are the same, and even if they are the same,
+	the logic was incorrect because it must always call jit_retval*
+	to fetch a function call return before any other instruction.
+	The arm backend hash a special condition if jit_retval is not
+	called, because "r0" is not JIT_R0, but is JIT_RET and *also*
+	the first argument for a called function, so JIT_RET must be
+	only used as an argument to jit_retval.
+
+2012-12-03 Paulo Andrade <pcpa@gnu.org>
+
 	* check/all.tst, check/lightning.c: Only declare or use 64 bit
 	interfaces on 64 bit builds.
 

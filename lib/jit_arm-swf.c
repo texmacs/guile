@@ -18,6 +18,8 @@
 #if PROTO
 /* match vfpv3 result */
 #define NAN_TO_INT_IS_ZERO		1
+extern float	sqrtf(float);
+extern double	sqrt(double);
 extern float	__addsf3(float, float);
 extern double	__adddf3(double, double);
 extern float	__aeabi_fsub(float, float);
@@ -47,7 +49,7 @@ extern int	__aeabi_dcmpun(double, double);
 #  define swf_ff(i0,r0,r1)		_swf_ff(_jit,i0,r0,r1)
 static void
 _swf_ff(jit_state_t*,float(*)(float),jit_int32_t,jit_int32_t) maybe_unused;
-#  define swf_dd(i0,r0,r1)		_swf_id(_jit,i0,r0,r1)
+#  define swf_dd(i0,r0,r1)		_swf_dd(_jit,i0,r0,r1)
 static void
 _swf_dd(jit_state_t*,double(*)(double),jit_int32_t,jit_int32_t) maybe_unused;
 #  define swf_fff(i0,r0,r1,r2)		_swf_fff(_jit,i0,r0,r1,r2)
@@ -138,6 +140,8 @@ static void _swf_absr_d(jit_state_t*,jit_int32_t,jit_int32_t);
 static void _swf_negr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define swf_negr_d(r0,r1)		_swf_negr_d(_jit,r0,r1)
 static void _swf_negr_d(jit_state_t*,jit_int32_t,jit_int32_t);
+#  define swf_sqrtr_f(r0,r1)		swf_ff(sqrtf,r0,r1)
+#  define swf_sqrtr_d(r0,r1)		swf_dd(sqrt,r0,r1)
 #  define swf_addr_f(r0,r1,r2)		swf_fff(__addsf3,r0,r1,r2)
 #  define swf_addi_f(r0,r1,i0)		swf_fff_(__addsf3,r0,r1,i0)
 #  define swf_addr_d(r0,r1,r2)		swf_ddd(__adddf3,r0,r1,r2)

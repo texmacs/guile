@@ -29,8 +29,9 @@ disasm_compare_symbols(const void *ap, const void *bp);
 static void
 disasm_print_address(bfd_vma addr, struct disassemble_info *info);
 
+#define disassemble(u, v)	_disassemble(_jit, u, v)
 static void
-disassemble(jit_pointer_t code, jit_int32_t length);
+_disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length);
 #endif
 
 /*
@@ -238,19 +239,20 @@ disasm_print_address(bfd_vma addr, struct disassemble_info *info)
 }
 
 static void
-disassemble(jit_pointer_t code, jit_int32_t length)
+_disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 {
-    int			 bytes;
+    int			bytes;
 #if __arm__
-    jit_data_info_t	*data_info;
-    jit_int32_t		 data_offset;
+    jit_int32_t		offset;
+    jit_bool_t		data_info;
+    jit_int32_t		data_offset;
 #endif
-    bfd_vma		 pc = (jit_uword_t)code;
-    bfd_vma		 end = (jit_uword_t)code + length;
-    char		 buffer[address_buffer_length];
+    bfd_vma		pc = (jit_uword_t)code;
+    bfd_vma		end = (jit_uword_t)code + length;
+    char		buffer[address_buffer_length];
 
 #if __arm__
-    data_info = _jit->data_info;
+    data_info = 1;
     data_offset = 0;
 #endif
     disasm_info.buffer = code;
@@ -260,16 +262,16 @@ disassemble(jit_pointer_t code, jit_int32_t length)
 #if __arm__
     again:
 	if (data_info) {
-	    while (data_info.ptr[data_offset].code < pc) {
+	    while (_jit->data_info.ptr[data_offset].code < pc) {
 		data_offset += 2;
-		if (data_offset >= data_info.length) {
-		    data_info = NULL;
+		if (data_offset >= _jit->data_info.length) {
+		    data_info = 0;
 		    goto again;
 		}
 	    }
-	    if (pc == data_info.ptr[data_offset].code) {
-		line = data_info.ptr[data_offset].length;
-		for (; line >= 4; line -= 4, pc += 4) {
+	    if (pc == _jit->data_info.ptr[data_offset].code) {
+		offset = _jit->data_info.ptr[data_offset].length;
+		for (; offset >= 4; offset -= 4, pc += 4) {
 		    bytes = sprintf(buffer, address_buffer_format, pc);
 		    (*disasm_info.fprintf_func)(disasm_stream,
 						"%*c0x%s\t.data\t0x%08x\n",

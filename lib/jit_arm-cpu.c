@@ -203,8 +203,8 @@ extern unsigned	__aeabi_uidivmod(unsigned, unsigned);
 #  define THUMB2_CMNI			0xf1100000
 #  define ARM_TST			0x01100000
 #  define THUMB_TST			    0x4200
-#  define THUMB2_TST			0xea100f00
-#  define THUMB2_TSTI			0xf0100f00
+#  define THUMB2_TST			0xea100000
+#  define THUMB2_TSTI			0xf0100000
 #  define ARM_TEQ			0x01300000
 /* branch */
 #  define ARM_BX			0x012fff10
@@ -2429,7 +2429,8 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
     jit_word_t		w;
     jit_word_t		d;
     w = _jit->pc.w;
-    if (jit_thumb_p()) {
+    /* if thumb and in thumb mode */
+    if (jit_thumb_p() && _jit->thumb) {
 	d = ((i0 - w) >> 1) - 2;
 	if (d >= -1024 && d <= 1023)
 	    T1_B(d & 0x7ff);
@@ -2460,7 +2461,8 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
     jit_word_t		w;
     jit_word_t		d;
     w = _jit->pc.w;
-    if (jit_thumb_p()) {
+    /* if thumb and in thumb mode */
+    if (jit_thumb_p() && _jit->thumb) {
 	d = ((i0 - w) >> 1) - 2;
 	assert(_s24P(d));
 	T2_B(encode_thumb_jump(d));
@@ -3569,6 +3571,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	 * a pointer to a jit function) */
 	ADDI(_R12_REGNO, _R15_REGNO, 1);
 	BX(_R12_REGNO);
+	if (!_jit->thumb)
+	    _jit->thumb = _jit->pc.w;
 	if (jit_cpu.abi) {
 	    T2_PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	    VPUSH_F64(_D8_REGNO, 8);
@@ -3617,7 +3621,7 @@ _patch_at(jit_state_t *_jit,
     } u;
     u.w = instr;
     if (kind == arm_patch_jump) {
-	if (jit_thumb_p()) {
+	if (jit_thumb_p() && instr >= _jit->thumb) {
 	    code2thumb(thumb.s[0], thumb.s[1], u.s[0], u.s[1]);
 	    if ((thumb.i & THUMB2_B) == THUMB2_B) {
 		d = ((label - instr) >> 1) - 2;

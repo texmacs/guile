@@ -261,10 +261,18 @@ struct jit_state {
 #  if DISASSEMBLER
     struct {
 	jit_data_info_t	 *ptr;
-	it_word_t	  offset;
+	jit_word_t	  offset;
 	jit_word_t	  length;
     } data_info;			/* constant pools information */
 #  endif
+    /* Note that this field is somewhat hackish, but required by most
+     * ways to implement jit, unless implementing a pure one function
+     * per jit, as most times it needs to start the jit buffer with a
+     * jump where the "main" prolog starts, and because the initial
+     * code is in "arm mode", need to make an "arm mode" patch on that
+     * jump. A good example is the test suite assembler, where most
+     * test cases start with a "jmpi main" call. */
+    jit_uword_t		  thumb;
     struct {
 	jit_uint8_t	 *data;		/* pointer to code */
 	jit_word_t	  size;		/* size data */

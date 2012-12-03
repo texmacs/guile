@@ -1,0 +1,11 @@
+	* Remove JIT_RET and JIT_FRET. Only interface to these should
+	be jit_retval, jit_retval_f and jit_retval_d, otherwise one
+	may use JIT_RET and/or JIT_FRET as argument to other jit calls,
+	what may cause problems at least on the arm backend.
+
+	* Update documentation to match new implementation.
+
+	* Make an sparc port to not remove previous functionality.
+
+	* Test and correct the ppc and mips ports, after the import and
+	adaptation of the code to lightning.

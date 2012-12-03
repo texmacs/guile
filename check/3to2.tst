@@ -22,9 +22,10 @@ test_double_##a##_##b##_##c:			\
 		pushargi_d x			\
 		pushargi_d y			\
 	finishi test_double_##a##_##b##_##c	\
+	retval_d %f0				\
 	prepare 1				\
 		pushargi dfmt			\
-		pushargr_d %fret		\
+		pushargr_d %f0			\
 	finishi @printf
 
 #define def_test_int(a, b, c)			\
@@ -42,9 +43,10 @@ test_int_##a##_##b##_##c:			\
 		pushargi x			\
 		pushargi y			\
 	finishi test_int_##a##_##b##_##c	\
+	retval %r0				\
 	prepare 1				\
 		pushargi ifmt			\
-		pushargr %ret			\
+		pushargr %r0			\
 	finishi @printf
 
 def_test_double(f0, f0, f0)

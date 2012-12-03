@@ -21,6 +21,7 @@ main:
 		pushargi 5
 		pushargi 4
 	finishi test
+	retval %r0
 	prepare 1
 		pushargi fmt
 		pushargi 5

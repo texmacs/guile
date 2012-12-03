@@ -16,7 +16,7 @@ AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
 check_PROGRAMS = lightning
 
-lightning_LDADD = $(top_builddir)/lib/liblightning.la -ldl
+lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
