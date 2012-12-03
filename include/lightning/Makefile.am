@@ -12,12 +12,24 @@
 # GNU General Public License for more details.
 #
 
-includedir = $(includedir)/lightning
+lightning_includedir = $(includedir)/lightning
 
 EXTRA_DIST =		\
 	jit_private.h
 
+if cpu_arm
+lightning_include_HEADERS = 	\
+	jit_arm.h
+endif
+if cpu_mips
+lightning_include_HEADERS = 	\
+	jit_mips.h
+endif
+if cpu_ppc
+lightning_include_HEADERS = 	\
+	jit_ppc.h
+endif
 if cpu_x86
-include_HEADERS = 	\
+lightning_include_HEADERS = 	\
 	jit_x86.h
 endif

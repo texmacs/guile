@@ -1,3 +1,9 @@
+2012-12-03 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac, check/Makefile.am, check/check.sh,
+	doc/Makefile.am, include/lightning/Makefile.am,
+	lib/Makefile.am: Correct make distcheck.
+
 2012-12-02 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc.c: Assign copyright ownership to FSF.

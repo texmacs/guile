@@ -25,7 +25,7 @@ EXTRA_DIST =			\
 	jit_arm.c		\
 	jit_arm-cpu.c		\
 	jit_arm-swf.c		\
-	jit_x86-vfp.c		\
+	jit_arm-vfp.c		\
 	jit_mips.c		\
 	jit_mips-cpu.c		\
 	jit_mips-fpu.c		\

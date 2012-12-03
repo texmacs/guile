@@ -32,7 +32,7 @@ EXTRA_DIST =				\
 	divi.tst	divi.ok		\
 	fib.tst		fib.ok		\
 	rpn.tst		rpn.ok		\
-	check.sh			\
+	check.sh	run-test	\
 	all.tst
 
 TESTS = 3to2 add allocai bp divi fib rpn
@@ -41,7 +41,7 @@ CLEANFILES = $(TESTS)
 
 # Not so pretty but good for a prototype
 $(TESTS):	check.sh
-	$(LN_S) check.sh $@
+	$(LN_S) $(srcdir)/check.sh $@
 
 TESTS_ENVIRONMENT=$(srcdir)/run-test
 

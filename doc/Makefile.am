@@ -1,6 +1,3 @@
-TEXI2DVI=$(top_srcdir)/m4/texi2dvi
-HELP2MAN = $(top_srcdir)/m4/help2man
-
 info_TEXINFOS = lightning.texi 
 EXTRA_TEXINFOS = u-lightning.texi p-lightning.texi
 MOSTLYCLEANFILES = lightning.tmp

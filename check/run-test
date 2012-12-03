@@ -1,6 +1,6 @@
 #! /bin/sh
 
-./lightning $1.tst | tr -d \\r > $1.log
+$1 | tr -d \\r > $1.log
 if cmp -s $srcdir/$1.ok $1.log; then
   rm $1.log
 else

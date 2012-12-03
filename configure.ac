@@ -58,13 +58,19 @@ fi
 
 cpu=
 case "$target_cpu" in
-    i?x86|x86_64)	cpu=x86	;;
-    *)				;;
+    i?x86|x86_64)	cpu=x86		;;
+    *arm*)		cpu=arm		;;
+    *mips*)		cpu=mips	;;
+    *ppc*)		cpu=ppc		;;
+    *)					;;
 esac
 if test x$cpu = x; then
     AC_MSG_ERROR([cpu $target_cpu not supported])
 fi
-AM_CONDITIONAL(cpu_x86, [test cpu-$cpu = cpu-x86])
+AM_CONDITIONAL(cpu_arm,  [test cpu-$cpu = cpu-arm])
+AM_CONDITIONAL(cpu_mips, [test cpu-$cpu = cpu-mips])
+AM_CONDITIONAL(cpu_ppc,  [test cpu-$cpu = cpu-ppc])
+AM_CONDITIONAL(cpu_x86,  [test cpu-$cpu = cpu-x86])
 
 AC_SUBST([LIGHTNING_CFLAGS])
 

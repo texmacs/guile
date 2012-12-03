@@ -1,2 +1,2 @@
 #!/bin/sh
-./lightning `basename $0`
+./lightning $srcdir/`basename $0`.tst
