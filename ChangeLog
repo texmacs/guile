@@ -1,5 +1,14 @@
 2012-12-02 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ppc.c: Assign copyright ownership to FSF.
+
+	* lib/jit_x86-cpu.c: Correct integer multiplication that was
+	generating code with reversed register arguments.
+
+	* check/rpn.ok, check/rpn.tst: New test case file.
+
+2012-12-02 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_x86-cpu.c, lib/jit_x86-sse.c, lib/jit_x86-x87.c:
 	Actually change copyright owner to FSF as avertised.
 

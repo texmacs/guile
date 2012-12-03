@@ -1053,10 +1053,10 @@ _subxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _imulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    rex(0, 1, r1, _NOREG, r0);
+    rex(0, 1, r0, _NOREG, r1);
     ic(0x0f);
     ic(0xaf);
-    mrm(0x03, r7(r1), r7(r0));
+    mrm(0x03, r7(r0), r7(r1));
 }
 
 static void
