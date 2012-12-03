@@ -167,6 +167,9 @@ struct jit_value {
 };
 
 typedef struct {
+#if __arm__
+    jit_word_t		 kind;
+#endif
     jit_word_t		 inst;
     jit_node_t		*node;
 } jit_patch_t;
