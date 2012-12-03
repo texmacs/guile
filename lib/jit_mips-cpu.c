@@ -2697,80 +2697,74 @@ _calli(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_function_t	*function;
-    jit_pointer_t	*functions;
-
-    functions = _jit->functions->v.obj;
-    function = functions[node->u.w];
-
     /* callee save registers */
     subi(_SP_REGNO, _SP_REGNO, stack_framesize);
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(function->regset, _F30))
+    if (jit_regset_tstbit(_jit->function->regset, _F30))
 	stxi_d(96, _SP_REGNO, _F30_REGNO);
-    if (jit_regset_tstbit(function->regset, _F28))
+    if (jit_regset_tstbit(_jit->function->regset, _F28))
 	stxi_d(88, _SP_REGNO, _F28_REGNO);
-    if (jit_regset_tstbit(function->regset, _F26))
+    if (jit_regset_tstbit(_jit->function->regset, _F26))
 	stxi_d(80, _SP_REGNO, _F26_REGNO);
-    if (jit_regset_tstbit(function->regset, _F24))
+    if (jit_regset_tstbit(_jit->function->regset, _F24))
 	stxi_d(72, _SP_REGNO, _F24_REGNO);
-    if (jit_regset_tstbit(function->regset, _F22))
+    if (jit_regset_tstbit(_jit->function->regset, _F22))
 	stxi_d(64, _SP_REGNO, _F22_REGNO);
-    if (jit_regset_tstbit(function->regset, _F20))
+    if (jit_regset_tstbit(_jit->function->regset, _F20))
 	stxi_d(56, _SP_REGNO, _F20_REGNO);
-    if (jit_regset_tstbit(function->regset, _F18))
+    if (jit_regset_tstbit(_jit->function->regset, _F18))
 	stxi_d(48, _SP_REGNO, _F18_REGNO);
-    if (jit_regset_tstbit(function->regset, _F16))
+    if (jit_regset_tstbit(_jit->function->regset, _F16))
 	stxi_d(40, _SP_REGNO, _F16_REGNO);
-    if (jit_regset_tstbit(function->regset, _S7))
+    if (jit_regset_tstbit(_jit->function->regset, _S7))
 	stxi(36, _SP_REGNO, _S7_REGNO);
-    if (jit_regset_tstbit(function->regset, _S6))
+    if (jit_regset_tstbit(_jit->function->regset, _S6))
 	stxi(32, _SP_REGNO, _S6_REGNO);
-    if (jit_regset_tstbit(function->regset, _S5))
+    if (jit_regset_tstbit(_jit->function->regset, _S5))
 	stxi(28, _SP_REGNO, _S5_REGNO);
-    if (jit_regset_tstbit(function->regset, _S4))
+    if (jit_regset_tstbit(_jit->function->regset, _S4))
 	stxi(24, _SP_REGNO, _S4_REGNO);
-    if (jit_regset_tstbit(function->regset, _S3))
+    if (jit_regset_tstbit(_jit->function->regset, _S3))
 	stxi(20, _SP_REGNO, _S3_REGNO);
-    if (jit_regset_tstbit(function->regset, _S2))
+    if (jit_regset_tstbit(_jit->function->regset, _S2))
 	stxi(16, _SP_REGNO, _S2_REGNO);
-    if (jit_regset_tstbit(function->regset, _S1))
+    if (jit_regset_tstbit(_jit->function->regset, _S1))
 	stxi(12, _SP_REGNO, _S1_REGNO);
-    if (jit_regset_tstbit(function->regset, _S0))
+    if (jit_regset_tstbit(_jit->function->regset, _S0))
 	stxi( 8, _SP_REGNO, _S0_REGNO);
     stxi( 4, _SP_REGNO, _RA_REGNO);
 #else
-    if (jit_regset_tstbit(function->regset, _F30))
+    if (jit_regset_tstbit(_jit->function->regset, _F30))
 	stxi_d(136, _SP_REGNO, _F30_REGNO);
-    if (jit_regset_tstbit(function->regset, _F28))
+    if (jit_regset_tstbit(_jit->function->regset, _F28))
 	stxi_d(128, _SP_REGNO, _F28_REGNO);
-    if (jit_regset_tstbit(function->regset, _F26))
+    if (jit_regset_tstbit(_jit->function->regset, _F26))
 	stxi_d(120, _SP_REGNO, _F26_REGNO);
-    if (jit_regset_tstbit(function->regset, _F24))
+    if (jit_regset_tstbit(_jit->function->regset, _F24))
 	stxi_d(112, _SP_REGNO, _F24_REGNO);
-    if (jit_regset_tstbit(function->regset, _F22))
+    if (jit_regset_tstbit(_jit->function->regset, _F22))
 	stxi_d(104, _SP_REGNO, _F22_REGNO);
-    if (jit_regset_tstbit(function->regset, _F20))
+    if (jit_regset_tstbit(_jit->function->regset, _F20))
 	stxi_d(96, _SP_REGNO, _F20_REGNO);
-    if (jit_regset_tstbit(function->regset, _F18))
+    if (jit_regset_tstbit(_jit->function->regset, _F18))
 	stxi_d(88, _SP_REGNO, _F18_REGNO);
-    if (jit_regset_tstbit(function->regset, _F16))
+    if (jit_regset_tstbit(_jit->function->regset, _F16))
 	stxi_d(80, _SP_REGNO, _F16_REGNO);
-    if (jit_regset_tstbit(function->regset, _S7))
+    if (jit_regset_tstbit(_jit->function->regset, _S7))
 	stxi(72, _SP_REGNO, _S7_REGNO);
-    if (jit_regset_tstbit(function->regset, _S6))
+    if (jit_regset_tstbit(_jit->function->regset, _S6))
 	stxi(64, _SP_REGNO, _S6_REGNO);
-    if (jit_regset_tstbit(function->regset, _S5))
+    if (jit_regset_tstbit(_jit->function->regset, _S5))
 	stxi(56, _SP_REGNO, _S5_REGNO);
-    if (jit_regset_tstbit(function->regset, _S4))
+    if (jit_regset_tstbit(_jit->function->regset, _S4))
 	stxi(48, _SP_REGNO, _S4_REGNO);
-    if (jit_regset_tstbit(function->regset, _S3))
+    if (jit_regset_tstbit(_jit->function->regset, _S3))
 	stxi(40, _SP_REGNO, _S3_REGNO);
-    if (jit_regset_tstbit(function->regset, _S2))
+    if (jit_regset_tstbit(_jit->function->regset, _S2))
 	stxi(32, _SP_REGNO, _S2_REGNO);
-    if (jit_regset_tstbit(function->regset, _S1))
+    if (jit_regset_tstbit(_jit->function->regset, _S1))
 	stxi(24, _SP_REGNO, _S1_REGNO);
-    if (jit_regset_tstbit(function->regset, _S0))
+    if (jit_regset_tstbit(_jit->function->regset, _S0))
 	stxi(16, _SP_REGNO, _S0_REGNO);
     stxi( 8, _SP_REGNO, _RA_REGNO);
 #endif
@@ -2778,86 +2772,80 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     movr(_BP_REGNO, _SP_REGNO);
 
     /* alloca */
-    subi(_SP_REGNO, _SP_REGNO, function->stack);
+    subi(_SP_REGNO, _SP_REGNO, _jit->function->stack);
 }
 
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_function_t	*function;
-    jit_pointer_t	*functions;
-
-    functions = _jit->functions->v.obj;
-    function = functions[node->w.w];
-
     /* callee save registers */
     movr(_SP_REGNO, _BP_REGNO);
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(function->regset, _F30))
+    if (jit_regset_tstbit(_jit->function->regset, _F30))
 	ldxi_d(_F30_REGNO, _SP_REGNO, 96);
-    if (jit_regset_tstbit(function->regset, _F28))
+    if (jit_regset_tstbit(_jit->function->regset, _F28))
 	ldxi_d(_F28_REGNO, _SP_REGNO, 88);
-    if (jit_regset_tstbit(function->regset, _F26))
+    if (jit_regset_tstbit(_jit->function->regset, _F26))
 	ldxi_d(_F26_REGNO, _SP_REGNO, 80);
-    if (jit_regset_tstbit(function->regset, _F24))
+    if (jit_regset_tstbit(_jit->function->regset, _F24))
 	ldxi_d(_F24_REGNO, _SP_REGNO, 72);
-    if (jit_regset_tstbit(function->regset, _F22))
+    if (jit_regset_tstbit(_jit->function->regset, _F22))
 	ldxi_d(_F22_REGNO, _SP_REGNO, 64);
-    if (jit_regset_tstbit(function->regset, _F20))
+    if (jit_regset_tstbit(_jit->function->regset, _F20))
 	ldxi_d(_F20_REGNO, _SP_REGNO, 56);
-    if (jit_regset_tstbit(function->regset, _F18))
+    if (jit_regset_tstbit(_jit->function->regset, _F18))
 	ldxi_d(_F18_REGNO, _SP_REGNO, 48);
-    if (jit_regset_tstbit(function->regset, _F16))
+    if (jit_regset_tstbit(_jit->function->regset, _F16))
 	ldxi_d(_F16_REGNO, _SP_REGNO, 40);
-    if (jit_regset_tstbit(function->regset, _S7))
+    if (jit_regset_tstbit(_jit->function->regset, _S7))
 	ldxi(_S7_REGNO, _SP_REGNO, 36);
-    if (jit_regset_tstbit(function->regset, _S6))
+    if (jit_regset_tstbit(_jit->function->regset, _S6))
 	ldxi(_S6_REGNO, _SP_REGNO, 32);
-    if (jit_regset_tstbit(function->regset, _S5))
+    if (jit_regset_tstbit(_jit->function->regset, _S5))
 	ldxi(_S5_REGNO, _SP_REGNO, 28);
-    if (jit_regset_tstbit(function->regset, _S4))
+    if (jit_regset_tstbit(_jit->function->regset, _S4))
 	ldxi(_S4_REGNO, _SP_REGNO, 24);
-    if (jit_regset_tstbit(function->regset, _S3))
+    if (jit_regset_tstbit(_jit->function->regset, _S3))
 	ldxi(_S3_REGNO, _SP_REGNO, 20);
-    if (jit_regset_tstbit(function->regset, _S2))
+    if (jit_regset_tstbit(_jit->function->regset, _S2))
 	ldxi(_S2_REGNO, _SP_REGNO, 16);
-    if (jit_regset_tstbit(function->regset, _S1))
+    if (jit_regset_tstbit(_jit->function->regset, _S1))
 	ldxi(_S1_REGNO, _SP_REGNO, 12);
-    if (jit_regset_tstbit(function->regset, _S0))
+    if (jit_regset_tstbit(_jit->function->regset, _S0))
 	ldxi(_S0_REGNO, _SP_REGNO, 8);
     ldxi(_RA_REGNO, _SP_REGNO, 4);
 #else
-    if (jit_regset_tstbit(function->regset, _F30))
+    if (jit_regset_tstbit(_jit->function->regset, _F30))
 	ldxi_d(_F30_REGNO, _SP_REGNO, 136);
-    if (jit_regset_tstbit(function->regset, _F28))
+    if (jit_regset_tstbit(_jit->function->regset, _F28))
 	ldxi_d(_F28_REGNO, _SP_REGNO, 128);
-    if (jit_regset_tstbit(function->regset, _F26))
+    if (jit_regset_tstbit(_jit->function->regset, _F26))
 	ldxi_d(_F26_REGNO, _SP_REGNO, 120);
-    if (jit_regset_tstbit(function->regset, _F24))
+    if (jit_regset_tstbit(_jit->function->regset, _F24))
 	ldxi_d(_F24_REGNO, _SP_REGNO, 112);
-    if (jit_regset_tstbit(function->regset, _F22))
+    if (jit_regset_tstbit(_jit->function->regset, _F22))
 	ldxi_d(_F22_REGNO, _SP_REGNO, 104);
-    if (jit_regset_tstbit(function->regset, _F20))
+    if (jit_regset_tstbit(_jit->function->regset, _F20))
 	ldxi_d(_F20_REGNO, _SP_REGNO, 96);
-    if (jit_regset_tstbit(function->regset, _F18))
+    if (jit_regset_tstbit(_jit->function->regset, _F18))
 	ldxi_d(_F18_REGNO, _SP_REGNO, 88);
-    if (jit_regset_tstbit(function->regset, _F16))
+    if (jit_regset_tstbit(_jit->function->regset, _F16))
 	ldxi_d(_F16_REGNO, _SP_REGNO, 80);
-    if (jit_regset_tstbit(function->regset, _S7))
+    if (jit_regset_tstbit(_jit->function->regset, _S7))
 	ldxi(_S7_REGNO, _SP_REGNO, 72);
-    if (jit_regset_tstbit(function->regset, _S6))
+    if (jit_regset_tstbit(_jit->function->regset, _S6))
 	ldxi(_S6_REGNO, _SP_REGNO, 64);
-    if (jit_regset_tstbit(function->regset, _S5))
+    if (jit_regset_tstbit(_jit->function->regset, _S5))
 	ldxi(_S5_REGNO, _SP_REGNO, 56);
-    if (jit_regset_tstbit(function->regset, _S4))
+    if (jit_regset_tstbit(_jit->function->regset, _S4))
 	ldxi(_S4_REGNO, _SP_REGNO, 48);
-    if (jit_regset_tstbit(function->regset, _S3))
+    if (jit_regset_tstbit(_jit->function->regset, _S3))
 	ldxi(_S3_REGNO, _SP_REGNO, 40);
-    if (jit_regset_tstbit(function->regset, _S2))
+    if (jit_regset_tstbit(_jit->function->regset, _S2))
 	ldxi(_S2_REGNO, _SP_REGNO, 32);
-    if (jit_regset_tstbit(function->regset, _S1))
+    if (jit_regset_tstbit(_jit->function->regset, _S1))
 	ldxi(_S1_REGNO, _SP_REGNO, 24);
-    if (jit_regset_tstbit(function->regset, _S0))
+    if (jit_regset_tstbit(_jit->function->regset, _S0))
 	ldxi(_S0_REGNO, _SP_REGNO, 16);
     ldxi(_RA_REGNO, _SP_REGNO, 8);
 #endif

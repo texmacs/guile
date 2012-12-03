@@ -978,7 +978,6 @@ _jit_optimize(jit_state_t *_jit)
 
     thread_jumps();
     sequential_labels();
-    simplify();
 
     /* create initial mapping of live register values
      * at the start of a basic block */
@@ -1003,6 +1002,7 @@ _jit_optimize(jit_state_t *_jit)
     }
 
     patch_registers();
+    simplify();
 
     /* figure out labels that are only reached with a jump
      * and is required to do a simple redundant_store removal

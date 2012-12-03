@@ -8,7 +8,7 @@ format:
 nfibs:
 	prolog
 	arg $in
-	getarg_ui %r2 $in	// R2 = n
+	getarg %r2 $in		// R2 = n
 	movi %r1 1
 	blti_u ref %r2 2
 	subi %r2 %r2 1

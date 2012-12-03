@@ -122,14 +122,12 @@ typedef enum {
 #define jit_getarg_s(u,v)	_jit_getarg_s(_jit,u,v)
 #define jit_getarg_us(u,v)	_jit_getarg_us(_jit,u,v)
 #define jit_getarg_i(u,v)	_jit_getarg_i(_jit,u,v)
-    /* >> 64 bit */
-#define jit_getarg_ui(u,v)	_jit_getarg_ui(_jit,u,v)
-#define jit_getarg_l(u,v)	_jit_getarg_l(_jit,u,v)
-    /* << 64 bit */
 #if __WORDSIZE == 32
 #  define jit_getarg(u,v)	jit_getarg_i(u,v)
 #else
 #  define jit_getarg(u,v)	jit_getarg_l(u,v)
+#  define jit_getarg_ui(u,v)	_jit_getarg_ui(_jit,u,v)
+#  define jit_getarg_l(u,v)	_jit_getarg_l(_jit,u,v)
 #endif
 
 #define jit_addr(u,v,w)		jit_new_node_www(jit_code_addr,u,v,w)
@@ -231,11 +229,11 @@ typedef enum {
 #define jit_extr_s(u,v)		jit_new_node_ww(jit_code_extr_s,u,v)
 #define jit_extr_us(u,v)	jit_new_node_ww(jit_code_extr_us,u,v)
     jit_code_extr_s,		jit_code_extr_us,
-    /* >> 64 bit */
-#define jit_extr_i(u,v)		jit_new_node_ww(jit_code_extr_i,u,v)
-#define jit_extr_ui(u,v)	jit_new_node_ww(jit_code_extr_ui,u,v)
+#if __WORDSIZE == 64
+#  define jit_extr_i(u,v)	jit_new_node_ww(jit_code_extr_i,u,v)
+#  define jit_extr_ui(u,v)	jit_new_node_ww(jit_code_extr_ui,u,v)
+#endif
     jit_code_extr_i,		jit_code_extr_ui,
-    /* << 64 bit */
 #define jit_htonr(u,v)		jit_new_node_ww(jit_code_htonr,u,v)
 #define jit_ntohr(u,v)		jit_new_node_ww(jit_code_htonr,u,v)
     jit_code_htonr,
@@ -261,15 +259,13 @@ typedef enum {
 #else
 #  define jit_ldr(u,v)		jit_ldr_l(u,v)
 #  define jit_ldi(u,v)		jit_ldi_l(u,v)
-#endif
-    /* >> 64 bit */
-#define jit_ldr_ui(u,v)		jit_new_node_ww(jit_code_ldr_ui,u,v)
-#define jit_ldi_ui(u,v)		jit_new_node_ww(jit_code_ldi_ui,u,v)
-    jit_code_ldr_ui,		jit_code_ldi_ui,
+#  define jit_ldr_ui(u,v)	jit_new_node_ww(jit_code_ldr_ui,u,v)
+#  define jit_ldi_ui(u,v)	jit_new_node_ww(jit_code_ldi_ui,u,v)
 #define jit_ldr_l(u,v)		jit_new_node_ww(jit_code_ldr_l,u,v)
 #define jit_ldi_l(u,v)		jit_new_node_ww(jit_code_ldi_l,u,v)
+#endif
+    jit_code_ldr_ui,		jit_code_ldi_ui,
     jit_code_ldr_l,		jit_code_ldi_l,
-    /* << 64 bit */
 
 #define jit_ldxr_c(u,v,w)	jit_new_node_www(jit_code_ldxr_c,u,v,w)
 #define jit_ldxi_c(u,v,w)	jit_new_node_www(jit_code_ldxi_c,u,v,w)
@@ -313,14 +309,12 @@ typedef enum {
 #  define jit_str(u,v)		jit_str_i(u,v)
 #  define jit_sti(u,v)		jit_sti_i(u,v)
 #else
-#define jit_str(u,v)			jit_str_l(u,v)
-#define jit_sti(u,v)			jit_sti_l(u,v)
+#  define jit_str(u,v)		jit_str_l(u,v)
+#  define jit_sti(u,v)		jit_sti_l(u,v)
+#  define jit_str_l(u,v)	jit_new_node_ww(jit_code_str_l,u,v)
+#  define jit_sti_l(u,v)	jit_new_node_ww(jit_code_sti_l,u,v)
 #endif
-    /* >> 64 bit */
-#define jit_str_l(u,v)		jit_new_node_ww(jit_code_str_l,u,v)
-#define jit_sti_l(u,v)		jit_new_node_ww(jit_code_sti_l,u,v)
     jit_code_str_l,		jit_code_sti_l,
-    /* << 64 bit */
 
 #define jit_stxr_c(u,v,w)	jit_new_node_www(jit_code_stxr_c,u,v,w)
 #define jit_stxi_c(u,v,w)	jit_new_node_www(jit_code_stxi_c,u,v,w)
@@ -335,14 +329,12 @@ typedef enum {
 #  define jit_stxr(u,v,w)	jit_stxr_i(u,v,w)
 #  define jit_stxi(u,v,w)	jit_stxi_i(u,v,w)
 #else
+#  define jit_stxr(u,v,w)	jit_stxr_l(u,v,w)
+#  define jit_stxi(u,v,w)	jit_stxi_l(u,v,w)
 #  define jit_stxr_l(u,v,w)	jit_new_node_www(jit_code_stxr_l,u,v,w)
 #  define jit_stxi_l(u,v,w)	jit_new_node_www(jit_code_stxi_l,u,v,w)
 #endif
-    /* >> 64 bit */
-#define jit_stxr(u,v,w)		jit_stxr_l(u,v,w)
-#define jit_stxi(u,v,w)		jit_stxi_l(u,v,w)
     jit_code_stxr_l,		jit_code_stxi_l,
-    /* << 64 bit */
 
 #define jit_bltr(v,w)		jit_new_node_pww(jit_code_bltr,NULL,v,w)
 #define jit_blti(v,w)		jit_new_node_pww(jit_code_blti,NULL,v,w)
@@ -427,14 +419,12 @@ typedef enum {
 #define jit_retval_s(u)		_jit_retval_s(_jit,u)
 #define jit_retval_us(u)	_jit_retval_us(_jit,u)
 #define jit_retval_i(u)		_jit_retval_i(_jit,u)
-    /* >> 64 bit */
-#define jit_retval_ui(u)	_jit_retval_ui(_jit,u)
-#define jit_retval_l(u)		_jit_retval_l(_jit,u)
-    /* << 64 bit */
 #if __WORDSIZE == 32
 #  define jit_retval(u)		jit_retval_i(u)
 #else
 #  define jit_retval(u)		jit_retval_l(u)
+#  define jit_retval_ui(u)	_jit_retval_ui(_jit,u)
+#  define jit_retval_l(u)	_jit_retval_l(_jit,u)
 #endif
     /* Usually should not need to call directly, but useful if need
      * to get a label just before a jit_prolog() call */
@@ -510,11 +500,9 @@ typedef enum {
 #  define jit_truncr_f(u,v)	jit_truncr_f_i(u,v)
 #else
 #  define jit_truncr_f(u,v)	jit_truncr_f_l(u,v)
+#  define jit_truncr_f_l(u,v)	jit_new_node_ww(jit_code_truncr_f_l,u,v)
 #endif
-    /* >> 64 bit */
-#define jit_truncr_f_l(u,v)	jit_new_node_ww(jit_code_truncr_f_l,u,v)
     jit_code_truncr_f_l,
-    /* << 64 bit */
 #define jit_extr_f(u,v)		jit_new_node_ww(jit_code_extr_f,u,v)
 #define jit_extr_d_f(u,v)	jit_new_node_ww(jit_code_extr_d_f,u,v)
     jit_code_extr_f,		jit_code_extr_d_f,
@@ -655,11 +643,9 @@ typedef enum {
 #  define jit_truncr_d(u,v)	jit_truncr_d_i(u,v)
 #else
 #  define jit_truncr_d(u,v)	jit_truncr_d_l(u,v)
+#  define jit_truncr_d_l(u,v)	jit_new_node_ww(jit_code_truncr_d_l,u,v)
 #endif
-    /* >> 64 bit */
-#define jit_truncr_d_l(u,v)	jit_new_node_ww(jit_code_truncr_d_l,u,v)
     jit_code_truncr_d_l,
-    /* << 64 bit */
 #define jit_extr_d(u,v)		jit_new_node_ww(jit_code_extr_f,u,v)
 #define jit_extr_f_d(u,v)	jit_new_node_ww(jit_code_extr_f_d,u,v)
     jit_code_extr_d,		jit_code_extr_f_d,

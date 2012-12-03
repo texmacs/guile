@@ -1,5 +1,33 @@
 2012-12-03 Paulo Andrade <pcpa@gnu.org>
 
+	* check/all.tst, check/lightning.c: Only declare or use 64 bit
+	interfaces on 64 bit builds.
+
+	* check/fib.tst: Use simpler logic to not need preprocessor
+	conditionals for 32 or 64 bit.
+
+	* include/lightning.h: Only declare 64 bit macros on a 64 bit
+	build. Code using lightning must know about wordsize and the
+	jit generation limitations, also, this way it generates a
+	compile time failure, not a runtime assertion.
+
+	* include/lightning/jit_x86.h: Correct typo in macro name.
+
+	* lib/jit_arm.c, lib/jit_arm-cpu.c, lib/jit_mips.c,
+	lib/jit_mips-cpu.c, lib/jit_ppc.c, lib/jit_ppc-cpu.c, 
+	lib/jit_x86.c, lib/jit_x86-cpu.c: Correct wrong code to get
+	current jit function pointer.
+
+	* lib/lightning.c: Move call to the simplify() optimization
+	to after register liveness is known. Previous code did work
+	by accident but now with proper test cases the problem was
+	noticed.
+
+	* lib/jit_disasm.c: Always cast bfd_vma to long long when
+	passing it as printf argument.
+
+2012-12-03 Paulo Andrade <pcpa@gnu.org>
+
 	* configure.ac, check/Makefile.am, check/check.sh,
 	doc/Makefile.am, include/lightning/Makefile.am,
 	lib/Makefile.am: Correct make distcheck.

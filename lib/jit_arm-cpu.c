@@ -3562,11 +3562,6 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_function_t	*function;
-    jit_pointer_t	*functions;
-
-    functions = _jit->functions->v.obj;
-    function = functions[node->u.w];
     if (jit_thumb_p()) {
 	/*  switch to thumb mode (better approach would be to
 	 * ORR 1 address being called, but no clear distinction
@@ -3592,7 +3587,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    PUSH(0x3ff|(1<<_FP_REGNO)|(1<<_LR_REGNO));
     }
     movr(_FP_REGNO, _SP_REGNO);
-    subi(_SP_REGNO, _SP_REGNO, function->stack);
+    subi(_SP_REGNO, _SP_REGNO, _jit->function->stack);
 }
 
 static void

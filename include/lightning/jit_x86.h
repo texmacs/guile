@@ -37,7 +37,7 @@ typedef enum {
 #  define jit_r_num()		3
 #  define jit_v(i)		(_RBX + (i))
 #  define jit_v_num()		3
-#  define jit_arg_reg_p(i)	0
+#  define jit_arg_f_reg_p(i)	0
 #  define jit_f(i)		(jit_cpu.sse2 ? _XMM0 + (i) : _ST0 + (i))
 #  define jit_f_num()		(jit_cpu.sse2 ? 8 : 6)
 #  define JIT_FRET		_ST0

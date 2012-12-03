@@ -26,9 +26,9 @@
 #    define ldxi(u, v, w)		ldxi_i(u, v, w)
 #    define sti(u, v)			sti_i(u, v)
 #    define stxi(u, v, w)		stxi_i(u, v, w)
-#    define can_sign_extend_int_p(im)	true
-#    define can_zero_extend_int_p(im)	true
-#    define fits_uint32_p(im)		true
+#    define can_sign_extend_int_p(im)	1
+#    define can_zero_extend_int_p(im)	1
+#    define fits_uint32_p(im)		1
 #    define reg8_p(rn)							\
       ((rn) >= _RAX_REGNO && (rn) <= _RBX_REGNO)
 #  else
@@ -3033,64 +3033,56 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_function_t	*function;
-
-    function = _jit->functions.ptr + node->u.w;
-
     /* callee save registers */
     subi(_RSP_REGNO, _RSP_REGNO, stack_framesize - sizeof(jit_word_t));
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(function->regset, _RDI))
+    if (jit_regset_tstbit(_jit->function->regset, _RDI))
 	stxi(12, _RSP_REGNO, _RDI_REGNO);
-    if (jit_regset_tstbit(function->regset, _RSI))
+    if (jit_regset_tstbit(_jit->function->regset, _RSI))
 	stxi( 8, _RSP_REGNO, _RSI_REGNO);
-    if (jit_regset_tstbit(function->regset, _RBX))
+    if (jit_regset_tstbit(_jit->function->regset, _RBX))
 	stxi( 4, _RSP_REGNO, _RBX_REGNO);
 #else
-    if (jit_regset_tstbit(function->regset, _RBX))
+    if (jit_regset_tstbit(_jit->function->regset, _RBX))
 	stxi(40, _RSP_REGNO, _RBX_REGNO);
-    if (jit_regset_tstbit(function->regset, _R12))
+    if (jit_regset_tstbit(_jit->function->regset, _R12))
 	stxi(32, _RSP_REGNO, _R12_REGNO);
-    if (jit_regset_tstbit(function->regset, _R13))
+    if (jit_regset_tstbit(_jit->function->regset, _R13))
 	stxi(24, _RSP_REGNO, _R13_REGNO);
-    if (jit_regset_tstbit(function->regset, _R14))
+    if (jit_regset_tstbit(_jit->function->regset, _R14))
 	stxi(16, _RSP_REGNO, _R14_REGNO);
-    if (jit_regset_tstbit(function->regset, _R15))
+    if (jit_regset_tstbit(_jit->function->regset, _R15))
 	stxi( 8, _RSP_REGNO, _R15_REGNO);
 #endif
     stxi(0, _RSP_REGNO, _RBP_REGNO);
     movr(_RBP_REGNO, _RSP_REGNO);
 
     /* alloca */
-    subi(_RSP_REGNO, _RSP_REGNO, function->stack);
+    subi(_RSP_REGNO, _RSP_REGNO, _jit->function->stack);
 }
 
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_function_t	*function;
-
-    function = _jit->functions.ptr + node->w.w;
-
     /* callee save registers */
     movr(_RSP_REGNO, _RBP_REGNO);
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(function->regset, _RDI))
+    if (jit_regset_tstbit(_jit->function->regset, _RDI))
 	ldxi(_RDI_REGNO, _RSP_REGNO, 12);
-    if (jit_regset_tstbit(function->regset, _RSI))
+    if (jit_regset_tstbit(_jit->function->regset, _RSI))
 	ldxi(_RSI_REGNO, _RSP_REGNO,  8);
-    if (jit_regset_tstbit(function->regset, _RBX))
+    if (jit_regset_tstbit(_jit->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO,  4);
 #else
-    if (jit_regset_tstbit(function->regset, _RBX))
+    if (jit_regset_tstbit(_jit->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO, 40);
-    if (jit_regset_tstbit(function->regset, _R12))
+    if (jit_regset_tstbit(_jit->function->regset, _R12))
 	ldxi(_R12_REGNO, _RSP_REGNO, 32);
-    if (jit_regset_tstbit(function->regset, _R13))
+    if (jit_regset_tstbit(_jit->function->regset, _R13))
 	ldxi(_R13_REGNO, _RSP_REGNO, 24);
-    if (jit_regset_tstbit(function->regset, _R14))
+    if (jit_regset_tstbit(_jit->function->regset, _R14))
 	ldxi(_R14_REGNO, _RSP_REGNO, 16);
-    if (jit_regset_tstbit(function->regset, _R15))
+    if (jit_regset_tstbit(_jit->function->regset, _R15))
 	ldxi(_R15_REGNO, _RSP_REGNO,  8);
 #endif
     ldxi(_RBP_REGNO, _RSP_REGNO, 0);

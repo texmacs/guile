@@ -7,15 +7,19 @@
 	arg $s
 	arg $us
 	arg $i
+#if __WORDSIZE == 64
 	arg $ui
 	arg $l
+#endif
 	getarg_c %r0 $c
 	getarg_uc %r0 $uc
 	getarg_s %r0 $s
 	getarg_us %r0 $us
 	getarg_i %r0 $i
+#if __WORDSIZE == 64
 	getarg_ui %r0 $ui
 	getarg_l %r0 $l
+#endif
 	addr %r0 %r1 %r2
 	addi %r0 %r1 2
 	addxr %r0 %r1 %r2
@@ -78,8 +82,10 @@
 	extr_uc %r0 %r1
 	extr_s %r0 %r1
 	extr_us %r0 %r1
+#if __WORDSIZE == 64
 	extr_i %r0 %r1
 	extr_ui %r0 %r1
+#endif
 	htonr %r0 %r1
 	ntohr %r0 %r1
 	ldr_c %r0 %r1
@@ -92,10 +98,12 @@
 	ldi_us %r0 0x80000000
 	ldr_i %r0 %r1
 	ldi_i %r0 0x80000000
+#if __WORDSIZE == 64
 	ldr_ui %r0 %r1
 	ldi_ui %r0 0x80000000
 	ldr_l %r0 %r1
 	ldi_l %r0 0x80000000
+#endif
 	ldxr_c %r0 %r1 %r2
 	ldxi_c %r0 %r1 1
 	ldxr_uc %r0 %r1 %r2
@@ -106,26 +114,32 @@
 	ldxi_us %r0 %r1 2
 	ldxr_i %r0 %r1 %r2
 	ldxi_i %r0 %r1 4
+#if __WORDSIZE == 64
 	ldxr_ui %r0 %r1 %r2
 	ldxi_ui %r0 %r1 4
 	ldxr_l %r0 %r1 %r2
 	ldxi_l %r0 %r1 8
+#endif
 	str_c %r1 %r0
 	sti_c 0x80000000 %r1
 	str_s %r1 %r0
 	sti_s 0x80000000 %r1
 	str_i %r1 %r0
 	sti_i 0x80000000 %r1
+#if __WORDSIZE == 64
 	str_l %r1 %r0
 	sti_l 0x80000000 %r1
+#endif
 	stxr_c %r2 %r1 %r0
 	stxi_c 1 %r1 %r0
 	stxr_s %r2 %r1 %r0
 	stxi_s 2 %r1 %r0
 	stxr_i %r2 %r1 %r0
 	stxi_i 4 %r1 %r0
+#if __WORDSIZE == 64
 	stxr_l %r2 %r1 %r0
 	stxi_l 8 %r1 %r0
+#endif
 cond:
 	bltr cond %r0 %r1
 condi:
@@ -196,8 +210,10 @@ label:
 	retval_s %r1
 	retval_us %r1
 	retval_i %r1
+#if __WORDSIZE == 64
 	retval_ui %r1
 	retval_l %r1
+#endif
 	arg_f $f
 	getarg_f %f1 $f
 	addr_f %f0 %f1 %f2
@@ -240,7 +256,9 @@ label:
 	unordr_f %r0 %f0 %f1
 	unordi_f %r0 %f0 0.5
 	truncr_f_i %r0 %f0
+#if __WORDSIZE == 64
 	truncr_f_l %r0 %f0
+#endif
 	extr_f %f0 %r0
 	extr_d_f %f0 %f1
 	movr_f %f0 %f1
@@ -334,7 +352,9 @@ unordi:
 	unordr_d %r0 %f0 %f1
 	unordi_d %r0 %f0 0.5
 	truncr_d_i %r0 %f0
+#if __WORDSIZE == 64
 	truncr_d_l %r0 %f0
+#endif
 	extr_d %f0 %r0
 	extr_f_d %f0 %f1
 	movr_d %f0 %f1

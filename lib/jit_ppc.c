@@ -1011,7 +1011,7 @@ _jit_emit(jit_state_t *_jit)
 		    calli(node->u.w);
 		break;
 	    case jit_code_prolog:
-		_jit->function = _jit->functions.ptr + node->u.w;
+		_jit->function = _jit->functions.ptr + node->w.w;
 		undo.node = node;
 		undo.word = _jit->pc.w;
 		undo.patch_offset = _jit->patches.offset;
@@ -1020,6 +1020,7 @@ _jit_emit(jit_state_t *_jit)
 		prolog(node);
 		break;
 	    case jit_code_epilog:
+		assert(_jit->function == _jit->functions.ptr + node->w.w);
 		if (_jit->again) {
 		    for (temp = undo.node->next;
 			 temp != node; temp = temp->next) {

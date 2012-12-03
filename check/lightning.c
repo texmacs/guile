@@ -247,8 +247,10 @@ static void allocai(void);
 static void arg(void);
 static void getarg_c(void);	static void getarg_uc(void);
 static void getarg_s(void);	static void getarg_us(void);
-static void getarg_i(void);	static void getarg_ui(void);
-static void getarg_l(void);
+static void getarg_i(void);
+#if __WORDSIZE == 64
+static void getarg_ui(void);	static void getarg_l(void);
+#endif
 static void getarg(void);
 static void addr(void);		static void addi(void);
 static void addxr(void);	static void addxi(void);
@@ -281,33 +283,43 @@ static void ner(void);		static void nei(void);
 static void movr(void);		static void movi(void);
 static void extr_c(void);	static void extr_uc(void);
 static void extr_s(void);	static void extr_us(void);
+#if __WORDSIZE == 64
 static void extr_i(void);	static void extr_ui(void);
+#endif
 static void htonr(void);	static void ntohr(void);
 static void ldr_c(void);	static void ldi_c(void);
 static void ldr_uc(void);	static void ldi_uc(void);
 static void ldr_s(void);	static void ldi_s(void);
 static void ldr_us(void);	static void ldi_us(void);
 static void ldr_i(void);	static void ldi_i(void);
+#if __WORDSIZE == 64
 static void ldr_ui(void);	static void ldi_ui(void);
 static void ldr_l(void);	static void ldi_l(void);
+#endif
 static void ldr(void);		static void ldi(void);
 static void ldxr_c(void);	static void ldxi_c(void);
 static void ldxr_uc(void);	static void ldxi_uc(void);
 static void ldxr_s(void);	static void ldxi_s(void);
 static void ldxr_us(void);	static void ldxi_us(void);
 static void ldxr_i(void);	static void ldxi_i(void);
+#if __WORDSIZE == 64
 static void ldxr_ui(void);	static void ldxi_ui(void);
 static void ldxr_l(void);	static void ldxi_l(void);
+#endif
 static void ldxr(void);		static void ldxi(void);
 static void str_c(void);	static void sti_c(void);
 static void str_s(void);	static void sti_s(void);
 static void str_i(void);	static void sti_i(void);
+#if __WORDSIZE == 64
 static void str_l(void);	static void sti_l(void);
+#endif
 static void str(void);		static void sti(void);
 static void stxr_c(void);	static void stxi_c(void);
 static void stxr_s(void);	static void stxi_s(void);
 static void stxr_i(void);	static void stxi_i(void);
+#if __WORDSIZE == 64
 static void stxr_l(void);	static void stxi_l(void);
+#endif
 static void stxr(void);		static void stxi(void);
 static void bltr(void);		static void blti(void);
 static void bltr_u(void);	static void blti_u(void);
@@ -338,8 +350,10 @@ static void ret(void);
 static void retr(void);		static void reti(void);
 static void retval_c(void);	static void retval_uc(void);
 static void retval_s(void);	static void retval_us(void);
-static void retval_i(void);	static void retval_ui(void);
-static void retval_l(void);
+static void retval_i(void);
+#if __WORDSIZE == 64
+static void retval_ui(void);	static void retval_l(void);
+#endif
 static void retval(void);
 static void epilog(void);
 static void arg_f(void);
@@ -516,8 +530,10 @@ static instr_t		  instr_vector[] = {
     entry(arg),
     entry(getarg_c),	entry(getarg_uc),
     entry(getarg_s),	entry(getarg_us),
-    entry(getarg_i),	entry(getarg_ui),
-    entry(getarg_l),
+    entry(getarg_i),
+#if __WORDSIZE == 64
+    entry(getarg_ui),	entry(getarg_l),
+#endif
     entry(getarg),
     entry(addr),	entry(addi),
     entry(addxr),	entry(addxi),
@@ -550,33 +566,43 @@ static instr_t		  instr_vector[] = {
     entry(movr),	entry(movi),
     entry(extr_c),	entry(extr_uc),
     entry(extr_s),	entry(extr_us),
+#if __WORDSIZE == 64
     entry(extr_i),	entry(extr_ui),
+#endif
     entry(htonr),	entry(ntohr),
     entry(ldr_c),	entry(ldi_c),
     entry(ldr_uc), 	entry(ldi_uc),
     entry(ldr_s),	entry(ldi_s),
     entry(ldr_us), 	entry(ldi_us),
     entry(ldr_i),	entry(ldi_i),
+#if __WORDSIZE == 64
     entry(ldr_ui), 	entry(ldi_ui),
     entry(ldr_l),	entry(ldi_l),
+#endif
     entry(ldr),		entry(ldi),
     entry(ldxr_c),	entry(ldxi_c),
     entry(ldxr_uc),	entry(ldxi_uc),
     entry(ldxr_s),	entry(ldxi_s),
     entry(ldxr_us),	entry(ldxi_us),
     entry(ldxr_i),	entry(ldxi_i),
+#if __WORDSIZE == 64
     entry(ldxr_ui),	entry(ldxi_ui),
     entry(ldxr_l),	entry(ldxi_l),
+#endif
     entry(ldxr),	entry(ldxi),
     entry(str_c),	entry(sti_c),
     entry(str_s),	entry(sti_s),
     entry(str_i),	entry(sti_i),
+#if __WORDSIZE == 64
     entry(str_l),	entry(sti_l),
+#endif
     entry(str),		entry(sti),
     entry(stxr_c),	entry(stxi_c),
     entry(stxr_s),	entry(stxi_s),
     entry(stxr_i),	entry(stxi_i),
+#if __WORDSIZE == 64
     entry(stxr_l),	entry(stxi_l),
+#endif
     entry(stxr),	entry(stxi),
     entry(bltr),	entry(blti),
     entry(bltr_u),	entry(blti_u),
@@ -607,8 +633,10 @@ static instr_t		  instr_vector[] = {
     entry(retr),	entry(reti),
     entry(retval_c),	entry(retval_uc),
     entry(retval_s),	entry(retval_us),
-    entry(retval_i),	entry(retval_ui),
-    entry(retval_l),
+    entry(retval_i),
+#if __WORDSIZE == 64
+    entry(retval_ui),	entry(retval_l),
+#endif
     entry(retval),
     entry(epilog),
     entry(arg_f),
@@ -1180,8 +1208,10 @@ allocai(void) {
 entry_ca(arg)
 entry_ia(getarg_c)		entry_ia(getarg_uc)
 entry_ia(getarg_s)		entry_ia(getarg_us)
-entry_ia(getarg_i)		entry_ia(getarg_ui)
-entry_ia(getarg_l)
+entry_ia(getarg_i)
+#if __WORDSIZE == 64
+entry_ia(getarg_ui)		entry_ia(getarg_l)
+#endif
 entry_ia(getarg)
 entry_ir_ir_ir(addr)		entry_ir_ir_im(addi)
 entry_ir_ir_ir(addxr)		entry_ir_ir_im(addxi)
@@ -1253,33 +1283,43 @@ movi(void)
 }
 entry_ir_ir(extr_c)		entry_ir_ir(extr_uc)
 entry_ir_ir(extr_s)		entry_ir_ir(extr_us)
+#if __WORDSIZE == 64
 entry_ir_ir(extr_i)		entry_ir_ir(extr_ui)
+#endif
 entry_ir_ir(htonr)		entry_ir_ir(ntohr)
 entry_ir_ir(ldr_c)		entry_ir_pm(ldi_c)
 entry_ir_ir(ldr_uc)		entry_ir_pm(ldi_uc)
 entry_ir_ir(ldr_s)		entry_ir_pm(ldi_s)
 entry_ir_ir(ldr_us)		entry_ir_pm(ldi_us)
 entry_ir_ir(ldr_i)		entry_ir_pm(ldi_i)
+#if __WORDSIZE == 64
 entry_ir_ir(ldr_ui)		entry_ir_pm(ldi_ui)
 entry_ir_ir(ldr_l)		entry_ir_pm(ldi_l)
+#endif
 entry_ir_ir(ldr)		entry_ir_pm(ldi)
 entry_ir_ir_ir(ldxr_c)		entry_ir_ir_im(ldxi_c)
 entry_ir_ir_ir(ldxr_uc)		entry_ir_ir_im(ldxi_uc)
 entry_ir_ir_ir(ldxr_s)		entry_ir_ir_im(ldxi_s)
 entry_ir_ir_ir(ldxr_us)		entry_ir_ir_im(ldxi_us)
 entry_ir_ir_ir(ldxr_i)		entry_ir_ir_im(ldxi_i)
+#if __WORDSIZE == 64
 entry_ir_ir_ir(ldxr_ui)		entry_ir_ir_im(ldxi_ui)
 entry_ir_ir_ir(ldxr_l)		entry_ir_ir_im(ldxi_l)
+#endif
 entry_ir_ir_ir(ldxr)		entry_ir_ir_im(ldxi)
 entry_ir_ir(str_c)		entry_pm_ir(sti_c)
 entry_ir_ir(str_s)		entry_pm_ir(sti_s)
 entry_ir_ir(str_i)		entry_pm_ir(sti_i)
+#if __WORDSIZE == 64
 entry_ir_ir(str_l)		entry_pm_ir(sti_l)
+#endif
 entry_ir_ir(str)		entry_pm_ir(sti)
 entry_ir_ir_ir(stxr_c)		entry_im_ir_ir(stxi_c)
 entry_ir_ir_ir(stxr_s)		entry_im_ir_ir(stxi_s)
 entry_ir_ir_ir(stxr_i)		entry_im_ir_ir(stxi_i)
+#if __WORDSIZE == 64
 entry_ir_ir_ir(stxr_l)		entry_im_ir_ir(stxi_l)
+#endif
 entry_ir_ir_ir(stxr)		entry_im_ir_ir(stxi)
 entry_lb_ir_ir(bltr)		entry_lb_ir_im(blti)
 entry_lb_ir_ir(bltr_u)		entry_lb_ir_im(blti_u)
@@ -1310,8 +1350,10 @@ entry(ret)
 entry_ir(retr)			entry_im(reti)
 entry_ir(retval_c)		entry_ir(retval_uc)
 entry_ir(retval_s)		entry_ir(retval_us)
-entry_ir(retval_i)		entry_ir(retval_ui)
-entry_ir(retval_l)
+entry_ir(retval_i)
+#if __WORDSIZE == 64
+entry_ir(retval_ui)		entry_ir(retval_l)
+#endif
 entry_ir(retval)
 entry(epilog)
 entry_ca(arg_f)

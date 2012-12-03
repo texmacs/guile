@@ -2210,11 +2210,7 @@ static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	 regno;
-    jit_function_t	*function;
-    jit_pointer_t	*functions;
 
-    functions = _jit->functions->v.obj;
-    function = functions[node->u.w];
     subi(_SP_REGNO, _SP_REGNO, stack_framesize);
     /* return address */
     MFLR(_R0_REGNO);
@@ -2223,34 +2219,30 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     /* save any clobbered  callee save fpr register */
     /* FIXME actually, no "clean" interface to use these registers */
     for (regno = _F31; regno >= _F14; regno--) {
-	if (jit_regset_tstbit(function->regset, regno))
+	if (jit_regset_tstbit(_jit->function->regset, regno))
 	    stxi_d(stack_framesize - rn(regno) * 8, _SP_REGNO, regno);
     }
     /* save any clobbered callee save gpr register */
-    regno = jit_regset_scan1(function->regset, _R14);
+    regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     STMW(regno, _SP_REGNO, rn(regno) * 4 + 8);
     movr(_FP_REGNO, _SP_REGNO);
     /* alloca and/or space for excess parameters */
-    subi(_SP_REGNO, _SP_REGNO, function->stack);
+    subi(_SP_REGNO, _SP_REGNO, _jit->function->stack);
 }
 
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	 regno;
-    jit_function_t	*function;
-    jit_pointer_t	*functions;
 
-    functions = _jit->functions->v.obj;
-    function = functions[node->w.w];
     movr(_SP_REGNO, _FP_REGNO);
     for (regno = _F31; regno >= _F14; regno--) {
-	if (jit_regset_tstbit(function->regset, regno))
+	if (jit_regset_tstbit(_jit->function->regset, regno))
 	    ldxi_d(regno, _SP_REGNO, stack_framesize - rn(regno) * 8);
     }
-    regno = jit_regset_scan1(function->regset, _R14);
+    regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     LMW(rn(regno), _SP_REGNO, regno * 4 + 8);
