@@ -133,21 +133,21 @@ typedef enum {
 #define jit_addr(u,v,w)		jit_new_node_www(jit_code_addr,u,v,w)
 #define jit_addi(u,v,w)		jit_new_node_www(jit_code_addi,u,v,w)
     jit_code_addr,		jit_code_addi,
-#define jit_addxr(u,v,w)	jit_new_node_www(jit_code_addxr,u,v,w)
-#define jit_addxi(u,v,w)	jit_new_node_www(jit_code_addxi,u,v,w)
-    jit_code_addxr,		jit_code_addxi,
 #define jit_addcr(u,v,w)	jit_new_node_www(jit_code_addcr,u,v,w)
 #define jit_addci(u,v,w)	jit_new_node_www(jit_code_addci,u,v,w)
     jit_code_addcr,		jit_code_addci,
+#define jit_addxr(u,v,w)	jit_new_node_www(jit_code_addxr,u,v,w)
+#define jit_addxi(u,v,w)	jit_new_node_www(jit_code_addxi,u,v,w)
+    jit_code_addxr,		jit_code_addxi,
 #define jit_subr(u,v,w)		jit_new_node_www(jit_code_subr,u,v,w)
 #define jit_subi(u,v,w)		jit_new_node_www(jit_code_subi,u,v,w)
     jit_code_subr,		jit_code_subi,
-#define jit_subxr(u,v,w)	jit_new_node_www(jit_code_subxr,u,v,w)
-#define jit_subxi(u,v,w)	jit_new_node_www(jit_code_subxi,u,v,w)
-    jit_code_subxr,		jit_code_subxi,
 #define jit_subcr(u,v,w)	jit_new_node_www(jit_code_subcr,u,v,w)
 #define jit_subci(u,v,w)	jit_new_node_www(jit_code_subci,u,v,w)
     jit_code_subcr,		jit_code_subci,
+#define jit_subxr(u,v,w)	jit_new_node_www(jit_code_subxr,u,v,w)
+#define jit_subxi(u,v,w)	jit_new_node_www(jit_code_subxi,u,v,w)
+    jit_code_subxr,		jit_code_subxi,
 
 #define jit_mulr(u,v,w)		jit_new_node_www(jit_code_mulr,u,v,w)
 #define jit_muli(u,v,w)		jit_new_node_www(jit_code_muli,u,v,w)

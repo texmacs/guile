@@ -1,5 +1,17 @@
 2012-12-04 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_mips-fpu.c, lib/jit_mips.c: Implement missing mips
+	jit_sqrtr_{f,d} codes.
+
+	* check/all.tst, include/lightning.h, lib/jit_print.c: Change
+	declaration order and call order in all.tst of {add,sub}c and
+	{add,sub}x. *c must be called before to set the carry and *x
+	second to use the carry and keep it set. The wrong call order
+	was causing all.tst to fail in mips, where a register is
+	allocated to keep a global carry state.
+
+2012-12-04 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_mips.h, lib/jit_mips-cpu.c,
 	lib/jit_mips-fpu.c, lib/jit_mips.c: Correct float/double
 	argument handling and make the mips backend pass the initial

@@ -973,6 +973,7 @@ _jit_emit(jit_state_t *_jit)
 		case_rrf(div, _f, 32);
 		case_rr(abs, _f);
 		case_rr(neg, _f);
+		case_rr(sqrt, _f);
 		case_rr(ext, _f);
 		case_rr(ld, _f);
 		case_rw(ld, _f);
@@ -1054,6 +1055,7 @@ _jit_emit(jit_state_t *_jit)
 		case_rrf(div, _d, 64);
 		case_rr(abs, _d);
 		case_rr(neg, _d);
+		case_rr(sqrt, _d);
 		case_rr(ext, _d);
 		case_rr(ld, _d);
 		case_rw(ld, _d);

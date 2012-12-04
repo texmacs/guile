@@ -22,16 +22,16 @@
 #endif
 	addr %r0 %r1 %r2
 	addi %r0 %r1 2
-	addxr %r0 %r1 %r2
-	addxi %r0 %r1 2
 	addcr %r0 %r1 %r2
 	addci %r0 %r1 2
+	addxr %r0 %r1 %r2
+	addxi %r0 %r1 2
 	subr %r0 %r1 %r2
 	subi %r0 %r1 2
-	subxr %r0 %r1 %r2
-	subxi %r0 %r1 2
 	subcr %r0 %r1 %r2
 	subci %r0 %r1 2
+	subxr %r0 %r1 %r2
+	subxi %r0 %r1 2
 	mulr %r0 %r1 %r2
 	muli %r0 %r1 2
 	divr %r0 %r1 %r2
