@@ -564,7 +564,8 @@ _jit_emit(jit_state_t *_jit)
 	jit_int32_t	 patch_offset;
     } undo;
 
-    jit_epilog();
+    if (_jit->function)
+	jit_epilog();
     jit_optimize();
 
     _jit->emit = 1;

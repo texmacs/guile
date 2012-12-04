@@ -118,6 +118,7 @@ static char *code_name[] = {
     "jmpr",		"jmpi",
     "callr",		"calli",
     "epilog",
+    "getarg_f",
     "addr_f",		"addi_f",
     "subr_f",		"subi_f",
     "mulr_f",		"muli_f",
@@ -159,7 +160,9 @@ static char *code_name[] = {
     "bltgtr_f",		"bltgti_f",
     "bordr_f",		"bordi_f",
     "bunordr_f",	"bunordi_f",
+    "pushargr_f",	"pushargi_f",
     "retval_f",
+    "getarg_d",
     "addr_d",		"addi_d",
     "subr_d",		"subi_d",
     "mulr_d",		"muli_d",
@@ -201,6 +204,7 @@ static char *code_name[] = {
     "bltgtr_d",		"bltgti_d",
     "bordr_d",		"bordi_d",
     "bunordr_d",	"bunordi_d",
+    "pushargr_d",	"pushargi_d",
     "retval_d",
 };
 

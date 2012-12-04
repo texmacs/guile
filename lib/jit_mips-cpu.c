@@ -76,7 +76,7 @@ typedef union {
 #    define sti(u, v)			sti_i(u, v)
 #    define stxi(u, v, w)		stxi_i(u, v, w)
 #  else
-#    define stack_framesize		142
+#    define stack_framesize		144
 #    define ldi(u, v)			ldi_l(u, v)
 #    define ldxi(u, v, w)		ldxi_l(u, v, w)
 #    define sti(u, v)			sti_l(u, v)

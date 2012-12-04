@@ -208,6 +208,10 @@ static void _divi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define absr_d(r0,r1)			ABS_D(r0,r1)
 #  define negr_f(r0,r1)			NEG_S(r0,r1)
 #  define negr_d(r0,r1)			NEG_D(r0,r1)
+#  define getarg_f(r0, r1)		MTC1(r1, r0)
+#  define pushargr_f(r0, r1)		MFC1(r1, r0)
+#  define pushargi_f(r0, i0)		_pushargi_f(_jit, r0, i0)
+static void _pushargi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
 #  define extr_f(r0, r1)		_extr_f(_jit, r0, r1)
 static void _extr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define truncr_f_i(r0, r1)		_truncr_f_i(_jit, r0, r1)
@@ -235,6 +239,12 @@ static void _stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 static void _movr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
+#  define getarg_d(r0, r1)		_getarg_d(_jit, r0, r1)
+static void _getarg_d(jit_state_t*,jit_int32_t,jit_int32_t);
+#  define pushargr_d(r0, r1)		_pushargr_d(_jit, r0, r1)
+static void _pushargr_d(jit_state_t*,jit_int32_t,jit_int32_t);
+#  define pushargi_d(r0, i0)		_pushargi_d(_jit, r0, i0)
+static void _pushargi_d(jit_state_t*,jit_int32_t,jit_float64_t*);
 #  define extr_d(r0, r1)		_extr_d(_jit, r0, r1)
 static void _extr_d(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define truncr_d_i(r0, r1)		_truncr_d_i(_jit, r0, r1)
@@ -567,6 +577,18 @@ fopi(mul)
 fopi(div)
 
 static void
+_pushargi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
+{
+    union {
+	jit_int32_t	i;
+	jit_float32_t	f;
+    } data;
+
+    data.f = *i0;
+    movi(r0, data.i);
+}
+
+static void
 _extr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		t0;
@@ -705,6 +727,46 @@ dopi(add)
 dopi(sub)
 dopi(mul)
 dopi(div)
+
+static void
+_getarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+#  if __WORDSIZE == 32
+    MTC1(r1, r0);
+    MTC1(r1 + 1, r0 + 1);
+#  else
+    DMTC1(r1, r0);
+#  endif
+}
+
+static void
+_pushargr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+#  if __WORDSIZE == 32
+    MFC1(r0, r1);
+    MFC1(r0 + 1, r1 + 1);
+#  else
+    DMFC1(r0, r1);
+#  endif
+}
+
+static void
+_pushargi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
+{
+    union {
+	jit_int32_t	i[2];
+	jit_int64_t	l;
+	jit_float64_t	d;
+    } data;
+
+    data.d = *i0;
+#  if __WORDSIZE == 64
+    movi(r0, data.l);
+#  else
+    movi(r0, data.i[0]);
+    movi(r0 + 1, data.i[1]);
+ #  endif
+}
 
 static void
 _extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)

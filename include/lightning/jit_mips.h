@@ -88,7 +88,7 @@ typedef enum {
     _F16, _F18, _F20, _F22, _F24, _F26, _F28, _F30,
 #define JIT_FA0			_F12
 #define JIT_FA1			_F14
-    _F12, _F14,
+    _F14, _F12,
 #define JIT_NOREG		_NOREG
     _NOREG,
 } jit_reg_t;

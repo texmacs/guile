@@ -765,6 +765,9 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_callr:	case jit_code_jmpr:
 	    mask = jit_cc_a0_reg|jit_cc_a0_jmp;
 	    break;
+	case jit_code_pushargr_f:			case jit_code_pushargr_d:
+	    mask = jit_cc_a0_reg|jit_cc_a1_reg;
+	    break;
 	case jit_code_retval_f:	case jit_code_retval_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg;
 	    break;
@@ -774,10 +777,10 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_ldi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_int;
 	    break;
-	case jit_code_movi_f:
+	case jit_code_movi_f:	case jit_code_pushargi_f:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_flt;
 	    break;
-	case jit_code_movi_d:
+	case jit_code_movi_d:	case jit_code_pushargi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_dbl;
 	    break;
 	case jit_code_negr:	case jit_code_comr:	case jit_code_movr:
@@ -793,6 +796,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_negr_d:	case jit_code_absr_d:	case jit_code_sqrtr_d:
 	case jit_code_movr_d:	case jit_code_extr_d:	case jit_code_extr_f_d:
 	case jit_code_ldr_d:
+	case jit_code_getarg_f:				case jit_code_getarg_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg;
 	    break;
 	case jit_code_addi:	case jit_code_addxi:	case jit_code_addci:
