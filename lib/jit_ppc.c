@@ -111,7 +111,7 @@ jit_get_cpu(void)
 void
 _jit_init(jit_state_t *_jit)
 {
-    _jit->reglen = esize(_rvs) - 1;
+    _jit->reglen = jit_size(_rvs) - 1;
 }
 
 void
@@ -245,7 +245,7 @@ _jit_arg(jit_state_t *_jit)
     return (offset);
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (offset >= 0 && offset < 8);
@@ -257,7 +257,7 @@ _jit_arg_f(jit_state_t *_jit)
     return (jit_arg_d());
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (jit_arg_d_reg_p(offset));
@@ -275,7 +275,7 @@ _jit_arg_d(jit_state_t *_jit)
     return (offset);
 }
 
-ebool_t
+jit_bool_t
 _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
     return (offset >= 0 && offset < 8);
@@ -400,7 +400,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 }
 
 void
-_jit_pushargi_f(jit_state_t *_jit, efloat32_t u)
+_jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 {
     jit_pushargi_d(u);
 }
@@ -420,7 +420,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 }
 
 void
-_jit_pushargi_d(jit_state_t *_jit, efloat64_t u)
+_jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 {
     jit_int32_t		 regno;
 
@@ -569,12 +569,12 @@ _jit_emit(jit_state_t *_jit)
 
     _jit->emit = 1;
 
-    _jit->code_length = 16 * 1024 * 1024;
-    _jit->code = mmap(NULL, _jit->code_length,
-		      PROT_EXEC | PROT_READ | PROT_WRITE,
-		      MAP_PRIVATE | MAP_ANON, -1, 0);
-    assert(_jit->code != MAP_FAILED);
-    _jit->pc.uc = _jit->code;
+    _jit->code.length = 16 * 1024 * 1024;
+    _jit->code.ptr = mmap(NULL, _jit->code.length,
+			  PROT_EXEC | PROT_READ | PROT_WRITE,
+			  MAP_PRIVATE | MAP_ANON, -1, 0);
+    assert(_jit->code.ptr != MAP_FAILED);
+    _jit->pc.uc = _jit->code.ptr;
 
     /* clear jit_flag_patch from label nodes if reallocating buffer
      * and starting over
@@ -1030,7 +1030,7 @@ _jit_emit(jit_state_t *_jit)
 		    }
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
-		    _jit->patches->offset = undo.patch_offset;
+		    _jit->patches.offset = undo.patch_offset;
 		    goto restart_function;
 		}
 		/* remember label is defined */
@@ -1057,10 +1057,10 @@ _jit_emit(jit_state_t *_jit)
 #undef case_rw
 #undef case_rr
 
-    for (offset = 0; offset < _jit->patches->offset; offset++) {
+    for (offset = 0; offset < _jit->patches.offset; offset++) {
 	node = _jit->patches.ptr[offset].node;
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
-	patch_at(_jit->patches.ptr[offset].instr, word);
+	patch_at(_jit->patches.ptr[offset].inst, word);
     }
 
     return (_jit->code.ptr);
