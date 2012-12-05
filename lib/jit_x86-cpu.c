@@ -1965,7 +1965,7 @@ _ldr_uc(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     rex(0, 1, r0, _NOREG, r1);
     ic(0x0f);
-    ic(0xbe);
+    ic(0xb6);
     rx(r0, 0, r1, _NOREG, _SCL1);
 }
 
@@ -2324,7 +2324,7 @@ _str_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
     if (reg8_p(r1)) {
-	rex(0, 0, r1, r0, _NOREG);
+	rex(0, 0, r1, _NOREG, r0);
 	ic(0x88);
 	rx(r1, 0, r0, _NOREG, _SCL1);
     }
@@ -2367,7 +2367,7 @@ static void
 _str_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     ic(0x66);
-    rex(0, 0, r1, r0, _NOREG);
+    rex(0, 0, r1, _NOREG, r0);
     ic(0x89);
     rx(r1, 0, r0, _NOREG, _SCL1);
 }
@@ -2393,7 +2393,7 @@ _sti_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 static void
 _str_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    rex(0, 0, r1, r0, _NOREG);
+    rex(0, 0, r1, _NOREG, r0);
     ic(0x89);
     rx(r1, 0, r0, _NOREG, _SCL1);
 }
@@ -2419,7 +2419,7 @@ _sti_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 static void
 _str_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    rex(0, 1, r1, r0, _NOREG);
+    rex(0, 1, r1, _NOREG, r0);
     ic(0x89);
     rx(r1, 0, r0, _NOREG, _SCL1);
 }
@@ -2447,7 +2447,7 @@ _stxr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
     if (reg8_p(r2)) {
-	rex(0, 0, r2, r0, r1);
+	rex(0, 0, r2, r1, r0);
 	ic(0x88);
 	rx(r2, 0, r0, r1, _SCL1);
     }
@@ -2490,7 +2490,7 @@ static void
 _stxr_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     ic(0x66);
-    rex(0, 0, r2, r0, r1);
+    rex(0, 0, r2, r1, r0);
     ic(0x89);
     rx(r2, 0, r0, r1, _SCL1);
 }
@@ -2516,7 +2516,7 @@ _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _stxr_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-    rex(0, 0, r2, r0, r1);
+    rex(0, 0, r2, r1, r0);
     ic(0x89);
     rx(r2, 0, r0, r1, _SCL1);
 }
@@ -2542,7 +2542,7 @@ _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _stxr_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-    rex(0, 1, r2, r0, r1);
+    rex(0, 1, r2, r1, r0);
     ic(0x89);
     rx(r2, 0, r0, r1, _SCL1);
 }
