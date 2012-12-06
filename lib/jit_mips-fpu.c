@@ -686,8 +686,8 @@ _stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
-    addr(rn(reg), r1, r2);
-    str_f(rn(reg), r0);
+    addr(rn(reg), r0, r1);
+    str_f(rn(reg), r2);
     jit_unget_reg(reg);
 }
 
@@ -916,8 +916,8 @@ _stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
-    addr(rn(reg), r1, r2);
-    str_d(rn(reg), r0);
+    addr(rn(reg), r0, r1);
+    str_d(rn(reg), r2);
     jit_unget_reg(reg);
 }
 

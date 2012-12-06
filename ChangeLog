@@ -1,5 +1,10 @@
 2012-12-05 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_mips-fpu.c: Correct wrong register order in stxr_{f,d}
+	in the mips backend.
+
+2012-12-05 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_arm-vfp.c: Correct regression found in armv7l with
 	latest test cases.
 
