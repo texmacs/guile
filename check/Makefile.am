@@ -40,6 +40,7 @@ EXTRA_DIST =				\
 	ldstr-c.tst	ldstr-c.ok	\
 	ldstxr-c.tst	ldstxr-c.ok	\
 	ldstxi-c.tst	ldstxi-c.ok	\
+	cvt.tst		cvt.ok		\
 	check.sh	run-test	\
 	all.tst
 
@@ -47,7 +48,8 @@ TESTS = 3to2 add allocai		\
 	bp divi fib rpn			\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
-	ldstr-c ldstxr-c ldstxi-c
+	ldstr-c ldstxr-c ldstxi-c	\
+	cvt
 
 CLEANFILES = $(TESTS)
 

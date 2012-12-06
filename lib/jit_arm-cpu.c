@@ -159,16 +159,16 @@ extern unsigned	__aeabi_uidivmod(unsigned, unsigned);
 #  define THUMB2_REV16			0xfa90f090
 #  define ARM_SXTB			0x06af0070
 #  define THUMB_SXTB			    0xb240
-#  define THUMB2_SXTB			0xfa4ff080
+#  define THUMB2_SXTB			0xfa40f080
 #  define ARM_UXTB			0x06ef0070
 #  define THUMB_UXTB			    0xb2c0
-#  define THUMB2_UXTB			0xfa5ff080
+#  define THUMB2_UXTB			0xfa50f080
 #  define ARM_SXTH			0x06bf0070
 #  define THUMB_SXTH			    0xb200
-#  define THUMB2_SXTH			0xfa0f0080
+#  define THUMB2_SXTH			0xfa00f080
 #  define ARM_UXTH			0x06ff0070
 #  define THUMB_UXTH			    0xb280
-#  define THUMB2_UXTH			0xfa1ff080
+#  define THUMB2_UXTH			0xfa10f080
 #  define ARM_XTR8			0x00000400 /* ?xt? rotate 8 bits */
 #  define ARM_XTR16			0x00000800 /* ?xt? rotate 16 bits */
 #  define ARM_XTR24			0x00000c00 /* ?xt? rotate 24 bits */

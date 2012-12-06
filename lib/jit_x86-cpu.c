@@ -1348,7 +1348,7 @@ _andi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	    reg = jit_get_reg(jit_class_gpr);
 	    movi(rn(reg), i0);
 	    iandr(r0, rn(reg));
-	    jit_unget_reg(r0);
+	    jit_unget_reg(reg);
 	}
     }
     else {
@@ -1856,7 +1856,7 @@ _movcr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     rex(0, 1, r0, _NOREG, r1);
     ic(0x0f);
-    ic(0xbe);
+    ic(0xb6);
     mrm(0x03, r7(r0), r7(r1));
 }
 

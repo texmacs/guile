@@ -378,7 +378,11 @@ static void ungtr_f(void);	static void ungti_f(void);
 static void ltgtr_f(void);	static void ltgti_f(void);
 static void ordr_f(void);	static void ordi_f(void);
 static void unordr_f(void);	static void unordi_f(void);
-static void truncr_f_i(void);	static void truncr_f_l(void);
+static void truncr_f_i(void);
+#if __WORDSIZE == 64
+static void truncr_f_l(void);
+#endif
+static void truncr_f(void);
 static void extr_f(void);	static void extr_d_f(void);
 static void movr_f(void);	static void movi_f(void);
 static void ldr_f(void);	static void ldi_f(void);
@@ -424,7 +428,11 @@ static void ungtr_d(void);	static void ungti_d(void);
 static void ltgtr_d(void);	static void ltgti_d(void);
 static void ordr_d(void);	static void ordi_d(void);
 static void unordr_d(void);	static void unordi_d(void);
-static void truncr_d_i(void);	static void truncr_d_l(void);
+static void truncr_d_i(void);
+#if __WORDSIZE == 64
+static void truncr_d_l(void);
+#endif
+static void truncr_d(void);
 static void extr_d(void);	static void extr_f_d(void);
 static void movr_d(void);	static void movi_d(void);
 static void ldr_d(void);	static void ldi_d(void);
@@ -661,7 +669,11 @@ static instr_t		  instr_vector[] = {
     entry(ltgtr_f),	entry(ltgti_f),
     entry(ordr_f),	entry(ordi_f),
     entry(unordr_f),	entry(unordi_f),
-    entry(truncr_f_i),	entry(truncr_f_l),
+    entry(truncr_f_i),
+#if __WORDSIZE == 64
+    entry(truncr_f_l),
+#endif
+    entry(truncr_f),
     entry(extr_f),	entry(extr_d_f),
     entry(movr_f),	entry(movi_f),
     entry(ldr_f),	entry(ldi_f),
@@ -707,7 +719,11 @@ static instr_t		  instr_vector[] = {
     entry(ltgtr_d),	entry(ltgti_d),
     entry(ordr_d),	entry(ordi_d),
     entry(unordr_d),	entry(unordi_d),
-    entry(truncr_d_i),	entry(truncr_d_l),
+    entry(truncr_d_i),
+#if __WORDSIZE == 64
+    entry(truncr_d_l),
+#endif
+    entry(truncr_d),
     entry(extr_d),	entry(extr_f_d),
     entry(movr_d),	entry(movi_d),
     entry(ldr_d),	entry(ldi_d),
@@ -1251,6 +1267,7 @@ movi(void)
     jit_gpr_t	 r0 = get_ireg();
     ch = skipws();
     switch (ch) {
+	case '+': case '-':
 	case '0' ... '9':
 	    ungetch(ch);
 	    value = (void *)(long)get_uint(skip_none);
@@ -1378,7 +1395,11 @@ entry_ir_fr_fr(ungtr_f)		entry_ir_fr_fm(ungti_f)
 entry_ir_fr_fr(ltgtr_f)		entry_ir_fr_fm(ltgti_f)
 entry_ir_fr_fr(ordr_f)		entry_ir_fr_fm(ordi_f)
 entry_ir_fr_fr(unordr_f)	entry_ir_fr_fm(unordi_f)
-entry_ir_fr(truncr_f_i)		entry_ir_fr(truncr_f_l)
+entry_ir_fr(truncr_f_i)
+#if __WORDSIZE == 64
+entry_ir_fr(truncr_f_l)
+#endif
+entry_ir_fr(truncr_f)
 entry_fr_ir(extr_f)		entry_fr_fr(extr_d_f)
 entry_fr_fr(movr_f)		entry_fr_fm(movi_f)
 entry_fr_ir(ldr_f)		entry_fr_pm(ldi_f)
@@ -1424,7 +1445,11 @@ entry_ir_fr_fr(ungtr_d)		entry_ir_fr_fm(ungti_d)
 entry_ir_fr_fr(ltgtr_d)		entry_ir_fr_fm(ltgti_d)
 entry_ir_fr_fr(ordr_d)		entry_ir_fr_fm(ordi_d)
 entry_ir_fr_fr(unordr_d)	entry_ir_fr_fm(unordi_d)
-entry_ir_fr(truncr_d_i)		entry_ir_fr(truncr_d_l)
+entry_ir_fr(truncr_d_i)
+#if __WORDSIZE == 64
+entry_ir_fr(truncr_d_l)
+#endif
+entry_ir_fr(truncr_d)
 entry_fr_ir(extr_d)		entry_fr_fr(extr_f_d)
 entry_fr_fr(movr_d)		entry_fr_fm(movi_d)
 entry_fr_ir(ldr_d)		entry_fr_pm(ldi_d)

@@ -497,7 +497,7 @@ typedef enum {
 
 #define jit_truncr_f_i(u,v)	jit_new_node_ww(jit_code_truncr_f_i,u,v)
     jit_code_truncr_f_i,
-#if __WODSIZE == 32
+#if __WORDSIZE == 32
 #  define jit_truncr_f(u,v)	jit_truncr_f_i(u,v)
 #else
 #  define jit_truncr_f(u,v)	jit_truncr_f_l(u,v)
@@ -642,14 +642,14 @@ typedef enum {
 
 #define jit_truncr_d_i(u,v)	jit_new_node_ww(jit_code_truncr_d_i,u,v)
     jit_code_truncr_d_i,
-#if __WODSIZE == 32
+#if __WORDSIZE == 32
 #  define jit_truncr_d(u,v)	jit_truncr_d_i(u,v)
 #else
 #  define jit_truncr_d(u,v)	jit_truncr_d_l(u,v)
 #  define jit_truncr_d_l(u,v)	jit_new_node_ww(jit_code_truncr_d_l,u,v)
 #endif
     jit_code_truncr_d_l,
-#define jit_extr_d(u,v)		jit_new_node_ww(jit_code_extr_f,u,v)
+#define jit_extr_d(u,v)		jit_new_node_ww(jit_code_extr_d,u,v)
 #define jit_extr_f_d(u,v)	jit_new_node_ww(jit_code_extr_f_d,u,v)
     jit_code_extr_d,		jit_code_extr_f_d,
 #define jit_movr_d(u,v)		jit_new_node_ww(jit_code_movr_d,u,v)

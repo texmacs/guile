@@ -69,9 +69,12 @@ static void _ssexi(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t)
 #  if __WORDSIZE == 64
 #    define sse_truncr_f_l(r0, r1)	sselxr(0xf3, X86_SSE_CVTTSI, r0, r1)
 #    define sse_truncr_d_l(r0, r1)	sselxr(0xf2, X86_SSE_CVTTSI, r0, r1)
+#    define sse_extr_f(r0, r1)		sselxr(0xf3, X86_SSE_CVTIS, r0, r1)
+#    define sse_extr_d(r0, r1)		sselxr(0xf2, X86_SSE_CVTIS, r0, r1)
+#  else
+#    define sse_extr_f(r0, r1)		ssexr(0xf3, X86_SSE_CVTIS, r0, r1)
+#    define sse_extr_d(r0, r1)		ssexr(0xf2, X86_SSE_CVTIS, r0, r1)
 #  endif
-#  define sse_extr_f(r0, r1)		sselxr(0xf3, X86_SSE_CVTIS, r0, r1)
-#  define sse_extr_d(r0, r1)		sselxr(0xf2, X86_SSE_CVTIS, r0, r1)
 #  define sse_extr_f_d(r0, r1)		ssexr(0xf3, X86_SSE_CVTSD, r0, r1)
 #  define sse_extr_d_f(r0, r1)		ssexr(0xf2, X86_SSE_CVTSD, r0, r1)
 #  define ucomissr(r0,r1)		sser(X86_SSE_UCOMI,r0,r1)
