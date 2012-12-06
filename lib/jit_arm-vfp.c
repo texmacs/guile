@@ -2197,7 +2197,7 @@ _vfp_stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     jit_int32_t		reg;
     if (jit_fpr_p(r2)) {
 	reg = jit_get_reg(jit_class_gpr);
-	addr(rn(reg), r1, r2);
+	addr(rn(reg), r0, r1);
 	VSTR_F32(r2, rn(reg), 0);
 	jit_unget_reg(reg);
     }
@@ -2210,7 +2210,7 @@ _vfp_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
-    addr(rn(reg), r1, r2);
+    addr(rn(reg), r0, r1);
     if (jit_fpr_p(r2))
 	VSTR_F64(r2, rn(reg), 0);
     else {
