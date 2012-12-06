@@ -32,14 +32,22 @@ EXTRA_DIST =				\
 	divi.tst	divi.ok		\
 	fib.tst		fib.ok		\
 	rpn.tst		rpn.ok		\
+	ldst.inc			\
 	ldstr.tst	ldstr.ok	\
 	ldsti.tst	ldsti.ok	\
-	ldstxi.tst	ldstxi.ok	\
 	ldstxr.tst	ldstxr.ok	\
+	ldstxi.tst	ldstxi.ok	\
+	ldstr-c.tst	ldstr-c.ok	\
+	ldstxr-c.tst	ldstxr-c.ok	\
+	ldstxi-c.tst	ldstxi-c.ok	\
 	check.sh	run-test	\
 	all.tst
 
-TESTS = 3to2 add allocai bp divi fib rpn ldstr ldsti ldstxi ldstxr
+TESTS = 3to2 add allocai		\
+	bp divi fib rpn			\
+	ldstr ldsti			\
+	ldstxr ldstxi			\
+	ldstr-c ldstxr-c ldstxi-c
 
 CLEANFILES = $(TESTS)
 
