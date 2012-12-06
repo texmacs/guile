@@ -115,7 +115,7 @@ L##x##C:
 #  define LDSTL(C, R0, R1, R2)
 #  define SI(C, N, x, X, R0, R1, R2)				\
 	movi %R2 $off##x					\
-	ldxr_##x %R2 %R1 %R0					\
+	ldxr_##x %R1 %R0 %R2					\
 	beqi L##x##C %R1 I##X##N				\
 	calli @abort						\
 L##x##C:
@@ -218,7 +218,6 @@ L##x##C:
 main:
 	prolog
 
-#if 0
 	/* Simple test to simplify validating encodings before
 	 * brute force tests */
 	movi %r0 t0
@@ -307,7 +306,6 @@ Lf:
 	beqi_d Ld %f0 0.25
 	calli @abort
 Ld:
-#endif
 
 	LDST(v0, v1, v2, r0, r1, r2, f0, f1, f2, f3, f4, f5)
 	// just to know did not abort

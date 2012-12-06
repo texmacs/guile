@@ -111,7 +111,7 @@ L##x##C:
 #else
 #  define LDSTL(C, R0, R1)
 #  define SI(C, N, x, X, R0, R1)				\
-	ldxi_##x $off##x %R1 %R0				\
+	ldxi_##x %R1 %R0 $off##x				\
 	beqi L##x##C %R1 I##X##N				\
 	calli @abort						\
 L##x##C:

@@ -58,7 +58,7 @@ fi
 
 cpu=
 case "$target_cpu" in
-    i?x86|x86_64)	cpu=x86		;;
+    i?86|x86_64)	cpu=x86		;;
     *arm*)		cpu=arm		;;
     *mips*)		cpu=mips	;;
     *ppc*)		cpu=ppc		;;

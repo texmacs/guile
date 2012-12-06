@@ -1,5 +1,12 @@
 2012-12-05 Paulo Andrade <pcpa@gnu.org>
 
+	* check/ldstxi.tst, check/ldstxr.tst: Correct wrong argument
+	order for 32 bit mode tests.
+
+	* configure.ac: Correct check for ix86 target_cpu.
+
+2012-12-05 Paulo Andrade <pcpa@gnu.org>
+
 	* check/ldstr.ok, check/ldstr.tst, check/ldsti.ok,
 	check/ldsti.tst, check/ldstxr.ok, check/ldstxr.tst,
 	check/ldstxi.ok, check/ldstxi.tst:
