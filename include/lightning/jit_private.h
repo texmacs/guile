@@ -44,9 +44,15 @@
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
+#define jit_reg_free_p(regno)						\
+    (!jit_regset_tstbit(_jit->reglive, regno) &&			\
+     !jit_regset_tstbit(_jit->regarg, regno) &&				\
+     !jit_regset_tstbit(_jit->regsav, regno))
+
 /*
  * Private jit_class bitmasks
  */
+#define jit_class_named		0x00400000	/* hit must be the named reg */
 #define jit_class_nospill	0x00800000	/* hint to fail if need spill */
 #define jit_class_sft		0x01000000	/* not a hardware register */
 #define jit_class_rg8		0x04000000	/* x86 8 bits */

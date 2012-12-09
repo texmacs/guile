@@ -409,7 +409,7 @@ static void _torl(jit_state_t*,int,int,int) maybe_unused;
 #  define CC_MVN(cc,rd,rm)		corrr(cc,ARM_MVN,0,rd,rm)
 #  define MVN(rd,rm)			CC_MVN(ARM_CC_AL,rd,rm)
 #  define T1_MVN(rd,rm)			is(THUMB_MVN|(_u3(rm)<<3)|_u3(rd))
-#  define T2_MVN(rd,rm)			torrr(THUMB2_MVN,rd,_R15_REGNO,rm)
+#  define T2_MVN(rd,rm)			torrr(THUMB2_MVN,_R15_REGNO,rd,rm)
 #  define CC_MVNI(cc,rd,im)		corri(cc,ARM_MVN|ARM_I,0,rd,im)
 #  define MVNI(rd,im)			CC_MVNI(ARM_CC_AL,rd,im)
 #  define T2_MVNI(rd,im)		torri(THUMB2_MVNI,_R15_REGNO,rd,im)
@@ -816,10 +816,10 @@ static void _torl(jit_state_t*,int,int,int) maybe_unused;
 #  define T2_POP(im)			tpp(THUMB2_POP,im)
 #  define jit_get_reg_args()						\
     do {								\
-	(void)jit_get_reg(_R0|jit_class_gpr);				\
-	(void)jit_get_reg(_R1|jit_class_gpr);				\
-	(void)jit_get_reg(_R2|jit_class_gpr);				\
-	(void)jit_get_reg(_R3|jit_class_gpr);				\
+	(void)jit_get_reg(_R0|jit_class_named|jit_class_gpr);		\
+	(void)jit_get_reg(_R1|jit_class_named|jit_class_gpr);		\
+	(void)jit_get_reg(_R2|jit_class_named|jit_class_gpr);		\
+	(void)jit_get_reg(_R3|jit_class_named|jit_class_gpr);		\
     } while (0)
 #  define jit_unget_reg_args()						\
     do {								\

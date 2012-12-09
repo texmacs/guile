@@ -40,7 +40,7 @@
 #    define stxi(u, v, w)		stxi_l(u, v, w)
 #    define can_sign_extend_int_p(im)					\
 	(((im) >= 0 && (long)(im) <=  0x7fffffffL) ||			\
-	 ((im) <  0 && (long)(im) >= -0x80000000L))
+	 ((im) <  0 && (long)(im) >  -0x80000000L))
 #  define can_zero_extend_int_p(im)					\
     ((im) >= 0 && (im) < 0x80000000L)
 #    define fits_uint32_p(im)		((im & 0xffffffff00000000L) == 0)
@@ -975,8 +975,8 @@ _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	    lea(-i0, r1, _NOREG, _SCL1, r0);
     }
     else if (r0 != r1) {
-	movi(r0, i0);
-	isubr(r0, r1);
+	movi(r0, -i0);
+	iaddr(r0, r1);
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1064,7 +1064,7 @@ _imuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (can_sign_extend_int_p(i0)) {
-	rex(0, 1, r1, _NOREG, r0);
+	rex(0, 1, r0, _NOREG, r1);
 	if ((jit_int8_t)i0 == i0) {
 	    ic(0x6b);
 	    mrm(0x03, r7(r0), r7(r1));
@@ -1147,16 +1147,25 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
 {
     jit_int32_t		div;
     jit_int32_t		reg;
+    jit_int32_t		set;
+    jit_int32_t		use;
 
-    if (r0 != _RDX_REGNO)
-	(void)jit_get_reg(_RDX|jit_class_gpr);
-    if (r0 != _RAX_REGNO)
-	(void)jit_get_reg(_RAX|jit_class_gpr);
+    set = use = 0;
+    if (r0 != _RDX_REGNO && r1 != _RDX_REGNO && r2 != _RDX_REGNO)
+	set |= 1 << _RDX_REGNO;
+    if (r0 != _RAX_REGNO && r1 != _RAX_REGNO && r2 != _RAX_REGNO)
+	set |= 1 << _RAX_REGNO;
+    if (set & (1 <<_RDX_REGNO))
+	(void)jit_get_reg(_RDX|jit_class_gpr|jit_class_named);
+    if (set & (1 << _RAX_REGNO))
+	(void)jit_get_reg(_RAX|jit_class_gpr|jit_class_named);
 
     if (r2 == _RAX_REGNO) {
 	if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
 	    if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
-		reg = jit_get_reg(r1 == _RCX_REGNO ? _RBX : _RCX);
+		reg = jit_get_reg((r1 == _RCX_REGNO ? _RBX : _RCX) |
+				  jit_class_gpr|jit_class_named);
+	    use = 1;
 	    div = rn(reg);
 	    movr(div, _RAX_REGNO);
 	    if (r1 != _RAX_REGNO)
@@ -1172,13 +1181,14 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
 		    movr(_RAX_REGNO, r1);
 	    }
 	    div = r0;
-	    reg = 0;
 	}
     }
     else if (r2 == _RDX_REGNO) {
 	if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
 	    if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
-		reg = jit_get_reg(r1 == _RCX_REGNO ? _RBX : _RCX);
+		reg = jit_get_reg((r1 == _RCX_REGNO ? _RBX : _RCX) |
+				  jit_class_gpr|jit_class_named);
+	    use = 1;
 	    div = rn(reg);
 	    movr(div, _RDX_REGNO);
 	    if (r1 != _RAX_REGNO)
@@ -1189,14 +1199,12 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
 		movr(_RAX_REGNO, r1);
 	    movr(r0, _RDX_REGNO);
 	    div = r0;
-	    reg = 0;
 	}
     }
     else {
 	if (r1 != _RAX_REGNO)
 	    movr(_RAX_REGNO, r1);
 	div = r2;
-	reg = 0;
     }
 
     if (sign) {
@@ -1208,19 +1216,21 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
 	idivr_u(div);
     }
 
-    if (reg)
+    if (use)
 	jit_unget_reg(reg);
 
     if (r0 != _RAX_REGNO) {
 	if (divide)
 	    movr(r0, _RAX_REGNO);
-	jit_unget_reg(_RAX);
     }
     if (r0 != _RDX_REGNO) {
 	if (!divide)
 	    movr(r0, _RDX_REGNO);
-	jit_unget_reg(_RDX);
     }
+    if (set & (1 <<_RDX_REGNO))
+	jit_unget_reg(_RDX);
+    if (set & (1 << _RAX_REGNO))
+	jit_unget_reg(_RAX);
 }
 
 static void
@@ -1229,6 +1239,8 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
 {
     jit_int32_t		reg;
     jit_int32_t		div;
+    jit_int32_t		set;
+    jit_int32_t		use;
 
     if (divide) {
 	switch (i0) {
@@ -1275,23 +1287,28 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
 	return;
     }
 
-    if (r0 != _RDX_REGNO)
-	(void)jit_get_reg(_RDX|jit_class_gpr);
-    if (r0 != _RAX_REGNO)
-	(void)jit_get_reg(_RAX|jit_class_gpr);
+    set = use = 0;
+    if (r0 != _RDX_REGNO && r1 != _RDX_REGNO)
+	set |= 1 << _RDX_REGNO;
+    if (r0 != _RAX_REGNO && r1 != _RAX_REGNO)
+	set |= 1 << _RAX_REGNO;
+    if (set & (1 <<_RDX_REGNO))
+	(void)jit_get_reg(_RDX|jit_class_gpr|jit_class_named);
+    if (set & (1 << _RAX_REGNO))
+	(void)jit_get_reg(_RAX|jit_class_gpr|jit_class_named);
 
-    if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
+    if (r0 == _RAX_REGNO || r0 == _RDX_REGNO || r0 == r1) {
 	if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
-	    reg = jit_get_reg(_RCX);
+	    reg = jit_get_reg((r1 == _RCX_REGNO ? _RBX : _RCX) |
+			      jit_class_gpr|jit_class_named);
+	use = 1;
 	div = rn(reg);
     }
-    else {
-	reg = 0;
+    else
 	div = r0;
-    }
 
     movi(div, i0);
-    movr(_RAX, r1);
+    movr(_RAX_REGNO, r1);
 
     if (sign) {
 	sign_extend_rdx_rax();
@@ -1302,19 +1319,21 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
 	idivr_u(div);
     }
 
-    if (reg)
+    if (use)
 	jit_unget_reg(reg);
 
     if (r0 != _RAX_REGNO) {
 	if (divide)
 	    movr(r0, _RAX_REGNO);
-	jit_unget_reg(_RAX);
     }
     if (r0 != _RDX_REGNO) {
 	if (!divide)
 	    movr(r0, _RDX_REGNO);
-	jit_unget_reg(_RDX);
     }
+    if (set & (1 <<_RDX_REGNO))
+	jit_unget_reg(_RDX);
+    if (set & (1 << _RAX_REGNO))
+	jit_unget_reg(_RAX);
 }
 
 static void
@@ -1386,7 +1405,7 @@ _ori(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
     else if (r0 != r1) {
 	movi(r0, i0);
-	ixorr(r0, r1);
+	iorr(r0, r1);
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1448,6 +1467,7 @@ _rotshr(jit_state_t *_jit, jit_int32_t code,
 	jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
+    jit_int32_t		use;
 
     if (r0 == _RCX_REGNO) {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1459,13 +1479,30 @@ _rotshr(jit_state_t *_jit, jit_int32_t code,
 	jit_unget_reg(reg);
     }
     else if (r2 != _RCX_REGNO) {
-	reg = jit_get_reg(jit_class_gpr);
-	movr(rn(reg), _RCX_REGNO);
-	movr(_RCX_REGNO, r2);
-	movr(r0, r1);
+	use = !jit_reg_free_p(_RCX);
+	if (use) {
+	    reg = jit_get_reg(jit_class_gpr);
+	    movr(rn(reg), _RCX_REGNO);
+	}
+	else
+	    reg = 0;
+	if (r1 == _RCX_REGNO) {
+	    if (r0 == r2)
+		xchgr(r0, _RCX_REGNO);
+	    else {
+		movr(r0, r1);
+		movr(_RCX_REGNO, r2);
+	    }
+	}
+	else {
+	    movr(_RCX_REGNO, r2);
+	    movr(r0, r1);
+	}
 	irotshr(code, r0);
-	movr(_RCX_REGNO, rn(reg));
-	jit_unget_reg(reg);
+	if (use) {
+	    movr(_RCX_REGNO, rn(reg));
+	    jit_unget_reg(reg);
+	}
     }
     else {
 	movr(r0, r1);

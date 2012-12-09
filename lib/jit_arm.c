@@ -37,10 +37,6 @@
 #define jit_exchange_p()		1
 
 /* FIXME is it really required to not touch _R10? */
-#define jit_reg_free_p(regno)						\
-    (!jit_regset_tstbit(_jit->reglive, regno) &&			\
-     !jit_regset_tstbit(_jit->regarg, regno) &&				\
-     !jit_regset_tstbit(_jit->regsav, regno))
 
 /*
  * Types
@@ -290,28 +286,28 @@ _jit_reti(jit_state_t *_jit, jit_word_t u)
 void
 _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_f(JIT_RET, u);
+    jit_movr_f(JIT_FRET, u);
     jit_ret();
 }
 
 void
 _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 {
-    jit_movi_f(JIT_RET, u);
+    jit_movi_f(JIT_FRET, u);
     jit_ret();
 }
 
 void
 _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_d(JIT_RET, u);
+    jit_movr_d(JIT_FRET, u);
     jit_ret();
 }
 
 void
 _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
 {
-    jit_movi_d(JIT_RET, u);
+    jit_movi_d(JIT_FRET, u);
     jit_ret();
 }
 

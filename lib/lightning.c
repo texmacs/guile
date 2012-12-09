@@ -148,17 +148,18 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
     jit_int32_t		spec;
     jit_int32_t		regno;
 
-    /* if asking for an explicit register value, assume it will
-     * properly handle the case of the register also being an
-     * argument for the instruction, or the register value
-     * being live */
     spec = regspec & ~(jit_class_chk|jit_class_nospill);
-    if ((regno = jit_regno(spec))) {
+    if (spec & jit_class_named) {
+	regno = jit_regno(spec);
 	if (jit_regset_tstbit(_jit->regsav, regno))
 	    /* fail if register is spilled */
 	    goto fail;
-	if (jit_regset_tstbit(_jit->regarg, regno)) {
+	if (jit_regset_tstbit(_jit->regarg, regno))
+	    /* fail if register is an argument to current instruction */
+	    goto fail;
+	if (jit_regset_tstbit(_jit->reglive, regno)) {
 	    if (regspec & jit_class_nospill)
+		/* fail if register is live and should not spill/reload */
 		goto fail;
 	    goto spill;
 	}
@@ -1453,6 +1454,12 @@ _thread_jumps(jit_state_t *_jit)
 	    case jit_code_callr:	case jit_code_calli:
 		/* non optimizable jump like code */
 		break;
+	    case jit_code_beqr_f:	case jit_code_beqi_f:
+	    case jit_code_beqr_d:	case jit_code_beqi_d:
+	    case jit_code_bltgtr_f:	case jit_code_bltgti_f:
+	    case jit_code_bltgtr_d:	case jit_code_bltgti_d:
+		/* non optimizable jump code */
+		break;
 	    default:
 		mask = jit_classify(node->code);
 		if (mask & jit_cc_a0_jmp) {
@@ -1633,8 +1640,10 @@ reverse_jump_code(jit_code_t code)
 	case jit_code_blti_f:	return (jit_code_bungei_f);
 	case jit_code_bler_f:	return (jit_code_bungtr_f);
 	case jit_code_blei_f:	return (jit_code_bungti_f);
+#if 0
 	case jit_code_beqr_f:	return (jit_code_bltgtr_f);
 	case jit_code_beqi_f:	return (jit_code_bltgti_f);
+#endif
 	case jit_code_bger_f:	return (jit_code_bunltr_f);
 	case jit_code_bgei_f:	return (jit_code_bunlti_f);
 	case jit_code_bgtr_f:	return (jit_code_bunler_f);
@@ -1651,8 +1660,10 @@ reverse_jump_code(jit_code_t code)
 	case jit_code_bungei_f:	return (jit_code_blti_f);
 	case jit_code_bungtr_f:	return (jit_code_bler_f);
 	case jit_code_bungti_f:	return (jit_code_blei_f);
+#if 0
 	case jit_code_bltgtr_f:	return (jit_code_beqr_f);
 	case jit_code_bltgti_f:	return (jit_code_beqi_f);
+#endif
 	case jit_code_bordr_f:	return (jit_code_bunordr_f);
 	case jit_code_bordi_f:	return (jit_code_bunordi_f);
 	case jit_code_bunordr_f:return (jit_code_bordr_f);

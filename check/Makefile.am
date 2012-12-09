@@ -41,6 +41,22 @@ EXTRA_DIST =				\
 	ldstxr-c.tst	ldstxr-c.ok	\
 	ldstxi-c.tst	ldstxi-c.ok	\
 	cvt.tst		cvt.ok		\
+	branch.tst	branch.ok	\
+	alu.inc				\
+	alu_add.tst	alu_add.ok	\
+	alux_add.tst	alux_add.ok	\
+	alu_sub.tst	alu_sub.ok	\
+	alux_sub.tst	alux_sub.ok	\
+	alu_mul.tst	alu_mul.ok	\
+	alu_div.tst	alu_div.ok	\
+	alu_rem.tst	alu_rem.ok	\
+	alu_and.tst	alu_and.ok	\
+	alu_or.tst	alu_or.ok	\
+	alu_xor.tst	alu_xor.ok	\
+	alu_lsh.tst	alu_lsh.ok	\
+	alu_rsh.tst	alu_rsh.ok	\
+	alu_com.tst	alu_com.ok	\
+	alu_neg.tst	alu_neg.ok	\
 	check.sh	run-test	\
 	all.tst
 
@@ -49,7 +65,13 @@ TESTS = 3to2 add allocai		\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
 	ldstr-c ldstxr-c ldstxi-c	\
-	cvt
+	cvt branch			\
+	alu_add alux_add		\
+	alu_sub alux_sub		\
+	alu_mul alu_div alu_rem		\
+	alu_and alu_or alu_xor		\
+	alu_lsh alu_rsh			\
+	alu_com alu_neg
 
 CLEANFILES = $(TESTS)
 

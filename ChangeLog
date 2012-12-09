@@ -1,3 +1,63 @@
+2012-12-09 Paulo Andrade <pcpa@gnu.org>
+
+	* check/alu.inc, check/alu_add.ok, check/alu_add.tst,
+	check/alu_and.ok, check/alu_and.tst, check/alu_com.ok,
+	check/alu_com.tst, check/alu_div.ok, check/alu_div.tst,
+	check/alu_lsh.ok, check/alu_lsh.tst, check/alu_mul.ok,
+	check/alu_mul.tst, check/alu_neg.ok, check/alu_neg.tst,
+	check/alu_or.ok, check/alu_or.tst, check/alu_rem.ok,
+	check/alu_rem.tst, check/alu_rsh.ok, check/alu_rsh.tst,
+	check/alu_sub.ok, check/alu_sub.tst, check/alu_xor.ok,
+	check/alu_xor.tst, check/alux_add.ok, check/alux_add.tst,
+	check/alux_sub.ok, check/alux_sub.tst, check/branch.ok,
+	check/branch.tst: New test cases for arithmetic and branch
+	tests.
+
+	* check/Makefile.am: Update for new test cases.
+
+	* include/lightning/jit_private.h: Make the jit_reg_free_p
+	macro shared by all backends. Previously was added for the
+	arm backend, but is useful in the x86_64 backend when checking
+	state of "special purpose register".
+	Also add the new jit_class_named register class, that must be
+	or'ed with the register value if calling jit_get_reg expecting
+	an specific value, because the specific register value may be
+	zero, that previously was treated as no register requested.
+
+	* lib/jit_arm-cpu.c: Correct argument order for T2_MVN.
+
+	* lib/jit_arm-swf.c: Call the proper function for double
+	divide. The "software float" implementation just calls
+	libgcc functions.
+
+	* lib/jit_arm.c: Return float/double values in the float
+	register if using the hard float ABI.
+
+	* lib/jit_x86-cpu.c: Change the can_sign_extend_int_p macro
+	to not include -0x80000000L, because there is code that
+	"abuses" it and thinks it can negate the immediate value
+	after calling that macro.
+	  Correct implementation of jit_subi that had a wrong code
+	patch logic doing subtraction with reversed arguments.
+	  Correct REX prefix calculation in the jit_muli implementation.
+	  Correct logic to get/unget %*ax and %*dx registers in divremr
+	and divremi.
+	  Correct divremi that was using the symbolic, unique %*ax
+	value in on place (not using the _REGNO name suffix).
+	  Correct cut&paste error causing it to use "xor" instead of
+	"or" in one code path of the jit_ori implementation.
+	  Correct several flaws when clobbering registers and/or when
+	one of the arguments was %*cx in the rotshr wrapper function
+	implementing most shift operations.
+
+	* lib/lightning.c: No longer expect that the backend be smart
+	enough to know what to do when asking for a named register
+	if that register is already an argument or is live. It fails
+	if it is an argument, or if register is live, fails if cannot
+	spill.
+	  No longer incorrectly assume that eqr_{f,d} and ltgr_{f,d} are
+	safe to inverse value tests in jump thread optimization.
+
 2012-12-05 Paulo Andrade <pcpa@gnu.org>
 
 	* check/Makefile.am, check/cvt.ok, check/cvt.tst: Add new
