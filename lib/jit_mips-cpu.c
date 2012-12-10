@@ -364,7 +364,7 @@ static void _nop(jit_state_t*,jit_int32_t);
 #  define JR(r0)			hrrrit(MIPS_SPECIAL,r0,0,0,0,MIPS_JR)
 #  define J(i0)				hi(MIPS_J, i0)
 #  define MOVZ(rd,rs,rt)		hrrrit(0,rs,rt,rd,0,MIPS_MOVZ)
-#  define comr(r0,r1)			XORI(r0, r1, -1)
+#  define comr(r0,r1)			xori(r0, r1, -1)
 #  define negr(r0,r1)			SUBU(r0,_ZERO_REGNO,r1)
 #  define addr(rd,rs,rt)		ADDU(rd,rs,rt)
 #  define addi(r0,r1,i0)		_addi(_jit,r0,r1,i0)
@@ -715,7 +715,7 @@ _addi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 == 0)
-	movi(r0, r1);
+	movr(r0, r1);
     else if (can_sign_extend_short_p(i0))
 	ADDIU(r0, r1, i0);
     else {
@@ -807,7 +807,7 @@ _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 == 0)
-	movi(r0, r1);
+	movr(r0, r1);
     else if (can_sign_extend_short_p(i0) && (i0 & 0xffff) != 0x8000)
 	ADDIU(r0, r1, -i0);
     else {
@@ -2644,7 +2644,7 @@ _bmcr(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_word_t		w;
     jit_int32_t		t0;
     t0 = jit_get_reg(jit_class_gpr);
-    AND(rn(r0), r0, r1);
+    AND(rn(t0), r0, r1);
     w = _jit->pc.w;
     BEQ(_ZERO_REGNO, rn(t0), ((i0 - w) >> 2) - 1);
     NOP(1);

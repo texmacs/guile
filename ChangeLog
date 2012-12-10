@@ -1,3 +1,12 @@
+2012-12-10 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips-cpu.c: Correct all current test cases.
+	  Call the "xori" not the "XORI" macro for jit_xori implementation,
+	as the XORI macro handles only 16 bit unsigned values.
+	  Call the "movr" macro, not the "movi" macro in the special
+	case of adding or subtracting zero.
+	  Use the proper temporary register in the jit_andr implementation.
+
 2012-12-09 Paulo Andrade <pcpa@gnu.org>
 
 	* check/alu.inc, check/alu_add.ok, check/alu_add.tst,
