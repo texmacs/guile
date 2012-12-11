@@ -262,31 +262,10 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 unsigned long
 jit_regset_scan1(jit_regset_t set, jit_int32_t offset)
 {
-    jit_int32_t		index;
-    jit_int32_t		length;
-    union {
-	jit_uint64_t	ul;
-	jit_uint8_t	uc[8];
-    } data;
-
     assert(offset >= 0 && offset <= 63);
-    data.ul = set;
-    if (data.uc[index = offset >> 3]) {
-	length = (index + 1) << 3;
-	for (; offset < length; offset++) {
-	    if (set & (1LL << offset))
-		return (offset);
-	}
-    }
-    for (index++; index < 8; index++) {
-	if (data.uc[index]) {
-	    offset = index << 3;
-	    length = (index + 1) << 3;
-	    for (; offset < length; offset++) {
-		if (set & (1LL << offset))
-		    return (offset);
-	    }
-	}
+    for (; offset < 64; offset++) {
+	if (set & (1LL << offset))
+	    return (offset);
     }
     return (ULONG_MAX);
 }

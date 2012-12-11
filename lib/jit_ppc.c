@@ -24,6 +24,9 @@
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 
+/* libgcc */
+extern void __clear_cache(void *, void *);
+
 #define PROTO				1
 #  include "jit_ppc-cpu.c"
 #  include "jit_ppc-fpu.c"
@@ -380,7 +383,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 {
     jit_int32_t		 regno;
     assert(_jit->function);
-    if (_jit->function->call.argi < 6) {
+    if (_jit->function->call.argi < 8) {
 	jit_movi(JIT_RA0 - _jit->function->call.argi, u);
 	++_jit->function->call.argi;
     }
@@ -412,6 +415,15 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     if (_jit->function->call.argf < 8) {
 	jit_movr_d(JIT_FA0 - _jit->function->call.argf, u);
 	++_jit->function->call.argf;
+	if (!(_jit->function->call.kind & jit_call_varargs))
+	    return;
+    }
+    if (_jit->function->call.argi < 6) {
+	jit_stxi_d(-8, JIT_FP, u);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
+	_jit->function->call.argi++;
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -4);
+	_jit->function->call.argi++;
     }
     else {
 	jit_stxi_d(_jit->function->call.size, JIT_SP, u);
@@ -428,14 +440,23 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     if (_jit->function->call.argf < 8) {
 	jit_movi_d(JIT_FA0 - _jit->function->call.argf, u);
 	++_jit->function->call.argf;
+	if (!(_jit->function->call.kind & jit_call_varargs))
+	    return;
+    }
+    regno = jit_get_reg(jit_class_fpr);
+    jit_movi_d(regno, u);
+    if (_jit->function->call.argi < 6) {
+	jit_stxi_d(-8, JIT_FP, regno);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
+	_jit->function->call.argi++;
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -4);
+	_jit->function->call.argi++;
     }
     else {
-	regno = jit_get_reg(jit_class_fpr);
-	jit_movi_d(regno, u);
 	jit_stxi_d(_jit->function->call.size, JIT_SP, regno);
 	_jit->function->call.size += (sizeof(jit_float64_t) + 8) & -8;
-	jit_unget_reg(regno);
     }
+    jit_unget_reg(regno);
 }
 
 jit_bool_t
@@ -692,6 +713,10 @@ _jit_emit(jit_state_t *_jit)
 		case_rrw(div,);
 		case_rrr(div, _u);
 		case_rrw(div, _u);
+		case_rrr(rem,);
+		case_rrw(rem,);
+		case_rrr(rem, _u);
+		case_rrw(rem, _u);
 		case_rrr(and,);
 		case_rrw(and,);
 		case_rrr(or,);
@@ -699,6 +724,7 @@ _jit_emit(jit_state_t *_jit)
 		case_rrr(xor,);
 		case_rrw(xor,);
 		case_rrr(lsh,);
+		case_rrw(lsh,);
 		case_rrr(rsh,);
 		case_rrw(rsh,);
 		case_rrr(rsh, _u);
@@ -771,6 +797,10 @@ _jit_emit(jit_state_t *_jit)
 		case_brw(bgt, _u);
 		case_brr(bne,);
 		case_brw(bne,);
+		case_brr(bms,);
+		case_brw(bms,);
+		case_brr(bmc,);
+		case_brw(bmc,);
 		case_brr(boadd,);
 		case_brw(boadd,);
 		case_brr(boadd, _u);
@@ -1063,6 +1093,8 @@ _jit_emit(jit_state_t *_jit)
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
 	patch_at(_jit->patches.ptr[offset].inst, word);
     }
+
+    __clear_cache(_jit->code.ptr, _jit->pc.uc);
 
     return (_jit->code.ptr);
 }

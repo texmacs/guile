@@ -1,5 +1,39 @@
 2012-12-11 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ppc-cpu.c: Make movr a function that checks arguments
+	so that other code can safely assume it is a noop if src and dst
+	are the same register.
+	  Implement rem{r,i}{,_u} as a div{,u}/mul/sub.
+	  Correct ANDIS, ORIS and XORIS calls to cast the argument to
+	unsigned before the shift to avoid an assertion if the argument
+	had the topmost bit set.
+	  Implement lshi, rshi and rshi_u as functions to test for a
+	zero argument, that would otherwise trigger an assertion when
+	computing the shift value.
+	  Do a simple implementation of bm{s,c}{r,i} with a temporary,
+	"andr" of arguments and jump based on comparison with zero.
+	  Correct typo in ldxi_c.
+
+	* lib/jit_ppc-fpu.c: Correct wrong arguments to FDIV* and STF*.
+
+	* lib/jit_ppc.c: Correct wrong check for 6 instead of 8 integer
+	arguments in registers. If calling a varargs function and
+	passing a float or double argument, also either store the
+	value in the stack or in integer registers, as varargs functions
+	do not fetch it from float registers.
+	  Add "case" for new functions and incorrectly missing ones.
+	  Call libgcc's __clear_cache, that should know what to do
+	if the hardware needs flushing cache before execution.
+
+	* lib/lightning.c: Do a simple/trivial logic in jit_regset_scan1,
+	that should make it easier for the compiler to optimize it, and
+	that also corrects the previously wrong code for big endian, and
+	that was causing problems in ppc due to not saving all callee save
+	registers as it was not "finding" them in the regset due to the
+	little endian assumption bug.
+
+2012-12-11 Paulo Andrade <pcpa@gnu.org>
+
 	* configure.ac: Only default to using the builtin disassembler
 	if on GNU/Linux. This should be temporary, due to requiring
 	/proc/self/exe.
