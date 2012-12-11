@@ -369,8 +369,8 @@ _emit_ldxi_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 extern void
 _emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 
-extern void jit_init_debug();
-extern void jit_finish_debug();
+extern void jit_init_debug(void);
+extern void jit_finish_debug(void);
 
 /*
  * Externs

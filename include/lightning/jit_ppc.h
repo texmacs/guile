@@ -29,7 +29,7 @@ typedef enum {
 #define jit_r(i)		(_R11 + (i))
 #define jit_r_num()		3
 #define jit_v(i)		(_R30 - (i))
-#define jit_r_num()		17
+#define jit_v_num()		17
 #define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
 #define jit_f(i)		(_F0 + (i))
 #define jit_f_num()		6

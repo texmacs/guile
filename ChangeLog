@@ -1,3 +1,27 @@
+2012-12-11 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac: Only default to using the builtin disassembler
+	if on GNU/Linux. This should be temporary, due to requiring
+	/proc/self/exe.
+	  Correctly check $target_cpu for powerpc.
+
+	* include/lightning/jit_ppc.h: Correctly implement jit_v_num.
+
+	* include/lightning/jit_private.h: Declare proper prototype
+	for jit_init_debug and jit_finish_debug.
+
+	* lib/jit_ppc-cpu.c: Remove code to save/restore callee save
+	float registers, as it is not required since those float
+	registers are not usable currently.
+	  Change prolog and epilog generation to, at least comparing
+	code, match what gcc generates in "gcc -O0", but it is still
+	failing in Darwin PPC, apparently due to the __clear_cache
+	call not being enough, as frequently it will also fail to
+	execute, and the code buffer is all zeroes.
+
+	* lib/lightning.c: Do not fail in jit_regset_scan1 calls due
+	to passing 64 as argument on computers with 64 registers.
+
 2012-12-10 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_mips-cpu.c: Correct all current test cases.

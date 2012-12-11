@@ -53,7 +53,10 @@ if test "x$DISASSEMBLER" != "xno"; then
 fi
 AM_CONDITIONAL(with_disassembler, [test "x$DISASSEMBLER" != "xno"])
 if test "x$DISASSEMBLER" != "xno"; then
-    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
+    case "$target_os" in
+	*linux*) LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"	;;
+	*)								;;
+    esac
 fi
 
 cpu=
@@ -61,7 +64,7 @@ case "$target_cpu" in
     i?86|x86_64)	cpu=x86		;;
     *arm*)		cpu=arm		;;
     *mips*)		cpu=mips	;;
-    *ppc*)		cpu=ppc		;;
+    *powerpc*)		cpu=ppc		;;
     *)					;;
 esac
 if test x$cpu = x; then

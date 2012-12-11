@@ -16,10 +16,7 @@
  */
 
 #if PROTO
-/* quite a lot of space for fixed computation of possible stack arguments
- * this currently is done mostly to keep it simple, as the vm has only
- * one function */
-#  define stack_framesize		224
+#  define stack_framesize		80
 #  define ii(i)				*_jit->pc.ui++ = i
 #  define can_sign_extend_short_p(im)	((im) >= -32768 && (im) <= 32767)
 #  define can_zero_extend_short_p(im)	((im) >= 0 && (im) <= 65535)
@@ -2209,46 +2206,37 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-    unsigned long	 regno;
+    unsigned long	regno;
 
-    subi(_SP_REGNO, _SP_REGNO, stack_framesize);
     /* return address */
     MFLR(_R0_REGNO);
-    stxi(0, _SP_REGNO, _R0_REGNO);
 
-    /* save any clobbered  callee save fpr register */
-    /* FIXME actually, no "clean" interface to use these registers */
-    for (regno = _F31; regno >= _F14; regno--) {
-	if (jit_regset_tstbit(_jit->function->regset, regno))
-	    stxi_d(stack_framesize - rn(regno) * 8, _SP_REGNO, regno);
-    }
     /* save any clobbered callee save gpr register */
     regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
-    STMW(regno, _SP_REGNO, rn(regno) * 4 + 8);
-    movr(_FP_REGNO, _SP_REGNO);
-    /* alloca and/or space for excess parameters */
-    subi(_SP_REGNO, _SP_REGNO, _jit->function->stack);
+    STMW(rn(regno), _SP_REGNO, -(32 * 4) + rn(regno) * 4);
+
+    stxi(8, _SP_REGNO, _R0_REGNO);
+    STWU(_SP_REGNO, _SP_REGNO, -(stack_framesize + _jit->function->stack + 16));
+    addi(_FP_REGNO, _SP_REGNO, _jit->function->stack + 16);
 }
 
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
-    unsigned long	 regno;
+    unsigned long	regno;
 
-    movr(_SP_REGNO, _FP_REGNO);
-    for (regno = _F31; regno >= _F14; regno--) {
-	if (jit_regset_tstbit(_jit->function->regset, regno))
-	    ldxi_d(regno, _SP_REGNO, stack_framesize - rn(regno) * 8);
-    }
+    //ldxi(_SP_REGNO, _SP_REGNO, 0);
+    LWZ(_SP_REGNO, _SP_REGNO, 0);
+    ldxi(_R0_REGNO, _SP_REGNO, 8);
+
+    MTLR(_R0_REGNO);
+
     regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
-    LMW(rn(regno), _SP_REGNO, regno * 4 + 8);
-    ldxi(_R0_REGNO, _SP_REGNO, 0);
-    addi(_SP_REGNO, _SP_REGNO, stack_framesize);
-    MTLR(_R0_REGNO);
+    LMW(rn(regno), _SP_REGNO, -(32 * 4) + rn(regno) * 4);
     BLR();
 }
 

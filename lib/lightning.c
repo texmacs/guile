@@ -1221,8 +1221,10 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
 		    jit_regset_setbit(reglive, node->u.w);
 		}
 	    case jit_code_calli:
-		for (value = jit_regset_scan1(regmask, 0); value != ULONG_MAX;
-		     value = jit_regset_scan1(regmask, value + 1)) {
+		for (value = 0; value < _jit->reglen; ++value) {
+		    value = jit_regset_scan1(regmask, value);
+		    if (value >= _jit->reglen)
+			break;
 		    spec = jit_class(_rvs[value].spec);
 		    if (!(spec & jit_class_sav))
 			jit_regset_clrbit(regmask, value);
@@ -1349,8 +1351,10 @@ _jit_update(jit_state_t *_jit, jit_bool_t setup, jit_node_t *node,
 		    jit_regset_clrbit(*mask, JIT_FRET);
 		}
 #endif
-		for (value = jit_regset_scan1(*mask, 0); value != ULONG_MAX;
-		     value = jit_regset_scan1(*mask, value + 1)) {
+		for (value = 0; value < _jit->reglen; ++value) {
+		    value = jit_regset_scan1(*mask, value);
+		    if (value >= _jit->reglen)
+			break;
 		    spec = jit_class(_rvs[value].spec);
 		    if (!(spec & jit_class_sav))
 			jit_regset_clrbit(*mask, value);
