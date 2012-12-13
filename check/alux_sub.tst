@@ -41,8 +41,9 @@
 	SUBX(10,1,			0x8000000000000000,	-1)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

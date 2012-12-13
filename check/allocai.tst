@@ -23,8 +23,9 @@ identify:
 	prolog
 	arg $i
 	getarg %v0 $i
-	prepare 1
+	prepare
 		pushargi idfmt
+		ellipsis
 		pushargr %v0
 	finishi @printf
 	retr %v0
@@ -45,7 +46,7 @@ identity_func:
 	stxi $neg %fp %r2
 
 	/* Invoke FUNC.  */
-	prepare 0
+	prepare
 		pushargr %r1
 	finishi identify
 
@@ -64,8 +65,9 @@ identity_func:
 
 	/* Display a failure message.  */
 branch:
-	prepare 1
+	prepare
 		pushargi failure_message
+		ellipsis
 	finishi @printf
 
 	/* Leave.  */
@@ -74,19 +76,21 @@ branch:
 
 main:
 	prolog
-	prepare 0
+	prepare
 		pushargi 7777
 	finishi identity_func
 	beqi succeeded %ret 7777
-	prepare 1
+	prepare
 		pushargi report_message
+		ellipsis
 		pushargr %ret
 		pushargi 7777
 	finishi @printf
 	reti 1
 succeeded:
-	prepare 1
+	prepare
 		pushargi succeeded_message
+		ellipsis
 	finishi @printf
 	reti 0
 	epilog

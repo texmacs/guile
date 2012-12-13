@@ -41,8 +41,9 @@
 	SUB(0, _d,	-0.5,	    0.5,	-1.0)
 	SUB(1, _d,	 0.25,	    0.75,	-0.5)
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

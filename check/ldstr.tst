@@ -178,8 +178,9 @@ Ld:
 
 	LDST(v0, v1, v2, r0, r1, r2, f0, f1, f2, f3, f4, f5)
 	// just to know did not abort
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

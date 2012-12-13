@@ -106,64 +106,74 @@ f2c:
 main:
 	prolog
 
-	prepare 1
+	prepare
 		pushargi C
+		ellipsis
 	finishi @printf
 	movi %v0 0
 loopC:
-	prepare 1
+	prepare
 		pushargi format
+		ellipsis
 		pushargr %v0
 	finishi @printf
 	addi %v0 %v0 10
 	blei loopC %v0 100
-	prepare 1
+	prepare
 		pushargi F
+		ellipsis
 	finishi @printf
 	movi %v0 0
 loopC2F:
-	prepare 0
+	prepare
 		pushargr %v0
 	finishi c2f
 	retval %r0
-	prepare 2
+	prepare
 		pushargi format
+		ellipsis
 		pushargr %r0
 	finishi @printf
 	addi %v0 %v0 10
 	blei loopC2F %v0 100
-	prepare 1
+	prepare
 		pushargi newline
+		ellipsis
 	finishi @printf
 
-	prepare 1
+	prepare
 		pushargi F
+		ellipsis
 	finishi @printf
 	movi %v0 32
 loopF:
-	prepare 2
+	prepare
 		pushargi format
+		ellipsis
 		pushargr %v0
 	finishi @printf
 	addi %v0 %v0 18
 	blei loopF %v0 212
-	prepare 1
+	prepare
 		pushargi C
+		ellipsis
 	finishi @printf
 	movi %v0 32
 loopF2C:
-	prepare 0
+	prepare
 		pushargr %v0
 	finishi f2c
 	retval %r0
-	prepare 2
+	prepare
 		pushargi format
+		ellipsis
 		pushargr %r0
 	finishi @printf
 	addi %v0 %v0 18
 	blei loopF2C %v0 212
-	prepare 1
+	prepare
 		pushargi newline
+		ellipsis
 	finishi @printf
 
 	ret

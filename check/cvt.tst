@@ -371,8 +371,9 @@ xdf:
 	EXTDF(f0, f1, f2, f3, f4, f5)
 
 	// just to know did not abort
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 
 	ret

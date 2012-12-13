@@ -34,8 +34,9 @@
 	NEG(2, _d,	 $(1.0 / 0),	$(-1 / 0.0))
 	NEG(3, _d,	-1.25,		 1.25)
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

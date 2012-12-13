@@ -28,8 +28,9 @@
 	XOR(20,	0xffffffffffffffff, 0xffffffffffffffff,	0)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

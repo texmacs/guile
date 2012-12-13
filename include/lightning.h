@@ -114,6 +114,7 @@ typedef enum {
 #define jit_prolog()		_jit_prolog(_jit)
     jit_code_prolog,
 
+#define jit_ellipsis()		_jit_ellipsis(_jit)
 #define jit_allocai(u)		_jit_allocai(_jit,u)
 
 #define jit_arg()		_jit_arg(_jit)
@@ -406,7 +407,7 @@ typedef enum {
 #define jit_calli(u)		jit_new_node_p(jit_code_calli,u)
     jit_code_callr,		jit_code_calli,
 
-#define jit_prepare(u)		_jit_prepare(_jit,u)
+#define jit_prepare()		_jit_prepare(_jit)
 #define jit_pushargr(u)		_jit_pushargr(_jit,u)
 #define jit_pushargi(u)		_jit_pushargi(_jit,u)
 #define jit_finishr(u)		_jit_finishr(_jit,u)
@@ -739,6 +740,7 @@ extern void _jit_link(jit_state_t*, jit_node_t*);
 extern void _jit_prolog(jit_state_t*);
 
 extern jit_int32_t _jit_allocai(jit_state_t*, jit_int32_t);
+extern void _jit_ellipsis(jit_state_t*);
 
 extern jit_int32_t _jit_arg(jit_state_t*);
 extern void _jit_getarg_c(jit_state_t*, jit_gpr_t, jit_int32_t);
@@ -751,7 +753,8 @@ extern void _jit_getarg_ui(jit_state_t*, jit_gpr_t, jit_int32_t);
 extern void _jit_getarg_l(jit_state_t*, jit_gpr_t, jit_int32_t);
 #endif
 
-extern void _jit_prepare(jit_state_t*, jit_int32_t);
+extern void _jit_prepare(jit_state_t*);
+extern void _jit_ellipsis(jit_state_t*);
 extern void _jit_pushargr(jit_state_t*, jit_gpr_t);
 extern void _jit_pushargi(jit_state_t*, jit_word_t);
 extern void _jit_finishr(jit_state_t*, jit_gpr_t);

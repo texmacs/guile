@@ -242,7 +242,7 @@ static void call_forward(void *value, label_t *label);
 static void make_arg(long value);
 static long get_arg(void);
 static long get_imm(void);
-static void prolog(void);
+static void prolog(void);	static void ellipsis(void);
 static void allocai(void);
 static void arg(void);
 static void getarg_c(void);	static void getarg_uc(void);
@@ -533,7 +533,7 @@ static char		 *data;
 static size_t		  data_offset, data_length;
 static instr_t		  instr_vector[] = {
 #define entry(value)	{ NULL, #value, value }
-    entry(prolog),
+    entry(prolog),	entry(ellipsis),
     entry(allocai),
     entry(arg),
     entry(getarg_c),	entry(getarg_uc),
@@ -1211,7 +1211,7 @@ name(void)								\
     jit_##name(value);							\
 }
 
-entry(prolog)
+entry(prolog)			entry(ellipsis)
 void
 allocai(void) {
     symbol_t	*symbol;
@@ -1360,7 +1360,7 @@ entry_lb_ir_ir(bxsubr)		entry_lb_ir_im(bxsubi)
 entry_lb_ir_ir(bxsubr_u)	entry_lb_ir_im(bxsubi_u)
 entry_ir(jmpr)			entry_lb(jmpi)
 entry_ir(callr)			entry_fn(calli)
-entry_im(prepare)
+entry(prepare)
 entry_ir(pushargr)		entry_im(pushargi)
 entry_ir(finishr)		entry_fn(finishi)
 entry(ret)

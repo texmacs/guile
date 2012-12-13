@@ -17,13 +17,14 @@ test:
 
 main:
 	prolog
-	prepare 0
+	prepare
 		pushargi 5
 		pushargi 4
 	finishi test
 	retval %r0
-	prepare 1
+	prepare
 		pushargi fmt
+		ellipsis
 		pushargi 5
 		pushargi 4
 		pushargr %r0

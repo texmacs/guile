@@ -150,8 +150,9 @@ Ll:
 
 	LDST(v0, v1, v2, r0, r1, r2)
 	// just to know did not abort
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

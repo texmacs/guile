@@ -243,6 +243,12 @@ _jit_prolog(jit_state_t *_jit)
     jit_regset_new(_jit->function->regset);
 }
 
+void
+_jit_ellipsis(jit_state_t *_jit)
+{
+    _jit->function->call.kind = jit_call_varargs;
+}
+
 jit_int32_t
 _jit_allocai(jit_state_t *_jit, jit_int32_t length)
 {

@@ -554,8 +554,9 @@ unordi_f_0:
 unordi_f_1:
 
 	// just to know did not crash or abort
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 
 	ret

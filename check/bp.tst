@@ -13,11 +13,11 @@ rfibs:
 	blti_u out %v0 2
 	subi %v1 %v0 1		/* V1 = N-1 */
 	subi %v2 %v0 2		/* V1 = N-2 */
-	prepare 0
+	prepare
 		pushargr %v1
 	finishi rfibs
 	retval %v1		/* V1 = rfibs(N-1) */
-	prepare 0
+	prepare
 		pushargr %v2
 	finishi rfibs
 	retval %v2		/* V2 = rfibs(N-2) */
@@ -31,12 +31,13 @@ out:
 
 main:
 	prolog
-	prepare 0
+	prepare
 		pushargi 32
 	finishi rfibs
 	retval %v0
-	prepare 1
+	prepare
 		pushargi fmt
+		ellipsis
 		pushargi 32
 		pushargr %v0
 	finishi @printf

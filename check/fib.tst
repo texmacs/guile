@@ -34,7 +34,7 @@ main:
 	getarg %r0 $argv
 	addi %r0 %r0 $(__WORDSIZE >> 3)
 	ldr %r0 %r0
-	prepare 0
+	prepare
 		pushargr %r0
 	finishi @atoi
 	retval %r0
@@ -45,12 +45,13 @@ default:
 
 call:
 	movr %v0 %r0
-	prepare 0
+	prepare
 		pushargr %r0
 	finishi nfibs
 	retval %r0
-	prepare 1
+	prepare
 		pushargi format
+		ellipsis
 		pushargr %v0
 		pushargr %r0
 	finishi @printf

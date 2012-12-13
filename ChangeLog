@@ -1,3 +1,27 @@
+2012-12-12 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/jit_arm.c, lib/jit_mips.c,
+	lib/jit_ppc.c, lib/jit_x86.c, lib/lightning.c: Change jit_prepare
+	to no longer receive an argument. If receiving an argument, it
+	should be an ABI specifier, not a boolean if varargs or not,
+	and add the new jit_ellipsis call, to specify where the
+	ellipsis is in the C prototype of the function being called.
+	Note that currently it is not supported to define varargs
+	functions and it will be ignored if calling jit_ellipsis not
+	in a prepare/finish* block, but this should be addressed.
+
+	* check/allocai.tst, check/alu_add.tst, check/alu_and.tst,
+	check/alu_com.tst, check/alu_div.tst, check/alu_lsh.tst,
+	check/alu_mul.tst, check/alu_neg.tst, check/alu_or.tst,
+	check/alu_rem.tst, check/alu_rsh.tst, check/alu_sub.tst,
+	check/alu_xor.tst, check/alux_add.tst, check/alux_sub.tst,
+	check/bp.tst, check/branch.tst, check/cvt.tst, check/divi.tst,
+	check/fib.tst, check/ldsti.tst, check/ldstr-c.tst,
+	check/ldstr.tst, check/ldstxi-c.tst, check/ldstxi.tst,
+	check/ldstxr-c.tst, check/ldstxr.tst, check/rpn.tst,
+	check/lightning.c: Update for the change to jit_prepare and
+	addition of jit_ellipsis.
+
 2012-12-11 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c: Make movr a function that checks arguments

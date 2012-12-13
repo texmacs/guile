@@ -77,8 +77,9 @@
 	URSH(31,0xffff800000000000, 47,		0x1ffff)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

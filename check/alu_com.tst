@@ -25,8 +25,9 @@
 	COM(9,	0x8000000000000001,	0x7ffffffffffffffe)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

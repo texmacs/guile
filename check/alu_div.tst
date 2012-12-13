@@ -75,8 +75,9 @@
 	DIV(0, _d,	-0.5,	    0.5,	-1.0)
 	DIV(1, _d,	 1.25,	    0.5,	 2.5)
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

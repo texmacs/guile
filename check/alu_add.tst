@@ -39,8 +39,9 @@
 	ADD(0, _d,	-0.5,	    0.5,	0.0)
 	ADD(1, _d,	 0.25,	    0.75,	1.0)
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

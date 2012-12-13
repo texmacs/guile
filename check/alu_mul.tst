@@ -51,8 +51,9 @@
 	MUL(0, _d,	-0.5,	    0.5,	-0.25)
 	MUL(1, _d,	 0.25,	    0.75,	 0.1875)
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

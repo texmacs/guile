@@ -196,11 +196,12 @@ label:
 	jmpi label
 	callr %r0
 	calli label
-	prepare 0
+	prepare
 	pushargr %r0
 	finishr %r0
-	prepare 1
+	prepare
 	pushargi 1
+	ellipsis
 	finishi 0x80000000
 	ret
 	retr %r1
@@ -303,7 +304,7 @@ unordi:
 	bordi_f unordi %f0 0.5
 	bunordr_f unord %f0 %f1
 	bunordi_f unordi %f0 0.5
-	prepare 0
+	prepare
 	pushargr_f %f1
 	pushargi_f 0.5
 	finishi 0x80000000
@@ -395,7 +396,7 @@ unordi:
 	bordi_d unordi %f0 0.5
 	bunordr_d unord %f0 %f1
 	bunordi_d unordi %f0 0.5
-	prepare 0
+	prepare
 	pushargr_d %f1
 	pushargi_d 0.5
 	finishi 0x80000000

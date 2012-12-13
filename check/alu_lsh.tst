@@ -49,8 +49,9 @@
 	LSH(30,	 0xffffffffff,	47,	0xffff800000000000)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

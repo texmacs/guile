@@ -34,7 +34,7 @@ test_divider_##divisor:			\
 loop_##divisor:				\
 	bger done_##divisor %v0 %v1	\
 	ldr_i %v2 %v0			\
-	prepare 0			\
+	prepare				\
 		pushargr %v2		\
 	finishi divider_##divisor	\
 	retval %v2			\
@@ -42,8 +42,9 @@ loop_##divisor:				\
 	divi %r0 %r2 divisor		\
 	/* save div result */		\
 	stxi_i $loc %fp %r0		\
-	prepare 1			\
+	prepare				\
 		pushargi fmt		\
+		ellipsis		\
 		pushargr %r2		\
 		pushargi divisor	\
 		pushargr %v2		\
@@ -63,12 +64,12 @@ generate_test_divider(32768)
 
 main:
 	prolog
-	prepare 0
+	prepare
 		pushargi small_ops
 		pushargi 3
 	finishi test_divider_8
 	bnei fail %ret 0	
-	prepare 0
+	prepare
 		pushargi large_ops
 		pushargi 3
 	finishi test_divider_32768

@@ -28,8 +28,9 @@
 	AND(19,	0xffffffffffffffff, 0xffffffffffffffff,	0xffffffffffffffff)
 #endif
 
-	prepare 1
+	prepare
 		pushargi ok
+		ellipsis
 	finishi @printf
 	ret
 	epilog

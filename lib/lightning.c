@@ -708,10 +708,10 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
 }
 
 void
-_jit_prepare(jit_state_t *_jit, jit_int32_t kind)
+_jit_prepare(jit_state_t *_jit)
 {
     assert(_jit->function);
-    _jit->function->call.kind = kind;
+    _jit->function->call.kind = jit_call_default;
     _jit->function->call.argi =
 	_jit->function->call.argf =
 	_jit->function->call.size = 0;

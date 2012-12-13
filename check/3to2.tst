@@ -18,13 +18,14 @@ test_double_##a##_##b##_##c:			\
 	retr_d %a				\
 	epilog
 #define test_double(a, b, c, x, y)		\
-	prepare 0				\
+	prepare					\
 		pushargi_d x			\
 		pushargi_d y			\
 	finishi test_double_##a##_##b##_##c	\
 	retval_d %f0				\
-	prepare 1				\
+	prepare					\
 		pushargi dfmt			\
+		ellipsis			\
 		pushargr_d %f0			\
 	finishi @printf
 
@@ -39,13 +40,14 @@ test_int_##a##_##b##_##c:			\
 	retr %a					\
 	epilog
 #define test_int(a, b, c, x, y)			\
-	prepare 0				\
+	prepare					\
 		pushargi x			\
 		pushargi y			\
 	finishi test_int_##a##_##b##_##c	\
 	retval %r0				\
-	prepare 1				\
+	prepare					\
 		pushargi ifmt			\
+		ellipsis			\
 		pushargr %r0			\
 	finishi @printf
 
