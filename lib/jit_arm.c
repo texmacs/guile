@@ -563,7 +563,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	    return;
 	}
     }
-    regno = jit_get_reg(jit_class_gpr);
+    regno = jit_get_reg(jit_class_fpr);
     jit_movi_f(regno, u);
     jit_stxi_f(_jit->function->call.size, JIT_SP, regno);
     jit_unget_reg(regno);
@@ -624,7 +624,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     }
     if (_jit->function->call.size & 7)
 	_jit->function->call.size += 4;
-    regno = jit_get_reg(jit_class_gpr);
+    regno = jit_get_reg(jit_class_fpr);
     jit_movi_d(regno, u);
     jit_stxi_d(_jit->function->call.size, JIT_SP, regno);
     jit_unget_reg(regno);

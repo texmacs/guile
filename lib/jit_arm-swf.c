@@ -1740,25 +1740,25 @@ _swf_absr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (jit_fpr_p(r0) && !jit_thumb_p() && jit_armv5e_p() &&
 	    r0 != r1 && (reg = jit_get_reg_pair()) != JIT_NOREG) {
-	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 4);
 	    swf_bici(rn(reg), rn(reg), 0x80000000);
-	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 8);
+	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 4);
 	    jit_unget_reg_pair(reg);
 	}
 	else {
 	    reg = jit_get_reg(jit_class_gpr);
-	    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
 	    swf_bici(rn(reg), rn(reg), 0x80000000);
 	    if (jit_fpr_p(r0)) {
-		swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
+		swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
 		if (r0 != r1) {
-		    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
-		    swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+		    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+		    swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 		}
 	    }
 	    else {
 		movr(r0, rn(reg));
-		swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
+		swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
 		movr(r0 + 1, rn(reg));
 	    }
 	    jit_unget_reg(reg);
@@ -1768,9 +1768,9 @@ _swf_absr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	reg = jit_get_reg(jit_class_gpr);
 	movr(rn(reg), r1);
 	swf_bici(rn(reg), rn(reg), 0x80000000);
-	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
-	movr(rn(reg), r1 + 1);
 	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+	movr(rn(reg), r1 + 1);
+	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 	jit_unget_reg(reg);
     }
     else {
@@ -1812,25 +1812,25 @@ _swf_negr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (jit_fpr_p(r0) && !jit_thumb_p() && jit_armv5e_p() &&
 	    r0 != r1 && (reg = jit_get_reg_pair()) != JIT_NOREG) {
-	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 4);
 	    EORI(rn(reg), rn(reg), encode_arm_immediate(0x80000000));
-	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 8);
+	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 4);
 	    jit_unget_reg_pair(reg);
 	}
 	else {
 	    reg = jit_get_reg(jit_class_gpr);
-	    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
 	    xori(rn(reg), rn(reg), 0x80000000);
 	    if (jit_fpr_p(r0)) {
-		swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
+		swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
 		if (r0 != r1) {
-		    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
-		    swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+		    swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+		    swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 		}
 	    }
 	    else {
 		movr(r0, rn(reg));
-		swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 4);
+		swf_ldrin(rn(reg), _FP_REGNO, swf_off(r1) + 8);
 		movr(r0 + 1, rn(reg));
 	    }
 	    jit_unget_reg(reg);
@@ -1840,9 +1840,9 @@ _swf_negr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	reg = jit_get_reg(jit_class_gpr);
 	movr(rn(reg), r1);
 	xori(rn(reg), rn(reg), 0x80000000);
-	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
-	movr(rn(reg), r1 + 1);
 	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+	movr(rn(reg), r1 + 1);
+	swf_strin(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 	jit_unget_reg(reg);
     }
     else {

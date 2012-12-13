@@ -57,6 +57,7 @@ EXTRA_DIST =				\
 	alu_rsh.tst	alu_rsh.ok	\
 	alu_com.tst	alu_com.ok	\
 	alu_neg.tst	alu_neg.ok	\
+	varargs.tst	varargs.ok	\
 	check.sh	run-test	\
 	all.tst
 
@@ -71,7 +72,8 @@ TESTS = 3to2 add allocai		\
 	alu_mul alu_div alu_rem		\
 	alu_and alu_or alu_xor		\
 	alu_lsh alu_rsh			\
-	alu_com alu_neg
+	alu_com alu_neg			\
+	varargs
 
 CLEANFILES = $(TESTS)
 

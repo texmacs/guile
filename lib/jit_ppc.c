@@ -379,6 +379,8 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 	++_jit->function->call.argi;
     }
     else {
+	if (!_jit->function->call.size)
+	    _jit->function->call.size = 56;
 	jit_stxi(_jit->function->call.size, JIT_SP, u);
 	_jit->function->call.size += sizeof(jit_word_t);
     }
@@ -394,6 +396,8 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 	++_jit->function->call.argi;
     }
     else {
+	if (!_jit->function->call.size)
+	    _jit->function->call.size = 56;
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
 	jit_stxi(_jit->function->call.size, JIT_SP, regno);
@@ -424,7 +428,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	if (!(_jit->function->call.kind & jit_call_varargs))
 	    return;
     }
-    if (_jit->function->call.argi < 6) {
+    if (_jit->function->call.argi < 8) {
 	jit_stxi_d(-8, JIT_FP, u);
 	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
 	_jit->function->call.argi++;
@@ -432,8 +436,10 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	_jit->function->call.argi++;
     }
     else {
+	if (!_jit->function->call.size)
+	    _jit->function->call.size = 56;
 	jit_stxi_d(_jit->function->call.size, JIT_SP, u);
-	_jit->function->call.size += (sizeof(jit_float64_t) + 8) & -8;
+	_jit->function->call.size += sizeof(jit_float64_t);
     }
 }
 
@@ -451,7 +457,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     }
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_d(regno, u);
-    if (_jit->function->call.argi < 6) {
+    if (_jit->function->call.argi < 8) {
 	jit_stxi_d(-8, JIT_FP, regno);
 	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
 	_jit->function->call.argi++;
@@ -459,8 +465,10 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	_jit->function->call.argi++;
     }
     else {
+	if (!_jit->function->call.size)
+	    _jit->function->call.size = 56;
 	jit_stxi_d(_jit->function->call.size, JIT_SP, regno);
-	_jit->function->call.size += (sizeof(jit_float64_t) + 8) & -8;
+	_jit->function->call.size += sizeof(jit_float64_t);
     }
     jit_unget_reg(regno);
 }

@@ -1,3 +1,24 @@
+2012-12-13 Paulo Andrade <pcpa@gnu.org>
+
+	* check/varargs.ok, check/varargs.tst: New test cases implementing
+	simple varargs calls with a large amount of arguments to exercise
+	excess arguments on stack.
+
+	* include/lightning.h: Include config.h if HAVE_CONFIG_H is
+	defined.
+
+	* lib/jit_arm.c: Allocate a fpr register, not a gpr one for
+	temporary when pushing varargs arguments in the stack.
+
+	* lib/jit_arm-swf.c: Correct code changing the wrong offset
+	in jit_absr_d and jit_negr_d in software float.
+
+	* lib/jit_mips.c: Correct calculation of offsets of arguments
+	on stack.
+
+	* lib/jit_ppc.c: Correct bogus logic for "next" offset of arguments
+	on stack and adjust for fixed offset of stack arguments.
+
 2012-12-12 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/jit_arm.c, lib/jit_mips.c,
