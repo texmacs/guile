@@ -953,7 +953,7 @@ _jit_emit(jit_state_t *_jit)
 		break
 #define case_rrf(name, type)						\
 	    case jit_code_##name##r##type:				\
-		if (jit_x87_reg_p(node->u.w))				\
+		if (jit_x87_reg_p(node->w.w))				\
 		    x87_##name##r##type(rn(node->u.w),			\
 					rn(node->v.w), rn(node->w.w));	\
 		else							\

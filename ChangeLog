@@ -1,5 +1,10 @@
 2012-12-14 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_x86-x87.c, lib/jit_x86.c: Correct test cases in ix86
+	when using the x87 coprocessor instead of sse2+.
+
+2012-12-14 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h, include/lightning/jit_private.h,
 	lib/jit_arm.c, lib/jit_mips.c, lib/jit_ppc.c, lib/jit_x86.c,
 	lib/lightning.c: Make jit_ellipsis implementation not

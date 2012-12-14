@@ -442,7 +442,7 @@ _x87_addr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	    faddr(_ST0_REGNO, r2);
 	else {
 	    fxchr(r0);
-	    faddr(_ST0_REGNO, r2);
+	    faddr(_ST0_REGNO, r0 == r2 ? _ST0_REGNO : r2);
 	    fxchr(r0);
 	}
     }
@@ -476,7 +476,7 @@ _x87_subr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	    fsubr(_ST0_REGNO, r2);
 	else {
 	    fxchr(r0);
-	    fsubr(_ST0_REGNO, r0);
+	    fsubr(_ST0_REGNO, r0 == r2 ? _ST0_REGNO : r2);
 	    fxchr(r0);
 	}
     }
@@ -510,7 +510,7 @@ _x87_mulr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	    fmulr(_ST0_REGNO, r2);
 	else {
 	    fxchr(r0);
-	    fmulr(_ST0_REGNO, r2);
+	    fmulr(_ST0_REGNO, r0 == r2 ? _ST0_REGNO : r2);
 	    fxchr(r0);
 	}
     }
@@ -544,7 +544,7 @@ _x87_divr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	    fdivr(_ST0_REGNO, r2);
 	else {
 	    fxchr(r0);
-	    fdivr(_ST0_REGNO, r0);
+	    fdivr(_ST0_REGNO, r0 == r2 ? _ST0_REGNO : r2);
 	    fxchr(r0);
 	}
     }
