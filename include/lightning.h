@@ -95,13 +95,6 @@ typedef jit_int32_t		jit_fpr_t;
 #define jit_class(reg)		((reg) & 0xffff0000)
 #define jit_regno(reg)		((reg) & 0x00007fff)
 
-#define jit_call_default	0
-/* assume only varags functions called are printf like, that is,
- * without a declared float/double argument */
-/* FIXME currently no way to create a varargs (or non varargs) jit function
- * if calling sequence changes for float/double arguments */
-#define jit_call_varargs	1
-
 typedef struct jit_node		jit_node_t;
 typedef struct jit_state	jit_state_t;
 

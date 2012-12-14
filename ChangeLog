@@ -1,5 +1,18 @@
 2012-12-14 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_arm.c, lib/jit_mips.c, lib/jit_ppc.c, lib/jit_x86.c,
+	lib/lightning.c: Make jit_ellipsis implementation not
+	backend specific. It is not intended to handle va_list
+	like objects at runtime, as jit_arg* and jit_getarg*
+	return constant values resolved at parse time, so, effectively
+	it is not possible to create printf like jit functions, as
+	there is no va_start, va_arg, va_end, etc, abstraction. This
+	limitation should be kept for the sake of making new ports
+	easier.
+
+2012-12-14 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h, lib/lightning.c: Add two extra wrapper
 	functions to avoid need for excess pointer to/from word casts.
 

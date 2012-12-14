@@ -228,6 +228,7 @@ _jit_prolog(jit_state_t *_jit)
 	_jit->function->self.aoff = -64;
     else
 	_jit->function->self.aoff = 0;
+    _jit->function->self.call = jit_call_default;
     _jit->function->regoff = calloc(_jit->reglen, sizeof(jit_int32_t));
 
     _jit->function->prolog = jit_new_node_no_link(jit_code_prolog);
@@ -241,12 +242,6 @@ _jit_prolog(jit_state_t *_jit)
     _jit->function->epilog->w.w = offset;
 
     jit_regset_new(_jit->function->regset);
-}
-
-void
-_jit_ellipsis(jit_state_t *_jit)
-{
-    _jit->function->call.kind = jit_call_varargs;
 }
 
 jit_int32_t
@@ -355,7 +350,7 @@ jit_int32_t
 _jit_arg_f(jit_state_t *_jit)
 {
     jit_int32_t		offset;
-    if (jit_cpu.abi) {
+    if (jit_cpu.abi && !(_jit->function->self.call & jit_call_varargs)) {
 	if (_jit->function->self.argf < 16)
 	    offset = _jit->function->self.argf++;
 	else {
@@ -378,7 +373,7 @@ jit_int32_t
 _jit_arg_d(jit_state_t *_jit)
 {
     jit_int32_t		offset;
-    if (jit_cpu.abi) {
+    if (jit_cpu.abi && !(_jit->function->self.call & jit_call_varargs)) {
 	if (_jit->function->self.argf < 15) {
 	    if (_jit->function->self.argf & 1)
 		++_jit->function->self.argf;
@@ -525,7 +520,7 @@ void
 _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jit->function);
-    if (jit_cpu.abi && !(_jit->function->call.kind & jit_call_varargs)) {
+    if (jit_cpu.abi && !(_jit->function->call.call & jit_call_varargs)) {
 	if (_jit->function->call.argf < 16) {
 	    jit_movr_f(JIT_FA0 - _jit->function->call.argf, u);
 	    ++_jit->function->call.argf;
@@ -549,7 +544,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     jit_int32_t		regno;
 
     assert(_jit->function);
-    if (jit_cpu.abi && !(_jit->function->call.kind & jit_call_varargs)) {
+    if (jit_cpu.abi && !(_jit->function->call.call & jit_call_varargs)) {
 	if (_jit->function->call.argf < 16) {
 	    jit_movi_f(JIT_FA0 - _jit->function->call.argf, u);
 	    ++_jit->function->call.argf;
@@ -574,7 +569,7 @@ void
 _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jit->function);
-    if (jit_cpu.abi && !(_jit->function->call.kind & jit_call_varargs)) {
+    if (jit_cpu.abi && !(_jit->function->call.call & jit_call_varargs)) {
 	if (_jit->function->call.argf < 15) {
 	    if (_jit->function->call.argf & 1)
 		++_jit->function->call.argf;
@@ -604,7 +599,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     jit_int32_t		regno;
 
     assert(_jit->function);
-    if (jit_cpu.abi && !(_jit->function->call.kind & jit_call_varargs)) {
+    if (jit_cpu.abi && !(_jit->function->call.call & jit_call_varargs)) {
 	if (_jit->function->call.argf < 15) {
 	    if (_jit->function->call.argf & 1)
 		++_jit->function->call.argf;
@@ -664,6 +659,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     node->w.w = _jit->function->call.argf;
     _jit->function->call.argi = _jit->function->call.argf =
 	_jit->function->call.size = 0;
+    _jit->prepare = 0;
 }
 
 jit_node_t *
@@ -679,6 +675,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     node->w.w = _jit->function->call.argf;
     _jit->function->call.argi = _jit->function->call.argf =
 	_jit->function->call.size = 0;
+    _jit->prepare = 0;
     return (node);
 }
 

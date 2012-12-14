@@ -725,10 +725,34 @@ void
 _jit_prepare(jit_state_t *_jit)
 {
     assert(_jit->function);
-    _jit->function->call.kind = jit_call_default;
+    _jit->function->call.call = jit_call_default;
     _jit->function->call.argi =
 	_jit->function->call.argf =
 	_jit->function->call.size = 0;
+    _jit->prepare = 1;
+}
+
+/* If declaring a jit function as varargs, in most backends it does
+ * not change anything. Currently only exception is arm backend, that
+ * if running in hardware float abi, switches to software float abi
+ * if "self" function is varargs. Otherwise, there is no logic to
+ * handle va_list like objects that need to parse runtime state, and
+ * that is mainly because jit_arg* and jit_getarg* work only with
+ * constants values, and one must not expect them to be handled at
+ * runtime, they are parsed only once (same applies to jit_allocai,
+ * that has no jit_allocar counterpart).
+ */
+void
+_jit_ellipsis(jit_state_t *_jit)
+{
+    if (_jit->prepare) {
+	assert(!_jit->function->call.call & jit_call_varargs);
+	_jit->function->call.call |= jit_call_varargs;
+    }
+    else {
+	assert(!_jit->function->self.call & jit_call_varargs);
+	_jit->function->self.call |= jit_call_varargs;
+    }
 }
 
 void

@@ -305,6 +305,7 @@ _jit_prolog(jit_state_t *_jit)
 	_jit->function->self.aoff = _jit->function->self.alen = 0;
     /* sse/x87 conversion */
     _jit->function->self.aoff = -8;
+    _jit->function->self.call = jit_call_default;
     _jit->function->regoff = calloc(_jit->reglen, sizeof(jit_int32_t));
 
     _jit->function->prolog = jit_new_node_no_link(jit_code_prolog);
@@ -318,12 +319,6 @@ _jit_prolog(jit_state_t *_jit)
     _jit->function->epilog->w.w = offset;
 
     jit_regset_new(_jit->function->regset);
-}
-
-void
-_jit_ellipsis(jit_state_t *_jit)
-{
-    _jit->function->call.kind = jit_call_varargs;
 }
 
 jit_int32_t
@@ -732,7 +727,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     if (_jit->function->self.alen < _jit->function->call.size)
 	_jit->function->self.alen = _jit->function->call.size;
 #if __WORDSIZE == 64
-    if (_jit->function->call.kind & jit_call_varargs) {
+    if (_jit->function->call.call & jit_call_varargs) {
 	if (jit_regno(reg) == _RAX) {
 	    reg = jit_get_reg(jit_class_gpr);
 	    jit_movr(reg, _RAX);
@@ -750,6 +745,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     call->w.w = _jit->function->call.argf;
     _jit->function->call.argi = _jit->function->call.argf =
 	_jit->function->call.size = 0;
+    _jit->prepare = 0;
 }
 
 jit_node_t *
@@ -764,13 +760,13 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     if (_jit->function->self.alen < _jit->function->call.size)
 	_jit->function->self.alen = _jit->function->call.size;
 #if __WORDSIZE == 64
-    if (_jit->function->call.kind & jit_call_varargs)
+    if (_jit->function->call.call & jit_call_varargs)
 	jit_regset_setbit(_jit->regarg, _RAX);
     reg = jit_get_reg(jit_class_gpr);
     node = jit_movi(reg, (jit_word_t)i0);
     jit_finishr(reg);
     jit_unget_reg(reg);
-    if (_jit->function->call.kind & jit_call_varargs)
+    if (_jit->function->call.call & jit_call_varargs)
 	jit_regset_clrbit(_jit->regarg, _RAX);
 #else
     node = jit_calli(i0);
@@ -779,6 +775,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 #endif
     _jit->function->call.argi = _jit->function->call.argf =
 	_jit->function->call.size = 0;
+    _jit->prepare = 0;
     return (node);
 }
 

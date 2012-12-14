@@ -61,6 +61,9 @@
 						 * returned by a "user" call
 						 * to jit_get_reg() */
 
+#define jit_call_default	0
+#define jit_call_varargs	1
+
 #define jit_kind_register	1
 #define jit_kind_code		2
 #define jit_kind_word		3
@@ -194,12 +197,13 @@ struct jit_function {
 	jit_int32_t	 size;
 	jit_int32_t	 aoff;
 	jit_int32_t	 alen;
+	jit_int32_t	 call;
     } self;
     struct {
 	jit_int32_t	 argi;
 	jit_int32_t	 argf;
 	jit_int32_t	 size;
-	jit_int32_t	 kind;
+	jit_int32_t	 call;
     } call;
     jit_node_t		*prolog;
     jit_node_t		*epilog;
@@ -220,6 +224,7 @@ struct jit_state {
     jit_node_t		 *tail;
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
+    jit_uint32_t	  prepare : 1;	/* inside prepare/finish* block */
     jit_int32_t		  reglen;	/* number of registers */
     jit_regset_t	  regarg;	/* cannot allocate */
     jit_regset_t	  regsav;	/* automatic spill only once */
