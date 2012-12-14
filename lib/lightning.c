@@ -569,6 +569,20 @@ _jit_new_node_ww(jit_state_t *_jit, jit_code_t code,
 }
 
 jit_node_t *
+_jit_new_node_wp(jit_state_t *_jit, jit_code_t code,
+		 jit_word_t u, jit_pointer_t v)
+{
+    return (jit_new_node_ww(code, u, (jit_word_t)v));
+}
+
+jit_node_t *
+_jit_new_node_pw(jit_state_t *_jit, jit_code_t code,
+		 jit_pointer_t u, jit_word_t v)
+{
+    return (jit_new_node_ww(code, (jit_word_t)u, v));
+}
+
+jit_node_t *
 _jit_new_node_wf(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_float32_t v)
 {

@@ -244,19 +244,19 @@ typedef enum {
     jit_code_htonr,
 
 #define jit_ldr_c(u,v)		jit_new_node_ww(jit_code_ldr_c,u,v)
-#define jit_ldi_c(u,v)		jit_new_node_ww(jit_code_ldi_c,u,v)
+#define jit_ldi_c(u,v)		jit_new_node_wp(jit_code_ldi_c,u,v)
     jit_code_ldr_c,		jit_code_ldi_c,
 #define jit_ldr_uc(u,v)		jit_new_node_ww(jit_code_ldr_uc,u,v)
-#define jit_ldi_uc(u,v)		jit_new_node_ww(jit_code_ldi_uc,u,v)
+#define jit_ldi_uc(u,v)		jit_new_node_wp(jit_code_ldi_uc,u,v)
     jit_code_ldr_uc,		jit_code_ldi_uc,
 #define jit_ldr_s(u,v)		jit_new_node_ww(jit_code_ldr_s,u,v)
-#define jit_ldi_s(u,v)		jit_new_node_ww(jit_code_ldi_s,u,v)
+#define jit_ldi_s(u,v)		jit_new_node_wp(jit_code_ldi_s,u,v)
     jit_code_ldr_s,		jit_code_ldi_s,
 #define jit_ldr_us(u,v)		jit_new_node_ww(jit_code_ldr_us,u,v)
-#define jit_ldi_us(u,v)		jit_new_node_ww(jit_code_ldi_us,u,v)
+#define jit_ldi_us(u,v)		jit_new_node_wp(jit_code_ldi_us,u,v)
     jit_code_ldr_us,		jit_code_ldi_us,
 #define jit_ldr_i(u,v)		jit_new_node_ww(jit_code_ldr_i,u,v)
-#define jit_ldi_i(u,v)		jit_new_node_ww(jit_code_ldi_i,u,v)
+#define jit_ldi_i(u,v)		jit_new_node_wp(jit_code_ldi_i,u,v)
     jit_code_ldr_i,		jit_code_ldi_i,
 #if __WORDSIZE == 32
 #  define jit_ldr(u,v)		jit_ldr_i(u,v)
@@ -265,9 +265,9 @@ typedef enum {
 #  define jit_ldr(u,v)		jit_ldr_l(u,v)
 #  define jit_ldi(u,v)		jit_ldi_l(u,v)
 #  define jit_ldr_ui(u,v)	jit_new_node_ww(jit_code_ldr_ui,u,v)
-#  define jit_ldi_ui(u,v)	jit_new_node_ww(jit_code_ldi_ui,u,v)
+#  define jit_ldi_ui(u,v)	jit_new_node_wp(jit_code_ldi_ui,u,v)
 #define jit_ldr_l(u,v)		jit_new_node_ww(jit_code_ldr_l,u,v)
-#define jit_ldi_l(u,v)		jit_new_node_ww(jit_code_ldi_l,u,v)
+#define jit_ldi_l(u,v)		jit_new_node_wp(jit_code_ldi_l,u,v)
 #endif
     jit_code_ldr_ui,		jit_code_ldi_ui,
     jit_code_ldr_l,		jit_code_ldi_l,
@@ -302,13 +302,13 @@ typedef enum {
     jit_code_ldxr_l,		jit_code_ldxi_l,
 
 #define jit_str_c(u,v)		jit_new_node_ww(jit_code_str_c,u,v)
-#define jit_sti_c(u,v)		jit_new_node_ww(jit_code_sti_c,u,v)
+#define jit_sti_c(u,v)		jit_new_node_pw(jit_code_sti_c,u,v)
     jit_code_str_c,		jit_code_sti_c,
 #define jit_str_s(u,v)		jit_new_node_ww(jit_code_str_s,u,v)
-#define jit_sti_s(u,v)		jit_new_node_ww(jit_code_sti_s,u,v)
+#define jit_sti_s(u,v)		jit_new_node_pw(jit_code_sti_s,u,v)
     jit_code_str_s,		jit_code_sti_s,
 #define jit_str_i(u,v)		jit_new_node_ww(jit_code_str_i,u,v)
-#define jit_sti_i(u,v)		jit_new_node_ww(jit_code_sti_i,u,v)
+#define jit_sti_i(u,v)		jit_new_node_pw(jit_code_sti_i,u,v)
     jit_code_str_i,		jit_code_sti_i,
 #if __WORDSIZE == 32
 #  define jit_str(u,v)		jit_str_i(u,v)
@@ -317,7 +317,7 @@ typedef enum {
 #  define jit_str(u,v)		jit_str_l(u,v)
 #  define jit_sti(u,v)		jit_sti_l(u,v)
 #  define jit_str_l(u,v)	jit_new_node_ww(jit_code_str_l,u,v)
-#  define jit_sti_l(u,v)	jit_new_node_ww(jit_code_sti_l,u,v)
+#  define jit_sti_l(u,v)	jit_new_node_pw(jit_code_sti_l,u,v)
 #endif
     jit_code_str_l,		jit_code_sti_l,
 
@@ -517,13 +517,13 @@ typedef enum {
     jit_code_movr_f,		jit_code_movi_f,
 
 #define jit_ldr_f(u,v)		jit_new_node_ww(jit_code_ldr_f,u,v)
-#define jit_ldi_f(u,v)		jit_new_node_ww(jit_code_ldi_f,u,v)
+#define jit_ldi_f(u,v)		jit_new_node_wp(jit_code_ldi_f,u,v)
     jit_code_ldr_f,		jit_code_ldi_f,
 #define jit_ldxr_f(u,v,w)	jit_new_node_www(jit_code_ldxr_f,u,v,w)
 #define jit_ldxi_f(u,v,w)	jit_new_node_www(jit_code_ldxi_f,u,v,w)
     jit_code_ldxr_f,		jit_code_ldxi_f,
 #define jit_str_f(u,v)		jit_new_node_ww(jit_code_str_f,u,v)
-#define jit_sti_f(u,v)		jit_new_node_ww(jit_code_sti_f,u,v)
+#define jit_sti_f(u,v)		jit_new_node_pw(jit_code_sti_f,u,v)
     jit_code_str_f,		jit_code_sti_f,
 #define jit_stxr_f(u,v,w)	jit_new_node_www(jit_code_stxr_f,u,v,w)
 #define jit_stxi_f(u,v,w)	jit_new_node_www(jit_code_stxi_f,u,v,w)
@@ -662,13 +662,13 @@ typedef enum {
     jit_code_movr_d,		jit_code_movi_d,
 
 #define jit_ldr_d(u,v)		jit_new_node_ww(jit_code_ldr_d,u,v)
-#define jit_ldi_d(u,v)		jit_new_node_ww(jit_code_ldi_d,u,v)
+#define jit_ldi_d(u,v)		jit_new_node_wp(jit_code_ldi_d,u,v)
     jit_code_ldr_d,		jit_code_ldi_d,
 #define jit_ldxr_d(u,v,w)	jit_new_node_www(jit_code_ldxr_d,u,v,w)
 #define jit_ldxi_d(u,v,w)	jit_new_node_www(jit_code_ldxi_d,u,v,w)
     jit_code_ldxr_d,		jit_code_ldxi_d,
 #define jit_str_d(u,v)		jit_new_node_ww(jit_code_str_d,u,v)
-#define jit_sti_d(u,v)		jit_new_node_ww(jit_code_sti_d,u,v)
+#define jit_sti_d(u,v)		jit_new_node_pw(jit_code_sti_d,u,v)
     jit_code_str_d,		jit_code_sti_d,
 #define jit_stxr_d(u,v,w)	jit_new_node_www(jit_code_stxr_d,u,v,w)
 #define jit_stxi_d(u,v,w)	jit_new_node_www(jit_code_stxi_d,u,v,w)
@@ -818,6 +818,12 @@ extern jit_node_t *_jit_new_node_p(jit_state_t*, jit_code_t,
 #define jit_new_node_ww(c,u,v)	_jit_new_node_ww(_jit,c,u,v)
 extern jit_node_t *_jit_new_node_ww(jit_state_t*,jit_code_t,
 				    jit_word_t, jit_word_t);
+#define jit_new_node_wp(c,u,v)	_jit_new_node_wp(_jit,c,u,v)
+extern jit_node_t *_jit_new_node_wp(jit_state_t*,jit_code_t,
+				    jit_word_t, jit_pointer_t);
+#define jit_new_node_pw(c,u,v)	_jit_new_node_pw(_jit,c,u,v)
+extern jit_node_t *_jit_new_node_pw(jit_state_t*,jit_code_t,
+				    jit_pointer_t, jit_word_t);
 #define jit_new_node_wf(c,u,v)	_jit_new_node_wf(_jit,c,u,v)
 extern jit_node_t *_jit_new_node_wf(jit_state_t*, jit_code_t,
 				    jit_word_t, jit_float32_t);

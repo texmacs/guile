@@ -855,7 +855,7 @@ get_imm(void)
 	    break;
 	case '@':
 	    dynamic();
-	    value = parser.value.p;
+	    value = (long)parser.value.p;
 	    break;
 	default:
 	    ungetch(ch);
@@ -1292,11 +1292,11 @@ movi(void)
 	    ungetch(ch);
 	    label = get_label(skip_none);
 	    if (label->kind == label_kind_code_forward)
-		mov_forward((void *)jit_movi(r0, NULL), label);
+		mov_forward((void *)jit_movi(r0, 0), label);
 	    value = label->value;
 	    break;
     }
-    jit_movi(r0, value);
+    jit_movi(r0, (jit_word_t)value);
 }
 entry_ir_ir(extr_c)		entry_ir_ir(extr_uc)
 entry_ir_ir(extr_s)		entry_ir_ir(extr_us)
