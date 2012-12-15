@@ -268,15 +268,19 @@ jit_get_cpu(void)
 void
 _jit_init(jit_state_t *_jit)
 {
+    jit_int32_t		regno;
+    static jit_bool_t	first = 1;
+
     _jit->reglen = jit_size(_rvs) - 1;
 #if __WORDSIZE == 32
-    if (!jit_cpu.sse2) {
-	jit_int32_t	regno;
-
-	for (regno = _jit->reglen; regno >= 0; regno--) {
-	    if (_rvs[regno].spec & jit_class_xpr)
-		_rvs[regno].spec = 0;
+    if (first) {
+	if (!jit_cpu.sse2) {
+	    for (regno = _jit->reglen; regno >= 0; regno--) {
+		if (_rvs[regno].spec & jit_class_xpr)
+		    _rvs[regno].spec = 0;
+	    }
 	}
+	first = 0;
     }
 #endif
 }

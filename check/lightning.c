@@ -2061,46 +2061,6 @@ dot(void)
 	check_data(length);
 	data_offset += length;
     }
-    else if (strcmp(parser.string, "cpu") == 0) {
-	if (primary(skip_ws) != tok_symbol)
-	    error("expecting cpu flag");
-	ch = get_int(skip_ws);
-	if (strcmp(parser.string, "sse2") == 0)
-#if defined(__i386__)
-	    /* only meaningful for i386 as there is no x87 path for x86_64
-	     * and should only use just after jit_prolog and not mix with
-	     * code that uses xmm registers */
-	    jit_cpu.sse2 = !!ch
-#endif
-	;
-	else if (strcmp(parser.string, "sse4_1") == 0)
-#if defined(__i386__) || defined(__x86_64__)
-	    jit_cpu.sse4_1 = !!ch
-#endif
-	;
-	else if (strcmp(parser.string, "version") == 0)
-#if defined(__arm__)
-	    jit_cpu.version = ch
-#endif
-	;
-	else if (strcmp(parser.string, "thumb") == 0)
-#if defined(__arm__)
-	    jit_cpu.thumb = ch
-#endif
-	;
-	else if (strcmp(parser.string, "vfp") == 0)
-#if defined(__arm__)
-	    jit_cpu.vfp = ch
-#endif
-	;
-	else if (strcmp(parser.string, "neon") == 0)
-#if defined(__arm__)
-	    jit_cpu.neon = !!ch
-#endif
-	;
-	else
-	    warn("ignoring \".cpu %s %d\"", parser.string, ch);
-    }
     else if (strcmp(parser.string, "disasm") == 0)
 	flag_disasm = 1;
     else
@@ -3776,21 +3736,46 @@ static void
 usage(void)
 {
     fprintf(stderr, "\
-Usage: %s [jit-assembler-options] file [jit-program-options]\n\
-Options:\n\
+Usage: %s [jit assembler options] file [jit program options]\n\
+Jit assembler options:\n\
   -help                    Display this information\n\
   -v[0-3]                  Verbose output level\n\
   -D<macro>[=<val>]        Preprocessor options\n"
+#if defined(__i386__) && __WORDSIZE == 32
+"  -mx87=1                  Force using x87 when sse2 available\n"
+#endif
+#if defined(__i386__) || defined(__x86_64__)
+"  -msse4_1=0               Do not use sse4_1 instructions when available\n"
+#endif
+#if defined(__arm__)
+"  -mcpu=<val>              Force cpu version (4, 5, 6 or 7)\n\
+  -mthumb[=0|1]            Enable or disable thumb\n\
+  -mvfp=<val>              Set vpf version (0 to disable)\n\
+  -mneon[=0|1]             Enable or disable neon\n"
+#endif
 	    , progname);
+    finish_jit();
     exit(1);
 }
 
 int
 main(int argc, char *argv[])
 {
-    static const char	*short_options = "v::";
+    static const char	*short_options = "v:";
     static struct option long_options[] = {
 	{ "help",		0, 0, 'h' },
+#if defined(__i386__) && __WORDSIZE == 32
+	{ "mx87",		1, 0, '7' },
+#endif
+#if defined(__i386__) || defined(__x86_64__)
+	{ "msse4_1",		1, 0, '4' },
+#endif
+#if defined(__arm__)
+	{ "mcpu",		1, 0, 'c' },
+	{ "mthumb",		1, 0, 't' },
+	{ "mvfp",		1, 0, 'f' },
+	{ "mneon",		1, 0, 'n' },
+#endif
 	{ 0,			0, 0, 0   }
     };
     int			 offset;
@@ -3798,6 +3783,8 @@ main(int argc, char *argv[])
     int			 opt_index;
     int			 opt_short;
     char		 cmdline[8192];
+
+    init_jit();
 
     progname = argv[0];
     for (;;) {
@@ -3818,6 +3805,67 @@ main(int argc, char *argv[])
 		else
 		    flag_verbose = 1;
 		break;
+#if defined(__i386__) && __WORDSIZE == 32
+	    case '7':
+		if (optarg) {
+		    if (strcmp(optarg, "") == 0 || strcmp(optarg, "1") == 0)
+			jit_cpu.sse2 = 0;
+		    else if (strcmp(optarg, "0"))
+			usage();
+		}
+		else
+		    jit_cpu.sse2 = 0;
+		break;
+#endif
+#if defined(__i386__) || defined(__x86_64__)
+	    case '4':
+		if (optarg) {
+		    if (strcmp(optarg, "0") == 0)
+			jit_cpu.sse4_2 = 0;
+		    else if (strcmp(optarg, "1"))
+			usage();
+		}
+		break;
+#endif
+#if defined(__arm__)
+	    case 'c':
+		if (optarg) {
+		    offset = strtol(optarg, &endptr, 10);
+		    if (*endptr || offset < 0)
+			usage();
+		    if (offset < jit_cpu.version)
+			jit_cpu.version = offset;
+		}
+		break;
+	    case 't':
+		if (optarg) {
+		    if (strcmp(optarg, "0") == 0)
+			jit_cpu.thumb = 0;
+		    else if (strcmp(optarg, "1") && strcmp(optarg, "2"))
+			usage();
+		}
+		break;
+	    case 'f':
+#  if !defined(__ARM_PCS_VFP)
+		/* Do not allow overrinding hard float abi */
+		if (optarg) {
+		    offset = strtol(optarg, &endptr, 10);
+		    if (*endptr || offset < 0)
+			usage();
+		    if (offset < jit_cpu.vfp)
+			jit_cpu.vfp = offset;
+		}
+#  endif
+		break;
+	    case 'n':
+		if (optarg) {
+		    if (strcmp(optarg, "0") == 0)
+			jit_cpu.neon = 0;
+		    else if (strcmp(optarg, "1"))
+			usage();
+		}
+		break;
+#endif
 	}
     }
 
@@ -3899,7 +3947,6 @@ main(int argc, char *argv[])
     }
 #endif
 
-    init_jit();
     _jit = jit_new_state();
 
     instrs = new_hash();

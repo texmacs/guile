@@ -67,16 +67,104 @@ case "$target_cpu" in
     *powerpc*)		cpu=ppc		;;
     *)					;;
 esac
-if test x$cpu = x; then
-    AC_MSG_ERROR([cpu $target_cpu not supported])
-fi
 AM_CONDITIONAL(cpu_arm,  [test cpu-$cpu = cpu-arm])
 AM_CONDITIONAL(cpu_mips, [test cpu-$cpu = cpu-mips])
 AM_CONDITIONAL(cpu_ppc,  [test cpu-$cpu = cpu-ppc])
 AM_CONDITIONAL(cpu_x86,  [test cpu-$cpu = cpu-x86])
-if test $cpu = arm; then
-    AC_CHECK_LIB(m, sqrtf, ,
-	[AC_MSG_ERROR([sqrtf required but not available])])
+
+# Test x87 if both, x87 and sse2 available
+ac_cv_test_x86_x87=
+# Test arm instruction set if thumb instruction set available
+ac_cv_test_arm_arm=
+# Test sofware float if vfp available and not using hard float abi
+ac_cv_test_arm_swf=
+
+save_CFLAGS=$CFLAGS
+CFLAGS="-I$PWD/include -D_GNU_SOURCE"
+if test x$cpu = x; then
+    AC_MSG_ERROR([cpu $target_cpu not supported])
+elif test $cpu = x86; then
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+    #include <lightning.h>
+    int main(void) {
+	int		    ac, flags;
+	unsigned int	    eax, ebx, ecx, edx;
+	if (__WORDSIZE == 64)
+	    return 1;
+	__asm__ volatile ("pushfl;\n\t"
+			  "popl %0;\n\t"
+			  "movl \$0x240000, %1;\n\t"
+			  "xorl %0, %1;\n\t"
+			  "pushl %1;\n\t"
+			  "popfl;\n\t"
+			  "pushfl;\n\t"
+			  "popl %1;\n\t"
+			  "xorl %0, %1;\n\t"
+			  "pushl %0;\n\t"
+			  "popfl"
+			  : "=r" (flags), "=r" (ac));
+	if ((ac & (1 << 21)) == 0)
+	    return 1;
+	__asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
+			  : "=a" (eax), "=r" (ebx),
+			  "=c" (ecx), "=d" (edx)
+			  : "0" (1));
+	return (edx & 1 << 26) ? 0 : 1;
+    }
+    ]])],[ac_cv_test_x86_x87=yes],[][])
+elif test $cpu = arm; then
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+    #include <stdio.h>
+    int main(void) {
+    #if defined(__linux__)
+	FILE	*fp;
+	char	 buf[128];
+	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL)
+	    return 1;
+	while (fgets(buf, sizeof(buf), fp)) {
+	    if (strncmp(buf, "Features\t:", 10) == 0 &&
+		strstr(buf + 10, "thumb")) {
+		fclose(fp);
+		return 0;
+	    }
+	}
+	fclose(fp);
+    #endif
+	return 1;
+    }
+    ]])],[ac_cv_test_arm_arm=yes],[][])
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+    #include <stdio.h>
+    int main(void) {
+    #if defined(__linux__)
+	FILE	*fp;
+	char	 buf[128];
+    #  if !defined(__ARM_PCS_VFP)
+	if ((fp = fopen("/proc/cpuinfo", "r")) == NULL)
+	    return 1;
+	while (fgets(buf, sizeof(buf), fp)) {
+	    if (strncmp(buf, "Features\t:", 10) == 0 &&
+		strstr(buf + 10, "vfp")) {
+		fclose(fp);
+		return 0;
+	    }
+	}
+	fclose(fp);
+    #  endif
+    #endif
+	return 1;
+    }
+    ]])],[ac_cv_test_arm_swf=yes],[][])
+fi
+CFLAGS=$save_CFLAGS
+
+AM_CONDITIONAL(test_x86_x87, [test x$ac_cv_test_x86_x87 = xyes])
+AM_CONDITIONAL(test_arm_arm, [test x$ac_cv_test_arm_arm = xyes])
+AM_CONDITIONAL(test_arm_swf, [test x$ac_cv_test_arm_swf = xyes])
+
+if test $cpu=arm; then
+     AC_CHECK_LIB(m, sqrtf, ,
+        [AC_MSG_ERROR([sqrtf required but not available])])
 fi
 
 AC_SUBST([LIGHTNING_CFLAGS])

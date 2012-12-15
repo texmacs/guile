@@ -58,10 +58,13 @@ EXTRA_DIST =				\
 	alu_com.tst	alu_com.ok	\
 	alu_neg.tst	alu_neg.ok	\
 	varargs.tst	varargs.ok	\
-	check.sh	run-test	\
-	all.tst
+	check.sh			\
+	check.x87.sh			\
+	check.arm.sh	check.swf.sh	\
+	run-test	all.tst
 
-TESTS = 3to2 add allocai		\
+base_TESTS =				\
+	3to2 add allocai		\
 	bp divi fib rpn			\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
@@ -75,11 +78,78 @@ TESTS = 3to2 add allocai		\
 	alu_com alu_neg			\
 	varargs
 
-CLEANFILES = $(TESTS)
-
-# Not so pretty but good for a prototype
-$(TESTS):	check.sh
+$(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@
+
+TESTS = $(base_TESTS)
+
+if test_x86_x87
+x87_TESTS =					\
+	3to2.x87 add.x87 allocai.x87		\
+	bp.x87 divi.x87 fib.x87 rpn.x87		\
+	ldstr.x87 ldsti.x87			\
+	ldstxr.x87 ldstxi.x87			\
+	ldstr-c.x87 ldstxr-c.x87 ldstxi-c.x87	\
+	cvt.x87 branch.x87			\
+	alu_add.x87 alux_add.x87		\
+	alu_sub.x87 alux_sub.x87		\
+	alu_mul.x87 alu_div.x87 alu_rem.x87	\
+	alu_and.x87 alu_or.x87 alu_xor.x87	\
+	alu_lsh.x87 alu_rsh.x87			\
+	alu_com.x87 alu_neg.x87			\
+	varargs.x87
+
+$(x87_TESTS):	check.x87.sh
+	$(LN_S) $(srcdir)/check.x87.sh $@
+
+TESTS += $(x87_TESTS)
+endif
+
+if test_arm_arm
+arm_TESTS =					\
+	3to2.arm add.arm allocai.arm		\
+	bp.arm divi.arm fib.arm rpn.arm		\
+	ldstr.arm ldsti.arm			\
+	ldstxr.arm ldstxi.arm			\
+	ldstr-c.arm ldstxr-c.arm ldstxi-c.arm	\
+	cvt.arm branch.arm			\
+	alu_add.arm alux_add.arm		\
+	alu_sub.arm alux_sub.arm		\
+	alu_mul.arm alu_div.arm alu_rem.arm	\
+	alu_and.arm alu_or.arm alu_xor.arm	\
+	alu_lsh.arm alu_rsh.arm			\
+	alu_com.arm alu_neg.arm			\
+	varargs.arm
+
+$(arm_TESTS):	check.arm.sh
+	$(LN_S) $(srcdir)/check.arm.sh $@
+
+TESTS += $(arm_TESTS)
+endif
+
+if test_arm_swf
+swf_TESTS =					\
+	3to2.swf add.swf allocai.swf		\
+	bp.swf divi.swf fib.swf rpn.swf		\
+	ldstr.swf ldsti.swf			\
+	ldstxr.swf ldstxi.swf			\
+	ldstr-c.swf ldstxr-c.swf ldstxi-c.swf	\
+	cvt.swf branch.swf			\
+	alu_add.swf alux_add.swf		\
+	alu_sub.swf alux_sub.swf		\
+	alu_mul.swf alu_div.swf alu_rem.swf	\
+	alu_and.swf alu_or.swf alu_xor.swf	\
+	alu_lsh.swf alu_rsh.swf			\
+	alu_com.swf alu_neg.swf			\
+	varargs.swf
+
+$(swf_TESTS):	check.swf.sh
+	$(LN_S) $(srcdir)/check.swf.sh $@
+
+TESTS += $(swf_TESTS)
+endif
+
+CLEANFILES = $(TESTS)
 
 TESTS_ENVIRONMENT=$(srcdir)/run-test
 

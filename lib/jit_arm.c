@@ -185,17 +185,22 @@ void
 _jit_init(jit_state_t *_jit)
 {
     jit_int32_t		regno;
+    static jit_bool_t	first = 1;
+
     _jit->reglen = jit_size(_rvs) - 1;
-    /* jit_get_cpu() should have been already called, and only once */
-    if (!jit_cpu.vfp) {
-	/* cause register to never be allocated, because simple
-	 * software float only allocates stack space for 8 slots  */
-	for (regno = _D8; regno < _D7; regno++)
-	    _rvs[regno].spec = 0;
-    }
-    if (!jit_cpu.abi) {
-	for (regno = _S15; regno <= _D0; regno++)
-	    _rvs[regno].spec &= ~rc(arg);
+    if (first) {
+	/* jit_get_cpu() should have been already called, and only once */
+	if (!jit_cpu.vfp) {
+	    /* cause register to never be allocated, because simple
+	     * software float only allocates stack space for 8 slots  */
+	    for (regno = _D8; regno < _D7; regno++)
+		_rvs[regno].spec = 0;
+	}
+	if (!jit_cpu.abi) {
+	    for (regno = _S15; regno <= _D0; regno++)
+		_rvs[regno].spec &= ~rc(arg);
+	}
+	first = 0;
     }
 }
 
