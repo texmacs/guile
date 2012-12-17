@@ -1801,7 +1801,7 @@ get_label(skip_t skip)
 	    (void)identifier(ch);
 	    break;
 	default:
-	    error("expecting label");
+	    error("expecting label/immediate");
     }
     if ((label = get_label_by_name(parser.string)) == NULL)
 	label = new_label(label_kind_code_forward,
@@ -3761,20 +3761,20 @@ Jit assembler options:\n\
 int
 main(int argc, char *argv[])
 {
-    static const char	*short_options = "v:";
+    static const char	*short_options = "v::";
     static struct option long_options[] = {
 	{ "help",		0, 0, 'h' },
 #if defined(__i386__) && __WORDSIZE == 32
-	{ "mx87",		1, 0, '7' },
+	{ "mx87",		2, 0, '7' },
 #endif
 #if defined(__i386__) || defined(__x86_64__)
-	{ "msse4_1",		1, 0, '4' },
+	{ "msse4_1",		2, 0, '4' },
 #endif
 #if defined(__arm__)
-	{ "mcpu",		1, 0, 'c' },
-	{ "mthumb",		1, 0, 't' },
-	{ "mvfp",		1, 0, 'f' },
-	{ "mneon",		1, 0, 'n' },
+	{ "mcpu",		2, 0, 'c' },
+	{ "mthumb",		2, 0, 't' },
+	{ "mvfp",		2, 0, 'f' },
+	{ "mneon",		2, 0, 'n' },
 #endif
 	{ 0,			0, 0, 0   }
     };

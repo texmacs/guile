@@ -281,3 +281,38 @@ OP##N##T##c##R0##R1:
 	FUN1(N, T, OP, I, V, f0, f3)			\
 	FUN1(N, T, OP, I, V, f0, f4)			\
 	FUN1(N, T, OP, I, V, f0, f5)
+
+/* unordered comparison unary float */
+
+#define UFUNR(N, T, OP, I, V, R0, R1)			\
+	movi##T %R1 I					\
+	OP##r##T %R0 %R1				\
+	buneqi##T OP##N##T##u##R0##R1 %R0 V		\
+	calli @abort					\
+OP##N##T##u##R0##R1:
+
+#define UFUNRC(N, T, OP, I, V, R0, R1)			\
+	movi##T %R0 I					\
+	OP##r##T %R0 %R0				\
+	buneqi##T OP##N##T##uc##R0##R1 %R0 V		\
+	calli @abort					\
+OP##N##T##uc##R0##R1:
+
+#define UFUN2(N, T, OP, I, V, R0, R1)			\
+	UFUNR(N, T, OP, I, V, R0, R1)			\
+	UFUNRC(N, T, OP, I, V, R0, R1)
+
+#define UFUN1(N, T, OP, I, V, R0, R1)			\
+	UFUN2(N, T, OP, I, V, R0, R1)			\
+	UFUN2(N, T, OP, I, V, R1, R0)
+
+#define UFUN(N, T, OP, I, V)				\
+	UFUN1(N, T, OP, I, V, f0, f1)			\
+	UFUN1(N, T, OP, I, V, f0, f2)			\
+	UFUN1(N, T, OP, I, V, f0, f3)			\
+	UFUN1(N, T, OP, I, V, f0, f4)			\
+	UFUN1(N, T, OP, I, V, f0, f5)
+
+.	$( $NaN =  0.0/0.0)
+.	$( $Inf =  1.0/0.0)
+.	$($nInf = -1.0/0.0)

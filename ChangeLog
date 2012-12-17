@@ -1,5 +1,20 @@
 2012-12-17 Paulo Andrade <pcpa@gnu.org>
 
+	* check/fop_abs.ok, check/fop_abs.tst, check/fop_sqrt.ok,
+	check/fop_sqrt.tst: New files implementing simple test cases
+	for the extra float operations.
+
+	* check/Makefile.am: Update for new test cases.
+
+	* check/alu.inc: Add an extra macro to check for unordered
+	equality on tests where it is expected to use NaN as an
+	argument.
+
+	* check/lightning.c: Minor change for proper/common argument
+	syntax handling ommiting arguments to options.
+
+2012-12-17 Paulo Andrade <pcpa@gnu.org>
+
 	* check/Makefile.am: Automatically generate pattern list
 	of tests with alternate jit generation options. This should
 	prevent typos and needing to change multiple places after

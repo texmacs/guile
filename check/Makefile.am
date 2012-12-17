@@ -57,6 +57,8 @@ EXTRA_DIST =				\
 	alu_rsh.tst	alu_rsh.ok	\
 	alu_com.tst	alu_com.ok	\
 	alu_neg.tst	alu_neg.ok	\
+	fop_abs.tst	fop_abs.ok	\
+	fop_sqrt.tst	fop_sqrt.ok	\
 	varargs.tst	varargs.ok	\
 	check.sh			\
 	check.x87.sh			\
@@ -76,6 +78,7 @@ base_TESTS =				\
 	alu_and alu_or alu_xor		\
 	alu_lsh alu_rsh			\
 	alu_com alu_neg			\
+	fop_abs fop_sqrt		\
 	varargs
 
 $(base_TESTS):	check.sh
