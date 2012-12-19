@@ -2697,6 +2697,11 @@ _calli(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    _jit->function->stack = ((/* first 16 bytes must be allocated */
+			      (_jit->function->self.alen > 16 ?
+			       _jit->function->self.alen : 16) -
+			      /* align stack at 8 bytes */
+			      _jit->function->self.aoff) + 7) & -8;
     /* callee save registers */
     subi(_SP_REGNO, _SP_REGNO, stack_framesize);
 #if __WORDSIZE == 32

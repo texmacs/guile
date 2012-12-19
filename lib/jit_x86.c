@@ -268,8 +268,10 @@ jit_get_cpu(void)
 void
 _jit_init(jit_state_t *_jit)
 {
+#if __WORDSIZE == 32
     jit_int32_t		regno;
     static jit_bool_t	first = 1;
+#endif
 
     _jit->reglen = jit_size(_rvs) - 1;
 #if __WORDSIZE == 32
@@ -400,13 +402,6 @@ void
 _jit_epilog(jit_state_t *_jit)
 {
     assert(_jit->function);
-#if __WORDSIZE == 32
-    _jit->function->stack = (((_jit->function->self.alen -
-			       _jit->function->self.aoff) + 15) & -16) + 12;
-#else
-    _jit->function->stack = (((_jit->function->self.alen -
-			       _jit->function->self.aoff) + 15) & -16) + 8;
-#endif
     assert(_jit->function->epilog->next == NULL);
     jit_link(_jit->function->epilog);
     _jit->function = NULL;
@@ -448,7 +443,11 @@ _jit_arg_f(jit_state_t *_jit)
 	return (_jit->function->self.argf++);
 #endif
     offset = _jit->function->self.size;
+#if __WORDSIZE == 32
     _jit->function->self.size += sizeof(jit_float32_t);
+#else
+    _jit->function->self.size += sizeof(jit_float64_t);
+#endif
     return (offset);
 }
 

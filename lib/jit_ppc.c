@@ -230,8 +230,6 @@ void
 _jit_epilog(jit_state_t *_jit)
 {
     assert(_jit->function);
-    _jit->function->stack = ((_jit->function->self.alen -
-			      _jit->function->self.aoff) + 15) & -16;
     assert(_jit->function->epilog->next == NULL);
     jit_link(_jit->function->epilog);
     _jit->function = NULL;

@@ -322,9 +322,6 @@ void
 _jit_epilog(jit_state_t *_jit)
 {
     assert(_jit->function);
-    _jit->function->stack = ((_jit->function->self.alen -
-			      /* align stack at 8 bytes */
-			      _jit->function->self.aoff) + 7) & -8;
     assert(_jit->function->epilog->next == NULL);
     jit_link(_jit->function->epilog);
     _jit->function = NULL;

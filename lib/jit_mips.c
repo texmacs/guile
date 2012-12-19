@@ -224,12 +224,6 @@ void
 _jit_epilog(jit_state_t *_jit)
 {
     assert(_jit->function);
-
-    _jit->function->stack = ((/* first 16 bytes must be allocated */
-			      (_jit->function->self.alen > 16 ?
-			       _jit->function->self.alen : 16) -
-			      /* align stack at 8 bytes */
-			      _jit->function->self.aoff) + 7) & -8;
     assert(_jit->function->epilog->next == NULL);
     jit_link(_jit->function->epilog);
     _jit->function = NULL;
@@ -266,13 +260,20 @@ _jit_arg_f(jit_state_t *_jit)
 
     assert(_jit->function);
     offset = (_jit->function->self.size - stack_framesize) >> 2;
-    if (offset < 4) {
+    if (offset < 3) {
 	if (!_jit->function->self.argi) {
 	    offset += 4;
 	    _jit->function->self.argf += 2;
+	    assert(!(offset & 1));
 	}
-	else
+	else {
 	    _jit->function->self.argi += 2;
+	    if (offset & 1) {
+		++_jit->function->self.argi;
+		++offset;
+		_jit->function->self.size += sizeof(jit_float32_t);
+	    }
+	}
     }
     else
 	offset = _jit->function->self.size;
@@ -395,7 +396,7 @@ void
 _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
     if (v < 4)
-	jit_new_node_ww(jit_code_getarg_f, u, _A0 - (v >> 1));
+	jit_new_node_ww(jit_code_getarg_f, u, _A0 - v);
     else if (v < 8)
 	jit_movr_f(u, _F12 - ((v - 4) >> 1));
     else
@@ -406,7 +407,7 @@ void
 _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
     if (v < 4)
-	jit_new_node_ww(jit_code_getarg_d, u, _A0 - (v >> 1));
+	jit_new_node_ww(jit_code_getarg_d, u, _A0 - v);
     else if (v < 8)
 	jit_movr_d(u, _F12 - ((v - 4) >> 1));
     else

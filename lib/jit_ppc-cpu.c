@@ -2363,6 +2363,9 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	regno;
 
+    _jit->function->stack = ((_jit->function->self.alen -
+			      _jit->function->self.aoff) + 15) & -16;
+
     /* return address */
     MFLR(_R0_REGNO);
 

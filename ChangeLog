@@ -1,3 +1,22 @@
+2012-12-18 Paulo Andrade <pcpa@gnu.org>
+
+	* check/stack.ok, check/stack.tst: New files to test data
+	integrity on a deep chain of stack frames.
+
+	* lib/jit_arm.c, lib/jit_arm-cpu.c, lib/jit_mips.c,
+	lib/jit_mips-cpu.c, lib/jit_ppc.c, lib/jit_ppc-cpu.c,
+	lib/jit_x86.c, lib/jit_x86-cpu.c: Calculate _jit->function->stack
+	in the emit stage, otherwise it will calculate it wrong if
+	need to jit_allocai space to spill registers.
+
+	* lib/lightning.c: Correct wrong offset when updating the
+	"current" jit function pointer in the code that may need to
+	allocate stack space to spill registers.
+
+	* check/lightning.c: Correct off by one data space check.
+
+	* check/Makefile.am: Update for new test case.
+
 2012-12-17 Paulo Andrade <pcpa@gnu.org>
 
 	* check/fop_abs.ok, check/fop_abs.tst, check/fop_sqrt.ok,

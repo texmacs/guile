@@ -3564,6 +3564,10 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    _jit->function->stack = ((_jit->function->self.alen -
+			      /* align stack at 8 bytes */
+			      _jit->function->self.aoff) + 7) & -8;
+
     if (jit_thumb_p()) {
 	/*  switch to thumb mode (better approach would be to
 	 * ORR 1 address being called, but no clear distinction

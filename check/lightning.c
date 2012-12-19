@@ -37,7 +37,7 @@
 
 #define check_data(length)						\
     do {								\
-	if (data_offset + length >= data_length)			\
+	if (data_offset + length > data_length)				\
 	    error(".data too small (%ld < %ld)",			\
 		  data_length, data_offset + length);			\
     } while (0)

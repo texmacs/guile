@@ -20,8 +20,6 @@
 
 #if PROTO
 #  if __WORDSIZE == 32
-#    define stack_alignment		4
-#    define stack_framesize		20
 #    define ldi(u, v)			ldi_i(u, v)
 #    define ldxi(u, v, w)		ldxi_i(u, v, w)
 #    define sti(u, v)			sti_i(u, v)
@@ -32,8 +30,6 @@
 #    define reg8_p(rn)							\
       ((rn) >= _RAX_REGNO && (rn) <= _RBX_REGNO)
 #  else
-#    define stack_alignment		8
-#    define stack_framesize		56
 #    define ldi(u, v)			ldi_l(u, v)
 #    define ldxi(u, v, w)		ldxi_l(u, v, w)
 #    define sti(u, v)			sti_l(u, v)
@@ -3070,6 +3066,14 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+#if __WORDSIZE == 32
+    _jit->function->stack = (((_jit->function->self.alen -
+			       _jit->function->self.aoff) + 15) & -16) + 12;
+#else
+    _jit->function->stack = (((_jit->function->self.alen -
+			       _jit->function->self.aoff) + 15) & -16) + 8;
+#endif
+
     /* callee save registers */
     subi(_RSP_REGNO, _RSP_REGNO, stack_framesize - sizeof(jit_word_t));
 #if __WORDSIZE == 32

@@ -2298,7 +2298,7 @@ _patch_registers(jit_state_t *_jit)
 		node->link = NULL;
 		break;
 	    case jit_code_prolog:
-		_jit->function = _jit->functions.ptr + node->u.w;
+		_jit->function = _jit->functions.ptr + node->w.w;
 		break;
 	    case jit_code_epilog:
 		_jit->function = NULL;
