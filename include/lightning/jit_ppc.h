@@ -74,11 +74,11 @@ typedef enum {
 #define JIT_RA7			_R10
     _R10,	_R9,	_R8,	_R7,	_R6,	_R5,	_R4,	_R3,
 #  define JIT_F0		_F0
-#  define JIT_F1		_F8
-#  define JIT_F2		_F9
-#  define JIT_F3		_F10
-#  define JIT_F4		_F11
-#  define JIT_F5		_F12
+#  define JIT_F1		_F9
+#  define JIT_F2		_F10
+#  define JIT_F3		_F11
+#  define JIT_F4		_F12
+#  define JIT_F5		_F13
     _F0,	_F9,	_F10,	_F11,	_F12,	_F13,
 #define JIT_FS0			_F14
 #define JIT_FS1			_F15

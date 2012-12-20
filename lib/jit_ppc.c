@@ -136,11 +136,11 @@ _jit_prolog(jit_state_t *_jit)
 	_jit->functions.length += 16;
     }
     _jit->function = _jit->functions.ptr + _jit->functions.offset++;
-    _jit->function->self.size = stack_framesize;
+    _jit->function->self.size = params_offset;
     _jit->function->self.argi = _jit->function->self.argf =
-	_jit->function->self.aoff = _jit->function->self.alen = 0;
+	_jit->function->self.alen = 0;
     /* float conversion */
-    _jit->function->self.aoff = -8;
+    _jit->function->self.aoff = alloca_offset - 8;
     _jit->function->self.call = jit_call_default;
     _jit->function->regoff = calloc(_jit->reglen, sizeof(jit_int32_t));
 
@@ -372,9 +372,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 	++_jit->function->call.argi;
     }
     else {
-	if (!_jit->function->call.size)
-	    _jit->function->call.size = 56;
-	jit_stxi(_jit->function->call.size, JIT_SP, u);
+	jit_stxi(_jit->function->call.size + params_offset, JIT_SP, u);
 	_jit->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -389,11 +387,9 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 	++_jit->function->call.argi;
     }
     else {
-	if (!_jit->function->call.size)
-	    _jit->function->call.size = 56;
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
-	jit_stxi(_jit->function->call.size, JIT_SP, regno);
+	jit_stxi(_jit->function->call.size + params_offset, JIT_SP, regno);
 	_jit->function->call.size += sizeof(jit_word_t);
 	jit_unget_reg(regno);
     }
@@ -418,20 +414,24 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     if (_jit->function->call.argf < 8) {
 	jit_movr_d(JIT_FA0 - _jit->function->call.argf, u);
 	++_jit->function->call.argf;
-	if (!(_jit->function->call.call & jit_call_varargs))
+	if (!(_jit->function->call.call & jit_call_varargs)) {
+	    /* in case of excess arguments */
+	    ++_jit->function->call.argi;
 	    return;
+	}
     }
     if (_jit->function->call.argi < 8) {
-	jit_stxi_d(-8, JIT_FP, u);
-	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
+	/* use reserved 8 bytes area */
+	jit_stxi_d(alloca_offset - 8, JIT_FP, u);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP,
+		 alloca_offset - 8);
 	_jit->function->call.argi++;
-	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -4);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP,
+		 alloca_offset - 4);
 	_jit->function->call.argi++;
     }
     else {
-	if (!_jit->function->call.size)
-	    _jit->function->call.size = 56;
-	jit_stxi_d(_jit->function->call.size, JIT_SP, u);
+	jit_stxi_d(_jit->function->call.size + params_offset, JIT_SP, u);
 	_jit->function->call.size += sizeof(jit_float64_t);
     }
 }
@@ -445,22 +445,26 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     if (_jit->function->call.argf < 8) {
 	jit_movi_d(JIT_FA0 - _jit->function->call.argf, u);
 	++_jit->function->call.argf;
-	if (!(_jit->function->call.call & jit_call_varargs))
+	if (!(_jit->function->call.call & jit_call_varargs)) {
+	    /* in case of excess arguments */
+	    ++_jit->function->call.argi;
 	    return;
+	}
     }
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_d(regno, u);
     if (_jit->function->call.argi < 8) {
-	jit_stxi_d(-8, JIT_FP, regno);
-	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -8);
+	/* use reserved 8 bytes area */
+	jit_stxi_d(alloca_offset - 8, JIT_FP, regno);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP,
+		 alloca_offset - 8);
 	_jit->function->call.argi++;
-	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP, -4);
+	jit_ldxi(JIT_RA0 - _jit->function->call.argi, JIT_FP,
+		 alloca_offset - 4);
 	_jit->function->call.argi++;
     }
     else {
-	if (!_jit->function->call.size)
-	    _jit->function->call.size = 56;
-	jit_stxi_d(_jit->function->call.size, JIT_SP, regno);
+	jit_stxi_d(_jit->function->call.size + params_offset, JIT_SP, regno);
 	_jit->function->call.size += sizeof(jit_float64_t);
     }
     jit_unget_reg(regno);
@@ -496,8 +500,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     call = jit_callr(r0);
     call->v.w = _jit->function->call.argi;
     call->w.w = _jit->function->call.argf;
-    _jit->function->call.argi = _jit->function->call.argf =
-	_jit->function->call.size = 0;
+    _jit->function->call.argi = _jit->function->call.argf = 0;
     _jit->prepare = 0;
 }
 
@@ -511,8 +514,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     node = jit_calli(i0);
     node->v.w = _jit->function->call.argi;
     node->w.w = _jit->function->call.argf;
-    _jit->function->call.argi = _jit->function->call.argf =
-	_jit->function->call.size = 0;
+    _jit->function->call.argi = _jit->function->call.argf = 0;
     _jit->prepare = 0;
     return (node);
 }

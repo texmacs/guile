@@ -440,10 +440,10 @@ _extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     reg = jit_get_reg(jit_class_gpr);
     rshi(rn(reg), r1, 31);
     /* use reserved 8 bytes area */
-    stxi(-4, _FP_REGNO, r1);
-    stxi(-8, _FP_REGNO, rn(reg));
+    stxi(alloca_offset - 4, _FP_REGNO, r1);
+    stxi(alloca_offset - 8, _FP_REGNO, rn(reg));
     jit_unget_reg(reg);
-    ldxi_d(r0, _FP_REGNO, -8);
+    ldxi_d(r0, _FP_REGNO, alloca_offset - 8);
     FCFID(r0, r0);
 }
 
@@ -454,8 +454,8 @@ _truncr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     reg = jit_get_reg(jit_class_fpr);
     FCTIWZ(rn(reg), r1);
     /* use reserved 8 bytes area */
-    stxi_d(-8, _FP_REGNO, rn(reg));
-    ldxi(r0, _FP_REGNO, -4);
+    stxi_d(alloca_offset - 8, _FP_REGNO, rn(reg));
+    ldxi(r0, _FP_REGNO, alloca_offset - 4);
     jit_unget_reg(reg);
 }
 

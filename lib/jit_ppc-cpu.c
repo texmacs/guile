@@ -16,7 +16,11 @@
  */
 
 #if PROTO
-#  define stack_framesize		80
+#  define gpr_save_area			72	/* r14~r31 = 18 * 4 */
+#  define fpr_save_area			0	/* FIXME extra fpr registers
+						 * not used */
+#  define alloca_offset			-(gpr_save_area + fpr_save_area)
+#  define params_offset			56
 #  define ii(i)				*_jit->pc.ui++ = i
 #  define can_sign_extend_short_p(im)	((im) >= -32768 && (im) <= 32767)
 #  define can_zero_extend_short_p(im)	((im) >= 0 && (im) <= 65535)
@@ -2363,7 +2367,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	regno;
 
-    _jit->function->stack = ((_jit->function->self.alen -
+    _jit->function->stack = ((_jit->function->self.alen + params_offset -
 			      _jit->function->self.aoff) + 15) & -16;
 
     /* return address */
@@ -2376,8 +2380,12 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     STMW(rn(regno), _SP_REGNO, -(32 * 4) + rn(regno) * 4);
 
     stxi(8, _SP_REGNO, _R0_REGNO);
-    STWU(_SP_REGNO, _SP_REGNO, -(stack_framesize + _jit->function->stack + 16));
-    addi(_FP_REGNO, _SP_REGNO, _jit->function->stack + 16);
+
+    /* params >= %r31+56
+     * alloca <  %r31-80 */
+    movr(_FP_REGNO, _SP_REGNO);
+
+    STWU(_SP_REGNO, _SP_REGNO, -_jit->function->stack);
 }
 
 static void
@@ -2385,7 +2393,6 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	regno;
 
-    //ldxi(_SP_REGNO, _SP_REGNO, 0);
     LWZ(_SP_REGNO, _SP_REGNO, 0);
     ldxi(_R0_REGNO, _SP_REGNO, 8);
 
