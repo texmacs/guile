@@ -1,3 +1,16 @@
+2012-12-21 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Partially rewrite/revert code to compute
+	initial	register live state at the start of a basic block.
+	The original logic was corrupted when adding optimizations
+	to do as few computations as possible in jit_update. The
+	reglive field must be always a known set of live registers
+	at the start of a basic block. The value that was incorrect
+	was the regmask field, that must be the set of registers
+	that are in unknown state, because they are not known live,
+	neither set (or possibly not set) in the basic block, and
+	*must* store the state at the start of the basic block.
+
 2012-12-20 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_ppc.h: Correct mismatch of JIT_F{1,5}
