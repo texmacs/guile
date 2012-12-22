@@ -1,5 +1,22 @@
 2012-12-22 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_arm.c: Correct use of wrong argument offset
+	variable in armv7l or float/double argument for varargs
+	function in armv7hl.
+	  Correct jit_getarg* logic in software float mode to
+	match expected behavior in other backends, that is, if
+	a function is not called, it is safe to use a few lightning
+	calls before a next jit_getarg* call, as done in the test
+	case check/stack.tst. The proper solution should be to
+	extend the parser in lib/lightning.c to check if there is
+	some float operation that will call some (libgcc?) function,
+	but software float arm should be a very uncommon backend for
+	lightning, so, just load the already in place arguments
+	saved to stack, assuming the register argument was clobbered
+	(what should not be the case most times...).
+
+2012-12-22 Paulo Andrade <pcpa@gnu.org>
+
 	* check/clobber.ok, check/clobber.tst: New test case doing
 	extensive validation tests to ensure registers not used in
 	a operation are not clobbered.

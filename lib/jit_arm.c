@@ -388,8 +388,8 @@ _jit_arg_d(jit_state_t *_jit)
 	if (_jit->function->self.argi < 3) {
 	    if (_jit->function->self.argi & 1)
 		++_jit->function->self.argi;
-	    offset = _jit->function->self.argf;
-	    _jit->function->self.argf += 2;
+	    offset = _jit->function->self.argi;
+	    _jit->function->self.argi += 2;
 	    return (offset);
 	}
     }
@@ -409,7 +409,12 @@ _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
-    if (v < 4)
+    if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_c(u, JIT_FP, v);
+    }
+    else if (v < 4)
 	jit_extr_c(u, JIT_RA0 - v);
     else
 	jit_ldxi_c(u, JIT_FP, v);
@@ -418,7 +423,12 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 void
 _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
-    if (v < 4)
+    if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_uc(u, JIT_FP, v);
+    }
+    else if (v < 4)
 	jit_extr_uc(u, JIT_RA0 - v);
     else
 	jit_ldxi_uc(u, JIT_FP, v);
@@ -427,7 +437,12 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 void
 _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
-    if (v < 4)
+    if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_s(u, JIT_FP, v);
+    }
+    else if (v < 4)
 	jit_extr_s(u, JIT_RA0 - v);
     else
 	jit_ldxi_s(u, JIT_FP, v);
@@ -436,7 +451,12 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 void
 _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
-    if (v < 4)
+    if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_us(u, JIT_FP, v);
+    }
+    else if (v < 4)
 	jit_extr_us(u, JIT_RA0 - v);
     else
 	jit_ldxi_us(u, JIT_FP, v);
@@ -445,7 +465,12 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
-    if (v < 4)
+    if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_i(u, JIT_FP, v);
+    }
+    else if (v < 4)
 	jit_movr(u, JIT_RA0 - v);
     else
 	jit_ldxi_i(u, JIT_FP, v);
@@ -459,6 +484,11 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 	    jit_movr_f(u, JIT_FA0 - v);
 	else
 	    jit_ldxi_f(u, JIT_FP, v);
+    }
+    else if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_f(u, JIT_FP, v);
     }
     else {
 	if (v < 4)
@@ -476,6 +506,11 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 	    jit_movr_d(u, JIT_FA0 - v);
 	else
 	    jit_ldxi_d(u, JIT_FP, v);
+    }
+    else if (jit_swf_p()) {
+	if (v < 4)
+	    v <<= 2;
+	jit_ldxi_d(u, JIT_FP, v);
     }
     else {
 	if (v < 4)
