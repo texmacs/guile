@@ -61,6 +61,7 @@ EXTRA_DIST =				\
 	fop_sqrt.tst	fop_sqrt.ok	\
 	varargs.tst	varargs.ok	\
 	stack.tst	stack.ok	\
+	clobber.tst	clobber.ok	\
 	check.sh			\
 	check.x87.sh			\
 	check.arm.sh	check.swf.sh	\
@@ -80,7 +81,8 @@ base_TESTS =				\
 	alu_lsh alu_rsh			\
 	alu_com alu_neg			\
 	fop_abs fop_sqrt		\
-	varargs stack
+	varargs stack			\
+	clobber
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@
