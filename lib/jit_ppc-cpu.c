@@ -365,6 +365,11 @@ static jit_word_t _movi_p(jit_state_t*,jit_int32_t,jit_word_t);
 #  define extr_uc(r0,r1)		ANDI_(r0,r0,0xff)
 #  define extr_s(r0,r1)			EXTSH(r0,r1)
 #  define extr_us(r0,r1)		ANDI_(r0,r0,0xffff)
+#  if __BYTE_ORDER == __BIG_ENDIAN
+#    define htonr(r0,r1)		movr(r0,r1)
+#  else
+#    error need htonr implementation
+#  endif
 #  define addr(r0,r1,r2)		ADD(r0,r1,r2)
 #  define addi(r0,r1,i0)		_addi(_jit,r0,r1,i0)
 static void _addi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);

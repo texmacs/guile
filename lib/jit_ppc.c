@@ -744,6 +744,7 @@ _jit_emit(jit_state_t *_jit)
 		case_rr(ext, _uc);
 		case_rr(ext, _s);
 		case_rr(ext, _us);
+		case_rr(hton,);
 		case_rr(neg,);
 		case_rr(com,);
 		case_rr(mov,);
