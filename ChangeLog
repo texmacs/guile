@@ -1,5 +1,15 @@
 2012-12-23 Paulo Andrade <pcpa@gnu.org>
 
+	* check/call.ok, check/call.tst: New test cases to validate
+	simple typed argument and return values in function calls.
+
+	* check/lightning.c: Properly handle jit_movi of labels for
+	backward and forward code labels.
+
+	* check/Makefile.am: Update for new test case.
+
+2012-12-23 Paulo Andrade <pcpa@gnu.org>
+
 	* check/carry.ok, check/carry.tst: New test case to validate
 	carry condition handling.
 

@@ -1291,8 +1291,11 @@ movi(void)
 	default:
 	    ungetch(ch);
 	    label = get_label(skip_none);
-	    if (label->kind == label_kind_code_forward)
+	    if (label->kind == label_kind_code ||
+		label->kind == label_kind_code_forward) {
 		mov_forward((void *)jit_movi(r0, 0), label);
+		return;
+	    }
 	    value = label->value;
 	    break;
     }

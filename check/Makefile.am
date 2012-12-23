@@ -63,6 +63,7 @@ EXTRA_DIST =				\
 	stack.tst	stack.ok	\
 	clobber.tst	clobber.ok	\
 	carry.tst	carry.ok	\
+	call.tst	call.ok		\
 	check.sh			\
 	check.x87.sh			\
 	check.arm.sh	check.swf.sh	\
@@ -83,7 +84,7 @@ base_TESTS =				\
 	alu_com alu_neg			\
 	fop_abs fop_sqrt		\
 	varargs stack			\
-	clobber carry
+	clobber carry call
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@
