@@ -1,3 +1,10 @@
+2012-12-23 Paulo Andrade <pcpa@gnu.org>
+
+	* check/carry.ok, check/carry.tst: New test case to validate
+	carry condition handling.
+
+	* check/Makefile.am: Update for new test case.
+
 2012-12-22 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c, lib/jit_ppc.c: Implement logic for
