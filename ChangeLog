@@ -1,3 +1,17 @@
+2012-12-28 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c, include/lightning.h, lib/jit_arm.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_print.c,	lib/jit_x86.c,
+	lib/lightning.c: Change return value of jit_arg{,_f,_d} to
+	a jit_node_t* object, that should be used as argument to
+	jit_getarg_{c,uc,s,us,i,ui,l,f,d}. This just requires changing
+	from jit_int32_t to jit_pointer_t (or jit_node_t*) the "handle"
+	for the getarg calls, with the benefit that it makes it easy
+	to implement patching of the stack address of non register
+	arguments, this way allowing to implement variable size stack
+	frames if applicable; useful if there are too many registers and
+	jit functions uses only a few callee save registers.
+
 2012-12-27 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c, lib/jit_mips-cpu.c, lib/jit_mips.c: Correct

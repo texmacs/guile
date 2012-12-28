@@ -40,6 +40,7 @@ static char *code_name[] = {
     "#note",
     "label",
     "prolog",
+    "arg",
     "addr",		"addi",
     "addcr",		"addci",
     "addxr",		"addxi",
@@ -118,7 +119,7 @@ static char *code_name[] = {
     "jmpr",		"jmpi",
     "callr",		"calli",
     "epilog",
-    "getarg_f",
+    "arg_f",		"getarg_f",
     "addr_f",		"addi_f",
     "subr_f",		"subi_f",
     "mulr_f",		"muli_f",
@@ -162,7 +163,7 @@ static char *code_name[] = {
     "bunordr_f",	"bunordi_f",
     "pushargr_f",	"pushargi_f",
     "retval_f",
-    "getarg_d",
+    "arg_d",		"getarg_d",
     "addr_d",		"addi_d",
     "subr_d",		"subi_d",
     "mulr_d",		"muli_d",
@@ -258,6 +259,8 @@ _jit_print(jit_state_t *_jit)
 	switch (node->code) {
 	r:
 	    print_chr(' ');		print_reg(node->u.w);	continue;
+	w:
+	    print_chr(' ');		print_hex(node->u.w);	continue;
 	n:
 	    print_chr(' ');
 	    if (!(node->flag & jit_flag_node))
@@ -391,6 +394,8 @@ _jit_print(jit_state_t *_jit)
 		    case jit_cc_a0_reg|jit_cc_a0_chg:
 		    case jit_cc_a0_reg|jit_cc_a0_jmp:
 			goto r;
+		    case jit_cc_a0_int:
+			goto w;
 		    case jit_cc_a0_jmp:
 			goto n;
 		    case jit_cc_a0_reg|jit_cc_a1_reg:

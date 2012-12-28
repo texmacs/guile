@@ -777,6 +777,9 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_epilog:
 	    mask = 0;
 	    break;
+	case jit_code_arg:	case jit_code_arg_f:	case jit_code_arg_d:
+	    mask = jit_cc_a0_int;
+	    break;
 	case jit_code_calli:	case jit_code_jmpi:
 	    mask = jit_cc_a0_jmp;
 	    break;

@@ -239,8 +239,8 @@ static symbol_t *get_symbol(void);
 static void jmp_forward(void *value, label_t *label);
 static void mov_forward(void *value, label_t *label);
 static void call_forward(void *value, label_t *label);
-static void make_arg(long value);
-static long get_arg(void);
+static void make_arg(void *value);
+static jit_pointer_t get_arg(void);
 static long get_imm(void);
 static void prolog(void);	static void ellipsis(void);
 static void allocai(void);
@@ -812,23 +812,23 @@ call_forward(void *value, label_t *label)
 }
 
 static void
-make_arg(long value)
+make_arg(void *value)
 {
     symbol_t	*symbol = get_symbol();
 
-    symbol->type = type_l;
-    symbol->value.i = value;
+    symbol->type = type_p;
+    symbol->value.p = value;
 }
 
-static long
+static jit_pointer_t
 get_arg(void)
 {
     symbol_t	*symbol = get_symbol();
 
-    if (symbol->type != type_l)
+    if (symbol->type != type_p)
 	error("bad argument %s type", symbol->name);
 
-    return symbol->value.i;
+    return symbol->value.p;
 }
 
 static long
@@ -885,8 +885,8 @@ name(void)								\
 static void								\
 name(void)								\
 {									\
-    jit_gpr_t	r0 = get_ireg();					\
-    jit_int32_t	ac = get_arg();						\
+    jit_gpr_t		r0 = get_ireg();				\
+    jit_pointer_t	ac = get_arg();					\
     jit_##name(r0, ac);							\
 }
 #define entry_im(name)							\
@@ -1010,8 +1010,8 @@ name(void)								\
 static void								\
 name(void)								\
 {									\
-    jit_fpr_t	r0 = get_freg();					\
-    jit_int32_t	ac = get_arg();						\
+    jit_fpr_t		r0 = get_freg();				\
+    jit_pointer_t	ac = get_arg();					\
     jit_##name(r0, ac);							\
 }
 #define entry_fr_fr_fr(name)						\
