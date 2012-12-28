@@ -1180,7 +1180,7 @@ _jit_emit(jit_state_t *_jit)
 		    temp = node->u.n;
 		    assert(temp->code == jit_code_label ||
 			   temp->code == jit_code_epilog);
-		    word = calli(temp->u.w);
+		    word = calli_p(temp->u.w);
 		    if (!(temp->flag & jit_flag_patch))
 			patch(word, node);
 		}

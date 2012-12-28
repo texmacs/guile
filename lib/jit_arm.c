@@ -1468,26 +1468,21 @@ _jit_emit(jit_state_t *_jit)
 	assert(_jit->patches.ptr[offset].kind & arm_patch_node);
 	node = _jit->patches.ptr[offset].node;
 	word = _jit->patches.ptr[offset].inst;
-	if (node->code == jit_code_movi) {
-	    if (jit_thumb_p())
-		value = node->v.n->u.w;
-	    else {
-		/* calculate where to patch word */
-		value = *(jit_int32_t *)word;
-		assert((value & 0x0f700000) == ARM_LDRI);
-		/* offset may become negative (-4) if last instruction
-		 * before unconditional branch and data following
-		 * FIXME can this cause issues in the preprocessor prefetch
-		 * or something else? should not, as the constants are after
-		 * an unconditional jump */
-		if (value & ARM_P)	value =   value & 0x00000fff;
-		else			value = -(value & 0x00000fff);
-		word = word + 8 + value;
-		value = node->v.n->u.w;
-	    }
-	}
-	else
-	    value = node->u.n->u.w;
+	if (!jit_thumb_p() &&
+	    (node->code == jit_code_movi || node->code == jit_code_calli)) {
+	    /* calculate where to patch word */
+	    value = *(jit_int32_t *)word;
+	    assert((value & 0x0f700000) == ARM_LDRI);
+	    /* offset may become negative (-4) if last instruction
+	     * before unconditional branch and data following
+	     * FIXME can this cause issues in the preprocessor prefetch
+	     * or something else? should not, as the constants are after
+	     * an unconditional jump */
+	    if (value & ARM_P)	value =   value & 0x00000fff;
+	    else		value = -(value & 0x00000fff);
+	    word = word + 8 + value;
+ 	}
+	value = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
 	patch_at(_jit->patches.ptr[offset].kind & ~arm_patch_node, word, value);
     }
 
@@ -1715,12 +1710,9 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
     }
     else {
 	flag = node->u.n->flag;
-#if 1
-	/* should work if #if 0'ed, but better to avoid the goto fallback */
-	if (node->code == jit_code_calli && jit_thumb_p())
+	if (node->code == jit_code_calli)
 	    kind = arm_patch_word;
 	else
-#endif
 	    kind = arm_patch_jump;
     }
     assert(!(flag & jit_flag_patch));

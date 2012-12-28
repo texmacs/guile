@@ -654,7 +654,9 @@ static jit_word_t _bmci(jit_state_t*,jit_word_t,jit_int32_t,jit_word_t);
 #  define callr(r0)			_callr(_jit, r0)
 static void _callr(jit_state_t*,jit_int32_t);
 #  define calli(i0)			_calli(_jit, i0)
-static jit_word_t _calli(jit_state_t*,jit_word_t);
+static void _calli(jit_state_t*,jit_word_t);
+#  define calli_p(i0)			_calli_p(_jit, i0)
+static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 #  define prolog(node)			_prolog(_jit, node)
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define epilog(node)			_epilog(_jit, node)
@@ -2681,13 +2683,21 @@ _callr(jit_state_t *_jit, jit_int32_t r0)
     NOP(1);
 }
 
-static jit_word_t
+static void
 _calli(jit_state_t *_jit, jit_word_t i0)
+{
+    movi(_T9_REGNO, i0);
+    JALR(_T9_REGNO);
+    NOP(1);
+}
+
+static jit_word_t
+_calli_p(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		word;
 
     word = _jit->pc.w;
-    movi(_T9_REGNO, i0);
+    movi_p(_T9_REGNO, i0);
     JALR(_T9_REGNO);
     NOP(1);
 

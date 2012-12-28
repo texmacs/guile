@@ -362,9 +362,9 @@ static jit_word_t _movi_p(jit_state_t*,jit_int32_t,jit_word_t);
 #  define negr(r0,r1)			NEG(r0,r1)
 #  define comr(r0,r1)			NOT(r0,r1)
 #  define extr_c(r0,r1)			EXTSB(r0,r1)
-#  define extr_uc(r0,r1)		ANDI_(r0,r0,0xff)
+#  define extr_uc(r0,r1)		ANDI_(r0,r1,0xff)
 #  define extr_s(r0,r1)			EXTSH(r0,r1)
-#  define extr_us(r0,r1)		ANDI_(r0,r0,0xffff)
+#  define extr_us(r0,r1)		ANDI_(r0,r1,0xffff)
 #  if __BYTE_ORDER == __BIG_ENDIAN
 #    define htonr(r0,r1)		movr(r0,r1)
 #  else
