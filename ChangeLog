@@ -1,3 +1,19 @@
+2012-12-29 Paulo Andrade <pcpa@gnu.org>
+
+	* check/float.ok, check/float.tst: New test cases implementing
+	extensive validation of float comparison and branch code
+	generation as well as integer conversion, involving NaN and
+	[+-]Inf.
+
+	* lib/jit_arm-swf.c, lib/jit_x86-sse.c, lib/jit_x86-x87.c:
+	Correct bugs found by new float test case.
+
+	* lib/jit_x86.c: Correct cut&paste error added in commit to
+	convert jit_arg* return value to a jit_node_t*,	that would
+	cause it to not properly handle double arguments in ix86.
+
+	* check/Makefile.am: Update for the new test case.
+
 2012-12-28 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c, include/lightning.h, lib/jit_arm.c,

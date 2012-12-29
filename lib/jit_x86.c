@@ -480,11 +480,7 @@ _jit_arg_d(jit_state_t *_jit)
 #endif
     {
 	offset = _jit->function->self.size;
-#if __WORDSIZE == 32
-	_jit->function->self.size += sizeof(jit_float32_t);
-#else
 	_jit->function->self.size += sizeof(jit_float64_t);
-#endif
     }
     return (jit_new_node_w(jit_code_arg_d, offset));
 }

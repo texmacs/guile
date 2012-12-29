@@ -191,7 +191,7 @@ static void _sse_ungei_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 static void _sse_unger_f(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define sse_ungti_f(r0, r1, i0)	_sse_ungti_f(_jit, r0, r1, i0)
 static void _sse_ungti_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
-#  define sse_ungtr_f(r0, r1, r2)	ssecmpf(X86_CC_NAE, r0, r2, r1)
+#  define sse_ungtr_f(r0, r1, r2)	ssecmpf(X86_CC_NAE, r0, r1, r2)
 #  define sse_ltgti_f(r0, r1, i0)	_sse_ltgti_f(_jit, r0, r1, i0)
 static void _sse_ltgti_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 #  define sse_ltgtr_f(r0, r1, r2)	_sse_ltgtr_f(_jit, r0, r1, r2)
@@ -323,7 +323,7 @@ static void _sse_uneqi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 static void _sse_unger_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define sse_ungei_d(r0, r1, i0)	_sse_ungei_d(_jit, r0, r1, i0)
 static void _sse_ungei_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
-#  define sse_ungtr_d(r0, r1, r2)	ssecmpd(X86_CC_NAE, r0, r2, r1)
+#  define sse_ungtr_d(r0, r1, r2)	ssecmpd(X86_CC_NAE, r0, r1, r2)
 #  define sse_ungti_d(r0, r1, i0)	_sse_ungti_d(_jit, r0, r1, i0)
 static void _sse_ungti_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define sse_ltgtr_d(r0, r1, r2)	_sse_ltgtr_d(_jit, r0, r1, r2)

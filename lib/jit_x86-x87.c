@@ -166,7 +166,7 @@ static void _x87_unlti_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 #  define x87_unler_f(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r1, r2)
 #  define x87_unlei_f(r0, r1, i0)	_x87_unlei_f(_jit, r0, r1, i0)
 static void _x87_unlei_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
-#  define x87_uneqr_f(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r1)
+#  define x87_uneqr_f(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r2)
 #  define x87_uneqi_f(r0, r1, i0)	_x87_uneqi_f(_jit, r0, r1, i0)
 static void _x87_uneqi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 #  define x87_unger_f(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r2, r1)
@@ -210,7 +210,7 @@ static void _x87_unlti_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define x87_unler_d(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r1, r2)
 #  define x87_unlei_d(r0, r1, i0)	_x87_unlei_d(_jit, r0, r1, i0)
 static void _x87_unlei_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
-#  define x87_uneqr_d(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r1)
+#  define x87_uneqr_d(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r2)
 #  define x87_uneqi_d(r0, r1, i0)	_x87_uneqi_d(_jit, r0, r1, i0)
 static void _x87_uneqi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define x87_unger_d(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r2, r1)
