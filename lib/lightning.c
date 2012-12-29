@@ -1441,12 +1441,6 @@ _thread_jumps(jit_state_t *_jit)
 	    case jit_code_callr:	case jit_code_calli:
 		/* non optimizable jump like code */
 		break;
-	    case jit_code_beqr_f:	case jit_code_beqi_f:
-	    case jit_code_beqr_d:	case jit_code_beqi_d:
-	    case jit_code_bltgtr_f:	case jit_code_bltgti_f:
-	    case jit_code_bltgtr_d:	case jit_code_bltgti_d:
-		/* non optimizable jump code */
-		break;
 	    default:
 		mask = jit_classify(node->code);
 		if (mask & jit_cc_a0_jmp) {
@@ -1627,30 +1621,34 @@ reverse_jump_code(jit_code_t code)
 	case jit_code_blti_f:	return (jit_code_bungei_f);
 	case jit_code_bler_f:	return (jit_code_bungtr_f);
 	case jit_code_blei_f:	return (jit_code_bungti_f);
-#if 0
-	case jit_code_beqr_f:	return (jit_code_bltgtr_f);
-	case jit_code_beqi_f:	return (jit_code_bltgti_f);
-#endif
+
+	case jit_code_beqr_f:	return (jit_code_bner_f);
+	case jit_code_beqi_f:	return (jit_code_bnei_f);
+
 	case jit_code_bger_f:	return (jit_code_bunltr_f);
 	case jit_code_bgei_f:	return (jit_code_bunlti_f);
 	case jit_code_bgtr_f:	return (jit_code_bunler_f);
 	case jit_code_bgti_f:	return (jit_code_bunlei_f);
-	case jit_code_bner_f:	return (jit_code_buneqr_f);
-	case jit_code_bnei_f:	return (jit_code_buneqi_f);
+
+	case jit_code_bner_f:	return (jit_code_beqr_f);
+	case jit_code_bnei_f:	return (jit_code_beqr_f);
+
 	case jit_code_bunltr_f:	return (jit_code_bger_f);
 	case jit_code_bunlti_f:	return (jit_code_bgei_f);
 	case jit_code_bunler_f:	return (jit_code_bgtr_f);
 	case jit_code_bunlei_f:	return (jit_code_bgti_f);
-	case jit_code_buneqr_f:	return (jit_code_bgtr_f);
-	case jit_code_buneqi_f:	return (jit_code_bgti_f);
+
+	case jit_code_buneqr_f:	return (jit_code_bltgtr_f);
+	case jit_code_buneqi_f:	return (jit_code_bltgti_f);
+
 	case jit_code_bunger_f:	return (jit_code_bltr_f);
 	case jit_code_bungei_f:	return (jit_code_blti_f);
 	case jit_code_bungtr_f:	return (jit_code_bler_f);
 	case jit_code_bungti_f:	return (jit_code_blei_f);
-#if 0
-	case jit_code_bltgtr_f:	return (jit_code_beqr_f);
-	case jit_code_bltgti_f:	return (jit_code_beqi_f);
-#endif
+
+	case jit_code_bltgtr_f:	return (jit_code_buneqr_f);
+	case jit_code_bltgti_f:	return (jit_code_buneqi_f);
+
 	case jit_code_bordr_f:	return (jit_code_bunordr_f);
 	case jit_code_bordi_f:	return (jit_code_bunordi_f);
 	case jit_code_bunordr_f:return (jit_code_bordr_f);
@@ -1659,26 +1657,34 @@ reverse_jump_code(jit_code_t code)
 	case jit_code_blti_d:	return (jit_code_bungei_d);
 	case jit_code_bler_d:	return (jit_code_bungtr_d);
 	case jit_code_blei_d:	return (jit_code_bungti_d);
-	case jit_code_beqr_d:	return (jit_code_bltgtr_d);
-	case jit_code_beqi_d:	return (jit_code_bltgti_d);
+
+	case jit_code_beqr_d:	return (jit_code_bner_d);
+	case jit_code_beqi_d:	return (jit_code_bner_d);
+
 	case jit_code_bger_d:	return (jit_code_bunltr_d);
 	case jit_code_bgei_d:	return (jit_code_bunlti_d);
 	case jit_code_bgtr_d:	return (jit_code_bunler_d);
 	case jit_code_bgti_d:	return (jit_code_bunlei_d);
-	case jit_code_bner_d:	return (jit_code_buneqr_d);
-	case jit_code_bnei_d:	return (jit_code_buneqi_d);
+
+	case jit_code_bner_d:	return (jit_code_beqr_d);
+	case jit_code_bnei_d:	return (jit_code_beqi_d);
+
 	case jit_code_bunltr_d:	return (jit_code_bger_d);
 	case jit_code_bunlti_d:	return (jit_code_bgei_d);
 	case jit_code_bunler_d:	return (jit_code_bgtr_d);
 	case jit_code_bunlei_d:	return (jit_code_bgti_d);
-	case jit_code_buneqr_d:	return (jit_code_bgtr_d);
-	case jit_code_buneqi_d:	return (jit_code_bgti_d);
+
+	case jit_code_buneqr_d:	return (jit_code_bltgtr_d);
+	case jit_code_buneqi_d:	return (jit_code_bltgti_d);
+
 	case jit_code_bunger_d:	return (jit_code_bltr_d);
 	case jit_code_bungei_d:	return (jit_code_blti_d);
 	case jit_code_bungtr_d:	return (jit_code_bler_d);
 	case jit_code_bungti_d:	return (jit_code_blei_d);
-	case jit_code_bltgtr_d:	return (jit_code_beqr_d);
-	case jit_code_bltgti_d:	return (jit_code_beqi_d);
+
+	case jit_code_bltgtr_d:	return (jit_code_buneqr_d);
+	case jit_code_bltgti_d:	return (jit_code_buneqi_d);
+
 	case jit_code_bordr_d:	return (jit_code_bunordr_d);
 	case jit_code_bordi_d:	return (jit_code_bunordi_d);
 	case jit_code_bunordr_d:return (jit_code_bordr_d);

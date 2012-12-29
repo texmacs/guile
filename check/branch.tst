@@ -517,7 +517,7 @@ xnei_f_f0_f1:
 	BOPF(eq, 3, 3)
 	BOPF(ge, 3, 3)
 	BOPF(gt, 4, 3)
-	BOPF(ne, 4, 3)
+	UBOPF(ne, 4, 3)
 	UBOPF(unlt, 1, 2)
 	UBOPF(unle, 2, 2)
 	UBOPF(uneq, 3, 3)

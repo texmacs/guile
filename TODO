@@ -9,7 +9,3 @@
 
 	* Test and correct the ppc and mips ports, after the import and
 	adaptation of the code to lightning.
-
-	* Add new float/double comparison and branch codes:
-	unne:	proper inverse of eq	(nan/nan == 0)
-	eqeq:	proper inverse of ltgt	(nan/nan == 1)
