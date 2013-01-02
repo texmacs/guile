@@ -812,7 +812,7 @@ _swf_iunff_(jit_state_t *_jit, int (*i0)(float, float),
     movi(_R1_REGNO, data.i);
     swf_call(__aeabi_fcmpun, fcmpun, _R2_REGNO);
     if (jit_thumb_p()) {
-	T1_CMPI(__R0_REGNO, 0);
+	T1_CMPI(_R0_REGNO, 0);
 	IT(ARM_CC_NE);
 	if (r0 < 8)
 	    T1_MOVI(r0, 1);
@@ -822,7 +822,7 @@ _swf_iunff_(jit_state_t *_jit, int (*i0)(float, float),
 	T2_CC_B(ARM_CC_NE, 0);
     }
     else {
-	CMPI(__R0_REGNO, 0);
+	CMPI(_R0_REGNO, 0);
 	CC_MOVI(ARM_CC_NE, r0, 1);
 	instr = _jit->pc.w;
 	CC_B(ARM_CC_NE, 0);
@@ -865,7 +865,7 @@ _swf_iundd_(jit_state_t *_jit, int (*i0)(double, double),
     movi(_R3_REGNO, data.i[1]);
     swf_call_with_get_reg(__aeabi_dcmpun, dcmpun);
     if (jit_thumb_p()) {
-	T1_CMPI(__R0_REGNO, 0);
+	T1_CMPI(_R0_REGNO, 0);
 	IT(ARM_CC_NE);
 	if (r0 < 8)
 	    T1_MOVI(r0, 1);
@@ -875,7 +875,7 @@ _swf_iundd_(jit_state_t *_jit, int (*i0)(double, double),
 	T2_CC_B(ARM_CC_NE, 0);
     }
     else {
-	CMPI(__R0_REGNO, 0);
+	CMPI(_R0_REGNO, 0);
 	CC_MOVI(ARM_CC_NE, r0, 1);
 	instr = _jit->pc.w;
 	CC_B(ARM_CC_NE, 0);

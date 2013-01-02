@@ -1,3 +1,12 @@
+2013-01-02 Paulo Andrade <pcpa@gnu.org>
+
+	* check/float.tst: Correct test case to match ppc also
+	converting positive infinity to 0x7fffffff.
+
+	* lib/jit_arm-swf.c: Correct typos with double underscores.
+
+	* lib/lightning.c: Correct remaining wrong reverse jump logic.
+
 2012-12-29 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Correct both, wrong and confusing logic

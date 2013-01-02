@@ -1659,7 +1659,7 @@ reverse_jump_code(jit_code_t code)
 	case jit_code_blei_d:	return (jit_code_bungti_d);
 
 	case jit_code_beqr_d:	return (jit_code_bner_d);
-	case jit_code_beqi_d:	return (jit_code_bner_d);
+	case jit_code_beqi_d:	return (jit_code_bnei_d);
 
 	case jit_code_bger_d:	return (jit_code_bunltr_d);
 	case jit_code_bgei_d:	return (jit_code_bunlti_d);

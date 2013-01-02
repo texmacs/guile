@@ -21,7 +21,7 @@ ok:
 #else
 #  define wnan			x80
 #endif
-#if __mips__ || __arm__
+#if __mips__ || __arm__ || __ppc__
 #  define wpinf			x7f
 #else
 #  define wpinf			x80
