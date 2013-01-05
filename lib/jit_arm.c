@@ -1480,6 +1480,7 @@ _jit_emit(jit_state_t *_jit)
     }
 
     __clear_cache(_jit->code.ptr, _jit->pc.uc);
+    _jit->done = 1;
 
     return (_jit->code.ptr);
 }

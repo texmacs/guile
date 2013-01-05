@@ -1,3 +1,50 @@
+2013-01-05 Paulo Andrade <pcpa@gnu.org>
+
+	* check/cccall.c, check/ccall.ok: New test case to validate
+	interleaved calls from/to C code and jit.
+
+	* check/Makefile.am: Update for the new ccall test case.
+
+	* include/lightning.h, lib/lightning.c: Add the new jit_address
+	call that returns the real/final address of a "note" in the
+	generated jit. It requires a jit_node_t as returned by the
+	jit_note call, and is only valid after calling jit_emit.
+	  Add an intermediate solution to properly handle arm
+	soft and softfp modes that move a double to an integer register
+	pair. Currently it just adds extra tests for the condition,
+	but the proper solution should be to have extra lightning
+	codes for these conditions, codes which should be only used
+	by the backends that need it, and merged with the existing
+	jit_pusharg*_{f,d}.
+
+	* include/lightning/jit_private.h: Add new jit_state_t flag
+	to know it finished jit_emit, so that calls to jit_address
+	are valid.
+
+	* lib/jit_mips.c: Correct abi implementation so that the
+	new ccall test case pass. Major problem was using
+	_jit->function.self.arg{i,f} as boolean values, but that
+	would cause lightning.c:patch_registers() to incorrectly
+	assume only one register was used as argument when calling
+	jit_regarg_p(); _jit->function.self.arg{i,f} must be the
+	number of registers used as arguments (in all backends).
+
+	* lib/jit_x86.c: Add workaround, by marking %rax as used,
+	to a special condition, when running out of registers and the
+	allocator trying to spill and reload %rax, but %rax was used
+	as a pointer to a function, what would cause the reload to
+	destroy the return value. This condition can be better
+	generalized, but the current solution is good enough.
+
+	* include/lightning/jit_ppc.h, lib/jit_ppc-cpu.c, lib/jit_ppc.c:
+	Rewrite logic to handle arguments, as the original code was
+	written based on a SysV pdf about the generic powerpc ABI,
+	what did "invent" a new abi for the previous test cases, but
+	failed in the new ccall test in Darwin PPC. Now it properly
+	handles 13 float registers for arguments, as well as proper
+	computation of stack offsets when running out of registers
+	for arguments.
+
 2013-01-02 Paulo Andrade <pcpa@gnu.org>
 
 	* check/float.tst: Correct test case to match ppc also

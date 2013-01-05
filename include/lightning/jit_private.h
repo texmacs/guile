@@ -222,6 +222,7 @@ struct jit_state {
     } pc;
     jit_node_t		 *head;
     jit_node_t		 *tail;
+    jit_uint32_t	  done	: 1;	/* emit state finished */
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
     jit_uint32_t	  prepare : 1;	/* inside prepare/finish* block */

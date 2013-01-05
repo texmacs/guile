@@ -772,14 +772,18 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     if (_jit->function->self.alen < _jit->function->call.size)
 	_jit->function->self.alen = _jit->function->call.size;
 #if __WORDSIZE == 64
-    if (_jit->function->call.call & jit_call_varargs)
-	jit_regset_setbit(_jit->regarg, _RAX);
+    /* FIXME preventing %rax allocation is good enough, but for consistency
+     * it should automatically detect %rax is dead, in case it has run out
+     * registers, and not save/restore it, what would be wrong if using the
+     * the return value, otherwise, just a needless noop */
+    /* >> prevent %rax from being allocated as the function pointer */
+    jit_regset_setbit(_jit->regarg, _RAX);
     reg = jit_get_reg(jit_class_gpr);
     node = jit_movi(reg, (jit_word_t)i0);
     jit_finishr(reg);
     jit_unget_reg(reg);
-    if (_jit->function->call.call & jit_call_varargs)
-	jit_regset_clrbit(_jit->regarg, _RAX);
+    /* << prevent %rax from being allocated as the function pointer */
+    jit_regset_clrbit(_jit->regarg, _RAX);
 #else
     node = jit_calli(i0);
     node->v.w = _jit->function->call.argi;
@@ -1625,6 +1629,7 @@ _jit_emit(jit_state_t *_jit)
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
 	patch_at(node, _jit->patches.ptr[offset].inst, word);
     }
+    _jit->done = 1;
 
     return (_jit->code.ptr);
 }

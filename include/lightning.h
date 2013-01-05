@@ -728,6 +728,8 @@ extern void finish_jit(void);
 
 extern jit_state_t *jit_new_state(void);
 
+#define jit_address(node)	_jit_address(_jit, node)
+extern jit_pointer_t _jit_address(jit_state_t*, jit_node_t*);
 extern jit_node_t *_jit_data(jit_state_t*, jit_pointer_t, jit_word_t);
 extern jit_node_t *_jit_note(jit_state_t*, jit_pointer_t);
 

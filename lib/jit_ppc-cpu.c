@@ -17,10 +17,9 @@
 
 #if PROTO
 #  define gpr_save_area			72	/* r14~r31 = 18 * 4 */
-#  define fpr_save_area			0	/* FIXME extra fpr registers
-						 * not used */
+#  define fpr_save_area			64
 #  define alloca_offset			-(gpr_save_area + fpr_save_area)
-#  define params_offset			56
+#  define params_offset			24
 #  define ii(i)				*_jit->pc.ui++ = i
 #  define can_sign_extend_short_p(im)	((im) >= -32768 && (im) <= 32767)
 #  define can_zero_extend_short_p(im)	((im) >= 0 && (im) <= 65535)
@@ -2371,8 +2370,10 @@ static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	regno;
+    jit_word_t		offset;
 
-    _jit->function->stack = ((_jit->function->self.alen + params_offset -
+    _jit->function->stack = ((_jit->function->self.alen +
+			      _jit->function->self.size -
 			      _jit->function->self.aoff) + 15) & -16;
 
     /* return address */
@@ -2382,7 +2383,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
-    STMW(rn(regno), _SP_REGNO, -(32 * 4) + rn(regno) * 4);
+    STMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
+    for (offset = 0; offset < 8; offset++) {
+	if (jit_regset_tstbit(_jit->function->regset, _F14 + offset))
+	    stxi_d(-fpr_save_area + offset * 8, _SP_REGNO, rn(_F14 + offset));
+    }
 
     stxi(8, _SP_REGNO, _R0_REGNO);
 
@@ -2397,6 +2402,7 @@ static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
     unsigned long	regno;
+    jit_word_t		offset;
 
     LWZ(_SP_REGNO, _SP_REGNO, 0);
     ldxi(_R0_REGNO, _SP_REGNO, 8);
@@ -2406,7 +2412,11 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     regno = jit_regset_scan1(_jit->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
-    LMW(rn(regno), _SP_REGNO, -(32 * 4) + rn(regno) * 4);
+    LMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
+    for (offset = 0; offset < 8; offset++) {
+	if (jit_regset_tstbit(_jit->function->regset, _F14 + offset))
+	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -fpr_save_area + offset * 8);
+    }
     BLR();
 }
 

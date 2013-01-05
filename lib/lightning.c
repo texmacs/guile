@@ -311,6 +311,14 @@ hash_data(jit_pointer_t data, jit_word_t length)
     return (key);
 }
 
+jit_pointer_t
+_jit_address(jit_state_t *_jit, jit_node_t *node)
+{
+    assert(_jit->done);
+    assert(node && node->code == jit_code_note);
+    return ((jit_pointer_t)node->u.w);
+}
+
 jit_node_t *
 _jit_data(jit_state_t *_jit, jit_pointer_t data, jit_word_t length)
 {
@@ -760,8 +768,7 @@ _jit_patch(jit_state_t* _jit, jit_node_t *instr)
 {
     jit_node_t		*label;
 
-    if (!(label = _jit->tail) ||
-	(label->code != jit_code_label && label->code != jit_code_epilog))
+    if (!(label = _jit->tail) || label->code != jit_code_label)
 	label = jit_label();
     jit_patch_at(instr, label);
 }
@@ -1347,6 +1354,48 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			jit_regset_setbit(*live, value);
 		}
 		break;
+#if __arm__
+		/* This is not trivial to generalize, so, any backend
+		 * that needs to pass double as arguments or receive
+		 * double results in an integer register pair should
+		 * need such special case(s).
+		 */
+	    case jit_code_movi_d:
+		if (!(node->u.w & jit_regno_patch)) {
+		    spec = jit_class(_rvs[node->u.w].spec);
+		    if (spec & jit_class_gpr) {
+			/* must be a reti_d or pushargi_d */
+			jit_regset_clrbit(*mask, node->u.w + 1);
+			jit_regset_setbit(*live, node->u.w + 1);
+			jit_regset_clrbit(*mask, node->u.w);
+			jit_regset_setbit(*live, node->u.w);
+		    }
+		    else
+			goto fallback;
+		}
+		break;
+	    case jit_code_movr_d:
+		if (!(node->u.w & jit_regno_patch)) {
+		    spec = jit_class(_rvs[jit_regno(node->u.w)].spec);
+		    if (spec & jit_class_gpr) {
+			/* must be a retr_d */
+			jit_regset_clrbit(*mask, node->u.w + 1);
+			jit_regset_setbit(*live, node->u.w + 1);
+			jit_regset_clrbit(*mask, node->u.w);
+			jit_regset_setbit(*live, node->u.w);
+		    }
+		    else
+			goto fallback;
+		}
+		if (!(node->v.w & jit_regno_patch)) {
+		    if (jit_regset_tstbit(*mask, node->v.w)) {
+			jit_regset_clrbit(*mask, node->v.w);
+			jit_regset_setbit(*live, node->v.w);
+		    }
+		}
+		break;
+	    fallback:
+#endif
 	    default:
 		value = jit_classify(node->code);
 		if (value & jit_cc_a2_reg) {
