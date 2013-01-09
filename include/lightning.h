@@ -432,7 +432,7 @@ typedef enum {
 
 #define jit_arg_f()		_jit_arg_f(_jit)
 #define jit_getarg_f(u,v)	_jit_getarg_f(_jit,u,v)
-    jit_code_arg_f,		jit_code_getarg_f,
+    jit_code_arg_f,
 
 #define jit_addr_f(u,v,w)	jit_new_node_www(jit_code_addr_f,u,v,w)
 #define jit_addi_f(u,v,w)	jit_new_node_wwf(jit_code_addi_f,u,v,w)
@@ -568,15 +568,13 @@ typedef enum {
 
 #define jit_pushargr_f(u)	_jit_pushargr_f(_jit,u)
 #define jit_pushargi_f(u)	_jit_pushargi_f(_jit,u)
-    jit_code_pushargr_f,	jit_code_pushargi_f,
 #define jit_retr_f(u)		_jit_retr_f(_jit,u)
 #define jit_reti_f(u)		_jit_reti_f(_jit,u)
 #define jit_retval_f(u)		_jit_retval_f(_jit,u)
-    jit_code_retval_f,
 
 #define jit_arg_d()		_jit_arg_d(_jit)
 #define jit_getarg_d(u,v)	_jit_getarg_d(_jit,u,v)
-    jit_code_arg_d,		jit_code_getarg_d,
+    jit_code_arg_d,
 
 #define jit_addr_d(u,v,w)	jit_new_node_www(jit_code_addr_d,u,v,w)
 #define jit_addi_d(u,v,w)	jit_new_node_wwd(jit_code_addi_d,u,v,w)
@@ -713,11 +711,22 @@ typedef enum {
 
 #define jit_pushargr_d(u)	_jit_pushargr_d(_jit,u)
 #define jit_pushargi_d(u)	_jit_pushargi_d(_jit,u)
-    jit_code_pushargr_d,	jit_code_pushargi_d,
 #define jit_retr_d(u)		_jit_retr_d(_jit,u)
 #define jit_reti_d(u)		_jit_reti_d(_jit,u)
 #define jit_retval_d(u)		_jit_retval_d(_jit,u)
-    jit_code_retval_d,
+
+    /* Special internal backend specific codes */
+    jit_code_movr_w_f,		jit_code_movr_ww_d,	/* w* -> f|d */
+#define jit_movr_w_f(u, v)	jit_new_node_ww(jit_code_movr_w_f, u, v)
+#define jit_movr_ww_d(u, v, w)	jit_new_node_www(jit_code_movr_ww_d, u, v, w)
+
+    jit_code_movr_f_w,		jit_code_movi_f_w,	/* f|d -> w* */
+#define jit_movr_f_w(u, v)	jit_new_node_ww(jit_code_movr_f_w, u, v)
+#define jit_movi_f_w(u, v)	jit_new_node_wf(jit_code_movi_f_w, u, v)
+    jit_code_movr_d_ww,		jit_code_movi_d_ww,
+#define jit_movr_d_ww(u, v, w)	jit_new_node_www(jit_code_movr_d_ww, u, v, w)
+#define jit_movi_d_ww(u, v, w)	jit_new_node_wwd(jit_code_movi_d_ww, u, v, w)
+    jit_code_x86_retval_f,	jit_code_x86_retval_d,
 } jit_code_t;
 
 /*

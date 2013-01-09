@@ -292,28 +292,48 @@ _jit_reti(jit_state_t *_jit, jit_word_t u)
 void
 _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_f(JIT_FRET, u);
+    if (jit_cpu.abi) {
+	if (u != JIT_FRET)
+	    jit_movr_f(JIT_FRET, u);
+    }
+    else if (u != JIT_RET)
+	jit_movr_f_w(JIT_RET, u);
     jit_ret();
 }
 
 void
 _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 {
-    jit_movi_f(JIT_FRET, u);
+    if (jit_cpu.abi) {
+	if (u != JIT_FRET)
+	    jit_movi_f(JIT_FRET, u);
+    }
+    else if (u != JIT_RET)
+	jit_movi_f_w(JIT_RET, u);
     jit_ret();
 }
 
 void
 _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_d(JIT_FRET, u);
+    if (jit_cpu.abi) {
+	if (u != JIT_FRET)
+	    jit_movr_d(JIT_FRET, u);
+    }
+    else if (u != JIT_RET)
+	jit_movr_d_ww(JIT_RET, _R1, u);
     jit_ret();
 }
 
 void
 _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
 {
-    jit_movi_d(JIT_FRET, u);
+    if (jit_cpu.abi) {
+	if (u != JIT_FRET)
+	    jit_movi_d(JIT_FRET, u);
+    }
+    else if (u != JIT_RET)
+	jit_movi_d_ww(JIT_RET, _R1, u);
     jit_ret();
 }
 
@@ -485,7 +505,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	jit_ldxi_f(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
     else {
 	if (v->u.w < 4)
-	    jit_movr_f(u, JIT_RA0 - v->u.w);
+	    jit_movr_w_f(u, JIT_RA0 - v->u.w);
 	else
 	    jit_ldxi_f(u, JIT_FP, v->u.w);
     }
@@ -504,7 +524,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	jit_ldxi_d(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
     else {
 	if (v->u.w < 4)
-	    jit_movr_d(u, JIT_RA0 - v->u.w);
+	    jit_movr_ww_d(u, JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1));
 	else
 	    jit_ldxi_d(u, JIT_FP, v->u.w);
     }
@@ -556,7 +576,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
     }
     else {
 	if (_jit->function->call.argi < 4) {
-	    jit_movr_f(JIT_RA0 - _jit->function->call.argi, u);
+	    jit_movr_f_w(JIT_RA0 - _jit->function->call.argi, u);
 	    ++_jit->function->call.argi;
 	    return;
 	}
@@ -580,7 +600,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     }
     else {
 	if (_jit->function->call.argi < 4) {
-	    jit_movi_f(JIT_RA0 - _jit->function->call.argi, u);
+	    jit_movi_f_w(JIT_RA0 - _jit->function->call.argi, u);
 	    ++_jit->function->call.argi;
 	    return;
 	}
@@ -609,7 +629,9 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	if (_jit->function->call.argi & 1)
 	    ++_jit->function->call.argi;
 	if (_jit->function->call.argi < 4) {
-	    jit_movr_d(JIT_RA0 - _jit->function->call.argi, u);
+	    jit_movr_d_ww(JIT_RA0 - _jit->function->call.argi,
+			  JIT_RA0 - (_jit->function->call.argi + 1),
+			  u);
 	    _jit->function->call.argi += 2;
 	    return;
 	}
@@ -639,7 +661,9 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	if (_jit->function->call.argi & 1)
 	    ++_jit->function->call.argi;
 	if (_jit->function->call.argi < 4) {
-	    jit_movi_d(JIT_RA0 - _jit->function->call.argi, u);
+	    jit_movi_d_ww(JIT_RA0 - _jit->function->call.argi,
+			  JIT_RA0 - (_jit->function->call.argi + 1),
+			  u);
 	    _jit->function->call.argi += 2;
 	    return;
 	}
@@ -745,7 +769,7 @@ _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 	    jit_movr_f(r0, JIT_FRET);
     }
     else if (r0 != JIT_RET)
-	jit_movr_f(r0, JIT_RET);
+	jit_movr_w_f(r0, JIT_RET);
 }
 
 void
@@ -756,7 +780,7 @@ _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 	    jit_movr_d(r0, JIT_FRET);
     }
     else if (r0 != JIT_RET)
-	jit_movr_d(r0, JIT_RET);
+	jit_movr_ww_d(r0, JIT_RET, _R1);
 }
 
 jit_pointer_t
@@ -1409,6 +1433,44 @@ _jit_emit(jit_state_t *_jit)
 		epilog(node);
 		_jit->function = NULL;
 		flush_consts();
+		break;
+	    case jit_code_movr_w_f:
+		if (jit_swf_p())
+		    swf_movr_f(rn(node->u.w), rn(node->v.w));
+		else
+		    vfp_movr_f(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_movr_f_w:
+		if (jit_swf_p())
+		    swf_movr_f(rn(node->u.w), rn(node->v.w));
+		else
+		    vfp_movr_f(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_movi_f_w:
+		assert_data(node);
+		if (jit_swf_p())
+		    swf_movi_f(rn(node->u.w), node->v.f);
+		else
+		    vfp_movi_f(rn(node->u.w), node->v.f);
+		break;
+	    case jit_code_movr_ww_d:
+		if (jit_swf_p())
+		    swf_movr_d(rn(node->u.w), rn(node->v.w));
+		else
+		    vfp_movr_d(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_movr_d_ww:
+		if (jit_swf_p())
+		    swf_movr_d(rn(node->u.w), rn(node->w.w));
+		else
+		    vfp_movr_d(rn(node->u.w), rn(node->w.w));
+		break;
+	    case jit_code_movi_d_ww:
+		assert_data(node);
+		if (jit_swf_p())
+		    swf_movi_d(rn(node->u.w), node->w.d);
+		else
+		    vfp_movi_d(rn(node->u.w), node->w.d);
 		break;
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:

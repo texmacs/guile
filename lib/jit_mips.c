@@ -381,7 +381,7 @@ void
 _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 4)
-	jit_new_node_ww(jit_code_getarg_f, u, _A0 - v->u.w);
+	jit_movr_w_f(u, _A0 - v->u.w);
     else if (v->u.w < 8)
 	jit_movr_f(u, _F12 - ((v->u.w - 4) >> 1));
     else
@@ -392,7 +392,7 @@ void
 _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 4)
-	jit_new_node_ww(jit_code_getarg_d, u, _A0 - v->u.w);
+	jit_movr_ww_d(u, _A0 - v->u.w, _A0 - (v->u.w + 1));
     else if (v->u.w < 8)
 	jit_movr_d(u, _F12 - ((v->u.w - 4) >> 1));
     else
@@ -447,7 +447,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
     }
     else if (offset < 4) {
 	++_jit->function->call.argi;
-	jit_new_node_ww(jit_code_pushargr_f, _A0 - offset, u);
+	jit_movr_f_w(_A0 - offset, u);
     }
     else
 	jit_stxi_f(_jit->function->call.size, JIT_SP, u);
@@ -468,7 +468,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     }
     else if (offset < 4) {
 	++_jit->function->call.argi;
-	jit_new_node_wf(jit_code_pushargi_f, _A0 - offset, u);
+	jit_movi_f_w(_A0 - offset, u);
     }
     else {
 	regno = jit_get_reg(jit_class_fpr);
@@ -494,7 +494,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     offset = _jit->function->call.size >> 2;
     if (offset < 3) {
 	if (adjust) {
-	    jit_new_node_ww(jit_code_pushargr_d, _A0 - offset, u);
+	    jit_movr_d_ww(_A0 - offset, _A0 - (offset + 1), u);
 	    _jit->function->call.argi += 2;
 	}
 	else {
@@ -523,7 +523,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     offset = _jit->function->call.size >> 2;
     if (offset < 3) {
 	if (adjust) {
-	    jit_new_node_wd(jit_code_pushargi_d, _A0 - offset, u);
+	    jit_movi_d_ww(_A0 - offset, _A0 - (offset + 1), u);
 	    _jit->function->call.argi += 2;
 	}
 	else {
@@ -1184,21 +1184,26 @@ _jit_emit(jit_state_t *_jit)
 		epilog(node);
 		_jit->function = NULL;
 		break;
-	    case jit_code_getarg_f:
-		getarg_f(rn(node->u.w), rn(node->v.w));
+	    case jit_code_movr_w_f:
+		movr_w_f(rn(node->u.w), rn(node->v.w));
 		break;
-		case_rr(pusharg, _f);
-	    case jit_code_pushargi_f:
+	    case jit_code_movr_f_w:
+		movr_f_w(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_movi_f_w:
 		assert(node->flag & jit_flag_data);
-		pushargi_f(rn(node->u.w), (jit_float32_t *)node->v.n->u.w);
+		movi_f_w(rn(node->u.w), (jit_float32_t *)node->v.n->u.w);
 		break;
-	    case jit_code_getarg_d:
-		getarg_d(rn(node->u.w), rn(node->v.w));
+	    case jit_code_movr_ww_d:
+		movr_ww_d(rn(node->u.w), rn(node->v.w), rn(node->w.w));
 		break;
-		case_rr(pusharg, _d);
-	    case jit_code_pushargi_d:
+	    case jit_code_movr_d_ww:
+		movr_d_ww(rn(node->u.w), rn(node->v.w), rn(node->w.w));
+		break;
+	    case jit_code_movi_d_ww:
 		assert(node->flag & jit_flag_data);
-		pushargi_d(rn(node->u.w), (jit_float64_t *)node->v.n->u.w);
+		movi_d_ww(rn(node->u.w), rn(node->v.w),
+			  (jit_float64_t *)node->w.n->u.w);
 		break;
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:

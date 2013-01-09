@@ -212,10 +212,10 @@ static void _divi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define negr_d(r0,r1)			NEG_D(r0,r1)
 #  define sqrtr_f(r0,r1)		SQRT_S(r0,r1)
 #  define sqrtr_d(r0,r1)		SQRT_D(r0,r1)
-#  define getarg_f(r0, r1)		MTC1(r1, r0)
-#  define pushargr_f(r0, r1)		MFC1(r1, r0)
-#  define pushargi_f(r0, i0)		_pushargi_f(_jit, r0, i0)
-static void _pushargi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
+#  define movr_w_f(r0, r1)		MTC1(r1, r0)
+#  define movr_f_w(r0, r1)		MFC1(r1, r0)
+#  define movi_f_w(r0, i0)		_movi_f_w(_jit, r0, i0)
+static void _movi_f_w(jit_state_t*,jit_int32_t,jit_float32_t*);
 #  define extr_f(r0, r1)		_extr_f(_jit, r0, r1)
 static void _extr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define truncr_f_i(r0, r1)		_truncr_f_i(_jit, r0, r1)
@@ -243,12 +243,12 @@ static void _stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 static void _movr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
-#  define getarg_d(r0, r1)		_getarg_d(_jit, r0, r1)
-static void _getarg_d(jit_state_t*,jit_int32_t,jit_int32_t);
-#  define pushargr_d(r0, r1)		_pushargr_d(_jit, r0, r1)
-static void _pushargr_d(jit_state_t*,jit_int32_t,jit_int32_t);
-#  define pushargi_d(r0, i0)		_pushargi_d(_jit, r0, i0)
-static void _pushargi_d(jit_state_t*,jit_int32_t,jit_float64_t*);
+#  define movr_ww_d(r0, r1, r2)		_movr_ww_d(_jit, r0, r1, r2)
+static void _movr_ww_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
+#  define movr_d_ww(r0, r1, r2)		_movr_d_ww(_jit, r0, r1, r2)
+static void _movr_d_ww(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
+#  define movi_d_ww(r0, r1, i0)		_movi_d_ww(_jit, r0, r1, i0)
+static void _movi_d_ww(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define extr_d(r0, r1)		_extr_d(_jit, r0, r1)
 static void _extr_d(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define truncr_d_i(r0, r1)		_truncr_d_i(_jit, r0, r1)
@@ -581,7 +581,7 @@ fopi(mul)
 fopi(div)
 
 static void
-_pushargi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
+_movi_f_w(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 {
     union {
 	jit_int32_t	i;
@@ -733,29 +733,23 @@ dopi(mul)
 dopi(div)
 
 static void
-_getarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_movr_ww_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-#  if __WORDSIZE == 32
+    assert(r1 == r2 - 1);
     MTC1(r1, r0);
-    MTC1(r1 + 1, r0 + 1);
-#  else
-    DMTC1(r1, r0);
-#  endif
+    MTC1(r2, r0 + 1);
 }
 
 static void
-_pushargr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_movr_d_ww(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-#  if __WORDSIZE == 32
-    MFC1(r0, r1);
-    MFC1(r0 + 1, r1 + 1);
-#  else
-    DMFC1(r0, r1);
-#  endif
+    assert(r0 == r1 - 1);
+    MFC1(r0, r2);
+    MFC1(r1, r2 + 1);
 }
 
 static void
-_pushargi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
+_movi_d_ww(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_float64_t *i0)
 {
     union {
 	jit_int32_t	i[2];
@@ -764,12 +758,8 @@ _pushargi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     } data;
 
     data.d = *i0;
-#  if __WORDSIZE == 64
-    movi(r0, data.l);
-#  else
     movi(r0, data.i[0]);
-    movi(r0 + 1, data.i[1]);
- #  endif
+    movi(r1, data.i[1]);
 }
 
 static void

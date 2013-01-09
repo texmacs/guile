@@ -849,7 +849,7 @@ void
 _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 {
 #  if __WORDSIZE == 32
-    jit_new_node_w(jit_code_retval_f, r0);
+    jit_new_node_w(jit_code_x86_retval_f, r0);
 #  else
     if (r0 != JIT_FRET)
 	jit_movr_f(r0, JIT_FRET);
@@ -860,7 +860,7 @@ void
 _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 {
 #  if __WORDSIZE == 32
-    jit_new_node_w(jit_code_retval_d, r0);
+    jit_new_node_w(jit_code_x86_retval_d, r0);
 #  else
     if (r0 != JIT_FRET)
 	jit_movr_d(r0, JIT_FRET);
@@ -1578,7 +1578,7 @@ _jit_emit(jit_state_t *_jit)
 		_jit->function = NULL;
 		break;
 #if __WORDSIZE == 32
-	    case jit_code_retval_f:
+	    case jit_code_x86_retval_f:
 		if (jit_sse_reg_p(node->u.w)) {
 		    fstpr(_ST1_REGNO);
 		    sse_from_x87_f(rn(node->u.w), _ST0_REGNO);
@@ -1586,7 +1586,7 @@ _jit_emit(jit_state_t *_jit)
 		else
 		    fstpr(rn(node->u.w) + 1);
 		break;
-	    case jit_code_retval_d:
+	    case jit_code_x86_retval_d:
 		if (jit_sse_reg_p(node->u.w)) {
 		    fstpr(_ST1_REGNO);
 		    sse_from_x87_d(rn(node->u.w), _ST0_REGNO);

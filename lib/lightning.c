@@ -793,10 +793,8 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_callr:	case jit_code_jmpr:
 	    mask = jit_cc_a0_reg|jit_cc_a0_jmp;
 	    break;
-	case jit_code_pushargr_f:			case jit_code_pushargr_d:
-	    mask = jit_cc_a0_reg|jit_cc_a1_reg;
-	    break;
-	case jit_code_retval_f:	case jit_code_retval_d:
+	case jit_code_x86_retval_f:
+	case jit_code_x86_retval_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg;
 	    break;
 	case jit_code_movi:	case jit_code_ldi_c:	case jit_code_ldi_uc:
@@ -805,11 +803,15 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_ldi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_int;
 	    break;
-	case jit_code_movi_f:	case jit_code_pushargi_f:
+	case jit_code_movi_f:	case jit_code_movi_f_w:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_flt;
 	    break;
-	case jit_code_movi_d:	case jit_code_pushargi_d:
+	case jit_code_movi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_dbl;
+	    break;
+	case jit_code_movi_d_ww:
+	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a1_chg|
+		   jit_cc_a2_dbl;
 	    break;
 	case jit_code_negr:	case jit_code_comr:	case jit_code_movr:
 	case jit_code_extr_c:	case jit_code_extr_uc:	case jit_code_extr_s:
@@ -824,8 +826,12 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_negr_d:	case jit_code_absr_d:	case jit_code_sqrtr_d:
 	case jit_code_movr_d:	case jit_code_extr_d:	case jit_code_extr_f_d:
 	case jit_code_ldr_d:
-	case jit_code_getarg_f:				case jit_code_getarg_d:
+	case jit_code_movr_w_f:	case jit_code_movr_f_w:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg;
+	    break;
+	case jit_code_movr_d_ww:
+	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a1_chg|
+		   jit_cc_a2_reg;
 	    break;
 	case jit_code_addi:	case jit_code_addxi:	case jit_code_addci:
 	case jit_code_subi:	case jit_code_subxi:	case jit_code_subci:
@@ -881,6 +887,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_unltr_d:	case jit_code_unler_d:	case jit_code_uneqr_d:
 	case jit_code_unger_d:	case jit_code_ungtr_d:	case jit_code_ltgtr_d:
 	case jit_code_ordr_d:	case jit_code_unordr_d:	case jit_code_ldxr_d:
+	case jit_code_movr_ww_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a2_reg;
 	    break;
 	case jit_code_sti_c:	case jit_code_sti_s:	case jit_code_sti_i:
@@ -1354,48 +1361,6 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			jit_regset_setbit(*live, value);
 		}
 		break;
-#if __arm__
-		/* This is not trivial to generalize, so, any backend
-		 * that needs to pass double as arguments or receive
-		 * double results in an integer register pair should
-		 * need such special case(s).
-		 */
-	    case jit_code_movi_d:
-		if (!(node->u.w & jit_regno_patch)) {
-		    spec = jit_class(_rvs[node->u.w].spec);
-		    if (spec & jit_class_gpr) {
-			/* must be a reti_d or pushargi_d */
-			jit_regset_clrbit(*mask, node->u.w + 1);
-			jit_regset_setbit(*live, node->u.w + 1);
-			jit_regset_clrbit(*mask, node->u.w);
-			jit_regset_setbit(*live, node->u.w);
-		    }
-		    else
-			goto fallback;
-		}
-		break;
-	    case jit_code_movr_d:
-		if (!(node->u.w & jit_regno_patch)) {
-		    spec = jit_class(_rvs[jit_regno(node->u.w)].spec);
-		    if (spec & jit_class_gpr) {
-			/* must be a retr_d */
-			jit_regset_clrbit(*mask, node->u.w + 1);
-			jit_regset_setbit(*live, node->u.w + 1);
-			jit_regset_clrbit(*mask, node->u.w);
-			jit_regset_setbit(*live, node->u.w);
-		    }
-		    else
-			goto fallback;
-		}
-		if (!(node->v.w & jit_regno_patch)) {
-		    if (jit_regset_tstbit(*mask, node->v.w)) {
-			jit_regset_clrbit(*mask, node->v.w);
-			jit_regset_setbit(*live, node->v.w);
-		    }
-		}
-		break;
-	    fallback:
-#endif
 	    default:
 		value = jit_classify(node->code);
 		if (value & jit_cc_a2_reg) {

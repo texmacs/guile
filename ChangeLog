@@ -1,3 +1,17 @@
+2013-01-09 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/jit_arm.c, jit_mips-fpu.c,
+	lib/jit_mips.c, lib/jit_print.c, lib/jit_x86.c, lib/lightning.c:
+	Remove the jit_code_getarg_{f,d} and jit_code_pusharg{i,r}_{f,d}
+	calls, replacing them with the new, internal only, jit_movr_w_f,
+	jit_mov{r,i}_f_w, jit_movr_ww_d, and jit_mov{i,r}_d_ww, that
+	better describe the operation being done, and allow removing
+	the hackish code to detect special conditions for arm when
+	moving from/to vfp from/to a grp register pair.
+	Rename jit_code_retval_{f,d} to jit_code_x86_retval_{f,d} as
+	it is specific to 32 bit x86, and used to move abi return
+	value in x87 register to a sse register.
+
 2013-01-05 Paulo Andrade <pcpa@gnu.org>
 
 	* check/cccall.c, check/ccall.ok: New test case to validate
