@@ -1,3 +1,25 @@
+2013-01-11 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_note.c: New file implementing a simple string+integer
+	annotation, that should be used to map filename and line number
+	to offsets in the generated jit.
+
+	* include/lightning.h, lib/lightning.c: Update for the new
+	note code.
+	  Add an extra mandatory argument to init_jit, that is used
+	as argument to bfd_openr.
+	  Change from generic void* to char* the argument to jit_note
+	and add an extra integer argument, to map to filename and
+	line number.
+
+	* check/ccall.c, check/lightning.c, include/lightning/jit_private.h,
+	lib/jit_arm.c, lib/jit_disasm.c, lib/jit_mips.c, lib/jit_ppc.c,
+	lib/jit_print.c, lib/jit_x86.c: lib/Makefile.am: Update for the
+	new annotation code.
+
+	* configure.ac, check/Makefile.am: Update to work with latest
+	automake.
+
 2013-01-09 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/jit_arm.c, jit_mips-fpu.c,

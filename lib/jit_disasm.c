@@ -17,7 +17,9 @@
 
 #include <lightning.h>
 #include <lightning/jit_private.h>
-#include <dis-asm.h>
+#if DISASSEMBLER
+#  include <dis-asm.h>
+#endif
 
 /*
  * Prototypes
@@ -45,6 +47,7 @@ static asymbol			**disasm_symbols;
 static asymbol			 *disasm_synthetic;
 static long			  disasm_num_symbols;
 static long			  disasm_num_synthetic;
+static jit_state_t		 *disasm_jit;
 #define disasm_stream		  stdout
 #endif
 
@@ -57,9 +60,7 @@ jit_init_debug(void)
 #if DISASSEMBLER
     bfd_init();
 
-    /* FIXME */
-    disasm_bfd = bfd_openr("/proc/self/exe", NULL);
-
+    disasm_bfd = bfd_openr(jit_progname, NULL);
     assert(disasm_bfd);
     bfd_check_format(disasm_bfd, bfd_object);
     bfd_check_format(disasm_bfd, bfd_archive);
@@ -193,12 +194,27 @@ disasm_compare_symbols(const void *ap, const void *bp)
 static void
 disasm_print_address(bfd_vma addr, struct disassemble_info *info)
 {
+    char		*name;
+    int			 line;
     char		 buffer[address_buffer_length];
 
     sprintf(buffer, address_buffer_format, (long long)addr);
     (*info->fprintf_func)(info->stream, "0x%s", buffer);
 
-    if (disasm_num_symbols) {
+#  define _jit				disasm_jit
+#  define jit_pointer_p(u)					\
+	((u) >= _jit->code.ptr && (u) < _jit->pc.uc)
+    if (jit_pointer_p((jit_uint8_t *)(jit_word_t)addr)) {
+	if (jit_get_note((jit_uint8_t *)(jit_word_t)addr, &name, &line)) {
+	    if (line)
+		(*info->fprintf_func)(info->stream, " %s:%d", name, line);
+	    else
+		(*info->fprintf_func)(info->stream, " %s", name);
+	}
+    }
+#  undef jit_pointer_p
+#  undef _jit
+    else if (disasm_num_symbols) {
 	long		 low;
 	long		 high;
 	long		 offset;
@@ -241,15 +257,17 @@ disasm_print_address(bfd_vma addr, struct disassemble_info *info)
 static void
 _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 {
-    int			bytes;
+    int			 bytes;
+    char		*name, *old_name;
+    int			 line,  old_line;
 #if __arm__
-    jit_int32_t		offset;
-    jit_bool_t		data_info;
-    jit_int32_t		data_offset;
+    jit_int32_t		 offset;
+    jit_bool_t		 data_info;
+    jit_int32_t		 data_offset;
 #endif
-    bfd_vma		pc = (jit_uword_t)code;
-    bfd_vma		end = (jit_uword_t)code + length;
-    char		buffer[address_buffer_length];
+    bfd_vma		 pc = (jit_uword_t)code;
+    bfd_vma		 end = (jit_uword_t)code + length;
+    char		 buffer[address_buffer_length];
 
 #if __arm__
     data_info = 1;
@@ -258,6 +276,9 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     disasm_info.buffer = code;
     disasm_info.buffer_vma = (jit_uword_t)code;
     disasm_info.buffer_length = length;
+    old_name = NULL;
+    old_line = 0;
+    disasm_jit = _jit;
     while (pc < end) {
 #if __arm__
     again:
@@ -289,6 +310,18 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 	    }
 	}
 #endif
+	if (jit_get_note((jit_uint8_t *)(jit_word_t)pc, &name, &line) &&
+	    (name != old_name || line != old_line)) {
+	    if (line)
+		(*disasm_info.fprintf_func)(disasm_stream, "# %s:%d\n",
+					    name, line);
+	    else
+		(*disasm_info.fprintf_func)(disasm_stream, "# %s\n",
+					    name);
+	    old_name = name;
+	    old_line = line;
+	}
+
 	bytes = sprintf(buffer, address_buffer_format, (long long)pc);
 	(*disasm_info.fprintf_func)(disasm_stream, "%*c0x%s\t",
 				    16 - bytes, ' ', buffer);

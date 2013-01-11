@@ -207,6 +207,7 @@ struct label {
     char		*name;
     void		*value;
     label_kind_t	 kind;
+    int			 line;
 };
 
 typedef enum {
@@ -501,7 +502,7 @@ static void *xmalloc(size_t size);
 static void *xrealloc(void *pointer, size_t size);
 static void *xcalloc(size_t nmemb, size_t size);
 
-static label_t *new_label(label_kind_t kind, char *name, void *value);
+static label_t *new_label(label_kind_t kind, char *name, void *value, int line);
 static patch_t *new_patch(patch_kind_t kind, label_t *label, void *value);
 static int bcmp_symbols(const void *left, const void *right);
 static int qcmp_symbols(const void *left, const void *right);
@@ -1808,7 +1809,7 @@ get_label(skip_t skip)
     }
     if ((label = get_label_by_name(parser.string)) == NULL)
 	label = new_label(label_kind_code_forward,
-			  parser.string, jit_forward());
+			  parser.string, jit_forward(), 0);
 
     return (label);
 }
@@ -2263,7 +2264,7 @@ dynamic(void)
 	value = dlsym(RTLD_DEFAULT, parser.string + 1);
 	if ((string = dlerror()))
 	    error("%s", string);
-	label = new_label(label_kind_dynamic, parser.string, value);
+	label = new_label(label_kind_dynamic, parser.string, value, 0);
     }
     parser.type = type_p;
     parser.value.p = label->value;
@@ -3476,7 +3477,9 @@ parse(void)
 		    if ((label = get_label_by_name(parser.string))) {
 			if (label->kind == label_kind_code_forward) {
 			    label->kind = label_kind_code;
-			    label->value = jit_label();
+			    label->line = parser.line;
+			    jit_link(label->value);
+			    jit_note(parser.string, parser.line);
 			}
 			else
 			    error("label %s: redefined", parser.string);
@@ -3492,7 +3495,8 @@ parse(void)
 			}
 			else
 			    error("label not in .code or .data");
-			label = new_label(kind, parser.string, value);
+			label = new_label(kind, parser.string, value,
+					  parser.line);
 		    }
 		    break;
 		}
@@ -3588,7 +3592,7 @@ xcalloc(size_t nmemb, size_t size)
 }
 
 static label_t *
-new_label(label_kind_t kind, char *name, void *value)
+new_label(label_kind_t kind, char *name, void *value, int line)
 {
     label_t	*label;
 
@@ -3596,8 +3600,11 @@ new_label(label_kind_t kind, char *name, void *value)
     label->kind = kind;
     label->name = strdup(name);
     label->value = value;
+    label->line = line;
     put_hash(labels, (entry_t *)label);
     label_offset++;
+    if (label->kind == label_kind_code)
+	jit_note(name, line);
     return (label);
 }
 
@@ -3787,9 +3794,10 @@ main(int argc, char *argv[])
     int			 opt_short;
     char		 cmdline[8192];
 
-    init_jit();
-
     progname = argv[0];
+
+    init_jit(progname);
+
     for (;;) {
 	if ((opt_short = getopt_long_only(argc, argv, short_options,
 					  long_options, &opt_index)) < 0)
@@ -3933,8 +3941,6 @@ main(int argc, char *argv[])
 
     parser.line = 1;
     parser.string = (char *)xmalloc(parser.length = 4096);
-
-    labels = new_hash();
 
 #if defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
     /*	double precision		0x200

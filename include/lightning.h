@@ -102,7 +102,7 @@ typedef enum {
 #define jit_data(u,v)		_jit_data(_jit,u,v)
     jit_code_data,
     jit_code_save,		jit_code_load,
-#define jit_note(u)		jit_new_node_ww(jit_code_note,0,(jit_word_t)u)
+#define jit_note(u, v)		_jit_note(_jit, u, v)
 #define jit_label()		_jit_label(_jit)
 #define jit_forward()		_jit_forward(_jit)
 #define jit_link(u)		_jit_link(_jit,u)
@@ -732,7 +732,7 @@ typedef enum {
 /*
  * Prototypes
  */
-extern void init_jit(void);
+extern void init_jit(char*);
 extern void finish_jit(void);
 
 extern jit_state_t *jit_new_state(void);
@@ -740,8 +740,7 @@ extern jit_state_t *jit_new_state(void);
 #define jit_address(node)	_jit_address(_jit, node)
 extern jit_pointer_t _jit_address(jit_state_t*, jit_node_t*);
 extern jit_node_t *_jit_data(jit_state_t*, jit_pointer_t, jit_word_t);
-extern jit_node_t *_jit_note(jit_state_t*, jit_pointer_t);
-
+extern jit_node_t *_jit_note(jit_state_t*, char*, int);
 extern jit_node_t *_jit_label(jit_state_t*);
 extern jit_node_t *_jit_forward(jit_state_t*);
 extern void _jit_link(jit_state_t*, jit_node_t*);

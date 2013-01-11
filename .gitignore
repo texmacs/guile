@@ -14,9 +14,11 @@ config.sub
 configure
 install-sh
 libtool
+lightning-*.tar.*
 ltmain.sh
 missing
 stamp-h1
+test-driver
 check/.deps
 lib/.deps
 m4/libtool.m4

@@ -125,6 +125,7 @@ jit_regset_scan1(jit_regset_t, jit_int32_t);
  * Types
  */
 typedef union jit_data		jit_data_t;
+typedef struct jit_note		jit_note_t;
 typedef struct jit_block	jit_block_t;
 typedef struct jit_value	jit_value_t;
 typedef struct jit_function	jit_function_t;
@@ -150,6 +151,13 @@ union jit_data {
     jit_float64_t	 d;
     jit_pointer_t	 p;
     jit_node_t		*n;
+};
+
+struct jit_note {
+    char		*name;
+    jit_int32_t		*linenos;
+    jit_int32_t		*offsets;
+    jit_word_t		 length;
 };
 
 struct jit_node {
@@ -269,6 +277,12 @@ struct jit_state {
 	jit_word_t	  length;
     } pool;
     jit_node_t		 *list;
+    struct {
+	jit_note_t	*ptr;
+	jit_node_t	*head;		/* first note node */
+	jit_node_t	*tail;		/* linked list insertion */
+	jit_word_t	 length;
+    } note;
 #if __arm__
 #  if DISASSEMBLER
     struct {
@@ -378,9 +392,19 @@ _emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 extern void jit_init_debug(void);
 extern void jit_finish_debug(void);
 
+extern void jit_init_note(void);
+extern void jit_finish_note(void);
+#define jit_set_note(u, v, w)	_jit_set_note(_jit, u, v, w)
+extern void _jit_set_note(jit_state_t*, char*, int, jit_int32_t);
+#define jit_get_note(u, v, w)	_jit_get_note(_jit, u, v, w)
+extern jit_bool_t _jit_get_note(jit_state_t*,jit_uint8_t*,char**,int*);
+#define jit_annotate()		_jit_annotate(_jit)
+extern void _jit_annotate(jit_state_t*);
+
 /*
  * Externs
  */
 extern jit_register_t	 _rvs[];
+extern const char	*jit_progname;
 
 #endif /* _jit_private_h */

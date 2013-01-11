@@ -1250,6 +1250,7 @@ _jit_emit(jit_state_t *_jit)
     _flush_cache((char *)_jit->code.ptr, _jit->pc.uc - _jit->code.ptr, ICACHE);
 #endif
     _jit->done = 1;
+    jit_annotate();
 
     return (_jit->code.ptr);
 }

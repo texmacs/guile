@@ -96,21 +96,72 @@ $(base_TESTS):	check.sh
 TESTS = $(base_TESTS)
 
 if test_x86_x87
-x87_TESTS = $(addsuffix .x87, $(base_TESTS))
+#x87_TESTS = $(addsuffix .x87, $(base_TESTS))
+x87_TESTS =					\
+	3to2.x87 add.x87 allocai.x87		\
+	bp.x87 divi.x87 fib.x87 rpn.x87		\
+	ldstr.x87 ldsti.x87			\
+	ldstxr.x87 ldstxi.x87			\
+	ldstr-c.x87 ldstxr-c.x87 ldstxi-c.x87	\
+	cvt.x87 branch.x87			\
+	alu_add.x87 alux_add.x87		\
+	alu_sub.x87 alux_sub.x87		\
+	alu_mul.x87 alu_div.x87 alu_rem.x87	\
+	alu_and.x87 alu_or.x87 alu_xor.x87	\
+	alu_lsh.x87 alu_rsh.x87			\
+	alu_com.x87 alu_neg.x87			\
+	fop_abs.x87 fop_sqrt.x87		\
+	varargs.x87 stack.x87			\
+	clobber.x87 carry.x87 call.x87		\
+	float.x87
 $(x87_TESTS):	check.x87.sh
 	$(LN_S) $(srcdir)/check.x87.sh $@
 TESTS += $(x87_TESTS)
 endif
 
 if test_arm_arm
-arm_TESTS = $(addsuffix .arm, $(base_TESTS))
+#arm_TESTS = $(addsuffix .arm, $(base_TESTS))
+arm_TESTS =					\
+	3to2.arm add.arm allocai.arm		\
+	bp.arm divi.arm fib.arm rpn.arm		\
+	ldstr.arm ldsti.arm			\
+	ldstxr.arm ldstxi.arm			\
+	ldstr-c.arm ldstxr-c.arm ldstxi-c.arm	\
+	cvt.arm branch.arm			\
+	alu_add.arm alux_add.arm		\
+	alu_sub.arm alux_sub.arm		\
+	alu_mul.arm alu_div.arm alu_rem.arm	\
+	alu_and.arm alu_or.arm alu_xor.arm	\
+	alu_lsh.arm alu_rsh.arm			\
+	alu_com.arm alu_neg.arm			\
+	fop_abs.arm fop_sqrt.arm		\
+	varargs.arm stack.arm			\
+	clobber.arm carry.arm call.arm		\
+	float.arm
 $(arm_TESTS):	check.arm.sh
 	$(LN_S) $(srcdir)/check.arm.sh $@
 TESTS += $(arm_TESTS)
 endif
 
 if test_arm_swf
-swf_TESTS = $(addsuffix .swf, $(base_TESTS))
+#swf_TESTS = $(addsuffix .swf, $(base_TESTS))
+swf_TESTS =					\
+	3to2.swf add.swf allocai.swf		\
+	bp.swf divi.swf fib.swf rpn.swf		\
+	ldstr.swf ldsti.swf			\
+	ldstxr.swf ldstxi.swf			\
+	ldstr-c.swf ldstxr-c.swf ldstxi-c.swf	\
+	cvt.swf branch.swf			\
+	alu_add.swf alux_add.swf		\
+	alu_sub.swf alux_sub.swf		\
+	alu_mul.swf alu_div.swf alu_rem.swf	\
+	alu_and.swf alu_or.swf alu_xor.swf	\
+	alu_lsh.swf alu_rsh.swf			\
+	alu_com.swf alu_neg.swf			\
+	fop_abs.swf fop_sqrt.swf		\
+	varargs.swf stack.swf			\
+	clobber.swf carry.swf call.swf		\
+	float.swf
 $(swf_TESTS):	check.swf.sh
 	$(LN_S) $(srcdir)/check.swf.sh $@
 TESTS += $(swf_TESTS)
@@ -119,7 +170,7 @@ endif
 TESTS += ccall
 CLEANFILES = $(TESTS)
 
-TESTS_ENVIRONMENT=$(srcdir)/run-test
+#TESTS_ENVIRONMENT=$(srcdir)/run-test;
 
 debug:		$(check_PROGRAMS)
 	$(LIBTOOL) --mode=execute gdb $(check_PROGRAMS)

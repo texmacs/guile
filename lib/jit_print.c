@@ -375,13 +375,15 @@ _jit_print(jit_state_t *_jit)
 	    else
 		print_flt(node->w.d);
 	    continue;
-
 	    case jit_code_note:
-		/* FIXME should be name:line information */
 		print_chr(' ');
-		print_ptr(node->v.p);
+		if (node->v.p)
+		    print_str(node->v.n->u.p);
+		if (node->v.p && node->w.w)
+		    print_chr(':');
+		if (node->w.w)
+		    print_dec(node->w.w);
 		break;
-
 	    case jit_code_data:
 	    case jit_code_label:
 	    case jit_code_prolog:	case jit_code_epilog:

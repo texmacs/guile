@@ -19,7 +19,7 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_MACRO_DIR(m4)
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -53,10 +53,7 @@ if test "x$DISASSEMBLER" != "xno"; then
 fi
 AM_CONDITIONAL(with_disassembler, [test "x$DISASSEMBLER" != "xno"])
 if test "x$DISASSEMBLER" != "xno"; then
-    case "$target_os" in
-	*linux*) LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"	;;
-	*)								;;
-    esac
+    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
 fi
 
 cpu=

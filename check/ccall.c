@@ -600,7 +600,7 @@ main(int argc, char *argv[])
     jit_node_t		 *a10,*a11,*a12,*a13,*a14,*a15;
     jit_node_t		 *jmp;
 
-    init_jit();
+    init_jit(argv[0]);
     _jit = jit_new_state();
 
     jmpi_main = jit_jmpi();
@@ -701,9 +701,10 @@ main(int argc, char *argv[])
 #else
 #  define jit_extr_l(u, v)			/**/
 #endif
-	
+
+#define strfy(n)				#n	
 #define defi(T, N)							\
-    n##T##N = jit_note(NULL);						\
+    n##T##N = jit_note(strfy(n##T##N), 0);				\
     jit_prolog();							\
     arg##N();								\
     get##N(,T,JIT_R)							\
@@ -711,7 +712,7 @@ main(int argc, char *argv[])
     jit_retr(JIT_R0);							\
     jit_epilog();
 #define deff(T, N)							\
-    n##T##N = jit_note(NULL);						\
+    n##T##N = jit_note(strfy(n##T##N), 0);				\
     jit_prolog();							\
     arg##N(T);								\
     get##N(T,T,JIT_F);							\
@@ -751,6 +752,7 @@ main(int argc, char *argv[])
 #undef def
 
     jit_patch(jmpi_main);
+    jit_note("main", 0);
     jit_prolog();
 
 #define  push0(T)	/**/

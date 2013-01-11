@@ -1630,6 +1630,7 @@ _jit_emit(jit_state_t *_jit)
 	patch_at(node, _jit->patches.ptr[offset].inst, word);
     }
     _jit->done = 1;
+    jit_annotate();
 
     return (_jit->code.ptr);
 }

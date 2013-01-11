@@ -127,11 +127,17 @@ _patch_register(jit_state_t *jit, jit_node_t *node, jit_node_t *link,
 		jit_int32_t regno, jit_int32_t patch);
 
 /*
+ * Initialization
+ */
+const char	*jit_progname;
+
+/*
  * Implementation
  */
 void
-init_jit(void)
+init_jit(char *progname)
 {
+    jit_progname = progname;
     jit_get_cpu();
     jit_init_debug();
 }
@@ -401,6 +407,29 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data, jit_word_t length)
 	    _jit->data.table = hash;
 	    _jit->data.size <<= 1;
 	}
+    }
+
+    return (node);
+}
+
+jit_node_t *
+_jit_note(jit_state_t *_jit, char *name, int line)
+{
+    jit_node_t		*node;
+
+    node = new_node(jit_code_note);
+    if (name)
+	node->v.n = jit_data(name, strlen(name));
+    else
+	node->v.p = NULL;
+    node->w.w = line;
+
+    (void)link_node(node);
+    if (_jit->note.head == NULL)
+	_jit->note.head = _jit->note.tail = node;
+    else {
+	_jit->note.tail->link = node;
+	_jit->note.tail = node;
     }
 
     return (node);
@@ -1113,7 +1142,6 @@ _jit_optimize(jit_state_t *_jit)
 	}
     }
 
-#if JIT_HASH_CONSTS
     /* create read only data buffer */
     if ((_jit->data.length = (_jit->data.offset + 4095) & -4096)) {
 	jit_uint8_t	*ptr;
@@ -1132,7 +1160,18 @@ _jit_optimize(jit_state_t *_jit)
 	    }
 	}
     }
-#endif
+}
+
+void
+_jit_annotate(jit_state_t *_jit)
+{
+    jit_node_t		*node;
+
+    for (node = _jit->note.head; node; node = node->link) {
+	if (node->v.p)
+	    jit_set_note(node->v.n->u.p, node->w.w,
+			 (jit_uint8_t *)node->u.p - _jit->code.ptr);
+    }
 }
 
 void
