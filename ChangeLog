@@ -1,3 +1,11 @@
+2013-01-14 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/lightning.c: Add an extra align
+	argument to the jit_data call (that should be made private),
+	so that it should not align strings at 8 bytes.
+	  Correct the jit_note call to include the null ending byte
+	when adding label/note names to the "jit data section".
+
 2013-01-11 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_note.c: New file implementing a simple string+integer

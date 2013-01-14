@@ -326,7 +326,8 @@ _jit_address(jit_state_t *_jit, jit_node_t *node)
 }
 
 jit_node_t *
-_jit_data(jit_state_t *_jit, jit_pointer_t data, jit_word_t length)
+_jit_data(jit_state_t *_jit, jit_pointer_t data,
+	  jit_word_t length, jit_int32_t align)
 {
     jit_word_t		 key;
     jit_node_t		*node;
@@ -361,7 +362,9 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data, jit_word_t length)
 
     if (!node) {
 	node = jit_new_node_no_link(jit_code_data);
-	switch (length) {
+	if (!align)
+	    align = length;
+	switch (align) {
 	    case 0:	case 1:
 		break;
 	    case 2:
@@ -419,7 +422,7 @@ _jit_note(jit_state_t *_jit, char *name, int line)
 
     node = new_node(jit_code_note);
     if (name)
-	node->v.n = jit_data(name, strlen(name));
+	node->v.n = jit_data(name, strlen(name) + 1, 1);
     else
 	node->v.p = NULL;
     node->w.w = line;
@@ -1112,19 +1115,19 @@ _jit_optimize(jit_state_t *_jit)
 		mask = jit_classify(node->code);
 #if JIT_HASH_CONSTS
 		if (mask & jit_cc_a1_flt) {
-		    node->v.p = jit_data(&node->v.f, sizeof(jit_float32_t));
+		    node->v.p = jit_data(&node->v.f, sizeof(jit_float32_t), 4);
 		    node->flag |= jit_flag_node | jit_flag_data;
 		}
 		else if (mask & jit_cc_a1_dbl) {
-		    node->v.p = jit_data(&node->v.d, sizeof(jit_float64_t));
+		    node->v.p = jit_data(&node->v.d, sizeof(jit_float64_t), 8);
 		    node->flag |= jit_flag_node | jit_flag_data;
 		}
 		else if (mask & jit_cc_a2_flt) {
-		    node->w.p = jit_data(&node->w.f, sizeof(jit_float32_t));
+		    node->w.p = jit_data(&node->w.f, sizeof(jit_float32_t), 4);
 		    node->flag |= jit_flag_node | jit_flag_data;
 		}
 		else if (mask & jit_cc_a2_dbl) {
-		    node->w.p = jit_data(&node->w.d, sizeof(jit_float64_t));
+		    node->w.p = jit_data(&node->w.d, sizeof(jit_float64_t), 8);
 		    node->flag |= jit_flag_node | jit_flag_data;
 		}
 #endif

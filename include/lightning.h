@@ -99,7 +99,7 @@ typedef struct jit_node		jit_node_t;
 typedef struct jit_state	jit_state_t;
 
 typedef enum {
-#define jit_data(u,v)		_jit_data(_jit,u,v)
+#define jit_data(u,v,w)		_jit_data(_jit,u,v,w)
     jit_code_data,
     jit_code_save,		jit_code_load,
 #define jit_note(u, v)		_jit_note(_jit, u, v)
@@ -739,7 +739,8 @@ extern jit_state_t *jit_new_state(void);
 
 #define jit_address(node)	_jit_address(_jit, node)
 extern jit_pointer_t _jit_address(jit_state_t*, jit_node_t*);
-extern jit_node_t *_jit_data(jit_state_t*, jit_pointer_t, jit_word_t);
+extern jit_node_t *_jit_data(jit_state_t*, jit_pointer_t,
+			     jit_word_t, jit_int32_t);
 extern jit_node_t *_jit_note(jit_state_t*, char*, int);
 extern jit_node_t *_jit_label(jit_state_t*);
 extern jit_node_t *_jit_forward(jit_state_t*);
