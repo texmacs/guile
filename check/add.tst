@@ -11,8 +11,8 @@ test:
 	arg $i1
 	getarg %r0 $i0
 	getarg %r1 $i1
-	addr %ret %r0 %r1
-	ret
+	addr %r0 %r0 %r1
+	retr %r0
 	epilog
 
 main:

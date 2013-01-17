@@ -42,6 +42,32 @@
 #  define HIDDEN		/**/
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
+#  define JIT_SP		_RSP
+#  define JIT_RET		_RAX
+#  if __WORDSIZE == 32
+#    define JIT_FRET		_ST0
+#  else
+#    define JIT_FRET		_XMM0
+#  endif
+#elif defined(__mips__)
+#  define JIT_SP		_SP
+#  define JIT_RET		_V0
+#  define JIT_FRET		_F0
+#elif defined(__arm__)
+#  define JIT_SP		_R13
+#  define JIT_RET		_R0
+#  if defined(__ARM_PCS_VFP)
+#    define JIT_FRET		_D0
+#  else
+#    define JIT_FRET		_R0
+#  endif
+#elif defined(__ppc__)
+#  define JIT_SP		_R1
+#  define JIT_RET		_R3
+#  define JIT_FRET		_F1
+#endif
+
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
 #define jit_reg_free_p(regno)						\

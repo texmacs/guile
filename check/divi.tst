@@ -68,12 +68,14 @@ main:
 		pushargi small_ops
 		pushargi 3
 	finishi test_divider_8
-	bnei fail %ret 0	
+	retval %r0
+	bnei fail %r0 0	
 	prepare
 		pushargi large_ops
 		pushargi 3
 	finishi test_divider_32768
-	bnei fail %ret 0	
+	retval %r0
+	bnei fail %r0 0	
 	reti 0
 fail:
 	reti 1

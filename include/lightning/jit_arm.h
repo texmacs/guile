@@ -27,8 +27,6 @@
 #define jit_swf_p()		(jit_cpu.vfp == 0)
 #define jit_hardfp_p()		jit_cpu.abi
 
-#define JIT_RET			_R0
-#define JIT_SP			_R13
 #define JIT_FP			_R11
 typedef enum {
 #define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
@@ -65,11 +63,6 @@ typedef enum {
     _R2,			/* r2 - argument/result */
     _R1,			/* r1 - argument/result */
     _R0,			/* r0 - argument/result */
-#if defined(__ARM_PCS_VFP)
-#  define JIT_FRET		_D0
-#else
-#  define JIT_FRET		_R0
-#endif
 #define JIT_F0			(jit_hardfp_p() ? _D8 : _D0)
 #define JIT_F1			(jit_hardfp_p() ? _D9 : _D1)
 #define JIT_F2			(jit_hardfp_p() ? _D10 : _D2)

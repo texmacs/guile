@@ -20,8 +20,7 @@ loop:
 	addi %r1 %v0 1		// R1 = V0 + 1
 	bnei loop %r2 0		// if (R2) goto loop
 ref:
-	movr %ret %r1		// RET = R1
-	ret
+	retr %r1		// RET = R1
 	epilog
 
 main:

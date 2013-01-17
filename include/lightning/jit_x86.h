@@ -27,8 +27,6 @@
 #define jit_sse2_p()		jit_cpu.sse2
 #define jit_x87_reg_p(reg)	((reg) >= _ST0 && (reg) <= _ST7)
 
-#define JIT_RET			_RAX
-#define JIT_SP			_RSP
 #define JIT_FP			_RBP
 typedef enum {
 #if __WORDSIZE == 32
@@ -40,7 +38,6 @@ typedef enum {
 #  define jit_arg_f_reg_p(i)	0
 #  define jit_f(i)		(jit_cpu.sse2 ? _XMM0 + (i) : _ST0 + (i))
 #  define jit_f_num()		(jit_cpu.sse2 ? 8 : 6)
-#  define JIT_FRET		_ST0
 #  define JIT_R0		_RAX
 #  define JIT_R1		_RCX
 #  define JIT_R2		_RDX
@@ -69,7 +66,6 @@ typedef enum {
 #  define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
 #  define jit_f(index)		(_XMM0 + (index))
 #  define jit_f_num()		8
-#  define JIT_FRET		_XMM0
 #  define JIT_R0		_RAX
 #  define JIT_R1		_R10
 #  define JIT_R2		_R11

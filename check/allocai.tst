@@ -79,11 +79,12 @@ main:
 	prepare
 		pushargi 7777
 	finishi identity_func
-	beqi succeeded %ret 7777
+	retval %r0
+	beqi succeeded %r0 7777
 	prepare
 		pushargi report_message
 		ellipsis
-		pushargr %ret
+		pushargr %r0
 		pushargi 7777
 	finishi @printf
 	reti 1

@@ -59,11 +59,9 @@ typedef enum {
     _R14,	_R15,	_R16,	_R17,	_R18,	_R19,	_R20,	_R21,
     _R22,	_R23,	_R24,	_R25,	_R26,	_R27,	_R28,	_R29,
     _R30,
-#define JIT_SP			_R1
     _R1,
 #define JIT_FP			_R31
     _R31,
-#define JIT_RET			_R3
 #define JIT_RA0			_R3
 #define JIT_RA1			_R4
 #define JIT_RA2			_R5
@@ -103,7 +101,6 @@ typedef enum {
      * saved/restored (if used) */
     _F22,	_F23,	_F24,	_F25,	_F26,	_F27,	_F28,	_F29,
     _F30,	_F31,
-#define JIT_FRET		_F1
 #define JIT_FA0			_F1
 #define JIT_FA1			_F2
 #define JIT_FA2			_F3

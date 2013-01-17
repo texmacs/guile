@@ -1,3 +1,15 @@
+2013-01-17 Paulo Andrade <pcpa@gnu.org>
+
+	* check/add.tst, check/allocai.tst, check/bp.tst, check/divi.tst,
+	check/fib.tst, check/lightning.c, include/lightning/jit_arm.h,
+	include/lightning/jit_mips.h, include/lightning/jit_ppc.h,
+	include/lightning/jit_private.h, include/lightning/jit_x86.h:
+	Make JIT_RET, JIT_FRET and JIT_SP private. These should not be
+	used in any operations due to frequently having special
+	constraints (usually JIT_FRET). JIT_FP must be made available
+	because it must be used as the base register to access stack
+	space allocated with jit_allocai.
+
 2013-01-14 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/lightning.c: Add an extra align

@@ -1827,10 +1827,6 @@ regname(void)
 		case '0':	parser.regval = JIT_R0;		break;
 		case '1':	parser.regval = JIT_R1;		break;
 		case '2':	parser.regval = JIT_R2;		break;
-		case 'e':
-		    if (getch() != 't')				goto fail;
-		    parser.regval = JIT_RET;
-		    break;
 		case '(':
 		    num = get_int(skip_none);
 		    if (num < 0 || num >= JIT_R_NUM)		goto fail;
@@ -1869,10 +1865,6 @@ regname(void)
 		case 'p':
 		    parser.regtype = type_l;	/* oops */
 		    parser.regval = JIT_FP;			break;
-		case 'r':
-		    if (getch() != 'e' || getch() != 't')	goto fail;
-		    parser.regval = JIT_FRET;
-		    break;
 		case '(':
 		    num = get_int(skip_none);
 		    if (num < 0 || num >= JIT_F_NUM)		goto fail;
@@ -1882,12 +1874,6 @@ regname(void)
 		    break;
 		default:					goto fail;
 	    }
-	    break;
-	case 's':
-	    parser.regtype = type_l;
-	    if (getch() != 'p')
-		goto fail;
-	    parser.regval = JIT_SP;
 	    break;
 	default:
 	fail:

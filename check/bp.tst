@@ -22,11 +22,10 @@ rfibs:
 	finishi rfibs
 	retval %v2		/* V2 = rfibs(N-2) */
 	addi %v1 %v1 1
-	addr %ret %v1 %v2
-	ret
+	addr %r0 %v1 %v2
+	retr %r0
 out:
-	movi %ret 1
-	ret
+	reti 1
 	epilog
 
 main:

@@ -24,9 +24,6 @@
 /*
  * Types
  */
-#define JIT_RET			_V0
-#define JIT_FRET		_F0
-#define JIT_SP			_SP
 #define JIT_FP			_FP
 typedef enum {
 #define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
