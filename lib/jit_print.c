@@ -37,7 +37,7 @@
 static char *code_name[] = {
     "data",
     "save",		"load",
-    "#note",
+    "#name",		"#note",
     "label",
     "prolog",
     "arg",
@@ -375,6 +375,11 @@ _jit_print(jit_state_t *_jit)
 	    else
 		print_flt(node->w.d);
 	    continue;
+	    case jit_code_name:
+		print_chr(' ');
+		if (node->v.p)
+		    print_str(node->v.n->u.p);
+		break;
 	    case jit_code_note:
 		print_chr(' ');
 		if (node->v.p)

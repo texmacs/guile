@@ -1,3 +1,19 @@
+2013-01-18 Paulo Andrade <pcpa@gnu.org>
+
+	* check/3to2.tst, check/add.tst, check/allocai.tst, check/bp.tst,
+	check/call.tst, check/ccall.c, check/clobber.tst, check/divi.tst,
+	check/fib.tst, check/ldsti.tst, check/ldstr-c.tst, check/ldstr.tst,
+	check/ldstxi-c.tst, check/ldstxi.tst, check/ldstxr-c.tst,
+	check/ldstxr.tst, check/lightning.c, check/rpn.tst, check/stack.tst,
+	check/varargs.tst, include/lightning.h,
+	include/lightning/jit_private.h, lib/jit_arm.c, lib/jit_disasm.c,
+	lib/jit_mips.c, lib/jit_note.c, lib/jit_ppc.c, lib/jit_print.c,
+	lib/jit_x86.c, lib/lightning.c:	Extend the "jit_note" abstraction
+	with the new "jit_name" call, that receives a string argument, and
+	should usually be called to mark boundaries of functions of code
+	generating jit (that is, it is not expected that the language
+	generating jit map its functions to jit functions).
+
 2013-01-17 Paulo Andrade <pcpa@gnu.org>
 
 	* check/add.tst, check/allocai.tst, check/bp.tst, check/divi.tst,

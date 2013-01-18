@@ -20,9 +20,6 @@ buff:
 .size	256
 
 .code
-	jmpi main
-
-main:
 	prolog
 
 	/*

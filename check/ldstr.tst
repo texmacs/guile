@@ -95,9 +95,6 @@ L##x##C:
 	LDST0(V2, R2, F0)
 
 .code
-	jmpi main
-
-main:
 	prolog
 
 	/* Simple test to simplify validating encodings before

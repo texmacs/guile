@@ -5,6 +5,7 @@ fmt:
 .code
 	jmpi main
 
+	name rfibs
 rfibs:
 	prolog
 	arg $in
@@ -28,6 +29,7 @@ out:
 	reti 1
 	epilog
 
+	name main
 main:
 	prolog
 	prepare

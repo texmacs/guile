@@ -5,6 +5,7 @@ format:
 .code
 	jmpi main
 
+	name nfibs
 nfibs:
 	prolog
 	arg $in
@@ -23,6 +24,7 @@ ref:
 	retr %r1		// RET = R1
 	epilog
 
+	name main
 main:
 	prolog
 	arg $argc

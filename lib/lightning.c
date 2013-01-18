@@ -321,7 +321,8 @@ jit_pointer_t
 _jit_address(jit_state_t *_jit, jit_node_t *node)
 {
     assert(_jit->done);
-    assert(node && node->code == jit_code_note);
+    assert(node &&
+	   (node->code == jit_code_note || node->code == jit_code_name));
     return ((jit_pointer_t)node->u.w);
 }
 
@@ -410,29 +411,6 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	    _jit->data.table = hash;
 	    _jit->data.size <<= 1;
 	}
-    }
-
-    return (node);
-}
-
-jit_node_t *
-_jit_note(jit_state_t *_jit, char *name, int line)
-{
-    jit_node_t		*node;
-
-    node = new_node(jit_code_note);
-    if (name)
-	node->v.n = jit_data(name, strlen(name) + 1, 1);
-    else
-	node->v.p = NULL;
-    node->w.w = line;
-
-    (void)link_node(node);
-    if (_jit->note.head == NULL)
-	_jit->note.head = _jit->note.tail = node;
-    else {
-	_jit->note.tail->link = node;
-	_jit->note.tail = node;
     }
 
     return (node);
@@ -812,8 +790,8 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 
     switch (code) {
 	case jit_code_data:	case jit_code_save:	case jit_code_load:
-	case jit_code_label:	case jit_code_note:	case jit_code_prolog:
-	case jit_code_epilog:
+	case jit_code_name:	case jit_code_label:	case jit_code_note:
+	case jit_code_prolog:	case jit_code_epilog:
 	    mask = 0;
 	    break;
 	case jit_code_arg:	case jit_code_arg_f:	case jit_code_arg_d:
@@ -1162,18 +1140,6 @@ _jit_optimize(jit_state_t *_jit)
 		node->u.w = (jit_word_t)(_jit->data.ptr + node->u.w);
 	    }
 	}
-    }
-}
-
-void
-_jit_annotate(jit_state_t *_jit)
-{
-    jit_node_t		*node;
-
-    for (node = _jit->note.head; node; node = node->link) {
-	if (node->v.p)
-	    jit_set_note(node->v.n->u.p, node->w.w,
-			 (jit_uint8_t *)node->u.p - _jit->code.ptr);
     }
 }
 

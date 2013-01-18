@@ -8,6 +8,7 @@ ifmt:
 	jmpi main
 
 #define def_test_double(a, b, c)		\
+	name test_double_##a##_##b##_##c	\
 test_double_##a##_##b##_##c:			\
 	prolog					\
 	arg_d $d0				\
@@ -30,6 +31,7 @@ test_double_##a##_##b##_##c:			\
 	finishi @printf
 
 #define def_test_int(a, b, c)			\
+	name test_int_##a##_##b##_##c		\
 test_int_##a##_##b##_##c:			\
 	prolog					\
 	arg $i0					\
@@ -80,6 +82,7 @@ def_test_int(v0, r0, v0)
 def_test_int(v0, v0, r0)
 
 
+	name main
 main:
 	prolog
 

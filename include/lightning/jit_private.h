@@ -152,6 +152,7 @@ jit_regset_scan1(jit_regset_t, jit_int32_t);
  */
 typedef union jit_data		jit_data_t;
 typedef struct jit_note		jit_note_t;
+typedef struct jit_line		jit_line_t;
 typedef struct jit_block	jit_block_t;
 typedef struct jit_value	jit_value_t;
 typedef struct jit_function	jit_function_t;
@@ -180,7 +181,15 @@ union jit_data {
 };
 
 struct jit_note {
+    jit_uint8_t		*code;
     char		*name;
+    jit_line_t		*lines;
+    jit_word_t		 length;
+    jit_word_t		 size;		/* of code */
+};
+
+struct jit_line {
+    char		*file;
     jit_int32_t		*linenos;
     jit_int32_t		*offsets;
     jit_word_t		 length;
@@ -420,10 +429,10 @@ extern void jit_finish_debug(void);
 
 extern void jit_init_note(void);
 extern void jit_finish_note(void);
-#define jit_set_note(u, v, w)	_jit_set_note(_jit, u, v, w)
-extern void _jit_set_note(jit_state_t*, char*, int, jit_int32_t);
-#define jit_get_note(u, v, w)	_jit_get_note(_jit, u, v, w)
-extern jit_bool_t _jit_get_note(jit_state_t*,jit_uint8_t*,char**,int*);
+#define jit_set_note(n,u,v,w)	_jit_set_note(_jit, n, u, v, w)
+extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
+#define jit_get_note(n,u,v,w)	_jit_get_note(_jit, n, u, v, w)
+extern jit_bool_t _jit_get_note(jit_state_t*,jit_uint8_t*,char**,char**,int*);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 

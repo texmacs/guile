@@ -1,4 +1,5 @@
 #define def_wi(i)			\
+	name _w##i			\
 _w##i:					\
 	prolog				\
 	arg $arg##i			\
@@ -6,6 +7,7 @@ _w##i:					\
 	retr %r0			\
 	epilog
 #define def_wf(f)			\
+	name _w##f			\
 _w##f:					\
 	prolog				\
 	arg##f $arg##f			\
@@ -14,6 +16,7 @@ _w##f:					\
 	retr %r0			\
 	epilog
 #define def_fi(f, i)			\
+	name f##i			\
 f##i:					\
 	prolog				\
 	arg $arg##i			\
@@ -22,6 +25,7 @@ f##i:					\
 	retr##f %f0			\
 	epilog
 #define def_f(f)			\
+	name f##f			\
 f##f:					\
 	prolog				\
 	arg##f $arg##f			\
@@ -29,6 +33,8 @@ f##f:					\
 	retr##f %f0			\
 	epilog
 #define def_ff(f, g)			\
+	name f##g			\
+	name f##g			\
 f##g:					\
 	prolog				\
 	arg##g $arg##g			\
@@ -79,6 +85,7 @@ bstr:
 	def_ff(_f, _d)
 	def_ff(_d, _f)
 
+	name main
 main:
 	prolog
 
@@ -234,6 +241,7 @@ f##g##n:
 	ret
 	epilog
 
+	name backward
 backward:
 	prolog
 	prepare
@@ -242,6 +250,7 @@ backward:
 	ret
 	epilog
 
+	name forward
 forward:
 	prolog
 	prepare
@@ -252,6 +261,7 @@ forward:
 	ret
 	epilog
 
+	name iforward
 iforward:
 	prolog
 	prepare

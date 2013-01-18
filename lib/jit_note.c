@@ -21,14 +21,15 @@
 /*
  * Prototypes
  */
-#define new_note(u, v, w, x)	_new_note(_jit, u, v, w, x)
-static void _new_note(jit_state_t*,jit_int32_t,char*,jit_int32_t,jit_int32_t);
-#define note_insert_index(u)	_note_insert_index(_jit, u)
-static jit_int32_t _note_insert_index(jit_state_t*,jit_int32_t);
+#define new_note(u, v)		_new_note(_jit, u, v)
+static jit_note_t *_new_note(jit_state_t *, jit_uint8_t*, char*);
+static void new_line(jit_int32_t,jit_note_t*,char*,jit_int32_t,jit_int32_t);
 #define note_search_index(u)	_note_search_index(_jit, u)
-static jit_int32_t _note_search_index(jit_state_t*,jit_int32_t);
-static jit_int32_t offset_insert_index(jit_note_t*,jit_int32_t);
-static jit_int32_t offset_search_index(jit_note_t*,jit_int32_t);
+static jit_int32_t _note_search_index(jit_state_t*, jit_uint8_t*);
+static jit_int32_t line_insert_index(jit_note_t*,jit_int32_t);
+static jit_int32_t line_search_index(jit_note_t*,jit_int32_t);
+static jit_int32_t offset_insert_index(jit_line_t*,jit_int32_t);
+static jit_int32_t offset_search_index(jit_line_t*,jit_int32_t);
 
 /*
  * Implementation
@@ -43,127 +44,204 @@ jit_finish_note(void)
 {
 }
 
-void
-_jit_set_note(jit_state_t *_jit,
-	      char *name, int lineno, jit_int32_t offset)
+jit_node_t *
+_jit_name(jit_state_t *_jit, char *name)
 {
+    jit_node_t		*node;
+
+    node = jit_new_node(jit_code_name);
+    if (name)
+	node->v.n = jit_data(name, strlen(name) + 1, 1);
+    else
+	node->v.p = NULL;
+    if (_jit->note.head == NULL)
+	_jit->note.head = _jit->note.tail = node;
+    else {
+	_jit->note.tail->link = node;
+	_jit->note.tail = node;
+    }
+
+    return (node);
+}
+
+jit_node_t *
+_jit_note(jit_state_t *_jit, char *name, int line)
+{
+    jit_node_t		*node;
+
+    node = jit_new_node(jit_code_note);
+    if (name)
+	node->v.n = jit_data(name, strlen(name) + 1, 1);
+    else
+	node->v.p = NULL;
+    node->w.w = line;
+    if (_jit->note.head == NULL)
+	_jit->note.head = _jit->note.tail = node;
+    else {
+	_jit->note.tail->link = node;
+	_jit->note.tail = node;
+    }
+
+    return (node);
+}
+
+void
+_jit_annotate(jit_state_t *_jit)
+{
+    jit_node_t		*node;
     jit_note_t		*note;
+
+    note = NULL;
+    for (node = _jit->note.head; node; node = node->link) {
+	if (node->code == jit_code_name)
+	    note = new_note(node->u.p, node->v.p ? node->v.n->u.p : NULL);
+	else if (node->v.p) {
+	    if (note == NULL)
+		note = new_note(node->u.p, NULL);
+	    jit_set_note(note, node->v.n->u.p, node->w.w,
+			 (jit_uint8_t *)node->u.p - note->code);
+	}
+    }
+    /* last note */
+    if (note)
+	note->size = _jit->pc.uc - note->code;
+}
+
+void
+_jit_set_note(jit_state_t *_jit, jit_note_t *note,
+	      char *file, int lineno, jit_int32_t offset)
+{
+    jit_line_t		*line;
     jit_int32_t		 index;
 
-    index = note_insert_index(offset);
-    if (index >= _jit->note.length || _jit->note.ptr[index].name != name)
-	new_note(index, name, lineno, offset);
+    index = line_insert_index(note, offset);
+    if (index >= note->length || note->lines[index].file != file)
+	new_line(index, note, file, lineno, offset);
     else {
-	note = _jit->note.ptr + index;
-	index = offset_insert_index(note, offset);
-	if (note->offsets[index] == offset) {
+	line = note->lines + index;
+	index = offset_insert_index(line, offset);
+	if (line->offsets[index] == offset) {
 	    /* common case if no code was generated for several source lines */
-	    if (note->linenos[index] < lineno)
-		note->linenos[index] = lineno;
+	    if (line->linenos[index] < lineno)
+		line->linenos[index] = lineno;
 	}
-	else if (note->linenos[index] == lineno) {
+	else if (line->linenos[index] == lineno) {
 	    /* common case of extending entry */
-	    if (note->offsets[index] > offset)
-		note->offsets[index] = offset;
+	    if (line->offsets[index] > offset)
+		line->offsets[index] = offset;
 	}
 	else {
 	    /* line or offset changed */
-	    if ((note->length & 15) == 0) {
-		note->linenos = realloc(note->linenos, (note->length + 17) *
+	    if ((line->length & 15) == 0) {
+		line->linenos = realloc(line->linenos, (line->length + 17) *
 					sizeof(jit_int32_t));
-		note->offsets = realloc(note->offsets, (note->length + 17) *
+		line->offsets = realloc(line->offsets, (line->length + 17) *
 					sizeof(jit_int32_t));
 	    }
 	    if (index < note->length) {
-		memmove(note->linenos + index + 1, note->linenos + index,
-			sizeof(jit_int32_t) * (note->length - index));
-		memmove(note->offsets + index + 1, note->offsets + index,
-			sizeof(jit_int32_t) * (note->length - index));
+		memmove(line->linenos + index + 1, line->linenos + index,
+			sizeof(jit_int32_t) * (line->length - index));
+		memmove(line->offsets + index + 1, line->offsets + index,
+			sizeof(jit_int32_t) * (line->length - index));
 	    }
-	    note->linenos[index] = lineno;
-	    note->offsets[index] = offset;
-	    ++note->length;
+	    line->linenos[index] = lineno;
+	    line->offsets[index] = offset;
+	    ++line->length;
 	}
     }
 }
 
 jit_bool_t
 _jit_get_note(jit_state_t *_jit, jit_uint8_t *code,
-	      char **name, jit_int32_t *lineno)
+	      char **name, char **file, jit_int32_t *lineno)
 {
     jit_note_t		*note;
+    jit_line_t		*line;
     jit_int32_t		 index;
     jit_int32_t		 offset;
 
-    if (code < _jit->code.ptr || code >= _jit->pc.uc)
-	return (0);
-    offset = code - _jit->code.ptr;
-    if ((index = note_search_index(offset)) >= _jit->note.length)
-	return (0);
-    if (index == 0 && offset < _jit->note.ptr[0].offsets[0])
+    if ((index = note_search_index(code)) >= _jit->note.length)
 	return (0);
     note = _jit->note.ptr + index;
-    if ((index = offset_search_index(note, offset)) >= note->length)
+    if (code < note->code || code >= note->code + note->size)
+	return (0);
+    offset = code - note->code;
+    if ((index = line_search_index(note, offset)) >= note->length)
+	return (0);
+    if (index == 0 && offset < note->lines[0].offsets[0])
+	return (0);
+    line = note->lines + index;
+    if ((index = offset_search_index(line, offset)) >= line->length)
 	return (0);
 
     if (name)
 	*name = note->name;
+    if (file)
+	*file = line->file;
     if (lineno)
-	*lineno = note->linenos[index];
+	*lineno = line->linenos[index];
 
     return (1);
 }
 
-static void
-_new_note(jit_state_t *_jit, jit_int32_t index,
-	  char *name, jit_int32_t lineno, jit_int32_t offset)
+static jit_note_t *
+_new_note(jit_state_t *_jit, jit_uint8_t *code, char *name)
 {
     jit_note_t		*note;
+    jit_note_t		*prev;
 
-    if (_jit->note.ptr == NULL)
-	_jit->note.ptr = malloc(16 * sizeof(jit_note_t));
-    else if ((_jit->note.length & 15) == 0)
-	_jit->note.ptr = realloc(_jit->note.ptr,
-				 (_jit->note.length + 17) * sizeof(jit_note_t));
-
-    if (index < _jit->note.length)
-	memmove(_jit->note.ptr + index + 1, _jit->note.ptr + index,
-		sizeof(jit_note_t) * (_jit->note.length - index));
-    note = _jit->note.ptr + index;
-    ++_jit->note.length;
-
-    note->name = name;
-    note->length = 1;
-    note->linenos = malloc(16 * sizeof(jit_int32_t));
-    note->linenos[0] = lineno;
-    note->offsets = malloc(16 * sizeof(jit_int32_t));
-    note->offsets[0] = offset;
-}
-
-static jit_int32_t
-_note_insert_index(jit_state_t *_jit, jit_int32_t offset)
-{
-    jit_int32_t		 bot;
-    jit_int32_t		 top;
-    jit_int32_t		 index;
-    jit_note_t		*notes;
-
-    bot = 0;
-    top = _jit->note.length;
-    if ((notes = _jit->note.ptr) == NULL)
-	return (0);
-    for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
-	if (offset < *notes[index].offsets)
-	    top = index;
-	else
-	    bot = index + 1;
+    if (_jit->note.ptr == NULL) {
+	prev = NULL;
+	_jit->note.ptr = malloc(sizeof(jit_note_t) * 8);
     }
+    else {
+	prev = _jit->note.ptr + _jit->note.length - 1;
+	if ((_jit->note.length & 7) == 7)
+	    _jit->note.ptr = realloc(_jit->note.ptr, sizeof(jit_note_t) *
+				     (_jit->note.length + 9));
+    }
+    if (prev) {
+	assert(code >= prev->code);
+	prev->size = code - prev->code;
+    }
+    note = _jit->note.ptr + _jit->note.length;
+    ++_jit->note.length;
+    note->code = code;
+    note->name = name;
+    note->lines = NULL;
+    note->length = note->size = 0;
 
-    return ((bot + top) >> 1);
+    return (note);
+}
+
+static void
+new_line(jit_int32_t index, jit_note_t *note,
+	  char *file, jit_int32_t lineno, jit_int32_t offset)
+{
+    jit_line_t		*line;
+
+    if (note->lines == NULL)
+	note->lines = malloc(16 * sizeof(jit_line_t));
+    else if ((note->length & 15) == 15)
+	note->lines = realloc(note->lines,
+			      (note->length + 17) * sizeof(jit_line_t));
+
+    if (index < note->length)
+	memmove(note->lines + index + 1, note->lines + index,
+		sizeof(jit_line_t) * (note->length - index));
+    line = note->lines + index;
+    ++note->length;
+
+    line->file = file;
+    line->length = 1;
+    line->linenos = malloc(16 * sizeof(jit_int32_t));
+    line->linenos[0] = lineno;
+    line->offsets = malloc(16 * sizeof(jit_int32_t));
+    line->offsets[0] = offset;
 }
 
 static jit_int32_t
-_note_search_index(jit_state_t *_jit, jit_int32_t offset)
+_note_search_index(jit_state_t *_jit, jit_uint8_t *code)
 {
     jit_int32_t		 bot;
     jit_int32_t		 top;
@@ -172,15 +250,12 @@ _note_search_index(jit_state_t *_jit, jit_int32_t offset)
 
     bot = 0;
     top = _jit->note.length;
-    if ((notes = _jit->note.ptr) == NULL)
-	return (0);
+    notes = _jit->note.ptr;
     for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
-	if (offset < *notes[index].offsets)
+	if (code < notes[index].code)
 	    top = index;
-	/* offset should be already verified to be in range */
-	else if (index == _jit->note.length - 1 ||
-		 (offset >= *notes[index].offsets &&
-		  offset < *notes[index + 1].offsets))
+	else if (code >= notes[index].code &&
+		 code - notes[index].code <= notes[index].size)
 	    break;
 	else
 	    bot = index + 1;
@@ -190,7 +265,56 @@ _note_search_index(jit_state_t *_jit, jit_int32_t offset)
 }
 
 static jit_int32_t
-offset_insert_index(jit_note_t *note, jit_int32_t offset)
+line_insert_index(jit_note_t *note, jit_int32_t offset)
+{
+    jit_int32_t		 bot;
+    jit_int32_t		 top;
+    jit_int32_t		 index;
+    jit_line_t		*lines;
+
+    bot = 0;
+    top = note->length;
+    if ((lines = note->lines) == NULL)
+	return (0);
+    for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
+	if (offset < *lines[index].offsets)
+	    top = index;
+	else
+	    bot = index + 1;
+    }
+
+    return ((bot + top) >> 1);
+}
+
+static jit_int32_t
+line_search_index(jit_note_t *note, jit_int32_t offset)
+{
+    jit_int32_t		 bot;
+    jit_int32_t		 top;
+    jit_int32_t		 index;
+    jit_line_t		*lines;
+
+    bot = 0;
+    top = note->length;
+    if ((lines = note->lines) == NULL)
+	return (0);
+    for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
+	if (offset < *lines[index].offsets)
+	    top = index;
+	/* offset should be already verified to be in range */
+	else if (index == note->length - 1 ||
+		 (offset >= *lines[index].offsets &&
+		  offset < *lines[index + 1].offsets))
+	    break;
+	else
+	    bot = index + 1;
+    }
+
+    return (index);
+}
+
+static jit_int32_t
+offset_insert_index(jit_line_t *line, jit_int32_t offset)
 {
     jit_int32_t		 bot;
     jit_int32_t		 top;
@@ -198,8 +322,8 @@ offset_insert_index(jit_note_t *note, jit_int32_t offset)
     jit_int32_t		*offsets;
 
     bot = 0;
-    top = note->length;
-    offsets = note->offsets;
+    top = line->length;
+    offsets = line->offsets;
     for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
 	if (offset < offsets[index])
 	    top = index;
@@ -211,7 +335,7 @@ offset_insert_index(jit_note_t *note, jit_int32_t offset)
 }
 
 static jit_int32_t
-offset_search_index(jit_note_t *note, jit_int32_t offset)
+offset_search_index(jit_line_t *line, jit_int32_t offset)
 {
     jit_int32_t		 bot;
     jit_int32_t		 top;
@@ -219,13 +343,13 @@ offset_search_index(jit_note_t *note, jit_int32_t offset)
     jit_int32_t		*offsets;
 
     bot = 0;
-    top = note->length;
-    offsets = note->offsets;
+    top = line->length;
+    offsets = line->offsets;
     for (index = (bot + top) >> 1; bot < top; index = (bot + top) >> 1) {
 	if (offset < offsets[index])
 	    top = index;
 	/* offset should be already verified to be in range */
-	else if (index == note->length - 1 ||
+	else if (index == line->length - 1 ||
 		 (offset >= offsets[index] && offset < offsets[index + 1]))
 	    break;
 	else

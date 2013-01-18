@@ -207,7 +207,6 @@ struct label {
     char		*name;
     void		*value;
     label_kind_t	 kind;
-    int			 line;
 };
 
 typedef enum {
@@ -243,6 +242,7 @@ static void call_forward(void *value, label_t *label);
 static void make_arg(void *value);
 static jit_pointer_t get_arg(void);
 static long get_imm(void);
+static void name(void);
 static void prolog(void);	static void ellipsis(void);
 static void allocai(void);
 static void arg(void);
@@ -502,7 +502,7 @@ static void *xmalloc(size_t size);
 static void *xrealloc(void *pointer, size_t size);
 static void *xcalloc(size_t nmemb, size_t size);
 
-static label_t *new_label(label_kind_t kind, char *name, void *value, int line);
+static label_t *new_label(label_kind_t kind, char *name, void *value);
 static patch_t *new_patch(patch_kind_t kind, label_t *label, void *value);
 static int bcmp_symbols(const void *left, const void *right);
 static int qcmp_symbols(const void *left, const void *right);
@@ -534,6 +534,7 @@ static char		 *data;
 static size_t		  data_offset, data_length;
 static instr_t		  instr_vector[] = {
 #define entry(value)	{ NULL, #value, value }
+    entry(name),
     entry(prolog),	entry(ellipsis),
     entry(allocai),
     entry(arg),
@@ -1211,7 +1212,13 @@ name(void)								\
     }									\
     jit_##name(value);							\
 }
+static void
+name(void) {
+    int		 ch = skipws();
 
+    (void)identifier(ch);
+    jit_name(parser.string);
+}
 entry(prolog)			entry(ellipsis)
 void
 allocai(void) {
@@ -1809,7 +1816,7 @@ get_label(skip_t skip)
     }
     if ((label = get_label_by_name(parser.string)) == NULL)
 	label = new_label(label_kind_code_forward,
-			  parser.string, jit_forward(), 0);
+			  parser.string, jit_forward());
 
     return (label);
 }
@@ -2250,7 +2257,7 @@ dynamic(void)
 	value = dlsym(RTLD_DEFAULT, parser.string + 1);
 	if ((string = dlerror()))
 	    error("%s", string);
-	label = new_label(label_kind_dynamic, parser.string, value, 0);
+	label = new_label(label_kind_dynamic, parser.string, value);
     }
     parser.type = type_p;
     parser.value.p = label->value;
@@ -3449,7 +3456,6 @@ static void
 parse(void)
 {
     int		 ch;
-    label_kind_t kind;
     token_t	 token;
     instr_t	*instr;
     label_t	*label;
@@ -3463,26 +3469,26 @@ parse(void)
 		    if ((label = get_label_by_name(parser.string))) {
 			if (label->kind == label_kind_code_forward) {
 			    label->kind = label_kind_code;
-			    label->line = parser.line;
 			    jit_link(label->value);
-			    jit_note(parser.string, parser.line);
+			    jit_note(parser.name, parser.line);
 			}
 			else
 			    error("label %s: redefined", parser.string);
 		    }
 		    else {
 			if (parser.parsing == PARSING_DATA) {
-			    kind = label_kind_data;
 			    value = data + data_offset;
+			    label = new_label(label_kind_data,
+					      parser.string, value);
 			}
 			else if (parser.parsing == PARSING_CODE) {
-			    kind = label_kind_code;
 			    value = jit_label();
+			    jit_note(parser.name, parser.line);
+			    label = new_label(label_kind_code,
+					      parser.string, value);
 			}
 			else
 			    error("label not in .code or .data");
-			label = new_label(kind, parser.string, value,
-					  parser.line);
 		    }
 		    break;
 		}
@@ -3578,7 +3584,7 @@ xcalloc(size_t nmemb, size_t size)
 }
 
 static label_t *
-new_label(label_kind_t kind, char *name, void *value, int line)
+new_label(label_kind_t kind, char *name, void *value)
 {
     label_t	*label;
 
@@ -3586,11 +3592,8 @@ new_label(label_kind_t kind, char *name, void *value, int line)
     label->kind = kind;
     label->name = strdup(name);
     label->value = value;
-    label->line = line;
     put_hash(labels, (entry_t *)label);
     label_offset++;
-    if (label->kind == label_kind_code)
-	jit_note(name, line);
     return (label);
 }
 

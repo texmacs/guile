@@ -195,6 +195,7 @@ static void
 disasm_print_address(bfd_vma addr, struct disassemble_info *info)
 {
     char		*name;
+    char		*file;
     int			 line;
     char		 buffer[address_buffer_length];
 
@@ -205,12 +206,11 @@ disasm_print_address(bfd_vma addr, struct disassemble_info *info)
 #  define jit_pointer_p(u)					\
 	((u) >= _jit->code.ptr && (u) < _jit->pc.uc)
     if (jit_pointer_p((jit_uint8_t *)(jit_word_t)addr)) {
-	if (jit_get_note((jit_uint8_t *)(jit_word_t)addr, &name, &line)) {
-	    if (line)
-		(*info->fprintf_func)(info->stream, " %s:%d", name, line);
-	    else
-		(*info->fprintf_func)(info->stream, " %s", name);
-	}
+	if (jit_get_note((jit_uint8_t *)(jit_word_t)addr, &name, &file, &line))
+	    (*info->fprintf_func)(info->stream, " %s:%s:%d",
+				  name ? name : "",
+				  file ? file : "",
+				  line);
     }
 #  undef jit_pointer_p
 #  undef _jit
@@ -259,6 +259,7 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 {
     int			 bytes;
     char		*name, *old_name;
+    char		*file, *old_file;
     int			 line,  old_line;
 #if __arm__
     jit_int32_t		 offset;
@@ -276,7 +277,7 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     disasm_info.buffer = code;
     disasm_info.buffer_vma = (jit_uword_t)code;
     disasm_info.buffer_length = length;
-    old_name = NULL;
+    old_file = old_name = NULL;
     old_line = 0;
     disasm_jit = _jit;
     while (pc < end) {
@@ -310,15 +311,14 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 	    }
 	}
 #endif
-	if (jit_get_note((jit_uint8_t *)(jit_word_t)pc, &name, &line) &&
-	    (name != old_name || line != old_line)) {
-	    if (line)
-		(*disasm_info.fprintf_func)(disasm_stream, "# %s:%d\n",
-					    name, line);
-	    else
-		(*disasm_info.fprintf_func)(disasm_stream, "# %s\n",
-					    name);
+	if (jit_get_note((jit_uint8_t *)(jit_word_t)pc, &name, &file, &line) &&
+	    (name != old_name || file != old_file || line != old_line)) {
+	    (*disasm_info.fprintf_func)(disasm_stream, "# %s:%s:%d\n",
+					name ? name : "",
+					file ? file : "",
+					line);
 	    old_name = name;
+	    old_file = file;
 	    old_line = line;
 	}
 

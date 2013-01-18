@@ -19,6 +19,7 @@ identity (int arg)
   return arg;
 }
  */
+	name identify
 identify:
 	prolog
 	arg $i
@@ -31,6 +32,7 @@ identify:
 	retr %v0
 	epilog
 
+	name identity_func
 identity_func:
 	prolog
 	arg $i
@@ -74,6 +76,7 @@ branch:
 	retr %v1
 	epilog
 
+	name main
 main:
 	prolog
 	prepare

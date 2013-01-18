@@ -120,9 +120,6 @@ L##x##C:
 	LDST0(R0, R1, R2, F5)
 
 .code
-	jmpi main
-
-main:
 	prolog
 
 	/* Simple test to simplify validating encodings before

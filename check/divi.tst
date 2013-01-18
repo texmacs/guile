@@ -11,6 +11,7 @@ x:
 	jmpi main
 
 #define generate_divider(operand)	\
+	name divider_##operand		\
 divider_##operand:			\
 	prolog				\
 	arg $i				\
@@ -22,6 +23,7 @@ generate_divider(8)
 generate_divider(32768)
 
 #define generate_test_divider(divisor)	\
+	name test_divider_##divisor	\
 test_divider_##divisor:			\
 	prolog				\
 	allocai 4 $loc			\
@@ -62,6 +64,7 @@ done_##divisor:				\
 generate_test_divider(8)
 generate_test_divider(32768)
 
+	name main
 main:
 	prolog
 	prepare

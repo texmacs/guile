@@ -5,6 +5,7 @@ fmt:
 .code
 	jmpi main
 
+	name test
 test:
 	prolog
 	arg $i0
@@ -15,6 +16,7 @@ test:
 	retr %r0
 	epilog
 
+	name main
 main:
 	prolog
 	prepare

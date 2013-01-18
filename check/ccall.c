@@ -704,7 +704,8 @@ main(int argc, char *argv[])
 
 #define strfy(n)				#n	
 #define defi(T, N)							\
-    n##T##N = jit_note(strfy(n##T##N), 0);				\
+    n##T##N = jit_name(strfy(n##T##N));					\
+    jit_note("ccall.c", __LINE__);					\
     jit_prolog();							\
     arg##N();								\
     get##N(,T,JIT_R)							\
@@ -712,7 +713,8 @@ main(int argc, char *argv[])
     jit_retr(JIT_R0);							\
     jit_epilog();
 #define deff(T, N)							\
-    n##T##N = jit_note(strfy(n##T##N), 0);				\
+    n##T##N = jit_name(strfy(n##T##N));					\
+    jit_note("ccall.c", __LINE__);					\
     jit_prolog();							\
     arg##N(T);								\
     get##N(T,T,JIT_F);							\
@@ -752,7 +754,8 @@ main(int argc, char *argv[])
 #undef def
 
     jit_patch(jmpi_main);
-    jit_note("main", 0);
+    jit_name("main");
+    jit_note("ccall.c", __LINE__);
     jit_prolog();
 
 #define  push0(T)	/**/

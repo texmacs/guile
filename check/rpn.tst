@@ -12,6 +12,7 @@ newline:
 .code
 	jmpi main
 
+	name c2f
 c2f:
 	prolog
 	arg $in
@@ -56,6 +57,7 @@ c2f:
 	retr %r0
 	epilog
 
+	name f2c
 f2c:
 	prolog
 	arg $in
@@ -103,6 +105,7 @@ f2c:
 	epilog
 
 //-----------------------------------------------------------------------
+	name main
 main:
 	prolog
 

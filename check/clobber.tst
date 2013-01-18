@@ -819,9 +819,6 @@ ok:
 .c	"ok\n"
 
 .code
-	jmpi main
-
-main:
 	prolog
 
 	  alu(__LINE__, add)

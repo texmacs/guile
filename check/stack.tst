@@ -11,6 +11,7 @@
 #define szof_d			8
 
 #define FILL(T)							\
+	name fill##T						\
 fill##T:							\
 	prolog							\
 	arg $argp						\
@@ -30,6 +31,7 @@ fill##T##done:							\
 	ret							\
 	epilog
 #define FILLF(T)						\
+	name fill##T						\
 fill##T:							\
 	prolog							\
 	arg $argp						\
@@ -153,12 +155,14 @@ N##T##V:
 
 /* bottom function */
 #define DEF0(T)							\
+	name test##T##_0					\
 test##T##_0:							\
 	prolog							\
 	ret							\
 	epilog
 
 #define DEFN(N, M, T)						\
+	name test##T##_##N					\
 test##T##_##N:							\
 	prolog							\
 	arg $argp						\
@@ -210,6 +214,7 @@ test##T##_##N##_done:						\
 
 /* top function */
 #define DEFX(T)							\
+	name test##T##_17					\
 test##T##_17:							\
 	prolog							\
 	/* heap buffer in %v1 */				\
@@ -302,6 +307,7 @@ ok:
 	DEF(_f)
 	DEF(_d)
 
+	name main
 main:
 	prolog
 
