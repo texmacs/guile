@@ -195,10 +195,10 @@ _new_note(jit_state_t *_jit, jit_uint8_t *code, char *name)
 	_jit->note.ptr = malloc(sizeof(jit_note_t) * 8);
     }
     else {
-	prev = _jit->note.ptr + _jit->note.length - 1;
 	if ((_jit->note.length & 7) == 7)
 	    _jit->note.ptr = realloc(_jit->note.ptr, sizeof(jit_note_t) *
 				     (_jit->note.length + 9));
+	prev = _jit->note.ptr + _jit->note.length - 1;
     }
     if (prev) {
 	assert(code >= prev->code);
@@ -255,7 +255,7 @@ _note_search_index(jit_state_t *_jit, jit_uint8_t *code)
 	if (code < notes[index].code)
 	    top = index;
 	else if (code >= notes[index].code &&
-		 code - notes[index].code <= notes[index].size)
+		 code - notes[index].code < notes[index].size)
 	    break;
 	else
 	    bot = index + 1;

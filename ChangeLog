@@ -1,5 +1,10 @@
 2013-01-18 Paulo Andrade <pcpa@gnu.org>
 
+	lib/jit_note.c: Correct bounds check and wrong code keeping
+	a pointer that could be changed after a realloc call.
+
+2013-01-18 Paulo Andrade <pcpa@gnu.org>
+
 	* check/3to2.tst, check/add.tst, check/allocai.tst, check/bp.tst,
 	check/call.tst, check/ccall.c, check/clobber.tst, check/divi.tst,
 	check/fib.tst, check/ldsti.tst, check/ldstr-c.tst, check/ldstr.tst,
