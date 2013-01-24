@@ -56,6 +56,17 @@ if test "x$DISASSEMBLER" != "xno"; then
     LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
 fi
 
+AC_ARG_ENABLE(assertions,
+	      AS_HELP_STRING([--enable-assertions],
+			     [Enable runtime code generation assertions]),
+	      [DEBUG=$enableval], [DEBUG=auto])
+if test "x$DEBUG" = xyes; then
+    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDEBUG=1"
+else
+    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DNDEBUG"
+    DEBUG=no
+fi
+
 cpu=
 case "$target_cpu" in
     i?86|x86_64)	cpu=x86		;;

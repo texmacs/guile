@@ -172,6 +172,6 @@ CLEANFILES = $(TESTS)
 
 #TESTS_ENVIRONMENT=$(srcdir)/run-test;
 
-debug:		$(check_PROGRAMS)
-	$(LIBTOOL) --mode=execute gdb $(check_PROGRAMS)
+debug:		lightning
+	$(LIBTOOL) --mode=execute gdb lightning
 

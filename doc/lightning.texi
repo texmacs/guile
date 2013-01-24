@@ -3,11 +3,8 @@
 
 @setfilename lightning.info
 
-@set TITLE       Using and porting @sc{gnu} @i{lightning}
-@set TOPIC       installing, using and porting
-@set BOTH
-@set USING
-@set PORTING
+@set TITLE       Using @sc{gnu} @i{lightning}
+@set TOPIC       installing and using
 
 @settitle @value{TITLE}
 
@@ -63,29 +60,9 @@
 @c References to the other half of the manual
 @c ---------------------------------------------------------------------
 
-@ifset USING
 @macro usingref{node, name}
 @ref{\node\, , \name\}
 @end macro
-@end ifset
-
-@ifclear USING
-@macro usingref{node, name}
-@ref{\node\, , \name\, u-lightning, Using @sc{gnu} @i{lightning}}
-@end macro
-@end ifclear
-
-@ifset PORTING
-@macro portingref{node, name}
-@ref{\node\, , \name\}
-@end macro
-@end ifset
-
-@ifclear PORTING
-@macro portingref{node, name}
-@ref{\node\, , \name\, p-lightning, Porting @sc{gnu} @i{lightning}}
-@end macro
-@end ifclear
 
 @c ---------------------------------------------------------------------
 @c End of macro section
@@ -98,3 +75,4 @@
 
 @c ***********************************************************************
 
+@bye

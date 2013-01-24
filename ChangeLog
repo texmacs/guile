@@ -1,6 +1,31 @@
+2013-01-24 Paulo Andrade <pcpa@gnu.org>
+
+	* check/Makefile.am: "make debug" target should pass only
+	the main test tool program as argument for running gdb
+
+	* configure.ac: Add the --enable-assertions options.
+
+	* doc/Makefile.am, doc/body.texi, doc/lightning.texi:
+	Major rewrite of the documentation to match the current
+	implementation.
+
+	* doc/version.texi: Automatic date update.
+
+	* doc/ifib.c, doc/incr.c, doc/printf.c, doc/rfib.c, doc/rpn.c:
+	Implementation of the documentation examples, that are also
+	compiled during a normal build.
+
+	* doc/p-lightning.texi, doc/porting.texi, doc/toc.texi,
+	doc/u-lightning.texi, doc/using.texi: These files were
+	renamed in the documentation rewrite, as the documentation
+	was significantly trimmed due to full removal of the porting
+	chapters. Better porting documentation should be added but
+	for the moment it was just removed the documentation not
+	matching the implementation.
+
 2013-01-18 Paulo Andrade <pcpa@gnu.org>
 
-	lib/jit_note.c: Correct bounds check and wrong code keeping
+	* lib/jit_note.c: Correct bounds check and wrong code keeping
 	a pointer that could be changed after a realloc call.
 
 2013-01-18 Paulo Andrade <pcpa@gnu.org>
