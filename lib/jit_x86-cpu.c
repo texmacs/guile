@@ -3023,7 +3023,7 @@ _bxsubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 static void
 _callr(jit_state_t *_jit, jit_int32_t r0)
 {
-    rex(0, 1, _NOREG, _NOREG, r0);
+    rex(0, 0, _NOREG, _NOREG, r0);
     ic(0xff);
     mrm(0x03, 0x02, r7(r0));
 }

@@ -18,6 +18,10 @@
 #ifndef _jit_private_h
 #define _jit_private_h
 
+#if HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
@@ -277,6 +281,7 @@ struct jit_state {
     mpz_t		  blockmask;	/* mask of visited basic blocks */
     struct {
 	jit_uint8_t	 *ptr;
+	jit_uint8_t	 *end;
 	jit_word_t	  length;
     } code;
     struct {
@@ -407,6 +412,10 @@ _jit_classify(jit_state_t*, jit_code_t);
 #define jit_regarg_p(n, r)	_jit_regarg_p(_jit, n, r)
 extern jit_bool_t
 _jit_regarg_p(jit_state_t*, jit_node_t*, jit_int32_t);
+
+#define emit_code()		_emit_code(_jit)
+extern jit_pointer_t
+_emit_code(jit_state_t*);
 
 #define emit_ldxi(r0, r1, i0)	_emit_ldxi(_jit, r0, r1, i0)
 extern void

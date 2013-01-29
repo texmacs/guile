@@ -19,11 +19,13 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_MACRO_DIR(m4)
 
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
+
+AC_CHECK_FUNCS(mremap,,)
 
 AC_CHECK_LIB(gmp, __gmpz_init, ,
 	[AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])

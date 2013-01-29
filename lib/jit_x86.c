@@ -868,7 +868,7 @@ _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 }
 
 jit_pointer_t
-_jit_emit(jit_state_t *_jit)
+_emit_code(jit_state_t *_jit)
 {
     jit_node_t		*node;
     jit_node_t		*temp;
@@ -880,23 +880,6 @@ _jit_emit(jit_state_t *_jit)
 	jit_word_t	 word;
 	jit_int32_t	 patch_offset;
     } undo;
-
-    if (_jit->function)
-	jit_epilog();
-    jit_optimize();
-
-    _jit->emit = 1;
-
-    _jit->code.length = 16 * 1024 * 1024;
-    _jit->code.ptr = mmap(NULL, _jit->code.length,
-			  PROT_EXEC | PROT_READ | PROT_WRITE,
-			  MAP_PRIVATE | MAP_ANON, -1, 0);
-    assert(_jit->code.ptr != MAP_FAILED);
-    _jit->pc.uc = _jit->code.ptr;
-
-    /* clear jit_flag_patch from label nodes if reallocating buffer
-     * and starting over
-     */
 
     _jit->function = NULL;
 
@@ -1125,6 +1108,9 @@ _jit_emit(jit_state_t *_jit)
 		}							\
 		break
     for (node = _jit->head; node; node = node->next) {
+	if (_jit->pc.uc >= _jit->code.end)
+	    return (NULL);
+
 	value = jit_classify(node->code);
 	jit_regarg_set(node, value);
 	switch (node->code) {
@@ -1629,8 +1615,6 @@ _jit_emit(jit_state_t *_jit)
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
 	patch_at(node, _jit->patches.ptr[offset].inst, word);
     }
-    _jit->done = 1;
-    jit_annotate();
 
     return (_jit->code.ptr);
 }

@@ -1,3 +1,21 @@
+2013-01-29 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac: Use AC_CONFIG_HEADERS instead of AC_CONFIG_HEADER
+	to have HAVE_CONFIG_H defined with latest aclocal.
+
+	* include/lightning/jit_private.h, lib/lightning.c: Add new
+	abstraction to use an heuristic to calculate amount of space
+	required for jit generation, and code to reallocate buffer if
+	did miscalculate it.
+
+	* lib/jit_arm.c, lib/jit_mips.c, lib/jit_ppc.c, lib/jit_x86.c:
+	Update to use new code to estimate and resize of required buffer
+	for jit code.
+
+	* lib/jit_x86-cpu.c: Minor cosmetic change to avoid adding a
+	non required rex prefix when calling a function pointer stored
+	in a register.
+
 2013-01-24 Paulo Andrade <pcpa@gnu.org>
 
 	* check/Makefile.am: "make debug" target should pass only

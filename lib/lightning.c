@@ -1238,6 +1238,70 @@ _jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 	jit_regset_clrbit(_jit->regarg, jit_regno(node->w.w));
 }
 
+jit_pointer_t
+_jit_emit(jit_state_t *_jit)
+{
+    jit_pointer_t	 code;
+    jit_node_t		*node;
+    jit_int32_t		 mult;
+    size_t		 length;
+
+    if (_jit->function)
+	jit_epilog();
+    jit_optimize();
+
+    /* Heuristic to guess code buffer size */
+    mult = 4;
+
+    _jit->emit = 1;
+
+    _jit->code.length = _jit->pool.length * 1024 * mult;
+
+    _jit->code.ptr = mmap(NULL, _jit->code.length,
+			  PROT_EXEC | PROT_READ | PROT_WRITE,
+			  MAP_PRIVATE | MAP_ANON, -1, 0);
+    assert(_jit->code.ptr != MAP_FAILED);
+    _jit->code.end = _jit->code.ptr + _jit->code.length - 64;
+    _jit->pc.uc = _jit->code.ptr;
+
+    for (;;) {
+	if ((code = emit_code()) == NULL) {
+	    for (node = _jit->head; node; node = node->next) {
+		if (node->code == jit_code_label && node->link)
+		    node->flag &= ~jit_flag_patch;
+	    }
+	    ++mult;
+	    length = _jit->pool.length * 1024 * mult;
+
+#if !HAVE_MREMAP
+	    munmap(_jit->code.ptr, _jit->code.length);
+#endif
+
+#if HAVE_MREMAP
+	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
+				    length, MREMAP_MAYMOVE, NULL);
+#else
+	    _jit->code.ptr = mmap(NULL, length,
+				  PROT_EXEC | PROT_READ | PROT_WRITE,
+				  MAP_PRIVATE | MAP_ANON, -1, 0);
+#endif
+
+	    assert(_jit->code.ptr != MAP_FAILED);
+	    _jit->code.length = length;
+	    _jit->code.end = _jit->code.ptr + _jit->code.length - 64;
+	    _jit->pc.uc = _jit->code.ptr;
+	    _jit->patches.offset = 0;
+	}
+	else
+	    break;
+    }
+
+    _jit->done = 1;
+    jit_annotate();
+
+    return (code);
+}
+
 /*   Compute initial reglive and regmask set values of a basic block.
  * reglive is the set of known live registers
  * regmask is the set of registers not referenced in the block
