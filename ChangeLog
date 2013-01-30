@@ -1,5 +1,11 @@
 2013-01-30 Paulo Andrade <pcpa@gnu.org>
 
+	* doc/body.texi: Correct "jmpi" description that incorrectly
+	told it was possible to pass any address as jump target. The
+	only way to do that is "movi+jmpr".
+
+2013-01-30 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_x86-cpu.c: Correct undefined behavior code.
 	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56143
 

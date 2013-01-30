@@ -1,8 +1,14 @@
-	* Remove JIT_RET and JIT_FRET. Only interface to these should
-	be jit_retval, jit_retval_f and jit_retval_d, otherwise one
-	may use JIT_RET and/or JIT_FRET as argument to other jit calls,
-	what may cause problems at least on the arm backend.
-
 	* Update documentation to match new implementation.
 
 	* Make an sparc port to not remove previous functionality.
+
+	* Add two new base instructions to help dynamically typed
+	languages, that use two result registers and two argument
+	registers, implementing multiplication and quotient+remainder
+	return from division. Alternatively, can add branch codes
+	for multiplication that overflows (and reverse for no
+	overflow) and division with zero remainder or non zero
+	remainder.
+	Suggested names for now are "qmul" and "qdiv", with "r"
+	and "i" variants, and possibly unsigned version. Branches
+	would use "bo" and "bx" prefix.

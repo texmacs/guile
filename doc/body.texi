@@ -488,7 +488,8 @@ callr     (not specified)                @r{function call to a register}
 calli     (not specified)                @r{function call to O1}
 finishr   (not specified)                @r{function call to a register}
 finishi   (not specified)                @r{function call to O1}
-jmpi/jmpr (not specified)                @r{unconditional jump to O1}
+jmpr      (not specified)                @r{unconditional jump to register}
+jmpi      (not specified)                @r{unconditional jump}
 ret       (not specified)                @r{return from subroutine}
 retr      _c _uc _s _us _i _ui _l _f _d
 reti      _c _uc _s _us _i _ui _l _f _d
@@ -1067,11 +1068,11 @@ a pointer to a C function. Note that conditional branches do not
 receive a label argument, so they must be patched.
 
 You need to call @code{patch_at} on the return of value @code{calli},
-@code{finishi}, @code{jmpi} and @code{calli} if it is actually
-referencing a label in the jit code. All other branch instructions
-do not receive a label argument. Note that @code{movi} is an special
-case, and patching it is usually done to get the final address of
-a label, usually to later call @code{jmpr}.
+@code{finishi}, and @code{calli} if it is actually referencing a label
+in the jit code. All branch instructions do not receive a label
+argument. Note that @code{movi} is an special case, and patching it
+is usually done to get the final address of a label, usually to later
+call @code{jmpr}.
 
 Now, here is the iterative version:
 
