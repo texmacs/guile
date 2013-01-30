@@ -2601,16 +2601,20 @@ _stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _jccs(jit_state_t *_jit, jit_int32_t code, jit_word_t i0)
 {
+    jit_word_t		w;
     ic(0x70 | code);
-    ic(i0 - (_jit->pc.w + 1));
+    w = i0 - (_jit->pc.w + 1);
+    ic(w);
 }
 
 static void
 _jcc(jit_state_t *_jit, jit_int32_t code, jit_word_t i0)
 {
+    jit_word_t		w;
     ic(0x0f);
     ic(0x80 | code);
-    ii(i0 - (_jit->pc.w + 4));
+    w = i0 - (_jit->pc.w + 4);
+    ii(w);
 }
 
 static void
@@ -3040,8 +3044,10 @@ _calli(jit_state_t *_jit, jit_word_t i0)
     callr(rn(reg));
     jit_unget_reg(reg);
 #else
+    jit_word_t		w;
     ic(0xe8);
-    ii(i0 - (_jit->pc.w + 4));
+    w = i0 - (_jit->pc.w + 4);
+    ii(w);
     word = _jit->pc.w;
 #endif
     return (word);
@@ -3058,8 +3064,10 @@ _jmpr(jit_state_t *_jit, jit_int32_t r0)
 static jit_word_t
 _jmpi(jit_state_t *_jit, jit_word_t i0)
 {
+    jit_word_t		w;
     ic(0xe9);
-    ii(i0 - (_jit->pc.w + 4));
+    w = i0 - (_jit->pc.w + 4);
+    ii(w);
     return (_jit->pc.w);
 }
 

@@ -1,3 +1,8 @@
+2013-01-30 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_x86-cpu.c: Correct undefined behavior code.
+	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56143
+
 2013-01-29 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac: Use AC_CONFIG_HEADERS instead of AC_CONFIG_HEADER
