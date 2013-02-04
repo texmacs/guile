@@ -66,6 +66,9 @@ EXTRA_DIST =				\
 	carry.tst	carry.ok	\
 	call.tst	call.ok		\
 	float.tst	float.ok	\
+	qalu.inc			\
+	qalu_mul.tst	qalu_mul.ok	\
+	qalu_div.tst	qalu_div.ok	\
 	ccall.ok			\
 	check.sh			\
 	check.x87.sh			\
@@ -88,7 +91,8 @@ base_TESTS =				\
 	fop_abs fop_sqrt		\
 	varargs stack			\
 	clobber carry call		\
-	float
+	float				\
+	qalu_mul qalu_div
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@

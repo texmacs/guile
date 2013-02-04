@@ -103,6 +103,7 @@
 #define jit_cc_a0_reg		0x00000001	/* arg0 is a register */
 #define jit_cc_a0_chg		0x00000002	/* arg0 is modified */
 #define jit_cc_a0_jmp		0x00000004	/* arg0 is a jump target */
+#define jit_cc_a0_rlh		0x00000008	/* arg0 is a register pair */
 #define jit_cc_a0_int		0x00000010	/* arg0 is immediate word */
 #define jit_cc_a0_flt		0x00000020	/* arg0 is immediate float */
 #define jit_cc_a0_dbl		0x00000040	/* arg0 is immediate double */
@@ -170,13 +171,13 @@ typedef struct jit_data_info	jit_data_info_t;
 union jit_data {
     struct {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_int32_t	l;
-	jit_int32_t	h;
+	jit_int32_t	 l;
+	jit_int32_t	 h;
 #else
-	jit_int32_t	h;
-	jit_int32_t	l;
+	jit_int32_t	 h;
+	jit_int32_t	 l;
 #endif
-    } pair;
+    } q;
     jit_word_t		 w;
     jit_float32_t	 f;
     jit_float64_t	 d;

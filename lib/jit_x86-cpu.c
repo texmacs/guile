@@ -158,6 +158,10 @@ static void _alur(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define alui(code, r0, i0)		_alui(_jit, code, r0, i0)
 static void _alui(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define iaddr(r0, r1)			alur(X86_ADD, r0, r1)
+#  define save(r0)			_save(_jit, r0)
+static void _save(jit_state_t*, jit_int32_t);
+#  define load(r0)			_load(_jit, r0)
+static void _load(jit_state_t*, jit_int32_t);
 #  define addr(r0, r1, r2)		_addr(_jit, r0, r1, r2)
 static void _addr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define iaddi(r0, i0)			alui(X86_ADD, r0, i0)
@@ -197,10 +201,22 @@ static void _imuli(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 static void _mulr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define muli(r0, r1, i0)		_muli(_jit, r0, r1, i0)
 static void _muli(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define idivr(r0)			unr(X86_IDIV, r0)
-#  define idivr_u(r0)			unr(X86_DIV, r0)
+#  define umulr(r0)			unr(X86_IMUL, r0)
+#  define umulr_u(r0)			unr(X86_MUL, r0)
+#  define qmulr(r0, r1, r2, r3)		_iqmulr(_jit, r0, r1, r2, r3, 1)
+#  define qmulr_u(r0, r1, r2, r3)	_iqmulr(_jit, r0, r1, r2, r3, 0)
+#  define iqmulr(r0, r1, r2, r3, sign)	_iqmulr(_jit, r0, r1, r2, r3, sign)
+static void _iqmulr(jit_state_t*, jit_int32_t, jit_int32_t,
+		    jit_int32_t,jit_int32_t, jit_bool_t);
+#  define qmuli(r0, r1, r2, i0)		_iqmuli(_jit, r0, r1, r2, i0, 1)
+#  define qmuli_u(r0, r1, r2, i0)	_iqmuli(_jit, r0, r1, r2, i0, 0)
+#  define iqmuli(r0, r1, r2, i0, sign)	_iqmuli(_jit, r0, r1, r2, i0, sign)
+static void _iqmuli(jit_state_t*, jit_int32_t, jit_int32_t,
+		    jit_int32_t,jit_word_t, jit_bool_t);
 #  define sign_extend_rdx_rax()		_sign_extend_rdx_rax(_jit)
 static void _sign_extend_rdx_rax(jit_state_t*);
+#  define idivr(r0)			unr(X86_IDIV, r0)
+#  define idivr_u(r0)			unr(X86_DIV, r0)
 #  define divremr(r0, r1, r2, i0, i1)	_divremr(_jit, r0, r1, r2, i0, i1)
 static void
 _divremr(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,
@@ -212,6 +228,16 @@ _divremi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t,jit_bool_t,jit_bool_t);
 #  define divi(r0, r1, i0)		divremi(r0, r1, i0, 1, 1)
 #  define divr_u(r0, r1, r2)		divremr(r0, r1, r2, 0, 1)
 #  define divi_u(r0, r1, i0)		divremi(r0, r1, i0, 0, 1)
+#  define qdivr(r0, r1, r2, r3)		_iqdivr(_jit, r0, r1, r2, r3, 1)
+#  define qdivr_u(r0, r1, r2, r3)	_iqdivr(_jit, r0, r1, r2, r3, 0)
+#  define iqdivr(r0, r1, r2, r3, sign)	_iqdivr(_jit, r0, r1, r2, r3, sign)
+static void _iqdivr(jit_state_t*, jit_int32_t, jit_int32_t,
+		    jit_int32_t,jit_int32_t, jit_bool_t);
+#  define qdivi(r0, r1, r2, i0)		_iqdivi(_jit, r0, r1, r2, i0, 1)
+#  define qdivi_u(r0, r1, r2, i0)	_iqdivi(_jit, r0, r1, r2, i0, 0)
+#  define iqdivi(r0, r1, r2, i0, sign)	_iqdivi(_jit, r0, r1, r2, i0, sign)
+static void _iqdivi(jit_state_t*, jit_int32_t, jit_int32_t,
+		    jit_int32_t,jit_word_t, jit_bool_t);
 #  define remr(r0, r1, r2)		divremr(r0, r1, r2, 1, 0)
 #  define remi(r0, r1, i0)		divremi(r0, r1, i0, 1, 0)
 #  define remr_u(r0, r1, r2)		divremr(r0, r1, r2, 0, 0)
@@ -835,6 +861,27 @@ _alui(jit_state_t *_jit, jit_int32_t code, jit_int32_t r0, jit_word_t i0)
 }
 
 static void
+_save(jit_state_t *_jit, jit_int32_t r0)
+{
+    if (!_jit->function->regoff[r0]) {
+	_jit->function->regoff[r0] = jit_allocai(sizeof(jit_word_t));
+	_jit->again = 1;
+    }
+    assert(!jit_regset_tstbit(_jit->regsav, r0));
+    jit_regset_setbit(_jit->regsav, r0);
+    stxi(_jit->function->regoff[r0], _RBP_REGNO, r0);
+}
+
+static void
+_load(jit_state_t *_jit, jit_int32_t r0)
+{
+    assert(_jit->function->regoff[r0]);
+    assert(jit_regset_tstbit(_jit->regsav, r0));
+    jit_regset_clrbit(_jit->regsav, r0);
+    ldxi(r0, _RBP_REGNO, _jit->function->regoff[r0]);
+}
+
+static void
 _addr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     if (r0 == r1)
@@ -1130,6 +1177,99 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
 }
 
+#define savset(rn)							\
+    if (r0 != rn) {							\
+	sav |= 1 << rn;							\
+	if (r1 != rn && r2 != rn)					\
+	    set |= 1 << rn;						\
+    }
+#define isavset(rn)							\
+    if (r0 != rn) {							\
+	sav |= 1 << rn;							\
+	if (r1 != rn)							\
+	    set |= 1 << rn;						\
+    }
+#define qsavset(rn)							\
+    if (r0 != rn && r1 != rn) {						\
+	sav |= 1 << rn;							\
+	if (r2 != rn && r3 != rn)					\
+	    set |= 1 << rn;						\
+    }
+#define allocr(rn, rv)							\
+    if (set & (1 << rn))						\
+	(void)jit_get_reg(rv|jit_class_gpr|jit_class_named);		\
+    if (sav & (1 << rn)) {						\
+	if ( jit_regset_tstbit(_jit->regsav, rv) ||			\
+	    !jit_regset_tstbit(_jit->reglive, rv))			\
+	    sav &= ~(1 << rn);						\
+	else								\
+	    save(rv);							\
+    }
+#define clear(rn, rv)							\
+    if (set & (1 << rn))						\
+	jit_unget_reg(rv);						\
+    if (sav & (1 << rn))						\
+	load(rv);
+static void
+_iqmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_int32_t r3, jit_bool_t sign)
+{
+    jit_int32_t		mul;
+    jit_int32_t		sav;
+    jit_int32_t		set;
+
+    sav = set = 0;
+    qsavset(_RDX_REGNO);
+    qsavset(_RAX_REGNO);
+    allocr(_RDX_REGNO, _RDX);
+    allocr(_RAX_REGNO, _RAX);
+
+    if (r3 == _RAX_REGNO)
+	mul = r2;
+    else {
+	mul = r3;
+	movr(_RAX_REGNO, r2);
+    }
+    if (sign)
+	umulr(mul);
+    else
+	umulr_u(mul);
+
+    if (r0 == _RDX_REGNO && r1 == _RAX_REGNO)
+	xchgr(_RAX_REGNO, _RDX_REGNO);
+    else {
+	if (r0 != _RDX_REGNO)
+	    movr(r0, _RAX_REGNO);
+	movr(r1, _RDX_REGNO);
+	if (r0 == _RDX_REGNO)
+	    movr(r0, _RAX_REGNO);
+    }
+
+    clear(_RDX_REGNO, _RDX);
+    clear(_RAX_REGNO, _RAX);
+}
+
+static void
+_iqmuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_word_t i0, jit_bool_t sign)
+{
+    jit_int32_t		reg;
+
+    if (i0 == 0) {
+	ixorr(r0, r0);
+	ixorr(r1, r1);
+    }
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	if (sign)
+	    qmulr(r0, r1, r2, rn(reg));
+	else
+	    qmulr_u(r0, r1, r2, rn(reg));
+	jit_unget_reg(reg);
+    }
+}
+
 static void
 _sign_extend_rdx_rax(jit_state_t *_jit)
 {
@@ -1144,17 +1284,14 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
     jit_int32_t		div;
     jit_int32_t		reg;
     jit_int32_t		set;
+    jit_int32_t		sav;
     jit_int32_t		use;
 
-    set = use = 0;
-    if (r0 != _RDX_REGNO && r1 != _RDX_REGNO && r2 != _RDX_REGNO)
-	set |= 1 << _RDX_REGNO;
-    if (r0 != _RAX_REGNO && r1 != _RAX_REGNO && r2 != _RAX_REGNO)
-	set |= 1 << _RAX_REGNO;
-    if (set & (1 <<_RDX_REGNO))
-	(void)jit_get_reg(_RDX|jit_class_gpr|jit_class_named);
-    if (set & (1 << _RAX_REGNO))
-	(void)jit_get_reg(_RAX|jit_class_gpr|jit_class_named);
+    sav = set = use = 0;
+    savset(_RDX_REGNO);
+    savset(_RAX_REGNO);
+    allocr(_RDX_REGNO, _RDX);
+    allocr(_RAX_REGNO, _RAX);
 
     if (r2 == _RAX_REGNO) {
 	if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
@@ -1215,18 +1352,13 @@ _divremr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2,
     if (use)
 	jit_unget_reg(reg);
 
-    if (r0 != _RAX_REGNO) {
-	if (divide)
-	    movr(r0, _RAX_REGNO);
-    }
-    if (r0 != _RDX_REGNO) {
-	if (!divide)
-	    movr(r0, _RDX_REGNO);
-    }
-    if (set & (1 <<_RDX_REGNO))
-	jit_unget_reg(_RDX);
-    if (set & (1 << _RAX_REGNO))
-	jit_unget_reg(_RAX);
+    if (divide)
+	movr(r0, _RAX_REGNO);
+    else
+	movr(r0, _RDX_REGNO);
+
+    clear(_RDX_REGNO, _RDX);
+    clear(_RAX_REGNO, _RAX);
 }
 
 static void
@@ -1235,6 +1367,7 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
 {
     jit_int32_t		reg;
     jit_int32_t		div;
+    jit_int32_t		sav;
     jit_int32_t		set;
     jit_int32_t		use;
 
@@ -1283,15 +1416,11 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
 	return;
     }
 
-    set = use = 0;
-    if (r0 != _RDX_REGNO && r1 != _RDX_REGNO)
-	set |= 1 << _RDX_REGNO;
-    if (r0 != _RAX_REGNO && r1 != _RAX_REGNO)
-	set |= 1 << _RAX_REGNO;
-    if (set & (1 <<_RDX_REGNO))
-	(void)jit_get_reg(_RDX|jit_class_gpr|jit_class_named);
-    if (set & (1 << _RAX_REGNO))
-	(void)jit_get_reg(_RAX|jit_class_gpr|jit_class_named);
+    sav = set = use = 0;
+    isavset(_RDX_REGNO);
+    isavset(_RAX_REGNO);
+    allocr(_RDX_REGNO, _RDX);
+    allocr(_RAX_REGNO, _RAX);
 
     if (r0 == _RAX_REGNO || r0 == _RDX_REGNO || r0 == r1) {
 	if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
@@ -1318,19 +1447,118 @@ _divremi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0,
     if (use)
 	jit_unget_reg(reg);
 
-    if (r0 != _RAX_REGNO) {
-	if (divide)
+    if (divide)
+	movr(r0, _RAX_REGNO);
+    else
+	movr(r0, _RDX_REGNO);
+
+    clear(_RDX_REGNO, _RDX);
+    clear(_RAX_REGNO, _RAX);
+}
+
+static void
+_iqdivr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_int32_t r3, jit_bool_t sign)
+{
+    jit_int32_t		div;
+    jit_int32_t		reg;
+    jit_int32_t		sav;
+    jit_int32_t		set;
+    jit_int32_t		use;
+
+    sav = set = use = 0;
+    qsavset(_RDX_REGNO);
+    qsavset(_RAX_REGNO);
+    allocr(_RDX_REGNO, _RDX);
+    allocr(_RAX_REGNO, _RAX);
+    if (r3 == _RAX_REGNO) {
+	if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
+	    if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
+		reg = jit_get_reg((r1 == _RCX_REGNO ? _RBX : _RCX) |
+				  jit_class_gpr|jit_class_named);
+	    use = 1;
+	    div = rn(reg);
+	    movr(div, _RAX_REGNO);
+	    if (r2 != _RAX_REGNO)
+		movr(_RAX_REGNO, r2);
+	}
+	else {
+	    if (r0 == r2)
+		xchgr(r0, _RAX_REGNO);
+	    else {
+		if (r0 != _RAX_REGNO)
+		    movr(r0, _RAX_REGNO);
+		if (r2 != _RAX_REGNO)
+		    movr(_RAX_REGNO, r2);
+	    }
+	    div = r0;
+	}
+    }
+    else if (r3 == _RDX_REGNO) {
+	if (r0 == _RAX_REGNO || r0 == _RDX_REGNO) {
+	    if ((reg = jit_get_reg(jit_class_gpr|jit_class_chk)) == JIT_NOREG)
+		reg = jit_get_reg((r1 == _RCX_REGNO ? _RBX : _RCX) |
+				  jit_class_gpr|jit_class_named);
+	    use = 1;
+	    div = rn(reg);
+	    movr(div, _RDX_REGNO);
+	    if (r2 != _RAX_REGNO)
+		movr(_RAX_REGNO, r2);
+	}
+	else {
+	    if (r2 != _RAX_REGNO)
+		movr(_RAX_REGNO, r2);
+	    movr(r0, _RDX_REGNO);
+	    div = r0;
+	}
+    }
+    else {
+	if (r2 != _RAX_REGNO)
+	    movr(_RAX_REGNO, r2);
+	div = r3;
+    }
+    if (sign) {
+	sign_extend_rdx_rax();
+	idivr(div);
+    }
+    else {
+	ixorr(_RDX_REGNO, _RDX_REGNO);
+	idivr_u(div);
+    }
+    if (use)
+	jit_unget_reg(reg);
+
+    if (r0 == _RDX_REGNO && r1 == _RAX_REGNO)
+	xchgr(_RAX_REGNO, _RDX_REGNO);
+    else {
+	if (r0 != _RDX_REGNO)
+	    movr(r0, _RAX_REGNO);
+	movr(r1, _RDX_REGNO);
+	if (r0 == _RDX_REGNO)
 	    movr(r0, _RAX_REGNO);
     }
-    if (r0 != _RDX_REGNO) {
-	if (!divide)
-	    movr(r0, _RDX_REGNO);
-    }
-    if (set & (1 <<_RDX_REGNO))
-	jit_unget_reg(_RDX);
-    if (set & (1 << _RAX_REGNO))
-	jit_unget_reg(_RAX);
+
+    clear(_RDX_REGNO, _RDX);
+    clear(_RAX_REGNO, _RAX);
 }
+
+static void
+_iqdivi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_word_t i0, jit_bool_t sign)
+{
+    jit_int32_t		reg;
+
+    reg = jit_get_reg(jit_class_gpr);
+    movi(rn(reg), i0);
+    if (sign)
+	qdivr(r0, r1, r2, rn(reg));
+    else
+	qdivr_u(r0, r1, r2, rn(reg));
+    jit_unget_reg(reg);
+}
+#undef clear
+#undef allocr
+#undef savset
 
 static void
 _andr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)

@@ -1,3 +1,22 @@
+2013-02-04 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_arm-cpu.c, lib/jit_arm.c, lib/jit_mips-cpu.c,
+	lib/jit_mips.c, lib/jit_ppc-cpu.c, lib/jit_ppc.c,
+	lib/jit_x86-cpu.c, lib/jit_x86.c, lib/lightning.c:
+	Implement the new qmul and qdiv instructions that return signed
+	and unsigned lo/hi multiplication result and div/rem division result.
+	These should be useful for jit translation of code that needs to
+	know if a multiplication overflows (no branch opcode added) or if
+	a division is exact (easy check if remainder is zero).
+
+	* check/lightning.c, lib/jit_print.c, check/Makefile.am,
+	check/all.tst: Update for the new qmul and qdiv instructions.
+
+	* check/qalu.inc, check/qalu_div.ok, check/qalu_div.tst,
+	check/qalu_mul.ok, check/qalu_mul.tst: New files implementing
+	simple test cases for qmul and qdiv.
+
 2013-01-30 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Correct "jmpi" description that incorrectly

@@ -12,3 +12,19 @@
 	Suggested names for now are "qmul" and "qdiv", with "r"
 	and "i" variants, and possibly unsigned version. Branches
 	would use "bo" and "bx" prefix.
+
+	* Convert retr to an actual node, otherwise, code like:
+	movi %r0 1
+	divr %r1 %r2 %r3
+	retr %r0
+	will fail in x86 because, besides "divr" telling it clobbers
+	%rax (r0) it ends being ignored because retr is a noop there
+	(removed "mov %rax,%rax" expansion) and the code checking for
+	live registers ends up not knowing about %rax being live after
+	the "divr". This affects only x86.
+
+	* Validate that divrem in jit_x86-cpu.c is not modifying
+	the non result arguments. This is not verified by clobber.tst,
+	as it only checks registers not involved in the operation
+	(because it does not know about values being set as input
+	for the the operation).

@@ -34,10 +34,18 @@
 	subxi %r0 %r1 2
 	mulr %r0 %r1 %r2
 	muli %r0 %r1 2
+	qmulr %r0 %r1 %r2 %v0
+	qmuli %r0 %r1 %r2 3
+	qmulr_u %r0 %r1 %r2 %v0
+	qmuli_u %r0 %r1 %r2 3
 	divr %r0 %r1 %r2
 	divi %r0 %r1 2
 	divr_u %r0 %r1 %r2
 	divi_u %r0 %r1 2
+	qdivr %r0 %r1 %r2 %v0
+	qdivi %r0 %r1 %r2 3
+	qdivr_u %r0 %r1 %r2 %v0
+	qdivi_u %r0 %r1 %r2 3
 	remr %r0 %r1 %r2
 	remi %r0 %r1 2
 	remr_u %r0 %r1 %r2

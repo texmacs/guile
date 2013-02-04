@@ -723,9 +723,19 @@ _emit_code(jit_state_t *_jit)
 		name##r##type(rn(node->u.w),				\
 			      rn(node->v.w), rn(node->w.w));		\
 		break
+#define case_rrr(name, type)						\
+	    case jit_code_##name##r##type:				\
+		name##r##type(rn(node->u.q.l), rn(node->u.q.h),		\
+			      rn(node->v.w), rn(node->w.w));		\
+		break
 #define case_rrw(name, type)						\
 	    case jit_code_##name##i##type:				\
 		name##i##type(rn(node->u.w), rn(node->v.w), node->w.w);	\
+		break
+#define case_rrrw(name, type)						\
+	    case jit_code_##name##i##type:				\
+		name##i##type(rn(node->u.q.l), rn(node->u.q.h),		\
+			      rn(node->v.w), node->w.w);		\
 		break
 #define case_rrf(name, type, size)					\
 	    case jit_code_##name##i##type:				\
@@ -808,10 +818,18 @@ _emit_code(jit_state_t *_jit)
 		case_rrw(subx,);
 		case_rrr(mul,);
 		case_rrw(mul,);
+		case_rrrr(qmul,);
+		case_rrrw(qmul,);
+		case_rrrr(qmul, _u);
+		case_rrrw(qmul, _u);
 		case_rrr(div,);
 		case_rrw(div,);
 		case_rrr(div, _u);
 		case_rrw(div, _u);
+		case_rrrr(qdiv,);
+		case_rrrw(qdiv,);
+		case_rrrr(qdiv, _u);
+		case_rrrw(qdiv, _u);
 		case_rrr(rem,);
 		case_rrw(rem,);
 		case_rrr(rem, _u);

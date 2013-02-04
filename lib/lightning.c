@@ -635,6 +635,21 @@ _jit_new_node_www(jit_state_t *_jit, jit_code_t code,
 }
 
 jit_node_t *
+_jit_new_node_qww(jit_state_t *_jit, jit_code_t code,
+		  jit_int32_t l, jit_int32_t h,
+		  jit_word_t v, jit_word_t w)
+{
+    jit_node_t		*node = new_node(code);
+    assert(!_jit->emit);
+    assert(l != h);
+    node->u.q.l = l;
+    node->u.q.h = h;
+    node->v.w = v;
+    node->w.w = w;
+    return (link_node(node));
+}
+
+jit_node_t *
 _jit_new_node_wwf(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_float32_t w)
 {
@@ -857,6 +872,11 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_ldxi_l:	case jit_code_ldxi_f:	case jit_code_ldxi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a2_int;
 	    break;
+	case jit_code_qmuli:	case jit_code_qmuli_u:
+	case jit_code_qdivi:	case jit_code_qdivi_u:
+	    mask = jit_cc_a0_reg|jit_cc_a0_rlh|jit_cc_a0_chg|
+		   jit_cc_a1_reg|jit_cc_a2_int;
+	    break;
 	case jit_code_addi_f:	case jit_code_subi_f:	case jit_code_muli_f:
 	case jit_code_divi_f:	case jit_code_lti_f:	case jit_code_lei_f:
 	case jit_code_eqi_f:	case jit_code_gei_f:	case jit_code_gti_f:
@@ -899,6 +919,11 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_ordr_d:	case jit_code_unordr_d:	case jit_code_ldxr_d:
 	case jit_code_movr_ww_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a2_reg;
+	    break;
+	case jit_code_qmulr:	case jit_code_qmulr_u:
+	case jit_code_qdivr:	case jit_code_qdivr_u:
+	    mask = jit_cc_a0_reg|jit_cc_a0_rlh|jit_cc_a0_chg|
+		   jit_cc_a1_reg|jit_cc_a2_reg;
 	    break;
 	case jit_code_sti_c:	case jit_code_sti_s:	case jit_code_sti_i:
 	case jit_code_sti_l:	case jit_code_sti_f:	case jit_code_sti_d:
@@ -1185,13 +1210,35 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 	    break;
 	default:
 	    value = jit_classify(node->code);
-	    if ((value & jit_cc_a0_reg) && !(node->u.w & jit_regno_patch)) {
-		if (value & jit_cc_a0_chg) {
-		    jit_regset_clrbit(_jit->reglive, node->u.w);
-		    jit_regset_setbit(_jit->regmask, node->u.w);
+	    if (value & jit_cc_a0_reg) {
+		if (value & jit_cc_a0_rlh) {
+		    if (!(node->u.q.l & jit_regno_patch)) {
+			if (value & jit_cc_a0_chg) {
+			    jit_regset_clrbit(_jit->reglive, node->u.q.l);
+			    jit_regset_setbit(_jit->regmask, node->u.q.l);
+			}
+			else
+			    jit_regset_setbit(_jit->reglive, node->u.q.l);
+		    }
+		    if (!(node->u.q.h & jit_regno_patch)) {
+			if (value & jit_cc_a0_chg) {
+			    jit_regset_clrbit(_jit->reglive, node->u.q.h);
+			    jit_regset_setbit(_jit->regmask, node->u.q.h);
+			}
+			else
+			    jit_regset_setbit(_jit->reglive, node->u.q.h);
+		    }
 		}
-		else
-		    jit_regset_setbit(_jit->reglive, node->u.w);
+		else {
+		    if (!(node->u.w & jit_regno_patch)) {
+			if (value & jit_cc_a0_chg) {
+			    jit_regset_clrbit(_jit->reglive, node->u.w);
+			    jit_regset_setbit(_jit->regmask, node->u.w);
+			}
+			else
+			    jit_regset_setbit(_jit->reglive, node->u.w);
+		    }
+		}
 	    }
 	    if ((value & jit_cc_a1_reg) && !(node->v.w & jit_regno_patch)) {
 		if (value & jit_cc_a1_chg) {
@@ -1219,8 +1266,14 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 void
 _jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
-    if (value & jit_cc_a0_reg)
-	jit_regset_setbit(_jit->regarg, jit_regno(node->u.w));
+    if (value & jit_cc_a0_reg) {
+	if (value & jit_cc_a0_rlh) {
+	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.q.l));
+	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.q.h));
+	}
+	else
+	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.w));
+    }
     if (value & jit_cc_a1_reg)
 	jit_regset_setbit(_jit->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
@@ -1230,8 +1283,14 @@ _jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 void
 _jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
-    if (value & jit_cc_a0_reg)
-	jit_regset_clrbit(_jit->regarg, jit_regno(node->u.w));
+    if (value & jit_cc_a0_reg) {
+	if (value & jit_cc_a0_rlh) {
+	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.q.l));
+	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.q.h));
+	}
+	else
+	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.w));
+    }
     if (value & jit_cc_a1_reg)
 	jit_regset_clrbit(_jit->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
@@ -1325,14 +1384,33 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
 		return;
 	    default:
 		value = jit_classify(node->code);
-		if ((value & jit_cc_a0_reg) &&
-		    !(node->u.w & jit_regno_patch) &&
-		    jit_regset_tstbit(regmask, node->u.w)) {
+		if (value & jit_cc_a0_reg) {
 		    live = !(value & jit_cc_a0_chg);
-		    if (live || !jump)
-			jit_regset_clrbit(regmask, node->u.w);
-		    if (live)
-			jit_regset_setbit(reglive, node->u.w);
+		    if (value & jit_cc_a0_rlh) {
+			if (!(node->u.q.l & jit_regno_patch) &&
+			    jit_regset_tstbit(regmask, node->u.q.l)) {
+			    if (live || !jump)
+				jit_regset_clrbit(regmask, node->u.q.l);
+			    if (live)
+				jit_regset_setbit(reglive, node->u.q.l);
+			}
+			if (!(node->u.q.h & jit_regno_patch) &&
+			    jit_regset_tstbit(regmask, node->u.q.h)) {
+			    if (live || !jump)
+				jit_regset_clrbit(regmask, node->u.q.h);
+			    if (live)
+				jit_regset_setbit(reglive, node->u.q.h);
+			}
+		    }
+		    else {
+			if (!(node->u.w & jit_regno_patch) &&
+			    jit_regset_tstbit(regmask, node->u.w)) {
+			    if (live || !jump)
+				jit_regset_clrbit(regmask, node->u.w);
+			    if (live)
+				jit_regset_setbit(reglive, node->u.w);
+			}
+		    }
 		}
 		if ((value & jit_cc_a1_reg) &&
 		    !(node->v.w & jit_regno_patch) &&
@@ -1453,11 +1531,29 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 		    }
 		}
 		if (value & jit_cc_a0_reg) {
-		    if (!(node->u.w & jit_regno_patch)) {
-			if (jit_regset_tstbit(*mask, node->u.w)) {
-			    jit_regset_clrbit(*mask, node->u.w);
-			    if (!(value & jit_cc_a0_chg))
-				jit_regset_setbit(*live, node->u.w);
+		    if (value & jit_cc_a0_rlh) {
+			if (!(node->u.q.l & jit_regno_patch)) {
+			    if (jit_regset_tstbit(*mask, node->u.q.l)) {
+				jit_regset_clrbit(*mask, node->u.q.l);
+				if (!(value & jit_cc_a0_chg))
+				    jit_regset_setbit(*live, node->u.q.l);
+			    }
+			}
+			if (!(node->u.q.h & jit_regno_patch)) {
+			    if (jit_regset_tstbit(*mask, node->u.q.h)) {
+				jit_regset_clrbit(*mask, node->u.q.h);
+				if (!(value & jit_cc_a0_chg))
+				    jit_regset_setbit(*live, node->u.q.h);
+			    }
+			}
+		    }
+		    else {
+			if (!(node->u.w & jit_regno_patch)) {
+			    if (jit_regset_tstbit(*mask, node->u.w)) {
+				jit_regset_clrbit(*mask, node->u.w);
+				if (!(value & jit_cc_a0_chg))
+				    jit_regset_setbit(*live, node->u.w);
+			    }
 			}
 		    }
 		}
@@ -1887,14 +1983,25 @@ _redundant_store(jit_state_t *_jit, jit_node_t *node, jit_bool_t jump)
 		break;
 	    default:
 		spec = jit_classify(iter->code);
-		if ((spec & jit_cc_a0_jmp) ||
-		    (((spec & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
-		      (jit_cc_a0_reg|jit_cc_a0_chg)) &&
-		     regno == jit_regno(iter->u.w)) ||
-		    (((spec & (jit_cc_a1_reg|jit_cc_a1_chg)) ==
-		      (jit_cc_a1_reg|jit_cc_a1_chg)) &&
-		     regno == jit_regno(iter->v.w)))
+		if (spec & jit_cc_a0_jmp)
 		    return;
+		if ((spec & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
+		    (jit_cc_a0_reg|jit_cc_a0_chg)) {
+		    if (spec & jit_cc_a0_rlh) {
+			if (regno == jit_regno(iter->u.q.l) ||
+			    regno == jit_regno(iter->u.q.h))
+			    return;
+		    }
+		    else {
+			if (regno == jit_regno(iter->u.w))
+			    return;
+		    }
+		}
+		if ((spec & (jit_cc_a1_reg|jit_cc_a1_chg)) ==
+		    (jit_cc_a1_reg|jit_cc_a1_chg)) {
+		    if (regno == jit_regno(iter->v.w))
+			return;
+		}
 		break;
 	}
     }
@@ -1912,8 +2019,8 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
     right = jit_regno(node->v.w);
     value = _jit->values + regno;
     if ((value->kind == jit_kind_register &&
-	 jit_regno(value->base.pair.l) == right &&
-	 value->base.pair.h == _jit->gen[right]) ||
+	 jit_regno(value->base.q.l) == right &&
+	 value->base.q.h == _jit->gen[right]) ||
 	(value->kind == kind && _jit->values[right].kind == kind &&
 	 memcmp(&value->base.w, &_jit->values[right].base.w, size) == 0)) {
 	del_node(prev, node);
@@ -1923,8 +2030,8 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 	memcpy(value, _jit->values + right, sizeof(jit_value_t));
     else {
 	value->kind = jit_kind_register;
-	value->base.pair.l = right;
-	value->base.pair.h = _jit->gen[regno];
+	value->base.q.l = right;
+	value->base.q.h = _jit->gen[regno];
     }
     ++_jit->gen[regno];
 
@@ -1996,15 +2103,15 @@ _simplify_ldxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     right = jit_regno(node->v.w);
     value = _jit->values + regno;
     if (value->kind == jit_kind_code && value->code == node->code &&
-	value->base.pair.l == right && value->base.pair.h == _jit->gen[right] &&
+	value->base.q.l == right && value->base.q.h == _jit->gen[right] &&
 	node->w.w == value->disp.w) {
 	del_node(prev, node);
 	return (1);
     }
     value->kind = jit_kind_code;
     value->code = node->code;
-    value->base.pair.l = right;
-    value->base.pair.h = _jit->gen[right];
+    value->base.q.l = right;
+    value->base.q.h = _jit->gen[right];
     value->disp.w = node->w.w;
     ++_jit->gen[regno];
 
@@ -2025,7 +2132,7 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 
     /* check for redundant store after load */
     if (value->kind == jit_kind_code && value->code == node->code &&
-	value->base.pair.l == right && value->base.pair.h == _jit->gen[right] &&
+	value->base.q.l == right && value->base.q.h == _jit->gen[right] &&
 	node->w.w == value->disp.w) {
 	del_node(prev, node);
 	return (1);
@@ -2055,8 +2162,8 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 	}
 	value->kind = jit_kind_code;
 	value->code = node->code;
-	value->base.pair.l = right;
-	value->base.pair.h = _jit->gen[right];
+	value->base.q.l = right;
+	value->base.q.h = _jit->gen[right];
 	value->disp.w = node->u.w;
     }
 
@@ -2188,9 +2295,19 @@ _simplify(jit_state_t *_jit)
 		     * a conditional branch */
 		    goto reset;
 		if (info & jit_cc_a0_chg) {
-		    regno = jit_regno(node->u.w);
-		    _jit->values[regno].kind = 0;
-		    ++_jit->gen[regno];
+		    if (info & jit_cc_a0_rlh) {
+			regno = jit_regno(node->u.q.l);
+			_jit->values[regno].kind = 0;
+			++_jit->gen[regno];
+			regno = jit_regno(node->u.q.h);
+			_jit->values[regno].kind = 0;
+			++_jit->gen[regno];
+		    }
+		    else {
+			regno = jit_regno(node->u.w);
+			_jit->values[regno].kind = 0;
+			++_jit->gen[regno];
+		    }
 		}
 		if (info & jit_cc_a1_chg) {
 		    regno = jit_regno(node->v.w);
@@ -2222,8 +2339,12 @@ _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 		/* lack of extra information */
 		if (value & jit_cc_a0_jmp)
 		    return (jit_reg_change);
-		else if ((value & jit_cc_a0_reg) && node->u.w == regno &&
-			 (value & jit_cc_a0_chg))
+		else if ((value & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
+			 (jit_cc_a0_reg|jit_cc_a0_chg) &&
+			 (((value & jit_cc_a0_rlh) &&
+			   (node->u.q.l == regno || node->u.q.h == regno)) ||
+			  (!(value & jit_cc_a0_rlh) &&
+			   node->u.w == regno)))
 		    return (jit_reg_change);
 		else if ((value & jit_cc_a1_reg) && node->v.w == regno &&
 			 (value & jit_cc_a1_chg))
@@ -2380,8 +2501,18 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 
     for (; node != link; node = node->next) {
 	value = jit_classify(node->code);
-	if ((value & jit_cc_a0_reg) && node->u.w == regno)
-	    node->u.w = patch;
+	if (value & jit_cc_a0_reg) {
+	    if (value & jit_cc_a0_rlh) {
+		if (node->u.q.l == regno)
+		    node->u.q.l = patch;
+		if (node->u.q.h == regno)
+		    node->u.q.h = patch;
+	    }
+	    else {
+		if (node->u.w == regno)
+		    node->u.w = patch;
+	    }
+	}
 	if ((value & jit_cc_a1_reg) && node->v.w == regno)
 	    node->v.w = patch;
 	if ((value & jit_cc_a2_reg) && node->w.w == regno)

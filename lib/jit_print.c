@@ -48,8 +48,12 @@ static char *code_name[] = {
     "subcr",		"subci",
     "subxr",		"subxi",
     "mulr",		"muli",
+    "qmulr",		"qmuli",
+    "qmulr_u",		"qmuli_u",
     "divr",		"divi",
     "divr_u",		"divi_u",
+    "qdivr",		"qdivi",
+    "qdivr_u",		"qdivi_u",
     "remr",		"remi",
     "remr_u",		"remi_u",
     "andr",		"andi",
@@ -248,7 +252,7 @@ _jit_print(jit_state_t *_jit)
 	    continue;
 	}
 	value = jit_classify(node->code) &
-	    (jit_cc_a0_int|jit_cc_a0_jmp|jit_cc_a0_reg|
+	    (jit_cc_a0_int|jit_cc_a0_jmp|jit_cc_a0_reg|jit_cc_a0_rlh|
 	     jit_cc_a1_reg|jit_cc_a1_int|jit_cc_a1_flt|jit_cc_a1_dbl|
 	     jit_cc_a2_reg|jit_cc_a2_int|jit_cc_a2_flt|jit_cc_a2_dbl);
 	if (value & jit_cc_a0_jmp)
@@ -302,6 +306,16 @@ _jit_print(jit_state_t *_jit)
 	r_r_w:
 	    print_chr(' ');		print_reg(node->u.w);
 	    print_chr(' ');		print_reg(node->v.w);
+	    print_chr(' ');		print_hex(node->w.w);	continue;
+	q_r_r:
+	    print_str(" (");		print_reg(node->u.q.l);
+	    print_chr(' ');		print_reg(node->u.q.h);
+	    print_str(") ");		print_reg(node->v.w);
+	    print_chr(' ');		print_reg(node->w.w);	continue;
+	q_r_w:
+	    print_str(" (");		print_reg(node->u.q.l);
+	    print_chr(' ');		print_reg(node->u.q.h);
+	    print_str(") ");		print_reg(node->v.w);
 	    print_chr(' ');		print_hex(node->w.w);	continue;
 	r_r_f:
 	    print_chr(' ');		print_reg(node->u.w);
@@ -419,6 +433,12 @@ _jit_print(jit_state_t *_jit)
 			goto r_r_r;
 		    case jit_cc_a0_reg|jit_cc_a1_reg|jit_cc_a2_int:
 			goto r_r_w;
+		    case jit_cc_a0_reg|jit_cc_a0_rlh|
+			 jit_cc_a1_reg|jit_cc_a2_reg:
+			goto q_r_r;
+		    case jit_cc_a0_reg|jit_cc_a0_rlh|
+			 jit_cc_a1_reg|jit_cc_a2_int:
+			goto q_r_w;
 		    case jit_cc_a0_reg|jit_cc_a1_reg|jit_cc_a2_flt:
 			goto r_r_f;
 		    case jit_cc_a0_reg|jit_cc_a1_reg|jit_cc_a2_dbl:

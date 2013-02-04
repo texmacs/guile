@@ -390,12 +390,32 @@ static void _subxi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #  define mulr(r0,r1,r2)		MULLW(r0,r1,r2)
 #  define muli(r0,r1,i0)		_muli(_jit,r0,r1,i0)
 static void _muli(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#  define qmulr(r0,r1,r2,r3)		iqmulr(r0,r1,r2,r3,1)
+#  define qmulr_u(r0,r1,r2,r3)		iqmulr(r0,r1,r2,r3,0)
+#  define iqmulr(r0,r1,r2,r3,cc)	_iqmulr(_jit,r0,r1,r2,r3,cc)
+static void _iqmulr(jit_state_t*,jit_int32_t,jit_int32_t,
+		    jit_int32_t,jit_int32_t,jit_bool_t);
+#  define qmuli(r0,r1,r2,i0)		iqmuli(r0,r1,r2,i0,1)
+#  define qmuli_u(r0,r1,r2,i0)		iqmuli(r0,r1,r2,i0,0)
+#  define iqmuli(r0,r1,r2,i0,cc)	_iqmuli(_jit,r0,r1,r2,i0,cc)
+static void _iqmuli(jit_state_t*,jit_int32_t,jit_int32_t,
+		    jit_int32_t,jit_word_t,jit_bool_t);
 #  define divr(r0,r1,r2)		DIVW(r0,r1,r2)
 #  define divi(r0,r1,i0)		_divi(_jit,r0,r1,i0)
 static void _divi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #  define divr_u(r0,r1,r2)		DIVWU(r0,r1,r2)
 #  define divi_u(r0,r1,i0)		_divi_u(_jit,r0,r1,i0)
 static void _divi_u(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#  define qdivr(r0,r1,r2,r3)		iqdivr(r0,r1,r2,r3,1)
+#  define qdivr_u(r0,r1,r2,r3)		iqdivr(r0,r1,r2,r3,0)
+#  define iqdivr(r0,r1,r2,r3,cc)	_iqdivr(_jit,r0,r1,r2,r3,cc)
+static void _iqdivr(jit_state_t*,jit_int32_t,jit_int32_t,
+		    jit_int32_t,jit_int32_t,jit_bool_t);
+#  define qdivi(r0,r1,r2,i0)		iqdivi(r0,r1,r2,i0,1)
+#  define qdivi_u(r0,r1,r2,i0)		iqdivi(r0,r1,r2,i0,0)
+#  define iqdivi(r0,r1,r2,i0,cc)	_iqdivi(_jit,r0,r1,r2,i0,cc)
+static void _iqdivi(jit_state_t*,jit_int32_t,jit_int32_t,
+		    jit_int32_t,jit_word_t,jit_bool_t);
 #  define remr(r0,r1,r2)		_remr(_jit,r0,r1,r2)
 static void _remr(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define remi(r0,r1,i0)		_remi(_jit,r0,r1,i0)
@@ -872,6 +892,38 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
+_iqmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_int32_t r3, jit_bool_t sign)
+{
+    jit_int32_t		reg;
+    if (r0 == r2 || r0 == r3) {
+	reg = jit_get_reg(jit_class_gpr);
+	MULLW(rn(reg), r2, r3);
+    }
+    else
+	MULLW(r0, r2, r3);
+    if (sign)
+	MULLH(r1, r2, r3);
+    else
+	MULLHU(r1, r2, r3);
+    if (r0 == r2 || r0 == r3) {
+	movr(r0, rn(reg));
+	reg = jit_unget_reg(reg);
+    }
+}
+
+static void
+_iqmuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_word_t i0, jit_bool_t sign)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    movi(rn(reg), i0);
+    iqmulr(r0, r1, r2, rn(reg), sign);
+    jit_unget_reg(reg);
+}
+
+static void
 _divi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
@@ -888,6 +940,53 @@ _divi_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     reg = jit_get_reg(jit_class_gpr);
     movi(rn(reg), i0);
     DIVWU(r0, r1, rn(reg));
+    jit_unget_reg(reg);
+}
+
+static void
+_iqdivr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_int32_t r3, jit_bool_t sign)
+{
+    jit_int32_t		sv0, rg0;
+    jit_int32_t		sv1, rg1;
+
+    if (r0 == r2 || r0 == r3) {
+	sv0 = jit_get_reg(jit_class_gpr);
+	rg0 = rn(sv0);
+    }
+    else
+	rg0 = r0;
+    if (r1 == r2 || r1 == r3) {
+	sv1 = jit_get_reg(jit_class_gpr);
+	rg1 = rn(sv1);
+    }
+    else
+	rg1 = r1;
+
+    if (sign)
+	divr(rg0, r2, r3);
+    else
+	divr_u(rg0, r2, r3);
+    mulr(rg1, r2, r0);
+    subr(rg1, r2, r0);
+    if (rg0 != r0) {
+	movr(r0, rg0);
+	jit_unget_reg(sv0);
+    }
+    if (rg1 != r1) {
+	movr(r1, rg1);
+	jit_unget_reg(sv1);
+    }
+}
+
+static void
+_iqdivi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	jit_int32_t r2, jit_word_t i0, jit_bool_t sign)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    movi(rn(reg), i0);
+    iqdivr(r0, r1, r2, rn(reg), sign);
     jit_unget_reg(reg);
 }
 

@@ -153,12 +153,24 @@ typedef enum {
 #define jit_mulr(u,v,w)		jit_new_node_www(jit_code_mulr,u,v,w)
 #define jit_muli(u,v,w)		jit_new_node_www(jit_code_muli,u,v,w)
     jit_code_mulr,		jit_code_muli,
+#define jit_qmulr(l,h,v,w)	jit_new_node_qww(jit_code_qmulr,l,h,v,w)
+#define jit_qmuli(l,h,v,w)	jit_new_node_qww(jit_code_qmuli,l,h,v,w)
+    jit_code_qmulr,		jit_code_qmuli,
+#define jit_qmulr_u(l,h,v,w)	jit_new_node_qww(jit_code_qmulr_u,l,h,v,w)
+#define jit_qmuli_u(l,h,v,w)	jit_new_node_qww(jit_code_qmuli_u,l,h,v,w)
+    jit_code_qmulr_u,		jit_code_qmuli_u,
 #define jit_divr(u,v,w)		jit_new_node_www(jit_code_divr,u,v,w)
 #define jit_divi(u,v,w)		jit_new_node_www(jit_code_divi,u,v,w)
     jit_code_divr,		jit_code_divi,
 #define jit_divr_u(u,v,w)	jit_new_node_www(jit_code_divr_u,u,v,w)
 #define jit_divi_u(u,v,w)	jit_new_node_www(jit_code_divi_u,u,v,w)
     jit_code_divr_u,		jit_code_divi_u,
+#define jit_qdivr(l,h,v,w)	jit_new_node_qww(jit_code_qdivr,l,h,v,w)
+#define jit_qdivi(l,h,v,w)	jit_new_node_qww(jit_code_qdivi,l,h,v,w)
+    jit_code_qdivr,		jit_code_qdivi,
+#define jit_qdivr_u(l,h,v,w)	jit_new_node_qww(jit_code_qdivr_u,l,h,v,w)
+#define jit_qdivi_u(l,h,v,w)	jit_new_node_qww(jit_code_qdivi_u,l,h,v,w)
+    jit_code_qdivr_u,		jit_code_qdivi_u,
 #define jit_remr(u,v,w)		jit_new_node_www(jit_code_remr,u,v,w)
 #define jit_remi(u,v,w)		jit_new_node_www(jit_code_remi,u,v,w)
     jit_code_remr,		jit_code_remi,
@@ -839,6 +851,10 @@ extern jit_node_t *_jit_new_node_wd(jit_state_t*, jit_code_t,
 #define jit_new_node_www(c,u,v,w) _jit_new_node_www(_jit,c,u,v,w)
 extern jit_node_t *_jit_new_node_www(jit_state_t*, jit_code_t,
 				     jit_word_t, jit_word_t, jit_word_t);
+#define jit_new_node_qww(c,l,h,v,w) _jit_new_node_qww(_jit,c,l,h,v,w)
+extern jit_node_t *_jit_new_node_qww(jit_state_t*, jit_code_t,
+				     jit_int32_t, jit_int32_t,
+				     jit_word_t, jit_word_t);
 #define jit_new_node_wwf(c,u,v,w) _jit_new_node_wwf(_jit,c,u,v,w)
 extern jit_node_t *_jit_new_node_wwf(jit_state_t*, jit_code_t,
 				     jit_word_t, jit_word_t, jit_float32_t);

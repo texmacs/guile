@@ -260,8 +260,12 @@ static void subr(void);		static void subi(void);
 static void subxr(void);	static void subxi(void);
 static void subcr(void);	static void subci(void);
 static void mulr(void);		static void muli(void);
+static void qmulr(void);	static void qmuli(void);
+static void qmulr_u(void);	static void qmuli_u(void);
 static void divr(void);		static void divi(void);
 static void divr_u(void);	static void divi_u(void);
+static void qdivr(void);	static void qdivi(void);
+static void qdivr_u(void);	static void qdivi_u(void);
 static void remr(void);		static void remi(void);
 static void remr_u(void);	static void remi_u(void);
 static void andr(void);		static void andi(void);
@@ -552,8 +556,12 @@ static instr_t		  instr_vector[] = {
     entry(subxr),	entry(subxi),
     entry(subcr),	entry(subci),
     entry(mulr),	entry(muli),
+    entry(qmulr),	entry(qmuli),
+    entry(qmulr_u),	entry(qmuli_u),
     entry(divr),	entry(divi),
     entry(divr_u),	entry(divi_u),
+    entry(qdivr),	entry(qdivi),
+    entry(qdivr_u),	entry(qdivi_u),
     entry(remr),	entry(remi),
     entry(remr_u),	entry(remi_u),
     entry(andr),	entry(andi),
@@ -920,6 +928,22 @@ name(void)								\
     jit_word_t	im = get_imm();						\
     jit_##name(r0, r1, im);						\
 }
+#define entry_ir_ir_ir_ir(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_gpr_t	r0 = get_ireg(), r1 = get_ireg(),			\
+		r2 = get_ireg(), r3 = get_ireg();			\
+    jit_##name(r0, r1, r2, r3);						\
+}
+#define entry_ir_ir_ir_im(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_gpr_t	r0 = get_ireg(), r1 = get_ireg(), r2 = get_ireg();	\
+    jit_word_t	im = get_imm();						\
+    jit_##name(r0, r1, r2, im);						\
+}
 #define entry_ir_ir(name)						\
 static void								\
 name(void)								\
@@ -1244,8 +1268,12 @@ entry_ir_ir_ir(subr)		entry_ir_ir_im(subi)
 entry_ir_ir_ir(subxr)		entry_ir_ir_im(subxi)
 entry_ir_ir_ir(subcr)		entry_ir_ir_im(subci)
 entry_ir_ir_ir(mulr)		entry_ir_ir_im(muli)
+entry_ir_ir_ir_ir(qmulr)	entry_ir_ir_ir_im(qmuli)
+entry_ir_ir_ir_ir(qmulr_u)	entry_ir_ir_ir_im(qmuli_u)
 entry_ir_ir_ir(divr)		entry_ir_ir_im(divi)
 entry_ir_ir_ir(divr_u)		entry_ir_ir_im(divi_u)
+entry_ir_ir_ir_ir(qdivr)	entry_ir_ir_ir_im(qdivi)
+entry_ir_ir_ir_ir(qdivr_u)	entry_ir_ir_ir_im(qdivi_u)
 entry_ir_ir_ir(remr)		entry_ir_ir_im(remi)
 entry_ir_ir_ir(remr_u)		entry_ir_ir_im(remi_u)
 entry_ir_ir_ir(andr)		entry_ir_ir_im(andi)
