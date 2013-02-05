@@ -903,12 +903,12 @@ _iqmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
     else
 	MULLW(r0, r2, r3);
     if (sign)
-	MULLH(r1, r2, r3);
+	MULHW(r1, r2, r3);
     else
-	MULLHU(r1, r2, r3);
+	MULHWU(r1, r2, r3);
     if (r0 == r2 || r0 == r3) {
 	movr(r0, rn(reg));
-	reg = jit_unget_reg(reg);
+	jit_unget_reg(reg);
     }
 }
 
@@ -967,8 +967,8 @@ _iqdivr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
 	divr(rg0, r2, r3);
     else
 	divr_u(rg0, r2, r3);
-    mulr(rg1, r2, r0);
-    subr(rg1, r2, r0);
+    mulr(rg1, r3, rg0);
+    subr(rg1, r2, rg1);
     if (rg0 != r0) {
 	movr(r0, rg0);
 	jit_unget_reg(sv0);
