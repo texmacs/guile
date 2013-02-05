@@ -1,5 +1,22 @@
 2013-02-05 Paulo Andrade <pcpa@gnu.org>
 
+	*include/lightning.h, lib/lightning.c: Add the new jit_live code
+	to explicitly mark a register as live. It is required to avoid
+	assuming functions always return a value in the gpr and fpr return
+	register, and to avoid the need of some very specialized codes
+	that vary too much from backend to backend, to instruct the
+	optimization code the return register is live.
+
+	* lib/jit_arm.c, lib/jit_mips.c, lib/jit_ppc.c, lib/jit_print.c,
+	lib/jit_x86.c: Update for the new jit_live code.
+
+	* check/ret.ok, check/ret.tst: New files implementing a simple
+	test case that would previously fail at least in ix86/x86_64.
+
+	* check/Makefile.am: Update for new "ret" test case.
+
+2013-02-05 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ppc-cpu.c, lib/jit_ppc.c: Validate and correct
 	problems in the qmul and qdiv ppc implementation.
 

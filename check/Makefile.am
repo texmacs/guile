@@ -69,6 +69,7 @@ EXTRA_DIST =				\
 	qalu.inc			\
 	qalu_mul.tst	qalu_mul.ok	\
 	qalu_div.tst	qalu_div.ok	\
+	ret.tst		ret.ok		\
 	ccall.ok			\
 	check.sh			\
 	check.x87.sh			\
@@ -92,7 +93,8 @@ base_TESTS =				\
 	varargs stack			\
 	clobber carry call		\
 	float				\
-	qalu_mul qalu_div
+	qalu_mul qalu_div		\
+	ret
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@

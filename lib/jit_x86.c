@@ -356,8 +356,12 @@ _jit_ret(jit_state_t *_jit)
 void
 _jit_retr(jit_state_t *_jit, jit_int32_t u)
 {
+    /* movr(%ret, %ret) would be optimized out */
     if (JIT_RET != u)
 	jit_movr(JIT_RET, u);
+    /* explicitly tell it is live */
+    else
+	jit_live(JIT_RET);
     jit_ret();
 }
 
@@ -373,6 +377,8 @@ _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
 {
     if (JIT_FRET != u)
 	jit_movr_f(JIT_FRET, u);
+    else
+	jit_live(JIT_FRET);
     jit_ret();
 }
 
@@ -388,6 +394,8 @@ _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
 {
     if (JIT_FRET != u)
 	jit_movr_d(JIT_FRET, u);
+    else
+	jit_live(JIT_FRET);
     jit_ret();
 }
 
@@ -1599,6 +1607,7 @@ _emit_code(jit_state_t *_jit)
 		    fstpr(rn(node->u.w) + 1);
 		break;
 #endif
+	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
 		break;

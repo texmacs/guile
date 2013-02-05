@@ -278,7 +278,10 @@ _jit_ret(jit_state_t *_jit)
 void
 _jit_retr(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr(JIT_RET, u);
+    if (JIT_RET != u)
+	jit_movr(JIT_RET, u);
+    else
+	jit_live(JIT_RET);
     jit_ret();
 }
 
@@ -295,20 +298,24 @@ _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
     if (jit_cpu.abi) {
 	if (u != JIT_FRET)
 	    jit_movr_f(JIT_FRET, u);
+	else
+	    jit_live(JIT_FRET);
     }
-    else if (u != JIT_RET)
-	jit_movr_f_w(JIT_RET, u);
+    else {
+	if (u != JIT_RET)
+	    jit_movr_f_w(JIT_RET, u);
+	else
+	    jit_live(JIT_RET);
+    }
     jit_ret();
 }
 
 void
 _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 {
-    if (jit_cpu.abi) {
-	if (u != JIT_FRET)
-	    jit_movi_f(JIT_FRET, u);
-    }
-    else if (u != JIT_RET)
+    if (jit_cpu.abi)
+	jit_movi_f(JIT_FRET, u);
+    else
 	jit_movi_f_w(JIT_RET, u);
     jit_ret();
 }
@@ -319,20 +326,24 @@ _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
     if (jit_cpu.abi) {
 	if (u != JIT_FRET)
 	    jit_movr_d(JIT_FRET, u);
+	else
+	    jit_live(JIT_FRET);
     }
-    else if (u != JIT_RET)
-	jit_movr_d_ww(JIT_RET, _R1, u);
+    else {
+	if (u != JIT_RET)
+	    jit_movr_d_ww(JIT_RET, _R1, u);
+	else
+	    jit_live(JIT_RET);
+    }
     jit_ret();
 }
 
 void
 _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
 {
-    if (jit_cpu.abi) {
-	if (u != JIT_FRET)
-	    jit_movi_d(JIT_FRET, u);
-    }
-    else if (u != JIT_RET)
+    if (jit_cpu.abi)
+	jit_movi_d(JIT_FRET, u);
+    else
 	jit_movi_d_ww(JIT_RET, _R1, u);
     jit_ret();
 }
@@ -1476,6 +1487,7 @@ _emit_code(jit_state_t *_jit)
 		else
 		    vfp_movi_d(rn(node->u.w), node->w.d);
 		break;
+	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
 		break;

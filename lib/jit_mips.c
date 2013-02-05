@@ -187,14 +187,20 @@ _jit_retr(jit_state_t *_jit, jit_int32_t u)
 void
 _jit_reti(jit_state_t *_jit, jit_word_t u)
 {
-    jit_movi(JIT_RET, u);
+    if (JIT_RET != u)
+	jit_movi(JIT_RET, u);
+    else
+	jit_live(JIT_RET);
     jit_ret();
 }
 
 void
 _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_f(JIT_FRET, u);
+    if (JIT_FRET != u)
+	jit_movr_f(JIT_FRET, u);
+    else
+	jit_live(JIT_FRET);
     jit_ret();
 }
 
@@ -208,7 +214,10 @@ _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 void
 _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr_d(JIT_FRET, u);
+    if (JIT_FRET != u)
+	jit_movr_d(JIT_FRET, u);
+    else
+	jit_live(JIT_FRET);
     jit_ret();
 }
 
@@ -1209,6 +1218,7 @@ _emit_code(jit_state_t *_jit)
 		movi_d_ww(rn(node->u.w), rn(node->v.w),
 			  (jit_float64_t *)node->w.n->u.w);
 		break;
+	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
 		break;
