@@ -1,5 +1,26 @@
 2013-02-11 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning.h, lib/lightning.c: Implement the new
+	jit_clear_state and jit_destroy_state calls. jit_clear_state
+	releases all memory not required during jit_execution; that
+	is, leaves only the mmap'ed data and code buffers allocated.
+	jit_destroy_state releases the mmap'ed buffers as well as
+	the jit_state_t object itself, that holds pointers to the
+	code and data buffers, as well as annotation pointers (for
+	disassembly or backtrace) in the data buffer.
+
+	* lib/jit_note.c: Correct invalid vector offset access.
+
+	* check/ccall.c, check/lightning.c, doc/ifib.c, doc/incr.c,
+	doc/printf.c, doc/rfib.c, doc/rpn.c: Use the new jit_clear_state
+	and jit_destroy_state calls, to demonstrate the new code to
+	release all jit memory.
+
+	* doc/body.texi: Add basic documentation and usage description
+	of jit_clear_state and jit_destroy_state.
+
+2013-02-11 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_private.h, lib/jit_note.c, lib/lightning.c:
 	  Store all annotation information in the mmap'ed area reserved for
 	read only data. This adds code to not allocate memory for jit_note_t

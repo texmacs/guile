@@ -38,7 +38,9 @@ int main(int argc, char *argv[])
 
   /* call the generated code, passing 36 as an argument */
   fib = jit_emit();
+  jit_clear_state();
   printf("fib(%d) = %d\n", 36, fib(36));
+  jit_destroy_state();
   finish_jit();
   return 0;
 }

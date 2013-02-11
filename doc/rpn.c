@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
   (void)jit_emit();
   c2f = (pifi)jit_address(nc);
   f2c = (pifi)jit_address(nf);
+  jit_clear_state();
 
   printf("\nC:");
   for (i = 0; i <= 100; i += 10) printf("%3d ", i);
@@ -89,6 +90,7 @@ int main(int argc, char *argv[])
   for (i = 32; i <= 212; i += 18) printf("%3d ", f2c(i));
   printf("\n");
 
+  jit_destroy_state();
   finish_jit();
   return 0;
 }

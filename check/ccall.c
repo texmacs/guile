@@ -890,7 +890,11 @@ main(int argc, char *argv[])
     jit_print();
     jit_disassemble();
 #endif
+
+    jit_clear_state();
     (*function)();
+    jit_destroy_state();
+
     finish_jit();
 
     printf("ok\n");

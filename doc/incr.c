@@ -20,10 +20,12 @@ int main(int argc, char *argv[])
   jit_retr(JIT_R0);                /* @t{     retr   R0          } */
 
   incr = jit_emit();
+  jit_clear_state();
 
   /* call the generated code\, passing 5 as an argument */
   printf("%d + 1 = %d\n", 5, incr(5));
 
+  jit_destroy_state();
   finish_jit();
   return 0;
 }

@@ -177,12 +177,12 @@ _jit_set_note(jit_state_t *_jit, jit_note_t *note,
     else {
 	line = note->lines + index;
 	index = offset_insert_index(line, offset);
-	if (line->offsets[index] == offset) {
+	if (index < line->length && line->offsets[index] == offset) {
 	    /* common case if no code was generated for several source lines */
 	    if (line->linenos[index] < lineno)
 		line->linenos[index] = lineno;
 	}
-	else if (line->linenos[index] == lineno) {
+	else if (index < line->length && line->linenos[index] == lineno) {
 	    /* common case of extending entry */
 	    if (line->offsets[index] > offset)
 		line->offsets[index] = offset;

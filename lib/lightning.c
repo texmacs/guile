@@ -539,6 +539,70 @@ jit_new_state(void)
     return (_jit);
 }
 
+void
+_jit_clear_state(jit_state_t *_jit)
+{
+    jit_word_t		 offset;
+    jit_function_t	*function;
+
+    /* release memory not required at jit execution time and set
+     * pointers to NULL to explicitly know they are released */
+    _jit->head = _jit->tail = NULL;
+
+    mpz_clear(_jit->blockmask);
+
+    free(_jit->data.table);
+    _jit->data.table = NULL;
+    _jit->data.size = _jit->data.count = 0;
+
+    free(_jit->spill);
+    _jit->spill = NULL;
+    free(_jit->gen);
+    _jit->gen = NULL;
+    free(_jit->values);
+    _jit->values = NULL;
+
+    free(_jit->blocks.ptr);
+    _jit->blocks.ptr = NULL;
+
+    free(_jit->patches.ptr);
+    _jit->patches.ptr = NULL;
+    _jit->patches.offset = _jit->patches.length = 0;
+
+    for (offset = 0; offset < _jit->functions.offset; offset++) {
+	function = _jit->functions.ptr + offset;
+	free(function->regoff);
+	function->regoff = NULL;
+    }
+    free(_jit->functions.ptr);
+    _jit->functions.offset = _jit->functions.length = 0;
+    _jit->function = NULL;
+
+    for (offset = 0; offset < _jit->pool.length; offset++)
+	free(_jit->pool.ptr[offset]);
+    free(_jit->pool.ptr);
+    _jit->pool.ptr = NULL;
+    _jit->pool.offset = _jit->pool.length = 0;
+    _jit->list = NULL;
+
+    _jit->note.head = _jit->note.tail =
+	_jit->note.name = _jit->note.note = NULL;
+    _jit->note.base = NULL;
+
+#if __arm__ && DISASSEMBLER
+    free(_jit->data_info.ptr);
+    _jit->data_info.ptr = NULL;
+#endif
+}
+
+void
+_jit_destroy_state(jit_state_t *_jit)
+{
+    munmap(_jit->code.ptr, _jit->code.length);
+    munmap(_jit->data.ptr, _jit->data.length);
+    free(_jit);
+}
+
 jit_node_t *
 _jit_new_node(jit_state_t *_jit, jit_code_t code)
 {

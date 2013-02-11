@@ -3542,6 +3542,7 @@ parse(void)
 static int
 execute(int argc, char *argv[])
 {
+    int		 result;
     label_t	*label;
     function_t	 function;
     patch_t	*patch, *next;
@@ -3573,9 +3574,15 @@ execute(int argc, char *argv[])
 	jit_disassemble();
 	fprintf(stdout, "  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
     }
+
+    jit_clear_state();
     if (flag_disasm)
-	return (0);
-    return ((*function)(argc, argv));
+	result = 0;
+    else
+	result = (*function)(argc, argv);
+    jit_destroy_state();
+
+    return (result);
 }
 
 static void *

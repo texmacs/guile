@@ -752,6 +752,10 @@ extern void init_jit(char*);
 extern void finish_jit(void);
 
 extern jit_state_t *jit_new_state(void);
+#define jit_clear_state()	_jit_clear_state(_jit)
+extern void _jit_clear_state(jit_state_t*);
+#define jit_destroy_state()	_jit_destroy_state(_jit)
+extern void _jit_destroy_state(jit_state_t*);
 
 #define jit_address(node)	_jit_address(_jit, node)
 extern jit_pointer_t _jit_address(jit_state_t*, jit_node_t*);
