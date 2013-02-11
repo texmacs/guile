@@ -531,6 +531,11 @@ jit_new_state(void)
 				  sizeof(jit_data_info_t));
 #endif
 
+    /* allocate at most one extra note in case jit_name() is
+     * never called, or called after adding at least one note */
+    _jit->note.length = 1;
+    _jit->note.size = sizeof(jit_note_t);
+
     return (_jit);
 }
 
@@ -1045,6 +1050,7 @@ _jit_patch_at(jit_state_t *_jit, jit_node_t *instr, jit_node_t *label)
 void
 _jit_optimize(jit_state_t *_jit)
 {
+    jit_uint8_t		*ptr;
     jit_bool_t		 jump;
     jit_int32_t		 mask;
     jit_node_t		*node;
@@ -1151,22 +1157,29 @@ _jit_optimize(jit_state_t *_jit)
 	}
     }
 
-    /* create read only data buffer */
-    if ((_jit->data.length = (_jit->data.offset + 4095) & -4096)) {
-	jit_uint8_t	*ptr;
+    /* ensure it is aligned */
+    _jit->data.offset = (_jit->data.offset + 7) & -8;
 
-	ptr = mmap(NULL, _jit->data.length,
-		   PROT_READ | PROT_WRITE,
-		   MAP_PRIVATE | MAP_ANON, -1, 0);
-	assert(ptr != MAP_FAILED);
-	memcpy(ptr, _jit->data.ptr, _jit->data.offset);
-	free(_jit->data.ptr);
-	_jit->data.ptr = ptr;
-	for (offset = 0; offset < _jit->data.size; offset++) {
-	    for (node = _jit->data.table[offset]; node; node = node->next) {
-		node->flag |= jit_flag_patch;
-		node->u.w = (jit_word_t)(_jit->data.ptr + node->u.w);
-	    }
+    /* create read only data buffer */
+    _jit->data.length = (_jit->data.offset +
+			 /* reserve space for annotations */
+			 _jit->note.size + 4095) & -4096;
+    ptr = mmap(NULL, _jit->data.length,
+	       PROT_READ | PROT_WRITE,
+	       MAP_PRIVATE | MAP_ANON, -1, 0);
+    assert(ptr != MAP_FAILED);
+    memcpy(ptr, _jit->data.ptr, _jit->data.offset);
+    free(_jit->data.ptr);
+    _jit->data.ptr = ptr;
+
+    /* to be filled with note contents once offsets are known */
+    _jit->note.base = ptr + _jit->data.offset;
+    memset(_jit->note.base, 0, _jit->data.length - _jit->data.offset);
+
+    for (offset = 0; offset < _jit->data.size; offset++) {
+	for (node = _jit->data.table[offset]; node; node = node->next) {
+	    node->flag |= jit_flag_patch;
+	    node->u.w = (jit_word_t)(_jit->data.ptr + node->u.w);
 	}
     }
 }

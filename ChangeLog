@@ -1,3 +1,18 @@
+2013-02-11 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_private.h, lib/jit_note.c, lib/lightning.c:
+	  Store all annotation information in the mmap'ed area reserved for
+	read only data. This adds code to not allocate memory for jit_note_t
+	objects, and to	relocate jit_line_t objects and its contents after
+	calculating annotation information. The jit_line_t objects are
+	relocated because it is not possible to always calculate before
+	hand data layout because note information may be extended or
+	redundant entries removed, as well as allowed to be added in
+	non sequential order.
+	  A bug was also corrected in _jit_set_note, that was causing it
+	to allocate new jit_line_t objects when not needed. It was still
+	working correctly, but allocating way more memory than required.
+
 2013-02-05 Paulo Andrade <pcpa@gnu.org>
 
 	*include/lightning.h, lib/lightning.c: Add the new jit_live code

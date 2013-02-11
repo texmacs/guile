@@ -319,10 +319,16 @@ struct jit_state {
     } pool;
     jit_node_t		 *list;
     struct {
-	jit_note_t	*ptr;
-	jit_node_t	*head;		/* first note node */
-	jit_node_t	*tail;		/* linked list insertion */
-	jit_word_t	 length;
+	jit_note_t	 *ptr;
+	jit_node_t	 *head;		/* first note node */
+	jit_node_t	 *tail;		/* linked list insertion */
+	jit_word_t	  length;
+
+	/* fields to store temporary state information */
+	jit_word_t	  size;
+	jit_node_t	 *name;
+	jit_node_t	 *note;
+	jit_uint8_t	 *base;
     } note;
 #if __arm__
 #  if DISASSEMBLER

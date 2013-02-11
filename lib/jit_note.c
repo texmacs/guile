@@ -60,8 +60,11 @@ _jit_name(jit_state_t *_jit, char *name)
 	_jit->note.tail->link = node;
 	_jit->note.tail = node;
     }
-
-    return (node);
+    ++_jit->note.length;
+    _jit->note.size += sizeof(jit_note_t);
+    /* remember previous note is invalid due to name change */
+    _jit->note.note = NULL;
+    return (_jit->note.name = node);
 }
 
 jit_node_t *
@@ -81,8 +84,14 @@ _jit_note(jit_state_t *_jit, char *name, int line)
 	_jit->note.tail->link = node;
 	_jit->note.tail = node;
     }
-
-    return (node);
+    if (_jit->note.note == NULL ||
+	(name == NULL && _jit->note.note != NULL) ||
+	(name != NULL && _jit->note.note == NULL) ||
+	(name != NULL && _jit->note.note != NULL &&
+	 strcmp(name, (char *)_jit->data.ptr + _jit->note.note->v.n->u.w)))
+	_jit->note.size += sizeof(jit_line_t);
+    _jit->note.size += sizeof(jit_int32_t) * 2;
+    return (_jit->note.note = node);
 }
 
 void
@@ -90,6 +99,14 @@ _jit_annotate(jit_state_t *_jit)
 {
     jit_node_t		*node;
     jit_note_t		*note;
+    jit_line_t		*line;
+    jit_word_t		 length;
+    jit_word_t		 note_offset;
+    jit_word_t		 line_offset;
+
+    /* initialize pointers in mmaped data area */
+    _jit->note.ptr = (jit_note_t *)_jit->note.base;
+    _jit->note.length = 0;
 
     note = NULL;
     for (node = _jit->note.head; node; node = node->link) {
@@ -105,6 +122,43 @@ _jit_annotate(jit_state_t *_jit)
     /* last note */
     if (note)
 	note->size = _jit->pc.uc - note->code;
+
+    /* annotations may be very complex with conditions to extend
+     * or ignore redudant notes, as well as add entries to earlier
+     * notes, so, relocate the information to the data buffer,
+     * with likely over allocated reserved space */
+
+    /* relocate jit_line_t objects */
+    for (note_offset = 0; note_offset < _jit->note.length; note_offset++) {
+	note = _jit->note.ptr + note_offset;
+	length = sizeof(jit_line_t) * note->length;
+	assert(_jit->note.base + length < _jit->data.ptr + _jit->data.length);
+	memcpy(_jit->note.base, note->lines, length);
+	free(note->lines);
+	note->lines = (jit_line_t *)_jit->note.base;
+	_jit->note.base += length;
+    }
+
+    /* relocate offset and line number information */
+    for (note_offset = 0; note_offset < _jit->note.length; note_offset++) {
+	note = _jit->note.ptr + note_offset;
+	for (line_offset = 0; line_offset < note->length; line_offset++) {
+	    line = note->lines + line_offset;
+	    length = sizeof(jit_int32_t) * line->length;
+	    assert(_jit->note.base + length <
+		   _jit->data.ptr + _jit->data.length);
+	    memcpy(_jit->note.base, line->linenos, length);
+	    free(line->linenos);
+	    line->linenos = (jit_int32_t *)_jit->note.base;
+	    _jit->note.base += length;
+	    assert(_jit->note.base + length <
+		   _jit->data.ptr + _jit->data.length);
+	    memcpy(_jit->note.base, line->offsets, length);
+	    free(line->offsets);
+	    line->offsets = (jit_int32_t *)_jit->note.base;
+	    _jit->note.base += length;
+	}
+    }
 }
 
 void
@@ -115,6 +169,9 @@ _jit_set_note(jit_state_t *_jit, jit_note_t *note,
     jit_int32_t		 index;
 
     index = line_insert_index(note, offset);
+    if (note->length && index == note->length &&
+	note->lines[index - 1].file == file)
+	--index;
     if (index >= note->length || note->lines[index].file != file)
 	new_line(index, note, file, lineno, offset);
     else {
@@ -190,26 +247,16 @@ _new_note(jit_state_t *_jit, jit_uint8_t *code, char *name)
     jit_note_t		*note;
     jit_note_t		*prev;
 
-    if (_jit->note.ptr == NULL) {
-	prev = NULL;
-	_jit->note.ptr = malloc(sizeof(jit_note_t) * 8);
-    }
-    else {
-	if ((_jit->note.length & 7) == 7)
-	    _jit->note.ptr = realloc(_jit->note.ptr, sizeof(jit_note_t) *
-				     (_jit->note.length + 9));
+    if (_jit->note.length) {
 	prev = _jit->note.ptr + _jit->note.length - 1;
-    }
-    if (prev) {
 	assert(code >= prev->code);
 	prev->size = code - prev->code;
     }
-    note = _jit->note.ptr + _jit->note.length;
+    note = (jit_note_t *)_jit->note.base;
+    _jit->note.base += sizeof(jit_note_t);
     ++_jit->note.length;
     note->code = code;
     note->name = name;
-    note->lines = NULL;
-    note->length = note->size = 0;
 
     return (note);
 }
