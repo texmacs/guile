@@ -386,21 +386,20 @@ _jit_arg_f(jit_state_t *_jit)
 
     assert(_jit->function);
     if (jit_cpu.abi && !(_jit->function->self.call & jit_call_varargs)) {
-	if (_jit->function->self.argf < 16)
+	if (_jit->function->self.argf < 16) {
 	    offset = _jit->function->self.argf++;
-	else {
-	    offset = _jit->function->self.size;
-	    _jit->function->self.size += sizeof(jit_word_t);
+	    goto done;
 	}
     }
     else {
-	if (_jit->function->self.argi < 4)
+	if (_jit->function->self.argi < 4) {
 	    offset = _jit->function->self.argi++;
-	else {
-	    offset = _jit->function->self.size;
-	    _jit->function->self.size += sizeof(jit_float32_t);
+	    goto done;
 	}
     }
+    offset = _jit->function->self.size;
+    _jit->function->self.size += sizeof(jit_float32_t);
+done:
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
 
@@ -604,7 +603,14 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     assert(_jit->function);
     if (jit_cpu.abi && !(_jit->function->call.call & jit_call_varargs)) {
 	if (_jit->function->call.argf < 16) {
-	    jit_movi_f(JIT_FA0 - _jit->function->call.argf, u);
+	    /* cannot jit_movi_f in the argument register because
+	     * float arguments are packed, and that would cause
+	     * either an assertion in debug mode, or overwritting
+	     * two registers */
+	    regno = jit_get_reg(jit_class_fpr);
+	    jit_movi_f(regno, u);
+	    jit_movr_f(JIT_FA0 - _jit->function->call.argf, regno);
+	    jit_unget_reg(regno);
 	    ++_jit->function->call.argf;
 	    return;
 	}

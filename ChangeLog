@@ -1,5 +1,15 @@
 2013-02-11 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_arm.c: Correct jit_pushargi_f in the arm hardfp abi.
+	Most of the logic uses even numbered register numbers, so that
+	a float and a double can be used in the same register, but
+	the abi requires packing the float arguments, so jit_pushargi_f
+	needs to allocate a temporary register to modify only the
+	proper register argument (or be very smart to push two
+	immediate arguments if applicable).
+
+2013-02-11 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h, lib/lightning.c: Implement the new
 	jit_clear_state and jit_destroy_state calls. jit_clear_state
 	releases all memory not required during jit_execution; that
