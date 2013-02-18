@@ -29,6 +29,10 @@ if cpu_ppc
 lightning_include_HEADERS = 	\
 	jit_ppc.h
 endif
+if cpu_sparc
+lightning_include_HEADERS = 	\
+	jit_sparc.h
+endif
 if cpu_x86
 lightning_include_HEADERS = 	\
 	jit_x86.h

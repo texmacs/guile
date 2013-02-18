@@ -70,6 +70,10 @@
 #  define JIT_SP		_R1
 #  define JIT_RET		_R3
 #  define JIT_FRET		_F1
+#elif defined(__sparc__)
+#  define JIT_SP		_SP
+#  define JIT_RET		_I0
+#  define JIT_FRET		_F0
 #endif
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))

@@ -302,18 +302,10 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
 static jit_word_t
 hash_data(jit_pointer_t data, jit_word_t length)
 {
+    jit_uint8_t		*ptr;
     jit_word_t		 i, key;
-    union {
-	jit_uint8_t	*c;
-	jit_word_t	*w;
-	jit_pointer_t	 p;
-    } ptr;
-
-    for (i = 0, key = 0, ptr.p = data; i < length / sizeof(jit_word_t); i++)
-	key = (key << (key & 1)) ^ ptr.w[i];
-    for (i *= sizeof(jit_word_t); i < length; i++)
-	key = (key << (key & 1)) ^ ptr.c[i];
-
+    for (i = key = 0, ptr = data; i < length; i++)
+	key = (key << (key & 1)) ^ ptr[i];
     return (key);
 }
 
@@ -2608,4 +2600,6 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_arm.c"
 #elif defined(__ppc__)
 #  include "jit_ppc.c"
+#elif defined(__sparc__)
+#  include "jit_sparc.c"
 #endif

@@ -1,3 +1,22 @@
+2013-02-17 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_sparc.h, lib/jit_sparc-cpu.c,
+	lib/jit_sparc-fpu.c, lib/jit_sparc.c: New files implementing
+	the basic framework of the sparc port.
+
+	* configure.ac, include/lightning.h, include/lightning/Makefile.am,
+	include/lightning/jit_private.h, lib/jit_disasm.c: Update
+	for the sparc port framework.
+
+	* lib/jit_mips.c: Correct reversed retr/reti logic.
+
+	* lib/jit_ppc.c: Correct misspelled __LITTLE_ENDIAN.
+
+	* lib/lightning.c: Always do byte hashing in hash_data, because
+	the logic to "compress" strings causes large pointers to not
+	be guaranteed aligned at 4 byte boundaries.
+	  Update for the sparc port framework.
+
 2013-02-11 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c: Correct jit_pushargi_f in the arm hardfp abi.

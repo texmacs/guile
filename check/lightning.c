@@ -522,6 +522,9 @@ static void rehash(hash_t *hash);
 /*
  * Initialization
  */
+#if __sparc__
+extern int missing_count;
+#endif
 static jit_state_t	 *_jit;
 static int		  flag_verbose;
 static int		  flag_disasm;
@@ -3993,6 +3996,11 @@ main(int argc, char *argv[])
     parse();
     pclose(parser.fp);
     parser.fp = NULL;
+
+#if defined(__sparc__)
+    if (missing_count)
+	flag_disasm = 1;
+#endif
 
     for (opt_short = 0; opt_index < argc; opt_short++, opt_index++)
 	argv[opt_short] = argv[opt_index];

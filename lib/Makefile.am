@@ -33,6 +33,9 @@ EXTRA_DIST =			\
 	jit_ppc.c		\
 	jit_ppc-cpu.c		\
 	jit_ppc-fpu.c		\
+	jit_sparc.c		\
+	jit_sparc-cpu.c		\
+	jit_sparc-fpu.c		\
 	jit_x86.c		\
 	jit_x86-cpu.c		\
 	jit_x86-sse.c		\

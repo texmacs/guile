@@ -75,12 +75,14 @@ case "$target_cpu" in
     *arm*)		cpu=arm		;;
     *mips*)		cpu=mips	;;
     *powerpc*)		cpu=ppc		;;
+    *sparc*)		cpu=sparc	;;
     *)					;;
 esac
-AM_CONDITIONAL(cpu_arm,  [test cpu-$cpu = cpu-arm])
-AM_CONDITIONAL(cpu_mips, [test cpu-$cpu = cpu-mips])
-AM_CONDITIONAL(cpu_ppc,  [test cpu-$cpu = cpu-ppc])
-AM_CONDITIONAL(cpu_x86,  [test cpu-$cpu = cpu-x86])
+AM_CONDITIONAL(cpu_arm,    [test cpu-$cpu = cpu-arm])
+AM_CONDITIONAL(cpu_mips,   [test cpu-$cpu = cpu-mips])
+AM_CONDITIONAL(cpu_ppc,    [test cpu-$cpu = cpu-ppc])
+AM_CONDITIONAL(cpu_sparc,  [test cpu-$cpu = cpu-sparc])
+AM_CONDITIONAL(cpu_x86,    [test cpu-$cpu = cpu-x86])
 
 # Test x87 if both, x87 and sse2 available
 ac_cv_test_x86_x87=

@@ -180,17 +180,17 @@ _jit_ret(jit_state_t *_jit)
 void
 _jit_retr(jit_state_t *_jit, jit_int32_t u)
 {
-    jit_movr(JIT_RET, u);
+    if (JIT_RET != u)
+	jit_movr(JIT_RET, u);
+    else
+	jit_live(JIT_RET);
     jit_ret();
 }
 
 void
 _jit_reti(jit_state_t *_jit, jit_word_t u)
 {
-    if (JIT_RET != u)
-	jit_movi(JIT_RET, u);
-    else
-	jit_live(JIT_RET);
+    jit_movi(JIT_RET, u);
     jit_ret();
 }
 
