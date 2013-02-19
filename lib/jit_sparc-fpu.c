@@ -36,7 +36,7 @@
 #  define SPARC_FBG			6	/* greater - G */
 #  define SPARC_FBUG			5	/* unordered or greater - G or U */
 #  define SPARC_FBL			4	/* less - L */
-#  define SPARC_FBUL			5	/* unordered or less - L or U */
+#  define SPARC_FBUL			3	/* unordered or less - L or U */
 #  define SPARC_FBLG			2	/* less or greater - L or G */
 #  define SPARC_FBNE			1	/* not equal - L or G or U */
 #  define SPARC_FBNZ			SPARC_FBNE
@@ -147,7 +147,7 @@ static void _extr_f(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define truncr_f(r0, r1)		truncr_f_i(r0, r1)
 #  define truncr_f_i(r0, r1)		_truncr_f_i(_jit, r0, r1)
 static void _truncr_f_i(jit_state_t*, jit_int32_t, jit_int32_t);
-#  define extr_d_f(r0, r1)		FSTOD(r1, r0)
+#  define extr_d_f(r0, r1)		FDTOS(r1, r0)
 #  define movi_f(r0, i0)		ldi_f(r0, (jit_word_t)i0)
 #  define movr_f(r0, r1)		FMOVS(r1, r0)
 #  define negr_f(r0, r1)		FNEGS(r1, r0)
@@ -159,7 +159,7 @@ static void _extr_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define truncr_d(r0, r1)		truncr_d_i(r0, r1)
 #  define truncr_d_i(r0, r1)		_truncr_d_i(_jit, r0, r1)
 static void _truncr_d_i(jit_state_t*, jit_int32_t, jit_int32_t);
-#  define extr_f_d(r0, r1)		FDTOS(r1, r0)
+#  define extr_f_d(r0, r1)		FSTOD(r1, r0)
 #  define movi_d(r0, i0)		ldi_d(r0, (jit_word_t)i0)
 #  define movr_d(r0, r1)		_movr_d(_jit, r0, r1)
 static void _movr_d(jit_state_t*, jit_int32_t, jit_int32_t);
@@ -415,7 +415,7 @@ _fop1f(jit_state_t *_jit, jit_int32_t op,
        jit_int32_t r0, jit_int32_t r1, jit_float32_t *i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_fpr);
     movi_f(rn(reg), i0);
     FPop1(r0, r1, op, rn(reg));
     jit_unget_reg(reg);
@@ -426,7 +426,7 @@ _fop1d(jit_state_t *_jit, jit_int32_t op,
        jit_int32_t r0, jit_int32_t r1, jit_float64_t *i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_fpr);
     movi_d(rn(reg), i0);
     FPop1(r0, r1, op, rn(reg));
     jit_unget_reg(reg);
@@ -444,7 +444,7 @@ static void
 _truncr_f_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_fpr);
     FSTOI(r1, rn(reg));
     stxi_f(-8, _FP_REGNO, rn(reg));
     ldxi_i(r0, _FP_REGNO, -8);
@@ -558,8 +558,8 @@ _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    stxi(-4, _FP_REGNO, r1);
-    stxi(-8, _FP_REGNO, 0);
+    stxi(-8, _FP_REGNO, r1);
+    stxi(-4, _FP_REGNO, 0);
     ldxi_d(r0, _FP_REGNO, -8);
     FITOD(r0, r0);
 }
@@ -568,10 +568,10 @@ static void
 _truncr_d_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_fpr);
     FDTOI(r1, rn(reg));
     stxi_d(-8, _FP_REGNO, rn(reg));
-    ldxi_i(r0, _FP_REGNO, -4);
+    ldxi_i(r0, _FP_REGNO, -8);
     jit_unget_reg(reg);
 }
 
@@ -638,7 +638,7 @@ _fbr(jit_state_t *_jit, jit_int32_t cc,
     jit_word_t		w;
     FCMPS(r0, r1);
     w = _jit->pc.w;
-    FB(cc, ((i0 - w) >> 2) - 1);
+    FB(cc, (i0 - w) >> 2);
     NOP();
     return (w);
 }
@@ -654,7 +654,7 @@ _fbw(jit_state_t *_jit, jit_int32_t cc,
     FCMPS(r0, rn(reg));
     jit_unget_reg(reg);
     w = _jit->pc.w;
-    FB(cc, ((i0 - w) >> 2) - 1);
+    FB(cc, (i0 - w) >> 2);
     NOP();
     return (w);
 }
@@ -666,7 +666,7 @@ _dbr(jit_state_t *_jit, jit_int32_t cc,
     jit_word_t		w;
     FCMPD(r0, r1);
     w = _jit->pc.w;
-    FB(cc, ((i0 - w) >> 2) - 1);
+    FB(cc, (i0 - w) >> 2);
     NOP();
     return (w);
 }
@@ -682,7 +682,7 @@ _dbw(jit_state_t *_jit, jit_int32_t cc,
     FCMPD(r0, rn(reg));
     jit_unget_reg(reg);
     w = _jit->pc.w;
-    FB(cc, ((i0 - w) >> 2) - 1);
+    FB(cc, (i0 - w) >> 2);
     NOP();
     return (w);
 }

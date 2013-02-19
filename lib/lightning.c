@@ -1636,31 +1636,29 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			    node = label;
 			    goto restart;
 			}
-			if (label->code == jit_code_label) {
-			    block = _jit->blocks.ptr + label->v.w;
-			    if (mpz_tstbit(_jit->blockmask, label->v.w))
-				continue;
-			    mpz_setbit(_jit->blockmask, label->v.w);
-			    jit_regset_and(ztmp, *mask, block->reglive);
-			    if (jit_regset_set_p(ztmp)) {
-				jit_regset_ior(*live, *live, ztmp);
-				jit_regset_com(ztmp, ztmp);
-				jit_regset_and(*mask, *mask, ztmp);
-			    }
-			    if (jit_regset_set_p(*mask) == 0)
-				return;
-			    /* restore mask if branch is conditional */
-			    zmask = *mask;
-			    jit_update(block->label->next, live, &zmask);
-			    jit_regset_xor(ztmp, zmask, *mask);
-			    /* remove known live registers from mask */
-			    if (jit_regset_set_p(ztmp)) {
-				jit_regset_and(ztmp, ztmp, *live);
-				jit_regset_com(ztmp, ztmp);
-				jit_regset_and(*mask, *mask, ztmp);
-			    }
+			block = _jit->blocks.ptr + label->v.w;
+			if (mpz_tstbit(_jit->blockmask, label->v.w))
 			    continue;
+			mpz_setbit(_jit->blockmask, label->v.w);
+			jit_regset_and(ztmp, *mask, block->reglive);
+			if (jit_regset_set_p(ztmp)) {
+			    jit_regset_ior(*live, *live, ztmp);
+			    jit_regset_com(ztmp, ztmp);
+			    jit_regset_and(*mask, *mask, ztmp);
 			}
+			if (jit_regset_set_p(*mask) == 0)
+			    return;
+			/* restore mask if branch is conditional */
+			zmask = *mask;
+			jit_update(block->label->next, live, &zmask);
+			jit_regset_xor(ztmp, zmask, *mask);
+			/* remove known live registers from mask */
+			if (jit_regset_set_p(ztmp)) {
+			    jit_regset_and(ztmp, ztmp, *live);
+			    jit_regset_com(ztmp, ztmp);
+			    jit_regset_and(*mask, *mask, ztmp);
+			}
+			continue;
 		    }
 		    /* assume value is live due to jump to unknown location */
 		    jit_regset_ior(*live, *live, *mask);

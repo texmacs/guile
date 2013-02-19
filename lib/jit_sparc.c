@@ -39,9 +39,9 @@ jit_register_t		_rvs[] = {
     { rc(gpr) | 0x02,			"%g2" },
     { rc(gpr) | 0x03,			"%g3" },
     { rc(gpr) | 0x04,			"%g4" },
-    { rc(gpr) | 0x05,			"%g5" },
-    { rc(gpr) | 0x06,			"%g6" },
-    { rc(gpr) | 0x07,			"%g7" },
+    { 0x05,				"%g5" },
+    { 0x06,				"%g6" },
+    { 0x07,				"%g7" },
     { rc(arg) | rc(gpr) | 0x08,		"%o0" },
     { rc(arg) | rc(gpr) | 0x09,		"%o1" },
     { rc(arg) | rc(gpr) | 0x0a,		"%o2" },
@@ -67,13 +67,21 @@ jit_register_t		_rvs[] = {
     { rc(sav) | 0x1e,			"%fp" },
     { 0x1f,				"%i7" },
     { rc(fpr) | 0x00,			"%f0" },
+    { 0x01,				"%f1" },
     { rc(fpr) | 0x02,			"%f2" },
+    { 0x03,				"%f3" },
     { rc(fpr) | 0x04,			"%f4" },
+    { 0x05,				"%f5" },
     { rc(fpr) | 0x06,			"%f6" },
+    { 0x06,				"%f7" },
     { rc(fpr) | 0x08,			"%f8" },
+    { 0x09,				"%f9" },
     { rc(fpr) | 0x0a,			"%f10" },
+    { 0x0b,				"%f11" },
     { rc(fpr) | 0x0c,			"%f12" },
+    { 0x0d,				"%f13" },
     { rc(fpr) | 0x0e,			"%f14" },
+    { 0x0f,				"%f15" },
     { _NOREG,				"<none>" },
 };
 
@@ -364,12 +372,10 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     else if (v->u.w < 6) {
 	jit_stxi(-8, JIT_FP, _I0 + v->u.w);
 	jit_ldxi_f(u, JIT_FP, -8);
-	jit_ldxi_f(u, JIT_FP, stack_framesize);
+	jit_ldxi_f(u + 1, JIT_FP, stack_framesize);
     }
-    else {
-	jit_ldxi_f(u, JIT_FP, v->u.w);
-	jit_ldxi_f(u + 1, JIT_FP, v->u.w + 4);
-    }
+    else
+	jit_ldxi_d(u, JIT_FP, v->u.w);
 }
 
 void
@@ -469,7 +475,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	_jit->function->call.argi += 2;
     }
     else if (_jit->function->call.argi < 6) {
-	jit_stxi_d(-8, JIT_FP, regno);
+	jit_stxi_f(-8, JIT_FP, regno);
 	jit_ldxi(_O0 + _jit->function->call.argi, JIT_FP, -8);
 	++_jit->function->call.argi;
 	jit_stxi_f(stack_framesize, JIT_SP, regno + 1);
@@ -713,6 +719,10 @@ _emit_code(jit_state_t *_jit)
 		case_rrw(div,);
 		case_rrr(div, _u);
 		case_rrw(div, _u);
+		case_rrr(rem,);
+		case_rrw(rem,);
+		case_rrr(rem, _u);
+		case_rrw(rem, _u);
 
 		case_rrr(and,);
 		case_rrw(and,);

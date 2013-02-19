@@ -2223,7 +2223,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 	NOP(1);
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi_p(rn(reg), i0);
 	jmpr(rn(reg));
 	jit_unget_reg(reg);

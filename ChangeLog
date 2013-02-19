@@ -1,3 +1,53 @@
+2013-02-18 Paulo Andrade <pcpa@gnu.org>
+
+	* check/float.tst: Add sparc to list of known NaN and +-Inf
+	to integer conversion.
+
+	* check/lightning.c: Define __sparc__ to preprocessor in
+	the sparc backend.
+
+	* include/lightning/jit_private.h: Correct wrong definition
+	of emit_stxi_d, that has lived for a long time, but would
+	cause problems whenever needing to spill/reload a float
+	register.
+
+	* include/lightning/jit_sparc.h: Can only use %g2,%g3,%g4
+	for scratch variables, as other "global" registers are
+	reserved for the system, e.g. libc.
+	  Reorder float register naming to make it easier to
+	access odd float registers, so that generating code for
+	pusharg and getarg is easier for the IR.
+
+	* lib/jit_mips-cpu.c, lib/jit_ppc-cpu.c: Update to match
+	new code in jit_sparc-cpu.c. It must call jit_get_reg
+	with jit_class_nospill if using the register to move
+	an unconditional branch address to it, as the reload
+	will not happen (actually could happen in the delay
+	slot...)
+
+	* lib/jit_sparc-cpu.c: Correct wrong macro definition for
+	ldxr_s.
+	  Properly implement div* and implement rem. Div* needs
+	to use the y register, and rem* needs to be synthesized.
+	  Correct b?sub* macro definitions.
+
+	* lib/jit_sparc-fpu.c: Correct reversed float to/from double
+	conversion.
+	  Correct wrong jit_get_reg call asking for a gpr and then
+	using the fpr with that number.
+	  Correct wrong branch displacement computation for
+	conditional branches.
+
+	* lib/jit_sparc.c: Correct getarg_d and pushargi_d implementation.
+	  Add rem* entries to the switch converting IR to machine code.
+
+	* lib/lightning.c: Correct a problem detected when adding
+	the jit_class_nospill flag to jit_get_reg, that was caused
+	when having a branch to an "epilog" node, what would cause
+	the code to think all registers in unknown state were live,
+	while in truth, all registers in unknown state in the
+	"just after return" point are actually dead.
+
 2013-02-17 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_sparc.h, lib/jit_sparc-cpu.c,

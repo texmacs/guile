@@ -440,7 +440,7 @@ _emit_stxi(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 extern void
 _emit_ldxi_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 
-#define emit_stxi_d(i0, r0, r1)	_emit_stxi(_jit, i0, r0, r1)
+#define emit_stxi_d(i0, r0, r1)	_emit_stxi_d(_jit, i0, r0, r1)
 extern void
 _emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 

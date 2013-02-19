@@ -93,7 +93,7 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define LDSB(rs1, rs2, rd)		f3r(3, rd, 9, rs1, rs2)
 #  define LDSBI(rs1, imm, rd)		f3i(3, rd, 9, rs1, imm)
 #  define LDSH(rs1, rs2, rd)		f3r(3, rd, 10, rs1, rs2)
-#  define LDSHI(rs1, imm, rd)		f3r(3, rd, 10, rs1, imm)
+#  define LDSHI(rs1, imm, rd)		f3i(3, rd, 10, rs1, imm)
 #  define LDUB(rs1, rs2, rd)		f3r(3, rd, 1, rs1, rs2)
 #  define LDUBI(rs1, imm, rd)		f3i(3, rd, 1, rs1, imm)
 #  define LDUH(rs1, rs2, rd)		f3r(3, rd, 2, rs1, rs2)
@@ -461,12 +461,22 @@ static void _subxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define muli(r0, r1, i0)		_muli(_jit, r0, r1, i0)
 static void _muli(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 
-#  define divr(r0, r1, r2)		SDIV(r1, r2, r0)
+#  define divr(r0, r1, r2)		_divr(_jit, r0, r1, r2)
+static void _divr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define divi(r0, r1, i0)		_divi(_jit, r0, r1, i0)
 static void _divi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define divr_u(r0, r1, r2)		UDIV(r1, r2, r0)
+#  define divr_u(r0, r1, r2)		_divr_u(_jit, r0, r1, r2)
+static void _divr_u(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define divi_u(r0, r1, i0)		_divi_u(_jit, r0, r1, i0)
 static void _divi_u(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
+#  define remr(r0, r1, r2)		_remr(_jit, r0, r1, r2)
+static void _remr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  define remi(r0, r1, i0)		_remi(_jit, r0, r1, i0)
+static void _remi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
+#  define remr_u(r0, r1, r2)		_remr_u(_jit, r0, r1, r2)
+static void _remr_u(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  define remi_u(r0, r1, i0)		_remi_u(_jit, r0, r1, i0)
+static void _remi_u(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 
 #  define andr(r0, r1, r2)		AND(r1, r2, r0)
 #  define andi(r0, r1, i0)		_andi(_jit, r0, r1, i0)
@@ -619,14 +629,14 @@ _b_asw(jit_state_t*,jit_bool_t,jit_bool_t,jit_bool_t,
 #  define bxaddi(i0, r0, i1)		b_asw(0, 1, 1, i0, r0, i1)
 #  define bxaddr_u(i0, r0, r1)		b_asr(0, 1, 0, i0, r0, r1)
 #  define bxaddi_u(i0, r0, i1)		b_asw(0, 1, 0, i0, r0, i1)
-#  define bosubr(i0, r0, r1)		b_asr(1, 1, 1, i0, r0, r1)
-#  define bosubi(i0, r0, i1)		b_asw(1, 1, 1, i0, r0, i1)
-#  define bosubr_u(i0, r0, r1)		b_asr(1, 1, 0, i0, r0, r1)
-#  define bosubi_u(i0, r0, i1)		b_asw(1, 1, 0, i0, r0, i1)
-#  define bxsubr(i0, r0, r1)		b_asr(0, 1, 1, i0, r0, r1)
-#  define bxsubi(i0, r0, i1)		b_asw(0, 1, 1, i0, r0, i1)
-#  define bxsubr_u(i0, r0, r1)		b_asr(0, 1, 0, i0, r0, r1)
-#  define bxsubi_u(i0, r0, i1)		b_asw(0, 1, 0, i0, r0, i1)
+#  define bosubr(i0, r0, r1)		b_asr(1, 0, 1, i0, r0, r1)
+#  define bosubi(i0, r0, i1)		b_asw(1, 0, 1, i0, r0, i1)
+#  define bosubr_u(i0, r0, r1)		b_asr(1, 0, 0, i0, r0, r1)
+#  define bosubi_u(i0, r0, i1)		b_asw(1, 0, 0, i0, r0, i1)
+#  define bxsubr(i0, r0, r1)		b_asr(0, 0, 1, i0, r0, r1)
+#  define bxsubi(i0, r0, i1)		b_asw(0, 0, 1, i0, r0, i1)
+#  define bxsubr_u(i0, r0, r1)		b_asr(0, 0, 0, i0, r0, r1)
+#  define bxsubi_u(i0, r0, i1)		b_asw(0, 0, 0, i0, r0, i1)
 #  define bm_r(set, i0, r0, r1)		_bm_r(_jit,set,i0,r0,r1)
 static jit_word_t
 _bm_r(jit_state_t*,jit_bool_t,jit_word_t,jit_int32_t,jit_int32_t);
@@ -926,31 +936,110 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
+_divr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    rshi(rn(reg), r1, 31);
+    WRY(rn(reg), 0);
+    SDIV(r1, r2, r0);
+    jit_unget_reg(reg);
+}
+
+static void
 _divi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    reg = jit_get_reg(jit_class_gpr);
+    if (s13_p(i0)) {
+	rshi(rn(reg), r1, 31);
+	WRY(rn(reg), 0);
 	SDIVI(r1, i0, r0);
+    }
     else {
-	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
 	divr(r0, r1, rn(reg));
-	jit_unget_reg(reg);
     }
+    jit_unget_reg(reg);
+}
+
+static void
+_divr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    WRYI(0, 0);
+    UDIV(r1, r2, r0);
 }
 
 static void
 _divi_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+	WRYI(0, 0);
 	UDIVI(r1, i0, r0);
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
 	divr_u(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
+}
+
+static void
+_remr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    if (r0 == r1 || r0 == r2) {
+	reg = jit_get_reg(jit_class_gpr);
+	divr(rn(reg), r1, r2);
+	mulr(rn(reg), r2, rn(reg));
+	subr(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	divr(r0, r1, r2);
+	mulr(r0, r2, r0);
+	subr(r0, r1, r0);
+    }
+}
+
+static void
+_remi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    movi(rn(reg), i0);
+    remr(r0, r1, rn(reg));
+    jit_unget_reg(reg);
+}
+
+static void
+_remr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    if (r0 == r1 || r0 == r2) {
+	reg = jit_get_reg(jit_class_gpr);
+	divr_u(rn(reg), r1, r2);
+	mulr(rn(reg), r2, rn(reg));
+	subr(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	divr_u(r0, r1, r2);
+	mulr(r0, r2, r0);
+	subr(r0, r1, r0);
+    }
+}
+
+static void
+_remi_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    movi(rn(reg), i0);
+    remr_u(r0, r1, rn(reg));
+    jit_unget_reg(reg);
 }
 
 static void
@@ -1316,6 +1405,7 @@ _b_asr(jit_state_t *_jit, jit_bool_t jif, jit_bool_t add, jit_bool_t sgn,
       (jif ? SPARC_BVS : SPARC_BVC) :
       (jif ? SPARC_BCS : SPARC_BCC),
       (i0 - w) >> 2);
+    NOP();
     return (w);
 }
 
@@ -1327,14 +1417,15 @@ _b_asw(jit_state_t *_jit, jit_bool_t jif, jit_bool_t add, jit_bool_t sgn,
     jit_int32_t		reg;
     if (s13_p(i1)) {
 	if (add)
-	    ADDcc(r0, i1, r0);
+	    ADDIcc(r0, i1, r0);
 	else
-	    SUBcc(r0, i1, r0);
+	    SUBIcc(r0, i1, r0);
 	w = _jit->pc.w;
 	B(sgn ?
 	  (jif ? SPARC_BVS : SPARC_BVC) :
 	  (jif ? SPARC_BCS : SPARC_BCC),
 	  (i0 - w) >> 2);
+	NOP();
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1396,9 +1487,10 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i0);
 	jmpr(rn(reg));
+	jit_unget_reg(reg);
     }
 }
 
@@ -1407,7 +1499,7 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     w = movi_p(rn(reg), i0);
     jmpr(rn(reg));
     jit_unget_reg(reg);
@@ -1446,8 +1538,9 @@ static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     /* align at 16 bytes boundary */
-    _jit->function->stack = ((stack_framesize - _jit->function->self.aoff)
-			     + 15) & -16;
+    _jit->function->stack = ((stack_framesize +
+			      _jit->function->self.alen -
+			      _jit->function->self.aoff) + 15) & -16;
     SAVEI(_SP_REGNO, -_jit->function->stack, _SP_REGNO);
 
     /* (most) other backends do not save incoming arguments, so,

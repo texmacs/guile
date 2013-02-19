@@ -2410,7 +2410,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 {
     jit_int32_t		reg;
     jit_word_t		w, d;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     w = _jit->pc.w;
     d = (i0 - w) & ~3;
     B(d);
@@ -2424,7 +2424,7 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     w = movi_p(rn(reg), i0);
     jmpr(rn(reg));
     jit_unget_reg(reg);
