@@ -32,7 +32,6 @@ static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 /*
  * Initialization
  */
-int missing_count;
 jit_register_t		_rvs[] = {
     { 0x00,				"%g0" },
     { 0x01,				"%g1" },
@@ -626,9 +625,19 @@ _emit_code(jit_state_t *_jit)
 		name##r##type(rn(node->u.w),				\
 			      rn(node->v.w), rn(node->w.w));		\
 		break
+#define case_rrrr(name, type)						\
+	    case jit_code_##name##r##type:				\
+		name##r##type(rn(node->u.q.l), rn(node->u.q.h),		\
+			      rn(node->v.w), rn(node->w.w));		\
+		break
 #define case_rrw(name, type)						\
 	    case jit_code_##name##i##type:				\
 		name##i##type(rn(node->u.w),				\
+			      rn(node->v.w), node->w.w);		\
+		break
+#define case_rrrw(name, type)						\
+	    case jit_code_##name##i##type:				\
+		name##i##type(rn(node->u.q.l), rn(node->u.q.h),		\
 			      rn(node->v.w), node->w.w);		\
 		break
 #define case_rrf(name, type, size)					\
@@ -715,15 +724,22 @@ _emit_code(jit_state_t *_jit)
 		case_rrw(subx,);
 		case_rrr(mul,);
 		case_rrw(mul,);
+		case_rrrr(qmul,);
+		case_rrrw(qmul,);
+		case_rrrr(qmul, _u);
+		case_rrrw(qmul, _u);
 		case_rrr(div,);
 		case_rrw(div,);
 		case_rrr(div, _u);
 		case_rrw(div, _u);
+		case_rrrr(qdiv,);
+		case_rrrw(qdiv,);
+		case_rrrr(qdiv, _u);
+		case_rrrw(qdiv, _u);
 		case_rrr(rem,);
 		case_rrw(rem,);
 		case_rrr(rem, _u);
 		case_rrw(rem, _u);
-
 		case_rrr(and,);
 		case_rrw(and,);
 		case_rrr(or,);
@@ -790,7 +806,6 @@ _emit_code(jit_state_t *_jit)
 		case_wrr(stx, _s);
 		case_rrr(stx, _i);
 		case_wrr(stx, _i);
-
 		case_rr(hton,);
 		case_rr(ext, _c);
 		case_rr(ext, _uc);
@@ -856,7 +871,6 @@ _emit_code(jit_state_t *_jit)
 		case_brw(bms,);
 		case_brr(bmc,);
 		case_brw(bmc,);
-
 		case_rrr(add, _f);
 		case_rrf(add, _f, 32);
 		case_rrr(sub, _f);
@@ -865,7 +879,6 @@ _emit_code(jit_state_t *_jit)
 		case_rrf(mul, _f, 32);
 		case_rrr(div, _f);
 		case_rrf(div, _f, 32);
-
 		case_rr(abs, _f);
 		case_rr(neg, _f);
 		case_rr(sqrt, _f);
@@ -907,10 +920,8 @@ _emit_code(jit_state_t *_jit)
 		case_wr(st, _f);
 		case_rrr(stx, _f);
 		case_wrr(stx, _f);
-
 		case_rr(mov, _f);
 		case_rf(mov, _f);
-
 		case_brr(blt, _f);
 		case_brf(blt, _f, 32);
 		case_brr(ble, _f);
@@ -939,7 +950,6 @@ _emit_code(jit_state_t *_jit)
 		case_brf(bord, _f, 32);
 		case_brr(bunord, _f);
 		case_brf(bunord, _f, 32);
-
 		case_rrr(add, _d);
 		case_rrf(add, _d, 64);
 		case_rrr(sub, _d);
@@ -948,7 +958,6 @@ _emit_code(jit_state_t *_jit)
 		case_rrf(mul, _d, 64);
 		case_rrr(div, _d);
 		case_rrf(div, _d, 64);
-
 		case_rr(abs, _d);
 		case_rr(neg, _d);
 		case_rr(sqrt, _d);
@@ -990,10 +999,8 @@ _emit_code(jit_state_t *_jit)
 		case_wr(st, _d);
 		case_rrr(stx, _d);
 		case_wrr(stx, _d);
-
 		case_rr(mov, _d);
 		case_rf(mov, _d);
-
 		case_brr(blt, _d);
 		case_brf(blt, _d, 64);
 		case_brr(ble, _d);
@@ -1022,7 +1029,6 @@ _emit_code(jit_state_t *_jit)
 		case_brf(bord, _d, 64);
 		case_brr(bunord, _d);
 		case_brf(bunord, _d, 64);
-
 	    case jit_code_jmpr:
 		jmpr(rn(node->u.w));
 		break;
@@ -1081,18 +1087,12 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jit->function = NULL;
 		break;
-
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
 		break;
 	    default:
-#if 0
 		abort();
-#else
-		fprintf(stderr, "code %d not implemented\n", node->code);
-		++missing_count;
-#endif
 	}
 	jit_regarg_clr(node, value);
 	/* update register live state */
@@ -1103,7 +1103,9 @@ _emit_code(jit_state_t *_jit)
 #undef case_brr
 #undef case_wrr
 #undef case_rrf
+#undef case_rrrw
 #undef case_rrw
+#undef case_rrrr
 #undef case_rrr
 #undef case_rf
 #undef case_wr

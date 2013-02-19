@@ -1,3 +1,17 @@
+2013-02-19 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c: Remove state flag to work with partial
+	sparc port, by just disassembling if there was incomplete
+	code generation.
+
+	* jit_sparc-cpu.c: Correct wrong range check for immediate
+	integer constants (off by one bit shift).
+	  Correct macro implementing equivalent "rd %y, rd" assembly.
+	  Implement qmul* and qdiv*.
+
+	* jit_sparc.c: Update for qmul* and qdiv* and remove logic
+	to handle incomplete code generation during sparc port.
+
 2013-02-18 Paulo Andrade <pcpa@gnu.org>
 
 	* check/float.tst: Add sparc to list of known NaN and +-Inf
