@@ -1,3 +1,9 @@
+2013-02-20 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Fool proof validate the examples of what
+	an assembly-language programmer would write and correct the
+	wrong sparc example.
+
 2013-02-19 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Add back the SPARC code generation example.

@@ -718,8 +718,8 @@ programmer would write):
 @item SPARC
 @example
       save  %sp, -112, %sp
-      mov  %i0, %g2                 ret
-      inc  %g2                      inc %i0
+      mov  %i0, %g2                 retl
+      inc  %g2                      inc %o0
       mov  %g2, %i0
       restore 
       retl 
