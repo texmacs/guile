@@ -1,5 +1,9 @@
 2013-02-19 Paulo Andrade <pcpa@gnu.org>
 
+	* doc/body.texi: Add back the SPARC code generation example.
+
+2013-02-19 Paulo Andrade <pcpa@gnu.org>
+
 	* check/lightning.c: Remove state flag to work with partial
 	sparc port, by just disassembling if there was incomplete
 	code generation.

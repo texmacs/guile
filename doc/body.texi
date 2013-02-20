@@ -710,9 +710,26 @@ code for these instructions.  The client program has the responsibility
 of describing the code to be generated using the standard @lightning{}
 instruction set.
 
-Let's examine the code generated for @code{incr} on the x86_64
+Let's examine the code generated for @code{incr} on the SPARC and x86_64
 architecture (on the right is the code that an assembly-language
 programmer would write):
+
+@table @b
+@item SPARC
+@example
+      save  %sp, -112, %sp
+      mov  %i0, %g2                 ret
+      inc  %g2                      inc %i0
+      mov  %g2, %i0
+      restore 
+      retl 
+      nop 
+@end example
+In this case, @lightning{} introduces overhead to create a register
+window (not knowing that the procedure is a leaf procedure) and to
+move the argument to the general purpose register @code{R0} (which
+maps to @code{%g2} on the SPARC).
+@end table
 
 @table @b
 @item x86_64
