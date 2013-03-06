@@ -79,9 +79,9 @@
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
 #define jit_reg_free_p(regno)						\
-    (!jit_regset_tstbit(_jit->reglive, regno) &&			\
-     !jit_regset_tstbit(_jit->regarg, regno) &&				\
-     !jit_regset_tstbit(_jit->regsav, regno))
+    (!jit_regset_tstbit(_jitc->reglive, regno) &&			\
+     !jit_regset_tstbit(_jitc->regarg, regno) &&				\
+     !jit_regset_tstbit(_jitc->regsav, regno))
 
 /*
  * Private jit_class bitmasks
@@ -152,8 +152,8 @@ jit_regset_scan1(jit_regset_t, jit_int32_t);
 
 #define jit_reglive_setup()						\
     do {								\
-	jit_regset_set_ui(_jit->reglive, 0);				\
-	jit_regset_set_ui(_jit->regmask, 0);				\
+	jit_regset_set_ui(_jitc->reglive, 0);				\
+	jit_regset_set_ui(_jitc->regmask, 0);				\
     } while (0)
 
 /*
@@ -164,6 +164,7 @@ typedef struct jit_note		jit_note_t;
 typedef struct jit_line		jit_line_t;
 typedef struct jit_block	jit_block_t;
 typedef struct jit_value	jit_value_t;
+typedef struct jit_compiler	jit_compiler_t;
 typedef struct jit_function	jit_function_t;
 typedef struct jit_register	jit_register_t;
 #if __arm__
@@ -264,14 +265,8 @@ struct jit_function {
     jit_int32_t		 stack;
 };
 
-struct jit_state {
-    union {
-	jit_uint8_t	 *uc;
-	jit_uint16_t	 *us;
-	jit_uint32_t	 *ui;
-	jit_uint64_t	 *ul;
-	jit_word_t	  w;
-    } pc;
+/* data used only during jit generation */
+struct jit_compiler {
     jit_node_t		 *head;
     jit_node_t		 *tail;
     jit_uint32_t	  done	: 1;	/* emit state finished */
@@ -285,17 +280,13 @@ struct jit_state {
     jit_regset_t	  regmask;	/* register mask to update reglive */
     mpz_t		  blockmask;	/* mask of visited basic blocks */
     struct {
-	jit_uint8_t	 *ptr;
 	jit_uint8_t	 *end;
-	jit_word_t	  length;
     } code;
     struct {
-	jit_uint8_t	 *ptr;		/* constant pool */
 	jit_node_t	**table;	/* very simple hash table */
 	jit_word_t	  size;		/* number of vectors in table */
 	jit_word_t	  count;	/* number of hash table entries */
 	jit_word_t	  offset;	/* offset in bytes in ptr */
-	jit_word_t	  length;	/* length in bytes of ptr */
     } data;
     jit_node_t		**spill;
     jit_int32_t		 *gen;		/* ssa like "register version" */
@@ -323,10 +314,8 @@ struct jit_state {
     } pool;
     jit_node_t		 *list;
     struct {
-	jit_note_t	 *ptr;
 	jit_node_t	 *head;		/* first note node */
 	jit_node_t	 *tail;		/* linked list insertion */
-	jit_word_t	  length;
 
 	/* fields to store temporary state information */
 	jit_word_t	  size;
@@ -359,6 +348,30 @@ struct jit_state {
 	jit_word_t	  patches[2048];
     } consts;
 #endif
+};
+
+#define _jitc				_jit->comp
+struct jit_state {
+    union {
+	jit_uint8_t	 *uc;
+	jit_uint16_t	 *us;
+	jit_uint32_t	 *ui;
+	jit_uint64_t	 *ul;
+	jit_word_t	  w;
+    } pc;
+    struct {
+	jit_uint8_t	*ptr;
+	jit_word_t	 length;
+    } code;
+    struct {
+	jit_uint8_t	*ptr;
+	jit_word_t	 length;
+    } data;
+    struct {
+	jit_note_t	*ptr;
+	jit_word_t	 length;
+    } note;
+    jit_compiler_t	*comp;
 };
 
 struct jit_register {

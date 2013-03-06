@@ -2471,20 +2471,20 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     unsigned long	regno;
     jit_word_t		offset;
 
-    _jit->function->stack = ((_jit->function->self.alen +
-			      _jit->function->self.size -
-			      _jit->function->self.aoff) + 15) & -16;
+    _jitc->function->stack = ((_jitc->function->self.alen +
+			      _jitc->function->self.size -
+			      _jitc->function->self.aoff) + 15) & -16;
 
     /* return address */
     MFLR(_R0_REGNO);
 
     /* save any clobbered callee save gpr register */
-    regno = jit_regset_scan1(_jit->function->regset, _R14);
+    regno = jit_regset_scan1(_jitc->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     STMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jit->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
 	    stxi_d(-fpr_save_area + offset * 8, _SP_REGNO, rn(_F14 + offset));
     }
 
@@ -2494,7 +2494,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
      * alloca <  %r31-80 */
     movr(_FP_REGNO, _SP_REGNO);
 
-    STWU(_SP_REGNO, _SP_REGNO, -_jit->function->stack);
+    STWU(_SP_REGNO, _SP_REGNO, -_jitc->function->stack);
 }
 
 static void
@@ -2508,12 +2508,12 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 
     MTLR(_R0_REGNO);
 
-    regno = jit_regset_scan1(_jit->function->regset, _R14);
+    regno = jit_regset_scan1(_jitc->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     LMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jit->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
 	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -fpr_save_area + offset * 8);
     }
     BLR();

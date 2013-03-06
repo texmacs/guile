@@ -227,7 +227,7 @@ _jit_print(jit_state_t *_jit)
     jit_int32_t		 offset;
 
     first = 0;
-    for (node = _jit->head; node; node = node->next) {
+    for (node = _jitc->head; node; node = node->next) {
 	if (!first)
 	    print_chr('\n');
 	else
@@ -237,8 +237,8 @@ _jit_print(jit_state_t *_jit)
 	    print_chr('L');
 	    print_dec(node->v.w);
 	    print_chr(':');
-	    block = _jit->blocks.ptr + node->v.w;
-	    for (offset = 0; offset < _jit->reglen; offset++) {
+	    block = _jitc->blocks.ptr + node->v.w;
+	    for (offset = 0; offset < _jitc->reglen; offset++) {
 		if (jit_regset_tstbit(block->reglive, offset)) {
 		    print_chr(' ');
 		    print_reg(offset);

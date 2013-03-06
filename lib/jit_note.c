@@ -54,17 +54,17 @@ _jit_name(jit_state_t *_jit, char *name)
 	node->v.n = jit_data(name, strlen(name) + 1, 1);
     else
 	node->v.p = NULL;
-    if (_jit->note.head == NULL)
-	_jit->note.head = _jit->note.tail = node;
+    if (_jitc->note.head == NULL)
+	_jitc->note.head = _jitc->note.tail = node;
     else {
-	_jit->note.tail->link = node;
-	_jit->note.tail = node;
+	_jitc->note.tail->link = node;
+	_jitc->note.tail = node;
     }
     ++_jit->note.length;
-    _jit->note.size += sizeof(jit_note_t);
+    _jitc->note.size += sizeof(jit_note_t);
     /* remember previous note is invalid due to name change */
-    _jit->note.note = NULL;
-    return (_jit->note.name = node);
+    _jitc->note.note = NULL;
+    return (_jitc->note.name = node);
 }
 
 jit_node_t *
@@ -78,20 +78,20 @@ _jit_note(jit_state_t *_jit, char *name, int line)
     else
 	node->v.p = NULL;
     node->w.w = line;
-    if (_jit->note.head == NULL)
-	_jit->note.head = _jit->note.tail = node;
+    if (_jitc->note.head == NULL)
+	_jitc->note.head = _jitc->note.tail = node;
     else {
-	_jit->note.tail->link = node;
-	_jit->note.tail = node;
+	_jitc->note.tail->link = node;
+	_jitc->note.tail = node;
     }
-    if (_jit->note.note == NULL ||
-	(name == NULL && _jit->note.note != NULL) ||
-	(name != NULL && _jit->note.note == NULL) ||
-	(name != NULL && _jit->note.note != NULL &&
-	 strcmp(name, (char *)_jit->data.ptr + _jit->note.note->v.n->u.w)))
-	_jit->note.size += sizeof(jit_line_t);
-    _jit->note.size += sizeof(jit_int32_t) * 2;
-    return (_jit->note.note = node);
+    if (_jitc->note.note == NULL ||
+	(name == NULL && _jitc->note.note != NULL) ||
+	(name != NULL && _jitc->note.note == NULL) ||
+	(name != NULL && _jitc->note.note != NULL &&
+	 strcmp(name, (char *)_jit->data.ptr + _jitc->note.note->v.n->u.w)))
+	_jitc->note.size += sizeof(jit_line_t);
+    _jitc->note.size += sizeof(jit_int32_t) * 2;
+    return (_jitc->note.note = node);
 }
 
 void
@@ -105,11 +105,11 @@ _jit_annotate(jit_state_t *_jit)
     jit_word_t		 line_offset;
 
     /* initialize pointers in mmaped data area */
-    _jit->note.ptr = (jit_note_t *)_jit->note.base;
+    _jit->note.ptr = (jit_note_t *)_jitc->note.base;
     _jit->note.length = 0;
 
     note = NULL;
-    for (node = _jit->note.head; node; node = node->link) {
+    for (node = _jitc->note.head; node; node = node->link) {
 	if (node->code == jit_code_name)
 	    note = new_note(node->u.p, node->v.p ? node->v.n->u.p : NULL);
 	else if (node->v.p) {
@@ -132,11 +132,11 @@ _jit_annotate(jit_state_t *_jit)
     for (note_offset = 0; note_offset < _jit->note.length; note_offset++) {
 	note = _jit->note.ptr + note_offset;
 	length = sizeof(jit_line_t) * note->length;
-	assert(_jit->note.base + length < _jit->data.ptr + _jit->data.length);
-	memcpy(_jit->note.base, note->lines, length);
+	assert(_jitc->note.base + length < _jit->data.ptr + _jit->data.length);
+	memcpy(_jitc->note.base, note->lines, length);
 	free(note->lines);
-	note->lines = (jit_line_t *)_jit->note.base;
-	_jit->note.base += length;
+	note->lines = (jit_line_t *)_jitc->note.base;
+	_jitc->note.base += length;
     }
 
     /* relocate offset and line number information */
@@ -145,18 +145,18 @@ _jit_annotate(jit_state_t *_jit)
 	for (line_offset = 0; line_offset < note->length; line_offset++) {
 	    line = note->lines + line_offset;
 	    length = sizeof(jit_int32_t) * line->length;
-	    assert(_jit->note.base + length <
+	    assert(_jitc->note.base + length <
 		   _jit->data.ptr + _jit->data.length);
-	    memcpy(_jit->note.base, line->linenos, length);
+	    memcpy(_jitc->note.base, line->linenos, length);
 	    free(line->linenos);
-	    line->linenos = (jit_int32_t *)_jit->note.base;
-	    _jit->note.base += length;
-	    assert(_jit->note.base + length <
+	    line->linenos = (jit_int32_t *)_jitc->note.base;
+	    _jitc->note.base += length;
+	    assert(_jitc->note.base + length <
 		   _jit->data.ptr + _jit->data.length);
-	    memcpy(_jit->note.base, line->offsets, length);
+	    memcpy(_jitc->note.base, line->offsets, length);
 	    free(line->offsets);
-	    line->offsets = (jit_int32_t *)_jit->note.base;
-	    _jit->note.base += length;
+	    line->offsets = (jit_int32_t *)_jitc->note.base;
+	    _jitc->note.base += length;
 	}
     }
 }
@@ -252,8 +252,8 @@ _new_note(jit_state_t *_jit, jit_uint8_t *code, char *name)
 	assert(code >= prev->code);
 	prev->size = code - prev->code;
     }
-    note = (jit_note_t *)_jit->note.base;
-    _jit->note.base += sizeof(jit_note_t);
+    note = (jit_note_t *)_jitc->note.base;
+    _jitc->note.base += sizeof(jit_note_t);
     ++_jit->note.length;
     note->code = code;
     note->name = name;

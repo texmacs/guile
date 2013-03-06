@@ -1,5 +1,18 @@
 2013-03-06 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_private.h, lib/jit_arm-cpu.c,
+	lib/jit_arm.c, lib/jit_disasm.c, lib/jit_mips-cpu.c,
+	lib/jit_mips.c, lib/jit_note.c, lib/jit_ppc-cpu.c,
+	lib/jit_ppc.c, lib/jit_print.c, lib/jit_sparc-cpu.c,
+	lib/jit_sparc.c, lib/jit_x86-cpu.c, lib/jit_x86.c,
+	lib/lightning.c: Add an extra structure for data storage
+	during jit generation, and release it after generating
+	jit, to reduce a bit memory usage, and also to make it
+	easier to understand what data is available during
+	jit runtime.
+
+2013-03-06 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/lightning.c: Make data and code buffer readonly.
 
 2013-02-20 Paulo Andrade <pcpa@gnu.org>

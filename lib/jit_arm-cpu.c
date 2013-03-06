@@ -2558,7 +2558,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
     jit_word_t		d;
     w = _jit->pc.w;
     /* if thumb and in thumb mode */
-    if (jit_thumb_p() && _jit->thumb) {
+    if (jit_thumb_p() && _jitc->thumb) {
 	d = ((i0 - w) >> 1) - 2;
 	if (d >= -1024 && d <= 1023)
 	    T1_B(d & 0x7ff);
@@ -2590,7 +2590,7 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
     jit_word_t		d;
     w = _jit->pc.w;
     /* if thumb and in thumb mode */
-    if (jit_thumb_p() && _jit->thumb) {
+    if (jit_thumb_p() && _jitc->thumb) {
 	d = ((i0 - w) >> 1) - 2;
 	assert(_s24P(d));
 	T2_B(encode_thumb_jump(d));
@@ -3692,9 +3692,9 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-    _jit->function->stack = ((_jit->function->self.alen -
+    _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 8 bytes */
-			      _jit->function->self.aoff) + 7) & -8;
+			      _jitc->function->self.aoff) + 7) & -8;
 
     if (jit_thumb_p()) {
 	/*  switch to thumb mode (better approach would be to
@@ -3703,8 +3703,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	 * a pointer to a jit function) */
 	ADDI(_R12_REGNO, _R15_REGNO, 1);
 	BX(_R12_REGNO);
-	if (!_jit->thumb)
-	    _jit->thumb = _jit->pc.w;
+	if (!_jitc->thumb)
+	    _jitc->thumb = _jit->pc.w;
 	if (jit_cpu.abi) {
 	    T2_PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	    VPUSH_F64(_D8_REGNO, 8);
@@ -3723,7 +3723,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    PUSH(0x3ff|(1<<_FP_REGNO)|(1<<_LR_REGNO));
     }
     movr(_FP_REGNO, _SP_REGNO);
-    subi(_SP_REGNO, _SP_REGNO, _jit->function->stack);
+    subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
 }
 
 static void
@@ -3753,7 +3753,7 @@ _patch_at(jit_state_t *_jit,
     } u;
     u.w = instr;
     if (kind == arm_patch_jump) {
-	if (jit_thumb_p() && instr >= _jit->thumb) {
+	if (jit_thumb_p() && instr >= _jitc->thumb) {
 	    code2thumb(thumb.s[0], thumb.s[1], u.s[0], u.s[1]);
 	    if ((thumb.i & THUMB2_B) == THUMB2_B) {
 		d = ((label - instr) >> 1) - 2;

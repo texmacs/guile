@@ -287,15 +287,15 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
 #if __arm__
     again:
 	if (data_info) {
-	    while (_jit->data_info.ptr[data_offset].code < pc) {
+	    while (_jitc->data_info.ptr[data_offset].code < pc) {
 		data_offset += 2;
-		if (data_offset >= _jit->data_info.length) {
+		if (data_offset >= _jitc->data_info.length) {
 		    data_info = 0;
 		    goto again;
 		}
 	    }
-	    if (pc == _jit->data_info.ptr[data_offset].code) {
-		offset = _jit->data_info.ptr[data_offset].length;
+	    if (pc == _jitc->data_info.ptr[data_offset].code) {
+		offset = _jitc->data_info.ptr[data_offset].length;
 		for (; offset >= 4; offset -= 4, pc += 4) {
 		    bytes = sprintf(buffer, address_buffer_format, pc);
 		    (*disasm_info.fprintf_func)(disasm_stream,

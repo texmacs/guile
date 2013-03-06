@@ -157,68 +157,68 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
     spec = regspec & ~(jit_class_chk|jit_class_nospill);
     if (spec & jit_class_named) {
 	regno = jit_regno(spec);
-	if (jit_regset_tstbit(_jit->regsav, regno))
+	if (jit_regset_tstbit(_jitc->regsav, regno))
 	    /* fail if register is spilled */
 	    goto fail;
-	if (jit_regset_tstbit(_jit->regarg, regno))
+	if (jit_regset_tstbit(_jitc->regarg, regno))
 	    /* fail if register is an argument to current instruction */
 	    goto fail;
-	if (jit_regset_tstbit(_jit->reglive, regno)) {
+	if (jit_regset_tstbit(_jitc->reglive, regno)) {
 	    if (regspec & jit_class_nospill)
 		/* fail if register is live and should not spill/reload */
 		goto fail;
 	    goto spill;
 	}
-	jit_regset_setbit(_jit->regarg, regno);
+	jit_regset_setbit(_jitc->regarg, regno);
 	return (regno);
     }
     else
 	assert(jit_class(spec) != 0);
 
-    if (_jit->emit) {
+    if (_jitc->emit) {
 	/* search for a free register matching spec */
-	for (regno = 0; regno < _jit->reglen; regno++) {
+	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jit->regarg, regno) &&
-		!jit_regset_tstbit(_jit->reglive, regno))
+		!jit_regset_tstbit(_jitc->regarg, regno) &&
+		!jit_regset_tstbit(_jitc->reglive, regno))
 		goto regarg;
 	}
 
 	/* search for a register matching spec that is not an argument
 	 * for the current instruction */
-	for (regno = 0; regno < _jit->reglen; regno++) {
+	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jit->regsav, regno) &&
-		!jit_regset_tstbit(_jit->regarg, regno) &&
+		!jit_regset_tstbit(_jitc->regsav, regno) &&
+		!jit_regset_tstbit(_jitc->regarg, regno) &&
 		!(regspec & jit_class_nospill)) {
 	    spill:
-		assert(_jit->function);
+		assert(_jitc->function);
 		if (spec & jit_class_gpr) {
-		    if (!_jit->function->regoff[regno]) {
-			_jit->function->regoff[regno] =
+		    if (!_jitc->function->regoff[regno]) {
+			_jitc->function->regoff[regno] =
 			    jit_allocai(sizeof(jit_word_t));
-			_jit->again = 1;
+			_jitc->again = 1;
 		    }
-		    emit_stxi(_jit->function->regoff[regno], JIT_FP, regno);
+		    emit_stxi(_jitc->function->regoff[regno], JIT_FP, regno);
 		}
 		else {
-		    if (!_jit->function->regoff[regno]) {
-			_jit->function->regoff[regno] =
+		    if (!_jitc->function->regoff[regno]) {
+			_jitc->function->regoff[regno] =
 			    jit_allocai(sizeof(jit_float64_t));
-			_jit->again = 1;
+			_jitc->again = 1;
 		    }
-		    emit_stxi_d(_jit->function->regoff[regno], JIT_FP, regno);
+		    emit_stxi_d(_jitc->function->regoff[regno], JIT_FP, regno);
 		}
-		jit_regset_setbit(_jit->regsav, regno);
+		jit_regset_setbit(_jitc->regsav, regno);
 	    regarg:
-		jit_regset_setbit(_jit->regarg, regno);
+		jit_regset_setbit(_jitc->regarg, regno);
 		if (jit_class(_rvs[regno].spec) & jit_class_sav) {
 		    /* if will modify callee save registers without a
 		     * function prolog, better patch this assertion */
-		    assert(_jit->function);
-		    if (!jit_regset_tstbit(_jit->function->regset, regno)) {
-			jit_regset_setbit(_jit->function->regset, regno);
-			_jit->again = 1;
+		    assert(_jitc->function);
+		    if (!jit_regset_tstbit(_jitc->function->regset, regno)) {
+			jit_regset_setbit(_jitc->function->regset, regno);
+			_jitc->again = 1;
 		    }
 		}
 		return (regno);
@@ -228,12 +228,12 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
     else {
 	/* nospill hint only valid during emit" */
 	assert(!(regspec & jit_class_nospill));
-	for (regno = 0; regno < _jit->reglen; regno++) {
+	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jit->regsav, regno) &&
-		!jit_regset_tstbit(_jit->regarg, regno)) {
-		jit_regset_setbit(_jit->regarg, regno);
-		jit_regset_setbit(_jit->regsav, regno);
+		!jit_regset_tstbit(_jitc->regsav, regno) &&
+		!jit_regset_tstbit(_jitc->regarg, regno)) {
+		jit_regset_setbit(_jitc->regarg, regno);
+		jit_regset_setbit(_jitc->regsav, regno);
 		jit_save(regno);
 		return (jit_regno_patch|regno);
 	    }
@@ -250,19 +250,19 @@ void
 _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 {
     regno = jit_regno(regno);
-    if (jit_regset_tstbit(_jit->regsav, regno)) {
-	if (_jit->emit) {
+    if (jit_regset_tstbit(_jitc->regsav, regno)) {
+	if (_jitc->emit) {
 	    if (jit_class(_rvs[regno].spec) & jit_class_gpr)
-		emit_ldxi(regno, JIT_FP, _jit->function->regoff[regno]);
+		emit_ldxi(regno, JIT_FP, _jitc->function->regoff[regno]);
 	    else
-		emit_ldxi_d(regno, JIT_FP, _jit->function->regoff[regno]);
+		emit_ldxi_d(regno, JIT_FP, _jitc->function->regoff[regno]);
 	}
 	else
 	    jit_load(regno);
-	jit_regset_clrbit(_jit->regsav, regno);
+	jit_regset_clrbit(_jitc->regsav, regno);
     }
-    assert(jit_regset_tstbit(_jit->regarg, regno));
-    jit_regset_clrbit(_jit->regarg, regno);
+    assert(jit_regset_tstbit(_jitc->regarg, regno));
+    jit_regset_clrbit(_jitc->regarg, regno);
 }
 
 unsigned long
@@ -280,8 +280,8 @@ void
 _jit_save(jit_state_t *_jit, jit_int32_t reg)
 {
     reg = jit_regno(reg);
-    assert(!_jit->emit);
-    _jit->spill[reg] = jit_new_node_w(jit_code_save, reg);
+    assert(!_jitc->emit);
+    _jitc->spill[reg] = jit_new_node_w(jit_code_save, reg);
 }
 
 void
@@ -290,13 +290,13 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
     jit_node_t		*node;
 
     reg = jit_regno(reg);
-    assert(!_jit->emit);
-    assert(_jit->spill[reg]);
+    assert(!_jitc->emit);
+    assert(_jitc->spill[reg]);
     node = jit_new_node_w(jit_code_load, reg);
     /* create a path to flag the save/load is not required */
-    node->link = _jit->spill[reg];
+    node->link = _jitc->spill[reg];
     node->link->link = node;
-    _jit->spill[reg] = NULL;
+    _jitc->spill[reg] = NULL;
 }
 
 static jit_word_t
@@ -312,7 +312,7 @@ hash_data(jit_pointer_t data, jit_word_t length)
 jit_pointer_t
 _jit_address(jit_state_t *_jit, jit_node_t *node)
 {
-    assert(_jit->done);
+    assert(_jitc->done);
     assert(node &&
 	   (node->code == jit_code_note || node->code == jit_code_name));
     return ((jit_pointer_t)node->u.w);
@@ -325,10 +325,10 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
     jit_word_t		 key;
     jit_node_t		*node;
 
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
 
     /* Ensure there is space even if asking for a duplicate */
-    if (((_jit->data.offset + 7) & -8) + length > _jit->data.length) {
+    if (((_jitc->data.offset + 7) & -8) + length > _jit->data.length) {
 	jit_word_t	 size;
 
 	size = (_jit->data.length + length + 4096) & - 4095;
@@ -342,11 +342,11 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	}
 	_jit->data.length = size;
     }
-    if (_jit->data.table == NULL)
-	_jit->data.table = calloc(_jit->data.size = 16, sizeof(jit_node_t*));
+    if (_jitc->data.table == NULL)
+	_jitc->data.table = calloc(_jitc->data.size = 16, sizeof(jit_node_t*));
 
-    key = hash_data(data, length) & (_jit->data.size - 1);
-    node = _jit->data.table[key];
+    key = hash_data(data, length) & (_jitc->data.size - 1);
+    node = _jitc->data.table[key];
     for (; node; node = node->next) {
 	if (node->v.w == length &&
 	    memcmp(_jit->data.ptr + node->u.w, data, length) == 0)
@@ -361,47 +361,47 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	    case 0:	case 1:
 		break;
 	    case 2:
-		_jit->data.offset = (_jit->data.offset + 1) & -2;
+		_jitc->data.offset = (_jitc->data.offset + 1) & -2;
 		break;
 	    case 3:	case 4:
-		_jit->data.offset = (_jit->data.offset + 3) & -4;
+		_jitc->data.offset = (_jitc->data.offset + 3) & -4;
 		break;
 	    default:
-		_jit->data.offset = (_jit->data.offset + 7) & -8;
+		_jitc->data.offset = (_jitc->data.offset + 7) & -8;
 		break;
 	}
-	node->u.w = _jit->data.offset;
+	node->u.w = _jitc->data.offset;
 	node->v.w = length;
-	memcpy(_jit->data.ptr + _jit->data.offset, data, length);
-	_jit->data.offset += length;
+	memcpy(_jit->data.ptr + _jitc->data.offset, data, length);
+	_jitc->data.offset += length;
 
-	node->next = _jit->data.table[key];
-	_jit->data.table[key] = node;
-	++_jit->data.count;
+	node->next = _jitc->data.table[key];
+	_jitc->data.table[key] = node;
+	++_jitc->data.count;
 
 	/* Rehash if more than 75% used table */
-	if (_jit->data.count >
-	    (_jit->data.size >> 1) + (_jit->data.size >> 2) &&
-	    (_jit->data.size << 1) > _jit->data.size) {
+	if (_jitc->data.count >
+	    (_jitc->data.size >> 1) + (_jitc->data.size >> 2) &&
+	    (_jitc->data.size << 1) > _jitc->data.size) {
 	    jit_word_t	  i;
 	    jit_node_t	**hash;
 	    jit_node_t	 *next;
 	    jit_node_t	 *temp;
 
-	    hash = calloc(_jit->data.size << 1, sizeof(jit_node_t*));
-	    for (i = 0; i < _jit->data.size; i++) {
-		temp = _jit->data.table[i];
+	    hash = calloc(_jitc->data.size << 1, sizeof(jit_node_t*));
+	    for (i = 0; i < _jitc->data.size; i++) {
+		temp = _jitc->data.table[i];
 		for (; temp; temp = next) {
 		    next = temp->next;
 		    key = hash_data(_jit->data.ptr + temp->u.w, temp->v.w) &
-			  ((_jit->data.size << 1) - 1);
+			  ((_jitc->data.size << 1) - 1);
 		    temp->next = hash[key];
 		    hash[key] = temp;
 		}
 	    }
-	    free(_jit->data.table);
-	    _jit->data.table = hash;
-	    _jit->data.size <<= 1;
+	    free(_jitc->data.table);
+	    _jitc->data.table = hash;
+	    _jitc->data.size <<= 1;
 	}
     }
 
@@ -414,23 +414,23 @@ _new_pool(jit_state_t *_jit)
     jit_node_t		*list;
     jit_int32_t		 offset;
 
-    if (_jit->pool.offset >= _jit->pool.length) {
+    if (_jitc->pool.offset >= _jitc->pool.length) {
 	jit_node_t	**ptr;
 	jit_int32_t	  length;
 
-	length = _jit->pool.length + 16;
-	ptr = realloc(_jit->pool.ptr, length * sizeof(jit_node_t));
-	memset(ptr + _jit->pool.length, 0, 16 * sizeof(jit_node_t));
-	_jit->pool.ptr = ptr;
-	_jit->pool.length = length;
+	length = _jitc->pool.length + 16;
+	ptr = realloc(_jitc->pool.ptr, length * sizeof(jit_node_t));
+	memset(ptr + _jitc->pool.length, 0, 16 * sizeof(jit_node_t));
+	_jitc->pool.ptr = ptr;
+	_jitc->pool.length = length;
     }
-   _jit->pool.ptr[_jit->pool.offset] = calloc(sizeof(jit_node_t), 1024);
-    list = _jit->pool.ptr[_jit->pool.offset];
+   _jitc->pool.ptr[_jitc->pool.offset] = calloc(sizeof(jit_node_t), 1024);
+    list = _jitc->pool.ptr[_jitc->pool.offset];
     for (offset = 1; offset < 1024; offset++, list++)
 	list->next = list + 1;
-    list->next = _jit->list;
-    _jit->list = _jit->pool.ptr[_jit->pool.offset];
-    ++_jit->pool.offset;
+    list->next = _jitc->list;
+    _jitc->list = _jitc->pool.ptr[_jitc->pool.offset];
+    ++_jitc->pool.offset;
 }
 
 static jit_node_t *
@@ -438,10 +438,10 @@ _new_node(jit_state_t *_jit, jit_code_t code)
 {
     jit_node_t		*node;
 
-    if (_jit->list == NULL)
+    if (_jitc->list == NULL)
 	new_pool();
-    node = _jit->list;
-    _jit->list = node->next;
+    node = _jitc->list;
+    _jitc->list = node->next;
     node->next = NULL;
     node->code = code;
 
@@ -451,25 +451,25 @@ _new_node(jit_state_t *_jit, jit_code_t code)
 static inline jit_node_t *
 _link_node(jit_state_t *_jit, jit_node_t *node)
 {
-    if (_jit->tail)
-	_jit->tail->next = node;
+    if (_jitc->tail)
+	_jitc->tail->next = node;
     else
-	_jit->head = node;
-    return (_jit->tail = node);
+	_jitc->head = node;
+    return (_jitc->tail = node);
 }
 
 static inline void
 _del_node(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 {
     if (prev == node) {
-	assert(prev == _jit->head);
-	_jit->head = node->next;
+	assert(prev == _jitc->head);
+	_jitc->head = node->next;
     }
     else
 	prev->next = node->next;
     memset(node, 0, sizeof(jit_node_t));
-    node->next = _jit->list;
-    _jit->list = node;
+    node->next = _jitc->list;
+    _jitc->list = node;
 }
 
 static void
@@ -478,7 +478,7 @@ _del_label(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     jit_block_t		*block;
 
     /* only allow call to del_label on linked labels */
-    block = _jit->blocks.ptr + node->v.w;
+    block = _jitc->blocks.ptr + node->v.w;
     assert(block->label == node);
 
     /* del_label() should only be called when optimizing.
@@ -498,35 +498,36 @@ jit_new_state(void)
     jit_state_t		*_jit;
 
     _jit = calloc(1, sizeof(jit_state_t));
-    jit_regset_new(_jit->regarg);
-    jit_regset_new(_jit->regsav);
-    jit_regset_new(_jit->reglive);
-    jit_regset_new(_jit->regmask);
-    mpz_init(_jit->blockmask);
+    _jitc = calloc(1, sizeof(jit_compiler_t));
+    jit_regset_new(_jitc->regarg);
+    jit_regset_new(_jitc->regsav);
+    jit_regset_new(_jitc->reglive);
+    jit_regset_new(_jitc->regmask);
+    mpz_init(_jitc->blockmask);
 
     jit_init();
 
-    _jit->spill = calloc(_jit->reglen, sizeof(jit_node_t*));
-    _jit->gen = calloc(_jit->reglen, sizeof(jit_int32_t));
-    _jit->values = calloc(_jit->reglen, sizeof(jit_value_t));
+    _jitc->spill = calloc(_jitc->reglen, sizeof(jit_node_t*));
+    _jitc->gen = calloc(_jitc->reglen, sizeof(jit_int32_t));
+    _jitc->values = calloc(_jitc->reglen, sizeof(jit_value_t));
 
-    _jit->patches.ptr = calloc(_jit->patches.length = 1024,
+    _jitc->patches.ptr = calloc(_jitc->patches.length = 1024,
 				sizeof(jit_patch_t));
-    _jit->functions.ptr = calloc(_jit->functions.length = 16,
+    _jitc->functions.ptr = calloc(_jitc->functions.length = 16,
 				  sizeof(jit_function_t));
-    _jit->pool.ptr = calloc(_jit->pool.length = 16,
+    _jitc->pool.ptr = calloc(_jitc->pool.length = 16,
 			     sizeof(jit_node_t*));
-    _jit->blocks.ptr = calloc(_jit->blocks.length = 16,
+    _jitc->blocks.ptr = calloc(_jitc->blocks.length = 16,
 			       sizeof(jit_block_t));
 #if __arm__ && DISASSEMBLER
-    _jit->data_info.ptr = calloc(_jit->data_info.length = 1024,
+    _jitc->data_info.ptr = calloc(_jitc->data_info.length = 1024,
 				  sizeof(jit_data_info_t));
 #endif
 
     /* allocate at most one extra note in case jit_name() is
      * never called, or called after adding at least one note */
     _jit->note.length = 1;
-    _jit->note.size = sizeof(jit_note_t);
+    _jitc->note.size = sizeof(jit_note_t);
 
     return (_jit);
 }
@@ -539,52 +540,54 @@ _jit_clear_state(jit_state_t *_jit)
 
     /* release memory not required at jit execution time and set
      * pointers to NULL to explicitly know they are released */
-    _jit->head = _jit->tail = NULL;
+    _jitc->head = _jitc->tail = NULL;
 
-    mpz_clear(_jit->blockmask);
+    mpz_clear(_jitc->blockmask);
 
-    free(_jit->data.table);
-    _jit->data.table = NULL;
-    _jit->data.size = _jit->data.count = 0;
+    free(_jitc->data.table);
+    _jitc->data.table = NULL;
+    _jitc->data.size = _jitc->data.count = 0;
 
-    free(_jit->spill);
-    _jit->spill = NULL;
-    free(_jit->gen);
-    _jit->gen = NULL;
-    free(_jit->values);
-    _jit->values = NULL;
+    free(_jitc->spill);
+    _jitc->spill = NULL;
+    free(_jitc->gen);
+    _jitc->gen = NULL;
+    free(_jitc->values);
+    _jitc->values = NULL;
 
-    free(_jit->blocks.ptr);
-    _jit->blocks.ptr = NULL;
+    free(_jitc->blocks.ptr);
+    _jitc->blocks.ptr = NULL;
 
-    free(_jit->patches.ptr);
-    _jit->patches.ptr = NULL;
-    _jit->patches.offset = _jit->patches.length = 0;
+    free(_jitc->patches.ptr);
+    _jitc->patches.ptr = NULL;
+    _jitc->patches.offset = _jitc->patches.length = 0;
 
-    for (offset = 0; offset < _jit->functions.offset; offset++) {
-	function = _jit->functions.ptr + offset;
+    for (offset = 0; offset < _jitc->functions.offset; offset++) {
+	function = _jitc->functions.ptr + offset;
 	free(function->regoff);
 	function->regoff = NULL;
     }
-    free(_jit->functions.ptr);
-    _jit->functions.offset = _jit->functions.length = 0;
-    _jit->function = NULL;
+    free(_jitc->functions.ptr);
+    _jitc->functions.offset = _jitc->functions.length = 0;
+    _jitc->function = NULL;
 
-    for (offset = 0; offset < _jit->pool.length; offset++)
-	free(_jit->pool.ptr[offset]);
-    free(_jit->pool.ptr);
-    _jit->pool.ptr = NULL;
-    _jit->pool.offset = _jit->pool.length = 0;
-    _jit->list = NULL;
+    for (offset = 0; offset < _jitc->pool.length; offset++)
+	free(_jitc->pool.ptr[offset]);
+    free(_jitc->pool.ptr);
+    _jitc->pool.ptr = NULL;
+    _jitc->pool.offset = _jitc->pool.length = 0;
+    _jitc->list = NULL;
 
-    _jit->note.head = _jit->note.tail =
-	_jit->note.name = _jit->note.note = NULL;
-    _jit->note.base = NULL;
+    _jitc->note.head = _jitc->note.tail =
+	_jitc->note.name = _jitc->note.note = NULL;
+    _jitc->note.base = NULL;
 
 #if __arm__ && DISASSEMBLER
-    free(_jit->data_info.ptr);
-    _jit->data_info.ptr = NULL;
+    free(_jitc->data_info.ptr);
+    _jitc->data_info.ptr = NULL;
 #endif
+
+    free(_jitc);
 }
 
 void
@@ -598,21 +601,21 @@ _jit_destroy_state(jit_state_t *_jit)
 jit_node_t *
 _jit_new_node(jit_state_t *_jit, jit_code_t code)
 {
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     return (link_node(new_node(code)));
 }
 
 jit_node_t *
 _jit_new_node_no_link(jit_state_t *_jit, jit_code_t code)
 {
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     return (new_node(code));
 }
 
 void
 _jit_link_node(jit_state_t *_jit, jit_node_t *node)
 {
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     link_node(node);
 }
 
@@ -621,7 +624,7 @@ _jit_new_node_w(jit_state_t *_jit, jit_code_t code,
 		jit_word_t u)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     return (link_node(node));
 }
@@ -631,7 +634,7 @@ _jit_new_node_p(jit_state_t *_jit, jit_code_t code,
 		jit_pointer_t u)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.p = u;
     return (link_node(node));
 }
@@ -641,7 +644,7 @@ _jit_new_node_ww(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_word_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.w = v;
     return (link_node(node));
@@ -666,7 +669,7 @@ _jit_new_node_wf(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_float32_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.f = v;
     return (link_node(node));
@@ -677,7 +680,7 @@ _jit_new_node_wd(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_float64_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.d = v;
     return (link_node(node));
@@ -688,7 +691,7 @@ _jit_new_node_www(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.w = v;
     node->w.w = w;
@@ -701,7 +704,7 @@ _jit_new_node_qww(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     assert(l != h);
     node->u.q.l = l;
     node->u.q.h = h;
@@ -715,7 +718,7 @@ _jit_new_node_wwf(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_float32_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.w = v;
     node->w.f = w;
@@ -727,7 +730,7 @@ _jit_new_node_wwd(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_float64_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.w = u;
     node->v.w = v;
     node->w.d = w;
@@ -739,7 +742,7 @@ _jit_new_node_pww(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.p = u;
     node->v.w = v;
     node->w.w = w;
@@ -751,7 +754,7 @@ _jit_new_node_pwf(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_float32_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.p = u;
     node->v.w = v;
     node->w.f = w;
@@ -763,7 +766,7 @@ _jit_new_node_pwd(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_float64_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jit->emit);
+    assert(!_jitc->emit);
     node->u.p = u;
     node->v.w = v;
     node->w.d = w;
@@ -775,7 +778,7 @@ _jit_label(jit_state_t *_jit)
 {
     jit_node_t		*node;
 
-    if (!(node = _jit->tail) || node->code != jit_code_label) {
+    if (!(node = _jitc->tail) || node->code != jit_code_label) {
 	node = jit_forward();
 	jit_link(node);
     }
@@ -798,32 +801,32 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
 	    node->code == jit_code_prolog ||
 	    node->code == jit_code_epilog) && !node->next);
     jit_link_node(node);
-    if (_jit->blocks.offset >= _jit->blocks.length) {
+    if (_jitc->blocks.offset >= _jitc->blocks.length) {
 	jit_word_t	  length;
 
-	length = _jit->blocks.length + 16;
-	block = realloc(_jit->blocks.ptr, length * sizeof(jit_block_t));
-	memset(block + _jit->blocks.length, 0, 16 * sizeof(jit_block_t));
-	_jit->blocks.ptr = block;
-	_jit->blocks.length = length;
+	length = _jitc->blocks.length + 16;
+	block = realloc(_jitc->blocks.ptr, length * sizeof(jit_block_t));
+	memset(block + _jitc->blocks.length, 0, 16 * sizeof(jit_block_t));
+	_jitc->blocks.ptr = block;
+	_jitc->blocks.length = length;
     }
-    block = _jit->blocks.ptr + _jit->blocks.offset;
+    block = _jitc->blocks.ptr + _jitc->blocks.offset;
     block->label = node;
-    node->v.w = _jit->blocks.offset;
+    node->v.w = _jitc->blocks.offset;
     jit_regset_new(block->reglive);
     jit_regset_new(block->regmask);
-    ++_jit->blocks.offset;
+    ++_jitc->blocks.offset;
 }
 
 void
 _jit_prepare(jit_state_t *_jit)
 {
-    assert(_jit->function);
-    _jit->function->call.call = jit_call_default;
-    _jit->function->call.argi =
-	_jit->function->call.argf =
-	_jit->function->call.size = 0;
-    _jit->prepare = 1;
+    assert(_jitc->function);
+    _jitc->function->call.call = jit_call_default;
+    _jitc->function->call.argi =
+	_jitc->function->call.argf =
+	_jitc->function->call.size = 0;
+    _jitc->prepare = 1;
 }
 
 /* If declaring a jit function as varargs, in most backends it does
@@ -839,13 +842,13 @@ _jit_prepare(jit_state_t *_jit)
 void
 _jit_ellipsis(jit_state_t *_jit)
 {
-    if (_jit->prepare) {
-	assert(!_jit->function->call.call & jit_call_varargs);
-	_jit->function->call.call |= jit_call_varargs;
+    if (_jitc->prepare) {
+	assert(!_jitc->function->call.call & jit_call_varargs);
+	_jitc->function->call.call |= jit_call_varargs;
     }
     else {
-	assert(!_jit->function->self.call & jit_call_varargs);
-	_jit->function->self.call |= jit_call_varargs;
+	assert(!_jitc->function->self.call & jit_call_varargs);
+	_jitc->function->self.call |= jit_call_varargs;
     }
 }
 
@@ -854,7 +857,7 @@ _jit_patch(jit_state_t* _jit, jit_node_t *instr)
 {
     jit_node_t		*label;
 
-    if (!(label = _jit->tail) || label->code != jit_code_label)
+    if (!(label = _jitc->tail) || label->code != jit_code_label)
 	label = jit_label();
     jit_patch_at(instr, label);
 }
@@ -1113,15 +1116,15 @@ _jit_optimize(jit_state_t *_jit)
     jit_block_t		*block;
     jit_word_t		 offset;
 
-    _jit->function = NULL;
+    _jitc->function = NULL;
 
     thread_jumps();
     sequential_labels();
 
     /* create initial mapping of live register values
      * at the start of a basic block */
-    for (offset = 0; offset < _jit->blocks.offset; offset++) {
-	block = _jit->blocks.ptr + offset;
+    for (offset = 0; offset < _jitc->blocks.offset; offset++) {
+	block = _jitc->blocks.ptr + offset;
 	if (!block->label)
 	    continue;
 	if (block->label->code != jit_code_epilog)
@@ -1130,13 +1133,13 @@ _jit_optimize(jit_state_t *_jit)
     /* call jit_update resolving undefined values in reverse
      * order so that sequential code would find most data already
      * resolved when reaching the start of a new basic block */
-    for (offset = _jit->blocks.offset - 1; offset >= 0; offset--) {
-	block = _jit->blocks.ptr + offset;
+    for (offset = _jitc->blocks.offset - 1; offset >= 0; offset--) {
+	block = _jitc->blocks.ptr + offset;
 	if (!block->label)
 	    continue;
 	if (block->label->code != jit_code_epilog) {
-	    jit_regset_set(_jit->regmask, block->regmask);
-	    jit_update(block->label->next, &block->reglive, &_jit->regmask);
+	    jit_regset_set(_jitc->regmask, block->regmask);
+	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
 	}
     }
 
@@ -1147,7 +1150,7 @@ _jit_optimize(jit_state_t *_jit)
      * and is required to do a simple redundant_store removal
      * on jit_beqi below */
     jump = 1;
-    for (node = _jit->head; node; node = node->next) {
+    for (node = _jitc->head; node; node = node->next) {
 	switch (node->code) {
 	    case jit_code_label:
 		if (!jump)
@@ -1165,13 +1168,13 @@ _jit_optimize(jit_state_t *_jit)
 	}
     }
 
-    for (node = _jit->head; node; node = node->next) {
+    for (node = _jitc->head; node; node = node->next) {
 	switch (node->code) {
 	    case jit_code_prolog:
-		_jit->function = _jit->functions.ptr + node->w.w;
+		_jitc->function = _jitc->functions.ptr + node->w.w;
 		break;
 	    case jit_code_epilog:
-		_jit->function = NULL;
+		_jitc->function = NULL;
 		break;
 	    case jit_code_beqi:
 		redundant_store(node, 1);
@@ -1199,14 +1202,14 @@ _jit_optimize(jit_state_t *_jit)
 		    node->flag |= jit_flag_node | jit_flag_data;
 		}
 #endif
-		if (_jit->function) {
+		if (_jitc->function) {
 		    if ((mask & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
 			(jit_cc_a0_reg|jit_cc_a0_chg))
-			jit_regset_setbit(_jit->function->regset,
+			jit_regset_setbit(_jitc->function->regset,
 					  jit_regno(node->u.w));
 		    if ((mask & (jit_cc_a1_reg|jit_cc_a1_chg)) ==
 			(jit_cc_a1_reg|jit_cc_a1_chg))
-			jit_regset_setbit(_jit->function->regset,
+			jit_regset_setbit(_jitc->function->regset,
 					  jit_regno(node->v.w));
 		}
 		break;
@@ -1214,26 +1217,26 @@ _jit_optimize(jit_state_t *_jit)
     }
 
     /* ensure it is aligned */
-    _jit->data.offset = (_jit->data.offset + 7) & -8;
+    _jitc->data.offset = (_jitc->data.offset + 7) & -8;
 
     /* create read only data buffer */
-    _jit->data.length = (_jit->data.offset +
+    _jit->data.length = (_jitc->data.offset +
 			 /* reserve space for annotations */
-			 _jit->note.size + 4095) & -4096;
+			 _jitc->note.size + 4095) & -4096;
     ptr = mmap(NULL, _jit->data.length,
 	       PROT_READ | PROT_WRITE,
 	       MAP_PRIVATE | MAP_ANON, -1, 0);
     assert(ptr != MAP_FAILED);
-    memcpy(ptr, _jit->data.ptr, _jit->data.offset);
+    memcpy(ptr, _jit->data.ptr, _jitc->data.offset);
     free(_jit->data.ptr);
     _jit->data.ptr = ptr;
 
     /* to be filled with note contents once offsets are known */
-    _jit->note.base = ptr + _jit->data.offset;
-    memset(_jit->note.base, 0, _jit->data.length - _jit->data.offset);
+    _jitc->note.base = ptr + _jitc->data.offset;
+    memset(_jitc->note.base, 0, _jit->data.length - _jitc->data.offset);
 
-    for (offset = 0; offset < _jit->data.size; offset++) {
-	for (node = _jit->data.table[offset]; node; node = node->next) {
+    for (offset = 0; offset < _jitc->data.size; offset++) {
+	for (node = _jitc->data.table[offset]; node; node = node->next) {
 	    node->flag |= jit_flag_patch;
 	    node->u.w = (jit_word_t)(_jit->data.ptr + node->u.w);
 	}
@@ -1249,35 +1252,35 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 
     switch (node->code) {
 	case jit_code_label:	case jit_code_prolog:	case jit_code_epilog:
-	    block = _jit->blocks.ptr + node->v.w;
-	    jit_regset_set(_jit->reglive, block->reglive);
+	    block = _jitc->blocks.ptr + node->v.w;
+	    jit_regset_set(_jitc->reglive, block->reglive);
 	    break;
 	case jit_code_callr:
 	    value = jit_regno(node->u.w);
 	    if (!(node->u.w & jit_regno_patch)) {
-		jit_regset_setbit(_jit->reglive, value);
+		jit_regset_setbit(_jitc->reglive, value);
 	    }
 	case jit_code_calli:
-	    for (value = 0; value < _jit->reglen; value++) {
+	    for (value = 0; value < _jitc->reglen; value++) {
 		spec = jit_class(_rvs[value].spec);
 		if ((spec & jit_class_arg) && jit_regarg_p(node, value))
-		    jit_regset_setbit(_jit->reglive, value);
+		    jit_regset_setbit(_jitc->reglive, value);
 		else if (!(spec & jit_class_sav))
-		    jit_regset_clrbit(_jit->reglive, value);
+		    jit_regset_clrbit(_jitc->reglive, value);
 	    }
 #if defined(JIT_RET)
 	    /* Explicitly set return registers as live, because retval
 	     * should be free to not create a note, and/or user not
 	     * call jit_retval (but not a good idea to expect JIT_R0
 	     * to match JIT_RET) */
-	    jit_regset_setbit(_jit->reglive, JIT_RET);
+	    jit_regset_setbit(_jitc->reglive, JIT_RET);
 #  if __arm__
 	    /* FIXME need a better logic (and r2-r3 may contain results) */
-	    jit_regset_setbit(_jit->reglive, _R1);
+	    jit_regset_setbit(_jitc->reglive, _R1);
 #  endif
 #endif
 #if defined(JIT_FRET)
-	    jit_regset_setbit(_jit->reglive, JIT_FRET);
+	    jit_regset_setbit(_jitc->reglive, JIT_FRET);
 #endif
 	    break;
 	default:
@@ -1286,49 +1289,49 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 		if (value & jit_cc_a0_rlh) {
 		    if (!(node->u.q.l & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jit->reglive, node->u.q.l);
-			    jit_regset_setbit(_jit->regmask, node->u.q.l);
+			    jit_regset_clrbit(_jitc->reglive, node->u.q.l);
+			    jit_regset_setbit(_jitc->regmask, node->u.q.l);
 			}
 			else
-			    jit_regset_setbit(_jit->reglive, node->u.q.l);
+			    jit_regset_setbit(_jitc->reglive, node->u.q.l);
 		    }
 		    if (!(node->u.q.h & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jit->reglive, node->u.q.h);
-			    jit_regset_setbit(_jit->regmask, node->u.q.h);
+			    jit_regset_clrbit(_jitc->reglive, node->u.q.h);
+			    jit_regset_setbit(_jitc->regmask, node->u.q.h);
 			}
 			else
-			    jit_regset_setbit(_jit->reglive, node->u.q.h);
+			    jit_regset_setbit(_jitc->reglive, node->u.q.h);
 		    }
 		}
 		else {
 		    if (!(node->u.w & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jit->reglive, node->u.w);
-			    jit_regset_setbit(_jit->regmask, node->u.w);
+			    jit_regset_clrbit(_jitc->reglive, node->u.w);
+			    jit_regset_setbit(_jitc->regmask, node->u.w);
 			}
 			else
-			    jit_regset_setbit(_jit->reglive, node->u.w);
+			    jit_regset_setbit(_jitc->reglive, node->u.w);
 		    }
 		}
 	    }
 	    if ((value & jit_cc_a1_reg) && !(node->v.w & jit_regno_patch)) {
 		if (value & jit_cc_a1_chg) {
-		    jit_regset_clrbit(_jit->reglive, node->v.w);
-		    jit_regset_setbit(_jit->regmask, node->v.w);
+		    jit_regset_clrbit(_jitc->reglive, node->v.w);
+		    jit_regset_setbit(_jitc->regmask, node->v.w);
 		}
 		else
-		    jit_regset_setbit(_jit->reglive, node->v.w);
+		    jit_regset_setbit(_jitc->reglive, node->v.w);
 	    }
 	    if ((value & jit_cc_a2_reg) && !(node->w.w & jit_regno_patch))
-		jit_regset_setbit(_jit->reglive, node->w.w);
-	    if (jit_regset_set_p(_jit->regmask)) {
-		mpz_set_ui(_jit->blockmask, 0);
-		jit_update(node->next, &_jit->reglive, &_jit->regmask);
-		if (jit_regset_set_p(_jit->regmask)) {
+		jit_regset_setbit(_jitc->reglive, node->w.w);
+	    if (jit_regset_set_p(_jitc->regmask)) {
+		mpz_set_ui(_jitc->blockmask, 0);
+		jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
+		if (jit_regset_set_p(_jitc->regmask)) {
 		    /* any unresolved live state is considered as live */
-		    jit_regset_ior(_jit->reglive, _jit->reglive, _jit->regmask);
-		    jit_regset_set_ui(_jit->regmask, 0);
+		    jit_regset_ior(_jitc->reglive, _jitc->reglive, _jitc->regmask);
+		    jit_regset_set_ui(_jitc->regmask, 0);
 		}
 	    }
 	    break;
@@ -1340,16 +1343,16 @@ _jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
     if (value & jit_cc_a0_reg) {
 	if (value & jit_cc_a0_rlh) {
-	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.q.l));
-	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.q.h));
+	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.q.l));
+	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.q.h));
 	}
 	else
-	    jit_regset_setbit(_jit->regarg, jit_regno(node->u.w));
+	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.w));
     }
     if (value & jit_cc_a1_reg)
-	jit_regset_setbit(_jit->regarg, jit_regno(node->v.w));
+	jit_regset_setbit(_jitc->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
-	jit_regset_setbit(_jit->regarg, jit_regno(node->w.w));
+	jit_regset_setbit(_jitc->regarg, jit_regno(node->w.w));
 }
 
 void
@@ -1357,16 +1360,16 @@ _jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
     if (value & jit_cc_a0_reg) {
 	if (value & jit_cc_a0_rlh) {
-	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.q.l));
-	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.q.h));
+	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.q.l));
+	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.q.h));
 	}
 	else
-	    jit_regset_clrbit(_jit->regarg, jit_regno(node->u.w));
+	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.w));
     }
     if (value & jit_cc_a1_reg)
-	jit_regset_clrbit(_jit->regarg, jit_regno(node->v.w));
+	jit_regset_clrbit(_jitc->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
-	jit_regset_clrbit(_jit->regarg, jit_regno(node->w.w));
+	jit_regset_clrbit(_jitc->regarg, jit_regno(node->w.w));
 }
 
 jit_pointer_t
@@ -1378,32 +1381,32 @@ _jit_emit(jit_state_t *_jit)
     size_t		 length;
     int			 result;
 
-    if (_jit->function)
+    if (_jitc->function)
 	jit_epilog();
     jit_optimize();
 
     /* Heuristic to guess code buffer size */
     mult = 4;
 
-    _jit->emit = 1;
+    _jitc->emit = 1;
 
-    _jit->code.length = _jit->pool.length * 1024 * mult;
+    _jit->code.length = _jitc->pool.length * 1024 * mult;
 
     _jit->code.ptr = mmap(NULL, _jit->code.length,
 			  PROT_EXEC | PROT_READ | PROT_WRITE,
 			  MAP_PRIVATE | MAP_ANON, -1, 0);
     assert(_jit->code.ptr != MAP_FAILED);
-    _jit->code.end = _jit->code.ptr + _jit->code.length - 64;
+    _jitc->code.end = _jit->code.ptr + _jit->code.length - 64;
     _jit->pc.uc = _jit->code.ptr;
 
     for (;;) {
 	if ((code = emit_code()) == NULL) {
-	    for (node = _jit->head; node; node = node->next) {
+	    for (node = _jitc->head; node; node = node->next) {
 		if (node->code == jit_code_label && node->link)
 		    node->flag &= ~jit_flag_patch;
 	    }
 	    ++mult;
-	    length = _jit->pool.length * 1024 * mult;
+	    length = _jitc->pool.length * 1024 * mult;
 
 #if !HAVE_MREMAP
 	    munmap(_jit->code.ptr, _jit->code.length);
@@ -1420,15 +1423,15 @@ _jit_emit(jit_state_t *_jit)
 
 	    assert(_jit->code.ptr != MAP_FAILED);
 	    _jit->code.length = length;
-	    _jit->code.end = _jit->code.ptr + _jit->code.length - 64;
+	    _jitc->code.end = _jit->code.ptr + _jit->code.length - 64;
 	    _jit->pc.uc = _jit->code.ptr;
-	    _jit->patches.offset = 0;
+	    _jitc->patches.offset = 0;
 	}
 	else
 	    break;
     }
 
-    _jit->done = 1;
+    _jitc->done = 1;
     jit_annotate();
 
     result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
@@ -1454,7 +1457,7 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
     unsigned long	 value;
 
     jump = 0;
-    jit_regset_set_ui(regmask, (1LL << _jit->reglen) - 1);
+    jit_regset_set_ui(regmask, (1LL << _jitc->reglen) - 1);
     for (node = block->label->next; node; node = node->next) {
 	switch (node->code) {
 	    case jit_code_label:	case jit_code_prolog:
@@ -1537,10 +1540,10 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	    break;
 	switch (node->code) {
 	    case jit_code_label:
-		block = _jit->blocks.ptr + node->v.w;
-		if (mpz_tstbit(_jit->blockmask, node->v.w))
+		block = _jitc->blocks.ptr + node->v.w;
+		if (mpz_tstbit(_jitc->blockmask, node->v.w))
 		    return;
-		mpz_setbit(_jit->blockmask, node->v.w);
+		mpz_setbit(_jitc->blockmask, node->v.w);
 		jit_regset_and(ztmp, *mask, block->reglive);
 		if (jit_regset_set_p(ztmp)) {
 		    jit_regset_ior(*live, *live, ztmp);
@@ -1562,25 +1565,25 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	    case jit_code_calli:
 #if defined(JIT_RET)
 		if (jit_regset_tstbit(*mask, JIT_RET)) {
-		    jit_regset_setbit(_jit->reglive, JIT_RET);
+		    jit_regset_setbit(_jitc->reglive, JIT_RET);
 		    jit_regset_clrbit(*mask, JIT_RET);
 		}
 #  if __arm__
 		if (jit_regset_tstbit(*mask, _R1)) {
-		    jit_regset_setbit(_jit->reglive, _R1);
+		    jit_regset_setbit(_jitc->reglive, _R1);
 		    jit_regset_clrbit(*mask, _R1);
 		}
 #  endif
 #endif
 #if defined(JIT_FRET)
 		if (jit_regset_tstbit(*mask, JIT_FRET)) {
-		    jit_regset_setbit(_jit->reglive, JIT_FRET);
+		    jit_regset_setbit(_jitc->reglive, JIT_FRET);
 		    jit_regset_clrbit(*mask, JIT_FRET);
 		}
 #endif
-		for (value = 0; value < _jit->reglen; ++value) {
+		for (value = 0; value < _jitc->reglen; ++value) {
 		    value = jit_regset_scan1(*mask, value);
-		    if (value >= _jit->reglen)
+		    if (value >= _jitc->reglen)
 			break;
 		    spec = jit_class(_rvs[value].spec);
 		    if (!(spec & jit_class_sav))
@@ -1642,10 +1645,10 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			    node = label;
 			    goto restart;
 			}
-			block = _jit->blocks.ptr + label->v.w;
-			if (mpz_tstbit(_jit->blockmask, label->v.w))
+			block = _jitc->blocks.ptr + label->v.w;
+			if (mpz_tstbit(_jitc->blockmask, label->v.w))
 			    continue;
-			mpz_setbit(_jit->blockmask, label->v.w);
+			mpz_setbit(_jitc->blockmask, label->v.w);
 			jit_regset_and(ztmp, *mask, block->reglive);
 			if (jit_regset_set_p(ztmp)) {
 			    jit_regset_ior(*live, *live, ztmp);
@@ -1684,7 +1687,7 @@ _thread_jumps(jit_state_t *_jit)
     jit_node_t		*next;
     jit_int32_t		 mask;
 
-    for (prev = node = _jit->head; node;) {
+    for (prev = node = _jitc->head; node;) {
 	next = node->next;
 	switch (node->code) {
 	    case jit_code_jmpi:
@@ -1722,7 +1725,7 @@ _sequential_labels(jit_state_t *_jit)
     jit_node_t		*next;
     jit_node_t		*node;
 
-    for (prev = node = _jit->head; node; node = next) {
+    for (prev = node = _jitc->head; node; node = next) {
 	next = node->next;
 	if (node->code == jit_code_label) {
 	    if (!node->flag) {
@@ -2093,23 +2096,23 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 
     regno = jit_regno(node->u.w);
     right = jit_regno(node->v.w);
-    value = _jit->values + regno;
+    value = _jitc->values + regno;
     if ((value->kind == jit_kind_register &&
 	 jit_regno(value->base.q.l) == right &&
-	 value->base.q.h == _jit->gen[right]) ||
-	(value->kind == kind && _jit->values[right].kind == kind &&
-	 memcmp(&value->base.w, &_jit->values[right].base.w, size) == 0)) {
+	 value->base.q.h == _jitc->gen[right]) ||
+	(value->kind == kind && _jitc->values[right].kind == kind &&
+	 memcmp(&value->base.w, &_jitc->values[right].base.w, size) == 0)) {
 	del_node(prev, node);
 	return (1);
     }
-    if (_jit->values[right].kind == jit_kind_word)
-	memcpy(value, _jit->values + right, sizeof(jit_value_t));
+    if (_jitc->values[right].kind == jit_kind_word)
+	memcpy(value, _jitc->values + right, sizeof(jit_value_t));
     else {
 	value->kind = jit_kind_register;
 	value->base.q.l = right;
-	value->base.q.h = _jit->gen[regno];
+	value->base.q.h = _jitc->gen[regno];
     }
-    ++_jit->gen[regno];
+    ++_jitc->gen[regno];
 
     return (0);
 }
@@ -2124,11 +2127,11 @@ _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
     jit_int32_t		 offset;
 
     regno = jit_regno(node->u.w);
-    value = _jit->values + regno;
+    value = _jitc->values + regno;
     if (node->flag & jit_flag_node) {
 	/* set to undefined if value will be patched */
 	value->kind = 0;
-	++_jit->gen[regno];
+	++_jitc->gen[regno];
 	return (0);
     }
     if (value->kind == kind) {
@@ -2141,9 +2144,9 @@ _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 	    spec &= jit_class_gpr;
 	else
 	    spec &= (jit_class_xpr | jit_class_fpr);
-	for (offset = 0; offset < _jit->reglen; offset++) {
-	    if (_jit->values[offset].kind == kind &&
-		memcmp(&node->v.w, &_jit->values[offset].base.w, size) == 0 &&
+	for (offset = 0; offset < _jitc->reglen; offset++) {
+	    if (_jitc->values[offset].kind == kind &&
+		memcmp(&node->v.w, &_jitc->values[offset].base.w, size) == 0 &&
 		(jit_class(_rvs[offset].spec) & spec) == spec) {
 		if (kind == jit_kind_word)
 		    node->code = jit_code_movr;
@@ -2152,15 +2155,15 @@ _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 		else
 		    node->code = jit_code_movr_d;
 		node->v.w = offset;
-		memcpy(value, _jit->values + offset, sizeof(jit_value_t));
-		++_jit->gen[regno];
+		memcpy(value, _jitc->values + offset, sizeof(jit_value_t));
+		++_jitc->gen[regno];
 		return (0);
 	    }
 	}
     }
     value->kind = kind;
     memcpy(&value->base.w, &node->v.w, size);
-    ++_jit->gen[regno];
+    ++_jitc->gen[regno];
 
     return (0);
 }
@@ -2177,9 +2180,9 @@ _simplify_ldxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 
     regno = jit_regno(node->u.w);
     right = jit_regno(node->v.w);
-    value = _jit->values + regno;
+    value = _jitc->values + regno;
     if (value->kind == jit_kind_code && value->code == node->code &&
-	value->base.q.l == right && value->base.q.h == _jit->gen[right] &&
+	value->base.q.l == right && value->base.q.h == _jitc->gen[right] &&
 	node->w.w == value->disp.w) {
 	del_node(prev, node);
 	return (1);
@@ -2187,9 +2190,9 @@ _simplify_ldxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     value->kind = jit_kind_code;
     value->code = node->code;
     value->base.q.l = right;
-    value->base.q.h = _jit->gen[right];
+    value->base.q.h = _jitc->gen[right];
     value->disp.w = node->w.w;
-    ++_jit->gen[regno];
+    ++_jitc->gen[regno];
 
     return (0);
 }
@@ -2204,21 +2207,21 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 
     regno = jit_regno(node->w.w);
     right = jit_regno(node->v.w);
-    value = _jit->values + regno;
+    value = _jitc->values + regno;
 
     /* check for redundant store after load */
     if (value->kind == jit_kind_code && value->code == node->code &&
-	value->base.q.l == right && value->base.q.h == _jit->gen[right] &&
+	value->base.q.l == right && value->base.q.h == _jitc->gen[right] &&
 	node->w.w == value->disp.w) {
 	del_node(prev, node);
 	return (1);
     }
 
     /* assume anything can alias, and invalidate tracked values */
-    for (offset = 0; offset < _jit->reglen; offset++) {
-	if (_jit->values[offset].kind == jit_kind_code) {
-	    _jit->values[offset].kind = 0;
-	    ++_jit->gen[offset];
+    for (offset = 0; offset < _jitc->reglen; offset++) {
+	if (_jitc->values[offset].kind == jit_kind_code) {
+	    _jitc->values[offset].kind = 0;
+	    ++_jitc->gen[offset];
 	}
     }
 
@@ -2239,7 +2242,7 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 	value->kind = jit_kind_code;
 	value->code = node->code;
 	value->base.q.l = right;
-	value->base.q.h = _jit->gen[right];
+	value->base.q.h = _jitc->gen[right];
 	value->disp.w = node->u.w;
     }
 
@@ -2255,11 +2258,11 @@ _simplify_spill(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
     jit_node_t		*save;
     jit_node_t		*temp;
 
-    if ((temp = _jit->spill[regno]) && (save = temp->next) != node) {
+    if ((temp = _jitc->spill[regno]) && (save = temp->next) != node) {
 	temp->next = save->next;
 	save->next = node->next;
 	node->next = save;
-	_jit->spill[regno] = node;
+	_jitc->spill[regno] = node;
     }
 }
 
@@ -2277,16 +2280,16 @@ _simplify(jit_state_t *_jit)
     jit_int32_t		 regno;
     jit_int32_t		 offset;
 
-    for (prev = NULL, node = _jit->head; node; prev = node, node = next) {
+    for (prev = NULL, node = _jitc->head; node; prev = node, node = next) {
 	next = node->next;
 	switch (node->code) {
 	    case jit_code_label:	case jit_code_prolog:
 	    reset:
-		memset(_jit->gen, 0, sizeof(jit_int32_t) * _jit->reglen);
-		memset(_jit->values, 0, sizeof(jit_value_t) * _jit->reglen);
+		memset(_jitc->gen, 0, sizeof(jit_int32_t) * _jitc->reglen);
+		memset(_jitc->values, 0, sizeof(jit_value_t) * _jitc->reglen);
 		break;
 	    case jit_code_save:
-		_jit->spill[jit_regno(node->u.w)] = prev;
+		_jitc->spill[jit_regno(node->u.w)] = prev;
 		break;
 	    case jit_code_load:
 		regno = jit_regno(node->u.w);
@@ -2298,11 +2301,11 @@ _simplify(jit_state_t *_jit)
 		     * already holding */
 		    patch_register(node->link->next, node,
 				   jit_regno_patch|regno, regno);
-		    del_node(_jit->spill[regno], node->link);
+		    del_node(_jitc->spill[regno], node->link);
 		    del_node(prev, node);
 		    node = prev;
 		}
-		_jit->spill[regno] = NULL;
+		_jitc->spill[regno] = NULL;
 		break;
 	    case jit_code_movr:
 		regno = jit_regno(node->u.w);
@@ -2357,10 +2360,10 @@ _simplify(jit_state_t *_jit)
 		    simplify_spill(node = prev, regno);
 		break;
 	    case jit_code_callr:	case jit_code_calli:
-		for (offset = 0; offset < _jit->reglen; offset++) {
+		for (offset = 0; offset < _jitc->reglen; offset++) {
 		    if (!(jit_class(_rvs[offset].spec) & jit_class_sav)) {
-			_jit->values[offset].kind = 0;
-			++_jit->gen[offset];
+			_jitc->values[offset].kind = 0;
+			++_jitc->gen[offset];
 		    }
 		}
 		break;
@@ -2373,22 +2376,22 @@ _simplify(jit_state_t *_jit)
 		if (info & jit_cc_a0_chg) {
 		    if (info & jit_cc_a0_rlh) {
 			regno = jit_regno(node->u.q.l);
-			_jit->values[regno].kind = 0;
-			++_jit->gen[regno];
+			_jitc->values[regno].kind = 0;
+			++_jitc->gen[regno];
 			regno = jit_regno(node->u.q.h);
-			_jit->values[regno].kind = 0;
-			++_jit->gen[regno];
+			_jitc->values[regno].kind = 0;
+			++_jitc->gen[regno];
 		    }
 		    else {
 			regno = jit_regno(node->u.w);
-			_jit->values[regno].kind = 0;
-			++_jit->gen[regno];
+			_jitc->values[regno].kind = 0;
+			++_jitc->gen[regno];
 		    }
 		}
 		if (info & jit_cc_a1_chg) {
 		    regno = jit_regno(node->v.w);
-		    _jit->values[regno].kind = 0;
-		    ++_jit->gen[regno];
+		    _jitc->values[regno].kind = 0;
+		    ++_jitc->gen[regno];
 		}
 		break;
 	}
@@ -2437,11 +2440,11 @@ _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 static jit_bool_t
 _spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 {
-    if (!jit_regset_tstbit(_jit->reglive, regno)) {
-	mpz_set_ui(_jit->blockmask, 0);
-	jit_regset_setbit(_jit->regmask, regno);
-	jit_update(node->next, &_jit->reglive, &_jit->regmask);
-	if (!jit_regset_tstbit(_jit->reglive, regno) &&
+    if (!jit_regset_tstbit(_jitc->reglive, regno)) {
+	mpz_set_ui(_jitc->blockmask, 0);
+	jit_regset_setbit(_jitc->regmask, regno);
+	jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
+	if (!jit_regset_tstbit(_jitc->reglive, regno) &&
 	    register_change_p(node->next, node->link, regno) != jit_reg_change)
 	    return (0);
     }
@@ -2460,10 +2463,10 @@ _patch_registers(jit_state_t *_jit)
     jit_int32_t		 regno;
     jit_int32_t		 value;
 
-    _jit->function = NULL;
+    _jitc->function = NULL;
 
     jit_reglive_setup();
-    for (prev = NULL, node = _jit->head; node; node = next) {
+    for (prev = NULL, node = _jitc->head; node; node = next) {
 	next = node->next;
 
 	info = jit_classify(node->code);
@@ -2482,15 +2485,15 @@ _patch_registers(jit_state_t *_jit)
 		else {
 		    /* try to find a free register of the same class */
 		    spec = jit_class(_rvs[regno].spec) & ~jit_class_arg;
-		    for (value = 0; value < _jit->reglen; value++) {
+		    for (value = 0; value < _jitc->reglen; value++) {
 			if (value != regno &&
 			    ((jit_class(_rvs[value].spec) & spec) &
 			     ~jit_class_arg) == spec &&
-			    !jit_regset_tstbit(_jit->regarg, value) &&
+			    !jit_regset_tstbit(_jitc->regarg, value) &&
 			    !spill_reglive_p(node, value))
 			    break;
 		    }
-		    if (value < _jit->reglen) {
+		    if (value < _jitc->reglen) {
 			jit_regarg_clr(node, info);
 			patch_register(node->next, node->link,
 				       jit_regno_patch|node->u.w,
@@ -2498,7 +2501,7 @@ _patch_registers(jit_state_t *_jit)
 			/* mark as live just in case there are nested
 			 * register patches, so that next patch will
 			 * not want to use the same register */
-			jit_regset_setbit(_jit->reglive, value);
+			jit_regset_setbit(_jitc->reglive, value);
 			/* register is not live, just remove spill/reload */
 			node->link->v.w = jit_regload_isdead;
 			del_node(prev, node);
@@ -2507,8 +2510,8 @@ _patch_registers(jit_state_t *_jit)
 		    else {
 			/* failed to find a free register */
 			if (spec & jit_class_gpr) {
-			    if (!_jit->function->regoff[regno])
-				_jit->function->regoff[regno] =
+			    if (!_jitc->function->regoff[regno])
+				_jitc->function->regoff[regno] =
 				    jit_allocai(sizeof(jit_word_t));
 #if __WORDSIZE == 32
 			    node->code = jit_code_stxi_i;
@@ -2518,11 +2521,11 @@ _patch_registers(jit_state_t *_jit)
 			}
 			else {
 			    node->code = jit_code_stxi_d;
-			    if (!_jit->function->regoff[regno])
-				_jit->function->regoff[regno] =
+			    if (!_jitc->function->regoff[regno])
+				_jitc->function->regoff[regno] =
 				    jit_allocai(sizeof(jit_float64_t));
 			}
-			node->u.w = _jit->function->regoff[regno];
+			node->u.w = _jitc->function->regoff[regno];
 			node->v.w = JIT_FP;
 			node->w.w = regno;
 			node->link = NULL;
@@ -2533,7 +2536,7 @@ _patch_registers(jit_state_t *_jit)
 		regno = jit_regno(node->u.w);
 		if (node->v.w) {
 		    if (node->v.w == jit_regload_isdead)
-			jit_regset_clrbit(_jit->reglive, regno);
+			jit_regset_clrbit(_jitc->reglive, regno);
 		    del_node(prev, node);
 		    continue;
 		}
@@ -2549,14 +2552,14 @@ _patch_registers(jit_state_t *_jit)
 		    node->code = jit_code_ldxi_d;
 		node->v.w = regno;
 		node->v.w = JIT_FP;
-		node->w.w = _jit->function->regoff[regno];
+		node->w.w = _jitc->function->regoff[regno];
 		node->link = NULL;
 		break;
 	    case jit_code_prolog:
-		_jit->function = _jit->functions.ptr + node->w.w;
+		_jitc->function = _jitc->functions.ptr + node->w.w;
 		break;
 	    case jit_code_epilog:
-		_jit->function = NULL;
+		_jitc->function = NULL;
 		break;
 	    default:
 		break;
