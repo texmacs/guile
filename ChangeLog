@@ -1,3 +1,7 @@
+2013-03-06 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Make data and code buffer readonly.
+
 2013-02-20 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Fool proof validate the examples of what

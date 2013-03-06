@@ -1376,6 +1376,7 @@ _jit_emit(jit_state_t *_jit)
     jit_node_t		*node;
     jit_int32_t		 mult;
     size_t		 length;
+    int			 result;
 
     if (_jit->function)
 	jit_epilog();
@@ -1429,6 +1430,11 @@ _jit_emit(jit_state_t *_jit)
 
     _jit->done = 1;
     jit_annotate();
+
+    result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
+    assert(result == 0);
+    result = mprotect(_jit->code.ptr, _jit->code.length, PROT_READ | PROT_EXEC);
+    assert(result == 0);
 
     return (code);
 }
