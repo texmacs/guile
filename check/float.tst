@@ -325,7 +325,10 @@ W##f##r0##f0##l:
 
 	f2w(__LINE__, 0, 0)
 	f2w(__LINE__, 1, 1)
+        /* not all loongson agree on it */
+#if !__mips__
 	f2w(__LINE__, wninf, $nInf)
+#endif
 	f2w(__LINE__, wpinf, $pInf)
 	f2w(__LINE__, wnan, $NaN)
 

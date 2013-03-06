@@ -1,5 +1,15 @@
 2013-03-06 Paulo Andrade <pcpa@gnu.org>
 
+	* check/float.tst: Comment out the int to negative infinity
+	test in mips for the moment because not all Loongson agrees
+	on the result.
+
+	* lib/jit_disasm.c: Add a test instead of an assertion
+	when loading symbols for disassembly due to a failure with
+	a simple binutils build in Debian mipsel64.
+
+2013-03-06 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_private.h, lib/jit_arm-cpu.c,
 	lib/jit_arm.c, lib/jit_disasm.c, lib/jit_mips-cpu.c,
 	lib/jit_mips.c, lib/jit_note.c, lib/jit_ppc-cpu.c,

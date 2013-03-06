@@ -96,59 +96,60 @@ jit_init_debug(void)
 	long		  sym_storage;
 	long		  dyn_storage;
 
-	sym_storage = bfd_get_symtab_upper_bound(disasm_bfd);
-	assert(sym_storage >= 0);
+	if ((sym_storage = bfd_get_symtab_upper_bound(disasm_bfd)) >= 0) {
 
-	if (bfd_get_file_flags(disasm_bfd) & DYNAMIC) {
-	    dyn_storage = bfd_get_dynamic_symtab_upper_bound(disasm_bfd);
-	    assert(dyn_storage >= 0);
-	}
-	else
-	    dyn_storage = 0;
+	    if (bfd_get_file_flags(disasm_bfd) & DYNAMIC) {
+		dyn_storage = bfd_get_dynamic_symtab_upper_bound(disasm_bfd);
+		assert(dyn_storage >= 0);
+	    }
+	    else
+		dyn_storage = 0;
 
-	disasm_symbols = malloc(sym_storage + dyn_storage);
-	sym_count = bfd_canonicalize_symtab(disasm_bfd, disasm_symbols);
-	assert(sym_count >= 0);
-	if (dyn_storage) {
-	    dyn_count = bfd_canonicalize_dynamic_symtab(disasm_bfd,
-							disasm_symbols +
-							sym_count);
-	    assert(dyn_count >= 0);
-	}
-	else
-	    dyn_count = 0;
-	disasm_num_symbols = sym_count + dyn_count;
+	    disasm_symbols = malloc(sym_storage + dyn_storage);
+	    sym_count = bfd_canonicalize_symtab(disasm_bfd, disasm_symbols);
+	    assert(sym_count >= 0);
+	    if (dyn_storage) {
+		dyn_count = bfd_canonicalize_dynamic_symtab(disasm_bfd,
+							    disasm_symbols +
+							    sym_count);
+		assert(dyn_count >= 0);
+	    }
+	    else
+		dyn_count = 0;
+	    disasm_num_symbols = sym_count + dyn_count;
 
-	disasm_num_synthetic = bfd_get_synthetic_symtab(disasm_bfd,
-							sym_count,
-							disasm_symbols,
-							dyn_count,
-							disasm_symbols +
-							sym_count,
-							&disasm_synthetic);
-	if (disasm_num_synthetic > 0) {
-	    disasm_symbols = realloc(disasm_symbols,
-				     sym_storage + dyn_storage +
-				     disasm_num_synthetic * sizeof(asymbol *));
-	    for (offset = 0; offset < disasm_num_synthetic; offset++)
-		disasm_symbols[disasm_num_symbols++] =
-		    disasm_synthetic + offset;
-	}
+	    disasm_num_synthetic = bfd_get_synthetic_symtab(disasm_bfd,
+							    sym_count,
+							    disasm_symbols,
+							    dyn_count,
+							    disasm_symbols +
+							    sym_count,
+							    &disasm_synthetic);
+	    if (disasm_num_synthetic > 0) {
+		disasm_symbols = realloc(disasm_symbols,
+					 sym_storage + dyn_storage +
+					 disasm_num_synthetic *
+					 sizeof(asymbol *));
+		for (offset = 0; offset < disasm_num_synthetic; offset++)
+		    disasm_symbols[disasm_num_symbols++] =
+			disasm_synthetic + offset;
+	    }
 
-	/* remove symbols not useful for disassemble */
-	in = out = disasm_symbols;
-	for (offset = 0; offset < disasm_num_symbols; offset++) {
-	    symbol = *in++;
-	    if (symbol->name &&
-		symbol->name[0] != '\0' &&
-		!(symbol->flags & (BSF_DEBUGGING | BSF_SECTION_SYM)) &&
-		!bfd_is_und_section(symbol->section) &&
-		!bfd_is_com_section(symbol->section))
-		*out++ = symbol;
+	    /* remove symbols not useful for disassemble */
+	    in = out = disasm_symbols;
+	    for (offset = 0; offset < disasm_num_symbols; offset++) {
+		symbol = *in++;
+		if (symbol->name &&
+		    symbol->name[0] != '\0' &&
+		    !(symbol->flags & (BSF_DEBUGGING | BSF_SECTION_SYM)) &&
+		    !bfd_is_und_section(symbol->section) &&
+		    !bfd_is_com_section(symbol->section))
+		    *out++ = symbol;
+	    }
+	    disasm_num_symbols = out - disasm_symbols;
+	    qsort(disasm_symbols, disasm_num_symbols,
+		  sizeof(asymbol *), disasm_compare_symbols);
 	}
-	disasm_num_symbols = out - disasm_symbols;
-	qsort(disasm_symbols, disasm_num_symbols,
-	      sizeof(asymbol *), disasm_compare_symbols);
     }
 #endif
 }
