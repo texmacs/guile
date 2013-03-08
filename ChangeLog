@@ -1,3 +1,7 @@
+2013-03-08 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c: Add missing ppc preprocessor definition.
+
 2013-03-06 Paulo Andrade <pcpa@gnu.org>
 
 	* check/float.tst: Comment out the int to negative infinity
