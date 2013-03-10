@@ -587,6 +587,11 @@ _jit_clear_state(jit_state_t *_jit)
     _jitc->data_info.ptr = NULL;
 #endif
 
+#if __powerpc64__
+    free(_jitc->prolog.ptr);
+    _jitc->prolog.ptr = NULL;
+#endif
+
     free(_jitc);
 }
 
@@ -1402,7 +1407,9 @@ _jit_emit(jit_state_t *_jit)
     for (;;) {
 	if ((code = emit_code()) == NULL) {
 	    for (node = _jitc->head; node; node = node->next) {
-		if (node->code == jit_code_label && node->link)
+		if (node->link &&
+		    (node->code == jit_code_label ||
+		     node->code == jit_code_epilog))
 		    node->flag &= ~jit_flag_patch;
 	    }
 	    ++mult;
@@ -1439,7 +1446,7 @@ _jit_emit(jit_state_t *_jit)
     result = mprotect(_jit->code.ptr, _jit->code.length, PROT_READ | PROT_EXEC);
     assert(result == 0);
 
-    return (code);
+    return (_jit->code.ptr);
 }
 
 /*   Compute initial reglive and regmask set values of a basic block.
@@ -2605,7 +2612,7 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_mips.c"
 #elif defined(__arm__)
 #  include "jit_arm.c"
-#elif defined(__ppc__)
+#elif defined(__ppc__) || defined(__powerpc__)
 #  include "jit_ppc.c"
 #elif defined(__sparc__)
 #  include "jit_sparc.c"

@@ -37,10 +37,17 @@ extern void __clear_cache(void *, void *);
  */
 jit_register_t		_rvs[] = {
     { rc(gpr) | 0,			"r0" },
+#if __WORDSIZE == 32
     { rc(gpr) | 11,			"r11" },
     { rc(gpr) | 12,			"r12" },
     { rc(gpr) | 13,			"r13" },
     { rc(gpr) | 2,			"r2" },
+#else
+    { rc(sav) | 11,			"r11" },	/* env */
+    { rc(sav) | 12,			"r12" },	/* exception */
+    { rc(sav) | 13,			"r13" },	/* thread */
+    { rc(sav) | 2,			"r2" },		/* toc */
+#endif
     { rc(sav) | rc(gpr) | 14,		"r14" },
     { rc(sav) | rc(gpr) | 15,		"r15" },
     { rc(sav) | rc(gpr) | 16,		"r16" },
@@ -270,16 +277,21 @@ _jit_arg_f(jit_state_t *_jit)
     assert(_jitc->function);
     if (_jitc->function->self.argf < 13)
 	offset = _jitc->function->self.argf++;
-    else
+    else {
+#if __WORDSIZE == 32
 	offset = _jitc->function->self.size;
-    _jitc->function->self.size += sizeof(jit_float32_t);
+#else
+	offset = _jitc->function->self.size + 4;
+#endif
+    }
+    _jitc->function->self.size += sizeof(jit_word_t);
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
 
 jit_bool_t
 _jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
-    return (jit_arg_d_reg_p(offset));
+    return (offset >= 0 && offset < 13);
 }
 
 jit_node_t *
@@ -298,7 +310,7 @@ _jit_arg_d(jit_state_t *_jit)
 jit_bool_t
 _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
-    return (offset >= 0 && offset < 13);
+    return (jit_arg_f_reg_p(offset));
 }
 
 void
@@ -364,8 +376,13 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-    if (v->u.w < 8)
+    if (v->u.w < 8) {
+#if __WORDSIZE == 32
 	jit_movr(u, JIT_RA0 - v->u.w);
+#else
+	jit_extr_i(u, JIT_RA0 - v->u.w);
+#endif
+    }
     else {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_i(u, JIT_FP, v->u.w);
@@ -460,9 +477,14 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argf;
 	if (!(_jitc->function->call.call & jit_call_varargs)) {
 	    /* in case of excess arguments */
-	    if (_jitc->function->call.argi < 8)
+	    if (_jitc->function->call.argi < 8) {
+#if __WORDSIZE == 32
 		_jitc->function->call.argi += 2;
-	    _jitc->function->call.size += sizeof(jit_float32_t);
+#else
+		_jitc->function->call.argi++;
+#endif
+	    }
+	    _jitc->function->call.size += sizeof(jit_word_t);
 	    return;
 	}
     }
@@ -472,13 +494,21 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 8);
 	_jitc->function->call.argi++;
+#if __WORDSIZE == 32
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 4);
 	_jitc->function->call.argi++;
+#endif
     }
-    else
+    else {
+#if __WORDSIZE == 32
 	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, u);
-    _jitc->function->call.size += sizeof(jit_float32_t);
+#else
+	jit_stxi_f(_jitc->function->call.size + params_offset + 4,
+		   JIT_SP, u);
+#endif
+    }
+    _jitc->function->call.size += sizeof(jit_word_t);
 }
 
 void
@@ -492,9 +522,14 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	++_jitc->function->call.argf;
 	if (!(_jitc->function->call.call & jit_call_varargs)) {
 	    /* in case of excess arguments */
-	    if (_jitc->function->call.argi < 8)
+	    if (_jitc->function->call.argi < 8) {
+#if __WORDSIZE == 32
 		_jitc->function->call.argi += 2;
-	    _jitc->function->call.size += sizeof(jit_float32_t);
+#else
+		_jitc->function->call.argi++;
+#endif
+	    }
+	    _jitc->function->call.size += sizeof(jit_word_t);
 	    return;
 	}
     }
@@ -506,13 +541,21 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 8);
 	_jitc->function->call.argi++;
+#if __WORDSIZE == 32
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 4);
 	_jitc->function->call.argi++;
+#endif
     }
-    else
+    else {
+#if __WORDSIZE == 32
 	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, regno);
-    _jitc->function->call.size += sizeof(jit_float32_t);
+#else
+	jit_stxi_f(_jitc->function->call.size + params_offset + 4,
+		   JIT_SP, regno);
+#endif
+    }
+    _jitc->function->call.size += sizeof(jit_word_t);
     jit_unget_reg(regno);
 }
 
@@ -525,8 +568,13 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argf;
 	if (!(_jitc->function->call.call & jit_call_varargs)) {
 	    /* in case of excess arguments */
-	    if (_jitc->function->call.argi < 8)
+	    if (_jitc->function->call.argi < 8) {
+#if __WORDSIZE == 32
 		_jitc->function->call.argi += 2;
+#else
+		_jitc->function->call.argi++;
+#endif
+	    }
 	    _jitc->function->call.size += sizeof(jit_float64_t);
 	    return;
 	}
@@ -537,9 +585,11 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 8);
 	_jitc->function->call.argi++;
+#if __WORDSIZE == 32
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 4);
 	_jitc->function->call.argi++;
+#endif
     }
     else
 	jit_stxi_d(_jitc->function->call.size + params_offset, JIT_SP, u);
@@ -557,8 +607,13 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	++_jitc->function->call.argf;
 	if (!(_jitc->function->call.call & jit_call_varargs)) {
 	    /* in case of excess arguments */
-	    if (_jitc->function->call.argi < 8)
+	    if (_jitc->function->call.argi < 8) {
+#if __WORDSIZE == 32
 		_jitc->function->call.argi += 2;
+#else
+		_jitc->function->call.argi++;
+#endif
+	    }
 	    _jitc->function->call.size += sizeof(jit_float64_t);
 	    return;
 	}
@@ -571,9 +626,11 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 8);
 	_jitc->function->call.argi++;
+#if __WORDSIZE == 32
 	jit_ldxi(JIT_RA0 - _jitc->function->call.argi, JIT_FP,
 		 alloca_offset - 4);
 	_jitc->function->call.argi++;
+#endif
     }
     else
 	jit_stxi_d(_jitc->function->call.size + params_offset, JIT_SP, regno);
@@ -704,7 +761,10 @@ _emit_code(jit_state_t *_jit)
     struct {
 	jit_node_t	*node;
 	jit_word_t	 word;
-	jit_int32_t	 patch_offset;
+	jit_word_t	 patch_offset;
+#if __powerpc64__
+	jit_word_t	 prolog_offset;
+#endif
     } undo;
 
     _jitc->function = NULL;
@@ -714,6 +774,14 @@ _emit_code(jit_state_t *_jit)
     undo.word = 0;
     undo.node = NULL;
     undo.patch_offset = 0;
+#if __powerpc64__
+    undo.prolog_offset = 0;
+
+    /* code may start with a jump so add an initial function descriptor */
+    il(_jit->pc.w + 24);	/* addr */
+    il(0);			/* toc */
+    il(0);			/* env */
+#endif
 
 #define case_rr(name, type)						\
 	    case jit_code_##name##r##type:				\
@@ -859,6 +927,10 @@ _emit_code(jit_state_t *_jit)
 		case_rr(ext, _uc);
 		case_rr(ext, _s);
 		case_rr(ext, _us);
+#  if __WORDSIZE == 64
+		case_rr(ext, _i);
+		case_rr(ext, _ui);
+#  endif
 		case_rr(hton,);
 		case_rr(neg,);
 		case_rr(com,);
@@ -882,6 +954,10 @@ _emit_code(jit_state_t *_jit)
 		break;
 		case_rr(trunc, _f_i);
 		case_rr(trunc, _d_i);
+#  if __WORDSIZE == 64
+		case_rr(trunc, _f_l);
+		case_rr(trunc, _d_l);
+#  endif
 		case_rrr(lt,);
 		case_rrw(lt,);
 		case_rrr(lt, _u);
@@ -962,6 +1038,16 @@ _emit_code(jit_state_t *_jit)
 		case_rw(ld, _i);
 		case_rrr(ldx, _i);
 		case_rrw(ldx, _i);
+#if __WORDSIZE == 64
+		case_rr(ld, _ui);
+		case_rw(ld, _ui);
+		case_rrr(ldx, _ui);
+		case_rrw(ldx, _ui);
+		case_rr(ld, _l);
+		case_rw(ld, _l);
+		case_rrr(ldx, _l);
+		case_rrw(ldx, _l);
+#endif
 		case_rr(st, _c);
 		case_wr(st, _c);
 		case_rrr(stx, _c);
@@ -974,6 +1060,12 @@ _emit_code(jit_state_t *_jit)
 		case_wr(st, _i);
 		case_rrr(stx, _i);
 		case_wrr(stx, _i);
+#if __WORDSIZE == 64
+		case_rr(st, _l);
+		case_wr(st, _l);
+		case_rrr(stx, _l);
+		case_wrr(stx, _l);
+#endif
 		case_rr(mov, _f);
 	    case jit_code_movi_f:
 		assert(node->flag & jit_flag_data);
@@ -1142,6 +1234,10 @@ _emit_code(jit_state_t *_jit)
 		jmpr(rn(node->u.w));
 		break;
 	    case jit_code_jmpi:
+#if __powerpc64__
+		if (_jit->pc.uc == _jit->code.ptr + 24)
+		    _jitc->jump = 1;
+#endif
 		temp = node->u.n;
 		assert(temp->code == jit_code_label ||
 		       temp->code == jit_code_epilog);
@@ -1173,8 +1269,29 @@ _emit_code(jit_state_t *_jit)
 		undo.node = node;
 		undo.word = _jit->pc.w;
 		undo.patch_offset = _jitc->patches.offset;
+#if __powerpc64__
+		undo.prolog_offset = _jitc->prolog.offset;
+#endif
 	    restart_function:
 		_jitc->again = 0;
+#if __powerpc64__
+		if (_jitc->jump) {
+		    /* remember prolog to hide offset adjustment for a jump
+		     * to the start of a function, what is expected to be
+		     * a common practice as first jit instruction */
+		    if (_jitc->prolog.offset >= _jitc->prolog.length) {
+			_jitc->prolog.length += 16;
+			_jitc->prolog.ptr = realloc(_jitc->prolog.ptr,
+						    _jitc->prolog.length *
+						    sizeof(jit_word_t));
+		    }
+		    _jitc->prolog.ptr[_jitc->prolog.offset++] = _jit->pc.w;
+		    /* function descriptor */
+		    il(_jit->pc.w + 24);	/* addr */
+		    il(0);			/* toc */
+		    il(0);			/* env */
+		}
+#endif
 		prolog(node);
 		break;
 	    case jit_code_epilog:
@@ -1186,9 +1303,13 @@ _emit_code(jit_state_t *_jit)
 			    temp->code == jit_code_epilog)
 			    temp->flag &= ~jit_flag_patch;
 		    }
+		    temp->flag &= ~jit_flag_patch;
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
 		    _jitc->patches.offset = undo.patch_offset;
+#if __powerpc64__
+		    _jitc->prolog.offset = undo.prolog_offset;
+#endif
 		    goto restart_function;
 		}
 		/* remember label is defined */

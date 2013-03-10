@@ -28,34 +28,46 @@ typedef enum {
 #define jit_arg_reg_p(i)	((i) >= 0 && (i) < 8)
 #define jit_r(i)		(_R11 + (i))
 #define jit_r_num()		3
-#define jit_v(i)		(_R30 - (i))
-#define jit_v_num()		17
+#if __WORDSIZE == 32
+#  define jit_v(i)		(_R30 - (i))
+#  define jit_v_num()		17
+#else
+#  define jit_v(i)		(_R27 - (i))
+#  define jit_v_num()		14
+#endif
 #define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 13)
 #define jit_f(i)		(_F14 + (i))
 #define jit_f_num()		6
     _R0,
-#define JIT_R0			_R11
-#define JIT_R1			_R12
-#define JIT_R2			_R13
-#define JIT_R3			_R2
+#if __WORDSIZE == 32
+#  define JIT_R0		_R11
+#  define JIT_R1		_R12
+#  define JIT_R2		_R13
+#else
+#  define JIT_R0		_R28
+#  define JIT_R1		_R29
+#  define JIT_R2		_R30
+#endif
     _R11,	_R12,	_R13,	_R2,
-#define JIT_V0			_R30
-#define JIT_V1			_R29
-#define JIT_V2			_R28
-#define JIT_V3			_R28
-#define JIT_V4			_R26
-#define JIT_V5			_R25
-#define JIT_V6			_R24
-#define JIT_V7			_R23
-#define JIT_V8			_R22
-#define JIT_V9			_R21
-#define JIT_V10			_R20
-#define JIT_V11			_R19
-#define JIT_V12			_R18
-#define JIT_V13			_R17
-#define JIT_V14			_R16
-#define JIT_V15			_R15
-#define JIT_V16			_R14
+#define JIT_V0			jit_v(0)
+#define JIT_V1			jit_v(1)
+#define JIT_V2			jit_v(2)
+#define JIT_V3			jit_v(3)
+#define JIT_V4			jit_v(4)
+#define JIT_V5			jit_v(5)
+#define JIT_V6			jit_v(6)
+#define JIT_V7			jit_v(7)
+#define JIT_V8			jit_v(8)
+#define JIT_V9			jit_v(9)
+#define JIT_V10			jit_v(10)
+#define JIT_V11			jit_v(11)
+#define JIT_V12			jit_v(12)
+#define JIT_V13			jit_v(13)
+#if __WORDSIZE == 32
+#  define JIT_V14		jit_v(14)
+#  define JIT_V15		jit_v(15)
+#  define JIT_V16		jit_v(16)
+#endif
     _R14,	_R15,	_R16,	_R17,	_R18,	_R19,	_R20,	_R21,
     _R22,	_R23,	_R24,	_R25,	_R26,	_R27,	_R28,	_R29,
     _R30,

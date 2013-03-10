@@ -1,3 +1,35 @@
+2013-03-10 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h: Add check for __powerpc__ defined
+	in Linux, while Darwin defines __ppc__.
+
+	* include/lightning/jit_ppc.h: Adjust register definitions
+	for Darwin 32 bit and Linux 64 bit ppc usage and/or ABI.
+
+	* include/lightning/jit_private.h: Add proper check for
+	Linux __powerpc__ and an data definition for an workaround
+	to properly handle code that starts with a jump to a "main"
+	label.
+
+	* lib/jit_disasm.c: Add extra disassembler initialization
+	for __powerpc64__.
+
+	* lib/jit_ppc-cpu.c: Add extra macros and functions, and
+	correct/adapt previous ones to handle powerpc64.
+
+	* lib/jit_ppc-fpu.c: Adapt for 64 bit wordsize. Basically
+	add conversion from/to int32/int64 and proper handling of
+	load/store offsets too large for 32 bit.
+
+	* lib/jit_ppc.c: Add calls to 64 bit codes and adaptation
+	for the PowerPC 64 bit Linux ABI.
+
+	* lib/jit_arm.c, lib/jit_mips.c, lib/jit_sparc, lib/jit_x86.c,
+	lib/lightning.c: Correct off by one error when restarting jit
+	of a function due to finding too late that needs to spill/reload
+	some register. Problem was found by accident on a very special
+	condition during PowerPC 64 code adaptation.
+
 2013-03-08 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c: Add missing ppc preprocessor definition.

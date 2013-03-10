@@ -66,7 +66,7 @@
 #  else
 #    define JIT_FRET		_R0
 #  endif
-#elif defined(__ppc__)
+#elif defined(__ppc__) || defined(__powerpc__)
 #  define JIT_SP		_R1
 #  define JIT_RET		_R3
 #  define JIT_FRET		_F1
@@ -347,6 +347,16 @@ struct jit_compiler {
 	jit_int32_t	  values[1024];	/* pending constants */
 	jit_word_t	  patches[2048];
     } consts;
+#elif __powerpc64__
+    /* Keep track of prolog addresses, just for the sake of making
+     * jit that starts with a jump to a "main" label work like other
+     * backends. */
+    struct {
+	jit_word_t	 *ptr;
+	jit_word_t	  offset;
+	jit_word_t	  length;
+    } prolog;
+    jit_bool_t		  jump;
 #endif
 };
 

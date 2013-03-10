@@ -1186,6 +1186,7 @@ _emit_code(jit_state_t *_jit)
 			    temp->code == jit_code_epilog)
 			    temp->flag &= ~jit_flag_patch;
 		    }
+		    temp->flag &= ~jit_flag_patch;
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
 		    _jitc->patches.offset = undo.patch_offset;
