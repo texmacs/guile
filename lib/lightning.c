@@ -24,7 +24,7 @@
 #define jit_regload_isdead		2	/* delete and unset live bit */
 
 #if __WORDSIZE == 32
-#  define bmp_shift			3
+#  define bmp_shift			5
 #else
 #  define bmp_shift			6
 #endif
