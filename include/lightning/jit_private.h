@@ -25,7 +25,6 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
-#include <gmp.h>
 
 #if defined(__GNUC__)
 #  define maybe_unused		__attribute__ ((unused))
@@ -278,7 +277,10 @@ struct jit_compiler {
     jit_regset_t	  regsav;	/* automatic spill only once */
     jit_regset_t	  reglive;	/* known live registers at some point */
     jit_regset_t	  regmask;	/* register mask to update reglive */
-    mpz_t		  blockmask;	/* mask of visited basic blocks */
+    struct {
+	jit_word_t	 *ptr;
+	jit_word_t	  length;
+    } blockmask;			/* mask of visited basic blocks */
     struct {
 	jit_uint8_t	 *end;
     } code;

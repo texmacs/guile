@@ -23,6 +23,12 @@
 #define jit_regload_delete		1	/* just remove node */
 #define jit_regload_isdead		2	/* delete and unset live bit */
 
+#if __WORDSIZE == 32
+#  define bmp_shift			3
+#else
+#  define bmp_shift			6
+#endif
+
 /*
  * Prototypes
  */
@@ -42,6 +48,27 @@ static inline void _del_node(jit_state_t*, jit_node_t*, jit_node_t*);
 
 #define del_label(u, v)			_del_label(_jit, u, v)
 static void _del_label(jit_state_t*, jit_node_t*, jit_node_t*);
+
+#define bmp_init()			_bmp_init(_jit)
+static void _bmp_init(jit_state_t*);
+
+#define bmp_clear()			_bmp_clear(_jit)
+static void _bmp_clear(jit_state_t*);
+
+#define bmp_zero()							\
+    memset(_jitc->blockmask.ptr, 0,					\
+	   _jitc->blockmask.length * sizeof(jit_word_t))
+
+static void _bmp_zero(jit_state_t*);
+
+#define bmp_set(bit)			_bmp_set(_jit, bit)
+static void _bmp_set(jit_state_t*, jit_word_t);
+
+#define bmp_clr(bit)			_bmp_clr(_jit, bit)
+static void _bmp_clr(jit_state_t*, jit_word_t);
+
+#define bmp_tst(bit)			_bmp_tst(_jit, bit)
+static jit_bool_t _bmp_tst(jit_state_t*, jit_word_t);
 
 #define jit_setup(block)		_jit_setup(_jit, block)
 static void
@@ -492,6 +519,62 @@ _del_label(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     del_node(prev, node);
 }
 
+static void
+_bmp_init(jit_state_t *_jit)
+{
+    _jitc->blockmask.length = 16;
+    _jitc->blockmask.ptr = calloc(sizeof(jit_word_t), _jitc->blockmask.length);
+}
+
+static void
+_bmp_clear(jit_state_t *_jit)
+{
+    _jitc->blockmask.length = 0;
+    free(_jitc->blockmask.ptr);
+    _jitc->blockmask.ptr = NULL;
+}
+
+static void
+_bmp_set(jit_state_t *_jit, jit_word_t bit)
+{
+    jit_word_t		woff, boff;
+
+    woff = bit >> bmp_shift;
+    boff = 1LL << (bit & (__WORDSIZE - 1));
+    if (woff >= _jitc->blockmask.length) {
+	jit_word_t	length = (woff + 16) & -16;
+	_jitc->blockmask.ptr = realloc(_jitc->blockmask.ptr,
+				       length * sizeof(jit_word_t));
+	memset(_jitc->blockmask.ptr + _jitc->blockmask.length,
+	       0, (length - _jitc->blockmask.length) * sizeof(jit_word_t));
+	_jitc->blockmask.length = length;
+    }
+    _jitc->blockmask.ptr[woff] |= boff;
+}
+
+static void
+_bmp_clr(jit_state_t *_jit, jit_word_t bit)
+{
+    jit_word_t		woff, boff;
+
+    woff = bit >> bmp_shift;
+    boff = 1LL << (bit & (__WORDSIZE - 1));
+    if (woff < _jitc->blockmask.length)
+	_jitc->blockmask.ptr[woff] &= ~boff;
+}
+
+static jit_bool_t
+_bmp_tst(jit_state_t *_jit, jit_word_t bit)
+{
+    jit_word_t		woff, boff;
+
+    woff = bit >> bmp_shift;
+    boff = 1LL << (bit & (__WORDSIZE - 1));
+    if (woff < _jitc->blockmask.length)
+	return ((_jitc->blockmask.ptr[woff] & boff) != 0);
+    return (0);
+}
+
 jit_state_t *
 jit_new_state(void)
 {
@@ -503,7 +586,7 @@ jit_new_state(void)
     jit_regset_new(_jitc->regsav);
     jit_regset_new(_jitc->reglive);
     jit_regset_new(_jitc->regmask);
-    mpz_init(_jitc->blockmask);
+    bmp_init();
 
     jit_init();
 
@@ -542,7 +625,7 @@ _jit_clear_state(jit_state_t *_jit)
      * pointers to NULL to explicitly know they are released */
     _jitc->head = _jitc->tail = NULL;
 
-    mpz_clear(_jitc->blockmask);
+    bmp_clear();
 
     free(_jitc->data.table);
     _jitc->data.table = NULL;
@@ -1331,7 +1414,7 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 	    if ((value & jit_cc_a2_reg) && !(node->w.w & jit_regno_patch))
 		jit_regset_setbit(_jitc->reglive, node->w.w);
 	    if (jit_regset_set_p(_jitc->regmask)) {
-		mpz_set_ui(_jitc->blockmask, 0);
+		bmp_zero();
 		jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
 		if (jit_regset_set_p(_jitc->regmask)) {
 		    /* any unresolved live state is considered as live */
@@ -1548,9 +1631,9 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	switch (node->code) {
 	    case jit_code_label:
 		block = _jitc->blocks.ptr + node->v.w;
-		if (mpz_tstbit(_jitc->blockmask, node->v.w))
+		if (bmp_tst(node->v.w))
 		    return;
-		mpz_setbit(_jitc->blockmask, node->v.w);
+		bmp_set(node->v.w);
 		jit_regset_and(ztmp, *mask, block->reglive);
 		if (jit_regset_set_p(ztmp)) {
 		    jit_regset_ior(*live, *live, ztmp);
@@ -1653,9 +1736,9 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			    goto restart;
 			}
 			block = _jitc->blocks.ptr + label->v.w;
-			if (mpz_tstbit(_jitc->blockmask, label->v.w))
+			if (bmp_tst(label->v.w))
 			    continue;
-			mpz_setbit(_jitc->blockmask, label->v.w);
+			bmp_set(label->v.w);
 			jit_regset_and(ztmp, *mask, block->reglive);
 			if (jit_regset_set_p(ztmp)) {
 			    jit_regset_ior(*live, *live, ztmp);
@@ -2448,7 +2531,7 @@ static jit_bool_t
 _spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 {
     if (!jit_regset_tstbit(_jitc->reglive, regno)) {
-	mpz_set_ui(_jitc->blockmask, 0);
+	bmp_zero();
 	jit_regset_setbit(_jitc->regmask, regno);
 	jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
 	if (!jit_regset_tstbit(_jitc->reglive, regno) &&

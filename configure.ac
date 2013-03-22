@@ -27,9 +27,6 @@ AC_PROG_LIBTOOL
 
 AC_CHECK_FUNCS(mremap,,)
 
-AC_CHECK_LIB(gmp, __gmpz_init, ,
-	[AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
-
 AC_ARG_ENABLE(disassembler,
 	      AS_HELP_STRING([--enable-disassembler],
 			     [Enable jit disassembler using binutils]),

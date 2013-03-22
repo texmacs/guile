@@ -1,3 +1,10 @@
+2013-03-22 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac, include/lightning/jit_private.h, lib/lightning.c:
+	Remove dependency on gmp. Only a simple bitmap was required, and
+	that was not enough reason to force linking to gmp and possible
+	complications caused by it.
+
 2013-03-10 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h: Add check for __powerpc__ defined
