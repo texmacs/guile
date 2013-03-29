@@ -1455,7 +1455,6 @@ _jit_emit(jit_state_t *_jit)
 {
     jit_pointer_t	 code;
     jit_node_t		*node;
-    jit_int32_t		 mult;
     size_t		 length;
     int			 result;
 
@@ -1464,11 +1463,11 @@ _jit_emit(jit_state_t *_jit)
     jit_optimize();
 
     /* Heuristic to guess code buffer size */
-    mult = 4;
+    _jitc->mult = 4;
 
     _jitc->emit = 1;
 
-    _jit->code.length = _jitc->pool.length * 1024 * mult;
+    _jit->code.length = _jitc->pool.length * 1024 * _jitc->mult;
 
     _jit->code.ptr = mmap(NULL, _jit->code.length,
 			  PROT_EXEC | PROT_READ | PROT_WRITE,
@@ -1485,8 +1484,8 @@ _jit_emit(jit_state_t *_jit)
 		     node->code == jit_code_epilog))
 		    node->flag &= ~jit_flag_patch;
 	    }
-	    ++mult;
-	    length = _jitc->pool.length * 1024 * mult;
+	    ++_jitc->mult;
+	    length = _jitc->pool.length * 1024 * _jitc->mult;
 
 #if !HAVE_MREMAP
 	    munmap(_jit->code.ptr, _jit->code.length);

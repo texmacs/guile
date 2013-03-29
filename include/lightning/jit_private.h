@@ -360,6 +360,8 @@ struct jit_compiler {
     } prolog;
     jit_bool_t		  jump;
 #endif
+    /* global flag for code buffer heuristic size computation */
+    jit_word_t		  mult;
 };
 
 #define _jitc				_jit->comp
@@ -484,6 +486,13 @@ extern void _jit_annotate(jit_state_t*);
 extern void jit_alloc(jit_pointer_t*, jit_word_t);
 extern void jit_realloc(jit_pointer_t*, jit_word_t, jit_word_t);
 void jit_free(jit_pointer_t*);
+
+#if HAVE_MREMAP
+#  define jit_remap()		_jit_remap(_jit)
+extern jit_bool_t _jit_remap(jit_state_t*);
+#else
+#  define jit_remap()		0
+#endif
 
 /*
  * Externs

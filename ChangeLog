@@ -1,5 +1,12 @@
 2013-03-29 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_private.h, lib/jit_arm.c, lib/jit_memory.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_sparc.c, lib/jit_x86.c,
+	lib/lightning.c: Do not start over jit generation if can grow
+	the code buffer with mremap without moving the base pointer.
+
+2013-03-29 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_memory.c: Implement a simple memory allocation wrapper
 	to allow overriding calls to malloc/calloc/realloc/free, as well
 	as ensuring all memory containing pointers is zero or points to
