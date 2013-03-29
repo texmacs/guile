@@ -215,11 +215,9 @@ _jit_prolog(jit_state_t *_jit)
     jit_regset_set_ui(_jitc->regsav, 0);
     offset = _jitc->functions.offset;
     if (offset >= _jitc->functions.length) {
-	_jitc->functions.ptr = realloc(_jitc->functions.ptr,
-				      (_jitc->functions.length + 16) *
-				      sizeof(jit_function_t));
-	memset(_jitc->functions.ptr + _jitc->functions.length, 0,
-	       16 * sizeof(jit_function_t));
+	jit_realloc((jit_pointer_t *)&_jitc->functions.ptr,
+		    _jitc->functions.length * sizeof(jit_function_t),
+		    (_jitc->functions.length + 16) * sizeof(jit_function_t));
 	_jitc->functions.length += 16;
     }
     _jitc->function = _jitc->functions.ptr + _jitc->functions.offset++;
@@ -234,7 +232,8 @@ _jit_prolog(jit_state_t *_jit)
     else
 	_jitc->function->self.aoff = 0;
     _jitc->function->self.call = jit_call_default;
-    _jitc->function->regoff = calloc(_jitc->reglen, sizeof(jit_int32_t));
+    jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
+	      _jitc->reglen * sizeof(jit_int32_t));
 
     _jitc->function->prolog = jit_new_node_no_link(jit_code_prolog);
     jit_link(_jitc->function->prolog);
@@ -1748,11 +1747,10 @@ _flush_consts(jit_state_t *_jit)
 
     if (_jitc->data_info.ptr) {
 	if (_jitc->data_info.offset >= _jitc->data_info.length) {
-	    _jitc->data_info.ptr = realloc(_jitc->data_info.ptr,
-					  (_jitc->data_info.length + 1024) *
-					  sizeof(jit_data_info_t));
-	    memset(_jitc->data_info.ptr + _jitc->data_info.length, 0,
-		   1024 * sizeof(jit_data_info_t));
+	    jit_realloc((jit_pointer_t *)&_jitc->data_info.ptr,
+			_jitc->data_info.length * sizeof(jit_data_info_t),
+			(_jitc->data_info.length + 1024) *
+			sizeof(jit_data_info_t));
 	    _jitc->data_info.length += 1024;
 	}
 	_jitc->data_info.ptr[_jitc->data_info.offset].code = word;
@@ -1796,11 +1794,9 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
     assert(!(flag & jit_flag_patch));
     kind |= arm_patch_node;
     if (_jitc->patches.offset >= _jitc->patches.length) {
-	_jitc->patches.ptr = realloc(_jitc->patches.ptr,
-				    (_jitc->patches.length + 1024) *
-				    sizeof(jit_patch_t));
-	memset(_jitc->patches.ptr + _jitc->patches.length, 0,
-	       1024 * sizeof(jit_patch_t));
+	jit_realloc((jit_pointer_t *)&_jitc->patches.ptr,
+		    _jitc->patches.length * sizeof(jit_patch_t),
+		    (_jitc->patches.length + 1024) * sizeof(jit_patch_t));
 	_jitc->patches.length += 1024;
     }
     _jitc->patches.ptr[_jitc->patches.offset].kind = kind;

@@ -747,6 +747,10 @@ typedef enum {
     jit_code_x86_retval_f,	jit_code_x86_retval_d,
 } jit_code_t;
 
+typedef void* (*jit_alloc_func_ptr)	(size_t);
+typedef void* (*jit_realloc_func_ptr)	(void*, size_t);
+typedef void  (*jit_free_func_ptr)	(void*);
+
 /*
  * Prototypes
  */
@@ -881,5 +885,12 @@ extern jit_node_t *_jit_new_node_pwd(jit_state_t*, jit_code_t,
 
 #define jit_disassemble()		_jit_disassemble(_jit)
 extern void _jit_disassemble(jit_state_t*);
+
+extern void jit_set_memory_functions(jit_alloc_func_ptr,
+				     jit_realloc_func_ptr,
+				     jit_free_func_ptr);
+extern void jit_get_memory_functions(jit_alloc_func_ptr*,
+				     jit_realloc_func_ptr*,
+				     jit_free_func_ptr*);
 
 #endif /* _lightning_h */

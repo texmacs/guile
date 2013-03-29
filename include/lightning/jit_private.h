@@ -481,6 +481,10 @@ extern jit_bool_t _jit_get_note(jit_state_t*,jit_uint8_t*,char**,char**,int*);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 
+extern void jit_alloc(jit_pointer_t*, jit_word_t);
+extern void jit_realloc(jit_pointer_t*, jit_word_t, jit_word_t);
+void jit_free(jit_pointer_t*);
+
 /*
  * Externs
  */

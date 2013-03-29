@@ -59,8 +59,6 @@ static void _bmp_clear(jit_state_t*);
     memset(_jitc->blockmask.ptr, 0,					\
 	   _jitc->blockmask.length * sizeof(jit_word_t))
 
-static void _bmp_zero(jit_state_t*);
-
 #define bmp_set(bit)			_bmp_set(_jit, bit)
 static void _bmp_set(jit_state_t*, jit_word_t);
 
@@ -361,16 +359,15 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	size = (_jit->data.length + length + 4096) & - 4095;
 	assert(size >= _jit->data.length);
 	if (_jit->data.ptr == NULL)
-	    _jit->data.ptr = calloc(1, size);
-	else {
-	    _jit->data.ptr = realloc(_jit->data.ptr, size);
-	    memset(_jit->data.ptr + _jit->data.length, 0,
-		   size - _jit->data.length);
-	}
+	    jit_alloc((jit_pointer_t *)&_jit->data.ptr, size);
+	else
+	    jit_realloc((jit_pointer_t *)&_jit->data.ptr,
+			_jit->data.length, size);
 	_jit->data.length = size;
     }
     if (_jitc->data.table == NULL)
-	_jitc->data.table = calloc(_jitc->data.size = 16, sizeof(jit_node_t*));
+	jit_alloc((jit_pointer_t *)&_jitc->data.table,
+		  (_jitc->data.size = 16) * sizeof(jit_node_t*));
 
     key = hash_data(data, length) & (_jitc->data.size - 1);
     node = _jitc->data.table[key];
@@ -415,7 +412,8 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	    jit_node_t	 *next;
 	    jit_node_t	 *temp;
 
-	    hash = calloc(_jitc->data.size << 1, sizeof(jit_node_t*));
+	    jit_alloc((jit_pointer_t *)&hash,
+		      (_jitc->data.size << 1) * sizeof(jit_node_t*));
 	    for (i = 0; i < _jitc->data.size; i++) {
 		temp = _jitc->data.table[i];
 		for (; temp; temp = next) {
@@ -426,7 +424,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 		    hash[key] = temp;
 		}
 	    }
-	    free(_jitc->data.table);
+	    jit_free((jit_pointer_t *)&_jitc->data.table);
 	    _jitc->data.table = hash;
 	    _jitc->data.size <<= 1;
 	}
@@ -442,16 +440,16 @@ _new_pool(jit_state_t *_jit)
     jit_int32_t		 offset;
 
     if (_jitc->pool.offset >= _jitc->pool.length) {
-	jit_node_t	**ptr;
-	jit_int32_t	  length;
+	jit_int32_t	 length;
 
 	length = _jitc->pool.length + 16;
-	ptr = realloc(_jitc->pool.ptr, length * sizeof(jit_node_t));
-	memset(ptr + _jitc->pool.length, 0, 16 * sizeof(jit_node_t));
-	_jitc->pool.ptr = ptr;
+	jit_realloc((jit_pointer_t *)&_jitc->pool.ptr,
+		    _jitc->pool.length * sizeof(jit_node_t *),
+		    length * sizeof(jit_node_t *));
 	_jitc->pool.length = length;
     }
-   _jitc->pool.ptr[_jitc->pool.offset] = calloc(sizeof(jit_node_t), 1024);
+    jit_alloc((jit_pointer_t *)(_jitc->pool.ptr + _jitc->pool.offset),
+	      sizeof(jit_node_t) * 1024);
     list = _jitc->pool.ptr[_jitc->pool.offset];
     for (offset = 1; offset < 1024; offset++, list++)
 	list->next = list + 1;
@@ -523,15 +521,15 @@ static void
 _bmp_init(jit_state_t *_jit)
 {
     _jitc->blockmask.length = 16;
-    _jitc->blockmask.ptr = calloc(sizeof(jit_word_t), _jitc->blockmask.length);
+    jit_alloc((jit_pointer_t *)&_jitc->blockmask.ptr,
+	      sizeof(jit_word_t) * _jitc->blockmask.length);
 }
 
 static void
 _bmp_clear(jit_state_t *_jit)
 {
     _jitc->blockmask.length = 0;
-    free(_jitc->blockmask.ptr);
-    _jitc->blockmask.ptr = NULL;
+    jit_free((jit_pointer_t *)&_jitc->blockmask.ptr);
 }
 
 static void
@@ -543,10 +541,9 @@ _bmp_set(jit_state_t *_jit, jit_word_t bit)
     boff = 1LL << (bit & (__WORDSIZE - 1));
     if (woff >= _jitc->blockmask.length) {
 	jit_word_t	length = (woff + 16) & -16;
-	_jitc->blockmask.ptr = realloc(_jitc->blockmask.ptr,
-				       length * sizeof(jit_word_t));
-	memset(_jitc->blockmask.ptr + _jitc->blockmask.length,
-	       0, (length - _jitc->blockmask.length) * sizeof(jit_word_t));
+	jit_realloc((jit_pointer_t *)&_jitc->blockmask.ptr,
+		    _jitc->blockmask.length * sizeof(jit_word_t),
+		    length * sizeof(jit_word_t));
 	_jitc->blockmask.length = length;
     }
     _jitc->blockmask.ptr[woff] |= boff;
@@ -580,8 +577,8 @@ jit_new_state(void)
 {
     jit_state_t		*_jit;
 
-    _jit = calloc(1, sizeof(jit_state_t));
-    _jitc = calloc(1, sizeof(jit_compiler_t));
+    jit_alloc((jit_pointer_t *)&_jit, sizeof(jit_state_t));
+    jit_alloc((jit_pointer_t *)&_jitc, sizeof(jit_compiler_t));
     jit_regset_new(_jitc->regarg);
     jit_regset_new(_jitc->regsav);
     jit_regset_new(_jitc->reglive);
@@ -590,21 +587,24 @@ jit_new_state(void)
 
     jit_init();
 
-    _jitc->spill = calloc(_jitc->reglen, sizeof(jit_node_t*));
-    _jitc->gen = calloc(_jitc->reglen, sizeof(jit_int32_t));
-    _jitc->values = calloc(_jitc->reglen, sizeof(jit_value_t));
+    jit_alloc((jit_pointer_t *)&_jitc->spill,
+	      _jitc->reglen * sizeof(jit_node_t*));
+    jit_alloc((jit_pointer_t *)&_jitc->gen,
+	      _jitc->reglen * sizeof(jit_int32_t));
+    jit_alloc((jit_pointer_t *)&_jitc->values,
+	      _jitc->reglen * sizeof(jit_value_t));
 
-    _jitc->patches.ptr = calloc(_jitc->patches.length = 1024,
-				sizeof(jit_patch_t));
-    _jitc->functions.ptr = calloc(_jitc->functions.length = 16,
-				  sizeof(jit_function_t));
-    _jitc->pool.ptr = calloc(_jitc->pool.length = 16,
-			     sizeof(jit_node_t*));
-    _jitc->blocks.ptr = calloc(_jitc->blocks.length = 16,
-			       sizeof(jit_block_t));
+    jit_alloc((jit_pointer_t *)&_jitc->patches.ptr,
+	      (_jitc->patches.length = 1024) * sizeof(jit_patch_t));
+    jit_alloc((jit_pointer_t *)&_jitc->functions.ptr,
+	      (_jitc->functions.length = 16) * sizeof(jit_function_t));
+    jit_alloc((jit_pointer_t *)&_jitc->pool.ptr,
+	      (_jitc->pool.length = 16) * sizeof(jit_node_t*));
+    jit_alloc((jit_pointer_t *)&_jitc->blocks.ptr,
+	      (_jitc->blocks.length = 16) * sizeof(jit_block_t));
 #if __arm__ && DISASSEMBLER
-    _jitc->data_info.ptr = calloc(_jitc->data_info.length = 1024,
-				  sizeof(jit_data_info_t));
+    jit_alloc((jit_pointer_t *)&_jitc->data_info.ptr,
+	      (_jitc->data_info.length = 1024) * sizeof(jit_data_info_t));
 #endif
 
     /* allocate at most one extra note in case jit_name() is
@@ -627,37 +627,29 @@ _jit_clear_state(jit_state_t *_jit)
 
     bmp_clear();
 
-    free(_jitc->data.table);
-    _jitc->data.table = NULL;
+    jit_free((jit_pointer_t *)&_jitc->data.table);
     _jitc->data.size = _jitc->data.count = 0;
 
-    free(_jitc->spill);
-    _jitc->spill = NULL;
-    free(_jitc->gen);
-    _jitc->gen = NULL;
-    free(_jitc->values);
-    _jitc->values = NULL;
+    jit_free((jit_pointer_t *)&_jitc->spill);
+    jit_free((jit_pointer_t *)&_jitc->gen);
+    jit_free((jit_pointer_t *)&_jitc->values);
 
-    free(_jitc->blocks.ptr);
-    _jitc->blocks.ptr = NULL;
+    jit_free((jit_pointer_t *)&_jitc->blocks.ptr);
 
-    free(_jitc->patches.ptr);
-    _jitc->patches.ptr = NULL;
+    jit_free((jit_pointer_t *)&_jitc->patches.ptr);
     _jitc->patches.offset = _jitc->patches.length = 0;
 
     for (offset = 0; offset < _jitc->functions.offset; offset++) {
 	function = _jitc->functions.ptr + offset;
-	free(function->regoff);
-	function->regoff = NULL;
+	jit_free((jit_pointer_t *)&function->regoff);
     }
-    free(_jitc->functions.ptr);
+    jit_free((jit_pointer_t *)&_jitc->functions.ptr);
     _jitc->functions.offset = _jitc->functions.length = 0;
     _jitc->function = NULL;
 
-    for (offset = 0; offset < _jitc->pool.length; offset++)
-	free(_jitc->pool.ptr[offset]);
-    free(_jitc->pool.ptr);
-    _jitc->pool.ptr = NULL;
+    for (offset = 0; offset < _jitc->pool.offset; offset++)
+	jit_free((jit_pointer_t *)(_jitc->pool.ptr + offset));
+    jit_free((jit_pointer_t *)&_jitc->pool.ptr);
     _jitc->pool.offset = _jitc->pool.length = 0;
     _jitc->list = NULL;
 
@@ -666,16 +658,14 @@ _jit_clear_state(jit_state_t *_jit)
     _jitc->note.base = NULL;
 
 #if __arm__ && DISASSEMBLER
-    free(_jitc->data_info.ptr);
-    _jitc->data_info.ptr = NULL;
+    jit_free((jit_pointer_t *)&_jitc->data_info.ptr);
 #endif
 
 #if __powerpc64__
-    free(_jitc->prolog.ptr);
-    _jitc->prolog.ptr = NULL;
+    jit_free((jit_pointer_t *)&_jitc->prolog.ptr);
 #endif
 
-    free(_jitc);
+    jit_free((jit_pointer_t *)&_jitc);
 }
 
 void
@@ -683,7 +673,7 @@ _jit_destroy_state(jit_state_t *_jit)
 {
     munmap(_jit->code.ptr, _jit->code.length);
     munmap(_jit->data.ptr, _jit->data.length);
-    free(_jit);
+    jit_free((jit_pointer_t *)&_jit);
 }
 
 jit_node_t *
@@ -893,9 +883,9 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
 	jit_word_t	  length;
 
 	length = _jitc->blocks.length + 16;
-	block = realloc(_jitc->blocks.ptr, length * sizeof(jit_block_t));
-	memset(block + _jitc->blocks.length, 0, 16 * sizeof(jit_block_t));
-	_jitc->blocks.ptr = block;
+	jit_realloc((jit_pointer_t *)&_jitc->blocks.ptr,
+		    _jitc->blocks.length * sizeof(jit_block_t),
+		    length * sizeof(jit_block_t));
 	_jitc->blocks.length = length;
     }
     block = _jitc->blocks.ptr + _jitc->blocks.offset;
@@ -1316,7 +1306,7 @@ _jit_optimize(jit_state_t *_jit)
 	       MAP_PRIVATE | MAP_ANON, -1, 0);
     assert(ptr != MAP_FAILED);
     memcpy(ptr, _jit->data.ptr, _jitc->data.offset);
-    free(_jit->data.ptr);
+    jit_free((jit_pointer_t *)&_jit->data.ptr);
     _jit->data.ptr = ptr;
 
     /* to be filled with note contents once offsets are known */

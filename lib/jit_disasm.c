@@ -111,7 +111,8 @@ jit_init_debug(void)
 	    else
 		dyn_storage = 0;
 
-	    disasm_symbols = malloc(sym_storage + dyn_storage);
+	    jit_alloc((jit_pointer_t *)&disasm_symbols,
+		      (sym_storage + dyn_storage) * sizeof(asymbol *));
 	    sym_count = bfd_canonicalize_symtab(disasm_bfd, disasm_symbols);
 	    assert(sym_count >= 0);
 	    if (dyn_storage) {
@@ -132,10 +133,10 @@ jit_init_debug(void)
 							    sym_count,
 							    &disasm_synthetic);
 	    if (disasm_num_synthetic > 0) {
-		disasm_symbols = realloc(disasm_symbols,
-					 sym_storage + dyn_storage +
-					 disasm_num_synthetic *
-					 sizeof(asymbol *));
+		jit_realloc((jit_pointer_t *)&disasm_symbols,
+			    (sym_storage + dyn_storage) * sizeof(asymbol *),
+			    (sym_storage + dyn_storage + disasm_num_synthetic) *
+			    sizeof(asymbol *));
 		for (offset = 0; offset < disasm_num_synthetic; offset++)
 		    disasm_symbols[disasm_num_symbols++] =
 			disasm_synthetic + offset;
@@ -165,9 +166,9 @@ jit_finish_debug(void)
 {
 #if DISASSEMBLER
     if (disasm_synthetic)
-	free(disasm_synthetic);
+	jit_free((jit_pointer_t *)&disasm_synthetic);
     if (disasm_symbols)
-	free(disasm_symbols);
+	jit_free((jit_pointer_t *)&disasm_symbols);
 #endif
 }
 

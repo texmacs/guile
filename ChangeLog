@@ -1,3 +1,19 @@
+2013-03-29 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_memory.c: Implement a simple memory allocation wrapper
+	to allow overriding calls to malloc/calloc/realloc/free, as well
+	as ensuring all memory containing pointers is zero or points to
+	allocated memory.
+
+	* include/lightning.h, include/lightning/jit_private.h: Definitions
+	for the memory allocation wrapper.
+
+	* lib/Makefile.am: Update for new jit_memory.c file.
+
+	* lib/jit_arm.c, lib/jit_disasm.c, lib/jit_mips.c, lib/jit_note.c,
+	lib/jit_ppc.c, lib/jit_sparc.c, lib/jit_x86.c, lib/lightning.c:
+	Use the new memory allocation wrapper code.
+
 2013-03-22 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac, include/lightning/jit_private.h, lib/lightning.c:

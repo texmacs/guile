@@ -109,11 +109,9 @@ _jit_prolog(jit_state_t *_jit)
     jit_regset_set_ui(_jitc->regsav, 0);
     offset = _jitc->functions.offset;
     if (offset >= _jitc->functions.length) {
-	_jitc->functions.ptr = realloc(_jitc->functions.ptr,
-				      (_jitc->functions.length + 16) *
-				      sizeof(jit_function_t));
-	memset(_jitc->functions.ptr + _jitc->functions.length, 0,
-	       16 * sizeof(jit_function_t));
+	jit_realloc((jit_pointer_t *)&_jitc->functions.ptr,
+		    _jitc->functions.length * sizeof(jit_function_t),
+		    (_jitc->functions.length + 16) * sizeof(jit_function_t));
 	_jitc->functions.length += 16;
     }
     _jitc->function = _jitc->functions.ptr + _jitc->functions.offset++;
@@ -123,7 +121,8 @@ _jit_prolog(jit_state_t *_jit)
     /* float conversion */
     _jitc->function->self.aoff = -8;
      _jitc->function->self.call = jit_call_default;
-    _jitc->function->regoff = calloc(_jitc->reglen, sizeof(jit_int32_t));
+    jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
+	      _jitc->reglen * sizeof(jit_int32_t));
 
     _jitc->function->prolog = jit_new_node_no_link(jit_code_prolog);
     jit_link(_jitc->function->prolog);
@@ -1163,9 +1162,9 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 	flag = node->u.n->flag;
     assert(!(flag & jit_flag_patch));
     if (_jitc->patches.offset >= _jitc->patches.length) {
-	_jitc->patches.ptr = realloc(_jitc->patches.ptr,
-				    (_jitc->patches.length + 1024) *
-				    sizeof(jit_patch_t));
+	jit_realloc((jit_pointer_t *)&_jitc->patches.ptr,
+		    _jitc->patches.length * sizeof(jit_patch_t),
+		    (_jitc->patches.length + 1024) * sizeof(jit_patch_t));
 	memset(_jitc->patches.ptr + _jitc->patches.length, 0,
 	       1024 * sizeof(jit_patch_t));
 	_jitc->patches.length += 1024;
