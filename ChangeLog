@@ -1,3 +1,9 @@
+2013-04-08 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm.c, lib/jit_ppc.c: Do not rely on __clear_cache
+	aligning to the next page boundary the end argument. It may
+	actually truncate it.
+
 2013-03-29 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, lib/jit_arm.c, lib/jit_memory.c,

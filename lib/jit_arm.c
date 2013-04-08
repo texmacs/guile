@@ -1563,7 +1563,8 @@ _emit_code(jit_state_t *_jit)
 	patch_at(_jitc->patches.ptr[offset].kind & ~arm_patch_node, word, value);
     }
 
-    __clear_cache(_jit->code.ptr, _jit->pc.uc);
+    word = sysconf(_SC_PAGE_SIZE);
+    __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
 
     return (_jit->code.ptr);
 }
