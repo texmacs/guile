@@ -1626,21 +1626,21 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 
     /* (most) other backends do not save incoming arguments, so,
      * only save locals here */
-    if (jit_regset_tstbit(_jitc->function->regset, _L0))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L0))
 	stxi(0, _SP_REGNO, _L0_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L1))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L1))
 	stxi(4, _SP_REGNO, _L1_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L2))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L2))
 	stxi(8, _SP_REGNO, _L2_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L3))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L3))
 	stxi(12, _SP_REGNO, _L3_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L4))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L4))
 	stxi(16, _SP_REGNO, _L4_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L5))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L5))
 	stxi(20, _SP_REGNO, _L5_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L6))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L6))
 	stxi(24, _SP_REGNO, _L6_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _L7))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L7))
 	stxi(28, _SP_REGNO, _L7_REGNO);
 }
 
@@ -1649,21 +1649,21 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 {
     /* (most) other backends do not save incoming arguments, so,
      * only save locals here */
-    if (jit_regset_tstbit(_jitc->function->regset, _L0))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L0))
 	ldxi(_L0_REGNO, _SP_REGNO, 0);
-    if (jit_regset_tstbit(_jitc->function->regset, _L1))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L1))
 	ldxi(_L1_REGNO, _SP_REGNO, 4);
-    if (jit_regset_tstbit(_jitc->function->regset, _L2))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L2))
 	ldxi(_L2_REGNO, _SP_REGNO, 8);
-    if (jit_regset_tstbit(_jitc->function->regset, _L3))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L3))
 	ldxi(_L3_REGNO, _SP_REGNO, 12);
-    if (jit_regset_tstbit(_jitc->function->regset, _L4))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L4))
 	ldxi(_L4_REGNO, _SP_REGNO, 16);
-    if (jit_regset_tstbit(_jitc->function->regset, _L5))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L5))
 	ldxi(_L5_REGNO, _SP_REGNO, 20);
-    if (jit_regset_tstbit(_jitc->function->regset, _L6))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L6))
 	ldxi(_L6_REGNO, _SP_REGNO, 24);
-    if (jit_regset_tstbit(_jitc->function->regset, _L7))
+    if (jit_regset_tstbit(&_jitc->function->regset, _L7))
 	ldxi(_L7_REGNO, _SP_REGNO, 28);
     RESTOREI(0, 0, 0);
     RETL();

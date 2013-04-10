@@ -239,7 +239,7 @@ _jit_print(jit_state_t *_jit)
 	    print_chr(':');
 	    block = _jitc->blocks.ptr + node->v.w;
 	    for (offset = 0; offset < _jitc->reglen; offset++) {
-		if (jit_regset_tstbit(block->reglive, offset)) {
+		if (jit_regset_tstbit(&block->reglive, offset)) {
 		    print_chr(' ');
 		    print_reg(offset);
 		}

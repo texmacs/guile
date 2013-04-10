@@ -294,8 +294,8 @@ _jit_prolog(jit_state_t *_jit)
 
     if (_jitc->function)
 	jit_epilog();
-    assert(jit_regset_cmp_ui(_jitc->regarg, 0) == 0);
-    jit_regset_set_ui(_jitc->regsav, 0);
+    assert(jit_regset_cmp_ui(&_jitc->regarg, 0) == 0);
+    jit_regset_set_ui(&_jitc->regsav, 0);
     offset = _jitc->functions.offset;
     if (offset >= _jitc->functions.length) {
 	jit_realloc((jit_pointer_t *)&_jitc->functions.ptr,
@@ -323,7 +323,7 @@ _jit_prolog(jit_state_t *_jit)
      */
     _jitc->function->epilog->w.w = offset;
 
-    jit_regset_new(_jitc->function->regset);
+    jit_regset_new(&_jitc->function->regset);
 }
 
 jit_int32_t
@@ -784,13 +784,13 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
      * registers, and not save/restore it, what would be wrong if using the
      * the return value, otherwise, just a needless noop */
     /* >> prevent %rax from being allocated as the function pointer */
-    jit_regset_setbit(_jitc->regarg, _RAX);
+    jit_regset_setbit(&_jitc->regarg, _RAX);
     reg = jit_get_reg(jit_class_gpr);
     node = jit_movi(reg, (jit_word_t)i0);
     jit_finishr(reg);
     jit_unget_reg(reg);
     /* << prevent %rax from being allocated as the function pointer */
-    jit_regset_clrbit(_jitc->regarg, _RAX);
+    jit_regset_clrbit(&_jitc->regarg, _RAX);
 #else
     node = jit_calli(i0);
     node->v.w = _jitc->function->call.argi;

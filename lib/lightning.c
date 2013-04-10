@@ -182,19 +182,19 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
     spec = regspec & ~(jit_class_chk|jit_class_nospill);
     if (spec & jit_class_named) {
 	regno = jit_regno(spec);
-	if (jit_regset_tstbit(_jitc->regsav, regno))
+	if (jit_regset_tstbit(&_jitc->regsav, regno))
 	    /* fail if register is spilled */
 	    goto fail;
-	if (jit_regset_tstbit(_jitc->regarg, regno))
+	if (jit_regset_tstbit(&_jitc->regarg, regno))
 	    /* fail if register is an argument to current instruction */
 	    goto fail;
-	if (jit_regset_tstbit(_jitc->reglive, regno)) {
+	if (jit_regset_tstbit(&_jitc->reglive, regno)) {
 	    if (regspec & jit_class_nospill)
 		/* fail if register is live and should not spill/reload */
 		goto fail;
 	    goto spill;
 	}
-	jit_regset_setbit(_jitc->regarg, regno);
+	jit_regset_setbit(&_jitc->regarg, regno);
 	return (regno);
     }
     else
@@ -204,8 +204,8 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 	/* search for a free register matching spec */
 	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jitc->regarg, regno) &&
-		!jit_regset_tstbit(_jitc->reglive, regno))
+		!jit_regset_tstbit(&_jitc->regarg, regno) &&
+		!jit_regset_tstbit(&_jitc->reglive, regno))
 		goto regarg;
 	}
 
@@ -213,8 +213,8 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 	 * for the current instruction */
 	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jitc->regsav, regno) &&
-		!jit_regset_tstbit(_jitc->regarg, regno) &&
+		!jit_regset_tstbit(&_jitc->regsav, regno) &&
+		!jit_regset_tstbit(&_jitc->regarg, regno) &&
 		!(regspec & jit_class_nospill)) {
 	    spill:
 		assert(_jitc->function);
@@ -234,15 +234,15 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 		    }
 		    emit_stxi_d(_jitc->function->regoff[regno], JIT_FP, regno);
 		}
-		jit_regset_setbit(_jitc->regsav, regno);
+		jit_regset_setbit(&_jitc->regsav, regno);
 	    regarg:
-		jit_regset_setbit(_jitc->regarg, regno);
+		jit_regset_setbit(&_jitc->regarg, regno);
 		if (jit_class(_rvs[regno].spec) & jit_class_sav) {
 		    /* if will modify callee save registers without a
 		     * function prolog, better patch this assertion */
 		    assert(_jitc->function);
-		    if (!jit_regset_tstbit(_jitc->function->regset, regno)) {
-			jit_regset_setbit(_jitc->function->regset, regno);
+		    if (!jit_regset_tstbit(&_jitc->function->regset, regno)) {
+			jit_regset_setbit(&_jitc->function->regset, regno);
 			_jitc->again = 1;
 		    }
 		}
@@ -255,10 +255,10 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 	assert(!(regspec & jit_class_nospill));
 	for (regno = 0; regno < _jitc->reglen; regno++) {
 	    if ((jit_class(_rvs[regno].spec) & spec) == spec &&
-		!jit_regset_tstbit(_jitc->regsav, regno) &&
-		!jit_regset_tstbit(_jitc->regarg, regno)) {
-		jit_regset_setbit(_jitc->regarg, regno);
-		jit_regset_setbit(_jitc->regsav, regno);
+		!jit_regset_tstbit(&_jitc->regsav, regno) &&
+		!jit_regset_tstbit(&_jitc->regarg, regno)) {
+		jit_regset_setbit(&_jitc->regarg, regno);
+		jit_regset_setbit(&_jitc->regsav, regno);
 		jit_save(regno);
 		return (jit_regno_patch|regno);
 	    }
@@ -275,7 +275,7 @@ void
 _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 {
     regno = jit_regno(regno);
-    if (jit_regset_tstbit(_jitc->regsav, regno)) {
+    if (jit_regset_tstbit(&_jitc->regsav, regno)) {
 	if (_jitc->emit) {
 	    if (jit_class(_rvs[regno].spec) & jit_class_gpr)
 		emit_ldxi(regno, JIT_FP, _jitc->function->regoff[regno]);
@@ -284,18 +284,18 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 	}
 	else
 	    jit_load(regno);
-	jit_regset_clrbit(_jitc->regsav, regno);
+	jit_regset_clrbit(&_jitc->regsav, regno);
     }
-    assert(jit_regset_tstbit(_jitc->regarg, regno));
-    jit_regset_clrbit(_jitc->regarg, regno);
+    assert(jit_regset_tstbit(&_jitc->regarg, regno));
+    jit_regset_clrbit(&_jitc->regarg, regno);
 }
 
 unsigned long
-jit_regset_scan1(jit_regset_t set, jit_int32_t offset)
+jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 {
     assert(offset >= 0 && offset <= 63);
     for (; offset < 64; offset++) {
-	if (set & (1LL << offset))
+	if (*set & (1LL << offset))
 	    return (offset);
     }
     return (ULONG_MAX);
@@ -508,8 +508,8 @@ _del_label(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 
     /* del_label() should only be called when optimizing.
      * This will leave an empty block index */
-    jit_regset_del(block->reglive);
-    jit_regset_del(block->regmask);
+    jit_regset_del(&block->reglive);
+    jit_regset_del(&block->regmask);
     block->label = NULL;
 
     /* redundant, should be already true */
@@ -579,10 +579,10 @@ jit_new_state(void)
 
     jit_alloc((jit_pointer_t *)&_jit, sizeof(jit_state_t));
     jit_alloc((jit_pointer_t *)&_jitc, sizeof(jit_compiler_t));
-    jit_regset_new(_jitc->regarg);
-    jit_regset_new(_jitc->regsav);
-    jit_regset_new(_jitc->reglive);
-    jit_regset_new(_jitc->regmask);
+    jit_regset_new(&_jitc->regarg);
+    jit_regset_new(&_jitc->regsav);
+    jit_regset_new(&_jitc->reglive);
+    jit_regset_new(&_jitc->regmask);
     bmp_init();
 
     jit_init();
@@ -891,8 +891,8 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
     block = _jitc->blocks.ptr + _jitc->blocks.offset;
     block->label = node;
     node->v.w = _jitc->blocks.offset;
-    jit_regset_new(block->reglive);
-    jit_regset_new(block->regmask);
+    jit_regset_new(&block->reglive);
+    jit_regset_new(&block->regmask);
     ++_jitc->blocks.offset;
 }
 
@@ -1216,7 +1216,7 @@ _jit_optimize(jit_state_t *_jit)
 	if (!block->label)
 	    continue;
 	if (block->label->code != jit_code_epilog) {
-	    jit_regset_set(_jitc->regmask, block->regmask);
+	    jit_regset_set(&_jitc->regmask, &block->regmask);
 	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
 	}
     }
@@ -1283,11 +1283,11 @@ _jit_optimize(jit_state_t *_jit)
 		if (_jitc->function) {
 		    if ((mask & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
 			(jit_cc_a0_reg|jit_cc_a0_chg))
-			jit_regset_setbit(_jitc->function->regset,
+			jit_regset_setbit(&_jitc->function->regset,
 					  jit_regno(node->u.w));
 		    if ((mask & (jit_cc_a1_reg|jit_cc_a1_chg)) ==
 			(jit_cc_a1_reg|jit_cc_a1_chg))
-			jit_regset_setbit(_jitc->function->regset,
+			jit_regset_setbit(&_jitc->function->regset,
 					  jit_regno(node->v.w));
 		}
 		break;
@@ -1331,34 +1331,34 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
     switch (node->code) {
 	case jit_code_label:	case jit_code_prolog:	case jit_code_epilog:
 	    block = _jitc->blocks.ptr + node->v.w;
-	    jit_regset_set(_jitc->reglive, block->reglive);
+	    jit_regset_set(&_jitc->reglive, &block->reglive);
 	    break;
 	case jit_code_callr:
 	    value = jit_regno(node->u.w);
 	    if (!(node->u.w & jit_regno_patch)) {
-		jit_regset_setbit(_jitc->reglive, value);
+		jit_regset_setbit(&_jitc->reglive, value);
 	    }
 	case jit_code_calli:
 	    for (value = 0; value < _jitc->reglen; value++) {
 		spec = jit_class(_rvs[value].spec);
 		if ((spec & jit_class_arg) && jit_regarg_p(node, value))
-		    jit_regset_setbit(_jitc->reglive, value);
+		    jit_regset_setbit(&_jitc->reglive, value);
 		else if (!(spec & jit_class_sav))
-		    jit_regset_clrbit(_jitc->reglive, value);
+		    jit_regset_clrbit(&_jitc->reglive, value);
 	    }
 #if defined(JIT_RET)
 	    /* Explicitly set return registers as live, because retval
 	     * should be free to not create a note, and/or user not
 	     * call jit_retval (but not a good idea to expect JIT_R0
 	     * to match JIT_RET) */
-	    jit_regset_setbit(_jitc->reglive, JIT_RET);
+	    jit_regset_setbit(&_jitc->reglive, JIT_RET);
 #  if __arm__
 	    /* FIXME need a better logic (and r2-r3 may contain results) */
-	    jit_regset_setbit(_jitc->reglive, _R1);
+	    jit_regset_setbit(&_jitc->reglive, _R1);
 #  endif
 #endif
 #if defined(JIT_FRET)
-	    jit_regset_setbit(_jitc->reglive, JIT_FRET);
+	    jit_regset_setbit(&_jitc->reglive, JIT_FRET);
 #endif
 	    break;
 	default:
@@ -1367,49 +1367,50 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 		if (value & jit_cc_a0_rlh) {
 		    if (!(node->u.q.l & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jitc->reglive, node->u.q.l);
-			    jit_regset_setbit(_jitc->regmask, node->u.q.l);
+			    jit_regset_clrbit(&_jitc->reglive, node->u.q.l);
+			    jit_regset_setbit(&_jitc->regmask, node->u.q.l);
 			}
 			else
-			    jit_regset_setbit(_jitc->reglive, node->u.q.l);
+			    jit_regset_setbit(&_jitc->reglive, node->u.q.l);
 		    }
 		    if (!(node->u.q.h & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jitc->reglive, node->u.q.h);
-			    jit_regset_setbit(_jitc->regmask, node->u.q.h);
+			    jit_regset_clrbit(&_jitc->reglive, node->u.q.h);
+			    jit_regset_setbit(&_jitc->regmask, node->u.q.h);
 			}
 			else
-			    jit_regset_setbit(_jitc->reglive, node->u.q.h);
+			    jit_regset_setbit(&_jitc->reglive, node->u.q.h);
 		    }
 		}
 		else {
 		    if (!(node->u.w & jit_regno_patch)) {
 			if (value & jit_cc_a0_chg) {
-			    jit_regset_clrbit(_jitc->reglive, node->u.w);
-			    jit_regset_setbit(_jitc->regmask, node->u.w);
+			    jit_regset_clrbit(&_jitc->reglive, node->u.w);
+			    jit_regset_setbit(&_jitc->regmask, node->u.w);
 			}
 			else
-			    jit_regset_setbit(_jitc->reglive, node->u.w);
+			    jit_regset_setbit(&_jitc->reglive, node->u.w);
 		    }
 		}
 	    }
 	    if ((value & jit_cc_a1_reg) && !(node->v.w & jit_regno_patch)) {
 		if (value & jit_cc_a1_chg) {
-		    jit_regset_clrbit(_jitc->reglive, node->v.w);
-		    jit_regset_setbit(_jitc->regmask, node->v.w);
+		    jit_regset_clrbit(&_jitc->reglive, node->v.w);
+		    jit_regset_setbit(&_jitc->regmask, node->v.w);
 		}
 		else
-		    jit_regset_setbit(_jitc->reglive, node->v.w);
+		    jit_regset_setbit(&_jitc->reglive, node->v.w);
 	    }
 	    if ((value & jit_cc_a2_reg) && !(node->w.w & jit_regno_patch))
-		jit_regset_setbit(_jitc->reglive, node->w.w);
-	    if (jit_regset_set_p(_jitc->regmask)) {
+		jit_regset_setbit(&_jitc->reglive, node->w.w);
+	    if (jit_regset_set_p(&_jitc->regmask)) {
 		bmp_zero();
 		jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
-		if (jit_regset_set_p(_jitc->regmask)) {
+		if (jit_regset_set_p(&_jitc->regmask)) {
 		    /* any unresolved live state is considered as live */
-		    jit_regset_ior(_jitc->reglive, _jitc->reglive, _jitc->regmask);
-		    jit_regset_set_ui(_jitc->regmask, 0);
+		    jit_regset_ior(&_jitc->reglive,
+				   &_jitc->reglive, &_jitc->regmask);
+		    jit_regset_set_ui(&_jitc->regmask, 0);
 		}
 	    }
 	    break;
@@ -1421,16 +1422,16 @@ _jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
     if (value & jit_cc_a0_reg) {
 	if (value & jit_cc_a0_rlh) {
-	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.q.l));
-	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.q.h));
+	    jit_regset_setbit(&_jitc->regarg, jit_regno(node->u.q.l));
+	    jit_regset_setbit(&_jitc->regarg, jit_regno(node->u.q.h));
 	}
 	else
-	    jit_regset_setbit(_jitc->regarg, jit_regno(node->u.w));
+	    jit_regset_setbit(&_jitc->regarg, jit_regno(node->u.w));
     }
     if (value & jit_cc_a1_reg)
-	jit_regset_setbit(_jitc->regarg, jit_regno(node->v.w));
+	jit_regset_setbit(&_jitc->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
-	jit_regset_setbit(_jitc->regarg, jit_regno(node->w.w));
+	jit_regset_setbit(&_jitc->regarg, jit_regno(node->w.w));
 }
 
 void
@@ -1438,16 +1439,16 @@ _jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 {
     if (value & jit_cc_a0_reg) {
 	if (value & jit_cc_a0_rlh) {
-	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.q.l));
-	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.q.h));
+	    jit_regset_clrbit(&_jitc->regarg, jit_regno(node->u.q.l));
+	    jit_regset_clrbit(&_jitc->regarg, jit_regno(node->u.q.h));
 	}
 	else
-	    jit_regset_clrbit(_jitc->regarg, jit_regno(node->u.w));
+	    jit_regset_clrbit(&_jitc->regarg, jit_regno(node->u.w));
     }
     if (value & jit_cc_a1_reg)
-	jit_regset_clrbit(_jitc->regarg, jit_regno(node->v.w));
+	jit_regset_clrbit(&_jitc->regarg, jit_regno(node->v.w));
     if (value & jit_cc_a2_reg)
-	jit_regset_clrbit(_jitc->regarg, jit_regno(node->w.w));
+	jit_regset_clrbit(&_jitc->regarg, jit_regno(node->w.w));
 }
 
 jit_pointer_t
@@ -1536,7 +1537,7 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
     unsigned long	 value;
 
     jump = 0;
-    jit_regset_set_ui(regmask, (1LL << _jitc->reglen) - 1);
+    jit_regset_set_mask(&regmask, _jitc->reglen);
     for (node = block->label->next; node; node = node->next) {
 	switch (node->code) {
 	    case jit_code_label:	case jit_code_prolog:
@@ -1548,44 +1549,44 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
 		    live = !(value & jit_cc_a0_chg);
 		    if (value & jit_cc_a0_rlh) {
 			if (!(node->u.q.l & jit_regno_patch) &&
-			    jit_regset_tstbit(regmask, node->u.q.l)) {
+			    jit_regset_tstbit(&regmask, node->u.q.l)) {
 			    if (live || !jump)
-				jit_regset_clrbit(regmask, node->u.q.l);
+				jit_regset_clrbit(&regmask, node->u.q.l);
 			    if (live)
-				jit_regset_setbit(reglive, node->u.q.l);
+				jit_regset_setbit(&reglive, node->u.q.l);
 			}
 			if (!(node->u.q.h & jit_regno_patch) &&
-			    jit_regset_tstbit(regmask, node->u.q.h)) {
+			    jit_regset_tstbit(&regmask, node->u.q.h)) {
 			    if (live || !jump)
-				jit_regset_clrbit(regmask, node->u.q.h);
+				jit_regset_clrbit(&regmask, node->u.q.h);
 			    if (live)
-				jit_regset_setbit(reglive, node->u.q.h);
+				jit_regset_setbit(&reglive, node->u.q.h);
 			}
 		    }
 		    else {
 			if (!(node->u.w & jit_regno_patch) &&
-			    jit_regset_tstbit(regmask, node->u.w)) {
+			    jit_regset_tstbit(&regmask, node->u.w)) {
 			    if (live || !jump)
-				jit_regset_clrbit(regmask, node->u.w);
+				jit_regset_clrbit(&regmask, node->u.w);
 			    if (live)
-				jit_regset_setbit(reglive, node->u.w);
+				jit_regset_setbit(&reglive, node->u.w);
 			}
 		    }
 		}
 		if ((value & jit_cc_a1_reg) &&
 		    !(node->v.w & jit_regno_patch) &&
-		    jit_regset_tstbit(regmask, node->v.w)) {
+		    jit_regset_tstbit(&regmask, node->v.w)) {
 		    live = !(value & jit_cc_a1_chg);
 		    if (live || !jump)
-			jit_regset_clrbit(regmask, node->v.w);
+			jit_regset_clrbit(&regmask, node->v.w);
 		    if (live)
-			jit_regset_setbit(reglive, node->v.w);
+			jit_regset_setbit(&reglive, node->v.w);
 		}
 		if ((value & jit_cc_a2_reg) &&
 		    !(node->w.w & jit_regno_patch) &&
-		    jit_regset_tstbit(regmask, node->w.w)) {
-		    jit_regset_clrbit(regmask, node->w.w);
-		    jit_regset_setbit(reglive, node->w.w);
+		    jit_regset_tstbit(&regmask, node->w.w)) {
+		    jit_regset_clrbit(&regmask, node->w.w);
+		    jit_regset_setbit(&reglive, node->w.w);
 		}
 		if (value & jit_cc_a0_jmp)
 		    jump = 1;
@@ -1615,7 +1616,7 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 
     for (; node; node = node->next) {
     restart:
-	if (jit_regset_set_p(*mask) == 0)
+	if (jit_regset_set_p(mask) == 0)
 	    break;
 	switch (node->code) {
 	    case jit_code_label:
@@ -1623,96 +1624,96 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 		if (bmp_tst(node->v.w))
 		    return;
 		bmp_set(node->v.w);
-		jit_regset_and(ztmp, *mask, block->reglive);
-		if (jit_regset_set_p(ztmp)) {
-		    jit_regset_ior(*live, *live, ztmp);
-		    jit_regset_com(ztmp, ztmp);
-		    jit_regset_and(*mask, *mask, ztmp);
+		jit_regset_and(&ztmp, mask, &block->reglive);
+		if (jit_regset_set_p(&ztmp)) {
+		    jit_regset_ior(live, live, &ztmp);
+		    jit_regset_com(&ztmp, &ztmp);
+		    jit_regset_and(mask, mask, &ztmp);
 		}
 		break;
 	    case jit_code_prolog:	case jit_code_epilog:
-		jit_regset_set_ui(*mask, 0);
+		jit_regset_set_ui(mask, 0);
 		return;
 	    case jit_code_callr:
 		value = jit_regno(node->u.w);
 		if (!(node->u.w & jit_regno_patch)) {
-		    if (jit_regset_tstbit(*mask, value)) {
-			jit_regset_clrbit(*mask, value);
-			jit_regset_setbit(*live, value);
+		    if (jit_regset_tstbit(mask, value)) {
+			jit_regset_clrbit(mask, value);
+			jit_regset_setbit(live, value);
 		    }
 		}
 	    case jit_code_calli:
 #if defined(JIT_RET)
-		if (jit_regset_tstbit(*mask, JIT_RET)) {
-		    jit_regset_setbit(_jitc->reglive, JIT_RET);
-		    jit_regset_clrbit(*mask, JIT_RET);
+		if (jit_regset_tstbit(mask, JIT_RET)) {
+		    jit_regset_setbit(&_jitc->reglive, JIT_RET);
+		    jit_regset_clrbit(mask, JIT_RET);
 		}
 #  if __arm__
-		if (jit_regset_tstbit(*mask, _R1)) {
-		    jit_regset_setbit(_jitc->reglive, _R1);
-		    jit_regset_clrbit(*mask, _R1);
+		if (jit_regset_tstbit(mask, _R1)) {
+		    jit_regset_setbit(&_jitc->reglive, _R1);
+		    jit_regset_clrbit(mask, _R1);
 		}
 #  endif
 #endif
 #if defined(JIT_FRET)
-		if (jit_regset_tstbit(*mask, JIT_FRET)) {
-		    jit_regset_setbit(_jitc->reglive, JIT_FRET);
-		    jit_regset_clrbit(*mask, JIT_FRET);
+		if (jit_regset_tstbit(mask, JIT_FRET)) {
+		    jit_regset_setbit(&_jitc->reglive, JIT_FRET);
+		    jit_regset_clrbit(mask, JIT_FRET);
 		}
 #endif
 		for (value = 0; value < _jitc->reglen; ++value) {
-		    value = jit_regset_scan1(*mask, value);
+		    value = jit_regset_scan1(mask, value);
 		    if (value >= _jitc->reglen)
 			break;
 		    spec = jit_class(_rvs[value].spec);
 		    if (!(spec & jit_class_sav))
-			jit_regset_clrbit(*mask, value);
+			jit_regset_clrbit(mask, value);
 		    if ((spec & jit_class_arg) && jit_regarg_p(node, value))
-			jit_regset_setbit(*live, value);
+			jit_regset_setbit(live, value);
 		}
 		break;
 	    default:
 		value = jit_classify(node->code);
 		if (value & jit_cc_a2_reg) {
 		    if (!(node->w.w & jit_regno_patch)) {
-			if (jit_regset_tstbit(*mask, node->w.w)) {
-			    jit_regset_clrbit(*mask, node->w.w);
-			    jit_regset_setbit(*live, node->w.w);
+			if (jit_regset_tstbit(mask, node->w.w)) {
+			    jit_regset_clrbit(mask, node->w.w);
+			    jit_regset_setbit(live, node->w.w);
 			}
 		    }
 		}
 		if (value & jit_cc_a1_reg) {
 		    if (!(node->v.w & jit_regno_patch)) {
-			if (jit_regset_tstbit(*mask, node->v.w)) {
-			    jit_regset_clrbit(*mask, node->v.w);
+			if (jit_regset_tstbit(mask, node->v.w)) {
+			    jit_regset_clrbit(mask, node->v.w);
 			    if (!(value & jit_cc_a1_chg))
-				jit_regset_setbit(*live, node->v.w);
+				jit_regset_setbit(live, node->v.w);
 			}
 		    }
 		}
 		if (value & jit_cc_a0_reg) {
 		    if (value & jit_cc_a0_rlh) {
 			if (!(node->u.q.l & jit_regno_patch)) {
-			    if (jit_regset_tstbit(*mask, node->u.q.l)) {
-				jit_regset_clrbit(*mask, node->u.q.l);
+			    if (jit_regset_tstbit(mask, node->u.q.l)) {
+				jit_regset_clrbit(mask, node->u.q.l);
 				if (!(value & jit_cc_a0_chg))
-				    jit_regset_setbit(*live, node->u.q.l);
+				    jit_regset_setbit(live, node->u.q.l);
 			    }
 			}
 			if (!(node->u.q.h & jit_regno_patch)) {
-			    if (jit_regset_tstbit(*mask, node->u.q.h)) {
-				jit_regset_clrbit(*mask, node->u.q.h);
+			    if (jit_regset_tstbit(mask, node->u.q.h)) {
+				jit_regset_clrbit(mask, node->u.q.h);
 				if (!(value & jit_cc_a0_chg))
-				    jit_regset_setbit(*live, node->u.q.h);
+				    jit_regset_setbit(live, node->u.q.h);
 			    }
 			}
 		    }
 		    else {
 			if (!(node->u.w & jit_regno_patch)) {
-			    if (jit_regset_tstbit(*mask, node->u.w)) {
-				jit_regset_clrbit(*mask, node->u.w);
+			    if (jit_regset_tstbit(mask, node->u.w)) {
+				jit_regset_clrbit(mask, node->u.w);
 				if (!(value & jit_cc_a0_chg))
-				    jit_regset_setbit(*live, node->u.w);
+				    jit_regset_setbit(live, node->u.w);
 			    }
 			}
 		    }
@@ -1728,29 +1729,29 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			if (bmp_tst(label->v.w))
 			    continue;
 			bmp_set(label->v.w);
-			jit_regset_and(ztmp, *mask, block->reglive);
-			if (jit_regset_set_p(ztmp)) {
-			    jit_regset_ior(*live, *live, ztmp);
-			    jit_regset_com(ztmp, ztmp);
-			    jit_regset_and(*mask, *mask, ztmp);
+			jit_regset_and(&ztmp, mask, &block->reglive);
+			if (jit_regset_set_p(&ztmp)) {
+			    jit_regset_ior(live, live, &ztmp);
+			    jit_regset_com(&ztmp, &ztmp);
+			    jit_regset_and(mask, mask, &ztmp);
 			}
-			if (jit_regset_set_p(*mask) == 0)
+			if (jit_regset_set_p(mask) == 0)
 			    return;
 			/* restore mask if branch is conditional */
-			zmask = *mask;
+			jit_regset_set(&zmask, mask);
 			jit_update(block->label->next, live, &zmask);
-			jit_regset_xor(ztmp, zmask, *mask);
+			jit_regset_xor(&ztmp, &zmask, mask);
 			/* remove known live registers from mask */
-			if (jit_regset_set_p(ztmp)) {
-			    jit_regset_and(ztmp, ztmp, *live);
-			    jit_regset_com(ztmp, ztmp);
-			    jit_regset_and(*mask, *mask, ztmp);
+			if (jit_regset_set_p(&ztmp)) {
+			    jit_regset_and(&ztmp, &ztmp, live);
+			    jit_regset_com(&ztmp, &ztmp);
+			    jit_regset_and(mask, mask, &ztmp);
 			}
 			continue;
 		    }
 		    /* assume value is live due to jump to unknown location */
-		    jit_regset_ior(*live, *live, *mask);
-		    jit_regset_set_ui(*mask, 0);
+		    jit_regset_ior(live, live, mask);
+		    jit_regset_set_ui(mask, 0);
 		    return;
 		}
 		break;
@@ -2519,11 +2520,11 @@ _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 static jit_bool_t
 _spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 {
-    if (!jit_regset_tstbit(_jitc->reglive, regno)) {
+    if (!jit_regset_tstbit(&_jitc->reglive, regno)) {
 	bmp_zero();
-	jit_regset_setbit(_jitc->regmask, regno);
+	jit_regset_setbit(&_jitc->regmask, regno);
 	jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
-	if (!jit_regset_tstbit(_jitc->reglive, regno) &&
+	if (!jit_regset_tstbit(&_jitc->reglive, regno) &&
 	    register_change_p(node->next, node->link, regno) != jit_reg_change)
 	    return (0);
     }
@@ -2568,7 +2569,7 @@ _patch_registers(jit_state_t *_jit)
 			if (value != regno &&
 			    ((jit_class(_rvs[value].spec) & spec) &
 			     ~jit_class_arg) == spec &&
-			    !jit_regset_tstbit(_jitc->regarg, value) &&
+			    !jit_regset_tstbit(&_jitc->regarg, value) &&
 			    !spill_reglive_p(node, value))
 			    break;
 		    }
@@ -2580,7 +2581,7 @@ _patch_registers(jit_state_t *_jit)
 			/* mark as live just in case there are nested
 			 * register patches, so that next patch will
 			 * not want to use the same register */
-			jit_regset_setbit(_jitc->reglive, value);
+			jit_regset_setbit(&_jitc->reglive, value);
 			/* register is not live, just remove spill/reload */
 			node->link->v.w = jit_regload_isdead;
 			del_node(prev, node);
@@ -2615,7 +2616,7 @@ _patch_registers(jit_state_t *_jit)
 		regno = jit_regno(node->u.w);
 		if (node->v.w) {
 		    if (node->v.w == jit_regload_isdead)
-			jit_regset_clrbit(_jitc->reglive, regno);
+			jit_regset_clrbit(&_jitc->reglive, regno);
 		    del_node(prev, node);
 		    continue;
 		}

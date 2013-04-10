@@ -3076,12 +3076,12 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 
 #  if __WORDSIZE == 32
     /* save any clobbered callee save gpr register */
-    regno = jit_regset_scan1(_jitc->function->regset, _R14);
+    regno = jit_regset_scan1(&_jitc->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     STMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
 	    stxi_d(-fpr_save_area + offset * 8, _SP_REGNO, rn(_F14 + offset));
     }
 
@@ -3093,11 +3093,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     stxi(16, _SP_REGNO, _R0_REGNO);
     offset = -144;
     for (regno = 0; regno < jit_size(save); regno++, offset += 8) {
-	if (jit_regset_tstbit(_jitc->function->regset, save[regno]))
+	if (jit_regset_tstbit(&_jitc->function->regset, save[regno]))
 	    stxi(offset, _SP_REGNO, rn(save[regno]));
     }
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
 	    stxi_d(-(152 + offset * 8), _SP_REGNO, rn(_F14 + offset));
     }
 
@@ -3119,12 +3119,12 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 
     MTLR(_R0_REGNO);
 
-    regno = jit_regset_scan1(_jitc->function->regset, _R14);
+    regno = jit_regset_scan1(&_jitc->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
 	regno = _R31;	/* aka _FP_REGNO */
     LMW(rn(regno), _SP_REGNO, -fpr_save_area - (32 * 4) + rn(regno) * 4);
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
 	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -fpr_save_area + offset * 8);
     }
 
@@ -3133,11 +3133,11 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     ldxi(_R0_REGNO, _SP_REGNO, 16);
     offset = -144;
     for (regno = 0; regno < jit_size(save); regno++, offset += 8) {
-	if (jit_regset_tstbit(_jitc->function->regset, save[regno]))
+	if (jit_regset_tstbit(&_jitc->function->regset, save[regno]))
 	    ldxi(rn(save[regno]), _SP_REGNO, offset);
     }
     for (offset = 0; offset < 8; offset++) {
-	if (jit_regset_tstbit(_jitc->function->regset, _F14 + offset))
+	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
 	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -(152 + offset * 8));
     }
 

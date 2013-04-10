@@ -867,8 +867,8 @@ _save(jit_state_t *_jit, jit_int32_t r0)
 	_jitc->function->regoff[r0] = jit_allocai(sizeof(jit_word_t));
 	_jitc->again = 1;
     }
-    assert(!jit_regset_tstbit(_jitc->regsav, r0));
-    jit_regset_setbit(_jitc->regsav, r0);
+    assert(!jit_regset_tstbit(&_jitc->regsav, r0));
+    jit_regset_setbit(&_jitc->regsav, r0);
     stxi(_jitc->function->regoff[r0], _RBP_REGNO, r0);
 }
 
@@ -876,8 +876,8 @@ static void
 _load(jit_state_t *_jit, jit_int32_t r0)
 {
     assert(_jitc->function->regoff[r0]);
-    assert(jit_regset_tstbit(_jitc->regsav, r0));
-    jit_regset_clrbit(_jitc->regsav, r0);
+    assert(jit_regset_tstbit(&_jitc->regsav, r0));
+    jit_regset_clrbit(&_jitc->regsav, r0);
     ldxi(r0, _RBP_REGNO, _jitc->function->regoff[r0]);
 }
 
@@ -1199,8 +1199,8 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     if (set & (1 << rn))						\
 	(void)jit_get_reg(rv|jit_class_gpr|jit_class_named);		\
     if (sav & (1 << rn)) {						\
-	if ( jit_regset_tstbit(_jitc->regsav, rv) ||			\
-	    !jit_regset_tstbit(_jitc->reglive, rv))			\
+	if ( jit_regset_tstbit(&_jitc->regsav, rv) ||			\
+	    !jit_regset_tstbit(&_jitc->reglive, rv))			\
 	    sav &= ~(1 << rn);						\
 	else								\
 	    save(rv);							\
@@ -3313,22 +3313,22 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     /* callee save registers */
     subi(_RSP_REGNO, _RSP_REGNO, stack_framesize - sizeof(jit_word_t));
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(_jitc->function->regset, _RDI))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RDI))
 	stxi(12, _RSP_REGNO, _RDI_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _RSI))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RSI))
 	stxi( 8, _RSP_REGNO, _RSI_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _RBX))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	stxi( 4, _RSP_REGNO, _RBX_REGNO);
 #else
-    if (jit_regset_tstbit(_jitc->function->regset, _RBX))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	stxi(40, _RSP_REGNO, _RBX_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _R12))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R12))
 	stxi(32, _RSP_REGNO, _R12_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _R13))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R13))
 	stxi(24, _RSP_REGNO, _R13_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _R14))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R14))
 	stxi(16, _RSP_REGNO, _R14_REGNO);
-    if (jit_regset_tstbit(_jitc->function->regset, _R15))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R15))
 	stxi( 8, _RSP_REGNO, _R15_REGNO);
 #endif
     stxi(0, _RSP_REGNO, _RBP_REGNO);
@@ -3344,22 +3344,22 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     /* callee save registers */
     movr(_RSP_REGNO, _RBP_REGNO);
 #if __WORDSIZE == 32
-    if (jit_regset_tstbit(_jitc->function->regset, _RDI))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RDI))
 	ldxi(_RDI_REGNO, _RSP_REGNO, 12);
-    if (jit_regset_tstbit(_jitc->function->regset, _RSI))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RSI))
 	ldxi(_RSI_REGNO, _RSP_REGNO,  8);
-    if (jit_regset_tstbit(_jitc->function->regset, _RBX))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO,  4);
 #else
-    if (jit_regset_tstbit(_jitc->function->regset, _RBX))
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO, 40);
-    if (jit_regset_tstbit(_jitc->function->regset, _R12))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R12))
 	ldxi(_R12_REGNO, _RSP_REGNO, 32);
-    if (jit_regset_tstbit(_jitc->function->regset, _R13))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R13))
 	ldxi(_R13_REGNO, _RSP_REGNO, 24);
-    if (jit_regset_tstbit(_jitc->function->regset, _R14))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R14))
 	ldxi(_R14_REGNO, _RSP_REGNO, 16);
-    if (jit_regset_tstbit(_jitc->function->regset, _R15))
+    if (jit_regset_tstbit(&_jitc->function->regset, _R15))
 	ldxi(_R15_REGNO, _RSP_REGNO,  8);
 #endif
     ldxi(_RBP_REGNO, _RSP_REGNO, 0);

@@ -211,8 +211,8 @@ _jit_prolog(jit_state_t *_jit)
 
     if (_jitc->function)
 	jit_epilog();
-    assert(jit_regset_cmp_ui(_jitc->regarg, 0) == 0);
-    jit_regset_set_ui(_jitc->regsav, 0);
+    assert(jit_regset_cmp_ui(&_jitc->regarg, 0) == 0);
+    jit_regset_set_ui(&_jitc->regsav, 0);
     offset = _jitc->functions.offset;
     if (offset >= _jitc->functions.length) {
 	jit_realloc((jit_pointer_t *)&_jitc->functions.ptr,
@@ -245,7 +245,7 @@ _jit_prolog(jit_state_t *_jit)
      */
     _jitc->function->epilog->w.w = offset;
 
-    jit_regset_new(_jitc->function->regset);
+    jit_regset_new(&_jitc->function->regset);
 }
 
 jit_int32_t
@@ -1613,28 +1613,28 @@ _jit_get_reg_pair(jit_state_t *_jit)
      * return JIT_NOREG if fail, as the cost of spills is greater
      * than splitting a double load/store in two operations. */
     if (jit_reg_free_p(_R0) && jit_reg_free_p(_R1)) {
-	jit_regset_setbit(_jitc->regarg, _R0);
-	jit_regset_setbit(_jitc->regarg, _R1);
+	jit_regset_setbit(&_jitc->regarg, _R0);
+	jit_regset_setbit(&_jitc->regarg, _R1);
 	return (_R0);
     }
     if (jit_reg_free_p(_R2) && jit_reg_free_p(_R3)) {
-	jit_regset_setbit(_jitc->regarg, _R2);
-	jit_regset_setbit(_jitc->regarg, _R3);
+	jit_regset_setbit(&_jitc->regarg, _R2);
+	jit_regset_setbit(&_jitc->regarg, _R3);
 	return (_R2);
     }
     if (jit_reg_free_p(_R4) && jit_reg_free_p(_R5)) {
-	jit_regset_setbit(_jitc->regarg, _R4);
-	jit_regset_setbit(_jitc->regarg, _R5);
+	jit_regset_setbit(&_jitc->regarg, _R4);
+	jit_regset_setbit(&_jitc->regarg, _R5);
 	return (_R4);
     }
     if (jit_reg_free_p(_R6) && jit_reg_free_p(_R7)) {
-	jit_regset_setbit(_jitc->regarg, _R6);
-	jit_regset_setbit(_jitc->regarg, _R7);
+	jit_regset_setbit(&_jitc->regarg, _R6);
+	jit_regset_setbit(&_jitc->regarg, _R7);
 	return (_R6);
     }
     if (jit_reg_free_p(_R8) && jit_reg_free_p(_R9)) {
-	jit_regset_setbit(_jitc->regarg, _R8);
-	jit_regset_setbit(_jitc->regarg, _R9);
+	jit_regset_setbit(&_jitc->regarg, _R8);
+	jit_regset_setbit(&_jitc->regarg, _R9);
 	return (_R8);
     }
     return (JIT_NOREG);

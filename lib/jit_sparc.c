@@ -105,8 +105,8 @@ _jit_prolog(jit_state_t *_jit)
 
     if (_jitc->function)
 	jit_epilog();
-    assert(jit_regset_cmp_ui(_jitc->regarg, 0) == 0);
-    jit_regset_set_ui(_jitc->regsav, 0);
+    assert(jit_regset_cmp_ui(&_jitc->regarg, 0) == 0);
+    jit_regset_set_ui(&_jitc->regsav, 0);
     offset = _jitc->functions.offset;
     if (offset >= _jitc->functions.length) {
 	jit_realloc((jit_pointer_t *)&_jitc->functions.ptr,
@@ -134,7 +134,7 @@ _jit_prolog(jit_state_t *_jit)
      */
     _jitc->function->epilog->w.w = offset;
 
-    jit_regset_new(_jitc->function->regset);
+    jit_regset_new(&_jitc->function->regset);
 }
 
 jit_int32_t

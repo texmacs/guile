@@ -1,3 +1,14 @@
+2013-04-10 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_private.h, lib/jit_arm.c,
+	lib/jit_mips-cpu.c, lib/jit_mips.c, lib/jit_ppc-cpu.c,
+	lib/jit_ppc.c, lib/jit_print.c, lib/jit_sparc-cpu.c,
+	lib/jit_sparc.c, lib/jit_x86-cpu.c, lib/jit_x86.c,
+	lib/lightning.c: Change all jit_regset macros to take
+	a pointer argument, to avoid structure copies when
+	adding a port to an architecture with more than 64
+	registers.
+
 2013-04-08 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c, lib/jit_ppc.c: Do not rely on __clear_cache

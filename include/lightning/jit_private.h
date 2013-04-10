@@ -78,9 +78,9 @@
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
 #define jit_reg_free_p(regno)						\
-    (!jit_regset_tstbit(_jitc->reglive, regno) &&			\
-     !jit_regset_tstbit(_jitc->regarg, regno) &&				\
-     !jit_regset_tstbit(_jitc->regsav, regno))
+    (!jit_regset_tstbit(&_jitc->reglive, regno) &&			\
+     !jit_regset_tstbit(&_jitc->regarg, regno) &&			\
+     !jit_regset_tstbit(&_jitc->regsav, regno))
 
 /*
  * Private jit_class bitmasks
@@ -121,38 +121,27 @@
 #define jit_cc_a2_flt		0x00200000	/* arg2 is immediate float */
 #define jit_cc_a2_dbl		0x00400000	/* arg2 is immediate double */
 
-#define jit_regset_com(u, v)	((u) = ~(v))
-#define jit_regset_and(u, v, w)	((u) = (v) & (w))
-#define jit_regset_ior(u, v, w)	((u) = (v) | (w))
-#define jit_regset_xor(u, v, w)	((u) = (v) ^ (w))
-#define jit_regset_set(u, v)	((u) = (v))
-#define jit_regset_cmp_ui(u, v)	((u) != (v))
-#define jit_regset_set_ui(u, v)	((u) = (v))
-#define jit_regset_set_p(set)	(set)
-#if DEBUG
-#  define jit_regset_clrbit(set, bit)					\
-	(assert(bit >= 0 && bit < (sizeof(jit_regset_t) << 3)),		\
-	 (set) &= ~(1LL << (bit)))
-#  define jit_regset_setbit(set, bit)					\
-	(assert(bit >= 0 && bit < (sizeof(jit_regset_t) << 3)),		\
-	 (set) |= 1LL << (bit))
-#  define jit_regset_tstbit(set, bit)					\
-	(assert(bit >= 0 && bit < (sizeof(jit_regset_t) << 3)),		\
-	 (set) & (1LL << (bit)))
-#else
-#  define jit_regset_clrbit(set, bit)	((set) &= ~(1LL << (bit)))
-#  define jit_regset_setbit(set, bit)	((set) |= 1LL << (bit))
-#  define jit_regset_tstbit(set, bit)	((set) & (1LL << (bit)))
-#endif
-#define jit_regset_new(set)	((set) = 0)
-#define jit_regset_del(set)	((set) = 0)
+#define jit_regset_com(u, v)		(*(u) = ~*(v))
+#define jit_regset_and(u, v, w)		(*(u) = *(v) & *(w))
+#define jit_regset_ior(u, v, w)		(*(u) = *(v) | *(w))
+#define jit_regset_xor(u, v, w)		(*(u) = *(v) ^ *(w))
+#define jit_regset_set(u, v)		(*(u) = *(v))
+#define jit_regset_set_mask(u, v)	(*(u) = (1LL << (v)) - 1)
+#define jit_regset_cmp_ui(u, v)		(*(u) != (v))
+#define jit_regset_set_ui(u, v)		(*(u) = (v))
+#define jit_regset_set_p(set)		(*set)
+#define jit_regset_clrbit(set, bit)	(*(set) &= ~(1LL << (bit)))
+#define jit_regset_setbit(set, bit)	(*(set) |= 1LL << (bit))
+#define jit_regset_tstbit(set, bit)	(*(set) & (1LL << (bit)))
+#define jit_regset_new(set)		(*(set) = 0)
+#define jit_regset_del(set)		(*(set) = 0)
 extern unsigned long
-jit_regset_scan1(jit_regset_t, jit_int32_t);
+jit_regset_scan1(jit_regset_t*, jit_int32_t);
 
 #define jit_reglive_setup()						\
     do {								\
-	jit_regset_set_ui(_jitc->reglive, 0);				\
-	jit_regset_set_ui(_jitc->regmask, 0);				\
+	jit_regset_set_ui(&_jitc->reglive, 0);				\
+	jit_regset_set_ui(&_jitc->regmask, 0);				\
     } while (0)
 
 /*
