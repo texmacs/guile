@@ -65,16 +65,14 @@ typedef enum {
     _R104,	_R105,	_R106,	_R107,	_R108,	_R109,	_R110,	_R111,
     _R112,	_R113,	_R114,	_R115,	_R116,	_R117,	_R118,	_R119,
     _R120,	_R121,	_R122,	_R123,	_R124,	_R125,	_R126,	_R127,
-#define JIT_F0		_F32
-#define JIT_F1		_F33
-#define JIT_F2		_F34
-#define JIT_F3		_F35
-#define JIT_F4		_F36
-#define JIT_F5		_F37
-#define JIT_F6		_F38
-#define JIT_F7		_F39
-#define jit_f_num()	8
-#define jit_f(n)	(_F32 + (n))
+#define JIT_F0		_F16
+#define JIT_F1		_F17
+#define JIT_F2		_F18
+#define JIT_F3		_F19
+#define JIT_F4		_F20
+#define JIT_F5		_F21
+#define jit_f_num()	6
+#define jit_f(n)	(_F16 + (n))
     _F0,	/* constant - Always 0.0 */
     _F1,	/* constant - Always 1.0 */
     /* f2-f5	 - preserved */

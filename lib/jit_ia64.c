@@ -21,8 +21,6 @@
 #define rc(value)			jit_class_##value
 #define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
 
-#define stack_framesize			16
-
 /*
  * Prototypes
  */
@@ -223,8 +221,7 @@ void
 _jit_init(jit_state_t *_jit)
 {
     _jitc->reglen = jit_size(_rvs) - 1;
-    jit_regset_new(&_jitc->gprs);
-    jit_regset_new(&_jitc->fprs);
+    jit_regset_new(&_jitc->regs);
     jit_carry = _NOREG;
 }
 
@@ -1134,8 +1131,8 @@ _emit_code(jit_state_t *_jit)
 		    calli(node->u.w);
 		break;
 	    case jit_code_prolog:
-		jit_regset_set_ui(&_jitc->gprs, 0);
-		jit_regset_set_ui(&_jitc->fprs, 0);
+		jit_regset_set_ui(&_jitc->regs, 0);
+		_jitc->pred = 0;
 		sync();
 		_jitc->function = _jitc->functions.ptr + node->w.w;
 		undo.node = node;
@@ -1177,8 +1174,8 @@ _emit_code(jit_state_t *_jit)
 		    _jitc->patches.offset = undo.patch_offset;
 		    _jitc->prolog.offset = undo.prolog_offset;
 		    _jitc->ioff = 0;
-		    jit_regset_set_ui(&_jitc->gprs, 0);
-		    jit_regset_set_ui(&_jitc->fprs, 0);
+		    jit_regset_set_ui(&_jitc->regs, 0);
+		    _jitc->pred = 0;
 		    goto restart_function;
 		}
 		/* remember label is defined */
@@ -1186,8 +1183,8 @@ _emit_code(jit_state_t *_jit)
 		node->flag |= jit_flag_patch;
 		node->u.w = _jit->pc.w;
 		epilog(node);
-		jit_regset_set_ui(&_jitc->gprs, 0);
-		jit_regset_set_ui(&_jitc->fprs, 0);
+		jit_regset_set_ui(&_jitc->regs, 0);
+		_jitc->pred = 0;
 		_jitc->function = NULL;
 		break;
 	    case jit_code_live:

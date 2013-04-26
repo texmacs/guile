@@ -839,8 +839,7 @@ _jit_clear_state(jit_state_t *_jit)
 #endif
 
 #if __ia64__
-    jit_regset_del(&_jitc->gprs);
-    jit_regset_del(&_jitc->fprs);
+    jit_regset_del(&_jitc->regs);
 #endif
 
     jit_free((jit_pointer_t *)&_jitc);

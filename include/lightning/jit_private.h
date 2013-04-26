@@ -306,8 +306,8 @@ struct jit_compiler {
 	jit_uint64_t	  i : 41;
 	jit_uint64_t	  t :  4;
     } inst[3];
-    jit_regset_t	  gprs;		/* changed gprs since last stop */
-    jit_regset_t	  fprs;		/* changed fprs since last stop */
+    jit_regset_t	  regs;		/* changed regs since last stop */
+    jit_int32_t		  pred;		/* changed preds last stop */
     jit_int32_t		  ioff;		/* offset in inst vector */
     jit_int32_t		  rout;		/* first output register */
     jit_int32_t		  breg;		/* base register for prolog/epilog */

@@ -1,3 +1,27 @@
+2013-04-26 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_ia64.h, include/lightning/jit_private.h,
+	lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c, lib/jit_ia64.c,
+	lib/lightning.c: Rework code to detect need of a "stop" to
+	also handle predicates, as if a predicate is written, it
+	cannot be read in the same instruction group.
+	  Use a single jit_regset_t variable for all registers when
+	checking need for a stop (increment value by 128 for
+	float registers).
+	  Correct wrong "subi" implementation, as the code executed
+	is r0=im-r1, not r0=r1-im.
+	  Use standard lightning 6 fpr registers, and rework to
+	use callee save float registers, that may be spill/reloaded
+	in prolog/epilog. This is required because some jit
+	instructions implementations need to call functions; currently
+	integer div/mod and float sqrt, what may change the value of
+	scratch float registers.
+	  Rework point of "sync" of branches that need to return a
+	patch'able address, because the need for a "stop" before a
+	predicate read causes all branches to be the instruction
+	in slot 0, as there is no template to "stop" and branch
+	in the same instruction "bundle".
+
 2013-04-25 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_ia64.h, lib/jit_ia64-cpu.c,

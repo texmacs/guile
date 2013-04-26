@@ -23,23 +23,23 @@
 
 #define TSTFREG1(r0)							\
     do {								\
-	if (jit_regset_tstbit(&_jitc->fprs, r0))			\
+	if (jit_regset_tstbit(&_jitc->regs, r0 + 128))			\
 	    stop();							\
     } while (0)
 #define TSTFREG2(r0, r1)						\
     do {								\
-	if (jit_regset_tstbit(&_jitc->fprs, r0) ||			\
-	    jit_regset_tstbit(&_jitc->fprs, r1))			\
+	if (jit_regset_tstbit(&_jitc->regs, r0 + 128) ||		\
+	    jit_regset_tstbit(&_jitc->regs, r1 + 128))			\
 	    stop();							\
     } while (0)
 #define TSTFREG3(r0, r1, r2)						\
     do {								\
-	if (jit_regset_tstbit(&_jitc->fprs, r0) ||			\
-	    jit_regset_tstbit(&_jitc->fprs, r1) ||			\
-	    jit_regset_tstbit(&_jitc->fprs, r2))			\
+	if (jit_regset_tstbit(&_jitc->regs, r0 + 128) ||		\
+	    jit_regset_tstbit(&_jitc->regs, r1 + 128) ||		\
+	    jit_regset_tstbit(&_jitc->regs, r2 + 128))			\
 	    stop();							\
     } while (0)
-#define SETFREG(r0)		jit_regset_setbit(&_jitc->fprs, r0)	
+#define SETFREG(r0)		jit_regset_setbit(&_jitc->regs, r0 + 128)	
 
 /* libm */
 extern float sqrtf(float);
@@ -703,6 +703,7 @@ _M7(jit_state_t *_jit, jit_word_t _p,
     assert(!(r2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTREG2(r2, r3);
+    TSTPRED(_p);
     inst((6L<<37)|(1L<<36)|(x6<<30)|(ht<<28)|
 	 (r3<<20)|(r2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -720,6 +721,7 @@ _M8(jit_state_t *_jit, jit_word_t _p,
     assert(im > -256 && im < 255);
     assert(!(f1 &  ~0x7fL));
     TSTREG1(r3);
+    TSTPRED(_p);
     inst((7L<<37)|(((im>>8)&1L)<<36)|(x6<<30)|(ht<<28)|
 	 (((im>>8)&1L)<<27)|(r3<<20)|((im&0x7fLL)<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -736,6 +738,7 @@ _M9(jit_state_t *_jit, jit_word_t _p,
     assert(!(r3 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
+    TSTPRED(_p);
     inst((6L<<37)|(x6<<30)|(ht<<28)|(r3<<20)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
 }
@@ -752,6 +755,7 @@ _M10(jit_state_t *_jit, jit_word_t _p,
     assert(im > -256 && im < 255);
     TSTREG1(r3);
     TSTFREG1(f2);
+    TSTPRED(_p);
     inst((7L<<37)|(((im>>8)&1L)<<36)|(x6<<30)|(ht<<28)|
 	 (((im>>8)&1L)<<27)|(r3<<20)|(f2<<13)|((im&0x7fL)<<6)|_p, INST_M);
     SETREG(r3);
@@ -768,6 +772,7 @@ _M11(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
+    TSTPRED(_p);
     inst((6L<<37)|(x6<<30)|(ht<<28)|(1L<<27)|
 	 (r3<<20)|(f2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -785,6 +790,7 @@ _M12(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
+    TSTPRED(_p);
     inst((6L<<37)|(1L<<36)|(x6<<30)|(ht<<28)|
 	 (1L<<27)|(r3<<20)|(f2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -801,6 +807,7 @@ _M18(jit_state_t *_jit, jit_word_t _p,
     assert(!(r2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTREG1(r2);
+    TSTPRED(_p);
     inst((6L<<37)|(x6<<30)|(1L<<27)|(r2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
 }
@@ -814,6 +821,7 @@ _M19(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(r1 & ~0x7fL));
     TSTFREG1(f2);
+    TSTPRED(_p);
     inst((4L<<37)|(x6<<30)|(1L<<27)|(f2<<13)|(r1<<6)|_p, INST_M);
     SETREG(r1);
 }
@@ -832,6 +840,7 @@ F1_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTFREG3(f2, f3, f4);
+    TSTPRED(_p);
     inst((op<<37)|(x<<36)|(sf<<34)|(f4<<27)|
 	 (f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
@@ -852,8 +861,13 @@ F4_(jit_state_t *_jit, jit_word_t _p,
     assert(!(ta &  ~0x1L));
     assert(!(p1 & ~0x3fL));
     TSTFREG2(f2, f3);
+    TSTPRED(_p);
     inst((4L<<37)|(rb<<36)|(sf<<34)|(ra<<33)|(p2<<27)|
 	 (f3<<20)|(f2<<13)|(ta<<12)|(p1<<6)|_p, INST_F);
+    if (p1)
+	_jitc->pred |= 1 << p1;
+    if (p2)
+	_jitc->pred |= 1 << p2;
 }
 
 static void
@@ -867,8 +881,13 @@ F5_(jit_state_t *_jit, jit_word_t _p,
     assert(!(ta &   ~0x1L));
     assert(!(p1 &  ~0x3fL));
     TSTFREG1(f2);
+    TSTPRED(_p);
     inst((5L<<37)|(((fc>>7)&3L)<<33)|(p2<<27)|
 	 ((fc&0x7fL)<<20)|(f2<<13)|(ta<<12)|(p1<<6)|_p, INST_F);
+    if (p1)
+	_jitc->pred |= 1 << p1;
+    if (p2)
+	_jitc->pred |= 1 << p2;
 }
 
 static void
@@ -885,9 +904,12 @@ F6x_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTFREG2(f2, f3);
+    TSTPRED(_p);
     inst((op<<37)|(q<<36)|(sf<<34)|(1L<<33)|
 	 (p2<<27)|(f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
+    if (p2)
+	_jitc->pred |= 1 << p2;
 }
 
 static void
@@ -903,6 +925,7 @@ F8_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f2 & ~0x7fL));
     assert(!(f1 & ~0x7fL));
     TSTFREG2(f2, f3);
+    TSTPRED(_p);
     inst((op<<37)|(sf<<34)|(x6<<27)|(f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
 }
@@ -916,7 +939,7 @@ F12_(jit_state_t *_jit, jit_word_t _p,
     assert(!(x6   & ~0x3fL));
     assert(!(omsk & ~0x7fL));
     assert(!(amsk & ~0x7fL));
-    /* no registers referenced */
+    TSTPRED(_p);
     inst((sf<<34)|(x6<<27)|(omsk<<20)|(amsk<<13), INST_F);
 }
 
@@ -929,7 +952,7 @@ F14x_(jit_state_t* _jit, jit_word_t _p,
     assert(!(x  &     ~0x1L));
     assert(!(x6 &    ~0x3fL));
     assert(!(im & ~0x1ffffL));
-    /* no registers referenced */
+    TSTPRED(_p);
     inst((((im>>20)&1L)<<36)|(sf<<34)|(x<<33)|
 	 (x6<<27)|((im&0xffffL)<<6)|_p, INST_F);
 }
@@ -941,7 +964,7 @@ F16_(jit_state_t* _jit, jit_word_t _p,
     assert(!(_p &    ~0x3fL));
     assert(!(y  &     ~0x1L));
     assert(!(im & ~0x1ffffL));
-    /* no registers referenced */
+    TSTPRED(_p);
     inst((((im>>20)&1L)<<36)|(y<<27)|(1L<<26)|((im&0xffffL)<<6)|_p, INST_F);
 }
 
@@ -1300,40 +1323,26 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _sqrtr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_word_t		d;
-    /* @arg0 = r1 */
-    sync();
-    d = ((jit_word_t)sqrtf - _jit->pc.w) >> 4;
-    if (d < -16777216 && d > 16777215)
-	BRI_CALL(0, d);
-    else
-	/* FIXME displacement likely wrong (in either case) */
-	BRL_CALL(0, d);
-    /* r0 = @ret */
+    //MOV(_jitc->rout, r1);
+    calli((jit_word_t)sqrtf);
+    MOVF(r0, GR_8);
 }
 
 static void
 _sqrtr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_word_t		d;
-    /* @arg0 = r1 */
-    sync();
-    d = ((jit_word_t)sqrt - _jit->pc.w) >> 4;
-    if (d < -16777216 && d > 16777215)
-	BRI_CALL(0, d);
-    else
-	/* FIXME displacement likely wrong (in either case) */
-	BRL_CALL(0, d);
-    /* r0 = @ret */
+    //MOV(_jitc->rout, r1);
+    calli((jit_word_t)sqrt);
+    MOVF(r0, GR_8);
 }
 
 static jit_word_t
 _bltr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LT(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_LT(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
@@ -1344,9 +1353,9 @@ static jit_word_t
 _bler_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LE(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_LE(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
@@ -1357,9 +1366,9 @@ static jit_word_t
 _beqr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_EQ(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_EQ(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
@@ -1370,9 +1379,9 @@ static jit_word_t
 _bger_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LE(PR_6, PR_7, r1, r0);
     sync();
     w = _jit->pc.w;
-    FCMP_LE(PR_6, PR_7, r1, r0);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
@@ -1383,9 +1392,9 @@ static jit_word_t
 _bgtr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LT(PR_6, PR_7, r1, r0);
     sync();
     w = _jit->pc.w;
-    FCMP_LT(PR_6, PR_7, r1, r0);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
@@ -1396,9 +1405,9 @@ static jit_word_t
 _bner_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_EQ(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_EQ(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1409,9 +1418,9 @@ static jit_word_t
 _bunltr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LE(PR_6, PR_7, r1, r0);
     sync();
     w = _jit->pc.w;
-    FCMP_LE(PR_6, PR_7, r1, r0);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1422,9 +1431,9 @@ static jit_word_t
 _bunler_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LT(PR_6, PR_7, r1, r0);
     sync();
     w = _jit->pc.w;
-    FCMP_LT(PR_6, PR_7, r1, r0);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1435,13 +1444,13 @@ static jit_word_t
 _buneqr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
-    sync();
     FCMP_UNORD(PR_8, PR_9, r0, r1);
     /* junord L1 */
-    BRI_COND(2, PR_8);
     sync();
+    BRI_COND(3, PR_8);
     FCMP_EQ(PR_6, PR_7, r0, r1);
     /* jne L2 */
+    sync();
     BRI_COND(2, PR_7);
     sync();
     w = _jit->pc.w;
@@ -1471,9 +1480,9 @@ static jit_word_t
 _bungtr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LE(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_LE(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1484,13 +1493,13 @@ static jit_word_t
 _bltgtr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
-    sync();
     FCMP_EQ(PR_8, PR_9, r0, r1);
     /* jeq L1 */
-    BRI_COND(3, PR_8);
     sync();
+    BRI_COND(4, PR_8);
     FCMP_UNORD(PR_6, PR_7, r0, r1);
     /* jord L1 */
+    sync();
     BRI_COND(2, PR_7);
     sync();
     w = _jit->pc.w;
@@ -1506,9 +1515,9 @@ static jit_word_t
 _bordr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_UNORD(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_UNORD(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1519,9 +1528,9 @@ static jit_word_t
 _bunordr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_UNORD(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_UNORD(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_6);
     return (w);
 }
