@@ -1,3 +1,21 @@
+2013-04-25 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_ia64.h, lib/jit_ia64-cpu.c,
+	lib/jit_ia64-fpu.c, lib/jit_ia64.c: New files implementing
+	the basic infrastructure of an Itanium port. The code
+	compiles and can generate jit for basic hello world like
+	functions.
+
+	* check/lightning.c, configure.ac, include/lightning.h,
+	include/lightning/Makefile.am, include/lightning/jit_private.h,
+	lib/Makefile.am, lib/lightning.c: Update for the Itanium
+	port.
+
+	* lib/jit_mips-cpu.c, lib/jit_mips.c: Correct typo and
+	make the jit_carry register local to the jit_state_t.
+	This matches code reviewed in the Itanium port, that
+	should use the same base logic to handle carry/borrow.
+
 2013-04-10 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, lib/jit_arm.c,

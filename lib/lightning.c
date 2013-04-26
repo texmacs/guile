@@ -224,7 +224,15 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 			    jit_allocai(sizeof(jit_word_t));
 			_jitc->again = 1;
 		    }
+#if DEBUG
+		    /* emit_stxi must not need temporary registers */
+		    assert(!_jitc->getreg);
+		    _jitc->getreg = 1;
+#endif
 		    emit_stxi(_jitc->function->regoff[regno], JIT_FP, regno);
+#if DEBUG
+		    _jitc->getreg = 0;
+#endif
 		}
 		else {
 		    if (!_jitc->function->regoff[regno]) {
@@ -232,7 +240,15 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 			    jit_allocai(sizeof(jit_float64_t));
 			_jitc->again = 1;
 		    }
+#if DEBUG
+		    /* emit_stxi must not need temporary registers */
+		    assert(!_jitc->getreg);
+		    _jitc->getreg = 1;
+#endif
 		    emit_stxi_d(_jitc->function->regoff[regno], JIT_FP, regno);
+#if DEBUG
+		    _jitc->getreg = 0;
+#endif
 		}
 		jit_regset_setbit(&_jitc->regsav, regno);
 	    regarg:
@@ -277,10 +293,19 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
     regno = jit_regno(regno);
     if (jit_regset_tstbit(&_jitc->regsav, regno)) {
 	if (_jitc->emit) {
+#if DEBUG
+	    /* emit_ldxi must not need a temporary register */
+	    assert(!_jitc->getreg);
+	    _jitc->getreg = 1;
+#endif
 	    if (jit_class(_rvs[regno].spec) & jit_class_gpr)
 		emit_ldxi(regno, JIT_FP, _jitc->function->regoff[regno]);
 	    else
 		emit_ldxi_d(regno, JIT_FP, _jitc->function->regoff[regno]);
+#if DEBUG
+	    /* emit_ldxi must not need a temporary register */
+	    _jitc->getreg = 0;
+#endif
 	}
 	else
 	    jit_load(regno);
@@ -290,6 +315,153 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
     jit_regset_clrbit(&_jitc->regarg, regno);
 }
 
+#if __ia64__
+void
+jit_regset_com(jit_regset_t *u, jit_regset_t *v)
+{
+    u->rl = ~v->rl;		u->rh = ~v->rh;
+    u->fl = ~v->fl;		u->fh = ~v->fh;
+}
+
+void
+jit_regset_and(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl & w->rl;	u->rh = v->rh & w->rh;
+    u->fl = v->fl & w->fl;	u->fh = v->fh & w->fh;
+}
+
+void
+jit_regset_ior(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl | w->rl;	u->rh = v->rh | w->rh;
+    u->fl = v->fl | w->fl;	u->fh = v->fh | w->fh;
+}
+
+void
+jit_regset_xor(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl ^ w->rl;	u->rh = v->rh ^ w->rh;
+    u->fl = v->fl ^ w->fl;	u->fh = v->fh ^ w->fh;
+}
+
+void
+jit_regset_set(jit_regset_t *u, jit_regset_t *v)
+{
+    u->rl = v->rl;		u->rh = v->rh;
+    u->fl = v->fl;		u->fh = v->fh;
+}
+
+void
+jit_regset_set_mask(jit_regset_t *u, jit_int32_t v)
+{
+    jit_bool_t		w = !!(v & (v - 1));
+
+    assert(v >= 0 && v <= 256);
+    if (v == 0)
+	u->rl = u->rh = u->fl = u->fh = -1LL;
+    else if (v <= 64) {
+	u->rl = w ? (1LL << v) - 1 : -1LL;
+	u->rh = u->fl = u->fh = 0;
+    }
+    else if (v <= 128) {
+	u->rl = -1LL;
+	u->rh = w ? (1LL << (v - 64)) - 1 : -1LL;
+	u->fl = u->fh = 0;
+    }
+    else if (v <= 192) {
+	u->rl = u->rh = -1LL;
+	u->fl = w ? (1LL << (v - 128)) - 1 : -1LL;
+	u->fh = 0;
+    }
+    else {
+	u->rl = u->rh = u->fl = -1LL;
+	u->fh = w ? (1LL << (v - 128)) - 1 : -1LL;
+    }
+}
+
+jit_bool_t
+jit_regset_cmp_ui(jit_regset_t *u, jit_word_t v)
+{
+    return !((u->rl == v && u->rh == 0 && u->fl == 0 && u->fh == 0));
+}
+
+void
+jit_regset_set_ui(jit_regset_t *u, jit_word_t v)
+{
+    u->rl = v;
+    u->rh = u->fl = u->fh = 0;
+}
+
+jit_bool_t
+jit_regset_set_p(jit_regset_t *u)
+{
+    return (u->rl || u->rh || u->fl || u->fh);
+}
+
+void
+jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 255);
+    if (bit < 64)
+	set->rl &= ~(1LL << bit);
+    else if (bit < 128)
+	set->rh &= ~(1LL << (bit - 64));
+    else if (bit < 192)
+	set->fl &= ~(1LL << (bit - 128));
+    else
+	set->fh &= ~(1LL << (bit - 192));
+}
+
+void
+jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 255);
+    if (bit < 64)
+	set->rl |= 1LL << bit;
+    else if (bit < 128)
+	set->rh |= 1LL << (bit - 64);
+    else if (bit < 192)
+	set->fl |= 1LL << (bit - 128);
+    else
+	set->fh |= 1LL << (bit - 192);
+}
+
+jit_bool_t
+jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 255);
+    if (bit < 64)
+	return (!!(set->rl & (1LL << bit)));
+    else if (bit < 128)
+	return (!!(set->rh & (1LL << (bit - 64))));
+    else if (bit < 192)
+	return (!!(set->fl & (1LL << (bit - 128))));
+    return (!!(set->fh & (1LL << (bit - 192))));
+}
+
+unsigned long
+jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
+{
+    assert(offset >= 0 && offset <= 255);
+    for (; offset < 64; offset++) {
+	if (set->rl & (1LL << offset))
+	    return (offset);
+    }
+    for (; offset < 128; offset++) {
+	if (set->rh & (1LL << (offset - 64)))
+	    return (offset);
+    }
+    for (; offset < 192; offset++) {
+	if (set->fl & (1LL << (offset - 128)))
+	    return (offset);
+    }
+    for (; offset < 256; offset++) {
+	if (set->fh & (1LL << (offset - 192)))
+	    return (offset);
+    }
+    return (ULONG_MAX);
+}
+#else
 unsigned long
 jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 {
@@ -300,6 +472,7 @@ jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
     }
     return (ULONG_MAX);
 }
+#endif
 
 void
 _jit_save(jit_state_t *_jit, jit_int32_t reg)
@@ -661,8 +834,13 @@ _jit_clear_state(jit_state_t *_jit)
     jit_free((jit_pointer_t *)&_jitc->data_info.ptr);
 #endif
 
-#if __powerpc64__
+#if __powerpc64__ || __ia64__
     jit_free((jit_pointer_t *)&_jitc->prolog.ptr);
+#endif
+
+#if __ia64__
+    jit_regset_del(&_jitc->gprs);
+    jit_regset_del(&_jitc->fprs);
 #endif
 
     jit_free((jit_pointer_t *)&_jitc);
@@ -2689,4 +2867,6 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_ppc.c"
 #elif defined(__sparc__)
 #  include "jit_sparc.c"
+#elif defined(__ia64__)
+#  include "jit_ia64.c"
 #endif

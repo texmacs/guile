@@ -73,6 +73,10 @@
 #  define JIT_SP		_SP
 #  define JIT_RET		_I0
 #  define JIT_FRET		_F0
+#elif defined(__ia64__)
+#  define JIT_SP		_R12
+#  define JIT_RET		_R8
+#  define JIT_FRET		_F8
 #endif
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
@@ -121,20 +125,62 @@
 #define jit_cc_a2_flt		0x00200000	/* arg2 is immediate float */
 #define jit_cc_a2_dbl		0x00400000	/* arg2 is immediate double */
 
-#define jit_regset_com(u, v)		(*(u) = ~*(v))
-#define jit_regset_and(u, v, w)		(*(u) = *(v) & *(w))
-#define jit_regset_ior(u, v, w)		(*(u) = *(v) | *(w))
-#define jit_regset_xor(u, v, w)		(*(u) = *(v) ^ *(w))
-#define jit_regset_set(u, v)		(*(u) = *(v))
-#define jit_regset_set_mask(u, v)	(*(u) = (1LL << (v)) - 1)
-#define jit_regset_cmp_ui(u, v)		(*(u) != (v))
-#define jit_regset_set_ui(u, v)		(*(u) = (v))
-#define jit_regset_set_p(set)		(*set)
-#define jit_regset_clrbit(set, bit)	(*(set) &= ~(1LL << (bit)))
-#define jit_regset_setbit(set, bit)	(*(set) |= 1LL << (bit))
-#define jit_regset_tstbit(set, bit)	(*(set) & (1LL << (bit)))
-#define jit_regset_new(set)		(*(set) = 0)
-#define jit_regset_del(set)		(*(set) = 0)
+#if __ia64__
+extern void
+jit_regset_com(jit_regset_t*, jit_regset_t*);
+
+extern void
+jit_regset_and(jit_regset_t*, jit_regset_t*, jit_regset_t*);
+
+extern void
+jit_regset_ior(jit_regset_t*, jit_regset_t*, jit_regset_t*);
+
+extern void
+jit_regset_xor(jit_regset_t*, jit_regset_t*, jit_regset_t*);
+
+extern void
+jit_regset_set(jit_regset_t*, jit_regset_t*);
+
+extern void
+jit_regset_set_mask(jit_regset_t*, jit_int32_t);
+
+extern jit_bool_t
+jit_regset_cmp_ui(jit_regset_t*, jit_word_t);
+
+extern void
+jit_regset_set_ui(jit_regset_t*, jit_word_t);
+
+extern jit_bool_t
+jit_regset_set_p(jit_regset_t*);
+
+extern void
+jit_regset_clrbit(jit_regset_t*, jit_int32_t);
+
+extern void
+jit_regset_setbit(jit_regset_t*, jit_int32_t);
+
+extern jit_bool_t
+jit_regset_tstbit(jit_regset_t*, jit_int32_t);
+#  define jit_regset_new(set)						\
+    do { (set)->rl = (set)->rh = (set)->fl = (set)->fh = 0; } while (0)
+#  define jit_regset_del(set)						\
+    do { (set)->rl = (set)->rh = (set)->fl = (set)->fh = 0; } while (0)
+#else
+#  define jit_regset_com(u, v)		(*(u) = ~*(v))
+#  define jit_regset_and(u, v, w)	(*(u) = *(v) & *(w))
+#  define jit_regset_ior(u, v, w)	(*(u) = *(v) | *(w))
+#  define jit_regset_xor(u, v, w)	(*(u) = *(v) ^ *(w))
+#  define jit_regset_set(u, v)		(*(u) = *(v))
+#  define jit_regset_set_mask(u, v)	(*(u) = (1LL << (v)) - 1)
+#  define jit_regset_cmp_ui(u, v)	(*(u) != (v))
+#  define jit_regset_set_ui(u, v)	(*(u) = (v))
+#  define jit_regset_set_p(set)		(*set)
+#  define jit_regset_clrbit(set, bit)	(*(set) &= ~(1LL << (bit)))
+#  define jit_regset_setbit(set, bit)	(*(set) |= 1LL << (bit))
+#  define jit_regset_tstbit(set, bit)	(*(set) & (1LL << (bit)))
+#  define jit_regset_new(set)		(*(set) = 0)
+#  define jit_regset_del(set)		(*(set) = 0)
+#endif
 extern unsigned long
 jit_regset_scan1(jit_regset_t*, jit_int32_t);
 
@@ -255,12 +301,30 @@ struct jit_function {
 
 /* data used only during jit generation */
 struct jit_compiler {
+#if __ia64__
+    struct {
+	jit_uint64_t	  i : 41;
+	jit_uint64_t	  t :  4;
+    } inst[3];
+    jit_regset_t	  gprs;		/* changed gprs since last stop */
+    jit_regset_t	  fprs;		/* changed fprs since last stop */
+    jit_int32_t		  ioff;		/* offset in inst vector */
+    jit_int32_t		  rout;		/* first output register */
+    jit_int32_t		  breg;		/* base register for prolog/epilog */
+#endif
+#if __mips__ || __ia64__
+    jit_int32_t		  carry;
+#define jit_carry	  _jitc->carry
+#endif
     jit_node_t		 *head;
     jit_node_t		 *tail;
     jit_uint32_t	  done	: 1;	/* emit state finished */
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
     jit_uint32_t	  prepare : 1;	/* inside prepare/finish* block */
+#if DEBUG
+    jit_uint32_t	  getreg : 1;
+#endif
     jit_int32_t		  reglen;	/* number of registers */
     jit_regset_t	  regarg;	/* cannot allocate */
     jit_regset_t	  regsav;	/* automatic spill only once */
@@ -307,7 +371,6 @@ struct jit_compiler {
     struct {
 	jit_node_t	 *head;		/* first note node */
 	jit_node_t	 *tail;		/* linked list insertion */
-
 	/* fields to store temporary state information */
 	jit_word_t	  size;
 	jit_node_t	 *name;
@@ -338,7 +401,7 @@ struct jit_compiler {
 	jit_int32_t	  values[1024];	/* pending constants */
 	jit_word_t	  patches[2048];
     } consts;
-#elif __powerpc64__
+#elif __powerpc64__ || __ia64__
     /* Keep track of prolog addresses, just for the sake of making
      * jit that starts with a jump to a "main" label work like other
      * backends. */
@@ -488,5 +551,8 @@ extern jit_bool_t _jit_remap(jit_state_t*);
  */
 extern jit_register_t	 _rvs[];
 extern const char	*jit_progname;
+#if __ia64__
+extern int missing_count;
+#endif
 
 #endif /* _jit_private_h */

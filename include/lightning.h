@@ -74,6 +74,8 @@ typedef jit_int32_t		jit_fpr_t;
 #  include <lightning/jit_ppc.h>
 #elif defined(__sparc__)
 #  include <lightning/jit_sparc.h>
+#elif defined(__ia64__)
+#  include <lightning/jit_ia64.h>
 #endif
 
 #define jit_flag_node		0x00000001 /* patch node not absolute */

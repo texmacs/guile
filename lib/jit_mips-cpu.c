@@ -2578,7 +2578,7 @@ _bxsubr(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     SUBU(rn(t1), r0, r1);		/* t1 = r0 - r1 */
     SLT(rn(t2), rn(t1), r0);		/* t2 = t1 < r0 */
     SLT(rn(t1), r0, rn(t1));		/* t1 = r0 < t1 */
-    MOVZ(rn(t1), rn(t2), rn(t0));	/* if (r0 == 0) t1 = t2 */
+    MOVZ(rn(t1), rn(t2), rn(t0));	/* if (t0 == 0) t1 = t2 */
     w = _jit->pc.w;
     BEQ(rn(t1), _ZERO_REGNO, ((i0 - w) >> 2) - 1);
     /* delay slot */

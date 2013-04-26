@@ -37,3 +37,7 @@ if cpu_x86
 lightning_include_HEADERS = 	\
 	jit_x86.h
 endif
+if cpu_ia64
+lightning_include_HEADERS = 	\
+	jit_ia64.h
+endif
