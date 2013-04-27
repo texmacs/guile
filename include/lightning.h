@@ -739,6 +739,8 @@ typedef enum {
     jit_code_movr_w_f,		jit_code_movr_ww_d,	/* w* -> f|d */
 #define jit_movr_w_f(u, v)	jit_new_node_ww(jit_code_movr_w_f, u, v)
 #define jit_movr_ww_d(u, v, w)	jit_new_node_www(jit_code_movr_ww_d, u, v, w)
+    jit_code_movr_w_d,					/* w -> d */
+#define jit_movr_w_d(u, v)	jit_new_node_ww(jit_code_movr_w_d, u, v)
 
     jit_code_movr_f_w,		jit_code_movi_f_w,	/* f|d -> w* */
 #define jit_movr_f_w(u, v)	jit_new_node_ww(jit_code_movr_f_w, u, v)
@@ -746,6 +748,11 @@ typedef enum {
     jit_code_movr_d_ww,		jit_code_movi_d_ww,
 #define jit_movr_d_ww(u, v, w)	jit_new_node_www(jit_code_movr_d_ww, u, v, w)
 #define jit_movi_d_ww(u, v, w)	jit_new_node_wwd(jit_code_movi_d_ww, u, v, w)
+
+    jit_code_movr_d_w,		jit_code_movi_d_w,	/* d -> w */
+#define jit_movr_d_w(u, v)	jit_new_node_ww(jit_code_movr_d_w, u, v)
+#define jit_movi_d_w(u, v)	jit_new_node_wd(jit_code_movi_d_w, u, v)
+
     jit_code_x86_retval_f,	jit_code_x86_retval_d,
 } jit_code_t;
 

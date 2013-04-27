@@ -209,8 +209,10 @@ static char *code_name[] = {
     "bordr_d",		"bordi_d",
     "bunordr_d",	"bunordi_d",
     "movr_w_f",		"movr_ww_d",
+    "movr_w_d",
     "movr_f_w",		"movi_f_w",
     "movr_d_ww",	"movi_d_ww",
+    "movr_d_w",		"movi_d_w",
     "x86_retval_f",	"x86_retval_d",
 };
 

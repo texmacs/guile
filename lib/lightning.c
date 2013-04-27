@@ -1153,7 +1153,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_movi_f:	case jit_code_movi_f_w:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_flt;
 	    break;
-	case jit_code_movi_d:
+	case jit_code_movi_d:	case jit_code_movi_d_w:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_dbl;
 	    break;
 	case jit_code_movi_d_ww:
@@ -1174,6 +1174,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_movr_d:	case jit_code_extr_d:	case jit_code_extr_f_d:
 	case jit_code_ldr_d:
 	case jit_code_movr_w_f:	case jit_code_movr_f_w:
+	case jit_code_movr_w_d:	case jit_code_movr_d_w:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg;
 	    break;
 	case jit_code_movr_d_ww:

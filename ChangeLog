@@ -1,3 +1,27 @@
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h: Add new backend specific movr_w_d,
+	movr_d_w and movi_d_w codes as helpers to ia64 varargs
+	functions arguments.
+
+	* lib/jit_ia64-cpu.c:
+	  Correct wrong encoding of A5 small integers.
+	  Correct define of "mux" instruction modifiers.
+	  Correct ordering of arguments and predicates of cmp_xy
+	implementation with immediate arguments; like most other
+	codes with an immediate, the immediate is the second, not
+	the third argument.
+
+	* lib/jit_ia64-fpu.c: Actual implementation of the code
+	to move to/from gpr to/from fpr, to implement varargs abi.
+
+	* lib/jit_ia64.c: Make fpr argument registers not allocatable
+	as temporaries, no need for the extra checks when there are
+	plenty registers.
+
+	* lib/jit_print.c, lib/lightning.c: Minor updates for the
+	new movr_w_d, movr_d_w and movi_d_w codes.
+
 2013-04-26 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c: Correct code to

@@ -202,11 +202,10 @@ typedef enum {
 #define BR_INDWH_DPTK			2
 
 #define MUX_BRCST			0
-/* FIXME only @name values in manual and only @brcst disassembled by binutils */
-#define MUX_REV				1	/* not disassembled as @rev */
-#define MUX_MIX				2	/* not disassembled as @mix */
-#define MUX_SHUF			3	/* not disassembled as @shuf */
-#define MUX_ALT				4	/* not disassembled as @alt */
+#define MUX_REV				11
+#define MUX_MIX				8
+#define MUX_SHUF			9
+#define MUX_ALT				10
 
 #define ldr(r0,r1)			ldr_l(r0,r1)
 #define ldi(r0,i0)			ldi_l(r0,i0)
@@ -855,8 +854,8 @@ static void _X5(jit_state_t*,jit_word_t,
 #define MOV(r0,r1)			ADDS(r0,0,r1)
 #define MOV_p(r0,r1,_p)			ADDS_p(r0,0,r1,_p)
 /* mov - Move Immediate */
-#define MOVI(r1,im)			ADDL(r1,im,0)
-#define MOVI_p(r1,im,_p)		ADDL_p(r1,im,0,_p)
+#define MOVI(r1,im)			ADDL(r1,im,GR_0)
+#define MOVI_p(r1,im,_p)		ADDL_p(r1,im,GR_0,_p)
 /* mov - Move Indirect Register */
 #define MOV_rn_RR(r1,r3)		M43(0x10,r3,r1)
 #define MOV_rn_DBR(r1,r3)		M43(0x11,r3,r1)
@@ -2075,15 +2074,21 @@ static void
 _A5(jit_state_t *_jit, jit_word_t _p,
     jit_word_t r3, jit_word_t im, jit_word_t r1)
 {
+    jit_word_t		s, i5, i9, i7;
     assert(!(_p & ~0x3fL));
     assert(!(r3  & ~0x3L));
     assert(im >= -2097152 && im < 2097151);
     assert(!(r1  & ~0x7fL));
+    /* imm22 = sign_ext(s << 21 | imm5c << 16 | imm9d << 7 | imm7b, 22) */
+    s  = (im & 0x200000) >> 21;
+    i5 = (im & 0x1f0000) >> 16;
+    i9 = (im &   0xff80) >>  7;
+    i7 =  im &     0x7f;
     TSTREG1(r3);
     TSTPRED(_p);
     TSTREG1(r1);
-    inst((9L<<37)|(((im>>7)&0x7fffL)<<22)|(r3<<20)|
-	 ((im&0x7fL)<<13)|(r1<<6)|_p, INST_A);
+    inst((9L<<37)|(s<<36)|(i9<<27)|(i5<<22)|
+	 (r3<<20)|(i7<<13)|(r1<<6)|_p, INST_A);
     SETREG(r1);
 }
 
@@ -3685,7 +3690,7 @@ _iqmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
     }
     else
 	mulr(r0, r2, r3);
-    mulh(sign, r1, r2, r3);
+    mulh(r1, r2, r3, sign);
     if (r0 == r2 || r0 == r3) {
 	movr(r0, rn(reg));
 	jit_unget_reg(reg);
@@ -3837,7 +3842,7 @@ _lti(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 >= -128 && i0 <= 127)
-	CMPI_LT(PR_6, PR_7, i0, r1);
+	CMPI_LT(PR_7, PR_6, i0 - 1, r1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -3861,7 +3866,7 @@ _lti_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 >= -128 && i0 <= 127)
-	CMPI_LTU(PR_6, PR_7, i0, r1);
+	CMPI_LTU(PR_7, PR_6, i0 - 1, r1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -3945,7 +3950,7 @@ _gei(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 >= -128 && i0 <= 127)
-	CMPI_LT(PR_6, PR_7, i0, r1);
+	CMPI_LT(PR_7, PR_6, i0 - 1, r1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -3969,7 +3974,7 @@ _gei_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 >= -128 && i0 <= 127)
-	CMPI_LTU(PR_6, PR_7, i0, r1);
+	CMPI_LTU(PR_7, PR_6, i0, r1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -4387,7 +4392,7 @@ _blti(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
     jit_word_t		w;
     jit_int32_t		reg;
     if (i1 >= -128 && i1 <= 127)
-	CMPI_LT(PR_6, PR_7, i1, r0);
+	CMPI_LT(PR_7, PR_6, i1 - 1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
@@ -4417,7 +4422,7 @@ _blti_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
     jit_word_t		w;
     jit_int32_t		reg;
     if (i1 >= -128 && i1 <= 127)
-	CMPI_LTU(PR_6, PR_7, i1, r0);
+	CMPI_LTU(PR_7, PR_6, i1 - 1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
@@ -4523,7 +4528,7 @@ _bgei(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
     jit_word_t		w;
     jit_int32_t		reg;
     if (i1 >= -128 && i1 <= 127)
-	CMPI_LT(PR_6, PR_7, i1, r0);
+	CMPI_LT(PR_7, PR_6, i1 - 1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
@@ -4553,7 +4558,7 @@ _bgei_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
     jit_word_t		w;
     jit_int32_t		reg;
     if (i1 >= -128 && i1 <= 127)
-	CMPI_LTU(PR_6, PR_7, i1, r0);
+	CMPI_LTU(PR_7, PR_6, i1 - 1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
