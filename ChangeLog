@@ -1,5 +1,15 @@
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
+	lib/jit_ia64-cpu.c:
+	  Correct immediate range check of integer comparisons when
+	inverting arguments.
+	  Correct gei_u that was not decrementing immediate when
+	inverting arguments.
+	  Correct b?add* and b?sub* that were not properly updating
+	the result register.
+
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ia64-cpu.c: Correct wrong mapping of 2 instructions
 	in "M-, stop, M-, stop" translation, that was ignoring the
 	last stop (implemented as a nop I- stop).
