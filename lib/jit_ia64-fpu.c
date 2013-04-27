@@ -1065,22 +1065,20 @@ dopi(div)
 static void
 _divr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-    jit_int32_t		t0, t1, t2, t3;
+    jit_int32_t		t0, t1, t2;
     t0 = jit_get_reg(jit_class_fpr);
     t1 = jit_get_reg(jit_class_fpr);
     t2 = jit_get_reg(jit_class_fpr);
-    t3 = jit_get_reg(jit_class_fpr);
     FRCPA(rn(t0), PR_6, r1, r2);
-    FNMA_p(rn(t1), r2, rn(t0), 1, SF_S1, PR_6);
+    FNMA_p(rn(t1), r2, rn(t0), GR_1, SF_S1, PR_6);
     FMA_p(rn(t2), rn(t0), rn(t1), rn(t0), SF_S1, PR_6);
     FMPY_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
     FMA_p(rn(t2), rn(t2), rn(t1), rn(t2), SF_S1, PR_6);
     FMPY_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
     FMA_p(rn(t1), rn(t2), rn(t1), rn(t2), SF_S1, PR_6);
-    FMPY_S_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
-    FNMA_p(rn(t3), r2, rn(t2), r1, SF_S1, PR_6);
-    FMA_S_p(r0, rn(t3), rn(t1), 1, SF_S0, PR_6);
-    jit_unget_reg(t3);
+    FMPY_S_p(rn(t2), r1, rn(t1), SF_S1, PR_6);
+    FNMA_p(rn(t0), r2, rn(t2), r1, SF_S1, PR_6);
+    FMA_S_p(r0, rn(t0), rn(t1), rn(t2), SF_S0, PR_6);
     jit_unget_reg(t2);
     jit_unget_reg(t1);
     jit_unget_reg(t0);
@@ -1089,22 +1087,20 @@ _divr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 static void
 _divr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-    jit_int32_t		t0, t1, t2, t3;
+    jit_int32_t		t0, t1, t2;
     t0 = jit_get_reg(jit_class_fpr);
     t1 = jit_get_reg(jit_class_fpr);
     t2 = jit_get_reg(jit_class_fpr);
-    t3 = jit_get_reg(jit_class_fpr);
     FRCPA(rn(t0), PR_6, r1, r2);
-    FNMA_p(rn(t1), r2, rn(t0), 1, SF_S1, PR_6);
+    FNMA_p(rn(t1), r2, rn(t0), GR_1, SF_S1, PR_6);
     FMA_p(rn(t2), rn(t0), rn(t1), rn(t0), SF_S1, PR_6);
     FMPY_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
     FMA_p(rn(t2), rn(t2), rn(t1), rn(t2), SF_S1, PR_6);
     FMPY_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
     FMA_p(rn(t1), rn(t2), rn(t1), rn(t2), SF_S1, PR_6);
-    FMPY_D_p(rn(t1), rn(t1), rn(t1), SF_S1, PR_6);
-    FNMA_p(rn(t3), r2, rn(t2), r1, SF_S1, PR_6);
-    FMA_D_p(r0, rn(t3), rn(t1), 1, SF_S0, PR_6);
-    jit_unget_reg(t3);
+    FMPY_D_p(rn(t2), r1, rn(t1), SF_S1, PR_6);
+    FNMA_p(rn(t0), r2, rn(t2), r1, SF_S1, PR_6);
+    FMA_D_p(r0, rn(t0), rn(t1), rn(t2), SF_S0, PR_6);
     jit_unget_reg(t2);
     jit_unget_reg(t1);
     jit_unget_reg(t0);

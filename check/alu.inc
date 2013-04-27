@@ -2,6 +2,15 @@
 ok:
 .c	"ok\n"
 
+/* ia64 code generation is not optimized for size, and also some
+ * codes generate quite long sequences due to need for stops causing
+ * no code template match and needing to add nops, and other cases
+ * are division/remainder that needs function calls, or float division
+ * that requires a quite long sequence.
+ * (the brute force tests of all register combinations can easily
+ *  generate several GB of jit).
+ */
+
 /* 3 operand */
 
 /* reg0 = reg1 op reg2 */
@@ -67,7 +76,12 @@ OP##T##N##i_0##R0##R1##R2:
 	ALU2(N, T, OP, I0, I1, V, R1, R0, R2)		\
 	ALU2(N, T, OP, I0, I1, V, R2, R1, R0)
 
-#define ALU(N, T, OP, I0, I1, V)			\
+#if __ia64__
+#  define ALU(N, T, OP, I0, I1, V)			\
+	ALU3(N, T, OP, I0, I1, V, r0, r1, r2)		\
+	ALU3(N, T, OP, I0, I1, V, v0, v1, v2)
+#else
+#  define ALU(N, T, OP, I0, I1, V)			\
 	ALU1(N, T, OP, I0, I1, V, v0, v1, v2)		\
 	ALU1(N, T, OP, I0, I1, V, v0, v1, r0)		\
 	ALU1(N, T, OP, I0, I1, V, v0, v1, r1)		\
@@ -77,6 +91,7 @@ OP##T##N##i_0##R0##R1##R2:
 	ALU1(N, T, OP, I0, I1, V, v2, r0, r1)		\
 	ALU1(N, T, OP, I0, I1, V, v2, r0, r2)		\
 	ALU1(N, T, OP, I0, I1, V, r0, r1, r2)
+#endif
 
 /* 3 carry set/propagate */
 
@@ -140,7 +155,12 @@ OP##N##rr##R0##R1##R2:
 	ALUX1(N, OP, I0, I1, V, R1, R0, R2)		\
 	ALUX1(N, OP, I0, I1, V, R2, R1, R0)
 
-#define ALUX(N, OP, I0, I1, V)				\
+#if __ia64__
+#  define ALUX(N, OP, I0, I1, V)			\
+	ALUX2(N, OP, I0, I1, V, r0, r1, r2)		\
+	ALUX2(N, OP, I0, I1, V, v0, v1, v2)
+#else
+#  define ALUX(N, OP, I0, I1, V)			\
 	ALUX0(N, OP, I0, I1, V, v0, v1, v2)		\
 	ALUX0(N, OP, I0, I1, V, v0, v1, r0)		\
 	ALUX0(N, OP, I0, I1, V, v0, v1, r1)		\
@@ -151,6 +171,7 @@ OP##N##rr##R0##R1##R2:
 	ALUX0(N, OP, I0, I1, V, v2, r0, r1)		\
 	ALUX0(N, OP, I0, I1, V, v2, r0, r2)		\
 	ALUX0(N, OP, I0, I1, V, r0, r1, r2)
+#endif
 
 /* unary int */
 
@@ -176,7 +197,12 @@ OP##N##c##R0##R1:
 	UN2(N, OP, I, V, R0, R1)			\
 	UN2(N, OP, I, V, R1, R0)
 
-#define UN(N, OP, I, V)					\
+#if __ia64__
+#  define UN(N, OP, I, V)				\
+	UN2(N, OP, I, V, r0, r1)			\
+	UN2(N, OP, I, V, v0, v1)
+#else
+#  define UN(N, OP, I, V)				\
 	UN1(N, OP, I, V, v0, v1)			\
 	UN1(N, OP, I, V, v0, v2)			\
 	UN1(N, OP, I, V, v0, r0)			\
@@ -192,6 +218,7 @@ OP##N##c##R0##R1:
 	UN1(N, OP, I, V, r0, r1)			\
 	UN1(N, OP, I, V, r0, r2)			\
 	UN1(N, OP, I, V, r1, r2)
+#endif
 
 /* reg0 = reg1 op reg2 */
 #define FOPR(N, T, OP, I0, I1, V, F0, F1, F2)		\
@@ -245,11 +272,16 @@ OP##T##N##i0##F0##F1##F2:
 	FOPI(N, T, OP, I0, I1, V, F0, F1, F2)		\
 	FOPI0(N, T, OP, I0, I1, V, F0, F1, F2)
 
-#define  FOP(N, T, OP, I0, I1, V)			\
+#if __ia64__
+#  define  FOP(N, T, OP, I0, I1, V)			\
+	FOP1(N, T, OP, I0, I1, V, f0, f1, f2)
+#else
+#  define  FOP(N, T, OP, I0, I1, V)			\
 	FOP1(N, T, OP, I0, I1, V, f0, f1, f2)		\
 	FOP1(N, T, OP, I0, I1, V, f0, f2, f3)		\
 	FOP1(N, T, OP, I0, I1, V, f0, f3, f4)		\
 	FOP1(N, T, OP, I0, I1, V, f0, f5, f1)
+#endif
 
 /* unary float */
 
@@ -275,12 +307,17 @@ OP##N##T##c##R0##R1:
 	FUN2(N, T, OP, I, V, R0, R1)			\
 	FUN2(N, T, OP, I, V, R1, R0)
 
-#define FUN(N, T, OP, I, V)				\
+#if __ia64__
+#  define FUN(N, T, OP, I, V)				\
+	FUN2(N, T, OP, I, V, f0, f1)
+#else
+#  define FUN(N, T, OP, I, V)				\
 	FUN1(N, T, OP, I, V, f0, f1)			\
 	FUN1(N, T, OP, I, V, f0, f2)			\
 	FUN1(N, T, OP, I, V, f0, f3)			\
 	FUN1(N, T, OP, I, V, f0, f4)			\
 	FUN1(N, T, OP, I, V, f0, f5)
+#endif
 
 /* unordered comparison unary float */
 
@@ -306,12 +343,17 @@ OP##N##T##uc##R0##R1:
 	UFUN2(N, T, OP, I, V, R0, R1)			\
 	UFUN2(N, T, OP, I, V, R1, R0)
 
-#define UFUN(N, T, OP, I, V)				\
+#if __ia64__
+#  define UFUN(N, T, OP, I, V)				\
+	UFUN2(N, T, OP, I, V, f0, f1)
+#else
+#  define UFUN(N, T, OP, I, V)				\
 	UFUN1(N, T, OP, I, V, f0, f1)			\
 	UFUN1(N, T, OP, I, V, f0, f2)			\
 	UFUN1(N, T, OP, I, V, f0, f3)			\
 	UFUN1(N, T, OP, I, V, f0, f4)			\
 	UFUN1(N, T, OP, I, V, f0, f5)
+#endif
 
 .	$( $NaN =  0.0/0.0)
 .	$( $Inf =  1.0/0.0)

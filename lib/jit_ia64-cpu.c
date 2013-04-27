@@ -3297,9 +3297,9 @@ _X2(jit_state_t *_jit, jit_word_t _p,
     i5  = (im >> 16) &          0x1fL;
     i9  = (im >>  7) &         0x1ffL;
     i7  =  im        &          0x7fL;
-    inst(i41, INST_L);
     TSTPRED(_p);
     TSTREG1(r1);
+    inst(i41, INST_L);
     inst((6L<<37)|(i1<<36)|(i9<<27)|(i5<<22)|
 	 (ic<<21)|(i7<<13)|(r1<<6)|_p, INST_X);
     SETREG(r1);

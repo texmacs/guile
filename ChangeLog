@@ -1,5 +1,27 @@
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ia64-cpu.c: Correct X2 pattern matching by preventing
+	it to attempt to require a stop between the L and the X
+	instruction; that is, check the registers and predicates
+	before emitting the L instruction, not after.
+
+	* lib/jit_ia64-fpu.c: Slightly simplify and correct
+	divr_f and divrd_d implementation.
+
+	* check/lightning.c: Add __ia64__ preprocessor define
+	on Itanium. 
+
+	* check/alu.inc, check/clobber.tst, check/float.tst: Define
+	several macros conditionally to __ia64__. This is required
+	because __ia64__ jit generation can use way too many memory,
+	due to not implementing instruction reordering to avoid
+	as much as possible "stops", what causes way too many nops
+	to be generated, as well as the fact that division and
+	remainder requires function calls, and float division
+	requires significant code to implement.
+
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h: Add new backend specific movr_w_d,
 	movr_d_w and movi_d_w codes as helpers to ia64 varargs
 	functions arguments.

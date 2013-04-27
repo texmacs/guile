@@ -74,9 +74,15 @@ F##op##i##t##r0##f0##f1##l:
 	tcmp1(l, t, op, r0, li, ri)			\
 	tcmp1(l, t, op, r1, li, ri)			\
 	tcmp1(l, t, op, r2, li, ri)
-#define tcmp(l, op, li, ri)				\
-	tcmp0(l, _f, op, li, ri)			\
-	tcmp0(l, _d, op, li, ri)
+#if __ia64__
+#  define tcmp(l, op, li, ri)				\
+	 xtcmp(l, _f, op, r0, f0, f1, li, ri)		\
+	 xtcmp(l, _d, op, r0, f0, f1, li, ri)
+#else
+#  define tcmp(l, op, li, ri)				\
+	 tcmp0(l, _f, op, li, ri)			\
+	 tcmp0(l, _d, op, li, ri)
+#endif
 
 #define xfcmp(l, t, op, r0, f0, f1, li, ri)		\
 	movi##t %f0 li					\
@@ -114,9 +120,15 @@ F##op##i##t##r0##f0##f1##l:
 	fcmp1(l, t, op, r0, li, ri)			\
 	fcmp1(l, t, op, r1, li, ri)			\
 	fcmp1(l, t, op, r2, li, ri)
-#define fcmp(l, op, li, ri)				\
-	fcmp0(l, _f, op, li, ri)			\
-	fcmp0(l, _d, op, li, ri)
+#if __ia64__
+#  define fcmp(l, op, li, ri)				\
+	xfcmp(l, _f, op, r0, f0, f1, li, ri)		\
+	xfcmp(l, _d, op, r0, f0, f1, li, ri)
+#else
+#  define fcmp(l, op, li, ri)				\
+	 fcmp0(l, _f, op, li, ri)			\
+	 fcmp0(l, _d, op, li, ri)
+#endif
 
 #define xf2w(l, f, r0, f0, iv, fv)			\
 	movi##f %f0 fv					\
@@ -138,9 +150,15 @@ W##f##r0##f0##l:
 	f2w1(l, t, r0, iv, fv)				\
 	f2w1(l, t, r1, iv, fv)				\
 	f2w1(l, t, r2, iv, fv)
-#define f2w(l, iv, fv)					\
+#if __ia64__
+#  define f2w(l, iv, fv)				\
+	xf2w(l, _f, r0, f0, iv, fv)			\
+	xf2w(l, _d, r0, f0, iv, fv)
+#else
+#  define f2w(l, iv, fv)				\
 	f2w0(l, _f, iv, fv)				\
 	f2w0(l, _d, iv, fv)
+#endif
 
 .code
 	prolog

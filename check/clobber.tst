@@ -152,13 +152,19 @@ label:
 	alurc0(l, op, i0, i1,	i2, i3, i4, i5)			\
 	alurc1(l, op, i0, i1,	i2, i3, i4, i5)			\
 	alurc2(l, op, i0,		i1, i2, i3, i4, i5)
-#define  alu(l, op)						\
-	xalu(l, op, 0, 1, 2, 3, 4, 5)				\
-	xalu(l, op, 1, 2, 3, 4, 5, 0)				\
-	xalu(l, op, 2, 3, 4, 5, 0, 1)				\
-	xalu(l, op, 3, 4, 5, 0, 1, 2)				\
-	xalu(l, op, 4, 5, 0, 1, 2, 3)				\
-	xalu(l, op, 5, 0, 1, 2, 3, 4)
+
+#if __ia64__
+#  define alu(l, op)						\
+	 xalu(l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define alu(l, op)						\
+	 xalu(l, op, 0, 1, 2, 3, 4, 5)				\
+	 xalu(l, op, 1, 2, 3, 4, 5, 0)				\
+	 xalu(l, op, 2, 3, 4, 5, 0, 1)				\
+	 xalu(l, op, 3, 4, 5, 0, 1, 2)				\
+	 xalu(l, op, 4, 5, 0, 1, 2, 3)				\
+	 xalu(l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define fopi(f, l, op, f0, f1, f2, f3, f4, f5)			\
 	setup##f()						\
@@ -200,16 +206,26 @@ label:
 	foprc0(f, l, op, f0, f1,		f2, f3, f4, f5)	\
 	foprc1(f, l, op, f0, f1,		f2, f3, f4, f5)	\
 	foprc2(f, l, op, f0, f1,		f2, f3, f4, f5)
-#define xxfop(l, op, f, f0, f1, f2, f3, f4, f5)			\
-	 xfop(_f, l, op, f0, f1, f2, f3, f4, f5)		\
-	 xfop(_d, l, op, f0, f1, f2, f3, f4, f5)
-#define   fop(l, op)						\
+#if __ia64__
+#  define xxfop(l, op, f, f0, f1, f2, f3, f4, f5)		\
+	   xfop(_f, l, op, f0, f1, f2, f3, f4, f5)
+#else
+#  define xxfop(l, op, f, f0, f1, f2, f3, f4, f5)		\
+	   xfop(_f, l, op, f0, f1, f2, f3, f4, f5)		\
+	   xfop(_d, l, op, f0, f1, f2, f3, f4, f5)
+#endif
+#if __ia64__
+#  define fop(l, op)						\
+	xxfop(l, op, f, 0, 1, 2, 3, 4, 5)
+#else
+#  define fop(l, op)						\
 	xxfop(l, op, f, 0, 1, 2, 3, 4, 5)			\
 	xxfop(l, op, f, 1, 2, 3, 4, 5, 0)			\
 	xxfop(l, op, f, 2, 3, 4, 5, 0, 1)			\
 	xxfop(l, op, f, 3, 4, 5, 0, 1, 2)			\
 	xxfop(l, op, f, 4, 5, 0, 1, 2, 3)			\
 	xxfop(l, op, f, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define aluxii(l, op, i0, i1, i2, i3, i4, i5)			\
 	setup()							\
@@ -242,13 +258,18 @@ label:
 	aluxir(l, op, i0, i1, i2,	i3, i4, i5)		\
 	aluxri(l, op, i0, i1, i2,	i3, i4, i5)		\
 	aluxrr(l, op, i0, i1, i2,	i3, i4, i5)
-#define  alux(l, op)						\
-	xalux(l, op, 0, 1, 2, 3, 4, 5)				\
-	xalux(l, op, 1, 2, 3, 4, 5, 0)				\
-	xalux(l, op, 2, 3, 4, 5, 0, 1)				\
-	xalux(l, op, 3, 4, 5, 0, 1, 2)				\
-	xalux(l, op, 4, 5, 0, 1, 2, 3)				\
-	xalux(l, op, 5, 0, 1, 2, 3, 4)
+#if __ia64__
+#  define alux(l, op)						\
+	 xalux(l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define alux(l, op)						\
+	 xalux(l, op, 0, 1, 2, 3, 4, 5)				\
+	 xalux(l, op, 1, 2, 3, 4, 5, 0)				\
+	 xalux(l, op, 2, 3, 4, 5, 0, 1)				\
+	 xalux(l, op, 3, 4, 5, 0, 1, 2)				\
+	 xalux(l, op, 4, 5, 0, 1, 2, 3)				\
+	 xalux(l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define alui_u(l, op, i0, i1, i2, i3, i4, i5)			\
 	setup()							\
@@ -290,13 +311,18 @@ label:
 	alurc0_u(l, op, i0, i1,	i2, i3, i4, i5)			\
 	alurc1_u(l, op, i0, i1,	i2, i3, i4, i5)			\
 	alurc2_u(l, op, i0,		i1, i2, i3, i4, i5)
-#define  alu_u(l, op)						\
-	xalu_u(l, op, 0, 1, 2, 3, 4, 5)				\
-	xalu_u(l, op, 1, 2, 3, 4, 5, 0)				\
-	xalu_u(l, op, 2, 3, 4, 5, 0, 1)				\
-	xalu_u(l, op, 3, 4, 5, 0, 1, 2)				\
-	xalu_u(l, op, 4, 5, 0, 1, 2, 3)				\
-	xalu_u(l, op, 5, 0, 1, 2, 3, 4)
+#if __ia64__
+#  define alu_u(l, op)						\
+	 xalu_u(l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define alu_u(l, op)						\
+	 xalu_u(l, op, 0, 1, 2, 3, 4, 5)			\
+	 xalu_u(l, op, 1, 2, 3, 4, 5, 0)			\
+	 xalu_u(l, op, 2, 3, 4, 5, 0, 1)			\
+	 xalu_u(l, op, 3, 4, 5, 0, 1, 2)			\
+	 xalu_u(l, op, 4, 5, 0, 1, 2, 3)			\
+	 xalu_u(l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define unir(l, op, i0, i1, i2, i3, i4, i5)			\
 	setup()							\
@@ -311,13 +337,18 @@ label:
 #define   xuni(l, op, i0, i1, i2, i3, i4, i5)			\
 	  unir(l, op, i0, i1,	i2, i3, i4, i5)			\
 	 unirc(l, op, i0,		i1, i2, i3, i4, i5)
-#define   uni(l, op)						\
+#if __ia64__
+#  define uni(l, op)						\
+	 xuni(l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define uni(l, op)						\
 	 xuni(l, op, 0, 1, 2, 3, 4, 5)				\
 	 xuni(l, op, 1, 2, 3, 4, 5, 0)				\
 	 xuni(l, op, 2, 3, 4, 5, 0, 1)				\
 	 xuni(l, op, 3, 4, 5, 0, 1, 2)				\
 	 xuni(l, op, 4, 5, 0, 1, 2, 3)				\
 	 xuni(l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define unfr(f, l, op, f0, f1, f2, f3, f4, f5)			\
 	setup##f()						\
@@ -335,13 +366,18 @@ label:
 #define xxunf(l, op, f0, f1, f2, f3, f4, f5)			\
 	 xunf(_f, l, op, f0, f1, f2, f3, f4, f5)		\
 	 xunf(_d, l, op, f0, f1, f2, f3, f4, f5)
-#define   unf(l, op)						\
+#if __ia64__
+#  define unf(l, op)						\
+	xxunf(l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define unf(l, op)						\
 	xxunf(l, op, 0, 1, 2, 3, 4, 5)				\
 	xxunf(l, op, 1, 2, 3, 4, 5, 0)				\
 	xxunf(l, op, 2, 3, 4, 5, 0, 1)				\
 	xxunf(l, op, 3, 4, 5, 0, 1, 2)				\
 	xxunf(l, op, 4, 5, 0, 1, 2, 3)				\
 	xxunf(l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define fcpi(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	setup()							\
@@ -365,35 +401,50 @@ label:
 	op##r##f %IR##r0 %FR##f0 %FR##f0			\
 	check5(rc##f##f0, l, r1, r2, r3, r4, r5)		\
 	checkf5(f, rc##r0, l, f1, f2, f3, f4, f5)
-#define  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
-	 fcpi(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)	\
-	 fcpr(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)	\
-	fcprc(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
-#define  xfcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
-	 ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
-#define  fcmp(l, op)						\
-	 xfcp(_f, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)	\
-	 xfcp(_d, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)
+#if __ia64__
+#  define ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  fcpi(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)	\
+	  fcpr(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)	\
+	 fcprc(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#endif
+#if __ia64__
+#  define xfcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define xfcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
+	  ifcp(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#endif
+#if __ia64__
+#  define fcmp(l, op)						\
+	  xfcp(_f, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)
+#else
+#  define fcmp(l, op)						\
+	  xfcp(_f, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)	\
+	  xfcp(_d, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)
+#endif
 
 #define imvi(l, i0, i1, i2, i3, i4, i5)				\
 	setup()							\
@@ -407,13 +458,18 @@ label:
 #define xmvi(l, i0, i1, i2, i3, i4, i5)				\
 	imvi(l, i0,	i1, i2, i3, i4, i5)			\
 	imvr(l, i0, i1,	i2, i3, i4, i5)
-#define  mvi(l)							\
-	xmvi(l, 0, 1, 2, 3, 4, 5)				\
-	xmvi(l, 1, 2, 3, 4, 5, 0)				\
-	xmvi(l, 2, 3, 4, 5, 0, 1)				\
-	xmvi(l, 3, 4, 5, 0, 1, 2)				\
-	xmvi(l, 4, 5, 0, 1, 2, 3)				\
-	xmvi(l, 5, 0, 1, 2, 3, 4)
+#if __ia64__
+#  define mvi(l)						\
+	 xmvi(l, 0, 1, 2, 3, 4, 5)
+#else
+#  define mvi(l)						\
+	 xmvi(l, 0, 1, 2, 3, 4, 5)				\
+	 xmvi(l, 1, 2, 3, 4, 5, 0)				\
+	 xmvi(l, 2, 3, 4, 5, 0, 1)				\
+	 xmvi(l, 3, 4, 5, 0, 1, 2)				\
+	 xmvi(l, 4, 5, 0, 1, 2, 3)				\
+	 xmvi(l, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define fmvi(f, l, f0, f1, f2, f3, f4, f5)			\
 	setup##f()						\
@@ -427,13 +483,18 @@ label:
 #define xmvf(f, l, f0, f1, f2, f3, f4, f5)			\
 	fmvi(f, l, f0, f1, f2, f3, f4, f5)			\
 	fmvr(f, l, f0, f1,	f2, f3, f4, f5)
-#define xxmvf(f, l)						\
-	 xmvf(f, l, 0, 1, 2, 3, 4, 5)				\
-	 xmvf(f, l, 1, 2, 3, 4, 5, 0)				\
-	 xmvf(f, l, 2, 3, 4, 5, 0, 1)				\
-	 xmvf(f, l, 3, 4, 5, 0, 1, 2)				\
-	 xmvf(f, l, 4, 5, 0, 1, 2, 3)				\
-	 xmvf(f, l, 5, 0, 1, 2, 3, 4)
+#if __ia64__
+#  define xxmvf(f, l)						\
+	  xmvf(f, l, 0, 1, 2, 3, 4, 5)
+#else
+#  define xxmvf(f, l)						\
+	   xmvf(f, l, 0, 1, 2, 3, 4, 5)				\
+	   xmvf(f, l, 1, 2, 3, 4, 5, 0)				\
+	   xmvf(f, l, 2, 3, 4, 5, 0, 1)				\
+	   xmvf(f, l, 3, 4, 5, 0, 1, 2)				\
+	   xmvf(f, l, 4, 5, 0, 1, 2, 3)				\
+	   xmvf(f, l, 5, 0, 1, 2, 3, 4)
+#endif
 #define   mvf(l)						\
 	xxmvf(_f, l)						\
 	xxmvf(_d, l)
@@ -451,13 +512,18 @@ label:
 #define  xf2f(f, l, op, f0, f1, f2, f3, f4, f5)			\
 	 f2fr(f, l, op, f0, f1,	f2, f3, f4, f5)			\
 	f2frc(f, l, op, f0,		f1, f2, f3, f4, f5)
-#define   f2f(l, f, op)						\
+#if __ia64__
+#  define f2f(l, f, op)						\
+	 xf2f(f, l, op, 0, 1, 2, 3, 4, 5)
+#else
+#  define f2f(l, f, op)						\
 	 xf2f(f, l, op, 0, 1, 2, 3, 4, 5)			\
 	 xf2f(f, l, op, 1, 2, 3, 4, 5, 0)			\
 	 xf2f(f, l, op, 2, 3, 4, 5, 0, 1)			\
 	 xf2f(f, l, op, 3, 4, 5, 0, 1, 2)			\
 	 xf2f(f, l, op, 4, 5, 0, 1, 2, 3)			\
 	 xf2f(f, l, op, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define f2ir(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	setup()							\
@@ -466,20 +532,27 @@ label:
 	op##f %IR##r0 %FR##f0					\
 	check5(r##f##f0, l, r1, r2, r3, r4, r5)			\
 	checkf5(f, i##r0, l, f1, f2, f3, f4, f5)
-#define if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
-	f2ir(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
-#define xf2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
-	if2i(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#if __ia64__
+#  define if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#  define xf2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  f2ir(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#  define xf2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
+	  if2i(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#endif
 #define f2i(l, op)						\
 	xf2i(_f, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)	\
 	xf2i(_d, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)
@@ -491,20 +564,27 @@ label:
 	op##f %FR##f0 %IR##r0					\
 	check5(r##f##f0, l, r1, r2, r3, r4, r5)			\
 	checkf5(f, i##r0, l, f1, f2, f3, f4, f5)
-#define ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
-	i2fr(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
-#define xi2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
-	ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#if __ia64__
+#  define ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#  define xi2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  i2fr(f, l, op, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#  define xi2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
+	  ii2f(f, l, op, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#endif
 #define i2f(l, op)						\
 	xi2f(_f, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)	\
 	xi2f(_d, l, op, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5)
@@ -578,13 +658,18 @@ label:
 	 xxldi(_us, l, r0, r1, r2, r3, r4, r5)			\
 	 xxldi( _i, l, r0, r1, r2, r3, r4, r5)			\
 	xxxldi(l, r0, r1, r2, r3, r4, r5)
-#define   ldi(l)						\
+#if __ia64__
+#  define ldi(l)						\
+	 xldi(l, 0, 1, 2, 3, 4, 5)
+#else
+#  define ldi(l)						\
 	 xldi(l, 0, 1, 2, 3, 4, 5)				\
 	 xldi(l, 1, 2, 3, 4, 5, 0)				\
 	 xldi(l, 2, 3, 4, 5, 0, 1)				\
 	 xldi(l, 3, 4, 5, 0, 1, 2)				\
 	 xldi(l, 4, 5, 0, 1, 2, 3)				\
 	 xldi(l, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define fldi(f, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	setup()							\
@@ -622,20 +707,25 @@ label:
 #define	 xxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
 	  xldf(_f, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	  xldf(_d, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
-#define  fxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)		\
-	 xxldf(l, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
-#define  ixldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)		\
-	 fxldf(l, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#if __ia64__
+#  define ixldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define fxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
+	  xxldf(l, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+#  define ixldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  fxldf(l, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#endif
 #define   ldf(l)						\
 	ixldf(l, 0,1,2,3,4,5, 0,1,2,3,4,5)
 
@@ -695,13 +785,18 @@ label:
 	 xxsti( _s, l, r0, r1, r2, r3, r4, r5)			\
 	 xxsti( _i, l, r0, r1, r2, r3, r4, r5)			\
 	xxxsti(l, r0, r1, r2, r3, r4, r5)
-#define   sti(l)						\
+#if __ia64__
+#  define sti(l)						\
+	 xsti(l, 0, 1, 2, 3, 4, 5)
+#else
+#  define sti(l)						\
 	 xsti(l, 0, 1, 2, 3, 4, 5)				\
 	 xsti(l, 1, 2, 3, 4, 5, 0)				\
 	 xsti(l, 2, 3, 4, 5, 0, 1)				\
 	 xsti(l, 3, 4, 5, 0, 1, 2)				\
 	 xsti(l, 4, 5, 0, 1, 2, 3)				\
 	 xsti(l, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define fsti(f, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	setup()							\
@@ -739,20 +834,25 @@ label:
 #define	 xxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
 	  xstf(_f, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
 	  xstf(_d, l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
-#define  fxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)		\
-	 xxstf(l, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
-#define  ixstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)		\
-	 fxstf(l, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#if __ia64__
+#  define ixstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)
+#else
+#  define fxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f1,f2,f3,f4,f5,f0)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f2,f3,f4,f5,f0,f1)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f3,f4,f5,f0,f1,f2)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f4,f5,f0,f1,f2,f3)	\
+	  xxstf(l, r0,r1,r2,r3,r4,r5, f5,f0,f1,f2,f3,f4)
+# define ixstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)		\
+	  fxstf(l, r0,r1,r2,r3,r4,r5, f0,f1,f2,f3,f4,f5)	\
+	  fxstf(l, r1,r2,r3,r4,r5,r0, f0,f1,f2,f3,f4,f5)	\
+	  fxstf(l, r2,r3,r4,r5,r0,r1, f0,f1,f2,f3,f4,f5)	\
+	  fxstf(l, r3,r4,r5,r0,r1,r2, f0,f1,f2,f3,f4,f5)	\
+	  fxstf(l, r4,r5,r0,r1,r2,r3, f0,f1,f2,f3,f4,f5)	\
+	  fxstf(l, r5,r0,r1,r2,r3,r4, f0,f1,f2,f3,f4,f5)
+#endif
 #define   stf(l)						\
 	ixstf(l, 0,1,2,3,4,5, 0,1,2,3,4,5)
 
@@ -775,13 +875,18 @@ r##l##op##r0:							\
 #define  xjmpi(l, op, u, il, ir, r0, r1, r2, r3, r4, r5)	\
 	   bri(l, op, u, il, ir, r0, r1, r2, r3, r4, r5)	\
 	   brr(l, op, u, il, ir, r0, r1, r2, r3, r4, r5)
-#define  jmpi(l, op, u, il, ir)					\
-	xjmpi(l, op, u, il, ir, 0, 1, 2, 3, 4, 5)		\
-	xjmpi(l, op, u, il, ir, 1, 2, 3, 4, 5, 0)		\
-	xjmpi(l, op, u, il, ir, 2, 3, 4, 5, 0, 1)		\
-	xjmpi(l, op, u, il, ir, 3, 4, 5, 0, 1, 2)		\
-	xjmpi(l, op, u, il, ir, 4, 5, 0, 1, 2, 3)		\
-	xjmpi(l, op, u, il, ir, 5, 0, 1, 2, 3, 4)
+#if __ia64__
+#  define jmpi(l, op, u, il, ir)				\
+	 xjmpi(l, op, u, il, ir, 0, 1, 2, 3, 4, 5)
+#else
+#  define jmpi(l, op, u, il, ir)				\
+	 xjmpi(l, op, u, il, ir, 0, 1, 2, 3, 4, 5)		\
+	 xjmpi(l, op, u, il, ir, 1, 2, 3, 4, 5, 0)		\
+	 xjmpi(l, op, u, il, ir, 2, 3, 4, 5, 0, 1)		\
+	 xjmpi(l, op, u, il, ir, 3, 4, 5, 0, 1, 2)		\
+	 xjmpi(l, op, u, il, ir, 4, 5, 0, 1, 2, 3)		\
+	 xjmpi(l, op, u, il, ir, 5, 0, 1, 2, 3, 4)
+#endif
 
 #define bfi(f, l, op, il, ir, f0, f1, f2, f3, f4, f5)		\
 	setup##f()						\
@@ -804,13 +909,18 @@ r##l##op##f##f0:						\
 #define xxjmpf(l, op, il, ir, f0, f1, f2, f3, f4, f5)		\
 	 xjmpf(_f, l, op, il, ir, f0, f1, f2, f3, f4, f5)	\
 	 xjmpf(_d, l, op, il, ir, f0, f1, f2, f3, f4, f5)
-#define   jmpf(l, op, il, ir)					\
+#if __ia64__
+#  define jmpf(l, op, il, ir)					\
+	xxjmpf(l, op, il, ir, 0, 1, 2, 3, 4, 5)
+#else
+#  define jmpf(l, op, il, ir)					\
 	xxjmpf(l, op, il, ir, 0, 1, 2, 3, 4, 5)			\
 	xxjmpf(l, op, il, ir, 1, 2, 3, 4, 5, 0)			\
 	xxjmpf(l, op, il, ir, 2, 3, 4, 5, 0, 1)			\
 	xxjmpf(l, op, il, ir, 3, 4, 5, 0, 1, 2)			\
 	xxjmpf(l, op, il, ir, 4, 5, 0, 1, 2, 3)			\
 	xxjmpf(l, op, il, ir, 5, 0, 1, 2, 3, 4)
+#endif
 
 .data	32
 buff:
