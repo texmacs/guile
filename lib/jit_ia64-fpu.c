@@ -157,12 +157,12 @@ static void F16_(jit_state_t*,jit_word_t,
 /* fcvt.fxuf */
 #define FCVT_XUF(f1,f3)			FMA(f1,f3,1,0)
 /* fma */
-#define FMA(f1,f3,f4,f2)		F1(0x8,0,SF_S0,f4,f3,f3,f1)
-#define FMA_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x8,0,sf,f4,f3,f3,f1)
-#define FMA_S(f1,f3,f4,f2)		F1(0x8,1,SF_S0,f4,f3,f3,f1)
-#define FMA_S_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x8,1,sf,f4,f3,f3,f1)
-#define FMA_D(f1,f3,f4,f2)		F1(0x9,0,SF_S0,f4,f3,f3,f1)
-#define FMA_D_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x9,0,sf,f4,f3,f3,f1)
+#define FMA(f1,f3,f4,f2)		F1(0x8,0,SF_S0,f4,f3,f2,f1)
+#define FMA_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x8,0,sf,f4,f3,f2,f1)
+#define FMA_S(f1,f3,f4,f2)		F1(0x8,1,SF_S0,f4,f3,f2,f1)
+#define FMA_S_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x8,1,sf,f4,f3,f2,f1)
+#define FMA_D(f1,f3,f4,f2)		F1(0x9,0,SF_S0,f4,f3,f2,f1)
+#define FMA_D_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0x9,0,sf,f4,f3,f2,f1)
 /* fmax */
 #define FMAX(f1,f2,f3)			F8(0,SF_S0,0x15,f3,f2,f1)
 /* fmerge */
@@ -183,18 +183,18 @@ static void F16_(jit_state_t*,jit_word_t,
 #define FMPY_D(f1,f3,f4)		FMA_D(f1,f3,f4,0)
 #define FMPY_D_p(f1,f3,f4,sf,_p)	FMA_D_p(f1,f3,f4,0,sf,_p)
 /* fms */
-#define FMS(f1,f3,f4,f2)		F1(0xa,0,SF_S0,f4,f3,f3,f1)
-#define FMS_S(f1,f3,f4,f2)		F1(0xa,1,SF_S0,f4,f3,f3,f1)
-#define FMS_D(f1,f3,f4,f2)		F1(0xb,0,SF_S0,f4,f3,f3,f1)
+#define FMS(f1,f3,f4,f2)		F1(0xa,0,SF_S0,f4,f3,f2,f1)
+#define FMS_S(f1,f3,f4,f2)		F1(0xa,1,SF_S0,f4,f3,f2,f1)
+#define FMS_D(f1,f3,f4,f2)		F1(0xb,0,SF_S0,f4,f3,f2,f1)
 /* fneg */
 #define FNEG(f1,f3)			FMERGE_NS(f1,f3,f3)
 /* fnegabs */
 #define FNEGABS(f1,f3)			FMERGE_NS(f1,0,f3)
 /* fnma */
-#define FNMA(f1,f3,f4,f2)		F1(0xc,0,SF_S0,f4,f3,f3,f1)
-#define FNMA_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0xc,0,sf,f4,f3,f3,f1)
-#define FNMA_S(f1,f3,f4,f2)		F1(0xc,1,SF_S0,f4,f3,f3,f1)
-#define FNMA_D(f1,f3,f4,f2)		F1(0xd,0,SF_S0,f4,f3,f3,f1)
+#define FNMA(f1,f3,f4,f2)		F1(0xc,0,SF_S0,f4,f3,f2,f1)
+#define FNMA_p(f1,f3,f4,f2,sf,_p)	F1_(_jit,_p,0xc,0,sf,f4,f3,f2,f1)
+#define FNMA_S(f1,f3,f4,f2)		F1(0xc,1,SF_S0,f4,f3,f2,f1)
+#define FNMA_D(f1,f3,f4,f2)		F1(0xd,0,SF_S0,f4,f3,f2,f1)
 /* fnmpy */
 #define FNMPY(f1,f3,f4)			FNMA(f1,f3,f4,0)
 /* fnorm */
@@ -496,7 +496,7 @@ static void _gei_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 #define gei_d(r0,r1,i0)			_gei_d(_jit,r0,r1,i0)
 static void _gei_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #define gtr_f(r0,r1,r2)			gtr_d(r0,r1,r2)
-#define gtr_d(r0,r1,r2)			_gtr_d(_jit,r0,r2,r1)
+#define gtr_d(r0,r1,r2)			_gtr_d(_jit,r0,r1,r2)
 static void _gtr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #define gti_f(r0,r1,i0)			_gti_f(_jit,r0,r1,i0)
 static void _gti_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
@@ -1191,11 +1191,11 @@ dopi(ungt)
 static void
 _ltgtr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
-    MOV(r0, GR_0);
-    FCMP_LE(PR_8, PR_9, r1, r2);
-    FCMP_LE(PR_6, PR_7, r2, r1);
-    MOVI_p(r0, 1, PR_9);		/* !(r1 >= r2) || !(r2 >= r1) */
-    MOVI_p(r0, 1, PR_7);
+    MOVI(r0, 1);
+    FCMP_EQ(PR_8, PR_9, r1, r2);
+    FCMP_UNORD(PR_6, PR_7, r1, r2);
+    MOV_p(r0, GR_0, PR_8);
+    MOV_p(r0, GR_0, PR_6);
 }
 fopi(ltgt)
 dopi(ltgt)
@@ -1444,20 +1444,25 @@ static jit_word_t
 _buneqr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    jit_word_t		junord, jne;
     FCMP_UNORD(PR_8, PR_9, r0, r1);
-    /* junord L1 */
     sync();
+    /* junord L1 */
+    junord = _jit->pc.w;
     BRI_COND(3, PR_8);
     FCMP_EQ(PR_6, PR_7, r0, r1);
-    /* jne L2 */
     sync();
+    /* jne L2 */
+    jne = _jit->pc.w;
     BRI_COND(2, PR_7);
     sync();
     w = _jit->pc.w;
     /* L1: */
+    patch_at(jit_code_bunordr_d, junord, _jit->pc.w);
     BRI((i0 - w) >> 4);		/* unconditional jump to patch */
     sync();
     /* L2: */
+    patch_at(jit_code_bner_d, jne, _jit->pc.w);
     return (w);
 }
 fbopi(uneq)
@@ -1467,9 +1472,9 @@ static jit_word_t
 _bunger_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    FCMP_LT(PR_6, PR_7, r0, r1);
     sync();
     w = _jit->pc.w;
-    FCMP_LT(PR_6, PR_7, r0, r1);
     BRI_COND((i0 - w) >> 4, PR_7);
     return (w);
 }
@@ -1493,19 +1498,24 @@ static jit_word_t
 _bltgtr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		w;
+    jit_word_t		jeq, junord;
     FCMP_EQ(PR_8, PR_9, r0, r1);
     /* jeq L1 */
     sync();
+    jeq = _jit->pc.w;
     BRI_COND(4, PR_8);
     FCMP_UNORD(PR_6, PR_7, r0, r1);
-    /* jord L1 */
+    /* junord L1 */
     sync();
-    BRI_COND(2, PR_7);
+    junord = _jit->pc.w;
+    BRI_COND(2, PR_6);
     sync();
     w = _jit->pc.w;
     BRI((i0 - w) >> 4);		/* unconditional jump to patch */
     /* L1 */
     sync();
+    patch_at(jit_code_beqr_d, jeq, _jit->pc.w);
+    patch_at(jit_code_bordr_d, junord, _jit->pc.w);
     return (w);
 }
 fbopi(ltgt)

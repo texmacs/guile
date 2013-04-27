@@ -1423,7 +1423,7 @@ static void _prolog(jit_state_t*,jit_node_t*);
 #define epilog(node)			_epilog(_jit,node)
 static void _epilog(jit_state_t*,jit_node_t*);
 #define patch_at(node,instr,label)	_patch_at(_jit,node,instr,label)
-static void _patch_at(jit_state_t*,jit_node_t*,jit_word_t,jit_word_t);
+static void _patch_at(jit_state_t*,jit_code_t,jit_word_t,jit_word_t);
 #endif
 
 #if CODE
@@ -3414,7 +3414,7 @@ _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     movi(rn(reg), i0);
-    addr(r0, r1, rn(reg));
+    subr(r0, r1, rn(reg));
     jit_unget_reg(reg);
 }
 
@@ -3607,8 +3607,7 @@ _remi_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	return;
     }
     else if (i0 > 0 && !(i0 & (i0 - 1))) {
-	movr(r0, r1);
-	andi(r0, r0, i0 - 1);
+	andi(r0, r1, i0 - 1);
 	return;
     }
     reg = jit_get_reg(jit_class_gpr);
@@ -4926,6 +4925,10 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     }
     rout = reg - _OUT0;
 
+    /* Do not know if will call div/mod functions (sqrt) */
+    if (rout < 2)
+	rout = 2;
+
     /* Match gcc prolog */
     ALLOC(_jitc->breg + 1, ruse, rout);
     MOV(_jitc->breg + 2, GR_12);
@@ -4999,7 +5002,7 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 }
 
 static void
-_patch_at(jit_state_t *_jit, jit_node_t *node,
+_patch_at(jit_state_t *_jit, jit_code_t code,
 	  jit_word_t instr, jit_word_t label)
 {
     inst_lo_t		 l;
@@ -5013,7 +5016,7 @@ _patch_at(jit_state_t *_jit, jit_node_t *node,
 
     c.w = instr;	l.w = c.p[0];	h.w = c.p[1];
     get_tm(tm);		get_s0(s0);	get_s1(s1);	get_s2(s2);
-    switch (node->code) {
+    switch (code) {
 	case jit_code_movi:
 	case jit_code_calli:
 	    i1  = (label >> 63) &           0x1L;

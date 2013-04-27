@@ -1,5 +1,22 @@
 2013-04-26 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_ia64.h, lib/jit_ia64-cpu.c,
+	lib/jit_ia64-fpu.c, lib/jit_ia64.c:
+	  Relocate JIT_Rn registers to the local registers, as, like
+	float registers, div/rem and sqrt are implemented as function
+	calls, and may overwrite non saved scratch registers.
+	  Change patch_at to receive a jit_code_t instead of a
+	jit_node_t, so that it is easier to "inline" patches when
+	some instruction requires complex code to implement, e.g.
+	uneq and ltgt.
+	  Correct arguments to FMA and FMA like instructions that,
+	due to a cut&paste error were passing the wrong argument
+	to the related F- implementation function.
+	  Rewrite ltgt to return the proper result if one (or both)
+	of the arguments is unordered.
+
+2013-04-26 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_ia64.h, include/lightning/jit_private.h,
 	lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c, lib/jit_ia64.c,
 	lib/lightning.c: Rework code to detect need of a "stop" to

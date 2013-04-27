@@ -26,16 +26,18 @@
  */
 #define JIT_FP			_R4	/* Not abi specific */
 typedef enum {
-#define JIT_R0		_R14
-#define JIT_R1		_R15
-#define JIT_R2		_R16
-#define JIT_V0		_R40
-#define JIT_V1		_R41
-#define JIT_V2		_R42
-#define jit_r_num()	16
-#define jit_r(n)	(_R14 - (n))
-#define jit_v_num()	8
-#define jit_v(n)	(_R40 + (n))
+#define JIT_R0		_R40
+#define JIT_R1		_R41
+#define JIT_R2		_R42
+#define JIT_R3		_R43
+#define JIT_V0		_R44
+#define JIT_V1		_R45
+#define JIT_V2		_R46
+#define JIT_V3		_R47
+#define jit_r_num()	4
+#define jit_r(n)	(_R40 - (n))
+#define jit_v_num()	4
+#define jit_v(n)	(_R44 + (n))
     _R0,	/* constant - Always 0 */
     _R1,	/* special - Global Data pointer (gp) */
     /* r2-r3	 - scratch - Use with 22-bit immediate add - scratch */

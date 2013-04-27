@@ -67,7 +67,6 @@ jit_register_t		_rvs[] = {
     { rc(gpr)|23,	 "r23" },	{ rc(gpr)|22,		"r22" },
     { rc(gpr)|21,	 "r21" },	{ rc(gpr)|20,		"r20" },
     { rc(gpr)|19,	 "r19" },	{ rc(gpr)|18,		"r18" },
-    /* JIT_R4-JIT_R0 */
     { rc(gpr)|17,	 "r17" },	{ rc(gpr)|16,		"r16" },
     { rc(gpr)|15,	 "r15" },	{ rc(gpr)|14,		"r14" },
     /* Do not allow allocating r32-r41 as temoraries for the sake of
@@ -76,12 +75,12 @@ jit_register_t		_rvs[] = {
     { rc(arg)|34,	 "r34" },	{ rc(arg)|35,		"r35" },
     { rc(arg)|36,	 "r36" },	{ rc(arg)|37,		"r37" },
     { rc(arg)|38,	 "r38" },	{ rc(arg)|39,		"r39" },
-    /* JIT_V0-JIT_V3 */
+    /* JIT_R0-JIT_V3 */
     { rc(gpr)|40,	 "r40" },	{ rc(gpr)|41,		"r41" },
     { rc(gpr)|42,	 "r42" },	{ rc(gpr)|43,		"r43" },
-    /* Temporaries/locals */
     { rc(gpr)|44,	 "r44" },	{ rc(gpr)|45,		"r45" },
     { rc(gpr)|46,	 "r46" },	{ rc(gpr)|47,		"r47" },
+    /* Temporaries/locals */
     { rc(gpr)|48,	 "r48" },	{ rc(gpr)|49,		"r49" },
     { rc(gpr)|50,	 "r50" },	{ rc(gpr)|51,		"r51" },
     { rc(gpr)|52,	 "r52" },	{ rc(gpr)|53,		"r53" },
@@ -647,6 +646,11 @@ _emit_code(jit_state_t *_jit)
     } undo;
 
     _jitc->function = NULL;
+
+    /* If did resize the code buffer, these were not reset */
+    _jitc->ioff = 0;
+    jit_regset_set_ui(&_jitc->regs, 0);
+    _jitc->pred = 0;
 
     jit_reglive_setup();
 
@@ -1229,7 +1233,7 @@ _emit_code(jit_state_t *_jit)
     for (offset = 0; offset < _jitc->patches.offset; offset++) {
 	node = _jitc->patches.ptr[offset].node;
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
-	patch_at(node, _jitc->patches.ptr[offset].inst, word);
+	patch_at(node->code, _jitc->patches.ptr[offset].inst, word);
     }
 
     word = sysconf(_SC_PAGE_SIZE);
