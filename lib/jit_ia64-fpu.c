@@ -304,52 +304,52 @@ static void F16_(jit_state_t*,jit_word_t,
 #define LDFD_C_NC(f1,r3)		M9(0x27,LD_NONE,r3,f1)
 #define LDF8_C_NC(f1,r3)		M9(0x25,LD_NONE,r3,f1)
 #define LDFE_C_NC(f1,r3)		M9(0x24,LD_NONE,r3,f1)
-#define LDXFS(f1,r3,r2)			M7(0x02,LD_NONE,r3,r2,f1)
-#define LDXFD(f1,r3,r2)			M7(0x03,LD_NONE,r3,r2,f1)
-#define LDXF8(f1,r3,r2)			M7(0x01,LD_NONE,r3,r2,f1)
-#define LDXFE(f1,r3,r2)			M7(0x00,LD_NONE,r3,r2,f1)
-#define LDXFS_S(f1,r3,r2)		M7(0x06,LD_NONE,r3,r2,f1)
-#define LDXFD_S(f1,r3,r2)		M7(0x07,LD_NONE,r3,r2,f1)
-#define LDXF8_S(f1,r3,r2)		M7(0x05,LD_NONE,r3,r2,f1)
-#define LDXFE_S(f1,r3,r2)		M7(0x04,LD_NONE,r3,r2,f1)
-#define LDXFS_A(f1,r3,r2)		M7(0x0a,LD_NONE,r3,r2,f1)
-#define LDXFD_A(f1,r3,r2)		M7(0x0b,LD_NONE,r3,r2,f1)
-#define LDXF8_A(f1,r3,r2)		M7(0x09,LD_NONE,r3,r2,f1)
-#define LDXFE_A(f1,r3,r2)		M7(0x08,LD_NONE,r3,r2,f1)
-#define LDXFS_SA(f1,r3,r2)		M7(0x0e,LD_NONE,r3,r2,f1)
-#define LDXFD_SA(f1,r3,r2)		M7(0x0f,LD_NONE,r3,r2,f1)
-#define LDXF8_SA(f1,r3,r2)		M7(0x0d,LD_NONE,r3,r2,f1)
-#define LDXFE_SA(f1,r3,r2)		M7(0x0c,LD_NONE,r3,r2,f1)
-#define LDXFS_FILL(f1,r3,r2)		M7(0x1b,LD_NONE,r3,r2,f1)
-#define LDXFS_C_CLR(f1,r3,r2)		M7(0x22,LD_NONE,r3,r2,f1)
-#define LDXFD_C_CLR(f1,r3,r2)		M7(0x23,LD_NONE,r3,r2,f1)
-#define LDXF8_C_CLR(f1,r3,r2)		M7(0x21,LD_NONE,r3,r2,f1)
-#define LDXFE_C_CLR(f1,r3,r2)		M7(0x20,LD_NONE,r3,r2,f1)
-#define LDXFS_C_NC(f1,r3,r2)		M7(0x26,LD_NONE,r3,r2,f1)
-#define LDXFD_C_NC(f1,r3,r2)		M7(0x27,LD_NONE,r3,r2,f1)
-#define LDXF8_C_NC(f1,r3,r2)		M7(0x25,LD_NONE,r3,r2,f1)
-#define LDXFE_C_NC(f1,r3,r2)		M7(0x24,LD_NONE,r3,r2,f1)
-#define LDFS_inc(f1,f3,im)		M8(0x02,LD_NONE,f3,im,f1)
-#define LDFD_inc(f1,f3,im)		M8(0x03,LD_NONE,f3,im,f1)
-#define LDF8_inc(f1,f3,im)		M8(0x01,LD_NONE,f3,im,f1)
-#define LDFE_inc(f1,f3,im)		M8(0x00,LD_NONE,f3,im,f1)
-#define LDFS_S_inc(f1,f3,im)		M8(0x06,LD_NONE,f3,im,f1)
-#define LDFD_S_inc(f1,f3,im)		M8(0x07,LD_NONE,f3,im,f1)
-#define LDF8_S_inc(f1,f3,im)		M8(0x05,LD_NONE,f3,im,f1)
-#define LDFE_S_inc(f1,f3,im)		M8(0x04,LD_NONE,f3,im,f1)
-#define LDFS_A_inc(f1,f3,im)		M8(0x0a,LD_NONE,f3,im,f1)
-#define LDFD_A_inc(f1,f3,im)		M8(0x0b,LD_NONE,f3,im,f1)
-#define LDF8_A_inc(f1,f3,im)		M8(0x09,LD_NONE,f3,im,f1)
-#define LDFE_A_inc(f1,f3,im)		M8(0x08,LD_NONE,f3,im,f1)
-#define LDF_FILL_inc(f1,f3,im)		M8(0x1b,LD_NONE,f3,im,f1)
-#define LDFS_C_CLR_inc(f1,f3,im)	M8(0x22,LD_NONE,f3,im,f1)
-#define LDFD_C_CLR_inc(f1,f3,im)	M8(0x23,LD_NONE,f3,im,f1)
-#define LDF8_C_CLR_inc(f1,f3,im)	M8(0x21,LD_NONE,f3,im,f1)
-#define LDFE_C_CLR_inc(f1,f3,im)	M8(0x20,LD_NONE,f3,im,f1)
-#define LDFS_C_NC_inc(f1,f3,im)		M8(0x26,LD_NONE,f3,im,f1)
-#define LDFD_C_NC_inc(f1,f3,im)		M8(0x27,LD_NONE,f3,im,f1)
-#define LDF8_C_NC_inc(f1,f3,im)		M8(0x25,LD_NONE,f3,im,f1)
-#define LDFE_C_NC_inc(f1,f3,im)		M8(0x24,LD_NONE,f3,im,f1)
+#define LDFS_inc(f1,r3,r2)		M7(0x02,LD_NONE,r3,r2,f1)
+#define LDFD_inc(f1,r3,r2)		M7(0x03,LD_NONE,r3,r2,f1)
+#define LDF8_inc(f1,r3,r2)		M7(0x01,LD_NONE,r3,r2,f1)
+#define LDFE_inc(f1,r3,r2)		M7(0x00,LD_NONE,r3,r2,f1)
+#define LDFS_S_inc(f1,r3,r2)		M7(0x06,LD_NONE,r3,r2,f1)
+#define LDFD_S_inc(f1,r3,r2)		M7(0x07,LD_NONE,r3,r2,f1)
+#define LDF8_S_inc(f1,r3,r2)		M7(0x05,LD_NONE,r3,r2,f1)
+#define LDFE_S_inc(f1,r3,r2)		M7(0x04,LD_NONE,r3,r2,f1)
+#define LDFS_A_inc(f1,r3,r2)		M7(0x0a,LD_NONE,r3,r2,f1)
+#define LDXFD_A_inc(f1,r3,r2)		M7(0x0b,LD_NONE,r3,r2,f1)
+#define LDXF8_A_inc(f1,r3,r2)		M7(0x09,LD_NONE,r3,r2,f1)
+#define LDXFE_A_inc(f1,r3,r2)		M7(0x08,LD_NONE,r3,r2,f1)
+#define LDXFS_SA_inc(f1,r3,r2)		M7(0x0e,LD_NONE,r3,r2,f1)
+#define LDXFD_SA_inc(f1,r3,r2)		M7(0x0f,LD_NONE,r3,r2,f1)
+#define LDXF8_SA_inc(f1,r3,r2)		M7(0x0d,LD_NONE,r3,r2,f1)
+#define LDXFE_SA_inc(f1,r3,r2)		M7(0x0c,LD_NONE,r3,r2,f1)
+#define LDXFS_FILL_inc(f1,r3,r2)	M7(0x1b,LD_NONE,r3,r2,f1)
+#define LDXFS_C_CLR_inc(f1,r3,r2)	M7(0x22,LD_NONE,r3,r2,f1)
+#define LDXFD_C_CLR_inc(f1,r3,r2)	M7(0x23,LD_NONE,r3,r2,f1)
+#define LDXF8_C_CLR_inc(f1,r3,r2)	M7(0x21,LD_NONE,r3,r2,f1)
+#define LDXFE_C_CLR_inc(f1,r3,r2)	M7(0x20,LD_NONE,r3,r2,f1)
+#define LDXFS_C_NC_inc(f1,r3,r2)	M7(0x26,LD_NONE,r3,r2,f1)
+#define LDXFD_C_NC_inc(f1,r3,r2)	M7(0x27,LD_NONE,r3,r2,f1)
+#define LDXF8_C_NC_inc(f1,r3,r2)	M7(0x25,LD_NONE,r3,r2,f1)
+#define LDXFE_C_NC_inc(f1,r3,r2)	M7(0x24,LD_NONE,r3,r2,f1)
+#define LDIFS_inc(f1,f3,im)		M8(0x02,LD_NONE,f3,im,f1)
+#define LDIFD_inc(f1,f3,im)		M8(0x03,LD_NONE,f3,im,f1)
+#define LDIF8_inc(f1,f3,im)		M8(0x01,LD_NONE,f3,im,f1)
+#define LDIFE_inc(f1,f3,im)		M8(0x00,LD_NONE,f3,im,f1)
+#define LDIFS_S_inc(f1,f3,im)		M8(0x06,LD_NONE,f3,im,f1)
+#define LDIFD_S_inc(f1,f3,im)		M8(0x07,LD_NONE,f3,im,f1)
+#define LDIF8_S_inc(f1,f3,im)		M8(0x05,LD_NONE,f3,im,f1)
+#define LDIFE_S_inc(f1,f3,im)		M8(0x04,LD_NONE,f3,im,f1)
+#define LDIFS_A_inc(f1,f3,im)		M8(0x0a,LD_NONE,f3,im,f1)
+#define LDIFD_A_inc(f1,f3,im)		M8(0x0b,LD_NONE,f3,im,f1)
+#define LDIF8_A_inc(f1,f3,im)		M8(0x09,LD_NONE,f3,im,f1)
+#define LDIFE_A_inc(f1,f3,im)		M8(0x08,LD_NONE,f3,im,f1)
+#define LDIF_FILL_inc(f1,f3,im)		M8(0x1b,LD_NONE,f3,im,f1)
+#define LDIFS_C_CLR_inc(f1,f3,im)	M8(0x22,LD_NONE,f3,im,f1)
+#define LDIFD_C_CLR_inc(f1,f3,im)	M8(0x23,LD_NONE,f3,im,f1)
+#define LDIF8_C_CLR_inc(f1,f3,im)	M8(0x21,LD_NONE,f3,im,f1)
+#define LDIFE_C_CLR_inc(f1,f3,im)	M8(0x20,LD_NONE,f3,im,f1)
+#define LDIFS_C_NC_inc(f1,f3,im)	M8(0x26,LD_NONE,f3,im,f1)
+#define LDIFD_C_NC_inc(f1,f3,im)	M8(0x27,LD_NONE,f3,im,f1)
+#define LDIF8_C_NC_inc(f1,f3,im)	M8(0x25,LD_NONE,f3,im,f1)
+#define LDIFE_C_NC_inc(f1,f3,im)	M8(0x24,LD_NONE,f3,im,f1)
 /* ldpf */
 #define LDFPS(f1,f2,r3)			M11(0x02,LD_NONE,r3,f2,f1)
 #define LDFPD(f1,f2,r3)			M11(0x03,LD_NONE,r3,f2,f1)
@@ -577,15 +577,17 @@ static void _unordi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #define ldr_f(r0,r1)			LDFS(r0,r1)
 #define ldi_f(r0,i0)			_ldi_f(_jit,r0,i0)
 static void _ldi_f(jit_state_t*,jit_int32_t,jit_word_t);
-#define ldxr_f(r0,r1,r2)		LDXFS(r0,r1,r2)
+#define ldxr_f(r0,r1,r2)		_ldxr_f(_jit,r0,r1,r2)
+static void _ldxr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #define ldxi_f(r0,r1,i0)		_ldxi_f(_jit,r0,r1,i0)
 static void _ldxi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #define ldr_d(r0,r1)			LDFD(r0,r1)
 #define ldi_d(r0,i0)			_ldi_d(_jit,r0,i0)
 static void _ldi_d(jit_state_t*,jit_int32_t,jit_word_t);
+#define ldxr_d(r0,r1,r2)		_ldxr_d(_jit,r0,r1,r2)
+static void _ldxr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #define ldxi_d(r0,r1,i0)		_ldxi_d(_jit,r0,r1,i0)
 static void _ldxi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
-#define ldxr_d(r0,r1,r2)		LDXFD(r0,r1,r2)
 #define str_f(r0,r1)			STFS(r0,r1)
 #define sti_f(i0,r0)			_sti_f(_jit,i0,r0)
 static void _sti_f(jit_state_t*,jit_word_t,jit_int32_t);
@@ -1282,6 +1284,16 @@ _ldi_f(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 }
 
 static void
+_ldxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r1, r2);
+    ldr_f(r0, rn(reg));
+    jit_unget_reg(reg);
+}
+
+static void
 _ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
@@ -1297,6 +1309,16 @@ _ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     movi(rn(reg), i0);
+    ldr_d(r0, rn(reg));
+    jit_unget_reg(reg);
+}
+
+static void
+_ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r1, r2);
     ldr_d(r0, rn(reg));
     jit_unget_reg(reg);
 }

@@ -1328,19 +1328,22 @@ static jit_word_t _bsubi_u(jit_state_t*,jit_word_t,
 #define bxsubi(i0,r0,i1)		bsubi(i0,r0,i1,0)
 #define bxsubr_u(i0,r0,r1)		bsubr_u(i0,r0,r1,0)
 #define bxsubi_u(i0,r0,i1)		bsubi_u(i0,r0,i1,0)
-#define ldr_c(r0,r1)			LD1_S(r0,r1)
+#define ldr_c(r0,r1)			_ldr_c(_jit,r0,r1)
+static void _ldr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 #define ldi_c(r0,i0)			_ldi_c(_jit,r0,i0)
 static void _ldi_c(jit_state_t*,jit_int32_t,jit_word_t);
 #define ldr_uc(r0,r1)			LD1(r0,r1)
 #define ldi_uc(r0,i0)			_ldi_uc(_jit,r0,i0)
 static void _ldi_uc(jit_state_t*,jit_int32_t,jit_word_t);
-#define ldr_s(r0,r1)			LD2_S(r0,r1)
+#define ldr_s(r0,r1)			_ldr_s(_jit,r0,r1)
+static void _ldr_s(jit_state_t*,jit_int32_t,jit_int32_t);
 #define ldi_s(r0,i0)			_ldi_s(_jit,r0,i0)
 static void _ldi_s(jit_state_t*,jit_int32_t,jit_word_t);
 #define ldr_us(r0,r1)			LD2(r0,r1)
 #define ldi_us(r0,i0)			_ldi_us(_jit,r0,i0)
 static void _ldi_us(jit_state_t*,jit_int32_t,jit_word_t);
-#define ldr_i(r0,r1)			LD4_S(r0,r1)
+#define ldr_i(r0,r1)			_ldr_i(_jit,r0,r1)
+static void _ldr_i(jit_state_t*,jit_int32_t,jit_int32_t);
 #define ldi_i(r0,i0)			_ldi_i(_jit,r0,i0)
 static void _ldi_i(jit_state_t*,jit_int32_t,jit_word_t);
 #define ldr_ui(r0,r1)			LD4(r0,r1)
@@ -4046,6 +4049,13 @@ _nei(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
+_ldr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    ldr_uc(r0, r1);
+    extr_c(r0, r0);
+}
+
+static void
 _ldi_c(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
@@ -4066,6 +4076,13 @@ _ldi_uc(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 }
 
 static void
+_ldr_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    ldr_us(r0, r1);
+    extr_s(r0, r0);
+}
+
+static void
 _ldi_s(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
@@ -4083,6 +4100,13 @@ _ldi_us(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     movi(rn(reg), i0);
     ldr_us(r0, rn(reg));
     jit_unget_reg(reg);
+}
+
+static void
+_ldr_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    ldr_ui(r0, r1);
+    extr_i(r0, r0);
 }
 
 static void

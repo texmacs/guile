@@ -1,5 +1,18 @@
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ia64-cpu.c: Correct bogus implementation of ldr_T
+	for signed integers, that was using ld1.s, ld2.s and ld4.s.
+	The ".s" stands for speculative load, not sign extend.
+
+	* lib/jit_ia64-fpu.c: Correct bogus implementation of ldxr_T
+	for float and double. The third (actually, second) argument
+	is indeed added to the base register, but the base register
+	is modified. The actual M7 implementation was already correct,
+	just the ldxr_f and ldxr_d implementation that was kept in
+	a prototype state, misinterpreting what M7 does.
+
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ia64-cpu.c: Correct X2 pattern matching by preventing
 	it to attempt to require a stop between the L and the X
 	instruction; that is, check the registers and predicates
