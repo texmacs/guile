@@ -1,5 +1,14 @@
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ia64-cpu.c: Correct wrong mapping of 2 instructions
+	in "M-, stop, M-, stop" translation, that was ignoring the
+	last stop (implemented as a nop I- stop).
+
+	* lib/jit_ia64-fpu.c: Properly implement fnorm.s and fnorm.d,
+	as well as the proper integer to float or double conversion.
+
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ia64-cpu.c: Correct bogus implementation of ldr_T
 	for signed integers, that was using ld1.s, ld2.s and ld4.s.
 	The ".s" stands for speculative load, not sign extend.

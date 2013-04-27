@@ -1937,7 +1937,7 @@ _flush(jit_state_t *_jit)
 	    s0 = ii(0);		s1 = ii(1);		s2 = nop_i;
 	    break;
 	case MsMs:
-	    n = 2;		tm = TM_MsM_I_;
+	    n = 2;		tm = TM_MsM_Is;
 	    s0 = ii(0);		s1 = ii(1);		s2 = nop_i;
 	    break;
 	case MsM_I_:

@@ -153,7 +153,7 @@ static void F16_(jit_state_t*,jit_word_t,
 #define FCVT_FX_TRUNC(f1,f2)		F10(0,SF_S0,0x1a,f2,f1)
 #define FCVT_FXU_TRUNC(f1,f2)		F10(0,SF_S0,0x1b,f2,f1)
 /* fcvt.xf */
-#define FCVT_XF(f1,f2)			F11(0x1c,f1,f2)
+#define FCVT_XF(f1,f2)			F11(0x1c,f2,f1)
 /* fcvt.fxuf */
 #define FCVT_XUF(f1,f3)			FMA(f1,f3,1,0)
 /* fma */
@@ -199,6 +199,8 @@ static void F16_(jit_state_t*,jit_word_t,
 #define FNMPY(f1,f3,f4)			FNMA(f1,f3,f4,0)
 /* fnorm */
 #define FNORM(f1,f3)			FMA(f1,f3,1,0)
+#define FNORM_S(f1,f3)			FMA_S(f1,f3,1,0)
+#define FNORM_D(f1,f3)			FMA_D(f1,f3,1,0)
 /* for */
 #define FOR(f1,f2,f3)			F9(0,0x2e,f3,f2,f1)
 /* fpabs */
@@ -440,9 +442,10 @@ static void _movi_d_w(jit_state_t*,jit_int32_t,jit_word_t);
 static void _sqrtr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #define sqrtr_d(r0,r1)			_sqrtr_d(_jit,r0,r1)
 static void _sqrtr_d(jit_state_t*,jit_int32_t,jit_int32_t);
-#define extr_f_d(r0,r1)			/*FNORM(r0,r1)*/
-#define extr_d_f(r0,r1)			/*FNORM(r0,r1)*/
-#define extr_f(r0,r1)			extr_d(r0,r1)
+#define extr_f_d(r0,r1)			FNORM_D(r0,r1)
+#define extr_d_f(r0,r1)			FNORM_S(r0,r1)
+#define extr_f(r0,r1)			_extr_f(_jit,r0,r1)
+static void _extr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #define extr_d(r0,r1)			_extr_d(_jit,r0,r1)
 static void _extr_d(jit_state_t*,jit_int32_t,jit_int32_t);
 #define truncr_f_i(r0,r1)		truncr_d_l(r0,r1)
@@ -1109,12 +1112,24 @@ _divr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
+_extr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_fpr);
+    SETF_SIG(rn(reg), r1);
+    FCVT_XF(r0, rn(reg));
+    FNORM_S(r0, r0);
+    jit_unget_reg(reg);
+}
+
+static void
 _extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_fpr);
     SETF_SIG(rn(reg), r1);
     FCVT_XF(r0, rn(reg));
+    FNORM_D(r0, r0);
     jit_unget_reg(reg);
 }
 
