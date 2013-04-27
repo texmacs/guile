@@ -704,6 +704,7 @@ _M7(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTREG2(r2, r3);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((6L<<37)|(1L<<36)|(x6<<30)|(ht<<28)|
 	 (r3<<20)|(r2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -722,6 +723,7 @@ _M8(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 &  ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((7L<<37)|(((im>>8)&1L)<<36)|(x6<<30)|(ht<<28)|
 	 (((im>>8)&1L)<<27)|(r3<<20)|((im&0x7fLL)<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -739,6 +741,7 @@ _M9(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((6L<<37)|(x6<<30)|(ht<<28)|(r3<<20)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
 }
@@ -773,6 +776,7 @@ _M11(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
+    TSTFREG2(f1, f2);
     inst((6L<<37)|(x6<<30)|(ht<<28)|(1L<<27)|
 	 (r3<<20)|(f2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -791,6 +795,7 @@ _M12(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
+    TSTFREG2(f1, f2);
     inst((6L<<37)|(1L<<36)|(x6<<30)|(ht<<28)|
 	 (1L<<27)|(r3<<20)|(f2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
@@ -808,6 +813,7 @@ _M18(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTREG1(r2);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((6L<<37)|(x6<<30)|(1L<<27)|(r2<<13)|(f1<<6)|_p, INST_M);
     SETFREG(f1);
 }
@@ -822,6 +828,7 @@ _M19(jit_state_t *_jit, jit_word_t _p,
     assert(!(r1 & ~0x7fL));
     TSTFREG1(f2);
     TSTPRED(_p);
+    TSTREG1(r1);
     inst((4L<<37)|(x6<<30)|(1L<<27)|(f2<<13)|(r1<<6)|_p, INST_M);
     SETREG(r1);
 }
@@ -841,6 +848,7 @@ F1_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTFREG3(f2, f3, f4);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((op<<37)|(x<<36)|(sf<<34)|(f4<<27)|
 	 (f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
@@ -905,6 +913,7 @@ F6x_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTFREG2(f2, f3);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((op<<37)|(q<<36)|(sf<<34)|(1L<<33)|
 	 (p2<<27)|(f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
@@ -926,6 +935,7 @@ F8_(jit_state_t *_jit, jit_word_t _p,
     assert(!(f1 & ~0x7fL));
     TSTFREG2(f2, f3);
     TSTPRED(_p);
+    TSTFREG1(f1);
     inst((op<<37)|(sf<<34)|(x6<<27)|(f3<<20)|(f2<<13)|(f1<<6)|_p, INST_F);
     SETFREG(f1);
 }

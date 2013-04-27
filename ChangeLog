@@ -1,5 +1,19 @@
 2013-04-26 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c: Correct code to
+	also insert a stop to break an instruction group if a
+	register is written more than once in the same group.
+	This may happen if a register is argument and result of
+	some lightning call (not a real instruction). The most
+	common case should be code in the pattern:
+		movl rn=largenum
+		...
+		mov rn=smallnum
+	where "rn" would end up holding "largenum".
+	But the problem possibly could happen in other circumstances.
+
+2013-04-26 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_ia64.h, lib/jit_ia64-cpu.c,
 	lib/jit_ia64-fpu.c, lib/jit_ia64.c:
 	  Relocate JIT_Rn registers to the local registers, as, like
