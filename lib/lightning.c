@@ -63,7 +63,7 @@ static void _bmp_clear(jit_state_t*);
 static void _bmp_set(jit_state_t*, jit_word_t);
 
 #define bmp_clr(bit)			_bmp_clr(_jit, bit)
-static void _bmp_clr(jit_state_t*, jit_word_t);
+static void _bmp_clr(jit_state_t*, jit_word_t) maybe_unused;
 
 #define bmp_tst(bit)			_bmp_tst(_jit, bit)
 static jit_bool_t _bmp_tst(jit_state_t*, jit_word_t);

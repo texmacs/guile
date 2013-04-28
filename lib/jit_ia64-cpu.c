@@ -17,6 +17,7 @@
 
 #if PROTO
 #define stack_framesize			96
+#define params_offset			16
 #define INST_NONE			0	/* should never be generated */
 #define INST_STOP			1	/* or'ed if stop is required */
 #define INST_A				2	/* M- or I- unit */
@@ -221,7 +222,6 @@ extern void __divdi3(long,long);
 extern void __udivdi3(unsigned long,unsigned long);
 extern void __moddi3(long,long);
 extern void __umoddi3(unsigned long,unsigned long);
-
 #define out(n,tm,s0,s1,s2)		_out(_jit,n,tm,s0,s1,s2)
 static void _out(jit_state_t*,int,int,jit_word_t,jit_word_t,jit_word_t);
 #define stop()				_stop(_jit)
@@ -252,7 +252,8 @@ static void _A6(jit_state_t*,jit_word_t,
 #define A7(o,x2,ta,p2,r3,c,p1)		_A7(_jit,0,o,x2,ta,p2,r3,c,p1)
 static void _A7(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define A8(o,x2,ta,p2,r3,im,c,p1)	_A8(_jit,0,o,x2,ta,p2,r3,im,c,p1)
 static void _A8(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,
@@ -260,21 +261,25 @@ static void _A8(jit_state_t*,jit_word_t,
 #define A9(za,zb,x4,x2,r3,r2,r1)	_A9(_jit,0,za,zb,x4,x2,r3,r2,r1)
 static void _A9(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define A10(x4,ct,r3,r2,r1)		A9(0,1,x4,ct,r3,r2,r1)
 #define I1(ct,x2,r3,r2,r1)		_I1(_jit,0,ct,x2,r3,r2,r1)
 static void _I1(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I2(za,x2a,zb,x2c,x2b,r3,r2,r1)	_I2(_jit,0,za,x2a,zb,x2c,x2b,r3,r2,r1)
 static void _I2(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I3(mbt,r2,r1)			_I3(_jit,0,mbt,r2,r1)
 static void _I3(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t);
 #define I4(mht,r2,r1)			_I4(_jit,0,mht,r2,r1)
 static void _I4(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I5(za,zb,x2b,r3,r2,r1)		_I5(_jit,0,za,zb,x2b,r3,r2,r1)
 static void _I5(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,
@@ -282,51 +287,65 @@ static void _I5(jit_state_t*,jit_word_t,
 #define I6(za,zb,x2b,r3,ct,r1)		_I6(_jit,0,za,zb,x2b,r3,ct,r1)
 static void _I6(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I7(za,zb,r3,r2,r1)		_I7(_jit,0,za,zb,r3,r2,r1)
 static void _I7(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define I8(za,zb,ct,r2,r1)		_I8(_jit,0,za,zb,ct,r2,r1)
 static void _I8(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I9(x2c,r3,r1)			_I9(_jit,0,x2c,r3,r1)
 static void _I9(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I10(ct,r3,r2,r1)		_I10(_jit,0,ct,r3,r2,r1)
 static void _I10(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I11(len,r3,pos,y,r1)		_I11(_jit,0,len,r3,pos,y,r1)
 static void _I11(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I12(len,pos,r2,r1)		_I12(_jit,0,len,pos,r2,r1)
 static void _I12(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I13(len,pos,im,r1)		_I13(_jit,0,len,pos,im,r1)
 static void _I13(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I14(s,len,r3,pos,r1)		_I14(_jit,0,s,len,r3,pos,r1)
 static void _I14(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I15(pos,len,r3,r2,r1)		_I15(_jit,0,pos,len,r3,r2,r1)
 static void _I15(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I16(tb,ta,p2,r3,pos,c,p1)	_I16(_jit,0,tb,ta,p2,r3,pos,c,p1)
 static void _I16(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I17(tb,ta,p2,r3,c,p1)		_I17(_jit,0,tb,ta,p2,r3,c,p1)
 static void _I17(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define I18(im,y)			_I18(_jit,0,im,y)
 static void _I18(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I19(im)				_I19(_jit,0,im)
 static void _I19(jit_state_t*,jit_word_t,
-		 jit_word_t);
+		 jit_word_t)
+    maybe_unused;
 #define I20(r2,im)			_I20(_jit,0,r2,im)
 static void _I20(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I21(im,ih,x,wh,r2,b1)		_I21(_jit,0,im,ih,x,wh,r2,b1)
 static void _I21(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,
@@ -336,41 +355,49 @@ static void _I22(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t);
 #define I23(r2,im)			_I23(_jit,0,r2,im)
 static void _I23(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I24(im)				_I24(_jit,0,im)
 static void _I24(jit_state_t*,jit_word_t,
-		 jit_word_t);
+		 jit_word_t)
+    maybe_unused;
 #define I25(x6,r1)			_I25(_jit,0,x6,r1)
 static void _I25(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I26(ar,r2)			_I26(_jit,0,ar,r2)
 static void _I26(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t);
 #define I27(ar,im)			_I27(_jit,0,ar,im)
 static void _I27(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I28(ar,r1)			_I28(_jit,0,ar,r1)
 static void _I28(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define I29(x6,r3,r1)			_I29(_jit,0,x6,r3,r1)
 static void _I29(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t);
 #define I30(tb,ta,p2,im,c,p1)		_I30(_jit,0,ta,tb,p2,im,c,p1)
 static void _I30(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M1(x6,ht,x,r3,r1)		_M1(_jit,0,x6,ht,x,r3,r1)
 static void _M1(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define M2(x6,ht,r3,r2,r1)		_M2(_jit,0,x6,ht,r3,r2,r1)
 static void _M2(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M3(x6,ht,r3,im,r1)		_M3(_jit,0,x6,ht,r3,im,r1)
 static void _M3(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define M5(x6,ht,r3,r2,im)		_M5(_jit,0,x6,ht,r3,r2,im)
 static void _M5(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M6(x6,ht,x,r3,r2)		_M6(_jit,0,x6,ht,x,r3,r2)
 static void _M6(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
@@ -379,99 +406,127 @@ static void _M13(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define M14(x6,ht,r3,r2)		_M14(_jit,0,x6,ht,r3,r2)
 static void _M14(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M15(x6,ht,r3,im)		_M15(_jit,0,x6,ht,r3,im)
 static void _M15(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M16(x6,ht,r3,r2,r1)		_M16(_jit,0,x6,ht,r3,r2,r1)
 static void _M16(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M17(x6,ht,r3,im,r1)		_M17(_jit,0,x6,ht,r3,im,r1)
 static void _M17(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M20(r2,im)			M20x(0x1,r2,im)
 #define M20x(x3,r2,im)			_M20x(_jit,0,x3,r2,im)
 static void _M20x(jit_state_t*,jit_word_t,
-		  jit_word_t,jit_word_t,jit_word_t);
+		  jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M22(x3,im,r1)			M22x(x3,im,r1)
 #define M22x(x3,im,r1)			_M22x(_jit,0,x3,im,r1)
 static void _M22x(jit_state_t*,jit_word_t,
-		  jit_word_t,jit_word_t,jit_word_t);
+		  jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M24(x2,x4)			_M24(_jit,0,x2,x4)
 #define M25(x4)				M24(0,x4)
 static void _M24(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M26(r1)				M26x(2,r1)
 #define M26x(x4,r1)			_M26x(_jit,0,x4,r1)
 static void _M26x(jit_state_t*,jit_word_t,
-		  jit_word_t,jit_word_t);
+		  jit_word_t,jit_word_t)
+    maybe_unused;
 #define M28(x,r3)			_M28(_jit,0,x,r3)
 static void _M28(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M29(ar,r2)			_M29(_jit,0,ar,r2)
 static void _M29(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M30(ar,im)			_M30(_jit,0,ar,im)
-static void _M30(jit_state_t*,jit_word_t,jit_word_t,jit_word_t);
+static void _M30(jit_state_t*,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M31(ar,r1)			_M31(_jit,0,ar,r1)
 static void _M31(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M32(cr,r2)			_M32(_jit,0,cr,r2)
 static void _M32(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M33(cr,r1)			_M33(_jit,0,cr,r1)
 static void _M33(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M34(sor,sol,sof,r1)		_M34(_jit,0,sor,sol,sof,r1)
 static void _M34(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define M35(x6,r2)			_M35(_jit,0,x6,r2)
 static void _M35(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M36(x6,r1)			_M36(_jit,0,x6,r1)
 static void _M36(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M37(im)				_M37(_jit,0,im)
 static void _M37(jit_state_t*,jit_word_t,
-		 jit_word_t);
+		 jit_word_t)
+    maybe_unused;
 #define M38(x6,r3,r2,r1)		_M38(_jit,0,x6,r3,r2,r1)
 static void _M38(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M39(x6,r3,im,r1)		_M39(_jit,0,x6,r3,im,r1)
 static void _M39(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M40(x6,r3,im)			_M40(_jit,0,x6,r3,im)
 static void _M40(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M41(x6,r2)			_M41(_jit,0,x6,r2)
 static void _M41(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M42(x6,r3,r2)			_M42(_jit,0,x6,r3,r2)
 static void _M42(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M43(x6,r3,r1)			_M43(_jit,0,x6,r3,r1)
 static void _M43(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M44(x4,im)			_M44(_jit,0,x4,im)
 static void _M44(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define M45(x6,r3,r2)			_M45(_jit,0,x6,r3,r2)
 static void _M45(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M46(x6,r3,r1)			_M46(_jit,0,x6,r3,r1)
 #define M47(x6,r3)			M46(x6,r3,0)
 static void _M46(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define M48(y,im)			_M48(_jit,0,y,im)
 static void _M48(jit_state_t*,jit_word_t,
-		 jit_word_t,jit_word_t);
+		 jit_word_t,jit_word_t)
+    maybe_unused;
 #define B1(d,wh,im,p,tp)		_B1(_jit,0,d,wh,im,p,tp)
 #define B2(d,wh,im,p,tp)		B1(d,wh,im,p,tp)
 static void _B1(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define B3(d,wh,im,p,b)			_B3(_jit,0,d,wh,im,p,b)
 static void _B3(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define B4(d,wh,x6,b,p,tp)		_B4(_jit,0,d,wh,x6,b,p,tp)
 static void _B4(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,
@@ -481,19 +536,24 @@ static void _B5(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
 #define B6(ih,im,tag,wh)		_B6(_jit,0,ih,im,tag,wh)
 static void _B6(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define B7(ih,x6,b2,tag,wh)		_B7(_jit,0,ih,x6,b2,tag,wh)
 static void _B7(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define B8(x6)				_B8(_jit,0,x6)
 static void _B8(jit_state_t*,jit_word_t,
-		jit_word_t);
+		jit_word_t)
+    maybe_unused;
 #define B9(op,x6,im)			_B9(_jit,0,op,x6,im)
 static void _B9(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t)
+    maybe_unused;
 #define X1(im)				_X1(_jit,0,im)
 static void _X1(jit_state_t*,jit_word_t,
-		jit_word_t);
+		jit_word_t)
+    maybe_unused;
 #define X2(r1,im)			_X2(_jit,0,r1,im)
 static void _X2(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t);
@@ -505,7 +565,8 @@ static void _X3x(jit_state_t*,jit_word_t,
 		 jit_word_t,jit_word_t,jit_word_t);
 #define X5(y,im)			_X5(_jit,0,y,im)
 static void _X5(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t)
+    maybe_unused;
 
 /* add */
 #define ADD(r1,r2,r3)			A1(0,0,r3,r2,r1)
@@ -3493,13 +3554,13 @@ _subci(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	jit_carry = jit_get_reg(jit_class_gpr);
     if (r0 == r1) {
 	reg = jit_get_reg(jit_class_gpr);
-	subi(rn(reg), r1, i0);
+	addi(rn(reg), r1, -i0);
 	ltr_u(rn(jit_carry), r1, rn(reg));
 	movr(r0, rn(reg));
 	jit_unget_reg(reg);
     }
     else {
-	subi(r0, r1, i0);
+	addi(r0, r1, -i0);
 	ltr_u(rn(jit_carry), r1, r0);
     }
 }
@@ -4153,10 +4214,14 @@ static void
 _ldxi_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_c(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_c(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_c(r0, r1);
 }
 
 static void
@@ -4173,10 +4238,14 @@ static void
 _ldxi_uc(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_uc(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_uc(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_uc(r0, r1);
 }
 
 static void
@@ -4193,10 +4262,14 @@ static void
 _ldxi_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_s(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_s(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_s(r0, r1);
 }
 
 static void
@@ -4213,10 +4286,14 @@ static void
 _ldxi_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_us(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_us(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_us(r0, r1);
 }
 
 static void
@@ -4233,10 +4310,14 @@ static void
 _ldxi_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_i(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_i(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_i(r0, r1);
 }
 
 static void
@@ -4253,10 +4334,14 @@ static void
 _ldxi_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_ui(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_ui(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_ui(r0, r1);
 }
 
 static void
@@ -4273,10 +4358,14 @@ static void
 _ldxi_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    ldxr_l(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_l(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldr_l(r0, r1);
 }
 
 static void
@@ -4333,10 +4422,14 @@ static void
 _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    addi(rn(reg), r0, i0);
-    str_c(rn(reg), r1);
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r0, i0);
+	str_c(rn(reg), r1);
+	jit_unget_reg(reg);
+    }
+    else
+	str_c(r0, r1);
 }
 
 static void
@@ -4353,10 +4446,14 @@ static void
 _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    addi(rn(reg), r0, i0);
-    str_s(rn(reg), r1);
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r0, i0);
+	str_s(rn(reg), r1);
+	jit_unget_reg(reg);
+    }
+    else
+	str_s(r0, r1);
 }
 
 static void
@@ -4373,10 +4470,14 @@ static void
 _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    addi(rn(reg), r0, i0);
-    str_i(rn(reg), r1);
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r0, i0);
+	str_i(rn(reg), r1);
+	jit_unget_reg(reg);
+    }
+    else
+	str_i(r0, r1);
 }
 
 static void
@@ -4393,10 +4494,14 @@ static void
 _stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    addi(rn(reg), r0, i0);
-    str_l(rn(reg), r1);
-    jit_unget_reg(reg);
+    if (i0) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r0, i0);
+	str_l(rn(reg), r1);
+	jit_unget_reg(reg);
+    }
+    else
+	str_l(r0, r1);
 }
 
 static jit_word_t
@@ -4930,28 +5035,16 @@ _callr(jit_state_t *_jit, jit_int32_t r0)
 static void
 _calli(jit_state_t *_jit, jit_word_t i0)
 {
-#if 1
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     movi(rn(reg), i0);
     callr(rn(reg));
     jit_unget_reg(reg);
-#else
-    jit_word_t		d;
-    sync();
-    i0 = *(jit_word_t **)i0;
-    d = ((jit_word_t)i0 - _jit->pc.w) >> 4;
-    if (d < -16777216 && d > 16777215)
-	BRI_CALL(BR_6, d);
-    else
-	BRL_CALL(BR_6, d);
-#endif
 }
 
 static jit_word_t
 _calli_p(jit_state_t *_jit, jit_word_t i0)
 {
-#if 1
     jit_word_t		w;
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -4959,15 +5052,6 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
     callr(rn(reg));
     jit_unget_reg(reg);
     return (w);
-#else
-    jit_word_t		d, w;
-    sync();
-    i0 = *(jit_word_t *)i0;
-    w = _jit->pc.w;
-    d = ((jit_word_t)i0 - w) >> 4;
-    BRL_CALL(BR_6, d);
-    return (w);
-#endif
 }
 
 static void
@@ -4994,7 +5078,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     }
     rout = reg - _OUT0;
 
-    /* Do not know if will call div/mod functions (sqrt) */
+    /* Do not know if will call div/mod functions (sqrt* needs one) */
     if (rout < 2)
 	rout = 2;
 
@@ -5005,10 +5089,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     MOV(_jitc->breg + 3, GR_1);
 
     /* lightning specific, use r4 as frame pointer */
-    subi(GR_4, GR_12, stack_framesize);
+    addi(GR_4, GR_12, -(stack_framesize + params_offset));
 
     /* adjust stack pointer */
-    subi(GR_12, GR_12, stack_framesize + _jitc->function->stack);
+    addi(GR_12, GR_12, -(stack_framesize +
+			 (params_offset << 1) + _jitc->function->stack));
 
     if (jit_regset_tstbit(&_jitc->function->regset, JIT_F0))
 	STF_SPILL(GR_4, rn(JIT_F0));
@@ -5065,7 +5150,7 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     MOV_br_rn(BR_0, _jitc->breg);
     MOV(GR_12, _jitc->breg + 2);
     /* Restore r4 with known offset from saved sp */
-    addi(GR_4, GR_12, stack_framesize);
+    addi(GR_4, GR_12, stack_framesize + params_offset);
     BR_RET(BR_0);
     flush();
 }
@@ -5087,6 +5172,9 @@ _patch_at(jit_state_t *_jit, jit_code_t code,
     get_tm(tm);		get_s0(s0);	get_s1(s1);	get_s2(s2);
     switch (code) {
 	case jit_code_movi:
+	    /* Handle jit functions as C function, so that jit function
+	     * pointers can be passed to C code, and jit code does not
+	     * need to try to differentiate them. */
 	case jit_code_calli:
 	    i1  = (label >> 63) &           0x1L;
 	    i41 = (label >> 22) & 0x1ffffffffffL;
@@ -5125,69 +5213,7 @@ _patch_at(jit_state_t *_jit, jit_code_t code,
 	    s2 &= (0xcL<<37)|(0x7L<<33)|(1L<<12);
 	    s2 |= (i1<<36)|(i20<<13);
 	    break;
-#if 0
-	case jit_code_calli:
-	    label = *(jit_word_t *)label;
-	    ic = (label - instr) >> 4;
-	    i1  = (ic >> 61) &           0x1L;
-	    i41 = (ic >> 22) & 0x1ffffffffffL;
-	    i20 =  ic        &       0xfffffL;
-	    assert((tm & ~1) == TM_M_L_X_ &&
-		   (s2 & 0xfL<<37) == (0xdL<<37) &&
-		   s0 == nop_m);
-	    s1 = i41;
-	    s2 &= (0xdL<<37)|(0x7L<<33)|(1L<<12)|(0x3L<<6);
-	    s2 |= (i1<<36)|(i20<<13);
-	    break;
-#endif
 	default:
-#if 0
-	    /* expected sequences are:
-	     * A6, B1		(cmp_xxx, br_cond, ???)
-	     * A8, B1		(cmpi_xxx, br_cond, ???)
-	     * A4, B1		(mov, br_cond, ???)
-	     * M48, F4, B1	(nop_m, fcmp_xxx, br_cond)
-	     * B1		(br, ???, ???)
-	     */
-	    ic = (label - instr) >> 4;
-	    switch (s0 >> 37) {
-		case 0x8:				/* A4, B1 */
-		    /* validate s0 is register mov */
-		    assert((s0 & 0x3ffe0007e000L) == 0x800000000L);
-		    /* validate s1 is br.cond */
-		check_s1:
-		    assert((s1 >> 37) == 4 &&
-			   (s1 & (7 << 6)) == 0 &&
-			   (s1 & 0x1f) != 0);
-		    s1 &= (4L<<37)|(7L<<33)|(1L<<12)|0x1f;
-		    s1 |= (((ic>>20)&1L)<<36)|((ic&0xfffffL)<<13);
-		    break;
-		case 0xc: case 0xd: case 0xe:		/* A6, B1 or A8, B1 */
-		    /* validate s0 is cmp.lt, cmp.ltu or cmq.eq */
-		    assert((s0 & ((1L<<33)|(1<<12))) == 0);
-		    goto check_s1;
-		case 0x4:				/* B1 */
-		    /* validate s0 is br */
-		    assert((s0 >> 37) == 4 &&
-			   (s0 & (7 << 6)) == 0 &&
-			   (s0 & 0x1f) == 0);
-		    s0 &= (4L<<37)|(7L<<33)|(1L<<12)|0x1f;
-		    s0 |= (((ic>>20)&1L)<<36)|((ic&0xfffffL)<<13);
-		    break;
-		case 0:					/* M48, F4, B1 */
-		    /* validate s1 is fcmp.{e,lt,le,unord} */
-		    assert((s1 >> 37) == 4 && !(s1 & (1<<12)));
-		    /* validate s2 is br.cond */
-		    assert((s2 >> 37) == 4 &&
-			   (s2 & (7 << 6)) == 0 &&
-			   (s2 & 0x1f) != 0);
-		    s2 &= (4L<<37)|(7L<<33)|(1L<<12)|0x1f;
-		    s2 |= (((ic>>20)&1L)<<36)|((ic&0xfffffL)<<13);
-		    break;
-		default:
-		    abort();
-	    }
-#else
 	    /* Only B1 in slot 0 expected due to need to either
 	     * a stop to update predicates, or a sync before
 	     * unconditional short branch */
@@ -5195,7 +5221,6 @@ _patch_at(jit_state_t *_jit, jit_code_t code,
 	    assert((s0 >> 37) == 4 && (s0 & (7 << 6)) == 0);
 	    s0 &= (4L<<37)|(7L<<33)|(1L<<12)|0x1f;
 	    s0 |= (((ic>>20)&1L)<<36)|((ic&0xfffffL)<<13);
-#endif
 	    break;
     }
     to_tm(tm);		to_s0(s0);	to_s1(s1);	to_s2(s2);

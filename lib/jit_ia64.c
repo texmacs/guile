@@ -241,10 +241,12 @@ _jit_prolog(jit_state_t *_jit)
 	_jitc->functions.length += 16;
     }
     _jitc->function = _jitc->functions.ptr + _jitc->functions.offset++;
-    _jitc->function->self.size = stack_framesize;
+    /* params_offset << 1, once for ours arguments, once for arguments
+     * to any called function; required because offsets are computed
+     * as JIT_FP displacement */
+    _jitc->function->self.size = stack_framesize + (params_offset << 1);
     _jitc->function->self.argi = _jitc->function->self.argf =
-	_jitc->function->self.aoff = _jitc->function->self.alen =
-	_jitc->function->self.aoff = 0;
+	_jitc->function->self.aoff = _jitc->function->self.alen = 0;
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));
@@ -480,7 +482,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
     }
     else {
-	jit_stxi(_jitc->function->call.size, JIT_SP, u);
+	jit_stxi(_jitc->function->call.size + params_offset, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -497,7 +499,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
     else {
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
-	jit_stxi(_jitc->function->call.size, JIT_SP, regno);
+	jit_stxi(_jitc->function->call.size + params_offset, JIT_SP, regno);
 	_jitc->function->call.size += sizeof(jit_word_t);
 	jit_unget_reg(regno);
     }
@@ -515,7 +517,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
     }
     else {
-	jit_stxr_f(_jitc->function->call.size, JIT_SP, u);
+	jit_stxr_f(_jitc->function->call.size + params_offset, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -535,7 +537,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     else {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_f(regno, u);
-	jit_stxi_f(_jitc->function->call.size, JIT_SP, regno);
+	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, regno);
 	_jitc->function->call.size += sizeof(jit_word_t);
 	jit_unget_reg(regno);
     }
@@ -553,7 +555,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
     }
     else {
-	jit_stxr_d(_jitc->function->call.size, JIT_SP, u);
+	jit_stxr_d(_jitc->function->call.size + params_offset, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -573,7 +575,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     else {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_d(regno, u);
-	jit_stxi_d(_jitc->function->call.size, JIT_SP, regno);
+	jit_stxi_d(_jitc->function->call.size + params_offset, JIT_SP, regno);
 	_jitc->function->call.size += sizeof(jit_word_t);
 	jit_unget_reg(regno);
     }
@@ -605,6 +607,9 @@ jit_node_t *
 _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 {
     jit_node_t		*node;
+    assert(_jitc->function);
+    if (_jitc->function->self.alen < _jitc->function->call.size)
+	_jitc->function->self.alen = _jitc->function->call.size;
     node = jit_calli(i0);
     node->v.w = _jitc->function->call.argi;
     node->w.w = _jitc->function->call.argf;

@@ -1,5 +1,34 @@
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
+	* check/varargs.tst: Correct misplaced .align directive
+	that was causing the double buffer to not be aligned at
+	8 bytes.
+	* lib/jit_ia64-cpu.c:
+	  Properly implement abi for excess arguments passed on
+	stack.
+	  Simplify load/store with immediate displacement argument
+	with zero value.
+	  Simplify some calls to "subi" changing to "addi" with
+	a negative argument.
+	  Remove some #if 0'ed code, that could be useful in
+	special conditions, but the most useful one would be
+	to "optimize" "static" jit functions, but for the sake
+	of simplicity, jit functions are implemented in a way
+	that can be passed back to C code as C function pointers.
+	  Add an attribute to prototypes of several unused functions.
+	These functions are defined for the sake of implementing all
+	Itanium documented instructions, but a significant amount of
+	them is not used by lightning.
+	* lib/jit_ia64-fpu.c: Simplify load/store with zero immediate
+	displacement and add unused attribute for functions not used
+	by lightning, but required to provide macros implementing all
+	Itanium documented instructions.
+	* lib/jit_ia64.c: Update for the properly implemented abi
+	for stack arguments.
+	* lib/lightning.c: Mark an unused function as such.
+
+2013-04-27 Paulo Andrade <pcpa@gnu.org>
+
 	lib/jit_ia64-cpu.c:
 	  Correct immediate range check of integer comparisons when
 	inverting arguments.

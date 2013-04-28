@@ -8,15 +8,15 @@ dfmt:
 .c	"%.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
 lfmt:
 .c	"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n"
-dchk:
 .align	8
+dchk:
 .d	9.0 8.0 7.0 6.0 5.0 4.0 3.0 2.0 1.0 0.0
 idfmt:
 .c	"%d %.1f %d %.1f %d %.1f %d %.1f %d %.1f %d %.1f %d %.1f %d %.1f %d %.1f %d %.1f\n"
 ldfmt:
 .c	"%d %lf %d %lf %d %lf %d %lf %d %lf %d %lf %d %lf %d %lf %d %lf %d %lf\n"
+.align	8
 buff:
-.align	4
 .size	256
 
 .code
