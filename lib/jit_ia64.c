@@ -194,6 +194,8 @@ jit_register_t		_rvs[] = {
     { rc(fpr)|116,	 "f116"},	{ rc(fpr)|117,		"f117"},
     { rc(fpr)|118,	 "f118"},	{ rc(fpr)|119,		"f119"},
 #if 0
+    /* commented to fit a jit_regset_t in 256 bits, so that the fake
+     * O0-O7 registers are easily patched when an argument is pushed */
     { rc(fpr)|120,	 "f120"},	{ rc(fpr)|121,		"f121"},
     { rc(fpr)|122,	 "f122"},	{ rc(fpr)|123,		"f123"},
     { rc(fpr)|124,	 "f124"},	{ rc(fpr)|125,		"f125"},
@@ -206,7 +208,6 @@ jit_register_t		_rvs[] = {
     { rc(arg)|126,	 "o6"  },	{ rc(arg)|127,		"o7"  },
     { _NOREG,		 "<none>" },
 };
-int missing_count;
 
 /*
  * Implementation

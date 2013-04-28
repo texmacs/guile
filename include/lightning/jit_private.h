@@ -551,8 +551,5 @@ extern jit_bool_t _jit_remap(jit_state_t*);
  */
 extern jit_register_t	 _rvs[];
 extern const char	*jit_progname;
-#if __ia64__
-extern int missing_count;
-#endif
 
 #endif /* _jit_private_h */

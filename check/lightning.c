@@ -522,9 +522,6 @@ static void rehash(hash_t *hash);
 /*
  * Initialization
  */
-#if __ia64__
-extern int missing_count;
-#endif
 static jit_state_t	 *_jit;
 static int		  flag_verbose;
 static int		  flag_disasm;
@@ -3569,10 +3566,6 @@ execute(int argc, char *argv[])
     }
 
     function = jit_emit();
-#if __ia64__
-    if (missing_count)
-	flag_disasm = 1;
-#endif
     if (flag_verbose > 1 || flag_disasm) {
 	jit_print();
 	fprintf(stdout, "  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
