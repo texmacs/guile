@@ -89,7 +89,7 @@ jit_init_debug(void)
 #  endif
 #  if defined(__sparc__)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
-#endif
+#  endif
     disasm_info.print_address_func = disasm_print_address;
 
     if (bfd_get_file_flags(disasm_bfd) & HAS_SYMS) {

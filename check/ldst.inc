@@ -63,6 +63,7 @@
 .data	512
 ok:
 .c	"ok\n"
+.align	8
 t0:
 c0:
 .c	0

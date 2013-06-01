@@ -1,3 +1,30 @@
+2013-06-01 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_hppa.h, lib/jit_hppa-cpu.c,
+	lib/jit_hppa-fpu.c, lib/jit_hppa.c: New files implementing
+	the hppa port. Built on Debian Linux PA-RISC 2.0, 32 bit.
+
+	* check/float.tst: Add preprocessor for hppa expected
+	values when converting NaN and +-Inf to an integer.
+
+	* check/ldst.inc: Ensure double load/store tests use an
+	8 byte aligned address by default.
+
+	* lib/lightning.c: Correct a bug found during tests in
+	the new port, where qmul* and qdiv* were not properly
+	setting one of the result registers as modified in the
+	function, what would be a problem if the only "write"
+	usage were the qmul* or qdiv*.
+
+	* check/varargs.tst, check/varargs.ok: Add one extra
+	interleaved integer/double test to validate proper code
+	generation in the extra case.
+
+	* check/lightning.c, configure.ac, include/lightning.h,
+	include/lightning/Makefile.am,
+	include/lightning/jit_private.h, lib/Makefile.am,
+	lib/jit_disasm.c: Update for the hppa port.
+
 2013-04-27 Paulo Andrade <pcpa@gnu.org>
 
 	* check/varargs.tst: Correct misplaced .align directive

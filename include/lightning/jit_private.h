@@ -77,6 +77,10 @@
 #  define JIT_SP		_R12
 #  define JIT_RET		_R8
 #  define JIT_FRET		_F8
+#elif defined(__hppa__)
+#  define JIT_SP		_R30
+#  define JIT_RET		_R28
+#  define JIT_FRET		_F4
 #endif
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))

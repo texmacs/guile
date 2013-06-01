@@ -41,3 +41,7 @@ if cpu_ia64
 lightning_include_HEADERS = 	\
 	jit_ia64.h
 endif
+if cpu_hppa
+lightning_include_HEADERS = 	\
+	jit_hppa.h
+endif

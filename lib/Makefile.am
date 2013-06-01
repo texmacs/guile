@@ -28,6 +28,9 @@ EXTRA_DIST =			\
 	jit_arm-cpu.c		\
 	jit_arm-swf.c		\
 	jit_arm-vfp.c		\
+	jit_hppa.c		\
+	jit_hppa-cpu.c		\
+	jit_hppa-fpu.c		\
 	jit_ia64.c		\
 	jit_ia64-cpu.c		\
 	jit_ia64-fpu.c		\

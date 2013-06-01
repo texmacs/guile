@@ -1460,9 +1460,17 @@ _jit_optimize(jit_state_t *_jit)
 #endif
 		if (_jitc->function) {
 		    if ((mask & (jit_cc_a0_reg|jit_cc_a0_chg)) ==
-			(jit_cc_a0_reg|jit_cc_a0_chg))
-			jit_regset_setbit(&_jitc->function->regset,
-					  jit_regno(node->u.w));
+			(jit_cc_a0_reg|jit_cc_a0_chg)) {
+			if (mask & jit_cc_a0_rlh) {
+			    jit_regset_setbit(&_jitc->function->regset,
+					      jit_regno(node->u.q.l));
+			    jit_regset_setbit(&_jitc->function->regset,
+					      jit_regno(node->u.q.h));
+			}
+			else
+			    jit_regset_setbit(&_jitc->function->regset,
+					      jit_regno(node->u.w));
+		    }
 		    if ((mask & (jit_cc_a1_reg|jit_cc_a1_chg)) ==
 			(jit_cc_a1_reg|jit_cc_a1_chg))
 			jit_regset_setbit(&_jitc->function->regset,
@@ -2869,4 +2877,6 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_sparc.c"
 #elif defined(__ia64__)
 #  include "jit_ia64.c"
+#elif defined(__hppa__)
+#  include "jit_hppa.c"
 #endif

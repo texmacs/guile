@@ -14,14 +14,14 @@ ok:
 #  define x80			0x8000000000000000
 #endif
 
-#if __mips__ || __sparc__
+#if __mips__ || __sparc__ || __hppa__
 #  define wnan			x7f
 #elif __arm__
 #  define wnan			0
 #else
 #  define wnan			x80
 #endif
-#if __mips__ || __arm__ || __ppc__ || __sparc__
+#if __mips__ || __arm__ || __ppc__ || __sparc__ || __hppa__
 #  define wpinf			x7f
 #else
 #  define wpinf			x80
