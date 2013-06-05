@@ -1,5 +1,5 @@
 dnl
-dnl Copyright 2000, 2001, 2002, 2012 Free Software Foundation, Inc.
+dnl Copyright 2000, 2001, 2002, 2012, 2013 Free Software Foundation, Inc.
 dnl
 dnl This is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@ dnl GNU General Public License for more details.
 dnl
 
 AC_PREREQ(2.57)
-AC_INIT([GNU lightning], 2.0, pcpa@gnu.org, lightning)
+AC_INIT([GNU lightning], 1.99, pcpa@gnu.org, lightning)
 AC_CANONICAL_TARGET
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2])

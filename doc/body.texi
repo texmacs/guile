@@ -824,7 +824,7 @@ marker in the code.
 with double arguments, but it is a good practice to properly describe
 the @r{@dots{}} in the call sequence.
 
-@itemx jit_pushargi((jit_word_t)"generated %d bytes\n");
+@item jit_pushargi((jit_word_t)"generated %d bytes\n");
 Note the use of the @code{(jit_word_t)} cast, that is used only
 to avoid a compiler warning, due to using a pointer where a
 wordsize integer type was expected.

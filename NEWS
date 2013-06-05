@@ -1,3 +1,39 @@
+NEWS FROM VERSION 1.3 TO 1.99
+
+o   The 1.99 version is a major lightning redesign and an
+    alpha version.
+
+o   Unless for some special power users usage, the major
+    difference in the rework is that now function calls push
+    arguments from left to right, what is both, more natural for
+    programers, and also more natural to implement for architectures
+    that pass arguments in registers and have alignment constraints,
+    usually for 64 bit double arguments.
+
+o   Add mips backend, implementing the o32 abi.
+
+o   Added arm backend implementing all combinations of software float,
+    vfp, neon, arm and thumb instruction sets, softfp and hardp abis,
+    armv5, armv6, and armv7.
+
+o   Added sse2+ code generation for the 32 bit x86 backend.
+
+o   Added sse3 and sse4.x optional code generation for the 64 bit
+    x86 backend, code generation based on detected cpu.
+
+o   Reworked and added full lightning instruction set to ppc 32;
+    tested on ppc64 hardware and Darwin 32 operating system.
+
+o   Added ppc64 backend, built and tested on Fedora ppc.
+
+o   Reworked the sparc backend, built and tested on Debian sparc.
+
+o   Added an ia64 backend, built and tested on Debian ia64.
+
+o   Added an hppa backend, built and tested on Debian hppa.
+
+---
+
 NEWS FROM VERSION 1.2 TO 1.3
 
 o   Initial support for x86-64 back-end (mostly untested).

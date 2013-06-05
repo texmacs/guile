@@ -1,20 +1,10 @@
-	* Update documentation to match new implementation.
-
-	* Make an sparc port to not remove previous functionality.
-
-	* Add two new base instructions to help dynamically typed
-	languages, that use two result registers and two argument
-	registers, implementing multiplication and quotient+remainder
-	return from division. Alternatively, can add branch codes
-	for multiplication that overflows (and reverse for no
-	overflow) and division with zero remainder or non zero
-	remainder.
-	Suggested names for now are "qmul" and "qdiv", with "r"
-	and "i" variants, and possibly unsigned version. Branches
-	would use "bo" and "bx" prefix.
-
 	* Validate that divrem in jit_x86-cpu.c is not modifying
 	the non result arguments. This is not verified by clobber.tst,
 	as it only checks registers not involved in the operation
 	(because it does not know about values being set as input
 	for the the operation).
+
+	* Write a bytecode backend for unsupported architectures.
+
+	* Write a simple higher level language implementation generating
+	jit with lightning, that could be some lisp or C like language.
