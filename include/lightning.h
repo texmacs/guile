@@ -28,16 +28,32 @@
 #include <string.h>
 
 #ifndef __WORDSIZE
-#  define __WORDSIZE		WORDSIZE
+#  if defined(_AIX)
+#    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
+#  else
+#    define __WORDSIZE		WORDSIZE
+#  endif
 #endif
 #ifndef __BYTE_ORDER
-#  define __BYTE_ORDER		BYTE_ORDER
+#  if defined(_AIX)
+#    define __BYTE_ORDER	__BYTE_ORDER__
+#  else
+#    define __BYTE_ORDER	BYTE_ORDER
+#  endif
 #endif
 #ifndef __LITTLE_ENDIAN
-#  define __LITTLE_ENDIAN	LITTLE_ENDIAN
+#  if defined(_AIX)
+#    define __LITTLE_ENDIAN	__ORDER_LITTLE_ENDIAN__
+#  else
+#    define __LITTLE_ENDIAN	LITTLE_ENDIAN
+#  endif
 #endif
 #ifndef __BIG_ENDIAN
-#  define __BIG_ENDIAN		BIG_ENDIAN
+#  if defined(_AIX)
+#    define __BIG_ENDIAN	__ORDER_BIG_ENDIAN__
+#  else
+#    define __BIG_ENDIAN	BIG_ENDIAN
+#  endif
 #endif
 
 typedef signed char		jit_int8_t;

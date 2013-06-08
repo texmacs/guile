@@ -37,7 +37,7 @@ extern void __clear_cache(void *, void *);
  */
 jit_register_t		_rvs[] = {
     { rc(gpr) | 0,			"r0" },
-#if __WORDSIZE == 32
+#if __ppc__
     { rc(gpr) | 11,			"r11" },
     { rc(gpr) | 12,			"r12" },
     { rc(gpr) | 13,			"r13" },
@@ -761,7 +761,7 @@ _emit_code(jit_state_t *_jit)
 	jit_node_t	*node;
 	jit_word_t	 word;
 	jit_word_t	 patch_offset;
-#if __powerpc64__
+#if __powerpc__
 	jit_word_t	 prolog_offset;
 #endif
     } undo;
@@ -773,13 +773,13 @@ _emit_code(jit_state_t *_jit)
     undo.word = 0;
     undo.node = NULL;
     undo.patch_offset = 0;
-#if __powerpc64__
-    undo.prolog_offset = 0;
 
+#if __powerpc__
+    undo.prolog_offset = 0;
     /* code may start with a jump so add an initial function descriptor */
-    il(_jit->pc.w + 24);	/* addr */
-    il(0);			/* toc */
-    il(0);			/* env */
+    iw(_jit->pc.w + sizeof(void*) * 3);	/* addr */
+    iw(0);				/* toc */
+    iw(0);				/* env */
 #endif
 
 #define case_rr(name, type)						\
@@ -1233,8 +1233,8 @@ _emit_code(jit_state_t *_jit)
 		jmpr(rn(node->u.w));
 		break;
 	    case jit_code_jmpi:
-#if __powerpc64__
-		if (_jit->pc.uc == _jit->code.ptr + 24)
+#if __powerpc__
+		if (_jit->pc.uc == _jit->code.ptr + sizeof(void*) * 3)
 		    _jitc->jump = 1;
 #endif
 		temp = node->u.n;
@@ -1268,12 +1268,12 @@ _emit_code(jit_state_t *_jit)
 		undo.node = node;
 		undo.word = _jit->pc.w;
 		undo.patch_offset = _jitc->patches.offset;
-#if __powerpc64__
+#if __powerpc__
 		undo.prolog_offset = _jitc->prolog.offset;
 #endif
 	    restart_function:
 		_jitc->again = 0;
-#if __powerpc64__
+#if __powerpc__
 		if (_jitc->jump) {
 		    /* remember prolog to hide offset adjustment for a jump
 		     * to the start of a function, what is expected to be
@@ -1287,9 +1287,9 @@ _emit_code(jit_state_t *_jit)
 		    }
 		    _jitc->prolog.ptr[_jitc->prolog.offset++] = _jit->pc.w;
 		    /* function descriptor */
-		    il(_jit->pc.w + 24);	/* addr */
-		    il(0);			/* toc */
-		    il(0);			/* env */
+		    iw(_jit->pc.w + sizeof(void*) * 3);	/* addr */
+		    iw(0);				/* toc */
+		    iw(0);				/* env */
 		}
 #endif
 		prolog(node);
@@ -1307,7 +1307,7 @@ _emit_code(jit_state_t *_jit)
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
 		    _jitc->patches.offset = undo.patch_offset;
-#if __powerpc64__
+#if __powerpc__
 		    _jitc->prolog.offset = undo.prolog_offset;
 #endif
 		    goto restart_function;
@@ -1393,7 +1393,6 @@ static void
 _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 {
     jit_int32_t		 flag;
-    jit_word_t		*patches;
 
     assert(node->flag & jit_flag_node);
     if (node->code == jit_code_movi)

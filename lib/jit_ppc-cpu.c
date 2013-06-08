@@ -35,7 +35,11 @@
 #  define fpr_save_area			64
 #  define alloca_offset			-(gpr_save_area + fpr_save_area)
 #  define ii(i)				*_jit->pc.ui++ = i
-#  define il(i)				*_jit->pc.ul++ = i
+#  if __WORDSIZE == 32
+#    define iw(i)			*_jit->pc.ui++ = i
+#  else
+#    define iw(i)			*_jit->pc.ul++ = i
+#  endif
 #  define can_sign_extend_short_p(im)	((im) >= -32768 && (im) <= 32767)
 #  define can_zero_extend_short_p(im)	((im) >= 0 && (im) <= 65535)
 #  define can_sign_extend_jump_p(im)	((im) >= -33554432 && (im) <= 33554431)
@@ -45,9 +49,11 @@
 #  define _R11_REGNO			11
 #  define _FP_REGNO			31
 #  if __WORDSIZE == 32
+#    define ldr(r0,r1)			ldr_i(r0,r1)
 #    define ldxi(r0,r1,i0)		ldxi_i(r0,r1,i0)
 #    define stxi(i0,r0,r1)		stxi_i(i0,r0,r1)
 #  else
+#    define ldr(r0,r1)			ldr_l(r0,r1)
 #    define ldxi(r0,r1,i0)		ldxi_l(r0,r1,i0)
 #    define stxi(i0,r0,r1)		stxi_l(i0,r0,r1)
 #  endif
@@ -2992,26 +2998,26 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _callr(jit_state_t *_jit, jit_int32_t r0)
 {
-#  if __WORDSIZE == 64
-    stxi(40, _SP_REGNO, _R2_REGNO);
+#  if __powerpc__
+    stxi(sizeof(void*) * 5, _SP_REGNO, _R2_REGNO);
     /* FIXME Pretend to not know about r11? */
     if (r0 == _R0_REGNO) {
 	movr(_R11_REGNO, _R0_REGNO);
-	ldxi(_R2_REGNO, _R11_REGNO, 8);
-	ldxi(_R11_REGNO, _R11_REGNO, 16);
+	ldxi(_R2_REGNO, _R11_REGNO, sizeof(void*));
+	ldxi(_R11_REGNO, _R11_REGNO, sizeof(void*) * 2);
     }
     else {
-	ldxi(_R2_REGNO, r0, 8);
-	ldxi(_R11_REGNO, r0, 16);
+	ldxi(_R2_REGNO, r0, sizeof(void*));
+	ldxi(_R11_REGNO, r0, sizeof(void*) * 2);
     }
-    LDX(r0, _R0_REGNO, r0);
+    ldr(r0, r0);
 #  endif
 
     MTCTR(r0);
     BCTRL();
 
-#  if __WORDSIZE == 64
-    ldxi(_R2_REGNO, _SP_REGNO, 40);
+#  if __powerpc__
+    ldxi(_R2_REGNO, _SP_REGNO, sizeof(void*) * 5);
 #  endif
 }
 
@@ -3019,11 +3025,11 @@ _callr(jit_state_t *_jit, jit_int32_t r0)
 static void
 _calli(jit_state_t *_jit, jit_word_t i0)
 {
-#  if __WORDSIZE == 32
+#  if __ppc__
     jit_word_t		d;
 #  endif
     jit_int32_t		reg;
-#  if __WORDSIZE == 32
+#  if __ppc__
     d = (i0 - _jit->pc.w) & ~3;
     if (can_sign_extend_jump_p(d))
 	BL(d);
@@ -3050,7 +3056,7 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
     return (w);
 }
 
-#  if __WORDSIZE == 64
+#  if __powerpc__
 /* order is not guaranteed to be sequential */
 static jit_int32_t save[] = {
     _R14, _R15, _R16, _R17, _R18, _R19, _R20, _R21, _R22,
@@ -3074,7 +3080,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     /* params >= %r31+params_offset+(8*sizeof(jit_word_t))
      * alloca <  %r31-80 */
 
-#  if __WORDSIZE == 32
+#if __ppc__
     /* save any clobbered callee save gpr register */
     regno = jit_regset_scan1(&_jitc->function->regset, _R14);
     if (regno == ULONG_MAX || regno > _R31)
@@ -3086,23 +3092,26 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     }
 
     stxi(8, _SP_REGNO, _R0_REGNO);
-    movr(_FP_REGNO, _SP_REGNO);
-
-    STWU(_SP_REGNO, _SP_REGNO, -_jitc->function->stack);
-#  else
-    stxi(16, _SP_REGNO, _R0_REGNO);
-    offset = -144;
-    for (regno = 0; regno < jit_size(save); regno++, offset += 8) {
+#else		/* __powerpc__ */
+    stxi(sizeof(void*) * 2, _SP_REGNO, _R0_REGNO);
+    offset = -gpr_save_area;
+    for (regno = 0; regno < jit_size(save); regno++, offset += sizeof(void*)) {
 	if (jit_regset_tstbit(&_jitc->function->regset, save[regno]))
 	    stxi(offset, _SP_REGNO, rn(save[regno]));
     }
     for (offset = 0; offset < 8; offset++) {
 	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
-	    stxi_d(-(152 + offset * 8), _SP_REGNO, rn(_F14 + offset));
+	    stxi_d(-(gpr_save_area + 8 + offset * 8),
+		   _SP_REGNO, rn(_F14 + offset));
     }
 
-    stxi(-8, _SP_REGNO, _FP_REGNO);
+    stxi(-(sizeof(void*)), _SP_REGNO, _FP_REGNO);
+#endif
+
     movr(_FP_REGNO, _SP_REGNO);
+#if __WORDSIZE == 32
+    STWU(_SP_REGNO, _SP_REGNO, -_jitc->function->stack);
+#else
     STDU(_SP_REGNO, _SP_REGNO, -_jitc->function->stack);
 #endif
 }
@@ -3113,7 +3122,7 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     unsigned long	regno;
     jit_word_t		offset;
 
-#if __WORDSIZE == 32
+#if __ppc__
     LWZ(_SP_REGNO, _SP_REGNO, 0);
     ldxi(_R0_REGNO, _SP_REGNO, 8);
 
@@ -3128,21 +3137,22 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -fpr_save_area + offset * 8);
     }
 
-#else
+#else		/* __powerpc__ */
     addi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
-    ldxi(_R0_REGNO, _SP_REGNO, 16);
-    offset = -144;
-    for (regno = 0; regno < jit_size(save); regno++, offset += 8) {
+    ldxi(_R0_REGNO, _SP_REGNO, sizeof(void*) * 2);
+    offset = -gpr_save_area;
+    for (regno = 0; regno < jit_size(save); regno++, offset += sizeof(void*)) {
 	if (jit_regset_tstbit(&_jitc->function->regset, save[regno]))
 	    ldxi(rn(save[regno]), _SP_REGNO, offset);
     }
     for (offset = 0; offset < 8; offset++) {
 	if (jit_regset_tstbit(&_jitc->function->regset, _F14 + offset))
-	    ldxi_d(rn(_F14 + offset), _SP_REGNO, -(152 + offset * 8));
+	    ldxi_d(rn(_F14 + offset), _SP_REGNO,
+		   -(gpr_save_area + 8 + offset * 8));
     }
 
     MTLR(_R0_REGNO);
-    ldxi(_FP_REGNO, _SP_REGNO, -8);
+    ldxi(_FP_REGNO, _SP_REGNO, -(sizeof(void*)));
 #endif
 
     BLR();
@@ -3169,24 +3179,24 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    u.i[0] = (u.i[0] & ~0xfffd) | (d & 0xfffe);
 	    break;
 	case 18:					/* Bx */
-#  if __powerpc64__
+#if __powerpc__
 	    if (_jitc->jump && (!(u.i[0] & 1))) {	/* jmpi label */
 		/* zero is used for toc and env, so, quick check
 		 * if this is a "jmpi main" like initial jit
 		 * instruction */
 		if (((long *)label)[1] == 0 && ((long *)label)[2] == 0) {
 		    for (d = 0; d < _jitc->prolog.offset; d++) {
-			/* not so pretty, but hides powerpc64
+			/* not so pretty, but hides powerpc
 			 * specific abi intrinsics and/or
 			 * implementation from user */
 			if (_jitc->prolog.ptr[d] == label) {
-			    label += 24;
+			    label += sizeof(void*) * 3;
 			    break;
 			}
 		    }
 		}
 	    }
-#  endif
+#endif
 	    d = label - instr;
 	    assert(!(d & 3));
 	    if (!can_sign_extend_jump_p(d)) {
@@ -3197,13 +3207,13 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    u.i[0] = (u.i[0] & ~0x3fffffd) | (d & 0x3fffffe);
 	    break;
 	case 15:					/* LI */
-#  if __WORDSIZE == 32
+#if __WORDSIZE == 32
 	    assert(!(u.i[0] & 0x1f0000));
 	    u.i[0] = (u.i[0] & ~0xffff) | ((label >> 16) & 0xffff);
 	    assert((u.i[1] & 0xfc000000) >> 26 == 24);	/* ORI */
 	    assert(((u.i[1] >> 16) & 0x1f) == ((u.i[1] >> 21) & 0x1f));
 	    u.i[1] = (u.i[1] & ~0xffff) | (label & 0xffff);
-#  else
+#else
 	    assert(!(u.i[0] & 0x1f0000));
 	    u.i[0] = (u.i[0] & ~0xffff) | ((label >> 48) & 0xffff);
 	    assert((u.i[1] & 0xfc000000) >> 26 == 24);	/* ORI */
@@ -3221,7 +3231,7 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    assert((u.i[5] & 0xfc000000) >> 26 == 24);	/* ORI */
 	    assert(((u.i[5] >> 16) & 0x1f) == ((u.i[5] >> 21) & 0x1f));
 	    u.i[5] = (u.i[5] & ~0xffff) | (label & 0xffff);
-#  endif
+#endif
 	    break;
 	default:
 	    assert(!"unhandled branch opcode");

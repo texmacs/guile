@@ -181,7 +181,7 @@ test##T##_##N:							\
 		pushargr %v1					\
 		pushargr %v0					\
 		pushargi $(N * szof##T)				\
-	finishi @memcpy						\
+	finishi MEMCPY						\
 	/* stack buffer for next function in %v2 */		\
 	allocai $(M * szof##T) $index				\
 	addi %v2 %fp $index					\
@@ -235,7 +235,7 @@ test##T##_17:							\
 		pushargr %v1					\
 		pushargr %v2					\
 		pushargi $(16 * szof##T)			\
-	finishi @memcpy						\
+	finishi MEMCPY						\
 	/* call next function */				\
 	prepare							\
 		pushargr %v2					\
@@ -285,6 +285,32 @@ ok:
 .c	"ok\n"
 .code
 	jmpi main
+
+#if _AIX
+#  define MEMCPY		memcpy
+/* error: Function not implemented (memcpy) */
+	name memcpy
+memcpy:
+	prolog
+	arg $dst
+	arg $src
+	arg $len
+	getarg %r0 $dst
+	getarg %r1 $src
+	getarg %r2 $len
+	movr %v1 %r0
+	blti memcpy_done %r2 1
+memcpy_loop:
+	subi %r2 %r2 1
+	ldxr_c %v0 %r1 %r2
+	stxr_c %r2 %r0 %v0
+	bgti memcpy_loop %r2 0
+memcpy_done:
+	retr %v1
+	epilog
+#else
+#  define MEMCPY		@memcpy
+#endif
 
 	FILL(_c)
 	FILL(_s)

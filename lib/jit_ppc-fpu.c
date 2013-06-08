@@ -21,7 +21,7 @@
 static void _FA(jit_state_t*,int,int,int,int,int,int,int);
 #define FXFL(o,m,b,x)			_FXFL(_jit,o,m,b,x,0)
 #define FXFL_(o,m,b,x)			_FXFL(_jit,o,m,b,x,1)
-static void _FXFL(jit_state_t*,int,int,int,int,int);
+static void _FXFL(jit_state_t*,int,int,int,int,int) maybe_unused;
 
 #  define FABS(d,b)			FX(63,d,0,b,264)
 #  define FABS_(d,b)			FX_(63,d,0,b,264)

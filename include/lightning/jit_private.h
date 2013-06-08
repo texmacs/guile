@@ -405,7 +405,7 @@ struct jit_compiler {
 	jit_int32_t	  values[1024];	/* pending constants */
 	jit_word_t	  patches[2048];
     } consts;
-#elif __powerpc64__ || __ia64__
+#elif __powerpc__ || __ia64__
     /* Keep track of prolog addresses, just for the sake of making
      * jit that starts with a jump to a "main" label work like other
      * backends. */

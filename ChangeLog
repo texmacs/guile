@@ -1,3 +1,18 @@
+2013-07-01 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c, lib/jit_disasm.c, lib/jit_ppc-cpu.c,
+	lib/jit_ppc-fpu.c, lib/jit_ppc.c, include/lightning.h,
+	include/lightning/jit_ppc.h, include/lightning/jit_private.h:
+	Adapt code to work on 32 bit AIX ppc using gcc. Most changes
+	are basically to adapt the elf64 logic to 32 bit, as it does
+	not use the same convention of 32 bit Darwin ppc.
+
+	* check/stack.tst: Add a fake memcpy function to the test
+	case if running under AIX, as it is not available to dlsym.
+
+	* configure.ac: Check for getopt.h header, not available in
+	AIX.
+
 2013-06-01 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_hppa.h, lib/jit_hppa-cpu.c,

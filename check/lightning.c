@@ -15,7 +15,15 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include <getopt.h>
+#if HAVE_CONFIG_H
+# include "config.h"
+#endif
+
+#if HAVE_GETOPT_H
+#  include <getopt.h>
+#else
+#  include <unistd.h>
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <lightning.h>
@@ -23,6 +31,11 @@
 
 #if defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 #  include <fpu_control.h>
+#endif
+
+/* The label_t identifier clashes with a definition in sys/types.h */
+#if defined(_AIX)
+#  define label_t		l_label_t
 #endif
 
 #if defined(__GNUC__)
@@ -3769,25 +3782,34 @@ rehash(hash_t *hash)
 static void
 usage(void)
 {
+#if HAVE_GETOPT_H
     fprintf(stderr, "\
 Usage: %s [jit assembler options] file [jit program options]\n\
 Jit assembler options:\n\
   -help                    Display this information\n\
   -v[0-3]                  Verbose output level\n\
   -D<macro>[=<val>]        Preprocessor options\n"
-#if defined(__i386__) && __WORDSIZE == 32
+#  if defined(__i386__) && __WORDSIZE == 32
 "  -mx87=1                  Force using x87 when sse2 available\n"
-#endif
-#if defined(__i386__) || defined(__x86_64__)
+#  endif
+#  if defined(__i386__) || defined(__x86_64__)
 "  -msse4_1=0               Do not use sse4_1 instructions when available\n"
-#endif
-#if defined(__arm__)
+#  endif
+#  if defined(__arm__)
 "  -mcpu=<val>              Force cpu version (4, 5, 6 or 7)\n\
   -mthumb[=0|1]            Enable or disable thumb\n\
   -mvfp=<val>              Set vpf version (0 to disable)\n\
   -mneon[=0|1]             Enable or disable neon\n"
-#endif
+#  endif
 	    , progname);
+#else
+    fprintf(stderr, "\
+Usage: %s [jit assembler options] file [jit program options]\n\
+Jit assembler options:\n\
+  -h                       Display this information\n\
+  -v                       Verbose output level\n\
+  -D<macro>[=<val>]        Preprocessor options\n", progname);
+#endif
     finish_jit();
     exit(1);
 }
@@ -3795,23 +3817,26 @@ Jit assembler options:\n\
 int
 main(int argc, char *argv[])
 {
+#if HAVE_GETOPT_H
     static const char	*short_options = "v::";
     static struct option long_options[] = {
 	{ "help",		0, 0, 'h' },
-#if defined(__i386__) && __WORDSIZE == 32
+#  if defined(__i386__) && __WORDSIZE == 32
 	{ "mx87",		2, 0, '7' },
-#endif
-#if defined(__i386__) || defined(__x86_64__)
+#  endif
+#  if defined(__i386__) || defined(__x86_64__)
 	{ "msse4_1",		2, 0, '4' },
-#endif
-#if defined(__arm__)
+#  endif
+#  if defined(__arm__)
 	{ "mcpu",		2, 0, 'c' },
 	{ "mthumb",		2, 0, 't' },
 	{ "mvfp",		2, 0, 'f' },
 	{ "mneon",		2, 0, 'n' },
-#endif
+#  endif
 	{ 0,			0, 0, 0   }
     };
+#else
+#endif	/* HAVE_GETOPT_H */
     int			 offset;
     char		*endptr;
     int			 opt_index;
@@ -3822,6 +3847,7 @@ main(int argc, char *argv[])
 
     init_jit(progname);
 
+#if HAVE_GETOPT_H
     for (;;) {
 	if ((opt_short = getopt_long_only(argc, argv, short_options,
 					  long_options, &opt_index)) < 0)
@@ -3903,6 +3929,14 @@ main(int argc, char *argv[])
 #endif
 	}
     }
+#else
+    while ((opt_short = getopt(argc, argv, "hv")) >= 0) {
+	if (opt_short == 'v')
+	    ++flag_verbose;
+	else
+	    usage();
+    }
+#endif
 
     opt_index = optind;
     if (opt_index < 0 || opt_index >= argc)
@@ -3979,6 +4013,11 @@ main(int argc, char *argv[])
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
 			  " -D__hppa__=1");
+#endif
+#if defined(_AIX)
+    opt_short += snprintf(cmdline + opt_short,
+			  sizeof(cmdline) - opt_short,
+			  " -D_AIX=1");
 #endif
     if ((parser.fp = popen(cmdline, "r")) == NULL)
 	error("cannot execute %s", cmdline);

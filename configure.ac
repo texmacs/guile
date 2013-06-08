@@ -27,6 +27,8 @@ AC_PROG_LIBTOOL
 
 AC_CHECK_FUNCS(mremap,,)
 
+AC_CHECK_HEADERS([getopt.h],,,)
+
 AC_ARG_ENABLE(disassembler,
 	      AS_HELP_STRING([--enable-disassembler],
 			     [Enable jit disassembler using binutils]),

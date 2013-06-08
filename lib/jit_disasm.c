@@ -81,12 +81,16 @@ jit_init_debug(void)
     if (jit_cpu.thumb)
 	disasm_info.disassembler_options = "force-thumb";
 #  endif
-#  if defined(__powerpc64__)
+#  if defined(__powerpc__)
     disasm_info.arch = bfd_arch_powerpc;
     disasm_info.mach = bfd_mach_ppc64;
+    disassemble_init_powerpc(&disasm_info);
+#    if defined(__powerpc64__)
     disasm_info.disassembler_options = "64";
+#    endif
     disassemble_init_powerpc(&disasm_info);
 #  endif
+
 #  if defined(__sparc__)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
 #  endif
