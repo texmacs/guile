@@ -322,6 +322,7 @@ static void _f38(jit_state_t*,jit_int32_t,
 #define BV(x,b)			f21(0x3a,b,x,6,0)
 #define BV_N(x,b)		f21(0x3a,b,x,6,1)
 #define BVE(b)			f22(0x3a,b,6,0,0,0)
+#define BVE_N(b)		f22(0x3a,b,6,0,1,0)
 #define BVE_L(b)		f22(0x3a,b,7,0,0,0)
 #define II_C_NONE		0
 #define II_C_M			(1<<5)
@@ -2652,7 +2653,11 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     LDWL(-20, _FP_REGNO, _RP_REGNO);
     LDO(_jitc->function->stack, _FP_REGNO, _SP_REGNO);
     LDWL_MB(-_jitc->function->stack, _SP_REGNO, _FP_REGNO);
+#if defined(__hpux)
+    BVE_N(_RP_REGNO);
+#else
     BV_N(_R0_REGNO, _RP_REGNO);
+#endif
 }
 
 static void

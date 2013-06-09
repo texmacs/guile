@@ -16,10 +16,10 @@ AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
 check_PROGRAMS = lightning ccall
 
-lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 lightning_SOURCES = lightning.c
 
-ccall_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+ccall_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 ccall_SOURCES = ccall.c
 
 $(top_builddir)/lib/liblightning.la:

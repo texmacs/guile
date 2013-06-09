@@ -38,6 +38,12 @@
 #  define label_t		l_label_t
 #endif
 
+#if defined(__hpux)
+#  define DL_HANDLE		RTLD_NEXT
+#else
+#  define DL_HANDLE		RTLD_DEFAULT
+#endif
+
 #if defined(__GNUC__)
 #  define noreturn		__attribute__ ((noreturn))
 #  define printf_format(f, v)	__attribute__ ((format (printf, f, v)))
@@ -2295,7 +2301,7 @@ dynamic(void)
     char	*string;
     (void)identifier('@');
     if ((label = get_label_by_name(parser.string)) == NULL) {
-	value = dlsym(RTLD_DEFAULT, parser.string + 1);
+	value = dlsym(DL_HANDLE, parser.string + 1);
 	if ((string = dlerror()))
 	    error("%s", string);
 	label = new_label(label_kind_dynamic, parser.string, value);
@@ -3939,6 +3945,11 @@ main(int argc, char *argv[])
 #endif
 
     opt_index = optind;
+#if defined(__hpux)
+    /* Workaround */
+    if (opt_index < argc && argv[opt_index][0] == '-')
+	++opt_index;
+#endif
     if (opt_index < 0 || opt_index >= argc)
 	usage();
     if (strcmp(argv[opt_index], "-") == 0)

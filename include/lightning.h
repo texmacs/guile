@@ -27,32 +27,48 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifndef __WORDSIZE
-#  if defined(_AIX)
-#    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
-#  else
-#    define __WORDSIZE		WORDSIZE
-#  endif
+#ifdef __hpux
+#  include <machine/param.h>
 #endif
-#ifndef __BYTE_ORDER
-#  if defined(_AIX)
-#    define __BYTE_ORDER	__BYTE_ORDER__
+
+#ifndef __WORDSIZE
+#  if defined(WORDSIZE)
+#    define __WORDSIZE		WORDSIZE
+#  elif defined(__SIZEOF_POINTER__)
+#    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
+#  elif defined(_ILP32)
+#    define __WORDSIZE		32
 #  else
-#    define __BYTE_ORDER	BYTE_ORDER
+#    error cannot figure __WORDSIZE
 #  endif
 #endif
 #ifndef __LITTLE_ENDIAN
-#  if defined(_AIX)
+#  if defined(LITTLE_ENDIAN)
+#    define __LITTLE_ENDIAN	LITTLE_ENDIAN
+#  elif defined(__ORDER_LITTLE_ENDIAN__)
 #    define __LITTLE_ENDIAN	__ORDER_LITTLE_ENDIAN__
 #  else
-#    define __LITTLE_ENDIAN	LITTLE_ENDIAN
+#    define __LITTLE_ENDIAN	1234
 #  endif
 #endif
 #ifndef __BIG_ENDIAN
-#  if defined(_AIX)
+#  if defined(BIG_ENDIAN)
+#    define __BIG_ENDIAN	BIG_ENDIAN
+#  elif defined(__ORDER_BIG_ENDIAN__)
 #    define __BIG_ENDIAN	__ORDER_BIG_ENDIAN__
 #  else
-#    define __BIG_ENDIAN	BIG_ENDIAN
+#    define __BIG_ENDIAN	4321
+#  endif
+#endif
+#ifndef __BYTE_ORDER
+#  if defined(BYTE_ORDER)
+#    define __BYTE_ORDER	BYTE_ORDER
+#  elif defined(__BYTE_ORDER__)
+#    define __BYTE_ORDER	__BYTE_ORDER__
+#  elif defined(_BIG_ENDIAN)
+#    define __BYTE_ORDER	__BIG_ENDIAN
+#  else
+#    error cannot figure __BYTE_ORDER
 #  endif
 #endif
 

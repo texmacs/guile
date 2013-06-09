@@ -32,6 +32,9 @@
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 
+/* libgcc */
+extern void __clear_cache(void *, void *);
+
 /*
  * Initialization
  */
@@ -149,7 +152,7 @@ _jit_prolog(jit_state_t *_jit)
     _jitc->function->self.size = params_offset;
     _jitc->function->self.argi = _jitc->function->self.alen = 0;
     /* float conversion */
-    _jitc->function->self.aoff = alloca_offset - 8;
+    _jitc->function->self.aoff = alloca_offset;
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));
@@ -409,7 +412,10 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
     _jitc->function->call.size -= sizeof(jit_word_t);
     if (_jitc->function->call.argi < 4) {
 	jit_movr_f(_F4 - _jitc->function->call.argi, u);
-	if (_jitc->function->call.call & jit_call_varargs) {
+#if !defined(__hpux)
+	if (_jitc->function->call.call & jit_call_varargs)
+#endif
+	{
 	    jit_stxi_f(alloca_offset - 8, JIT_FP, u);
 	    jit_ldxi(_R26 - _jitc->function->call.argi, JIT_FP,
 		     alloca_offset - 8);
@@ -428,7 +434,10 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     _jitc->function->call.size -= sizeof(jit_word_t);
     if (_jitc->function->call.argi < 4) {
 	jit_movi_f(_F4 - _jitc->function->call.argi, u);
-	if (_jitc->function->call.call & jit_call_varargs) {
+#if !defined(__hpux)
+	if (_jitc->function->call.call & jit_call_varargs)
+#endif
+	{
 	    jit_stxi_f(alloca_offset - 8, JIT_FP,
 		       _F4 - _jitc->function->call.argi);
 	    jit_ldxi(_R26 - _jitc->function->call.argi,
@@ -455,7 +464,10 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     }
     if (_jitc->function->call.argi < 4) {
 	jit_movr_d(_F4 - (_jitc->function->call.argi + 1), u);
-	if (_jitc->function->call.call & jit_call_varargs) {
+#if !defined(__hpux)
+	if (_jitc->function->call.call & jit_call_varargs)
+#endif
+	{
 	    jit_stxi_d(alloca_offset - 8, JIT_FP, u);
 	    jit_ldxi(_R26 - _jitc->function->call.argi,
 		     JIT_FP, alloca_offset - 4);
@@ -484,7 +496,10 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     }
     if (_jitc->function->call.argi < 4) {
 	jit_movi_d(_F4 - (_jitc->function->call.argi + 1), u);
-	if (_jitc->function->call.call & jit_call_varargs) {
+#if !defined(__hpux)
+	if (_jitc->function->call.call & jit_call_varargs)
+#endif
+	{
 	    jit_stxi_d(alloca_offset - 8, JIT_FP,
 		       _F4 - (_jitc->function->call.argi + 1));
 	    jit_ldxi(_R26 - _jitc->function->call.argi,
@@ -1130,6 +1145,83 @@ _emit_code(jit_state_t *_jit)
 	word = node->code == jit_code_movi ? node->v.n->u.w : node->u.n->u.w;
 	patch_at(_jitc->patches.ptr[offset].inst, word);
     }
+
+#if defined(__hppa)
+/* --- parisc2.0.pdf ---
+		Programming Note
+
+The minimum spacing that is guaranteed to work for "self-modifying code" is
+shown in the code segment below. Since instruction prefetching is permitted,
+any data cache flushes must be separated from any instruction cache flushes
+by a SYNC. This will ensure that the "new" instruction will be written to
+memory prior to any attempts at prefetching it as an instruction.
+
+	LDIL	l%newinstr,rnew
+	LDW	r%newinstr(0,rnew),temp
+	LDIL	l%instr,rinstr
+	STW	temp,r%instr(0,rinstr)
+	FDC	r%instr(0,rinstr)
+	SYNC	
+	FIC	r%instr(rinstr)
+	SYNC
+	instr	...
+	(at least seven instructions)
+
+This sequence assumes a uniprocessor system. In a multiprocessor system,
+software must ensure no processor is executing code which is in the process
+of being modified.
+*/
+    
+/*
+  Adapted from ffcall/trampoline/cache-hppa.c:__TR_clear_cache to
+loop over addresses as it is unlikely from and to addresses would fit in
+at most two cachelines.
+ */
+    /*
+     * Copyright 1995-1997 Bruno Haible, <bruno@clisp.org>
+     *
+     * This is free software distributed under the GNU General Public Licence
+     * described in the file COPYING. Contact the author if you don't have this
+     * or can't live with it. There is ABSOLUTELY NO WARRANTY, explicit or implied,
+     * on this software.
+     */
+    {
+	/* FIXME this may be required on Linux or other OSes with
+	 * multiprocessor support (was not required for the hppa
+	 * port done on Debian hppa...) */
+	jit_word_t	f = (jit_word_t)_jit->code.ptr;
+	jit_word_t	t = f + _jit->code.length;
+	register int	u, v;
+	for (; f <= t; f += 32) {
+	    asm volatile ("fdc 0(0,%0)"
+			  "\n\t" "fdc 0(0,%1)"
+			  "\n\t" "sync"
+			  :
+			  : "r" (f), "r" (t)
+			  );
+	    asm volatile ("mfsp %%sr0,%1"
+			  "\n\t" "ldsid (0,%4),%0"
+			  "\n\t" "mtsp %0,%%sr0"
+			  "\n\t" "fic 0(%%sr0,%2)"
+			  "\n\t" "fic 0(%%sr0,%3)"
+			  "\n\t" "sync"
+			  "\n\t" "mtsp %1,%%sr0"
+			  "\n\t" "nop"
+			  "\n\t" "nop"
+			  "\n\t" "nop"
+			  "\n\t" "nop"
+			  "\n\t" "nop"
+			  "\n\t" "nop"
+			  : "=r" (u), "=r" (v)
+			  : "r" (f), "r" (t), "r" (f)
+			  );
+	}
+    }
+#else
+    /* This is supposed to work but appears to fail on multiprocessor systems */
+    word = sysconf(_SC_PAGE_SIZE);
+    __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
+#endif
 
     return (_jit->code.ptr);
 }

@@ -16,6 +16,15 @@
  */
 
 #if PROTO
+
+/* FIXME should actually be hw model/version/etc or other constraint
+ * that causes a SIGSEGV if using these instructions */
+#if defined(__hpux)
+#  define FSTXR				0
+#else
+#  define FSTXR				1
+#endif
+
 #define f39(o,b,x,t)			_f39(_jit,o,b,x,t)
 static void _f39(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #define f40(o,b,x,r)			_f40(_jit,o,b,x,r)
@@ -385,13 +394,20 @@ static void _ldxi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #define str_f(r0,r1)			FSTWI(r1,0,r0)
 #define sti_f(i0,r0)			_sti_f(_jit,i0,r0)
 static void _sti_f(jit_state_t*,jit_word_t,jit_int32_t);
-#define stxr_f(r0,r1,r2)		FSTW(r2,r1,r0)
+#if FSTXR
+#  define stxr_f(r0,r1,r2)		FSTW(r2,r1,r0)
+#  define stxr_d(r0,r1,r2)		FSTD(r2,r1,r0)
+#else
+#  define stxr_f(r0,r1,r2)		_stxr_f(_jit,r0,r1,r2)
+static void _stxr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
+#  define stxr_d(r0,r1,r2)		_stxr_d(_jit,r0,r1,r2)
+static void _stxr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
+#endif
 #define stxi_f(i0,r0,r1)		_stxi_f(_jit,i0,r0,r1)
 static void _stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #define str_d(r0,r1)			FSTDI(r1,0,r0)
 #define sti_d(i0,r0)			_sti_d(_jit,i0,r0)
 static void _sti_d(jit_state_t*,jit_word_t,jit_int32_t);
-#define stxr_d(r0,r1,r2)		FSTD(r2,r1,r0)
 #define stxi_d(i0,r0,r1)		_stxi_d(_jit,i0,r0,r1)
 static void _stxi_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #define bcmpr_f(c,i0,r0,r1)		_bcmpr_f(_jit,c,i0,r0,r1)
@@ -813,6 +829,28 @@ _sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
     }
 }
 
+#if !FSTXR
+static void
+_stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    str_f(rn(reg), r2);
+    jit_unget_reg(reg);
+}
+
+static void
+_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    str_d(rn(reg), r2);
+    jit_unget_reg(reg);
+}
+#endif
+
 static void
 _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
@@ -824,8 +862,13 @@ _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	FSTWL(r1, i0, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
+#if FSTXR
+	movi(rn(reg), i0);
+	stxr_f(rn(reg), r0, r1);
+#else
 	addi(rn(reg), r0, i0);
 	str_f(rn(reg), r1);
+#endif
 	jit_unget_reg(reg);
     }
 }
@@ -856,8 +899,13 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	FSTDL(r1, i0, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
+#if FSTXR
 	movi(rn(reg), i0);
 	stxr_d(rn(reg), r0, r1);
+#else
+	addi(rn(reg), r0, i0);
+	str_d(rn(reg), r1);
+#endif
 	jit_unget_reg(reg);
     }
 }

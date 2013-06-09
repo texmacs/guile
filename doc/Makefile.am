@@ -24,17 +24,17 @@ noinst_PROGRAMS = incr printf rpn rfib ifib
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
 
-incr_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+incr_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 incr_SOURCES = incr.c
 
-printf_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+printf_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 printf_SOURCES = printf.c
 
-rpn_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+rpn_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 rpn_SOURCES = rpn.c
 
-rfib_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+rfib_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 rfib_SOURCES = rfib.c
 
-ifib_LDADD = $(top_builddir)/lib/liblightning.la -lm -ldl
+ifib_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 ifib_SOURCES = ifib.c

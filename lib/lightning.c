@@ -19,6 +19,10 @@
 #include <lightning/jit_private.h>
 #include <sys/mman.h>
 
+#ifndef MAP_ANON
+#  define MAP_ANON			MAP_ANONYMOUS
+#endif
+
 #define jit_regload_reload		0	/* convert to reload */
 #define jit_regload_delete		1	/* just remove node */
 #define jit_regload_isdead		2	/* delete and unset live bit */

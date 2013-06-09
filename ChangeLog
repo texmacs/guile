@@ -1,4 +1,36 @@
-2013-07-01 Paulo Andrade <pcpa@gnu.org>
+2013-06-09 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac, check/Makefile.am, doc/Makefile.am: Do not
+	explicitly link to -ldl, but instead autodetect the library
+	with dlopen, dlsym, etc.
+
+	* check/lightning.c: Add workaround to apparently buggy
+	getopt in HP-UX that sets optind to the wrong index, and
+	use RTLD_NEXT on HP-UX instead of RTLD_DEFAULT to dlsym
+	global symbols.
+
+	* include/lightning.h: Rework definitions of wordsize and
+	byte order to detect proper values on HP-UX.
+
+	* lib/lightning.c: Minor correction to use MAP_ANONYMOUS
+	instead of MAP_ANON on HP-UX.
+
+	* lib/jit_hppa.c: Float arguments must be passed on integer
+	registers on HP-UX, not only for varargs functions.
+	  Add code to properly clear instruction cache. This was
+	not required on Debian hppa port, but may have been working
+	by accident.
+
+	* lib/jit_hppa-cpu.c: Follow pattern of HP-UX binaries and
+	use bve,n instead of bv,n to return from functions.
+
+	* lib/jit_hppa-fpu.c: For some reason "fst? frX,rX,(rY)" did
+	not work on the tested computer	(HP-UX B.11.23 U 9000/785 HP-UX)
+	so the code was changed, at first for __hpux only to add the
+	base and offset register and use the instruction with an
+	immediate (zero) offset.
+
+2013-06-07 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c, lib/jit_disasm.c, lib/jit_ppc-cpu.c,
 	lib/jit_ppc-fpu.c, lib/jit_ppc.c, include/lightning.h,
