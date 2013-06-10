@@ -1176,6 +1176,7 @@ of being modified.
   Adapted from ffcall/trampoline/cache-hppa.c:__TR_clear_cache to
 loop over addresses as it is unlikely from and to addresses would fit in
 at most two cachelines.
+  FIXME A cache line can be 16, 32, or 64 bytes.
  */
     /*
      * Copyright 1995-1997 Bruno Haible, <bruno@clisp.org>
@@ -1186,18 +1187,16 @@ at most two cachelines.
      * on this software.
      */
     {
-	/* FIXME this may be required on Linux or other OSes with
-	 * multiprocessor support (was not required for the hppa
-	 * port done on Debian hppa...) */
 	jit_word_t	f = (jit_word_t)_jit->code.ptr;
+	jit_word_t	n = f + 32;
 	jit_word_t	t = f + _jit->code.length;
 	register int	u, v;
-	for (; f <= t; f += 32) {
+	for (; f <= t; n = f + 32, f += 64) {
 	    asm volatile ("fdc 0(0,%0)"
 			  "\n\t" "fdc 0(0,%1)"
 			  "\n\t" "sync"
 			  :
-			  : "r" (f), "r" (t)
+			  : "r" (f), "r" (n)
 			  );
 	    asm volatile ("mfsp %%sr0,%1"
 			  "\n\t" "ldsid (0,%4),%0"
@@ -1213,7 +1212,7 @@ at most two cachelines.
 			  "\n\t" "nop"
 			  "\n\t" "nop"
 			  : "=r" (u), "=r" (v)
-			  : "r" (f), "r" (t), "r" (f)
+			  : "r" (f), "r" (n), "r" (f)
 			  );
 	}
     }
