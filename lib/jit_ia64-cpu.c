@@ -35,35 +35,29 @@
 #define INST_X				14
 #define INST_Xs				15
 
-typedef union {
-    struct {
-	jit_uint64_t	tm : 5;
-	jit_uint64_t	s0 : 41;
-	jit_uint64_t	s1 : 18;
-    } b;
-    jit_int64_t	w;
-} inst_lo_t;
-
-typedef union {
-    struct {
-	jit_uint64_t	s1 : 23;
-	jit_uint64_t	s2 : 41;
-    } b;
-    jit_int64_t	w;
-} inst_hi_t;
+/* Data and instructions are referenced by 64-bit addresses. Instructions
+ * are stored in memory in little endian byte order, in which the least
+ * significant byte appears in the lowest addressed byte of a memory
+ * location. For data, modes for both big and little endian byte order are
+ * supported and can be controlled by a bit in the User Mask Register.
+ */
 #define il(ii)				*_jit->pc.ul++ = ii
-#define to_tm(v)			l.b.tm = v
-#define get_tm(v)			v = l.b.tm
-#define to_s0(v)			l.b.s0 = v
-#define get_s0(v)			v = l.b.s0
-#define to_s1(v)							\
+#define set_bundle(p, l, h, tm, s0, s1, s2)				\
     do {								\
-	l.b.s1 = (v) & 0x3ffff;						\
-	h.b.s1 = ((v) >> 18) & 0x7fffff;				\
+	l = tm | ((s0 & 0x1ffffffffffL) << 5L) | (s1 << 46L);		\
+	h = ((s1 >> 18L) & 0x7fffffLL) | (s2 << 23L);			\
+	p[0] = byte_swap_if_big_endian(l);				\
+	p[1] = byte_swap_if_big_endian(h);				\
     } while (0)
-#define get_s1(v)			v = l.b.s1 | ((jit_word_t)h.b.s1 << 18)
-#define to_s2(v)			h.b.s2 = v
-#define get_s2(v)			v = h.b.s2
+#define get_bundle(p, l, h, tm, s0, s1, s2)				\
+    do {								\
+	l = byte_swap_if_big_endian(p[0]);				\
+	h = byte_swap_if_big_endian(p[1]);				\
+	tm = l & 0x1f;							\
+	s0 = (l >> 5L) & 0x1ffffffffffL;				\
+	s1 = ((l >> 46L) & 0x3ffffL) | ((h & 0x7fffffL) << 18L);	\
+	s2 = (h >> 23L) & 0x1ffffffffffL;				\
+    } while (0)
 
 /*  Need to insert a stop if a modified register would (or could)
  *  be read in the same cycle.
@@ -217,11 +211,22 @@ typedef enum {
 #define stxr(r0,r1,r2)			stxr_l(r0,r1,r2)
 #define stxi(i0,r0,r1)			stxi_l(i0,r0,r1)
 
+#if !HAVE_FFSL
+static int ffsl(long);
+#endif
+
 /* libgcc */
-extern void __divdi3(long,long);
-extern void __udivdi3(unsigned long,unsigned long);
-extern void __moddi3(long,long);
-extern void __umoddi3(unsigned long,unsigned long);
+#if defined(__GNUC__)
+extern long __divdi3(long,long);
+extern unsigned long __udivdi3(unsigned long,unsigned long);
+extern long __moddi3(long,long);
+extern unsigned long __umoddi3(unsigned long,unsigned long);
+#else
+static long __divdi3(long,long);
+static unsigned long __udivdi3(unsigned long,unsigned long);
+static long __moddi3(long,long);
+static unsigned long __umoddi3(unsigned long,unsigned long);
+#endif
 #define out(n,tm,s0,s1,s2)		_out(_jit,n,tm,s0,s1,s2)
 static void _out(jit_state_t*,int,int,jit_word_t,jit_word_t,jit_word_t);
 #define stop()				_stop(_jit)
@@ -275,7 +280,11 @@ static void _I2(jit_state_t*,jit_word_t,
     maybe_unused;
 #define I3(mbt,r2,r1)			_I3(_jit,0,mbt,r2,r1)
 static void _I3(jit_state_t*,jit_word_t,
-		jit_word_t,jit_word_t,jit_word_t);
+		jit_word_t,jit_word_t,jit_word_t)
+#if __BYTE_ORDER == __BIG_ENDIAN
+    maybe_unused
+#endif
+    ;
 #define I4(mht,r2,r1)			_I4(_jit,0,mht,r2,r1)
 static void _I4(jit_state_t*,jit_word_t,
 		jit_word_t,jit_word_t,jit_word_t)
@@ -1294,7 +1303,11 @@ static void _movr(jit_state_t*,jit_int32_t,jit_int32_t);
 static void _movi(jit_state_t*,jit_int32_t,jit_word_t);
 #define movi_p(r0,i0)			_movi_p(_jit,r0,i0)
 static jit_word_t _movi_p(jit_state_t*,jit_int32_t,jit_word_t);
-#define htonr(r0,r1)			MUX1(r0,r1,MUX_REV)
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#  define htonr(r0,r1)			MUX1(r0,r1,MUX_REV)
+#else
+#  define htonr(r0,r1)			movr(r0,r1)
+#endif
 #define extr_c(r0,r1)			SXT1(r0,r1)
 #define extr_uc(r0,r1)			ZXT1(r0,r1)
 #define extr_s(r0,r1)			SXT2(r0,r1)
@@ -1490,20 +1503,37 @@ static void _patch_at(jit_state_t*,jit_code_t,jit_word_t,jit_word_t);
 #endif
 
 #if CODE
+#if __BYTE_ORDER == __BIG_ENDIAN
+static jit_word_t
+byte_swap_if_big_endian(jit_word_t w)
+{
+    union {
+	char	c[8];
+	long	w;
+    } l, h;
+    l.w = w;
+    h.c[0] = l.c[7];
+    h.c[1] = l.c[6];
+    h.c[2] = l.c[5];
+    h.c[3] = l.c[4];
+    h.c[4] = l.c[3];
+    h.c[5] = l.c[2];
+    h.c[6] = l.c[1];
+    h.c[7] = l.c[0];
+    return (h.w);
+}
+#else
+#define byte_swap_if_big_endian(w)		(w)
+#endif
+
 static void
 _out(jit_state_t *_jit, int n, int tm,
      jit_word_t s0, jit_word_t s1, jit_word_t s2)
 {
     int			 i;
-    inst_lo_t		 l;
-    inst_hi_t		 h;
-    jit_word_t		*w;
-    to_tm(tm);
-    to_s0(s0);
-    to_s1(s1);
-    to_s2(s2);
-    il(l.w);
-    il(h.w);
+    jit_word_t		 l, h, *w;
+    set_bundle(_jit->pc.ul, l, h, tm, s0, s1, s2);
+    _jit->pc.ul += 2;
     w = (jit_word_t *)_jitc->inst;
     for (i = n; i < _jitc->ioff; i++)
 	w[i - n] = w[i];
@@ -3613,6 +3643,32 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     jit_unget_reg(reg);
 }
 
+#if !defined(__GNUC__)
+static long
+__divdi3(long u, long v)
+{
+    return (u / v);
+}
+
+static unsigned long
+__udivdi3(unsigned long u, unsigned long v)
+{
+    return (u / v);
+}
+
+static long
+__moddi3(long u, long v)
+{
+    return (u % v);
+}
+
+static unsigned long
+__umoddi3(unsigned long u, unsigned long v)
+{
+    return (u % v);
+}
+#endif
+
 static void
 _divr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
@@ -5159,17 +5215,14 @@ static void
 _patch_at(jit_state_t *_jit, jit_code_t code,
 	  jit_word_t instr, jit_word_t label)
 {
-    inst_lo_t		 l;
-    inst_hi_t		 h;
-    jit_word_t		 tm, s0, s1, s2;
+    jit_word_t		 l, h, tm, s0, s1, s2;
     union {
 	jit_word_t	 w;
 	jit_word_t	*p;
     } c;
     jit_word_t		 i1, i41, i20, ic, i5, i9, i7;
-
-    c.w = instr;	l.w = c.p[0];	h.w = c.p[1];
-    get_tm(tm);		get_s0(s0);	get_s1(s1);	get_s2(s2);
+    c.w = instr;
+    get_bundle(c.p, l, h, tm, s0, s1, s2);
     switch (code) {
 	case jit_code_movi:
 	    /* Handle jit functions as C function, so that jit function
@@ -5223,8 +5276,19 @@ _patch_at(jit_state_t *_jit, jit_code_t code,
 	    s0 |= (((ic>>20)&1L)<<36)|((ic&0xfffffL)<<13);
 	    break;
     }
-    to_tm(tm);		to_s0(s0);	to_s1(s1);	to_s2(s2);
-    c.p[0] = l.w;
-    c.p[1] = h.w;
+    set_bundle(c.p, l, h, tm, s0, s1, s2);
 }
+
+#if !HAVE_FFSL
+static int
+ffsl(long i)
+{
+    int		bit;
+    if ((bit = ffs((int)i)) == 0) {
+	if ((bit = ffs((int)((unsigned long)i >> 32))))
+	    bit += 32;
+    }
+    return (bit);
+}
+#endif
 #endif

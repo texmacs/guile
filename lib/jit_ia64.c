@@ -27,6 +27,11 @@
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 
+#if defined(__GNUC__)
+/* libgcc */
+extern void __clear_cache(void *, void *);
+#endif
+
 #define PROTO				1
 #  include "jit_ia64-cpu.c"
 #  include "jit_ia64-fpu.c"
@@ -396,10 +401,17 @@ _jit_arg_d(jit_state_t *_jit)
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-    if (v->u.w < 8)
+    if (v->u.w < 8) {
 	jit_extr_c(u, _R32 + v->u.w);
-    else
+    }
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_c(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_c(u, JIT_FP,
+		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_int8_t));
+#endif
+    }
 }
 
 void
@@ -407,8 +419,14 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_extr_uc(u, _R32 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_uc(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_uc(u, JIT_FP,
+		    v->u.w + (__WORDSIZE >> 3) - sizeof(jit_uint8_t));
+#endif
+    }
 }
 
 void
@@ -416,8 +434,14 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_extr_s(u, _R32 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_s(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_s(u, JIT_FP,
+		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_int16_t));
+#endif
+    }
 }
 
 void
@@ -425,8 +449,14 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_extr_us(u, _R32 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_us(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_us(u, JIT_FP,
+		    v->u.w + (__WORDSIZE >> 3) - sizeof(jit_uint16_t));
+#endif
+    }
 }
 
 void
@@ -434,8 +464,14 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_extr_i(u, _R32 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_i(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_i(u, JIT_FP,
+		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_int32_t));
+#endif
+    }
 }
 
 void
@@ -443,8 +479,14 @@ _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_extr_ui(u, _R32 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_ui(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_ui(u, JIT_FP,
+		    v->u.w + (__WORDSIZE >> 3) - sizeof(jit_uint32_t));
+#endif
+    }
 }
 
 void
@@ -461,8 +503,14 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     if (v->u.w < 8)
 	jit_movr_f(u, _F8 + v->u.w);
-    else
+    else {
+#if __BYTE_ORDER == __LITTLE__ENDIAN
 	jit_ldxi_f(u, JIT_FP, v->u.w);
+#else
+	jit_ldxi_f(u, JIT_FP,
+		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_float32_t));
+#endif
+    }
 }
 
 void
@@ -518,7 +566,11 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
     }
     else {
-	jit_stxr_f(_jitc->function->call.size + params_offset, JIT_SP, u);
+	jit_stxi_f(_jitc->function->call.size + params_offset
+#if __BYTE_ORDER == __BIG_ENDIAN
+		   + sizeof(jit_float32_t)
+#endif
+		   , JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -538,7 +590,11 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     else {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_f(regno, u);
-	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, regno);
+	jit_stxi_f(_jitc->function->call.size + params_offset
+#if __BYTE_ORDER == __BIG_ENDIAN
+		   + sizeof(jit_float32_t)
+#endif
+		   , JIT_SP, regno);
 	_jitc->function->call.size += sizeof(jit_word_t);
 	jit_unget_reg(regno);
     }
@@ -556,7 +612,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
     }
     else {
-	jit_stxr_d(_jitc->function->call.size + params_offset, JIT_SP, u);
+	jit_stxi_d(_jitc->function->call.size + params_offset, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
 }
@@ -1296,8 +1352,10 @@ _emit_code(jit_state_t *_jit)
 	patch_at(node->code, _jitc->patches.ptr[offset].inst, word);
     }
 
+#if defined(__GNUC__)
     word = sysconf(_SC_PAGE_SIZE);
     __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
+#endif
 
     return (_jit->code.ptr);
 }

@@ -1,3 +1,12 @@
+2013-06-14 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac: Force -mlp64 to CFLAGS on HP-UX ia64 port.
+	It is the only supported mode, and expects gcc as C compiler.
+
+	* include/lightning.h, lib/jit_ia64-cpu.c, lib/jit_ia64.c:
+	Correct ia64 port to work on HP-UX that runs it in big endian
+	mode.
+
 2013-06-10 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_hppa.c: Sanitize the cache synchronization inline

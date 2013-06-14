@@ -27,45 +27,49 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifdef __hpux
+#if defined(__hpux) && defined(__hppa__)
 #  include <machine/param.h>
 #endif
 
 #ifndef __WORDSIZE
-#  if defined(WORDSIZE)
+#  if defined(WORDSIZE)				/* ppc darwin */
 #    define __WORDSIZE		WORDSIZE
-#  elif defined(__SIZEOF_POINTER__)
+#  elif defined(__SIZEOF_POINTER__)		/* ppc aix */
 #    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
-#  elif defined(_ILP32)
+#  elif defined(_ILP32)				/* hppa hp-ux */
 #    define __WORDSIZE		32
+#  elif defined(_LP64)				/* ia64 hp-ux (with cc +DD64) */
+#    define __WORDSIZE		64
 #  else
 #    error cannot figure __WORDSIZE
 #  endif
 #endif
 #ifndef __LITTLE_ENDIAN
-#  if defined(LITTLE_ENDIAN)
+#  if defined(LITTLE_ENDIAN)			/* ppc darwin */
 #    define __LITTLE_ENDIAN	LITTLE_ENDIAN
-#  elif defined(__ORDER_LITTLE_ENDIAN__)
+#  elif defined(__ORDER_LITTLE_ENDIAN__)	/* ppc aix */
 #    define __LITTLE_ENDIAN	__ORDER_LITTLE_ENDIAN__
 #  else
 #    define __LITTLE_ENDIAN	1234
 #  endif
 #endif
 #ifndef __BIG_ENDIAN
-#  if defined(BIG_ENDIAN)
+#  if defined(BIG_ENDIAN)			/* ppc darwin */
 #    define __BIG_ENDIAN	BIG_ENDIAN
-#  elif defined(__ORDER_BIG_ENDIAN__)
+#  elif defined(__ORDER_BIG_ENDIAN__)		/* ppc aix */
 #    define __BIG_ENDIAN	__ORDER_BIG_ENDIAN__
 #  else
 #    define __BIG_ENDIAN	4321
 #  endif
 #endif
 #ifndef __BYTE_ORDER
-#  if defined(BYTE_ORDER)
+#  if defined(BYTE_ORDER)			/* ppc darwin */
 #    define __BYTE_ORDER	BYTE_ORDER
-#  elif defined(__BYTE_ORDER__)
+#  elif defined(__BYTE_ORDER__)			/* ppc aix */
 #    define __BYTE_ORDER	__BYTE_ORDER__
-#  elif defined(_BIG_ENDIAN)
+#  elif defined(_BIG_ENDIAN)			/* hppa hp-ux */
+#    define __BYTE_ORDER	__BIG_ENDIAN
+#  elif defined(__BIG_ENDIAN__	)		/* ia64 hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
 #  else
 #    error cannot figure __BYTE_ORDER

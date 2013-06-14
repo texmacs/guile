@@ -21,11 +21,21 @@ AC_CONFIG_MACRO_DIR(m4)
 
 AC_CONFIG_HEADERS(config.h)
 
+case "$target_cpu" in
+    ia64)
+	case "$host_os" in
+	    # Only supported mode
+	    *hpux*)	CFLAGS="$CFLAGS -mlp64"	;;
+	    *)					;;
+	esac					;;
+    *)						;;
+esac
+
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
-AC_CHECK_FUNCS(mremap,,)
+AC_CHECK_FUNCS(mremap ffsl,,)
 
 AC_CHECK_HEADERS([getopt.h],,,)
 
