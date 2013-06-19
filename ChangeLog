@@ -1,3 +1,14 @@
+2013-06-18 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_sparc-cpu.c: Correct compiler warning of value
+	used before assignment. The usage is bogus as the api
+	requires always patching jumps, but the random value used
+	could cause an assertion due to invalid displacement.
+
+	* lib/jit_sparc.c: Always load and store double arguments
+	in stack as 2 float loads or stores, for safety, as unaligned
+	access is not allowed in Sparc Solaris.
+
 2013-06-14 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac: Force -mlp64 to CFLAGS on HP-UX ia64 port.

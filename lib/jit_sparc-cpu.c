@@ -1562,7 +1562,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    w = (i0 - w) >> 2;
+    w = (i0 - _jit->pc.w) >> 2;
     if (s22_p(w)) {
 	BA(w);
 	NOP();

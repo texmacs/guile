@@ -33,8 +33,8 @@
 #  include <fpu_control.h>
 #endif
 
-/* The label_t identifier clashes with a definition in sys/types.h */
-#if defined(_AIX)
+/* The label_t identifier clashes with a system definitions */
+#if defined(_AIX) || defined(__sun__)
 #  define label_t		l_label_t
 #endif
 
