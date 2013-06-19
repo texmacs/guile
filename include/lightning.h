@@ -71,6 +71,8 @@
 #    define __BYTE_ORDER	__BIG_ENDIAN
 #  elif defined(__BIG_ENDIAN__	)		/* ia64 hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
+#  elif defined(__i386__)
+#    define __BYTE_ORDER	__LITTLE_ENDIAN	/* x86 solaris */
 #  else
 #    error cannot figure __BYTE_ORDER
 #  endif

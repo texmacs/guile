@@ -1,5 +1,11 @@
 2013-06-18 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning.h: Minor extra preprocessor testing
+	to "detect" byte order on x86 solaris, that now builds
+	and pass all test cases.
+
+2013-06-18 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_sparc-cpu.c: Correct compiler warning of value
 	used before assignment. The usage is bogus as the api
 	requires always patching jumps, but the random value used
