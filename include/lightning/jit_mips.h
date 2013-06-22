@@ -21,14 +21,23 @@
 #define JIT_HASH_CONSTS		1
 #define JIT_NUM_OPERANDS	3
 
+#if defined(_ABIN32)
+#  define NEW_ABI		1
+#endif
+
 /*
  * Types
  */
 #define JIT_FP			_FP
 typedef enum {
-#define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
 #define jit_r(i)		(_V0 + (i))
-#define jit_r_num()		12
+#if NEW_ABI
+#  define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
+#  define jit_r_num()		8
+#else
+#  define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
+#  define jit_r_num()		12
+#endif
 #define jit_v(i)		(_S0 + (i))
 #define jit_v_num()		8
 #define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 4)
@@ -37,35 +46,28 @@ typedef enum {
     _AT,
 #define JIT_R0			_V0
 #define JIT_R1			_V1
-#define JIT_R2			_T0
-#define JIT_R3			_T1
-#define JIT_R4			_T2
-#define JIT_R5			_T3
-#define JIT_R6			_T4
-#define JIT_R7			_T5
-#define JIT_R8			_T6
-#define JIT_R9			_T7
-#define JIT_R10			_T8
-#define JIT_R11			_T9	/* must point to PIC function */
-    _V0, _V1, _T0, _T1, _T2, _T3, _T4, _T5, _T6, _T7, _T8, _T9,
+#if NEW_ABI
+#  define JIT_R2		_T4
+#else
+#  define JIT_R2		_T0
+#endif
+    _V0, _V1,
+#if !NEW_ABI
+    _T0, _T1, _T2, _T3,
+#endif
+    _T4, _T5, _T6, _T7, _T8, _T9,
 #define JIT_V0			_S0
 #define JIT_V1			_S1
 #define JIT_V2			_S2
-#define JIT_V3			_S3
-#define JIT_V4			_S4
-#define JIT_V5			_S5
-#define JIT_V6			_S6
-#define JIT_V7			_S7
     _S0, _S1, _S2, _S3, _S4, _S5, _S6, _S7,
     _ZERO, _K0, _K1, _RA,
-    _GP,				/* FIXME use to point to jit data */
+    _GP,
     _SP, _FP,
-#  define JIT_RA0		_A0
-#  define JIT_RA1		_A1
-#  define JIT_RA2		_A2
-#  define JIT_RA3		_A3
+#define JIT_RA0			_A0
+#if NEW_ABI
+    _A7, _A6, _A5, _A4,
+#endif
     _A3, _A2, _A1, _A0,
-
 #define JIT_F0			_F0
 #define JIT_F1			_F2
 #define JIT_F2			_F4
@@ -74,18 +76,16 @@ typedef enum {
 #define JIT_F5			_F10
     _F0, _F2, _F4, _F6, _F8, _F10,
     /* callee save float registers */
-#define JIT_FS0			_F16
-#define JIT_FS1			_F18
-#define JIT_FS2			_F20
-#define JIT_FS3			_F22
-#define JIT_FS4			_F24
-#define JIT_FS5			_F26
-#define JIT_FS6			_F28
-#define JIT_FS7			_F30
-    _F16, _F18, _F20, _F22, _F24, _F26, _F28, _F30,
+#if !NEW_ABI
+    _F16, _F18,
+#endif
+    _F20, _F22, _F24, _F26, _F28, _F30,
 #define JIT_FA0			_F12
-#define JIT_FA1			_F14
+#if NEW_ABI
+    _F19, _F18, _F17, _F16, _F15, _F14, _F13, _F12,
+#else
     _F14, _F12,
+#endif
 #define JIT_NOREG		_NOREG
     _NOREG,
 } jit_reg_t;

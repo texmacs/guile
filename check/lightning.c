@@ -40,6 +40,8 @@
 
 #if defined(__hpux)
 #  define DL_HANDLE		RTLD_NEXT
+#elif defined(__sgi)
+static void			*DL_HANDLE;
 #else
 #  define DL_HANDLE		RTLD_DEFAULT
 #endif
@@ -3702,6 +3704,8 @@ get_symbol_by_name(char *name)
 {
     symbol_t	**symbol_pointer;
 
+    if (symbols == NULL)
+	return (NULL);
     symbol_pointer = (symbol_t **)bsearch(name, symbols, symbol_offset,
 					  sizeof(symbol_t *), bcmp_symbols);
 
@@ -3788,7 +3792,7 @@ rehash(hash_t *hash)
 static void
 usage(void)
 {
-#if HAVE_GETOPT_H
+#if HAVE_GETOPT_LONG_ONLY
     fprintf(stderr, "\
 Usage: %s [jit assembler options] file [jit program options]\n\
 Jit assembler options:\n\
@@ -3823,7 +3827,7 @@ Jit assembler options:\n\
 int
 main(int argc, char *argv[])
 {
-#if HAVE_GETOPT_H
+#if HAVE_GETOPT_LONG_ONLY
     static const char	*short_options = "v::";
     static struct option long_options[] = {
 	{ "help",		0, 0, 'h' },
@@ -3842,7 +3846,7 @@ main(int argc, char *argv[])
 	{ 0,			0, 0, 0   }
     };
 #else
-#endif	/* HAVE_GETOPT_H */
+#endif	/* HAVE_GETOPT_LONG_ONLY */
     int			 offset;
     char		*endptr;
     int			 opt_index;
@@ -3853,7 +3857,11 @@ main(int argc, char *argv[])
 
     init_jit(progname);
 
-#if HAVE_GETOPT_H
+#if defined(__sgi)
+    DL_HANDLE = dlopen(NULL, RTLD_LAZY);
+#endif
+
+#if HAVE_GETOPT_LONG_ONLY
     for (;;) {
 	if ((opt_short = getopt_long_only(argc, argv, short_options,
 					  long_options, &opt_index)) < 0)
@@ -4029,6 +4037,11 @@ main(int argc, char *argv[])
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
 			  " -D_AIX=1");
+#endif
+#if defined(__sgi__)
+    opt_short += snprintf(cmdline + opt_short,
+			  sizeof(cmdline) - opt_short,
+			  " -D__sgi__=1");
 #endif
     if ((parser.fp = popen(cmdline, "r")) == NULL)
 	error("cannot execute %s", cmdline);

@@ -23,7 +23,6 @@
 #  define MIPS_fmt_PS			0x16		/* 2 x float32 */
 #  define MIPS_fmt_S_PU			0x20
 #  define MIPS_fmt_S_PL			0x26
-
 #  define MIPS_ADD_fmt			0x00
 #  define MIPS_LWXC1			0x00
 #  define MIPS_SUB_fmt			0x01
@@ -69,7 +68,6 @@
 #  define MIPS_NMSUB_fmt_S		(0x38 | MIPS_fmt_S)
 #  define MIPS_NMSUB_fmt_D		(0x38 | MIPS_fmt_D)
 #  define MIPS_NMSUB_fmt_PS		(0x38 | MIPS_fmt_PS)
-
 #  define MIPS_cond_F			0x30
 #  define MIPS_cond_UN			0x31
 #  define MIPS_cond_EQ			0x32
@@ -86,7 +84,6 @@
 #  define MIPS_cond_NGE			0x3d
 #  define MIPS_cond_LE			0x3e
 #  define MIPS_cond_UGT			0x3f
-
 #  define ADD_S(fd,fs,ft)		hrrrit(MIPS_COP1,MIPS_fmt_S,ft,fs,fd,MIPS_ADD_fmt)
 #  define ADD_D(fd,fs,ft)		hrrrit(MIPS_COP1,MIPS_fmt_D,ft,fs,fd,MIPS_ADD_fmt)
 #  define SUB_S(fd,fs,ft)		hrrrit(MIPS_COP1,MIPS_fmt_S,ft,fs,fd,MIPS_SUB_fmt)
@@ -212,7 +209,9 @@ static void _divi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define negr_d(r0,r1)			NEG_D(r0,r1)
 #  define sqrtr_f(r0,r1)		SQRT_S(r0,r1)
 #  define sqrtr_d(r0,r1)		SQRT_D(r0,r1)
-#  define movr_w_f(r0, r1)		MTC1(r1, r0)
+#  if !NEW_ABI
+#    define movr_w_f(r0, r1)		MTC1(r1, r0)
+#  endif
 #  define movr_f_w(r0, r1)		MFC1(r1, r0)
 #  define movi_f_w(r0, i0)		_movi_f_w(_jit, r0, i0)
 static void _movi_f_w(jit_state_t*,jit_int32_t,jit_float32_t*);
@@ -243,12 +242,18 @@ static void _stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 static void _movr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
-#  define movr_ww_d(r0, r1, r2)		_movr_ww_d(_jit, r0, r1, r2)
+#  if NEW_ABI
+#    define movr_d_w(r0, r1)		DMFC1(r0, r1)
+#    define movi_d_w(r0, i0)		_movi_d_w(_jit,r0,i0)
+static void _movi_d_w(jit_state_t*,jit_int32_t,jit_float64_t*);
+#  else
+#    define movr_ww_d(r0, r1, r2)	_movr_ww_d(_jit, r0, r1, r2)
 static void _movr_ww_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
-#  define movr_d_ww(r0, r1, r2)		_movr_d_ww(_jit, r0, r1, r2)
+#    define movr_d_ww(r0, r1, r2)	_movr_d_ww(_jit, r0, r1, r2)
 static void _movr_d_ww(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
-#  define movi_d_ww(r0, r1, i0)		_movi_d_ww(_jit, r0, r1, i0)
+#    define movi_d_ww(r0, r1, i0)	_movi_d_ww(_jit, r0, r1, i0)
 static void _movi_d_ww(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
+#  endif
 #  define extr_d(r0, r1)		_extr_d(_jit, r0, r1)
 static void _extr_d(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define truncr_d_i(r0, r1)		_truncr_d_i(_jit, r0, r1)
@@ -619,7 +624,7 @@ _truncr_f_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 
 #  if __WORDSIZE == 64
 static void
-_truncr_f_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_truncr_f_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		t0;
     t0 = jit_get_reg(jit_class_fpr);
@@ -732,6 +737,21 @@ dopi(sub)
 dopi(mul)
 dopi(div)
 
+#if NEW_ABI
+static void
+_movi_d_w(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
+{
+    jit_word_t		w;
+    w = (jit_word_t)i0;
+    if (can_sign_extend_short_p(w))
+	LD(r0, w, _ZERO_REGNO);
+    else {
+	movi(r0, w);
+	LD(r0, 0, r0);
+    }
+}
+
+#else
 static void
 _movr_ww_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
@@ -761,6 +781,7 @@ _movi_d_ww(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_float64_t *i0)
     movi(r0, data.i[0]);
     movi(r1, data.i[1]);
 }
+#endif
 
 static void
 _extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
@@ -802,7 +823,7 @@ _truncr_d_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _ldr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     LDC1(r0, 0, r1);
 #  else
     LWC1(r0, 0, r1);
@@ -814,7 +835,7 @@ static void
 _ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     if (can_sign_extend_short_p(i0))
 	LDC1(r0, i0, _ZERO_REGNO);
     else {
@@ -852,7 +873,7 @@ static void
 _ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     if (can_sign_extend_short_p(i0))
 	LDC1(r0, i0, r1);
 #  else
@@ -872,7 +893,7 @@ _ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _str_d(jit_state_t *_jit,jit_int32_t r0, jit_int32_t r1)
 {
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     SDC1(r1, 0, r0);
 #  else
     SWC1(r1, 0, r0);
@@ -884,7 +905,7 @@ static void
 _sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     if (can_sign_extend_short_p(i0))
 	SDC1(r0, i0, _ZERO_REGNO);
 #  else
@@ -915,7 +936,7 @@ static void
 _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     if (can_sign_extend_int_p(i0))
 	SDC1(r1, i0, r0);
 #  else
@@ -949,7 +970,7 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     } data;
 
     data.d = *i0;
-#  if __WORDSIZE == 64
+#  if __WORDSIZE == 64 || NEW_ABI
     if (data.l)
 	ldi_d(r0, (jit_word_t)i0);
     else

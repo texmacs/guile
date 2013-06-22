@@ -1,3 +1,13 @@
+2013-06-22 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c, configure.ac, include/lightning.h,
+	lib/lightning.c: Add tests and quirks to build/detect
+	and/or work on Irix.
+
+	* include/lightning/jit_mips.h, lib/jit_mips-cpu.c,
+	lib/jit_mips-fpu.c, lib/jit_mips.c: Adapt code to run
+	in big endian mips, using the n32 abi.
+
 2013-06-18 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h: Minor extra preprocessor testing

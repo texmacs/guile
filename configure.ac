@@ -28,6 +28,12 @@ case "$target_cpu" in
 	    *hpux*)	CFLAGS="$CFLAGS -mlp64"	;;
 	    *)					;;
 	esac					;;
+    *mips*)
+	case "$host_os" in
+	    # Extra flags to build with gcc 3.x
+	    *irix*)	CFLAGS="$CFLAGS -D__c99 -Drestrict="	;;
+	    *)					;;
+	esac					;;
     *)						;;
 esac
 
@@ -35,7 +41,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
-AC_CHECK_FUNCS(mremap ffsl,,)
+AC_CHECK_FUNCS(mremap ffsl getopt_long_only,,)
 
 AC_CHECK_HEADERS([getopt.h],,,)
 

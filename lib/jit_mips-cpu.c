@@ -17,6 +17,7 @@
 
 #if PROTO
 typedef union {
+#if __BYTE_ORDER == __LITTLE_ENDIAN
     struct {	jit_uint32_t _:26;	jit_uint32_t b :  6; } hc;
     struct {	jit_uint32_t _:21;	jit_uint32_t b :  5; } rs;
     struct {	jit_uint32_t _:21;	jit_uint32_t b :  5; } fm;
@@ -32,12 +33,27 @@ typedef union {
     struct {				jit_uint32_t b : 11; } cc;
     struct {				jit_uint32_t b : 16; } is;
     struct {				jit_uint32_t b : 26; } ii;
-    int						  op;
+#else
+    struct {				jit_uint32_t b :  6; } hc;
+    struct {	jit_uint32_t _: 6;	jit_uint32_t b :  5; } rs;
+    struct {	jit_uint32_t _: 6;	jit_uint32_t b :  5; } fm;
+    struct {	jit_uint32_t _:11;	jit_uint32_t b :  5; } rt;
+    struct {	jit_uint32_t _:11;	jit_uint32_t b :  5; } ft;
+    struct {	jit_uint32_t _:16;	jit_uint32_t b :  5; } rd;
+    struct {	jit_uint32_t _:16;	jit_uint32_t b :  5; } fs;
+    struct {	jit_uint32_t _:21;	jit_uint32_t b :  5; } ic;
+    struct {	jit_uint32_t _:21;	jit_uint32_t b :  5; } fd;
+    struct {	jit_uint32_t _:21;	jit_uint32_t b : 10; } tr;
+    struct {	jit_uint32_t _:21;	jit_uint32_t b : 20; } br;
+    struct {	jit_uint32_t _:26;	jit_uint32_t b :  6; } tc;
+    struct {	jit_uint32_t _:21;	jit_uint32_t b : 11; } cc;
+    struct {	jit_uint32_t _:16;	jit_uint32_t b : 16; } is;
+    struct {	jit_uint32_t _: 6;	jit_uint32_t b : 26; } ii;
+#endif
+    int					op;
 } jit_instr_t;
-
 /* FIXME */
 #  define jit_mips2_p()			0
-
 #  define _ZERO_REGNO			0
 #  define _T0_REGNO			0x08
 #  define _T1_REGNO			0x09
@@ -68,9 +84,12 @@ typedef union {
 #  define _F26_REGNO			26
 #  define _F28_REGNO			28
 #  define _F30_REGNO			30
-
 #  if __WORDSIZE == 32
-#    define stack_framesize		104
+#    if NEW_ABI
+#      define stack_framesize		96
+#    else
+#      define stack_framesize		112
+#    endif
 #    define ldi(u, v)			ldi_i(u, v)
 #    define ldxi(u, v, w)		ldxi_i(u, v, w)
 #    define sti(u, v)			sti_i(u, v)
@@ -82,7 +101,6 @@ typedef union {
 #    define sti(u, v)			sti_l(u, v)
 #    define stxi(u, v, w)		stxi_l(u, v, w)
 #  endif
-
 #  define can_sign_extend_short_p(im)	((im) >= -32678 && (im) <= 32767)
 #  define can_zero_extend_short_p(im)	((im) >= 0 && (im) <= 65535)
 #  if __WORDSIZE == 32
@@ -94,7 +112,6 @@ typedef union {
 	 ((im) <  0 && (im) >= -0x80000000L))
 #    define can_zero_extend_int_p(im)	((im) >= 0 && (im) <= 0xffffffff)
 #  endif
-
 #  define MIPS_SPECIAL			0x00
 #  define MIPS_REGIMM			0x01
 #  define MIPS_J			0x02
@@ -157,7 +174,6 @@ typedef union {
 #  define MIPS_SWC1			0x39
 #  define MIPS_SWC2			0x3a
 #  define MIPS_SD 			0x3f
-
 #  define MIPS_MF			0x00
 #  define MIPS_DMF			0x01
 #  define MIPS_CF			0x02
@@ -170,7 +186,6 @@ typedef union {
 #  define MIPS_WRPGPR			0x0e
 #  define MIPS_BGZAL			0x11
 #  define MIPS_MFMC0			0x11
-
 #  define MIPS_BCF			0x00
 #  define MIPS_BLTZ			0x00
 #  define MIPS_BCT			0x01
@@ -190,13 +205,11 @@ typedef union {
 #  define MIPS_BLTZALL			0x12
 #  define MIPS_BGEZALL			0x13
 #  define MIPS_SYNCI			0x1f
-
 #  define MIPS_WSBH			0x02
 #  define MIPS_DBSH			0x02
 #  define MIPS_DSHD			0x05
 #  define MIPS_SEB			0x10
 #  define MIPS_SEH			0x18
-
 #  define MIPS_MADD			0x00
 #  define MIPS_SLL			0x00
 #  define MIPS_EXT			0x00
@@ -278,7 +291,6 @@ typedef union {
 #  define MIPS_DSRA32			0x3f
 #  define MIPS_SDBPP			0x3f
 #  define ii(i)				*_jit->pc.ui++ = i
-
 static void
 _hrrrit(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,
 	jit_int32_t, jit_int32_t);
@@ -309,7 +321,7 @@ static void _nop(jit_state_t*,jit_int32_t);
 #    define SRLV(rd,rt,rs)		rrr_t(rs,rt,rd,MIPS_SRLV)
 #    define SRL(rd,rt,sa)		rrit(rt,rd,sa,MIPS_SRL)
 #    define ROTR(rd,rt,sa)		hrrrit(MIPS_SPECIAL,1,rt,rd,sa,MIPS_DSRL)
-#    define INS(rt,rs,pos,size)		hrriit(MIPS_SPECIAL3,rs,rt,pos,pos+size-1,MIPS_DINS)
+#    define INS(rt,rs,pos,size)		hrrrit(MIPS_SPECIAL3,rs,rt,pos,pos+size-1,MIPS_DINS)
 #  else
 #    define ADDU(rd,rs,rt)		rrr_t(rs,rt,rd,MIPS_DADDU)
 #    define ADDIU(rt,rs,im)		hrri(MIPS_DADDIU,rs,rt,im)
@@ -325,7 +337,7 @@ static void _nop(jit_state_t*,jit_int32_t);
 #    define SRLV(rd,rt,rs)		rrr_t(rs,rt,rd,MIPS_DSRLV)
 #    define SRL(rd,rt,sa)		rrit(rt,rd,sa,MIPS_DSRL)
 #    define ROTR(rd,rt,sa)		hrrrit(MIPS_SPECIAL,1,rt,rd,sa,MIPS_SRL)
-#    define INS(rt,rs,pos,size)		hrriit(MIPS_SPECIAL3,rs,rt,pos,pos+size-1,MIPS_INS)
+#    define INS(rt,rs,pos,size)		hrrrit(MIPS_SPECIAL3,rs,rt,pos,pos+size-1,MIPS_INS)
 #  endif
 #  define MFHI(rd)			rrr_t(_ZERO_REGNO,_ZERO_REGNO,rd,MIPS_MFHI)
 #  define MFLO(rd)			rrr_t(_ZERO_REGNO,_ZERO_REGNO,rd,MIPS_MFLO)
@@ -514,7 +526,7 @@ static void _sti_i(jit_state_t*,jit_word_t,jit_int32_t);
 #  if __WORDSIZE == 64
 #    define str_l(r0, r1)		SD(r0, 0, r1)
 #    define sti_l(i0, r0)		_sti_l(_jit, i0, r0)
-static void _sti_l(jit_state_t*,jit_int32_t,jit_word_t);
+static void _sti_l(jit_state_t*,jit_word_t,jit_int32_t);
 #  endif
 #  define stxr_c(r0, r1, r2)		_stxr_c(_jit, r0, r1, r2)
 static void _stxr_c(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
@@ -1634,7 +1646,7 @@ static void
 _extr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     movr(r0, r1);
-    INS(r0, _RZERO_REGNO, 32, 32);
+    INS(r0, _ZERO_REGNO, 32, 32);
 }
 #  endif
 
@@ -2770,166 +2782,74 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
     return (word);
 }
 
+static jit_int32_t fregs[] = {
+    _F30, _F28, _F26, _F24, _F22, _F20,
+#if !NEW_ABI
+    _F18, _F16,
+#endif
+};
+
+static jit_int32_t iregs[] = {
+    _S7, _S6, _S5, _S4, _S3, _S2, _S1, _S0,
+};
+
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    jit_int32_t		index;
+    jit_int32_t		offset;
+#if NEW_ABI
+    _jitc->function->stack = ((_jitc->function->self.alen -
+			      /* align stack at 16 bytes */
+			       _jitc->function->self.aoff) + 15) & -16;
+#else
     _jitc->function->stack = ((/* first 16 bytes must be allocated */
 			      (_jitc->function->self.alen > 16 ?
 			       _jitc->function->self.alen : 16) -
 			      /* align stack at 8 bytes */
 			      _jitc->function->self.aoff) + 7) & -8;
+#endif
     /* callee save registers */
     subi(_SP_REGNO, _SP_REGNO, stack_framesize);
-#if __WORDSIZE == 32
-    if (jit_regset_tstbit(&_jitc->function->regset, _F30))
-	stxi_d(96, _SP_REGNO, _F30_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F28))
-	stxi_d(88, _SP_REGNO, _F28_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F26))
-	stxi_d(80, _SP_REGNO, _F26_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F24))
-	stxi_d(72, _SP_REGNO, _F24_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F22))
-	stxi_d(64, _SP_REGNO, _F22_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F20))
-	stxi_d(56, _SP_REGNO, _F20_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F18))
-	stxi_d(48, _SP_REGNO, _F18_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F16))
-	stxi_d(40, _SP_REGNO, _F16_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S7))
-	stxi(36, _SP_REGNO, _S7_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S6))
-	stxi(32, _SP_REGNO, _S6_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S5))
-	stxi(28, _SP_REGNO, _S5_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S4))
-	stxi(24, _SP_REGNO, _S4_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S3))
-	stxi(20, _SP_REGNO, _S3_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S2))
-	stxi(16, _SP_REGNO, _S2_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S1))
-	stxi(12, _SP_REGNO, _S1_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S0))
-	stxi( 8, _SP_REGNO, _S0_REGNO);
-    stxi( 4, _SP_REGNO, _RA_REGNO);
-#else
-    if (jit_regset_tstbit(&_jitc->function->regset, _F30))
-	stxi_d(136, _SP_REGNO, _F30_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F28))
-	stxi_d(128, _SP_REGNO, _F28_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F26))
-	stxi_d(120, _SP_REGNO, _F26_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F24))
-	stxi_d(112, _SP_REGNO, _F24_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F22))
-	stxi_d(104, _SP_REGNO, _F22_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F20))
-	stxi_d(96, _SP_REGNO, _F20_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F18))
-	stxi_d(88, _SP_REGNO, _F18_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F16))
-	stxi_d(80, _SP_REGNO, _F16_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S7))
-	stxi(72, _SP_REGNO, _S7_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S6))
-	stxi(64, _SP_REGNO, _S6_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S5))
-	stxi(56, _SP_REGNO, _S5_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S4))
-	stxi(48, _SP_REGNO, _S4_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S3))
-	stxi(40, _SP_REGNO, _S3_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S2))
-	stxi(32, _SP_REGNO, _S2_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S1))
-	stxi(24, _SP_REGNO, _S1_REGNO);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S0))
-	stxi(16, _SP_REGNO, _S0_REGNO);
-    stxi( 8, _SP_REGNO, _RA_REGNO);
-#endif
+    offset = stack_framesize - (sizeof(jit_word_t) << 1);
+    for (index = 0; index < jit_size(fregs); index++, offset -= 8) {
+	if (jit_regset_tstbit(&_jitc->function->regset, fregs[index]))
+	    stxi_d(offset, _SP_REGNO, rn(fregs[index]));
+    }
+    for (index = 0; index < jit_size(iregs);
+	 index++, offset -= sizeof(jit_word_t)) {
+	if (jit_regset_tstbit(&_jitc->function->regset, iregs[index]))
+	    stxi(offset, _SP_REGNO, rn(iregs[index]));
+    }
+    assert(offset >= sizeof(jit_word_t));    
+    stxi(offset, _SP_REGNO, _RA_REGNO);
     stxi(0, _SP_REGNO, _BP_REGNO);
     movr(_BP_REGNO, _SP_REGNO);
 
     /* alloca */
-    subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
+    if (_jitc->function->stack)
+	subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
 }
 
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    jit_int32_t		index;
+    jit_int32_t		offset;
     /* callee save registers */
     movr(_SP_REGNO, _BP_REGNO);
-#if __WORDSIZE == 32
-    if (jit_regset_tstbit(&_jitc->function->regset, _F30))
-	ldxi_d(_F30_REGNO, _SP_REGNO, 96);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F28))
-	ldxi_d(_F28_REGNO, _SP_REGNO, 88);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F26))
-	ldxi_d(_F26_REGNO, _SP_REGNO, 80);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F24))
-	ldxi_d(_F24_REGNO, _SP_REGNO, 72);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F22))
-	ldxi_d(_F22_REGNO, _SP_REGNO, 64);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F20))
-	ldxi_d(_F20_REGNO, _SP_REGNO, 56);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F18))
-	ldxi_d(_F18_REGNO, _SP_REGNO, 48);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F16))
-	ldxi_d(_F16_REGNO, _SP_REGNO, 40);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S7))
-	ldxi(_S7_REGNO, _SP_REGNO, 36);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S6))
-	ldxi(_S6_REGNO, _SP_REGNO, 32);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S5))
-	ldxi(_S5_REGNO, _SP_REGNO, 28);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S4))
-	ldxi(_S4_REGNO, _SP_REGNO, 24);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S3))
-	ldxi(_S3_REGNO, _SP_REGNO, 20);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S2))
-	ldxi(_S2_REGNO, _SP_REGNO, 16);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S1))
-	ldxi(_S1_REGNO, _SP_REGNO, 12);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S0))
-	ldxi(_S0_REGNO, _SP_REGNO, 8);
-    ldxi(_RA_REGNO, _SP_REGNO, 4);
-#else
-    if (jit_regset_tstbit(&_jitc->function->regset, _F30))
-	ldxi_d(_F30_REGNO, _SP_REGNO, 136);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F28))
-	ldxi_d(_F28_REGNO, _SP_REGNO, 128);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F26))
-	ldxi_d(_F26_REGNO, _SP_REGNO, 120);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F24))
-	ldxi_d(_F24_REGNO, _SP_REGNO, 112);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F22))
-	ldxi_d(_F22_REGNO, _SP_REGNO, 104);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F20))
-	ldxi_d(_F20_REGNO, _SP_REGNO, 96);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F18))
-	ldxi_d(_F18_REGNO, _SP_REGNO, 88);
-    if (jit_regset_tstbit(&_jitc->function->regset, _F16))
-	ldxi_d(_F16_REGNO, _SP_REGNO, 80);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S7))
-	ldxi(_S7_REGNO, _SP_REGNO, 72);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S6))
-	ldxi(_S6_REGNO, _SP_REGNO, 64);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S5))
-	ldxi(_S5_REGNO, _SP_REGNO, 56);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S4))
-	ldxi(_S4_REGNO, _SP_REGNO, 48);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S3))
-	ldxi(_S3_REGNO, _SP_REGNO, 40);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S2))
-	ldxi(_S2_REGNO, _SP_REGNO, 32);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S1))
-	ldxi(_S1_REGNO, _SP_REGNO, 24);
-    if (jit_regset_tstbit(&_jitc->function->regset, _S0))
-	ldxi(_S0_REGNO, _SP_REGNO, 16);
-    ldxi(_RA_REGNO, _SP_REGNO, 8);
-#endif
+    offset = stack_framesize - (sizeof(jit_word_t) << 1);
+    for (index = 0; index < jit_size(fregs); index++, offset -= 8) {
+	if (jit_regset_tstbit(&_jitc->function->regset, fregs[index]))
+	    ldxi_d(rn(fregs[index]), _SP_REGNO, offset);
+    }
+    for (index = 0; index < jit_size(iregs);
+	 index++, offset -= sizeof(jit_word_t)) {
+	if (jit_regset_tstbit(&_jitc->function->regset, iregs[index]))
+	    ldxi(rn(iregs[index]), _SP_REGNO, offset);
+    }
+    assert(offset >= sizeof(jit_word_t));    
+    ldxi(_RA_REGNO, _SP_REGNO, offset);
     ldxi(_BP_REGNO, _SP_REGNO, 0);
     JR(_RA_REGNO);
     /* delay slot */

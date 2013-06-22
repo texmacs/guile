@@ -18,9 +18,15 @@
 #include <lightning.h>
 #include <lightning/jit_private.h>
 #include <sys/mman.h>
+#if defined(__sgi)
+#  include <fcntl.h>
+#endif
 
 #ifndef MAP_ANON
 #  define MAP_ANON			MAP_ANONYMOUS
+#  ifndef MAP_ANONYMOUS
+#    define MAP_ANONYMOUS		0
+#  endif
 #endif
 
 #define jit_regload_reload		0	/* convert to reload */
@@ -159,6 +165,9 @@ _patch_register(jit_state_t *jit, jit_node_t *node, jit_node_t *link,
  * Initialization
  */
 const char	*jit_progname;
+#if !defined(__sgi)
+#define  mmap_fd			-1
+#endif
 
 /*
  * Implementation
@@ -1375,6 +1384,9 @@ _jit_optimize(jit_state_t *_jit)
     jit_node_t		*node;
     jit_block_t		*block;
     jit_word_t		 offset;
+#if defined(__sgi)
+    int			 mmap_fd;
+#endif
 
     _jitc->function = NULL;
 
@@ -1491,10 +1503,16 @@ _jit_optimize(jit_state_t *_jit)
     _jit->data.length = (_jitc->data.offset +
 			 /* reserve space for annotations */
 			 _jitc->note.size + 4095) & -4096;
+#if defined(__sgi)
+    mmap_fd = open("/dev/zero", O_RDWR);
+#endif
     ptr = mmap(NULL, _jit->data.length,
 	       PROT_READ | PROT_WRITE,
-	       MAP_PRIVATE | MAP_ANON, -1, 0);
+	       MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
     assert(ptr != MAP_FAILED);
+#if defined(__sgi)
+    close(mmap_fd);
+#endif
     memcpy(ptr, _jit->data.ptr, _jitc->data.offset);
     jit_free((jit_pointer_t *)&_jit->data.ptr);
     _jit->data.ptr = ptr;
@@ -1648,6 +1666,9 @@ _jit_emit(jit_state_t *_jit)
     jit_node_t		*node;
     size_t		 length;
     int			 result;
+#if defined(__sgi)
+    int			 mmap_fd;
+#endif
 
     if (_jitc->function)
 	jit_epilog();
@@ -1660,9 +1681,12 @@ _jit_emit(jit_state_t *_jit)
 
     _jit->code.length = _jitc->pool.length * 1024 * _jitc->mult;
 
+#if defined(__sgi)
+    mmap_fd = open("/dev/zero", O_RDWR);
+#endif
     _jit->code.ptr = mmap(NULL, _jit->code.length,
 			  PROT_EXEC | PROT_READ | PROT_WRITE,
-			  MAP_PRIVATE | MAP_ANON, -1, 0);
+			  MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
     assert(_jit->code.ptr != MAP_FAILED);
     _jitc->code.end = _jit->code.ptr + _jit->code.length - 64;
     _jit->pc.uc = _jit->code.ptr;
@@ -1688,7 +1712,7 @@ _jit_emit(jit_state_t *_jit)
 #else
 	    _jit->code.ptr = mmap(NULL, length,
 				  PROT_EXEC | PROT_READ | PROT_WRITE,
-				  MAP_PRIVATE | MAP_ANON, -1, 0);
+				  MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
 #endif
 
 	    assert(_jit->code.ptr != MAP_FAILED);
@@ -1700,6 +1724,10 @@ _jit_emit(jit_state_t *_jit)
 	else
 	    break;
     }
+
+#if defined(__sgi)
+    close(mmap_fd);
+#endif
 
     _jitc->done = 1;
     jit_annotate();

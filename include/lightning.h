@@ -40,6 +40,12 @@
 #    define __WORDSIZE		32
 #  elif defined(_LP64)				/* ia64 hp-ux (with cc +DD64) */
 #    define __WORDSIZE		64
+#  elif defined(_MIPS_SZPTR)			/* mips irix */
+#    if _MIPS_SZPTR == 32
+#      define __WORDSIZE	32
+#    else
+#      define __WORDSIZE	64
+#    endif
 #  else
 #    error cannot figure __WORDSIZE
 #  endif
@@ -69,10 +75,12 @@
 #    define __BYTE_ORDER	__BYTE_ORDER__
 #  elif defined(_BIG_ENDIAN)			/* hppa hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
-#  elif defined(__BIG_ENDIAN__	)		/* ia64 hp-ux */
+#  elif defined(__BIG_ENDIAN__)			/* ia64 hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
-#  elif defined(__i386__)
-#    define __BYTE_ORDER	__LITTLE_ENDIAN	/* x86 solaris */
+#  elif defined(__i386__)			/* x86 solaris */
+#    define __BYTE_ORDER	__LITTLE_ENDIAN
+#  elif defined(__MIPSEB)			/* mips irix */
+#    define __BYTE_ORDER	__BIG_ENDIAN
 #  else
 #    error cannot figure __BYTE_ORDER
 #  endif
