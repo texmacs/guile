@@ -318,7 +318,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_c(u, JIT_RA0 - v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_c(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_c(u, JIT_FP,

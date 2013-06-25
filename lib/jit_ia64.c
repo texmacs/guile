@@ -405,7 +405,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	jit_extr_c(u, _R32 + v->u.w);
     }
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_c(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_c(u, JIT_FP,
@@ -420,7 +420,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_uc(u, _R32 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_uc(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_uc(u, JIT_FP,
@@ -435,7 +435,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_s(u, _R32 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_s(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_s(u, JIT_FP,
@@ -450,7 +450,7 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_us(u, _R32 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_us(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_us(u, JIT_FP,
@@ -465,7 +465,7 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_i(u, _R32 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_i(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_i(u, JIT_FP,
@@ -480,7 +480,7 @@ _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_extr_ui(u, _R32 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_ui(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_ui(u, JIT_FP,
@@ -504,7 +504,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < 8)
 	jit_movr_f(u, _F8 + v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_f(u, JIT_FP, v->u.w);
 #else
 	jit_ldxi_f(u, JIT_FP,

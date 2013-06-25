@@ -286,7 +286,7 @@ _jit_arg(jit_state_t *_jit)
 	_jitc->function->self.size += STACK_SLOT;
     }
 #else
-    offset = (_jitc->function->self.size - stack_framesize) >> 2;
+    offset = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
     _jitc->function->self.argi = 1;
     if (offset >= 4)
 	offset = _jitc->function->self.size;
@@ -314,7 +314,7 @@ _jit_arg_f(jit_state_t *_jit)
 	_jitc->function->self.size += STACK_SLOT;
     }
 #else
-    offset = (_jitc->function->self.size - stack_framesize) >> 2;
+    offset = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
     if (offset < 4) {
 	if (!_jitc->function->self.argi) {
 	    if (offset == 0)
@@ -356,14 +356,14 @@ _jit_arg_d(jit_state_t *_jit)
 	_jitc->function->self.size += 4;
 	_jitc->function->self.argi = 1;
     }
-    offset = (_jitc->function->self.size - stack_framesize) >> 2;
+    offset = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
     if (offset < 4) {
 	if (!_jitc->function->self.argi)
 	    offset += 4;
     }
     else
 	offset = _jitc->function->self.size;
-    _jitc->function->self.size += STACK_SLOT;
+    _jitc->function->self.size += sizeof(jit_float64_t);
 #endif
     return (jit_new_node_w(jit_code_arg_d, offset));
 }
@@ -380,12 +380,12 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < NUM_WORD_ARGS)
 	jit_extr_c(u, _A0 - v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_c(u, _FP, v->u.w);
 #else
 	jit_ldxi_c(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int8_t));
-    }
 #endif
+    }
 }
 
 void
@@ -394,12 +394,12 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < NUM_WORD_ARGS)
 	jit_extr_uc(u, _A0 - v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_uc(u, _FP, v->u.w);
 #else
 	jit_ldxi_uc(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint8_t));
-    }
 #endif
+    }
 }
 
 void
@@ -408,12 +408,12 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < NUM_WORD_ARGS)
 	jit_extr_s(u, _A0 - v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_s(u, _FP, v->u.w);
 #else
 	jit_ldxi_s(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int16_t));
-    }
 #endif
+    }
 }
 
 void
@@ -422,12 +422,12 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < NUM_WORD_ARGS)
 	jit_extr_us(u, _A0 - v->u.w);
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_us(u, _FP, v->u.w);
 #else
 	jit_ldxi_us(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint16_t));
-    }
 #endif
+    }
 }
 
 void
@@ -441,12 +441,12 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #endif
     }
     else {
-#if __BYTE_ORDER == __LITTLE__ENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_i(u, _FP, v->u.w);
 #else
 	jit_ldxi_i(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int32_t));
-    }
 #endif
+    }
 }
 
 #if __WORDSIZE == 64
@@ -456,12 +456,12 @@ _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (v->u.w < NUM_WORD_ARGS)
 	jit_extr_ui(u, _A0 - v->u.w);
     else {
-#  if __BYTE_ORDER == __LITTLE__ENDIAN
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldxi_ui(u, _FP, v->u.w);
 #  else
 	jit_ldxi_ui(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint32_t));
-    }
 #  endif
+    }
 }
 
 void
@@ -668,7 +668,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	_jitc->function->call.size += 4;
 	adjust = 1;
     }
-    offset = _jitc->function->call.size >> 2;
+    offset = _jitc->function->call.size >> STACK_SHIFT;
     if (offset < 3) {
 	if (adjust) {
 	    jit_movr_d_ww(_A0 - offset, _A0 - (offset + 1), u);
@@ -681,7 +681,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     }
     else
 	jit_stxi_d(_jitc->function->call.size, JIT_SP, u);
-    _jitc->function->call.size += STACK_SLOT;
+    _jitc->function->call.size += sizeof(jit_float64_t);
 #endif
 }
 
@@ -731,7 +731,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	jit_stxi_d(_jitc->function->call.size, JIT_SP, regno);
 	jit_unget_reg(regno);
     }
-    _jitc->function->call.size += STACK_SLOT;
+    _jitc->function->call.size += sizeof(jit_float64_t);
 #endif
 }
 

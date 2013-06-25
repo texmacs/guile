@@ -1,3 +1,14 @@
+2013-06-25 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips.c: Correct cut&paste error that caused wrong
+	stack offset calculation for double arguments in stack in
+	the o32 abi.
+	Correct typo in the __LITTLE_ENDIAN macro name, that came
+	from cut&paste error in the original typo in lib/jit_ppc.c.
+
+	* lib/jit_ia64.c, lib/jit_ppc.c: Correct typo in the
+	__LITTLE_ENDIAN macro name.
+
 2013-06-22 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c, configure.ac, include/lightning.h,
