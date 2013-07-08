@@ -1,3 +1,8 @@
+2013-07-08 Paulo Andrade <pcpa@gnu.org>
+
+	* NEWS, THANKS, configure.ac, doc/version.texi: Update for
+	the 1.99a second alpha release.
+
 2013-06-25 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_mips.c: Correct cut&paste error that caused wrong

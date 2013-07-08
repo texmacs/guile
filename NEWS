@@ -1,3 +1,9 @@
+NEWS FROM 1.99 TO 1.99a
+
+o   Lightning now builds and pass all test cases on AIX 7.1 powerpc,
+    HP-UX 11iv2 hppa, HP-UX 11iv3 ia64, Solaris 10 Sparc, Solaris 11
+    x86_64, and Irix 6.5.30 mips (using n32 abi).
+
 NEWS FROM VERSION 1.3 TO 1.99
 
 o   The 1.99 version is a major lightning redesign and an
