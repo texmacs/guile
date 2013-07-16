@@ -1,3 +1,26 @@
+2013-07-16 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_aarch64.h, lib/jit_aarch64-cpu.c,
+	lib/jit_aarch64-fpu.c, lib/jit_aarch64.c: New files
+	implementing the new aarch64 port, as a new architecture,
+	not as an expansion of the existing armv[4-7] port.
+
+	* check/lightning.c: Add aarch64 support and a small
+	change to recognize character constants as immediate
+	values.
+
+	* check/float.tst: Add aarch64 preprocessor conditionals
+	to select proper expected value when converting [+-]Inf
+	and NaN to integer.
+
+	* include/lightning/jit_arm.h, lib/jit_arm.c: Minor changes
+	to better match the new aarch64 files.
+
+	* configure.ac, include/lightning.h,
+	include/lightning/Makefile.am, include/lightning/jit_private.h,
+	lib/Makefile.am, lib/lightning.c: Minor adjustments
+	for the aarch64 port.
+
 2013-07-08 Paulo Andrade <pcpa@gnu.org>
 
 	* NEWS, THANKS, configure.ac, doc/version.texi: Update for

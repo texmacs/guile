@@ -99,15 +99,17 @@ case "$target_cpu" in
     *sparc*)		cpu=sparc	;;
     ia64)		cpu=ia64	;;
     hppa*)		cpu=hppa	;;
+    aarch64)		cpu=aarch64	;;
     *)					;;
 esac
-AM_CONDITIONAL(cpu_arm,    [test cpu-$cpu = cpu-arm])
-AM_CONDITIONAL(cpu_mips,   [test cpu-$cpu = cpu-mips])
-AM_CONDITIONAL(cpu_ppc,    [test cpu-$cpu = cpu-ppc])
-AM_CONDITIONAL(cpu_sparc,  [test cpu-$cpu = cpu-sparc])
-AM_CONDITIONAL(cpu_x86,    [test cpu-$cpu = cpu-x86])
-AM_CONDITIONAL(cpu_ia64,   [test cpu-$cpu = cpu-ia64])
-AM_CONDITIONAL(cpu_hppa,   [test cpu-$cpu = cpu-hppa])
+AM_CONDITIONAL(cpu_arm,     [test cpu-$cpu = cpu-arm])
+AM_CONDITIONAL(cpu_mips,    [test cpu-$cpu = cpu-mips])
+AM_CONDITIONAL(cpu_ppc,     [test cpu-$cpu = cpu-ppc])
+AM_CONDITIONAL(cpu_sparc,   [test cpu-$cpu = cpu-sparc])
+AM_CONDITIONAL(cpu_x86,     [test cpu-$cpu = cpu-x86])
+AM_CONDITIONAL(cpu_ia64,    [test cpu-$cpu = cpu-ia64])
+AM_CONDITIONAL(cpu_hppa,    [test cpu-$cpu = cpu-hppa])
+AM_CONDITIONAL(cpu_aarch64, [test cpu-$cpu = cpu-aarch64])
 
 # Test x87 if both, x87 and sse2 available
 ac_cv_test_x86_x87=

@@ -56,9 +56,6 @@ typedef enum {
     _R14,			/* lr - link register */
     _R15,			/* pc - program counter */
 #define JIT_RA0			_R0
-#define JIT_RA1			_R1
-#define JIT_RA2			_R2
-#define JIT_RA3			_R3
     _R3,			/* r3 - argument/result */
     _R2,			/* r2 - argument/result */
     _R1,			/* r1 - argument/result */
@@ -69,8 +66,6 @@ typedef enum {
 #define JIT_F3			(jit_hardfp_p() ? _D11 : _D3)
 #define JIT_F4			(jit_hardfp_p() ? _D12 : _D4)
 #define JIT_F5			(jit_hardfp_p() ? _D13 : _D5)
-#define JIT_F6			(jit_hardfp_p() ? _D14 : _D6)
-#define JIT_F7			(jit_hardfp_p() ? _D15 : _D7)
     _S16,	_D8 = _S16,	_Q4 = _D8,
     _S17,
     _S18,	_D9 = _S18,
@@ -88,13 +83,6 @@ typedef enum {
     _S30,	_D15 = _S30,
     _S31,
 #define JIT_FA0			_D0
-#define JIT_FA1			_D1
-#define JIT_FA2			_D2
-#define JIT_FA3			_D3
-#define JIT_FA4			_D4
-#define JIT_FA5			_D5
-#define JIT_FA6			_D6
-#define JIT_FA7			_D7
     _S15,
     _S14,	_D7 = _S14,
     _S13,

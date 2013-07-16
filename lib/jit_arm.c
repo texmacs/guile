@@ -347,7 +347,6 @@ _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
     jit_ret();
 }
 
-/* must be called internally only */
 void
 _jit_epilog(jit_state_t *_jit)
 {
@@ -361,7 +360,6 @@ jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
     jit_int32_t		offset;
-
     assert(_jitc->function);
     if (_jitc->function->self.argi < 4)
 	offset = _jitc->function->self.argi++;
@@ -382,7 +380,6 @@ jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
     jit_int32_t		offset;
-
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->self.call & jit_call_varargs)) {
 	if (_jitc->function->self.argf < 16) {
@@ -412,7 +409,6 @@ jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
     jit_int32_t		offset;
-
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->self.call & jit_call_varargs)) {
 	if (_jitc->function->self.argf < 15) {
@@ -557,7 +553,6 @@ void
 _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 {
     jit_int32_t		 regno;
-
     assert(_jitc->function);
     if (_jitc->function->call.argi < 4) {
 	jit_movi(JIT_RA0 - _jitc->function->call.argi, u);
@@ -598,7 +593,6 @@ void
 _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 {
     jit_int32_t		regno;
-
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
 	if (_jitc->function->call.argf < 16) {
@@ -662,7 +656,6 @@ void
 _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 {
     jit_int32_t		regno;
-
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
 	if (_jitc->function->call.argf < 15) {
@@ -697,7 +690,6 @@ jit_bool_t
 _jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 {
     jit_int32_t		spec;
-
     spec = jit_class(_rvs[regno].spec);
     if (spec & jit_class_arg) {
 	regno = JIT_RA0 - regno;
@@ -717,7 +709,6 @@ void
 _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
 {
     jit_node_t		*node;
-
     assert(_jitc->function);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
@@ -733,7 +724,6 @@ jit_node_t *
 _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 {
     jit_node_t		*node;
-
     assert(_jitc->function);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;

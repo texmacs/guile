@@ -2911,4 +2911,6 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_ia64.c"
 #elif defined(__hppa__)
 #  include "jit_hppa.c"
+#elif defined(__aarch64__)
+#  include "jit_aarch64.c"
 #endif

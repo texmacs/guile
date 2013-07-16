@@ -874,6 +874,10 @@ get_imm(void)
 	    ungetch(ch);
 	    value = get_int(skip_none);
 	    break;
+	case '\'':
+	    character();
+	    value = parser.value.i;
+	    break;
 	case '$':
 	    switch (expression()) {
 		case tok_int:
@@ -1328,6 +1332,10 @@ movi(void)
 	case '0' ... '9':
 	    ungetch(ch);
 	    value = (void *)(long)get_uint(skip_none);
+	    break;
+	case '\'':
+	    character();
+	    value = (void *)parser.value.i;
 	    break;
 	case '$':
 	    switch (expression()) {
@@ -4042,6 +4050,11 @@ main(int argc, char *argv[])
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
 			  " -D__sgi__=1");
+#endif
+#if defined(__aarch64__)
+    opt_short += snprintf(cmdline + opt_short,
+			  sizeof(cmdline) - opt_short,
+			  " -D__aarch64__=1");
 #endif
     if ((parser.fp = popen(cmdline, "r")) == NULL)
 	error("cannot execute %s", cmdline);

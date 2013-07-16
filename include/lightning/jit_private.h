@@ -81,6 +81,10 @@
 #  define JIT_SP		_R30
 #  define JIT_RET		_R28
 #  define JIT_FRET		_F4
+#elif defined(__aarch64__)
+#  define JIT_SP		_SP
+#  define JIT_RET		_R0
+#  define JIT_FRET		_V0
 #endif
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))

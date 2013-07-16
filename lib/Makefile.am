@@ -24,6 +24,9 @@ liblightning_la_SOURCES =	\
 	lightning.c
 
 EXTRA_DIST =			\
+	jit_aarch64.c		\
+	jit_aarch64-cpu.c	\
+	jit_aarch64-fpu.c	\
 	jit_arm.c		\
 	jit_arm-cpu.c		\
 	jit_arm-swf.c		\

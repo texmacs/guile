@@ -124,6 +124,8 @@ typedef jit_int32_t		jit_fpr_t;
 #  include <lightning/jit_ia64.h>
 #elif defined(__hppa__)
 #  include <lightning/jit_hppa.h>
+#elif defined(__aarch64__)
+#  include <lightning/jit_aarch64.h>
 #endif
 
 #define jit_flag_node		0x00000001 /* patch node not absolute */
