@@ -497,6 +497,7 @@ static int skipcp(void);
 static long get_int(skip_t skip);
 static unsigned long get_uint(skip_t skip);
 static double get_float(skip_t skip);
+static float make_float(double d);
 static void *get_pointer(skip_t skip);
 static label_t *get_label(skip_t skip);
 static token_t regname(void);
@@ -1078,6 +1079,14 @@ name(void)								\
 {									\
     jit_fpr_t		r0 = get_freg(), r1 = get_freg();		\
     jit_float64_t	im = get_float(skip_ws);			\
+    jit_##name(r0, r1, make_float(im));					\
+}
+#define entry_fr_fr_dm(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_fpr_t		r0 = get_freg(), r1 = get_freg();		\
+    jit_float64_t	im = get_float(skip_ws);			\
     jit_##name(r0, r1, im);						\
 }
 #define entry_fr_fr(name)						\
@@ -1096,6 +1105,15 @@ name(void)								\
     jit_##name(r0, r1, r2);						\
 }
 #define entry_ir_fr_fm(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_gpr_t		r0 = get_ireg();				\
+    jit_fpr_t		r1 = get_freg();				\
+    jit_float64_t	im = get_float(skip_ws);			\
+    jit_##name(r0, r1, make_float(im));					\
+}
+#define entry_ir_fr_dm(name)						\
 static void								\
 name(void)								\
 {									\
@@ -1121,6 +1139,14 @@ name(void)								\
     jit_##name(r0, r1);							\
 }
 #define entry_fr_fm(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_fpr_t		r0 = get_freg();				\
+    jit_float64_t	im = get_float(skip_ws);			\
+    jit_##name(r0, make_float(im));					\
+}
+#define entry_fr_dm(name)						\
 static void								\
 name(void)								\
 {									\
@@ -1201,6 +1227,21 @@ name(void)								\
     jit_fpr_t		 r0 = get_freg();				\
     jit_float64_t	 im = get_float(skip_ws);			\
     if (label->kind == label_kind_code_forward)				\
+	jmp_forward((void *)jit_##name(r0, make_float(im)), label);	\
+    else {								\
+	jmp = jit_##name(r0, make_float(im));				\
+	jit_patch_at(jmp, (jit_node_t *)label->value);			\
+    }									\
+}
+#define entry_lb_fr_dm(name)						\
+static void								\
+name(void)								\
+{									\
+    jit_node_t		*jmp;						\
+    label_t		*label = get_label(skip_ws);			\
+    jit_fpr_t		 r0 = get_freg();				\
+    jit_float64_t	 im = get_float(skip_ws);			\
+    if (label->kind == label_kind_code_forward)				\
 	jmp_forward((void *)jit_##name(r0, im), label);			\
     else {								\
 	jmp = jit_##name(r0, im);					\
@@ -1215,6 +1256,13 @@ name(void)								\
     jit_##name(r0);							\
 }
 #define entry_fm(name)							\
+static void								\
+name(void)								\
+{									\
+    jit_float64_t	im = get_float(skip_ws);			\
+    jit_##name(make_float(im));						\
+}
+#define entry_dm(name)							\
 static void								\
 name(void)								\
 {									\
@@ -1264,7 +1312,6 @@ name(void)								\
 static void
 name(void) {
     int		 ch = skipws();
-
     (void)identifier(ch);
     jit_name(parser.string);
 }
@@ -1493,58 +1540,59 @@ entry_fr(retr_f)		entry_fm(reti_f)
 entry_fr(retval_f)
 entry_ca(arg_d)
 entry_fa(getarg_d)
-entry_fr_fr_fr(addr_d)		entry_fr_fr_fm(addi_d)
-entry_fr_fr_fr(subr_d)		entry_fr_fr_fm(subi_d)
-entry_fr_fr_fr(mulr_d)		entry_fr_fr_fm(muli_d)
-entry_fr_fr_fr(divr_d)		entry_fr_fr_fm(divi_d)
+entry_fr_fr_fr(addr_d)		entry_fr_fr_dm(addi_d)
+entry_fr_fr_fr(subr_d)		entry_fr_fr_dm(subi_d)
+entry_fr_fr_fr(mulr_d)		entry_fr_fr_dm(muli_d)
+entry_fr_fr_fr(divr_d)		entry_fr_fr_dm(divi_d)
 entry_fr_fr(negr_d)		entry_fr_fr(absr_d)
 entry_fr_fr(sqrtr_d)
-entry_ir_fr_fr(ltr_d)		entry_ir_fr_fm(lti_d)
-entry_ir_fr_fr(ler_d)		entry_ir_fr_fm(lei_d)
-entry_ir_fr_fr(eqr_d)		entry_ir_fr_fm(eqi_d)
-entry_ir_fr_fr(ger_d)		entry_ir_fr_fm(gei_d)
-entry_ir_fr_fr(gtr_d)		entry_ir_fr_fm(gti_d)
-entry_ir_fr_fr(ner_d)		entry_ir_fr_fm(nei_d)
-entry_ir_fr_fr(unltr_d)		entry_ir_fr_fm(unlti_d)
-entry_ir_fr_fr(unler_d)		entry_ir_fr_fm(unlei_d)
-entry_ir_fr_fr(uneqr_d)		entry_ir_fr_fm(uneqi_d)
-entry_ir_fr_fr(unger_d)		entry_ir_fr_fm(ungei_d)
-entry_ir_fr_fr(ungtr_d)		entry_ir_fr_fm(ungti_d)
-entry_ir_fr_fr(ltgtr_d)		entry_ir_fr_fm(ltgti_d)
-entry_ir_fr_fr(ordr_d)		entry_ir_fr_fm(ordi_d)
-entry_ir_fr_fr(unordr_d)	entry_ir_fr_fm(unordi_d)
+entry_ir_fr_fr(ltr_d)		entry_ir_fr_dm(lti_d)
+entry_ir_fr_fr(ler_d)		entry_ir_fr_dm(lei_d)
+entry_ir_fr_fr(eqr_d)		entry_ir_fr_dm(eqi_d)
+entry_ir_fr_fr(ger_d)		entry_ir_fr_dm(gei_d)
+entry_ir_fr_fr(gtr_d)		entry_ir_fr_dm(gti_d)
+entry_ir_fr_fr(ner_d)		entry_ir_fr_dm(nei_d)
+entry_ir_fr_fr(unltr_d)		entry_ir_fr_dm(unlti_d)
+entry_ir_fr_fr(unler_d)		entry_ir_fr_dm(unlei_d)
+entry_ir_fr_fr(uneqr_d)		entry_ir_fr_dm(uneqi_d)
+entry_ir_fr_fr(unger_d)		entry_ir_fr_dm(ungei_d)
+entry_ir_fr_fr(ungtr_d)		entry_ir_fr_dm(ungti_d)
+entry_ir_fr_fr(ltgtr_d)		entry_ir_fr_dm(ltgti_d)
+entry_ir_fr_fr(ordr_d)		entry_ir_fr_dm(ordi_d)
+entry_ir_fr_fr(unordr_d)	entry_ir_fr_dm(unordi_d)
 entry_ir_fr(truncr_d_i)
 #if __WORDSIZE == 64
 entry_ir_fr(truncr_d_l)
 #endif
 entry_ir_fr(truncr_d)
 entry_fr_ir(extr_d)		entry_fr_fr(extr_f_d)
-entry_fr_fr(movr_d)		entry_fr_fm(movi_d)
+entry_fr_fr(movr_d)		entry_fr_dm(movi_d)
 entry_fr_ir(ldr_d)		entry_fr_pm(ldi_d)
 entry_fr_ir_ir(ldxr_d)		entry_fr_ir_im(ldxi_d)
 entry_ir_fr(str_d)		entry_pm_fr(sti_d)
 entry_ir_ir_fr(stxr_d)		entry_im_ir_fr(stxi_d)
-entry_lb_fr_fr(bltr_d)		entry_lb_fr_fm(blti_d)
-entry_lb_fr_fr(bler_d)		entry_lb_fr_fm(blei_d)
-entry_lb_fr_fr(beqr_d)		entry_lb_fr_fm(beqi_d)
-entry_lb_fr_fr(bger_d)		entry_lb_fr_fm(bgei_d)
-entry_lb_fr_fr(bgtr_d)		entry_lb_fr_fm(bgti_d)
-entry_lb_fr_fr(bner_d)		entry_lb_fr_fm(bnei_d)
-entry_lb_fr_fr(bunltr_d)	entry_lb_fr_fm(bunlti_d)
-entry_lb_fr_fr(bunler_d)	entry_lb_fr_fm(bunlei_d)
-entry_lb_fr_fr(buneqr_d)	entry_lb_fr_fm(buneqi_d)
-entry_lb_fr_fr(bunger_d)	entry_lb_fr_fm(bungei_d)
-entry_lb_fr_fr(bungtr_d)	entry_lb_fr_fm(bungti_d)
-entry_lb_fr_fr(bltgtr_d)	entry_lb_fr_fm(bltgti_d)
-entry_lb_fr_fr(bordr_d)		entry_lb_fr_fm(bordi_d)
-entry_lb_fr_fr(bunordr_d)	entry_lb_fr_fm(bunordi_d)
-entry_fr(pushargr_d)		entry_fm(pushargi_d)
-entry_fr(retr_d)		entry_fm(reti_d)
+entry_lb_fr_fr(bltr_d)		entry_lb_fr_dm(blti_d)
+entry_lb_fr_fr(bler_d)		entry_lb_fr_dm(blei_d)
+entry_lb_fr_fr(beqr_d)		entry_lb_fr_dm(beqi_d)
+entry_lb_fr_fr(bger_d)		entry_lb_fr_dm(bgei_d)
+entry_lb_fr_fr(bgtr_d)		entry_lb_fr_dm(bgti_d)
+entry_lb_fr_fr(bner_d)		entry_lb_fr_dm(bnei_d)
+entry_lb_fr_fr(bunltr_d)	entry_lb_fr_dm(bunlti_d)
+entry_lb_fr_fr(bunler_d)	entry_lb_fr_dm(bunlei_d)
+entry_lb_fr_fr(buneqr_d)	entry_lb_fr_dm(buneqi_d)
+entry_lb_fr_fr(bunger_d)	entry_lb_fr_dm(bungei_d)
+entry_lb_fr_fr(bungtr_d)	entry_lb_fr_dm(bungti_d)
+entry_lb_fr_fr(bltgtr_d)	entry_lb_fr_dm(bltgti_d)
+entry_lb_fr_fr(bordr_d)		entry_lb_fr_dm(bordi_d)
+entry_lb_fr_fr(bunordr_d)	entry_lb_fr_dm(bunordi_d)
+entry_fr(pushargr_d)		entry_dm(pushargi_d)
+entry_fr(retr_d)		entry_dm(reti_d)
 entry_fr(retval_d)
-
 #undef entry_fn
 #undef entry_fm
+#undef entry_dm
 #undef entry_lb_fr_fm
+#undef entry_lb_fr_dm
 #undef entry_lb_fr_fr
 #undef entry_im_ir_fr
 #undef entry_ir_ir_fr
@@ -1553,12 +1601,15 @@ entry_fr(retval_d)
 #undef entry_fr_ir_im
 #undef entry_fr_pm
 #undef entry_fr_fm
+#undef entry_fr_dm
 #undef entry_fr_ir
 #undef entry_ir_fr
 #undef entry_ir_fr_fm
+#undef entry_ir_fr_dm
 #undef entry_ir_fr_fr
 #undef entry_fr_fr
 #undef entry_fr_fr_fm
+#undef entry_fr_fr_dm
 #undef entry_fr_fr_fr
 #undef entry_fa
 #undef entry_pm
@@ -1820,6 +1871,19 @@ get_float(skip_t skip)
     }
 
     return (parser.value.d);
+}
+
+/* Workaround gcc not converting unordered values from double to
+ * float (as done in other architectures) on s390 */
+static float
+make_float(double d)
+{
+    if (isnan(d))	return ( 0.0f/0.0f);
+    if (isinf(d)) {
+	if (d > 0.0)	return ( 1.0f/0.0f);
+	else		return (-1.0f/0.0f);
+    }
+    return ((float)d);
 }
 
 static void *
@@ -4055,6 +4119,11 @@ main(int argc, char *argv[])
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
 			  " -D__aarch64__=1");
+#endif
+#if defined(__s390x__)
+    opt_short += snprintf(cmdline + opt_short,
+			  sizeof(cmdline) - opt_short,
+			  " -D__s390x__=1");
 #endif
     if ((parser.fp = popen(cmdline, "r")) == NULL)
 	error("cannot execute %s", cmdline);
