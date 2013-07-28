@@ -1,5 +1,12 @@
 2013-07-28 Paulo Andrade <pcpa@gnu.org>
 
+	* check/check.arm.sh, check/check.sh, check/check.swf.sh,
+	check/check.x87.sh: Properly check test programs output,
+	not just rely on the test program self testing the results
+	and not crashing.
+
+2013-07-28 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_aarch64.c: Remove unused macros left from cut&paste
 	of jit_arm.c.
 
