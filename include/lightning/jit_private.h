@@ -85,6 +85,10 @@
 #  define JIT_SP		_SP
 #  define JIT_RET		_R0
 #  define JIT_FRET		_V0
+#elif defined(__s390x__)
+#  define JIT_SP		_R15
+#  define JIT_RET		_R2
+#  define JIT_FRET		_F0
 #endif
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
@@ -92,6 +96,10 @@
 #define jit_reg_free_p(regno)						\
     (!jit_regset_tstbit(&_jitc->reglive, regno) &&			\
      !jit_regset_tstbit(&_jitc->regarg, regno) &&			\
+     !jit_regset_tstbit(&_jitc->regsav, regno))
+
+#define jit_reg_free_if_spill_p(regno)					\
+    (!jit_regset_tstbit(&_jitc->regarg, regno) &&			\
      !jit_regset_tstbit(&_jitc->regsav, regno))
 
 /*

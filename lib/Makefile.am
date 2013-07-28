@@ -43,6 +43,9 @@ EXTRA_DIST =			\
 	jit_ppc.c		\
 	jit_ppc-cpu.c		\
 	jit_ppc-fpu.c		\
+	jit_s390x.c		\
+	jit_s390x-cpu.c		\
+	jit_s390x-fpu.c		\
 	jit_sparc.c		\
 	jit_sparc-cpu.c		\
 	jit_sparc-fpu.c		\

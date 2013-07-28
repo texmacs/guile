@@ -1,5 +1,24 @@
 2013-07-28 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_s390x.h, lib/jit_s390x-cpu.c,
+	lib/jit_s390x-fpu.c, lib/jit_s390x.c: New files
+	implementing the new s390x port.
+
+	* configure.ac, include/lightning.h,
+	include/lightning/Makefile.am,
+	include/lightning/jit_private.h,
+	lib/Makefile.am, lib/jit_disasm.c, lib/lightning.c:
+	Minor adaptation for the new s390x backend.
+
+	* check/float.tst: Update for the s390x result of
+	truncating +Inf to integer.
+
+	* check/qalu_mul.tst: Add extra test cases to better test
+	high word of signed multiplication as the result is
+	adjust from unsigned multiplication on s390x.
+
+2013-07-28 Paulo Andrade <pcpa@gnu.org>
+
 	* check/lightning.c: Do not assume casting a double NaN or
 	Inf to float will produce the expected float NaN or Inf.
 	This is not true at least under s390x.

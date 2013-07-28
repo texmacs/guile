@@ -90,9 +90,14 @@ jit_init_debug(void)
 #    endif
     disassemble_init_powerpc(&disasm_info);
 #  endif
-
 #  if defined(__sparc__)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
+#  endif
+#  if defined(__s390x__)
+    disasm_info.arch = bfd_arch_s390;
+    disasm_info.mach = bfd_mach_s390_64;
+    disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
+    disasm_info.disassembler_options = "zarch";
 #  endif
     disasm_info.print_address_func = disasm_print_address;
 
