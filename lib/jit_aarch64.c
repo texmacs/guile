@@ -617,30 +617,9 @@ _emit_code(jit_state_t *_jit)
 	    case jit_code_##name##i##type:				\
 		name##i##type(rn(node->u.w), node->v.w);		\
 		break
-#define case_vv(name, type)						\
-	    case jit_code_##name##r##type:				\
-		if (jit_swf_p())					\
-		    swf_##name##r##type(rn(node->u.w), rn(node->v.w));	\
-		else							\
-		    vfp_##name##r##type(rn(node->u.w), rn(node->v.w));	\
-		break
-#define case_vw(name, type)						\
-	    case jit_code_##name##i##type:				\
-		if (jit_swf_p())					\
-		    swf_##name##i##type(rn(node->u.w), node->v.w);	\
-		else							\
-		    vfp_##name##i##type(rn(node->u.w), node->v.w);	\
-		break
 #define case_wr(name, type)						\
 	    case jit_code_##name##i##type:				\
 		name##i##type(node->u.w, rn(node->v.w));		\
-		break
-#define case_wv(name, type)						\
-	    case jit_code_##name##i##type:				\
-		if (jit_swf_p())					\
-		    swf_##name##i##type(node->u.w, rn(node->v.w));	\
-		else							\
-		    vfp_##name##i##type(node->u.w, rn(node->v.w));	\
 		break
 #define case_rrr(name, type)						\
 	    case jit_code_##name##r##type:				\
@@ -651,15 +630,6 @@ _emit_code(jit_state_t *_jit)
 	    case jit_code_##name##r##type:				\
 		name##r##type(rn(node->u.q.l), rn(node->u.q.h),		\
 			      rn(node->v.w), rn(node->w.w));		\
-		break
-#define case_vvv(name, type)						\
-	    case jit_code_##name##r##type:				\
-		if (jit_swf_p())					\
-		    swf_##name##r##type(rn(node->u.w),			\
-				        rn(node->v.w), rn(node->w.w));	\
-		else							\
-		    vfp_##name##r##type(rn(node->u.w),			\
-				        rn(node->v.w), rn(node->w.w));	\
 		break
 #define case_rrw(name, type)						\
 	    case jit_code_##name##i##type:				\

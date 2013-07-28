@@ -1,3 +1,8 @@
+2013-07-28 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64.c: Remove unused macros left from cut&paste
+	of jit_arm.c.
+
 2013-07-16 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_aarch64.h, lib/jit_aarch64-cpu.c,
