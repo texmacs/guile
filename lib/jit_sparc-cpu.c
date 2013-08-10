@@ -686,7 +686,7 @@ _f2r(jit_state_t *_jit,
     v.rd.b    = rd;
     v.op2.b   = op2;
     v.imm22.b = imm22;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -705,7 +705,7 @@ _f2b(jit_state_t *_jit,
     v.cond.b   = cond;
     v.op2.b    = op2;
     v.disp22.b = disp22;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -725,7 +725,7 @@ _f3r(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
     v.i.b     = 0;
     v.asi.b   = 0;
     v.rs2.b   = rs2;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -744,7 +744,7 @@ _f3i(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
     v.rs1.b    = rs1;
     v.i.b      = 1;
     v.simm13.b = simm13;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -769,7 +769,7 @@ _f3t(jit_state_t *_jit, jit_int32_t cond,
 	v.asi.b = 0;
 	v.rs2.b = rs2_imm7;
     }
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -790,7 +790,7 @@ _f3a(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
     v.i.b     = 0;
     v.asi.b   = asi;
     v.rs2.b   = rs2;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void
@@ -801,7 +801,7 @@ _f1(jit_state_t *_jit, jit_int32_t op, jit_int32_t disp30)
     assert(s30_p(disp30));
     v.op.b     = op;
     v.disp30.b = disp30;
-    ii(v.v);    
+    ii(v.v);
 }
 
 static void

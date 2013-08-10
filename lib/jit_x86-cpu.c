@@ -1792,7 +1792,7 @@ static void
 _comr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     movr(r0, r1);
-    icomr(r0);    
+    icomr(r0);
 }
 
 #if USE_INC_DEC

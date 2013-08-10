@@ -1161,7 +1161,7 @@ memory prior to any attempts at prefetching it as an instruction.
 	LDIL	l%instr,rinstr
 	STW	temp,r%instr(0,rinstr)
 	FDC	r%instr(0,rinstr)
-	SYNC	
+	SYNC
 	FIC	r%instr(rinstr)
 	SYNC
 	instr	...
@@ -1171,7 +1171,7 @@ This sequence assumes a uniprocessor system. In a multiprocessor system,
 software must ensure no processor is executing code which is in the process
 of being modified.
 */
-    
+
 /*
   Adapted from ffcall/trampoline/cache-hppa.c:__TR_clear_cache to
 loop over addresses as it is unlikely from and to addresses would fit in

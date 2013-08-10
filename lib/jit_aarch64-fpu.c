@@ -592,7 +592,7 @@ _fbcci(jit_state_t *_jit, jit_int32_t cc,
     reg = jit_get_reg(jit_class_fpr);
     movi_f(rn(reg), i1);
     w = fbccr(cc, i0, r0, rn(reg));
-    jit_unget_reg(reg);    
+    jit_unget_reg(reg);
     return (w);
 }
 
@@ -807,7 +807,7 @@ _dbcci(jit_state_t *_jit, jit_int32_t cc,
     reg = jit_get_reg(jit_class_fpr);
     movi_d(rn(reg), i1);
     w = dbccr(cc, i0, r0, rn(reg));
-    jit_unget_reg(reg);    
+    jit_unget_reg(reg);
     return (w);
 }
 

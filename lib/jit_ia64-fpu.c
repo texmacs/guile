@@ -39,7 +39,7 @@
 	    jit_regset_tstbit(&_jitc->regs, r2 + 128))			\
 	    stop();							\
     } while (0)
-#define SETFREG(r0)		jit_regset_setbit(&_jitc->regs, r0 + 128)	
+#define SETFREG(r0)		jit_regset_setbit(&_jitc->regs, r0 + 128)
 
 /* libm */
 extern float sqrtf(float);

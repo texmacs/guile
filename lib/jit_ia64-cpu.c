@@ -79,7 +79,7 @@
 	    stop();							\
     } while (0)
 /* Record register was modified */
-#define SETREG(r0)		jit_regset_setbit(&_jitc->regs, r0)	
+#define SETREG(r0)		jit_regset_setbit(&_jitc->regs, r0)
 
 /* Avoid using constants in macros and code */
 typedef enum {

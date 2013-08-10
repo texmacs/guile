@@ -702,7 +702,7 @@ main(int argc, char *argv[])
 #  define jit_extr_l(u, v)			/**/
 #endif
 
-#define strfy(n)				#n	
+#define strfy(n)				#n
 #define defi(T, N)							\
     n##T##N = jit_name(strfy(n##T##N));					\
     jit_note("ccall.c", __LINE__);					\

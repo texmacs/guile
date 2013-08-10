@@ -14,7 +14,7 @@
 
 AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
-info_TEXINFOS = lightning.texi 
+info_TEXINFOS = lightning.texi
 MOSTLYCLEANFILES = lightning.tmp
 
 lightning_TEXINFOS = body.texi version.texi

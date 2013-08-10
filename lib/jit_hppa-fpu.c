@@ -56,7 +56,7 @@ static void _f49_52(jit_state_t*,jit_int32_t,
 		    jit_int32_t,jit_int32_t,jit_int32_t,
 		    jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,
 		    jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
-#define f53(o,r1,r2,ta,ra,f,tm)		_f53(_jit,o,r1,r2,ta,ra,f,tm)	
+#define f53(o,r1,r2,ta,ra,f,tm)		_f53(_jit,o,r1,r2,ta,ra,f,tm)
 static void _f53(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,
 		 jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t) maybe_unused;
 #define f54(o,r1,r2,a,b,f,c,d,e,g,t)	_f54(_jit,o,r1,r2,a,b,f,c,d,e,g,t)

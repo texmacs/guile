@@ -2821,7 +2821,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	if (jit_regset_tstbit(&_jitc->function->regset, iregs[index]))
 	    stxi(offset, _SP_REGNO, rn(iregs[index]));
     }
-    assert(offset >= sizeof(jit_word_t));    
+    assert(offset >= sizeof(jit_word_t));
     stxi(offset, _SP_REGNO, _RA_REGNO);
     stxi(0, _SP_REGNO, _BP_REGNO);
     movr(_BP_REGNO, _SP_REGNO);
@@ -2848,7 +2848,7 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 	if (jit_regset_tstbit(&_jitc->function->regset, iregs[index]))
 	    ldxi(rn(iregs[index]), _SP_REGNO, offset);
     }
-    assert(offset >= sizeof(jit_word_t));    
+    assert(offset >= sizeof(jit_word_t));
     ldxi(_RA_REGNO, _SP_REGNO, offset);
     ldxi(_BP_REGNO, _SP_REGNO, 0);
     JR(_RA_REGNO);
