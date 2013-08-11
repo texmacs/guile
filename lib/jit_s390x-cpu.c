@@ -2377,9 +2377,9 @@ static void
 _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (r0 == r1 && s16_p(i0))
+    if (r0 == r1 && s16_p(-i0))
 	AGHI(r0, x16(-i0));
-    else if (s20_p(i0))
+    else if (s20_p(-i0))
 	LAY(r0, x20(-i0), 0, r1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
