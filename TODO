@@ -4,7 +4,5 @@
 	(because it does not know about values being set as input
 	for the the operation).
 
-	* Write a bytecode backend for unsupported architectures.
-
 	* Write a simple higher level language implementation generating
 	jit with lightning, that could be some lisp or C like language.
