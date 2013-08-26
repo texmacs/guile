@@ -87,6 +87,7 @@ else
 fi
 
 case "$host_os" in
+    *freebsd*)		SHLIB=""	;;
     *hpux*)		SHLIB="-ldld"	;;
     *)			SHLIB="-ldl"	;;
 esac
@@ -94,7 +95,7 @@ AC_SUBST(SHLIB)
 
 cpu=
 case "$target_cpu" in
-    i?86|x86_64)	cpu=x86		;;
+    i?86|x86_64|amd64)	cpu=x86		;;
     *arm*)		cpu=arm		;;
     *mips*)		cpu=mips	;;
     *powerpc*)		cpu=ppc		;;
