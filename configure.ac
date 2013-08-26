@@ -87,7 +87,7 @@ else
 fi
 
 case "$host_os" in
-    *freebsd*)		SHLIB=""	;;
+    *bsd*)		SHLIB=""	;;
     *hpux*)		SHLIB="-ldld"	;;
     *)			SHLIB="-ldl"	;;
 esac

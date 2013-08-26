@@ -1709,8 +1709,13 @@ _jit_emit(jit_state_t *_jit)
 #endif
 
 #if HAVE_MREMAP
+#  if __NetBSD__
+	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
+				    _jit->code.ptr, length, 0);
+#  else
 	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
 				    length, MREMAP_MAYMOVE, NULL);
+#  endif
 #else
 	    _jit->code.ptr = mmap(NULL, length,
 				  PROT_EXEC | PROT_READ | PROT_WRITE,

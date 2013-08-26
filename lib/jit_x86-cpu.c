@@ -426,7 +426,7 @@ static void _ldxi_i(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define ldxr_ui(r0, r1, r2)		_ldxr_ui(_jit, r0, r1, r2)
 static void _ldxr_ui(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define ldxi_ui(r0, r1, i0)		_ldxi_ui(_jit, r0, r1, i0)
-static void _ldxi_ui(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+static void _ldxi_ui(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #    define ldxr_l(r0, r1, r2)		_ldxr_l(_jit, r0, r1, r2)
 static void _ldxr_l(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #    define ldxi_l(r0, r1, i0)		_ldxi_l(_jit, r0, r1, i0)
@@ -2540,7 +2540,7 @@ _ldxr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_ldxi_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t i0)
+_ldxi_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (can_sign_extend_int_p(i0)) {

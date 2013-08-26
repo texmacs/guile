@@ -1,6 +1,16 @@
 2013-08-26 Paulo Andrade <pcpa@gnu.org>
 
-	lib/jit_ppc.c: Correct C sequence point problem miscalculating
+	* configure.ac: Extend FreeBSD test to also handle NetBSD.
+
+	* lib/jit_x86-cpu.c: Correct wrongly defined offset type of
+	ldxi_ui. Problem detected when building on NetBSD.
+
+	* lib/lightning.c: Adjust code to handle NetBSD mremap,
+	where arguments do not match Linux mremap.
+
+2013-08-26 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ppc.c: Correct C sequence point problem miscalculating
 	the actual function address in a function descriptor. Problem
 	happens with gcc 4.8.1 at least.
 
