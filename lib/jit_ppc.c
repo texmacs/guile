@@ -779,7 +779,8 @@ _emit_code(jit_state_t *_jit)
 #if __powerpc__
     undo.prolog_offset = 0;
     /* code may start with a jump so add an initial function descriptor */
-    iw(_jit->pc.w + sizeof(void*) * 3);	/* addr */
+    word = _jit->pc.w + sizeof(void*) * 3;
+    iw(word);				/* addr */
     iw(0);				/* toc */
     iw(0);				/* env */
 #endif
@@ -1289,7 +1290,8 @@ _emit_code(jit_state_t *_jit)
 		    }
 		    _jitc->prolog.ptr[_jitc->prolog.offset++] = _jit->pc.w;
 		    /* function descriptor */
-		    iw(_jit->pc.w + sizeof(void*) * 3);	/* addr */
+		    word = _jit->pc.w + sizeof(void*) * 3;
+		    iw(word);				/* addr */
 		    iw(0);				/* toc */
 		    iw(0);				/* env */
 		}

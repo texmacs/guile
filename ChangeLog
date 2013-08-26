@@ -1,3 +1,9 @@
+2013-08-26 Paulo Andrade <pcpa@gnu.org>
+
+	lib/jit_ppc.c: Correct C sequence point problem miscalculating
+	the actual function address in a function descriptor. Problem
+	happens with gcc 4.8.1 at least.
+
 2013-08-11 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_s390x-cpu.c: Correct code checking if immediate
