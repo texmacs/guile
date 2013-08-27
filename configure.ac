@@ -57,10 +57,13 @@ if test "x$DISASSEMBLER" != "xno"; then
 		 [HAVE_IBERTY="no"])
     AC_CHECK_LIB(bfd, bfd_init, ,
 		 [HAVE_BFD="no"])
+    AC_CHECK_LIB(z, compressBound, ,
+		 [HAVE_Z="no"])
     AC_CHECK_LIB(opcodes, init_disassemble_info, ,
 		 [HAVE_OPCODES="no"])
     if test "x$HAVE_IBERTY"  = "xno" -o \
 	    "x$HAVE_BFD"     = "xno" -o \
+	    "x$HAVE_Z"       = "xno" -o \
 	    "x$HAVE_OPCODES" = "xno"; then
 	if test "x$DISASSEMBLER" != "xauto"; then
 	    AC_MSG_ERROR([binutils not found, see http://www.gnu.org/software/binutils/])
