@@ -763,7 +763,8 @@ _emit_code(jit_state_t *_jit)
 
     undo.prolog_offset = 0;
     /* code may start with a jump so add an initial function descriptor */
-    il(_jit->pc.w + 16);	/* addr */
+    word = _jit->pc.w + 16;
+    il(word);			/* addr */
     il(0);			/* gp */
 #define case_rr(name, type)						\
 	    case jit_code_##name##r##type:				\
@@ -1264,7 +1265,8 @@ _emit_code(jit_state_t *_jit)
 		    }
 		    _jitc->prolog.ptr[_jitc->prolog.offset++] = _jit->pc.w;
 		    /* function descriptor */
-		    il(_jit->pc.w + 16);	/* addr */
+		    word = _jit->pc.w + 16;
+		    il(word);			/* addr */
 		    il(0);			/* gp */
 		}
 		prolog(node);
