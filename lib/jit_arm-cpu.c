@@ -3755,7 +3755,7 @@ _patch_at(jit_state_t *_jit,
     } u;
     u.w = instr;
     if (kind == arm_patch_jump) {
-	if (jit_thumb_p() && instr >= _jitc->thumb) {
+	if (jit_thumb_p() && (jit_uword_t)instr >= _jitc->thumb) {
 	    code2thumb(thumb.s[0], thumb.s[1], u.s[0], u.s[1]);
 	    if ((thumb.i & THUMB2_B) == THUMB2_B) {
 		d = ((label - instr) >> 1) - 2;

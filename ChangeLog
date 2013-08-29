@@ -1,3 +1,11 @@
+2013-08-29 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm-cpu.c, lib/jit_arm.c: Correct wrong test and update
+	of the thumb offset information, when checking if needing to
+	patch a jump from arm to thumb mode. The problem would happen when
+	remapping the code buffer, and the new address being lower than
+	the previous one.
+
 2013-08-26 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac: Extend FreeBSD test to also handle NetBSD.

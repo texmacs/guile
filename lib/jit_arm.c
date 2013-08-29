@@ -810,6 +810,7 @@ _emit_code(jit_state_t *_jit)
     } undo;
 
     _jitc->function = NULL;
+    _jitc->thumb = 0;
 
     jit_reglive_setup();
 
