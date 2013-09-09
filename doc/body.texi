@@ -798,6 +798,7 @@ int main(int argc, char *argv[])
 
   jit_disassemble();
 
+  jit_destroy_state();
   finish_jit();
   return 0;
 @}
