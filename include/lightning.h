@@ -48,8 +48,13 @@
 #    else
 #      define __WORDSIZE	64
 #    endif
-#  else
-#    error cannot figure __WORDSIZE
+#  else						/* From FreeBSD 9.1 stdint.h */
+#    if defined(UINTPTR_MAX) && defined(UINT64_MAX) && \
+	(UINTPTR_MAX == UINT64_MAX)
+#      define __WORDSIZE	64
+#    else
+#      define __WORDSIZE	32
+#    endif
 #  endif
 #endif
 #ifndef __LITTLE_ENDIAN
