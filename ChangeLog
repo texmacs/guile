@@ -1,3 +1,8 @@
+2013-09-10 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ia64-cpu.c: Correct incorrect logic when restoring
+	the value of the "r2" callee save register.
+
 2013-08-29 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm-cpu.c, lib/jit_arm.c: Correct wrong test and update

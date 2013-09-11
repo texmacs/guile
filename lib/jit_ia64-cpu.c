@@ -5126,7 +5126,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    break;
     }
     _jitc->breg = rn(reg) + 1;
-    _jitc->rout = _jitc->breg + 4;
+    _jitc->rout = _jitc->breg + 5;
     ruse = _jitc->rout - GR_32;
 
     /* How many out argument registers required? */
@@ -5147,6 +5147,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     MOV(_jitc->breg + 3, GR_1);
 
     /* lightning specific, use r4 as frame pointer */
+    MOV(_jitc->breg + 4, GR_4);
     addi(GR_4, GR_12, -(stack_framesize + params_offset));
 
     /* adjust stack pointer */
@@ -5207,8 +5208,8 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     MOV_I_ar_rn(AR_PFS, _jitc->breg + 1);
     MOV_br_rn(BR_0, _jitc->breg);
     MOV(GR_12, _jitc->breg + 2);
-    /* Restore r4 with known offset from saved sp */
-    addi(GR_4, GR_12, stack_framesize + params_offset);
+    /* Restore lightning specific r4 as frame pointer */
+    MOV(GR_4, _jitc->breg + 4);
     BR_RET(BR_0);
     flush();
 }
