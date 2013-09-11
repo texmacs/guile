@@ -1,5 +1,11 @@
 2013-09-10 Paulo Andrade <pcpa@gnu.org>
 
+	* check/lightning.c, configure.ac: Conditionally use the
+	code written to workaround a bug in the Hercules emulator,
+	as isnan and isinf are not available at least on HP-UX ia64.
+
+2013-09-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_s390x-cpu.c: Spill/reload correct callee save
 	float registers.
 

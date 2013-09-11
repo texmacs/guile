@@ -1880,11 +1880,15 @@ get_float(skip_t skip)
 static float
 make_float(double d)
 {
+    /* This is an workaround to a bug in Hercules s390x emulator,
+     * and at least HP-UX ia64 not have these */
+#if defined(HAVE_ISNAN) && defined(HAVE_ISINF)
     if (isnan(d))	return ( 0.0f/0.0f);
     if (isinf(d)) {
 	if (d > 0.0)	return ( 1.0f/0.0f);
 	else		return (-1.0f/0.0f);
     }
+#endif
     return ((float)d);
 }
 

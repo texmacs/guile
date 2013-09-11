@@ -43,7 +43,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
-AC_CHECK_FUNCS(mremap ffsl getopt_long_only,,)
+AC_CHECK_FUNCS(mremap ffsl getopt_long_only isnan isinf,,)
 
 AC_CHECK_HEADERS([getopt.h],,,)
 
