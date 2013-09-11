@@ -318,6 +318,7 @@ static void _f38(jit_state_t*,jit_int32_t,
 #define BBI_N_GE(r,p,i)		BBI_N_(BB_CC_GE,r,p,i)
 #define BE(i,s,b)		f19(0x38,b,s,i,0)
 #define BE_L(i,s,b)		f19(0x39,b,s,i,0)
+#define BE_L_N(i,s,b)		f19(0x39,b,s,i,1)
 #define BLR(x,t)		f21(0x3a,t,x,2,0)
 #define BLR_N(x,t)		f21(0x3a,t,x,2,1)
 #define BREAK(i,j)		f27(0,j,i)
@@ -326,6 +327,7 @@ static void _f38(jit_state_t*,jit_int32_t,
 #define BVE(b)			f22(0x3a,b,6,0,0,0)
 #define BVE_N(b)		f22(0x3a,b,6,0,1,0)
 #define BVE_L(b)		f22(0x3a,b,7,0,0,0)
+#define BVE_L_N(b)		f22(0x3a,b,7,0,0,1)
 #define II_C_NONE		0
 #define II_C_M			(1<<5)
 #define II_C_S			(1<<13)
@@ -2548,16 +2550,25 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _callr(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_word_t		dyn;
+    jit_word_t		imm;
     if (r0 != _R1_REGNO)
 	COPY(r0, _R1_REGNO);
     /* inline $$dyncall */
-    BBI_N_GE(_R1_REGNO, 30, 4);		/*   if (r1 & 2) {		*/
+    imm = _jit->pc.w;
+    BBI_N_GE(_R1_REGNO, 30, 0);		/*   if (r1 & 2) {		*/
     DEPWRI(0, 31, 2, _R1_REGNO);	/*	r1 &= ~2;		*/
     LDWI(4, _R1_REGNO, _R19_REGNO);	/*	r19 = r1[1];		*/
     LDWI(0, _R1_REGNO, _R1_REGNO);	/*	r1  = r1[0];		*/
 					/*   }				*/
     BVE_L(_R1_REGNO);
     STWL(_RP_REGNO, -24, _SP_REGNO);
+    dyn = _jit->pc.w;
+    jmpi(_jit->pc.w);
+    patch_at(imm, _jit->pc.w);
+    BVE_L_N(_R1_REGNO);
+    NOP();
+    patch_at(dyn, _jit->pc.w);
 }
 
 static void
@@ -2577,8 +2588,8 @@ _calli(jit_state_t *_jit, jit_word_t i0)
 	if (w >= -32768 && w <= 32767)
 	    B_L_N(w);
 	else {
-	    movi(_R1_REGNO, w);
-	    BLR_N(_R1_REGNO, _RP_REGNO);
+	    movi(_R1_REGNO, i0);
+	    BVE_L_N(_R1_REGNO);
 	}
 	NOP();
     }

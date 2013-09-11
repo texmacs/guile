@@ -1,5 +1,10 @@
 2013-09-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_hppa-cpu.c: Correct code to call a function stored
+	in a register or a patched function address.
+
+2013-09-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ia64-cpu.c: Correct incorrect logic when restoring
 	the value of the "r2" callee save register.
 
