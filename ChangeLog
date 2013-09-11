@@ -1,5 +1,10 @@
 2013-09-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_s390x-cpu.c: Spill/reload correct callee save
+	float registers.
+
+2013-09-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_hppa-cpu.c: Correct code to call a function stored
 	in a register or a patched function address.
 

@@ -3285,10 +3285,10 @@ _prolog(jit_state_t *_jit, jit_node_t *i0)
     SPILL(_F12, 32);
     SPILL(_F13, 48);
     /* Last 4 in high address */
-    SPILL(_F10, 128);
-    SPILL(_F11, 136);
-    SPILL(_F12, 144);
-    SPILL(_F13, 152);
+    SPILL(_F14, 128);
+    SPILL(_F15, 136);
+    SPILL(_F8, 144);
+    SPILL(_F9, 152);
 #undef SPILL
     LGR(_R13_REGNO, _R15_REGNO);
     subi(_R15_REGNO, _R15_REGNO, stack_framesize + _jitc->function->stack);
@@ -3313,10 +3313,10 @@ _epilog(jit_state_t *_jit, jit_node_t *i0)
     LOAD(_F11, 24);
     LOAD(_F12, 32);
     LOAD(_F13, 48);
-    LOAD(_F10, 128);
-    LOAD(_F11, 136);
-    LOAD(_F12, 144);
-    LOAD(_F13, 152);
+    LOAD(_F14, 128);
+    LOAD(_F15, 136);
+    LOAD(_F8, 144);
+    LOAD(_F9, 152);
 #undef LOAD
     LMG(rn(gprs[regno]), _R15_REGNO, x20(offset), _R15_REGNO);
     BR(_R14_REGNO);
