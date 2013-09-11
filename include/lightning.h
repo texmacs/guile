@@ -951,6 +951,9 @@ extern jit_node_t *_jit_new_node_pwf(jit_state_t*, jit_code_t,
 extern jit_node_t *_jit_new_node_pwd(jit_state_t*, jit_code_t,
 				     jit_pointer_t, jit_word_t, jit_float64_t);
 
+#define jit_callee_save_p(u)		_jit_callee_save_p(_jit,u)
+extern jit_bool_t _jit_callee_save_p(jit_state_t*, jit_int32_t);
+
 #define jit_disassemble()		_jit_disassemble(_jit)
 extern void _jit_disassemble(jit_state_t*);
 

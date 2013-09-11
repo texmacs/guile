@@ -79,11 +79,6 @@ typedef enum {
 #  define JIT_V3		_R15
     _RBX,	_R13,	_R14,	_R15,
 #  define JIT_RA0		_RDI
-#  define JIT_RA1		_RSI
-#  define JIT_RA2		_RDX
-#  define JIT_RA3		_RCX
-#  define JIT_RA4		_R8
-#  define JIT_RA5		_R9
     _R9,	_R8,	_RCX,	_RDX,	_RSI,	_RDI,
     _RSP,	_RBP,
 #  define JIT_F0		_XMM8
@@ -96,13 +91,6 @@ typedef enum {
 #  define JIT_F7		_XMM15
     _XMM8,	_XMM9,	_XMM10,	_XMM11,	_XMM12,	_XMM13,	_XMM14,	_XMM15,
 #  define JIT_FA0		_XMM0
-#  define JIT_FA1		_XMM1
-#  define JIT_FA2		_XMM2
-#  define JIT_FA3		_XMM3
-#  define JIT_FA4		_XMM4
-#  define JIT_FA5		_XMM5
-#  define JIT_FA6		_XMM6
-#  define JIT_FA7		_XMM7
     _XMM7,	_XMM6,	_XMM5,	_XMM4,	_XMM3,	_XMM2,	_XMM1,	_XMM0,
 #  define jit_sse_reg_p(reg)	((reg) >= _XMM8 && (reg) <= _XMM0)
 #endif

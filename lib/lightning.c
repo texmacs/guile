@@ -330,6 +330,13 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
     jit_regset_clrbit(&_jitc->regarg, regno);
 }
 
+jit_bool_t
+_jit_callee_save_p(jit_state_t *_jit, jit_int32_t regno)
+{
+    assert(regno >= 0 && regno < JIT_NOREG);
+    return (!!(_rvs[regno].spec & jit_class_sav));
+}
+
 #if __ia64__
 void
 jit_regset_com(jit_regset_t *u, jit_regset_t *v)

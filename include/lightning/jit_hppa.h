@@ -33,18 +33,27 @@ typedef enum {
     _R1,			/* ADDIL implicit target */
     _R2,			/* B,L implicit target */
 #define jit_r_num()		4
-#define jit_r(n)		((n) < 4 ? _R4 + (n) : _R10 + (n))
-#define jit_v_num()		4
-#define jit_v(n)		((n) < 4 ? _R7 + (n) : _R11 + (n))
+#define jit_r(n)		((n) < 3 ? _R4 + (n) : _R10 + (n) - 3)
+#define jit_v_num()		11
+#define jit_v(n)		((n) < 3 ? _R7 + (n) : _R11 + (n) - 3)
 #define jit_f_num()		8
 #define jit_f(n)		(_F12 - (n))
 #define JIT_FP			_R3
 #define JIT_R0			_R4
 #define JIT_R1			_R5
 #define JIT_R2			_R6
+#define JIT_R3			_R10
 #define JIT_V0			_R7
 #define JIT_V1			_R8
 #define JIT_V2			_R9
+#define JIT_V3			_R11
+#define JIT_V4			_R12
+#define JIT_V5			_R13
+#define JIT_V6			_R14
+#define JIT_V7			_R15
+#define JIT_V8			_R16
+#define JIT_V9			_R17
+#define JIT_V10			_R18
     _R3,
     _R19,
     _R20,
@@ -80,6 +89,10 @@ typedef enum {
 #define JIT_F3			_F15
 #define JIT_F4			_F16
 #define JIT_F5			_F17
+#define JIT_F6			_F18
+#define JIT_F7			_F19
+#define JIT_F8			_F20
+#define JIT_F9			_F21
     /* Caller Saves */
     _F31,
     _F30,

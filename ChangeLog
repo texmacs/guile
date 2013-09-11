@@ -1,5 +1,36 @@
 2013-09-10 Paulo Andrade <pcpa@gnu.org>
 
+	* check/self.c, check/self.ok: New files implementing simple
+	consistency check assertions. At first validating some macros
+	that use values from different sources agree.
+
+	* check/Makefile.am: Update for the new test case.
+
+	* include/lightning.h,  lib/lightning.c: Add the new
+	jit_callee_save_p() call, that is intended to be used when
+	writing complex code using lightning, so that one does not
+	need to verify what backend is being used, or have access to
+	private data, to query if a register is callee save or not;
+	on several backends the scratch registers are actually callee
+	save.
+
+	* include/lightning/jit_aarch64.h, include/lightning/jit_arm.h,
+	include/lightning/jit_hppa.h, include/lightning/jit_mips.h,
+	include/lightning/jit_ppc.h, include/lightning/jit_sparc.h,
+	include/lightning/jit_x86.h: Add an explicit definition for
+	JIT_R3-JIT_Rn, JIT_V3-JIT_Vn and JIT_F6-JIT_Fn when applicable.
+	This allows one to write code based on "#if defined(JIT_XN)"
+	and therefore, not need to check what is the current backend
+	or have access to private data structures. This is particularly
+	useful when writing virtual machines with several specialized,
+	global registers.
+
+	* lib/jit_ia64.c: Properly flag the callee save general
+	purpose registers as such, so that jit_callee_save_p() works
+	as intended.
+
+2013-09-10 Paulo Andrade <pcpa@gnu.org>
+
 	* check/lightning.c, configure.ac: Conditionally use the
 	code written to workaround a bug in the Hercules emulator,
 	as isnan and isinf are not available at least on HP-UX ia64.

@@ -16,13 +16,16 @@
 
 AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
-check_PROGRAMS = lightning ccall
+check_PROGRAMS = lightning ccall self
 
 lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 lightning_SOURCES = lightning.c
 
 ccall_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 ccall_SOURCES = ccall.c
+
+self_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
+self_SOURCES = ccall.c
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
@@ -175,7 +178,7 @@ $(swf_TESTS):	check.swf.sh
 TESTS += $(swf_TESTS)
 endif
 
-TESTS += ccall
+TESTS += ccall self
 CLEANFILES = $(TESTS)
 
 #TESTS_ENVIRONMENT=$(srcdir)/run-test;
