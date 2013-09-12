@@ -1183,7 +1183,7 @@ time, it is required to used code similar to:
 
 @example
     struct jit_state lightning;
-    #define _jit lightning
+    #define lightning _jit
 @end example
 
 This will cause the symbol defined to @code{_jit} to be passed as

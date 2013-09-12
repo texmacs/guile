@@ -117,11 +117,6 @@ typedef struct {
     jit_uint32_t abi		: 2;
 } jit_cpu_t;
 
-typedef struct {
-    /* prevent using thumb instructions that set flags? */
-    jit_uint32_t no_set_flags	: 1;
-} jit_flags_t;
-
 typedef jit_int64_t		jit_regset_t;
 
 /*

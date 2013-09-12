@@ -1,3 +1,14 @@
+2013-10-10 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Correct reversed arguments in example of
+	usage in a (possibly) multi threaded, multiple jit_state_t
+	environments.
+
+	* include/lightning/jit_arm.h, include/lightning/jit_private.h,
+	lib/jit_arm-cpu.c, lib/jit_arm.c: Make a previously, non
+	documented, global state private to the related jit_state_t
+	generating code.
+
 2013-09-10 Paulo Andrade <pcpa@gnu.org>
 
 	* check/self.c, check/self.ok: New files implementing simple

@@ -77,7 +77,6 @@ extern void __clear_cache(void *, void *);
  * Initialization
  */
 jit_cpu_t		jit_cpu;
-jit_flags_t		jit_flags;
 jit_register_t		_rvs[] = {
     { rc(gpr) | 0x0c,			"ip" },
     { rc(sav) | rc(gpr) | 0x04,		"r4" },

@@ -396,6 +396,8 @@ struct jit_compiler {
 	jit_uint8_t	 *base;
     } note;
 #if __arm__
+    /* prevent using thumb instructions that set flags? */
+    jit_uint32_t	  no_set_flags : 1;
 #  if DISASSEMBLER
     struct {
 	jit_data_info_t	 *ptr;

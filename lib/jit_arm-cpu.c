@@ -29,7 +29,7 @@
 #  define _u16(v)			((v) & 0xffff)
 #  define _u24(v)			((v) & 0xffffff)
 #  define jit_thumb_p()			jit_cpu.thumb
-#  define jit_no_set_flags()		jit_flags.no_set_flags
+#  define jit_no_set_flags()		_jitc->no_set_flags
 #  define jit_armv5_p()			(jit_cpu.version >= 5)
 #  define jit_armv5e_p()		(jit_cpu.version >= 5 && jit_cpu.extend)
 #  define jit_armv6_p()			(jit_cpu.version >= 6)
