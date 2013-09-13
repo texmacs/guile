@@ -1,3 +1,12 @@
+2013-10-13 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_note.c: Change the code argument of jit_get_note
+	to a jit_pointer_t and make jit_get_note a public interface.
+	It was intended so since start, as a way to map an offset
+	in the code to a function name, file name and line number
+	mapping.
+
 2013-10-10 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Correct reversed arguments in example of

@@ -213,7 +213,7 @@ _jit_set_note(jit_state_t *_jit, jit_note_t *note,
 }
 
 jit_bool_t
-_jit_get_note(jit_state_t *_jit, jit_uint8_t *code,
+_jit_get_note(jit_state_t *_jit, jit_pointer_t code,
 	      char **name, char **file, jit_int32_t *lineno)
 {
     jit_note_t		*note;
@@ -221,12 +221,13 @@ _jit_get_note(jit_state_t *_jit, jit_uint8_t *code,
     jit_int32_t		 index;
     jit_int32_t		 offset;
 
-    if ((index = note_search_index(code)) >= _jit->note.length)
+    if ((index = note_search_index((jit_uint8_t *)code)) >= _jit->note.length)
 	return (0);
     note = _jit->note.ptr + index;
-    if (code < note->code || code >= note->code + note->size)
+    if ((jit_uint8_t *)code < note->code ||
+	(jit_uint8_t *)code >= note->code + note->size)
 	return (0);
-    offset = code - note->code;
+    offset = (jit_uint8_t *)code - note->code;
     if ((index = line_search_index(note, offset)) >= note->length)
 	return (0);
     if (index == 0 && offset < note->lines[0].offsets[0])

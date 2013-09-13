@@ -550,8 +550,6 @@ extern void jit_init_note(void);
 extern void jit_finish_note(void);
 #define jit_set_note(n,u,v,w)	_jit_set_note(_jit, n, u, v, w)
 extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
-#define jit_get_note(n,u,v,w)	_jit_get_note(_jit, n, u, v, w)
-extern jit_bool_t _jit_get_note(jit_state_t*,jit_uint8_t*,char**,char**,int*);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 
