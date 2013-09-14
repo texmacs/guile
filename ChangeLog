@@ -1,3 +1,12 @@
+2013-10-14 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/lightning.c: Add the new
+	jit_pointer_p interface, that returns a boolean value
+	telling if the pointer argument is inside the jit
+	code buffer. This is useful to avoid the need to add
+	extra labels and calls to jit_address to figure bounds
+	of code buffer, and still keep internal data private.
+
 2013-10-13 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,

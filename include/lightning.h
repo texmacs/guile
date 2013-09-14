@@ -953,6 +953,8 @@ extern jit_node_t *_jit_new_node_pwd(jit_state_t*, jit_code_t,
 
 #define jit_callee_save_p(u)		_jit_callee_save_p(_jit,u)
 extern jit_bool_t _jit_callee_save_p(jit_state_t*, jit_int32_t);
+#define jit_pointer_p(u)		_jit_pointer_p(_jit,u)
+extern jit_bool_t _jit_pointer_p(jit_state_t*,jit_pointer_t);
 
 #define jit_get_note(n,u,v,w)	_jit_get_note(_jit,n,u,v,w)
 extern jit_bool_t _jit_get_note(jit_state_t*,jit_pointer_t,char**,char**,int*);

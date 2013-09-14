@@ -337,6 +337,13 @@ _jit_callee_save_p(jit_state_t *_jit, jit_int32_t regno)
     return (!!(_rvs[regno].spec & jit_class_sav));
 }
 
+extern jit_bool_t
+_jit_pointer_p(jit_state_t *_jit, jit_pointer_t address)
+{
+    return ((jit_uint8_t *)address >= _jit->code.ptr &&
+	    (jit_word_t)address < _jit->pc.w);
+}
+
 #if __ia64__
 void
 jit_regset_com(jit_regset_t *u, jit_regset_t *v)
