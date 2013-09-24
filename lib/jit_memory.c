@@ -86,29 +86,6 @@ jit_free(jit_pointer_t *ptr)
     *ptr = NULL;
 }
 
-#if HAVE_MREMAP
-jit_bool_t
-_jit_remap(jit_state_t *_jit)
-{
-    jit_uint8_t		*code;
-    jit_word_t		 length;
-
-    length = _jitc->pool.length * 1024 * (_jitc->mult + 1);
-
-    code = mremap(_jit->code.ptr, _jit->code.length, length, 0, NULL);
-    if (code != MAP_FAILED) {
-	assert(code == _jit->code.ptr);
-	++_jitc->mult;
-	_jit->code.length = length;
-	_jitc->code.end = _jit->code.ptr + _jit->code.length - 64;
-
-	return (1);
-    }
-
-    return (0);
-}
-#endif
-
 static void *
 jit_default_alloc_func(size_t size)
 {

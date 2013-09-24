@@ -1,3 +1,35 @@
+2013-10-24 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64-sz.c, lib/jit_arm-sz.c, lib/jit_hppa-sz.c,
+	lib/jit_ia64-sz.c, lib/jit_mips-sz.c, lib/jit_ppc-sz.c,
+	lib/jit_s390x-sz.c, lib/jit_size.c, lib/jit_sparc-sz.c,
+	lib/jit_x86-sz.c: New files implementing static tables
+	with longest known instructions length generated to match
+	a lightning instruction. These tables should make it easier
+	to make it very unlikely to ever miscalculate, or by too
+	much, the size of a code buffer.
+
+	* lib/jit_size.c: New file that aids to either collect
+	jit code size information, or use the information depending
+	on build options.
+
+	* size.c: New helper file that parses input for, and create
+	an initial jit_$arch-sz.c file, that needs some minor edit
+	for arches with multiple configurations.
+
+	* configure.ac, Makefile.am: Add the new, devel mode only
+	--enable-devel-get-jit-size configure option, that sets
+	compile time flags to collect jit code size information,
+	that will be used as input for the "noinst size program".
+
+	* lib/jit_aarch64.c, lib/jit_arm.c, lib/jit_disasm.c,
+	lib/jit_hppa.c, lib/jit_ia64.c, lib/jit_memory.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_s390x.c,
+	lib/jit_sparc.c, lib/jit_x86.c, lib/lightning.c: Minor
+	changes for the --enable-devel-get-jit-size build mode,
+	as well as the "production build mode" with jit code
+	size information.
+
 2013-10-14 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/lightning.c: Add the new

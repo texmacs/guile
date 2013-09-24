@@ -736,7 +736,6 @@ _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 jit_pointer_t
 _emit_code(jit_state_t *_jit)
 {
-    jit_uint8_t		*end;
     jit_node_t		*node;
     jit_node_t		*temp;
     jit_word_t		 word;
@@ -850,11 +849,13 @@ _emit_code(jit_state_t *_jit)
 		    patch(word, node);					\
 		}							\
 		break
+#if GET_JIT_SIZE
     /* default of 64 bytes is too low for some possible
      * quite long code generation sequences, e.g. qdivi */
-    end = _jit->code.ptr + _jit->code.length - 4096;
+    _jitc->code.end = _jit->code.ptr + _jit->code.length - 4096;
+#endif
     for (node = _jitc->head; node; node = node->next) {
-	if (_jit->pc.uc >= end && !jit_remap())
+	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
 
 	value = jit_classify(node->code);

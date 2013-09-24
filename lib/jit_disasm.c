@@ -225,6 +225,7 @@ disasm_print_address(bfd_vma addr, struct disassemble_info *info)
     (*info->fprintf_func)(info->stream, "0x%s", buffer);
 
 #  define _jit				disasm_jit
+#  undef jit_pointer_p
 #  define jit_pointer_p(u)					\
 	((u) >= _jit->code.ptr && (u) < _jit->pc.uc)
     if (jit_pointer_p((jit_uint8_t *)(jit_word_t)addr)) {

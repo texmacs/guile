@@ -702,7 +702,7 @@ _emit_code(jit_state_t *_jit)
 		}							\
 		break
     for (node = _jitc->head; node; node = node->next) {
-	if (_jit->pc.uc >= _jitc->code.end && !jit_remap())
+	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
 
 	value = jit_classify(node->code);

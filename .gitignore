@@ -13,10 +13,12 @@ config.status
 config.sub
 configure
 install-sh
+jit_*-sz.c
 libtool
 lightning-*.tar.*
 ltmain.sh
 missing
+size
 stamp-h1
 test-driver
 check/.deps

@@ -27,13 +27,16 @@ case "$target_cpu" in
     ia64)
 	case "$host_os" in
 	    # Only supported mode
-	    *hpux*)	CFLAGS="$CFLAGS -mlp64"	;;
+	    *hpux*)
+		LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -mlp64"		;;
 	    *)					;;
 	esac					;;
     *mips*)
 	case "$host_os" in
-	    # Extra flags to build with gcc 3.x
-	    *irix*)	CFLAGS="$CFLAGS -D__c99 -Drestrict="	;;
+	    # (Hack) Flags to pass configure with gcc 3.x
+	    # Should not set LIGHTNINT_CFLAGS
+	    *irix*)
+		CFLAGS="$CFLAGS -D__c99 -Drestrict=";;
 	    *)					;;
 	esac					;;
     *)						;;
@@ -88,6 +91,13 @@ else
     LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DNDEBUG"
     DEBUG=no
 fi
+
+# This option is only useful during development.
+AC_ARG_ENABLE(devel-get-jit-size,
+	      AS_HELP_STRING([--enable-devel-get-jit-size],
+			     [Devel mode to regenerate jit size information]),
+	      [GET_JIT_SIZE=$enableval], [GET_JIT_SIZE=no])
+AM_CONDITIONAL(get_jit_size, [test $GET_JIT_SIZE = yes])
 
 case "$host_os" in
     *bsd*)		SHLIB=""	;;
@@ -213,6 +223,7 @@ if test $cpu=arm; then
      AC_CHECK_LIB(m, sqrtf, ,
         [AC_MSG_ERROR([sqrtf required but not available])])
 fi
+AC_SUBST(cpu)
 
 AC_SUBST([LIGHTNING_CFLAGS])
 
