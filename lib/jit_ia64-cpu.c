@@ -2139,7 +2139,7 @@ _A3(jit_state_t *_jit, jit_word_t _p,
     assert(!(x4 &  ~0xfL));
     assert(!(x2 &  ~0x3L));
     assert(!(r3 & ~0x7fL));
-    assert(im >= -128 && im < 127);
+    assert(im >= -128 && im <= 127);
     assert(!(r1 & ~0x7f));
     TSTREG1(r3);
     TSTPRED(_p);
@@ -2156,7 +2156,7 @@ _A4(jit_state_t *_jit, jit_word_t _p,
     assert(!(_p & ~0x3fL));
     assert(!(x2 &  ~0x3L));
     assert(!(r3 & ~0x7fL));
-    assert(im >= -8192 && im < 8191);
+    assert(im >= -8192 && im <= 8191);
     assert(!(r1  & ~0x7f));
     TSTREG1(r3);
     TSTPRED(_p);
@@ -2173,7 +2173,7 @@ _A5(jit_state_t *_jit, jit_word_t _p,
     jit_word_t		s, i5, i9, i7;
     assert(!(_p & ~0x3fL));
     assert(!(r3  & ~0x3L));
-    assert(im >= -2097152 && im < 2097151);
+    assert(im >= -2097152 && im <= 2097151);
     assert(!(r1  & ~0x7fL));
     /* imm22 = sign_ext(s << 21 | imm5c << 16 | imm9d << 7 | imm7b, 22) */
     s  = (im & 0x200000) >> 21;
@@ -2810,7 +2810,7 @@ _M3(jit_state_t *_jit, jit_word_t _p,
     assert(!(x6 &  ~0x3fL));
     assert(!(ht &   ~0x3L));
     assert(!(r3 &  ~0x7fL));
-    assert(im > -256 && im < 255);
+    assert(im > -256 && im <= 255);
     assert(!(r1 &  ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
@@ -2830,7 +2830,7 @@ _M5(jit_state_t *_jit, jit_word_t _p,
     assert(!(ht &   ~0x3L));
     assert(!(r3 &  ~0x7fL));
     assert(!(r2 &  ~0x7fL));
-    assert(im > -256 && im < 255);
+    assert(im > -256 && im <= 255);
     TSTREG2(r2, r3);
     TSTPRED(_p);
     inst((5L<<37)|(((im>>8)&1L)<<36)|(x6<<30)|(ht<<28)|
@@ -3261,7 +3261,7 @@ _B1(jit_state_t *_jit, jit_word_t _p,
     assert(!(_p &    ~0x3fL));
     assert(!(d  &     ~0x1L));
     assert(!(wh &     ~0x3L));
-    assert(im >= -1048576 && im < 1048575);
+    assert(im >= -1048576 && im <= 1048575);
     assert(!(p  &     ~0x1L));
     assert(!(tp &     ~0x7L));
     TSTPRED(_p);
@@ -3276,7 +3276,7 @@ _B3(jit_state_t *_jit, jit_word_t _p,
     assert(!(_p &    ~0x3fL));
     assert(!(d  &     ~0x1L));
     assert(!(wh &     ~0x3L));
-    assert(im >= -1048576 && im < 1048575);
+    assert(im >= -1048576 && im <= 1048575);
     assert(!(p  &     ~0x1L));
     assert(!(b  &     ~0x3L));
     TSTPRED(_p);
@@ -3371,7 +3371,7 @@ _X1(jit_state_t *_jit, jit_word_t _p,
 {
     jit_word_t		i41, i1, i20;
     assert(!(_p &               ~0x3fL));
-    assert(im > -0x2000000000000000 && im < 0x1fffffffffffffff);
+    assert(im > -0x2000000000000000 && im <= 0x1fffffffffffffff);
     i41 = (im >> 22) & 0x1ffffffffffL;
     i1  = (im >> 21) &           0x1L;
     i20 =  im        &       0xfffffL;
@@ -3429,7 +3429,7 @@ _X5(jit_state_t *_jit, jit_word_t _p,
 {
     jit_word_t		i41, i1, i20;
     assert(!(_p &               ~0x3fL));
-    assert(im > -0x2000000000000000 && im < 0x1fffffffffffffff);
+    assert(im > -0x2000000000000000 && im <= 0x1fffffffffffffff);
     i41 = (im >> 22) & 0x1ffffffffffL;
     i1  = (im >> 21) &           0x1L;
     i20 =  im        &       0xfffffL;
@@ -3455,7 +3455,7 @@ _movi(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     if (r0 >= 120)
 	r0 = _jitc->rout + (r0 - 120);
 
-    if (i0 >= -2097152 && i0 < 2097151)
+    if (i0 >= -2097152 && i0 <= 2097151)
 	MOVI(r0, i0);
     else
 	MOVL(r0, i0);
@@ -3477,7 +3477,7 @@ _addi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     jit_int32_t		reg;
     if (i0 >= -8192 && i0 <= 8191)
 	ADDS(r0, i0, r1);
-    else if (!(r1 & ~3) && i0 >= -2097152 && i0 < 2097151)
+    else if (!(r1 & ~3) && i0 >= -2097152 && i0 <= 2097151)
 	ADDL(r1, i0, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -5061,7 +5061,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
     jit_word_t		d;
     sync();
     d = ((jit_word_t)i0 - _jit->pc.w) >> 4;
-    if (d < -16777216 && d > 16777215)
+    if (d >= -16777216 && d <= 16777215)
 	BRI(d);
     else
 	BRL(d);

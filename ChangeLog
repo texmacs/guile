@@ -1,3 +1,12 @@
+2013-10-25 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c: Correct some
+	off by one range checks (that were only accepting values
+	one less than the maximum allowed) and an invalid test
+	condition check that was forcing it to always use
+	indirect jumps even when reachable with an immediate
+	displacement.
+
 2013-10-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-sz.c, lib/jit_arm-sz.c, lib/jit_hppa-sz.c,

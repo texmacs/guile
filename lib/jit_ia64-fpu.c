@@ -740,7 +740,7 @@ _M8(jit_state_t *_jit, jit_word_t _p,
     assert(!(x6 &  ~0x3fL));
     assert(!(ht &   ~0x3L));
     assert(!(r3 &  ~0x7fL));
-    assert(im > -256 && im < 255);
+    assert(im > -256 && im <= 255);
     assert(!(f1 &  ~0x7fL));
     TSTREG1(r3);
     TSTPRED(_p);
@@ -776,7 +776,7 @@ _M10(jit_state_t *_jit, jit_word_t _p,
     assert(!(ht &   ~0x3L));
     assert(!(r3 &  ~0x7fL));
     assert(!(f2 &  ~0x7fL));
-    assert(im > -256 && im < 255);
+    assert(im > -256 && im <= 255);
     TSTREG1(r3);
     TSTFREG1(f2);
     TSTPRED(_p);
