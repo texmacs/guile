@@ -1,3 +1,8 @@
+2013-10-27 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm.c: Correct build when disassembler is
+	disabled.
+
 2013-10-25 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c: Correct some

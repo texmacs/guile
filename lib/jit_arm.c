@@ -803,7 +803,9 @@ _emit_code(jit_state_t *_jit)
 	jit_uint8_t	*data;
 	jit_word_t	 word;
 	jit_uword_t	 thumb;
+#if DISASSEMBLER
 	jit_int32_t	 info_offset;
+#endif
 	jit_int32_t	 const_offset;
 	jit_int32_t	 patch_offset;
     } undo;
@@ -817,7 +819,10 @@ _emit_code(jit_state_t *_jit)
     undo.node = NULL;
     undo.data = NULL;
     undo.thumb = 0;
-    undo.info_offset = undo.const_offset = undo.patch_offset = 0;
+#if DISASSEMBLER
+    undo.info_offset =
+#endif
+	undo.const_offset = undo.patch_offset = 0;
 #  define assert_data(node)		/**/
 #define case_rr(name, type)						\
 	    case jit_code_##name##r##type:				\
@@ -1413,8 +1418,10 @@ _emit_code(jit_state_t *_jit)
 		undo.thumb = _jitc->thumb;
 		undo.const_offset = _jitc->consts.offset;
 		undo.patch_offset = _jitc->patches.offset;
+#if DISASSEMBLER
 		if (_jitc->data_info.ptr)
 		    undo.info_offset = _jitc->data_info.offset;
+#endif
 	    restart_function:
 		_jitc->again = 0;
 		prolog(node);
@@ -1436,8 +1443,10 @@ _emit_code(jit_state_t *_jit)
 		    _jitc->thumb = undo.thumb;
 		    _jitc->consts.offset = undo.const_offset;
 		    _jitc->patches.offset = undo.patch_offset;
+#if DISASSEMBLER
 		    if (_jitc->data_info.ptr)
 			_jitc->data_info.offset = undo.info_offset;
+#endif
 		    goto restart_function;
 		}
 		/* remember label is defined */
@@ -1738,6 +1747,7 @@ _flush_consts(jit_state_t *_jit)
     memcpy(_jitc->consts.data, _jitc->consts.values, _jitc->consts.size);
     _jit->pc.w += _jitc->consts.size;
 
+#if DISASSEMBLER
     if (_jitc->data_info.ptr) {
 	if (_jitc->data_info.offset >= _jitc->data_info.length) {
 	    jit_realloc((jit_pointer_t *)&_jitc->data_info.ptr,
@@ -1750,6 +1760,7 @@ _flush_consts(jit_state_t *_jit)
 	_jitc->data_info.ptr[_jitc->data_info.offset].length = _jitc->consts.size;
 	++_jitc->data_info.offset;
     }
+#endif
 
     for (offset = 0; offset < _jitc->consts.offset; offset += 2)
 	patch_at(arm_patch_load, _jitc->consts.patches[offset],
