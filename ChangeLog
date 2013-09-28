@@ -1,3 +1,12 @@
+2013-10-28 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ia64.c: Minor change to force collecting the maximum
+	instruction length in the --enable-devel-get-jit-size build
+	mode. The actual generated file did not change because the
+	sampling was large enough that it had already collected proper
+	information in the previously slightly buggy code (not forcing
+	a sync of the instructions that could be combined).
+
 2013-10-27 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c: Correct build when disassembler is

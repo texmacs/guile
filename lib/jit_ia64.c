@@ -849,16 +849,14 @@ _emit_code(jit_state_t *_jit)
 		    patch(word, node);					\
 		}							\
 		break
-#if GET_JIT_SIZE
-    /* default of 64 bytes is too low for some possible
-     * quite long code generation sequences, e.g. qdivi */
-    _jitc->code.end = _jit->code.ptr + _jit->code.length - 4096;
-#endif
     for (node = _jitc->head; node; node = node->next) {
 	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
 
 	value = jit_classify(node->code);
+#if GET_JIT_SIZE
+	sync();
+#endif
 	jit_regarg_set(node, value);
 	switch (node->code) {
 	    case jit_code_note:		case jit_code_name:
@@ -1334,6 +1332,9 @@ _emit_code(jit_state_t *_jit)
 		    break;
 	    }
 	}
+#if GET_JIT_SIZE
+	sync();
+#endif
 	jit_regarg_clr(node, value);
 	/* update register live state */
 	jit_reglive(node);

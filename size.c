@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 #if defined(__arm__)
     fprintf(fp, "#undef /* __ARM_PCS_VFP */\n");
 #elif defined(__mips__)
-    fprintf(fp, "#endif	/* _ABIN32 */\n");
+    fprintf(fp, "#endif /* _ABIN32 */\n");
 #elif defined(__ppc__)
     fprintf(fp, "#endif /* __ppc__ */\n");
 #elif defined(__powerpc__)
