@@ -61,6 +61,7 @@
 #  define _R14_REGNO			14
 #  define _R15_REGNO			15
 #  define r7(reg)			(reg & 7)
+#  define r8(reg)			(reg & 15)
 #  define _SCL1				0x00
 #  define _SCL2				0x01
 #  define _SCL4				0x02
@@ -701,7 +702,7 @@ _rx(jit_state_t *_jit, jit_int32_t rd, jit_int32_t md,
 	sib(ms, r7(ri), 0x05);
 	ii(md);
     }
-    else if (r7(ri) != _RSP_REGNO) {
+    else if (r8(ri) != _RSP_REGNO) {
 	if (md == 0 && r7(rb) != _RBP_REGNO) {
 	    mrm(0x00, r7(rd), 0x04);
 	    sib(ms, r7(ri), r7(rb));
