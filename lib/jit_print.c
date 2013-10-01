@@ -396,14 +396,14 @@ _jit_print(jit_state_t *_jit)
 	    continue;
 	    case jit_code_name:
 		print_chr(' ');
-		if (node->v.p)
+		if (node->v.p && _jitc->emit)
 		    print_str(node->v.n->u.p);
 		break;
 	    case jit_code_note:
 		print_chr(' ');
-		if (node->v.p)
+		if (node->v.p && _jitc->emit)
 		    print_str(node->v.n->u.p);
-		if (node->v.p && node->w.w)
+		if (node->v.p && _jitc->emit && node->w.w)
 		    print_chr(':');
 		if (node->w.w)
 		    print_dec(node->w.w);

@@ -1,5 +1,14 @@
 2013-10-30 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_print.c: Do not crash if calling jit_print from
+	gdb before actually emitting code.
+
+	* lib/lightning.c: Correct misplaced check for already
+	visited blocks on conditional branches, what was preventing
+	proper merge live bit masks of forward blocks.
+
+2013-10-30 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_x86-cpu.c: Correct not properly tested case of using
 	%r12 as index register, what was causing an invalid assertion.
 	%r12 is mapped to the "extra" JIT_R3 register, and test cases

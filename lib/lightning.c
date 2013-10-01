@@ -1983,15 +1983,15 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			    goto restart;
 			}
 			block = _jitc->blocks.ptr + label->v.w;
-			if (bmp_tst(label->v.w))
-			    continue;
-			bmp_set(label->v.w);
 			jit_regset_and(&ztmp, mask, &block->reglive);
 			if (jit_regset_set_p(&ztmp)) {
 			    jit_regset_ior(live, live, &ztmp);
 			    jit_regset_com(&ztmp, &ztmp);
 			    jit_regset_and(mask, mask, &ztmp);
 			}
+			if (bmp_tst(label->v.w))
+			    continue;
+			bmp_set(label->v.w);
 			if (jit_regset_set_p(mask) == 0)
 			    return;
 			/* restore mask if branch is conditional */
