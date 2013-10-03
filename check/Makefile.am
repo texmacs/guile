@@ -25,7 +25,7 @@ ccall_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 ccall_SOURCES = ccall.c
 
 self_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
-self_SOURCES = ccall.c
+self_SOURCES = self.c
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la

@@ -66,7 +66,7 @@ typedef enum {
 #  define jit_v(i)		(_RBX + (i))
 #  define jit_v_num()		4
 #  define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
-#  define jit_f(index)		(_XMM0 + (index))
+#  define jit_f(index)		(_XMM8 + (index))
 #  define jit_f_num()		8
 #  define JIT_R0		_RAX
 #  define JIT_R1		_R10
