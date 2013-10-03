@@ -23,8 +23,11 @@
 #define JIT_HASH_CONSTS		1
 #define JIT_NUM_OPERANDS	3
 
-#if defined(_ABIN32)
-#  define NEW_ABI		1
+#if _MIPS_SIM == _ABIN32
+#    define NEW_ABI		1
+#elif _MIPS_SIM != _ABIO32
+/* FIXME port to _ABI64 */
+#  error "Unsupported ABI"
 #endif
 
 /*
