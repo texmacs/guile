@@ -2,7 +2,7 @@
 
 	* include/lightning/jit_mips.h: Add proper mips abi detection.
 
-2013-10-30 Paulo Andrade <pcpa@gnu.org>
+2013-09-30 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_print.c: Do not crash if calling jit_print from
 	gdb before actually emitting code.
@@ -11,14 +11,14 @@
 	visited blocks on conditional branches, what was preventing
 	proper merge live bit masks of forward blocks.
 
-2013-10-30 Paulo Andrade <pcpa@gnu.org>
+2013-09-30 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86-cpu.c: Correct not properly tested case of using
 	%r12 as index register, what was causing an invalid assertion.
 	%r12 is mapped to the "extra" JIT_R3 register, and test cases
 	only test "standard" lightning registers.
 
-2013-10-28 Paulo Andrade <pcpa@gnu.org>
+2013-09-28 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64.c: Minor change to force collecting the maximum
 	instruction length in the --enable-devel-get-jit-size build
@@ -27,12 +27,12 @@
 	information in the previously slightly buggy code (not forcing
 	a sync of the instructions that could be combined).
 
-2013-10-27 Paulo Andrade <pcpa@gnu.org>
+2013-09-27 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c: Correct build when disassembler is
 	disabled.
 
-2013-10-25 Paulo Andrade <pcpa@gnu.org>
+2013-09-25 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c: Correct some
 	off by one range checks (that were only accepting values
@@ -41,7 +41,7 @@
 	indirect jumps even when reachable with an immediate
 	displacement.
 
-2013-10-24 Paulo Andrade <pcpa@gnu.org>
+2013-09-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-sz.c, lib/jit_arm-sz.c, lib/jit_hppa-sz.c,
 	lib/jit_ia64-sz.c, lib/jit_mips-sz.c, lib/jit_ppc-sz.c,
@@ -73,7 +73,7 @@
 	as well as the "production build mode" with jit code
 	size information.
 
-2013-10-14 Paulo Andrade <pcpa@gnu.org>
+2013-09-14 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/lightning.c: Add the new
 	jit_pointer_p interface, that returns a boolean value
@@ -82,7 +82,7 @@
 	extra labels and calls to jit_address to figure bounds
 	of code buffer, and still keep internal data private.
 
-2013-10-13 Paulo Andrade <pcpa@gnu.org>
+2013-09-13 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,
 	lib/jit_note.c: Change the code argument of jit_get_note
@@ -91,7 +91,7 @@
 	in the code to a function name, file name and line number
 	mapping.
 
-2013-10-10 Paulo Andrade <pcpa@gnu.org>
+2013-09-11 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Correct reversed arguments in example of
 	usage in a (possibly) multi threaded, multiple jit_state_t
