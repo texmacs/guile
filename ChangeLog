@@ -1,3 +1,10 @@
+2013-10-03 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_mips.h, lib/jit_mips-cpu.c,
+	lib/jit_mips-sz.c, lib/jit_mips.c, size: Build and
+	pass all test cases on Irix big endian mips using
+	the 64 bit abi.
+
 2013-10-02 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_mips.h: Add proper mips abi detection.

@@ -55,10 +55,12 @@ main(int argc, char *argv[])
     fprintf(fp, "#if !defined(__ARM_PCS_VFP)\n");
 #  endif
 #elif defined(__mips__)
-#  if defined(_ABIN32)
-    fprintf(fp, "#if defined(_ABIN32)\n");
-#  else
-    fprintf(fp, "#if !defined(_ABIN32)\n");
+#  if __WORDSIZE == 32
+#    if NEW_ABI
+    fprintf(fp, "#if NEW_ABI\n");
+#    else
+    fprintf(fp, "#if !NEW_ABI\n");
+#    endif
 #  endif
 #elif defined(__ppc__)
     fprintf(fp, "#if defined(__ppc__)\n");
@@ -71,7 +73,9 @@ main(int argc, char *argv[])
 #if defined(__arm__)
     fprintf(fp, "#undef /* __ARM_PCS_VFP */\n");
 #elif defined(__mips__)
-    fprintf(fp, "#endif /* _ABIN32 */\n");
+#  if __WORDSIZE == 32
+    fprintf(fp, "#endif /* NEW_ABI */\n");
+#  endif
 #elif defined(__ppc__)
     fprintf(fp, "#endif /* __ppc__ */\n");
 #elif defined(__powerpc__)

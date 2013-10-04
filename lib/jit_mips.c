@@ -1074,7 +1074,7 @@ _emit_code(jit_state_t *_jit)
 		case_wr(st, _i);
 #if __WORDSIZE == 64
 		case_rr(st, _l);
-		case_rw(st, _l);
+		case_wr(st, _l);
 #endif
 		case_rrr(stx, _c);
 		case_wrr(stx, _c);
