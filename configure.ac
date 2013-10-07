@@ -137,7 +137,7 @@ ac_cv_test_arm_arm=
 ac_cv_test_arm_swf=
 
 save_CFLAGS=$CFLAGS
-CFLAGS="-I$PWD/include -D_GNU_SOURCE"
+CFLAGS="$CFLAGS -I$PWD/include -D_GNU_SOURCE"
 if test x$cpu = x; then
     AC_MSG_ERROR([cpu $target_cpu not supported])
 elif test $cpu = x86; then

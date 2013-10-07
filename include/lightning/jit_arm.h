@@ -37,7 +37,7 @@ typedef enum {
 #define jit_v(i)		(_R7 + (i))
 #define jit_v_num()		3
 #define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 4)
-#define jit_f(i)		(jit_cpu.abi ? _D8 + (i) : _D7 + (i))
+#define jit_f(i)		(jit_cpu.abi ? _D8 + ((i)<<1) : _D0 - ((i)<<1))
 #define jit_f_num()		8
     _R12,			/* ip - temporary */
 #define JIT_R0			_R4

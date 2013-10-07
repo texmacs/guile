@@ -28,7 +28,11 @@
  */
 typedef enum {
 #define jit_arg_reg_p(i)	((i) >= 0 && (i) < 8)
-#define jit_r(i)		(_R11 + (i))
+#if __ppc__
+#  define jit_r(i)		(_R11 + (i))
+#else
+#  define jit_r(i)		(_R28 + (i))
+#endif
 #define jit_r_num()		3
 #if __ppc__
 #  define jit_v(i)		(_R30 - (i))

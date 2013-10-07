@@ -1,3 +1,30 @@
+2013-10-07 Paulo Andrade <pcpa@gnu.org>
+
+	* check/self.c: Extend tests to validate jit_callee_save_p
+	does not cause an assertion on valid arguments, and test
+	extra registers defined on some backends.
+
+	* configure.ac: Do not ignore environment CFLAGS when
+	checking if need to test runtime configurable options,
+	like use x87 when sse2 is available, arm instruction set
+	instead of thumb, etc.
+
+	* include/lightning/jit_arm.h: Correct wrong jit_f macro
+	definition.
+
+	* include/lightning/jit_ia64.h, include/lightning/jit_ppc.h: 
+	Correct wrong jit_r macro definition.
+
+	* lib/jit_x86-x87.c, lib/jit_x86.c: Actually use the
+	reserved stack space for integer to/from float conversion.
+	The stack space was also changed to ensure it is 8 bytes
+	aligned. Also, for Solaris x86 in 32 bit mode, an alternate
+	truncr_d was implemented because for some reason it is
+	failing with SIGILL if using the "fisttpl" instructions,
+	that must be available on p6 or newer, but for the sake of
+	making all tests pass, implement a 486 or newer sequence
+	if "sun" is defined.
+
 2013-10-03 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_mips.h, lib/jit_mips-cpu.c,

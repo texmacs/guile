@@ -310,7 +310,11 @@ _jit_prolog(jit_state_t *_jit)
     _jitc->function->self.argi = _jitc->function->self.argf =
 	_jitc->function->self.aoff = _jitc->function->self.alen = 0;
     /* sse/x87 conversion */
+#if __WORDSIZE == 32
+    _jitc->function->self.aoff = -12;
+#else
     _jitc->function->self.aoff = -8;
+#endif
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));

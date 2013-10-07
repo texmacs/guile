@@ -18,6 +18,11 @@
  */
 
 #if PROTO
+#  if __WORDSIZE == 32
+#    define CVT_OFFSET			-12
+#  else
+#    define CVT_OFFSET			-8
+#  endif
 #  define _ST0_REGNO			0
 #  define _ST1_REGNO			1
 #  define _ST2_REGNO			2
@@ -27,11 +32,16 @@
 #  define _ST6_REGNO			6
 #  define _ST7_REGNO			7
 #  define x87rx(code, md, rb, ri, ms)	_x87rx(_jit, code, md, rb, ri, ms)
+#  define fldcwm(md, rb, ri, ms)	x87rx(015, md, rb, ri, ms)
+#  define fstcwm(md, rb, ri, ms)	_fstcwm(_jit, md, rb, ri, ms)
+static void
+_fstcwm(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define fldsm(md, rb, ri, ms)		x87rx(010, md, rb, ri, ms)
 #  define fstsm(md, rb, ri, ms)		x87rx(012, md, rb, ri, ms)
 #  define fldlm(md, rb, ri, ms)		x87rx(050, md, rb, ri, ms)
 #  define fstlm(md, rb, ri, ms)		x87rx(052, md, rb, ri, ms)
 #  define fisttplm(md, rb, ri, ms)	x87rx(031, md, rb, ri, ms)
+#  define fistlm(md, rb, ri, ms)	x87rx(032, md, rb, ri, ms)
 #  define fisttpqm(md, rb, ri, ms)	x87rx(071, md, rb, ri, ms)
 #  define fildlm(md, rb, ri, ms)	x87rx(030, md, rb,ri, ms)
 #  define fildqm(md, rb, ri, ms)	x87rx(075, md, rb,ri, ms)
@@ -403,6 +413,15 @@ _x87_b##name##i_##type(jit_state_t *_jit,				\
 #  define dbopi(name)			fpr_bopi(name, d, 64)
 
 static void
+_fstcwm(jit_state_t *_jit, jit_int32_t md,
+	jit_int32_t rb,	jit_int32_t ri, jit_int32_t ms)
+{
+    ic(0x9b);
+    rex(0, 1, rb, ri, _NOREG);
+    x87rx(017, md, rb, ri, ms);
+}
+
+static void
 _x87rx(jit_state_t *_jit, jit_int32_t code, jit_int32_t md,
        jit_int32_t rb, jit_int32_t ri, jit_int32_t ms)
 {
@@ -630,34 +649,52 @@ _x87_sqrtr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _x87_truncr_d_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    pushr(_RAX_REGNO);
+#if defined(sun)
+    /* for the sake of passing test cases in x87 mode, otherwise only sse
+     * is supported */
+    fstcwm(-4, _RBP_REGNO, _NOREG, _SCL1);
+    ldxi_s(r0, _RBP_REGNO, -4);
+    extr_uc(r0, r0);
+#  define FPCW_CHOP	0xc00
+    ori(r0, r0, FPCW_CHOP);
+    stxi_s(-8, _RBP_REGNO, r0);
+    fldcwm(-8, _RBP_REGNO, _NOREG, _SCL1);
+    if (r1 == _ST0_REGNO)
+	fistlm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
+    else {
+	fxchr(r1);
+	fistlm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
+	fxchr(r1);
+    }
+    fldcwm(-4, _RBP_REGNO, _NOREG, _SCL1);
+    ldxi(r0, _RBP_REGNO, CVT_OFFSET);
+#else
     fldr(r1);
-    fisttplm(0, _RSP_REGNO, _NOREG, _SCL1);
-    popr(r0);
+    fisttplm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
+    ldxi_i(r0, _RBP_REGNO, CVT_OFFSET);
+#endif
 }
 
 #  if __WORDSIZE == 64
 static void
 _x87_truncr_d_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    pushr(_RAX_REGNO);
     fldr(r1);
-    fisttpqm(0, _RSP_REGNO, _NOREG, _SCL1);
-    popr(r0);
+    fisttpqm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
+    ldxi(r0, _RBP_REGNO, CVT_OFFSET);
 }
 #  endif
 
 static void
 _x87_extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    pushr(r1);
+    stxi(CVT_OFFSET, _RBP_REGNO, r1);
 #  if __WORDSIZE == 32
-    fildlm(0, _RSP_REGNO, _NOREG, _SCL1);
+    fildlm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
 #  else
-    fildqm(0, _RSP_REGNO, _NOREG, _SCL1);
+    fildqm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
 #  endif
     fstpr(r0 + 1);
-    popr(r1);
 }
 
 static void

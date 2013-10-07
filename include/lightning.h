@@ -84,7 +84,9 @@
 #    define __BYTE_ORDER	__BIG_ENDIAN
 #  elif defined(__BIG_ENDIAN__)			/* ia64 hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
-#  elif defined(__i386__)			/* x86 solaris */
+#  elif defined(__i386__)			/* 32 bit x86 solaris */
+#    define __BYTE_ORDER	__LITTLE_ENDIAN
+#  elif defined(__x86_64__)			/* 64 bit x86 solaris */
 #    define __BYTE_ORDER	__LITTLE_ENDIAN
 #  elif defined(__MIPSEB)			/* mips irix */
 #    define __BYTE_ORDER	__BIG_ENDIAN

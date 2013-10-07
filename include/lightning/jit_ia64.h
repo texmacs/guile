@@ -37,7 +37,7 @@ typedef enum {
 #define JIT_V2		_R46
 #define JIT_V3		_R47
 #define jit_r_num()	4
-#define jit_r(n)	(_R40 - (n))
+#define jit_r(n)	(_R40 + (n))
 #define jit_v_num()	4
 #define jit_v(n)	(_R44 + (n))
     _R0,	/* constant - Always 0 */
