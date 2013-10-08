@@ -1,3 +1,9 @@
+2013-10-08 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm-vfp.c: Correct wrong load/store offset
+	calculation when the displacement is constant but too
+	large to use an instruction with an immediate offset.
+
 2013-10-07 Paulo Andrade <pcpa@gnu.org>
 
 	* check/self.c: Extend tests to validate jit_callee_save_p

@@ -2096,9 +2096,8 @@ _vfp_ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     if (jit_fpr_p(r0)) {
 	if (i0 >= 0) {
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VLDR_F32(r0, r1, i0);
+	    if (i0 < 1024)
+		VLDR_F32(r0, r1, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		addi(rn(reg), r1, i0);
@@ -2109,9 +2108,8 @@ _vfp_ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	else {
 	    i0 = -i0;
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VLDRN_F32(r0, r1, i0);
+	    if (i0 < 1024)
+		VLDRN_F32(r0, r1, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		subi(rn(reg), r1, i0);
@@ -2131,9 +2129,8 @@ _vfp_ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     if (jit_fpr_p(r0)) {
 	if (i0 >= 0) {
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VLDR_F64(r0, r1, i0);
+	    if (i0 < 1024)
+		VLDR_F64(r0, r1, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		addi(rn(reg), r1, i0);
@@ -2144,9 +2141,8 @@ _vfp_ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	else {
 	    i0 = -i0;
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VLDRN_F64(r0, r1, i0);
+	    if (i0 < 1024)
+		VLDRN_F64(r0, r1, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		subi(rn(reg), r1, i0);
@@ -2229,9 +2225,8 @@ _vfp_stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (i0 >= 0) {
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VSTR_F32(r1, r0, i0);
+	    if (i0 < 1024)
+		VSTR_F32(r1, r0, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		addi(rn(reg), r0, i0);
@@ -2242,9 +2237,8 @@ _vfp_stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	else {
 	    i0 = -i0;
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VSTRN_F32(r1, r0, i0);
+	    if (i0 < 1024)
+		VSTRN_F32(r1, r0, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		subi(rn(reg), r0, i0);
@@ -2264,9 +2258,8 @@ _vfp_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (i0 >= 0) {
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VSTR_F64(r1, r0, i0);
+	    if (i0 < 0124)
+		VSTR_F64(r1, r0, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		addi(rn(reg), r0, i0);
@@ -2277,9 +2270,8 @@ _vfp_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	else {
 	    i0 = -i0;
 	    assert(!(i0 & 3));
-	    i0 >>= 2;
-	    if (i0 < 256)
-		VSTRN_F64(r1, r0, i0);
+	    if (i0 < 1024)
+		VSTRN_F64(r1, r0, i0 >> 2);
 	    else {
 		reg = jit_get_reg(jit_class_gpr);
 		subi(rn(reg), r0, i0);
