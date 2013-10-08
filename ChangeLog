@@ -1,5 +1,14 @@
 2013-10-08 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_arm.h, lib/jit_arm-cpu.c: Do not use
+	by default load/store instructions that map to ldrt/strt.
+	There is already the long displacement version for positive
+	offsets, and when using a (shorter) negative offset it does
+	not map to ldrt/strt. At least on qemu strt may cause
+	reproducible, but unexpected SIGILL.
+
+2013-10-08 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_arm-vfp.c: Correct wrong load/store offset
 	calculation when the displacement is constant but too
 	large to use an instruction with an immediate offset.

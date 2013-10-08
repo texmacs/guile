@@ -2953,7 +2953,7 @@ _ldxi_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (jit_thumb_p()) {
-	if (i0 >= 0 && i0 <= 255)
+	if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_LDRSBI(r0, r1, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_LDRSBIN(r0, r1, -i0);
@@ -3036,7 +3036,7 @@ _ldxi_uc(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     if (jit_thumb_p()) {
 	if ((r0|r1) < 8 && i0 >= 0 && i0 < 0x20)
 	    T1_LDRBI(r0, r1, i0);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_LDRBI(r0, r1, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_LDRBIN(r0, r1, -i0);
@@ -3117,7 +3117,7 @@ _ldxi_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (jit_thumb_p()) {
-	if (i0 >= 0 && i0 <= 255)
+	if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_LDRSHI(r0, r1, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_LDRSHIN(r0, r1, -i0);
@@ -3200,7 +3200,7 @@ _ldxi_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     if (jit_thumb_p()) {
 	if ((r0|r1) < 8 && i0 >= 0 && !(i0 & 1) && (i0 >> 1) < 0x20)
 	    T1_LDRHI(r0, r1, i0 >> 1);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_LDRHI(r0, r1, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_LDRHIN(r0, r1, -i0);
@@ -3286,7 +3286,7 @@ _ldxi_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	else if (r1 == _R13_REGNO && r0 < 8 &&
 		 i0 >= 0 && !(i0 & 3) && (i0 >> 2) <= 255)
 	    T1_LDRISP(r0, i0 >> 2);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_LDRI(r0, r1, i0);
 	else if (i0 < 0 && i0 > -255)
 	    T2_LDRIN(r0, r1, -i0);
@@ -3369,7 +3369,7 @@ _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     if (jit_thumb_p()) {
 	if ((r0|r1) < 8 && i0 >= 0 && i0 < 0x20)
 	    T1_STRBI(r1, r0, i0);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_STRBI(r1, r0, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_STRBIN(r1, r0, -i0);
@@ -3441,7 +3441,7 @@ _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     if (jit_thumb_p()) {
 	if ((r0|r1) < 8 && i0 >= 0 && !(i0 & 1) && (i0 >> 1) < 0x20)
 	    T1_STRHI(r1, r0, i0 >> 1);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_STRHI(r1, r0, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_STRHIN(r1, r0, -i0);
@@ -3516,7 +3516,7 @@ _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	else if (r0 == _R13_REGNO && r1 < 8 &&
 		 i0 >= 0 && !(i0 & 3) && (i0 >> 2) <= 255)
 	    T1_STRISP(r1, i0 >> 2);
-	else if (i0 >= 0 && i0 <= 255)
+	else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
 	    T2_STRI(r1, r0, i0);
 	else if (i0 < 0 && i0 >= -255)
 	    T2_STRIN(r1, r0, -i0);

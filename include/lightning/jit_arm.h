@@ -28,6 +28,7 @@
  */
 #define jit_swf_p()		(jit_cpu.vfp == 0)
 #define jit_hardfp_p()		jit_cpu.abi
+#define jit_ldrt_strt_p()	jit_cpu.ldrt_strt
 
 #define JIT_FP			_R11
 typedef enum {
@@ -115,6 +116,11 @@ typedef struct {
     jit_uint32_t vfp		: 3;
     jit_uint32_t neon		: 1;
     jit_uint32_t abi		: 2;
+    /* use strt+offset instead of str.w?
+     * on special cases it causes a SIGILL at least on qemu, probably
+     * due to some memory ordering constraint not being respected, so,
+     * disable by default */
+    jit_uint32_t ldrt_strt	: 1;
 } jit_cpu_t;
 
 typedef jit_int64_t		jit_regset_t;
