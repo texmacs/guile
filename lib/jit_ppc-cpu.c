@@ -2669,7 +2669,7 @@ _ldxi_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (i0 == 0)
-	ldr_i(r0, r1);
+	ldr_l(r0, r1);
     else if (can_sign_extend_short_p(i0)) {
 	if (r1 == _R0_REGNO) {
 	    reg = jit_get_reg(jit_class_gpr);

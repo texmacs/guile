@@ -1,5 +1,10 @@
 2013-10-08 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ppc-cpu.c: Correct wrong shortcut for ldxi_l with
+	a zero offset, that was calling ldr_i instead of ldr_l.
+
+2013-10-08 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_arm.h, lib/jit_arm-cpu.c: Do not use
 	by default load/store instructions that map to ldrt/strt.
 	There is already the long displacement version for positive
