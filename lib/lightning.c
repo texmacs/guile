@@ -1367,6 +1367,7 @@ _jit_patch_at(jit_state_t *_jit, jit_node_t *instr, jit_node_t *label)
 {
     jit_int32_t		mask;
 
+    assert(!(instr->flag & jit_flag_node));
     instr->flag |= jit_flag_node;
     switch (instr->code) {
 	case jit_code_movi:
