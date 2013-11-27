@@ -34,8 +34,8 @@ extern float	__aeabi_i2f(int);
 extern double	__aeabi_i2d(int);
 extern float	__aeabi_d2f(double);
 extern double	__aeabi_f2d(float);
-extern int	__aeabi_f2iz(double);
-extern int	__aeabi_d2iz(float);
+extern int	__aeabi_f2iz(float);
+extern int	__aeabi_d2iz(double);
 extern int	__aeabi_fcmplt(float, float);
 extern int	__aeabi_dcmplt(double, double);
 extern int	__aeabi_fcmple(float, float);
@@ -393,6 +393,163 @@ static void _swf_stxi_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 	else								\
 	    BICI(rt, rn, encode_arm_immediate(im));			\
     } while (0)
+
+#if !defined(__GNUC__)
+float __addsf3(float u, float v)
+{
+    return (u + v);
+}
+
+double
+__adddf3(double u, double v)
+{
+    return (u + v);
+}
+
+float
+__aeabi_fsub(float u, float v)
+{
+    return (u - v);
+}
+
+double
+__aeabi_dsub(double u, double v)
+{
+    return (u - v);
+}
+
+float
+__aeabi_fmul(float u, float v)
+{
+    return (u * v);
+}
+
+double
+__aeabi_dmul(double u, double v)
+{
+    return (u * v);
+}
+
+float
+__aeabi_fdiv(float u, float v)
+{
+    return (u / v);
+}
+
+double
+__aeabi_ddiv(double u, double v)
+{
+    return (u / v);
+}
+
+float
+__aeabi_i2f(int u)
+{
+    return (u);
+}
+
+double
+__aeabi_i2d(int u)
+{
+    return (u);
+}
+
+float
+__aeabi_d2f(double u)
+{
+    return (u);
+}
+
+double
+__aeabi_f2d(float u)
+{
+    return (u);
+}
+
+extern int
+__aeabi_f2iz(float u)
+{
+    return (u);
+}
+
+int
+__aeabi_d2iz(double u)
+{
+    return (u);
+}
+
+int
+__aeabi_fcmplt(float u, float v)
+{
+    return (u < v);
+}
+
+int
+__aeabi_dcmplt(double u, double v)
+{
+    return (u < v);
+}
+
+int
+__aeabi_fcmple(float u, float v)
+{
+    return (u <= v);
+}
+
+int
+__aeabi_dcmple(double u, double v)
+{
+    return (u <= v);
+}
+
+int
+__aeabi_fcmpeq(float u, float v)
+{
+    return (u == v);
+}
+
+int
+__aeabi_dcmpeq(double u, double v)
+{
+    return (u == v);
+}
+
+int
+__aeabi_fcmpge(float u, float v)
+{
+    return (u >= v);
+}
+
+int
+__aeabi_dcmpge(double u, double v)
+{
+    return (u >= v);
+}
+
+int
+__aeabi_fcmpgt(float u, float v)
+{
+    return (u > v);
+}
+
+int
+__aeabi_dcmpgt(double u, double v)
+{
+    return (u > v);
+}
+
+int
+__aeabi_fcmpun(float u, float v)
+{
+    return ((u != u) || (v != v));
+}
+
+int
+__aeabi_dcmpun(double u, double v)
+{
+    return ((u != u) || (v != v));
+}
+#endif
 
 static void
 _swf_ff(jit_state_t *_jit, float(*i0)(float),

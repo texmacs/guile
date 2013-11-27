@@ -64,8 +64,10 @@ static void _invalidate_consts(jit_state_t*);
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 
+#if defined(__GNUC__)
 /* libgcc */
 extern void __clear_cache(void *, void *);
+#endif
 
 #define PROTO				1
 #  include "jit_arm-cpu.c"
@@ -176,6 +178,9 @@ jit_get_cpu(void)
     if (!jit_cpu.version)
 	jit_cpu.version = 7;
     jit_cpu.abi = 1;
+#endif
+#if defined(__thumb2__)
+    jit_cpu.thumb = 1;
 #endif
     /* armv6t2 todo (software float and thumb2) */
     if (!jit_cpu.vfp && jit_cpu.thumb)
@@ -1564,8 +1569,10 @@ _emit_code(jit_state_t *_jit)
 	patch_at(_jitc->patches.ptr[offset].kind & ~arm_patch_node, word, value);
     }
 
+#if defined(__GNUC__)
     word = sysconf(_SC_PAGE_SIZE);
     __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
+#endif
 
     return (_jit->code.ptr);
 }

@@ -186,6 +186,8 @@ elif test $cpu = arm; then
 	    }
 	}
 	fclose(fp);
+    #elif defined(__thumb2__)
+	return 0;
     #endif
 	return 1;
     }

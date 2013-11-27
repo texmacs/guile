@@ -1,3 +1,9 @@
+2013-11-27 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac, lib/jit_arm-swf.c, lib/jit_arm.c: Add
+	changes that should at least allow building lightning
+	on Apple iOS7.
+
 2013-10-08 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c: Correct wrong shortcut for ldxi_l with
