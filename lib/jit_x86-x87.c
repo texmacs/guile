@@ -932,7 +932,7 @@ _x87_stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	x87_stxr_f(rn(reg), r0, r1);
 	jit_unget_reg(reg);
     }
-    else if (r0 == _ST0_REGNO)
+    else if (r1 == _ST0_REGNO)
 	fstsm(i0, r0, _NOREG, _SCL1);
     else {
 	fxchr(r1);
