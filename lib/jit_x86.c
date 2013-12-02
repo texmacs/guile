@@ -26,9 +26,11 @@
 #if __WORDSIZE == 32
 #  define stack_alignment		4
 #  define stack_framesize		20
+#    define CVT_OFFSET			-12
 #else
 #  define stack_alignment		8
 #  define stack_framesize		56
+#    define CVT_OFFSET			-8
 #endif
 
 /*
@@ -310,11 +312,7 @@ _jit_prolog(jit_state_t *_jit)
     _jitc->function->self.argi = _jitc->function->self.argf =
 	_jitc->function->self.aoff = _jitc->function->self.alen = 0;
     /* sse/x87 conversion */
-#if __WORDSIZE == 32
-    _jitc->function->self.aoff = -12;
-#else
-    _jitc->function->self.aoff = -8;
-#endif
+    _jitc->function->self.aoff = CVT_OFFSET;
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));
@@ -1713,27 +1711,27 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 static void
 _sse_from_x87_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    x87_stxi_f(-8, _RBP_REGNO, r1);
-    sse_ldxi_f(r0, _RBP_REGNO, -8);
+    x87_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
+    sse_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
 _sse_from_x87_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    x87_stxi_d(-8, _RBP_REGNO, r1);
-    sse_ldxi_d(r0, _RBP_REGNO, -8);
+    x87_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
+    sse_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
 _x87_from_sse_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    sse_stxi_f(-8, _RBP_REGNO, r1);
-    x87_ldxi_f(r0, _RBP_REGNO, -8);
+    sse_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
+    x87_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
 _x87_from_sse_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    sse_stxi_d(-8, _RBP_REGNO, r1);
-    x87_ldxi_d(r0, _RBP_REGNO, -8);
+    sse_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
+    x87_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
 }

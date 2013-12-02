@@ -18,11 +18,6 @@
  */
 
 #if PROTO
-#  if __WORDSIZE == 32
-#    define CVT_OFFSET			-12
-#  else
-#    define CVT_OFFSET			-8
-#  endif
 #  define _ST0_REGNO			0
 #  define _ST1_REGNO			1
 #  define _ST2_REGNO			2
