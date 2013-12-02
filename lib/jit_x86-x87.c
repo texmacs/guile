@@ -1092,7 +1092,7 @@ _x87_ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
-	x87_ldr_f(r0, rn(reg));
+	x87_ldr_d(r0, rn(reg));
 	jit_unget_reg(reg);
     }
 }
