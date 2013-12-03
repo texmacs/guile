@@ -1,5 +1,10 @@
 2013-12-03 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_x86-x87.c: Correct wrong optimization when
+	loading the log(2) constant.
+
+2013-12-03 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_x86-cpu.c: Use the emms instruction before
 	calling any function. This is particularly important
 	when using c99 complex functions as it can easily

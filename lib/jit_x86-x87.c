@@ -51,7 +51,7 @@ _x87rx(jit_state_t*, jit_int32_t, jit_int32_t,
 #  define fldl2e()			x87ri(015, 2)
 #  define fldpi()			x87ri(015, 3)
 #  define fldlg2()			x87ri(015, 4)
-#  define fldln2()			x87ri(015, 4)
+#  define fldln2()			x87ri(015, 5)
 #  define fldz()			x87ri(015, 6)
 #  define fsqrt_()			x87ri(017, 2)
 #  define fldr(r0)			x87ri(010, r0)
