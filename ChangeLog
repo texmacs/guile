@@ -1,3 +1,11 @@
+2013-12-03 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_x86-cpu.c: Use the emms instruction before
+	calling any function. This is particularly important
+	when using c99 complex functions as it can easily
+	overflow the x87 stack due to the way lightning uses
+	the x87 stack as a flat register file.
+
 2013-12-02 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86-x87.c: Correct wrong code generation due
