@@ -123,7 +123,7 @@ typedef struct {
     jit_uint32_t ldrt_strt	: 1;
 } jit_cpu_t;
 
-typedef jit_int64_t		jit_regset_t;
+typedef jit_uint64_t		jit_regset_t;
 
 /*
  * Initialization

@@ -133,6 +133,6 @@ typedef enum {
     _NOREG,
 } jit_reg_t;
 
-typedef jit_int64_t		jit_regset_t;
+typedef jit_uint64_t		jit_regset_t;
 
 #endif /* _jit_hppa */

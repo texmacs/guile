@@ -139,9 +139,9 @@ typedef struct {
 } jit_cpu_t;
 
 #if __WORDSIZE == 32
-typedef jit_int32_t		jit_regset_t;
+typedef jit_uint32_t		jit_regset_t;
 #else
-typedef jit_int64_t		jit_regset_t;
+typedef jit_uint64_t		jit_regset_t;
 #endif
 
 /*

@@ -496,10 +496,15 @@ jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 unsigned long
 jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 {
+    jit_regset_t       mask;
     assert(offset >= 0 && offset <= 63);
-    for (; offset < 64; offset++) {
-	if (*set & (1LL << offset))
-	    return (offset);
+    if ((mask = *set >> offset)) {
+	for (;;) {
+	    if (mask & 1)
+		return (offset);
+	    mask >>= 1;
+	    ++offset;
+	}
     }
     return (ULONG_MAX);
 }

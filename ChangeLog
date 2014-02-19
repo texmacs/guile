@@ -1,3 +1,15 @@
+2014-19-02 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_aarch64.h, include/lightning/jit_arm.h,
+	include/lightning/jit_hppa.h, include/lightning/jit_ia64.h,
+	include/lightning/jit_mips.h, include/lightning/jit_ppc.h,
+	include/lightning/jit_s390x.h, include/lightning/jit_sparc.h,
+	include/lightning/jit_x86.h: Change jit_regset_t to an
+	unsigned type, to allow safe right shift.
+
+	* lib/lightning.c: Rewrite jit_regset_scan1 to allow easier
+	compiler optimization.
+
 2013-12-03 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86-x87.c: Correct wrong optimization when

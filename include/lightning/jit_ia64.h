@@ -118,10 +118,10 @@ typedef enum {
 } jit_reg_t;
 
 typedef struct {
-    jit_int64_t		rl;
-    jit_int64_t		rh;
-    jit_int64_t		fl;
-    jit_int64_t		fh;
+    jit_uint64_t	rl;
+    jit_uint64_t	rh;
+    jit_uint64_t	fl;
+    jit_uint64_t	fh;
 } jit_regset_t;
 
 #endif /* _jit_ia64_h */
