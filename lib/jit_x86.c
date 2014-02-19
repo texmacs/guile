@@ -236,10 +236,11 @@ jit_get_cpu(void)
 #endif
 
     /* query %eax = 1 function */
-    __asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
+    __asm__ volatile ("cpuid; movl %%ebx, %1"
 		      : "=a" (eax), "=r" (ebx),
 		      "=c" (ecx.cpuid), "=d" (edx.cpuid)
-		      : "0" (1));
+		      : "0" (1)
+		      : "ebx");
 
     jit_cpu.fpu		= edx.bits.fpu;
     jit_cpu.cmpxchg8b	= edx.bits.cmpxchg8b;
@@ -261,10 +262,11 @@ jit_get_cpu(void)
 
 #if __WORDSIZE == 64
     /* query %eax = 0x80000001 function */
-    __asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
+    __asm__ volatile ("cpuid; movl %%ebx, %1"
 		      : "=a" (eax), "=r" (ebx),
 		      "=c" (ecx.cpuid), "=d" (edx.cpuid)
-		      : "0" (0x80000001));
+		      : "0" (0x80000001)
+		      : "ebx");
     jit_cpu.lahf	= ecx.cpuid & 1;
 #endif
 }

@@ -1,5 +1,13 @@
 2014-19-02 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_x86.c: Rewrite incorrect inline assembly that could
+	truncate a variable in a callee save register. Now it simply
+	tells gcc that the register is clobbered, instead of using a
+	*32 bit* swap with a temporary variable. The problem only
+	happens when compiling with optimization.
+
+2014-19-02 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_aarch64.h, include/lightning/jit_arm.h,
 	include/lightning/jit_hppa.h, include/lightning/jit_ia64.h,
 	include/lightning/jit_mips.h, include/lightning/jit_ppc.h,
