@@ -170,7 +170,7 @@ jit_get_cpu(void)
 	    jit_uint32_t __reserved3	: 1;
 	    jit_uint32_t __alwayszero	: 1;	/* amd RAZ */
 	} bits;
-	jit_uint32_t	cpuid;
+	jit_uword_t	cpuid;
     } ecx;
     union {
 	struct {
@@ -207,12 +207,12 @@ jit_get_cpu(void)
 	    jit_uint32_t __reserved2	: 1;
 	    jit_uint32_t pbe		: 1;	/* amd reserved */
 	} bits;
-	jit_uint32_t	cpuid;
+	jit_uword_t	cpuid;
     } edx;
 #if __WORDSIZE == 32
     int			ac, flags;
 #endif
-    jit_uint32_t	eax, ebx;
+    jit_uword_t		eax, ebx;
 
 #if __WORDSIZE == 32
     /* adapted from glibc __sysconf */
@@ -236,11 +236,14 @@ jit_get_cpu(void)
 #endif
 
     /* query %eax = 1 function */
-    __asm__ volatile ("cpuid; movl %%ebx, %1"
+#if __WORDSIZE == 32
+    __asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
+#else
+    __asm__ volatile ("xchgq %%rbx, %1; cpuid; xchgq %%rbx, %1"
+#endif
 		      : "=a" (eax), "=r" (ebx),
 		      "=c" (ecx.cpuid), "=d" (edx.cpuid)
-		      : "0" (1)
-		      : "ebx");
+		      : "0" (1));
 
     jit_cpu.fpu		= edx.bits.fpu;
     jit_cpu.cmpxchg8b	= edx.bits.cmpxchg8b;
@@ -262,11 +265,10 @@ jit_get_cpu(void)
 
 #if __WORDSIZE == 64
     /* query %eax = 0x80000001 function */
-    __asm__ volatile ("cpuid; movl %%ebx, %1"
+    __asm__ volatile ("xchgq %%rbx, %1; cpuid; xchgq %%rbx, %1"
 		      : "=a" (eax), "=r" (ebx),
 		      "=c" (ecx.cpuid), "=d" (edx.cpuid)
-		      : "0" (0x80000001)
-		      : "ebx");
+		      : "0" (0x80000001));
     jit_cpu.lahf	= ecx.cpuid & 1;
 #endif
 }

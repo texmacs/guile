@@ -1,3 +1,9 @@
+2014-23-02 Paulo Andrade <pcpa@gnu.org>
+
+	*  lib/jit_x86.c: Rewrite previous patch to inline save/restore
+	because clobbering %ebx in x86 is treated as an error
+	(jit_x86.c:239:5: error: PIC register clobbered by 'ebx' in 'asm').
+
 2014-19-02 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86.c: Rewrite incorrect inline assembly that could
