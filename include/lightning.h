@@ -174,6 +174,7 @@ typedef enum {
 #define jit_note(u, v)		_jit_note(_jit, u, v)
 #define jit_label()		_jit_label(_jit)
 #define jit_forward()		_jit_forward(_jit)
+#define jit_indirect()		_jit_indirect(_jit)
 #define jit_link(u)		_jit_link(_jit,u)
     jit_code_note,		jit_code_label,
 
@@ -841,6 +842,7 @@ extern jit_node_t *_jit_name(jit_state_t*, char*);
 extern jit_node_t *_jit_note(jit_state_t*, char*, int);
 extern jit_node_t *_jit_label(jit_state_t*);
 extern jit_node_t *_jit_forward(jit_state_t*);
+extern jit_node_t *_jit_indirect(jit_state_t*);
 extern void _jit_link(jit_state_t*, jit_node_t*);
 
 extern void _jit_prolog(jit_state_t*);

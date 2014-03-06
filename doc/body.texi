@@ -22,7 +22,7 @@ both retargetable and very fast.
 @menu
 * Overview::                What GNU lightning is
 * Installation::            Configuring and installing GNU lightning
-* The instruction set::     The RISC instruction set used i GNU lightning
+* The instruction set::     The RISC instruction set used in GNU lightning
 * GNU lightning examples::  GNU lightning's examples
 * Reentrancy::              Re-entrant usage of GNU lightning
 * Acknowledgements::        Acknowledgements for GNU lightning
@@ -500,6 +500,66 @@ retval    _c _uc _s _us _i _ui _l _f _d  @r{move return value}
 Like branch instruction, @code{jmpi} also returns a value which is to
 be used to compile forward branches. @xref{Fibonacci, , Fibonacci
 numbers}.
+
+@item Labels
+There are 3 @lightning{} instructions to create labels:
+@example
+label     (not specified)                @r{simple label}
+forward   (not specified)                @r{forward label}
+indirect  (not specified)                @r{special simple label}
+@end example
+
+@code{label} is normally used as @code{patch_at} argument for backward
+jumps.
+
+@example
+        jit_node_t *jump, *label;
+label = jit_label();
+        ...
+        jump = jit_beqr(JIT_R0, JIT_R1);
+        jit_patch_at(jump, label);
+@end example
+
+@code{forward} is used to patch code generation before the actual
+position of the label is known.
+
+@example
+        jit_node_t *jump, *label;
+label = jit_forward();
+        jump = jit_beqr(JIT_R0, JIT_R1);
+        jit_patch_at(jump, label);
+        ...
+        jit_link(label);
+@end example
+
+@code{indirect} is useful when creating jump tables, and tells
+@lightning{} to not optimize out a label that is not the target of
+any jump, because an indirect jump may land where it is defined.
+
+@example
+        jit_node_t *jump, *label;
+        ...
+        jmpr(JIT_R0);                    @rem{/* may jump to label */}
+        ...
+label = jit_indirect();
+@end example
+
+@code{indirect} is an special case of @code{note} and @code{name}
+because it is a valid argument to @code{address}.
+
+Note that the usual idiom to write the previous example is
+@example
+        jit_node_t *addr, *jump;
+addr  = jit_movi(JIT_R0, 0);             @rem{/* immediate is ignored */}
+        ...
+        jmpr(JIT_R0);
+        ...
+        jit_patch(addr);                 @rem{/* implicit label added */}
+@end example
+
+that automatically binds the implicit label added by @code{patch} with
+the @code{movi}, but on some special conditions it is required to create
+an "unbound" label.
 
 @item Function prolog
 

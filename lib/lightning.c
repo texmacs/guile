@@ -548,7 +548,10 @@ _jit_address(jit_state_t *_jit, jit_node_t *node)
 {
     assert(_jitc->done);
     assert(node &&
-	   (node->code == jit_code_note || node->code == jit_code_name));
+	   /* If a node type that is documented to be a fixed marker */
+	   (node->code == jit_code_note || node->code == jit_code_name ||
+	    /* If another special fixed marker, returned by jit_indirect() */
+	    (node->code == jit_code_label && (node->flag & jit_flag_use))));
     return ((jit_pointer_t)node->u.w);
 }
 
@@ -1081,6 +1084,17 @@ jit_node_t *
 _jit_forward(jit_state_t *_jit)
 {
     return (jit_new_node_no_link(jit_code_label));
+}
+
+jit_node_t *
+_jit_indirect(jit_state_t *_jit)
+{
+    jit_node_t		*node;
+
+    node = jit_label();
+    node->flag |= jit_flag_use;
+
+    return (node);
 }
 
 void

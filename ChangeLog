@@ -1,3 +1,13 @@
+2014-06-03 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/lightning.c: Add the new
+	jit_indirect() call, that returns a special label node,
+	and tells lightning that the label may be the target of
+	an indirect jump.
+
+	* doc/body.texi: Document the new jit_indirect() call, and
+	add examples of different ways to create labels and branches.
+
 2014-23-02 Paulo Andrade <pcpa@gnu.org>
 
 	*  lib/jit_x86.c: Rewrite previous patch to inline save/restore
