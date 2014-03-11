@@ -336,6 +336,7 @@ struct jit_compiler {
 #endif
     jit_node_t		 *head;
     jit_node_t		 *tail;
+    jit_uint32_t	  realize : 1;	/* jit_realize() called? */
     jit_uint32_t	  done	: 1;	/* emit state finished */
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
@@ -464,6 +465,8 @@ struct jit_state {
 	jit_word_t	 length;
     } note;
     jit_compiler_t	*comp;
+    /* Flags to know if user did set the code and data buffers */
+    jit_uint32_t	 user_code	: 1;
 };
 
 struct jit_register {

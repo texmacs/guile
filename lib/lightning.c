@@ -514,7 +514,7 @@ void
 _jit_save(jit_state_t *_jit, jit_int32_t reg)
 {
     reg = jit_regno(reg);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     _jitc->spill[reg] = jit_new_node_w(jit_code_save, reg);
 }
 
@@ -524,7 +524,7 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
     jit_node_t		*node;
 
     reg = jit_regno(reg);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     assert(_jitc->spill[reg]);
     node = jit_new_node_w(jit_code_load, reg);
     /* create a path to flag the save/load is not required */
@@ -562,7 +562,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
     jit_word_t		 key;
     jit_node_t		*node;
 
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
 
     /* Ensure there is space even if asking for a duplicate */
     if (((_jitc->data.offset + 7) & -8) + length > _jit->data.length) {
@@ -887,7 +887,8 @@ _jit_clear_state(jit_state_t *_jit)
 void
 _jit_destroy_state(jit_state_t *_jit)
 {
-    munmap(_jit->code.ptr, _jit->code.length);
+    if (!_jit->user_code)
+	munmap(_jit->code.ptr, _jit->code.length);
     munmap(_jit->data.ptr, _jit->data.length);
     jit_free((jit_pointer_t *)&_jit);
 }
@@ -895,21 +896,21 @@ _jit_destroy_state(jit_state_t *_jit)
 jit_node_t *
 _jit_new_node(jit_state_t *_jit, jit_code_t code)
 {
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     return (link_node(new_node(code)));
 }
 
 jit_node_t *
 _jit_new_node_no_link(jit_state_t *_jit, jit_code_t code)
 {
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     return (new_node(code));
 }
 
 void
 _jit_link_node(jit_state_t *_jit, jit_node_t *node)
 {
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     link_node(node);
 }
 
@@ -918,7 +919,7 @@ _jit_new_node_w(jit_state_t *_jit, jit_code_t code,
 		jit_word_t u)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     return (link_node(node));
 }
@@ -928,7 +929,7 @@ _jit_new_node_p(jit_state_t *_jit, jit_code_t code,
 		jit_pointer_t u)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.p = u;
     return (link_node(node));
 }
@@ -938,7 +939,7 @@ _jit_new_node_ww(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_word_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.w = v;
     return (link_node(node));
@@ -963,7 +964,7 @@ _jit_new_node_wf(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_float32_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.f = v;
     return (link_node(node));
@@ -974,7 +975,7 @@ _jit_new_node_wd(jit_state_t *_jit, jit_code_t code,
 		 jit_word_t u, jit_float64_t v)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.d = v;
     return (link_node(node));
@@ -985,7 +986,7 @@ _jit_new_node_www(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.w = v;
     node->w.w = w;
@@ -998,7 +999,7 @@ _jit_new_node_qww(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     assert(l != h);
     node->u.q.l = l;
     node->u.q.h = h;
@@ -1012,7 +1013,7 @@ _jit_new_node_wwf(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_float32_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.w = v;
     node->w.f = w;
@@ -1024,7 +1025,7 @@ _jit_new_node_wwd(jit_state_t *_jit, jit_code_t code,
 		  jit_word_t u, jit_word_t v, jit_float64_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.w = u;
     node->v.w = v;
     node->w.d = w;
@@ -1036,7 +1037,7 @@ _jit_new_node_pww(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.p = u;
     node->v.w = v;
     node->w.w = w;
@@ -1048,7 +1049,7 @@ _jit_new_node_pwf(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_float32_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.p = u;
     node->v.w = v;
     node->w.f = w;
@@ -1060,7 +1061,7 @@ _jit_new_node_pwd(jit_state_t *_jit, jit_code_t code,
 		  jit_pointer_t u, jit_word_t v, jit_float64_t w)
 {
     jit_node_t		*node = new_node(code);
-    assert(!_jitc->emit);
+    assert(!_jitc->realize);
     node->u.p = u;
     node->v.w = v;
     node->w.d = w;
@@ -1703,6 +1704,49 @@ _jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 	jit_regset_clrbit(&_jitc->regarg, jit_regno(node->w.w));
 }
 
+void
+_jit_realize(jit_state_t *_jit)
+{
+    assert(!_jitc->realize);
+    if (_jitc->function)
+	jit_epilog();
+    jit_optimize();
+    _jitc->realize = 1;
+
+#if GET_JIT_SIZE
+    /* Heuristic to guess code buffer size */
+    _jitc->mult = 4;
+    _jit->code.length = _jitc->pool.length * 1024 * _jitc->mult;
+#else
+    _jit->code.length = jit_get_size();
+#endif
+}
+
+jit_pointer_t
+_jit_get_code(jit_state_t *_jit, jit_word_t *length)
+{
+    assert(_jitc->realize);
+    if (length) {
+	if (_jitc->done)
+	    /* If code already generated, return exact size of code */
+	    *length = _jit->pc.uc - _jit->code.ptr;
+	else
+	    /* Else return current size of the code buffer */
+	    *length = _jit->code.length;
+    }
+
+    return (_jit->code.ptr);
+}
+
+void
+_jit_set_code(jit_state_t *_jit, jit_pointer_t ptr, jit_word_t length)
+{
+    assert(_jitc->realize);
+    _jit->code.ptr = ptr;
+    _jit->code.length = length;
+    _jit->user_code = 1;
+}
+
 jit_pointer_t
 _jit_emit(jit_state_t *_jit)
 {
@@ -1714,39 +1758,35 @@ _jit_emit(jit_state_t *_jit)
     int			 mmap_fd;
 #endif
 
-    if (_jitc->function)
-	jit_epilog();
-    jit_optimize();
+    if (!_jitc->realize)
+	jit_realize();
 
     _jitc->emit = 1;
 
-#if GET_JIT_SIZE
-    /* Heuristic to guess code buffer size */
-    _jitc->mult = 4;
-    _jit->code.length = _jitc->pool.length * 1024 * _jitc->mult;
-#else
-    _jit->code.length = jit_get_size();
-#endif
-
+    if (!_jit->user_code) {
 #if defined(__sgi)
-    mmap_fd = open("/dev/zero", O_RDWR);
+	mmap_fd = open("/dev/zero", O_RDWR);
 #endif
-    _jit->code.ptr = mmap(NULL, _jit->code.length,
-			  PROT_EXEC | PROT_READ | PROT_WRITE,
-			  MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
-    assert(_jit->code.ptr != MAP_FAILED);
+	_jit->code.ptr = mmap(NULL, _jit->code.length,
+			      PROT_EXEC | PROT_READ | PROT_WRITE,
+			      MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
+	assert(_jit->code.ptr != MAP_FAILED);
+    }
     _jitc->code.end = _jit->code.ptr + _jit->code.length -
 	jit_get_max_instr();
     _jit->pc.uc = _jit->code.ptr;
 
     for (;;) {
 	if ((code = emit_code()) == NULL) {
+	    _jitc->patches.offset = 0;
 	    for (node = _jitc->head; node; node = node->next) {
 		if (node->link &&
 		    (node->code == jit_code_label ||
 		     node->code == jit_code_epilog))
 		    node->flag &= ~jit_flag_patch;
 	    }
+	    if (_jit->user_code)
+		goto fail;
 #if GET_JIT_SIZE
 	    ++_jitc->mult;
 	    length = _jitc->pool.length * 1024 * _jitc->mult;
@@ -1778,14 +1818,14 @@ _jit_emit(jit_state_t *_jit)
 	    _jitc->code.end = _jit->code.ptr + _jit->code.length -
 		jit_get_max_instr();
 	    _jit->pc.uc = _jit->code.ptr;
-	    _jitc->patches.offset = 0;
 	}
 	else
 	    break;
     }
 
 #if defined(__sgi)
-    close(mmap_fd);
+    if (!_jit->user_code)
+	close(mmap_fd);
 #endif
 
     _jitc->done = 1;
@@ -1793,10 +1833,15 @@ _jit_emit(jit_state_t *_jit)
 
     result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
     assert(result == 0);
-    result = mprotect(_jit->code.ptr, _jit->code.length, PROT_READ | PROT_EXEC);
-    assert(result == 0);
+    if (!_jit->user_code) {
+	result = mprotect(_jit->code.ptr, _jit->code.length,
+			  PROT_READ | PROT_EXEC);
+	assert(result == 0);
+    }
 
     return (_jit->code.ptr);
+fail:
+    return (NULL);
 }
 
 /*   Compute initial reglive and regmask set values of a basic block.

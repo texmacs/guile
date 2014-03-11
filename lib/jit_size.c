@@ -98,7 +98,7 @@ _jit_get_size(jit_state_t *_jit)
     jit_word_t		 size;
     jit_node_t		*node;
 
-    for (size = 0, node = _jitc->head; node; node = node->next)
+    for (size = JIT_INSTR_MAX, node = _jitc->head; node; node = node->next)
 	size += _szs[node->code];
 
     return ((size + 4095) & -4096);

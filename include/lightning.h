@@ -887,6 +887,12 @@ extern void _jit_patch(jit_state_t*, jit_node_t*);
 extern void _jit_patch_at(jit_state_t*, jit_node_t*, jit_node_t*);
 #define jit_patch_abs(u,v)	_jit_patch_abs(_jit,u,v)
 extern void _jit_patch_abs(jit_state_t*, jit_node_t*, jit_pointer_t);
+#define jit_realize()		_jit_realize(_jit)
+extern void _jit_realize(jit_state_t*);
+#define jit_get_code(u)		_jit_get_code(_jit,u)
+extern jit_pointer_t _jit_get_code(jit_state_t*, jit_word_t*);
+#define jit_set_code(u,v)	_jit_set_code(_jit,u,v)
+extern void _jit_set_code(jit_state_t*, jit_pointer_t, jit_word_t);
 #define jit_emit()		_jit_emit(_jit)
 extern jit_pointer_t _jit_emit(jit_state_t*);
 

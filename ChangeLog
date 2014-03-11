@@ -1,3 +1,24 @@
+2014-11-03 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/lightning.c: Implement the new jit_set_code() interface,
+	that allows instructing lightning to use an alternate code
+	buffer. The new jit_realize() function should be called
+	before jit_set_code(), and usually call jit_get_code()
+	to query the amount of bytes expected to be required for
+	the code.
+
+	* lib/jit_size.c: Minor update to have less chances of
+	miscalculating the code buffer by starting the counter
+	with the size of the longest instruction instead of zero,
+	as code emit fails if at any moment less than the longest
+	instruction bytes are available.
+
+	* check/setcode.c: New file implementing some basic tests
+	of the new jit_set_code() interface.
+
+	* check/Makefile.am: Update for newer test case.
+
 2014-06-03 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/lightning.c: Add the new
