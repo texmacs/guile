@@ -810,6 +810,7 @@ _x87_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 	jit_int32_t	 i;
 	jit_float32_t	 f;
     } data;
+    jit_int32_t		 reg;
 
     data.f = *i0;
     if (data.f == 0.0 && !(data.i & 0x80000000))
@@ -827,7 +828,15 @@ _x87_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
     else if (data.f == 0.6931471805599453094172323683399f)
 	fldln2();
     else {
-	x87_ldi_f(r0, (jit_word_t)i0);
+	if (_jitc->no_data) {
+	    reg = jit_get_reg(jit_class_gpr);
+	    movi(rn(reg), data.i);
+	    stxi_i(CVT_OFFSET, _RBP_REGNO, rn(reg));
+	    jit_unget_reg(reg);
+	    x87_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
+	}
+	else
+	    x87_ldi_f(r0, (jit_word_t)i0);
 	return;
     }
     fstpr(r0 + 1);
@@ -897,7 +906,7 @@ _x87_sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
-	jit_movi(rn(reg), i0);
+	movi(rn(reg), i0);
 	x87_str_f(rn(reg), r0);
 	jit_unget_reg(reg);
     }
@@ -928,7 +937,7 @@ _x87_stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
-	jit_movi(rn(reg), i0);
+	movi(rn(reg), i0);
 	x87_stxr_f(rn(reg), r0, r1);
 	jit_unget_reg(reg);
     }
@@ -966,6 +975,7 @@ _x87_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 	jit_word_t	 w;
 	jit_float64_t	 d;
     } data;
+    jit_int32_t		 reg;
 
     data.d = *i0;
     if (data.d == 0.0 && !(data.ii[1] & 0x80000000))
@@ -983,7 +993,22 @@ _x87_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     else if (data.d == 0.6931471805599453094172323683399)
 	fldln2();
     else {
-	x87_ldi_d(r0, (jit_word_t)i0);
+	if (_jitc->no_data) {
+	    reg = jit_get_reg(jit_class_gpr);
+#if __WORDSIZE == 32
+	    movi(rn(reg), data.ii[0]);
+	    stxi_i(CVT_OFFSET, _RBP_REGNO, rn(reg));
+	    movi(rn(reg), data.ii[1]);
+	    stxi_i(CVT_OFFSET + 4, _RBP_REGNO, rn(reg));
+#else
+	    movi(rn(reg), data.w);
+	    stxi_l(CVT_OFFSET, _RBP_REGNO, rn(reg));
+#endif
+	    jit_unget_reg(reg);
+	    x87_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
+	}
+	else
+	    x87_ldi_d(r0, (jit_word_t)i0);
 	return;
     }
     fstpr(r0 + 1);
@@ -1138,7 +1163,7 @@ _x87_sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
-	jit_movi(rn(reg), i0);
+	movi(rn(reg), i0);
 	x87_str_d(rn(reg), r0);
 	jit_unget_reg(reg);
     }
@@ -1169,7 +1194,7 @@ _x87_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
-	jit_movi(rn(reg), i0);
+	movi(rn(reg), i0);
 	x87_stxr_d(rn(reg), r0, r1);
 	jit_unget_reg(reg);
     }

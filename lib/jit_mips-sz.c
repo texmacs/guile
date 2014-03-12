@@ -700,7 +700,7 @@
     0,
     0,
     0,
-#endif	/* NEW_ABI */
+#endif /* NEW_ABI */
 #endif /* __WORDSIZE */
 
 #if __WORDSIZE == 64

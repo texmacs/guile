@@ -80,6 +80,10 @@ static void _bmp_clr(jit_state_t*, jit_word_t) maybe_unused;
 #define bmp_tst(bit)			_bmp_tst(_jit, bit)
 static jit_bool_t _bmp_tst(jit_state_t*, jit_word_t);
 
+#define jit_dataset()			_jit_dataset(_jit)
+static void
+_jit_dataset(jit_state_t *_jit);
+
 #define jit_setup(block)		_jit_setup(_jit, block)
 static void
 _jit_setup(jit_state_t *_jit, jit_block_t *block);
@@ -570,10 +574,10 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 
 	size = (_jit->data.length + length + 4096) & - 4095;
 	assert(size >= _jit->data.length);
-	if (_jit->data.ptr == NULL)
-	    jit_alloc((jit_pointer_t *)&_jit->data.ptr, size);
+	if (_jitc->data.ptr == NULL)
+	    jit_alloc((jit_pointer_t *)&_jitc->data.ptr, size);
 	else
-	    jit_realloc((jit_pointer_t *)&_jit->data.ptr,
+	    jit_realloc((jit_pointer_t *)&_jitc->data.ptr,
 			_jit->data.length, size);
 	_jit->data.length = size;
     }
@@ -585,7 +589,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
     node = _jitc->data.table[key];
     for (; node; node = node->next) {
 	if (node->v.w == length &&
-	    memcmp(_jit->data.ptr + node->u.w, data, length) == 0)
+	    memcmp(_jitc->data.ptr + node->u.w, data, length) == 0)
 	    break;
     }
 
@@ -608,7 +612,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	}
 	node->u.w = _jitc->data.offset;
 	node->v.w = length;
-	memcpy(_jit->data.ptr + _jitc->data.offset, data, length);
+	memcpy(_jitc->data.ptr + _jitc->data.offset, data, length);
 	_jitc->data.offset += length;
 
 	node->next = _jitc->data.table[key];
@@ -630,7 +634,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 		temp = _jitc->data.table[i];
 		for (; temp; temp = next) {
 		    next = temp->next;
-		    key = hash_data(_jit->data.ptr + temp->u.w, temp->v.w) &
+		    key = hash_data(_jitc->data.ptr + temp->u.w, temp->v.w) &
 			  ((_jitc->data.size << 1) - 1);
 		    temp->next = hash[key];
 		    hash[key] = temp;
@@ -889,7 +893,8 @@ _jit_destroy_state(jit_state_t *_jit)
 {
     if (!_jit->user_code)
 	munmap(_jit->code.ptr, _jit->code.length);
-    munmap(_jit->data.ptr, _jit->data.length);
+    if (!_jit->user_data)
+	munmap(_jit->data.ptr, _jit->data.length);
     jit_free((jit_pointer_t *)&_jit);
 }
 
@@ -1417,15 +1422,11 @@ _jit_patch_at(jit_state_t *_jit, jit_node_t *instr, jit_node_t *label)
 void
 _jit_optimize(jit_state_t *_jit)
 {
-    jit_uint8_t		*ptr;
     jit_bool_t		 jump;
     jit_int32_t		 mask;
     jit_node_t		*node;
     jit_block_t		*block;
     jit_word_t		 offset;
-#if defined(__sgi)
-    int			 mmap_fd;
-#endif
 
     _jitc->function = NULL;
 
@@ -1532,38 +1533,6 @@ _jit_optimize(jit_state_t *_jit)
 					  jit_regno(node->v.w));
 		}
 		break;
-	}
-    }
-
-    /* ensure it is aligned */
-    _jitc->data.offset = (_jitc->data.offset + 7) & -8;
-
-    /* create read only data buffer */
-    _jit->data.length = (_jitc->data.offset +
-			 /* reserve space for annotations */
-			 _jitc->note.size + 4095) & -4096;
-#if defined(__sgi)
-    mmap_fd = open("/dev/zero", O_RDWR);
-#endif
-    ptr = mmap(NULL, _jit->data.length,
-	       PROT_READ | PROT_WRITE,
-	       MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
-    assert(ptr != MAP_FAILED);
-#if defined(__sgi)
-    close(mmap_fd);
-#endif
-    memcpy(ptr, _jit->data.ptr, _jitc->data.offset);
-    jit_free((jit_pointer_t *)&_jit->data.ptr);
-    _jit->data.ptr = ptr;
-
-    /* to be filled with note contents once offsets are known */
-    _jitc->note.base = ptr + _jitc->data.offset;
-    memset(_jitc->note.base, 0, _jit->data.length - _jitc->data.offset);
-
-    for (offset = 0; offset < _jitc->data.size; offset++) {
-	for (node = _jitc->data.table[offset]; node; node = node->next) {
-	    node->flag |= jit_flag_patch;
-	    node->u.w = (jit_word_t)(_jit->data.ptr + node->u.w);
 	}
     }
 }
@@ -1713,6 +1682,9 @@ _jit_realize(jit_state_t *_jit)
     jit_optimize();
     _jitc->realize = 1;
 
+    /* ensure it is aligned */
+    _jitc->data.offset = (_jitc->data.offset + 7) & -8;
+
 #if GET_JIT_SIZE
     /* Heuristic to guess code buffer size */
     _jitc->mult = 4;
@@ -1720,6 +1692,68 @@ _jit_realize(jit_state_t *_jit)
 #else
     _jit->code.length = jit_get_size();
 #endif
+}
+
+void
+_jit_dataset(jit_state_t *_jit)
+{
+    jit_uint8_t		*ptr;
+    jit_node_t		*node;
+    jit_word_t		 offset;
+#if defined(__sgi)
+    int			 mmap_fd;
+#endif
+
+    assert(!_jitc->dataset);
+    if (!_jit->user_data) {
+
+	/* create read only data buffer */
+	_jit->data.length = (_jitc->data.offset +
+			     /* reserve space for annotations */
+			     _jitc->note.size + 4095) & -4096;
+#if defined(__sgi)
+	mmap_fd = open("/dev/zero", O_RDWR);
+#endif
+	_jit->data.ptr = mmap(NULL, _jit->data.length,
+			      PROT_READ | PROT_WRITE,
+			      MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
+	assert(_jit->data.ptr != MAP_FAILED);
+#if defined(__sgi)
+	close(mmap_fd);
+#endif
+    }
+
+    if (!_jitc->no_data)
+	memcpy(_jit->data.ptr, _jitc->data.ptr, _jitc->data.offset);
+
+    if (_jitc->no_note) {
+	_jit->note.length = 0;
+	_jitc->note.size = 0;
+    }
+    else {
+	_jitc->note.base = _jit->data.ptr;
+	if (!_jitc->no_data)
+	    _jitc->note.base += _jitc->data.offset;
+	memset(_jitc->note.base, 0, _jitc->note.size);
+    }
+
+    if (_jit->user_data)
+	/* Need the temporary hashed data until jit_emit is finished */
+	ptr = _jitc->no_data ? _jitc->data.ptr : _jit->data.ptr;
+    else {
+	ptr = _jit->data.ptr;
+	/* Temporary hashed data no longer required */
+	jit_free((jit_pointer_t *)&_jitc->data.ptr);
+    }
+
+    for (offset = 0; offset < _jitc->data.size; offset++) {
+	for (node = _jitc->data.table[offset]; node; node = node->next) {
+	    node->flag |= jit_flag_patch;
+	    node->u.w = (jit_word_t)(ptr + node->u.w);
+	}
+    }
+
+    _jitc->dataset = 1;
 }
 
 jit_pointer_t
@@ -1748,6 +1782,39 @@ _jit_set_code(jit_state_t *_jit, jit_pointer_t ptr, jit_word_t length)
 }
 
 jit_pointer_t
+_jit_get_data(jit_state_t *_jit, jit_word_t *data_size, jit_word_t *note_size)
+{
+    assert(_jitc->realize);
+    if (data_size)
+	*data_size = _jitc->data.offset;
+    if (note_size)
+	*note_size = _jitc->note.size;
+    return (_jit->data.ptr);
+}
+
+void
+_jit_set_data(jit_state_t *_jit, jit_pointer_t ptr,
+	      jit_word_t length, jit_word_t flags)
+{
+    assert(_jitc->realize);
+    if (flags & JIT_DISABLE_DATA)
+	_jitc->no_data = 1;
+    else
+	assert(length >= _jitc->data.offset);
+    if (flags & JIT_DISABLE_NOTE)
+	_jitc->no_note = 1;
+    else {
+	if (flags & JIT_DISABLE_DATA)
+	    assert(length >= _jitc->note.size);
+	else
+	    assert(length >= _jitc->data.offset + _jitc->note.size);
+    }
+    _jit->data.ptr = ptr;
+    _jit->data.length = length;
+    _jit->user_data = 1;
+}
+
+jit_pointer_t
 _jit_emit(jit_state_t *_jit)
 {
     jit_pointer_t	 code;
@@ -1760,6 +1827,9 @@ _jit_emit(jit_state_t *_jit)
 
     if (!_jitc->realize)
 	jit_realize();
+
+    if (!_jitc->dataset)
+	jit_dataset();
 
     _jitc->emit = 1;
 
@@ -1829,10 +1899,15 @@ _jit_emit(jit_state_t *_jit)
 #endif
 
     _jitc->done = 1;
-    jit_annotate();
+    if (!_jitc->no_note)
+	jit_annotate();
 
-    result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
-    assert(result == 0);
+    if (_jit->user_data)
+	jit_free((jit_pointer_t *)&_jitc->data.ptr);
+    else {
+	result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
+	assert(result == 0);
+    }
     if (!_jit->user_code) {
 	result = mprotect(_jit->code.ptr, _jit->code.length,
 			  PROT_READ | PROT_EXEC);

@@ -548,6 +548,7 @@ static void rehash(hash_t *hash);
  */
 static jit_state_t	 *_jit;
 static int		  flag_verbose;
+static int		  flag_data;
 static int		  flag_disasm;
 static char		 *progname;
 static parser_t		  parser;
@@ -3664,6 +3665,11 @@ execute(int argc, char *argv[])
 	patch = next;
     }
 
+    if (flag_data == 0) {
+	jit_realize();
+	jit_set_data(NULL, 0, JIT_DISABLE_DATA | JIT_DISABLE_NOTE);
+    }
+
     function = jit_emit();
     if (flag_verbose > 1 || flag_disasm) {
 	jit_print();
@@ -3876,6 +3882,7 @@ Usage: %s [jit assembler options] file [jit program options]\n\
 Jit assembler options:\n\
   -help                    Display this information\n\
   -v[0-3]                  Verbose output level\n\
+  -d                       Do not use a data buffer\n\
   -D<macro>[=<val>]        Preprocessor options\n"
 #  if defined(__i386__) && __WORDSIZE == 32
 "  -mx87=1                  Force using x87 when sse2 available\n"
@@ -3906,9 +3913,10 @@ int
 main(int argc, char *argv[])
 {
 #if HAVE_GETOPT_LONG_ONLY
-    static const char	*short_options = "v::";
+    static const char	*short_options = "dv::";
     static struct option long_options[] = {
 	{ "help",		0, 0, 'h' },
+	{ "data",		2, 0, 'd' },
 #  if defined(__i386__) && __WORDSIZE == 32
 	{ "mx87",		2, 0, '7' },
 #  endif
@@ -3939,6 +3947,7 @@ main(int argc, char *argv[])
     DL_HANDLE = dlopen(NULL, RTLD_LAZY);
 #endif
 
+    flag_data = 1;
 #if HAVE_GETOPT_LONG_ONLY
     for (;;) {
 	if ((opt_short = getopt_long_only(argc, argv, short_options,
@@ -3957,6 +3966,9 @@ main(int argc, char *argv[])
 		}
 		else
 		    flag_verbose = 1;
+		break;
+	    case 'd':
+		flag_data = 0;
 		break;
 #if defined(__i386__) && __WORDSIZE == 32
 	    case '7':
@@ -4022,9 +4034,11 @@ main(int argc, char *argv[])
 	}
     }
 #else
-    while ((opt_short = getopt(argc, argv, "hv")) >= 0) {
+    while ((opt_short = getopt(argc, argv, "hvd")) >= 0) {
 	if (opt_short == 'v')
 	    ++flag_verbose;
+	else if (opt_short == 'd')
+	    flag_data = 0;
 	else
 	    usage();
     }

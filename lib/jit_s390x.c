@@ -116,8 +116,10 @@ _jit_prolog(jit_state_t *_jit)
     _jitc->function = _jitc->functions.ptr + _jitc->functions.offset++;
     _jitc->function->self.size = stack_framesize;
     _jitc->function->self.argi = _jitc->function->self.argf =
-	_jitc->function->self.aoff = _jitc->function->self.alen =
-	_jitc->function->self.aoff = 0;
+	_jitc->function->self.aoff = _jitc->function->self.alen = 0;
+    /* preallocate 8 bytes if not using a constant data buffer */
+    if (_jitc->no_data)
+	_jitc->function->self.aoff = -8;
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));
@@ -591,18 +593,6 @@ _emit_code(jit_state_t *_jit)
 #define case_rw(name, type)						\
 	    case jit_code_##name##i##type:				\
 		name##i##type(rn(node->u.w), node->v.w);		\
-		break
-#define case_rf(name)							\
-	    case jit_code_##name##i_f:					\
-		assert_data(node);					\
-		name##_f(rn(node->u.w),					\
-			 (jit_float32_t *)node->v.n->u.w);		\
-		break
-#define case_rd(name)							\
-	    case jit_code_##name##i_d:					\
-		assert_data(node);					\
-		name##_d(rn(node->u.w),					\
-			 (jit_float64_t *)node->v.n->u.w);		\
 		break
 #define case_wr(name, type)						\
 	    case jit_code_##name##i##type:				\

@@ -26,6 +26,7 @@
 #  define _R1_REGNO			1
 #  define _R7_REGNO			7
 #  define _R13_REGNO			13
+#  define _FP_REGNO			_R13_REGNO
 #  define _R14_REGNO			14
 #  define _R15_REGNO			15
 #  define u12_p(i0)			((i0) >= 0 && (i0) <= 4095)

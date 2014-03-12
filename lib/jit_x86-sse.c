@@ -765,24 +765,27 @@ _sse_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 	jit_int32_t	 i;
 	jit_float32_t	 f;
     } data;
+    jit_int32_t		 reg;
+    jit_bool_t		 ldi;
 
     data.f = *i0;
     if (data.f == 0.0 && !(data.i & 0x80000000))
 	xorpsr(r0, r0);
     else {
+	ldi = !_jitc->no_data;
 #if __WORDSIZE == 64
-	if (can_sign_extend_int_p((jit_word_t)i0))
+	/* if will allocate a register for offset, just use immediate */
+	if (ldi && !can_sign_extend_int_p((jit_word_t)i0))
+	    ldi = 0;
+#endif
+	if (ldi)
 	    sse_ldi_f(r0, (jit_word_t)i0);
 	else {
-	    /* if will allocate a register for offset, just use immediate */
-	    jit_int32_t	reg = jit_get_reg(jit_class_gpr);
+	    reg = jit_get_reg(jit_class_gpr);
 	    movi(rn(reg), data.i);
 	    movdlxr(r0, rn(reg));
 	    jit_unget_reg(reg);
 	}
-#else
-	sse_ldi_f(r0, (jit_word_t)i0);
-#endif
     }
 }
 
@@ -1209,24 +1212,36 @@ _sse_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 	jit_word_t	 w;
 	jit_float64_t	 d;
     } data;
+    jit_int32_t		 reg;
+    jit_bool_t		 ldi;
 
     data.d = *i0;
     if (data.d == 0.0 && !(data.ii[1] & 0x80000000))
 	xorpdr(r0, r0);
     else {
+	ldi = !_jitc->no_data;
 #if __WORDSIZE == 64
-	if (can_sign_extend_int_p((jit_word_t)i0))
+	/* if will allocate a register for offset, just use immediate */
+	if (ldi && !can_sign_extend_int_p((jit_word_t)i0))
+	    ldi = 0;
+#endif
+	if (ldi)
 	    sse_ldi_d(r0, (jit_word_t)i0);
 	else {
-	    /* if will allocate a register for offset, just use immediate */
-	    jit_int32_t	reg = jit_get_reg(jit_class_gpr);
+	    reg = jit_get_reg(jit_class_gpr);
+#if __WORDSIZE == 64
 	    movi(rn(reg), data.w);
 	    movdqxr(r0, rn(reg));
 	    jit_unget_reg(reg);
-	}
 #else
-	sse_ldi_d(r0, (jit_word_t)i0);
+	    movi(rn(reg), data.ii[0]);
+	    stxi_i(CVT_OFFSET, _RBP_REGNO, rn(reg));
+	    movi(rn(reg), data.ii[1]);
+	    stxi_i(CVT_OFFSET + 4, _RBP_REGNO, rn(reg));
+	    jit_unget_reg(reg);
+	    sse_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
 #endif
+	}
     }
 }
 

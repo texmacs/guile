@@ -150,7 +150,8 @@ static void _extr_f(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define truncr_f_i(r0, r1)		_truncr_f_i(_jit, r0, r1)
 static void _truncr_f_i(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define extr_d_f(r0, r1)		FDTOS(r1, r0)
-#  define movi_f(r0, i0)		ldi_f(r0, (jit_word_t)i0)
+#  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
+static void _movi_f(jit_state_t*, jit_int32_t, jit_float32_t*);
 #  define movr_f(r0, r1)		FMOVS(r1, r0)
 #  define negr_f(r0, r1)		FNEGS(r1, r0)
 #  define absr_f(r0, r1)		FABSS(r1, r0)
@@ -162,7 +163,8 @@ static void _extr_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define truncr_d_i(r0, r1)		_truncr_d_i(_jit, r0, r1)
 static void _truncr_d_i(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define extr_f_d(r0, r1)		FSTOD(r1, r0)
-#  define movi_d(r0, i0)		ldi_d(r0, (jit_word_t)i0)
+#  define movi_d(r0, i0)		_movi_d(_jit, r0, i0)
+static void _movi_d(jit_state_t*, jit_int32_t, jit_float64_t*);
 #  define movr_d(r0, r1)		_movr_d(_jit, r0, r1)
 static void _movr_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define negr_d(r0, r1)		_negr_d(_jit, r0, r1)
@@ -379,6 +381,50 @@ _f3f(jit_state_t *_jit, jit_int32_t rd,
     v.opf.b   = opf;
     v.rs2.b   = rs2;
     ii(v.v);
+}
+
+static void
+_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
+{
+    union {
+	jit_int32_t	 i;
+	jit_float32_t	 f;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.f = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), data.i & 0xffffffff);
+	stxi_i(-8, _FP_REGNO, rn(reg));
+	jit_unget_reg(reg);
+	ldxi_f(r0, _FP_REGNO, -8);
+    }
+    else
+	ldi_f(r0, (jit_word_t)i0);
+}
+
+static void
+_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
+{
+    union {
+	jit_int32_t	 i[2];
+	jit_float64_t	 d;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.d = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), data.i[0]);
+	stxi_i(-8, _FP_REGNO, rn(reg));
+	movi(rn(reg), data.i[1]);
+	stxi_i(-4, _FP_REGNO, rn(reg));
+	jit_unget_reg(reg);
+	ldxi_d(r0, _FP_REGNO, -8);
+    }
+    else
+	ldi_d(r0, (jit_word_t)i0);
 }
 
 static void

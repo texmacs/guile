@@ -852,8 +852,22 @@ _movr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 {
+    union {
+	jit_int32_t	 i;
+	jit_float32_t	 f;
+    } data;
+    jit_int32_t		 reg;
+
     if (*(jit_int32_t *)i0 == 0)
 	LZER(r0);
+    else if (_jitc->no_data) {
+	data.f = *i0;
+	reg = jit_get_reg_but_zero();
+	movi(rn(reg), data.i & 0xffffffff);
+	stxi_i(-4, _FP_REGNO, rn(reg));
+	jit_unget_reg_but_zero(reg);
+	ldxi_f(r0, _FP_REGNO, -4);
+    }
     else
 	ldi_f(r0, (jit_word_t)i0);
 }
@@ -868,8 +882,22 @@ _movr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
+    union {
+	jit_int64_t	 l;
+	jit_float64_t	 d;
+    } data;
+    jit_int32_t		 reg;
+
     if (*(jit_int64_t *)i0 == 0)
 	LZDR(r0);
+    else if (_jitc->no_data) {
+	data.d = *i0;
+	reg = jit_get_reg_but_zero();
+	movi(rn(reg), data.l);
+	stxi_l(-8, _FP_REGNO, rn(reg));
+	jit_unget_reg_but_zero(reg);
+	ldxi_d(r0, _FP_REGNO, -8);
+    }
     else
 	ldi_d(r0, (jit_word_t)i0);
 }

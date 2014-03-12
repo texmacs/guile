@@ -337,6 +337,7 @@ struct jit_compiler {
     jit_node_t		 *head;
     jit_node_t		 *tail;
     jit_uint32_t	  realize : 1;	/* jit_realize() called? */
+    jit_uint32_t	  dataset : 1;	/* jit_dataset() called? */
     jit_uint32_t	  done	: 1;	/* emit state finished */
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
@@ -344,6 +345,8 @@ struct jit_compiler {
 #if DEBUG
     jit_uint32_t	  getreg : 1;
 #endif
+    jit_uint32_t	  no_data : 1;
+    jit_uint32_t	  no_note : 1;
     jit_int32_t		  reglen;	/* number of registers */
     jit_regset_t	  regarg;	/* cannot allocate */
     jit_regset_t	  regsav;	/* automatic spill only once */
@@ -357,6 +360,7 @@ struct jit_compiler {
 	jit_uint8_t	 *end;
     } code;
     struct {
+	jit_uint8_t	 *ptr;
 	jit_node_t	**table;	/* very simple hash table */
 	jit_word_t	  size;		/* number of vectors in table */
 	jit_word_t	  count;	/* number of hash table entries */
@@ -467,6 +471,7 @@ struct jit_state {
     jit_compiler_t	*comp;
     /* Flags to know if user did set the code and data buffers */
     jit_uint32_t	 user_code	: 1;
+    jit_uint32_t	 user_data	: 1;
 };
 
 struct jit_register {

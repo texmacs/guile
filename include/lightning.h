@@ -152,6 +152,9 @@ typedef jit_int32_t		jit_fpr_t;
 #define JIT_V_NUM		jit_v_num()
 #define JIT_F_NUM		jit_f_num()
 
+#define JIT_DISABLE_DATA	1	/* force synthesize of constants */
+#define JIT_DISABLE_NOTE	2	/* disable debug info generation */
+
 #define jit_class_chk		0x02000000	/* just checking */
 #define jit_class_arg		0x08000000	/* argument register */
 #define jit_class_sav		0x10000000	/* callee save */
@@ -893,6 +896,10 @@ extern void _jit_realize(jit_state_t*);
 extern jit_pointer_t _jit_get_code(jit_state_t*, jit_word_t*);
 #define jit_set_code(u,v)	_jit_set_code(_jit,u,v)
 extern void _jit_set_code(jit_state_t*, jit_pointer_t, jit_word_t);
+#define jit_get_data(u,v)	_jit_get_data(_jit,u,v)
+extern jit_pointer_t _jit_get_data(jit_state_t*, jit_word_t*, jit_word_t*);
+#define jit_set_data(u,v,w)	_jit_set_data(_jit,u,v,w)
+extern void _jit_set_data(jit_state_t*, jit_pointer_t, jit_word_t, jit_word_t);
 #define jit_emit()		_jit_emit(_jit)
 extern jit_pointer_t _jit_emit(jit_state_t*);
 

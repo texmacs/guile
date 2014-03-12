@@ -90,7 +90,7 @@ _jit_note(jit_state_t *_jit, char *name, int line)
 	(name == NULL && _jitc->note.note != NULL) ||
 	(name != NULL && _jitc->note.note == NULL) ||
 	(name != NULL && _jitc->note.note != NULL &&
-	 strcmp(name, (char *)_jit->data.ptr + _jitc->note.note->v.n->u.w)))
+	 strcmp(name, (char *)_jitc->data.ptr + _jitc->note.note->v.n->u.w)))
 	_jitc->note.size += sizeof(jit_line_t);
     _jitc->note.size += sizeof(jit_int32_t) * 2;
     return (_jitc->note.note = node);

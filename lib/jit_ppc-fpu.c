@@ -439,13 +439,51 @@ _movr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 {
-    ldi_f(r0, (jit_word_t)i0);
+    union {
+	jit_int32_t	 i;
+	jit_float32_t	 f;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.f = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), data.i & 0xffffffff);
+	stxi_i(alloca_offset - 4, _FP_REGNO, rn(reg));
+	jit_unget_reg(reg);
+	ldxi_f(r0, _FP_REGNO, alloca_offset - 4);
+    }
+    else
+	ldi_f(r0, (jit_word_t)i0);
 }
 
 static void
 _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
-    ldi_d(r0, (jit_word_t)i0);
+    union {
+	jit_int32_t	 i[2];
+	jit_word_t	 w;
+	jit_float64_t	 d;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.d = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+#  if __WORDSIZE == 32
+	movi(rn(reg), data.i[0]);
+	stxi(alloca_offset - 8, _FP_REGNO, rn(reg));
+	movi(rn(reg), data.i[1]);
+	stxi(alloca_offset - 4, _FP_REGNO, rn(reg));
+#  else
+	movi(rn(reg), data.w);
+	stxi(alloca_offset - 8, _FP_REGNO, rn(reg));
+#  endif
+	jit_unget_reg(reg);
+	ldxi_d(r0, _FP_REGNO, alloca_offset - 8);
+    }
+    else
+	ldi_d(r0, (jit_word_t)i0);
 }
 
 /* should only work on newer ppc (fcfid is a ppc64 instruction) */

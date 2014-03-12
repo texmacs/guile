@@ -624,10 +624,17 @@ _emit_code(jit_state_t *_jit)
 	    case jit_code_##name##i##type:				\
 		name##i##type(node->u.w, rn(node->v.w));		\
 		break
-#define case_rf(name, type)						\
+#define case_rf(name)							\
 	    case jit_code_##name##i##type:				\
 		assert(node->flag & jit_flag_data);			\
-		name##i##type(rn(node->u.w), node->v.n->u.w);		\
+		name##_f(rn(node->u.w),					\
+		(jit_float32_t *)node->v.n->u.w);			\
+		break
+#define case_rd(name)							\
+	    case jit_code_##name##i_d:					\
+		assert(node->flag & jit_flag_data);			\
+		name##_d(rn(node->u.w),					\
+			 (jit_float64_t *)node->v.n->u.w);		\
 		break
 #define case_rrr(name, type)						\
 	    case jit_code_##name##r##type:				\
@@ -930,7 +937,10 @@ _emit_code(jit_state_t *_jit)
 		case_rrr(stx, _f);
 		case_wrr(stx, _f);
 		case_rr(mov, _f);
-		case_rf(mov, _f);
+	    case jit_code_movi_f:
+		assert(node->flag & jit_flag_data);
+		movi_f(rn(node->u.w), (jit_float32_t *)node->v.n->u.w);
+		break;
 		case_brr(blt, _f);
 		case_brf(blt, _f, 32);
 		case_brr(ble, _f);
@@ -1009,7 +1019,10 @@ _emit_code(jit_state_t *_jit)
 		case_rrr(stx, _d);
 		case_wrr(stx, _d);
 		case_rr(mov, _d);
-		case_rf(mov, _d);
+	    case jit_code_movi_d:
+		assert(node->flag & jit_flag_data);
+		movi_d(rn(node->u.w), (jit_float64_t *)node->v.n->u.w);
+		break;
 		case_brr(blt, _d);
 		case_brf(blt, _d, 64);
 		case_brr(ble, _d);

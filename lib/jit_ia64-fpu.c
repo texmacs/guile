@@ -431,8 +431,10 @@ static void F16_(jit_state_t*,jit_word_t,
 
 #define movr_f(r0,r1)			movr_d(r0,r1)
 #define movr_d(r0,r1)			MOVF(r0,r1)
-#define movi_f(r0,i0)			ldi_f(r0,(jit_word_t)i0)
-#define movi_d(r0,i0)			ldi_d(r0,(jit_word_t)i0)
+#define movi_f(r0,i0)			_movi_f(_jit,r0,i0)
+static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
+#define movi_d(r0,i0)			_movi_d(_jit,r0,i0)
+static void _movi_d(jit_state_t*,jit_int32_t,jit_float64_t*);
 #define movr_f_w(r0,r1)			_movr_f_w(_jit,r0,r1)
 static void _movr_f_w(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movr_d_w(r0,r1)			_movr_d_w(_jit,r0,r1)
@@ -997,6 +999,46 @@ F16_(jit_state_t* _jit, jit_word_t _p,
     assert(!(im & ~0x1ffffL));
     TSTPRED(_p);
     inst((((im>>20)&1L)<<36)|(y<<27)|(1L<<26)|((im&0xffffL)<<6)|_p, INST_F);
+}
+
+static void
+_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
+{
+    union {
+	jit_int32_t	 i;
+	jit_float32_t	 f;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.f = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), data.i & 0xffffffff);
+	SETF_S(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldi_f(r0, (jit_word_t)i0);
+}
+
+static void
+_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
+{
+    union {
+	jit_word_t	 w;
+	jit_float64_t	 d;
+    } data;
+    jit_int32_t		 reg;
+
+    if (_jitc->no_data) {
+	data.d = *i0;
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), data.w);
+	SETF_D(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else
+	ldi_d(r0, (jit_word_t)i0);
 }
 
 static void

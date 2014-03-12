@@ -16,7 +16,7 @@
 
 AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
-check_PROGRAMS = lightning ccall self setcode
+check_PROGRAMS = lightning ccall self setcode nodata
 
 lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 lightning_SOURCES = lightning.c
@@ -29,6 +29,9 @@ self_SOURCES = self.c
 
 setcode_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 setcode_SOURCES = setcode.c
+
+nodata_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
+nodata_SOURCES = nodata.c
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
@@ -81,6 +84,8 @@ EXTRA_DIST =				\
 	check.sh			\
 	check.x87.sh			\
 	check.arm.sh	check.swf.sh	\
+	check.nodata.sh			\
+	check.x87.nodata.sh		\
 	run-test	all.tst
 
 base_TESTS =				\
@@ -130,6 +135,28 @@ x87_TESTS =					\
 $(x87_TESTS):	check.x87.sh
 	$(LN_S) $(srcdir)/check.x87.sh $@
 TESTS += $(x87_TESTS)
+
+#x87_nodata_TESTS = $(addsuffix .x87.nodata, $(base_TESTS))
+x87_nodata_TESTS =							\
+	3to2.x87.nodata add.x87.nodata allocai.x87.nodata		\
+	bp.x87.nodata divi.x87.nodata fib.x87.nodata rpn.x87.nodata	\
+	ldstr.x87.nodata ldsti.x87.nodata				\
+	ldstxr.x87.nodata ldstxi.x87.nodata				\
+	ldstr-c.x87.nodata ldstxr-c.x87.nodata ldstxi-c.x87.nodata	\
+	cvt.x87.nodata branch.x87.nodata				\
+	alu_add.x87.nodata alux_add.x87.nodata				\
+	alu_sub.x87.nodata alux_sub.x87.nodata				\
+	alu_mul.x87.nodata alu_div.x87.nodata alu_rem.x87.nodata	\
+	alu_and.x87.nodata alu_or.x87.nodata alu_xor.x87.nodata		\
+	alu_lsh.x87.nodata alu_rsh.x87.nodata				\
+	alu_com.x87.nodata alu_neg.x87.nodata				\
+	fop_abs.x87.nodata fop_sqrt.x87.nodata				\
+	varargs.x87.nodata stack.x87.nodata				\
+	clobber.x87.nodata carry.x87.nodata call.x87.nodata		\
+	float.x87.nodata
+$(x87_nodata_TESTS):	check.x87.nodata.sh
+	$(LN_S) $(srcdir)/check.x87.nodata.sh $@
+TESTS += $(x87_nodata_TESTS)
 endif
 
 if test_arm_arm
@@ -180,7 +207,31 @@ $(swf_TESTS):	check.swf.sh
 TESTS += $(swf_TESTS)
 endif
 
-TESTS += ccall self setcode
+if test_nodata
+#nodata_TESTS = $(addsuffix .nodata, $(base_TESTS))
+nodata_TESTS =						\
+	3to2.nodata add.nodata allocai.nodata		\
+	bp.nodata divi.nodata fib.nodata rpn.nodata	\
+	ldstr.nodata ldsti.nodata			\
+	ldstxr.nodata ldstxi.nodata			\
+	ldstr-c.nodata ldstxr-c.nodata ldstxi-c.nodata	\
+	cvt.nodata branch.nodata			\
+	alu_add.nodata alux_add.nodata			\
+	alu_sub.nodata alux_sub.nodata			\
+	alu_mul.nodata alu_div.nodata alu_rem.nodata	\
+	alu_and.nodata alu_or.nodata alu_xor.nodata	\
+	alu_lsh.nodata alu_rsh.nodata			\
+	alu_com.nodata alu_neg.nodata			\
+	fop_abs.nodata fop_sqrt.nodata			\
+	varargs.nodata stack.nodata			\
+	clobber.nodata carry.nodata call.nodata		\
+	float.nodata
+$(nodata_TESTS):	check.nodata.sh
+	$(LN_S) $(srcdir)/check.nodata.sh $@
+TESTS += $(nodata_TESTS)
+endif
+
+TESTS += ccall self setcode nodata
 CLEANFILES = $(TESTS)
 
 #TESTS_ENVIRONMENT=$(srcdir)/run-test;

@@ -221,7 +221,9 @@ AM_CONDITIONAL(test_x86_x87, [test x$ac_cv_test_x86_x87 = xyes])
 AM_CONDITIONAL(test_arm_arm, [test x$ac_cv_test_arm_arm = xyes])
 AM_CONDITIONAL(test_arm_swf, [test x$ac_cv_test_arm_swf = xyes])
 
-if test $cpu=arm; then
+AM_CONDITIONAL(test_nodata, [test cpu-$cpu = cpu-mips -o cpu-$cpu = cpu-ppc -o cpu-$cpu = cpu-sparc -o cpu-$cpu = cpu-x86 -o cpu-$cpu = cpu-ia64 -o cpu-$cpu = cpu-hppa -o cpu-$cpu = cpu-s390x])
+
+if test $cpu = arm; then
      AC_CHECK_LIB(m, sqrtf, ,
         [AC_MSG_ERROR([sqrtf required but not available])])
 fi

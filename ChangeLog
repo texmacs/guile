@@ -1,3 +1,60 @@
+2014-12-03 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/lightning.c: Implement the new jit_set_data() interface,
+	and the new jit_get_data() helper. Like jit_set_code(),
+	jit_realize() should be called before jit_set_data().
+	The most common usage should be jit_set_data(JIT_DISABLE_DATA
+	| JIT_DISABLE_NOTE), to force synthesize any float/double
+	constant in the stack and not generate any debug information.
+
+	* lib/jit_note.c: Minor change to debug note generation as
+	now it uses an alternate temporary data buffer during constants
+	and debug generation to accommodate the possibility of the user
+	setting an alternate data buffer.
+
+	* lib/jit_hppa-fpu.c, lib/jit_s390x.c, lib/jit_s390x-cpu.c,
+	lib/jit_s390x-fpu.c, lib/jit_sparc.c, lib/jit_sparc-fpu.c,
+	lib/jit_x86-sse.c, lib/jit_x86-x87.c: Implement jit_set_data.
+
+	* lib/jit_hppa-sz.c, lib/jit_sparc-sz.c, lib/jit_x86-sz.c,
+	lib/jit_s390x-sz.c: Update for several instructions that now
+	have a different maximum length due to jit_set_data.
+
+	* lib/jit_mips-fpu.c: Implement jit_set_data, but missing
+	validation on n32 and n64 abis (and/or big endian).
+
+	* lib/jit_mips-sz.c: Update for changes in o32.
+
+	* lib/jit_ppc-fpu.c: Implement jit_set_data, but missing
+	validation on Darwin PPC.
+
+	* lib/jit_ppc-sz.c: Update for changes in powerpc 32 and
+	64 bit.
+
+	* lib/jit_ia64-fpu.c: Implement untested jit_set_data.
+
+	* TODO: Add note to list ports that were not tested for the
+	new jit_set_data() feature, due to no longer having access
+	to them.
+
+	* check/nodata.c: New file implementing a simple test exercising
+	several different conditions created by jit_set_data().
+
+	* check/check.nodata.sh: New file implementing a wrapper
+	over the existing *.tst files, that runs all tests without
+	using a data buffer for constants; only meaningful (and
+	enabled) on architectures that used to store float/double
+	constants on a read only data buffer.
+
+	* configure.ac, check/Makefile.am: Update for the new test
+	cases.
+
+	* check/lightning.c: Implement the new "-d" option that
+	sets an internal flag to call jit_set_data() disable
+	constants and debug, that is, using only a pure code
+	buffer.
+
 2014-11-03 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,
