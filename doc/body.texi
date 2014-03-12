@@ -15,9 +15,7 @@
 @end ifnottex
 
 This document describes @value{TOPIC} the @lightning{} library for
-dynamic code generation.  Unlike other dynamic code generation systems,
-which are usually either inefficient or non-portable, @lightning{} is
-both retargetable and very fast.
+dynamic code generation.
 
 @menu
 * Overview::                What GNU lightning is
@@ -25,6 +23,7 @@ both retargetable and very fast.
 * The instruction set::     The RISC instruction set used in GNU lightning
 * GNU lightning examples::  GNU lightning's examples
 * Reentrancy::              Re-entrant usage of GNU lightning
+* Customizations::          Advanced code generation customizations
 * Acknowledgements::        Acknowledgements for GNU lightning
 @end menu
 @end ifnottex
@@ -34,9 +33,7 @@ both retargetable and very fast.
 
 @iftex
 This document describes @value{TOPIC} the @lightning{} library for
-dynamic code generation.  Unlike other dynamic code generation systems,
-which are usually either inefficient or non-portable, @lightning{} is
-both retargetable and very fast.
+dynamic code generation.
 @end iftex
 
 Dynamic code generation is the generation of machine code 
@@ -1276,6 +1273,164 @@ and @code{JIT_F_NUM} respectively; the number need not be
 constant.  Of course, expressions like @code{JIT_R0} and
 @code{JIT_R(0)} denote the same register, and likewise for
 integer callee-saved, or floating-point, registers.
+
+@node Customizations
+@chapter Customizations
+
+Frequently it is desirable to have more control over how code is
+generated or how memory is used during jit generation or execution.
+
+@section Memory functions
+To aid in complete control of memory allocation and deallocation
+@lightning{} provides wrappers that default to standard @code{malloc},
+@code{realloc} and @code{free}. These are loosely based on the
+GNU GMP counterparts, with the difference that they use the same
+prototype of the system allocation functions, that is, no @code{size}
+for @code{free} or @code{old_size} for @code{realloc}.
+
+@deftypefun void jit_set_memory_functions (@* void *(*@var{alloc_func_ptr}) (size_t), @* void *(*@var{realloc_func_ptr}) (void *, size_t), @* void (*@var{free_func_ptr}) (void *))
+@lightning{} guarantees that memory is only allocated or released
+using these wrapped functions, but you must note that if lightning
+was linked to GNU binutils, malloc is probably will be called multiple
+times from there when initializing the disassembler.
+@end deftypefun
+
+@deftypefun void jit_get_memory_functions (@* void *(**@var{alloc_func_ptr}) (size_t), @* void *(**@var{realloc_func_ptr}) (void *, size_t), @* void (**@var{free_func_ptr}) (void *))
+Get the current memory allocation function. Also, unlike the GNU GMP
+counterpart, it is an error to pass @code{NULL} pointers as arguments.
+@end deftypefun
+
+@section Alternate code buffer
+To instruct @lightning{} to use an alternate code buffer it is required
+to call @code{jit_realize} before @code{jit_emit}, and then query states
+and customize as appropriate.
+
+@deftypefun void jit_realize ()
+Must be called once, before @code{jit_emit}, to instruct @lightning{}
+that no other @code{jit_xyz} call will be made.
+@end deftypefun
+
+@deftypefun jit_pointer_t jit_get_code (jit_word_t *@var{code_size})
+Returns NULL or the previous value set with @code{jit_set_code}, and
+sets the @var{code_size} argument to an appropriate value.
+If @code{jit_get_code} is called before @code{jit_emit}, the
+@var{code_size} argument is set to the expected amount of bytes
+required to generate code.
+If @code{jit_get_code} is called after @code{jit_emit}, the
+@var{code_size} argument is set to the exact amount of bytes used
+by the code.
+@end deftypefun
+
+@deftypefun void jit_set_code (jit_ponter_t @var{code}, jit_word_t @var{size})
+Instructs @lightning{} to output to the @var{code} argument and
+use @var{size} as a guard to not write to invalid memory. If during
+@code{jit_emit} @lightning{} finds out that the code would not fit
+in @var{size} bytes, it halts code emit and returns @code{NULL}.
+@end deftypefun
+
+A simple example of a loop using an alternate buffer is:
+
+@example
+  jit_uint8_t   *code;
+  int           *(func)(int);      @rem{/* function pointer */}
+  jit_word_t     code_size;
+  jit_word_t     real_code_size;
+  @rem{...}
+  jit_realize();                   @rem{/* ready to generate code */}
+  jit_get_code(&code_size);        @rem{/* get expected code size */}
+  code_size = (code_size + 4095) & -4096;
+  do (;;) @{
+    code = mmap(NULL, code_size, PROT_EXEC | PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANON, -1, 0);
+    jit_set_code(code, code_size);
+    if ((func = jit_emit()) == NULL) @{
+      munmap(code, code_size);
+      code_size += 4096;
+    @}
+  @} while (func == NULL);
+  jit_get_code(&real_code_size);   @rem{/* query exact size of the code */}
+@end example
+
+The first call to @code{jit_get_code} should return @code{NULL} and set
+the @code{code_size} argument to the expected amount of bytes required
+to emit code.
+The second call to @code{jit_get_code} is after a successful call to
+@code{jit_emit}, and will return the value previously set with
+@code{jit_set_code} and set the @code{real_code_size} argument to the
+exact amount of bytes used to emit the code.
+
+@section Alternate data buffer
+Sometimes it may be desirable to customize how, or to prevent
+@lightning{} from using an extra buffer for constants or debug
+annotation. Usually when also using an alternate code buffer.
+
+@deftypefun jit_pointer_t jit_get_data (jit_word_t *@var{data_size}, jit_word_t *@var{note_size})
+Returns @code{NULL} or the previous value set with @code{jit_set_data},
+and sets the @var{data_size} argument to how many bytes are required
+for the constants data buffer, and @var{note_size} to how many bytes
+are required to store the debug note information.
+Note that it always preallocate one debug note entry even if
+@code{jit_name} or @code{jit_note} are never called, but will return
+zero in the @var{data_size} argument if no constant is required;
+constants are only used for the @code{float} and @code{double} operations
+that have an immediate argument, and not in all @lightning{} ports.
+@end deftypefun
+
+@deftypefun void jit_set_data (jit_pointer_t @var{data}, jit_word_t @var{size}, jit_word_t @var{flags})
+
+@var{data} can be NULL if disabling constants and annotations, otherwise,
+a valid pointer must be passed. An assertion is done that the data will
+fit in @var{size} bytes (but that is a noop if @lightning{} was built
+with @code{-DNDEBUG}).
+
+@var{size} tells the space in bytes available in @var{data}.
+
+@var{flags} can be zero to tell to just use the alternate data buffer,
+or a composition of @code{JIT_DISABLE_DATA} and @code{JIT_DISABLE_NOTE}
+
+@table @t
+@item JIT_DISABLE_DATA
+@cindex JIT_DISABLE_DATA
+Instructs @lightning{} to not use a constant table, but to use an
+alternate method to synthesize those, usually with a larger code
+sequence using stack space to transfer the value from a GPR to a
+FPR register.
+
+@item JIT_DISABLE_NOTE
+@cindex JIT_DISABLE_NOTE
+Instructs @lightning{} to not store file or function name, and
+line numbers in the constant buffer.
+@end table
+@end deftypefun
+
+A simple example of a preventing usage of a data buffer is:
+
+@example
+  @rem{...}
+  jit_realize();                        @rem{/* ready to generate code */}
+  jit_get_data(NULL, NULL);
+  jit_set_data(NULL, 0, JIT_DISABLE_DATA | JIT_DISABLE_NOTE);
+  @rem{...}
+@end example
+
+Or to only use a data buffer, if required:
+
+@example
+  jit_uint8_t   *data;
+  jit_word_t     data_size;
+  @rem{...}
+  jit_realize();                        @rem{/* ready to generate code */}
+  jit_get_data(&data_size, NULL);
+  if (data_size)
+    data = malloc(data_size);
+  else
+    data = NULL;
+  jit_set_data(data, data_size, JIT_DISABLE_NOTE);
+  @rem{...}
+  if (data)
+    free(data);
+  @rem{...}
+@end example
 
 @node Acknowledgements
 @chapter Acknowledgements

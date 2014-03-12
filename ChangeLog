@@ -1,5 +1,11 @@
 2014-12-03 Paulo Andrade <pcpa@gnu.org>
 
+	* doc/body.texi: Write detailed description and examples for
+	jit_get_memory_functions, jit_set_memory_functions,
+	jit_get_code, jit_set_code, jit_get_data and jit_set_data.
+
+2014-12-03 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h, include/lightning/jit_private.h,
 	lib/lightning.c: Implement the new jit_set_data() interface,
 	and the new jit_get_data() helper. Like jit_set_code(),
