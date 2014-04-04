@@ -294,7 +294,7 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     char		 buffer[address_buffer_length];
 
 #if __arm__
-    data_info = 1;
+    data_info = _jitc && _jitc->data_info.ptr;
     data_offset = 0;
 #endif
     disasm_info.buffer = code;
