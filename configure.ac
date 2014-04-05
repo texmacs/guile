@@ -15,7 +15,7 @@ dnl License for more details.
 dnl
 
 AC_PREREQ(2.57)
-AC_INIT([GNU lightning], 2.0.3, pcpa@gnu.org, lightning)
+AC_INIT([GNU lightning], 2.0.4, pcpa@gnu.org, lightning)
 AC_CANONICAL_TARGET
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2])
