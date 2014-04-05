@@ -3725,7 +3725,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    PUSH(0x3ff|(1<<_FP_REGNO)|(1<<_LR_REGNO));
     }
     movr(_FP_REGNO, _SP_REGNO);
-    subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
+    if (_jitc->function->stack)
+	subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
 }
 
 static void

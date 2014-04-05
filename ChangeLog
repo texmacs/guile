@@ -1,3 +1,9 @@
+2014-04-05 Paulo Andrade <pcpa@gnu.org>
+
+	lib/jit_arm-cpu.c: Only adjust stack pointer in prolog if
+	need stack space, that is, do not emit a nop instruction
+	subtracting zero from the stack pointer.
+
 2014-04-04 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_disasm.c: Correct a crash in the doc/printf example
