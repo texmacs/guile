@@ -88,7 +88,6 @@ typedef enum {
     _ZERO, _K0, _K1, _RA,
     _GP,
     _SP, _FP,
-#define JIT_RA0			_A0
 #if NEW_ABI
     _A7, _A6, _A5, _A4,
 #endif
@@ -109,7 +108,6 @@ typedef enum {
     _F16, _F18,
 #endif
     _F20, _F22, _F24, _F26, _F28, _F30,
-#define JIT_FA0			_F12
 #if NEW_ABI
     _F19, _F18, _F17, _F16, _F15, _F14, _F13, _F12,
 #else
@@ -118,7 +116,5 @@ typedef enum {
 #define JIT_NOREG		_NOREG
     _NOREG,
 } jit_reg_t;
-
-typedef jit_uint64_t		jit_regset_t;
 
 #endif /* _jit_mips_h */

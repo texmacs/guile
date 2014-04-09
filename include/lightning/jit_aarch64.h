@@ -65,7 +65,6 @@ typedef enum {
     _SP,				/* stack pointer */
     _R30,				/* link register */
     _R29,				/* frame pointer */
-#define JIT_RA0			_R0
     _R7,	_R6,	_R5,	_R4,
     _R3,	_R2,	_R1,	_R0,
 #define JIT_F0			_V8
@@ -83,13 +82,10 @@ typedef enum {
     /* callee save */
     _V8,	_V9,	_V10,	_V11,
     _V12,	_V13,	_V14,	_V15,
-#define JIT_FA0			_V0
     _V7,	_V6,	_V5,	_V4,	/* arguments */
     _V3,	_V2,	_V1,	_V0,
     _NOREG,
 #define JIT_NOREG		_NOREG
 } jit_reg_t;
-
-typedef jit_uint64_t		jit_regset_t;
 
 #endif /* _jit_aarch64_h */

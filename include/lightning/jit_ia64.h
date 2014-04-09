@@ -117,11 +117,4 @@ typedef enum {
     _NOREG,
 } jit_reg_t;
 
-typedef struct {
-    jit_uint64_t	rl;
-    jit_uint64_t	rh;
-    jit_uint64_t	fl;
-    jit_uint64_t	fh;
-} jit_regset_t;
-
 #endif /* _jit_ia64_h */

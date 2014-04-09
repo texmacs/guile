@@ -67,6 +67,4 @@ typedef enum {
 #define JIT_NOREG		_NOREG
 } jit_reg_t;
 
-typedef jit_uint32_t		jit_regset_t;
-
 #endif /* _jit_s390x_h */

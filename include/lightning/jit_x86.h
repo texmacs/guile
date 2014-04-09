@@ -78,7 +78,6 @@ typedef enum {
 #  define JIT_V2		_R14
 #  define JIT_V3		_R15
     _RBX,	_R13,	_R14,	_R15,
-#  define JIT_RA0		_RDI
     _R9,	_R8,	_RCX,	_RDX,	_RSI,	_RDI,
     _RSP,	_RBP,
 #  define JIT_F0		_XMM8
@@ -90,7 +89,6 @@ typedef enum {
 #  define JIT_F6		_XMM14
 #  define JIT_F7		_XMM15
     _XMM8,	_XMM9,	_XMM10,	_XMM11,	_XMM12,	_XMM13,	_XMM14,	_XMM15,
-#  define JIT_FA0		_XMM0
     _XMM7,	_XMM6,	_XMM5,	_XMM4,	_XMM3,	_XMM2,	_XMM1,	_XMM0,
 #  define jit_sse_reg_p(reg)	((reg) >= _XMM8 && (reg) <= _XMM0)
 #endif
@@ -137,12 +135,6 @@ typedef struct {
     /* lahf/sahf available in 64 bits mode */
     jit_uint32_t lahf		: 1;
 } jit_cpu_t;
-
-#if __WORDSIZE == 32
-typedef jit_uint32_t		jit_regset_t;
-#else
-typedef jit_uint64_t		jit_regset_t;
-#endif
 
 /*
  * Initialization

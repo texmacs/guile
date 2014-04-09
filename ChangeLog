@@ -1,6 +1,17 @@
+2014-04-09 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_aarch64.h, include/lightning/jit_arm.h,
+	include/lightning/jit_hppa.h, include/lightning/jit_ia64.h,
+	include/lightning/jit_mips.h, include/lightning/jit_ppc.h,
+	include/lightning/jit_private.h, include/lightning/jit_s390x.h,
+	include/lightning/jit_sparc.h, include/lightning/jit_x86.h:
+	Do not add jit_regset_t, JIT_RA0, and JIT_FA0 to the installed
+	header file. These types and definitions are supposed to be
+	only used internally.
+
 2014-04-05 Paulo Andrade <pcpa@gnu.org>
 
-	lib/jit_arm-cpu.c: Only adjust stack pointer in prolog if
+	* lib/jit_arm-cpu.c: Only adjust stack pointer in prolog if
 	need stack space, that is, do not emit a nop instruction
 	subtracting zero from the stack pointer.
 

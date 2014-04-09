@@ -80,7 +80,6 @@ typedef enum {
     _R1,
 #define JIT_FP			_R31
     _R31,
-#define JIT_RA0			_R3
     _R10,	_R9,	_R8,	_R7,	_R6,	_R5,	_R4,	_R3,
     _F0,
     _F14,	_F15,	_F16,	_F17,	_F18,	_F19,	_F20,	_F21,
@@ -96,13 +95,10 @@ typedef enum {
      * saved/restored (if used) */
     _F22,	_F23,	_F24,	_F25,	_F26,	_F27,	_F28,	_F29,
     _F30,	_F31,
-#define JIT_FA0			_F1
     _F13,	_F12,	_F11,	_F10,	_F9,	_F8,	_F7,	_F6,
     _F5,	_F4,	_F3,	_F2,	_F1,
     _NOREG,
 #define JIT_NOREG		_NOREG
 } jit_reg_t;
-
-typedef jit_uint64_t		jit_regset_t;
 
 #endif /* _jit_ppc_h */

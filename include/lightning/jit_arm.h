@@ -58,7 +58,6 @@ typedef enum {
     _R13,			/* sp - stack pointer */
     _R14,			/* lr - link register */
     _R15,			/* pc - program counter */
-#define JIT_RA0			_R0
     _R3,			/* r3 - argument/result */
     _R2,			/* r2 - argument/result */
     _R1,			/* r1 - argument/result */
@@ -87,7 +86,6 @@ typedef enum {
     _S29,
     _S30,	_D15 = _S30,
     _S31,
-#define JIT_FA0			_D0
     _S15,
     _S14,	_D7 = _S14,
     _S13,
@@ -122,8 +120,6 @@ typedef struct {
      * disable by default */
     jit_uint32_t ldrt_strt	: 1;
 } jit_cpu_t;
-
-typedef jit_uint64_t		jit_regset_t;
 
 /*
  * Initialization
