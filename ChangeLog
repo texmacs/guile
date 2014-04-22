@@ -1,3 +1,8 @@
+2014-04-22 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm.c: Do not get confused with default settings
+	if /proc is not mounted on Linux specific code path.
+
 2014-04-09 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_aarch64.h, include/lightning/jit_arm.h,

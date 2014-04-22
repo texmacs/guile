@@ -142,35 +142,34 @@ jit_get_cpu(void)
     char	*ptr;
     char	 buf[128];
 
-    if ((fp = fopen("/proc/cpuinfo", "r")) == NULL)
-	return;
-
-    while (fgets(buf, sizeof(buf), fp)) {
-	if (strncmp(buf, "CPU architecture:", 17) == 0) {
-	    jit_cpu.version = strtol(buf + 17, &ptr, 10);
-	    while (*ptr) {
-		if (*ptr == 'T' || *ptr == 't') {
-		    ++ptr;
+    if ((fp = fopen("/proc/cpuinfo", "r")) != NULL) {
+	while (fgets(buf, sizeof(buf), fp)) {
+	    if (strncmp(buf, "CPU architecture:", 17) == 0) {
+		jit_cpu.version = strtol(buf + 17, &ptr, 10);
+		while (*ptr) {
+		    if (*ptr == 'T' || *ptr == 't') {
+			++ptr;
+			jit_cpu.thumb = 1;
+		    }
+		    else if (*ptr == 'E' || *ptr == 'e') {
+			jit_cpu.extend = 1;
+			++ptr;
+		    }
+		    else
+			++ptr;
+		}
+	    }
+	    else if (strncmp(buf, "Features\t:", 10) == 0) {
+		if ((ptr = strstr(buf + 10, "vfpv")))
+		    jit_cpu.vfp = strtol(ptr + 4, NULL, 0);
+		if ((ptr = strstr(buf + 10, "neon")))
+		    jit_cpu.neon = 1;
+		if ((ptr = strstr(buf + 10, "thumb")))
 		    jit_cpu.thumb = 1;
-		}
-		else if (*ptr == 'E' || *ptr == 'e') {
-		    jit_cpu.extend = 1;
-		    ++ptr;
-		}
-		else
-		    ++ptr;
 	    }
 	}
-	else if (strncmp(buf, "Features\t:", 10) == 0) {
-	    if ((ptr = strstr(buf + 10, "vfpv")))
-		jit_cpu.vfp = strtol(ptr + 4, NULL, 0);
-	    if ((ptr = strstr(buf + 10, "neon")))
-		jit_cpu.neon = 1;
-	    if ((ptr = strstr(buf + 10, "thumb")))
-		jit_cpu.thumb = 1;
-	}
+	fclose(fp);
     }
-    fclose(fp);
 #endif
 #if defined(__ARM_PCS_VFP)
     if (!jit_cpu.vfp)
