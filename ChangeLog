@@ -1,3 +1,9 @@
+2014-07-27 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Add note that jit_set_memory_functions
+	should be called before init_jit, because init_jit
+	itself may call the memory wrappers.
+
 2014-04-22 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c: Do not get confused with default settings

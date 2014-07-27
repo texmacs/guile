@@ -1293,6 +1293,11 @@ for @code{free} or @code{old_size} for @code{realloc}.
 using these wrapped functions, but you must note that if lightning
 was linked to GNU binutils, malloc is probably will be called multiple
 times from there when initializing the disassembler.
+
+Because @code{init_jit} may call memory functions, if you need to call
+@code{jit_set_memory_functions}, it must be called before @code{init_jit},
+otherwise, when calling @code{finish_jit}, a pointer allocated with the
+previous or default wrappers will be passed.
 @end deftypefun
 
 @deftypefun void jit_get_memory_functions (@* void *(**@var{alloc_func_ptr}) (size_t), @* void *(**@var{realloc_func_ptr}) (void *, size_t), @* void (**@var{free_func_ptr}) (void *))
