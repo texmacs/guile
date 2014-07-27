@@ -582,7 +582,7 @@ _emit_ldxi_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 extern void
 _emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 
-extern void jit_init_debug(void);
+extern void jit_init_debug(char*);
 extern void jit_finish_debug(void);
 
 extern void jit_init_note(void);
@@ -620,6 +620,5 @@ jit_get_max_instr(void);
  * Externs
  */
 extern jit_register_t	 _rvs[];
-extern const char	*jit_progname;
 
 #endif /* _jit_private_h */

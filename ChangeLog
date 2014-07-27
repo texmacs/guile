@@ -1,5 +1,12 @@
 2014-07-27 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_private.h, lib/jit_disasm.c,
+	lib/lightning.c: Remove the global jit_progname variable.
+	It was being only used in jit_init_debug, that is called
+	from init_jit, so, just pass an argument.
+
+2014-07-27 Paulo Andrade <pcpa@gnu.org>
+
 	* doc/body.texi: Add note that jit_set_memory_functions
 	should be called before init_jit, because init_jit
 	itself may call the memory wrappers.

@@ -57,12 +57,12 @@ static jit_state_t		 *disasm_jit;
  * Implementation
  */
 void
-jit_init_debug(void)
+jit_init_debug(char *progname)
 {
 #if DISASSEMBLER
     bfd_init();
 
-    disasm_bfd = bfd_openr(jit_progname, NULL);
+    disasm_bfd = bfd_openr(progname, NULL);
     assert(disasm_bfd);
     bfd_check_format(disasm_bfd, bfd_object);
     bfd_check_format(disasm_bfd, bfd_archive);

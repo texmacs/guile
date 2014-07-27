@@ -170,7 +170,6 @@ _patch_register(jit_state_t *jit, jit_node_t *node, jit_node_t *link,
 /*
  * Initialization
  */
-const char	*jit_progname;
 #if !defined(__sgi)
 #define  mmap_fd			-1
 #endif
@@ -181,9 +180,8 @@ const char	*jit_progname;
 void
 init_jit(char *progname)
 {
-    jit_progname = progname;
     jit_get_cpu();
-    jit_init_debug();
+    jit_init_debug(progname);
     jit_init_size();
 }
 
