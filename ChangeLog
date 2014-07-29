@@ -1,3 +1,12 @@
+2014-07-28 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_memory.c: Do not call free on NULL pointers.
+
+	* include/lightning/jit_private.h, lib/jit_note.c,
+	lib/lightning.c: Add a wrapper to memcpy and memmove
+	to not actually call those functions with a zero size
+	argument, and likely also a null src or dst.
+
 2014-07-27 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, lib/jit_disasm.c,

@@ -38,6 +38,22 @@ static jit_free_func_ptr jit_free_ptr = jit_default_free_func;
 /*
  * Implementation
  */
+jit_pointer_t
+jit_memcpy(jit_pointer_t dst, jit_pointer_t src, jit_word_t size)
+{
+    if (size)
+	return (memcpy(dst, src, size));
+    return (dst);
+}
+
+jit_pointer_t
+jit_memmove(jit_pointer_t dst, jit_pointer_t src , jit_word_t size)
+{
+    if (size)
+	return (memmove(dst, src, size));
+    return (dst);
+}
+
 void
 jit_set_memory_functions(jit_alloc_func_ptr alloc_ptr,
 			 jit_realloc_func_ptr realloc_ptr,
@@ -82,8 +98,10 @@ jit_realloc(jit_pointer_t *ptr, jit_word_t old_size, jit_word_t new_size)
 void
 jit_free(jit_pointer_t *ptr)
 {
-    (*jit_free_ptr)(*ptr);
-    *ptr = NULL;
+    if (*ptr) {
+	(*jit_free_ptr)(*ptr);
+	*ptr = NULL;
+    }
 }
 
 static void *

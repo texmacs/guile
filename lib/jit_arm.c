@@ -1750,7 +1750,7 @@ _flush_consts(jit_state_t *_jit)
     _jitc->consts.size = _jitc->consts.length << 2;
     /* FIXME check will not overrun, otherwise, need to reallocate
      * code buffer and start over */
-    memcpy(_jitc->consts.data, _jitc->consts.values, _jitc->consts.size);
+    jit_memcpy(_jitc->consts.data, _jitc->consts.values, _jitc->consts.size);
     _jit->pc.w += _jitc->consts.size;
 
 #if DISASSEMBLER

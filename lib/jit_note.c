@@ -126,16 +126,17 @@ _jit_annotate(jit_state_t *_jit)
 	note->size = _jit->pc.uc - note->code;
 
     /* annotations may be very complex with conditions to extend
-     * or ignore redudant notes, as well as add entries to earlier
+     * or ignore redundant notes, as well as add entries to earlier
      * notes, so, relocate the information to the data buffer,
      * with likely over allocated reserved space */
 
     /* relocate jit_line_t objects */
     for (note_offset = 0; note_offset < _jit->note.length; note_offset++) {
 	note = _jit->note.ptr + note_offset;
-	length = sizeof(jit_line_t) * note->length;
+	if ((length = sizeof(jit_line_t) * note->length) == 0)
+	    continue;
 	assert(_jitc->note.base + length < _jit->data.ptr + _jit->data.length);
-	memcpy(_jitc->note.base, note->lines, length);
+	jit_memcpy(_jitc->note.base, note->lines, length);
 	jit_free((jit_pointer_t *)&note->lines);
 	note->lines = (jit_line_t *)_jitc->note.base;
 	_jitc->note.base += length;
@@ -149,13 +150,13 @@ _jit_annotate(jit_state_t *_jit)
 	    length = sizeof(jit_int32_t) * line->length;
 	    assert(_jitc->note.base + length <
 		   _jit->data.ptr + _jit->data.length);
-	    memcpy(_jitc->note.base, line->linenos, length);
+	    jit_memcpy(_jitc->note.base, line->linenos, length);
 	    jit_free((jit_pointer_t *)&line->linenos);
 	    line->linenos = (jit_int32_t *)_jitc->note.base;
 	    _jitc->note.base += length;
 	    assert(_jitc->note.base + length <
 		   _jit->data.ptr + _jit->data.length);
-	    memcpy(_jitc->note.base, line->offsets, length);
+	    jit_memcpy(_jitc->note.base, line->offsets, length);
 	    jit_free((jit_pointer_t *)&line->offsets);
 	    line->offsets = (jit_int32_t *)_jitc->note.base;
 	    _jitc->note.base += length;
@@ -200,10 +201,10 @@ _jit_set_note(jit_state_t *_jit, jit_note_t *note,
 			    (line->length + 17) * sizeof(jit_int32_t));
 	    }
 	    if (index < note->length) {
-		memmove(line->linenos + index + 1, line->linenos + index,
-			sizeof(jit_int32_t) * (line->length - index));
-		memmove(line->offsets + index + 1, line->offsets + index,
-			sizeof(jit_int32_t) * (line->length - index));
+		jit_memmove(line->linenos + index + 1, line->linenos + index,
+			    sizeof(jit_int32_t) * (line->length - index));
+		jit_memmove(line->offsets + index + 1, line->offsets + index,
+			    sizeof(jit_int32_t) * (line->length - index));
 	    }
 	    line->linenos[index] = lineno;
 	    line->offsets[index] = offset;
@@ -280,8 +281,8 @@ new_line(jit_int32_t index, jit_note_t *note,
 		    (note->length + 17) * sizeof(jit_line_t));
 
     if (index < note->length)
-	memmove(note->lines + index + 1, note->lines + index,
-		sizeof(jit_line_t) * (note->length - index));
+	jit_memmove(note->lines + index + 1, note->lines + index,
+		    sizeof(jit_line_t) * (note->length - index));
     line = note->lines + index;
     ++note->length;
 

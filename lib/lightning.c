@@ -610,7 +610,7 @@ _jit_data(jit_state_t *_jit, jit_pointer_t data,
 	}
 	node->u.w = _jitc->data.offset;
 	node->v.w = length;
-	memcpy(_jitc->data.ptr + _jitc->data.offset, data, length);
+	jit_memcpy(_jitc->data.ptr + _jitc->data.offset, data, length);
 	_jitc->data.offset += length;
 
 	node->next = _jitc->data.table[key];
@@ -1722,9 +1722,12 @@ _jit_dataset(jit_state_t *_jit)
     }
 
     if (!_jitc->no_data)
-	memcpy(_jit->data.ptr, _jitc->data.ptr, _jitc->data.offset);
+	jit_memcpy(_jit->data.ptr, _jitc->data.ptr, _jitc->data.offset);
 
     if (_jitc->no_note) {
+	/* Space for one note is always allocated, so revert it here
+	 * if after jit_new_state was called, it is also requested to
+	 * not generate annotation information */
 	_jit->note.length = 0;
 	_jitc->note.size = 0;
     }
@@ -2581,7 +2584,7 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 	return (1);
     }
     if (_jitc->values[right].kind == jit_kind_word)
-	memcpy(value, _jitc->values + right, sizeof(jit_value_t));
+	jit_memcpy(value, _jitc->values + right, sizeof(jit_value_t));
     else {
 	value->kind = jit_kind_register;
 	value->base.q.l = right;
@@ -2630,14 +2633,14 @@ _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 		else
 		    node->code = jit_code_movr_d;
 		node->v.w = offset;
-		memcpy(value, _jitc->values + offset, sizeof(jit_value_t));
+		jit_memcpy(value, _jitc->values + offset, sizeof(jit_value_t));
 		++_jitc->gen[regno];
 		return (0);
 	    }
 	}
     }
     value->kind = kind;
-    memcpy(&value->base.w, &node->v.w, size);
+    jit_memcpy(&value->base.w, &node->v.w, size);
     ++_jitc->gen[regno];
 
     return (0);
