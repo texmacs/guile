@@ -2043,19 +2043,19 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	    case jit_code_calli:
 #if defined(JIT_RET)
 		if (jit_regset_tstbit(mask, JIT_RET)) {
-		    jit_regset_setbit(&_jitc->reglive, JIT_RET);
+		    jit_regset_setbit(live, JIT_RET);
 		    jit_regset_clrbit(mask, JIT_RET);
 		}
 #  if __arm__
 		if (jit_regset_tstbit(mask, _R1)) {
-		    jit_regset_setbit(&_jitc->reglive, _R1);
+		    jit_regset_setbit(live, _R1);
 		    jit_regset_clrbit(mask, _R1);
 		}
 #  endif
 #endif
 #if defined(JIT_FRET)
 		if (jit_regset_tstbit(mask, JIT_FRET)) {
-		    jit_regset_setbit(&_jitc->reglive, JIT_FRET);
+		    jit_regset_setbit(live, JIT_FRET);
 		    jit_regset_clrbit(mask, JIT_FRET);
 		}
 #endif

@@ -1,5 +1,10 @@
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/lightning.c: Change the correct live bitmask of
+	return registers after a function call in jit_update.
+
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/lightning.c: Change assertions to have an int
 	result and correct a bad bit mask assertion.
 
