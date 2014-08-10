@@ -1659,7 +1659,7 @@ _htonr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	/* FIXME rewrite in a more sane way, but unlikely to be used
 	 * in near time... */
 #  if __WORDSIZE == 64
-#    error htonr only implemented for 32 bit
+#    error htonr only implemented for 64 bit
 #  endif
 	rg0 = jit_get_reg(jit_class_gpr);
 	rg1 = jit_get_reg(jit_class_gpr);
@@ -2754,7 +2754,7 @@ _bmsr(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_word_t		w;
     jit_int32_t		t0;
     t0 = jit_get_reg(jit_class_gpr);
-    AND(rn(r0), r0, r1);
+    AND(rn(t0), r0, r1);
     w = _jit->pc.w;
     BNE(_ZERO_REGNO, rn(t0), ((i0 - w) >> 2) - 1);
     NOP(1);

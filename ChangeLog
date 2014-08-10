@@ -1,3 +1,9 @@
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips-cpu.c: Correct typo in the jit_bmsr
+	implementation that was using the wrong test result
+	register.
+
 2014-07-28 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_memory.c: Do not call free on NULL pointers.
