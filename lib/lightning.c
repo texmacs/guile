@@ -2029,8 +2029,26 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 		    jit_regset_and(mask, mask, &ztmp);
 		}
 		break;
-	    case jit_code_prolog:	case jit_code_epilog:
+	    case jit_code_prolog:
 		jit_regset_set_ui(mask, 0);
+		return;
+	    case jit_code_epilog:
+		jit_regset_set_ui(mask, 0);
+#if defined(JIT_RET)
+		/* On some backends it may be required to allocate one
+		 * or more registers to jump from a jit_ret* to the
+		 * epilog label.
+		 * Because currently there is no type information,
+		 * assume JIT_RET and JIT_FRET are live in the epilog.
+		 * Only JIT_RET really should be marked as live, to
+		 * prevent it being allocated, usually in the jump to
+		 * the epilog, but also mark JIT_FRET as live for the
+		 * sake of correctness. */
+		jit_regset_setbit(live, JIT_RET);
+#endif
+#if defined(JIT_FRET)
+		jit_regset_setbit(live, JIT_FRET);
+#endif
 		return;
 	    case jit_code_callr:
 		value = jit_regno(node->u.w);

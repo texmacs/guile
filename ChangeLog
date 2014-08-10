@@ -1,5 +1,15 @@
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/lightning.c: Always mark JIT_RET and JIT_FRET as
+	live in a function epilog. This is required because
+	on some ports a complex sequence, allocating one or more
+	registers, may be required to jump from a ret* to the
+	epilog, and the lightning api does not have annotations
+	to know if a function returns a value, or the type of
+	the return value.
+
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/lightning.c: Change the correct live bitmask of
 	return registers after a function call in jit_update.
 
