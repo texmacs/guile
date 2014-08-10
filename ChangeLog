@@ -1,5 +1,10 @@
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/lightning.c: Change assertions to have an int
+	result and correct a bad bit mask assertion.
+
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_aarch64.c: Correct bad setup for assertion
 	of consistency before a patch.
 

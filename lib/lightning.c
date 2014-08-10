@@ -236,7 +236,7 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 		!jit_regset_tstbit(&_jitc->regarg, regno) &&
 		!(regspec & jit_class_nospill)) {
 	    spill:
-		assert(_jitc->function);
+		assert(_jitc->function != NULL);
 		if (spec & jit_class_gpr) {
 		    if (!_jitc->function->regoff[regno]) {
 			_jitc->function->regoff[regno] =
@@ -275,7 +275,7 @@ _jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
 		if (jit_class(_rvs[regno].spec) & jit_class_sav) {
 		    /* if will modify callee save registers without a
 		     * function prolog, better patch this assertion */
-		    assert(_jitc->function);
+		    assert(_jitc->function != NULL);
 		    if (!jit_regset_tstbit(&_jitc->function->regset, regno)) {
 			jit_regset_setbit(&_jitc->function->regset, regno);
 			_jitc->again = 1;
@@ -330,7 +330,7 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 	    jit_load(regno);
 	jit_regset_clrbit(&_jitc->regsav, regno);
     }
-    assert(jit_regset_tstbit(&_jitc->regarg, regno));
+    assert(jit_regset_tstbit(&_jitc->regarg, regno) != 0);
     jit_regset_clrbit(&_jitc->regarg, regno);
 }
 
@@ -527,7 +527,7 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
 
     reg = jit_regno(reg);
     assert(!_jitc->realize);
-    assert(_jitc->spill[reg]);
+    assert(_jitc->spill[reg] != NULL);
     node = jit_new_node_w(jit_code_load, reg);
     /* create a path to flag the save/load is not required */
     node->link = _jitc->spill[reg];
@@ -549,11 +549,11 @@ jit_pointer_t
 _jit_address(jit_state_t *_jit, jit_node_t *node)
 {
     assert(_jitc->done);
-    assert(node &&
+    assert(node != NULL &&
 	   /* If a node type that is documented to be a fixed marker */
 	   (node->code == jit_code_note || node->code == jit_code_name ||
 	    /* If another special fixed marker, returned by jit_indirect() */
-	    (node->code == jit_code_label && (node->flag & jit_flag_use))));
+	    (node->code == jit_code_label && (node->flag & jit_flag_use) != 0)));
     return ((jit_pointer_t)node->u.w);
 }
 
@@ -1130,7 +1130,7 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
 void
 _jit_prepare(jit_state_t *_jit)
 {
-    assert(_jitc->function);
+    assert(_jitc->function != NULL);
     _jitc->function->call.call = jit_call_default;
     _jitc->function->call.argi =
 	_jitc->function->call.argf =
@@ -1152,11 +1152,11 @@ void
 _jit_ellipsis(jit_state_t *_jit)
 {
     if (_jitc->prepare) {
-	assert(!_jitc->function->call.call & jit_call_varargs);
+	assert(!(_jitc->function->call.call & jit_call_varargs));
 	_jitc->function->call.call |= jit_call_varargs;
     }
     else {
-	assert(!_jitc->function->self.call & jit_call_varargs);
+	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
     }
 }
