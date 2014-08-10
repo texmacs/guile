@@ -26,11 +26,16 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdint.h>
+#if HAVE_STDINT_H
+#  include <stdint.h>
+#endif
 #include <string.h>
 
 #if defined(__hpux) && defined(__hppa__)
 #  include <machine/param.h>
+#endif
+#if defined(__alpha__) && defined(__osf__)
+#  include <machine/endian.h>
 #endif
 
 #ifndef __WORDSIZE
@@ -137,6 +142,8 @@ typedef jit_int32_t		jit_fpr_t;
 #  include <lightning/jit_aarch64.h>
 #elif defined(__s390x__)
 #  include <lightning/jit_s390x.h>
+#elif defined(__alpha__)
+#  include <lightning/jit_alpha.h>
 #endif
 
 #define jit_flag_node		0x00000001 /* patch node not absolute */

@@ -55,3 +55,7 @@ if cpu_s390x
 lightning_include_HEADERS = 	\
 	jit_s390x.h
 endif
+if cpu_alpha
+lightning_include_HEADERS = 	\
+	jit_alpha.h
+endif

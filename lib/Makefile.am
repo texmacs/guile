@@ -36,6 +36,10 @@ EXTRA_DIST =			\
 	jit_aarch64-cpu.c	\
 	jit_aarch64-fpu.c	\
 	jit_aarch64-sz.c	\
+	jit_alpha.c		\
+	jit_alpha-cpu.c		\
+	jit_alpha-fpu.c		\
+	jit_alpha-sz.c		\
 	jit_arm.c		\
 	jit_arm-cpu.c		\
 	jit_arm-swf.c		\

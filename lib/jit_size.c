@@ -48,6 +48,8 @@ static jit_int16_t	_szs[jit_code_x86_retval_d + 1] = {
 #    include "jit_aarch64-sz.c"
 #  elif defined(__s390x__)
 #    include "jit_s390x-sz.c"
+#  elif defined(__alpha__)
+#    include "jit_alpha-sz.c"
 #  endif
 #endif
 };

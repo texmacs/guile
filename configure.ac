@@ -23,6 +23,10 @@ AC_CONFIG_MACRO_DIR(m4)
 
 AC_CONFIG_HEADERS(config.h)
 
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LIBTOOL
+
 case "$target_cpu" in
     ia64)
 	case "$host_os" in
@@ -39,16 +43,25 @@ case "$target_cpu" in
 		CFLAGS="$CFLAGS -D__c99 -Drestrict=";;
 	    *)					;;
 	esac					;;
+    alpha*)
+	case "$host_os" in
+	    osf*)
+		# Get proper varargs and mmap prototypes and definitions
+		CFLAGS="$CFLAGS -D_ANSI_C_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_OSF_SOURCE -D_POSIX_C_SOURCE=199309L"
+		# Want to generate NaN with 0.0/0.0 and Inf with 1.0/0.0
+		if test x$GCC = "xyes"; then
+		    CFLAGS="$CFLAGS -mieee"
+		else
+		    CFLAGS="$CFLAGS -ieee_with_no_inexact"
+		fi				;;
+	    *)					;;
+	esac					;;
     *)						;;
 esac
 
-AC_PROG_CC
-AC_PROG_INSTALL
-AC_PROG_LIBTOOL
-
 AC_CHECK_FUNCS(mremap ffsl getopt_long_only isnan isinf,,)
 
-AC_CHECK_HEADERS([getopt.h],,,)
+AC_CHECK_HEADERS([getopt.h stdint.h],,,)
 
 AC_ARG_ENABLE(disassembler,
 	      AS_HELP_STRING([--enable-disassembler],
@@ -100,7 +113,7 @@ AC_ARG_ENABLE(devel-get-jit-size,
 AM_CONDITIONAL(get_jit_size, [test $GET_JIT_SIZE = yes])
 
 case "$host_os" in
-    *bsd*)		SHLIB=""	;;
+    *bsd*|osf*)		SHLIB=""	;;
     *hpux*)		SHLIB="-ldld"	;;
     *)			SHLIB="-ldl"	;;
 esac
@@ -117,6 +130,7 @@ case "$target_cpu" in
     hppa*)		cpu=hppa	;;
     aarch64)		cpu=aarch64	;;
     s390x)		cpu=s390x	;;
+    alpha*)		cpu=alpha	;;
     *)					;;
 esac
 AM_CONDITIONAL(cpu_arm,     [test cpu-$cpu = cpu-arm])
@@ -128,6 +142,7 @@ AM_CONDITIONAL(cpu_ia64,    [test cpu-$cpu = cpu-ia64])
 AM_CONDITIONAL(cpu_hppa,    [test cpu-$cpu = cpu-hppa])
 AM_CONDITIONAL(cpu_aarch64, [test cpu-$cpu = cpu-aarch64])
 AM_CONDITIONAL(cpu_s390x,   [test cpu-$cpu = cpu-s390x])
+AM_CONDITIONAL(cpu_alpha,   [test cpu-$cpu = cpu-alpha])
 
 # Test x87 if both, x87 and sse2 available
 ac_cv_test_x86_x87=
@@ -221,7 +236,7 @@ AM_CONDITIONAL(test_x86_x87, [test x$ac_cv_test_x86_x87 = xyes])
 AM_CONDITIONAL(test_arm_arm, [test x$ac_cv_test_arm_arm = xyes])
 AM_CONDITIONAL(test_arm_swf, [test x$ac_cv_test_arm_swf = xyes])
 
-AM_CONDITIONAL(test_nodata, [test cpu-$cpu = cpu-mips -o cpu-$cpu = cpu-ppc -o cpu-$cpu = cpu-sparc -o cpu-$cpu = cpu-x86 -o cpu-$cpu = cpu-ia64 -o cpu-$cpu = cpu-hppa -o cpu-$cpu = cpu-s390x])
+AM_CONDITIONAL(test_nodata, [test cpu-$cpu = cpu-mips -o cpu-$cpu = cpu-ppc -o cpu-$cpu = cpu-sparc -o cpu-$cpu = cpu-x86 -o cpu-$cpu = cpu-ia64 -o cpu-$cpu = cpu-hppa -o cpu-$cpu = cpu-s390x -o cpu-$cpu = cpu-alpha])
 
 if test $cpu = arm; then
      AC_CHECK_LIB(m, sqrtf, ,

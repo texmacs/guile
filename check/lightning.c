@@ -36,7 +36,7 @@
 #endif
 
 /* The label_t identifier clashes with a system definitions */
-#if defined(_AIX) || defined(__sun__)
+#if defined(_AIX) || defined(__sun__) || defined(__osf__)
 #  define label_t		l_label_t
 #endif
 
@@ -44,6 +44,8 @@
 #  define DL_HANDLE		RTLD_NEXT
 #elif defined(__sgi)
 static void			*DL_HANDLE;
+#elif defined(__osf__)
+#  define DL_HANDLE		NULL
 #else
 #  define DL_HANDLE		RTLD_DEFAULT
 #endif
@@ -4144,6 +4146,11 @@ main(int argc, char *argv[])
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
 			  " -D__s390x__=1");
+#endif
+#if defined(__alpha__)
+    opt_short += snprintf(cmdline + opt_short,
+			  sizeof(cmdline) - opt_short,
+			  " -D__alpha__=1");
 #endif
     if ((parser.fp = popen(cmdline, "r")) == NULL)
 	error("cannot execute %s", cmdline);

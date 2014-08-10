@@ -16,17 +16,25 @@ ok:
 
 #if __mips__ || __sparc__ || __hppa__
 #  define wnan			x7f
-#elif __arm__ || __aarch64__
+#elif __arm__ || __aarch64__ || __alpha__
 #  define wnan			0
 #else
 #  define wnan			x80
 #endif
 #if __mips__ || __arm__ || __ppc__ || __sparc__ || __hppa__ || __aarch64__ || __s390x__
 #  define wpinf			x7f
+#elif __alpha__
+/* (at least) bug compatible with gcc 4.2.3 -ieee */
+#  define wpinf			0
 #else
 #  define wpinf			x80
 #endif
-#define wninf			x80
+#if __alpha__
+/* (at least) bug compatible with gcc 4.2.3 -ieee */
+#  define wninf			0
+#else
+#  define wninf			x80
+#endif
 
 /* ensure result is correct and 0 or 1 in the result register */
 #define xtcmp(l, t, op, r0, f0, f1, li, ri)		\

@@ -1,5 +1,19 @@
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
+        * include/lightning/jit_alpha.h, lib/jit_alpha-cpu.c,
+        lib/jit_alpha-fpu.c, lib/jit_alpha-sz.c, lib/jit_alpha.c:
+	New files implementing a lightning Alpha port. Thanks
+	to Trent Nelson and snakebit.net staff for providing access
+	to an Alpha system.
+
+        * check/float.tst, check/lightning.c, configure.ac,
+        include/lightning.h, include/lightning/Makefile.am,
+        include/lightning/jit_private.h, lib/Makefile.am,
+        lib/jit_disasm.c, lib/jit_size.c, lib/lightning.c:
+	Minor changes to adapt for the new Alpha port.
+
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/lightning.c: Always mark JIT_RET and JIT_FRET as
 	live in a function epilog. This is required because
 	on some ports a complex sequence, allocating one or more

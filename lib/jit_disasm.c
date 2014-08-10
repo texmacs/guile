@@ -101,6 +101,10 @@ jit_init_debug(char *progname)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
     disasm_info.disassembler_options = "zarch";
 #  endif
+#  if defined(__alpha__)
+    disasm_info.arch = bfd_arch_alpha;
+    disasm_info.mach = bfd_mach_alpha_ev6;
+#  endif
     disasm_info.print_address_func = disasm_print_address;
 
     if (bfd_get_file_flags(disasm_bfd) & HAS_SYMS) {
@@ -117,7 +121,13 @@ jit_init_debug(char *progname)
 
 	    if (bfd_get_file_flags(disasm_bfd) & DYNAMIC) {
 		dyn_storage = bfd_get_dynamic_symtab_upper_bound(disasm_bfd);
+#  if defined(__alpha__)
+		/* XXX */
+		if (dyn_storage < 0)
+		    dyn_storage = 0;
+#  else
 		assert(dyn_storage >= 0);
+#  endif
 	    }
 	    else
 		dyn_storage = 0;
