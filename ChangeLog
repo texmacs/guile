@@ -1,5 +1,10 @@
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_aarch64.c: Correct bad setup for assertion
+	of consistency before a patch.
+
+2014-08-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_mips-cpu.c: Correct typo in the jit_bmsr
 	implementation that was using the wrong test result
 	register.

@@ -1196,6 +1196,10 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
     jit_int32_t		 flag;
 
     assert(node->flag & jit_flag_node);
+    if (node->code == jit_code_movi)
+	flag = node->v.n->flag;
+    else
+	flag = node->u.n->flag;
     assert(!(flag & jit_flag_patch));
     if (_jitc->patches.offset >= _jitc->patches.length) {
 	jit_realloc((jit_pointer_t *)&_jitc->patches.ptr,
