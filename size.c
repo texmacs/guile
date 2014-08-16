@@ -71,7 +71,7 @@ main(int argc, char *argv[])
     for (offset = 0; offset <= jit_code_x86_retval_d; offset++)
 	fprintf(fp, "    %d,\n", _szs[offset]);
 #if defined(__arm__)
-    fprintf(fp, "#undef /* __ARM_PCS_VFP */\n");
+    fprintf(fp, "#endif /* __ARM_PCS_VFP */\n");
 #elif defined(__mips__)
 #  if __WORDSIZE == 32
     fprintf(fp, "#endif /* NEW_ABI */\n");

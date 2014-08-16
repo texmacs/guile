@@ -1,3 +1,12 @@
+2014-08-16 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm-sz.c: Regenerate table of known maximum
+	instruction sizes for the software float fallback,
+	that implements "virtual" float registers in the stack
+	and operations as calls to libgcc.
+
+	* size.c: Correct typo in the generated jit_arm-sz.c file.
+
 2014-08-10 Paulo Andrade <pcpa@gnu.org>
 
         * include/lightning/jit_alpha.h, lib/jit_alpha-cpu.c,
