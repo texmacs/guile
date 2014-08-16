@@ -1,5 +1,25 @@
 2014-08-16 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_aarch64-cpu.c, lib/jit_aarch64-fpu.c,
+	lib/jit_arm-cpu.c, lib/jit_arm-vfp.c,
+	lib/jit_hppa-cpu.c, lib/jit_hppa-fpu.c,
+	lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c,
+	lib/jit_mips-cpu.c, lib/jit_mips-fpu.c,
+	lib/jit_ppc-cpu.c, lib/jit_ppc-fpu.c,
+	lib/jit_s390x-cpu.c, lib/jit_s390x-fpu.c,
+	lib/jit_s390x.c, lib/jit_sparc-cpu.c,
+	lib/jit_x86-cpu.c, lib/jit_x86-sse.c,
+	lib/jit_x86-x87.c: Review generation of all branch
+	instructions and always adds the jit_class_nospill
+	bitfield for temporary registers that cannot be	spilled
+	because the reload would be after a conditional jump; the
+	patch only adds an extra assertion. These conditions do
+	not happen on documented lightning usage, but can happen
+	if one uses the not exported jit_get_reg and jit_unget_reg
+	calls and cause enough register starvation.
+
+2014-08-16 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_alpha.c: Correct wrong bitmask of most argument
 	float register arguments, that were being set as callee
 	save instead of argument registers class.

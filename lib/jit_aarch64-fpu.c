@@ -383,7 +383,8 @@ _b##name##i_f(jit_state_t *_jit,					\
 	      jit_word_t i0, jit_int32_t r0, jit_float32_t i1)		\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     movi_f(rn(reg), i1);						\
     word = b##name##r_f(i0, r0, rn(reg));				\
     jit_unget_reg(reg);							\
@@ -395,7 +396,8 @@ _b##name##i_d(jit_state_t *_jit,					\
 	      jit_word_t i0, jit_int32_t r0, jit_float64_t i1)		\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     movi_d(rn(reg), i1);						\
     word = b##name##r_d(i0, r0, rn(reg));				\
     jit_unget_reg(reg);							\
@@ -591,7 +593,7 @@ _fbcci(jit_state_t *_jit, jit_int32_t cc,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_f(rn(reg), i1);
     w = fbccr(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -806,7 +808,7 @@ _dbcci(jit_state_t *_jit, jit_int32_t cc,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_d(rn(reg), i1);
     w = dbccr(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);

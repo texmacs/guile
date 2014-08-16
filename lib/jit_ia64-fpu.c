@@ -1095,7 +1095,8 @@ _b##name##i_##type(jit_state_t *_jit,					\
 		  jit_float##size##_t *i1)				\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     movi_##type(rn(reg), i1);						\
     word = b##name##r_##type(i0, r0, rn(reg));				\
     jit_unget_reg(reg);							\

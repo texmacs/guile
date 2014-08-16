@@ -1431,7 +1431,8 @@ _vfp_b##name##i_f(jit_state_t *_jit,					\
 		  jit_int32_t r0, jit_int32_t r1, jit_float32_t i0)	\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     vfp_movi_f(rn(reg), i0);						\
     word = vfp_b##name##r_f(r0, r1, rn(reg));				\
     jit_unget_reg(reg);							\
@@ -1443,7 +1444,8 @@ _vfp_b##name##i_d(jit_state_t *_jit,					\
 		  jit_int32_t r0, jit_int32_t r1, jit_float64_t i0)	\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     vfp_movi_d(rn(reg), i0);						\
     word = vfp_b##name##r_d(r0, r1, rn(reg));				\
     jit_unget_reg(reg);							\

@@ -965,7 +965,7 @@ _bcmpi_f(jit_state_t *_jit, jit_word_t c,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_f(rn(reg), i1);
     FCMP_S_(r0, rn(reg), c);
     FTEST();
@@ -995,7 +995,7 @@ _bcmpi_d(jit_state_t *_jit, jit_word_t c,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_d(rn(reg), i1);
     FCMP_D_(r0, rn(reg), c);
     FTEST();

@@ -1466,7 +1466,7 @@ _bw(jit_state_t *_jit, jit_int32_t cc,
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = br(cc, i0, r0, rn(reg));
 	jit_unget_reg(reg);
@@ -1511,7 +1511,7 @@ _b_asw(jit_state_t *_jit, jit_bool_t jif, jit_bool_t add, jit_bool_t sgn,
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = b_asr(jif, add, sgn, i0, r0, rn(reg));
 	jit_unget_reg(reg);
@@ -1544,7 +1544,7 @@ _bm_w(jit_state_t *_jit, jit_bool_t set,
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = bm_r(set, i0, r0, rn(reg));
 	jit_unget_reg(reg);

@@ -4638,7 +4638,7 @@ _blei(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bler(i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -4661,7 +4661,7 @@ _blei_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bler_u(i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -4774,7 +4774,7 @@ _bgti(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bgtr(i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -4797,7 +4797,7 @@ _bgti_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bgtr_u(i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -4905,9 +4905,9 @@ _baddr(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1,
     jit_int32_t		t1;
     jit_int32_t		t2;
     /* t1 = r0 + r1;	overflow = r1 < 0 ? r0 < t1 : t1 < r0 */
-    t0 = jit_get_reg(jit_class_gpr);
-    t1 = jit_get_reg(jit_class_gpr);
-    t2 = jit_get_reg(jit_class_gpr);
+    t0 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t1 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t2 = jit_get_reg(jit_class_gpr|jit_class_nospill);
     lti(rn(t0), r1, 0);			/* t0 = r1 < 0 */
     addr(rn(t1), r0, r1);		/* t1 = r0 + r1 */
     ltr(rn(t2), rn(t1), r0);		/* t2 = t1 < r0 */
@@ -4931,7 +4931,7 @@ _baddi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = baddr(i0, r0, rn(reg), carry);
     jit_unget_reg(reg);
@@ -4945,8 +4945,8 @@ _baddr_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1,
     jit_word_t		w;
     jit_int32_t		t0;
     jit_int32_t		t1;
-    t0 = jit_get_reg(jit_class_gpr);
-    t1 = jit_get_reg(jit_class_gpr);
+    t0 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t1 = jit_get_reg(jit_class_gpr|jit_class_nospill);
     addr(rn(t0), r0, r1);
     ltr_u(rn(t1), rn(t0), r0);
     CMPI_EQ(PR_6, PR_7, 0, rn(t1));
@@ -4965,7 +4965,7 @@ _baddi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = baddr_u(i0, r0, rn(reg), carry);
     jit_unget_reg(reg);
@@ -4981,9 +4981,9 @@ _bsubr(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1,
     jit_int32_t		t1;
     jit_int32_t		t2;
     /* t1 = r0 - r1;	overflow = 0 < r1 ? r0 < t1 : t1 < r0 */
-    t0 = jit_get_reg(jit_class_gpr);
-    t1 = jit_get_reg(jit_class_gpr);
-    t2 = jit_get_reg(jit_class_gpr);
+    t0 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t1 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t2 = jit_get_reg(jit_class_gpr|jit_class_nospill);
     gti(rn(t0), r1, 0);			/* t0 = r1 > 0 */
     subr(rn(t1), r0, r1);		/* t1 = r0 - r1 */
     ltr(rn(t2), rn(t1), r0);		/* t2 = t1 < r0 */
@@ -5007,7 +5007,7 @@ _bsubi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bsubr(i0, r0, rn(reg), carry);
     jit_unget_reg(reg);
@@ -5021,8 +5021,8 @@ _bsubr_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1,
     jit_word_t		w;
     jit_int32_t		t0;
     jit_int32_t		t1;
-    t0 = jit_get_reg(jit_class_gpr);
-    t1 = jit_get_reg(jit_class_gpr);
+    t0 = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    t1 = jit_get_reg(jit_class_gpr|jit_class_nospill);
     subr(rn(t0), r0, r1);
     ltr_u(rn(t1), r0, rn(t0));
     CMPI_EQ(PR_6, PR_7, 0, rn(t1));
@@ -5041,7 +5041,7 @@ _bsubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     w = bsubr_u(i0, r0, rn(reg), carry);
     jit_unget_reg(reg);

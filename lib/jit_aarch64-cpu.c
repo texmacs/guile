@@ -2087,7 +2087,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
     if (w >= -33554432 && w <= 33554431)
 	B(w);
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i0);
 	jmpr(rn(reg));
 	jit_unget_reg(reg);
@@ -2099,7 +2099,7 @@ _jmpi_p(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     w = movi_p(rn(reg), i0);
     jmpr(rn(reg));
     jit_unget_reg(reg);

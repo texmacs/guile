@@ -656,7 +656,7 @@ _fi(jit_state_t *_jit, jit_int32_t cc,
      jit_int32_t r0, jit_int32_t r1, jit_float32_t *i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_f(rn(reg), i0);
     fr(cc, r0, r1, rn(reg));
     jit_unget_reg(reg);
@@ -667,7 +667,7 @@ _di(jit_state_t *_jit, jit_int32_t cc,
      jit_int32_t r0, jit_int32_t r1, jit_float64_t *i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     movi_d(rn(reg), i0);
     dr(cc, r0, r1, rn(reg));
     jit_unget_reg(reg);
@@ -731,7 +731,7 @@ _bfi(jit_state_t *_jit, jit_int32_t cc,
      jit_word_t i0, jit_int32_t r0, jit_float32_t *i1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi_f(rn(reg), i1);
     bfr(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -742,7 +742,7 @@ _bdi(jit_state_t *_jit, jit_int32_t cc,
      jit_word_t i0, jit_int32_t r0, jit_float64_t *i1)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi_d(rn(reg), i1);
     bdr(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -754,7 +754,7 @@ _bfi_p(jit_state_t *_jit, jit_int32_t cc,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi_f(rn(reg), i1);
     w = bfr_p(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -767,7 +767,7 @@ _bdi_p(jit_state_t *_jit, jit_int32_t cc,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi_d(rn(reg), i1);
     w = bdr_p(cc, i0, r0, rn(reg));
     jit_unget_reg(reg);
@@ -798,7 +798,7 @@ _buneqi(jit_state_t *_jit, jit_int32_t db,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     if (db)
 	movi_d(rn(reg), (jit_float64_t *)i1);
     else
@@ -832,7 +832,7 @@ _bltgti(jit_state_t *_jit, jit_int32_t db,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_fpr);
+    reg = jit_get_reg(jit_class_fpr|jit_class_nospill);
     if (db)
 	movi_d(rn(reg), (jit_float64_t *)i1);
     else
@@ -862,7 +862,7 @@ _movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 	LZER(r0);
     else if (_jitc->no_data) {
 	data.f = *i0;
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), data.i & 0xffffffff);
 	stxi_i(-4, _FP_REGNO, rn(reg));
 	jit_unget_reg_but_zero(reg);
@@ -892,7 +892,7 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 	LZDR(r0);
     else if (_jitc->no_data) {
 	data.d = *i0;
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), data.l);
 	stxi_l(-8, _FP_REGNO, rn(reg));
 	jit_unget_reg_but_zero(reg);
@@ -1018,7 +1018,7 @@ static void
 _ldi_f(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movi(rn(reg), i0);
     ldr_f(r0, rn(reg));
     jit_unget_reg_but_zero(reg);
@@ -1028,7 +1028,7 @@ static void
 _ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movi(rn(reg), i0);
     ldr_d(r0, rn(reg));
     jit_unget_reg_but_zero(reg);
@@ -1038,7 +1038,7 @@ static void
 _ldxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r1);
     AGR(rn(reg), r2);
     ldr_f(r0, rn(reg));
@@ -1049,7 +1049,7 @@ static void
 _ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r1);
     AGR(rn(reg), r2);
     ldr_d(r0, rn(reg));
@@ -1065,7 +1065,7 @@ _ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else if (s20_p(i0))
 	LEY(r0, x20(i0), 0, r1);
     else {
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
 	AGR(rn(reg), r1);
 	ldr_f(r0, rn(reg));
@@ -1082,7 +1082,7 @@ _ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else if (s20_p(i0))
 	LDY(r0, x20(i0), 0, r1);
     else {
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
 	AGR(rn(reg), r1);
 	ldr_d(r0, rn(reg));
@@ -1094,7 +1094,7 @@ static void
 _sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movi(rn(reg), i0);
     str_f(rn(reg), r0);
     jit_unget_reg_but_zero(reg);
@@ -1104,7 +1104,7 @@ static void
 _sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movi(rn(reg), i0);
     str_d(rn(reg), r0);
     jit_unget_reg_but_zero(reg);
@@ -1114,7 +1114,7 @@ static void
 _stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r0);
     AGR(rn(reg), r1);
     str_f(rn(reg), r2);
@@ -1125,7 +1125,7 @@ static void
 _stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg_but_zero();
+    reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r0);
     AGR(rn(reg), r1);
     str_d(rn(reg), r2);
@@ -1141,7 +1141,7 @@ _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     else if (s20_p(i0))
 	STEY(r1, x20(i0), 0, r0);
     else {
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
 	AGR(rn(reg), r0);
 	str_f(rn(reg), r1);
@@ -1158,7 +1158,7 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     else if (s20_p(i0))
 	STDY(r1, x20(i0), 0, r0);
     else {
-	reg = jit_get_reg_but_zero();
+	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
 	AGR(rn(reg), r0);
 	str_d(rn(reg), r1);

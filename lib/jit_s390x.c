@@ -30,8 +30,8 @@
 static jit_int32_t _jit_get_reg_pair(jit_state_t*);
 #define jit_unget_reg_pair(regno)	_jit_unget_reg_pair(_jit,regno)
 static void _jit_unget_reg_pair(jit_state_t*,jit_int32_t);
-#define jit_get_reg_but_zero()		_jit_get_reg_but_zero(_jit)
-static jit_int32_t _jit_get_reg_but_zero(jit_state_t*);
+#define jit_get_reg_but_zero(flags)	_jit_get_reg_but_zero(_jit,flags)
+static jit_int32_t _jit_get_reg_but_zero(jit_state_t*,jit_int32_t);
 #define jit_unget_reg_but_zero(reg)	jit_unget_reg(reg)
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
@@ -1239,12 +1239,12 @@ _jit_unget_reg_pair(jit_state_t *_jit, jit_int32_t reg)
 }
 
 static jit_int32_t
-_jit_get_reg_but_zero(jit_state_t *_jit)
+_jit_get_reg_but_zero(jit_state_t *_jit, jit_int32_t flags)
 {
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     if (reg == _R0) {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|flags);
 	jit_unget_reg(_R0);
     }
     return (reg);

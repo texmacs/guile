@@ -395,7 +395,8 @@ _x87_b##name##i_##type(jit_state_t *_jit,				\
 		       jit_float##size##_t *i1)				\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr);		\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|		\
+					  jit_class_nospill);		\
     assert(jit_x87_reg_p(reg));						\
     x87_movi_##type(rn(reg), i1);					\
     word = x87_b##name##r_##type(i0, r0, rn(reg));			\

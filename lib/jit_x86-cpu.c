@@ -3089,7 +3089,7 @@ _boaddi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jo(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (boaddr(i0, r0, rn(reg)));
@@ -3112,7 +3112,7 @@ _boaddi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jc(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (boaddr_u(i0, r0, rn(reg)));
@@ -3135,7 +3135,7 @@ _bxaddi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jno(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bxaddr(i0, r0, rn(reg)));
@@ -3158,7 +3158,7 @@ _bxaddi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jnc(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bxaddr_u(i0, r0, rn(reg)));
@@ -3181,7 +3181,7 @@ _bosubi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jo(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bosubr(i0, r0, rn(reg)));
@@ -3204,7 +3204,7 @@ _bosubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jc(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bosubr_u(i0, r0, rn(reg)));
@@ -3227,7 +3227,7 @@ _bxsubi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jno(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bxsubr(i0, r0, rn(reg)));
@@ -3250,7 +3250,7 @@ _bxsubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	jnc(i0);
 	return (_jit->pc.w);
     }
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     jit_unget_reg(reg);
     return (bxsubr_u(i0, r0, rn(reg)));

@@ -2294,7 +2294,7 @@ _bcmpi(jit_state_t *_jit, jit_word_t c, jit_word_t ci,
 	CMPIB_N_(ci, i1, r0, ((i0 - w) >> 2) - 2);
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = _jit->pc.w;
 	CMPB_N_(c, r0, rn(reg), ((i0 - w) >> 2) - 2);
@@ -2310,7 +2310,7 @@ _bmxr(jit_state_t *_jit, jit_bool_t c,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     andr(rn(reg), r0, r1);
     w = c ? bnei(i0, rn(reg), 0) : beqi(i0, rn(reg), 0);
     jit_unget_reg(reg);
@@ -2323,7 +2323,7 @@ _bmxi(jit_state_t *_jit, jit_bool_t c,
 {
     jit_word_t		w;
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     movi(rn(reg), i1);
     andr(rn(reg), r0, rn(reg));
     w = c ? bnei(i0, rn(reg), 0) : beqi(i0, rn(reg), 0);
@@ -2352,7 +2352,7 @@ _boaddi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = boaddr(i0, r0, rn(reg));
 	jit_unget_reg(reg);
@@ -2381,7 +2381,7 @@ _boaddi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = boaddr_u(i0, r0, rn(reg));
 	jit_unget_reg(reg);
@@ -2410,7 +2410,7 @@ _bxaddi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = bxaddr(i0, r0, rn(reg));
 	jit_unget_reg(reg);
@@ -2439,7 +2439,7 @@ _bxaddi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	NOP();
     }
     else {
-	reg = jit_get_reg(jit_class_gpr);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
 	movi(rn(reg), i1);
 	w = bxaddr_u(i0, r0, rn(reg));
 	jit_unget_reg(reg);

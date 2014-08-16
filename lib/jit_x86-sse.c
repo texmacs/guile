@@ -442,7 +442,8 @@ _sse_b##name##i_##type(jit_state_t *_jit,				\
 		       jit_float##size##_t *i1)				\
 {									\
     jit_word_t		word;						\
-    jit_int32_t		reg = jit_get_reg(jit_class_fpr|jit_class_xpr);	\
+    jit_int32_t		reg = jit_get_reg(jit_class_fpr|jit_class_xpr|	\
+					  jit_class_nospill);		\
     assert(jit_sse_reg_p(reg));						\
     sse_movi_##type(rn(reg), i1);					\
     word = sse_b##name##r_##type(i0, r0, rn(reg));			\
