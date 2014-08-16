@@ -1,5 +1,11 @@
 2014-08-16 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_alpha.c: Correct wrong bitmask of most argument
+	float register arguments, that were being set as callee
+	save instead of argument registers class.
+
+2014-08-16 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_arm-sz.c: Regenerate table of known maximum
 	instruction sizes for the software float fallback,
 	that implements "virtual" float registers in the stack
