@@ -1,4 +1,11 @@
 @ifnottex
+@dircategory Software development
+@direntry
+* lightning: (lightning).       Library for dynamic code generation.
+@end direntry
+@end ifnottex
+
+@ifnottex
 @node Top
 @top @lightning{}
 

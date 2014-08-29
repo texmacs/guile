@@ -1,3 +1,10 @@
+2014-08-29 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Add a proper info menu entry for
+	GNU lightning.
+
+	* doc/version.texi: Regenerate.
+
 2014-08-16 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-cpu.c, lib/jit_aarch64-fpu.c,
