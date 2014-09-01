@@ -1,3 +1,10 @@
+2014-09-01 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Do not mark all registers in unknown state
+	as live on jit_jmpr, or jit_jmpi to an absolute address. Instead,
+	treat it as a function call, and only consider JIT_Vn registers
+	as possibly live.
+
 2014-08-29 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Add a proper info menu entry for

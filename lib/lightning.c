@@ -2006,6 +2006,7 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	    jit_regset_t *live, jit_regset_t *mask)
 {
     jit_int32_t		 spec;
+    jit_int32_t		 regno;
     jit_regset_t	 ztmp;
     jit_regset_t	 zmask;
     unsigned long	 value;
@@ -2164,6 +2165,32 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			    jit_regset_and(mask, mask, &ztmp);
 			}
 			continue;
+		    }
+		    /* Should not really mark as live all registers in unknown
+		     * state if using jit_jmpr(), or jit_jmpi(absolute_address)
+		     * because that would leave the register allocator with
+		     * no options for "nospill" temporaries (other temporaries
+		     * also benefit from not needing to spill/reload), so, the
+		     * user must ensure to either spill/reload, or only leave
+		     * live registers on JIT_Vn if using a jump that cannot
+		     * be tracked around the generated jit code */
+		    for (spec = JIT_R_NUM - 1; spec >= 0; spec--) {
+			regno = jit_r(spec);
+			if (jit_regset_tstbit(mask, regno))
+			    jit_regset_clrbit(mask, regno);
+		    }
+		    for (spec = JIT_F_NUM - 1; spec >= 0; spec--) {
+			regno = jit_f(spec);
+			if (jit_regset_tstbit(mask, regno))
+			    jit_regset_clrbit(mask, regno);
+		    }
+		    /* In some backends JIT_Rn and JIT_Fn are callee save */
+		    for (regno = 0; regno < _jitc->reglen; regno++) {
+			spec = jit_class(_rvs[regno].spec);
+			if (jit_regset_tstbit(mask, regno) &&
+			    (spec & (jit_class_gpr|jit_class_fpr)) &&
+			    !(spec & jit_class_sav))
+			    jit_regset_clrbit(mask, regno);
 		    }
 		    /* assume value is live due to jump to unknown location */
 		    jit_regset_ior(live, live, mask);
