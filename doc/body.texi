@@ -1036,7 +1036,7 @@ Source code for the client (which lies in the same source file) follows:
 @example
 int main(int argc, char *argv[])
 @{
-  jit_note_t *nc, *nf;
+  jit_node_t *nc, *nf;
   pifi c2f, f2c;
   int i;
 
