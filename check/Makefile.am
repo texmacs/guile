@@ -77,6 +77,7 @@ EXTRA_DIST =				\
 	carry.tst	carry.ok	\
 	call.tst	call.ok		\
 	float.tst	float.ok	\
+	jmpr.tst	jmpr.ok		\
 	qalu.inc			\
 	qalu_mul.tst	qalu_mul.ok	\
 	qalu_div.tst	qalu_div.ok	\
@@ -104,7 +105,7 @@ base_TESTS =				\
 	fop_abs fop_sqrt		\
 	varargs stack			\
 	clobber carry call		\
-	float				\
+	float jmpr			\
 	qalu_mul qalu_div		\
 	ret
 
@@ -131,7 +132,7 @@ x87_TESTS =					\
 	fop_abs.x87 fop_sqrt.x87		\
 	varargs.x87 stack.x87			\
 	clobber.x87 carry.x87 call.x87		\
-	float.x87
+	float.x87 jmpr.x87
 $(x87_TESTS):	check.x87.sh
 	$(LN_S) $(srcdir)/check.x87.sh $@
 TESTS += $(x87_TESTS)
@@ -153,7 +154,7 @@ x87_nodata_TESTS =							\
 	fop_abs.x87.nodata fop_sqrt.x87.nodata				\
 	varargs.x87.nodata stack.x87.nodata				\
 	clobber.x87.nodata carry.x87.nodata call.x87.nodata		\
-	float.x87.nodata
+	float.x87.nodata jmpr.x87.nodata
 $(x87_nodata_TESTS):	check.x87.nodata.sh
 	$(LN_S) $(srcdir)/check.x87.nodata.sh $@
 TESTS += $(x87_nodata_TESTS)
@@ -177,7 +178,7 @@ arm_TESTS =					\
 	fop_abs.arm fop_sqrt.arm		\
 	varargs.arm stack.arm			\
 	clobber.arm carry.arm call.arm		\
-	float.arm
+	float.arm jmpr.arm
 $(arm_TESTS):	check.arm.sh
 	$(LN_S) $(srcdir)/check.arm.sh $@
 TESTS += $(arm_TESTS)
@@ -201,7 +202,7 @@ swf_TESTS =					\
 	fop_abs.swf fop_sqrt.swf		\
 	varargs.swf stack.swf			\
 	clobber.swf carry.swf call.swf		\
-	float.swf
+	float.swf jmpr.arm
 $(swf_TESTS):	check.swf.sh
 	$(LN_S) $(srcdir)/check.swf.sh $@
 TESTS += $(swf_TESTS)
@@ -225,7 +226,7 @@ nodata_TESTS =						\
 	fop_abs.nodata fop_sqrt.nodata			\
 	varargs.nodata stack.nodata			\
 	clobber.nodata carry.nodata call.nodata		\
-	float.nodata
+	float.nodata jmpr.nodata
 $(nodata_TESTS):	check.nodata.sh
 	$(LN_S) $(srcdir)/check.nodata.sh $@
 TESTS += $(nodata_TESTS)

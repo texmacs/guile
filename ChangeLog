@@ -1,3 +1,20 @@
+2014-09-07 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Mark all registers advertised as live, as
+	per jit_callee_save_p as live whenever reaching a jump that
+	cannot be tracked. This is a rethink of the previous commit,
+	and is a better approach, otherwise there would not be much
+	sense on relying on jit_callee_save_p if it could not be
+	trusted.
+
+	* check/jmpr.tst, check/jmpr.ok: New files implementing a very
+	simple test case, that would actually cause an assertion on
+	code before the change to only mark as live when reaching a
+	jump that could not tracked, the actually advertised as callee
+	save registers.
+
+	check/Makefile.am: Update for new jmpr test case.
+
 2014-09-01 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Do not mark all registers in unknown state
