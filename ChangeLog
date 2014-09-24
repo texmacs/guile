@@ -1,5 +1,14 @@
 2014-09-24 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_x86-sz.c: Generate information about instruction
+	lengths for more precise calculation of buffer size on
+	Windows x64. This change is specially important because
+	the maximum instruction length is larger than other
+	systems, what could cause an out of bounds write on
+	special conditions without this update.
+
+2014-09-24 Paulo Andrade <pcpa@gnu.org>
+
 	* check/lightning.c: Add workaround to conflicting global
 	optind variable in cygwin binutils that have an internal
 	getopt* implementation.
