@@ -18,6 +18,16 @@
  */
 
 #if PROTO
+#  define _XMM6_REGNO			6
+#  define _XMM7_REGNO			7
+#  define _XMM8_REGNO			8
+#  define _XMM9_REGNO			9
+#  define _XMM10_REGNO			10
+#  define _XMM11_REGNO			11
+#  define _XMM12_REGNO			12
+#  define _XMM13_REGNO			13
+#  define _XMM14_REGNO			14
+#  define _XMM15_REGNO			15
 #define X86_SSE_MOV			0x10
 #define X86_SSE_MOV1			0x11
 #define X86_SSE_MOVLP			0x12
@@ -457,7 +467,7 @@ _sse_b##name##i_##type(jit_state_t *_jit,				\
 static void
 _sser(jit_state_t *_jit, jit_int32_t c, jit_int32_t r0, jit_int32_t r1)
 {
-    rex(0, 0, r1, 0, r0);
+    rex(0, 0, r0, 0, r1);
     ic(0x0f);
     ic(c);
     mrm(0x03, r7(r0), r7(r1));

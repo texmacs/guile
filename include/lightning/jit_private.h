@@ -54,7 +54,11 @@
 #    define JIT_FRET		_ST0
 typedef jit_uint32_t		jit_regset_t;
 #  else
-#    define JIT_RA0		_RDI
+#    if __CYGWIN__
+#      define JIT_RA0		_RCX
+#    else
+#      define JIT_RA0		_RDI
+#    endif
 #    define JIT_FA0		_XMM0
 #    define JIT_FRET		_XMM0
 typedef jit_uint64_t		jit_regset_t;

@@ -39,10 +39,15 @@
 #    define can_sign_extend_int_p(im)					\
 	(((im) >= 0 && (long)(im) <=  0x7fffffffL) ||			\
 	 ((im) <  0 && (long)(im) >  -0x80000000L))
-#  define can_zero_extend_int_p(im)					\
-    ((im) >= 0 && (im) < 0x80000000L)
-#    define fits_uint32_p(im)		((im & 0xffffffff00000000L) == 0)
-#    define reg8_p(rn)			1
+#    define can_zero_extend_int_p(im)					\
+	((im) >= 0 && (im) < 0x80000000L)
+#    define fits_uint32_p(im)		(((im) & 0xffffffff00000000L) == 0)
+#    if __CYGWIN__
+#      define reg8_p(rn)						\
+	(r7(rn) >= _RAX_REGNO && r7(rn) <= _RBX_REGNO)
+#    else
+#      define reg8_p(rn)		1
+#    endif
 #  endif
 #  define _RAX_REGNO			0
 #  define _RCX_REGNO			1
@@ -60,8 +65,8 @@
 #  define _R13_REGNO			13
 #  define _R14_REGNO			14
 #  define _R15_REGNO			15
-#  define r7(reg)			(reg & 7)
-#  define r8(reg)			(reg & 15)
+#  define r7(reg)			((reg) & 7)
+#  define r8(reg)			((reg) & 15)
 #  define _SCL1				0x00
 #  define _SCL2				0x01
 #  define _SCL4				0x02
@@ -634,6 +639,9 @@ static void _prolog(jit_state_t*, jit_node_t*);
 static void _epilog(jit_state_t*, jit_node_t*);
 #  define patch_at(node, instr, label)	_patch_at(_jit, node, instr, label)
 static void _patch_at(jit_state_t*, jit_node_t*, jit_word_t, jit_word_t);
+#  if __WORDSIZE == 64 && !defined(HAVE_FFSL)
+static int ffsl(long);
+#  endif
 #endif
 
 #if CODE
@@ -1871,7 +1879,7 @@ _ci(jit_state_t *_jit,
 	reg = jit_get_reg(jit_class_gpr|jit_class_rg8);
 	ixorr(rn(reg), rn(reg));
 	icmpi(r1, i0);
-	cc(code, reg);
+	cc(code, rn(reg));
 	movr(r0, rn(reg));
 	jit_unget_reg(reg);
     }
@@ -2596,6 +2604,7 @@ _str_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     else {
 	reg = jit_get_reg(jit_class_gpr|jit_class_rg8);
 	movr(rn(reg), r1);
+	rex(0, 0, rn(reg), _NOREG, r0);
 	ic(0x88);
 	rx(rn(reg), 0, r0, _NOREG, _SCL1);
 	jit_unget_reg(reg);
@@ -2615,6 +2624,7 @@ _sti_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 	else {
 	    reg = jit_get_reg(jit_class_gpr|jit_class_rg8);
 	    movr(rn(reg), r0);
+	    rex(0, 0, rn(reg), _NOREG, _NOREG);
 	    ic(0x88);
 	    rx(rn(reg), i0, _NOREG, _NOREG, _SCL1);
 	    jit_unget_reg(reg);
@@ -2719,6 +2729,7 @@ _stxr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     else {
 	reg = jit_get_reg(jit_class_gpr|jit_class_rg8);
 	movr(rn(reg), r2);
+	rex(0, 0, rn(reg), r1, r0);
 	ic(0x88);
 	rx(rn(reg), 0, r0, r1, _SCL1);
 	jit_unget_reg(reg);
@@ -2738,6 +2749,7 @@ _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	else {
 	    reg = jit_get_reg(jit_class_gpr|jit_class_rg8);
 	    movr(rn(reg), r1);
+	    rex(0, 0, rn(reg), _NOREG, r0);
 	    ic(0x88);
 	    rx(rn(reg), i0, r0, _NOREG, _SCL1);
 	    jit_unget_reg(reg);
@@ -3310,14 +3322,18 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
-#if __WORDSIZE == 32
-    _jitc->function->stack = (((_jitc->function->self.alen -
-			       _jitc->function->self.aoff) + 15) & -16) + 12;
+#if __WORDSIZE == 64 && __CYGWIN__
+    _jitc->function->stack = (((/* first 32 bytes must be allocated */
+				(_jitc->function->self.alen > 32 ?
+				 _jitc->function->self.alen : 32) -
+				/* align stack at 16 bytes */
+				_jitc->function->self.aoff) + 15) & -16) +
+	stack_adjust;
 #else
     _jitc->function->stack = (((_jitc->function->self.alen -
-			       _jitc->function->self.aoff) + 15) & -16) + 8;
+			       _jitc->function->self.aoff) + 15) & -16) +
+	stack_adjust;
 #endif
-
     /* callee save registers */
     subi(_RSP_REGNO, _RSP_REGNO, stack_framesize - sizeof(jit_word_t));
 #if __WORDSIZE == 32
@@ -3328,6 +3344,42 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	stxi( 4, _RSP_REGNO, _RBX_REGNO);
 #else
+#  if __CYGWIN__
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM15))
+	sse_stxi_d(136, _RSP_REGNO, _XMM15_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM14))
+	sse_stxi_d(128, _RSP_REGNO, _XMM14_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM13))
+	sse_stxi_d(120, _RSP_REGNO, _XMM13_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM12))
+	sse_stxi_d(112, _RSP_REGNO, _XMM12_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM11))
+	sse_stxi_d(104, _RSP_REGNO, _XMM11_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM10))
+	sse_stxi_d(96, _RSP_REGNO, _XMM10_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM9))
+	sse_stxi_d(88, _RSP_REGNO, _XMM9_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM8))
+	sse_stxi_d(80, _RSP_REGNO, _XMM8_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM7))
+	sse_stxi_d(72, _RSP_REGNO, _XMM7_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM6))
+	sse_stxi_d(64, _RSP_REGNO, _XMM6_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R15))
+	stxi(56, _RSP_REGNO, _R15_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R14))
+	stxi(48, _RSP_REGNO, _R14_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R13))
+	stxi(40, _RSP_REGNO, _R13_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R12))
+	stxi(32, _RSP_REGNO, _R12_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RSI))
+	stxi(24, _RSP_REGNO, _RSI_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RDI))
+	stxi(16, _RSP_REGNO, _RDI_REGNO);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
+	stxi( 8, _RSP_REGNO, _RBX_REGNO);
+#  else
     if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	stxi(40, _RSP_REGNO, _RBX_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _R12))
@@ -3338,6 +3390,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi(16, _RSP_REGNO, _R14_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _R15))
 	stxi( 8, _RSP_REGNO, _R15_REGNO);
+#  endif
 #endif
     stxi(0, _RSP_REGNO, _RBP_REGNO);
     movr(_RBP_REGNO, _RSP_REGNO);
@@ -3359,6 +3412,42 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO,  4);
 #else
+#  if __CYGWIN__
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM15))
+	sse_ldxi_d(_XMM15_REGNO, _RSP_REGNO, 136);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM14))
+	sse_ldxi_d(_XMM14_REGNO, _RSP_REGNO, 128);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM13))
+	sse_ldxi_d(_XMM13_REGNO, _RSP_REGNO, 120);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM12))
+	sse_ldxi_d(_XMM12_REGNO, _RSP_REGNO, 112);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM11))
+	sse_ldxi_d(_XMM11_REGNO, _RSP_REGNO, 104);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM10))
+	sse_ldxi_d(_XMM10_REGNO, _RSP_REGNO, 96);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM9))
+	sse_ldxi_d(_XMM9_REGNO, _RSP_REGNO, 88);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM8))
+	sse_ldxi_d(_XMM8_REGNO, _RSP_REGNO, 80);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM7))
+	sse_ldxi_d(_XMM7_REGNO, _RSP_REGNO, 72);
+    if (jit_regset_tstbit(&_jitc->function->regset, _XMM6))
+	sse_ldxi_d(_XMM6_REGNO, _RSP_REGNO, 64);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R15))
+	ldxi(_R15_REGNO, _RSP_REGNO, 56);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R14))
+	ldxi(_R14_REGNO, _RSP_REGNO, 48);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R13))
+	ldxi(_R13_REGNO, _RSP_REGNO, 40);
+    if (jit_regset_tstbit(&_jitc->function->regset, _R12))
+	ldxi(_R12_REGNO, _RSP_REGNO, 32);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RSI))
+	ldxi(_RSI_REGNO, _RSP_REGNO, 24);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RDI))
+	ldxi(_RDI_REGNO, _RSP_REGNO, 16);
+    if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
+	ldxi(_RBX_REGNO, _RSP_REGNO,  8);
+#  else
     if (jit_regset_tstbit(&_jitc->function->regset, _RBX))
 	ldxi(_RBX_REGNO, _RSP_REGNO, 40);
     if (jit_regset_tstbit(&_jitc->function->regset, _R12))
@@ -3369,6 +3458,7 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 	ldxi(_R14_REGNO, _RSP_REGNO, 16);
     if (jit_regset_tstbit(&_jitc->function->regset, _R15))
 	ldxi(_R15_REGNO, _RSP_REGNO,  8);
+#  endif
 #endif
     ldxi(_RBP_REGNO, _RSP_REGNO, 0);
     addi(_RSP_REGNO, _RSP_REGNO, stack_framesize - sizeof(jit_word_t));
@@ -3392,4 +3482,23 @@ _patch_at(jit_state_t *_jit, jit_node_t *node,
 	    break;
     }
 }
+
+#  if __WORDSIZE == 64 && !defined(HAVE_FFSL)
+static int
+ffsl(long i)
+{
+    int		bit;
+#    if __CYGWIN__
+    /* Bug workaround */
+    if ((int)i == (int)0x80000000)
+	bit = 32;
+    else
+#    endif
+    if ((bit = ffs((int)i)) == 0) {
+	if ((bit = ffs((int)((unsigned long)i >> 32))))
+	    bit += 32;
+    }
+    return (bit);
+}
+#  endif
 #endif

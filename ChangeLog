@@ -1,3 +1,31 @@
+2014-09-24 Paulo Andrade <pcpa@gnu.org>
+
+        * check/lightning.c: Add a hopefully temporary kludge to not use
+	sprintf and sscanf returned by dlsym. This is required to pass
+	the varargs test.
+
+        * include/lightning/jit_private.h: Use symbolic name for first
+	integer register argument, as this is different in sysv and
+	win64 abi.
+
+        * include/lightning/jit_x86.h: Add conditionals and definitions
+	for Windows x64 (under __CYGWIN__ preprocessor conditional).
+
+        * lib/jit_x86-cpu.c: Correct one instruction encoding bug, that
+	was working by accident. Only use rax to rdx for some byte
+	operations to work on compatibility mode (that is, to generate
+	the proper encoding, instead of actually generating encoding
+	for high byte registers, e.g. %bh).
+	Add proper prolog and epilog for windows x64.
+
+        * lib/jit_x86-sse.c: Correct a swapped rex prefix for float
+	operations.
+
+        * lib/jit_x86.c: Adjust to support Windows x64 abi.
+
+	* check/check.x87.nodata.sh: New file, previously used but that
+	was missing git.
+
 2014-09-07 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Mark all registers advertised as live, as

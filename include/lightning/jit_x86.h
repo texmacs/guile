@@ -60,37 +60,89 @@ typedef enum {
     _XMM0,	_XMM1,	_XMM2,	_XMM3,	_XMM4,	_XMM5,	_XMM6,	 _XMM7,
 #  define jit_sse_reg_p(reg)	((reg) >= _XMM0 && (reg) <= _XMM7)
 #else
-#  define jit_arg_reg_p(i)	((i) >= 0 && (i) < 6)
-#  define jit_r(i)		(_RAX + (i))
-#  define jit_r_num()		4
-#  define jit_v(i)		(_RBX + (i))
-#  define jit_v_num()		4
-#  define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
-#  define jit_f(index)		(_XMM8 + (index))
-#  define jit_f_num()		8
-#  define JIT_R0		_RAX
-#  define JIT_R1		_R10
-#  define JIT_R2		_R11
-#  define JIT_R3		_R12
+#  if __CYGWIN__
+#    define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
+#    define jit_r(i)		(_RAX + (i))
+#    define jit_r_num()		3
+#    define jit_v(i)		(_RBX + (i))
+#    define jit_v_num()		7
+#    define jit_arg_f_reg_p(i)	jit_arg_reg_p(i)
+#    define jit_f(index)	(_XMM4 + (index))
+#    define jit_f_num()		12
+#    define JIT_R0		_RAX
+#    define JIT_R1		_R10
+#    define JIT_R2		_R11
+#    define JIT_V0		_RBX
+#    define JIT_V1		_RDI
+#    define JIT_V2		_RSI
+#    define JIT_V3		_R12
+#    define JIT_V4		_R13
+#    define JIT_V5		_R14
+#    define JIT_V6		_R15
+    /* Volatile - Return value register */
+    _RAX,
+    /* Volatile */
+    _R10,	_R11,
+    /* Nonvolatile */
+    _RBX,	_RDI,	_RSI,
+    _R12,	_R13,	_R14,	_R15,
+    /* Volatile - Integer arguments (4 to 1) */
+    _R9,	_R8,	_RDX,	_RCX,
+    /* Nonvolatile */
+    _RSP,	_RBP,
+#    define JIT_F0		_XMM4
+#    define JIT_F1		_XMM5
+#    define JIT_F2		_XMM6
+#    define JIT_F3		_XMM7
+#    define JIT_F4		_XMM8
+#    define JIT_F5		_XMM9
+#    define JIT_F6		_XMM10
+#    define JIT_F7		_XMM11
+#    define JIT_F8		_XMM12
+#    define JIT_F9		_XMM13
+#    define JIT_F10		_XMM14
+#    define JIT_F11		_XMM15
+    /* Volatile */
+    _XMM4,	_XMM5,
+    /* Nonvolatile */
+    _XMM6,	_XMM7,	_XMM8,	_XMM9,	_XMM10,
+    _XMM11,	_XMM12, _XMM13,	_XMM14,	_XMM15,
+    /* Volatile - FP arguments (4 to 1) */
+    _XMM3,	_XMM2,	_XMM1,	_XMM0,
+#    define jit_sse_reg_p(reg)	((reg) >= _XMM4 && (reg) <= _XMM0)
+#  else
+#    define jit_arg_reg_p(i)	((i) >= 0 && (i) < 6)
+#    define jit_r(i)		(_RAX + (i))
+#    define jit_r_num()		4
+#    define jit_v(i)		(_RBX + (i))
+#    define jit_v_num()		4
+#    define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
+#    define jit_f(index)	(_XMM8 + (index))
+#    define jit_f_num()		8
+#    define JIT_R0		_RAX
+#    define JIT_R1		_R10
+#    define JIT_R2		_R11
+#    define JIT_R3		_R12
     _RAX,	_R10,	_R11,	_R12,
-#  define JIT_V0		_RBX
-#  define JIT_V1		_R13
-#  define JIT_V2		_R14
-#  define JIT_V3		_R15
+#    define JIT_V0		_RBX
+#    define JIT_V1		_R13
+#    define JIT_V2		_R14
+#    define JIT_V3		_R15
     _RBX,	_R13,	_R14,	_R15,
     _R9,	_R8,	_RCX,	_RDX,	_RSI,	_RDI,
     _RSP,	_RBP,
-#  define JIT_F0		_XMM8
-#  define JIT_F1		_XMM9
-#  define JIT_F2		_XMM10
-#  define JIT_F3		_XMM11
-#  define JIT_F4		_XMM12
-#  define JIT_F5		_XMM13
-#  define JIT_F6		_XMM14
-#  define JIT_F7		_XMM15
+#    define JIT_F0		_XMM8
+#    define JIT_F1		_XMM9
+#    define JIT_F2		_XMM10
+#    define JIT_F3		_XMM11
+#    define JIT_F4		_XMM12
+#    define JIT_F5		_XMM13
+#    define JIT_F6		_XMM14
+#    define JIT_F7		_XMM15
     _XMM8,	_XMM9,	_XMM10,	_XMM11,	_XMM12,	_XMM13,	_XMM14,	_XMM15,
     _XMM7,	_XMM6,	_XMM5,	_XMM4,	_XMM3,	_XMM2,	_XMM1,	_XMM0,
-#  define jit_sse_reg_p(reg)	((reg) >= _XMM8 && (reg) <= _XMM0)
+#    define jit_sse_reg_p(reg)	((reg) >= _XMM8 && (reg) <= _XMM0)
+#  endif
 #endif
     _ST0,	_ST1,	_ST2,	_ST3,	_ST4,	_ST5,	_ST6,	_ST7,
 #  define JIT_NOREG		_NOREG
