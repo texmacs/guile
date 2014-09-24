@@ -1,5 +1,14 @@
 2014-09-24 Paulo Andrade <pcpa@gnu.org>
 
+	* check/lightning.c: Add workaround to conflicting global
+	optind variable in cygwin binutils that have an internal
+	getopt* implementation.
+
+	* lib/jit_x86-cpu.c: Add a simple define ffsl ffs if building
+	for 32 bit and there is no ffsl function.
+
+2014-09-24 Paulo Andrade <pcpa@gnu.org>
+
         * check/lightning.c: Add a hopefully temporary kludge to not use
 	sprintf and sscanf returned by dlsym. This is required to pass
 	the varargs test.

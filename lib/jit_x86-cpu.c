@@ -639,8 +639,12 @@ static void _prolog(jit_state_t*, jit_node_t*);
 static void _epilog(jit_state_t*, jit_node_t*);
 #  define patch_at(node, instr, label)	_patch_at(_jit, node, instr, label)
 static void _patch_at(jit_state_t*, jit_node_t*, jit_word_t, jit_word_t);
-#  if __WORDSIZE == 64 && !defined(HAVE_FFSL)
+#  if !defined(HAVE_FFSL)
+#    if __WORDSIZE == 32
+#      define ffsl(i)			ffs(i)
+#    else
 static int ffsl(long);
+#    endif
 #  endif
 #endif
 
