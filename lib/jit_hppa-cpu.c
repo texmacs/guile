@@ -640,6 +640,8 @@ static void _f38(jit_state_t*,jit_int32_t,
 #define UADDCM(r1,r2,t)		f8(0x2,r2,r1,ADD_CF_NV,2,0,1,2,0,t)
 #define UXOR(r1,r2,t)		f8(0x2,r2,r1,LOG_CC_NV,0,1,1,2,0,t)
 #define XOR(r1,r2,t)		f8(0x2,r2,r1,LOG_CC_NV,0,1,0,2,0,t)
+#  define nop(c)			_nop(_jit,c)
+static void _nop(jit_state_t*,jit_int32_t);
 #define movr(r0,r1)		_movr(_jit,r0,r1)
 static void _movr(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movi(r0,i0)		_movi(_jit,r0,i0)
@@ -1583,6 +1585,14 @@ _f38(jit_state_t *_jit, jit_int32_t o,
     assert(!(u &      ~0x7));
     assert(!(n &      ~0x1));
     ii((o<<26)|((s>>5)<<9)|(u<<6)|(n<<1)|(s&0x1f));
+}
+
+static void
+_nop(jit_state_t *_jit, jit_int32_t i0)
+{
+    for (; i0 > 0; i0 -= 4)
+	NOP();
+    assert(i0 == 0);
 }
 
 static void

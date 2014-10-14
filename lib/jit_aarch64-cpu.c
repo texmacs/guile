@@ -467,6 +467,7 @@ typedef union {
 #  define B_C(Cc,Simm19)		oc19(A64_B_C,Cc,Simm19)
 #  define CBZ(Rd,Simm19)		ox19(A64_CBZ|XS,Rd,Simm19)
 #  define CBNZ(Rd,Simm19)		ox19(A64_CBNZ|XS,Rd,Simm19)
+#  define NOP()				ii(0xd503201f)
 static jit_int32_t logical_immediate(jit_word_t);
 #  define oxxx(Op,Rd,Rn,Rm)		_oxxx(_jit,Op,Rd,Rn,Rm)
 static void _oxxx(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
@@ -499,6 +500,8 @@ static void _oxxxc(jit_state_t*,jit_int32_t,jit_int32_t,
 #  define oxxx7(Op,Rt,Rt2,Rn,Simm7)	_oxxx7(_jit,Op,Rt,Rt2,Rn,Simm7)
 static void _oxxx7(jit_state_t*,jit_int32_t,
 		   jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+#  define nop(i0)			_nop(_jit,i0)
+static void _nop(jit_state_t*,jit_int32_t);
 #  define addr(r0,r1,r2)		ADD(r0,r1,r2)
 #  define addi(r0,r1,i0)		_addi(_jit,r0,r1,i0)
 static void _addi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
@@ -1008,6 +1011,14 @@ _oxxx7(jit_state_t *_jit, jit_int32_t Op,
     i.Rn.b = Rn;
     i.imm7.b = Simm7;
     ii(i.w);
+}
+
+static void
+_nop(jit_state_t *_jit, jit_int32_t i0)
+{
+    for (; i0 > 0; i0 -= 4)
+	NOP();
+    assert(i0 == 0);
 }
 
 static void

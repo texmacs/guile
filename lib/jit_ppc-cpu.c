@@ -451,6 +451,8 @@ static void _FXS(jit_state_t*,int,int,int,int,int,int,int);
 #  define XOR_(d,a,b)			FXO_(31,a,d,b,0,316)
 #  define XORI(s,a,u)			FDu(26,s,a,u)
 #  define XORIS(s,a,u)			FDu(27,s,a,u)
+#  define nop(c)			_nop(_jit,c)
+static void _nop(jit_state_t*,jit_int32_t);
 #  define movr(r0,r1)			_movr(_jit,r0,r1)
 static void _movr(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi(r0,i0)			_movi(_jit,r0,i0)
@@ -975,6 +977,14 @@ _FXS(jit_state_t *_jit, int o, int s, int a, int h, int x, int i, int r)
     ii((o<<26)|(s<<21)|(a<<16)|(h<<11)|(x<<2)|(i<<1)|r);
 }
 #endif
+
+static void
+_nop(jit_state_t *_jit, jit_int32_t i0)
+{
+    for (; i0 > 0; i0 -= 4)
+	NOP();
+    assert(i0 == 0);
+}
 
 static void
 _movr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)

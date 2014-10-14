@@ -9,6 +9,7 @@
     0,
     0,
     0,
+    0,
     26,
     0,
     4,
@@ -354,6 +355,7 @@
 #if __WORDSIZE == 32
 #if !defined(__ARM_PCS_VFP)
 #define JIT_INSTR_MAX 90
+    0,
     0,
     0,
     0,

@@ -833,7 +833,7 @@ static void _torl(jit_state_t*,int,int,int) maybe_unused;
 	jit_unget_reg(_R0);						\
     } while (0)
 #  define nop(i0)			_nop(_jit,i0)
-static void _nop(jit_state_t*,jit_word_t) maybe_unused;
+static void _nop(jit_state_t*,jit_int32_t);
 #  define movr(r0,r1)			_movr(_jit,r0,r1)
 static void _movr(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi(r0,i0)			_movi(_jit,r0,i0)
@@ -1498,9 +1498,8 @@ _torl(jit_state_t *_jit, int o, int rn, int im)
 }
 
 static void
-_nop(jit_state_t *_jit, jit_word_t i0)
+_nop(jit_state_t *_jit, jit_int32_t i0)
 {
-    assert(i0 >= 0);
     if (jit_thumb_p()) {
 	for (; i0 > 0; i0 -= 2)
 	    T1_NOP();
@@ -1509,6 +1508,7 @@ _nop(jit_state_t *_jit, jit_word_t i0)
 	for (; i0 > 0; i0 -= 4)
 	    NOP();
     }
+    assert(i0 == 0);
 }
 
 static void

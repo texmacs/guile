@@ -267,7 +267,7 @@ static void call_forward(void *value, label_t *label);
 static void make_arg(void *value);
 static jit_pointer_t get_arg(void);
 static long get_imm(void);
-static void name(void);
+static void align(void);	static void name(void);
 static void prolog(void);
 static void frame(void);	static void tramp(void);
 static void ellipsis(void);
@@ -567,7 +567,7 @@ static char		 *data;
 static size_t		  data_offset, data_length;
 static instr_t		  instr_vector[] = {
 #define entry(value)	{ NULL, #value, value }
-    entry(name),
+    entry(align),	entry(name),
     entry(prolog),
     entry(frame),	entry(tramp),
     entry(ellipsis),
@@ -1324,6 +1324,7 @@ name(void) {
     (void)identifier(ch);
     jit_name(parser.string);
 }
+entry_im(align)
 entry(prolog)
 entry_im(frame)			entry_im(tramp)
 entry(ellipsis)

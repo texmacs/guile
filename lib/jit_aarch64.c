@@ -717,6 +717,13 @@ _emit_code(jit_state_t *_jit)
 	value = jit_classify(node->code);
 	jit_regarg_set(node, value);
 	switch (node->code) {
+	    case jit_code_align:
+		assert(!(node->u.w & (node->u.w - 1)) &&
+		       node->u.w <= sizeof(jit_word_t));
+		if (node->u.w == sizeof(jit_word_t) &&
+		    (word = _jit->pc.w & (sizeof(jit_word_t) - 1)))
+		    nop(sizeof(jit_word_t) - word);
+		break;
 	    case jit_code_note:		case jit_code_name:
 		node->u.w = _jit->pc.w;
 		break;

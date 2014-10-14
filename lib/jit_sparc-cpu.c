@@ -809,8 +809,9 @@ _f1(jit_state_t *_jit, jit_int32_t op, jit_int32_t disp30)
 static void
 _nop(jit_state_t *_jit, jit_int32_t i0)
 {
-    while (i0--)
+    for (; i0 > 0; i0 -= 4)
 	NOP();
+    assert(i0 == 0);
 }
 
 static void

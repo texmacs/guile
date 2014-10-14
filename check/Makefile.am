@@ -39,6 +39,7 @@ $(top_builddir)/lib/liblightning.la:
 EXTRA_DIST =				\
 	3to2.tst	3to2.ok		\
 	add.tst		add.ok		\
+	align.tst	align.ok	\
 	allocai.tst	allocai.ok	\
 	bp.tst		bp.ok		\
 	divi.tst	divi.ok		\
@@ -91,7 +92,7 @@ EXTRA_DIST =				\
 	run-test	all.tst
 
 base_TESTS =				\
-	3to2 add allocai		\
+	3to2 add align allocai		\
 	bp divi fib rpn			\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
@@ -164,7 +165,7 @@ endif
 if test_arm_arm
 #arm_TESTS = $(addsuffix .arm, $(base_TESTS))
 arm_TESTS =					\
-	3to2.arm add.arm allocai.arm		\
+	3to2.arm add.arm align.arm allocai.arm	\
 	bp.arm divi.arm fib.arm rpn.arm		\
 	ldstr.arm ldsti.arm			\
 	ldstxr.arm ldstxi.arm			\

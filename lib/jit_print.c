@@ -38,7 +38,7 @@
  */
 static char *code_name[] = {
     "data",
-    "live",
+    "live",		"align",
     "save",		"load",
     "#name",		"#note",
     "label",

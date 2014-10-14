@@ -303,7 +303,8 @@ _hrrrit(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,
 static void _hrri(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define hi(hc,im)			_hi(_jit,hc,im)
 static void _hi(jit_state_t*,jit_int32_t,jit_int32_t);
-#  define NOP(i0)			_nop(_jit,i0)
+#  define NOP(i0)			ii(0)
+#  define nop(i0)			_nop(_jit,i0)
 static void _nop(jit_state_t*,jit_int32_t);
 #  define h_ri(hc,rt,im)		_hrri(_jit,hc,0,rt,im)
 #  define rrit(rt,rd,im,tc)		_hrrrit(_jit,0,0,rt,rd,im,tc)
@@ -769,8 +770,9 @@ _hi(jit_state_t *_jit, jit_int32_t hc, jit_int32_t im)
 static void
 _nop(jit_state_t *_jit, jit_int32_t i0)
 {
-    while (i0--)
-	ii(0);
+    for (; i0 > 0; i0 -= 4)
+	NOP();
+    assert(i0 == 0);
 }
 
 static void

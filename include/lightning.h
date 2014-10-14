@@ -177,7 +177,8 @@ typedef enum {
 #define jit_data(u,v,w)		_jit_data(_jit,u,v,w)
     jit_code_data,
 #define jit_live(u)		jit_new_node_w(jit_code_live, u)
-    jit_code_live,
+#define jit_align(u)		jit_new_node_w(jit_code_align, u)
+    jit_code_live,		jit_code_align,
     jit_code_save,		jit_code_load,
 #define jit_name(u)		_jit_name(_jit,u)
     jit_code_name,

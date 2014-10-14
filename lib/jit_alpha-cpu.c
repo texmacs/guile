@@ -303,6 +303,8 @@ static void _Opi(jit_state_t*,int,int,unsigned int,unsigned int,int);
 #  define NEGL(ra,rc)			SUBL(_R31_REGNO,ra,rc)
 #  define NEGQ(ra,rc)			SUBQ(_R31_REGNO,ra,rc)
 #  define NOT(ra,rc)			ORNOT(_R31_REGNO,ra,rc)
+#  define nop(i0)			_nop(_jit,i0)
+static void _nop(jit_state_t*,jit_int32_t);
 #  define movr(r0,r1)			_movr(_jit,r0,r1)
 static void _movr(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi(r0,i0)			_movi(_jit,r0,i0)
@@ -701,6 +703,14 @@ _Opi(jit_state_t *_jit, int o, int ra, unsigned int i, unsigned int f, int rc)
     assert(_u5_p(rc));
     assert(_u7_p(f));
     ii((o<<26)|(ra<<21)|(_u8(i)<<13)|(1<<12)|(_u7(f)<<5)|rc);
+}
+
+static void
+_nop(jit_state_t *_jit, jit_int32_t i0)
+{
+    for (; i0 > 0; i0 -= 4)
+	NOP();
+    assert(i0 == 0);
 }
 
 static void

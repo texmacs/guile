@@ -1,3 +1,31 @@
+2014-10-14 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64-cpu.c, lib/jit_alpha-cpu.c, lib/jit_arm-cpu.c,
+	lib/jit_hppa-cpu.c, lib/jit_mips-cpu.c, lib/jit_ppc-cpu.c,
+	lib/jit_sparc-cpu.c: Implement or correct the internal
+	nop(count) call that receives an argument that tells the
+	modulo bytes to align the code for the next instruction.
+
+	* include/lightning.h, lib/lightning.c, lib/jit_aarch64.c,
+	lib/jit_alpha.c, lib/jit_arm.c, lib/jit_hppa.c, lib/jit_ia64.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_s390x.c, lib/jit_sparc.c,
+	lib/jit_x86.c: Implement the new jit_align() call that receive
+	an argument, that tells the modulo, in bytes, to align the
+	next instruction. In most backends the only value that makes
+	a difference is a value that matches sizeof(void*), as all
+	other values usually are already automatically aligned in
+	labels, but not guaranteed to be aligned at word size bytes.
+
+	* check/align.ok, check/align.tst: New files, implementing
+	a simple test for the new jit_align() interface.
+
+	* check/Makefile.am, check/lightning.c, lib/jit_aarch64-sz.c,
+	lib/jit_alpha-sz.c, lib/jit_arm-sz.c, lib/jit_hppa-sz.c,
+	lib/jit_ia64-sz.c, lib/jit_mips-sz.c, lib/jit_ppc-sz.c,
+	lib/jit_print.c, lib/jit_s390x-sz.c, lib/jit_sparc-sz.c,
+	lib/jit_x86-sz.c: Update for the new jit_code_align code and
+	the jit_align() interface.
+
 2014-10-13 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/jit_size.c, size.c: Use a

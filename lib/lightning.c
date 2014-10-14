@@ -1177,9 +1177,9 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
     jit_int32_t		mask;
 
     switch (code) {
-	case jit_code_data:	case jit_code_save:	case jit_code_load:
-	case jit_code_name:	case jit_code_label:	case jit_code_note:
-	case jit_code_prolog:	case jit_code_epilog:
+	case jit_code_data:	case jit_code_align:	case jit_code_save:
+	case jit_code_load:	case jit_code_name:	case jit_code_label:
+	case jit_code_note:	case jit_code_prolog:	case jit_code_epilog:
 	    mask = 0;
 	    break;
 	case jit_code_live:
@@ -2395,7 +2395,8 @@ _redundant_jump(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 		    return (1);
 		}
 		break;
-	    case jit_code_note:
+	    case jit_code_name:		case jit_code_note:
+	    case jit_code_align:
 		break;
 	    default:
 		return (0);
