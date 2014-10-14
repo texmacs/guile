@@ -59,6 +59,8 @@ static jit_state_t		 *disasm_jit;
 void
 jit_init_debug(char *progname)
 {
+    if (progname == NULL)
+	return;
 #if DISASSEMBLER
     bfd_init();
 
@@ -197,7 +199,8 @@ void
 _jit_disassemble(jit_state_t *_jit)
 {
 #if DISASSEMBLER
-    disassemble(_jit->code.ptr, _jit->pc.uc - _jit->code.ptr);
+    if (disasm_bfd)
+	disassemble(_jit->code.ptr, _jit->pc.uc - _jit->code.ptr);
 #endif
 }
 
