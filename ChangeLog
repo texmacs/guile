@@ -1,3 +1,19 @@
+2014-09-29 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
+	lib/jit_hppa.c, lib/jit_ia64.c, lib/jit_mips.c,
+	lib/jit_ppc.c, lib/jit_s390x.c, lib/jit_sparc.c,
+	lib/jit_x86.c, lib/lightning.c: Allow jit_jmpi on a
+	target that is not a node. This may lead to hard to
+	debug code generation, but is a required feature for
+	certain generators, like the ones that used lightning
+	1.2x. Note that previously, but not really well
+	documented, it was instructed to use:
+	jit_movi(rn, addr); jit_jmpr(rn);
+	but now, plain:
+	jit_patch_abs(jit_jmpi(), addr);
+	should also work.
+
 2014-09-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86-sz.c: Generate information about instruction

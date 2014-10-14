@@ -1385,15 +1385,19 @@ _emit_code(jit_state_t *_jit)
 		flush_consts();
 		break;
 	    case jit_code_jmpi:
-		temp = node->u.n;
-		assert(temp->code == jit_code_label ||
-		       temp->code == jit_code_epilog);
-		if (temp->flag & jit_flag_patch)
-		    jmpi(temp->u.w);
-		else {
-		    word = jmpi_p(_jit->pc.w);
-		    patch(word, node);
+		if (node->flag & jit_flag_node) {
+		    temp = node->u.n;
+		    assert(temp->code == jit_code_label ||
+			   temp->code == jit_code_epilog);
+		    if (temp->flag & jit_flag_patch)
+			jmpi(temp->u.w);
+		    else {
+			word = jmpi_p(_jit->pc.w);
+			patch(word, node);
+		    }
 		}
+		else
+		    jmpi(node->u.w);
 		flush_consts();
 		break;
 	    case jit_code_callr:

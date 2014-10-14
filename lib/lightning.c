@@ -2295,6 +2295,8 @@ _shortcut_jump(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     for (next = jump->next; next; next = next->next) {
 	switch (next->code) {
 	    case jit_code_jmpi:
+		if (!(next->flag & jit_flag_node))
+		    return (0);
 		if (jump->link == node)
 		    jump->link = node->link;
 		else {
@@ -2500,7 +2502,8 @@ _reverse_jump(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 	return (0);
     /* =><cond_jump L0> <jump L1> <label L0> */
     local_next = node->next;
-    if (local_next->code != jit_code_jmpi)
+    if (local_next->code != jit_code_jmpi ||
+	!(local_next->flag & jit_flag_node))
 	return (0);
     /* <cond_jump L0> =><jump L1> <label L0> */
 

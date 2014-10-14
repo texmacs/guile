@@ -1236,20 +1236,23 @@ _emit_code(jit_state_t *_jit)
 		jmpr(rn(node->u.w));
 		break;
 	    case jit_code_jmpi:
+		if (node->flag & jit_flag_node) {
 #if __powerpc__
-		if (_jit->pc.uc == _jit->code.ptr + sizeof(void*) * 3)
-		    _jitc->jump = 1;
+		    if (_jit->pc.uc == _jit->code.ptr + sizeof(void*) * 3)
+			_jitc->jump = 1;
 #endif
-		temp = node->u.n;
-		assert(temp->code == jit_code_label ||
-		       temp->code == jit_code_epilog);
-		/* no support for jump outside jit */
-		if (temp->flag & jit_flag_patch)
-		    jmpi(temp->u.w);
-		else {
-		    word = jmpi(_jit->pc.w);
-		    patch(word, node);
+		    temp = node->u.n;
+		    assert(temp->code == jit_code_label ||
+			   temp->code == jit_code_epilog);
+		    if (temp->flag & jit_flag_patch)
+			jmpi(temp->u.w);
+		    else {
+			word = jmpi(_jit->pc.w);
+			patch(word, node);
+		    }
 		}
+		else
+		    jmpi(node->u.w);
 		break;
 	    case jit_code_callr:
 		callr(rn(node->u.w));
