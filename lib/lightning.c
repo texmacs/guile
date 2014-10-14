@@ -1920,6 +1920,45 @@ fail:
     return (NULL);
 }
 
+void
+_jit_frame(jit_state_t *_jit, jit_int32_t frame)
+{
+    jit_trampoline(frame, 1);
+}
+
+void
+_jit_tramp(jit_state_t *_jit, jit_int32_t frame)
+{
+    jit_trampoline(frame, 0);
+}
+
+void
+_jit_trampoline(jit_state_t *_jit, jit_int32_t frame, jit_bool_t prolog)
+{
+    jit_int32_t		regno;
+
+    /* Must be called after prolog, actually, just to simplify
+     * tests and know there is a current function and that
+     * _jitc->function->self.aoff is at the before any alloca value */
+    assert(_jitc->tail && _jitc->tail->code == jit_code_prolog);
+
+    /* + 24 for 3 possible spilled temporaries (that could be a double) */
+    frame += 24;
+#if defined(__hppa__)
+    frame += _jitc->function->self.aoff;
+#else
+    frame -= _jitc->function->self.aoff;
+#endif
+    _jitc->function->frame = frame;
+    if (prolog)
+	_jitc->function->define_frame = 1;
+    else
+	_jitc->function->assume_frame = 1;
+    for (regno = 0; regno < _jitc->reglen; regno++)
+	if (jit_class(_rvs[regno].spec) & jit_class_sav)
+	    jit_regset_setbit(&_jitc->function->regset, regno);
+}
+
 /*   Compute initial reglive and regmask set values of a basic block.
  * reglive is the set of known live registers
  * regmask is the set of registers not referenced in the block

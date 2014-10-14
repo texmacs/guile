@@ -1,3 +1,47 @@
+2014-10-12 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_aarch64-cpu.c, lib/jit_alpha-cpu.c, lib/jit_arm-cpu.c,
+	lib/jit_hppa-cpu.c, lib/jit_ia64-cpu.c, lib/jit_mips-cpu.c,
+	lib/jit_ppc-cpu.c, lib/jit_s390x-cpu.c, lib/jit_sparc-cpu.c,
+	lib/jit_x86-cpu.c, lib/lightning.c: Implement the new
+	jit_frame and jit_tramp interfaces, that allow writing
+	trampoline like calls, where a single dispatcher jit buffer
+	is written, and later other jit buffers are created, with
+	the same stack frame layout as the dispatcher. This is the
+	logic that GNU Smalltalk used in lightning 1.x, and is required
+	to make a sane port for lighting 2.x.
+
+	* jit_ia64-cpu.c: Implement support for jit_frame and jit_tramp,
+	and also correct wrong encoding for B4 instructions, that
+	implement jmpr, as well as correct reverse logic in _jmpr,
+	that was moving the branch register to the jump register,
+	and not vice-versa.
+	Also, if a stack frame is to be assumed, always assume it may
+	call a function with up to 8 arguments, regardless of the
+	hint frame argument.
+
+	* lib/jit_arm.c: Add a new must_align_p() interface to ensure
+	function prologs are always aligned. This condition was
+	previously always true, somewhat by accident, but with
+	jit_tramp it is not guaranteed.
+
+	* jit_ia64-cpu.c: lib/jit_ppc.c: Add minor special handling
+	required to implement jit_tramp, where a function descriptor
+	should not be added before a prolog, as jit_tramp means omit
+	prolog.
+
+	* check/lightning.c: Update test driver for the new interfaces.
+
+	* check/Makefile.am, check/tramp.tst, check/tramp.ok: Add
+	a simple test and example of the jit_frame and jit_tramp
+	usage implementing a simple Fibonacci function using a
+	simulation of an interpreter stack and how it would handle
+	state in language specific variables.
+
+	* doc/body.texi: Add documentation for jit_frame and
+	jit_tramp.
+
 2014-09-29 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,

@@ -907,6 +907,10 @@ extern void _jit_set_code(jit_state_t*, jit_pointer_t, jit_word_t);
 extern jit_pointer_t _jit_get_data(jit_state_t*, jit_word_t*, jit_word_t*);
 #define jit_set_data(u,v,w)	_jit_set_data(_jit,u,v,w)
 extern void _jit_set_data(jit_state_t*, jit_pointer_t, jit_word_t, jit_word_t);
+#define jit_frame(u)		_jit_frame(_jit,u)
+extern void _jit_frame(jit_state_t*, jit_int32_t);
+#define jit_tramp(u)		_jit_tramp(_jit,u)
+extern void _jit_tramp(jit_state_t*, jit_int32_t);
 #define jit_emit()		_jit_emit(_jit)
 extern jit_pointer_t _jit_emit(jit_state_t*);
 

@@ -268,7 +268,9 @@ static void make_arg(void *value);
 static jit_pointer_t get_arg(void);
 static long get_imm(void);
 static void name(void);
-static void prolog(void);	static void ellipsis(void);
+static void prolog(void);
+static void frame(void);	static void tramp(void);
+static void ellipsis(void);
 static void allocai(void);
 static void arg(void);
 static void getarg_c(void);	static void getarg_uc(void);
@@ -566,7 +568,9 @@ static size_t		  data_offset, data_length;
 static instr_t		  instr_vector[] = {
 #define entry(value)	{ NULL, #value, value }
     entry(name),
-    entry(prolog),	entry(ellipsis),
+    entry(prolog),
+    entry(frame),	entry(tramp),
+    entry(ellipsis),
     entry(allocai),
     entry(arg),
     entry(getarg_c),	entry(getarg_uc),
@@ -1320,7 +1324,9 @@ name(void) {
     (void)identifier(ch);
     jit_name(parser.string);
 }
-entry(prolog)			entry(ellipsis)
+entry(prolog)
+entry_im(frame)			entry_im(tramp)
+entry(ellipsis)
 void
 allocai(void) {
     symbol_t	*symbol;

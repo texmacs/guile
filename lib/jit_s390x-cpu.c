@@ -3256,6 +3256,13 @@ static void
 _prolog(jit_state_t *_jit, jit_node_t *i0)
 {
     jit_int32_t		regno, offset;
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 8 bytes */
 			      _jitc->function->self.aoff) + 7) & -8;
@@ -3299,6 +3306,8 @@ static void
 _epilog(jit_state_t *_jit, jit_node_t *i0)
 {
     jit_int32_t		regno, offset;
+    if (_jitc->function->assume_frame)
+	return;
     for (regno = 0; regno < jit_size(gprs) - 1; regno++) {
 	if (jit_regset_tstbit(&_jitc->function->regset, gprs[regno]))
 	    break;

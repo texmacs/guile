@@ -3297,7 +3297,7 @@ _B4(jit_state_t *_jit, jit_word_t _p,
     assert(!(p  &  ~0x1L));
     assert(!(tp &  ~0x7L));
     TSTPRED(_p);
-    inst((d<<37)|(wh<<33)|(x6<<27)|(b<<13)|(p<<12)|(tp<<6)|_p, INST_B);
+    inst((d<<35)|(wh<<33)|(x6<<27)|(b<<13)|(p<<12)|(tp<<6)|_p, INST_B);
 }
 
 static void
@@ -5051,7 +5051,7 @@ _bsubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1,
 static void
 _jmpr(jit_state_t *_jit, jit_int32_t r0)
 {
-    MOV_rn_br(r0, BR_6);
+    MOV_br_rn(BR_6, r0);
     BR(BR_6);
 }
 
@@ -5117,6 +5117,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     jit_int32_t		reg, ruse, rout;
 
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen -
 			       _jitc->function->self.aoff) + 15) & -16;
 
@@ -5130,11 +5137,15 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     ruse = _jitc->rout - GR_32;
 
     /* How many out argument registers required? */
-    for (reg = _OUT0; reg <= _OUT7; reg++) {
-	if (!jit_regset_tstbit(&_jitc->function->regset, reg))
-	    break;
+    if (!_jitc->function->define_frame) {
+	for (reg = _OUT0; reg <= _OUT7; reg++) {
+	    if (!jit_regset_tstbit(&_jitc->function->regset, reg))
+		break;
+	}
+	rout = reg - _OUT0;
     }
-    rout = reg - _OUT0;
+    else
+	rout = 8;
 
     /* Do not know if will call div/mod functions (sqrt* needs one) */
     if (rout < 2)
@@ -5181,6 +5192,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->assume_frame)
+	return;
     if (jit_regset_tstbit(&_jitc->function->regset, JIT_F0))
 	LDF_FILL(rn(JIT_F0), GR_4);
     if (jit_regset_tstbit(&_jitc->function->regset, JIT_F1)) {

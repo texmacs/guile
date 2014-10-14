@@ -349,6 +349,13 @@ struct jit_function {
     jit_int32_t		*regoff;
     jit_regset_t	 regset;
     jit_int32_t		 stack;
+
+    /* Helper for common jit generation pattern, used in GNU Smalltalk
+     * and possibly others, where a static frame layout is required or
+     * assumed. */
+    jit_int32_t		 frame;
+    jit_uint32_t	 define_frame : 1;
+    jit_uint32_t	 assume_frame : 1;
 };
 
 /* data used only during jit generation */
@@ -558,6 +565,9 @@ _jit_save(jit_state_t*, jit_int32_t);
 #define jit_load(reg)		_jit_load(_jit, reg)
 extern void
 _jit_load(jit_state_t*, jit_int32_t);
+
+#define jit_trampoline(u,v)	_jit_trampoline(_jit, u, v)
+extern void _jit_trampoline(jit_state_t*, jit_int32_t, jit_bool_t);
 
 #define jit_optimize()		_jit_optimize(_jit)
 extern void

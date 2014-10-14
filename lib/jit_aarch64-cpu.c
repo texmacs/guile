@@ -2145,6 +2145,13 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 16 bytes */
 			      _jitc->function->self.aoff) + 15) & -16;
@@ -2188,6 +2195,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->assume_frame)
+	return;
     if (_jitc->function->stack)
 	MOV_XSP(SP_REGNO, FP_REGNO);
 #define LOAD(L, R, O)							\

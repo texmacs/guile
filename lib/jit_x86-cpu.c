@@ -3326,6 +3326,13 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
 #if __WORDSIZE == 64 && __CYGWIN__
     _jitc->function->stack = (((/* first 32 bytes must be allocated */
 				(_jitc->function->self.alen > 32 ?
@@ -3406,6 +3413,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->assume_frame)
+	return;
     /* callee save registers */
     movr(_RSP_REGNO, _RBP_REGNO);
 #if __WORDSIZE == 32

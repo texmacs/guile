@@ -1444,6 +1444,44 @@ Or to only use a data buffer, if required:
   @rem{...}
 @end example
 
+@section Shared stack frame layout
+Certain jit generation patterns, for example the original GNU Smalltalk
+jit generator, uses an approach of a fixed trampoline jit code, and
+later generation of code that jumps around, assuming a fixed layout
+stack frame.
+
+To help on this pattern of code generation, @lightning{} provides
+the @code{jit_frame} and the @code{jit_tramp} interfaces, to define
+or to assume a stack frame. Both @code{jit_frame} or @code{jit_tramp}
+must be the first call after @code{jit_prolog}.
+
+@deftypefun void jit_frame (jit_int32_t @var{frame})
+@var{frame} defines the size in bytes of the current function
+stack frame. To calculate its value, a good formula is maximum number
+of arguments to any called native function times eight, plus the
+sum of the arguments to any call to @code{jit_allocai}. @lightning{}
+automatically adjusts this value for any backend specific stack memory
+it may need, or any alignment constraint.
+To ensure trampoline code is correct, @lightning{} will save all
+callee save registers in the prolog and reload in the epilog.
+@end deftypefun
+
+@deftypefun void jit_tramp (jit_int32_t @var{frame})
+@var{frame} must be the same value of the dispatcher defined with the
+@code{jit_frame} call.
+The only difference of @code{jit_frame} and @code{jit_tramp} is that
+@code{jit_tramp} omits generation of a prolog and epilog for the
+current function.
+Most trampoline based jit generation implements a single dispatch method
+and later emit code that knows how to return back to the dispatch routine,
+and the later emitted code is called with a non local goto. In such cases,
+emitting a native prolog (and epilog) is just a waste of space.
+@end deftypefun
+
+It is a fatal error if more than @var{frame} bytes are required
+either in the dispatcher defined with @code{jit_frame} or the
+"trampolined" code, defined with @code{jit_tramp}.
+
 @node Acknowledgements
 @chapter Acknowledgements
 

@@ -55,6 +55,8 @@ typedef union _jit_thumb_t {
 static jit_int32_t _jit_get_reg_pair(jit_state_t*);
 #define jit_unget_reg_pair(rn)		_jit_unget_reg_pair(_jit,rn)
 static void _jit_unget_reg_pair(jit_state_t*,jit_int32_t);
+# define must_align_p(node)		_must_align_p(_jit, node)
+static jit_bool_t _must_align_p(jit_state_t*,jit_node_t*);
 #define load_const(uniq,r0,i0)		_load_const(_jit,uniq,r0,i0)
 static void _load_const(jit_state_t*,jit_bool_t,jit_int32_t,jit_word_t);
 #define flush_consts()			_flush_consts(_jit)
@@ -1042,9 +1044,13 @@ _emit_code(jit_state_t *_jit)
 	jit_regarg_set(node, value);
 	switch (node->code) {
 	    case jit_code_note:		case jit_code_name:
+		if (must_align_p(node->next))
+		    nop(2);
 		node->u.w = _jit->pc.w;
 		break;
 	    case jit_code_label:
+		if (must_align_p(node->next))
+		    nop(2);
 		/* remember label is defined */
 		node->flag |= jit_flag_patch;
 		node->u.w = _jit->pc.w;
@@ -1663,6 +1669,30 @@ _jit_unget_reg_pair(jit_state_t *_jit, jit_int32_t reg)
 	case _R8:	jit_unget_reg(_R9);	break;
 	default:	abort();
     }
+}
+
+/*   A prolog must be aligned at mod 4 bytes boundary.
+ *   This condition was not being required to be tested by
+ * accident previously, but with the jit_frame and jit_tramp
+ * code it is required */
+static jit_bool_t
+_must_align_p(jit_state_t *_jit, jit_node_t *node)
+{
+    if (jit_thumb_p() && (_jit->pc.w & 3)) {
+	for (; node; node = node->next) {
+	    switch (node->code) {
+		case jit_code_note:
+		case jit_code_name:
+		case jit_code_label:
+		    break;
+		case jit_code_prolog:
+		    return (1);
+		default:
+		    return (0);
+	    }
+	}
+    }
+    return (0);
 }
 
 static void

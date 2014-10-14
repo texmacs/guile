@@ -2862,6 +2862,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 {
     jit_int32_t		index;
     jit_int32_t		offset;
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
 #if NEW_ABI
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 16 bytes */
@@ -2900,6 +2907,8 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 {
     jit_int32_t		index;
     jit_int32_t		offset;
+    if (_jitc->function->assume_frame)
+	return;
     /* callee save registers */
     movr(_SP_REGNO, _BP_REGNO);
     offset = stack_framesize - (sizeof(jit_word_t) << 1);

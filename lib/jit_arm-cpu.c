@@ -3694,6 +3694,16 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame) {
+	    if (jit_thumb_p() && !_jitc->thumb)
+		_jitc->thumb = _jit->pc.w;
+	    return;
+	}
+	_jitc->function->self.aoff = frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 8 bytes */
 			      _jitc->function->self.aoff) + 7) & -8;
@@ -3732,6 +3742,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->assume_frame)
+	return;
     addi(_SP_REGNO, _FP_REGNO, 16);
     if (jit_cpu.abi)
 	VPOP_F64(_D8_REGNO, 8);

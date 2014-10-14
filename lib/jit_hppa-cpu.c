@@ -2621,6 +2621,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     jit_int32_t		regno;
     jit_word_t		offset;
 
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	/* hppa stack grows up */
+	assert(_jitc->function->self.aoff <= _jitc->function->frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = _jitc->function->frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.aoff -
 			       _jitc->function->self.alen -
 			       _jitc->function->self.size) + 63) & -64;
@@ -2651,6 +2658,8 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     jit_int32_t		regno;
     jit_word_t		offset;
 
+    if (_jitc->function->assume_frame)
+	return;
     /* Restore any modified callee save registers */
     offset = alloca_offset - 140;
     for (regno = 0; regno < jit_size(gr); regno++, offset += 4) {

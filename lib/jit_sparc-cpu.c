@@ -1620,6 +1620,13 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
     /* align at 16 bytes boundary */
     _jitc->function->stack = ((stack_framesize +
 			      _jitc->function->self.alen -
@@ -1649,6 +1656,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 static void
 _epilog(jit_state_t *_jit, jit_node_t *node)
 {
+    if (_jitc->function->assume_frame)
+	return;
     /* (most) other backends do not save incoming arguments, so,
      * only save locals here */
     if (jit_regset_tstbit(&_jitc->function->regset, _L0))

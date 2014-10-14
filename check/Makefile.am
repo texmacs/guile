@@ -82,6 +82,7 @@ EXTRA_DIST =				\
 	qalu_mul.tst	qalu_mul.ok	\
 	qalu_div.tst	qalu_div.ok	\
 	ret.tst		ret.ok		\
+	tramp.tst	tramp.ok	\
 	check.sh			\
 	check.x87.sh			\
 	check.arm.sh	check.swf.sh	\
@@ -107,7 +108,7 @@ base_TESTS =				\
 	clobber carry call		\
 	float jmpr			\
 	qalu_mul qalu_div		\
-	ret
+	ret tramp
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@
@@ -178,7 +179,7 @@ arm_TESTS =					\
 	fop_abs.arm fop_sqrt.arm		\
 	varargs.arm stack.arm			\
 	clobber.arm carry.arm call.arm		\
-	float.arm jmpr.arm
+	float.arm jmpr.arm tramp.arm
 $(arm_TESTS):	check.arm.sh
 	$(LN_S) $(srcdir)/check.arm.sh $@
 TESTS += $(arm_TESTS)
@@ -202,7 +203,7 @@ swf_TESTS =					\
 	fop_abs.swf fop_sqrt.swf		\
 	varargs.swf stack.swf			\
 	clobber.swf carry.swf call.swf		\
-	float.swf jmpr.arm
+	float.swf jmpr.swf tramp.swf
 $(swf_TESTS):	check.swf.sh
 	$(LN_S) $(srcdir)/check.swf.sh $@
 TESTS += $(swf_TESTS)
@@ -226,7 +227,7 @@ nodata_TESTS =						\
 	fop_abs.nodata fop_sqrt.nodata			\
 	varargs.nodata stack.nodata			\
 	clobber.nodata carry.nodata call.nodata		\
-	float.nodata jmpr.nodata
+	float.nodata jmpr.nodata tramp.nodata
 $(nodata_TESTS):	check.nodata.sh
 	$(LN_S) $(srcdir)/check.nodata.sh $@
 TESTS += $(nodata_TESTS)

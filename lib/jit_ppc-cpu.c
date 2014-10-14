@@ -3072,6 +3072,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     unsigned long	regno;
     jit_word_t		offset;
 
+    if (_jitc->function->define_frame || _jitc->function->assume_frame) {
+	jit_int32_t	frame = -_jitc->function->frame;
+	assert(_jitc->function->self.aoff >= frame);
+	if (_jitc->function->assume_frame)
+	    return;
+	_jitc->function->self.aoff = frame;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen +
 			      _jitc->function->self.size -
 			      _jitc->function->self.aoff) + 15) & -16;
@@ -3124,6 +3131,8 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     unsigned long	regno;
     jit_word_t		offset;
 
+    if (_jitc->function->assume_frame)
+	return;
 #if __ppc__
     LWZ(_SP_REGNO, _SP_REGNO, 0);
     ldxi(_R0_REGNO, _SP_REGNO, 8);

@@ -1256,7 +1256,7 @@ _emit_code(jit_state_t *_jit)
 		undo.prolog_offset = _jitc->prolog.offset;
 	    restart_function:
 		_jitc->again = 0;
-		if (_jitc->jump) {
+		if (_jitc->jump && !_jitc->function->assume_frame) {
 		    /* remember prolog to hide offset adjustment for a jump
 		     * to the start of a function, what is expected to be
 		     * a common practice as first jit instruction */
