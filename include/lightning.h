@@ -826,6 +826,7 @@ typedef enum {
 #define jit_movi_d_w(u, v)	jit_new_node_wd(jit_code_movi_d_w, u, v)
 
     jit_code_x86_retval_f,	jit_code_x86_retval_d,
+#define jit_code_last_code	jit_code_x86_retval_d
 } jit_code_t;
 
 typedef void* (*jit_alloc_func_ptr)	(size_t);

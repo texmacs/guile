@@ -26,7 +26,7 @@
 /*
  * Initialization
  */
-static jit_int16_t	_szs[jit_code_x86_retval_d + 1] = {
+static jit_int16_t	_szs[jit_code_last_code + 1] = {
 #if GET_JIT_SIZE
 #  define JIT_INSTR_MAX		256
 #else

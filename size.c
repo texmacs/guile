@@ -21,7 +21,7 @@
 #include <lightning/jit_private.h>
 #include <stdio.h>
 
-jit_int16_t	_szs[jit_code_x86_retval_d + 1];
+jit_int16_t	_szs[jit_code_last_code + 1];
 
 int
 main(int argc, char *argv[])
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
     fclose(fp);
 
     max = 0;
-    for (offset = 0; offset <= jit_code_x86_retval_d; offset++)
+    for (offset = 0; offset <= jit_code_last_code; offset++)
 	if (max < _szs[offset])
 	    max = _szs[offset];
 
@@ -68,7 +68,7 @@ main(int argc, char *argv[])
     fprintf(fp, "#if defined(__powerpc__)\n");
 #endif
     fprintf(fp, "#define JIT_INSTR_MAX %d\n", max);
-    for (offset = 0; offset <= jit_code_x86_retval_d; offset++)
+    for (offset = 0; offset <= jit_code_last_code; offset++)
 	fprintf(fp, "    %d,\n", _szs[offset]);
 #if defined(__arm__)
     fprintf(fp, "#endif /* __ARM_PCS_VFP */\n");
