@@ -1,3 +1,20 @@
+2014-10-17 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_names.c: New file with single definition of string
+	representation of lightning IR codes.
+
+	* size.c: Modified to append the code name in a C comment
+	after the maximum instruction size.
+
+	* lib/jit_print.c: Minor change to not duplicate jit_names.c
+	contents.
+
+	* lib/jit_aarch64-sz.c, lib/jit_alpha-sz.c, lib/jit_arm-sz.c,
+	lib/jit_hppa-sz.c, lib/jit_ia64-sz.c, lib/jit_mips-sz.c,
+	lib/jit_ppc-sz.c, lib/jit_s390x-sz.c, lib/jit_sparc-sz.c,
+	lib/jit_x86-sz.c: Rewritten to add string representation of
+	IR codes in a C comment.
+
 2014-10-14 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-cpu.c, lib/jit_alpha-cpu.c, lib/jit_arm-cpu.c,

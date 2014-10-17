@@ -20,6 +20,7 @@
 #include <lightning.h>
 #include <lightning/jit_private.h>
 #include <stdio.h>
+#include "lib/jit_names.c"
 
 jit_int16_t	_szs[jit_code_last_code + 1];
 
@@ -69,7 +70,7 @@ main(int argc, char *argv[])
 #endif
     fprintf(fp, "#define JIT_INSTR_MAX %d\n", max);
     for (offset = 0; offset <= jit_code_last_code; offset++)
-	fprintf(fp, "    %d,\n", _szs[offset]);
+	fprintf(fp, "    %d,	/* %s */\n", _szs[offset], code_name[offset]);
 #if defined(__arm__)
     fprintf(fp, "#endif /* __ARM_PCS_VFP */\n");
 #elif defined(__mips__)

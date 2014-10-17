@@ -26,6 +26,7 @@ liblightningdir = $(libdir)
 liblightning_la_SOURCES =	\
 	jit_disasm.c		\
 	jit_memory.c		\
+	jit_names.c		\
 	jit_note.c		\
 	jit_print.c		\
 	jit_size.c		\
