@@ -83,6 +83,12 @@ static void _x87_subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 static void _x87_subr_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define x87_subi_d(r0, r1, i0)	_x87_subi_d(_jit, r0, r1, i0)
 static void _x87_subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
+#  define x87_rsbr_f(r0, r1, r2)	x87_subr_f(r0, r2, r1)
+#  define x87_rsbi_f(r0, r1, i0)	_x87_rsbi_f(_jit, r0, r1, i0)
+static void _x87_rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
+#  define x87_rsbr_d(r0, r1, r2)	x87_subr_d(r0, r2, r1)
+#  define x87_rsbi_d(r0, r1, i0)	_x87_rsbi_d(_jit, r0, r1, i0)
+static void _x87_rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define x87_mulr_f(r0, r1, r2)	_x87_mulr_d(_jit, r0, r1, r2)
 #  define x87_muli_f(r0, r1, i0)	_x87_muli_f(_jit, r0, r1, i0)
 static void _x87_muli_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
@@ -446,6 +452,7 @@ _x87rri(jit_state_t *_jit, jit_int32_t code, jit_int32_t r0, jit_int32_t r1)
 
 fopi(add)
 fopi(sub)
+fopi(rsb)
 fopi(mul)
 fopi(div)
 
@@ -516,6 +523,8 @@ _x87_subr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 dopi(sub)
+
+dopi(rsb)
 
 static void
 _x87_mulr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)

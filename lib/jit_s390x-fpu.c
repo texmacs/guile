@@ -372,6 +372,10 @@ static void _subr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define subr_d(r0,r1,r2)		_subr_d(_jit,r0,r1,r2)
 static void _subr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define subi_d(r0,r1,i0)		dp(sub,r0,r1,i0)
+#  define rsbr_f(r0,r1,r2)		subr_f(r0,r2,r1)
+#  define rsbi_f(r0,r1,i0)		fp(rsb,r0,r1,i0)
+#  define rsbr_d(r0,r1,r2)		subr_d(r0,r2,r1)
+#  define rsbi_d(r0,r1,i0)		dp(rsb,r0,r1,i0)
 #  define mulr_f(r0,r1,r2)		_mulr_f(_jit,r0,r1,r2)
 static void _mulr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define muli_f(r0,r1,i0)		fp(mul,r0,r1,i0)
@@ -597,6 +601,7 @@ _fp(jit_state_t *_jit, jit_code_t code,
     switch (code) {
 	case jit_code_addi_f:	addr_f(r0, r1, rn(reg));	break;
 	case jit_code_subi_f:	subr_f(r0, r1, rn(reg));	break;
+	case jit_code_rsbi_f:	rsbr_f(r0, r1, rn(reg));	break;
 	case jit_code_muli_f:	mulr_f(r0, r1, rn(reg));	break;
 	case jit_code_divi_f:	divr_f(r0, r1, rn(reg));	break;
 	case jit_code_uneqi_f:	uneqr_f(r0, r1, rn(reg));	break;
@@ -616,6 +621,7 @@ _dp(jit_state_t *_jit, jit_code_t code,
     switch (code) {
 	case jit_code_addi_d:	addr_d(r0, r1, rn(reg));	break;
 	case jit_code_subi_d:	subr_d(r0, r1, rn(reg));	break;
+	case jit_code_rsbi_d:	rsbr_d(r0, r1, rn(reg));	break;
 	case jit_code_muli_d:	mulr_d(r0, r1, rn(reg));	break;
 	case jit_code_divi_d:	divr_d(r0, r1, rn(reg));	break;
 	case jit_code_uneqi_d:	uneqr_d(r0, r1, rn(reg));	break;

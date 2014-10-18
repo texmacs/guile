@@ -193,6 +193,12 @@ static void _subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 #  define subr_d(r0,r1,r2)		SUB_D(r0,r1,r2)
 #  define subi_d(r0,r1,i0)		_subi_d(_jit,r0,r1,i0)
 static void _subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
+#  define rsbr_f(r0,r1,r2)		subr_f(r0,r2,r1)
+#  define rsbi_f(r0,r1,i0)		_rsbi_f(_jit,r0,r1,i0)
+static void _rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
+#  define rsbr_d(r0,r1,r2)		subr_d(r0,r2,r1)
+#  define rsbi_d(r0,r1,i0)		_rsbi_d(_jit,r0,r1,i0)
+static void _rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define mulr_f(r0,r1,r2)		MUL_S(r0,r1,r2)
 #  define muli_f(r0,r1,i0)		_muli_f(_jit,r0,r1,i0)
 static void _muli_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
@@ -585,6 +591,7 @@ _b##name##i_##type(jit_state_t *_jit,					\
 
 fopi(add)
 fopi(sub)
+fopi(rsb)
 fopi(mul)
 fopi(div)
 
@@ -746,6 +753,7 @@ _movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 
 dopi(add)
 dopi(sub)
+dopi(rsb)
 dopi(mul)
 dopi(div)
 

@@ -745,6 +745,7 @@ _emit_code(jit_state_t *_jit)
 		case_rrw(subc,);
 		case_rrr(subx,);
 		case_rrw(subx,);
+		case_rrw(rsb,);
 		case_rrr(mul,);
 		case_rrw(mul,);
 		case_rrrr(qmul,);
@@ -898,6 +899,7 @@ _emit_code(jit_state_t *_jit)
 		case_rrf(add, _f, 32);
 		case_rrr(sub, _f);
 		case_rrf(sub, _f, 32);
+		case_rrf(rsb, _f, 32);
 		case_rrr(mul, _f);
 		case_rrf(mul, _f, 32);
 		case_rrr(div, _f);
@@ -980,6 +982,7 @@ _emit_code(jit_state_t *_jit)
 		case_rrf(add, _d, 64);
 		case_rrr(sub, _d);
 		case_rrf(sub, _d, 64);
+		case_rrf(rsb, _d, 64);
 		case_rrr(mul, _d);
 		case_rrf(mul, _d, 64);
 		case_rrr(div, _d);

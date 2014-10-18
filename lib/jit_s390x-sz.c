@@ -23,6 +23,7 @@
     20,	/* subci */
     12,	/* subxr */
     12,	/* subxi */
+    28,	/* rsbi */
     8,	/* mulr */
     24,	/* muli */
     60,	/* qmulr */
@@ -178,6 +179,7 @@
     26,	/* addi_f */
     8,	/* subr_f */
     26,	/* subi_f */
+    26,	/* rsbi_f */
     6,	/* mulr_f */
     26,	/* muli_f */
     8,	/* divr_f */
@@ -260,6 +262,7 @@
     26,	/* addi_d */
     8,	/* subr_d */
     26,	/* subi_d */
+    26,	/* rsbi_d */
     6,	/* mulr_d */
     26,	/* muli_d */
     8,	/* divr_d */

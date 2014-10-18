@@ -1,5 +1,32 @@
 2014-10-17 Paulo Andrade <pcpa@gnu.org>
 
+	* check/alu_rsb.ok, check/alu_rsb.tst: New files implementing
+	tests for jit_rsb*.
+
+	* check/Makefile.am, check/lightning.c, include/lightning.h,
+	lib/jit_aarch64-cpu.c, lib/jit_aarch64-fpu.c, lib/jit_aarch64-sz.c,
+	lib/jit_aarch64.c, lib/jit_alpha-cpu.c, lib/jit_alpha-fpu.c,
+	lib/jit_alpha-sz.c, lib/jit_alpha.c, lib/jit_arm-cpu.c,
+	lib/jit_arm-swf.c, lib/jit_arm-sz.c, lib/jit_arm-vfp.c,
+	lib/jit_arm.c, lib/jit_hppa-cpu.c, lib/jit_hppa-fpu.c,
+	lib/jit_hppa-sz.c, lib/jit_hppa.c, lib/jit_ia64-cpu.c,
+	lib/jit_ia64-fpu.c, lib/jit_ia64-sz.c, lib/jit_ia64.c,
+	lib/jit_mips-cpu.c, lib/jit_mips-fpu.c, lib/jit_mips-sz.c,
+	lib/jit_mips.c, lib/jit_names.c, lib/jit_ppc-cpu.c,
+	lib/jit_ppc-fpu.c, lib/jit_ppc-sz.c, lib/jit_ppc.c,
+	lib/jit_s390x-cpu.c, lib/jit_s390x-fpu.c, lib/jit_s390x-sz.c,
+	lib/jit_s390x.c, lib/jit_sparc-cpu.c, lib/jit_sparc-fpu.c,
+	lib/jit_sparc-sz.c, lib/jit_sparc.c, lib/jit_x86-cpu.c,
+	lib/jit_x86-sse.c, lib/jit_x86-sz.c, lib/jit_x86-x87.c,
+	lib/jit_x86.c, lib/lightning.c: Implement jit_rsb*. This
+	was a missing lightning 1.x interface, that on most
+	backends is synthesized, but on a few backends (hppa and ia64),
+	it can generate better code as on those there is, or the
+	only instruction with an immediate is in "rsb" format
+	(left operand).
+
+2014-10-17 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_names.c: New file with single definition of string
 	representation of lightning IR codes.
 

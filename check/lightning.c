@@ -286,6 +286,7 @@ static void addcr(void);	static void addci(void);
 static void subr(void);		static void subi(void);
 static void subxr(void);	static void subxi(void);
 static void subcr(void);	static void subci(void);
+static void rsbr(void);		static void rsbi(void);
 static void mulr(void);		static void muli(void);
 static void qmulr(void);	static void qmuli(void);
 static void qmulr_u(void);	static void qmuli_u(void);
@@ -392,6 +393,7 @@ static void arg_f(void);
 static void getarg_f(void);
 static void addr_f(void);	static void addi_f(void);
 static void subr_f(void);	static void subi_f(void);
+static void rsbr_f(void);	static void rsbi_f(void);
 static void mulr_f(void);	static void muli_f(void);
 static void divr_f(void);	static void divi_f(void);
 static void negr_f(void);	static void absr_f(void);
@@ -442,6 +444,7 @@ static void arg_d(void);
 static void getarg_d(void);
 static void addr_d(void);	static void addi_d(void);
 static void subr_d(void);	static void subi_d(void);
+static void rsbr_d(void);	static void rsbi_d(void);
 static void mulr_d(void);	static void muli_d(void);
 static void divr_d(void);	static void divi_d(void);
 static void negr_d(void);	static void absr_d(void);
@@ -586,6 +589,7 @@ static instr_t		  instr_vector[] = {
     entry(subr),	entry(subi),
     entry(subxr),	entry(subxi),
     entry(subcr),	entry(subci),
+    entry(rsbr),	entry(rsbi),
     entry(mulr),	entry(muli),
     entry(qmulr),	entry(qmuli),
     entry(qmulr_u),	entry(qmuli_u),
@@ -692,6 +696,7 @@ static instr_t		  instr_vector[] = {
     entry(getarg_f),
     entry(addr_f),	entry(addi_f),
     entry(subr_f),	entry(subi_f),
+    entry(rsbr_f),	entry(rsbi_f),
     entry(mulr_f),	entry(muli_f),
     entry(divr_f),	entry(divi_f),
     entry(negr_f),	entry(absr_f),
@@ -742,6 +747,7 @@ static instr_t		  instr_vector[] = {
     entry(getarg_d),
     entry(addr_d),	entry(addi_d),
     entry(subr_d),	entry(subi_d),
+    entry(rsbr_d),	entry(rsbi_d),
     entry(mulr_d),	entry(muli_d),
     entry(divr_d),	entry(divi_d),
     entry(negr_d),	entry(absr_d),
@@ -1351,6 +1357,7 @@ entry_ir_ir_ir(addcr)		entry_ir_ir_im(addci)
 entry_ir_ir_ir(subr)		entry_ir_ir_im(subi)
 entry_ir_ir_ir(subxr)		entry_ir_ir_im(subxi)
 entry_ir_ir_ir(subcr)		entry_ir_ir_im(subci)
+entry_ir_ir_ir(rsbr)		entry_ir_ir_im(rsbi)
 entry_ir_ir_ir(mulr)		entry_ir_ir_im(muli)
 entry_ir_ir_ir_ir(qmulr)	entry_ir_ir_ir_im(qmuli)
 entry_ir_ir_ir_ir(qmulr_u)	entry_ir_ir_ir_im(qmuli_u)
@@ -1504,6 +1511,7 @@ entry_ca(arg_f)
 entry_fa(getarg_f)
 entry_fr_fr_fr(addr_f)		entry_fr_fr_fm(addi_f)
 entry_fr_fr_fr(subr_f)		entry_fr_fr_fm(subi_f)
+entry_fr_fr_fr(rsbr_f)		entry_fr_fr_fm(rsbi_f)
 entry_fr_fr_fr(mulr_f)		entry_fr_fr_fm(muli_f)
 entry_fr_fr_fr(divr_f)		entry_fr_fr_fm(divi_f)
 entry_fr_fr(negr_f)		entry_fr_fr(absr_f)
@@ -1554,6 +1562,7 @@ entry_ca(arg_d)
 entry_fa(getarg_d)
 entry_fr_fr_fr(addr_d)		entry_fr_fr_dm(addi_d)
 entry_fr_fr_fr(subr_d)		entry_fr_fr_dm(subi_d)
+entry_fr_fr_fr(rsbr_d)		entry_fr_fr_dm(rsbi_d)
 entry_fr_fr_fr(mulr_d)		entry_fr_fr_dm(muli_d)
 entry_fr_fr_fr(divr_d)		entry_fr_fr_dm(divi_d)
 entry_fr_fr(negr_d)		entry_fr_fr(absr_d)

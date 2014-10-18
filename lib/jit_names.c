@@ -31,6 +31,7 @@ static char *code_name[] = {
     "subr",		"subi",
     "subcr",		"subci",
     "subxr",		"subxi",
+    "rsbi",
     "mulr",		"muli",
     "qmulr",		"qmuli",
     "qmulr_u",		"qmuli_u",

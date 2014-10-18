@@ -86,6 +86,9 @@ static void _addi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
 #  define subr_f(r0,r1,r2)		FSUBS(r0,r1,r2)
 #  define subi_f(r0,r1,i0)		_subi_f(_jit,r0,r1,i0)
 static void _subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
+#  define rsbr_f(r0, r1, r2)		subr_f(r0, r2, r1)
+#  define rsbi_f(r0, r1, i0)		_rsbi_f(_jit, r0, r1, i0)
+static void _rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
 #  define mulr_f(r0,r1,r2)		FMULS(r0,r1,r2)
 #  define muli_f(r0,r1,i0)		_muli_f(_jit,r0,r1,i0)
 static void _muli_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
@@ -198,6 +201,9 @@ static void _addi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
 #  define subr_d(r0,r1,r2)		FSUBD(r0,r1,r2)
 #  define subi_d(r0,r1,i0)		_subi_d(_jit,r0,r1,i0)
 static void _subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
+#  define rsbr_d(r0, r1, r2)		subr_d(r0, r2, r1)
+#  define rsbi_d(r0, r1, i0)		_rsbi_d(_jit, r0, r1, i0)
+static void _rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
 #  define mulr_d(r0,r1,r2)		FMULD(r0,r1,r2)
 #  define muli_d(r0,r1,i0)		_muli_d(_jit,r0,r1,i0)
 static void _muli_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
@@ -420,6 +426,7 @@ _truncr_d_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 
 fopi(add)
 fopi(sub)
+fopi(rsb)
 fopi(mul)
 fopi(div)
 
@@ -636,6 +643,7 @@ fbopi(ltgt)
 
 dopi(add)
 dopi(sub)
+dopi(rsb)
 dopi(mul)
 dopi(div)
 

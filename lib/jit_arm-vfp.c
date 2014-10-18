@@ -504,6 +504,12 @@ static void _vfp_subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
 #  define vfp_subr_d(r0,r1,r2)		VSUB_F64(r0,r1,r2)
 #  define vfp_subi_d(r0,r1,i0)		_vfp_subi_d(_jit,r0,r1,i0)
 static void _vfp_subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
+#  define vfp_rsbr_f(r0,r1,r2)		vfp_subr_f(r0,r2,r1)
+#  define vfp_rsbi_f(r0,r1,i0)		_vfp_rsbi_f(_jit,r0,r1,i0)
+static void _vfp_rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
+#  define vfp_rsbr_d(r0,r1,r2)		vfp_subr_d(r0,r2,r1)
+#  define vfp_rsbi_d(r0,r1,i0)		_vfp_rsbi_d(_jit,r0,r1,i0)
+static void _vfp_rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t);
 #  define vfp_mulr_f(r0,r1,r2)		VMUL_F32(r0,r1,r2)
 #  define vfp_muli_f(r0,r1,i0)		_vfp_muli_f(_jit,r0,r1,i0)
 static void _vfp_muli_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t);
@@ -1455,6 +1461,8 @@ _vfp_b##name##i_d(jit_state_t *_jit,					\
 fopi(add)
 dopi(add)
 fopi(sub)
+fopi(rsb)
+dopi(rsb)
 dopi(sub)
 fopi(mul)
 dopi(mul)

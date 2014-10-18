@@ -60,6 +60,7 @@ EXTRA_DIST =				\
 	alux_add.tst	alux_add.ok	\
 	alu_sub.tst	alu_sub.ok	\
 	alux_sub.tst	alux_sub.ok	\
+	alu_rsb.tst	alu_rsb.ok	\
 	alu_mul.tst	alu_mul.ok	\
 	alu_div.tst	alu_div.ok	\
 	alu_rem.tst	alu_rem.ok	\
@@ -99,7 +100,7 @@ base_TESTS =				\
 	ldstr-c ldstxr-c ldstxi-c	\
 	cvt branch			\
 	alu_add alux_add		\
-	alu_sub alux_sub		\
+	alu_sub alux_sub alu_rsb	\
 	alu_mul alu_div alu_rem		\
 	alu_and alu_or alu_xor		\
 	alu_lsh alu_rsh			\
@@ -126,7 +127,7 @@ x87_TESTS =					\
 	ldstr-c.x87 ldstxr-c.x87 ldstxi-c.x87	\
 	cvt.x87 branch.x87			\
 	alu_add.x87 alux_add.x87		\
-	alu_sub.x87 alux_sub.x87		\
+	alu_sub.x87 alux_sub.x87 alu_rsb.x87	\
 	alu_mul.x87 alu_div.x87 alu_rem.x87	\
 	alu_and.x87 alu_or.x87 alu_xor.x87	\
 	alu_lsh.x87 alu_rsh.x87			\
@@ -148,7 +149,7 @@ x87_nodata_TESTS =							\
 	ldstr-c.x87.nodata ldstxr-c.x87.nodata ldstxi-c.x87.nodata	\
 	cvt.x87.nodata branch.x87.nodata				\
 	alu_add.x87.nodata alux_add.x87.nodata				\
-	alu_sub.x87.nodata alux_sub.x87.nodata				\
+	alu_sub.x87.nodata alux_sub.x87.nodata alu_rsb.x87.nodata	\
 	alu_mul.x87.nodata alu_div.x87.nodata alu_rem.x87.nodata	\
 	alu_and.x87.nodata alu_or.x87.nodata alu_xor.x87.nodata		\
 	alu_lsh.x87.nodata alu_rsh.x87.nodata				\
@@ -172,7 +173,7 @@ arm_TESTS =					\
 	ldstr-c.arm ldstxr-c.arm ldstxi-c.arm	\
 	cvt.arm branch.arm			\
 	alu_add.arm alux_add.arm		\
-	alu_sub.arm alux_sub.arm		\
+	alu_sub.arm alux_sub.arm alu_rsb.arm	\
 	alu_mul.arm alu_div.arm alu_rem.arm	\
 	alu_and.arm alu_or.arm alu_xor.arm	\
 	alu_lsh.arm alu_rsh.arm			\
@@ -196,7 +197,7 @@ swf_TESTS =					\
 	ldstr-c.swf ldstxr-c.swf ldstxi-c.swf	\
 	cvt.swf branch.swf			\
 	alu_add.swf alux_add.swf		\
-	alu_sub.swf alux_sub.swf		\
+	alu_sub.swf alux_sub.swf alu_rsb.swf	\
 	alu_mul.swf alu_div.swf alu_rem.swf	\
 	alu_and.swf alu_or.swf alu_xor.swf	\
 	alu_lsh.swf alu_rsh.swf			\
@@ -220,7 +221,7 @@ nodata_TESTS =						\
 	ldstr-c.nodata ldstxr-c.nodata ldstxi-c.nodata	\
 	cvt.nodata branch.nodata			\
 	alu_add.nodata alux_add.nodata			\
-	alu_sub.nodata alux_sub.nodata			\
+	alu_sub.nodata alux_sub.nodata alu_rsb.nodata	\
 	alu_mul.nodata alu_div.nodata alu_rem.nodata	\
 	alu_and.nodata alu_or.nodata alu_xor.nodata	\
 	alu_lsh.nodata alu_rsh.nodata			\

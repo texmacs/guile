@@ -131,6 +131,12 @@ static void _sse_subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 static void _sse_subr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define sse_subi_d(r0, r1, i0)	_sse_subi_d(_jit, r0, r1, i0)
 static void _sse_subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
+#  define sse_rsbr_f(r0, r1, r2)	sse_subr_f(r0, r2, r1)
+#  define sse_rsbi_f(r0, r1, i0)	_sse_rsbi_f(_jit, r0, r1, i0)
+static void _sse_rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
+#  define sse_rsbr_d(r0, r1, r2)	sse_subr_d(r0, r2, r1)
+#  define sse_rsbi_d(r0, r1, i0)	_sse_rsbi_d(_jit, r0, r1, i0)
+static void _sse_rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define sse_mulr_f(r0, r1, r2)	_sse_mulr_f(_jit, r0, r1, r2)
 static void _sse_mulr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define sse_muli_f(r0, r1, i0)	_sse_muli_f(_jit, r0, r1, i0)
@@ -591,6 +597,10 @@ _sse_subr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 dopi(sub)
+
+fopi(rsb)
+
+dopi(rsb)
 
 static void
 _sse_mulr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)

@@ -1237,6 +1237,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	    break;
 	case jit_code_addi:	case jit_code_addxi:	case jit_code_addci:
 	case jit_code_subi:	case jit_code_subxi:	case jit_code_subci:
+	case jit_code_rsbi:
 	case jit_code_muli:	case jit_code_divi:	case jit_code_divi_u:
 	case jit_code_remi:	case jit_code_remi_u:	case jit_code_andi:
 	case jit_code_ori:	case jit_code_xori:	case jit_code_lshi:
@@ -1254,20 +1255,22 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	    mask = jit_cc_a0_reg|jit_cc_a0_rlh|jit_cc_a0_chg|
 		   jit_cc_a1_reg|jit_cc_a2_int;
 	    break;
-	case jit_code_addi_f:	case jit_code_subi_f:	case jit_code_muli_f:
-	case jit_code_divi_f:	case jit_code_lti_f:	case jit_code_lei_f:
-	case jit_code_eqi_f:	case jit_code_gei_f:	case jit_code_gti_f:
-	case jit_code_nei_f:	case jit_code_unlti_f:	case jit_code_unlei_f:
-	case jit_code_uneqi_f:	case jit_code_ungei_f:	case jit_code_ungti_f:
-	case jit_code_ltgti_f:	case jit_code_ordi_f:	case jit_code_unordi_f:
+	case jit_code_addi_f:	case jit_code_subi_f:	case jit_code_rsbi_f:
+	case jit_code_muli_f:	case jit_code_divi_f:	case jit_code_lti_f:
+	case jit_code_lei_f:	case jit_code_eqi_f:	case jit_code_gei_f:
+	case jit_code_gti_f:	case jit_code_nei_f:	case jit_code_unlti_f:
+	case jit_code_unlei_f:	case jit_code_uneqi_f:	case jit_code_ungei_f:
+	case jit_code_ungti_f:	case jit_code_ltgti_f:	case jit_code_ordi_f:
+	case jit_code_unordi_f:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a2_flt;
 	    break;
-	case jit_code_addi_d:	case jit_code_subi_d:	case jit_code_muli_d:
-	case jit_code_divi_d:	case jit_code_lti_d:	case jit_code_lei_d:
-	case jit_code_eqi_d:	case jit_code_gei_d:	case jit_code_gti_d:
-	case jit_code_nei_d:	case jit_code_unlti_d:	case jit_code_unlei_d:
-	case jit_code_uneqi_d:	case jit_code_ungei_d:	case jit_code_ungti_d:
-	case jit_code_ltgti_d:	case jit_code_ordi_d:	case jit_code_unordi_d:
+	case jit_code_addi_d:	case jit_code_subi_d:	case jit_code_rsbi_d:
+	case jit_code_muli_d:	case jit_code_divi_d:	case jit_code_lti_d:
+	case jit_code_lei_d:	case jit_code_eqi_d:	case jit_code_gei_d:
+	case jit_code_gti_d:	case jit_code_nei_d:	case jit_code_unlti_d:
+	case jit_code_unlei_d:	case jit_code_uneqi_d:	case jit_code_ungei_d:
+	case jit_code_ungti_d:	case jit_code_ltgti_d:	case jit_code_ordi_d:
+	case jit_code_unordi_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg|jit_cc_a2_dbl;
 	    break;
 	case jit_code_addr:	case jit_code_addxr:	case jit_code_addcr:

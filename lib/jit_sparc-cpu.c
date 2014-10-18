@@ -452,6 +452,8 @@ static void _subci(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define subxr(r0, r1, r2)		SUBXcc(r1, r2, r0)
 #  define subxi(r0, r1, i0)		_subxi(_jit, r0, r1, i0)
 static void _subxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
+#  define rsbi(r0, r1, i0)		_rsbi(_jit, r0, r1, i0)
+static void _rsbi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #  define mulr(r0, r1, r2)		UMUL(r1, r2, r0)
 #  define muli(r0, r1, i0)		_muli(_jit, r0, r1, i0)
 static void _muli(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
@@ -928,6 +930,13 @@ _subxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
+_rsbi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
+{
+    subi(r0, r1, i0);
+    negr(r0, r0);
+}
+
+static void
 _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
@@ -1325,7 +1334,7 @@ _ldxi_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
-	ldxr_c(r0, r1, rn(reg));
+	ldxr_s(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
 }

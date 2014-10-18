@@ -24,6 +24,7 @@
     20,	/* subci */
     28,	/* subxr */
     28,	/* subxi */
+    16,	/* rsbi */
     8,	/* mulr */
     16,	/* muli */
     12,	/* qmulr */
@@ -179,6 +180,7 @@
     16,	/* addi_f */
     4,	/* subr_f */
     16,	/* subi_f */
+    16,	/* rsbi_f */
     4,	/* mulr_f */
     16,	/* muli_f */
     4,	/* divr_f */
@@ -261,6 +263,7 @@
     16,	/* addi_d */
     4,	/* subr_d */
     16,	/* subi_d */
+    16,	/* rsbi_d */
     4,	/* mulr_d */
     16,	/* muli_d */
     4,	/* divr_d */
@@ -377,6 +380,7 @@
     20,	/* subci */
     28,	/* subxr */
     28,	/* subxi */
+    16,	/* rsbi */
     8,	/* mulr */
     16,	/* muli */
     12,	/* qmulr */
@@ -532,6 +536,7 @@
     16,	/* addi_f */
     4,	/* subr_f */
     16,	/* subi_f */
+    16,	/* rsbi_f */
     4,	/* mulr_f */
     16,	/* muli_f */
     4,	/* divr_f */
@@ -614,6 +619,7 @@
     20,	/* addi_d */
     4,	/* subr_d */
     20,	/* subi_d */
+    20,	/* rsbi_d */
     4,	/* mulr_d */
     20,	/* muli_d */
     4,	/* divr_d */
@@ -729,6 +735,7 @@
     36,	/* subci */
     28,	/* subxr */
     28,	/* subxi */
+    32,	/* rsbi */
     8,	/* mulr */
     32,	/* muli */
     12,	/* qmulr */
@@ -884,6 +891,7 @@
     16,	/* addi_f */
     4,	/* subr_f */
     16,	/* subi_f */
+    16,	/* rsbi_f */
     4,	/* mulr_f */
     16,	/* muli_f */
     4,	/* divr_f */
@@ -966,6 +974,7 @@
     16,	/* addi_d */
     4,	/* subr_d */
     16,	/* subi_d */
+    16,	/* rsbi_d */
     4,	/* mulr_d */
     16,	/* muli_d */
     4,	/* divr_d */

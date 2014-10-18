@@ -228,7 +228,9 @@ typedef enum {
 #define jit_subxr(u,v,w)	jit_new_node_www(jit_code_subxr,u,v,w)
 #define jit_subxi(u,v,w)	jit_new_node_www(jit_code_subxi,u,v,w)
     jit_code_subxr,		jit_code_subxi,
-
+#define jit_rsbr(u,v,w)		jit_subr(u,w,v)
+#define jit_rsbi(u,v,w)		jit_new_node_www(jit_code_rsbi,u,v,w)
+    jit_code_rsbi,
 #define jit_mulr(u,v,w)		jit_new_node_www(jit_code_mulr,u,v,w)
 #define jit_muli(u,v,w)		jit_new_node_www(jit_code_muli,u,v,w)
     jit_code_mulr,		jit_code_muli,
@@ -533,6 +535,9 @@ typedef enum {
 #define jit_subr_f(u,v,w)	jit_new_node_www(jit_code_subr_f,u,v,w)
 #define jit_subi_f(u,v,w)	jit_new_node_wwf(jit_code_subi_f,u,v,w)
     jit_code_subr_f,		jit_code_subi_f,
+#define jit_rsbr_f(u,v,w)	jit_subr_f(u,w,v)
+#define jit_rsbi_f(u,v,w)	jit_new_node_wwf(jit_code_rsbi_f,u,v,w)
+    jit_code_rsbi_f,
 #define jit_mulr_f(u,v,w)	jit_new_node_www(jit_code_mulr_f,u,v,w)
 #define jit_muli_f(u,v,w)	jit_new_node_wwf(jit_code_muli_f,u,v,w)
     jit_code_mulr_f,		jit_code_muli_f,
@@ -675,6 +680,9 @@ typedef enum {
 #define jit_subr_d(u,v,w)	jit_new_node_www(jit_code_subr_d,u,v,w)
 #define jit_subi_d(u,v,w)	jit_new_node_wwd(jit_code_subi_d,u,v,w)
     jit_code_subr_d,		jit_code_subi_d,
+#define jit_rsbr_d(u,v,w)	jit_subr_d(u,w,v)
+#define jit_rsbi_d(u,v,w)	jit_new_node_wwd(jit_code_rsbi_d,u,v,w)
+    jit_code_rsbi_d,
 #define jit_mulr_d(u,v,w)	jit_new_node_www(jit_code_mulr_d,u,v,w)
 #define jit_muli_d(u,v,w)	jit_new_node_wwd(jit_code_muli_d,u,v,w)
     jit_code_mulr_d,		jit_code_muli_d,

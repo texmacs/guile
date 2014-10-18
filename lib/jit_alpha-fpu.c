@@ -340,6 +340,12 @@ static void _subi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
 static void _subr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define subi_d(r0,r1,i0)		_subi_d(_jit,r0,r1,i0)
 static void _subi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
+#  define rsbr_f(r0, r1, r2)		subr_f(r0, r2, r1)
+#  define rsbi_f(r0, r1, i0)		_rsbi_f(_jit, r0, r1, i0)
+static void _rsbi_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_float32_t*);
+#  define rsbr_d(r0, r1, r2)		subr_d(r0, r2, r1)
+#  define rsbi_d(r0, r1, i0)		_rsbi_d(_jit, r0, r1, i0)
+static void _rsbi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define mulr_f(r0,r1,r2)		_mulr_f(_jit,r0,r1,r2)
 static void _mulr_f(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define muli_f(r0,r1,i0)		_muli_f(_jit,r0,r1,i0)
@@ -726,6 +732,7 @@ _subr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     TRAPB();
 }
 fopi(sub)
+fopi(rsb)
 
 static void
 _subr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
@@ -734,6 +741,7 @@ _subr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     TRAPB();
 }
 dopi(sub)
+dopi(rsb)
 
 static void
 _mulr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
