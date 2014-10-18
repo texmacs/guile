@@ -3122,7 +3122,7 @@ _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     else {
 	reg = jit_get_reg_but_zero(0);
 	addi(rn(reg), r0, i0);
-	str_s(r1, rn(reg));
+	str_s(rn(reg), r1);
 	jit_unget_reg_but_zero(reg);
     }
 }

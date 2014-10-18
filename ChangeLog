@@ -1,3 +1,25 @@
+2014-10-18 Paulo Andrade <pcpa@gnu.org>
+
+	* check/range.ok, check/range.tst: New test case designed
+	to catch incorrect code generation, usually due to incorrect
+	test of immediate size. The test checks a large amount of
+	encodings in "power of two" boundaries. This test exorcises
+	a significant amount of code paths that was previously not
+	tested.
+
+	* check/Makefile.am: Add range test to make check target.
+
+	* lib/jit_aarch64-cpu.c: Correct wrong address calculation
+	for stxi_c, stxi_s, stxi_i and stxi_l when the offset is
+	too large.
+
+        * lib/jit_mips-fpu.c: Correct wrong size test to check if
+	an immediate can be encoded in a float or double store.
+
+	* lib/jit_s390x-cpu.c: Correct inverted encoding to stxi_s
+	when the offset cannot be encoded, and fallbacks to an
+	alternate encoding in 2 instructions.
+
 2014-10-17 Paulo Andrade <pcpa@gnu.org>
 
 	* check/alu_rsb.ok, check/alu_rsb.tst: New files implementing

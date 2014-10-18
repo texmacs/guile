@@ -1737,7 +1737,7 @@ _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	STURB(r1, r0, i0 & 0x1ff);
     else {
 	reg = jit_get_reg(jit_class_gpr);
-	addi(rn(reg), r1, i0);
+	addi(rn(reg), r0, i0);
 	str_c(rn(reg), r1);
 	jit_unget_reg(reg);
     }
@@ -1754,7 +1754,7 @@ _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	STURH(r1, r0, i0 & 0x1ff);
     else {
 	reg = jit_get_reg(jit_class_gpr);
-	addi(rn(reg), r1, i0);
+	addi(rn(reg), r0, i0);
 	str_s(rn(reg), r1);
 	jit_unget_reg(reg);
     }
@@ -1771,7 +1771,7 @@ _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	STURW(r1, r0, i0 & 0x1ff);
     else {
 	reg = jit_get_reg(jit_class_gpr);
-	addi(rn(reg), r1, i0);
+	addi(rn(reg), r0, i0);
 	str_i(rn(reg), r1);
 	jit_unget_reg(reg);
     }
@@ -1788,7 +1788,7 @@ _stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	STUR(r1, r0, i0 & 0x1ff);
     else {
 	reg = jit_get_reg(jit_class_gpr);
-	addi(rn(reg), r1, i0);
+	addi(rn(reg), r0, i0);
 	str_l(rn(reg), r1);
 	jit_unget_reg(reg);
     }

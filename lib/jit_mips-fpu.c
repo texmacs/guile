@@ -710,7 +710,7 @@ static void
 _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0))
+    if (can_sign_extend_short_p(i0))
 	SWC1(r1, i0, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -957,10 +957,10 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
 #  if __WORDSIZE == 64 || NEW_ABI
-    if (can_sign_extend_int_p(i0))
+    if (can_sign_extend_short_p(i0))
 	SDC1(r1, i0, r0);
 #  else
-    if (can_sign_extend_int_p(i0) && can_sign_extend_int_p(i0 + 4)) {
+    if (can_sign_extend_short_p(i0) && can_sign_extend_short_p(i0 + 4)) {
 	SWC1(r1, i0, r0);
 	SWC1(r1 + 1, i0 + 4, r0);
     }
