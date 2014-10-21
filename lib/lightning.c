@@ -1127,6 +1127,24 @@ _jit_link(jit_state_t *_jit, jit_node_t *node)
     ++_jitc->blocks.offset;
 }
 
+jit_bool_t
+_jit_forward_p(jit_state_t *_jit, jit_node_t *node)
+{
+    return (node->code == jit_code_label && !node->next && node != _jitc->tail);
+}
+
+jit_bool_t
+_jit_indirect_p(jit_state_t *_jit, jit_node_t *node)
+{
+    return (node->code == jit_code_label && !!(node->flag & jit_flag_use));
+}
+
+jit_bool_t
+_jit_target_p(jit_state_t *_jit, jit_node_t *node)
+{
+    return (node->code == jit_code_label && !!node->link);
+}
+
 void
 _jit_prepare(jit_state_t *_jit)
 {

@@ -864,6 +864,12 @@ extern jit_node_t *_jit_label(jit_state_t*);
 extern jit_node_t *_jit_forward(jit_state_t*);
 extern jit_node_t *_jit_indirect(jit_state_t*);
 extern void _jit_link(jit_state_t*, jit_node_t*);
+#define jit_forward_p(u)	_jit_forward_p(_jit,u)
+extern jit_bool_t _jit_forward_p(jit_state_t*,jit_node_t*);
+#define jit_indirect_p(u)	_jit_indirect_p(_jit,u)
+extern jit_bool_t _jit_indirect_p(jit_state_t*,jit_node_t*);
+#define jit_target_p(u)		_jit_target_p(_jit,u)
+extern jit_bool_t _jit_target_p(jit_state_t*,jit_node_t*);
 
 extern void _jit_prolog(jit_state_t*);
 

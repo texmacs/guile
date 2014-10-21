@@ -1,3 +1,14 @@
+2014-10-21 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/lightning.c: Add three predicates
+	to query information about labels. jit_forward_p(label)
+	will return non zero if the label is "forward", that is
+	need a call to jit_link(label), jit_indirect_p(label)
+	that returns non zero if the label was created with the
+	jit_indirect() call, and jit_target_p(label) that will
+	return non zero if there is at least one jump patched
+	to land at that label.
+
 2014-10-18 Paulo Andrade <pcpa@gnu.org>
 
 	* check/range.ok, check/range.tst: New test case designed
