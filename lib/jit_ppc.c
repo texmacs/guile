@@ -778,11 +778,19 @@ _emit_code(jit_state_t *_jit)
 
 #if __powerpc__
     undo.prolog_offset = 0;
-    /* code may start with a jump so add an initial function descriptor */
-    word = _jit->pc.w + sizeof(void*) * 3;
-    iw(word);				/* addr */
-    iw(0);				/* toc */
-    iw(0);				/* env */
+    for (node = _jitc->head; node; node = node->next)
+	if (node->code != jit_code_label &&
+	    node->code != jit_code_note &&
+	    node->code != jit_code_name)
+	    break;
+    if (node && (node->code != jit_code_prolog ||
+		 !(_jitc->functions.ptr + node->w.w)->assume_frame)) {
+	/* code may start with a jump so add an initial function descriptor */
+	word = _jit->pc.w + sizeof(void*) * 3;
+	iw(word);			/* addr */
+	iw(0);				/* toc */
+	iw(0);				/* env */
+    }
 #endif
 
 #define case_rr(name, type)						\
@@ -1262,7 +1270,7 @@ _emit_code(jit_state_t *_jit)
 		    }
 		}
 		else
-		    jmpi(node->u.w);
+		    (void)jmpi_p(node->u.w);
 		break;
 	    case jit_code_callr:
 		callr(rn(node->u.w));

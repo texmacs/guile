@@ -1,3 +1,18 @@
+2014-10-24 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ia64.c, lib/jit_ppc.c: Correct handling of function
+	descriptor when first prolog is a jit_tramp prolog. The
+	test case was using the same jit_context_t, so was not
+	triggering this condition.
+
+	* lib/jit_ppc-cpu.c: Properly handle jump displacements that
+	do not fit on 24 powerpc. This required changing from previous
+	"mtlr reg, blr" to "mtctr reg, bctr" to properly handle
+	the logic to "hide" function descriptors, but that would
+	also be required as the proper jit_jmpr when/if implementing
+	optimizations to leaf functions (was working with blr because
+	it is saved/reloaded in prolog/epilog).
+
 2014-10-21 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/lightning.c: Add three predicates

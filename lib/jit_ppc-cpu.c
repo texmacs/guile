@@ -2985,8 +2985,13 @@ _stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _jmpr(jit_state_t *_jit, jit_int32_t r0)
 {
+#if 0
     MTLR(r0);
     BLR();
+#else
+    MTCTR(r0);
+    BCTR();
+#endif
 }
 
 /* pc relative jump */
@@ -2995,11 +3000,16 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 {
     jit_int32_t		reg;
     jit_word_t		w, d;
-    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
     w = _jit->pc.w;
     d = (i0 - w) & ~3;
-    B(d);
-    jit_unget_reg(reg);
+    if (can_sign_extend_jump_p(d))
+	B(d);
+    else {
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
+	w = movi_p(rn(reg), i0);
+	jmpr(rn(reg));
+	jit_unget_reg(reg);
+    }
     return (w);
 }
 
@@ -3237,6 +3247,47 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    u.i[0] = (u.i[0] & ~0x3fffffd) | (d & 0x3fffffe);
 	    break;
 	case 15:					/* LI */
+#if __WORDSIZE == 32
+#  define MTCTR_OFF		2
+#  define BCTR_OFF		3
+#else
+#  define MTCTR_OFF		6
+#  define BCTR_OFF		7
+#endif
+	    /* movi reg label; jmpr reg */
+	    if (_jitc->jump &&
+#if 0
+		/* check for MLTR(reg) */
+		(u.i[MTCTR_OFF] >> 26) == 31 &&
+		((u.i[MTCTR_OFF] >> 16) & 0x3ff) == 8 &&
+		((u.i[MTCTR_OFF] >> 1) & 0x3ff) == 467 &&
+		/* check for BLR */
+		u.i[BCTR_OFF] == 0x4e800020) {
+#else
+		/* check for MTCTR(reg) */
+		(u.i[MTCTR_OFF] >> 26) == 31 &&
+		((u.i[MTCTR_OFF] >> 16) & 0x3ff) == 9 &&
+		((u.i[MTCTR_OFF] >> 1) & 0x3ff) == 467 &&
+		/* check for BCTR */
+		u.i[BCTR_OFF] == 0x4e800420) {
+#endif
+		/* zero is used for toc and env, so, quick check
+		 * if this is a "jmpi main" like initial jit
+		 * instruction */
+		if (((long *)label)[1] == 0 && ((long *)label)[2] == 0) {
+		    for (d = 0; d < _jitc->prolog.offset; d++) {
+			/* not so pretty, but hides powerpc
+			 * specific abi intrinsics and/or
+			 * implementation from user */
+			if (_jitc->prolog.ptr[d] == label) {
+			    label += sizeof(void*) * 3;
+			    break;
+			}
+		    }
+		}
+	    }
+#undef BCTR_OFF
+#undef MTCTR_OFF
 #if __WORDSIZE == 32
 	    assert(!(u.i[0] & 0x1f0000));
 	    u.i[0] = (u.i[0] & ~0xffff) | ((label >> 16) & 0xffff);

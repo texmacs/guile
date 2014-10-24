@@ -762,10 +762,18 @@ _emit_code(jit_state_t *_jit)
     undo.patch_offset = 0;
 
     undo.prolog_offset = 0;
-    /* code may start with a jump so add an initial function descriptor */
-    word = _jit->pc.w + 16;
-    il(word);			/* addr */
-    il(0);			/* gp */
+    for (node = _jitc->head; node; node = node->next)
+	if (node->code != jit_code_label &&
+	    node->code != jit_code_note &&
+	    node->code != jit_code_name)
+	    break;
+    if (node && (node->code != jit_code_prolog ||
+		 !(_jitc->functions.ptr + node->w.w)->assume_frame)) {
+	/* code may start with a jump so add an initial function descriptor */
+	word = _jit->pc.w + 16;
+	il(word);		/* addr */
+	il(0);			/* gp */
+    }
 #define case_rr(name, type)						\
 	    case jit_code_##name##r##type:				\
 		name##r##type(rn(node->u.w), rn(node->v.w));		\
