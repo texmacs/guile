@@ -1,3 +1,8 @@
+2014-10-25 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_disasm.c: Do not cause an fatal error if init_jit
+	fails in the jit_init_debug call.
+
 2014-10-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64.c, lib/jit_ppc.c: Correct handling of function

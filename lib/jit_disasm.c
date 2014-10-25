@@ -59,13 +59,18 @@ static jit_state_t		 *disasm_jit;
 void
 jit_init_debug(char *progname)
 {
-    if (progname == NULL)
-	return;
 #if DISASSEMBLER
     bfd_init();
 
-    disasm_bfd = bfd_openr(progname, NULL);
-    assert(disasm_bfd);
+    if (progname)
+	disasm_bfd = bfd_openr(progname, NULL);
+    if (disasm_bfd == NULL) {
+#if defined(__linux__)
+	disasm_bfd = bfd_openr("/proc/self/exe", NULL);
+	if (disasm_bfd == NULL)
+#endif
+	    return;
+    }
     bfd_check_format(disasm_bfd, bfd_object);
     bfd_check_format(disasm_bfd, bfd_archive);
     disasm_print = disassembler(disasm_bfd);
