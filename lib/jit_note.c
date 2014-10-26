@@ -70,7 +70,7 @@ _jit_name(jit_state_t *_jit, char *name)
 }
 
 jit_node_t *
-_jit_note(jit_state_t *_jit, char *name, int line)
+_jit_note(jit_state_t *_jit, const char *name, int line)
 {
     jit_node_t		*node;
 

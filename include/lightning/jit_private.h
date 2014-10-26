@@ -611,8 +611,8 @@ extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 
-extern jit_pointer_t jit_memcpy(jit_pointer_t,jit_pointer_t,jit_word_t);
-extern jit_pointer_t jit_memmove(jit_pointer_t,jit_pointer_t,jit_word_t);
+extern jit_pointer_t jit_memcpy(jit_pointer_t,jit_const_pointer_t,jit_word_t);
+extern jit_pointer_t jit_memmove(jit_pointer_t,jit_const_pointer_t,jit_word_t);
 extern void jit_alloc(jit_pointer_t*, jit_word_t);
 extern void jit_realloc(jit_pointer_t*, jit_word_t, jit_word_t);
 void jit_free(jit_pointer_t*);

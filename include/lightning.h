@@ -120,6 +120,7 @@ typedef jit_uint64_t		jit_uword_t;
 typedef float			jit_float32_t;
 typedef double			jit_float64_t;
 typedef void*			jit_pointer_t;
+typedef const void*		jit_const_pointer_t;
 typedef jit_int32_t		jit_bool_t;
 typedef jit_int32_t		jit_gpr_t;
 typedef jit_int32_t		jit_fpr_t;
@@ -856,10 +857,10 @@ extern void _jit_destroy_state(jit_state_t*);
 
 #define jit_address(node)	_jit_address(_jit, node)
 extern jit_pointer_t _jit_address(jit_state_t*, jit_node_t*);
-extern jit_node_t *_jit_data(jit_state_t*, jit_pointer_t,
+extern jit_node_t *_jit_data(jit_state_t*, jit_const_pointer_t,
 			     jit_word_t, jit_int32_t);
 extern jit_node_t *_jit_name(jit_state_t*, char*);
-extern jit_node_t *_jit_note(jit_state_t*, char*, int);
+extern jit_node_t *_jit_note(jit_state_t*, const char*, int);
 extern jit_node_t *_jit_label(jit_state_t*);
 extern jit_node_t *_jit_forward(jit_state_t*);
 extern jit_node_t *_jit_indirect(jit_state_t*);

@@ -44,7 +44,7 @@
 /*
  * Prototypes
  */
-static jit_word_t hash_data(jit_pointer_t, jit_word_t);
+static jit_word_t hash_data(jit_const_pointer_t, jit_word_t);
 
 #define new_pool()			_new_pool(_jit)
 static void _new_pool(jit_state_t*);
@@ -536,9 +536,9 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
 }
 
 static jit_word_t
-hash_data(jit_pointer_t data, jit_word_t length)
+hash_data(jit_const_pointer_t data, jit_word_t length)
 {
-    jit_uint8_t		*ptr;
+    const jit_uint8_t		*ptr;
     jit_word_t		 i, key;
     for (i = key = 0, ptr = data; i < length; i++)
 	key = (key << (key & 1)) ^ ptr[i];
@@ -558,7 +558,7 @@ _jit_address(jit_state_t *_jit, jit_node_t *node)
 }
 
 jit_node_t *
-_jit_data(jit_state_t *_jit, jit_pointer_t data,
+_jit_data(jit_state_t *_jit, jit_const_pointer_t data,
 	  jit_word_t length, jit_int32_t align)
 {
     jit_word_t		 key;
