@@ -19,6 +19,7 @@ AC_INIT([GNU lightning], 2.0.5, pcpa@gnu.org, lightning)
 AC_CANONICAL_TARGET
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_CONFIG_MACRO_DIR(m4)
 
 AC_CONFIG_HEADERS(config.h)
