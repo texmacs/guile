@@ -3069,6 +3069,7 @@ _bmsi(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
 	testr(r0, rn(reg));
+	jit_unget_reg(reg);
     }
     jnz(i0);
     return (_jit->pc.w);
@@ -3092,6 +3093,7 @@ _bmci(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i1);
 	testr(r0, rn(reg));
+	jit_unget_reg(reg);
     }
     jz(i0);
     return (_jit->pc.w);
