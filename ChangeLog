@@ -1,5 +1,19 @@
 2014-10-26 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
+	lib/jit_hppa.c, lib/jit_ia64.c, lib/jit_mips.c, lib/jit_ppc.c,
+	lib/jit_s390x.c, lib/jit_sparc.c, lib/jit_x86.c: Add an
+	assertion to all code generation "drivers" to ensure
+	_jitc->regarg is empty or in an expected state, after
+	translation of a lightning instruction to native code.
+	This change was a brute force test to find out other cases
+	of a temporary not being release (like was happening with
+	_bmsi and _bmci on x86), but no other case was found,
+	after running make check, with assertions enabled, on all
+	backends.
+
+2014-10-26 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_x86-cpu.c: Correct a register allocation leak in
 	_bmsi and _bmci.
 

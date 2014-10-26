@@ -1191,6 +1191,7 @@ _emit_code(jit_state_t *_jit)
 	    }
 	}
 	jit_regarg_clr(node, value);
+	assert(_jitc->regarg == jit_carry == _NOREG ? 0 : (1 << jit_carry));
 	/* update register live state */
 	jit_reglive(node);
     }

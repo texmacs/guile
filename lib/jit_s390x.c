@@ -1135,6 +1135,7 @@ _emit_code(jit_state_t *_jit)
 		abort();
 	}
 	jit_regarg_clr(node, value);
+	assert(_jitc->regarg == 0);
 	/* update register live state */
 	jit_reglive(node);
     }
