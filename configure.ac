@@ -184,7 +184,7 @@ elif test $cpu = x86; then
 			  : "0" (1));
 	return (edx & 1 << 26) ? 0 : 1;
     }
-    ]])],[ac_cv_test_x86_x87=yes],[][])
+    ]])],[ac_cv_test_x86_x87=yes],[],[ac_cv_test_x86_x87=no])
 elif test $cpu = arm; then
     AC_RUN_IFELSE([AC_LANG_SOURCE([[
     #include <stdio.h>
@@ -207,7 +207,7 @@ elif test $cpu = arm; then
     #endif
 	return 1;
     }
-    ]])],[ac_cv_test_arm_arm=yes],[][])
+    ]])],[ac_cv_test_arm_arm=yes],[],[ac_cv_test_arm_arm=no])
     AC_RUN_IFELSE([AC_LANG_SOURCE([[
     #include <stdio.h>
     int main(void) {
@@ -229,7 +229,7 @@ elif test $cpu = arm; then
     #endif
 	return 1;
     }
-    ]])],[ac_cv_test_arm_swf=yes],[][])
+    ]])],[ac_cv_test_arm_swf=yes],[],[ac_cv_test_arm_swf=no])
 fi
 CFLAGS=$save_CFLAGS
 
