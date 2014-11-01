@@ -22,6 +22,9 @@ SUBDIRS =		\
 	include		\
 	lib
 
+pkgconfiglibdir = $(libdir)/pkgconfig
+pkgconfiglib_DATA = lightning.pc
+
 if get_jit_size
 JIT_SIZE_PATH = "$(top_builddir)/jit_$(cpu)-sz.c"
 AM_CPPFLAGS=-DGET_JIT_SIZE=1 -DJIT_SIZE_PATH='$(JIT_SIZE_PATH)'
