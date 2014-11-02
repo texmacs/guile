@@ -47,7 +47,7 @@ jit_finish_note(void)
 }
 
 jit_node_t *
-_jit_name(jit_state_t *_jit, char *name)
+_jit_name(jit_state_t *_jit, const char *name)
 {
     jit_node_t		*node;
 

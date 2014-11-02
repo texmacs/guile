@@ -127,6 +127,10 @@ typedef jit_uint32_t		jit_regset_t;
 typedef jit_uint64_t		jit_regset_t;
 #endif
 
+#define jit_data(u,v,w)		_jit_data(_jit,u,v,w)
+extern jit_node_t *_jit_data(jit_state_t*, const void*,
+			     jit_word_t, jit_int32_t);
+
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
 #define jit_reg_free_p(regno)						\
@@ -601,7 +605,7 @@ _emit_ldxi_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 extern void
 _emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
 
-extern void jit_init_debug(char*);
+extern void jit_init_debug(const char*);
 extern void jit_finish_debug(void);
 
 extern void jit_init_note(void);
@@ -611,8 +615,8 @@ extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 
-extern jit_pointer_t jit_memcpy(jit_pointer_t,jit_const_pointer_t,jit_word_t);
-extern jit_pointer_t jit_memmove(jit_pointer_t,jit_const_pointer_t,jit_word_t);
+extern jit_pointer_t jit_memcpy(jit_pointer_t,const void*,jit_word_t);
+extern jit_pointer_t jit_memmove(jit_pointer_t,const void*,jit_word_t);
 extern void jit_alloc(jit_pointer_t*, jit_word_t);
 extern void jit_realloc(jit_pointer_t*, jit_word_t, jit_word_t);
 void jit_free(jit_pointer_t*);

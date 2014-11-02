@@ -57,7 +57,7 @@ static jit_state_t		 *disasm_jit;
  * Implementation
  */
 void
-jit_init_debug(char *progname)
+jit_init_debug(const char *progname)
 {
 #if DISASSEMBLER
     bfd_init();
