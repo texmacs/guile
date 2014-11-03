@@ -1,3 +1,11 @@
+2014-11-03 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_mips.h: Do not make the t9 register
+	JIT_R11 (or JIT_R7 for n32 or n64 abi) available. Previously
+	it cause problems if one expects it to not be changed in a
+	function call. For example, calling a jit function, where it
+	really does not need to be changed.
+
 2014-10-26 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
