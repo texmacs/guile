@@ -1,3 +1,12 @@
+2014-11-08 Paulo Andrade <pcpa@gnu.org>
+
+	* check/ctramp.c: New file. It just repeats the test
+	of tramp.tst, but using two jit_state_t, what should
+	test possible issues with two contexts, and also validate
+	jit_tramp works on backends with function descriptions.
+
+	* check/Makefile.am: Update for new test case.
+
 2014-11-03 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_mips.h: Do not make the t9 register

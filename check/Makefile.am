@@ -16,7 +16,7 @@
 
 AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE
 
-check_PROGRAMS = lightning ccall self setcode nodata
+check_PROGRAMS = lightning ccall self setcode nodata ctramp
 
 lightning_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 lightning_SOURCES = lightning.c
@@ -32,6 +32,9 @@ setcode_SOURCES = setcode.c
 
 nodata_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 nodata_SOURCES = nodata.c
+
+ctramp_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
+ctramp_SOURCES = ctramp.c
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
@@ -237,7 +240,7 @@ $(nodata_TESTS):	check.nodata.sh
 TESTS += $(nodata_TESTS)
 endif
 
-TESTS += ccall self setcode nodata
+TESTS += ccall self setcode nodata ctramp
 CLEANFILES = $(TESTS)
 
 #TESTS_ENVIRONMENT=$(srcdir)/run-test;
