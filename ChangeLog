@@ -1,5 +1,15 @@
 2014-11-08 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_private.h, lib/jit_aarch64.c,
+	lib/jit_alpha.c, lib/jit_arm.c, lib/jit_hppa.c,
+	lib/jit_ia64.c, lib/jit_mips.c, lib/jit_ppc.c,
+	lib/jit_s390x.c, lib/jit_sparc.c, lib/jit_x86.c:
+	Implement a private jit_flush call, that flushes
+	the cache, if applicable, aligning down to the
+	previous and up to the next page boundary.
+
+2014-11-08 Paulo Andrade <pcpa@gnu.org>
+
 	* check/ctramp.c: New file. It just repeats the test
 	of tramp.tst, but using two jit_state_t, what should
 	test possible issues with two contexts, and also validate

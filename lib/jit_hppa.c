@@ -1162,6 +1162,23 @@ _emit_code(jit_state_t *_jit)
 	patch_at(_jitc->patches.ptr[offset].inst, word);
     }
 
+    jit_flush(_jit->code.ptr, _jit->pc.uc);
+
+    return (_jit->code.ptr);
+}
+
+#define CODE				1
+#  include "jit_hppa-cpu.c"
+#  include "jit_hppa-fpu.c"
+#undef CODE
+
+void
+jit_flush(void *fptr, void *tptr)
+{
+    jit_word_t		f, t, s;
+    s = sysconf(_SC_PAGE_SIZE);
+    f = (jit_word_t)fptr & -s;
+    t = (((jit_word_t)tptr) + s - 1) & -s;
 #if defined(__hppa)
 /* --- parisc2.0.pdf ---
 		Programming Note
@@ -1203,9 +1220,7 @@ at most two cachelines.
      * on this software.
      */
     {
-	jit_word_t	f = (jit_word_t)_jit->code.ptr;
 	jit_word_t	n = f + 32;
-	jit_word_t	t = f + _jit->code.length;
 	register int	u, v;
 	for (; f <= t; n = f + 32, f += 64) {
 	    asm volatile ("fdc 0(0,%0)"
@@ -1234,17 +1249,9 @@ at most two cachelines.
     }
 #else
     /* This is supposed to work but appears to fail on multiprocessor systems */
-    word = sysconf(_SC_PAGE_SIZE);
-    __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
+    __clear_cache((void *)f, (void *)t);
 #endif
-
-    return (_jit->code.ptr);
 }
-
-#define CODE				1
-#  include "jit_hppa-cpu.c"
-#  include "jit_hppa-fpu.c"
-#undef CODE
 
 void
 _emit_ldxi(jit_state_t *_jit, jit_gpr_t r0, jit_gpr_t r1, jit_word_t i0)

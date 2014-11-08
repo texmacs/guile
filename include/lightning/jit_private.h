@@ -589,6 +589,9 @@ _jit_regarg_p(jit_state_t*, jit_node_t*, jit_int32_t);
 extern jit_pointer_t
 _emit_code(jit_state_t*);
 
+extern void
+jit_flush(void *fptr, void *tptr);
+
 #define emit_ldxi(r0, r1, i0)	_emit_ldxi(_jit, r0, r1, i0)
 extern void
 _emit_ldxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);

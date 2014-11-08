@@ -1385,10 +1385,7 @@ _emit_code(jit_state_t *_jit)
 	patch_at(node->code, _jitc->patches.ptr[offset].inst, word);
     }
 
-#if defined(__GNUC__)
-    word = sysconf(_SC_PAGE_SIZE);
-    __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
-#endif
+    jit_flush(_jit->code.ptr, _jit->pc.uc);
 
     return (_jit->code.ptr);
 }
@@ -1397,6 +1394,19 @@ _emit_code(jit_state_t *_jit)
 #  include "jit_ia64-cpu.c"
 #  include "jit_ia64-fpu.c"
 #undef CODE
+
+void
+jit_flush(void *fptr, void *tptr)
+{
+#if defined(__GNUC__)
+    jit_word_t		f, t, s;
+
+    s = sysconf(_SC_PAGE_SIZE);
+    f = (jit_word_t)fptr & -s;
+    t = (((jit_word_t)tptr) + s - 1) & -s;
+    __clear_cache((void *)f, (void *)t);
+#endif
+}
 
 /* Use r2 that is reserved to not require a jit_get_reg call, also note
  * that addil needs a register that first in 2 bits, so, if using a

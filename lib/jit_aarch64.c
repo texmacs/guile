@@ -1170,8 +1170,7 @@ _emit_code(jit_state_t *_jit)
 	patch_at(word, value);
     }
 
-    word = sysconf(_SC_PAGE_SIZE);
-    __clear_cache(_jit->code.ptr, (void *)((_jit->pc.w + word) & -word));
+    jit_flush(_jit->code.ptr, _jit->pc.uc);
 
     return (_jit->code.ptr);
 }
@@ -1180,6 +1179,19 @@ _emit_code(jit_state_t *_jit)
 #  include "jit_aarch64-cpu.c"
 #  include "jit_aarch64-fpu.c"
 #undef CODE
+
+void
+jit_flush(void *fptr, void *tptr)
+{
+#if defined(__GNUC__)
+    jit_word_t		f, t, s;
+
+    s = sysconf(_SC_PAGE_SIZE);
+    f = (jit_word_t)fptr & -s;
+    t = (((jit_word_t)tptr) + s - 1) & -s;
+    __clear_cache((void *)f, (void *)t);
+#endif
+}
 
 void
 _emit_ldxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)

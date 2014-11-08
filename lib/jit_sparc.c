@@ -1156,6 +1156,8 @@ _emit_code(jit_state_t *_jit)
 	patch_at(_jitc->patches.ptr[offset].inst, word);
     }
 
+    jit_flush(_jit->code.ptr, _jit->pc.uc);
+
     return (_jit->code.ptr);
 }
 
@@ -1163,6 +1165,11 @@ _emit_code(jit_state_t *_jit)
 #  include "jit_sparc-cpu.c"
 #  include "jit_sparc-fpu.c"
 #undef CODE
+
+void
+jit_flush(void *fptr, void *tptr)
+{
+}
 
 void
 _emit_ldxi(jit_state_t *_jit, jit_gpr_t r0, jit_gpr_t r1, jit_word_t i0)

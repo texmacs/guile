@@ -1794,6 +1794,8 @@ _emit_code(jit_state_t *_jit)
 	patch_at(node, _jitc->patches.ptr[offset].inst, word);
     }
 
+    jit_flush(_jit->code.ptr, _jit->pc.uc);
+
     return (_jit->code.ptr);
 }
 
@@ -1802,6 +1804,11 @@ _emit_code(jit_state_t *_jit)
 #  include "jit_x86-sse.c"
 #  include "jit_x86-x87.c"
 #undef CODE
+
+void
+jit_flush(void *fptr, void *tptr)
+{
+}
 
 void
 _emit_ldxi(jit_state_t *_jit, jit_gpr_t r0, jit_gpr_t r1, jit_word_t i0)
