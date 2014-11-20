@@ -1870,7 +1870,7 @@ _swf_movr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	    }
 	}
 	else if (jit_fpr_p(r0)) {
-	    if (!jit_thumb_p() && jit_armv5e_p())
+	    if (!jit_thumb_p() && jit_armv5e_p() && !(r1 & 1))
 		STRDIN(r1, _FP_REGNO, swf_off(r0) + 8);
 	    else {
 		swf_strin(r1, _FP_REGNO, swf_off(r0) + 8);
@@ -1967,9 +1967,9 @@ _swf_absr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (jit_fpr_p(r0) && !jit_thumb_p() && jit_armv5e_p() &&
 	    r0 != r1 && (reg = jit_get_reg_pair()) != JIT_NOREG) {
-	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 4);
-	    swf_bici(rn(reg), rn(reg), 0x80000000);
-	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    swf_bici(rn(reg) + 1, rn(reg) + 1, 0x80000000);
+	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 	    jit_unget_reg_pair(reg);
 	}
 	else {
@@ -2039,9 +2039,9 @@ _swf_negr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     if (jit_fpr_p(r1)) {
 	if (jit_fpr_p(r0) && !jit_thumb_p() && jit_armv5e_p() &&
 	    r0 != r1 && (reg = jit_get_reg_pair()) != JIT_NOREG) {
-	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 4);
-	    EORI(rn(reg), rn(reg), encode_arm_immediate(0x80000000));
-	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 4);
+	    LDRDIN(rn(reg), _FP_REGNO, swf_off(r1) + 8);
+	    EORI(rn(reg) + 1, rn(reg) + 1, encode_arm_immediate(0x80000000));
+	    STRDIN(rn(reg), _FP_REGNO, swf_off(r0) + 8);
 	    jit_unget_reg_pair(reg);
 	}
 	else {
@@ -2197,7 +2197,7 @@ _swf_ldr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	    jit_unget_reg(reg);
 	}
     }
-    else if (!jit_thumb_p() && jit_armv5e_p())
+    else if (!jit_thumb_p() && jit_armv5e_p() && !(r0 & 1))
 	LDRDI(r0, r1, 0);
     else {
 	ldxi_i(r0, r1, 0);
@@ -2241,7 +2241,7 @@ _swf_ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 	    swf_strin(rn(rg0), _FP_REGNO, swf_off(r0) + 4);
 	    jit_unget_reg(rg0);
 	}
-	else if (!jit_thumb_p() && jit_armv5e_p())
+	else if (!jit_thumb_p() && jit_armv5e_p() && !(r0 & 1))
 	    LDRDI(r0, rn(rg1), 0);
 	else {
 	    ldxi_i(r0, rn(rg1), 0);
@@ -2289,7 +2289,7 @@ _swf_ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	}
     }
     else {
-	if (!jit_thumb_p() && jit_armv5e_p())
+	if (!jit_thumb_p() && jit_armv5e_p() && !(r0 & 1))
 	    LDRD(r0, r1, r2);
 	else {
 	    rg1 = jit_get_reg(jit_class_gpr);
@@ -2360,9 +2360,11 @@ _swf_ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	}
     }
     else {
-	if (!jit_thumb_p() && jit_armv5e_p() && i0 >= 0 && i0 <= 255)
+	if (!jit_thumb_p() && jit_armv5e_p() &&
+	    i0 >= 0 && i0 <= 255 && !(r0 & 1))
 	    LDRDI(r0, r1, i0);
-	else if (!jit_thumb_p() && jit_armv5e_p() && i0 < 0 && i0 >= -255)
+	else if (!jit_thumb_p() && jit_armv5e_p() &&
+		 i0 < 0 && i0 >= -255 && !(r0 & 1))
 	    LDRDIN(r0, r1, -i0);
 	else if (i0 >= 0 && i0 + 4 <= 4095) {
 	    ldxi_i(r0, r1, i0);
@@ -2417,7 +2419,7 @@ _swf_str_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 	}
     }
     else {
-	if (!jit_thumb_p() && jit_armv5e_p())
+	if (!jit_thumb_p() && jit_armv5e_p() && !(r1 & 1))
 	    STRDI(r1, r0, 0);
 	else {
 	    stxi_i(0, r0, r1);
@@ -2469,7 +2471,7 @@ _swf_sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
     else {
 	rg1 = jit_get_reg(jit_class_gpr);
 	movi(rn(rg1), i0);
-	if (!jit_thumb_p() && jit_armv5e_p())
+	if (!jit_thumb_p() && jit_armv5e_p() && !(r0 & 1))
 	    STRDI(r0, rn(rg1), 0);
 	else {
 	    stxi_i(0, rn(rg1), r0);
@@ -2517,7 +2519,7 @@ _swf_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	}
     }
     else {
-	if (!jit_thumb_p() && jit_armv5e_p())
+	if (!jit_thumb_p() && jit_armv5e_p() && !(r2 & 1))
 	    STRD(r0, r1, r2);
 	else {
 	    rg1 = jit_get_reg(jit_class_gpr);
@@ -2556,6 +2558,7 @@ _swf_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 		STRDI(rn(rg0), r0, i0);
 	    else
 		STRDIN(rn(rg0), r0, -i0);
+	    jit_unget_reg_pair(rg0);
 	}
 	else if (i0 >= 0 && i0 + 4 <= 4095) {
 	    rg0 = jit_get_reg(jit_class_gpr);
@@ -2587,9 +2590,11 @@ _swf_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	}
     }
     else {
-	if (!jit_thumb_p() && jit_armv5e_p() && i0 >= 0 && i0 <= 255)
+	if (!jit_thumb_p() && jit_armv5e_p() &&
+	    i0 >= 0 && i0 <= 255 && !(r1 & 1))
 	    STRDI(r1, r0, i0);
-	else if (!jit_thumb_p() && jit_armv5e_p() && i0 < 0 && i0 >= -255)
+	else if (!jit_thumb_p() && jit_armv5e_p() &&
+		 i0 < 0 && i0 >= -255 && !(r1 & 1))
 	    STRDIN(r1, r0, -i0);
 	else if (i0 >= 0 && i0 + 4 <= 4095) {
 	    stxi_i(i0, r0, r1);

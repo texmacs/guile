@@ -31,7 +31,7 @@
 #  define jit_thumb_p()			jit_cpu.thumb
 #  define jit_no_set_flags()		_jitc->no_set_flags
 #  define jit_armv5_p()			(jit_cpu.version >= 5)
-#  define jit_armv5e_p()		(jit_cpu.version >= 5 && jit_cpu.extend)
+#  define jit_armv5e_p()		(jit_cpu.version > 5 || (jit_cpu.version == 5 && jit_cpu.extend))
 #  define jit_armv6_p()			(jit_cpu.version >= 6)
 #  define jit_armv7r_p()		0
 #  define stack_framesize		48
@@ -709,9 +709,9 @@ static void _torl(jit_state_t*,int,int,int) maybe_unused;
 #  define LDRD(rt,rn,rm)		CC_LDRD(ARM_CC_AL,rt,rn,rm)
 #  define T2_LDRDI(rt,rt2,rn,im)	torrri8(THUMB2_LDRDI|ARM_P,rn,rt,rt2,im)
 #  define CC_LDRDN(cc,rt,rn,rm)		corrr(cc,ARM_LDRD,rn,rt,rm)
-#  define LDRDN(rd,rn,rm)		CC_LDRDN(ARM_CC_AL,rn,rt,rm)
+#  define LDRDN(rd,rn,rm)		CC_LDRDN(ARM_CC_AL,rt,rn,rm)
 #  define CC_LDRDI(cc,rt,rn,im)		corri8(cc,ARM_LDRDI|ARM_P,rn,rt,im)
-#  define LDRDI(rt,rn,im)		CC_LDRDI(ARM_CC_AL,rn,rt,im)
+#  define LDRDI(rt,rn,im)		CC_LDRDI(ARM_CC_AL,rt,rn,im)
 #  define CC_LDRDIN(cc,rt,rn,im)	corri8(cc,ARM_LDRDI,rn,rt,im)
 #  define LDRDIN(rt,rn,im)		CC_LDRDIN(ARM_CC_AL,rt,rn,im)
 #  define T2_LDRDIN(rt,rt2,rn,im)	torrri8(THUMB2_LDRDI,rn,rt,rt2,im)
@@ -758,7 +758,7 @@ static void _torl(jit_state_t*,int,int,int) maybe_unused;
 #  define CC_STRIN(cc,rt,rn,im)		corri(cc,ARM_STRI,rn,rt,im)
 #  define STRIN(rt,rn,im)		CC_STRIN(ARM_CC_AL,rt,rn,im)
 #  define T2_STRIN(rt,rn,im)		torri8(THUMB2_STRI,rn,rt,im)
-#  define CC_STRD(cc,rt,rn,rm)		corrr(cc,ARM_STRD|ARM_P,rt,rn,rm)
+#  define CC_STRD(cc,rt,rn,rm)		corrr(cc,ARM_STRD|ARM_P,rn,rt,rm)
 #  define STRD(rt,rn,rm)		CC_STRD(ARM_CC_AL,rt,rn,rm)
 #  define CC_STRDN(cc,rt,rn,rm)		corrr(cc,ARM_STRD,rn,rt,rm)
 #  define STRDN(rt,rn,rm)		CC_STRDN(ARM_CC_AL,rt,rn,rm)

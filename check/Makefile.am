@@ -92,6 +92,8 @@ EXTRA_DIST =				\
 	check.sh			\
 	check.x87.sh			\
 	check.arm.sh	check.swf.sh	\
+	check.arm.swf.sh		\
+	check.arm4.swf.sh		\
 	check.nodata.sh			\
 	check.x87.nodata.sh		\
 	run-test	all.tst
@@ -213,6 +215,53 @@ swf_TESTS =					\
 $(swf_TESTS):	check.swf.sh
 	$(LN_S) $(srcdir)/check.swf.sh $@
 TESTS += $(swf_TESTS)
+if test_arm_arm
+#arm_swf_TESTS = $(addsuffix .arm.swf, $(base_TESTS))
+arm_swf_TESTS =							\
+	3to2.arm.swf add.arm.swf allocai.arm.swf		\
+	bp.arm.swf divi.arm.swf fib.arm.swf rpn.arm.swf		\
+	ldstr.arm.swf ldsti.arm.swf				\
+	ldstxr.arm.swf ldstxi.arm.swf				\
+	ldstr-c.arm.swf ldstxr-c.arm.swf ldstxi-c.arm.swf	\
+	cvt.arm.swf branch.arm.swf				\
+	alu_add.arm.swf alux_add.arm.swf			\
+	alu_sub.arm.swf alux_sub.arm.swf alu_rsb.arm.swf	\
+	alu_mul.arm.swf alu_div.arm.swf alu_rem.arm.swf		\
+	alu_and.arm.swf alu_or.arm.swf alu_xor.arm.swf		\
+	alu_lsh.arm.swf alu_rsh.arm.swf				\
+	alu_com.arm.swf alu_neg.arm.swf				\
+	fop_abs.arm.swf fop_sqrt.arm.swf			\
+	varargs.arm.swf stack.arm.swf				\
+	clobber.arm.swf carry.arm.swf call.arm.swf		\
+	float.arm.swf jmpr.arm.swf tramp.arm.swf range.arm.swf
+$(arm_swf_TESTS):	check.arm.swf.sh
+	$(LN_S) $(srcdir)/check.arm.swf.sh $@
+TESTS += $(arm_swf_TESTS)
+endif
+if test_arm_arm
+#arm4_swf_TESTS = $(addsuffix .arm4.swf, $(base_TESTS))
+arm4_swf_TESTS =						\
+	3to2.arm4.swf add.arm4.swf allocai.arm4.swf		\
+	bp.arm4.swf divi.arm4.swf fib.arm4.swf rpn.arm4.swf	\
+	ldstr.arm4.swf ldsti.arm4.swf				\
+	ldstxr.arm4.swf ldstxi.arm4.swf				\
+	ldstr-c.arm4.swf ldstxr-c.arm4.swf ldstxi-c.arm4.swf	\
+	cvt.arm4.swf branch.arm4.swf				\
+	alu_add.arm4.swf alux_add.arm4.swf			\
+	alu_sub.arm4.swf alux_sub.arm4.swf alu_rsb.arm4.swf	\
+	alu_mul.arm4.swf alu_div.arm4.swf alu_rem.arm4.swf	\
+	alu_and.arm4.swf alu_or.arm4.swf alu_xor.arm4.swf	\
+	alu_lsh.arm4.swf alu_rsh.arm4.swf			\
+	alu_com.arm4.swf alu_neg.arm4.swf			\
+	fop_abs.arm4.swf fop_sqrt.arm4.swf			\
+	varargs.arm4.swf stack.arm4.swf				\
+	clobber.arm4.swf carry.arm4.swf call.arm4.swf		\
+	float.arm4.swf jmpr.arm4.swf tramp.arm4.swf		\
+	range.arm4.swf
+$(arm4_swf_TESTS):	check.arm4.swf.sh
+	$(LN_S) $(srcdir)/check.arm4.swf.sh $@
+TESTS += $(arm4_swf_TESTS)
+endif
 endif
 
 if test_nodata

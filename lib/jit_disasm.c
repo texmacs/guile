@@ -84,12 +84,6 @@ jit_init_debug(const char *progname)
     disasm_info.mach = bfd_mach_i386_i386;
 #    endif
 #  endif
-#  if defined(__arm__)
-    /* FIXME add mapping for prolog switching to arm and possible jump
-     * before first prolog also in arm mode */
-    if (jit_cpu.thumb)
-	disasm_info.disassembler_options = "force-thumb";
-#  endif
 #  if defined(__powerpc__)
     disasm_info.arch = bfd_arch_powerpc;
     disasm_info.mach = bfd_mach_ppc64;
@@ -204,8 +198,15 @@ void
 _jit_disassemble(jit_state_t *_jit)
 {
 #if DISASSEMBLER
-    if (disasm_bfd)
+    if (disasm_bfd) {
+#  if defined(__arm__)
+	/* FIXME add mapping for prolog switching to arm and possible jump
+	 * before first prolog also in arm mode */
+	disasm_info.disassembler_options = jit_cpu.thumb ? "force-thumb" : "";
+#  endif
+
 	disassemble(_jit->code.ptr, _jit->pc.uc - _jit->code.ptr);
+    }
 #endif
 }
 
@@ -326,8 +327,7 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     again:
 	if (data_info) {
 	    while (_jitc->data_info.ptr[data_offset].code < pc) {
-		data_offset += 2;
-		if (data_offset >= _jitc->data_info.length) {
+		if (++data_offset >= _jitc->data_info.length) {
 		    data_info = 0;
 		    goto again;
 		}

@@ -1,3 +1,20 @@
+2014-11-20 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_disasm.c: Change thumb or arm disassemble based on
+	jit code before disassembly.
+
+	* lib/jit_arm-cpu.c: Correct reversed arguments to LDRD and
+	STRD instructions, and correct checking for support of those.
+
+	* lib/jit_arm-swf.c: Correct wrong use of LDRD and STRD and
+	only use those if the register is even.
+
+	* check/check.arm.swf.sh, check/check.arm4.swf.sh: New files
+	to test LDRD and STRD, as well as the alternate code path
+	when those are not available, in the .arm4. test case.
+
+	* check/Makefile.am: Update for the new test cases.
+
 2014-11-08 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, lib/jit_aarch64.c,
