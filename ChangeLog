@@ -1,5 +1,10 @@
 2014-11-20 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_ppc.h, lib/jit_ppc-cpu.c,
+	lib/jit_ppc.c: Add initial powerpc le support.
+
+2014-11-20 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_disasm.c: Change thumb or arm disassemble based on
 	jit code before disassembly.
 

@@ -49,6 +49,7 @@
 #  define _SP_REGNO			1
 #  define _R2_REGNO			2
 #  define _R11_REGNO			11
+#  define _R12_REGNO			12
 #  define _FP_REGNO			31
 #  if __WORDSIZE == 32
 #    define ldr(r0,r1)			ldr_i(r0,r1)
@@ -325,8 +326,8 @@ static void _FXS(jit_state_t*,int,int,int,int,int,int,int);
 #  define NOP()				ORI(0,0,0)
 #  define ORIS(d,a,u)			FDu(25,a,d,u)
 #  define RFI()				FXL(19,0,0,50)
-#  define RLWIMI(d,s,h,b,e)		FM(20,s,a,h,b,e,0)
-#  define RLWIMI_(d,s,h,b,e)		FM(20,s,a,h,b,e,1)
+#  define RLWIMI(d,s,h,b,e)		FM(20,s,d,h,b,e,0)
+#  define RLWIMI_(d,s,h,b,e)		FM(20,s,d,h,b,e,1)
 #  define INSLWI(a,s,n,b)		RLWIMI(a,s,32-b,b,b+n-1)
 #  define INSRWI(a,s,n,b)		RLWIMI(a,s,32-(b+n),b,(b+n)-1)
 #  define RLWINM(a,s,h,b,e)		FM(21,s,a,h,b,e,0)
@@ -472,7 +473,8 @@ static jit_word_t _movi_p(jit_state_t*,jit_int32_t,jit_word_t);
 #  if __BYTE_ORDER == __BIG_ENDIAN
 #    define htonr(r0,r1)		movr(r0,r1)
 #  else
-#    error need htonr implementation
+#    define htonr(r0,r1)		_htonr(_jit,r0,r1)
+static void _htonr(jit_state_t*,jit_int32_t,jit_int32_t);
 #  endif
 #  define addr(r0,r1,r2)		ADD(r0,r1,r2)
 #  define addi(r0,r1,i0)		_addi(_jit,r0,r1,i0)
@@ -1043,6 +1045,35 @@ _movi_p(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 #  endif
     return (word);
 }
+
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+static void
+_htonr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg;
+#    if __WORDSIZE == 64
+    jit_int32_t		top;
+    top = jit_get_reg(jit_class_gpr);
+    rshi_u(rn(top), r1, 32);
+#    endif
+    reg = jit_get_reg(jit_class_gpr);
+    ROTLWI(rn(reg), r1, 8);
+    RLWIMI(rn(reg), r1, 24, 0, 7);
+    RLWIMI(rn(reg), r1, 24, 16, 23);
+#    if __WORDSIZE == 32
+    CLRLDI(r0, rn(reg), 32);
+#    else
+    lshi(r0, rn(reg), 32);
+    ROTLWI(rn(reg), rn(top), 8);
+    RLWIMI(rn(reg), rn(top), 24, 0, 7);
+    RLWIMI(rn(reg), rn(top), 24, 16, 23);
+    orr(r0, r0, rn(reg));
+    movr(r0, rn(top));
+    jit_unget_reg(top);
+#    endif
+    jit_unget_reg(reg);
+}
+#  endif
 
 static void
 _addi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
@@ -3030,6 +3061,9 @@ static void
 _callr(jit_state_t *_jit, jit_int32_t r0)
 {
 #  if __powerpc__
+#    if ABI_ELFv2
+    movr(_R12_REGNO, r0);
+#    else
     stxi(sizeof(void*) * 5, _SP_REGNO, _R2_REGNO);
     /* FIXME Pretend to not know about r11? */
     if (r0 == _R0_REGNO) {
@@ -3042,12 +3076,13 @@ _callr(jit_state_t *_jit, jit_int32_t r0)
 	ldxi(_R11_REGNO, r0, sizeof(void*) * 2);
     }
     ldr(r0, r0);
+#    endif
 #  endif
 
     MTCTR(r0);
     BCTRL();
 
-#  if __powerpc__
+#  if __powerpc__ && !ABI_ELFv2
     ldxi(_R2_REGNO, _SP_REGNO, sizeof(void*) * 5);
 #  endif
 }
@@ -3219,7 +3254,7 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    u.i[0] = (u.i[0] & ~0xfffd) | (d & 0xfffe);
 	    break;
 	case 18:					/* Bx */
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
 	    if (_jitc->jump && (!(u.i[0] & 1))) {	/* jmpi label */
 		/* zero is used for toc and env, so, quick check
 		 * if this is a "jmpi main" like initial jit

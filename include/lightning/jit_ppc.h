@@ -23,6 +23,13 @@
 #define JIT_HASH_CONSTS		1
 #define JIT_NUM_OPERANDS	3
 
+#if __powerpc__
+#  if _CALL_ELF == 2
+/* __BYTE_ORDER == __LITTLE_ENDIAN */
+#    define ABI_ELFv2		1
+#  endif
+#endif
+
 /*
  * Types
  */

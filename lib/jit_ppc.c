@@ -776,7 +776,7 @@ _emit_code(jit_state_t *_jit)
     undo.node = NULL;
     undo.patch_offset = 0;
 
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
     undo.prolog_offset = 0;
     for (node = _jitc->head; node; node = node->next)
 	if (node->code != jit_code_label &&
@@ -1255,7 +1255,7 @@ _emit_code(jit_state_t *_jit)
 		break;
 	    case jit_code_jmpi:
 		if (node->flag & jit_flag_node) {
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
 		    if (_jit->pc.uc == _jit->code.ptr + sizeof(void*) * 3)
 			_jitc->jump = 1;
 #endif
@@ -1292,12 +1292,12 @@ _emit_code(jit_state_t *_jit)
 		undo.node = node;
 		undo.word = _jit->pc.w;
 		undo.patch_offset = _jitc->patches.offset;
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
 		undo.prolog_offset = _jitc->prolog.offset;
 #endif
 	    restart_function:
 		_jitc->again = 0;
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
 		if (_jitc->jump && !_jitc->function->assume_frame) {
 		    /* remember prolog to hide offset adjustment for a jump
 		     * to the start of a function, what is expected to be
@@ -1332,7 +1332,7 @@ _emit_code(jit_state_t *_jit)
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
 		    _jitc->patches.offset = undo.patch_offset;
-#if __powerpc__
+#if __powerpc__ && !ABI_ELFv2
 		    _jitc->prolog.offset = undo.prolog_offset;
 #endif
 		    goto restart_function;
