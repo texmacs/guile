@@ -1,3 +1,9 @@
+2014-11-24 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Remove an optimization to calee save
+	registers that may incorrectly remove a jit_movr under
+	special conditions.
+
 2014-11-20 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_ppc.h, lib/jit_ppc-cpu.c,

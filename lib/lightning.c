@@ -2855,12 +2855,12 @@ _simplify(jit_state_t *_jit)
     jit_node_t		*next;
     jit_int32_t		 info;
     jit_int32_t		 regno;
-    jit_int32_t		 offset;
 
     for (prev = NULL, node = _jitc->head; node; prev = node, node = next) {
 	next = node->next;
 	switch (node->code) {
 	    case jit_code_label:	case jit_code_prolog:
+	    case jit_code_callr:	case jit_code_calli:
 	    reset:
 		memset(_jitc->gen, 0, sizeof(jit_int32_t) * _jitc->reglen);
 		memset(_jitc->values, 0, sizeof(jit_value_t) * _jitc->reglen);
@@ -2935,14 +2935,6 @@ _simplify(jit_state_t *_jit)
 		regno = jit_regno(node->u.w);
 		if (simplify_stxi(prev, node))
 		    simplify_spill(node = prev, regno);
-		break;
-	    case jit_code_callr:	case jit_code_calli:
-		for (offset = 0; offset < _jitc->reglen; offset++) {
-		    if (!(jit_class(_rvs[offset].spec) & jit_class_sav)) {
-			_jitc->values[offset].kind = 0;
-			++_jitc->gen[offset];
-		    }
-		}
 		break;
 	    default:
 		info = jit_classify(node->code);
