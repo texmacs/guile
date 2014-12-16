@@ -21,6 +21,7 @@ L3:
 L4:
 	prepare
 		pushargi fmt
+		ellipsis
 		pushargr %r0
 	finishi @printf
 	ret
