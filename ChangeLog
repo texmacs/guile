@@ -1,3 +1,8 @@
+2014-12-21 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm.c: Correct check to guard overflow of index
+	of constants from program counter.
+
 2014-11-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Remove an optimization to calee save
