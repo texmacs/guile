@@ -1,5 +1,12 @@
 2014-12-21 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_arm.c: Call __clear_cache for every page.
+	This should only be required for older boards or
+	toolchain setup, but has been reported to be required
+	for lightning at some point.
+
+2014-12-21 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_arm.c: Correct check to guard overflow of index
 	of constants from program counter.
 

@@ -1606,12 +1606,13 @@ void
 jit_flush(void *fptr, void *tptr)
 {
 #if defined(__GNUC__)
-    jit_word_t		f, t, s;
+    jit_uword_t		i, f, t, s;
 
     s = sysconf(_SC_PAGE_SIZE);
-    f = (jit_word_t)fptr & -s;
-    t = (((jit_word_t)tptr) + s - 1) & -s;
-    __clear_cache((void *)f, (void *)t);
+    f = (jit_uword_t)fptr & -s;
+    t = (((jit_uword_t)tptr) + s - 1) & -s;
+    for (i = f; i < t; i += s)
+	__clear_cache((void *)i, (void *)(i + s));
 #endif
 }
 
