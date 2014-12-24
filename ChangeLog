@@ -1,3 +1,7 @@
+2014-12-24 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_names.c: Add missing rsbi_f and rsbi_d strings.
+
 2014-12-21 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm.c: Call __clear_cache for every page.
