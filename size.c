@@ -48,7 +48,20 @@ main(int argc, char *argv[])
 	exit(-1);
 
 
+#if __X64 || __X32
+#  if __X64
+    fprintf(fp, "#if __X64\n");
+#    if __X64_32
+    fprintf(fp, "#  if __X64_32\n");
+#    else
+    fprintf(fp, "#  if !__X64_32\n");
+#    endif
+#  else
+    fprintf(fp, "#if __X32\n");
+#  endif
+#else
     fprintf(fp, "#if __WORDSIZE == %d\n", __WORDSIZE);
+#endif
 #if defined(__arm__)
 #  if defined(__ARM_PCS_VFP)
     fprintf(fp, "#if defined(__ARM_PCS_VFP)\n");
@@ -82,7 +95,17 @@ main(int argc, char *argv[])
 #elif defined(__powerpc__)
     fprintf(fp, "#endif /* __powerpc__ */\n");
 #endif
+#if __X64 || __X32
+#  if __X64
+    fprintf(fp, "#  endif /* __X64_32 */\n");
+    fprintf(fp, "#endif /* __X64 */\n");
+#  else
+    fprintf(fp, "#if __X32\n");
+#  endif
+#else
     fprintf(fp, "#endif /* __WORDSIZE */\n");
+#endif
+
     fclose(fp);
 
     return (0);

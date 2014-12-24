@@ -23,10 +23,11 @@
 #define rc(value)			jit_class_##value
 #define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
 
-#if __WORDSIZE == 32
+#if __X32
 #  define stack_framesize		20
 #  define stack_adjust			12
 #  define CVT_OFFSET			-12
+#  define REAL_WORDSIZE			4
 #else
 #  if __CYGWIN__
 #    define stack_framesize		152
@@ -35,7 +36,9 @@
 #  endif
 #  define stack_adjust			8
 #  define CVT_OFFSET			-8
+#  define REAL_WORDSIZE			8
 #endif
+
 
 /*
  * Prototypes
@@ -62,7 +65,7 @@ static void _x87_from_sse_d(jit_state_t*,jit_int32_t,jit_int32_t);
  */
 jit_cpu_t		jit_cpu;
 jit_register_t		_rvs[] = {
-#if __WORDSIZE == 32
+#if __X32
     { rc(gpr) | rc(rg8) | 0,		"%eax" },
     { rc(gpr) | rc(rg8) | 1,		"%ecx" },
     { rc(gpr) | rc(rg8) | 2,		"%edx" },
@@ -248,12 +251,12 @@ jit_get_cpu(void)
 	} bits;
 	jit_uword_t	cpuid;
     } edx;
-#if __WORDSIZE == 32
+#if __X32
     int			ac, flags;
 #endif
     jit_uword_t		eax, ebx;
 
-#if __WORDSIZE == 32
+#if __X32
     /* adapted from glibc __sysconf */
     __asm__ volatile ("pushfl;\n\t"
 		      "popl %0;\n\t"
@@ -275,7 +278,7 @@ jit_get_cpu(void)
 #endif
 
     /* query %eax = 1 function */
-#if __WORDSIZE == 32
+#if __X32 || __X64_32
     __asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
 #else
     __asm__ volatile ("xchgq %%rbx, %1; cpuid; xchgq %%rbx, %1"
@@ -302,9 +305,13 @@ jit_get_cpu(void)
     jit_cpu.aes		= ecx.bits.aes;
     jit_cpu.avx		= ecx.bits.avx;
 
-#if __WORDSIZE == 64
     /* query %eax = 0x80000001 function */
+#if __X64
+#  if __X64_32
+    __asm__ volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
+#  else
     __asm__ volatile ("xchgq %%rbx, %1; cpuid; xchgq %%rbx, %1"
+#  endif
 		      : "=a" (eax), "=r" (ebx),
 		      "=c" (ecx.cpuid), "=d" (edx.cpuid)
 		      : "0" (0x80000001));
@@ -315,13 +322,13 @@ jit_get_cpu(void)
 void
 _jit_init(jit_state_t *_jit)
 {
-#if __WORDSIZE == 32
+#if __X32
     jit_int32_t		regno;
     static jit_bool_t	first = 1;
 #endif
 
     _jitc->reglen = jit_size(_rvs) - 1;
-#if __WORDSIZE == 32
+#if __X32
     if (first) {
 	if (!jit_cpu.sse2) {
 	    for (regno = _jitc->reglen; regno >= 0; regno--) {
@@ -467,7 +474,7 @@ _jit_arg(jit_state_t *_jit)
     jit_int32_t		offset;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
 #  if __CYGWIN__
@@ -478,7 +485,7 @@ _jit_arg(jit_state_t *_jit)
 #endif
     {
 	offset = _jitc->function->self.size;
-	_jitc->function->self.size += sizeof(jit_word_t);
+	_jitc->function->self.size += REAL_WORDSIZE;
     }
     return (jit_new_node_w(jit_code_arg, offset));
 }
@@ -486,7 +493,7 @@ _jit_arg(jit_state_t *_jit)
 jit_bool_t
 _jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
-#if __WORDSIZE == 32
+#if __X32
     return (0);
 #else
 #  if __CYGWIN__
@@ -503,7 +510,7 @@ _jit_arg_f(jit_state_t *_jit)
     jit_int32_t		offset;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
@@ -517,11 +524,7 @@ _jit_arg_f(jit_state_t *_jit)
 #endif
     {
 	offset = _jitc->function->self.size;
-#if __WORDSIZE == 32
-	_jitc->function->self.size += sizeof(jit_float32_t);
-#else
-	_jitc->function->self.size += sizeof(jit_float64_t);
-#endif
+	_jitc->function->self.size += REAL_WORDSIZE;
     }
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
@@ -529,7 +532,7 @@ _jit_arg_f(jit_state_t *_jit)
 jit_bool_t
 _jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
 {
-#if __WORDSIZE == 32
+#if __X32
     return (0);
 #else
 #  if __CYGWIN__
@@ -546,7 +549,7 @@ _jit_arg_d(jit_state_t *_jit)
     jit_int32_t		offset;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
@@ -574,7 +577,7 @@ _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, JIT_RA0 - v->u.w);
     else
@@ -585,7 +588,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, JIT_RA0 - v->u.w);
     else
@@ -596,7 +599,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, JIT_RA0 - v->u.w);
     else
@@ -607,7 +610,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, JIT_RA0 - v->u.w);
     else
@@ -618,15 +621,20 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
-    if (jit_arg_reg_p(v->u.w))
+#if __X64
+    if (jit_arg_reg_p(v->u.w)) {
+#  if __X64_32
+	jit_movr(u, JIT_RA0 - v->u.w);
+#  else
 	jit_extr_i(u, JIT_RA0 - v->u.w);
+#  endif
+     }
     else
 #endif
 	jit_ldxi_i(u, _RBP, v->u.w);
 }
 
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 void
 _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
@@ -649,7 +657,7 @@ _jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_f_reg_p(v->u.w))
 	jit_movr_f(u, _XMM0 - v->u.w);
     else
@@ -660,7 +668,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_f_reg_p(v->u.w))
 	jit_movr_d(u, _XMM0 - v->u.w);
     else
@@ -672,7 +680,7 @@ void
 _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr(JIT_RA0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
@@ -684,7 +692,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 #endif
     {
 	jit_stxi(_jitc->function->call.size, _RSP, u);
-	_jitc->function->call.size += sizeof(jit_word_t);
+	_jitc->function->call.size += REAL_WORDSIZE;
     }
 }
 
@@ -694,7 +702,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
     jit_int32_t		 regno;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(JIT_RA0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
@@ -708,7 +716,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
 	jit_stxi(_jitc->function->call.size, _RSP, regno);
-	_jitc->function->call.size += sizeof(jit_word_t);
+	_jitc->function->call.size += REAL_WORDSIZE;
 	jit_unget_reg(regno);
     }
 }
@@ -717,7 +725,7 @@ void
 _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_f(_XMM0 - _jitc->function->call.argi, u);
@@ -740,7 +748,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 #endif
     {
 	jit_stxi_f(_jitc->function->call.size, _RSP, u);
-	_jitc->function->call.size += sizeof(jit_word_t);
+	_jitc->function->call.size += REAL_WORDSIZE;
     }
 }
 
@@ -750,7 +758,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     jit_int32_t		regno;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_f(_XMM0 - _jitc->function->call.argi, u);
@@ -775,7 +783,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_f(regno, u);
 	jit_stxi_f(_jitc->function->call.size, _RSP, regno);
-	_jitc->function->call.size += sizeof(jit_word_t);
+	_jitc->function->call.size += REAL_WORDSIZE;
 	jit_unget_reg(regno);
     }
 }
@@ -784,7 +792,7 @@ void
 _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_d(_XMM0 - _jitc->function->call.argi, u);
@@ -817,7 +825,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     jit_int32_t		 regno;
 
     assert(_jitc->function);
-#if __WORDSIZE == 64
+#if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_d(_XMM0 - _jitc->function->call.argi, u);
@@ -850,7 +858,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 jit_bool_t
 _jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 {
-#if __WORDSIZE == 64
+#if __X64
     jit_int32_t		spec;
 
     spec = jit_class(_rvs[regno].spec);
@@ -880,7 +888,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     assert(_jitc->function);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
-#if __WORDSIZE == 64
+#if __X64
 #  if !__CYGWIN__
     if (_jitc->function->call.call & jit_call_varargs) {
 	if (jit_regno(reg) == _RAX) {
@@ -907,7 +915,7 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
 jit_node_t *
 _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 {
-#if __WORDSIZE == 64
+#if __X64
     jit_int32_t		reg;
 #endif
     jit_node_t		*node;
@@ -915,7 +923,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     assert(_jitc->function);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
-#if __WORDSIZE == 64
+#if __X64
     /* FIXME preventing %rax allocation is good enough, but for consistency
      * it should automatically detect %rax is dead, in case it has run out
      * registers, and not save/restore it, what would be wrong if using the
@@ -966,7 +974,7 @@ _jit_retval_us(jit_state_t *_jit, jit_int32_t r0)
 void
 _jit_retval_i(jit_state_t *_jit, jit_int32_t r0)
 {
-#if __WORDSIZE == 32
+#if __X32 || __X64_32
     if (r0 != JIT_RET)
 	jit_movr(r0, JIT_RET);
 #else
@@ -974,7 +982,7 @@ _jit_retval_i(jit_state_t *_jit, jit_int32_t r0)
 #endif
 }
 
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 void
 _jit_retval_ui(jit_state_t *_jit, jit_int32_t r0)
 {
@@ -992,7 +1000,7 @@ _jit_retval_l(jit_state_t *_jit, jit_int32_t r0)
 void
 _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 {
-#  if __WORDSIZE == 32
+#  if __X32
     jit_new_node_w(jit_code_x86_retval_f, r0);
 #  else
     if (r0 != JIT_FRET)
@@ -1003,7 +1011,7 @@ _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 void
 _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 {
-#  if __WORDSIZE == 32
+#  if __X32
     jit_new_node_w(jit_code_x86_retval_d, r0);
 #  else
     if (r0 != JIT_FRET)
@@ -1373,13 +1381,13 @@ _emit_code(jit_state_t *_jit)
 		case_rr(ext, _uc);
 		case_rr(ext, _s);
 		case_rr(ext, _us);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 		case_rr(ext, _i);
 		case_rr(ext, _ui);
 #endif
 		case_rf(trunc, _f_i);
 		case_rf(trunc, _d_i);
-#if __WORDSIZE == 64
+#if __X64
 		case_rf(trunc, _f_l);
 		case_rf(trunc, _d_l);
 #endif
@@ -1393,7 +1401,7 @@ _emit_code(jit_state_t *_jit)
 		case_rw(ld, _us);
 		case_rr(ld, _i);
 		case_rw(ld, _i);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 		case_rr(ld, _ui);
 		case_rw(ld, _ui);
 		case_rr(ld, _l);
@@ -1409,7 +1417,7 @@ _emit_code(jit_state_t *_jit)
 		case_rrw(ldx, _us);
 		case_rrr(ldx, _i);
 		case_rrw(ldx, _i);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 		case_rrr(ldx, _ui);
 		case_rrw(ldx, _ui);
 		case_rrr(ldx, _l);
@@ -1421,7 +1429,7 @@ _emit_code(jit_state_t *_jit)
 		case_wr(st, _s);
 		case_rr(st, _i);
 		case_wr(st, _i);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 		case_rr(st, _l);
 		case_wr(st, _l);
 #endif
@@ -1431,7 +1439,7 @@ _emit_code(jit_state_t *_jit)
 		case_wrr(stx, _s);
 		case_rrr(stx, _i);
 		case_wrr(stx, _i);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 		case_rrr(stx, _l);
 		case_wrr(stx, _l);
 #endif
@@ -1739,7 +1747,7 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
-#if __WORDSIZE == 32
+#if __X32
 	    case jit_code_x86_retval_f:
 		if (jit_sse_reg_p(node->u.w)) {
 		    fstpr(_ST1_REGNO);

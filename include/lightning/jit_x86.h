@@ -28,10 +28,20 @@
  */
 #define jit_sse2_p()		jit_cpu.sse2
 #define jit_x87_reg_p(reg)	((reg) >= _ST0 && (reg) <= _ST7)
+#if __WORDSIZE == 32
+#  if defined(__x86_64__)
+#    define __X64_32		1
+#    define __X64		1
+#  else
+#    define __X32		1
+#  endif
+#else
+#  define __X64			1
+#endif
 
 #define JIT_FP			_RBP
 typedef enum {
-#if __WORDSIZE == 32
+#if __X32
 #  define jit_arg_reg_p(i)	0
 #  define jit_r(i)		(_RAX + (i))
 #  define jit_r_num()		3

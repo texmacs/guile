@@ -18,6 +18,15 @@
  */
 
 #if PROTO
+#  if __X32
+#    define x87_address_p(i0)		1
+#  else
+#    if __X64_32
+#      define x87_address_p(i0)		((jit_word_t)(i0) >= 0)
+#    else
+#      define x87_address_p(i0)		can_sign_extend_int_p(i0)
+#    endif
+#  endif
 #  define _ST0_REGNO			0
 #  define _ST1_REGNO			1
 #  define _ST2_REGNO			2
@@ -115,7 +124,7 @@ static void _x87_sqrtr_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define x87_truncr_f_i(r0, r1)	_x87_truncr_d_i(_jit, r0, r1)
 #  define x87_truncr_d_i(r0, r1)	_x87_truncr_d_i(_jit, r0, r1)
 static void _x87_truncr_d_i(jit_state_t*, jit_int32_t, jit_int32_t);
-#  if __WORDSIZE == 64
+#  if __X64
 #    define x87_truncr_f_l(r0, r1)	_x87_truncr_d_l(_jit, r0, r1)
 #    define x87_truncr_d_l(r0, r1)	_x87_truncr_d_l(_jit, r0, r1)
 static void _x87_truncr_d_l(jit_state_t*, jit_int32_t, jit_int32_t);
@@ -680,7 +689,7 @@ _x87_truncr_d_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 #endif
 }
 
-#  if __WORDSIZE == 64
+#  if __X64
 static void
 _x87_truncr_d_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
@@ -694,7 +703,7 @@ static void
 _x87_extr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     stxi(CVT_OFFSET, _RBP_REGNO, r1);
-#  if __WORDSIZE == 32
+#  if __X32
     fildlm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
 #  else
     fildqm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
@@ -863,7 +872,7 @@ static void
 _x87_ldi_f(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0)) {
+    if (x87_address_p(i0)) {
 	fldsm(i0, _NOREG, _NOREG, _SCL1);
 	fstpr(r0 + 1);
     }
@@ -914,7 +923,7 @@ static void
 _x87_sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    if (!can_sign_extend_int_p(i0)) {
+    if (!x87_address_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
 	x87_str_f(rn(reg), r0);
@@ -1005,7 +1014,7 @@ _x87_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     else {
 	if (_jitc->no_data) {
 	    reg = jit_get_reg(jit_class_gpr);
-#if __WORDSIZE == 32
+#if __X32 || __X64_32
 	    movi(rn(reg), data.ii[0]);
 	    stxi_i(CVT_OFFSET, _RBP_REGNO, rn(reg));
 	    movi(rn(reg), data.ii[1]);
@@ -1120,7 +1129,7 @@ static void
 _x87_ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0)) {
+    if (x87_address_p(i0)) {
 	fldlm(i0, _NOREG, _NOREG, _SCL1);
 	fstpr(r0 + 1);
     }
@@ -1171,7 +1180,7 @@ static void
 _x87_sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    if (!can_sign_extend_int_p(i0)) {
+    if (!x87_address_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
 	x87_str_d(rn(reg), r0);

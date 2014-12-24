@@ -50,7 +50,7 @@
 #if defined(__i386__) || defined(__x86_64__)
 #  define JIT_SP		_RSP
 #  define JIT_RET		_RAX
-#  if __WORDSIZE == 32
+#  if __X32
 #    define JIT_FRET		_ST0
 typedef jit_uint32_t		jit_regset_t;
 #  else

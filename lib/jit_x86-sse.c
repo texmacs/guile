@@ -18,6 +18,15 @@
  */
 
 #if PROTO
+#  if __X32
+#    define sse_address_p(i0)		1
+#  else
+#    if __X64_32
+#      define sse_address_p(i0)		((jit_word_t)(i0) >= 0)
+#    else
+#      define sse_address_p(i0)		can_sign_extend_int_p(i0)
+#    endif
+#  endif
 #  define _XMM6_REGNO			6
 #  define _XMM7_REGNO			7
 #  define _XMM8_REGNO			8
@@ -78,7 +87,7 @@ static void _ssexi(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t)
 #  define andpdr(r0, r1)		ssexr(0x66, X86_SSE_AND, r0, r1)
 #  define sse_truncr_f_i(r0, r1)	ssexr(0xf3, X86_SSE_CVTTSI, r0, r1)
 #  define sse_truncr_d_i(r0, r1)	ssexr(0xf2, X86_SSE_CVTTSI, r0, r1)
-#  if __WORDSIZE == 64
+#  if __X64
 #    define sse_truncr_f_l(r0, r1)	sselxr(0xf3, X86_SSE_CVTTSI, r0, r1)
 #    define sse_truncr_d_l(r0, r1)	sselxr(0xf2, X86_SSE_CVTTSI, r0, r1)
 #    define sse_extr_f(r0, r1)		sselxr(0xf3, X86_SSE_CVTIS, r0, r1)
@@ -100,7 +109,7 @@ static void _ssexi(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t)
 #  define psll(r0, i0)			ssexi(0x72, r0, 0x06, i0)
 #  define pslq(r0, i0)			ssexi(0x73, r0, 0x06, i0)
 #  define movdqxr(r0,r1)		sselxr(0x66,X86_SSE_X2G,r0,r1)
-#  if __WORDSIZE == 64
+#  if __X64 && !__X64_32
 #    define sselxr(p,c,r0,r1)		_sselxr(_jit,p,c,r0,r1)
 static void
 _sselxr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
@@ -502,7 +511,7 @@ _ssexi(jit_state_t *_jit, jit_int32_t c, jit_int32_t r0,
     ic(i);
 }
 
-#if __WORDSIZE == 64
+#if __X64
 static void
 _sselxr(jit_state_t *_jit, jit_int32_t p, jit_int32_t c,
 	jit_int32_t r0, jit_int32_t r1)
@@ -794,9 +803,9 @@ _sse_movi_f(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 	xorpsr(r0, r0);
     else {
 	ldi = !_jitc->no_data;
-#if __WORDSIZE == 64
+#if __X64
 	/* if will allocate a register for offset, just use immediate */
-	if (ldi && !can_sign_extend_int_p((jit_word_t)i0))
+	if (ldi && !sse_address_p(i0))
 	    ldi = 0;
 #endif
 	if (ldi)
@@ -915,7 +924,7 @@ static void
 _sse_ldi_f(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0))
+    if (sse_address_p(i0))
 	movssmr(i0, _NOREG, _NOREG, _SCL1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -943,7 +952,7 @@ static void
 _sse_sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0))
+    if (sse_address_p(i0))
 	movssrm(r0, i0, _NOREG, _NOREG, _SCL1);
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1241,16 +1250,16 @@ _sse_movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 	xorpdr(r0, r0);
     else {
 	ldi = !_jitc->no_data;
-#if __WORDSIZE == 64
+#if __X64
 	/* if will allocate a register for offset, just use immediate */
-	if (ldi && !can_sign_extend_int_p((jit_word_t)i0))
+	if (ldi && !sse_address_p(i0))
 	    ldi = 0;
 #endif
 	if (ldi)
 	    sse_ldi_d(r0, (jit_word_t)i0);
 	else {
 	    reg = jit_get_reg(jit_class_gpr);
-#if __WORDSIZE == 64
+#if __X64 && !__X64_32
 	    movi(rn(reg), data.w);
 	    movdqxr(r0, rn(reg));
 	    jit_unget_reg(reg);
@@ -1270,7 +1279,7 @@ static void
 _sse_ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0))
+    if (sse_address_p(i0))
 	movsdmr(i0, _NOREG, _NOREG, _SCL1, r0);
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1289,7 +1298,7 @@ _sse_ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
-	sse_ldxr_f(r0, r1, rn(reg));
+	sse_ldxr_d(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
 }
@@ -1298,7 +1307,7 @@ static void
 _sse_sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    if (can_sign_extend_int_p(i0))
+    if (sse_address_p(i0))
 	movsdrm(r0, i0, _NOREG, _NOREG, _SCL1);
     else {
 	reg = jit_get_reg(jit_class_gpr);

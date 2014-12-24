@@ -1,5 +1,13 @@
 2014-12-24 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_private.h, include/lightning/jit_x86.h,
+	lib/jit_disasm.c, lib/jit_x86-cpu.c, lib/jit_x86-sse.c,
+	lib/jit_x86-sz.c, lib/jit_x86-x87.c, lib/jit_x86.c,
+	size.c: Implement support for the x32 abi. Built and
+	tested on Gentoo default/linux/amd64/13.0/x32 profile.
+
+2014-12-24 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_names.c: Add missing rsbi_f and rsbi_d strings.
 
 2014-12-21 Paulo Andrade <pcpa@gnu.org>

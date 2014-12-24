@@ -79,7 +79,11 @@ jit_init_debug(const char *progname)
 #  if defined(__i386__) || defined(__x86_64__)
     disasm_info.arch = bfd_arch_i386;
 #    if defined(__x86_64__)
+#      if __WORDSIZE == 32
+    disasm_info.mach = bfd_mach_x64_32;
+#      else
     disasm_info.mach = bfd_mach_x86_64;
+#      endif
 #    else
     disasm_info.mach = bfd_mach_i386_i386;
 #    endif
