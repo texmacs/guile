@@ -1,5 +1,11 @@
 2014-12-26 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ppc-cpu.c: Add mcrxr instruction emulation,
+	as this instruction has been phased out, and should be
+	implemented as a kernel trap.
+
+2014-12-26 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_arm.c: Better check for need to flush constants
 	before the pool being no longer reachable.
 

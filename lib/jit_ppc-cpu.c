@@ -270,7 +270,42 @@ static void _FXS(jit_state_t*,int,int,int,int,int,int,int);
 #  define LD(d,a,s)			FDs(58,d,a,s)
 #  define LDX(d,a,b)			FX(31,d,a,b,21)
 #  define MCRF(d,s)			FXL(19,d<<2,(s)<<2,0)
-#  define MCRXR(d)			FX(31,d<<2,0,0,512)
+#  if DEBUG
+/* In case instruction is emulated, check the kernel can handle it.
+   Will only generate it if DEBUG is enabled.
+"""
+Chapter 6. Optional Facilities and Instructions that are being
+Phased Out of the Architecture
+...
+6.1 Move To Condition Register from XER
+The mcrxr instruction is being phased out of the archi-
+tecture. Its description is included here as an aid to
+constructing operating system code to emulate it.
+
+Move to Condition Register from XER
+X-form
+mcrxr BF
+31	BF	//	///	///	512	/
+0	6	9	11	16	21	31
+CR(4xBF:4xBF+3) <- XER(32:35)
+XER(32:35) <- 0b0000
+The contents of XER(32:35) are copied to Condition Reg-
+ister field BF. XER(32:35) are set to zero.
+Special Registers Altered:
+CR field BF XER(32:35)
+
+Programming Note
+Warning: This instruction has been phased out of
+the architecture. Attempting to execute this
+instruction will cause the system illegal instruction
+error handler to be invoked
+"""
+ */
+#    define MCRXR(d)			FX(31,d<<2,0,0,512)
+#  else
+#    define MCRXR(cr)			_MCRXR(_jit,cr);
+static void _MCRXR(jit_state_t*, jit_int32_t);
+#  endif
 #  define MFCR(d)			FX(31,d,0,0,19)
 #  define MFMSR(d)			FX(31,d,0,0,83)
 #  define MFSPR(d,s)			FXFX(31,d,s<<5,339)
@@ -991,6 +1026,24 @@ _FXS(jit_state_t *_jit, int o, int s, int a, int h, int x, int i, int r)
     assert(!(i & ~((1 << 1) - 1)));
     assert(!(r & ~((1 << 1) - 1)));
     ii((o<<26)|(s<<21)|(a<<16)|(h<<11)|(x<<2)|(i<<1)|r);
+}
+#endif
+
+#if !DEBUG
+/*
+ * Use the sequence commented at
+ * http://tenfourfox.blogspot.com/2011/04/attention-g5-owners-your-javascript-no.html
+ */
+static void
+_MCRXR(jit_state_t *_jit, jit_int32_t cr)
+{
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
+    MFXER(rn(reg));
+    MTCRF(128, rn(reg));
+    RLWINM(rn(reg), rn(reg), 0, 0, 28);
+    MTXER(rn(reg));
+    jit_unget_reg(reg);
 }
 #endif
 
