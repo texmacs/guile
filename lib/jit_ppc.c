@@ -279,7 +279,7 @@ _jit_arg_f(jit_state_t *_jit)
     if (_jitc->function->self.argf < 13)
 	offset = _jitc->function->self.argf++;
     else {
-#if __WORDSIZE == 32
+#if __WORDSIZE == 32 || __BYTE_ORDER == __LITTLE_ENDIAN
 	offset = _jitc->function->self.size;
 #else
 	offset = _jitc->function->self.size + 4;
@@ -502,7 +502,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 #endif
     }
     else {
-#if __WORDSIZE == 32
+#if __WORDSIZE == 32 || __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, u);
 #else
 	jit_stxi_f(_jitc->function->call.size + params_offset + 4,
@@ -549,7 +549,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 #endif
     }
     else {
-#if __WORDSIZE == 32
+#if __WORDSIZE == 32 || __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_stxi_f(_jitc->function->call.size + params_offset, JIT_SP, regno);
 #else
 	jit_stxi_f(_jitc->function->call.size + params_offset + 4,

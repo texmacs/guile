@@ -1,5 +1,10 @@
 2014-12-26 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ppc-cpu.c, lib/jit_ppc.c: Correct some endianess issues
+	on the powerpc le backend.
+
+2014-12-26 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ppc-cpu.c: Add mcrxr instruction emulation,
 	as this instruction has been phased out, and should be
 	implemented as a kernel trap.

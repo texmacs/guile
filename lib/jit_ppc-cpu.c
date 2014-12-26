@@ -26,7 +26,11 @@
 #    define fits_uint32_p(im)		1
 #  else
 #    define gpr_save_area		144	/* r14~r31 = 18 * 8 */
-#    define params_offset		48
+#    if if ABI_ELFv2
+#      define params_offset		32
+#    else
+#      define params_offset		48
+#    endif
 #    define can_sign_extend_int_p(im)					\
 	(((im) >= 0 && (long)(im) <=  0x7fffffffL) ||			\
 	 ((im) <  0 && (long)(im) >= -0x80000000L))
