@@ -655,7 +655,8 @@ static jit_word_t _movi_p(jit_state_t*,jit_int32_t,jit_word_t);
 #define extr_s(r0,r1)		EXTRWR(r1,31,16,r0)
 #define extr_us(r0,r1)		EXTRWR_U(r1,31,16,r0)
 #if __BYTE_ORDER == __BIG_ENDIAN
-#  define htonr(r0,r1)		movr(r0,r1)
+#  define htonr_us(r0,r1)	extr_us(r0,r1)
+#  define htonr_ui(r0,r1)	movr(r0,r1)
 #else
 #  error need htonr implementation
 #endif

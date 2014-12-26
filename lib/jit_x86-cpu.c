@@ -371,8 +371,14 @@ static void _movir(jit_state_t*,jit_int32_t,jit_int32_t);
 #    define movir_u(r0, r1)		_movir_u(_jit, r0, r1)
 static void _movir_u(jit_state_t*,jit_int32_t,jit_int32_t);
 #  endif
-#define htonr(r0, r1)			_htonr(_jit, r0, r1)
-static void _htonr(jit_state_t*,jit_int32_t,jit_int32_t);
+#  define htonr_us(r0, r1)		_htonr_us(_jit, r0, r1)
+static void _htonr_us(jit_state_t*,jit_int32_t,jit_int32_t);
+#  define htonr_ui(r0, r1)		_htonr_ui(_jit, r0, r1)
+static void _htonr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
+#  if __X64 && !__X64_32
+#define htonr_ul(r0, r1)		_htonr_ul(_jit, r0, r1)
+static void _htonr_ul(jit_state_t*,jit_int32_t,jit_int32_t);
+#endif
 #  define extr_c(r0, r1)		_extr_c(_jit, r0, r1)
 static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_uc(r0, r1)		_extr_uc(_jit, r0, r1)
@@ -438,7 +444,6 @@ static void _ldxi_s(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 static void _ldxr_us(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define ldxi_us(r0, r1, i0)		_ldxi_us(_jit, r0, r1, i0)
 static void _ldxi_us(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-
 #  if __X32 || !__X64_32
 #    define ldxr_i(r0, r1, r2)		_ldxr_i(_jit, r0, r1, r2)
 static void _ldxr_i(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
@@ -2203,13 +2208,35 @@ _movir_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 #endif
 
 static void
-_htonr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_htonr_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    extr_us(r0, r1);
+    ic(0x66);
+    rex(0, 0, _NOREG, _NOREG, r0);
+    ic(0xc1);
+    mrm(0x03, X86_ROR, r7(r0));
+    ic(8);
+}
+
+static void
+_htonr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     movr(r0, r1);
-    rex(0, WIDE, _NOREG, _NOREG, r0);
+    rex(0, 0, _NOREG, _NOREG, r0);
     ic(0x0f);
     ic(0xc8 | r7(r0));
 }
+
+#if __X64 && !__X64_32
+static void
+_htonr_ul(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    movr(r0, r1);
+    rex(0, 1, _NOREG, _NOREG, r0);
+    ic(0x0f);
+    ic(0xc8 | r7(r0));
+}
+#endif
 
 static void
 _extr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)

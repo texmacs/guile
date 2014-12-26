@@ -1094,7 +1094,11 @@ _emit_code(jit_state_t *_jit)
 		case_rrr(stx, _l);
 		case_wrr(stx, _l);
 #endif
-		case_rr(hton,);
+		case_rr(hton, _us);
+		case_rr(hton, _ui);
+#if __WORDSIZE == 64
+		case_rr(hton, _ul);
+#endif
 		case_rr(ext, _c);
 		case_rr(ext, _uc);
 		case_rr(ext, _s);

@@ -949,7 +949,11 @@ _emit_code(jit_state_t *_jit)
 		case_rr(ext, _i);
 		case_rr(ext, _ui);
 #  endif
-		case_rr(hton,);
+		case_rr(hton, _us);
+		case_rr(hton, _ui);
+#  if __WORDSIZE == 64
+		case_rr(hton, _ul);
+#  endif
 		case_rr(neg,);
 		case_rr(com,);
 		case_rr(mov,);

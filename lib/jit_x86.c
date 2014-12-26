@@ -1376,7 +1376,11 @@ _emit_code(jit_state_t *_jit)
 		else
 		    movi(rn(node->u.w), node->v.w);
 		break;
-		case_rr(hton,);
+		case_rr(hton, _us);
+		case_rr(hton, _ui);
+#if __X64 && !__X64_32
+		case_rr(hton, _ul);
+#endif
 		case_rr(ext, _c);
 		case_rr(ext, _uc);
 		case_rr(ext, _s);

@@ -850,7 +850,9 @@ _emit_code(jit_state_t *_jit)
 		case_wrr(stx, _i);
 		case_rrr(stx, _l);
 		case_wrr(stx, _l);
-		case_rr(hton,);
+		case_rr(hton, _us);
+		case_rr(hton, _ui);
+		case_rr(hton, _ul);
 		case_rr(ext, _c);
 		case_rr(ext, _uc);
 		case_rr(ext, _s);

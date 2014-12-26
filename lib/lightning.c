@@ -1237,7 +1237,8 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_extr_us:	case jit_code_extr_i:	case jit_code_extr_ui:
 	case jit_code_truncr_f_i:			case jit_code_truncr_f_l:
 	case jit_code_truncr_d_i:			case jit_code_truncr_d_l:
-	case jit_code_htonr:	case jit_code_ldr_c:	case jit_code_ldr_uc:
+	case jit_code_htonr_us:	case jit_code_htonr_ui:	case jit_code_htonr_ul:
+	case jit_code_ldr_c:	case jit_code_ldr_uc:
 	case jit_code_ldr_s:	case jit_code_ldr_us:	case jit_code_ldr_i:
 	case jit_code_ldr_ui:	case jit_code_ldr_l:	case jit_code_negr_f:
 	case jit_code_absr_f:	case jit_code_sqrtr_f:	case jit_code_movr_f:

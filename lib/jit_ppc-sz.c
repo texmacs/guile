@@ -85,7 +85,9 @@
     4,	/* extr_us */
     0,	/* extr_i */
     0,	/* extr_ui */
-    4,	/* htonr */
+    4,	/* htonr_us */
+    4,	/* htonr_ui */
+    0,	/* htonr_ul */
     8,	/* ldr_c */
     12,	/* ldi_c */
     4,	/* ldr_uc */
@@ -441,7 +443,9 @@
     4,	/* extr_us */
     0,	/* extr_i */
     0,	/* extr_ui */
-    4,	/* htonr */
+    4,	/* htonr_us */
+    4,	/* htonr_ui */
+    0,	/* htonr_ul */
     8,	/* ldr_c */
     12,	/* ldi_c */
     4,	/* ldr_uc */
@@ -797,7 +801,15 @@
     4,	/* extr_us */
     4,	/* extr_i */
     4,	/* extr_ui */
-    4,	/* htonr */
+#  if __BYTE_ORDER == __BIG_ENDIAN
+    4,	/* htonr_us */
+    4,	/* htonr_ui */
+    4,	/* htonr_ul */
+#else
+    20,	/* htonr_us */
+    16,	/* htonr_ui */
+    44,	/* htonr_ul */
+#endif
     8,	/* ldr_c */
     28,	/* ldi_c */
     4,	/* ldr_uc */

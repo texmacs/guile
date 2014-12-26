@@ -327,9 +327,22 @@ typedef enum {
 #  define jit_extr_ui(u,v)	jit_new_node_ww(jit_code_extr_ui,u,v)
 #endif
     jit_code_extr_i,		jit_code_extr_ui,
-#define jit_htonr(u,v)		jit_new_node_ww(jit_code_htonr,u,v)
-#define jit_ntohr(u,v)		jit_new_node_ww(jit_code_htonr,u,v)
-    jit_code_htonr,
+
+#define jit_htonr_us(u,v)	jit_new_node_ww(jit_code_htonr_us,u,v)
+#define jit_ntohr_us(u,v)	jit_new_node_ww(jit_code_htonr_us,u,v)
+    jit_code_htonr_us,
+#define jit_htonr_ui(u,v)	jit_new_node_ww(jit_code_htonr_ui,u,v)
+#define jit_ntohr_ui(u,v)	jit_new_node_ww(jit_code_htonr_ui,u,v)
+#if __WORDSIZE == 32
+#  define jit_htonr(u,v)	jit_new_node_ww(jit_code_htonr_ui,u,v)
+#  define jit_ntohr(u,v)	jit_new_node_ww(jit_code_htonr_ui,u,v)
+#else
+#define jit_htonr_ul(u,v)	jit_new_node_ww(jit_code_htonr_ul,u,v)
+#define jit_ntohr_ul(u,v)	jit_new_node_ww(jit_code_htonr_ul,u,v)
+#  define jit_htonr(u,v)	jit_new_node_ww(jit_code_htonr_ul,u,v)
+#  define jit_ntohr(u,v)	jit_new_node_ww(jit_code_htonr_ul,u,v)
+#endif
+    jit_code_htonr_ui,		jit_code_htonr_ul,
 
 #define jit_ldr_c(u,v)		jit_new_node_ww(jit_code_ldr_c,u,v)
 #define jit_ldi_c(u,v)		jit_new_node_wp(jit_code_ldi_c,u,v)

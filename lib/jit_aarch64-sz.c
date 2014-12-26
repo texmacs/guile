@@ -84,7 +84,9 @@
     4,	/* extr_us */
     4,	/* extr_i */
     4,	/* extr_ui */
-    4,	/* htonr */
+    8,	/* htonr_us */
+    8,	/* htonr_ui */
+    4,	/* htonr_ul */
     4,	/* ldr_c */
     12,	/* ldi_c */
     4,	/* ldr_uc */

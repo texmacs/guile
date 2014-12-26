@@ -84,7 +84,9 @@
     3,	/* extr_us */
     0,	/* extr_i */
     0,	/* extr_ui */
-    4,	/* htonr */
+    4,	/* htonr_us */
+    4,	/* htonr_ui */
+    0,	/* htonr_ul */
     3,	/* ldr_c */
     7,	/* ldi_c */
     3,	/* ldr_uc */
@@ -439,7 +441,9 @@
     4,	/* extr_us */
     3,	/* extr_i */
     3,	/* extr_ui */
-    6,	/* htonr */
+    9,	/* htonr_us */
+    6,	/* htonr_ui */
+    6,	/* htonr_ul */
     4,	/* ldr_c */
     15,	/* ldi_c */
     4,	/* ldr_uc */
@@ -793,7 +797,9 @@
     4,	/* extr_us */
     0,	/* extr_i */
     0,	/* extr_ui */
-    6,	/* htonr */
+    9,	/* htonr_us */
+    6,	/* htonr_ui */
+    0,	/* htonr_ul */
     5,	/* ldr_c */
     9,	/* ldi_c */
     5,	/* ldr_uc */
@@ -1146,7 +1152,9 @@
     4,	/* extr_us */
     3,	/* extr_i */
     3,	/* extr_ui */
-    6,	/* htonr */
+    9,	/* htonr_us */
+    6,	/* htonr_ui */
+    6,	/* htonr_ul */
     5,	/* ldr_c */
     9,	/* ldi_c */
     5,	/* ldr_uc */

@@ -622,10 +622,16 @@ static void _extr_i(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_ui(r0,r1)		_extr_ui(_jit,r0,r1)
 static void _extr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-#    define htonr(r0,r1)		_htonr(_jit,r0,r1)
-static void _htonr(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define htonr_us(r0,r1)		_htonr_us(_jit,r0,r1)
+static void _htonr_us(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define htonr_ui(r0,r1)		_htonr_ui(_jit,r0,r1)
+static void _htonr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define htonr_ul(r0,r1)		_htonr_ul(_jit,r0,r1)
+static void _htonr_ul(jit_state_t*,jit_int32_t,jit_int32_t);
 #  else
-#    define htonr(r0,r1)		movr(r0,r1)
+#    define htonr_us(r0,r1)		extr_us(r0,r1)
+#    define htonr_ui(r0,r1)		extr_ui(r0,r1)
+#    define htonr_ul(r0,r1)		movr(r0,r1)
 #  endif
 #  define jmpr(r0)			JMP(_R31_REGNO,r0,0)
 #  define jmpi(i0)			_jmpi(_jit,i0)
@@ -2442,7 +2448,45 @@ _extr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 }
 
 static void
-_htonr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_htonr_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		t0;
+    t0 = jit_get_reg(jit_class_gpr);
+    EXTBLi(r1, 0, rn(t0));
+    EXTBLi(r1, 1, r0);
+    SLLi(rn(t0), 8, rn(t0));
+    OR(r0, rn(t0), r0);
+    jit_unget_reg(t0);
+}
+
+static void
+_htonr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		t0;
+    jit_int32_t		t1;
+    jit_int32_t		t2;
+    jit_int32_t		t3;
+    t0 = jit_get_reg(jit_class_gpr);
+    t1 = jit_get_reg(jit_class_gpr);
+    t2 = jit_get_reg(jit_class_gpr);
+    t3 = jit_get_reg(jit_class_gpr);
+    EXTBLi(r1, 3, rn(t0));
+    INSBLi(r1, 3, rn(t1));
+    SLLi(r1, 8, rn(t2));
+    ZAPNOTi(rn(t2), 4, rn(t2));
+    SRLi(r1, 8, rn(t3));
+    OR(rn(t0), rn(t1), r0);
+    OR(rn(t2), r0, r0);
+    ZAPNOTi(rn(t3), 2, rn(t3));
+    OR(rn(t3), r0, r0);
+    jit_unget_reg(t3);
+    jit_unget_reg(t2);
+    jit_unget_reg(t1);
+    jit_unget_reg(t0);
+}
+
+static void
+_htonr_ul(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		t0;
     jit_int32_t		t1;

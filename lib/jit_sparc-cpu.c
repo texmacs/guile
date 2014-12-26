@@ -508,7 +508,8 @@ static void _xori(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define rshi(r0, r1, i0)		SRAI(r1, i0, r0)
 #  define rshr_u(r0, r1, r2)		SRL(r1, r2, r0)
 #  define rshi_u(r0, r1, i0)		SRLI(r1, i0, r0)
-#  define htonr(r0,r1)			movr(r0,r1)
+#  define htonr_us(r0,r1)		extr_us(r0,r1)
+#  define htonr_ui(r0,r1)		movr(r0,r1)
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
 static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_uc(r0,r1)		andi(r0, r1, 0xff)

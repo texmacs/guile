@@ -1,3 +1,25 @@
+2014-12-25 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h: Split jit_htonr in the new 3 interfaces
+	jit_htonr_us, jit_htonr_ui and jit_htonr_ul, the later only
+	available on 64 bit. The plain/untyped jit_htonr macro call
+	maps to the wordsize one.
+	* lib/jit_aarch64-cpu.c,  lib/jit_aarch64-sz.c, lib/jit_aarch64.c,
+	lib/jit_alpha-cpu.c, lib/jit_alpha-sz.c, lib/jit_alpha.c,
+	lib/jit_arm-cpu.c, lib/jit_arm-sz.c, lib/jit_arm.c,
+	lib/jit_hppa-cpu.c, lib/jit_hppa-sz.c, lib/jit_hppa.c,
+	lib/jit_ia64-cpu.c, lib/jit_ia64-sz.c, lib/jit_ia64.c,
+	lib/jit_mips-cpu.c, lib/jit_mips-sz.c, lib/jit_mips.c,
+	lib/jit_ppc-cpu.c, lib/jit_ppc-sz.c, lib/jit_ppc.c,
+	lib/jit_s390x-cpu.c, lib/jit_s390x-sz.c, lib/jit_s390x.c,
+	lib/jit_sparc-cpu.c, lib/jit_sparc-sz.c, lib/jit_sparc.c,
+	lib/jit_x86-cpu.c, lib/jit_x86-sz.c, lib/jit_x86.c:
+	Update backends for the new jit_htonr*.
+	* check/lightning.c, lib/jit_names.c, lib/lightning.c:
+	Update for the new jit_htonr* interfaces.
+	* check/Makefile.am: Update for new test cases.
+	* check/hton.ok, check/hton.tst: New test cases.
+
 2014-12-24 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, include/lightning/jit_x86.h,

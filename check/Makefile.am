@@ -57,6 +57,7 @@ EXTRA_DIST =				\
 	ldstxr-c.tst	ldstxr-c.ok	\
 	ldstxi-c.tst	ldstxi-c.ok	\
 	cvt.tst		cvt.ok		\
+	hton.tst	hton.ok		\
 	branch.tst	branch.ok	\
 	alu.inc				\
 	alu_add.tst	alu_add.ok	\
@@ -104,7 +105,7 @@ base_TESTS =				\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
 	ldstr-c ldstxr-c ldstxi-c	\
-	cvt branch			\
+	cvt hton branch			\
 	alu_add alux_add		\
 	alu_sub alux_sub alu_rsb	\
 	alu_mul alu_div alu_rem		\
@@ -177,7 +178,7 @@ arm_TESTS =					\
 	ldstr.arm ldsti.arm			\
 	ldstxr.arm ldstxi.arm			\
 	ldstr-c.arm ldstxr-c.arm ldstxi-c.arm	\
-	cvt.arm branch.arm			\
+	cvt.arm hton.arm branch.arm		\
 	alu_add.arm alux_add.arm		\
 	alu_sub.arm alux_sub.arm alu_rsb.arm	\
 	alu_mul.arm alu_div.arm alu_rem.arm	\
@@ -201,7 +202,7 @@ swf_TESTS =					\
 	ldstr.swf ldsti.swf			\
 	ldstxr.swf ldstxi.swf			\
 	ldstr-c.swf ldstxr-c.swf ldstxi-c.swf	\
-	cvt.swf branch.swf			\
+	cvt.swf hton.swf branch.swf		\
 	alu_add.swf alux_add.swf		\
 	alu_sub.swf alux_sub.swf alu_rsb.swf	\
 	alu_mul.swf alu_div.swf alu_rem.swf	\
@@ -223,7 +224,7 @@ arm_swf_TESTS =							\
 	ldstr.arm.swf ldsti.arm.swf				\
 	ldstxr.arm.swf ldstxi.arm.swf				\
 	ldstr-c.arm.swf ldstxr-c.arm.swf ldstxi-c.arm.swf	\
-	cvt.arm.swf branch.arm.swf				\
+	cvt.arm.swf hton.arm.swf branch.arm.swf			\
 	alu_add.arm.swf alux_add.arm.swf			\
 	alu_sub.arm.swf alux_sub.arm.swf alu_rsb.arm.swf	\
 	alu_mul.arm.swf alu_div.arm.swf alu_rem.arm.swf		\
@@ -246,7 +247,7 @@ arm4_swf_TESTS =						\
 	ldstr.arm4.swf ldsti.arm4.swf				\
 	ldstxr.arm4.swf ldstxi.arm4.swf				\
 	ldstr-c.arm4.swf ldstxr-c.arm4.swf ldstxi-c.arm4.swf	\
-	cvt.arm4.swf branch.arm4.swf				\
+	cvt.arm4.swf hton.arm4.swf branch.arm4.swf		\
 	alu_add.arm4.swf alux_add.arm4.swf			\
 	alu_sub.arm4.swf alux_sub.arm4.swf alu_rsb.arm4.swf	\
 	alu_mul.arm4.swf alu_div.arm4.swf alu_rem.arm4.swf	\

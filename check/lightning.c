@@ -319,6 +319,11 @@ static void extr_s(void);	static void extr_us(void);
 #if __WORDSIZE == 64
 static void extr_i(void);	static void extr_ui(void);
 #endif
+static void htonr_us(void);	static void ntohr_us(void);
+static void htonr_ui(void);	static void ntohr_ui(void);
+#if __WORDSIZE == 64
+static void htonr_ul(void);	static void ntohr_ul(void);
+#endif
 static void htonr(void);	static void ntohr(void);
 static void ldr_c(void);	static void ldi_c(void);
 static void ldr_uc(void);	static void ldi_uc(void);
@@ -621,6 +626,11 @@ static instr_t		  instr_vector[] = {
     entry(extr_s),	entry(extr_us),
 #if __WORDSIZE == 64
     entry(extr_i),	entry(extr_ui),
+#endif
+    entry(htonr_us),	entry(ntohr_us),
+    entry(htonr_ui),	entry(ntohr_ui),
+#if __WORDSIZE == 64
+    entry(htonr_ul),	entry(ntohr_ul),
 #endif
     entry(htonr),	entry(ntohr),
     entry(ldr_c),	entry(ldi_c),
@@ -1436,6 +1446,11 @@ entry_ir_ir(extr_c)		entry_ir_ir(extr_uc)
 entry_ir_ir(extr_s)		entry_ir_ir(extr_us)
 #if __WORDSIZE == 64
 entry_ir_ir(extr_i)		entry_ir_ir(extr_ui)
+#endif
+entry_ir_ir(htonr_us)		entry_ir_ir(ntohr_us)
+entry_ir_ir(htonr_ui)		entry_ir_ir(ntohr_ui)
+#if __WORDSIZE == 64
+entry_ir_ir(htonr_ul)		entry_ir_ir(ntohr_ul)
 #endif
 entry_ir_ir(htonr)		entry_ir_ir(ntohr)
 entry_ir_ir(ldr_c)		entry_ir_pm(ldi_c)

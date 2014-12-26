@@ -579,10 +579,22 @@ static void _stxr_l(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 static void _stxi_l(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #  endif
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-#  define htonr(r0,r1)			_htonr(_jit,r0,r1)
-static void _htonr(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define htonr_us(r0,r1)		_htonr_us(_jit,r0,r1)
+static void _htonr_us(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define htonr_ui(r0,r1)		_htonr_ui(_jit,r0,r1)
+static void _htonr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
+#    if __WORDSIZE == 64
+#      define htonr_ul(r0,r1)		_htonr_ul(_jit,r0,r1)
+static void _htonr_ul(jit_state_t*,jit_int32_t,jit_int32_t);
+#    endif
 #  else
-#    define htonr(r0,r1)		movr(r0,r1)
+#    define htonr_us(r0,r1)		extr_us(r0,r1)
+#    if __WORDSIZE == 32
+#      define htonr_ui(r0,r1)		movr(r0,r1)
+#    else
+#      define htonr_ui(r0,r1)		extr_ui(r0,r1)
+#      define htonr_ul(r0,r1)		movr(r0,r1)
+#    endif
 #  endif
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
 static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
@@ -591,8 +603,8 @@ static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 static void _extr_s(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_us(r0,r1)		ANDI(r0,r1,0xffff)
 #  if __WORDSIZE == 64
-#  define extr_i(r0,r1)			SLL(r0,r1,0)
-#  define extr_ui(r0,r1)		_extr_ui(_jit,r0,r1)
+#    define extr_i(r0,r1)		SLL(r0,r1,0)
+#    define extr_ui(r0,r1)		_extr_ui(_jit,r0,r1)
 static void _extr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
 #  endif
 #  define ltr(r0,r1,r2)			SLT(r0,r1,r2)
@@ -1658,39 +1670,56 @@ _stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
 static void
+_htonr_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		t0;
+    t0 = jit_get_reg(jit_class_gpr);
+    rshi(rn(t0), r1, 8);
+    andi(r0, r1, 0xff);
+    andi(rn(t0), rn(t0), 0xff);
+    lshi(r0, r0, 8);
+    orr(r0, r0, rn(t0));
+    jit_unget_reg(t0);
+}
+
+static void
+_htonr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		t0;
+    jit_int32_t		t1;
+    jit_int32_t		t2;
+    t0 = jit_get_reg(jit_class_gpr);
+    t1 = jit_get_reg(jit_class_gpr);
+    t2 = jit_get_reg(jit_class_gpr);
+    rshi(rn(t0), r1, 24);
+    rshi(rn(t1), r1, 16);
+    rshi(rn(t2), r1,  8);
+    andi(rn(t0), rn(t0), 0xff);
+    andi(rn(t1), rn(t1), 0xff);
+    andi(rn(t2), rn(t2), 0xff);
+    andi(r0, r1, 0xff);
+    lshi(r0, r0, 24);
+    lshi(rn(t1), rn(t1), 8);
+    orr(r0, r0, rn(t0));
+    lshi(rn(t2), rn(t2), 16);
+    orr(r0, r0, rn(t1));
+    orr(r0, r0, rn(t2));
+    jit_unget_reg(t2);
+    jit_unget_reg(t1);
+    jit_unget_reg(t0);
+}
+
+static void
 _htonr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		rg0;
-    jit_int32_t		rg1;
-    if (jit_mips2_p()) {
-	WSBH(r0, r1);
-	ROTR(r0, r0, 16);
-    }
-    else {
-	/* FIXME rewrite in a more sane way, but unlikely to be used
-	 * in near time... */
-#  if __WORDSIZE == 64
-#    error htonr only implemented for 64 bit
-#  endif
-	rg0 = jit_get_reg(jit_class_gpr);
-	rg1 = jit_get_reg(jit_class_gpr);
-	LUI(rn(rg0), 0xff00);
-	ORI(rn(rg0), rn(rg0), 0xff00);
-	AND(rn(rg1), r1, rn(rg0));
-	SRL(rn(rg0), rn(rg0), 8);
-	AND(rn(rg0), r1, rn(rg0));
-	SRL(rn(rg1), rn(rg1), 8);
-	SLL(rn(rg0), rn(rg0), 8);
-	OR(r0, rn(rg0), rn(rg1));
-	ANDI(rn(rg1), r0, 0xffff);
-	LUI(rn(rg0), 0xffff);
-	AND(rn(rg0), r0, rn(rg0));
-	SLL(rn(rg1), rn(rg1), 16);
-	SRL(rn(rg0), rn(rg0), 16);
-	OR(r0, rn(rg0), rn(rg1));
-	jit_unget_reg(rg0);
-	jit_unget_reg(rg1);
-    }
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    rshi_u(rn(reg), r1, 32);
+    htonr_ui(r0, r1);
+    htonr_ui(rn(reg), rn(reg));
+    lshi(r0, r0, 32);
+    orr(r0, r0, rn(reg));
+    jit_unget_reg(reg);
 }
 #  endif
 
