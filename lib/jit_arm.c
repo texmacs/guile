@@ -1532,8 +1532,9 @@ _emit_code(jit_state_t *_jit)
 	jit_reglive(node);
 
 	if (_jitc->consts.length &&
-	    (jit_uword_t)_jit->pc.uc -
-	    (jit_uword_t)_jitc->consts.patches[0] >= 3968) {
+	    (_jit->pc.uc - _jitc->consts.data >= 3968 ||
+	     (jit_uword_t)_jit->pc.uc -
+	     (jit_uword_t)_jitc->consts.patches[0] >= 3968)) {
 	    /* longest sequence should be 64 bytes, but preventively
 	     * do not let it go past 128 remaining bytes before a flush */
 	    if (node->next &&
