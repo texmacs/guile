@@ -3185,7 +3185,7 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 #  include "jit_hppa.c"
 #elif defined(__aarch64__)
 #  include "jit_aarch64.c"
-#elif defined(__s390x__)
+#elif defined(__s390__) || defined(__s390x__)
 #  include "jit_s390x.c"
 #elif defined(__alpha__)
 #  include "jit_alpha.c"

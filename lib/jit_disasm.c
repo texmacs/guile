@@ -100,9 +100,13 @@ jit_init_debug(const char *progname)
 #  if defined(__sparc__)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
 #  endif
-#  if defined(__s390x__)
+#  if defined(__s390__) || defined(__s390x__)
     disasm_info.arch = bfd_arch_s390;
+#    if __WORDSIZE == 32
+    disasm_info.mach = bfd_mach_s390_31;
+#    else
     disasm_info.mach = bfd_mach_s390_64;
+#    endif
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
     disasm_info.disassembler_options = "zarch";
 #  endif

@@ -140,7 +140,7 @@ typedef jit_int32_t		jit_fpr_t;
 #  include <lightning/jit_hppa.h>
 #elif defined(__aarch64__)
 #  include <lightning/jit_aarch64.h>
-#elif defined(__s390x__)
+#elif defined(__s390__) || defined(__s390x__)
 #  include <lightning/jit_s390x.h>
 #elif defined(__alpha__)
 #  include <lightning/jit_alpha.h>

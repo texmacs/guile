@@ -354,10 +354,17 @@ static void _movi_d(jit_state_t*,jit_int32_t,jit_float64_t*);
 #  define sqrtr_d(r0,r1)		SQDBR(r0,r1)
 #  define truncr_f_i(r0,r1)		CFEBR(r0,RND_ZERO,r1)
 #  define truncr_d_i(r0,r1)		CFDBR(r0,RND_ZERO,r1)
-#  define truncr_f_l(r0,r1)		CGEBR(r0,RND_ZERO,r1)
-#  define truncr_d_l(r0,r1)		CGDBR(r0,RND_ZERO,r1)
-#  define extr_f(r0,r1)			CEGBR(r0,r1)
-#  define extr_d(r0,r1)			CDGBR(r0,r1)
+#  if __WORDSIZE == 64
+#    define truncr_f_l(r0,r1)		CGEBR(r0,RND_ZERO,r1)
+#    define truncr_d_l(r0,r1)		CGDBR(r0,RND_ZERO,r1)
+#  endif
+#  if __WORDSIZE == 32
+#    define extr_f(r0,r1)		CEFBR(r0,r1)
+#    define extr_d(r0,r1)		CDFBR(r0,r1)
+#  else
+#    define extr_f(r0,r1)		CEGBR(r0,r1)
+#    define extr_d(r0,r1)		CDGBR(r0,r1)
+#  endif
 #  define extr_d_f(r0,r1)		LEDBR(r0,r1)
 #  define extr_f_d(r0,r1)		LDEBR(r0,r1)
 #  define addr_f(r0,r1,r2)		_addr_f(_jit,r0,r1,r2)
@@ -889,7 +896,11 @@ static void
 _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
     union {
+#if __WORDSIZE == 32
+	jit_int32_t	 i[2];
+#else
 	jit_int64_t	 l;
+#endif
 	jit_float64_t	 d;
     } data;
     jit_int32_t		 reg;
@@ -899,8 +910,15 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     else if (_jitc->no_data) {
 	data.d = *i0;
 	reg = jit_get_reg_but_zero(0);
+#if __WORDSIZE == 32
+	movi(rn(reg), data.i[0]);
+	stxi_i(-8, _FP_REGNO, rn(reg));
+	movi(rn(reg), data.i[1]);
+	stxi_i(-4, _FP_REGNO, rn(reg));
+#else
 	movi(rn(reg), data.l);
 	stxi_l(-8, _FP_REGNO, rn(reg));
+#endif
 	jit_unget_reg_but_zero(reg);
 	ldxi_d(r0, _FP_REGNO, -8);
     }
@@ -1046,7 +1064,7 @@ _ldxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     jit_int32_t		reg;
     reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r1);
-    AGR(rn(reg), r2);
+    addr(rn(reg), rn(reg), r2);
     ldr_f(r0, rn(reg));
     jit_unget_reg_but_zero(reg);
 }
@@ -1057,7 +1075,7 @@ _ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     jit_int32_t		reg;
     reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r1);
-    AGR(rn(reg), r2);
+    addr(rn(reg), rn(reg), r2);
     ldr_d(r0, rn(reg));
     jit_unget_reg_but_zero(reg);
 }
@@ -1073,7 +1091,7 @@ _ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else {
 	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
-	AGR(rn(reg), r1);
+	addr(rn(reg), rn(reg), r1);
 	ldr_f(r0, rn(reg));
 	jit_unget_reg_but_zero(reg);
     }
@@ -1090,7 +1108,7 @@ _ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     else {
 	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
-	AGR(rn(reg), r1);
+	addr(rn(reg), rn(reg), r1);
 	ldr_d(r0, rn(reg));
 	jit_unget_reg_but_zero(reg);
     }
@@ -1122,7 +1140,7 @@ _stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     jit_int32_t		reg;
     reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r0);
-    AGR(rn(reg), r1);
+    addr(rn(reg), rn(reg), r1);
     str_f(rn(reg), r2);
     jit_unget_reg_but_zero(reg);
 }
@@ -1133,7 +1151,7 @@ _stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     jit_int32_t		reg;
     reg = jit_get_reg_but_zero(0);
     movr(rn(reg), r0);
-    AGR(rn(reg), r1);
+    addr(rn(reg), rn(reg), r1);
     str_d(rn(reg), r2);
     jit_unget_reg_but_zero(reg);
 }
@@ -1149,7 +1167,7 @@ _stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     else {
 	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
-	AGR(rn(reg), r0);
+	addr(rn(reg), rn(reg), r0);
 	str_f(rn(reg), r1);
 	jit_unget_reg_but_zero(reg);
     }
@@ -1166,7 +1184,7 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     else {
 	reg = jit_get_reg_but_zero(0);
 	movi(rn(reg), i0);
-	AGR(rn(reg), r0);
+	addr(rn(reg), rn(reg), r0);
 	str_d(rn(reg), r1);
 	jit_unget_reg_but_zero(reg);
     }
@@ -1176,13 +1194,13 @@ static void
 _uneqr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_word_t		unord, eq;
-    LGHI(r0, 1);			/* set to one */
+    movi(r0, 1);			/* set to one */
     CEBR(r1, r2);
     unord = _jit->pc.w;			/* keep set to one if unord */
     BRC(CC_O, 0);
     eq = _jit->pc.w;
     BRC(CC_E, 0);			/* keep set to one if eq */
-    LGHI(r0, 0);			/* set to zero */
+    movi(r0, 0);			/* set to zero */
     patch_at(unord, _jit->pc.w);
     patch_at(eq, _jit->pc.w);
 }
@@ -1191,13 +1209,13 @@ static void
 _uneqr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_word_t		unord, eq;
-    LGHI(r0, 1);			/* set to one */
+    movi(r0, 1);			/* set to one */
     CDBR(r1, r2);
     unord = _jit->pc.w;			/* keep set to one if unord */
     BRC(CC_O, 0);
     eq = _jit->pc.w;
     BRC(CC_E, 0);			/* keep set to one if eq */
-    LGHI(r0, 0);			/* set to zero */
+    movi(r0, 0);			/* set to zero */
     patch_at(unord, _jit->pc.w);
     patch_at(eq, _jit->pc.w);
 }
@@ -1206,13 +1224,13 @@ static void
 _ltgtr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_word_t		unord, eq;
-    LGHI(r0, 0);			/* set to zero */
+    movi(r0, 0);			/* set to zero */
     CEBR(r1, r2);
     unord = _jit->pc.w;			/* keep set to zero if unord */
     BRC(CC_O, 0);
     eq = _jit->pc.w;
     BRC(CC_E, 0);			/* keep set to zero if eq */
-    LGHI(r0, 1);			/* set to one */
+    movi(r0, 1);			/* set to one */
     patch_at(unord, _jit->pc.w);
     patch_at(eq, _jit->pc.w);
 }
@@ -1221,13 +1239,13 @@ static void
 _ltgtr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_word_t		unord, eq;
-    LGHI(r0, 0);			/* set to zero */
+    movi(r0, 0);			/* set to zero */
     CDBR(r1, r2);
     unord = _jit->pc.w;			/* keep set to zero if unord */
     BRC(CC_O, 0);
     eq = _jit->pc.w;
     BRC(CC_E, 0);			/* keep set to zero if eq */
-    LGHI(r0, 1);			/* set to one */
+    movi(r0, 1);			/* set to one */
     patch_at(unord, _jit->pc.w);
     patch_at(eq, _jit->pc.w);
 }

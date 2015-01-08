@@ -1,3 +1,15 @@
+2015-01-08 Paulo Andrade <pcpa@gnu.org>
+
+        * include/lightning.h, include/lightning/jit_private.h,
+        include/lightning/jit_s390x.h, lib/jit_disasm.c,
+        lib/jit_s390x-cpu.c, lib/jit_s390x-fpu.c, lib/jit_s390x-sz.c,
+        lib/jit_s390x.c, lib/jit_size.c, lib/lightning.c:
+	Add support for generating jit for s390 32 bit. This change
+	also removed %f15 from the list of temporaries fpr registers;
+	it was not being used, but if were, it would corrupt the
+	stack frame because the spill address would overwrite grp
+	offsets.
+
 2014-12-26 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c, lib/jit_ppc.c: Correct some endianess issues

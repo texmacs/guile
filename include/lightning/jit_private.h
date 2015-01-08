@@ -115,7 +115,7 @@ typedef jit_uint64_t		jit_regset_t;
 #  define JIT_RET		_R0
 #  define JIT_FRET		_V0
 typedef jit_uint64_t		jit_regset_t;
-#elif defined(__s390x__)
+#elif defined(__s390__) || defined(__s390x__)
 #  define JIT_SP		_R15
 #  define JIT_RET		_R2
 #  define JIT_FRET		_F0
