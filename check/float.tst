@@ -21,7 +21,7 @@ ok:
 #else
 #  define wnan			x80
 #endif
-#if __mips__ || __arm__ || __ppc__ || __sparc__ || __hppa__ || __aarch64__ || __s390x__
+#if __mips__ || __arm__ || __ppc__ || __sparc__ || __hppa__ || __aarch64__ || __s390__
 #  define wpinf			x7f
 #elif __alpha__
 /* (at least) bug compatible with gcc 4.2.3 -ieee */

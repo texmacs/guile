@@ -1914,7 +1914,7 @@ get_float(skip_t skip)
 static float
 make_float(double d)
 {
-    /* This is an workaround to a bug in Hercules s390x emulator,
+    /* This is an workaround to a bug in Hercules s390 emulator,
      * and at least HP-UX ia64 not have these */
 #if defined(HAVE_ISNAN) && defined(HAVE_ISINF)
     if (isnan(d))	return ( 0.0f/0.0f);
@@ -4194,10 +4194,10 @@ main(int argc, char *argv[])
 			  sizeof(cmdline) - opt_short,
 			  " -D__aarch64__=1");
 #endif
-#if defined(__s390x__)
+#if defined(__s390__) || defined(__s390x__)
     opt_short += snprintf(cmdline + opt_short,
 			  sizeof(cmdline) - opt_short,
-			  " -D__s390x__=1");
+			  " -D__s390__=1");
 #endif
 #if defined(__alpha__)
     opt_short += snprintf(cmdline + opt_short,

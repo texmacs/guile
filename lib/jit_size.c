@@ -47,7 +47,7 @@ static jit_int16_t	_szs[jit_code_last_code + 1] = {
 #  elif defined(__aarch64__)
 #    include "jit_aarch64-sz.c"
 #  elif defined(__s390__) || defined(__s390x__)
-#    include "jit_s390x-sz.c"
+#    include "jit_s390-sz.c"
 #  elif defined(__alpha__)
 #    include "jit_alpha-sz.c"
 #  endif

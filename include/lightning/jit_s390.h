@@ -17,8 +17,8 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#ifndef _jit_s390x_h
-#define _jit_s390x_h
+#ifndef _jit_s390_h
+#define _jit_s390_h
 
 #define JIT_HASH_CONSTS		1
 #define JIT_NUM_OPERANDS	2
@@ -71,4 +71,4 @@ typedef enum {
 #define JIT_NOREG		_NOREG
 } jit_reg_t;
 
-#endif /* _jit_s390x_h */
+#endif /* _jit_s390_h */

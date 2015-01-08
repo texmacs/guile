@@ -1,5 +1,16 @@
 2015-01-08 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_s390.h, lib/jit_s390-cpu.c,
+	lib/jit_s390-fpu.c, lib/jit_s390-sz.c, lib/jit_s390.c:
+	Renamed s390x* files to s390*.
+
+	* check/float.tst, check/lightning.c, configure.ac,
+	include/lightning.h, include/lightning/Makefile.am,
+	lib/Makefile.am, lib/jit_s390.c, lib/jit_size.c,
+	lib/lightning.c: Update for renamed files.
+
+2015-01-08 Paulo Andrade <pcpa@gnu.org>
+
         * include/lightning.h, include/lightning/jit_private.h,
         include/lightning/jit_s390x.h, lib/jit_disasm.c,
         lib/jit_s390x-cpu.c, lib/jit_s390x-fpu.c, lib/jit_s390x-sz.c,

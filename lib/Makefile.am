@@ -62,10 +62,10 @@ EXTRA_DIST =			\
 	jit_ppc-cpu.c		\
 	jit_ppc-fpu.c		\
 	jit_ppc-sz.c		\
-	jit_s390x.c		\
-	jit_s390x-cpu.c		\
-	jit_s390x-fpu.c		\
-	jit_s390x-sz.c		\
+	jit_s390.c		\
+	jit_s390-cpu.c		\
+	jit_s390-fpu.c		\
+	jit_s390-sz.c		\
 	jit_sparc.c		\
 	jit_sparc-cpu.c		\
 	jit_sparc-fpu.c		\

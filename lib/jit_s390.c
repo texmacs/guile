@@ -45,8 +45,8 @@ static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 extern void __clear_cache(void *, void *);
 
 #define PROTO				1
-#  include "jit_s390x-cpu.c"
-#  include "jit_s390x-fpu.c"
+#  include "jit_s390-cpu.c"
+#  include "jit_s390-fpu.c"
 #undef PROTO
 
 /*
@@ -1205,8 +1205,8 @@ _emit_code(jit_state_t *_jit)
 }
 
 #define CODE				1
-#  include "jit_s390x-cpu.c"
-#  include "jit_s390x-fpu.c"
+#  include "jit_s390-cpu.c"
+#  include "jit_s390-fpu.c"
 #undef CODE
 
 void

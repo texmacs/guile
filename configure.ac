@@ -130,7 +130,7 @@ case "$target_cpu" in
     ia64)		cpu=ia64	;;
     hppa*)		cpu=hppa	;;
     aarch64)		cpu=aarch64	;;
-    s390x)		cpu=s390x	;;
+    s390*)		cpu=s390	;;
     alpha*)		cpu=alpha	;;
     *)					;;
 esac
@@ -142,7 +142,7 @@ AM_CONDITIONAL(cpu_x86,     [test cpu-$cpu = cpu-x86])
 AM_CONDITIONAL(cpu_ia64,    [test cpu-$cpu = cpu-ia64])
 AM_CONDITIONAL(cpu_hppa,    [test cpu-$cpu = cpu-hppa])
 AM_CONDITIONAL(cpu_aarch64, [test cpu-$cpu = cpu-aarch64])
-AM_CONDITIONAL(cpu_s390x,   [test cpu-$cpu = cpu-s390x])
+AM_CONDITIONAL(cpu_s390,    [test cpu-$cpu = cpu-s390])
 AM_CONDITIONAL(cpu_alpha,   [test cpu-$cpu = cpu-alpha])
 
 # Test x87 if both, x87 and sse2 available
@@ -237,7 +237,7 @@ AM_CONDITIONAL(test_x86_x87, [test x$ac_cv_test_x86_x87 = xyes])
 AM_CONDITIONAL(test_arm_arm, [test x$ac_cv_test_arm_arm = xyes])
 AM_CONDITIONAL(test_arm_swf, [test x$ac_cv_test_arm_swf = xyes])
 
-AM_CONDITIONAL(test_nodata, [test cpu-$cpu = cpu-mips -o cpu-$cpu = cpu-ppc -o cpu-$cpu = cpu-sparc -o cpu-$cpu = cpu-x86 -o cpu-$cpu = cpu-ia64 -o cpu-$cpu = cpu-hppa -o cpu-$cpu = cpu-s390x -o cpu-$cpu = cpu-alpha])
+AM_CONDITIONAL(test_nodata, [test cpu-$cpu = cpu-mips -o cpu-$cpu = cpu-ppc -o cpu-$cpu = cpu-sparc -o cpu-$cpu = cpu-x86 -o cpu-$cpu = cpu-ia64 -o cpu-$cpu = cpu-hppa -o cpu-$cpu = cpu-s390 -o cpu-$cpu = cpu-alpha])
 
 if test $cpu = arm; then
      AC_CHECK_LIB(m, sqrtf, ,

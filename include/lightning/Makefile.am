@@ -51,9 +51,9 @@ if cpu_aarch64
 lightning_include_HEADERS = 	\
 	jit_aarch64.h
 endif
-if cpu_s390x
+if cpu_s390
 lightning_include_HEADERS = 	\
-	jit_s390x.h
+	jit_s390.h
 endif
 if cpu_alpha
 lightning_include_HEADERS = 	\
