@@ -1,3 +1,21 @@
+2015-01-15 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, lib/jit_aarch64.c,
+	lib/jit_alpha.c, lib/jit_arm.c, lib/jit_hppa.c,
+	lib/jit_ia64.c, lib/jit_mips.c,	lib/jit_ppc.c,
+	lib/jit_s390.c, lib/jit_sparc.c, lib/jit_x86.c:
+	Implement jit_putarg*. It works as a mix of jit_getarg*
+	and jit_pusharg*, in the way that the first argument is
+	a register or immediate, and the second is a pointer
+	returned by jit_arg*. The use of the interface is to change
+	values of arguments to the current jit function.
+
+	* check/put.ok, check/put.tst: New test cases exercising
+	the new jit_putarg* interface.
+
+	* check/Makefile.am, check/lightning.c: Update for the
+	new test case and interface.
+
 2015-01-08 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_s390.h, lib/jit_s390-cpu.c,

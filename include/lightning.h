@@ -207,6 +207,8 @@ typedef enum {
 #  define jit_getarg_ui(u,v)	_jit_getarg_ui(_jit,u,v)
 #  define jit_getarg_l(u,v)	_jit_getarg_l(_jit,u,v)
 #endif
+#  define jit_putargr(u,v)	_jit_putargr(_jit,u,v)
+#  define jit_putargi(u,v)	_jit_putargi(_jit,u,v)
     jit_code_arg,
 
 #define jit_addr(u,v,w)		jit_new_node_www(jit_code_addr,u,v,w)
@@ -539,6 +541,8 @@ typedef enum {
 
 #define jit_arg_f()		_jit_arg_f(_jit)
 #define jit_getarg_f(u,v)	_jit_getarg_f(_jit,u,v)
+#define jit_putargr_f(u,v)	_jit_putargr_f(_jit,u,v)
+#define jit_putargi_f(u,v)	_jit_putargi_f(_jit,u,v)
     jit_code_arg_f,
 
 #define jit_addr_f(u,v,w)	jit_new_node_www(jit_code_addr_f,u,v,w)
@@ -684,6 +688,8 @@ typedef enum {
 
 #define jit_arg_d()		_jit_arg_d(_jit)
 #define jit_getarg_d(u,v)	_jit_getarg_d(_jit,u,v)
+#define jit_putargr_d(u,v)	_jit_putargr_d(_jit,u,v)
+#define jit_putargi_d(u,v)	_jit_putargi_d(_jit,u,v)
     jit_code_arg_d,
 
 #define jit_addr_d(u,v,w)	jit_new_node_www(jit_code_addr_d,u,v,w)
@@ -896,6 +902,8 @@ extern void _jit_getarg_i(jit_state_t*, jit_gpr_t, jit_node_t*);
 extern void _jit_getarg_ui(jit_state_t*, jit_gpr_t, jit_node_t*);
 extern void _jit_getarg_l(jit_state_t*, jit_gpr_t, jit_node_t*);
 #endif
+extern void _jit_putargr(jit_state_t*, jit_gpr_t, jit_node_t*);
+extern void _jit_putargi(jit_state_t*, jit_word_t, jit_node_t*);
 
 extern void _jit_prepare(jit_state_t*);
 extern void _jit_ellipsis(jit_state_t*);
@@ -945,6 +953,8 @@ extern void _jit_print(jit_state_t*);
 
 extern jit_node_t *_jit_arg_f(jit_state_t*);
 extern void _jit_getarg_f(jit_state_t*, jit_fpr_t, jit_node_t*);
+extern void _jit_putargr_f(jit_state_t*, jit_fpr_t, jit_node_t*);
+extern void _jit_putargi_f(jit_state_t*, jit_float32_t, jit_node_t*);
 extern void _jit_pushargr_f(jit_state_t*, jit_fpr_t);
 extern void _jit_pushargi_f(jit_state_t*, jit_float32_t);
 extern void _jit_retr_f(jit_state_t*, jit_fpr_t);
@@ -953,6 +963,8 @@ extern void _jit_retval_f(jit_state_t*, jit_fpr_t);
 
 extern jit_node_t *_jit_arg_d(jit_state_t*);
 extern void _jit_getarg_d(jit_state_t*, jit_fpr_t, jit_node_t*);
+extern void _jit_putargr_d(jit_state_t*, jit_fpr_t, jit_node_t*);
+extern void _jit_putargi_d(jit_state_t*, jit_float64_t, jit_node_t*);
 extern void _jit_pushargr_d(jit_state_t*, jit_fpr_t);
 extern void _jit_pushargi_d(jit_state_t*, jit_float64_t);
 extern void _jit_retr_d(jit_state_t*, jit_fpr_t);

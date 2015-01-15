@@ -280,6 +280,7 @@ static void getarg_i(void);
 static void getarg_ui(void);	static void getarg_l(void);
 #endif
 static void getarg(void);
+static void putargr(void);	static void putargi(void);
 static void addr(void);		static void addi(void);
 static void addxr(void);	static void addxi(void);
 static void addcr(void);	static void addci(void);
@@ -394,8 +395,8 @@ static void retval_ui(void);	static void retval_l(void);
 #endif
 static void retval(void);
 static void epilog(void);
-static void arg_f(void);
-static void getarg_f(void);
+static void arg_f(void);	static void getarg_f(void);
+static void putargr_f(void);	static void putargi_f(void);
 static void addr_f(void);	static void addi_f(void);
 static void subr_f(void);	static void subi_f(void);
 static void rsbr_f(void);	static void rsbi_f(void);
@@ -445,8 +446,8 @@ static void bunordr_f(void);	static void bunordi_f(void);
 static void pushargr_f(void);	static void pushargi_f(void);
 static void retr_f(void);	static void reti_f(void);
 static void retval_f(void);
-static void arg_d(void);
-static void getarg_d(void);
+static void arg_d(void);	static void getarg_d(void);
+static void putargr_d(void);	static void putargi_d(void);
 static void addr_d(void);	static void addi_d(void);
 static void subr_d(void);	static void subi_d(void);
 static void rsbr_d(void);	static void rsbi_d(void);
@@ -588,6 +589,7 @@ static instr_t		  instr_vector[] = {
     entry(getarg_ui),	entry(getarg_l),
 #endif
     entry(getarg),
+    entry(putargr),	entry(putargi),
     entry(addr),	entry(addi),
     entry(addxr),	entry(addxi),
     entry(addcr),	entry(addci),
@@ -702,8 +704,8 @@ static instr_t		  instr_vector[] = {
 #endif
     entry(retval),
     entry(epilog),
-    entry(arg_f),
-    entry(getarg_f),
+    entry(arg_f),	entry(getarg_f),
+    entry(putargr_f),	entry(putargi_f),
     entry(addr_f),	entry(addi_f),
     entry(subr_f),	entry(subi_f),
     entry(rsbr_f),	entry(rsbi_f),
@@ -753,8 +755,8 @@ static instr_t		  instr_vector[] = {
     entry(pushargr_f),	entry(pushargi_f),
     entry(retr_f),	entry(reti_f),
     entry(retval_f),
-    entry(arg_d),
-    entry(getarg_d),
+    entry(arg_d),	entry(getarg_d),
+    entry(putargr_d),	entry(putargi_d),
     entry(addr_d),	entry(addi_d),
     entry(subr_d),	entry(subi_d),
     entry(rsbr_d),	entry(rsbi_d),
@@ -964,6 +966,14 @@ name(void)								\
     jit_gpr_t	 r0 = get_ireg();					\
     jit_##name(r0);							\
 }
+#define entry_ima(name)							\
+static void								\
+name(void)								\
+{									\
+    jit_word_t		im = get_imm();					\
+    jit_pointer_t	ac = get_arg();					\
+    jit_##name(im, ac);							\
+}
 #define entry_ir_ir_ir(name)						\
 static void								\
 name(void)								\
@@ -1090,6 +1100,14 @@ name(void)								\
     jit_fpr_t		r0 = get_freg();				\
     jit_pointer_t	ac = get_arg();					\
     jit_##name(r0, ac);							\
+}
+#define entry_fma(name)							\
+static void								\
+name(void)								\
+{									\
+    jit_float64_t	im = get_float(skip_ws);			\
+    jit_pointer_t	ac = get_arg();					\
+    jit_##name(im, ac);							\
 }
 #define entry_fr_fr_fr(name)						\
 static void								\
@@ -1361,6 +1379,7 @@ entry_ia(getarg_i)
 entry_ia(getarg_ui)		entry_ia(getarg_l)
 #endif
 entry_ia(getarg)
+entry_ia(putargr)		entry_ima(putargi)
 entry_ir_ir_ir(addr)		entry_ir_ir_im(addi)
 entry_ir_ir_ir(addxr)		entry_ir_ir_im(addxi)
 entry_ir_ir_ir(addcr)		entry_ir_ir_im(addci)
@@ -1522,8 +1541,8 @@ entry_ir(retval_ui)		entry_ir(retval_l)
 #endif
 entry_ir(retval)
 entry(epilog)
-entry_ca(arg_f)
-entry_fa(getarg_f)
+entry_ca(arg_f)			entry_fa(getarg_f)
+entry_fa(putargr_f)		entry_fma(putargi_f)
 entry_fr_fr_fr(addr_f)		entry_fr_fr_fm(addi_f)
 entry_fr_fr_fr(subr_f)		entry_fr_fr_fm(subi_f)
 entry_fr_fr_fr(rsbr_f)		entry_fr_fr_fm(rsbi_f)
@@ -1573,8 +1592,8 @@ entry_lb_fr_fr(bunordr_f)	entry_lb_fr_fm(bunordi_f)
 entry_fr(pushargr_f)		entry_fm(pushargi_f)
 entry_fr(retr_f)		entry_fm(reti_f)
 entry_fr(retval_f)
-entry_ca(arg_d)
-entry_fa(getarg_d)
+entry_ca(arg_d)			entry_fa(getarg_d)
+entry_fa(putargr_d)		entry_fma(putargi_d)
 entry_fr_fr_fr(addr_d)		entry_fr_fr_dm(addi_d)
 entry_fr_fr_fr(subr_d)		entry_fr_fr_dm(subi_d)
 entry_fr_fr_fr(rsbr_d)		entry_fr_fr_dm(rsbi_d)
@@ -1647,6 +1666,7 @@ entry_fr(retval_d)
 #undef entry_fr_fr_fm
 #undef entry_fr_fr_dm
 #undef entry_fr_fr_fr
+#undef entry_fma
 #undef entry_fa
 #undef entry_pm
 #undef entry_lb
@@ -1659,6 +1679,7 @@ entry_fr(retval_d)
 #undef entry_ir_ir
 #undef entry_ir_ir_im
 #undef entry_ir_ir_ir
+#undef entry_ima
 #undef entry_ir
 #undef entry_im
 #undef entry_ia

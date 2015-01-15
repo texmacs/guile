@@ -577,6 +577,7 @@ _jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
 #if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, JIT_RA0 - v->u.w);
@@ -588,6 +589,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
 #if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, JIT_RA0 - v->u.w);
@@ -599,6 +601,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
 #if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, JIT_RA0 - v->u.w);
@@ -610,6 +613,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
 #if __X64
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, JIT_RA0 - v->u.w);
@@ -621,6 +625,7 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
 #if __X64
     if (jit_arg_reg_p(v->u.w)) {
 #  if __X64_32
@@ -638,6 +643,7 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_ui(u, JIT_RA0 - v->u.w);
     else
@@ -647,6 +653,7 @@ _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg);
     if (jit_arg_reg_p(v->u.w))
 	jit_movr(u, JIT_RA0 - v->u.w);
     else
@@ -655,8 +662,39 @@ _jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #endif
 
 void
+_jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+{
+    assert(v->code == jit_code_arg);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movr(JIT_RA0 - v->u.w, u);
+    else
+#endif
+	jit_stxi(v->u.w, _RBP, u);
+}
+
+void
+_jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
+{
+    jit_int32_t		regno;
+    assert(v->code == jit_code_arg);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movi(JIT_RA0 - v->u.w, u);
+    else
+#endif
+    {
+	regno = jit_get_reg(jit_class_gpr);
+	jit_movi(regno, u);
+	jit_stxi(v->u.w, _RBP, regno);
+	jit_unget_reg(regno);
+    }
+}
+
+void
 _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg_f);
 #if __X64
     if (jit_arg_f_reg_p(v->u.w))
 	jit_movr_f(u, _XMM0 - v->u.w);
@@ -666,14 +704,75 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
+_jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+{
+    assert(v->code == jit_code_arg_f);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movr_f(_XMM0 - v->u.w, u);
+    else
+#endif
+	jit_stxi_f(v->u.w, _RBP, u);
+}
+
+void
+_jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
+{
+    jit_int32_t		regno;
+    assert(v->code == jit_code_arg_f);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movi_f(_XMM0 - v->u.w, u);
+    else
+#endif
+    {
+	regno = jit_get_reg(jit_class_gpr);
+	jit_movi_f(regno, u);
+	jit_stxi_f(v->u.w, _RBP, regno);
+	jit_unget_reg(regno);
+    }
+}
+
+void
 _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
+    assert(v->code == jit_code_arg_d);
 #if __X64
     if (jit_arg_f_reg_p(v->u.w))
 	jit_movr_d(u, _XMM0 - v->u.w);
     else
 #endif
 	jit_ldxi_d(u, _RBP, v->u.w);
+}
+
+void
+_jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+{
+    assert(v->code == jit_code_arg_d);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movr_d(_XMM0 - v->u.w, u);
+    else
+#endif
+	jit_stxi_d(v->u.w, _RBP, u);
+}
+
+void
+_jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
+{
+    jit_int32_t		regno;
+    assert(v->code == jit_code_arg_d);
+#if __X64
+    if (jit_arg_reg_p(v->u.w))
+	jit_movi_d(_XMM0 - v->u.w, u);
+    else
+#endif
+    {
+	regno = jit_get_reg(jit_class_gpr);
+	jit_movi_d(regno, u);
+	jit_stxi_d(v->u.w, _RBP, regno);
+	jit_unget_reg(regno);
+    }
 }
 
 void
