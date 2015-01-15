@@ -230,6 +230,13 @@ elif test $cpu = arm; then
 	return 1;
     }
     ]])],[ac_cv_test_arm_swf=yes],[],[ac_cv_test_arm_swf=no])
+elif test $cpu = ppc; then
+    if test "x$DISASSEMBLER" != "xno"; then
+	save_LIBS="$LIBS"
+	LIBS="$LIBS $SHLIB"
+	AC_CHECK_FUNCS(disassemble_init_for_target disassemble_init_powerpc)
+	LIBS="$save_LIBS"
+    fi
 fi
 CFLAGS=$save_CFLAGS
 

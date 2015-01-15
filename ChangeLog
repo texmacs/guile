@@ -1,5 +1,10 @@
 2015-01-15 Paulo Andrade <pcpa@gnu.org>
 
+	* configure.ac, lib/jit_disasm.c: Rewrite workaround
+	to apparent problem to initialize powerpc disassembler.
+
+2015-01-15 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning.h, lib/jit_aarch64.c,
 	lib/jit_alpha.c, lib/jit_arm.c, lib/jit_hppa.c,
 	lib/jit_ia64.c, lib/jit_mips.c,	lib/jit_ppc.c,

@@ -91,11 +91,19 @@ jit_init_debug(const char *progname)
 #  if defined(__powerpc__)
     disasm_info.arch = bfd_arch_powerpc;
     disasm_info.mach = bfd_mach_ppc64;
+#    if HAVE_DISASSEMBLE_INIT_FOR_TARGET
+    disassemble_init_for_target(&disasm_info);
+#    elif HAVE_DISASSEMBLE_INIT_POWERPC
     disassemble_init_powerpc(&disasm_info);
+#    endif
 #    if defined(__powerpc64__)
     disasm_info.disassembler_options = "64";
 #    endif
+#    if HAVE_DISASSEMBLE_INIT_FOR_TARGET
+    disassemble_init_for_target(&disasm_info);
+#    elif HAVE_DISASSEMBLE_INIT_POWERPC
     disassemble_init_powerpc(&disasm_info);
+#    endif
 #  endif
 #  if defined(__sparc__)
     disasm_info.endian = disasm_info.display_endian = BFD_ENDIAN_BIG;
