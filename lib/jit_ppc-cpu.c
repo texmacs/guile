@@ -26,7 +26,7 @@
 #    define fits_uint32_p(im)		1
 #  else
 #    define gpr_save_area		144	/* r14~r31 = 18 * 8 */
-#    if if ABI_ELFv2
+#    if ABI_ELFv2
 #      define params_offset		32
 #    else
 #      define params_offset		48
