@@ -224,6 +224,8 @@ subxr                O1 = O2 - (O3 + carry)
 subxi                O1 = O2 - (O3 + carry)
 subcr                O1 = O2 - O3, set carry
 subci                O1 = O2 - O3, set carry
+rsbr         _f  _d  O1 = O3 - O1
+rsbi         _f  _d  O1 = O3 - O1
 mulr         _f  _d  O1 = O2 * O3
 muli         _f  _d  O1 = O2 * O3
 divr     _u  _f  _d  O1 = O2 / O3
@@ -242,6 +244,27 @@ rshr     _u          O1 = O2 >> O3@footnote{The sign bit is propagated unless us
 rshi     _u          O1 = O2 >> O3@footnote{The sign bit is propagated unless using the @code{_u} modifier.}
 @end example
 
+@item Four operand binary ALU operations
+These accept two result registers, and two operands; the last one can
+be an immediate. The first two arguments cannot be the same register.
+
+@code{qmul} stores the low word of the result in @code{O1} and the
+high word in @code{O2}. For unsigned multiplication, @code{O2} zero
+means there was no overflow. For signed multiplication, no overflow
+check is based on sign, and can be detected if @code{O2} is zero or
+minus one.
+
+@code{qdiv} stores the quotient in @code{O1} and the remainder in
+@code{O2}. It can be used as quick way to check if a division is
+exact, in which case the remainder is zero.
+
+@example
+qmulr    _u       O1 O2 = O3 * O4
+qmuli    _u       O1 O2 = O3 * O4
+qdivr    _u       O1 O2 = O3 / O4
+qdivi    _u       O1 O2 = O3 / O4
+@end example
+
 @item Unary ALU operations
 These accept two operands, both of which must be registers.
 @example
@@ -249,7 +272,7 @@ negr         _f  _d  O1 = -O2
 comr                 O1 = ~O2
 @end example
 
-There unary ALU operations are only defined for float operands.
+These unary ALU operations are only defined for float operands.
 @example
 absr         _f  _d  O1 = fabs(O2)
 sqrtr                O1 = sqrt(O2)
@@ -335,9 +358,10 @@ two instructions actually perform the same task, yet they are
 assigned to two mnemonics for the sake of convenience and
 completeness.  As usual, the first operand is the destination and
 the second is the source.
+The @code{_ul} variant is only available in 64-bit architectures.
 @example
-htonr    @r{Host-to-network (big endian) order}
-ntohr    @r{Network-to-host order }
+htonr    _us _ui _ul @r{Host-to-network (big endian) order}
+ntohr    _us _ui _ul @r{Network-to-host order }
 @end example
 
 @item Load operations
@@ -375,13 +399,15 @@ that uses the appropriate wordsize call.
 These are:
 @example
 prepare     (not specified)
-pushargr    _c  _uc  _s  _us  _i  _ui  _l  _f  _d
-pushargi    _c  _uc  _s  _us  _i  _ui  _l  _f  _d
+pushargr                                   _f  _d
+pushargi                                   _f  _d
 arg         _c  _uc  _s  _us  _i  _ui  _l  _f  _d
 getarg      _c  _uc  _s  _us  _i  _ui  _l  _f  _d
+putargr                                    _f  _d
+putargi                                    _f  _d
 ret         (not specified)
-retr        _c  _uc  _s  _us  _i  _ui  _l  _f  _d
-reti        _c  _uc  _s  _us  _i  _ui  _l  _f  _d
+retr                                       _f  _d
+reti                                       _f  _d
 retval      _c  _uc  _s  _us  _i  _ui  _l  _f  _d
 epilog      (not specified)
 @end example
@@ -398,11 +424,11 @@ the @code{pushargr} or @code{pushargi} to push the arguments @strong{in
 left to right order}; and use @code{finish} or @code{call} (explained below)
 to perform the actual call.
 
-@code{arg} and @code{getarg} are used by the callee.
+@code{arg}, @code{getarg} and @code{putarg} are used by the callee.
 @code{arg} is different from other instruction in that it does not
 actually generate any code: instead, it is a function which returns
-a value to be passed to @code{getarg}.@footnote{``Return a
-value'' means that @lightning{} code that compile these
+a value to be passed to @code{getarg} or @code{putarg}. @footnote{``Return
+a value'' means that @lightning{} code that compile these
 instructions return a value when expanded.} You should call
 @code{arg} as soon as possible, before any function call or, more
 easily, right after the @code{prolog} instructions
@@ -416,6 +442,15 @@ related to the usage of the @lightning{} instruction set in code
 that generates other code, so they will be treated more
 specifically in @ref{GNU lightning examples, , Generating code at
 run-time}.
+
+@code{putarg} is a mix of @code{getarg} and @code{pusharg} in that
+it accepts as first argument a register or immediate, and as
+second argument a value returned by @code{arg}. It allows changing,
+or restoring an argument to the current function, and is a
+construct required to implement tail call optimization. Note that
+arguments in registers are very cheap, but will be overwritten
+at any moment, including on some operations, for example division,
+that on several ports is implemented as a function call.
 
 Finally, the @code{retval} instruction fetches the return value of a
 called function in a register.  The @code{retval} instruction takes a

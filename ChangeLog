@@ -1,3 +1,9 @@
+2015-01-17 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Correct wrong/outdated information for
+	hton*, pusharg* and ret*, and add missing documentation
+	for rsb*, qmul*, qdvi* and putarg*.
+
 2015-01-15 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac, lib/jit_disasm.c: Rewrite workaround
