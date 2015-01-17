@@ -22,6 +22,7 @@
 
 #define rc(value)			jit_class_##value
 #define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
+#define jit_arg_reg_p(i)		(i >= 0 && i < 4)
 
 #define PROTO				1
 #  include "jit_hppa-cpu.c"
@@ -264,7 +265,7 @@ _jit_arg(jit_state_t *_jit)
     jit_int32_t		offset;
     assert(_jitc->function);
     _jitc->function->self.size -= sizeof(jit_word_t);
-    if (_jitc->function->self.argi < 4)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else
 	offset = _jitc->function->self.size;
@@ -277,7 +278,7 @@ _jit_arg_f(jit_state_t *_jit)
     jit_int32_t		offset;
     assert(_jitc->function);
     _jitc->function->self.size -= sizeof(jit_word_t);
-    if (_jitc->function->self.argi < 4)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else
 	offset = _jitc->function->self.size;
@@ -294,7 +295,7 @@ _jit_arg_d(jit_state_t *_jit)
 	_jitc->function->self.size -= sizeof(jit_word_t);
     }
     _jitc->function->self.size -= sizeof(jit_float64_t);
-    if (_jitc->function->self.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi + 1;
 	_jitc->function->self.argi += 2;
     }
@@ -305,12 +306,6 @@ _jit_arg_d(jit_state_t *_jit)
 	offset = _jitc->function->self.size;
     }
     return (jit_new_node_w(jit_code_arg_d, offset));
-}
-
-jit_bool_t
-_jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (jit_arg_f_reg_p(offset));
 }
 
 void
@@ -444,7 +439,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_putargi_d(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
+_jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 {
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_d);
@@ -463,7 +458,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
     _jitc->function->call.size -= sizeof(jit_word_t);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr(_R26 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -477,7 +472,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
     jit_int32_t		 regno;
     assert(_jitc->function);
     _jitc->function->call.size -= sizeof(jit_word_t);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(_R26 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -494,7 +489,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
     _jitc->function->call.size -= sizeof(jit_word_t);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_f(_F4 - _jitc->function->call.argi, u);
 #if !defined(__hpux)
 	if (_jitc->function->call.call & jit_call_varargs)
@@ -516,7 +511,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     jit_int32_t		 regno;
     assert(_jitc->function);
     _jitc->function->call.size -= sizeof(jit_word_t);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_f(_F4 - _jitc->function->call.argi, u);
 #if !defined(__hpux)
 	if (_jitc->function->call.call & jit_call_varargs)
@@ -546,7 +541,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 	++_jitc->function->call.argi;
 	_jitc->function->call.size -= sizeof(jit_word_t);
     }
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_d(_F4 - (_jitc->function->call.argi + 1), u);
 #if !defined(__hpux)
 	if (_jitc->function->call.call & jit_call_varargs)
@@ -578,7 +573,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	++_jitc->function->call.argi;
 	_jitc->function->call.size -= sizeof(jit_word_t);
     }
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_d(_F4 - (_jitc->function->call.argi + 1), u);
 #if !defined(__hpux)
 	if (_jitc->function->call.call & jit_call_varargs)

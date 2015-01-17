@@ -22,23 +22,27 @@
 
 #define rc(value)			jit_class_##value
 #define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
-
 #if __X32
+#  define jit_arg_reg_p(i)		0
+#  define jit_arg_f_reg_p(i)		0
 #  define stack_framesize		20
 #  define stack_adjust			12
 #  define CVT_OFFSET			-12
 #  define REAL_WORDSIZE			4
 #else
 #  if __CYGWIN__
+#    define jit_arg_reg_p(i)		((i) >= 0 && (i) < 4)
+#    define jit_arg_f_reg_p(i)		jit_arg_reg_p(i)
 #    define stack_framesize		152
 #  else
+#    define jit_arg_reg_p(i)		((i) >= 0 && (i) < 6)
+#    define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 8)
 #    define stack_framesize		56
 #  endif
 #  define stack_adjust			8
 #  define CVT_OFFSET			-8
 #  define REAL_WORDSIZE			8
 #endif
-
 
 /*
  * Prototypes
@@ -490,20 +494,6 @@ _jit_arg(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg, offset));
 }
 
-jit_bool_t
-_jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-#if __X32
-    return (0);
-#else
-#  if __CYGWIN__
-    return (offset >= 0 && offset < 4);
-#  else
-    return (offset >= 0 && offset < 6);
-#  endif
-#endif
-}
-
 jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
@@ -529,20 +519,6 @@ _jit_arg_f(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
 
-jit_bool_t
-_jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-#if __X32
-    return (0);
-#else
-#  if __CYGWIN__
-    return (offset >= 0 && offset < 4);
-#  else
-    return (offset >= 0 && offset < 8);
-#  endif
-#endif
-}
-
 jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
@@ -566,12 +542,6 @@ _jit_arg_d(jit_state_t *_jit)
 	_jitc->function->self.size += sizeof(jit_float64_t);
     }
     return (jit_new_node_w(jit_code_arg_d, offset));
-}
-
-jit_bool_t
-_jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (jit_arg_f_reg_p(offset));
 }
 
 void

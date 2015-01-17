@@ -23,6 +23,9 @@
 
 #define rc(value)			jit_class_##value
 #define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
+#define jit_arg_reg_p(i)		((i) >= 0 && (i) < 4)
+#define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 16)
+#define jit_arg_d_reg_p(i)		((i) >= 0 && (i) < 15)
 
 #define arm_patch_node			0x80000000
 #define arm_patch_word			0x40000000
@@ -368,7 +371,7 @@ _jit_arg(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
-    if (_jitc->function->self.argi < 4)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else {
 	offset = _jitc->function->self.size;
@@ -377,25 +380,19 @@ _jit_arg(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg, offset));
 }
 
-jit_bool_t
-_jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (offset >= 0 && offset < 4);
-}
-
 jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->self.call & jit_call_varargs)) {
-	if (_jitc->function->self.argf < 16) {
+	if (jit_arg_f_reg_p(_jitc->function->self.argf)) {
 	    offset = _jitc->function->self.argf++;
 	    goto done;
 	}
     }
     else {
-	if (_jitc->function->self.argi < 4) {
+	if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	    offset = _jitc->function->self.argi++;
 	    goto done;
 	}
@@ -406,19 +403,13 @@ done:
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
 
-jit_bool_t
-_jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (jit_arg_reg_p(offset));
-}
-
 jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->self.call & jit_call_varargs)) {
-	if (_jitc->function->self.argf < 15) {
+	if (jit_arg_d_reg_p(_jitc->function->self.argf)) {
 	    if (_jitc->function->self.argf & 1)
 		++_jitc->function->self.argf;
 	    offset = _jitc->function->self.argf;
@@ -427,9 +418,9 @@ _jit_arg_d(jit_state_t *_jit)
 	}
     }
     else {
-	if (_jitc->function->self.argi < 3) {
-	    if (_jitc->function->self.argi & 1)
-		++_jitc->function->self.argi;
+	if (_jitc->function->self.argi & 1)
+	    ++_jitc->function->self.argi;
+	if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	    offset = _jitc->function->self.argi;
 	    _jitc->function->self.argi += 2;
 	    goto done;
@@ -443,19 +434,13 @@ done:
     return (jit_new_node_w(jit_code_arg_d, offset));
 }
 
-jit_bool_t
-_jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (jit_arg_reg_p(offset));
-}
-
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_ldxi_c(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, JIT_RA0 - v->u.w);
     else
 	jit_ldxi_c(u, JIT_FP, v->u.w);
@@ -467,7 +452,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_ldxi_uc(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, JIT_RA0 - v->u.w);
     else
 	jit_ldxi_uc(u, JIT_FP, v->u.w);
@@ -479,7 +464,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_ldxi_s(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, JIT_RA0 - v->u.w);
     else
 	jit_ldxi_s(u, JIT_FP, v->u.w);
@@ -491,7 +476,7 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_ldxi_us(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, JIT_RA0 - v->u.w);
     else
 	jit_ldxi_us(u, JIT_FP, v->u.w);
@@ -503,7 +488,7 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_ldxi_i(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_movr(u, JIT_RA0 - v->u.w);
     else
 	jit_ldxi_i(u, JIT_FP, v->u.w);
@@ -515,7 +500,7 @@ _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
 	jit_stxi(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_movr(JIT_RA0 - v->u.w, u);
     else
 	jit_stxi(v->u.w, JIT_FP, u);
@@ -532,7 +517,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 	jit_stxi(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, regno);
 	jit_unget_reg(regno);
     }
-    else if (v->u.w < 4)
+    else if (jit_arg_reg_p(v->u.w))
 	jit_movi(JIT_RA0 - v->u.w, u);
     else {
 	regno = jit_get_reg(jit_class_gpr);
@@ -547,7 +532,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movr_f(u, JIT_FA0 - v->u.w);
 	else
 	    jit_ldxi_f(u, JIT_FP, v->u.w);
@@ -555,7 +540,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     else if (jit_swf_p())
 	jit_ldxi_f(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
     else {
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_w_f(u, JIT_RA0 - v->u.w);
 	else
 	    jit_ldxi_f(u, JIT_FP, v->u.w);
@@ -567,7 +552,7 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movr_f(JIT_FA0 - v->u.w, u);
 	else
 	    jit_stxi_f(v->u.w, JIT_FP, u);
@@ -575,7 +560,7 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     else if (jit_swf_p())
 	jit_stxi_f(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
     else {
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_f_w(JIT_RA0 - v->u.w, u);
 	else
 	    jit_stxi_f(v->u.w, JIT_FP, u);
@@ -588,7 +573,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_f);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movi_f(JIT_FA0 - v->u.w, u);
 	else {
 	    regno = jit_get_reg(jit_class_fpr);
@@ -606,7 +591,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
     else {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_f(regno, u);
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_f_w(JIT_RA0 - v->u.w, regno);
 	else
 	    jit_stxi_f(v->u.w, JIT_FP, regno);
@@ -619,7 +604,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movr_d(u, JIT_FA0 - v->u.w);
 	else
 	    jit_ldxi_d(u, JIT_FP, v->u.w);
@@ -627,7 +612,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     else if (jit_swf_p())
 	jit_ldxi_d(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
     else {
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_ww_d(u, JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1));
 	else
 	    jit_ldxi_d(u, JIT_FP, v->u.w);
@@ -639,7 +624,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movr_d(JIT_FA0 - v->u.w, u);
 	else
 	    jit_stxi_d(v->u.w, JIT_FP, u);
@@ -647,7 +632,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     else if (jit_swf_p())
 	jit_stxi_d(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
     else {
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_d_ww(JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1), u);
 	else
 	    jit_stxi_d(v->u.w, JIT_FP, u);
@@ -660,7 +645,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_d);
     if (jit_cpu.abi) {
-	if (v->u.w < 16)
+	if (jit_arg_f_reg_p(v->u.w))
 	    jit_movi_d(JIT_FA0 - v->u.w, u);
 	else {
 	    regno = jit_get_reg(jit_class_fpr);
@@ -678,7 +663,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
     else {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_d(regno, u);
-	if (v->u.w < 4)
+	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_d_ww(JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1), regno);
 	else
 	    jit_stxi_d(v->u.w, JIT_FP, regno);
@@ -690,7 +675,7 @@ void
 _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr(JIT_RA0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -705,7 +690,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 {
     jit_int32_t		 regno;
     assert(_jitc->function);
-    if (_jitc->function->call.argi < 4) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(JIT_RA0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -723,14 +708,14 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
-	if (_jitc->function->call.argf < 16) {
+	if (jit_arg_f_reg_p(_jitc->function->call.argf)) {
 	    jit_movr_f(JIT_FA0 - _jitc->function->call.argf, u);
 	    ++_jitc->function->call.argf;
 	    return;
 	}
     }
     else {
-	if (_jitc->function->call.argi < 4) {
+	if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	    jit_movr_f_w(JIT_RA0 - _jitc->function->call.argi, u);
 	    ++_jitc->function->call.argi;
 	    return;
@@ -746,7 +731,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     jit_int32_t		regno;
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
-	if (_jitc->function->call.argf < 16) {
+	if (jit_arg_f_reg_p(_jitc->function->call.argf)) {
 	    /* cannot jit_movi_f in the argument register because
 	     * float arguments are packed, and that would cause
 	     * either an assertion in debug mode, or overwritting
@@ -760,7 +745,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	}
     }
     else {
-	if (_jitc->function->call.argi < 4) {
+	if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	    jit_movi_f_w(JIT_RA0 - _jitc->function->call.argi, u);
 	    ++_jitc->function->call.argi;
 	    return;
@@ -778,7 +763,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 {
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
-	if (_jitc->function->call.argf < 15) {
+	if (jit_arg_d_reg_p(_jitc->function->call.argf)) {
 	    if (_jitc->function->call.argf & 1)
 		++_jitc->function->call.argf;
 	    jit_movr_d(JIT_FA0 - _jitc->function->call.argf, u);
@@ -789,7 +774,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     else {
 	if (_jitc->function->call.argi & 1)
 	    ++_jitc->function->call.argi;
-	if (_jitc->function->call.argi < 4) {
+	if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	    jit_movr_d_ww(JIT_RA0 - _jitc->function->call.argi,
 			  JIT_RA0 - (_jitc->function->call.argi + 1),
 			  u);
@@ -809,7 +794,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     jit_int32_t		regno;
     assert(_jitc->function);
     if (jit_cpu.abi && !(_jitc->function->call.call & jit_call_varargs)) {
-	if (_jitc->function->call.argf < 15) {
+	if (jit_arg_d_reg_p(_jitc->function->call.argf)) {
 	    if (_jitc->function->call.argf & 1)
 		++_jitc->function->call.argf;
 	    jit_movi_d(JIT_FA0 - _jitc->function->call.argf, u);
@@ -820,7 +805,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     else {
 	if (_jitc->function->call.argi & 1)
 	    ++_jitc->function->call.argi;
-	if (_jitc->function->call.argi < 4) {
+	if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	    jit_movi_d_ww(JIT_RA0 - _jitc->function->call.argi,
 			  JIT_RA0 - (_jitc->function->call.argi + 1),
 			  u);

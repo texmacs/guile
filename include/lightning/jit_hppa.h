@@ -27,8 +27,6 @@
  * Types
  */
 typedef enum {
-#define jit_arg_reg_p(i)	(i >= 0 && i <= 4)
-#define jit_arg_f_reg_p(i)	(i >= 0 && i <= 4)
     _R0,			/* Always zero */
     _R1,			/* ADDIL implicit target */
     _R2,			/* B,L implicit target */

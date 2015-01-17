@@ -28,16 +28,10 @@
  */
 #define JIT_FP			_R13
 typedef enum {
-#define jit_arg_reg_p(i)	((i) >= 0 && (i) <= 5)
 #define jit_r(i)		(_R12 + ((i) << 1))
 #define jit_r_num()		3
 #define jit_v(i)		(_R11 + ((i) << 1))
 #define jit_v_num()		3
-#if __WORDSIZE == 32
-#  define jit_arg_f_reg_p(i)	((i) >= 0 && (i) <= 2)
-#else
-#  define jit_arg_f_reg_p(i)	((i) >= 0 && (i) <= 4)
-#endif
 #define jit_f(i)		(_F8 + (i))
 #define jit_f_num()		6
 #define JIT_R0			_R12

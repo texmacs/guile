@@ -32,12 +32,10 @@
 
 #define JIT_FP			_R11
 typedef enum {
-#define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
 #define jit_r(i)		(_R4 + (i))
 #define jit_r_num()		3
 #define jit_v(i)		(_R7 + (i))
 #define jit_v_num()		3
-#define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 4)
 #define jit_f(i)		(jit_cpu.abi ? _D8 + ((i)<<1) : _D0 - ((i)<<1))
 #define jit_f_num()		8
     _R12,			/* ip - temporary */

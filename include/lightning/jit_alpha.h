@@ -28,12 +28,10 @@
  */
 #define JIT_FP			_FP
 typedef enum {
-#define jit_arg_reg_p(i)	((i) >= 0 && (i) < 6)
 #define jit_r(i)		(_S0 + (i))
 #define jit_r_num()		3
 #define jit_v(i)		(_S3 + (i))
 #define jit_v_num()		3
-#define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 6)
 #define jit_f(i)		(_F2 + (i))
 #define jit_f_num()		8
     /* Volatile - Assembly temporary register */

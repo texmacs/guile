@@ -42,12 +42,10 @@
 #define JIT_FP			_RBP
 typedef enum {
 #if __X32
-#  define jit_arg_reg_p(i)	0
 #  define jit_r(i)		(_RAX + (i))
 #  define jit_r_num()		3
 #  define jit_v(i)		(_RBX + (i))
 #  define jit_v_num()		3
-#  define jit_arg_f_reg_p(i)	0
 #  define jit_f(i)		(jit_cpu.sse2 ? _XMM0 + (i) : _ST0 + (i))
 #  define jit_f_num()		(jit_cpu.sse2 ? 8 : 6)
 #  define JIT_R0		_RAX
@@ -71,12 +69,10 @@ typedef enum {
 #  define jit_sse_reg_p(reg)	((reg) >= _XMM0 && (reg) <= _XMM7)
 #else
 #  if __CYGWIN__
-#    define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
 #    define jit_r(i)		(_RAX + (i))
 #    define jit_r_num()		3
 #    define jit_v(i)		(_RBX + (i))
 #    define jit_v_num()		7
-#    define jit_arg_f_reg_p(i)	jit_arg_reg_p(i)
 #    define jit_f(index)	(_XMM4 + (index))
 #    define jit_f_num()		12
 #    define JIT_R0		_RAX
@@ -121,12 +117,10 @@ typedef enum {
     _XMM3,	_XMM2,	_XMM1,	_XMM0,
 #    define jit_sse_reg_p(reg)	((reg) >= _XMM4 && (reg) <= _XMM0)
 #  else
-#    define jit_arg_reg_p(i)	((i) >= 0 && (i) < 6)
 #    define jit_r(i)		(_RAX + (i))
 #    define jit_r_num()		4
 #    define jit_v(i)		(_RBX + (i))
 #    define jit_v_num()		4
-#    define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 8)
 #    define jit_f(index)	(_XMM8 + (index))
 #    define jit_f_num()		8
 #    define JIT_R0		_RAX

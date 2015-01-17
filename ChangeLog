@@ -1,5 +1,39 @@
 2015-01-17 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning/jit_aarch64.h,
+	include/lightning/jit_alpha.h,
+	include/lightning/jit_arm.h,
+	include/lightning/jit_hppa.h,
+	include/lightning/jit_mips.h,
+	 include/lightning/jit_ppc.h,
+	include/lightning/jit_s390.h,
+	include/lightning/jit_sparc.h,
+	include/lightning/jit_x86.h,
+	lib/jit_aarch64.c, lib/jit_alpha.c,
+	lib/jit_arm.c, lib/jit_hppa.c,
+	lib/jit_ia64.c, lib/jit_mips.c,
+	lib/jit_ppc.c, lib/jit_s390.c,
+	lib/jit_sparc.c, lib/jit_x86.c: Remove jit_arg_reg_p and
+	jit_arg_f_reg_p from a public header, and define it only
+	on port specific files where an integer offset is used
+	to qualify an argument identifier. Exported code expects
+	an opaque pointer (but of jit_node_t* type) to "qualify"
+	an argument identifier.
+	This patch, and the code review/simplification done during
+	it also corrected some bugs:
+	o Inconsistent jit_arg_d value of double argument after 3
+	  integer arguments in arm for jit_functions; tested, C
+	  functions were being properly called.
+	o Inconsistent use of getarg_{f,d} and putarg*_{f,d} on
+	  s390 (32-bit) that happened to not have a proper test
+	  case, as it would only happen for jit functions, and
+	  tested, called C functions had proper arguments.
+	o Corrected a "last minute" correction that did not go
+	  to the committed version, and would not compile on hppa,
+	  due to bad _jit_putargi_d prototype definition.
+
+2015-01-17 Paulo Andrade <pcpa@gnu.org>
+
 	* doc/body.texi: Correct wrong/outdated information for
 	hton*, pusharg* and ret*, and add missing documentation
 	for rsb*, qmul*, qdvi* and putarg*.

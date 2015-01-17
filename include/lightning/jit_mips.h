@@ -34,15 +34,12 @@
 typedef enum {
 #define jit_r(i)		(_V0 + (i))
 #if NEW_ABI
-#  define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
 #  define jit_r_num()		7
 #else
-#  define jit_arg_reg_p(i)	((i) >= 0 && (i) < 4)
 #  define jit_r_num()		11
 #endif
 #define jit_v(i)		(_S0 + (i))
 #define jit_v_num()		8
-#define jit_arg_f_reg_p(i)	((i) >= 0 && (i) < 4)
 #define jit_f(i)		(_F0 + (i))
 #if NEW_ABI
 #  define jit_f_num()		6

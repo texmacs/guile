@@ -42,6 +42,16 @@
 #else
 #  define WORD_ADJUST			0
 #endif
+#define jit_arg_reg_p(i)		((i) >= 0 && (i) < NUM_WORD_ARGS)
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#  define C_DISP			0
+#  define S_DISP			0
+#  define I_DISP			0
+#else
+#  define C_DISP			STACK_SLOT - sizeof(jit_int8_t)
+#  define S_DISP			STACK_SLOT - sizeof(jit_int16_t)
+#  define I_DISP			STACK_SLOT - sizeof(jit_int32_t)
+#endif
 
 /*
  * Prototypes
@@ -281,7 +291,7 @@ _jit_arg(jit_state_t *_jit)
     jit_int32_t		offset;
     assert(_jitc->function);
 #if NEW_ABI
-    if (_jitc->function->self.argi < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else {
 	offset = _jitc->function->self.size;
@@ -297,19 +307,13 @@ _jit_arg(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg, offset));
 }
 
-jit_bool_t
-_jit_arg_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (offset >= 0 && offset < NUM_WORD_ARGS);
-}
-
 jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
 #if NEW_ABI
-    if (_jitc->function->self.argi < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else {
 	offset = _jitc->function->self.size;
@@ -317,7 +321,7 @@ _jit_arg_f(jit_state_t *_jit)
     }
 #else
     offset = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
-    if (offset < 4) {
+    if (offset < NUM_WORD_ARGS) {
 	if (!_jitc->function->self.argi) {
 	    if (offset == 0)
 		offset = 4;
@@ -334,20 +338,13 @@ _jit_arg_f(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg_f, offset));
 }
 
-jit_bool_t
-_jit_arg_f_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    /* 0-3 integer register, 4-7 float register */
-    return (offset >= 0 && offset < 8);
-}
-
 jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
 #if NEW_ABI
-    if (_jitc->function->self.argi < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else {
 	offset = _jitc->function->self.size;
@@ -359,7 +356,7 @@ _jit_arg_d(jit_state_t *_jit)
 	_jitc->function->self.argi = 1;
     }
     offset = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
-    if (offset < 4) {
+    if (offset < NUM_WORD_ARGS) {
 	if (!_jitc->function->self.argi)
 	    offset += 4;
     }
@@ -370,90 +367,59 @@ _jit_arg_d(jit_state_t *_jit)
     return (jit_new_node_w(jit_code_arg_d, offset));
 }
 
-jit_bool_t
-_jit_arg_d_reg_p(jit_state_t *_jit, jit_int32_t offset)
-{
-    return (jit_arg_f_reg_p(offset));
-}
-
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, _A0 - v->u.w);
-    else {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_c(u, _FP, v->u.w);
-#else
-	jit_ldxi_c(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int8_t));
-#endif
-    }
+    else
+	jit_ldxi_c(u, _FP, v->u.w + C_DISP);
 }
 
 void
 _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, _A0 - v->u.w);
-    else {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_uc(u, _FP, v->u.w);
-#else
-	jit_ldxi_uc(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint8_t));
-#endif
-    }
+    else
+	jit_ldxi_uc(u, _FP, v->u.w + C_DISP);
 }
 
 void
 _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, _A0 - v->u.w);
-    else {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_s(u, _FP, v->u.w);
-#else
-	jit_ldxi_s(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int16_t));
-#endif
-    }
+    else
+	jit_ldxi_s(u, _FP, v->u.w + S_DISP);
 }
 
 void
 _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, _A0 - v->u.w);
-    else {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_us(u, _FP, v->u.w);
-#else
-	jit_ldxi_us(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint16_t));
-#endif
-    }
+    else
+	jit_ldxi_us(u, _FP, v->u.w + S_DISP);
 }
 
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(v->u.w)) {
 #if __WORDSIZE == 64
 	jit_extr_i(u, _A0 - v->u.w);
 #else
 	jit_movr(u, _A0 - v->u.w);
 #endif
     }
-    else {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_i(u, _FP, v->u.w);
-#else
-	jit_ldxi_i(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_int32_t));
-#endif
-    }
+    else
+	jit_ldxi_i(u, _FP, v->u.w + I_DISP);
 }
 
 #if __WORDSIZE == 64
@@ -461,22 +427,17 @@ void
 _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_extr_ui(u, _A0 - v->u.w);
-    else {
-#  if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi_ui(u, _FP, v->u.w);
-#  else
-	jit_ldxi_ui(u, JIT_FP, v->u.w + STACK_SLOT - sizeof(jit_uint32_t));
-#  endif
-    }
+    else
+	jit_ldxi_ui(u, _FP, v->u.w + I_DISP);
 }
 
 void
 _jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr(u, _A0 - v->u.w);
     else
 	jit_ldxi_l(u, _FP, v->u.w);
@@ -487,7 +448,7 @@ void
 _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr(_A0 - v->u.w, u);
     else
 	jit_stxi(v->u.w, _FP, u);
@@ -498,7 +459,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 {
     jit_int32_t		regno;
     assert(v->code == jit_code_arg);
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movi(_A0 - v->u.w, u);
     else {
 	regno = jit_get_reg(jit_class_gpr);
@@ -513,7 +474,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr_f(u, _F12 - v->u.w);
 #else
     if (v->u.w < 4)
@@ -530,7 +491,7 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr_f(_F12 - v->u.w, u);
 #else
     if (v->u.w < 4)
@@ -548,7 +509,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_f);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movi_f(_F12 - v->u.w, u);
 #else
     if (v->u.w < 4) {
@@ -573,7 +534,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr_d(u, _F12 - v->u.w);
 #else
     if (v->u.w < 4)
@@ -590,7 +551,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movr_d(_F12 - v->u.w, u);
 #else
     if (v->u.w < 4)
@@ -608,7 +569,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_d);
 #if NEW_ABI
-    if (v->u.w < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(v->u.w))
 	jit_movi_d(_F12 - v->u.w, u);
 #else
     if (v->u.w < 4) {
@@ -633,7 +594,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 {
 #if NEW_ABI
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr(_A0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -646,7 +607,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
     assert(_jitc->function);
     offset = _jitc->function->call.size >> STACK_SHIFT;
     _jitc->function->call.argi = 1;
-    if (offset < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(offset))
 	jit_movr(_A0 - offset, u);
     else
 	jit_stxi(_jitc->function->call.size, JIT_SP, u);
@@ -660,7 +621,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 #if NEW_ABI
     jit_int32_t		regno;
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(_A0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
     }
@@ -677,7 +638,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
     assert(_jitc->function);
     offset = _jitc->function->call.size >> STACK_SHIFT;
     ++_jitc->function->call.argi;
-    if (offset < NUM_WORD_ARGS)
+    if (jit_arg_reg_p(offset))
 	jit_movi(_A0 - offset, u);
     else {
 	regno = jit_get_reg(jit_class_gpr);
@@ -694,7 +655,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
 #if NEW_ABI
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	if (!(_jitc->function->call.call & jit_call_varargs))
 	    jit_movr_f(_F12 - _jitc->function->call.argi, u);
 	else
@@ -729,7 +690,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     jit_int32_t		regno;
 #if NEW_ABI
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	if (!(_jitc->function->call.call & jit_call_varargs))
 	    jit_movi_f(_F12 - _jitc->function->call.argi, u);
 	else
@@ -770,7 +731,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 {
 #if NEW_ABI
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	if (!(_jitc->function->call.call & jit_call_varargs))
 	    jit_movr_d(_F12 - _jitc->function->call.argi, u);
 	else
@@ -813,7 +774,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     jit_int32_t		regno;
 #if NEW_ABI
     assert(_jitc->function);
-    if (_jitc->function->call.argi < NUM_WORD_ARGS) {
+    if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	if (!(_jitc->function->call.call & jit_call_varargs))
 	    jit_movi_d(_F12 - _jitc->function->call.argi, u);
 	else
