@@ -366,6 +366,23 @@ _jit_epilog(jit_state_t *_jit)
     _jitc->function = NULL;
 }
 
+jit_bool_t
+_jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
+{
+    if (u->code != jit_code_arg) {
+	if (u->code == jit_code_arg_f) {
+	    if (jit_cpu.abi)
+		return (jit_arg_f_reg_p(u->u.w));
+	}
+	else {
+	    assert(u->code == jit_code_arg_d);
+	    if (jit_cpu.abi)
+		return (jit_arg_d_reg_p(u->u.w));
+	}
+    }
+    return (jit_arg_reg_p(u->u.w));
+}
+
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {

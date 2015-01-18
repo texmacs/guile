@@ -1,5 +1,22 @@
 2015-01-17 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning.h, lib/jit_aarch64.c,
+	lib/jit_alpha.c, lib/jit_arm-vfp.c, lib/jit_arm.c,
+	lib/jit_hppa.c,	lib/jit_ia64.c, lib/jit_mips.c,
+	lib/jit_ppc.c, lib/jit_s390.c, lib/jit_sparc.c,
+	lib/jit_x86.c: Add the new jit_arg_register_p predicate.
+	The predicate is expected to be used to know if an
+	argument is in a register, what would need special
+	handling if code that can overwrite non callee save
+	registers is executed.
+
+	* check/carg.c: New test case to check consistency and
+	expected usage of jit_arg_register_p.
+
+	* check/Makefile.am: Update for new test case.
+
+2015-01-17 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_aarch64.h,
 	include/lightning/jit_alpha.h,
 	include/lightning/jit_arm.h,

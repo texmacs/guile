@@ -285,6 +285,19 @@ _jit_epilog(jit_state_t *_jit)
     _jitc->function = NULL;
 }
 
+jit_bool_t
+_jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
+{
+    if (u->code == jit_code_arg)
+	return (jit_arg_reg_p(u->u.w));
+    assert(u->code == jit_code_arg_f || u->code == jit_code_arg_d);
+#if NEW_ABI
+    return (jit_arg_reg_p(u->u.w));
+#else
+    return (u->u.w < 8);
+#endif
+}
+
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
