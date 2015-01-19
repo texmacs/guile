@@ -1,3 +1,19 @@
+2015-01-19 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Reorder documentation, making jit_frame
+	and jit_tramp the lightning response to the need of
+	trampolines, continuations and tail call optimizations.
+	A pseudo code example of a factorial function was added.
+	Also added a section for description of the available
+	predicates.
+
+	* doc/fact.c: New file, implementing a simple example of
+	a translation of a trivial, recursive, tail call optimization
+	into lightning calls. This is the conversion to functional C
+	code of the example in doc/body.texi.
+
+	* doc/Makefile.am: Update for the next test case.
+
 2015-01-17 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, lib/jit_aarch64.c,

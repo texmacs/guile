@@ -21,7 +21,7 @@ MOSTLYCLEANFILES = lightning.tmp
 
 lightning_TEXINFOS = body.texi version.texi
 
-noinst_PROGRAMS = incr printf rpn rfib ifib
+noinst_PROGRAMS = incr printf rpn rfib ifib fact
 
 $(top_builddir)/lib/liblightning.la:
 	cd $(top_builddir)/lib; $(MAKE) $(AM_MAKEFLAGS) liblightning.la
@@ -40,3 +40,6 @@ rfib_SOURCES = rfib.c
 
 ifib_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
 ifib_SOURCES = ifib.c
+
+fact_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
+fact_SOURCES = fact.c
