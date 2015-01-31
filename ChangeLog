@@ -1,3 +1,8 @@
+2015-01-31 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_arm-cpu.c, lib/jit_arm.c: Only limit to 24 bit
+	displacement non conditional jump in the same jit_state_t.
+
 2015-01-19 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Reorder documentation, making jit_frame

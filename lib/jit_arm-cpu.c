@@ -966,8 +966,8 @@ static void _nei(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 static void _jmpr(jit_state_t*,jit_int32_t);
 #  define jmpi(i0)			_jmpi(_jit,i0)
 static void _jmpi(jit_state_t*,jit_word_t);
-#  define jmpi_p(i0)			_jmpi_p(_jit,i0)
-static jit_word_t _jmpi_p(jit_state_t*,jit_word_t);
+#  define jmpi_p(i0, i1)		_jmpi_p(_jit,i0, i1)
+static jit_word_t _jmpi_p(jit_state_t*,jit_word_t,jit_bool_t);
 #  define bccr(cc,i0,r0,r1)		_bccr(_jit,cc,i0,r0,r1)
 static jit_word_t _bccr(jit_state_t*,int,jit_word_t,jit_int32_t,jit_int32_t);
 #  define bcci(cc,i0,r0,i1)		_bcci(_jit,cc,i0,r0,i1)
@@ -2570,52 +2570,63 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 {
     jit_word_t		w;
     jit_word_t		d;
+    jit_int32_t		reg;
     w = _jit->pc.w;
     /* if thumb and in thumb mode */
     if (jit_thumb_p() && _jitc->thumb) {
 	d = ((i0 - w) >> 1) - 2;
 	if (d >= -1024 && d <= 1023)
 	    T1_B(d & 0x7ff);
-	else {
-	    assert(_s24P(d));
+	else if (_s24P(d))
 	    T2_B(encode_thumb_jump(d));
+	else {
+	    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
+	    movi(rn(reg), i0);
+	    jmpr(rn(reg));
+	    jit_unget_reg(reg);
 	}
     }
     else {
 	d = ((i0 - w) >> 2) - 2;
-	assert(_s24P(d));
-	B(d & 0x00ffffff);
+	if (_s24P(d))
+	    B(d & 0x00ffffff);
+	else {
+	    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
+	    movi(rn(reg), i0);
+	    jmpr(rn(reg));
+	    jit_unget_reg(reg);
+	}
     }
 }
 
 static jit_word_t
-_jmpi_p(jit_state_t *_jit, jit_word_t i0)
+_jmpi_p(jit_state_t *_jit, jit_word_t i0, jit_bool_t i1)
 {
-#if 0
-    jit_word_t		w;
-    jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
-    w = movi_p(rn(reg), i0);
-    jmpr(rn(reg));
-    jit_unget_reg(reg);
-    return (w);
-#else
     jit_word_t		w;
     jit_word_t		d;
-    w = _jit->pc.w;
-    /* if thumb and in thumb mode */
-    if (jit_thumb_p() && _jitc->thumb) {
-	d = ((i0 - w) >> 1) - 2;
-	assert(_s24P(d));
-	T2_B(encode_thumb_jump(d));
+    jit_int32_t		reg;
+    if (i1) {
+	/* Assume jump is not longer than 23 bits if inside jit */
+	w = _jit->pc.w;
+	/* if thumb and in thumb mode */
+	if (jit_thumb_p() && _jitc->thumb) {
+	    d = ((i0 - w) >> 1) - 2;
+	    assert(_s24P(d));
+	    T2_B(encode_thumb_jump(d));
+	}
+	else {
+	    d = ((i0 - w) >> 2) - 2;
+	    assert(_s24P(d));
+	    B(d & 0x00ffffff);
+	}
     }
     else {
-	d = ((i0 - w) >> 2) - 2;
-	assert(_s24P(d));
-	B(d & 0x00ffffff);
+	reg = jit_get_reg(jit_class_gpr|jit_class_nospill);
+	w = movi_p(rn(reg), i0);
+	jmpr(rn(reg));
+	jit_unget_reg(reg);
     }
     return (w);
-#endif
 }
 
 static jit_word_t

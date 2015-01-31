@@ -1555,7 +1555,8 @@ _emit_code(jit_state_t *_jit)
 		    if (temp->flag & jit_flag_patch)
 			jmpi(temp->u.w);
 		    else {
-			word = jmpi_p(_jit->pc.w);
+			word = jmpi_p(_jit->pc.w,
+				      !!(node->flag & jit_flag_node));
 			patch(word, node);
 		    }
 		}
@@ -2002,7 +2003,8 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
     }
     else {
 	flag = node->u.n->flag;
-	if (node->code == jit_code_calli)
+	if (node->code == jit_code_calli ||
+	    (node->code == jit_code_jmpi && !(node->flag & jit_flag_node)))
 	    kind = arm_patch_word;
 	else
 	    kind = arm_patch_jump;
