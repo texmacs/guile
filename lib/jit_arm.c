@@ -1555,8 +1555,7 @@ _emit_code(jit_state_t *_jit)
 		    if (temp->flag & jit_flag_patch)
 			jmpi(temp->u.w);
 		    else {
-			word = jmpi_p(_jit->pc.w,
-				      !!(node->flag & jit_flag_node));
+			word = jmpi_p(_jit->pc.w, 1);
 			patch(word, node);
 		    }
 		}
