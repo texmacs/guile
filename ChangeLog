@@ -1,3 +1,16 @@
+2015-02-02 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac, include/lightning/jit_private.h,
+	lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
+	lib/jit_disasm.c, lib/jit_hppa.c, lib/jit_ia64.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_print.c,
+	lib/jit_s390.c, lib/jit_sparc.c, lib/jit_x86.c: Add a new
+	--enable-devel-disassembler option, that should be used
+	during development, or lightning debug. This option
+	intermixes previous jit_print and jit_disassemble
+	output, making it easier to visualize what lightning
+	call was used, and what code was generated.
+
 2015-01-31 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm-cpu.c, lib/jit_arm.c: Only limit to 24 bit

@@ -303,6 +303,9 @@ struct jit_node {
     jit_data_t		 v;
     jit_data_t		 w;
     jit_node_t		*link;
+#if DEVEL_DISASSEMBLER
+    jit_uword_t		 offset;
+#endif
 };
 
 struct jit_block {
@@ -617,6 +620,9 @@ extern void jit_finish_note(void);
 extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
+
+#define jit_print_node(u)	_jit_print_node(_jit,u)
+extern void _jit_print_node(jit_state_t*,jit_node_t*);
 
 extern jit_pointer_t jit_memcpy(jit_pointer_t,const void*,jit_word_t);
 extern jit_pointer_t jit_memmove(jit_pointer_t,const void*,jit_word_t);

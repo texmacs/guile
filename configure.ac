@@ -95,6 +95,17 @@ if test "x$DISASSEMBLER" != "xno"; then
     LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
 fi
 
+AC_ARG_ENABLE(devel-disassembler,
+	      AS_HELP_STRING([--enable-devel-disassembler],
+			     [Enable extra disassembly options]),
+	      [DEVEL_DISASSEMBLER=$enableval], [DEVEL_DISASSEMBLER=no])
+if test "x$DEVEL_DISASSEMBLER" != "xno"; then
+    if test "x$DISASSEMBLER" = "xno"; then
+	AC_MSG_ERROR(devel-disassembler needs disassembler enabled)
+    fi
+    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDEVEL_DISASSEMBLER=1"
+fi
+
 AC_ARG_ENABLE(assertions,
 	      AS_HELP_STRING([--enable-assertions],
 			     [Enable runtime code generation assertions]),

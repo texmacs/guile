@@ -914,6 +914,10 @@ _emit_code(jit_state_t *_jit)
 #if GET_JIT_SIZE
 	sync();
 #endif
+#if DEVEL_DISASSEMBLER
+	sync();
+	node->offset = _jit->pc.w;
+#endif
 	jit_regarg_set(node, value);
 	switch (node->code) {
 	    case jit_code_align:

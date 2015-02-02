@@ -327,6 +327,9 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     bfd_vma		 pc = (jit_uword_t)code;
     bfd_vma		 end = (jit_uword_t)code + length;
     char		 buffer[address_buffer_length];
+#if DEVEL_DISASSEMBLER
+    jit_node_t		*node;
+#endif
 
 #if __arm__
     data_info = _jitc && _jitc->data_info.ptr;
@@ -338,7 +341,19 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     old_file = old_name = NULL;
     old_line = 0;
     disasm_jit = _jit;
+#if DEVEL_DISASSEMBLER
+    node = _jitc->head;
+#endif
     while (pc < end) {
+#if DEVEL_DISASSEMBLER
+	while (node && node->offset < (jit_uword_t)pc)
+	    node = node->next;
+	while (node && node->offset == (jit_uword_t)pc) {
+	    jit_print_node(node);
+	    fputc('\n', stdout); 
+	    node = node->next;
+	}
+#endif
 #if __arm__
     again:
 	if (data_info) {

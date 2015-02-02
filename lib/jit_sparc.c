@@ -823,6 +823,9 @@ _emit_code(jit_state_t *_jit)
 	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
 
+#if DEVEL_DISASSEMBLER
+	node->offset = _jit->pc.w;
+#endif
 	value = jit_classify(node->code);
 	jit_regarg_set(node, value);
 	switch (node->code) {
