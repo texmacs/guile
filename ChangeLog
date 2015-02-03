@@ -1,5 +1,18 @@
 2015-02-03 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/lightning.c: Correct the reason the bug in
+	simplify_stxi was not triggered before, it was due to
+	incorrectly resetting the value->code field, what was
+	causing it to never properly optimize:
+		stxi Im0 Rb0 Rt0
+		ldxi Rt1 Rb1 Im1
+	when Rb0 == Rb1, Rt0 == Rt1 and Im0 == Im1
+	There was another possible issue, that has been also
+	addressed in this commit, that would be the case of
+	Rbn == Rtn, where no redundancy removal is possible.
+
+2015-02-03 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/lightning.c: Correct wrong check in simplify_stxi.
 	The test was incorrectly comparing the target register
 	and the displacement offset. This was a time bomb bug,

@@ -2759,7 +2759,8 @@ _simplify_ldxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     regno = jit_regno(node->u.w);
     right = jit_regno(node->v.w);
     value = _jitc->values + regno;
-    if (value->kind == jit_kind_code && value->code == node->code &&
+    if (regno != right &&
+	value->kind == jit_kind_code && value->code == node->code &&
 	value->base.q.l == right && value->base.q.h == _jitc->gen[right] &&
 	node->w.w == value->disp.w) {
 	del_node(prev, node);
@@ -2788,7 +2789,8 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     value = _jitc->values + regno;
 
     /* check for redundant store after load */
-    if (value->kind == jit_kind_code && value->code == node->code &&
+    if (regno != right &&
+	value->kind == jit_kind_code && value->code == node->code &&
 	value->base.q.l == right && value->base.q.h == _jitc->gen[right] &&
 	node->u.w == value->disp.w) {
 	del_node(prev, node);
@@ -2818,7 +2820,6 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 	    default:		 	abort();
 	}
 	value->kind = jit_kind_code;
-	value->code = node->code;
 	value->base.q.l = right;
 	value->base.q.h = _jitc->gen[right];
 	value->disp.w = node->u.w;
