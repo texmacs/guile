@@ -2790,7 +2790,7 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
     /* check for redundant store after load */
     if (value->kind == jit_kind_code && value->code == node->code &&
 	value->base.q.l == right && value->base.q.h == _jitc->gen[right] &&
-	node->w.w == value->disp.w) {
+	node->u.w == value->disp.w) {
 	del_node(prev, node);
 	return (1);
     }

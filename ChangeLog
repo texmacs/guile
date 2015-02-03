@@ -1,3 +1,18 @@
+2015-02-03 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Correct wrong check in simplify_stxi.
+	The test was incorrectly comparing the target register
+	and the displacement offset. This was a time bomb bug,
+	that would trigger in code like:
+		stxi Im0 Rb0 Rt0
+		stxi Im1 Rb1 Rt1
+	if Rb0 == Rb1 && Rt0 == Rt1 && Im0 == Rt1, that is,
+	the wrong check was Im0 == Rt1, instead of the supposed
+	Im0 == Imm1 (that was what the code mean't to do). It
+	was removing the second stxi assuming it was redundantly
+	generated; as that is not uncommon pattern on
+	translators generating jit.
+
 2015-02-02 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac, include/lightning/jit_private.h,
