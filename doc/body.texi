@@ -703,7 +703,7 @@ save registers in the prolog and reload in the epilog.
 main:                        @rem{! jit entry point}
      prolog                  @rem{! function prolog}
      frame  256              @rem{! save all callee save registers and}
-                             @rem{! reserve at least 256 byte in stack}
+                             @rem{! reserve at least 256 bytes in stack}
 main_loop:
      ...
      jmpi   handler          @rem{! jumps to external code}
@@ -724,7 +724,7 @@ handler:                     @rem{! handler entry point}
      prolog                  @rem{! function prolog}
      tramp  256              @rem{! assumes all callee save registers}
                              @rem{! are saved and there is at least}
-                             @rem{! 256 byte in stack}
+                             @rem{! 256 bytes in stack}
      ...
      jmpi   main_loop        @rem{! return to the main loop}
 @end example
