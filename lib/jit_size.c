@@ -110,7 +110,7 @@ _jit_get_size(jit_state_t *_jit)
 jit_word_t
 jit_get_max_instr(void)
 {
-    return (JIT_INSTR_MAX);
+    return (JIT_INSTR_MAX >= 144 ? JIT_INSTR_MAX : 144);
 }
 
 void

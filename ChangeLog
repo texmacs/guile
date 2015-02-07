@@ -1,3 +1,12 @@
+2015-02-07 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_size.c: Preventively use at least 144 bytes
+	if JIT_INSTR_MAX is less than it. The logic is not
+	guaranteed to be 100% precise, it is mostly heuristics
+	to allocate a buffer with as close as possible size,
+	but a wrong value may cause code generation to write
+	past the end of the buffer.
+
 2015-02-03 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Correct the reason the bug in
