@@ -23,9 +23,13 @@
   #:use-module (srfi srfi-4)
   #:use-module (srfi srfi-4 gnu))
 
-;;;
-;;; array?
-;;;
+(define (array-row a i)
+  (make-shared-array a (lambda (j) (list i j))
+                     (cadr (array-dimensions a))))
+
+(define (array-col a j)
+  (make-shared-array a (lambda (i) (list i j))
+                     (car (array-dimensions a))))
 
 (define exception:wrong-num-indices
   (cons 'misc-error "^wrong number of indices.*"))
@@ -33,6 +37,15 @@
 (define exception:length-non-negative
   (cons 'read-error ".*array length must be non-negative.*"))
 
+(define exception:wrong-type-arg
+  (cons #t "Wrong type"))
+
+(define exception:mapping-out-of-range
+  (cons 'misc-error "^mapping out of range"))  ;; per scm_make_shared_array
+
+;;;
+;;; array?
+;;;
 
 (with-test-prefix "array?"
 
@@ -216,9 +229,6 @@
 ;;; make-shared-array
 ;;;
 
-(define exception:mapping-out-of-range
-  (cons 'misc-error "^mapping out of range"))  ;; per scm_make_shared_array
-
 (with-test-prefix/c&e "make-shared-array"
 
   ;; this failed in guile 1.8.0
@@ -398,13 +408,57 @@
       (eq? (shared-array-root a) (shared-array-root b) (array-contents a)))))
 
 ;;;
+;;; shared-array-offset
+;;;
+
+(with-test-prefix/c&e "shared-array-offset"
+
+  (pass-if "plain vector"
+    (zero? (shared-array-offset (make-vector 4 0))))
+
+  (pass-if "plain array rank 2"
+    (zero? (shared-array-offset (make-array 0 4 4))))
+
+  (pass-if "row of rank-2 array, I"
+    (= 0 (shared-array-offset (array-row (make-array 0 5 3) 0))))
+
+  (pass-if "row of rank-2 array, II"
+    (= 4 (shared-array-offset (array-row (make-array 0 6 4) 1))))
+
+  (pass-if "col of rank-2 array, I"
+    (= 0 (shared-array-offset (array-col (make-array 0 5 3) 0))))
+
+  (pass-if "col of rank-2 array, II"
+    (= 1 (shared-array-offset (array-col (make-array 0 6 4) 1)))))
+
+
+;;;
+;;; shared-array-increments
+;;;
+
+(with-test-prefix/c&e "shared-array-increments"
+
+  (pass-if "plain vector"
+    (equal? '(1) (shared-array-increments (make-vector 4 0))))
+
+  (pass-if "plain array rank 2"
+    (equal? '(4 1) (shared-array-increments (make-array 0 3 4))))
+
+  (pass-if "plain array rank 3"
+    (equal? '(20 5 1) (shared-array-increments (make-array 0 3 4 5))))
+
+  (pass-if "row of rank-2 array"
+    (equal? '(1) (shared-array-increments (array-row (make-array 0 5 3) 0))))
+
+  (pass-if "col of rank-2 array"
+    (equal? '(3) (shared-array-increments (array-col (make-array 0 5 3) 0)))))
+
+
+;;;
 ;;; transpose-array
 ;;;
 
 ; see strings.test.
-(define exception:wrong-type-arg
-  (cons #t "Wrong type"))
-
 (with-test-prefix/c&e "transpose-array"
 
   (pass-if-exception "non array argument" exception:wrong-type-arg
@@ -814,10 +868,6 @@
 ;;;
 ;;; slices as generalized vectors
 ;;;
-
-(define (array-row a i)
-  (make-shared-array a (lambda (j) (list i j))
-                     (cadr (array-dimensions a))))
 
 (with-test-prefix/c&e "generalized vector slices"
   (pass-if (equal? (array-row #2u32((0 1) (2 3)) 1)

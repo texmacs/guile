@@ -52,6 +52,9 @@ SCM_API SCM scm_array_contents (SCM ra, SCM strict);
 SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
 SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);
 
+SCM_API size_t scm_c_array_rank (SCM ra);
+SCM_API SCM scm_array_rank (SCM ra);
+
 /* internal. */
 
 #define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 0)
