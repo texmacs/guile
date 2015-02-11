@@ -43,12 +43,18 @@ SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
                                              const void *bytes,
                                              size_t byte_len);
+
 SCM_API SCM scm_shared_array_root (SCM ra);
 SCM_API SCM scm_shared_array_offset (SCM ra);
 SCM_API SCM scm_shared_array_increments (SCM ra);
+
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
+SCM_API SCM scm_array_from_s (SCM ra, SCM indices);
+SCM_API SCM scm_array_from (SCM ra, SCM indices);
+SCM_API SCM scm_array_amend_x (SCM ra, SCM b, SCM indices);
+
 SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
 SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);
 

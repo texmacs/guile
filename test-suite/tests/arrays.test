@@ -296,6 +296,115 @@
       (and (eqv? 5 (array-ref s2 1))
 	   (eqv? 8 (array-ref s2 2))))))
 
+
+;;;
+;;; array-from*
+;;;
+
+(with-test-prefix/c&e "array-from*"
+
+  (pass-if "vector I"
+    (let ((v (vector 1 2 3)))
+      (array-fill! (array-from* v 1) 'a)
+      (array-equal? v #(1 a 3))))
+
+  (pass-if "vector II"
+    (let ((v (vector 1 2 3)))
+      (array-copy! #(a b c) (array-from* v))
+      (array-equal? v #(a b c))))
+
+  (pass-if "array I"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (array-fill! (array-from* a 1 1) 'a)
+      (array-equal? a #2((1 2 3) (4 a 6)))))
+
+  (pass-if "array II"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (array-copy! #(a b c) (array-from* a 1))
+      (array-equal? a #2((1 2 3) (a b c)))))
+
+  (pass-if "array III"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (array-copy! #2((a b c) (x y z)) (array-from* a))
+      (array-equal? a #2((a b c) (x y z)))))
+
+  (pass-if "rank 0 array"
+    (let ((a (make-array 77)))
+      (array-fill! (array-from* a) 'a)
+      (array-equal? a #0(a)))))
+
+
+;;;
+;;; array-from
+;;;
+
+(with-test-prefix/c&e "array-from"
+
+  (pass-if "vector I"
+    (let ((v (vector 1 2 3)))
+      (equal? 2 (array-from v 1))))
+
+  (pass-if "vector II"
+    (let ((v (vector 1 2 3)))
+      (array-copy! #(a b c) (array-from v))
+      (array-equal? v #(a b c))))
+
+  (pass-if "array I"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (equal? 5 (array-from a 1 1))))
+
+  (pass-if "array II"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (array-copy! #(a b c) (array-from a 1))
+      (array-equal? a #2((1 2 3) (a b c)))))
+
+  (pass-if "array III"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (array-copy! #2((a b c) (x y z)) (array-from a))
+      (array-equal? a #2((a b c) (x y z)))))
+
+  (pass-if "rank 0 array"
+    (let ((a (make-array 77)))
+      (equal? (array-from a) 77))))
+
+
+;;;
+;;; array-amend!
+;;;
+
+(with-test-prefix/c&e "array-amend!"
+
+  (pass-if "vector I"
+    (let ((v (vector 1 2 3)))
+      (and (eq? v (array-amend! v 'x 1))
+           (array-equal? v #(1 x 3)))))
+
+  (pass-if "vector II"
+    (let ((v (vector 1 2 3)))
+      (and (eq? v (array-amend! (array-from v) #(a b c)))
+           (array-equal? v #(a b c)))))
+
+  (pass-if "array I"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (and (eq? a (array-amend! a 'x 1 1))
+           (array-equal? a #2((1 2 3) (4 x 6))))))
+
+  (pass-if "array II"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (and (eq? a (array-amend! a #(a b c) 1))
+           (array-equal? a #2((1 2 3) (a b c))))))
+
+  (pass-if "array III"
+    (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
+      (and (eq? a (array-amend! a #2((a b c) (x y z))))
+           (array-equal? a #2((a b c) (x y z))))))
+
+  (pass-if "rank 0 array"
+    (let ((a (make-array 77)))
+      (and (eq? a (array-amend! a 99))
+           (array-equal? a #0(99))))))
+
+
 ;;;
 ;;; array-contents
 ;;;
@@ -436,7 +545,7 @@
 ;;; shared-array-increments
 ;;;
 
-(with-test-prefix/c&e "shared-array-increments"
+(with-test-prefix "shared-array-increments"
 
   (pass-if "plain vector"
     (equal? '(1) (shared-array-increments (make-vector 4 0))))
@@ -595,7 +704,7 @@
 ;;; array-in-bounds?
 ;;;
 
-(with-test-prefix/c&e "array-in-bounds?"
+(with-test-prefix "array-in-bounds?"
 
   (pass-if (let ((a (make-array #f '(425 425))))
 	     (eq? #f (array-in-bounds? a 0)))))
@@ -606,7 +715,7 @@
 
 (with-test-prefix "array-type"
 
-  (with-test-prefix/c&e "on make-foo-vector"
+  (with-test-prefix "on make-foo-vector"
 
     (pass-if "bool"
       (eq? 'b (array-type (make-bitvector 1))))
