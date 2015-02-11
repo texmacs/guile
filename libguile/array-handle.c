@@ -185,15 +185,13 @@ scm_array_get_handle (SCM array, scm_t_array_handle *h)
       break;
     case scm_tc7_bytevector:
       {
-        size_t byte_length, length, element_byte_size;
+        size_t length;
         scm_t_array_element_type element_type;
         scm_t_vector_ref vref;
         scm_t_vector_set vset;
 
-        byte_length = scm_c_bytevector_length (array);
         element_type = SCM_BYTEVECTOR_ELEMENT_TYPE (array);
-        element_byte_size = scm_i_array_element_type_sizes[element_type] / 8;
-        length = byte_length / element_byte_size;
+        length = SCM_BYTEVECTOR_TYPED_LENGTH (array);
 
         switch (element_type)
           {

@@ -192,11 +192,6 @@
 #define SCM_BYTEVECTOR_SET_PARENT(_bv, _parent)	\
   SCM_SET_CELL_OBJECT_3 ((_bv), (_parent))
 
-#define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
-  (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
-#define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
-  (SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var))
-
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
