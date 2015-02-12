@@ -204,7 +204,13 @@
 (with-test-prefix/c&e "array-equal?"
 
   (pass-if "#s16(...)"
-    (array-equal? #s16(1 2 3) #s16(1 2 3))))
+    (array-equal? #s16(1 2 3) #s16(1 2 3)))
+
+  (pass-if "#0f64(...)"
+    (array-equal? #0f64(99) (make-typed-array 'f64 99)))
+
+  (pass-if "#0(...)"
+    (array-equal? #0(99) (make-array 99))))
 
 ;;;
 ;;; make-shared-array

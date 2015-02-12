@@ -1001,7 +1001,9 @@ immediate, and @code{#f} otherwise."
 (define (simple-uniform-vector? obj)
   (and (array? obj)
        (symbol? (array-type obj))
-       (equal? (array-shape obj) (list (list 0 (1- (array-length obj)))))))
+       (match (array-shape obj)
+         (((0 n)) #t)
+         (else #f))))
 
 (define (statically-allocatable? x)
   "Return @code{#t} if a non-immediate constant can be allocated
