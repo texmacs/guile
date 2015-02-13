@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1998, 2000, 2001, 2004, 2005, 2006, 2008, 2009,
- *   2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+ *   2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -47,18 +47,6 @@
 static const char vi_gc_hint[] = "array-indices";
 
 static SCM
-AREF (SCM v, size_t pos)
-{
-  return scm_c_array_ref_1 (v, pos);
-}
-
-static void
-ASET (SCM v, size_t pos, SCM val)
-{
-  scm_c_array_set_1_x (v, val, pos);
-}
-
-static SCM
 make1array (SCM v, ssize_t inc)
 {
   SCM a = scm_i_make_array (1);
@@ -98,6 +86,10 @@ cindk (SCM ra, ssize_t *ve, int kend)
 #define LBND(ra, k) SCM_I_ARRAY_DIMS (ra)[k].lbnd
 #define UBND(ra, k) SCM_I_ARRAY_DIMS (ra)[k].ubnd
 
+
+/* scm_ramapc() always calls cproc with rank-1 arrays created by
+   make1array. cproc (rafe, ramap, rafill, racp) can assume that the
+   dims[0].lbnd of these arrays is always 0. */
 int
 scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
 {
@@ -166,7 +158,7 @@ scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
             scm_misc_error (what, "array shape mismatch: ~S", scm_list_1 (ra0));
           va1 = make1array (ra1, 1);
 
-          if (LBND (ra0, 0) < LBND (va1, 0) || UBND (ra0, 0) > UBND (va1, 0))
+          if (LBND (ra0, 0) < 0 /* LBND (va1, 0) */ || UBND (ra0, 0) > UBND (va1, 0))
             scm_misc_error (what, "array shape mismatch: ~S", scm_list_1 (ra0));
         }
       *plva = scm_cons (va1, SCM_EOL);
@@ -223,14 +215,12 @@ scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
 static int
 rafill (SCM dst, SCM fill)
 {
+  size_t n = SCM_I_ARRAY_DIMS (dst)->ubnd + 1;
+  size_t i = SCM_I_ARRAY_BASE (dst);
+  ssize_t inc = SCM_I_ARRAY_DIMS (dst)->inc;
   scm_t_array_handle h;
-  size_t n, i;
-  ssize_t inc;
-  scm_array_get_handle (SCM_I_ARRAY_V (dst), &h);
-  i = SCM_I_ARRAY_BASE (dst);
-  inc = SCM_I_ARRAY_DIMS (dst)->inc;
-  n = (SCM_I_ARRAY_DIMS (dst)->ubnd - SCM_I_ARRAY_DIMS (dst)->lbnd + 1);
   dst = SCM_I_ARRAY_V (dst);
+  scm_array_get_handle (dst, &h);
 
   for (; n-- > 0; i += inc)
     h.vset (h.vector, i, fill);
@@ -254,19 +244,17 @@ SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 static int
 racp (SCM src, SCM dst)
 {
-  scm_t_array_handle h_s, h_d;
-  size_t n, i_s, i_d;
+  size_t i_s, i_d, n;
   ssize_t inc_s, inc_d;
-
+  scm_t_array_handle h_s, h_d;
   dst = SCM_CAR (dst);
   i_s = SCM_I_ARRAY_BASE (src);
   i_d = SCM_I_ARRAY_BASE (dst);
+  n = (SCM_I_ARRAY_DIMS (src)->ubnd + 1);
   inc_s = SCM_I_ARRAY_DIMS (src)->inc;
   inc_d = SCM_I_ARRAY_DIMS (dst)->inc;
-  n = (SCM_I_ARRAY_DIMS (src)->ubnd - SCM_I_ARRAY_DIMS (src)->lbnd + 1);
   src = SCM_I_ARRAY_V (src);
   dst = SCM_I_ARRAY_V (dst);
-
   scm_array_get_handle (src, &h_s);
   scm_array_get_handle (dst, &h_d);
 
@@ -309,44 +297,56 @@ SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 static int
 ramap (SCM ra0, SCM proc, SCM ras)
 {
+  size_t i0 = SCM_I_ARRAY_BASE (ra0);
+  ssize_t inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
+  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd + 1;
   scm_t_array_handle h0;
-  size_t n, i0;
-  ssize_t i, inc0;
-  i0 = SCM_I_ARRAY_BASE (ra0);
-  inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
-  i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
-  n = SCM_I_ARRAY_DIMS (ra0)->ubnd - i + 1;
   ra0 = SCM_I_ARRAY_V (ra0);
   scm_array_get_handle (ra0, &h0);
+
   if (scm_is_null (ras))
     for (; n--; i0 += inc0)
       h0.vset (h0.vector, i0, scm_call_0 (proc));
   else
     {
       SCM ra1 = SCM_CAR (ras);
+      size_t i1 = SCM_I_ARRAY_BASE (ra1);
+      ssize_t inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       scm_t_array_handle h1;
-      size_t i1;
-      ssize_t inc1;
-      i1 = SCM_I_ARRAY_BASE (ra1);
-      inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-      ras = SCM_CDR (ras);
       ra1 = SCM_I_ARRAY_V (ra1);
       scm_array_get_handle (ra1, &h1);
+      ras = SCM_CDR (ras);
       if (scm_is_null (ras))
         for (; n--; i0 += inc0, i1 += inc1)
           h0.vset (h0.vector, i0, scm_call_1 (proc, h1.vref (h1.vector, i1)));
       else
         {
-          ras = scm_vector (ras);
-          for (; n--; i0 += inc0, i1 += inc1, ++i)
+          scm_t_array_handle *hs;
+          size_t restn = scm_ilength (ras);
+
+          SCM args = SCM_EOL;
+          SCM *p = &args;
+          SCM **sa = scm_gc_malloc (sizeof(SCM *) * restn, vi_gc_hint);
+          for (size_t k = 0; k < restn; ++k)
             {
-              SCM args = SCM_EOL;
-              unsigned long k;
-              for (k = scm_c_vector_length (ras); k--;)
-                args = scm_cons (AREF (scm_c_vector_ref (ras, k), i), args);
-              h0.vset (h0.vector, i0,
-                       scm_apply_1 (proc, h1.vref (h1.vector, i1), args));
+              *p = scm_cons (SCM_UNSPECIFIED, SCM_EOL);
+              sa[k] = SCM_CARLOC (*p);
+              p = SCM_CDRLOC (*p);
             }
+
+          hs = scm_gc_malloc (sizeof(scm_t_array_handle) * restn, vi_gc_hint);
+          for (size_t k = 0; k < restn; ++k, ras = scm_cdr (ras))
+            scm_array_get_handle (scm_car (ras), hs+k);
+
+          for (ssize_t i = 0; n--; i0 += inc0, i1 += inc1, ++i)
+            {
+              for (size_t k = 0; k < restn; ++k)
+                *(sa[k]) = scm_array_handle_ref (hs+k, i*hs[k].dims[0].inc);
+              h0.vset (h0.vector, i0, scm_apply_1 (proc, h1.vref (h1.vector, i1), args));
+            }
+
+          for (size_t k = 0; k < restn; ++k)
+            scm_array_handle_release (hs+k);
         }
       scm_array_handle_release (&h1);
     }
@@ -383,30 +383,44 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 static int
 rafe (SCM ra0, SCM proc, SCM ras)
 {
-  ssize_t i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
-  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd - i + 1;
-
+  size_t i0 = SCM_I_ARRAY_BASE (ra0);
+  ssize_t inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
+  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd + 1;
   scm_t_array_handle h0;
-  size_t i0;
-  ssize_t inc0;
-  i0 = SCM_I_ARRAY_BASE (ra0);
-  inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_I_ARRAY_V (ra0);
   scm_array_get_handle (ra0, &h0);
+
   if (scm_is_null (ras))
     for (; n--; i0 += inc0)
       scm_call_1 (proc, h0.vref (h0.vector, i0));
   else
     {
-      ras = scm_vector (ras);
-      for (; n--; i0 += inc0, ++i)
+      scm_t_array_handle *hs;      
+      size_t restn = scm_ilength (ras);
+
+      SCM args = SCM_EOL;
+      SCM *p = &args;
+      SCM **sa = scm_gc_malloc (sizeof(SCM *) * restn, vi_gc_hint);
+      for (size_t k = 0; k < restn; ++k)
         {
-          SCM args = SCM_EOL;
-          unsigned long k;
-          for (k = scm_c_vector_length (ras); k--;)
-            args = scm_cons (AREF (scm_c_vector_ref (ras, k), i), args);
+          *p = scm_cons (SCM_UNSPECIFIED, SCM_EOL);
+          sa[k] = SCM_CARLOC (*p);
+          p = SCM_CDRLOC (*p);
+        }
+
+      hs = scm_gc_malloc (sizeof(scm_t_array_handle) * restn, vi_gc_hint);
+      for (size_t k = 0; k < restn; ++k, ras = scm_cdr (ras))
+        scm_array_get_handle (scm_car (ras), hs+k);
+
+      for (ssize_t i = 0; n--; i0 += inc0, ++i)
+        {
+          for (size_t k = 0; k < restn; ++k)
+            *(sa[k]) = scm_array_handle_ref (hs+k, i*hs[k].dims[0].inc);
           scm_apply_1 (proc, h0.vref (h0.vector, i0), args);
         }
+
+      for (size_t k = 0; k < restn; ++k)
+        scm_array_handle_release (hs+k);
     }
   scm_array_handle_release (&h0);
   return 1;
@@ -444,15 +458,12 @@ static void
 array_index_map_n (SCM ra, SCM proc)
 {
   scm_t_array_handle h;
-  size_t i;
   int k, kmax = SCM_I_ARRAY_NDIM (ra) - 1;
-  ssize_t *vi;
-  SCM **si;
   SCM args = SCM_EOL;
   SCM *p = &args;
 
-  vi = scm_gc_malloc_pointerless (sizeof(ssize_t) * (kmax + 1), vi_gc_hint);
-  si = scm_gc_malloc_pointerless (sizeof(SCM *) * (kmax + 1), vi_gc_hint);
+  ssize_t *vi = scm_gc_malloc_pointerless (sizeof(ssize_t) * (kmax + 1), vi_gc_hint);
+  SCM **si = scm_gc_malloc_pointerless (sizeof(SCM *) * (kmax + 1), vi_gc_hint);
 
   for (k = 0; k <= kmax; k++)
     {
@@ -470,6 +481,7 @@ array_index_map_n (SCM ra, SCM proc)
     {
       if (k == kmax)
         {
+          size_t i;
           vi[kmax] = SCM_I_ARRAY_DIMS (ra)[kmax].lbnd;
           i = cindk (ra, vi, kmax+1);
           for (; vi[kmax] <= SCM_I_ARRAY_DIMS (ra)[kmax].ubnd; ++vi[kmax])
