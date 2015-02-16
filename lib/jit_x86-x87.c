@@ -887,8 +887,15 @@ _x87_ldi_f(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 static void
 _x87_ldxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r1, r2);
+    x87_ldr_f(r0, rn(reg));
+#else
     fldsm(0, r1, r2, _SCL1);
     fstpr(r0 + 1);
+#endif
 }
 
 static void
@@ -901,8 +908,13 @@ _x87_ldxi_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
+#if __X64_32
+	addi(rn(reg), r1, i0);
+	x87_ldr_f(r0, rn(reg));
+#else
 	movi(rn(reg), i0);
 	x87_ldxr_f(r0, r1, rn(reg));
+#endif
 	jit_unget_reg(reg);
     }
 }
@@ -941,6 +953,12 @@ _x87_sti_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 static void
 _x87_stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    x87_str_f(rn(reg), r2);
+#else
     if (r2 == _ST0_REGNO)
 	fstsm(0, r0, r1, _SCL1);
     else {
@@ -948,6 +966,7 @@ _x87_stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	fstsm(0, r0, r1, _SCL1);
 	fxchr(r2);
     }
+#endif
 }
 
 static void
@@ -956,8 +975,13 @@ _x87_stxi_f(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
+#if __X64_32
+	addi(rn(reg), r0, i0);
+	x87_str_f(rn(reg), r1);
+#else
 	movi(rn(reg), i0);
 	x87_stxr_f(rn(reg), r0, r1);
+#endif
 	jit_unget_reg(reg);
     }
     else if (r1 == _ST0_REGNO)
@@ -1144,8 +1168,15 @@ _x87_ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 static void
 _x87_ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r1, r2);
+    x87_ldr_d(r0, rn(reg));
+#else
     fldlm(0, r1, r2, _SCL1);
     fstpr(r0 + 1);
+#endif
 }
 
 static void
@@ -1158,8 +1189,13 @@ _x87_ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
+#if __X64_32
+	addi(rn(reg), r1, i0);
+	x87_ldr_d(r0, rn(reg));
+#else
 	movi(rn(reg), i0);
 	x87_ldxr_d(r0, r1, rn(reg));
+#endif
 	jit_unget_reg(reg);
     }
 }
@@ -1198,6 +1234,12 @@ _x87_sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 static void
 _x87_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    x87_str_d(rn(reg), r2);
+#else
     if (r2 == _ST0_REGNO)
 	fstlm(0, r0, r1, _SCL1);
     else {
@@ -1205,6 +1247,7 @@ _x87_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	fstlm(0, r0, r1, _SCL1);
 	fxchr(r2);
     }
+#endif
 }
 
 static void
@@ -1213,8 +1256,13 @@ _x87_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     jit_int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
 	reg = jit_get_reg(jit_class_gpr);
+#if __X64_32
+	addi(rn(reg), r0, i0);
+	x87_str_d(rn(reg), r1);
+#else
 	movi(rn(reg), i0);
 	x87_stxr_d(rn(reg), r0, r1);
+#endif
 	jit_unget_reg(reg);
     }
     else if (r1 == _ST0_REGNO)

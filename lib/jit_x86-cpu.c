@@ -2466,10 +2466,15 @@ _ldi_l(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 static void
 _ldxr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    addr(r0, r1, r2);
+    ldr_c(r0, r0);
+#else
     rex(0, WIDE, r0, r1, r2);
     ic(0x0f);
     ic(0xbe);
     rx(r0, 0, r2, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2493,10 +2498,15 @@ _ldxi_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _ldxr_uc(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    addr(r0, r1, r2);
+    ldr_uc(r0, r0);
+#else
     rex(0, WIDE, r0, r1, r2);
     ic(0x0f);
     ic(0xb6);
     rx(r0, 0, r2, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2520,10 +2530,15 @@ _ldxi_uc(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _ldxr_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    addr(r0, r1, r2);
+    ldr_s(r0, r0);
+#else
     rex(0, WIDE, r0, r1, r2);
     ic(0x0f);
     ic(0xbf);
     rx(r0, 0, r2, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2547,10 +2562,15 @@ _ldxi_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _ldxr_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    addr(r0, r1, r2);
+    ldr_us(r0, r0);
+#else
     rex(0, WIDE, r0, r1, r2);
     ic(0x0f);
     ic(0xb7);
     rx(r0, 0, r2, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2610,9 +2630,15 @@ _ldxi_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _ldxr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    addr(r0, r1, r2);
+    /* to avoid confusion with macro renames */
+    _ldr_ui(_jit, r0, r0);
+#else
     rex(0, 0, r0, r1, r2);
     ic(0x8b);
     rx(r0, 0, r2, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2789,6 +2815,12 @@ static void
 _stxr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     jit_int32_t		reg;
+#if __X64_32
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    str_c(rn(reg), r2);
+    jit_unget_reg(reg);
+#else
     if (reg8_p(r2)) {
 	rex(0, 0, r2, r1, r0);
 	ic(0x88);
@@ -2802,6 +2834,7 @@ _stxr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 	rx(rn(reg), 0, r0, r1, _SCL1);
 	jit_unget_reg(reg);
     }
+#endif
 }
 
 static void
@@ -2834,10 +2867,18 @@ _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _stxr_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    str_s(rn(reg), r2);
+    jit_unget_reg(reg);
+#else
     ic(0x66);
     rex(0, 0, r2, r1, r0);
     ic(0x89);
     rx(r2, 0, r0, r1, _SCL1);
+#endif
 }
 
 static void
@@ -2861,9 +2902,17 @@ _stxi_s(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _stxr_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#if __X64_32
+    jit_int32_t		reg;
+    reg = jit_get_reg(jit_class_gpr);
+    addr(rn(reg), r0, r1);
+    str_i(rn(reg), r2);
+    jit_unget_reg(reg);
+#else
     rex(0, 0, r2, r1, r0);
     ic(0x89);
     rx(r2, 0, r0, r1, _SCL1);
+#endif
 }
 
 static void

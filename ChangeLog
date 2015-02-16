@@ -1,3 +1,16 @@
+2015-02-15 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_x86-cpu.c, lib/jit_x86-sse.c, lib/jit_x86-x87.c:
+	Correct encoding of ldxr* stxr* in the x32 abi. If the
+	displacement register is negative, it would generate
+	a 64 bit instruction with a 32 bit unsigned displacement.
+
+	* check/ranger.tst, check/ranger.ok: New files, implementing
+	a test case for negative loads and stores. This is range.tst
+	converted to use registers instead of immediate offsets.
+
+	check/Makefile.am: Update for the new test case.
+
 2015-02-07 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_size.c: Preventively use at least 144 bytes

@@ -92,6 +92,7 @@ EXTRA_DIST =				\
 	qalu_mul.tst	qalu_mul.ok	\
 	qalu_div.tst	qalu_div.ok	\
 	range.tst	range.ok	\
+	ranger.tst	ranger.ok	\
 	ret.tst		ret.ok		\
 	tramp.tst	tramp.ok	\
 	check.sh			\
@@ -121,7 +122,7 @@ base_TESTS =				\
 	clobber carry call		\
 	float jmpr put			\
 	qalu_mul qalu_div		\
-	range ret tramp
+	range ranger ret tramp
 
 $(base_TESTS):	check.sh
 	$(LN_S) $(srcdir)/check.sh $@
@@ -193,7 +194,7 @@ arm_TESTS =					\
 	varargs.arm stack.arm			\
 	clobber.arm carry.arm call.arm		\
 	float.arm jmpr.arm tramp.arm range.arm	\
-	put.arm
+	ranger.arm put.arm
 $(arm_TESTS):	check.arm.sh
 	$(LN_S) $(srcdir)/check.arm.sh $@
 TESTS += $(arm_TESTS)
@@ -218,7 +219,7 @@ swf_TESTS =					\
 	varargs.swf stack.swf			\
 	clobber.swf carry.swf call.swf		\
 	float.swf jmpr.swf tramp.swf range.swf	\
-	put.swf
+	ranger.swf put.swf
 $(swf_TESTS):	check.swf.sh
 	$(LN_S) $(srcdir)/check.swf.sh $@
 TESTS += $(swf_TESTS)
@@ -241,7 +242,7 @@ arm_swf_TESTS =							\
 	varargs.arm.swf stack.arm.swf				\
 	clobber.arm.swf carry.arm.swf call.arm.swf		\
 	float.arm.swf jmpr.arm.swf tramp.arm.swf range.arm.swf	\
-	put.arm.swf
+	ranger.arm.swf put.arm.swf
 $(arm_swf_TESTS):	check.arm.swf.sh
 	$(LN_S) $(srcdir)/check.arm.swf.sh $@
 TESTS += $(arm_swf_TESTS)
@@ -265,7 +266,7 @@ arm4_swf_TESTS =						\
 	varargs.arm4.swf stack.arm4.swf				\
 	clobber.arm4.swf carry.arm4.swf call.arm4.swf		\
 	float.arm4.swf jmpr.arm4.swf tramp.arm4.swf		\
-	range.arm4.swf put.arm4.swf
+	range.arm4.swf ranger.arm4.swf put.arm4.swf
 $(arm4_swf_TESTS):	check.arm4.swf.sh
 	$(LN_S) $(srcdir)/check.arm4.swf.sh $@
 TESTS += $(arm4_swf_TESTS)
@@ -291,7 +292,7 @@ nodata_TESTS =						\
 	varargs.nodata stack.nodata			\
 	clobber.nodata carry.nodata call.nodata		\
 	float.nodata jmpr.nodata tramp.nodata		\
-	range.nodata put.nodata
+	range.nodata ranger.nodata put.nodata
 $(nodata_TESTS):	check.nodata.sh
 	$(LN_S) $(srcdir)/check.nodata.sh $@
 TESTS += $(nodata_TESTS)
