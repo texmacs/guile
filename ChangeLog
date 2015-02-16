@@ -1,3 +1,10 @@
+2015-02-16 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Remove the jit_regno_patch bitfield
+	register fields before actual emit, as it is only really
+	used before emit, otherwise, on special	conditions it
+	may consider live registers as dead during code emit.
+
 2015-02-15 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_x86-cpu.c, lib/jit_x86-sse.c, lib/jit_x86-x87.c:

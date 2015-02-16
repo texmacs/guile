@@ -1501,6 +1501,13 @@ _jit_optimize(jit_state_t *_jit)
     }
 
     for (node = _jitc->head; node; node = node->next) {
+	mask = jit_classify(node->code);
+	if (mask & jit_cc_a0_reg)
+	    node->u.w &= ~jit_regno_patch;
+	if (mask & jit_cc_a1_reg)
+	    node->v.w &= ~jit_regno_patch;
+	if (mask & jit_cc_a2_reg)
+	    node->w.w &= ~jit_regno_patch;
 	switch (node->code) {
 	    case jit_code_prolog:
 		_jitc->function = _jitc->functions.ptr + node->w.w;
@@ -1515,7 +1522,6 @@ _jit_optimize(jit_state_t *_jit)
 		redundant_store(node, 0);
 		break;
 	    default:
-		mask = jit_classify(node->code);
 #if JIT_HASH_CONSTS
 		if (mask & jit_cc_a1_flt) {
 		    node->v.p = jit_data(&node->v.f, sizeof(jit_float32_t), 4);
