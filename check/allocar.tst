@@ -392,6 +392,7 @@ loop:
 
 	prepare
 		pushargi fmt
+		ellipsis
 		pushargr %r0
 		pushargr %r1
 		pushargr %r2
