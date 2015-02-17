@@ -47,6 +47,7 @@ EXTRA_DIST =				\
 	add.tst		add.ok		\
 	align.tst	align.ok	\
 	allocai.tst	allocai.ok	\
+	allocar.tst	allocar.ok	\
 	bp.tst		bp.ok		\
 	divi.tst	divi.ok		\
 	fib.tst		fib.ok		\
@@ -106,7 +107,7 @@ EXTRA_DIST =				\
 
 base_TESTS =				\
 	3to2 add align allocai		\
-	bp divi fib rpn			\
+	allocar bp divi fib rpn		\
 	ldstr ldsti			\
 	ldstxr ldstxi			\
 	ldstr-c ldstxr-c ldstxi-c	\
@@ -133,8 +134,8 @@ if test_x86_x87
 #x87_TESTS = $(addsuffix .x87, $(base_TESTS))
 x87_TESTS =					\
 	3to2.x87 add.x87 allocai.x87		\
-	bp.x87 divi.x87 fib.x87 rpn.x87		\
-	ldstr.x87 ldsti.x87			\
+	allocar.x87 bp.x87 divi.x87 fib.x87	\
+	rpn.x87 ldstr.x87 ldsti.x87		\
 	ldstxr.x87 ldstxi.x87			\
 	ldstr-c.x87 ldstxr-c.x87 ldstxi-c.x87	\
 	cvt.x87 branch.x87			\
@@ -155,8 +156,8 @@ TESTS += $(x87_TESTS)
 #x87_nodata_TESTS = $(addsuffix .x87.nodata, $(base_TESTS))
 x87_nodata_TESTS =							\
 	3to2.x87.nodata add.x87.nodata allocai.x87.nodata		\
-	bp.x87.nodata divi.x87.nodata fib.x87.nodata rpn.x87.nodata	\
-	ldstr.x87.nodata ldsti.x87.nodata				\
+	allocar.x87.nodata bp.x87.nodata divi.x87.nodata fib.x87.nodata	\
+	rpn.x87.nodata ldstr.x87.nodata ldsti.x87.nodata		\
 	ldstxr.x87.nodata ldstxi.x87.nodata				\
 	ldstr-c.x87.nodata ldstxr-c.x87.nodata ldstxi-c.x87.nodata	\
 	cvt.x87.nodata branch.x87.nodata				\
@@ -179,8 +180,8 @@ if test_arm_arm
 #arm_TESTS = $(addsuffix .arm, $(base_TESTS))
 arm_TESTS =					\
 	3to2.arm add.arm align.arm allocai.arm	\
-	bp.arm divi.arm fib.arm rpn.arm		\
-	ldstr.arm ldsti.arm			\
+	allocar.arm bp.arm divi.arm fib.arm	\
+	rpn.arm ldstr.arm ldsti.arm		\
 	ldstxr.arm ldstxi.arm			\
 	ldstr-c.arm ldstxr-c.arm ldstxi-c.arm	\
 	cvt.arm hton.arm branch.arm		\
@@ -204,8 +205,8 @@ if test_arm_swf
 #swf_TESTS = $(addsuffix .swf, $(base_TESTS))
 swf_TESTS =					\
 	3to2.swf add.swf allocai.swf		\
-	bp.swf divi.swf fib.swf rpn.swf		\
-	ldstr.swf ldsti.swf			\
+	allocar.swf bp.swf divi.swf fib.swf	\
+	rpn.swf ldstr.swf ldsti.swf		\
 	ldstxr.swf ldstxi.swf			\
 	ldstr-c.swf ldstxr-c.swf ldstxi-c.swf	\
 	cvt.swf hton.swf branch.swf		\
@@ -227,8 +228,8 @@ if test_arm_arm
 #arm_swf_TESTS = $(addsuffix .arm.swf, $(base_TESTS))
 arm_swf_TESTS =							\
 	3to2.arm.swf add.arm.swf allocai.arm.swf		\
-	bp.arm.swf divi.arm.swf fib.arm.swf rpn.arm.swf		\
-	ldstr.arm.swf ldsti.arm.swf				\
+	allocar.arm.swf bp.arm.swf divi.arm.swf fib.arm.swf	\
+	rpn.arm.swf ldstr.arm.swf ldsti.arm.swf			\
 	ldstxr.arm.swf ldstxi.arm.swf				\
 	ldstr-c.arm.swf ldstxr-c.arm.swf ldstxi-c.arm.swf	\
 	cvt.arm.swf hton.arm.swf branch.arm.swf			\
@@ -251,8 +252,8 @@ if test_arm_arm
 #arm4_swf_TESTS = $(addsuffix .arm4.swf, $(base_TESTS))
 arm4_swf_TESTS =						\
 	3to2.arm4.swf add.arm4.swf allocai.arm4.swf		\
-	bp.arm4.swf divi.arm4.swf fib.arm4.swf rpn.arm4.swf	\
-	ldstr.arm4.swf ldsti.arm4.swf				\
+	allocar.arm4.swf bp.arm4.swf divi.arm4.swf fib.arm4.swf	\
+	rpn.arm4.swf ldstr.arm4.swf ldsti.arm4.swf		\
 	ldstxr.arm4.swf ldstxi.arm4.swf				\
 	ldstr-c.arm4.swf ldstxr-c.arm4.swf ldstxi-c.arm4.swf	\
 	cvt.arm4.swf hton.arm4.swf branch.arm4.swf		\
@@ -277,8 +278,8 @@ if test_nodata
 #nodata_TESTS = $(addsuffix .nodata, $(base_TESTS))
 nodata_TESTS =						\
 	3to2.nodata add.nodata allocai.nodata		\
-	bp.nodata divi.nodata fib.nodata rpn.nodata	\
-	ldstr.nodata ldsti.nodata			\
+	allocar.nodata bp.nodata divi.nodata fib.nodata	\
+	rpn.nodata ldstr.nodata ldsti.nodata		\
 	ldstxr.nodata ldstxi.nodata			\
 	ldstr-c.nodata ldstxr-c.nodata ldstxi-c.nodata	\
 	cvt.nodata branch.nodata			\

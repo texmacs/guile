@@ -2909,6 +2909,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    return;
 	_jitc->function->self.aoff = frame;
     }
+    if (_jitc->function->allocar)
+	_jitc->function->self.aoff &= -8;
 #if NEW_ABI
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 16 bytes */
@@ -2940,6 +2942,12 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     /* alloca */
     if (_jitc->function->stack)
 	subi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
+    if (_jitc->function->allocar) {
+	index = jit_get_reg(jit_class_gpr);
+	movi(rn(index), _jitc->function->self.aoff);
+	stxi_i(_jitc->function->aoffoff, _BP_REGNO, rn(index));
+	jit_unget_reg(index);
+    }
 }
 
 static void

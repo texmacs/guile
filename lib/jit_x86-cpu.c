@@ -3437,6 +3437,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0)
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
+    jit_int32_t		reg;
     if (_jitc->function->define_frame || _jitc->function->assume_frame) {
 	jit_int32_t	frame = -_jitc->function->frame;
 	assert(_jitc->function->self.aoff >= frame);
@@ -3444,6 +3445,8 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    return;
 	_jitc->function->self.aoff = frame;
     }
+    if (_jitc->function->allocar)
+	_jitc->function->self.aoff &= -16;
 #if __X64 && __CYGWIN__
     _jitc->function->stack = (((/* first 32 bytes must be allocated */
 				(_jitc->function->self.alen > 32 ?
@@ -3519,6 +3522,12 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 
     /* alloca */
     subi(_RSP_REGNO, _RSP_REGNO, _jitc->function->stack);
+    if (_jitc->function->allocar) {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), _jitc->function->self.aoff);
+	stxi_i(_jitc->function->aoffoff, _RBP_REGNO, rn(reg));
+	jit_unget_reg(reg);
+    }
 }
 
 static void

@@ -193,6 +193,7 @@ typedef enum {
 
 #define jit_ellipsis()		_jit_ellipsis(_jit)
 #define jit_allocai(u)		_jit_allocai(_jit,u)
+#define jit_allocar(u, v)	_jit_allocar(_jit,u,v)
 
 #define jit_arg()		_jit_arg(_jit)
 #define jit_getarg_c(u,v)	_jit_getarg_c(_jit,u,v)
@@ -890,6 +891,7 @@ extern jit_bool_t _jit_target_p(jit_state_t*,jit_node_t*);
 extern void _jit_prolog(jit_state_t*);
 
 extern jit_int32_t _jit_allocai(jit_state_t*, jit_int32_t);
+extern void _jit_allocar(jit_state_t*, jit_int32_t, jit_int32_t);
 extern void _jit_ellipsis(jit_state_t*);
 
 extern jit_node_t *_jit_arg(jit_state_t*);

@@ -174,6 +174,37 @@ _jit_allocai(jit_state_t *_jit, jit_int32_t length)
 }
 
 void
+_jit_allocar(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
+{
+    jit_int32_t		 r0, r1;
+    assert(_jitc->function);
+    if (!_jitc->function->allocar) {
+	_jitc->function->aoffoff = jit_allocai(sizeof(jit_int32_t));
+	_jitc->function->allocar = 1;
+    }
+    r0 = jit_get_reg(jit_class_gpr);
+    jit_negr(r0, v);
+    jit_andi(r0, r0, -16);
+    jit_ldxi_i(u, JIT_FP, _jitc->function->aoffoff);
+    jit_addr(u, u, r0);
+    /* Cannot "addr sp, sp, reg" because in this context "sp" is "[w|x]zr",
+     * the zero register */
+#if 0
+    jit_addr(JIT_SP, JIT_SP, r0);
+#else
+    r1 = jit_get_reg(jit_class_gpr);
+    /* note that "mov r1, sp" does not work, but the proper encoding
+     * can be triggered before actually emiting with "add r1, sp, 0" */
+    jit_addi(r1, JIT_SP, 0);
+    jit_addr(r1, r1, r0);
+    jit_addi(JIT_SP, r1, 0);
+    jit_unget_reg(r1);
+#endif
+    jit_stxi_i(_jitc->function->aoffoff, JIT_FP, u);
+    jit_unget_reg(r0);
+}
+
+void
 _jit_ret(jit_state_t *_jit)
 {
     jit_node_t		*instr;

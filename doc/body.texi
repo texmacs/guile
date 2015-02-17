@@ -175,7 +175,8 @@ operation, there is a the @code{_u} modifier.
 There are at least seven integer registers, of which six are
 general-purpose, while the last is used to contain the frame pointer
 (@code{FP}).  The frame pointer can be used to allocate and access local
-variables on the stack, using the @code{allocai} instruction.
+variables on the stack, using the @code{allocai} or @code{allocar}
+instruction.
 
 Of the general-purpose registers, at least three are guaranteed to be
 preserved across function calls (@code{V0}, @code{V1} and
@@ -540,16 +541,16 @@ bxsubi    _u          O2 -= O3@r{, goto }O1@r{ if no overflow}
 @end example
 
 @item Jump and return operations
-These accept one argument except @code{ret} which has none; the
-difference between @code{finishi} and @code{calli} is that the
-latter does not clean the stack from pushed parameters (if any)
-and the former must @strong{always} follow a @code{prepare}
+These accept one argument except @code{ret} and @code{jmpi} which
+have none; the difference between @code{finishi} and @code{calli}
+is that the latter does not clean the stack from pushed parameters
+(if any) and the former must @strong{always} follow a @code{prepare}
 instruction.
 @example
-callr     (not specified)                @r{function call to a register}
-calli     (not specified)                @r{function call to O1}
-finishr   (not specified)                @r{function call to a register}
-finishi   (not specified)                @r{function call to O1}
+callr     (not specified)                @r{function call to register O1}
+calli     (not specified)                @r{function call to immediate O1}
+finishr   (not specified)                @r{function call to register O1}
+finishi   (not specified)                @r{function call to immediate O1}
 jmpr      (not specified)                @r{unconditional jump to register}
 jmpi      (not specified)                @r{unconditional jump}
 ret       (not specified)                @r{return from subroutine}
@@ -627,16 +628,31 @@ an "unbound" label.
 
 These macros are used to set up a function prolog.  The @code{allocai}
 call accept a single integer argument and returns an offset value
-for stack storage access.
+for stack storage access.  The @code{allocar} accepts two registers
+arguments, the first is set to the offset for stack access, and the
+second is the size in bytes argument.
 
 @example
 prolog    (not specified)                @r{function prolog}
 allocai   (not specified)                @r{reserve space on the stack}
+allocar   (not specified)                @r{allocate space on the stack}
 @end example
 
 @code{allocai} receives the number of bytes to allocate and returns
 the offset from the frame pointer register @code{FP} to the base of
 the area.
+
+@code{allocar} receives two register arguments.  The first is where
+to store the offset from the frame pointer register @code{FP} to the
+base of the area.  The second argument is the size in bytes.  Note
+that @code{allocar} is dynamic allocation, and special attention
+should be taken when using it.  If called in a loop, every iteration
+will allocate stack space.  Stack space is aligned from 8 to 64 bytes
+depending on backend requirements, even if allocating only one byte.
+It is advisable to not use it with @code{frame} and @code{tramp}; it
+should work with @code{frame} with special care to call only once,
+but is not supported if used in @code{tramp}, even if called only
+once.
 
 As a small appetizer, here is a small function that adds 1 to the input
 parameter (an @code{int}).  I'm using an assembly-like syntax here which

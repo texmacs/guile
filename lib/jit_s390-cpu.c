@@ -3498,6 +3498,8 @@ _prolog(jit_state_t *_jit, jit_node_t *i0)
 	    return;
 	_jitc->function->self.aoff = frame;
     }
+    if (_jitc->function->allocar)
+	_jitc->function->self.aoff &= -8;
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 8 bytes */
 			      _jitc->function->self.aoff) + 7) & -8;
@@ -3550,6 +3552,12 @@ _prolog(jit_state_t *_jit, jit_node_t *i0)
 #undef SPILL
     movr(_R13_REGNO, _R15_REGNO);
     subi(_R15_REGNO, _R15_REGNO, stack_framesize + _jitc->function->stack);
+    if (_jitc->function->allocar) {
+	regno = jit_get_reg(jit_class_gpr);
+	movi(rn(regno), _jitc->function->self.aoff);
+	stxi_i(_jitc->function->aoffoff, _R13_REGNO, rn(regno));
+	jit_unget_reg(regno);
+    }
 }
 
 static void

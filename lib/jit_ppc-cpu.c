@@ -3225,6 +3225,10 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    return;
 	_jitc->function->self.aoff = frame;
     }
+    if (_jitc->function->allocar) {
+	_jitc->function->self.aoff -= 2 * sizeof(jit_word_t);
+	_jitc->function->self.aoff &= -16;
+    }
     _jitc->function->stack = ((_jitc->function->self.alen +
 			      _jitc->function->self.size -
 			      _jitc->function->self.aoff) + 15) & -16;
@@ -3269,6 +3273,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 #else
     STDU(_SP_REGNO, _SP_REGNO, -_jitc->function->stack);
 #endif
+
+    if (_jitc->function->allocar) {
+	regno = jit_get_reg(jit_class_gpr);
+	movi(rn(regno), _jitc->function->self.aoff);
+	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(regno));
+	jit_unget_reg(regno);
+    }
 }
 
 static void
@@ -3295,7 +3306,10 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     }
 
 #else		/* __powerpc__ */
-    addi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
+    if (_jitc->function->allocar)
+	ldr(_SP_REGNO, _SP_REGNO);
+    else
+	addi(_SP_REGNO, _SP_REGNO, _jitc->function->stack);
     ldxi(_R0_REGNO, _SP_REGNO, sizeof(void*) * 2);
     offset = -gpr_save_area;
     for (regno = 0; regno < jit_size(save); regno++, offset += sizeof(void*)) {

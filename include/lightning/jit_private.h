@@ -363,6 +363,11 @@ struct jit_function {
     jit_int32_t		 frame;
     jit_uint32_t	 define_frame : 1;
     jit_uint32_t	 assume_frame : 1;
+
+    /* alloca offset offset */
+    jit_int32_t		 aoffoff;
+    /* uses allocar flag */
+    jit_uint32_t	 allocar : 1;
 };
 
 /* data used only during jit generation */

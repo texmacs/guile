@@ -2655,6 +2655,10 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	    return;
 	_jitc->function->self.aoff = _jitc->function->frame;
     }
+    if (_jitc->function->allocar) {
+	_jitc->function->self.aoff += 63;
+	_jitc->function->self.aoff &= -64;
+    }
     _jitc->function->stack = ((_jitc->function->self.aoff -
 			       _jitc->function->self.alen -
 			       _jitc->function->self.size) + 63) & -64;
@@ -2676,6 +2680,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     for (regno = 0; regno < jit_size(fr); regno++, offset += 8) {
 	if (jit_regset_tstbit(&_jitc->function->regset, fr[regno]))
 	    stxi_d(offset, _FP_REGNO, rn(fr[regno]));
+    }
+
+    if (_jitc->function->allocar) {
+	regno = jit_get_reg(jit_class_gpr);
+	movi(rn(regno), _jitc->function->self.aoff);
+	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(regno));
+	jit_unget_reg(regno);
     }
 }
 

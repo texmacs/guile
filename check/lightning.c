@@ -271,7 +271,7 @@ static void align(void);	static void name(void);
 static void prolog(void);
 static void frame(void);	static void tramp(void);
 static void ellipsis(void);
-static void allocai(void);
+static void allocai(void);	static void allocar(void);
 static void arg(void);
 static void getarg_c(void);	static void getarg_uc(void);
 static void getarg_s(void);	static void getarg_us(void);
@@ -580,7 +580,7 @@ static instr_t		  instr_vector[] = {
     entry(prolog),
     entry(frame),	entry(tramp),
     entry(ellipsis),
-    entry(allocai),
+    entry(allocai),	entry(allocar),
     entry(arg),
     entry(getarg_c),	entry(getarg_uc),
     entry(getarg_s),	entry(getarg_us),
@@ -1371,6 +1371,7 @@ allocai(void) {
     symbol->type = type_l;
     symbol->value.i = i;
 }
+entry_ir_ir(allocar)
 entry_ca(arg)
 entry_ia(getarg_c)		entry_ia(getarg_uc)
 entry_ia(getarg_s)		entry_ia(getarg_us)

@@ -1,5 +1,34 @@
 2015-02-17 Paulo Andrade <pcpa@gnu.org>
 
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_aarch64-cpu.c, lib/jit_aarch64.c,
+	lib/jit_alpha-cpu.c, lib/jit_alpha.c,
+	lib/jit_arm-cpu.c, lib/jit_arm.c,
+	lib/jit_hppa-cpu.c, lib/jit_hppa.c,
+	lib/jit_ia64-cpu.c, lib/jit_ia64.c,
+	lib/jit_mips-cpu.c, lib/jit_mips.c,
+	lib/jit_ppc-cpu.c, lib/jit_ppc.c,
+	lib/jit_s390-cpu.c, lib/jit_s390.c,
+	lib/jit_sparc-cpu.c, lib/jit_sparc.c,
+	lib/jit_x86-cpu.c, lib/jit_x86.c: Implement the new
+	jit_allocar(offs, size) interface, that receives
+	two integer registers arguments, allocates space
+	dynamically in the stack, returns the offset in
+	the first argument, and uses the second argument
+	for the size in bytes of the memory to be allocated.
+
+	* check/allocar.ok, check/allocar.tst: New files
+	implementing test cases for the new jit_allocar
+	interface.
+
+	* check/Makefile.am, check/lightning.c: Update for
+	the new test case and interface.
+
+	* doc/body.texi: Add documentation of the new
+	interface.
+
+2015-02-17 Paulo Andrade <pcpa@gnu.org>
+
 	* include/lightning/jit_x86.h, lib/jit_x86-cpu.c,
 	lib/jit_x86-x87.c: No longer make st(7) available.
 	Need to keep one x87 slots empty to avoid exceptions.

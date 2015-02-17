@@ -197,6 +197,24 @@ _jit_allocai(jit_state_t *_jit, jit_int32_t length)
 }
 
 void
+_jit_allocar(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
+{
+    jit_int32_t		 reg;
+    assert(_jitc->function);
+    if (!_jitc->function->allocar) {
+	_jitc->function->aoffoff = jit_allocai(sizeof(jit_int32_t));
+	_jitc->function->allocar = 1;
+    }
+    reg = jit_get_reg(jit_class_gpr);
+    jit_addi(reg, v, 63);
+    jit_andi(reg, reg, -64);
+    jit_ldxi_i(u, JIT_FP, _jitc->function->aoffoff);
+    jit_addr(JIT_SP, JIT_SP, reg);
+    jit_stxi_i(_jitc->function->aoffoff, JIT_FP, u);
+    jit_unget_reg(reg);
+}
+
+void
 _jit_ret(jit_state_t *_jit)
 {
     jit_node_t		*instr;
