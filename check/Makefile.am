@@ -170,7 +170,7 @@ x87_nodata_TESTS =							\
 	fop_abs.x87.nodata fop_sqrt.x87.nodata				\
 	varargs.x87.nodata stack.x87.nodata				\
 	clobber.x87.nodata carry.x87.nodata call.x87.nodata		\
-	float.x87.nodata jmpr.x87.nodata put.nodata
+	float.x87.nodata jmpr.x87.nodata put.x87.nodata
 $(x87_nodata_TESTS):	check.x87.nodata.sh
 	$(LN_S) $(srcdir)/check.x87.nodata.sh $@
 TESTS += $(x87_nodata_TESTS)
