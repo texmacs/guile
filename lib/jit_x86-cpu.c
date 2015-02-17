@@ -3390,9 +3390,6 @@ _bxsubi_u(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_word_t i1)
 static void
 _callr(jit_state_t *_jit, jit_int32_t r0)
 {
-#if __X32
-    emms();
-#endif
     rex(0, 0, _NOREG, _NOREG, r0);
     ic(0xff);
     mrm(0x03, 0x02, r7(r0));
@@ -3411,7 +3408,6 @@ _calli(jit_state_t *_jit, jit_word_t i0)
     jit_unget_reg(reg);
 #else
     jit_word_t		w;
-    emms();
     ic(0xe8);
     w = i0 - (_jit->pc.w + 4);
     ii(w);

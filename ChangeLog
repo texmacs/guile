@@ -1,3 +1,11 @@
+2015-02-17 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_x86.h, lib/jit_x86-cpu.c,
+	lib/jit_x86-x87.c: No longer make st(7) available.
+	Need to keep one x87 slots empty to avoid exceptions.
+	This has the side effect of no longer needing the
+	hackish emms instruction before a function call.
+
 2015-02-16 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Remove the jit_regno_patch bitfield

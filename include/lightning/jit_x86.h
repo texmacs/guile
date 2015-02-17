@@ -27,7 +27,7 @@
  * Types
  */
 #define jit_sse2_p()		jit_cpu.sse2
-#define jit_x87_reg_p(reg)	((reg) >= _ST0 && (reg) <= _ST7)
+#define jit_x87_reg_p(reg)	((reg) >= _ST0 && (reg) <= _ST6)
 #if __WORDSIZE == 32
 #  if defined(__x86_64__)
 #    define __X64_32		1
@@ -64,7 +64,6 @@ typedef enum {
 #  define JIT_F4		(jit_sse2_p() ? _XMM4 : _ST4)
 #  define JIT_F5		(jit_sse2_p() ? _XMM5 : _ST5)
 #  define JIT_F6		(jit_sse2_p() ? _XMM6 : _ST6)
-#  define JIT_F7		(jit_sse2_p() ? _XMM7 : _ST7)
     _XMM0,	_XMM1,	_XMM2,	_XMM3,	_XMM4,	_XMM5,	_XMM6,	 _XMM7,
 #  define jit_sse_reg_p(reg)	((reg) >= _XMM0 && (reg) <= _XMM7)
 #else
@@ -148,7 +147,7 @@ typedef enum {
 #    define jit_sse_reg_p(reg)	((reg) >= _XMM8 && (reg) <= _XMM0)
 #  endif
 #endif
-    _ST0,	_ST1,	_ST2,	_ST3,	_ST4,	_ST5,	_ST6,	_ST7,
+    _ST0,	_ST1,	_ST2,	_ST3,	_ST4,	_ST5,	_ST6,
 #  define JIT_NOREG		_NOREG
     _NOREG,
 } jit_reg_t;

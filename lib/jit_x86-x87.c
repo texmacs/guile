@@ -34,7 +34,6 @@
 #  define _ST4_REGNO			4
 #  define _ST5_REGNO			5
 #  define _ST6_REGNO			6
-#  define _ST7_REGNO			7
 #  define x87rx(code, md, rb, ri, ms)	_x87rx(_jit, code, md, rb, ri, ms)
 #  define fldcwm(md, rb, ri, ms)	x87rx(015, md, rb, ri, ms)
 #  define fstcwm(md, rb, ri, ms)	_fstcwm(_jit, md, rb, ri, ms)
