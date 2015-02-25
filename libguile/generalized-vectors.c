@@ -69,11 +69,6 @@ SCM_DEFINE (scm_make_generalized_vector, "make-generalized-vector", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-
-#define SCM_VALIDATE_VECTOR_WITH_HANDLE(pos, val, handle)   \
-  scm_generalized_vector_get_handle (val, handle)
-   
-
 void
 scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
 {

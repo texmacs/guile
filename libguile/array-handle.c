@@ -320,9 +320,7 @@ scm_array_handle_release (scm_t_array_handle *h)
 const SCM *
 scm_array_handle_elements (scm_t_array_handle *h)
 {
-  if (h->element_type != SCM_ARRAY_ELEMENT_TYPE_SCM)
-    scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
-  return ((const SCM*)h->elements) + h->base;
+  return scm_array_handle_writable_elements (h);
 }
 
 SCM *

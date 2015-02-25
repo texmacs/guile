@@ -58,23 +58,15 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
-  if (SCM_I_WVECTP (vec))
-    scm_wrong_type_arg_msg (NULL, 0, vec, "non-weak vector");
-
-  scm_generalized_vector_get_handle (vec, h);
-  if (lenp)
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (h);
-      *lenp = dim->ubnd - dim->lbnd + 1;
-      *incp = dim->inc;
-    }
-  return scm_array_handle_elements (h);
+  /* guard against weak vectors in the next call */
+  return scm_vector_writable_elements (vec, h, lenp, incp);
 }
 
 SCM *
 scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
 			      size_t *lenp, ssize_t *incp)
 {
+  /* it's unsafe to access the memory of a weak vector */
   if (SCM_I_WVECTP (vec))
     scm_wrong_type_arg_msg (NULL, 0, vec, "non-weak vector");
 
@@ -140,12 +132,11 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
   SCM res;
   SCM *data;
   long i, len;
-  scm_t_array_handle handle;
 
   SCM_VALIDATE_LIST_COPYLEN (1, l, len);
 
   res = scm_c_make_vector (len, SCM_UNSPECIFIED);
-  data = scm_vector_writable_elements (res, &handle, NULL, NULL);
+  data = SCM_I_VECTOR_WELTS (res);
   i = 0;
   while (scm_is_pair (l) && i < len) 
     {
@@ -153,8 +144,6 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
       l = SCM_CDR (l);
       i += 1;
     }
-
-  scm_array_handle_release (&handle);
 
   return res;
 }
