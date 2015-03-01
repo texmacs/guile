@@ -30,10 +30,10 @@ int main(int argc, char *argv[])
 
   /* call the generated code, passing its size as argument */
   myFunction((char*)jit_address(end) - (char*)jit_address(start));
-  jit_clear_state();
 
   jit_disassemble();
 
+  jit_clear_state();
   jit_destroy_state();
   finish_jit();
   return 0;
