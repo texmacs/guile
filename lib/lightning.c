@@ -832,6 +832,13 @@ jit_new_state(void)
 void
 _jit_clear_state(jit_state_t *_jit)
 {
+#if DEVEL_DISASSEMBLER
+#  define jit_really_clear_state()	_jit_really_clear_state(_jit)
+}
+
+void _jit_really_clear_state(jit_state_t *_jit)
+{
+#endif
     jit_word_t		 offset;
     jit_function_t	*function;
 
@@ -889,6 +896,9 @@ _jit_clear_state(jit_state_t *_jit)
 void
 _jit_destroy_state(jit_state_t *_jit)
 {
+#if DEVEL_DISASSEMBLER
+    jit_really_clear_state();
+#endif
     if (!_jit->user_code)
 	munmap(_jit->code.ptr, _jit->code.length);
     if (!_jit->user_data)

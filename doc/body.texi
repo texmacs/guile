@@ -1068,10 +1068,10 @@ int main(int argc, char *argv[])
 
   @rem{/* call the generated code@comma{} passing its size as argument */}
   myFunction((char*)jit_address(end) - (char*)jit_address(start));
+  jit_clear_state();
 
   jit_disassemble();
 
-  jit_clear_state();
   jit_destroy_state();
   finish_jit();
   return 0;
@@ -1127,15 +1127,15 @@ call must be done after the @code{emit} call or either a fatal error
 will happen (if @lightning{} is built with assertions enable) or an
 undefined value will be returned.
 
-@item jit_disassemble();
-@code{disassemble} will dump the generated code to standard output,
-unless @lightning{} was built with the disassembler disabled, in which
-case no output will be shown.
-
 @item jit_clear_state();
 Note that @code{jit_clear_state} was called after executing jit in
 this example. It was done because it must be called after any call
 to @code{jit_address} or @code{jit_print}.
+
+@item jit_disassemble();
+@code{disassemble} will dump the generated code to standard output,
+unless @lightning{} was built with the disassembler disabled, in which
+case no output will be shown.
 @end table
 
 @node RPN calculator
