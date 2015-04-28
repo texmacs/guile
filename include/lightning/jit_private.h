@@ -368,6 +368,11 @@ struct jit_function {
     jit_int32_t		 aoffoff;
     /* uses allocar flag */
     jit_uint32_t	 allocar : 1;
+
+    /* varargs state offsets */
+    jit_int32_t		 vaoff;		/* offset of jit_va_list */
+    jit_int32_t		 vagp;		/* first gp va argument */
+    jit_int32_t		 vafp;		/* first fp va argument */
 };
 
 /* data used only during jit generation */

@@ -29,20 +29,71 @@
 #  define stack_adjust			12
 #  define CVT_OFFSET			-12
 #  define REAL_WORDSIZE			4
+#  define va_gp_increment		4
+#  define va_fp_increment		8
 #else
 #  if __CYGWIN__
 #    define jit_arg_reg_p(i)		((i) >= 0 && (i) < 4)
 #    define jit_arg_f_reg_p(i)		jit_arg_reg_p(i)
 #    define stack_framesize		152
+#    define va_fp_increment		8
 #  else
 #    define jit_arg_reg_p(i)		((i) >= 0 && (i) < 6)
 #    define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 8)
 #    define stack_framesize		56
+#    define first_gp_argument		rdi
+#    define first_gp_offset		offsetof(jit_va_list_t, rdi)
+#    define first_gp_from_offset(gp)	((gp) / 8)
+#    define last_gp_argument		r9
+#    define va_gp_max_offset						\
+	(offsetof(jit_va_list_t, r9) - offsetof(jit_va_list_t, rdi) + 8)
+#    define first_fp_argument		xmm0
+#    define first_fp_offset		offsetof(jit_va_list_t, xmm0)
+#    define last_fp_argument		xmm7
+#    define va_fp_max_offset						\
+	(offsetof(jit_va_list_t, xmm7) - offsetof(jit_va_list_t, rdi) + 16)
+#    define va_fp_increment		16
+#    define first_fp_from_offset(fp)	(((fp) - va_gp_max_offset) / 16)
 #  endif
+#  define va_gp_increment		8
 #  define stack_adjust			8
 #  define CVT_OFFSET			-8
 #  define REAL_WORDSIZE			8
 #endif
+
+typedef struct jit_va_list {
+#if __X64 && !__CYGWIN__
+    jit_int32_t		gpoff;
+    jit_int32_t		fpoff;
+#endif
+    jit_pointer_t	over;
+#if __X64 && !__CYGWIN__
+    jit_pointer_t	save;
+    /* Declared explicitly as int64 for the x32 abi */
+    jit_int64_t		rdi;
+    jit_int64_t		rsi;
+    jit_int64_t		rdx;
+    jit_int64_t		rcx;
+    jit_int64_t		r8;
+    jit_int64_t		r9;
+    jit_float64_t	xmm0;
+    jit_float64_t	_up0;
+    jit_float64_t	xmm1;
+    jit_float64_t	_up1;
+    jit_float64_t	xmm2;
+    jit_float64_t	_up2;
+    jit_float64_t	xmm3;
+    jit_float64_t	_up3;
+    jit_float64_t	xmm4;
+    jit_float64_t	_up4;
+    jit_float64_t	xmm5;
+    jit_float64_t	_up5;
+    jit_float64_t	xmm6;
+    jit_float64_t	_up6;
+    jit_float64_t	xmm7;
+    jit_float64_t	_up7;
+#endif
+} jit_va_list_t;
 
 /*
  * Prototypes
@@ -500,12 +551,48 @@ _jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
     return (jit_arg_f_reg_p(u->u.w));
 }
 
+void
+_jit_ellipsis(jit_state_t *_jit)
+{
+    if (_jitc->prepare) {
+	/* Remember that a varargs function call is being constructed. */
+	assert(!(_jitc->function->call.call & jit_call_varargs));
+	_jitc->function->call.call |= jit_call_varargs;
+    }
+    else {
+	/* Remember the current function is varargs. */
+	assert(!(_jitc->function->self.call & jit_call_varargs));
+	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack.
+	 * If applicable, with enough space to save all argument
+	 * registers, and use fixed offsets for them. */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+
+#if __X64 && !__CYGWIN__
+	/* Initialize gp offset in save area. */
+	if (jit_arg_reg_p(_jitc->function->self.argi))
+	    _jitc->function->vagp = _jitc->function->self.argi * 8;
+	else
+	    _jitc->function->vagp = va_gp_max_offset;
+
+	/* Initialize fp offset in save area. */
+	if (jit_arg_f_reg_p(_jitc->function->self.argf))
+	    _jitc->function->vafp = _jitc->function->self.argf * 16 +
+				    va_gp_max_offset;
+	else
+	    _jitc->function->vafp = va_fp_max_offset;
+#endif
+    }
+}
+
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
     jit_int32_t		offset;
 
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
@@ -528,6 +615,7 @@ _jit_arg_f(jit_state_t *_jit)
     jit_int32_t		offset;
 
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
@@ -553,6 +641,7 @@ _jit_arg_d(jit_state_t *_jit)
     jit_int32_t		offset;
 
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
 #  if __CYGWIN__
     if (jit_arg_reg_p(_jitc->function->self.argi)) {
@@ -782,6 +871,8 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 	jit_movr(JIT_RA0 - _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
 #  if __CYGWIN__
+	if (_jitc->function->call.call & jit_call_varargs)
+	    jit_stxi(_jitc->function->call.size, _RSP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
 #  endif
     }
@@ -802,10 +893,13 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 #if __X64
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(JIT_RA0 - _jitc->function->call.argi, u);
-	++_jitc->function->call.argi;
 #  if __CYGWIN__
+	if (_jitc->function->call.call & jit_call_varargs)
+	    jit_stxi(_jitc->function->call.size, _RSP,
+		     JIT_RA0 - _jitc->function->call.argi);
 	_jitc->function->call.size += sizeof(jit_word_t);
 #  endif
+	++_jitc->function->call.argi;
     }
     else
 #endif
@@ -1869,9 +1963,19 @@ _emit_code(jit_state_t *_jit)
 		    fstpr(rn(node->u.w) + 1);
 		break;
 #endif
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w), jit_x87_reg_p(node->u.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();

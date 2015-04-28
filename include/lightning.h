@@ -38,6 +38,14 @@
 #  include <machine/endian.h>
 #endif
 
+#ifdef STDC_HEADERS
+#  include <stddef.h>
+#else
+#  if !defined(offsetof)
+#    define offsetof(type, field) ((char *)&((type *)0)->field - (char *)0)
+#  endif
+#endif
+
 #ifndef __WORDSIZE
 #  if defined(WORDSIZE)				/* ppc darwin */
 #    define __WORDSIZE		WORDSIZE
@@ -854,7 +862,16 @@ typedef enum {
 #define jit_movi_d_w(u, v)	jit_new_node_wd(jit_code_movi_d_w, u, v)
 
     jit_code_x86_retval_f,	jit_code_x86_retval_d,
-#define jit_code_last_code	jit_code_x86_retval_d
+
+    /* These should be moved/reordered when bumping library major */
+    jit_code_va_start,
+#define jit_va_start(u)		jit_new_node_w(jit_code_va_start, u)
+    jit_code_va_arg,		jit_code_va_arg_d,
+#define jit_va_arg(u, v)	jit_new_node_ww(jit_code_va_arg, u, v)
+#define jit_va_arg_d(u, v)	jit_new_node_ww(jit_code_va_arg_d, u, v)
+    jit_code_va_end,
+#define jit_va_end(u)		jit_new_node_w(jit_code_va_end, u)
+#define jit_code_last_code	jit_code_va_end
 } jit_code_t;
 
 typedef void* (*jit_alloc_func_ptr)	(size_t);

@@ -294,7 +294,6 @@ _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
     jit_ret();
 }
 
-/* must be called internally only */
 void
 _jit_epilog(jit_state_t *_jit)
 {
@@ -315,6 +314,19 @@ _jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
 #else
     return (u->u.w < 8);
 #endif
+}
+
+void
+_jit_ellipsis(jit_state_t *_jit)
+{
+    if (_jitc->prepare) {
+	assert(!(_jitc->function->call.call & jit_call_varargs));
+	_jitc->function->call.call |= jit_call_varargs;
+    }
+    else {
+	assert(!(_jitc->function->self.call & jit_call_varargs));
+	_jitc->function->self.call |= jit_call_varargs;
+    }
 }
 
 jit_node_t *

@@ -1,3 +1,38 @@
+2015-05-27 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning.h, include/lightning/jit_private.h,
+	lib/jit_names.c, lib/lightning.c: Add initial support
+	for the new jit_va_start, jit_va_arg, jit_va_arg_d, and
+	jit_va_end interfaces. The jit_va_start call is supposed
+	to return a va_list compatible pointer, but not yet
+	decided if it will be "declared" stdarg compatible,
+	as for now only x86 support has been added (and should
+	be compatible), but issues may arise on other backends.
+
+	* check/lightning.c: Add wrappers to call the new jit_va_*
+	interfaces.
+
+	* lib/jit_x86-cpu.c, lib/jit_x86.c: Implement the new
+	jit_va_* for x86.
+
+	* lib/jit_x86-sz.c: Add fields, but not yet fully updated,
+	as this is an intermediate commit.
+
+	* lib/jit_aarch64-sz.c, lib/jit_aarch64.c,
+	lib/jit_alpha-sz.c, lib/jit_alpha.c,
+	lib/jit_arm-sz.c, lib/jit_arm.c,
+	lib/jit_hppa-sz.c, lib/jit_hppa.c,
+	lib/jit_ia64-sz.c, lib/jit_ia64.c,
+	lib/jit_mips-sz.c, lib/jit_mips.c,
+	lib/jit_ppc-sz.c, lib/jit_ppc.c,
+	lib/jit_s390-sz.c, lib/jit_s390.c,
+	lib/jit_sparc-sz.c, lib/jit_sparc.c: Prepare for the
+	new jit_va_* interfaces. Not yet implemented, and will
+	cause an assertion if used.
+
+	* check/va_list.tst: Simple early test case, that works
+	on x86_64, x32, ix86, cygwin, and cygwin64.
+
 2015-02-17 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,

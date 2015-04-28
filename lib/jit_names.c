@@ -201,4 +201,7 @@ static char *code_name[] = {
     "movr_d_ww",	"movi_d_ww",
     "movr_d_w",		"movi_d_w",
     "x86_retval_f",	"x86_retval_d",
+    "va_start",
+    "va_arg",		"va_arg_d",
+    "va_end",
 };

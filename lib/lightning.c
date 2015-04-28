@@ -1166,29 +1166,6 @@ _jit_prepare(jit_state_t *_jit)
     _jitc->prepare = 1;
 }
 
-/* If declaring a jit function as varargs, in most backends it does
- * not change anything. Currently only exception is arm backend, that
- * if running in hardware float abi, switches to software float abi
- * if "self" function is varargs. Otherwise, there is no logic to
- * handle va_list like objects that need to parse runtime state, and
- * that is mainly because jit_arg* and jit_getarg* work only with
- * constants values, and one must not expect them to be handled at
- * runtime, they are parsed only once (same applies to jit_allocai,
- * that has no jit_allocar counterpart).
- */
-void
-_jit_ellipsis(jit_state_t *_jit)
-{
-    if (_jitc->prepare) {
-	assert(!(_jitc->function->call.call & jit_call_varargs));
-	_jitc->function->call.call |= jit_call_varargs;
-    }
-    else {
-	assert(!(_jitc->function->self.call & jit_call_varargs));
-	_jitc->function->self.call |= jit_call_varargs;
-    }
-}
-
 void
 _jit_patch(jit_state_t* _jit, jit_node_t *instr)
 {
@@ -1210,7 +1187,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_note:	case jit_code_prolog:	case jit_code_epilog:
 	    mask = 0;
 	    break;
-	case jit_code_live:
+	case jit_code_live:	case jit_code_va_end:
 	    mask = jit_cc_a0_reg;
 	    break;
 	case jit_code_arg:	case jit_code_arg_f:	case jit_code_arg_d:
@@ -1224,6 +1201,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	    break;
 	case jit_code_x86_retval_f:
 	case jit_code_x86_retval_d:
+	case jit_code_va_start:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg;
 	    break;
 	case jit_code_movi:	case jit_code_ldi_c:	case jit_code_ldi_uc:
@@ -1258,6 +1236,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 	case jit_code_ldr_d:
 	case jit_code_movr_w_f:	case jit_code_movr_f_w:
 	case jit_code_movr_w_d:	case jit_code_movr_d_w:
+	case jit_code_va_arg:	case jit_code_va_arg_d:
 	    mask = jit_cc_a0_reg|jit_cc_a0_chg|jit_cc_a1_reg;
 	    break;
 	case jit_code_movr_d_ww:

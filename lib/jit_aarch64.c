@@ -285,6 +285,19 @@ _jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
     return (jit_arg_f_reg_p(u->u.w));
 }
 
+void
+_jit_ellipsis(jit_state_t *_jit)
+{
+    if (_jitc->prepare) {
+	assert(!(_jitc->function->call.call & jit_call_varargs));
+	_jitc->function->call.call |= jit_call_varargs;
+    }
+    else {
+	assert(!(_jitc->function->self.call & jit_call_varargs));
+	_jitc->function->self.call |= jit_call_varargs;
+    }
+}
+
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {

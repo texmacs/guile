@@ -353,6 +353,10 @@
     0,  /* movi_d_w */
     0,  /* x86_retval_f */
     0,  /* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #endif /* __WORDSIZE */
 
 #if __WORDSIZE == 64
@@ -709,4 +713,8 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #endif /* __WORDSIZE */

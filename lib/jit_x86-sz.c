@@ -353,6 +353,10 @@
     0,	/* movi_d_w */
     10,	/* x86_retval_f */
     10,	/* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #endif /* __X32 */
 
 #if __X64
@@ -710,6 +714,10 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #else
 
 #  if __X64_32
@@ -1066,6 +1074,10 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #  else
 
 #define JIT_INSTR_MAX 43
@@ -1421,6 +1433,10 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
 #endif /* __CYGWIN__ */
 #  endif /* __X64_32 */
 #endif /* __X64 */

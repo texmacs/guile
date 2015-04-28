@@ -497,6 +497,9 @@ static void bunordr_d(void);	static void bunordi_d(void);
 static void pushargr_d(void);	static void pushargi_d(void);
 static void retr_d(void);	static void reti_d(void);
 static void retval_d(void);
+static void vastart(void);
+static void vaarg(void);	static void vaarg_d(void);
+static void vaend(void);
 
 static void error(const char *format, ...) noreturn printf_format(1, 2);
 static void warn(const char *format, ...) printf_format(1, 2) maybe_unused;
@@ -576,6 +579,7 @@ static char		 *data;
 static size_t		  data_offset, data_length;
 static instr_t		  instr_vector[] = {
 #define entry(value)	{ NULL, #value, value }
+#define entry2(name, function)	{ NULL, name, function }
     entry(align),	entry(name),
     entry(prolog),
     entry(frame),	entry(tramp),
@@ -806,7 +810,10 @@ static instr_t		  instr_vector[] = {
     entry(pushargr_d),	entry(pushargi_d),
     entry(retr_d),	entry(reti_d),
     entry(retval_d),
-
+    entry2("va_start", vastart),
+    entry2("va_arg", vaarg),
+    entry2("va_arg_d", vaarg_d),
+    entry2("va_end", vaend),
 #undef entry
 };
 
@@ -1644,6 +1651,31 @@ entry_lb_fr_fr(bunordr_d)	entry_lb_fr_dm(bunordi_d)
 entry_fr(pushargr_d)		entry_dm(pushargi_d)
 entry_fr(retr_d)		entry_dm(reti_d)
 entry_fr(retval_d)
+static void
+vastart(void)
+{
+    jit_gpr_t	r0 = get_ireg();
+    jit_va_start(r0);
+}
+static void
+vaarg(void)
+{
+    jit_gpr_t	r0 = get_ireg(), r1 = get_ireg();
+    jit_va_arg(r0, r1);
+}
+static void
+vaarg_d(void)
+{
+    jit_fpr_t	r0 = get_freg();
+    jit_gpr_t	r1 = get_ireg();
+    jit_va_arg_d(r0, r1);
+}
+static void
+vaend(void)
+{
+    jit_gpr_t	r0 = get_ireg();
+    jit_va_end(r0);
+}
 #undef entry_fn
 #undef entry_fm
 #undef entry_dm
