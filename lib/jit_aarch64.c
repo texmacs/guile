@@ -22,6 +22,41 @@
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 8)
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 8)
 
+typedef struct jit_qreg {
+    jit_float64_t	l;
+    jit_float64_t	h;
+} jit_qreg_t;
+
+#define va_gp_min_offset		-64
+#define va_gp_top_offset		offsetof(jit_va_list_t, q0)
+#define va_fp_min_offset		-128
+#define va_fp_top_offset		sizeof(jit_va_list_t)
+typedef struct jit_va_list {
+    jit_pointer_t	stack;
+    jit_pointer_t	gptop;
+    jit_pointer_t	fptop;
+    jit_int32_t		gpoff;
+    jit_int32_t		fpoff;
+
+    jit_int64_t		x0;
+    jit_int64_t		x1;
+    jit_int64_t		x2;
+    jit_int64_t		x3;
+    jit_int64_t		x4;
+    jit_int64_t		x5;
+    jit_int64_t		x6;
+    jit_int64_t		x7;
+
+    jit_qreg_t		q0;
+    jit_qreg_t		q1;
+    jit_qreg_t		q2;
+    jit_qreg_t		q3;
+    jit_qreg_t		q4;
+    jit_qreg_t		q5;
+    jit_qreg_t		q6;
+    jit_qreg_t		q7;
+} jit_va_list_t;
+
 /*
  * Prototypes
  */
@@ -295,6 +330,23 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack,
+	 * with enough space to save all argument
+	 * registers, and use fixed offsets for them. */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+
+	/* Initialize gp offset in save area. */
+	if (jit_arg_reg_p(_jitc->function->self.argi))
+	    _jitc->function->vagp = (8 - _jitc->function->self.argi) * -8;
+	else
+	    _jitc->function->vagp = va_gp_min_offset;
+
+	/* Initialize fp offset in save area. */
+	if (jit_arg_f_reg_p(_jitc->function->self.argf))
+	    _jitc->function->vafp = (8 - _jitc->function->self.argf) * -16;
+	else
+	    _jitc->function->vafp = va_fp_min_offset;
     }
 }
 
@@ -303,6 +355,7 @@ _jit_arg(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
     if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
     else {
@@ -317,6 +370,7 @@ _jit_arg_f(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
     if (jit_arg_f_reg_p(_jitc->function->self.argf))
 	offset = _jitc->function->self.argf++;
     else {
@@ -331,6 +385,7 @@ _jit_arg_d(jit_state_t *_jit)
 {
     jit_int32_t		offset;
     assert(_jitc->function);
+    assert(!(_jitc->function->self.call & jit_call_varargs));
     if (jit_arg_f_reg_p(_jitc->function->self.argf))
 	offset = _jitc->function->self.argf++;
     else {
@@ -1268,9 +1323,19 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();

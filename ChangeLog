@@ -1,3 +1,9 @@
+2015-05-30 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64-cpu.c, lib/jit_aarch64-fpu.c,
+	lib/jit_aarch64.c: Add base support to jit vararg
+	functions to the aarch64 backend.
+
 2015-05-27 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,

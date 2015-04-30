@@ -310,6 +310,8 @@ static jit_word_t _bltgti_d(jit_state_t*,jit_word_t,jit_int32_t,jit_float64_t);
 #  define bordi_d(i0,r0,i1)		dbcci(BCC_VC,i0,r0,i1)
 #  define bunordr_d(i0,r0,r1)		dbccr(BCC_VS,i0,r0,r1)
 #  define bunordi_d(i0,r0,i1)		dbcci(BCC_VS,i0,r0,i1)
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -856,4 +858,57 @@ _bltgtr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     return (w);
 }
 dbopi(ltgt)
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_word_t		ge_code;
+    jit_word_t		lt_code;
+    jit_int32_t		rg0, rg1;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg(jit_class_gpr);
+    rg1 = jit_get_reg(jit_class_gpr);
+
+    /* Load the fp offset in save area in the first temporary. */
+    ldxi_i(rn(rg0), r1, offsetof(jit_va_list_t, fpoff));
+
+    /* Jump over if there are no remaining arguments in the save area. */
+    ge_code = bgei(_jit->pc.w, rn(rg0), 0);
+
+    /* Load the gp save pointer in the second temporary. */
+    ldxi(rn(rg1), r1, offsetof(jit_va_list_t, fptop));
+
+    /* Load the vararg argument in the first argument. */
+    ldxr_d(r0, rn(rg1), rn(rg0));
+
+    /* Update the fp offset. */
+    addi(rn(rg0), rn(rg0), 16);
+    stxi_i(offsetof(jit_va_list_t, fpoff), r1, rn(rg0));
+
+    /* Will only need one temporary register below. */
+    jit_unget_reg(rg1);
+
+    /* Jump over overflow code. */
+    lt_code = jmpi_p(_jit->pc.w);
+
+    /* Where to land if argument is in overflow area. */
+    patch_at(ge_code, _jit->pc.w);
+
+    /* Load stack pointer. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, stack));
+
+    /* Load argument. */
+    ldr(r0, rn(rg0));
+
+    /* Update stack pointer. */
+    addi(rn(rg0), rn(rg0), 8);
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(rg0));
+
+    /* Where to land if argument is in gp save area. */
+    patch_at(lt_code, _jit->pc.w);
+
+    jit_unget_reg(rg0);
+}
 #endif
