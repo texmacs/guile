@@ -3656,6 +3656,8 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
 {
     jit_int32_t		reg;
 
+    assert(_jitc->function->self.call & jit_call_varargs);
+
     /* Return jit_va_list_t in the register argument */
     addi(r0, _RBP_REGNO, _jitc->function->vaoff);
     reg = jit_get_reg(jit_class_gpr);
@@ -3692,6 +3694,8 @@ _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     jit_word_t		ge_code;
     jit_word_t		lt_code;
 #endif
+
+    assert(_jitc->function->self.call & jit_call_varargs);
 
     rg0 = jit_get_reg(jit_class_gpr);
 #if __X64 && !__CYGWIN__
@@ -3756,6 +3760,8 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
     jit_word_t		lt_code;
 #endif
 
+    assert(_jitc->function->self.call & jit_call_varargs);
+
     rg0 = jit_get_reg(jit_class_gpr);
 #if __X64 && !__CYGWIN__
     rg1 = jit_get_reg(jit_class_gpr);
@@ -3777,9 +3783,9 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
     else
 	sse_ldxr_d(r0, rn(rg1), rn(rg0));
 
-    /* Update the gp (or fp) offset. */
+    /* Update the fp offset. */
     addi(rn(rg0), rn(rg0), va_fp_increment);
-    stxi_i(offsetof(jit_va_list_t, gpoff), r1, rn(rg0));
+    stxi_i(offsetof(jit_va_list_t, fpoff), r1, rn(rg0));
 
     /* Will only need one temporary register below. */
     jit_unget_reg(rg1);
