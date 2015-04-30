@@ -3808,7 +3808,7 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
 	sse_ldr_d(r0, rn(rg0));
 
     /* Update overflow pointer. */
-    addi(rn(rg0), rn(rg0), va_fp_increment);
+    addi(rn(rg0), rn(rg0), 8);
     stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
 
 #if __X64 && !__CYGWIN__
