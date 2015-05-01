@@ -804,6 +804,8 @@ static void _vfp_stxr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 static void _vfp_stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #  define vfp_stxi_d(i0,r0,r1)		_vfp_stxi_d(_jit,i0,r0,r1)
 static void _vfp_stxi_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
+#  define vfp_vaarg_d(r0, r1)		_vfp_vaarg_d(_jit, r0, r1)
+static void _vfp_vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -2300,6 +2302,32 @@ _vfp_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	stxi_i(4, rn(reg), r1 + 1);
 	jit_unget_reg(reg);
     }
+}
+
+static void
+_vfp_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		rg0, rg1;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg(jit_class_gpr);
+
+    /* Load stack pointer. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, stack));
+    rg1 = jit_get_reg(jit_class_gpr);
+    andi(rn(rg1), rn(rg0), 7);
+    addr(rn(rg0), rn(rg0), rn(rg1));
+    jit_unget_reg(rg1);
+
+    /* Load argument. */
+    vfp_ldr_d(r0, rn(rg0));
+
+    /* Update stack pointer. */
+    addi(rn(rg0), rn(rg0), sizeof(jit_float64_t));
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(rg0));
+
+    jit_unget_reg(rg0);
 }
 #  undef dbopi
 #  undef fbopi

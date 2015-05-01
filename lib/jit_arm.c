@@ -51,6 +51,10 @@ typedef union _jit_thumb_t {
     jit_int16_t		s[2];
 } jit_thumb_t;
 
+typedef struct jit_va_list {
+    jit_pointer_t	stack;
+} jit_va_list_t;
+
 /*
  * Prototypes
  */
@@ -415,6 +419,15 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack. */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+
+	/* First 4 stack addresses are always spilled r0-r3 */
+	if (jit_arg_reg_p(_jitc->function->self.argi))
+	    _jitc->function->vagp = _jitc->function->self.argi * 4;
+	else
+	    _jitc->function->vagp = 16;
     }
 }
 
@@ -1703,9 +1716,22 @@ _emit_code(jit_state_t *_jit)
 		else
 		    vfp_movi_d(rn(node->u.w), node->w.d);
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		if (jit_swf_p())
+		    swf_vaarg_d(rn(node->u.w), rn(node->v.w));
+		else
+		    vfp_vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();
