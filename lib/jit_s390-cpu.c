@@ -19,9 +19,13 @@
 
 #if PROTO
 #  if __WORDSIZE == 32
+#    define ldr(r0,r1)			ldr_i(r0,r1)
+#    define ldxr(r0,r1,r2)		ldxr_i(r0,r1,r2)
 #    define ldxi(r0,r1,i0)		ldxi_i(r0,r1,i0)
 #    define stxi(i0,r0,r1)		stxi_i(i0,r0,r1)
 #  else
+#    define ldr(r0,r1)			ldr_l(r0,r1)
+#    define ldxr(r0,r1,r2)		ldxr_l(r0,r1,r2)
 #    define ldxi(r0,r1,i0)		ldxi_l(r0,r1,i0)
 #    define stxi(i0,r0,r1)		stxi_l(i0,r0,r1)
 #  endif
@@ -1293,6 +1297,10 @@ static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define epilog(i0)			_epilog(_jit,i0)
 static void _epilog(jit_state_t*,jit_node_t*);
+#  define vastart(r0)			_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#  define vaarg(r0, r1)			_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define patch_at(instr,label)		_patch_at(_jit,instr,label)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #endif
@@ -3484,6 +3492,7 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
 }
 
 static jit_int32_t	gprs[] = {
+    _R2, _R3, _R4, _R5,
     _R6, _R7, _R8, _R9, _R10, _R11, _R12, _R13
 };
 
@@ -3503,7 +3512,8 @@ _prolog(jit_state_t *_jit, jit_node_t *i0)
     _jitc->function->stack = ((_jitc->function->self.alen -
 			      /* align stack at 8 bytes */
 			      _jitc->function->self.aoff) + 7) & -8;
-    /* Lightning does not reserve stack space for spilling arguments
+    /* *IFF* a non variadic function,
+     * Lightning does not reserve stack space for spilling arguments
      * in registers.
      * S390x, as per gcc, has 8 stack slots for spilling arguments,
      * (%r6 is callee save) and uses an alloca like approach to save
@@ -3512,43 +3522,72 @@ _prolog(jit_state_t *_jit, jit_node_t *i0)
      * use the 8 slots to spill any modified fpr register, and still
      * use the same stack frame logic as gcc.
      * Save at least %r13 to %r15, as %r13 is used as frame pointer.
+     * *IFF* a variadic function, a "standard" stack frame, with
+     * fpr registers saved in an alloca'ed area, is used.
      */
-    for (regno = 0; regno < jit_size(gprs) - 1; regno++) {
-	if (jit_regset_tstbit(&_jitc->function->regset, gprs[regno]))
-	    break;
+    if ((_jitc->function->self.call & jit_call_varargs) &&
+	jit_arg_reg_p(_jitc->function->vagp))
+	regno = _jitc->function->vagp;
+    else {
+	for (regno = 4; regno < jit_size(gprs) - 1; regno++) {
+	    if (jit_regset_tstbit(&_jitc->function->regset, gprs[regno]))
+		break;
+	}
     }
 #if __WORDSIZE == 32
-    offset = regno * 4 + 32;
+#  define FP_OFFSET		64
+    if (_jitc->function->self.call & jit_call_varargs)
+	offset = regno * 4 + 8;
+    else
+	offset = (regno - 4) * 4 + 32;
     STM(rn(gprs[regno]), _R15_REGNO, x20(offset), _R15_REGNO);
 #else
-    offset = regno * 8 + 48;
+#  define FP_OFFSET		128
+    if (_jitc->function->self.call & jit_call_varargs)
+	offset = regno * 8 + 16;
+    else
+	offset = (regno - 4) * 8 + 48;
     STMG(rn(gprs[regno]), _R15_REGNO, x20(offset), _R15_REGNO);
 #endif
+
 #define SPILL(R, O)							\
     do {								\
 	if (jit_regset_tstbit(&_jitc->function->regset, R))		\
 	    stxi_d(O, _R15_REGNO, rn(R));				\
     } while (0)
-    /* First 4 in low address */
+    if (_jitc->function->self.call & jit_call_varargs) {
+	for (regno = _jitc->function->vafp; jit_arg_f_reg_p(regno); ++regno)
+	    stxi_d(FP_OFFSET + regno * 8, _R15_REGNO, rn(_F0 - regno));
+	SPILL(_F8, _jitc->function->vaoff + offsetof(jit_va_list_t, f8));
+	SPILL(_F9, _jitc->function->vaoff + offsetof(jit_va_list_t, f9));
+	SPILL(_F10, _jitc->function->vaoff + offsetof(jit_va_list_t, f10));
+	SPILL(_F11, _jitc->function->vaoff + offsetof(jit_va_list_t, f11));
+	SPILL(_F12, _jitc->function->vaoff + offsetof(jit_va_list_t, f12));
+	SPILL(_F13, _jitc->function->vaoff + offsetof(jit_va_list_t, f13));
+	SPILL(_F14, _jitc->function->vaoff + offsetof(jit_va_list_t, f14));
+    }
+    else {
+	/* First 4 in low address */
 #if __WORDSIZE == 32
-    SPILL(_F10, 0);
-    SPILL(_F11, 8);
-    SPILL(_F12, 16);
-    SPILL(_F13, 24);
-    /* gpr registers here */
-    SPILL(_F14, 72);
-    SPILL(_F8, 80);
-    SPILL(_F9, 88);
+	SPILL(_F10, 0);
+	SPILL(_F11, 8);
+	SPILL(_F12, 16);
+	SPILL(_F13, 24);
+	/* gpr registers here */
+	SPILL(_F14, 72);
+	SPILL(_F8, 80);
+	SPILL(_F9, 88);
 #else
-    SPILL(_F10, 16);
-    SPILL(_F11, 24);
-    SPILL(_F12, 32);
-    SPILL(_F13, 48);
-    /* Last 3 in high address */
-    SPILL(_F14, 136);
-    SPILL(_F8, 144);
-    SPILL(_F9, 152);
+	SPILL(_F10, 16);
+	SPILL(_F11, 24);
+	SPILL(_F12, 32);
+	SPILL(_F13, 48);
+	/* Last 3 in high address */
+	SPILL(_F14, 136);
+	SPILL(_F8, 144);
+	SPILL(_F9, 152);
 #endif
+    }
 #undef SPILL
     movr(_R13_REGNO, _R15_REGNO);
     subi(_R15_REGNO, _R15_REGNO, stack_framesize + _jitc->function->stack);
@@ -3566,38 +3605,61 @@ _epilog(jit_state_t *_jit, jit_node_t *i0)
     jit_int32_t		regno, offset;
     if (_jitc->function->assume_frame)
 	return;
-    for (regno = 0; regno < jit_size(gprs) - 1; regno++) {
-	if (jit_regset_tstbit(&_jitc->function->regset, gprs[regno]))
-	    break;
+    if ((_jitc->function->self.call & jit_call_varargs) &&
+	jit_arg_reg_p(_jitc->function->vagp))
+	regno = _jitc->function->vagp;
+    else {
+	for (regno = 4; regno < jit_size(gprs) - 1; regno++) {
+	    if (jit_regset_tstbit(&_jitc->function->regset, gprs[regno]))
+		break;
+	}
     }
 #if __WORDSIZE == 32
-    offset = regno * 4 + 32;
+    if (_jitc->function->self.call & jit_call_varargs)
+	offset = regno * 4 + 8;
+    else
+	offset = (regno - 4) * 4 + 32;
 #else
-    offset = regno * 8 + 48;
+    if (_jitc->function->self.call & jit_call_varargs)
+	offset = regno * 8 + 16;
+    else
+	offset = (regno - 4) * 8 + 48;
 #endif
     movr(_R15_REGNO, _R13_REGNO);
+
 #define LOAD(R, O)							\
     do {								\
 	if (jit_regset_tstbit(&_jitc->function->regset, R))		\
 	    ldxi_d(rn(R), _R15_REGNO, O);				\
     } while (0)
+    if (_jitc->function->self.call & jit_call_varargs) {
+	LOAD(_F8, _jitc->function->vaoff + offsetof(jit_va_list_t, f8));
+	LOAD(_F9, _jitc->function->vaoff + offsetof(jit_va_list_t, f9));
+	LOAD(_F10, _jitc->function->vaoff + offsetof(jit_va_list_t, f10));
+	LOAD(_F11, _jitc->function->vaoff + offsetof(jit_va_list_t, f11));
+	LOAD(_F12, _jitc->function->vaoff + offsetof(jit_va_list_t, f12));
+	LOAD(_F13, _jitc->function->vaoff + offsetof(jit_va_list_t, f13));
+	LOAD(_F14, _jitc->function->vaoff + offsetof(jit_va_list_t, f14));
+    }
+    else {
 #if __WORDSIZE == 32
-    LOAD(_F10, 0);
-    LOAD(_F11, 8);
-    LOAD(_F12, 16);
-    LOAD(_F13, 24);
-    LOAD(_F14, 72);
-    LOAD(_F8, 80);
-    LOAD(_F9, 88);
+	LOAD(_F10, 0);
+	LOAD(_F11, 8);
+	LOAD(_F12, 16);
+	LOAD(_F13, 24);
+	LOAD(_F14, 72);
+	LOAD(_F8, 80);
+	LOAD(_F9, 88);
 #else
-    LOAD(_F10, 16);
-    LOAD(_F11, 24);
-    LOAD(_F12, 32);
-    LOAD(_F13, 48);
-    LOAD(_F14, 136);
-    LOAD(_F8, 144);
-    LOAD(_F9, 152);
+	LOAD(_F10, 16);
+	LOAD(_F11, 24);
+	LOAD(_F12, 32);
+	LOAD(_F13, 48);
+	LOAD(_F14, 136);
+	LOAD(_F8, 144);
+	LOAD(_F9, 152);
 #endif
+    }
 #undef LOAD
 #if __WORDSIZE == 32
     LM(rn(gprs[regno]), _R15_REGNO, x20(offset), _R15_REGNO);
@@ -3605,6 +3667,103 @@ _epilog(jit_state_t *_jit, jit_node_t *i0)
     LMG(rn(gprs[regno]), _R15_REGNO, x20(offset), _R15_REGNO);
 #endif
     BR(_R14_REGNO);
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    jit_int32_t		reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Return jit_va_list_t in the register argument */
+    addi(r0, _R13_REGNO, _jitc->function->vaoff);
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* Initialize gp offset in the save area. */
+    movi(rn(reg), _jitc->function->vagp);
+    stxi(offsetof(jit_va_list_t, gpoff), r0, rn(reg));
+
+    /* Initialize fp offset in the save area. */
+    movi(rn(reg), _jitc->function->vafp);
+    stxi(offsetof(jit_va_list_t, fpoff), r0, rn(reg));
+
+    /* Initialize overflow pointer to the first stack argument. */
+    addi(rn(reg), _R13_REGNO, _jitc->function->self.size);
+    stxi(offsetof(jit_va_list_t, over), r0, rn(reg));
+
+    /* Initialize register save area pointer. */
+    stxi(offsetof(jit_va_list_t, save), r0, _R13_REGNO);
+
+    jit_unget_reg(reg);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		rg0;
+    jit_int32_t		rg1;
+    jit_int32_t		rg2;
+    jit_word_t		ge_code;
+    jit_word_t		lt_code;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg_but_zero(0);
+    rg1 = jit_get_reg_but_zero(0);
+
+    /* Load the gp offset in save area in the first temporary. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, gpoff));
+
+    /* Jump over if there are no remaining arguments in the save area. */
+    ge_code = bgei_p(_jit->pc.w, rn(rg0), 5);
+
+    /* Load the save area pointer in the second temporary. */
+    ldxi(rn(rg1), r1, offsetof(jit_va_list_t, save));
+
+    /* Scale offset */
+    rg2 = jit_get_reg_but_zero(0);
+    lshi(rn(rg2), rn(rg0),
+#if __WORDSIZE == 32
+	 2
+#else
+	 3
+#endif
+	 );
+    /* Add offset to saved area. */
+    addi(rn(rg2), rn(rg2), 2 * sizeof(jit_word_t));
+
+    /* Load the vararg argument in the first argument. */
+    ldxr(r0, rn(rg1), rn(rg2));
+    jit_unget_reg_but_zero(rg2);
+
+    /* Update the gp offset. */
+    addi(rn(rg0), rn(rg0), 1);
+    stxi(offsetof(jit_va_list_t, gpoff), r1, rn(rg0));
+
+    /* Will only need one temporary register below. */
+    jit_unget_reg_but_zero(rg1);
+
+    /* Jump over overflow code. */
+    lt_code = jmpi_p(_jit->pc.w);
+
+    /* Where to land if argument is in overflow area. */
+    patch_at(ge_code, _jit->pc.w);
+
+    /* Load overflow pointer. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, over));
+
+    /* Load argument. */
+    ldr(r0, rn(rg0));
+
+    /* Update overflow pointer. */
+    addi(rn(rg0), rn(rg0), sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
+
+    /* Where to land if argument is in save area. */
+    patch_at(lt_code, _jit->pc.w);
+
+    jit_unget_reg_but_zero(rg0);
 }
 
 static void

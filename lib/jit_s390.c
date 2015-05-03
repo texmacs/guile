@@ -31,6 +31,47 @@
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < NUM_FLOAT_REG_ARGS)
 
 /*
+ * Types
+ */
+typedef struct jit_va_list {
+    /* The offsets are "1" based, as addresses are fixed in the
+     * standard stack frame format. */
+    jit_word_t		gpoff;
+    jit_word_t		fpoff;
+
+    /* Easier when there is an explicitly defined type...
+(gdb) ptype ap
+type = struct __va_list_tag {
+    long __gpr;
+    long __fpr;
+    void *__overflow_arg_area;
+    void *__reg_save_area;
+
+    Note that gopff (__gpr) and fpoff (__fpr) are jit_word_t equivalent
+    and, again, "1" (unit) based, so must be adjusted at va_arg time.
+ */
+    jit_pointer_t	over;
+    jit_pointer_t	save;
+
+    /* For variadic functions, always allocate space to save callee
+     * save fpr registers.
+     * Note that s390 has a standard stack frame format that lightning
+     * does not fully comply with, but for variadic functions it must,
+     * for those (variadic) do not use the "empty" spaces for any
+     * callee save fpr register, but save them after the va_list
+     * space; and use the standard stack frame format, as required
+     * by variadic functions (and have a compatible va_list pointer). */
+    jit_float64_t	f8;
+    jit_float64_t	f9;
+    jit_float64_t	f10;
+    jit_float64_t	f11;
+    jit_float64_t	f12;
+    jit_float64_t	f13;
+    jit_float64_t	f14;
+    jit_float64_t	f15;
+} jit_va_list_t;
+
+/*
  * Prototypes
  */
 #define jit_get_reg_pair()		_jit_get_reg_pair(_jit)
@@ -260,6 +301,21 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack. */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+
+	/* Initialize gp offset in save area. */
+	if (jit_arg_reg_p(_jitc->function->self.argi))
+	    _jitc->function->vagp = _jitc->function->self.argi;
+	else
+	    _jitc->function->vagp = 5;
+
+	/* Initialize fp offset in save area. */
+	if (jit_arg_f_reg_p(_jitc->function->self.argf))
+	    _jitc->function->vafp = _jitc->function->self.argf;
+	else
+	    _jitc->function->vafp = NUM_FLOAT_REG_ARGS;
     }
 }
 
@@ -1292,9 +1348,19 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();

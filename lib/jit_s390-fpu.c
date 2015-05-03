@@ -595,6 +595,8 @@ static void _ltgtr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define bunordr_d_p(i0,r0,r1)		bdr_p(CC_O,i0,r0,r1)
 #  define bunordi_f_p(i0,r0,i1)		bfi_p(CC_O,i0,r0,i1)
 #  define bunordi_d_p(i0,r0,i1)		bdi_p(CC_O,i0,r0,i1)
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -1248,5 +1250,67 @@ _ltgtr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     movi(r0, 1);			/* set to one */
     patch_at(unord, _jit->pc.w);
     patch_at(eq, _jit->pc.w);
+}
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		rg0;
+    jit_int32_t		rg1;
+    jit_int32_t		rg2;
+    jit_word_t		ge_code;
+    jit_word_t		lt_code;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg_but_zero(jit_class_gpr);
+    rg1 = jit_get_reg_but_zero(jit_class_gpr);
+
+    /* Load the fp offset in save area in the first temporary. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, fpoff));
+
+    /* Jump over if there are no remaining arguments in the save area. */
+    ge_code = bgei_p(_jit->pc.w, rn(rg0), NUM_FLOAT_REG_ARGS);
+
+    /* Load the save area pointer in the second temporary. */
+    ldxi(rn(rg1), r1, offsetof(jit_va_list_t, save));
+
+    /* Scale offset. */
+    rg2 = jit_get_reg_but_zero(0);
+    lshi(rn(rg2), rn(rg0), 3);
+    /* Add offset to saved area */
+    addi(rn(rg2), rn(rg2), 16 * sizeof(jit_word_t));
+
+    /* Load the vararg argument in the first argument. */
+    ldxr_d(r0, rn(rg1), rn(rg2));
+    jit_unget_reg_but_zero(rg2);
+
+    /* Update the fp offset. */
+    addi(rn(rg0), rn(rg0), 1);
+    stxi(offsetof(jit_va_list_t, gpoff), r1, rn(rg0));
+
+    /* Will only need one temporary register below. */
+    jit_unget_reg_but_zero(rg1);
+
+    /* Jump over overflow code. */
+    lt_code = jmpi_p(_jit->pc.w);
+
+    /* Where to land if argument is in overflow area. */
+    patch_at(ge_code, _jit->pc.w);
+
+    /* Load overflow pointer. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, over));
+
+    /* Load argument. */
+    ldr_d(r0, rn(rg0));
+
+    /* Update overflow pointer. */
+    addi(rn(rg0), rn(rg0), sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
+
+    /* Where to land if argument is in save area. */
+    patch_at(lt_code, _jit->pc.w);
+
+    jit_unget_reg_but_zero(rg0);
 }
 #endif
