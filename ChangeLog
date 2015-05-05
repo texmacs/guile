@@ -1,3 +1,8 @@
+2015-06-05 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ppc-cpu.c, lib/jit_ppc-fpu.c, lib/jit_ppc.c:
+	Add base support to jit vararg functions to the PowerPC backend.
+
 2015-06-02 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_s390-cpu.c, lib/jit_s390-fpu.c, lib/jit_s390.c:

@@ -399,6 +399,8 @@ static void _sti_d(jit_state_t*,jit_word_t,jit_int32_t);
 static void _stxr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define stxi_d(i0,r0,r1)		_stxi_d(_jit,i0,r0,r1)
 static void _stxi_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -1178,5 +1180,28 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	stxr_d(rn(reg), r0, r1);
 	jit_unget_reg(reg);
     }
+}
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		inv, reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+    reg = jit_get_reg(jit_class_gpr);
+    if ((inv = reg == _R0))	reg = jit_get_reg(jit_class_gpr);
+
+    /* Load varargs stack pointer. */
+    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
+
+    /* Load argument. */
+    ldr_d(r0, rn(reg));
+
+    /* Update vararg stack pointer. */
+    addi(rn(reg), rn(reg), sizeof(jit_float64_t));
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
+
+    jit_unget_reg(reg);
+    if (inv)			jit_unget_reg(_R0);
 }
 #endif

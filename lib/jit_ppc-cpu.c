@@ -854,6 +854,10 @@ static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 static void _prolog(jit_state_t*, jit_node_t*);
 #  define epilog(node)			_epilog(_jit, node)
 static void _epilog(jit_state_t*, jit_node_t*);
+#  define vastart(r0)			_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#  define vaarg(r0, r1)			_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define patch_at(i,l)			_patch_at(_jit,i,l)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #endif
@@ -3280,6 +3284,12 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(regno));
 	jit_unget_reg(regno);
     }
+
+    if (_jitc->function->self.call & jit_call_varargs) {
+	for (regno = _jitc->function->vagp; jit_arg_reg_p(regno); ++regno)
+	    stxi(gpr_save_area - (8 - regno) * sizeof(jit_word_t),
+		 _FP_REGNO, rn(JIT_RA0 - regno));
+    }
 }
 
 static void
@@ -3327,6 +3337,51 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 #endif
 
     BLR();
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    jit_int32_t		reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Return jit_va_list_t in the register argument */
+    addi(r0, _FP_REGNO, _jitc->function->vaoff);
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* Initialize stack pointer to the first stack argument.
+     * The -16 is to account for the 4 argument registers
+     * always saved, and _jitc->function->vagp is to account
+     * for declared arguments. */
+    addi(rn(reg), _FP_REGNO, gpr_save_area -
+	 8 * sizeof(jit_word_t) + _jitc->function->vagp * sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, stack), r0, rn(reg));
+
+    jit_unget_reg(reg);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		inv, reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+    reg = jit_get_reg(jit_class_gpr);
+    if ((inv = reg == _R0))	reg = jit_get_reg(jit_class_gpr);
+
+    /* Load varargs stack pointer. */
+    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
+
+    /* Load argument. */
+    ldr(r0, rn(reg));
+
+    /* Update vararg stack pointer. */
+    addi(rn(reg), rn(reg), sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
+
+    jit_unget_reg(reg);
+    if (inv)			jit_unget_reg(_R0);
 }
 
 static void
