@@ -3350,10 +3350,7 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
     addi(r0, _FP_REGNO, _jitc->function->vaoff);
     reg = jit_get_reg(jit_class_gpr);
 
-    /* Initialize stack pointer to the first stack argument.
-     * The -16 is to account for the 4 argument registers
-     * always saved, and _jitc->function->vagp is to account
-     * for declared arguments. */
+    /* Initialize stack pointer to the first stack argument. */
     addi(rn(reg), _FP_REGNO, gpr_save_area -
 	 8 * sizeof(jit_word_t) + _jitc->function->vagp * sizeof(jit_word_t));
     stxi(offsetof(jit_va_list_t, stack), r0, rn(reg));
