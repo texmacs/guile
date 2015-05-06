@@ -1,3 +1,10 @@
+2015-06-06 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips-cpu.c, lib/jit_mips-fpu.c, lib/jit_mips.c:
+	Add base support to jit vararg functions to the mips backend.
+	Currently only supported on the o32 abi, until access to a
+	n32 system is arranged.
+
 2015-06-05 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c, lib/jit_ppc-fpu.c, lib/jit_ppc.c:

@@ -92,12 +92,14 @@ typedef union {
 #    else
 #      define stack_framesize		112
 #    endif
+#    define ldr(u,v)			ldr_i(u,v)
 #    define ldi(u,v)			ldi_i(u,v)
 #    define ldxi(u,v,w)			ldxi_i(u,v,w)
 #    define sti(u,v)			sti_i(u,v)
 #    define stxi(u,v,w)			stxi_i(u,v,w)
 #  else
 #    define stack_framesize		144
+#    define ldr(u,v)			ldr_l(u,v)
 #    define ldi(u,v)			ldi_l(u,v)
 #    define ldxi(u,v,w)			ldxi_l(u,v,w)
 #    define sti(u,v)			sti_l(u,v)
@@ -737,6 +739,10 @@ static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define epilog(node)			_epilog(_jit,node)
 static void _epilog(jit_state_t*,jit_node_t*);
+#  define vastart(r0)			_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#  define vaarg(r0, r1)			_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #define patch_abs(instr,label)		_patch_abs(_jit,instr,label)
 static void _patch_abs(jit_state_t*,jit_word_t,jit_word_t);
 #define patch_at(jump,label)		_patch_at(_jit,jump,label)
@@ -2948,6 +2954,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi_i(_jitc->function->aoffoff, _BP_REGNO, rn(index));
 	jit_unget_reg(index);
     }
+
+    if (_jitc->function->self.call & jit_call_varargs) {
+	index = _jitc->function->vagp;
+	offset = stack_framesize + index * sizeof(jit_word_t);
+	for (; jit_arg_reg_p(index); ++index, offset += sizeof(jit_word_t))
+	    stxi(offset, _BP_REGNO, rn(_A0 - index));
+    }
 }
 
 static void
@@ -2975,6 +2988,46 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     JR(_RA_REGNO);
     /* delay slot */
     addi(_SP_REGNO, _SP_REGNO, stack_framesize);
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    jit_int32_t		reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Return jit_va_list_t in the register argument */
+    addi(r0, _BP_REGNO, _jitc->function->vaoff);
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* Initialize stack pointer to the first stack argument. */
+    addi(rn(reg), _BP_REGNO, stack_framesize +
+	 _jitc->function->vagp * sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, stack), r0, rn(reg));
+
+    jit_unget_reg(reg);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* Load varargs stack pointer. */
+    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
+
+    /* Load argument. */
+    ldr(r0, rn(reg));
+
+    /* Update vararg stack pointer. */
+    addi(rn(reg), rn(reg), sizeof(jit_word_t));
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
+
+    jit_unget_reg(reg);
 }
 
 static void

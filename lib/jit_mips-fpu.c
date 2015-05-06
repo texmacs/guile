@@ -543,6 +543,8 @@ static jit_word_t _bunordr_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #  define bunordi_d(i0, r0, i1)		_bunordi_d(_jit, i0, r0, i1)
 static jit_word_t
 _bunordi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_float64_t*);
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -1774,6 +1776,34 @@ _bunordr_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r1, jit_int32_t r2)
     return (w);
 }
 dbopi(unord)
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg, aln;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* Load varargs stack pointer. */
+    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
+
+    /* Align, if required. */
+    aln = jit_get_reg(jit_class_gpr);
+    andi(rn(aln), rn(reg), 7);
+    addr(rn(reg), rn(reg), rn(aln));
+    jit_unget_reg(aln);
+
+    /* Load argument. */
+    ldr_d(r0, rn(reg));
+
+    /* Update vararg stack pointer. */
+    addi(rn(reg), rn(reg), sizeof(jit_float64_t));
+    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
+
+    jit_unget_reg(reg);
+}
+
 #  undef fopi
 #  undef fbopi
 #  undef dopi
