@@ -36,6 +36,13 @@
 #endif
 
 /*
+ * Types
+ */
+typedef struct jit_va_list {
+    jit_pointer_t	stack;
+} jit_va_list_t;
+
+/*
  * Prototypes
  */
 #define patch(instr, node)		_patch(_jit, instr, node)
@@ -402,6 +409,11 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack. */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+
+	_jitc->function->vagp = _jitc->function->self.argi;
     }
 }
 
@@ -1409,9 +1421,19 @@ _emit_code(jit_state_t *_jit)
 		_jitc->pred = 0;
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    case jit_code_movr_f_w:
 		movr_f_w(rn(node->u.w), rn(node->v.w));
