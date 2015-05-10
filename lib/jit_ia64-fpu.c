@@ -440,9 +440,9 @@ static void _movr_f_w(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movr_d_w(r0,r1)			_movr_d_w(_jit,r0,r1)
 static void _movr_d_w(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movi_f_w(r0,i0)			_movi_f_w(_jit,r0,i0)
-static void _movi_f_w(jit_state_t*,jit_int32_t,jit_word_t);
+static void _movi_f_w(jit_state_t*,jit_int32_t,jit_float32_t*);
 #define movi_d_w(r0,i0)			_movi_d_w(_jit,r0,i0)
-static void _movi_d_w(jit_state_t*,jit_int32_t,jit_word_t);
+static void _movi_d_w(jit_state_t*,jit_int32_t,jit_float64_t*);
 #define absr_f(r0,r1)			absr_d(r0,r1)
 #define absr_d(r0,r1)			FABS(r0,r1)
 #define negr_f(r0,r1)			negr_d(r0,r1)
@@ -1057,30 +1057,47 @@ _movr_f_w(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 }
 
 static void
-_movi_f_w(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
+_movi_f_w(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
 {
-    /* Should actually be used only in this case (with out0 == 120) */
+    jit_data_t		data;
+
+    /* Should be used only in this case (with out0 == 120) */
     if (r0 >= 120)
 	r0 = _jitc->rout + (r0 - 120);
-    ldi_i(r0, i0);
+    if (_jitc->no_data) {
+	data.f = *i0;
+	movi(r0, data.q.l);
+    }
+    else
+	ldi_i(r0, (jit_word_t)i0);
 }
 
 static void
 _movr_d_w(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    /* Should actually be used only in this case (with out0 == 120) */
+    /* Should be used only in this case (with out0 == 120) */
     if (r0 >= 120)
 	r0 = _jitc->rout + (r0 - 120);
     GETF_D(r0, r1);
 }
 
 static void
-_movi_d_w(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
+_movi_d_w(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
-    /* Should actually be used only in this case (with out0 == 120) */
+    union {
+	jit_word_t	 w;
+	jit_float64_t	 d;
+    } data;
+
+    /* Should be used only in this case (with out0 == 120) */
     if (r0 >= 120)
 	r0 = _jitc->rout + (r0 - 120);
-    ldi_l(r0, i0);
+    if (_jitc->no_data) {
+	data.d = *i0;
+	movi(r0, data.w);
+    }
+    else
+	ldi_l(r0, (jit_word_t)i0);
 }
 
 #define fpr_opi(name, type, size)					\

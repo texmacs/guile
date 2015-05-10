@@ -1,5 +1,12 @@
 2015-06-10 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_ia64-fpu.c, lib/jit_ia64.c: Correct movi_d_w
+	and movi_f_w implementation to work when not using a
+	data buffer. This causes the check varargs.tst to
+	work when passing "-d" to the lightning test tool.
+
+2015-06-10 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_ia64.c: Implement inline assembly cache flush,
 	required on multiprocessor systems.
 

@@ -1420,10 +1420,10 @@ _emit_code(jit_state_t *_jit)
 		movr_d_w(rn(node->u.w), rn(node->v.w));
 		break;
 	    case jit_code_movi_f_w:
-		movi_f_w(rn(node->u.w), node->v.n->u.w);
+		movi_f_w(rn(node->u.w), node->v.n->u.p);
 		break;
 	    case jit_code_movi_d_w:
-		movi_d_w(rn(node->u.w), node->v.n->u.w);
+		movi_d_w(rn(node->u.w), node->v.n->u.p);
 		break;
 	    default:
 		abort();
