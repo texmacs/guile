@@ -1494,7 +1494,14 @@ jit_flush(void *fptr, void *tptr)
     s = sysconf(_SC_PAGE_SIZE);
     f = (jit_word_t)fptr & -s;
     t = (((jit_word_t)tptr) + s - 1) & -s;
+#  if 0
     __clear_cache((void *)f, (void *)t);
+#  else
+    /* __clear_cache is a noop in (old?) gcc, but cache flush is
+     * required on a multi processor Linux system. */
+    for (s = f; s < t; s += 32)
+	asm volatile("fc %0" :: "r"(s) : "memory");
+#  endif
 #endif
 }
 
