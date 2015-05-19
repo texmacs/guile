@@ -30,6 +30,11 @@
 #undef PROTO
 
 /*
+ * Types
+ */
+typedef jit_pointer_t	jit_va_list;
+
+/*
  * Prototypes
  */
 #define patch(instr, node)		_patch(_jit, instr, node)
@@ -295,6 +300,8 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	_jitc->function->vagp = _jitc->function->self.argi;
     }
 }
 
@@ -531,6 +538,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_f(_F4 - _jitc->function->call.argi, u);
 #if !defined(__hpux)
+	/* HP-UX appears to always pass float arguments in gpr registers */
 	if (_jitc->function->call.call & jit_call_varargs)
 #endif
 	{
@@ -553,6 +561,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_f(_F4 - _jitc->function->call.argi, u);
 #if !defined(__hpux)
+	/* HP-UX appears to always pass float arguments in gpr registers */
 	if (_jitc->function->call.call & jit_call_varargs)
 #endif
 	{
@@ -583,6 +592,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr_d(_F4 - (_jitc->function->call.argi + 1), u);
 #if !defined(__hpux)
+	/* HP-UX appears to always pass float arguments in gpr registers */
 	if (_jitc->function->call.call & jit_call_varargs)
 #endif
 	{
@@ -615,6 +625,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi_d(_F4 - (_jitc->function->call.argi + 1), u);
 #if !defined(__hpux)
+	/* HP-UX appears to always pass float arguments in gpr registers */
 	if (_jitc->function->call.call & jit_call_varargs)
 #endif
 	{
@@ -1251,9 +1262,19 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();

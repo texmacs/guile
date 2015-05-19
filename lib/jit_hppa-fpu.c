@@ -30,7 +30,8 @@
 #define f39(o,b,x,t)			_f39(_jit,o,b,x,t)
 static void _f39(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #define f40(o,b,x,r)			_f40(_jit,o,b,x,r)
-static void _f40(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+static void _f40(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t)
+    maybe_unused;
 #define f41(o,b,x,t)			_f41(_jit,o,b,x,t)
 static void _f41(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #define f42(o,b,i,r)			_f42(_jit,o,b,i,r)
@@ -486,6 +487,8 @@ static jit_word_t _bcmpi_d(jit_state_t*,jit_word_t,
 #define bunordi_f(i0,r0,i1)		bcmpi_f(FCMP_UNORD,i0,r0,i1)
 #define bunordr_d(i0,r0,r1)		bcmpr_d(FCMP_UNORD,i0,r0,r1)
 #define bunordi_d(i0,r0,i1)		bcmpi_d(FCMP_UNORD,i0,r0,i1)
+#define vaarg_d(r0, r1)			_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -1012,5 +1015,25 @@ _bcmpi_d(jit_state_t *_jit, jit_word_t c,
     NOP();
     jit_unget_reg(reg);
     return (w);
+}
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Align pointer if required. */
+    reg = jit_get_reg(jit_class_gpr);
+    andi(rn(reg), r1, 7);
+    subr(r1, r1, rn(reg));
+    jit_unget_reg(reg);
+
+    /* Adjust vararg stack pointer. */
+    subi(r1, r1, 8);
+
+    /* Load argument. */
+    ldr_d(r0, r1);
 }
 #endif

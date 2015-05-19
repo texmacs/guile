@@ -802,6 +802,7 @@ static void _ldi_us(jit_state_t*,jit_int32_t,jit_word_t);
 #define ldxr_us(r0,r1,r2)	LDH(r2,r1,r0)
 #define ldxi_us(r0,r1,i0)	_ldxi_us(_jit,r0,r1,i0)
 static void _ldxi_us(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#define ldr(r0,r1)		ldr_ui(r0,r1)
 #define ldr_i(r0,r1)		ldr_ui(r0,r1)
 #define ldr_ui(r0,r1)		LDWI(_R0_REGNO,r1,r0)
 #define ldi_i(r0,i0)		ldi_ui(r0,i0)
@@ -919,6 +920,10 @@ static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 static void _prolog(jit_state_t*, jit_node_t*);
 #define epilog(node)		_epilog(_jit, node)
 static void _epilog(jit_state_t*, jit_node_t*);
+#define vastart(r0)		_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#define vaarg(r0, r1)		_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #define patch_at(i,l)		_patch_at(_jit,i,l)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #endif
@@ -1666,10 +1671,14 @@ static void
 _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    reg = jit_get_reg(jit_class_gpr);
-    movi(rn(reg), i0);
-    subr(r0, r1, rn(reg));
-    jit_unget_reg(reg);
+    if (i0 >= -1023 && i0 <= 1024)
+	addi(r0, r1, -i0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	subr(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
 }
 
 static void
@@ -2688,6 +2697,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(regno));
 	jit_unget_reg(regno);
     }
+
+    if (_jitc->function->self.call & jit_call_varargs) {
+	for (regno = 3; regno >= _jitc->function->vagp; --regno)
+	    stxi(params_offset - regno * 4 - 4, _FP_REGNO, rn(_R26 - regno));
+    }
 }
 
 static void
@@ -2718,6 +2732,25 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 #else
     BV_N(_R0_REGNO, _RP_REGNO);
 #endif
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    /* Initialize stack pointer to the first stack argument. */
+    addi(r0, _FP_REGNO, params_offset - _jitc->function->vagp * 4);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Update vararg stack pointer. */
+    subi(r1, r1, 4);
+
+    /* Load argument. */
+    ldr(r0, r1);
 }
 
 static void
