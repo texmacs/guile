@@ -23,6 +23,11 @@
 #define jit_arg_d_reg_p(i)		((i) >= 0 && (i) < 5)
 
 /*
+ * Types
+ */
+typedef jit_pointer_t	jit_va_list_t;
+
+/*
  * Prototypes
  */
 #define patch(instr, node)		_patch(_jit, instr, node)
@@ -268,6 +273,8 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	_jitc->function->vagp = _jitc->function->self.argi;
     }
 }
 
@@ -1274,9 +1281,19 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();

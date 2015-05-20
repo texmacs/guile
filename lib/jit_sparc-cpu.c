@@ -673,6 +673,10 @@ static jit_word_t _calli_p(jit_state_t*,jit_word_t);
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define epilog(node)			_epilog(_jit, node)
 static void _epilog(jit_state_t*,jit_node_t*);
+#define vastart(r0)			_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#define vaarg(r0, r1)			_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #define patch_at(jump, label)		_patch_at(_jit, jump, label)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #endif
@@ -1672,6 +1676,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(reg));
 	jit_unget_reg(reg);
     }
+
+    if (_jitc->function->self.call & jit_call_varargs) {
+	for (reg = _jitc->function->vagp; jit_arg_reg_p(reg); ++reg)
+	    stxi(68 + reg * 4, _SP_REGNO, rn(_I0 + reg));
+    }
 }
 
 static void
@@ -1700,6 +1709,25 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     RESTOREI(0, 0, 0);
     RETL();
     NOP();
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    /* Initialize stack pointer to the first stack argument. */
+    addi(r0, _SP_REGNO, 68 + _jitc->function->vagp * 4);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Load argument. */
+    ldr(r0, r1);
+
+    /* Update vararg stack pointer. */
+    addi(r1, r1, 4);
 }
 
 static void

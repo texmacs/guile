@@ -362,6 +362,8 @@ _dbw(jit_state_t*,jit_int32_t,jit_word_t,jit_int32_t,jit_float64_t*);
 #  define bordi_d(i0, r0, i1)		dbw(SPARC_FBO, i0, r0, i1)
 #  define bunordr_d(i0, r0, r1)		dbr(SPARC_FBU, i0, r0, r1)
 #  define bunordi_d(i0, r0, i1)		dbw(SPARC_FBU, i0, r0, i1)
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -756,5 +758,17 @@ _dbw(jit_state_t *_jit, jit_int32_t cc,
     FB(cc, (i0 - w) >> 2);
     NOP();
     return (w);
+}
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    /* Load argument. */
+    ldr_d(r0, r1);
+
+    /* Update vararg stack pointer. */
+    addi(r1, r1, 8);
 }
 #endif

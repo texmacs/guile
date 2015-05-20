@@ -1,5 +1,10 @@
 2015-06-20 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_sparc-cpu.c, lib/jit_sparc-fpu.c, lib/jit_sparc.c:
+	Add base support to jit vararg functions to the sparc backend.
+
+2015-06-20 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_alpha-cpu.c, lib/jit_alpha-fpu.c, lib/jit_alpha.c:
 	Add base support to jit vararg functions to the alpha backend.
 
