@@ -1,3 +1,8 @@
+2015-06-20 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_alpha-cpu.c, lib/jit_alpha-fpu.c, lib/jit_alpha.c:
+	Add base support to jit vararg functions to the alpha backend.
+
 2015-06-19 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_hppa-cpu.c, lib/jit_hppa-fpu.c, lib/jit_hppa.c:

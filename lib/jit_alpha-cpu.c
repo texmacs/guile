@@ -52,7 +52,7 @@
 #  define _s32_p(v)			((v) >= -0x80000000 && (v) <= 0x7fffffff)
 #  define _u32_p(v)			((v) >= 0 && (v) <= 0xffffffff)
 #  define ii(i)				*_jit->pc.ui++ = i
-#  define stack_framesize		128
+#  define stack_framesize		224
 #  define _S0_REGNO			0x09
 #  define _S1_REGNO			0x0a
 #  define _S2_REGNO			0x0b
@@ -574,6 +574,7 @@ static void _ldxi_i(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 static void _ldxr_ui(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define ldxi_ui(r0,r1,i0)		_ldxi_ui(_jit,r0,r1,i0)
 static void _ldxi_ui(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#  define ldxr(r0,r1,r2)		ldxr_l(r0,r1,r2)
 #  define ldxr_l(r0,r1,r2)		_ldxr_l(_jit,r0,r1,r2)
 static void _ldxr_l(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define ldxi(r0,r1,i0)		ldxi_l(r0,r1,i0)
@@ -648,6 +649,10 @@ static jit_word_t _calli_p(jit_state_t*, jit_word_t);
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define epilog(node)			_epilog(_jit,node)
 static void _epilog(jit_state_t*,jit_node_t*);
+#  define vastart(r0)			_vastart(_jit, r0)
+static void _vastart(jit_state_t*, jit_int32_t);
+#  define vaarg(r0, r1)			_vaarg(_jit, r0, r1)
+static void _vaarg(jit_state_t*, jit_int32_t, jit_int32_t);
 #  define patch_at(jump,label)		_patch_at(_jit,jump,label)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #endif
@@ -2618,6 +2623,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(reg));
 	jit_unget_reg(reg);
     }
+
+    if (_jitc->function->self.call & jit_call_varargs) {
+	for (reg = _jitc->function->self.argi; jit_arg_reg_p(reg); ++reg)
+	    stxi(stack_framesize - 48 + reg * 8, _FP_REGNO, rn(_A0 - reg));
+	for (reg = _jitc->function->self.argi; jit_arg_reg_p(reg); ++reg)
+	    stxi_d(stack_framesize - 96 + reg * 8, _FP_REGNO, rn(_F16 - reg));
+    }
 }
 
 static void
@@ -2654,6 +2666,55 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     RET(_R31_REGNO, _RA_REGNO, 1);	/* 1 means procedure return
 					 * 0 means no procedure return
 					 * other values are reserved */
+}
+
+static void
+_vastart(jit_state_t *_jit, jit_int32_t r0)
+{
+    jit_int32_t		reg;
+
+    /* Return jit_va_list_t in the register argument */
+    addi(r0, _FP_REGNO, _jitc->function->vaoff);
+
+    reg = jit_get_reg(jit_class_gpr);
+
+    /* The base field is constant. */
+    addi(rn(reg), _FP_REGNO, stack_framesize - 48);
+    stxi(offsetof(jit_va_list_t, base), r0, rn(reg));
+
+    /* Initialize the offset field */
+    movi(rn(reg), _jitc->function->vagp * 8);
+    stxi(offsetof(jit_va_list_t, offset), r0, rn(reg));
+
+    jit_unget_reg(reg);
+}
+
+static void
+_vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		rg0, rg1;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg(jit_class_gpr);
+    rg1 = jit_get_reg(jit_class_gpr);
+
+    /* Load the base in first temporary. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, base));
+
+    /* Load the offset in the second temporary. */
+    ldxi(rn(rg1), r1, offsetof(jit_va_list_t, offset));
+
+    /* Load the argument */
+    ldxr(r0, rn(rg0), rn(rg1));
+
+    /* No longer needed. */
+    jit_unget_reg(rg0);
+
+    /* Update offset. */
+    addi(rn(rg1), rn(rg1), 8);
+    stxi(offsetof(jit_va_list_t, offset), r1, rn(rg1));
+    jit_unget_reg(rg1);
 }
 
 static void

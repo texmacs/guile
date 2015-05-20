@@ -586,6 +586,8 @@ static void _stxi_f(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 static void _stxr_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define stxi_d(i0,r0,r1)		_stxi_d(_jit,i0,r0,r1)
 static void _stxi_d(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
+#  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
+static void _vaarg_d(jit_state_t*, jit_int32_t, jit_int32_t);
 #endif
 
 #if CODE
@@ -1542,5 +1544,40 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	str_d(rn(reg), r1);
 	jit_unget_reg(reg);
     }
+}
+
+static void
+_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_word_t		ge_code;
+    jit_int32_t		rg0, rg1;
+
+    assert(_jitc->function->self.call & jit_call_varargs);
+
+    rg0 = jit_get_reg(jit_class_gpr);
+    rg1 = jit_get_reg(jit_class_gpr);
+
+    /* Load the base in first temporary. */
+    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, base));
+
+    /* Load the offset in the second temporary. */
+    ldxi(rn(rg1), r1, offsetof(jit_va_list_t, offset));
+
+    /* Jump if overflowed register saved area. */
+    ge_code = bgei(_jit->pc.w, rn(rg1), 48);
+    /* Otherwise load from the float registers save area. */
+    subi(rn(rg1), rn(rg1), 48);
+    patch_at(ge_code, _jit->pc.w);
+
+    /* Load the argument */
+    ldxr_d(r0, rn(rg0), rn(rg1));
+
+    /* No longer needed. */
+    jit_unget_reg(rg0);
+
+    /* Update offset. */
+    addi(rn(rg1), rn(rg1), 8);
+    stxi(offsetof(jit_va_list_t, offset), r1, rn(rg1));
+    jit_unget_reg(rg1);
 }
 #endif

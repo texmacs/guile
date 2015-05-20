@@ -34,6 +34,30 @@
 #endif
 
 /*
+ * Types
+ */
+/*
+ * What I could understand from gcc/config/alpha/alpha.c:alpha_build_builtin_va_list()
+ * and other helpers, as well as objdump of simple test programs; could not
+ * get gdb working on the test system I had access...
+ *
+ * base-48 to base is where up to 6 float registers are saved.
+ * base to base+48 is where up to 6 integer registers are saved.
+ * base+48... is where varargs arguments are stored.
+ *
+ *	if (offset < 48) {
+ *		if (type == double)
+ *			offset -= 48;
+ *	}
+ *	load(reg, base, offset);
+ *	offset += 8;
+ */
+typedef struct jit_va_list {
+    jit_pointer_t	base;
+    jit_word_t		offset;
+} jit_va_list_t;
+
+/*
  * Prototypes
  */
 #define patch(instr, node)		_patch(_jit, instr, node)
@@ -186,7 +210,7 @@ void
 _jit_allocar(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
     jit_int32_t		 reg;
-    assert(_jitc->function);
+    assert(_jitc->function != NULL);
     if (!_jitc->function->allocar) {
 	_jitc->function->aoffoff = jit_allocai(sizeof(jit_int32_t));
 	_jitc->function->allocar = 1;
@@ -295,6 +319,10 @@ _jit_ellipsis(jit_state_t *_jit)
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
+
+	/* Allocate va_list like object in the stack */
+	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
+	_jitc->function->vagp = _jitc->function->self.argi;
     }
 }
 
@@ -1252,9 +1280,19 @@ _emit_code(jit_state_t *_jit)
 		epilog(node);
 		_jitc->function = NULL;
 		break;
+	    case jit_code_va_start:
+		vastart(rn(node->u.w));
+		break;
+	    case jit_code_va_arg:
+		vaarg(rn(node->u.w), rn(node->v.w));
+		break;
+	    case jit_code_va_arg_d:
+		vaarg_d(rn(node->u.w), rn(node->v.w));
+		break;
 	    case jit_code_live:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
+	    case jit_code_va_end:
 		break;
 	    default:
 		abort();
@@ -1274,7 +1312,7 @@ _emit_code(jit_state_t *_jit)
 	    }
 	}
 	jit_regarg_clr(node, value);
-	assert(_jitc->regarg == jit_carry == _NOREG ? 0 : (1 << jit_carry));
+	assert(_jitc->regarg == (jit_carry == _NOREG) ? 0 : (1 << jit_carry));
 	/* update register live state */
 	jit_reglive(node);
     }
