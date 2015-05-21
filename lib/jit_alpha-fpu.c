@@ -1550,18 +1550,22 @@ static void
 _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     jit_word_t		ge_code;
-    jit_int32_t		rg0, rg1;
+    jit_int32_t		rg0, rg1, rg2;
 
     assert(_jitc->function->self.call & jit_call_varargs);
 
     rg0 = jit_get_reg(jit_class_gpr);
     rg1 = jit_get_reg(jit_class_gpr);
+    rg2 = jit_get_reg(jit_class_gpr);
 
     /* Load the base in first temporary. */
     ldxi(rn(rg0), r1, offsetof(jit_va_list_t, base));
 
     /* Load the offset in the second temporary. */
     ldxi(rn(rg1), r1, offsetof(jit_va_list_t, offset));
+
+    /* Remember absolute offset */
+    movr(rn(rg2), rn(rg1));
 
     /* Jump if overflowed register saved area. */
     ge_code = bgei(_jit->pc.w, rn(rg1), 48);
@@ -1573,11 +1577,12 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     ldxr_d(r0, rn(rg0), rn(rg1));
 
     /* No longer needed. */
+    jit_unget_reg(rg1);
     jit_unget_reg(rg0);
 
     /* Update offset. */
-    addi(rn(rg1), rn(rg1), 8);
-    stxi(offsetof(jit_va_list_t, offset), r1, rn(rg1));
-    jit_unget_reg(rg1);
+    addi(rn(rg2), rn(rg2), 8);
+    stxi(offsetof(jit_va_list_t, offset), r1, rn(rg2));
+    jit_unget_reg(rg2);
 }
 #endif
