@@ -4170,7 +4170,12 @@ main(int argc, char *argv[])
 	strncpy(parser.name, endptr, sizeof(parser.name));
 	parser.name[sizeof(parser.name) - 1] = '\0';
     }
-    opt_short = snprintf(cmdline, sizeof(cmdline), "gcc -E -x c %s", argv[opt_index]);
+#if __clang__
+#  define cc "clang"
+#else
+#  define cc "gcc"
+#endif
+    opt_short = snprintf(cmdline, sizeof(cmdline), cc " -E -x c %s", argv[opt_index]);
     for (++opt_index; opt_index < argc; opt_index++) {
 	if (argv[opt_index][0] == '-')
 	    opt_short += snprintf(cmdline + opt_short,

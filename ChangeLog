@@ -1,3 +1,8 @@
+2015-06-24 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c: Clearly run check if clang is the system
+	compiler.
+
 2015-06-20 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_sparc-cpu.c, lib/jit_sparc-fpu.c, lib/jit_sparc.c:
