@@ -27,9 +27,7 @@ typedef struct jit_qreg {
     jit_float64_t	h;
 } jit_qreg_t;
 
-#define va_gp_min_offset		-64
 #define va_gp_top_offset		offsetof(jit_va_list_t, q0)
-#define va_fp_min_offset		-128
 #define va_fp_top_offset		sizeof(jit_va_list_t)
 typedef struct jit_va_list {
     jit_pointer_t	stack;
@@ -340,13 +338,13 @@ _jit_ellipsis(jit_state_t *_jit)
 	if (jit_arg_reg_p(_jitc->function->self.argi))
 	    _jitc->function->vagp = (8 - _jitc->function->self.argi) * -8;
 	else
-	    _jitc->function->vagp = va_gp_min_offset;
+	    _jitc->function->vagp = 0;
 
 	/* Initialize fp offset in save area. */
 	if (jit_arg_f_reg_p(_jitc->function->self.argf))
 	    _jitc->function->vafp = (8 - _jitc->function->self.argf) * -16;
 	else
-	    _jitc->function->vafp = va_fp_min_offset;
+	    _jitc->function->vafp = 0;
     }
 }
 

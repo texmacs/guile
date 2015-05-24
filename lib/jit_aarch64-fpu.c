@@ -900,7 +900,7 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     ldxi(rn(rg0), r1, offsetof(jit_va_list_t, stack));
 
     /* Load argument. */
-    ldr(r0, rn(rg0));
+    ldr_d(r0, rn(rg0));
 
     /* Update stack pointer. */
     addi(rn(rg0), rn(rg0), 8);

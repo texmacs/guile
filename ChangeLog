@@ -1,5 +1,10 @@
 2015-06-24 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_aarch64-fpu.c, lib/jit_aarch64.c: Correct base
+	aarch64 varargs code.
+
+2015-06-24 Paulo Andrade <pcpa@gnu.org>
+
 	* check/lightning.c: Clearly run check if clang is the system
 	compiler.
 
