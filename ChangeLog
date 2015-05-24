@@ -1,5 +1,25 @@
 2015-06-24 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/Makefile.am: Bump library major. This is a preparation
+	for a rework that was due for quite some time, but that is
+	now required to properly implement variadic jit functions.
+	The rework is mainly required to know at prolog parsing, if
+	a function is variadic or not. This will benefit a few
+	backends, and is mandatory for the hard float arm abi.
+	The rework was already planned for quite some time, to
+	be able to use a variable stack framesize, and for leaf
+	functions optimization where applicable.
+	The change will be source compatible, but will change
+	some internals, and jit_code_t values, as some new will
+	be added.
+	The only behavior change is that, jit_arg_register_p may
+	change return value on hard float arm abi, if called before
+	or after jit_ellipsis. Common sense anyway, would say to
+	make that call after jit_ellipsis, but documentation
+	should be updated for it.
+
+2015-06-24 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_aarch64-fpu.c, lib/jit_aarch64.c: Correct base
 	aarch64 varargs code.
 
