@@ -11,6 +11,10 @@
     2,  /* label */
     38, /* prolog */
     0,  /* arg */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
     4,  /* addr */
     12, /* addi */
     4,  /* addcr */
@@ -353,10 +357,6 @@
     0,  /* movi_d_w */
     0,  /* x86_retval_f */
     0,  /* x86_retval_d */
-    0,	/* va_start */
-    0,	/* va_arg */
-    0,	/* va_arg_d */
-    0,	/* va_end */
 #endif /* __WORDSIZE */
 
 #if __WORDSIZE == 64
@@ -371,6 +371,10 @@
     2,	/* label */
     38,	/* prolog */
     0,	/* arg */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
     8,	/* addr */
     24,	/* addi */
     8,	/* addcr */
@@ -713,8 +717,4 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
-    0,	/* va_start */
-    0,	/* va_arg */
-    0,	/* va_arg_d */
-    0,	/* va_end */
 #endif /* __WORDSIZE */

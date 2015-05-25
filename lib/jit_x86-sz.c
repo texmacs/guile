@@ -11,6 +11,10 @@
     3,	/* label */
     34,	/* prolog */
     0,	/* arg */
+    3,	/* va_start */
+    5,	/* va_arg */
+    7,	/* va_arg_d */
+    0,	/* va_end */
     3,	/* addr */
     6,	/* addi */
     4,	/* addcr */
@@ -353,10 +357,6 @@
     0,	/* movi_d_w */
     10,	/* x86_retval_f */
     10,	/* x86_retval_d */
-    3,	/* va_start */
-    5,	/* va_arg */
-    7,	/* va_arg_d */
-    0,	/* va_end */
 #endif /* __X32 */
 
 #if __X64
@@ -372,6 +372,10 @@
     7,	/* label */
     71,	/* prolog */
     0,	/* arg */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
     4,	/* addr */
     13,	/* addi */
     6,	/* addcr */
@@ -714,10 +718,6 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
-    0,	/* va_start */
-    0,	/* va_arg */
-    0,	/* va_arg_d */
-    0,	/* va_end */
 #else
 
 #  if __X64_32
@@ -732,6 +732,10 @@
     3,	/* label */
     108,	/* prolog */
     0,	/* arg */
+    41,	/* va_start */
+    45,	/* va_arg */
+    54,	/* va_arg_d */
+    0,	/* va_end */
     5,	/* addr */
     7,	/* addi */
     6,	/* addcr */
@@ -1074,10 +1078,6 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
-    41,	/* va_start */
-    45,	/* va_arg */
-    54,	/* va_arg_d */
-    0,	/* va_end */
 #  else
 
 #define JIT_INSTR_MAX 115
@@ -1091,6 +1091,10 @@
     7,	/* label */
     115,	/* prolog */
     0,	/* arg */
+    42,	/* va_start */
+    41,	/* va_arg */
+    50,	/* va_arg_d */
+    0,	/* va_end */
     5,	/* addr */
     13,	/* addi */
     6,	/* addcr */
@@ -1433,10 +1437,6 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
-    42,	/* va_start */
-    41,	/* va_arg */
-    50,	/* va_arg_d */
-    0,	/* va_end */
 #endif /* __CYGWIN__ */
 #  endif /* __X64_32 */
 #endif /* __X64 */

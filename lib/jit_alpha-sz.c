@@ -11,6 +11,10 @@
     0,	/* label */
     76,	/* prolog */
     0,	/* arg */
+    0,	/* va_start */
+    0,	/* va_arg */
+    0,	/* va_arg_d */
+    0,	/* va_end */
     4,	/* addr */
     32,	/* addi */
     12,	/* addcr */
@@ -353,8 +357,4 @@
     0,	/* movi_d_w */
     0,	/* x86_retval_f */
     0,	/* x86_retval_d */
-    0,	/* va_start */
-    0,	/* va_arg */
-    0,	/* va_arg_d */
-    0,	/* va_end */
 #endif /* __WORDSIZE */

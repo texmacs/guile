@@ -220,6 +220,14 @@ typedef enum {
 #  define jit_putargi(u,v)	_jit_putargi(_jit,u,v)
     jit_code_arg,
 
+#define jit_va_start(u)		jit_new_node_w(jit_code_va_start, u)
+    jit_code_va_start,
+#define jit_va_arg(u, v)	jit_new_node_ww(jit_code_va_arg, u, v)
+#define jit_va_arg_d(u, v)	jit_new_node_ww(jit_code_va_arg_d, u, v)
+    jit_code_va_arg,		jit_code_va_arg_d,
+#define jit_va_end(u)		jit_new_node_w(jit_code_va_end, u)
+    jit_code_va_end,
+
 #define jit_addr(u,v,w)		jit_new_node_www(jit_code_addr,u,v,w)
 #define jit_addi(u,v,w)		jit_new_node_www(jit_code_addi,u,v,w)
     jit_code_addr,		jit_code_addi,
@@ -862,15 +870,6 @@ typedef enum {
 #define jit_movi_d_w(u, v)	jit_new_node_wd(jit_code_movi_d_w, u, v)
 
     jit_code_x86_retval_f,	jit_code_x86_retval_d,
-
-    /* These should be moved/reordered when bumping library major */
-    jit_code_va_start,
-#define jit_va_start(u)		jit_new_node_w(jit_code_va_start, u)
-    jit_code_va_arg,		jit_code_va_arg_d,
-#define jit_va_arg(u, v)	jit_new_node_ww(jit_code_va_arg, u, v)
-#define jit_va_arg_d(u, v)	jit_new_node_ww(jit_code_va_arg_d, u, v)
-    jit_code_va_end,
-#define jit_va_end(u)		jit_new_node_w(jit_code_va_end, u)
     jit_code_last_code
 } jit_code_t;
 
