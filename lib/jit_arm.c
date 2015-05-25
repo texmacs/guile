@@ -34,6 +34,11 @@
 
 #define jit_fpr_p(rn)			((rn) > 15)
 
+#define arg_base()							\
+    (stack_framesize - 16 + (jit_cpu.abi ? 64 : 0))
+#define arg_offset(n)							\
+    ((n) < 4 ? arg_base() + ((n) << 2) : (n))
+
 /* Assume functions called never match jit instruction set, that is
  * libc, gmp, mpfr, etc functions are in thumb mode and jit is in
  * arm mode, what may cause a crash upon return of that function
@@ -51,9 +56,7 @@ typedef union _jit_thumb_t {
     jit_int16_t		s[2];
 } jit_thumb_t;
 
-typedef struct jit_va_list {
-    jit_pointer_t	stack;
-} jit_va_list_t;
+typedef jit_pointer_t	jit_va_list;
 
 /*
  * Prototypes
@@ -420,9 +423,6 @@ _jit_ellipsis(jit_state_t *_jit)
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
 
-	/* Allocate va_list like object in the stack. */
-	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
-
 	/* First 4 stack addresses are always spilled r0-r3 */
 	if (jit_arg_reg_p(_jitc->function->self.argi))
 	    _jitc->function->vagp = _jitc->function->self.argi * 4;
@@ -504,7 +504,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_ldxi_c(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_c(u, JIT_FP, arg_offset(v->u.w));
     else if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, JIT_RA0 - v->u.w);
     else
@@ -516,7 +516,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_ldxi_uc(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_uc(u, JIT_FP, arg_offset(v->u.w));
     else if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, JIT_RA0 - v->u.w);
     else
@@ -528,7 +528,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_ldxi_s(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_s(u, JIT_FP, arg_offset(v->u.w));
     else if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, JIT_RA0 - v->u.w);
     else
@@ -540,7 +540,7 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_ldxi_us(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_us(u, JIT_FP, arg_offset(v->u.w));
     else if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, JIT_RA0 - v->u.w);
     else
@@ -552,7 +552,7 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_ldxi_i(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_i(u, JIT_FP, arg_offset(v->u.w));
     else if (jit_arg_reg_p(v->u.w))
 	jit_movr(u, JIT_RA0 - v->u.w);
     else
@@ -564,7 +564,7 @@ _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     if (jit_swf_p())
-	jit_stxi(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
+	jit_stxi(arg_offset(v->u.w), JIT_FP, u);
     else if (jit_arg_reg_p(v->u.w))
 	jit_movr(JIT_RA0 - v->u.w, u);
     else
@@ -579,7 +579,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
     if (jit_swf_p()) {
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
-	jit_stxi(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, regno);
+	jit_stxi(arg_offset(v->u.w), JIT_FP, regno);
 	jit_unget_reg(regno);
     }
     else if (jit_arg_reg_p(v->u.w))
@@ -603,7 +603,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	    jit_ldxi_f(u, JIT_FP, v->u.w);
     }
     else if (jit_swf_p())
-	jit_ldxi_f(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_f(u, JIT_FP, arg_offset(v->u.w));
     else {
 	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_w_f(u, JIT_RA0 - v->u.w);
@@ -623,7 +623,7 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	    jit_stxi_f(v->u.w, JIT_FP, u);
     }
     else if (jit_swf_p())
-	jit_stxi_f(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
+	jit_stxi_f(arg_offset(v->u.w), JIT_FP, u);
     else {
 	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_f_w(JIT_RA0 - v->u.w, u);
@@ -650,7 +650,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
     else if (jit_swf_p()) {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_f(regno, u);
-	jit_stxi_f(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, regno);
+	jit_stxi_f(arg_offset(v->u.w), JIT_FP, regno);
 	jit_unget_reg(regno);
     }
     else {
@@ -675,7 +675,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	    jit_ldxi_d(u, JIT_FP, v->u.w);
     }
     else if (jit_swf_p())
-	jit_ldxi_d(u, JIT_FP, v->u.w < 4 ? v->u.w << 2 : v->u.w);
+	jit_ldxi_d(u, JIT_FP, arg_offset(v->u.w));
     else {
 	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_ww_d(u, JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1));
@@ -695,7 +695,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	    jit_stxi_d(v->u.w, JIT_FP, u);
     }
     else if (jit_swf_p())
-	jit_stxi_d(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, u);
+	jit_stxi_d(arg_offset(v->u.w), JIT_FP, u);
     else {
 	if (jit_arg_reg_p(v->u.w))
 	    jit_movr_d_ww(JIT_RA0 - v->u.w, JIT_RA0 - (v->u.w + 1), u);
@@ -722,7 +722,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
     else if (jit_swf_p()) {
 	regno = jit_get_reg(jit_class_fpr);
 	jit_movi_d(regno, u);
-	jit_stxi_d(v->u.w < 4 ? v->u.w << 2 : v->u.w, JIT_FP, regno);
+	jit_stxi_d(arg_offset(v->u.w), JIT_FP, regno);
 	jit_unget_reg(regno);
     }
     else {

@@ -1,3 +1,25 @@
+2015-06-25 Paulo Andrade <pcpa@gnu.org>
+
+	* check/cva_list.c: New file implementing a test to ensure
+	the value returned by jit_va_start is a valid C va_list.
+
+	* check/va_list.ok: New simple helper file, as now the
+	va_list.tst test is enabled.
+
+	* check/va_list.tst: Rewritten for an extensive variadic
+	jit functions test.
+
+	* check/Makefile.am: Update for the new tests.
+
+	* lib/jit_arm-cpu.c, lib/jit_arm-swf.c, lib/jit_arm-vfp.c,
+	lib/jit_arm.c: Correct broken software float in a previous
+	commit. Note that the hard float abi implementation is known
+	broken at this time, for special cases involving variadic
+	functions, and should be corrected next.
+
+	lib/jit_x86-cpu.c, lib/jit_x86-sz.c, lib/jit_x86.c: Correct
+	the jit_va_list_t semantics to match C va_list.
+
 2015-06-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/Makefile.am: Bump library major. This is a preparation

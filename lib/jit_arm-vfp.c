@@ -2307,27 +2307,21 @@ _vfp_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 static void
 _vfp_vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		rg0, rg1;
+    jit_int32_t		reg;
 
     assert(_jitc->function->self.call & jit_call_varargs);
 
-    rg0 = jit_get_reg(jit_class_gpr);
-
-    /* Load stack pointer. */
-    ldxi(rn(rg0), r1, offsetof(jit_va_list_t, stack));
-    rg1 = jit_get_reg(jit_class_gpr);
-    andi(rn(rg1), rn(rg0), 7);
-    addr(rn(rg0), rn(rg0), rn(rg1));
-    jit_unget_reg(rg1);
+    /* Adjust pointer. */
+    reg = jit_get_reg(jit_class_gpr);
+    andi(rn(reg), r1, 7);
+    addr(r1, r1, rn(reg));
+    jit_unget_reg(reg);
 
     /* Load argument. */
-    vfp_ldr_d(r0, rn(rg0));
+    vfp_ldr_d(r0, r1);
 
     /* Update stack pointer. */
-    addi(rn(rg0), rn(rg0), sizeof(jit_float64_t));
-    stxi(offsetof(jit_va_list_t, stack), r1, rn(rg0));
-
-    jit_unget_reg(rg0);
+    addi(r1, r1, sizeof(jit_float64_t));
 }
 #  undef dbopi
 #  undef fbopi

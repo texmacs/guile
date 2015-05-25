@@ -61,13 +61,16 @@
 #  define REAL_WORDSIZE			8
 #endif
 
+/*
+ * Types
+ */
+#if __X32 || __CYGWIN__
+typedef jit_pointer_t jit_va_list_t;
+#else
 typedef struct jit_va_list {
-#if __X64 && !__CYGWIN__
     jit_int32_t		gpoff;
     jit_int32_t		fpoff;
-#endif
     jit_pointer_t	over;
-#if __X64 && !__CYGWIN__
     jit_pointer_t	save;
     /* Declared explicitly as int64 for the x32 abi */
     jit_int64_t		rdi;
@@ -92,8 +95,8 @@ typedef struct jit_va_list {
     jit_float64_t	_up6;
     jit_float64_t	xmm7;
     jit_float64_t	_up7;
-#endif
 } jit_va_list_t;
+#endif
 
 /*
  * Prototypes
@@ -564,12 +567,12 @@ _jit_ellipsis(jit_state_t *_jit)
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
 
+#if __X64 && !__CYGWIN__
 	/* Allocate va_list like object in the stack.
 	 * If applicable, with enough space to save all argument
 	 * registers, and use fixed offsets for them. */
 	_jitc->function->vaoff = jit_allocai(sizeof(jit_va_list_t));
 
-#if __X64 && !__CYGWIN__
 	/* Initialize gp offset in save area. */
 	if (jit_arg_reg_p(_jitc->function->self.argi))
 	    _jitc->function->vagp = _jitc->function->self.argi * 8;

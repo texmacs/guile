@@ -3654,6 +3654,10 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 static void
 _vastart(jit_state_t *_jit, jit_int32_t r0)
 {
+#if __X32 || __CYGWIN__
+    assert(_jitc->function->self.call & jit_call_varargs);
+    addi(r0, _RBP_REGNO, _jitc->function->self.size);
+#else
     jit_int32_t		reg;
 
     assert(_jitc->function->self.call & jit_call_varargs);
@@ -3662,7 +3666,6 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
     addi(r0, _RBP_REGNO, _jitc->function->vaoff);
     reg = jit_get_reg(jit_class_gpr);
 
-#if __X64 && !__CYGWIN__
     /* Initialize gp offset in the save area. */
     movi(rn(reg), _jitc->function->vagp);
     stxi_i(offsetof(jit_va_list_t, gpoff), r0, rn(reg));
@@ -3670,35 +3673,35 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
     /* Initialize fp offset in the save area. */
     movi(rn(reg), _jitc->function->vafp);
     stxi_i(offsetof(jit_va_list_t, fpoff), r0, rn(reg));
-#endif
 
     /* Initialize overflow pointer to the first stack argument. */
     addi(rn(reg), _RBP_REGNO, _jitc->function->self.size);
     stxi(offsetof(jit_va_list_t, over), r0, rn(reg));
 
-#if __X64 && !__CYGWIN__
     /* Initialize register save area pointer. */
     addi(rn(reg), r0, first_gp_offset);
     stxi(offsetof(jit_va_list_t, save), r0, rn(reg));
-#endif
 
     jit_unget_reg(reg);
+#endif
 }
 
 static void
 _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
+#if __X32 || __CYGWIN__
+    assert(_jitc->function->self.call & jit_call_varargs);
+    ldr(r0, r1);
+    addi(r1, r1, va_gp_increment);
+#else
     jit_int32_t		rg0;
-#if __X64 && !__CYGWIN__
     jit_int32_t		rg1;
     jit_word_t		ge_code;
     jit_word_t		lt_code;
-#endif
 
     assert(_jitc->function->self.call & jit_call_varargs);
 
     rg0 = jit_get_reg(jit_class_gpr);
-#if __X64 && !__CYGWIN__
     rg1 = jit_get_reg(jit_class_gpr);
 
     /* Load the gp offset in save area in the first temporary. */
@@ -3728,7 +3731,6 @@ _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 
     /* Where to land if argument is in overflow area. */
     patch_rel_char(ge_code, _jit->pc.w);
-#endif
 
     /* Load overflow pointer. */
     ldxi(rn(rg0), r1, offsetof(jit_va_list_t, over));
@@ -3740,12 +3742,11 @@ _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     addi(rn(rg0), rn(rg0), va_gp_increment);
     stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
 
-#if __X64 && !__CYGWIN__
     /* Where to land if argument is in save area. */
     patch_rel_char(lt_code, _jit->pc.w);
-#endif
 
     jit_unget_reg(rg0);
+#endif
 }
 
 /* The x87 boolean argument tells if will put the result in a x87
@@ -3753,17 +3754,22 @@ _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 static void
 _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
 {
+#if __X32 || __CYGWIN__
+    assert(_jitc->function->self.call & jit_call_varargs);
+    if (x87)
+	x87_ldr_d(r0, r1);
+    else
+	sse_ldr_d(r0, r1);
+    addi(r1, r1, 8);
+#else
     jit_int32_t		rg0;
-#if __X64 && !__CYGWIN__
     jit_int32_t		rg1;
     jit_word_t		ge_code;
     jit_word_t		lt_code;
-#endif
 
     assert(_jitc->function->self.call & jit_call_varargs);
 
     rg0 = jit_get_reg(jit_class_gpr);
-#if __X64 && !__CYGWIN__
     rg1 = jit_get_reg(jit_class_gpr);
 
     /* Load the fp offset in save area in the first temporary. */
@@ -3796,7 +3802,6 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
 
     /* Where to land if argument is in overflow area. */
     patch_rel_char(ge_code, _jit->pc.w);
-#endif
 
     /* Load overflow pointer. */
     ldxi(rn(rg0), r1, offsetof(jit_va_list_t, over));
@@ -3811,12 +3816,11 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_bool_t x87)
     addi(rn(rg0), rn(rg0), 8);
     stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
 
-#if __X64 && !__CYGWIN__
     /* Where to land if argument is in save area. */
     patch_rel_char(lt_code, _jit->pc.w);
-#endif
 
     jit_unget_reg(rg0);
+#endif
 }
 
 static void

@@ -3778,42 +3778,25 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	BX(_R12_REGNO);
 	if (!_jitc->thumb)
 	    _jitc->thumb = _jit->pc.w;
-
-	/* If the jit function is varargs, do a slightly more
-	 * costly prolog to save first the 4 argument registers. */
 	if (jit_cpu.abi) {
-	    if (_jitc->function->self.call & jit_call_varargs)
-		T2_PUSH(0xf);
+	    T2_PUSH(0xf);
 	    T2_PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	    VPUSH_F64(_D8_REGNO, 8);
-	    if (!(_jitc->function->self.call & jit_call_varargs))
-		T2_PUSH(0xf);
 	}
 	else {
-	    if (_jitc->function->self.call & jit_call_varargs) {
-		T2_PUSH(0xf);
-		T2_PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
-	    }
-	    else
-		T2_PUSH(0x3ff|(1<<_FP_REGNO)|(1<<_LR_REGNO));
+	    T2_PUSH(0xf);
+	    T2_PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	}
     }
     else {
 	if (jit_cpu.abi) {
-	    if (_jitc->function->self.call & jit_call_varargs)
-		PUSH(0xf);
+	    PUSH(0xf);
 	    PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	    VPUSH_F64(_D8_REGNO, 8);
-	    if (!(_jitc->function->self.call & jit_call_varargs))
-		PUSH(0xf);
 	}
 	else {
-	    if (_jitc->function->self.call & jit_call_varargs) {
-		PUSH(0xf);
-		PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
-	    }
-	    else
-		PUSH(0x3ff|(1<<_FP_REGNO)|(1<<_LR_REGNO));
+	    PUSH(0xf);
+	    PUSH(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
 	}
     }
     movr(_FP_REGNO, _SP_REGNO);
@@ -3833,35 +3816,18 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     if (_jitc->function->assume_frame)
 	return;
 
-    /* If the jit function is varargs, need a different
-     * epilog, that also does not directly restore the
-     * pc, but instead branch to the lr, after correcting
-     * the stack. */
-    if (_jitc->function->self.call & jit_call_varargs)
-	movr(_SP_REGNO, _FP_REGNO);
-    else
-	addi(_SP_REGNO, _FP_REGNO, 16);
+    movr(_SP_REGNO, _FP_REGNO);
     if (jit_cpu.abi)
 	VPOP_F64(_D8_REGNO, 8);
-    if (jit_thumb_p()) {
-	if (!(_jitc->function->self.call & jit_call_varargs))
-	    T2_POP(0x3f0|(1<<_FP_REGNO)|(1<<_PC_REGNO));
-	else
-	    T2_POP(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
-    }
-    else {
-	if (!(_jitc->function->self.call & jit_call_varargs))
-	    POP(0x3f0|(1<<_FP_REGNO)|(1<<_PC_REGNO));
-	else
-	    POP(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
-    }
-    if (_jitc->function->self.call & jit_call_varargs) {
-	addi(_SP_REGNO, _SP_REGNO, 16);
-	if (jit_thumb_p())
-	    T1_BX(_LR_REGNO);
-	else
-	    BX(_LR_REGNO);
-    }
+    if (jit_thumb_p())
+	T2_POP(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
+    else
+	POP(0x3f0|(1<<_FP_REGNO)|(1<<_LR_REGNO));
+    addi(_SP_REGNO, _SP_REGNO, 16);
+    if (jit_thumb_p())
+	T1_BX(_LR_REGNO);
+    else
+	BX(_LR_REGNO);
     if (jit_thumb_p() && (_jit->pc.w & 2))
 	T1_NOP();
 }
@@ -3869,45 +3835,26 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 static void
 _vastart(jit_state_t *_jit, jit_int32_t r0)
 {
-    jit_int32_t		reg;
-
     assert(_jitc->function->self.call & jit_call_varargs);
-
-    /* Return jit_va_list_t in the register argument */
-    addi(r0, _FP_REGNO, _jitc->function->vaoff);
-    reg = jit_get_reg(jit_class_gpr);
 
     /* Initialize stack pointer to the first stack argument.
      * The -16 is to account for the 4 argument registers
      * always saved, and _jitc->function->vagp is to account
      * for declared arguments. */
-    addi(rn(reg), _FP_REGNO, _jitc->function->self.size -
+    addi(r0, _FP_REGNO, _jitc->function->self.size -
 	 16 + _jitc->function->vagp);
-    stxi(offsetof(jit_va_list_t, stack), r0, rn(reg));
-
-    jit_unget_reg(reg);
 }
 
 static void
 _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		reg;
-
     assert(_jitc->function->self.call & jit_call_varargs);
 
-    reg = jit_get_reg(jit_class_gpr);
-
-    /* Load stack pointer. */
-    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
-
     /* Load argument. */
-    ldr(r0, rn(reg));
+    ldr(r0, r1);
 
     /* Update stack pointer. */
-    addi(rn(reg), rn(reg), sizeof(jit_word_t));
-    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
-
-    jit_unget_reg(reg);
+    addi(r1, r1, sizeof(jit_word_t));
 }
 
 static void
