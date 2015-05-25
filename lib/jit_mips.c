@@ -21,9 +21,6 @@
 #  include <sys/cachectl.h>
 #endif
 
-#define rc(value)			jit_class_##value
-#define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
-
 /* FIXME Need to detect (from /proc on Linux?) if a Loongson or Godson,
  * because n32 and n64 mandate that float registers are 64 bit, and
  * on the later, registers are 32 bit.

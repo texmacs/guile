@@ -20,8 +20,6 @@
 #include <lightning.h>
 #include <lightning/jit_private.h>
 
-#define rc(value)			jit_class_##value
-#define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
 #if __X32
 #  define jit_arg_reg_p(i)		0
 #  define jit_arg_f_reg_p(i)		0

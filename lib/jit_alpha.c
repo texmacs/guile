@@ -17,8 +17,6 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#define rc(value)			jit_class_##value
-#define rn(reg)				(jit_regno(_rvs[jit_regno(reg)].spec))
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 6)
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 6)
 #if __BYTE_ORDER == __LITTLE_ENDIAN

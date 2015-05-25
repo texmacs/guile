@@ -47,6 +47,9 @@
 #  define HIDDEN		/**/
 #endif
 
+#define rc(value)		jit_class_##value
+#define rn(reg)			(jit_regno(_rvs[jit_regno(reg)].spec))
+
 #if defined(__i386__) || defined(__x86_64__)
 #  define JIT_SP		_RSP
 #  define JIT_RET		_RAX
