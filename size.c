@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "lib/jit_names.c"
 
-jit_int16_t	_szs[jit_code_last_code + 1];
+jit_int16_t	_szs[jit_code_last_code];
 
 int
 main(int argc, char *argv[])
@@ -40,7 +40,7 @@ main(int argc, char *argv[])
     fclose(fp);
 
     max = 0;
-    for (offset = 0; offset <= jit_code_last_code; offset++)
+    for (offset = 0; offset < jit_code_last_code; offset++)
 	if (max < _szs[offset])
 	    max = _szs[offset];
 
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
     fprintf(fp, "#if defined(__powerpc__)\n");
 #endif
     fprintf(fp, "#define JIT_INSTR_MAX %d\n", max);
-    for (offset = 0; offset <= jit_code_last_code; offset++)
+    for (offset = 0; offset < jit_code_last_code; offset++)
 	fprintf(fp, "    %d,	/* %s */\n", _szs[offset], code_name[offset]);
 #if defined(__arm__)
     fprintf(fp, "#endif /* __ARM_PCS_VFP */\n");

@@ -871,7 +871,7 @@ typedef enum {
 #define jit_va_arg_d(u, v)	jit_new_node_ww(jit_code_va_arg_d, u, v)
     jit_code_va_end,
 #define jit_va_end(u)		jit_new_node_w(jit_code_va_end, u)
-#define jit_code_last_code	jit_code_va_end
+    jit_code_last_code
 } jit_code_t;
 
 typedef void* (*jit_alloc_func_ptr)	(size_t);
