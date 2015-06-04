@@ -80,6 +80,8 @@ main(int argc, char *argv[])
     fprintf(fp, "#if defined(__ppc__)\n");
 #elif defined(__powerpc__)
     fprintf(fp, "#if defined(__powerpc__)\n");
+    fprintf(fp, "#if __BYTE_ORDER == %s\n",
+	    __BYTE_ORDER == __BIG_ENDIAN ? "__BIG_ENDIAN" : "__LITTLE_ENDIAN");
 #endif
     fprintf(fp, "#define JIT_INSTR_MAX %d\n", max);
     for (offset = 0; offset < jit_code_last_code; offset++)
@@ -93,6 +95,7 @@ main(int argc, char *argv[])
 #elif defined(__ppc__)
     fprintf(fp, "#endif /* __ppc__ */\n");
 #elif defined(__powerpc__)
+    fprintf(fp, "#endif /* __BYTE_ORDER */\n");
     fprintf(fp, "#endif /* __powerpc__ */\n");
 #endif
 #if __X64 || __X32
@@ -100,7 +103,7 @@ main(int argc, char *argv[])
     fprintf(fp, "#  endif /* __X64_32 */\n");
     fprintf(fp, "#endif /* __X64 */\n");
 #  else
-    fprintf(fp, "#if __X32\n");
+    fprintf(fp, "#endif /* __X32 */\n");
 #  endif
 #else
     fprintf(fp, "#endif /* __WORDSIZE */\n");

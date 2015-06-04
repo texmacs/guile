@@ -154,11 +154,12 @@ typedef jit_int32_t		jit_fpr_t;
 #  include <lightning/jit_alpha.h>
 #endif
 
-#define jit_flag_node		0x00000001 /* patch node not absolute */
-#define jit_flag_patch		0x00000002 /* jump already patched */
-#define jit_flag_data		0x00000004 /* data in the constant pool */
-#define jit_flag_use		0x00000008 /* do not remove marker label */
-#define jit_flag_head		0x00100000 /* label reached by normal flow */
+#define jit_flag_node		0x0001	/* patch node not absolute */
+#define jit_flag_patch		0x0002	/* jump already patched */
+#define jit_flag_data		0x0004	/* data in the constant pool */
+#define jit_flag_use		0x0008	/* do not remove marker label */
+#define jit_flag_synth		0x0010	/* synthesized instruction */
+#define jit_flag_head		0x1000	/* label reached by normal flow */
 
 #define JIT_R(index)		jit_r(index)
 #define JIT_V(index)		jit_v(index)
@@ -200,14 +201,19 @@ typedef enum {
     jit_code_prolog,
 
 #define jit_ellipsis()		_jit_ellipsis(_jit)
+    jit_code_ellipsis,
 #define jit_allocai(u)		_jit_allocai(_jit,u)
 #define jit_allocar(u, v)	_jit_allocar(_jit,u,v)
+    jit_code_allocai,		jit_code_allocar,
 
 #define jit_arg()		_jit_arg(_jit)
+    jit_code_arg,
 #define jit_getarg_c(u,v)	_jit_getarg_c(_jit,u,v)
 #define jit_getarg_uc(u,v)	_jit_getarg_uc(_jit,u,v)
+    jit_code_getarg_c,		jit_code_getarg_uc,
 #define jit_getarg_s(u,v)	_jit_getarg_s(_jit,u,v)
 #define jit_getarg_us(u,v)	_jit_getarg_us(_jit,u,v)
+    jit_code_getarg_s,		jit_code_getarg_us,
 #define jit_getarg_i(u,v)	_jit_getarg_i(_jit,u,v)
 #if __WORDSIZE == 32
 #  define jit_getarg(u,v)	jit_getarg_i(u,v)
@@ -216,9 +222,11 @@ typedef enum {
 #  define jit_getarg_ui(u,v)	_jit_getarg_ui(_jit,u,v)
 #  define jit_getarg_l(u,v)	_jit_getarg_l(_jit,u,v)
 #endif
+    jit_code_getarg_i,		jit_code_getarg_ui,
+    jit_code_getarg_l,
 #  define jit_putargr(u,v)	_jit_putargr(_jit,u,v)
 #  define jit_putargi(u,v)	_jit_putargi(_jit,u,v)
-    jit_code_arg,
+    jit_code_putargr,		jit_code_putargi,
 
 #define jit_va_start(u)		jit_new_node_w(jit_code_va_start, u)
     jit_code_va_start,
@@ -532,17 +540,24 @@ typedef enum {
     jit_code_callr,		jit_code_calli,
 
 #define jit_prepare()		_jit_prepare(_jit)
+    jit_code_prepare,
 #define jit_pushargr(u)		_jit_pushargr(_jit,u)
 #define jit_pushargi(u)		_jit_pushargi(_jit,u)
+    jit_code_pushargr,		jit_code_pushargi,
 #define jit_finishr(u)		_jit_finishr(_jit,u)
 #define jit_finishi(u)		_jit_finishi(_jit,u)
+    jit_code_finishr,		jit_code_finishi,
 #define jit_ret()		_jit_ret(_jit)
+    jit_code_ret,
 #define jit_retr(u)		_jit_retr(_jit,u)
 #define jit_reti(u)		_jit_reti(_jit,u)
+    jit_code_retr,		jit_code_reti,
 #define jit_retval_c(u)		_jit_retval_c(_jit,u)
 #define jit_retval_uc(u)	_jit_retval_uc(_jit,u)
+    jit_code_retval_c,		jit_code_retval_uc,
 #define jit_retval_s(u)		_jit_retval_s(_jit,u)
 #define jit_retval_us(u)	_jit_retval_us(_jit,u)
+    jit_code_retval_s,		jit_code_retval_us,
 #define jit_retval_i(u)		_jit_retval_i(_jit,u)
 #if __WORDSIZE == 32
 #  define jit_retval(u)		jit_retval_i(u)
@@ -551,16 +566,19 @@ typedef enum {
 #  define jit_retval_ui(u)	_jit_retval_ui(_jit,u)
 #  define jit_retval_l(u)	_jit_retval_l(_jit,u)
 #endif
-    /* Usually should not need to call directly, but useful if need
-     * to get a label just before a jit_prolog() call */
+    jit_code_retval_i,		jit_code_retval_ui,
+    jit_code_retval_l,
+
 #define jit_epilog()		_jit_epilog(_jit)
     jit_code_epilog,
 
 #define jit_arg_f()		_jit_arg_f(_jit)
+    jit_code_arg_f,
 #define jit_getarg_f(u,v)	_jit_getarg_f(_jit,u,v)
+    jit_code_getarg_f,
 #define jit_putargr_f(u,v)	_jit_putargr_f(_jit,u,v)
 #define jit_putargi_f(u,v)	_jit_putargi_f(_jit,u,v)
-    jit_code_arg_f,
+    jit_code_putargr_f,		jit_code_putargi_f,
 
 #define jit_addr_f(u,v,w)	jit_new_node_www(jit_code_addr_f,u,v,w)
 #define jit_addi_f(u,v,w)	jit_new_node_wwf(jit_code_addi_f,u,v,w)
@@ -699,15 +717,20 @@ typedef enum {
 
 #define jit_pushargr_f(u)	_jit_pushargr_f(_jit,u)
 #define jit_pushargi_f(u)	_jit_pushargi_f(_jit,u)
+    jit_code_pushargr_f,	jit_code_pushargi_f,
 #define jit_retr_f(u)		_jit_retr_f(_jit,u)
 #define jit_reti_f(u)		_jit_reti_f(_jit,u)
+    jit_code_retr_f,		jit_code_reti_f,
 #define jit_retval_f(u)		_jit_retval_f(_jit,u)
+    jit_code_retval_f,
 
 #define jit_arg_d()		_jit_arg_d(_jit)
+    jit_code_arg_d,
 #define jit_getarg_d(u,v)	_jit_getarg_d(_jit,u,v)
+    jit_code_getarg_d,
 #define jit_putargr_d(u,v)	_jit_putargr_d(_jit,u,v)
 #define jit_putargi_d(u,v)	_jit_putargi_d(_jit,u,v)
-    jit_code_arg_d,
+    jit_code_putargr_d,		jit_code_putargi_d,
 
 #define jit_addr_d(u,v,w)	jit_new_node_www(jit_code_addr_d,u,v,w)
 #define jit_addi_d(u,v,w)	jit_new_node_wwd(jit_code_addi_d,u,v,w)
@@ -847,9 +870,12 @@ typedef enum {
 
 #define jit_pushargr_d(u)	_jit_pushargr_d(_jit,u)
 #define jit_pushargi_d(u)	_jit_pushargi_d(_jit,u)
+    jit_code_pushargr_d,	jit_code_pushargi_d,
 #define jit_retr_d(u)		_jit_retr_d(_jit,u)
 #define jit_reti_d(u)		_jit_reti_d(_jit,u)
+    jit_code_retr_d,		jit_code_reti_d,
 #define jit_retval_d(u)		_jit_retval_d(_jit,u)
+    jit_code_retval_d,
 
     /* Special internal backend specific codes */
     jit_code_movr_w_f,		jit_code_movr_ww_d,	/* w* -> f|d */
@@ -869,7 +895,6 @@ typedef enum {
 #define jit_movr_d_w(u, v)	jit_new_node_ww(jit_code_movr_d_w, u, v)
 #define jit_movi_d_w(u, v)	jit_new_node_wd(jit_code_movi_d_w, u, v)
 
-    jit_code_x86_retval_f,	jit_code_x86_retval_d,
     jit_code_last_code
 } jit_code_t;
 
@@ -994,6 +1019,12 @@ extern jit_node_t *_jit_new_node(jit_state_t*, jit_code_t);
 #define jit_new_node_w(c,u)	_jit_new_node_w(_jit,c,u)
 extern jit_node_t *_jit_new_node_w(jit_state_t*, jit_code_t,
 				   jit_word_t);
+#define jit_new_node_f(c,u)	_jit_new_node_f(_jit,c,u)
+extern jit_node_t *_jit_new_node_f(jit_state_t*, jit_code_t,
+				   jit_float32_t);
+#define jit_new_node_d(c,u)	_jit_new_node_d(_jit,c,u)
+extern jit_node_t *_jit_new_node_d(jit_state_t*, jit_code_t,
+				   jit_float64_t);
 #define jit_new_node_p(c,u)	_jit_new_node_p(_jit,c,u)
 extern jit_node_t *_jit_new_node_p(jit_state_t*, jit_code_t,
 				   jit_pointer_t);
@@ -1003,6 +1034,12 @@ extern jit_node_t *_jit_new_node_ww(jit_state_t*,jit_code_t,
 #define jit_new_node_wp(c,u,v)	_jit_new_node_wp(_jit,c,u,v)
 extern jit_node_t *_jit_new_node_wp(jit_state_t*,jit_code_t,
 				    jit_word_t, jit_pointer_t);
+#define jit_new_node_fp(c,u,v)	_jit_new_node_fp(_jit,c,u,v)
+extern jit_node_t *_jit_new_node_fp(jit_state_t*,jit_code_t,
+				    jit_float32_t, jit_pointer_t);
+#define jit_new_node_dp(c,u,v)	_jit_new_node_dp(_jit,c,u,v)
+extern jit_node_t *_jit_new_node_dp(jit_state_t*,jit_code_t,
+				    jit_float64_t, jit_pointer_t);
 #define jit_new_node_pw(c,u,v)	_jit_new_node_pw(_jit,c,u,v)
 extern jit_node_t *_jit_new_node_pw(jit_state_t*,jit_code_t,
 				    jit_pointer_t, jit_word_t);

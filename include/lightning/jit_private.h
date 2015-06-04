@@ -145,6 +145,70 @@ extern jit_node_t *_jit_data(jit_state_t*, const void*,
     (!jit_regset_tstbit(&_jitc->regarg, regno) &&			\
      !jit_regset_tstbit(&_jitc->regsav, regno))
 
+#define jit_inc_synth(code)						\
+    do {								\
+	(void)jit_new_node(jit_code_##code);				\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_w(code, u)					\
+    do {								\
+	(void)jit_new_node_w(jit_code_##code, u);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_f(code, u)					\
+    do {								\
+	(void)jit_new_node_f(jit_code_##code, u);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_d(code, u)					\
+    do {								\
+	(void)jit_new_node_d(jit_code_##code, u);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_ww(code, u, v)					\
+    do {								\
+	(void)jit_new_node_ww(jit_code_##code, u, v);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_wp(code, u, v)					\
+    do {								\
+	(void)jit_new_node_wp(jit_code_##code, u, v);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_fp(code, u, v)					\
+    do {								\
+	(void)jit_new_node_fp(jit_code_##code, u, v);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_inc_synth_dp(code, u, v)					\
+    do {								\
+	(void)jit_new_node_dp(jit_code_##code, u, v);			\
+	jit_synth_inc();						\
+    } while (0)
+#define jit_dec_synth()		jit_synth_dec()
+
+#define jit_link_prolog()						\
+    do {								\
+	_jitc->tail->link = _jitc->function->prolog->link;		\
+	_jitc->function->prolog->link = _jitc->tail;			\
+    } while (0)
+#define jit_link_prepare()						\
+    do {								\
+	_jitc->tail->link = _jitc->prepare->link;			\
+	_jitc->prepare->link = _jitc->tail;				\
+    } while (0)
+#define jit_link_reverse(where)						\
+    do {								\
+	jit_node_t	*tmp, *tail = 0;				\
+	while (where) {							\
+	    tmp = (where)->link;					\
+	    (where)->link = tail;					\
+	    tail = where;						\
+	    where = tmp;						\
+	}								\
+	where = tail;							\
+    } while (0);
+
 /*
  * Private jit_class bitmasks
  */
@@ -173,11 +237,13 @@ extern jit_node_t *_jit_data(jit_state_t*, const void*,
 #define jit_cc_a0_int		0x00000010	/* arg0 is immediate word */
 #define jit_cc_a0_flt		0x00000020	/* arg0 is immediate float */
 #define jit_cc_a0_dbl		0x00000040	/* arg0 is immediate double */
+#define jit_cc_a0_arg		0x00000080	/* arg1 is an argument int id */
 #define jit_cc_a1_reg		0x00000100	/* arg1 is a register */
 #define jit_cc_a1_chg		0x00000200	/* arg1 is modified */
 #define jit_cc_a1_int		0x00001000	/* arg1 is immediate word */
 #define jit_cc_a1_flt		0x00002000	/* arg1 is immediate float */
 #define jit_cc_a1_dbl		0x00004000	/* arg1 is immediate double */
+#define jit_cc_a1_arg		0x00008000	/* arg1 is an argument node */
 #define jit_cc_a2_reg		0x00010000	/* arg2 is a register */
 #define jit_cc_a2_chg		0x00020000	/* arg2 is modified */
 #define jit_cc_a2_int		0x00100000	/* arg2 is immediate word */
@@ -301,14 +367,12 @@ struct jit_line {
 struct jit_node {
     jit_node_t		*next;
     jit_code_t		 code;
-    jit_int32_t		 flag;
+    jit_uint16_t	 flag;
+    jit_uint16_t	 offset;	/* Used if DEVEL_DISASSEMBLER */
     jit_data_t		 u;
     jit_data_t		 v;
     jit_data_t		 w;
     jit_node_t		*link;
-#if DEVEL_DISASSEMBLER
-    jit_uword_t		 offset;
-#endif
 };
 
 struct jit_block {
@@ -347,6 +411,7 @@ struct jit_function {
 	jit_int32_t	 aoff;
 	jit_int32_t	 alen;
 	jit_int32_t	 call;
+	jit_int32_t	 argn;		/* for debug output */
     } self;
     struct {
 	jit_int32_t	 argi;
@@ -397,12 +462,13 @@ struct jit_compiler {
 #endif
     jit_node_t		 *head;
     jit_node_t		 *tail;
+    jit_node_t		 *prepare;	/* inside prepare/finish* block */
     jit_uint32_t	  realize : 1;	/* jit_realize() called? */
     jit_uint32_t	  dataset : 1;	/* jit_dataset() called? */
     jit_uint32_t	  done	: 1;	/* emit state finished */
     jit_uint32_t	  emit	: 1;	/* emit state entered */
     jit_uint32_t	  again	: 1;	/* start over emiting function */
-    jit_uint32_t	  prepare : 1;	/* inside prepare/finish* block */
+    jit_uint32_t	  synth : 8;	/* emiting synthesized instructions */
 #if DEBUG
     jit_uint32_t	  getreg : 1;
 #endif
@@ -548,6 +614,9 @@ extern void jit_get_cpu(void);
 #define jit_init()			_jit_init(_jit)
 extern void _jit_init(jit_state_t*);
 
+#define jit_synth_inc()			_jit_synth_inc(_jit)
+extern void _jit_synth_inc(jit_state_t*);
+
 #define jit_new_node_no_link(u)		_jit_new_node_no_link(_jit, u)
 extern jit_node_t *_jit_new_node_no_link(jit_state_t*, jit_code_t);
 
@@ -557,6 +626,9 @@ extern void _jit_link_node(jit_state_t*, jit_node_t*);
 #define jit_link_label(l)	_jit_link_label(_jit,l)
 extern void
 _jit_link_label(jit_state_t*,jit_node_t*);
+
+#define jit_synth_dec()			_jit_synth_dec(_jit)
+extern void _jit_synth_dec(jit_state_t*);
 
 #define jit_reglive(node)	_jit_reglive(_jit, node)
 extern void

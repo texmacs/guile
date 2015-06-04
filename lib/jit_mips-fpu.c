@@ -1780,28 +1780,19 @@ dbopi(unord)
 static void
 _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		reg, aln;
-
+    jit_int32_t		reg;
     assert(_jitc->function->self.call & jit_call_varargs);
-    reg = jit_get_reg(jit_class_gpr);
-
-    /* Load varargs stack pointer. */
-    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
-
     /* Align, if required. */
-    aln = jit_get_reg(jit_class_gpr);
-    andi(rn(aln), rn(reg), 7);
-    addr(rn(reg), rn(reg), rn(aln));
-    jit_unget_reg(aln);
+    reg = jit_get_reg(jit_class_gpr);
+    andi(rn(reg), r1, 7);
+    addr(r1, r1, rn(reg));
+    jit_unget_reg(reg);
 
     /* Load argument. */
-    ldr_d(r0, rn(reg));
+    ldr_d(r0, r1);
 
-    /* Update vararg stack pointer. */
-    addi(rn(reg), rn(reg), sizeof(jit_float64_t));
-    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
-
-    jit_unget_reg(reg);
+    /* Update va_list. */
+    addi(r1, r1, sizeof(jit_float64_t));
 }
 
 #  undef fopi

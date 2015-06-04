@@ -1,4 +1,52 @@
-2015-06-25 Paulo Andrade <pcpa@gnu.org>
+2015-06-04 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_rewind.c: New file implementing generic functions
+	to "rewind", or rewrite IR code sequences.
+
+	* include/lightning.h: Add several new codes, that previously
+	were a function call, that would synthesize the operation.
+	Now, there is a code for the operation, and a new flag to
+	know an operation is synthesized.
+
+	* include/lightning/jit_private.h: Add several new macros to
+	help construct synthesized IR code sequences.
+
+	* lib/Makefile.am: Update for lib/jit_rewind.c.
+
+	* lib/jit_disasm.c: Update for a small rework on jit_node_t,
+	so that --enable-devel-disassembler does not need a change
+	in the layout of jit_node_t.
+
+	* lib/jit_names.c: Update for the new codes.
+
+	* lib/jit_print.c: Update to print more readable output, and
+	flag synthesized IR code sequences.
+
+	* lib/jit_aarch64-sz.c, lib/jit_aarch64.c,
+	lib/jit_arm-sz.c, lib/jit_arm.c, lib/jit_x86-sz.c,
+	lib/jit_x86.c: Update for new synthesized IR code sequences.
+
+	* lib/jit_ppc-cpu.c, lib/jit_ppc-fpu., lib/jit_ppc-sz.c,
+	lib/jit_ppc.c, lib/jit_mips-cpu.c, lib/jit_mips-fpu.c,
+	lib/jit_mips-sz.c, lib/jit_mips.c, lib/jit_s390-fpu.c,
+	lib/jit_s390-sz.c, lib/jit_s390.c: Update for new synthesized
+	IR code sequences and correct bugs in the initial varargs
+	implementation support.
+
+	* lib/jit_alpha-sz.c, lib/jit_alpha.c, lib/jit_hppa-sz.c,
+	lib/jit_hppa.c, lib/jit_ia64-sz.c, lib/jit_ia64.c,
+	lib/jit_sparc-sz.c, lib/jit_sparc.c: Add generic, untested
+	support for the new synthesized	IR code sequences. Known
+	most likely broken right now, and should be corrected once
+	access to these hosts is available.
+
+	* lib/lightning.c: Update for new IR codes, and add support
+	for not yet existing instructions that change third argument.
+
+	* size.c: Change to use different tables for LE and BE PowerPC.
+	Correct a wrong endif for x32.
+
+2015-05-25 Paulo Andrade <pcpa@gnu.org>
 
 	* check/cva_list.c: New file implementing a test to ensure
 	the value returned by jit_va_start is a valid C va_list.
@@ -20,7 +68,7 @@
 	lib/jit_x86-cpu.c, lib/jit_x86-sz.c, lib/jit_x86.c: Correct
 	the jit_va_list_t semantics to match C va_list.
 
-2015-06-24 Paulo Andrade <pcpa@gnu.org>
+2015-05-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/Makefile.am: Bump library major. This is a preparation
 	for a rework that was due for quite some time, but that is
@@ -40,78 +88,78 @@
 	make that call after jit_ellipsis, but documentation
 	should be updated for it.
 
-2015-06-24 Paulo Andrade <pcpa@gnu.org>
+2015-05-24 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-fpu.c, lib/jit_aarch64.c: Correct base
 	aarch64 varargs code.
 
-2015-06-24 Paulo Andrade <pcpa@gnu.org>
+2015-05-24 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c: Clearly run check if clang is the system
 	compiler.
 
-2015-06-20 Paulo Andrade <pcpa@gnu.org>
+2015-05-20 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_sparc-cpu.c, lib/jit_sparc-fpu.c, lib/jit_sparc.c:
 	Add base support to jit vararg functions to the sparc backend.
 
-2015-06-20 Paulo Andrade <pcpa@gnu.org>
+2015-05-20 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_alpha-cpu.c, lib/jit_alpha-fpu.c, lib/jit_alpha.c:
 	Add base support to jit vararg functions to the alpha backend.
 
-2015-06-19 Paulo Andrade <pcpa@gnu.org>
+2015-05-19 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_hppa-cpu.c, lib/jit_hppa-fpu.c, lib/jit_hppa.c:
 	Add base support to jit vararg functions to the hppa backend.
 
-2015-06-10 Paulo Andrade <pcpa@gnu.org>
+2015-05-10 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-cpu.c, lib/jit_ia64-fpu.c, lib/jit_ia64.c:
 	Add base support to jit vararg functions to the ia64 backend.
 
-2015-06-10 Paulo Andrade <pcpa@gnu.org>
+2015-05-10 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-fpu.c, lib/jit_ia64.c: Correct movi_d_w
 	and movi_f_w implementation to work when not using a
 	data buffer. This causes the check varargs.tst to
 	work when passing "-d" to the lightning test tool.
 
-2015-06-10 Paulo Andrade <pcpa@gnu.org>
+2015-05-10 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64.c: Implement inline assembly cache flush,
 	required on multiprocessor systems.
 
-2015-06-06 Paulo Andrade <pcpa@gnu.org>
+2015-05-06 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_mips-cpu.c, lib/jit_mips-fpu.c, lib/jit_mips.c:
 	Add base support to jit vararg functions to the mips backend.
 	Currently only supported on the o32 abi, until access to a
 	n32 system is arranged.
 
-2015-06-05 Paulo Andrade <pcpa@gnu.org>
+2015-05-05 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ppc-cpu.c, lib/jit_ppc-fpu.c, lib/jit_ppc.c:
 	Add base support to jit vararg functions to the PowerPC backend.
 
-2015-06-02 Paulo Andrade <pcpa@gnu.org>
+2015-05-02 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_s390-cpu.c, lib/jit_s390-fpu.c, lib/jit_s390.c:
 	Add base support to jit vararg functions to the s390 backend.
 
-2015-06-01 Paulo Andrade <pcpa@gnu.org>
+2015-05-01 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_arm-cpu.c, lib/jit_arm-swf.c, lib/jit_arm-vfp.c,
 	lib/jit_arm.c: Add base support to jit vararg
 	functions to the arm backend.
 
-2015-05-30 Paulo Andrade <pcpa@gnu.org>
+2015-04-30 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_aarch64-cpu.c, lib/jit_aarch64-fpu.c,
 	lib/jit_aarch64.c: Add base support to jit vararg
 	functions to the aarch64 backend.
 
-2015-05-27 Paulo Andrade <pcpa@gnu.org>
+2015-04-27 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning.h, include/lightning/jit_private.h,
 	lib/jit_names.c, lib/lightning.c: Add initial support

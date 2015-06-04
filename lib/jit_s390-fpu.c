@@ -1287,7 +1287,7 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 
     /* Update the fp offset. */
     addi(rn(rg0), rn(rg0), 1);
-    stxi(offsetof(jit_va_list_t, gpoff), r1, rn(rg0));
+    stxi(offsetof(jit_va_list_t, fpoff), r1, rn(rg0));
 
     /* Will only need one temporary register below. */
     jit_unget_reg_but_zero(rg1);
@@ -1305,7 +1305,7 @@ _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     ldr_d(r0, rn(rg0));
 
     /* Update overflow pointer. */
-    addi(rn(rg0), rn(rg0), sizeof(jit_word_t));
+    addi(rn(rg0), rn(rg0), sizeof(jit_float64_t));
     stxi(offsetof(jit_va_list_t, over), r1, rn(rg0));
 
     /* Where to land if argument is in save area. */

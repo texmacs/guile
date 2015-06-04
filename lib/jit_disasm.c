@@ -329,6 +329,7 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     char		 buffer[address_buffer_length];
 #if DEVEL_DISASSEMBLER
     jit_node_t		*node;
+    jit_uword_t		 prevw;
 #endif
 
 #if __arm__
@@ -343,14 +344,18 @@ _disassemble(jit_state_t *_jit, jit_pointer_t code, jit_int32_t length)
     disasm_jit = _jit;
 #if DEVEL_DISASSEMBLER
     node = _jitc->head;
+    prevw = pc;
 #endif
     while (pc < end) {
 #if DEVEL_DISASSEMBLER
-	while (node && node->offset < (jit_uword_t)pc)
+	while (node && (jit_uword_t)(prevw + node->offset) < (jit_uword_t)pc) {
+	    prevw += node->offset;
 	    node = node->next;
-	while (node && node->offset == (jit_uword_t)pc) {
+	}
+	while (node && (jit_uword_t)(prevw + node->offset) == (jit_uword_t)pc) {
 	    jit_print_node(node);
 	    fputc('\n', stdout); 
+	    prevw += node->offset;
 	    node = node->next;
 	}
 #endif

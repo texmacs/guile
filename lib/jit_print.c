@@ -32,6 +32,14 @@
 	    print_chr('?');						\
 	print_str(_rvs[jit_regno(value)].name);				\
     } while (0)
+#define print_arg(value)						\
+    do {								\
+	print_chr('#');							\
+	if (value)							\
+	    print_dec((value)->v.w);					\
+	else								\
+	    print_chr('?');						\
+    } while (0)
 
 /*
  * Initialization
@@ -84,19 +92,38 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 	return;
     }
     value = jit_classify(node->code) &
-    	(jit_cc_a0_int|jit_cc_a0_jmp|jit_cc_a0_reg|jit_cc_a0_rlh|
-	 jit_cc_a1_reg|jit_cc_a1_int|jit_cc_a1_flt|jit_cc_a1_dbl|
+	(jit_cc_a0_int|jit_cc_a0_flt|jit_cc_a0_dbl|jit_cc_a0_jmp|
+	 jit_cc_a0_reg|jit_cc_a0_rlh|jit_cc_a0_arg|
+	 jit_cc_a1_reg|jit_cc_a1_int|jit_cc_a1_flt|jit_cc_a1_dbl|jit_cc_a1_arg|
 	 jit_cc_a2_reg|jit_cc_a2_int|jit_cc_a2_flt|jit_cc_a2_dbl);
-    if (value & jit_cc_a0_jmp)
+    if (!(node->flag & jit_flag_synth) && ((value & jit_cc_a0_jmp) ||
+					   node->code == jit_code_finishr ||
+					   node->code == jit_code_finishi))
 	print_str("    ");
     else
 	print_chr('\t');
+    if (node->flag & jit_flag_synth)
+	print_str(" \\__ ");
     print_str(code_name[node->code]);
     switch (node->code) {
 	r:
 	    print_chr(' ');	print_reg(node->u.w);	return;
 	w:
 	    print_chr(' ');	print_hex(node->u.w);	return;
+	f:
+	    print_chr(' ');
+	    if (node->flag & jit_flag_data)
+		print_flt(*(jit_float32_t *)node->u.n->u.w);
+	    else
+		print_flt(node->u.f);
+	    return;
+	d:
+	    print_chr(' ');
+	    if (node->flag & jit_flag_data)
+		print_flt(*(jit_float64_t *)node->u.n->u.w);
+	    else
+		print_flt(node->u.d);
+	    return;
 	n:
 	    print_chr(' ');
 	    if (!(node->flag & jit_flag_node))
@@ -106,6 +133,8 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 		print_dec(node->u.n->v.w);
 	    }
 	    return;
+	a:
+	    print_chr(' ');	print_arg(node);	return;
 	r_r:
 	    print_chr(' ');	print_reg(node->u.w);
 	    print_chr(' ');	print_reg(node->v.w);	return;
@@ -128,9 +157,36 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 	    else
 		print_flt(node->v.d);
 	    return;
+	r_a:
+	    print_chr(' ');	print_reg(node->u.w);
+	    print_chr(' ');	print_arg(node->v.n);
+	    return;
 	w_r:
 	    print_chr(' ');	print_hex(node->u.w);
 	    print_chr(' ');	print_reg(node->v.w);   return;
+	w_w:
+	    print_chr(' ');	print_hex(node->u.w);
+	    print_chr(' ');	print_hex(node->v.w);   return;
+	w_a:
+	    print_chr(' ');	print_hex(node->u.w);
+	    print_chr(' ');	print_arg(node->v.n);
+	    return;
+	f_a:
+	    print_chr(' ');
+	    if (node->flag & jit_flag_data)
+		print_flt(*(jit_float32_t *)node->u.n->u.w);
+	    else
+		print_flt(node->u.f);
+	    print_chr(' ');	print_arg(node->v.n);
+	    return;
+	d_a:
+	    print_chr(' ');
+	    if (node->flag & jit_flag_data)
+		print_flt(*(jit_float64_t *)node->u.n->u.w);
+	    else
+		print_flt(node->u.d);
+	    print_chr(' ');	print_arg(node->v.n);
+	    return;
 	r_r_r:
 	    print_chr(' ');	print_reg(node->u.w);
 	    print_chr(' ');	print_reg(node->v.w);
@@ -237,7 +293,9 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 	    break;
 	case jit_code_data:
 	case jit_code_label:
+	case jit_code_ellipsis:
 	case jit_code_prolog:	case jit_code_epilog:
+	case jit_code_ret:	case jit_code_prepare:
 	    break;
 	case jit_code_save:	case jit_code_load:
 	    goto r;
@@ -249,8 +307,14 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 		    goto r;
 		case jit_cc_a0_int:
 		    goto w;
+		case jit_cc_a0_flt:
+		    goto f;
+		case jit_cc_a0_dbl:
+		    goto d;
 		case jit_cc_a0_jmp:
 		    goto n;
+		case jit_cc_a0_int|jit_cc_a0_arg:
+		    goto a;
 		case jit_cc_a0_reg|jit_cc_a1_reg:
 		    goto r_r;
 		case jit_cc_a0_reg|jit_cc_a1_int:
@@ -259,8 +323,18 @@ _jit_print_node(jit_state_t *_jit, jit_node_t *node)
 		    goto r_f;
 		case jit_cc_a0_reg|jit_cc_a1_dbl:
 		    goto r_d;
+		case jit_cc_a0_reg|jit_cc_a1_arg:
+		    goto r_a;
 		case jit_cc_a0_int|jit_cc_a1_reg:
 		    goto w_r;
+		case jit_cc_a0_int|jit_cc_a1_int:
+		    goto w_w;
+		case jit_cc_a0_int|jit_cc_a1_arg:
+		    goto w_a;
+		case jit_cc_a0_flt|jit_cc_a1_arg:
+		    goto f_a;
+		case jit_cc_a0_dbl|jit_cc_a1_arg:
+		    goto d_a;
 		case jit_cc_a0_reg|jit_cc_a1_reg|jit_cc_a2_reg:
 		    goto r_r_r;
 		case jit_cc_a0_reg|jit_cc_a1_reg|jit_cc_a2_int:

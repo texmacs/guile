@@ -131,6 +131,10 @@ _jit_prolog(jit_state_t *_jit)
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
 	      _jitc->reglen * sizeof(jit_int32_t));
 
+    /* _no_link here does not mean the jit_link() call can be removed
+     * by rewriting as:
+     * _jitc->function->prolog = jit_new_node(jit_code_prolog);
+     */
     _jitc->function->prolog = jit_new_node_no_link(jit_code_prolog);
     jit_link(_jitc->function->prolog);
     _jitc->function->prolog->w.w = offset;
@@ -155,6 +159,10 @@ _jit_allocai(jit_state_t *_jit, jit_int32_t length)
 	default:	_jitc->function->self.aoff &= -8;	break;
     }
     _jitc->function->self.aoff -= length;
+    if (!_jitc->realize) {
+	jit_inc_synth_ww(allocai, _jitc->function->self.aoff, length);
+	jit_dec_synth();
+    }
     return (_jitc->function->self.aoff);
 }
 
@@ -163,84 +171,95 @@ _jit_allocar(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
 {
     jit_int32_t		 reg;
     assert(_jitc->function);
+    jit_inc_synth_ww(allocar, u, v);
     if (!_jitc->function->allocar) {
 	_jitc->function->aoffoff = jit_allocai(sizeof(jit_int32_t));
 	_jitc->function->allocar = 1;
     }
-
     reg = jit_get_reg(jit_class_gpr);
     jit_negr(reg, v);
     jit_andi(reg, reg, -16);
-
     jit_ldxi_i(u, JIT_FP, _jitc->function->aoffoff);
     jit_addr(u, u, reg);
     jit_addr(_SP, _SP, reg);
-
     jit_stxi_i(_jitc->function->aoffoff, JIT_FP, u);
     jit_unget_reg(reg);
+    jit_dec_synth();
 }
 
 void
 _jit_ret(jit_state_t *_jit)
 {
     jit_node_t		*instr;
-
     assert(_jitc->function);
-
+    jit_inc_synth(ret);
     /* jump to epilog */
     instr = jit_jmpi();
     jit_patch_at(instr, _jitc->function->epilog);
+    jit_dec_synth();
 }
 
 void
 _jit_retr(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(retr, u);
     if (JIT_RET != u)
 	jit_movr(JIT_RET, u);
     else
 	jit_live(JIT_RET);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
 _jit_reti(jit_state_t *_jit, jit_word_t u)
 {
+    jit_inc_synth_w(reti, u);
     jit_movi(JIT_RET, u);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
 _jit_retr_f(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(retr_f, u);
     if (JIT_FRET != u)
 	jit_movr_f(JIT_FRET, u);
     else
 	jit_live(JIT_FRET);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
 _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 {
+    jit_inc_synth_f(reti_f, u);
     jit_movi_f(JIT_FRET, u);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
 _jit_retr_d(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(retr_d, u);
     if (JIT_FRET != u)
 	jit_movr_d(JIT_FRET, u);
     else
 	jit_live(JIT_FRET);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
 _jit_reti_d(jit_state_t *_jit, jit_float64_t u)
 {
+    jit_inc_synth_d(reti_d, u);
     jit_movi_d(JIT_FRET, u);
     jit_ret();
+    jit_dec_synth();
 }
 
 void
@@ -264,22 +283,27 @@ _jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
 void
 _jit_ellipsis(jit_state_t *_jit)
 {
+    jit_inc_synth(ellipsis);
     if (_jitc->prepare) {
+	jit_link_prepare();
 	assert(!(_jitc->function->call.call & jit_call_varargs));
 	_jitc->function->call.call |= jit_call_varargs;
     }
     else {
+	jit_link_prolog();
 	assert(!(_jitc->function->self.call & jit_call_varargs));
 	_jitc->function->self.call |= jit_call_varargs;
 
 	_jitc->function->vagp = _jitc->function->self.argi;
     }
+    jit_dec_synth();
 }
 
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
-    jit_int32_t		offset;
+    jit_node_t		*node;
+    jit_int32_t		 offset;
     assert(_jitc->function);
     if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
@@ -287,13 +311,17 @@ _jit_arg(jit_state_t *_jit)
 	offset = _jitc->function->self.size;
 	_jitc->function->self.size += sizeof(jit_word_t);
     }
-    return (jit_new_node_w(jit_code_arg, offset));
+    node = jit_new_node_ww(jit_code_arg, offset,
+			   ++_jitc->function->self.argn);
+    jit_link_prepare();
+    return (node);
 }
 
 jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
-    jit_int32_t		offset;
+    jit_node_t		*node;
+    jit_int32_t		 offset;
     assert(_jitc->function);
     if (jit_arg_reg_p(_jitc->function->self.argi))
 	offset = _jitc->function->self.argi++;
@@ -301,13 +329,17 @@ _jit_arg_f(jit_state_t *_jit)
 	offset = _jitc->function->self.size;
 	_jitc->function->self.size += sizeof(jit_float32_t);
     }
-    return (jit_new_node_w(jit_code_arg_f, offset));
+    node = jit_new_node_ww(jit_code_arg_f, offset,
+			   ++_jitc->function->self.argn);
+    jit_link_prepare();
+    return (node);
 }
 
 jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
-    jit_int32_t		offset;
+    jit_node_t		*node;
+    jit_int32_t		 offset;
     assert(_jitc->function);
     if (jit_arg_d_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi;
@@ -321,71 +353,86 @@ _jit_arg_d(jit_state_t *_jit)
 	offset = _jitc->function->self.size;
 	_jitc->function->self.size += sizeof(jit_float64_t);
     }
-    return (jit_new_node_w(jit_code_arg_d, offset));
+    node = jit_new_node_ww(jit_code_arg_d, offset,
+			   ++_jitc->function->self.argn);
+    jit_link_prepare();
+    return (node);
 }
 
 void
 _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(getarg_c, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_c(u, _I0 + v->u.w);
     else
 	jit_ldxi_c(u, JIT_FP,
 		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_int8_t));
+    jit_dec_synth();
 }
 
 void
 _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(getarg_uc, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_uc(u, _I0 + v->u.w);
     else
 	jit_ldxi_uc(u, JIT_FP,
 		    v->u.w + (__WORDSIZE >> 3) - sizeof(jit_uint8_t));
+    jit_dec_synth();
 }
 
 void
 _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(getarg_s, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_s(u, _I0 + v->u.w);
     else
 	jit_ldxi_s(u, JIT_FP,
 		   v->u.w + (__WORDSIZE >> 3) - sizeof(jit_int16_t));
+    jit_dec_synth();
 }
 
 void
 _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(getarg_us, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_extr_us(u, _I0 + v->u.w);
     else
 	jit_ldxi_us(u, JIT_FP,
 		    v->u.w + (__WORDSIZE >> 3) - sizeof(jit_uint16_t));
+    jit_dec_synth();
 }
 
 void
 _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(getarg_i, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_movr(u, _I0 + v->u.w);
     else
 	jit_ldxi_i(u, JIT_FP, v->u.w);
+    jit_dec_synth();
 }
 
 void
 _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(putargr, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_movr(_I0 + v->u.w, u);
     else
 	jit_stxi(v->u.w, JIT_FP, u);
+    jit_dec_synth();
 }
 
 void
@@ -393,6 +440,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 {
     jit_int32_t		regno;
     assert(v->code == jit_code_arg);
+    jit_inc_synth_wp(putargi, u, v);
     if (jit_arg_reg_p(v->u.w))
 	jit_movi(_I0 + v->u.w, u);
     else {
@@ -401,6 +449,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 	jit_stxi(v->u.w, JIT_FP, regno);
 	jit_unget_reg(regno);
     }
+    jit_dec_synth();
 }
 
 void
@@ -408,24 +457,28 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
     assert(_jitc->function);
+    jit_inc_synth_wp(getarg_f, u, v);
     if (jit_arg_reg_p(v->u.w)) {
 	jit_stxi(-4, JIT_FP, _I0 + v->u.w);
 	jit_ldxi_f(u, JIT_FP, -4);
     }
     else
 	jit_ldxi_f(u, JIT_FP, v->u.w);
+    jit_dec_synth();
 }
 
 void
 _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
+    jit_inc_synth_wp(putargr_f, u, v);
     if (jit_arg_reg_p(v->u.w)) {
 	jit_stxi_f(-4, JIT_FP, u);
 	jit_ldxi(_I0 + v->u.w, JIT_FP, -4);
     }
     else
 	jit_stxi_f(v->u.w, JIT_FP, u);
+    jit_dec_synth();
 }
 
 void
@@ -433,6 +486,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
 {
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_f);
+    jit_inc_synth_fp(putargi_f, u, v);
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_f(regno, u);
     if (jit_arg_reg_p(v->u.w)) {
@@ -442,6 +496,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
     else
 	jit_stxi_f(v->u.w, JIT_FP, regno);
     jit_unget_reg(regno);
+    jit_dec_synth();
 }
 
 void
@@ -449,6 +504,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
     assert(_jitc->function);
+    jit_inc_synth_wp(getarg_d, u, v);
     if (jit_arg_d_reg_p(v->u.w)) {
 	jit_stxi(-8, JIT_FP, _I0 + v->u.w);
 	jit_stxi(-4, JIT_FP, _I0 + v->u.w + 1);
@@ -463,6 +519,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	jit_ldxi_f(u, JIT_FP, v->u.w);
 	jit_ldxi_f(u + 1, JIT_FP, v->u.w + 4);
     }
+    jit_dec_synth();
 }
 
 void
@@ -470,6 +527,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 {
     jit_int32_t		regno;
     assert(v->code == jit_code_arg_d);
+    jit_inc_synth_wp(putargr_d, u, v);
     if (jit_arg_d_reg_p(v->u.w)) {
 	jit_stxi_d(-8, JIT_FP, u);
 	jit_ldxi(_I0 + v->u.w, JIT_FP, -8);
@@ -494,6 +552,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 	jit_stxi(v->u.w + 4, JIT_FP, regno);
 	jit_unget_reg(regno);
     }
+    jit_dec_synth();
 }
 
 void
@@ -501,6 +560,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 {
     jit_int32_t		regno, gpr;
     assert(v->code == jit_code_arg_d);
+    jit_inc_synth_dp(putargi_d, u, v);
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_d(regno, u);
     if (jit_arg_d_reg_p(v->u.w)) {
@@ -528,12 +588,14 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 	jit_unget_reg(gpr);
     }
     jit_unget_reg(regno);
+    jit_dec_synth();
 }
-
 
 void
 _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(pushargr, u);
+    jit_link_prepare();
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movr(_O0 + _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
@@ -542,12 +604,15 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 	jit_stxi(_jitc->function->call.size + stack_framesize, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
+    jit_dec_synth();
 }
 
 void
 _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 {
     jit_int32_t		regno;
+    jit_inc_synth_w(pushargi, u);
+    jit_link_prepare();
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_movi(_O0 + _jitc->function->call.argi, u);
 	++_jitc->function->call.argi;
@@ -559,11 +624,14 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 	jit_unget_reg(regno);
 	_jitc->function->call.size += sizeof(jit_word_t);
     }
+    jit_dec_synth();
 }
 
 void
 _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(pushargr_f, u);
+    jit_link_prepare();
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
 	jit_stxi_f(-4, JIT_FP, u);
 	jit_ldxi(_O0 + _jitc->function->call.argi, JIT_FP, -4);
@@ -573,12 +641,15 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 	jit_stxi_f(_jitc->function->call.size + stack_framesize, JIT_SP, u);
 	_jitc->function->call.size += sizeof(jit_float32_t);
     }
+    jit_dec_synth();
 }
 
 void
 _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 {
     jit_int32_t		regno;
+    jit_inc_synth_f(pushargi_f, u);
+    jit_link_prepare();
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_f(regno, u);
     if (jit_arg_reg_p(_jitc->function->call.argi)) {
@@ -591,11 +662,14 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 	_jitc->function->call.size += sizeof(jit_float32_t);
     }
     jit_unget_reg(regno);
+    jit_dec_synth();
 }
 
 void
 _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 {
+    jit_inc_synth_w(pushargr_d, u);
+    jit_link_prepare();
     if (jit_arg_d_reg_p(_jitc->function->call.argi)) {
 	jit_stxi_d(-8, JIT_FP, u);
 	jit_ldxi(_O0 + _jitc->function->call.argi, JIT_FP, -8);
@@ -616,12 +690,15 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 		   JIT_SP, u + 1);
 	_jitc->function->call.size += sizeof(jit_float64_t);
     }
+    jit_dec_synth();
 }
 
 void
 _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 {
     jit_int32_t		regno;
+    jit_inc_synth_d(pushargi_d, u);
+    jit_link_prepare();
     regno = jit_get_reg(jit_class_fpr);
     jit_movi_d(regno, u);
     if (jit_arg_d_reg_p(_jitc->function->call.argi)) {
@@ -645,6 +722,7 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 	_jitc->function->call.size += sizeof(jit_float64_t);
     }
     jit_unget_reg(regno);
+    jit_dec_synth();
 }
 
 jit_bool_t
@@ -667,8 +745,8 @@ void
 _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
 {
     jit_node_t		*call;
-
     assert(_jitc->function);
+    jit_inc_synth_w(finishr, r0);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
     call = jit_callr(r0);
@@ -677,14 +755,15 @@ _jit_finishr(jit_state_t *_jit, jit_int32_t r0)
     _jitc->function->call.argi = _jitc->function->call.argf =
 	_jitc->function->call.size = 0;
     _jitc->prepare = 0;
+    jit_dec_synth();
 }
 
 jit_node_t *
 _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 {
     jit_node_t		*node;
-
     assert(_jitc->function);
+    jit_inc_synth_w(finishi, (jit_word_t)i0);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
     node = jit_calli(i0);
@@ -693,52 +772,67 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     _jitc->function->call.argi = _jitc->function->call.argf =
 	_jitc->function->call.size = 0;
     _jitc->prepare = 0;
+    jit_dec_synth();
     return (node);
 }
 
 void
 _jit_retval_c(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_c, r0);
     jit_extr_c(r0, _O0);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_uc(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_uc, r0);
     jit_extr_uc(r0, _O0);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_s(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_s, r0);
     jit_extr_s(r0, _O0);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_us(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_us, r0);
     jit_extr_us(r0, _O0);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_i(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_i, r0);
     if (r0 != _O0)
 	jit_movr(r0, _O0);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_f, r0);
     if (r0 != JIT_FRET)
 	jit_movr_f(r0, JIT_FRET);
+    jit_dec_synth();
 }
 
 void
 _jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
 {
+    jit_inc_synth_w(retval_d, r0);
     if (r0 != JIT_FRET)
 	jit_movr_d(r0, JIT_FRET);
+    jit_dec_synth();
 }
 
 jit_pointer_t
@@ -752,8 +846,14 @@ _emit_code(jit_state_t *_jit)
     struct {
 	jit_node_t	*node;
 	jit_word_t	 word;
+#if DEVEL_DISASSEMBLER
+	jit_word_t	 prevw;
+#endif
 	jit_int32_t	 patch_offset;
     } undo;
+#if DEVEL_DISASSEMBLER
+    jit_word_t		 prevw;
+#endif
 
     _jitc->function = NULL;
 
@@ -859,12 +959,16 @@ _emit_code(jit_state_t *_jit)
 		    patch(word, node);					\
 		}							\
 		break
+#if DEVEL_DISASSEMBLER
+    prevw = _jit->pc.w;
+#endif
     for (node = _jitc->head; node; node = node->next) {
 	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
 
 #if DEVEL_DISASSEMBLER
-	node->offset = _jit->pc.w;
+	node->offset = (jit_uword_t)_jit->pc.w - (jit_uword_t)prevw;
+	prevw = _jit->pc.w;
 #endif
 	value = jit_classify(node->code);
 	jit_regarg_set(node, value);
@@ -1253,6 +1357,9 @@ _emit_code(jit_state_t *_jit)
 		_jitc->function = _jitc->functions.ptr + node->w.w;
 		undo.node = node;
 		undo.word = _jit->pc.w;
+#if DEVEL_DISASSEMBLER
+		undo.prevw = prevw;
+#endif
 		undo.patch_offset = _jitc->patches.offset;
 	    restart_function:
 		_jitc->again = 0;
@@ -1270,6 +1377,9 @@ _emit_code(jit_state_t *_jit)
 		    temp->flag &= ~jit_flag_patch;
 		    node = undo.node;
 		    _jit->pc.w = undo.word;
+#if DEVEL_DISASSEMBLER
+		    prevw = undo.prevw;
+#endif
 		    _jitc->patches.offset = undo.patch_offset;
 		    goto restart_function;
 		}
@@ -1288,16 +1398,37 @@ _emit_code(jit_state_t *_jit)
 	    case jit_code_va_arg_d:
 		vaarg_d(rn(node->u.w), rn(node->v.w));
 		break;
-	    case jit_code_live:
+	    case jit_code_live:			case jit_code_ellipsis:
+	    case jit_code_allocai:		case jit_code_allocar:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:
 	    case jit_code_va_end:
+	    case jit_code_ret:
+	    case jit_code_retr:			case jit_code_reti:
+	    case jit_code_retr_f:		case jit_code_reti_f:
+	    case jit_code_retr_d:		case jit_code_reti_d:
+	    case jit_code_getarg_c:		case jit_code_getarg_uc:
+	    case jit_code_getarg_s:		case jit_code_getarg_us:
+	    case jit_code_getarg_i:
+	    case jit_code_getarg_f:		case jit_code_getarg_d:
+	    case jit_code_putargr:		case jit_code_putargi:
+	    case jit_code_putargr_f:		case jit_code_putargi_f:
+	    case jit_code_putargr_d:		case jit_code_putargi_d:
+	    case jit_code_pushargr:		case jit_code_pushargi:
+	    case jit_code_pushargr_f:		case jit_code_pushargi_f:
+	    case jit_code_pushargr_d:		case jit_code_pushargi_d:
+	    case jit_code_retval_c:		case jit_code_retval_uc:
+	    case jit_code_retval_s:		case jit_code_retval_us:
+	    case jit_code_retval_i:
+	    case jit_code_retval_f:		case jit_code_retval_d:
+	    case jit_code_prepare:
+	    case jit_code_finishr:		case jit_code_finishi:
 		break;
 	    default:
 		abort();
 	}
 	jit_regarg_clr(node, value);
-	assert(_jitc->regarg == 0);
+	assert(_jitc->regarg == 0 && _jitc->synth == 0);
 	/* update register live state */
 	jit_reglive(node);
     }
