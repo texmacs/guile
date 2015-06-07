@@ -1,3 +1,23 @@
+2015-06-06 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_ia64-cpu.c: Search backward for the last output
+	register used, otherwise would stop too early if a float
+	argument used the slot.
+	Correct offset of first va_list argument, and use proper
+	va_list abi.
+
+	* lib/jit_ia64-fpu.c: Add new functions to move a gpr
+	to a fpr register, to counterpart the ones that move a
+	fpr to a gpr. These are required to properly implement
+	jit_getarg*_{f,d} on complex prototypes, or variadic
+	jit functions.
+
+	* lib/jit_ia64-sz.c: Update for support to jit variadic
+	functions.
+
+	* lib/jit_ia64.c: Implement proper abi for variadic
+	jit functions.
+
 2015-06-04 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_rewind.c: New file implementing generic functions

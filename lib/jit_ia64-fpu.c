@@ -435,8 +435,12 @@ static void F16_(jit_state_t*,jit_word_t,
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
 #define movi_d(r0,i0)			_movi_d(_jit,r0,i0)
 static void _movi_d(jit_state_t*,jit_int32_t,jit_float64_t*);
+#define movr_w_f(r0,r1)			_movr_w_f(_jit,r0,r1)
+static void _movr_w_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movr_f_w(r0,r1)			_movr_f_w(_jit,r0,r1)
 static void _movr_f_w(jit_state_t*,jit_int32_t,jit_int32_t);
+#define movr_w_d(r0,r1)			_movr_w_d(_jit,r0,r1)
+static void _movr_w_d(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movr_d_w(r0,r1)			_movr_d_w(_jit,r0,r1)
 static void _movr_d_w(jit_state_t*,jit_int32_t,jit_int32_t);
 #define movi_f_w(r0,i0)			_movi_f_w(_jit,r0,i0)
@@ -1050,6 +1054,15 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 }
 
 static void
+_movr_w_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    /* Should be used only in this case (with out0 == 120) */
+    if (r1 >= 120)
+	r1 = _jitc->rout + (r1 - 120);
+    SETF_S(r0, r1);
+}
+
+static void
 _movr_f_w(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
     /* Should actually be used only in this case (with out0 == 120) */
@@ -1072,6 +1085,15 @@ _movi_f_w(jit_state_t *_jit, jit_int32_t r0, jit_float32_t *i0)
     }
     else
 	ldi_i(r0, (jit_word_t)i0);
+}
+
+static void
+_movr_w_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    /* Should be used only in this case (with out0 == 120) */
+    if (r1 >= 120)
+	r1 = _jitc->rout + (r1 - 120);
+    SETF_D(r0, r1);
 }
 
 static void
@@ -1731,21 +1753,10 @@ dbopi(unord)
 static void
 _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		reg;
-
     assert(_jitc->function->self.call & jit_call_varargs);
-    reg = jit_get_reg(jit_class_gpr);
-
-    /* Load varargs stack pointer. */
-    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
-
     /* Load argument. */
-    ldr_d(r0, rn(reg));
-
-    /* Update vararg stack pointer. */
-    addi(rn(reg), rn(reg), 8);
-    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
-
-    jit_unget_reg(reg);
+    ldr_d(r0, r1);
+    /* Update va_list. */
+    addi(r1, r1, 8);
 }
 #endif

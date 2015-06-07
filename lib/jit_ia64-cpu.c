@@ -5210,11 +5210,11 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 
     /* How many out argument registers required? */
     if (!_jitc->function->define_frame) {
-	for (reg = _OUT0; reg <= _OUT7; reg++) {
-	    if (!jit_regset_tstbit(&_jitc->function->regset, reg))
+	for (reg = _OUT7; reg >= _OUT0; --reg) {
+	    if (jit_regset_tstbit(&_jitc->function->regset, reg))
 		break;
 	}
-	rout = reg - _OUT0;
+	rout = (reg + 1) - _OUT0;
     }
     else
 	rout = 8;
@@ -5269,7 +5269,7 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 
     if (_jitc->function->self.call & jit_call_varargs) {
 	for (reg = _jitc->function->vagp; reg < 8; ++reg)
-	    stxi(96 + reg * 8, GR_4, GR_32 + reg);
+	    stxi(112 + reg * 8, GR_4, GR_32 + reg);
     }
 }
 
@@ -5314,40 +5314,22 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
 static void
 _vastart(jit_state_t *_jit, jit_int32_t r0)
 {
-    jit_int32_t		reg;
-
     assert(_jitc->function->self.call & jit_call_varargs);
-
-    /* Return jit_va_list_t in the register argument */
-    addi(r0, GR_4, _jitc->function->vaoff);
-    reg = jit_get_reg(jit_class_gpr);
-
-    /* Initialize stack pointer to the first stack argument. */
-    addi(rn(reg), GR_4, 96 + _jitc->function->vagp * 8);
-    stxi(offsetof(jit_va_list_t, stack), r0, rn(reg));
-
-    jit_unget_reg(reg);
+    /* Initialize va_list to the first stack argument. */
+    if (_jitc->function->vagp < 8)
+	addi(r0, GR_4, 112 + _jitc->function->vagp * 8);
+    else
+	addi(r0, GR_4, _jitc->function->self.size);
 }
 
 static void
 _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    jit_int32_t		reg;
-
     assert(_jitc->function->self.call & jit_call_varargs);
-    reg = jit_get_reg(jit_class_gpr);
-
-    /* Load varargs stack pointer. */
-    ldxi(rn(reg), r1, offsetof(jit_va_list_t, stack));
-
     /* Load argument. */
-    ldr(r0, rn(reg));
-
-    /* Update vararg stack pointer. */
-    addi(rn(reg), rn(reg), 8);
-    stxi(offsetof(jit_va_list_t, stack), r1, rn(reg));
-
-    jit_unget_reg(reg);
+    ldr(r0, r1);
+    /* Update va_list. */
+    addi(r1, r1, 8);
 }
 
 static void
