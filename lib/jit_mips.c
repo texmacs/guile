@@ -380,8 +380,11 @@ _jit_make_arg_f(jit_state_t *_jit, jit_node_t *node)
 {
     jit_int32_t		 offset;
 #if NEW_ABI
-    if (jit_arg_reg_p(_jitc->function->self.argi))
+    if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
+	if (_jitc->function->self.call & jit_call_varargs)
+	    offset += 8;
+    }
     else {
 	offset = _jitc->function->self.size;
 	_jitc->function->self.size += STACK_SLOT;
@@ -420,8 +423,11 @@ _jit_make_arg_d(jit_state_t *_jit, jit_node_t *node)
 {
     jit_int32_t		 offset;
 #if NEW_ABI
-    if (jit_arg_reg_p(_jitc->function->self.argi))
+    if (jit_arg_reg_p(_jitc->function->self.argi)) {
 	offset = _jitc->function->self.argi++;
+	if (_jitc->function->self.call & jit_call_varargs)
+	    offset += 8;
+    }
     else {
 	offset = _jitc->function->self.size;
 	_jitc->function->self.size += STACK_SLOT;
@@ -460,14 +466,25 @@ _jit_ellipsis(jit_state_t *_jit)
     if (_jitc->prepare) {
 	assert(!(_jitc->function->call.call & jit_call_varargs));
 	_jitc->function->call.call |= jit_call_varargs;
+#if !NEW_ABI
 	if (_jitc->function->call.argf)
 	    rewind_prepare();
+#endif
     }
     else {
 	assert(!(_jitc->function->self.call & jit_call_varargs));
+#if NEW_ABI
+	/* If varargs start in a register, allocate extra 64 bytes. */
+	if (jit_arg_reg_p(_jitc->function->self.argi))
+	    rewind_prolog();
+	/* Do not set during possible rewind. */
+	_jitc->function->self.call |= jit_call_varargs;
+#else
 	_jitc->function->self.call |= jit_call_varargs;
 	if (_jitc->function->self.argf)
 	    rewind_prolog();
+#endif
+	_jitc->function->vagp = _jitc->function->self.argi;
     }
     jit_inc_synth(ellipsis);
     if (_jitc->prepare)
@@ -626,6 +643,8 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movr_f(u, _F12 - v->u.w);
+    else if (jit_arg_reg_p(v->u.w - 8))
+	jit_movr_w_f(u, _A0 - v->u.w - 8);
 #else
     if (v->u.w < 4)
 	jit_movr_w_f(u, _A0 - v->u.w);
@@ -645,6 +664,8 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movr_f(_F12 - v->u.w, u);
+    else if (jit_arg_reg_p(v->u.w - 8))
+	jit_movr_f_w(_A0 - v->u.w - 8, u);
 #else
     if (v->u.w < 4)
 	jit_movr_f_w(_A0 - v->u.w, u);
@@ -665,6 +686,12 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movi_f(_F12 - v->u.w, u);
+    else if (jit_arg_reg_p(v->u.w - 8)) {
+	regno = jit_get_reg(jit_class_fpr);
+	jit_movi_f(regno, u);
+	jit_movr_f_w(_A0 - v->u.w - 8, u);
+	jit_unget_reg(regno);
+    }
 #else
     if (v->u.w < 4) {
 	regno = jit_get_reg(jit_class_fpr);
@@ -692,6 +719,8 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movr_d(u, _F12 - v->u.w);
+    else if (jit_arg_reg_p(v->u.w - 8))
+	jit_movr_d_w(_A0 - v->u.w - 8, u);
 #else
     if (v->u.w < 4)
 	jit_movr_ww_d(u, _A0 - v->u.w, _A0 - (v->u.w + 1));
@@ -711,6 +740,8 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movr_d(_F12 - v->u.w, u);
+    else if (jit_arg_reg_p(v->u.w - 8))
+	jit_movr_d_w(_A0 - v->u.w - 8, u);
 #else
     if (v->u.w < 4)
 	jit_movr_d_ww(_A0 - v->u.w, _A0 - (v->u.w + 1), u);
@@ -731,6 +762,12 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 #if NEW_ABI
     if (jit_arg_reg_p(v->u.w))
 	jit_movi_d(_F12 - v->u.w, u);
+    else if (jit_arg_reg_p(v->u.w - 8)) {
+	regno = jit_get_reg(jit_class_fpr);
+	jit_movi_d(regno, u);
+	jit_movr_d_w(_A0 - v->u.w - 8, u);
+	jit_unget_reg(regno);
+    }
 #else
     if (v->u.w < 4) {
 	regno = jit_get_reg(jit_class_fpr);
@@ -1053,7 +1090,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
     jit_node_t		*call;
     jit_node_t		*node;
     assert(_jitc->function);
-    jit_inc_synth_w(finishr, (jit_word_t)i0);
+    jit_inc_synth_w(finishi, (jit_word_t)i0);
     if (_jitc->function->self.alen < _jitc->function->call.size)
 	_jitc->function->self.alen = _jitc->function->call.size;
     node = jit_movi(_T9, (jit_word_t)i0);

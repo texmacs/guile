@@ -1,3 +1,20 @@
+2015-07-03 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips-cpu.c: Correct definition of htonr_ul.
+	Correct prolog/epilog/va* routines to work on o64 abi.
+
+	* lib/jit_mips-fpu.c: Correct load of double literal
+	argument when not using a data buffer.
+	Remove alignment correction in vaarg_d if using the
+	new mips abi.
+
+	* lib/jit_mips.c: Correct code to allow creating variadic
+	jit functions when using the new mips abi.
+
+	* lib/jit_rewind.c: Minor adjust for rewind when using
+	the new mips abi, if there are varargs arguments in
+	registers.
+
 2015-06-06 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_ia64-cpu.c: Search backward for the last output

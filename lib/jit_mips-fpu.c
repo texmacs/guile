@@ -217,9 +217,7 @@ static void _divi_d(jit_state_t*,jit_int32_t,jit_int32_t,jit_float64_t*);
 #  define negr_d(r0,r1)			NEG_D(r0,r1)
 #  define sqrtr_f(r0,r1)		SQRT_S(r0,r1)
 #  define sqrtr_d(r0,r1)		SQRT_D(r0,r1)
-#  if !NEW_ABI
-#    define movr_w_f(r0, r1)		MTC1(r1, r0)
-#  endif
+#  define movr_w_f(r0, r1)		MTC1(r1, r0)
 #  define movr_f_w(r0, r1)		MFC1(r1, r0)
 #  define movi_f_w(r0, i0)		_movi_f_w(_jit, r0, i0)
 static void _movi_f_w(jit_state_t*,jit_int32_t,jit_float32_t*);
@@ -251,6 +249,7 @@ static void _movr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
 #  if NEW_ABI
+#    define movr_w_d(r0, r1)		DMTC1(r1, r0)
 #    define movr_d_w(r0, r1)		DMFC1(r0, r1)
 #    define movi_d_w(r0, i0)		_movi_d_w(_jit,r0,i0)
 static void _movi_d_w(jit_state_t*,jit_int32_t,jit_float64_t*);
@@ -764,12 +763,22 @@ static void
 _movi_d_w(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
     jit_word_t		w;
-    w = (jit_word_t)i0;
-    if (can_sign_extend_short_p(w))
-	LD(r0, w, _ZERO_REGNO);
+    union {
+	jit_word_t	w;
+	jit_float64_t	d;
+    } data;
+    if (_jitc->no_data) {
+	data.d = *i0;
+	movi(r0, data.w);
+    }
     else {
-	movi(r0, w);
-	LD(r0, 0, r0);
+	w = (jit_word_t)i0;
+	if (can_sign_extend_short_p(w))
+	    LD(r0, w, _ZERO_REGNO);
+	else {
+	    movi(r0, w);
+	    LD(r0, 0, r0);
+	}
     }
 }
 
@@ -1780,13 +1789,17 @@ dbopi(unord)
 static void
 _vaarg_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
+#if !NEW_ABI
     jit_int32_t		reg;
+#endif
     assert(_jitc->function->self.call & jit_call_varargs);
+#if !NEW_ABI
     /* Align, if required. */
     reg = jit_get_reg(jit_class_gpr);
     andi(rn(reg), r1, 7);
     addr(r1, r1, rn(reg));
     jit_unget_reg(reg);
+#endif
 
     /* Load argument. */
     ldr_d(r0, r1);

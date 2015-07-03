@@ -56,6 +56,12 @@ _rewind_prolog(jit_state_t *_jit)
     assert(jit_cpu.abi);
     _jitc->function->self.size += 64;
 #endif
+#if __mips__ && NEW_ABI
+    /* Only add extra stack space if there are varargs
+     * arguments in registers. */
+    assert(jit_arg_reg_p(_jitc->function->self.argi));
+    _jitc->function->self.size += 64;
+#endif
     _jitc->function->self.argi =
 	_jitc->function->self.argf = _jitc->function->self.argn = 0;
     _jitc->tail = _jitc->function->prolog;
