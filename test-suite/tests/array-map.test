@@ -1,4 +1,4 @@
-;;;; ramap.test --- test array mapping functions -*- scheme -*-
+;;;; array-map.test --- test array mapping functions -*- scheme -*-
 ;;;; 
 ;;;; Copyright (C) 2004, 2005, 2006, 2009, 2013 Free Software Foundation, Inc.
 ;;;;
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(define-module (test-suite test-ramap)
+(define-module (test-suite test-array-map)
   #:use-module (test-suite lib))
 
 (define exception:shape-mismatch
@@ -507,3 +507,34 @@
              (b (make-typed-array 'f64 0 0 2))
              (c (make-typed-array 'f64 0 2 0)))
         (array-for-each (lambda (b c) (set! a (cons* b c a))) b c)))))
+
+;;;
+;;; array-for-each-cell
+;;;
+
+(with-test-prefix "array-for-each-cell"
+
+  (pass-if-equal "1 argument frame rank 1"
+      #2((1 3 9) (2 7 8))
+      (let* ((a (list->array 2 '((9 1 3) (7 8 2)))))
+        (array-for-each-cell 1 (lambda (a) (sort! a <)) a)
+        a))
+
+  (pass-if-equal "2 arguments frame rank 1"
+      #f64(8 -1)
+      (let* ((x (list->typed-array 'f64 2 '((9 1) (7 8))))
+             (y (f64vector 99 99)))
+        (array-for-each-cell 1 (lambda (y x) (array-set! y (- (array-ref x 0) (array-ref x 1)))) y x)
+        y))
+
+  (pass-if-equal "regression: zero-sized frame loop without unrolling"
+      99
+    (let* ((x 99)
+           (o (make-array 0. 0 3 2)))
+      (array-for-each-cell 2
+        (lambda (o a0 a1)
+          (set! x 0))
+        o
+        (make-shared-array (make-array 1. 0 1) (const '(0 0)) 0 3)
+        (make-array 2. 0 3))
+      x)))
