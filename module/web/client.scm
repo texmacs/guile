@@ -1,6 +1,6 @@
 ;;; Web client
 
-;; Copyright (C) 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -43,8 +43,11 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-9 gnu)
+  #:use-module ((rnrs io ports)
+                #:prefix rnrs-ports:)
   #:export (current-http-proxy
             open-socket-for-uri
+            open-connection-for-uri
             http-get
             http-get*
             http-head
@@ -54,10 +57,103 @@
             http-trace
             http-options))
 
+(define %http-receive-buffer-size
+  ;; Size of the HTTP receive buffer.
+  65536)
+
+;; Autoload GnuTLS so that this module can be used even when GnuTLS is
+;; not available.  At compile time, this yields "possibly unbound
+;; variable" warnings, but these are OK: we know that the variables will
+;; be bound if we need them, because (guix download) adds GnuTLS as an
+;; input in that case.
+
+;; XXX: Use this hack instead of #:autoload to avoid compilation errors.
+;; See <http://bugs.gnu.org/12202>.
+(module-autoload! (current-module)
+                  '(gnutls) '(make-session connection-end/client))
+
+(define gnutls-module
+  (delay
+    (catch 'misc-error
+      (lambda ()
+        (let ((module (resolve-interface '(gnutls))))
+          ;; In some 2.1/2.2 installations installed alongside Guile 2.0, gnutls
+          ;; can be imported but the bindings are broken as "unknown type".
+          ;; Here we check that gnutls-version is the right type (a procedure)
+          ;; to make sure the bindings are ok.
+          (if (procedure? (module-ref module 'gnutls-version))
+              module
+              #f)))
+      (const #f))))
+
+(define (ensure-gnutls)
+  (if (not (force gnutls-module))
+      (throw 'gnutls-not-available "(gnutls) module not available")))
+
 (define current-http-proxy
   (make-parameter (let ((proxy (getenv "http_proxy")))
                     (and (not (equal? proxy ""))
                          proxy))))
+
+(define (tls-wrap port server)
+  "Return PORT wrapped in a TLS connection to SERVER.  SERVER must be a DNS
+host name without trailing dot."
+  (define (log level str)
+    (format (current-error-port)
+            "gnutls: [~a|~a] ~a" (getpid) level str))
+
+  (ensure-gnutls)
+
+  (let ((session (make-session connection-end/client)))
+    ;; Some servers such as 'cloud.github.com' require the client to support
+    ;; the 'SERVER NAME' extension.  However, 'set-session-server-name!' is
+    ;; not available in older GnuTLS releases.  See
+    ;; <http://bugs.gnu.org/18526> for details.
+    (if (module-defined? (force gnutls-module)
+                         'set-session-server-name!)
+        (set-session-server-name! session server-name-type/dns server)
+        (format (current-error-port)
+                "warning: TLS 'SERVER NAME' extension not supported~%"))
+
+    (set-session-transport-fd! session (fileno port))
+    (set-session-default-priority! session)
+
+    ;; The "%COMPAT" bit allows us to work around firewall issues (info
+    ;; "(gnutls) Priority Strings"); see <http://bugs.gnu.org/23311>.
+    ;; Explicitly disable SSLv3, which is insecure:
+    ;; <https://tools.ietf.org/html/rfc7568>.
+    (set-session-priorities! session "NORMAL:%COMPAT:-VERS-SSL3.0")
+
+    (set-session-credentials! session (make-certificate-credentials))
+
+    ;; Uncomment the following lines in case of debugging emergency.
+    ;;(set-log-level! 10)
+    ;;(set-log-procedure! log)
+
+    (handshake session)
+    (let ((record (session-record-port session)))
+      (define (read! bv start count)
+        (define read-bv (get-bytevector-n record count))
+        (if (eof-object? read-bv)
+            0  ; read! returns 0 on eof-object
+            (let ((read-bv-len (bytevector-length read-bv)))
+              (bytevector-copy! read-bv 0 bv start read-bv-len)
+              read-bv-len)))
+      (define (write! bv start count)
+        (put-bytevector record bv start count)
+        count)
+      (define (get-position)
+        (rnrs-ports:port-position record))
+      (define (set-position! new-position)
+        (rnrs-ports:set-port-position! record new-position))
+      (define (close)
+        (unless (port-closed? port)
+          (close-port port))
+        (unless (port-closed? record)
+          (close-port record)))
+      (make-custom-binary-input/output-port "gnutls wrapped port" read! write!
+                                            get-position set-position!
+                                            close))))
 
 (define (ensure-uri uri-or-string)
   (cond
@@ -81,27 +177,53 @@
                         0))
        (lambda (ai1 ai2)
          (equal? (addrinfo:addr ai1) (addrinfo:addr ai2))))))
+  (define https?
+    (eq? 'https (uri-scheme uri)))
+  (define (open-socket)
+    (let loop ((addresses addresses))
+      (let* ((ai (car addresses))
+             (s  (with-fluids ((%default-port-encoding #f))
+                   ;; Restrict ourselves to TCP.
+                   (socket (addrinfo:fam ai) SOCK_STREAM IPPROTO_IP))))
+        (catch 'system-error
+          (lambda ()
+            (connect s (addrinfo:addr ai))
 
-  (let loop ((addresses addresses))
-    (let* ((ai (car addresses))
-           (s  (with-fluids ((%default-port-encoding #f))
-                 ;; Restrict ourselves to TCP.
-                 (socket (addrinfo:fam ai) SOCK_STREAM IPPROTO_IP))))
-      (catch 'system-error
-        (lambda ()
-          (connect s (addrinfo:addr ai))
+            ;; Buffer input and output on this port.
+            (setvbuf s 'block)
+            ;; If we're using a proxy, make a note of that.
+            (when http-proxy (set-http-proxy-port?! s #t))
+            s)
+          (lambda args
+            ;; Connection failed, so try one of the other addresses.
+            (close s)
+            (if (null? (cdr addresses))
+                (apply throw args)
+                (loop (cdr addresses))))))))
 
-          ;; Buffer input and output on this port.
-          (setvbuf s 'block)
-          ;; If we're using a proxy, make a note of that.
-          (when http-proxy (set-http-proxy-port?! s #t))
-          s)
-        (lambda args
-          ;; Connection failed, so try one of the other addresses.
-          (close s)
-          (if (null? (cdr addresses))
-              (apply throw args)
-              (loop (cdr addresses))))))))
+  (let-syntax ((with-https-proxy
+                (syntax-rules ()
+                  ((_ exp)
+                   ;; For HTTPS URIs, honor 'https_proxy', not 'http_proxy'.
+                   ;; FIXME: Proxying is not supported for https.
+                   (let ((thunk (lambda () exp)))
+                     (if (and https?
+                              current-http-proxy)
+                         (parameterize ((current-http-proxy #f))
+                           (when (and=> (getenv "https_proxy")
+                                        (negate string-null?))
+                             (format (current-error-port)
+                                     "warning: 'https_proxy' is ignored~%"))
+                           (thunk))
+                         (thunk)))))))
+    (with-https-proxy
+     (let ((s (open-socket)))
+       ;; Buffer input and output on this port.
+       (setvbuf s _IOFBF %http-receive-buffer-size)
+
+       (if https?
+           (tls-wrap s (uri-host uri))
+           s)))))
 
 (define (extend-request r k v . additional)
   (let ((r (set-field r (request-headers)
