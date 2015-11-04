@@ -891,6 +891,7 @@ _x87_ldxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     reg = jit_get_reg(jit_class_gpr);
     addr(rn(reg), r1, r2);
     x87_ldr_f(r0, rn(reg));
+    jit_unget_reg(reg);
 #else
     fldsm(0, r1, r2, _SCL1);
     fstpr(r0 + 1);
@@ -957,6 +958,7 @@ _x87_stxr_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     reg = jit_get_reg(jit_class_gpr);
     addr(rn(reg), r0, r1);
     x87_str_f(rn(reg), r2);
+    jit_unget_reg(reg);
 #else
     if (r2 == _ST0_REGNO)
 	fstsm(0, r0, r1, _SCL1);
@@ -1172,6 +1174,7 @@ _x87_ldxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     reg = jit_get_reg(jit_class_gpr);
     addr(rn(reg), r1, r2);
     x87_ldr_d(r0, rn(reg));
+    jit_unget_reg(reg);
 #else
     fldlm(0, r1, r2, _SCL1);
     fstpr(r0 + 1);
@@ -1238,6 +1241,7 @@ _x87_stxr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
     reg = jit_get_reg(jit_class_gpr);
     addr(rn(reg), r0, r1);
     x87_str_d(rn(reg), r2);
+    jit_unget_reg(reg);
 #else
     if (r2 == _ST0_REGNO)
 	fstlm(0, r0, r1, _SCL1);
