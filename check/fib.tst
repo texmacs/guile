@@ -9,19 +9,21 @@ format:
 nfibs:
 	prolog
 	arg $in
-	getarg %r2 $in		// R2 = n
-	movi %r1 1
-	blti_u ref %r2 2
-	subi %r2 %r2 1
+	getarg %r0 $in		// R0 = n
+	beqi ref %r0 0
+	movr %r1 %r0
 	movi %r0 1
+	blti_u ref %r1 2
+	subi %r2 %r1 2
+	movr %r1 %r0
 loop:
 	subi %r2 %r2 1		// decr. counter
-	addr %v0 %r0 %r1	// V0 = R0 + R1
-	movr %r0 %r1		// R0 = R1
-	addi %r1 %v0 1		// R1 = V0 + 1
+	movr %v0 %r0		// V0 = R0
+	addr %r0 %r0 %r1	// R0 = R0 + R1
+	movr %r1 %v0		// R1 = V0
 	bnei loop %r2 0		// if (R2) goto loop
 ref:
-	retr %r1		// RET = R1
+	retr %r0		// RET = R0
 	epilog
 
 	name main

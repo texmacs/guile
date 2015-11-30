@@ -1,3 +1,16 @@
+2015-11-30 Paulo Andrade <pcpa@gnu.org>
+
+	* doc/body.texi: Change documentation to no longer say
+	it is a variant of the Fibonacci sequence, and document
+	a proper implementation.
+	Thanks to Jon Arintok for pointing out that the Fibonacci
+	sequence generation was incorrect. It was documented, but
+	still confusing.
+
+	* check/fib.tst, check/fib.ok, check/bp.tst, check/bp.ok,
+	doc/ifib.c, doc/rbif.c: Implement a proper Fibonacci
+	sequence implementation.
+
 2015-07-03 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_mips-cpu.c: Correct definition of htonr_ul.

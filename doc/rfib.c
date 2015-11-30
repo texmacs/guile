@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
   jit_node_t *call;
   jit_node_t *in;                 /* offset of the argument */
   jit_node_t *ref;                /* to patch the forward reference */
+  jit_node_t *zero;             /* to patch the forward reference */
 
   init_jit(argv[0]);
   _jit = jit_new_state();
@@ -19,8 +20,11 @@ int main(int argc, char *argv[])
   label = jit_label();
         jit_prolog   ();
   in =  jit_arg      ();
-        jit_getarg   (JIT_V0, in);              /* V0 = n */
-  ref = jit_blti     (JIT_V0, 2);
+        jit_getarg   (JIT_R0, in);              /* R0 = n */
+ zero = jit_beqi     (JIT_R0, 0);
+        jit_movr     (JIT_V0, JIT_R0);          /* V0 = R0 */
+        jit_movi     (JIT_R0, 1);
+  ref = jit_blei     (JIT_V0, 2);
         jit_subi     (JIT_V1, JIT_V0, 1);       /* V1 = n-1 */
         jit_subi     (JIT_V2, JIT_V0, 2);       /* V2 = n-2 */
         jit_prepare();
@@ -32,13 +36,11 @@ int main(int argc, char *argv[])
           jit_pushargr(JIT_V2);
         call = jit_finishi(NULL);
         jit_patch_at(call, label);
-        jit_retval(JIT_V2);                     /* V2 = fib(n-2) */
-        jit_addi(JIT_V1,  JIT_V1,  1);
-        jit_addr(JIT_R0, JIT_V1, JIT_V2);       /* R0 = V1 + V2 + 1 */
-        jit_retr(JIT_R0);
+        jit_retval(JIT_R0);                     /* R0 = fib(n-2) */
+        jit_addr(JIT_R0, JIT_R0, JIT_V1);       /* R0 = R0 + V1 */
 
   jit_patch(ref);                               /* patch jump */
-        jit_movi(JIT_R0, 1);                    /* R0 = 1 */
+  jit_patch(zero);                              /* patch jump */
         jit_retr(JIT_R0);
 
   /* call the generated code, passing 32 as an argument */

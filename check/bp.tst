@@ -9,9 +9,11 @@ fmt:
 rfibs:
 	prolog
 	arg $in
-	getarg %v0 $in		/* V0 = N */
-
-	blti_u out %v0 2
+	getarg %r0 $in		/* R0 = N */
+	beqi out %r0 0
+	movr %v0 %r0		/* V0 = R0 */
+	movi %r0 1
+	blei_u out %v0 2
 	subi %v1 %v0 1		/* V1 = N-1 */
 	subi %v2 %v0 2		/* V1 = N-2 */
 	prepare
@@ -21,12 +23,10 @@ rfibs:
 	prepare
 		pushargr %v2
 	finishi rfibs
-	retval %v2		/* V2 = rfibs(N-2) */
-	addi %v1 %v1 1
-	addr %r0 %v1 %v2
-	retr %r0
+	retval %r0		/* R0 = rfibs(N-2) */
+	addr %r0 %r0 %v1
 out:
-	reti 1
+	retr %r0
 	epilog
 
 	name main

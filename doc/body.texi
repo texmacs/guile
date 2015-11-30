@@ -1291,23 +1291,12 @@ generation so powerful.
 @node Fibonacci
 @section Fibonacci numbers
 
-The code in this section calculates a variant of the Fibonacci sequence.
-While the traditional Fibonacci sequence is modeled by the recurrence
-relation:
+The code in this section calculates the Fibonacci sequence. That is
+modeled by the recurrence relation:
 @display
-     f(0) = f(1) = 1
+     f(0) = 0
+     f(1) = f(2) = 1
      f(n) = f(n-1) + f(n-2)
-@end display
-
-@noindent
-the functions in this section calculates the following sequence, which
-is more interesting as a benchmark@footnote{That's because, as is
-easily seen, the sequence represents the number of activations of the
-@code{nfibs} procedure that are needed to compute its value through
-recursion.}:
-@display
-     fib(0) = fib(1) = 1
-     fib(n) = fib(n-1) + fib(n-2) + 1
 @end display
 
 The purpose of this example is to introduce branches.  There are two
@@ -1330,6 +1319,7 @@ int main(int argc, char *argv[])
   jit_node_t *call;
   jit_node_t *in;                 @rem{/* offset of the argument */}
   jit_node_t *ref;                @rem{/* to patch the forward reference */}
+  jit_node_t *zero;               @rem{/* to patch the forward reference */}
 
   init_jit(argv[0]);
   _jit = jit_new_state();
@@ -1337,8 +1327,11 @@ int main(int argc, char *argv[])
   label = jit_label();
         jit_prolog   ();
   in =  jit_arg      ();
-        jit_getarg   (JIT_V0, in);              @rem{/* V0 = n */}
-  ref = jit_blti     (JIT_V0, 2);
+        jit_getarg   (JIT_V0, in);              @rem{/* R0 = n */}
+ zero = jit_beqi     (JIT_R0, 0);
+        jit_movr     (JIT_V0, JIT_R0);          /* V0 = R0 */
+        jit_movi     (JIT_R0, 1);
+  ref = jit_blei     (JIT_V0, 2);
         jit_subi     (JIT_V1, JIT_V0, 1);       @rem{/* V1 = n-1 */}
         jit_subi     (JIT_V2, JIT_V0, 2);       @rem{/* V2 = n-2 */}
         jit_prepare();
@@ -1350,13 +1343,11 @@ int main(int argc, char *argv[])
           jit_pushargr(JIT_V2);
         call = jit_finishi(NULL);
         jit_patch_at(call, label);
-        jit_retval(JIT_V2);                     @rem{/* V2 = fib(n-2) */}
-        jit_addi(JIT_V1,  JIT_V1,  1);
-        jit_addr(JIT_R0, JIT_V1, JIT_V2);       @rem{/* R0 = V1 + V2 + 1 */}
-        jit_retr(JIT_R0);
+        jit_retval(JIT_R0);                     @rem{/* R0 = fib(n-2) */}
+        jit_addr(JIT_R0, JIT_R0, JIT_V1);       @rem{/* R0 = R0 + V1 */}
 
   jit_patch(ref);                               @rem{/* patch jump */}
-        jit_movi(JIT_R0, 1);                    @rem{/* R0 = 1 */}
+  jit_patch(zero);                              @rem{/* patch jump */}
         jit_retr(JIT_R0);
 
   @rem{/* call the generated code@comma{} passing 32 as an argument */}
@@ -1403,6 +1394,7 @@ int main(int argc, char *argv[])
   pifi       fib;
   jit_node_t *in;               @rem{/* offset of the argument */}
   jit_node_t *ref;              @rem{/* to patch the forward reference */}
+  jit_node_t *zero;             @rem{/* to patch the forward reference */}
   jit_node_t *jump;             @rem{/* jump to start of loop */}
   jit_node_t *loop;             @rem{/* start of the loop */}
 
@@ -1411,22 +1403,24 @@ int main(int argc, char *argv[])
 
         jit_prolog   ();
   in =  jit_arg      ();
-        jit_getarg   (JIT_R2, in);              @rem{/* R2 = n */}
-        jit_movi     (JIT_R1, 1);
-  ref = jit_blti     (JIT_R2, 2);
-        jit_subi     (JIT_R2, JIT_R2, 1);
+        jit_getarg   (JIT_R0, in);              @rem{/* R0 = n */}
+ zero = jit_beqi     (JIT_R0, 0);
+        jit_movr     (JIT_R1, JIT_R0);
         jit_movi     (JIT_R0, 1);
+  ref = jit_blti     (JIT_R1, 2);
+        jit_subi     (JIT_R2, JIT_R2, 2);
+        jit_movr     (JIT_R1, JIT_R0);
 
   loop= jit_label();
         jit_subi     (JIT_R2, JIT_R2, 1);       @rem{/* decr. counter */}
-        jit_addr     (JIT_V0, JIT_R0, JIT_R1);  @rem{/* V0 = R0 + R1 */}
-        jit_movr     (JIT_R0, JIT_R1);          @rem{/* R0 = R1 */}
-        jit_addi     (JIT_R1, JIT_V0, 1);       @rem{/* R1 = V0 + 1 */}
-  jump= jit_bnei     (JIT_R2, 0);               @rem{/* if (R2) goto loop; */}
-  jit_patch_at(jump, label);
+        jit_movr     (JIT_V0, JIT_R0);          /* V0 = R0 */
+        jit_addr     (JIT_R0, JIT_R0, JIT_R1);  /* R0 = R0 + R1 */
+        jit_movr     (JIT_R1, JIT_V0);          /* R1 = V0 */
+  jump= jit_bnei     (JIT_R2, 0);               /* if (R2) goto loop; */
+  jit_patch_at(jump, loop);
 
   jit_patch(ref);                               @rem{/* patch forward jump */}
-        jit_movr     (JIT_R0, JIT_R1);          @rem{/* R0 = R1 */}
+  jit_patch(zero);                              @rem{/* patch forward jump */}
         jit_retr     (JIT_R0);
 
   @rem{/* call the generated code@comma{} passing 36 as an argument */}
