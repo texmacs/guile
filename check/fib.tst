@@ -13,7 +13,7 @@ nfibs:
 	beqi ref %r0 0
 	movr %r1 %r0
 	movi %r0 1
-	blti_u ref %r1 2
+	blei_u ref %r1 2
 	subi %r2 %r1 2
 	movr %r1 %r0
 loop:
