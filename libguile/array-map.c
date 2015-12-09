@@ -321,32 +321,48 @@ ramap (SCM ra0, SCM proc, SCM ras)
           h0.vset (h0.vector, i0, scm_call_1 (proc, h1.vref (h1.vector, i1)));
       else
         {
-          scm_t_array_handle *hs;
-          size_t restn = scm_ilength (ras);
-
-          SCM args = SCM_EOL;
-          SCM *p = &args;
-          SCM **sa = scm_gc_malloc (sizeof(SCM *) * restn, vi_gc_hint);
-          for (size_t k = 0; k < restn; ++k)
+          SCM ra2 = SCM_CAR (ras);
+          size_t i2 = SCM_I_ARRAY_BASE (ra2);
+          ssize_t inc2 = SCM_I_ARRAY_DIMS (ra2)->inc;
+          scm_t_array_handle h2;
+          ra2 = SCM_I_ARRAY_V (ra2);
+          scm_array_get_handle (ra2, &h2);
+          ras = SCM_CDR (ras);
+          if (scm_is_null (ras))
+            for (; n--; i0 += inc0, i1 += inc1, i2 += inc2)
+              h0.vset (h0.vector, i0, scm_call_2 (proc, h1.vref (h1.vector, i1), h2.vref (h2.vector, i2)));
+          else
             {
-              *p = scm_cons (SCM_UNSPECIFIED, SCM_EOL);
-              sa[k] = SCM_CARLOC (*p);
-              p = SCM_CDRLOC (*p);
+              scm_t_array_handle *hs;
+              size_t restn = scm_ilength (ras);
+              SCM args = SCM_EOL;
+              SCM *p = &args;
+              SCM **sa = scm_gc_malloc (sizeof(SCM *) * restn, vi_gc_hint);
+              size_t k;
+              ssize_t i;
+              
+              for (k = 0; k < restn; ++k)
+                {
+                  *p = scm_cons (SCM_UNSPECIFIED, SCM_EOL);
+                  sa[k] = SCM_CARLOC (*p);
+                  p = SCM_CDRLOC (*p);
+                }
+
+              hs = scm_gc_malloc (sizeof(scm_t_array_handle) * restn, vi_gc_hint);
+              for (k = 0; k < restn; ++k, ras = scm_cdr (ras))
+                scm_array_get_handle (scm_car (ras), hs+k);
+
+              for (i = 0; n--; i0 += inc0, i1 += inc1, i2 += inc2, ++i)
+                {
+                  for (k = 0; k < restn; ++k)
+                    *(sa[k]) = scm_array_handle_ref (hs+k, i*hs[k].dims[0].inc);
+                  h0.vset (h0.vector, i0, scm_apply_2 (proc, h1.vref (h1.vector, i1), h2.vref (h2.vector, i2), args));
+                }
+
+              for (k = 0; k < restn; ++k)
+                scm_array_handle_release (hs+k);
             }
-
-          hs = scm_gc_malloc (sizeof(scm_t_array_handle) * restn, vi_gc_hint);
-          for (size_t k = 0; k < restn; ++k, ras = scm_cdr (ras))
-            scm_array_get_handle (scm_car (ras), hs+k);
-
-          for (ssize_t i = 0; n--; i0 += inc0, i1 += inc1, ++i)
-            {
-              for (size_t k = 0; k < restn; ++k)
-                *(sa[k]) = scm_array_handle_ref (hs+k, i*hs[k].dims[0].inc);
-              h0.vset (h0.vector, i0, scm_apply_1 (proc, h1.vref (h1.vector, i1), args));
-            }
-
-          for (size_t k = 0; k < restn; ++k)
-            scm_array_handle_release (hs+k);
+          scm_array_handle_release (&h2);
         }
       scm_array_handle_release (&h1);
     }
