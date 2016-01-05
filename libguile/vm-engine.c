@@ -791,6 +791,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (11, foreign_call, "foreign-call", OP1 (X8_C12_C12))
     {
       scm_t_uint16 cif_idx, ptr_idx;
+      int err = 0;
       SCM closure, cif, pointer, ret;
 
       UNPACK_12_12 (op, cif_idx, ptr_idx);
@@ -800,30 +801,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       pointer = SCM_PROGRAM_FREE_VARIABLE_REF (closure, ptr_idx);
 
       SYNC_IP ();
-
-      // FIXME: separate args
-      ret = scm_i_foreign_call (scm_inline_cons (thread, cif, pointer), sp);
-
+      ret = scm_i_foreign_call (cif, pointer, &err, sp);
       CACHE_SP ();
 
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
-        {
-          SCM vals = scm_struct_ref (ret, SCM_INUM0);
-          long len = scm_ilength (vals);
-          ALLOC_FRAME (1 + len);
-          while (len--)
-            {
-              SP_SET (len, SCM_CAR (vals));
-              vals = SCM_CDR (vals);
-            }
-          NEXT (1);
-        }
-      else
-        {
-          ALLOC_FRAME (2);
-          SP_SET (0, ret);
-          NEXT (1);
-        }
+      ALLOC_FRAME (3);
+      SP_SET (1, ret);
+      SP_SET (0, scm_from_int (err));
+
+      NEXT (1);
     }
 
   /* continuation-call contregs:24
