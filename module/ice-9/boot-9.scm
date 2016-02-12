@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995-2014  Free Software Foundation, Inc.
+;;;; Copyright (C) 1995-2014, 2016  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -373,6 +373,13 @@ If returning early, return the return value of F."
 (define (module-ref module sym)
   (let ((v (module-variable module sym)))
     (if v (variable-ref v) (error "badness!" (pk module) (pk sym)))))
+(define module-generate-unique-id!
+  (let ((next-id 0))
+    (lambda (m)
+      (let ((i next-id))
+        (set! next-id (+ i 1))
+        i))))
+(define module-gensym gensym)
 (define (resolve-module . args)
   #f)
 
@@ -1982,7 +1989,8 @@ name extensions listed in %load-extensions."
      submodules
      submodule-binder
      public-interface
-     filename)))
+     filename
+     next-unique-id)))
 
 
 ;; make-module &opt size uses binder
@@ -2005,7 +2013,7 @@ initial uses list, or binding procedure."
                       (make-hash-table)
                       '()
                       (make-weak-key-hash-table 31) #f
-                      (make-hash-table 7) #f #f #f))
+                      (make-hash-table 7) #f #f #f 0))
 
 
 
@@ -2542,6 +2550,11 @@ interfaces are added to the inports list."
   (let ((m (make-module 0)))
     (set-module-obarray! m (%get-pre-modules-obarray))
     (set-module-name! m '(guile))
+
+    ;; Inherit next-unique-id from preliminary stub of
+    ;; %module-get-next-unique-id! defined above.
+    (set-module-next-unique-id! m (module-generate-unique-id! #f))
+
     m))
 
 ;; The root interface is a module that uses the same obarray as the
@@ -2569,6 +2582,11 @@ interfaces are added to the inports list."
   (if (equal? name '(guile))
       the-root-module
       (error "unexpected module to resolve during module boot" name)))
+
+(define (module-generate-unique-id! m)
+  (let ((i (module-next-unique-id m)))
+    (set-module-next-unique-id! m (+ i 1))
+    i))
 
 ;; Cheat.  These bindings are needed by modules.c, but we don't want
 ;; to move their real definition here because that would be unnatural.
@@ -2599,6 +2617,21 @@ interfaces are added to the inports list."
             (set-module-name! mod name)
             (nested-define-module! (resolve-module '() #f) name mod)
             (accessor mod))))))
+
+(define* (module-gensym #:optional (id " mg") (m (current-module)))
+  "Return a fresh symbol in the context of module M, based on ID (a
+string or symbol).  As long as M is a valid module, this procedure is
+deterministic."
+  (define (->string number)
+    (number->string number 16))
+
+  (if m
+      (string->symbol
+       (string-append id "-"
+                      (->string (hash (module-name m) most-positive-fixnum))
+                      "-"
+                      (->string (module-generate-unique-id! m))))
+      (gensym id)))
 
 (define (make-modules-in module name)
   (or (nested-ref-module module name)
@@ -2891,7 +2924,7 @@ error if selected binding does not exist in the used module."
               #:warning "Failed to autoload ~a in ~a:\n" sym name))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
-                        (make-hash-table 0) #f #f #f)))
+                        (make-hash-table 0) #f #f #f 0)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
