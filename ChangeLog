@@ -1,3 +1,7 @@
+2016-05-05 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/lightning.c: Correct wrong movr simplification.
+
 2015-11-30 Paulo Andrade <pcpa@gnu.org>
 
 	* doc/body.texi: Change documentation to no longer say

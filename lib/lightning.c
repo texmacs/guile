@@ -2822,7 +2822,7 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
     else {
 	value->kind = jit_kind_register;
 	value->base.q.l = right;
-	value->base.q.h = _jitc->gen[regno];
+	value->base.q.h = _jitc->gen[right];
     }
     ++_jitc->gen[regno];
 
