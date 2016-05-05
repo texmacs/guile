@@ -1701,20 +1701,6 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 		else if (!(spec & jit_class_sav))
 		    jit_regset_clrbit(&_jitc->reglive, value);
 	    }
-#if defined(JIT_RET)
-	    /* Explicitly set return registers as live, because retval
-	     * should be free to not create a note, and/or user not
-	     * call jit_retval (but not a good idea to expect JIT_R0
-	     * to match JIT_RET) */
-	    jit_regset_setbit(&_jitc->reglive, JIT_RET);
-#  if __arm__
-	    /* FIXME need a better logic (and r2-r3 may contain results) */
-	    jit_regset_setbit(&_jitc->reglive, _R1);
-#  endif
-#endif
-#if defined(JIT_FRET)
-	    jit_regset_setbit(&_jitc->reglive, JIT_FRET);
-#endif
 	    break;
 	default:
 	    value = jit_classify(node->code);
@@ -2209,36 +2195,21 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 	switch (node->code) {
 	    case jit_code_label:
 		block = _jitc->blocks.ptr + node->v.w;
-		if (bmp_tst(node->v.w))
-		    return;
-		bmp_set(node->v.w);
 		jit_regset_and(&ztmp, mask, &block->reglive);
 		if (jit_regset_set_p(&ztmp)) {
 		    jit_regset_ior(live, live, &ztmp);
 		    jit_regset_com(&ztmp, &ztmp);
 		    jit_regset_and(mask, mask, &ztmp);
 		}
+		if (bmp_tst(node->v.w))
+		    return;
+		bmp_set(node->v.w);
 		break;
 	    case jit_code_prolog:
 		jit_regset_set_ui(mask, 0);
 		return;
 	    case jit_code_epilog:
 		jit_regset_set_ui(mask, 0);
-#if defined(JIT_RET)
-		/* On some backends it may be required to allocate one
-		 * or more registers to jump from a jit_ret* to the
-		 * epilog label.
-		 * Because currently there is no type information,
-		 * assume JIT_RET and JIT_FRET are live in the epilog.
-		 * Only JIT_RET really should be marked as live, to
-		 * prevent it being allocated, usually in the jump to
-		 * the epilog, but also mark JIT_FRET as live for the
-		 * sake of correctness. */
-		jit_regset_setbit(live, JIT_RET);
-#endif
-#if defined(JIT_FRET)
-		jit_regset_setbit(live, JIT_FRET);
-#endif
 		return;
 	    case jit_code_callr:
 		value = jit_regno(node->u.w);
@@ -2249,24 +2220,6 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 		    }
 		}
 	    case jit_code_calli:
-#if defined(JIT_RET)
-		if (jit_regset_tstbit(mask, JIT_RET)) {
-		    jit_regset_setbit(live, JIT_RET);
-		    jit_regset_clrbit(mask, JIT_RET);
-		}
-#  if __arm__
-		if (jit_regset_tstbit(mask, _R1)) {
-		    jit_regset_setbit(live, _R1);
-		    jit_regset_clrbit(mask, _R1);
-		}
-#  endif
-#endif
-#if defined(JIT_FRET)
-		if (jit_regset_tstbit(mask, JIT_FRET)) {
-		    jit_regset_setbit(live, JIT_FRET);
-		    jit_regset_clrbit(mask, JIT_FRET);
-		}
-#endif
 		for (value = 0; value < _jitc->reglen; ++value) {
 		    value = jit_regset_scan1(mask, value);
 		    if (value >= _jitc->reglen)

@@ -1,6 +1,11 @@
 2016-05-05 Paulo Andrade <pcpa@gnu.org>
 
-	* lib/lightning.c: Correct wrong movr simplification.
+	* lib/lightning.c: Correct wrong movr simplification,
+	remove no longer needed code to set return registers live
+	and update live register set when reaching a label boundary,
+	but do not descend if the block has been already visited.
+	The later need some tuning for complex code generation, where
+	it will still have issues.
 
 2015-11-30 Paulo Andrade <pcpa@gnu.org>
 
