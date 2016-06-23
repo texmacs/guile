@@ -1158,12 +1158,6 @@ scm_register_r6rs_ports (void)
                             "scm_init_r6rs_ports",
 			    (scm_t_extension_init_func) scm_init_r6rs_ports,
 			    NULL);
-}
-
-void
-scm_init_r6rs_ports (void)
-{
-#include "libguile/r6rs-ports.x"
 
   initialize_bytevector_input_ports ();
   initialize_custom_binary_input_ports ();
@@ -1171,4 +1165,10 @@ scm_init_r6rs_ports (void)
   initialize_custom_binary_output_ports ();
   initialize_custom_binary_input_output_ports ();
   initialize_transcoded_ports ();
+}
+
+void
+scm_init_r6rs_ports (void)
+{
+#include "libguile/r6rs-ports.x"
 }
