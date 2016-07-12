@@ -11,7 +11,7 @@
    version but doesn't consume extra memory.
  */
 
-#define SWAP(a, b) do { const SCM _tmp = a; a = b; b = _tmp; } while (0)
+#define SWAP(a, b) do { const SCM _tmp = GET(a); SET(a, GET(b)); SET(b, _tmp); } while (0)
 
 
 /* Order using quicksort.  This implementation incorporates four
@@ -54,8 +54,7 @@
 #define	STACK_NOT_EMPTY	 (stack < top)
 
 static void
-NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
-      SCM less)
+NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
 {
   /* Stack node declarations used to store unfulfilled partition obligations. */
   typedef struct {
@@ -64,8 +63,6 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
   } stack_node;
 
   static const char s_buggy_less[] = "buggy less predicate used when sorting";
-
-#define ELT(i) base_ptr[(i)*INC]
 
   if (nr_elems == 0)
     /* Avoid lossage with unsigned arithmetic below.  */
@@ -93,17 +90,17 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 
 	  SCM_TICK;
 	
-	  if (scm_is_true (scm_call_2 (less, ELT(mid), ELT(lo))))
-	    SWAP (ELT(mid), ELT(lo));
-	  if (scm_is_true (scm_call_2 (less, ELT(hi), ELT(mid))))
-	    SWAP (ELT(mid), ELT(hi));
+          if (scm_is_true (scm_call_2 (less, GET(mid), GET(lo))))
+            SWAP (mid, lo);
+          if (scm_is_true (scm_call_2 (less, GET(hi), GET(mid))))
+            SWAP (mid, hi);
 	  else
 	    goto jump_over;
-	  if (scm_is_true (scm_call_2 (less, ELT(mid), ELT(lo))))
-	    SWAP (ELT(mid), ELT(lo));
+          if (scm_is_true (scm_call_2 (less, GET(mid), GET(lo))))
+            SWAP (mid, lo);
 	jump_over:;
 
-	  pivot = ELT(mid);
+	  pivot = GET(mid);
 	  left = lo + 1;
 	  right = hi - 1;
 
@@ -112,7 +109,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while (scm_is_true (scm_call_2 (less, ELT(left), pivot)))
+	      while (scm_is_true (scm_call_2 (less, GET(left), pivot)))
 		{
 		  left += 1;
 		  /* The comparison predicate may be buggy */
@@ -120,7 +117,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      while (scm_is_true (scm_call_2 (less, pivot, ELT(right))))
+	      while (scm_is_true (scm_call_2 (less, pivot, GET(right))))
 		{
 		  right -= 1;
 		  /* The comparison predicate may be buggy */
@@ -130,7 +127,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 
 	      if (left < right)
 		{
-		  SWAP (ELT(left), ELT(right));
+		  SWAP (left, right);
 		  left += 1;
 		  right -= 1;
 		}
@@ -192,11 +189,11 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
        and the operation speeds up insertion sort's inner loop. */
 
     for (run = tmp + 1; run <= thresh; run += 1)
-      if (scm_is_true (scm_call_2 (less, ELT(run), ELT(tmp))))
+      if (scm_is_true (scm_call_2 (less, GET(run), GET(tmp))))
 	tmp = run;
 
     if (tmp != 0)
-      SWAP (ELT(tmp), ELT(0));
+      SWAP (tmp, 0);
 
     /* Insertion sort, running from left-hand-side up to right-hand-side.  */
 
@@ -206,7 +203,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 	SCM_TICK;
 
 	tmp = run - 1;
-	while (scm_is_true (scm_call_2 (less, ELT(run), ELT(tmp))))
+	while (scm_is_true (scm_call_2 (less, GET(run), GET(tmp))))
 	  {
 	    /* The comparison predicate may be buggy */
 	    if (tmp == 0)
@@ -218,12 +215,12 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 	tmp += 1;
 	if (tmp != run)
 	  {
-            SCM to_insert = ELT(run);
+            SCM to_insert = GET(run);
             size_t hi, lo;
 
             for (hi = lo = run; --lo >= tmp; hi = lo)
-              ELT(hi) = ELT(lo);
-            ELT(hi) = to_insert;
+              SET(hi, GET(lo));
+            SET(hi, to_insert);
 	  }
       }
   }
@@ -235,9 +232,9 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 #undef PUSH
 #undef POP
 #undef STACK_NOT_EMPTY
-#undef ELT
+#undef GET
+#undef SET
 
 #undef NAME
 #undef INC_PARAM
-#undef INC
-
+#undef VEC_PARAM

@@ -31,8 +31,25 @@
     exception:wrong-num-args
     (sort '(1 2) (lambda (x y z) z)))
 
-  (pass-if "sort!"
+  (pass-if "sort of vector"
+    (let* ((v (randomize-vector! (make-vector 1000) 1000))
+           (w (vector-copy v)))
+      (and (sorted? (sort v <) <)
+           (equal? w v))))
+
+  (pass-if "sort of typed array"
+    (let* ((v (randomize-vector! (make-typed-array 'f64 *unspecified* 99) 99))
+           (w (make-typed-array 'f64 *unspecified* 99)))
+      (array-copy! v w)
+      (and (sorted? (sort v <) <)
+           (equal? w v))))
+
+  (pass-if "sort! of vector"
     (let ((v (randomize-vector! (make-vector 1000) 1000)))
+      (sorted? (sort! v <) <)))
+
+  (pass-if "sort! of typed array"
+    (let ((v (randomize-vector! (make-typed-array 'f64 *unspecified* 99) 99)))
       (sorted? (sort! v <) <)))
 
   (pass-if "sort! of non-contigous vector"
@@ -41,10 +58,22 @@
       (randomize-vector! v 1000)
       (sorted? (sort! v <) <)))
 
+  (pass-if "sort! of non-contigous typed array"
+    (let* ((a (make-typed-array 'f64 0 99 3))
+	   (v (make-shared-array a (lambda (i) (list i 0)) 99)))
+      (randomize-vector! v 99)
+      (sorted? (sort! v <) <)))
+
   (pass-if "sort! of negative-increment vector"
     (let* ((a (make-array 0 1000 3))
 	   (v (make-shared-array a (lambda (i) (list (- 999 i) 0)) 1000)))
       (randomize-vector! v 1000)
+      (sorted? (sort! v <) <)))
+
+  (pass-if "sort! of negative-increment typed array"
+    (let* ((a (make-typed-array 'f64 0 99 3))
+	   (v (make-shared-array a (lambda (i) (list (- 98 i) 0)) 99)))
+      (randomize-vector! v 99)
       (sorted? (sort! v <) <)))
 
   (pass-if "stable-sort!"
@@ -79,4 +108,3 @@
   ;; behavior (integer underflow) leading to crashes.
   (pass-if "empty vector"
     (equal? '#() (stable-sort '#() <))))
-
