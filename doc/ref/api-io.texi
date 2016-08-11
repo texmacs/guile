@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009,
-@c   2010, 2011, 2013  Free Software Foundation, Inc.
+@c   2010, 2011, 2013, 2016  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Input and Output
@@ -1278,8 +1278,8 @@ procedure (@pxref{Bytevector Ports}) could be implemented as follows:
     (set! position new-position))
 
   (make-custom-binary-input-port "the port" read!
-                                  get-position
-                                  set-position!))
+                                  get-position set-position!
+                                  #f))
 
 (read (open-bytevector-input-port (string->utf8 "hello")))
 @result{} hello
