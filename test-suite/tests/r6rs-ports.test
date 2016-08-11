@@ -74,7 +74,7 @@
         receiver))))
 
 
-(with-test-prefix "7.2.5 End-of-File Object"
+(with-test-prefix "8.2.5 End-of-File Object"
 
   (pass-if "eof-object"
     (and (eqv? (eof-object) (eof-object))
@@ -84,7 +84,7 @@
     (port-eof? (open-input-string ""))))
 
 
-(with-test-prefix "7.2.8 Binary Input"
+(with-test-prefix "8.2.8 Binary Input"
 
   (pass-if "get-u8"
     (let ((port (open-input-string "A")))
@@ -236,7 +236,7 @@
              (lambda () #t)) ;; close-port
      "rw")))
 
-(with-test-prefix "7.2.11 Binary Output"
+(with-test-prefix "8.2.11 Binary Output"
 
   (pass-if "put-u8"
     (let ((port (make-soft-output-port)))
@@ -328,7 +328,7 @@
   
   (delete-file filename))
 
-(with-test-prefix "7.2.7 Input Ports"
+(with-test-prefix "8.2.7 Input Ports"
 
   (with-test-prefix "open-file-input-port"
     (test-input-file-opener open-file-input-port (test-file)))
