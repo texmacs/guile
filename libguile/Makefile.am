@@ -443,9 +443,9 @@ vm-operations.h: vm-engine.c
 	| sed -e 's,VM_DEFINE_OP (\(.*\)).*,  M (\1) \\,' >> $@
 	@echo '' >> $@
 
-BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
-    scmconfig.h \
-    vm-operations.h $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
+BUILT_INCLUDES = vm-operations.h scmconfig.h
+BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h $(BUILT_INCLUDES) \
+    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 # Force the generation of `guile-procedures.texi' because the top-level
 # Makefile expects it to be built.
@@ -754,9 +754,9 @@ SUFFIXES = .x .doc
 .c.doc:
 	$(AM_V_SNARF)./guile-snarf-docs -o $@ $< -- $(snarfcppopts)
 
-$(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in version.h
+$(DOT_X_FILES) $(EXTRA_DOT_X_FILES): $(BUILT_INCLUDES) snarf.h guile-snarf.in version.h
 
-$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): scmconfig.h snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): $(BUILT_INCLUDES) snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
 
 error.x: cpp-E.c
 posix.x: cpp-SIG.c
