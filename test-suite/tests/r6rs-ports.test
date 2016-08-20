@@ -1059,11 +1059,392 @@ not `set-port-position!'"
         values))
     (delete-file filename)))
 
+;; Used for a lot of the make-custom-input/output tests to stub out
+;; the read/write section for whatever part we're ignoring
+(define dummy-write! (const 0))
+(define dummy-read! (const 0))
+
 (with-test-prefix "8.2.13 Input/output ports"
   (with-test-prefix "open-file-input/output-port [output]"
     (test-output-file-opener open-file-input/output-port (test-file)))
   (with-test-prefix "open-file-input/output-port [input]"
-    (test-input-file-opener open-file-input/output-port (test-file))))
+    (test-input-file-opener open-file-input/output-port (test-file)))
+
+  ;; Custom binary input/output tests.  Most of these are simple
+  ;; ports of the custom-binary-input-port tests or custom-binary-ouput-port
+  ;; tests, simply ported to use a custom-binary-input/output port.
+  ;; The copy-pasta is strong here; a diet lighter in spaghetti may wish
+  ;; to make the previous tests more reusable.
+  (pass-if "make-custom-binary-input/output-port"
+    (let* ((source (make-bytevector 7777))
+           (read! (let ((pos 0)
+                        (len (bytevector-length source)))
+                    (lambda (bv start count)
+                      (let ((amount (min count (- len pos))))
+                        (if (> amount 0)
+                            (bytevector-copy! source pos
+                                              bv start amount))
+                        (set! pos (+ pos amount))
+                        amount))))
+           (write! (lambda (x y z) 0))
+           (port (make-custom-binary-input/output-port
+                  "the port" read! write!
+                  #f #f #f)))
+      (and (binary-port? port)
+           (input-port? port)
+           (output-port? port)
+           (bytevector=? (get-bytevector-all port) source)
+           (not (port-has-port-position? port))
+           (not (port-has-set-port-position!? port)))))
+  
+  (pass-if-equal "make-custom-binary-input/output-port uses ISO-8859-1 (Guile \
+extension) [input]"
+      "Â©Â©"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (let* ((source #vu8(194 169 194 169))
+             (read! (let ((pos 0)
+                          (len (bytevector-length source)))
+                      (lambda (bv start count)
+                        (let ((amount (min count (- len pos))))
+                          (if (> amount 0)
+                              (bytevector-copy! source pos
+                                                bv start amount))
+                          (set! pos (+ pos amount))
+                          amount))))
+             (port (make-custom-binary-input/output-port
+                    "the port" read! dummy-write!
+                    #f #f #f)))
+        (get-string-all port))))
+
+  (pass-if "custom binary input/output port does not support `port-position'"
+    (let* ((str "Hello Port!")
+           (source (open-bytevector-input-port
+                    (u8-list->bytevector
+                     (map char->integer (string->list str)))))
+           (read! (lambda (bv start count)
+                    (let ((r (get-bytevector-n! source bv start count)))
+                      (if (eof-object? r)
+                          0
+                          r))))
+           (port (make-custom-binary-input/output-port
+                  "the port" read! dummy-write!
+                  #f #f #f)))
+      (not (or (port-has-port-position? port)
+               (port-has-set-port-position!? port)))))
+
+  (pass-if-exception "custom binary input/output port 'read!' returns too much"
+      exception:out-of-range
+    ;; In Guile <= 2.0.9 this would segfault.
+    (let* ((read! (lambda (bv start count)
+                    (+ count 4242)))
+           (port (make-custom-binary-input/output-port
+                  "the port" read! dummy-write!
+                  #f #f #f)))
+      (get-bytevector-all port)))
+
+  (pass-if-equal "custom binary input/output port supports `port-position', \
+not `set-port-position!'"
+      42
+    (let ((port (make-custom-binary-input/output-port
+                 "the port" (const 0) dummy-write!
+                 (const 42) #f #f)))
+      (and (port-has-port-position? port)
+           (not (port-has-set-port-position!? port))
+           (port-position port))))
+
+  (pass-if "custom binary input/output port supports `port-position'"
+    (let* ((str "Hello Port!")
+           (source (open-bytevector-input-port
+                    (u8-list->bytevector
+                     (map char->integer (string->list str)))))
+           (read! (lambda (bv start count)
+                    (let ((r (get-bytevector-n! source bv start count)))
+                      (if (eof-object? r)
+                          0
+                          r))))
+           (get-pos (lambda ()
+                      (port-position source)))
+           (set-pos! (lambda (pos)
+                       (set-port-position! source pos)))
+           (port (make-custom-binary-input/output-port
+                  "the port" read! dummy-write!
+                  get-pos set-pos! #f)))
+
+      (and (port-has-port-position? port)
+           (= 0 (port-position port))
+           (port-has-set-port-position!? port)
+           (begin
+             (set-port-position! port 6)
+             (= 6 (port-position port)))
+           (bytevector=? (get-bytevector-all port)
+                         (u8-list->bytevector
+                          (map char->integer (string->list "Port!")))))))
+
+  (pass-if-equal "custom binary input/output port buffered partial reads"
+      "Hello Port!"
+    ;; Check what happens when READ! returns less than COUNT bytes.
+    (let* ((src    (string->utf8 "Hello Port!"))
+           (chunks '(2 4 5))                ; provide 2 bytes, then 4, etc.
+           (offset 0)
+           (read!  (lambda (bv start count)
+                     (match chunks
+                       ((count rest ...)
+                        (bytevector-copy! src offset bv start count)
+                        (set! chunks rest)
+                        (set! offset (+ offset count))
+                        count)
+                       (()
+                        0))))
+           (port   (make-custom-binary-input/output-port
+                    "the port" read! dummy-write!
+                    #f #f #f)))
+      (get-string-all port)))
+
+  (pass-if-equal "custom binary input/output port unbuffered & 'port-position'"
+      '(0 2 5 11)
+    ;; Check that the value returned by 'port-position' is correct, and
+    ;; that each 'port-position' call leads one call to the
+    ;; 'get-position' method.
+    (let* ((str    "Hello Port!")
+           (output (make-bytevector (string-length str)))
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (read!  (lambda (bv start count)
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (pos     '())
+           (get-pos (lambda ()
+                      (let ((p (port-position source)))
+                        (set! pos (cons p pos))
+                        p)))
+           (port    (make-custom-binary-input/output-port
+                     "the port" read! dummy-write!
+                     get-pos #f #f)))
+      (setvbuf port 'none)
+      (and (= 0 (port-position port))
+           (begin
+             (get-bytevector-n! port output 0 2)
+             (= 2 (port-position port)))
+           (begin
+             (get-bytevector-n! port output 2 3)
+             (= 5 (port-position port)))
+           (let ((bv (string->utf8 (get-string-all port))))
+             (bytevector-copy! bv 0 output 5 (bytevector-length bv))
+             (= (string-length str) (port-position port)))
+           (bytevector=? output (string->utf8 str))
+           (reverse pos))))
+  
+  (pass-if-equal "custom binary input/output port unbuffered & 'read!' calls"
+      `((2 "He") (3 "llo") (42 " Port!"))
+    (let* ((str    "Hello Port!")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input/output-port
+                    "the port" read! dummy-write!
+                    #f #f #f)))
+
+      (setvbuf port 'none)
+      (let ((ret (list (get-bytevector-n port 2)
+                       (get-bytevector-n port 3)
+                       (get-bytevector-n port 42))))
+        (zip (reverse reads)
+             (map (lambda (obj)
+                    (if (bytevector? obj)
+                        (utf8->string obj)
+                        obj))
+                  ret)))))
+
+  (pass-if-equal "custom binary input/output port unbuffered & 'get-string-all'"
+      (make-string 1000 #\a)
+    ;; In Guile 2.0.11 this test would lead to a buffer overrun followed
+    ;; by an assertion failure.  See <http://bugs.gnu.org/19621>.
+    (let* ((input (with-fluids ((%default-port-encoding #f))
+                    (open-input-string (make-string 1000 #\a))))
+           (read! (lambda (bv index count)
+                    (let ((n (get-bytevector-n! input bv index
+                                                count)))
+                      (if (eof-object? n) 0 n))))
+           (port  (make-custom-binary-input/output-port
+                   "foo" read! dummy-write!
+                   #f #f #f)))
+      (setvbuf port 'none)
+      (get-string-all port)))
+
+  (pass-if-equal "custom binary input/output port unbuffered UTF-8 & \
+'get-string-all'"
+      (make-string 1000 #\λ)
+    ;; In Guile 2.0.11 this test would lead to a buffer overrun followed
+    ;; by an assertion failure.  See <http://bugs.gnu.org/19621>.
+    (let* ((input (with-fluids ((%default-port-encoding "UTF-8"))
+                    (open-input-string (make-string 1000 #\λ))))
+           (read! (lambda (bv index count)
+                    (let ((n (get-bytevector-n! input bv index
+                                                count)))
+                      (if (eof-object? n) 0 n))))
+           (port  (make-custom-binary-input/output-port
+                   "foo" read! dummy-write!
+                   #f #f #f)))
+      (setvbuf port 'none)
+      (set-port-encoding! port "UTF-8")
+      (get-string-all port)))
+
+  (pass-if-equal "custom binary input/output port, unbuffered then buffered"
+      `((6 "Lorem ") (12 "ipsum dolor ") (777 "sit amet, consectetur…")
+        (777 ,(eof-object)))
+    (let* ((str    "Lorem ipsum dolor sit amet, consectetur…")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input/output-port
+                    "the port" read! dummy-write!
+                    #f #f #f)))
+
+      (setvbuf port 'none)
+      (let ((ret (list (get-bytevector-n port 6)
+                       (get-bytevector-n port 12)
+                       (begin
+                         (setvbuf port 'block 777)
+                         (get-bytevector-n port 42))
+                       (get-bytevector-n port 42))))
+        (zip (reverse reads)
+             (map (lambda (obj)
+                    (if (bytevector? obj)
+                        (utf8->string obj)
+                        obj))
+                  ret)))))
+
+  (pass-if-equal "custom binary input/output port, buffered then unbuffered"
+      `((18
+         42 14             ; scm_c_read tries to fill the 42-byte buffer
+         42)
+        ("Lorem " "ipsum dolor " "sit amet, consectetur bla…" ,(eof-object)))
+    (let* ((str    "Lorem ipsum dolor sit amet, consectetur bla…")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input/output-port
+                    "the port" read! dummy-write!
+                    #f #f #f)))
+
+      (setvbuf port 'block 18)
+      (let ((ret (list (get-bytevector-n port 6)
+                       (get-bytevector-n port 12)
+                       (begin
+                         (setvbuf port 'none)
+                         (get-bytevector-n port 42))
+                       (get-bytevector-n port 42))))
+        (list (reverse reads)
+              (map (lambda (obj)
+                     (if (bytevector? obj)
+                         (utf8->string obj)
+                         obj))
+                   ret)))))
+
+  (pass-if "custom binary input/output port `close-proc' is called"
+    (let* ((closed?  #f)
+           (read!    (lambda (bv start count) 0))
+           (get-pos  (lambda () 0))
+           (set-pos! (lambda (pos) #f))
+           (close!   (lambda () (set! closed? #t)))
+           (port     (make-custom-binary-input/output-port
+                      "the port" read! dummy-write!
+                      get-pos set-pos! close!)))
+
+      (close-port port)
+      (gc) ; Test for marking a closed port.
+      closed?))
+
+  (pass-if "make-custom-binary-input/output-port [partial writes]"
+    (let* ((source   (uint-list->bytevector (iota 333)
+                                            (native-endianness) 2))
+           (sink     (make-bytevector (bytevector-length source)))
+           (sink-pos 0)
+           (eof?     #f)
+           (write!   (lambda (bv start count)
+                       (if (= 0 count)
+                           (begin
+                             (set! eof? #t)
+                             0)
+                           (let ((u8 (bytevector-u8-ref bv start)))
+                             ;; Get one byte at a time.
+                             (bytevector-u8-set! sink sink-pos u8)
+                             (set! sink-pos (+ 1 sink-pos))
+                             1))))
+           (port     (make-custom-binary-input/output-port
+                      "cbop" dummy-read! write!
+                      #f #f #f)))
+      (put-bytevector port source)
+      (force-output port)
+      (and (= sink-pos (bytevector-length source))
+           (not eof?)
+           (bytevector=? sink source))))
+
+  (pass-if "make-custom-binary-input/output-port [full writes]"
+    (let* ((source   (uint-list->bytevector (iota 333)
+                                            (native-endianness) 2))
+           (sink     (make-bytevector (bytevector-length source)))
+           (sink-pos 0)
+           (eof?     #f)
+           (write!   (lambda (bv start count)
+                       (if (= 0 count)
+                           (begin
+                             (set! eof? #t)
+                             0)
+                           (begin
+                             (bytevector-copy! bv start
+                                               sink sink-pos
+                                               count)
+                             (set! sink-pos (+ sink-pos count))
+                             count))))
+           (port     (make-custom-binary-input/output-port
+                      "cbop" dummy-read! write!
+                      #f #f #f)))
+      (put-bytevector port source)
+      (force-output port)
+      (and (= sink-pos (bytevector-length source))
+           (not eof?)
+           (bytevector=? sink source))))
+
+  (pass-if-equal "custom-binary-output-port uses ISO-8859-1 (Guile extension)\
+ [output]"
+      '(194 169 194 169)
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (let* ((sink '())
+             (write! (lambda (bv start count)
+                       (if (= 0 count)  ; EOF
+                           0
+                           (let ((u8 (bytevector-u8-ref bv start)))
+                             ;; Get one byte at a time.
+                             (set! sink (cons u8 sink))
+                             1))))
+             (port (make-custom-binary-input/output-port
+                    "cbop" dummy-read! write!
+                    #f #f #f)))
+      (put-string port "Â©Â©")
+      (force-output port)
+      (reverse sink))))
+  )
 
 (define exception:encoding-error
   '(encoding-error . ""))
