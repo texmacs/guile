@@ -1778,7 +1778,7 @@ scm_from_port_stringn (const char *str, size_t len, SCM port)
   else
     return scm_from_stringn (str, len, scm_i_symbol_chars (pt->encoding),
                              scm_i_string_failed_conversion_handler
-                             (scm_port_conversion_strategy (port)));
+                             (SCM_PORT (port)->conversion_strategy));
 }
 
 /* Create a new scheme string from the C string STR.  The memory of
@@ -2217,7 +2217,7 @@ scm_to_port_stringn (SCM str, size_t *lenp, SCM port)
   else
     return scm_to_stringn (str, lenp, scm_i_symbol_chars (pt->encoding),
                            scm_i_string_failed_conversion_handler
-                           (scm_port_conversion_strategy (port)));
+                           (SCM_PORT (port)->conversion_strategy));
 }
 
 /* Return a malloc(3)-allocated buffer containing the contents of STR encoded
