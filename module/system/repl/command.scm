@@ -58,7 +58,7 @@
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
-              (procedure proc) (locals) (error-message error)
+              (locals) (error-message error)
               (break br bp) (break-at-source break-at bs)
               (step s) (step-instruction si)
               (next n) (next-instruction ni)
