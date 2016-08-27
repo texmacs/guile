@@ -265,7 +265,7 @@ lists."
          ;; It could be the procedure had its name property set via the
          ;; procedure property interface.
          (name (or (and program (procedure-name program))
-                   (program-debug-info-name pdi)))
+                   (and pdi (program-debug-info-name pdi))))
          (source (match (find-program-sources addr)
                    (() #f)
                    ((source . _) source)))
