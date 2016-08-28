@@ -77,9 +77,6 @@ typedef struct scm_t_port scm_t_port;
 #define SCM_PORT(x)         ((scm_t_port *) SCM_CELL_WORD_2 (x))
 #define SCM_PORT_TYPE(port) ((scm_t_port_type *) SCM_CELL_WORD_3 (port))
 
-/* Maximum number of port types.  */
-#define SCM_I_MAX_PORT_TYPE_COUNT  256
-
 
 
 
