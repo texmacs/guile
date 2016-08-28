@@ -872,11 +872,27 @@ as an ordered alist."
 ;; tag should really be a qstring.  However there are a number of
 ;; servers that emit etags as unquoted strings.  Assume that if the
 ;; value doesn't start with a quote, it's an unquoted strong etag.
-(define (parse-entity-tag val)
+(define* (parse-entity-tag val #:optional (start 0) (end (string-length val))
+                           #:key sloppy-delimiters)
+  (define (parse-proper-etag-at start strong?)
+    (cond
+     (sloppy-delimiters
+      (call-with-values (lambda ()
+                          (parse-qstring val start end #:incremental? #t))
+        (lambda (tag next)
+          (values (cons tag strong?) next))))
+     (else
+      (values (cons (parse-qstring val start end) strong?) end))))
   (cond
-   ((string-prefix? "W/" val) (cons (parse-qstring val 2) #f))
-   ((string-prefix? "\"" val) (cons (parse-qstring val) #t))
-   (else (cons val #t))))
+   ((string-prefix? "W/" val 0 2 start end)
+    (parse-proper-etag-at (+ start 2) #f))
+   ((string-prefix? "\"" val 0 1 start end)
+    (parse-proper-etag-at start #t))
+   (else
+    (let ((delim (or (and sloppy-delimiters
+                          (string-index val sloppy-delimiters start end))
+                     end)))
+      (values (cons (substring val start delim) #t) delim)))))
 
 (define (entity-tag? val)
   (and (pair? val)
@@ -889,21 +905,19 @@ as an ordered alist."
 
 (define* (parse-entity-tag-list val #:optional
                                 (start 0) (end (string-length val)))
-  (let ((strong? (not (string-prefix? "W/" val 0 2 start end))))
-    (call-with-values (lambda ()
-                        (parse-qstring val (if strong? start (+ start 2))
-                                       end #:incremental? #t))
-      (lambda (tag next)
-        (acons tag strong?
-               (let ((next (skip-whitespace val next end)))
-                  (if (< next end)
-                      (if (eqv? (string-ref val next) #\,)
-                          (parse-entity-tag-list
-                           val
-                           (skip-whitespace val (1+ next) end)
-                           end)
-                          (bad-header-component 'entity-tag-list val))
-                      '())))))))
+  (call-with-values (lambda ()
+                      (parse-entity-tag val start end #:sloppy-delimiters #\,))
+    (lambda (etag next)
+      (cons etag
+            (let ((next (skip-whitespace val next end)))
+              (if (< next end)
+                  (if (eqv? (string-ref val next) #\,)
+                      (parse-entity-tag-list
+                       val
+                       (skip-whitespace val (1+ next) end)
+                       end)
+                      (bad-header-component 'entity-tag-list val))
+                  '()))))))
 
 (define (entity-tag-list? val)
   (list-of? val entity-tag?))

@@ -331,6 +331,8 @@
                          "~a, ~d ~b ~Y ~H:~M:~S ~z"))
   (pass-if-parse if-none-match "\"xyzzy\", W/\"qux\""
                  '(("xyzzy" . #t) ("qux" . #f)))
+  (pass-if-parse if-none-match "xyzzy, W/\"qux\""
+                 '(("xyzzy" . #t) ("qux" . #f)))
   (pass-if-parse if-none-match "*" '*)
   (pass-if-parse if-range "\"foo\"" '("foo" . #t))
   (pass-if-parse if-range  "Tue, 15 Nov 1994 08:12:31 GMT"
