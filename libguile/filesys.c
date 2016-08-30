@@ -43,6 +43,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/smob.h"
+#include "libguile/fdes-finalizers.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/strings.h"
@@ -290,6 +291,7 @@ SCM_DEFINE (scm_close, "close", 1, 0, 0,
     return scm_close_port (fd_or_port);
   fd = scm_to_int (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
+  scm_run_fdes_finalizers (fd);
   SCM_SYSCALL (rv = close (fd));
   /* following scsh, closing an already closed file descriptor is
      not an error.  */
@@ -312,6 +314,7 @@ SCM_DEFINE (scm_close_fdes, "close-fdes", 1, 0, 0,
   int rv;
 
   c_fd = scm_to_int (fd);
+  scm_run_fdes_finalizers (c_fd);
   SCM_SYSCALL (rv = close (c_fd));
   if (rv < 0)
     SCM_SYSERROR;

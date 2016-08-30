@@ -559,6 +559,51 @@ Duplicates in the input vectors appear only once in output.
 An additional @code{select!} interface is provided.
 @end deffn
 
+While it is sometimes necessary to operate at the level of file
+descriptors, this is an operation whose correctness can only be
+considered as part of a whole program.  So for example while the effects
+of @code{(string-set! x 34 #\y)} are limited to the bits of code that
+can access @var{x}, @code{(close-fdes 34)} mutates the state of the
+entire process.  In particular if another thread is using file
+descriptor 34 then their state might be corrupted; and another thread
+which opens a file might cause file descriptor 34 to be re-used, so that
+corruption could manifest itself in a strange way.
+
+@cindex fdes finalizers
+@cindex file descriptor finalizers
+@cindex finalizers, file descriptor
+However when working with file descriptors, it's common to want to
+associate information with the file descriptor, perhaps in a side table.
+To support this use case and to allow user code to remove an association
+when a file descriptor is closed, Guile offers @dfn{fdes finalizers}.
+
+As the name indicates, fdes finalizers are finalizers -- they can run in
+response to garbage collection, and they can also run in response to
+explicit calls to @code{close-port}, @code{close-fdes}, or the like.  As
+such they inherit many of the pitfalls of finalizers: they may be
+invoked from concurrent threads, or not at all.  @xref{Foreign Object
+Memory Management}, for more on finalizers.
+
+To use fdes finalizers, import their module;
+
+@example
+(use-modules (ice-9 fdes-finalizers))
+@end example
+
+@deffn {Scheme Procedure} add-fdes-finalizer! fdes finalizer
+@deffnx {Scheme Procedure} remove-fdes-finalizer! fdes finalizer
+Add or remove a finalizer for @var{fdes}.  A finalizer is a procedure
+that is called by Guile when a file descriptor is closed.  The file
+descriptor being closed is passed as the one argument to the finalizer.
+If a finalizer has been added multiple times to a file descriptor, to
+remove it would require that number of calls to
+@code{remove-fdes-finalizer!}.
+
+The finalizers added to a file descriptor are called by Guile in an
+unspecified order, and their return values are ignored.
+@end deffn
+
+
 @node File System
 @subsection File System
 @cindex file system

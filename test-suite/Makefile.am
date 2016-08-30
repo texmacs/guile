@@ -54,6 +54,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/eval.test			\
 	    tests/eval-string.test		\
 	    tests/exceptions.test		\
+	    tests/fdes-finalizers.test		\
 	    tests/filesys.test			\
 	    tests/fluids.test			\
 	    tests/foreign.test			\

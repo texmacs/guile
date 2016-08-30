@@ -1,0 +1,65 @@
+;;;; 	Copyright (C) 2016 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-fdes-finalizers)
+  #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test)
+  #:use-module (ice-9 fdes-finalizers))
+
+(define (test-file suffix)
+  (data-file-name (string-append "ports-test.tmp" suffix)))
+
+(close-port (open-output-file (test-file ".1")))
+(close-port (open-output-file (test-file ".2")))
+
+(with-test-prefix "simple"
+  (let* ((call-count 0)
+         (f (lambda (fdes) (set! call-count (1+ call-count))))
+         (p (open-input-file (test-file ".1")))
+         (q (open-input-file (test-file ".2"))))
+    (pass-if-equal 0 call-count)
+    (add-fdes-finalizer! (fileno p) f)
+    (pass-if-equal 0 call-count)
+    (close-port q)
+    (pass-if-equal 0 call-count)
+    (close-port p)
+    (pass-if-equal 1 call-count)))
+
+(with-test-prefix "multiple"
+  (let* ((call-count 0)
+         (f (lambda (fdes) (set! call-count (1+ call-count))))
+         (p (open-input-file (test-file ".1"))))
+    (pass-if-equal 0 call-count)
+    (add-fdes-finalizer! (fileno p) f)
+    (add-fdes-finalizer! (fileno p) f)
+    (pass-if-equal 0 call-count)
+    (close-port p)
+    (pass-if-equal 2 call-count)))
+
+(with-test-prefix "with removal"
+  (let* ((call-count 0)
+         (f (lambda (fdes) (set! call-count (1+ call-count))))
+         (p (open-input-file (test-file ".1"))))
+    (pass-if-equal 0 call-count)
+    (add-fdes-finalizer! (fileno p) f)
+    (add-fdes-finalizer! (fileno p) f)
+    (remove-fdes-finalizer! (fileno p) f)
+    (pass-if-equal 0 call-count)
+    (close-port p)
+    (pass-if-equal 1 call-count)))
+
+(delete-file (test-file ".1"))
+(delete-file (test-file ".2"))

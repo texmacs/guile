@@ -47,6 +47,7 @@ extern "C" {
 #include "libguile/eval.h"
 #include "libguile/evalext.h"
 #include "libguile/extensions.h"
+#include "libguile/fdes-finalizers.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/finalizers.h"

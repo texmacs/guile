@@ -49,6 +49,7 @@
 #include <full-write.h>
 
 #include "libguile/_scm.h"
+#include "libguile/fdes-finalizers.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 #include "libguile/gc.h"
@@ -656,6 +657,7 @@ fport_close (SCM port)
 {
   scm_t_fport *fp = SCM_FSTREAM (port);
 
+  scm_run_fdes_finalizers (fp->fdes);
   if (close (fp->fdes) != 0)
     /* It's not useful to retry after EINTR, as the file descriptor is
        in an undefined state.  See http://lwn.net/Articles/365294/.

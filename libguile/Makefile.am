@@ -143,6 +143,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	evalext.c				\
 	expand.c				\
 	extensions.c				\
+	fdes-finalizers.c			\
 	feature.c				\
 	filesys.c				\
 	finalizers.c				\
@@ -252,6 +253,7 @@ DOT_X_FILES =					\
 	evalext.x				\
 	expand.x				\
 	extensions.x				\
+	fdes-finalizers.x			\
 	feature.x				\
 	filesys.x				\
 	fluids.x				\
@@ -358,6 +360,7 @@ DOT_DOC_FILES = 				\
 	evalext.doc				\
 	expand.doc				\
 	extensions.doc				\
+	fdes-finalizers.doc			\
 	feature.doc				\
 	filesys.doc 				\
 	fluids.doc				\
@@ -586,6 +589,7 @@ modinclude_HEADERS =				\
 	evalext.h				\
 	expand.h				\
 	extensions.h				\
+	fdes-finalizers.h			\
 	feature.h				\
 	finalizers.h				\
 	filesys.h				\

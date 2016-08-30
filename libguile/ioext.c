@@ -29,6 +29,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/dynwind.h"
+#include "libguile/fdes-finalizers.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/hashtab.h"
@@ -266,6 +267,7 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
   if (rv == -1)
     SCM_SYSERROR;
   stream->fdes = new_fd;
+  scm_run_fdes_finalizers (old_fd);
   SCM_SYSCALL (close (old_fd));  
   return SCM_BOOL_T;
 }

@@ -56,6 +56,7 @@
 #include "libguile/eval.h"
 #include "libguile/evalext.h"
 #include "libguile/expand.h"
+#include "libguile/fdes-finalizers.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/finalizers.h"
@@ -398,6 +399,7 @@ scm_i_init_guile (void *base)
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
   scm_register_r6rs_ports ();
+  scm_register_fdes_finalizers ();
   scm_register_foreign ();
   scm_register_foreign_object ();
   scm_register_srfi_1 ();
