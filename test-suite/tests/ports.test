@@ -177,8 +177,8 @@
     (unread-char #\z iport)
     (pass-if "file: in tell 0 after unread"
              (= (seek iport 0 SEEK_CUR) 0))
-    (pass-if "file: putback buffer flushed after seek"
-             (char=? (read-char iport) #\J))
+    (pass-if "file: unread char still there"
+             (char=? (read-char iport) #\z))
     (seek iport 7 SEEK_SET)
     (pass-if "file: in last char"
              (char=? (read-char iport) #\x))
@@ -699,8 +699,8 @@
                               (unread-char #\x p)
                               (pass-if "input tell back to 0"
                                        (= (seek p 0 SEEK_CUR) 0))
-                              (pass-if "putback buffer discarded after seek"
-                                       (char=? (read-char p) #\t))
+                              (pass-if "input ungetted char"
+                                       (char=? (read-char p) #\x))
                               (seek p 0 SEEK_END)
                               (pass-if "input seek to end"
                                        (= (seek p 0 SEEK_CUR)

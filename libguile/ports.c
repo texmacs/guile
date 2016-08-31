@@ -3544,12 +3544,20 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
       off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
       off_t_or_off64_t rv;
 
+      if (ptob->seek && how == SEEK_CUR && off == 0)
+        {
+          /* If we are just querying the current position, avoid
+             flushing buffers.  We don't even need to require that the
+             port supports random access.  */
+          rv = ptob->seek (fd_port, off, how);
+          rv -= scm_port_buffer_can_take (pt->read_buf);
+          rv += scm_port_buffer_can_take (pt->write_buf);
+          return scm_from_off_t_or_off64_t (rv);
+        }
+
       if (!ptob->seek || !pt->rw_random)
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
-
-      /* FIXME: Avoid flushing buffers for SEEK_CUR with an offset of
-         0.  */
 
       scm_end_input (fd_port);
       scm_flush (fd_port);
