@@ -691,6 +691,7 @@ finalize_port (void *ptr, void *data)
 
   if (SCM_OPENP (port))
     {
+      SCM_SET_PORT_FINALIZING (port);
       scm_internal_catch (SCM_BOOL_T, do_close, ptr,
                           scm_handle_by_message_noexit, NULL);
       scm_gc_ports_collected++;
@@ -2797,7 +2798,31 @@ scm_i_write_bytes (SCM port, SCM src, size_t start, size_t count)
       size_t ret = ptob->c_write (port, src, start + written, count - written);
 
       if (ret == (size_t) -1)
-        port_poll (port, POLLOUT, -1);
+        {
+          if (SCM_PORT_FINALIZING_P (port))
+            {
+              /* This port is being closed because it became unreachable
+                 and was finalized, but it has buffered output, and the
+                 resource is not currently writable.  Instead of
+                 blocking, discard buffered output and warn.  To avoid
+                 this situation, force-output on the port before letting
+                 it go!  */
+              scm_puts
+                ("Warning: Discarding buffered output on non-blocking port\n"
+                 "         ",
+                 scm_current_warning_port ());
+              scm_display (port, scm_current_warning_port());
+              scm_puts
+                ("\n"
+                 "         closed by the garbage collector.  To avoid this\n"
+                 "         behavior and this warning, call `force-output' or\n"
+                 "         `close-port' on the port before letting go of it.\n",
+                 scm_current_warning_port ());
+              break;
+            }
+          else
+            port_poll (port, POLLOUT, -1);
+        }
       else
         written += ret;
     }
