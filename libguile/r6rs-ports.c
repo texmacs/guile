@@ -193,6 +193,14 @@ struct custom_binary_port {
   SCM close;
 };
 
+static int
+custom_binary_port_random_access_p (SCM port)
+{
+  struct custom_binary_port *stream = (void *) SCM_STREAM (port);
+
+  return scm_is_true (stream->set_position_x);
+}
+
 static scm_t_off
 custom_binary_port_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "custom_binary_port_seek"
@@ -336,6 +344,8 @@ initialize_custom_binary_input_ports (void)
 			custom_binary_input_port_read, NULL);
 
   scm_set_port_seek (custom_binary_input_port_type, custom_binary_port_seek);
+  scm_set_port_random_access_p (custom_binary_input_port_type,
+                                custom_binary_port_random_access_p);
   scm_set_port_close (custom_binary_input_port_type, custom_binary_port_close);
 }
 
@@ -942,6 +952,8 @@ initialize_custom_binary_output_ports (void)
 			NULL, custom_binary_output_port_write);
 
   scm_set_port_seek (custom_binary_output_port_type, custom_binary_port_seek);
+  scm_set_port_random_access_p (custom_binary_output_port_type,
+                                custom_binary_port_random_access_p);
   scm_set_port_close (custom_binary_output_port_type, custom_binary_port_close);
 }
 
@@ -1004,15 +1016,6 @@ SCM_DEFINE (scm_make_custom_binary_input_output_port,
 #undef FUNC_NAME
 
 
-static int
-custom_binary_input_output_port_random_access_p (SCM port)
-{
-  struct custom_binary_port *stream = (void *) SCM_STREAM (port);
-
-  return scm_is_true (stream->set_position_x);
-}
-
-
 /* Instantiate the custom binary input_output port type.  */
 static inline void
 initialize_custom_binary_input_output_ports (void)
@@ -1025,7 +1028,7 @@ initialize_custom_binary_input_output_ports (void)
   scm_set_port_seek (custom_binary_input_output_port_type,
                      custom_binary_port_seek);
   scm_set_port_random_access_p (custom_binary_input_output_port_type,
-                                custom_binary_input_output_port_random_access_p);
+                                custom_binary_port_random_access_p);
   scm_set_port_close (custom_binary_input_output_port_type,
                       custom_binary_port_close);
 }
