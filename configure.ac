@@ -83,7 +83,8 @@ AC_DEFINE([GNULIB_LOCK], [1],
   [Define to allow Gnulib modules to use Guile's locks.])
 
 
-AC_PROG_CC_C89
+dnl Guile needs C99 or later.
+gl_PROG_CC_C99
 
 # for per-target cflags in the libguile subdir
 AM_PROG_CC_C_O
