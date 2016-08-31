@@ -507,6 +507,7 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  elf.h						\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
+                 atomics-internal.h				\
                  posix-w32.h					\
 		 private-options.h ports-internal.h
 

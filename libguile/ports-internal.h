@@ -323,12 +323,19 @@ struct scm_t_port
      `unwrite-byte'.  */
   size_t read_buffering;
 
+  /* Reads and writes can proceed concurrently, but we don't want to
+     start any read or write after close() has been called.  So we have
+     a refcount which is positive if close has not yet been called.
+     Reading, writing, and the like temporarily increments this
+     refcount, provided it was nonzero to start with.  */
+  scm_t_uint32 refcount;
+
   /* True if the port is random access.  Implies that the buffers must
      be flushed before switching between reading and writing, seeking,
      and so on.  */
-  unsigned rw_random : 1;
-  unsigned at_stream_start_for_bom_read  : 1;
-  unsigned at_stream_start_for_bom_write : 1;
+  scm_t_uint32 rw_random : 1;
+  scm_t_uint32 at_stream_start_for_bom_read  : 1;
+  scm_t_uint32 at_stream_start_for_bom_write : 1;
 
   /* Character encoding support.  */
   SCM encoding;  /* A symbol of upper-case ASCII.  */

@@ -1694,6 +1694,13 @@ operating system inform Guile about the appropriate buffer sizes for the
 particular file opened by the port.
 @end table
 
+Note that calls to all of these methods can proceed in parallel and
+concurrently and from any thread up until the point that the port is
+closed.  The call to @code{close} will happen when no other method is
+running, and no method will be called after the @code{close} method is
+called.  If your port implementation needs mutual exclusion to prevent
+concurrency, it is responsible for locking appropriately.
+
 @node Non-Blocking I/O
 @subsection Non-Blocking I/O
 
