@@ -805,7 +805,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                'char->integer
                                'bv-length 'vector-length 'string-length
                                'uadd 'usub 'umul
-                               'ulogand 'ulogior 'ulogsub 'ursh 'ulsh
+                               'ulogand 'ulogior 'ulogxor 'ulogsub 'ursh 'ulsh
                                'uadd/immediate 'usub/immediate 'umul/immediate
                                'ursh/immediate 'ulsh/immediate
                                'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref))

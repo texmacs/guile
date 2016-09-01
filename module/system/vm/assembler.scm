@@ -161,6 +161,7 @@
             emit-logsub
             emit-ulogand
             emit-ulogior
+            emit-ulogxor
             emit-ulogsub
             emit-ursh
             emit-ulsh

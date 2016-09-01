@@ -1565,9 +1565,10 @@ operand is an immediate unsigned 8-bit integer.
 
 @deftypefn Instruction {} ulogand s8:@var{dst} s8:@var{a} s8:@var{b}
 @deftypefnx Instruction {} ulogior s8:@var{dst} s8:@var{a} s8:@var{b}
+@deftypefnx Instruction {} ulogxor s8:@var{dst} s8:@var{a} s8:@var{b}
 @deftypefnx Instruction {} ulogsub s8:@var{dst} s8:@var{a} s8:@var{b}
-Like @code{logand}, @code{logior}, and @code{logsub}, but operating on
-unboxed unsigned 64-bit integers.
+Like @code{logand}, @code{logior}, @code{logxor}, and @code{logsub}, but
+operating on unboxed unsigned 64-bit integers.
 @end deftypefn
 
 @deftypefn Instruction {} ulsh s8:@var{dst} s8:@var{a} s8:@var{b}

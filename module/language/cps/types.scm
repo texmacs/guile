@@ -1356,6 +1356,12 @@ minimum, and maximum."
 ;; For our purposes, treat logxor the same as logior.
 (define-type-aliases logior logxor)
 
+(define-simple-type-checker (ulogxor &u64 &u64))
+(define-type-inferrer (ulogxor a b result)
+  (restrict! a &u64 0 &u64-max)
+  (restrict! b &u64 0 &u64-max)
+  (define! result &u64 0 &u64-max))
+
 (define-simple-type-checker (lognot &exact-integer))
 (define-type-inferrer (lognot a result)
   (restrict! a &exact-integer -inf.0 +inf.0)

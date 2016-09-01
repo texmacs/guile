@@ -3802,7 +3802,22 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (177, unused_177, NULL, NOP)
+  /* ulogxor dst:8 a:8 b:8
+   *
+   * Place the bitwise exclusive OR of the u64 values in A and B into
+   * DST.
+   */
+  VM_DEFINE_OP (177, ulogxor, "ulogxor", OP1 (X8_S8_S8_S8) | OP_DST)
+    {
+      scm_t_uint8 dst, a, b;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+
+      SP_SET_U64 (dst, SP_REF_U64 (a) ^ SP_REF_U64 (b));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (178, unused_178, NULL, NOP)
   VM_DEFINE_OP (179, unused_179, NULL, NOP)
   VM_DEFINE_OP (180, unused_180, NULL, NOP)

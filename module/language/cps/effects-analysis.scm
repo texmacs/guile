@@ -475,6 +475,7 @@ is or might be a read or a write to the same location as A."
   ((lognot . _)                    &type-check)
   ((ulogand . _))
   ((ulogior . _))
+  ((ulogxor . _))
   ((ulogsub . _))
   ((ursh . _))
   ((ulsh . _))
