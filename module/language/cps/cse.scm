@@ -314,7 +314,8 @@ false.  It could be that both true and false proofs are available."
             (('primcall 'u64->scm u64)
              (match defs
                ((scm)
-                (add-def! `(primcall scm->u64 ,scm) u64))))
+                (add-def! `(primcall scm->u64 ,scm) u64)
+                (add-def! `(primcall scm->u64/truncate ,scm) u64))))
             (('primcall 'scm->s64 scm)
              (match defs
                ((s64)
