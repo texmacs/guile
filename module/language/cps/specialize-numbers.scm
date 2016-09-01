@@ -90,6 +90,7 @@
                ('mul 'umul)
                ('logand 'ulogand)
                ('logior 'ulogior)
+               ('logxor 'ulogxor)
                ('logsub 'ulogsub)
                ('rsh 'ursh)
                ('lsh 'ulsh))))
@@ -107,6 +108,16 @@
       (build-term
         ($continue kunbox-b src
           ($primcall unbox-a (a)))))))
+
+(define (truncate-u64 cps k src scm)
+  (with-cps cps
+    (letv u64)
+    (letk kbox ($kargs ('u64) (u64)
+                 ($continue k src
+                   ($primcall 'u64->scm (u64)))))
+    (build-term
+      ($continue kbox src
+        ($primcall 'scm->u64/truncate (scm))))))
 
 (define (specialize-u64-comparison cps kf kt src op a b)
   (let ((op (symbol-append 'u64- op)))
@@ -133,8 +144,123 @@
         ($continue kop src
           ($primcall 'scm->u64 (a-u64)))))))
 
+(define (sigbits-union x y)
+  (and x y (logior x y)))
+
+(define (sigbits-intersect x y)
+  (cond
+   ((not x) y)
+   ((not y) x)
+   (else (logand x y))))
+
+(define (sigbits-intersect3 a b c)
+  (sigbits-intersect a (sigbits-intersect b c)))
+
+(define (next-power-of-two n)
+  (let lp ((out 1))
+    (if (< n out)
+        out
+        (lp (ash out 1)))))
+
+(define (range->sigbits min max)
+  (cond
+   ((or (< min 0) (> max #xffffFFFFffffFFFF)) #f)
+   ((eqv? min max) min)
+   (else (1- (next-power-of-two max)))))
+
+(define (inferred-sigbits types label var)
+  (call-with-values (lambda () (lookup-pre-type types label var))
+    (lambda (type min max)
+      (and (or (eqv? type &exact-integer) (eqv? type &u64))
+           (range->sigbits min max)))))
+
+(define significant-bits-handlers (make-hash-table))
+(define-syntax-rule (define-significant-bits-handler
+                      ((primop label types out def ...) arg ...)
+                      body ...)
+  (hashq-set! significant-bits-handlers 'primop
+              (lambda (label types out args defs)
+                (match args ((arg ...) (match defs ((def ...) body ...)))))))
+
+(define-significant-bits-handler ((logand label types out res) a b)
+  (let ((sigbits (sigbits-intersect3 (inferred-sigbits types label a)
+                                     (inferred-sigbits types label b)
+                                     (intmap-ref out res (lambda (_) 0)))))
+    (intmap-add (intmap-add out a sigbits sigbits-union)
+                b sigbits sigbits-union)))
+
+(define (significant-bits-handler primop)
+  (hashq-ref significant-bits-handlers primop))
+
+(define (compute-significant-bits cps types kfun)
+  "Given the locally inferred types @var{types}, compute a map of VAR ->
+BITS indicating the significant bits needed for a variable.  BITS may be
+#f to indicate all bits, or a non-negative integer indicating a bitmask."
+  (let ((preds (invert-graph (compute-successors cps kfun))))
+    (let lp ((worklist (intmap-keys preds)) (out empty-intmap))
+      (match (intset-prev worklist)
+        (#f out)
+        (label
+         (let ((worklist (intset-remove worklist label)))
+           (define (continue out*)
+             (if (eq? out out*)
+                 (lp worklist out)
+                 (lp (intset-union worklist (intmap-ref preds label)) out*)))
+           (define (add-def out var)
+             (intmap-add out var 0 sigbits-union))
+           (define (add-defs out vars)
+             (match vars
+               (() out)
+               ((var . vars) (add-defs (add-def out var) vars))))
+           (define (add-unknown-use out var)
+             (intmap-add out var (inferred-sigbits types label var)
+                         sigbits-union))
+           (define (add-unknown-uses out vars)
+             (match vars
+               (() out)
+               ((var . vars)
+                (add-unknown-uses (add-unknown-use out var) vars))))
+           (continue
+            (match (intmap-ref cps label)
+              (($ $kfun src meta self)
+               (add-def out self))
+              (($ $kargs names vars ($ $continue k src exp))
+               (let ((out (add-defs out vars)))
+                 (match exp
+                   ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $rec))
+                    ;; No uses, so no info added to sigbits.
+                    out)
+                   (($ $values args)
+                    (match (intmap-ref cps k)
+                      (($ $kargs _ vars)
+                       (fold (lambda (arg var out)
+                               (intmap-add out arg (intmap-ref out var
+                                                               (lambda (_) 0))
+                                           sigbits-union))
+                             out args vars))
+                      (($ $ktail)
+                       (add-unknown-uses out args))))
+                   (($ $call proc args)
+                    (add-unknown-use (add-unknown-uses out args) proc))
+                   (($ $callk label proc args)
+                    (add-unknown-use (add-unknown-uses out args) proc))
+                   (($ $branch kt ($ $values (arg)))
+                    (add-unknown-use out arg))
+                   (($ $branch kt ($ $primcall name args))
+                    (add-unknown-uses out args))
+                   (($ $primcall name args)
+                    (let ((h (significant-bits-handler name)))
+                      (if h
+                          (match (intmap-ref cps k)
+                            (($ $kargs _ defs)
+                             (h label types out args defs)))
+                          (add-unknown-uses out args))))
+                   (($ $prompt escape? tag handler)
+                    (add-unknown-use out tag)))))
+              (_ out)))))))))
+
 (define (specialize-operations cps)
-  (define (visit-cont label cont cps types)
+  (define (visit-cont label cont cps types sigbits)
     (define (operand-in-range? var &type &min &max)
       (call-with-values (lambda ()
                           (lookup-pre-type types label var))
@@ -142,9 +268,25 @@
           (and (eqv? type &type) (<= &min min max &max)))))
     (define (u64-operand? var)
       (operand-in-range? var &exact-integer 0 #xffffffffffffffff))
+    (define (all-u64-bits-set? var)
+      (operand-in-range? var &exact-integer
+                         #xffffffffffffffff
+                         #xffffffffffffffff))
+    (define (only-u64-bits-used? var)
+      (let ((bits (intmap-ref sigbits var)))
+        (and bits (= bits (logand bits #xffffFFFFffffFFFF)))))
+    (define (u64-result? result)
+      (or (only-u64-bits-used? result)
+          (call-with-values
+              (lambda ()
+                (lookup-post-type types label result 0))
+            (lambda (type min max)
+              (and (eqv? type &exact-integer)
+                   (<= 0 min max #xffffffffffffffff))))))
     (match cont
       (($ $kfun)
-       (values cps (infer-types cps label)))
+       (let ((types (infer-types cps label)))
+         (values cps types (compute-significant-bits cps types label))))
       (($ $kargs names vars
           ($ $continue k src
              ($ $primcall (and op (or 'add 'sub 'mul 'div)) (a b))))
@@ -160,7 +302,8 @@
                    (let$ body (specialize-f64-binop k src op a b))
                    (setk label ($kargs names vars ,body))))
                 ((and (eqv? type &exact-integer)
-                      (<= 0 min max #xffffffffffffffff)
+                      (or (<= 0 min max #xffffffffffffffff)
+                          (only-u64-bits-used? result))
                       (u64-operand? a) (u64-operand? b)
                       (not (eq? op 'div)))
                  (with-cps cps
@@ -168,80 +311,78 @@
                    (setk label ($kargs names vars ,body))))
                 (else
                  cps))
-               types))))))
+               types
+               sigbits))))))
       (($ $kargs names vars
           ($ $continue k src ($ $primcall 'ash (a b))))
        (match (intmap-ref cps k)
          (($ $kargs (_) (result))
           (call-with-values (lambda ()
-                              (lookup-post-type types label result 0))
-            (lambda (type min max)
-              (call-with-values (lambda ()
-                                  (lookup-pre-type types label b))
-                (lambda (b-type b-min b-max)
-                  (values
-                   (cond
-                    ((or (not (eqv? type &exact-integer))
-                         (not (<= 0 min max #xffffffffffffffff))
-                         (not (u64-operand? a))
-                         (not (eqv? b-type &exact-integer))
-                         (< b-min 0 b-max)
-                         (<= b-min -64)
-                         (<= 64 b-max))
-                     cps)
-                    ((and (< b-min 0) (= b-min b-max))
-                     (with-cps cps
-                       (let$ body
-                             (with-cps-constants ((bits (- b-min)))
-                               ($ (specialize-u64-binop k src 'rsh a bits))))
-                       (setk label ($kargs names vars ,body))))
-                    ((< b-min 0)
-                     (with-cps cps
-                       (let$ body
-                             (with-cps-constants ((zero 0))
-                               (letv bits)
-                               (let$ body
-                                     (specialize-u64-binop k src 'rsh a bits))
-                               (letk kneg ($kargs ('bits) (bits) ,body))
-                               (build-term
-                                 ($continue kneg src
-                                   ($primcall 'sub (zero b))))))
-                       (setk label ($kargs names vars ,body))))
-                    (else
-                     (with-cps cps
-                       (let$ body (specialize-u64-binop k src 'lsh a b))
-                       (setk label ($kargs names vars ,body)))))
-                   types))))))))
-      (($ $kargs names vars
-          ($ $continue k src
-             ($ $primcall (and op (or 'logand 'logior 'logsub)) (a b))))
-       (match (intmap-ref cps k)
-         (($ $kargs (_) (result))
-          (call-with-values (lambda ()
-                              (lookup-post-type types label result 0))
-            (lambda (type min max)
+                              (lookup-pre-type types label b))
+            (lambda (b-type b-min b-max)
               (values
                (cond
-                ((and (eqv? type &exact-integer)
-                      (<= 0 min max #xffffffffffffffff))
-                 ;; If we know the result is a u64, then any
-                 ;; out-of-range bits won't affect the result and so we
-                 ;; can project the operands onto u64.
+                ((or (not (u64-result? result))
+                     (not (u64-operand? a))
+                     (not (eqv? b-type &exact-integer))
+                     (< b-min 0 b-max)
+                     (<= b-min -64)
+                     (<= 64 b-max))
+                 cps)
+                ((and (< b-min 0) (= b-min b-max))
                  (with-cps cps
                    (let$ body
-                         (specialize-u64-binop k src op a b
-                                               #:unbox-a
-                                               (if (u64-operand? a)
-                                                   'scm->u64
-                                                   'scm->u64/truncate)
-                                               #:unbox-b
-                                               (if (u64-operand? b)
-                                                   'scm->u64
-                                                   'scm->u64/truncate)))
+                         (with-cps-constants ((bits (- b-min)))
+                           ($ (specialize-u64-binop k src 'rsh a bits))))
+                   (setk label ($kargs names vars ,body))))
+                ((< b-min 0)
+                 (with-cps cps
+                   (let$ body
+                         (with-cps-constants ((zero 0))
+                           (letv bits)
+                           (let$ body
+                                 (specialize-u64-binop k src 'rsh a bits))
+                           (letk kneg ($kargs ('bits) (bits) ,body))
+                           (build-term
+                             ($continue kneg src
+                               ($primcall 'sub (zero b))))))
                    (setk label ($kargs names vars ,body))))
                 (else
-                 cps))
-               types))))))
+                 (with-cps cps
+                   (let$ body (specialize-u64-binop k src 'lsh a b))
+                   (setk label ($kargs names vars ,body)))))
+               types
+               sigbits))))))
+      (($ $kargs names vars
+          ($ $continue k src
+             ($ $primcall (and op (or 'logand 'logior 'logsub 'logxor)) (a b))))
+       (match (intmap-ref cps k)
+         (($ $kargs (_) (result))
+          (values
+           (cond
+            ((u64-result? result)
+             ;; Given that we know the result can be unboxed to a u64,
+             ;; any out-of-range bits won't affect the result and so we
+             ;; can unconditionally project the operands onto u64.
+             (cond
+              ((and (eq? op 'logand) (all-u64-bits-set? a))
+               (with-cps cps
+                 (let$ body (truncate-u64 k src b))
+                 (setk label ($kargs names vars ,body))))
+              ((and (eq? op 'logand) (all-u64-bits-set? b))
+               (with-cps cps
+                 (let$ body (truncate-u64 k src a))
+                 (setk label ($kargs names vars ,body))))
+              (else
+               (with-cps cps
+                 (let$ body (specialize-u64-binop k src op a b
+                                                  #:unbox-a
+                                                  'scm->u64/truncate
+                                                  #:unbox-b
+                                                  'scm->u64/truncate))
+                 (setk label ($kargs names vars ,body))))))
+            (else cps))
+           types sigbits))))
       (($ $kargs names vars
           ($ $continue k src
              ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) (a b)))))
@@ -260,10 +401,11 @@
                     (let$ body (specialize-u64-scm-comparison k kt src op b a))
                     (setk label ($kargs names vars ,body))))
                 cps))
-        types))
-      (_ (values cps types))))
+        types
+        sigbits))
+      (_ (values cps types sigbits))))
 
-  (values (intmap-fold visit-cont cps cps #f)))
+  (values (intmap-fold visit-cont cps cps #f #f)))
 
 ;; Compute a map from VAR -> LABEL, where LABEL indicates the cont that
 ;; binds VAR.
