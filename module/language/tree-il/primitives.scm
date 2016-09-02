@@ -549,6 +549,24 @@
                         (chained-comparison-expander prim-name)))
           '(< > <= >= =))
 
+(define (character-comparison-expander char< <)
+  (lambda (src . args)
+    (expand-primcall
+     (make-primcall src <
+                    (map (lambda (arg)
+                           (make-primcall src 'char->integer (list arg)))
+                         args)))))
+
+(for-each (match-lambda
+            ((char< . <)
+             (hashq-set! *primitive-expand-table* char<
+                         (character-comparison-expander char< <))))
+          '((char<? . <)
+            (char>? . >)
+            (char<=? . <=)
+            (char>=? . >=)
+            (char=? . =)))
+
 ;; Appropriate for use with either 'eqv?' or 'equal?'.
 (define (maybe-simplify-to-eq prim)
   (case-lambda

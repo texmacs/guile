@@ -488,10 +488,6 @@ is or might be a read or a write to the same location as A."
 
 ;; Characters.
 (define-primitive-effects
-  ((char<? . _)                    &type-check)
-  ((char<=? . _)                   &type-check)
-  ((char>=? . _)                   &type-check)
-  ((char>? . _)                    &type-check)
   ((integer->char _)               &type-check)
   ((char->integer _)               &type-check))
 

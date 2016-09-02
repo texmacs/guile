@@ -1423,10 +1423,6 @@ minimum, and maximum."
 ;;; Characters.
 ;;;
 
-(define-simple-type (char<? &char &char)
-  ((logior &true &false) 0 0))
-(define-type-aliases char<? char<=? char>=? char>?)
-
 (define-simple-type-checker (integer->char (&u64 0 *max-codepoint*)))
 (define-type-inferrer (integer->char i result)
   (restrict! i &u64 0 *max-codepoint*)
