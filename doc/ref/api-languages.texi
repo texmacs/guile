@@ -229,7 +229,7 @@ Here are correct versions of the above examples:
 This problem has a mirror-image case in Elisp:
 
 @example
-(deffn my-falsep (x)
+(defun my-falsep (x)
   (if (eq x nil)
       t
       nil))
