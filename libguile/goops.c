@@ -865,7 +865,7 @@ scm_i_define_class_for_vtable (SCM vtable)
               supers = scm_list_1 (class_top);
             }
 
-          return scm_make_standard_class (meta, name, supers, SCM_EOL);
+          class = scm_make_standard_class (meta, name, supers, SCM_EOL);
         }
       else
         /* `create_struct_classes' will fill this in later.  */

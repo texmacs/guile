@@ -149,7 +149,17 @@
     ;; for which `struct-vtable-name' is #f.
     (is-a? (class-of (make-vtable
                       (string-append standard-vtable-fields "prprpr")))
-           <class>)))
+           <class>))
+
+  ;; Two cases: one for structs created before goops, one after.
+  (pass-if "early vtable class cached"
+    (eq? (class-of (current-module))
+         (class-of (current-module))))
+  (pass-if "late vtable class cached"
+    (let ((vtable (make-vtable
+                   (string-append standard-vtable-fields "prprpr"))))
+      (eq? (class-of vtable)
+           (class-of vtable)))))
 
 
 (with-test-prefix "defining classes"
