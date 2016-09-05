@@ -62,10 +62,12 @@ The obvious solution is to compile to a virtual machine that is
 present on all Guile installations.
 
 The easiest (and most fun) way to depend on a virtual machine is to
-implement the virtual machine within Guile itself. This way the
-virtual machine provides what Scheme needs (tail calls, multiple
-values, @code{call/cc}) and can provide optimized inline instructions
-for Guile (@code{cons}, @code{struct-ref}, etc.).
+implement the virtual machine within Guile itself. Guile contains a
+bytecode interpreter (written in C) and a Scheme to bytecode compiler
+(written in Scheme). This way the virtual machine provides what Scheme
+needs (tail calls, multiple values, @code{call/cc}) and can provide
+optimized inline instructions for Guile (@code{cons}, @code{struct-ref},
+etc.).
 
 So this is what Guile does. The rest of this section describes that VM
 that Guile implements, and the compiled procedures that run on it.
