@@ -265,7 +265,7 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
 (define %tc7-array #x5d)
 (define %tc7-bitvector #x5f)
 (define %tc7-port #x7d)
-(define %tc7-smob #x7f)
+(define %tc7-smob #x77)
 
 (define %tc16-bignum (+ %tc7-number (* 1 256)))
 (define %tc16-real (+ %tc7-number (* 2 256)))
