@@ -300,6 +300,12 @@
 
 #define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
 
+#define SCM_VALIDATE_ATOMIC_BOX(pos, var) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_atomic_box (var), var, pos, FUNC_NAME, \
+                     "atomic box");                                \
+  } while (0)
+
 #define SCM_VALIDATE_PROC(pos, proc) \
   do { \
     SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, pos, FUNC_NAME); \

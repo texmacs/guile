@@ -125,6 +125,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	array-map.c				\
 	arrays.c				\
 	async.c					\
+	atomic.c				\
 	backtrace.c				\
 	boolean.c				\
 	bitvectors.c				\
@@ -235,6 +236,7 @@ DOT_X_FILES =					\
 	array-map.x				\
 	arrays.x				\
 	async.x					\
+	atomic.x				\
 	backtrace.x				\
 	boolean.x				\
 	bitvectors.x				\
@@ -342,6 +344,7 @@ DOT_DOC_FILES = 				\
 	array-map.doc				\
 	arrays.doc				\
 	async.doc				\
+	atomic.doc				\
 	backtrace.doc				\
 	boolean.doc				\
 	bitvectors.doc				\
@@ -569,6 +572,7 @@ modinclude_HEADERS =				\
 	array-map.h				\
 	arrays.h				\
 	async.h					\
+	atomic.h				\
 	backtrace.h				\
 	bdw-gc.h				\
 	boolean.h				\

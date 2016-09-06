@@ -110,6 +110,7 @@ static SCM class_applicable_struct_class;
 static SCM class_applicable_struct_with_setter_class;
 static SCM class_number, class_list;
 static SCM class_keyword;
+static SCM class_atomic_box;
 static SCM class_port, class_input_output_port;
 static SCM class_input_port, class_output_port;
 static SCM class_foreign_slot;
@@ -124,7 +125,6 @@ static SCM class_hashtable;
 static SCM class_fluid;
 static SCM class_dynamic_state;
 static SCM class_frame;
-static SCM class_keyword;
 static SCM class_vm_cont;
 static SCM class_bytevector;
 static SCM class_uvec;
@@ -227,6 +227,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return class_frame;
         case scm_tc7_keyword:
 	  return class_keyword;
+        case scm_tc7_atomic_box:
+	  return class_atomic_box;
         case scm_tc7_vm_cont:
 	  return class_vm_cont;
 	case scm_tc7_bytevector:
@@ -998,6 +1000,7 @@ SCM_DEFINE (scm_sys_goops_early_init, "%goops-early-init", 0, 0, 0,
   class_dynamic_state = scm_variable_ref (scm_c_lookup ("<dynamic-state>"));
   class_frame = scm_variable_ref (scm_c_lookup ("<frame>"));
   class_keyword = scm_variable_ref (scm_c_lookup ("<keyword>"));
+  class_atomic_box = scm_variable_ref (scm_c_lookup ("<atomic-box>"));
   class_vm_cont = scm_variable_ref (scm_c_lookup ("<vm-continuation>"));
   class_bytevector = scm_variable_ref (scm_c_lookup ("<bytevector>"));
   class_uvec = scm_variable_ref (scm_c_lookup ("<uvec>"));
@@ -1008,7 +1011,6 @@ SCM_DEFINE (scm_sys_goops_early_init, "%goops-early-init", 0, 0, 0,
   class_real = scm_variable_ref (scm_c_lookup ("<real>"));
   class_integer = scm_variable_ref (scm_c_lookup ("<integer>"));
   class_fraction = scm_variable_ref (scm_c_lookup ("<fraction>"));
-  class_keyword = scm_variable_ref (scm_c_lookup ("<keyword>"));
   class_unknown = scm_variable_ref (scm_c_lookup ("<unknown>"));
   class_procedure = scm_variable_ref (scm_c_lookup ("<procedure>"));
   class_primitive_generic = scm_variable_ref (scm_c_lookup ("<primitive-generic>"));

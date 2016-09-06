@@ -1,0 +1,59 @@
+;;;; atomic.test --- test suite for Guile's atomic operations -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2016 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite atomic)
+  #:use-module (ice-9 atomic)
+  #:use-module ((oop goops) #:select (class-of <atomic-box>))
+  #:use-module (test-suite lib))
+
+(pass-if (atomic-box? (make-atomic-box 42)))
+
+(pass-if-equal 42 (atomic-box-ref (make-atomic-box 42)))
+
+(pass-if-equal 42 (atomic-box-swap! (make-atomic-box 42) 10))
+
+(pass-if-equal 10
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-set! box 10)
+    (atomic-box-ref box)))
+
+(pass-if-equal 10
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-swap! box 10)
+    (atomic-box-ref box)))
+
+(pass-if-equal 42
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-compare-and-swap! box 42 10)))
+
+(pass-if-equal 42
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-compare-and-swap! box 43 10)))
+
+(pass-if-equal 10
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-compare-and-swap! box 42 10)
+    (atomic-box-ref box)))
+
+(pass-if-equal 42
+  (let ((box (make-atomic-box 42)))
+    (atomic-box-compare-and-swap! box 43 10)
+    (atomic-box-ref box)))
+
+(pass-if-equal <atomic-box>
+  (class-of (make-atomic-box 42)))

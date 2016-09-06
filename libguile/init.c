@@ -37,6 +37,7 @@
 #include "libguile/alist.h"
 #include "libguile/arbiters.h"
 #include "libguile/async.h"
+#include "libguile/atomic.h"
 #include "libguile/backtrace.h"
 #include "libguile/bitvectors.h"
 #include "libguile/boolean.h"
@@ -398,6 +399,7 @@ scm_i_init_guile (void *base)
   scm_bootstrap_loader ();
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
+  scm_register_atomic ();
   scm_register_r6rs_ports ();
   scm_register_fdes_finalizers ();
   scm_register_foreign ();

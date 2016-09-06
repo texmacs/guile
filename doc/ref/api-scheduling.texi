@@ -10,6 +10,7 @@
 @menu
 * Arbiters::                    Synchronization primitives.
 * Asyncs::                      Asynchronous procedure invocation.
+* Atomics::                     Atomic references.
 * Threads::                     Multiple threads of execution.
 * Mutexes and Condition Variables:: Synchronization primitives.
 * Blocking::                    How to block properly in guile mode.
@@ -190,6 +191,72 @@ Mark the user async @var{a} for future execution.
 @deffnx {C Function} scm_run_asyncs (list_of_a)
 Execute all thunks from the marked asyncs of the list @var{list_of_a}.
 @end deffn
+
+@node Atomics
+@subsection Atomics
+
+When accessing data in parallel from multiple threads, updates made by
+one thread are not generally guaranteed to be visible by another thread.
+It could be that your hardware requires special instructions to be
+emitted to propagate a change from one CPU core to another.  Or, it
+could be that your hardware updates values with a sequence of
+instructions, and a parallel thread could see a value that is in the
+process of being updated but not fully updated.
+
+Atomic references solve this problem.  Atomics are a standard, primitive
+facility to allow for concurrent access and update of mutable variables
+from multiple threads with guaranteed forward-progress and well-defined
+intermediate states.
+
+Atomic references serve not only as a hardware memory barrier but also
+as a compiler barrier.  Normally a compiler might choose to reorder or
+elide certain memory accesses due to optimizations like common
+subexpression elimination.  Atomic accesses however will not be
+reordered relative to each other, and normal memory accesses will not be
+reordered across atomic accesses.
+
+As an implementation detail, currently all atomic accesses and updates
+use the sequential consistency memory model from C11.  We may relax this
+in the future to the acquire/release semantics, which still issues a
+memory barrier so that non-atomic updates are not reordered across
+atomic accesses or updates.
+
+To use Guile's atomic operations, load the @code{(ice-9 atomic)} module:
+
+@example
+(use-modules (ice-9 atomic))
+@end example
+
+@deffn {Scheme Procedure} make-atomic-box init
+Return an atomic box initialized to value @var{init}.
+@end deffn
+
+@deffn {Scheme Procedure} atomic-box? obj
+Return @code{#t} if @var{obj} is an atomic-box object, else
+return @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} atomic-box-ref box
+Fetch the value stored in the atomic box @var{box} and return it.
+@end deffn
+
+@deffn {Scheme Procedure} atomic-box-set! box  val
+Store @var{val} into the atomic box @var{box}.
+@end deffn
+
+@deffn {Scheme Procedure} atomic-box-swap! box val
+Store @var{val} into the atomic box @var{box}, and return the value that
+was previously stored in the box.
+@end deffn
+
+@deffn {Scheme Procedure} atomic-box-compare-and-swap! box expected desired
+If the value of the atomic box @var{box} is the same as, @var{expected}
+(in the sense of @code{eq?}), replace the contents of the box with
+@var{desired}.  Otherwise does not update the box.  Returns the previous
+value of the box in either case, so you can know if the swap worked by
+checking if the return value is @code{eq?} to @var{expected}.
+@end deffn
+
 
 @node Threads
 @subsection Threads

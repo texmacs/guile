@@ -717,6 +717,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
           scm_puts ("#:", port);
           scm_iprin1 (scm_keyword_to_symbol (exp), port, pstate);
           break;
+	case scm_tc7_atomic_box:
+	  scm_i_atomic_box_print (exp, port, pstate);
+	  break;
 	case scm_tc7_vm_cont:
 	  scm_i_vm_cont_print (exp, port, pstate);
 	  break;

@@ -35,6 +35,7 @@ extern "C" {
 #include "libguile/array-map.h"
 #include "libguile/arrays.h"
 #include "libguile/async.h"
+#include "libguile/atomic.h"
 #include "libguile/boolean.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"

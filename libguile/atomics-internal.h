@@ -34,46 +34,110 @@
 
 #include <stdatomic.h>
 static inline uint32_t
-scm_atomic_subtract_uint32 (uint32_t *obj, uint32_t arg)
+scm_atomic_subtract_uint32 (uint32_t *loc, uint32_t arg)
 {
-  return atomic_fetch_sub (obj, arg);
+  return atomic_fetch_sub (loc, arg);
 }
 static inline _Bool
-scm_atomic_compare_and_swap_uint32 (uint32_t *obj, uint32_t *expected,
+scm_atomic_compare_and_swap_uint32 (uint32_t *loc, uint32_t *expected,
                                     uint32_t desired)
 {
-  return atomic_compare_exchange_weak (obj, expected, desired);
+  return atomic_compare_exchange_weak (loc, expected, desired);
 }
-
+static inline void
+scm_atomic_set_scm (SCM *loc, SCM val)
+{
+  atomic_store (loc, val);
+}
+static inline SCM
+scm_atomic_ref_scm (SCM *loc)
+{
+  return atomic_load (loc);
+}
+static inline SCM
+scm_atomic_swap_scm (SCM *loc, SCM val)
+{
+  return atomic_exchange (loc, val);
+}
+static inline _Bool
+scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
+{
+  return atomic_compare_exchange_weak (loc, expected, desired);
+}
 #else /* HAVE_C11_ATOMICS */
 
 /* Fallback implementation using locks.  */
 #include "libguile/threads.h"
 static scm_i_pthread_mutex_t atomics_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 static inline uint32_t
-scm_atomic_subtract_uint32 (uint32_t *obj, uint32_t arg)
+scm_atomic_subtract_uint32 (uint32_t *loc, uint32_t arg)
 {
   uint32_t ret;
   scm_i_pthread_mutex_lock (&atomics_lock);
-  ret = *obj;
-  *obj -= arg;
+  ret = *loc;
+  *loc -= arg;
   scm_i_pthread_mutex_unlock (&atomics_lock);
   return ret;
 }
 static inline int
-scm_atomic_compare_and_swap_uint32 (uint32_t *obj, uint32_t *expected,
+scm_atomic_compare_and_swap_uint32 (uint32_t *loc, uint32_t *expected,
                                     uint32_t desired)
 {
   int ret;
   scm_i_pthread_mutex_lock (&atomics_lock);
-  if (*obj == *expected)
+  if (*loc == *expected)
     {
-      *obj = desired;
+      *loc = desired;
       ret = 1;
     }
   else
     {
-      *expected = *obj;
+      *expected = *loc;
+      ret = 0;
+    }
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+  return ret;
+}
+
+static inline void
+scm_atomic_set_scm (SCM *loc, SCM val)
+{
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  *loc = val;
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+}
+static inline SCM
+scm_atomic_ref_scm (SCM *loc)
+{
+  SCM ret;
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  ret = *loc;
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+  return ret;
+}
+static inline SCM
+scm_atomic_swap_scm (SCM *loc, SCM val)
+{
+  SCM ret;
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  ret = *loc;
+  *loc = val;
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+  return ret;
+}
+static inline int
+scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
+{
+  int ret;
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  if (*loc == *expected)
+    {
+      *loc = desired;
+      ret = 1;
+    }
+  else
+    {
+      *expected = *loc;
       ret = 0;
     }
   scm_i_pthread_mutex_unlock (&atomics_lock);
