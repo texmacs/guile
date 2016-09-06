@@ -395,8 +395,12 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
   (SCM_NIMP (x) && type (x) == (tag))
 #define SCM_HAS_TYP7(x, tag)    (SCM_HAS_HEAP_TYPE (x, SCM_TYP7, tag))
 
-/* If you change these numbers, change them also in (system vm
-   assembler).  */
+/* These type codes form part of the ABI and cannot be changed in a
+   stable series.  The low bits of each must have the tc3 of a heap
+   object type code (see above).  If you do change them in a development
+   series, change them also in (system vm assembler) and (system base
+   types).  Bonus points if you change the build to define these tag
+   values in only one place!  */
 
 #define scm_tc7_symbol		0x05
 #define scm_tc7_variable        0x07
@@ -404,32 +408,32 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 #define scm_tc7_wvect		0x0f
 #define scm_tc7_string		0x15
 #define scm_tc7_number		0x17
-#define scm_tc7_stringbuf       0x27
-#define scm_tc7_bytevector	0x4d
-#define scm_tc7_pointer		0x1f
 #define scm_tc7_hashtable	0x1d
+#define scm_tc7_pointer		0x1f
 #define scm_tc7_fluid		0x25
+#define scm_tc7_stringbuf       0x27
 #define scm_tc7_dynamic_state	0x2d
 #define scm_tc7_frame		0x2f
 #define scm_tc7_keyword		0x35
-#define scm_tc7_unused_55	0x37
-#define scm_tc7_vm_cont		0x47
-#define scm_tc7_unused_17	0x3d
-#define scm_tc7_unused_21	0x3f
+#define scm_tc7_unused_37	0x37
+#define scm_tc7_unused_3d	0x3d
+#define scm_tc7_unused_3f	0x3f
 #define scm_tc7_program		0x45
-#define scm_tc7_unused_79	0x4f
+#define scm_tc7_vm_cont		0x47
+#define scm_tc7_bytevector	0x4d
+#define scm_tc7_unused_4f	0x4f
 #define scm_tc7_weak_set	0x55
 #define scm_tc7_weak_table	0x57
 #define scm_tc7_array		0x5d
 #define scm_tc7_bitvector	0x5f
-#define scm_tc7_unused_12	0x65
-#define scm_tc7_unused_18	0x67
-#define scm_tc7_unused_13	0x6d
-#define scm_tc7_unused_14	0x6f
-#define scm_tc7_unused_15	0x75
-#define scm_tc7_unused_16	0x7f
-#define scm_tc7_port		0x7d
+#define scm_tc7_unused_65	0x65
+#define scm_tc7_unused_67	0x67
+#define scm_tc7_unused_6d	0x6d
+#define scm_tc7_unused_6f	0x6f
+#define scm_tc7_unused_75	0x75
 #define scm_tc7_smob		0x77
+#define scm_tc7_port		0x7d
+#define scm_tc7_unused_7f	0x7f
 
 
 /* Definitions for tc16: */
