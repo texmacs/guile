@@ -389,8 +389,8 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 
 /* Definitions for tc7: */
 
-#define SCM_ITAG7(x) 		(127 & SCM_UNPACK (x))
-#define SCM_TYP7(x) 		(0x7f &        SCM_CELL_TYPE (x))
+#define SCM_ITAG7(x) 		(0x7f & SCM_UNPACK (x))
+#define SCM_TYP7(x) 		(0x7f & SCM_CELL_TYPE (x))
 #define SCM_HAS_HEAP_TYPE(x, type, tag)                         \
   (SCM_NIMP (x) && type (x) == (tag))
 #define SCM_HAS_TYP7(x, tag)    (SCM_HAS_HEAP_TYPE (x, SCM_TYP7, tag))
@@ -398,49 +398,49 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 /* If you change these numbers, change them also in (system vm
    assembler).  */
 
-#define scm_tc7_symbol		5
-#define scm_tc7_variable        7
+#define scm_tc7_symbol		0x05
+#define scm_tc7_variable        0x07
 
 /* couple */
-#define scm_tc7_vector		13
-#define scm_tc7_wvect		15
+#define scm_tc7_vector		0x0d
+#define scm_tc7_wvect		0x0f
 
-#define scm_tc7_string		21
-#define scm_tc7_number		23
-#define scm_tc7_stringbuf       39
-#define scm_tc7_bytevector	77
+#define scm_tc7_string		0x15
+#define scm_tc7_number		0x17
+#define scm_tc7_stringbuf       0x27
+#define scm_tc7_bytevector	0x4d
 
-#define scm_tc7_pointer		31
-#define scm_tc7_hashtable	29
-#define scm_tc7_fluid		37
-#define scm_tc7_dynamic_state	45
+#define scm_tc7_pointer		0x1f
+#define scm_tc7_hashtable	0x1d
+#define scm_tc7_fluid		0x25
+#define scm_tc7_dynamic_state	0x2d
 
-#define scm_tc7_frame		47
-#define scm_tc7_keyword		53
-#define scm_tc7_unused_55	55
-#define scm_tc7_vm_cont		71
+#define scm_tc7_frame		0x2f
+#define scm_tc7_keyword		0x35
+#define scm_tc7_unused_55	0x37
+#define scm_tc7_vm_cont		0x47
 
-#define scm_tc7_unused_17	61
-#define scm_tc7_unused_21	63
-#define scm_tc7_program		69
-#define scm_tc7_unused_79	79
-#define scm_tc7_weak_set	85
-#define scm_tc7_weak_table	87
-#define scm_tc7_array		93
-#define scm_tc7_bitvector	95
-#define scm_tc7_unused_12	101
-#define scm_tc7_unused_18	103
-#define scm_tc7_unused_13	109
-#define scm_tc7_unused_14	111
-#define scm_tc7_unused_15	117
-#define scm_tc7_unused_16	119
-#define scm_tc7_port		125
+#define scm_tc7_unused_17	0x3d
+#define scm_tc7_unused_21	0x3f
+#define scm_tc7_program		0x45
+#define scm_tc7_unused_79	0x4f
+#define scm_tc7_weak_set	0x55
+#define scm_tc7_weak_table	0x57
+#define scm_tc7_array		0x5d
+#define scm_tc7_bitvector	0x5f
+#define scm_tc7_unused_12	0x65
+#define scm_tc7_unused_18	0x67
+#define scm_tc7_unused_13	0x6d
+#define scm_tc7_unused_14	0x6f
+#define scm_tc7_unused_15	0x75
+#define scm_tc7_unused_16	0x77
+#define scm_tc7_port		0x7d
 
 /* There are 256 smob subtypes.  [**] If you change scm_tc7_smob, you must
  * also change the places it is hard coded in this file and possibly others.
  * Dirk:FIXME:: Any hard coded reference to scm_tc7_smob must be replaced by a
  * symbolic reference.  */
-#define scm_tc7_smob		127 /* DO NOT CHANGE [**] */
+#define scm_tc7_smob		0x7f /* DO NOT CHANGE [**] */
 
 
 /* Definitions for tc16: */
