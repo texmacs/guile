@@ -168,16 +168,13 @@ a-cont
 ;;; {Simple Debugging Tools}
 ;;;
 
-;; peek takes any number of arguments, writes them to the
-;; current ouput port, and returns the last argument.
-;; It is handy to wrap around an expression to look at
-;; a value each time is evaluated, e.g.:
-;;
-;;      (+ 10 (troublesome-fn))
-;;      => (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))
-;;
-
 (define (peek . stuff)
+  "Write arguments to the current output port, and return the last argument.
+
+This is handy for tracing function calls, e.g.:
+
+(+ 10 (troublesome-fn))
+=> (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))"
   (newline)
   (display ";;; ")
   (write stuff)
@@ -202,11 +199,11 @@ a-cont
   (if (not (memq sym *features*))
       (set! *features* (cons sym *features*))))
 
-;; Return #t iff FEATURE is available to this Guile interpreter.  In SLIB,
-;; provided? also checks to see if the module is available.  We should do that
-;; too, but don't.
+;; In SLIB, provided? also checks to see if the module is available.  We
+;; should do that too, but don't.
 
 (define (provided? feature)
+  "Return #t iff FEATURE is available to this Guile interpreter."
   (and (memq feature *features*) #t))
 
 
@@ -308,13 +305,10 @@ a-cont
 ;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
 ;;;
 
-;; and-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or f returns #f.
-;; If returning early, return #f.  Otherwise, return the last value returned
-;; by f.  If f has never been called because l is empty, return #t.
-;;
 (define (and-map f lst)
+  "Apply F to successive elements of LST until exhaustion or F returns #f.
+If returning early, return #f.  Otherwise, return the last value returned
+by F.  If F has never been called because LST is empty, return #t."
   (let loop ((result #t)
              (l lst))
     (and result
@@ -322,12 +316,9 @@ a-cont
                   result)
              (loop (f (car l)) (cdr l))))))
 
-;; or-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or while f returns #f.
-;; If returning early, return the return value of f.
-;;
 (define (or-map f lst)
+  "Apply F to successive elements of LST until exhaustion or while F returns #f.
+If returning early, return the return value of F."
   (let loop ((result #f)
              (l lst))
     (or result
@@ -362,9 +353,8 @@ a-cont
              (char_pred (string-ref s (1- end))))
         (string-every-c-code char_pred s start end))))
 
-;; A variant of string-fill! that we keep for compatability
-;;
 (define (substring-fill! str start end fill)
+  "A variant of string-fill! that we keep for compatibility."
   (string-fill! str fill start end))
 
 
@@ -1705,10 +1695,10 @@ written into the port is returned."
 ;;; {Loading by paths}
 ;;;
 
-;;; Load a Scheme source file named NAME, searching for it in the
-;;; directories listed in %load-path, and applying each of the file
-;;; name extensions listed in %load-extensions.
 (define (load-from-path name)
+  "Load a Scheme source file named NAME, searching for it in the
+directories listed in %load-path, and applying each of the file
+name extensions listed in %load-extensions."
   (start-stack 'load-stack
                (primitive-load-path name)))
 
@@ -1997,10 +1987,9 @@ written into the port is returned."
 
 ;; make-module &opt size uses binder
 ;;
-;; Create a new module, perhaps with a particular size of obarray,
-;; initial uses list, or binding procedure.
-;;
 (define* (make-module #:optional (size 31) (uses '()) (binder #f))
+  "Create a new module, perhaps with a particular size of obarray,
+initial uses list, or binding procedure."
   (if (not (integer? size))
       (error "Illegal size to make-module." size))
   (if (not (and (list? uses)
@@ -2029,15 +2018,15 @@ written into the port is returned."
   (cons module proc))
 
 (define* (module-observe-weak module observer-id #:optional (proc observer-id))
-  ;; Register PROC as an observer of MODULE under name OBSERVER-ID (which can
-  ;; be any Scheme object).  PROC is invoked and passed MODULE any time
-  ;; MODULE is modified.  PROC gets unregistered when OBSERVER-ID gets GC'd
-  ;; (thus, it is never unregistered if OBSERVER-ID is an immediate value,
-  ;; for instance).
+  "Register PROC as an observer of MODULE under name OBSERVER-ID (which can
+be any Scheme object).  PROC is invoked and passed MODULE any time
+MODULE is modified.  PROC gets unregistered when OBSERVER-ID gets GC'd
+(thus, it is never unregistered if OBSERVER-ID is an immediate value,
+for instance).
 
-  ;; The two-argument version is kept for backward compatibility: when called
-  ;; with two arguments, the observer gets unregistered when closure PROC
-  ;; gets GC'd (making it impossible to use an anonymous lambda for PROC).
+The two-argument version is kept for backward compatibility: when called
+with two arguments, the observer gets unregistered when closure PROC
+gets GC'd (making it impossible to use an anonymous lambda for PROC)."
   (hashq-set! (module-weak-observers module) observer-id proc))
 
 (define (module-unobserve token)
@@ -2103,13 +2092,10 @@ written into the port is returned."
 ;;; of M.''
 ;;;
 
-;; module-search fn m
-;;
-;; return the first non-#f result of FN applied to M and then to
-;; the modules in the uses of m, and so on recursively.  If all applications
-;; return #f, then so does this function.
-;;
 (define (module-search fn m v)
+  "Return the first non-#f result of FN applied to M and then to
+the modules in the uses of M, and so on recursively.  If all applications
+return #f, then so does this function."
   (define (loop pos)
     (and (pair? pos)
          (or (module-search fn (car pos) v)
@@ -2124,21 +2110,15 @@ written into the port is returned."
 ;;; of S in M has been set to some well-defined value.
 ;;;
 
-;; module-locally-bound? module symbol
-;;
-;; Is a symbol bound (interned and defined) locally in a given module?
-;;
 (define (module-locally-bound? m v)
+  "Is symbol V bound (interned and defined) locally in module M?"
   (let ((var (module-local-variable m v)))
     (and var
          (variable-bound? var))))
 
-;; module-bound? module symbol
-;;
-;; Is a symbol bound (interned and defined) anywhere in a given module
-;; or its uses?
-;;
 (define (module-bound? m v)
+  "Is symbol V bound (interned and defined) anywhere in module M or its
+uses?"
   (let ((var (module-variable m v)))
     (and var
          (variable-bound? var))))
@@ -2170,22 +2150,16 @@ written into the port is returned."
 (define (module-obarray-remove! ob key)
   ((if (symbol? key) hashq-remove! hash-remove!) ob key))
 
-;; module-symbol-locally-interned? module symbol
-;;
-;; is a symbol interned (not neccessarily defined) locally in a given module
-;; or its uses?  Interned symbols shadow inherited bindings even if
-;; they are not themselves bound to a defined value.
-;;
 (define (module-symbol-locally-interned? m v)
+  "Is symbol V interned (not neccessarily defined) locally in module M
+or its uses?  Interned symbols shadow inherited bindings even if they
+are not themselves bound to a defined value."
   (not (not (module-obarray-get-handle (module-obarray m) v))))
 
-;; module-symbol-interned? module symbol
-;;
-;; is a symbol interned (not neccessarily defined) anywhere in a given module
-;; or its uses?  Interned symbols shadow inherited bindings even if
-;; they are not themselves bound to a defined value.
-;;
 (define (module-symbol-interned? m v)
+  "Is symbol V interned (not neccessarily defined) anywhere in module M
+or its uses?  Interned symbols shadow inherited bindings even if they
+are not themselves bound to a defined value."
   (module-search module-symbol-locally-interned? m v))
 
 
@@ -2217,14 +2191,10 @@ written into the port is returned."
 ;;; variable is dereferenced.
 ;;;
 
-;; module-symbol-binding module symbol opt-value
-;;
-;; return the binding of a variable specified by name within
-;; a given module, signalling an error if the variable is unbound.
-;; If the OPT-VALUE is passed, then instead of signalling an error,
-;; return OPT-VALUE.
-;;
 (define (module-symbol-local-binding m v . opt-val)
+  "Return the binding of variable V specified by name within module M,
+signalling an error if the variable is unbound.  If the OPT-VALUE is
+passed, then instead of signalling an error, return OPT-VALUE."
   (let ((var (module-local-variable m v)))
     (if (and var (variable-bound? var))
         (variable-ref var)
@@ -2232,14 +2202,10 @@ written into the port is returned."
             (car opt-val)
             (error "Locally unbound variable." v)))))
 
-;; module-symbol-binding module symbol opt-value
-;;
-;; return the binding of a variable specified by name within
-;; a given module, signalling an error if the variable is unbound.
-;; If the OPT-VALUE is passed, then instead of signalling an error,
-;; return OPT-VALUE.
-;;
 (define (module-symbol-binding m v . opt-val)
+  "Return the binding of variable V specified by name within module M,
+signalling an error if the variable is unbound.  If the OPT-VALUE is
+passed, then instead of signalling an error, return OPT-VALUE."
   (let ((var (module-variable m v)))
     (if (and var (variable-bound? var))
         (variable-ref var)
@@ -2253,15 +2219,12 @@ written into the port is returned."
 ;;; {Adding Variables to Modules}
 ;;;
 
-;; module-make-local-var! module symbol
-;;
-;; ensure a variable for V in the local namespace of M.
-;; If no variable was already there, then create a new and uninitialzied
-;; variable.
-;;
 ;; This function is used in modules.c.
 ;;
 (define (module-make-local-var! m v)
+  "Ensure a variable for V in the local namespace of M.
+If no variable was already there, then create a new and uninitialized
+variable."
   (or (let ((b (module-obarray-ref (module-obarray m) v)))
         (and (variable? b)
              (begin
@@ -2275,13 +2238,10 @@ written into the port is returned."
         (module-add! m v local-var)
         local-var)))
 
-;; module-ensure-local-variable! module symbol
-;;
-;; Ensure that there is a local variable in MODULE for SYMBOL.  If
-;; there is no binding for SYMBOL, create a new uninitialized
-;; variable.  Return the local variable.
-;;
 (define (module-ensure-local-variable! module symbol)
+  "Ensure that there is a local variable in MODULE for SYMBOL.  If
+there is no binding for SYMBOL, create a new uninitialized
+variable.  Return the local variable."
   (or (module-local-variable module symbol)
       (let ((var (make-undefined-variable)))
         (module-add! module symbol var)
@@ -2289,9 +2249,8 @@ written into the port is returned."
 
 ;; module-add! module symbol var
 ;;
-;; ensure a particular variable for V in the local namespace of M.
-;;
 (define (module-add! m v var)
+  "Ensure a particular variable for V in the local namespace of M."
   (if (not (variable? var))
       (error "Bad variable to module-add!" var))
   (if (not (symbol? v))
@@ -2299,11 +2258,8 @@ written into the port is returned."
   (module-obarray-set! (module-obarray m) v var)
   (module-modified m))
 
-;; module-remove!
-;;
-;; make sure that a symbol is undefined in the local namespace of M.
-;;
 (define (module-remove! m v)
+  "Make sure that symbol V is undefined in the local namespace of M."
   (module-obarray-remove! (module-obarray m) v)
   (module-modified m))
 
@@ -2313,9 +2269,8 @@ written into the port is returned."
 
 ;; MODULE-FOR-EACH -- exported
 ;;
-;; Call PROC on each symbol in MODULE, with arguments of (SYMBOL VARIABLE).
-;;
 (define (module-for-each proc module)
+  "Call PROC on each symbol in MODULE, with arguments of (SYMBOL VARIABLE)."
   (hash-for-each proc (module-obarray module)))
 
 (define (module-map proc module)
@@ -2357,12 +2312,10 @@ written into the port is returned."
 
 ;;; {MODULE-REF -- exported}
 ;;;
-
-;; Returns the value of a variable called NAME in MODULE or any of its
-;; used modules.  If there is no such variable, then if the optional third
-;; argument DEFAULT is present, it is returned; otherwise an error is signaled.
-;;
 (define (module-ref module name . rest)
+  "Returns the value of a variable called NAME in MODULE or any of its
+used modules.  If there is no such variable, then if the optional third
+argument DEFAULT is present, it is returned; otherwise an error is signaled."
   (let ((variable (module-variable module name)))
     (if (and variable (variable-bound? variable))
         (variable-ref variable)
@@ -2373,10 +2326,9 @@ written into the port is returned."
 
 ;; MODULE-SET! -- exported
 ;;
-;; Sets the variable called NAME in MODULE (or in a module that MODULE uses)
-;; to VALUE; if there is no such variable, an error is signaled.
-;;
 (define (module-set! module name value)
+  "Sets the variable called NAME in MODULE (or in a module that MODULE uses)
+to VALUE; if there is no such variable, an error is signaled."
   (let ((variable (module-variable module name)))
     (if variable
         (variable-set! variable value)
@@ -2384,10 +2336,9 @@ written into the port is returned."
 
 ;; MODULE-DEFINE! -- exported
 ;;
-;; Sets the variable called NAME in MODULE to VALUE; if there is no such
-;; variable, it is added first.
-;;
 (define (module-define! module name value)
+  "Sets the variable called NAME in MODULE to VALUE; if there is no such
+variable, it is added first."
   (let ((variable (module-local-variable module name)))
     (if variable
         (begin
@@ -2398,18 +2349,14 @@ written into the port is returned."
 
 ;; MODULE-DEFINED? -- exported
 ;;
-;; Return #t iff NAME is defined in MODULE (or in a module that MODULE
-;; uses)
-;;
 (define (module-defined? module name)
+  "Return #t iff NAME is defined in MODULE (or in a module that MODULE
+uses)."
   (let ((variable (module-variable module name)))
     (and variable (variable-bound? variable))))
 
-;; MODULE-USE! module interface
-;;
-;; Add INTERFACE to the list of interfaces used by MODULE.
-;;
 (define (module-use! module interface)
+  "Add INTERFACE to the list of interfaces used by MODULE."
   (if (not (or (eq? module interface)
                (memq interface (module-uses module))))
       (begin
@@ -2421,12 +2368,9 @@ written into the port is returned."
         (hash-clear! (module-import-obarray module))
         (module-modified module))))
 
-;; MODULE-USE-INTERFACES! module interfaces
-;;
-;; Same as MODULE-USE!, but only notifies module observers after all
-;; interfaces are added to the inports list.
-;;
 (define (module-use-interfaces! module interfaces)
+  "Same as MODULE-USE!, but only notifies module observers after all
+interfaces are added to the inports list."
   (let* ((cur (module-uses module))
          (new (let lp ((in interfaces) (out '()))
                 (if (null? in)
@@ -2764,40 +2708,6 @@ written into the port is returned."
              (eq? (car (last-pair use-list)) the-scm-module))
         (set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
-;; Return a module that is an interface to the module designated by
-;; NAME.
-;;
-;; `resolve-interface' takes four keyword arguments:
-;;
-;;   #:select SELECTION
-;;
-;; SELECTION is a list of binding-specs to be imported; A binding-spec
-;; is either a symbol or a pair of symbols (ORIG . SEEN), where ORIG
-;; is the name in the used module and SEEN is the name in the using
-;; module.  Note that SEEN is also passed through RENAMER, below.  The
-;; default is to select all bindings.  If you specify no selection but
-;; a renamer, only the bindings that already exist in the used module
-;; are made available in the interface.  Bindings that are added later
-;; are not picked up.
-;;
-;;   #:hide BINDINGS
-;;
-;; BINDINGS is a list of bindings which should not be imported.
-;;
-;;   #:prefix PREFIX
-;;
-;; PREFIX is a symbol that will be appended to each exported name.
-;; The default is to not perform any renaming.
-;;
-;;   #:renamer RENAMER
-;;
-;; RENAMER is a procedure that takes a symbol and returns its new
-;; name.  The default is not perform any renaming.
-;;
-;; Signal "no code for module" error if module name is not resolvable
-;; or its public interface is not available.  Signal "no binding"
-;; error if selected binding does not exist in the used module.
-;;
 (define* (resolve-interface name #:key
                             (select #f)
                             (hide '())
@@ -2806,6 +2716,39 @@ written into the port is returned."
                                          (symbol-prefix-proc prefix)
                                          identity))
                             version)
+  "Return a module that is an interface to the module designated by
+NAME.
+
+`resolve-interface' takes four keyword arguments:
+
+  #:select SELECTION
+
+SELECTION is a list of binding-specs to be imported; A binding-spec
+is either a symbol or a pair of symbols (ORIG . SEEN), where ORIG
+is the name in the used module and SEEN is the name in the using
+module.  Note that SEEN is also passed through RENAMER, below.  The
+default is to select all bindings.  If you specify no selection but
+a renamer, only the bindings that already exist in the used module
+are made available in the interface.  Bindings that are added later
+are not picked up.
+
+  #:hide BINDINGS
+
+BINDINGS is a list of bindings which should not be imported.
+
+  #:prefix PREFIX
+
+PREFIX is a symbol that will be appended to each exported name.
+The default is to not perform any renaming.
+
+  #:renamer RENAMER
+
+RENAMER is a procedure that takes a symbol and returns its new
+name.  The default is not perform any renaming.
+
+Signal \"no code for module\" error if module name is not resolvable
+or its public interface is not available.  Signal \"no binding\"
+error if selected binding does not exist in the used module."
   (let* ((module (resolve-module name #t version #:ensure #f))
          (public-i (and module (module-public-interface module))))
     (unless public-i
@@ -3460,12 +3403,11 @@ but it fails to load."
   (lambda formals body ...))
 
 
-;; Export a local variable
-
 ;; This function is called from "modules.c".  If you change it, be
 ;; sure to update "modules.c" as well.
 
 (define (module-export! m names)
+  "Export a local variable."
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
                 (let* ((internal-name (if (pair? name) (car name) name))
@@ -3486,9 +3428,8 @@ but it fails to load."
                   (module-add! public-i external-name var)))
               names)))
 
-;; Export all local variables from a module
-;;
 (define (module-export-all! mod)
+  "Export all local variables from a module."
   (define (fresh-interface!)
     (let ((iface (make-module)))
       (set-module-name! iface (module-name mod))
@@ -3500,9 +3441,8 @@ but it fails to load."
                    (fresh-interface!))))
     (set-module-obarray! iface (module-obarray mod))))
 
-;; Re-export a imported variable
-;;
 (define (module-re-export! m names)
+  "Re-export an imported variable."
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
                 (let* ((internal-name (if (pair? name) (car name) name))
