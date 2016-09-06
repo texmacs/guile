@@ -580,6 +580,7 @@ all operands and results are boxed as SCM values.
 * Dynamic Environment Instructions::
 * Miscellaneous Instructions::
 * Inlined Scheme Instructions::
+* Inlined Atomic Instructions::
 * Inlined Mathematical Instructions::
 * Inlined Bytevector Instructions::
 * Unboxed Integer Arithmetic::
@@ -1362,6 +1363,37 @@ place it in @var{dst}.
 @deftypefn Instruction {} char->integer s12:@var{dst} s12:@var{src}
 Convert the Scheme character in @var{src} to an integer, and place it in
 @var{dst} as an unboxed @code{u64} value.
+@end deftypefn
+
+
+@node Inlined Atomic Instructions
+@subsubsection Inlined Atomic Instructions
+
+@xref{Atomics}, for more on atomic operations in Guile.
+
+@deftypefn Instruction {} make-atomic-box s12:@var{dst} s12:@var{src}
+Create a new atomic box initialized to @var{src}, and place it in
+@var{dst}.
+@end deftypefn
+
+@deftypefn Instruction {} atomic-box-ref s12:@var{dst} s12:@var{box}
+Fetch the value of the atomic box at @var{box} into @var{dst}.
+@end deftypefn
+
+@deftypefn Instruction {} atomic-box-set! s12:@var{box} s12:@var{val}
+Set the contents of the atomic box at @var{box} to @var{val}.
+@end deftypefn
+
+@deftypefn Instruction {} atomic-box-swap! s12:@var{dst} s12:@var{box} x8:@var{_} s24:@var{val}
+Replace the contents of the atomic box at @var{box} to @var{val} and
+store the previous value at @var{dst}.
+@end deftypefn
+
+@deftypefn Instruction {} atomic-box-compare-and-swap! s12:@var{dst} s12:@var{box} x8:@var{_} s24:@var{expected} x8:@var{_} s24:@var{desired}
+If the value of the atomic box at @var{box} is the same as the SCM value
+at @var{expected} (in the sense of @code{eq?}), replace the contents of
+the box with the SCM value at @var{desired}.  Otherwise does not update
+the box.  Set @var{dst} to the previous value of the box in either case.
 @end deftypefn
 
 

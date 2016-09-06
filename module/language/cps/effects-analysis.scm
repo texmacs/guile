@@ -491,6 +491,10 @@ is or might be a read or a write to the same location as A."
   ((integer->char _)               &type-check)
   ((char->integer _)               &type-check))
 
+;; Atomics are a memory and a compiler barrier; they cause all effects
+;; so no need to have a case for them here.  (Though, see
+;; https://jfbastien.github.io/no-sane-compiler/.)
+
 (define (primitive-effects constants name args)
   (let ((proc (hashq-ref *primitive-effects* name)))
     (if proc

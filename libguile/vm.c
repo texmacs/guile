@@ -34,16 +34,19 @@
 #include "libguile/bdw-gc.h"
 #include <gc/gc_mark.h>
 
-#include "_scm.h"
-#include "control.h"
-#include "frames.h"
-#include "gc-inline.h"
-#include "instructions.h"
-#include "loader.h"
-#include "programs.h"
-#include "simpos.h"
-#include "vm.h"
-#include "vm-builtins.h"
+#include "libguile/_scm.h"
+#include "libguile/atomic.h"
+#include "libguile/atomics-internal.h"
+#include "libguile/control.h"
+#include "libguile/control.h"
+#include "libguile/frames.h"
+#include "libguile/gc-inline.h"
+#include "libguile/instructions.h"
+#include "libguile/loader.h"
+#include "libguile/programs.h"
+#include "libguile/simpos.h"
+#include "libguile/vm.h"
+#include "libguile/vm-builtins.h"
 
 static int vm_default_engine = SCM_VM_REGULAR_ENGINE;
 
@@ -442,6 +445,7 @@ static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_char (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_pair (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_string (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_not_a_atomic_box (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_struct (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
@@ -550,6 +554,12 @@ static void
 vm_error_not_a_string (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "string");
+}
+
+static void
+vm_error_not_a_atomic_box (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "atomic box");
 }
 
 static void

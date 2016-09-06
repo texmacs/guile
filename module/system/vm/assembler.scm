@@ -216,6 +216,11 @@
             emit-bv-s64-set!
             emit-bv-f32-set!
             emit-bv-f64-set!
+            emit-make-atomic-box
+            emit-atomic-box-ref
+            emit-atomic-box-set!
+            emit-atomic-box-swap!
+            emit-atomic-box-compare-and-swap!
 
             emit-text
             link-assembly))

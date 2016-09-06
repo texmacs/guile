@@ -441,6 +441,8 @@
 #define VM_VALIDATE(x, pred, proc, what)                                \
   VM_ASSERT (pred (x), vm_error_not_a_ ## what (proc, x))
 
+#define VM_VALIDATE_ATOMIC_BOX(x, proc)                                 \
+  VM_VALIDATE (x, scm_is_atomic_box, proc, atomic_box)
 #define VM_VALIDATE_BYTEVECTOR(x, proc)                                 \
   VM_VALIDATE (x, SCM_BYTEVECTOR_P, proc, bytevector)
 #define VM_VALIDATE_CHAR(x, proc)                                       \
@@ -3818,11 +3820,93 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (178, unused_178, NULL, NOP)
-  VM_DEFINE_OP (179, unused_179, NULL, NOP)
-  VM_DEFINE_OP (180, unused_180, NULL, NOP)
-  VM_DEFINE_OP (181, unused_181, NULL, NOP)
-  VM_DEFINE_OP (182, unused_182, NULL, NOP)
+  /* make-atomic-box dst:12 src:12
+   *
+   * Create a new atomic box initialized to SRC, and place it in DST.
+   */
+  VM_DEFINE_OP (178, make_atomic_box, "make-atomic-box", OP1 (X8_S12_S12) | OP_DST)
+    {
+      SCM box;
+      scm_t_uint16 dst, src;
+      UNPACK_12_12 (op, dst, src);
+      SYNC_IP ();
+      box = scm_inline_cell (thread, scm_tc7_atomic_box,
+                             SCM_UNPACK (SCM_UNSPECIFIED));
+      scm_atomic_set_scm (scm_atomic_box_loc (box), SP_REF (src));
+      SP_SET (dst, box);
+      NEXT (1);
+    }
+
+  /* atomic-box-ref dst:12 src:12
+   *
+   * Fetch the value of the atomic box at SRC into DST.
+   */
+  VM_DEFINE_OP (179, atomic_box_ref, "atomic-box-ref", OP1 (X8_S12_S12) | OP_DST)
+    {
+      scm_t_uint16 dst, src;
+      SCM box;
+      UNPACK_12_12 (op, dst, src);
+      box = SP_REF (src);
+      VM_VALIDATE_ATOMIC_BOX (box, "atomic-box-ref");
+      SP_SET (dst, scm_atomic_ref_scm (scm_atomic_box_loc (box)));
+      NEXT (1);
+    }
+
+  /* atomic-box-set! dst:12 src:12
+   *
+   * Set the contents of the atomic box at DST to SRC.
+   */
+  VM_DEFINE_OP (180, atomic_box_set, "atomic-box-set!", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 dst, src;
+      SCM box;
+      UNPACK_12_12 (op, dst, src);
+      box = SP_REF (dst);
+      VM_VALIDATE_ATOMIC_BOX (box, "atomic-box-set!");
+      scm_atomic_set_scm (scm_atomic_box_loc (box), SP_REF (src));
+      NEXT (1);
+    }
+
+  /* atomic-box-swap! dst:12 box:12 _:8 val:24
+   *
+   * Replace the contents of the atomic box at BOX to VAL and store the
+   * previous value at DST.
+   */
+  VM_DEFINE_OP (181, atomic_box_swap, "atomic-box-swap!", OP2 (X8_S12_S12, X8_S24) | OP_DST)
+    {
+      scm_t_uint16 dst, box;
+      scm_t_uint32 val;
+      SCM scm_box;
+      UNPACK_12_12 (op, dst, box);
+      UNPACK_24 (ip[1], val);
+      scm_box = SP_REF (box);
+      VM_VALIDATE_ATOMIC_BOX (scm_box, "atomic-box-swap!");
+      SP_SET (dst,
+              scm_atomic_swap_scm (scm_atomic_box_loc (scm_box), SP_REF (val)));
+      NEXT (2);
+    }
+
+  /* atomic-box-compare-and-swap! dst:12 box:12 _:8 expected:24  _:8 desired:24
+   *
+   * Set the contents of the atomic box at DST to SET.
+   */
+  VM_DEFINE_OP (182, atomic_box_compare_and_swap, "atomic-box-compare-and-swap!", OP3 (X8_S12_S12, X8_S24, X8_S24) | OP_DST)
+    {
+      scm_t_uint16 dst, box;
+      scm_t_uint32 expected, desired;
+      SCM scm_box, scm_expected;
+      UNPACK_12_12 (op, dst, box);
+      UNPACK_24 (ip[1], expected);
+      UNPACK_24 (ip[2], desired);
+      scm_box = SP_REF (box);
+      VM_VALIDATE_ATOMIC_BOX (scm_box, "atomic-box-compare-and-swap!");
+      scm_expected = SP_REF (expected);
+      scm_atomic_compare_and_swap_scm (scm_atomic_box_loc (scm_box),
+                                       &scm_expected, SP_REF (desired));
+      SP_SET (dst, scm_expected);
+      NEXT (3);
+    }
+
   VM_DEFINE_OP (183, unused_183, NULL, NOP)
   VM_DEFINE_OP (184, unused_184, NULL, NOP)
   VM_DEFINE_OP (185, unused_185, NULL, NOP)
@@ -3959,6 +4043,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef VM_DEFINE_OP
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
+#undef VM_VALIDATE_ATOMIC_BOX
 #undef VM_VALIDATE_BYTEVECTOR
 #undef VM_VALIDATE_PAIR
 #undef VM_VALIDATE_STRUCT

@@ -21,39 +21,40 @@
   #:use-module ((oop goops) #:select (class-of <atomic-box>))
   #:use-module (test-suite lib))
 
-(pass-if (atomic-box? (make-atomic-box 42)))
+(with-test-prefix/c&e "atomics"
+ (pass-if "predicate" (atomic-box? (make-atomic-box 42)))
 
-(pass-if-equal 42 (atomic-box-ref (make-atomic-box 42)))
+ (pass-if-equal "ref" 42 (atomic-box-ref (make-atomic-box 42)))
 
-(pass-if-equal 42 (atomic-box-swap! (make-atomic-box 42) 10))
+ (pass-if-equal "swap" 42 (atomic-box-swap! (make-atomic-box 42) 10))
 
-(pass-if-equal 10
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-set! box 10)
-    (atomic-box-ref box)))
+ (pass-if-equal "set and ref" 10
+   (let ((box (make-atomic-box 42)))
+     (atomic-box-set! box 10)
+     (atomic-box-ref box)))
 
-(pass-if-equal 10
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-swap! box 10)
-    (atomic-box-ref box)))
+ (pass-if-equal "swap and ref" 10
+   (let ((box (make-atomic-box 42)))
+     (atomic-box-swap! box 10)
+     (atomic-box-ref box)))
 
-(pass-if-equal 42
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-compare-and-swap! box 42 10)))
+ (pass-if-equal "compare and swap" 42
+   (let ((box (make-atomic-box 42)))
+     (atomic-box-compare-and-swap! box 42 10)))
 
-(pass-if-equal 42
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-compare-and-swap! box 43 10)))
+ (pass-if-equal "compare and swap (wrong)" 42
+     (let ((box (make-atomic-box 42)))
+       (atomic-box-compare-and-swap! box 43 10)))
 
-(pass-if-equal 10
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-compare-and-swap! box 42 10)
-    (atomic-box-ref box)))
+ (pass-if-equal "compare and swap and ref" 10
+   (let ((box (make-atomic-box 42)))
+     (atomic-box-compare-and-swap! box 42 10)
+     (atomic-box-ref box)))
 
-(pass-if-equal 42
-  (let ((box (make-atomic-box 42)))
-    (atomic-box-compare-and-swap! box 43 10)
-    (atomic-box-ref box)))
+ (pass-if-equal "compare and swap (wrong) and ref" 42
+   (let ((box (make-atomic-box 42)))
+     (atomic-box-compare-and-swap! box 43 10)
+     (atomic-box-ref box)))
 
-(pass-if-equal <atomic-box>
-  (class-of (make-atomic-box 42)))
+ (pass-if-equal "class-of" <atomic-box>
+   (class-of (make-atomic-box 42))))

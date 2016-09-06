@@ -260,6 +260,17 @@
         (($ $primcall 'bv-f64-ref (bv idx val))
          (emit-bv-f64-ref asm (from-sp dst) (from-sp (slot bv))
                           (from-sp (slot idx))))
+        (($ $primcall 'make-atomic-box (init))
+         (emit-make-atomic-box asm (from-sp dst) (from-sp (slot init))))
+        (($ $primcall 'atomic-box-ref (box))
+         (emit-atomic-box-ref asm (from-sp dst) (from-sp (slot box))))
+        (($ $primcall 'atomic-box-swap! (box val))
+         (emit-atomic-box-swap! asm (from-sp dst) (from-sp (slot box))
+                                (from-sp (slot val))))
+        (($ $primcall 'atomic-box-compare-and-swap! (box expected desired))
+         (emit-atomic-box-compare-and-swap!
+          asm (from-sp dst) (from-sp (slot box))
+          (from-sp (slot expected)) (from-sp (slot desired))))
         (($ $primcall name args)
          ;; FIXME: Inline all the cases.
          (let ((inst (prim-instruction name)))
@@ -351,7 +362,9 @@
          (emit-bv-f64-set! asm (from-sp (slot bv)) (from-sp (slot idx))
                            (from-sp (slot val))))
         (($ $primcall 'unwind ())
-         (emit-unwind asm))))
+         (emit-unwind asm))
+        (($ $primcall 'atomic-box-set! (box val))
+         (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))))
 
     (define (compile-values label exp syms)
       (match exp

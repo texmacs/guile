@@ -75,6 +75,10 @@
       bytevector-ieee-double-ref bytevector-ieee-double-set!
       bytevector-ieee-double-native-ref bytevector-ieee-double-native-set!)
      '(rnrs bytevectors))
+    ((atomic-box?
+      make-atomic-box atomic-box-ref atomic-box-set!
+      atomic-box-swap! atomic-box-compare-and-swap!)
+     '(ice-9 atomic))
     ((class-of) '(oop goops))
     ((u8vector-ref
       u8vector-set! s8vector-ref s8vector-set!

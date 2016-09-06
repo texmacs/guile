@@ -171,7 +171,7 @@
     not
     pair? null? nil? list?
     symbol? variable? vector? struct? string? number? char?
-    bytevector? keyword? bitvector?
+    bytevector? keyword? bitvector? atomic-box?
     complex? real? rational? inf? nan? integer? exact? inexact? even? odd?
     char<? char<=? char>=? char>?
     integer->char char->integer number->string string->number
@@ -194,7 +194,7 @@
     pair? null? nil? list?
     symbol? variable? vector? struct? string? number? char?
     bytevector? keyword? bitvector?
-    procedure? thunk?
+    procedure? thunk? atomic-box?
     acons cons cons* list vector))
 
 ;; Primitives that don't always return one value.

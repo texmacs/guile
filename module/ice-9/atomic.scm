@@ -18,6 +18,8 @@
 ;;;;
 
 (define-module (ice-9 atomic)
+  #:use-module ((language tree-il primitives)
+                :select (add-interesting-primitive!))
   #:export (make-atomic-box
             atomic-box?
             atomic-box-ref
@@ -27,4 +29,10 @@
 
 (eval-when (expand load eval)
   (load-extension (string-append "libguile-" (effective-version))
-                  "scm_init_atomic"))
+                  "scm_init_atomic")
+  (add-interesting-primitive! 'make-atomic-box)
+  (add-interesting-primitive! 'atomic-box?)
+  (add-interesting-primitive! 'atomic-box-ref)
+  (add-interesting-primitive! 'atomic-box-set!)
+  (add-interesting-primitive! 'atomic-box-swap!)
+  (add-interesting-primitive! 'atomic-box-compare-and-swap!))
