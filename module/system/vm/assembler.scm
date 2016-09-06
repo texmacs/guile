@@ -948,10 +948,10 @@ immediate, and @code{#f} otherwise."
       ;; Object is an immediate if it is a fixnum on the target.
       (call-with-values (lambda ()
                           (case (asm-word-size asm)
-                            ((4) (values    #x1fffffff
-                                            (- #x20000000)))
-                            ((8) (values    #x1fffffffFFFFFFFF
-                                            (- #x2000000000000000)))
+                            ((4) (values    (- #x20000000)
+                                            #x1fffffff))
+                            ((8) (values    (- #x2000000000000000)
+                                            #x1fffffffFFFFFFFF))
                             (else (error "unexpected word size"))))
         (lambda (fixnum-min fixnum-max)
           (and (<= fixnum-min x fixnum-max)
