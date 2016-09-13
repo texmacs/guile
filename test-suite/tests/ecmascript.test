@@ -1,6 +1,6 @@
 ;;;; ecmascript.test --- ECMAScript.      -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2013, 2016 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -82,6 +82,12 @@
   (ecompile "2 + 2;" 4)
   (ecompile "\"hello\";" "hello")
   (ecompile "var test = { bar: 1 };")
+
+  (pass-if "new Object;"
+    (not (not
+          (compile (call-with-input-string "new Object;" read-ecmascript)
+                   #:from 'ecmascript
+                   #:to 'tree-il)))) ; Can't reference `Object' as value here
 
   ;; FIXME: Broken!
   ;; (ecompile "[1,2,3,4].map(function(x) { return x * x; });"

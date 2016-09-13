@@ -1,6 +1,6 @@
 ;;; ECMAScript for Guile
 
-;; Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011, 2016 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -437,9 +437,9 @@
       ((^= ,what ,val)
        (comp `(= ,what (^ ,what ,val)) e))
       ((new ,what ,args)
-       (@impl new
-              (map (lambda (x) (comp x e))
-                   (cons what args))))
+       `(call ,(@implv new)
+              ,(comp what e)
+              ,@(map (lambda (x) (comp x e)) args)))
       ((delete (pref ,obj ,prop))
        (@impl pdel
               (comp obj e)
