@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2015 Free Software Foundation, Inc.
+Copyright (C) 1996-2016 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -9,13 +9,34 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Changes in 2.1.4 (changes since the 2.1.3 alpha release):
 
 * Notable changes
+** C99 required
+
+Following Emacs, you must use a C99-capable compiler when building
+Guile.  In the future we also expect require C99 to use Guile's C
+interface, at least for `stdint' support.
+
 * New interfaces
+** Implement R6RS custom binary input/output ports
+
+See "Custom Ports" in the manual.
 
 ** Implement R6RS output-buffer-mode
-** Implement R6RS custom binary input/output ports
 ** Implement R6RS bytevector->string, string->bytevector
 
-* New deprecations
+See "R6RS Transcoders" in the manual.
+
+** Thread-safe atomic boxes (references)
+
+See "Atomics" in the manual.
+
+** File descriptor finalizers
+
+See "Ports and File Descriptors" in the manual.
+
+* Performance improvements
+** Added unboxing support for `logxor'
+** Better integer unboxing
+
 * Incompatible changes
 ** Statically scoped module duplicate handlers
 
@@ -30,11 +51,26 @@ specifies #:duplicates, of course we use that.  The
 handlers of the current module, instead of some global value.
 
 * Bug fixes
+** Better MinGW support
+
+`system*' is now supported on MinGW targets.
+
+** Avoid flushing buffers on ftell
+
+Fixes regression relative to Guile 2.0.
+
+** HTTP library does not require ETag lists to be qstrings
+
 ** Fix bug importing specific bindings with #:select
 
 It used to be that if #:select didn't find a binding in the public
 interface of a module, it would actually grovel in the module's
 unexported private bindings.  This was not intended and is now fixed.
+
+** Stronger thread-safety guarantees for port implementations
+
+See "I/O Extensions" in the manual for notes on threads and port
+implementations.
 
 ** Fix fixnum-range checks in R6RS fixnum bitops
    (http://bugs.gnu.org/14917)
