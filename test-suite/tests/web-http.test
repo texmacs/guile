@@ -413,8 +413,8 @@
              (input    (make-custom-binary-input-port "chunky" read!
                                                       #f #f #f))
              (port     (make-chunked-input-port input)))
-        (setvbuf input _IONBF)
-        (setvbuf port _IONBF)
+        (setvbuf input 'none)
+        (setvbuf port 'none)
         (list (utf8->string (get-bytevector-n port 6))
               (utf8->string (get-bytevector-n port 6))
               (utf8->string (get-bytevector-n port 7))
@@ -437,8 +437,8 @@
              (input    (make-custom-binary-input-port "chunky" read!
                                                       #f #f #f))
              (port     (make-chunked-input-port input)))
-        (setvbuf input _IONBF)
-        (setvbuf port _IONBF)
+        (setvbuf input 'none)
+        (setvbuf port 'none)
         (list (utf8->string (get-bytevector-n port 6))
               (utf8->string (get-bytevector-n port 13))
               (utf8->string (get-bytevector-n port 6))
