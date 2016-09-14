@@ -1483,9 +1483,11 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
 
   scm_dynwind_begin (0);
   /* Make sure the child can't kill us (as per normal system call).  */
-  scm_dynwind_sigaction (SIGINT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+  scm_dynwind_sigaction (SIGINT, scm_from_long ((long) SIG_IGN),
+                         SCM_UNDEFINED);
 #ifdef SIGQUIT
-  scm_dynwind_sigaction (SIGQUIT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+  scm_dynwind_sigaction (SIGQUIT, scm_from_long ((long) SIG_IGN),
+                         SCM_UNDEFINED);
 #endif
 
   res = scm_open_process (scm_nullstr, prog, args);
