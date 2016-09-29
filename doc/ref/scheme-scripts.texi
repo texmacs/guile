@@ -293,6 +293,11 @@ and exit.
 Load the file @file{/u/jimb/ex4}, and then call the function
 @code{main}, passing it the list @code{("/u/jimb/ex4" "foo")}.
 
+@item guile -e '(ex4)' -s /u/jimb/ex4.scm foo
+Load the file @file{/u/jimb/ex4.scm}, and then call the function
+@code{main} from the module '(ex4)', passing it the list
+@code{("/u/jimb/ex4" "foo")}.
+
 @item guile -l first -ds -l last -s script
 Load the files @file{first}, @file{script}, and @file{last}, in that
 order.  The @code{-ds} switch says when to process the @code{-s}
@@ -369,6 +374,7 @@ Suppose that we now want to write a script which computes the
 @code{(choose @var{n} @var{m})} is the number of distinct subsets
 containing @var{n} objects each.  It's easy to write @code{choose} given
 @code{fact}, so we might write the script this way:
+
 @example
 #!/usr/local/bin/guile \
 -l fact -e main -s
@@ -400,6 +406,68 @@ $ ./choose 4 4
 1
 $ ./choose 50 100
 100891344545564193334812497256
+@end example
+
+To call a specific procedure from a given module, we can use the special
+form @code{(@@ (@var{module}) @var{procedure})}:
+
+@example
+#!/usr/local/bin/guile \
+-l fact -e (@@ (fac) main) -s
+!#
+(define-module (fac)
+  #:export (main))
+
+(define (choose n m)
+  (/ (fact m) (* (fact (- m n)) (fact n))))
+
+(define (main args)
+  (let ((n (string->number (cadr args)))
+        (m (string->number (caddr args))))
+    (display (choose n m))
+    (newline)))
+@end example
+
+We can use @code{@@@@} to invoke non-exported procedures.  For exported
+procedures, we can simplify this call with the shorthand
+@code{(@var{module})}:
+
+@example
+#!/usr/local/bin/guile \
+-l fact -e (fac) -s
+!#
+(define-module (fac)
+  #:export (main))
+
+(define (choose n m)
+  (/ (fact m) (* (fact (- m n)) (fact n))))
+
+(define (main args)
+  (let ((n (string->number (cadr args)))
+        (m (string->number (caddr args))))
+    (display (choose n m))
+    (newline)))
+@end example
+
+For maximum portability, we can instead use the shell to execute
+@command{guile} with specified command line arguments.  Here we need to
+take care to quote the command arguments correctly:
+
+@example
+#!/usr/bin/env sh
+exec guile -l fact -e '(@@ (fac) main)' -s "$0" "$@"
+!#
+(define-module (fac)
+  #:export (main))
+
+(define (choose n m)
+  (/ (fact m) (* (fact (- m n)) (fact n))))
+
+(define (main args)
+  (let ((n (string->number (cadr args)))
+        (m (string->number (caddr args))))
+    (display (choose n m))
+    (newline)))
 @end example
 
 Finally, seasoned scripters are probably missing a mention of
