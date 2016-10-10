@@ -181,7 +181,12 @@ AC_DEFUN([GUILE_SITE_DIR],
 #
 # This macro looks for programs @code{guile} and @code{guild}, setting
 # variables @var{GUILE} and @var{GUILD} to their paths, respectively.
-# If @code{guile} is not found, signal an error.
+# The macro will attempt to find @code{guile} with the suffix of
+# @code{-X.Y}, followed by looking for it with the suffix @code{X.Y}, and
+# then fall back to looking for @code{guile} with no suffix. If
+# @code{guile} is still not found, signal an error. The suffix, if any,
+# that was required to find @code{guile} will be used for @code{guild}
+# as well.
 #
 # By default, this macro will search for the latest stable version of
 # Guile (e.g. 2.0). x.y or x.y.z versions can be specified. If an older
@@ -198,16 +203,25 @@ AC_DEFUN([GUILE_SITE_DIR],
 # The variables are marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_PROGS],
- [AC_PATH_PROG(GUILE,guile)
-  _guile_required_version="m4_default([$1], [$GUILE_EFFECTIVE_VERSION])"
+ [_guile_required_version="m4_default([$1], [$GUILE_EFFECTIVE_VERSION])"
   if test -z "$_guile_required_version"; then
     _guile_required_version=2.0
   fi
-  if test "$GUILE" = "" ; then
+
+  _guile_candidates=guile
+  _tmp=
+  for v in `echo "$_guile_required_version" | tr . ' '`; do
+    if test -n "$_tmp"; then _tmp=.$_tmp; fi
+    _tmp=$v$_tmp
+    _guile_candidates="guile-$_tmp guile$_tmp $_guile_candidates"
+  done
+
+  AC_PATH_PROGS(GUILE,[$_guile_candidates])
+  if test -z "$GUILE"; then
       AC_MSG_ERROR([guile required but not found])
   fi
-  AC_SUBST(GUILE)
 
+  _guile_suffix=`echo "$GUILE" | sed -e 's,^.*/guile\(.*\)$,\1,'`
   _guile_effective_version=`$GUILE -c "(display (effective-version))"`
   if test -z "$GUILE_EFFECTIVE_VERSION"; then
     GUILE_EFFECTIVE_VERSION=$_guile_effective_version
@@ -246,15 +260,15 @@ AC_DEFUN([GUILE_PROGS],
   fi
   AC_MSG_RESULT([$_guile_prog_version])
 
-  AC_PATH_PROG(GUILD,guild)
+  AC_PATH_PROG(GUILD,[guild$_guile_suffix])
   AC_SUBST(GUILD)
 
-  AC_PATH_PROG(GUILE_CONFIG,guile-config)
+  AC_PATH_PROG(GUILE_CONFIG,[guile-config$_guile_suffix])
   AC_SUBST(GUILE_CONFIG)
   if test -n "$GUILD"; then
     GUILE_TOOLS=$GUILD
   else
-    AC_PATH_PROG(GUILE_TOOLS,guile-tools)
+    AC_PATH_PROG(GUILE_TOOLS,[guile-tools$_guile_suffix])
   fi
   AC_SUBST(GUILE_TOOLS)
  ])
