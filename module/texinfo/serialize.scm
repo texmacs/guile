@@ -28,6 +28,7 @@
   #:use-module (texinfo)
   #:use-module (texinfo string-utils)
   #:use-module (sxml transform)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
   #:export (stexi->texi))
@@ -61,17 +62,17 @@
 ;; Why? Well, because syntax-case defines `include', and carps about its
 ;; wrong usage below...
 (eval-when (expand load eval)
-  (define (include exp lp command type formals args accum)
+  (define (include exp lp command type formals rest? args accum)
     (list* "\n"
            (list-intersperse
             args
             " ")
            " " command "@" accum)))
 
-(define (empty-command exp lp command type formals args accum)
+(define (empty-command exp lp command type formals rest? args accum)
   (list* " " command "@" accum))
 
-(define (inline-text exp lp command type formals args accum)
+(define (inline-text exp lp command type formals rest? args accum)
   (if (not (string=? command "*braces*")) ;; fixme :(
       (list* "}"
              (append-map (lambda (x) (lp x '())) (reverse (cdr exp)))
@@ -80,7 +81,7 @@
              (append-map (lambda (x) (lp x '())) (reverse (cdr exp)))
              "@{" accum)))
 
-(define (inline-args exp lp command type formals args accum)
+(define (inline-args exp lp command type formals rest? args accum)
   (list* "}"
          (if (not args) ""
              (list-intersperse
@@ -98,7 +99,7 @@
               ","))
          "{" command "@" accum))
 
-(define (inline-text-args exp lp command type formals args accum)
+(define (inline-text-args exp lp command type formals rest? args accum)
   (list* "}"
          (if (not args) ""
              (apply
@@ -112,30 +113,49 @@
                '(","))))
          "{" command "@" accum))
 
-(define (serialize-text-args lp formals args)
-  (apply
-   append
-   (list-intersperse
-    (map (lambda (arg) (append-map (lambda (x) (lp x '())) arg))
-         (map
-          reverse
-          (drop-while
-           not (map (lambda (x) (assq-ref args x))
-                    (reverse formals)))))
-    '(" "))))
+(define (embrace x)
+  (define (needs-embrace? x)
+    (define (has-space? x)
+      (and (string? x)
+           (string-index x char-set:whitespace)))
+    (or (null? x) (or-map has-space? x)))
+  (if (needs-embrace? x)
+      (append '("}") x '("{"))
+      x))
 
-(define (eol-text-args exp lp command type formals args accum)
+(define (serialize-text-args lp formals rest? args)
+  (define (serialize-arg formal rest?)
+    (let ((val (assq-ref args formal)))
+      (if val
+          (let ((out (append-map (lambda (x) (lp x '()))
+                                 (reverse val))))
+            (if rest?
+                out
+                (embrace out)))
+          #f)))
+  (define (serialize-args rformals rest?)
+    (match rformals
+      (() '())
+      ((formal . rformals)
+       (cons (serialize-arg formal rest?)
+             (serialize-args rformals #f)))))
+  (apply append
+         (list-intersperse
+          (filter identity (serialize-args (reverse formals) rest?))
+          '(" "))))
+
+(define (eol-text-args exp lp command type formals rest? args accum)
   (list* "\n"
-         (serialize-text-args lp formals args)
+         (serialize-text-args lp formals rest? args)
          " " command "@" accum))
 
-(define (eol-text exp lp command type formals args accum)
+(define (eol-text exp lp command type formals rest? args accum)
   (list* "\n"
          (append-map (lambda (x) (lp x '()))
                      (reverse (if args (cddr exp) (cdr exp))))
          " " command "@" accum))
 
-(define (eol-args exp lp command type formals args accum)
+(define (eol-args exp lp command type formals rest? args accum)
   (list* "\n"
          (list-intersperse
           (apply append
@@ -145,7 +165,7 @@
           ", ")
          " " command "@" accum))
 
-(define (environ exp lp command type formals args accum)
+(define (environ exp lp command type formals rest? args accum)
   (case (car exp)
     ((texinfo)
      (list* "@bye\n"
@@ -169,10 +189,10 @@
                   body
                   (cons "\n" body)))
             "\n"
-            (serialize-text-args lp formals args)
+            (serialize-text-args lp formals rest? args)
             " " command "@" accum))))
 
-(define (table-environ exp lp command type formals args accum)
+(define (table-environ exp lp command type formals rest? args accum)
   (list* "\n\n" command "@end "
          (append-map (lambda (x) (lp x '()))
                      (reverse (if args (cddr exp) (cdr exp))))
@@ -188,26 +208,26 @@
                #:line-width 72
                #:break-long-words? #f))
 
-(define (paragraph exp lp command type formals args accum)
+(define (paragraph exp lp command type formals rest? args accum)
   (list* "\n\n"
          (wrap
           (reverse
            (append-map (lambda (x) (lp x '())) (reverse (cdr exp)))))
          accum))
 
-(define (item exp lp command type formals args accum)
+(define (item exp lp command type formals rest? args accum)
   (list* (append-map (lambda (x) (lp x '())) (reverse (cdr exp)))
          "@item\n"
          accum))
 
-(define (entry exp lp command type formals args accum)
+(define (entry exp lp command type formals rest? args accum)
   (list* (append-map (lambda (x) (lp x '())) (reverse (cddr exp)))
          "\n"
          (append-map (lambda (x) (lp x '())) (reverse (cdar args)))
          "@item "
          accum))
 
-(define (fragment exp lp command type formals args accum)
+(define (fragment exp lp command type formals rest? args accum)
   (list* "\n@c %end of fragment\n"
          (append-map (lambda (x) (lp x '())) (reverse (cdr exp)))
          "\n@c %start of fragment\n\n"
@@ -230,10 +250,10 @@
     (FRAGMENT . ,fragment)
     (#f . ,include))) ; support writing include statements
 
-(define (serialize exp lp command type formals args accum)
+(define (serialize exp lp command type formals rest? args accum)
   ((or (assq-ref serializers type)
        (error "Unknown command type" exp type))
-   exp lp command type formals args accum))
+   exp lp command type formals rest? args accum))
 
 (define escaped-chars '(#\} #\{ #\@))
 (define (escape str)
@@ -263,6 +283,7 @@
                         (symbol->string (car in))
                         (cadr command-spec)
                         (filter* symbol? (cddr command-spec))
+                        (not (list? (cddr command-spec)))
                         (cond
                          ((and (pair? (cdr in)) (pair? (cadr in))
                                (eq? (caadr in) '%))

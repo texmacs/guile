@@ -28,7 +28,7 @@
 
 (with-test-prefix "test-serialize"
   (define (assert-serialize stexi str)
-    (pass-if str (equal? str (stexi->texi stexi))))
+    (pass-if-equal stexi str (stexi->texi stexi)))
 
   (assert-serialize '(para)
                     "
@@ -182,4 +182,11 @@ foo
                     "@deffnx bar foo (x @code{int})
 ")
 
+  (assert-serialize '(deffnx (% (name "foo") (category "bar baz") (arguments "(" "x" " " (code "int") ")")))
+                    "@deffnx {bar baz} foo (x @code{int})
+")
+
+  (assert-serialize '(deffnx (% (name "foo") (category (code "bar") " baz") (arguments "(" "x" " " (code "int") ")")))
+                    "@deffnx {@code{bar} baz} foo (x @code{int})
+")
   )
