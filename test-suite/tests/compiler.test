@@ -214,3 +214,28 @@
   (pass-if "Chained comparisons"
     (not (compile
           '(false-if-exception (< 'not-a-number))))))
+
+(with-test-prefix "prompt body slot allocation"
+  (define test-code
+    '(begin
+       (use-modules (ice-9 control))
+
+       (define (foo k) (k))
+       (define (qux k) 42)
+
+       (define (test)
+         (let lp ((i 0))
+           (when (< i 5)
+             (let/ec cancel (let lp () (qux cancel) (foo cancel) (lp)))
+             (lp (1+ i)))))
+       test))
+  (define test-proc #f)
+  (pass-if "compiling test works"
+    (begin
+      (set! test-proc (compile test-code))
+      (procedure? test-proc)))
+
+  (pass-if "test terminates without error"
+    (begin
+      (test-proc)
+      #t)))

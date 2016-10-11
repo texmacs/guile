@@ -217,32 +217,41 @@ body continuation in the prompt."
                    (if (or res (pred i)) #t res))
                  set
                  #f))
+  (define (compute-prompt-body label)
+    (persistent-intset
+     (let visit-cont ((label label) (level 1) (labels empty-intset))
+       (cond
+        ((zero? level) labels)
+        ((intset-ref labels label) labels)
+        (else
+         (match (intmap-ref conts label)
+           (($ $ktail)
+            ;; Possible for bailouts; never reached and not part of
+            ;; prompt body.
+            labels)
+           (cont
+            (let ((labels (intset-add! labels label)))
+              (match cont
+                (($ $kreceive arity k) (visit-cont k level labels))
+                (($ $kargs names syms ($ $continue k src ($ $primcall 'wind)))
+                 (visit-cont k (1+ level) labels))
+                (($ $kargs names syms
+                           ($ $continue k src ($ $prompt escape? tag handler)))
+                 (visit-cont handler level (visit-cont k (1+ level) labels)))
+                (($ $kargs names syms ($ $continue k src ($ $primcall 'unwind)))
+                 (visit-cont k (1- level) labels))
+                (($ $kargs names syms ($ $continue k src ($ $branch kt)))
+                 (visit-cont k level (visit-cont kt level labels)))
+                (($ $kargs names syms ($ $continue k src exp))
+                 (visit-cont k level labels)))))))))))
   (define (visit-prompt label handler succs)
-    ;; FIXME: It isn't correct to use all continuations reachable from
-    ;; the prompt, because that includes continuations outside the
-    ;; prompt body.  This point is moot if the handler's control flow
-    ;; joins with the the body, as is usually but not always the case.
-    ;;
-    ;; One counter-example is when the handler contifies an infinite
-    ;; loop; in that case we compute a too-large prompt body.  This
-    ;; error is currently innocuous, but we should fix it at some point.
-    ;;
-    ;; The fix is to end the body at the corresponding "pop" primcall,
-    ;; if any.
-    (let ((body (intset-subtract (compute-function-body conts label)
-                                 (compute-function-body conts handler))))
+    (let ((body (compute-prompt-body label)))
       (define (out-or-back-edge? label)
         ;; Most uses of visit-prompt-control-flow don't need every body
         ;; continuation, and would be happy getting called only for
         ;; continuations that postdominate the rest of the body.  Unless
         ;; you pass #:complete? #t, we only invoke F on continuations
         ;; that can leave the body, or on back-edges in loops.
-        ;;
-        ;; You would think that looking for the final "pop" primcall
-        ;; would be sufficient, but that is incorrect; it's possible for
-        ;; a loop in the prompt body to be contified, and that loop need
-        ;; not continue to the pop if it never terminates.  The pop could
-        ;; even be removed by DCE, in that case.
         (intset-any (lambda (succ)
                       (or (not (intset-ref body succ))
                           (<= succ label)))
@@ -255,8 +264,8 @@ body continuation in the prompt."
    (lambda (label cont succs)
      (match cont
        (($ $kargs _ _
-           ($ $continue _ _ ($ $prompt escape? tag handler)))
-        (visit-prompt label handler succs))
+           ($ $continue k _ ($ $prompt escape? tag handler)))
+        (visit-prompt k handler succs))
        (_ succs)))
    conts
    succs))
