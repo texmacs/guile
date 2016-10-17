@@ -6,85 +6,13 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in 2.1.4 (changes since the 2.1.3 alpha release):
+Changes in 2.1.5 (changes since the 2.1.4 alpha release):
 
 * Notable changes
-** C99 required
-
-Following Emacs, you must use a C99-capable compiler when building
-Guile.  In the future we also expect require C99 to use Guile's C
-interface, at least for `stdint' support.
-
 * New interfaces
-** Implement R6RS custom binary input/output ports
-
-See "Custom Ports" in the manual.
-
-** Implement R6RS output-buffer-mode
-** Implement R6RS bytevector->string, string->bytevector
-
-See "R6RS Transcoders" in the manual.
-
-** Thread-safe atomic boxes (references)
-
-See "Atomics" in the manual.
-
-** File descriptor finalizers
-
-See "Ports and File Descriptors" in the manual.
-
 * Performance improvements
-** Added unboxing support for `logxor'
-** Better integer unboxing
-
 * Incompatible changes
-** Statically scoped module duplicate handlers
-
-It used to be that if a module did not specify a #:duplicates handler,
-when a name was first referenced in that module and multiple imported
-modules provide that name, the value of the
-`default-duplicate-binding-handlers' parameter would be used to resolve
-the duplicate bindings.  We have changed so that instead a module
-defaults to the set of handlers described in the manual.  If the module
-specifies #:duplicates, of course we use that.  The
-`default-duplicate-binding-handlers' parameter now simply accesses the
-handlers of the current module, instead of some global value.
-
 * Bug fixes
-** Better MinGW support
-
-`system*' is now supported on MinGW targets.
-
-** Avoid flushing buffers on ftell
-
-Fixes regression relative to Guile 2.0.
-
-** HTTP library does not require ETag lists to be qstrings
-
-** Fix bug importing specific bindings with #:select
-
-It used to be that if #:select didn't find a binding in the public
-interface of a module, it would actually grovel in the module's
-unexported private bindings.  This was not intended and is now fixed.
-
-** Stronger thread-safety guarantees for port implementations
-
-See "I/O Extensions" in the manual for notes on threads and port
-implementations.
-
-** Fix fixnum-range checks in R6RS fixnum bitops
-   (http://bugs.gnu.org/14917)
-
-** Fix `monitor' macro
-
-** Fix bug with GUILE_INSTALL_LOCALE=1 and default port encodings
-
-If GUILE_INSTALL_LOCALE is unset in the environment or set to 1, Guile
-will call setlocale() to install the locale.  However it was neglecting
-to set the default port encoding to the locale's encoding.  This is
-fixed.
-
-** Various compiler bug fixes
 
 
 Previous changes in 2.1.x (changes since the 2.0.x series):
@@ -187,6 +115,12 @@ the GUILE_LOAD_COMPILED_PATH.  If that file turned out to be out of
 date, then no .go file would be loaded.  Now Guile will continue to
 search the path for a file which is both present and up-to-date, with
 respect to the .scm file.
+
+** C99 required
+
+Following Emacs, you must use a C99-capable compiler when building
+Guile.  In the future we also expect require C99 to use Guile's C
+interface, at least for `stdint' support.
 
 * Performance improvements
 
@@ -292,6 +226,23 @@ See the newly updated "Statprof" section of the manual, for more.
 ** Support for non-blocking I/O
 
 See "Non-Blocking I/O" in the manual, for more.
+
+** Implement R6RS custom binary input/output ports
+
+See "Custom Ports" in the manual.
+
+** Implement R6RS output-buffer-mode
+** Implement R6RS bytevector->string, string->bytevector
+
+See "R6RS Transcoders" in the manual.
+
+** Thread-safe atomic boxes (references)
+
+See "Atomics" in the manual.
+
+** File descriptor finalizers
+
+See "Ports and File Descriptors" in the manual.
 
 ** New inline functions: `scm_new_smob', `scm_new_double_smob'
 
@@ -565,6 +516,24 @@ are matched by binding.  This allows literals to be reliably bound to
 values, renamed by imports or exports, et cetera.  See "Syntax-rules
 Macros" in the manual for more on literals.
 
+** Fix bug importing specific bindings with #:select
+
+It used to be that if #:select didn't find a binding in the public
+interface of a module, it would actually grovel in the module's
+unexported private bindings.  This was not intended and is now fixed.
+
+** Statically scoped module duplicate handlers
+
+It used to be that if a module did not specify a #:duplicates handler,
+when a name was first referenced in that module and multiple imported
+modules provide that name, the value of the
+`default-duplicate-binding-handlers' parameter would be used to resolve
+the duplicate bindings.  We have changed so that instead a module
+defaults to the set of handlers described in the manual.  If the module
+specifies #:duplicates, of course we use that.  The
+`default-duplicate-binding-handlers' parameter now simply accesses the
+handlers of the current module, instead of some global value.
+
 ** `dynamic-wind' doesn't check that guards are thunks
 
 Checking that the dynamic-wind out-guard procedure was actually a thunk
@@ -690,6 +659,10 @@ scm_t_debug_info', `scm_pure_generic_p', `SCM_PUREGENERICP',
 
 Instead, use the symbol values `none', `line', or `block', respectively,
 as arguments to the `setvbuf' function.
+
+** Arbiters
+
+Use mutexes or atomic variables instead.
 
 ** `with-statprof' macro deprecated
 
