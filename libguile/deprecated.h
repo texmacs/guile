@@ -217,6 +217,12 @@ SCM_DEPRECATED SCM scm_slot_exists_using_class_p (SCM cls, SCM obj, SCM slot_nam
 
 
 
+SCM_DEPRECATED SCM scm_make_arbiter (SCM name);
+SCM_DEPRECATED SCM scm_try_arbiter (SCM arb);
+SCM_DEPRECATED SCM scm_release_arbiter (SCM arb);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

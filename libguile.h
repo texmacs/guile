@@ -30,7 +30,6 @@ extern "C" {
 
 #include "libguile/__scm.h"
 #include "libguile/alist.h"
-#include "libguile/arbiters.h"
 #include "libguile/array-handle.h"
 #include "libguile/array-map.h"
 #include "libguile/arrays.h"

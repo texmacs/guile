@@ -120,7 +120,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
 libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	alist.c					\
-	arbiters.c				\
 	array-handle.c				\
 	array-map.c				\
 	arrays.c				\
@@ -231,7 +230,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 
 DOT_X_FILES =					\
 	alist.x					\
-	arbiters.x				\
 	array-handle.x				\
 	array-map.x				\
 	arrays.x				\
@@ -339,7 +337,6 @@ EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
 DOT_DOC_FILES = 				\
 	alist.doc				\
-	arbiters.doc				\
 	array-handle.doc			\
 	array-map.doc				\
 	arrays.doc				\
@@ -567,7 +564,6 @@ modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/libguile
 modinclude_HEADERS =				\
 	__scm.h					\
 	alist.h					\
-	arbiters.h				\
 	array-handle.h				\
 	array-map.h				\
 	arrays.h				\

@@ -486,10 +486,105 @@ scm_slot_exists_using_class_p (SCM class, SCM obj, SCM slot_name)
 
 
 
+#define FETCH_STORE(fet,mem,sto)                        \
+  do {                                                  \
+    scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);   \
+    (fet) = (mem);                                      \
+    (mem) = (sto);                                      \
+    scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);     \
+  } while (0)
+
+static scm_t_bits scm_tc16_arbiter;
+
+
+#define SCM_LOCK_VAL         (scm_tc16_arbiter | (1L << 16))
+#define SCM_UNLOCK_VAL       scm_tc16_arbiter
+#define SCM_ARB_LOCKED(arb)  ((SCM_CELL_WORD_0 (arb)) & (1L << 16))
+
+
+static int 
+arbiter_print (SCM exp, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<arbiter ", port);
+  if (SCM_ARB_LOCKED (exp))
+    scm_puts ("locked ", port);
+  scm_iprin1 (SCM_PACK (SCM_SMOB_DATA (exp)), port, pstate);
+  scm_putc ('>', port);
+  return !0;
+}
+
+SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0, 
+	    (SCM name),
+	    "Return an arbiter object, initially unlocked.  Currently\n"
+	    "@var{name} is only used for diagnostic output.")
+#define FUNC_NAME s_scm_make_arbiter
+{
+  scm_c_issue_deprecation_warning
+    ("Arbiters are deprecated.  "
+     "Use mutexes or atomic variables instead.");
+
+  SCM_RETURN_NEWSMOB (scm_tc16_arbiter, SCM_UNPACK (name));
+}
+#undef FUNC_NAME
+
+
+/* The atomic FETCH_STORE here is so two threads can't both see the arbiter
+   unlocked and return #t.  The arbiter itself wouldn't be corrupted by
+   this, but two threads both getting #t would be contrary to the intended
+   semantics.  */
+
+SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
+	    (SCM arb),
+	    "If @var{arb} is unlocked, then lock it and return @code{#t}.\n"
+	    "If @var{arb} is already locked, then do nothing and return\n"
+	    "@code{#f}.")
+#define FUNC_NAME s_scm_try_arbiter
+{
+  scm_t_bits old;
+  scm_t_bits *loc;
+  SCM_VALIDATE_SMOB (1, arb, arbiter);
+  loc = (scm_t_bits*)SCM_SMOB_OBJECT_N_LOC (arb, 0);
+  FETCH_STORE (old, *loc, SCM_LOCK_VAL);
+  return scm_from_bool (old == SCM_UNLOCK_VAL);
+}
+#undef FUNC_NAME
+
+
+/* The atomic FETCH_STORE here is so two threads can't both see the arbiter
+   locked and return #t.  The arbiter itself wouldn't be corrupted by this,
+   but we don't want two threads both thinking they were the unlocker.  The
+   intended usage is for the code which locked to be responsible for
+   unlocking, but we guarantee the return value even if multiple threads
+   compete.  */
+
+SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
+	    (SCM arb),
+	    "If @var{arb} is locked, then unlock it and return @code{#t}.\n"
+	    "If @var{arb} is already unlocked, then do nothing and return\n"
+	    "@code{#f}.\n"
+	    "\n"
+	    "Typical usage is for the thread which locked an arbiter to\n"
+	    "later release it, but that's not required, any thread can\n"
+	    "release it.")
+#define FUNC_NAME s_scm_release_arbiter
+{
+  scm_t_bits old;
+  scm_t_bits *loc;
+  SCM_VALIDATE_SMOB (1, arb, arbiter);
+  loc = (scm_t_bits*)SCM_SMOB_OBJECT_N_LOC (arb, 0);
+  FETCH_STORE (old, *loc, SCM_UNLOCK_VAL);
+  return scm_from_bool (old == SCM_LOCK_VAL);
+}
+#undef FUNC_NAME
+
+
+
 
 void
 scm_i_init_deprecated ()
 {
+  scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
+  scm_set_smob_print (scm_tc16_arbiter, arbiter_print);
 #include "libguile/deprecated.x"
 }
 

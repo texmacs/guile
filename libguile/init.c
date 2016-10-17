@@ -35,7 +35,6 @@
 
 /* Everybody has an init function.  */
 #include "libguile/alist.h"
-#include "libguile/arbiters.h"
 #include "libguile/async.h"
 #include "libguile/atomic.h"
 #include "libguile/backtrace.h"
@@ -419,7 +418,6 @@ scm_i_init_guile (void *base)
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
   scm_init_alist ();
-  scm_init_arbiters ();           /* requires smob_prehistory */
   scm_init_async ();              /* requires smob_prehistory */
   scm_init_boolean ();
   scm_init_chars ();

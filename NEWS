@@ -12,6 +12,13 @@ Changes in 2.1.5 (changes since the 2.1.4 alpha release):
 * New interfaces
 * Performance improvements
 * Incompatible changes
+* New deprecations
+** Arbiters deprecated
+
+Arbiters were an experimental mutual exclusion facility from 20 years
+ago that didn't survive the test of time.  Use mutexes or atomic boxes
+instead.
+
 * Bug fixes
 
 

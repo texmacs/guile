@@ -74,7 +74,7 @@
             ;; corresponding classes, which may be obtained via class-of,
             ;; once you have an instance.  Perhaps FIXME to provide a
             ;; smob-type-name->class procedure.
-            <arbiter> <promise> <thread> <mutex> <condition-variable>
+            <promise> <thread> <mutex> <condition-variable>
             <regexp> <hook> <bitvector> <random-state> <async>
             <directory> <array> <character-set>
             <dynamic-object> <guardian> <macro>
@@ -3096,7 +3096,9 @@ var{initargs}."
 ;;; {SMOB and port classes}
 ;;;
 
-(define <arbiter> (find-subclass <top> '<arbiter>))
+(begin-deprecated
+ (define-public <arbiter> (find-subclass <top> '<arbiter>)))
+
 (define <promise> (find-subclass <top> '<promise>))
 (define <thread> (find-subclass <top> '<thread>))
 (define <mutex> (find-subclass <top> '<mutex>))

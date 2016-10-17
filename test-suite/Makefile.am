@@ -26,7 +26,6 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/00-socket.test		\
             tests/alist.test			\
 	    tests/and-let-star.test		\
-	    tests/arbiters.test			\
 	    tests/arrays.test			\
 	    tests/bit-operations.test		\
 	    tests/bitvectors.test		\

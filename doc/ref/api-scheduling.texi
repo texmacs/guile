@@ -8,7 +8,6 @@
 @section Threads, Mutexes, Asyncs and Dynamic Roots
 
 @menu
-* Arbiters::                    Synchronization primitives.
 * Asyncs::                      Asynchronous procedure invocation.
 * Atomics::                     Atomic references.
 * Threads::                     Multiple threads of execution.
@@ -20,43 +19,6 @@
 * Futures::                     Fine-grain parallelism.
 * Parallel Forms::              Parallel execution of forms.
 @end menu
-
-
-@node Arbiters
-@subsection Arbiters
-@cindex arbiters
-
-Arbiters are synchronization objects, they can be used by threads to
-control access to a shared resource.  An arbiter can be locked to
-indicate a resource is in use, and unlocked when done.
-
-An arbiter is like a light-weight mutex (@pxref{Mutexes and Condition
-Variables}).  It uses less memory and may be faster, but there's no
-way for a thread to block waiting on an arbiter, it can only test and
-get the status returned.
-
-@deffn {Scheme Procedure} make-arbiter name
-@deffnx {C Function} scm_make_arbiter (name)
-Return an object of type arbiter and name @var{name}. Its
-state is initially unlocked.  Arbiters are a way to achieve
-process synchronization.
-@end deffn
-
-@deffn {Scheme Procedure} try-arbiter arb
-@deffnx {C Function} scm_try_arbiter (arb)
-If @var{arb} is unlocked, then lock it and return @code{#t}.
-If @var{arb} is already locked, then do nothing and return
-@code{#f}.
-@end deffn
-
-@deffn {Scheme Procedure} release-arbiter arb
-@deffnx {C Function} scm_release_arbiter (arb)
-If @var{arb} is locked, then unlock it and return @code{#t}.  If
-@var{arb} is already unlocked, then do nothing and return @code{#f}.
-
-Typical usage is for the thread which locked an arbiter to later
-release it, but that's not required, any thread can release it.
-@end deffn
 
 
 @node Asyncs
