@@ -19,6 +19,15 @@ Arbiters were an experimental mutual exclusion facility from 20 years
 ago that didn't survive the test of time.  Use mutexes or atomic boxes
 instead.
 
+** User asyncs deprecated
+
+Guile had (and still has) "system asyncs", which are asynchronous
+interrupts, and also had this thing called "user asyncs", which was a
+trivial unused data structure.  Now that we have deprecated the old
+`async', `async-mark', and `run-asyncs' procedures that comprised the
+"user async" facility, we have been able to clarify our documentation to
+only refer to "asyncs".
+
 * Bug fixes
 
 
