@@ -44,90 +44,16 @@
 
 /* {Asynchronous Events}
  *
- * There are two kinds of asyncs: system asyncs and user asyncs.  The
- * two kinds have some concepts in commen but work slightly
- * differently and are not interchangeable.
- *
- * System asyncs are used to run arbitrary code at the next safe point
- * in a specified thread.  You can use them to trigger execution of
- * Scheme code from signal handlers or to interrupt a thread, for
- * example.
+ * Asyncs are used to run arbitrary code at the next safe point in a
+ * specified thread.  You can use them to trigger execution of Scheme
+ * code from signal handlers or to interrupt a thread, for example.
  *
  * Each thread has a list of 'activated asyncs', which is a normal
  * Scheme list of procedures with zero arguments.  When a thread
- * executes a SCM_ASYNC_TICK statement (which is included in
- * SCM_TICK), it will call all procedures on this list.
- *
- * Also, a thread will wake up when a procedure is added to its list
- * of active asyncs and call them.  After that, it will go to sleep
- * again.  (Not implemented yet.)
- *
- *
- * User asyncs are a little data structure that consists of a
- * procedure of zero arguments and a mark.  There are functions for
- * setting the mark of a user async and for calling all procedures of
- * marked asyncs in a given list.  Nothing you couldn't quickly
- * implement yourself.
+ * executes a SCM_ASYNC_TICK statement (which is included in SCM_TICK),
+ * it will call all procedures on this list.
  */
 
-
-
-
-/* User asyncs. */
-
-static scm_t_bits tc16_async;
-
-/* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
-   this is ugly.  */
-#define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
-#define VALIDATE_ASYNC(pos, a)	SCM_MAKE_VALIDATE_MSG(pos, a, ASYNCP, "user async")
-
-#define ASYNC_GOT_IT(X)        (SCM_SMOB_FLAGS (X))
-#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_SMOB_FLAGS ((X), ((V))))
-#define ASYNC_THUNK(X)         SCM_SMOB_OBJECT_1 (X)
-
-
-SCM_DEFINE (scm_async, "async", 1, 0, 0,
-	    (SCM thunk),
-	    "Create a new async for the procedure @var{thunk}.")
-#define FUNC_NAME s_scm_async
-{
-  SCM_RETURN_NEWSMOB (tc16_async, SCM_UNPACK (thunk));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
-            (SCM a),
-	    "Mark the async @var{a} for future execution.")
-#define FUNC_NAME s_scm_async_mark
-{
-  VALIDATE_ASYNC (1, a);
-  SET_ASYNC_GOT_IT (a, 1);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
-	    (SCM list_of_a),
-	    "Execute all thunks from the asyncs of the list @var{list_of_a}.")
-#define FUNC_NAME s_scm_run_asyncs
-{
-  while (! SCM_NULL_OR_NIL_P (list_of_a))
-    {
-      SCM a;
-      SCM_VALIDATE_CONS (1, list_of_a);
-      a = SCM_CAR (list_of_a);
-      VALIDATE_ASYNC (SCM_ARG1, a);
-      if (ASYNC_GOT_IT (a))
-	{
-	  SET_ASYNC_GOT_IT (a, 0);
-	  scm_call_0 (ASYNC_THUNK (a));
-	}
-      list_of_a = SCM_CDR (list_of_a);
-    }
-  return SCM_BOOL_T;
-}
-#undef FUNC_NAME
 
 
 
@@ -448,8 +374,6 @@ scm_critical_section_end (void)
 void
 scm_init_async ()
 {
-  tc16_async = scm_make_smob_type ("async", 0);
-
 #include "libguile/async.x"
 }
 

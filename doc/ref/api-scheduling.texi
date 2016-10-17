@@ -25,45 +25,28 @@
 @subsection Asyncs
 
 @cindex asyncs
-@cindex user asyncs
-@cindex system asyncs
 
 Asyncs are a means of deferring the execution of Scheme code until it is
 safe to do so.
 
-Guile provides two kinds of asyncs that share the basic concept but are
-otherwise quite different: system asyncs and user asyncs.  System asyncs
-are integrated into the core of Guile and are executed automatically
-when the system is in a state to allow the execution of Scheme code.
-For example, it is not possible to execute Scheme code in a POSIX signal
-handler, but such a signal handler can queue a system async to be
-executed in the near future, when it is safe to do so.
+Asyncs are integrated into the core of Guile.  A running Guile program
+will periodically check if there are asyncs to run, invoking them as
+needed.  For example, it is not possible to execute Scheme code in a
+POSIX signal handler, but in Guile a signal handler can enqueue a system
+async to be executed in the near future, when it is safe to do so.
 
-System asyncs can also be queued for threads other than the current one.
-This way, you can cause threads to asynchronously execute arbitrary
-code.
-
-User asyncs offer a convenient means of queuing procedures for future
-execution and triggering this execution.  They will not be executed
-automatically.
-
-@menu
-* System asyncs::
-* User asyncs::
-@end menu
-
-@node System asyncs
-@subsubsection System asyncs
+Asyncs can also be queued for threads other than the current one.  This
+way, you can cause threads to asynchronously execute arbitrary code.
 
 To cause the future asynchronous execution of a procedure in a given
 thread, use @code{system-async-mark}.
 
-Automatic invocation of system asyncs can be temporarily disabled by
-calling @code{call-with-blocked-asyncs}.  This function works by
-temporarily increasing the @emph{async blocking level} of the current
-thread while a given procedure is running.  The blocking level starts
-out at zero, and whenever a safe point is reached, a blocking level
-greater than zero will prevent the execution of queued asyncs.
+Automatic invocation of asyncs can be temporarily disabled by calling
+@code{call-with-blocked-asyncs}.  This function works by temporarily
+increasing the @emph{async blocking level} of the current thread while a
+given procedure is running.  The blocking level starts out at zero, and
+whenever a safe point is reached, a blocking level greater than zero
+will prevent the execution of queued asyncs.
 
 Analogously, the procedure @code{call-with-unblocked-asyncs} will
 temporarily decrease the blocking level of the current thread.  You
@@ -74,7 +57,7 @@ In addition to the C versions of @code{call-with-blocked-asyncs} and
 @code{call-with-unblocked-asyncs}, C code can use
 @code{scm_dynwind_block_asyncs} and @code{scm_dynwind_unblock_asyncs}
 inside a @dfn{dynamic context} (@pxref{Dynamic Wind}) to block or
-unblock system asyncs temporarily.
+unblock asyncs temporarily.
 
 @deffn {Scheme Procedure} system-async-mark proc [thread]
 @deffnx {C Function} scm_system_async_mark (proc)
@@ -85,16 +68,18 @@ in @var{thread}.  When @var{proc} has already been marked for
 When @var{thread} is omitted, the thread that called
 @code{system-async-mark} is used.
 
-This procedure is not safe to be called from signal handlers.  Use
+As we mentioned above, Scheme signal handlers are already called within
+an async and so can run any Scheme code.  However, note that the C
+function is not safe to be called from C signal handlers.  Use
 @code{scm_sigaction} or @code{scm_sigaction_for_thread} to install
 signal handlers.
 @end deffn
 
 @deffn {Scheme Procedure} call-with-blocked-asyncs proc
 @deffnx {C Function} scm_call_with_blocked_asyncs (proc)
-Call @var{proc} and block the execution of system asyncs by one level
-for the current thread while it is running.  Return the value returned
-by @var{proc}.  For the first two variants, call @var{proc} with no
+Call @var{proc} and block the execution of asyncs by one level for the
+current thread while it is running.  Return the value returned by
+@var{proc}.  For the first two variants, call @var{proc} with no
 arguments; for the third, call it with @var{data}.
 @end deffn
 
@@ -104,10 +89,10 @@ The same but with a C function @var{proc} instead of a Scheme thunk.
 
 @deffn {Scheme Procedure} call-with-unblocked-asyncs proc
 @deffnx {C Function} scm_call_with_unblocked_asyncs (proc)
-Call @var{proc} and unblock the execution of system asyncs by one
-level for the current thread while it is running.  Return the value
-returned by @var{proc}.  For the first two variants, call @var{proc}
-with no arguments; for the third, call it with @var{data}.
+Call @var{proc} and unblock the execution of asyncs by one level for the
+current thread while it is running.  Return the value returned by
+@var{proc}.  For the first two variants, call @var{proc} with no
+arguments; for the third, call it with @var{data}.
 @end deffn
 
 @deftypefn {C Function} {void *} scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
@@ -127,32 +112,6 @@ one level.  This function must be used inside a pair of calls to
 @code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
 Wind}).
 @end deftypefn
-
-@node User asyncs
-@subsubsection User asyncs
-
-A user async is a pair of a thunk (a parameterless procedure) and a
-mark.  Setting the mark on a user async will cause the thunk to be
-executed when the user async is passed to @code{run-asyncs}.  Setting
-the mark more than once is satisfied by one execution of the thunk.
-
-User asyncs are created with @code{async}.  They are marked with
-@code{async-mark}.
-
-@deffn {Scheme Procedure} async thunk
-@deffnx {C Function} scm_async (thunk)
-Create a new user async for the procedure @var{thunk}.
-@end deffn
-
-@deffn {Scheme Procedure} async-mark a
-@deffnx {C Function} scm_async_mark (a)
-Mark the user async @var{a} for future execution.
-@end deffn
-
-@deffn {Scheme Procedure} run-asyncs list_of_a
-@deffnx {C Function} scm_run_asyncs (list_of_a)
-Execute all thunks from the marked asyncs of the list @var{list_of_a}.
-@end deffn
 
 @node Atomics
 @subsection Atomics
@@ -443,9 +402,9 @@ If @var{mutex} was locked by a thread that exited before unlocking it,
 the next attempt to lock @var{mutex} will succeed, but
 @code{abandoned-mutex-error} will be signalled.
 
-When a system async (@pxref{System asyncs}) is activated for a thread
-blocked in @code{lock-mutex}, the wait is interrupted and the async is
-executed.  When the async returns, the wait resumes.
+When an async (@pxref{Asyncs}) is activated for a thread blocked in
+@code{lock-mutex}, the wait is interrupted and the async is executed.
+When the async returns, the wait resumes.
 @end deffn
 
 @deftypefn {C Function} void scm_dynwind_lock_mutex (SCM mutex)
@@ -526,12 +485,11 @@ as returned by @code{gettimeofday}.  When the waiting is aborted,
 signalled, @code{#t} is returned.  The mutex is re-locked in any case
 before @code{wait-condition-variable} returns.
 
-When a system async is activated for a thread that is blocked in a
-call to @code{wait-condition-variable}, the waiting is interrupted,
-the mutex is locked, and the async is executed.  When the async
-returns, the mutex is unlocked again and the waiting is resumed.  When
-the thread block while re-acquiring the mutex, execution of asyncs is
-blocked.
+When an async is activated for a thread that is blocked in a call to
+@code{wait-condition-variable}, the waiting is interrupted, the mutex is
+locked, and the async is executed.  When the async returns, the mutex is
+unlocked again and the waiting is resumed.  When the thread block while
+re-acquiring the mutex, execution of asyncs is blocked.
 @end deffn
 
 @deffn {Scheme Procedure} signal-condition-variable condvar
@@ -625,18 +583,18 @@ leaves guile mode while waiting for the condition variable.
 
 @deftypefn {C Function} int scm_std_select (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
 Like @code{select} but leaves guile mode while waiting.  Also, the
-delivery of a system async causes this function to be interrupted with
-error code @code{EINTR}.
+delivery of an async causes this function to be interrupted with error
+code @code{EINTR}.
 @end deftypefn
 
 @deftypefn {C Function} {unsigned int} scm_std_sleep ({unsigned int} seconds)
 Like @code{sleep}, but leaves guile mode while sleeping.  Also, the
-delivery of a system async causes this function to be interrupted.
+delivery of an async causes this function to be interrupted.
 @end deftypefn
 
 @deftypefn {C Function} {unsigned long} scm_std_usleep ({unsigned long} usecs)
 Like @code{usleep}, but leaves guile mode while sleeping.  Also, the
-delivery of a system async causes this function to be interrupted.
+delivery of an async causes this function to be interrupted.
 @end deftypefn
 
 
@@ -649,14 +607,14 @@ These two macros can be used to delimit a critical section.
 Syntactically, they are both statements and need to be followed
 immediately by a semicolon.
 
-Executing @code{SCM_CRITICAL_SECTION_START} will lock a recursive
-mutex and block the executing of system asyncs.  Executing
+Executing @code{SCM_CRITICAL_SECTION_START} will lock a recursive mutex
+and block the executing of asyncs.  Executing
 @code{SCM_CRITICAL_SECTION_END} will unblock the execution of system
-asyncs and unlock the mutex.  Thus, the code that executes between
-these two macros can only be executed in one thread at any one time
-and no system asyncs will run.  However, because the mutex is a
-recursive one, the code might still be reentered by the same thread.
-You must either allow for this or avoid it, both by careful coding.
+asyncs and unlock the mutex.  Thus, the code that executes between these
+two macros can only be executed in one thread at any one time and no
+asyncs will run.  However, because the mutex is a recursive one, the
+code might still be reentered by the same thread.  You must either allow
+for this or avoid it, both by careful coding.
 
 On the other hand, critical sections delimited with these macros can
 be nested since the mutex is recursive.

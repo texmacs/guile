@@ -418,7 +418,7 @@ do such a thing on its own.
 
 If you do not want to allow the running of asynchronous signal handlers,
 you can block them temporarily with @code{scm_dynwind_block_asyncs}, for
-example.  See @xref{System asyncs}.
+example.  @xref{Asyncs}.
 
 Since signal handling in Guile relies on safe points, you need to make
 sure that your functions do offer enough of them.  Normally, calling

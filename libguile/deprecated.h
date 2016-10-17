@@ -223,6 +223,12 @@ SCM_DEPRECATED SCM scm_release_arbiter (SCM arb);
 
 
 
+SCM_DEPRECATED SCM scm_async (SCM thunk);
+SCM_DEPRECATED SCM scm_async_mark (SCM a);
+SCM_DEPRECATED SCM scm_run_asyncs (SCM list_of_a);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

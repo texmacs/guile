@@ -32,8 +32,6 @@
 
 SCM_API void scm_async_tick (void);
 SCM_API void scm_switch (void);
-SCM_API SCM scm_async (SCM thunk);
-SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
 SCM_INTERNAL void scm_i_queue_async_cell (SCM cell, scm_i_thread *);
@@ -41,7 +39,6 @@ SCM_INTERNAL int scm_i_setup_sleep (scm_i_thread *,
 				    SCM obj, scm_i_pthread_mutex_t *m,
 				    int fd);
 SCM_INTERNAL void scm_i_reset_sleep (scm_i_thread *);
-SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);

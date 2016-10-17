@@ -75,7 +75,7 @@
             ;; once you have an instance.  Perhaps FIXME to provide a
             ;; smob-type-name->class procedure.
             <promise> <thread> <mutex> <condition-variable>
-            <regexp> <hook> <bitvector> <random-state> <async>
+            <regexp> <hook> <bitvector> <random-state>
             <directory> <array> <character-set>
             <dynamic-object> <guardian> <macro>
 
@@ -3097,7 +3097,8 @@ var{initargs}."
 ;;;
 
 (begin-deprecated
- (define-public <arbiter> (find-subclass <top> '<arbiter>)))
+ (define-public <arbiter> (find-subclass <top> '<arbiter>))
+ (define-public <async> (find-subclass <top> '<async>)))
 
 (define <promise> (find-subclass <top> '<promise>))
 (define <thread> (find-subclass <top> '<thread>))
@@ -3107,7 +3108,6 @@ var{initargs}."
 (define <hook> (find-subclass <top> '<hook>))
 (define <bitvector> (find-subclass <top> '<bitvector>))
 (define <random-state> (find-subclass <top> '<random-state>))
-(define <async> (find-subclass <top> '<async>))
 (define <directory> (find-subclass <top> '<directory>))
 (define <array> (find-subclass <top> '<array>))
 (define <character-set> (find-subclass <top> '<character-set>))

@@ -580,11 +580,74 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 
 
 
+/* User asyncs. */
+
+static scm_t_bits tc16_async;
+
+/* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
+   this is ugly.  */
+#define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
+#define VALIDATE_ASYNC(pos, a)	SCM_MAKE_VALIDATE_MSG(pos, a, ASYNCP, "user async")
+
+#define ASYNC_GOT_IT(X)        (SCM_SMOB_FLAGS (X))
+#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_SMOB_FLAGS ((X), ((V))))
+#define ASYNC_THUNK(X)         SCM_SMOB_OBJECT_1 (X)
+
+
+SCM_DEFINE (scm_async, "async", 1, 0, 0,
+	    (SCM thunk),
+	    "Create a new async for the procedure @var{thunk}.")
+#define FUNC_NAME s_scm_async
+{
+  scm_c_issue_deprecation_warning
+    ("\"User asyncs\" are deprecated.  Use closures instead.");
+
+  SCM_RETURN_NEWSMOB (tc16_async, SCM_UNPACK (thunk));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
+            (SCM a),
+	    "Mark the async @var{a} for future execution.")
+#define FUNC_NAME s_scm_async_mark
+{
+  VALIDATE_ASYNC (1, a);
+  SET_ASYNC_GOT_IT (a, 1);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
+	    (SCM list_of_a),
+	    "Execute all thunks from the asyncs of the list @var{list_of_a}.")
+#define FUNC_NAME s_scm_run_asyncs
+{
+  while (! SCM_NULL_OR_NIL_P (list_of_a))
+    {
+      SCM a;
+      SCM_VALIDATE_CONS (1, list_of_a);
+      a = SCM_CAR (list_of_a);
+      VALIDATE_ASYNC (SCM_ARG1, a);
+      if (ASYNC_GOT_IT (a))
+	{
+	  SET_ASYNC_GOT_IT (a, 0);
+	  scm_call_0 (ASYNC_THUNK (a));
+	}
+      list_of_a = SCM_CDR (list_of_a);
+    }
+  return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {
   scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
   scm_set_smob_print (scm_tc16_arbiter, arbiter_print);
+  tc16_async = scm_make_smob_type ("async", 0);
 #include "libguile/deprecated.x"
 }
 
