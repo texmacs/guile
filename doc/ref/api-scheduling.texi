@@ -8,9 +8,9 @@
 @section Threads, Mutexes, Asyncs and Dynamic Roots
 
 @menu
+* Threads::                     Multiple threads of execution.
 * Asyncs::                      Asynchronous interrupts.
 * Atomics::                     Atomic references.
-* Threads::                     Multiple threads of execution.
 * Mutexes and Condition Variables:: Synchronization primitives.
 * Blocking::                    How to block properly in guile mode.
 * Critical Sections::           Avoiding concurrency and reentries.
@@ -19,6 +19,145 @@
 * Futures::                     Fine-grain parallelism.
 * Parallel Forms::              Parallel execution of forms.
 @end menu
+
+
+@node Threads
+@subsection Threads
+@cindex threads
+@cindex Guile threads
+@cindex POSIX threads
+
+Guile supports POSIX threads, unless it was configured with
+@code{--without-threads} or the host lacks POSIX thread support.  When
+thread support is available, the @code{threads} feature is provided
+(@pxref{Feature Manipulation, @code{provided?}}).
+
+The procedures below manipulate Guile threads, which are wrappers around
+the system's POSIX threads.  For application-level parallelism, using
+higher-level constructs, such as futures, is recommended
+(@pxref{Futures}).
+
+@deffn {Scheme Procedure} all-threads
+@deffnx {C Function} scm_all_threads ()
+Return a list of all threads.
+@end deffn
+
+@deffn {Scheme Procedure} current-thread
+@deffnx {C Function} scm_current_thread ()
+Return the thread that called this function.
+@end deffn
+
+@c begin (texi-doc-string "guile" "call-with-new-thread")
+@deffn {Scheme Procedure} call-with-new-thread thunk [handler]
+Call @code{thunk} in a new thread and with a new dynamic state,
+returning the new thread.  The procedure @var{thunk} is called via
+@code{with-continuation-barrier}.
+
+When @var{handler} is specified, then @var{thunk} is called from
+within a @code{catch} with tag @code{#t} that has @var{handler} as its
+handler.  This catch is established inside the continuation barrier.
+
+Once @var{thunk} or @var{handler} returns, the return value is made
+the @emph{exit value} of the thread and the thread is terminated.
+@end deffn
+
+@deftypefn {C Function} SCM scm_spawn_thread (scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
+Call @var{body} in a new thread, passing it @var{body_data}, returning
+the new thread.  The function @var{body} is called via
+@code{scm_c_with_continuation_barrier}.
+
+When @var{handler} is non-@code{NULL}, @var{body} is called via
+@code{scm_internal_catch} with tag @code{SCM_BOOL_T} that has
+@var{handler} and @var{handler_data} as the handler and its data.  This
+catch is established inside the continuation barrier.
+
+Once @var{body} or @var{handler} returns, the return value is made the
+@emph{exit value} of the thread and the thread is terminated.
+@end deftypefn
+
+@deffn {Scheme Procedure} thread? obj
+@deffnx {C Function} scm_thread_p (obj)
+Return @code{#t} ff @var{obj} is a thread; otherwise, return
+@code{#f}.
+@end deffn
+
+@c begin (texi-doc-string "guile" "join-thread")
+@deffn {Scheme Procedure} join-thread thread [timeout [timeoutval]]
+@deffnx {C Function} scm_join_thread (thread)
+@deffnx {C Function} scm_join_thread_timed (thread, timeout, timeoutval)
+Wait for @var{thread} to terminate and return its exit value.  Threads
+that have not been created with @code{call-with-new-thread} or
+@code{scm_spawn_thread} have an exit value of @code{#f}.  When
+@var{timeout} is given, it specifies a point in time where the waiting
+should be aborted.  It can be either an integer as returned by
+@code{current-time} or a pair as returned by @code{gettimeofday}.
+When the waiting is aborted, @var{timeoutval} is returned (if it is
+specified; @code{#f} is returned otherwise).
+@end deffn
+
+@deffn {Scheme Procedure} thread-exited? thread
+@deffnx {C Function} scm_thread_exited_p (thread)
+Return @code{#t} if @var{thread} has exited, or @code{#f} otherwise.
+@end deffn
+
+@c begin (texi-doc-string "guile" "yield")
+@deffn {Scheme Procedure} yield
+If one or more threads are waiting to execute, calling yield forces an
+immediate context switch to one of them. Otherwise, yield has no effect.
+@end deffn
+
+@deffn {Scheme Procedure} cancel-thread thread
+@deffnx {C Function} scm_cancel_thread (thread)
+Asynchronously notify @var{thread} to exit.  Immediately after
+receiving this notification, @var{thread} will call its cleanup handler
+(if one has been set) and then terminate, aborting any evaluation that
+is in progress.
+
+Because Guile threads are isomorphic with POSIX threads, @var{thread}
+will not receive its cancellation signal until it reaches a cancellation
+point.  See your operating system's POSIX threading documentation for
+more information on cancellation points; note that in Guile, unlike
+native POSIX threads, a thread can receive a cancellation notification
+while attempting to lock a mutex.
+@end deffn
+
+@deffn {Scheme Procedure} set-thread-cleanup! thread proc
+@deffnx {C Function} scm_set_thread_cleanup_x (thread, proc)
+Set @var{proc} as the cleanup handler for the thread @var{thread}.
+@var{proc}, which must be a thunk, will be called when @var{thread}
+exits, either normally or by being canceled.  Thread cleanup handlers
+can be used to perform useful tasks like releasing resources, such as
+locked mutexes, when thread exit cannot be predicted.
+
+The return value of @var{proc} will be set as the @emph{exit value} of
+@var{thread}.
+
+To remove a cleanup handler, pass @code{#f} for @var{proc}.
+@end deffn
+
+@deffn {Scheme Procedure} thread-cleanup thread
+@deffnx {C Function} scm_thread_cleanup (thread)
+Return the cleanup handler currently installed for the thread
+@var{thread}.  If no cleanup handler is currently installed,
+thread-cleanup returns @code{#f}.
+@end deffn
+
+Higher level thread procedures are available by loading the
+@code{(ice-9 threads)} module.  These provide standardized
+thread creation.
+
+@deffn macro make-thread proc arg @dots{}
+Apply @var{proc} to @var{arg} @dots{} in a new thread formed by
+@code{call-with-new-thread} using a default error handler that display
+the error to the current error port.  The @var{arg} @dots{}
+expressions are evaluated in the new thread.
+@end deffn
+
+@deffn macro begin-thread expr1 expr2 @dots{}
+Evaluate forms @var{expr1} @var{expr2} @dots{} in a new thread formed by
+@code{call-with-new-thread} using a default error handler that display
+the error to the current error port.
+@end deffn
 
 
 @node Asyncs
@@ -187,144 +326,6 @@ value of the box in either case, so you can know if the swap worked by
 checking if the return value is @code{eq?} to @var{expected}.
 @end deffn
 
-
-@node Threads
-@subsection Threads
-@cindex threads
-@cindex Guile threads
-@cindex POSIX threads
-
-Guile supports POSIX threads, unless it was configured with
-@code{--without-threads} or the host lacks POSIX thread support.  When
-thread support is available, the @code{threads} feature is provided
-(@pxref{Feature Manipulation, @code{provided?}}).
-
-The procedures below manipulate Guile threads, which are wrappers around
-the system's POSIX threads.  For application-level parallelism, using
-higher-level constructs, such as futures, is recommended
-(@pxref{Futures}).
-
-@deffn {Scheme Procedure} all-threads
-@deffnx {C Function} scm_all_threads ()
-Return a list of all threads.
-@end deffn
-
-@deffn {Scheme Procedure} current-thread
-@deffnx {C Function} scm_current_thread ()
-Return the thread that called this function.
-@end deffn
-
-@c begin (texi-doc-string "guile" "call-with-new-thread")
-@deffn {Scheme Procedure} call-with-new-thread thunk [handler]
-Call @code{thunk} in a new thread and with a new dynamic state,
-returning the new thread.  The procedure @var{thunk} is called via
-@code{with-continuation-barrier}.
-
-When @var{handler} is specified, then @var{thunk} is called from
-within a @code{catch} with tag @code{#t} that has @var{handler} as its
-handler.  This catch is established inside the continuation barrier.
-
-Once @var{thunk} or @var{handler} returns, the return value is made
-the @emph{exit value} of the thread and the thread is terminated.
-@end deffn
-
-@deftypefn {C Function} SCM scm_spawn_thread (scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
-Call @var{body} in a new thread, passing it @var{body_data}, returning
-the new thread.  The function @var{body} is called via
-@code{scm_c_with_continuation_barrier}.
-
-When @var{handler} is non-@code{NULL}, @var{body} is called via
-@code{scm_internal_catch} with tag @code{SCM_BOOL_T} that has
-@var{handler} and @var{handler_data} as the handler and its data.  This
-catch is established inside the continuation barrier.
-
-Once @var{body} or @var{handler} returns, the return value is made the
-@emph{exit value} of the thread and the thread is terminated.
-@end deftypefn
-
-@deffn {Scheme Procedure} thread? obj
-@deffnx {C Function} scm_thread_p (obj)
-Return @code{#t} ff @var{obj} is a thread; otherwise, return
-@code{#f}.
-@end deffn
-
-@c begin (texi-doc-string "guile" "join-thread")
-@deffn {Scheme Procedure} join-thread thread [timeout [timeoutval]]
-@deffnx {C Function} scm_join_thread (thread)
-@deffnx {C Function} scm_join_thread_timed (thread, timeout, timeoutval)
-Wait for @var{thread} to terminate and return its exit value.  Threads
-that have not been created with @code{call-with-new-thread} or
-@code{scm_spawn_thread} have an exit value of @code{#f}.  When
-@var{timeout} is given, it specifies a point in time where the waiting
-should be aborted.  It can be either an integer as returned by
-@code{current-time} or a pair as returned by @code{gettimeofday}.
-When the waiting is aborted, @var{timeoutval} is returned (if it is
-specified; @code{#f} is returned otherwise).
-@end deffn
-
-@deffn {Scheme Procedure} thread-exited? thread
-@deffnx {C Function} scm_thread_exited_p (thread)
-Return @code{#t} if @var{thread} has exited, or @code{#f} otherwise.
-@end deffn
-
-@c begin (texi-doc-string "guile" "yield")
-@deffn {Scheme Procedure} yield
-If one or more threads are waiting to execute, calling yield forces an
-immediate context switch to one of them. Otherwise, yield has no effect.
-@end deffn
-
-@deffn {Scheme Procedure} cancel-thread thread
-@deffnx {C Function} scm_cancel_thread (thread)
-Asynchronously notify @var{thread} to exit.  Immediately after
-receiving this notification, @var{thread} will call its cleanup handler
-(if one has been set) and then terminate, aborting any evaluation that
-is in progress.
-
-Because Guile threads are isomorphic with POSIX threads, @var{thread}
-will not receive its cancellation signal until it reaches a cancellation
-point.  See your operating system's POSIX threading documentation for
-more information on cancellation points; note that in Guile, unlike
-native POSIX threads, a thread can receive a cancellation notification
-while attempting to lock a mutex.
-@end deffn
-
-@deffn {Scheme Procedure} set-thread-cleanup! thread proc
-@deffnx {C Function} scm_set_thread_cleanup_x (thread, proc)
-Set @var{proc} as the cleanup handler for the thread @var{thread}.
-@var{proc}, which must be a thunk, will be called when @var{thread}
-exits, either normally or by being canceled.  Thread cleanup handlers
-can be used to perform useful tasks like releasing resources, such as
-locked mutexes, when thread exit cannot be predicted.
-
-The return value of @var{proc} will be set as the @emph{exit value} of
-@var{thread}.
-
-To remove a cleanup handler, pass @code{#f} for @var{proc}.
-@end deffn
-
-@deffn {Scheme Procedure} thread-cleanup thread
-@deffnx {C Function} scm_thread_cleanup (thread)
-Return the cleanup handler currently installed for the thread
-@var{thread}.  If no cleanup handler is currently installed,
-thread-cleanup returns @code{#f}.
-@end deffn
-
-Higher level thread procedures are available by loading the
-@code{(ice-9 threads)} module.  These provide standardized
-thread creation.
-
-@deffn macro make-thread proc arg @dots{}
-Apply @var{proc} to @var{arg} @dots{} in a new thread formed by
-@code{call-with-new-thread} using a default error handler that display
-the error to the current error port.  The @var{arg} @dots{}
-expressions are evaluated in the new thread.
-@end deffn
-
-@deffn macro begin-thread expr1 expr2 @dots{}
-Evaluate forms @var{expr1} @var{expr2} @dots{} in a new thread formed by
-@code{call-with-new-thread} using a default error handler that display
-the error to the current error port.
-@end deffn
 
 @node Mutexes and Condition Variables
 @subsection Mutexes and Condition Variables
