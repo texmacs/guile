@@ -10,7 +10,7 @@
 Guile's core language is Scheme, which is specified and described in the
 series of reports known as @dfn{RnRS}.  @dfn{RnRS} is shorthand for the
 @iftex
-@dfn{Revised$^n$ Report on the Algorithmic Language Scheme}.
+@dfn{Revised@math{^n} Report on the Algorithmic Language Scheme}.
 @end iftex
 @ifnottex
 @dfn{Revised^n Report on the Algorithmic Language Scheme}.

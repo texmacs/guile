@@ -484,7 +484,7 @@ moved to @ref{Curried Definitions}
 (It could be argued that the alternative @code{define} forms are rather
 confusing, especially for newcomers to the Scheme language, as they hide
 both the role of @code{lambda} and the fact that procedures are values
-that are stored in variables in the some way as any other kind of value.
+that are stored in variables in the same way as any other kind of value.
 On the other hand, they are very convenient, and they are also a good
 example of another of Scheme's powerful features: the ability to specify
 arbitrary syntactic transformations at run time, which can be applied to
