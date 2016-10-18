@@ -8,7 +8,7 @@
 @section Threads, Mutexes, Asyncs and Dynamic Roots
 
 @menu
-* Asyncs::                      Asynchronous procedure invocation.
+* Asyncs::                      Asynchronous interrupts.
 * Atomics::                     Atomic references.
 * Threads::                     Multiple threads of execution.
 * Mutexes and Condition Variables:: Synchronization primitives.
@@ -22,31 +22,48 @@
 
 
 @node Asyncs
-@subsection Asyncs
+@subsection Asynchronous Interrupts
 
 @cindex asyncs
+@cindex asynchronous interrupts
+@cindex interrupts
 
-Asyncs are a means of deferring the execution of Scheme code until it is
-safe to do so.
+Every Guile thread can be interrupted.  Threads running Guile code will
+periodically check if there are pending interrupts and run them if
+necessary.  To interrupt a thread, call @code{system-async-mark} on that
+thread.
 
-Asyncs are integrated into the core of Guile.  A running Guile program
-will periodically check if there are asyncs to run, invoking them as
-needed.  For example, it is not possible to execute Scheme code in a
-POSIX signal handler, but in Guile a signal handler can enqueue a system
-async to be executed in the near future, when it is safe to do so.
+@deffn {Scheme Procedure} system-async-mark proc [thread]
+@deffnx {C Function} scm_system_async_mark (proc)
+@deffnx {C Function} scm_system_async_mark_for_thread (proc, thread)
+Enqueue @var{proc} (a procedure with zero arguments) for future
+execution in @var{thread}.  When @var{proc} has already been enqueued
+for @var{thread} but has not been executed yet, this call has no effect.
+When @var{thread} is omitted, the thread that called
+@code{system-async-mark} is used.
+@end deffn
 
-Asyncs can also be queued for threads other than the current one.  This
-way, you can cause threads to asynchronously execute arbitrary code.
+Note that @code{scm_system_async_mark_for_thread} is not
+``async-signal-safe'' and so cannot be called from a C signal handler.
+(Indeed in general, @code{libguile} functions are not safe to call from
+C signal handlers.)
 
-To cause the future asynchronous execution of a procedure in a given
-thread, use @code{system-async-mark}.
+Though an interrupt procedure can have any side effect permitted to
+Guile code, asynchronous interrupts are generally used either for
+profiling or for prematurely cancelling a computation.  The former case
+is mostly transparent to the program being run, by design, but the
+latter case can introduce bugs.  Like finalizers (@pxref{Foreign Object
+Memory Management}), asynchronous interrupts introduce concurrency in a
+program.  An asyncronous interrupt can run in the middle of some
+mutex-protected operation, for example, and potentially corrupt the
+program's state.
 
-Automatic invocation of asyncs can be temporarily disabled by calling
-@code{call-with-blocked-asyncs}.  This function works by temporarily
-increasing the @emph{async blocking level} of the current thread while a
-given procedure is running.  The blocking level starts out at zero, and
-whenever a safe point is reached, a blocking level greater than zero
-will prevent the execution of queued asyncs.
+If some bit of Guile code needs to temporarily inhibit interrupts, it
+can use @code{call-with-blocked-asyncs}.  This function works by
+temporarily increasing the @emph{async blocking level} of the current
+thread while a given procedure is running.  The blocking level starts
+out at zero, and whenever a safe point is reached, a blocking level
+greater than zero will prevent the execution of queued asyncs.
 
 Analogously, the procedure @code{call-with-unblocked-asyncs} will
 temporarily decrease the blocking level of the current thread.  You
@@ -58,22 +75,6 @@ In addition to the C versions of @code{call-with-blocked-asyncs} and
 @code{scm_dynwind_block_asyncs} and @code{scm_dynwind_unblock_asyncs}
 inside a @dfn{dynamic context} (@pxref{Dynamic Wind}) to block or
 unblock asyncs temporarily.
-
-@deffn {Scheme Procedure} system-async-mark proc [thread]
-@deffnx {C Function} scm_system_async_mark (proc)
-@deffnx {C Function} scm_system_async_mark_for_thread (proc, thread)
-Mark @var{proc} (a procedure with zero arguments) for future execution
-in @var{thread}.  When @var{proc} has already been marked for
-@var{thread} but has not been executed yet, this call has no effect.
-When @var{thread} is omitted, the thread that called
-@code{system-async-mark} is used.
-
-As we mentioned above, Scheme signal handlers are already called within
-an async and so can run any Scheme code.  However, note that the C
-function is not safe to be called from C signal handlers.  Use
-@code{scm_sigaction} or @code{scm_sigaction_for_thread} to install
-signal handlers.
-@end deffn
 
 @deffn {Scheme Procedure} call-with-blocked-asyncs proc
 @deffnx {C Function} scm_call_with_blocked_asyncs (proc)
@@ -112,6 +113,14 @@ one level.  This function must be used inside a pair of calls to
 @code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
 Wind}).
 @end deftypefn
+
+Finally, note that threads can also be interrupted via POSIX signals.
+@xref{Signals}.  As an implementation detail, signal handlers will
+effectively call @code{system-async-mark} in a signal-safe way,
+eventually running the signal handler using the same async mechanism.
+In this way you can temporarily inhibit signal handlers from running
+using the above interfaces.
+
 
 @node Atomics
 @subsection Atomics
