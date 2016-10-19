@@ -78,15 +78,6 @@
     (bind sock AF_UNIX path)
     sock))
 
-;; List of errno values from 'select' or 'accept' that should lead to a
-;; retry in 'run-server'.
-(define errs-to-retry
-  (delete-duplicates
-   (filter-map (lambda (name)
-                 (and=> (module-variable the-root-module name)
-                        variable-ref))
-               '(EINTR EAGAIN EWOULDBLOCK))))
-
 (define* (run-server #:optional (server-socket (make-tcp-server-socket)))
   (run-server* server-socket serve-client))
 
@@ -107,22 +98,15 @@
           shutdown-read-pipe))
 
   (define (accept-new-client)
-    (catch #t
-      (lambda ()
-        (let ((ready-ports (car (select monitored-ports '() '()))))
-          ;; If we've been asked to shut down, return #f.
-          (and (not (memq shutdown-read-pipe ready-ports))
-               (accept server-socket))))
-      (lambda k-args
-        (let ((err (system-error-errno k-args)))
-          (cond
-           ((memv err errs-to-retry)
-            (accept-new-client))
-           (else
-            (warn "Error accepting client" k-args)
-            ;; Retry after a timeout.
-            (sleep 1)
-            (accept-new-client)))))))
+    (let ((ready-ports (car (select monitored-ports '() '()))))
+      ;; If we've been asked to shut down, return #f.
+      (and (not (memq shutdown-read-pipe ready-ports))
+           ;; If the socket turns out to actually not be ready, this
+           ;; will return #f.  ECONNABORTED etc are still possible of
+           ;; course.
+           (or (false-if-exception (accept server-socket)
+                                   #:warning "Failed to accept client:")
+               (accept-new-client)))))
 
   ;; Put the socket into non-blocking mode.
   (fcntl server-socket F_SETFL
