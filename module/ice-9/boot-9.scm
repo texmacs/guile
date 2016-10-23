@@ -2029,31 +2029,33 @@ written into the port is returned."
         (set-module-observers! module (delq1! id (module-observers module)))))
   *unspecified*)
 
-(define module-defer-observers #f)
-(define module-defer-observers-mutex (make-mutex 'recursive))
-(define module-defer-observers-table (make-hash-table))
+;; Hash table of module -> #t indicating modules that changed while
+;; observers were deferred, or #f if observers are not being deferred.
+(define module-defer-observers (make-parameter #f))
 
 (define (module-modified m)
-  (if module-defer-observers
-      (hash-set! module-defer-observers-table m #t)
-      (module-call-observers m)))
+  (cond
+   ((module-defer-observers) => (lambda (tab) (hashq-set! tab m #t)))
+   (else (module-call-observers m))))
 
 ;;; This function can be used to delay calls to observers so that they
 ;;; can be called once only in the face of massive updating of modules.
 ;;;
 (define (call-with-deferred-observers thunk)
-  (dynamic-wind
-      (lambda ()
-        (lock-mutex module-defer-observers-mutex)
-        (set! module-defer-observers #t))
-      thunk
-      (lambda ()
-        (set! module-defer-observers #f)
-        (hash-for-each (lambda (m dummy)
-                         (module-call-observers m))
-                       module-defer-observers-table)
-        (hash-clear! module-defer-observers-table)
-        (unlock-mutex module-defer-observers-mutex))))
+  (cond
+   ((module-defer-observers) (thunk))
+   (else
+    (let ((modules (make-hash-table)))
+      (dynamic-wind (lambda () #t)
+                    (lambda ()
+                      (parameterize ((module-defer-observers modules))
+                        (thunk)))
+                    (lambda ()
+                      (let ((changed (hash-map->list cons modules)))
+                        (hash-clear! modules)
+                        (for-each (lambda (pair)
+                                    (module-call-observers (car pair)))
+                                  changed))))))))
 
 (define (module-call-observers m)
   (for-each (lambda (proc) (proc m)) (module-observers m))
