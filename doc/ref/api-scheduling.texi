@@ -37,6 +37,12 @@ the system's POSIX threads.  For application-level parallelism, using
 higher-level constructs, such as futures, is recommended
 (@pxref{Futures}).
 
+To use these facilities, load the @code{(ice-9 threads)} module.
+
+@example
+(use-modules (ice-9 threads))
+@end example
+
 @deffn {Scheme Procedure} all-threads
 @deffnx {C Function} scm_all_threads ()
 Return a list of all threads.
@@ -142,10 +148,6 @@ Return the cleanup handler currently installed for the thread
 thread-cleanup returns @code{#f}.
 @end deffn
 
-Higher level thread procedures are available by loading the
-@code{(ice-9 threads)} module.  These provide standardized
-thread creation.
-
 @deffn macro make-thread proc arg @dots{}
 Apply @var{proc} to @var{arg} @dots{} in a new thread formed by
 @code{call-with-new-thread} using a default error handler that display
@@ -157,6 +159,34 @@ expressions are evaluated in the new thread.
 Evaluate forms @var{expr1} @var{expr2} @dots{} in a new thread formed by
 @code{call-with-new-thread} using a default error handler that display
 the error to the current error port.
+@end deffn
+
+One often wants to limit the number of threads running to be
+proportional to the number of available processors.  These interfaces
+are therefore exported by (ice-9 threads) as well.
+
+@deffn {Scheme Procedure} total-processor-count
+@deffnx {C Function} scm_total_processor_count ()
+Return the total number of processors of the machine, which
+is guaranteed to be at least 1.  A ``processor'' here is a
+thread execution unit, which can be either:
+
+@itemize
+@item an execution core in a (possibly multi-core) chip, in a
+  (possibly multi- chip) module, in a single computer, or
+@item a thread execution unit inside a core in the case of
+  @dfn{hyper-threaded} CPUs.
+@end itemize
+
+Which of the two definitions is used, is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} current-processor-count
+@deffnx {C Function} scm_current_processor_count ()
+Like @code{total-processor-count}, but return the number of
+processors available to the current process.  See
+@code{setaffinity} and @code{getaffinity} for more
+information.
 @end deffn
 
 
@@ -349,6 +379,12 @@ is waiting on mutex B, but another thread owns B and is waiting on A,
 then an endless wait will occur (in the current implementation).
 Acquiring requisite mutexes in a fixed order (like always A before B)
 in all threads is one way to avoid such problems.
+
+To use these facilities, load the @code{(ice-9 threads)} module.
+
+@example
+(use-modules (ice-9 threads))
+@end example
 
 @sp 1
 @deffn {Scheme Procedure} make-mutex flag @dots{}

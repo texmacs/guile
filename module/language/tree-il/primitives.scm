@@ -21,6 +21,7 @@
 (define-module (language tree-il primitives)
   #:use-module (system base pmatch)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 threads)
   #:use-module (rnrs bytevectors)
   #:use-module (system base syntax)
   #:use-module (language tree-il)

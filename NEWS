@@ -12,6 +12,15 @@ Changes in 2.1.5 (changes since the 2.1.4 alpha release):
 * New interfaces
 * Performance improvements
 * Incompatible changes
+** Threading facilities moved to (ice-9 threads)
+
+It used to be that call-with-new-thread and other threading primitives
+were available in the default environment.  This is no longer the case;
+they have been moved to (ice-9 threads) instead.  Existing code will not
+break, however; we used the deprecation facility to signal a warning
+message while also providing these bindings in the root environment for
+the duration of the 2.2 series.
+
 * New deprecations
 ** Arbiters deprecated
 

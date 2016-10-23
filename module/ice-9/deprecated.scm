@@ -16,14 +16,17 @@
 ;;;;
 
 (define-module (ice-9 deprecated)
-  #:export (_IONBF _IOLBF _IOFBF))
+  #:use-module ((ice-9 threads) #:prefix threads:))
 
 (define-syntax-rule (define-deprecated var msg exp)
-  (define-syntax var
-    (lambda (x)
-      (issue-deprecation-warning msg)
-      (syntax-case x ()
-        (id (identifier? #'id) #'exp)))))
+  (begin
+    (define-syntax var
+      (lambda (x)
+        (issue-deprecation-warning msg)
+        (syntax-case x ()
+          ((id arg (... ...)) #'(let ((x id)) (x arg (... ...))))
+          (id (identifier? #'id) #'exp))))
+    (export var)))
 
 (define-deprecated _IONBF
   "`_IONBF' is deprecated.  Use the symbol 'none instead."
@@ -34,3 +37,46 @@
 (define-deprecated _IOFBF
   "`_IOFBF' is deprecated.  Use the symbol 'block instead."
   'block)
+
+(define-syntax define-deprecated/threads
+  (lambda (stx)
+    (define (threads-name id)
+      (datum->syntax id (symbol-append 'threads: (syntax->datum id))))
+    (syntax-case stx ()
+      ((_ name)
+       (with-syntax ((name* (threads-name #'name))
+                     (warning (string-append
+                               "Import (ice-9 threads) to have access to `"
+                               (symbol->string (syntax->datum #'name)) "'.")))
+         #'(define-deprecated name warning name*))))))
+
+(define-syntax-rule (define-deprecated/threads* name ...)
+  (begin (define-deprecated/threads name) ...))
+
+(define-deprecated/threads*
+  call-with-new-thread
+  yield
+  cancel-thread
+  set-thread-cleanup!
+  thread-cleanup
+  join-thread
+  thread?
+  make-mutex
+  make-recursive-mutex
+  lock-mutex
+  try-mutex
+  unlock-mutex
+  mutex?
+  mutex-owner
+  mutex-level
+  mutex-locked?
+  make-condition-variable
+  wait-condition-variable
+  signal-condition-variable
+  broadcast-condition-variable
+  condition-variable?
+  current-thread
+  all-threads
+  thread-exited?
+  total-processor-count
+  current-processor-count)

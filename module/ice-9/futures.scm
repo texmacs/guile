@@ -24,6 +24,7 @@
   #:use-module (ice-9 q)
   #:use-module (ice-9 match)
   #:use-module (ice-9 control)
+  #:use-module (ice-9 threads)
   #:export (future make-future future? touch))
 
 ;;; Author: Ludovic Courtès <ludo@gnu.org>

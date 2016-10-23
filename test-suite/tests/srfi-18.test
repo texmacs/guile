@@ -18,6 +18,7 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-srfi-18)
+  #:use-module ((ice-9 threads) #:prefix threads:)
   #:use-module (test-suite lib))
 
 ;; two expressions so that the srfi-18 import is in effect for expansion
@@ -43,9 +44,9 @@
   (with-test-prefix "make-thread"
 
     (pass-if "make-thread creates new thread"
-      (let* ((n (length (all-threads)))
+      (let* ((n (length (threads:all-threads)))
              (t (make-thread (lambda () 'foo) 'make-thread-1))
-             (r (> (length (all-threads)) n)))
+             (r (> (length (threads:all-threads)) n)))
         (thread-terminate! t) r)))
 
   (with-test-prefix "thread-name"
@@ -110,7 +111,7 @@
   
     (pass-if "termination destroys non-started thread"
       (let ((t (make-thread (lambda () 'nothing) 'thread-terminate-1))
-            (num-threads (length (all-threads)))
+            (num-threads (length (threads:all-threads)))
             (success #f))
         (thread-terminate! t)
         (with-exception-handler 
@@ -375,7 +376,8 @@
                          (mutex-unlock! m1)))
              (dec-sem! (lambda ()
                          (mutex-lock! m1)
-                         (while (eqv? sem 0) (wait-condition-variable c1 m1))
+                         (while (eqv? sem 0)
+                           (threads:wait-condition-variable c1 m1))
                          (set! sem (- sem 1))
                          (mutex-unlock! m1)))
              (t1 (make-thread (lambda () 
@@ -449,13 +451,13 @@
                                 h2 (lambda () 
                                      (mutex-lock! m) 
                                      (condition-variable-signal! c) 
-                                     (wait-condition-variable c m)
+                                     (threads:wait-condition-variable c m)
                                      (and (eq? (current-exception-handler) h2)
                                           (mutex-unlock! m)))))
                              'current-exception-handler-4)))
         (mutex-lock! m)
         (thread-start! t)
-        (wait-condition-variable c m)
+        (threads:wait-condition-variable c m)
         (and (eq? (current-exception-handler) h1)
              (condition-variable-signal! c)
              (mutex-unlock! m)

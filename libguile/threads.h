@@ -141,7 +141,6 @@ SCM_API void *scm_with_guile (void *(*func)(void *), void *data);
 SCM_INTERNAL void scm_i_reset_fluid (size_t);
 SCM_INTERNAL void scm_threads_prehistory (void *);
 SCM_INTERNAL void scm_init_threads (void);
-SCM_INTERNAL void scm_init_thread_procs (void);
 SCM_INTERNAL void scm_init_threads_default_dynamic_state (void);
 
 SCM_INTERNAL void scm_i_dynwind_pthread_mutex_lock_block_asyncs (scm_i_pthread_mutex_t *mutex);

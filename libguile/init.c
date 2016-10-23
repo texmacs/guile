@@ -415,7 +415,6 @@ scm_i_init_guile (void *base)
   scm_init_root ();		  /* requires continuations */
   scm_init_threads ();            /* requires smob_prehistory */
   scm_init_gsubr ();
-  scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
   scm_init_alist ();
   scm_init_async ();              /* requires smob_prehistory */

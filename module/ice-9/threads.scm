@@ -26,28 +26,63 @@
 ;;; Commentary:
 
 ;; This module is documented in the Guile Reference Manual.
-;; Briefly, one procedure is exported: `%thread-handler';
-;; as well as four macros: `make-thread', `begin-thread',
-;; `with-mutex' and `monitor'.
 
 ;;; Code:
 
 (define-module (ice-9 threads)
-  #:use-module (ice-9 futures)
   #:use-module (ice-9 match)
+  ;; These bindings are marked as #:replace because when deprecated code
+  ;; is enabled, (ice-9 deprecated) also exports these names.
+  ;; (Referencing one of the deprecated names prints a warning directing
+  ;; the user to these bindings.)  Anyway once we can remove the
+  ;; deprecated bindings, we should use #:export instead of #:replace
+  ;; for these.
+  #:replace (call-with-new-thread
+             yield
+             cancel-thread
+             set-thread-cleanup!
+             thread-cleanup
+             join-thread
+             thread?
+             make-mutex
+             make-recursive-mutex
+             lock-mutex
+             try-mutex
+             unlock-mutex
+             mutex?
+             mutex-owner
+             mutex-level
+             mutex-locked?
+             make-condition-variable
+             wait-condition-variable
+             signal-condition-variable
+             broadcast-condition-variable
+             condition-variable?
+             current-thread
+             all-threads
+             thread-exited?
+             total-processor-count
+             current-processor-count)
   #:export (begin-thread
-            parallel
-            letpar
             make-thread
             with-mutex
             monitor
 
+            parallel
+            letpar
             par-map
             par-for-each
             n-par-map
             n-par-for-each
             n-for-each-par-map
             %thread-handler))
+
+;; Note that this extension also defines %make-transcoded-port, which is
+;; not exported but is used by (rnrs io ports).
+
+(eval-when (expand eval load)
+  (load-extension (string-append "libguile-" (effective-version))
+                  "scm_init_ice_9_threads"))
 
 
 
@@ -57,21 +92,6 @@
   (call-with-new-thread
    (lambda () e0 e1 ...)
    %thread-handler))
-
-(define-syntax parallel
-  (lambda (x)
-    (syntax-case x ()
-      ((_ e0 ...)
-       (with-syntax (((tmp0 ...) (generate-temporaries (syntax (e0 ...)))))
-         #'(let ((tmp0 (future e0))
-                 ...)
-             (values (touch tmp0) ...)))))))
-
-(define-syntax-rule (letpar ((v e) ...) b0 b1 ...)
-  (call-with-values
-      (lambda () (parallel e ...))
-    (lambda (v ...)
-      b0 b1 ...)))
 
 (define-syntax-rule (make-thread proc arg ...)
   (call-with-new-thread
@@ -103,6 +123,48 @@
        (let ((id (datum->syntax #'body (gensym))))
          #`(with-mutex (monitor-mutex-with-id '#,id)
              body body* ...))))))
+
+(define (thread-handler tag . args)
+  (let ((n (length args))
+	(p (current-error-port)))
+    (display "In thread:" p)
+    (newline p)
+    (if (>= n 3)
+        (display-error #f
+                       p
+                       (car args)
+                       (cadr args)
+                       (caddr args)
+                       (if (= n 4)
+                           (cadddr args)
+                           '()))
+        (begin
+          (display "uncaught throw to " p)
+          (display tag p)
+          (display ": " p)
+          (display args p)
+          (newline p)))
+    #f))
+
+;;; Set system thread handler
+(define %thread-handler thread-handler)
+
+(use-modules (ice-9 futures))
+
+(define-syntax parallel
+  (lambda (x)
+    (syntax-case x ()
+      ((_ e0 ...)
+       (with-syntax (((tmp0 ...) (generate-temporaries (syntax (e0 ...)))))
+         #'(let ((tmp0 (future e0))
+                 ...)
+             (values (touch tmp0) ...)))))))
+
+(define-syntax-rule (letpar ((v e) ...) b0 b1 ...)
+  (call-with-values
+      (lambda () (parallel e ...))
+    (lambda (v ...)
+      b0 b1 ...)))
 
 (define (par-mapper mapper cons)
   (lambda (proc . lists)
@@ -204,30 +266,5 @@ of applying P-PROC on ARGLISTS."
 			      (set-car! my-result (apply p-proc args))
 			      (loop))))))
 		  threads)))))
-
-(define (thread-handler tag . args)
-  (let ((n (length args))
-	(p (current-error-port)))
-    (display "In thread:" p)
-    (newline p)
-    (if (>= n 3)
-        (display-error #f
-                       p
-                       (car args)
-                       (cadr args)
-                       (caddr args)
-                       (if (= n 4)
-                           (cadddr args)
-                           '()))
-        (begin
-          (display "uncaught throw to " p)
-          (display tag p)
-          (display ": " p)
-          (display args p)
-          (newline p)))
-    #f))
-
-;;; Set system thread handler
-(define %thread-handler thread-handler)
 
 ;;; threads.scm ends here

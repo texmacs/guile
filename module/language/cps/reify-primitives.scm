@@ -79,6 +79,7 @@
       make-atomic-box atomic-box-ref atomic-box-set!
       atomic-box-swap! atomic-box-compare-and-swap!)
      '(ice-9 atomic))
+    ((current-thread) '(ice-9 threads))
     ((class-of) '(oop goops))
     ((u8vector-ref
       u8vector-set! s8vector-ref s8vector-set!

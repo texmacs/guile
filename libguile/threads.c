@@ -2093,6 +2093,12 @@ scm_t_bits scm_tc16_thread;
 scm_t_bits scm_tc16_mutex;
 scm_t_bits scm_tc16_condvar;
 
+static void
+scm_init_ice_9_threads (void *unused)
+{
+#include "libguile/threads.x"
+}
+
 void
 scm_init_threads ()
 {
@@ -2111,6 +2117,10 @@ scm_init_threads ()
   threads_initialized_p = 1;
 
   dynwind_critical_section_mutex = scm_make_recursive_mutex ();
+
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_ice_9_threads",
+                            scm_init_ice_9_threads, NULL);
 }
 
 void
@@ -2118,12 +2128,6 @@ scm_init_threads_default_dynamic_state ()
 {
   SCM state = scm_make_dynamic_state (scm_current_dynamic_state ());
   scm_i_default_dynamic_state = state;
-}
-
-void
-scm_init_thread_procs ()
-{
-#include "libguile/threads.x"
 }
 
 
