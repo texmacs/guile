@@ -86,6 +86,39 @@
 
 
 
+(define* (call-with-new-thread thunk #:optional handler)
+  "Call @code{thunk} in a new thread and with a new dynamic state,
+returning a new thread object representing the thread.  The procedure
+@var{thunk} is called via @code{with-continuation-barrier}.
+
+When @var{handler} is specified, then @var{thunk} is called from within
+a @code{catch} with tag @code{#t} that has @var{handler} as its handler.
+This catch is established inside the continuation barrier.
+
+Once @var{thunk} or @var{handler} returns, the return value is made the
+@emph{exit value} of the thread and the thread is terminated."
+  (let ((cv (make-condition-variable))
+        (mutex (make-mutex))
+        (thunk (if handler
+                   (lambda () (catch #t thunk handler))
+                   thunk))
+        (thread #f))
+    (with-mutex mutex
+      (%call-with-new-thread
+       (lambda ()
+         (lock-mutex mutex)
+         (set! thread (current-thread))
+         (signal-condition-variable cv)
+         (unlock-mutex mutex)
+         (thunk)))
+      (let lp ()
+        (unless thread
+          (wait-condition-variable cv mutex)
+          (lp))))
+    thread))
+
+
+
 ;;; Macros first, so that the procedures expand correctly.
 
 (define-syntax-rule (begin-thread e0 e1 ...)

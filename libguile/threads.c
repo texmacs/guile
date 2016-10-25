@@ -858,34 +858,29 @@ scm_without_guile (void *(*func)(void *), void *data)
 
 /*** Thread creation */
 
+/* Because (ice-9 boot-9) loads up (ice-9 threads), we know that this
+   variable will get loaded before a call to scm_call_with_new_thread
+   and therefore no lock or pthread_once_t is needed. */
+static SCM call_with_new_thread_var;
+
+SCM
+scm_call_with_new_thread (SCM thunk, SCM handler)
+{
+  SCM call_with_new_thread = scm_variable_ref (call_with_new_thread_var);
+  if (SCM_UNBNDP (handler))
+    return scm_call_1 (call_with_new_thread, thunk);
+  return scm_call_2 (call_with_new_thread, thunk, handler);
+}
+
 typedef struct {
   SCM parent;
   SCM thunk;
-  SCM handler;
-  SCM thread;
-  scm_i_pthread_mutex_t mutex;
-  scm_i_pthread_cond_t cond;
 } launch_data;
 
 static void *
 really_launch (void *d)
 {
-  launch_data *data = (launch_data *)d;
-  SCM thunk = data->thunk, handler = data->handler;
-  scm_i_thread *t;
-
-  t = SCM_I_CURRENT_THREAD;
-
-  scm_i_scm_pthread_mutex_lock (&data->mutex);
-  data->thread = scm_current_thread ();
-  scm_i_pthread_cond_signal (&data->cond);
-  scm_i_pthread_mutex_unlock (&data->mutex);
-
-  if (SCM_UNBNDP (handler))
-    t->result = scm_call_0 (thunk);
-  else
-    t->result = scm_catch (SCM_BOOL_T, thunk, handler);
-
+  SCM_I_CURRENT_THREAD->result = scm_call_0 (((launch_data *)d)->thunk);
   return 0;
 }
 
@@ -898,51 +893,29 @@ launch_thread (void *d)
   return NULL;
 }
 
-SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 1, 1, 0,
-	    (SCM thunk, SCM handler),
-	    "Call @code{thunk} in a new thread and with a new dynamic state,\n"
-	    "returning a new thread object representing the thread.  The procedure\n"
-	    "@var{thunk} is called via @code{with-continuation-barrier}.\n"
-	    "\n"
-	    "When @var{handler} is specified, then @var{thunk} is called from\n"
-	    "within a @code{catch} with tag @code{#t} that has @var{handler} as its\n"
-	    "handler.  This catch is established inside the continuation barrier.\n"
-	    "\n"
-	    "Once @var{thunk} or @var{handler} returns, the return value is made\n"
-	    "the @emph{exit value} of the thread and the thread is terminated.")
-#define FUNC_NAME s_scm_call_with_new_thread
+SCM_INTERNAL SCM scm_sys_call_with_new_thread (SCM);
+SCM_DEFINE (scm_sys_call_with_new_thread, "%call-with-new-thread", 1, 0, 0,
+	    (SCM thunk), "")
+#define FUNC_NAME s_scm_sys_call_with_new_thread
 {
-  launch_data data;
+  launch_data *data;
   scm_i_pthread_t id;
   int err;
 
   SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_UNBNDP (handler) || scm_is_true (scm_procedure_p (handler)),
-	      handler, SCM_ARG2, FUNC_NAME);
 
   GC_collect_a_little ();
-  data.parent = scm_current_dynamic_state ();
-  data.thunk = thunk;
-  data.handler = handler;
-  data.thread = SCM_BOOL_F;
-  scm_i_pthread_mutex_init (&data.mutex, NULL);
-  scm_i_pthread_cond_init (&data.cond, NULL);
-
-  scm_i_scm_pthread_mutex_lock (&data.mutex);
-  err = scm_i_pthread_create (&id, NULL, launch_thread, &data);
+  data = scm_gc_typed_calloc (launch_data);
+  data->parent = scm_current_dynamic_state ();
+  data->thunk = thunk;
+  err = scm_i_pthread_create (&id, NULL, launch_thread, data);
   if (err)
     {
-      scm_i_pthread_mutex_unlock (&data.mutex);
       errno = err;
       scm_syserror (NULL);
     }
 
-  while (scm_is_false (data.thread))
-    scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
-
-  scm_i_pthread_mutex_unlock (&data.mutex);
-
-  return data.thread;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -2097,6 +2070,10 @@ static void
 scm_init_ice_9_threads (void *unused)
 {
 #include "libguile/threads.x"
+
+  call_with_new_thread_var =
+    scm_module_variable (scm_current_module (),
+                         scm_from_latin1_symbol ("call-with-new-thread"));
 }
 
 void
