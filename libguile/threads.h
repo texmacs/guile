@@ -47,6 +47,13 @@ SCM_API scm_t_bits scm_tc16_thread;
 SCM_API scm_t_bits scm_tc16_mutex;
 SCM_API scm_t_bits scm_tc16_condvar;
 
+struct scm_thread_wake_data
+{
+  SCM object;
+  scm_i_pthread_mutex_t *mutex;
+  int fd;
+};
+
 typedef struct scm_i_thread {
   struct scm_i_thread *next_thread;
 
@@ -67,10 +74,9 @@ typedef struct scm_i_thread {
   /* Boolean indicating whether the thread is in guile mode.  */
   int guile_mode;
 
-  SCM sleep_object;
-  scm_i_pthread_mutex_t *sleep_mutex;
+  struct scm_thread_wake_data *wake;
   scm_i_pthread_cond_t sleep_cond;
-  int sleep_fd, sleep_pipe[2];
+  int sleep_pipe[2];
 
   /* Thread-local freelists; see gc-inline.h.  */
   void **freelists;
@@ -85,12 +91,10 @@ typedef struct scm_i_thread {
 
   /* For system asyncs.
    */
-  SCM active_asyncs;            /* The thunks to be run at the next
-                                   safe point */
+  SCM pending_asyncs;            /* The thunks to be run at the next
+                                    safe point.  Accessed atomically. */
   unsigned int block_asyncs;    /* Non-zero means that asyncs should
                                    not be run. */
-  unsigned int pending_asyncs;  /* Non-zero means that asyncs might be pending.
-				 */
 
   /* The current continuation root and the stack base for it.
 

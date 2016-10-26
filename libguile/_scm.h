@@ -100,7 +100,7 @@
       errno = 0;							\
       line;								\
       if (EVMSERR == errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3))	\
-	SCM_ASYNC_TICK;							\
+        scm_async_tick ();                                              \
       else								\
 	break;								\
     }									\
@@ -119,7 +119,7 @@
       line;					\
       if (errno == EINTR)			\
 	{					\
-	  SCM_ASYNC_TICK;			\
+          scm_async_tick ();                    \
 	  errno = EINTR;			\
 	}					\
     }						\
@@ -222,26 +222,6 @@ void scm_ia64_longjmp (scm_i_jmp_buf *, int);
 #define SCM_I_SETJMP setjmp
 #define SCM_I_LONGJMP longjmp
 #endif
-
-
-
-#define SCM_ASYNC_TICK_WITH_GUARD_CODE(thr, pre, post)                  \
-  do                                                                    \
-    {                                                                   \
-      if (SCM_UNLIKELY (thr->pending_asyncs))                           \
-        {                                                               \
-          pre;                                                          \
-          scm_async_tick ();                                            \
-          post;                                                         \
-        }                                                               \
-    }                                                                   \
-  while (0)
-
-#define SCM_ASYNC_TICK_WITH_CODE(thr, stmt) \
-  SCM_ASYNC_TICK_WITH_GUARD_CODE (thr, stmt, (void) 0)
-#define SCM_ASYNC_TICK \
-  SCM_ASYNC_TICK_WITH_CODE (SCM_I_CURRENT_THREAD, (void) 0)
-
 
 
 

@@ -685,8 +685,8 @@ after_gc_async_thunk (void)
  */
 static void *
 queue_after_gc_hook (void * hook_data SCM_UNUSED,
-                      void *fn_data SCM_UNUSED,
-                      void *data SCM_UNUSED)
+                     void *fn_data SCM_UNUSED,
+                     void *data SCM_UNUSED)
 {
   /* If cell access debugging is enabled, the user may choose to perform
    * additional garbage collections after an arbitrary number of cell
@@ -721,9 +721,8 @@ queue_after_gc_hook (void * hook_data SCM_UNUSED,
 
       if (scm_is_false (SCM_CDR (after_gc_async_cell)))
         {
-          SCM_SETCDR (after_gc_async_cell, t->active_asyncs);
-          t->active_asyncs = after_gc_async_cell;
-          t->pending_asyncs = 1;
+          SCM_SETCDR (after_gc_async_cell, t->pending_asyncs);
+          t->pending_asyncs = after_gc_async_cell;
         }
     }
 

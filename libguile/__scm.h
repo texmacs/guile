@@ -474,11 +474,7 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#ifdef BUILDING_LIBGUILE
-#define SCM_TICK SCM_ASYNC_TICK
-#else
 #define SCM_TICK scm_async_tick ()
-#endif
 
 
 

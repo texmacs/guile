@@ -275,7 +275,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 /*** Blocking on queues. */
 
-/* See also scm_i_queue_async_cell for how such a block is
+/* See also scm_system_async_mark_for_thread for how such a block is
    interrputed.
 */
 
@@ -309,7 +309,10 @@ block_self (SCM queue, SCM sleep_object, scm_i_pthread_mutex_t *mutex,
   int err;
 
   if (scm_i_setup_sleep (t, sleep_object, mutex, -1))
-    err = EINTR;
+    {
+      scm_i_reset_sleep (t);
+      err = EINTR;
+    }
   else
     {
       t->block_asyncs++;
@@ -415,9 +418,8 @@ guilify_self_1 (struct GC_stack_base *base)
   t.dynstack.base = NULL;
   t.dynstack.top = NULL;
   t.dynstack.limit = NULL;
-  t.active_asyncs = SCM_EOL;
+  t.pending_asyncs = SCM_EOL;
   t.block_asyncs = 1;
-  t.pending_asyncs = 1;
   t.critical_section_level = 0;
   t.base = base->mem_base;
 #ifdef __ia64__
@@ -426,9 +428,7 @@ guilify_self_1 (struct GC_stack_base *base)
   t.continuation_root = SCM_EOL;
   t.continuation_base = t.base;
   scm_i_pthread_cond_init (&t.sleep_cond, NULL);
-  t.sleep_mutex = NULL;
-  t.sleep_object = SCM_BOOL_F;
-  t.sleep_fd = -1;
+  t.wake = NULL;
   t.vp = NULL;
 
   if (pipe2 (t.sleep_pipe, O_CLOEXEC) != 0)
@@ -1776,7 +1776,10 @@ scm_std_select (int nfds,
     }
 
   while (scm_i_setup_sleep (t, SCM_BOOL_F, NULL, t->sleep_pipe[1]))
-    SCM_TICK;
+    {
+      scm_i_reset_sleep (t);
+      SCM_TICK;
+    }
 
   wakeup_fd = t->sleep_pipe[0];
   FD_SET (wakeup_fd, readfds);
@@ -1795,7 +1798,6 @@ scm_std_select (int nfds,
   res = args.result;
   eno = args.errno_value;
 
-  t->sleep_fd = -1;
   scm_i_reset_sleep (t);
 
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))

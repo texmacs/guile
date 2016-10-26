@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/atomics-internal.h"
 #include "libguile/eval.h"
 #include "libguile/throw.h"
 #include "libguile/root.h"
@@ -50,16 +51,10 @@
  *
  * Each thread has a list of 'activated asyncs', which is a normal
  * Scheme list of procedures with zero arguments.  When a thread
- * executes a SCM_ASYNC_TICK statement (which is included in SCM_TICK),
- * it will call all procedures on this list.
+ * executes an scm_async_tick (), it will call all procedures on this
+ * list.
  */
 
-
-
-
-static scm_i_pthread_mutex_t async_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
-/* System asyncs. */
 
 void
 scm_async_tick (void)
@@ -67,96 +62,17 @@ scm_async_tick (void)
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
   SCM asyncs;
 
-  /* Reset pending_asyncs even when asyncs are blocked and not really
-     executed since this will avoid future futile calls to this
-     function.  When asyncs are unblocked again, this function is
-     invoked even when pending_asyncs is zero.
-  */
+  if (t->block_asyncs)
+    return;
 
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
-  t->pending_asyncs = 0;
-  if (t->block_asyncs == 0)
+  asyncs = scm_atomic_swap_scm (&t->pending_asyncs, SCM_EOL);
+  while (!scm_is_null (asyncs))
     {
-      asyncs = t->active_asyncs;
-      t->active_asyncs = SCM_EOL;
-    }
-  else
-    asyncs = SCM_EOL;
-  scm_i_pthread_mutex_unlock (&async_mutex);
-
-  while (scm_is_pair (asyncs))
-    {
-      SCM next = SCM_CDR (asyncs);
-      SCM_SETCDR (asyncs, SCM_BOOL_F);
-      scm_call_0 (SCM_CAR (asyncs));
+      SCM next = scm_cdr (asyncs);
+      scm_call_0 (scm_car (asyncs));
+      scm_set_cdr_x (asyncs, SCM_BOOL_F);
       asyncs = next;
     }
-}
-
-void
-scm_i_queue_async_cell (SCM c, scm_i_thread *t)
-{
-  SCM sleep_object;
-  scm_i_pthread_mutex_t *sleep_mutex;
-  int sleep_fd;
-  SCM p;
-  
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
-  p = t->active_asyncs;
-  SCM_SETCDR (c, SCM_EOL);
-  if (!scm_is_pair (p))
-    t->active_asyncs = c;
-  else
-    {
-      SCM pp;
-      while (scm_is_pair (pp = SCM_CDR (p)))
-	{
-	  if (scm_is_eq (SCM_CAR (p), SCM_CAR (c)))
-	    {
-	      scm_i_pthread_mutex_unlock (&async_mutex);
-	      return;
-	    }
-	  p = pp;
-	}
-      SCM_SETCDR (p, c);
-    }
-  t->pending_asyncs = 1;
-  sleep_object = t->sleep_object;
-  sleep_mutex = t->sleep_mutex;
-  sleep_fd = t->sleep_fd;
-  scm_i_pthread_mutex_unlock (&async_mutex);
-
-  if (sleep_mutex)
-    {
-      /* By now, the thread T might be out of its sleep already, or
-	 might even be in the next, unrelated sleep.  Interrupting it
-	 anyway does no harm, however.
-
-	 The important thing to prevent here is to signal sleep_cond
-	 before T waits on it.  This can not happen since T has
-	 sleep_mutex locked while setting t->sleep_mutex and will only
-	 unlock it again while waiting on sleep_cond.
-      */
-      scm_i_scm_pthread_mutex_lock (sleep_mutex);
-      scm_i_pthread_cond_signal (&t->sleep_cond);
-      scm_i_pthread_mutex_unlock (sleep_mutex);
-    }
-
-  if (sleep_fd >= 0)
-    {
-      char dummy = 0;
-
-      /* Likewise, T might already been done with sleeping here, but
-	 interrupting it once too often does no harm.  T might also
-	 not yet have started sleeping, but this is no problem either
-	 since the data written to a pipe will not be lost, unlike a
-	 condition variable signal.  */
-      full_write (sleep_fd, &dummy, 1);
-    }
-
-  /* This is needed to protect sleep_mutex.
-   */
-  scm_remember_upto_here_1 (sleep_object);
 }
 
 int
@@ -164,28 +80,22 @@ scm_i_setup_sleep (scm_i_thread *t,
 		   SCM sleep_object, scm_i_pthread_mutex_t *sleep_mutex,
 		   int sleep_fd)
 {
-  int pending;
+  struct scm_thread_wake_data *wake;
 
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
-  pending = t->pending_asyncs;
-  if (!pending)
-    {
-      t->sleep_object = sleep_object;
-      t->sleep_mutex = sleep_mutex;
-      t->sleep_fd = sleep_fd;
-    }
-  scm_i_pthread_mutex_unlock (&async_mutex);
-  return pending;
+  wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
+  wake->object = sleep_object;
+  wake->mutex = sleep_mutex;
+  wake->fd = sleep_fd;
+
+  scm_atomic_set_pointer ((void **)&t->wake, wake);
+
+  return !scm_is_null (scm_atomic_ref_scm (&t->pending_asyncs));
 }
 
 void
 scm_i_reset_sleep (scm_i_thread *t)
 {
-  scm_i_scm_pthread_mutex_lock (&async_mutex);
-  t->sleep_object = SCM_BOOL_F;
-  t->sleep_mutex = NULL;
-  t->sleep_fd = -1;
-  scm_i_pthread_mutex_unlock (&async_mutex);  
+  scm_atomic_set_pointer ((void **)&t->wake, NULL);
 }
 
 SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
@@ -200,13 +110,9 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "signal handlers.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
-  /* The current thread might not have a handle yet.  This can happen
-     when the GC runs immediately before allocating the handle.  At
-     the end of that GC, a system async might be marked.  Thus, we can
-     not use scm_current_thread here.
-  */
-
   scm_i_thread *t;
+  SCM asyncs;
+  struct scm_thread_wake_data *wake;
 
   if (SCM_UNBNDP (thread))
     t = SCM_I_CURRENT_THREAD;
@@ -217,7 +123,48 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
       t = SCM_I_THREAD_DATA (thread);
     }
-  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F), t);
+
+  asyncs = scm_atomic_ref_scm (&t->pending_asyncs);
+  do
+    if (scm_is_true (scm_c_memq (proc, asyncs)))
+      return SCM_UNSPECIFIED;
+  while (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
+                                           scm_cons (proc, asyncs)));
+
+  /* At this point the async is enqueued.  However if the thread is
+     sleeping, we have to wake it up.  */
+  if ((wake = scm_atomic_ref_pointer ((void **) &t->wake)))
+    {
+      /* By now, the thread T might be out of its sleep already, or
+	 might even be in the next, unrelated sleep.  Interrupting it
+	 anyway does no harm, however.
+
+	 The important thing to prevent here is to signal sleep_cond
+	 before T waits on it.  This can not happen since T has
+	 sleep_mutex locked while setting t->sleep_mutex and will only
+	 unlock it again while waiting on sleep_cond.
+      */
+      scm_i_scm_pthread_mutex_lock (wake->mutex);
+      scm_i_pthread_cond_signal (&t->sleep_cond);
+      scm_i_pthread_mutex_unlock (wake->mutex);
+
+      /* This is needed to protect wake->mutex.
+       */
+      scm_remember_upto_here_1 (wake->object);
+
+      if (wake->fd >= 0)
+        {
+          char dummy = 0;
+
+          /* Likewise, T might already been done with sleeping here, but
+             interrupting it once too often does no harm.  T might also
+             not yet have started sleeping, but this is no problem
+             either since the data written to a pipe will not be lost,
+             unlike a condition variable signal.  */
+          full_write (wake->fd, &dummy, 1);
+        }
+    }
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

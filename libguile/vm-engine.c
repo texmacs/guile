@@ -127,9 +127,24 @@
 #define ABORT_CONTINUATION_HOOK()               \
   RUN_HOOK0 (abort)
 
-#define VM_HANDLE_INTERRUPTS                     \
-  SCM_ASYNC_TICK_WITH_GUARD_CODE (thread, SYNC_IP (), CACHE_SP ())
+/* TODO: Invoke asyncs without trampolining out to C.  That will let us
+   preempt computations via an asynchronous interrupt.  */
+#define VM_HANDLE_INTERRUPTS                                            \
+  do                                                                    \
+    if (SCM_LIKELY (thread->block_asyncs == 0))                         \
+      {                                                                 \
+        SCM asyncs = scm_atomic_ref_scm (&thread->pending_asyncs);      \
+        if (SCM_UNLIKELY (!scm_is_null (asyncs)))                       \
+          {                                                             \
+            SYNC_IP ();                                                 \
+            scm_async_tick ();                                          \
+            CACHE_SP ();                                                \
+          }                                                             \
+      }                                                                 \
+  while (0)
 
+
+
 
 /* Virtual Machine
 

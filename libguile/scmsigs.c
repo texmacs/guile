@@ -228,9 +228,8 @@ take_signal (int signum)
 
   if (scm_is_false (SCM_CDR (cell)))
     {
-      SCM_SETCDR (cell, t->active_asyncs);
-      t->active_asyncs = cell;
-      t->pending_asyncs = 1;
+      SCM_SETCDR (cell, t->pending_asyncs);
+      t->pending_asyncs = cell;
     }
 
 #ifndef HAVE_SIGACTION

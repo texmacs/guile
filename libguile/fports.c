@@ -595,7 +595,7 @@ fport_read (SCM port, SCM dst, size_t start, size_t count)
     {
       if (errno == EINTR)
         {
-          SCM_ASYNC_TICK;
+          scm_async_tick ();
           goto retry;
         }
       if (errno == EWOULDBLOCK || errno == EAGAIN)
@@ -618,7 +618,7 @@ fport_write (SCM port, SCM src, size_t start, size_t count)
     {
       if (errno == EINTR)
         {
-          SCM_ASYNC_TICK;
+          scm_async_tick ();
           goto retry;
         }
       if (errno == EWOULDBLOCK || errno == EAGAIN)

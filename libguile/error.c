@@ -163,7 +163,7 @@ scm_syserror (const char *subr)
   */
 #ifdef EINTR
   if (scm_to_int (err) == EINTR)
-    SCM_ASYNC_TICK;
+    scm_async_tick ();
 #endif
 
   scm_error (scm_system_error_key,
@@ -179,7 +179,7 @@ scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
   /* See above note about the EINTR signal handling race. */
 #ifdef EINTR
   if (eno == EINTR)
-    SCM_ASYNC_TICK;
+    scm_async_tick ();
 #endif
   scm_error (scm_system_error_key,
 	     subr,

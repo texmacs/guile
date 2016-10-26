@@ -45,6 +45,16 @@ scm_atomic_compare_and_swap_uint32 (uint32_t *loc, uint32_t *expected,
   return atomic_compare_exchange_weak (loc, expected, desired);
 }
 static inline void
+scm_atomic_set_pointer (void **loc, void *val)
+{
+  atomic_store (loc, val);
+}
+static inline void *
+scm_atomic_ref_pointer (void **loc)
+{
+  return atomic_load (loc);
+}
+static inline void
 scm_atomic_set_scm (SCM *loc, SCM val)
 {
   atomic_store (loc, val);
@@ -95,6 +105,23 @@ scm_atomic_compare_and_swap_uint32 (uint32_t *loc, uint32_t *expected,
       *expected = *loc;
       ret = 0;
     }
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+  return ret;
+}
+
+static inline void
+scm_atomic_set_pointer (void **loc, void *val)
+{
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  *loc = val;
+  scm_i_pthread_mutex_unlock (&atomics_lock);
+}
+static inline void *
+scm_atomic_ref_pointer (void **loc)
+{
+  void *ret;
+  scm_i_pthread_mutex_lock (&atomics_lock);
+  ret = *loc;
   scm_i_pthread_mutex_unlock (&atomics_lock);
   return ret;
 }

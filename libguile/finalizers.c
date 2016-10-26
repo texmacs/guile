@@ -40,6 +40,8 @@ static int automatic_finalization_p = 1;
 
 static size_t finalization_count;
 
+static SCM run_finalizers_subr;
+
 
 
 
@@ -132,8 +134,6 @@ scm_i_add_finalizer (void *obj, scm_t_finalizer_proc proc, void *data)
 
 
 
-static SCM finalizer_async_cell;
-
 static SCM
 run_finalizers_async_thunk (void)
 {
@@ -150,19 +150,13 @@ static void
 queue_finalizer_async (void)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  static scm_i_pthread_mutex_t lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-  scm_i_pthread_mutex_lock (&lock);
-  /* If t is NULL, that could be because we're allocating in
-     threads.c:guilify_self_1.  In that case, rely on the
+  /* Could be that the current thread is is NULL when we're allocating
+     in threads.c:guilify_self_1.  In that case, rely on the
      GC_invoke_finalizers call there after the thread spins up.  */
-  if (t && scm_is_false (SCM_CDR (finalizer_async_cell)))
-    {
-      SCM_SETCDR (finalizer_async_cell, t->active_asyncs);
-      t->active_asyncs = finalizer_async_cell;
-      t->pending_asyncs = 1;
-    }
-  scm_i_pthread_mutex_unlock (&lock);
+  if (!t) return;
+
+  scm_system_async_mark_for_thread (run_finalizers_subr, t->handle);
 }
 
 
@@ -418,10 +412,8 @@ scm_init_finalizers (void)
 {
   /* When the async is to run, the cdr of the pair gets set to the
      asyncs queue of the current thread.  */
-  finalizer_async_cell =
-    scm_cons (scm_c_make_gsubr ("%run-finalizers", 0, 0, 0,
-                                run_finalizers_async_thunk),
-              SCM_BOOL_F);
+  run_finalizers_subr = scm_c_make_gsubr ("%run-finalizers", 0, 0, 0,
+                                          run_finalizers_async_thunk);
 
   if (automatic_finalization_p)
     GC_set_finalizer_notifier (queue_finalizer_async);

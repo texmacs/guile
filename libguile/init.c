@@ -344,7 +344,7 @@ invoke_main_func (void *body_data)
    * asyncs a chance to run.  This must be done after
    * the call to scm_restore_signals.
    */
-  SCM_ASYNC_TICK;
+  scm_async_tick ();
 
   /* Indicate success by returning non-NULL.
    */
