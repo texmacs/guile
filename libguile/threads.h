@@ -68,7 +68,6 @@ typedef struct scm_i_thread {
   scm_i_pthread_mutex_t *held_mutex;
 
   SCM result;
-  int canceled;
   int exited;
 
   /* Boolean indicating whether the thread is in guile mode.  */

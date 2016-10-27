@@ -38,6 +38,9 @@ trivial unused data structure.  Now that we have deprecated the old
 only refer to "asyncs".
 
 * Bug fixes
+** cancel-thread uses asynchronous interrupts, not pthread_cancel
+
+See "Asyncs" in the manual, for more on asynchronous interrupts.
 
 
 Previous changes in 2.1.x (changes since the 2.0.x series):

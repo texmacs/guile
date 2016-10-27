@@ -438,7 +438,6 @@ guilify_self_1 (struct GC_stack_base *base)
     abort ();
 
   scm_i_pthread_mutex_init (&t.admin_mutex, NULL);
-  t.canceled = 0;
   t.exited = 0;
   t.guile_mode = 0;
 
@@ -1012,34 +1011,14 @@ SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
 /* Some systems, notably Android, lack 'pthread_cancel'.  Don't provide
    'cancel-thread' on these systems.  */
 
-#if !SCM_USE_PTHREAD_THREADS || defined HAVE_PTHREAD_CANCEL
+static SCM cancel_thread_var;
 
-SCM_DEFINE (scm_cancel_thread, "cancel-thread", 1, 0, 0,
-	    (SCM thread),
-"Asynchronously force the target @var{thread} to terminate. @var{thread} "
-"cannot be the current thread, and if @var{thread} has already terminated or "
-"been signaled to terminate, this function is a no-op.")
-#define FUNC_NAME s_scm_cancel_thread
+SCM
+scm_cancel_thread (SCM thread)
 {
-  scm_i_thread *t = NULL;
-
-  SCM_VALIDATE_THREAD (1, thread);
-  t = SCM_I_THREAD_DATA (thread);
-  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
-  if (!t->canceled)
-    {
-      t->canceled = 1;
-      scm_i_pthread_mutex_unlock (&t->admin_mutex);
-      scm_i_pthread_cancel (t->pthread);
-    }
-  else
-    scm_i_pthread_mutex_unlock (&t->admin_mutex);
-
+  scm_call_1 (scm_variable_ref (cancel_thread_var), thread);
   return SCM_UNSPECIFIED;
 }
-#undef FUNC_NAME
-
-#endif
 
 SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
 	    (SCM thread, SCM proc),
@@ -1056,7 +1035,7 @@ SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
   t = SCM_I_THREAD_DATA (thread);
   scm_i_pthread_mutex_lock (&t->admin_mutex);
 
-  if (!(t->exited || t->canceled))
+  if (!t->exited)
     t->cleanup_handler = proc;
 
   scm_i_pthread_mutex_unlock (&t->admin_mutex);
@@ -1077,7 +1056,7 @@ SCM_DEFINE (scm_thread_cleanup, "thread-cleanup", 1, 0, 0,
 
   t = SCM_I_THREAD_DATA (thread);
   scm_i_pthread_mutex_lock (&t->admin_mutex);
-  ret = (t->exited || t->canceled) ? SCM_BOOL_F : t->cleanup_handler;
+  ret = t->exited ? SCM_BOOL_F : t->cleanup_handler;
   scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return ret;
@@ -2073,6 +2052,9 @@ scm_init_ice_9_threads (void *unused)
 {
 #include "libguile/threads.x"
 
+  cancel_thread_var =
+    scm_module_variable (scm_current_module (),
+                         scm_from_latin1_symbol ("cancel-thread"));
   call_with_new_thread_var =
     scm_module_variable (scm_current_module (),
                          scm_from_latin1_symbol ("call-with-new-thread"));

@@ -31,6 +31,7 @@
 
 (define-module (ice-9 threads)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 control)
   ;; These bindings are marked as #:replace because when deprecated code
   ;; is enabled, (ice-9 deprecated) also exports these names.
   ;; (Referencing one of the deprecated names prints a warning directing
@@ -86,6 +87,21 @@
 
 
 
+(define cancel-tag (make-prompt-tag "cancel"))
+(define (cancel-thread thread)
+  "Asynchronously interrupt the target @var{thread} and ask it to
+terminate.  @code{dynamic-wind} post thunks will run, but throw handlers
+will not.  If @var{thread} has already terminated or been signaled to
+terminate, this function is a no-op."
+  (system-async-mark
+   (lambda ()
+     (catch #t
+       (lambda ()
+         (abort-to-prompt cancel-tag))
+       (lambda _
+         (error "thread cancellation failed, throwing error instead???"))))
+   thread))
+
 (define* (call-with-new-thread thunk #:optional handler)
   "Call @code{thunk} in a new thread and with a new dynamic state,
 returning a new thread object representing the thread.  The procedure
@@ -106,11 +122,15 @@ Once @var{thunk} or @var{handler} returns, the return value is made the
     (with-mutex mutex
       (%call-with-new-thread
        (lambda ()
-         (lock-mutex mutex)
-         (set! thread (current-thread))
-         (signal-condition-variable cv)
-         (unlock-mutex mutex)
-         (thunk)))
+         (call-with-prompt cancel-tag
+           (lambda ()
+             (lock-mutex mutex)
+             (set! thread (current-thread))
+             (signal-condition-variable cv)
+             (unlock-mutex mutex)
+             (thunk))
+           (lambda (k . args)
+             (apply values args)))))
       (let lp ()
         (unless thread
           (wait-condition-variable cv mutex)

@@ -114,17 +114,14 @@ immediate context switch to one of them. Otherwise, yield has no effect.
 
 @deffn {Scheme Procedure} cancel-thread thread
 @deffnx {C Function} scm_cancel_thread (thread)
-Asynchronously notify @var{thread} to exit.  Immediately after
-receiving this notification, @var{thread} will call its cleanup handler
-(if one has been set) and then terminate, aborting any evaluation that
-is in progress.
+Asynchronously interrupt @var{thread} and ask it to terminate.
+@code{dynamic-wind} post thunks will run, but throw handlers will not.
+If @var{thread} has already terminated or been signaled to terminate,
+this function is a no-op.
 
-Because Guile threads are isomorphic with POSIX threads, @var{thread}
-will not receive its cancellation signal until it reaches a cancellation
-point.  See your operating system's POSIX threading documentation for
-more information on cancellation points; note that in Guile, unlike
-native POSIX threads, a thread can receive a cancellation notification
-while attempting to lock a mutex.
+Under this hood, thread cancellation uses @code{system-async-mark} and
+@code{abort-to-prompt}.  @xref{Asyncs} for more on asynchronous
+interrupts.
 @end deffn
 
 @deffn {Scheme Procedure} set-thread-cleanup! thread proc
