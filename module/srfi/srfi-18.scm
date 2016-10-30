@@ -117,14 +117,10 @@
 ;; EXCEPTIONS
 
 (define (initial-handler obj) 
-  (srfi-18-exception-preserver (condition (&uncaught-exception (reason obj)))))
+  (set! (thread->exception (threads:current-thread))
+    (condition (&uncaught-exception (reason obj)))))
 
 (define thread->exception (make-object-property))
-
-(define (srfi-18-exception-preserver obj)
-  (when (or (terminated-thread-exception? obj)
-            (uncaught-exception? obj))
-    (set! (thread->exception (threads:current-thread)) obj)))
 
 (define (srfi-18-exception-handler key . args)
 
@@ -133,8 +129,8 @@
   ;; `initial-handler'.
 
   (unless (eq? key 'srfi-34)
-    (srfi-18-exception-preserver
-     (condition (&uncaught-exception (reason (cons key args)))))))
+    (set! (thread->exception (threads:current-thread))
+      (condition (&uncaught-exception (reason (cons key args)))))))
 
 (define current-exception-handler (make-parameter initial-handler))
 
@@ -244,14 +240,15 @@
   (let ((current-handler (threads:thread-cleanup thread)))
     (threads:set-thread-cleanup!
      thread
-     (if (thunk? current-handler)
-         (lambda ()
-           (with-exception-handler initial-handler
-             current-handler)
-           (srfi-18-exception-preserver
-            (condition (&terminated-thread-exception))))
-         (lambda () (srfi-18-exception-preserver
-                     (condition (&terminated-thread-exception))))))
+     (let ((handler (lambda ()
+                      (set! (thread->exception (threads:current-thread))
+                        (condition (&terminated-thread-exception))))))
+       (if (thunk? current-handler)
+           (lambda ()
+             (with-exception-handler initial-handler
+               current-handler)
+             (handler))
+           handler)))
     (threads:cancel-thread thread)
     *unspecified*))
 
