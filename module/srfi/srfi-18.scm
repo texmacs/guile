@@ -32,6 +32,7 @@
 
 (define-module (srfi srfi-18)
   #:use-module ((ice-9 threads) #:prefix threads:)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-34)
   #:export (;; Threads
             make-thread
@@ -210,15 +211,15 @@
   *unspecified*)
 
 (define (thread-start! thread)
-  (let ((x (hashq-ref thread-start-conds
-		      (check-arg-type threads:thread? thread "thread-start!"))))
-    (and x (let ((smutex (car x))
-		 (scond (cdr x)))
-	     (hashq-remove! thread-start-conds thread)
-	     (threads:lock-mutex smutex)
-	     (threads:signal-condition-variable scond)
-	     (threads:unlock-mutex smutex)))
-    thread))
+  (match (hashq-ref thread-start-conds
+                    (check-arg-type threads:thread? thread "thread-start!"))
+    ((smutex . scond)
+     (hashq-remove! thread-start-conds thread)
+     (threads:lock-mutex smutex)
+     (threads:signal-condition-variable scond)
+     (threads:unlock-mutex smutex))
+    (#f #f))
+  thread)
 
 (define (thread-yield!) (threads:yield) *unspecified*)
 
