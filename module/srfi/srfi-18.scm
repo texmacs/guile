@@ -70,7 +70,6 @@
  
             current-exception-handler
             with-exception-handler
-            raise
             join-timeout-exception?
             abandoned-mutex-exception?
             terminated-thread-exception?
@@ -79,12 +78,12 @@
   #:re-export ((threads:condition-variable? . condition-variable?)
                (threads:current-thread . current-thread)
                (threads:thread? . thread?)
-               (threads:mutex? . mutex?))
+               (threads:mutex? . mutex?)
+               raise)
   #:replace (current-time
              make-thread
              make-mutex
-             make-condition-variable
-             raise))
+             make-condition-variable))
 
 (unless (provided? 'threads)
   (error "SRFI-18 requires Guile with threads support"))
@@ -109,7 +108,6 @@
 
 ;; EXCEPTIONS
 
-(define raise (@ (srfi srfi-34) raise))
 (define (initial-handler obj) 
   (srfi-18-exception-preserver (cons uncaught-exception obj)))
 
@@ -180,11 +178,9 @@
 			       (threads:wait-condition-variable scond smutex)
 			       (threads:unlock-mutex smutex)
 			       (with-exception-handler initial-handler 
-						       thunk)))))
-    (lambda (thunk . name)
-      (let ((n (and (pair? name) (car name)))
-
-	    (lm (make-mutex 'launch-mutex))
+                                 thunk)))))
+    (lambda* (thunk #:optional name)
+      (let ((lm (make-mutex 'launch-mutex))
 	    (lc (make-condition-variable 'launch-condition-variable))
 	    (sm (make-mutex 'start-mutex))
 	    (sc (make-condition-variable 'start-condition-variable)))
@@ -194,7 +190,7 @@
                   (make-cond-wrapper thunk lc lm sc sm)
                   srfi-18-exception-handler)))
 	  (hashq-set! thread-start-conds t (cons sm sc))
-	  (and n (hashq-set! object-names t n))
+	  (when name (hashq-set! object-names t name))
 	  (threads:wait-condition-variable lc lm)
 	  (threads:unlock-mutex lm)
 	  t)))))
