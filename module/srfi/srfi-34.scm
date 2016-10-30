@@ -41,9 +41,9 @@ procedure that accepts one argument.  It is installed as the current
 exception handler for the dynamic extent (as determined by
 dynamic-wind) of the invocation of THUNK."
   (with-throw-handler throw-key
-	      thunk
-	      (lambda (key obj)
-		(handler obj))))
+    thunk
+    (lambda (key obj)
+      (handler obj))))
 
 (define (raise obj)
   "Invokes the current exception handler on OBJ.  The handler is
