@@ -34,6 +34,9 @@
   #:use-module ((ice-9 threads) #:prefix threads:)
   #:use-module (ice-9 match)
   #:use-module ((srfi srfi-34) #:prefix srfi-34:)
+  #:use-module ((srfi srfi-35) #:select (define-condition-type
+                                          &error
+                                          condition))
   #:export (;; Threads
             make-thread
             thread-name
@@ -97,27 +100,31 @@
       (scm-error 'wrong-type-arg caller
 		 "Wrong type argument: ~S" (list arg) '())))
 
-(define abandoned-mutex-exception (list 'abandoned-mutex-exception))
-(define join-timeout-exception (list 'join-timeout-exception))
-(define terminated-thread-exception (list 'terminated-thread-exception))
-(define uncaught-exception (list 'uncaught-exception))
+(define-condition-type &abandoned-mutex-exception &error
+  abandoned-mutex-exception?)
+(define-condition-type &join-timeout-exception &error
+  join-timeout-exception?)
+(define-condition-type &terminated-thread-exception &error
+  terminated-thread-exception?)
+(define-condition-type &uncaught-exception &error
+  uncaught-exception?
+  (reason uncaught-exception-reason))
 
 (define object-names (make-weak-key-hash-table))
 (define object-specifics (make-weak-key-hash-table))
 (define thread-start-conds (make-weak-key-hash-table))
-(define thread-exception-handlers (make-weak-key-hash-table))
 
 ;; EXCEPTIONS
 
 (define (initial-handler obj) 
-  (srfi-18-exception-preserver (cons uncaught-exception obj)))
+  (srfi-18-exception-preserver (condition (&uncaught-exception (reason obj)))))
 
 (define thread->exception (make-object-property))
 
 (define (srfi-18-exception-preserver obj)
-  (if (or (terminated-thread-exception? obj)
-          (uncaught-exception? obj))
-      (set! (thread->exception (threads:current-thread)) obj)))
+  (when (or (terminated-thread-exception? obj)
+            (uncaught-exception? obj))
+    (set! (thread->exception (threads:current-thread)) obj)))
 
 (define (srfi-18-exception-handler key . args)
 
@@ -125,10 +132,9 @@
   ;; if one is caught at this level, it has already been taken care of by
   ;; `initial-handler'.
 
-  (and (not (eq? key 'srfi-34))
-       (srfi-18-exception-preserver (if (null? args) 
-					(cons uncaught-exception key)
-					(cons* uncaught-exception key args)))))
+  (unless (eq? key 'srfi-34)
+    (srfi-18-exception-preserver
+     (condition (&uncaught-exception (reason (cons key args)))))))
 
 (define current-exception-handler (make-parameter initial-handler))
 
@@ -143,15 +149,6 @@
    (lambda ()
      (parameterize ((current-exception-handler handler))
        (thunk)))))
-
-(define (join-timeout-exception? obj) (eq? obj join-timeout-exception))
-(define (abandoned-mutex-exception? obj) (eq? obj abandoned-mutex-exception))
-(define (uncaught-exception? obj) 
-  (and (pair? obj) (eq? (car obj) uncaught-exception)))
-(define (uncaught-exception-reason exc)
-  (cdr (check-arg-type uncaught-exception? exc "uncaught-exception-reason")))
-(define (terminated-thread-exception? obj) 
-  (eq? obj terminated-thread-exception))
 
 ;; THREADS
 
@@ -252,9 +249,9 @@
            (with-exception-handler initial-handler
              current-handler)
            (srfi-18-exception-preserver
-            terminated-thread-exception))
+            (condition (&terminated-thread-exception))))
          (lambda () (srfi-18-exception-preserver
-                     terminated-thread-exception))))
+                     (condition (&terminated-thread-exception))))))
     (threads:cancel-thread thread)
     *unspecified*))
 
@@ -264,7 +261,7 @@
 	    (let ((v (apply threads:join-thread thread args))
 		  (e (thread->exception thread)))
 	      (if (and (= (length args) 1) (not v))
-		  (srfi-34:raise join-timeout-exception))
+		  (srfi-34:raise (condition (&join-timeout-exception))))
 	      (if e (srfi-34:raise e))
 	      v))))
   (call/cc thread-join-inner!))
@@ -303,7 +300,9 @@
     (wrap (lambda ()
 	    (catch 'abandoned-mutex-error
 		   (lambda () (apply threads:lock-mutex mutex args))
-		   (lambda (key . args) (srfi-34:raise abandoned-mutex-exception))))))
+		   (lambda (key . args)
+                     (srfi-34:raise
+                      (condition (&abandoned-mutex-exception))))))))
   (call/cc mutex-lock-inner!))
 
 (define (mutex-unlock! mutex . args) 

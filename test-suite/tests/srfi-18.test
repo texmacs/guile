@@ -484,7 +484,7 @@
         (with-exception-handler
          (lambda (obj)
            (and (uncaught-exception? obj)
-                (eq? (uncaught-exception-reason obj) 'foo)
+                (equal? (uncaught-exception-reason obj) '(foo))
                 (set! success #t)))
          (lambda () (thread-join! t)))
         success)))))
