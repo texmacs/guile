@@ -282,13 +282,12 @@
 ;; MUTEXES
 ;; These functions are all pass-thrus to the existing Guile implementations.
 
-(define make-mutex
-  (lambda name
-    (let ((n (and (pair? name) (car name)))
-	  (m (threads:make-mutex 'unchecked-unlock 
-                                 'allow-external-unlock 
-                                 'recursive)))
-      (and n (hashq-set! object-names m n)) m)))
+(define* (make-mutex #:optional name)
+  (let ((m (threads:make-mutex 'unchecked-unlock
+                               'allow-external-unlock
+                               'recursive)))
+    (when name (hashq-set! object-names m name))
+    m))
 
 (define (mutex-name mutex)
   (hashq-ref object-names (check-arg-type threads:mutex? mutex "mutex-name")))
@@ -323,11 +322,10 @@
 ;; CONDITION VARIABLES
 ;; These functions are all pass-thrus to the existing Guile implementations.
 
-(define make-condition-variable
-  (lambda name
-    (let ((n (and (pair? name) (car name)))
-	  (m (threads:make-condition-variable)))
-      (and n (hashq-set! object-names m n)) m)))
+(define* (make-condition-variable #:optional name)
+  (let ((m (threads:make-condition-variable)))
+    (when name (hashq-set! object-names m name))
+    m))
 
 (define (condition-variable-name condition-variable)
   (hashq-ref object-names (check-arg-type threads:condition-variable? 
