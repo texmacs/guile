@@ -33,7 +33,7 @@
 (define-module (srfi srfi-18)
   #:use-module ((ice-9 threads) #:prefix threads:)
   #:use-module (ice-9 match)
-  #:use-module (srfi srfi-34)
+  #:use-module ((srfi srfi-34) #:prefix srfi-34:)
   #:export (;; Threads
             make-thread
             thread-name
@@ -80,7 +80,7 @@
                (threads:current-thread . current-thread)
                (threads:thread? . thread?)
                (threads:mutex? . mutex?)
-               raise)
+               (srfi-34:raise . raise))
   #:replace (current-time
              make-thread
              make-mutex
@@ -130,29 +130,19 @@
 					(cons uncaught-exception key)
 					(cons* uncaught-exception key args)))))
 
-(define (current-handler-stack)
-  (let ((ct (threads:current-thread)))
-    (or (hashq-ref thread-exception-handlers ct)
-	(hashq-set! thread-exception-handlers ct (list initial-handler)))))
+(define current-exception-handler (make-parameter initial-handler))
 
 (define (with-exception-handler handler thunk)
-  (let ((ct (threads:current-thread))
-        (hl (current-handler-stack)))
-    (check-arg-type procedure? handler "with-exception-handler") 
-    (check-arg-type thunk? thunk "with-exception-handler")
-    (hashq-set! thread-exception-handlers ct (cons handler hl))
-    ((@ (srfi srfi-34) with-exception-handler) 
+  (check-arg-type procedure? handler "with-exception-handler")
+  (check-arg-type thunk? thunk "with-exception-handler")
+  (srfi-34:with-exception-handler
+   (let ((prev-handler (current-exception-handler)))
      (lambda (obj)
-       (hashq-set! thread-exception-handlers ct hl) 
-       (handler obj))
-     (lambda () 
-       (call-with-values thunk
-         (lambda res
-           (hashq-set! thread-exception-handlers ct hl)
-           (apply values res)))))))
-
-(define (current-exception-handler)
-  (car (current-handler-stack)))
+       (parameterize ((current-exception-handler prev-handler))
+         (handler obj))))
+   (lambda ()
+     (parameterize ((current-exception-handler handler))
+       (thunk)))))
 
 (define (join-timeout-exception? obj) (eq? obj join-timeout-exception))
 (define (abandoned-mutex-exception? obj) (eq? obj abandoned-mutex-exception))
@@ -274,8 +264,8 @@
 	    (let ((v (apply threads:join-thread thread args))
 		  (e (thread->exception thread)))
 	      (if (and (= (length args) 1) (not v))
-		  (raise join-timeout-exception))
-	      (if e (raise e))
+		  (srfi-34:raise join-timeout-exception))
+	      (if e (srfi-34:raise e))
 	      v))))
   (call/cc thread-join-inner!))
 
@@ -313,7 +303,7 @@
     (wrap (lambda ()
 	    (catch 'abandoned-mutex-error
 		   (lambda () (apply threads:lock-mutex mutex args))
-		   (lambda (key . args) (raise abandoned-mutex-exception))))))
+		   (lambda (key . args) (srfi-34:raise abandoned-mutex-exception))))))
   (call/cc mutex-lock-inner!))
 
 (define (mutex-unlock! mutex . args) 
