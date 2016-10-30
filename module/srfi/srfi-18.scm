@@ -233,8 +233,8 @@
 				   '()))))
 	 (secs (inexact->exact (truncate t)))
 	 (usecs (inexact->exact (truncate (* (- t secs) 1000000)))))
-    (and (> secs 0) (sleep secs))
-    (and (> usecs 0) (usleep usecs))
+    (when (> secs 0) (sleep secs))
+    (when (> usecs 0) (usleep usecs))
     *unspecified*))
 
 ;; A convenience function for installing exception handlers on SRFI-18 
@@ -254,23 +254,19 @@
 ;; terminated-thread exception, as per SRFI-18, 
 
 (define (thread-terminate! thread)
-  (define (thread-terminate-inner!)
-    (let ((current-handler (threads:thread-cleanup thread)))
-      (if (thunk? current-handler)
-	  (threads:set-thread-cleanup!
-           thread 
-           (lambda ()
-             (with-exception-handler initial-handler
-               current-handler) 
-             (srfi-18-exception-preserver
-              terminated-thread-exception)))
-	  (threads:set-thread-cleanup!
-           thread
-           (lambda () (srfi-18-exception-preserver
-                       terminated-thread-exception))))
-      (threads:cancel-thread thread)
-      *unspecified*))
-  (thread-terminate-inner!))
+  (let ((current-handler (threads:thread-cleanup thread)))
+    (threads:set-thread-cleanup!
+     thread
+     (if (thunk? current-handler)
+         (lambda ()
+           (with-exception-handler initial-handler
+             current-handler)
+           (srfi-18-exception-preserver
+            terminated-thread-exception))
+         (lambda () (srfi-18-exception-preserver
+                     terminated-thread-exception))))
+    (threads:cancel-thread thread)
+    *unspecified*))
 
 (define (thread-join! thread . args) 
   (define thread-join-inner!
