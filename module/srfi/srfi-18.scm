@@ -254,15 +254,22 @@
     (threads:cancel-thread thread)
     *unspecified*))
 
-(define (thread-join! thread . args) 
+;; A unique value.
+(define %sentinel (list 1))
+(define* (thread-join! thread #:optional (timeout %sentinel)
+                       (timeoutval %sentinel))
   (with-exception-handlers-here
    (lambda ()
-     (let ((v (apply threads:join-thread thread args))
-           (e (thread->exception thread)))
-       (if (and (= (length args) 1) (not v))
-           (srfi-34:raise (condition (&join-timeout-exception))))
-       (if e (srfi-34:raise e))
-       v))))
+     (let ((v (if (eq? timeout %sentinel)
+                  (threads:join-thread thread)
+                  (threads:join-thread thread timeout %sentinel))))
+       (cond
+        ((eq? v %sentinel)
+         (if (eq? timeoutval %sentinel)
+             (srfi-34:raise (condition (&join-timeout-exception)))
+             timeoutval))
+        ((thread->exception thread) => srfi-34:raise)
+        (else v))))))
 
 ;; MUTEXES
 ;; These functions are all pass-thrus to the existing Guile implementations.
