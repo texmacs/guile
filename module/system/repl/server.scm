@@ -133,16 +133,17 @@
 (define (serve-client client addr)
 
   (let ((thread (current-thread)))
-    ;; Close the socket when this thread exits, even if canceled.
-    (set-thread-cleanup! thread (lambda () (close-socket! client)))
-    ;; Arrange to cancel this thread to forcefully shut down the socket.
+    ;; To shut down this thread and socket, cause it to unwind.
     (add-open-socket! client (lambda () (cancel-thread thread))))
 
-  (with-continuation-barrier
-   (lambda ()
-     (parameterize ((current-input-port client)
-                    (current-output-port client)
-                    (current-error-port client)
-                    (current-warning-port client))
-       (with-fluids ((*repl-stack* '()))
-         (start-repl))))))
+  (dynamic-wind
+    (lambda () #f)
+    (with-continuation-barrier
+     (lambda ()
+       (parameterize ((current-input-port client)
+                      (current-output-port client)
+                      (current-error-port client)
+                      (current-warning-port client))
+         (with-fluids ((*repl-stack* '()))
+           (start-repl)))))
+    (lambda () (close-socket! client))))
