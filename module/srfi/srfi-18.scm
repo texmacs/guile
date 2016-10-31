@@ -220,18 +220,26 @@
     (when (> usecs 0) (usleep usecs))
     *unspecified*))
 
-;; A convenience function for installing exception handlers on SRFI-18 
-;; primitives that resume the calling continuation after the handler is 
-;; invoked -- this resolves a behavioral incompatibility with Guile's
-;; implementation of SRFI-34, which uses lazy-catch and rethrows handled
-;; exceptions.  (SRFI-18, "Primitives and exceptions")
+;; Whereas SRFI-34 leaves the continuation of a call to an exception
+;; handler unspecified, SRFI-18 has this to say:
+;;
+;;   When one of the primitives defined in this SRFI raises an exception
+;;   defined in this SRFI, the exception handler is called with the same
+;;   continuation as the primitive (i.e. it is a tail call to the
+;;   exception handler).
+;;
+;; Therefore arrange for exceptions thrown by SRFI-18 primitives to run
+;; handlers with the continuation of the primitive call, for those
+;; primitives that throw exceptions.
 
-(define (wrap thunk)
-  (lambda (continuation)
-    (with-exception-handler (lambda (obj)
-			      ((current-exception-handler) obj)
-			      (continuation))
-			    thunk)))
+(define (with-exception-handlers-here thunk)
+  (let ((tag (make-prompt-tag)))
+    (call-with-prompt tag
+      (lambda ()
+        (with-exception-handler (lambda (exn) (abort-to-prompt tag exn))
+          thunk))
+      (lambda (k exn)
+        ((current-exception-handler) exn)))))
 
 ;; A pass-thru to cancel-thread that first installs a handler that throws
 ;; terminated-thread exception, as per SRFI-18, 
@@ -253,15 +261,14 @@
     *unspecified*))
 
 (define (thread-join! thread . args) 
-  (define thread-join-inner!
-    (wrap (lambda ()
-	    (let ((v (apply threads:join-thread thread args))
-		  (e (thread->exception thread)))
-	      (if (and (= (length args) 1) (not v))
-		  (srfi-34:raise (condition (&join-timeout-exception))))
-	      (if e (srfi-34:raise e))
-	      v))))
-  (call/cc thread-join-inner!))
+  (with-exception-handlers-here
+   (lambda ()
+     (let ((v (apply threads:join-thread thread args))
+           (e (thread->exception thread)))
+       (if (and (= (length args) 1) (not v))
+           (srfi-34:raise (condition (&join-timeout-exception))))
+       (if e (srfi-34:raise e))
+       v))))
 
 ;; MUTEXES
 ;; These functions are all pass-thrus to the existing Guile implementations.
@@ -293,14 +300,13 @@
 	(if (> (threads:mutex-level mutex) 0) 'not-owned 'not-abandoned))))
 
 (define (mutex-lock! mutex . args) 
-  (define mutex-lock-inner!
-    (wrap (lambda ()
-	    (catch 'abandoned-mutex-error
-		   (lambda () (apply threads:lock-mutex mutex args))
-		   (lambda (key . args)
-                     (srfi-34:raise
-                      (condition (&abandoned-mutex-exception))))))))
-  (call/cc mutex-lock-inner!))
+  (with-exception-handlers-here
+   (lambda ()
+     (catch 'abandoned-mutex-error
+       (lambda () (apply threads:lock-mutex mutex args))
+       (lambda (key . args)
+         (srfi-34:raise
+          (condition (&abandoned-mutex-exception))))))))
 
 (define (mutex-unlock! mutex . args) 
   (apply threads:unlock-mutex mutex args))
