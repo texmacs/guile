@@ -113,26 +113,20 @@
 (define object-names (make-weak-key-hash-table))
 (define object-specifics (make-weak-key-hash-table))
 (define thread-start-conds (make-weak-key-hash-table))
+(define thread->exception (make-object-property))
 
 ;; EXCEPTIONS
 
-(define (initial-handler obj) 
-  (set! (thread->exception (threads:current-thread))
-    (condition (&uncaught-exception (reason obj)))))
+;; All threads created by SRFI-18 have an initial handler installed that
+;; will squirrel away an uncaught exception to allow it to bubble out to
+;; joining threads.  However for the main thread and other threads not
+;; created by SRFI-18, just let the exception bubble up by passing on
+;; doing anything with the exception.
+(define (exception-handler-for-foreign-threads obj)
+  (values))
 
-(define thread->exception (make-object-property))
-
-(define (srfi-18-exception-handler key . args)
-
-  ;; SRFI 34 exceptions continue to bubble up no matter who handles them, so
-  ;; if one is caught at this level, it has already been taken care of by
-  ;; `initial-handler'.
-
-  (unless (eq? key 'srfi-34)
-    (set! (thread->exception (threads:current-thread))
-      (condition (&uncaught-exception (reason (cons key args)))))))
-
-(define current-exception-handler (make-parameter initial-handler))
+(define current-exception-handler
+  (make-parameter exception-handler-for-foreign-threads))
 
 (define (with-exception-handler handler thunk)
   (check-arg-type procedure? handler "with-exception-handler")
@@ -152,32 +146,33 @@
 ;; Once started, install a top-level exception handler that rethrows any 
 ;; exceptions wrapped in an uncaught-exception wrapper. 
 
-(define make-thread 
-  (let ((make-cond-wrapper (lambda (thunk lcond lmutex scond smutex)
-			     (lambda () 
-			       (threads:lock-mutex lmutex)
-			       (threads:signal-condition-variable lcond)
-			       (threads:lock-mutex smutex)
-			       (threads:unlock-mutex lmutex)
-			       (threads:wait-condition-variable scond smutex)
-			       (threads:unlock-mutex smutex)
-			       (with-exception-handler initial-handler 
-                                 thunk)))))
-    (lambda* (thunk #:optional name)
-      (let ((lm (make-mutex 'launch-mutex))
-	    (lc (make-condition-variable 'launch-condition-variable))
-	    (sm (make-mutex 'start-mutex))
-	    (sc (make-condition-variable 'start-condition-variable)))
-	
-	(threads:lock-mutex lm)
-	(let ((t (threads:call-with-new-thread
-                  (make-cond-wrapper thunk lc lm sc sm)
-                  srfi-18-exception-handler)))
-	  (hashq-set! thread-start-conds t (cons sm sc))
-	  (when name (hashq-set! object-names t name))
-	  (threads:wait-condition-variable lc lm)
-	  (threads:unlock-mutex lm)
-	  t)))))
+(define* (make-thread thunk #:optional name)
+  (let ((lm (make-mutex 'launch-mutex))
+        (lc (make-condition-variable 'launch-condition-variable))
+        (sm (make-mutex 'start-mutex))
+        (sc (make-condition-variable 'start-condition-variable)))
+    (threads:lock-mutex lm)
+    (let ((t (threads:call-with-new-thread
+              (lambda ()
+                (threads:lock-mutex lm)
+                (threads:signal-condition-variable lc)
+                (threads:lock-mutex sm)
+                (threads:unlock-mutex lm)
+                (threads:wait-condition-variable sc sm)
+                (threads:unlock-mutex sm)
+                (thunk))
+              (lambda (key . args)
+                (set! (thread->exception (threads:current-thread))
+                  (condition (&uncaught-exception
+                              (reason
+                               (match (cons key args)
+                                 (('srfi-34 obj) obj)
+                                 (obj obj))))))))))
+      (hashq-set! thread-start-conds t (cons sm sc))
+      (when name (hashq-set! object-names t name))
+      (threads:wait-condition-variable lc lm)
+      (threads:unlock-mutex lm)
+      t)))
 
 (define (thread-name thread)
   (hashq-ref object-names
@@ -253,8 +248,7 @@
                         (condition (&terminated-thread-exception))))))
        (if (thunk? current-handler)
            (lambda ()
-             (with-exception-handler initial-handler
-               current-handler)
+             (current-handler)
              (handler))
            handler)))
     (threads:cancel-thread thread)
