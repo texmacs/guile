@@ -41,8 +41,6 @@
   #:replace (call-with-new-thread
              yield
              cancel-thread
-             set-thread-cleanup!
-             thread-cleanup
              join-thread
              thread?
              make-mutex

@@ -60,7 +60,6 @@ typedef struct scm_i_thread {
   SCM handle;
   scm_i_pthread_t pthread;
 
-  SCM cleanup_handler;
   SCM join_queue;
 
   scm_i_pthread_mutex_t admin_mutex;
@@ -151,8 +150,6 @@ SCM_INTERNAL void scm_i_dynwind_pthread_mutex_lock_block_asyncs (scm_i_pthread_m
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_yield (void);
 SCM_API SCM scm_cancel_thread (SCM t);
-SCM_API SCM scm_set_thread_cleanup_x (SCM thread, SCM proc);
-SCM_API SCM scm_thread_cleanup (SCM thread);
 SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_join_thread_timed (SCM t, SCM timeout, SCM timeoutval);
 SCM_API SCM scm_thread_p (SCM t);

@@ -351,13 +351,12 @@
 	      (join-thread t)
 	      #t)))
 
-	(pass-if "handler result passed to join"
+	(pass-if "cancel result passed to join"
           (require-cancel-thread)
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (lock-mutex m))))
-	      (set-thread-cleanup! t (lambda () 'foo))
-	      (cancel-thread t)
+	      (cancel-thread t 'foo)
 	      (eq? (join-thread t) 'foo))))
 
 	(pass-if "can cancel self"
@@ -365,29 +364,9 @@
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (begin
-				     (set-thread-cleanup! (current-thread)
-							  (lambda () 'foo))
-				     (cancel-thread (current-thread))
+				     (cancel-thread (current-thread) 'foo)
 				     (lock-mutex m)))))
-	      (eq? (join-thread t) 'foo))))
-
-	(pass-if "handler supplants final expr"
-	  (let ((t (begin-thread (begin (set-thread-cleanup! (current-thread)
-							     (lambda () 'bar))
-					'foo))))
-	    (eq? (join-thread t) 'bar)))
-
-	(pass-if "remove handler by setting false"
-	  (let ((m (make-mutex)))
-	    (lock-mutex m)
-	    (let ((t (begin-thread (lock-mutex m) 'bar)))
-	      (set-thread-cleanup! t (lambda () 'foo))
-	      (set-thread-cleanup! t #f)
-	      (unlock-mutex m)
-	      (eq? (join-thread t) 'bar))))
-
-	(pass-if "initial handler is false"
-	  (not (thread-cleanup (current-thread)))))
+	      (eq? (join-thread t) 'foo)))))
 
       ;;
       ;; mutex ownership

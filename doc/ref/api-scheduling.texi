@@ -125,27 +125,6 @@ Under this hood, thread cancellation uses @code{system-async-mark} and
 interrupts.
 @end deffn
 
-@deffn {Scheme Procedure} set-thread-cleanup! thread proc
-@deffnx {C Function} scm_set_thread_cleanup_x (thread, proc)
-Set @var{proc} as the cleanup handler for the thread @var{thread}.
-@var{proc}, which must be a thunk, will be called when @var{thread}
-exits, either normally or by being canceled.  Thread cleanup handlers
-can be used to perform useful tasks like releasing resources, such as
-locked mutexes, when thread exit cannot be predicted.
-
-The return value of @var{proc} will be set as the @emph{exit value} of
-@var{thread}.
-
-To remove a cleanup handler, pass @code{#f} for @var{proc}.
-@end deffn
-
-@deffn {Scheme Procedure} thread-cleanup thread
-@deffnx {C Function} scm_thread_cleanup (thread)
-Return the cleanup handler currently installed for the thread
-@var{thread}.  If no cleanup handler is currently installed,
-thread-cleanup returns @code{#f}.
-@end deffn
-
 @deffn macro make-thread proc arg @dots{}
 Apply @var{proc} to @var{arg} @dots{} in a new thread formed by
 @code{call-with-new-thread} using a default error handler that display

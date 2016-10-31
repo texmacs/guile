@@ -408,7 +408,6 @@ guilify_self_1 (struct GC_stack_base *base)
   t.pthread = scm_i_pthread_self ();
   t.handle = SCM_BOOL_F;
   t.result = SCM_BOOL_F;
-  t.cleanup_handler = SCM_BOOL_F;
   t.mutexes = SCM_EOL;
   t.held_mutex = NULL;
   t.join_queue = SCM_EOL;
@@ -527,29 +526,12 @@ typedef struct {
 #define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
 #define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
 
-static SCM
-call_cleanup (void *data)
-{
-  SCM *proc_p = data;
-  return scm_call_0 (*proc_p);
-}
-  
 /* Perform thread tear-down, in guile mode.
  */
 static void *
 do_thread_exit (void *v)
 {
   scm_i_thread *t = (scm_i_thread *) v;
-
-  if (!scm_is_false (t->cleanup_handler))
-    {
-      SCM ptr = t->cleanup_handler;
-
-      t->cleanup_handler = SCM_BOOL_F;
-      t->result = scm_internal_catch (SCM_BOOL_T,
-				      call_cleanup, &ptr,
-				      scm_handle_by_message_noexit, NULL);
-    }
 
   scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
 
@@ -1019,49 +1001,6 @@ scm_cancel_thread (SCM thread)
   scm_call_1 (scm_variable_ref (cancel_thread_var), thread);
   return SCM_UNSPECIFIED;
 }
-
-SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
-	    (SCM thread, SCM proc),
-"Set the thunk @var{proc} as the cleanup handler for the thread @var{thread}. "
-"This handler will be called when the thread exits.")
-#define FUNC_NAME s_scm_set_thread_cleanup_x
-{
-  scm_i_thread *t;
-
-  SCM_VALIDATE_THREAD (1, thread);
-  if (!scm_is_false (proc))
-    SCM_VALIDATE_THUNK (2, proc);
-
-  t = SCM_I_THREAD_DATA (thread);
-  scm_i_pthread_mutex_lock (&t->admin_mutex);
-
-  if (!t->exited)
-    t->cleanup_handler = proc;
-
-  scm_i_pthread_mutex_unlock (&t->admin_mutex);
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_thread_cleanup, "thread-cleanup", 1, 0, 0,
-	    (SCM thread),
-"Return the cleanup handler installed for the thread @var{thread}.")
-#define FUNC_NAME s_scm_thread_cleanup
-{
-  scm_i_thread *t;
-  SCM ret;
-
-  SCM_VALIDATE_THREAD (1, thread);
-
-  t = SCM_I_THREAD_DATA (thread);
-  scm_i_pthread_mutex_lock (&t->admin_mutex);
-  ret = t->exited ? SCM_BOOL_F : t->cleanup_handler;
-  scm_i_pthread_mutex_unlock (&t->admin_mutex);
-
-  return ret;
-}
-#undef FUNC_NAME
 
 SCM scm_join_thread (SCM thread)
 {

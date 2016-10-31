@@ -21,6 +21,12 @@ break, however; we used the deprecation facility to signal a warning
 message while also providing these bindings in the root environment for
 the duration of the 2.2 series.
 
+** Thread cleanup handlers removed
+
+The `set-thread-cleanup!' and `thread-cleanup' functions that were added
+in Guile 2.0 to support cleanup after thread cancellation are no longer
+needed, since threads can declare cleanup handlers via `dynamic-wind'.
+
 * New deprecations
 ** Arbiters deprecated
 
