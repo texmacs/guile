@@ -232,38 +232,28 @@
       (lambda (k exn)
         ((current-exception-handler) exn)))))
 
-;; A pass-thru to cancel-thread that first installs a handler that throws
-;; terminated-thread exception, as per SRFI-18, 
-
+;; A unique value.
+(define %cancel-sentinel (list 'cancelled))
 (define (thread-terminate! thread)
-  (let ((current-handler (threads:thread-cleanup thread)))
-    (threads:set-thread-cleanup!
-     thread
-     (let ((handler (lambda ()
-                      (set! (thread->exception (threads:current-thread))
-                        (condition (&terminated-thread-exception))))))
-       (if (thunk? current-handler)
-           (lambda ()
-             (current-handler)
-             (handler))
-           handler)))
-    (threads:cancel-thread thread)
-    *unspecified*))
+  (threads:cancel-thread thread %cancel-sentinel)
+  *unspecified*)
 
 ;; A unique value.
-(define %sentinel (list 1))
-(define* (thread-join! thread #:optional (timeout %sentinel)
-                       (timeoutval %sentinel))
+(define %timeout-sentinel (list 1))
+(define* (thread-join! thread #:optional (timeout %timeout-sentinel)
+                       (timeoutval %timeout-sentinel))
   (with-exception-handlers-here
    (lambda ()
-     (let ((v (if (eq? timeout %sentinel)
+     (let ((v (if (eq? timeout %timeout-sentinel)
                   (threads:join-thread thread)
-                  (threads:join-thread thread timeout %sentinel))))
+                  (threads:join-thread thread timeout %timeout-sentinel))))
        (cond
-        ((eq? v %sentinel)
-         (if (eq? timeoutval %sentinel)
+        ((eq? v %timeout-sentinel)
+         (if (eq? timeoutval %timeout-sentinel)
              (srfi-34:raise (condition (&join-timeout-exception)))
              timeoutval))
+        ((eq? v %cancel-sentinel)
+         (srfi-34:raise (condition (&terminated-thread-exception))))
         ((thread->exception thread) => srfi-34:raise)
         (else v))))))
 
