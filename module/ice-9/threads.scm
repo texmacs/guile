@@ -88,16 +88,17 @@
 
 
 (define cancel-tag (make-prompt-tag "cancel"))
-(define (cancel-thread thread)
+(define (cancel-thread thread . values)
   "Asynchronously interrupt the target @var{thread} and ask it to
-terminate.  @code{dynamic-wind} post thunks will run, but throw handlers
-will not.  If @var{thread} has already terminated or been signaled to
-terminate, this function is a no-op."
+terminate, returning the given @var{values}.  @code{dynamic-wind} post
+thunks will run, but throw handlers will not.  If @var{thread} has
+already terminated or been signaled to terminate, this function is a
+no-op."
   (system-async-mark
    (lambda ()
      (catch #t
        (lambda ()
-         (abort-to-prompt cancel-tag))
+         (apply abort-to-prompt cancel-tag values))
        (lambda _
          (error "thread cancellation failed, throwing error instead???"))))
    thread))

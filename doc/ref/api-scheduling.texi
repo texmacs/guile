@@ -112,12 +112,13 @@ If one or more threads are waiting to execute, calling yield forces an
 immediate context switch to one of them. Otherwise, yield has no effect.
 @end deffn
 
-@deffn {Scheme Procedure} cancel-thread thread
+@deffn {Scheme Procedure} cancel-thread thread . values
 @deffnx {C Function} scm_cancel_thread (thread)
 Asynchronously interrupt @var{thread} and ask it to terminate.
 @code{dynamic-wind} post thunks will run, but throw handlers will not.
 If @var{thread} has already terminated or been signaled to terminate,
-this function is a no-op.
+this function is a no-op.  Calling @code{join-thread} on the thread will
+return the given @var{values}, if the cancel succeeded.
 
 Under this hood, thread cancellation uses @code{system-async-mark} and
 @code{abort-to-prompt}.  @xref{Asyncs} for more on asynchronous
