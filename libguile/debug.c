@@ -109,13 +109,9 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 {
   SCM ans;
 
-  scm_dynwind_begin (0);
-  scm_dynwind_critical_section (SCM_BOOL_F);
-
   ans = scm_options (setting, scm_debug_opts, FUNC_NAME);
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 
-  scm_dynwind_end ();
   return ans;
 }
 #undef FUNC_NAME
