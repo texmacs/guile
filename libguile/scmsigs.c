@@ -86,6 +86,8 @@
    signal_handler_threads points to the thread that a signal should be
    delivered to.
 */
+static scm_i_pthread_mutex_t signal_handler_lock =
+  SCM_I_PTHREAD_MUTEX_INITIALIZER;
 static SCM *signal_handlers;
 static SCM signal_handler_asyncs;
 static SCM signal_handler_threads;
@@ -335,7 +337,8 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   scm_i_ensure_signal_delivery_thread ();
 
   scm_dynwind_begin (0);
-  scm_dynwind_critical_section (SCM_BOOL_F);
+  scm_dynwind_pthread_mutex_lock (&signal_handler_lock);
+  scm_dynwind_block_asyncs ();
 
   old_handler = SCM_SIMPLE_VECTOR_REF (*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
