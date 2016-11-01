@@ -271,9 +271,7 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 {
   timet timv;
 
-  SCM_CRITICAL_SECTION_START;
   timv = time (NULL);
-  SCM_CRITICAL_SECTION_END;
   if (timv == -1)
     SCM_MISC_ERROR ("current time not available", SCM_EOL);
   return scm_from_long (timv);
@@ -328,6 +326,7 @@ filltime (struct tm *bd_time, int zoff, const char *zname)
 }
 
 static const char tzvar[3] = "TZ";
+static scm_i_pthread_mutex_t tz_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* if zone is set, create a temporary environment with only a TZ
    string.  other threads or interrupt handlers shouldn't be allowed
@@ -391,9 +390,11 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 
   itime = SCM_NUM2LONG (1, time);
 
-  /* deferring interupts is essential since a) setzone may install a temporary
-     environment b) localtime uses a static buffer.  */
-  SCM_CRITICAL_SECTION_START;
+  /* Mutual exclusion is essential since a) setzone may install a
+     temporary environment b) localtime uses a static buffer.  */
+  scm_dynwind_begin (0);
+  scm_dynwind_pthread_mutex_lock (&tz_lock);
+
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
   tzset ();
@@ -446,9 +447,9 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
     zoff += 24 * 60 * 60;
 
   result = filltime (&lt, zoff, zname);
-  SCM_CRITICAL_SECTION_END;
-
   free (zname);
+
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -479,11 +480,11 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
 #if HAVE_GMTIME_R
   bd_time = gmtime_r (&itime, &bd_buf);
 #else
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&tz_lock);
   bd_time = gmtime (&itime);
   if (bd_time != NULL)
     bd_buf = *bd_time;
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&tz_lock);
 #endif
   if (bd_time == NULL)
     SCM_SYSERROR;
@@ -552,7 +553,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   scm_dynwind_free ((char *)lt.tm_zone);
 #endif
 
-  scm_dynwind_critical_section (SCM_BOOL_F);
+  scm_dynwind_pthread_mutex_lock (&tz_lock);
 
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
@@ -698,7 +699,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 					 scm_from_locale_string ("0")));
 
 	have_zone = 1;
-	SCM_CRITICAL_SECTION_START;
+        scm_pthread_mutex_lock (&tz_lock);
 	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
       }
 #endif
@@ -720,7 +721,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     if (have_zone)
       {
 	restorezone (zone_spec, oldenv, FUNC_NAME);
-	SCM_CRITICAL_SECTION_END;
+        scm_i_pthread_mutex_unlock (&tz_lock);
       }
 #endif
     }
@@ -780,11 +781,11 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 
   /* GNU glibc strptime() "%s" is affected by the current timezone, since it
      reads a UTC time_t value and converts with localtime_r() to set the tm
-     fields, hence the use of SCM_CRITICAL_SECTION_START.  */
+     fields, hence the mutex.  */
   t.tm_isdst = -1;
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&tz_lock);
   rest = strptime (str, fmt, &t);
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&tz_lock);
   if (rest == NULL)
     {
       /* POSIX doesn't say strptime sets errno, and on glibc 2.3.2 for
