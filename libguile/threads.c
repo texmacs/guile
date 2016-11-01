@@ -159,6 +159,8 @@ make_queue ()
   return scm_cons (SCM_EOL, SCM_EOL);
 }
 
+static scm_i_pthread_mutex_t queue_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 /* Put T at the back of Q and return a handle that can be used with
    remqueue to remove T from Q again.
  */
@@ -166,13 +168,13 @@ static SCM
 enqueue (SCM q, SCM t)
 {
   SCM c = scm_cons (t, SCM_EOL);
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&queue_lock);
   if (scm_is_null (SCM_CDR (q)))
     SCM_SETCDR (q, c);
   else
     SCM_SETCDR (SCM_CAR (q), c);
   SCM_SETCAR (q, c);
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&queue_lock);
   return c;
 }
 
@@ -185,7 +187,7 @@ static int
 remqueue (SCM q, SCM c)
 {
   SCM p, prev = q;
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&queue_lock);
   for (p = SCM_CDR (q); !scm_is_null (p); p = SCM_CDR (p))
     {
       if (scm_is_eq (p, c))
@@ -197,12 +199,12 @@ remqueue (SCM q, SCM c)
 	  /* GC-robust */
 	  SCM_SETCDR (c, SCM_EOL);
 
-	  SCM_CRITICAL_SECTION_END;
+          scm_i_pthread_mutex_unlock (&queue_lock);
 	  return 1;
 	}
       prev = p;
     }
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&queue_lock);
   return 0;
 }
 
@@ -213,11 +215,11 @@ static SCM
 dequeue (SCM q)
 {
   SCM c;
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&queue_lock);
   c = SCM_CDR (q);
   if (scm_is_null (c))
     {
-      SCM_CRITICAL_SECTION_END;
+      scm_i_pthread_mutex_unlock (&queue_lock);
       return SCM_BOOL_F;
     }
   else
@@ -225,7 +227,7 @@ dequeue (SCM q)
       SCM_SETCDR (q, SCM_CDR (c));
       if (scm_is_null (SCM_CDR (q)))
 	SCM_SETCAR (q, SCM_EOL);
-      SCM_CRITICAL_SECTION_END;
+      scm_i_pthread_mutex_unlock (&queue_lock);
 
       /* GC-robust */
       SCM_SETCDR (c, SCM_EOL);
