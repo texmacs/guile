@@ -306,13 +306,11 @@ scm_critical_section_start (void)
 {
   scm_i_pthread_mutex_lock (&critical_section_mutex);
   SCM_I_CURRENT_THREAD->block_asyncs++;
-  SCM_I_CURRENT_THREAD->critical_section_level++;
 }
 
 void
 scm_critical_section_end (void)
 {
-  SCM_I_CURRENT_THREAD->critical_section_level--;
   SCM_I_CURRENT_THREAD->block_asyncs--;
   scm_i_pthread_mutex_unlock (&critical_section_mutex);
   scm_async_tick ();
