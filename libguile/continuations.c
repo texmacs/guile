@@ -301,12 +301,6 @@ scm_dynthrow (SCM cont)
   SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
 
-  if (thread->critical_section_level)
-    {
-      fprintf (stderr, "continuation invoked from within critical section.\n");
-      abort ();
-    }
-
 #if SCM_STACK_GROWS_UP
   if (dst + continuation->num_stack_items >= &stack_top_element)
     grow_stack (cont);
