@@ -496,22 +496,21 @@ scm_permanent_object (SCM obj)
 
 
 
+static scm_i_pthread_mutex_t gc_protect_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 SCM
 scm_gc_protect_object (SCM obj)
 {
   SCM handle;
 
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: Indeed; if my comment above is correct, there is the same
-     critsec/mutex inconsistency here. */
-  SCM_CRITICAL_SECTION_START;
+  scm_dynwind_begin (0);
+  scm_dynwind_pthread_mutex_lock (&gc_protect_lock);
 
   handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
-
   protected_obj_count ++;
-  
-  SCM_CRITICAL_SECTION_END;
+
+  scm_dynwind_end ();
 
   return obj;
 }
@@ -526,18 +525,10 @@ scm_gc_unprotect_object (SCM obj)
 {
   SCM handle;
 
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: and again. */
-  SCM_CRITICAL_SECTION_START;
+  scm_dynwind_begin (0);
+  scm_dynwind_pthread_mutex_lock (&gc_protect_lock);
 
-  if (scm_gc_running_p)
-    {
-      fprintf (stderr, "scm_unprotect_object called during GC.\n");
-      abort ();
-    }
- 
   handle = scm_hashq_get_handle (scm_protects, obj);
-
   if (scm_is_false (handle))
     {
       fprintf (stderr, "scm_unprotect_object called on unprotected object\n");
@@ -553,7 +544,7 @@ scm_gc_unprotect_object (SCM obj)
     }
   protected_obj_count --;
 
-  SCM_CRITICAL_SECTION_END;
+  scm_dynwind_end ();
 
   return obj;
 }
