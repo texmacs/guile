@@ -69,14 +69,8 @@ maybe_drag_in_eprintf ()
 /*
   From the libtool manual: "Note that libltdl is not threadsafe,
   i.e. a multithreaded application has to use a mutex for libltdl.".
-
-  Guile does not currently support pre-emptive threads, so there is no
-  mutex.  Previously SCM_CRITICAL_SECTION_START and
-  SCM_CRITICAL_SECTION_END were used: they are mentioned here in case
-  somebody is grepping for thread problems ;)
 */
-/* njrev: not threadsafe, protection needed as described above */
-
+static scm_i_pthread_mutex_t ltdl_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* LT_PATH_SEP-separated extension library search path, searched last */
 static char *system_extensions_path;
@@ -259,6 +253,7 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 0, 1, 0,
   char *file;
 
   scm_dynwind_begin (0);
+  scm_dynwind_pthread_mutex_lock (&ltdl_lock);
 
   if (SCM_UNBNDP (filename))
     file = NULL;
@@ -301,13 +296,18 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 {
   /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG1, dobj, dynamic_obj);
+
+  scm_dynwind_begin (0);
+  scm_dynwind_pthread_mutex_lock (&ltdl_lock);
   if (DYNL_HANDLE (dobj) == NULL) {
     SCM_MISC_ERROR ("Already unlinked: ~S", scm_list_1 (dobj));
   } else {
     sysdep_dynl_unlink (DYNL_HANDLE (dobj), FUNC_NAME);
     SET_DYNL_HANDLE (dobj, NULL);
-    return SCM_UNSPECIFIED;
   }
+  scm_dynwind_end ();
+
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -335,6 +335,7 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 2, 0, 0,
       char *chars;
 
       scm_dynwind_begin (0);
+      scm_dynwind_pthread_mutex_lock (&ltdl_lock);
       chars = scm_to_locale_string (name);
       scm_dynwind_free (chars);
       val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
