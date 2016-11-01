@@ -178,8 +178,6 @@ SCM_API SCM scm_all_threads (void);
 SCM_API int scm_c_thread_exited_p (SCM thread);
 SCM_API SCM scm_thread_exited_p (SCM thread);
 
-SCM_API void scm_dynwind_critical_section (SCM mutex);
-
 #ifdef BUILDING_LIBGUILE
 
 /* Though we don't need the key for SCM_I_CURRENT_THREAD if we have TLS,

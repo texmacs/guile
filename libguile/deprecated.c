@@ -639,6 +639,44 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+static scm_i_pthread_mutex_t critical_section_mutex;
+static SCM dynwind_critical_section_mutex;
+
+void
+scm_critical_section_start (void)
+{
+  scm_c_issue_deprecation_warning
+    ("Critical sections are deprecated.  Instead use dynwinds and "
+     "\"scm_dynwind_pthread_mutex_lock\" together with "
+     "\"scm_dynwind_block_asyncs\" if appropriate.");
+
+  scm_i_pthread_mutex_lock (&critical_section_mutex);
+  SCM_I_CURRENT_THREAD->block_asyncs++;
+}
+
+void
+scm_critical_section_end (void)
+{
+  SCM_I_CURRENT_THREAD->block_asyncs--;
+  scm_i_pthread_mutex_unlock (&critical_section_mutex);
+  scm_async_tick ();
+}
+
+void
+scm_dynwind_critical_section (SCM mutex)
+{
+  scm_c_issue_deprecation_warning
+    ("Critical sections are deprecated.  Instead use dynwinds and "
+     "\"scm_dynwind_pthread_mutex_lock\" together with "
+     "\"scm_dynwind_block_asyncs\" if appropriate.");
+
+  if (scm_is_false (mutex))
+    mutex = dynwind_critical_section_mutex;
+  scm_dynwind_lock_mutex (mutex);
+  scm_dynwind_block_asyncs ();
+}
+
 
 
 
@@ -648,6 +686,9 @@ scm_i_init_deprecated ()
   scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
   scm_set_smob_print (scm_tc16_arbiter, arbiter_print);
   tc16_async = scm_make_smob_type ("async", 0);
+  scm_i_pthread_mutex_init (&critical_section_mutex,
+			    scm_i_pthread_mutexattr_recursive);
+  dynwind_critical_section_mutex = scm_make_recursive_mutex ();
 #include "libguile/deprecated.x"
 }
 

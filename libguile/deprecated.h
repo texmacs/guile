@@ -229,6 +229,15 @@ SCM_DEPRECATED SCM scm_run_asyncs (SCM list_of_a);
 
 
 
+SCM_DEPRECATED void scm_critical_section_start (void);
+SCM_DEPRECATED void scm_critical_section_end (void);
+SCM_DEPRECATED void scm_dynwind_critical_section (SCM mutex);
+
+#define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()
+#define SCM_CRITICAL_SECTION_END    scm_critical_section_end ()
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

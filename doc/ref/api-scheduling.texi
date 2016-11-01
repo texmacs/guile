@@ -13,7 +13,6 @@
 * Atomics::                     Atomic references.
 * Mutexes and Condition Variables:: Synchronization primitives.
 * Blocking::                    How to block properly in guile mode.
-* Critical Sections::           Avoiding concurrency and reentries.
 * Fluids and Dynamic States::   Thread-local variables, etc.
 * Parameters::                  Dynamic scoping in Scheme.
 * Futures::                     Fine-grain parallelism.
@@ -616,51 +615,6 @@ delivery of an async causes this function to be interrupted.
 @deftypefn {C Function} {unsigned long} scm_std_usleep ({unsigned long} usecs)
 Like @code{usleep}, but leaves guile mode while sleeping.  Also, the
 delivery of an async causes this function to be interrupted.
-@end deftypefn
-
-
-@node Critical Sections
-@subsection Critical Sections
-
-@deffn  {C Macro} SCM_CRITICAL_SECTION_START
-@deffnx {C Macro} SCM_CRITICAL_SECTION_END
-These two macros can be used to delimit a critical section.
-Syntactically, they are both statements and need to be followed
-immediately by a semicolon.
-
-Executing @code{SCM_CRITICAL_SECTION_START} will lock a recursive mutex
-and block the executing of asyncs.  Executing
-@code{SCM_CRITICAL_SECTION_END} will unblock the execution of system
-asyncs and unlock the mutex.  Thus, the code that executes between these
-two macros can only be executed in one thread at any one time and no
-asyncs will run.  However, because the mutex is a recursive one, the
-code might still be reentered by the same thread.  You must either allow
-for this or avoid it, both by careful coding.
-
-On the other hand, critical sections delimited with these macros can
-be nested since the mutex is recursive.
-
-You must make sure that for each @code{SCM_CRITICAL_SECTION_START},
-the corresponding @code{SCM_CRITICAL_SECTION_END} is always executed.
-This means that no non-local exit (such as a signalled error) might
-happen, for example.
-@end deffn
-
-@deftypefn {C Function} void scm_dynwind_critical_section (SCM mutex)
-Call @code{scm_dynwind_lock_mutex} on @var{mutex} and call
-@code{scm_dynwind_block_asyncs}.  When @var{mutex} is false, a recursive
-mutex provided by Guile is used instead.
-
-The effect of a call to @code{scm_dynwind_critical_section} is that
-the current dynwind context (@pxref{Dynamic Wind}) turns into a
-critical section.  Because of the locked mutex, no second thread can
-enter it concurrently and because of the blocked asyncs, no system
-async can reenter it from the current thread.
-
-When the current thread reenters the critical section anyway, the kind
-of @var{mutex} determines what happens: When @var{mutex} is recursive,
-the reentry is allowed.  When it is a normal mutex, an error is
-signalled.
 @end deftypefn
 
 

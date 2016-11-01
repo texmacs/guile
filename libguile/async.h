@@ -46,14 +46,6 @@ SCM_API void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 SCM_API void scm_dynwind_block_asyncs (void);
 SCM_API void scm_dynwind_unblock_asyncs (void);
 
-/* Critical sections */
-
-SCM_API void scm_critical_section_start (void);
-SCM_API void scm_critical_section_end (void);
-
-#define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()
-#define SCM_CRITICAL_SECTION_END    scm_critical_section_end ()
-
 SCM_INTERNAL void scm_init_async (void);
 
 #endif  /* SCM_ASYNC_H */

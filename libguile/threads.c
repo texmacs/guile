@@ -1938,17 +1938,6 @@ static scm_i_pthread_cond_t wake_up_cond;
 static int threads_initialized_p = 0;
 
 
-static SCM dynwind_critical_section_mutex;
-
-void
-scm_dynwind_critical_section (SCM mutex)
-{
-  if (scm_is_false (mutex))
-    mutex = dynwind_critical_section_mutex;
-  scm_dynwind_lock_mutex (mutex);
-  scm_dynwind_block_asyncs ();
-}
-
 /*** Initialization */
 
 scm_i_pthread_mutex_t scm_i_misc_mutex;
@@ -2010,8 +1999,6 @@ scm_init_threads ()
   scm_i_default_dynamic_state = SCM_BOOL_F;
   guilify_self_2 (SCM_BOOL_F);
   threads_initialized_p = 1;
-
-  dynwind_critical_section_mutex = scm_make_recursive_mutex ();
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_ice_9_threads",

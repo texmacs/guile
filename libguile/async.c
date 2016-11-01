@@ -299,30 +299,10 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 }
 
 
-static scm_i_pthread_mutex_t critical_section_mutex;
-
-void
-scm_critical_section_start (void)
-{
-  scm_i_pthread_mutex_lock (&critical_section_mutex);
-  SCM_I_CURRENT_THREAD->block_asyncs++;
-}
-
-void
-scm_critical_section_end (void)
-{
-  SCM_I_CURRENT_THREAD->block_asyncs--;
-  scm_i_pthread_mutex_unlock (&critical_section_mutex);
-  scm_async_tick ();
-}
-
-
 
 void
 scm_init_async ()
 {
-  scm_i_pthread_mutex_init (&critical_section_mutex,
-			    scm_i_pthread_mutexattr_recursive);
 #include "libguile/async.x"
 }
 

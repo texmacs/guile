@@ -43,6 +43,14 @@ trivial unused data structure.  Now that we have deprecated the old
 "user async" facility, we have been able to clarify our documentation to
 only refer to "asyncs".
 
+** Critical sections deprecated
+
+Critical sections have long been just a fancy way to lock a mutex and
+defer asynchronous interrupts.  Instead of SCM_CRITICAL_SECTION_START,
+make sure you're in a "scm_dynwind_begin (0)" and use
+scm_dynwind_pthread_mutex_lock instead, possibly also with
+scm_dynwind_block_asyncs.
+
 * Bug fixes
 ** cancel-thread uses asynchronous interrupts, not pthread_cancel
 
