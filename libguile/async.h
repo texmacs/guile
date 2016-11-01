@@ -48,39 +48,11 @@ SCM_API void scm_dynwind_unblock_asyncs (void);
 
 /* Critical sections */
 
-/* XXX - every critical section needs to be examined whether the
-   requirements for SCM_CRITICAL_SECTION_START/END are fulfilled.  See
-   the manual.
-*/
-
-/* Defined in threads.c. */
-SCM_INTERNAL scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-
 SCM_API void scm_critical_section_start (void);
 SCM_API void scm_critical_section_end (void);
 
-#ifdef BUILDING_LIBGUILE
-
-# define SCM_CRITICAL_SECTION_START				\
-  do {								\
-    scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex);	\
-    SCM_I_CURRENT_THREAD->block_asyncs++;			\
-    SCM_I_CURRENT_THREAD->critical_section_level++;		\
-  } while (0)
-# define SCM_CRITICAL_SECTION_END				\
-  do {								\
-    SCM_I_CURRENT_THREAD->critical_section_level--;		\
-    SCM_I_CURRENT_THREAD->block_asyncs--;			\
-    scm_i_pthread_mutex_unlock (&scm_i_critical_section_mutex); \
-    scm_async_tick ();						\
-  } while (0)
-
-#else /* !BUILDING_LIBGUILE */
-
-# define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()
-# define SCM_CRITICAL_SECTION_END    scm_critical_section_end ()
-
-#endif /* !BUILDING_LIBGUILE */
+#define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()
+#define SCM_CRITICAL_SECTION_END    scm_critical_section_end ()
 
 SCM_INTERNAL void scm_init_async (void);
 

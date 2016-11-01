@@ -1939,10 +1939,6 @@ static scm_i_pthread_cond_t wake_up_cond;
 static int threads_initialized_p = 0;
 
 
-/* This mutex is used by SCM_CRITICAL_SECTION_START/END.
- */
-scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-
 static SCM dynwind_critical_section_mutex;
 
 void
@@ -1971,8 +1967,6 @@ scm_threads_prehistory (void *base)
 			     PTHREAD_MUTEX_RECURSIVE);
 #endif
 
-  scm_i_pthread_mutex_init (&scm_i_critical_section_mutex,
-			    scm_i_pthread_mutexattr_recursive);
   scm_i_pthread_mutex_init (&scm_i_misc_mutex, NULL);
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
 

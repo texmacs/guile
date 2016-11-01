@@ -299,21 +299,23 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 }
 
 
-/* These are function variants of the same-named macros (uppercase) for use
-   outside of libguile.  This is so that `SCM_I_CURRENT_THREAD', which may
-   reside in TLS, is not accessed from outside of libguile.  It thus allows
-   libguile to be built with the "local-dynamic" TLS model.  */
+static scm_i_pthread_mutex_t critical_section_mutex;
 
 void
 scm_critical_section_start (void)
 {
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&critical_section_mutex);
+  SCM_I_CURRENT_THREAD->block_asyncs++;
+  SCM_I_CURRENT_THREAD->critical_section_level++;
 }
 
 void
 scm_critical_section_end (void)
 {
-  SCM_CRITICAL_SECTION_END;
+  SCM_I_CURRENT_THREAD->critical_section_level--;
+  SCM_I_CURRENT_THREAD->block_asyncs--;
+  scm_i_pthread_mutex_unlock (&critical_section_mutex);
+  scm_async_tick ();
 }
 
 
@@ -321,6 +323,8 @@ scm_critical_section_end (void)
 void
 scm_init_async ()
 {
+  scm_i_pthread_mutex_init (&critical_section_mutex,
+			    scm_i_pthread_mutexattr_recursive);
 #include "libguile/async.x"
 }
 
