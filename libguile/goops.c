@@ -475,6 +475,8 @@ SCM_DEFINE (scm_sys_clear_fields_x, "%clear-fields!", 2, 0, 0,
 
 
 
+static scm_i_pthread_mutex_t goops_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
 	    (SCM old, SCM new),
 	    "Used by change-class to modify objects in place.")
@@ -487,7 +489,7 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
    * scratch the old value with new to be correct with GC.
    * See "Class redefinition protocol above".
    */
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&goops_lock);
   {
     scm_t_bits word0, word1;
     word0 = SCM_CELL_WORD_0 (old);
@@ -497,7 +499,7 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
     SCM_SET_CELL_WORD_0 (new, word0);
     SCM_SET_CELL_WORD_1 (new, word1);
   }
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&goops_lock);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -510,7 +512,7 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
   SCM_VALIDATE_CLASS (1, old);
   SCM_VALIDATE_CLASS (2, new);
 
-  SCM_CRITICAL_SECTION_START;
+  scm_i_pthread_mutex_lock (&goops_lock);
   {
     scm_t_bits word0, word1;
     word0 = SCM_CELL_WORD_0 (old);
@@ -522,7 +524,7 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
     SCM_SET_CELL_WORD_1 (new, word1);
     SCM_STRUCT_DATA (new)[scm_vtable_index_self] = SCM_UNPACK (new);
   }
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&goops_lock);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
