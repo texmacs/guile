@@ -244,17 +244,6 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
             "@end table")
 #define FUNC_NAME s_scm_regexp_exec
 {
-  /* We used to have an SCM_DEFER_INTS, and then later an
-     SCM_CRITICAL_SECTION_START, around the regexec() call.  Can't quite
-     remember what defer ints was for, but a critical section would only be
-     wanted now if we think regexec() is not thread-safe.  The posix spec
-
-     http://www.opengroup.org/onlinepubs/009695399/functions/regcomp.html
-
-     reads like regexec is meant to be both thread safe and reentrant
-     (mentioning simultaneous use in threads, and in signal handlers).  So
-     for now believe no protection needed.  */
-
   int status, nmatches, offset;
   regmatch_t *matches;
   char *c_str;
