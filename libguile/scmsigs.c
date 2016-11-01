@@ -334,7 +334,9 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 
   scm_i_ensure_signal_delivery_thread ();
 
-  SCM_CRITICAL_SECTION_START;
+  scm_dynwind_begin (0);
+  scm_dynwind_critical_section (SCM_BOOL_F);
+
   old_handler = SCM_SIMPLE_VECTOR_REF (*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
     query_only = 1;
@@ -353,7 +355,6 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	}
       else
 	{
-	  SCM_CRITICAL_SECTION_END;
 	  SCM_OUT_OF_RANGE (2, handler);
 	}
     }
@@ -440,7 +441,9 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
     }
   if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
     old_handler = scm_from_long ((long) old_action.sa_handler);
-  SCM_CRITICAL_SECTION_END;
+
+  scm_dynwind_end ();
+
   return scm_cons (old_handler, scm_from_int (old_action.sa_flags));
 #else
   if (query_only)
@@ -459,7 +462,9 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
     }
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
     old_handler = scm_from_long ((long) old_chandler);
-  SCM_CRITICAL_SECTION_END;
+
+  scm_dynwind_end ();
+
   return scm_cons (old_handler, scm_from_int (0));
 #endif
 }
