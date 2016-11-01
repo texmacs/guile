@@ -105,6 +105,7 @@ Return @code{#t} if @var{thread} has exited, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} yield
+@deffnx {C Function} scm_yield (thread)
 If one or more threads are waiting to execute, calling yield forces an
 immediate context switch to one of them. Otherwise, yield has no effect.
 @end deffn
