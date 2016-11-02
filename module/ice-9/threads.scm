@@ -136,6 +136,11 @@ Once @var{thunk} or @var{handler} returns, the return value is made the
           (lp))))
     thread))
 
+(define* (try-mutex mutex)
+  "Try to lock @var{mutex}.  If the mutex is already locked, return
+@code{#f}.  Otherwise lock the mutex and return @code{#t}."
+  (lock-mutex mutex 0))
+
 
 
 ;;; Macros first, so that the procedures expand correctly.

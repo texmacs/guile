@@ -1311,27 +1311,11 @@ scm_dynwind_lock_mutex (SCM mutex)
 				       SCM_F_WIND_EXPLICITLY);
 }
 
-SCM_DEFINE (scm_try_mutex, "try-mutex", 1, 0, 0,
-	    (SCM mutex),
-"Try to lock @var{mutex}. If the mutex is already locked by someone "
-"else, return @code{#f}.  Else lock the mutex and return @code{#t}. ")
-#define FUNC_NAME s_scm_try_mutex
+SCM
+scm_try_mutex (SCM mutex)
 {
-  SCM exception;
-  int ret = 0;
-  scm_t_timespec cwaittime, *waittime = NULL;
-
-  SCM_VALIDATE_MUTEX (1, mutex);
-
-  to_timespec (scm_from_int(0), &cwaittime);
-  waittime = &cwaittime;
-
-  exception = fat_mutex_lock (mutex, waittime, SCM_UNDEFINED, &ret);
-  if (!scm_is_false (exception))
-    scm_ithrow (SCM_CAR (exception), scm_list_1 (SCM_CDR (exception)), 1);
-  return ret ? SCM_BOOL_T : SCM_BOOL_F;
+  return scm_lock_mutex_timed (mutex, SCM_INUM0, SCM_UNDEFINED);
 }
-#undef FUNC_NAME
 
 /*** Fat condition variables */
 
