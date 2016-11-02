@@ -117,7 +117,7 @@ If @var{thread} has already terminated or been signaled to terminate,
 this function is a no-op.  Calling @code{join-thread} on the thread will
 return the given @var{values}, if the cancel succeeded.
 
-Under this hood, thread cancellation uses @code{system-async-mark} and
+Under the hood, thread cancellation uses @code{system-async-mark} and
 @code{abort-to-prompt}.  @xref{Asyncs} for more on asynchronous
 interrupts.
 @end deffn
