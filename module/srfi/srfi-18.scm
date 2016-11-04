@@ -112,12 +112,13 @@
   (reason uncaught-exception-reason))
 
 (define-record-type <mutex>
-  (%make-mutex prim name specific owner)
+  (%make-mutex prim name specific owner abandoned?)
   mutex?
   (prim mutex-prim)
   (name mutex-name)
   (specific mutex-specific mutex-specific-set!)
-  (owner mutex-owner set-mutex-owner!))
+  (owner mutex-owner set-mutex-owner!)
+  (abandoned? mutex-abandoned? set-mutex-abandoned?!))
 
 (define-record-type <condition-variable>
   (%make-condition-variable prim name specific)
@@ -179,7 +180,7 @@
       (lambda ()
         (let ((thread (current-thread)))
           (hash-for-each (lambda (mutex _)
-                           (when (eq? (mutex-state mutex) thread)
+                           (when (eq? (mutex-owner mutex) thread)
                              (abandon-mutex! mutex)))
                          mutexes))))))
 
@@ -293,19 +294,19 @@
                                    'recursive)
                name
                #f
+               #f
                #f))
 
 (define (mutex-state mutex)
-  (let* ((prim (mutex-prim mutex))
-         (owner (mutex-owner mutex)))
-    (if owner
-        (if (and=> (thread-prim owner) threads:thread-exited?)
-            'abandoned
-            owner)
-        (if (> (threads:mutex-level prim) 0) 'not-owned 'not-abandoned))))
+  (cond
+   ((mutex-abandoned? mutex) 'abandoned)
+   ((mutex-owner mutex))
+   ((> (threads:mutex-level (mutex-prim mutex)) 0) 'not-owned)
+   (else 'not-abandoned)))
 
 (define (abandon-mutex! mutex)
-  #t)
+  (set-mutex-abandoned?! mutex #t)
+  (threads:unlock-mutex (mutex-prim mutex)))
 
 (define* (mutex-lock! mutex #:optional timeout (thread (current-thread)))
   (let ((mutexes (thread-mutexes)))
@@ -313,17 +314,15 @@
       (hashq-set! mutexes mutex #t)))
   (with-exception-handlers-here
    (lambda ()
-     (catch 'abandoned-mutex-error
-       (lambda ()
-         (cond
-          ((threads:lock-mutex (mutex-prim mutex) timeout)
-           (set-mutex-owner! mutex thread)
-           #t)
-          (else #f)))
-       (lambda (key . args)
-         (set-mutex-owner! mutex thread)
+     (cond
+      ((threads:lock-mutex (mutex-prim mutex) timeout)
+       (set-mutex-owner! mutex thread)
+       (when (mutex-abandoned? mutex)
+         (set-mutex-abandoned?! mutex #f)
          (srfi-34:raise
-          (condition (&abandoned-mutex-exception))))))))
+          (condition (&abandoned-mutex-exception))))
+       #t)
+      (else #f)))))
 
 (define mutex-unlock!
   (case-lambda
