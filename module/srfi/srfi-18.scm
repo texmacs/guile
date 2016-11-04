@@ -33,6 +33,7 @@
 (define-module (srfi srfi-18)
   #:use-module ((ice-9 threads) #:prefix threads:)
   #:use-module (ice-9 match)
+  #:use-module (srfi srfi-9)
   #:use-module ((srfi srfi-34) #:prefix srfi-34:)
   #:use-module ((srfi srfi-35) #:select (define-condition-type
                                           &error
@@ -50,6 +51,7 @@
 
             ;; Mutexes
             make-mutex
+            mutex
             mutex-name
             mutex-specific
             mutex-specific-set!
@@ -82,11 +84,11 @@
   #:re-export ((threads:condition-variable? . condition-variable?)
                (threads:current-thread . current-thread)
                (threads:thread? . thread?)
-               (threads:mutex? . mutex?)
                (srfi-34:raise . raise))
   #:replace (current-time
              make-thread
              make-mutex
+             mutex?
              make-condition-variable))
 
 (unless (provided? 'threads)
@@ -110,10 +112,18 @@
   uncaught-exception?
   (reason uncaught-exception-reason))
 
+(define-record-type <mutex>
+  (%make-mutex prim name specific)
+  mutex?
+  (prim mutex-prim)
+  (name mutex-name)
+  (specific mutex-specific mutex-specific-set!))
+
 (define object-names (make-weak-key-hash-table))
 (define object-specifics (make-weak-key-hash-table))
 (define thread-start-conds (make-weak-key-hash-table))
 (define thread->exception (make-object-property))
+(define thread-mutexes (make-parameter #f))
 
 ;; EXCEPTIONS
 
@@ -146,28 +156,45 @@
 ;; Once started, install a top-level exception handler that rethrows any 
 ;; exceptions wrapped in an uncaught-exception wrapper. 
 
+(define (with-thread-mutex-cleanup thunk)
+  (let ((mutexes (make-weak-key-hash-table)))
+    (dynamic-wind
+      values
+      (lambda ()
+        (parameterize ((thread-mutexes mutexes))
+          (thunk)))
+      (lambda ()
+        (let ((thread (current-thread)))
+          (hash-for-each (lambda (mutex _)
+                           (when (eq? (mutex-state mutex) thread)
+                             (abandon-mutex! mutex)))
+                         mutexes))))))
+
 (define* (make-thread thunk #:optional name)
   (let ((sm (make-mutex 'start-mutex))
         (sc (make-condition-variable 'start-condition-variable)))
-    (threads:lock-mutex sm)
+    (mutex-lock! sm)
     (let ((t (threads:call-with-new-thread
               (lambda ()
-                (threads:lock-mutex sm)
-                (threads:signal-condition-variable sc)
-                (threads:wait-condition-variable sc sm)
-                (threads:unlock-mutex sm)
-                (thunk))
-              (lambda (key . args)
-                (set! (thread->exception (threads:current-thread))
-                  (condition (&uncaught-exception
-                              (reason
-                               (match (cons key args)
-                                 (('srfi-34 obj) obj)
-                                 (obj obj))))))))))
+                (catch #t
+                  (lambda ()
+                    (with-thread-mutex-cleanup
+                     (lambda ()
+                       (mutex-lock! sm)
+                       (threads:signal-condition-variable sc)
+                       (mutex-unlock! sm sc)
+                       (thunk))))
+                  (lambda (key . args)
+                    (set! (thread->exception (threads:current-thread))
+                      (condition (&uncaught-exception
+                                  (reason
+                                   (match (cons key args)
+                                     (('srfi-34 obj) obj)
+                                     (obj obj))))))))))))
       (when name (hashq-set! object-names t name))
-      (threads:wait-condition-variable sc sm)
+      (threads:wait-condition-variable sc (mutex-prim sm))
       (hashq-set! thread-start-conds t (cons sm sc))
-      (threads:unlock-mutex sm)
+      (mutex-unlock! sm)
       t)))
 
 (define (thread-name thread)
@@ -189,9 +216,9 @@
                     (check-arg-type threads:thread? thread "thread-start!"))
     ((smutex . scond)
      (hashq-remove! thread-start-conds thread)
-     (threads:lock-mutex smutex)
+     (mutex-lock! smutex)
      (threads:signal-condition-variable scond)
-     (threads:unlock-mutex smutex))
+     (mutex-unlock! smutex))
     (#f #f))
   thread)
 
@@ -261,42 +288,36 @@
 ;; These functions are all pass-thrus to the existing Guile implementations.
 
 (define* (make-mutex #:optional name)
-  (let ((m (threads:make-mutex 'unchecked-unlock
-                               'allow-external-unlock
-                               'recursive)))
-    (when name (hashq-set! object-names m name))
-    m))
-
-(define (mutex-name mutex)
-  (hashq-ref object-names (check-arg-type threads:mutex? mutex "mutex-name")))
-
-(define (mutex-specific mutex)
-  (hashq-ref object-specifics 
-	     (check-arg-type threads:mutex? mutex "mutex-specific")))
-
-(define (mutex-specific-set! mutex obj)
-  (hashq-set! object-specifics
-	      (check-arg-type threads:mutex? mutex "mutex-specific-set!")
-	      obj)
-  *unspecified*)
+  (%make-mutex (threads:make-mutex 'unchecked-unlock
+                                   'allow-external-unlock
+                                   'recursive)
+               name
+               #f))
 
 (define (mutex-state mutex)
-  (let ((owner (threads:mutex-owner mutex)))
+  (let* ((prim (mutex-prim mutex))
+         (owner (threads:mutex-owner prim)))
     (if owner
-	(if (threads:thread-exited? owner) 'abandoned owner)
-	(if (> (threads:mutex-level mutex) 0) 'not-owned 'not-abandoned))))
+        (if (threads:thread-exited? owner) 'abandoned owner)
+        (if (> (threads:mutex-level prim) 0) 'not-owned 'not-abandoned))))
+
+(define (abandon-mutex! mutex)
+  #t)
 
 (define (mutex-lock! mutex . args) 
+  (let ((mutexes (thread-mutexes)))
+    (when mutexes
+      (hashq-set! mutexes mutex #t)))
   (with-exception-handlers-here
    (lambda ()
      (catch 'abandoned-mutex-error
-       (lambda () (apply threads:lock-mutex mutex args))
+       (lambda () (apply threads:lock-mutex (mutex-prim mutex) args))
        (lambda (key . args)
          (srfi-34:raise
           (condition (&abandoned-mutex-exception))))))))
 
 (define (mutex-unlock! mutex . args) 
-  (apply threads:unlock-mutex mutex args))
+  (apply threads:unlock-mutex (mutex-prim mutex) args))
 
 ;; CONDITION VARIABLES
 ;; These functions are all pass-thrus to the existing Guile implementations.
