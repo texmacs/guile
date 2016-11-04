@@ -80,15 +80,15 @@
             terminated-thread-exception?
             uncaught-exception?
             uncaught-exception-reason)
-  #:re-export ((threads:condition-variable? . condition-variable?)
-               (threads:current-thread . current-thread)
+  #:re-export ((threads:current-thread . current-thread)
                (threads:thread? . thread?)
                (srfi-34:raise . raise))
   #:replace (current-time
              make-thread
              make-mutex
              mutex?
-             make-condition-variable))
+             make-condition-variable
+             condition-variable?))
 
 (unless (provided? 'threads)
   (error "SRFI-18 requires Guile with threads support"))
@@ -117,6 +117,13 @@
   (prim mutex-prim)
   (name mutex-name)
   (specific mutex-specific mutex-specific-set!))
+
+(define-record-type <condition-variable>
+  (%make-condition-variable prim name specific)
+  condition-variable?
+  (prim condition-variable-prim)
+  (name condition-variable-name)
+  (specific condition-variable-specific condition-variable-specific-set!))
 
 (define object-names (make-weak-key-hash-table))
 (define object-specifics (make-weak-key-hash-table))
@@ -180,7 +187,7 @@
                     (with-thread-mutex-cleanup
                      (lambda ()
                        (mutex-lock! sm)
-                       (threads:signal-condition-variable sc)
+                       (condition-variable-signal! sc)
                        (mutex-unlock! sm sc)
                        (thunk))))
                   (lambda (key . args)
@@ -191,9 +198,8 @@
                                      (('srfi-34 obj) obj)
                                      (obj obj))))))))))))
       (when name (hashq-set! object-names t name))
-      (threads:wait-condition-variable sc (mutex-prim sm))
+      (mutex-unlock! sm sc)
       (hashq-set! thread-start-conds t (cons sm sc))
-      (mutex-unlock! sm)
       t)))
 
 (define (thread-name thread)
@@ -216,7 +222,7 @@
     ((smutex . scond)
      (hashq-remove! thread-start-conds thread)
      (mutex-lock! smutex)
-     (threads:signal-condition-variable scond)
+     (condition-variable-signal! scond)
      (mutex-unlock! smutex))
     (#f #f))
   thread)
@@ -315,41 +321,30 @@
          (srfi-34:raise
           (condition (&abandoned-mutex-exception))))))))
 
-(define (mutex-unlock! mutex . args) 
-  (apply threads:unlock-mutex (mutex-prim mutex) args))
+(define mutex-unlock!
+  (case-lambda
+    ((mutex)
+     (threads:unlock-mutex (mutex-prim mutex)))
+    ((mutex cond)
+     (threads:unlock-mutex (mutex-prim mutex)
+                           (condition-variable-prim cond)))
+    ((mutex cond timeout)
+     (threads:unlock-mutex (mutex-prim mutex)
+                           (condition-variable-prim cond)
+                           timeout))))
 
 ;; CONDITION VARIABLES
 ;; These functions are all pass-thrus to the existing Guile implementations.
 
 (define* (make-condition-variable #:optional name)
-  (let ((m (threads:make-condition-variable)))
-    (when name (hashq-set! object-names m name))
-    m))
-
-(define (condition-variable-name condition-variable)
-  (hashq-ref object-names (check-arg-type threads:condition-variable? 
-					  condition-variable
-					  "condition-variable-name")))
-
-(define (condition-variable-specific condition-variable)
-  (hashq-ref object-specifics (check-arg-type threads:condition-variable? 
-					      condition-variable 
-					      "condition-variable-specific")))
-
-(define (condition-variable-specific-set! condition-variable obj)
-  (hashq-set! object-specifics
-	      (check-arg-type threads:condition-variable? 
-			      condition-variable 
-			      "condition-variable-specific-set!")
-	      obj)
-  *unspecified*)
+  (%make-condition-variable (threads:make-condition-variable) name #f))
 
 (define (condition-variable-signal! cond) 
-  (threads:signal-condition-variable cond) 
+  (threads:signal-condition-variable (condition-variable-prim cond))
   *unspecified*)
 
 (define (condition-variable-broadcast! cond)
-  (threads:broadcast-condition-variable cond)
+  (threads:broadcast-condition-variable (condition-variable-prim cond))
   *unspecified*)
 
 ;; TIME
