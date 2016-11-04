@@ -2060,14 +2060,12 @@ library.  The functions and variables described here are provided by
 (use-modules (srfi srfi-18))
 @end example
 
-As a general rule, the data types and functions in this SRFI-18
-implementation are compatible with the types and functions in Guile's
-core threading code.  For example, mutexes created with the SRFI-18 
-@code{make-mutex} function can be passed to the built-in Guile 
-function @code{lock-mutex} (@pxref{Mutexes and Condition Variables}),
-and mutexes created with the built-in Guile function @code{make-mutex}
-can be passed to the SRFI-18 function @code{mutex-lock!}.  Cases in
-which this does not hold true are noted in the following sections.
+SRFI-18 defines facilities for threads, mutexes, condition variables,
+time, and exception handling.  Because these facilities are at a higher
+level than Guile's primitives, they are implemented as a layer on top of
+what Guile provides.  In particular this means that a Guile mutex is not
+a SRFI-18 mutex, and a Guile thread is not a SRFI-18 thread, and so on.
+Guile provides a set of primitives and SRFI-18 is one of the systems built in terms of those primitives.
 
 @menu
 * SRFI-18 Threads::             Executing code 
@@ -2085,8 +2083,7 @@ Guile's built-in thread functions.  First, a thread created by SRFI-18
 @code{make-thread} begins in a blocked state and will not start 
 execution until @code{thread-start!} is called on it.  Second, SRFI-18
 threads are constructed with a top-level exception handler that 
-captures any exceptions that are thrown on thread exit.  In all other
-regards, SRFI-18 threads are identical to normal Guile threads.
+captures any exceptions that are thrown on thread exit.
 
 @defun current-thread
 Returns the thread that called this function.  This is the same
@@ -2179,41 +2176,28 @@ original exception can be retrieved using
 @node SRFI-18 Mutexes
 @subsubsection SRFI-18 Mutexes
 
-The behavior of Guile's built-in mutexes is parameterized via a set of
-flags passed to the @code{make-mutex} procedure in the core
-(@pxref{Mutexes and Condition Variables}).  To satisfy the requirements
-for mutexes specified by SRFI-18, the @code{make-mutex} procedure
-described below sets the following flags:
-@itemize @bullet
-@item
-@code{recursive}: the mutex can be locked recursively
-@item
-@code{unchecked-unlock}: attempts to unlock a mutex that is already
-unlocked will not raise an exception
-@item
-@code{allow-external-unlock}: the mutex can be unlocked by any thread,
-not just the thread that locked it originally
-@end itemize
+SRFI-18 mutexes are disjoint from Guile's primitive mutexes.
+@xref{Mutexes and Condition Variables}, for more on Guile's primitive
+facility.
 
 @defun make-mutex [name]
-Returns a new mutex, optionally assigning it the object name 
-@var{name}, which may be any Scheme object.  The returned mutex will be
-created with the configuration described above.  Note that the name 
-@code{make-mutex} conflicts with Guile core function @code{make-mutex}.
-Applications wanting to use both of these functions will need to refer 
-to them by different names.
+Returns a new mutex, optionally assigning it the object name @var{name},
+which may be any Scheme object.  The returned mutex will be created with
+the configuration described above.
 @end defun
 
 @defun mutex-name mutex
-Returns the name assigned to @var{mutex} at the time of its creation, 
-or @code{#f} if it was not given a name.
+Returns the name assigned to @var{mutex} at the time of its creation, or
+@code{#f} if it was not given a name.
 @end defun
 
 @defun mutex-specific mutex
-@defunx mutex-specific-set! mutex obj
-Get or set the ``object-specific'' property of @var{mutex}.  In Guile's
-implementation of SRFI-18, this value is stored as an object property, 
-and will be @code{#f} if not set.
+Return the ``object-specific'' property of @var{mutex}, or @code{#f} if
+none is set.
+@end defun
+
+@defun mutex-specific-set! mutex obj
+Set the ``object-specific'' property of @var{mutex}.
 @end defun
 
 @defun mutex-state mutex
@@ -2221,8 +2205,8 @@ Returns information about the state of @var{mutex}.  Possible values
 are:
 @itemize @bullet
 @item
-thread @code{T}: the mutex is in the locked/owned state and thread T
-is the owner of the mutex
+thread @var{t}: the mutex is in the locked/owned state and thread
+@var{t} is the owner of the mutex
 @item 
 symbol @code{not-owned}: the mutex is in the locked/not-owned state
 @item
@@ -2236,17 +2220,14 @@ unlocked/not-abandoned state
 @defun mutex-lock! mutex [timeout [thread]]
 Lock @var{mutex}, optionally specifying a time object @var{timeout}
 after which to abort the lock attempt and a thread @var{thread} giving
-a new owner for @var{mutex} different than the current thread.  This 
-procedure has the same behavior as the @code{lock-mutex} procedure in 
-the core library.
+a new owner for @var{mutex} different than the current thread.
 @end defun
 
 @defun mutex-unlock! mutex [condition-variable [timeout]]
 Unlock @var{mutex}, optionally specifying a condition variable
 @var{condition-variable} on which to wait, either indefinitely or,
 optionally, until the time object @var{timeout} has passed, to be
-signalled.  This procedure has the same behavior as the 
-@code{unlock-mutex} procedure in the core library.
+signalled.
 @end defun
 
 
@@ -2255,20 +2236,20 @@ signalled.  This procedure has the same behavior as the
 
 SRFI-18 does not specify a ``wait'' function for condition variables.
 Waiting on a condition variable can be simulated using the SRFI-18
-@code{mutex-unlock!} function described in the previous section, or
-Guile's built-in @code{wait-condition-variable} procedure can be used.
+@code{mutex-unlock!} function described in the previous section.
+
+SRFI-18 condition variables are disjoint from Guile's primitive
+condition variables.  @xref{Mutexes and Condition Variables}, for more
+on Guile's primitive facility.
 
 @defun condition-variable? obj
 Returns @code{#t} if @var{obj} is a condition variable, @code{#f}
-otherwise.  This is the same procedure as the same-named built-in 
-procedure
-(@pxref{Mutexes and Condition Variables, @code{condition-variable?}}).
+otherwise.
 @end defun
 
 @defun make-condition-variable [name]
 Returns a new condition variable, optionally assigning it the object
-name @var{name}, which may be any Scheme object.  This procedure 
-replaces a procedure of the same name in the core library.
+name @var{name}, which may be any Scheme object.
 @end defun
 
 @defun condition-variable-name condition-variable
@@ -2277,21 +2258,19 @@ creation, or @code{#f} if it was not given a name.
 @end defun
 
 @defun condition-variable-specific condition-variable
-@defunx condition-variable-specific-set! condition-variable obj
-Get or set the ``object-specific'' property of 
-@var{condition-variable}.  In Guile's implementation of SRFI-18, this
-value is stored as an object property, and will be @code{#f} if not 
-set.
+Return the ``object-specific'' property of @var{condition-variable}, or
+@code{#f} if none is set.
+@end defun
+
+@defun condition-variable-specific-set! condition-variable obj
+Set the ``object-specific'' property of @var{condition-variable}.
 @end defun
 
 @defun condition-variable-signal! condition-variable
 @defunx condition-variable-broadcast! condition-variable
 Wake up one thread that is waiting for @var{condition-variable}, in
 the case of @code{condition-variable-signal!}, or all threads waiting
-for it, in the case of @code{condition-variable-broadcast!}.  The
-behavior of these procedures is equivalent to that of the procedures
-@code{signal-condition-variable} and 
-@code{broadcast-condition-variable} in the core library.
+for it, in the case of @code{condition-variable-broadcast!}.
 @end defun
 
 
