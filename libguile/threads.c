@@ -1131,8 +1131,6 @@ SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_SYMBOL (scm_abandoned_mutex_error_key, "abandoned-mutex-error");
-
 static SCM
 fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 {
@@ -1151,15 +1149,6 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 	{
 	  m->owner = new_owner;
 	  m->level++;
-	  *ret = 1;
-	  break;
-	}
-      else if (SCM_I_IS_THREAD (m->owner) && scm_c_thread_exited_p (m->owner))
-	{
-	  m->owner = new_owner;
-	  err = scm_cons (scm_abandoned_mutex_error_key,
-			  scm_from_locale_string ("lock obtained on abandoned "
-						  "mutex"));
 	  *ret = 1;
 	  break;
 	}

@@ -436,15 +436,10 @@
 	    (lock-mutex m)
 	    (lock-mutex m)))
 
-	(pass-if "locking abandoned mutex throws exception"
-          (let* ((m (make-mutex))
-		 (t (begin-thread (lock-mutex m)))
-		 (success #f))
-	    (join-thread t)
-	    (catch 'abandoned-mutex-error
-		   (lambda () (lock-mutex m))
-		   (lambda key (set! success #t)))
-	    success)))))
+	(pass-if "abandoned mutexes are dead"
+          (let* ((m (make-mutex)))
+	    (join-thread (begin-thread (lock-mutex m)))
+            (not (lock-mutex m (+ (current-time) 0.1))))))))
 
 
 ;;
