@@ -411,7 +411,6 @@ guilify_self_1 (struct GC_stack_base *base)
   t.pthread = scm_i_pthread_self ();
   t.handle = SCM_BOOL_F;
   t.result = SCM_BOOL_F;
-  t.held_mutex = NULL;
   t.join_queue = SCM_EOL;
   t.freelists = NULL;
   t.pointerless_freelists = NULL;
@@ -567,14 +566,6 @@ on_thread_exit (void *v)
   /* If we were canceled, we were unable to clear `t->guile_mode', so do
      it here.  */
   t->guile_mode = 0;
-
-  /* If this thread was cancelled while doing a cond wait, it will
-     still have a mutex locked, so we unlock it here. */
-  if (t->held_mutex)
-    {
-      scm_i_pthread_mutex_unlock (t->held_mutex);
-      t->held_mutex = NULL;
-    }
 
   /* Reinstate the current thread for purposes of scm_with_guile
      guile-mode cleanup handlers.  Only really needed in the non-TLS
@@ -1688,14 +1679,7 @@ scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 int
 scm_pthread_cond_wait (scm_i_pthread_cond_t *cond, scm_i_pthread_mutex_t *mutex)
 {
-  int res;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  t->held_mutex = mutex;
-  res = scm_i_pthread_cond_wait (cond, mutex);
-  t->held_mutex = NULL;
-
-  return res;
+  return scm_i_pthread_cond_wait (cond, mutex);
 }
 
 int
@@ -1703,14 +1687,7 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 			    scm_i_pthread_mutex_t *mutex,
 			    const scm_t_timespec *wt)
 {
-  int res;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  t->held_mutex = mutex;
-  res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
-  t->held_mutex = NULL;
-
-  return res;
+  return scm_i_pthread_cond_timedwait (cond, mutex, wt);
 }
 
 #endif

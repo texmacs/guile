@@ -63,7 +63,6 @@ typedef struct scm_i_thread {
   SCM join_queue;
 
   scm_i_pthread_mutex_t admin_mutex;
-  scm_i_pthread_mutex_t *held_mutex;
 
   SCM result;
   int exited;
