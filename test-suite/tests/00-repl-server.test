@@ -61,10 +61,11 @@ socket connected to that server."
                (lambda ()
                  (connect client-socket sockaddr))
                (lambda args
-                 (when (and (memv (system-error-errno args)
-                                  (list ENOENT ECONNREFUSED))
-                            (< tries 3))
-                   (sleep 1)
+                 (when (memv (system-error-errno args)
+                             (list ENOENT ECONNREFUSED))
+                   (when (> tries 30)
+                     (throw 'unresolved))
+                   (usleep 100)
                    (loop (+ tries 1))))))
 
            (proc client-socket))
