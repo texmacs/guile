@@ -382,18 +382,7 @@
 	  (let ((m (make-mutex)))
 	    (not (mutex-owner m))))
 
-	(pass-if "locking mutex on behalf of other thread"
-	  (let* ((m (make-mutex))
-		 (t (begin-thread 'foo)))
-	    (lock-mutex m #f t)
-	    (eq? (mutex-owner m) t)))
-
-        (pass-if "locking mutex with no owner"
-	  (let ((m (make-mutex)))
-	    (lock-mutex m #f #f)
-	    (not (mutex-owner m))))
-
-        (pass-if "mutex with owner not retained (bug #27450)"
+	(pass-if "mutex with owner not retained (bug #27450)"
           (let ((g (make-guardian)))
             (g (let ((m (make-mutex))) (lock-mutex m) m))
 

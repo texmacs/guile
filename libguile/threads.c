@@ -27,6 +27,7 @@
 #include "libguile/bdw-gc.h"
 #include <gc/gc_mark.h>
 #include "libguile/_scm.h"
+#include "libguile/deprecation.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -1165,11 +1166,11 @@ SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 SCM_SYMBOL (scm_abandoned_mutex_error_key, "abandoned-mutex-error");
 
 static SCM
-fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
+fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 {
   fat_mutex *m = SCM_MUTEX_DATA (mutex);
 
-  SCM new_owner = SCM_UNBNDP (owner) ? scm_current_thread() : owner;
+  SCM new_owner = scm_current_thread();
   SCM err = SCM_BOOL_F;
 
   struct timeval current_time;
@@ -1281,9 +1282,11 @@ SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
     }
 
   if (!SCM_UNBNDP (owner) && !scm_is_false (owner))
-    SCM_VALIDATE_THREAD (3, owner);
+    scm_c_issue_deprecation_warning
+      ("The 'owner' argument to lock-mutex is deprecated.  Use SRFI-18 "
+       "directly if you need this concept.");
 
-  exception = fat_mutex_lock (m, waittime, owner, &ret);
+  exception = fat_mutex_lock (m, waittime, &ret);
   if (!scm_is_false (exception))
     scm_ithrow (SCM_CAR (exception), scm_list_1 (SCM_CDR (exception)), 1);
   return ret ? SCM_BOOL_T : SCM_BOOL_F;
@@ -1418,7 +1421,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	  if (brk)
 	    {
 	      if (relock)
-		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
+		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, SCM_UNDEFINED);
 	      t->block_asyncs--;
 	      break;
 	    }
