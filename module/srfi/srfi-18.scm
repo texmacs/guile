@@ -66,7 +66,6 @@
             condition-variable-specific-set!
             condition-variable-signal!
             condition-variable-broadcast!
-            condition-variable-wait!
 
             ;; Time
             current-time
