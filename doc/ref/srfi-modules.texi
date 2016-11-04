@@ -2085,6 +2085,9 @@ execution until @code{thread-start!} is called on it.  Second, SRFI-18
 threads are constructed with a top-level exception handler that 
 captures any exceptions that are thrown on thread exit.
 
+SRFI-18 threads are disjoint from Guile's primitive threads.
+@xref{Threads}, for more on Guile's primitive facility.
+
 @defun current-thread
 Returns the thread that called this function.  This is the same
 procedure as the same-named built-in procedure @code{current-thread}

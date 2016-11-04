@@ -80,10 +80,10 @@
             terminated-thread-exception?
             uncaught-exception?
             uncaught-exception-reason)
-  #:re-export ((threads:current-thread . current-thread)
-               (threads:thread? . thread?)
-               (srfi-34:raise . raise))
+  #:re-export ((srfi-34:raise . raise))
   #:replace (current-time
+             current-thread
+             thread?
              make-thread
              make-mutex
              mutex?
@@ -112,11 +112,12 @@
   (reason uncaught-exception-reason))
 
 (define-record-type <mutex>
-  (%make-mutex prim name specific)
+  (%make-mutex prim name specific owner)
   mutex?
   (prim mutex-prim)
   (name mutex-name)
-  (specific mutex-specific mutex-specific-set!))
+  (specific mutex-specific mutex-specific-set!)
+  (owner mutex-owner set-mutex-owner!))
 
 (define-record-type <condition-variable>
   (%make-condition-variable prim name specific)
@@ -125,10 +126,16 @@
   (name condition-variable-name)
   (specific condition-variable-specific condition-variable-specific-set!))
 
-(define object-names (make-weak-key-hash-table))
-(define object-specifics (make-weak-key-hash-table))
-(define thread-start-conds (make-weak-key-hash-table))
-(define thread->exception (make-object-property))
+(define-record-type <thread>
+  (%make-thread prim name specific start-conds exception)
+  thread?
+  (prim thread-prim set-thread-prim!)
+  (name thread-name)
+  (specific thread-specific thread-specific-set!)
+  (start-conds thread-start-conds set-thread-start-conds!)
+  (exception thread-exception set-thread-exception!))
+
+(define current-thread (make-parameter (%make-thread #f #f #f #f #f)))
 (define thread-mutexes (make-parameter #f))
 
 ;; EXCEPTIONS
@@ -177,50 +184,37 @@
                          mutexes))))))
 
 (define* (make-thread thunk #:optional name)
-  (let ((sm (make-mutex 'start-mutex))
-        (sc (make-condition-variable 'start-condition-variable)))
+  (let* ((sm (make-mutex 'start-mutex))
+         (sc (make-condition-variable 'start-condition-variable))
+         (thread (%make-thread #f name #f (cons sm sc) #f)))
     (mutex-lock! sm)
-    (let ((t (threads:call-with-new-thread
-              (lambda ()
-                (catch #t
-                  (lambda ()
-                    (with-thread-mutex-cleanup
+    (let ((prim (threads:call-with-new-thread
+                 (lambda ()
+                   (catch #t
                      (lambda ()
-                       (mutex-lock! sm)
-                       (condition-variable-signal! sc)
-                       (mutex-unlock! sm sc)
-                       (thunk))))
-                  (lambda (key . args)
-                    (set! (thread->exception (threads:current-thread))
-                      (condition (&uncaught-exception
-                                  (reason
-                                   (match (cons key args)
-                                     (('srfi-34 obj) obj)
-                                     (obj obj))))))))))))
-      (when name (hashq-set! object-names t name))
+                       (parameterize ((current-thread thread))
+                         (with-thread-mutex-cleanup
+                          (lambda ()
+                            (mutex-lock! sm)
+                            (condition-variable-signal! sc)
+                            (mutex-unlock! sm sc)
+                            (thunk)))))
+                     (lambda (key . args)
+                       (set-thread-exception!
+                        thread
+                        (condition (&uncaught-exception
+                                    (reason
+                                     (match (cons key args)
+                                       (('srfi-34 obj) obj)
+                                       (obj obj))))))))))))
+      (set-thread-prim! thread prim)
       (mutex-unlock! sm sc)
-      (hashq-set! thread-start-conds t (cons sm sc))
-      t)))
-
-(define (thread-name thread)
-  (hashq-ref object-names
-             (check-arg-type threads:thread? thread "thread-name")))
-
-(define (thread-specific thread)
-  (hashq-ref object-specifics 
-	     (check-arg-type threads:thread? thread "thread-specific")))
-
-(define (thread-specific-set! thread obj)
-  (hashq-set! object-specifics
-	      (check-arg-type threads:thread? thread "thread-specific-set!")
-	      obj)
-  *unspecified*)
+      thread)))
 
 (define (thread-start! thread)
-  (match (hashq-ref thread-start-conds
-                    (check-arg-type threads:thread? thread "thread-start!"))
+  (match (thread-start-conds thread)
     ((smutex . scond)
-     (hashq-remove! thread-start-conds thread)
+     (set-thread-start-conds! thread #f)
      (mutex-lock! smutex)
      (condition-variable-signal! scond)
      (mutex-unlock! smutex))
@@ -267,27 +261,28 @@
 ;; A unique value.
 (define %cancel-sentinel (list 'cancelled))
 (define (thread-terminate! thread)
-  (threads:cancel-thread thread %cancel-sentinel)
+  (threads:cancel-thread (thread-prim thread) %cancel-sentinel)
   *unspecified*)
 
 ;; A unique value.
 (define %timeout-sentinel (list 1))
 (define* (thread-join! thread #:optional (timeout %timeout-sentinel)
                        (timeoutval %timeout-sentinel))
-  (with-exception-handlers-here
-   (lambda ()
-     (let ((v (if (eq? timeout %timeout-sentinel)
-                  (threads:join-thread thread)
-                  (threads:join-thread thread timeout %timeout-sentinel))))
-       (cond
-        ((eq? v %timeout-sentinel)
-         (if (eq? timeoutval %timeout-sentinel)
-             (srfi-34:raise (condition (&join-timeout-exception)))
-             timeoutval))
-        ((eq? v %cancel-sentinel)
-         (srfi-34:raise (condition (&terminated-thread-exception))))
-        ((thread->exception thread) => srfi-34:raise)
-        (else v))))))
+  (let ((t (thread-prim thread)))
+    (with-exception-handlers-here
+     (lambda ()
+       (let* ((v (if (eq? timeout %timeout-sentinel)
+                     (threads:join-thread t)
+                     (threads:join-thread t timeout %timeout-sentinel))))
+         (cond
+          ((eq? v %timeout-sentinel)
+           (if (eq? timeoutval %timeout-sentinel)
+               (srfi-34:raise (condition (&join-timeout-exception)))
+               timeoutval))
+          ((eq? v %cancel-sentinel)
+           (srfi-34:raise (condition (&terminated-thread-exception))))
+          ((thread-exception thread) => srfi-34:raise)
+          (else v)))))))
 
 ;; MUTEXES
 ;; These functions are all pass-thrus to the existing Guile implementations.
@@ -297,38 +292,51 @@
                                    'allow-external-unlock
                                    'recursive)
                name
+               #f
                #f))
 
 (define (mutex-state mutex)
   (let* ((prim (mutex-prim mutex))
-         (owner (threads:mutex-owner prim)))
+         (owner (mutex-owner mutex)))
     (if owner
-        (if (threads:thread-exited? owner) 'abandoned owner)
+        (if (and=> (thread-prim owner) threads:thread-exited?)
+            'abandoned
+            owner)
         (if (> (threads:mutex-level prim) 0) 'not-owned 'not-abandoned))))
 
 (define (abandon-mutex! mutex)
   #t)
 
-(define (mutex-lock! mutex . args) 
+(define* (mutex-lock! mutex #:optional timeout (thread (current-thread)))
   (let ((mutexes (thread-mutexes)))
     (when mutexes
       (hashq-set! mutexes mutex #t)))
   (with-exception-handlers-here
    (lambda ()
      (catch 'abandoned-mutex-error
-       (lambda () (apply threads:lock-mutex (mutex-prim mutex) args))
+       (lambda ()
+         (cond
+          ((threads:lock-mutex (mutex-prim mutex) timeout)
+           (set-mutex-owner! mutex thread)
+           #t)
+          (else #f)))
        (lambda (key . args)
+         (set-mutex-owner! mutex thread)
          (srfi-34:raise
           (condition (&abandoned-mutex-exception))))))))
 
 (define mutex-unlock!
   (case-lambda
     ((mutex)
-     (threads:unlock-mutex (mutex-prim mutex)))
+     (set-mutex-owner! mutex #f)
+     (threads:unlock-mutex (mutex-prim mutex))
+     #t)
     ((mutex cond)
+     (set-mutex-owner! mutex #f)
      (threads:unlock-mutex (mutex-prim mutex)
                            (condition-variable-prim cond)))
     ((mutex cond timeout)
+     (set-mutex-owner! mutex #f)
      (threads:unlock-mutex (mutex-prim mutex)
                            (condition-variable-prim cond)
                            timeout))))
