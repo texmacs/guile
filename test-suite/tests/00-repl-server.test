@@ -105,8 +105,14 @@ reached."
       "scheme@(repl-server)> $1 = 42\n"
     (with-repl-server socket
       (read-until-prompt socket %last-line-before-prompt)
-      (display "(+ 40 2)\n(quit)\n" socket)
-      (read-string socket)))
+
+      ;; Wait until 'repl-reader' in boot-9 has written the prompt.
+      ;; Otherwise, if we write too quickly, 'repl-reader' checks for
+      ;; 'char-ready?' and doesn't print the prompt.
+      (match (select (list socket) '() (list socket) 3)
+        (((_) () ())
+         (display "(+ 40 2)\n(quit)\n" socket)
+         (read-string socket)))))
 
   (pass-if "HTTP inter-protocol attack"           ;CVE-2016-8606
     (with-repl-server socket
