@@ -411,7 +411,6 @@ guilify_self_1 (struct GC_stack_base *base)
   t.pthread = scm_i_pthread_self ();
   t.handle = SCM_BOOL_F;
   t.result = SCM_BOOL_F;
-  t.mutexes = SCM_EOL;
   t.held_mutex = NULL;
   t.join_queue = SCM_EOL;
   t.freelists = NULL;
@@ -542,28 +541,6 @@ do_thread_exit (void *v)
   close (t->sleep_pipe[1]);
   while (scm_is_true (unblock_from_queue (t->join_queue)))
     ;
-
-  while (!scm_is_null (t->mutexes))
-    {
-      SCM mutex = scm_c_weak_vector_ref (scm_car (t->mutexes), 0);
-
-      if (scm_is_true (mutex))
-	{
-	  fat_mutex *m  = SCM_MUTEX_DATA (mutex);
-
-	  scm_i_pthread_mutex_lock (&m->lock);
-
-	  /* Check whether T owns MUTEX.  This is usually the case, unless
-	     T abandoned MUTEX; in that case, T is no longer its owner (see
-	     `fat_mutex_lock') but MUTEX is still in `t->mutexes'.  */
-	  if (scm_is_eq (m->owner, t->handle))
-	    unblock_from_queue (m->waiting);
-
-	  scm_i_pthread_mutex_unlock (&m->lock);
-	}
-
-      t->mutexes = scm_cdr (t->mutexes);
-    }
 
   scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
@@ -1183,26 +1160,6 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 	{
 	  m->owner = new_owner;
 	  m->level++;
-
-	  if (SCM_I_IS_THREAD (new_owner))
-	    {
-	      scm_i_thread *t = SCM_I_THREAD_DATA (new_owner);
-
-	      /* FIXME: The order in which `t->admin_mutex' and
-		 `m->lock' are taken differs from that in
-		 `on_thread_exit', potentially leading to deadlocks.  */
-	      scm_i_pthread_mutex_lock (&t->admin_mutex);
-
-	      /* Only keep a weak reference to MUTEX so that it's not
-		 retained when not referenced elsewhere (bug #27450).
-		 The weak pair itself is eventually removed when MUTEX
-		 is unlocked.  Note that `t->mutexes' lists mutexes
-		 currently held by T, so it should be small.  */
-              t->mutexes = scm_cons (scm_make_weak_vector (SCM_INUM1, mutex),
-                                     t->mutexes);
-
-	      scm_i_pthread_mutex_unlock (&t->admin_mutex);
-	    }
 	  *ret = 1;
 	  break;
 	}
@@ -1330,25 +1287,6 @@ typedef struct {
 #define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
 #define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
 
-static void
-remove_mutex_from_thread (SCM mutex, scm_i_thread *t)
-{
-  SCM walk, prev;
-  
-  for (prev = SCM_BOOL_F, walk = t->mutexes; scm_is_pair (walk);
-       walk = SCM_CDR (walk))
-    {
-      if (scm_is_eq (mutex, scm_c_weak_vector_ref (SCM_CAR (walk), 0)))
-        {
-          if (scm_is_pair (prev))
-            SCM_SETCDR (prev, SCM_CDR (walk));
-          else
-            t->mutexes = SCM_CDR (walk);
-          break;
-        }
-    }
-}
-
 static int
 fat_mutex_unlock (SCM mutex, SCM cond,
 		  const scm_t_timespec *waittime, int relock)
@@ -1391,11 +1329,8 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	  if (m->level > 0)
 	    m->level--;
 	  if (m->level == 0)
-	    {
-	      /* Change the owner of MUTEX.  */
-	      remove_mutex_from_thread (mutex, t);
-	      m->owner = unblock_from_queue (m->waiting);
-	    }
+            /* Change the owner of MUTEX.  */
+            m->owner = unblock_from_queue (m->waiting);
 
 	  t->block_asyncs++;
 
@@ -1439,11 +1374,8 @@ fat_mutex_unlock (SCM mutex, SCM cond,
       if (m->level > 0)
 	m->level--;
       if (m->level == 0)
-	{
-	  /* Change the owner of MUTEX.  */
-	  remove_mutex_from_thread (mutex, t);
-	  m->owner = unblock_from_queue (m->waiting);
-	}
+        /* Change the owner of MUTEX.  */
+        m->owner = unblock_from_queue (m->waiting);
 
       scm_i_pthread_mutex_unlock (&m->lock);
       ret = 1;
