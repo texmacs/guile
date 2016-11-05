@@ -1370,37 +1370,16 @@ fat_mutex_unlock (SCM mutex, SCM cond,
   return ret;
 }
 
-SCM scm_unlock_mutex (SCM mx)
+SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mx),
+            "Unlocks @var{mutex}.  The calling thread must already hold\n"
+            "the lock on @var{mutex}, unless the mutex was created with\n"
+            "the @code{allow-external-unlock} option; otherwise an error\n"
+            "will be signalled.")
+#define FUNC_NAME s_scm_unlock_mutex
 {
-  return scm_unlock_mutex_timed (mx, SCM_UNDEFINED, SCM_UNDEFINED);
-}
-
-SCM_DEFINE (scm_unlock_mutex_timed, "unlock-mutex", 1, 2, 0,
-	    (SCM mx, SCM cond, SCM timeout),
-"Unlocks @var{mutex} if the calling thread owns the lock on "
-"@var{mutex}.  Calling unlock-mutex on a mutex not owned by the current "
-"thread results in undefined behaviour. Once a mutex has been unlocked, "
-"one thread blocked on @var{mutex} is awakened and grabs the mutex "
-"lock.  Every call to @code{lock-mutex} by this thread must be matched "
-"with a call to @code{unlock-mutex}.  Only the last call to "
-"@code{unlock-mutex} will actually unlock the mutex. ")
-#define FUNC_NAME s_scm_unlock_mutex_timed
-{
-  scm_t_timespec cwaittime, *waittime = NULL;
-
   SCM_VALIDATE_MUTEX (1, mx);
-  if (! (SCM_UNBNDP (cond)))
-    {
-      SCM_VALIDATE_CONDVAR (2, cond);
 
-      if (! SCM_UNBNDP (timeout) && ! scm_is_false (timeout))
-	{
-	  to_timespec (timeout, &cwaittime);
-	  waittime = &cwaittime;
-	}
-    }
-
-  return fat_mutex_unlock (mx, cond, waittime, 0) ? SCM_BOOL_T : SCM_BOOL_F;
+  return scm_from_bool (fat_mutex_unlock (mx, SCM_UNDEFINED, NULL, 0));
 }
 #undef FUNC_NAME
 

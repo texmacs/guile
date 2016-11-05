@@ -250,7 +250,7 @@
           (let ((m (make-mutex))
 		(c (make-condition-variable)))
 	    (lock-mutex m)
-	    (not (unlock-mutex m c (current-time)))))
+	    (not (wait-condition-variable c m (current-time)))))
 
 	(pass-if "asyncs are still working 4"
 	  (asyncs-still-working?))
@@ -261,14 +261,12 @@
 		(c1 (make-condition-variable))
 		(c2 (make-condition-variable)))
 	    (lock-mutex m1)
-	    (let ((t (begin-thread (begin (lock-mutex m1)
-					  (signal-condition-variable c1)
-					  (lock-mutex m2)
-					  (unlock-mutex m1)
-					  (unlock-mutex m2
-							c2
-							(+ (current-time)
-							   5))))))
+	    (let ((t (begin-thread
+                      (lock-mutex m1)
+                      (signal-condition-variable c1)
+                      (lock-mutex m2)
+                      (unlock-mutex m1)
+                      (wait-condition-variable c2 m2 (+ (current-time) 5)))))
 	      (wait-condition-variable c1 m1)
 	      (unlock-mutex m1)
 	      (lock-mutex m2)

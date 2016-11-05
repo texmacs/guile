@@ -156,7 +156,6 @@ SCM_API SCM scm_lock_mutex_timed (SCM m, SCM timeout, SCM owner);
 SCM_API void scm_dynwind_lock_mutex (SCM mutex);
 SCM_API SCM scm_try_mutex (SCM m);
 SCM_API SCM scm_unlock_mutex (SCM m);
-SCM_API SCM scm_unlock_mutex_timed (SCM m, SCM cond, SCM timeout);
 SCM_API SCM scm_mutex_p (SCM o);
 SCM_API SCM scm_mutex_locked_p (SCM m);
 SCM_API SCM scm_mutex_owner (SCM m);

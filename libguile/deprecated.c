@@ -699,6 +699,21 @@ scm_make_mutex_with_flags (SCM flags)
   return scm_make_mutex_with_kind (kind);
 }
 
+SCM
+scm_unlock_mutex_timed (SCM mx, SCM cond, SCM timeout)
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_unlock_mutex_timed' is deprecated.  "
+     "Use just plain old 'scm_unlock_mutex' instead, or otherwise "
+     "'scm_wait_condition_variable' if you need to.");
+
+  if (!SCM_UNBNDP (cond) &&
+      scm_is_false (scm_timed_wait_condition_variable (cond, mx, timeout)))
+    return SCM_BOOL_F;
+
+  return scm_unlock_mutex (mx);
+}
+
 
 
 
