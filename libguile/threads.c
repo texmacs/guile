@@ -1277,21 +1277,14 @@ typedef struct {
 #define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
 #define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
 
-static int
-fat_mutex_unlock (SCM mutex, SCM cond,
-		  const scm_t_timespec *waittime, int relock)
+static void
+fat_mutex_unlock (SCM mutex)
 {
-  SCM owner;
   fat_mutex *m = SCM_MUTEX_DATA (mutex);
-  fat_cond *c = NULL;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  int err = 0, ret = 0;
 
   scm_i_scm_pthread_mutex_lock (&m->lock);
 
-  owner = m->owner;
-
-  if (!scm_is_eq (owner, t->handle))
+  if (!scm_is_eq (m->owner, SCM_I_CURRENT_THREAD->handle))
     {
       if (m->level == 0)
 	{
@@ -1305,66 +1298,83 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	}
     }
 
-  if (! (SCM_UNBNDP (cond)))
+  if (m->level > 0)
+    m->level--;
+  if (m->level == 0)
+    /* Change the owner of MUTEX.  */
+    m->owner = unblock_from_queue (m->waiting);
+
+  scm_i_pthread_mutex_unlock (&m->lock);
+}
+
+static int
+fat_mutex_wait (SCM cond, SCM mutex, const scm_t_timespec *waittime)
+{
+  fat_cond *c = SCM_CONDVAR_DATA (cond);
+  fat_mutex *m = SCM_MUTEX_DATA (mutex);
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  int err = 0, ret = 0;
+
+  scm_i_scm_pthread_mutex_lock (&m->lock);
+
+  if (!scm_is_eq (m->owner, t->handle))
     {
-      c = SCM_CONDVAR_DATA (cond);
-      while (1)
+      if (m->level == 0)
 	{
-	  int brk = 0;
-
-	  if (m->level > 0)
-	    m->level--;
-	  if (m->level == 0)
-            /* Change the owner of MUTEX.  */
-            m->owner = unblock_from_queue (m->waiting);
-
-	  t->block_asyncs++;
-
-	  err = block_self (c->waiting, cond, &m->lock, waittime);
+          scm_i_pthread_mutex_unlock (&m->lock);
+          scm_misc_error (NULL, "mutex not locked", SCM_EOL);
+	}
+      else if (m->kind != FAT_MUTEX_UNOWNED)
+	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
-
-	  if (err == 0)
-	    {
-	      ret = 1;
-	      brk = 1;
-	    }
-	  else if (err == ETIMEDOUT)
-	    {
-	      ret = 0;
-	      brk = 1;
-	    }
-	  else if (err != EINTR)
-	    {
-	      errno = err;
-	      scm_syserror (NULL);
-	    }
-
-	  if (brk)
-	    {
-	      if (relock)
-		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, SCM_UNDEFINED);
-	      t->block_asyncs--;
-	      break;
-	    }
-
-	  t->block_asyncs--;
-	  scm_async_tick ();
-
-	  scm_remember_upto_here_2 (cond, mutex);
-
-	  scm_i_scm_pthread_mutex_lock (&m->lock);
+	  scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);
 	}
     }
-  else
+
+  while (1)
     {
+      int brk = 0;
+
       if (m->level > 0)
-	m->level--;
+        m->level--;
       if (m->level == 0)
         /* Change the owner of MUTEX.  */
         m->owner = unblock_from_queue (m->waiting);
 
+      t->block_asyncs++;
+
+      err = block_self (c->waiting, cond, &m->lock, waittime);
       scm_i_pthread_mutex_unlock (&m->lock);
-      ret = 1;
+
+      if (err == 0)
+        {
+          ret = 1;
+          brk = 1;
+        }
+      else if (err == ETIMEDOUT)
+        {
+          ret = 0;
+          brk = 1;
+        }
+      else if (err != EINTR)
+        {
+          errno = err;
+          scm_syserror (NULL);
+        }
+
+      if (brk)
+        {
+          scm_lock_mutex (mutex);
+          t->block_asyncs--;
+          break;
+        }
+
+      t->block_asyncs--;
+      scm_async_tick ();
+
+      scm_remember_upto_here_2 (cond, mutex);
+
+      scm_i_scm_pthread_mutex_lock (&m->lock);
     }
 
   return ret;
@@ -1379,7 +1389,9 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mx),
 {
   SCM_VALIDATE_MUTEX (1, mx);
 
-  return scm_from_bool (fat_mutex_unlock (mx, SCM_UNDEFINED, NULL, 0));
+  fat_mutex_unlock (mx);
+
+  return SCM_BOOL_T;
 }
 #undef FUNC_NAME
 
@@ -1480,7 +1492,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
       waitptr = &waittime;
     }
 
-  return fat_mutex_unlock (mx, cv, waitptr, 1) ? SCM_BOOL_T : SCM_BOOL_F;
+  return scm_from_bool (fat_mutex_wait (cv, mx, waitptr));
 }
 #undef FUNC_NAME
 
