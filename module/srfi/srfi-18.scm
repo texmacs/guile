@@ -324,21 +324,23 @@
        #t)
       (else #f)))))
 
-(define mutex-unlock!
-  (case-lambda
-    ((mutex)
-     (set-mutex-owner! mutex #f)
-     (threads:unlock-mutex (mutex-prim mutex))
-     #t)
-    ((mutex cond)
-     (set-mutex-owner! mutex #f)
-     (threads:unlock-mutex (mutex-prim mutex)
-                           (condition-variable-prim cond)))
-    ((mutex cond timeout)
-     (set-mutex-owner! mutex #f)
-     (threads:unlock-mutex (mutex-prim mutex)
-                           (condition-variable-prim cond)
-                           timeout))))
+(define %unlock-sentinel (list 'unlock))
+(define* (mutex-unlock! mutex #:optional (cond-var %unlock-sentinel)
+                        (timeout %unlock-sentinel))
+  (when (mutex-owner mutex)
+    (set-mutex-owner! mutex #f)
+    (cond
+     ((eq? cond-var %unlock-sentinel)
+      (threads:unlock-mutex (mutex-prim mutex)))
+     ((eq? timeout %unlock-sentinel)
+      (threads:wait-condition-variable (condition-variable-prim cond-var)
+                                       (mutex-prim mutex))
+      (threads:unlock-mutex (mutex-prim mutex)))
+     ((threads:wait-condition-variable (condition-variable-prim cond-var)
+                                       (mutex-prim mutex)
+                                       timeout)
+      (threads:unlock-mutex (mutex-prim mutex)))
+     (else #f))))
 
 ;; CONDITION VARIABLES
 ;; These functions are all pass-thrus to the existing Guile implementations.
