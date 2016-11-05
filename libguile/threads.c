@@ -516,7 +516,6 @@ typedef struct {
   int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
 
   int recursive; /* allow recursive locking? */
-  int unchecked_unlock; /* is it an error to unlock an unlocked mutex? */
   int allow_external_unlock; /* is it an error to unlock a mutex that is not
 				owned by the current thread? */
 
@@ -1065,7 +1064,7 @@ fat_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
 }
 
 static SCM
-make_fat_mutex (int recursive, int unchecked_unlock, int external_unlock)
+make_fat_mutex (int recursive, int external_unlock)
 {
   fat_mutex *m;
   SCM mx;
@@ -1079,7 +1078,6 @@ make_fat_mutex (int recursive, int unchecked_unlock, int external_unlock)
   m->level = 0;
 
   m->recursive = recursive;
-  m->unchecked_unlock = unchecked_unlock;
   m->allow_external_unlock = external_unlock;
 
   m->waiting = SCM_EOL;
@@ -1093,7 +1091,6 @@ SCM scm_make_mutex (void)
   return scm_make_mutex_with_flags (SCM_EOL);
 }
 
-SCM_SYMBOL (unchecked_unlock_sym, "unchecked-unlock");
 SCM_SYMBOL (allow_external_unlock_sym, "allow-external-unlock");
 SCM_SYMBOL (recursive_sym, "recursive");
 
@@ -1102,15 +1099,13 @@ SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
 	    "Create a new mutex. ")
 #define FUNC_NAME s_scm_make_mutex_with_flags
 {
-  int unchecked_unlock = 0, external_unlock = 0, recursive = 0;
+  int external_unlock = 0, recursive = 0;
 
   SCM ptr = flags;
   while (! scm_is_null (ptr))
     {
       SCM flag = SCM_CAR (ptr);
-      if (scm_is_eq (flag, unchecked_unlock_sym))
-	unchecked_unlock = 1;
-      else if (scm_is_eq (flag, allow_external_unlock_sym))
+      if (scm_is_eq (flag, allow_external_unlock_sym))
 	external_unlock = 1;
       else if (scm_is_eq (flag, recursive_sym))
 	recursive = 1;
@@ -1118,7 +1113,7 @@ SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
 	SCM_MISC_ERROR ("unsupported mutex option: ~a", scm_list_1 (flag));
       ptr = SCM_CDR (ptr);
     }
-  return make_fat_mutex (recursive, unchecked_unlock, external_unlock);
+  return make_fat_mutex (recursive, external_unlock);
 }
 #undef FUNC_NAME
 
@@ -1127,7 +1122,7 @@ SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 	    "Create a new recursive mutex. ")
 #define FUNC_NAME s_scm_make_recursive_mutex
 {
-  return make_fat_mutex (1, 0, 0);
+  return make_fat_mutex (1, 0);
 }
 #undef FUNC_NAME
 
@@ -1285,12 +1280,8 @@ fat_mutex_unlock (SCM mutex, SCM cond,
     {
       if (m->level == 0)
 	{
-	  if (!m->unchecked_unlock)
-	    {
-	      scm_i_pthread_mutex_unlock (&m->lock);
-	      scm_misc_error (NULL, "mutex not locked", SCM_EOL);
-	    }
-	  owner = t->handle;
+          scm_i_pthread_mutex_unlock (&m->lock);
+          scm_misc_error (NULL, "mutex not locked", SCM_EOL);
 	}
       else if (!m->allow_external_unlock)
 	{

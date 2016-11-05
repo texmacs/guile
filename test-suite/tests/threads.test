@@ -421,11 +421,7 @@
 
       (with-test-prefix "mutex-behavior"
 
-        (pass-if "unchecked unlock"
-          (let* ((m (make-mutex 'unchecked-unlock)))
-	    (unlock-mutex m)))
-
-	(pass-if "allow external unlock"
+        (pass-if "allow external unlock"
 	  (let* ((m (make-mutex 'allow-external-unlock))
 		 (t (begin-thread (lock-mutex m))))
 	    (join-thread t)
