@@ -336,23 +336,105 @@ checking if the return value is @code{eq?} to @var{expected}.
 @cindex mutex
 @cindex condition variable
 
-A mutex is a thread synchronization object, it can be used by threads
-to control access to a shared resource.  A mutex can be locked to
-indicate a resource is in use, and other threads can then block on the
-mutex to wait for the resource (or can just test and do something else
-if not available).  ``Mutex'' is short for ``mutual exclusion''.
+Mutexes are low-level primitives used to coordinate concurrent access to
+mutable data.  Short for ``mutual exclusion'', the name ``mutex''
+indicates that only one thread at a time can acquire access to data that
+is protected by a mutex -- threads are excluded from accessing data at
+the same time.  If one thread has locked a mutex, then another thread
+attempting to lock that same mutex will wait until the first thread is
+done.
 
-There are two types of mutexes in Guile, ``standard'' and
-``recursive''.  They're created by @code{make-mutex} and
-@code{make-recursive-mutex} respectively, the operation functions are
-then common to both.
+Mutexes can be used to build robust multi-threaded programs that take
+advantage of multiple cores.  However, they provide very low-level
+functionality and are somewhat dangerous; usually you end up wanting to
+acquire multiple mutexes at the same time to perform a multi-object
+access, but this can easily lead to deadlocks if the program is not
+carefully written.  For example, if objects A and B are protected by
+associated mutexes M and N, respectively, then to access both of them
+then you need to acquire both mutexes.  But what if one thread acquires
+M first and then N, at the same time that another thread acquires N them
+M?  You can easily end up in a situation where one is waiting for the
+other.
 
-Note that for both types of mutex there's no protection against a
-``deadly embrace''.  For instance if one thread has locked mutex A and
-is waiting on mutex B, but another thread owns B and is waiting on A,
-then an endless wait will occur (in the current implementation).
-Acquiring requisite mutexes in a fixed order (like always A before B)
-in all threads is one way to avoid such problems.
+There's no easy way around this problem on the language level.  A
+function A that uses mutexes does not necessarily compose nicely with a
+function B that uses mutexes.  For this reason we suggest using atomic
+variables when you can (@pxref{Atomics}), as they do not have this problem.
+
+Still, if you as a programmer are responsible for a whole system, then
+you can use mutexes as a primitive to provide safe concurrent
+abstractions to your users.  (For example, given all locks in a system,
+if you establish an order such that M is consistently acquired before N,
+you can avoid the ``deadly-embrace'' deadlock described above.  The
+problem is enumerating all mutexes and establishing this order from a
+system perspective.)  Guile gives you the low-level facilities to build
+such systems.
+
+In Guile there are additional considerations beyond the usual ones in
+other programming languages: non-local control flow and asynchronous
+interrupts.  What happens if you hold a mutex, but somehow you cause an
+exception to be thrown?  There is no one right answer.  You might want
+to keep the mutex locked to prevent any other code from ever entering
+that critical section again.  Or, your critical section might be fine if
+you unlock the mutex ``on the way out'', via a catch handler or
+@code{dynamic-wind}.  @xref{Catch}, and @xref{Dynamic Wind}.
+
+But if you arrange to unlock the mutex when leaving a dynamic extent via
+@code{dynamic-wind}, what to do if control re-enters that dynamic extent
+via a continuation invocation?  Surely re-entering the dynamic extent
+without the lock is a bad idea, so there are two options on the table:
+either prevent re-entry via @code{with-continuation-barrier} or similar,
+or reacquiring the lock in the entry thunk of a @code{dynamic-wind}.
+
+You might think that because you don't use continuations, that you don't
+have to think about this, and you might be right.  If you control the
+whole system, you can reason about continuation use globally.  Or, if
+you know all code that can be called in a dynamic extent, and none of
+that code can call continuations, then you don't have to worry about
+re-entry, and you might not have to worry about early exit either.
+
+However, do consider the possibility of asynchronous interrupts
+(@pxref{Asyncs}).  If the user interrupts your code interactively, that
+can cause an exception; or your thread might be cancelled, which does
+the same; or the user could be running your code under some pre-emptive
+system that periodically causes lightweight task switching.  (Guile does
+not currently include such a system, but it's possible to implement as a
+library.)  Probably you also want to defer asynchronous interrupt
+processing while you hold the mutex, and probably that also means that
+you should not hold the mutex for very long.
+
+All of these additional Guile-specific considerations mean that from a
+system perspective, you would do well to avoid these hazards if you can
+by not requiring mutexes.  Instead, work with immutable data that can be
+shared between threads without hazards, or use persistent data
+structures with atomic updates based on the atomic variable library
+(@pxref{Atomics}).
+
+There are three types of mutexes in Guile: ``standard'', ``recursive'',
+and ``unowned''.
+
+Calling @code{make-mutex} with no arguments makes a standard mutex.  A
+standard mutex can only be locked once.  If you try to lock it again
+from the thread that locked it to begin with (the "owner" thread), it
+throws an error.  It can only be unlocked from the thread that locked it
+in the first place.
+
+Calling @code{make-mutex} with the symbol @code{recursive} as the
+argument, or calling @code{make-recursive-mutex}, will give you a
+recursive mutex.  A recursive mutex can be locked multiple times by its
+owner.  It then has to be unlocked the corresponding number of times,
+and like standard mutexes can only be unlocked by the owner thread.
+
+Finally, calling @code{make-mutex} with the symbol
+@code{allow-external-unlock} creates an unowned mutex.  An unowned mutex
+is like a standard mutex, except that it can be unlocked by any thread.
+A corrolary of this behavior is that a thread's attempt to lock a mutex
+that it already owns will block instead of signalling an error, as it
+could be that some other thread unlocks the mutex, allowing the owner
+thread to proceed.  This kind of mutex is a bit strange and is here for
+use by SRFI-18.
+
+The mutex procedures in Guile can operate on all three kinds of mutexes.
 
 To use these facilities, load the @code{(ice-9 threads)} module.
 
@@ -361,25 +443,14 @@ To use these facilities, load the @code{(ice-9 threads)} module.
 @end example
 
 @sp 1
-@deffn {Scheme Procedure} make-mutex flag @dots{}
+@deffn {Scheme Procedure} make-mutex [kind]
 @deffnx {C Function} scm_make_mutex ()
-@deffnx {C Function} scm_make_mutex_with_flags (SCM flags)
-Return a new mutex.  It is initially unlocked.  If @var{flag} @dots{} is
-specified, it must be a list of symbols specifying configuration flags
-for the newly-created mutex.  The supported flags are:
-@table @code
-@item unchecked-unlock
-Unless this flag is present, a call to `unlock-mutex' on the returned
-mutex when it is already unlocked will cause an error to be signalled.
-
-@item allow-external-unlock
-Allow the returned mutex to be unlocked by the calling thread even if
-it was originally locked by a different thread.
-
-@item recursive
-The returned mutex will be recursive.
-
-@end table
+@deffnx {C Function} scm_make_mutex_with_kind (SCM kind)
+Return a new mutex.  It will be a standard non-recursive mutex, unless
+the @code{recursive} symbol is passed as the optional @var{kind}
+argument, in which case it will be recursive.  It's also possible to
+pass @code{unowned} for semantics tailored to SRFI-18's use case; see
+above for details.
 @end deffn
 
 @deffn {Scheme Procedure} mutex? obj
@@ -391,8 +462,8 @@ Return @code{#t} if @var{obj} is a mutex; otherwise, return
 @deffn {Scheme Procedure} make-recursive-mutex
 @deffnx {C Function} scm_make_recursive_mutex ()
 Create a new recursive mutex.  It is initially unlocked.  Calling this
-function is equivalent to calling `make-mutex' and specifying the
-@code{recursive} flag.
+function is equivalent to calling @code{make-mutex} with the
+@code{recursive} kind.
 @end deffn
 
 @deffn {Scheme Procedure} lock-mutex mutex [timeout [owner]]
