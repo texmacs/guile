@@ -1152,7 +1152,7 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 	  *ret = 1;
 	  break;
 	}
-      else if (scm_is_eq (m->owner, new_owner))
+      else if (scm_is_eq (m->owner, new_owner) && !m->allow_external_unlock)
 	{
 	  if (m->recursive)
 	    {

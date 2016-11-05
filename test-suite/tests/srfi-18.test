@@ -302,6 +302,41 @@
         (thread-join! t)
         (eq? (mutex-state m) 'not-abandoned)))
 
+    (pass-if "recursive lock waits"
+      (let* ((m (make-mutex 'mutex-unlock-2))
+             (t (make-thread (lambda ()
+                               (mutex-lock! m)
+                               (let ((now (time->seconds (current-time))))
+                                 (mutex-lock! m (+ now 0.1)))
+                               (mutex-unlock! m))
+                             'mutex-unlock-2)))
+        (thread-start! t)
+        (thread-join! t)
+        (eq? (mutex-state m) 'not-abandoned)))
+
+    (pass-if "recursive lock unblocked by second thread"
+      (let* ((m1 (make-mutex))
+             (m2 (make-mutex))
+             (c (make-condition-variable)))
+        (mutex-lock! m1)
+        (let ((t (make-thread (lambda ()
+                                (mutex-lock! m1)
+                                (mutex-lock! m2)
+                                (condition-variable-signal! c)
+                                (mutex-unlock! m1)
+                                (mutex-lock! m2)
+                                (mutex-unlock! m2)))))
+          (thread-start! t)
+          (mutex-unlock! m1 c)
+          ;; At this point the thread signalled that it has both m1 and
+          ;; m2, and it will go to try to lock m2 again.  We wait for it
+          ;; to block trying to acquire m2 by sleeping a little bit and
+          ;; then unblock it by unlocking m2 from here.
+          (usleep #e1e5)
+          (mutex-unlock! m2)
+          (thread-join! t)
+          (eq? (mutex-state m2) 'not-abandoned))))
+
     (pass-if "mutex unlock is true when condition is signalled"
       (let* ((m (make-mutex 'mutex-unlock-3))
              (c (make-condition-variable 'mutex-unlock-3))
