@@ -680,6 +680,28 @@ scm_dynwind_critical_section (SCM mutex)
 
 
 
+SCM
+scm_make_mutex_with_flags (SCM flags)
+{
+  SCM kind = SCM_UNDEFINED;
+
+  scm_c_issue_deprecation_warning
+    ("'scm_make_mutex_with_flags' is deprecated.  "
+     "Use 'scm_make_mutex_with_kind' instead.");
+
+  if (!scm_is_null (flags))
+    {
+      if (!scm_is_null (scm_cdr (flags)))
+	scm_misc_error (NULL, "too many mutex options: ~a", scm_list_1 (flags));
+      kind = scm_car (flags);
+    }
+
+  return scm_make_mutex_with_kind (kind);
+}
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

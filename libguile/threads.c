@@ -510,15 +510,31 @@ guilify_self_2 (SCM parent)
    debugging.
 */
 
+enum fat_mutex_kind {
+  /* A standard mutex can only be locked once.  If you try to lock it
+     again from the thread that locked it to begin with (the "owner"
+     thread), it throws an error.  It can only be unlocked from the
+     thread that locked it in the first place.  */
+  FAT_MUTEX_STANDARD,
+  /* A recursive mutex can be locked multiple times by its owner.  It
+     then has to be unlocked the corresponding number of times, and like
+     standard mutexes can only be unlocked by the owner thread.  */
+  FAT_MUTEX_RECURSIVE,
+  /* An unowned mutex is like a standard mutex, except that it can be
+     unlocked by any thread.  A corrolary of this behavior is that a
+     thread's attempt to lock a mutex that it already owns will block
+     instead of signalling an error, as it could be that some other
+     thread unlocks the mutex, allowing the owner thread to proceed.
+     This kind of mutex is a bit strange and is here for use by
+     SRFI-18.  */
+  FAT_MUTEX_UNOWNED
+};
+
 typedef struct {
   scm_i_pthread_mutex_t lock;
   SCM owner;
   int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
-
-  int recursive; /* allow recursive locking? */
-  int allow_external_unlock; /* is it an error to unlock a mutex that is not
-				owned by the current thread? */
-
+  enum fat_mutex_kind kind;
   SCM waiting;    /* the threads waiting for this mutex. */
 } fat_mutex;
 
@@ -1064,7 +1080,7 @@ fat_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
 }
 
 static SCM
-make_fat_mutex (int recursive, int external_unlock)
+make_fat_mutex (enum fat_mutex_kind kind)
 {
   fat_mutex *m;
   SCM mx;
@@ -1076,10 +1092,7 @@ make_fat_mutex (int recursive, int external_unlock)
   memcpy (&m->lock, &lock, sizeof (m->lock));
   m->owner = SCM_BOOL_F;
   m->level = 0;
-
-  m->recursive = recursive;
-  m->allow_external_unlock = external_unlock;
-
+  m->kind = kind;
   m->waiting = SCM_EOL;
   SCM_NEWSMOB (mx, scm_tc16_mutex, (scm_t_bits) m);
   m->waiting = make_queue ();
@@ -1088,32 +1101,34 @@ make_fat_mutex (int recursive, int external_unlock)
 
 SCM scm_make_mutex (void)
 {
-  return scm_make_mutex_with_flags (SCM_EOL);
+  return scm_make_mutex_with_kind (SCM_UNDEFINED);
 }
 
 SCM_SYMBOL (allow_external_unlock_sym, "allow-external-unlock");
 SCM_SYMBOL (recursive_sym, "recursive");
 
-SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
-	    (SCM flags),
-	    "Create a new mutex. ")
-#define FUNC_NAME s_scm_make_mutex_with_flags
+SCM_DEFINE (scm_make_mutex_with_kind, "make-mutex", 0, 1, 0,
+	    (SCM kind),
+	    "Create a new mutex.  If @var{kind} is not given, the mutex\n"
+            "will be a standard non-recursive mutex.  Otherwise pass\n"
+            "@code{recursive} to make a recursive mutex, or\n"
+            "@code{allow-external-unlock} to make a non-recursive mutex\n"
+            "that can be unlocked from any thread.")
+#define FUNC_NAME s_scm_make_mutex_with_kind
 {
-  int external_unlock = 0, recursive = 0;
+  enum fat_mutex_kind mkind = FAT_MUTEX_STANDARD;
 
-  SCM ptr = flags;
-  while (! scm_is_null (ptr))
+  if (!SCM_UNBNDP (kind))
     {
-      SCM flag = SCM_CAR (ptr);
-      if (scm_is_eq (flag, allow_external_unlock_sym))
-	external_unlock = 1;
-      else if (scm_is_eq (flag, recursive_sym))
-	recursive = 1;
+      if (scm_is_eq (kind, allow_external_unlock_sym))
+	mkind = FAT_MUTEX_UNOWNED;
+      else if (scm_is_eq (kind, recursive_sym))
+	mkind = FAT_MUTEX_RECURSIVE;
       else
-	SCM_MISC_ERROR ("unsupported mutex option: ~a", scm_list_1 (flag));
-      ptr = SCM_CDR (ptr);
+	SCM_MISC_ERROR ("unsupported mutex kind: ~a", scm_list_1 (kind));
     }
-  return make_fat_mutex (recursive, external_unlock);
+
+  return make_fat_mutex (mkind);
 }
 #undef FUNC_NAME
 
@@ -1122,7 +1137,7 @@ SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 	    "Create a new recursive mutex. ")
 #define FUNC_NAME s_scm_make_recursive_mutex
 {
-  return make_fat_mutex (1, 0);
+  return scm_make_mutex_with_kind (recursive_sym);
 }
 #undef FUNC_NAME
 
@@ -1147,9 +1162,9 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 	  *ret = 1;
 	  break;
 	}
-      else if (scm_is_eq (m->owner, new_owner) && !m->allow_external_unlock)
+      else if (scm_is_eq (m->owner, new_owner) && m->kind != FAT_MUTEX_UNOWNED)
 	{
-	  if (m->recursive)
+	  if (m->kind == FAT_MUTEX_RECURSIVE)
 	    {
 	      m->level++;
 	      *ret = 1;
@@ -1283,7 +1298,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
           scm_i_pthread_mutex_unlock (&m->lock);
           scm_misc_error (NULL, "mutex not locked", SCM_EOL);
 	}
-      else if (!m->allow_external_unlock)
+      else if (m->kind != FAT_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);

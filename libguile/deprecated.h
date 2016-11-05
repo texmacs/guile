@@ -238,6 +238,10 @@ SCM_DEPRECATED void scm_dynwind_critical_section (SCM mutex);
 
 
 
+SCM_DEPRECATED SCM scm_make_mutex_with_flags (SCM flags);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif
