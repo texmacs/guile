@@ -987,7 +987,8 @@ scm_cancel_thread (SCM thread)
   return SCM_UNSPECIFIED;
 }
 
-SCM scm_join_thread (SCM thread)
+SCM
+scm_join_thread (SCM thread)
 {
   return scm_join_thread_timed (thread, SCM_UNDEFINED, SCM_UNDEFINED);
 }
@@ -1201,20 +1202,17 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
   return err;
 }
 
-SCM scm_lock_mutex (SCM mx)
+SCM
+scm_lock_mutex (SCM mx)
 {
-  return scm_lock_mutex_timed (mx, SCM_UNDEFINED, SCM_UNDEFINED);
+  return scm_timed_lock_mutex (mx, SCM_UNDEFINED);
 }
 
-SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
-	    (SCM m, SCM timeout, SCM owner),
+SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
+	    (SCM m, SCM timeout),
 	    "Lock mutex @var{m}. If the mutex is already locked, the calling\n"
-	    "thread blocks until the mutex becomes available. The function\n"
-	    "returns when the calling thread owns the lock on @var{m}.\n"
-	    "Locking a mutex that a thread already owns will succeed right\n"
-	    "away and will not block the thread.  That is, Guile's mutexes\n"
-	    "are @emph{recursive}.")
-#define FUNC_NAME s_scm_lock_mutex_timed
+	    "thread blocks until the mutex becomes available.")
+#define FUNC_NAME s_scm_timed_lock_mutex
 {
   SCM exception;
   int ret = 0;
@@ -1227,11 +1225,6 @@ SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
       to_timespec (timeout, &cwaittime);
       waittime = &cwaittime;
     }
-
-  if (!SCM_UNBNDP (owner) && !scm_is_false (owner))
-    scm_c_issue_deprecation_warning
-      ("The 'owner' argument to lock-mutex is deprecated.  Use SRFI-18 "
-       "directly if you need this concept.");
 
   exception = fat_mutex_lock (m, waittime, &ret);
   if (!scm_is_false (exception))
@@ -1264,7 +1257,7 @@ scm_dynwind_lock_mutex (SCM mutex)
 SCM
 scm_try_mutex (SCM mutex)
 {
-  return scm_lock_mutex_timed (mutex, SCM_INUM0, SCM_UNDEFINED);
+  return scm_timed_lock_mutex (mutex, SCM_INUM0);
 }
 
 /*** Fat condition variables */

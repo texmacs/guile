@@ -700,6 +700,21 @@ scm_make_mutex_with_flags (SCM flags)
 }
 
 SCM
+scm_lock_mutex_timed (SCM m, SCM timeout, SCM owner)
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_lock_mutex_timed' is deprecated.  "
+     "Use 'scm_timed_lock_mutex' instead.");
+
+  if (!SCM_UNBNDP (owner) && !scm_is_false (owner))
+    scm_c_issue_deprecation_warning
+      ("The 'owner' argument to 'scm_lock_mutex_timed' is deprecated.  "
+       "Use SRFI-18 directly if you need this concept.");
+
+  return scm_timed_lock_mutex (m, timeout);
+}
+
+SCM
 scm_unlock_mutex_timed (SCM mx, SCM cond, SCM timeout)
 {
   scm_c_issue_deprecation_warning

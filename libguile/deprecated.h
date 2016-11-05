@@ -240,6 +240,7 @@ SCM_DEPRECATED void scm_dynwind_critical_section (SCM mutex);
 
 SCM_DEPRECATED SCM scm_make_mutex_with_flags (SCM flags);
 SCM_DEPRECATED SCM scm_unlock_mutex_timed (SCM mx, SCM cond, SCM timeout);
+SCM_DEPRECATED SCM scm_lock_mutex_timed (SCM m, SCM timeout, SCM owner);
 
 
 
