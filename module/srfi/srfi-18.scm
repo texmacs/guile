@@ -286,16 +286,9 @@
           (else v)))))))
 
 ;; MUTEXES
-;; These functions are all pass-thrus to the existing Guile implementations.
 
 (define* (make-mutex #:optional name)
-  (%make-mutex (threads:make-mutex 'unchecked-unlock
-                                   'allow-external-unlock
-                                   'recursive)
-               name
-               #f
-               #f
-               #f))
+  (%make-mutex (threads:make-mutex 'allow-external-unlock) name #f #f #f))
 
 (define (mutex-state mutex)
   (cond
