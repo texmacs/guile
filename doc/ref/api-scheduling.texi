@@ -466,36 +466,28 @@ function is equivalent to calling @code{make-mutex} with the
 @code{recursive} kind.
 @end deffn
 
-@deffn {Scheme Procedure} lock-mutex mutex [timeout [owner]]
+@deffn {Scheme Procedure} lock-mutex mutex [timeout]
 @deffnx {C Function} scm_lock_mutex (mutex)
-@deffnx {C Function} scm_lock_mutex_timed (mutex, timeout, owner)
-Lock @var{mutex}.  If the mutex is already locked, then block and
-return only when @var{mutex} has been acquired.
+@deffnx {C Function} scm_timed_lock_mutex (mutex, timeout)
+Lock @var{mutex} and return @code{#t}.  If the mutex is already locked,
+then block and return only when @var{mutex} has been acquired.
 
 When @var{timeout} is given, it specifies a point in time where the
 waiting should be aborted.  It can be either an integer as returned
 by @code{current-time} or a pair as returned by @code{gettimeofday}.
 When the waiting is aborted, @code{#f} is returned.
 
-When @var{owner} is given, it specifies an owner for @var{mutex} other
-than the calling thread.  @var{owner} may also be @code{#f},
-indicating that the mutex should be locked but left unowned.
-
-For standard mutexes (@code{make-mutex}), and error is signalled if
-the thread has itself already locked @var{mutex}.
+For standard mutexes (@code{make-mutex}), an error is signalled if the
+thread has itself already locked @var{mutex}.
 
 For a recursive mutex (@code{make-recursive-mutex}), if the thread has
 itself already locked @var{mutex}, then a further @code{lock-mutex}
 call increments the lock count.  An additional @code{unlock-mutex}
 will be required to finally release.
 
-If @var{mutex} was locked by a thread that exited before unlocking it,
-the next attempt to lock @var{mutex} will succeed, but
-@code{abandoned-mutex-error} will be signalled.
-
-When an async (@pxref{Asyncs}) is activated for a thread blocked in
-@code{lock-mutex}, the wait is interrupted and the async is executed.
-When the async returns, the wait resumes.
+When an asynchronous interrupt (@pxref{Asyncs}) is scheduled for a
+thread blocked in @code{lock-mutex}, Guile will interrupt the wait, run
+the interrupts, and then resume the wait.
 @end deffn
 
 @deftypefn {C Function} void scm_dynwind_lock_mutex (SCM mutex)
@@ -505,31 +497,18 @@ context is entered and to be unlocked when it is exited.
 
 @deffn {Scheme Procedure} try-mutex mx
 @deffnx {C Function} scm_try_mutex (mx)
-Try to lock @var{mutex} as per @code{lock-mutex}.  If @var{mutex} can
-be acquired immediately then this is done and the return is @code{#t}.
-If @var{mutex} is locked by some other thread then nothing is done and
-the return is @code{#f}.
+Try to lock @var{mutex} and return @code{#t} if successful, or @code{#f}
+otherwise.  This is like calling @code{lock-mutex} with an expired
+timeout.
 @end deffn
 
-@deffn {Scheme Procedure} unlock-mutex mutex [condvar [timeout]]
+@deffn {Scheme Procedure} unlock-mutex mutex
 @deffnx {C Function} scm_unlock_mutex (mutex)
-@deffnx {C Function} scm_unlock_mutex_timed (mutex, condvar, timeout)
-Unlock @var{mutex}.  An error is signalled if @var{mutex} is not locked
-and was not created with the @code{unchecked-unlock} flag set, or if
-@var{mutex} is locked by a thread other than the calling thread and was
-not created with the @code{allow-external-unlock} flag set.
+Unlock @var{mutex}.  An error is signalled if @var{mutex} is not locked.
 
-If @var{condvar} is given, it specifies a condition variable upon
-which the calling thread will wait to be signalled before returning.
-(This behavior is very similar to that of
-@code{wait-condition-variable}, except that the mutex is left in an
-unlocked state when the function returns.)
-
-When @var{timeout} is also given and not false, it specifies a point in
-time where the waiting should be aborted.  It can be either an integer
-as returned by @code{current-time} or a pair as returned by
-@code{gettimeofday}.  When the waiting is aborted, @code{#f} is
-returned.  Otherwise the function returns @code{#t}.
+``Standard'' and ``recursive'' mutexes can only be unlocked by the
+thread that locked them; Guile detects this situation and signals an
+error.  ``Unowned'' mutexes can be unlocked by any thread.
 @end deffn
 
 @deffn {Scheme Procedure} mutex-owner mutex
@@ -593,13 +572,8 @@ Wake up one thread that is waiting for @var{condvar}.
 Wake up all threads that are waiting for @var{condvar}.
 @end deffn
 
-@sp 1
-The following are higher level operations on mutexes.  These are
-available from
-
-@example
-(use-modules (ice-9 threads))
-@end example
+Guile also includes some higher-level abstractions for working with
+mutexes.
 
 @deffn macro with-mutex mutex body1 body2 @dots{}
 Lock @var{mutex}, evaluate the body @var{body1} @var{body2} @dots{},
