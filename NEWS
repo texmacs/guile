@@ -21,6 +21,52 @@ break, however; we used the deprecation facility to signal a warning
 message while also providing these bindings in the root environment for
 the duration of the 2.2 series.
 
+** SRFI-18 threads, mutexes, cond vars disjoint from Guile
+
+When we added support for the SRFI-18 threading library in Guile 2.0, we
+did so in a way that made SRFI-18 mutexes the same as Guile mutexes.
+This was a mistake.  In Guile our goal is to provide basic,
+well-thought-out, well-implemented, minimal primitives, on top of which
+we can build a variety of opinionated frameworks.  Incorporating SRFI-18
+functionality into core Guile caused us to bloat and slow down our core
+threading primitives.  Worse, they became very hard to describe; they
+did many things, did them poorly, and all that they did was never
+adequately specified.
+
+For all of these reasons we have returned to a situation where SRFI-18
+concepts are implemented only in the `(srfi srfi-18)' module.  This
+means that SRFI-18 threads are built on Guile threads, but aren't the
+same as Guile threads; calling Guile `thread?' on a thread no longer
+returns true.
+
+We realize this causes inconvenience to users who use both Guile
+threading interfaces and SRFI-18 interfaces, and we lament the change --
+but we are better off now.  We hope the newly revised "Scheduling"
+section in the manual compensates for the headache.
+
+** Remove `lock-mutex' "owner" argument
+
+Mutex owners are a SRFI-18 concept; use SRFI-18 mutexes instead.
+Relatedly, `scm_lock_mutex_timed' taking the owner argument is now
+deprecated; use `scm_timed_lock_mutex' instead.
+
+** Remove `unlock-mutex' cond var and timeout arguments
+
+It used to be that `unlock-mutex' included `wait-condition-variable'
+functionality.  This has been deprecated; use SRFI-18 if you want this
+behavior from `mutex-unlock!'.  Relatedly, `scm_unlock_mutex_timed is
+deprecated; use `scm_unlock_mutex' instead.
+
+** Removed `unchecked-unlock' mutex flag
+
+This flag was introduced for internal use by SRFI-18; use SRFI-18
+mutexes if you need this behaviour.
+
+** SRFI-18 mutexes no longer recursive
+
+Contrary to specification, SRFI-18 mutexes in Guile were recursive.
+This is no longer the case.
+
 ** Thread cleanup handlers removed
 
 The `set-thread-cleanup!' and `thread-cleanup' functions that were added
@@ -50,6 +96,11 @@ defer asynchronous interrupts.  Instead of SCM_CRITICAL_SECTION_START,
 make sure you're in a "scm_dynwind_begin (0)" and use
 scm_dynwind_pthread_mutex_lock instead, possibly also with
 scm_dynwind_block_asyncs.
+
+** `scm_make_mutex_with_flags' deprecated
+
+Use `scm_make_mutex_with_kind' instead.  See "Mutexes and Condition
+Variables" in the manual, for more.
 
 * Bug fixes
 ** cancel-thread uses asynchronous interrupts, not pthread_cancel
