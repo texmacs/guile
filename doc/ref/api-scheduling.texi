@@ -384,7 +384,7 @@ But if you arrange to unlock the mutex when leaving a dynamic extent via
 via a continuation invocation?  Surely re-entering the dynamic extent
 without the lock is a bad idea, so there are two options on the table:
 either prevent re-entry via @code{with-continuation-barrier} or similar,
-or reacquiring the lock in the entry thunk of a @code{dynamic-wind}.
+or reacquire the lock in the entry thunk of a @code{dynamic-wind}.
 
 You might think that because you don't use continuations, that you don't
 have to think about this, and you might be right.  If you control the
@@ -428,7 +428,7 @@ and like standard mutexes can only be unlocked by the owner thread.
 Finally, calling @code{make-mutex} with the symbol
 @code{allow-external-unlock} creates an unowned mutex.  An unowned mutex
 is like a standard mutex, except that it can be unlocked by any thread.
-A corrolary of this behavior is that a thread's attempt to lock a mutex
+A corollary of this behavior is that a thread's attempt to lock a mutex
 that it already owns will block instead of signalling an error, as it
 could be that some other thread unlocks the mutex, allowing the owner
 thread to proceed.  This kind of mutex is a bit strange and is here for
