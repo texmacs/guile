@@ -1423,7 +1423,7 @@ the lower-level HTTP, request, and response modules.
 
 @deffn {Scheme Procedure} open-socket-for-uri uri
 Return an open input/output port for a connection to URI.  Guile
-dynamically loads gnutls for https support.
+dynamically loads GnuTLS for HTTPS support.
 @xref{Guile Preparations,
 how to install the GnuTLS bindings for Guile,, gnutls-guile,
 GnuTLS-Guile}, for more information.
