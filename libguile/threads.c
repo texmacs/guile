@@ -1065,12 +1065,12 @@ struct scm_mutex {
   scm_i_pthread_mutex_t lock;
   SCM owner;
   int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
-  enum scm_mutex_kind kind;
   SCM waiting;    /* the threads waiting for this mutex. */
 };
 
-#define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
-#define SCM_MUTEX_DATA(x)     ((struct scm_mutex *) SCM_SMOB_DATA (x))
+#define SCM_MUTEXP(x)     SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
+#define SCM_MUTEX_DATA(x) ((struct scm_mutex *) SCM_SMOB_DATA (x))
+#define SCM_MUTEX_KIND(x) ((enum scm_mutex_kind) (SCM_SMOB_FLAGS (x) & 0x3))
 
 static int
 scm_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -1114,10 +1114,9 @@ SCM_DEFINE (scm_make_mutex_with_kind, "make-mutex", 0, 1, 0,
   memcpy (&m->lock, &lock, sizeof (m->lock));
   m->owner = SCM_BOOL_F;
   m->level = 0;
-  m->kind = mkind;
   m->waiting = make_queue ();
 
-  return scm_new_smob (scm_tc16_mutex, (scm_t_bits) m);
+  return scm_new_smob (scm_tc16_mutex | (mkind << 16), (scm_t_bits) m);
 }
 #undef FUNC_NAME
 
@@ -1173,9 +1172,10 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
           scm_i_pthread_mutex_unlock (&m->lock);
           return SCM_BOOL_T;
 	}
-      else if (scm_is_eq (m->owner, new_owner) && m->kind != SCM_MUTEX_UNOWNED)
+      else if (scm_is_eq (m->owner, new_owner) &&
+               SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
 	{
-	  if (m->kind == SCM_MUTEX_RECURSIVE)
+	  if (SCM_MUTEX_KIND (mutex) == SCM_MUTEX_RECURSIVE)
 	    {
 	      m->level++;
               scm_i_pthread_mutex_unlock (&m->lock);
@@ -1258,7 +1258,7 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
           scm_i_pthread_mutex_unlock (&m->lock);
           SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
 	}
-      else if (m->kind != SCM_MUTEX_UNOWNED)
+      else if (SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
@@ -1400,7 +1400,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
           scm_i_pthread_mutex_unlock (&m->lock);
           SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
 	}
-      else if (m->kind != SCM_MUTEX_UNOWNED)
+      else if (SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
