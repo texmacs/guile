@@ -1032,7 +1032,8 @@ SCM_DEFINE (scm_thread_p, "thread?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/*** Fat mutexes */
+
+
 
 /* We implement our own mutex type since we want them to be 'fair', we
    want to do fancy things while waiting for them (like running
@@ -1040,16 +1041,16 @@ SCM_DEFINE (scm_thread_p, "thread?", 1, 0, 0,
    debugging.
 */
 
-enum fat_mutex_kind {
+enum scm_mutex_kind {
   /* A standard mutex can only be locked once.  If you try to lock it
      again from the thread that locked it to begin with (the "owner"
      thread), it throws an error.  It can only be unlocked from the
      thread that locked it in the first place.  */
-  FAT_MUTEX_STANDARD,
+  SCM_MUTEX_STANDARD,
   /* A recursive mutex can be locked multiple times by its owner.  It
      then has to be unlocked the corresponding number of times, and like
      standard mutexes can only be unlocked by the owner thread.  */
-  FAT_MUTEX_RECURSIVE,
+  SCM_MUTEX_RECURSIVE,
   /* An unowned mutex is like a standard mutex, except that it can be
      unlocked by any thread.  A corrolary of this behavior is that a
      thread's attempt to lock a mutex that it already owns will block
@@ -1057,24 +1058,24 @@ enum fat_mutex_kind {
      thread unlocks the mutex, allowing the owner thread to proceed.
      This kind of mutex is a bit strange and is here for use by
      SRFI-18.  */
-  FAT_MUTEX_UNOWNED
+  SCM_MUTEX_UNOWNED
 };
 
-typedef struct {
+struct scm_mutex {
   scm_i_pthread_mutex_t lock;
   SCM owner;
   int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
-  enum fat_mutex_kind kind;
+  enum scm_mutex_kind kind;
   SCM waiting;    /* the threads waiting for this mutex. */
-} fat_mutex;
+};
 
 #define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
-#define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
+#define SCM_MUTEX_DATA(x)     ((struct scm_mutex *) SCM_SMOB_DATA (x))
 
 static int
 scm_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  fat_mutex *m = SCM_MUTEX_DATA (mx);
+  struct scm_mutex *m = SCM_MUTEX_DATA (mx);
   scm_puts ("#<mutex ", port);
   scm_uintprint ((scm_t_bits)m, 16, port);
   scm_puts (">", port);
@@ -1093,21 +1094,21 @@ SCM_DEFINE (scm_make_mutex_with_kind, "make-mutex", 0, 1, 0,
             "that can be unlocked from any thread.")
 #define FUNC_NAME s_scm_make_mutex_with_kind
 {
-  enum fat_mutex_kind mkind = FAT_MUTEX_STANDARD;
-  fat_mutex *m;
+  enum scm_mutex_kind mkind = SCM_MUTEX_STANDARD;
+  struct scm_mutex *m;
   scm_i_pthread_mutex_t lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
   if (!SCM_UNBNDP (kind))
     {
       if (scm_is_eq (kind, allow_external_unlock_sym))
-	mkind = FAT_MUTEX_UNOWNED;
+	mkind = SCM_MUTEX_UNOWNED;
       else if (scm_is_eq (kind, recursive_sym))
-	mkind = FAT_MUTEX_RECURSIVE;
+	mkind = SCM_MUTEX_RECURSIVE;
       else
 	SCM_MISC_ERROR ("unsupported mutex kind: ~a", scm_list_1 (kind));
     }
 
-  m = scm_gc_malloc (sizeof (fat_mutex), "mutex");
+  m = scm_gc_malloc (sizeof (struct scm_mutex), "mutex");
   /* Because PTHREAD_MUTEX_INITIALIZER is static, it's plain old data,
      and so we can just copy it.  */
   memcpy (&m->lock, &lock, sizeof (m->lock));
@@ -1149,7 +1150,7 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
 {
   scm_t_timespec cwaittime, *waittime = NULL;
   struct timeval current_time;
-  fat_mutex *m;
+  struct scm_mutex *m;
   SCM new_owner = scm_current_thread();
 
   SCM_VALIDATE_MUTEX (1, mutex);
@@ -1172,9 +1173,9 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
           scm_i_pthread_mutex_unlock (&m->lock);
           return SCM_BOOL_T;
 	}
-      else if (scm_is_eq (m->owner, new_owner) && m->kind != FAT_MUTEX_UNOWNED)
+      else if (scm_is_eq (m->owner, new_owner) && m->kind != SCM_MUTEX_UNOWNED)
 	{
-	  if (m->kind == FAT_MUTEX_RECURSIVE)
+	  if (m->kind == SCM_MUTEX_RECURSIVE)
 	    {
 	      m->level++;
               scm_i_pthread_mutex_unlock (&m->lock);
@@ -1242,7 +1243,7 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
             "will be signalled.")
 #define FUNC_NAME s_scm_unlock_mutex
 {
-  fat_mutex *m;
+  struct scm_mutex *m;
 
   SCM_VALIDATE_MUTEX (1, mutex);
 
@@ -1257,7 +1258,7 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
           scm_i_pthread_mutex_unlock (&m->lock);
           SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
 	}
-      else if (m->kind != FAT_MUTEX_UNOWNED)
+      else if (m->kind != SCM_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
@@ -1291,7 +1292,7 @@ SCM_DEFINE (scm_mutex_owner, "mutex-owner", 1, 0, 0,
 #define FUNC_NAME s_scm_mutex_owner
 {
   SCM owner;
-  fat_mutex *m = NULL;
+  struct scm_mutex *m = NULL;
 
   SCM_VALIDATE_MUTEX (1, mx);
   m = SCM_MUTEX_DATA (mx);
@@ -1323,20 +1324,21 @@ SCM_DEFINE (scm_mutex_locked_p, "mutex-locked?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/*** Fat condition variables */
 
-typedef struct {
+
+
+struct scm_cond {
   scm_i_pthread_mutex_t lock;
   SCM waiting;               /* the threads waiting for this condition. */
-} fat_cond;
+};
 
 #define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
-#define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
+#define SCM_CONDVAR_DATA(x)   ((struct scm_cond *) SCM_SMOB_DATA (x))
 
 static int
-fat_cond_print (SCM cv, SCM port, scm_print_state *pstate SCM_UNUSED)
+scm_cond_print (SCM cv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  fat_cond *c = SCM_CONDVAR_DATA (cv);
+  struct scm_cond *c = SCM_CONDVAR_DATA (cv);
   scm_puts ("#<condition-variable ", port);
   scm_uintprint ((scm_t_bits)c, 16, port);
   scm_puts (">", port);
@@ -1348,10 +1350,10 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 	    "Make a new condition variable.")
 #define FUNC_NAME s_scm_make_condition_variable
 {
-  fat_cond *c;
+  struct scm_cond *c;
   SCM cv;
 
-  c = scm_gc_malloc (sizeof (fat_cond), "condition variable");
+  c = scm_gc_malloc (sizeof (struct scm_cond), "condition variable");
   c->waiting = SCM_EOL;
   SCM_NEWSMOB (cv, scm_tc16_condvar, (scm_t_bits) c);
   c->waiting = make_queue ();
@@ -1373,8 +1375,8 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 #define FUNC_NAME s_scm_timed_wait_condition_variable
 {
   scm_t_timespec waittime_val, *waittime = NULL;
-  fat_cond *c;
-  fat_mutex *m;
+  struct scm_cond *c;
+  struct scm_mutex *m;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
   SCM_VALIDATE_CONDVAR (1, cond);
@@ -1398,7 +1400,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
           scm_i_pthread_mutex_unlock (&m->lock);
           SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
 	}
-      else if (m->kind != FAT_MUTEX_UNOWNED)
+      else if (m->kind != SCM_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
@@ -1454,7 +1456,7 @@ SCM_DEFINE (scm_signal_condition_variable, "signal-condition-variable", 1, 0, 0,
 	    "Wake up one thread that is waiting for @var{cv}")
 #define FUNC_NAME s_scm_signal_condition_variable
 {
-  fat_cond *c;
+  struct scm_cond *c;
   SCM_VALIDATE_CONDVAR (1, cv);
   c = SCM_CONDVAR_DATA (cv);
   unblock_from_queue (c->waiting);
@@ -1467,7 +1469,7 @@ SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1,
 	    "Wake up all threads that are waiting for @var{cv}. ")
 #define FUNC_NAME s_scm_broadcast_condition_variable
 {
-  fat_cond *c;
+  struct scm_cond *c;
   SCM_VALIDATE_CONDVAR (1, cv);
   c = SCM_CONDVAR_DATA (cv);
   while (scm_is_true (unblock_from_queue (c->waiting)))
@@ -1816,12 +1818,12 @@ scm_init_threads ()
   scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_i_thread));
   scm_set_smob_print (scm_tc16_thread, thread_print);
 
-  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (fat_mutex));
+  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (struct scm_mutex));
   scm_set_smob_print (scm_tc16_mutex, scm_mutex_print);
 
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
-					 sizeof (fat_cond));
-  scm_set_smob_print (scm_tc16_condvar, fat_cond_print);
+					 sizeof (struct scm_cond));
+  scm_set_smob_print (scm_tc16_condvar, scm_cond_print);
 
   scm_i_default_dynamic_state = SCM_BOOL_F;
   guilify_self_2 (SCM_BOOL_F);
