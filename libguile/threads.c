@@ -502,44 +502,7 @@ guilify_self_2 (SCM parent)
 }
 
 
-/*** Fat mutexes */
 
-/* We implement our own mutex type since we want them to be 'fair', we
-   want to do fancy things while waiting for them (like running
-   asyncs) and we might want to add things that are nice for
-   debugging.
-*/
-
-enum fat_mutex_kind {
-  /* A standard mutex can only be locked once.  If you try to lock it
-     again from the thread that locked it to begin with (the "owner"
-     thread), it throws an error.  It can only be unlocked from the
-     thread that locked it in the first place.  */
-  FAT_MUTEX_STANDARD,
-  /* A recursive mutex can be locked multiple times by its owner.  It
-     then has to be unlocked the corresponding number of times, and like
-     standard mutexes can only be unlocked by the owner thread.  */
-  FAT_MUTEX_RECURSIVE,
-  /* An unowned mutex is like a standard mutex, except that it can be
-     unlocked by any thread.  A corrolary of this behavior is that a
-     thread's attempt to lock a mutex that it already owns will block
-     instead of signalling an error, as it could be that some other
-     thread unlocks the mutex, allowing the owner thread to proceed.
-     This kind of mutex is a bit strange and is here for use by
-     SRFI-18.  */
-  FAT_MUTEX_UNOWNED
-};
-
-typedef struct {
-  scm_i_pthread_mutex_t lock;
-  SCM owner;
-  int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
-  enum fat_mutex_kind kind;
-  SCM waiting;    /* the threads waiting for this mutex. */
-} fat_mutex;
-
-#define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
-#define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
 
 /* Perform thread tear-down, in guile mode.
  */
@@ -1069,40 +1032,53 @@ SCM_DEFINE (scm_thread_p, "thread?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/*** Fat mutexes */
+
+/* We implement our own mutex type since we want them to be 'fair', we
+   want to do fancy things while waiting for them (like running
+   asyncs) and we might want to add things that are nice for
+   debugging.
+*/
+
+enum fat_mutex_kind {
+  /* A standard mutex can only be locked once.  If you try to lock it
+     again from the thread that locked it to begin with (the "owner"
+     thread), it throws an error.  It can only be unlocked from the
+     thread that locked it in the first place.  */
+  FAT_MUTEX_STANDARD,
+  /* A recursive mutex can be locked multiple times by its owner.  It
+     then has to be unlocked the corresponding number of times, and like
+     standard mutexes can only be unlocked by the owner thread.  */
+  FAT_MUTEX_RECURSIVE,
+  /* An unowned mutex is like a standard mutex, except that it can be
+     unlocked by any thread.  A corrolary of this behavior is that a
+     thread's attempt to lock a mutex that it already owns will block
+     instead of signalling an error, as it could be that some other
+     thread unlocks the mutex, allowing the owner thread to proceed.
+     This kind of mutex is a bit strange and is here for use by
+     SRFI-18.  */
+  FAT_MUTEX_UNOWNED
+};
+
+typedef struct {
+  scm_i_pthread_mutex_t lock;
+  SCM owner;
+  int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
+  enum fat_mutex_kind kind;
+  SCM waiting;    /* the threads waiting for this mutex. */
+} fat_mutex;
+
+#define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
+#define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
 
 static int
-fat_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
+scm_mutex_print (SCM mx, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   fat_mutex *m = SCM_MUTEX_DATA (mx);
   scm_puts ("#<mutex ", port);
   scm_uintprint ((scm_t_bits)m, 16, port);
   scm_puts (">", port);
   return 1;
-}
-
-static SCM
-make_fat_mutex (enum fat_mutex_kind kind)
-{
-  fat_mutex *m;
-  SCM mx;
-  scm_i_pthread_mutex_t lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
-  m = scm_gc_malloc (sizeof (fat_mutex), "mutex");
-  /* Because PTHREAD_MUTEX_INITIALIZER is static, it's plain old data,
-     and so we can just copy it.  */
-  memcpy (&m->lock, &lock, sizeof (m->lock));
-  m->owner = SCM_BOOL_F;
-  m->level = 0;
-  m->kind = kind;
-  m->waiting = SCM_EOL;
-  SCM_NEWSMOB (mx, scm_tc16_mutex, (scm_t_bits) m);
-  m->waiting = make_queue ();
-  return mx;
-}
-
-SCM scm_make_mutex (void)
-{
-  return scm_make_mutex_with_kind (SCM_UNDEFINED);
 }
 
 SCM_SYMBOL (allow_external_unlock_sym, "allow-external-unlock");
@@ -1118,6 +1094,8 @@ SCM_DEFINE (scm_make_mutex_with_kind, "make-mutex", 0, 1, 0,
 #define FUNC_NAME s_scm_make_mutex_with_kind
 {
   enum fat_mutex_kind mkind = FAT_MUTEX_STANDARD;
+  fat_mutex *m;
+  scm_i_pthread_mutex_t lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
   if (!SCM_UNBNDP (kind))
     {
@@ -1129,9 +1107,24 @@ SCM_DEFINE (scm_make_mutex_with_kind, "make-mutex", 0, 1, 0,
 	SCM_MISC_ERROR ("unsupported mutex kind: ~a", scm_list_1 (kind));
     }
 
-  return make_fat_mutex (mkind);
+  m = scm_gc_malloc (sizeof (fat_mutex), "mutex");
+  /* Because PTHREAD_MUTEX_INITIALIZER is static, it's plain old data,
+     and so we can just copy it.  */
+  memcpy (&m->lock, &lock, sizeof (m->lock));
+  m->owner = SCM_BOOL_F;
+  m->level = 0;
+  m->kind = mkind;
+  m->waiting = make_queue ();
+
+  return scm_new_smob (scm_tc16_mutex, (scm_t_bits) m);
 }
 #undef FUNC_NAME
+
+SCM
+scm_make_mutex (void)
+{
+  return scm_make_mutex_with_kind (SCM_UNDEFINED);
+}
 
 SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 	    (void),
@@ -1142,15 +1135,31 @@ SCM_DEFINE (scm_make_recursive_mutex, "make-recursive-mutex", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-static SCM
-fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
+SCM
+scm_lock_mutex (SCM mx)
 {
-  fat_mutex *m = SCM_MUTEX_DATA (mutex);
+  return scm_timed_lock_mutex (mx, SCM_UNDEFINED);
+}
 
-  SCM new_owner = scm_current_thread();
-  SCM err = SCM_BOOL_F;
-
+SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
+	    (SCM mutex, SCM timeout),
+	    "Lock mutex @var{mutex}. If the mutex is already locked, "
+            "the calling thread blocks until the mutex becomes available.")
+#define FUNC_NAME s_scm_timed_lock_mutex
+{
+  scm_t_timespec cwaittime, *waittime = NULL;
   struct timeval current_time;
+  fat_mutex *m;
+  SCM new_owner = scm_current_thread();
+
+  SCM_VALIDATE_MUTEX (1, mutex);
+  m = SCM_MUTEX_DATA (mutex);
+
+  if (! SCM_UNBNDP (timeout) && ! scm_is_false (timeout))
+    {
+      to_timespec (timeout, &cwaittime);
+      waittime = &cwaittime;
+    }
 
   scm_i_scm_pthread_mutex_lock (&m->lock);
 
@@ -1160,76 +1169,42 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, int *ret)
 	{
 	  m->owner = new_owner;
 	  m->level++;
-	  *ret = 1;
-	  break;
+          scm_i_pthread_mutex_unlock (&m->lock);
+          return SCM_BOOL_T;
 	}
       else if (scm_is_eq (m->owner, new_owner) && m->kind != FAT_MUTEX_UNOWNED)
 	{
 	  if (m->kind == FAT_MUTEX_RECURSIVE)
 	    {
 	      m->level++;
-	      *ret = 1;
+              scm_i_pthread_mutex_unlock (&m->lock);
+              return SCM_BOOL_T;
 	    }
 	  else
 	    {
-	      err = scm_cons (scm_misc_error_key,
-			      scm_from_locale_string ("mutex already locked "
-						      "by thread"));
-	      *ret = 0;
+              scm_i_pthread_mutex_unlock (&m->lock);
+	      SCM_MISC_ERROR ("mutex already locked by thread", SCM_EOL);
 	    }
-	  break;
 	}
       else
 	{
-	  if (timeout != NULL)
+	  if (waittime != NULL)
 	    {
 	      gettimeofday (&current_time, NULL);
-	      if (current_time.tv_sec > timeout->tv_sec ||
-		  (current_time.tv_sec == timeout->tv_sec &&
-		   current_time.tv_usec * 1000 > timeout->tv_nsec))
+	      if (current_time.tv_sec > waittime->tv_sec ||
+		  (current_time.tv_sec == waittime->tv_sec &&
+		   current_time.tv_usec * 1000 > waittime->tv_nsec))
 		{
-		  *ret = 0;
-		  break;
+                  scm_i_pthread_mutex_unlock (&m->lock);
+                  return SCM_BOOL_F;
 		}
 	    }
-	  block_self (m->waiting, mutex, &m->lock, timeout);
+	  block_self (m->waiting, mutex, &m->lock, waittime);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&m->lock);
 	}
     }
-  scm_i_pthread_mutex_unlock (&m->lock);
-  return err;
-}
-
-SCM
-scm_lock_mutex (SCM mx)
-{
-  return scm_timed_lock_mutex (mx, SCM_UNDEFINED);
-}
-
-SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
-	    (SCM m, SCM timeout),
-	    "Lock mutex @var{m}. If the mutex is already locked, the calling\n"
-	    "thread blocks until the mutex becomes available.")
-#define FUNC_NAME s_scm_timed_lock_mutex
-{
-  SCM exception;
-  int ret = 0;
-  scm_t_timespec cwaittime, *waittime = NULL;
-
-  SCM_VALIDATE_MUTEX (1, m);
-
-  if (! SCM_UNBNDP (timeout) && ! scm_is_false (timeout))
-    {
-      to_timespec (timeout, &cwaittime);
-      waittime = &cwaittime;
-    }
-
-  exception = fat_mutex_lock (m, waittime, &ret);
-  if (!scm_is_false (exception))
-    scm_ithrow (SCM_CAR (exception), scm_list_1 (SCM_CDR (exception)), 1);
-  return ret ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -1260,20 +1235,18 @@ scm_try_mutex (SCM mutex)
   return scm_timed_lock_mutex (mutex, SCM_INUM0);
 }
 
-/*** Fat condition variables */
-
-typedef struct {
-  scm_i_pthread_mutex_t lock;
-  SCM waiting;               /* the threads waiting for this condition. */
-} fat_cond;
-
-#define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
-#define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
-
-static void
-fat_mutex_unlock (SCM mutex)
+SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
+            "Unlocks @var{mutex}.  The calling thread must already hold\n"
+            "the lock on @var{mutex}, unless the mutex was created with\n"
+            "the @code{allow-external-unlock} option; otherwise an error\n"
+            "will be signalled.")
+#define FUNC_NAME s_scm_unlock_mutex
 {
-  fat_mutex *m = SCM_MUTEX_DATA (mutex);
+  fat_mutex *m;
+
+  SCM_VALIDATE_MUTEX (1, mutex);
+
+  m = SCM_MUTEX_DATA (mutex);
 
   scm_i_scm_pthread_mutex_lock (&m->lock);
 
@@ -1282,12 +1255,12 @@ fat_mutex_unlock (SCM mutex)
       if (m->level == 0)
 	{
           scm_i_pthread_mutex_unlock (&m->lock);
-          scm_misc_error (NULL, "mutex not locked", SCM_EOL);
+          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
 	}
       else if (m->kind != FAT_MUTEX_UNOWNED)
 	{
 	  scm_i_pthread_mutex_unlock (&m->lock);
-	  scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);
+	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
 	}
     }
 
@@ -1298,91 +1271,6 @@ fat_mutex_unlock (SCM mutex)
     m->owner = unblock_from_queue (m->waiting);
 
   scm_i_pthread_mutex_unlock (&m->lock);
-}
-
-static int
-fat_mutex_wait (SCM cond, SCM mutex, const scm_t_timespec *waittime)
-{
-  fat_cond *c = SCM_CONDVAR_DATA (cond);
-  fat_mutex *m = SCM_MUTEX_DATA (mutex);
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  int err = 0, ret = 0;
-
-  scm_i_scm_pthread_mutex_lock (&m->lock);
-
-  if (!scm_is_eq (m->owner, t->handle))
-    {
-      if (m->level == 0)
-	{
-          scm_i_pthread_mutex_unlock (&m->lock);
-          scm_misc_error (NULL, "mutex not locked", SCM_EOL);
-	}
-      else if (m->kind != FAT_MUTEX_UNOWNED)
-	{
-	  scm_i_pthread_mutex_unlock (&m->lock);
-	  scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);
-	}
-    }
-
-  while (1)
-    {
-      int brk = 0;
-
-      if (m->level > 0)
-        m->level--;
-      if (m->level == 0)
-        /* Change the owner of MUTEX.  */
-        m->owner = unblock_from_queue (m->waiting);
-
-      t->block_asyncs++;
-
-      err = block_self (c->waiting, cond, &m->lock, waittime);
-      scm_i_pthread_mutex_unlock (&m->lock);
-
-      if (err == 0)
-        {
-          ret = 1;
-          brk = 1;
-        }
-      else if (err == ETIMEDOUT)
-        {
-          ret = 0;
-          brk = 1;
-        }
-      else if (err != EINTR)
-        {
-          errno = err;
-          scm_syserror (NULL);
-        }
-
-      if (brk)
-        {
-          scm_lock_mutex (mutex);
-          t->block_asyncs--;
-          break;
-        }
-
-      t->block_asyncs--;
-      scm_async_tick ();
-
-      scm_remember_upto_here_2 (cond, mutex);
-
-      scm_i_scm_pthread_mutex_lock (&m->lock);
-    }
-
-  return ret;
-}
-
-SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mx),
-            "Unlocks @var{mutex}.  The calling thread must already hold\n"
-            "the lock on @var{mutex}, unless the mutex was created with\n"
-            "the @code{allow-external-unlock} option; otherwise an error\n"
-            "will be signalled.")
-#define FUNC_NAME s_scm_unlock_mutex
-{
-  SCM_VALIDATE_MUTEX (1, mx);
-
-  fat_mutex_unlock (mx);
 
   return SCM_BOOL_T;
 }
@@ -1435,6 +1323,16 @@ SCM_DEFINE (scm_mutex_locked_p, "mutex-locked?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/*** Fat condition variables */
+
+typedef struct {
+  scm_i_pthread_mutex_t lock;
+  SCM waiting;               /* the threads waiting for this condition. */
+} fat_cond;
+
+#define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
+#define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
+
 static int
 fat_cond_print (SCM cv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -1462,7 +1360,7 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 0,
-	    (SCM cv, SCM mx, SCM t),
+	    (SCM cond, SCM mutex, SCM timeout),
 "Wait until condition variable @var{cv} has been signalled.  While waiting, "
 "mutex @var{mx} is atomically unlocked (as with @code{unlock-mutex}) and "
 "is locked again when this function returns.  When @var{t} is given, "
@@ -1474,52 +1372,106 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 "is returned. ")
 #define FUNC_NAME s_scm_timed_wait_condition_variable
 {
-  scm_t_timespec waittime, *waitptr = NULL;
+  scm_t_timespec waittime_val, *waittime = NULL;
+  fat_cond *c;
+  fat_mutex *m;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-  SCM_VALIDATE_CONDVAR (1, cv);
-  SCM_VALIDATE_MUTEX (2, mx);
+  SCM_VALIDATE_CONDVAR (1, cond);
+  SCM_VALIDATE_MUTEX (2, mutex);
 
-  if (!SCM_UNBNDP (t))
+  c = SCM_CONDVAR_DATA (cond);
+  m = SCM_MUTEX_DATA (mutex);
+
+  if (!SCM_UNBNDP (timeout))
     {
-      to_timespec (t, &waittime);
-      waitptr = &waittime;
+      to_timespec (timeout, &waittime_val);
+      waittime = &waittime_val;
     }
 
-  return scm_from_bool (fat_mutex_wait (cv, mx, waitptr));
+  scm_i_scm_pthread_mutex_lock (&m->lock);
+
+  if (!scm_is_eq (m->owner, t->handle))
+    {
+      if (m->level == 0)
+	{
+          scm_i_pthread_mutex_unlock (&m->lock);
+          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
+	}
+      else if (m->kind != FAT_MUTEX_UNOWNED)
+	{
+	  scm_i_pthread_mutex_unlock (&m->lock);
+	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
+	}
+    }
+
+  while (1)
+    {
+      int err = 0;
+
+      if (m->level > 0)
+        m->level--;
+      if (m->level == 0)
+        /* Change the owner of MUTEX.  */
+        m->owner = unblock_from_queue (m->waiting);
+
+      t->block_asyncs++;
+
+      err = block_self (c->waiting, cond, &m->lock, waittime);
+      scm_i_pthread_mutex_unlock (&m->lock);
+
+      if (err == 0)
+        {
+          scm_lock_mutex (mutex);
+          t->block_asyncs--;
+          return SCM_BOOL_T;
+        }
+      else if (err == ETIMEDOUT)
+        {
+          scm_lock_mutex (mutex);
+          t->block_asyncs--;
+          return SCM_BOOL_F;
+        }
+      else if (err != EINTR)
+        {
+          errno = err;
+          /* FIXME: missing t->block_asyncs--; ??? */
+          SCM_SYSERROR;
+        }
+
+      t->block_asyncs--;
+      scm_async_tick ();
+
+      scm_remember_upto_here_2 (cond, mutex);
+
+      scm_i_scm_pthread_mutex_lock (&m->lock);
+    }
 }
 #undef FUNC_NAME
-
-static void
-fat_cond_signal (fat_cond *c)
-{
-  unblock_from_queue (c->waiting);
-}
 
 SCM_DEFINE (scm_signal_condition_variable, "signal-condition-variable", 1, 0, 0,
 	    (SCM cv),
 	    "Wake up one thread that is waiting for @var{cv}")
 #define FUNC_NAME s_scm_signal_condition_variable
 {
+  fat_cond *c;
   SCM_VALIDATE_CONDVAR (1, cv);
-  fat_cond_signal (SCM_CONDVAR_DATA (cv));
+  c = SCM_CONDVAR_DATA (cv);
+  unblock_from_queue (c->waiting);
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
-
-static void
-fat_cond_broadcast (fat_cond *c)
-{
-  while (scm_is_true (unblock_from_queue (c->waiting)))
-    ;
-}
 
 SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1, 0, 0,
 	    (SCM cv),
 	    "Wake up all threads that are waiting for @var{cv}. ")
 #define FUNC_NAME s_scm_broadcast_condition_variable
 {
+  fat_cond *c;
   SCM_VALIDATE_CONDVAR (1, cv);
-  fat_cond_broadcast (SCM_CONDVAR_DATA (cv));
+  c = SCM_CONDVAR_DATA (cv);
+  while (scm_is_true (unblock_from_queue (c->waiting)))
+    ;
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
@@ -1865,7 +1817,7 @@ scm_init_threads ()
   scm_set_smob_print (scm_tc16_thread, thread_print);
 
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (fat_mutex));
-  scm_set_smob_print (scm_tc16_mutex, fat_mutex_print);
+  scm_set_smob_print (scm_tc16_mutex, scm_mutex_print);
 
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
 					 sizeof (fat_cond));
