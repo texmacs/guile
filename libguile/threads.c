@@ -1268,8 +1268,11 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
   if (m->level > 0)
     m->level--;
   if (m->level == 0)
-    /* Change the owner of MUTEX.  */
-    m->owner = unblock_from_queue (m->waiting);
+    /* Wake up one waiter.  */
+    {
+      m->owner = SCM_BOOL_F;
+      unblock_from_queue (m->waiting);
+    }
 
   scm_i_pthread_mutex_unlock (&m->lock);
 
@@ -1414,8 +1417,11 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
       if (m->level > 0)
         m->level--;
       if (m->level == 0)
-        /* Change the owner of MUTEX.  */
-        m->owner = unblock_from_queue (m->waiting);
+        {
+          m->owner = SCM_BOOL_F;
+          /* Wake up one waiter.  */
+          unblock_from_queue (m->waiting);
+        }
 
       t->block_asyncs++;
 
