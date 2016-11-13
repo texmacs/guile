@@ -1061,9 +1061,13 @@ enum scm_mutex_kind {
 
 struct scm_mutex {
   scm_i_pthread_mutex_t lock;
+  /* The thread that owns this mutex, or #f if the mutex is unlocked.  */
   SCM owner;
-  int level; /* how much the owner owns us.  <= 1 for non-recursive mutexes */
-  SCM waiting;    /* the threads waiting for this mutex. */
+  /* Queue of threads waiting for this mutex.  */
+  SCM waiting;
+  /* For SCM_MUTEX_RECURSIVE (and only SCM_MUTEX_RECURSIVE), the
+     recursive lock count.  The first lock does not count.  */
+  int level;
 };
 
 #define SCM_MUTEXP(x)     SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
