@@ -1163,10 +1163,9 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
 
   while (1)
     {
-      if (m->level == 0)
+      if (scm_is_eq (m->owner, SCM_BOOL_F))
 	{
 	  m->owner = new_owner;
-	  m->level++;
           scm_i_pthread_mutex_unlock (&m->lock);
           return SCM_BOOL_T;
 	}
@@ -1235,6 +1234,43 @@ scm_try_mutex (SCM mutex)
   return scm_timed_lock_mutex (mutex, SCM_INUM0);
 }
 
+/* This function is static inline so that the compiler can specialize it
+   against the mutex kind.  */
+static inline void
+unlock_mutex (enum scm_mutex_kind kind, struct scm_mutex *m,
+              scm_i_thread *current_thread)
+#define FUNC_NAME "unlock-mutex"
+{
+  scm_i_scm_pthread_mutex_lock (&m->lock);
+
+  if (!scm_is_eq (m->owner, current_thread->handle))
+    {
+      if (scm_is_eq (m->owner, SCM_BOOL_F))
+        {
+          scm_i_pthread_mutex_unlock (&m->lock);
+          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
+        }
+
+      if (kind != SCM_MUTEX_UNOWNED)
+        {
+          scm_i_pthread_mutex_unlock (&m->lock);
+          SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
+        }
+    }
+
+  if (kind == SCM_MUTEX_RECURSIVE && m->level > 0)
+    m->level--;
+  else
+    {
+      m->owner = SCM_BOOL_F;
+      /* Wake up one waiter.  */
+      unblock_from_queue (m->waiting);
+    }
+
+  scm_i_pthread_mutex_unlock (&m->lock);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
             "Unlocks @var{mutex}.  The calling thread must already hold\n"
             "the lock on @var{mutex}, unless the mutex was created with\n"
@@ -1243,37 +1279,30 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
 #define FUNC_NAME s_scm_unlock_mutex
 {
   struct scm_mutex *m;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
   SCM_VALIDATE_MUTEX (1, mutex);
 
   m = SCM_MUTEX_DATA (mutex);
 
-  scm_i_scm_pthread_mutex_lock (&m->lock);
-
-  if (!scm_is_eq (m->owner, SCM_I_CURRENT_THREAD->handle))
+  /* Specialized unlock_mutex implementations according to the mutex
+     kind.  */
+  switch (SCM_MUTEX_KIND (mutex))
     {
-      if (m->level == 0)
-	{
-          scm_i_pthread_mutex_unlock (&m->lock);
-          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
-	}
-      else if (SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
-	{
-	  scm_i_pthread_mutex_unlock (&m->lock);
-	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
-	}
+    case SCM_MUTEX_STANDARD:
+      unlock_mutex (SCM_MUTEX_STANDARD, m, t);
+      break;
+    case SCM_MUTEX_RECURSIVE:
+      unlock_mutex (SCM_MUTEX_RECURSIVE, m, t);
+      break;
+    case SCM_MUTEX_UNOWNED:
+      unlock_mutex (SCM_MUTEX_UNOWNED, m, t);
+      break;
+    default:
+      abort ();
     }
 
-  if (m->level > 0)
-    m->level--;
-  if (m->level == 0)
-    /* Wake up one waiter.  */
-    {
-      m->owner = SCM_BOOL_F;
-      unblock_from_queue (m->waiting);
-    }
-
-  scm_i_pthread_mutex_unlock (&m->lock);
+  scm_remember_upto_here_1 (mutex);
 
   return SCM_BOOL_T;
 }
@@ -1312,7 +1341,12 @@ SCM_DEFINE (scm_mutex_level, "mutex-level", 1, 0, 0,
 #define FUNC_NAME s_scm_mutex_level
 {
   SCM_VALIDATE_MUTEX (1, mx);
-  return scm_from_int (SCM_MUTEX_DATA(mx)->level);
+  if (SCM_MUTEX_KIND (mx) == SCM_MUTEX_RECURSIVE)
+    return scm_from_int (SCM_MUTEX_DATA (mx)->level + 1);
+  else if (scm_is_eq (SCM_MUTEX_DATA (mx)->owner, SCM_BOOL_F))
+    return SCM_INUM0;
+  else
+    return SCM_INUM1;
 }
 #undef FUNC_NAME
 
@@ -1322,7 +1356,10 @@ SCM_DEFINE (scm_mutex_locked_p, "mutex-locked?", 1, 0, 0,
 #define FUNC_NAME s_scm_mutex_locked_p
 {
   SCM_VALIDATE_MUTEX (1, mx);
-  return SCM_MUTEX_DATA (mx)->level > 0 ? SCM_BOOL_T : SCM_BOOL_F;
+  if (scm_is_eq (SCM_MUTEX_DATA (mx)->owner, SCM_BOOL_F))
+    return SCM_BOOL_F;
+  else
+    return SCM_BOOL_T;
 }
 #undef FUNC_NAME
 
@@ -1363,6 +1400,95 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+static inline SCM
+timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
+            scm_i_thread *current_thread, scm_t_timespec *waittime)
+#define FUNC_NAME "wait-condition-variable"
+{
+  scm_i_scm_pthread_mutex_lock (&m->lock);
+
+  if (!scm_is_eq (m->owner, current_thread->handle))
+    {
+      if (scm_is_eq (m->owner, SCM_BOOL_F))
+        {
+          scm_i_pthread_mutex_unlock (&m->lock);
+          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
+        }
+
+      if (kind != SCM_MUTEX_UNOWNED)
+        {
+          scm_i_pthread_mutex_unlock (&m->lock);
+          SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
+        }
+    }
+
+  while (1)
+    {
+      int err = 0;
+
+      /* Unlock the mutex.  */
+      if (kind == SCM_MUTEX_RECURSIVE && m->level > 0)
+        m->level--;
+      else
+        {
+          m->owner = SCM_BOOL_F;
+          /* Wake up one waiter.  */
+          unblock_from_queue (m->waiting);
+        }
+
+      /* Wait for someone to signal the cond, a timeout, or an
+         interrupt.  */
+      err = block_self (c->waiting, &m->lock, waittime);
+
+      /* We woke up for some reason.  Reacquire the mutex before doing
+         anything else.  */
+      if (scm_is_eq (m->owner, SCM_BOOL_F))
+	{
+	  m->owner = current_thread->handle;
+          scm_i_pthread_mutex_unlock (&m->lock);
+	}
+      else if (kind == SCM_MUTEX_RECURSIVE &&
+               scm_is_eq (m->owner, current_thread->handle))
+	{
+          m->level++;
+          scm_i_pthread_mutex_unlock (&m->lock);
+        }
+      else
+        while (1)
+          {
+            block_self (m->waiting, &m->lock, waittime);
+            if (scm_is_eq (m->owner, SCM_BOOL_F))
+              {
+                m->owner = current_thread->handle;
+                scm_i_pthread_mutex_unlock (&m->lock);
+                break;
+              }
+            scm_i_pthread_mutex_unlock (&m->lock);
+            scm_async_tick ();
+            scm_i_scm_pthread_mutex_lock (&m->lock);
+          }
+
+      /* Now that we have the mutex again, handle the return value.  */
+      if (err == 0)
+        return SCM_BOOL_T;
+      else if (err == ETIMEDOUT)
+        return SCM_BOOL_F;
+      else if (err == EINTR)
+        {
+          scm_async_tick ();
+          scm_i_scm_pthread_mutex_lock (&m->lock);
+          continue;
+        }
+      else
+        {
+          /* Shouldn't happen.  */
+          errno = err;
+          SCM_SYSERROR;
+        }
+    }
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 0,
 	    (SCM cond, SCM mutex, SCM timeout),
 "Wait until condition variable @var{cv} has been signalled.  While waiting, "
@@ -1380,6 +1506,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
   struct scm_cond *c;
   struct scm_mutex *m;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  SCM ret;
 
   SCM_VALIDATE_CONDVAR (1, cond);
   SCM_VALIDATE_MUTEX (2, mutex);
@@ -1393,66 +1520,26 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
       waittime = &waittime_val;
     }
 
-  scm_i_scm_pthread_mutex_lock (&m->lock);
-
-  if (!scm_is_eq (m->owner, t->handle))
+  /* Specialized timed_wait implementations according to the mutex
+     kind.  */
+  switch (SCM_MUTEX_KIND (mutex))
     {
-      if (m->level == 0)
-	{
-          scm_i_pthread_mutex_unlock (&m->lock);
-          SCM_MISC_ERROR ("mutex not locked", SCM_EOL);
-	}
-      else if (SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
-	{
-	  scm_i_pthread_mutex_unlock (&m->lock);
-	  SCM_MISC_ERROR ("mutex not locked by current thread", SCM_EOL);
-	}
+    case SCM_MUTEX_STANDARD:
+      ret = timed_wait (SCM_MUTEX_STANDARD, m, c, t, waittime);
+      break;
+    case SCM_MUTEX_RECURSIVE:
+      ret = timed_wait (SCM_MUTEX_RECURSIVE, m, c, t, waittime);
+      break;
+    case SCM_MUTEX_UNOWNED:
+      ret = timed_wait (SCM_MUTEX_UNOWNED, m, c, t, waittime);
+      break;
+    default:
+      abort ();
     }
 
-  while (1)
-    {
-      int err = 0;
+  scm_remember_upto_here_2 (mutex, cond);
 
-      if (m->level > 0)
-        m->level--;
-      if (m->level == 0)
-        {
-          m->owner = SCM_BOOL_F;
-          /* Wake up one waiter.  */
-          unblock_from_queue (m->waiting);
-        }
-
-      t->block_asyncs++;
-
-      err = block_self (c->waiting, &m->lock, waittime);
-      scm_i_pthread_mutex_unlock (&m->lock);
-
-      if (err == 0)
-        {
-          scm_lock_mutex (mutex);
-          t->block_asyncs--;
-          return SCM_BOOL_T;
-        }
-      else if (err == ETIMEDOUT)
-        {
-          scm_lock_mutex (mutex);
-          t->block_asyncs--;
-          return SCM_BOOL_F;
-        }
-      else if (err != EINTR)
-        {
-          errno = err;
-          /* FIXME: missing t->block_asyncs--; ??? */
-          SCM_SYSERROR;
-        }
-
-      t->block_asyncs--;
-      scm_async_tick ();
-
-      scm_remember_upto_here_2 (cond, mutex);
-
-      scm_i_scm_pthread_mutex_lock (&m->lock);
-    }
+  return ret;
 }
 #undef FUNC_NAME
 
