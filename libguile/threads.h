@@ -47,12 +47,7 @@ SCM_API scm_t_bits scm_tc16_thread;
 SCM_API scm_t_bits scm_tc16_mutex;
 SCM_API scm_t_bits scm_tc16_condvar;
 
-struct scm_thread_wake_data
-{
-  SCM object;
-  scm_i_pthread_mutex_t *mutex;
-  int fd;
-};
+struct scm_thread_wake_data;
 
 typedef struct scm_i_thread {
   struct scm_i_thread *next_thread;

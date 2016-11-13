@@ -290,9 +290,6 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
    The caller of block_self must hold MUTEX.  It will be atomically
    unlocked while sleeping, just as with scm_i_pthread_cond_wait.
 
-   SLEEP_OBJECT is an arbitrary SCM value that is kept alive as long
-   as MUTEX is needed.
-
    When WAITTIME is not NULL, the sleep will be aborted at that time.
 
    The return value of block_self is an errno value.  It will be zero
@@ -304,14 +301,14 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
    The system asyncs themselves are not executed by block_self.
 */
 static int
-block_self (SCM queue, SCM sleep_object, scm_i_pthread_mutex_t *mutex,
+block_self (SCM queue, scm_i_pthread_mutex_t *mutex,
 	    const scm_t_timespec *waittime)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
   SCM q_handle;
   int err;
 
-  if (scm_i_setup_sleep (t, sleep_object, mutex, -1))
+  if (scm_i_setup_sleep (t, mutex, -1))
     {
       scm_i_reset_sleep (t);
       err = EINTR;
@@ -988,8 +985,9 @@ SCM_DEFINE (scm_join_thread_timed, "join-thread", 1, 2, 0,
     {
       while (1)
 	{
-	  int err = block_self (t->join_queue, thread, &t->admin_mutex,
+	  int err = block_self (t->join_queue, &t->admin_mutex,
 				timeout_ptr);
+          scm_remember_upto_here_1 (thread);
 	  if (err == 0)
 	    {
 	      if (t->exited)
@@ -1200,7 +1198,8 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
                   return SCM_BOOL_F;
 		}
 	    }
-	  block_self (m->waiting, mutex, &m->lock, waittime);
+          block_self (m->waiting, &m->lock, waittime);
+          scm_remember_upto_here_1 (mutex);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&m->lock);
@@ -1425,7 +1424,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 
       t->block_asyncs++;
 
-      err = block_self (c->waiting, cond, &m->lock, waittime);
+      err = block_self (c->waiting, &m->lock, waittime);
       scm_i_pthread_mutex_unlock (&m->lock);
 
       if (err == 0)
@@ -1543,7 +1542,7 @@ scm_std_select (int nfds,
       readfds = &my_readfds;
     }
 
-  while (scm_i_setup_sleep (t, SCM_BOOL_F, NULL, t->sleep_pipe[1]))
+  while (scm_i_setup_sleep (t, NULL, t->sleep_pipe[1]))
     {
       scm_i_reset_sleep (t);
       SCM_TICK;

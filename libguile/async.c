@@ -75,15 +75,19 @@ scm_async_tick (void)
     }
 }
 
+struct scm_thread_wake_data {
+  scm_i_pthread_mutex_t *mutex;
+  int fd;
+};
+
 int
 scm_i_setup_sleep (scm_i_thread *t,
-		   SCM sleep_object, scm_i_pthread_mutex_t *sleep_mutex,
+		   scm_i_pthread_mutex_t *sleep_mutex,
 		   int sleep_fd)
 {
   struct scm_thread_wake_data *wake;
 
   wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
-  wake->object = sleep_object;
   wake->mutex = sleep_mutex;
   wake->fd = sleep_fd;
 
@@ -147,10 +151,6 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
       scm_i_scm_pthread_mutex_lock (wake->mutex);
       scm_i_pthread_cond_signal (&t->sleep_cond);
       scm_i_pthread_mutex_unlock (wake->mutex);
-
-      /* This is needed to protect wake->mutex.
-       */
-      scm_remember_upto_here_1 (wake->object);
 
       if (wake->fd >= 0)
         {
