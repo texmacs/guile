@@ -1139,6 +1139,71 @@ scm_lock_mutex (SCM mx)
   return scm_timed_lock_mutex (mx, SCM_UNDEFINED);
 }
 
+static inline SCM
+lock_mutex (enum scm_mutex_kind kind, struct scm_mutex *m,
+            scm_i_thread *current_thread, scm_t_timespec *waittime)
+#define FUNC_NAME "lock-mutex"
+{
+  scm_i_scm_pthread_mutex_lock (&m->lock);
+
+  if (scm_is_eq (m->owner, SCM_BOOL_F))
+    {
+      m->owner = current_thread->handle;
+      scm_i_pthread_mutex_unlock (&m->lock);
+      return SCM_BOOL_T;
+    }
+  else if (kind == SCM_MUTEX_RECURSIVE &&
+           scm_is_eq (m->owner, current_thread->handle))
+    {
+      m->level++;
+      scm_i_pthread_mutex_unlock (&m->lock);
+      return SCM_BOOL_T;
+    }
+  else if (kind == SCM_MUTEX_STANDARD &&
+           scm_is_eq (m->owner, current_thread->handle))
+    {
+      scm_i_pthread_mutex_unlock (&m->lock);
+      SCM_MISC_ERROR ("mutex already locked by thread", SCM_EOL);
+    }
+  else
+    while (1)
+      {
+        int err = block_self (m->waiting, &m->lock, waittime);
+
+        if (err == 0)
+          {
+            if (scm_is_eq (m->owner, SCM_BOOL_F))
+              {
+                m->owner = current_thread->handle;
+                scm_i_pthread_mutex_unlock (&m->lock);
+                return SCM_BOOL_T;
+              }
+            else
+              continue;
+          }
+        else if (err == ETIMEDOUT)
+          {
+            scm_i_pthread_mutex_unlock (&m->lock);
+            return SCM_BOOL_F;
+          }
+        else if (err == EINTR)
+          {
+            scm_i_pthread_mutex_unlock (&m->lock);
+            scm_async_tick ();
+            scm_i_scm_pthread_mutex_lock (&m->lock);
+            continue;
+          }
+        else
+          {
+            /* Shouldn't happen.  */
+            scm_i_pthread_mutex_unlock (&m->lock);
+            errno = err;
+            SCM_SYSERROR;
+          }
+      }
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
 	    (SCM mutex, SCM timeout),
 	    "Lock mutex @var{mutex}. If the mutex is already locked, "
@@ -1146,9 +1211,9 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
 #define FUNC_NAME s_scm_timed_lock_mutex
 {
   scm_t_timespec cwaittime, *waittime = NULL;
-  struct timeval current_time;
   struct scm_mutex *m;
-  SCM new_owner = scm_current_thread();
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  SCM ret;
 
   SCM_VALIDATE_MUTEX (1, mutex);
   m = SCM_MUTEX_DATA (mutex);
@@ -1159,51 +1224,26 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
       waittime = &cwaittime;
     }
 
-  scm_i_scm_pthread_mutex_lock (&m->lock);
-
-  while (1)
+  /* Specialized lock_mutex implementations according to the mutex
+     kind.  */
+  switch (SCM_MUTEX_KIND (mutex))
     {
-      if (scm_is_eq (m->owner, SCM_BOOL_F))
-	{
-	  m->owner = new_owner;
-          scm_i_pthread_mutex_unlock (&m->lock);
-          return SCM_BOOL_T;
-	}
-      else if (scm_is_eq (m->owner, new_owner) &&
-               SCM_MUTEX_KIND (mutex) != SCM_MUTEX_UNOWNED)
-	{
-	  if (SCM_MUTEX_KIND (mutex) == SCM_MUTEX_RECURSIVE)
-	    {
-	      m->level++;
-              scm_i_pthread_mutex_unlock (&m->lock);
-              return SCM_BOOL_T;
-	    }
-	  else
-	    {
-              scm_i_pthread_mutex_unlock (&m->lock);
-	      SCM_MISC_ERROR ("mutex already locked by thread", SCM_EOL);
-	    }
-	}
-      else
-	{
-	  if (waittime != NULL)
-	    {
-	      gettimeofday (&current_time, NULL);
-	      if (current_time.tv_sec > waittime->tv_sec ||
-		  (current_time.tv_sec == waittime->tv_sec &&
-		   current_time.tv_usec * 1000 > waittime->tv_nsec))
-		{
-                  scm_i_pthread_mutex_unlock (&m->lock);
-                  return SCM_BOOL_F;
-		}
-	    }
-          block_self (m->waiting, &m->lock, waittime);
-          scm_remember_upto_here_1 (mutex);
-	  scm_i_pthread_mutex_unlock (&m->lock);
-	  SCM_TICK;
-	  scm_i_scm_pthread_mutex_lock (&m->lock);
-	}
+    case SCM_MUTEX_STANDARD:
+      ret = lock_mutex (SCM_MUTEX_STANDARD, m, t, waittime);
+      break;
+    case SCM_MUTEX_RECURSIVE:
+      ret = lock_mutex (SCM_MUTEX_RECURSIVE, m, t, waittime);
+      break;
+    case SCM_MUTEX_UNOWNED:
+      ret = lock_mutex (SCM_MUTEX_UNOWNED, m, t, waittime);
+      break;
+    default:
+      abort ();
     }
+
+  scm_remember_upto_here_1 (mutex);
+
+  return ret;
 }
 #undef FUNC_NAME
 
