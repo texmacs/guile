@@ -148,9 +148,12 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	 sleep_mutex locked while setting t->sleep_mutex and will only
 	 unlock it again while waiting on sleep_cond.
       */
-      scm_i_scm_pthread_mutex_lock (wake->mutex);
-      scm_i_pthread_cond_signal (&t->sleep_cond);
-      scm_i_pthread_mutex_unlock (wake->mutex);
+      if (wake->mutex)
+        {
+          scm_i_scm_pthread_mutex_lock (wake->mutex);
+          scm_i_pthread_cond_signal (&t->sleep_cond);
+          scm_i_pthread_mutex_unlock (wake->mutex);
+        }
 
       if (wake->fd >= 0)
         {
