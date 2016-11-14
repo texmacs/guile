@@ -499,55 +499,18 @@ guilify_self_2 (SCM parent)
 
 
 
-/* Perform thread tear-down, in guile mode.
- */
-static void *
-do_thread_exit (void *v)
-{
-  scm_i_thread *t = (scm_i_thread *) v;
-
-  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
-  t->exited = 1;
-  close (t->sleep_pipe[0]);
-  close (t->sleep_pipe[1]);
-  scm_i_pthread_mutex_unlock (&t->admin_mutex);
-
-  return NULL;
-}
-
-static void *
-do_thread_exit_trampoline (struct GC_stack_base *sb, void *v)
-{
-  /* Won't hurt if we are already registered.  */
-#if SCM_USE_PTHREAD_THREADS
-  GC_register_my_thread (sb);
-#endif
-
-  return scm_with_guile (do_thread_exit, v);
-}
-
 static void
 on_thread_exit (void *v)
 {
   /* This handler is executed in non-guile mode.  */
   scm_i_thread *t = (scm_i_thread *) v, **tp;
 
-  /* If we were canceled, we were unable to clear `t->guile_mode', so do
-     it here.  */
-  t->guile_mode = 0;
+  t->exited = 1;
 
-  /* Reinstate the current thread for purposes of scm_with_guile
-     guile-mode cleanup handlers.  Only really needed in the non-TLS
-     case but it doesn't hurt to be consistent.  */
-  scm_i_pthread_setspecific (scm_i_thread_key, t);
+  close (t->sleep_pipe[0]);
+  close (t->sleep_pipe[1]);
+  t->sleep_pipe[0] = t->sleep_pipe[1] = -1;
 
-  /* Scheme-level thread finalizers and other cleanup needs to happen in
-     guile mode.  */
-  GC_call_with_stack_base (do_thread_exit_trampoline, t);
-
-  /* Removing ourself from the list of all threads needs to happen in
-     non-guile mode since all SCM values on our stack become
-     unprotected once we are no longer in the list.  */
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   for (tp = &all_threads; *tp; tp = &(*tp)->next_thread)
     if (*tp == t)
@@ -569,8 +532,6 @@ on_thread_exit (void *v)
     scm_i_close_signal_pipe ();
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
-
-  scm_i_pthread_setspecific (scm_i_thread_key, NULL);
 
   if (t->vp)
     {
