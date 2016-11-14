@@ -85,6 +85,13 @@
 
 
 
+(define-syntax-rule (with-mutex m e0 e1 ...)
+  (let ((x m))
+    (dynamic-wind
+      (lambda () (lock-mutex x))
+      (lambda () (begin e0 e1 ...))
+      (lambda () (unlock-mutex x)))))
+
 (define cancel-tag (make-prompt-tag "cancel"))
 (define (cancel-thread thread . values)
   "Asynchronously interrupt the target @var{thread} and ask it to
@@ -100,6 +107,9 @@ no-op."
        (lambda _
          (error "thread cancellation failed, throwing error instead???"))))
    thread))
+
+(define thread-join-data (make-object-property))
+(define %thread-results (make-object-property))
 
 (define* (call-with-new-thread thunk #:optional handler)
   "Call @code{thunk} in a new thread and with a new dynamic state,
@@ -121,20 +131,59 @@ Once @var{thunk} or @var{handler} returns, the return value is made the
     (with-mutex mutex
       (%call-with-new-thread
        (lambda ()
-         (call-with-prompt cancel-tag
-           (lambda ()
+         (call-with-values
+             (lambda ()
+               (with-continuation-barrier
+                (lambda ()
+                  (call-with-prompt cancel-tag
+                    (lambda ()
+                      (lock-mutex mutex)
+                      (set! thread (current-thread))
+                      (set! (thread-join-data thread) (cons cv mutex))
+                      (signal-condition-variable cv)
+                      (unlock-mutex mutex)
+                      (thunk))
+                    (lambda (k . args)
+                      (apply values args))))))
+           (lambda vals
              (lock-mutex mutex)
-             (set! thread (current-thread))
-             (signal-condition-variable cv)
+             ;; Probably now you're wondering why we are going to use
+             ;; the cond variable as the key into the thread results
+             ;; object property.  It's because there is a possibility
+             ;; that the thread object itself ends up as part of the
+             ;; result, and if that happens we create a cycle whereby
+             ;; the strong reference to a thread in the value of the
+             ;; weak-key hash table used by the object property prevents
+             ;; the thread from ever being collected.  So instead we use
+             ;; the cv as the key.  Weak-key hash tables, amirite?
+             (set! (%thread-results cv) vals)
+             (broadcast-condition-variable cv)
              (unlock-mutex mutex)
-             (thunk))
-           (lambda (k . args)
-             (apply values args)))))
+             (apply values vals)))))
       (let lp ()
         (unless thread
           (wait-condition-variable cv mutex)
           (lp))))
     thread))
+
+(define* (join-thread thread #:optional timeout timeoutval)
+  "Suspend execution of the calling thread until the target @var{thread}
+terminates, unless the target @var{thread} has already terminated."
+  (match (thread-join-data thread)
+    (#f (error "foreign thread cannot be joined" thread))
+    ((cv . mutex)
+     (lock-mutex mutex)
+     (let lp ()
+       (cond
+        ((%thread-results cv)
+         => (lambda (results)
+              (unlock-mutex mutex)
+              (apply values results)))
+        ((if timeout
+             (wait-condition-variable cv mutex timeout)
+             (wait-condition-variable cv mutex))
+         (lp))
+        (else timeoutval))))))
 
 (define* (try-mutex mutex)
   "Try to lock @var{mutex}.  If the mutex is already locked, return
@@ -154,13 +203,6 @@ Once @var{thunk} or @var{handler} returns, the return value is made the
   (call-with-new-thread
    (lambda () (proc arg ...))
    %thread-handler))
-
-(define-syntax-rule (with-mutex m e0 e1 ...)
-  (let ((x m))
-    (dynamic-wind
-      (lambda () (lock-mutex x))
-      (lambda () (begin e0 e1 ...))
-      (lambda () (unlock-mutex x)))))
 
 (define monitor-mutex-table (make-hash-table))
 
