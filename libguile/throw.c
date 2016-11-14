@@ -272,8 +272,8 @@ enum {
   CATCH_CLOSURE_HANDLER
 };
 
-static SCM
-make_catch_body_closure (scm_t_catch_body body, void *body_data)
+SCM
+scm_i_make_catch_body_closure (scm_t_catch_body body, void *body_data)
 {
   SCM ret;
   SCM_NEWSMOB2 (ret, tc16_catch_closure, body, body_data);
@@ -281,8 +281,9 @@ make_catch_body_closure (scm_t_catch_body body, void *body_data)
   return ret;
 }
 
-static SCM
-make_catch_handler_closure (scm_t_catch_handler handler, void *handler_data)
+SCM
+scm_i_make_catch_handler_closure (scm_t_catch_handler handler,
+                                  void *handler_data)
 {
   SCM ret;
   SCM_NEWSMOB2 (ret, tc16_catch_closure, handler, handler_data);
@@ -359,11 +360,12 @@ scm_c_catch (SCM tag,
 {
   SCM sbody, shandler, spre_unwind_handler;
   
-  sbody = make_catch_body_closure (body, body_data);
-  shandler = make_catch_handler_closure (handler, handler_data);
+  sbody = scm_i_make_catch_body_closure (body, body_data);
+  shandler = scm_i_make_catch_handler_closure (handler, handler_data);
   if (pre_unwind_handler)
-    spre_unwind_handler = make_catch_handler_closure (pre_unwind_handler,
-                                                      pre_unwind_handler_data);
+    spre_unwind_handler =
+      scm_i_make_catch_handler_closure (pre_unwind_handler,
+                                        pre_unwind_handler_data);
   else
     spre_unwind_handler = SCM_UNDEFINED;
   
@@ -403,8 +405,8 @@ scm_c_with_throw_handler (SCM tag,
        "and adapt it (if necessary) to expect to be within the dynamic context\n"
        "of the throw.");
 
-  sbody = make_catch_body_closure (body, body_data);
-  shandler = make_catch_handler_closure (handler, handler_data);
+  sbody = scm_i_make_catch_body_closure (body, body_data);
+  shandler = scm_i_make_catch_handler_closure (handler, handler_data);
   
   return scm_with_throw_handler (tag, sbody, shandler);
 }

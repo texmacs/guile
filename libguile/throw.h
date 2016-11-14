@@ -31,6 +31,11 @@ typedef SCM (*scm_t_catch_body) (void *data);
 typedef SCM (*scm_t_catch_handler) (void *data,
                                     SCM tag, SCM throw_args);
 
+SCM_INTERNAL SCM scm_i_make_catch_body_closure (scm_t_catch_body body,
+                                                void *body_data);
+SCM_INTERNAL SCM scm_i_make_catch_handler_closure (scm_t_catch_handler h,
+                                                   void *handler_data);
+
 SCM_API SCM scm_c_catch (SCM tag,
 			 scm_t_catch_body body,
 			 void *body_data,

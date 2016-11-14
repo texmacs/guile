@@ -845,85 +845,17 @@ SCM_DEFINE (scm_sys_call_with_new_thread, "%call-with-new-thread", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-typedef struct {
-  SCM parent;
-  scm_t_catch_body body;
-  void *body_data;
-  scm_t_catch_handler handler;
-  void *handler_data;
-  SCM thread;
-  scm_i_pthread_mutex_t mutex;
-  scm_i_pthread_cond_t cond;
-} spawn_data;
-
-static void *
-really_spawn (void *d)
-{
-  spawn_data *data = (spawn_data *)d;
-  scm_t_catch_body body = data->body;
-  void *body_data = data->body_data;
-  scm_t_catch_handler handler = data->handler;
-  void *handler_data = data->handler_data;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  scm_i_scm_pthread_mutex_lock (&data->mutex);
-  data->thread = scm_current_thread ();
-  scm_i_pthread_cond_signal (&data->cond);
-  scm_i_pthread_mutex_unlock (&data->mutex);
-
-  if (handler == NULL)
-    t->result = body (body_data);
-  else
-    t->result = scm_internal_catch (SCM_BOOL_T,
-				    body, body_data,
-				    handler, handler_data);
-
-  return 0;
-}
-
-static void *
-spawn_thread (void *d)
-{
-  spawn_data *data = (spawn_data *)d;
-  scm_i_pthread_detach (scm_i_pthread_self ());
-  scm_i_with_guile_and_parent (really_spawn, d, data->parent);
-  return NULL;
-}
-
 SCM
 scm_spawn_thread (scm_t_catch_body body, void *body_data,
 		  scm_t_catch_handler handler, void *handler_data)
 {
-  spawn_data data;
-  scm_i_pthread_t id;
-  int err;
+  SCM body_closure, handler_closure;
 
-  data.parent = scm_current_dynamic_state ();
-  data.body = body;
-  data.body_data = body_data;
-  data.handler = handler;
-  data.handler_data = handler_data;
-  data.thread = SCM_BOOL_F;
-  scm_i_pthread_mutex_init (&data.mutex, NULL);
-  scm_i_pthread_cond_init (&data.cond, NULL);
+  body_closure = scm_i_make_catch_body_closure (body, body_data);
+  handler_closure = handler == NULL ? SCM_UNDEFINED :
+    scm_i_make_catch_handler_closure (handler, handler_data);
 
-  scm_i_scm_pthread_mutex_lock (&data.mutex);
-  err = scm_i_pthread_create (&id, NULL, spawn_thread, &data);
-  if (err)
-    {
-      scm_i_pthread_mutex_unlock (&data.mutex);
-      errno = err;
-      scm_syserror (NULL);
-    }
-
-  while (scm_is_false (data.thread))
-    scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
-
-  scm_i_pthread_mutex_unlock (&data.mutex);
-
-  assert (SCM_I_IS_THREAD (data.thread));
-
-  return data.thread;
+  return scm_call_with_new_thread (body_closure, handler_closure);
 }
 
 SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
