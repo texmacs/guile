@@ -138,6 +138,7 @@ SOURCES =					\
   language/cps/dce.scm				\
   language/cps/effects-analysis.scm		\
   language/cps/elide-values.scm			\
+  language/cps/handle-interrupts.scm		\
   language/cps/intmap.scm			\
   language/cps/intset.scm			\
   language/cps/licm.scm				\

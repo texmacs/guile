@@ -221,6 +221,7 @@
             emit-atomic-box-set!
             emit-atomic-box-swap!
             emit-atomic-box-compare-and-swap!
+            emit-handle-interrupts
 
             emit-text
             link-assembly))

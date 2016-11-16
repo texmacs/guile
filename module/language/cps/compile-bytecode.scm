@@ -31,6 +31,7 @@
   #:use-module (language cps slot-allocation)
   #:use-module (language cps utils)
   #:use-module (language cps closure-conversion)
+  #:use-module (language cps handle-interrupts)
   #:use-module (language cps optimize)
   #:use-module (language cps reify-primitives)
   #:use-module (language cps renumber)
@@ -364,7 +365,9 @@
         (($ $primcall 'unwind ())
          (emit-unwind asm))
         (($ $primcall 'atomic-box-set! (box val))
-         (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))))
+         (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))
+        (($ $primcall 'handle-interrupts ())
+         (emit-handle-interrupts asm))))
 
     (define (compile-values label exp syms)
       (match exp
@@ -580,6 +583,7 @@
   (set! exp (convert-closures exp))
   (set! exp (optimize-first-order-cps exp opts))
   (set! exp (reify-primitives exp))
+  (set! exp (add-handle-interrupts exp))
   (renumber exp))
 
 (define (compile-bytecode exp env opts)

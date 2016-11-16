@@ -511,8 +511,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   /* Load VM registers. */
   CACHE_REGISTER ();
 
-  VM_HANDLE_INTERRUPTS;
-
   /* Usually a call to the VM happens on application, with the boot
      continuation on the next frame.  Sometimes it happens after a
      non-local exit however; in that case the VM state is all set up,
@@ -3922,7 +3920,16 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (3);
     }
 
-  VM_DEFINE_OP (183, unused_183, NULL, NOP)
+  /* handle-interrupts _:24
+   *
+   * Handle pending interrupts.
+   */
+  VM_DEFINE_OP (183, handle_interrupts, "handle-interrupts", OP1 (X32))
+    {
+      VM_HANDLE_INTERRUPTS;
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (184, unused_184, NULL, NOP)
   VM_DEFINE_OP (185, unused_185, NULL, NOP)
   VM_DEFINE_OP (186, unused_186, NULL, NOP)
