@@ -767,7 +767,9 @@ SCM_DEFINE (scm_pointer_to_procedure, "pointer->procedure", 3, 0, 0,
 
 #define CODE(nreq)                                                  \
   SCM_PACK_OP_24 (assert_nargs_ee, nreq + 1),                       \
-  SCM_PACK_OP_12_12 (foreign_call, 0, 1)
+  SCM_PACK_OP_12_12 (foreign_call, 0, 1),                           \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                            \
+  SCM_PACK_OP_24 (return_values, 0)
 
 #define CODE_10(n)                                                      \
   CODE (n + 0), CODE (n + 1), CODE (n + 2), CODE (n + 3), CODE (n + 4), \
@@ -789,7 +791,7 @@ get_foreign_stub_code (unsigned int nargs)
     scm_misc_error ("make-foreign-function", "args >= 100 currently unimplemented",
                     SCM_EOL);
 
-  return &foreign_stub_code[nargs * 2];
+  return &foreign_stub_code[nargs * 4];
 }
 
 static SCM

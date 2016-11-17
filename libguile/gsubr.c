@@ -75,6 +75,8 @@
 #define A(nreq)                                                         \
   SCM_PACK_OP_24 (assert_nargs_ee, nreq + 1),                           \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0,                                                                    \
   0
 
@@ -82,11 +84,15 @@
   SCM_PACK_OP_24 (assert_nargs_le, nopt + 1),                           \
   SCM_PACK_OP_24 (alloc_frame, nopt + 1),                               \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0
 
 #define C()                                                             \
   SCM_PACK_OP_24 (bind_rest, 1),                                        \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0,                                                                    \
   0
 
@@ -94,17 +100,23 @@
   SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),                           \
   SCM_PACK_OP_24 (assert_nargs_le, nreq + nopt + 1),                    \
   SCM_PACK_OP_24 (alloc_frame, nreq + nopt + 1),                        \
-  SCM_PACK_OP_24 (subr_call, 0)
+  SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0)
 
 #define AC(nreq)                                                        \
   SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),                           \
   SCM_PACK_OP_24 (bind_rest, nreq + 1),                                 \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0
 
 #define BC(nopt)                                                        \
   SCM_PACK_OP_24 (bind_rest, nopt + 1),                                 \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0,                                                                    \
   0
 
@@ -112,6 +124,8 @@
   SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),                           \
   SCM_PACK_OP_24 (bind_rest, nreq + nopt + 1),                          \
   SCM_PACK_OP_24 (subr_call, 0),                                        \
+  SCM_PACK_OP_24 (handle_interrupts, 0),                                \
+  SCM_PACK_OP_24 (return_values, 0),                                    \
   0
 
 
@@ -212,7 +226,7 @@ static const scm_t_uint32 subr_stub_code[] = {
 /* (nargs * nargs) + nopt + rest * (nargs + 1) */
 #define SUBR_STUB_CODE(nreq,nopt,rest)                                \
   &subr_stub_code[((nreq + nopt + rest) * (nreq + nopt + rest)        \
-                   + nopt + rest * (nreq + nopt + rest + 1)) * 4]
+                   + nopt + rest * (nreq + nopt + rest + 1)) * 6]
 
 static const scm_t_uint32*
 get_subr_stub_code (unsigned int nreq, unsigned int nopt, unsigned int rest)
@@ -265,12 +279,16 @@ scm_i_primitive_code_p (const scm_t_uint32 *code)
 scm_t_uintptr
 scm_i_primitive_call_ip (SCM subr)
 {
+  size_t i;
   const scm_t_uint32 *code = SCM_PROGRAM_CODE (subr);
 
-  /* A stub is 4 32-bit words long, or 16 bytes.  The call will be one
+  /* A stub is 6 32-bit words long, or 24 bytes.  The call will be one
      instruction, in either the fourth, third, or second word.  Return a
      byte offset from the entry.  */
-  return (scm_t_uintptr)(code + (code[3] ? 3 : code[2] ? 2 : 1));
+  for (i = 1; i < 4; i++)
+    if ((code[i] & 0xff) == scm_op_subr_call)
+      return (scm_t_uintptr) (code + i);
+  abort ();
 }
 
 SCM

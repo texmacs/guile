@@ -127,22 +127,6 @@
 #define ABORT_CONTINUATION_HOOK()               \
   RUN_HOOK0 (abort)
 
-/* TODO: Invoke asyncs without trampolining out to C.  That will let us
-   preempt computations via an asynchronous interrupt.  */
-#define VM_HANDLE_INTERRUPTS                                            \
-  do                                                                    \
-    if (SCM_LIKELY (thread->block_asyncs == 0))                         \
-      {                                                                 \
-        SCM asyncs = scm_atomic_ref_scm (&thread->pending_asyncs);      \
-        if (SCM_UNLIKELY (!scm_is_null (asyncs)))                       \
-          {                                                             \
-            SYNC_IP ();                                                 \
-            scm_async_tick ();                                          \
-            CACHE_SP ();                                                \
-          }                                                             \
-      }                                                                 \
-  while (0)
-
 
 
 
@@ -282,38 +266,6 @@
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (!scm_is_eq (VARIABLE_REF (v), SCM_UNDEFINED))
 
-#define RETURN_ONE_VALUE(ret)                           \
-  do {                                                  \
-    SCM val = ret;                                      \
-    union scm_vm_stack_element *old_fp;                 \
-    VM_HANDLE_INTERRUPTS;                               \
-    ALLOC_FRAME (2);					\
-    old_fp = vp->fp;                                    \
-    ip = SCM_FRAME_RETURN_ADDRESS (old_fp);             \
-    vp->fp = SCM_FRAME_DYNAMIC_LINK (old_fp);           \
-    /* Clear frame. */                                  \
-    old_fp[0].as_scm = SCM_BOOL_F;                      \
-    old_fp[1].as_scm = SCM_BOOL_F;                      \
-    /* Leave proc. */                                   \
-    SP_SET (0, val);                                    \
-    POP_CONTINUATION_HOOK (old_fp);                     \
-    NEXT (0);                                           \
-  } while (0)
-
-/* While we could generate the list-unrolling code here, it's fine for
-   now to just tail-call (apply values vals).  */
-#define RETURN_VALUE_LIST(vals_)                        \
-  do {                                                  \
-    SCM vals = vals_;                                   \
-    VM_HANDLE_INTERRUPTS;                               \
-    ALLOC_FRAME (3);                                    \
-    SP_SET (2, vm_builtin_apply);                       \
-    SP_SET (1, vm_builtin_values);                      \
-    SP_SET (0, vals);                                   \
-    ip = (scm_t_uint32 *) vm_builtin_apply_code;        \
-    goto op_tail_apply;                                 \
-  } while (0)
-
 #define BR_NARGS(rel)                           \
   scm_t_uint32 expected;                        \
   UNPACK_24 (op, expected);                     \
@@ -334,8 +286,6 @@
     {                                           \
       scm_t_int32 offset = ip[1];               \
       offset >>= 8; /* Sign-extending shift. */ \
-      if (offset <= 0)                          \
-        VM_HANDLE_INTERRUPTS;                   \
       NEXT (offset);                            \
     }                                           \
   NEXT (2)
@@ -351,8 +301,6 @@
     {                                           \
       scm_t_int32 offset = ip[2];               \
       offset >>= 8; /* Sign-extending shift. */ \
-      if (offset <= 0)                          \
-        VM_HANDLE_INTERRUPTS;                   \
       NEXT (offset);                            \
     }                                           \
   NEXT (3)
@@ -373,8 +321,6 @@
           {                                                             \
             scm_t_int32 offset = ip[2];                                 \
             offset >>= 8; /* Sign-extending shift. */                   \
-            if (offset <= 0)                                            \
-              VM_HANDLE_INTERRUPTS;                                     \
             NEXT (offset);                                              \
           }                                                             \
         NEXT (3);                                                       \
@@ -389,8 +335,6 @@
           {                                                             \
             scm_t_int32 offset = ip[2];                                 \
             offset >>= 8; /* Sign-extending shift. */                   \
-            if (offset <= 0)                                            \
-              VM_HANDLE_INTERRUPTS;                                     \
             NEXT (offset);                                              \
           }                                                             \
         NEXT (3);                                                       \
@@ -409,8 +353,6 @@
       {                                                                 \
         scm_t_int32 offset = ip[2];                                     \
         offset >>= 8; /* Sign-extending shift. */                       \
-        if (offset <= 0)                                                \
-          VM_HANDLE_INTERRUPTS;                                         \
         NEXT (offset);                                                  \
       }                                                                 \
     NEXT (3);                                                           \
@@ -587,8 +529,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
 
-      VM_HANDLE_INTERRUPTS;
-
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = vp->fp;
@@ -628,8 +568,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_24 (ip[1], nlocals);
       label = ip[2];
 
-      VM_HANDLE_INTERRUPTS;
-
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = vp->fp;
@@ -658,8 +596,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       
       UNPACK_24 (op, nlocals);
 
-      VM_HANDLE_INTERRUPTS;
-
       RESET_FRAME (nlocals);
 
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
@@ -685,8 +621,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_24 (op, nlocals);
       label = ip[1];
 
-      VM_HANDLE_INTERRUPTS;
-
       RESET_FRAME (nlocals);
 
       ip += label;
@@ -708,8 +642,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       scm_t_uint32 n, from, nlocals;
 
       UNPACK_24 (op, from);
-
-      VM_HANDLE_INTERRUPTS;
 
       VM_ASSERT (from > 0, abort ());
       nlocals = FRAME_LOCALS_COUNT ();
@@ -789,8 +721,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       union scm_vm_stack_element *old_fp;
       scm_t_uint32 nlocals;
 
-      VM_HANDLE_INTERRUPTS;
-
       UNPACK_24 (op, nlocals);
       if (nlocals)
         RESET_FRAME (nlocals);
@@ -831,10 +761,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       CACHE_SP ();
 
       if (SCM_UNLIKELY (SCM_VALUESP (ret)))
-        /* multiple values returned to continuation */
-        RETURN_VALUE_LIST (scm_struct_ref (ret, SCM_INUM0));
+        {
+          SCM vals = scm_struct_ref (ret, SCM_INUM0);
+          long len = scm_ilength (vals);
+          ALLOC_FRAME (1 + len);
+          while (len--)
+            {
+              SP_SET (len, SCM_CAR (vals));
+              vals = SCM_CDR (vals);
+            }
+          NEXT (1);
+        }
       else
-        RETURN_ONE_VALUE (ret);
+        {
+          ALLOC_FRAME (2);
+          SP_SET (0, ret);
+          NEXT (1);
+        }
     }
 
   /* foreign-call cif-idx:12 ptr-idx:12
@@ -864,10 +807,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       CACHE_SP ();
 
       if (SCM_UNLIKELY (SCM_VALUESP (ret)))
-        /* multiple values returned to continuation */
-        RETURN_VALUE_LIST (scm_struct_ref (ret, SCM_INUM0));
+        {
+          SCM vals = scm_struct_ref (ret, SCM_INUM0);
+          long len = scm_ilength (vals);
+          ALLOC_FRAME (1 + len);
+          while (len--)
+            {
+              SP_SET (len, SCM_CAR (vals));
+              vals = SCM_CDR (vals);
+            }
+          NEXT (1);
+        }
       else
-        RETURN_ONE_VALUE (ret);
+        {
+          ALLOC_FRAME (2);
+          SP_SET (0, ret);
+          NEXT (1);
+        }
     }
 
   /* continuation-call contregs:24
@@ -936,8 +892,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       int i, list_idx, list_len, nlocals;
       SCM list;
 
-      VM_HANDLE_INTERRUPTS;
-
       nlocals = FRAME_LOCALS_COUNT ();
       // At a minimum, there should be apply, f, and the list.
       VM_ASSERT (nlocals >= 3, abort ());
@@ -982,8 +936,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SCM vm_cont, cont;
       scm_t_dynstack *dynstack;
       int first;
-
-      VM_HANDLE_INTERRUPTS;
 
       SYNC_IP ();
       dynstack = scm_dynstack_capture_all (&thread->dynstack);
@@ -1407,8 +1359,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       scm_t_int32 offset = op;
       offset >>= 8; /* Sign-extending shift. */
-      if (offset <= 0)
-        VM_HANDLE_INTERRUPTS;
       NEXT (offset);
     }
 
@@ -3704,8 +3654,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
           {                                                             \
             scm_t_int32 offset = ip[2];                                 \
             offset >>= 8; /* Sign-extending shift. */                   \
-            if (offset <= 0)                                            \
-              VM_HANDLE_INTERRUPTS;                                     \
             NEXT (offset);                                              \
           }                                                             \
         NEXT (3);                                                       \
@@ -3720,8 +3668,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
           {                                                             \
             scm_t_int32 offset = ip[2];                                 \
             offset >>= 8; /* Sign-extending shift. */                   \
-            if (offset <= 0)                                            \
-              VM_HANDLE_INTERRUPTS;                                     \
             NEXT (offset);                                              \
           }                                                             \
         NEXT (3);                                                       \
@@ -3926,7 +3872,18 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (183, handle_interrupts, "handle-interrupts", OP1 (X32))
     {
-      VM_HANDLE_INTERRUPTS;
+      /* TODO: Invoke asyncs without trampolining out to C.  That will
+         let us preempt computations via an asynchronous interrupt.  */
+      if (SCM_LIKELY (thread->block_asyncs == 0))
+        {
+          SCM asyncs = scm_atomic_ref_scm (&thread->pending_asyncs);
+          if (SCM_UNLIKELY (!scm_is_null (asyncs)))
+            {
+              SYNC_IP ();
+              scm_async_tick ();
+              CACHE_SP ();
+            }
+        }
       NEXT (1);
     }
 
@@ -4045,8 +4002,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef POP_CONTINUATION_HOOK
 #undef PUSH_CONTINUATION_HOOK
 #undef RETURN
-#undef RETURN_ONE_VALUE
-#undef RETURN_VALUE_LIST
 #undef RUN_HOOK
 #undef RUN_HOOK0
 #undef RUN_HOOK1
