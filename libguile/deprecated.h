@@ -256,6 +256,16 @@ SCM_DEPRECATED SCM scm_apply_with_dynamic_root (SCM proc, SCM a1,
 
 
 
+/* Deprecated 2016-11-18. Never documented. Unnecessary, since
+   array-copy! already unrolls and does it in more general cases. */
+/* With this also remove SCM_I_ARRAY_FLAG_CONTIGUOUS,
+   SCM_SET_ARRAY_CONTIGUOUS_FLAG, SCM_CLR_ARRAY_CONTIGUOUS_FLAG,
+   scm_i_ra_set_contp, and uses thereof. */
+SCM_DEPRECATED SCM scm_from_contiguous_array (SCM bounds, const SCM *elts,
+                                              size_t len);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

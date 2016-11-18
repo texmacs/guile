@@ -413,6 +413,12 @@
 
 (with-test-prefix/c&e "array-contents"
 
+  (pass-if "0-rank array"
+    (let ((a (make-vector 1 77)))
+      (and
+       (eq? a (array-contents (make-shared-array a (const '(0)))))
+       (eq? a (array-contents (make-shared-array a (const '(0))) #t)))))
+
   (pass-if "simple vector"
     (let* ((a (make-array 0 4)))
       (eq? a (array-contents a))))

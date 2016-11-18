@@ -729,6 +729,46 @@ scm_unlock_mutex_timed (SCM mx, SCM cond, SCM timeout)
   return scm_unlock_mutex (mx);
 }
 
+
+
+SCM
+scm_from_contiguous_array (SCM bounds, const SCM *elts, size_t len)
+#define FUNC_NAME "scm_from_contiguous_array"
+{
+  size_t k, rlen = 1;
+  scm_t_array_dim *s;
+  SCM ra;
+  scm_t_array_handle h;
+
+  scm_c_issue_deprecation_warning
+    ("`scm_from_contiguous_array' is deprecated. Use make-array and array-copy!\n"
+     "instead.\n");
+  
+  ra = scm_i_shap2ra (bounds);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
+  s = SCM_I_ARRAY_DIMS (ra);
+  k = SCM_I_ARRAY_NDIM (ra);
+
+  while (k--)
+    {
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
+      rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
+    }
+  if (rlen != len)
+    SCM_MISC_ERROR ("element length and dimensions do not match", SCM_EOL);
+
+  SCM_I_ARRAY_SET_V (ra, scm_c_make_vector (rlen, SCM_UNDEFINED));
+  scm_array_get_handle (ra, &h);
+  memcpy (h.writable_elements, elts, rlen * sizeof(SCM));
+  scm_array_handle_release (&h);
+
+  if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
+    if (0 == s->lbnd)
+      return SCM_I_ARRAY_V (ra);
+  return ra;
+}
+#undef FUNC_NAME
 
 
 
