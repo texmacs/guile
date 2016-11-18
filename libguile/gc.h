@@ -30,6 +30,13 @@
 #include "libguile/threads.h"
 
 
+/* Before Guile 2.0, Guile had a custom garbage collector and memory
+   management system that largely worked in terms of "cells", two-word
+   heap-tagged objects.  This is no longer the case, and the "cell"
+   concept is obsolete; the allocator can now make objects of any size.
+   Still, some old code uses "cell" to mean a two-word allocation, so
+   for that reason you'll see the word around Guile. */
+
 typedef struct scm_t_cell
 {
   SCM word_0;
@@ -40,12 +47,6 @@ typedef struct scm_t_cell
 #define PTR2SCM(x) (SCM_PACK_POINTER (x))
 #define SCM2PTR(x) ((scm_t_cell *) (SCM_UNPACK_POINTER (x)))
 
-/* Low level cell data accessing macros.  These macros should only be used
- * from within code related to garbage collection issues, since they will
- * never check the cells they are applied to - not even if guile is compiled
- * in debug mode.  In particular these macros will even work for free cells,
- * which should never be encountered by user code.  */
-
 #define SCM_GC_CELL_OBJECT(x, n) (((SCM *)SCM2PTR (x)) [n])
 #define SCM_GC_CELL_WORD(x, n)   (SCM_UNPACK (SCM_GC_CELL_OBJECT ((x), (n))))
 
@@ -55,64 +56,37 @@ typedef struct scm_t_cell
 
 #define SCM_GC_CELL_TYPE(x) (SCM_GC_CELL_OBJECT ((x), 0))
 
-
-/* Except for the garbage collector, no part of guile should ever run over a
- * free cell.  Thus, if guile is compiled in debug mode the SCM_CELL_* and
- * SCM_SET_CELL_* macros below report an error if they are applied to a free
- * cell.  Some other plausibility checks are also performed.  However, if
- * guile is not compiled in debug mode, there won't be any time penalty at all
- * when using these macros.  */
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-#  define SCM_VALIDATE_CELL(cell, expr) (scm_assert_cell_valid (cell), (expr))
-#else
-#  define SCM_VALIDATE_CELL(cell, expr) (expr)
-#endif
-
-#define SCM_CELL_WORD(x, n) \
-  SCM_VALIDATE_CELL ((x), SCM_GC_CELL_WORD ((x), (n)))
+#define SCM_CELL_WORD(x, n) SCM_GC_CELL_WORD ((x), (n))
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD ((x), 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD ((x), 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD ((x), 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD ((x), 3)
 
-#define SCM_CELL_OBJECT(x, n) \
-  SCM_VALIDATE_CELL ((x), SCM_GC_CELL_OBJECT ((x), (n)))
+#define SCM_CELL_OBJECT(x, n) SCM_GC_CELL_OBJECT ((x), (n))
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT ((x), 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT ((x), 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT ((x), 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT ((x), 3)
 
-#define SCM_SET_CELL_WORD(x, n, v) \
-  SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_WORD ((x), (n), (v)))
+#define SCM_SET_CELL_WORD(x, n, v) SCM_GC_SET_CELL_WORD ((x), (n), (v))
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD ((x), 0, (v))
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD ((x), 1, (v))
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD ((x), 2, (v))
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD ((x), 3, (v))
 
-#define SCM_SET_CELL_OBJECT(x, n, v) \
-  SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_OBJECT ((x), (n), (v)))
+#define SCM_SET_CELL_OBJECT(x, n, v) SCM_GC_SET_CELL_OBJECT ((x), (n), (v))
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT ((x), 0, (v))
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT ((x), 1, (v))
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT ((x), 2, (v))
 #define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT ((x), 3, (v))
 
-#define SCM_CELL_OBJECT_LOC(x, n) (SCM_VALIDATE_CELL((x), &SCM_GC_CELL_OBJECT ((x), (n))))
+#define SCM_CELL_OBJECT_LOC(x, n) (&SCM_GC_CELL_OBJECT ((x), (n)))
 #define SCM_CARLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 0))
 #define SCM_CDRLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 1))
 
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-/* Set this to != 0 if every cell that is accessed shall be checked:
- */
-SCM_API int scm_debug_cell_accesses_p;
-SCM_API int scm_expensive_debug_cell_accesses_p;
-SCM_API int scm_debug_cells_gc_interval ;
-SCM_API void scm_i_expensive_validation_check (SCM cell);
-#endif
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 
@@ -137,10 +111,6 @@ SCM_API scm_t_c_hook scm_after_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
 
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-SCM_API void scm_assert_cell_valid (SCM);
-#endif
 
 SCM_API SCM scm_set_debug_cell_accesses_x (SCM flag);
 

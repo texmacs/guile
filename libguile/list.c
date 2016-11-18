@@ -89,10 +89,6 @@ scm_list_n (SCM elt, ...)
   va_start (foo, elt);
   while (! SCM_UNBNDP (elt))
     {
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-      if (SCM_HEAP_OBJECT_P (elt))
-	SCM_VALIDATE_CELL(elt, 0);
-#endif      
       *pos = scm_cons (elt, SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       elt = va_arg (foo, SCM);

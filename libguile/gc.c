@@ -89,108 +89,6 @@ int scm_debug_cells_gc_interval = 0;
 static SCM scm_protects;
 
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-
-
-/*
-  
-  Assert that the given object is a valid reference to a valid cell.  This
-  test involves to determine whether the object is a cell pointer, whether
-  this pointer actually points into a heap segment and whether the cell
-  pointed to is not a free cell.  Further, additional garbage collections may
-  get executed after a user defined number of cell accesses.  This helps to
-  find places in the C code where references are dropped for extremely short
-  periods.
-
-*/
-void
-scm_i_expensive_validation_check (SCM cell)
-{
-  /* If desired, perform additional garbage collections after a user
-   * defined number of cell accesses.
-   */
-  if (scm_debug_cells_gc_interval)
-    {
-      static unsigned int counter = 0;
-
-      if (counter != 0)
-	{
-	  --counter;
-	}
-      else
-	{
-	  counter = scm_debug_cells_gc_interval;
-	  scm_gc ();
-	}
-    }
-}
-
-/* Whether cell validation is already running.  */
-static int scm_i_cell_validation_already_running = 0;
-
-void
-scm_assert_cell_valid (SCM cell)
-{
-  if (!scm_i_cell_validation_already_running && scm_debug_cell_accesses_p)
-    {
-      scm_i_cell_validation_already_running = 1;  /* set to avoid recursion */
-
-      /*
-	During GC, no user-code should be run, and the guile core
-	should use non-protected accessors.
-      */
-      if (scm_gc_running_p)
-	return;
-
-      /*
-	Only scm_in_heap_p and rescanning the heap is wildly
-	expensive.
-      */
-      if (scm_expensive_debug_cell_accesses_p)
-	scm_i_expensive_validation_check (cell);
-
-      scm_i_cell_validation_already_running = 0;  /* re-enable */
-    }
-}
-
-
-
-SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
-	    (SCM flag),
-	    "If @var{flag} is @code{#f}, cell access checking is disabled.\n"
-	    "If @var{flag} is @code{#t}, cheap cell access checking is enabled,\n"
-	    "but no additional calls to garbage collection are issued.\n"
-	    "If @var{flag} is a number, strict cell access checking is enabled,\n"
-	    "with an additional garbage collection after the given\n"
-	    "number of cell accesses.\n"
-	    "This procedure only exists when the compile-time flag\n"
-	    "@code{SCM_DEBUG_CELL_ACCESSES} was set to 1.")
-#define FUNC_NAME s_scm_set_debug_cell_accesses_x
-{
-  if (scm_is_false (flag))
-    {
-      scm_debug_cell_accesses_p = 0;
-    }
-  else if (scm_is_eq (flag, SCM_BOOL_T))
-    {
-      scm_debug_cells_gc_interval = 0;
-      scm_debug_cell_accesses_p = 1;
-      scm_expensive_debug_cell_accesses_p = 0;
-    }
-  else
-    {
-      scm_debug_cells_gc_interval = scm_to_signed_integer (flag, 0, INT_MAX);
-      scm_debug_cell_accesses_p = 1;
-      scm_expensive_debug_cell_accesses_p = 1;
-    }
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-
-#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
-
-
 
 
 static int needs_gc_after_nonlocal_exit = 0;
@@ -679,42 +577,12 @@ queue_after_gc_hook (void * hook_data SCM_UNUSED,
                      void *fn_data SCM_UNUSED,
                      void *data SCM_UNUSED)
 {
-  /* If cell access debugging is enabled, the user may choose to perform
-   * additional garbage collections after an arbitrary number of cell
-   * accesses.  We don't want the scheme level after-gc-hook to be performed
-   * for each of these garbage collections for the following reason: The
-   * execution of the after-gc-hook causes cell accesses itself.  Thus, if the
-   * after-gc-hook was performed with every gc, and if the gc was performed
-   * after a very small number of cell accesses, then the number of cell
-   * accesses during the execution of the after-gc-hook will suffice to cause
-   * the execution of the next gc.  Then, guile would keep executing the
-   * after-gc-hook over and over again, and would never come to do other
-   * things.
-   *
-   * To overcome this problem, if cell access debugging with additional
-   * garbage collections is enabled, the after-gc-hook is never run by the
-   * garbage collecter.  When running guile with cell access debugging and the
-   * execution of the after-gc-hook is desired, then it is necessary to run
-   * the hook explicitly from the user code.  This has the effect, that from
-   * the scheme level point of view it seems that garbage collection is
-   * performed with a much lower frequency than it actually is.  Obviously,
-   * this will not work for code that depends on a fixed one to one
-   * relationship between the execution counts of the C level garbage
-   * collection hooks and the execution count of the scheme level
-   * after-gc-hook.
-   */
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cells_gc_interval == 0)
-#endif
+  if (scm_is_false (SCM_CDR (after_gc_async_cell)))
     {
-      scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-      if (scm_is_false (SCM_CDR (after_gc_async_cell)))
-        {
-          SCM_SETCDR (after_gc_async_cell, t->pending_asyncs);
-          t->pending_asyncs = after_gc_async_cell;
-        }
+      SCM_SETCDR (after_gc_async_cell, t->pending_asyncs);
+      t->pending_asyncs = after_gc_async_cell;
     }
 
   return NULL;
