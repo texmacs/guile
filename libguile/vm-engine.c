@@ -3872,22 +3872,56 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (183, handle_interrupts, "handle-interrupts", OP1 (X32))
     {
-      /* TODO: Invoke asyncs without trampolining out to C.  That will
-         let us preempt computations via an asynchronous interrupt.  */
-      if (SCM_LIKELY (thread->block_asyncs == 0))
-        {
-          SCM asyncs = scm_atomic_ref_scm (&thread->pending_asyncs);
-          if (SCM_UNLIKELY (!scm_is_null (asyncs)))
-            {
-              SYNC_IP ();
-              scm_async_tick ();
-              CACHE_SP ();
-            }
-        }
-      NEXT (1);
+      if (SCM_LIKELY (scm_is_null
+                      (scm_atomic_ref_scm (&thread->pending_asyncs))))
+        NEXT (1);
+
+      if (thread->block_asyncs > 0)
+        NEXT (1);
+
+      {
+        union scm_vm_stack_element *old_fp;
+        size_t old_frame_size = FRAME_LOCALS_COUNT ();
+        SCM proc = scm_i_async_pop (thread);
+
+        /* No PUSH_CONTINUATION_HOOK, as we can't usefully
+           POP_CONTINUATION_HOOK because there are no return values.  */
+
+        /* Three slots: two for RA and dynamic link, one for proc.  */
+        ALLOC_FRAME (old_frame_size + 3);
+
+        /* Set up a frame that will return right back to this
+           handle-interrupts opcode to handle any additional
+           interrupts.  */
+        old_fp = vp->fp;
+        vp->fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
+        SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
+        SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip);
+
+        SP_SET (0, proc);
+
+        ip = (scm_t_uint32 *) vm_handle_interrupt_code;
+
+        APPLY_HOOK ();
+
+        NEXT (0);
+      }
     }
 
-  VM_DEFINE_OP (184, unused_184, NULL, NOP)
+  /* return-from-interrupt _:24
+   *
+   * Return from handling an interrupt, discarding any return values and
+   * stripping away the interrupt frame.
+   */
+  VM_DEFINE_OP (184, return_from_interrupt, "return-from-interrupt", OP1 (X32))
+    {
+      vp->sp = sp = SCM_FRAME_PREVIOUS_SP (vp->fp);
+      ip = SCM_FRAME_RETURN_ADDRESS (vp->fp);
+      vp->fp = SCM_FRAME_DYNAMIC_LINK (vp->fp);
+
+      NEXT (0);
+    }
+
   VM_DEFINE_OP (185, unused_185, NULL, NOP)
   VM_DEFINE_OP (186, unused_186, NULL, NOP)
   VM_DEFINE_OP (187, unused_187, NULL, NOP)

@@ -55,7 +55,7 @@
  * list in the order they were added to the list.
  */
 
-static void
+void
 scm_i_async_push (scm_i_thread *t, SCM proc)
 {
   SCM asyncs;
@@ -101,7 +101,7 @@ scm_i_async_push (scm_i_thread *t, SCM proc)
 }
 
 /* Precondition: there are pending asyncs.  */
-static SCM
+SCM
 scm_i_async_pop (scm_i_thread *t)
 {
   while (1)

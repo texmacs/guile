@@ -666,6 +666,13 @@ static const scm_t_uint32 vm_builtin_call_with_current_continuation_code[] = {
   SCM_PACK_OP_24 (call_cc, 0)
 };
 
+static const scm_t_uint32 vm_handle_interrupt_code[] = {
+  SCM_PACK_OP_24 (alloc_frame, 3),
+  SCM_PACK_OP_12_12 (mov, 0, 2),
+  SCM_PACK_OP_24 (call, 2), SCM_PACK_OP_ARG_8_24 (0, 1),
+  SCM_PACK_OP_24 (return_from_interrupt, 0)
+};
+
 
 int
 scm_i_vm_is_boot_continuation_code (scm_t_uint32 *ip)

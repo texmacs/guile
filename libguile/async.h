@@ -46,6 +46,9 @@ SCM_API void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 SCM_API void scm_dynwind_block_asyncs (void);
 SCM_API void scm_dynwind_unblock_asyncs (void);
 
+SCM_INTERNAL void scm_i_async_push (scm_i_thread *t, SCM proc);
+SCM_INTERNAL SCM scm_i_async_pop (scm_i_thread *t);
+
 SCM_INTERNAL void scm_init_async (void);
 
 #endif  /* SCM_ASYNC_H */
