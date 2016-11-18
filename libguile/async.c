@@ -52,27 +52,101 @@
  * Each thread has a list of 'activated asyncs', which is a normal
  * Scheme list of procedures with zero arguments.  When a thread
  * executes an scm_async_tick (), it will call all procedures on this
- * list.
+ * list in the order they were added to the list.
  */
 
+static void
+scm_i_async_push (scm_i_thread *t, SCM proc)
+{
+  SCM asyncs;
+
+  /* The usual algorithm you'd use for atomics with GC would be
+     something like:
+
+     repeat
+       l = get(asyncs);
+     until swap(l, cons(proc, l))
+
+     But this is a LIFO list of asyncs, and that's not so great.  To
+     make it FIFO, you'd do:
+
+     repeat
+       l = get(asyncs);
+     until swap(l, append(l, list(proc)))
+
+     However, some parts of Guile need to add entries to the async list
+     from a context in which allocation is unsafe, for example right
+     before GC or from a signal handler.  They do that by pre-allocating
+     a pair, then when the interrupt fires the code does a setcdr of
+     that pair to the t->pending_asyncs and atomically updates
+     t->pending_asyncs.  So the append strategy doesn't work.
+
+     Instead to preserve the FIFO behavior we atomically cut off the
+     tail of the asyncs every time we want to run an interrupt, then
+     disable that newly-severed tail by setting its cdr to #f.  Not so
+     nice, but oh well.  */
+  asyncs = scm_atomic_ref_scm (&t->pending_asyncs);
+  do
+    {
+      /* Traverse the asyncs list atomically.  */
+      SCM walk;
+      for (walk = asyncs;
+           scm_is_pair (walk);
+           walk = scm_atomic_ref_scm (SCM_CDRLOC (walk)))
+        if (scm_is_eq (SCM_CAR (walk), proc))
+          return;
+    }
+  while (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
+                                           scm_cons (proc, asyncs)));
+}
+
+/* Precondition: there are pending asyncs.  */
+static SCM
+scm_i_async_pop (scm_i_thread *t)
+{
+  while (1)
+    {
+      SCM asyncs, last_pair, penultimate_pair;
+
+      last_pair = asyncs = scm_atomic_ref_scm (&t->pending_asyncs);
+      penultimate_pair = SCM_BOOL_F;
+
+      /* Since we are the only writer to cdrs of pairs in ASYNCS, and these
+         pairs were given to us after an atomic update to t->pending_asyncs,
+         no need to use atomic ops to traverse the list.  */
+      while (scm_is_pair (SCM_CDR (last_pair)))
+        {
+          penultimate_pair = last_pair;
+          last_pair = SCM_CDR (last_pair);
+        }
+
+      /* Sever the tail.  */
+      if (scm_is_false (penultimate_pair))
+        {
+          if (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
+                                                SCM_EOL))
+            continue;
+        }
+      else
+        scm_atomic_set_scm (SCM_CDRLOC (penultimate_pair), SCM_EOL);
+
+      /* Disable it.  */
+      scm_atomic_set_scm (SCM_CDRLOC (last_pair), SCM_BOOL_F);
+
+      return SCM_CAR (last_pair);
+    }
+}
 
 void
 scm_async_tick (void)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  SCM asyncs;
 
   if (t->block_asyncs)
     return;
 
-  asyncs = scm_atomic_swap_scm (&t->pending_asyncs, SCM_EOL);
-  while (!scm_is_null (asyncs))
-    {
-      SCM next = scm_cdr (asyncs);
-      scm_call_0 (scm_car (asyncs));
-      scm_set_cdr_x (asyncs, SCM_BOOL_F);
-      asyncs = next;
-    }
+  while (!scm_is_null (scm_atomic_ref_scm (&t->pending_asyncs)))
+    scm_call_0 (scm_i_async_pop (t));
 }
 
 struct scm_thread_wake_data {
@@ -115,7 +189,6 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
   scm_i_thread *t;
-  SCM asyncs;
   struct scm_thread_wake_data *wake;
 
   if (SCM_UNBNDP (thread))
@@ -128,12 +201,7 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
       t = SCM_I_THREAD_DATA (thread);
     }
 
-  asyncs = scm_atomic_ref_scm (&t->pending_asyncs);
-  do
-    if (scm_is_true (scm_c_memq (proc, asyncs)))
-      return SCM_UNSPECIFIED;
-  while (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
-                                           scm_cons (proc, asyncs)));
+  scm_i_async_push (t, proc);
 
   /* At this point the async is enqueued.  However if the thread is
      sleeping, we have to wake it up.  */
