@@ -1,0 +1,138 @@
+;;;; asyncs.test                     -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2016 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-asyncs)
+  #:use-module (ice-9 control)
+  #:use-module (ice-9 q)
+  #:use-module (ice-9 atomic)
+  #:use-module (ice-9 threads)
+  #:use-module (test-suite lib))
+
+
+(with-test-prefix "interrupts"
+  (pass-if-equal "self-interruptable v1" 42
+    (let/ec break
+      (let lp ((n 0))
+        (when (= n 10)
+          (system-async-mark (lambda () (break 42))))
+        (lp (1+ n)))))
+
+  (pass-if-equal "self-interruptable v2" 42
+    (let/ec break
+      (begin
+        (system-async-mark (lambda () (break 42)))
+        (let lp () (lp))))))
+
+(define (with-sigprof-interrupts hz interrupt proc)
+  (let ((prev-handler #f)
+        (period-usecs (inexact->exact (round (/ 1e6 hz)))))
+    (define (profile-signal-handler _) (interrupt))
+    (dynamic-wind
+      (lambda ()
+        (set! prev-handler (car (sigaction SIGPROF profile-signal-handler)))
+        (setitimer ITIMER_PROF 0 period-usecs 0 period-usecs))
+      proc
+      (lambda ()
+        (setitimer ITIMER_PROF 0 0 0 0)
+        (sigaction SIGPROF prev-handler)))))
+
+(when (defined? 'setitimer)
+  (pass-if "preemption via sigprof"
+    ;; Use an atomic box as a compiler barrier.
+    (let* ((box (make-atomic-box 0))
+           (preempt-tag (make-prompt-tag))
+           (runqueue (make-q)))
+      (define (run-cothreads)
+        (unless (q-empty? runqueue)
+          (let ((k (deq! runqueue)))
+            (call-with-prompt preempt-tag
+              k
+              (lambda (k) (enq! runqueue k))))
+          (run-cothreads)))
+      (enq! runqueue (lambda ()
+                       (let lp ()
+                         (let ((x (atomic-box-ref box)))
+                           (unless (= x 100)
+                             (when (even? x)
+                               (atomic-box-set! box (1+ x)))
+                             (lp))))))
+      (enq! runqueue (lambda ()
+                       (let lp ()
+                         (let ((x (atomic-box-ref box)))
+                           (unless (= x 100)
+                             (when (odd? x)
+                               (atomic-box-set! box (1+ x)))
+                             (lp))))))
+      (with-sigprof-interrupts
+       1000                             ; Hz
+       (lambda ()
+         ;; Could throw an exception if the prompt is
+         ;; not active (i.e. interrupt happens
+         ;; outside running a cothread).  Ignore in
+         ;; that case.
+         (false-if-exception (abort-to-prompt preempt-tag)))
+       run-cothreads)
+      (equal? (atomic-box-ref box) 100))))
+
+(when (provided? 'threads)
+  (pass-if "preemption via external thread"
+    ;; Use an atomic box as a compiler barrier.
+    (let* ((box (make-atomic-box 0))
+           (preempt-tag (make-prompt-tag))
+           (runqueue (make-q)))
+      (define (run-cothreads)
+        (unless (q-empty? runqueue)
+          (let ((k (deq! runqueue)))
+            (call-with-prompt preempt-tag
+              k
+              (lambda (k) (enq! runqueue k))))
+          (run-cothreads)))
+      (enq! runqueue (lambda ()
+                       (let lp ()
+                         (let ((x (atomic-box-ref box)))
+                           (unless (= x 100)
+                             (when (even? x)
+                               (atomic-box-set! box (1+ x)))
+                             (lp))))))
+      (enq! runqueue (lambda ()
+                       (let lp ()
+                         (let ((x (atomic-box-ref box)))
+                           (unless (= x 100)
+                             (when (odd? x)
+                               (atomic-box-set! box (1+ x)))
+                             (lp))))))
+      (let* ((main-thread (current-thread))
+             (preempt-thread (call-with-new-thread
+                              (lambda ()
+                                (let lp ()
+                                  (unless (= (atomic-box-ref box) 100)
+                                    (usleep 1000)
+                                    (system-async-mark
+                                     (lambda ()
+                                       ;; Could throw an exception if the
+                                       ;; prompt is not active
+                                       ;; (i.e. interrupt happens outside
+                                       ;; running a cothread).  Ignore in
+                                       ;; that case.
+                                       (false-if-exception
+                                        (abort-to-prompt preempt-tag)))
+                                     main-thread)
+                                    (lp)))))))
+        (run-cothreads)
+        (join-thread preempt-thread)
+        (equal? (atomic-box-ref box) 100)))))
