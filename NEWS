@@ -54,7 +54,7 @@ deprecated; use `scm_timed_lock_mutex' instead.
 
 It used to be that `unlock-mutex' included `wait-condition-variable'
 functionality.  This has been deprecated; use SRFI-18 if you want this
-behavior from `mutex-unlock!'.  Relatedly, `scm_unlock_mutex_timed is
+behavior from `mutex-unlock!'.  Relatedly, `scm_unlock_mutex_timed' is
 deprecated; use `scm_unlock_mutex' instead.
 
 ** Removed `unchecked-unlock' mutex flag
@@ -72,6 +72,13 @@ This is no longer the case.
 The `set-thread-cleanup!' and `thread-cleanup' functions that were added
 in Guile 2.0 to support cleanup after thread cancellation are no longer
 needed, since threads can declare cleanup handlers via `dynamic-wind'.
+
+** Only threads created by Guile are joinable
+
+`join-thread' used to work on "foreign" threads that were not created by
+Guile itself, though their join value was always `#f'.  This is no
+longer the case; attempting to join a foreign thread will throw an
+error.
 
 * New deprecations
 ** Arbiters deprecated

@@ -88,13 +88,15 @@ Return @code{#t} ff @var{obj} is a thread; otherwise, return
 @deffn {Scheme Procedure} join-thread thread [timeout [timeoutval]]
 @deffnx {C Function} scm_join_thread (thread)
 @deffnx {C Function} scm_join_thread_timed (thread, timeout, timeoutval)
-Wait for @var{thread} to terminate and return its exit value.  Threads
-that have not been created with @code{call-with-new-thread} or
-@code{scm_spawn_thread} have an exit value of @code{#f}.  When
-@var{timeout} is given, it specifies a point in time where the waiting
-should be aborted.  It can be either an integer as returned by
-@code{current-time} or a pair as returned by @code{gettimeofday}.
-When the waiting is aborted, @var{timeoutval} is returned (if it is
+Wait for @var{thread} to terminate and return its exit value.  Only
+threads that were created with @code{call-with-new-thread} or
+@code{scm_spawn_thread} can be joinable; attempting to join a foreign
+thread will raise an error.
+
+When @var{timeout} is given, it specifies a point in time where the
+waiting should be aborted.  It can be either an integer as returned by
+@code{current-time} or a pair as returned by @code{gettimeofday}.  When
+the waiting is aborted, @var{timeoutval} is returned (if it is
 specified; @code{#f} is returned otherwise).
 @end deffn
 
