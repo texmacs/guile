@@ -71,16 +71,16 @@
 	(lambda ()
 	  (lock-mutex admin-mutex)
 	  (set! outer-owner owner)
-	  (if (not (eqv? outer-owner (dynamic-root)))
+	  (if (not (eqv? outer-owner (current-thread)))
 	      (begin
 		(unlock-mutex admin-mutex)
 		(lock-mutex serialization-mutex)
-		(set! owner (dynamic-root)))
+		(set! owner (current-thread)))
 	      (unlock-mutex admin-mutex)))
 	thunk
 	(lambda ()
 	  (lock-mutex admin-mutex)
-	  (if (not (eqv? outer-owner (dynamic-root)))
+	  (if (not (eqv? outer-owner (current-thread)))
 	      (begin
 		(set! owner #f)
 		(unlock-mutex serialization-mutex)))
@@ -95,7 +95,7 @@
 	(lambda ()
 	  (lock-mutex admin-mutex)
 	  (set! outer-owner owner)
-	  (if (eqv? outer-owner (dynamic-root))
+	  (if (eqv? outer-owner (current-thread))
 	      (begin
 		(set! owner #f)
 		(unlock-mutex serialization-mutex)))
@@ -103,7 +103,7 @@
 	thunk
 	(lambda ()
 	  (lock-mutex admin-mutex)
-	  (if (eqv? outer-owner (dynamic-root))
+	  (if (eqv? outer-owner (current-thread))
 	      (begin
 		(unlock-mutex admin-mutex)
 		(lock-mutex serialization-mutex)

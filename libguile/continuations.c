@@ -30,7 +30,6 @@
 
 #include "libguile/async.h"
 #include "libguile/debug.h"
-#include "libguile/root.h"
 #include "libguile/stackchk.h"
 #include "libguile/smob.h"
 #include "libguile/ports.h"

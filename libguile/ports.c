@@ -51,7 +51,6 @@
 
 #include "libguile/keywords.h"
 #include "libguile/hashtab.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/mallocs.h"
 #include "libguile/validate.h"

@@ -109,6 +109,12 @@ scm_dynwind_block_asyncs.
 Use `scm_make_mutex_with_kind' instead.  See "Mutexes and Condition
 Variables" in the manual, for more.
 
+** Dynamic roots deprecated
+
+This was a facility that predated threads, was unused as far as we can
+tell, and was never documented.  Still, a grep of your code for
+dynamic-root or dynamic_root would not be amiss.
+
 * Bug fixes
 ** cancel-thread uses asynchronous interrupts, not pthread_cancel
 

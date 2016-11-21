@@ -45,7 +45,6 @@
 
 #include "libguile/async.h"
 #include "libguile/eval.h"
-#include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/threads.h"
 

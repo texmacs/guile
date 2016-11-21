@@ -25,7 +25,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 
 #include "libguile/validate.h"

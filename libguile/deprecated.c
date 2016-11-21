@@ -732,6 +732,162 @@ scm_unlock_mutex_timed (SCM mx, SCM cond, SCM timeout)
 
 
 
+/* {call-with-dynamic-root}
+ *
+ * Suspending the current thread to evaluate a thunk on the
+ * same C stack but under a new root.
+ *
+ * Calls to call-with-dynamic-root return exactly once (unless
+ * the process is somehow exitted).  */
+
+/* cwdr fills out both of these structures, and then passes a pointer
+   to them through scm_internal_catch to the cwdr_body and
+   cwdr_handler functions, to tell them how to behave and to get
+   information back from them.
+
+   A cwdr is a lot like a catch, except there is no tag (all
+   exceptions are caught), and the body procedure takes the arguments
+   passed to cwdr as A1 and ARGS.  The handler is also special since
+   it is not directly run from scm_internal_catch.  It is executed
+   outside the new dynamic root. */
+
+struct cwdr_body_data {
+  /* Arguments to pass to the cwdr body function.  */
+  SCM a1, args;
+
+  /* Scheme procedure to use as body of cwdr.  */
+  SCM body_proc;
+};
+
+struct cwdr_handler_data {
+  /* Do we need to run the handler? */
+  int run_handler;
+
+  /* The tag and args to pass it. */
+  SCM tag, args;
+};
+
+
+/* Invoke the body of a cwdr, assuming that the throw handler has
+   already been set up.  DATA points to a struct set up by cwdr that
+   says what proc to call, and what args to apply it to.
+
+   With a little thought, we could replace this with scm_body_thunk,
+   but I don't want to mess with that at the moment.  */
+static SCM
+cwdr_body (void *data)
+{
+  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
+
+  return scm_apply (c->body_proc, c->a1, c->args);
+}
+
+/* Record the fact that the body of the cwdr has thrown.  Record
+   enough information to invoke the handler later when the dynamic
+   root has been deestablished.  */
+
+static SCM
+cwdr_handler (void *data, SCM tag, SCM args)
+{
+  struct cwdr_handler_data *c = (struct cwdr_handler_data *) data;
+
+  c->run_handler = 1;
+  c->tag = tag;
+  c->args = args;
+  return SCM_UNSPECIFIED;
+}
+
+SCM 
+scm_internal_cwdr (scm_t_catch_body body, void *body_data,
+		   scm_t_catch_handler handler, void *handler_data,
+		   SCM_STACKITEM *stack_start)
+{
+  struct cwdr_handler_data my_handler_data;
+  scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
+  SCM answer;
+  scm_t_dynstack *old_dynstack;
+
+  /* Exit caller's dynamic state.
+   */
+  old_dynstack = scm_dynstack_capture_all (dynstack);
+  scm_dynstack_unwind (dynstack, SCM_DYNSTACK_FIRST (dynstack));
+
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_current_dynamic_state (scm_make_dynamic_state (SCM_UNDEFINED));
+
+  my_handler_data.run_handler = 0;
+  answer = scm_i_with_continuation_barrier (body, body_data,
+					    cwdr_handler, &my_handler_data,
+					    NULL, NULL);
+
+  scm_dynwind_end ();
+
+  /* Enter caller's dynamic state.
+   */
+  scm_dynstack_wind (dynstack, SCM_DYNSTACK_FIRST (old_dynstack));
+
+  /* Now run the real handler iff the body did a throw. */
+  if (my_handler_data.run_handler)
+    return handler (handler_data, my_handler_data.tag, my_handler_data.args);
+  else
+    return answer;
+}
+
+/* The original CWDR for invoking Scheme code with a Scheme handler. */
+
+static SCM 
+cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
+{
+  struct cwdr_body_data c;
+  
+  c.a1 = a1;
+  c.args = args;
+  c.body_proc = proc;
+
+  return scm_internal_cwdr (cwdr_body, &c,
+			    scm_handle_by_proc, &handler,
+			    stack_start);
+}
+
+SCM_DEFINE (scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
+           (SCM thunk, SCM handler),
+	    "Call @var{thunk} with a new dynamic state and within\n"
+	    "a continuation barrier.  The @var{handler} catches all\n"
+	    "otherwise uncaught throws and executes within the same\n"
+	    "dynamic context as @var{thunk}.")
+#define FUNC_NAME s_scm_call_with_dynamic_root
+{
+  SCM_STACKITEM stack_place;
+  scm_c_issue_deprecation_warning
+    ("call-with-dynamic-root is deprecated.  There is no replacement.");
+  return cwdr (thunk, SCM_EOL, SCM_EOL, handler, &stack_place);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_dynamic_root, "dynamic-root", 0, 0, 0, 
+           (),
+	    "Return an object representing the current dynamic root.\n\n"
+	    "These objects are only useful for comparison using @code{eq?}.\n")
+#define FUNC_NAME s_scm_dynamic_root
+{
+  scm_c_issue_deprecation_warning
+    ("dynamic-root is deprecated.  There is no replacement.");
+  return SCM_I_CURRENT_THREAD->continuation_root;
+}
+#undef FUNC_NAME
+
+SCM
+scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
+{
+  SCM_STACKITEM stack_place;
+  scm_c_issue_deprecation_warning
+    ("scm_apply_with_dynamic_root is deprecated.  There is no replacement.");
+  return cwdr (proc, a1, args, handler, &stack_place);
+}
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

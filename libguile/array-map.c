@@ -34,7 +34,6 @@
 #include "libguile/eq.h"
 #include "libguile/eval.h"
 #include "libguile/feature.h"
-#include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"

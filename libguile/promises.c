@@ -49,7 +49,6 @@
 #include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/programs.h"
-#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/srcprop.h"
 #include "libguile/stackchk.h"

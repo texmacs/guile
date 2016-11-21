@@ -244,6 +244,18 @@ SCM_DEPRECATED SCM scm_lock_mutex_timed (SCM m, SCM timeout, SCM owner);
 
 
 
+SCM_DEPRECATED SCM scm_internal_cwdr (scm_t_catch_body body,
+                                      void *body_data,
+                                      scm_t_catch_handler handler,
+                                      void *handler_data,
+                                      SCM_STACKITEM *stack_start);
+SCM_DEPRECATED SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);
+SCM_DEPRECATED SCM scm_dynamic_root (void);
+SCM_DEPRECATED SCM scm_apply_with_dynamic_root (SCM proc, SCM a1,
+                                                SCM args, SCM handler);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

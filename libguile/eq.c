@@ -28,7 +28,6 @@
 #include "libguile/stackchk.h"
 #include "libguile/strorder.h"
 #include "libguile/async.h"
-#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/arrays.h"
 #include "libguile/vectors.h"

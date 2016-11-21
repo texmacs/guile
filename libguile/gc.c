@@ -45,7 +45,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/simpos.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"

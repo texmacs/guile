@@ -29,7 +29,6 @@
 #include "libguile/procs.h"
 #include "libguile/gsubr.h"
 #include "libguile/smob.h"
-#include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"
 #include "libguile/programs.h"

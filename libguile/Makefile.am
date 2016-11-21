@@ -192,7 +192,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	random.c				\
 	rdelim.c				\
 	read.c					\
-	root.c					\
 	rw.c					\
 	scmsigs.c				\
 	script.c				\
@@ -297,7 +296,6 @@ DOT_X_FILES =					\
 	random.x				\
 	rdelim.x				\
 	read.x					\
-	root.x					\
 	rw.x					\
 	scmsigs.x				\
 	script.x				\
@@ -400,7 +398,6 @@ DOT_DOC_FILES = 				\
 	random.doc				\
 	rdelim.doc				\
 	read.doc				\
-	root.doc				\
 	rw.doc					\
 	scmsigs.doc				\
 	script.doc				\
@@ -644,7 +641,6 @@ modinclude_HEADERS =				\
 	rdelim.h				\
 	read.h					\
 	regex-posix.h				\
-	root.h					\
 	rw.h					\
 	scmsigs.h				\
 	script.h				\

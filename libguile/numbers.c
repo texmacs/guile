@@ -62,7 +62,6 @@
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
 #include "libguile/bdw-gc.h"

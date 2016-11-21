@@ -88,7 +88,6 @@ extern "C" {
 #include "libguile/r6rs-ports.h"
 #include "libguile/random.h"
 #include "libguile/read.h"
-#include "libguile/root.h"
 #include "libguile/scmsigs.h"
 #include "libguile/script.h"
 #include "libguile/simpos.h"

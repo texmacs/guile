@@ -24,7 +24,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/threads.h"
 #include "libguile/dynwind.h"
 

@@ -30,7 +30,6 @@
 #include "libguile/_scm.h"
 #include "libguile/fports.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/rw.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"

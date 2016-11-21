@@ -32,7 +32,6 @@
 #include "libguile/macros.h"
 #include "libguile/procprop.h"
 #include "libguile/modules.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/vm.h" /* to capture vm stacks */
 #include "libguile/frames.h" /* vm frames */

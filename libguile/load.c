@@ -37,7 +37,6 @@
 #include "libguile/loader.h"
 #include "libguile/modules.h"
 #include "libguile/read.h"
-#include "libguile/root.h"
 #include "libguile/srfi-13.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"

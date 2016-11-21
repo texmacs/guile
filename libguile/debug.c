@@ -51,7 +51,6 @@
 #include "libguile/dynwind.h"
 #include "libguile/modules.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/fluids.h"
 #include "libguile/programs.h"
 #include "libguile/memoize.h"

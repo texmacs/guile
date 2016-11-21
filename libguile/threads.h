@@ -27,7 +27,6 @@
 #include "libguile/__scm.h"
 #include "libguile/procs.h"
 #include "libguile/throw.h"
-#include "libguile/root.h"
 #include "libguile/dynstack.h"
 #include "libguile/iselect.h"
 #include "libguile/continuations.h"

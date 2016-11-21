@@ -26,7 +26,6 @@
 #include "libguile/gc.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/struct.h"
 #include "libguile/validate.h"

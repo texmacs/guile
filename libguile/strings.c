@@ -36,7 +36,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"

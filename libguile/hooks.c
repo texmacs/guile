@@ -28,7 +28,6 @@
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/procprop.h"
-#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
 

@@ -26,7 +26,6 @@
 #include "libguile/async.h"
 #include "libguile/hashtab.h"
 #include "libguile/alist.h"
-#include "libguile/root.h"
 
 #include "libguile/objprop.h"
 

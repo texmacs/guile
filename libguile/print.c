@@ -44,7 +44,6 @@
 #include "libguile/struct.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/vectors.h"

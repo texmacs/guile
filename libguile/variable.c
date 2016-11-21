@@ -25,7 +25,6 @@
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/deprecation.h"
 

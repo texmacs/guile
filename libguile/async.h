@@ -25,7 +25,6 @@
 
 
 #include "libguile/__scm.h"
-#include "libguile/root.h"
 #include "libguile/threads.h"
 
 

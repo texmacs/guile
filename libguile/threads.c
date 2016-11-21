@@ -52,7 +52,6 @@
 #include <nproc.h>
 
 #include "libguile/validate.h"
-#include "libguile/root.h"
 #include "libguile/eval.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"

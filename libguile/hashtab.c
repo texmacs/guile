@@ -31,7 +31,6 @@
 #include "libguile/alist.h"
 #include "libguile/hash.h"
 #include "libguile/eval.h"
-#include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/ports.h"
 #include "libguile/bdw-gc.h"
