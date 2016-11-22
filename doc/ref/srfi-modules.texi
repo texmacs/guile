@@ -1823,8 +1823,8 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 
 This SRFI is a syntax for defining new record types and creating
 predicate, constructor, and field getter and setter functions.  It is
-documented in the ``Compound Data Types'' section of the manual
-(@pxref{SRFI-9 Records}).
+documented in the ``Data Types'' section of the manual (@pxref{SRFI-9
+Records}).
 
 
 @node SRFI-10

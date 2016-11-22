@@ -75,7 +75,6 @@ guile_TEXINFOS = preface.texi			\
 		 r6rs.texi			\
 		 match.texi			\
 		 misc-modules.texi		\
-		 api-compound.texi		\
 		 libguile-autoconf.texi		\
 		 autoconf-macros.texi		\
 		 tools.texi			\

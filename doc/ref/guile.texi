@@ -297,8 +297,7 @@ available through both Scheme and C interfaces.
 * The SCM Type::                The fundamental data type for C code.
 * Initialization::              Initializing Guile.
 * Snarfing Macros::             Macros for snarfing initialization actions.
-* Simple Data Types::           Numbers, strings, booleans and so on.
-* Compound Data Types::         Data types for holding other data.
+* Data Types::                  Representing values in Guile.
 * Foreign Objects::             Defining new data types in C.
 * Smobs::                       Use foreign objects instead.
 * Procedures::                  Procedures.
@@ -328,7 +327,6 @@ available through both Scheme and C interfaces.
 @include api-init.texi
 @include api-snarf.texi
 @include api-data.texi
-@include api-compound.texi
 @include api-foreign-objects.texi
 @include api-smobs.texi
 @include api-procedures.texi
