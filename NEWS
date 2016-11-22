@@ -11,6 +11,13 @@ Changes in 2.1.5 (changes since the 2.1.4 alpha release):
 * Notable changes
 * New interfaces
 * Performance improvements
+** Mutexes are now faster under contention
+
+Guile implements its own mutexes, so that threads that are trying to
+acquire a mutex can be interrupted.  These mutexes used to be quite
+inefficient when many threads were trying to acquire them, causing many
+spurious wakeups and contention.  This has been fixed.
+
 * Incompatible changes
 ** Threading facilities moved to (ice-9 threads)
 
