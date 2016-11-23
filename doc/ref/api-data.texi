@@ -7199,6 +7199,7 @@ dimensional arrays.
 * Array Syntax::                
 * Array Procedures::            
 * Shared Arrays::               
+* Arrays as arrays of arrays::
 * Accessing Arrays from C::     
 @end menu
 
@@ -7756,6 +7757,170 @@ have smaller rank than @var{array}.
                 #2((a 4) (b 5) (c 6))
 @end lisp
 @end deffn
+
+@node Arrays as arrays of arrays
+@subsubsection Arrays as arrays of arrays
+
+The functions in this section allow you to treat an array of rank
+@math{n} as an array of lower rank @math{n-k} where the elements are
+themselves arrays (`cells') of rank @math{k}. This replicates some of
+the functionality of `enclosed arrays', a feature of old Guile that was
+removed before @w{version 2.0}. However, these functions do not require
+a special type and operate on any array.
+
+When we operate on an array in this way, we speak of the first @math{k}
+dimensions of the array as the @math{k}-`frame' of the array, while the
+last @math{n-k} dimensions are the dimensions of the
+@math{n-k}-`cell'. For example, a 2D-array (a matrix) can be seen as a
+1D array of rows. In this case, the rows are the 1-cells of the array.
+
+@deffn {Scheme Procedure} array-from array idx @dots{}
+@deffnx {C Function} scm_array_from (array, idxlist)
+If the length of @var{idxlist} equals the rank @math{n} of
+@var{array}, return the element at @code{(idx @dots{})}, just like
+@code{(array-ref array idx @dots{})}. If, however, the length @math{k}
+of @var{idxlist} is shorter than @math{n}, then return the shared
+@math{(n-k)}-rank cell of @var{array} given by @var{idxlist}.
+
+For example:
+
+@lisp
+(array-from #2((a b) (c d)) 0) @result{} #(a b)
+(array-from #2((a b) (c d)) 1) @result{} #(c d)
+(array-from #2((a b) (c d)) 1 1) @result{} d
+(array-from #2((a b) (c d))) @result{} #2((a b) (c d))
+@end lisp
+
+@code{(apply array-from array indices)} is equivalent to
+
+@lisp
+(let ((len (length indices)))
+  (if (= (array-rank a) len)
+    (apply array-ref a indices)
+    (apply make-shared-array a
+           (lambda t (append indices t))
+           (drop (array-dimensions a) len))))
+@end lisp
+
+The name `from' comes from the J language.
+@end deffn
+
+@deffn {Scheme Procedure} array-from* array idx @dots{}
+@deffnx {C Function} scm_array_from_s (array, idxlist)
+Like @code{(array-from array idx @dots{})}, but return a 0-rank shared
+array if the length of @var{idxlist} matches the rank of
+@var{array}. This can be useful when using @var{ARRAY} as a place to
+write into.
+
+Compare:
+
+@lisp
+(array-from #2((a b) (c d)) 1 1) @result{} d
+(array-from* #2((a b) (c d)) 1) @result{} #0(d)
+(define a (make-array 'a 2 2))
+(array-fill! (array-from* a 1 1) 'b)
+a @result{} #2((a a) (a b)).
+(array-fill! (array-from a 1 1) 'b) @result{} error: not an array
+@end lisp
+
+@code{(apply array-from* array indices)} is equivalent to
+
+@lisp
+(apply make-shared-array a
+  (lambda t (append indices t))
+  (drop (array-dimensions a) (length indices)))
+@end lisp
+@end deffn
+
+
+@deffn {Scheme Procedure} array-amend! array x idx @dots{}
+@deffnx {C Function} scm_array_amend_x (array, x, idxlist)
+If the length of @var{idxlist} equals the rank @math{n} of
+@var{array}, set the element at @code{(idx @dots{})} of @var{array} to
+@var{x}, just like @code{(array-set! array x idx @dots{})}. If,
+however, the length @math{k} of @var{idxlist} is shorter than
+@math{n}, then copy the @math{(n-k)}-rank array @var{x}
+into the @math{(n-k)}-cell of @var{array} given by
+@var{idxlist}. In this case, the last @math{(n-k)} dimensions of
+@var{array} and the dimensions of @var{x} must match exactly.
+
+This function returns the modified @var{array}.
+
+For example:
+
+@lisp
+(array-amend! (make-array 'a 2 2) b 1 1) @result{} #2((a a) (a b))
+(array-amend! (make-array 'a 2 2) #(x y) 1) @result{} #2((a a) (x y))
+@end lisp
+
+Note that @code{array-amend!} will expect elements, not arrays, when the
+destination has rank 0. One can work around this using
+@code{array-from*} instead.
+
+@lisp
+(array-amend! (make-array 'a 2 2) #0(b) 1 1) @result{} #2((a a) (a #0(b)))
+(let ((a (make-array 'a 2 2))) (array-copy! #0(b) (array-from* a 1 1)) a) @result{} #2((a a) (a b))
+@end lisp
+
+@code{(apply array-amend! array x indices)} is equivalent to
+
+@lisp
+(let ((len (length indices)))
+  (if (= (array-rank array) len)
+    (apply array-set! array x indices)
+    (array-copy! x (apply array-from array indices)))
+  array)
+@end lisp
+
+The name `amend' comes from the J language.
+@end deffn
+
+
+@deffn {Scheme Procedure} array-for-each-cell frame-rank op x @dots{}
+@deffnx {C Function} scm_array_for_each_cell (array, frame_rank, op, xlist)
+Each @var{x} must be an array of rank ≥ @var{frame-rank}, and
+the first @var{frame-rank} dimensions of each @var{x} must all be the
+same. @var{array-for-each-cell} calls @var{op} with each set of
+(rank(@var{x}) - @var{frame-rank})-cells from @var{x}, in unspecified order.
+
+@var{array-for-each-cell} allows you to loop over cells of any rank
+without having to carry an index list or construct slices manually. The
+cells passed to @var{op} are shared arrays of @var{X} so it is possible
+to write to them.
+
+This function returns an unspecified value.
+
+For example, to sort the rows of rank-2 array @code{a}:
+
+@lisp
+(array-for-each-cell 1 (lambda (x) (sort! x <)) a)
+@end lisp
+
+As another example, let @code{a} be a rank-2 array where each row is a 2-vector @math{(x,y)}.
+Let's compute the arguments of these vectors and store them in rank-1 array @code{b}.
+@lisp
+(array-for-each-cell 1
+  (lambda (a b)
+    (array-set! b (atan (array-ref a 1) (array-ref a 0))))
+  a b)
+@end lisp
+
+@code{(apply array-for-each-cell frame-rank op x)} is functionally
+equivalent to
+
+@lisp
+(let ((frame (take (array-dimensions (car x)) frank)))
+  (unless (every (lambda (x)
+                   (equal? frame (take (array-dimensions x) frank)))
+                 (cdr x))
+    (error))
+  (array-index-map!
+    (apply make-shared-array (make-array #t) (const '()) frame)
+    (lambda i (apply op (map (lambda (x) (apply array-from* x i)) x)))))
+@end lisp
+
+@end deffn
+
 
 @node Accessing Arrays from C
 @subsubsection Accessing Arrays from C
