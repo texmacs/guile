@@ -912,9 +912,6 @@ assq_predicate (SCM x, SCM y, void *closure)
 SCM
 scm_weak_table_refq (SCM table, SCM key, SCM dflt)
 {
-  if (SCM_UNBNDP (dflt))
-    dflt = SCM_BOOL_F;
-  
   return scm_c_weak_table_ref (table, scm_ihashq (key, -1),
                                assq_predicate, SCM_UNPACK_POINTER (key),
                                dflt);
