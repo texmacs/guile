@@ -686,6 +686,16 @@ weak_table_put_x (scm_t_weak_table *table, unsigned long hash,
         }
     }
           
+  /* Fast path for updated values for existing entries of weak-key
+     tables.  */
+  if (table->kind == SCM_WEAK_TABLE_KIND_KEY &&
+      entries[k].hash == hash &&
+      entries[k].key == SCM_UNPACK (key))
+    {
+      entries[k].value = SCM_UNPACK (value);
+      return;
+    }
+
   if (entries[k].hash)
     unregister_disappearing_links (&entries[k], table->kind);
   else
