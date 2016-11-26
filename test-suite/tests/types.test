@@ -108,11 +108,8 @@
    ((make-doubly-weak-hash-table) weak-table _)
    (#2((1 2 3) (4 5 6)) array _)
    (#*00000110 bitvector _)
-   ((expt 2 70) bignum _))
-
-  (pass-if "fluid"
-    (let ((fluid (make-fluid)))
-      (inferior-fluid? (scm->object (object-address fluid))))))
+   ((expt 2 70) bignum _)
+   ((make-fluid) fluid _)))
 
 (define-record-type <some-struct>
   (some-struct x y z)

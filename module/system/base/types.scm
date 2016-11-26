@@ -42,9 +42,6 @@
             inferior-object-sub-kind
             inferior-object-address
 
-            inferior-fluid?
-            inferior-fluid-number
-
             inferior-struct?
             inferior-struct-name
             inferior-struct-fields
@@ -311,21 +308,6 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
 
 (set-record-type-printer! <inferior-struct> print-inferior-struct)
 
-;; Fluids.
-(define-record-type <inferior-fluid>
-  (inferior-fluid number value)
-  inferior-fluid?
-  (number inferior-fluid-number)
-  (value  inferior-fluid-value))
-
-(set-record-type-printer! <inferior-fluid>
-                          (lambda (fluid port)
-                            (match fluid
-                              (($ <inferior-fluid> number)
-                               (format port "#<fluid ~a ~x>"
-                                       number
-                                       (object-address fluid))))))
-
 ;; Object type to represent complex objects from the inferior process that
 ;; cannot be really converted to usable Scheme objects in the current
 ;; process.
@@ -459,8 +441,8 @@ using BACKEND."
                vector)))
           (((_ & #x7f = %tc7-wvect))
            (inferior-object 'weak-vector address))   ; TODO: show elements
-          ((((n << 8) || %tc7-fluid) init-value)
-           (inferior-fluid n #f))                    ; TODO: show current value
+          (((_ & #x7f = %tc7-fluid) init-value)
+           (inferior-object 'fluid address))
           (((_ & #x7f = %tc7-dynamic-state))
            (inferior-object 'dynamic-state address))
           ((((flags+type << 8) || %tc7-port))
