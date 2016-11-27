@@ -35,17 +35,19 @@
    code. When a new dynamic state is constructed, it inherits the
    values from its parent. Because each thread executes with its own
    dynamic state, you can use fluids for thread local storage.
-
-   Each fluid is identified by a small integer. This integer is used to
-   index a vector that holds the values of all fluids. A dynamic state
-   consists of this vector, wrapped in an object so that the vector can
-   grow.
  */
 
 #define SCM_FLUID_P(x)          (SCM_HAS_TYP7 (x, scm_tc7_fluid))
+
 #ifdef BUILDING_LIBGUILE
-#define SCM_I_FLUID_NUM(x)        ((size_t)(SCM_CELL_WORD_0 (x) >> 8))
-#define SCM_I_FLUID_DEFAULT(x)    (SCM_CELL_OBJECT_1 (x))
+# include <libguile/cache-internal.h>
+
+struct scm_dynamic_state
+{
+  SCM values;
+  uint8_t has_aliased_values;
+  struct scm_cache cache;
+};
 #endif
 
 SCM_API SCM scm_make_fluid (void);
@@ -58,7 +60,8 @@ SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
 SCM_API SCM scm_fluid_unset_x (SCM fluid);
 SCM_API SCM scm_fluid_bound_p (SCM fluid);
 
-SCM_INTERNAL void scm_swap_fluid (SCM fluid, SCM value_box, SCM dynamic_state);
+SCM_INTERNAL void scm_swap_fluid (SCM fluid, SCM value_box,
+                                  scm_t_dynamic_state *dynamic_state);
 
 SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
 			       SCM (*cproc)(void *), void *cdata);
@@ -69,12 +72,6 @@ SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
 SCM_API void scm_dynwind_fluid (SCM fluid, SCM value);
 
-#ifdef BUILDING_LIBGUILE
-#define SCM_I_DYNAMIC_STATE_P(x) (SCM_HAS_TYP7 (x, scm_tc7_dynamic_state))
-#define SCM_I_DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
-#endif
-
-SCM_API SCM scm_make_dynamic_state (SCM parent);
 SCM_API SCM scm_dynamic_state_p (SCM obj);
 SCM_API int scm_is_dynamic_state (SCM obj);
 SCM_API SCM scm_current_dynamic_state (void);

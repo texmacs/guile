@@ -256,6 +256,10 @@ SCM_DEPRECATED SCM scm_apply_with_dynamic_root (SCM proc, SCM a1,
 
 
 
+SCM_DEPRECATED SCM scm_make_dynamic_state (SCM parent);
+
+
+
 /* Deprecated 2016-11-18. Never documented. Unnecessary, since
    array-copy! already unrolls and does it in more general cases. */
 /* With this also remove SCM_I_ARRAY_FLAG_CONTIGUOUS,

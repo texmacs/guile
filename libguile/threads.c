@@ -372,25 +372,7 @@ static scm_i_pthread_mutex_t thread_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZE
 static scm_i_thread *all_threads = NULL;
 static int thread_count;
 
-static SCM scm_i_default_dynamic_state;
-
-/* Run when a fluid is collected.  */
-void
-scm_i_reset_fluid (size_t n)
-{
-  scm_i_thread *t;
-
-  scm_i_pthread_mutex_lock (&thread_admin_mutex);
-  for (t = all_threads; t; t = t->next_thread)
-    if (SCM_I_DYNAMIC_STATE_P (t->dynamic_state))
-      {
-        SCM v = SCM_I_DYNAMIC_STATE_FLUIDS (t->dynamic_state);
-          
-        if (n < SCM_SIMPLE_VECTOR_LENGTH (v))
-          SCM_SIMPLE_VECTOR_SET (v, n, SCM_UNDEFINED);
-      }
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
-}
+static SCM default_dynamic_state;
 
 /* Perform first stage of thread initialisation, in non-guile mode.
  */
@@ -409,7 +391,7 @@ guilify_self_1 (struct GC_stack_base *base)
   t.result = SCM_BOOL_F;
   t.freelists = NULL;
   t.pointerless_freelists = NULL;
-  t.dynamic_state = SCM_BOOL_F;
+  t.dynamic_state = NULL;
   t.dynstack.base = NULL;
   t.dynstack.top = NULL;
   t.dynstack.limit = NULL;
@@ -463,7 +445,7 @@ guilify_self_1 (struct GC_stack_base *base)
 /* Perform second stage of thread initialisation, in guile mode.
  */
 static void
-guilify_self_2 (SCM parent)
+guilify_self_2 (SCM dynamic_state)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
@@ -480,10 +462,8 @@ guilify_self_2 (SCM parent)
     t->pointerless_freelists = scm_gc_malloc (size, "atomic freelists");
   }
 
-  if (scm_is_true (parent))
-    t->dynamic_state = scm_make_dynamic_state (parent);
-  else
-    t->dynamic_state = scm_i_make_initial_dynamic_state ();
+  t->dynamic_state = scm_gc_typed_calloc (scm_t_dynamic_state);
+  scm_set_current_dynamic_state (dynamic_state);
 
   t->dynstack.base = scm_gc_malloc (16 * sizeof (scm_t_bits), "dynstack");
   t->dynstack.limit = t->dynstack.base + 16;
@@ -557,8 +537,7 @@ init_thread_key (void)
 
    BASE is the stack base to use with GC.
 
-   PARENT is the dynamic state to use as the parent, ot SCM_BOOL_F in
-   which case the default dynamic state is used.
+   DYNAMIC_STATE is the set of fluid values to start with.
 
    Returns zero when the thread was known to guile already; otherwise
    return 1.
@@ -569,7 +548,8 @@ init_thread_key (void)
    be sure.  New threads are put into guile mode implicitly.  */
 
 static int
-scm_i_init_thread_for_guile (struct GC_stack_base *base, SCM parent)
+scm_i_init_thread_for_guile (struct GC_stack_base *base,
+                             SCM dynamic_state)
 {
   scm_i_pthread_once (&init_thread_key_once, init_thread_key);
 
@@ -612,7 +592,7 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base, SCM parent)
 #endif
 
 	  guilify_self_1 (base);
-	  guilify_self_2 (parent);
+	  guilify_self_2 (dynamic_state);
 	}
       return 1;
     }
@@ -624,8 +604,7 @@ scm_init_guile ()
   struct GC_stack_base stack_base;
   
   if (GC_get_stack_base (&stack_base) == GC_SUCCESS)
-    scm_i_init_thread_for_guile (&stack_base,
-                                 scm_i_default_dynamic_state);
+    scm_i_init_thread_for_guile (&stack_base, default_dynamic_state);
   else
     {
       fprintf (stderr, "Failed to get stack base for current thread.\n");
@@ -637,7 +616,7 @@ struct with_guile_args
 {
   GC_fn_type func;
   void *data;
-  SCM parent;
+  SCM dynamic_state;
 };
 
 static void *
@@ -649,14 +628,14 @@ with_guile_trampoline (void *data)
 }
   
 static void *
-with_guile_and_parent (struct GC_stack_base *base, void *data)
+with_guile (struct GC_stack_base *base, void *data)
 {
   void *res;
   int new_thread;
   scm_i_thread *t;
   struct with_guile_args *args = data;
 
-  new_thread = scm_i_init_thread_for_guile (base, args->parent);
+  new_thread = scm_i_init_thread_for_guile (base, args->dynamic_state);
   t = SCM_I_CURRENT_THREAD;
   if (new_thread)
     {
@@ -698,22 +677,21 @@ with_guile_and_parent (struct GC_stack_base *base, void *data)
 }
 
 static void *
-scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
+scm_i_with_guile (void *(*func)(void *), void *data, SCM dynamic_state)
 {
   struct with_guile_args args;
 
   args.func = func;
   args.data = data;
-  args.parent = parent;
+  args.dynamic_state = dynamic_state;
   
-  return GC_call_with_stack_base (with_guile_and_parent, &args);
+  return GC_call_with_stack_base (with_guile, &args);
 }
 
 void *
 scm_with_guile (void *(*func)(void *), void *data)
 {
-  return scm_i_with_guile_and_parent (func, data,
-				      scm_i_default_dynamic_state);
+  return scm_i_with_guile (func, data, default_dynamic_state);
 }
 
 void *
@@ -753,7 +731,7 @@ scm_call_with_new_thread (SCM thunk, SCM handler)
 }
 
 typedef struct {
-  SCM parent;
+  SCM dynamic_state;
   SCM thunk;
 } launch_data;
 
@@ -769,7 +747,7 @@ launch_thread (void *d)
 {
   launch_data *data = (launch_data *)d;
   scm_i_pthread_detach (scm_i_pthread_self ());
-  scm_i_with_guile_and_parent (really_launch, d, data->parent);
+  scm_i_with_guile (really_launch, d, data->dynamic_state);
   return NULL;
 }
 
@@ -786,7 +764,7 @@ SCM_DEFINE (scm_sys_call_with_new_thread, "%call-with-new-thread", 1, 0, 0,
 
   GC_collect_a_little ();
   data = scm_gc_typed_calloc (launch_data);
-  data->parent = scm_current_dynamic_state ();
+  data->dynamic_state = scm_current_dynamic_state ();
   data->thunk = thunk;
   err = scm_i_pthread_create (&id, NULL, launch_thread, data);
   if (err)
@@ -1792,8 +1770,8 @@ scm_init_threads ()
 					 sizeof (struct scm_cond));
   scm_set_smob_print (scm_tc16_condvar, scm_cond_print);
 
-  scm_i_default_dynamic_state = SCM_BOOL_F;
-  guilify_self_2 (SCM_BOOL_F);
+  default_dynamic_state = SCM_BOOL_F;
+  guilify_self_2 (scm_i_make_initial_dynamic_state ());
   threads_initialized_p = 1;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
@@ -1804,8 +1782,7 @@ scm_init_threads ()
 void
 scm_init_threads_default_dynamic_state ()
 {
-  SCM state = scm_make_dynamic_state (scm_current_dynamic_state ());
-  scm_i_default_dynamic_state = state;
+  default_dynamic_state = scm_current_dynamic_state ();
 }
 
 

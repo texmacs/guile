@@ -403,7 +403,7 @@
 #define VM_VALIDATE_BYTEVECTOR(x, proc)                                 \
   VM_VALIDATE (x, SCM_BYTEVECTOR_P, proc, bytevector)
 #define VM_VALIDATE_CHAR(x, proc)                                       \
-  VM_VALIDATE (x, SCM_CHARP, proc, char);
+  VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_PAIR(x, proc)                                       \
   VM_VALIDATE (x, scm_is_pair, proc, pair)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
@@ -2166,30 +2166,26 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (74, fluid_ref, "fluid-ref", OP1 (X8_S12_S12) | OP_DST)
     {
       scm_t_uint16 dst, src;
-      size_t num;
-      SCM fluid, fluids;
+      SCM fluid;
+      struct scm_cache_entry *entry;
 
       UNPACK_12_12 (op, dst, src);
       fluid = SP_REF (src);
-      fluids = SCM_I_DYNAMIC_STATE_FLUIDS (thread->dynamic_state);
-      if (SCM_UNLIKELY (!SCM_FLUID_P (fluid))
-          || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+
+      /* If we find FLUID in the cache, then it is indeed a fluid.  */
+      entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
+      if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)
+                      && !SCM_UNBNDP (SCM_PACK (entry->value))))
         {
-          /* Punt dynstate expansion and error handling to the C proc. */
-          SYNC_IP ();
-          SP_SET (dst, scm_fluid_ref (fluid));
+          SP_SET (dst, SCM_PACK (entry->value));
+          NEXT (1);
         }
       else
         {
-          SCM val = SCM_SIMPLE_VECTOR_REF (fluids, num);
-          if (scm_is_eq (val, SCM_UNDEFINED))
-            val = SCM_I_FLUID_DEFAULT (fluid);
-          VM_ASSERT (!scm_is_eq (val, SCM_UNDEFINED),
-                     vm_error_unbound_fluid (fluid));
-          SP_SET (dst, val);
+          SYNC_IP ();
+          SP_SET (dst, scm_fluid_ref (fluid));
+          NEXT (1);
         }
-
-      NEXT (1);
     }
 
   /* fluid-set fluid:12 val:12
@@ -2199,23 +2195,26 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (75, fluid_set, "fluid-set!", OP1 (X8_S12_S12))
     {
       scm_t_uint16 a, b;
-      size_t num;
-      SCM fluid, fluids;
+      SCM fluid, value;
+      struct scm_cache_entry *entry;
 
       UNPACK_12_12 (op, a, b);
       fluid = SP_REF (a);
-      fluids = SCM_I_DYNAMIC_STATE_FLUIDS (thread->dynamic_state);
-      if (SCM_UNLIKELY (!SCM_FLUID_P (fluid))
-          || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+      value = SP_REF (b);
+
+      /* If we find FLUID in the cache, then it is indeed a fluid.  */
+      entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
+      if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)))
         {
-          /* Punt dynstate expansion and error handling to the C proc. */
-          SYNC_IP ();
-          scm_fluid_set_x (fluid, SP_REF (b));
+          entry->value = SCM_UNPACK (value);
+          NEXT (1);
         }
       else
-        SCM_SIMPLE_VECTOR_SET (fluids, num, SP_REF (b));
-
-      NEXT (1);
+        {
+          SYNC_IP ();
+          scm_fluid_set_x (fluid, value);
+          NEXT (1);
+        }
     }
 
 

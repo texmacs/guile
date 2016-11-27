@@ -853,7 +853,7 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
   scm_dynstack_unwind (dynstack, SCM_DYNSTACK_FIRST (dynstack));
 
   scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-  scm_dynwind_current_dynamic_state (scm_make_dynamic_state (SCM_UNDEFINED));
+  scm_dynwind_current_dynamic_state (scm_current_dynamic_state ());
 
   my_handler_data.run_handler = 0;
   answer = scm_i_with_continuation_barrier (body, body_data,
@@ -923,6 +923,18 @@ scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
   scm_c_issue_deprecation_warning
     ("scm_apply_with_dynamic_root is deprecated.  There is no replacement.");
   return cwdr (proc, a1, args, handler, &stack_place);
+}
+
+
+
+
+SCM
+scm_make_dynamic_state (SCM parent)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_make_dynamic_state is deprecated.  Dynamic states are "
+     "now immutable; just use the parent directly.");
+  return SCM_UNBNDP (parent) ? scm_current_dynamic_state () : parent;
 }
 
 

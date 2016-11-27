@@ -25,6 +25,8 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/atomics-internal.h"
+#include "libguile/cache-internal.h"
 #include "libguile/print.h"
 #include "libguile/dynwind.h"
 #include "libguile/fluids.h"
@@ -35,52 +37,138 @@
 #include "libguile/validate.h"
 #include "libguile/bdw-gc.h"
 
-/* Number of additional slots to allocate when ALLOCATED_FLUIDS is full.  */
-#define FLUID_GROW 128
+/* A dynamic state associates fluids with values.  There are two
+   representations of a dynamic state in Guile: the active
+   representation that is part of each thread, and a frozen
+   representation that can live in Scheme land as a value.
 
-/* Vector of allocated fluids indexed by fluid numbers.  Access is protected by
-   FLUID_ADMIN_MUTEX.  */
-static void **allocated_fluids = NULL;
-static size_t allocated_fluids_len = 0;
+   The active dynamic state has two parts: a locals cache, and a values
+   table.  The locals cache stores fluid values that have been recently
+   referenced or set.  If a value isn't in the locals cache, Guile then
+   looks for it in the values table, which is a weak-key hash table.
+   Otherwise Guile falls back to the default value of the fluid.  In any
+   case, the value is recorded in the locals cache.  Likewise setting a
+   fluid's value simply inserts that association into the locals cache.
 
-static scm_i_pthread_mutex_t fluid_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+   The locals cache is not large, so adding an entry to it might evict
+   some other entry.  In that case the entry gets flushed to the values
+   table.
 
-#define IS_FLUID(x)         SCM_FLUID_P (x)
-#define FLUID_NUM(x)        SCM_I_FLUID_NUM (x)
+   The values table begins as being inherited from the parent dynamic
+   state, and represents a capture of the fluid values at a point in
+   time.  A dynamic state records when its values table might be
+   referenced by other dynamic states.  If it is aliased, then any
+   update to that table has to start by making a fresh local copy to
+   work on.
 
-#define IS_DYNAMIC_STATE(x) SCM_I_DYNAMIC_STATE_P (x)
-#define DYNAMIC_STATE_FLUIDS(x)        SCM_I_DYNAMIC_STATE_FLUIDS (x)
-#define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_CELL_WORD_1 ((x), (SCM_UNPACK (y)))
+   There are two interesting constraints on dynamic states, besides
+   speed.  One is that they should hold onto their fluid-value
+   associations weakly: they shouldn't keep fluids alive indefinitely,
+   and if a fluid goes away, its value should become collectible too.
+   This is why the values table is a weak table; it makes access
+   somewhat slower, but this is mitigated by the cache.  The cache
+   itself holds onto fluids and values strongly, but if there are more
+   than 8 fluids in use by a dynamic state, this won't be a problem.
+
+   The other interesting constraint is memory usage: you don't want a
+   program with M fluids and N dynamic states to consume N*M memory.
+   Guile associates each thread with a dynamic state, which itself isn't
+   that bad as there are relatively few threads in a program.  The
+   problem comes in with "fibers", lightweight user-space threads that
+   can be allocated in the millions.  Here you want new fibers to
+   inherit the dynamic state from the fiber that created them, but you
+   really need to limit memory overheads.  For reference, in late 2016,
+   non-dynamic-state memory overhead per fiber in one user-space library
+   is around 500 bytes, in a simple "all fibers try to send a message on
+   one channel" test case.
+
+   For this reason the frozen representation of dynamic states is the
+   probably-shared values table at the end of a list of fluid-value
+   pairs, representing entries from the locals cache that differ from
+   the values table.  This keeps per-dynamic-state memory usage in
+   check.  A family of fibers that uses the same 3 or 4 fluids probably
+   won't ever have to allocate a new values table.  Ideally the values
+   table could share more state, as in an immutable weak array-mapped
+   hash trie or something, but we don't have such a data structure.  */
+
+static inline int
+is_dynamic_state (SCM x)
+{
+  return SCM_HAS_TYP7 (x, scm_tc7_dynamic_state);
+}
+
+static inline SCM
+get_dynamic_state (SCM dynamic_state)
+{
+  return SCM_CELL_OBJECT_1 (dynamic_state);
+}
+
+static inline void
+restore_dynamic_state (SCM saved, scm_t_dynamic_state *state)
+{
+  int slot;
+  for (slot = SCM_CACHE_SIZE - 1; slot >= 0; slot--)
+    {
+      struct scm_cache_entry *entry = &state->cache.entries[slot];
+      if (scm_is_pair (saved))
+        {
+          entry->key = SCM_UNPACK (SCM_CAAR (saved));
+          entry->value = SCM_UNPACK (SCM_CDAR (saved));
+          saved = scm_cdr (saved);
+        }
+      else
+        entry->key = entry->value = 0;
+    }
+  state->values = saved;
+  state->has_aliased_values = 1;
+}
+
+static inline SCM
+save_dynamic_state (scm_t_dynamic_state *state)
+{
+  int slot;
+  SCM saved = state->values;
+  for (slot = 0; slot < SCM_CACHE_SIZE; slot++)
+    {
+      struct scm_cache_entry *entry = &state->cache.entries[slot];
+      SCM key = SCM_PACK (entry->key);
+      SCM value = SCM_PACK (entry->value);
+      if (entry->key &&
+          !scm_is_eq (scm_weak_table_refq (state->values, key, SCM_UNDEFINED),
+                      value))
+        {
+          if (state->has_aliased_values)
+            saved = scm_acons (key, value, saved);
+          else
+            scm_weak_table_putq_x (state->values, key, value);
+        }
+    }
+  state->has_aliased_values = 1;
+  return saved;
+}
+
+static SCM
+add_entry (void *data, SCM k, SCM v, SCM result)
+{
+  scm_weak_table_putq_x (result, k, v);
+  return result;
+}
+
+static SCM
+copy_value_table (SCM tab)
+{
+  SCM ret = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
+  return scm_c_weak_table_fold (add_entry, NULL, ret, tab);
+}
 
 
 
-/* Grow STATE so that it can hold up to ALLOCATED_FLUIDS_LEN fluids.  This may
-   be more than necessary since ALLOCATED_FLUIDS is sparse and the current
-   thread may not access all the fluids anyway.  Memory usage could be improved
-   by using a 2-level array as is done in glibc for pthread keys (TODO).  */
-static void
-grow_dynamic_state (SCM state)
-{
-  SCM new_fluids;
-  SCM old_fluids = DYNAMIC_STATE_FLUIDS (state);
-  size_t i, len, old_len = SCM_SIMPLE_VECTOR_LENGTH (old_fluids);
-
-  /* Assume the assignment below is atomic.  */
-  len = allocated_fluids_len;
-
-  new_fluids = scm_c_make_vector (len, SCM_UNDEFINED);
-
-  for (i = 0; i < old_len; i++)
-    SCM_SIMPLE_VECTOR_SET (new_fluids, i,
-			   SCM_SIMPLE_VECTOR_REF (old_fluids, i));
-  SET_DYNAMIC_STATE_FLUIDS (state, new_fluids);
-}
 
 void
 scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<fluid ", port);
-  scm_intprint ((int) FLUID_NUM (exp), 10, port);
+  scm_intprint (SCM_UNPACK (exp), 16, port);
   scm_putc ('>', port);
 }
 
@@ -92,75 +180,15 @@ scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED
   scm_putc ('>', port);
 }
 
+
 
-/* Return a new fluid.  */
+
+#define SCM_I_FLUID_DEFAULT(x)   (SCM_CELL_OBJECT_1 (x))
+
 static SCM
 new_fluid (SCM init)
 {
-  SCM fluid;
-  size_t trial, n;
-
-  /* Fluids hold the type tag and the fluid number in the first word,
-     and the default value in the second word.  */
-  fluid = scm_cell (scm_tc7_fluid, SCM_UNPACK (init));
-  SCM_SET_CELL_TYPE (fluid, scm_tc7_fluid);
-
-  scm_dynwind_begin (0);
-  scm_i_dynwind_pthread_mutex_lock (&fluid_admin_mutex);
-
-  for (trial = 0; trial < 2; trial++)
-    {
-      /* Look for a free fluid number.  */
-      for (n = 0; n < allocated_fluids_len; n++)
-	/* TODO: Use `__sync_bool_compare_and_swap' where available.  */
-	if (allocated_fluids[n] == NULL)
-	  break;
-
-      if (trial == 0 && n >= allocated_fluids_len && allocated_fluids_len)
-	/* All fluid numbers are in use.  Run a GC and retry.  Explicitly
-	   running the GC is costly and bad-style.  We only do this because
-	   dynamic state fluid vectors would grow unreasonably if fluid numbers
-	   weren't reused.  */
-	scm_i_gc ("fluids");
-    }
-
-  if (n >= allocated_fluids_len)
-    {
-      /* Grow the vector of allocated fluids.  */
-      void **new_allocated_fluids =
-	scm_gc_malloc_pointerless ((allocated_fluids_len + FLUID_GROW)
-				   * sizeof (*allocated_fluids),
-				   "allocated fluids");
-
-      /* Copy over old values and initialize rest.  GC can not run
-	 during these two operations since there is no safe point in
-	 them.  */
-      memcpy (new_allocated_fluids, allocated_fluids,
-	      allocated_fluids_len * sizeof (*allocated_fluids));
-      memset (new_allocated_fluids + allocated_fluids_len, 0,
-	      FLUID_GROW * sizeof (*allocated_fluids));
-      n = allocated_fluids_len;
-
-      /* Update the vector of allocated fluids.  Dynamic states will
-	 eventually be lazily grown to accomodate the new value of
-	 ALLOCATED_FLUIDS_LEN in `fluid-ref' and `fluid-set!'.  */
-      allocated_fluids = new_allocated_fluids;
-      allocated_fluids_len += FLUID_GROW;
-    }
-
-  allocated_fluids[n] = SCM_UNPACK_POINTER (fluid);
-  SCM_SET_CELL_WORD_0 (fluid, (scm_tc7_fluid | (n << 8)));
-
-  GC_GENERAL_REGISTER_DISAPPEARING_LINK (&allocated_fluids[n],
-					 SCM2PTR (fluid));
-
-  scm_dynwind_end ();
-
-  /* Now null out values.  We could (and probably should) do this when
-     the fluid is collected instead of now.  */
-  scm_i_reset_fluid (n);
-
-  return fluid;
+  return scm_cell (scm_tc7_fluid, SCM_UNPACK (init));
 }
 
 SCM
@@ -200,36 +228,72 @@ SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_p
 {
-  return scm_from_bool (IS_FLUID (obj));
+  return scm_from_bool (SCM_FLUID_P (obj));
 }
 #undef FUNC_NAME
 
 int
 scm_is_fluid (SCM obj)
 {
-  return IS_FLUID (obj);
+  return SCM_FLUID_P (obj);
 }
 
-/* Does not check type of `fluid'! */
-static SCM
-fluid_ref (SCM fluid)
+static void
+fluid_set_x (scm_t_dynamic_state *dynamic_state, SCM fluid, SCM value)
 {
-  SCM ret;
-  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
+  struct scm_cache_entry *entry;
+  struct scm_cache_entry evicted = { 0, 0 };
 
-  if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+  entry = scm_cache_lookup (&dynamic_state->cache, fluid);
+  if (scm_is_eq (SCM_PACK (entry->key), fluid))
     {
-      /* Lazily grow the current thread's dynamic state.  */
-      grow_dynamic_state (SCM_I_CURRENT_THREAD->dynamic_state);
-
-      fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
+      entry->value = SCM_UNPACK (value);
+      return;
     }
 
-  ret = SCM_SIMPLE_VECTOR_REF (fluids, FLUID_NUM (fluid));
-  if (SCM_UNBNDP (ret))
-    return SCM_I_FLUID_DEFAULT (fluid);
+  scm_cache_insert (&dynamic_state->cache, fluid, value, &evicted);
+
+  if (evicted.key != 0)
+    {
+      fluid = SCM_PACK (evicted.key);
+      value = SCM_PACK (evicted.value);
+
+      if (dynamic_state->has_aliased_values)
+        {
+          if (scm_is_eq (scm_weak_table_refq (dynamic_state->values,
+                                              fluid, SCM_UNDEFINED),
+                         value))
+            return;
+          dynamic_state->values = copy_value_table (dynamic_state->values);
+          dynamic_state->has_aliased_values = 0;
+        }
+
+      scm_weak_table_putq_x (dynamic_state->values, fluid, value);
+    }
+}
+
+/* Return value can be SCM_UNDEFINED; caller checks.  */
+static SCM
+fluid_ref (scm_t_dynamic_state *dynamic_state, SCM fluid)
+{
+  SCM val;
+  struct scm_cache_entry *entry;
+
+  entry = scm_cache_lookup (&dynamic_state->cache, fluid);
+  if (scm_is_eq (SCM_PACK (entry->key), fluid))
+    val = SCM_PACK (entry->value);
   else
-    return ret;
+    {
+      val = scm_weak_table_refq (dynamic_state->values, fluid, SCM_UNDEFINED);
+
+      if (SCM_UNBNDP (val))
+        val = SCM_I_FLUID_DEFAULT (fluid);
+
+      /* Cache this lookup.  */
+      fluid_set_x (dynamic_state, fluid, val);
+    }
+
+  return val;
 }
 
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
@@ -239,13 +303,12 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_ref
 {
-  SCM val;
+  SCM ret;
   SCM_VALIDATE_FLUID (1, fluid);
-  val = fluid_ref (fluid);
-  if (SCM_UNBNDP (val))
-    SCM_MISC_ERROR ("unbound fluid: ~S",
-                    scm_list_1 (fluid));
-  return val;
+  ret = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
+  if (SCM_UNBNDP (ret))
+    scm_misc_error ("fluid-ref", "unbound fluid: ~S", scm_list_1 (fluid));
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -254,19 +317,8 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 	    "Set the value associated with @var{fluid} in the current dynamic root.")
 #define FUNC_NAME s_scm_fluid_set_x
 {
-  SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
-
   SCM_VALIDATE_FLUID (1, fluid);
-
-  if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
-    {
-      /* Lazily grow the current thread's dynamic state.  */
-      grow_dynamic_state (SCM_I_CURRENT_THREAD->dynamic_state);
-
-      fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
-    }
-
-  SCM_SIMPLE_VECTOR_SET (fluids, FLUID_NUM (fluid), value);
+  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -278,8 +330,10 @@ SCM_DEFINE (scm_fluid_unset_x, "fluid-unset!", 1, 0, 0,
 {
   /* FIXME: really unset the default value, too?  The current test
      suite demands it, but I would prefer not to.  */
+  SCM_VALIDATE_FLUID (1, fluid);
   SCM_SET_CELL_OBJECT_1 (fluid, SCM_UNDEFINED);
-  return scm_fluid_set_x (fluid, SCM_UNDEFINED);
+  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, SCM_UNDEFINED);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -291,7 +345,7 @@ SCM_DEFINE (scm_fluid_bound_p, "fluid-bound?", 1, 0, 0,
 {
   SCM val;
   SCM_VALIDATE_FLUID (1, fluid);
-  val = fluid_ref (fluid);
+  val = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
   return scm_from_bool (! (SCM_UNBNDP (val)));
 }
 #undef FUNC_NAME
@@ -303,26 +357,11 @@ apply_thunk (void *thunk)
 }
 
 void
-scm_swap_fluid (SCM fluid, SCM value_box, SCM dynstate)
+scm_swap_fluid (SCM fluid, SCM value_box, scm_t_dynamic_state *dynstate)
 {
-  SCM fluid_vector, tmp;
-  size_t fluid_num;
-
-  fluid_num = FLUID_NUM (fluid);
-
-  fluid_vector = DYNAMIC_STATE_FLUIDS (dynstate);
-
-  if (SCM_UNLIKELY (fluid_num >= SCM_SIMPLE_VECTOR_LENGTH (fluid_vector)))
-    {
-      /* Lazily grow the current thread's dynamic state.  */
-      grow_dynamic_state (dynstate);
-
-      fluid_vector = DYNAMIC_STATE_FLUIDS (dynstate);
-    }
-
-  tmp = SCM_SIMPLE_VECTOR_REF (fluid_vector, fluid_num);
-  SCM_SIMPLE_VECTOR_SET (fluid_vector, fluid_num, SCM_VARIABLE_REF (value_box));
-  SCM_VARIABLE_SET (value_box, tmp);
+  SCM val = fluid_ref (dynstate, fluid);
+  fluid_set_x (dynstate, fluid, SCM_VARIABLE_REF (value_box));
+  SCM_VARIABLE_SET (value_box, val);
 }
   
 SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 
@@ -395,9 +434,10 @@ scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 static void
 swap_fluid (SCM data)
 {
+  scm_t_dynamic_state *dynstate = SCM_I_CURRENT_THREAD->dynamic_state;
   SCM f = SCM_CAR (data);
-  SCM t = fluid_ref (f);
-  scm_fluid_set_x (f, SCM_CDR (data));
+  SCM t = fluid_ref (dynstate, f);
+  fluid_set_x (dynstate, f, SCM_CDR (data));
   SCM_SETCDR (data, t);
 }
 
@@ -410,28 +450,12 @@ scm_dynwind_fluid (SCM fluid, SCM value)
 }
 
 SCM
-scm_i_make_initial_dynamic_state ()
+scm_i_make_initial_dynamic_state (void)
 {
-  SCM fluids = scm_c_make_vector (allocated_fluids_len, SCM_BOOL_F);
-  return scm_cell (scm_tc7_dynamic_state, SCM_UNPACK (fluids));
+  return scm_cell (scm_tc7_dynamic_state,
+                   SCM_UNPACK (scm_c_make_weak_table
+                               (0, SCM_WEAK_TABLE_KIND_KEY)));
 }
-
-SCM_DEFINE (scm_make_dynamic_state, "make-dynamic-state", 0, 1, 0,
-	    (SCM parent),
-	    "Return a copy of the dynamic state object @var{parent}\n"
-	    "or of the current dynamic state when @var{parent} is omitted.")
-#define FUNC_NAME s_scm_make_dynamic_state
-{
-  SCM fluids;
-
-  if (SCM_UNBNDP (parent))
-    parent = scm_current_dynamic_state ();
-
-  SCM_ASSERT (IS_DYNAMIC_STATE (parent), parent, SCM_ARG1, FUNC_NAME);
-  fluids = scm_vector_copy (DYNAMIC_STATE_FLUIDS (parent));
-  return scm_cell (scm_tc7_dynamic_state, SCM_UNPACK (fluids));
-}
-#undef FUNC_NAME
 
 SCM_DEFINE (scm_dynamic_state_p, "dynamic-state?", 1, 0, 0,
 	    (SCM obj),
@@ -439,22 +463,25 @@ SCM_DEFINE (scm_dynamic_state_p, "dynamic-state?", 1, 0, 0,
 	    "return @code{#f} otherwise")
 #define FUNC_NAME s_scm_dynamic_state_p
 {
-  return scm_from_bool (IS_DYNAMIC_STATE (obj));
+  return scm_from_bool (is_dynamic_state (obj));
 }
 #undef FUNC_NAME
 
 int
 scm_is_dynamic_state (SCM obj)
 {
-  return IS_DYNAMIC_STATE (obj);
+  return is_dynamic_state (obj);
 }
 
 SCM_DEFINE (scm_current_dynamic_state, "current-dynamic-state", 0, 0, 0,
 	    (),
-	    "Return the current dynamic state object.")
+	    "Return a snapshot of the current fluid-value associations\n"
+            "as a fresh dynamic state object.")
 #define FUNC_NAME s_scm_current_dynamic_state
 {
-  return SCM_I_CURRENT_THREAD->dynamic_state;
+  struct scm_dynamic_state *state = SCM_I_CURRENT_THREAD->dynamic_state;
+  return scm_cell (scm_tc7_dynamic_state,
+                   SCM_UNPACK (save_dynamic_state (state)));
 }
 #undef FUNC_NAME
 
@@ -465,9 +492,9 @@ SCM_DEFINE (scm_set_current_dynamic_state, "set-current-dynamic-state", 1,0,0,
 #define FUNC_NAME s_scm_set_current_dynamic_state
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  SCM old = t->dynamic_state;
-  SCM_ASSERT (IS_DYNAMIC_STATE (state), state, SCM_ARG1, FUNC_NAME);
-  t->dynamic_state = state;
+  SCM old = scm_current_dynamic_state ();
+  SCM_ASSERT (is_dynamic_state (state), state, SCM_ARG1, FUNC_NAME);
+  restore_dynamic_state (get_dynamic_state (state), t->dynamic_state);
   return old;
 }
 #undef FUNC_NAME
@@ -482,7 +509,7 @@ void
 scm_dynwind_current_dynamic_state (SCM state)
 {
   SCM loc = scm_cons (state, SCM_EOL);
-  SCM_ASSERT (IS_DYNAMIC_STATE (state), state, SCM_ARG1, NULL);
+  SCM_ASSERT (is_dynamic_state (state), state, SCM_ARG1, NULL);
   scm_dynwind_rewind_handler_with_scm (swap_dynamic_state, loc,
 				     SCM_F_WIND_EXPLICITLY);
   scm_dynwind_unwind_handler_with_scm (swap_dynamic_state, loc,

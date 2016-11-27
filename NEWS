@@ -87,6 +87,18 @@ Guile itself, though their join value was always `#f'.  This is no
 longer the case; attempting to join a foreign thread will throw an
 error.
 
+** Dynamic states capture values, not locations
+
+Dynamic states used to capture the locations of fluid-value
+associations.  Capturing the current dynamic state then setting a fluid
+would result in a mutation of that captured state.  Now capturing a
+dynamic state simply captures the current values, and calling
+`with-dynamic-state' copies those values into the Guile virtual machine
+instead of aliasing them in a way that could allow them to be mutated in
+place.  This change allows Guile's fluid variables to be thread-safe.
+To capture the locations of a dynamic state, use partial continuations
+instead.
+
 * New deprecations
 ** Arbiters deprecated
 
@@ -121,6 +133,11 @@ Variables" in the manual, for more.
 This was a facility that predated threads, was unused as far as we can
 tell, and was never documented.  Still, a grep of your code for
 dynamic-root or dynamic_root would not be amiss.
+
+** `make-dynamic-state' deprecated
+
+Use `current-dynamic-state' to get an immutable copy of the current
+fluid-value associations.
 
 * Bug fixes
 ** cancel-thread uses asynchronous interrupts, not pthread_cancel

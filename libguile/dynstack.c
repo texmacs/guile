@@ -163,7 +163,7 @@ scm_dynstack_push_unwinder (scm_t_dynstack *dynstack,
    binding.  */
 void
 scm_dynstack_push_fluid (scm_t_dynstack *dynstack, SCM fluid, SCM value,
-                         SCM dynamic_state)
+                         scm_t_dynamic_state *dynamic_state)
 {
   scm_t_bits *words;
   SCM value_box;
@@ -525,7 +525,8 @@ scm_dynstack_unwind_frame (scm_t_dynstack *dynstack)
 
 /* This function must not allocate.  */
 void
-scm_dynstack_unwind_fluid (scm_t_dynstack *dynstack, SCM dynamic_state)
+scm_dynstack_unwind_fluid (scm_t_dynstack *dynstack,
+                           scm_t_dynamic_state *dynamic_state)
 {
   scm_t_bits tag, *words;
   size_t len;

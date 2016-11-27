@@ -37,7 +37,7 @@
 #include "libguile/_scm.h"
 #include "libguile/atomic.h"
 #include "libguile/atomics-internal.h"
-#include "libguile/control.h"
+#include "libguile/cache-internal.h"
 #include "libguile/control.h"
 #include "libguile/frames.h"
 #include "libguile/gc-inline.h"
@@ -434,7 +434,6 @@ vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_unbound (SCM sym) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_unbound_fluid (SCM fluid) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_variable (const char *func_name, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_length_not_even (SCM proc) SCM_NORETURN SCM_NOINLINE;
@@ -477,14 +476,6 @@ vm_error_unbound (SCM sym)
   scm_error_scm (scm_misc_error_key, SCM_BOOL_F,
                  scm_from_latin1_string ("Unbound variable: ~s"),
                  scm_list_1 (sym), SCM_BOOL_F);
-}
-
-static void
-vm_error_unbound_fluid (SCM fluid)
-{
-  scm_error_scm (scm_misc_error_key, SCM_BOOL_F,
-                 scm_from_latin1_string ("Unbound fluid: ~s"),
-                 scm_list_1 (fluid), SCM_BOOL_F);
 }
 
 static void

@@ -412,6 +412,10 @@ typedef void *scm_t_subr;
 
 
 
+typedef struct scm_dynamic_state scm_t_dynamic_state;
+
+
+
 /* scm_i_jmp_buf
  *
  * The corresponding SCM_I_SETJMP and SCM_I_LONGJMP are defined in the

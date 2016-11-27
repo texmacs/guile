@@ -78,3 +78,16 @@
   thread-exited?
   total-processor-count
   current-processor-count)
+
+(define-public make-dynamic-state
+  (case-lambda
+    (()
+     (issue-deprecation-warning
+      "`(make-dynamic-state)' is deprecated; use `(current-dynamic-state)'
+instead.")
+     (current-dynamic-state))
+    ((parent)
+     (issue-deprecation-warning
+      "`(make-dynamic-state PARENT)' is deprecated; now that reified
+dynamic state objects are themselves copies, just use PARENT directly.")
+     parent)))

@@ -72,7 +72,7 @@ typedef struct scm_i_thread {
 
   /* Other thread local things.
    */
-  SCM dynamic_state;
+  scm_t_dynamic_state *dynamic_state;
 
   /* The dynamic stack.  */
   scm_t_dynstack dynstack;
@@ -126,7 +126,6 @@ SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 SCM_API void *scm_without_guile (void *(*func)(void *), void *data);
 SCM_API void *scm_with_guile (void *(*func)(void *), void *data);
 
-SCM_INTERNAL void scm_i_reset_fluid (size_t);
 SCM_INTERNAL void scm_threads_prehistory (void *);
 SCM_INTERNAL void scm_init_threads (void);
 SCM_INTERNAL void scm_init_threads_default_dynamic_state (void);

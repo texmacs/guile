@@ -673,17 +673,22 @@ delivery of an async causes this function to be interrupted.
 A @emph{fluid} is an object that can store one value per @emph{dynamic
 state}.  Each thread has a current dynamic state, and when accessing a
 fluid, this current dynamic state is used to provide the actual value.
-In this way, fluids can be used for thread local storage, but they are
-in fact more flexible: dynamic states are objects of their own and can
-be made current for more than one thread at the same time, or only be
-made current temporarily, for example.
+In this way, fluids can be used for thread local storage.  Additionally,
+the set of current fluid values can be captured by a dynamic state and
+reinstated in some other dynamic extent, possibly in another thread
+even.
 
-Fluids can also be used to simulate the desirable effects of
-dynamically scoped variables.  Dynamically scoped variables are useful
-when you want to set a variable to a value during some dynamic extent
-in the execution of your program and have them revert to their
-original value when the control flow is outside of this dynamic
-extent.  See the description of @code{with-fluids} below for details.
+Fluids are a building block for implementing dynamically scoped
+variables.  Dynamically scoped variables are useful when you want to set
+a variable to a value during some dynamic extent in the execution of
+your program and have them revert to their original value when the
+control flow is outside of this dynamic extent.  See the description of
+@code{with-fluids} below for details.
+
+Guile uses fluids to implement parameters (@pxref{Parameters}).  Usually
+you just want to use parameters directly.  However it can be useful to
+know what a fluid is and how it works, so that's what this section is
+about.
 
 New fluids are created with @code{make-fluid} and @code{fluid?} is
 used for testing whether an object is actually a fluid.  The values
@@ -788,12 +793,6 @@ value whenever the dynwind context is entered or left.  The backup
 value is initialized with the @var{val} argument.
 @end deftypefn
 
-@deffn {Scheme Procedure} make-dynamic-state [parent]
-@deffnx {C Function} scm_make_dynamic_state (parent)
-Return a copy of the dynamic state object @var{parent}
-or of the current dynamic state when @var{parent} is omitted.
-@end deffn
-
 @deffn {Scheme Procedure} dynamic-state? obj
 @deffnx {C Function} scm_dynamic_state_p (obj)
 Return @code{#t} if @var{obj} is a dynamic state object;
@@ -807,7 +806,8 @@ return zero otherwise.
 
 @deffn {Scheme Procedure} current-dynamic-state
 @deffnx {C Function} scm_current_dynamic_state ()
-Return the current dynamic state object.
+Return a snapshot of the current fluid-value associations as a fresh
+dynamic state object.
 @end deffn
 
 @deffn {Scheme Procedure} set-current-dynamic-state state

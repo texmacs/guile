@@ -76,7 +76,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   SCM eh, prompt_tag;
   SCM res;
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
-  SCM dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
+  scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
   scm_i_jmp_buf registers;
   scm_t_ptrdiff saved_stack_depth;
 
