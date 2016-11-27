@@ -66,6 +66,18 @@ AC_LIBTOOL_WIN32_DLL
 
 AC_PROG_INSTALL
 AC_PROG_CC
+
+# Sadly, there is no released version of Autoconf with a nice
+# C11-ensuring macro.  This should work for gcc/clang within the last 5
+# years though.
+AC_MSG_CHECKING([how to enable C11 support])
+if test "$GCC" = yes; then
+  AC_MSG_RESULT([-std=gnu11])
+  CC="$CC -std=gnu11"
+else
+  AC_MSG_RESULT([assuming $CC supports C11 by default])
+fi
+
 gl_EARLY
 AC_PROG_CPP
 AC_PROG_SED
