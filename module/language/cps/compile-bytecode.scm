@@ -364,6 +364,8 @@
                            (from-sp (slot val))))
         (($ $primcall 'unwind ())
          (emit-unwind asm))
+        (($ $primcall 'fluid-set! (fluid value))
+         (emit-fluid-set! asm (from-sp (slot fluid)) (from-sp (slot value))))
         (($ $primcall 'atomic-box-set! (box val))
          (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))
         (($ $primcall 'handle-interrupts ())

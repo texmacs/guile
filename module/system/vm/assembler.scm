@@ -124,7 +124,7 @@
             emit-pop-fluid
             emit-current-thread
             emit-fluid-ref
-            emit-fluid-set
+            emit-fluid-set!
             emit-string-length
             emit-string-ref
             emit-string->number

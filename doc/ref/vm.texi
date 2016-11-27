@@ -1196,7 +1196,7 @@ balanced with @code{pop-fluid}.
 Reference the fluid in @var{src}, and place the value in @var{dst}.
 @end deftypefn
 
-@deftypefn Instruction {} fluid-set s12:@var{fluid} s12:@var{val}
+@deftypefn Instruction {} fluid-set! s12:@var{fluid} s12:@var{val}
 Set the value of the fluid in @var{dst} to the value in @var{src}.
 @end deftypefn
 

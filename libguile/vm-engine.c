@@ -2196,7 +2196,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    *
    * Set the value of the fluid in DST to the value in SRC.
    */
-  VM_DEFINE_OP (75, fluid_set, "fluid-set", OP1 (X8_S12_S12))
+  VM_DEFINE_OP (75, fluid_set, "fluid-set!", OP1 (X8_S12_S12))
     {
       scm_t_uint16 a, b;
       size_t num;
