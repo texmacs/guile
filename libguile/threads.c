@@ -1316,13 +1316,8 @@ timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
 
       /* We woke up for some reason.  Reacquire the mutex before doing
          anything else.  */
-      if (scm_is_eq (m->owner, SCM_BOOL_F))
-	{
-	  m->owner = current_thread->handle;
-          scm_i_pthread_mutex_unlock (&m->lock);
-	}
-      else if (kind == SCM_MUTEX_RECURSIVE &&
-               scm_is_eq (m->owner, current_thread->handle))
+      if (kind == SCM_MUTEX_RECURSIVE &&
+          scm_is_eq (m->owner, current_thread->handle))
 	{
           m->level++;
           scm_i_pthread_mutex_unlock (&m->lock);
@@ -1330,6 +1325,12 @@ timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
       else
         while (1)
           {
+            if (scm_is_eq (m->owner, SCM_BOOL_F))
+              {
+                m->owner = current_thread->handle;
+                scm_i_pthread_mutex_unlock (&m->lock);
+                break;
+              }
             block_self (m->waiting, &m->lock, waittime);
             if (scm_is_eq (m->owner, SCM_BOOL_F))
               {
@@ -1348,11 +1349,8 @@ timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
       else if (err == ETIMEDOUT)
         return SCM_BOOL_F;
       else if (err == EINTR)
-        {
-          scm_async_tick ();
-          scm_i_scm_pthread_mutex_lock (&m->lock);
-          continue;
-        }
+        /* Let caller run scm_async_tick() and loop.  */
+        return SCM_BOOL_T;
       else
         {
           /* Shouldn't happen.  */
