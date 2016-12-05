@@ -360,6 +360,14 @@ of an expression."
           (($ <primcall> _ 'pop-fluid ())
            (logior (cause &fluid)))
 
+          (($ <primcall> _ 'push-dynamic-state (state))
+           (logior (compute-effects state)
+                   (cause &type-check)
+                   (cause &fluid)))
+
+          (($ <primcall> _ 'pop-dynamic-state ())
+           (logior (cause &fluid)))
+
           (($ <primcall> _ 'car (x))
            (logior (compute-effects x)
                    (cause &type-check)

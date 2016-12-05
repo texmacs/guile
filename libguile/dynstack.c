@@ -53,6 +53,9 @@
 #define WITH_FLUID_FLUID(top) (SCM_PACK ((top)[0]))
 #define WITH_FLUID_VALUE_BOX(top) (SCM_PACK ((top)[1]))
 
+#define DYNAMIC_STATE_WORDS 1
+#define DYNAMIC_STATE_STATE_BOX(top) (SCM_PACK ((top)[0]))
+
 
 
 
@@ -231,6 +234,22 @@ dynstack_pop (scm_t_dynstack *dynstack, scm_t_bits **words)
 }
   
 void
+scm_dynstack_push_dynamic_state (scm_t_dynstack *dynstack, SCM state,
+                                 scm_t_dynamic_state *dynamic_state)
+{
+  scm_t_bits *words;
+  SCM state_box;
+
+  if (SCM_UNLIKELY (scm_is_false (scm_dynamic_state_p (state))))
+    scm_wrong_type_arg ("with-dynamic-state", 0, state);
+
+  state_box = scm_make_variable (scm_set_current_dynamic_state (state));
+  words = push_dynstack_entry (dynstack, SCM_DYNSTACK_TYPE_DYNAMIC_STATE, 0,
+                               DYNAMIC_STATE_WORDS);
+  words[0] = SCM_UNPACK (state_box);
+}
+
+void
 scm_dynstack_pop (scm_t_dynstack *dynstack)
 {
   scm_t_bits tag, *words;
@@ -305,6 +324,12 @@ scm_dynstack_wind_1 (scm_t_dynstack *dynstack, scm_t_bits *item)
       scm_call_0 (DYNWIND_ENTER (item));
       break;
 
+    case SCM_DYNSTACK_TYPE_DYNAMIC_STATE:
+      scm_variable_set_x (DYNAMIC_STATE_STATE_BOX (item),
+                          scm_set_current_dynamic_state
+                          (scm_variable_ref (DYNAMIC_STATE_STATE_BOX (item))));
+      break;
+
     case SCM_DYNSTACK_TYPE_NONE:
     default:
       abort ();
@@ -360,6 +385,13 @@ scm_dynstack_unwind_1 (scm_t_dynstack *dynstack)
         clear_scm_t_bits (words, DYNWIND_WORDS);
         scm_call_0 (proc);
       }
+      break;
+
+    case SCM_DYNSTACK_TYPE_DYNAMIC_STATE:
+      scm_variable_set_x (DYNAMIC_STATE_STATE_BOX (words),
+                          scm_set_current_dynamic_state
+                          (scm_variable_ref (DYNAMIC_STATE_STATE_BOX (words))));
+      clear_scm_t_bits (words, DYNAMIC_STATE_WORDS);
       break;
 
     case SCM_DYNSTACK_TYPE_NONE:
@@ -539,6 +571,25 @@ scm_dynstack_unwind_fluid (scm_t_dynstack *dynstack,
 
   scm_swap_fluid (WITH_FLUID_FLUID (words), WITH_FLUID_VALUE_BOX (words),
                   dynamic_state);
+  clear_scm_t_bits (words, len);
+}
+
+void
+scm_dynstack_unwind_dynamic_state (scm_t_dynstack *dynstack,
+                                   scm_t_dynamic_state *dynamic_state)
+{
+  scm_t_bits tag, *words;
+  size_t len;
+
+  tag = dynstack_pop (dynstack, &words);
+  len = SCM_DYNSTACK_TAG_LEN (tag);
+
+  assert (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_DYNAMIC_STATE);
+  assert (len == DYNAMIC_STATE_WORDS);
+
+  scm_variable_set_x (DYNAMIC_STATE_STATE_BOX (words),
+                      scm_set_current_dynamic_state
+                      (scm_variable_ref (DYNAMIC_STATE_STATE_BOX (words))));
   clear_scm_t_bits (words, len);
 }
 

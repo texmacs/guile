@@ -68,6 +68,8 @@ static SCM wind;
 static SCM unwind;
 static SCM push_fluid;
 static SCM pop_fluid;
+static SCM push_dynamic_state;
+static SCM pop_dynamic_state;
 
 static SCM
 do_wind (SCM in, SCM out)
@@ -97,6 +99,24 @@ do_pop_fluid (void)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_dynstack_unwind_fluid (&thread->dynstack, thread->dynamic_state);
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+do_push_dynamic_state (SCM state)
+{
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_dynstack_push_dynamic_state (&thread->dynstack, state,
+                                   thread->dynamic_state);
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+do_pop_dynamic_state (void)
+{
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_dynstack_unwind_dynamic_state (&thread->dynstack,
+                                     thread->dynamic_state);
   return SCM_UNSPECIFIED;
 }
 
@@ -482,6 +502,14 @@ memoize (SCM exp, SCM env)
         else if (nargs == 0
                  && scm_is_eq (name, scm_from_latin1_symbol ("pop-fluid")))
           return MAKMEMO_CALL (MAKMEMO_QUOTE (pop_fluid), SCM_EOL);
+        else if (nargs == 1
+                 && scm_is_eq (name,
+                               scm_from_latin1_symbol ("push-dynamic-state")))
+          return MAKMEMO_CALL (MAKMEMO_QUOTE (push_dynamic_state), args);
+        else if (nargs == 0
+                 && scm_is_eq (name,
+                               scm_from_latin1_symbol ("pop-dynamic-state")))
+          return MAKMEMO_CALL (MAKMEMO_QUOTE (pop_dynamic_state), SCM_EOL);
         else if (scm_is_eq (scm_current_module (), scm_the_root_module ()))
           return MAKMEMO_CALL (maybe_makmemo_capture_module
                                (MAKMEMO_BOX_REF
@@ -869,6 +897,10 @@ scm_init_memoize ()
   unwind = scm_c_make_gsubr ("unwind", 0, 0, 0, do_unwind);
   push_fluid = scm_c_make_gsubr ("push-fluid", 2, 0, 0, do_push_fluid);
   pop_fluid = scm_c_make_gsubr ("pop-fluid", 0, 0, 0, do_pop_fluid);
+  push_dynamic_state = scm_c_make_gsubr ("push-dynamic_state", 1, 0, 0,
+                                         do_push_dynamic_state);
+  pop_dynamic_state = scm_c_make_gsubr ("pop-dynamic_state", 0, 0, 0,
+                                        do_pop_dynamic_state);
 
   list_of_guile = scm_list_1 (scm_from_latin1_symbol ("guile"));
 }

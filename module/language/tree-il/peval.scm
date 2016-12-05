@@ -1219,6 +1219,19 @@ top-level bindings from ENV and return the resulting expression."
                                   (make-call src thunk '())
                                   (make-primcall src 'pop-fluid '()))))))))
 
+      (($ <primcall> src 'with-dynamic-state (state thunk))
+       (for-tail
+        (with-temporaries
+         src (list state thunk) 1 constant-expression?
+         (match-lambda
+          ((state thunk)
+           (make-seq src
+                     (make-primcall src 'push-dynamic-state (list state))
+                     (make-begin0 src
+                                  (make-call src thunk '())
+                                  (make-primcall src 'pop-dynamic-state
+                                                 '()))))))))
+
       (($ <primcall> src 'values exps)
        (cond
         ((null? exps)

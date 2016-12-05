@@ -154,6 +154,15 @@ a-cont
       ((@@ primitive pop-fluid))
       (apply values vals))))
 
+(define (with-dynamic-state state thunk)
+  "Call @var{proc} while @var{state} is the current dynamic state object.
+@var{thunk} must be a procedure of no arguments."
+  ((@@ primitive push-dynamic-state) state)
+  (call-with-values thunk
+    (lambda vals
+      ((@@ primitive pop-dynamic-state))
+      (apply values vals))))
+
 
 
 ;;; {Simple Debugging Tools}

@@ -122,6 +122,8 @@
             emit-unwind
             emit-push-fluid
             emit-pop-fluid
+            emit-push-dynamic-state
+            emit-pop-dynamic-state
             emit-current-thread
             emit-fluid-ref
             emit-fluid-set!

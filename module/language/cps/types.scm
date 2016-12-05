@@ -558,7 +558,9 @@ minimum, and maximum."
   ((fluid-ref (&fluid 1)) &all-types)
   ((fluid-set! (&fluid 0 1) &all-types))
   ((push-fluid (&fluid 0 1) &all-types))
-  ((pop-fluid)))
+  ((pop-fluid))
+  ((push-dynamic-state &all-types))
+  ((pop-dynamic-state)))
 
 
 

@@ -3921,8 +3921,35 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (0);
     }
 
-  VM_DEFINE_OP (185, unused_185, NULL, NOP)
-  VM_DEFINE_OP (186, unused_186, NULL, NOP)
+  /* push-dynamic-state state:24
+   *
+   * Save the current fluid bindings on the dynamic stack, and use STATE
+   * instead.
+   */
+  VM_DEFINE_OP (185, push_dynamic_state, "push-dynamic-state", OP1 (X8_S24))
+    {
+      scm_t_uint32 state;
+
+      UNPACK_24 (op, state);
+
+      SYNC_IP ();
+      scm_dynstack_push_dynamic_state (&thread->dynstack, SP_REF (state),
+                                       thread->dynamic_state);
+      NEXT (1);
+    }
+
+  /* pop-dynamic-state _:24
+   *
+   * Restore the saved fluid bindings from the dynamic stack.
+   */
+  VM_DEFINE_OP (186, pop_dynamic_state, "pop-dynamic-state", OP1 (X32))
+    {
+      SYNC_IP ();
+      scm_dynstack_unwind_dynamic_state (&thread->dynstack,
+                                         thread->dynamic_state);
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (187, unused_187, NULL, NOP)
   VM_DEFINE_OP (188, unused_188, NULL, NOP)
   VM_DEFINE_OP (189, unused_189, NULL, NOP)

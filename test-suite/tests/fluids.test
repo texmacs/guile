@@ -184,3 +184,80 @@
       (catch #t
              (lambda () (fluid-ref fluid))
              (lambda (key . args) #t)))))
+
+(with-test-prefix "dynamic states"
+  (pass-if "basics"
+    (dynamic-state? (current-dynamic-state)))
+
+  (pass-if "with a fluid (basic)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state)))
+      (with-dynamic-state
+       state
+       (lambda ()
+         (eqv? (fluid-ref fluid) #f)))))
+
+  (pass-if "with a fluid (set outer)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state)))
+      (fluid-set! fluid #t)
+      (and (with-dynamic-state
+            state
+            (lambda ()
+              (eqv? (fluid-ref fluid) #f)))
+           (eqv? (fluid-ref fluid) #t))))
+
+  (pass-if "with a fluid (set inner)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state)))
+      (and (with-dynamic-state
+            state
+            (lambda ()
+              (fluid-set! fluid #t)
+              (eqv? (fluid-ref fluid) #t)))
+           (eqv? (fluid-ref fluid) #f))))
+
+  (pass-if "dynstate captured (1)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state))
+          (tag (make-prompt-tag "hey")))
+      (let ((k (call-with-prompt tag
+                 (lambda ()
+                   (with-dynamic-state
+                    state
+                    (lambda ()
+                      (abort-to-prompt tag)
+                      (fluid-ref fluid))))
+                 (lambda (k) k))))
+        (eqv? (k) #f))))
+
+  (pass-if "dynstate captured (2)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state))
+          (tag (make-prompt-tag "hey")))
+      (let ((k (call-with-prompt tag
+                 (lambda ()
+                   (with-dynamic-state
+                    state
+                    (lambda ()
+                      (abort-to-prompt tag)
+                      (fluid-ref fluid))))
+                 (lambda (k) k))))
+        (fluid-set! fluid #t)
+        (eqv? (k) #f))))
+
+  (pass-if "dynstate captured (3)"
+    (let ((fluid (make-fluid #f))
+          (state (current-dynamic-state))
+          (tag (make-prompt-tag "hey")))
+      (let ((k (call-with-prompt tag
+                 (lambda ()
+                   (with-dynamic-state
+                    state
+                    (lambda ()
+                      (fluid-set! fluid #t)
+                      (abort-to-prompt tag)
+                      (fluid-ref fluid))))
+                 (lambda (k) k))))
+        (and (eqv? (fluid-ref fluid) #f)
+             (eqv? (k) #t))))))

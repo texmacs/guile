@@ -287,7 +287,9 @@ is or might be a read or a write to the same location as A."
   ((fluid-ref f)                   (&read-object &fluid)       &type-check)
   ((fluid-set! f v)                (&write-object &fluid)      &type-check)
   ((push-fluid f v)                (&write-object &fluid)      &type-check)
-  ((pop-fluid)                     (&write-object &fluid)      &type-check))
+  ((pop-fluid)                     (&write-object &fluid))
+  ((push-dynamic-state state)      (&write-object &fluid)      &type-check)
+  ((pop-dynamic-state)             (&write-object &fluid)))
 
 ;; Threads.  Calls cause &all-effects, which reflects the fact that any
 ;; call can capture a partial continuation and reinstate it on another

@@ -84,7 +84,7 @@
 
     current-module define!
 
-    current-thread fluid-ref fluid-set! with-fluid*
+    current-thread fluid-ref fluid-set! with-fluid* with-dynamic-state
 
     call-with-prompt
     abort-to-prompt* abort-to-prompt

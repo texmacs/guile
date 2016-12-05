@@ -1204,6 +1204,18 @@ Set the value of the fluid in @var{dst} to the value in @var{src}.
 Write the value of the current thread to @var{dst}.
 @end deftypefn
 
+@deftypefn Instruction {} push-dynamic-state s24:@var{state}
+Save the current set of fluid bindings on the dynamic stack and instate
+the bindings from @var{state} instead.  @xref{Fluids and Dynamic
+States}.
+@end deftypefn
+
+@deftypefn Instruction {} pop-dynamic-state x24:@var{_}
+Restore a saved set of fluid bindings from the dynamic stack.
+@code{push-dynamic-state} should always be balanced with
+@code{pop-dynamic-state}.
+@end deftypefn
+
 
 @node Miscellaneous Instructions
 @subsubsection Miscellaneous Instructions
@@ -1235,6 +1247,17 @@ pointer is adjusted.
 @deftypefn Instruction {} drop c24:@var{count}
 Pop the stack pointer by @var{count} words, discarding any values that
 were stored there.
+@end deftypefn
+
+@deftypefn Instruction {} handle-interrupts x24:@var{_}
+Handle pending asynchronous interrupts (asyncs).  @xref{Asyncs}.  The
+compiler inserts @code{handle-interrupts} instructions before any call,
+return, or loop back-edge.
+@end deftypefn
+
+@deftypefn Instruction {} return-from-interrupt x24:@var{_}
+A special instruction to return from a call and also pop off the stack
+frame from the call.  Used when returning from asynchronous interrupts.
 @end deftypefn
 
 
