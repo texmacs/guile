@@ -1768,7 +1768,7 @@ parallel implementation of port operations.  To use this implementation,
 do the following:
 
 @example
-(use-module (ice-9 suspendable-ports))
+(use-modules (ice-9 suspendable-ports))
 (install-suspendable-ports!)
 @end example
 
