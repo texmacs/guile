@@ -1851,8 +1851,11 @@ Like @code{scm_with_dynamic_state}, but call @var{func} with
 @cindex parameter object
 @tindex Parameter
 
-A parameter object is a procedure.  Calling it with no arguments returns
-its value.  Calling it with one argument sets the value.
+Parameters are Guile's facility for dynamically bound variables.
+
+On the most basic level, a parameter object is a procedure.  Calling it
+with no arguments returns its value.  Calling it with one argument sets
+the value.
 
 @example
 (define my-param (make-parameter 123))
@@ -1862,7 +1865,7 @@ its value.  Calling it with one argument sets the value.
 @end example
 
 The @code{parameterize} special form establishes new locations for
-parameters, those new locations having effect within the dynamic scope
+parameters, those new locations having effect within the dynamic extent
 of the @code{parameterize} body.  Leaving restores the previous
 locations.  Re-entering (through a saved continuation) will again use
 the new locations.
@@ -1887,8 +1890,8 @@ effect of @code{parameterize} to just its dynamic execution.
 Passing arguments to functions is thread-safe, but that soon becomes
 tedious when there's more than a few or when they need to pass down
 through several layers of calls before reaching the point they should
-affect.  And introducing a new setting to existing code is often easier
-with a parameter object than adding arguments.
+affect.  Introducing a new setting to existing code is often easier with
+a parameter object than adding arguments.
 
 @deffn {Scheme Procedure} make-parameter init [converter]
 Return a new parameter object, with initial value @var{init}.
