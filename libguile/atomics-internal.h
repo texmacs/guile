@@ -28,9 +28,7 @@
 
 
 
-#define HAVE_C11_ATOMICS (__STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__))
-
-#if HAVE_C11_ATOMICS
+#ifdef HAVE_STDATOMIC_H
 
 #include <stdatomic.h>
 static inline uint32_t
@@ -74,7 +72,7 @@ scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
 {
   return atomic_compare_exchange_weak (loc, expected, desired);
 }
-#else /* HAVE_C11_ATOMICS */
+#else /* HAVE_STDATOMIC_H */
 
 /* Fallback implementation using locks.  */
 #include "libguile/threads.h"
@@ -171,6 +169,6 @@ scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
   return ret;
 }
 
-#endif /* HAVE_C11_ATOMICS */
+#endif /* HAVE_STDATOMIC_H */
 
 #endif /* SCM_ATOMICS_INTERNAL_H */

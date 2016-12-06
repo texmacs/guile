@@ -326,6 +326,7 @@ AC_SUBST([SCM_I_GSC_T_PTRDIFF])
 
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([stdatomic.h])
 
 AC_CHECK_SIZEOF(intmax_t)
 
