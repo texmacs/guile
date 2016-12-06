@@ -9,6 +9,7 @@
 
 @menu
 * Threads::                     Multiple threads of execution.
+* Thread Local Variables::      Guile doesn't really have these.
 * Asyncs::                      Asynchronous interrupts.
 * Atomics::                     Atomic references.
 * Mutexes and Condition Variables:: Synchronization primitives.
@@ -162,6 +163,54 @@ processors available to the current process.  See
 @code{setaffinity} and @code{getaffinity} for more
 information.
 @end deffn
+
+
+@node Thread Local Variables
+@subsection Thread-Local Variables
+
+Sometimes you want to establish a variable binding that is only valid
+for a given thread: a ``thread-local variable''.  Guile doesn't really
+have this facility, but what it does have can work well for most use
+cases we know about.
+
+You would think that fluids or parameters would be Guile's answer for
+thread-local variables, since establishing a new fluid binding doesn't
+affect bindings in other threads.  @xref{Fluids and Dynamic States}, or
+@xref{Parameters}.  However, new threads inherit the fluid bindings that
+were in place in their creator threads.  In this way, a binding
+established using a fluid (or a parameter) in a thread can escape to
+other threads, which might not be what you want.  Or, it might escape
+via explicit reification via @code{current-dynamic-state}.
+
+Of course, this dynamic scoping might be exactly what you want; that's
+why fluids and parameters work this way, and is what you want for for
+many common parameters such as the current input and output ports, the
+current locale conversion parameters, and the like.  Perhaps this is the
+case for most parameters, even.  If your use case for thread-local
+bindings comes from a desire to isolate a binding from its setting in
+unrelated threads, then fluids and parameters apply nicely.
+
+On the other hand, if your use case is to prevent concurrent access to a
+value from multiple threads, then using fluids or parameters is not
+appropriate.  In this case, our current suggestion is to use weak hash
+tables or object properties whose keys are thread objects.  For example:
+
+@example
+(define (get-my-sensitive-data-structure)
+  ...)
+
+(define %thread-local (make-weak-key-hash-table))
+
+(define (current-thread-local)
+  (or (hashq-ref %thread-local (current-thread))
+      (let ((val (get-my-sensitive-data-structure)))
+        (hashq-set! %thread-local (current-thread) val)
+        val)))
+@end example
+
+It's not a terribly nice facility and perhaps we should have a better
+answer, like Racket's ``non-preserved thread cells''.  Your input is
+very welcome; we look forward to hearing from your experience.
 
 
 @node Asyncs
