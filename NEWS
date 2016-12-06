@@ -9,7 +9,26 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Changes in 2.1.5 (changes since the 2.1.4 alpha release):
 
 * Notable changes
-* New interfaces
+** Lightweight pre-emptive threading primitives
+
+The compiler now inserts special "handle-interrupts" opcodes before each
+call, return, and loop back-edge.  This allows the user to interrupt any
+computation and to accurately profile code using interrupts.  It used to
+be that interrupts were run by calling a C function from the VM; now
+interrupt thunks are run directly from the VM.  This allows interrupts
+to save a delimited continuation and, if the continuation was
+established from the same VM invocation (the usual restriction), that
+continuation can then be resumed.  In this way users can implement
+lightweight pre-emptive threading facilities.
+
+** with-dynamic-state in VM
+
+Similarly, `with-dynamic-state' no longer recurses out of the VM,
+allowing captured delimited continuations that include a
+`with-dynamic-state' invocation to be resumed.  This is a precondition
+to allow lightweight threading libraries to establish a dynamic state
+per thread.
+
 * Performance improvements
 ** Mutexes are now faster under contention
 
@@ -96,8 +115,8 @@ dynamic state simply captures the current values, and calling
 `with-dynamic-state' copies those values into the Guile virtual machine
 instead of aliasing them in a way that could allow them to be mutated in
 place.  This change allows Guile's fluid variables to be thread-safe.
-To capture the locations of a dynamic state, use partial continuations
-instead.
+To capture the locations of a dynamic state, capture a
+`with-dynamic-state' invocation using partial continuations instead.
 
 * New deprecations
 ** Arbiters deprecated
