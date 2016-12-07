@@ -393,7 +393,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
   /* Mutual exclusion is essential since a) setzone may install a
      temporary environment b) localtime uses a static buffer.  */
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&tz_lock);
+  scm_i_dynwind_pthread_mutex_lock (&tz_lock);
 
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
@@ -553,7 +553,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   scm_dynwind_free ((char *)lt.tm_zone);
 #endif
 
-  scm_dynwind_pthread_mutex_lock (&tz_lock);
+  scm_i_dynwind_pthread_mutex_lock (&tz_lock);
 
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE

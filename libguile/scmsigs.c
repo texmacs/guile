@@ -336,7 +336,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   scm_i_ensure_signal_delivery_thread ();
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&signal_handler_lock);
+  scm_i_dynwind_pthread_mutex_lock (&signal_handler_lock);
   scm_dynwind_block_asyncs ();
 
   old_handler = SCM_SIMPLE_VECTOR_REF (*signal_handlers, csig);

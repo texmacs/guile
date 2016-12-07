@@ -401,7 +401,7 @@ scm_gc_protect_object (SCM obj)
   SCM handle;
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&gc_protect_lock);
+  scm_i_dynwind_pthread_mutex_lock (&gc_protect_lock);
 
   handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
@@ -423,7 +423,7 @@ scm_gc_unprotect_object (SCM obj)
   SCM handle;
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&gc_protect_lock);
+  scm_i_dynwind_pthread_mutex_lock (&gc_protect_lock);
 
   handle = scm_hashq_get_handle (scm_protects, obj);
   if (scm_is_false (handle))

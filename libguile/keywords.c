@@ -63,7 +63,7 @@ SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
   SCM_ASSERT_TYPE (scm_is_symbol (symbol), symbol, 0, NULL, "symbol");
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
+  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
   /* Note: `scm_cell' and `scm_hashq_set_x' can raise an out-of-memory
      error.  */
   keyword = scm_hashq_ref (keyword_obarray, symbol, SCM_BOOL_F);

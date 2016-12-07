@@ -253,7 +253,7 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 0, 1, 0,
   char *file;
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&ltdl_lock);
+  scm_i_dynwind_pthread_mutex_lock (&ltdl_lock);
 
   if (SCM_UNBNDP (filename))
     file = NULL;
@@ -298,7 +298,7 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
   SCM_VALIDATE_SMOB (SCM_ARG1, dobj, dynamic_obj);
 
   scm_dynwind_begin (0);
-  scm_dynwind_pthread_mutex_lock (&ltdl_lock);
+  scm_i_dynwind_pthread_mutex_lock (&ltdl_lock);
   if (DYNL_HANDLE (dobj) == NULL) {
     SCM_MISC_ERROR ("Already unlinked: ~S", scm_list_1 (dobj));
   } else {
@@ -335,7 +335,7 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 2, 0, 0,
       char *chars;
 
       scm_dynwind_begin (0);
-      scm_dynwind_pthread_mutex_lock (&ltdl_lock);
+      scm_i_dynwind_pthread_mutex_lock (&ltdl_lock);
       chars = scm_to_locale_string (name);
       scm_dynwind_free (chars);
       val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
