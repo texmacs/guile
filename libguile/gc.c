@@ -105,37 +105,9 @@ scm_oom_fn (size_t nbytes)
 static void
 scm_gc_warn_proc (char *fmt, GC_word arg)
 {
-  SCM port;
-  FILE *stream = NULL;
-
-  port = scm_current_warning_port ();
-  if (!SCM_OPPORTP (port))
-    return;
-
-  if (SCM_FPORTP (port))
-    {
-      int fd;
-      scm_force_output (port);
-      if (!SCM_OPPORTP (port))
-        return;
-      fd = dup (SCM_FPORT_FDES (port));
-      if (fd == -1)
-        perror ("Failed to dup warning port fd");
-      else
-        {
-          stream = fdopen (fd, "a");
-          if (!stream)
-            {
-              perror ("Failed to open stream for warning port");
-              close (fd);
-            }
-        }
-    }
-
-  fprintf (stream ? stream : stderr, fmt, arg);
-
-  if (stream)
-    fclose (stream);
+  /* avoid scm_current_warning_port() b/c the GC lock is already taken
+     and the fluid ref might require it */
+  fprintf (stderr, fmt, arg);
 }
 
 void
