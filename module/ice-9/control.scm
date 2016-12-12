@@ -23,7 +23,11 @@
                default-prompt-tag make-prompt-tag)
   #:export (% abort shift reset shift* reset*
             call-with-escape-continuation call/ec
-            let-escape-continuation let/ec))
+            let-escape-continuation let/ec
+            suspendable-continuation?))
+
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_ice_9_control")
 
 (define (abort . args)
   (apply abort-to-prompt (default-prompt-tag) args))

@@ -78,6 +78,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
   scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
   scm_i_jmp_buf registers;
+  const void *prev_cookie;
   scm_t_ptrdiff saved_stack_depth;
 
   if (!scm_is_eq (tag, SCM_BOOL_T) && !scm_is_symbol (tag))
@@ -102,6 +103,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   scm_c_vector_set_x (eh, 3, pre_unwind_handler);
 
   vp = scm_the_vm ();
+  prev_cookie = vp->resumable_prompt_cookie;
   saved_stack_depth = vp->stack_top - vp->sp;
 
   /* Push the prompt and exception handler onto the dynamic stack. */
@@ -120,6 +122,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
       /* A non-local return.  */
       SCM args;
 
+      vp->resumable_prompt_cookie = prev_cookie;
       scm_gc_after_nonlocal_exit ();
 
       /* FIXME: We know where the args will be on the stack; we could

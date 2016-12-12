@@ -205,10 +205,35 @@ SCM_DEFINE (scm_abort_to_prompt_star, "abort-to-prompt*", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM
+scm_suspendable_continuation_p (SCM tag)
+{
+  scm_t_dynstack_prompt_flags flags;
+  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_i_jmp_buf *registers;
+
+  if (scm_dynstack_find_prompt (&thread->dynstack, tag, &flags,
+                                NULL, NULL, NULL, &registers))
+    return scm_from_bool (registers == thread->vp->resumable_prompt_cookie);
+
+  return SCM_BOOL_F;
+}
+
+static void
+scm_init_ice_9_control (void *unused)
+{
+  scm_c_define_gsubr ("suspendable-continuation?", 1, 0, 0,
+                      scm_suspendable_continuation_p);
+}
+
 void
 scm_init_control (void)
 {
 #include "libguile/control.x"
+
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_ice_9_control", scm_init_ice_9_control,
+			    NULL);
 }
 
 /*

@@ -628,6 +628,33 @@ This is equivalent to
 @code{(call/ec (lambda (@var{k}) @var{body} @dots{}))}.
 @end deffn
 
+Additionally there is another helper primitive exported by @code{(ice-9
+control)}, so load up that module for @code{suspendable-continuation?}:
+
+@example
+(use-modules (ice-9 control))
+@end example
+
+@deffn {Scheme Procedure} suspendable-continuation? tag
+Return @code{#t} if a call to @code{abort-to-prompt} with the prompt tag
+@var{tag} would produce a delimited continuation that could be resumed
+later.
+
+Almost all continuations have this property.  The exception is where
+some code between the @code{call-with-prompt} and the
+@code{abort-to-prompt} recursed through C for some reason, the
+@code{abort-to-prompt} will succeed but any attempt to resume the
+continuation (by calling it) would fail.  This is because composing a
+saved continuation with the current continuation involves relocating the
+stack frames that were saved from the old stack onto a (possibly) new
+position on the new stack, and Guile can only do this for stack frames
+that it created for Scheme code, not stack frames created by the C
+compiler.  It's a bit gnarly but if you stick with Scheme, you won't
+have any problem.
+
+If no prompt is found with the given tag, this procedure just returns
+@code{#f}.
+@end deffn
 
 @node Shift and Reset
 @subsubsection Shift, Reset, and All That

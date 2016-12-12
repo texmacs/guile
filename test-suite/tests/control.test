@@ -410,3 +410,30 @@
                                 (cons (car xs) (k (cdr xs))))))))
                 (reset* (lambda () (visit xs))))
               (traverse '(1 2 3 4 5))))))
+
+(with-test-prefix "suspendable-continuation?"
+  (let ((tag (make-prompt-tag)))
+    (pass-if "escape-only"
+      (call-with-prompt tag
+        (lambda ()
+          (suspendable-continuation? tag))
+        (lambda _ (error "unreachable"))))
+    (pass-if "full"
+      (call-with-prompt tag
+        (lambda ()
+          (suspendable-continuation? tag))
+        (lambda (k) (error "unreachable" k))))
+    (pass-if "escape-only with barrier"
+      (call-with-prompt tag
+        (lambda ()
+          (with-continuation-barrier
+           (lambda ()
+             (not (suspendable-continuation? tag)))))
+        (lambda _ (error "unreachable"))))
+    (pass-if "full with barrier"
+      (call-with-prompt tag
+        (lambda ()
+          (with-continuation-barrier
+           (lambda ()
+             (not (suspendable-continuation? tag)))))
+        (lambda (k) (error "unreachable" k))))))

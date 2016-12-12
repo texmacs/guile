@@ -47,6 +47,7 @@ struct scm_vm {
   union scm_vm_stack_element *stack_top; /* highest address in allocated stack */
   SCM overflow_handler_stack;   /* alist of max-stack-size -> thunk */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
+  const void *resumable_prompt_cookie; /* opaque cookie */
   int engine;                   /* which vm engine we're using */
 };
 

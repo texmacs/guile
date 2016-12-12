@@ -121,6 +121,7 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
   SCM cont;
   scm_t_contregs *continuation;
   long stack_size;
+  const void *saved_cookie;
   SCM_STACKITEM * src;
 
   SCM_FLUSH_REGISTER_WINDOWS;
@@ -138,6 +139,7 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
   continuation->vp = vp;
   continuation->vm_cont = vm_cont;
+  saved_cookie = vp->resumable_prompt_cookie;
 
   SCM_NEWSMOB (cont, tc16_continuation, continuation);
 
@@ -161,6 +163,7 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
     }
   else
     {
+      vp->resumable_prompt_cookie = saved_cookie;
       scm_gc_after_nonlocal_exit ();
       return SCM_UNDEFINED;
     }

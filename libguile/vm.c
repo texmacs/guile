@@ -1234,8 +1234,11 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 
   {
     scm_i_jmp_buf registers;
-    int resume = SCM_I_SETJMP (registers);
-      
+    int resume;
+    const void *prev_cookie = vp->resumable_prompt_cookie;
+    SCM ret;
+
+    resume = SCM_I_SETJMP (registers);
     if (SCM_UNLIKELY (resume))
       {
         scm_gc_after_nonlocal_exit ();
@@ -1243,7 +1246,11 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         vm_dispatch_abort_hook (vp);
       }
 
-    return vm_engines[vp->engine](thread, vp, &registers, resume);
+    vp->resumable_prompt_cookie = &registers;
+    ret = vm_engines[vp->engine](thread, vp, &registers, resume);
+    vp->resumable_prompt_cookie = prev_cookie;
+
+    return ret;
   }
 }
 
