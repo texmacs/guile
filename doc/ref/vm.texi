@@ -1674,3 +1674,13 @@ the operands as unboxed IEEE double floating-point numbers, and producing
 the same.
 @end deftypefn
 
+@deftypefn Instruction {} br-if-f64-= s24:@var{a} x8:@var{_} s24:@var{b} b1:@var{invert} x7:@var{_} l24:@var{offset}
+@deftypefnx Instruction {} br-if-f64-< s24:@var{a} x8:@var{_} s24:@var{b} b1:@var{invert} x7:@var{_} l24:@var{offset}
+@deftypefnx Instruction {} br-if-f64-<= s24:@var{a} x8:@var{_} s24:@var{b} b1:@var{invert} x7:@var{_} l24:@var{offset}
+@deftypefnx Instruction {} br-if-f64-> s24:@var{a} x8:@var{_} s24:@var{b} b1:@var{invert} x7:@var{_} l24:@var{offset}
+@deftypefnx Instruction {} br-if-f64->= s24:@var{a} x8:@var{_} s24:@var{b} b1:@var{invert} x7:@var{_} l24:@var{offset}
+If the unboxed IEEE double value in @var{a} is @code{=}, @code{<},
+@code{<=}, @code{>}, or @code{>=} to the unboxed IEEE double value in
+@var{b}, respectively, add @var{offset} to the current instruction
+pointer.
+@end deftypefn

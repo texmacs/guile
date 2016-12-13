@@ -106,6 +106,11 @@
             emit-br-if-u64-=-scm
             emit-br-if-u64->=-scm
             emit-br-if-u64->-scm
+            emit-br-if-f64-=
+            emit-br-if-f64-<
+            emit-br-if-f64-<=
+            emit-br-if-f64->
+            emit-br-if-f64->=
             emit-box
             emit-box-ref
             emit-box-set!

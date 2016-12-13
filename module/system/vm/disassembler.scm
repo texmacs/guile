@@ -198,6 +198,8 @@ address of that offset."
           'br-if-u64-= 'br-if-u64-< 'br-if-u64-<=
           'br-if-u64-<-scm 'br-if-u64-<=-scm 'br-if-u64-=-scm
           'br-if-u64->-scm 'br-if-u64->=-scm
+          'br-if-f64-= 'br-if-f64-< 'br-if-f64-<=
+          'br-if-f64-> 'br-if-f64->=
           'br-if-logtest) _ ... target)
      (list "-> ~A" (vector-ref labels (- (+ offset target) start))))
     (('br-if-tc7 slot invert? tc7 target)

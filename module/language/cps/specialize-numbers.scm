@@ -144,6 +144,20 @@
         ($continue kop src
           ($primcall 'scm->u64 (a-u64)))))))
 
+(define (specialize-f64-comparison cps kf kt src op a b)
+  (let ((op (symbol-append 'f64- op)))
+    (with-cps cps
+      (letv f64-a f64-b)
+      (letk kop ($kargs ('f64-b) (f64-b)
+                  ($continue kf src
+                    ($branch kt ($primcall op (f64-a f64-b))))))
+      (letk kunbox-b ($kargs ('f64-a) (f64-a)
+                       ($continue kop src
+                         ($primcall 'scm->f64 (b)))))
+      (build-term
+        ($continue kunbox-b src
+          ($primcall 'scm->f64 (a)))))))
+
 (define (sigbits-union x y)
   (and x y (logior x y)))
 
@@ -287,6 +301,11 @@ BITS indicating the significant bits needed for a variable.  BITS may be
             (lambda (type min max)
               (and (eqv? type &exact-integer)
                    (<= 0 min max #xffffffffffffffff))))))
+    (define (f64-operand? var)
+      (call-with-values (lambda ()
+                          (lookup-pre-type types label var))
+        (lambda (type min max)
+          (and (eqv? type &flonum)))))
     (match cont
       (($ $kfun)
        (let ((types (infer-types cps label)))
@@ -391,20 +410,25 @@ BITS indicating the significant bits needed for a variable.  BITS may be
           ($ $continue k src
              ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) (a b)))))
        (values
-        (if (u64-operand? a)
-            (let ((specialize (if (u64-operand? b)
-                                  specialize-u64-comparison
-                                  specialize-u64-scm-comparison)))
-              (with-cps cps
-                (let$ body (specialize k kt src op a b))
-                (setk label ($kargs names vars ,body))))
-            (if (u64-operand? b)
-                (let ((op (match op
-                            ('< '>) ('<= '>=) ('= '=) ('>= '<=) ('> '<))))
-                  (with-cps cps
-                    (let$ body (specialize-u64-scm-comparison k kt src op b a))
-                    (setk label ($kargs names vars ,body))))
-                cps))
+        (cond
+         ((or (f64-operand? a) (f64-operand? b))
+          (with-cps cps
+            (let$ body (specialize-f64-comparison k kt src op a b))
+            (setk label ($kargs names vars ,body))))
+         ((u64-operand? a)
+          (let ((specialize (if (u64-operand? b)
+                                specialize-u64-comparison
+                                specialize-u64-scm-comparison)))
+            (with-cps cps
+              (let$ body (specialize k kt src op a b))
+              (setk label ($kargs names vars ,body)))))
+         ((u64-operand? b)
+          (let ((op (match op
+                      ('< '>) ('<= '>=) ('= '=) ('>= '<=) ('> '<))))
+            (with-cps cps
+              (let$ body (specialize-u64-scm-comparison k kt src op b a))
+              (setk label ($kargs names vars ,body)))))
+         (else cps))
         types
         sigbits))
       (_ (values cps types sigbits))))

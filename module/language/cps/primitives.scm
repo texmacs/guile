@@ -99,7 +99,12 @@
     (u64-=-scm . (1 . 2))
     (u64->=-scm . (1 . 2))
     (u64->-scm . (1 . 2))
-    (logtest . (1 . 2))))
+    (logtest . (1 . 2))
+    (f64-= . (1 . 2))
+    (f64-< . (1 . 2))
+    (f64-> . (1 . 2))
+    (f64-<= . (1 . 2))
+    (f64->= . (1 . 2))))
 
 (define (compute-prim-instructions)
   (let ((table (make-hash-table)))

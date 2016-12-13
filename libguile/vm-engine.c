@@ -358,6 +358,24 @@
     NEXT (3);                                                           \
   }
 
+#define BR_F64_ARITHMETIC(crel)                                         \
+  {                                                                     \
+    scm_t_uint32 a, b;                                                  \
+    scm_t_uint64 x, y;                                                  \
+    UNPACK_24 (op, a);                                                  \
+    UNPACK_24 (ip[1], b);                                               \
+    x = SP_REF_F64 (a);                                                 \
+    y = SP_REF_F64 (b);                                                 \
+    if ((ip[2] & 0x1) ? !(x crel y) : (x crel y))                       \
+      {                                                                 \
+        scm_t_int32 offset = ip[2];                                     \
+        offset >>= 8; /* Sign-extending shift. */                       \
+        NEXT (offset);                                                  \
+      }                                                                 \
+    NEXT (3);                                                           \
+  }
+
+
 #define ARGS1(a1)                               \
   scm_t_uint16 dst, src;                        \
   SCM a1;                                       \
@@ -3935,11 +3953,56 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (187, unused_187, NULL, NOP)
-  VM_DEFINE_OP (188, unused_188, NULL, NOP)
-  VM_DEFINE_OP (189, unused_189, NULL, NOP)
-  VM_DEFINE_OP (190, unused_190, NULL, NOP)
-  VM_DEFINE_OP (191, unused_191, NULL, NOP)
+  /* br-if-f64-= a:12 b:12 invert:1 _:7 offset:24
+   *
+   * If the F64 value in A is = to the F64 value in B, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (187, br_if_f64_ee, "br-if-f64-=", OP3 (X8_S24, X8_S24, B1_X7_L24))
+    {
+      BR_F64_ARITHMETIC (==);
+    }
+
+  /* br-if-f64-< a:12 b:12 invert:1 _:7 offset:24
+   *
+   * If the F64 value in A is < to the F64 value in B, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (188, br_if_f64_lt, "br-if-f64-<", OP3 (X8_S24, X8_S24, B1_X7_L24))
+    {
+      BR_F64_ARITHMETIC (<);
+    }
+
+  /* br-if-f64-<= a:24 _:8 b:24 invert:1 _:7 offset:24
+   *
+   * If the F64 value in A is <= than the F64 value in B, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (189, br_if_f64_le, "br-if-f64-<=", OP3 (X8_S24, X8_S24, B1_X7_L24))
+    {
+      BR_F64_ARITHMETIC (<=);
+    }
+
+  /* br-if-f64-> a:24 _:8 b:24 invert:1 _:7 offset:24
+   *
+   * If the F64 value in A is > than the F64 value in B, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (190, br_if_f64_gt, "br-if-f64->", OP3 (X8_S24, X8_S24, B1_X7_L24))
+    {
+      BR_F64_ARITHMETIC (>);
+    }
+
+  /* br-if-uf4->= a:24 _:8 b:24 invert:1 _:7 offset:24
+   *
+   * If the F64 value in A is >= than the F64 value in B, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (191, br_if_f64_ge, "br-if-f64->=", OP3 (X8_S24, X8_S24, B1_X7_L24))
+    {
+      BR_F64_ARITHMETIC (>=);
+    }
+
   VM_DEFINE_OP (192, unused_192, NULL, NOP)
   VM_DEFINE_OP (193, unused_193, NULL, NOP)
   VM_DEFINE_OP (194, unused_194, NULL, NOP)
