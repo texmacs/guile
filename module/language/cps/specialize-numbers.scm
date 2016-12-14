@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2016 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -197,15 +197,18 @@
 BITS indicating the significant bits needed for a variable.  BITS may be
 #f to indicate all bits, or a non-negative integer indicating a bitmask."
   (let ((preds (invert-graph (compute-successors cps kfun))))
-    (let lp ((worklist (intmap-keys preds)) (out empty-intmap))
+    (let lp ((worklist (intmap-keys preds)) (visited empty-intset)
+             (out empty-intmap))
       (match (intset-prev worklist)
         (#f out)
         (label
-         (let ((worklist (intset-remove worklist label)))
+         (let ((worklist (intset-remove worklist label))
+               (visited* (intset-add visited label)))
            (define (continue out*)
-             (if (eq? out out*)
-                 (lp worklist out)
-                 (lp (intset-union worklist (intmap-ref preds label)) out*)))
+             (if (and (eq? out out*) (eq? visited visited*))
+                 (lp worklist visited out)
+                 (lp (intset-union worklist (intmap-ref preds label))
+                     visited* out*)))
            (define (add-def out var)
              (intmap-add out var 0 sigbits-union))
            (define (add-defs out vars)
@@ -233,11 +236,12 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                    (($ $values args)
                     (match (intmap-ref cps k)
                       (($ $kargs _ vars)
-                       (fold (lambda (arg var out)
-                               (intmap-add out arg (intmap-ref out var
-                                                               (lambda (_) 0))
-                                           sigbits-union))
-                             out args vars))
+                       (if (intset-ref visited k)
+                           (fold (lambda (arg var out)
+                                   (intmap-add out arg (intmap-ref out var)
+                                               sigbits-union))
+                                 out args vars)
+                           out))
                       (($ $ktail)
                        (add-unknown-uses out args))))
                    (($ $call proc args)
