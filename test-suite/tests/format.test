@@ -108,6 +108,15 @@
   
   (pass-if "3/2"
     (string=? "1.5" (format #f "~f" 3/2)))
+
+  (pass-if "~2f"
+    (string=? "10." (format #f "~2f" 9.9)))
+
+  (pass-if "~2,1f"
+    (string=? "9.9" (format #f "~2,1f" 9.9)))
+
+  (pass-if "~2,2f"
+    (string=? "9.90" (format #f "~2,2f" 9.9)))
   
   ;; in guile prior to 1.6.9 and 1.8.1, leading zeros were incorrectly
   ;; stripped, moving the decimal point and giving "25.0" here
