@@ -29,30 +29,41 @@
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
   #:use-module (language cps intmap)
+  #:use-module (language cps intset)
   #:use-module (language cps renumber)
   #:export (add-handle-interrupts))
 
-(define (add-handle-interrupts cps)
-  (define (visit-cont label cont cps)
+(define (compute-safepoints cps)
+  (define (visit-cont label cont safepoints)
     (match cont
       (($ $kargs names vars ($ $continue k src exp))
-       (if (or (<= k label)
-               (match exp
-                 (($ $call) #t)
-                 (($ $callk) #t)
-                 (($ $values)
-                  (match (intmap-ref cps k)
-                    (($ $ktail) #t)
-                    (_ #f)))
-                 (_ #f)))
-           (with-cps cps
-             (letk k* ($kargs () () ($continue k src ,exp)))
-             (setk label
-                   ($kargs names vars
-                     ($continue k* src
-                       ($primcall 'handle-interrupts ())))))
-           cps))
-      (_ cps)))
-  (let ((cps (renumber cps)))
+       (let ((safepoints (if (<= k label)
+                             (intset-add! safepoints k)
+                             safepoints)))
+         (if (match exp
+               (($ $call) #t)
+               (($ $callk) #t)
+               (($ $values)
+                (match (intmap-ref cps k)
+                  (($ $ktail) #t)
+                  (_ #f)))
+               (_ #f))
+             (intset-add! safepoints label)
+             safepoints)))
+      (_ safepoints)))
+  (persistent-intset (intmap-fold visit-cont cps empty-intset)))
+
+(define (add-handle-interrupts cps)
+  (define (add-safepoint label cps)
+    (match (intmap-ref cps label)
+      (($ $kargs names vars ($ $continue k src exp))
+       (with-cps cps
+         (letk k* ($kargs () () ($continue k src ,exp)))
+         (setk label
+               ($kargs names vars
+                 ($continue k* src
+                   ($primcall 'handle-interrupts ()))))))))
+  (let* ((cps (renumber cps))
+         (safepoints (compute-safepoints cps)))
     (with-fresh-name-state cps
-      (persistent-intmap (intmap-fold visit-cont cps cps)))))
+      (persistent-intmap (intset-fold add-safepoint safepoints cps)))))
