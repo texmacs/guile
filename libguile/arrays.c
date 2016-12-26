@@ -468,19 +468,19 @@ array_from_get_o (scm_t_array_handle *handle, size_t k, scm_t_array_dim *s, ssiz
     }
 }
 
-SCM_DEFINE (scm_array_from_s, "array-from*", 1, 0, 1,
+SCM_DEFINE (scm_array_slice, "array-slice", 1, 0, 1,
            (SCM ra, SCM indices),
             "Return the array slice @var{ra}[@var{indices} ..., ...]\n"
             "The rank of @var{ra} must equal to the number of indices or larger.\n\n"
-            "See also @code{array-ref}, @code{array-from}, @code{array-amend!}.\n\n"
-            "@code{array-from*} may return a rank-0 array. For example:\n"
+            "See also @code{array-ref}, @code{array-cell-ref}, @code{array-cell-set!}.\n\n"
+            "@code{array-slice} may return a rank-0 array. For example:\n"
             "@lisp\n"
-            "(array-from* #2((1 2 3) (4 5 6)) 1 1) @result{} #0(5)\n"
-            "(array-from* #2((1 2 3) (4 5 6)) 1) @result{} #(4 5 6)\n"
-            "(array-from* #2((1 2 3) (4 5 6))) @result{} #2((1 2 3) (4 5 6))\n"
-            "(array-from* #0(5) @result{} #0(5).\n"
+            "(array-slice #2((1 2 3) (4 5 6)) 1 1) @result{} #0(5)\n"
+            "(array-slice #2((1 2 3) (4 5 6)) 1) @result{} #(4 5 6)\n"
+            "(array-slice #2((1 2 3) (4 5 6))) @result{} #2((1 2 3) (4 5 6))\n"
+            "(array-slice #0(5) @result{} #0(5).\n"
             "@end lisp")
-#define FUNC_NAME s_scm_array_from_s
+#define FUNC_NAME s_scm_array_slice
 {
   SCM o, i = indices;
   size_t ndim, k;
@@ -506,20 +506,20 @@ SCM_DEFINE (scm_array_from_s, "array-from*", 1, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_array_from, "array-from", 1, 0, 1,
+SCM_DEFINE (scm_array_cell_ref, "array-cell-ref", 1, 0, 1,
            (SCM ra, SCM indices),
             "Return the element at the @code{(@var{indices} ...)} position\n"
             "in array @var{ra}, or the array slice @var{ra}[@var{indices} ..., ...]\n"
             "if the rank of @var{ra} is larger than the number of indices.\n\n"
-            "See also @code{array-ref}, @code{array-from*}, @code{array-amend!}.\n\n"
-            "@code{array-from} never returns a rank 0 array. For example:\n"
+            "See also @code{array-ref}, @code{array-slice}, @code{array-cell-set!}.\n\n"
+            "@code{array-cell-ref} never returns a rank 0 array. For example:\n"
             "@lisp\n"
-            "(array-from #2((1 2 3) (4 5 6)) 1 1) @result{} 5\n"
-            "(array-from #2((1 2 3) (4 5 6)) 1) @result{} #(4 5 6)\n"
-            "(array-from #2((1 2 3) (4 5 6))) @result{} #2((1 2 3) (4 5 6))\n"
-            "(array-from #0(5) @result{} 5.\n"
+            "(array-cell-ref #2((1 2 3) (4 5 6)) 1 1) @result{} 5\n"
+            "(array-cell-ref #2((1 2 3) (4 5 6)) 1) @result{} #(4 5 6)\n"
+            "(array-cell-ref #2((1 2 3) (4 5 6))) @result{} #2((1 2 3) (4 5 6))\n"
+            "(array-cell-ref #0(5) @result{} 5.\n"
             "@end lisp")
-#define FUNC_NAME s_scm_array_from
+#define FUNC_NAME s_scm_array_cell_ref
 {
   SCM o, i = indices;
   size_t ndim, k;
@@ -548,25 +548,25 @@ SCM_DEFINE (scm_array_from, "array-from", 1, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_array_amend_x, "array-amend!", 2, 0, 1,
+SCM_DEFINE (scm_array_cell_set_x, "array-cell-set!", 2, 0, 1,
             (SCM ra, SCM b, SCM indices),
             "Set the array slice @var{ra}[@var{indices} ..., ...] to @var{b}\n."
-            "Equivalent to @code{(array-copy! @var{b} (apply array-from @var{ra} @var{indices}))}\n"
+            "Equivalent to @code{(array-copy! @var{b} (apply array-cell-ref @var{ra} @var{indices}))}\n"
             "if the number of indices is smaller than the rank of @var{ra}; otherwise\n"
             "equivalent to @code{(apply array-set! @var{ra} @var{b} @var{indices})}.\n"
             "This function returns the modified array @var{ra}.\n\n"
-            "See also @code{array-ref}, @code{array-from}, @code{array-from*}.\n\n"
+            "See also @code{array-ref}, @code{array-cell-ref}, @code{array-slice}.\n\n"
             "For example:\n"
             "@lisp\n"
             "(define A (list->array 2 '((1 2 3) (4 5 6))))\n"
-            "(array-amend! A #0(99) 1 1) @result{} #2((1 2 3) (4 #0(99) 6))\n"
-            "(array-amend! A 99 1 1) @result{} #2((1 2 3) (4 99 6))\n"
-            "(array-amend! A #(a b c) 0) @result{} #2((a b c) (4 99 6))\n"
-            "(array-amend! A #2((x y z) (9 8 7))) @result{} #2((x y z) (9 8 7))\n\n"
+            "(array-cell-set! A #0(99) 1 1) @result{} #2((1 2 3) (4 #0(99) 6))\n"
+            "(array-cell-set! A 99 1 1) @result{} #2((1 2 3) (4 99 6))\n"
+            "(array-cell-set! A #(a b c) 0) @result{} #2((a b c) (4 99 6))\n"
+            "(array-cell-set! A #2((x y z) (9 8 7))) @result{} #2((x y z) (9 8 7))\n\n"
             "(define B (make-array 0))\n"
-            "(array-amend! B 15) @result{} #0(15)\n"
+            "(array-cell-set! B 15) @result{} #0(15)\n"
             "@end lisp")
-#define FUNC_NAME s_scm_array_amend_x
+#define FUNC_NAME s_scm_array_cell_set_x
 {
   SCM o, i = indices;
   size_t ndim, k;

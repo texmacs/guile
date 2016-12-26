@@ -49,9 +49,9 @@ SCM_API SCM scm_shared_array_increments (SCM ra);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
-SCM_API SCM scm_array_from_s (SCM ra, SCM indices);
-SCM_API SCM scm_array_from (SCM ra, SCM indices);
-SCM_API SCM scm_array_amend_x (SCM ra, SCM b, SCM indices);
+SCM_API SCM scm_array_slice (SCM ra, SCM indices);
+SCM_API SCM scm_array_cell_ref (SCM ra, SCM indices);
+SCM_API SCM scm_array_cell_set_x (SCM ra, SCM b, SCM indices);
 
 SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
 SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);

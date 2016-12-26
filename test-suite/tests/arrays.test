@@ -298,110 +298,110 @@
 
 
 ;;;
-;;; array-from*
+;;; array-slice
 ;;;
 
-(with-test-prefix/c&e "array-from*"
+(with-test-prefix/c&e "array-slice"
 
   (pass-if "vector I"
     (let ((v (vector 1 2 3)))
-      (array-fill! (array-from* v 1) 'a)
+      (array-fill! (array-slice v 1) 'a)
       (array-equal? v #(1 a 3))))
 
   (pass-if "vector II"
     (let ((v (vector 1 2 3)))
-      (array-copy! #(a b c) (array-from* v))
+      (array-copy! #(a b c) (array-slice v))
       (array-equal? v #(a b c))))
 
   (pass-if "array I"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (array-fill! (array-from* a 1 1) 'a)
+      (array-fill! (array-slice a 1 1) 'a)
       (array-equal? a #2((1 2 3) (4 a 6)))))
 
   (pass-if "array II"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (array-copy! #(a b c) (array-from* a 1))
+      (array-copy! #(a b c) (array-slice a 1))
       (array-equal? a #2((1 2 3) (a b c)))))
 
   (pass-if "array III"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (array-copy! #2((a b c) (x y z)) (array-from* a))
+      (array-copy! #2((a b c) (x y z)) (array-slice a))
       (array-equal? a #2((a b c) (x y z)))))
 
   (pass-if "rank 0 array"
     (let ((a (make-array 77)))
-      (array-fill! (array-from* a) 'a)
+      (array-fill! (array-slice a) 'a)
       (array-equal? a #0(a)))))
 
 
 ;;;
-;;; array-from
+;;; array-cell-ref
 ;;;
 
-(with-test-prefix/c&e "array-from"
+(with-test-prefix/c&e "array-cell-ref"
 
   (pass-if "vector I"
     (let ((v (vector 1 2 3)))
-      (equal? 2 (array-from v 1))))
+      (equal? 2 (array-cell-ref v 1))))
 
   (pass-if "vector II"
     (let ((v (vector 1 2 3)))
-      (array-copy! #(a b c) (array-from v))
+      (array-copy! #(a b c) (array-cell-ref v))
       (array-equal? v #(a b c))))
 
   (pass-if "array I"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (equal? 5 (array-from a 1 1))))
+      (equal? 5 (array-cell-ref a 1 1))))
 
   (pass-if "array II"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (array-copy! #(a b c) (array-from a 1))
+      (array-copy! #(a b c) (array-cell-ref a 1))
       (array-equal? a #2((1 2 3) (a b c)))))
 
   (pass-if "array III"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (array-copy! #2((a b c) (x y z)) (array-from a))
+      (array-copy! #2((a b c) (x y z)) (array-cell-ref a))
       (array-equal? a #2((a b c) (x y z)))))
 
   (pass-if "rank 0 array"
     (let ((a (make-array 77)))
-      (equal? (array-from a) 77))))
+      (equal? (array-cell-ref a) 77))))
 
 
 ;;;
-;;; array-amend!
+;;; array-cell-set!
 ;;;
 
-(with-test-prefix/c&e "array-amend!"
+(with-test-prefix/c&e "array-cell-set!"
 
   (pass-if "vector I"
     (let ((v (vector 1 2 3)))
-      (and (eq? v (array-amend! v 'x 1))
+      (and (eq? v (array-cell-set! v 'x 1))
            (array-equal? v #(1 x 3)))))
 
   (pass-if "vector II"
     (let ((v (vector 1 2 3)))
-      (and (eq? v (array-amend! (array-from v) #(a b c)))
+      (and (eq? v (array-cell-set! (array-cell-ref v) #(a b c)))
            (array-equal? v #(a b c)))))
 
   (pass-if "array I"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (and (eq? a (array-amend! a 'x 1 1))
+      (and (eq? a (array-cell-set! a 'x 1 1))
            (array-equal? a #2((1 2 3) (4 x 6))))))
 
   (pass-if "array II"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (and (eq? a (array-amend! a #(a b c) 1))
+      (and (eq? a (array-cell-set! a #(a b c) 1))
            (array-equal? a #2((1 2 3) (a b c))))))
 
   (pass-if "array III"
     (let ((a (list->array 2 '((1 2 3) (4 5 6)))))
-      (and (eq? a (array-amend! a #2((a b c) (x y z))))
+      (and (eq? a (array-cell-set! a #2((a b c) (x y z))))
            (array-equal? a #2((a b c) (x y z))))))
 
   (pass-if "rank 0 array"
     (let ((a (make-array 77)))
-      (and (eq? a (array-amend! a 99))
+      (and (eq? a (array-cell-set! a 99))
            (array-equal? a #0(99))))))
 
 

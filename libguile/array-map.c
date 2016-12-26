@@ -655,7 +655,7 @@ scm_i_array_rebase (SCM a, size_t base)
 
 static inline size_t padtoptr(size_t d) { return (d + (sizeof (void *) - 1)) & ~(sizeof (void *) - 1); }
 
-SCM_DEFINE (scm_array_for_each_cell, "array-for-each-cell", 2, 0, 1,
+SCM_DEFINE (scm_array_slice_for_each, "array-slice-for-each", 2, 0, 1,
             (SCM frame_rank, SCM op, SCM args),
             "Apply @var{op} to each of the cells of rank rank(@var{arg})-@var{frame_rank}\n"
             "of the arrays @var{args}, in unspecified order. The first\n"
@@ -665,17 +665,17 @@ SCM_DEFINE (scm_array_for_each_cell, "array-for-each-cell", 2, 0, 1,
             "For example:\n"
             "@lisp\n"
             ";; Sort the rows of rank-2 array A.\n\n"
-            "(array-for-each-cell 1 (lambda (x) (sort! x <)) a)\n"
+            "(array-slice-for-each 1 (lambda (x) (sort! x <)) a)\n"
             "\n"
             ";; Compute the arguments of the (x y) vectors in the rows of rank-2\n"
             ";; array XYS and store them in rank-1 array ANGLES. Inside OP,\n"
             ";; XY is a rank-1 (2-1) array, and ANGLE is a rank-0 (1-1) array.\n\n"
-            "(array-for-each-cell 1 \n"
+            "(array-slice-for-each 1 \n"
             "  (lambda (xy angle)\n"
             "    (array-set! angle (atan (array-ref xy 1) (array-ref xy 0))))\n"
             "  xys angles)\n"
             "@end lisp")
-#define FUNC_NAME s_scm_array_for_each_cell
+#define FUNC_NAME s_scm_array_slice_for_each
 {
   int const N = scm_ilength (args);
   int const frank = scm_to_int (frame_rank);
@@ -787,7 +787,7 @@ SCM_DEFINE (scm_array_for_each_cell, "array-for-each-cell", 2, 0, 1,
     {
       for (n=0; n!=N; ++n)
         scm_array_handle_release(ah+n);
-      scm_misc_error("array-for-each-cell", msg, scm_cons_star(frame_rank, args));
+      scm_misc_error("array-slice-for-each", msg, scm_cons_star(frame_rank, args));
     }
   /* prepare moving cells. */
   for (n=0; n!=N; ++n)
@@ -884,13 +884,13 @@ SCM_DEFINE (scm_array_for_each_cell, "array-for-each-cell", 2, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_array_for_each_cell_in_order, "array-for-each-cell-in-order", 2, 0, 1,
+SCM_DEFINE (scm_array_slice_for_each_in_order, "array-slice-for-each-in-order", 2, 0, 1,
             (SCM frank, SCM op, SCM a),
-            "Same as array-for-each-cell, but visit the cells sequentially\n"
+            "Same as array-slice-for-each, but visit the cells sequentially\n"
             "and in row-major order.\n")
-#define FUNC_NAME s_scm_array_for_each_cell_in_order
+#define FUNC_NAME s_scm_array_slice_for_each_in_order
 {
-  return scm_array_for_each_cell (frank, op, a);
+  return scm_array_slice_for_each (frank, op, a);
 }
 #undef FUNC_NAME
 

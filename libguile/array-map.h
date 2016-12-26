@@ -37,8 +37,8 @@ SCM_API SCM scm_array_map_x (SCM ra0, SCM proc, SCM lra);
 SCM_API SCM scm_array_for_each (SCM proc, SCM ra0, SCM lra);
 SCM_API SCM scm_array_index_map_x (SCM ra, SCM proc);
 SCM_API SCM scm_array_equal_p (SCM ra0, SCM ra1);
-SCM_API SCM scm_array_for_each_cell (SCM frank, SCM op, SCM args);
-SCM_API SCM scm_array_for_each_cell_in_order (SCM frank, SCM op, SCM args);
+SCM_API SCM scm_array_slice_for_each (SCM frank, SCM op, SCM args);
+SCM_API SCM scm_array_slice_for_each_in_order (SCM frank, SCM op, SCM args);
 
 SCM_INTERNAL SCM scm_i_array_rebase (SCM a, size_t base);
 SCM_INTERNAL void scm_init_array_map (void);
