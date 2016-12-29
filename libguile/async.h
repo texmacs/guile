@@ -33,10 +33,12 @@ SCM_API void scm_async_tick (void);
 SCM_API void scm_switch (void);
 SCM_API SCM scm_system_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
-SCM_INTERNAL int scm_i_setup_sleep (scm_i_thread *,
-				    scm_i_pthread_mutex_t *m,
-				    int fd);
-SCM_INTERNAL void scm_i_reset_sleep (scm_i_thread *);
+
+SCM_API int scm_c_prepare_to_wait_on_fd (int fd);
+SCM_API int scm_c_prepare_to_wait_on_cond (scm_i_pthread_mutex_t *m,
+                                           scm_i_pthread_cond_t *c);
+SCM_API void scm_c_wait_finished (void);
+
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
@@ -44,6 +46,14 @@ SCM_API void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 SCM_API void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
 SCM_API void scm_dynwind_block_asyncs (void);
 SCM_API void scm_dynwind_unblock_asyncs (void);
+
+SCM_INTERNAL int scm_i_prepare_to_wait (scm_i_thread *,
+                                        struct scm_thread_wake_data *);
+SCM_INTERNAL void scm_i_wait_finished (scm_i_thread *);
+SCM_INTERNAL int scm_i_prepare_to_wait_on_fd (scm_i_thread *, int);
+SCM_INTERNAL int scm_i_prepare_to_wait_on_cond (scm_i_thread *,
+                                                scm_i_pthread_mutex_t *,
+                                                scm_i_pthread_cond_t *);
 
 SCM_INTERNAL void scm_i_async_push (scm_i_thread *t, SCM proc);
 SCM_INTERNAL SCM scm_i_async_pop (scm_i_thread *t);

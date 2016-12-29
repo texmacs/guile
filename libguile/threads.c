@@ -307,29 +307,24 @@ block_self (SCM queue, scm_i_pthread_mutex_t *mutex,
   SCM q_handle;
   int err;
 
-  if (scm_i_setup_sleep (t, mutex, -1))
-    {
-      scm_i_reset_sleep (t);
-      err = EINTR;
-    }
-  else
-    {
-      t->block_asyncs++;
-      q_handle = enqueue (queue, t->handle);
-      if (waittime == NULL)
-	err = scm_i_scm_pthread_cond_wait (&t->sleep_cond, mutex);
-      else
-	err = scm_i_scm_pthread_cond_timedwait (&t->sleep_cond, mutex, waittime);
+  if (scm_i_prepare_to_wait_on_cond (t, mutex, &t->sleep_cond))
+    return EINTR;
 
-      /* When we are still on QUEUE, we have been interrupted.  We
-	 report this only when no other error (such as a timeout) has
-	 happened above.
-      */
-      if (remqueue (queue, q_handle) && err == 0)
-	err = EINTR;
-      t->block_asyncs--;
-      scm_i_reset_sleep (t);
-    }
+  t->block_asyncs++;
+  q_handle = enqueue (queue, t->handle);
+  if (waittime == NULL)
+    err = scm_i_scm_pthread_cond_wait (&t->sleep_cond, mutex);
+  else
+    err = scm_i_scm_pthread_cond_timedwait (&t->sleep_cond, mutex, waittime);
+
+  /* When we are still on QUEUE, we have been interrupted.  We
+     report this only when no other error (such as a timeout) has
+     happened above.
+  */
+  if (remqueue (queue, q_handle) && err == 0)
+    err = EINTR;
+  t->block_asyncs--;
+  scm_i_wait_finished (t);
 
   return err;
 }
@@ -1479,11 +1474,8 @@ scm_std_select (int nfds,
       readfds = &my_readfds;
     }
 
-  while (scm_i_setup_sleep (t, NULL, t->sleep_pipe[1]))
-    {
-      scm_i_reset_sleep (t);
-      SCM_TICK;
-    }
+  while (scm_i_prepare_to_wait_on_fd (t, t->sleep_pipe[1]))
+    SCM_TICK;
 
   wakeup_fd = t->sleep_pipe[0];
   FD_SET (wakeup_fd, readfds);
@@ -1502,7 +1494,7 @@ scm_std_select (int nfds,
   res = args.result;
   eno = args.errno_value;
 
-  scm_i_reset_sleep (t);
+  scm_i_wait_finished (t);
 
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
     {

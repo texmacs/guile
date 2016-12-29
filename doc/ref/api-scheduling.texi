@@ -306,6 +306,38 @@ one level.  This function must be used inside a pair of calls to
 Wind}).
 @end deftypefn
 
+Sometimes you want to interrupt a thread that might be waiting for
+something to happen, for example on a file descriptor or a condition
+variable.  In that case you can inform Guile of how to interrupt that
+wait using the following procedures:
+
+@deftypefn {C Function} int scm_c_prepare_to_wait_on_fd (int fd)
+Inform Guile that the current thread is about to sleep, and that if an
+asynchronous interrupt is signalled on this thread, Guile should wake up
+the thread by writing a zero byte to @var{fd}.  Returns zero if the
+prepare succeeded, or nonzero if the thread already has a pending async
+and that it should avoid waiting.
+@end deftypefn
+
+@deftypefn {C Function} int scm_c_prepare_to_wait_on_cond (scm_i_pthread_mutex_t *mutex, scm_i_pthread_cond_t *cond)
+Inform Guile that the current thread is about to sleep, and that if an
+asynchronous interrupt is signalled on this thread, Guile should wake up
+the thread by acquiring @var{mutex} and signalling @var{cond}.  The
+caller must already hold @var{mutex} and only drop it as part of the
+@code{pthread_cond_wait} call.  Returns zero if the prepare succeeded,
+or nonzero if the thread already has a pending async and that it should
+avoid waiting.
+@end deftypefn
+
+@deftypefn {C Function} void scm_c_wait_finished (void)
+Inform Guile that the current thread has finished waiting, and that
+asynchronous interrupts no longer need any special wakeup action; the
+current thread will periodically poll its internal queue instead.
+@end deftypefn
+
+Guile's own interface to @code{sleep}, @code{wait-condition-variable},
+@code{select}, and so on all call the above routines as appropriate.
+
 Finally, note that threads can also be interrupted via POSIX signals.
 @xref{Signals}.  As an implementation detail, signal handlers will
 effectively call @code{system-async-mark} in a signal-safe way,

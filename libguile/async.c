@@ -149,30 +149,81 @@ scm_async_tick (void)
 }
 
 struct scm_thread_wake_data {
-  scm_i_pthread_mutex_t *mutex;
-  int fd;
+  enum { WAIT_FD, WAIT_COND } kind;
+  union {
+    struct {
+      int fd;
+    } wait_fd;
+    struct {
+      scm_i_pthread_mutex_t *mutex;
+      scm_i_pthread_cond_t *cond;
+    } wait_cond;
+  } data;
 };
 
 int
-scm_i_setup_sleep (scm_i_thread *t,
-		   scm_i_pthread_mutex_t *sleep_mutex,
-		   int sleep_fd)
+scm_i_prepare_to_wait (scm_i_thread *t,
+                       struct scm_thread_wake_data *wake)
 {
-  struct scm_thread_wake_data *wake;
-
-  wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
-  wake->mutex = sleep_mutex;
-  wake->fd = sleep_fd;
-
   scm_atomic_set_pointer ((void **)&t->wake, wake);
 
-  return !scm_is_null (scm_atomic_ref_scm (&t->pending_asyncs));
+  /* If no interrupt was registered in the meantime, then any future
+     wakeup will signal the FD or cond var.  */
+  if (scm_is_null (scm_atomic_ref_scm (&t->pending_asyncs)))
+    return 0;
+
+  /* Otherwise clear the wake pointer and indicate that the caller
+     should handle interrupts directly.  */
+  scm_i_wait_finished (t);
+  return 1;
 }
 
 void
-scm_i_reset_sleep (scm_i_thread *t)
+scm_i_wait_finished (scm_i_thread *t)
 {
   scm_atomic_set_pointer ((void **)&t->wake, NULL);
+}
+
+int
+scm_i_prepare_to_wait_on_fd (scm_i_thread *t, int fd)
+{
+  struct scm_thread_wake_data *wake;
+  wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
+  wake->kind = WAIT_FD;
+  wake->data.wait_fd.fd = fd;
+  return scm_i_prepare_to_wait (t, wake);
+}
+
+int
+scm_c_prepare_to_wait_on_fd (int fd)
+{
+  return scm_i_prepare_to_wait_on_fd (SCM_I_CURRENT_THREAD, fd);
+}
+
+int
+scm_i_prepare_to_wait_on_cond (scm_i_thread *t,
+                               scm_i_pthread_mutex_t *m,
+                               scm_i_pthread_cond_t *c)
+{
+  struct scm_thread_wake_data *wake;
+  wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
+  wake->kind = WAIT_COND;
+  wake->data.wait_cond.mutex = m;
+  wake->data.wait_cond.cond = c;
+  return scm_i_prepare_to_wait (t, wake);
+}
+
+int
+scm_c_prepare_to_wait_on_cond (scm_i_pthread_mutex_t *m,
+                               scm_i_pthread_cond_t *c)
+{
+  return scm_i_prepare_to_wait_on_cond (SCM_I_CURRENT_THREAD, m, c);
+}
+
+void
+scm_c_wait_finished (void)
+{
+  scm_i_wait_finished (SCM_I_CURRENT_THREAD);
 }
 
 SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
@@ -210,19 +261,18 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	 might even be in the next, unrelated sleep.  Interrupting it
 	 anyway does no harm, however.
 
-	 The important thing to prevent here is to signal sleep_cond
-	 before T waits on it.  This can not happen since T has
-	 sleep_mutex locked while setting t->sleep_mutex and will only
-	 unlock it again while waiting on sleep_cond.
+	 The important thing to prevent here is to signal the cond
+	 before T waits on it.  This can not happen since T has its
+	 mutex locked while preparing the wait and will only unlock it
+	 again while waiting on the cond.
       */
-      if (wake->mutex)
+      if (wake->kind == WAIT_COND)
         {
-          scm_i_scm_pthread_mutex_lock (wake->mutex);
-          scm_i_pthread_cond_signal (&t->sleep_cond);
-          scm_i_pthread_mutex_unlock (wake->mutex);
+          scm_i_scm_pthread_mutex_lock (wake->data.wait_cond.mutex);
+          scm_i_pthread_cond_signal (wake->data.wait_cond.cond);
+          scm_i_pthread_mutex_unlock (wake->data.wait_cond.mutex);
         }
-
-      if (wake->fd >= 0)
+      else if (wake->kind == WAIT_FD)
         {
           char dummy = 0;
 
@@ -231,8 +281,10 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
              not yet have started sleeping, but this is no problem
              either since the data written to a pipe will not be lost,
              unlike a condition variable signal.  */
-          full_write (wake->fd, &dummy, 1);
+          full_write (wake->data.wait_fd.fd, &dummy, 1);
         }
+      else
+        abort ();
     }
 
   return SCM_UNSPECIFIED;
