@@ -212,7 +212,7 @@ alloc_aligned (size_t len, unsigned alignment)
       ret = malloc (len + alignment - 1);
       if (!ret)
         abort ();
-      ret = (char *) ALIGN ((scm_t_uintptr) ret, alignment);
+      ret = (char *) ALIGN ((scm_t_uintptr) ret, (scm_t_uintptr) alignment);
     }
 
   return ret;
