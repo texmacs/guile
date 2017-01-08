@@ -327,11 +327,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
-    {
-      SCM_VALIDATE_THREAD (4, thread);
-      if (scm_c_thread_exited_p (thread))
-	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
-    }
+    SCM_VALIDATE_THREAD (4, thread);
 
   scm_i_ensure_signal_delivery_thread ();
 
