@@ -54,8 +54,6 @@ typedef struct scm_i_thread {
   SCM handle;
   scm_i_pthread_t pthread;
 
-  scm_i_pthread_mutex_t admin_mutex;
-
   SCM result;
   int exited;
 

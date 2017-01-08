@@ -408,7 +408,6 @@ guilify_self_1 (struct GC_stack_base *base)
        currently have type `void'.  */
     abort ();
 
-  scm_i_pthread_mutex_init (&t.admin_mutex, NULL);
   t.exited = 0;
   t.guile_mode = 0;
 
