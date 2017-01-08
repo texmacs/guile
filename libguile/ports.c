@@ -134,15 +134,22 @@ static void
 release_port (SCM port)
 {
   scm_t_port *pt = SCM_PORT (port);
-  scm_t_uint32 prev;
 
-  prev = scm_atomic_subtract_uint32 (&pt->refcount, 1);
-  if (prev == 0)
-    /* Logic failure.  */
-    abort ();
-
-  if (prev > 1)
-    /* Port still alive.  */
+  /* It's possible for two close-port invocations to race, and since
+     close-port is defined to be idempotent we need to avoid
+     decrementing the refcount past 0.  The normal case is that it's
+     open with a refcount of 1 and we're going to change it to 0.
+     Otherwise if the refcount is higher we just subtract 1 and we're
+     done.  However if the current refcount is 0 then the port has been
+     closed or is closing and we just return.  */
+  scm_t_uint32 cur = 1, next = 0;
+  while (!scm_atomic_compare_and_swap_uint32 (&pt->refcount, &cur, next))
+    {
+      if (cur == 0)
+        return;
+      next = cur - 1;
+    }
+  if (cur > 1)
     return;
 
   /* FIXME: `catch' around the close call?  It could throw an exception,
