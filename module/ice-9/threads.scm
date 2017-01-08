@@ -128,23 +128,37 @@ Once @var{thunk} or @var{handler} returns, the return value is made the
                    (lambda () (catch #t thunk handler))
                    thunk))
         (thread #f))
+    (define (call-with-backtrace thunk)
+      (let ((err (current-error-port)))
+        (catch #t
+          (lambda () (%start-stack 'thread thunk))
+          (lambda _ (values))
+          (lambda (key . args)
+            ;; Narrow by three: the dispatch-exception,
+            ;; this thunk, and make-stack.
+            (let ((stack (make-stack #t 3)))
+              (false-if-exception
+               (begin
+                 (when stack
+                   (display-backtrace stack err))
+                 (let ((frame (and stack (stack-ref stack 0))))
+                   (print-exception err frame key args)))))))))
     (with-mutex mutex
       (%call-with-new-thread
        (lambda ()
          (call-with-values
              (lambda ()
-               (with-continuation-barrier
-                (lambda ()
-                  (call-with-prompt cancel-tag
-                    (lambda ()
-                      (lock-mutex mutex)
-                      (set! thread (current-thread))
-                      (set! (thread-join-data thread) (cons cv mutex))
-                      (signal-condition-variable cv)
-                      (unlock-mutex mutex)
-                      (thunk))
-                    (lambda (k . args)
-                      (apply values args))))))
+               (call-with-prompt cancel-tag
+                 (lambda ()
+                   (lock-mutex mutex)
+                   (set! thread (current-thread))
+                   (set! (thread-join-data thread) (cons cv mutex))
+                   (signal-condition-variable cv)
+                   (unlock-mutex mutex)
+                   (call-with-unblocked-asyncs
+                    (lambda () (call-with-backtrace thunk))))
+                 (lambda (k . args)
+                   (apply values args))))
            (lambda vals
              (lock-mutex mutex)
              ;; Probably now you're wondering why we are going to use

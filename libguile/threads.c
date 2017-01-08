@@ -732,6 +732,9 @@ typedef struct {
 static void *
 really_launch (void *d)
 {
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  /* The thread starts with asyncs blocked.  */
+  t->block_asyncs++;
   SCM_I_CURRENT_THREAD->result = scm_call_0 (((launch_data *)d)->thunk);
   return 0;
 }
