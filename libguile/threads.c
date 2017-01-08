@@ -1290,7 +1290,23 @@ timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
       err = block_self (c->waiting, &m->lock, waittime);
 
       /* We woke up for some reason.  Reacquire the mutex before doing
-         anything else.  */
+         anything else.
+
+         FIXME: We disable interrupts while reacquiring the mutex.  If
+         we allow interrupts here, there's the risk of a nonlocal exit
+         before we reaquire the mutex, which would be visible to user
+         code.
+
+         For example the unwind handler in
+
+           (with-mutex m (wait-condition-variable c m))
+
+         that tries to unlock M could see M in an already-unlocked
+         state, if an interrupt while waiting on C caused the wait to
+         abort and the woke thread lost the race to reacquire M.  That's
+         not great.  Maybe it's necessary but for now we just disable
+         interrupts while reaquiring a mutex after a wait.  */
+      current_thread->block_asyncs++;
       if (kind == SCM_MUTEX_RECURSIVE &&
           scm_is_eq (m->owner, current_thread->handle))
 	{
@@ -1307,16 +1323,8 @@ timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
                 break;
               }
             block_self (m->waiting, &m->lock, waittime);
-            if (scm_is_eq (m->owner, SCM_BOOL_F))
-              {
-                m->owner = current_thread->handle;
-                scm_i_pthread_mutex_unlock (&m->lock);
-                break;
-              }
-            scm_i_pthread_mutex_unlock (&m->lock);
-            scm_async_tick ();
-            scm_i_scm_pthread_mutex_lock (&m->lock);
           }
+      current_thread->block_asyncs--;
 
       /* Now that we have the mutex again, handle the return value.  */
       if (err == 0)
