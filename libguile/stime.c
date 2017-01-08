@@ -833,10 +833,7 @@ scm_init_stime()
   {
     clockid_t dummy;
     
-    /* Only use the _POSIX_CPUTIME clock if it's going to work across
-       CPUs. */
-    if (clock_getcpuclockid (0, &dummy) == 0 &&
-        clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &posix_run_time_base) == 0)
+    if (clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &posix_run_time_base) == 0)
       get_internal_run_time = get_internal_run_time_posix_timer;
     else
       errno = 0;
