@@ -79,6 +79,9 @@
 #define ELFDATA ELFDATA2LSB
 #endif
 
+/* The page size.  */
+static size_t page_size;
+
 static void register_elf (char *data, size_t len, char *frame_maps);
 
 enum bytecode_kind
@@ -192,12 +195,13 @@ alloc_aligned (size_t len, unsigned alignment)
       /* FIXME: Assert that we actually have an 8-byte-aligned malloc.  */
       ret = malloc (len);
     }
-#if defined(HAVE_SYS_MMAN_H) && defined(MMAP_ANONYMOUS)
-  else if (alignment == SCM_PAGE_SIZE)
+#if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MAP_ANONYMOUS)
+  else if (alignment == page_size)
     {
-      ret = mmap (NULL, len, PROT_READ | PROT_WRITE, -1, 0);
+      ret = mmap (NULL, len, PROT_READ | PROT_WRITE,
+                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
       if (ret == MAP_FAILED)
-        SCM_SYSERROR;
+        scm_syserror ("load-thunk-from-memory");
     }
 #endif
   else
@@ -429,7 +433,7 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
             continue;
           if (ph[i].p_flags == PF_R)
             continue;
-          if (ph[i].p_align != 4096)
+          if (ph[i].p_align != page_size)
             continue;
 
           if (mprotect (data + ph[i].p_vaddr,
@@ -463,8 +467,6 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   }
 }
 #undef FUNC_NAME
-
-#define SCM_PAGE_SIZE 4096
 
 static char*
 map_file_contents (int fd, size_t len, int *is_read_only)
@@ -794,6 +796,11 @@ scm_find_slot_map_unlocked (const scm_t_uint32 *ip)
 void
 scm_bootstrap_loader (void)
 {
+  page_size = getpagesize ();
+  /* page_size should be a power of two.  */
+  if (page_size & (page_size - 1))
+    abort ();
+
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_loader",
                             (scm_t_extension_init_func)scm_init_loader, NULL);
