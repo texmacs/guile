@@ -165,6 +165,9 @@ int
 scm_i_prepare_to_wait (scm_i_thread *t,
                        struct scm_thread_wake_data *wake)
 {
+  if (t->block_asyncs)
+    return 0;
+
   scm_atomic_set_pointer ((void **)&t->wake, wake);
 
   /* If no interrupt was registered in the meantime, then any future
@@ -246,8 +249,6 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
   else
     {
       SCM_VALIDATE_THREAD (2, thread);
-      if (scm_c_thread_exited_p (thread))
-	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
       t = SCM_I_THREAD_DATA (thread);
     }
 
