@@ -1489,6 +1489,12 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
   else
     {
       open_flags = scm_i_mode_to_open_flags (mode, &is_binary, FUNC_NAME);
+      /* mkostemp(2) only defines O_APPEND, O_SYNC, and O_CLOEXEC to be
+         useful, as O_RDWR|O_CREAT|O_EXCL are implicitly added.  It also
+         notes that other flags may error on some systems, which turns
+         out to be the case.  Of those flags, O_APPEND is the only one
+         of interest anyway, so limit to that flag.  */
+      open_flags &= O_APPEND;
       mode_bits = scm_i_mode_bits (mode);
     }
 
