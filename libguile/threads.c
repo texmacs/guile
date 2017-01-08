@@ -475,7 +475,9 @@ guilify_self_2 (SCM dynamic_state)
 static void
 on_thread_exit (void *v)
 {
-  /* This handler is executed in non-guile mode.  */
+  /* This handler is executed in non-guile mode.  Note that although
+     libgc isn't guaranteed to see thread-locals, for this thread-local
+     that isn't an issue as we have the all_threads list.  */
   scm_i_thread *t = (scm_i_thread *) v, **tp;
 
   t->exited = 1;
@@ -506,11 +508,20 @@ on_thread_exit (void *v)
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
-  if (t->vp)
-    {
-      scm_i_vm_free_stack (t->vp);
-      t->vp = NULL;
-    }
+  /* Although this thread has exited, the thread object might still be
+     alive.  Release unused memory.  */
+  t->freelists = NULL;
+  t->pointerless_freelists = NULL;
+  t->dynamic_state = NULL;
+  t->dynstack.base = NULL;
+  t->dynstack.top = NULL;
+  t->dynstack.limit = NULL;
+  {
+    struct scm_vm *vp = t->vp;
+    t->vp = NULL;
+    if (vp)
+      scm_i_vm_free_stack (vp);
+  }
 
 #if SCM_USE_PTHREAD_THREADS
   GC_unregister_my_thread ();
