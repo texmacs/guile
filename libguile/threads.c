@@ -735,15 +735,49 @@ scm_call_with_new_thread (SCM thunk, SCM handler)
   return scm_call_2 (call_with_new_thread, thunk, handler);
 }
 
-typedef struct {
+typedef struct launch_data launch_data;
+
+struct launch_data {
+  launch_data *prev;
+  launch_data *next;
   SCM dynamic_state;
   SCM thunk;
-} launch_data;
+};
+
+/* GC-protect the launch data for new threads.  */
+static launch_data *protected_launch_data;
+static scm_i_pthread_mutex_t protected_launch_data_lock =
+  SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
+static void
+protect_launch_data (launch_data *data)
+{
+  scm_i_pthread_mutex_lock (&protected_launch_data_lock);
+  data->next = protected_launch_data;
+  if (protected_launch_data)
+    protected_launch_data->prev = data;
+  protected_launch_data = data;
+  scm_i_pthread_mutex_unlock (&protected_launch_data_lock);
+}
+
+static void
+unprotect_launch_data (launch_data *data)
+{
+  scm_i_pthread_mutex_lock (&protected_launch_data_lock);
+  if (data->next)
+    data->next->prev = data->prev;
+  if (data->prev)
+    data->prev->next = data->next;
+  else
+    protected_launch_data = data->next;
+  scm_i_pthread_mutex_unlock (&protected_launch_data_lock);
+}
 
 static void *
 really_launch (void *d)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  unprotect_launch_data (d);
   /* The thread starts with asyncs blocked.  */
   t->block_asyncs++;
   SCM_I_CURRENT_THREAD->result = scm_call_0 (((launch_data *)d)->thunk);
@@ -774,6 +808,7 @@ SCM_DEFINE (scm_sys_call_with_new_thread, "%call-with-new-thread", 1, 0, 0,
   data = scm_gc_typed_calloc (launch_data);
   data->dynamic_state = scm_current_dynamic_state ();
   data->thunk = thunk;
+  protect_launch_data (data);
   err = scm_i_pthread_create (&id, NULL, launch_thread, data);
   if (err)
     {
