@@ -831,8 +831,6 @@ scm_init_stime()
 
 #ifdef HAVE_POSIX_CPUTIME
   {
-    clockid_t dummy;
-    
     if (clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &posix_run_time_base) == 0)
       get_internal_run_time = get_internal_run_time_posix_timer;
     else
