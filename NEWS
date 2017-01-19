@@ -6,162 +6,47 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in 2.1.5 (changes since the 2.1.4 alpha release):
+Changes in 2.1.6 (changes since the 2.1.5 alpha release):
 
-* Notable changes
-** Lightweight pre-emptive threading primitives
+* New interfaces
+** suspendable-continuation?
 
-The compiler now inserts special "handle-interrupts" opcodes before each
-call, return, and loop back-edge.  This allows the user to interrupt any
-computation and to accurately profile code using interrupts.  It used to
-be that interrupts were run by calling a C function from the VM; now
-interrupt thunks are run directly from the VM.  This allows interrupts
-to save a delimited continuation and, if the continuation was
-established from the same VM invocation (the usual restriction), that
-continuation can then be resumed.  In this way users can implement
-lightweight pre-emptive threading facilities.
+This predicate returns true if the delimited continuation captured by
+aborting to a prompt would be able to be resumed.  See "Prompt
+Primitives" in the manual for more.
 
-** with-dynamic-state in VM
+** scm_c_prepare_to_wait_on_fd, scm_c_prepare_to_wait_on_cond,
+** scm_c_wait_finished
 
-Similarly, `with-dynamic-state' no longer recurses out of the VM,
-allowing captured delimited continuations that include a
-`with-dynamic-state' invocation to be resumed.  This is a precondition
-to allow lightweight threading libraries to establish a dynamic state
-per thread.
+See "Interrupts" in the manual for more.
 
 * Performance improvements
-** Mutexes are now faster under contention
 
-Guile implements its own mutexes, so that threads that are trying to
-acquire a mutex can be interrupted.  These mutexes used to be quite
-inefficient when many threads were trying to acquire them, causing many
-spurious wakeups and contention.  This has been fixed.
+** Support unboxed floating-point comparisons
+
+Thanks to David Thompson for this work.
 
 * Incompatible changes
-** Threading facilities moved to (ice-9 threads)
 
-It used to be that call-with-new-thread and other threading primitives
-were available in the default environment.  This is no longer the case;
-they have been moved to (ice-9 threads) instead.  Existing code will not
-break, however; we used the deprecation facility to signal a warning
-message while also providing these bindings in the root environment for
-the duration of the 2.2 series.
+** Rename new array functions
 
-** SRFI-18 threads, mutexes, cond vars disjoint from Guile
-
-When we added support for the SRFI-18 threading library in Guile 2.0, we
-did so in a way that made SRFI-18 mutexes the same as Guile mutexes.
-This was a mistake.  In Guile our goal is to provide basic,
-well-thought-out, well-implemented, minimal primitives, on top of which
-we can build a variety of opinionated frameworks.  Incorporating SRFI-18
-functionality into core Guile caused us to bloat and slow down our core
-threading primitives.  Worse, they became very hard to describe; they
-did many things, did them poorly, and all that they did was never
-adequately specified.
-
-For all of these reasons we have returned to a situation where SRFI-18
-concepts are implemented only in the `(srfi srfi-18)' module.  This
-means that SRFI-18 threads are built on Guile threads, but aren't the
-same as Guile threads; calling Guile `thread?' on a thread no longer
-returns true.
-
-We realize this causes inconvenience to users who use both Guile
-threading interfaces and SRFI-18 interfaces, and we lament the change --
-but we are better off now.  We hope the newly revised "Scheduling"
-section in the manual compensates for the headache.
-
-** Remove `lock-mutex' "owner" argument
-
-Mutex owners are a SRFI-18 concept; use SRFI-18 mutexes instead.
-Relatedly, `scm_lock_mutex_timed' taking the owner argument is now
-deprecated; use `scm_timed_lock_mutex' instead.
-
-** Remove `unlock-mutex' cond var and timeout arguments
-
-It used to be that `unlock-mutex' included `wait-condition-variable'
-functionality.  This has been deprecated; use SRFI-18 if you want this
-behavior from `mutex-unlock!'.  Relatedly, `scm_unlock_mutex_timed' is
-deprecated; use `scm_unlock_mutex' instead.
-
-** Removed `unchecked-unlock' mutex flag
-
-This flag was introduced for internal use by SRFI-18; use SRFI-18
-mutexes if you need this behaviour.
-
-** SRFI-18 mutexes no longer recursive
-
-Contrary to specification, SRFI-18 mutexes in Guile were recursive.
-This is no longer the case.
-
-** Thread cleanup handlers removed
-
-The `set-thread-cleanup!' and `thread-cleanup' functions that were added
-in Guile 2.0 to support cleanup after thread cancellation are no longer
-needed, since threads can declare cleanup handlers via `dynamic-wind'.
-
-** Only threads created by Guile are joinable
-
-`join-thread' used to work on "foreign" threads that were not created by
-Guile itself, though their join value was always `#f'.  This is no
-longer the case; attempting to join a foreign thread will throw an
-error.
-
-** Dynamic states capture values, not locations
-
-Dynamic states used to capture the locations of fluid-value
-associations.  Capturing the current dynamic state then setting a fluid
-would result in a mutation of that captured state.  Now capturing a
-dynamic state simply captures the current values, and calling
-`with-dynamic-state' copies those values into the Guile virtual machine
-instead of aliasing them in a way that could allow them to be mutated in
-place.  This change allows Guile's fluid variables to be thread-safe.
-To capture the locations of a dynamic state, capture a
-`with-dynamic-state' invocation using partial continuations instead.
-
-* New deprecations
-** Arbiters deprecated
-
-Arbiters were an experimental mutual exclusion facility from 20 years
-ago that didn't survive the test of time.  Use mutexes or atomic boxes
-instead.
-
-** User asyncs deprecated
-
-Guile had (and still has) "system asyncs", which are asynchronous
-interrupts, and also had this thing called "user asyncs", which was a
-trivial unused data structure.  Now that we have deprecated the old
-`async', `async-mark', and `run-asyncs' procedures that comprised the
-"user async" facility, we have been able to clarify our documentation to
-only refer to "asyncs".
-
-** Critical sections deprecated
-
-Critical sections have long been just a fancy way to lock a mutex and
-defer asynchronous interrupts.  Instead of SCM_CRITICAL_SECTION_START,
-make sure you're in a "scm_dynwind_begin (0)" and use
-scm_dynwind_pthread_mutex_lock instead, possibly also with
-scm_dynwind_block_asyncs.
-
-** `scm_make_mutex_with_flags' deprecated
-
-Use `scm_make_mutex_with_kind' instead.  See "Mutexes and Condition
-Variables" in the manual, for more.
-
-** Dynamic roots deprecated
-
-This was a facility that predated threads, was unused as far as we can
-tell, and was never documented.  Still, a grep of your code for
-dynamic-root or dynamic_root would not be amiss.
-
-** `make-dynamic-state' deprecated
-
-Use `current-dynamic-state' to get an immutable copy of the current
-fluid-value associations.
+See "Arrays as arrays of arrays" in the manual for more.
 
 * Bug fixes
-** cancel-thread uses asynchronous interrupts, not pthread_cancel
 
-See "Asyncs" in the manual, for more on asynchronous interrupts.
+** `scm_gc_warn_proc' writes directly to stderr
+
+The garbage collector sometimes has warnings to display to the user.
+Before, Guile would see if the current warning port was a file port, and
+in that case write the warning to that file, and otherwise default to
+stderr.  Now Guile just writes to stderr, fixing a bug where determining
+the current warning port would allocate and thus deadlock as the GC
+warnings are issued with the GC lock held.
+
+** Fix miscompilation in significant-bits computation for loop vars
+** Fix many threading bugs
+** Fix macOS portability bugs
+Thanks to Matt Wette!
 
 
 Previous changes in 2.1.x (changes since the 2.0.x series):
@@ -271,6 +156,30 @@ Following Emacs, you must use a C99-capable compiler when building
 Guile.  In the future we also expect require C99 to use Guile's C
 interface, at least for `stdint' support.
 
+** Lightweight pre-emptive threading primitives
+
+The compiler now inserts special "handle-interrupts" opcodes before each
+call, return, and loop back-edge.  This allows the user to interrupt any
+computation and to accurately profile code using interrupts.  It used to
+be that interrupts were run by calling a C function from the VM; now
+interrupt thunks are run directly from the VM.  This allows interrupts
+to save a delimited continuation and, if the continuation was
+established from the same VM invocation (the usual restriction), that
+continuation can then be resumed.  In this way users can implement
+lightweight pre-emptive threading facilities.
+
+** with-dynamic-state in VM
+
+Similarly, `with-dynamic-state' no longer recurses out of the VM,
+allowing captured delimited continuations that include a
+`with-dynamic-state' invocation to be resumed.  This is a precondition
+to allow lightweight threading libraries to establish a dynamic state
+per thread.
+
+** cancel-thread uses asynchronous interrupts, not pthread_cancel
+
+See "Asyncs" in the manual, for more on asynchronous interrupts.
+
 * Performance improvements
 
 ** Faster programs via new virtual machine
@@ -346,6 +255,13 @@ See "Buffering" in the manual, for more.  A port with a buffer size of 1
 is equivalent to an unbuffered port.  Ports may set their default buffer
 sizes, and some ports (for example soft ports) are unbuffered by default
 for historical reasons.
+
+** Mutexes are now faster under contention
+
+Guile implements its own mutexes, so that threads that are trying to
+acquire a mutex can be interrupted.  These mutexes used to be quite
+inefficient when many threads were trying to acquire them, causing many
+spurious wakeups and contention.  This has been fixed.
 
 * New interfaces
 
@@ -566,6 +482,86 @@ Because R6RS ports are a thin layer on top of Guile's ports, and Guile's
 ports are both textual and binary, Guile's R6RS ports are also both
 textual and binary, and thus both kinds have port transcoders.  This is
 an incompatibility with respect to R6RS.
+
+** Threading facilities moved to (ice-9 threads)
+
+It used to be that call-with-new-thread and other threading primitives
+were available in the default environment.  This is no longer the case;
+they have been moved to (ice-9 threads) instead.  Existing code will not
+break, however; we used the deprecation facility to signal a warning
+message while also providing these bindings in the root environment for
+the duration of the 2.2 series.
+
+** SRFI-18 threads, mutexes, cond vars disjoint from Guile
+
+When we added support for the SRFI-18 threading library in Guile 2.0, we
+did so in a way that made SRFI-18 mutexes the same as Guile mutexes.
+This was a mistake.  In Guile our goal is to provide basic,
+well-thought-out, well-implemented, minimal primitives, on top of which
+we can build a variety of opinionated frameworks.  Incorporating SRFI-18
+functionality into core Guile caused us to bloat and slow down our core
+threading primitives.  Worse, they became very hard to describe; they
+did many things, did them poorly, and all that they did was never
+adequately specified.
+
+For all of these reasons we have returned to a situation where SRFI-18
+concepts are implemented only in the `(srfi srfi-18)' module.  This
+means that SRFI-18 threads are built on Guile threads, but aren't the
+same as Guile threads; calling Guile `thread?' on a thread no longer
+returns true.
+
+We realize this causes inconvenience to users who use both Guile
+threading interfaces and SRFI-18 interfaces, and we lament the change --
+but we are better off now.  We hope the newly revised "Scheduling"
+section in the manual compensates for the headache.
+
+** Remove `lock-mutex' "owner" argument
+
+Mutex owners are a SRFI-18 concept; use SRFI-18 mutexes instead.
+Relatedly, `scm_lock_mutex_timed' taking the owner argument is now
+deprecated; use `scm_timed_lock_mutex' instead.
+
+** Remove `unlock-mutex' cond var and timeout arguments
+
+It used to be that `unlock-mutex' included `wait-condition-variable'
+functionality.  This has been deprecated; use SRFI-18 if you want this
+behavior from `mutex-unlock!'.  Relatedly, `scm_unlock_mutex_timed' is
+deprecated; use `scm_unlock_mutex' instead.
+
+** Removed `unchecked-unlock' mutex flag
+
+This flag was introduced for internal use by SRFI-18; use SRFI-18
+mutexes if you need this behaviour.
+
+** SRFI-18 mutexes no longer recursive
+
+Contrary to specification, SRFI-18 mutexes in Guile were recursive.
+This is no longer the case.
+
+** Thread cleanup handlers removed
+
+The `set-thread-cleanup!' and `thread-cleanup' functions that were added
+in Guile 2.0 to support cleanup after thread cancellation are no longer
+needed, since threads can declare cleanup handlers via `dynamic-wind'.
+
+** Only threads created by Guile are joinable
+
+`join-thread' used to work on "foreign" threads that were not created by
+Guile itself, though their join value was always `#f'.  This is no
+longer the case; attempting to join a foreign thread will throw an
+error.
+
+** Dynamic states capture values, not locations
+
+Dynamic states used to capture the locations of fluid-value
+associations.  Capturing the current dynamic state then setting a fluid
+would result in a mutation of that captured state.  Now capturing a
+dynamic state simply captures the current values, and calling
+`with-dynamic-state' copies those values into the Guile virtual machine
+instead of aliasing them in a way that could allow them to be mutated in
+place.  This change allows Guile's fluid variables to be thread-safe.
+To capture the locations of a dynamic state, capture a
+`with-dynamic-state' invocation using partial continuations instead.
 
 ** Remove `frame-procedure'
 
@@ -811,9 +807,44 @@ as arguments to the `setvbuf' function.
 
 ** Arbiters
 
-Use mutexes or atomic variables instead.
+Arbiters were an experimental mutual exclusion facility from 20 years
+ago that didn't survive the test of time.  Use mutexes or atomic boxes
+instead.
 
-** `with-statprof' macro deprecated
+** User asyncs
+
+Guile had (and still has) "system asyncs", which are asynchronous
+interrupts, and also had this thing called "user asyncs", which was a
+trivial unused data structure.  Now that we have deprecated the old
+`async', `async-mark', and `run-asyncs' procedures that comprised the
+"user async" facility, we have been able to clarify our documentation to
+only refer to "asyncs".
+
+** Critical sections
+
+Critical sections have long been just a fancy way to lock a mutex and
+defer asynchronous interrupts.  Instead of SCM_CRITICAL_SECTION_START,
+make sure you're in a "scm_dynwind_begin (0)" and use
+scm_dynwind_pthread_mutex_lock instead, possibly also with
+scm_dynwind_block_asyncs.
+
+** `scm_make_mutex_with_flags'
+
+Use `scm_make_mutex_with_kind' instead.  See "Mutexes and Condition
+Variables" in the manual, for more.
+
+** Dynamic roots
+
+This was a facility that predated threads, was unused as far as we can
+tell, and was never documented.  Still, a grep of your code for
+dynamic-root or dynamic_root would not be amiss.
+
+** `make-dynamic-state'
+
+Use `current-dynamic-state' to get an immutable copy of the current
+fluid-value associations.
+
+** `with-statprof' macro
 
 Use the `statprof' procedure instead.
 
