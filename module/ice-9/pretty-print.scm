@@ -397,7 +397,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
          (else
           (lp (cdr fixes))))))
 
-    (define (print x width)
+    (define* (print x width #:key top?)
       (cond
        ((<= width 0)
         (error "expected a positive width" width))
@@ -428,6 +428,23 @@ sub-expression, via the @var{breadth-first?} keyword argument."
           (display ")"))
          (else
           (display "#"))))
+       ((and (array? x) (not (string? x)))
+        (let* ((prefix (if top?
+                         (let ((s (format #f "~a"
+                                          (apply make-typed-array (array-type x)
+                                                 *unspecified*
+                                                 (make-list (array-rank x) 0)))))
+                           (substring s 0 (- (string-length s) 2)))
+                         ""))
+               (width-prefix (string-length prefix)))
+          (cond
+           ((>= width (+ 2 width-prefix ellipsis-width))
+            (format #t  "~a(" prefix)
+            (print-sequence x (- width width-prefix 2) (array-length x)
+                            array-cell-ref identity)
+            (display ")"))
+           (else
+            (display "#")))))
        ((pair? x)
         (cond
          ((>= width (+ 4 ellipsis-width))
@@ -446,4 +463,4 @@ sub-expression, via the @var{breadth-first?} keyword argument."
 
     (with-output-to-port port
       (lambda ()
-        (print x width)))))
+        (print x width #:top? #t)))))

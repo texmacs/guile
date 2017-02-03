@@ -145,4 +145,19 @@
       (tprint (current-module) 20 "ISO-8859-1"))
 
   (pass-if-equal "#<directory (test-…>"
-      (tprint (current-module) 20 "UTF-8")))
+      (tprint (current-module) 20 "UTF-8"))
+
+  (pass-if-equal "#"
+      (tprint (make-typed-array 's32 0 20 20) 7 "UTF-8"))
+
+  (pass-if-equal "#2s32(…)"
+      (tprint (make-typed-array 's32 0 20 20) 8 "UTF-8"))
+
+  (pass-if-equal "#2s32(# …)"
+      (tprint (make-typed-array 's32 0 20 20) 10 "UTF-8"))
+
+  (pass-if-equal "#2s32((…) …)"
+      (tprint (make-typed-array 's32 0 20 20) 12 "UTF-8"))
+
+  (pass-if-equal "#2s32((0 …) …)"
+      (tprint (make-typed-array 's32 0 20 20) 14 "UTF-8")))
