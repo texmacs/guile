@@ -361,7 +361,7 @@
 #define BR_F64_ARITHMETIC(crel)                                         \
   {                                                                     \
     scm_t_uint32 a, b;                                                  \
-    scm_t_uint64 x, y;                                                  \
+    double x, y;                                                        \
     UNPACK_24 (op, a);                                                  \
     UNPACK_24 (ip[1], b);                                               \
     x = SP_REF_F64 (a);                                                 \
