@@ -328,7 +328,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
 
   (let ((ellipsis-width (string-length ellipsis)))
 
-    (define (print-sequence x width len ref next)
+    (define* (print-sequence x width len ref next #:key inner?)
       (let lp ((x x)
                (width width)
                (i 0))
@@ -337,7 +337,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
         (cond
          ((= i len)) ; catches 0-length case
          ((and (= i (1- len)) (or (zero? i) (> width 1)))
-          (print (ref x i) (if (zero? i) width (1- width))))
+          (print (ref x i) (if (zero? i) width (1- width)) #:inner? inner?))
          ((<= width (+ 1 ellipsis-width))
           (display ellipsis))
          (else
@@ -347,7 +347,8 @@ sub-expression, via the @var{breadth-first?} keyword argument."
                                 (if breadth-first?
                                     (max 1
                                          (1- (floor (/ width (- len i)))))
-                                    (- width (+ 1 ellipsis-width))))))))
+                                    (- width (+ 1 ellipsis-width)))
+                                #:inner? inner?)))))
             (display str)
             (lp (next x) (- width 1 (string-length str)) (1+ i)))))))
 
@@ -397,7 +398,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
          (else
           (lp (cdr fixes))))))
 
-    (define* (print x width #:key top?)
+    (define* (print x width #:key inner?)
       (cond
        ((<= width 0)
         (error "expected a positive width" width))
@@ -429,19 +430,25 @@ sub-expression, via the @var{breadth-first?} keyword argument."
          (else
           (display "#"))))
        ((and (array? x) (not (string? x)))
-        (let* ((prefix (if top?
-                         (let ((s (format #f "~a"
-                                          (apply make-typed-array (array-type x)
-                                                 *unspecified*
-                                                 (make-list (array-rank x) 0)))))
-                           (substring s 0 (- (string-length s) 2)))
-                         ""))
+        (let* ((type (array-type x))
+               (prefix
+                (if inner?
+                  ""
+                  (if (zero? (array-rank x))
+                    (string-append "#0" (if (eq? #t type) "" (symbol->string type)))
+                    (let ((s (format #f "~a"
+                                     (apply make-typed-array type *unspecified*
+                                            (make-list (array-rank x) 0)))))
+                      (substring s 0 (- (string-length s) 2))))))
                (width-prefix (string-length prefix)))
           (cond
            ((>= width (+ 2 width-prefix ellipsis-width))
             (format #t  "~a(" prefix)
-            (print-sequence x (- width width-prefix 2) (array-length x)
-                            array-cell-ref identity)
+            (if (zero? (array-rank x))
+              (print (array-ref x) (- width width-prefix 2))
+              (print-sequence x (- width width-prefix 2) (array-length x)
+                              array-cell-ref identity
+                              #:inner? (< 1 (array-rank x))))
             (display ")"))
            (else
             (display "#")))))
@@ -463,4 +470,4 @@ sub-expression, via the @var{breadth-first?} keyword argument."
 
     (with-output-to-port port
       (lambda ()
-        (print x width #:top? #t)))))
+        (print x width)))))

@@ -147,6 +147,18 @@
   (pass-if-equal "#<directory (test-…>"
       (tprint (current-module) 20 "UTF-8"))
 
+  (pass-if-equal "#0(#)"
+      (tprint (make-typed-array #t 9.0) 6 "UTF-8"))
+  
+  (pass-if-equal "#0(9.0)"
+      (tprint (make-typed-array #t 9.0) 7 "UTF-8"))
+
+  (pass-if-equal "#0f64(#)"
+      (tprint (make-typed-array 'f64 9.0) 8 "UTF-8"))
+
+  (pass-if-equal "#0f64(9.0)"
+      (tprint (make-typed-array 'f64 9.0) 10 "UTF-8"))
+
   (pass-if-equal "#"
       (tprint (make-typed-array 's32 0 20 20) 7 "UTF-8"))
 
@@ -160,4 +172,19 @@
       (tprint (make-typed-array 's32 0 20 20) 12 "UTF-8"))
 
   (pass-if-equal "#2s32((0 …) …)"
-      (tprint (make-typed-array 's32 0 20 20) 14 "UTF-8")))
+      (tprint (make-typed-array 's32 0 20 20) 14 "UTF-8"))
+
+  (pass-if-equal "#2((#(9 9) #(9 9)) (#(9 9) #(9 9)))"
+      (tprint (make-typed-array #t (make-typed-array #t 9 2) 2 2) 40 "UTF-8"))
+
+  (pass-if-equal "#(#2((9 9) (9 9)) #2((9 9) (9 9)))"
+      (tprint (make-vector 2 (make-typed-array #t 9 2 2)) 40 "UTF-8"))
+
+  (pass-if-equal "(#2((9 9) (9 9)) #2((9 9) (9 9)))"
+      (tprint (make-list 2 (make-typed-array #t 9 2 2)) 40 "UTF-8"))
+
+  (pass-if-equal "(#0(9) #0(9))"
+      (tprint (make-list 2 (make-typed-array #t 9)) 20 "UTF-8"))
+
+  (pass-if-equal "(#0(9) #)"
+      (tprint (make-list 2 (make-typed-array #t 9)) 10 "UTF-8")))
