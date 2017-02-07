@@ -148,6 +148,16 @@ save_dynamic_state (scm_t_dynamic_state *state)
 }
 
 static SCM
+saved_dynamic_state_ref (SCM saved, SCM fluid, SCM dflt)
+{
+  for (; scm_is_pair (saved); saved = SCM_CDR (saved))
+    if (scm_is_eq (SCM_CAAR (saved), fluid))
+      return SCM_CDAR (saved);
+
+  return scm_weak_table_refq (saved, fluid, dflt);
+}
+
+static SCM
 add_entry (void *data, SCM k, SCM v, SCM result)
 {
   scm_weak_table_putq_x (result, k, v);
@@ -300,7 +310,7 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    (SCM fluid),
 	    "Return the value associated with @var{fluid} in the current\n"
 	    "dynamic root.  If @var{fluid} has not been set, then return\n"
-	    "@code{#f}.")
+	    "its default value.")
 #define FUNC_NAME s_scm_fluid_ref
 {
   SCM ret;
@@ -308,6 +318,33 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
   ret = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
   if (SCM_UNBNDP (ret))
     scm_misc_error ("fluid-ref", "unbound fluid: ~S", scm_list_1 (fluid));
+  return ret;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_fluid_ref_star, "fluid-ref*", 2, 0, 0,
+	    (SCM fluid, SCM depth),
+	    "Return the @var{depth}th oldest value associated with\n"
+            "@var{fluid} in the current thread.  If @var{depth} equals\n"
+            "or exceeds the number of values that have been assigned to\n"
+            "@var{fluid}, return the default value of the fluid.")
+#define FUNC_NAME s_scm_fluid_ref_star
+{
+  SCM ret;
+  size_t c_depth;
+
+  SCM_VALIDATE_FLUID (1, fluid);
+  c_depth = SCM_NUM2SIZE (2, depth);
+
+  if (c_depth == 0)
+    ret = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
+  else
+    ret = scm_dynstack_find_old_fluid_value (&SCM_I_CURRENT_THREAD->dynstack,
+                                             fluid, c_depth - 1,
+                                             SCM_I_FLUID_DEFAULT (fluid));
+
+  if (SCM_UNBNDP (ret))
+    scm_misc_error ("fluid-ref*", "unbound fluid: ~S", scm_list_1 (fluid));
   return ret;
 }
 #undef FUNC_NAME
@@ -498,6 +535,14 @@ SCM_DEFINE (scm_set_current_dynamic_state, "set-current-dynamic-state", 1,0,0,
   return old;
 }
 #undef FUNC_NAME
+
+SCM
+scm_dynamic_state_ref (SCM state, SCM fluid, SCM dflt)
+{
+  SCM_ASSERT (is_dynamic_state (state), state, SCM_ARG1,
+              "dynamic-state-ref");
+  return saved_dynamic_state_ref (get_dynamic_state (state), fluid, dflt);
+}
 
 static void
 swap_dynamic_state (SCM loc)

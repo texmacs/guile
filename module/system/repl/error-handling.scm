@@ -57,7 +57,7 @@
 
     (define (debug-trap-handler frame trap-idx trap-name)
       (let* ((tag (and (pair? (fluid-ref %stacks))
-                       (cdar (fluid-ref %stacks))))
+                       (cdr (fluid-ref %stacks))))
              (stack (narrow-stack->vector
                      (make-stack frame)
                      ;; Take the stack from the given frame, cutting 0
@@ -132,7 +132,7 @@
          (lambda (key . args)
            (if (not (memq key pass-keys))
                (let* ((tag (and (pair? (fluid-ref %stacks))
-                                (cdar (fluid-ref %stacks))))
+                                (cdr (fluid-ref %stacks))))
                       (stack (narrow-stack->vector
                               (make-stack #t)
                               ;; Cut three frames from the top of the stack:
@@ -161,7 +161,7 @@
          (lambda (key . args)
            (if (not (memq key pass-keys))
                (let* ((tag (and (pair? (fluid-ref %stacks))
-                                (cdar (fluid-ref %stacks))))
+                                (cdr (fluid-ref %stacks))))
                       (frames (narrow-stack->vector
                                (make-stack #t)
                                ;; Narrow as above, for the debugging case.

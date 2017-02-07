@@ -184,7 +184,7 @@
 (define (frame->stack-vector frame)
   (let ((stack (make-stack frame)))
     (match (fluid-ref %stacks)
-      (((stack-tag . prompt-tag) . _)
+      ((stack-tag . prompt-tag)
        (narrow-stack->vector
         stack
         ;; Take the stack from the given frame, cutting 0 frames.
@@ -206,5 +206,5 @@
 ;;     2
 ;;     ;; Narrow the end of the stack to the most recent start-stack.
 ;;     (and (pair? (fluid-ref %stacks))
-;;          (cdar (fluid-ref %stacks))))))
+;;          (cdr (fluid-ref %stacks))))))
 

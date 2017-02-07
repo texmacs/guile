@@ -56,6 +56,7 @@ SCM_API SCM scm_make_unbound_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);
+SCM_API SCM scm_fluid_ref_star (SCM fluid, SCM depth);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
 SCM_API SCM scm_fluid_unset_x (SCM fluid);
 SCM_API SCM scm_fluid_bound_p (SCM fluid);
@@ -80,6 +81,7 @@ SCM_API void scm_dynwind_current_dynamic_state (SCM state);
 SCM_API void *scm_c_with_dynamic_state (SCM state, 
 					void *(*func)(void *), void *data);
 SCM_API SCM scm_with_dynamic_state (SCM state, SCM proc);
+SCM_INTERNAL SCM scm_dynamic_state_ref (SCM state, SCM fluid, SCM dflt);
 
 SCM_INTERNAL SCM scm_i_make_initial_dynamic_state (void);
 

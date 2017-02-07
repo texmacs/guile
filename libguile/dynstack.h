@@ -201,6 +201,9 @@ SCM_INTERNAL scm_t_bits* scm_dynstack_find_prompt (scm_t_dynstack *, SCM,
                                                    scm_t_uint32 **,
                                                    scm_i_jmp_buf **);
 
+SCM_INTERNAL SCM scm_dynstack_find_old_fluid_value (scm_t_dynstack *,
+                                                    SCM, size_t, SCM);
+
 SCM_INTERNAL void scm_dynstack_wind_prompt (scm_t_dynstack *, scm_t_bits *,
                                             scm_t_ptrdiff, scm_i_jmp_buf *);
 

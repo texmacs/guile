@@ -53,6 +53,6 @@
                       ;; if any.
                       (apply make-stack #t
                              2
-                             (if (pair? stacks) (cdar stacks) 0)
+                             (if (pair? stacks) (cdr stacks) 0)
                              narrowing)))
         (set! stack-saved? #t))))

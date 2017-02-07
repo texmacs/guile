@@ -414,7 +414,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
     {
       /* Fetch most recent start-stack tag. */
       SCM stacks = scm_fluid_ref (scm_sys_stacks);
-      return scm_is_pair (stacks) ? scm_caar (stacks) : SCM_BOOL_F;
+      return scm_is_pair (stacks) ? scm_car (stacks) : SCM_BOOL_F;
     }
   else if (SCM_CONTINUATIONP (stack))
     /* FIXME: implement me */

@@ -1765,6 +1765,21 @@ a runtime error.
 Set the value associated with @var{fluid} in the current dynamic root.
 @end deffn
 
+@deffn {Scheme Procedure} fluid-ref* fluid depth
+@deffnx {C Function} scm_fluid_ref_star (fluid, depth)
+Return the @var{depth}th oldest value associated with @var{fluid} in the
+current thread.  If @var{depth} equals or exceeds the number of values
+that have been assigned to @var{fluid}, return the default value of the
+fluid.  @code{(fluid-ref* f 0)} is equivalent to @code{(fluid-ref f)}.
+
+@code{fluid-ref*} is useful when you want to maintain a stack-like
+structure in a fluid, such as the stack of current exception handlers.
+Using @code{fluid-ref*} instead of an explicit stack allows any partial
+continuation captured by @code{call-with-prompt} to only capture the
+bindings made within the limits of the prompt instead of the entire
+continuation.  @xref{Prompts}, for more on delimited continuations.
+@end deffn
+
 @deffn {Scheme Procedure} fluid-unset! fluid
 @deffnx {C Function} scm_fluid_unset_x (fluid)
 Disassociate the given fluid from any value, making it unbound.

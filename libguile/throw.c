@@ -96,11 +96,10 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
 
   prompt_tag = scm_cons (SCM_INUM0, SCM_EOL);
 
-  eh = scm_c_make_vector (4, SCM_BOOL_F);
-  scm_c_vector_set_x (eh, 0, scm_fluid_ref (exception_handler_fluid));
-  scm_c_vector_set_x (eh, 1, tag);
-  scm_c_vector_set_x (eh, 2, prompt_tag);
-  scm_c_vector_set_x (eh, 3, pre_unwind_handler);
+  eh = scm_c_make_vector (3, SCM_BOOL_F);
+  scm_c_vector_set_x (eh, 0, tag);
+  scm_c_vector_set_x (eh, 1, prompt_tag);
+  scm_c_vector_set_x (eh, 2, pre_unwind_handler);
 
   vp = scm_the_vm ();
   prev_cookie = vp->resumable_prompt_cookie;
@@ -201,23 +200,26 @@ abort_to_prompt (SCM prompt_tag, SCM tag, SCM args)
 static SCM
 throw_without_pre_unwind (SCM tag, SCM args)
 {
-  SCM eh;
+  size_t depth = 0;
 
   /* This function is not only the boot implementation of "throw", it is
      also called in response to resource allocation failures such as
      stack-overflow or out-of-memory.  For that reason we need to be
      careful to avoid allocating memory.  */
-  for (eh = scm_fluid_ref (exception_handler_fluid);
-       scm_is_true (eh);
-       eh = scm_c_vector_ref (eh, 0))
+  while (1)
     {
-      SCM catch_key, prompt_tag;
+      SCM eh, catch_key, prompt_tag;
 
-      catch_key = scm_c_vector_ref (eh, 1);
+      eh = scm_fluid_ref_star (exception_handler_fluid,
+                               scm_from_size_t (depth++));
+      if (scm_is_false (eh))
+        break;
+
+      catch_key = scm_c_vector_ref (eh, 0);
       if (!scm_is_eq (catch_key, SCM_BOOL_T) && !scm_is_eq (catch_key, tag))
         continue;
 
-      if (scm_is_true (scm_c_vector_ref (eh, 3)))
+      if (scm_is_true (scm_c_vector_ref (eh, 2)))
         {
           const char *key_chars;
 
@@ -230,7 +232,7 @@ throw_without_pre_unwind (SCM tag, SCM args)
                    "skipping pre-unwind handler.\n", key_chars);
         }
 
-      prompt_tag = scm_c_vector_ref (eh, 2);
+      prompt_tag = scm_c_vector_ref (eh, 1);
       if (scm_is_true (prompt_tag))
         abort_to_prompt (prompt_tag, tag, args);
     }

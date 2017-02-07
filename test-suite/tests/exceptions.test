@@ -16,7 +16,8 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-(use-modules (test-suite lib))
+(define-module (test-suite exceptions)
+  #:use-module (test-suite lib))
 
 (define-syntax-parameter push
   (lambda (stx)
@@ -365,3 +366,30 @@
   ;;     (not (eval `(,false-if-exception (,error "xxx"))
   ;;                empty-environment))))
   )
+
+(with-test-prefix "delimited exception handlers"
+  (define (catch* key thunk)
+    (let ((tag (make-prompt-tag)))
+      (call-with-prompt tag
+        (lambda ()
+          (catch key
+            (lambda ()
+              (abort-to-prompt tag)
+              (thunk))
+            (lambda args args)))
+        (lambda (k) k))))
+  (pass-if-equal '(foo)
+      (let ((thunk (catch* 'foo (lambda () (throw 'foo)))))
+        (thunk)))
+  (pass-if-equal '(foo)
+      (let* ((thunk1 (catch* 'foo (lambda () (throw 'foo))))
+             (thunk2 (catch* 'bar (lambda () (thunk1)))))
+        (thunk1)))
+  (pass-if-equal '(foo)
+      (let* ((thunk1 (catch* 'foo (lambda () (throw 'foo))))
+             (thunk2 (catch* 'bar (lambda () (thunk1)))))
+        (thunk2)))
+  (pass-if-equal '(bar)
+      (let* ((thunk1 (catch* 'foo (lambda () (throw 'bar))))
+             (thunk2 (catch* 'bar (lambda () (thunk1)))))
+        (thunk2))))

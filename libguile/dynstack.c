@@ -504,6 +504,55 @@ scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
   return NULL;
 }
 
+SCM
+scm_dynstack_find_old_fluid_value (scm_t_dynstack *dynstack, SCM fluid,
+                                   size_t depth, SCM dflt)
+{
+  scm_t_bits *walk;
+
+  for (walk = SCM_DYNSTACK_PREV (dynstack->top); walk;
+       walk = SCM_DYNSTACK_PREV (walk))
+    {
+      scm_t_bits tag = SCM_DYNSTACK_TAG (walk);
+
+      switch (SCM_DYNSTACK_TAG_TYPE (tag))
+        {
+        case SCM_DYNSTACK_TYPE_WITH_FLUID:
+          {
+            if (scm_is_eq (WITH_FLUID_FLUID (walk), fluid))
+              {
+                if (depth == 0)
+                  return SCM_VARIABLE_REF (WITH_FLUID_VALUE_BOX (walk));
+                else
+                  depth--;
+              }
+            break;
+          }
+        case SCM_DYNSTACK_TYPE_DYNAMIC_STATE:
+          {
+            SCM state, val;
+
+            /* The previous dynamic state may or may not have
+               established a binding for this fluid.  */
+            state = scm_variable_ref (DYNAMIC_STATE_STATE_BOX (walk));
+            val = scm_dynamic_state_ref (state, fluid, SCM_UNDEFINED);
+            if (!SCM_UNBNDP (val))
+              {
+                if (depth == 0)
+                  return val;
+                else
+                  depth--;
+              }
+            break;
+          }
+        default:
+          break;
+        }
+    }
+
+  return dflt;
+}
+
 void
 scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
                           scm_t_ptrdiff reloc, scm_i_jmp_buf *registers)

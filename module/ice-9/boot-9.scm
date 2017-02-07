@@ -720,48 +720,59 @@ information is unavailable."
 (define with-throw-handler #f)
 (let ((%eh (module-ref (current-module) '%exception-handler)))
   (define (make-exception-handler catch-key prompt-tag pre-unwind)
-    (vector (fluid-ref %eh) catch-key prompt-tag pre-unwind))
-  (define (exception-handler-prev handler) (vector-ref handler 0))
-  (define (exception-handler-catch-key handler) (vector-ref handler 1))
-  (define (exception-handler-prompt-tag handler) (vector-ref handler 2))
-  (define (exception-handler-pre-unwind handler) (vector-ref handler 3))
+    (vector catch-key prompt-tag pre-unwind))
+  (define (exception-handler-catch-key handler) (vector-ref handler 0))
+  (define (exception-handler-prompt-tag handler) (vector-ref handler 1))
+  (define (exception-handler-pre-unwind handler) (vector-ref handler 2))
 
-  (define %running-pre-unwind (make-fluid '()))
+  (define %running-pre-unwind (make-fluid #f))
+  (define (pre-unwind-handler-running? handler)
+    (let lp ((depth 0))
+      (let ((running (fluid-ref* %running-pre-unwind depth)))
+        (and running
+             (or (eq? running handler) (lp (1+ depth)))))))
 
-  (define (dispatch-exception handler key args)
-    (unless handler
-      (when (eq? key 'quit)
-        (primitive-exit (cond
-                         ((not (pair? args)) 0)
-                         ((integer? (car args)) (car args))
-                         ((not (car args)) 1)
-                         (else 0))))
-      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n" key args)
-      (primitive-exit 1))
-
-    (let ((catch-key (exception-handler-catch-key handler))
-          (prev (exception-handler-prev handler)))
-      (if (or (eqv? catch-key #t) (eq? catch-key key))
-          (let ((prompt-tag (exception-handler-prompt-tag handler))
-                (pre-unwind (exception-handler-pre-unwind handler)))
-            (if pre-unwind
-                ;; Instead of using a "running" set, it would be a lot
-                ;; cleaner semantically to roll back the exception
-                ;; handler binding to the one that was in place when the
-                ;; pre-unwind handler was installed, and keep it like
-                ;; that for the rest of the dispatch.  Unfortunately
-                ;; that is incompatible with existing semantics.  We'll
-                ;; see if we can change that later on.
-                (let ((running (fluid-ref %running-pre-unwind)))
-                  (with-fluid* %running-pre-unwind (cons handler running)
-                    (lambda ()
-                      (unless (memq handler running)
-                        (apply pre-unwind key args))
-                      (if prompt-tag
-                          (apply abort-to-prompt prompt-tag key args)
-                          (dispatch-exception prev key args)))))
-                (apply abort-to-prompt prompt-tag key args)))
-          (dispatch-exception prev key args))))
+  (define (dispatch-exception depth key args)
+    (cond
+     ((fluid-ref* %eh depth)
+      => (lambda (handler)
+           (let ((catch-key (exception-handler-catch-key handler)))
+             (if (or (eqv? catch-key #t) (eq? catch-key key))
+                 (let ((prompt-tag (exception-handler-prompt-tag handler))
+                       (pre-unwind (exception-handler-pre-unwind handler)))
+                   (cond
+                    ((and pre-unwind
+                          (not (pre-unwind-handler-running? handler)))
+                     ;; Prevent errors from within the pre-unwind
+                     ;; handler's invocation from being handled by this
+                     ;; handler.
+                     (with-fluid* %running-pre-unwind handler
+                       (lambda ()
+                         ;; FIXME: Currently the "running" flag only
+                         ;; applies to the pre-unwind handler; the
+                         ;; post-unwind handler is still called if the
+                         ;; error is explicitly rethrown.  Instead it
+                         ;; would be better to cause a recursive throw to
+                         ;; skip all parts of this handler.  Unfortunately
+                         ;; that is incompatible with existing semantics.
+                         ;; We'll see if we can change that later on.
+                         (apply pre-unwind key args)
+                         (dispatch-exception depth key args))))
+                    (prompt-tag
+                     (apply abort-to-prompt prompt-tag key args))
+                    (else
+                     (dispatch-exception (1+ depth) key args))))
+                 (dispatch-exception (1+ depth) key args)))))
+     ((eq? key 'quit)
+      (primitive-exit (cond
+                       ((not (pair? args)) 0)
+                       ((integer? (car args)) (car args))
+                       ((not (car args)) 1)
+                       (else 0))))
+     (else
+      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n"
+              key args)
+      (primitive-exit 1))))
 
   (define (throw key . args)
     "Invoke the catch form matching @var{key}, passing @var{args} to the
@@ -773,7 +784,7 @@ If there is no handler at all, Guile prints an error and then exits."
     (unless (symbol? key)
       (throw 'wrong-type-arg "throw" "Wrong type argument in position ~a: ~a"
              (list 1 key) (list key)))
-    (dispatch-exception (fluid-ref %eh) key args))
+    (dispatch-exception 0 key args))
 
   (define* (catch k thunk handler #:optional pre-unwind-handler)
     "Invoke @var{thunk} in the dynamic context of @var{handler} for
@@ -1681,8 +1692,7 @@ written into the port is returned."
     (call-with-prompt
      prompt-tag
      (lambda ()
-       (with-fluids ((%stacks (acons tag prompt-tag
-                                     (or (fluid-ref %stacks) '()))))
+       (with-fluids ((%stacks (cons tag prompt-tag)))
          (thunk)))
      (lambda (k . args)
        (%start-stack tag (lambda () (apply k args)))))))
