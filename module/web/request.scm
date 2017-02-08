@@ -22,6 +22,7 @@
 (define-module (web request)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
+  #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-9)
   #:use-module (web uri)
@@ -214,7 +215,7 @@ on PORT, perhaps using some transfer encoding."
   (write-request-line (request-method r) (request-uri r)
                       (request-version r) port)
   (write-headers (request-headers r) port)
-  (display "\r\n" port)
+  (put-string port "\r\n")
   (if (eq? port (request-port r))
       r
       (make-request (request-method r) (request-uri r) (request-version r)
