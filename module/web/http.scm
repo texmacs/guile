@@ -98,11 +98,11 @@
                           writer
                           #:key multiple?)
   "Declare a parser, validator, and writer for a given header."
-  (if (and (string? name) parser validator writer)
-      (let ((decl (make-header-decl name parser validator writer multiple?)))
-        (hashq-set! *declared-headers* (string->header name) decl)
-        decl)
-      (error "bad header decl" name parser validator writer multiple?)))
+  (unless (and (string? name) parser validator writer)
+    (error "bad header decl" name parser validator writer multiple?))
+  (let ((decl (make-header-decl name parser validator writer multiple?)))
+    (hashq-set! *declared-headers* (string->header name) decl)
+    decl))
 
 (define (header->string sym)
   "Return the string form for the header named SYM."
@@ -160,12 +160,11 @@ or if EOF is reached."
      (bad-header 'read-header-line line))))
 
 (define (read-continuation-line port val)
-  (if (or (eqv? (peek-char port) #\space)
-          (eqv? (peek-char port) #\tab))
-      (read-continuation-line port
-                              (string-append val
-                                             (read-header-line port)))
-      val))
+  (match (peek-char port)
+    ((or #\space #\tab)
+     (read-continuation-line port
+                             (string-append val (read-header-line port))))
+    (_ val)))
 
 (define *eof* (call-with-input-string "" read))
 
@@ -199,9 +198,9 @@ named SYM.  Returns the parsed value."
 (define (valid-header? sym val)
   "Returns a true value iff VAL is a valid Scheme value for the
 header with name SYM."
-  (if (symbol? sym)
-      ((header-validator sym) val)
-      (error "header name not a symbol" sym)))
+  (unless (symbol? sym)
+    (error "header name not a symbol" sym))
+  ((header-validator sym) val))
 
 (define (write-header sym val port)
   "Write the given header name and value to PORT, using the writer
@@ -225,10 +224,12 @@ as an ordered alist."
   "Write the given header alist to PORT.  Doesn't write the final
 ‘\\r\\n’, as the user might want to add another header."
   (let lp ((headers headers))
-    (if (pair? headers)
-        (begin
-          (write-header (caar headers) (cdar headers) port)
-          (lp (cdr headers))))))
+    (match headers
+      (((k . v) . headers)
+       (write-header k v port)
+       (lp headers))
+      (()
+       (values)))))
 
 
 
@@ -271,9 +272,9 @@ as an ordered alist."
     (and idx (= idx (string-rindex str #\/))
          (not (string-index str separators-without-slash)))))
 (define (parse-media-type str)
-  (if (validate-media-type str)
-      (string->symbol str)
-      (bad-header-component 'media-type str)))
+  (unless (validate-media-type str)
+    (bad-header-component 'media-type str))
+  (string->symbol str))
 
 (define* (skip-whitespace str #:optional (start 0) (end (string-length str)))
   (let lp ((i start))
@@ -317,47 +318,50 @@ as an ordered alist."
 (define (collect-escaped-string from start len escapes)
   (let ((to (make-string len)))
     (let lp ((start start) (i 0) (escapes escapes))
-      (if (null? escapes)
-          (begin
-            (substring-move! from start (+ start (- len i)) to i)
-            to)
-          (let* ((e (car escapes))
-                 (next-start (+ start (- e i) 2)))
-            (substring-move! from start (- next-start 2) to i)
-            (string-set! to e (string-ref from (- next-start 1)))
-            (lp next-start (1+ e) (cdr escapes)))))))
+      (match escapes
+        (()
+         (substring-move! from start (+ start (- len i)) to i)
+         to)
+        ((e . escapes)
+         (let ((next-start (+ start (- e i) 2)))
+           (substring-move! from start (- next-start 2) to i)
+           (string-set! to e (string-ref from (- next-start 1)))
+           (lp next-start (1+ e) escapes)))))))
 
 ;; in incremental mode, returns two values: the string, and the index at
 ;; which the string ended
 (define* (parse-qstring str #:optional
                         (start 0) (end (trim-whitespace str start))
                         #:key incremental?)
-  (if (and (< start end) (eqv? (string-ref str start) #\"))
-      (let lp ((i (1+ start)) (qi 0) (escapes '()))
-        (if (< i end)
-            (case (string-ref str i)
-              ((#\\)
-               (lp (+ i 2) (1+ qi) (cons qi escapes)))
-              ((#\")
-               (let ((out (collect-escaped-string str (1+ start) qi escapes)))
-                 (if incremental?
-                     (values out (1+ i))
-                     (if (= (1+ i) end)
-                         out
-                         (bad-header-component 'qstring str)))))
-              (else
-               (lp (1+ i) (1+ qi) escapes)))
-            (bad-header-component 'qstring str)))
-      (bad-header-component 'qstring str)))
+  (unless (and (< start end) (eqv? (string-ref str start) #\"))
+    (bad-header-component 'qstring str))
+  (let lp ((i (1+ start)) (qi 0) (escapes '()))
+    (if (< i end)
+        (case (string-ref str i)
+          ((#\\)
+           (lp (+ i 2) (1+ qi) (cons qi escapes)))
+          ((#\")
+           (let ((out (collect-escaped-string str (1+ start) qi escapes)))
+             (cond
+              (incremental? (values out (1+ i)))
+              ((= (1+ i) end) out)
+              (else (bad-header-component 'qstring str)))))
+          (else
+           (lp (1+ i) (1+ qi) escapes)))
+        (bad-header-component 'qstring str))))
 
-(define (write-list l port write-item delim)
-  (if (pair? l)
-      (let lp ((l l))
-        (write-item (car l) port)
-        (if (pair? (cdr l))
-            (begin
-              (display delim port)
-              (lp (cdr l)))))))
+(define (write-list items port write-item delim)
+  (match items
+    (() (values))
+    ((item . items)
+     (write-item item port)
+     (let lp ((items items))
+       (match items
+         (() (values))
+         ((item . items)
+          (display delim port)
+          (write-item item port)
+          (lp items)))))))
 
 (define (write-qstring str port)
   (display #\" port)
@@ -370,20 +374,20 @@ as an ordered alist."
 (define* (parse-quality str #:optional (start 0) (end (string-length str)))
   (define (char->decimal c)
     (let ((i (- (char->integer c) (char->integer #\0))))
-      (if (and (<= 0 i) (< i 10))
-          i
-          (bad-header-component 'quality str))))
+      (unless (and (<= 0 i) (< i 10))
+        (bad-header-component 'quality str))
+      i))
   (cond
    ((not (< start end))
     (bad-header-component 'quality str))
    ((eqv? (string-ref str start) #\1)
-    (if (or (string= str "1" start end)
-            (string= str "1." start end)
-            (string= str "1.0" start end)
-            (string= str "1.00" start end)
-            (string= str "1.000" start end))
-        1000
-        (bad-header-component 'quality str)))
+    (unless (or (string= str "1" start end)
+                (string= str "1." start end)
+                (string= str "1.0" start end)
+                (string= str "1.00" start end)
+                (string= str "1.000" start end))
+      (bad-header-component 'quality str))
+    1000)
    ((eqv? (string-ref str start) #\0)
     (if (or (string= str "0" start end)
             (string= str "0." start end))
@@ -425,10 +429,9 @@ as an ordered alist."
   (display (digit->char (modulo q 10)) port))
 
 (define (list-of? val pred)
-  (or (null? val)
-      (and (pair? val)
-           (pred (car val))
-           (list-of? (cdr val) pred))))
+  (match val
+    (((? pred) ...) #t)
+    (_ #f)))
 
 (define* (parse-quality-list str)
   (map (lambda (part)
@@ -436,20 +439,18 @@ as an ordered alist."
           ((string-rindex part #\;)
            => (lambda (idx)
                 (let ((qpart (string-trim-both part char-set:whitespace (1+ idx))))
-                  (if (string-prefix? "q=" qpart)
-                      (cons (parse-quality qpart 2)
-                            (string-trim-both part char-set:whitespace 0 idx))
-                      (bad-header-component 'quality qpart)))))
+                  (unless (string-prefix? "q=" qpart)
+                    (bad-header-component 'quality qpart))
+                  (cons (parse-quality qpart 2)
+                        (string-trim-both part char-set:whitespace 0 idx)))))
           (else
            (cons 1000 (string-trim-both part char-set:whitespace)))))
        (string-split str #\,)))
 
 (define (validate-quality-list l)
-  (list-of? l
-            (lambda (elt)
-              (and (pair? elt)
-                   (valid-quality? (car elt))
-                   (string? (cdr elt))))))
+  (match l
+    ((((? valid-quality?) . (? string?)) ...) #t)
+    (_ #f)))
 
 (define (write-quality-list l port)
   (write-list l port
@@ -457,26 +458,25 @@ as an ordered alist."
                 (let ((q (car x))
                       (str (cdr x)))
                   (display str port)
-                  (if (< q 1000)
-                      (begin
-                        (display ";q=" port)
-                        (write-quality q port)))))
+                  (when (< q 1000)
+                    (display ";q=" port)
+                    (write-quality q port))))
               ","))
 
 (define* (parse-non-negative-integer val #:optional (start 0)
                                      (end (string-length val)))
   (define (char->decimal c)
     (let ((i (- (char->integer c) (char->integer #\0))))
-      (if (and (<= 0 i) (< i 10))
-          i
-          (bad-header-component 'non-negative-integer val))))
-  (if (not (< start end))
-      (bad-header-component 'non-negative-integer val)
-      (let lp ((i start) (out 0))
-        (if (< i end)
-            (lp (1+ i)
-                (+ (* out 10) (char->decimal (string-ref val i))))
-            out))))
+      (unless (and (<= 0 i) (< i 10))
+        (bad-header-component 'non-negative-integer val))
+      i))
+  (unless (< start end)
+    (bad-header-component 'non-negative-integer val))
+  (let lp ((i start) (out 0))
+    (if (< i end)
+        (lp (1+ i)
+            (+ (* out 10) (char->decimal (string-ref val i))))
+        out)))
 
 (define (non-negative-integer? code)
   (and (number? code) (>= code 0) (exact? code) (integer? code)))
@@ -497,9 +497,9 @@ as an ordered alist."
 (define* (parse-key-value-list str #:optional
                                (val-parser default-val-parser)
                                (start 0) (end (string-length str)))
-  (let lp ((i start) (out '()))
+  (let lp ((i start))
     (if (not (< i end))
-        (reverse! out)
+        '()
         (let* ((i (skip-whitespace str i end))
                (eq (string-index str #\= i end))
                (comma (string-index str #\, i end))
@@ -520,37 +520,35 @@ as an ordered alist."
             (lambda (v-str next-i)
               (let ((v (val-parser k v-str))
                     (i (skip-whitespace str next-i end)))
-                (if (or (= i end) (eqv? (string-ref str i) #\,))
-                    (lp (1+ i) (cons (if v (cons k v) k) out))
-                    (bad-header-component 'key-value-list
-                                          (substring str start end))))))))))
+                (unless (or (= i end) (eqv? (string-ref str i) #\,))
+                  (bad-header-component 'key-value-list
+                                        (substring str start end)))
+                (cons (if v (cons k v) k)
+                      (lp (1+ i))))))))))
 
 (define* (key-value-list? list #:optional
                           (valid? default-val-validator))
   (list-of? list
             (lambda (elt)
-              (cond
-               ((pair? elt)
-                (let ((k (car elt))
-                      (v (cdr elt)))
-                  (and (symbol? k)
-                       (valid? k v))))
-               ((symbol? elt)
-                (valid? elt #f))
-               (else #f)))))
+              (match elt
+                (((? symbol? k) . v) (valid? k v))
+                ((? symbol? k) (valid? k #f))
+                (_ #f)))))
 
 (define* (write-key-value-list list port #:optional
                                (val-writer default-val-writer) (delim ", "))
   (write-list
    list port
    (lambda (x port)
-     (let ((k (if (pair? x) (car x) x))
-           (v (if (pair? x) (cdr x) #f)))
-       (display k port)
-       (if v
-           (begin
-             (display #\= port)
-             (val-writer k v port)))))
+     (match x
+       ((k . #f)
+        (display (symbol->string k) port))
+       ((k . v)
+        (display (symbol->string k) port)
+        (display #\= port)
+        (val-writer k v port))
+       (k
+        (display (symbol->string k) port))))
    delim))
 
 ;; param-component = token [ "=" (token | quoted-string) ] \
@@ -782,8 +780,8 @@ as an ordered alist."
 (define (parse-rfc-850-date str comma space zone-offset)
   ;; We could verify the day of the week but we don't.
   (let ((tail (substring str (1+ comma) space)))
-    (if (not (string-match? tail " dd-aaa-dd dd:dd:dd"))
-        (bad-header 'date str))
+    (unless (string-match? tail " dd-aaa-dd dd:dd:dd")
+      (bad-header 'date str))
     (let ((date (parse-non-negative-integer tail 1 3))
           (month (parse-month tail 4 7))
           (year (parse-non-negative-integer tail 8 10))
@@ -803,8 +801,8 @@ as an ordered alist."
 ;; 012345678901234567890123
 ;; 0         1         2
 (define (parse-asctime-date str)
-  (if (not (string-match? str "aaa aaa .d dd:dd:dd dddd"))
-      (bad-header 'date str))
+  (unless (string-match? str "aaa aaa .d dd:dd:dd dddd")
+    (bad-header 'date str))
   (let ((date (parse-non-negative-integer
                str
                (if (eqv? (string-ref str 8) #\space) 9 8)
@@ -838,11 +836,10 @@ as an ordered alist."
   (define (display-digits n digits port)
     (define zero (char->integer #\0))
     (let lp ((tens (expt 10 (1- digits))))
-      (if (> tens 0)
-          (begin
-            (display (integer->char (+ zero (modulo (truncate/ n tens) 10)))
-                    port)
-            (lp (floor/ tens 10))))))
+      (when (> tens 0)
+        (display (integer->char (+ zero (modulo (truncate/ n tens) 10)))
+                 port)
+        (lp (floor/ tens 10)))))
   (let ((date (if (zero? (date-zone-offset date))
                   date
                   (time-tai->date (date->time-tai date) 0))))
@@ -895,13 +892,15 @@ as an ordered alist."
       (values (cons (substring val start delim) #t) delim)))))
 
 (define (entity-tag? val)
-  (and (pair? val)
-       (string? (car val))))
+  (match val
+    (((? string?) . _) #t)
+    (_ #f)))
 
 (define (write-entity-tag val port)
-  (if (not (cdr val))
-      (display "W/" port))
-  (write-qstring (car val) port))
+  (match val
+    ((tag . strong?)
+     (unless strong? (display "W/" port))
+     (write-qstring tag port))))
 
 (define* (parse-entity-tag-list val #:optional
                                 (start 0) (end (string-length val)))
@@ -936,24 +935,24 @@ as an ordered alist."
                             (start 0) (end (string-length str)))
   (let* ((start (skip-whitespace str start end))
          (delim (or (string-index str char-set:whitespace start end) end)))
-    (if (= start end)
-        (bad-header-component 'authorization str))
+    (when (= start end)
+      (bad-header-component 'authorization str))
     (let ((scheme (string->symbol
                    (string-downcase (substring str start (or delim end))))))
       (case scheme
         ((basic)
          (let* ((start (skip-whitespace str delim end)))
-           (if (< start end)
-               (cons scheme (substring str start end))
-               (bad-header-component 'credentials str))))
+           (unless (< start end)
+             (bad-header-component 'credentials str))
+           (cons scheme (substring str start end))))
         (else
          (cons scheme (parse-key-value-list str default-val-parser delim end)))))))
 
 (define (validate-credentials val)
-  (and (pair? val) (symbol? (car val))
-       (case (car val)
-         ((basic) (string? (cdr val)))
-         (else (key-value-list? (cdr val))))))
+  (match val
+    (('basic . (? string?)) #t)
+    (((? symbol?) . (? key-value-list?)) #t)
+    (_ #f)))
 
 (define (write-credentials val port)
   (display (car val) port)
@@ -1001,26 +1000,25 @@ as an ordered alist."
                             (values #f delim)))
                     (lambda (v next-i)
                       (let ((i (skip-whitespace str next-i end)))
-                        (if (or (= i end) (eqv? (string-ref str i) #\,))
-                            (lp (1+ i) (cons (if v (cons k v) k) out))
-                            (bad-header-component
-                             'challenge
-                             (substring str start end)))))))))))))
+                        (unless (or (= i end) (eqv? (string-ref str i) #\,))
+                          (bad-header-component 'challenge
+                                                (substring str start end)))
+                        (lp (1+ i) (cons (if v (cons k v) k) out))))))))))))
 
 (define* (parse-challenges str #:optional (val-parser default-val-parser)
                            (start 0) (end (string-length str)))
-  (let lp ((i start) (ret '()))
+  (let lp ((i start))
     (let ((i (skip-whitespace str i end)))
       (if (< i end)
           (call-with-values (lambda () (parse-challenge str i end))
             (lambda (challenge i)
-              (lp i (cons challenge ret))))
-          (reverse ret)))))
+              (cons challenge (lp i))))
+          '()))))
 
 (define (validate-challenges val)
-  (list-of? val (lambda (x)
-                  (and (pair? x) (symbol? (car x))
-                       (key-value-list? (cdr x))))))
+  (match val
+    ((((? symbol?) . (? key-value-list?)) ...) #t)
+    (_ #f)))
 
 (define (write-challenge val port)
   (display (car val) port)
@@ -1049,18 +1047,21 @@ as an ordered alist."
   "Parse an HTTP version from STR, returning it as a major–minor
 pair. For example, ‘HTTP/1.1’ parses as the pair of integers,
 ‘(1 . 1)’."
-  (or (let lp ((known *known-versions*))
-        (and (pair? known)
-             (if (string= str (caar known) start end)
-                 (cdar known)
-                 (lp (cdr known)))))
-      (let ((dot-idx (string-index str #\. start end)))
-        (if (and (string-prefix? "HTTP/" str 0 5 start end)
-                 dot-idx
-                 (= dot-idx (string-rindex str #\. start end)))
-            (cons (parse-non-negative-integer str (+ start 5) dot-idx)
-                  (parse-non-negative-integer str (1+ dot-idx) end))
-            (bad-header-component 'http-version (substring str start end))))))
+  (let lp ((known *known-versions*))
+    (match known
+      (((version-str . version-val) . known)
+       (if (string= str version-str start end)
+           version-val
+           (lp known)))
+      (()
+       (let ((dot-idx (string-index str #\. start end)))
+         (unless (and (string-prefix? "HTTP/" str 0 5 start end)
+                      dot-idx
+                      (= dot-idx (string-rindex str #\. start end)))
+           
+           (bad-header-component 'http-version (substring str start end)))
+         (cons (parse-non-negative-integer str (+ start 5) dot-idx)
+               (parse-non-negative-integer str (1+ dot-idx) end)))))))
 
 (define (write-http-version val port)
   "Write the given major-minor version pair to PORT."
@@ -1122,11 +1123,11 @@ three values: the method, the URI, and the version."
   (let* ((line (read-header-line port))
          (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
          (d1 (string-rindex line char-set:whitespace)))
-    (if (and d0 d1 (< d0 d1))
-        (values (parse-http-method line 0 d0)
-                (parse-request-uri line (skip-whitespace line (1+ d0) d1) d1)
-                (parse-http-version line (1+ d1) (string-length line)))
-        (bad-request "Bad Request-Line: ~s" line))))
+    (unless (and d0 d1 (< d0 d1))
+      (bad-request "Bad Request-Line: ~s" line))
+    (values (parse-http-method line 0 d0)
+            (parse-request-uri line (skip-whitespace line (1+ d0) d1) d1)
+            (parse-http-version line (1+ d1) (string-length line)))))
 
 (define (write-uri uri port)
   (when (uri-host uri)
@@ -1166,11 +1167,13 @@ three values: the method, the URI, and the version."
       (when (and scheme host)
         (display scheme port)
         (display "://" port)
-        (if (string-index host #\:)
-            (begin (display #\[ port)
-                   (display host port)
-                   (display #\] port))
-            (display host port))
+        (cond
+         ((string-index host #\:)
+          (display #\[ port)
+          (display host port)
+          (display #\] port))
+         (else
+          (display host port)))
         (unless ((@@ (web uri) default-port?) scheme host-port)
           (display #\: port)
           (display host-port port)))))
@@ -1179,10 +1182,9 @@ three values: the method, the URI, and the version."
     (if (string-null? path)
         (display "/" port)
         (display path port))
-    (if query
-        (begin
-          (display "?" port)
-          (display query port))))
+    (when query
+      (display "?" port)
+      (display query port)))
   (display #\space port)
   (write-http-version version port)
   (display "\r\n" port))
@@ -1195,12 +1197,12 @@ values: the HTTP version, the response code, and the (possibly empty)
          (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
          (d1 (and d0 (string-index line char-set:whitespace
                                    (skip-whitespace line d0)))))
-    (if (and d0 d1)
-        (values (parse-http-version line 0 d0)
-                (parse-non-negative-integer line (skip-whitespace line d0 d1)
-                                            d1)
-                (string-trim-both line char-set:whitespace d1))
-        (bad-response "Bad Response-Line: ~s" line))))
+    (unless (and d0 d1)
+      (bad-response "Bad Response-Line: ~s" line))
+    (values (parse-http-version line 0 d0)
+            (parse-non-negative-integer line (skip-whitespace line d0 d1)
+                                        d1)
+            (string-trim-both line char-set:whitespace d1))))
 
 (define (write-response-line version code reason-phrase port)
   "Write the first line of an HTTP response to PORT."
@@ -1453,59 +1455,58 @@ treated specially, and is just returned as a plain string."
       (let lp ((i (skip-whitespace str 0)))
         (let* ((idx1 (string-index str #\space i))
                (idx2 (string-index str #\space (1+ idx1))))
-          (if (and idx1 idx2)
-              (let ((code (parse-non-negative-integer str i idx1))
-                    (agent (substring str (1+ idx1) idx2)))
-                (call-with-values
-                    (lambda () (parse-qstring str (1+ idx2) #:incremental? #t))
-                  (lambda (text i)
-                    (call-with-values
-                        (lambda ()
-                          (let ((c (and (< i len) (string-ref str i))))
-                            (case c
-                              ((#\space)
-                               ;; we have a date.
-                               (call-with-values
-                                   (lambda () (parse-qstring str (1+ i)
-                                                             #:incremental? #t))
-                                 (lambda (date i)
-                                   (values text (parse-date date) i))))
-                              (else
-                               (values text #f i)))))
-                      (lambda (text date i)
-                        (let ((w (list code agent text date))
-                              (c (and (< i len) (string-ref str i))))
+          (when (and idx1 idx2)
+            (let ((code (parse-non-negative-integer str i idx1))
+                  (agent (substring str (1+ idx1) idx2)))
+              (call-with-values
+                  (lambda () (parse-qstring str (1+ idx2) #:incremental? #t))
+                (lambda (text i)
+                  (call-with-values
+                      (lambda ()
+                        (let ((c (and (< i len) (string-ref str i))))
                           (case c
-                            ((#f) (list w))
-                            ((#\,) (cons w (lp (skip-whitespace str (1+ i)))))
-                            (else (bad-header 'warning str))))))))))))))
+                            ((#\space)
+                             ;; we have a date.
+                             (call-with-values
+                                 (lambda () (parse-qstring str (1+ i)
+                                                           #:incremental? #t))
+                               (lambda (date i)
+                                 (values text (parse-date date) i))))
+                            (else
+                             (values text #f i)))))
+                    (lambda (text date i)
+                      (let ((w (list code agent text date))
+                            (c (and (< i len) (string-ref str i))))
+                        (case c
+                          ((#f) (list w))
+                          ((#\,) (cons w (lp (skip-whitespace str (1+ i)))))
+                          (else (bad-header 'warning str))))))))))))))
   (lambda (val)
     (list-of? val
               (lambda (elt)
-                (and (list? elt)
-                     (= (length elt) 4)
-                     (apply (lambda (code host text date)
-                              (and (non-negative-integer? code) (< code 1000)
-                                   (string? host)
-                                   (string? text)
-                                   (or (not date) (date? date))))
-                            elt)))))
+                (match elt
+                  ((code host text date)
+                   (and (non-negative-integer? code) (< code 1000)
+                        (string? host)
+                        (string? text)
+                        (or (not date) (date? date))))
+                  (_ #f)))))
   (lambda (val port)
     (write-list
      val port
      (lambda (w port)
-       (apply
-        (lambda (code host text date)
+       (match w
+         ((code host text date)
           (display code port)
           (display #\space port)
           (display host port)
           (display #\space port)
           (write-qstring text port)
-          (if date
-              (begin
-                (display #\space port)
-                (write-date date port))))
-        w))
+          (when date
+            (display #\space port)
+            (display #\" port)
+            (write-date date port)
+            (display #\" port)))))
      ", "))
   #:multiple? #t)
 
@@ -1529,18 +1530,14 @@ treated specially, and is just returned as a plain string."
 ;;
 (declare-header! "Content-Disposition"
   (lambda (str)
-    (let ((disposition (parse-param-list str default-val-parser)))
-      ;; Lazily reuse the param list parser.
-      (unless (and (pair? disposition)
-                   (null? (cdr disposition)))
-        (bad-header-component 'content-disposition str))
-      (car disposition)))
+    ;; Lazily reuse the param list parser.
+    (match (parse-param-list str default-val-parser)
+      ((disposition) disposition)
+      (_ (bad-header-component 'content-disposition str))))
   (lambda (val)
-    (and (pair? val)
-         (symbol? (car val))
-         (list-of? (cdr val)
-                   (lambda (x)
-                     (and (pair? x) (symbol? (car x)) (string? (cdr x)))))))
+    (match val
+      (((? symbol?) ((? symbol?) . (? string?)) ...) #t)
+      (_ #f)))
   (lambda (val port)
     (write-param-list (list val) port)))
 
@@ -1577,44 +1574,44 @@ treated specially, and is just returned as a plain string."
   (lambda (str)
     (let ((dash (string-index str #\-))
           (slash (string-index str #\/)))
-      (if (and (string-prefix? "bytes " str) slash)
-          (list 'bytes
-                (cond
-                 (dash
-                  (cons
-                   (parse-non-negative-integer str 6 dash)
-                   (parse-non-negative-integer str (1+ dash) slash)))
-                 ((string= str "*" 6 slash)
-                  '*)
-                 (else
-                  (bad-header 'content-range str)))
-                (if (string= str "*" (1+ slash))
-                    '*
-                    (parse-non-negative-integer str (1+ slash))))
-          (bad-header 'content-range str))))
+      (unless (and (string-prefix? "bytes " str) slash)
+        (bad-header 'content-range str))
+      (list 'bytes
+            (cond
+             (dash
+              (cons
+               (parse-non-negative-integer str 6 dash)
+               (parse-non-negative-integer str (1+ dash) slash)))
+             ((string= str "*" 6 slash)
+              '*)
+             (else
+              (bad-header 'content-range str)))
+            (if (string= str "*" (1+ slash))
+                '*
+                (parse-non-negative-integer str (1+ slash))))))
   (lambda (val)
-    (and (list? val) (= (length val) 3)
-         (symbol? (car val))
-         (let ((x (cadr val)))
-           (or (eq? x '*)
-               (and (pair? x)
-                    (non-negative-integer? (car x))
-                    (non-negative-integer? (cdr x)))))
-         (let ((x (caddr val)))
-           (or (eq? x '*)
-               (non-negative-integer? x)))))
+    (match val
+      (((? symbol?)
+        (or '* ((? non-negative-integer?) . (? non-negative-integer?)))
+        (or '* (? non-negative-integer?)))
+       #t)
+      (_ #f)))
   (lambda (val port)
-    (display (car val) port)
-    (display #\space port)
-    (if (eq? (cadr val) '*)
-        (display #\* port)
-        (begin
-          (display (caadr val) port)
+    (match val
+      ((unit range instance-length)
+       (display unit port)
+       (display #\space port)
+       (match range
+         ('*
+          (display #\* port))
+         ((start . end)
+          (display start port)
           (display #\- port)
-          (display (caadr val) port)))
-    (if (eq? (caddr val) '*)
-        (display #\* port)
-        (display (caddr val) port))))
+          (display end port)))
+       (display #\/ port)
+       (match instance-length
+         ('* (display #\* port))
+         (len (display len port)))))))
 
 ;; Content-Type = media-type
 ;;
@@ -1624,31 +1621,34 @@ treated specially, and is just returned as a plain string."
       (cons (parse-media-type (car parts))
             (map (lambda (x)
                    (let ((eq (string-index x #\=)))
-                     (if (and eq (= eq (string-rindex x #\=)))
-                         (cons
-                          (string->symbol
-                           (string-trim x char-set:whitespace 0 eq))
-                          (string-trim-right x char-set:whitespace (1+ eq)))
-                         (bad-header 'content-type str))))
+                     (unless (and eq (= eq (string-rindex x #\=)))
+                       (bad-header 'content-type str))
+                     (cons
+                      (string->symbol
+                       (string-trim x char-set:whitespace 0 eq))
+                      (string-trim-right x char-set:whitespace (1+ eq)))))
                  (cdr parts)))))
   (lambda (val)
-    (and (pair? val)
-         (symbol? (car val))
-         (list-of? (cdr val)
-                   (lambda (x)
-                     (and (pair? x) (symbol? (car x)) (string? (cdr x)))))))
+    (match val
+      (((? symbol?) ((? symbol?) . (? string?)) ...) #t)
+      (_ #f)))
   (lambda (val port)
-    (display (car val) port)
-    (if (pair? (cdr val)) 
-       (begin
+    (match val
+      ((type . args)
+       (display type port)
+       (match args
+         (() (values))
+         (args
           (display ";" port)
           (write-list
-           (cdr val) port
+           args port
            (lambda (pair port)
-             (display (car pair) port)
-             (display #\= port)
-             (display (cdr pair) port))
-           ";")))))
+             (match pair
+               ((k . v)
+                (display k port)
+                (display #\= port)
+                (display v port))))
+           ";")))))))
 
 ;; Expires = HTTP-date
 ;;
@@ -1752,21 +1752,22 @@ treated specially, and is just returned as a plain string."
                       (parse-non-negative-integer str (1+ colon)))))
       (cons host port)))
   (lambda (val)
-    (and (pair? val)
-         (string? (car val))
-         (or (not (cdr val))
-             (non-negative-integer? (cdr val)))))
+    (match val
+      (((? string?) . (or #f (? non-negative-integer?))) #t)
+      (_ #f)))
   (lambda (val port)
-    (if (string-index (car val) #\:)
-        (begin
-          (display #\[ port)
-          (display (car val) port)
-          (display #\] port))
-        (display (car val) port))
-    (if (cdr val)
-        (begin
-          (display #\: port)
-          (display (cdr val) port)))))
+    (match val
+      ((host-name . host-port)
+       (cond
+        ((string-index host-name #\:)
+         (display #\[ port)
+         (display host-name port)
+         (display #\] port))
+        (else
+         (display host-name port)))
+       (when host-port
+         (display #\: port)
+         (display host-port port))))))
 
 ;; If-Match = ( "*" | 1#entity-tag )
 ;;
@@ -1819,45 +1820,45 @@ treated specially, and is just returned as a plain string."
 ;;
 (declare-header! "Range"
   (lambda (str)
-    (if (string-prefix? "bytes=" str)
-        (cons
-         'bytes
-         (map (lambda (x)
-                (let ((dash (string-index x #\-)))
-                  (cond
-                   ((not dash)
-                    (bad-header 'range str))
-                   ((zero? dash)
-                    (cons #f (parse-non-negative-integer x 1)))
-                   ((= dash (1- (string-length x)))
-                    (cons (parse-non-negative-integer x 0 dash) #f))
-                   (else
-                    (cons (parse-non-negative-integer x 0 dash)
-                          (parse-non-negative-integer x (1+ dash)))))))
-              (string-split (substring str 6) #\,)))
-        (bad-header 'range str)))
+    (unless (string-prefix? "bytes=" str)
+      (bad-header 'range str))
+    (cons
+     'bytes
+     (map (lambda (x)
+            (let ((dash (string-index x #\-)))
+              (cond
+               ((not dash)
+                (bad-header 'range str))
+               ((zero? dash)
+                (cons #f (parse-non-negative-integer x 1)))
+               ((= dash (1- (string-length x)))
+                (cons (parse-non-negative-integer x 0 dash) #f))
+               (else
+                (cons (parse-non-negative-integer x 0 dash)
+                      (parse-non-negative-integer x (1+ dash)))))))
+          (string-split (substring str 6) #\,))))
   (lambda (val)
-    (and (pair? val)
-         (symbol? (car val))
-         (list-of? (cdr val)
-                   (lambda (elt)
-                     (and (pair? elt)
-                          (let ((x (car elt)) (y (cdr elt)))
-                            (and (or x y)
-                                 (or (not x) (non-negative-integer? x))
-                                 (or (not y) (non-negative-integer? y)))))))))
+    (match val
+      (((? symbol?)
+        (or (#f                        . (? non-negative-integer?))
+            ((? non-negative-integer?) . (? non-negative-integer?))
+            ((? non-negative-integer?) . #f))
+        ...) #t)
+      (_ #f)))
   (lambda (val port)
-    (display (car val) port)
-    (display #\= port)
-    (write-list
-     (cdr val) port
-     (lambda (pair port)
-       (if (car pair)
-           (display (car pair) port))
-       (display #\- port)
-       (if (cdr pair)
-           (display (cdr pair) port)))
-     ",")))
+    (match val
+      ((unit . ranges)
+       (display unit port)
+       (display #\= port)
+       (write-list
+        ranges port
+        (lambda (range port)
+          (match range
+            ((start . end)
+             (when start (display start port))
+             (display #\- port)
+             (when end (display end port)))))
+        ",")))))
 
 ;; Referer = URI-reference
 ;;
@@ -1986,26 +1987,28 @@ closed it will also close PORT, unless the KEEP-ALIVE? is true."
              (let ((size (read-chunk-header port)))
                (set! chunk-size size)
                (set! remaining size)
-               (if (zero? size)
-                   (begin
-                     (set! finished? #t)
-                     num-read)
-                   (loop to-read num-read))))
+               (cond
+                ((zero? size)
+                 (set! finished? #t)
+                 num-read)
+                (else
+                 (loop to-read num-read)))))
             (else                           ;read from the current chunk
              (let* ((ask-for (min to-read remaining))
                     (read    (get-bytevector-n! port bv (+ idx num-read)
                                                 ask-for)))
-               (if (eof-object? read)
-                   (begin                         ;premature termination
-                     (set! finished? #t)
-                     num-read)
-                   (let ((left (- remaining read)))
-                     (set! remaining left)
-                     (when (zero? left)
-                       ;; We're done with this chunk; read CR and LF.
-                       (get-u8 port) (get-u8 port))
-                     (loop (- to-read read)
-                           (+ num-read read))))))))
+               (cond
+                ((eof-object? read)     ;premature termination
+                 (set! finished? #t)
+                 num-read)
+                (else
+                 (let ((left (- remaining read)))
+                   (set! remaining left)
+                   (when (zero? left)
+                     ;; We're done with this chunk; read CR and LF.
+                     (get-u8 port) (get-u8 port))
+                   (loop (- to-read read)
+                         (+ num-read read)))))))))
     (loop to-read 0))
 
   (make-custom-binary-input-port "chunked input port" read! #f #f close))
