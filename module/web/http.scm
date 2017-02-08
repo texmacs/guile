@@ -145,11 +145,12 @@ is ‘string?’."
 (define (header-writer sym)
   "Return a procedure that writes values for headers named SYM to a
 port.  The resulting procedure takes two arguments: a value and a port.
-The default writer is ‘display’."
+The default writer will call ‘put-string’."
   (let ((decl (lookup-header-decl sym)))
     (if decl
         (header-decl-writer decl)
-        display)))
+        (lambda (val port)
+          (put-string port val)))))
 
 (define (read-header-line port)
   "Read an HTTP header line and return it without its final CRLF or LF.
@@ -308,7 +309,7 @@ as an ordered alist."
   (list-of? val string?))
 
 (define (write-list-of-strings val port)
-  (write-list val port display ", "))
+  (put-list port val put-string ", "))
 
 (define (split-header-names str)
   (map string->header (split-and-trim str)))
@@ -317,10 +318,10 @@ as an ordered alist."
   (list-of? val symbol?))
 
 (define (write-header-list val port)
-  (write-list val port
-              (lambda (x port)
-                (put-string port (header->string x)))
-              ", "))
+  (put-list port val
+            (lambda (port x)
+              (put-string port (header->string x)))
+            ", "))
 
 (define (collect-escaped-string from start len escapes)
   (let ((to (make-string len)))
@@ -357,24 +358,24 @@ as an ordered alist."
            (lp (1+ i) (1+ qi) escapes)))
         (bad-header-component 'qstring str))))
 
-(define (write-list items port write-item delim)
+(define (put-list port items put-item delim)
   (match items
     (() (values))
     ((item . items)
-     (write-item item port)
+     (put-item port item)
      (let lp ((items items))
        (match items
          (() (values))
          ((item . items)
           (put-string port delim)
-          (write-item item port)
+          (put-item port item)
           (lp items)))))))
 
 (define (write-qstring str port)
   (put-char port #\")
   (if (string-index str #\")
       ;; optimize me
-      (write-list (string-split str #\") port display "\\\"")
+      (put-list port (string-split str #\") put-string "\\\"")
       (put-string port str))
   (put-char port #\"))
 
@@ -460,15 +461,15 @@ as an ordered alist."
     (_ #f)))
 
 (define (write-quality-list l port)
-  (write-list l port
-              (lambda (x port)
-                (let ((q (car x))
-                      (str (cdr x)))
-                  (put-string port str)
-                  (when (< q 1000)
-                    (put-string port ";q=")
-                    (write-quality q port))))
-              ","))
+  (put-list port l
+            (lambda (port x)
+              (let ((q (car x))
+                    (str (cdr x)))
+                (put-string port str)
+                (when (< q 1000)
+                  (put-string port ";q=")
+                  (write-quality q port))))
+            ","))
 
 (define* (parse-non-negative-integer val #:optional (start 0)
                                      (end (string-length val)))
@@ -544,9 +545,9 @@ as an ordered alist."
 
 (define* (write-key-value-list list port #:optional
                                (val-writer default-val-writer) (delim ", "))
-  (write-list
-   list port
-   (lambda (x port)
+  (put-list
+   port list
+   (lambda (port x)
      (match x
        ((k . #f)
         (put-symbol port k))
@@ -630,9 +631,9 @@ as an ordered alist."
 
 (define* (write-param-list list port #:optional
                            (val-writer default-val-writer))
-  (write-list
-   list port
-   (lambda (item port)
+  (put-list
+   port list
+   (lambda (port item)
      (write-key-value-list item port val-writer ";"))
    ","))
 
@@ -840,7 +841,7 @@ as an ordered alist."
          (parse-asctime-date str)))))
 
 (define (write-date date port)
-  (define (display-digits n digits port)
+  (define (put-digits port n digits)
     (define zero (char->integer #\0))
     (let lp ((tens (expt 10 (1- digits))))
       (when (> tens 0)
@@ -855,7 +856,7 @@ as an ordered alist."
                   ((0) "Sun, ") ((1) "Mon, ") ((2) "Tue, ")
                   ((3) "Wed, ") ((4) "Thu, ") ((5) "Fri, ")
                   ((6) "Sat, ") (else (error "bad date" date))))
-    (display-digits (date-day date) 2 port)
+    (put-digits port (date-day date) 2)
     (put-string port
                 (case (date-month date)
                   ((1)  " Jan ") ((2)  " Feb ") ((3)  " Mar ")
@@ -863,13 +864,13 @@ as an ordered alist."
                   ((7)  " Jul ") ((8)  " Aug ") ((9)  " Sep ")
                   ((10) " Oct ") ((11) " Nov ") ((12) " Dec ")
                   (else (error "bad date" date))))
-    (display-digits (date-year date) 4 port)
+    (put-digits port (date-year date) 4)
     (put-char port #\space)
-    (display-digits (date-hour date) 2 port)
+    (put-digits port (date-hour date) 2)
     (put-char port #\:)
-    (display-digits (date-minute date) 2 port)
+    (put-digits port (date-minute date) 2)
     (put-char port #\:)
-    (display-digits (date-second date) 2 port)
+    (put-digits port (date-second date) 2)
     (put-string port " GMT")))
 
 ;; Following https://tools.ietf.org/html/rfc7232#section-2.3, an entity
@@ -903,7 +904,7 @@ as an ordered alist."
     (((? string?) . _) #t)
     (_ #f)))
 
-(define (write-entity-tag val port)
+(define (put-entity-tag port val)
   (match val
     ((tag . strong?)
      (unless strong? (put-string port "W/"))
@@ -928,8 +929,8 @@ as an ordered alist."
 (define (entity-tag-list? val)
   (list-of? val entity-tag?))
 
-(define (write-entity-tag-list val port)
-  (write-list val port write-entity-tag  ", "))
+(define (put-entity-tag-list port val)
+  (put-list port val put-entity-tag  ", "))
 
 ;; credentials = auth-scheme #auth-param
 ;; auth-scheme = token
@@ -1030,7 +1031,7 @@ as an ordered alist."
     ((((? symbol?) . (? key-value-list?)) ...) #t)
     (_ #f)))
 
-(define (write-challenge val port)
+(define (put-challenge port val)
   (match val
     ((scheme . params)
      (put-symbol port scheme)
@@ -1038,7 +1039,7 @@ as an ordered alist."
      (write-key-value-list params port))))
 
 (define (write-challenges val port)
-  (write-list val port write-challenge ", "))
+  (put-list port val put-challenge ", "))
 
 
 
@@ -1258,7 +1259,7 @@ treated specially, and is just returned as a plain string."
     (lambda (v)
       (list-of? v symbol?))
     (lambda (v port)
-      (write-list v port display ", "))))
+      (put-list port v put-symbol ", "))))
 
 ;; emacs: (put 'declare-header-list-header! 'scheme-indent-function 1)
 (define (declare-header-list-header! name)
@@ -1268,7 +1269,8 @@ treated specially, and is just returned as a plain string."
 ;; emacs: (put 'declare-integer-header! 'scheme-indent-function 1)
 (define (declare-integer-header! name)
   (declare-header! name
-    parse-non-negative-integer non-negative-integer? display))
+    parse-non-negative-integer non-negative-integer?
+    (lambda (val port) (put-non-negative-integer port val))))
 
 ;; emacs: (put 'declare-uri-header! 'scheme-indent-function 1)
 (define (declare-uri-header! name)
@@ -1319,7 +1321,7 @@ treated specially, and is just returned as a plain string."
     (lambda (val port)
       (if (eq? val '*)
           (put-string port "*")
-          (write-entity-tag-list val port)))))
+          (put-entity-tag-list port val)))))
 
 ;; emacs: (put 'declare-credentials-header! 'scheme-indent-function 1)
 (define (declare-credentials-header! name)
@@ -1405,13 +1407,13 @@ treated specially, and is just returned as a plain string."
   split-header-names
   list-of-header-names?
   (lambda (val port)
-    (write-list val port
-                (lambda (x port)
-                  (put-string port
-                              (if (eq? x 'close)
-                                  "close"
-                                  (header->string x))))
-                ", ")))
+    (put-list port val
+              (lambda (port x)
+                (put-string port
+                            (if (eq? x 'close)
+                                "close"
+                                (header->string x))))
+              ", ")))
 
 ;; Date  = "Date" ":" HTTP-date
 ;; e.g.
@@ -1504,9 +1506,9 @@ treated specially, and is just returned as a plain string."
                         (or (not date) (date? date))))
                   (_ #f)))))
   (lambda (val port)
-    (write-list
-     val port
-     (lambda (w port)
+    (put-list
+     port val
+     (lambda (port w)
        (match w
          ((code host text date)
           (put-non-negative-integer port code)
@@ -1652,9 +1654,9 @@ treated specially, and is just returned as a plain string."
          (() (values))
          (args
           (put-string port ";")
-          (write-list
-           args port
-           (lambda (pair port)
+          (put-list
+           port args
+           (lambda (port pair)
              (match pair
                ((k . v)
                 (put-symbol port k)
@@ -1806,7 +1808,7 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (if (date? val)
         (write-date val port)
-        (write-entity-tag val port))))
+        (put-entity-tag port val))))
 
 ;; If-Unmodified-Since = HTTP-date
 ;;
@@ -1862,9 +1864,9 @@ treated specially, and is just returned as a plain string."
       ((unit . ranges)
        (put-symbol port unit)
        (put-char port #\=)
-       (write-list
-        ranges port
-        (lambda (range port)
+       (put-list
+        port ranges
+        (lambda (port range)
           (match range
             ((start . end)
              (when start (put-non-negative-integer port start))
@@ -1907,7 +1909,8 @@ treated specially, and is just returned as a plain string."
 (declare-header! "ETag"
   parse-entity-tag
   entity-tag?
-  write-entity-tag)
+  (lambda (val port)
+    (put-entity-tag port val)))
 
 ;; Location = URI-reference
 ;;
@@ -2051,7 +2054,7 @@ KEEP-ALIVE? is true."
       (let ((len (q-length queue)))
         (put-string port (number->string len 16))
         (put-string port "\r\n")
-        (q-for-each (lambda (elem) (write-char elem port))
+        (q-for-each (lambda (elem) (put-char port elem))
                     queue)
         (put-string port "\r\n"))))
   (define (close)
