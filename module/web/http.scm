@@ -37,6 +37,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 q)
   #:use-module (ice-9 binary-ports)
+  #:use-module (ice-9 textual-ports)
   #:use-module (rnrs bytevectors)
   #:use-module (web uri)
   #:export (string->header
@@ -72,6 +73,12 @@
             http-proxy-port?
             set-http-proxy-port?!))
 
+
+(define (put-symbol port sym)
+  (put-string port (symbol->string sym)))
+
+(define (put-non-negative-integer port i)
+  (put-string port (number->string i)))
 
 (define (string->header name)
   "Parse NAME to a symbolic header name."
@@ -205,10 +212,10 @@ header with name SYM."
 (define (write-header sym val port)
   "Write the given header name and value to PORT, using the writer
 from ‘header-writer’."
-  (display (header->string sym) port)
-  (display ": " port)
+  (put-string port (header->string sym))
+  (put-string port ": ")
   ((header-writer sym) val port)
-  (display "\r\n" port))
+  (put-string port "\r\n"))
 
 (define (read-headers port)
   "Read the headers of an HTTP message from PORT, returning them
@@ -263,7 +270,7 @@ as an ordered alist."
 (define (validate-opaque-string val)
   (string? val))
 (define (write-opaque-string val port)
-  (display val port))
+  (put-string port val))
 
 (define separators-without-slash
   (string->char-set "[^][()<>@,;:\\\"?= \t]"))
@@ -312,7 +319,7 @@ as an ordered alist."
 (define (write-header-list val port)
   (write-list val port
               (lambda (x port)
-                (display (header->string x) port))
+                (put-string port (header->string x)))
               ", "))
 
 (define (collect-escaped-string from start len escapes)
@@ -359,17 +366,17 @@ as an ordered alist."
        (match items
          (() (values))
          ((item . items)
-          (display delim port)
+          (put-string port delim)
           (write-item item port)
           (lp items)))))))
 
 (define (write-qstring str port)
-  (display #\" port)
+  (put-char port #\")
   (if (string-index str #\")
       ;; optimize me
       (write-list (string-split str #\") port display "\\\"")
-      (display str port))
-  (display #\" port))
+      (put-string port str))
+  (put-char port #\"))
 
 (define* (parse-quality str #:optional (start 0) (end (string-length str)))
   (define (char->decimal c)
@@ -422,11 +429,11 @@ as an ordered alist."
 (define (write-quality q port)
   (define (digit->char d)
     (integer->char (+ (char->integer #\0) d)))
-  (display (digit->char (modulo (quotient q 1000) 10)) port)
-  (display #\. port)
-  (display (digit->char (modulo (quotient q 100) 10)) port)
-  (display (digit->char (modulo (quotient q 10) 10)) port)
-  (display (digit->char (modulo q 10)) port))
+  (put-char port (digit->char (modulo (quotient q 1000) 10)))
+  (put-char port #\.)
+  (put-char port (digit->char (modulo (quotient q 100) 10)))
+  (put-char port (digit->char (modulo (quotient q 10) 10)))
+  (put-char port (digit->char (modulo q 10))))
 
 (define (list-of? val pred)
   (match val
@@ -457,9 +464,9 @@ as an ordered alist."
               (lambda (x port)
                 (let ((q (car x))
                       (str (cdr x)))
-                  (display str port)
+                  (put-string port str)
                   (when (< q 1000)
-                    (display ";q=" port)
+                    (put-string port ";q=")
                     (write-quality q port))))
               ","))
 
@@ -492,7 +499,7 @@ as an ordered alist."
           (string-index val #\,)
           (string-index val #\"))
       (write-qstring val port)
-      (display val port)))
+      (put-string port val)))
 
 (define* (parse-key-value-list str #:optional
                                (val-parser default-val-parser)
@@ -542,13 +549,13 @@ as an ordered alist."
    (lambda (x port)
      (match x
        ((k . #f)
-        (display (symbol->string k) port))
+        (put-symbol port k))
        ((k . v)
-        (display (symbol->string k) port)
-        (display #\= port)
+        (put-symbol port k)
+        (put-char port #\=)
         (val-writer k v port))
        (k
-        (display (symbol->string k) port))))
+        (put-symbol port k))))
    delim))
 
 ;; param-component = token [ "=" (token | quoted-string) ] \
@@ -837,33 +844,33 @@ as an ordered alist."
     (define zero (char->integer #\0))
     (let lp ((tens (expt 10 (1- digits))))
       (when (> tens 0)
-        (display (integer->char (+ zero (modulo (truncate/ n tens) 10)))
-                 port)
+        (put-char port
+                  (integer->char (+ zero (modulo (truncate/ n tens) 10))))
         (lp (floor/ tens 10)))))
   (let ((date (if (zero? (date-zone-offset date))
                   date
                   (time-tai->date (date->time-tai date) 0))))
-    (display (case (date-week-day date)
-               ((0) "Sun, ") ((1) "Mon, ") ((2) "Tue, ")
-               ((3) "Wed, ") ((4) "Thu, ") ((5) "Fri, ")
-               ((6) "Sat, ") (else (error "bad date" date)))
-             port)
+    (put-string port
+                (case (date-week-day date)
+                  ((0) "Sun, ") ((1) "Mon, ") ((2) "Tue, ")
+                  ((3) "Wed, ") ((4) "Thu, ") ((5) "Fri, ")
+                  ((6) "Sat, ") (else (error "bad date" date))))
     (display-digits (date-day date) 2 port)
-    (display (case (date-month date)
-               ((1)  " Jan ") ((2)  " Feb ") ((3)  " Mar ")
-               ((4)  " Apr ") ((5)  " May ") ((6)  " Jun ")
-               ((7)  " Jul ") ((8)  " Aug ") ((9)  " Sep ")
-               ((10) " Oct ") ((11) " Nov ") ((12) " Dec ")
-               (else (error "bad date" date)))
-             port)
+    (put-string port
+                (case (date-month date)
+                  ((1)  " Jan ") ((2)  " Feb ") ((3)  " Mar ")
+                  ((4)  " Apr ") ((5)  " May ") ((6)  " Jun ")
+                  ((7)  " Jul ") ((8)  " Aug ") ((9)  " Sep ")
+                  ((10) " Oct ") ((11) " Nov ") ((12) " Dec ")
+                  (else (error "bad date" date))))
     (display-digits (date-year date) 4 port)
-    (display #\space port)
+    (put-char port #\space)
     (display-digits (date-hour date) 2 port)
-    (display #\: port)
+    (put-char port #\:)
     (display-digits (date-minute date) 2 port)
-    (display #\: port)
+    (put-char port #\:)
     (display-digits (date-second date) 2 port)
-    (display " GMT" port)))
+    (put-string port " GMT")))
 
 ;; Following https://tools.ietf.org/html/rfc7232#section-2.3, an entity
 ;; tag should really be a qstring.  However there are a number of
@@ -899,7 +906,7 @@ as an ordered alist."
 (define (write-entity-tag val port)
   (match val
     ((tag . strong?)
-     (unless strong? (display "W/" port))
+     (unless strong? (put-string port "W/"))
      (write-qstring tag port))))
 
 (define* (parse-entity-tag-list val #:optional
@@ -955,11 +962,14 @@ as an ordered alist."
     (_ #f)))
 
 (define (write-credentials val port)
-  (display (car val) port)
-  (display #\space port)
-  (case (car val)
-    ((basic) (display (cdr val) port))
-    (else (write-key-value-list (cdr val) port))))
+  (match val
+    (('basic . cred)
+     (put-string port "basic ")
+     (put-string port cred))
+    ((scheme . params)
+     (put-symbol port scheme)
+     (put-char port #\space)
+     (write-key-value-list params port))))
 
 ;; challenges = 1#challenge
 ;; challenge = auth-scheme 1*SP 1#auth-param
@@ -1021,9 +1031,11 @@ as an ordered alist."
     (_ #f)))
 
 (define (write-challenge val port)
-  (display (car val) port)
-  (display #\space port)
-  (write-key-value-list (cdr val) port))
+  (match val
+    ((scheme . params)
+     (put-symbol port scheme)
+     (put-char port #\space)
+     (write-key-value-list params port))))
 
 (define (write-challenges val port)
   (write-list val port write-challenge ", "))
@@ -1065,10 +1077,10 @@ pair. For example, ‘HTTP/1.1’ parses as the pair of integers,
 
 (define (write-http-version val port)
   "Write the given major-minor version pair to PORT."
-  (display "HTTP/" port)
-  (display (car val) port)
-  (display #\. port)
-  (display (cdr val) port))
+  (put-string port "HTTP/")
+  (put-non-negative-integer port (car val))
+  (put-char port #\.)
+  (put-non-negative-integer port (cdr val)))
 
 (for-each
  (lambda (v)
@@ -1132,17 +1144,17 @@ three values: the method, the URI, and the version."
 (define (write-uri uri port)
   (when (uri-host uri)
     (when (uri-scheme uri)
-      (display (uri-scheme uri) port)
-      (display #\: port))
-    (display "//" port)
+      (put-symbol port (uri-scheme uri))
+      (put-char port #\:))
+    (put-string port "//")
     (when (uri-userinfo uri)
-      (display (uri-userinfo uri) port)
-      (display #\@ port))
-    (display (uri-host uri) port)
+      (put-string port (uri-userinfo uri))
+      (put-char port #\@))
+    (put-string port (uri-host uri))
     (let ((p (uri-port uri)))
       (when (and p (not (eqv? p 80)))
-        (display #\: port)
-        (display p port))))
+        (put-char port #\:)
+        (put-non-negative-integer port p))))
   (let* ((path (uri-path uri))
          (len (string-length path)))
     (cond
@@ -1151,43 +1163,43 @@ three values: the method, the URI, and the version."
      ((and (zero? len) (not (uri-host uri)))
       (bad-request "Empty path and no host for URI: ~s" uri))
      (else
-      (display path port))))
+      (put-string port path))))
   (when (uri-query uri)
-    (display #\? port)
-    (display (uri-query uri) port)))
+    (put-char port #\?)
+    (put-string port (uri-query uri))))
 
 (define (write-request-line method uri version port)
   "Write the first line of an HTTP request to PORT."
-  (display method port)
-  (display #\space port)
+  (put-symbol port method)
+  (put-char port #\space)
   (when (http-proxy-port? port)
     (let ((scheme (uri-scheme uri))
           (host (uri-host uri))
           (host-port (uri-port uri)))
       (when (and scheme host)
-        (display scheme port)
-        (display "://" port)
+        (put-symbol port scheme)
+        (put-string port "://")
         (cond
-         ((string-index host #\:)
-          (display #\[ port)
-          (display host port)
-          (display #\] port))
+         ((host string-index #\:)
+          (put-char #\[ port)
+          (put-string port host
+          (put-char port #\])))
          (else
-          (display host port)))
+          (put-string port host)))
         (unless ((@@ (web uri) default-port?) scheme host-port)
-          (display #\: port)
-          (display host-port port)))))
+          (put-char port #\:)
+          (put-non-negative-integer port host-port)))))
   (let ((path (uri-path uri))
         (query (uri-query uri)))
     (if (string-null? path)
-        (display "/" port)
-        (display path port))
+        (put-string port "/")
+        (put-string port path))
     (when query
-      (display "?" port)
-      (display query port)))
-  (display #\space port)
+      (put-string port "?")
+      (put-string port query)))
+  (put-char port #\space)
   (write-http-version version port)
-  (display "\r\n" port))
+  (put-string port "\r\n"))
 
 (define (read-response-line port)
   "Read the first line of an HTTP response from PORT, returning three
@@ -1207,11 +1219,11 @@ values: the HTTP version, the response code, and the (possibly empty)
 (define (write-response-line version code reason-phrase port)
   "Write the first line of an HTTP response to PORT."
   (write-http-version version port)
-  (display #\space port)
-  (display code port)
-  (display #\space port)
-  (display reason-phrase port)
-  (display "\r\n" port))
+  (put-char port #\space)
+  (put-non-negative-integer port code)
+  (put-char port #\space)
+  (put-string port reason-phrase)
+  (put-string port "\r\n"))
 
 
 
@@ -1306,7 +1318,7 @@ treated specially, and is just returned as a plain string."
     (lambda (val) (or (eq? val '*) (entity-tag-list? val)))
     (lambda (val port)
       (if (eq? val '*)
-          (display "*" port)
+          (put-string port "*")
           (write-entity-tag-list val port)))))
 
 ;; emacs: (put 'declare-credentials-header! 'scheme-indent-function 1)
@@ -1376,11 +1388,11 @@ treated specially, and is just returned as a plain string."
     (cond
      ((string? v) (default-val-writer k v port))
      ((pair? v)
-      (display #\" port)
+      (put-char port #\")
       (write-header-list v port)
-      (display #\" port))
+      (put-char port #\"))
      ((integer? v)
-      (display v port))
+      (put-non-negative-integer port v))
      (else
       (bad-header-component 'cache-control v)))))
 
@@ -1395,10 +1407,10 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (write-list val port
                 (lambda (x port)
-                  (display (if (eq? x 'close)
-                               "close"
-                               (header->string x))
-                           port))
+                  (put-string port
+                              (if (eq? x 'close)
+                                  "close"
+                                  (header->string x))))
                 ", ")))
 
 ;; Date  = "Date" ":" HTTP-date
@@ -1497,16 +1509,16 @@ treated specially, and is just returned as a plain string."
      (lambda (w port)
        (match w
          ((code host text date)
-          (display code port)
-          (display #\space port)
-          (display host port)
-          (display #\space port)
+          (put-non-negative-integer port code)
+          (put-char port #\space)
+          (put-string port host)
+          (put-char port #\space)
           (write-qstring text port)
           (when date
-            (display #\space port)
-            (display #\" port)
+            (put-char port #\space)
+            (put-char port #\")
             (write-date date port)
-            (display #\" port)))))
+            (put-char port #\")))))
      ", "))
   #:multiple? #t)
 
@@ -1599,19 +1611,19 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (match val
       ((unit range instance-length)
-       (display unit port)
-       (display #\space port)
+       (put-symbol port unit)
+       (put-char port #\space)
        (match range
          ('*
-          (display #\* port))
+          (put-char port #\*))
          ((start . end)
-          (display start port)
-          (display #\- port)
-          (display end port)))
-       (display #\/ port)
+          (put-non-negative-integer port start)
+          (put-char port #\-)
+          (put-non-negative-integer port end)))
+       (put-char port #\/)
        (match instance-length
-         ('* (display #\* port))
-         (len (display len port)))))))
+         ('* (put-char port #\*))
+         (len (put-non-negative-integer port len)))))))
 
 ;; Content-Type = media-type
 ;;
@@ -1635,19 +1647,19 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (match val
       ((type . args)
-       (display type port)
+       (put-symbol port type)
        (match args
          (() (values))
          (args
-          (display ";" port)
+          (put-string port ";")
           (write-list
            args port
            (lambda (pair port)
              (match pair
                ((k . v)
-                (display k port)
-                (display #\= port)
-                (display v port))))
+                (put-symbol port k)
+                (put-char port #\=)
+                (put-string port v))))
            ";")))))))
 
 ;; Expires = HTTP-date
@@ -1760,14 +1772,14 @@ treated specially, and is just returned as a plain string."
       ((host-name . host-port)
        (cond
         ((string-index host-name #\:)
-         (display #\[ port)
-         (display host-name port)
-         (display #\] port))
+         (put-char port #\[)
+         (put-string port host-name)
+         (put-char port #\]))
         (else
-         (display host-name port)))
+         (put-string port host-name)))
        (when host-port
-         (display #\: port)
-         (display host-port port))))))
+         (put-char port #\:)
+         (put-non-negative-integer port host-port))))))
 
 ;; If-Match = ( "*" | 1#entity-tag )
 ;;
@@ -1848,16 +1860,16 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (match val
       ((unit . ranges)
-       (display unit port)
-       (display #\= port)
+       (put-symbol port unit)
+       (put-char port #\=)
        (write-list
         ranges port
         (lambda (range port)
           (match range
             ((start . end)
-             (when start (display start port))
-             (display #\- port)
-             (when end (display end port)))))
+             (when start (put-non-negative-integer port start))
+             (put-char port #\-)
+             (when end (put-non-negative-integer port end)))))
         ",")))))
 
 ;; Referer = URI-reference
@@ -1922,7 +1934,7 @@ treated specially, and is just returned as a plain string."
   (lambda (val port)
     (if (date? val)
         (write-date val port)
-        (display val port))))
+        (put-non-negative-integer port val))))
 
 ;; Server = 1*( product | comment )
 ;;
@@ -1939,7 +1951,7 @@ treated specially, and is just returned as a plain string."
     (or (eq? val '*) (list-of-header-names? val)))
   (lambda (val port)
     (if (eq? val '*)
-        (display "*" port)
+        (put-string port "*")
         (write-header-list val port))))
 
 ;; WWW-Authenticate = 1#challenge
@@ -2027,9 +2039,9 @@ KEEP-ALIVE? is true."
     (while (not (q-empty? q))
       (f (deq! q))))
   (define queue (make-q))
-  (define (put-char c)
+  (define (%put-char c)
     (enq! queue c))
-  (define (put-string s)
+  (define (%put-string s)
     (string-for-each (lambda (c) (enq! queue c))
                      s))
   (define (flush)
@@ -2037,18 +2049,18 @@ KEEP-ALIVE? is true."
     ;; empty, since it will be treated as the final chunk.
     (unless (q-empty? queue)
       (let ((len (q-length queue)))
-        (display (number->string len 16) port)
-        (display "\r\n" port)
+        (put-string port (number->string len 16))
+        (put-string port "\r\n")
         (q-for-each (lambda (elem) (write-char elem port))
                     queue)
-        (display "\r\n" port))))
+        (put-string port "\r\n"))))
   (define (close)
     (flush)
-    (display "0\r\n" port)
+    (put-string port "0\r\n")
     (force-output port)
     (unless keep-alive?
       (close-port port)))
-  (let ((ret (make-soft-port (vector put-char put-string flush #f close) "w")))
+  (let ((ret (make-soft-port (vector %put-char %put-string flush #f close) "w")))
     (setvbuf ret 'block buffering)
     ret))
 
