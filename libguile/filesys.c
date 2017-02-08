@@ -647,20 +647,21 @@ set_element (fd_set *set, SCM *ports_ready, SCM element, int pos)
   else
     {
       int use_buf = 0;
+      size_t cur;
 
       element = SCM_COERCE_OUTPORT (element);
       SCM_ASSERT (SCM_OPFPORTP (element), element, pos, "select");
       if (pos == SCM_ARG1)
 	{
 	  /* Check whether port has input buffered.  */
-	  if (scm_port_buffer_can_take (SCM_PORT (element)->read_buf) > 0)
+	  if (scm_port_buffer_can_take (SCM_PORT (element)->read_buf, &cur) > 0)
 	    use_buf = 1;
 	}
       else if (pos == SCM_ARG2)
 	{
 	  /* Check whether port's output buffer has room.  > 1 since
              writing the last byte in the buffer causes flush.  */
-	  if (scm_port_buffer_can_put (SCM_PORT (element)->write_buf) > 1)
+	  if (scm_port_buffer_can_put (SCM_PORT (element)->write_buf, &cur) > 1)
 	    use_buf = 1;
 	}
       fd = use_buf ? -1 : SCM_FPORT_FDES (element);

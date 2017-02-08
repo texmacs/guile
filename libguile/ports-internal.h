@@ -212,22 +212,26 @@ scm_port_buffer_reset_end (SCM buf)
 }
 
 static inline size_t
-scm_port_buffer_can_take (SCM buf)
+scm_port_buffer_can_take (SCM buf, size_t *cur_out)
 {
   size_t cur, end;
   cur = scm_to_size_t (scm_port_buffer_cur (buf));
   end = scm_to_size_t (scm_port_buffer_end (buf));
-  if (cur > end || end > scm_port_buffer_size (buf))
+  if (end > scm_port_buffer_size (buf))
     scm_misc_error (NULL, "invalid port buffer ~a", scm_list_1 (buf));
-  return end - cur;
+  /* If something races and we end up with end < cur, signal the caller
+     to do a fill_input and centralize there.  */
+  *cur_out = cur;
+  return end < cur ? 0 : end - cur;
 }
 
 static inline size_t
-scm_port_buffer_can_put (SCM buf)
+scm_port_buffer_can_put (SCM buf, size_t *end_out)
 {
   size_t end = scm_to_size_t (scm_port_buffer_end (buf));
   if (end > scm_port_buffer_size (buf))
     scm_misc_error (NULL, "invalid port buffer ~a", scm_list_1 (buf));
+  *end_out = end;
   return scm_port_buffer_size (buf) - end;
 }
 
@@ -241,58 +245,59 @@ scm_port_buffer_can_putback (SCM buf)
 }
 
 static inline void
-scm_port_buffer_did_take (SCM buf, size_t count)
+scm_port_buffer_did_take (SCM buf, size_t prev_cur, size_t count)
 {
-  scm_port_buffer_set_cur
-    (buf, SCM_I_MAKINUM (SCM_I_INUM (scm_port_buffer_cur (buf)) + count));
+  scm_port_buffer_set_cur (buf, SCM_I_MAKINUM (prev_cur + count));
 }
 
 static inline void
-scm_port_buffer_did_put (SCM buf, size_t count)
+scm_port_buffer_did_put (SCM buf, size_t prev_end, size_t count)
 {
-  scm_port_buffer_set_end
-    (buf, SCM_I_MAKINUM (SCM_I_INUM (scm_port_buffer_end (buf)) + count));
+  scm_port_buffer_set_end (buf, SCM_I_MAKINUM (prev_end + count));
 }
 
 static inline const scm_t_uint8 *
-scm_port_buffer_take_pointer (SCM buf)
+scm_port_buffer_take_pointer (SCM buf, size_t cur)
 {
   signed char *ret = SCM_BYTEVECTOR_CONTENTS (scm_port_buffer_bytevector (buf));
-  return ((scm_t_uint8 *) ret) + scm_to_size_t (scm_port_buffer_cur (buf));
+  return ((scm_t_uint8 *) ret) + cur;
 }
 
 static inline scm_t_uint8 *
-scm_port_buffer_put_pointer (SCM buf)
+scm_port_buffer_put_pointer (SCM buf, size_t end)
 {
   signed char *ret = SCM_BYTEVECTOR_CONTENTS (scm_port_buffer_bytevector (buf));
-  return ((scm_t_uint8 *) ret) + scm_to_size_t (scm_port_buffer_end (buf));
+  return ((scm_t_uint8 *) ret) + end;
 }
 
 static inline size_t
-scm_port_buffer_take (SCM buf, scm_t_uint8 *dst, size_t count)
+scm_port_buffer_take (SCM buf, scm_t_uint8 *dst, size_t count,
+                      size_t cur, size_t avail)
 {
-  count = min (count, scm_port_buffer_can_take (buf));
+  if (avail < count)
+    count = avail;
   if (dst)
-    memcpy (dst, scm_port_buffer_take_pointer (buf), count);
-  scm_port_buffer_did_take (buf, count);
+    memcpy (dst, scm_port_buffer_take_pointer (buf, cur), count);
+  scm_port_buffer_did_take (buf, cur, count);
   return count;
 }
 
 static inline size_t
-scm_port_buffer_put (SCM buf, const scm_t_uint8 *src, size_t count)
+scm_port_buffer_put (SCM buf, const scm_t_uint8 *src, size_t count,
+                     size_t end, size_t avail)
 {
-  count = min (count, scm_port_buffer_can_put (buf));
+  if (avail < count)
+    count = avail;
   if (src)
-    memcpy (scm_port_buffer_put_pointer (buf), src, count);
-  scm_port_buffer_did_put (buf, count);
+    memcpy (scm_port_buffer_put_pointer (buf, end), src, count);
+  scm_port_buffer_did_put (buf, end, count);
   return count;
 }
 
 static inline void
-scm_port_buffer_putback (SCM buf, const scm_t_uint8 *src, size_t count)
+scm_port_buffer_putback (SCM buf, const scm_t_uint8 *src, size_t count,
+                         size_t cur)
 {
-  size_t cur = scm_to_size_t (scm_port_buffer_cur (buf));
-
   assert (count <= cur);
 
   /* Sometimes used to move around data within a buffer, so we must use

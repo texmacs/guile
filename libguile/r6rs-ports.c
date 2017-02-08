@@ -482,22 +482,21 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
 #define FUNC_NAME s_scm_get_bytevector_some
 {
   SCM buf;
-  size_t size;
+  size_t cur, avail;
   SCM bv;
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
-  buf = scm_fill_input (port, 0);
-  size = scm_port_buffer_can_take (buf);
-  if (size == 0)
+  buf = scm_fill_input (port, 0, &cur, &avail);
+  if (avail == 0)
     {
       scm_port_buffer_set_has_eof_p (buf, SCM_BOOL_F);
       return SCM_EOF_VAL;
     }
 
-  bv = scm_c_make_bytevector (size);
-  scm_take_from_input_buffers
-    (port, (char *) SCM_BYTEVECTOR_CONTENTS (bv), size);
+  bv = scm_c_make_bytevector (avail);
+  scm_port_buffer_take (buf, (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv),
+                        avail, cur, avail);
 
   return bv;
 }
