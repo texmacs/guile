@@ -47,17 +47,18 @@
 
 (pass-if-equal "return values"
     '(42 77)
-  (call-with-values
-      (lambda ()
-        (with-output-to-port (%make-void-port "w")
-          (lambda ()
-            (statprof
-             (lambda ()
-               (let loop ((i 10000))
-                 (if (zero? i)
-                     (values 42 77)
-                     (loop (1- i)))))))))
-    list))
+  (when-implemented
+   (call-with-values
+       (lambda ()
+         (with-output-to-port (%make-void-port "w")
+           (lambda ()
+             (statprof
+              (lambda ()
+                (let loop ((i 10000))
+                  (if (zero? i)
+                      (values 42 77)
+                      (loop (1- i)))))))))
+     list)))
 
 (pass-if "statistical sample counts within expected range"
   (when-implemented
