@@ -37,7 +37,9 @@
 #define PROMPT_WORDS 5
 #define PROMPT_KEY(top) (SCM_PACK ((top)[0]))
 #define PROMPT_FP(top) ((scm_t_ptrdiff) ((top)[1]))
+#define SET_PROMPT_FP(top, fp) do { top[1] = (scm_t_bits)(fp); } while (0)
 #define PROMPT_SP(top) ((scm_t_ptrdiff) ((top)[2]))
+#define SET_PROMPT_SP(top, sp) do { top[2] = (scm_t_bits)(sp); } while (0)
 #define PROMPT_IP(top) ((scm_t_uint32 *) ((top)[3]))
 #define PROMPT_JMPBUF(top) ((scm_i_jmp_buf *) ((top)[4]))
 
@@ -285,6 +287,24 @@ scm_dynstack_capture (scm_t_dynstack *dynstack, scm_t_bits *item)
   SCM_DYNSTACK_SET_PREV_OFFSET (SCM_DYNSTACK_FIRST (ret), 0);
 
   return ret;
+}
+
+void
+scm_dynstack_relocate_prompts (scm_t_dynstack *dynstack, scm_t_ptrdiff base)
+{
+  scm_t_bits *walk;
+
+  /* Relocate prompts.  */
+  for (walk = dynstack->top; walk; walk = SCM_DYNSTACK_PREV (walk))
+    {
+      scm_t_bits tag = SCM_DYNSTACK_TAG (walk);
+
+      if (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_PROMPT)
+        {
+          SET_PROMPT_FP (walk, PROMPT_FP (walk) - base);
+          SET_PROMPT_SP (walk, PROMPT_SP (walk) - base);
+        }
+    }
 }
 
 void
@@ -556,7 +576,8 @@ scm_dynstack_find_old_fluid_value (scm_t_dynstack *dynstack, SCM fluid,
 
 void
 scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
-                          scm_t_ptrdiff reloc, scm_i_jmp_buf *registers)
+                          scm_t_ptrdiff base_fp_offset,
+                          scm_i_jmp_buf *registers)
 {
   scm_t_bits tag = SCM_DYNSTACK_TAG (item);
 
@@ -566,8 +587,8 @@ scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
   scm_dynstack_push_prompt (dynstack,
                             SCM_DYNSTACK_TAG_FLAGS (tag),
                             PROMPT_KEY (item),
-                            PROMPT_FP (item) - reloc,
-                            PROMPT_SP (item) - reloc,
+                            PROMPT_FP (item) + base_fp_offset,
+                            PROMPT_SP (item) + base_fp_offset,
                             PROMPT_IP (item),
                             registers);
 }

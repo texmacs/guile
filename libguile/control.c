@@ -113,6 +113,8 @@ reify_partial_continuation (struct scm_vm *vp,
   if (SCM_FRAME_DYNAMIC_LINK (base_fp) != saved_fp)
     abort();
 
+  scm_dynstack_relocate_prompts (dynstack, vp->stack_top - base_fp);
+
   /* Capture from the base_fp to the top thunk application frame. */
   vm_cont = scm_i_vm_capture_stack (base_fp, vp->fp, vp->sp, vp->ip, dynstack,
                                     flags);

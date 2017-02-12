@@ -80,12 +80,19 @@ SCM_INTERNAL void scm_i_vm_free_stack (struct scm_vm *vp);
 #define SCM_F_VM_CONT_REWINDABLE 0x2
 
 struct scm_vm_cont {
-  union scm_vm_stack_element *fp;
+  /* IP of newest frame.  */
   scm_t_uint32 *ra;
+  /* Offset of FP of newest frame, relative to stack top.  */
+  scm_t_ptrdiff fp_offset;
+  /* Besides being the stack size, this is also the offset of the SP of
+     the newest frame.  */
   scm_t_ptrdiff stack_size;
+  /* Stack bottom, which also keeps saved stack alive for GC.  */
   union scm_vm_stack_element *stack_bottom;
-  scm_t_ptrdiff reloc;
+  /* Saved dynamic stack, with prompts relocated to record saved SP/FP
+     offsets from the stack top of this scm_vm_cont.  */
   scm_t_dynstack *dynstack;
+  /* See the continuation is partial and/or rewindable.  */
   scm_t_uint32 flags;
 };
 

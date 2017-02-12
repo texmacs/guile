@@ -184,10 +184,9 @@ scm_i_continuation_to_frame (SCM continuation, struct scm_frame *frame)
       struct scm_vm_cont *data = SCM_VM_CONT_DATA (cont->vm_cont);
       union scm_vm_stack_element *stack_top;
 
-      /* FIXME vm_cont should hold fp/sp offsets */
       stack_top = data->stack_bottom + data->stack_size;
       frame->stack_holder = data;
-      frame->fp_offset = stack_top - (data->fp + data->reloc);
+      frame->fp_offset = data->fp_offset;
       frame->sp_offset = data->stack_size;
       frame->ip = data->ra;
 

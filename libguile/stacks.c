@@ -319,16 +319,13 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
     {
       SCM cont;
       struct scm_vm_cont *c;
-      union scm_vm_stack_element *stack_top;
 
       cont = scm_i_capture_current_stack ();
       c = SCM_VM_CONT_DATA (cont);
 
-      /* FIXME vm_cont should hold fp/sp offsets */
-      stack_top = c->stack_bottom + c->stack_size;
       kind = SCM_VM_FRAME_KIND_CONT;
       frame.stack_holder = c;
-      frame.fp_offset = stack_top - (c->fp + c->reloc);
+      frame.fp_offset = c->fp_offset;
       frame.sp_offset = c->stack_size;
       frame.ip = c->ra;
     }

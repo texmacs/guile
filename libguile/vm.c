@@ -118,11 +118,9 @@ int
 scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame)
 {
   struct scm_vm_cont *data = SCM_VM_CONT_DATA (cont);
-  union scm_vm_stack_element *stack_top;
 
-  stack_top = data->stack_bottom + data->stack_size;
   frame->stack_holder = data;
-  frame->fp_offset = stack_top - (data->fp + data->reloc);
+  frame->fp_offset = data->fp_offset;
   frame->sp_offset = data->stack_size;
   frame->ip = data->ra;
 
@@ -145,9 +143,8 @@ scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
   p->stack_bottom = scm_gc_malloc (p->stack_size * sizeof (*p->stack_bottom),
                                    "capture_vm_cont");
   p->ra = ra;
-  p->fp = fp;
+  p->fp_offset = stack_top - fp;
   memcpy (p->stack_bottom, sp, p->stack_size * sizeof (*p->stack_bottom));
-  p->reloc = (p->stack_bottom + p->stack_size) - stack_top;
   p->dynstack = dynstack;
   p->flags = flags;
   return scm_cell (scm_tc7_vm_cont, (scm_t_bits) p);
@@ -167,19 +164,15 @@ vm_return_to_continuation_inner (void *data_ptr)
   struct return_to_continuation_data *data = data_ptr;
   struct scm_vm *vp = data->vp;
   struct scm_vm_cont *cp = data->cp;
-  union scm_vm_stack_element *cp_stack_top;
-  scm_t_ptrdiff reloc;
 
   /* We know that there is enough space for the continuation, because we
      captured it in the past.  However there may have been an expansion
      since the capture, so we may have to re-link the frame
      pointers.  */
-  cp_stack_top = cp->stack_bottom + cp->stack_size;
-  reloc = (vp->stack_top - (cp_stack_top - cp->reloc));
-  vp->fp = cp->fp + reloc;
   memcpy (vp->stack_top - cp->stack_size,
           cp->stack_bottom,
           cp->stack_size * sizeof (*cp->stack_bottom));
+  vp->fp = vp->stack_top - cp->fp_offset;
   vm_restore_sp (vp, vp->stack_top - cp->stack_size);
 
   return NULL;
@@ -351,7 +344,6 @@ struct vm_reinstate_partial_continuation_data
 {
   struct scm_vm *vp;
   struct scm_vm_cont *cp;
-  scm_t_ptrdiff reloc;
 };
 
 static void *
@@ -360,20 +352,13 @@ vm_reinstate_partial_continuation_inner (void *data_ptr)
   struct vm_reinstate_partial_continuation_data *data = data_ptr;
   struct scm_vm *vp = data->vp;
   struct scm_vm_cont *cp = data->cp;
-  union scm_vm_stack_element *base_fp;
-  scm_t_ptrdiff reloc;
 
-  base_fp = vp->fp;
-  reloc = cp->reloc + (base_fp - (cp->stack_bottom + cp->stack_size));
-
-  memcpy (base_fp - cp->stack_size,
+  memcpy (vp->fp - cp->stack_size,
           cp->stack_bottom,
           cp->stack_size * sizeof (*cp->stack_bottom));
 
-  vp->fp = cp->fp + reloc;
+  vp->fp -= cp->fp_offset;
   vp->ip = cp->ra;
-
-  data->reloc = reloc;
 
   return NULL;
 }
@@ -386,19 +371,20 @@ vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
   struct vm_reinstate_partial_continuation_data data;
   struct scm_vm_cont *cp;
   union scm_vm_stack_element *args;
-  scm_t_ptrdiff reloc;
+  scm_t_ptrdiff old_fp_offset;
 
   args = alloca (nargs * sizeof (*args));
   memcpy (args, vp->sp, nargs * sizeof (*args));
 
   cp = SCM_VM_CONT_DATA (cont);
 
+  old_fp_offset = vp->stack_top - vp->fp;
+
   vm_push_sp (vp, vp->fp - (cp->stack_size + nargs + 1));
 
   data.vp = vp;
   data.cp = cp;
   GC_call_with_alloc_lock (vm_reinstate_partial_continuation_inner, &data);
-  reloc = data.reloc;
 
   /* The resume continuation will expect ARGS on the stack as if from a
      multiple-value return.  Fill in the closure slot with #f, and copy
@@ -419,7 +405,7 @@ vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
         scm_t_bits tag = SCM_DYNSTACK_TAG (walk);
 
         if (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_PROMPT)
-          scm_dynstack_wind_prompt (dynstack, walk, reloc, registers);
+          scm_dynstack_wind_prompt (dynstack, walk, old_fp_offset, registers);
         else
           scm_dynstack_wind_1 (dynstack, walk);
       }

@@ -76,22 +76,6 @@ frame_stack_top (enum scm_vm_frame_kind kind, const struct scm_frame *frame)
     }
 }
 
-static scm_t_ptrdiff
-frame_offset (enum scm_vm_frame_kind kind, const struct scm_frame *frame)
-{
-  switch (kind)
-    {
-    case SCM_VM_FRAME_KIND_CONT:
-      return ((struct scm_vm_cont *) frame->stack_holder)->reloc;
-
-    case SCM_VM_FRAME_KIND_VM:
-      return 0;
-
-    default:
-      abort ();
-    }
-}
-
 union scm_vm_stack_element*
 scm_i_frame_stack_top (SCM frame)
 #define FUNC_NAME "frame-stack-top"
@@ -100,18 +84,6 @@ scm_i_frame_stack_top (SCM frame)
 
   return frame_stack_top (SCM_VM_FRAME_KIND (frame),
                           SCM_VM_FRAME_DATA (frame));
-}
-#undef FUNC_NAME
-
-scm_t_ptrdiff
-scm_i_frame_offset (SCM frame)
-#define FUNC_NAME "frame-offset"
-{
-  SCM_VALIDATE_VM_FRAME (1, frame);
-
-  return frame_offset (SCM_VM_FRAME_KIND (frame),
-                       SCM_VM_FRAME_DATA (frame));
-
 }
 #undef FUNC_NAME
 

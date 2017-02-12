@@ -139,11 +139,9 @@ enum scm_vm_frame_kind
 #define SCM_VM_FRAME_FP(f)	(scm_i_frame_stack_top (f) - SCM_VM_FRAME_FP_OFFSET (f))
 #define SCM_VM_FRAME_SP(f)	(scm_i_frame_stack_top (f) - SCM_VM_FRAME_SP_OFFSET (f))
 #define SCM_VM_FRAME_IP(f)	SCM_VM_FRAME_DATA (f)->ip
-#define SCM_VM_FRAME_OFFSET(f)	scm_i_frame_offset (f)
 #define SCM_VALIDATE_VM_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, VM_FRAME_P)
 
 SCM_INTERNAL union scm_vm_stack_element* scm_i_frame_stack_top (SCM frame);
-SCM_INTERNAL scm_t_ptrdiff scm_i_frame_offset (SCM frame);
 
 /* See notes in frames.c before using this.  */
 SCM_INTERNAL SCM scm_c_frame_closure (enum scm_vm_frame_kind kind,
