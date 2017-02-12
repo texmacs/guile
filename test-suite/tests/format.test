@@ -2,7 +2,7 @@
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011, 2012,
-;;;;   2014 Free Software Foundation, Inc.
+;;;;   2014, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -133,22 +133,22 @@
 (with-test-prefix "~h localized number"
 
   (pass-if "1234.5"
-    (string=? (format #f "~h" 1234.5) "1234.5"))
+    (string=? (format #f "~,1h" 1234.5) "1234.5"))
 
   (pass-if "padding"
-    (string=? (format #f "~6h" 123.2) " 123.2"))
+    (string=? (format #f "~6h" 123.2) "   123"))
 
   (pass-if "padchar"
-    (string=? (format #f "~8,,'*h" 123.2) "***123.2"))
+    (string=? (format #f "~8,1,'*h" 123.2) "***123.2"))
 
   (pass-if "decimals"
     (string=? (format #f "~,2h" 123.4567)
-              "123.45"))
+              "123.46"))
 
   (pass-if "locale"
     (string=? (format #f "~,3:h, ~a" 1234.5678
                       %global-locale "approximately")
-              "1234.567, approximately")))
+              "1234.568, approximately")))
 
 ;;;
 ;;; ~{

@@ -246,6 +246,36 @@
   'unspecified        'unspecified)
 
 
+(define (integer->string number)
+  "Return a string representing NUMBER, an integer, written in base 10."
+  (define (digit->char digit)
+    (integer->char (+ digit (char->integer #\0))))
+
+  (if (zero? number)
+      "0"
+      (let loop ((number number)
+                 (digits '()))
+        (if (zero? number)
+            (list->string digits)
+            (loop (quotient number 10)
+                  (cons (digit->char (modulo number 10))
+                        digits))))))
+
+(define (number-decimal-string number digit-count)
+  "Return a string representing the decimal part of NUMBER, with exactly
+DIGIT-COUNT digits"
+  (if (integer? number)
+      (make-string digit-count #\0)
+
+      ;; XXX: This is brute-force and could be improved by following one
+      ;; of the "Printing Floating-Point Numbers Quickly and Accurately"
+      ;; papers.
+      (let ((number (* (expt 10 digit-count)
+                       (- number (floor number)))))
+        (string-pad (integer->string (round (inexact->exact number)))
+                    digit-count
+                    #\0))))
+
 (define (%number-integer-part int grouping separator)
   ;; Process INT (a string denoting a number's integer part) and return a new
   ;; string with digit grouping and separators according to GROUPING (a list,
@@ -336,12 +366,11 @@ locale is used."
                                    (substring dec 0 fraction-digits)
                                    dec)))))
 
-         (external-repr (number->string (if (>= amount 0) amount (- amount))))
-         (int+dec   (string-split external-repr #\.))
-         (int       (car int+dec))
-         (dec       (decimal-part (if (null? (cdr int+dec))
-                                      ""
-                                      (cadr int+dec))))
+         (int       (integer->string (inexact->exact
+                                      (floor (abs amount)))))
+         (dec       (decimal-part
+                     (number-decimal-string (abs amount)
+                                            fraction-digits)))
          (grouping  (locale-monetary-digit-grouping locale))
          (separator (locale-monetary-thousands-separator locale)))
 
@@ -388,14 +417,14 @@ number of fractional digits to be displayed."
                                    (substring dec 0 fraction-digits)
                                    dec))))))
 
-    (let* ((external-repr (number->string (if (>= number 0)
-                                              number
-                                              (- number))))
-           (int+dec   (string-split external-repr #\.))
-           (int       (car int+dec))
-           (dec       (decimal-part (if (null? (cdr int+dec))
-                                        ""
-                                        (cadr int+dec))))
+    (let* ((int       (integer->string (inexact->exact
+                                        (floor (abs number)))))
+           (dec       (decimal-part
+                       (number-decimal-string (abs number)
+                                              (if (integer?
+                                                   fraction-digits)
+                                                  fraction-digits
+                                                  0))))
            (grouping  (locale-digit-grouping locale))
            (separator (locale-thousands-separator locale)))
 

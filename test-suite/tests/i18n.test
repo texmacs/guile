@@ -506,11 +506,19 @@
 
     (pass-if-equal "fraction"
         "1234.567"
-      (number->locale-string 1234.567))
+      (number->locale-string 1234.567 3))
 
     (pass-if-equal "fraction, 1 digit"
-        "1234.5"
+        "1234.6"
       (number->locale-string 1234.567 1))
+
+    (pass-if-equal "fraction, 10 digits"
+        "0.0000300000"
+      (number->locale-string .00003 10))
+
+    (pass-if-equal "trailing zeros"
+        "-10.00000"
+      (number->locale-string -10.0 5))
 
     (pass-if-equal "positive inexact zero, 1 digit"
         "0.0"
@@ -525,15 +533,22 @@
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (number->locale-string 123456 #t fr)))))
 
+    (pass-if-equal "negative integer"
+        "-1 234 567"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (number->locale-string -1234567 #t fr)))))
+
     (pass-if-equal "fraction"
         "1 234,567"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string 1234.567 #t fr)))))
+           (number->locale-string 1234.567 3 fr)))))
 
     (pass-if-equal "fraction, 1 digit"
-        "1 234,5"
+        "1 234,6"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
@@ -553,7 +568,7 @@
        (lambda ()
          (if (null? (locale-digit-grouping %french-locale))
              (throw 'unresolved)
-             (format #f "~:h" 12345.6789 %french-locale))))))
+             (format #f "~,4:h" 12345.6789 %french-locale))))))
 
   (with-test-prefix "English"
 
@@ -563,7 +578,7 @@
        (lambda ()
          (if (null? (locale-digit-grouping %american-english-locale))
              (throw 'unresolved)
-             (format #f "~:h" 12345.6789
+             (format #f "~,4:h" 12345.6789
                      %american-english-locale)))))))
 
 (with-test-prefix "monetary-amount->locale-string"
@@ -571,22 +586,36 @@
   (with-test-prefix "French"
 
     (pass-if-equal "integer"
-        "123 456 +EUR"
+        "123 456,00 +EUR"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (monetary-amount->locale-string 123456 #f fr)))))
 
     (pass-if-equal "fraction"
-        "1 234,56 EUR "
+        "1 234,57 EUR "
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (monetary-amount->locale-string 1234.567 #t fr)))))
 
     (pass-if-equal "positive inexact zero"
-        "0,0 +EUR"
+        "0,00 +EUR"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (monetary-amount->locale-string 0. #f fr)))))))
+           (monetary-amount->locale-string 0. #f fr)))))
+
+    (pass-if-equal "one cent"
+        "0,01 EUR "
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (monetary-amount->locale-string .01 #t fr)))))
+
+    (pass-if-equal "very little money"
+        "0,00 EUR "
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (monetary-amount->locale-string .00003 #t fr)))))))
