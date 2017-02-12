@@ -113,7 +113,7 @@
       "el_GR.utf8"))
 
 (define %american-english-locale-name
-  "en_US")
+  "en_US.utf8")
 
 (define %french-locale
   (false-if-exception
