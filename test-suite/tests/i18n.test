@@ -494,43 +494,50 @@
 
   (with-test-prefix "C"
 
-    (pass-if "no thousand separator"
+    (pass-if-equal "no thousand separator"
+        ""
       ;; Unlike in English, the "C" locale has no thousand separator.
       ;; If this doesn't hold, the following tests will fail.
-      (string=? "" (locale-thousands-separator)))
+      (locale-thousands-separator))
 
-    (pass-if "integer"
-      (string=? "123456" (number->locale-string 123456)))
+    (pass-if-equal "integer"
+        "123456"
+      (number->locale-string 123456))
 
-    (pass-if "fraction"
-      (string=? "1234.567" (number->locale-string 1234.567)))
+    (pass-if-equal "fraction"
+        "1234.567"
+      (number->locale-string 1234.567))
 
-    (pass-if "fraction, 1 digit"
-      (string=? "1234.5" (number->locale-string 1234.567 1)))
+    (pass-if-equal "fraction, 1 digit"
+        "1234.5"
+      (number->locale-string 1234.567 1))
 
-    (pass-if "positive inexact zero, 1 digit"
-      (string=? "0.0" (number->locale-string .0 1))))
+    (pass-if-equal "positive inexact zero, 1 digit"
+        "0.0"
+      (number->locale-string .0 1)))
 
   (with-test-prefix "French"
 
-    (pass-if "integer"
+    (pass-if-equal "integer"
+        "123 456"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "123 456" (number->locale-string 123456 #t fr))))))
+           (number->locale-string 123456 #t fr)))))
 
-    (pass-if "fraction"
+    (pass-if-equal "fraction"
+        "1 234,567"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "1 234,567" (number->locale-string 1234.567 #t fr))))))
+           (number->locale-string 1234.567 #t fr)))))
 
-    (pass-if "fraction, 1 digit"
+    (pass-if-equal "fraction, 1 digit"
+        "1 234,5"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "1 234,5"
-                     (number->locale-string 1234.567 1 fr))))))))
+           (number->locale-string 1234.567 1 fr)))))))
 
 (with-test-prefix "format ~h"
 
@@ -540,47 +547,46 @@
 
   (with-test-prefix "French"
 
-    (pass-if "12345.5678"
+    (pass-if-equal "12345.6789"
+        "12 345,6789"
       (under-french-locale-or-unresolved
        (lambda ()
          (if (null? (locale-digit-grouping %french-locale))
              (throw 'unresolved)
-             (string=? "12 345,6789"
-                       (format #f "~:h" 12345.6789 %french-locale)))))))
+             (format #f "~:h" 12345.6789 %french-locale))))))
 
   (with-test-prefix "English"
 
-    (pass-if "12345.5678"
+    (pass-if-equal "12345.6789"
+        "12,345.6789"
       (under-american-english-locale-or-unresolved
        (lambda ()
          (if (null? (locale-digit-grouping %american-english-locale))
              (throw 'unresolved)
-             (string=? "12,345.6789"
-                       (format #f "~:h" 12345.6789
-                               %american-english-locale))))))))
+             (format #f "~:h" 12345.6789
+                     %american-english-locale)))))))
 
 (with-test-prefix "monetary-amount->locale-string"
 
   (with-test-prefix "French"
 
-    (pass-if "integer"
+    (pass-if-equal "integer"
+        "123 456 +EUR"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "123 456 +EUR"
-                     (monetary-amount->locale-string 123456 #f fr))))))
+           (monetary-amount->locale-string 123456 #f fr)))))
 
-    (pass-if "fraction"
+    (pass-if-equal "fraction"
+        "1 234,56 EUR "
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "1 234,56 EUR "
-                     (monetary-amount->locale-string 1234.567 #t
-                                                     fr))))))
+           (monetary-amount->locale-string 1234.567 #t fr)))))
 
-    (pass-if "positive inexact zero"
+    (pass-if-equal "positive inexact zero"
+        "0,0 +EUR"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (string=? "0,0 +EUR"
-                     (monetary-amount->locale-string 0. #f fr))))))))
+           (monetary-amount->locale-string 0. #f fr)))))))
