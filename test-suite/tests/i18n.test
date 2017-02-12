@@ -1,7 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
-;;;;   2013, 2014, 2015, 2016 Free Software Foundation, Inc.
+;;;;   2013, 2014, 2015, 2016, 2017 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -506,7 +506,10 @@
       (string=? "1234.567" (number->locale-string 1234.567)))
 
     (pass-if "fraction, 1 digit"
-      (string=? "1234.5" (number->locale-string 1234.567 1))))
+      (string=? "1234.5" (number->locale-string 1234.567 1)))
+
+    (pass-if "positive inexact zero, 1 digit"
+      (string=? "0.0" (number->locale-string .0 1))))
 
   (with-test-prefix "French"
 
@@ -572,4 +575,12 @@
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (string=? "1 234,56 EUR "
-                     (monetary-amount->locale-string 1234.567 #t fr))))))))
+                     (monetary-amount->locale-string 1234.567 #t
+                                                     fr))))))
+
+    (pass-if "positive inexact zero"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "0,0 +EUR"
+                     (monetary-amount->locale-string 0. #f fr))))))))

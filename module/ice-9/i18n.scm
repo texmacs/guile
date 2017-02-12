@@ -1,6 +1,7 @@
 ;;;; i18n.scm --- internationalization support    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2006, 2007, 2009, 2010, 2012 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2006, 2007, 2009, 2010, 2012,
+;;;;      2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -335,7 +336,7 @@ locale is used."
                                    (substring dec 0 fraction-digits)
                                    dec)))))
 
-         (external-repr (number->string (if (> amount 0) amount (- amount))))
+         (external-repr (number->string (if (>= amount 0) amount (- amount))))
          (int+dec   (string-split external-repr #\.))
          (int       (car int+dec))
          (dec       (decimal-part (if (null? (cdr int+dec))
@@ -387,7 +388,7 @@ number of fractional digits to be displayed."
                                    (substring dec 0 fraction-digits)
                                    dec))))))
 
-    (let* ((external-repr (number->string (if (> number 0)
+    (let* ((external-repr (number->string (if (>= number 0)
                                               number
                                               (- number))))
            (int+dec   (string-split external-repr #\.))
