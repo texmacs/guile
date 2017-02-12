@@ -113,6 +113,7 @@ push_dynstack_entry_unchecked (scm_t_dynstack *dynstack,
 
   SCM_DYNSTACK_SET_TAG (dynstack->top, SCM_MAKE_DYNSTACK_TAG (type, flags, len));
   dynstack->top += SCM_DYNSTACK_HEADER_LEN + len;
+  SCM_DYNSTACK_SET_TAG (dynstack->top, 0);
   SCM_DYNSTACK_SET_PREV_OFFSET (dynstack->top, SCM_DYNSTACK_HEADER_LEN + len);
 
   return ret;
