@@ -27,7 +27,7 @@
    reduces the probability of selecting a bad pivot value and eliminates
    certain extraneous comparisons.
 
-   3. Only quicksorts NR_ELEMS / MAX_THRESH partitions, leaving insertion sort
+   3. Only quicksorts (UBND-LBND+1) / MAX_THRESH partitions, leaving insertion sort
    to order the MAX_THRESH items within each partition.  This is a big win,
    since insertion sort is faster for small, mostly sorted array segments.
 
@@ -54,33 +54,29 @@
 #define	STACK_NOT_EMPTY	 (stack < top)
 
 static void
-NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
+NAME (VEC_PARAM ssize_t lbnd, ssize_t ubnd, INC_PARAM SCM less)
 {
   /* Stack node declarations used to store unfulfilled partition obligations. */
   typedef struct {
-    size_t lo;
-    size_t hi;
+    ssize_t lo;
+    ssize_t hi;
   } stack_node;
 
   static const char s_buggy_less[] = "buggy less predicate used when sorting";
 
-  if (nr_elems == 0)
-    /* Avoid lossage with unsigned arithmetic below.  */
-    return;
-
-  if (nr_elems > MAX_THRESH)
+  if (ubnd-lbnd+1 > MAX_THRESH)
     {
-      size_t lo = 0;
-      size_t hi = nr_elems-1;
+      ssize_t lo = lbnd;
+      ssize_t hi = ubnd;
 
       stack_node stack[STACK_SIZE];
       stack_node *top = stack + 1;
 
       while (STACK_NOT_EMPTY)
 	{
-	  size_t left;
-	  size_t right;
-	  size_t mid = lo + (hi - lo) / 2;
+	  ssize_t left;
+	  ssize_t right;
+	  ssize_t mid = lo + (hi - lo) / 2;
 	  SCM pivot;
 
 	  /* Select median value from among LO, MID, and HI. Rearrange
@@ -145,16 +141,16 @@ NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
 	     ignore one or both.  Otherwise, push the larger partition's
 	     bounds on the stack and continue sorting the smaller one. */
 
-	  if ((size_t) (right - lo) <= MAX_THRESH)
+	  if ((right - lo) <= MAX_THRESH)
 	    {
-	      if ((size_t) (hi - left) <= MAX_THRESH)
+	      if ((hi - left) <= MAX_THRESH)
 		/* Ignore both small partitions. */
 		POP (lo, hi);
 	      else
 		/* Ignore small left partition. */
 		lo = left;
 	    }
-	  else if ((size_t) (hi - left) <= MAX_THRESH)
+	  else if ((hi - left) <= MAX_THRESH)
 	    /* Ignore small right partition. */
 	    hi = right;
 	  else if ((right - lo) > (hi - left))
@@ -179,10 +175,10 @@ NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
      one beyond it!). */
 
   {
-    size_t tmp = 0;
-    size_t end = nr_elems-1;
-    size_t thresh = min (end, MAX_THRESH);
-    size_t run;
+    ssize_t tmp = lbnd;
+    ssize_t end = ubnd;
+    ssize_t thresh = min (end, MAX_THRESH);
+    ssize_t run;
 
     /* Find smallest element in first threshold and place it at the
        array's beginning.  This is the smallest array element,
@@ -192,12 +188,12 @@ NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
       if (scm_is_true (scm_call_2 (less, GET(run), GET(tmp))))
 	tmp = run;
 
-    if (tmp != 0)
-      SWAP (tmp, 0);
+    if (tmp != lbnd)
+      SWAP (tmp, lbnd);
 
     /* Insertion sort, running from left-hand-side up to right-hand-side.  */
 
-    run = 1;
+    run = lbnd + 1;
     while (++run <= end)
       {
 	SCM_TICK;
@@ -206,7 +202,7 @@ NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
 	while (scm_is_true (scm_call_2 (less, GET(run), GET(tmp))))
 	  {
 	    /* The comparison predicate may be buggy */
-	    if (tmp == 0)
+	    if (tmp == lbnd)
 	      scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 
 	    tmp -= 1;
@@ -216,7 +212,7 @@ NAME (VEC_PARAM size_t nr_elems, INC_PARAM SCM less)
 	if (tmp != run)
 	  {
             SCM to_insert = GET(run);
-            size_t hi, lo;
+            ssize_t hi, lo;
 
             for (hi = lo = run; --lo >= tmp; hi = lo)
               SET(hi, GET(lo));

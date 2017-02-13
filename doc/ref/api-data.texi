@@ -7498,10 +7498,6 @@ same type, and have corresponding elements which are either
 @code{equal?} (@pxref{Equality}) in that all arguments must be arrays.
 @end deffn
 
-@c  FIXME: array-map! accepts no source arrays at all, and in that
-@c  case makes calls "(proc)".  Is that meant to be a documented
-@c  feature?
-@c
 @c  FIXME: array-for-each doesn't say what happens if the sources have
 @c  different index ranges.  The code currently iterates over the
 @c  indices of the first and expects the others to cover those.  That
@@ -7509,14 +7505,15 @@ same type, and have corresponding elements which are either
 @c  documented feature?
 
 @deffn {Scheme Procedure} array-map! dst proc src @dots{}
-@deffnx {Scheme Procedure} array-map-in-order! dst proc src1 @dots{} srcN
+@deffnx {Scheme Procedure} array-map-in-order! dst proc src @dots{}
 @deffnx {C Function} scm_array_map_x (dst, proc, srclist)
-Set each element of the @var{dst} array to values obtained from calls
-to @var{proc}.  The value returned is unspecified.
+Set each element of the @var{dst} array to values obtained from calls to
+@var{proc}.  The list of @var{src} arguments may be empty.  The value
+returned is unspecified.
 
-Each call is @code{(@var{proc} @var{elem1} @dots{} @var{elemN})},
-where each @var{elem} is from the corresponding @var{src} array, at
-the @var{dst} index.  @code{array-map-in-order!} makes the calls in
+Each call is @code{(@var{proc} @var{elem} @dots{})}, where each
+@var{elem} is from the corresponding @var{src} array, at the
+@var{dst} index.  @code{array-map-in-order!} makes the calls in
 row-major order, @code{array-map!} makes them in an unspecified order.
 
 The @var{src} arrays must have the same number of dimensions as
@@ -7566,6 +7563,21 @@ $\left(\matrix{%
 (array-index-map! a (lambda (i j)
                       (modulo (+ i j) 4)))
 @end example
+@end deffn
+
+An additional array function is available in the module
+@code{(ice-9 arrays)}. It can be used with:
+
+@example
+(use-modules (ice-9 arrays))
+@end example
+
+@deffn {Scheme Procedure} array-copy src
+Return a new array with the same elements, type and shape as
+@var{src}. However, the array increments may not be the same as those of
+@var{src}. In the current implementation, the returned array will be in
+row-major order, but that might change in the future. Use
+@code{array-copy!} on an array of known order if that is a concern.
 @end deffn
 
 @node Shared Arrays
