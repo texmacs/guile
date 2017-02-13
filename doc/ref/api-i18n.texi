@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007,
+@c   2009, 2010, 2017 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Internationalization
@@ -263,8 +263,10 @@ Reference Manual}).
 @deffn {Scheme Procedure} number->locale-string number [fraction-digits [locale]]
 Convert @var{number} (an inexact) into a string according to the
 cultural conventions of either @var{locale} (a locale object) or the
-current locale.  Optionally, @var{fraction-digits} may be bound to an
-integer specifying the number of fractional digits to be displayed.
+current locale.  By default, print as many fractional digits as
+necessary, up to an upper bound.  Optionally, @var{fraction-digits} may
+be bound to an integer specifying the number of fractional digits to be
+displayed.
 @end deffn
 
 @deffn {Scheme Procedure} monetary-amount->locale-string amount intl? [locale]

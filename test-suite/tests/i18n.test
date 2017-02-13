@@ -506,7 +506,7 @@
 
     (pass-if-equal "fraction"
         "1234.567"
-      (number->locale-string 1234.567 3))
+      (number->locale-string 1234.567))
 
     (pass-if-equal "fraction, 1 digit"
         "1234.6"
@@ -545,7 +545,7 @@
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string 1234.567 3 fr)))))
+           (number->locale-string 1234.567 #t fr)))))
 
     (pass-if-equal "fraction, 1 digit"
         "1 234,6"
@@ -562,23 +562,23 @@
 
   (with-test-prefix "French"
 
-    (pass-if-equal "12345.6789"
-        "12 345,6789"
+    (pass-if-equal "12345.678"
+        "12 345,678"
       (under-french-locale-or-unresolved
        (lambda ()
          (if (null? (locale-digit-grouping %french-locale))
              (throw 'unresolved)
-             (format #f "~,4:h" 12345.6789 %french-locale))))))
+             (format #f "~:h" 12345.678 %french-locale))))))
 
   (with-test-prefix "English"
 
-    (pass-if-equal "12345.6789"
-        "12,345.6789"
+    (pass-if-equal "12345.678"
+        "12,345.678"
       (under-american-english-locale-or-unresolved
        (lambda ()
          (if (null? (locale-digit-grouping %american-english-locale))
              (throw 'unresolved)
-             (format #f "~,4:h" 12345.6789
+             (format #f "~:h" 12345.678
                      %american-english-locale)))))))
 
 (with-test-prefix "monetary-amount->locale-string"

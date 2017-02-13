@@ -262,19 +262,35 @@
                         digits))))))
 
 (define (number-decimal-string number digit-count)
-  "Return a string representing the decimal part of NUMBER, with exactly
-DIGIT-COUNT digits"
-  (if (integer? number)
-      (make-string digit-count #\0)
+  "Return a string representing the decimal part of NUMBER.  When
+DIGIT-COUNT is an integer, return exactly DIGIT-COUNT digits; when
+DIGIT-COUNT is #t, return as many decimals as necessary, up to an
+arbitrary limit."
+  (define max-decimals
+    5)
 
-      ;; XXX: This is brute-force and could be improved by following one
-      ;; of the "Printing Floating-Point Numbers Quickly and Accurately"
-      ;; papers.
+  ;; XXX: This is brute-force and could be improved by following one of
+  ;; the "Printing Floating-Point Numbers Quickly and Accurately"
+  ;; papers.
+  (if (integer? digit-count)
       (let ((number (* (expt 10 digit-count)
                        (- number (floor number)))))
         (string-pad (integer->string (round (inexact->exact number)))
                     digit-count
-                    #\0))))
+                    #\0))
+      (let loop ((decimals 0))
+        (let ((number' (* number (expt 10 decimals))))
+          (if (or (= number' (floor number'))
+                  (>= decimals max-decimals))
+              (let* ((fraction (- number'
+                                  (* (floor number)
+                                     (expt 10 decimals))))
+                     (str      (integer->string
+                                (round (inexact->exact fraction)))))
+                (if (zero? fraction)
+                    ""
+                    str))
+              (loop (+ decimals 1)))))))
 
 (define (%number-integer-part int grouping separator)
   ;; Process INT (a string denoting a number's integer part) and return a new
@@ -399,6 +415,7 @@ locale is used."
                                            (locale %global-locale))
   "Convert @var{number} (an inexact) into a string according to the cultural
 conventions of either @var{locale} (a locale object) or the current locale.
+By default, print as many fractional digits as necessary, up to an upper bound.
 Optionally, @var{fraction-digits} may be bound to an integer specifying the
 number of fractional digits to be displayed."
 
@@ -421,10 +438,7 @@ number of fractional digits to be displayed."
                                         (floor (abs number)))))
            (dec       (decimal-part
                        (number-decimal-string (abs number)
-                                              (if (integer?
-                                                   fraction-digits)
-                                                  fraction-digits
-                                                  0))))
+                                              fraction-digits)))
            (grouping  (locale-digit-grouping locale))
            (separator (locale-thousands-separator locale)))
 

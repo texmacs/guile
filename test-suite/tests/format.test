@@ -133,13 +133,13 @@
 (with-test-prefix "~h localized number"
 
   (pass-if "1234.5"
-    (string=? (format #f "~,1h" 1234.5) "1234.5"))
+    (string=? (format #f "~h" 1234.5) "1234.5"))
 
   (pass-if "padding"
-    (string=? (format #f "~6h" 123.2) "   123"))
+    (string=? (format #f "~6h" 123.2) " 123.2"))
 
   (pass-if "padchar"
-    (string=? (format #f "~8,1,'*h" 123.2) "***123.2"))
+    (string=? (format #f "~8,,'*h" 123.2) "***123.2"))
 
   (pass-if "decimals"
     (string=? (format #f "~,2h" 123.4567)
