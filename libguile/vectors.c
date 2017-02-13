@@ -25,15 +25,10 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
-#include "libguile/strings.h"
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
-#include "libguile/arrays.h" /* Hit me with the ugly stick */
-#include "libguile/generalized-vectors.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/dynwind.h"
+#include "libguile/array-handle.h"
 
 #include "libguile/bdw-gc.h"
 
@@ -68,7 +63,13 @@ scm_vector_elements (SCM vec, scm_t_array_handle *h,
   if (SCM_I_WVECTP (vec))
     scm_wrong_type_arg_msg (NULL, 0, vec, "non-weak vector");
 
-  scm_generalized_vector_get_handle (vec, h);
+  scm_array_get_handle (vec, h);
+  if (1 != scm_array_handle_rank (h))
+    {
+      scm_array_handle_release (h);
+      scm_wrong_type_arg_msg (NULL, 0, vec, "rank 1 array of Scheme values");
+    }
+  
   if (lenp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);

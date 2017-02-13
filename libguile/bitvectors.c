@@ -27,12 +27,9 @@
 
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
-#include "libguile/strings.h"
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
 #include "libguile/arrays.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/srfi-4.h"
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,
  * but alack, all we have is this crufty C.
@@ -205,7 +202,12 @@ scm_bitvector_elements (SCM vec,
 			size_t *lenp,
 			ssize_t *incp)
 {
-  scm_generalized_vector_get_handle (vec, h);
+  scm_array_get_handle (vec, h);
+  if (1 != scm_array_handle_rank (h))
+    {
+      scm_array_handle_release (h);
+      scm_wrong_type_arg_msg (NULL, 0, vec, "rank 1 bit array");
+    }
   if (offp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);

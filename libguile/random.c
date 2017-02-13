@@ -621,7 +621,13 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
 
-  scm_generalized_vector_get_handle (v, &handle);
+  scm_array_get_handle (v, &handle);
+  if (1 != scm_array_handle_rank (&handle))
+    {
+      scm_array_handle_release (&handle);
+      scm_wrong_type_arg_msg (NULL, 0, v, "rank 1 array");
+    }
+  
   dim = scm_array_handle_dims (&handle);
 
   if (handle.element_type == SCM_ARRAY_ELEMENT_TYPE_SCM)

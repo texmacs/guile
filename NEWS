@@ -42,6 +42,11 @@ All code deprecated in Guile 2.2 has been removed.  See older NEWS, and
 check that your programs can compile without linker warnings and run
 without runtime warnings.  See "Deprecation" in the manual.
 
+In particular, the function `scm_generalized_vector_get_handle' which
+was deprecated in 2.0.9 but remained in 2.2, has now finally been
+removed. As a replacement, use `scm_array_get_handle' to get a handle
+and `scm_array_handle_rank' to check the rank.
+
 ** Remove "self" field from vtables and "redefined" field from classes
 
 These fields were used as part of the machinery for class redefinition

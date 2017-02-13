@@ -27,8 +27,6 @@
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 
-#include "libguile/array-handle.h"
-#include "libguile/generalized-arrays.h"
 #include "libguile/generalized-vectors.h"
 
 
@@ -68,17 +66,6 @@ SCM_DEFINE (scm_make_generalized_vector, "make-generalized-vector", 2, 1, 0,
   scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "array type");
 }
 #undef FUNC_NAME
-
-void
-scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
-{
-  scm_array_get_handle (vec, h);
-  if (scm_array_handle_rank (h) != 1)
-    {
-      scm_array_handle_release (h);
-      scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
-    }
-}
 
 void
 scm_init_generalized_vectors ()
