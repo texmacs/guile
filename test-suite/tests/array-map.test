@@ -524,6 +524,14 @@
         (array-slice-for-each 1 (lambda (a) (sort! a <)) a)
         a))
 
+  (pass-if-equal "1 argument frame rank 1, non-zero base indices"
+      #2@1@1((1 3 9) (2 7 8))
+      (let* ((a (make-array *unspecified* '(1 2) '(1 3)))
+             (b #2@1@1((9 1 3) (7 8 2))))
+        (array-copy! b a)
+        (array-slice-for-each 1 (lambda (a) (sort! a <)) a)
+        a))
+
   (pass-if-equal "2 arguments frame rank 1"
       #f64(8 -1)
       (let* ((x (list->typed-array 'f64 2 '((9 1) (7 8))))
