@@ -1,6 +1,6 @@
-;;; uniform-vector-read.bm --- Exercise binary I/O primitives.  -*- Scheme -*-
+;;; bytevector-io.bm --- Exercise bytevector I/O primitives.  -*- Scheme -*-
 ;;;
-;;; Copyright (C) 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -17,9 +17,10 @@
 ;;; not, write to the Free Software Foundation, Inc., 51 Franklin
 ;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(define-module (benchmarks uniform-vector-read)
+(define-module (benchmarks bytevector-io)
   :use-module (benchmark-suite lib)
-  :use-module (srfi srfi-4))
+  :use-module (rnrs io ports)
+  :use-module (rnrs bytevectors))
 
 (define file-name
   (tmpnam))
@@ -30,24 +31,22 @@
 (define buf
   (make-u8vector %buffer-size))
 
-(define str
-  (make-string %buffer-size))
-
 
-(with-benchmark-prefix "uniform-vector-read!"
+(with-benchmark-prefix "bytevector i/o"
 
-  (benchmark "uniform-vector-write" 4000
+  (benchmark "put-bytevector" 4000
     (let ((output (open-output-file file-name)))
-      (uniform-vector-write buf output)
+      (put-bytevector output buf)
       (close output)))
 
-  (benchmark "uniform-vector-read!" 20000
+  (benchmark "get-bytevector-n!" 20000
     (let ((input (open-input-file file-name)))
       (setvbuf input 'none)
-      (uniform-vector-read! buf input)
+      (get-bytevector-n! input buf 0 (bytevector-length buf))
       (close input)))
 
-  (benchmark "string port" 5000
-    (let ((input (open-input-string str)))
-      (uniform-vector-read! buf input)
+  (benchmark "get-bytevector-n" 20000
+    (let ((input (open-input-file file-name)))
+      (setvbuf input 'none)
+      (get-bytevector-n input (bytevector-length buf))
       (close input))))
