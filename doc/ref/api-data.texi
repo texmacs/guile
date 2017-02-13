@@ -7568,39 +7568,6 @@ $\left(\matrix{%
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
-Attempt to read all elements of array @var{ra}, in lexicographic order, as
-binary objects from @var{port_or_fd}.
-If an end of file is encountered,
-the objects up to that point are put into @var{ra}
-(starting at the beginning) and the remainder of the array is
-unchanged.
-
-The optional arguments @var{start} and @var{end} allow
-a specified region of a vector (or linearized array) to be read,
-leaving the remainder of the vector unchanged.
-
-@code{uniform-array-read!} returns the number of objects read.
-@var{port_or_fd} may be omitted, in which case it defaults to the value
-returned by @code{(current-input-port)}.
-@end deffn
-
-@deffn {Scheme Procedure} uniform-array-write ra [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_array_write (ra, port_or_fd, start, end)
-Writes all elements of @var{ra} as binary objects to
-@var{port_or_fd}.
-
-The optional arguments @var{start}
-and @var{end} allow
-a specified region of a vector (or linearized array) to be written.
-
-The number of objects actually written is returned.
-@var{port_or_fd} may be
-omitted, in which case it defaults to the value returned by
-@code{(current-output-port)}.
-@end deffn
-
 @node Shared Arrays
 @subsubsection Shared Arrays
 

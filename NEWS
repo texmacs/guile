@@ -884,6 +884,13 @@ All code deprecated in Guile 2.0 has been removed.  See older NEWS, and
 check that your programs can compile without linker warnings and run
 without runtime warnings.  See "Deprecation" in the manual.
 
+In particular, the following functions, which were deprecated in 2.0.10
+but not specifically mentioned earlier in this file, have been removed:
+
+*** `uniform-vector-read!' and `uniform-vector-write' have been
+    removed. Use `get-bytevector-n!' and `put-bytevector' from (rnrs io
+    ports) instead.
+
 ** Remove miscellaneous unused interfaces
 
 We have removed accidentally public, undocumented interfaces that we
