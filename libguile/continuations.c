@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -183,7 +183,6 @@ scm_i_continuation_to_frame (SCM continuation, struct scm_frame *frame)
     {
       struct scm_vm_cont *data = SCM_VM_CONT_DATA (cont->vm_cont);
 
-      stack_top = data->stack_bottom + data->stack_size;
       frame->stack_holder = data;
       frame->fp_offset = data->fp_offset;
       frame->sp_offset = data->stack_size;
