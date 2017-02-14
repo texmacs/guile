@@ -264,7 +264,8 @@ scm_open_file_with_encoding (SCM filename, SCM mode,
   /* Create a port from this file descriptor.  The port's encoding is initially
      %default-port-encoding.  */
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode),
-                             fport_canonicalize_filename (filename));
+                             fport_canonicalize_filename (filename),
+                             0);
 
   if (binary)
     {
@@ -391,35 +392,41 @@ SCM_DEFINE (scm_i_open_file, "open-file", 2, 0, 1,
    NAME is a string to be used as the port's filename.
 */
 SCM
-scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
+scm_i_fdes_to_port (int fdes, long mode_bits, SCM name, unsigned options)
 #define FUNC_NAME "scm_fdes_to_port"
 {
   SCM port;
   scm_t_fport *fp;
 
-  /* Test that fdes is valid.  */
-#ifdef F_GETFL
-  int flags = fcntl (fdes, F_GETFL, 0);
-  if (flags == -1)
-    SCM_SYSERROR;
-  flags &= O_ACCMODE;
-  if (flags != O_RDWR
-      && ((flags != O_WRONLY && (mode_bits & SCM_WRTNG))
-	  || (flags != O_RDONLY && (mode_bits & SCM_RDNG))))
+  if (options & SCM_FPORT_OPTION_VERIFY)
     {
-      SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
-    }
+      /* Check that the foreign FD is valid and matches the mode
+         bits.  */
+#ifdef F_GETFL
+      int flags = fcntl (fdes, F_GETFL, 0);
+      if (flags == -1)
+        SCM_SYSERROR;
+      flags &= O_ACCMODE;
+      if (flags != O_RDWR
+          && ((flags != O_WRONLY && (mode_bits & SCM_WRTNG))
+              || (flags != O_RDONLY && (mode_bits & SCM_RDNG))))
+        {
+          SCM_MISC_ERROR ("requested file mode not available on fdes",
+                          SCM_EOL);
+        }
 #else
-  /* If we don't have F_GETFL, as on mingw, at least we can test that
-     it is a valid file descriptor.  */
-  struct stat st;
-  if (fstat (fdes, &st) != 0)
-    SCM_SYSERROR;
+      /* If we don't have F_GETFL, as on mingw, at least we can test that
+         it is a valid file descriptor.  */
+      struct stat st;
+      if (fstat (fdes, &st) != 0)
+        SCM_SYSERROR;
 #endif
+    }
 
   fp = (scm_t_fport *) scm_gc_malloc_pointerless (sizeof (scm_t_fport),
                                                   "file port");
   fp->fdes = fdes;
+  fp->options = options;
 
   port = scm_c_make_port (scm_file_port_type, mode_bits, (scm_t_bits)fp);
   
@@ -432,7 +439,8 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
 SCM
 scm_fdes_to_port (int fdes, char *mode, SCM name)
 {
-  return scm_i_fdes_to_port (fdes, scm_mode_bits (mode), name);
+  return scm_i_fdes_to_port (fdes, scm_mode_bits (mode), name,
+                             SCM_FPORT_OPTION_VERIFY);
 }
 
 /* Return a lower bound on the number of bytes available for input.  */
@@ -669,7 +677,15 @@ fport_close (SCM port)
 static int
 fport_random_access_p (SCM port)
 {
-  return SCM_FDES_RANDOM_P (SCM_FSTREAM (port)->fdes);
+  scm_t_fport *fp = SCM_FSTREAM (port);
+
+  if (fp->options & SCM_FPORT_OPTION_NOT_SEEKABLE)
+    return 0;
+
+  if (lseek (fp->fdes, 0, SEEK_CUR) == -1)
+    return 0;
+
+  return 1;
 }
 
 static int

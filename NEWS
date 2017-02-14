@@ -6,6 +6,17 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
+Changes in 2.1.7 (changes since the 2.1.6 alpha release):
+
+* New deprecations
+
+** `SCM_FDES_RANDOM_P'
+
+Instead, use `lseek (fd, 0, SEEK_CUR)' directly.
+
+* FIXME fold in 2.1.6 changes to main NEWS
+
+
 Changes in 2.1.6 (changes since the 2.1.5 alpha release):
 
 * New interfaces

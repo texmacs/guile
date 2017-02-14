@@ -226,7 +226,8 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 #define FUNC_NAME s_scm_fdopen
 {
   return scm_i_fdes_to_port (scm_to_int (fdes),
-			     scm_i_mode_bits (modes), SCM_BOOL_F);
+			     scm_i_mode_bits (modes), SCM_BOOL_F,
+                             SCM_FPORT_OPTION_VERIFY);
 }
 #undef FUNC_NAME
 

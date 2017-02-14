@@ -367,7 +367,12 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
 
 SCM_SYMBOL (sym_socket, "socket");
 
-#define SCM_SOCK_FD_TO_PORT(fd) scm_fdes_to_port (fd, "r+0", sym_socket)
+static SCM
+scm_socket_fd_to_port (int fd)
+{
+  return scm_i_fdes_to_port (fd, scm_mode_bits ("r+0"), sym_socket,
+                             SCM_FPORT_OPTION_NOT_SEEKABLE);
+}
 
 SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
@@ -391,7 +396,7 @@ SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
 	       scm_to_int (proto));
   if (fd == -1)
     SCM_SYSERROR;
-  return SCM_SOCK_FD_TO_PORT (fd);
+  return scm_socket_fd_to_port (fd);
 }
 #undef FUNC_NAME
 
@@ -413,7 +418,8 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
   if (socketpair (fam, scm_to_int (style), scm_to_int (proto), fd) == -1)
     SCM_SYSERROR;
 
-  return scm_cons (SCM_SOCK_FD_TO_PORT (fd[0]), SCM_SOCK_FD_TO_PORT (fd[1]));
+  return scm_cons (scm_socket_fd_to_port (fd[0]),
+                   scm_socket_fd_to_port (fd[1]));
 }
 #undef FUNC_NAME
 #endif
@@ -1269,7 +1275,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
         return SCM_BOOL_F;
       SCM_SYSERROR;
     }
-  newsock = SCM_SOCK_FD_TO_PORT (newfd);
+  newsock = scm_socket_fd_to_port (newfd);
   address = _scm_from_sockaddr (&addr, addr_size,
 				FUNC_NAME);
 

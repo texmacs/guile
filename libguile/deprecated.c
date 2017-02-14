@@ -26,6 +26,9 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "libguile/_scm.h"
 #include "libguile/deprecation.h"
 
@@ -937,6 +940,17 @@ scm_make_dynamic_state (SCM parent)
   return SCM_UNBNDP (parent) ? scm_current_dynamic_state () : parent;
 }
 
+
+
+
+int
+SCM_FDES_RANDOM_P (int fdes)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_FDES_RANDOM_P is deprecated.  Use lseek (fd, 0, SEEK_CUR).");
+
+  return (lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1;
+}
 
 
 

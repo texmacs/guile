@@ -1509,7 +1509,7 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
 
   scm_dynwind_end ();
 
-  port = scm_i_fdes_to_port (rv, mode_bits, tmpl);
+  port = scm_i_fdes_to_port (rv, mode_bits, tmpl, 0);
   if (is_binary)
     /* Use the binary-friendly ISO-8859-1 encoding. */
     scm_i_set_port_encoding_x (port, NULL);

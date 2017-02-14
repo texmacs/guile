@@ -2105,21 +2105,17 @@ scm_i_scan_for_encoding (SCM port)
       memcpy (header, scm_port_buffer_take_pointer (buf, cur), bytes_read);
       header[bytes_read] = '\0';
     }
-  else
+  else if (pt->rw_random)
     {
-      /* Try to read some bytes and then seek back.  Not all ports
-         support seeking back; and indeed some file ports (like
-         /dev/urandom) will succeed on an lseek (fd, 0, SEEK_CUR)---the
-         check performed by SCM_FPORT_FDES---but fail to seek
-         backwards.  Hence this block comes second.  We prefer to use
-         the read buffer in-place.  */
-      if (SCM_FPORTP (port) && !SCM_FDES_RANDOM_P (SCM_FPORT_FDES (port)))
-        return NULL;
-
+      /* The port is seekable.  This is OK but grubbing in the read
+         buffer is better, so this case is just a fallback.  */
       bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);
       header[bytes_read] = '\0';
       scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
     }
+  else
+    /* No input available and not seekable; scan fails.  */
+    return NULL;
 
   /* search past "coding[:=]" */
   pos = header;

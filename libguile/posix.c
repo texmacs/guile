@@ -242,8 +242,10 @@ SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
   if (rv)
     SCM_SYSERROR;
   
-  p_rd = scm_fdes_to_port (fd[0], "r", sym_read_pipe);
-  p_wt = scm_fdes_to_port (fd[1], "w", sym_write_pipe);
+  p_rd = scm_i_fdes_to_port (fd[0], scm_mode_bits ("r"), sym_read_pipe,
+                             SCM_FPORT_OPTION_NOT_SEEKABLE);
+  p_wt = scm_i_fdes_to_port (fd[1], scm_mode_bits ("w"), sym_write_pipe,
+                             SCM_FPORT_OPTION_NOT_SEEKABLE);
   return scm_cons (p_rd, p_wt);
 }
 #undef FUNC_NAME
@@ -1418,12 +1420,16 @@ scm_open_process (SCM mode, SCM prog, SCM args)
   if (reading)
     {
       close (c2p[1]);
-      read_port = scm_fdes_to_port (c2p[0], "r0", sym_read_pipe);
+      read_port = scm_i_fdes_to_port (c2p[0], scm_mode_bits ("r0"),
+                                      sym_read_pipe,
+                                      SCM_FPORT_OPTION_NOT_SEEKABLE);
     }
   if (writing)
     {
       close (p2c[0]);
-      write_port = scm_fdes_to_port (p2c[1], "w0", sym_write_pipe);
+      write_port = scm_i_fdes_to_port (p2c[1], scm_mode_bits ("w0"),
+                                       sym_write_pipe,
+                                       SCM_FPORT_OPTION_NOT_SEEKABLE);
     }
 
   return scm_values (scm_list_3 (read_port,

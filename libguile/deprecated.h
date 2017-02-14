@@ -270,6 +270,10 @@ SCM_DEPRECATED SCM scm_from_contiguous_array (SCM bounds, const SCM *elts,
 
 
 
+SCM_DEPRECATED int SCM_FDES_RANDOM_P (int fdes);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif
