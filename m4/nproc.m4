@@ -1,5 +1,5 @@
-# nproc.m4 serial 4
-dnl Copyright (C) 2009-2016 Free Software Foundation, Inc.
+# nproc.m4 serial 5
+dnl Copyright (C) 2009-2017 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -40,7 +40,8 @@ AC_DEFUN([gl_PREREQ_NPROC],
       [gl_cv_func_sched_getaffinity3],
       [AC_COMPILE_IFELSE(
          [AC_LANG_PROGRAM(
-            [[#include <sched.h>]],
+            [[#include <errno.h>
+              #include <sched.h>]],
             [[sched_getaffinity (0, 0, (cpu_set_t *) 0);]])],
          [gl_cv_func_sched_getaffinity3=yes],
          [gl_cv_func_sched_getaffinity3=no])

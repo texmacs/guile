@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2016 Free Software Foundation, Inc.
+# Copyright (C) 2002-2017 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module binary-io:
   # Code from module bind:
   # Code from module btowc:
+  # Code from module builtin-expect:
   # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
@@ -133,6 +134,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module lib-symbol-versions:
   # Code from module lib-symbol-visibility:
   # Code from module libunistring:
+  # Code from module limits-h:
   # Code from module link:
   # Code from module listen:
   # Code from module localcharset:
@@ -242,6 +244,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module wcrtomb:
   # Code from module wctype-h:
   # Code from module write:
+  # Code from module xalloc-oversized:
   # Code from module xsize:
 ])
 
@@ -341,7 +344,7 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([floor])
   fi
   gl_MATH_MODULE_INDICATOR([floor])
-  gl_FUNC_FREXP
+  AC_REQUIRE([gl_FUNC_FREXP])
   if test $gl_func_frexp != yes; then
     AC_LIBOBJ([frexp])
   fi
@@ -372,6 +375,7 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([getlogin])
   fi
   gl_UNISTD_MODULE_INDICATOR([getlogin])
+  AC_REQUIRE([gl_LIB_GETLOGIN])
   AC_REQUIRE([gl_HEADER_SYS_SOCKET])
   if test "$ac_cv_header_winsock2_h" = yes; then
     AC_LIBOBJ([getpeername])
@@ -473,6 +477,7 @@ AC_DEFUN([gl_INIT],
   gl_LD_VERSION_SCRIPT
   gl_VISIBILITY
   gl_LIBUNISTRING
+  gl_LIMITS_H
   gl_FUNC_LINK
   if test $HAVE_LINK = 0 || test $REPLACE_LINK = 1; then
     AC_LIBOBJ([link])
@@ -706,6 +711,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_alloca=false
   gl_gnulib_enabled_assure=false
   gl_gnulib_enabled_btowc=false
+  gl_gnulib_enabled_37f71b604aa9c54446783d80f42fe547=false
   gl_gnulib_enabled_chdir=false
   gl_gnulib_enabled_dup2=false
   gl_gnulib_enabled_43fe87a341d9b4b93c47c3ad819a5239=false
@@ -777,6 +783,13 @@ AC_SUBST([LTALLOCA])
       if test $HAVE_BTOWC = 0 || test $REPLACE_BTOWC = 1; then
         func_gl_gnulib_m4code_mbtowc
       fi
+    fi
+  }
+  func_gl_gnulib_m4code_37f71b604aa9c54446783d80f42fe547 ()
+  {
+    if ! $gl_gnulib_enabled_37f71b604aa9c54446783d80f42fe547; then
+      gl___BUILTIN_EXPECT
+      gl_gnulib_enabled_37f71b604aa9c54446783d80f42fe547=true
     fi
   }
   func_gl_gnulib_m4code_chdir ()
@@ -1369,7 +1382,13 @@ AC_SUBST([LTALLOCA])
     func_gl_gnulib_m4code_btowc
   fi
   if test $ac_use_included_regex = yes; then
+    func_gl_gnulib_m4code_37f71b604aa9c54446783d80f42fe547
+  fi
+  if test $ac_use_included_regex = yes; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
+  fi
+  if test $ac_use_included_regex = yes; then
+    func_gl_gnulib_m4code_intprops
   fi
   if test $ac_use_included_regex = yes; then
     func_gl_gnulib_m4code_mbrtowc
@@ -1447,6 +1466,7 @@ AC_SUBST([LTALLOCA])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_alloca], [$gl_gnulib_enabled_alloca])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_assure], [$gl_gnulib_enabled_assure])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_btowc], [$gl_gnulib_enabled_btowc])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_37f71b604aa9c54446783d80f42fe547], [$gl_gnulib_enabled_37f71b604aa9c54446783d80f42fe547])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_chdir], [$gl_gnulib_enabled_chdir])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dup2], [$gl_gnulib_enabled_dup2])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_43fe87a341d9b4b93c47c3ad819a5239], [$gl_gnulib_enabled_43fe87a341d9b4b93c47c3ad819a5239])
@@ -1677,6 +1697,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fcntl.in.h
   lib/fd-hook.c
   lib/fd-hook.h
+  lib/flexmember.h
   lib/float+.h
   lib/float.c
   lib/float.in.h
@@ -1724,6 +1745,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/itold.c
   lib/langinfo.in.h
   lib/libunistring.valgrind
+  lib/limits.in.h
   lib/link.c
   lib/listen.c
   lib/localcharset.c
@@ -1854,6 +1876,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/wctype-h.c
   lib/wctype.in.h
   lib/write.c
+  lib/xalloc-oversized.h
   lib/xsize.c
   lib/xsize.h
   m4/00gnulib.m4
@@ -1862,6 +1885,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/arpa_inet_h.m4
   m4/autobuild.m4
   m4/btowc.m4
+  m4/builtin-expect.m4
   m4/byteswap.m4
   m4/canonicalize.m4
   m4/ceil.m4
@@ -1926,6 +1950,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lib-link.m4
   m4/lib-prefix.m4
   m4/libunistring.m4
+  m4/limits-h.m4
   m4/link.m4
   m4/localcharset.m4
   m4/locale-fr.m4
