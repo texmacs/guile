@@ -42,6 +42,7 @@ SCM_API SCM scm_shutdown (SCM sfd, SCM how);
 SCM_API SCM scm_connect (SCM sockfd, SCM fam, SCM address, SCM args);
 SCM_API SCM scm_bind (SCM sockfd, SCM fam, SCM address, SCM args);
 SCM_API SCM scm_listen (SCM sfd, SCM backlog);
+SCM_INTERNAL SCM scm_accept4 (SCM sockfd, SCM flags);
 SCM_API SCM scm_accept (SCM sockfd);
 SCM_API SCM scm_getsockname (SCM sockfd);
 SCM_API SCM scm_getpeername (SCM sockfd);

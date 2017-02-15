@@ -3276,7 +3276,7 @@ the queue.
 The return value is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} accept sock
+@deffn {Scheme Procedure} accept sock [flags]
 @deffnx {C Function} scm_accept (sock)
 Accept a connection from socket port @var{sock} which has been enabled
 for listening with @code{listen} above.
@@ -3299,6 +3299,10 @@ The return value is a pair.  The @code{car} is a new socket port,
 connected and ready to communicate.  The @code{cdr} is a socket address
 object (@pxref{Network Socket Address}) which is where the remote
 connection is from (like @code{getpeername} below).
+
+@var{flags}, if given, may include @code{SOCK_CLOEXEC} or
+@code{SOCK_NONBLOCK}, which like @code{O_CLOEXEC} and @code{O_NONBLOCK}
+apply to the newly accepted socket.
 
 All communication takes place using the new socket returned.  The
 given @var{sock} remains bound and listening, and @code{accept} may be

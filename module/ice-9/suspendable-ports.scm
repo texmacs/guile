@@ -678,9 +678,9 @@
 
 (define accept
   (let ((%accept (@ (guile) accept)))
-    (lambda (port)
+    (lambda* (port #:optional (flags 0))
       (let lp ()
-        (or (%accept port)
+        (or (%accept port flags)
             (begin
               (wait-for-readable port)
               (lp)))))))

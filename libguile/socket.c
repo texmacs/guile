@@ -1243,8 +1243,8 @@ SCM_DEFINE (scm_make_socket_address, "make-socket-address", 2, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
-            (SCM sock),
+SCM_DEFINE (scm_accept4, "accept", 1, 1, 0, 
+            (SCM sock, SCM flags),
 	    "Accept a connection on a bound, listening socket.  If there\n"
 	    "are no pending connections in the queue, there are two\n"
             "possibilities: if the socket has been configured as\n"
@@ -1256,10 +1256,11 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
             "initiated the connection.\n\n"
 	    "@var{sock} does not become part of the\n"
 	    "connection and will continue to accept new requests.")
-#define FUNC_NAME s_scm_accept
+#define FUNC_NAME s_scm_accept4
 {
   int fd;
   int newfd;
+  int c_flags;
   SCM address;
   SCM newsock;
   socklen_t addr_size = MAX_ADDR_SIZE;
@@ -1267,8 +1268,11 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
+  c_flags = SCM_UNBNDP (flags) ? 0 : scm_to_int (flags);
+
   fd = SCM_FPORT_FDES (sock);
-  SCM_SYSCALL (newfd = accept4 (fd, (struct sockaddr *) &addr, &addr_size, 0));
+  SCM_SYSCALL (newfd = accept4 (fd, (struct sockaddr *) &addr, &addr_size,
+                                c_flags));
   if (newfd == -1)
     {
       if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -1276,12 +1280,17 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
       SCM_SYSERROR;
     }
   newsock = scm_socket_fd_to_port (newfd);
-  address = _scm_from_sockaddr (&addr, addr_size,
-				FUNC_NAME);
+  address = _scm_from_sockaddr (&addr, addr_size, FUNC_NAME);
 
   return scm_cons (newsock, address);
 }
 #undef FUNC_NAME
+
+SCM
+scm_accept (SCM sock)
+{
+  return scm_accept4 (sock, SCM_UNDEFINED);
+}
 
 SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0, 
             (SCM sock),
@@ -1643,6 +1652,11 @@ scm_init_socket ()
 #ifdef SOCK_RDM
   scm_c_define ("SOCK_RDM", scm_from_int (SOCK_RDM));
 #endif
+
+  /* accept4 flags.  No ifdef as accept4 has a gnulib
+     implementation.  */
+  scm_c_define ("SOCK_CLOEXEC", scm_from_int (SOCK_CLOEXEC));
+  scm_c_define ("SOCK_NONBLOCK", scm_from_int (SOCK_NONBLOCK));
 
   /* setsockopt level.
 
