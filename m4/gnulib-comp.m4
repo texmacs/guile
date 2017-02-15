@@ -44,6 +44,7 @@ AC_DEFUN([gl_EARLY],
 
   # Code from module absolute-header:
   # Code from module accept:
+  # Code from module accept4:
   # Code from module alignof:
   # Code from module alloca:
   # Code from module alloca-opt:
@@ -267,6 +268,8 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([accept])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([accept])
+  gl_FUNC_ACCEPT4
+  gl_SYS_SOCKET_MODULE_INDICATOR([accept4])
   gl_FUNC_ALLOCA
   gl_HEADER_ARPA_INET
   AC_PROG_MKDIR_P
@@ -529,6 +532,14 @@ AC_DEFUN([gl_INIT],
   fi
   gl_MODULE_INDICATOR([mkostemp])
   gl_STDLIB_MODULE_INDICATOR([mkostemp])
+  AC_REQUIRE([gl_MSVC_INVAL])
+  if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
+    AC_LIBOBJ([msvc-inval])
+  fi
+  AC_REQUIRE([gl_MSVC_NOTHROW])
+  if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
+    AC_LIBOBJ([msvc-nothrow])
+  fi
   gl_MULTIARCH
   gl_HEADER_NETDB
   gl_HEADER_NETINET_IN
@@ -731,8 +742,6 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_memchr=false
   gl_gnulib_enabled_mktime=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
-  gl_gnulib_enabled_f691f076f650964c9f5598c3ee487616=false
-  gl_gnulib_enabled_676220fa4366efa9bdbfccf11a857c07=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_raise=false
   gl_gnulib_enabled_round=false
@@ -809,12 +818,6 @@ AC_SUBST([LTALLOCA])
       fi
       gl_UNISTD_MODULE_INDICATOR([dup2])
       gl_gnulib_enabled_dup2=true
-      if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-      fi
-      if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-        func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-      fi
     fi
   }
   func_gl_gnulib_m4code_43fe87a341d9b4b93c47c3ad819a5239 ()
@@ -1007,27 +1010,6 @@ AC_SUBST([LTALLOCA])
       func_gl_gnulib_m4code_mktime
     fi
   }
-  func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616 ()
-  {
-    if ! $gl_gnulib_enabled_f691f076f650964c9f5598c3ee487616; then
-      AC_REQUIRE([gl_MSVC_INVAL])
-      if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
-        AC_LIBOBJ([msvc-inval])
-      fi
-      gl_gnulib_enabled_f691f076f650964c9f5598c3ee487616=true
-    fi
-  }
-  func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07 ()
-  {
-    if ! $gl_gnulib_enabled_676220fa4366efa9bdbfccf11a857c07; then
-      AC_REQUIRE([gl_MSVC_NOTHROW])
-      if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
-        AC_LIBOBJ([msvc-nothrow])
-      fi
-      gl_gnulib_enabled_676220fa4366efa9bdbfccf11a857c07=true
-      func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-    fi
-  }
   func_gl_gnulib_m4code_pathmax ()
   {
     if ! $gl_gnulib_enabled_pathmax; then
@@ -1045,9 +1027,6 @@ AC_SUBST([LTALLOCA])
       fi
       gl_SIGNAL_MODULE_INDICATOR([raise])
       gl_gnulib_enabled_raise=true
-      if test $HAVE_RAISE = 0 || test $REPLACE_RAISE = 1; then
-        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-      fi
     fi
   }
   func_gl_gnulib_m4code_round ()
@@ -1133,7 +1112,6 @@ AC_SUBST([LTALLOCA])
       AC_REQUIRE([gl_SOCKETS])
       gl_gnulib_enabled_sockets=true
       func_gl_gnulib_m4code_43fe87a341d9b4b93c47c3ad819a5239
-      func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -1258,38 +1236,17 @@ AC_SUBST([LTALLOCA])
       func_gl_gnulib_m4code_size_max
     fi
   }
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
     func_gl_gnulib_m4code_pathmax
   fi
   if test $REPLACE_CLOSE = 1; then
     func_gl_gnulib_m4code_43fe87a341d9b4b93c47c3ad819a5239
   fi
-  if test $REPLACE_CLOSE = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $HAVE_COPYSIGN = 0; then
     func_gl_gnulib_m4code_signbit
   fi
-  if test $HAVE_FLOCK = 0; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $gl_func_frexp != yes; then
     func_gl_gnulib_m4code_b1df7117b479d2da59d76deba468ee21
-  fi
-  if test $REPLACE_STAT = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $HAVE_FSYNC = 0; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test $HAVE_GETADDRINFO = 0 || test $HAVE_DECL_GAI_STRERROR = 0 || test $REPLACE_GAI_STRERROR = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
@@ -1306,15 +1263,6 @@ AC_SUBST([LTALLOCA])
   if test $HAVE_GETADDRINFO = 0; then
     func_gl_gnulib_m4code_sockets
   fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $REPLACE_ISFINITE = 1; then
     func_gl_gnulib_m4code_b1df7117b479d2da59d76deba468ee21
   fi
@@ -1329,9 +1277,6 @@ AC_SUBST([LTALLOCA])
   fi
   if test $HAVE_LINK = 0 || test $REPLACE_LINK = 1; then
     func_gl_gnulib_m4code_f9850631dca91859e9cddac9359921c0
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test $HAVE_LOG1P = 0 || test $REPLACE_LOG1P = 1; then
     func_gl_gnulib_m4code_log
@@ -1358,25 +1303,10 @@ AC_SUBST([LTALLOCA])
     func_gl_gnulib_m4code_assure
   fi
   if test $HAVE_POLL = 0 || test $REPLACE_POLL = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test $HAVE_POLL = 0 || test $REPLACE_POLL = 1; then
     func_gl_gnulib_m4code_sockets
-  fi
-  if test $REPLACE_READ = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $REPLACE_READ = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test $ac_use_included_regex = yes; then
     func_gl_gnulib_m4code_btowc
@@ -1415,25 +1345,7 @@ AC_SUBST([LTALLOCA])
     func_gl_gnulib_m4code_dup2
   fi
   if test $REPLACE_SELECT = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test $REPLACE_SELECT = 1; then
     func_gl_gnulib_m4code_sockets
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
-  if test "$ac_cv_header_winsock2_h" = yes; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test "$ac_cv_header_winsock2_h" = yes; then
     func_gl_gnulib_m4code_sockets
@@ -1452,12 +1364,6 @@ AC_SUBST([LTALLOCA])
   fi
   if test $ac_cv_func_vsnprintf = no || test $REPLACE_VSNPRINTF = 1; then
     func_gl_gnulib_m4code_vasnprintf
-  fi
-  if test $REPLACE_WRITE = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $REPLACE_WRITE = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
   fi
   if test $REPLACE_WRITE = 1; then
     func_gl_gnulib_m4code_raise
@@ -1486,8 +1392,6 @@ AC_SUBST([LTALLOCA])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_memchr], [$gl_gnulib_enabled_memchr])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_mktime], [$gl_gnulib_enabled_mktime])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_f691f076f650964c9f5598c3ee487616], [$gl_gnulib_enabled_f691f076f650964c9f5598c3ee487616])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_676220fa4366efa9bdbfccf11a857c07], [$gl_gnulib_enabled_676220fa4366efa9bdbfccf11a857c07])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_raise], [$gl_gnulib_enabled_raise])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_round], [$gl_gnulib_enabled_round])
@@ -1662,6 +1566,7 @@ AC_DEFUN([gl_FILE_LIST], [
   doc/gendocs_template
   doc/gendocs_template_min
   lib/accept.c
+  lib/accept4.c
   lib/alignof.h
   lib/alloca.c
   lib/alloca.in.h
@@ -1881,6 +1786,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/xsize.h
   m4/00gnulib.m4
   m4/absolute-header.m4
+  m4/accept4.m4
   m4/alloca.m4
   m4/arpa_inet_h.m4
   m4/autobuild.m4

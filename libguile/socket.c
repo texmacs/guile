@@ -1268,7 +1268,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  SCM_SYSCALL (newfd = accept (fd, (struct sockaddr *) &addr, &addr_size));
+  SCM_SYSCALL (newfd = accept4 (fd, (struct sockaddr *) &addr, &addr_size, 0));
   if (newfd == -1)
     {
       if (errno == EAGAIN || errno == EWOULDBLOCK)
