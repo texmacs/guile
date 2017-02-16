@@ -1556,7 +1556,8 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
   size_t len = 0;
   SCM buf = scm_i_make_string (1024, NULL, 0);
 
-  buf = scm_i_string_start_writing (buf);
+  /* No need to scm_i_string_start_writing (), as the string isn't
+     visible to any other thread.  */
 
   while ((chr = scm_getc (port)) != EOF)
     {
@@ -1620,16 +1621,13 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 	{
 	  SCM addy;
 
-	  scm_i_string_stop_writing ();
 	  addy = scm_i_make_string (1024, NULL, 0);
 	  buf = scm_string_append (scm_list_2 (buf, addy));
 	  len = 0;
-	  buf = scm_i_string_start_writing (buf);
 	}
     }
 
  done:
-  scm_i_string_stop_writing ();
   if (chr == EOF)
     scm_i_input_error ("scm_read_extended_symbol", port,
                        "end of file while reading symbol", SCM_EOL);

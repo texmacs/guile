@@ -1145,7 +1145,6 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
       char *buf;
 
       result = scm_i_make_string (len, NULL, 0);
-      result = scm_i_string_start_writing (result);
       buf = scm_i_string_writable_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
@@ -1162,7 +1161,6 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
       scm_t_wchar *buf;
 
       result = scm_i_make_wide_string (len, NULL, 0);
-      result = scm_i_string_start_writing (result);
       buf = scm_i_string_writable_wide_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
@@ -1174,7 +1172,6 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
           scm_remember_upto_here_1 (elt);
         }
     }
-  scm_i_string_stop_writing ();
 
   if (len > 0)
     scm_misc_error (NULL, "list changed while constructing string", SCM_EOL);
@@ -1211,10 +1208,8 @@ scm_c_make_string (size_t len, SCM chr)
   else
     {
       SCM_VALIDATE_CHAR (0, chr);
-      res = scm_i_string_start_writing (res);
       for (p = 0; p < len; p++)
         scm_i_string_set_x (res, p, SCM_CHAR (chr));
-      scm_i_string_stop_writing ();
     }
 
   return res;

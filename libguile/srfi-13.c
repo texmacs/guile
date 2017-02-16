@@ -351,7 +351,8 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
       }
     rest = chrs;
     j = i;
-    result = scm_i_string_start_writing (result);
+    /* No need to scm_i_string_start_writing (), as the string isn't
+       visible to any other thread.  */
     while (j > 0 && scm_is_pair (rest))
       {
         SCM elt = SCM_CAR (rest);
@@ -359,7 +360,6 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
         rest = SCM_CDR (rest);
         j--;
       }
-    scm_i_string_stop_writing ();
   }
 
   return result;
@@ -2515,9 +2515,9 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
-      result = scm_i_string_start_writing (result);
+      /* No need to scm_i_string_start_writing (), as the string isn't
+         visible to any other thread.  */
       scm_i_string_set_x (result, p, SCM_CHAR (ch));
-      scm_i_string_stop_writing ();
       p++;
     }
   
@@ -2658,9 +2658,9 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       str = scm_i_make_string (1, NULL, 0);
-      str = scm_i_string_start_writing (str);
+      /* No need to scm_i_string_start_writing (), as the string isn't
+         visible to any other thread.  */
       scm_i_string_set_x (str, i, SCM_CHAR (ch));
-      scm_i_string_stop_writing ();
       i++;
 
       ans = scm_string_append (scm_list_2 (ans, str));
@@ -2724,9 +2724,9 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       str = scm_i_make_string (1, NULL, 0);
-      str = scm_i_string_start_writing (str);
+      /* No need to scm_i_string_start_writing (), as the string isn't
+         visible to any other thread.  */
       scm_i_string_set_x (str, i, SCM_CHAR (ch));
-      scm_i_string_stop_writing ();
       i++;
 
       ans = scm_string_append (scm_list_2 (str, ans));
@@ -2839,7 +2839,6 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
 
   result = scm_i_make_string (cto - cfrom, NULL, 0);
-  result = scm_i_string_start_writing (result);
 
   p = 0;
   while (cfrom < cto)
@@ -2853,7 +2852,6 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
       cfrom++;
       p++;
     }
-  scm_i_string_stop_writing ();
 
   scm_remember_upto_here_1 (s);
   return result;
@@ -3191,8 +3189,9 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
         {
           size_t dst = 0;
           result = scm_i_make_string (count, NULL, 0);
-	  result = scm_i_string_start_writing (result);
 
+          /* No need to scm_i_string_start_writing (), as the string isn't
+             visible to any other thread.  */
           /* decrement "count" in this loop as well as using idx, so that if
              another thread is simultaneously changing "s" there's no chance
              it'll make us copy more than count characters */
@@ -3205,7 +3204,6 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
                   count--;
                 }
             }
-	  scm_i_string_stop_writing ();
         }
     }
   else
@@ -3301,7 +3299,8 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 	  int i = 0;
           /* new string for retained portion */
           result = scm_i_make_string (count, NULL, 0); 
-          result = scm_i_string_start_writing (result);
+          /* No need to scm_i_string_start_writing (), as the string isn't
+             visible to any other thread.  */
           /* decrement "count" in this loop as well as using idx, so that if
              another thread is simultaneously changing "s" there's no chance
              it'll make us copy more than count characters */
@@ -3315,7 +3314,6 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
                   count--;
                 }
             }
-	  scm_i_string_stop_writing ();
         }
     }
   else if (SCM_CHARSETP (char_pred))
@@ -3343,8 +3341,9 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 	  size_t i = 0;
           /* new string for retained portion */
           result = scm_i_make_string (count, NULL, 0);
-	  result = scm_i_string_start_writing (result);
 
+          /* No need to scm_i_string_start_writing (), as the string isn't
+             visible to any other thread.  */
           /* decrement "count" in this loop as well as using idx, so that if
              another thread is simultaneously changing "s" there's no chance
              it'll make us copy more than count characters */
@@ -3357,7 +3356,6 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
                   count--;
                 }
             }
-	  scm_i_string_stop_writing ();
         }
     }
   else
