@@ -1385,13 +1385,10 @@ should be .data or .rodata), and return the resulting linker object.
        (modulo (- alignment (modulo address alignment)) alignment)))
 
   (define tc7-vector 13)
-  (define stringbuf-shared-flag #x100)
   (define stringbuf-wide-flag #x400)
   (define tc7-stringbuf 39)
-  (define tc7-narrow-stringbuf
-    (+ tc7-stringbuf stringbuf-shared-flag))
-  (define tc7-wide-stringbuf
-    (+ tc7-stringbuf stringbuf-shared-flag stringbuf-wide-flag))
+  (define tc7-narrow-stringbuf tc7-stringbuf)
+  (define tc7-wide-stringbuf (+ tc7-stringbuf stringbuf-wide-flag))
   (define tc7-ro-string (+ 21 #x200))
   (define tc7-program 69)
   (define tc7-bytevector 77)

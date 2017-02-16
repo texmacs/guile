@@ -182,8 +182,8 @@ SCM_API SCM scm_makfromstrs (int argc, char **argv);
 #define scm_tc7_ro_string             (scm_tc7_string + 0x200)
 
 /* Flags for shared and wide strings.  */
-#define SCM_I_STRINGBUF_F_SHARED      0x100
 #define SCM_I_STRINGBUF_F_WIDE        0x400
+#define SCM_I_STRINGBUF_F_MUTABLE     0x800
 
 SCM_INTERNAL void scm_i_print_stringbuf (SCM exp, SCM port,
                                          scm_print_state *pstate);

@@ -111,27 +111,45 @@
       (not (eq? (assq-ref (%string-dump s2) 'shared)
                 s1))))
 
-  (pass-if "ASCII substrings share stringbufs before copy-on-write"
+  (pass-if "ASCII substrings immutable before copy-on-write"
     (let* ((s1 "foobar")
            (s2 (substring s1 0 3)))
-      (assq-ref (%string-dump s1) 'stringbuf-shared)))
+      (and (not (assq-ref (%string-dump s1) 'stringbuf-mutable))
+           (not (assq-ref (%string-dump s2) 'stringbuf-mutable)))))
 
-  (pass-if "BMP substrings share stringbufs before copy-on-write"
+  (pass-if "BMP substrings immutable before copy-on-write"
     (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
            (s2 (substring s1 0 3)))
-      (assq-ref (%string-dump s1) 'stringbuf-shared)))
+      (and (not (assq-ref (%string-dump s1) 'stringbuf-mutable))
+           (not (assq-ref (%string-dump s2) 'stringbuf-mutable)))))
 
-  (pass-if "ASCII substrings don't share stringbufs after copy-on-write"
+  (pass-if "ASCII base string still immutable after copy-on-write"
     (let* ((s1 "foobar")
            (s2 (substring s1 0 3)))
       (string-set! s2 0 #\F)
-      (not (assq-ref (%string-dump s2) 'stringbuf-shared))))
+      (and (not (assq-ref (%string-dump s1) 'stringbuf-mutable))
+           (assq-ref (%string-dump s2) 'stringbuf-mutable))))
 
-  (pass-if "BMP substrings don't share stringbufs after copy-on-write"
+  (pass-if "BMP base string still immutable after copy-on-write"
     (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
            (s2 (substring s1 0 3)))
       (string-set! s2 0 #\F)
-      (not (assq-ref (%string-dump s2) 'stringbuf-shared))))
+      (and (not (assq-ref (%string-dump s1) 'stringbuf-mutable))
+           (assq-ref (%string-dump s2) 'stringbuf-mutable))))
+
+  (pass-if "ASCII substrings mutable after shared mutation"
+    (let* ((s1 "foobar")
+           (s2 (substring/shared s1 0 3)))
+      (string-set! s2 0 #\F)
+      (and (assq-ref (%string-dump s1) 'stringbuf-mutable)
+           (assq-ref (%string-dump s2) 'stringbuf-mutable))))
+
+  (pass-if "BMP substrings mutable after shared mutation"
+    (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
+           (s2 (substring/shared s1 0 3)))
+      (string-set! s2 0 #\F)
+      (and (assq-ref (%string-dump s1) 'stringbuf-mutable)
+           (assq-ref (%string-dump s2) 'stringbuf-mutable))))
 
   (with-test-prefix "encodings"
 

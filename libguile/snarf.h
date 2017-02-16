@@ -308,7 +308,7 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
   }							\
   c_name =						\
     {							\
-      scm_tc7_stringbuf | SCM_I_STRINGBUF_F_SHARED,	\
+      scm_tc7_stringbuf,                                \
       sizeof (contents) - 1,				\
       contents						\
     }
