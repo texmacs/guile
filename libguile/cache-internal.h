@@ -37,6 +37,7 @@ struct scm_cache_entry
 {
   scm_t_bits key;
   scm_t_bits value;
+  int needs_flush;
 };
 
 #define SCM_CACHE_SIZE 8
@@ -73,6 +74,7 @@ scm_cache_evict_1 (struct scm_cache *cache, struct scm_cache_entry *evicted)
            sizeof (cache->entries[0]) * idx);
   cache->entries[0].key = 0;
   cache->entries[0].value = 0;
+  cache->entries[0].needs_flush = 0;
 }
 
 static inline struct scm_cache_entry*
@@ -89,7 +91,7 @@ scm_cache_lookup (struct scm_cache *cache, SCM k)
 
 static inline void
 scm_cache_insert (struct scm_cache *cache, SCM k, SCM v,
-                  struct scm_cache_entry *evicted)
+                  struct scm_cache_entry *evicted, int needs_flush)
 {
   struct scm_cache_entry *entry;
 
@@ -99,6 +101,7 @@ scm_cache_insert (struct scm_cache *cache, SCM k, SCM v,
   if (entry->key == SCM_UNPACK (k))
     {
       entry->value = SCM_UNPACK (v);
+      entry->needs_flush = needs_flush;
       return;
     }
   memmove (cache->entries,
@@ -106,6 +109,7 @@ scm_cache_insert (struct scm_cache *cache, SCM k, SCM v,
            (entry - cache->entries) * sizeof (*entry));
   entry->key = SCM_UNPACK (k);
   entry->value = SCM_UNPACK (v);
+  entry->needs_flush = needs_flush;
 }
 
 #endif /* SCM_CACHE_INTERNAL_H */
