@@ -83,6 +83,10 @@ SCM_SYMBOL (sym_error, "error");
 #define STRINGBUF_WIDE(buf)     (SCM_CELL_WORD_0(buf) & STRINGBUF_F_WIDE)
 #define STRINGBUF_MUTABLE(buf)  (SCM_CELL_WORD_0(buf) & STRINGBUF_F_MUTABLE)
 
+
+#define STRINGBUF_SET_MUTABLE(buf) \
+  SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) | STRINGBUF_F_MUTABLE)
+
 #define STRINGBUF_CONTENTS(buf) ((void *)				\
                                  SCM_CELL_OBJECT_LOC (buf,		\
 						      STRINGBUF_HEADER_SIZE))
@@ -433,8 +437,7 @@ scm_i_string_ensure_mutable_x (SCM str)
         memcpy (STRINGBUF_CHARS (new_buf), STRINGBUF_CHARS (buf), len);
       }
 
-    SCM_SET_CELL_WORD_0 (new_buf,
-                         SCM_CELL_WORD_0 (new_buf) | STRINGBUF_F_MUTABLE);
+    STRINGBUF_SET_MUTABLE (new_buf);
     SET_STRING_STRINGBUF (str, new_buf);
   }
 }
@@ -1119,7 +1122,12 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "of the string are all set to @code{#\nul}.")
 #define FUNC_NAME s_scm_make_string
 {
-  return scm_c_make_string (scm_to_size_t (k), chr);
+  SCM ret = scm_c_make_string (scm_to_size_t (k), chr);
+  /* Given that make-string is mostly used by Scheme to prepare a
+     mutable string buffer, let's go ahead and mark this as mutable to
+     avoid a copy when this buffer is next written to.  */
+  STRINGBUF_SET_MUTABLE (STRING_STRINGBUF (ret));
+  return ret;
 }
 #undef FUNC_NAME
 
