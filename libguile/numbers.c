@@ -5623,7 +5623,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
     {
       char num_buf [SCM_INTBUFLEN];
       size_t length = scm_iint2str (SCM_I_INUM (n), base, num_buf);
-      return scm_from_locale_stringn (num_buf, length);
+      return scm_from_latin1_stringn (num_buf, length);
     }
   else if (SCM_BIGP (n))
     {
@@ -5640,13 +5640,13 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   else if (SCM_FRACTIONP (n))
     {
       return scm_string_append (scm_list_3 (scm_number_to_string (SCM_FRACTION_NUMERATOR (n), radix),
-					    scm_from_locale_string ("/"), 
+					    scm_from_latin1_string ("/"),
 					    scm_number_to_string (SCM_FRACTION_DENOMINATOR (n), radix)));
     }
   else if (SCM_INEXACTP (n))
     {
       char num_buf [FLOBUFLEN];
-      return scm_from_locale_stringn (num_buf, iflo2str (n, num_buf, base));
+      return scm_from_latin1_stringn (num_buf, iflo2str (n, num_buf, base));
     }
   else
     SCM_WRONG_TYPE_ARG (1, n);
