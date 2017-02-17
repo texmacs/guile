@@ -39,7 +39,7 @@ struct scm_cache_entry
   scm_t_bits value;
 };
 
-#define SCM_CACHE_SIZE 8
+#define SCM_CACHE_SIZE 16
 
 struct scm_cache
 {
@@ -81,6 +81,7 @@ scm_cache_lookup (struct scm_cache *cache, SCM k)
   scm_t_bits k_bits = SCM_UNPACK (k);
   struct scm_cache_entry *entry = cache->entries;
   /* Unrolled binary search, compiled to branchless cmp + cmov chain.  */
+  if (entry[8].key <= k_bits) entry += 8;
   if (entry[4].key <= k_bits) entry += 4;
   if (entry[2].key <= k_bits) entry += 2;
   if (entry[1].key <= k_bits) entry += 1;
