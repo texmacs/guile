@@ -114,11 +114,10 @@ restore_dynamic_state (SCM saved, scm_t_dynamic_state *state)
         {
           entry->key = SCM_UNPACK (SCM_CAAR (saved));
           entry->value = SCM_UNPACK (SCM_CDAR (saved));
-          entry->needs_flush = 1;
           saved = scm_cdr (saved);
         }
       else
-        entry->key = entry->value = entry->needs_flush = 0;
+        entry->key = entry->value = 0;
     }
   state->values = saved;
   state->has_aliased_values = 1;
@@ -134,7 +133,9 @@ save_dynamic_state (scm_t_dynamic_state *state)
       struct scm_cache_entry *entry = &state->cache.entries[slot];
       SCM key = SCM_PACK (entry->key);
       SCM value = SCM_PACK (entry->value);
-      if (entry->key && entry->needs_flush)
+      if (entry->key &&
+          !scm_is_eq (scm_weak_table_refq (state->values, key, SCM_UNDEFINED),
+                      value))
         {
           if (state->has_aliased_values)
             saved = scm_acons (key, value, saved);
@@ -248,8 +249,7 @@ scm_is_fluid (SCM obj)
 }
 
 static void
-fluid_set_x (scm_t_dynamic_state *dynamic_state, SCM fluid, SCM value,
-             int needs_flush)
+fluid_set_x (scm_t_dynamic_state *dynamic_state, SCM fluid, SCM value)
 {
   struct scm_cache_entry *entry;
   struct scm_cache_entry evicted = { 0, 0 };
@@ -257,17 +257,13 @@ fluid_set_x (scm_t_dynamic_state *dynamic_state, SCM fluid, SCM value,
   entry = scm_cache_lookup (&dynamic_state->cache, fluid);
   if (scm_is_eq (SCM_PACK (entry->key), fluid))
     {
-      if (SCM_UNPACK (value) != entry->value)
-        {
-          entry->needs_flush = 1;
-          entry->value = SCM_UNPACK (value);
-        }
+      entry->value = SCM_UNPACK (value);
       return;
     }
 
-  scm_cache_insert (&dynamic_state->cache, fluid, value, &evicted, 1);
+  scm_cache_insert (&dynamic_state->cache, fluid, value, &evicted);
 
-  if (evicted.key != 0 && evicted.needs_flush)
+  if (evicted.key != 0)
     {
       fluid = SCM_PACK (evicted.key);
       value = SCM_PACK (evicted.value);
@@ -304,7 +300,7 @@ fluid_ref (scm_t_dynamic_state *dynamic_state, SCM fluid)
         val = SCM_I_FLUID_DEFAULT (fluid);
 
       /* Cache this lookup.  */
-      fluid_set_x (dynamic_state, fluid, val, 0);
+      fluid_set_x (dynamic_state, fluid, val);
     }
 
   return val;
@@ -359,7 +355,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 #define FUNC_NAME s_scm_fluid_set_x
 {
   SCM_VALIDATE_FLUID (1, fluid);
-  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, value, 1);
+  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -373,7 +369,7 @@ SCM_DEFINE (scm_fluid_unset_x, "fluid-unset!", 1, 0, 0,
      suite demands it, but I would prefer not to.  */
   SCM_VALIDATE_FLUID (1, fluid);
   SCM_SET_CELL_OBJECT_1 (fluid, SCM_UNDEFINED);
-  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, SCM_UNDEFINED, 1);
+  fluid_set_x (SCM_I_CURRENT_THREAD->dynamic_state, fluid, SCM_UNDEFINED);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -401,7 +397,7 @@ void
 scm_swap_fluid (SCM fluid, SCM value_box, scm_t_dynamic_state *dynstate)
 {
   SCM val = fluid_ref (dynstate, fluid);
-  fluid_set_x (dynstate, fluid, SCM_VARIABLE_REF (value_box), 1);
+  fluid_set_x (dynstate, fluid, SCM_VARIABLE_REF (value_box));
   SCM_VARIABLE_SET (value_box, val);
 }
   
@@ -478,7 +474,7 @@ swap_fluid (SCM data)
   scm_t_dynamic_state *dynstate = SCM_I_CURRENT_THREAD->dynamic_state;
   SCM f = SCM_CAR (data);
   SCM t = fluid_ref (dynstate, f);
-  fluid_set_x (dynstate, f, SCM_CDR (data), 1);
+  fluid_set_x (dynstate, f, SCM_CDR (data));
   SCM_SETCDR (data, t);
 }
 
