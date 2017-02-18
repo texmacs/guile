@@ -8,56 +8,11 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.1.7 (changes since the 2.1.6 alpha release):
 
-* New deprecations
-
-** `SCM_FDES_RANDOM_P'
-
-Instead, use `lseek (fd, 0, SEEK_CUR)' directly.
-
-* FIXME fold in 2.1.6 changes to main NEWS
-
-
-Changes in 2.1.6 (changes since the 2.1.5 alpha release):
-
 * New interfaces
-** suspendable-continuation?
-
-This predicate returns true if the delimited continuation captured by
-aborting to a prompt would be able to be resumed.  See "Prompt
-Primitives" in the manual for more.
-
-** scm_c_prepare_to_wait_on_fd, scm_c_prepare_to_wait_on_cond,
-** scm_c_wait_finished
-
-See "Interrupts" in the manual for more.
-
 * Performance improvements
-
-** Support unboxed floating-point comparisons
-
-Thanks to David Thompson for this work.
-
+* New deprecations
 * Incompatible changes
-
-** Rename new array functions
-
-See "Arrays as arrays of arrays" in the manual for more.
-
 * Bug fixes
-
-** `scm_gc_warn_proc' writes directly to stderr
-
-The garbage collector sometimes has warnings to display to the user.
-Before, Guile would see if the current warning port was a file port, and
-in that case write the warning to that file, and otherwise default to
-stderr.  Now Guile just writes to stderr, fixing a bug where determining
-the current warning port would allocate and thus deadlock as the GC
-warnings are issued with the GC lock held.
-
-** Fix miscompilation in significant-bits computation for loop vars
-** Fix many threading bugs
-** Fix macOS portability bugs
-Thanks to Matt Wette!
 
 
 Previous changes in 2.1.x (changes since the 2.0.x series):
@@ -315,6 +270,17 @@ See "R6RS Transcoders" in the manual.
 ** Thread-safe atomic boxes (references)
 
 See "Atomics" in the manual.
+
+** suspendable-continuation?
+
+This predicate returns true if the delimited continuation captured by
+aborting to a prompt would be able to be resumed.  See "Prompt
+Primitives" in the manual for more.
+
+** scm_c_prepare_to_wait_on_fd, scm_c_prepare_to_wait_on_cond,
+** scm_c_wait_finished
+
+See "Interrupts" in the manual for more.
 
 ** File descriptor finalizers
 
@@ -815,6 +781,10 @@ scm_t_debug_info', `scm_pure_generic_p', `SCM_PUREGENERICP',
 
 Instead, use the symbol values `none', `line', or `block', respectively,
 as arguments to the `setvbuf' function.
+
+** `SCM_FDES_RANDOM_P'
+
+Instead, use `lseek (fd, 0, SEEK_CUR)' directly.
 
 ** Arbiters
 
