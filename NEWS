@@ -8,11 +8,83 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.1.7 (changes since the 2.1.6 alpha release):
 
-* New interfaces
+* Notable changes
+
+** Web server now suspendable
+
+The web server's implementation has been slightly modified in order to
+allow coroutines to suspend and resume around it when it would block on
+input or output.  See "Non-Blocking IO" in the manual for more.
+
+** Add support for arrays in `truncated-print'.
+
+See "Pretty Printing" in the manual.  Thanks to Daniel Llorens.
+
+** Gnulib update
+
+Gnulib has been updated to v0.1-1157-gb03f418.
+
 * Performance improvements
+
+** Stringbufs immutable by default
+
+Stringbufs are backing buffers for strings, and are not user-visible.
+Calling "substring" on a base string will result in a new string that
+shares state with the base string's stringbuf.  A subsequent attempt to
+mutate the substring will first copy a fresh stringbuf; that is, Guile's
+strings are copy-on-write.  There is also "substring/shared" which
+allows mutations to be shared between substring and base string; in that
+case the stringbuf is modified directly.
+
+It used to be that mutating a string would have to take a global lock,
+to ensure that no one was concurrently taking a copy-on-write substring
+of that string.  That is, stringbufs were mutable by default and
+transitioning to immutable could happen at any time.
+
+This situation has been reversed: stringbufs are now immutable by
+default and attempts to mutate an immutable stringbuf will copy a fresh
+stringbuf and mark it as mutable.  This way we can avoid the global
+lock.  This change likely speeds up common "substring" workloads, though
+it make make the first in-place mutation on an immutable string take
+more time because it has to copy a fresh backing stringbuf.
+
+** Speed up number->string
+
+** `accept' now takes optional flags argument
+
+These flags can include `SOCK_NONBLOCK' and `SOCK_CLOEXEC', indicating
+options to apply to the returned socket, potentially removing the need
+for additional system calls to set these options.  See "Network Sockets
+and Communication" in the manual, for more.
+
 * New deprecations
-* Incompatible changes
+
+** `SCM_FDES_RANDOM_P'
+
+Instead, use `lseek (fd, 0, SEEK_CUR)' directly.
+
 * Bug fixes
+
+** Fix too-broad capture of dynamic stack by delimited continuations
+
+Guile was using explicit stacks to represent, for example, the chain of
+current exception handlers.  This means that a delimited continuation
+that captured a "catch" expression would capture the whole stack of
+exception handlers, not just the exception handler added by the "catch".
+This led to strangeness when resuming the continuation in some other
+context like other threads; "throw" could see an invalid stack of
+exception handlers.  This has been fixed by the addition of the new
+"fluid-ref*" procedure that can access older values of fluids; in this
+way the exception handler stack is now implicit.  See "Fluids and
+Dynamic States" in the manual, for more on fluid-ref*.
+
+** Fix bug comparing unboxed floating-point values (#25492)
+
+Thanks to Daniel Llorens.
+
+** Fix crasher bugs for multiple threads writing to same port
+
+** Fix bug resuming partial continuations that contain prompts
 
 
 Previous changes in 2.1.x (changes since the 2.0.x series):
