@@ -95,10 +95,22 @@ if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
 trap "rm -rf $tempdir" 0 1 2 15
 
+# filter out -g* flags from commandline
+# as some flags like -ggdb3 cause CPP
+
+cpp_args=""
+for arg in "$@"
+do
+    case "$arg" in
+        -g*) ;; # skip debug flag
+        *) cpp_args="$cpp_args $arg" ;;
+    esac
+done
+
 if [ ! "$outfile" = "-" ] ; then
-    modern_snarf "$@" > $outfile
+    modern_snarf $cpp_args > $outfile
 else
-    modern_snarf "$@"
+    modern_snarf $cpp_args
 fi
 
 # zonk outfile if errors occurred
