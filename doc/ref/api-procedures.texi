@@ -836,7 +836,7 @@ Let us call this new procedure @code{foo}.
 (define foo (make-procedure-with-setter foo-ref foo-set!))
 @end lisp
 
-@code{foo} can from now an be used to either read from the data
+@code{foo} can from now on be used to either read from the data
 structure stored in @code{f}, or to write into the structure.
 
 @lisp
