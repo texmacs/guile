@@ -970,11 +970,15 @@ minimum, and maximum."
       ;; One input not a number.  Perhaps we end up dispatching to
       ;; GOOPS.
       (define! result &all-types -inf.0 +inf.0))
-     ;; Complex and floating-point numbers are contagious.
+     ;; Complex numbers are contagious.
      ((or (eqv? a-type &complex) (eqv? b-type &complex))
       (define! result &complex -inf.0 +inf.0))
      ((or (eqv? a-type &flonum) (eqv? b-type &flonum))
-      (define! result &flonum min* max*))
+      ;; If one argument is a flonum, the result will be flonum or
+      ;; possibly complex.
+      (let ((result-type (logand (logior a-type b-type)
+                                 (logior &complex &flonum))))
+        (define! result result-type min* max*)))
      ;; Exact integers are closed under some operations.
      ((and closed? (eqv? a-type &exact-integer) (eqv? b-type &exact-integer))
       (define! result &exact-integer min* max*))

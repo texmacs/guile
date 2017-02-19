@@ -239,3 +239,15 @@
     (begin
       (test-proc)
       #t)))
+
+(with-test-prefix "flonum inference"
+  (define test-code
+    '(lambda (x) (let ((y (if x 0.0 0.0+0.0i))) (+ y 0.0))))
+  (define test-proc #f)
+  (pass-if "compiling test works"
+    (begin
+      (set! test-proc (compile test-code))
+      (procedure? test-proc)))
+
+  (pass-if-equal "test flonum" 0.0 (test-proc #t))
+  (pass-if-equal "test complex" 0.0+0.0i (test-proc #f)))
