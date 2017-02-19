@@ -2004,7 +2004,7 @@ names, described in the table below.
 @multitable {@code{#\backspace}} {Preferred}
 @item Character Name @tab Codepoint
 @item @code{#\nul} @tab U+0000
-@item @code{#\alarm} @tab u+0007
+@item @code{#\alarm} @tab U+0007
 @item @code{#\backspace} @tab U+0008
 @item @code{#\tab} @tab U+0009
 @item @code{#\linefeed} @tab U+000A
