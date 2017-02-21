@@ -1653,10 +1653,13 @@ scm_init_socket ()
   scm_c_define ("SOCK_RDM", scm_from_int (SOCK_RDM));
 #endif
 
-  /* accept4 flags.  No ifdef as accept4 has a gnulib
-     implementation.  */
+  /* accept4 flags.  */
+#ifdef SOCK_CLOEXEC
   scm_c_define ("SOCK_CLOEXEC", scm_from_int (SOCK_CLOEXEC));
+#endif
+#ifdef SOCK_NONBLOCK
   scm_c_define ("SOCK_NONBLOCK", scm_from_int (SOCK_NONBLOCK));
+#endif
 
   /* setsockopt level.
 
