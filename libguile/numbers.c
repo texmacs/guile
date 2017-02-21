@@ -9109,6 +9109,8 @@ scm_c_make_polar (double mag, double ang)
      details.  */
 #if (defined HAVE_SINCOS) && (defined __GLIBC__) && (defined _GNU_SOURCE)
   sincos (ang, &s, &c);
+#elif (defined HAVE___SINCOS)
+  __sincos (ang, &s, &c);
 #else
   s = sin (ang);
   c = cos (ang);

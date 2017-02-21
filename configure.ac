@@ -1152,8 +1152,9 @@ AC_REPLACE_FUNCS([strerror memmove])
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
 #                                older systems
 #   sincos - GLIBC extension
+#   __sincos - APPLE extension
 #
-AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
+AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos __sincos trunc)
 
 # C99 specifies isinf and isnan as macros.
 # HP-UX provides only macros, no functions.
