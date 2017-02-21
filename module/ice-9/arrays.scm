@@ -17,9 +17,13 @@
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (ice-9 arrays)
+  #:use-module (rnrs io ports)
+  #:use-module (srfi srfi-1)
   #:export (array-copy))
 
-; This is actually defined in boot-9.scm, apparently for b.c.
+;; This is actually defined in boot-9.scm, apparently for backwards
+;; compatibility.
+
 ;; (define (array-shape a)
 ;;   (map (lambda (ind) (if (number? ind) (list 0 (+ -1 ind)) ind))
 ;;        (array-dimensions a)))
@@ -30,3 +34,37 @@
     (array-copy! a b)
     b))
 
+
+;; Printing arrays
+
+;; The dimensions aren't printed out unless they cannot be deduced from
+;; the content, which happens only when certain axes are empty. #:dims?
+;; can be used to force this printing. An array with all the dimensions
+;; printed out is still readable syntax, this can be useful for
+;; truncated-print.
+
+(define* (array-print-prefix a port #:key dims?)
+  (put-char port #\#)
+  (display (array-rank a) port)
+  (let ((t (array-type a)))
+    (unless (eq? #t t)
+      (display t port)))
+  (let ((ss (array-shape a)))
+    (let loop ((s ss) (slos? #f) (szero? #f) (slens? dims?))
+      (define lo caar)
+      (define hi cadar)
+      (if (null? s)
+        (when (or slos? slens?)
+          (pair-for-each (lambda (s)
+                           (when slos?
+                             (put-char port #\@)
+                             (display (lo s) port))
+                           (when slens?
+                             (put-char port #\:)
+                             (display (- (hi s) (lo s) -1) port)))
+                         ss))
+        (let ((zero-size? (zero? (- (hi s) (lo s) -1))))
+          (loop (cdr s)
+                (or slos? (not (zero? (lo s))))
+                (or szero? zero-size?)
+                (or slens? (and (not zero-size?) szero?))))))))

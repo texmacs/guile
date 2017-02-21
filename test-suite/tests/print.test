@@ -147,6 +147,35 @@
   (pass-if-equal "#<directory (test-…>"
       (tprint (current-module) 20 "UTF-8"))
 
+  ;; bitvectors
+
+  (let ((testv (bitvector #t #f #f #t #t #f #t #t)))
+    (pass-if-equal "#*10011011"
+        (tprint testv 11 "UTF-8"))
+
+    (pass-if-equal "#*10011011"
+        (tprint testv 11 "ISO-8859-1"))
+    
+    (pass-if-equal "#*10011…"
+        (tprint testv 8 "UTF-8"))
+
+    (pass-if-equal "#*100..."
+        (tprint testv 8 "ISO-8859-1"))
+
+    (pass-if-equal "#*10…"
+        (tprint testv 5 "UTF-8"))
+
+    (pass-if-equal "#*..."
+        (tprint testv 5 "ISO-8859-1"))
+
+    (pass-if-equal "#*1…"
+        (tprint testv 4 "UTF-8"))
+
+    (pass-if-equal "#"
+        (tprint testv 4 "ISO-8859-1")))
+  
+  ;; rank 0 arrays
+  
   (pass-if-equal "#0(#)"
       (tprint (make-typed-array #t 9.0) 6 "UTF-8"))
   
@@ -162,18 +191,31 @@
   (pass-if-equal "#"
       (tprint (make-typed-array 's32 0 20 20) 7 "UTF-8"))
 
-  (pass-if-equal "#2s32(…)"
-      (tprint (make-typed-array 's32 0 20 20) 8 "UTF-8"))
+  ;; higher dimensional arrays
 
-  (pass-if-equal "#2s32(# …)"
-      (tprint (make-typed-array 's32 0 20 20) 10 "UTF-8"))
+  (let ((testa (make-typed-array 's32 0 20 20)))
+    (pass-if-equal "#2s32(…)"
+        (tprint testa 8 "UTF-8"))
 
-  (pass-if-equal "#2s32((…) …)"
-      (tprint (make-typed-array 's32 0 20 20) 12 "UTF-8"))
+    (pass-if-equal "#2s32(# …)"
+        (tprint testa 10 "UTF-8"))
 
-  (pass-if-equal "#2s32((0 …) …)"
-      (tprint (make-typed-array 's32 0 20 20) 14 "UTF-8"))
+    (pass-if-equal "#2s32((…) …)"
+        (tprint testa 12 "UTF-8"))
 
+    (pass-if-equal "#2s32((0 …) …)"
+        (tprint testa 14 "UTF-8")))
+
+  ;; check that bounds are printed correctly
+
+  (pass-if-equal "#2@-1@0((foo foo foo foo …) …)"
+      (tprint (make-array 'foo '(-1 3) 5) 30 "UTF-8"))
+
+  (pass-if-equal "#3@-1:5@0:0@0:5(() () () # #)"
+      (tprint (make-array 'foo '(-1 3) 0 5) 30 "UTF-8"))
+
+  ;; nested objects including arrays
+  
   (pass-if-equal "#2((#(9 9) #(9 9)) (#(9 9) #(9 9)))"
       (tprint (make-typed-array #t (make-typed-array #t 9 2) 2 2) 40 "UTF-8"))
 
