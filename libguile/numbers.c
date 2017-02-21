@@ -9953,7 +9953,7 @@ log_of_fraction (SCM n, SCM d)
   long n_size = scm_to_long (scm_integer_length (n));
   long d_size = scm_to_long (scm_integer_length (d));
 
-  if (abs (n_size - d_size) > 1)
+  if (labs (n_size - d_size) > 1)
     return (scm_difference (log_of_exact_integer (n),
 			    log_of_exact_integer (d)));
   else if (scm_is_false (scm_negative_p (n)))
