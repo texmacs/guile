@@ -690,3 +690,14 @@
       (class (<a>) (slot) #:name '<static-sub> #:static-slot-allocation? #t))
     (pass-if-equal "non-static subclass" '(a d)
       (map slot-definition-name (class-slots (class (<a>) (d) #:name '<ad>))))))
+
+(with-test-prefix "dispatch"
+  (pass-if-equal "multi-arity dispatch" 0
+    (eval '(begin
+             (define-method (dispatch (x <number>) . args) 0)
+             (dispatch 1)
+             (dispatch 1 2)
+             ;; By now "dispatch" is forced into multi-arity mode.  Test
+             ;; that the multi-arity dispatcher works:
+             (dispatch 1 2 3))
+	  (current-module))))

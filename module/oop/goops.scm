@@ -1333,7 +1333,7 @@ function."
          #`(case-lambda
              #,@(build-clauses #'(arg ...))
              (args (apply miss args)))))))
-  (arity-case (vector-length fv) 20 dispatch
+  (arity-case (1- (vector-length fv)) 20 dispatch
               (lambda args
                 (let ((nargs (length args)))
                   (if (< nargs (vector-length fv))
