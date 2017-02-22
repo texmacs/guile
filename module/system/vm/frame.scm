@@ -103,6 +103,9 @@
     (define (find-idx n diff)
       (let lp ((n n) (diff diff))
         (cond
+         ((= n (vector-length parsed))
+          ;; Possible for jumps to alternate arities.
+          #f)
          ((negative? diff)
           (lp (1- n) (+ diff (vector-ref parsed (1- n)))))
          ((positive? diff)
