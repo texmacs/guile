@@ -19,19 +19,33 @@
 ;;; Code:
 
 (define-module (language cps spec)
+  #:use-module (ice-9 match)
   #:use-module (system base language)
   #:use-module (language cps)
+  #:use-module (language cps intmap)
   #:use-module (language cps compile-bytecode)
   #:export (cps))
 
+(define (read-cps port env)
+  (let lp ((out empty-intmap))
+    (match (read port)
+      ((k exp) (lp (intmap-add! out k (parse-cps exp))))
+      ((? eof-object?)
+       (if (eq? out empty-intmap)
+           the-eof-object
+           (persistent-intmap out))))))
+
 (define* (write-cps exp #:optional (port (current-output-port)))
-  (write (unparse-cps exp) port))
+  (intmap-fold (lambda (k cps port)
+                 (write (list k (unparse-cps cps)) port)
+                 (newline port)
+                 port)
+               exp port))
 
 (define-language cps
   #:title	"CPS Intermediate Language"
-  #:reader	(lambda (port env) (read port))
+  #:reader	read-cps
   #:printer	write-cps
-  #:parser      parse-cps
   #:compilers   `((bytecode . ,compile-bytecode))
   #:for-humans? #f
   )
