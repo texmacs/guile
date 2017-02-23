@@ -271,7 +271,7 @@
      (build-cont ($kreceive req rest k)))
     (('kargs names syms body)
      (build-cont ($kargs names syms ,(parse-cps body))))
-    (('kfun src meta self ktail kclause)
+    (('kfun meta self ktail kclause)
      (build-cont ($kfun (src exp) meta self ktail kclause)))
     (('ktail)
      (build-cont ($ktail)))
