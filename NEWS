@@ -1055,7 +1055,7 @@ if you defined a class C:
 And now you define a subclass, intending to provide an #:init-value for
 the slot A:
 
-  (define-class D ()
+  (define-class D (A)
     (a #:init-value 42))
 
 Really what you have done is define in D a new slot with the same name,
