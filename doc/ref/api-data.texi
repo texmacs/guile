@@ -6942,8 +6942,9 @@ Store @var{value} as an @var{n}-bit (signed) integer (where @var{n} is
 @end deffn
 
 Finally, a variant specialized for the host's endianness is available
-for each of these functions (with the exception of the @code{u8}
-accessors, for obvious reasons):
+for each of these functions (with the exception of the @code{u8} and
+@code{s8} accessors, as endianness is about byte order and there is only
+1 byte):
 
 @deffn {Scheme Procedure} bytevector-u16-native-ref bv index
 @deffnx {Scheme Procedure} bytevector-s16-native-ref bv index
