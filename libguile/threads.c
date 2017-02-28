@@ -372,7 +372,7 @@ static SCM default_dynamic_state;
 /* Perform first stage of thread initialisation, in non-guile mode.
  */
 static void
-guilify_self_1 (struct GC_stack_base *base)
+guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
 {
   scm_i_thread t;
 
@@ -410,6 +410,7 @@ guilify_self_1 (struct GC_stack_base *base)
 
   t.exited = 0;
   t.guile_mode = 0;
+  t.needs_unregister = needs_unregister;
 
   /* The switcheroo.  */
   {
@@ -523,8 +524,13 @@ on_thread_exit (void *v)
       scm_i_vm_free_stack (vp);
   }
 
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+  scm_i_current_thread = NULL;
+#endif
+
 #if SCM_USE_PTHREAD_THREADS
-  GC_unregister_my_thread ();
+  if (t->needs_unregister)
+    GC_unregister_my_thread ();
 #endif
 }
 
@@ -586,6 +592,8 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base,
 	}
       else
 	{
+          int needs_unregister = 0;
+
 	  /* Guile is already initialized, but this thread enters it for
 	     the first time.  Only initialize this thread.
 	  */
@@ -593,10 +601,11 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base,
 
           /* Register this thread with libgc.  */
 #if SCM_USE_PTHREAD_THREADS
-          GC_register_my_thread (base);
+          if (GC_register_my_thread (base) == GC_SUCCESS)
+            needs_unregister = 1;
 #endif
 
-	  guilify_self_1 (base);
+	  guilify_self_1 (base, needs_unregister);
 	  guilify_self_2 (dynamic_state);
 	}
       return 1;
@@ -1782,7 +1791,7 @@ scm_threads_prehistory (void *base)
 		 GC_MAKE_PROC (GC_new_proc (thread_mark), 0),
 		 0, 1);
 
-  guilify_self_1 ((struct GC_stack_base *) base);
+  guilify_self_1 ((struct GC_stack_base *) base, 0);
 }
 
 scm_t_bits scm_tc16_thread;

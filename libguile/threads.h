@@ -59,6 +59,9 @@ typedef struct scm_i_thread {
 
   /* Boolean indicating whether the thread is in guile mode.  */
   int guile_mode;
+  /* Boolean indicating whether to call GC_unregister_my_thread () when
+     this thread exits.  */
+  int needs_unregister;
 
   struct scm_thread_wake_data *wake;
   scm_i_pthread_cond_t sleep_cond;
