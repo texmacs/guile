@@ -125,18 +125,12 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
 {
   va_list va;
 
-  if (SCM_UNLIKELY (!(flags & SCM_ALLOW_NON_KEYWORD_ARGUMENTS)
-                    && scm_ilength (rest) % 2 != 0))
-    scm_error (scm_keyword_argument_error,
-               subr, "Odd length of keyword argument list",
-               SCM_EOL, SCM_BOOL_F);
-
   while (scm_is_pair (rest))
     {
       SCM kw_or_arg = SCM_CAR (rest);
       SCM tail = SCM_CDR (rest);
 
-      if (scm_is_keyword (kw_or_arg) && scm_is_pair (tail))
+      if (scm_is_keyword (kw_or_arg))
         {
           SCM kw;
           SCM *arg_p;
@@ -154,6 +148,11 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
 				   scm_from_latin1_string
 				   ("Unrecognized keyword"),
 				   SCM_EOL, scm_list_1 (kw_or_arg));
+
+                  /* Advance REST.  Advance past the argument of an
+                     unrecognized keyword, but don't error if such a
+                     keyword has no argument.  */
+                  rest = scm_is_pair (tail) ? SCM_CDR (tail) : tail;
                   break;
                 }
               arg_p = va_arg (va, SCM *);
@@ -161,14 +160,19 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
                 {
                   /* We found the matching keyword.  Store the
                      associated value and break out of the loop.  */
+                  if (!scm_is_pair (tail))
+                    scm_error_scm (scm_keyword_argument_error,
+				   scm_from_locale_string (subr),
+				   scm_from_latin1_string
+				   ("Keyword argument has no value"),
+				   SCM_EOL, scm_list_1 (kw));
                   *arg_p = SCM_CAR (tail);
+                  /* Advance REST.  */
+                  rest = SCM_CDR (tail);
                   break;
                 }
             }
           va_end (va);
-
-          /* Advance REST.  */
-          rest = SCM_CDR (tail);
         }
       else
         {

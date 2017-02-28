@@ -94,33 +94,31 @@ invalid_keyword_error_handler (void *data, SCM key, SCM args)
 }
 
 static SCM
-test_odd_length (void *data)
+test_missing_value (void *data)
 {
   SCM k_foo = scm_from_utf8_keyword ("foo");
-  SCM k_bar = scm_from_utf8_keyword ("bar");
-  SCM arg_foo, arg_bar;
+  SCM arg_foo;
 
   scm_c_bind_keyword_arguments ("test",
-                                scm_list_n (k_foo, SCM_EOL,
-                                            SCM_INUM0,
+                                scm_list_n (k_foo,
                                             SCM_UNDEFINED),
                                 SCM_ALLOW_OTHER_KEYS,
                                 k_foo, &arg_foo,
-                                k_bar, &arg_bar,
                                 SCM_UNDEFINED);
   assert (0);
 }
 
 static SCM
-odd_length_error_handler (void *data, SCM key, SCM args)
+missing_value_error_handler (void *data, SCM key, SCM args)
 {
   SCM expected_args = scm_list_n
     (scm_from_utf8_string ("test"),
-     scm_from_utf8_string ("Odd length of keyword argument list"),
-     SCM_EOL, SCM_BOOL_F,
+     scm_from_utf8_string ("Keyword argument has no value"),
+     SCM_EOL, scm_list_1 (scm_from_utf8_keyword ("foo")),
      SCM_UNDEFINED);
 
   assert (scm_is_eq (key, scm_from_utf8_symbol ("keyword-argument-error")));
+  scm_write (args, scm_current_output_port ());
   assert (scm_is_true (scm_equal_p (args, expected_args)));
 
   return SCM_BOOL_T;
@@ -214,10 +212,10 @@ test_scm_c_bind_keyword_arguments ()
                       test_invalid_keyword, NULL,
                       invalid_keyword_error_handler, NULL);
 
-  /* Test odd length error.  */
+  /* Test missing value error.  */
   scm_internal_catch (SCM_BOOL_T,
-                      test_odd_length, NULL,
-                      odd_length_error_handler, NULL);
+                      test_missing_value, NULL,
+                      missing_value_error_handler, NULL);
 }
 
 static void

@@ -154,6 +154,14 @@
       (lambda (key proc fmt args data)
         data)))
 
+  (pass-if-equal "missing argument" '("Keyword argument has no value" #:x)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (let ((f (lambda* (#:key x) x)))
+          (f #:x)))
+      (lambda (key proc fmt args data)
+        (cons fmt data))))
+
   (pass-if-equal "invalid keyword" '(not-a-keyword)
     (catch 'keyword-argument-error
       (lambda ()
@@ -177,6 +185,14 @@
         (open-file "/dev/null" "r" #:y 'not-recognized))
       (lambda (key proc fmt args data)
         data)))
+
+  (pass-if-equal "missing argument"
+      '("Keyword argument has no value" #:encoding)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (open-file "/dev/null" "r" #:encoding))
+      (lambda (key proc fmt args data)
+        (cons fmt data))))
 
   (pass-if-equal "invalid keyword" '(not-a-keyword)
     (catch 'keyword-argument-error

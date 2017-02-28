@@ -1269,9 +1269,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       while (n < ntotal)
         FP_SET (n++, SCM_UNDEFINED);
 
-      VM_ASSERT (has_rest || (nkw % 2) == 0,
-                 vm_error_kwargs_length_not_even (FP_REF (0)));
-
       /* Now bind keywords, in the order given.  */
       for (n = 0; n < nkw; n++)
         if (scm_is_keyword (FP_REF (ntotal + n)))
@@ -1281,8 +1278,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
               if (scm_is_eq (SCM_CAAR (walk), FP_REF (ntotal + n)))
                 {
                   SCM si = SCM_CDAR (walk);
-                  FP_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_uint32 (si),
-                          FP_REF (ntotal + n + 1));
+                  if (n + 1 < nkw)
+                    {
+                      FP_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_uint32 (si),
+                              FP_REF (ntotal + n + 1));
+                    }
+                  else
+                    vm_error_kwargs_missing_value (FP_REF (0),
+                                                   FP_REF (ntotal + n));
                   break;
                 }
             VM_ASSERT (scm_is_pair (walk) || allow_other_keys,

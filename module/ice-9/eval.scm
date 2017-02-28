@@ -498,27 +498,38 @@
               (define (bind-kw args)
                 (let lp ((args args))
                   (cond
-                   ((and (pair? args) (pair? (cdr args))
-                         (keyword? (car args)))
-                    (let ((kw-pair (assq (car args) keywords))
-                          (v (cadr args)))
-                      (if kw-pair
-                          ;; Found a known keyword; set its value.
-                          (env-set! env 0 (cdr kw-pair) v)
-                          ;; Unknown keyword.
-                          (if (not allow-other-keys?)
-                              ((scm-error
-                                'keyword-argument-error
-                                "eval" "Unrecognized keyword"
-                                '() (list (car args))))))
-                      (lp (cddr args))))
                    ((pair? args)
-                    (if rest?
-                        ;; Be lenient parsing rest args.
-                        (lp (cdr args))
-                        ((scm-error 'keyword-argument-error
-                                    "eval" "Invalid keyword"
-                                    '() (list (car args))))))
+                    (cond
+                     ((keyword? (car args))
+                      (let ((k (car args))
+                            (args (cdr args)))
+                        (cond
+                         ((assq k keywords)
+                          => (lambda (kw-pair)
+                               ;; Found a known keyword; set its value.
+                               (if (pair? args)
+                                   (let ((v (car args))
+                                         (args (cdr args)))
+                                     (env-set! env 0 (cdr kw-pair) v)
+                                     (lp args))
+                                   ((scm-error 'keyword-argument-error
+                                               "eval"
+                                               "Keyword argument has no value"
+                                               '() (list k))))))
+                         ;; Otherwise unknown keyword.
+                         (allow-other-keys?
+                          (lp (if (pair? args) (cdr args) args)))
+                         (else
+                          ((scm-error 'keyword-argument-error
+                                      "eval" "Unrecognized keyword"
+                                      '() (list k)))))))
+                     (rest?
+                      ;; Be lenient parsing rest args.
+                      (lp (cdr args)))
+                     (else
+                      ((scm-error 'keyword-argument-error
+                                  "eval" "Invalid keyword"
+                                  '() (list (car args)))))))
                    (else
                     (body env)))))
               (bind-req args))))))))

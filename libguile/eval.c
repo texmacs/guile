@@ -195,6 +195,12 @@ env_set (SCM env, int depth, int width, SCM val)
   VECTOR_SET (env, width + 1, val);
 }
 
+static void error_missing_value (SCM proc, SCM kw)
+{
+  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
+                 scm_from_locale_string ("Keyword argument has no value"), SCM_EOL,
+                 scm_list_1 (kw));
+}
 
 static void error_invalid_keyword (SCM proc, SCM obj)
 {
@@ -832,28 +838,40 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
           {
             SCM walk;
 
-            if (scm_is_pair (args) && scm_is_pair (CDR (args)))
-              for (; scm_is_pair (args) && scm_is_pair (CDR (args));
-                   args = CDR (args))
-                {
-                  SCM k = CAR (args), v = CADR (args);
-                  if (!scm_is_keyword (k))
+            while (scm_is_pair (args))
+              {
+                SCM k = CAR (args);
+                args = CDR (args);
+                if (!scm_is_keyword (k))
+                  {
+                    if (scm_is_true (rest))
+                      continue;
+                    else
+                      break;
+                  }
+                for (walk = kw; scm_is_pair (walk); walk = CDR (walk))
+                  if (scm_is_eq (k, CAAR (walk)))
                     {
-                      if (scm_is_true (rest))
-                        continue;
+                      if (scm_is_pair (args))
+                        {
+                          SCM v = CAR (args);
+                          args = CDR (args);
+                          env_set (env, 0, SCM_I_INUM (CDAR (walk)), v);
+                          break;
+                        }
                       else
-                        break;
+                        error_missing_value (proc, k);
                     }
-                  for (walk = kw; scm_is_pair (walk); walk = CDR (walk))
-                    if (scm_is_eq (k, CAAR (walk)))
-                      {
-                        env_set (env, 0, SCM_I_INUM (CDAR (walk)), v);
-                        args = CDR (args);
-                        break;
-                      }
-                  if (scm_is_null (walk) && scm_is_false (aok))
-                    error_unrecognized_keyword (proc, k);
-                }
+                if (scm_is_null (walk))
+                  {
+                    if (scm_is_false (aok))
+                      error_unrecognized_keyword (proc, k);
+                    else if (!scm_is_pair (args))
+                      /* Advance past argument of unrecognized
+                         keyword, if present.  */
+                      args = CDR (args);
+                  }
+              }
             if (scm_is_pair (args) && scm_is_false (rest))
               error_invalid_keyword (proc, CAR (args));
           }
