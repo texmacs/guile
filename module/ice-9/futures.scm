@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -90,14 +90,8 @@ touched."
 ;; A mapping of nested futures to futures waiting for them to complete.
 (define %futures-waiting '())
 
-;; Nesting level of futures.  Incremented each time a future is touched
-;; from within a future.
-(define %nesting-level (make-parameter 0))
-
-;; Maximum nesting level.  The point is to avoid stack overflows when
-;; nested futures are executed on the same stack.  See
-;; <http://bugs.gnu.org/13188>.
-(define %max-nesting-level 200)
+;; Whether currently running within a future.
+(define %within-future? (make-parameter #f))
 
 (define-syntax-rule (with-mutex m e0 e1 ...)
   ;; Copied from (ice-9 threads) to avoid circular dependency.
@@ -153,8 +147,7 @@ adding it to the waiter queue."
            (thunk (lambda ()
                     (call-with-prompt %future-prompt
                                       (lambda ()
-                                        (parameterize ((%nesting-level
-                                                        (1+ (%nesting-level))))
+                                        (parameterize ((%within-future? #t))
                                           ((future-thunk future))))
                                       suspend))))
       (set-future-result! future
@@ -253,16 +246,14 @@ adding it to the waiter queue."
        (unlock-mutex (future-mutex future)))
       ((started)
        (unlock-mutex (future-mutex future))
-       (if (> (%nesting-level) 0)
+       (if (%within-future?)
            (abort-to-prompt %future-prompt future)
            (begin
              (work)
              (loop))))
-      (else                                       ; queued
+      (else
        (unlock-mutex (future-mutex future))
-       (if (> (%nesting-level) %max-nesting-level)
-           (abort-to-prompt %future-prompt future)
-           (work))
+       (work)
        (loop))))
   ((future-result future)))
 
