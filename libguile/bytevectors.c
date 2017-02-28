@@ -2095,10 +2095,14 @@ scm_bootstrap_bytevectors (void)
      loaded.  */
   scm_null_bytevector = make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8);
 
+
+  scm_endianness_big = sym_big = scm_from_latin1_symbol ("big");
+  scm_endianness_little = sym_little = scm_from_latin1_symbol ("little");
+
 #ifdef WORDS_BIGENDIAN
-  scm_i_native_endianness = scm_from_latin1_symbol ("big");
+  scm_i_native_endianness = sym_big;
 #else
-  scm_i_native_endianness = scm_from_latin1_symbol ("little");
+  scm_i_native_endianness = sym_little;
 #endif
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
@@ -2109,9 +2113,6 @@ scm_bootstrap_bytevectors (void)
   scm_i_register_vector_constructor
     (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_VU8],
      scm_make_bytevector);
-
-  scm_endianness_big = sym_big = scm_from_latin1_symbol ("big");
-  scm_endianness_little = sym_little = scm_from_latin1_symbol ("little");
 }
 
 void

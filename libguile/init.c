@@ -399,7 +399,6 @@ scm_i_init_guile (void *base)
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
   scm_register_atomic ();
-  scm_register_r6rs_ports ();
   scm_register_fdes_finalizers ();
   scm_register_foreign ();
   scm_register_foreign_object ();
@@ -431,6 +430,7 @@ scm_i_init_guile (void *base)
   scm_init_feature ();
   scm_init_backtrace ();
   scm_init_ports ();
+  scm_register_r6rs_ports ();     /* requires ports */
   scm_init_fports ();
   scm_init_strports ();
   scm_init_hash ();
