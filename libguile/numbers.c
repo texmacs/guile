@@ -8021,17 +8021,6 @@ scm_product (SCM x, SCM y)
 	  else
 	    return scm_wta_dispatch_2 (g_product, x, y, SCM_ARGn, s_product);
 	  break;
-        case -1:
-	  /*
-	   * This case is important for more than just optimization.
-	   * It handles the case of negating
-	   * (+ 1 most-positive-fixnum) aka (- most-negative-fixnum),
-	   * which is a bignum that must be changed back into a fixnum.
-	   * Failure to do so will cause the following to return #f:
-	   * (= most-negative-fixnum (* -1 (- most-negative-fixnum)))
-	   */
-	  return scm_difference(y, SCM_UNDEFINED);
-	  break;
 	}
 
       if (SCM_LIKELY (SCM_I_INUMP (y)))
@@ -8056,10 +8045,19 @@ scm_product (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-	  SCM result = scm_i_mkbig ();
-	  mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), xx);
-	  scm_remember_upto_here_1 (y);
-	  return result;
+          /* There is one bignum which, when multiplied by negative one,
+             becomes a non-zero fixnum: (1+ most-positive-fixum).  Since
+             we know the type of X and Y are numbers, delegate this
+             special case to scm_difference.  */
+          if (xx == -1)
+            return scm_difference (y, SCM_UNDEFINED);
+          else
+            {
+              SCM result = scm_i_mkbig ();
+              mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), xx);
+              scm_remember_upto_here_1 (y);
+              return result;
+            }
 	}
       else if (SCM_REALP (y))
 	return scm_i_from_double (xx * SCM_REAL_VALUE (y));
