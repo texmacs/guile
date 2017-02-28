@@ -402,6 +402,17 @@ $ ./choose 50 100
 100891344545564193334812497256
 @end example
 
+Finally, seasoned scripters are probably missing a mention of
+subprocesses.  In Bash, for example, most shell scripts run other
+programs like @code{sed} or the like to do the actual work.
+
+In Guile it's often possible get everything done within Guile itself, so
+do give that a try first.  But if you just need to run a program and
+wait for it to finish, use @code{system*}.  If you need to run a
+sub-program and capture its output, or give it input, use
+@code{open-pipe}.  @xref{Processes}, and @xref{Pipes}, for more
+information.
+
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
