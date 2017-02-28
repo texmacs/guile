@@ -422,3 +422,44 @@
 
   (pass-if "version-matches? against less specified version"
     (not (version-matches? '(1 2 3) '(1 2)))))
+
+
+(with-test-prefix "circular imports"
+  (pass-if-equal "#:select" 1
+    (begin
+      (eval
+       '(begin
+          (define-module (test-circular-imports))
+          (define (init-module-a)
+            (eval '(begin
+                     (define-module (test-circular-imports a)
+                       #:use-module (test-circular-imports b)
+                       #:export (from-a))
+                     (define from-a 1))
+                  (current-module)))
+          (define (init-module-b)
+            (eval '(begin
+                     (define-module (test-circular-imports b)
+                       #:use-module ((test-circular-imports a)
+                                     #:select (from-a))
+                       #:export (from-b))
+                     (define from-b 2))
+                  (current-module)))
+          (define (submodule-binder mod name)
+            (let ((m (make-module 31)))
+              (set-module-kind! m 'directory)
+              (set-module-name! m (append (module-name mod) (list name)))
+              (module-define-submodule! mod name m)
+              (case name
+                ((a) (init-module-a))
+                ((b) (init-module-b))
+                ((c) #t)
+                (else (error "unreachable")))
+              m))
+          (set-module-submodule-binder! (current-module) submodule-binder))
+       (current-module))
+      (eval '(begin
+               (define-module (test-circular-imports c))
+               (use-modules (test-circular-imports a))
+               from-a)
+            (current-module)))))

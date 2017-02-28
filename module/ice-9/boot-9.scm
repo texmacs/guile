@@ -2859,24 +2859,13 @@ written into the port is returned."
   (define (list-of pred l)
     (or (null? l)
         (and (pair? l) (pred (car l)) (list-of pred (cdr l)))))
+  (define (valid-import? x)
+    (list? x))
   (define (valid-export? x)
     (or (symbol? x) (and (pair? x) (symbol? (car x)) (symbol? (cdr x)))))
   (define (valid-autoload? x)
     (and (pair? x) (list-of symbol? (car x)) (list-of symbol? (cdr x))))
   
-  (define (resolve-imports imports)
-    (define (resolve-import import-spec)
-      (if (list? import-spec)
-          (apply resolve-interface import-spec)
-          (error "unexpected use-module specification" import-spec)))
-    (let lp ((imports imports) (out '()))
-      (cond
-       ((null? imports) (reverse! out))
-       ((pair? imports)
-        (lp (cdr imports)
-            (cons (resolve-import (car imports)) out)))
-       (else (error "unexpected tail of imports list" imports)))))
-
   ;; We could add a #:no-check arg, set by the define-module macro, if
   ;; these checks are taking too much time.
   ;;
@@ -2891,33 +2880,37 @@ written into the port is returned."
         (error "expected list of integers for version"))
       (set-module-version! module version)
       (set-module-version! (module-public-interface module) version))
-    (let ((imports (resolve-imports imports)))
-      (call-with-deferred-observers
-       (lambda ()
-         (unless (list-of valid-export? exports)
-           (error "expected exports to be a list of symbols or symbol pairs"))
-         (unless (list-of valid-export? replacements)
-           (error "expected replacements to be a list of symbols or symbol pairs"))
-         (unless (list-of valid-export? re-exports)
-           (error "expected re-exports to be a list of symbols or symbol pairs"))
-         (unless (null? imports)
-           (module-use-interfaces! module imports))
-         (module-export! module exports)
-         (module-replace! module replacements)
-         (module-re-export! module re-exports)
-         ;; FIXME: Avoid use of `apply'.
-         (apply module-autoload! module autoloads)
-         (let ((duplicates (or duplicates
-                               ;; Avoid stompling a previously installed
-                               ;; duplicates handlers if possible.
-                               (and (not (module-duplicates-handlers module))
-                                    ;; Note: If you change this default,
-                                    ;; change it also in
-                                    ;; `default-duplicate-binding-procedures'.
-                                    '(replace warn-override-core warn last)))))
-           (when duplicates
-             (let ((handlers (lookup-duplicates-handlers duplicates)))
-               (set-module-duplicates-handlers! module handlers)))))))
+    (call-with-deferred-observers
+     (lambda ()
+       (unless (list-of valid-import? imports)
+         (error "expected imports to be a list of import specifications"))
+       (unless (list-of valid-export? exports)
+         (error "expected exports to be a list of symbols or symbol pairs"))
+       (unless (list-of valid-export? replacements)
+         (error "expected replacements to be a list of symbols or symbol pairs"))
+       (unless (list-of valid-export? re-exports)
+         (error "expected re-exports to be a list of symbols or symbol pairs"))
+       (module-export! module exports)
+       (module-replace! module replacements)
+       (unless (null? imports)
+         (let ((imports (map (lambda (import-spec)
+                               (apply resolve-interface import-spec))
+                             imports)))
+           (module-use-interfaces! module imports)))
+       (module-re-export! module re-exports)
+       ;; FIXME: Avoid use of `apply'.
+       (apply module-autoload! module autoloads)
+       (let ((duplicates (or duplicates
+                             ;; Avoid stompling a previously installed
+                             ;; duplicates handlers if possible.
+                             (and (not (module-duplicates-handlers module))
+                                  ;; Note: If you change this default,
+                                  ;; change it also in
+                                  ;; `default-duplicate-binding-procedures'.
+                                  '(replace warn-override-core warn last)))))
+         (when duplicates
+           (let ((handlers (lookup-duplicates-handlers duplicates)))
+             (set-module-duplicates-handlers! module handlers))))))
 
     (when transformer
       (unless (and (pair? transformer) (list-of symbol? transformer))
