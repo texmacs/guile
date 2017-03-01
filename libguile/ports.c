@@ -1211,7 +1211,7 @@ SCM_DEFINE (scm_sys_port_encoding, "%port-encoding", 1, 0, 0,
 	    "uses to interpret its input and output.\n")
 #define FUNC_NAME s_scm_sys_port_encoding
 {
-  SCM_VALIDATE_PORT (1, port);
+  SCM_VALIDATE_OPPORT (1, port);
 
   return SCM_PORT (port)->encoding;
 }
@@ -1232,7 +1232,7 @@ SCM_DEFINE (scm_sys_set_port_encoding_x, "%set-port-encoding!", 2, 0, 0,
 	    "and this procedure can be used to modify that encoding.\n")
 #define FUNC_NAME s_scm_sys_set_port_encoding_x
 {
-  SCM_VALIDATE_PORT (1, port);
+  SCM_VALIDATE_OPPORT (1, port);
   SCM_VALIDATE_SYMBOL (2, enc);
 
   scm_i_set_port_encoding_x (port, scm_i_symbol_chars (enc));
