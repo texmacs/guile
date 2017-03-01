@@ -745,6 +745,21 @@ not `set-port-position!'"
   (with-test-prefix "open-file-output-port"
     (test-output-file-opener open-file-output-port (test-file)))
   
+  (pass-if "open-string-output-port"
+    (call-with-values open-string-output-port
+      (lambda (port proc)
+        (and (port? port) (thunk? proc)))))
+
+  (pass-if-equal "calling string output port truncates port"
+      '("hello" "" "world")
+    (call-with-values open-string-output-port
+      (lambda (port proc)
+        (display "hello" port)
+        (let* ((s1 (proc))
+               (s2 (proc)))
+          (display "world" port)
+          (list s1 s2 (proc))))))
+
   (pass-if "open-bytevector-output-port"
     (let-values (((port get-content)
                   (open-bytevector-output-port #f)))
