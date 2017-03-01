@@ -765,7 +765,7 @@ slots as we go."
   (define (slot-protection-and-kind slot)
     (define (subclass? class parent)
       (memq parent (class-precedence-list class)))
-    (let ((type (kw-arg-ref (%slot-definition-options slot) #:class)))
+    (let ((type (get-keyword #:class (%slot-definition-options slot))))
       (if (and type (subclass? type <foreign-slot>))
           (values (cond
                    ((subclass? type <self-slot>) #\s)

@@ -572,6 +572,15 @@
       exception:out-of-range
     (make <foreign-test> #:a (ash 1 64))))
 
+(with-test-prefix "#:class slot allocation"
+  (pass-if-equal "basic class slot allocation" #:class
+    (eval '(begin
+             (define-class <has-a-class-slot> ()
+               (bar #:allocation #:class #:init-value 'baz))
+             (slot-definition-allocation
+              (class-slot-definition <has-a-class-slot> 'bar)))
+          (current-module))))
+
 (with-test-prefix "#:each-subclass"
   (let* ((<subclass-allocation-test>
           (class ()
