@@ -138,7 +138,7 @@ only one bit, and so a test for, for example, @code{#f}-or-@code{nil}
 may be made very efficiently. See @code{libguile/boolean.h}, for more
 information.
 
-@subsubsection Equality
+@subsubheading Equality
 
 Since Scheme's @code{equal?} must be transitive, and @code{'()}
 is not @code{equal?} to @code{#f}, to Scheme @code{nil} is not

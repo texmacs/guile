@@ -89,7 +89,7 @@ because the overhead of call-counting unfairly penalizes calls.  Still,
 this precise mode can be useful at times to do algorithmic optimizations
 based on the precise call counts.
 
-@section Implementation notes
+@heading Implementation notes
 
 The profiler works by setting the unix profiling signal
 @code{ITIMER_PROF} to go off after the interval you define in the call
@@ -109,7 +109,7 @@ code has been executing within the profiler.  Only run time counts
 towards the profile, not wall-clock time.  For example, sleeping and
 waiting for input or output do not cause the timer clock to advance.
 
-@section Usage
+@heading Usage
 
 @deffn {Scheme Procedure} statprof thunk @
        [#:loop loop=1] [#:hz hz=100] @
