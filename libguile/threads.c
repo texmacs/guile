@@ -1539,40 +1539,45 @@ scm_std_select (int nfds,
       readfds = &my_readfds;
     }
 
-  while (scm_i_prepare_to_wait_on_fd (t, t->sleep_pipe[1]))
-    SCM_TICK;
-
-  wakeup_fd = t->sleep_pipe[0];
-  FD_SET (wakeup_fd, readfds);
-  if (wakeup_fd >= nfds)
-    nfds = wakeup_fd+1;
-
-  args.nfds = nfds;
-  args.read_fds = readfds;
-  args.write_fds = writefds;
-  args.except_fds = exceptfds;
-  args.timeout = timeout;
-
-  /* Explicitly cooperate with the GC.  */
-  scm_without_guile (do_std_select, &args);
-
-  res = args.result;
-  eno = args.errno_value;
-
-  scm_i_wait_finished (t);
-
-  if (res > 0 && FD_ISSET (wakeup_fd, readfds))
+  if (scm_i_prepare_to_wait_on_fd (t, t->sleep_pipe[1]))
     {
-      char dummy;
-      full_read (wakeup_fd, &dummy, 1);
+      eno = EINTR;
+      res = -1;
+    }
+  else
+    {
+      wakeup_fd = t->sleep_pipe[0];
+      FD_SET (wakeup_fd, readfds);
+      if (wakeup_fd >= nfds)
+        nfds = wakeup_fd+1;
 
-      FD_CLR (wakeup_fd, readfds);
-      res -= 1;
-      if (res == 0)
-	{
-	  eno = EINTR;
-	  res = -1;
-	}
+      args.nfds = nfds;
+      args.read_fds = readfds;
+      args.write_fds = writefds;
+      args.except_fds = exceptfds;
+      args.timeout = timeout;
+
+      /* Explicitly cooperate with the GC.  */
+      scm_without_guile (do_std_select, &args);
+
+      res = args.result;
+      eno = args.errno_value;
+
+      scm_i_wait_finished (t);
+
+      if (res > 0 && FD_ISSET (wakeup_fd, readfds))
+        {
+          char dummy;
+          full_read (wakeup_fd, &dummy, 1);
+
+          FD_CLR (wakeup_fd, readfds);
+          res -= 1;
+          if (res == 0)
+            {
+              eno = EINTR;
+              res = -1;
+            }
+        }
     }
   errno = eno;
   return res;
