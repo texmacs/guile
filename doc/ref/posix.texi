@@ -529,10 +529,10 @@ to provide input, accept output, or the existence of
 exceptional conditions on a collection of ports or file
 descriptors, or waiting for a timeout to occur.
 
-When an error occurs, of if it is interrupted by a signal, this
-procedure throws a @code{system-error} exception
-(@pxref{Conventions, @code{system-error}}).  In case of an
-interruption, the associated error number is @var{EINTR}.
+When an error occurs, this procedure throws a @code{system-error}
+exception (@pxref{Conventions, @code{system-error}}).  Note that
+@code{select} may return early for other reasons, for example due to
+pending interrupts.  @xref{Asyncs}, for more on interrupts.
 
 @var{reads}, @var{writes} and @var{excepts} can be lists or
 vectors, with each member a port or a file descriptor.

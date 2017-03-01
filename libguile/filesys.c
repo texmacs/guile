@@ -44,6 +44,7 @@
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/strings.h"
+#include "libguile/iselect.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
 #include "libguile/ports.h"
@@ -78,8 +79,6 @@
 #ifdef LIBC_H_WITH_UNISTD_H
 #include <libc.h>
 #endif
-
-#include <sys/select.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -776,10 +775,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	    "exceptional conditions on a collection of ports or file\n"
 	    "descriptors, or waiting for a timeout to occur.\n\n"
 
-	    "When an error occurs, of if it is interrupted by a signal, this\n"
-	    "procedure throws a @code{system-error} exception\n"
-	    "(@pxref{Conventions, @code{system-error}}).  In case of an\n"
-	    "interruption, the associated error number is @var{EINTR}.\n\n"
+	    "When an error occurs, this procedure throws a\n"
+            "@code{system-error} exception "
+            "(@pxref{Conventions, @code{system-error}}).\n\n"
 
 	    "@var{reads}, @var{writes} and @var{excepts} can be lists or\n"
 	    "vectors, with each member a port or a file descriptor.\n"
@@ -899,12 +897,15 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
 
   {
-    int rv = select (max_fd + 1,
-                     &read_set, &write_set, &except_set,
-                     time_ptr);
-    if (rv < 0)
+    int rv = scm_std_select (max_fd + 1,
+                             &read_set, &write_set, &except_set,
+                             time_ptr);
+    /* Let EINTR / EAGAIN cause a return to the user and let them loop
+       to run any asyncs that might be pending.  */
+    if (rv < 0 && errno != EINTR && errno != EAGAIN)
       SCM_SYSERROR;
   }
+
   return scm_list_3 (retrieve_select_type (&read_set, read_ports_ready, reads),
 		     retrieve_select_type (&write_set, write_ports_ready, writes),
 		     retrieve_select_type (&except_set, SCM_EOL, excepts));
