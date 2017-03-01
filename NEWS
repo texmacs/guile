@@ -8,6 +8,41 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.1.8 (changes since the 2.1.7 alpha release):
 
+* Notable changes
+
+** Update to latest 2.0 changes
+
+Notable this includes the fix for CVE-2016-8606.
+
+** GUILE_PROGS searches for versioned Guile
+
+The GUILE_PROGS autoconf macro can take a required version argument.  As
+a new change, that version argument is additionally searched for as a
+suffix.  For example, GUILE_PROGS(2.2) would look for guile-2.2,
+guile2.2, guile-2, guile2, and then guile.  The found prefix is also
+applied to guild, guile-config, and the like.  Thanks to Freja Nordsiek
+for this work.
+
+* Bug fixes
+
+** Fix type inference when multiplying flonum with complex
+** Fix build errors on macOS
+** Fix make-polar signedness of zeros
+** Fix backtraces in case-lambda with multiple cases
+** Fix generic function dispatch with multiple arities
+** Fix guild compile --to=cps
+** Fix bogus strength reduction on (* -1 x)
+** Relax some constraints for circular module dependencies
+** Fix scm_with_guile for threads already known to libgc
+** Better errors for keyword arguments missing values (foo #:bar)
+** Various manual updates
+** Use docstrings instead of comments for many core Guile functions
+** Support truncate-file on string ports
+** Getting output from R6RS string ports now truncates buffer
+** Fix class-allocated GOOPS slots
+** Fix tracing/breakpoints (broken in 2.2 since a long time!)
+** `select' just returns instead of throwing exception on EINTR
+
 
 Previous changes in 2.1.x (changes since the 2.0.x series):
 
