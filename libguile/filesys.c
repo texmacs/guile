@@ -1475,6 +1475,14 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
   int open_flags, is_binary;
   SCM port;
 
+  SCM_VALIDATE_STRING (SCM_ARG1, tmpl);
+  if (!SCM_UNBNDP (mode))
+    SCM_VALIDATE_STRING (SCM_ARG2, mode);
+
+  /* Ensure tmpl is mutable.  */
+  scm_i_string_start_writing (tmpl);
+  scm_i_string_stop_writing ();
+
   scm_dynwind_begin (0);
 
   c_tmpl = scm_to_locale_string (tmpl);
