@@ -5414,7 +5414,7 @@ of the form @code{:NAME} are read as symbols, as required by R5RS.
 
 @cindex SRFI-88 keyword syntax
 
-If the @code{keyword} read option is set to @code{'postfix}, Guile
+If the @code{keywords} read option is set to @code{'postfix}, Guile
 recognizes the SRFI-88 read syntax @code{NAME:} (@pxref{SRFI-88}).
 Otherwise, tokens of this form are read as symbols.
 
