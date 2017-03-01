@@ -612,20 +612,6 @@ Return 1 if @var{x} is a Scheme-level hook, 0 otherwise.
 @end deftypefn
 
 
-@subsubsection Handling Scheme-level hooks from C code
-
-Here is an example of how to handle Scheme-level hooks from C code using
-the above functions.
-
-@example
-if (scm_is_true (scm_hook_p (obj)))
-  /* handle Scheme-level hook using C functions */
-  scm_reset_hook_x (obj);
-else
-  /* do something else (obj is not a hook) */
-@end example
-
-
 @node C Hooks
 @subsubsection Hooks For C Code.
 
