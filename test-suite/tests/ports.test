@@ -735,6 +735,45 @@
     (pass-if "output check"
              (string=? text result)))
 
+  (pass-if-exception "truncating input string fails"
+      exception:wrong-type-arg
+    (call-with-input-string "hej"
+      (lambda (p)
+        (truncate-file p 0))))
+
+  (pass-if-equal "truncating output string" "hej"
+    (call-with-output-string
+      (lambda (p)
+        (truncate-file p 0)
+        (display "hej" p))))
+
+  (pass-if-exception "truncating output string before position"
+      exception:out-of-range
+    (call-with-output-string
+      (lambda (p)
+        (display "hej" p)
+        (truncate-file p 0))))
+
+  (pass-if-equal "truncating output string at position" "hej"
+    (call-with-output-string
+      (lambda (p)
+        (display "hej" p)
+        (truncate-file p 3))))
+
+  (pass-if-equal "truncating output string after seek" ""
+    (call-with-output-string
+      (lambda (p)
+        (display "hej" p)
+        (seek p 0 SEEK_SET)
+        (truncate-file p 0))))
+
+  (pass-if-equal "truncating output string after seek to end" "hej"
+    (call-with-output-string
+      (lambda (p)
+        (display "hej" p)
+        (seek p 0 SEEK_SET)
+        (truncate-file p 3))))
+
   (pass-if "%default-port-encoding is ignored"
     (let ((str "ĉu bone?"))
       ;; Latin-1 cannot represent ‘ĉ’.

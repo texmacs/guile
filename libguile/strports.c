@@ -134,6 +134,18 @@ string_port_seek (SCM port, scm_t_off offset, int whence)
 }
 #undef FUNC_NAME
 
+static void
+string_port_truncate (SCM port, scm_t_off length)
+#define FUNC_NAME "string_port_truncate"
+{
+  struct string_port *stream = (void *) SCM_STREAM (port);
+
+  if (0 <= length && stream->pos <= length && length <= stream->len)
+    stream->len = length;
+  else
+    scm_out_of_range (FUNC_NAME, scm_from_off_t_or_off64_t (length));
+}
+#undef FUNC_NAME
 
 
 /* The initial size in bytes of a string port's buffer.  */
@@ -372,6 +384,7 @@ scm_make_string_port_type ()
                                               string_port_read,
                                               string_port_write);
   scm_set_port_seek (ptob, string_port_seek);
+  scm_set_port_truncate (ptob, string_port_truncate);
 
   return ptob;
 }
