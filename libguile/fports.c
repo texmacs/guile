@@ -159,6 +159,9 @@ scm_i_mode_to_open_flags (SCM mode, int *is_binary, const char *FUNC_NAME)
   int flags = 0;
   const char *md, *ptr;
 
+  if (SCM_UNLIKELY (!scm_is_string (mode)))
+    scm_out_of_range (FUNC_NAME, mode);
+
   if (SCM_UNLIKELY (!scm_i_try_narrow_string (mode)))
     scm_out_of_range (FUNC_NAME, mode);
 
