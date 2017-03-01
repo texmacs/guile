@@ -116,16 +116,16 @@
   (sigaction SIGPIPE SIG_IGN)
   (add-open-socket! server-socket shutdown-server)
   (listen server-socket 5)
-  (let lp ((client (accept-new-client)))
-    ;; If client is false, we are shutting down.
-    (if client
-        (let ((client-socket (car client))
-              (client-addr (cdr client)))
-          (make-thread serve-client client-socket client-addr)
-          (lp (accept-new-client)))
-        (begin (close shutdown-write-pipe)
-               (close shutdown-read-pipe)
-               (close server-socket)))))
+  (let lp ()
+    (match (accept-new-client)
+      (#f
+       ;; If client is false, we are shutting down.
+       (close shutdown-write-pipe)
+       (close shutdown-read-pipe)
+       (close server-socket))
+      ((client-socket . client-addr)
+       (make-thread serve-client client-socket client-addr)
+       (lp)))))
 
 (define* (spawn-server #:optional (server-socket (make-tcp-server-socket)))
   (make-thread run-server server-socket))
