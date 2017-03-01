@@ -118,7 +118,6 @@ missing_value_error_handler (void *data, SCM key, SCM args)
      SCM_UNDEFINED);
 
   assert (scm_is_eq (key, scm_from_utf8_symbol ("keyword-argument-error")));
-  scm_write (args, scm_current_output_port ());
   assert (scm_is_true (scm_equal_p (args, expected_args)));
 
   return SCM_BOOL_T;
