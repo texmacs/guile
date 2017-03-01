@@ -455,7 +455,7 @@ take care to quote the command arguments correctly:
 
 @example
 #!/usr/bin/env sh
-exec guile -l fact -e '(@@ (fac) main)' -s "$0" "$@"
+exec guile -l fact -e '(@@ (fac) main)' -s "$0" "$@@"
 !#
 (define-module (fac)
   #:export (main))
