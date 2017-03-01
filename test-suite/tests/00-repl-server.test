@@ -32,6 +32,10 @@ socket connected to that server."
     (false-if-exception
      (delete-file (sockaddr:path sockaddr)))
 
+    ;; The REPL server requires threads.
+    (unless (provided? 'threads)
+      (throw 'unsupported))
+
     (match (primitive-fork)
       (0
        (dynamic-wind
@@ -51,6 +55,7 @@ socket connected to that server."
          (lambda ()
            (primitive-exit 0))))
       (pid
+       (sigaction SIGPIPE SIG_IGN)
        (dynamic-wind
          (const #t)
          (lambda ()
@@ -71,7 +76,8 @@ socket connected to that server."
            (proc client-socket))
          (lambda ()
            (false-if-exception (close-port client-socket))
-           (false-if-exception (kill pid SIGTERM))))))))
+           (false-if-exception (kill pid SIGTERM))
+           (sigaction SIGPIPE SIG_DFL)))))))
 
 (define-syntax-rule (with-repl-server client-socket body ...)
   "Evaluate BODY... in a context where CLIENT-SOCKET is bound to a
