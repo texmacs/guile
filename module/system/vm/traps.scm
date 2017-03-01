@@ -110,7 +110,9 @@
 ;; Returns an absolute IP.
 (define (program-last-ip prog)
   (let ((pdi (find-program-debug-info (program-code prog))))
-    (and pdi (program-debug-info-size pdi))))
+    (and pdi
+         (+ (program-debug-info-addr pdi)
+            (program-debug-info-size pdi)))))
 
 (define (frame-matcher proc)
   (let ((proc (if (struct? proc)
