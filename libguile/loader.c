@@ -480,7 +480,7 @@ map_file_contents (int fd, size_t len, int *is_read_only)
     SCM_SYSERROR;
   *is_read_only = 1;
 #else
-  if (lseek (fd, 0, SEEK_START) < 0)
+  if (lseek (fd, 0, SEEK_SET) < 0)
     {
       int errno_save = errno;
       (void) close (fd);
@@ -491,15 +491,15 @@ map_file_contents (int fd, size_t len, int *is_read_only)
   /* Given that we are using the read fallback, optimistically assume
      that the .go files were made with 8-byte alignment.
      alignment.  */
-  data = malloc (end);
+  data = malloc (len);
   if (!data)
     {
       (void) close (fd);
       scm_misc_error (FUNC_NAME, "failed to allocate ~A bytes",
-                      scm_list_1 (scm_from_size_t (end)));
+                      scm_list_1 (scm_from_size_t (len)));
     }
 
-  if (full_read (fd, data, end) != end)
+  if (full_read (fd, data, len) != len)
     {
       int errno_save = errno;
       (void) close (fd);
@@ -512,11 +512,11 @@ map_file_contents (int fd, size_t len, int *is_read_only)
 
   /* If our optimism failed, fall back.  */
   {
-    unsigned alignment = sniff_elf_alignment (data, end);
+    unsigned alignment = elf_alignment (data, len);
 
     if (alignment != 8)
       {
-        char *copy = copy_and_align_elf_data (data, end, alignment);
+        char *copy = copy_and_align_elf_data (data, len);
         free (data);
         data = copy;
       }
