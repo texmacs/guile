@@ -15,6 +15,14 @@ exec guile -q -s "$0" "$@"
   ;; See also test-stack-overflow.
   (exit 77)) ; unresolved
 
+(when (string-contains-ci (vector-ref (uname) 0) "CYGWIN_NT")
+  ;; attempting to use setrlimits for memory RLIMIT_AS will always
+  ;; produce an invalid argument error on Cygwin (tested on
+  ;; CYGWIN_NT-10.0 DLL v2.7.0).  Proceeding with the test would fill
+  ;; all available memory and probably end in a crash.  See also
+  ;; test-stack-overflow.
+  (exit 77)) ; unresolved
+
 (catch #t
   ;; Silence GC warnings.
   (lambda ()
