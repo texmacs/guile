@@ -3,7 +3,7 @@ exec guile -q -s "$0" "$@"
 !#
 ;;; test-foreign-object-scm --- Foreign object interface.     -*- Scheme -*-
 ;;;
-;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,17 @@ exec guile -q -s "$0" "$@"
 
 (define (libc-ptr name)
   (catch #t
-    (lambda () (dynamic-pointer name (dynamic-link)))
+    (lambda ()
+      (dynamic-pointer name
+                       (cond
+                        ((string-contains %host-type "cygwin")
+                         ;; On Cygwin, dynamic-link does not search
+                         ;; recursively into linked DLLs. Thus, one
+                         ;; needs to link to the core C library DLL
+                         ;; explicitly.
+                         (dynamic-link "cygwin1"))
+                        (else
+                         (dynamic-link)))))
     (lambda (k . args)
       (print-exception (current-error-port) #f k args)
       (write "Skipping test.\n" (current-error-port))

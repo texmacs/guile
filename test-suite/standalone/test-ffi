@@ -3,7 +3,7 @@ exec guile -q -s "$0" "$@"
 !#
 ;;; test-ffi --- Foreign function interface.         -*- Scheme -*-
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -263,7 +263,15 @@ exec guile -q -s "$0" "$@"
 (if (defined? 'setlocale)
     (setlocale LC_ALL "C"))
 
-(define global (dynamic-link))
+(define global (cond
+                ((string-contains %host-type "cygwin")
+                 ;; On Cygwin, dynamic-link doesn't search recursively
+                 ;; into linked DLLs. Thus one needs to link to the core
+                 ;; C library DLL explicitly.
+                 (dynamic-link "cygwin1"))
+                (else
+                 (dynamic-link))))
+
 
 (define strerror
   (pointer->procedure '* (dynamic-func "strerror" global)

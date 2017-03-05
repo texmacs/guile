@@ -1,6 +1,6 @@
 ;;;; foreign.test --- FFI.           -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -233,7 +233,17 @@
     ;; not visible.
     (false-if-exception
      (pointer->procedure void
-                         (dynamic-func "qsort" (dynamic-link))
+                         (dynamic-func "qsort"
+                                       (cond
+                                        ((string-contains %host-type "cygwin")
+                                         ;; On Cygwin, dynamic-link does
+                                         ;; not search recursively into
+                                         ;; linked DLLs. Thus, one needs
+                                         ;; to link to the core C
+                                         ;; library DLL explicitly.
+                                         (dynamic-link "cygwin1"))
+                                        (else
+                                         (dynamic-link))))
                          (list '* size_t size_t '*))))
 
   (define (dereference-pointer-to-byte ptr)

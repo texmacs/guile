@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2007-2014, 2016
+@c Copyright (C)  1996, 1997, 2000-2004, 2007-2014, 2016-2017
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -89,6 +89,11 @@ When @var{library} is omitted, a @dfn{global symbol handle} is returned.  This
 handle provides access to the symbols available to the program at run-time,
 including those exported by the program itself and the shared libraries already
 loaded.
+
+Note that on hosts that use dynamic-link libraries (DLLs), the global
+symbol handle may not be able to provide access to symbols from
+recursively-loaded DLLs.  Only exported symbols from those DLLs directly
+loaded by the program may be available.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-object? obj
