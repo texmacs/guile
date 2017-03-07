@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -879,6 +879,57 @@ main (void)
       ;;
   esac
 fi
+
+# Cygwin and Hurd (circa 2017) and various prior versions defined stub
+# versions of the virtual and profiling itimers that would always fail
+# when called.
+if test "$ac_cv_func_getitimer" = yes; then
+
+  AC_CACHE_CHECK([whether getitimer(ITIMER_PROF) is usable],
+    guile_cv_use_getitimer_prof,
+    [AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <sys/time.h>
+int
+main (void)
+{
+  struct itimerval I;
+  if (getitimer (ITIMER_PROF, &I) == 0)
+    return 0;  /* good */
+  else
+    return 1;  /* bad */
+}]])],
+    [guile_cv_use_getitimer_prof=yes],
+    [guile_cv_use_getitimer_prof=no],
+    [guile_cv_use_getitimer_prof="yes, hopefully (cross-compiling)"])])
+  case $guile_cv_use_getitimer_prof in
+    yes*)
+      AC_DEFINE([HAVE_USABLE_GETITIMER_PROF], 1, [Define to 1 if getitimer(ITIMER_PROF, ...) is functional])
+      ;;
+  esac
+
+  AC_CACHE_CHECK([whether getitimer(ITIMER_VIRTUAL) is usable],
+    guile_cv_use_getitimer_virtual,
+    [AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <sys/time.h>
+int
+main (void)
+{
+  struct itimerval I;
+  if (getitimer (ITIMER_VIRTUAL, &I) == 0)
+    return 0;  /* good */
+  else
+    return 1;  /* bad */
+}]])],
+    [guile_cv_use_getitimer_virtual=yes],
+    [guile_cv_use_getitimer_virtual=no],
+    [guile_cv_use_getitimer_virtual="yes, hopefully (cross-compiling)"])])
+  case $guile_cv_use_getitimer_virtual in
+    yes*)
+      AC_DEFINE([HAVE_USABLE_GETITIMER_VIRTUAL], 1, [Define to 1 if getitimer(ITIMER_VIRTUAL, ...) is functional])
+      ;;
+  esac
+fi
+
 
 AC_CACHE_SAVE
 

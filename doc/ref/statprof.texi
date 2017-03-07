@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2013, 2015 Free Software Foundation, Inc.
+@c Copyright (C) 2013, 2015, 2017 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Statprof
@@ -128,17 +128,21 @@ After the @var{thunk} has been profiled, print out a profile to
 @var{port}.  If @var{display-style} is @code{flat}, the results will be
 printed as a flat profile.  Otherwise if @var{display-style} is
 @code{tree}, print the results as a tree profile.
+
+Note that @code{statprof} requires a working profiling timer. Some
+platforms do not support profiling timers.  @code{(provided?
+'ITIMER_PROF)} can be used to check for support of profiling timers.
 @end deffn
 
 Profiling can also be enabled and disabled manually.
 
-@deffn {Scheme Procedure} statprof-active? 
+@deffn {Scheme Procedure} statprof-active?
 Returns @code{#t} if @code{statprof-start} has been called more times
 than @code{statprof-stop}, @code{#f} otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} statprof-start 
-@deffnx {Scheme Procedure} statprof-stop 
+@deffn {Scheme Procedure} statprof-start
+@deffnx {Scheme Procedure} statprof-stop
 Start or stop the profiler.
 @end deffn
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006,
- *   2007, 2008, 2009, 2011, 2013, 2014 Free Software Foundation, Inc.
+ *   2007, 2008, 2009, 2011, 2013, 2014, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -554,7 +554,13 @@ SCM_DEFINE (scm_setitimer, "setitimer", 5, 0, 0,
             "The return value will be a list of two cons pairs representing the\n"
             "current state of the given timer.  The first pair is the seconds and\n"
             "microseconds of the timer @code{it_interval}, and the second pair is\n"
-            "the seconds and microseconds of the timer @code{it_value}.")
+            "the seconds and microseconds of the timer @code{it_value}."
+	    "\n"
+	    "@code{ITIMER_PROF} or @code{ITIMER_VIRTUAL} are not supported on\n"
+	    "some platforms and will always error. @code{(provided? 'ITIMER_PROF)}\n"
+	    "and @code{(provided? 'ITIMER_VIRTUAL)} report whether those timers\n"
+	    "are supported.\n")
+
 #define FUNC_NAME s_scm_setitimer
 {
   int rv;
@@ -591,7 +597,12 @@ SCM_DEFINE (scm_getitimer, "getitimer", 1, 0, 0,
             "The return value will be a list of two cons pairs representing the\n"
             "current state of the given timer.  The first pair is the seconds and\n"
             "microseconds of the timer @code{it_interval}, and the second pair is\n"
-            "the seconds and microseconds of the timer @code{it_value}.")
+            "the seconds and microseconds of the timer @code{it_value}."
+	    "\n"
+	    "@code{ITIMER_PROF} or @code{ITIMER_VIRTUAL} are not supported on\n"
+	    "some platforms and will always error. @code{(provided? 'ITIMER_PROF)}\n"
+	    "and @code{(provided? 'ITIMER_VIRTUAL)} report whether those timers\n"
+	    "are supported.\n")
 #define FUNC_NAME s_scm_getitimer
 {
   int rv;
@@ -601,10 +612,10 @@ SCM_DEFINE (scm_getitimer, "getitimer", 1, 0, 0,
   c_which_timer = SCM_NUM2INT(1, which_timer);
 
   SCM_SYSCALL(rv = getitimer(c_which_timer, &old_timer));
-  
+
   if(rv != 0)
     SCM_SYSERROR;
-  
+
   return scm_list_2 (scm_cons (scm_from_long (old_timer.it_interval.tv_sec),
 			       scm_from_long (old_timer.it_interval.tv_usec)),
 		     scm_cons (scm_from_long (old_timer.it_value.tv_sec),
@@ -726,6 +737,12 @@ scm_init_scmsigs ()
   scm_c_define ("ITIMER_REAL", scm_from_int (ITIMER_REAL));
   scm_c_define ("ITIMER_VIRTUAL", scm_from_int (ITIMER_VIRTUAL));
   scm_c_define ("ITIMER_PROF", scm_from_int (ITIMER_PROF));
+#ifdef HAVE_USABLE_GETITIMER_PROF
+  scm_add_feature ("ITIMER_PROF");
+#endif
+#ifdef HAVE_USABLE_GETITIMER_VIRTUAL
+  scm_add_feature ("ITIMER_VIRTUAL");
+#endif
 #endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
 #include "libguile/scmsigs.x"

@@ -1,4 +1,5 @@
-;; guile-lib                    -*- scheme -*-
+;;;; statprof.test --- test suite for Guile's profiler       -*- scheme -*-
+;;;; Copyright (C) 2017 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2009, 2010, 2014 Andy Wingo <wingo at pobox dot com>
 ;; Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 
@@ -31,9 +32,9 @@
   #:use-module (srfi srfi-1)
   #:use-module (statprof))
 
-;; Throw `unresolved' upon ENOSYS.  This is used to skip tests on
-;; platforms such as GNU/Hurd where `ITIMER_PROF' is is currently
-;; unimplemented.
+;; Throw `unresolved' upon ENOSYS or EINVAL.  This is used to skip tests
+;; on platforms such as GNU/Hurd or Cygwin where `ITIMER_PROF' is is
+;; currently unimplemented.
 (define-syntax-rule (when-implemented body ...)
   (catch 'system-error
     (lambda ()
@@ -41,7 +42,7 @@
     (lambda args
       (let ((errno (system-error-errno args)))
         (false-if-exception (statprof-stop))
-        (if (= errno ENOSYS)
+        (if (or (= errno ENOSYS) (= errno EINVAL))
             (throw 'unresolved)
             (apply throw args))))))
 
@@ -125,7 +126,7 @@
       (define do-nothing
         (compile '(lambda (n)
                     (simple-format #f "FOO ~A\n" (+ n n)))))
-    
+
       ;; Run test.
       (statprof-reset 0 50000 #t #f)
       (statprof-start)
@@ -136,7 +137,7 @@
           (loop (- x 1))
           #t)))
       (statprof-stop)
-    
+
       ;; Check result.
       (let ((proc-data (statprof-proc-call-data do-nothing)))
         (and proc-data

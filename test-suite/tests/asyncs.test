@@ -1,6 +1,6 @@
 ;;;; asyncs.test                     -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2016 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2016, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,8 @@
         (setitimer ITIMER_PROF 0 0 0 0)
         (sigaction SIGPROF prev-handler)))))
 
-(when (defined? 'setitimer)
+(when (and (defined? 'setitimer)
+           (provided? 'ITIMER_PROF))
   (pass-if "preemption via sigprof"
     ;; Use an atomic box as a compiler barrier.
     (let* ((box (make-atomic-box 0))
