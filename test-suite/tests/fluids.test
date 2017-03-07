@@ -265,5 +265,5 @@
   (pass-if "exception handler not captured"
     (let ((state (catch #t (lambda () (current-dynamic-state)) error)))
       (catch #t
-        (lambda () (with-dynamic-state state (/ 1 0)))
+        (lambda () (with-dynamic-state state (lambda () (/ 1 0))))
         (lambda _ #t)))))
