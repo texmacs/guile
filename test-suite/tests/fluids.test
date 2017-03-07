@@ -260,4 +260,10 @@
                       (fluid-ref fluid))))
                  (lambda (k) k))))
         (and (eqv? (fluid-ref fluid) #f)
-             (eqv? (k) #t))))))
+             (eqv? (k) #t)))))
+
+  (pass-if "exception handler not captured"
+    (let ((state (catch #t (lambda () (current-dynamic-state)) error)))
+      (catch #t
+        (lambda () (with-dynamic-state state (/ 1 0)))
+        (lambda _ #t)))))

@@ -459,7 +459,7 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 void
 scm_init_stacks ()
 {
-  scm_sys_stacks = scm_make_fluid ();
+  scm_sys_stacks = scm_make_thread_local_fluid (SCM_BOOL_F);
   scm_c_define ("%stacks", scm_sys_stacks);
   
   scm_stack_type = scm_make_vtable (scm_from_locale_string (SCM_STACK_LAYOUT),

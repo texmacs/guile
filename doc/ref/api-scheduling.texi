@@ -9,7 +9,7 @@
 
 @menu
 * Threads::                     Multiple threads of execution.
-* Thread Local Variables::      Guile doesn't really have these.
+* Thread Local Variables::      Some fluids are thread-local.
 * Asyncs::                      Asynchronous interrupts.
 * Atomics::                     Atomic references.
 * Mutexes and Condition Variables:: Synchronization primitives.
@@ -169,9 +169,7 @@ information.
 @subsection Thread-Local Variables
 
 Sometimes you want to establish a variable binding that is only valid
-for a given thread: a ``thread-local variable''.  Guile doesn't really
-have this facility, but what it does have can work well for most use
-cases we know about.
+for a given thread: a ``thread-local variable''.
 
 You would think that fluids or parameters would be Guile's answer for
 thread-local variables, since establishing a new fluid binding doesn't
@@ -191,26 +189,44 @@ bindings comes from a desire to isolate a binding from its setting in
 unrelated threads, then fluids and parameters apply nicely.
 
 On the other hand, if your use case is to prevent concurrent access to a
-value from multiple threads, then using fluids or parameters is not
-appropriate.  In this case, our current suggestion is to use weak hash
-tables or object properties whose keys are thread objects.  For example:
+value from multiple threads, then using vanilla fluids or parameters is
+not appropriate.  For this purpose, Guile has @dfn{thread-local fluids}.
+A fluid created with @code{make-thread-local-fluid} won't be captured by
+@code{current-dynamic-state} and won't be propagated to new threads.
+
+@deffn {Scheme Procedure} make-thread-local-fluid [dflt]
+@deffnx {C Function} scm_make_thread_local_fluid (dflt)
+Return a newly created fluid, whose initial value is @var{dflt}, or
+@code{#f} if @var{dflt} is not given.  Unlike fluids made with
+@code{make-fluid}, thread local fluids are not captured by
+@code{make-dynamic-state}.  Similarly, a newly spawned child thread does
+not inherit thread-local fluid values from the parent thread.
+@end deffn
+
+@deffn {Scheme Procedure} fluid-thread-local? fluid
+@deffnx {C Function} scm_fluid_thread_local_p (fluid)
+Return @code{#t} if the fluid @var{fluid} is is thread-local, or
+@code{#f} otherwise.
+@end deffn
+
+For example:
 
 @example
-(define (get-my-sensitive-data-structure)
-  ...)
+(define %thread-local (make-thread-local-fluid))
 
-(define %thread-local (make-weak-key-hash-table))
-
-(define (current-thread-local)
-  (or (hashq-ref %thread-local (current-thread))
-      (let ((val (get-my-sensitive-data-structure)))
-        (hashq-set! %thread-local (current-thread) val)
-        val)))
+(with-fluids ((%thread-local (compute-data)))
+  ... (fluid-ref %thread-local) ...)
 @end example
 
-It's not a terribly nice facility and perhaps we should have a better
-answer, like Racket's ``non-preserved thread cells''.  Your input is
-very welcome; we look forward to hearing from your experience.
+You can also make a thread-local parameter out of a thread-local fluid
+using the normal @code{fluid->parameter}:
+
+@example
+(define param (fluid->parameter (make-thread-local-fluid)))
+
+(parameterize ((param (compute-data)))
+  ... (param) ...)
+@end example
 
 
 @node Asyncs

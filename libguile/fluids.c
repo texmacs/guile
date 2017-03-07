@@ -91,6 +91,10 @@
    table could share more state, as in an immutable weak array-mapped
    hash trie or something, but we don't have such a data structure.  */
 
+#define FLUID_F_THREAD_LOCAL 0x100
+#define SCM_I_FLUID_THREAD_LOCAL_P(x) \
+  (SCM_CELL_WORD_0 (x) & FLUID_F_THREAD_LOCAL)
+
 static inline int
 is_dynamic_state (SCM x)
 {
@@ -103,6 +107,8 @@ get_dynamic_state (SCM dynamic_state)
   return SCM_CELL_OBJECT_1 (dynamic_state);
 }
 
+/* Precondition: It's OK to throw away any unflushed data in the current
+   cache.  */
 static inline void
 restore_dynamic_state (SCM saved, scm_t_dynamic_state *state)
 {
@@ -133,9 +139,20 @@ save_dynamic_state (scm_t_dynamic_state *state)
       struct scm_cache_entry *entry = &state->cache.entries[slot];
       SCM key = SCM_PACK (entry->key);
       SCM value = SCM_PACK (entry->value);
-      if (entry->key &&
-          !scm_is_eq (scm_weak_table_refq (state->values, key, SCM_UNDEFINED),
-                      value))
+
+      if (!entry->key)
+        continue;
+      if (SCM_I_FLUID_THREAD_LOCAL_P (key))
+        {
+          /* Because we don't include unflushed thread-local fluids in
+             the result, we need to flush them to the table so that
+             restore_dynamic_state can just throw away the current
+             cache.  */
+          scm_hashq_set_x (state->thread_local_values, key, value);
+        }
+      else if (!scm_is_eq (scm_weak_table_refq (state->values, key,
+                                                SCM_UNDEFINED),
+                           value))
         {
           if (state->has_aliased_values)
             saved = scm_acons (key, value, saved);
@@ -177,7 +194,10 @@ copy_value_table (SCM tab)
 void
 scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  scm_puts ("#<fluid ", port);
+  if (SCM_I_FLUID_THREAD_LOCAL_P (exp))
+    scm_puts ("#<thread-local-fluid ", port);
+  else
+    scm_puts ("#<fluid ", port);
   scm_intprint (SCM_UNPACK (exp), 16, port);
   scm_putc ('>', port);
 }
@@ -196,15 +216,15 @@ scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED
 #define SCM_I_FLUID_DEFAULT(x)   (SCM_CELL_OBJECT_1 (x))
 
 static SCM
-new_fluid (SCM init)
+new_fluid (SCM init, scm_t_bits flags)
 {
-  return scm_cell (scm_tc7_fluid, SCM_UNPACK (init));
+  return scm_cell (scm_tc7_fluid | flags, SCM_UNPACK (init));
 }
 
 SCM
 scm_make_fluid (void)
 {
-  return new_fluid (SCM_BOOL_F);
+  return new_fluid (SCM_BOOL_F, 0);
 }
 
 SCM_DEFINE (scm_make_fluid_with_default, "make-fluid", 0, 1, 0, 
@@ -219,7 +239,7 @@ SCM_DEFINE (scm_make_fluid_with_default, "make-fluid", 0, 1, 0,
 	    "with its own dynamic state, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid_with_default
 {
-  return new_fluid (SCM_UNBNDP (dflt) ? SCM_BOOL_F : dflt);
+  return new_fluid (SCM_UNBNDP (dflt) ? SCM_BOOL_F : dflt, 0);
 }
 #undef FUNC_NAME
 
@@ -228,7 +248,22 @@ SCM_DEFINE (scm_make_unbound_fluid, "make-unbound-fluid", 0, 0, 0,
             "Make a fluid that is initially unbound.")
 #define FUNC_NAME s_scm_make_unbound_fluid
 {
-  return new_fluid (SCM_UNDEFINED);
+  return new_fluid (SCM_UNDEFINED, 0);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_make_thread_local_fluid, "make-thread-local-fluid", 0, 1, 0, 
+	    (SCM dflt),
+	    "Return a newly created fluid, whose initial value is @var{dflt},\n"
+            "or @code{#f} if @var{dflt} is not given.  Unlike fluids made\n"
+	    "with @code{make-fluid}, thread local fluids are not captured\n"
+            "by @code{make-dynamic-state}.  Similarly, a newly spawned\n"
+            "child thread does not inherit thread-local fluid values from\n"
+            "the parent thread.")
+#define FUNC_NAME s_scm_make_thread_local_fluid
+{
+  return new_fluid (SCM_UNBNDP (dflt) ? SCM_BOOL_F : dflt,
+                    FLUID_F_THREAD_LOCAL);
 }
 #undef FUNC_NAME
 
@@ -239,6 +274,17 @@ SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0,
 #define FUNC_NAME s_scm_fluid_p
 {
   return scm_from_bool (SCM_FLUID_P (obj));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_fluid_thread_local_p, "fluid-thread-local?", 1, 0, 0, 
+	    (SCM fluid),
+	    "Return @code{#t} if the fluid @var{fluid} is is thread local,\n"
+            "or @code{#f} otherwise.")
+#define FUNC_NAME s_scm_fluid_thread_local_p
+{
+  SCM_VALIDATE_FLUID (1, fluid);
+  return scm_from_bool (SCM_I_FLUID_THREAD_LOCAL_P (fluid));
 }
 #undef FUNC_NAME
 
@@ -268,6 +314,12 @@ fluid_set_x (scm_t_dynamic_state *dynamic_state, SCM fluid, SCM value)
       fluid = SCM_PACK (evicted.key);
       value = SCM_PACK (evicted.value);
 
+      if (SCM_I_FLUID_THREAD_LOCAL_P (fluid))
+        {
+          scm_hashq_set_x (dynamic_state->thread_local_values, fluid, value);
+          return;
+        }
+
       if (dynamic_state->has_aliased_values)
         {
           if (scm_is_eq (scm_weak_table_refq (dynamic_state->values,
@@ -294,7 +346,12 @@ fluid_ref (scm_t_dynamic_state *dynamic_state, SCM fluid)
     val = SCM_PACK (entry->value);
   else
     {
-      val = scm_weak_table_refq (dynamic_state->values, fluid, SCM_UNDEFINED);
+      if (SCM_I_FLUID_THREAD_LOCAL_P (fluid))
+        val = scm_hashq_ref (dynamic_state->thread_local_values, fluid,
+                             SCM_UNDEFINED);
+      else
+        val = scm_weak_table_refq (dynamic_state->values, fluid,
+                                   SCM_UNDEFINED);
 
       if (SCM_UNBNDP (val))
         val = SCM_I_FLUID_DEFAULT (fluid);

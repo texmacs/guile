@@ -648,7 +648,7 @@ scm_init_throw ()
   tc16_catch_closure = scm_make_smob_type ("catch-closure", 0);
   scm_set_smob_apply (tc16_catch_closure, apply_catch_closure, 0, 0, 1);
 
-  exception_handler_fluid = scm_make_fluid_with_default (SCM_BOOL_F);
+  exception_handler_fluid = scm_make_thread_local_fluid (SCM_BOOL_F);
   /* This binding is later removed when the Scheme definitions of catch,
      throw, and with-throw-handler are created in boot-9.scm.  */
   scm_c_define ("%exception-handler", exception_handler_fluid);

@@ -23,6 +23,13 @@ guile2.2, guile-2, guile2, and then guile.  The found prefix is also
 applied to guild, guile-config, and the like.  Thanks to Freja Nordsiek
 for this work.
 
+** Add thread-local fluids
+
+Guile now has support for fluids whose values are not captured by
+`current-dynamic-state' and not inheritied by child threads, and thus
+are local to the kernel thread they run on.  See "Thread-Local
+Variables" in the manual, for more.
+
 * Bug fixes
 
 ** Fix type inference when multiplying flonum with complex

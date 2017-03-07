@@ -458,6 +458,7 @@ guilify_self_2 (SCM dynamic_state)
   }
 
   t->dynamic_state = scm_gc_typed_calloc (scm_t_dynamic_state);
+  t->dynamic_state->thread_local_values = scm_c_make_hash_table (0);
   scm_set_current_dynamic_state (dynamic_state);
 
   t->dynstack.base = scm_gc_malloc (16 * sizeof (scm_t_bits), "dynstack");

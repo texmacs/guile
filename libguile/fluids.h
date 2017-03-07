@@ -44,6 +44,7 @@
 
 struct scm_dynamic_state
 {
+  SCM thread_local_values;
   SCM values;
   uint8_t has_aliased_values;
   struct scm_cache cache;
@@ -53,8 +54,10 @@ struct scm_dynamic_state
 SCM_API SCM scm_make_fluid (void);
 SCM_API SCM scm_make_fluid_with_default (SCM dflt);
 SCM_API SCM scm_make_unbound_fluid (void);
+SCM_API SCM scm_make_thread_local_fluid (SCM dflt);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
+SCM_API SCM scm_fluid_thread_local_p (SCM fluid);
 SCM_API SCM scm_fluid_ref (SCM fluid);
 SCM_API SCM scm_fluid_ref_star (SCM fluid, SCM depth);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
