@@ -1727,7 +1727,7 @@ used for testing whether an object is actually a fluid.  The values
 stored in a fluid can be accessed with @code{fluid-ref} and
 @code{fluid-set!}.
 
-@xref{Thread-Local Variables}, for further notes on fluids, threads,
+@xref{Thread Local Variables}, for further notes on fluids, threads,
 parameters, and dynamic states.
 
 @deffn {Scheme Procedure} make-fluid [dflt]
