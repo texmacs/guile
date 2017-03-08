@@ -420,7 +420,18 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   if (dynamic_segment < 0)
     ABORT ("no PT_DYNAMIC segment");
 
-  if (!IS_ALIGNED ((scm_t_uintptr) data, alignment))
+  /* The ELF images that Guile currently emits have segments that are
+     aligned on 64 KB boundaries, which might be larger than the actual
+     page size (usually 4 KB).  However Guile doesn't actually use the
+     absolute addresses at all.  All Guile needs is for the loaded image
+     to be able to make the data section writable (for the mmap path),
+     and for that the segment just needs to be page-aligned, and a page
+     is always bigger than Guile's minimum alignment.  Since we know
+     (for the mmap path) that the base _is_ page-aligned, we proceed
+     ahead even if the image alignment is greater than the page
+     size.  */
+  if (!IS_ALIGNED ((scm_t_uintptr) data, alignment)
+      && !IS_ALIGNED (alignment, page_size))
     ABORT ("incorrectly aligned base");
 
   /* Allow writes to writable pages.  */
@@ -433,7 +444,7 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
             continue;
           if (ph[i].p_flags == PF_R)
             continue;
-          if (ph[i].p_align != page_size)
+          if (ph[i].p_align < page_size)
             continue;
 
           if (mprotect (data + ph[i].p_vaddr,

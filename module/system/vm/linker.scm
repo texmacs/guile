@@ -317,7 +317,42 @@ segment, the order of the linker objects is preserved."
                     #:addralign (elf-section-addralign sec)
                     #:entsize (elf-section-entsize sec)))
 
-(define *page-size* 4096)
+
+;; We assume that 64K is a multiple of the page size.  A
+;; least-common-multiple, if you will.
+;;
+;; It would be possible to choose smaller, target-specific page sizes.
+;; This is still a little tricky; on amd64 for example, systems commonly
+;; have 4KB pages, but they are allowed by the ABI to have any
+;; multiple-of-2 page size up to 64 KB.  On Cygwin, pages are 4kB but
+;; they can only be allocated 16 at a time.  MIPS and ARM64 can use 64K
+;; pages too and that's not uncommon.
+;;
+;; At the current time, in Guile we would like to reduce the number of
+;; binaries we ship to the existing 32-or-64-bit and
+;; big-or-little-endian variants, if possible.  It would seem that with
+;; the least-common-multiple of 64 KB pages, we can do that.
+;;
+;; See https://github.com/golang/go/issues/10180 for a discussion of
+;; this issue in the Go context.
+;;
+;; Using 64KB instead of the more usual 4KB will increase the size of
+;; our .go files, but not the prebuilt/ part of the tarball as that part
+;; of the file will be zeroes and compress well.  Additionally on a
+;; system with 4KB pages, the extra padding will never be paged in, nor
+;; read from disk (though it causes more seeking etc so on spinning
+;; metal it's a bit of a lose).
+;;
+;; By way of comparison, on many 64-bit platforms, binutils currently
+;; defaults to aligning segments on 2MB boundaries.  It does so by
+;; making the file and the memory images not the same: the pages are all
+;; together on disk, but then when loading, the loader will mmap a
+;; region "memsz" large which might be greater than the file size, then
+;; map segments into that region.  We can avoid this complication for
+;; now.  We can consider adding it in the future in a compatible way in
+;; 2.2 if it is important.
+;;
+(define *lcm-page-size* (ash 1 16))
 
 (define (add-symbols symbols offset symtab)
   "Add @var{symbols} to the symbol table @var{symtab}, relocating them
@@ -631,7 +666,7 @@ relocated headers, and the global symbol table."
                        ;; loadable segments to share pages
                        ;; with PF_R segments.
                        (not (and (not type) (= PF_R prev-flags))))
-                  *page-size*
+                  *lcm-page-size*
                   8))
            (lp seglists
                (fold-values cons objs-out objects)
