@@ -275,9 +275,11 @@
                ;; handler in an inner letrec, so that the compiler sees
                ;; the inner reference to profile-signal-handler as the
                ;; same as the procedure, and therefore keeps slot 0
-               ;; alive.  Nastiness, that.
+               ;; alive.  Nastiness, that.  Finally we cut one more
+               ;; inner frame, corresponding to the handle-interrupts
+               ;; trampoline.
                (stack
-                (or (make-stack #t profile-signal-handler (outer-cut state))
+                (or (make-stack #t profile-signal-handler (outer-cut state) 1)
                     (pk 'what! (make-stack #t)))))
 
           (sample-stack-procs state stack)
