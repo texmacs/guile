@@ -707,12 +707,12 @@ minimum, and maximum."
 
 (define-type-checker (string-set! s idx val)
   (and (check-type s &string 0 *max-size-t*)
-       (check-type idx &exact-integer 0 *max-size-t*)
+       (check-type idx &u64 0 *max-size-t*)
        (check-type val &char 0 *max-codepoint*)
        (< (&max idx) (&min s))))
 (define-type-inferrer (string-set! s idx val)
   (restrict! s &string (1+ (&min/0 idx)) *max-size-t*)
-  (restrict! idx &exact-integer 0 (1- (&max/size s)))
+  (restrict! idx &u64 0 (1- (&max/size s)))
   (restrict! val &char 0 *max-codepoint*))
 
 (define-simple-type-checker (string-length &string))

@@ -652,7 +652,7 @@
                      cps idx 'scm->u64
                      (lambda (cps idx)
                        (have-args cps (list obj idx)))))))
-                ((vector-set! struct-set!)
+                ((vector-set! struct-set! string-set!)
                  (match args
                    ((obj idx val)
                     (unbox-arg

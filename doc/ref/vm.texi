@@ -1355,6 +1355,12 @@ and store it in @var{dst}.  The @var{idx} value should be an unboxed
 unsigned 64-bit integer.
 @end deftypefn
 
+@deftypefn Instruction {} string-set! s8:@var{dst} s8:@var{idx} s8:@var{src}
+Store the character @var{src} into the string @var{dst} at index
+@var{idx}.  The @var{idx} value should be an unboxed unsigned 64-bit
+integer.
+@end deftypefn
+
 @deftypefn Instruction {} cons s8:@var{dst} s8:@var{car} s8:@var{cdr}
 Cons @var{car} and @var{cdr}, and store the result in @var{dst}.
 @end deftypefn

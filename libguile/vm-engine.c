@@ -2263,7 +2263,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       RETURN (SCM_MAKE_CHAR (scm_i_string_ref (str, c_idx)));
     }
 
-  /* No string-set! instruction, as there is no good fast path there.  */
+  /* string-set! instruction is currently number 192.  Probably need to
+     reorder before releasing.  */
 
   /* string->number dst:12 src:12
    *
@@ -4006,7 +4007,35 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       BR_F64_ARITHMETIC (>=);
     }
 
-  VM_DEFINE_OP (192, unused_192, NULL, NOP)
+  /* string-set! dst:8 idx:8 src:8
+   *
+   * Store the character SRC into the string DST at index IDX.
+   */
+  VM_DEFINE_OP (192, string_set, "string-set!", OP1 (X8_S8_S8_S8))
+    {
+      scm_t_uint8 dst, idx, src;
+      SCM str, chr;
+      scm_t_uint64 c_idx;
+
+      UNPACK_8_8_8 (op, dst, idx, src);
+      str = SP_REF (dst);
+      c_idx = SP_REF_U64 (idx);
+      chr = SP_REF (src);
+
+      VM_VALIDATE_STRING (str, "string-ref");
+      VM_VALIDATE_INDEX (c_idx, scm_i_string_length (str), "string-ref");
+
+      /* If needed we can speed this up and only SYNC_IP +
+         scm_i_string_writing if the string isn't already a non-shared
+         stringbuf.  */
+      SYNC_IP ();
+      scm_i_string_start_writing (str);
+      scm_i_string_set_x (str, c_idx, SCM_CHAR (chr));
+      scm_i_string_stop_writing ();
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (193, unused_193, NULL, NOP)
   VM_DEFINE_OP (194, unused_194, NULL, NOP)
   VM_DEFINE_OP (195, unused_195, NULL, NOP)

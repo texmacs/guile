@@ -156,13 +156,20 @@ If the COUNT argument is present, treat it as a limit to the number of
 characters to read.  By default, there is no limit."
    ((#:optional (port (current-input-port)))
     ;; Fast path.
-    ;; This creates more garbage than using 'string-set!' as in
-    ;; 'read-string!', but currently that is faster nonetheless.
-    (let loop ((chars '()))
+    (let loop ((head (make-string 30)) (pos 0) (tail '()))
       (let ((char (read-char port)))
-        (if (eof-object? char)
-            (list->string (reverse! chars))
-            (loop (cons char chars))))))
+        (cond
+         ((eof-object? char)
+          (let ((head (substring head 0 pos)))
+            (if (null? tail)
+                (substring head 0 pos)
+                (string-concatenate-reverse tail head pos))))
+         (else
+          (string-set! head pos char)
+          (if (< (1+ pos) (string-length head))
+              (loop head (1+ pos) tail)
+              (loop (make-string (* (string-length head) 2)) 0
+                    (cons head tail))))))))
    ((port count)
     ;; Slower path.
     (let loop ((chars '())
