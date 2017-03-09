@@ -553,7 +553,12 @@
            (emit-begin-kw-arity asm req opt rest kw-indices allow-other-keys?
                                 frame-size alt)
            ;; All arities define a closure binding in slot 0.
-           (emit-definition asm 'closure 0 'scm)))
+           (emit-definition asm 'closure 0 'scm)
+           ;; Usually we just fall through, but it could be the body is
+           ;; contified into another clause.
+           (let ((body (forward-label body)))
+             (unless (= body (skip-elided-conts (1+ label)))
+               (emit-br asm body)))))
         (($ $kargs names vars ($ $continue k src exp))
          (emit-label asm label)
          (for-each (lambda (name var)

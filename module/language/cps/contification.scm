@@ -98,24 +98,6 @@ the set."
                  conts
                  empty-intmap)))
 
-(define (compute-multi-clause conts)
-  "Compute an set containing all labels that are part of a multi-clause
-case-lambda.  See the note in compute-contification-candidates."
-  (define (multi-clause? clause)
-    (and clause
-         (match (intmap-ref conts clause)
-           (($ $kclause arity body alt)
-            alt))))
-  (intmap-fold (lambda (label cont multi)
-                 (match cont
-                   (($ $kfun src meta self tail clause)
-                    (if (multi-clause? clause)
-                        (intset-union multi (compute-function-body conts label))
-                        multi))
-                   (_ multi)))
-               conts
-               empty-intset))
-
 (define (compute-arities conts functions)
   "Given the map FUNCTIONS whose keys are $kfun labels, return a map
 from label to arities."
@@ -152,7 +134,6 @@ from label to arities."
 functions with known uses that are only ever used as the operator of a
 $call, and are always called with a compatible arity."
   (let* ((functions (compute-functions conts))
-         (multi-clause (compute-multi-clause conts))
          (vars (intmap-fold (lambda (label vars out)
                               (intset-fold (lambda (var out)
                                              (intmap-add out var label))
@@ -191,23 +172,18 @@ $call, and are always called with a compatible arity."
             (exclude-vars functions args))
            (($ $call proc args)
             (let ((functions (exclude-vars functions args)))
-              ;; This contification algorithm is happy to contify the
-              ;; `lp' in this example into a shared tail between clauses:
+              ;; Note that this contification algorithm is happy to
+              ;; contify the `lp' in this example into a shared tail
+              ;; between clauses:
               ;;
               ;; (letrec ((lp (lambda () (lp))))
               ;;   (case-lambda
               ;;     ((a) (lp))
               ;;     ((a b) (lp))))
               ;;
-              ;; However because the current compilation pipeline has to
-              ;; re-nest continuations into old CPS, there would be no
-              ;; scope in which the tail would be valid.  So, until the
-              ;; old compilation pipeline is completely replaced,
-              ;; conservatively exclude contifiable fucntions called
-              ;; from multi-clause procedures.
-              (if (intset-ref multi-clause label)
-                  (exclude-var functions proc)
-                  (restrict-arity functions proc (length args)))))
+              ;; This can cause cross-clause jumps.  The rest of the
+              ;; compiler handles this fine though, so we allow it.
+              (restrict-arity functions proc (length args))))
            (($ $callk k proc args)
             (exclude-vars functions (cons proc args)))
            (($ $branch kt ($ $primcall name args))
