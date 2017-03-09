@@ -1,7 +1,7 @@
 ;;;; (statprof) -- a statistical profiler for Guile
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011, 2013-2016  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2013-2017  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 ;;;; 
@@ -900,6 +900,9 @@ operation is somewhat expensive."
 Keyword arguments:
 
 @table @code
+@item #:display-style
+Set the display style, either @code{'flat} or @code{'tree}.
+
 @item #:loop
 Execute the body @var{loop} number of times, or @code{#f} for no looping
 
@@ -927,6 +930,7 @@ default: @code{#f}
     "`with-statprof' is deprecated.  Use `statprof' instead.")
    `((@ (statprof) statprof)
      (lambda () ,@(kw-arg-ref #f args #f))
+     #:display-style ,(kw-arg-ref #:display-style args ''flat)
      #:loop ,(kw-arg-ref #:loop args 1)
      #:hz ,(kw-arg-ref #:hz args 100)
      #:count-calls? ,(kw-arg-ref #:count-calls? args #f)))
