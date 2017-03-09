@@ -5425,3 +5425,12 @@
 
   (test-ash-variant       'ash       ash floor)
   (test-ash-variant 'round-ash round-ash round))
+
+;;;
+;;; regressions
+;;;
+
+(with-test-prefix/c&e "bug in unboxing f64 in 2.1.6"
+
+  (pass-if "= real and complex"
+    (= 1.0 (make-rectangular 1.0 0.0))))

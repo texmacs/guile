@@ -51,6 +51,7 @@
 (define-module (language cps specialize-numbers)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-11)
   #:use-module (language cps)
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
@@ -301,11 +302,12 @@ BITS indicating the significant bits needed for a variable.  BITS may be
             (lambda (type min max)
               (and (eqv? type &exact-integer)
                    (<= 0 min max #xffffffffffffffff))))))
-    (define (f64-operand? var)
-      (call-with-values (lambda ()
-                          (lookup-pre-type types label var))
-        (lambda (type min max)
-          (and (eqv? type &flonum)))))
+    (define (f64-operands? vara varb)
+      (let-values (((typea mina maxa) (lookup-pre-type types label vara))
+                   ((typeb minb maxb) (lookup-pre-type types label varb)))
+        (and (zero? (logand (logior typea typeb) (lognot &real)))
+             (or (eqv? typea &flonum)
+                 (eqv? typeb &flonum)))))
     (match cont
       (($ $kfun)
        (let ((types (infer-types cps label)))
@@ -411,7 +413,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
              ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) (a b)))))
        (values
         (cond
-         ((or (f64-operand? a) (f64-operand? b))
+         ((f64-operands? a b)
           (with-cps cps
             (let$ body (specialize-f64-comparison k kt src op a b))
             (setk label ($kargs names vars ,body))))
