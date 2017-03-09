@@ -956,10 +956,10 @@ times."
           (set-inside-profiler?! state #t)
 
           (let ((stop-time (get-internal-run-time))
-                ;; Cut down to gc-callback, and then one before (the
-                ;; after-gc async).  See the note in profile-signal-handler
-                ;; also.
-                (stack (or (make-stack #t gc-callback (outer-cut state) 1)
+                ;; Cut down to gc-callback, and then two more (the
+                ;; after-gc async and the handle-interrupts trampoline).
+                ;; See the note in profile-signal-handler also.
+                (stack (or (make-stack #t gc-callback (outer-cut state) 2)
                            (pk 'what! (make-stack #t)))))
             (sample-stack-procs state stack)
             (accumulate-time state stop-time)
