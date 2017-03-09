@@ -1678,7 +1678,6 @@ scm_c_read (SCM port, void *buffer, size_t size)
 static inline void
 update_port_position (SCM position, scm_t_wchar c)
 {
-  long line = scm_to_long (scm_port_position_line (position));
   int column = scm_to_int (scm_port_position_column (position));
 
   switch (c)
@@ -1691,8 +1690,11 @@ update_port_position (SCM position, scm_t_wchar c)
         scm_port_position_set_column (position, scm_from_int (column - 1));
       break;
     case '\n':
-      scm_port_position_set_line (position, scm_from_long (line + 1));
-      scm_port_position_set_column (position, SCM_INUM0);
+      {
+        long line = scm_to_long (scm_port_position_line (position));
+        scm_port_position_set_line (position, scm_from_long (line + 1));
+        scm_port_position_set_column (position, SCM_INUM0);
+      }
       break;
     case '\r':
       scm_port_position_set_column (position, SCM_INUM0);
