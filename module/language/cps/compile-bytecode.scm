@@ -84,7 +84,7 @@
 (define (compile-function cps asm)
   (let* ((allocation (allocate-slots cps))
          (forwarding-labels (compute-forwarding-labels cps allocation))
-         (frame-size #f))
+         (frame-size (lookup-nlocals allocation)))
     (define (forward-label k)
       (intmap-ref forwarding-labels k (lambda (k) k)))
 
@@ -550,7 +550,6 @@
            (unless first?
              (emit-end-arity asm))
            (emit-label asm label)
-           (set! frame-size (lookup-nlocals label allocation))
            (emit-begin-kw-arity asm req opt rest kw-indices allow-other-keys?
                                 frame-size alt)
            ;; All arities define a closure binding in slot 0.

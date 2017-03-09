@@ -45,7 +45,7 @@
 
 (define-record-type $allocation
   (make-allocation slots representations constant-values call-allocs
-                   shuffles frame-sizes)
+                   shuffles frame-size)
   allocation?
 
   ;; A map of VAR to slot allocation.  A slot allocation is an integer,
@@ -86,9 +86,12 @@
   ;;
   (shuffles allocation-shuffles)
 
-  ;; The number of locals for a $kclause.
+  ;; The number of local slots needed for this function.  Because we can
+  ;; contify common clause tails, we use one frame size for all clauses
+  ;; to avoid having to adjust the frame size when continuing to labels
+  ;; from other clauses.
   ;;
-  (frame-sizes allocation-frame-sizes))
+  (frame-size allocation-frame-size))
 
 (define-record-type $call-alloc
   (make-call-alloc proc-slot slot-map)
@@ -135,8 +138,8 @@
   (or (call-alloc-slot-map (lookup-call-alloc k allocation))
       (error "Call has no slot map" k)))
 
-(define (lookup-nlocals k allocation)
-  (intmap-ref (allocation-frame-sizes allocation) k))
+(define (lookup-nlocals allocation)
+  (allocation-frame-size allocation))
 
 (define-syntax-rule (persistent-intmap2 exp)
   (call-with-values (lambda () exp)
@@ -648,7 +651,7 @@ are comparable with eqv?.  A tmp slot may be used."
   (persistent-intmap
    (intmap-fold compute-shuffles cps empty-intmap)))
 
-(define (compute-frame-sizes cps slots call-allocs shuffles)
+(define (compute-frame-size cps slots call-allocs shuffles)
   ;; Minimum frame has one slot: the closure.
   (define minimum-frame-size 1)
   (define (get-shuffles label)
@@ -671,33 +674,23 @@ are comparable with eqv?.  A tmp slot may be used."
   (define (call-size label nargs size)
     (shuffle-size (get-shuffles label)
                   (max (+ (get-proc-slot label) nargs) size)))
-  (define (measure-cont label cont frame-sizes clause size)
+  (define (measure-cont label cont size)
     (match cont
-      (($ $kfun)
-       (values #f #f #f))
-      (($ $kclause)
-       (let ((frame-sizes (if clause
-                              (intmap-add! frame-sizes clause size)
-                              empty-intmap)))
-         (values frame-sizes label minimum-frame-size)))
       (($ $kargs names vars ($ $continue k src exp))
-       (values frame-sizes clause
-               (let ((size (max-size* vars size)))
-                 (match exp
-                   (($ $call proc args)
-                    (call-size label (1+ (length args)) size))
-                   (($ $callk _ proc args)
-                    (call-size label (1+ (length args)) size))
-                   (($ $values args)
-                    (shuffle-size (get-shuffles label) size))
-                   (_ size)))))
+       (let ((size (max-size* vars size)))
+         (match exp
+           (($ $call proc args)
+            (call-size label (1+ (length args)) size))
+           (($ $callk _ proc args)
+            (call-size label (1+ (length args)) size))
+           (($ $values args)
+            (shuffle-size (get-shuffles label) size))
+           (_ size))))
       (($ $kreceive)
-       (values frame-sizes clause
-               (shuffle-size (get-shuffles label) size)))
-      (($ $ktail)
-       (values (intmap-add! frame-sizes clause size) #f #f))))
+       (shuffle-size (get-shuffles label) size))
+      (_ size)))
 
-  (persistent-intmap (intmap-fold measure-cont cps #f #f #f)))
+  (intmap-fold measure-cont cps minimum-frame-size))
 
 (define (allocate-args cps)
   (intmap-fold (lambda (label cont slots)
@@ -1043,6 +1036,6 @@ are comparable with eqv?.  A tmp slot may be used."
       (lambda (slots calls)
         (let* ((slots (allocate-lazy-vars cps slots calls live-in lazy))
                (shuffles (compute-shuffles cps slots calls live-in))
-               (frame-sizes (compute-frame-sizes cps slots calls shuffles)))
+               (frame-size (compute-frame-size cps slots calls shuffles)))
           (make-allocation slots representations constants calls
-                           shuffles frame-sizes))))))
+                           shuffles frame-size))))))
