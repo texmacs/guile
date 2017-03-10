@@ -12,7 +12,8 @@ Changes in 2.1.8 (changes since the 2.1.7 alpha release):
 
 ** Update to latest 2.0 changes
 
-Notable this includes the fix for CVE-2016-8606.
+Notably this includes the fix for CVE-2016-8606 and the fix to make
+Guile's builds reproducible.
 
 ** GUILE_PROGS searches for versioned Guile
 
@@ -32,13 +33,20 @@ Variables" in the manual, for more.
 
 * Bug fixes
 
-** Fix type inference when multiplying flonum with complex
 ** Fix build errors on macOS
+** Fix build errors on Cygwin
+** Fix build errors with clang
+** Fix statprof and gcprof stack narrowing
+** Fix errors on platforms with 64 KB pages
 ** Fix make-polar signedness of zeros
 ** Fix backtraces in case-lambda with multiple cases
 ** Fix generic function dispatch with multiple arities
 ** Fix guild compile --to=cps
 ** Fix bogus strength reduction on (* -1 x)
+** Fix type inference when multiplying flonum with complex
+** Fix bug comparing real and complex numbers
+** Improve memory use of read-string / get-string-all
+** Allow contification within case-lambda
 ** Relax some constraints for circular module dependencies
 ** Fix scm_with_guile for threads already known to libgc
 ** Better errors for keyword arguments missing values (foo #:bar)
