@@ -92,7 +92,7 @@ Note that an application must not attempt to modify literal strings,
 since they may be in read-only memory.
 
 @item (quote @var{data})
-@itemx @verb{|'|}@var{data}
+@itemx '@var{data}
 @findex quote
 @findex '
 Quoting is used to obtain a literal symbol (instead of a variable
@@ -114,7 +114,7 @@ vectors obtained from a @code{quote} form, since they may be in
 read-only memory.
 
 @item (quasiquote @var{data})
-@itemx @verb{|`|}@var{data}
+@itemx `@var{data}
 @findex quasiquote
 @findex `
 Backquote quasi-quotation is like @code{quote}, but selected
