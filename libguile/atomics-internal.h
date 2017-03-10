@@ -31,46 +31,57 @@
 #ifdef HAVE_STDATOMIC_H
 
 #include <stdatomic.h>
+
 static inline uint32_t
 scm_atomic_subtract_uint32 (uint32_t *loc, uint32_t arg)
 {
-  return atomic_fetch_sub (loc, arg);
+  atomic_uint_least32_t *a_loc = (atomic_uint_least32_t *) loc;
+  return atomic_fetch_sub (a_loc, arg);
 }
 static inline _Bool
 scm_atomic_compare_and_swap_uint32 (uint32_t *loc, uint32_t *expected,
                                     uint32_t desired)
 {
-  return atomic_compare_exchange_weak (loc, expected, desired);
+  atomic_uint_least32_t *a_loc = (atomic_uint_least32_t *) loc;
+  return atomic_compare_exchange_weak (a_loc, expected, desired);
 }
 static inline void
 scm_atomic_set_pointer (void **loc, void *val)
 {
-  atomic_store (loc, val);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  atomic_store (a_loc, (uintptr_t) val);
 }
 static inline void *
 scm_atomic_ref_pointer (void **loc)
 {
-  return atomic_load (loc);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  return (void *) atomic_load (a_loc);
 }
 static inline void
 scm_atomic_set_scm (SCM *loc, SCM val)
 {
-  atomic_store (loc, val);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  atomic_store (a_loc, SCM_UNPACK (val));
 }
 static inline SCM
 scm_atomic_ref_scm (SCM *loc)
 {
-  return atomic_load (loc);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  return SCM_PACK (atomic_load (a_loc));
 }
 static inline SCM
 scm_atomic_swap_scm (SCM *loc, SCM val)
 {
-  return atomic_exchange (loc, val);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  return SCM_PACK (atomic_exchange (a_loc, SCM_UNPACK (val)));
 }
 static inline _Bool
 scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
 {
-  return atomic_compare_exchange_weak (loc, expected, desired);
+  atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
+  return atomic_compare_exchange_weak (a_loc,
+                                       (uintptr_t *) expected,
+                                       SCM_UNPACK (desired));
 }
 #else /* HAVE_STDATOMIC_H */
 
