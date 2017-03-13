@@ -103,7 +103,17 @@
                            (cons element prefix)))
                      '()
                      lst)))))
-      (prefix 'a '(0 1 2 a 3 4 5)))))
+      (prefix 'a '(0 1 2 a 3 4 5))))
+
+  (pass-if "loop only in handler"
+    (let ((n #f))
+      (let lp ()
+        (or n
+            (call-with-prompt 'foo
+              (lambda ()
+                (set! n #t)
+                (abort-to-prompt 'foo))
+              (lambda (k) (lp))))))))
 
 ;;; And the case in which the compiler has to reify the continuation.
 (with-test-prefix/c&e "reified continuations"

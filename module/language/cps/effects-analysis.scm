@@ -517,7 +517,10 @@ is or might be a read or a write to the same location as A."
     ((or ($ $fun) ($ $rec) ($ $closure))
      (&allocate &unknown-memory-kinds))
     (($ $prompt)
-     (&write-object &prompt))
+     ;; Although the "main" path just writes &prompt, we don't know what
+     ;; nonlocal predecessors of the handler do, so we conservatively
+     ;; assume &all-effects.
+     &all-effects)
     ((or ($ $call) ($ $callk))
      &all-effects)
     (($ $branch k exp)
