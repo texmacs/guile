@@ -31,6 +31,7 @@
 #include "libguile/bdw-gc.h"
 
 #include "libguile/validate.h"
+#include "libguile/weak-list.h"
 #include "libguile/weak-set.h"
 
 
@@ -698,6 +699,17 @@ do_vacuum_weak_set (SCM set)
   scm_i_pthread_mutex_unlock (&s->lock);
 }
 
+static scm_i_pthread_mutex_t all_weak_sets_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+static SCM all_weak_sets = SCM_EOL;
+
+static void
+vacuum_all_weak_sets (void)
+{
+  scm_i_pthread_mutex_lock (&all_weak_sets_lock);
+  scm_i_visit_weak_list (&all_weak_sets, do_vacuum_weak_set);
+  scm_i_pthread_mutex_unlock (&all_weak_sets_lock);
+}
+
 SCM
 scm_c_make_weak_set (unsigned long k)
 {
@@ -705,7 +717,9 @@ scm_c_make_weak_set (unsigned long k)
 
   ret = make_weak_set (k);
 
-  scm_i_register_weak_gc_callback (ret, do_vacuum_weak_set);
+  scm_i_pthread_mutex_lock (&all_weak_sets_lock);
+  all_weak_sets = scm_i_weak_cons (ret, all_weak_sets);
+  scm_i_pthread_mutex_unlock (&all_weak_sets_lock);
 
   return ret;
 }
@@ -883,6 +897,8 @@ void
 scm_init_weak_set ()
 {
 #include "libguile/weak-set.x"
+
+  scm_i_register_async_gc_callback (vacuum_all_weak_sets);
 }
 
 /*

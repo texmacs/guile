@@ -36,10 +36,10 @@ SCM_INTERNAL void scm_i_add_resuscitator (void *obj, scm_t_finalizer_proc,
 
 SCM_INTERNAL void scm_i_finalizer_pre_fork (void);
 
-/* CALLBACK will be called on OBJ after each garbage collection, as long
-   as OBJ is accessible.  It will be called from a finalizer, which may
-   be from an async or from another thread. */
-SCM_INTERNAL void scm_i_register_weak_gc_callback (SCM obj, void (*callback) (SCM));
+/* CALLBACK will be called after each garbage collection.  It will be
+   called from a finalizer, which may be from an async or from another
+   thread. */
+SCM_INTERNAL void scm_i_register_async_gc_callback (void (*callback) (void));
 
 SCM_API int scm_set_automatic_finalization_enabled (int enabled_p);
 SCM_API int scm_run_finalizers (void);

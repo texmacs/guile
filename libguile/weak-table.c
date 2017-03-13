@@ -33,6 +33,7 @@
 #include "libguile/ports.h"
 
 #include "libguile/validate.h"
+#include "libguile/weak-list.h"
 #include "libguile/weak-table.h"
 
 
@@ -832,6 +833,17 @@ do_vacuum_weak_table (SCM table)
   return;
 }
 
+static scm_i_pthread_mutex_t all_weak_tables_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+static SCM all_weak_tables = SCM_EOL;
+
+static void
+vacuum_all_weak_tables (void)
+{
+  scm_i_pthread_mutex_lock (&all_weak_tables_lock);
+  scm_i_visit_weak_list (&all_weak_tables, do_vacuum_weak_table);
+  scm_i_pthread_mutex_unlock (&all_weak_tables_lock);
+}
+
 SCM
 scm_c_make_weak_table (unsigned long k, scm_t_weak_table_kind kind)
 {
@@ -839,7 +851,9 @@ scm_c_make_weak_table (unsigned long k, scm_t_weak_table_kind kind)
 
   ret = make_weak_table (k, kind);
 
-  scm_i_register_weak_gc_callback (ret, do_vacuum_weak_table);
+  scm_i_pthread_mutex_lock (&all_weak_tables_lock);
+  all_weak_tables = scm_i_weak_cons (ret, all_weak_tables);
+  scm_i_pthread_mutex_unlock (&all_weak_tables_lock);
 
   return ret;
 }
@@ -1155,6 +1169,8 @@ void
 scm_init_weak_table ()
 {
 #include "libguile/weak-table.x"
+
+  scm_i_register_async_gc_callback (vacuum_all_weak_tables);
 }
 
 /*

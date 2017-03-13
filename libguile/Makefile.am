@@ -507,7 +507,9 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  atomics-internal.h				\
                  cache-internal.h				\
                  posix-w32.h					\
-		 private-options.h ports-internal.h
+		 private-options.h 				\
+		 ports-internal.h 				\
+		 weak-list.h
 
 # vm instructions
 noinst_HEADERS += vm-engine.c
