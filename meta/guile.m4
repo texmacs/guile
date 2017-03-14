@@ -211,8 +211,8 @@ AC_DEFUN([GUILE_PROGS],
   _guile_candidates=guile
   _tmp=
   for v in `echo "$_guile_required_version" | tr . ' '`; do
-    if test -n "$_tmp"; then _tmp=.$_tmp; fi
-    _tmp=$v$_tmp
+    if test -n "$_tmp"; then _tmp=$_tmp.; fi
+    _tmp=$_tmp$v
     _guile_candidates="guile-$_tmp guile$_tmp $_guile_candidates"
   done
 
