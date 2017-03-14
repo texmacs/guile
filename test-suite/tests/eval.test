@@ -306,8 +306,13 @@
 	  (g x)
 	  (set! p (delay (car x))))
 	(force p)
+        (gc)
+        ;; Though this test works reliably when running just eval.test,
+        ;; it often does the unresolved case when running the full
+        ;; suite.  Adding this extra gc makes the full-suite behavior
+        ;; pass more reliably.
 	(gc)
-	(if (not (equal? (g) (cons #f #f)))
+        (if (not (equal? (g) (cons #f #f)))
 	    (throw 'unresolved)
 	    #t))))
 
