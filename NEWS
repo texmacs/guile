@@ -6,60 +6,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in 2.1.8 (changes since the 2.1.7 alpha release):
-
-* Notable changes
-
-** Update to latest 2.0 changes
-
-Notably this includes the fix for CVE-2016-8606 and the fix to make
-Guile's builds reproducible.
-
-** GUILE_PROGS searches for versioned Guile
-
-The GUILE_PROGS autoconf macro can take a required version argument.  As
-a new change, that version argument is additionally searched for as a
-suffix.  For example, GUILE_PROGS(2.2) would look for guile-2.2,
-guile2.2, guile-2, guile2, and then guile.  The found prefix is also
-applied to guild, guile-config, and the like.  Thanks to Freja Nordsiek
-for this work.
-
-** Add thread-local fluids
-
-Guile now has support for fluids whose values are not captured by
-`current-dynamic-state' and not inheritied by child threads, and thus
-are local to the kernel thread they run on.  See "Thread-Local
-Variables" in the manual, for more.
-
-* Bug fixes
-
-** Fix build errors on macOS
-** Fix build errors on Cygwin
-** Fix build errors with clang
-** Fix statprof and gcprof stack narrowing
-** Fix errors on platforms with 64 KB pages
-** Fix make-polar signedness of zeros
-** Fix backtraces in case-lambda with multiple cases
-** Fix generic function dispatch with multiple arities
-** Fix guild compile --to=cps
-** Fix bogus strength reduction on (* -1 x)
-** Fix type inference when multiplying flonum with complex
-** Fix bug comparing real and complex numbers
-** Improve memory use of read-string / get-string-all
-** Allow contification within case-lambda
-** Relax some constraints for circular module dependencies
-** Fix scm_with_guile for threads already known to libgc
-** Better errors for keyword arguments missing values (foo #:bar)
-** Various manual updates
-** Use docstrings instead of comments for many core Guile functions
-** Support truncate-file on string ports
-** Getting output from R6RS string ports now truncates buffer
-** Fix class-allocated GOOPS slots
-** Fix tracing/breakpoints (broken in 2.2 since a long time!)
-** `select' just returns instead of throwing exception on EINTR
-
-
-Previous changes in 2.1.x (changes since the 2.0.x series):
+Changes in 2.2.0 (changes since the 2.0.x stable release series):
 
 * Notable changes
 
@@ -75,6 +22,8 @@ better memory usage, and faster execution of user code.  See the
 This new release series takes the ABI-break opportunity to fix some
 interfaces that were difficult to use correctly from multiple threads.
 Notably, weak hash tables and ports are now transparently thread-safe.
+See "Scheduling" in the manual, for updated documentation on threads and
+communications primitives.
 
 ** Better space-safety
 
@@ -106,14 +55,14 @@ hash-bang line (e.g. "#!/usr/bin/guile"), it now installs the current
 locale via a call to `(setlocale LC_ALL "")'.  For users with a unicode
 locale, this makes all ports unicode-capable by default, without the
 need to call `setlocale' in your program.  This behavior may be
-controlled via the GUILE_INSTALL_LOCALE environment variable; see the
-manual for more.
+controlled via the GUILE_INSTALL_LOCALE environment variable; see
+"Environment Variables" in the manual, for more.
 
 ** Complete Emacs-compatible Elisp implementation
 
-Thanks to the work of BT Templeton, Guile's Elisp implementation is now
-fully Emacs-compatible, implementing all of Elisp's features and quirks
-in the same way as the editor we know and love.
+Thanks to the work of Robin Templeton, Guile's Elisp implementation is
+now fully Emacs-compatible, implementing all of Elisp's features and
+quirks in the same way as the editor we know and love.
 
 ** Dynamically expandable stacks
 
@@ -169,14 +118,14 @@ interface, at least for `stdint' support.
 ** Lightweight pre-emptive threading primitives
 
 The compiler now inserts special "handle-interrupts" opcodes before each
-call, return, and loop back-edge.  This allows the user to interrupt any
-computation and to accurately profile code using interrupts.  It used to
-be that interrupts were run by calling a C function from the VM; now
-interrupt thunks are run directly from the VM.  This allows interrupts
-to save a delimited continuation and, if the continuation was
-established from the same VM invocation (the usual restriction), that
-continuation can then be resumed.  In this way users can implement
-lightweight pre-emptive threading facilities.
+call, return, and backwards jump target.  This allows the user to
+interrupt any computation and to accurately profile code using
+interrupts.  It used to be that interrupts were run by calling a C
+function from the VM; now interrupt thunks are run directly from the VM.
+This allows interrupts to save a delimited continuation and, if the
+continuation was established from the same VM invocation (the usual
+restriction), that continuation can then be resumed.  In this way users
+can implement lightweight pre-emptive threading facilities.
 
 ** with-dynamic-state in VM
 
@@ -184,11 +133,7 @@ Similarly, `with-dynamic-state' no longer recurses out of the VM,
 allowing captured delimited continuations that include a
 `with-dynamic-state' invocation to be resumed.  This is a precondition
 to allow lightweight threading libraries to establish a dynamic state
-per thread.
-
-** cancel-thread uses asynchronous interrupts, not pthread_cancel
-
-See "Asyncs" in the manual, for more on asynchronous interrupts.
+per lightweight fiber.
 
 * Performance improvements
 
@@ -289,11 +234,6 @@ Since the compiler was rewritten, there are new modules for the back-end
 of the compiler and the low-level loader and introspection interfaces.
 See the "Guile Implementation" chapter in the manual for all details.
 
-** New functions: `scm_to_intptr_t', `scm_from_intptr_t'
-** New functions: `scm_to_uintptr_t', `scm_from_uintptr_t'
-
-See "Integers" in the manual, for more.
-
 ** Add "tree" display mode for statprof.
 
 See the newly updated "Statprof" section of the manual, for more.
@@ -322,6 +262,13 @@ and Communication" in the manual, for more.
 
 See "Atomics" in the manual.
 
+** Thread-local fluids
+
+Guile now has support for fluids whose values are not captured by
+`current-dynamic-state' and not inheritied by child threads, and thus
+are local to the kernel thread they run on.  See "Thread-Local
+Variables" in the manual, for more.
+
 ** suspendable-continuation?
 
 This predicate returns true if the delimited continuation captured by
@@ -331,7 +278,7 @@ Primitives" in the manual for more.
 ** scm_c_prepare_to_wait_on_fd, scm_c_prepare_to_wait_on_cond,
 ** scm_c_wait_finished
 
-See "Interrupts" in the manual for more.
+See "Asyncs" in the manual for more.
 
 ** File descriptor finalizers
 
@@ -361,12 +308,13 @@ section of the manual, for more.
 
 ** <standard-vtable>, standard-vtable-fields
 
-See "Structures" in the manual for more on these
+See "Structures" in the manual for more on these.
 
 ** Convenience utilities for ports and strings.
 
-See XXX for more on `scm_from_port_string', `scm_from_port_stringn',
-`scm_to_port_string', and `scm_to_port_stringn'.
+See "Conversion to/from C" for more on `scm_from_port_string',
+`scm_from_port_stringn', `scm_to_port_string', and
+`scm_to_port_stringn'.
 
 ** New expressive PEG parser
 
@@ -519,6 +467,10 @@ they have been moved to (ice-9 threads) instead.  Existing code will not
 break, however; we used the deprecation facility to signal a warning
 message while also providing these bindings in the root environment for
 the duration of the 2.2 series.
+
+** cancel-thread uses asynchronous interrupts, not pthread_cancel
+
+See "Asyncs" in the manual, for more on asynchronous interrupts.
 
 ** SRFI-18 threads, mutexes, cond vars disjoint from Guile
 
@@ -962,10 +914,6 @@ that Guile can bootstrap itself from its minimal bootstrap C
 interpreter.  If you do not want to depend on these pre-built binaries,
 you can "make -C prebuilt clean" before building.
 
-If Guile doesn't pre-build binaries for your architecture and you would
-like support for your architecture, see prebuilt/Makefile.am for more
-information on how to add support.
-
 ** New minor version
 
 The "effective version" of Guile is now 2.2, which allows parallel
@@ -974,6 +922,15 @@ installation with other effective versions (for example, the older Guile
 Notably, the `pkg-config' file is now `guile-2.2'.
 
 ** Bump required libgc version to 7.2, released March 2012.
+
+** GUILE_PROGS searches for versioned Guile
+
+The GUILE_PROGS autoconf macro can take a required version argument.  As
+a new change, that version argument is additionally searched for as a
+suffix.  For example, GUILE_PROGS(2.2) would look for guile-2.2,
+guile2.2, guile-2, guile2, and then guile.  The found prefix is also
+applied to guild, guile-config, and the like.  Thanks to Freja Nordsiek
+for this work.
 
 ** The readline extension is now installed in the extensionsdir
 
