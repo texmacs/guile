@@ -25,7 +25,7 @@
 ## GUILE_PKG -- find Guile development files
 ## GUILE_PROGS -- set paths to Guile interpreter, config and tool programs
 ## GUILE_FLAGS -- set flags for compiling and linking with Guile
-## GUILE_SITE_DIR -- find path to Guile "site" directory
+## GUILE_SITE_DIR -- find path to Guile "site" directories
 ## GUILE_CHECK -- evaluate Guile Scheme code and capture the return value
 ## GUILE_MODULE_CHECK -- check feature of a Guile Scheme module
 ## GUILE_MODULE_AVAILABLE -- check availability of a Guile Scheme module
@@ -154,18 +154,28 @@ AC_DEFUN([GUILE_FLAGS],
   AC_SUBST([GUILE_LTLIBS])
  ])
 
-# GUILE_SITE_DIR -- find path to Guile "site" directory
+# GUILE_SITE_DIR -- find path to Guile site directories
 #
 # Usage: GUILE_SITE_DIR
 #
-# This looks for Guile's "site" directory, usually something like
-# PREFIX/share/guile/site, and sets var @var{GUILE_SITE} to the path.
-# Note that the var name is different from the macro name.
+# This looks for Guile's "site" directories.  The variable @var{GUILE_SITE} will
+# be set to Guile's "site" directory for Scheme source files (usually something
+# like PREFIX/share/guile/site).  @var{GUILE_SITE_CCACHE} will be set to the
+# directory for compiled Scheme files also known as @code{.go} files
+# (usually something like
+# PREFIX/lib/guile/@var{GUILE_EFFECTIVE_VERSION}/site-ccache).
+# @var{GUILE_EXTENSION} will be set to the directory for compiled C extensions
+# (usually something like
+# PREFIX/lib/guile/@var{GUILE_EFFECTIVE_VERSION}/extensions). The latter two
+# are set to blank if the particular version of Guile does not support
+# them.  Note that this macro will run the macros @code{GUILE_PKG} and
+# @code{GUILE_PROGS} if they have not already been run.
 #
-# The variable is marked for substitution, as by @code{AC_SUBST}.
+# The variables are marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_SITE_DIR],
  [AC_REQUIRE([GUILE_PKG])
+  AC_REQUIRE([GUILE_PROGS])
   AC_MSG_CHECKING(for Guile site directory)
   GUILE_SITE=`$PKG_CONFIG --print-errors --variable=sitedir guile-$GUILE_EFFECTIVE_VERSION`
   AC_MSG_RESULT($GUILE_SITE)
@@ -173,6 +183,28 @@ AC_DEFUN([GUILE_SITE_DIR],
      AC_MSG_FAILURE(sitedir not found)
   fi
   AC_SUBST(GUILE_SITE)
+  AC_MSG_CHECKING([for Guile site-ccache directory using pkgconfig])
+  GUILE_SITE_CCACHE=`$PKG_CONFIG --variable=siteccachedir guile-$GUILE_EFFECTIVE_VERSION`
+  if test "$GUILE_SITE_CCACHE" = ""; then
+    AC_MSG_RESULT(no)
+    AC_MSG_CHECKING([for Guile site-ccache directory using interpreter])
+    GUILE_SITE_CCACHE=`$GUILE -c "(display (if (defined? '%site-ccache-dir) (%site-ccache-dir) \"\"))"`
+    if test $? != "0" -o "$GUILE_SITE_CCACHE" = ""; then
+      AC_MSG_RESULT(no)
+      GUILE_SITE_CCACHE=""
+      AC_MSG_WARN([siteccachedir not found])
+    fi
+  fi
+  AC_MSG_RESULT($GUILE_SITE_CCACHE)
+  AC_SUBST([GUILE_SITE_CCACHE])
+  AC_MSG_CHECKING(for Guile extensions directory)
+  GUILE_EXTENSION=`$PKG_CONFIG --print-errors --variable=extensiondir guile-$GUILE_EFFECTIVE_VERSION`
+  AC_MSG_RESULT($GUILE_EXTENSION)
+  if test "$GUILE_EXTENSION" = ""; then
+    GUILE_EXTENSION=""
+    AC_MSG_WARN(extensiondir not found)
+  fi
+  AC_SUBST(GUILE_EXTENSION)
  ])
 
 # GUILE_PROGS -- set paths to Guile interpreter, config and tool programs

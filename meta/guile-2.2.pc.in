@@ -10,6 +10,7 @@ pkgincludedir=@includedir@/guile
 
 sitedir=@sitedir@
 extensiondir=@libdir@/guile/@GUILE_EFFECTIVE_VERSION@/extensions
+siteccachedir=@libdir@/guile/@GUILE_EFFECTIVE_VERSION@/site-ccache
 libguileinterface=@LIBGUILE_INTERFACE@
 
 # Actual name of the 'guile' and 'guild' programs.  This is
