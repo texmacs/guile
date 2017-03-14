@@ -1,5 +1,5 @@
 ;;;; alist.test --- tests guile's alists     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2006, 2017 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -15,22 +15,11 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite alist)
+  #:use-module (test-suite lib))
 
-;;; (gbh) some of these are duplicated in r4rs. This is probably a bit
-;;;       more thorough, though (maybe overkill? I need it, anyway).
-;;;                        
-;;;       
-;;;       Also: it will fail on the ass*-ref & remove functions. 
-;;;       Sloppy versions should be added with the current behaviour
-;;;       (it's the only set of 'ref functions that won't cause an 
-;;;       error on an incorrect arg); they aren't actually used anywhere
-;;;       so changing's not a big deal.
-
-;;; Misc
-
-(define-macro (pass-if-not str form)
-  `(pass-if ,str (not ,form)))
+(define-syntax-rule (pass-if-not str form)
+  (pass-if str (not form)))
 
 (define (safe-assq-ref alist elt)
   (let ((x (assq elt alist)))
@@ -130,22 +119,14 @@
 
   (pass-if-not "assoc-ref not" (assoc-ref a 'testing))
 
-  (let* ((have-sloppy-assv-ref? (defined? 'sloppy-assv-ref))) 
+  (pass-if-not "assv-ref deformed"
+               (assv-ref deformed 'sloppy))
 
-    (pass-if-exception "assv-ref deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assv-ref deformed 'sloppy))
+  (pass-if-not "assoc-ref deformed"
+               (assoc-ref deformed 'sloppy))
 
-    (pass-if-exception "assoc-ref deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assoc-ref deformed 'sloppy))
-
-    (pass-if-exception "assq-ref deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assq-ref deformed 'sloppy))))
+  (pass-if-not "assq-ref deformed"
+               (assq-ref deformed 'sloppy)))
 
 
 ;;; Setters
@@ -191,22 +172,17 @@
 	       (and x (string? x)
 		    (string=? x "horn")))))
 
-  (let* ((have-sloppy-assv-ref? (defined? 'sloppy-assv-ref))) 
+  (pass-if-equal "assq-set! deformed"
+      (assq-set! deformed 'cold '(very cold))
+    '((cold very cold) canada is a cold nation))   
 
-    (pass-if-exception "assq-set! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assq-set! deformed 'cold '(very cold)))   
+  (pass-if-equal "assv-set! deformed"
+      (assv-set! deformed 'canada 'Canada)
+    '((canada . Canada) canada is a cold nation))
 
-    (pass-if-exception "assv-set! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assv-set! deformed 'canada 'Canada))
-
-    (pass-if-exception "assoc-set! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assv-ref?) (throw 'unsupported))
-      (assoc-set! deformed 'canada '(Iceland hence the name)))))
+  (pass-if-equal "assoc-set! deformed"
+      (assoc-set! deformed 'canada '(Iceland hence the name))
+    '((canada Iceland hence the name) canada is a cold nation)))
 
 ;;; Removers
 
@@ -226,19 +202,14 @@
 	     (set! b (assoc-remove! b "what"))
 	     (equal? b '(("could" . "I") ("say" . "here")))))
 
-  (let* ((have-sloppy-assq-remove? (defined? 'sloppy-assq-remove))) 
+  (pass-if-equal "assq-remove! deformed"
+      (assq-remove! deformed 'puddle)
+    1)
 
-    (pass-if-exception "assq-remove! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-      (assq-remove! deformed 'puddle))
+  (pass-if-equal "assv-remove! deformed"
+      (assv-remove! deformed 'splashing)
+    1)
 
-    (pass-if-exception "assv-remove! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-      (assv-remove! deformed 'splashing))
-
-    (pass-if-exception "assoc-remove! deformed"
-      exception:wrong-type-arg
-      (if (not have-sloppy-assq-remove?) (throw 'unsupported))
-      (assoc-remove! deformed 'fun))))
+  (pass-if-equal "assoc-remove! deformed"
+      (assoc-remove! deformed 'fun)
+    1))
