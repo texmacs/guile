@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#	Copyright (C) 2003, 2006, 2008-2012, 2016 Free Software Foundation
+#	Copyright (C) 2003, 2006, 2008-2012, 2016, 2017 Free Software Foundation
 #
 #   This file is part of GNU Guile.
 #
@@ -54,7 +54,7 @@ then
         GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline"
     fi
     export GUILE_LOAD_PATH
-    GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/bootstrap:${top_srcdir}/prebuilt/@host@:${top_builddir}/guile-readline"
+    GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/bootstrap:${top_srcdir}/prebuilt/@SCM_PREBUILT_BINARIES@:${top_builddir}/guile-readline"
     export GUILE_LOAD_COMPILED_PATH
 
     # Don't look in installed dirs for guile modules

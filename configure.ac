@@ -631,6 +631,18 @@ AC_SUBST([SCM_I_GSC_T_UINTPTR])
 AC_SUBST([SCM_I_GSC_NEEDS_STDINT_H])
 AC_SUBST([SCM_I_GSC_NEEDS_INTTYPES_H])
 
+AC_MSG_CHECKING([for which prebuilt binary set to use during bootstrap])
+SCM_PREBUILT_BINARIES=
+case "$ac_cv_c_bigendian-$ac_cv_sizeof_void_p" in
+  yes-8) SCM_PREBUILT_BINARIES=64-bit-big-endian;;
+  yes-4) SCM_PREBUILT_BINARIES=32-bit-big-endian;;
+  no-8) SCM_PREBUILT_BINARIES=64-bit-little-endian;;
+  no-4) SCM_PREBUILT_BINARIES=32-bit-little-endian;;
+  *) AC_MSG_ERROR([Unexpected endianness+pointer size combination.])
+esac
+AC_MSG_RESULT($SCM_PREBUILT_BINARIES)
+AC_SUBST([SCM_PREBUILT_BINARIES])
+
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
