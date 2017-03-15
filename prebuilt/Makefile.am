@@ -54,3 +54,8 @@ SUBDIRS = \
   x86_64-unknown-linux-gnu \
   i686-pc-linux-gnu \
   mips-unknown-linux-gnu
+
+EXTRA_DIST = \
+  32-bit-big-endian \
+  32-bit-little-endian \
+  64-bit-little-endian
