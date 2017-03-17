@@ -218,7 +218,7 @@ host name without trailing dot."
     (with-https-proxy
      (let ((s (open-socket)))
        ;; Buffer input and output on this port.
-       (setvbuf s _IOFBF %http-receive-buffer-size)
+       (setvbuf s 'block %http-receive-buffer-size)
 
        (if https?
            (tls-wrap s (uri-host uri))
