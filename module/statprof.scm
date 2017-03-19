@@ -652,8 +652,8 @@ optional @var{port} argument is passed, uses the current output port."
       (for-each display-stats-line sorted-stats)
 
       (display "---\n" port)
-      (format #t "Sample count: ~A\n" (statprof-sample-count state))
-      (format #t "Total time: ~A seconds (~A seconds in GC)\n"
+      (format port "Sample count: ~A\n" (statprof-sample-count state))
+      (format port "Total time: ~A seconds (~A seconds in GC)\n"
               (statprof-accumulated-time state)
               (/ (gc-time-taken state)
                  1.0 internal-time-units-per-second))))))
