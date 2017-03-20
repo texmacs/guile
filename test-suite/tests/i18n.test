@@ -504,6 +504,26 @@
        (not (not (member (locale-pm-string %greek-utf8-locale)
                          '("ΜΜ" "μμ" "Μ.Μ." "μ.μ.")))))))
 
+  (pass-if "locale-digit-grouping"
+    ;; In the C locale, there is no rule for grouping.
+    (null? (locale-digit-grouping)))
+
+  (pass-if "locale-digit-grouping (French)"
+    (under-french-locale-or-unresolved
+     (lambda ()
+       ;; All systems that have a GROUPING nl_item should know
+       ;; that French numbers are grouped in 3 digit chunks.
+       ;; Those systems that have no GROUPING nl_item may use
+       ;; the hard-coded default of no grouping.
+       (let ((result (locale-digit-grouping %french-locale)))
+         (cond
+          ((null? result)
+           (throw 'unresolved))
+          ((eqv? 3 (false-if-exception (car result)))
+           #t)
+          (else
+           #f))))))
+
   (pass-if "locale-monetary-grouping"
     ;; In the C locale, there is no rule for grouping of digits
     ;; of monetary values.
