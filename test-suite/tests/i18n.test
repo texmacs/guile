@@ -117,12 +117,12 @@
 
 (define %french-locale
   (false-if-exception
-   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME LC_MONETARY)
                 %french-locale-name)))
 
 (define %french-utf8-locale
   (false-if-exception
-   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME LC_MONETARY)
                 %french-utf8-locale-name)))
 
 (define %german-utf8-locale
@@ -482,7 +482,28 @@
                (and (string? result)
                     (string-ci=? result "Tuesday"))))
            (lambda ()
-             (setlocale LC_ALL "C")))))))
+             (setlocale LC_ALL "C"))))))
+
+  (pass-if "locale-monetary-grouping"
+    ;; In the C locale, there is no rule for grouping of digits
+    ;; of monetary values.
+    (null? (locale-monetary-grouping)))
+
+  (pass-if "locale-monetary-grouping (French)"
+    (under-french-utf8-locale-or-unresolved
+     (lambda ()
+       ;; All systems that have a MON_GROUPING nl_item should know
+       ;; that French monetary values are grouped in 3 digit chunks.
+       ;; Those systems that have no MON_GROUPING nl_item may use the
+       ;; hard-coded default of no grouping.
+       (let ((result (locale-monetary-grouping %french-utf8-locale)))
+         (cond
+          ((null? result)
+           (throw 'unresolved))
+          ((eqv? 3 (false-if-exception (car result)))
+           #t)
+          (else
+           #f)))))))
 
 
 ;;;

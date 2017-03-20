@@ -212,7 +212,7 @@
   MON_DECIMAL_POINT    "")
 (define-simple-langinfo-mapping locale-monetary-thousands-separator
   MON_THOUSANDS_SEP    "")
-(define-simple-langinfo-mapping locale-monetary-digit-grouping
+(define-simple-langinfo-mapping locale-monetary-grouping
   MON_GROUPING         '())
 
 (define-monetary-langinfo-mapping locale-currency-symbol-precedes-positive?
@@ -387,7 +387,7 @@ locale is used."
          (dec       (decimal-part
                      (number-decimal-string (abs amount)
                                             fraction-digits)))
-         (grouping  (locale-monetary-digit-grouping locale))
+         (grouping  (locale-monetary-grouping locale))
          (separator (locale-monetary-thousands-separator locale)))
 
       (add-monetary-sign+currency amount
