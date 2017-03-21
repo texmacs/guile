@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2014 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2014, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1567,7 +1567,8 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 
 #if defined P_CS_PRECEDES || defined N_CS_PRECEDES ||	\
   defined INT_P_CS_PRECEDES || defined INT_N_CS_PRECEDES || \
-  defined P_SEP_BY_SPACE || defined N_SEP_BY_SPACE
+  defined P_SEP_BY_SPACE || defined N_SEP_BY_SPACE || \
+  defined INT_P_SEP_BY_SPACE || defined INT_N_SEP_BY_SPACE
 #ifdef P_CS_PRECEDES
 	case P_CS_PRECEDES:
 	case N_CS_PRECEDES:
@@ -1580,8 +1581,12 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	case P_SEP_BY_SPACE:
 	case N_SEP_BY_SPACE:
 #endif
-	  /* This is to be interpreted as a boolean.  */
-	  result = scm_from_bool (*c_result);
+#ifdef INT_P_SEP_BY_SPACE
+        case INT_P_SEP_BY_SPACE:
+        case INT_N_SEP_BY_SPACE:
+#endif
+          /* This is to be interpreted as a boolean.  */
+          result = scm_from_bool (*c_result);
 
 	  free (c_result);
 	  break;

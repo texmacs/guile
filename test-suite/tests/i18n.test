@@ -524,6 +524,18 @@
           (else
            #f))))))
 
+  (pass-if "locale-positive-separated-by-space?"
+    ;; In any locale, this must be a boolean.
+    (let ((result (locale-positive-separated-by-space? #f)))
+      (or (eqv? #t result)
+          (eqv? #f result))))
+
+  (pass-if "locale-positive-separated-by-space? (international)"
+    ;; In any locale, this must be a boolean.
+    (let ((result (locale-positive-separated-by-space? #t)))
+      (or (eqv? #t result)
+          (eqv? #f result))))
+
   (pass-if "locale-monetary-grouping"
     ;; In the C locale, there is no rule for grouping of digits
     ;; of monetary values.
