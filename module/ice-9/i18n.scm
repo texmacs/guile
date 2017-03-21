@@ -517,8 +517,12 @@ not be used in production code."
                  (locale-negative-separated-by-space? #f loc)))
      (cons 'monetary-positive-sign (locale-monetary-positive-sign loc))
      (cons 'monetary-negative-sign (locale-monetary-negative-sign loc))
-     (cons 'positive-sign-position (locale-positive-sign-position loc))
-     (cons 'negative-sign-position (locale-negative-sign-position loc))
+     (cons 'positive-sign-position
+           (list (locale-positive-sign-position #t loc)
+                 (locale-negative-sign-position #f loc)))
+     (cons 'negative-sign-position
+           (list (locale-negative-sign-position #t loc)
+                 (locale-negative-sign-position #f loc)))
      (cons 'digit-grouping (locale-digit-grouping loc))
      (cons 'decimal-point (locale-decimal-point loc))
      (cons 'thousands-separator (locale-thousands-separator loc))
