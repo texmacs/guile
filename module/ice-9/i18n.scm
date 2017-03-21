@@ -81,7 +81,10 @@
            number->locale-string
 
            ;; miscellaneous
-           locale-yes-regexp locale-no-regexp))
+           locale-yes-regexp locale-no-regexp
+
+           ;; debugging
+           %locale-dump))
 
 
 (eval-when (expand load eval)
@@ -458,4 +461,67 @@ number of fractional digits to be displayed."
 
 ;; `YESSTR' and `NOSTR' are considered deprecated so we don't provide them.
 
+
+;;;
+;;; Debugging
+;;;
+
+(define (%locale-dump loc)
+  "Given a locale, display an association list containing all the locale
+information.
+
+This procedure is intended for debugging locale problems, and should
+not be used in production code."
+  (when (locale? loc)
+    (list
+     (cons 'encoding (locale-encoding loc))
+     (cons 'day-short
+           (map (lambda (n) (locale-day-short (1+ n) loc)) (iota 7)))
+     (cons 'day
+           (map (lambda (n) (locale-day (1+ n) loc)) (iota 7)))
+     (cons 'month-short
+           (map (lambda (n) (locale-month-short (1+ n) loc)) (iota 12)))
+     (cons 'month
+           (map (lambda (n) (locale-month (1+ n) loc)) (iota 12)))
+     (cons 'am-string (locale-am-string loc))
+     (cons 'pm-string (locale-pm-string loc))
+     (cons 'date+time-format (locale-date+time-format loc))
+     (cons 'date-format (locale-date-format loc))
+     (cons 'time-format (locale-time-format loc))
+     (cons 'time+am/pm-format (locale-time+am/pm-format loc))
+     (cons 'era (locale-era loc))
+     (cons 'era-year (locale-era-year loc))
+     (cons 'era-date-format (locale-era-date-format loc))
+     (cons 'era-date+time-format (locale-era-date+time-format loc))
+     (cons 'era-time-format (locale-era-time-format loc))
+     (cons 'currency-symbol
+           (list (locale-currency-symbol #t loc)
+                 (locale-currency-symbol #f loc)))
+     (cons 'monetary-decimal-point (locale-monetary-decimal-point loc))
+     (cons 'monetary-thousands-separator (locale-monetary-thousands-separator loc))
+     (cons 'monetary-grouping (locale-monetary-grouping loc))
+     (cons 'monetary-fractional-digits
+           (list (locale-monetary-fractional-digits #t loc)
+                 (locale-monetary-fractional-digits #f loc)))
+     (cons 'currency-symbol-precedes-positive?
+           (list (locale-currency-symbol-precedes-positive? #t loc)
+                 (locale-currency-symbol-precedes-positive? #f loc)))
+     (cons 'currency-symbol-precedes-negative?
+           (list (locale-currency-symbol-precedes-negative? #t loc)
+                 (locale-currency-symbol-precedes-negative? #f loc)))
+     (cons 'positive-separated-by-space?
+           (list (locale-positive-separated-by-space? #t loc)
+                 (locale-positive-separated-by-space? #f loc)))
+     (cons 'negative-separated-by-space?
+           (list (locale-negative-separated-by-space? #t loc)
+                 (locale-negative-separated-by-space? #f loc)))
+     (cons 'monetary-positive-sign (locale-monetary-positive-sign loc))
+     (cons 'monetary-negative-sign (locale-monetary-negative-sign loc))
+     (cons 'positive-sign-position (locale-positive-sign-position loc))
+     (cons 'negative-sign-position (locale-negative-sign-position loc))
+     (cons 'digit-grouping (locale-digit-grouping loc))
+     (cons 'decimal-point (locale-decimal-point loc))
+     (cons 'thousands-separator (locale-thousands-separator loc))
+     (cons 'locale-yes-regexp (locale-yes-regexp loc))
+     (cons 'no-regexp (locale-no-regexp loc)))))
 ;;; i18n.scm ends here
