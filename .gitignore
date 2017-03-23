@@ -16,6 +16,7 @@ config.h
 *.x
 *.lo
 *.la
+*.exe
 aclocal.m4
 libtool
 ltmain.sh
