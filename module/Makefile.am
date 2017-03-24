@@ -336,6 +336,8 @@ SOURCES =					\
   system/vm/traps.scm				\
   system/vm/vm.scm				\
 						\
+  system/syntax.scm				\
+						\
   system/xref.scm				\
 						\
   sxml/apply-templates.scm			\

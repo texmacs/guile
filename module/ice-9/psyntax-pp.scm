@@ -2440,7 +2440,7 @@
              (strip form '(()))
              (and subform (strip subform '(()))))))
   (letrec*
-    ((syntax-module
+    ((%syntax-module
        (lambda (id)
          (let ((x id))
            (if (not (nonsymbol-id? x))
@@ -2502,7 +2502,7 @@
          (locally-bound-identifiers
            (syntax-object-wrap id)
            (syntax-object-module id)))))
-    (define! 'syntax-module syntax-module)
+    (define! '%syntax-module %syntax-module)
     (define! 'syntax-local-binding syntax-local-binding)
     (define!
       'syntax-locally-bound-identifiers

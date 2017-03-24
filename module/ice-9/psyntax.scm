@@ -2746,7 +2746,7 @@
                    (and subform (strip subform empty-wrap)))))
 
     (let ()
-      (define (syntax-module id)
+      (define (%syntax-module id)
         (arg-check nonsymbol-id? id 'syntax-module)
         (let ((mod (syntax-object-module id)))
           (and (not (equal? mod '(primitive)))
@@ -2797,7 +2797,7 @@
       ;; compile-time, after the variables are stolen away into (system
       ;; syntax).  See the end of boot-9.scm.
       ;;
-      (define! 'syntax-module syntax-module)
+      (define! '%syntax-module %syntax-module)
       (define! 'syntax-local-binding syntax-local-binding)
       (define! 'syntax-locally-bound-identifiers syntax-locally-bound-identifiers))
     

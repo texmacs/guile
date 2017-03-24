@@ -4074,7 +4074,7 @@ when none is available, reading FILE-NAME with READER."
 ;;; modules, removing them from the (guile) module.
 ;;;
 
-(define-module (system syntax))
+(define-module (system syntax internal))
 
 (let ()
   (define (steal-bindings! from to ids)
@@ -4086,9 +4086,9 @@ when none is available, reading FILE-NAME with READER."
      ids)
     (module-export! to ids))
 
-  (steal-bindings! the-root-module (resolve-module '(system syntax))
+  (steal-bindings! the-root-module (resolve-module '(system syntax internal))
                    '(syntax-local-binding
-                     syntax-module
+                     %syntax-module
                      syntax-locally-bound-identifiers
                      syntax-session-id)))
 
