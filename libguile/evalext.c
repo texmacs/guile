@@ -82,6 +82,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tc7_dynamic_state:
         case scm_tc7_frame:
         case scm_tc7_keyword:
+        case scm_tc7_syntax:
         case scm_tc7_vm_cont:
 	case scm_tc7_number:
 	case scm_tc7_string:

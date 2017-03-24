@@ -84,6 +84,7 @@
   #:use-module (language cps intset)
   #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-11)
+  #:use-module ((system syntax internal) #:select (syntax?))
   #:export (;; Specific types.
             &exact-integer
             &flonum
@@ -112,7 +113,7 @@
             &bytevector
             &bitvector
             &array
-            &hash-table
+            &syntax
 
             ;; Union types.
             &number &real
@@ -169,7 +170,7 @@
   &bytevector
   &bitvector
   &array
-  &hash-table
+  &syntax
 
   &f64
   &u64
@@ -348,6 +349,7 @@ minimum, and maximum."
    ((bytevector? val) (return &bytevector (bytevector-length val)))
    ((bitvector? val) (return &bitvector (bitvector-length val)))
    ((array? val) (return &array (array-rank val)))
+   ((syntax? val) (return &syntax 0))
    ((not (variable-bound? (make-variable val))) (return &unbound #f))
 
    (else (error "unhandled constant" val))))

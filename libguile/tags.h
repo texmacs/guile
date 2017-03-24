@@ -416,7 +416,7 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 #define scm_tc7_frame		0x2f
 #define scm_tc7_keyword		0x35
 #define scm_tc7_atomic_box	0x37
-#define scm_tc7_unused_3d	0x3d
+#define scm_tc7_syntax		0x3d
 #define scm_tc7_unused_3f	0x3f
 #define scm_tc7_program		0x45
 #define scm_tc7_vm_cont		0x47

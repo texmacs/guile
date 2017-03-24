@@ -110,6 +110,7 @@ static SCM class_applicable_struct_class;
 static SCM class_applicable_struct_with_setter_class;
 static SCM class_number, class_list;
 static SCM class_keyword;
+static SCM class_syntax;
 static SCM class_atomic_box;
 static SCM class_port, class_input_output_port;
 static SCM class_input_port, class_output_port;
@@ -227,6 +228,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return class_frame;
         case scm_tc7_keyword:
 	  return class_keyword;
+        case scm_tc7_syntax:
+	  return class_syntax;
         case scm_tc7_atomic_box:
 	  return class_atomic_box;
         case scm_tc7_vm_cont:
@@ -1002,6 +1005,7 @@ SCM_DEFINE (scm_sys_goops_early_init, "%goops-early-init", 0, 0, 0,
   class_dynamic_state = scm_variable_ref (scm_c_lookup ("<dynamic-state>"));
   class_frame = scm_variable_ref (scm_c_lookup ("<frame>"));
   class_keyword = scm_variable_ref (scm_c_lookup ("<keyword>"));
+  class_syntax = scm_variable_ref (scm_c_lookup ("<syntax>"));
   class_atomic_box = scm_variable_ref (scm_c_lookup ("<atomic-box>"));
   class_vm_cont = scm_variable_ref (scm_c_lookup ("<vm-continuation>"));
   class_bytevector = scm_variable_ref (scm_c_lookup ("<bytevector>"));

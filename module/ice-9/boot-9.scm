@@ -4087,10 +4087,15 @@ when none is available, reading FILE-NAME with READER."
     (module-export! to ids))
 
   (steal-bindings! the-root-module (resolve-module '(system syntax internal))
-                   '(syntax-local-binding
+                   '(syntax?
+                     syntax-local-binding
                      %syntax-module
                      syntax-locally-bound-identifiers
-                     syntax-session-id)))
+                     syntax-session-id
+                     make-syntax
+                     syntax-expression
+                     syntax-wrap
+                     syntax-module)))
 
 
 

@@ -20,7 +20,14 @@
 
 (define-module (system syntax)
   #:use-module (system syntax internal)
-  #:re-export (syntax-local-binding
+  #:re-export (syntax?
+               syntax-local-binding
                (%syntax-module . syntax-module)
                syntax-locally-bound-identifiers
                syntax-session-id))
+
+;; Used by syntax.c.
+(define (print-syntax obj port)
+  ;; FIXME: Use syntax->datum instad of syntax-expression, when
+  ;; syntax->datum can operate on new syntax objects.
+  (format port "#<syntax ~s>" (syntax-expression obj)))

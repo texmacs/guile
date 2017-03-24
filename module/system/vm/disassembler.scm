@@ -210,6 +210,7 @@ address of that offset."
                         ((13) "vector?")
                         ((15) "string?")
                         ((53) "keyword?")
+                        ((#x3d) "syntax?")
                         ((77) "bytevector?")
                         ((95) "bitvector?")
                         (else (number->string tc7)))))

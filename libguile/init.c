@@ -124,6 +124,7 @@
 #include "libguile/strports.h"
 #include "libguile/struct.h"
 #include "libguile/symbols.h"
+#include "libguile/syntax.h"
 #include "libguile/throw.h"
 #include "libguile/arrays.h"
 #include "libguile/trees.h"
@@ -507,6 +508,7 @@ scm_i_init_guile (void *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_simpos ();
+  scm_init_syntax ();
 #if HAVE_MODULES
   scm_init_dynamic_linking (); /* Requires smob_prehistory */
 #endif

@@ -46,6 +46,7 @@
 #include "libguile/ports-internal.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
+#include "libguile/syntax.h"
 #include "libguile/vectors.h"
 #include "libguile/numbers.h"
 #include "libguile/vm.h"
@@ -715,6 +716,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         case scm_tc7_keyword:
           scm_puts ("#:", port);
           scm_iprin1 (scm_keyword_to_symbol (exp), port, pstate);
+          break;
+        case scm_tc7_syntax:
+	  scm_i_syntax_print (exp, port, pstate);
           break;
 	case scm_tc7_atomic_box:
 	  scm_i_atomic_box_print (exp, port, pstate);

@@ -47,6 +47,7 @@
   #:use-module (system vm dwarf)
   #:use-module (system vm elf)
   #:use-module (system vm linker)
+  #:use-module (system syntax internal)
   #:use-module (language bytecode)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
@@ -1017,7 +1018,8 @@ immediate, and @code{#f} otherwise."
   "Return @code{#t} if a non-immediate constant can be allocated
 statically, and @code{#f} if it would need some kind of runtime
 allocation."
-  (or (pair? x) (string? x) (stringbuf? x) (static-procedure? x) (array? x)))
+  (or (pair? x) (string? x) (stringbuf? x) (static-procedure? x)
+      (array? x) (syntax? x)))
 
 (define (intern-constant asm obj)
   "Add an object to the constant table, and return a label that can be
@@ -1045,6 +1047,10 @@ table, its existing label is used directly."
                 (append-reverse (field label (1+ i) (vector-ref obj i))
                                 inits))
             (reverse inits))))
+     ((syntax? obj)
+      (append (field label 1 (syntax-expression obj))
+              (field label 2 (syntax-wrap obj))
+              (field label 3 (syntax-module obj))))
      ((stringbuf? obj) '())
      ((static-procedure? obj)
       `((static-patch! ,label 1 ,(static-procedure-code obj))))
@@ -1181,6 +1187,7 @@ returned instead."
 ;(define-tc7-macro-assembler br-if-dynamic-state 45)
 ;(define-tc7-macro-assembler br-if-frame 47)
 (define-tc7-macro-assembler br-if-keyword #x35)
+;(define-tc7-macro-assembler br-if-syntax #x3d)
 ;(define-tc7-macro-assembler br-if-vm 55)
 ;(define-tc7-macro-assembler br-if-vm-cont 71)
 ;(define-tc7-macro-assembler br-if-rtl-program 69)
@@ -1391,6 +1398,7 @@ should be .data or .rodata), and return the resulting linker object.
   (define tc7-narrow-stringbuf tc7-stringbuf)
   (define tc7-wide-stringbuf (+ tc7-stringbuf stringbuf-wide-flag))
   (define tc7-ro-string (+ 21 #x200))
+  (define tc7-syntax #x3d)
   (define tc7-program 69)
   (define tc7-bytevector 77)
   (define tc7-bitvector 95)
@@ -1415,6 +1423,8 @@ should be .data or .rodata), and return the resulting linker object.
         (* 2 word-size))
        ((simple-vector? x)
         (* (1+ (vector-length x)) word-size))
+       ((syntax? x)
+        (* 4 word-size))
        ((simple-uniform-vector? x)
         (* 4 word-size))
        ((uniform-vector-backing-store? x)
@@ -1518,6 +1528,18 @@ should be .data or .rodata), and return the resulting linker object.
 
        ((keyword? obj)
         (write-placeholder asm buf pos))
+
+       ((syntax? obj)
+        (case word-size
+          ((4) (bytevector-u32-set! buf pos tc7-syntax endianness))
+          ((8) (bytevector-u64-set! buf pos tc7-syntax endianness))
+          (else (error "bad word size")))
+        (write-constant-reference buf (+ pos (* 1 word-size))
+                                  (syntax-expression obj))
+        (write-constant-reference buf (+ pos (* 2 word-size))
+                                  (syntax-wrap obj))
+        (write-constant-reference buf (+ pos (* 3 word-size))
+                                  (syntax-module obj)))
 
        ((number? obj)
         (write-placeholder asm buf pos))

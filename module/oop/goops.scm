@@ -62,7 +62,7 @@
             <boolean> <char> <list> <pair> <null> <string> <symbol>
             <vector> <bytevector> <uvec> <foreign> <hashtable>
             <fluid> <dynamic-state> <frame> <vm> <vm-continuation>
-            <keyword> <atomic-box>
+            <keyword> <syntax> <atomic-box>
 
             ;; Numbers.
             <number> <complex> <real> <integer> <fraction>
@@ -1009,6 +1009,7 @@ slots as we go."
 (define-standard-class <integer> (<real>))
 (define-standard-class <fraction> (<real>))
 (define-standard-class <keyword> (<top>))
+(define-standard-class <syntax> (<top>))
 (define-standard-class <atomic-box> (<top>))
 (define-standard-class <unknown> (<top>))
 (define-standard-class <procedure> (<applicable>)

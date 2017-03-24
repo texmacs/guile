@@ -212,6 +212,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	strports.c				\
 	struct.c				\
 	symbols.c				\
+	syntax.c				\
 	threads.c				\
 	throw.c					\
 	trees.c					\
@@ -316,6 +317,7 @@ DOT_X_FILES =					\
 	strports.x				\
 	struct.x				\
 	symbols.x				\
+	syntax.x				\
 	threads.x				\
 	throw.x					\
 	trees.x					\
@@ -418,6 +420,7 @@ DOT_DOC_FILES = 				\
 	strports.doc				\
 	struct.doc				\
 	symbols.doc				\
+	syntax.doc				\
 	threads.doc				\
 	throw.doc				\
 	trees.doc				\
@@ -509,6 +512,7 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  posix-w32.h					\
 		 private-options.h 				\
 		 ports-internal.h 				\
+		 syntax.h 					\
 		 weak-list.h
 
 # vm instructions
