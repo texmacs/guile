@@ -1063,7 +1063,7 @@
                (newline port)))
    (cons #\N (lambda (date pad-with port)
                (display (padding (date-nanosecond date)
-                                      pad-with 7)
+                                      pad-with 9)
                         port)))
    (cons #\p (lambda (date pad-with port)
                (display (locale-am-string/pm (date-hour date)) port)))

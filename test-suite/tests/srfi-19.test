@@ -175,6 +175,11 @@ incomplete numerical tower implementation.)"
       (equal? "Sun Jun 05 18:33:00+0200 2005"
               (date->string date))))
 
+  (pass-if "date->string pads small nanoseconds values correctly"
+    (let* ((date (make-date 99999999 5 34 12 26 3 2017 0)))
+      (equal? "099999999"
+              (date->string date "~N"))))
+
   ;; check time comparison procedures
   (let* ((time1 (make-time time-monotonic 0 0))
          (time2 (make-time time-monotonic 0 0))
