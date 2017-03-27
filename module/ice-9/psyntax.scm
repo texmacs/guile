@@ -477,7 +477,7 @@
                (= (vector-length x) 4)
                (eqv? (vector-ref x 0) 'syntax-object))))
     (define (make-syntax-object expression wrap module)
-      (vector 'syntax-object expression wrap module))
+      (make-syntax expression wrap module))
     (define (syntax-object-expression obj)
       (if (syntax? obj)
           (syntax-expression obj)

@@ -246,7 +246,7 @@
                   (eqv? (vector-ref x 0) 'syntax-object)))))
      (make-syntax-object
        (lambda (expression wrap module)
-         (vector 'syntax-object expression wrap module)))
+         (make-syntax expression wrap module)))
      (syntax-object-expression
        (lambda (obj)
          (if (syntax? obj) (syntax-expression obj) (vector-ref obj 1))))
@@ -792,7 +792,7 @@
                                                   (wrap name w mod)
                                                   (wrap e w mod)
                                                   (decorate-source
-                                                    (cons '#(syntax-object lambda ((top)) (hygiene guile))
+                                                    (cons (make-syntax 'lambda '((top)) '(hygiene guile))
                                                           (wrap (cons args (cons e1 e2)) w mod))
                                                     s)
                                                   '(())
@@ -806,7 +806,7 @@
                                                       'define-form
                                                       (wrap name w mod)
                                                       (wrap e w mod)
-                                                      '(#(syntax-object if ((top)) (hygiene guile)) #f #f)
+                                                      (list (make-syntax 'if '((top)) '(hygiene guile)) #f #f)
                                                       '(())
                                                       s
                                                       mod))
@@ -1174,7 +1174,7 @@
                 (lambda (type value mod)
                   (if (eq? type 'ellipsis)
                     (bound-id=? e value)
-                    (free-id=? e '#(syntax-object ... ((top)) (hygiene guile)))))))))
+                    (free-id=? e (make-syntax '... '((top)) '(hygiene guile)))))))))
      (lambda-formals
        (lambda (orig-args)
          (letrec*
@@ -2067,7 +2067,7 @@
                                  (build-call
                                    s
                                    (expand
-                                     (list '#(syntax-object setter ((top)) (hygiene guile)) head)
+                                     (list (make-syntax 'setter '((top)) '(hygiene guile)) head)
                                      r
                                      w
                                      mod)
@@ -2088,7 +2088,7 @@
                        '((top))
                        #f
                        (syntax->datum
-                         (cons '#(syntax-object public ((top)) (hygiene guile)) mod))))
+                         (cons (make-syntax 'public '((top)) '(hygiene guile)) mod))))
                    tmp)
             (syntax-violation
               #f
@@ -2119,7 +2119,9 @@
           (let* ((tmp e)
                  (tmp-1 ($sc-dispatch
                           tmp
-                          '(_ #(free-id #(syntax-object primitive ((top)) (hygiene guile))) any))))
+                          (list '_
+                                (vector 'free-id (make-syntax 'primitive '((top)) '(hygiene guile)))
+                                'any))))
             (if (and tmp-1
                      (apply (lambda (id)
                               (and (id? id)
@@ -2139,17 +2141,18 @@
                              '((top))
                              #f
                              (syntax->datum
-                               (cons '#(syntax-object private ((top)) (hygiene guile)) mod))))
+                               (cons (make-syntax 'private '((top)) '(hygiene guile)) mod))))
                          tmp-1)
                   (let ((tmp-1 ($sc-dispatch
                                  tmp
-                                 '(_ #(free-id #(syntax-object @@ ((top)) (hygiene guile)))
-                                     each-any
-                                     any))))
+                                 (list '_
+                                       (vector 'free-id (make-syntax '@@ '((top)) '(hygiene guile)))
+                                       'each-any
+                                       'any))))
                     (if (and tmp-1 (apply (lambda (mod exp) (and-map id? mod)) tmp-1))
                       (apply (lambda (mod exp)
                                (let ((mod (syntax->datum
-                                            (cons '#(syntax-object private ((top)) (hygiene guile)) mod))))
+                                            (cons (make-syntax 'private '((top)) '(hygiene guile)) mod))))
                                  (values (remodulate exp mod) r w (source-annotation exp) mod)))
                              tmp-1)
                       (syntax-violation
@@ -2213,7 +2216,7 @@
                 (cvt (lambda (p n ids)
                        (if (id? p)
                          (cond ((bound-id-member? p keys) (values (vector 'free-id p) ids))
-                               ((free-id=? p '#(syntax-object _ ((top)) (hygiene guile)))
+                               ((free-id=? p (make-syntax '_ '((top)) '(hygiene guile)))
                                 (values '_ ids))
                                (else (values 'any (cons (cons p n) ids))))
                          (let* ((tmp p) (tmp-1 ($sc-dispatch tmp '(any any))))
@@ -2334,8 +2337,8 @@
                             (if (and (id? pat)
                                      (and-map
                                        (lambda (x) (not (free-id=? pat x)))
-                                       (cons '#(syntax-object ... ((top)) (hygiene guile)) keys)))
-                              (if (free-id=? pat '#(syntax-object _ ((top)) (hygiene guile)))
+                                       (cons (make-syntax '... '((top)) '(hygiene guile)) keys)))
+                              (if (free-id=? pat (make-syntax '_ '((top)) '(hygiene guile)))
                                 (expand exp r '(()) mod)
                                 (let ((labels (list (gen-label))) (var (gen-var pat)))
                                   (build-call
@@ -2644,733 +2647,751 @@
                 (else (match* e p '(()) '() #f))))))))
 
 (define with-syntax
-  (make-syntax-transformer
-    'with-syntax
-    'macro
-    (lambda (x)
-      (let ((tmp x))
-        (let ((tmp-1 ($sc-dispatch tmp '(_ () any . each-any))))
-          (if tmp-1
-            (apply (lambda (e1 e2)
-                     (cons '#(syntax-object let ((top)) (hygiene guile))
-                           (cons '() (cons e1 e2))))
-                   tmp-1)
-            (let ((tmp-1 ($sc-dispatch tmp '(_ ((any any)) any . each-any))))
-              (if tmp-1
-                (apply (lambda (out in e1 e2)
-                         (list '#(syntax-object syntax-case ((top)) (hygiene guile))
-                               in
-                               '()
-                               (list out
-                                     (cons '#(syntax-object let ((top)) (hygiene guile))
-                                           (cons '() (cons e1 e2))))))
-                       tmp-1)
-                (let ((tmp-1 ($sc-dispatch tmp '(_ #(each (any any)) any . each-any))))
-                  (if tmp-1
-                    (apply (lambda (out in e1 e2)
-                             (list '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                   (cons '#(syntax-object list ((top)) (hygiene guile)) in)
-                                   '()
-                                   (list out
-                                         (cons '#(syntax-object let ((top)) (hygiene guile))
-                                               (cons '() (cons e1 e2))))))
-                           tmp-1)
-                    (syntax-violation
-                      #f
-                      "source expression failed to match any pattern"
-                      tmp)))))))))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'with-syntax
+      'macro
+      (lambda (x)
+        (let ((tmp x))
+          (let ((tmp-1 ($sc-dispatch tmp '(_ () any . each-any))))
+            (if tmp-1
+              (apply (lambda (e1 e2)
+                       (cons (make-syntax 'let '((top)) '(hygiene guile))
+                             (cons '() (cons e1 e2))))
+                     tmp-1)
+              (let ((tmp-1 ($sc-dispatch tmp '(_ ((any any)) any . each-any))))
+                (if tmp-1
+                  (apply (lambda (out in e1 e2)
+                           (list (make-syntax 'syntax-case '((top)) '(hygiene guile))
+                                 in
+                                 '()
+                                 (list out
+                                       (cons (make-syntax 'let '((top)) '(hygiene guile))
+                                             (cons '() (cons e1 e2))))))
+                         tmp-1)
+                  (let ((tmp-1 ($sc-dispatch tmp '(_ #(each (any any)) any . each-any))))
+                    (if tmp-1
+                      (apply (lambda (out in e1 e2)
+                               (list (make-syntax 'syntax-case '((top)) '(hygiene guile))
+                                     (cons (make-syntax 'list '((top)) '(hygiene guile)) in)
+                                     '()
+                                     (list out
+                                           (cons (make-syntax 'let '((top)) '(hygiene guile))
+                                                 (cons '() (cons e1 e2))))))
+                             tmp-1)
+                      (syntax-violation
+                        #f
+                        "source expression failed to match any pattern"
+                        tmp))))))))))))
 
 (define syntax-error
-  (make-syntax-transformer
-    'syntax-error
-    'macro
-    (lambda (x)
-      (let ((tmp-1 x))
-        (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any . each-any))))
-          (if (if tmp
-                (apply (lambda (keyword operands message arg)
-                         (string? (syntax->datum message)))
-                       tmp)
-                #f)
-            (apply (lambda (keyword operands message arg)
-                     (syntax-violation
-                       (syntax->datum keyword)
-                       (string-join
-                         (cons (syntax->datum message)
-                               (map (lambda (x) (object->string (syntax->datum x))) arg)))
-                       (if (syntax->datum keyword) (cons keyword operands) #f)))
-                   tmp)
-            (let ((tmp ($sc-dispatch tmp-1 '(_ any . each-any))))
-              (if (if tmp
-                    (apply (lambda (message arg) (string? (syntax->datum message))) tmp)
-                    #f)
-                (apply (lambda (message arg)
-                         (cons '#(syntax-object
-                                  syntax-error
-                                  ((top)
-                                   #(ribcage
-                                     #(syntax-error)
-                                     #((top))
-                                     #(((hygiene guile)
-                                        .
-                                        #(syntax-object syntax-error ((top)) (hygiene guile))))))
-                                  (hygiene guile))
-                               (cons '(#f) (cons message arg))))
-                       tmp)
-                (syntax-violation
-                  #f
-                  "source expression failed to match any pattern"
-                  tmp-1)))))))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'syntax-error
+      'macro
+      (lambda (x)
+        (let ((tmp-1 x))
+          (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any . each-any))))
+            (if (if tmp
+                  (apply (lambda (keyword operands message arg)
+                           (string? (syntax->datum message)))
+                         tmp)
+                  #f)
+              (apply (lambda (keyword operands message arg)
+                       (syntax-violation
+                         (syntax->datum keyword)
+                         (string-join
+                           (cons (syntax->datum message)
+                                 (map (lambda (x) (object->string (syntax->datum x))) arg)))
+                         (if (syntax->datum keyword) (cons keyword operands) #f)))
+                     tmp)
+              (let ((tmp ($sc-dispatch tmp-1 '(_ any . each-any))))
+                (if (if tmp
+                      (apply (lambda (message arg) (string? (syntax->datum message))) tmp)
+                      #f)
+                  (apply (lambda (message arg)
+                           (cons (make-syntax
+                                   'syntax-error
+                                   (list '(top)
+                                         (vector
+                                           'ribcage
+                                           '#(syntax-error)
+                                           '#((top))
+                                           (vector
+                                             (cons '(hygiene guile)
+                                                   (make-syntax 'syntax-error '((top)) '(hygiene guile))))))
+                                   '(hygiene guile))
+                                 (cons '(#f) (cons message arg))))
+                         tmp)
+                  (syntax-violation
+                    #f
+                    "source expression failed to match any pattern"
+                    tmp-1))))))))))
 
 (define syntax-rules
-  (make-syntax-transformer
-    'syntax-rules
-    'macro
-    (lambda (xx)
-      (letrec*
-        ((expand-clause
-           (lambda (clause)
-             (let ((tmp-1 clause))
-               (let ((tmp ($sc-dispatch
-                            tmp-1
-                            '((any . any)
-                              (#(free-id #(syntax-object syntax-error ((top)) (hygiene guile)))
-                               any
-                               .
-                               each-any)))))
-                 (if (if tmp
-                       (apply (lambda (keyword pattern message arg)
-                                (string? (syntax->datum message)))
-                              tmp)
-                       #f)
-                   (apply (lambda (keyword pattern message arg)
-                            (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
-                                  (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                        (cons '#(syntax-object syntax-error ((top)) (hygiene guile))
-                                              (cons (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
-                                                    (cons message arg))))))
-                          tmp)
-                   (let ((tmp ($sc-dispatch tmp-1 '((any . any) any))))
-                     (if tmp
-                       (apply (lambda (keyword pattern template)
-                                (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
-                                      (list '#(syntax-object syntax ((top)) (hygiene guile)) template)))
-                              tmp)
-                       (syntax-violation
-                         #f
-                         "source expression failed to match any pattern"
-                         tmp-1))))))))
-         (expand-syntax-rules
-           (lambda (dots keys docstrings clauses)
-             (let ((tmp-1 (list keys docstrings clauses (map expand-clause clauses))))
-               (let ((tmp ($sc-dispatch
-                            tmp-1
-                            '(each-any each-any #(each ((any . any) any)) each-any))))
-                 (if tmp
-                   (apply (lambda (k docstring keyword pattern template clause)
-                            (let ((tmp (cons '#(syntax-object lambda ((top)) (hygiene guile))
-                                             (cons '(#(syntax-object x ((top)) (hygiene guile)))
-                                                   (append
-                                                     docstring
-                                                     (list (vector
-                                                             '(#(syntax-object macro-type ((top)) (hygiene guile))
-                                                               .
-                                                               #(syntax-object
-                                                                 syntax-rules
-                                                                 ((top)
-                                                                  #(ribcage
-                                                                    #(syntax-rules)
-                                                                    #((top))
-                                                                    #(((hygiene guile)
-                                                                       .
-                                                                       #(syntax-object
-                                                                         syntax-rules
-                                                                         ((top))
-                                                                         (hygiene guile))))))
-                                                                 (hygiene guile)))
-                                                             (cons '#(syntax-object patterns ((top)) (hygiene guile))
-                                                                   pattern))
-                                                           (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                                                 (cons '#(syntax-object x ((top)) (hygiene guile))
-                                                                       (cons k clause)))))))))
-                              (let ((form tmp))
-                                (if dots
-                                  (let ((tmp dots))
-                                    (let ((dots tmp))
-                                      (list '#(syntax-object with-ellipsis ((top)) (hygiene guile))
-                                            dots
-                                            form)))
-                                  form))))
-                          tmp)
-                   (syntax-violation
-                     #f
-                     "source expression failed to match any pattern"
-                     tmp-1)))))))
-        (let ((tmp xx))
-          (let ((tmp-1 ($sc-dispatch tmp '(_ each-any . #(each ((any . any) any))))))
-            (if tmp-1
-              (apply (lambda (k keyword pattern template)
-                       (expand-syntax-rules
-                         #f
-                         k
-                         '()
-                         (map (lambda (tmp-680b775fb37a463-2 tmp-680b775fb37a463-1 tmp-680b775fb37a463)
-                                (list (cons tmp-680b775fb37a463 tmp-680b775fb37a463-1)
-                                      tmp-680b775fb37a463-2))
-                              template
-                              pattern
-                              keyword)))
-                     tmp-1)
-              (let ((tmp-1 ($sc-dispatch tmp '(_ each-any any . #(each ((any . any) any))))))
-                (if (if tmp-1
-                      (apply (lambda (k docstring keyword pattern template)
-                               (string? (syntax->datum docstring)))
-                             tmp-1)
-                      #f)
-                  (apply (lambda (k docstring keyword pattern template)
-                           (expand-syntax-rules
-                             #f
-                             k
-                             (list docstring)
-                             (map (lambda (tmp-680b775fb37a463-116f
-                                           tmp-680b775fb37a463-116e
-                                           tmp-680b775fb37a463-116d)
-                                    (list (cons tmp-680b775fb37a463-116d tmp-680b775fb37a463-116e)
-                                          tmp-680b775fb37a463-116f))
-                                  template
-                                  pattern
-                                  keyword)))
-                         tmp-1)
-                  (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any . #(each ((any . any) any))))))
-                    (if (if tmp-1
-                          (apply (lambda (dots k keyword pattern template) (identifier? dots))
-                                 tmp-1)
-                          #f)
-                      (apply (lambda (dots k keyword pattern template)
-                               (expand-syntax-rules
-                                 dots
-                                 k
-                                 '()
-                                 (map (lambda (tmp-680b775fb37a463-2 tmp-680b775fb37a463-1 tmp-680b775fb37a463)
-                                        (list (cons tmp-680b775fb37a463 tmp-680b775fb37a463-1)
-                                              tmp-680b775fb37a463-2))
-                                      template
-                                      pattern
-                                      keyword)))
-                             tmp-1)
-                      (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any any . #(each ((any . any) any))))))
-                        (if (if tmp-1
-                              (apply (lambda (dots k docstring keyword pattern template)
-                                       (if (identifier? dots) (string? (syntax->datum docstring)) #f))
-                                     tmp-1)
-                              #f)
-                          (apply (lambda (dots k docstring keyword pattern template)
-                                   (expand-syntax-rules
-                                     dots
-                                     k
-                                     (list docstring)
-                                     (map (lambda (tmp-680b775fb37a463-11a7
-                                                   tmp-680b775fb37a463-11a6
-                                                   tmp-680b775fb37a463-11a5)
-                                            (list (cons tmp-680b775fb37a463-11a5 tmp-680b775fb37a463-11a6)
-                                                  tmp-680b775fb37a463-11a7))
-                                          template
-                                          pattern
-                                          keyword)))
-                                 tmp-1)
-                          (syntax-violation
-                            #f
-                            "source expression failed to match any pattern"
-                            tmp))))))))))))))
-
-(define define-syntax-rule
-  (make-syntax-transformer
-    'define-syntax-rule
-    'macro
-    (lambda (x)
-      (let ((tmp-1 x))
-        (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any))))
-          (if tmp
-            (apply (lambda (name pattern template)
-                     (list '#(syntax-object define-syntax ((top)) (hygiene guile))
-                           name
-                           (list '#(syntax-object syntax-rules ((top)) (hygiene guile))
-                                 '()
-                                 (list (cons '#(syntax-object _ ((top)) (hygiene guile)) pattern)
-                                       template))))
-                   tmp)
-            (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any any))))
-              (if (if tmp
-                    (apply (lambda (name pattern docstring template)
-                             (string? (syntax->datum docstring)))
-                           tmp)
-                    #f)
-                (apply (lambda (name pattern docstring template)
-                         (list '#(syntax-object define-syntax ((top)) (hygiene guile))
-                               name
-                               (list '#(syntax-object syntax-rules ((top)) (hygiene guile))
-                                     '()
-                                     docstring
-                                     (list (cons '#(syntax-object _ ((top)) (hygiene guile)) pattern)
-                                           template))))
-                       tmp)
-                (syntax-violation
-                  #f
-                  "source expression failed to match any pattern"
-                  tmp-1)))))))))
-
-(define let*
-  (make-syntax-transformer
-    'let*
-    'macro
-    (lambda (x)
-      (let ((tmp-1 x))
-        (let ((tmp ($sc-dispatch tmp-1 '(any #(each (any any)) any . each-any))))
-          (if (if tmp
-                (apply (lambda (let* x v e1 e2) (and-map identifier? x)) tmp)
-                #f)
-            (apply (lambda (let* x v e1 e2)
-                     (let f ((bindings (map list x v)))
-                       (if (null? bindings)
-                         (cons '#(syntax-object let ((top)) (hygiene guile))
-                               (cons '() (cons e1 e2)))
-                         (let ((tmp-1 (list (f (cdr bindings)) (car bindings))))
-                           (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-                             (if tmp
-                               (apply (lambda (body binding)
-                                        (list '#(syntax-object let ((top)) (hygiene guile))
-                                              (list binding)
-                                              body))
-                                      tmp)
-                               (syntax-violation
-                                 #f
-                                 "source expression failed to match any pattern"
-                                 tmp-1)))))))
-                   tmp)
-            (syntax-violation
-              #f
-              "source expression failed to match any pattern"
-              tmp-1)))))))
-
-(define quasiquote
-  (make-syntax-transformer
-    'quasiquote
-    'macro
-    (letrec*
-      ((quasi (lambda (p lev)
-                (let ((tmp p))
-                  (let ((tmp-1 ($sc-dispatch
-                                 tmp
-                                 '(#(free-id #(syntax-object unquote ((top)) (hygiene guile))) any))))
-                    (if tmp-1
-                      (apply (lambda (p)
-                               (if (= lev 0)
-                                 (list "value" p)
-                                 (quasicons
-                                   '("quote" #(syntax-object unquote ((top)) (hygiene guile)))
-                                   (quasi (list p) (- lev 1)))))
-                             tmp-1)
-                      (let ((tmp-1 ($sc-dispatch
-                                     tmp
-                                     '(#(free-id
-                                         #(syntax-object
-                                           quasiquote
-                                           ((top)
-                                            #(ribcage
-                                              #(quasiquote)
-                                              #((top))
-                                              #(((hygiene guile)
-                                                 .
-                                                 #(syntax-object quasiquote ((top)) (hygiene guile))))))
-                                           (hygiene guile)))
-                                       any))))
-                        (if tmp-1
-                          (apply (lambda (p)
-                                   (quasicons
-                                     '("quote"
-                                       #(syntax-object
-                                         quasiquote
-                                         ((top)
-                                          #(ribcage
-                                            #(quasiquote)
-                                            #((top))
-                                            #(((hygiene guile)
-                                               .
-                                               #(syntax-object quasiquote ((top)) (hygiene guile))))))
-                                         (hygiene guile)))
-                                     (quasi (list p) (+ lev 1))))
-                                 tmp-1)
-                          (let ((tmp-1 ($sc-dispatch tmp '(any . any))))
-                            (if tmp-1
-                              (apply (lambda (p q)
-                                       (let ((tmp-1 p))
-                                         (let ((tmp ($sc-dispatch
-                                                      tmp-1
-                                                      '(#(free-id #(syntax-object unquote ((top)) (hygiene guile)))
-                                                        .
-                                                        each-any))))
-                                           (if tmp
-                                             (apply (lambda (p)
-                                                      (if (= lev 0)
-                                                        (quasilist*
-                                                          (map (lambda (tmp-680b775fb37a463-120f)
-                                                                 (list "value" tmp-680b775fb37a463-120f))
-                                                               p)
-                                                          (quasi q lev))
-                                                        (quasicons
-                                                          (quasicons
-                                                            '("quote" #(syntax-object unquote ((top)) (hygiene guile)))
-                                                            (quasi p (- lev 1)))
-                                                          (quasi q lev))))
-                                                    tmp)
-                                             (let ((tmp ($sc-dispatch
-                                                          tmp-1
-                                                          '(#(free-id
-                                                              #(syntax-object unquote-splicing ((top)) (hygiene guile)))
-                                                            .
-                                                            each-any))))
-                                               (if tmp
-                                                 (apply (lambda (p)
-                                                          (if (= lev 0)
-                                                            (quasiappend
-                                                              (map (lambda (tmp-680b775fb37a463)
-                                                                     (list "value" tmp-680b775fb37a463))
-                                                                   p)
-                                                              (quasi q lev))
-                                                            (quasicons
-                                                              (quasicons
-                                                                '("quote"
-                                                                  #(syntax-object
-                                                                    unquote-splicing
-                                                                    ((top))
-                                                                    (hygiene guile)))
-                                                                (quasi p (- lev 1)))
-                                                              (quasi q lev))))
-                                                        tmp)
-                                                 (quasicons (quasi p lev) (quasi q lev))))))))
-                                     tmp-1)
-                              (let ((tmp-1 ($sc-dispatch tmp '#(vector each-any))))
-                                (if tmp-1
-                                  (apply (lambda (x) (quasivector (vquasi x lev))) tmp-1)
-                                  (let ((p tmp)) (list "quote" p)))))))))))))
-       (vquasi
-         (lambda (p lev)
-           (let ((tmp p))
-             (let ((tmp-1 ($sc-dispatch tmp '(any . any))))
-               (if tmp-1
-                 (apply (lambda (p q)
-                          (let ((tmp-1 p))
-                            (let ((tmp ($sc-dispatch
-                                         tmp-1
-                                         '(#(free-id #(syntax-object unquote ((top)) (hygiene guile)))
-                                           .
-                                           each-any))))
-                              (if tmp
-                                (apply (lambda (p)
-                                         (if (= lev 0)
-                                           (quasilist*
-                                             (map (lambda (tmp-680b775fb37a463-122a)
-                                                    (list "value" tmp-680b775fb37a463-122a))
-                                                  p)
-                                             (vquasi q lev))
-                                           (quasicons
-                                             (quasicons
-                                               '("quote" #(syntax-object unquote ((top)) (hygiene guile)))
-                                               (quasi p (- lev 1)))
-                                             (vquasi q lev))))
-                                       tmp)
-                                (let ((tmp ($sc-dispatch
-                                             tmp-1
-                                             '(#(free-id #(syntax-object unquote-splicing ((top)) (hygiene guile)))
-                                               .
-                                               each-any))))
-                                  (if tmp
-                                    (apply (lambda (p)
-                                             (if (= lev 0)
-                                               (quasiappend
-                                                 (map (lambda (tmp-680b775fb37a463-122f)
-                                                        (list "value" tmp-680b775fb37a463-122f))
-                                                      p)
-                                                 (vquasi q lev))
-                                               (quasicons
-                                                 (quasicons
-                                                   '("quote" #(syntax-object unquote-splicing ((top)) (hygiene guile)))
-                                                   (quasi p (- lev 1)))
-                                                 (vquasi q lev))))
-                                           tmp)
-                                    (quasicons (quasi p lev) (vquasi q lev))))))))
-                        tmp-1)
-                 (let ((tmp-1 ($sc-dispatch tmp '())))
-                   (if tmp-1
-                     (apply (lambda () '("quote" ())) tmp-1)
-                     (syntax-violation
-                       #f
-                       "source expression failed to match any pattern"
-                       tmp))))))))
-       (quasicons
-         (lambda (x y)
-           (let ((tmp-1 (list x y)))
-             (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-               (if tmp
-                 (apply (lambda (x y)
-                          (let ((tmp y))
-                            (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") any))))
-                              (if tmp-1
-                                (apply (lambda (dy)
-                                         (let ((tmp x))
-                                           (let ((tmp ($sc-dispatch tmp '(#(atom "quote") any))))
-                                             (if tmp
-                                               (apply (lambda (dx) (list "quote" (cons dx dy))) tmp)
-                                               (if (null? dy) (list "list" x) (list "list*" x y))))))
-                                       tmp-1)
-                                (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . any))))
-                                  (if tmp-1
-                                    (apply (lambda (stuff) (cons "list" (cons x stuff))) tmp-1)
-                                    (let ((tmp ($sc-dispatch tmp '(#(atom "list*") . any))))
-                                      (if tmp
-                                        (apply (lambda (stuff) (cons "list*" (cons x stuff))) tmp)
-                                        (list "list*" x y)))))))))
-                        tmp)
-                 (syntax-violation
-                   #f
-                   "source expression failed to match any pattern"
-                   tmp-1))))))
-       (quasiappend
-         (lambda (x y)
-           (let ((tmp y))
-             (let ((tmp ($sc-dispatch tmp '(#(atom "quote") ()))))
-               (if tmp
-                 (apply (lambda ()
-                          (if (null? x)
-                            '("quote" ())
-                            (if (null? (cdr x))
-                              (car x)
-                              (let ((tmp-1 x))
-                                (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                  (if tmp
-                                    (apply (lambda (p) (cons "append" p)) tmp)
-                                    (syntax-violation
-                                      #f
-                                      "source expression failed to match any pattern"
-                                      tmp-1)))))))
-                        tmp)
-                 (if (null? x)
-                   y
-                   (let ((tmp-1 (list x y)))
-                     (let ((tmp ($sc-dispatch tmp-1 '(each-any any))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'syntax-rules
+      'macro
+      (lambda (xx)
+        (letrec*
+          ((expand-clause
+             (lambda (clause)
+               (let ((tmp-1 clause))
+                 (let ((tmp ($sc-dispatch
+                              tmp-1
+                              (list '(any . any)
+                                    (cons (vector
+                                            'free-id
+                                            (make-syntax 'syntax-error '((top)) '(hygiene guile)))
+                                          '(any . each-any))))))
+                   (if (if tmp
+                         (apply (lambda (keyword pattern message arg)
+                                  (string? (syntax->datum message)))
+                                tmp)
+                         #f)
+                     (apply (lambda (keyword pattern message arg)
+                              (list (cons (make-syntax 'dummy '((top)) '(hygiene guile)) pattern)
+                                    (list (make-syntax 'syntax '((top)) '(hygiene guile))
+                                          (cons (make-syntax 'syntax-error '((top)) '(hygiene guile))
+                                                (cons (cons (make-syntax 'dummy '((top)) '(hygiene guile)) pattern)
+                                                      (cons message arg))))))
+                            tmp)
+                     (let ((tmp ($sc-dispatch tmp-1 '((any . any) any))))
                        (if tmp
-                         (apply (lambda (p y) (cons "append" (append p (list y)))) tmp)
+                         (apply (lambda (keyword pattern template)
+                                  (list (cons (make-syntax 'dummy '((top)) '(hygiene guile)) pattern)
+                                        (list (make-syntax 'syntax '((top)) '(hygiene guile)) template)))
+                                tmp)
                          (syntax-violation
                            #f
                            "source expression failed to match any pattern"
-                           tmp-1))))))))))
-       (quasilist*
-         (lambda (x y)
-           (let f ((x x)) (if (null? x) y (quasicons (car x) (f (cdr x)))))))
-       (quasivector
-         (lambda (x)
-           (let ((tmp x))
-             (let ((tmp ($sc-dispatch tmp '(#(atom "quote") each-any))))
-               (if tmp
-                 (apply (lambda (x) (list "quote" (list->vector x))) tmp)
-                 (let f ((y x)
-                         (k (lambda (ls)
-                              (let ((tmp-1 ls))
-                                (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                  (if tmp
-                                    (apply (lambda (t-680b775fb37a463) (cons "vector" t-680b775fb37a463))
-                                           tmp)
-                                    (syntax-violation
-                                      #f
-                                      "source expression failed to match any pattern"
-                                      tmp-1)))))))
-                   (let ((tmp y))
-                     (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") each-any))))
-                       (if tmp-1
-                         (apply (lambda (y)
-                                  (k (map (lambda (tmp-680b775fb37a463) (list "quote" tmp-680b775fb37a463))
-                                          y)))
-                                tmp-1)
-                         (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . each-any))))
-                           (if tmp-1
-                             (apply (lambda (y) (k y)) tmp-1)
-                             (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list*") . #(each+ any (any) ())))))
-                               (if tmp-1
-                                 (apply (lambda (y z) (f z (lambda (ls) (k (append y ls))))) tmp-1)
-                                 (let ((else tmp))
-                                   (let ((tmp x))
-                                     (let ((t-680b775fb37a463 tmp))
-                                       (list "list->vector" t-680b775fb37a463)))))))))))))))))
-       (emit (lambda (x)
-               (let ((tmp x))
-                 (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") any))))
-                   (if tmp-1
-                     (apply (lambda (x) (list '#(syntax-object quote ((top)) (hygiene guile)) x))
-                            tmp-1)
-                     (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . each-any))))
-                       (if tmp-1
-                         (apply (lambda (x)
-                                  (let ((tmp-1 (map emit x)))
-                                    (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                      (if tmp
-                                        (apply (lambda (t-680b775fb37a463-12a2)
-                                                 (cons '#(syntax-object list ((top)) (hygiene guile))
-                                                       t-680b775fb37a463-12a2))
-                                               tmp)
-                                        (syntax-violation
-                                          #f
-                                          "source expression failed to match any pattern"
-                                          tmp-1)))))
-                                tmp-1)
-                         (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list*") . #(each+ any (any) ())))))
-                           (if tmp-1
-                             (apply (lambda (x y)
-                                      (let f ((x* x))
-                                        (if (null? x*)
-                                          (emit y)
-                                          (let ((tmp-1 (list (emit (car x*)) (f (cdr x*)))))
-                                            (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-                                              (if tmp
-                                                (apply (lambda (t-680b775fb37a463-12b6 t-680b775fb37a463-12b5)
-                                                         (list '#(syntax-object cons ((top)) (hygiene guile))
-                                                               t-680b775fb37a463-12b6
-                                                               t-680b775fb37a463-12b5))
-                                                       tmp)
-                                                (syntax-violation
-                                                  #f
-                                                  "source expression failed to match any pattern"
-                                                  tmp-1)))))))
-                                    tmp-1)
-                             (let ((tmp-1 ($sc-dispatch tmp '(#(atom "append") . each-any))))
-                               (if tmp-1
-                                 (apply (lambda (x)
-                                          (let ((tmp-1 (map emit x)))
-                                            (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                              (if tmp
-                                                (apply (lambda (t-680b775fb37a463-12c2)
-                                                         (cons '#(syntax-object append ((top)) (hygiene guile))
-                                                               t-680b775fb37a463-12c2))
-                                                       tmp)
-                                                (syntax-violation
-                                                  #f
-                                                  "source expression failed to match any pattern"
-                                                  tmp-1)))))
-                                        tmp-1)
-                                 (let ((tmp-1 ($sc-dispatch tmp '(#(atom "vector") . each-any))))
-                                   (if tmp-1
-                                     (apply (lambda (x)
-                                              (let ((tmp-1 (map emit x)))
-                                                (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                                  (if tmp
-                                                    (apply (lambda (t-680b775fb37a463-12ce)
-                                                             (cons '#(syntax-object vector ((top)) (hygiene guile))
-                                                                   t-680b775fb37a463-12ce))
-                                                           tmp)
-                                                    (syntax-violation
-                                                      #f
-                                                      "source expression failed to match any pattern"
-                                                      tmp-1)))))
-                                            tmp-1)
-                                     (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list->vector") any))))
-                                       (if tmp-1
-                                         (apply (lambda (x)
-                                                  (let ((tmp (emit x)))
-                                                    (let ((t-680b775fb37a463-12da tmp))
-                                                      (list '#(syntax-object list->vector ((top)) (hygiene guile))
-                                                            t-680b775fb37a463-12da))))
-                                                tmp-1)
-                                         (let ((tmp-1 ($sc-dispatch tmp '(#(atom "value") any))))
-                                           (if tmp-1
-                                             (apply (lambda (x) x) tmp-1)
-                                             (syntax-violation
-                                               #f
-                                               "source expression failed to match any pattern"
-                                               tmp)))))))))))))))))))
+                           tmp-1))))))))
+           (expand-syntax-rules
+             (lambda (dots keys docstrings clauses)
+               (let ((tmp-1 (list keys docstrings clauses (map expand-clause clauses))))
+                 (let ((tmp ($sc-dispatch
+                              tmp-1
+                              '(each-any each-any #(each ((any . any) any)) each-any))))
+                   (if tmp
+                     (apply (lambda (k docstring keyword pattern template clause)
+                              (let ((tmp (cons (make-syntax 'lambda '((top)) '(hygiene guile))
+                                               (cons (list (make-syntax 'x '((top)) '(hygiene guile)))
+                                                     (append
+                                                       docstring
+                                                       (list (vector
+                                                               (cons (make-syntax 'macro-type '((top)) '(hygiene guile))
+                                                                     (make-syntax
+                                                                       'syntax-rules
+                                                                       (list '(top)
+                                                                             (vector
+                                                                               'ribcage
+                                                                               '#(syntax-rules)
+                                                                               '#((top))
+                                                                               (vector
+                                                                                 (cons '(hygiene guile)
+                                                                                       (make-syntax
+                                                                                         'syntax-rules
+                                                                                         '((top))
+                                                                                         '(hygiene guile))))))
+                                                                       '(hygiene guile)))
+                                                               (cons (make-syntax 'patterns '((top)) '(hygiene guile))
+                                                                     pattern))
+                                                             (cons (make-syntax 'syntax-case '((top)) '(hygiene guile))
+                                                                   (cons (make-syntax 'x '((top)) '(hygiene guile))
+                                                                         (cons k clause)))))))))
+                                (let ((form tmp))
+                                  (if dots
+                                    (let ((tmp dots))
+                                      (let ((dots tmp))
+                                        (list (make-syntax 'with-ellipsis '((top)) '(hygiene guile))
+                                              dots
+                                              form)))
+                                    form))))
+                            tmp)
+                     (syntax-violation
+                       #f
+                       "source expression failed to match any pattern"
+                       tmp-1)))))))
+          (let ((tmp xx))
+            (let ((tmp-1 ($sc-dispatch tmp '(_ each-any . #(each ((any . any) any))))))
+              (if tmp-1
+                (apply (lambda (k keyword pattern template)
+                         (expand-syntax-rules
+                           #f
+                           k
+                           '()
+                           (map (lambda (tmp-680b775fb37a463-2 tmp-680b775fb37a463-1 tmp-680b775fb37a463)
+                                  (list (cons tmp-680b775fb37a463 tmp-680b775fb37a463-1)
+                                        tmp-680b775fb37a463-2))
+                                template
+                                pattern
+                                keyword)))
+                       tmp-1)
+                (let ((tmp-1 ($sc-dispatch tmp '(_ each-any any . #(each ((any . any) any))))))
+                  (if (if tmp-1
+                        (apply (lambda (k docstring keyword pattern template)
+                                 (string? (syntax->datum docstring)))
+                               tmp-1)
+                        #f)
+                    (apply (lambda (k docstring keyword pattern template)
+                             (expand-syntax-rules
+                               #f
+                               k
+                               (list docstring)
+                               (map (lambda (tmp-680b775fb37a463-1 tmp-680b775fb37a463 tmp-680b775fb37a463-116f)
+                                      (list (cons tmp-680b775fb37a463-116f tmp-680b775fb37a463)
+                                            tmp-680b775fb37a463-1))
+                                    template
+                                    pattern
+                                    keyword)))
+                           tmp-1)
+                    (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any . #(each ((any . any) any))))))
+                      (if (if tmp-1
+                            (apply (lambda (dots k keyword pattern template) (identifier? dots))
+                                   tmp-1)
+                            #f)
+                        (apply (lambda (dots k keyword pattern template)
+                                 (expand-syntax-rules
+                                   dots
+                                   k
+                                   '()
+                                   (map (lambda (tmp-680b775fb37a463-118a tmp-680b775fb37a463-1 tmp-680b775fb37a463)
+                                          (list (cons tmp-680b775fb37a463 tmp-680b775fb37a463-1)
+                                                tmp-680b775fb37a463-118a))
+                                        template
+                                        pattern
+                                        keyword)))
+                               tmp-1)
+                        (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any any . #(each ((any . any) any))))))
+                          (if (if tmp-1
+                                (apply (lambda (dots k docstring keyword pattern template)
+                                         (if (identifier? dots) (string? (syntax->datum docstring)) #f))
+                                       tmp-1)
+                                #f)
+                            (apply (lambda (dots k docstring keyword pattern template)
+                                     (expand-syntax-rules
+                                       dots
+                                       k
+                                       (list docstring)
+                                       (map (lambda (tmp-680b775fb37a463-11a9
+                                                     tmp-680b775fb37a463-11a8
+                                                     tmp-680b775fb37a463-11a7)
+                                              (list (cons tmp-680b775fb37a463-11a7 tmp-680b775fb37a463-11a8)
+                                                    tmp-680b775fb37a463-11a9))
+                                            template
+                                            pattern
+                                            keyword)))
+                                   tmp-1)
+                            (syntax-violation
+                              #f
+                              "source expression failed to match any pattern"
+                              tmp)))))))))))))))
+
+(define define-syntax-rule
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'define-syntax-rule
+      'macro
       (lambda (x)
         (let ((tmp-1 x))
-          (let ((tmp ($sc-dispatch tmp-1 '(_ any))))
+          (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any))))
             (if tmp
-              (apply (lambda (e) (emit (quasi e 0))) tmp)
+              (apply (lambda (name pattern template)
+                       (list (make-syntax 'define-syntax '((top)) '(hygiene guile))
+                             name
+                             (list (make-syntax 'syntax-rules '((top)) '(hygiene guile))
+                                   '()
+                                   (list (cons (make-syntax '_ '((top)) '(hygiene guile)) pattern)
+                                         template))))
+                     tmp)
+              (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any any))))
+                (if (if tmp
+                      (apply (lambda (name pattern docstring template)
+                               (string? (syntax->datum docstring)))
+                             tmp)
+                      #f)
+                  (apply (lambda (name pattern docstring template)
+                           (list (make-syntax 'define-syntax '((top)) '(hygiene guile))
+                                 name
+                                 (list (make-syntax 'syntax-rules '((top)) '(hygiene guile))
+                                       '()
+                                       docstring
+                                       (list (cons (make-syntax '_ '((top)) '(hygiene guile)) pattern)
+                                             template))))
+                         tmp)
+                  (syntax-violation
+                    #f
+                    "source expression failed to match any pattern"
+                    tmp-1))))))))))
+
+(define let*
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'let*
+      'macro
+      (lambda (x)
+        (let ((tmp-1 x))
+          (let ((tmp ($sc-dispatch tmp-1 '(any #(each (any any)) any . each-any))))
+            (if (if tmp
+                  (apply (lambda (let* x v e1 e2) (and-map identifier? x)) tmp)
+                  #f)
+              (apply (lambda (let* x v e1 e2)
+                       (let f ((bindings (map list x v)))
+                         (if (null? bindings)
+                           (cons (make-syntax 'let '((top)) '(hygiene guile))
+                                 (cons '() (cons e1 e2)))
+                           (let ((tmp-1 (list (f (cdr bindings)) (car bindings))))
+                             (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+                               (if tmp
+                                 (apply (lambda (body binding)
+                                          (list (make-syntax 'let '((top)) '(hygiene guile))
+                                                (list binding)
+                                                body))
+                                        tmp)
+                                 (syntax-violation
+                                   #f
+                                   "source expression failed to match any pattern"
+                                   tmp-1)))))))
+                     tmp)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
                 tmp-1))))))))
 
-(define include
-  (make-syntax-transformer
-    'include
-    'macro
-    (lambda (x)
+(define quasiquote
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'quasiquote
+      'macro
       (letrec*
-        ((read-file
-           (lambda (fn dir k)
-             (let ((p (open-input-file
-                        (if (absolute-file-name? fn)
-                          fn
-                          (if dir
-                            (in-vicinity dir fn)
-                            (syntax-violation
-                              'include
-                              "relative file name only allowed when the include form is in a file"
-                              x))))))
-               (let ((enc (file-encoding p)))
-                 (set-port-encoding! p (let ((t enc)) (if t t "UTF-8")))
-                 (let f ((x (read p)) (result '()))
-                   (if (eof-object? x)
-                     (begin (close-port p) (reverse result))
-                     (f (read p) (cons (datum->syntax k x) result)))))))))
-        (let ((src (syntax-source x)))
-          (let ((file (if src (assq-ref src 'filename) #f)))
-            (let ((dir (if (string? file) (dirname file) #f)))
-              (let ((tmp-1 x))
-                (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-                  (if tmp
-                    (apply (lambda (k filename)
-                             (let ((fn (syntax->datum filename)))
-                               (let ((tmp-1 (read-file fn dir filename)))
-                                 (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                                   (if tmp
-                                     (apply (lambda (exp)
-                                              (cons '#(syntax-object begin ((top)) (hygiene guile)) exp))
-                                            tmp)
-                                     (syntax-violation
-                                       #f
-                                       "source expression failed to match any pattern"
-                                       tmp-1))))))
-                           tmp)
-                    (syntax-violation
-                      #f
-                      "source expression failed to match any pattern"
-                      tmp-1)))))))))))
+        ((quasi (lambda (p lev)
+                  (let ((tmp p))
+                    (let ((tmp-1 ($sc-dispatch
+                                   tmp
+                                   (list (vector 'free-id (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                         'any))))
+                      (if tmp-1
+                        (apply (lambda (p)
+                                 (if (= lev 0)
+                                   (list "value" p)
+                                   (quasicons
+                                     (list "quote" (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                     (quasi (list p) (- lev 1)))))
+                               tmp-1)
+                        (let ((tmp-1 ($sc-dispatch
+                                       tmp
+                                       (list (vector
+                                               'free-id
+                                               (make-syntax
+                                                 'quasiquote
+                                                 (list '(top)
+                                                       (vector
+                                                         'ribcage
+                                                         '#(quasiquote)
+                                                         '#((top))
+                                                         (vector
+                                                           (cons '(hygiene guile)
+                                                                 (make-syntax 'quasiquote '((top)) '(hygiene guile))))))
+                                                 '(hygiene guile)))
+                                             'any))))
+                          (if tmp-1
+                            (apply (lambda (p)
+                                     (quasicons
+                                       (list "quote"
+                                             (make-syntax
+                                               'quasiquote
+                                               (list '(top)
+                                                     (vector
+                                                       'ribcage
+                                                       '#(quasiquote)
+                                                       '#((top))
+                                                       (vector
+                                                         (cons '(hygiene guile)
+                                                               (make-syntax 'quasiquote '((top)) '(hygiene guile))))))
+                                               '(hygiene guile)))
+                                       (quasi (list p) (+ lev 1))))
+                                   tmp-1)
+                            (let ((tmp-1 ($sc-dispatch tmp '(any . any))))
+                              (if tmp-1
+                                (apply (lambda (p q)
+                                         (let ((tmp-1 p))
+                                           (let ((tmp ($sc-dispatch
+                                                        tmp-1
+                                                        (cons (vector
+                                                                'free-id
+                                                                (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                                              'each-any))))
+                                             (if tmp
+                                               (apply (lambda (p)
+                                                        (if (= lev 0)
+                                                          (quasilist*
+                                                            (map (lambda (tmp-680b775fb37a463)
+                                                                   (list "value" tmp-680b775fb37a463))
+                                                                 p)
+                                                            (quasi q lev))
+                                                          (quasicons
+                                                            (quasicons
+                                                              (list "quote"
+                                                                    (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                                              (quasi p (- lev 1)))
+                                                            (quasi q lev))))
+                                                      tmp)
+                                               (let ((tmp ($sc-dispatch
+                                                            tmp-1
+                                                            (cons (vector
+                                                                    'free-id
+                                                                    (make-syntax
+                                                                      'unquote-splicing
+                                                                      '((top))
+                                                                      '(hygiene guile)))
+                                                                  'each-any))))
+                                                 (if tmp
+                                                   (apply (lambda (p)
+                                                            (if (= lev 0)
+                                                              (quasiappend
+                                                                (map (lambda (tmp-680b775fb37a463)
+                                                                       (list "value" tmp-680b775fb37a463))
+                                                                     p)
+                                                                (quasi q lev))
+                                                              (quasicons
+                                                                (quasicons
+                                                                  (list "quote"
+                                                                        (make-syntax
+                                                                          'unquote-splicing
+                                                                          '((top))
+                                                                          '(hygiene guile)))
+                                                                  (quasi p (- lev 1)))
+                                                                (quasi q lev))))
+                                                          tmp)
+                                                   (quasicons (quasi p lev) (quasi q lev))))))))
+                                       tmp-1)
+                                (let ((tmp-1 ($sc-dispatch tmp '#(vector each-any))))
+                                  (if tmp-1
+                                    (apply (lambda (x) (quasivector (vquasi x lev))) tmp-1)
+                                    (let ((p tmp)) (list "quote" p)))))))))))))
+         (vquasi
+           (lambda (p lev)
+             (let ((tmp p))
+               (let ((tmp-1 ($sc-dispatch tmp '(any . any))))
+                 (if tmp-1
+                   (apply (lambda (p q)
+                            (let ((tmp-1 p))
+                              (let ((tmp ($sc-dispatch
+                                           tmp-1
+                                           (cons (vector 'free-id (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                                 'each-any))))
+                                (if tmp
+                                  (apply (lambda (p)
+                                           (if (= lev 0)
+                                             (quasilist*
+                                               (map (lambda (tmp-680b775fb37a463-122f)
+                                                      (list "value" tmp-680b775fb37a463-122f))
+                                                    p)
+                                               (vquasi q lev))
+                                             (quasicons
+                                               (quasicons
+                                                 (list "quote" (make-syntax 'unquote '((top)) '(hygiene guile)))
+                                                 (quasi p (- lev 1)))
+                                               (vquasi q lev))))
+                                         tmp)
+                                  (let ((tmp ($sc-dispatch
+                                               tmp-1
+                                               (cons (vector
+                                                       'free-id
+                                                       (make-syntax 'unquote-splicing '((top)) '(hygiene guile)))
+                                                     'each-any))))
+                                    (if tmp
+                                      (apply (lambda (p)
+                                               (if (= lev 0)
+                                                 (quasiappend
+                                                   (map (lambda (tmp-680b775fb37a463)
+                                                          (list "value" tmp-680b775fb37a463))
+                                                        p)
+                                                   (vquasi q lev))
+                                                 (quasicons
+                                                   (quasicons
+                                                     (list "quote"
+                                                           (make-syntax 'unquote-splicing '((top)) '(hygiene guile)))
+                                                     (quasi p (- lev 1)))
+                                                   (vquasi q lev))))
+                                             tmp)
+                                      (quasicons (quasi p lev) (vquasi q lev))))))))
+                          tmp-1)
+                   (let ((tmp-1 ($sc-dispatch tmp '())))
+                     (if tmp-1
+                       (apply (lambda () '("quote" ())) tmp-1)
+                       (syntax-violation
+                         #f
+                         "source expression failed to match any pattern"
+                         tmp))))))))
+         (quasicons
+           (lambda (x y)
+             (let ((tmp-1 (list x y)))
+               (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+                 (if tmp
+                   (apply (lambda (x y)
+                            (let ((tmp y))
+                              (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") any))))
+                                (if tmp-1
+                                  (apply (lambda (dy)
+                                           (let ((tmp x))
+                                             (let ((tmp ($sc-dispatch tmp '(#(atom "quote") any))))
+                                               (if tmp
+                                                 (apply (lambda (dx) (list "quote" (cons dx dy))) tmp)
+                                                 (if (null? dy) (list "list" x) (list "list*" x y))))))
+                                         tmp-1)
+                                  (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . any))))
+                                    (if tmp-1
+                                      (apply (lambda (stuff) (cons "list" (cons x stuff))) tmp-1)
+                                      (let ((tmp ($sc-dispatch tmp '(#(atom "list*") . any))))
+                                        (if tmp
+                                          (apply (lambda (stuff) (cons "list*" (cons x stuff))) tmp)
+                                          (list "list*" x y)))))))))
+                          tmp)
+                   (syntax-violation
+                     #f
+                     "source expression failed to match any pattern"
+                     tmp-1))))))
+         (quasiappend
+           (lambda (x y)
+             (let ((tmp y))
+               (let ((tmp ($sc-dispatch tmp '(#(atom "quote") ()))))
+                 (if tmp
+                   (apply (lambda ()
+                            (if (null? x)
+                              '("quote" ())
+                              (if (null? (cdr x))
+                                (car x)
+                                (let ((tmp-1 x))
+                                  (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                    (if tmp
+                                      (apply (lambda (p) (cons "append" p)) tmp)
+                                      (syntax-violation
+                                        #f
+                                        "source expression failed to match any pattern"
+                                        tmp-1)))))))
+                          tmp)
+                   (if (null? x)
+                     y
+                     (let ((tmp-1 (list x y)))
+                       (let ((tmp ($sc-dispatch tmp-1 '(each-any any))))
+                         (if tmp
+                           (apply (lambda (p y) (cons "append" (append p (list y)))) tmp)
+                           (syntax-violation
+                             #f
+                             "source expression failed to match any pattern"
+                             tmp-1))))))))))
+         (quasilist*
+           (lambda (x y)
+             (let f ((x x)) (if (null? x) y (quasicons (car x) (f (cdr x)))))))
+         (quasivector
+           (lambda (x)
+             (let ((tmp x))
+               (let ((tmp ($sc-dispatch tmp '(#(atom "quote") each-any))))
+                 (if tmp
+                   (apply (lambda (x) (list "quote" (list->vector x))) tmp)
+                   (let f ((y x)
+                           (k (lambda (ls)
+                                (let ((tmp-1 ls))
+                                  (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                    (if tmp
+                                      (apply (lambda (t-680b775fb37a463-127d)
+                                               (cons "vector" t-680b775fb37a463-127d))
+                                             tmp)
+                                      (syntax-violation
+                                        #f
+                                        "source expression failed to match any pattern"
+                                        tmp-1)))))))
+                     (let ((tmp y))
+                       (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") each-any))))
+                         (if tmp-1
+                           (apply (lambda (y)
+                                    (k (map (lambda (tmp-680b775fb37a463) (list "quote" tmp-680b775fb37a463))
+                                            y)))
+                                  tmp-1)
+                           (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . each-any))))
+                             (if tmp-1
+                               (apply (lambda (y) (k y)) tmp-1)
+                               (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list*") . #(each+ any (any) ())))))
+                                 (if tmp-1
+                                   (apply (lambda (y z) (f z (lambda (ls) (k (append y ls))))) tmp-1)
+                                   (let ((else tmp))
+                                     (let ((tmp x))
+                                       (let ((t-680b775fb37a463 tmp))
+                                         (list "list->vector" t-680b775fb37a463)))))))))))))))))
+         (emit (lambda (x)
+                 (let ((tmp x))
+                   (let ((tmp-1 ($sc-dispatch tmp '(#(atom "quote") any))))
+                     (if tmp-1
+                       (apply (lambda (x) (list (make-syntax 'quote '((top)) '(hygiene guile)) x))
+                              tmp-1)
+                       (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list") . each-any))))
+                         (if tmp-1
+                           (apply (lambda (x)
+                                    (let ((tmp-1 (map emit x)))
+                                      (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                        (if tmp
+                                          (apply (lambda (t-680b775fb37a463-12a7)
+                                                   (cons (make-syntax 'list '((top)) '(hygiene guile))
+                                                         t-680b775fb37a463-12a7))
+                                                 tmp)
+                                          (syntax-violation
+                                            #f
+                                            "source expression failed to match any pattern"
+                                            tmp-1)))))
+                                  tmp-1)
+                           (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list*") . #(each+ any (any) ())))))
+                             (if tmp-1
+                               (apply (lambda (x y)
+                                        (let f ((x* x))
+                                          (if (null? x*)
+                                            (emit y)
+                                            (let ((tmp-1 (list (emit (car x*)) (f (cdr x*)))))
+                                              (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+                                                (if tmp
+                                                  (apply (lambda (t-680b775fb37a463-12bb t-680b775fb37a463-12ba)
+                                                           (list (make-syntax 'cons '((top)) '(hygiene guile))
+                                                                 t-680b775fb37a463-12bb
+                                                                 t-680b775fb37a463-12ba))
+                                                         tmp)
+                                                  (syntax-violation
+                                                    #f
+                                                    "source expression failed to match any pattern"
+                                                    tmp-1)))))))
+                                      tmp-1)
+                               (let ((tmp-1 ($sc-dispatch tmp '(#(atom "append") . each-any))))
+                                 (if tmp-1
+                                   (apply (lambda (x)
+                                            (let ((tmp-1 (map emit x)))
+                                              (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                                (if tmp
+                                                  (apply (lambda (t-680b775fb37a463-12c7)
+                                                           (cons (make-syntax 'append '((top)) '(hygiene guile))
+                                                                 t-680b775fb37a463-12c7))
+                                                         tmp)
+                                                  (syntax-violation
+                                                    #f
+                                                    "source expression failed to match any pattern"
+                                                    tmp-1)))))
+                                          tmp-1)
+                                   (let ((tmp-1 ($sc-dispatch tmp '(#(atom "vector") . each-any))))
+                                     (if tmp-1
+                                       (apply (lambda (x)
+                                                (let ((tmp-1 (map emit x)))
+                                                  (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                                    (if tmp
+                                                      (apply (lambda (t-680b775fb37a463-12d3)
+                                                               (cons (make-syntax 'vector '((top)) '(hygiene guile))
+                                                                     t-680b775fb37a463-12d3))
+                                                             tmp)
+                                                      (syntax-violation
+                                                        #f
+                                                        "source expression failed to match any pattern"
+                                                        tmp-1)))))
+                                              tmp-1)
+                                       (let ((tmp-1 ($sc-dispatch tmp '(#(atom "list->vector") any))))
+                                         (if tmp-1
+                                           (apply (lambda (x)
+                                                    (let ((tmp (emit x)))
+                                                      (let ((t-680b775fb37a463-12df tmp))
+                                                        (list (make-syntax 'list->vector '((top)) '(hygiene guile))
+                                                              t-680b775fb37a463-12df))))
+                                                  tmp-1)
+                                           (let ((tmp-1 ($sc-dispatch tmp '(#(atom "value") any))))
+                                             (if tmp-1
+                                               (apply (lambda (x) x) tmp-1)
+                                               (syntax-violation
+                                                 #f
+                                                 "source expression failed to match any pattern"
+                                                 tmp)))))))))))))))))))
+        (lambda (x)
+          (let ((tmp-1 x))
+            (let ((tmp ($sc-dispatch tmp-1 '(_ any))))
+              (if tmp
+                (apply (lambda (e) (emit (quasi e 0))) tmp)
+                (syntax-violation
+                  #f
+                  "source expression failed to match any pattern"
+                  tmp-1)))))))))
+
+(define include
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'include
+      'macro
+      (lambda (x)
+        (letrec*
+          ((read-file
+             (lambda (fn dir k)
+               (let ((p (open-input-file
+                          (if (absolute-file-name? fn)
+                            fn
+                            (if dir
+                              (in-vicinity dir fn)
+                              (syntax-violation
+                                'include
+                                "relative file name only allowed when the include form is in a file"
+                                x))))))
+                 (let ((enc (file-encoding p)))
+                   (set-port-encoding! p (let ((t enc)) (if t t "UTF-8")))
+                   (let f ((x (read p)) (result '()))
+                     (if (eof-object? x)
+                       (begin (close-port p) (reverse result))
+                       (f (read p) (cons (datum->syntax k x) result)))))))))
+          (let ((src (syntax-source x)))
+            (let ((file (if src (assq-ref src 'filename) #f)))
+              (let ((dir (if (string? file) (dirname file) #f)))
+                (let ((tmp-1 x))
+                  (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+                    (if tmp
+                      (apply (lambda (k filename)
+                               (let ((fn (syntax->datum filename)))
+                                 (let ((tmp-1 (read-file fn dir filename)))
+                                   (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                     (if tmp
+                                       (apply (lambda (exp)
+                                                (cons (make-syntax 'begin '((top)) '(hygiene guile)) exp))
+                                              tmp)
+                                       (syntax-violation
+                                         #f
+                                         "source expression failed to match any pattern"
+                                         tmp-1))))))
+                             tmp)
+                      (syntax-violation
+                        #f
+                        "source expression failed to match any pattern"
+                        tmp-1))))))))))))
 
 (define include-from-path
-  (make-syntax-transformer
-    'include-from-path
-    'macro
-    (lambda (x)
-      (let ((tmp-1 x))
-        (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-          (if tmp
-            (apply (lambda (k filename)
-                     (let ((fn (syntax->datum filename)))
-                       (let ((tmp (datum->syntax
-                                    filename
-                                    (canonicalize-path
-                                      (let ((t (%search-load-path fn)))
-                                        (if t
-                                          t
-                                          (syntax-violation
-                                            'include-from-path
-                                            "file not found in path"
-                                            x
-                                            filename)))))))
-                         (let ((fn tmp))
-                           (list '#(syntax-object include ((top)) (hygiene guile)) fn)))))
-                   tmp)
-            (syntax-violation
-              #f
-              "source expression failed to match any pattern"
-              tmp-1)))))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'include-from-path
+      'macro
+      (lambda (x)
+        (let ((tmp-1 x))
+          (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+            (if tmp
+              (apply (lambda (k filename)
+                       (let ((fn (syntax->datum filename)))
+                         (let ((tmp (datum->syntax
+                                      filename
+                                      (canonicalize-path
+                                        (let ((t (%search-load-path fn)))
+                                          (if t
+                                            t
+                                            (syntax-violation
+                                              'include-from-path
+                                              "file not found in path"
+                                              x
+                                              filename)))))))
+                           (let ((fn tmp))
+                             (list (make-syntax 'include '((top)) '(hygiene guile)) fn)))))
+                     tmp)
+              (syntax-violation
+                #f
+                "source expression failed to match any pattern"
+                tmp-1))))))))
 
 (define unquote
   (make-syntax-transformer
@@ -3401,104 +3422,110 @@
       (error "variable transformer not a procedure" proc))))
 
 (define identifier-syntax
-  (make-syntax-transformer
-    'identifier-syntax
-    'macro
-    (lambda (xx)
-      (let ((tmp-1 xx))
-        (let ((tmp ($sc-dispatch tmp-1 '(_ any))))
-          (if tmp
-            (apply (lambda (e)
-                     (list '#(syntax-object lambda ((top)) (hygiene guile))
-                           '(#(syntax-object x ((top)) (hygiene guile)))
-                           '#((#(syntax-object macro-type ((top)) (hygiene guile))
-                               .
-                               #(syntax-object
-                                 identifier-syntax
-                                 ((top)
-                                  #(ribcage
-                                    #(identifier-syntax)
-                                    #((top))
-                                    #(((hygiene guile)
-                                       .
-                                       #(syntax-object identifier-syntax ((top)) (hygiene guile))))))
-                                 (hygiene guile))))
-                           (list '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                 '#(syntax-object x ((top)) (hygiene guile))
-                                 '()
-                                 (list '#(syntax-object id ((top)) (hygiene guile))
-                                       '(#(syntax-object identifier? ((top)) (hygiene guile))
-                                         (#(syntax-object syntax ((top)) (hygiene guile))
-                                          #(syntax-object id ((top)) (hygiene guile))))
-                                       (list '#(syntax-object syntax ((top)) (hygiene guile)) e))
-                                 (list '(#(syntax-object _ ((top)) (hygiene guile))
-                                         #(syntax-object x ((top)) (hygiene guile))
-                                         #(syntax-object ... ((top)) (hygiene guile)))
-                                       (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                             (cons e
-                                                   '(#(syntax-object x ((top)) (hygiene guile))
-                                                     #(syntax-object ... ((top)) (hygiene guile)))))))))
-                   tmp)
-            (let ((tmp ($sc-dispatch
-                         tmp-1
-                         '(_ (any any)
-                             ((#(free-id #(syntax-object set! ((top)) (hygiene guile))) any any)
-                              any)))))
-              (if (if tmp
-                    (apply (lambda (id exp1 var val exp2)
-                             (if (identifier? id) (identifier? var) #f))
-                           tmp)
-                    #f)
-                (apply (lambda (id exp1 var val exp2)
-                         (list '#(syntax-object make-variable-transformer ((top)) (hygiene guile))
-                               (list '#(syntax-object lambda ((top)) (hygiene guile))
-                                     '(#(syntax-object x ((top)) (hygiene guile)))
-                                     '#((#(syntax-object macro-type ((top)) (hygiene guile))
-                                         .
-                                         #(syntax-object variable-transformer ((top)) (hygiene guile))))
-                                     (list '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                           '#(syntax-object x ((top)) (hygiene guile))
-                                           '(#(syntax-object set! ((top)) (hygiene guile)))
-                                           (list (list '#(syntax-object set! ((top)) (hygiene guile)) var val)
-                                                 (list '#(syntax-object syntax ((top)) (hygiene guile)) exp2))
-                                           (list (cons id
-                                                       '(#(syntax-object x ((top)) (hygiene guile))
-                                                         #(syntax-object ... ((top)) (hygiene guile))))
-                                                 (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                                       (cons exp1
-                                                             '(#(syntax-object x ((top)) (hygiene guile))
-                                                               #(syntax-object ... ((top)) (hygiene guile))))))
-                                           (list id
-                                                 (list '#(syntax-object identifier? ((top)) (hygiene guile))
-                                                       (list '#(syntax-object syntax ((top)) (hygiene guile)) id))
-                                                 (list '#(syntax-object syntax ((top)) (hygiene guile)) exp1))))))
-                       tmp)
-                (syntax-violation
-                  #f
-                  "source expression failed to match any pattern"
-                  tmp-1)))))))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'identifier-syntax
+      'macro
+      (lambda (xx)
+        (let ((tmp-1 xx))
+          (let ((tmp ($sc-dispatch tmp-1 '(_ any))))
+            (if tmp
+              (apply (lambda (e)
+                       (list (make-syntax 'lambda '((top)) '(hygiene guile))
+                             (list (make-syntax 'x '((top)) '(hygiene guile)))
+                             (vector
+                               (cons (make-syntax 'macro-type '((top)) '(hygiene guile))
+                                     (make-syntax
+                                       'identifier-syntax
+                                       (list '(top)
+                                             (vector
+                                               'ribcage
+                                               '#(identifier-syntax)
+                                               '#((top))
+                                               (vector
+                                                 (cons '(hygiene guile)
+                                                       (make-syntax 'identifier-syntax '((top)) '(hygiene guile))))))
+                                       '(hygiene guile))))
+                             (list (make-syntax 'syntax-case '((top)) '(hygiene guile))
+                                   (make-syntax 'x '((top)) '(hygiene guile))
+                                   '()
+                                   (list (make-syntax 'id '((top)) '(hygiene guile))
+                                         (list (make-syntax 'identifier? '((top)) '(hygiene guile))
+                                               (list (make-syntax 'syntax '((top)) '(hygiene guile))
+                                                     (make-syntax 'id '((top)) '(hygiene guile))))
+                                         (list (make-syntax 'syntax '((top)) '(hygiene guile)) e))
+                                   (list (list (make-syntax '_ '((top)) '(hygiene guile))
+                                               (make-syntax 'x '((top)) '(hygiene guile))
+                                               (make-syntax '... '((top)) '(hygiene guile)))
+                                         (list (make-syntax 'syntax '((top)) '(hygiene guile))
+                                               (cons e
+                                                     (list (make-syntax 'x '((top)) '(hygiene guile))
+                                                           (make-syntax '... '((top)) '(hygiene guile)))))))))
+                     tmp)
+              (let ((tmp ($sc-dispatch
+                           tmp-1
+                           (list '_
+                                 '(any any)
+                                 (list (list (vector 'free-id (make-syntax 'set! '((top)) '(hygiene guile)))
+                                             'any
+                                             'any)
+                                       'any)))))
+                (if (if tmp
+                      (apply (lambda (id exp1 var val exp2)
+                               (if (identifier? id) (identifier? var) #f))
+                             tmp)
+                      #f)
+                  (apply (lambda (id exp1 var val exp2)
+                           (list (make-syntax 'make-variable-transformer '((top)) '(hygiene guile))
+                                 (list (make-syntax 'lambda '((top)) '(hygiene guile))
+                                       (list (make-syntax 'x '((top)) '(hygiene guile)))
+                                       (vector
+                                         (cons (make-syntax 'macro-type '((top)) '(hygiene guile))
+                                               (make-syntax 'variable-transformer '((top)) '(hygiene guile))))
+                                       (list (make-syntax 'syntax-case '((top)) '(hygiene guile))
+                                             (make-syntax 'x '((top)) '(hygiene guile))
+                                             (list (make-syntax 'set! '((top)) '(hygiene guile)))
+                                             (list (list (make-syntax 'set! '((top)) '(hygiene guile)) var val)
+                                                   (list (make-syntax 'syntax '((top)) '(hygiene guile)) exp2))
+                                             (list (cons id
+                                                         (list (make-syntax 'x '((top)) '(hygiene guile))
+                                                               (make-syntax '... '((top)) '(hygiene guile))))
+                                                   (list (make-syntax 'syntax '((top)) '(hygiene guile))
+                                                         (cons exp1
+                                                               (list (make-syntax 'x '((top)) '(hygiene guile))
+                                                                     (make-syntax '... '((top)) '(hygiene guile))))))
+                                             (list id
+                                                   (list (make-syntax 'identifier? '((top)) '(hygiene guile))
+                                                         (list (make-syntax 'syntax '((top)) '(hygiene guile)) id))
+                                                   (list (make-syntax 'syntax '((top)) '(hygiene guile)) exp1))))))
+                         tmp)
+                  (syntax-violation
+                    #f
+                    "source expression failed to match any pattern"
+                    tmp-1))))))))))
 
 (define define*
-  (make-syntax-transformer
-    'define*
-    'macro
-    (lambda (x)
-      (let ((tmp-1 x))
-        (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any . each-any))))
-          (if tmp
-            (apply (lambda (id args b0 b1)
-                     (list '#(syntax-object define ((top)) (hygiene guile))
-                           id
-                           (cons '#(syntax-object lambda* ((top)) (hygiene guile))
-                                 (cons args (cons b0 b1)))))
-                   tmp)
-            (let ((tmp ($sc-dispatch tmp-1 '(_ any any))))
-              (if (if tmp (apply (lambda (id val) (identifier? id)) tmp) #f)
-                (apply (lambda (id val)
-                         (list '#(syntax-object define ((top)) (hygiene guile)) id val))
-                       tmp)
-                (syntax-violation
-                  #f
-                  "source expression failed to match any pattern"
-                  tmp-1)))))))))
+  (let ((make-syntax make-syntax))
+    (make-syntax-transformer
+      'define*
+      'macro
+      (lambda (x)
+        (let ((tmp-1 x))
+          (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any . each-any))))
+            (if tmp
+              (apply (lambda (id args b0 b1)
+                       (list (make-syntax 'define '((top)) '(hygiene guile))
+                             id
+                             (cons (make-syntax 'lambda* '((top)) '(hygiene guile))
+                                   (cons args (cons b0 b1)))))
+                     tmp)
+              (let ((tmp ($sc-dispatch tmp-1 '(_ any any))))
+                (if (if tmp (apply (lambda (id val) (identifier? id)) tmp) #f)
+                  (apply (lambda (id val)
+                           (list (make-syntax 'define '((top)) '(hygiene guile)) id val))
+                         tmp)
+                  (syntax-violation
+                    #f
+                    "source expression failed to match any pattern"
+                    tmp-1))))))))))
 

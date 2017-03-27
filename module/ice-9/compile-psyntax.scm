@@ -20,66 +20,131 @@
              (language tree-il primitives)
              (language tree-il canonicalize)
              (srfi srfi-1)
+             (ice-9 control)
              (ice-9 pretty-print)
-             (system syntax))
+             (system syntax internal))
 
 ;; Minimize a syntax-object such that it can no longer be used as the
 ;; first argument to 'datum->syntax', but is otherwise equivalent.
-(define (squeeze-syntax-object! syn)
+(define (squeeze-syntax-object syn)
   (define (ensure-list x) (if (vector? x) (vector->list x) x))
-  (let ((x    (vector-ref syn 1))
-        (wrap (vector-ref syn 2))
-        (mod  (vector-ref syn 3)))
+  (let ((x    (syntax-expression syn))
+        (wrap (syntax-wrap syn))
+        (mod  (syntax-module syn)))
     (let ((marks (car wrap))
           (subst (cdr wrap)))
-      (define (set-wrap! marks subst)
-        (vector-set! syn 2 (cons marks subst)))
+      (define (squeeze-wrap marks subst)
+        (make-syntax x (cons marks subst) mod))
       (cond
        ((symbol? x)
         (let loop ((marks marks) (subst subst))
           (cond
-           ((null? subst) (set-wrap! marks subst) syn)
+           ((null? subst) (squeeze-wrap marks subst))
            ((eq? 'shift (car subst)) (loop (cdr marks) (cdr subst)))
            ((find (lambda (entry) (and (eq? x (car entry))
                                        (equal? marks (cadr entry))))
                   (apply map list (map ensure-list
                                        (cdr (vector->list (car subst))))))
             => (lambda (entry)
-                 (set-wrap! marks
-                            (list (list->vector
-                                   (cons 'ribcage
-                                         (map vector entry)))))
-                 syn))
+                 (squeeze-wrap marks
+                               (list (list->vector
+                                      (cons 'ribcage
+                                            (map vector entry)))))))
            (else (loop marks (cdr subst))))))
-       ((or (pair? x) (vector? x))
-        syn)
+       ((or (pair? x) (vector? x)) syn)
        (else x)))))
 
-(define (squeeze-constant! x)
-  (define (syntax-object? x)
-    (and (vector? x)
-         (= 4 (vector-length x))
-         (eq? 'syntax-object (vector-ref x 0))))
-  (cond ((syntax-object? x)
-         (squeeze-syntax-object! x))
+(define (squeeze-constant x)
+  (cond ((syntax? x) (squeeze-syntax-object x))
         ((pair? x)
-         (set-car! x (squeeze-constant! (car x)))
-         (set-cdr! x (squeeze-constant! (cdr x)))
-         x)
+         (cons (squeeze-constant (car x))
+               (squeeze-constant (cdr x))))
         ((vector? x)
-         (for-each (lambda (i)
-                     (vector-set! x i (squeeze-constant! (vector-ref x i))))
-                   (iota (vector-length x)))
-         x)
+         (list->vector (squeeze-constant (vector->list x))))
         (else x)))
 
 (define (squeeze-tree-il x)
   (post-order (lambda (x)
                 (if (const? x)
                     (make-const (const-src x)
-                                (squeeze-constant! (const-exp x)))
+                                (squeeze-constant (const-exp x)))
                     x))
               x))
+
+(define (translate-literal-syntax-objects x)
+  (define (find-make-syntax-lexical-binding x)
+    (let/ec return
+      (pre-order (lambda (x)
+                   (when (let? x)
+                     (for-each (lambda (name sym)
+                                 (when (eq? name 'make-syntax)
+                                   (return sym)))
+                               (let-names x) (let-gensyms x)))
+                   x)
+                 x)
+      #f))
+  (let ((make-syntax-gensym (find-make-syntax-lexical-binding x))
+        (retry-tag (make-prompt-tag)))
+    (define (translate-constant x)
+      (let ((src (const-src x))
+            (exp (const-exp x)))
+        (cond
+         ((list? exp)
+          (let ((exp (map (lambda (x)
+                            (translate-constant (make-const src x)))
+                          exp)))
+            (if (and-map const? exp)
+                x
+                (make-primcall src 'list exp))))
+         ((pair? exp)
+          (let ((car (translate-constant (make-const src (car exp))))
+                (cdr (translate-constant (make-const src (cdr exp)))))
+            (if (and (const? car) (const? cdr))
+                x
+                (make-primcall src 'cons (list car cdr)))))
+         ((vector? exp)
+          (let ((exp (map (lambda (x)
+                            (translate-constant (make-const src x)))
+                          (vector->list exp))))
+            (if (and-map const? exp)
+                x
+                (make-primcall src 'vector exp))))
+         ((syntax? exp)
+          (make-call src
+                     (if make-syntax-gensym
+                         (make-lexical-ref src 'make-syntax
+                                           make-syntax-gensym)
+                         (abort-to-prompt retry-tag))
+                     (list
+                      (translate-constant
+                       (make-const src (syntax-expression exp)))
+                      (translate-constant
+                       (make-const src (syntax-wrap exp)))
+                      (translate-constant
+                       (make-const src (syntax-module exp))))))
+         (else x))))
+    (call-with-prompt retry-tag
+      (lambda ()
+        (post-order (lambda (x)
+                      (if (const? x)
+                          (translate-constant x)
+                          x))
+                    x))
+      (lambda (k)
+        ;; OK, we have a syntax object embedded in this code, but
+        ;; make-syntax isn't lexically bound.  This is the case for the
+        ;; top-level macro definitions in psyntax that follow the main
+        ;; let blob.  Attach a lexical binding and retry.
+        (unless (toplevel-define? x) (error "unexpected"))
+        (translate-literal-syntax-objects
+         (make-toplevel-define
+          (toplevel-define-src x)
+          (toplevel-define-name x)
+          (make-let (toplevel-define-src x)
+                    (list 'make-syntax)
+                    (list (module-gensym))
+                    (list (make-toplevel-ref #f 'make-syntax))
+                    (toplevel-define-exp x))))))))
 
 ;; Avoid gratuitous churn in psyntax-pp.scm due to the marks and labels
 ;; changing session identifiers.
@@ -99,11 +164,12 @@
             (close-port in))
           (begin
             (pretty-print (tree-il->scheme
-                           (squeeze-tree-il
-                            (canonicalize
-                             (resolve-primitives
-                              (macroexpand x 'c '(compile load eval))
-                              (current-module))))
+                           (translate-literal-syntax-objects
+                            (squeeze-tree-il
+                             (canonicalize
+                              (resolve-primitives
+                               (macroexpand x 'c '(compile load eval))
+                               (current-module)))))
                            (current-module)
                            (list #:avoid-lambda? #f
                                  #:use-case? #f
