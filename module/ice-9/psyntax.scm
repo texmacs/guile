@@ -165,7 +165,12 @@
 (eval-when (compile)
   (set-current-module (resolve-module '(guile))))
 
-(let ()
+(let ((syntax? (module-ref (current-module) 'syntax?))
+      (make-syntax (module-ref (current-module) 'make-syntax))
+      (syntax-expression (module-ref (current-module) 'syntax-expression))
+      (syntax-wrap (module-ref (current-module) 'syntax-wrap))
+      (syntax-module (module-ref (current-module) 'syntax-module)))
+
   (define-syntax define-expansion-constructors
     (lambda (x)
       (syntax-case x ()
@@ -466,7 +471,25 @@
       ;; 'gensym' so that the generated identifier is reproducible.
       (module-gensym (symbol->string id)))
 
-    (define-structure (syntax-object expression wrap module))
+    (define (syntax-object? x)
+      (or (syntax? x)
+          (and (vector? x)
+               (= (vector-length x) 4)
+               (eqv? (vector-ref x 0) 'syntax-object))))
+    (define (make-syntax-object expression wrap module)
+      (vector 'syntax-object expression wrap module))
+    (define (syntax-object-expression obj)
+      (if (syntax? obj)
+          (syntax-expression obj)
+          (vector-ref obj 1)))
+    (define (syntax-object-wrap obj)
+      (if (syntax? obj)
+          (syntax-wrap obj)
+          (vector-ref obj 2)))
+    (define (syntax-object-module obj)
+      (if (syntax? obj)
+          (syntax-module obj)
+          (vector-ref obj 3)))
 
     (define-syntax no-source (identifier-syntax #f))
 
