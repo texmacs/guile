@@ -299,6 +299,9 @@ This is handy for tracing function calls, e.g.:
 (define (absolute-file-name? file-name) #t)
 (define (open-input-file str) (open-file str "r"))
 
+;; Temporary definition; replaced by a parameter later.
+(define (allow-legacy-syntax-objects?) #f)
+
 ;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
@@ -1423,10 +1426,14 @@ CONV is not applied to the initial value."
 
 
 ;;; Once parameters have booted, define the default prompt tag as being
-;;; a parameter.
+;;; a parameter, and make allow-legacy-syntax-objects? a parameter.
 ;;;
 
 (set! default-prompt-tag (make-parameter (default-prompt-tag)))
+
+;; Because code compiled with Guile 2.2.0 embeds legacy syntax objects
+;; into its compiled macros, we have to default to true, sadly.
+(set! allow-legacy-syntax-objects? (make-parameter #t))
 
 
 

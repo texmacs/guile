@@ -473,7 +473,8 @@
 
     (define (syntax-object? x)
       (or (syntax? x)
-          (and (vector? x)
+          (and (allow-legacy-syntax-objects?)
+               (vector? x)
                (= (vector-length x) 4)
                (eqv? (vector-ref x 0) 'syntax-object))))
     (define (make-syntax-object expression wrap module)

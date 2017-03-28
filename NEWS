@@ -6,6 +6,26 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
+Changes in 2.2.1 (since 2.2.0):
+
+* Notable changes
+
+** Syntax objects are now a distinct type
+
+It used to be that syntax objects were represented as a tagged vector.
+These values could be forged by users to break scoping abstractions,
+preventing the implementation of sandboxing facilities in Guile.  We are
+as embarrassed about the previous situation as we pleased are about the
+fact that we've fixed it.
+
+Unfortunately, during the 2.2 stable series (or at least during part of
+it), we need to support files compiled with Guile 2.2.0.  These files
+may contain macros that contain legacy syntax object constants.  See the
+discussion of "allow-legacy-syntax-objects?" in "Syntax Transformer
+Helpers" in the manual for full details.
+
+
+
 Changes in 2.2.0 (changes since the 2.0.x stable release series):
 
 * Notable changes
