@@ -1,6 +1,6 @@
 ;;;; 00-repl-server.test --- REPL server.  -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2016 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2016, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -145,7 +145,7 @@ reached."
                   (loop (+ 1 n))))))
         (lambda args
           (->bool (memv (system-error-errno args)
-                        (list ECONNRESET EPIPE))))))))
+                        (list ECONNRESET EPIPE ECONNABORTED))))))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-repl-server 'scheme-indent-function 1)
