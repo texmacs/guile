@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -247,6 +247,12 @@ try_parse_arity (SCM program, int *req, int *opt, int *rest)
   switch (code[0] & 0xff) {
   case scm_op_assert_nargs_ee:
     slots = code[0] >> 8;
+    *req = slots - 1;
+    *opt = 0;
+    *rest = 0;
+    return 1;
+  case scm_op_assert_nargs_ee_locals:
+    slots = (code[0] >> 8) & 0xfff;
     *req = slots - 1;
     *opt = 0;
     *rest = 0;
