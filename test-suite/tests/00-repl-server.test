@@ -32,8 +32,8 @@ socket connected to that server."
     (false-if-exception
      (delete-file (sockaddr:path sockaddr)))
 
-    ;; The REPL server requires threads.
-    (unless (provided? 'threads)
+    ;; The REPL server requires thread. The test requires fork.
+    (unless (and (provided? 'threads) (provided? 'fork))
       (throw 'unsupported))
 
     (match (primitive-fork)

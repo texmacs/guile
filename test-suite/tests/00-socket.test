@@ -1,7 +1,7 @@
 ;;;; 00-socket.test --- test socket functions     -*- scheme -*-
 ;;;;
 ;;;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-;;;;   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;;;;   2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -161,6 +161,10 @@
                  (number->string (current-time)) "-"
                  (number->string (random 100000))))
 
+(define (primitive-fork-if-available)
+  (if (not (provided? 'fork))
+      -1
+      (primitive-fork)))
 
 (if (defined? 'AF_UNIX)
     (with-test-prefix "AF_UNIX/SOCK_DGRAM"
@@ -261,7 +265,7 @@
 	(force-output (current-output-port))
 	(force-output (current-error-port))
 	(if server-listening?
-	    (let ((pid (primitive-fork)))
+            (let ((pid (primitive-fork-if-available)))
 	      ;; Spawn a server process.
 	      (case pid
 		((-1) (throw 'unresolved))
@@ -341,7 +345,7 @@
         (force-output (current-output-port))
         (force-output (current-error-port))
         (if server-listening?
-            (let ((pid (primitive-fork)))
+            (let ((pid (primitive-fork-if-available)))
               ;; Spawn a server process.
               (case pid
                 ((-1) (throw 'unresolved))
@@ -439,7 +443,7 @@
 	(force-output (current-output-port))
 	(force-output (current-error-port))
 	(if server-listening?
-	    (let ((pid (primitive-fork)))
+            (let ((pid (primitive-fork-if-available)))
 	      ;; Spawn a server process.
 	      (case pid
 		((-1) (throw 'unresolved))
