@@ -119,7 +119,7 @@ SCM_DEFINE (scm_srfi1_append_reverse_x, "append-reverse!", 2, 0, 0,
 {
   SCM newtail;
 
-  while (scm_is_pair (revhead))
+  while (scm_is_mutable_pair (revhead))
     {
       /* take the first cons cell from revhead */
       newtail = revhead;
@@ -548,7 +548,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
               if (scm_is_eq (l, endret))
                 {
                   /* not equal to any, so append this pair */
-                  SCM_SETCDR (endret, lst);
+                  scm_set_cdr_x (endret, lst);
                   endret = lst;
                   break;
                 }
@@ -557,7 +557,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
         }
 
       /* terminate, in case last element was deleted */
-      SCM_SETCDR (endret, SCM_EOL);
+      scm_set_cdr_x (endret, SCM_EOL);
     }
 
   /* demand that lst was a proper list */

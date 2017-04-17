@@ -449,7 +449,7 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 #define FUNC_NAME s_scm_symbol_fset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  SCM_SETCAR (SCM_CELL_OBJECT_3 (s), val);
+  scm_set_car_x (SCM_CELL_OBJECT_3 (s), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -461,7 +461,7 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 #define FUNC_NAME s_scm_symbol_pset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  SCM_SETCDR (SCM_CELL_OBJECT_3 (s), val);
+  scm_set_cdr_x (SCM_CELL_OBJECT_3 (s), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

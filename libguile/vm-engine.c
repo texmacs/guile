@@ -424,6 +424,8 @@
   VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_PAIR(x, proc)                                       \
   VM_VALIDATE (x, scm_is_pair, proc, pair)
+#define VM_VALIDATE_MUTABLE_PAIR(x, proc)                               \
+  VM_VALIDATE (x, scm_is_mutable_pair, proc, mutable_pair)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
   VM_VALIDATE (obj, scm_is_string, proc, string)
 #define VM_VALIDATE_STRUCT(obj, proc)                                   \
@@ -2359,7 +2361,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_12_12 (op, a, b);
       x = SP_REF (a);
       y = SP_REF (b);
-      VM_VALIDATE_PAIR (x, "set-car!");
+      VM_VALIDATE_MUTABLE_PAIR (x, "set-car!");
       SCM_SETCAR (x, y);
       NEXT (1);
     }
@@ -2375,7 +2377,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_12_12 (op, a, b);
       x = SP_REF (a);
       y = SP_REF (b);
-      VM_VALIDATE_PAIR (x, "set-car!");
+      VM_VALIDATE_MUTABLE_PAIR (x, "set-cdr!");
       SCM_SETCDR (x, y);
       NEXT (1);
     }

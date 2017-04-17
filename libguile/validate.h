@@ -240,6 +240,11 @@
 #define SCM_VALIDATE_CONS(pos, scm) \
   SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_pair, "pair")
 
+#ifdef BUILDING_LIBGUILE
+#define SCM_VALIDATE_MUTABLE_PAIR(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_mutable_pair, "mutable pair")
+#endif /* BUILDING_LIBGUILE */
+
 #define SCM_VALIDATE_LIST(pos, lst) \
   do { \
     SCM_ASSERT (scm_ilength (lst) >= 0, lst, pos, FUNC_NAME); \

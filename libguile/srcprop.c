@@ -143,7 +143,7 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM alist)
 	{
 	  alist = scm_acons (scm_sym_filename, filename, alist);
 	  if (scm_is_null (old_alist))
-	    SCM_SETCDR (scm_last_alist_filename, alist);
+	    scm_set_cdr_x (scm_last_alist_filename, alist);
 	}
     }
   

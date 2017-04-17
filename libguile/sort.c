@@ -306,22 +306,22 @@ scm_merge_list_x (SCM alist, SCM blist,
 	  SCM_TICK;
 	  if (scm_is_true (scm_call_2 (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
-	      SCM_SETCDR (last, blist);
+	      scm_set_cdr_x (last, blist);
 	      blist = SCM_CDR (blist);
 	      blen--;
 	    }
 	  else
 	    {
-	      SCM_SETCDR (last, alist);
+	      scm_set_cdr_x (last, alist);
 	      alist = SCM_CDR (alist);
 	      alen--;
 	    }
 	  last = SCM_CDR (last);
 	}
       if ((alen > 0) && (blen == 0))
-	SCM_SETCDR (last, alist);
+	scm_set_cdr_x (last, alist);
       else if ((alen == 0) && (blen > 0))
-	SCM_SETCDR (last, blist);
+	scm_set_cdr_x (last, blist);
     }
   return build;
 }				/* scm_merge_list_x */
@@ -398,6 +398,14 @@ scm_merge_list_step (SCM * seq, SCM less, long n)
 }				/* scm_merge_list_step */
 
 
+#define SCM_VALIDATE_MUTABLE_LIST(pos, lst)                             \
+  do {                                                                  \
+    SCM walk;                                                           \
+    for (walk = lst; !scm_is_null_or_nil (walk); walk = SCM_CDR (walk)) \
+      SCM_VALIDATE_MUTABLE_PAIR (pos, walk);                            \
+  } while (0)
+
+
 SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the sequence @var{items}, which may be a list or a\n"
@@ -414,6 +422,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
   if (scm_is_pair (items))
     {
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
+      SCM_VALIDATE_MUTABLE_LIST (1, items);
       return scm_merge_list_step (&items, less, len);
     }
   else if (scm_is_array (items) && scm_c_array_rank (items) == 1)
@@ -533,6 +542,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   if (scm_is_pair (items))
     {
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
+      SCM_VALIDATE_MUTABLE_LIST (1, items);
       return scm_merge_list_step (&items, less, len);
     }
   else if (scm_is_array (items) && 1 == scm_c_array_rank (items))
@@ -596,6 +606,8 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
   long len;
 
   SCM_VALIDATE_LIST_COPYLEN (1, items, len);
+  SCM_VALIDATE_MUTABLE_LIST (1, items);
+
   return scm_merge_list_step (&items, less, len);
 }
 #undef FUNC_NAME

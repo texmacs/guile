@@ -176,6 +176,22 @@ scm_cdr (SCM x)
 }
 #endif
 
+#ifdef BUILDING_LIBGUILE
+static inline int
+scm_is_mutable_pair (SCM x)
+{
+  /* Guile embeds literal pairs into compiled object files.  It's not
+     valid Scheme to mutate literal values.  Two practical reasons to
+     enforce this restriction are to allow literals to share share
+     structure (pairs) with other literals in the compilation unit, and
+     to allow literals containing immediates to be allocated in the
+     read-only, shareable section of the file.  Attempting to mutate a
+     pair in the read-only section would cause a segmentation fault, so
+     to avoid that, we really do need to enforce the restriction.  */
+  return scm_is_pair (x) && GC_is_heap_ptr (SCM2PTR (x));
+}
+#endif /* BUILDING_LIBGUILE */
+
 SCM_API SCM scm_cons2 (SCM w, SCM x, SCM y);
 SCM_API SCM scm_pair_p (SCM x);
 SCM_API SCM scm_set_car_x (SCM pair, SCM value);

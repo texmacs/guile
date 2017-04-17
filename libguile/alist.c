@@ -290,7 +290,7 @@ SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
   handle = scm_sloppy_assq (key, alist);
   if (scm_is_pair (handle))
     {
-      SCM_SETCDR (handle, val);
+      scm_set_cdr_x (handle, val);
       return alist;
     }
   else
@@ -308,7 +308,7 @@ SCM_DEFINE (scm_assv_set_x, "assv-set!", 3, 0, 0,
   handle = scm_sloppy_assv (key, alist);
   if (scm_is_pair (handle))
     {
-      SCM_SETCDR (handle, val);
+      scm_set_cdr_x (handle, val);
       return alist;
     }
   else
@@ -326,7 +326,7 @@ SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
   handle = scm_sloppy_assoc (key, alist);
   if (scm_is_pair (handle))
     {
-      SCM_SETCDR (handle, val);
+      scm_set_cdr_x (handle, val);
       return alist;
     }
   else
