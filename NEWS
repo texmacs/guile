@@ -10,6 +10,40 @@ Changes in 2.2.1 (since 2.2.0):
 
 * Notable changes
 
+** All literal constants are read-only
+
+According to the Scheme language definition, it is an error to attempt
+to mutate a "constant literal".  A constant literal is data that is a
+literal quoted part of a program.  For example, all of these are errors:
+
+  (set-car! '(1 . 2) 42)
+  (append! '(1 2 3) '(4 5 6))
+  (vector-set! '#(a b c) 1 'B)
+
+Guile takes advantage of this provision of Scheme to deduplicate shared
+structure in constant literals within a compilation unit, and to
+allocate constant data directly in the compiled object file.  If the
+data needs no relocation at run-time, as is the case for pairs or
+vectors that only contain immediate values, then the data can actually
+be shared between different Guile processes, using the operating
+system's virtual memory facilities.
+
+However, in Guile 2.2.0, constants that needed relocation were actually
+mutable -- though (vector-set! '#(a b c) 1 'B) was an error, Guile
+wouldn't actually cause an exception to be raised, silently allowing the
+mutation.  This could affect future users of this constant, or indeed of
+any constant in the compilation unit that shared structure with the
+original vector.
+
+Additionally, attempting to mutate constant literals mapped in the
+read-only section of files would actually cause a segmentation fault, as
+the operating system prohibits writes to read-only memory.  "Don't do
+that" isn't a very nice solution :)
+
+Both of these problems have been fixed.  Any attempt to mutate a
+constant literal will now raise an exception, whether the constant needs
+relocation or not.
+
 ** Syntax objects are now a distinct type
 
 It used to be that syntax objects were represented as a tagged vector.
