@@ -22,6 +22,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local lexical environment.
 * Local Inclusion::             Compile-time inclusion of one file in another.
+* Sandboxed Evaluation::        Evaluation with limited capabilities.
 * REPL Servers::                Serving a REPL over a socket.
 * Cooperative REPL Servers::    REPL server for single-threaded applications.
 @end menu
@@ -1226,6 +1227,270 @@ the @code{%load-path}.
 the source files for a package (as you should!).  It makes it possible
 to evaluate an installed file from source, instead of relying on the
 @code{.go} file being up to date.
+
+@node Sandboxed Evaluation
+@subsection Sandboxed Evaluation
+
+Sometimes you would like to evaluate code that comes from an untrusted
+party.  The safest way to do this is to buy a new computer, evaluate the
+code on that computer, then throw the machine away.  However if you are
+unwilling to take this simple approach, Guile does include a limited
+``sandbox'' facility that can allow untrusted code to be evaluated with
+some confidence.
+
+To use the sandboxed evaluator, load its module:
+
+@example
+(use-modules (ice-9 sandbox))
+@end example
+
+Guile's sandboxing facility starts with the ability to restrict the time
+and space used by a piece of code.
+
+@deffn {Scheme Procedure} call-with-time-limit limit thunk limit-reached
+Call @var{thunk}, but cancel it if @var{limit} seconds of wall-clock
+time have elapsed.  If the computation is cancelled, call
+@var{limit-reached} in tail position.  @var{thunk} must not disable
+interrupts or prevent an abort via a @code{dynamic-wind} unwind handler.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-allocation-limit limit thunk limit-reached
+Call @var{thunk}, but cancel it if @var{limit} bytes have been
+allocated.  If the computation is cancelled, call @var{limit-reached} in
+tail position.  @var{thunk} must not disable interrupts or prevent an
+abort via a @code{dynamic-wind} unwind handler.
+
+This limit applies to both stack and heap allocation.  The computation
+will not be aborted before @var{limit} bytes have been allocated, but
+for the heap allocation limit, the check may be postponed until the next garbage collection.
+
+Note that as a current shortcoming, the heap size limit applies to all
+threads; concurrent allocation by other unrelated threads counts towards
+the allocation limit.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-time-and-allocation-limits time-limit allocation-limit thunk
+Invoke @var{thunk} in a dynamic extent in which its execution is limited
+to @var{time-limit} seconds of wall-clock time, and its allocation to
+@var{allocation-limit} bytes.  @var{thunk} must not disable interrupts
+or prevent an abort via a @code{dynamic-wind} unwind handler.
+
+If successful, return all values produced by invoking @var{thunk}.  Any
+uncaught exception thrown by the thunk will propagate out.  If the time
+or allocation limit is exceeded, an exception will be thrown to the
+@code{limit-exceeded} key.
+@end deffn
+
+The time limit and stack limit are both very precise, but the heap limit
+only gets checked asynchronously, after a garbage collection.  In
+particular, if the heap is already very large, the number of allocated
+bytes between garbage collections will be large, and therefore the
+precision of the check is reduced.
+
+Additionally, due to the mechanism used by the allocation limit (the
+@code{after-gc-hook}), large single allocations like @code{(make-vector
+#e1e7)} are only detected after the allocation completes, even if the
+allocation itself causes garbage collection.  It's possible therefore
+for user code to not only exceed the allocation limit set, but also to
+exhaust all available memory, causing out-of-memory conditions at any
+allocation site.  Failure to allocate memory in Guile itself should be
+safe and cause an exception to be thrown, but most systems are not
+designed to handle @code{malloc} failures.  An allocation failure may
+therefore exercise unexpected code paths in your system, so it is a
+weakness of the sandbox (and therefore an interesting point of attack).
+
+The main sandbox interface is @code{eval-in-sandbox}.
+
+@deffn {Scheme Procedure} eval-in-sandbox exp [#:time-limit 0.1] @
+                          [#:allocation-limit #e10e6] @
+                          [#:bindings all-pure-bindings] @
+                          [#:module (make-sandbox-module bindings)] @
+                          [#:sever-module? #t]
+Evaluate the Scheme expression @var{exp} within an isolated
+"sandbox".  Limit its execution to @var{time-limit} seconds of
+wall-clock time, and limit its allocation to @var{allocation-limit}
+bytes.
+
+The evaluation will occur in @var{module}, which defaults to the result
+of calling @code{make-sandbox-module} on @var{bindings}, which itself
+defaults to @code{all-pure-bindings}.  This is the core of the
+sandbox: creating a scope for the expression that is @dfn{safe}.
+
+A safe sandbox module has two characteristics.  Firstly, it will not
+allow the expression being evaluated to avoid being cancelled due to
+time or allocation limits.  This ensures that the expression terminates
+in a timely fashion.
+
+Secondly, a safe sandbox module will prevent the evaluation from
+receiving information from previous evaluations, or from affecting
+future evaluations.  All combinations of binding sets exported by
+@code{(ice-9 sandbox)} form safe sandbox modules.
+
+The @var{bindings} should be given as a list of import sets.  One import
+set is a list whose car names an interface, like @code{(ice-9 q)}, and
+whose cdr is a list of imports.  An import is either a bare symbol or a
+pair of @code{(@var{out} . @var{in})}, where @var{out} and @var{in} are
+both symbols and denote the name under which a binding is exported from
+the module, and the name under which to make the binding available,
+respectively.  Note that @var{bindings} is only used as an input to the
+default initializer for the @var{module} argument; if you pass
+@code{#:module}, @var{bindings} is unused.  If @var{sever-module?} is
+true (the default), the module will be unlinked from the global module
+tree after the evaluation returns, to allow @var{mod} to be
+garbage-collected.
+
+If successful, return all values produced by @var{exp}.  Any uncaught
+exception thrown by the expression will propagate out.  If the time or
+allocation limit is exceeded, an exception will be thrown to the
+@code{limit-exceeded} key.
+@end deffn
+
+Constructing a safe sandbox module is tricky in general.  Guile defines
+an easy way to construct safe modules from predefined sets of bindings.
+Before getting to that interface, here are some general notes on safety.
+
+@enumerate
+@item The time and allocation limits rely on the ability to interrupt
+and cancel a computation.  For this reason, no binding included in a
+sandbox module should be able to indefinitely postpone interrupt
+handling, nor should a binding be able to prevent an abort.  In practice
+this second consideration means that @code{dynamic-wind} should not be
+included in any binding set.
+@item The time and allocation limits apply only to the
+@code{eval-in-sandbox} call.  If the call returns a procedure which is
+later called, no limit is ``automatically'' in place.  Users of
+@code{eval-in-sandbox} have to be very careful to reimpose limits when
+calling procedures that escape from sandboxes.
+@item Similarly, the dynamic environment of the @code{eval-in-sandbox}
+call is not necessarily in place when any procedure that escapes from
+the sandbox is later called.
+
+This detail prevents us from exposing @code{primitive-eval} to the
+sandbox, for two reasons.  The first is that it's possible for legacy
+code to forge references to any binding, if the
+@code{allow-legacy-syntax-objects?} parameter is true.  The default for
+this parameter is true; @pxref{Syntax Transformer Helpers} for the
+details.  The parameter is bound to @code{#f} for the duration of the
+@code{eval-in-sandbox} call itself, but that will not be in place during
+calls to escaped procedures.
+
+The second reason we don't expose @code{primitive-eval} is that
+@code{primitive-eval} implicitly works in the current module, which for
+an escaped procedure will probably be different than the module that is
+current for the @code{eval-in-sandbox} call itself.
+
+The common denominator here is that if an interface exposed to the
+sandbox relies on dynamic environments, it is easy to mistakenly grant
+the sandboxed procedure additional capabilities in the form of bindings
+that it should not have access to.  For this reason, the default sets of
+predefined bindings do not depend on any dynamically scoped value.
+@item Mutation may allow a sandboxed evaluation to break some invariant
+in users of data supplied to it.  A lot of code culturally doesn't
+expect mutation, but if you hand mutable data to a sandboxed evaluation
+and you also grant mutating capabilities to that evaluation, then the
+sandboxed code may indeed mutate that data.  The default set of bindings
+to the sandbox do not include any mutating primitives.
+
+Relatedly, @code{set!} may allow a sandbox to mutate a primitive,
+invalidating many system-wide invariants.  Guile is currently quite
+permissive when it comes to imported bindings and mutability.  Although
+@code{set!} to a module-local or lexically bound variable would be fine,
+we don't currently have an easy way to disallow @code{set!} to an
+imported binding, so currently no binding set includes @code{set!}.
+@item Mutation may allow a sandboxed evaluation to keep state, or
+make a communication mechanism with other code.  On the one hand this
+sounds cool, but on the other hand maybe this is part of your threat
+model.  Again, the default set of bindings doesn't include mutating
+primitives, preventing sandboxed evaluations from keeping state.
+@item The sandbox should probably not be able to open a network
+connection, or write to a file, or open a file from disk.  The default
+binding set includes no interaction with the operating system.
+@end enumerate
+
+If you, dear reader, find the above discussion interesting, you will
+enjoy Jonathan Rees' dissertation, ``A Security Kernel Based on the
+Lambda Calculus''.
+
+@defvr {Scheme Variable} all-pure-bindings
+All ``pure'' bindings that together form a safe subset of those bindings
+available by default to Guile user code.
+@end defvr
+
+@defvr {Scheme Variable} all-pure-and-impure-bindings
+Like @code{all-pure-bindings}, but additionally including mutating
+primitives like @code{vector-set!}.  This set is still safe in the sense
+mentioned above, with the caveats about mutation.
+@end defvr
+
+The components of these composite sets are as follows:
+@defvr {Scheme Variable} alist-bindings
+@defvrx {Scheme Variable} array-bindings
+@defvrx {Scheme Variable} bit-bindings
+@defvrx {Scheme Variable} bitvector-bindings
+@defvrx {Scheme Variable} char-bindings
+@defvrx {Scheme Variable} char-set-bindings
+@defvrx {Scheme Variable} clock-bindings
+@defvrx {Scheme Variable} core-bindings
+@defvrx {Scheme Variable} error-bindings
+@defvrx {Scheme Variable} fluid-bindings
+@defvrx {Scheme Variable} hash-bindings
+@defvrx {Scheme Variable} iteration-bindings
+@defvrx {Scheme Variable} keyword-bindings
+@defvrx {Scheme Variable} list-bindings
+@defvrx {Scheme Variable} macro-bindings
+@defvrx {Scheme Variable} nil-bindings
+@defvrx {Scheme Variable} number-bindings
+@defvrx {Scheme Variable} pair-bindings
+@defvrx {Scheme Variable} predicate-bindings
+@defvrx {Scheme Variable} procedure-bindings
+@defvrx {Scheme Variable} promise-bindings
+@defvrx {Scheme Variable} prompt-bindings
+@defvrx {Scheme Variable} regexp-bindings
+@defvrx {Scheme Variable} sort-bindings
+@defvrx {Scheme Variable} srfi-4-bindings
+@defvrx {Scheme Variable} string-bindings
+@defvrx {Scheme Variable} symbol-bindings
+@defvrx {Scheme Variable} unspecified-bindings
+@defvrx {Scheme Variable} variable-bindings
+@defvrx {Scheme Variable} vector-bindings
+@defvrx {Scheme Variable} version-bindings
+The components of @code{all-pure-bindings}.
+@end defvr
+
+@defvr {Scheme Variable} mutating-alist-bindings
+@defvrx {Scheme Variable} mutating-array-bindings
+@defvrx {Scheme Variable} mutating-bitvector-bindings
+@defvrx {Scheme Variable} mutating-fluid-bindings
+@defvrx {Scheme Variable} mutating-hash-bindings
+@defvrx {Scheme Variable} mutating-list-bindings
+@defvrx {Scheme Variable} mutating-pair-bindings
+@defvrx {Scheme Variable} mutating-sort-bindings
+@defvrx {Scheme Variable} mutating-srfi-4-bindings
+@defvrx {Scheme Variable} mutating-string-bindings
+@defvrx {Scheme Variable} mutating-variable-bindings
+@defvrx {Scheme Variable} mutating-vector-bindings
+The additional components of @code{all-pure-and-impure-bindings}.
+@end defvr
+
+Finally, what do you do with a binding set?  What is a binding set
+anyway?  @code{make-sandbox-module} is here for you.
+
+@deffn {Scheme Procedure} make-sandbox-module bindings
+Return a fresh module that only contains @var{bindings}.
+
+The @var{bindings} should be given as a list of import sets.  One import
+set is a list whose car names an interface, like @code{(ice-9 q)}, and
+whose cdr is a list of imports.  An import is either a bare symbol or a
+pair of @code{(@var{out} . @var{in})}, where @var{out} and @var{in} are
+both symbols and denote the name under which a binding is exported from
+the module, and the name under which to make the binding available,
+respectively.
+@end deffn
+
+So you see that binding sets are just lists, and
+@code{all-pure-and-impure-bindings} is really just the result of
+appending all of the component binding sets.
+
 
 @node REPL Servers
 @subsection REPL Servers

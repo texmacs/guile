@@ -1,0 +1,95 @@
+;;;; sandbox.test --- tests guile's evaluator     -*- scheme -*-
+;;;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite sandbox)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 sandbox))
+
+
+(define exception:bad-expression
+  (cons 'syntax-error "Bad expression"))
+
+(define exception:failed-match
+  (cons 'syntax-error "failed to match any pattern"))
+
+(define exception:not-a-list
+  (cons 'wrong-type-arg "Not a list"))
+
+(define exception:wrong-length
+  (cons 'wrong-type-arg "wrong length"))
+
+(define (usleep-loop usecs)
+  (unless (zero? usecs)
+    (usleep-loop (usleep usecs))))
+(define (busy-loop)
+  (busy-loop))
+
+(with-test-prefix "time limit"
+  (pass-if "0 busy loop"
+    (call-with-time-limit 0 busy-loop (lambda () #t)))
+  (pass-if "0.001 busy loop"
+    (call-with-time-limit 0.001 busy-loop (lambda () #t)))
+  (pass-if "0 sleep"
+    (call-with-time-limit 0 (lambda () (usleep-loop #e1e6) #f)
+                          (lambda () #t)))
+  (pass-if "0.001 sleep"
+    (call-with-time-limit 0.001 (lambda () (usleep-loop #e1e6) #f)
+                          (lambda () #t))))
+
+(define (alloc-loop)
+  (let lp ((ret #t))
+    (and ret
+         (lp (cons #t #t)))))
+(define (recur-loop)
+  (1+ (recur-loop)))
+
+(with-test-prefix "allocation limit"
+  (pass-if "0 alloc loop"
+    (call-with-allocation-limit 0 alloc-loop (lambda () #t)))
+  (pass-if "1e6 alloc loop"
+    (call-with-allocation-limit #e1e6 alloc-loop (lambda () #t)))
+  (pass-if "0 recurse"
+    (call-with-allocation-limit 0 recur-loop (lambda () #t)))
+  (pass-if "1e6 recurse"
+    (call-with-allocation-limit #e1e6 recur-loop (lambda () #t))))
+
+(define-syntax-rule (pass-if-unbound foo)
+  (pass-if-exception (format #f "~a unavailable" 'foo)
+      exception:unbound-var (eval-in-sandbox 'foo))
+  )
+
+(with-test-prefix "eval-in-sandbox"
+  (pass-if-equal 42
+      (eval-in-sandbox 42))
+  (pass-if-equal 'foo
+      (eval-in-sandbox ''foo))
+  (pass-if-equal '(1 . 2)
+      (eval-in-sandbox '(cons 1 2)))
+  (pass-if-unbound @@)
+  (pass-if-unbound foo)
+  (pass-if-unbound set!)
+  (pass-if-unbound open-file)
+  (pass-if-unbound current-input-port)
+  (pass-if-unbound call-with-output-file)
+  (pass-if-unbound vector-set!)
+  (pass-if-equal vector-set!
+      (eval-in-sandbox 'vector-set!
+                       #:bindings all-pure-and-impure-bindings))
+  (pass-if-exception "limit exceeded"
+      '(limit-exceeded . "")
+    (eval-in-sandbox '(let lp () (lp)))))
+

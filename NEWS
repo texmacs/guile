@@ -10,6 +10,13 @@ Changes in 2.2.1 (since 2.2.0):
 
 * Notable changes
 
+** New sandboxed evaluation facility
+
+Guile now has a way to execute untrusted code in a safe way.  See
+"Sandboxed Evaluation" in the manual for full details, including some
+important notes on limitations on the sandbox's ability to prevent
+resource exhaustion.
+
 ** All literal constants are read-only
 
 According to the Scheme language definition, it is an error to attempt
