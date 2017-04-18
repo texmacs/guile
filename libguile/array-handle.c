@@ -140,7 +140,7 @@ static void
 initialize_vector_handle (scm_t_array_handle *h, size_t len,
                           scm_t_array_element_type element_type,
                           scm_t_vector_ref vref, scm_t_vector_set vset,
-                          void *writable_elements)
+                          const void *elements, int mutable_p)
 {
   h->base = 0;
   h->ndims = 1;
@@ -149,7 +149,8 @@ initialize_vector_handle (scm_t_array_handle *h, size_t len,
   h->dim0.ubnd = (ssize_t) (len - 1U);
   h->dim0.inc = 1;
   h->element_type = element_type;
-  h->elements = h->writable_elements = writable_elements;
+  h->elements = elements;
+  h->writable_elements = mutable_p ? ((void *) elements) : NULL;
   h->vector = h->array;
   h->vref = vref;
   h->vset = vset;
@@ -169,19 +170,22 @@ scm_array_get_handle (SCM array, scm_t_array_handle *h)
       initialize_vector_handle (h, scm_c_string_length (array),
                                 SCM_ARRAY_ELEMENT_TYPE_CHAR,
                                 scm_c_string_ref, scm_c_string_set_x,
-                                NULL);
+                                NULL,
+                                scm_i_string_is_mutable (array));
       break;
     case scm_tc7_vector:
       initialize_vector_handle (h, scm_c_vector_length (array),
                                 SCM_ARRAY_ELEMENT_TYPE_SCM,
                                 scm_c_vector_ref, scm_c_vector_set_x,
-                                SCM_I_VECTOR_WELTS (array));
+                                SCM_I_VECTOR_WELTS (array),
+                                SCM_I_IS_MUTABLE_VECTOR (array));
       break;
     case scm_tc7_bitvector:
       initialize_vector_handle (h, scm_c_bitvector_length (array),
                                 SCM_ARRAY_ELEMENT_TYPE_BIT,
                                 scm_c_bitvector_ref, scm_c_bitvector_set_x,
-                                scm_i_bitvector_bits (array));
+                                scm_i_bitvector_bits (array),
+                                scm_i_is_mutable_bitvector (array));
       break;
     case scm_tc7_bytevector:
       {
@@ -225,7 +229,8 @@ scm_array_get_handle (SCM array, scm_t_array_handle *h)
           }
 
         initialize_vector_handle (h, length, element_type, vref, vset,
-                                  SCM_BYTEVECTOR_CONTENTS (array));
+                                  SCM_BYTEVECTOR_CONTENTS (array),
+                                  SCM_MUTABLE_BYTEVECTOR_P (array));
       }
       break;
     case scm_tc7_array:
@@ -320,15 +325,19 @@ scm_array_handle_release (scm_t_array_handle *h)
 const SCM *
 scm_array_handle_elements (scm_t_array_handle *h)
 {
-  return scm_array_handle_writable_elements (h);
+  if (h->element_type != SCM_ARRAY_ELEMENT_TYPE_SCM)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
+
+  return ((const SCM *) h->elements) + h->base;
 }
 
 SCM *
 scm_array_handle_writable_elements (scm_t_array_handle *h)
 {
-  if (h->element_type != SCM_ARRAY_ELEMENT_TYPE_SCM)
-    scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
-  return ((SCM*)h->elements) + h->base;
+  if (h->writable_elements != h->elements)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable array");
+
+  return (SCM *) scm_array_handle_elements (h);
 }
 
 void

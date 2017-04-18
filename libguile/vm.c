@@ -433,8 +433,10 @@ static void vm_error_not_a_mutable_pair (const char *subr, SCM x) SCM_NORETURN S
 static void vm_error_not_a_string (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_atomic_box (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_not_a_mutable_bytevector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_struct (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_not_a_mutable_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_uint64 (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_int64 (const char *subr, scm_t_int64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
@@ -553,6 +555,12 @@ vm_error_not_a_bytevector (const char *subr, SCM x)
 }
 
 static void
+vm_error_not_a_mutable_bytevector (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "mutable bytevector");
+}
+
+static void
 vm_error_not_a_struct (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "struct");
@@ -562,6 +570,12 @@ static void
 vm_error_not_a_vector (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "vector");
+}
+
+static void
+vm_error_not_a_mutable_vector (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "mutable vector");
 }
 
 static void

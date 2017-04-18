@@ -1392,17 +1392,27 @@ should be .data or .rodata), and return the resulting linker object.
     (+ address
        (modulo (- alignment (modulo address alignment)) alignment)))
 
-  (define tc7-vector 13)
+  (define tc7-vector #x0d)
+  (define vector-immutable-flag #x80)
+
+  (define tc7-string #x15)
+  (define string-read-only-flag #x200)
+
+  (define tc7-stringbuf #x27)
   (define stringbuf-wide-flag #x400)
-  (define tc7-stringbuf 39)
-  (define tc7-narrow-stringbuf tc7-stringbuf)
-  (define tc7-wide-stringbuf (+ tc7-stringbuf stringbuf-wide-flag))
-  (define tc7-ro-string (+ 21 #x200))
+
   (define tc7-syntax #x3d)
-  (define tc7-program 69)
-  (define tc7-bytevector 77)
-  (define tc7-bitvector 95)
-  (define tc7-array 93)
+
+  (define tc7-program #x45)
+
+  (define tc7-bytevector #x4d)
+  ;; This flag is intended to be left-shifted by 7 bits.
+  (define bytevector-immutable-flag #x200)
+
+  (define tc7-array #x5d)
+
+  (define tc7-bitvector #x5f)
+  (define bitvector-immutable-flag #x80)
 
   (let ((word-size (asm-word-size asm))
         (endianness (asm-endianness asm)))
@@ -1447,9 +1457,10 @@ should be .data or .rodata), and return the resulting linker object.
        ((stringbuf? obj)
         (let* ((x (stringbuf-string obj))
                (len (string-length x))
-               (tag (if (= (string-bytes-per-char x) 1)
-                        tc7-narrow-stringbuf
-                        tc7-wide-stringbuf)))
+               (tag (logior tc7-stringbuf
+                            (if (= (string-bytes-per-char x) 1)
+                                0
+                                stringbuf-wide-flag))))
           (case word-size
             ((4)
              (bytevector-u32-set! buf pos tag endianness)
@@ -1491,15 +1502,15 @@ should be .data or .rodata), and return the resulting linker object.
         (write-placeholder asm buf pos))
 
        ((string? obj)
-        (let ((tag (logior tc7-ro-string (ash (string-length obj) 8)))) ; FIXME: unused?
+        (let ((tag (logior tc7-string string-read-only-flag)))
           (case word-size
             ((4)
-             (bytevector-u32-set! buf pos tc7-ro-string endianness)
+             (bytevector-u32-set! buf pos tag endianness)
              (write-placeholder asm buf (+ pos 4)) ; stringbuf
              (bytevector-u32-set! buf (+ pos 8) 0 endianness)
              (bytevector-u32-set! buf (+ pos 12) (string-length obj) endianness))
             ((8)
-             (bytevector-u64-set! buf pos tc7-ro-string endianness)
+             (bytevector-u64-set! buf pos tag endianness)
              (write-placeholder asm buf (+ pos 8)) ; stringbuf
              (bytevector-u64-set! buf (+ pos 16) 0 endianness)
              (bytevector-u64-set! buf (+ pos 24) (string-length obj) endianness))
@@ -1511,7 +1522,7 @@ should be .data or .rodata), and return the resulting linker object.
 
        ((simple-vector? obj)
         (let* ((len (vector-length obj))
-               (tag (logior tc7-vector (ash len 8))))
+               (tag (logior tc7-vector vector-immutable-flag (ash len 8))))
           (case word-size
             ((4) (bytevector-u32-set! buf pos tag endianness))
             ((8) (bytevector-u64-set! buf pos tag endianness))
@@ -1546,9 +1557,14 @@ should be .data or .rodata), and return the resulting linker object.
 
        ((simple-uniform-vector? obj)
         (let ((tag (if (bitvector? obj)
-                       tc7-bitvector
-                       (let ((type-code (array-type-code obj)))
-                         (logior tc7-bytevector (ash type-code 7))))))
+                       (logior tc7-bitvector
+                               bitvector-immutable-flag)
+                       (logior tc7-bytevector
+                               ;; Bytevector immutable flag also shifted
+                               ;; left.
+                               (ash (logior bytevector-immutable-flag
+                                            (array-type-code obj))
+                                    7)))))
           (case word-size
             ((4)
              (bytevector-u32-set! buf pos tag endianness)

@@ -63,6 +63,14 @@ SCM_API SCM *scm_vector_writable_elements (SCM vec,
 
 /* Internals */
 
+/* Vectors residualized into compiled objects have scm_tc7_vector in the
+   low 7 bits, but also an additional bit set to indicate
+   immutability.  */
+#define SCM_F_VECTOR_IMMUTABLE 0x80UL
+#define SCM_I_IS_MUTABLE_VECTOR(x)                              \
+  (SCM_NIMP (x) &&                                              \
+   ((SCM_CELL_TYPE (x) & (0x7f | SCM_F_VECTOR_IMMUTABLE))       \
+    == scm_tc7_vector))
 #define SCM_I_IS_VECTOR(x)     (SCM_HAS_TYP7 (x, scm_tc7_vector))
 #define SCM_I_VECTOR_ELTS(x)   ((const SCM *) SCM_I_VECTOR_WELTS (x))
 #define SCM_I_VECTOR_WELTS(x)  (SCM_CELL_OBJECT_LOC (x, 1))

@@ -42,6 +42,12 @@
 
 #define VECTOR_MAX_LENGTH (SCM_T_BITS_MAX >> 8)
 
+#define SCM_VALIDATE_MUTABLE_VECTOR(pos, v)                             \
+  do {                                                                  \
+    SCM_ASSERT (SCM_I_IS_MUTABLE_VECTOR (v), v, pos, FUNC_NAME);        \
+  } while (0)
+
+
 int
 scm_is_vector (SCM obj)
 {
@@ -58,14 +64,6 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
-  /* guard against weak vectors in the next call */
-  return scm_vector_writable_elements (vec, h, lenp, incp);
-}
-
-SCM *
-scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
-			      size_t *lenp, ssize_t *incp)
-{
   /* it's unsafe to access the memory of a weak vector */
   if (SCM_I_WVECTP (vec))
     scm_wrong_type_arg_msg (NULL, 0, vec, "non-weak vector");
@@ -77,7 +75,19 @@ scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
       *lenp = dim->ubnd - dim->lbnd + 1;
       *incp = dim->inc;
     }
-  return scm_array_handle_writable_elements (h);
+  return scm_array_handle_elements (h);
+}
+
+SCM *
+scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
+			      size_t *lenp, ssize_t *incp)
+{
+  const SCM *ret = scm_vector_elements (vec, h, lenp, incp);
+
+  if (h->writable_elements != h->elements)
+    scm_wrong_type_arg_msg (NULL, 0, vec, "mutable vector");
+
+  return (SCM *) ret;
 }
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
@@ -203,7 +213,7 @@ void
 scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 #define FUNC_NAME s_scm_vector_set_x
 {
-  SCM_VALIDATE_VECTOR (1, v);
+  SCM_VALIDATE_MUTABLE_VECTOR (1, v);
 
   if (k >= SCM_I_VECTOR_LENGTH (v))
     scm_out_of_range (NULL, scm_from_size_t (k)); 

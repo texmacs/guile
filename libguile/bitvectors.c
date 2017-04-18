@@ -38,15 +38,28 @@
  * but alack, all we have is this crufty C.
  */
 
-#define IS_BITVECTOR(obj)       SCM_TYP16_PREDICATE(scm_tc7_bitvector,(obj))
+#define SCM_F_BITVECTOR_IMMUTABLE (0x80)
+
+#define IS_BITVECTOR(obj)         SCM_HAS_TYP7  ((obj), scm_tc7_bitvector)
+#define IS_MUTABLE_BITVECTOR(x)                                 \
+  (SCM_NIMP (x) &&                                              \
+   ((SCM_CELL_TYPE (x) & (0x7f | SCM_F_BITVECTOR_IMMUTABLE))    \
+    == scm_tc7_bitvector))
 #define BITVECTOR_LENGTH(obj)   ((size_t)SCM_CELL_WORD_1(obj))
 #define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_CELL_WORD_2(obj))
 
-scm_t_uint32 *scm_i_bitvector_bits (SCM vec)
+scm_t_uint32 *
+scm_i_bitvector_bits (SCM vec)
 {
   if (!IS_BITVECTOR (vec))
     abort ();
   return BITVECTOR_BITS (vec);
+}
+
+int
+scm_i_is_mutable_bitvector (SCM vec)
+{
+  return IS_MUTABLE_BITVECTOR (vec);
 }
 
 int
@@ -166,18 +179,17 @@ SCM_DEFINE (scm_bitvector_length, "bitvector-length", 1, 0, 0,
 const scm_t_uint32 *
 scm_array_handle_bit_elements (scm_t_array_handle *h)
 {
-  return scm_array_handle_bit_writable_elements (h);
+  if (h->element_type != SCM_ARRAY_ELEMENT_TYPE_BIT)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "bit array");
+  return ((const scm_t_uint32 *) h->elements) + h->base/32;
 }
 
 scm_t_uint32 *
 scm_array_handle_bit_writable_elements (scm_t_array_handle *h)
 {
-  SCM vec = h->array;
-  if (SCM_I_ARRAYP (vec))
-    vec = SCM_I_ARRAY_V (vec);
-  if (IS_BITVECTOR (vec))
-    return BITVECTOR_BITS (vec) + h->base/32;
-  scm_wrong_type_arg_msg (NULL, 0, h->array, "bit array");
+  if (h->writable_elements != h->elements)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable bit array");
+  return (scm_t_uint32 *) scm_array_handle_bit_elements (h);
 }
 
 size_t
@@ -193,7 +205,15 @@ scm_bitvector_elements (SCM vec,
 			size_t *lenp,
 			ssize_t *incp)
 {
-  return scm_bitvector_writable_elements (vec, h, offp, lenp, incp);
+  scm_generalized_vector_get_handle (vec, h);
+  if (offp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *offp = scm_array_handle_bit_elements_offset (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_bit_elements (h);
 }
 
 
@@ -204,15 +224,12 @@ scm_bitvector_writable_elements (SCM vec,
 				 size_t *lenp,
 				 ssize_t *incp)
 {
-  scm_generalized_vector_get_handle (vec, h);
-  if (offp)
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (h);
-      *offp = scm_array_handle_bit_elements_offset (h);
-      *lenp = dim->ubnd - dim->lbnd + 1;
-      *incp = dim->inc;
-    }
-  return scm_array_handle_bit_writable_elements (h);
+  const scm_t_uint32 *ret = scm_bitvector_elements (vec, h, offp, lenp, incp);
+
+  if (h->writable_elements != h->elements)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable bit array");
+
+  return (scm_t_uint32 *) ret;
 }
 
 SCM
@@ -260,7 +277,7 @@ scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
   scm_t_array_handle handle;
   scm_t_uint32 *bits, mask;
 
-  if (IS_BITVECTOR (vec))
+  if (IS_MUTABLE_BITVECTOR (vec))
     {
       if (idx >= BITVECTOR_LENGTH (vec))
 	scm_out_of_range (NULL, scm_from_size_t (idx));
@@ -283,7 +300,7 @@ scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
   else
     bits[idx/32] &= ~mask;
 
-  if (!IS_BITVECTOR (vec))
+  if (!IS_MUTABLE_BITVECTOR (vec))
       scm_array_handle_release (&handle);
 }
 
@@ -382,11 +399,10 @@ SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  scm_t_uint32 *bits;
+  const scm_t_uint32 *bits;
   SCM res = SCM_EOL;
 
-  bits = scm_bitvector_writable_elements (vec, &handle,
-					  &off, &len, &inc);
+  bits = scm_bitvector_elements (vec, &handle, &off, &len, &inc);
 
   if (off == 0 && inc == 1)
     {
@@ -446,12 +462,11 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  scm_t_uint32 *bits;
+  const scm_t_uint32 *bits;
   int bit = scm_to_bool (b);
   size_t count = 0;
 
-  bits = scm_bitvector_writable_elements (bitvector, &handle,
-					  &off, &len, &inc);
+  bits = scm_bitvector_elements (bitvector, &handle, &off, &len, &inc);
 
   if (off == 0 && inc == 1 && len > 0)
     {

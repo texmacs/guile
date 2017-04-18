@@ -124,10 +124,18 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
   SCM_SET_CELL_TYPE ((_bv),						\
 		     scm_tc7_bytevector | ((scm_t_bits)(_f) << 7UL))
 
+#define SCM_F_BYTEVECTOR_CONTIGUOUS 0x100UL
+#define SCM_F_BYTEVECTOR_IMMUTABLE 0x200UL
+
+#define SCM_MUTABLE_BYTEVECTOR_P(x)                                     \
+  (SCM_NIMP (x) &&                                                      \
+   ((SCM_CELL_TYPE (x) & (0x7fUL | (SCM_F_BYTEVECTOR_IMMUTABLE << 7UL)))  \
+    == scm_tc7_bytevector))
+
 #define SCM_BYTEVECTOR_ELEMENT_TYPE(_bv)	\
   (SCM_BYTEVECTOR_FLAGS (_bv) & 0xffUL)
 #define SCM_BYTEVECTOR_CONTIGUOUS_P(_bv)	\
-  (SCM_BYTEVECTOR_FLAGS (_bv) >> 8UL)
+  (SCM_BYTEVECTOR_FLAGS (_bv) & SCM_F_BYTEVECTOR_CONTIGUOUS)
 
 #define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
   (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)

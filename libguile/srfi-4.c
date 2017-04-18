@@ -119,23 +119,17 @@
   {                                                                     \
     if (h->element_type != ETYPE (TAG))                                 \
       scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
-    return ((const ctype*) h->elements) + h->base*width;                \
+    return ((const ctype *) h->elements) + h->base*width;               \
   }                                                                     \
   ctype* scm_array_handle_##tag##_writable_elements (scm_t_array_handle *h) \
   {                                                                     \
-    if (h->element_type != ETYPE (TAG))                                 \
-      scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
-    return ((ctype*) h->writable_elements) + h->base*width;             \
+    if (h->writable_elements != h->elements)                            \
+      scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable " #tag "vector"); \
+    return (ctype *) scm_array_handle_##tag##_elements (h);             \
   }                                                                     \
   const ctype *scm_##tag##vector_elements (SCM uvec,                    \
                                            scm_t_array_handle *h,       \
                                            size_t *lenp, ssize_t *incp) \
-  {                                                                     \
-    return scm_##tag##vector_writable_elements (uvec, h, lenp, incp);   \
-  }                                                                     \
-  ctype *scm_##tag##vector_writable_elements (SCM uvec,                 \
-                                              scm_t_array_handle *h,    \
-                                              size_t *lenp, ssize_t *incp) \
   {                                                                     \
     size_t byte_width = width * sizeof (ctype);                         \
     if (!scm_is_bytevector (uvec)                                       \
@@ -146,7 +140,16 @@
       *lenp = scm_c_bytevector_length (uvec) / byte_width;              \
     if (incp)                                                           \
       *incp = 1;                                                        \
-    return ((ctype *)h->writable_elements);                             \
+    return ((const ctype *) h->elements);                               \
+  }                                                                     \
+  ctype *scm_##tag##vector_writable_elements (SCM uvec,                 \
+                                              scm_t_array_handle *h,    \
+                                              size_t *lenp, ssize_t *incp) \
+  {                                                                     \
+    const ctype *ret = scm_##tag##vector_elements (uvec, h, lenp, incp);\
+    if (h->writable_elements != h->elements)                            \
+      scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable " #tag "vector"); \
+    return (ctype *) ret;                                               \
   }
 
 

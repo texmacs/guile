@@ -71,6 +71,7 @@ SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec,
 						       ssize_t *incp);
 
 SCM_INTERNAL scm_t_uint32 *scm_i_bitvector_bits (SCM vec);
+SCM_INTERNAL int scm_i_is_mutable_bitvector (SCM vec);
 SCM_INTERNAL int scm_i_print_bitvector (SCM vec, SCM port, scm_print_state *pstate);
 SCM_INTERNAL SCM scm_i_bitvector_equal_p (SCM vec1, SCM vec2);
 SCM_INTERNAL void scm_init_bitvectors (void);

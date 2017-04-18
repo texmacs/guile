@@ -67,18 +67,21 @@ scm_array_handle_uniform_element_bit_size (scm_t_array_handle *h)
 const void *
 scm_array_handle_uniform_elements (scm_t_array_handle *h)
 {
-  return scm_array_handle_uniform_writable_elements (h);
+  size_t esize;
+  const scm_t_uint8 *ret;
+
+  esize = scm_array_handle_uniform_element_size (h);
+  ret = ((const scm_t_uint8 *) h->elements) + h->base * esize;
+  return ret;
 }
 
 void *
 scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
 {
-  size_t esize;
-  scm_t_uint8 *ret;
+  if (h->writable_elements != h->elements)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable array");
 
-  esize = scm_array_handle_uniform_element_size (h);
-  ret = ((scm_t_uint8*) h->writable_elements) + h->base * esize;
-  return ret;
+  return (void *) scm_array_handle_uniform_elements (h);
 }
 
 void

@@ -74,11 +74,11 @@
 #define SIGNEDNESS(_sign)       SIGNEDNESS_ ## _sign
 
 
-#define INTEGER_ACCESSOR_PROLOGUE(_len, _sign)			\
+#define INTEGER_ACCESSOR_PROLOGUE(validate, _len, _sign)        \
   size_t c_len, c_index;					\
   _sign char *c_bv;						\
 								\
-  SCM_VALIDATE_BYTEVECTOR (1, bv);				\
+  SCM_VALIDATE_##validate (1, bv);                              \
   c_index = scm_to_uint (index);				\
 								\
   c_len = SCM_BYTEVECTOR_LENGTH (bv);				\
@@ -87,11 +87,17 @@
   if (SCM_UNLIKELY (c_index + ((_len) >> 3UL) - 1 >= c_len))	\
     scm_out_of_range (FUNC_NAME, index);
 
+#define INTEGER_GETTER_PROLOGUE(_len, _sign)            \
+  INTEGER_ACCESSOR_PROLOGUE (BYTEVECTOR, _len, _sign)
+
+#define INTEGER_SETTER_PROLOGUE(_len, _sign)                    \
+  INTEGER_ACCESSOR_PROLOGUE (MUTABLE_BYTEVECTOR, _len, _sign)
+
 /* Template for fixed-size integer access (only 8, 16 or 32-bit).  */
 #define INTEGER_REF(_len, _sign)                                \
   SCM result;                                                   \
                                                                 \
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);                      \
+  INTEGER_GETTER_PROLOGUE (_len, _sign);                        \
   SCM_VALIDATE_SYMBOL (3, endianness);                          \
                                                                 \
   {                                                             \
@@ -110,7 +116,7 @@
 #define INTEGER_NATIVE_REF(_len, _sign)			\
   SCM result;						\
 							\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);		\
+  INTEGER_GETTER_PROLOGUE (_len, _sign);                \
 							\
   {							\
     INT_TYPE (_len, _sign)  c_result;			\
@@ -123,7 +129,7 @@
 
 /* Template for fixed-size integer modification (only 8, 16 or 32-bit).  */
 #define INTEGER_SET(_len, _sign)				\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);			\
+  INTEGER_SETTER_PROLOGUE (_len, _sign);                        \
   SCM_VALIDATE_SYMBOL (3, endianness);				\
 								\
   {								\
@@ -149,7 +155,7 @@
 /* Template for fixed-size integer modification using the native
    endianness.  */
 #define INTEGER_NATIVE_SET(_len, _sign)				\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);			\
+  INTEGER_SETTER_PROLOGUE (_len, _sign);                        \
 								\
   {								\
     scm_t_signed_bits c_value;					\
@@ -176,21 +182,18 @@
 #define SCM_BYTEVECTOR_HEADER_BYTES		\
   (SCM_BYTEVECTOR_HEADER_SIZE * sizeof (scm_t_bits))
 
+#define SCM_BYTEVECTOR_SET_FLAG(bv, flag) \
+  SCM_SET_BYTEVECTOR_FLAGS ((bv), SCM_BYTEVECTOR_FLAGS (bv) | flag)
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
   SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
 #define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _contents)	\
   SCM_SET_CELL_WORD_2 ((_bv), (scm_t_bits) (_contents))
-#define SCM_BYTEVECTOR_SET_CONTIGUOUS_P(bv, contiguous_p)	\
-  SCM_SET_BYTEVECTOR_FLAGS ((bv),				\
-			    SCM_BYTEVECTOR_ELEMENT_TYPE (bv)	\
-			    | ((contiguous_p) << 8UL))
-
-#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)			\
-  SCM_SET_BYTEVECTOR_FLAGS ((bv),					\
-                            (hint)					\
-                            | (SCM_BYTEVECTOR_CONTIGUOUS_P (bv) << 8UL))
 #define SCM_BYTEVECTOR_SET_PARENT(_bv, _parent)	\
   SCM_SET_CELL_OBJECT_3 ((_bv), (_parent))
+
+#define SCM_VALIDATE_MUTABLE_BYTEVECTOR(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, MUTABLE_BYTEVECTOR_P, "mutable bytevector")
+
 
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
@@ -223,10 +226,10 @@ make_bytevector (size_t len, scm_t_array_element_type element_type)
       ret = SCM_PACK_POINTER (contents);
       contents += SCM_BYTEVECTOR_HEADER_BYTES;
 
+      SCM_SET_BYTEVECTOR_FLAGS (ret,
+                                element_type | SCM_F_BYTEVECTOR_CONTIGUOUS);
       SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
       SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
-      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 1);
-      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
       SCM_BYTEVECTOR_SET_PARENT (ret, SCM_BOOL_F);
     }
 
@@ -253,10 +256,9 @@ make_bytevector_from_buffer (size_t len, void *contents,
 
       c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
 
+      SCM_SET_BYTEVECTOR_FLAGS (ret, element_type);
       SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
       SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
-      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 0);
-      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
       SCM_BYTEVECTOR_SET_PARENT (ret, SCM_BOOL_F);
     }
 
@@ -390,7 +392,7 @@ scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
   size_t c_len;
   scm_t_uint8 *c_bv;
 
-  SCM_VALIDATE_BYTEVECTOR (1, bv);
+  SCM_VALIDATE_MUTABLE_BYTEVECTOR (1, bv);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
   c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
@@ -551,7 +553,7 @@ SCM_DEFINE (scm_bytevector_fill_x, "bytevector-fill!", 2, 0, 0,
   scm_t_uint8 *c_bv, c_fill;
   int value;
 
-  SCM_VALIDATE_BYTEVECTOR (1, bv);
+  SCM_VALIDATE_MUTABLE_BYTEVECTOR (1, bv);
 
   value = scm_to_int (fill);
   if (SCM_UNLIKELY ((value < -128) || (value > 255)))
@@ -582,7 +584,7 @@ SCM_DEFINE (scm_bytevector_copy_x, "bytevector-copy!", 5, 0, 0,
   signed char *c_source, *c_target;
 
   SCM_VALIDATE_BYTEVECTOR (1, source);
-  SCM_VALIDATE_BYTEVECTOR (3, target);
+  SCM_VALIDATE_MUTABLE_BYTEVECTOR (3, target);
 
   c_len = scm_to_size_t (len);
   c_source_start = scm_to_size_t (source_start);
@@ -706,8 +708,6 @@ SCM_DEFINE (scm_bytevector_s8_set_x, "bytevector-s8-set!", 3, 0, 0,
   INTEGER_NATIVE_SET (8, signed);
 }
 #undef FUNC_NAME
-
-#undef OCTET_ACCESSOR_PROLOGUE
 
 
 SCM_DEFINE (scm_bytevector_to_u8_list, "bytevector->u8-list", 1, 0, 0,
@@ -895,11 +895,11 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
   return err;
 }
 
-#define GENERIC_INTEGER_ACCESSOR_PROLOGUE(_sign)			\
+#define GENERIC_INTEGER_ACCESSOR_PROLOGUE(validate, _sign)              \
   size_t c_len, c_index, c_size;					\
   char *c_bv;								\
 									\
-  SCM_VALIDATE_BYTEVECTOR (1, bv);					\
+  SCM_VALIDATE_##validate (1, bv);					\
   c_index = scm_to_size_t (index);					\
   c_size = scm_to_size_t (size);					\
 									\
@@ -914,6 +914,10 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
   if (SCM_UNLIKELY (c_index + c_size > c_len))				\
     scm_out_of_range (FUNC_NAME, index);
 
+#define GENERIC_INTEGER_GETTER_PROLOGUE(_sign)          \
+  GENERIC_INTEGER_ACCESSOR_PROLOGUE (BYTEVECTOR, _sign)
+#define GENERIC_INTEGER_SETTER_PROLOGUE(_sign)                  \
+  GENERIC_INTEGER_ACCESSOR_PROLOGUE (MUTABLE_BYTEVECTOR, _sign)
 
 /* Template of an integer reference function.  */
 #define GENERIC_INTEGER_REF(_sign)					\
@@ -1063,7 +1067,7 @@ SCM_DEFINE (scm_bytevector_uint_ref, "bytevector-uint-ref", 4, 0, 0,
 	    "@var{index} in @var{bv}.")
 #define FUNC_NAME s_scm_bytevector_uint_ref
 {
-  GENERIC_INTEGER_ACCESSOR_PROLOGUE (unsigned);
+  GENERIC_INTEGER_GETTER_PROLOGUE (unsigned);
 
   return (bytevector_unsigned_ref (&c_bv[c_index], c_size, endianness));
 }
@@ -1075,7 +1079,7 @@ SCM_DEFINE (scm_bytevector_sint_ref, "bytevector-sint-ref", 4, 0, 0,
 	    "@var{index} in @var{bv}.")
 #define FUNC_NAME s_scm_bytevector_sint_ref
 {
-  GENERIC_INTEGER_ACCESSOR_PROLOGUE (signed);
+  GENERIC_INTEGER_GETTER_PROLOGUE (signed);
 
   return (bytevector_signed_ref (&c_bv[c_index], c_size, endianness));
 }
@@ -1087,7 +1091,7 @@ SCM_DEFINE (scm_bytevector_uint_set_x, "bytevector-uint-set!", 5, 0, 0,
 	    "to @var{value}.")
 #define FUNC_NAME s_scm_bytevector_uint_set_x
 {
-  GENERIC_INTEGER_ACCESSOR_PROLOGUE (unsigned);
+  GENERIC_INTEGER_SETTER_PROLOGUE (unsigned);
 
   bytevector_unsigned_set (&c_bv[c_index], c_size, value, endianness,
 			   FUNC_NAME);
@@ -1102,7 +1106,7 @@ SCM_DEFINE (scm_bytevector_sint_set_x, "bytevector-sint-set!", 5, 0, 0,
 	    "to @var{value}.")
 #define FUNC_NAME s_scm_bytevector_sint_set_x
 {
-  GENERIC_INTEGER_ACCESSOR_PROLOGUE (signed);
+  GENERIC_INTEGER_SETTER_PROLOGUE (signed);
 
   bytevector_signed_set (&c_bv[c_index], c_size, value, endianness,
 			 FUNC_NAME);
@@ -1330,7 +1334,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
    `large_{ref,set}' variants on 32-bit machines.  */
 
 #define LARGE_INTEGER_REF(_len, _sign)					\
-  INTEGER_ACCESSOR_PROLOGUE(_len, _sign);				\
+  INTEGER_GETTER_PROLOGUE(_len, _sign);                                 \
   SCM_VALIDATE_SYMBOL (3, endianness);					\
 									\
   return (bytevector_large_ref ((char *) c_bv + c_index, _len / 8,	\
@@ -1338,7 +1342,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 
 #define LARGE_INTEGER_SET(_len, _sign)					\
   int err;								\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);				\
+  INTEGER_SETTER_PROLOGUE (_len, _sign);                                \
   SCM_VALIDATE_SYMBOL (4, endianness);					\
 									\
   err = bytevector_large_set ((char *) c_bv + c_index, _len / 8,	\
@@ -1348,14 +1352,14 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 									\
   return SCM_UNSPECIFIED;
 
-#define LARGE_INTEGER_NATIVE_REF(_len, _sign)				 \
-  INTEGER_ACCESSOR_PROLOGUE(_len, _sign);				 \
-  return (bytevector_large_ref ((char *) c_bv + c_index, _len / 8,	 \
+#define LARGE_INTEGER_NATIVE_REF(_len, _sign)                           \
+  INTEGER_GETTER_PROLOGUE(_len, _sign);                                 \
+  return (bytevector_large_ref ((char *) c_bv + c_index, _len / 8,      \
 				SIGNEDNESS (_sign), scm_i_native_endianness));
 
 #define LARGE_INTEGER_NATIVE_SET(_len, _sign)				\
   int err;								\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);				\
+  INTEGER_SETTER_PROLOGUE (_len, _sign);                                \
 									\
   err = bytevector_large_set ((char *) c_bv + c_index, _len / 8,	\
 			      SIGNEDNESS (_sign), value,		\
@@ -1665,13 +1669,16 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 
 /* Templace getters and setters.  */
 
-#define IEEE754_ACCESSOR_PROLOGUE(_type)			\
-  INTEGER_ACCESSOR_PROLOGUE (sizeof (_type) << 3UL, signed);
+#define IEEE754_GETTER_PROLOGUE(_type)                          \
+  INTEGER_GETTER_PROLOGUE (sizeof (_type) << 3UL, signed);
+
+#define IEEE754_SETTER_PROLOGUE(_type)                          \
+  INTEGER_SETTER_PROLOGUE (sizeof (_type) << 3UL, signed);
 
 #define IEEE754_REF(_type)					\
   _type c_result;						\
 								\
-  IEEE754_ACCESSOR_PROLOGUE (_type);				\
+  IEEE754_GETTER_PROLOGUE (_type);                              \
   SCM_VALIDATE_SYMBOL (3, endianness);				\
 								\
   if (scm_is_eq (endianness, scm_i_native_endianness))		\
@@ -1690,7 +1697,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 #define IEEE754_NATIVE_REF(_type)				\
   _type c_result;						\
 								\
-  IEEE754_ACCESSOR_PROLOGUE (_type);				\
+  IEEE754_GETTER_PROLOGUE (_type);				\
 								\
   memcpy (&c_result, &c_bv[c_index], sizeof (c_result));	\
   return (IEEE754_TO_SCM (_type) (c_result));
@@ -1698,7 +1705,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 #define IEEE754_SET(_type)					\
   _type c_value;						\
 								\
-  IEEE754_ACCESSOR_PROLOGUE (_type);				\
+  IEEE754_SETTER_PROLOGUE (_type);				\
   VALIDATE_REAL (3, value);					\
   SCM_VALIDATE_SYMBOL (4, endianness);				\
   c_value = IEEE754_FROM_SCM (_type) (value);			\
@@ -1718,7 +1725,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 #define IEEE754_NATIVE_SET(_type)			\
   _type c_value;					\
 							\
-  IEEE754_ACCESSOR_PROLOGUE (_type);			\
+  IEEE754_SETTER_PROLOGUE (_type);			\
   VALIDATE_REAL (3, value);				\
   c_value = IEEE754_FROM_SCM (_type) (value);		\
 							\

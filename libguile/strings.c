@@ -507,6 +507,12 @@ scm_i_string_length (SCM str)
   return STRING_LENGTH (str);
 }
 
+int
+scm_i_string_is_mutable (SCM str)
+{
+  return !IS_RO_STRING (str);
+}
+
 /* True if the string is 'narrow', meaning it has a 8-bit Latin-1
    encoding.  False if it is 'wide', having a 32-bit UCS-4
    encoding.  */

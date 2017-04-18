@@ -263,6 +263,8 @@ racp (SCM src, SCM dst)
     {
       SCM const * el_s = h_s.elements;
       SCM * el_d = h_d.writable_elements;
+      if (!el_d)
+        scm_wrong_type_arg_msg ("array-copy!", SCM_ARG2, dst, "mutable array");
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
         el_d[i_d] = el_s[i_s];
     }

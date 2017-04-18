@@ -420,6 +420,8 @@
   VM_VALIDATE (x, scm_is_atomic_box, proc, atomic_box)
 #define VM_VALIDATE_BYTEVECTOR(x, proc)                                 \
   VM_VALIDATE (x, SCM_BYTEVECTOR_P, proc, bytevector)
+#define VM_VALIDATE_MUTABLE_BYTEVECTOR(obj, proc)                       \
+  VM_VALIDATE (obj, SCM_MUTABLE_BYTEVECTOR_P, proc, mutable_bytevector)
 #define VM_VALIDATE_CHAR(x, proc)                                       \
   VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_PAIR(x, proc)                                       \
@@ -434,6 +436,8 @@
   VM_VALIDATE (obj, SCM_VARIABLEP, proc, variable)
 #define VM_VALIDATE_VECTOR(obj, proc)                                   \
   VM_VALIDATE (obj, SCM_I_IS_VECTOR, proc, vector)
+#define VM_VALIDATE_MUTABLE_VECTOR(obj, proc)                           \
+  VM_VALIDATE (obj, SCM_I_IS_MUTABLE_VECTOR, proc, mutable_vector)
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
@@ -2690,7 +2694,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       c_idx = SP_REF_U64 (idx);
       val = SP_REF (src);
 
-      VM_VALIDATE_VECTOR (vect, "vector-set!");
+      VM_VALIDATE_MUTABLE_VECTOR (vect, "vector-set!");
       VM_VALIDATE_INDEX (c_idx, SCM_I_VECTOR_LENGTH (vect), "vector-set!");
       SCM_I_VECTOR_WELTS (vect)[c_idx] = val;
       NEXT (1);
@@ -2710,7 +2714,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       vect = SP_REF (dst);
       val = SP_REF (src);
 
-      VM_VALIDATE_VECTOR (vect, "vector-set!");
+      VM_VALIDATE_MUTABLE_VECTOR (vect, "vector-set!");
       VM_VALIDATE_INDEX (idx, SCM_I_VECTOR_LENGTH (vect), "vector-set!");
       SCM_I_VECTOR_WELTS (vect)[idx] = val;
       NEXT (1);
@@ -3044,7 +3048,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     c_idx = SP_REF_U64 (idx);                                           \
     slot_val = SP_REF_ ## slot (src);                                   \
 									\
-    VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set!");                   \
+    VM_VALIDATE_MUTABLE_BYTEVECTOR (bv, "bv-" #stem "-set!");           \
 									\
     VM_ASSERT (SCM_BYTEVECTOR_LENGTH (bv) >= size                       \
                && SCM_BYTEVECTOR_LENGTH (bv) - size >= c_idx,           \
@@ -3070,7 +3074,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     c_idx = SP_REF_U64 (idx);                                           \
     val = SP_REF_ ## slot (src);                                        \
 									\
-    VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set!");                   \
+    VM_VALIDATE_MUTABLE_BYTEVECTOR (bv, "bv-" #stem "-set!");           \
 									\
     VM_ASSERT (SCM_BYTEVECTOR_LENGTH (bv) >= size                       \
                && SCM_BYTEVECTOR_LENGTH (bv) - size >= c_idx,           \

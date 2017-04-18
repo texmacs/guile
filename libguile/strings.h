@@ -194,12 +194,12 @@ SCM_INTERNAL SCM scm_i_make_string (size_t len, char **datap,
 				    int read_only_p);
 SCM_INTERNAL SCM scm_i_make_wide_string (size_t len, scm_t_wchar **datap,
 					 int read_only_p);
-SCM_INTERNAL SCM scm_i_set_string_read_only_x (SCM str);
 SCM_INTERNAL SCM scm_i_substring (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_read_only (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
 SCM_INTERNAL size_t scm_i_string_length (SCM str);
+SCM_INTERNAL int scm_i_string_is_mutable (SCM str);
 SCM_API /* FIXME: not internal */ const char *scm_i_string_chars (SCM str);
 SCM_API /* FIXME: not internal */ char *scm_i_string_writable_chars (SCM str);
 SCM_INTERNAL const scm_t_wchar *scm_i_string_wide_chars (SCM str);
