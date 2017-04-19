@@ -2,7 +2,7 @@
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008,
-;;;;   2011, 2014 Free Software Foundation, Inc.
+;;;;   2011, 2014, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -179,6 +179,10 @@ incomplete numerical tower implementation.)"
     (let* ((date (make-date 99999999 5 34 12 26 3 2017 0)))
       (equal? "099999999"
               (date->string date "~N"))))
+
+  (pass-if "date->string correct ~f"
+    (let ((date (make-date 200000000 5 34 12 26 3 2017 0)))
+      (equal? "5.2" (date->string date "~f"))))
 
   ;; check time comparison procedures
   (let* ((time1 (make-time time-monotonic 0 0))
