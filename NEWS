@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2016 Free Software Foundation, Inc.
+Copyright (C) 1996-2017 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -65,6 +65,24 @@ may contain macros that contain legacy syntax object constants.  See the
 discussion of "allow-legacy-syntax-objects?" in "Syntax Transformer
 Helpers" in the manual for full details.
 
+* Bug fixes
+
+*** Fix snarfing with -ggdb3 (#25803)
+*** Fix spurious snarf warnings for net_db.c
+*** Output statprof flat display to correct port
+*** Document guile-2.2 cond-expand feature
+*** Add --with-bdw-gc for BSDs that use bdw-gc-threaded (see README)
+*** Documentation typo fixes (#26188)
+*** Fix SRFI-9 date->string bugs with ~N and ~F (#26261, #26260, #26259)
+*** SRFI-19 current-time-monotonic returns time of right type (#26329)
+*** Avoid causing GC when looking up exception handler
+*** Increment objcode version, in a compatible way
+*** Fix compile warning in (system base types)
+*** Only run tests that require fork if it is provided
+*** Speed up procedure-minimum-arity for fixed arity
+*** REPL server tests catch ECONNABORTED
+*** Avoid deprecated argument to setvbuf in (web client)
+*** Remove non-existent 'open-connection-for-uri' export from (web client)
 
 
 Changes in 2.2.0 (changes since the 2.0.x stable release series):
