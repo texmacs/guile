@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 #
-#  Copyright (C) 2000, 2001, 2006 Free Software Foundation, Inc.
+#  Copyright (C) 2000, 2001, 2006, 2017 Free Software Foundation, Inc.
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -25,7 +25,7 @@ BEGIN {
   in_a_func = 0;
 }
 
-/^SCM_DEFINE/ { 
+/^SCM_DEFINE / { 
   func_name = $0;
   sub(/^[^\(\n]*\([ \t]*/,"", func_name);
   sub(/[ \t]*,.*/,"", func_name);
