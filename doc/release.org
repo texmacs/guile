@@ -1,9 +1,9 @@
-#+TITLE: Release Process for GNU Guile 2.0
+#+TITLE: Release Process for GNU Guile 2.2
 #+AUTHOR: Ludovic Courtès
 #+STARTUP: content
 #+EMAIL: ludo@gnu.org
 
-This document describes the typical release process for Guile 2.0.
+This document describes the typical release process for Guile 2.2.
 
 * Preparing & uploading the tarball
 
@@ -69,17 +69,16 @@ if in doubt.
 
 `libguile/libguile.map' should also be updated as new public symbols are
 added.  Ideally, new symbols should get under a new version
-symbol---e.g., `GUILE_2.0.3' for symbols introduced in Guile 2.0.3.
-However, this has not been done for Guile <= 2.0.2.
+symbol---e.g., `GUILE_2.2.3' for symbols introduced in Guile 2.2.3.
 
-** Tag v2.0.x
+** Tag v2.2.x
 
 Create a signed Git tag, like this:
 
-  $ git tag -s -u MY-KEY -m "GNU Guile 2.0.X." v2.0.X
+  $ git tag -s -u MY-KEY -m "GNU Guile 2.2.X." v2.2.X
 
-The tag *must* be `v2.0.X'.  For the sake of consistency, always use
-"GNU Guile 2.0.X." as the tag comment.
+The tag *must* be `v2.2.X'.  For the sake of consistency, always use
+"GNU Guile 2.2.X." as the tag comment.
 
 ** Push the tag and changes
 
@@ -98,7 +97,7 @@ reports the new version number.
 
 ** Upload
 
-  $ ./build-aux/gnupload --to ftp.gnu.org:guile guile-2.0.X.tar.gz
+  $ ./build-aux/gnupload --to ftp.gnu.org:guile guile-2.2.X.tar.gz
 
 You'll get an email soon after when the upload is complete.
 
@@ -115,10 +114,10 @@ Make sure the file was uploaded and is available for download as
 expected:
 
   $ mkdir t && cd t && \
-    wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.gz && \
-    wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.xz
-  $ diff guile-2.0.X.tar.gz ../guile-2.0.X.tar.gz
-  $ diff guile-2.0.X.tar.xz ../guile-2.0.X.tar.xz
+    wget ftp.gnu.org/gnu/guile/guile-2.2.X.tar.gz && \
+    wget ftp.gnu.org/gnu/guile/guile-2.2.X.tar.xz
+  $ diff guile-2.2.X.tar.gz ../guile-2.2.X.tar.gz
+  $ diff guile-2.2.X.tar.xz ../guile-2.2.X.tar.xz
 
 You're almost done!
 
@@ -138,17 +137,17 @@ Announcements").
 Use `build-aux/gendocs', add to the manual/ directory of the web site.
 
   $ cd doc/ref
-  $ ../../build-aux/gendocs.sh guile "GNU Guile 2.0.X Reference Manual"
+  $ ../../build-aux/gendocs.sh guile "GNU Guile 2.2.X Reference Manual"
 
 ** Prepare the email announcement
 
   $ build-aux/announce-gen --release-type=stable --package-name=guile \
-      --previous-version=2.0.1 --current-version=2.0.2 \
+      --previous-version=2.2.1 --current-version=2.2.2 \
       --gpg-key-id=MY-KEY --url-directory=ftp://ftp.gnu.org/gnu/guile \
       --bootstrap-tools=autoconf,automake,libtool,gnulib,makeinfo \
       --gnulib-version=$( cd ~/src/gnulib ; git describe )
 
-The subject must be "GNU Guile 2.0.X released".  The text should remain
+The subject must be "GNU Guile 2.2.X released".  The text should remain
 formal and impersonal (it is sent on behalf of the Guile and GNU
 projects.)  It must include a description of what Guile is (not everyone
 reading info-gnu may know about it.)  Use the text of previous
@@ -173,7 +172,7 @@ more informal, with a link to the email announcement for details.
 
 
 
-Copyright © 2011, 2012, 2013 Free Software Foundation, Inc.
+Copyright © 2011, 2012, 2013, 2017 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
