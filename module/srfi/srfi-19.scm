@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; Copyright (C) 2001-2003, 2005-2011, 2014, 2016
+;; Copyright (C) 2001-2003, 2005-2011, 2014, 2016-2017
 ;;   Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
@@ -333,8 +333,11 @@
 ;;    of course.
 
 (define (current-time-monotonic)
-  ;; Resolution is microseconds.
-  (current-time-tai))
+  ;; Guile monotonic and TAI times are the same.
+  (let ((tai (current-time-tai)))
+    (make-time time-monotonic
+               (time-second tai)
+               (time-nanosecond tai))))
 
 (define (current-time-thread)
   (time-error 'current-time 'unsupported-clock-type 'time-thread))
