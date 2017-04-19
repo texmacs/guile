@@ -621,7 +621,7 @@
     (and (equal (reverse '(5 4 3 2 1)) '(1 2 3 4 5))
          (equal (reverse '()) '())))
   (pass-if "setcar and setcdr"
-    (progn (setq pair '(1 . 2))
+    (progn (setq pair (cons 1 2))
            (setq copy pair)
            (setq a (setcar copy 3))
            (setq b (setcdr copy 4))
