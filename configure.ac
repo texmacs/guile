@@ -1332,7 +1332,11 @@ main (int argc, char **argv)
 # Boehm's GC library
 #
 #--------------------------------------------------------------------
-PKG_CHECK_MODULES([BDW_GC], [bdw-gc >= 7.2])
+AC_MSG_CHECKING(for which bdw-gc pkg-config file to use)
+AC_ARG_WITH(bdw_gc, [  --with-bdw-gc=PKG       name of BDW-GC pkg-config file],
+            [bdw_gc="$withval"], [bdw_gc=bdw-gc])
+AC_MSG_RESULT($bdw_gc)
+PKG_CHECK_MODULES([BDW_GC], [$bdw_gc >= 7.2])
 
 save_LIBS="$LIBS"
 LIBS="$BDW_GC_LIBS $LIBS"

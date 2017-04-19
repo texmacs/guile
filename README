@@ -1,4 +1,4 @@
-This is version 2.0 of Guile, Project GNU's extension language library.
+This is version 2.2 of Guile, Project GNU's extension language library.
 Guile is an implementation of the Scheme programming language, packaged
 as a library that can be linked into applications to give them their own
 extension language.  Guile supports other languages as well, giving
@@ -78,7 +78,7 @@ Guile requires the following external packages:
     `utf*->string' procedures.  It is available from
     http://www.gnu.org/software/libunistring/ .
 
-  - libgc, at least version 7.0
+  - libgc, at least version 7.2
 
     libgc (aka. the Boehm-Demers-Weiser garbage collector) is the
     conservative garbage collector used by Guile.  It is available
@@ -124,7 +124,20 @@ instructions above, but it seems that a few systems still need special
 treatment.  If you can send us fixes for these problems, we'd be
 grateful.
 
-   <none yet listed>
+FreeBSD 11.0:
+  For a build supporting threads, please `pkg install' the following
+    - pkgconf : provides pkg-config
+    - gmake : /usr/bin/make does not work
+    - boehm-gc-threaded : needed for threaded support
+
+  Configure as:
+
+    ./configure --with-bdw-gc=bdw-gc-threaded
+
+  Alternately if you want a Guile without threads, then install boehm-gc
+  and configure as:
+
+    ./configure --without-threads
 
 Guile specific flags Accepted by Configure =================================
 
@@ -244,7 +257,7 @@ switches specific to Guile you may find useful in some circumstances.
 
 Cross building Guile  =====================================================
 
-As of Guile 2.0.x, the build process produces a library, libguile-2.0,
+As of Guile 2.2.x, the build process produces a library, libguile-2.2,
 along with Guile "object files" containing bytecode to be interpreted by
 Guile's virtual machine.  The bytecode format depends on the endianness
 and word size of the host CPU.
