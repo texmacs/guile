@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2013 Free Software Foundation, Inc.
+@c Copyright (C) 2013, 2017 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @c SXPath documentation based on SXPath.scm by Oleg Kiselyov,
@@ -580,7 +580,7 @@ A traversal combinator in the spirit of @code{pre-post-order}.
 
 @example 
 bindings := (<binding>...)
-binding  := (<tag> <bandler-pair>...)
+binding  := (<tag> <handler-pair>...)
           | (*default* . <post-handler>)
           | (*text* . <text-handler>)
 tag      := <symbol>
