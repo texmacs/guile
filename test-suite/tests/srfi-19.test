@@ -180,9 +180,13 @@ incomplete numerical tower implementation.)"
       (equal? "099999999"
               (date->string date "~N"))))
 
-  (pass-if "date->string correct ~f"
+  (pass-if "date->string ~f without leading zeroes"
     (let ((date (make-date 200000000 5 34 12 26 3 2017 0)))
       (equal? "5.2" (date->string date "~f"))))
+
+  (pass-if "date->string ~f proper fractional part"
+    (let ((date (make-date 550000 56 34 12 26 3 2017 0)))
+      (equal? "56.00055" (date->string date "~f"))))
 
   ;; check time comparison procedures
   (let* ((time1 (make-time time-monotonic 0 0))
