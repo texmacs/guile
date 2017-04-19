@@ -217,7 +217,8 @@ program-arguments in ARGS, as decided by the OPTIONS'
       (if (null? args)
 	  (apply values seeds)
 	  (let ((arg (car args)))
-	    (cond ((or (not (char=? #\- (string-ref arg 0)))
+	    (cond ((or (string-null? arg)
+		       (not (char=? #\- (string-ref arg 0)))
 		       (= 1 (string-length arg))) ;"-"
 		   (mutate-seeds! operand-proc arg)
 		   (set! args (cdr args)))
