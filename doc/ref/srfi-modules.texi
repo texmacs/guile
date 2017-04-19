@@ -2383,17 +2383,6 @@ functions and variables described here are provided by
 (use-modules (srfi srfi-19))
 @end example
 
-@strong{Caution}: The current code in this module incorrectly extends
-the Gregorian calendar leap year rule back prior to the introduction
-of those reforms in 1582 (or the appropriate year in various
-countries).  The Julian calendar was used prior to 1582, and there
-were 10 days skipped for the reform, but the code doesn't implement
-that.
-
-This will be fixed some time.  Until then calculations for 1583
-onwards are correct, but prior to that any day/month/year and day of
-the week calculations are wrong.
-
 @menu
 * SRFI-19 Introduction::        
 * SRFI-19 Time::                
@@ -2592,6 +2581,16 @@ time of day on that date in some timezone.
 The fields are year, month, day, hour, minute, second, nanoseconds and
 timezone.  A date object is immutable, its fields can be read but they
 cannot be modified once the object is created.
+
+Historically, the Gregorian calendar was only used from the latter part
+of the year 1582 onwards, and not until even later in many countries.
+Prior to that most countries used the Julian calendar.  SRFI-19 does
+not deal with the Julian calendar at all, and so does not reflect this
+historical calendar reform.  Instead it projects the Gregorian calendar
+back proleptically as far as necessary.  When dealing with historical
+data, especially prior to the British Empire's adoption of the Gregorian
+calendar in 1752, one should be mindful of which calendar is used in
+each context, and apply non-SRFI-19 facilities to convert where necessary.
 
 @defun date? obj
 Return @code{#t} if @var{obj} is a date object, or @code{#f} if not.
