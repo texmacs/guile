@@ -1,5 +1,5 @@
 /* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010,
- *    2011, 2012, 2013 Free Software Foundation, Inc.
+ *    2011, 2012, 2013, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -393,8 +393,33 @@ SCM_DEFINE (scm_fluid_ref_star, "fluid-ref*", 2, 0, 0,
   SCM_VALIDATE_FLUID (1, fluid);
   c_depth = SCM_NUM2SIZE (2, depth);
 
+  /* Because this function is called to look up the current exception
+     handler and this can happen in an out-of-memory situation, we avoid
+     cache flushes to the weak table which might cause allocation of a
+     disappearing link.  */
   if (c_depth == 0)
-    ret = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
+    {
+      scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
+      struct scm_cache_entry *entry;
+
+      entry = scm_cache_lookup (&dynamic_state->cache, fluid);
+      if (scm_is_eq (SCM_PACK (entry->key), fluid))
+        ret = SCM_PACK (entry->value);
+      else
+        {
+          if (SCM_I_FLUID_THREAD_LOCAL_P (fluid))
+            ret = scm_hashq_ref (dynamic_state->thread_local_values, fluid,
+                                 SCM_UNDEFINED);
+          else
+            ret = scm_weak_table_refq (dynamic_state->values, fluid,
+                                       SCM_UNDEFINED);
+
+          if (SCM_UNBNDP (ret))
+            ret = SCM_I_FLUID_DEFAULT (fluid);
+
+          /* Don't cache the lookup.  */
+        }
+      }
   else
     ret = scm_dynstack_find_old_fluid_value (&SCM_I_CURRENT_THREAD->dynstack,
                                              fluid, c_depth - 1,
