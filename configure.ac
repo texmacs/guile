@@ -1346,7 +1346,7 @@ CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
 AC_CHECK_FUNCS([GC_pthread_exit GC_pthread_cancel GC_pthread_sigmask])
 
 # Functions from GC 7.3.
-AC_CHECK_FUNCS([GC_move_disappearing_link])
+AC_CHECK_FUNCS([GC_move_disappearing_link GC_is_heap_ptr])
 
 LIBS="$save_LIBS"
 

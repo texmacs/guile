@@ -177,6 +177,14 @@ scm_cdr (SCM x)
 #endif
 
 #ifdef BUILDING_LIBGUILE
+#ifndef HAVE_GC_IS_HEAP_PTR
+static int
+GC_is_heap_ptr (void *ptr)
+{
+  return GC_base (ptr) != NULL;
+}
+#endif
+
 static inline int
 scm_is_mutable_pair (SCM x)
 {
