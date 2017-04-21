@@ -33,6 +33,7 @@
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
 #include "libguile/bytevectors.h"
+#include "libguile/syntax.h"
 
 #include "libguile/struct.h"
 #include "libguile/goops.h"
@@ -362,6 +363,16 @@ scm_equal_p (SCM x, SCM y)
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
+    case scm_tc7_syntax:
+      if (scm_is_false (scm_equal_p (scm_syntax_wrap (x),
+                                     scm_syntax_wrap (y))))
+        return SCM_BOOL_F;
+      if (scm_is_false (scm_equal_p (scm_syntax_module (x),
+                                     scm_syntax_module (y))))
+        return SCM_BOOL_F;
+      x = scm_syntax_expression (x);
+      y = scm_syntax_expression (y);
+      goto tailrecurse;
     }
 
   /* Otherwise just return false. Dispatching to the generic is the wrong thing

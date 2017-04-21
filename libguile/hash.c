@@ -35,6 +35,7 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/symbols.h"
+#include "libguile/syntax.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -331,6 +332,14 @@ scm_raw_ihash (SCM obj, size_t depth)
         if (len)
           while (i--)
             h ^= scm_raw_ihash (scm_c_vector_ref (obj, h % len), i);
+        return h;
+      }
+    case scm_tc7_syntax:
+      {
+        unsigned long h;
+        h = scm_raw_ihash (scm_syntax_expression (obj), depth);
+        h ^= scm_raw_ihash (scm_syntax_wrap (obj), depth);
+        h ^= scm_raw_ihash (scm_syntax_module (obj), depth);
         return h;
       }
     case scm_tcs_cons_imcar: 

@@ -20,6 +20,7 @@
 (define-module (test-suite test-syntax)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 local-eval)
+  #:use-module ((system syntax) #:select (syntax?))
   #:use-module (test-suite lib))
 
 
@@ -1616,6 +1617,38 @@
                      ((x …)
                       (length #'(x …))))
                   env))))
+
+(with-test-prefix "syntax objects"
+  (let ((interpreted (eval '#'(foo bar baz) (current-module)))
+        (interpreted-bis (eval '#'(foo bar baz) (current-module)))
+        (compiled ((@ (system base compile) compile) '#'(foo bar baz)
+                   #:env (current-module))))
+    ;; Guile's expander doesn't wrap lists.
+    (pass-if "interpreted syntax object?"
+      (and (list? interpreted)
+           (and-map syntax? interpreted)))
+    (pass-if "compiled syntax object?"
+      (and (list? compiled)
+           (and-map syntax? compiled)))
+
+    (pass-if "interpreted syntax objects are not vectors"
+      (not (vector? interpreted)))
+    (pass-if "compiled syntax objects are not vectors"
+      (not (vector? compiled)))
+
+    (pass-if-equal "syntax objects comparable with equal? (eval/eval)"
+        interpreted interpreted-bis)
+    (pass-if-equal "syntax objects comparable with equal? (eval/compile)"
+        interpreted compiled)
+
+    (pass-if-equal "syntax objects hash the same (eval/eval)"
+        (hash interpreted most-positive-fixnum)
+      (hash interpreted-bis most-positive-fixnum))
+
+    (pass-if-equal "syntax objects hash the same (eval/compile)"
+        (hash interpreted most-positive-fixnum)
+      (hash compiled most-positive-fixnum))))
+
 
 ;;; Local Variables:
 ;;; eval: (put 'pass-if-syntax-error 'scheme-indent-function 1)
