@@ -336,8 +336,8 @@
   ;; Guile monotonic and TAI times are the same.
   (let ((tai (current-time-tai)))
     (make-time time-monotonic
-               (time-second tai)
-               (time-nanosecond tai))))
+               (time-nanosecond tai)
+               (time-second tai))))
 
 (define (current-time-thread)
   (time-error 'current-time 'unsupported-clock-type 'time-thread))
