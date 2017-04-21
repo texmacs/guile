@@ -23,6 +23,11 @@ relied on an interface that was added to our garbage collector (BDW-GC)
 after its 7.2 release.  Guile 2.2.2 adds a workaround to allow Guile to
 continue be used with libgc as old as 7.2.
 
+** SRFI-37 bug fix to not error on empty-string arguments.
+
+Thanks to Thomas Danckaert for fixing this long-standing bug.
+
+
 
 Changes in 2.2.1 (since 2.2.0):
 
