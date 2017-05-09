@@ -379,6 +379,7 @@ struct jit_block {
     jit_node_t		*label;
     jit_regset_t	 reglive;
     jit_regset_t	 regmask;
+    jit_regset_t	 setmask;	/* Used for forward second pass */
 };
 
 struct jit_value {

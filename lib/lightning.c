@@ -1560,8 +1560,10 @@ _jit_optimize(jit_state_t *_jit)
 	block = _jitc->blocks.ptr + offset;
 	if (!block->label)
 	    continue;
-	if (block->label->code != jit_code_epilog)
+	if (block->label->code != jit_code_epilog) {
 	    jit_setup(block);
+	    jit_regset_set(&block->setmask, &block->regmask);
+	}
     }
     /* call jit_update resolving undefined values in reverse
      * order so that sequential code would find most data already
@@ -1572,6 +1574,19 @@ _jit_optimize(jit_state_t *_jit)
 	    continue;
 	if (block->label->code != jit_code_epilog) {
 	    jit_regset_set(&_jitc->regmask, &block->regmask);
+	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
+	}
+    }
+    /* do a second pass from start to properly handle some conditions
+     * of very long living registers that are not referenced for
+     * several blocks */
+    bmp_zero();
+    for (offset = 0; offset < _jitc->blocks.offset; offset++) {
+	block = _jitc->blocks.ptr + offset;
+	if (!block->label)
+	    continue;
+	if (block->label->code != jit_code_epilog) {
+	    jit_regset_set(&_jitc->regmask, &block->setmask);
 	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
 	}
     }

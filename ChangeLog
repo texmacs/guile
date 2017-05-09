@@ -1,3 +1,11 @@
+2017-06-09 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_private.h, lib/lightning.c: Add a
+	second pass from start when computing register live ranges.
+	This should be used temporarily, and is required for certain
+	loop constructs, with several consecutive blocks not referencing
+	a live register.
+
 2016-05-05 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Correct wrong movr simplification,
