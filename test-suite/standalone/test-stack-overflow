@@ -15,6 +15,12 @@ exec guile -q -s "$0" "$@"
   ;; See also test-out-of-memory.
   (exit 77)) ; uresolved
 
+(when (string-ci= "GNU" (vector-ref (uname) 0))
+  ;; setrlimits are not yet implemented on GNU/Hurd systems. Proceeding
+  ;; with the test would end in a crash. See
+  ;; <https://lists.gnu.org/archive/html/bug-hurd/2017-05/msg00013.html>
+  (exit 77)) ; unresolved
+
 (when (string-contains-ci (vector-ref (uname) 0) "CYGWIN_NT")
   ;; attempting to use setrlimits for memory RLIMIT_AS will always
   ;; produce an invalid argument error on Cygwin (tested on
