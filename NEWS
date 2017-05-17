@@ -6,6 +6,23 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
+Changes in 2.2.3 (since 2.2.2):
+
+* Bug fixes
+
+** Enable GNU Readline 7.0's support for "bracketed paste".
+
+Before, when pasting an expression that contained TAB characters into
+Guile's REPL with GNU Readline support enabled, the pasted TAB
+characters would trigger autocompletion in Readline.  This was never
+what you wanted.  Guile now sets the new "bracketed-paste" option in GNU
+Readline 7.0 to on by default, making readline treat pastes into the
+terminal as atomic units without control characters.  See "Readline
+Options" in the manual for full details.
+
+** Fix time-monotonic from SRFI-19; broken in 2.2.1.
+
+
 Changes in 2.2.2 (since 2.2.1):
 
 * Bug fixes

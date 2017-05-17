@@ -108,6 +108,8 @@ history-file    yes     Use history file.
 history-length  200     History length.
 bounce-parens   500     Time (ms) to show matching opening parenthesis
                         (0 = off).
+bracketed-paste yes     Disable interpretation of control characters
+                        in pastes.
 @end smalllisp
 
 The readline options interface can only be used @emph{after} loading

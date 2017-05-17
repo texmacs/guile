@@ -39,7 +39,8 @@ SCM_RL_API scm_t_option scm_readline_opts[];
 #define SCM_HISTORY_FILE_P     scm_readline_opts[0].val
 #define SCM_HISTORY_LENGTH     scm_readline_opts[1].val
 #define SCM_READLINE_BOUNCE_PARENS scm_readline_opts[2].val
-#define SCM_N_READLINE_OPTIONS 3
+#define SCM_READLINE_BRACKETED_PASTE scm_readline_opts[3].val
+#define SCM_N_READLINE_OPTIONS 4
 
 SCM_RL_API SCM scm_readline_options (SCM setting);
 SCM_RL_API void scm_readline_init_ports (SCM inp, SCM outp);

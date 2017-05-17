@@ -47,6 +47,8 @@ scm_t_option scm_readline_opts[] = {
     "History length." },
   { SCM_OPTION_INTEGER, "bounce-parens", 500,
     "Time (ms) to show matching opening parenthesis (0 = off)."},
+  { SCM_OPTION_BOOLEAN, "bracketed-paste", 1,
+    "Disable interpretation of control characters in pastes." },
   { 0 }
 };
 
@@ -545,7 +547,10 @@ scm_init_readline ()
 
   reentry_barrier_mutex = scm_make_mutex ();
   scm_init_opts (scm_readline_options,
-		 scm_readline_opts);
+                scm_readline_opts);
+  rl_variable_bind ("enable-bracketed-paste",
+                    SCM_READLINE_BRACKETED_PASTE ? "on" : "off");
+
 #if HAVE_RL_GET_KEYMAP
   init_bouncing_parens();
 #endif
