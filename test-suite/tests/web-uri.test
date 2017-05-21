@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010-2012, 2014, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 
 
 (define* (uri=? uri #:key scheme userinfo host port path query fragment)
-  (and (uri? uri)
+  (and (uri-reference? uri)
        (equal? (uri-scheme uri) scheme)
        (equal? (uri-userinfo uri) userinfo)
        (equal? (uri-host uri) host)
@@ -123,6 +123,22 @@
                          "Expected.*host"
                          (build-uri 'http #:userinfo "foo")))
 
+(with-test-prefix "build-uri-reference"
+  (pass-if "//host/etc/foo"
+    (uri=? (build-uri-reference #:host "host"
+                                #:path "/etc/foo")
+           #:host "host"
+           #:path "/etc/foo"))
+
+  (pass-if "/path/to/some/foo?query"
+    (uri=? (build-uri-reference #:path "/path/to/some/foo"
+                                #:query "query")
+           #:path "/path/to/some/foo"
+           #:query "query"))
+
+  (pass-if "nextdoc/foo"
+    (uri=? (build-uri-reference #:path "nextdoc/foo")
+           #:path "nextdoc/foo")))
 
 (with-test-prefix "string->uri"
   (pass-if "ftp:"
@@ -503,6 +519,30 @@
            #:query "q"
            #:fragment "bar")))
 
+(with-test-prefix "string->uri-reference"
+  (pass-if "/"
+    (uri=? (string->uri-reference "/")
+           #:path "/"))
+
+  (pass-if "/path/to/foo"
+    (uri=? (string->uri-reference "/path/to/foo")
+           #:path "/path/to/foo"))
+
+  (pass-if "//example.org"
+    (uri=? (string->uri-reference "//example.org")
+           #:host "example.org"
+           #:path ""))
+
+  (pass-if "//bar@example.org/path/to/foo"
+    (uri=? (string->uri-reference "//bar@example.org/path/to/foo")
+           #:userinfo "bar"
+           #:host "example.org"
+           #:path "/path/to/foo"))
+
+  (pass-if "nextdoc/foo"
+    (uri=? (string->uri-reference "nextdoc/foo")
+           #:path "nextdoc/foo")))
+
 (with-test-prefix "uri->string"
   (pass-if "ftp:"
     (equal? "ftp:"
@@ -587,7 +627,23 @@
 
   (pass-if "foo/?bar#baz"
     (equal? "foo/?bar#baz"
-            (uri->string (string->uri-reference "foo/?bar#baz")))))
+            (uri->string (string->uri-reference "foo/?bar#baz"))))
+
+  (pass-if "/path/to/foo"
+    (equal? "/path/to/foo"
+            (uri->string (string->uri-reference "/path/to/foo"))))
+
+  (pass-if "//example.org"
+    (equal? "//example.org"
+            (uri->string (string->uri-reference "//example.org"))))
+
+  (pass-if "//bar@example.org/path/to/foo"
+    (equal? "//bar@example.org/path/to/foo"
+            (uri->string (string->uri-reference "//bar@example.org/path/to/foo"))))
+
+  (pass-if "nextdoc/foo"
+    (equal? "nextdoc/foo"
+            (uri->string (string->uri-reference "nextdoc/foo")))))
 
 (with-test-prefix "decode"
   (pass-if "foo%20bar"

@@ -8,6 +8,24 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.2.3 (since 2.2.2):
 
+* New interfaces
+
+** (web uri) module has better support for RFC 3986
+
+The URI standard, RFC 3986, defines additional "relative-ref" and
+"URI-reference" data types.  Thanks to Daniel Hartwig, Guile's support
+for these URI subtypes has been improved.  See "Universal Resource
+Identifiers" in the manual, for more.
+
+* New deprecations
+
+** Using `uri?' as a predicate on relative-refs deprecated
+
+If you don't care whether the URI is a relative-ref or not, use
+`uri-reference?'.  If you do, use `uri-reference?' and `relative-ref?'.
+In the future `uri?' will return a true value only for URIs that specify
+a scheme.
+
 * Bug fixes
 
 ** Enable GNU Readline 7.0's support for "bracketed paste".

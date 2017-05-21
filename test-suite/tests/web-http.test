@@ -1,6 +1,6 @@
 ;;;; web-http.test --- HTTP library        -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010-2011, 2014-2016 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010-2011, 2014-2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -150,32 +150,33 @@
 (with-test-prefix "read-request-line"
   (pass-if-read-request-line "GET / HTTP/1.1"
                              GET
-                             (build-uri 'http
-                                        #:path "/")
+                             (build-uri-reference
+                              #:path "/")
                              (1 . 1))
   (pass-if-read-request-line "GET http://www.w3.org/pub/WWW/TheProject.html HTTP/1.1"
                              GET
-                             (build-uri 'http
-                                        #:host "www.w3.org"
-                                        #:path "/pub/WWW/TheProject.html")
+                             (build-uri-reference
+                              #:scheme 'http
+                              #:host "www.w3.org"
+                              #:path "/pub/WWW/TheProject.html")
                              (1 . 1))
   (pass-if-read-request-line "GET /pub/WWW/TheProject.html HTTP/1.1"
                              GET
-                             (build-uri 'http
-                                        #:path "/pub/WWW/TheProject.html")
+                             (build-uri-reference
+                              #:path "/pub/WWW/TheProject.html")
                              (1 . 1))
   (pass-if-read-request-line "HEAD /etc/hosts?foo=bar HTTP/1.1"
                              HEAD
-                             (build-uri 'http
-                                        #:path "/etc/hosts"
-                                        #:query "foo=bar")
+                             (build-uri-reference
+                              #:path "/etc/hosts"
+                              #:query "foo=bar")
                              (1 . 1)))
 
 (with-test-prefix "write-request-line"
   (pass-if-write-request-line "GET / HTTP/1.1"
                               GET
-                              (build-uri 'http
-                                         #:path "/")
+                              (build-uri-reference
+                               #:path "/")
                               (1 . 1))
   ;;; FIXME: Test fails due to scheme, host always being removed.
   ;;; However, it should be supported to request these be present, and
@@ -188,8 +189,8 @@
   ;;                             (1 . 1))
   (pass-if-write-request-line "GET /pub/WWW/TheProject.html HTTP/1.1"
                               GET
-                              (build-uri 'http
-                                         #:path "/pub/WWW/TheProject.html")
+                              (build-uri-reference
+                               #:path "/pub/WWW/TheProject.html")
                               (1 . 1))
   (pass-if-write-request-line "GET /?foo HTTP/1.1"
                               GET
@@ -197,9 +198,9 @@
                               (1 . 1))
   (pass-if-write-request-line "HEAD /etc/hosts?foo=bar HTTP/1.1"
                               HEAD
-                              (build-uri 'http
-                                         #:path "/etc/hosts"
-                                         #:query "foo=bar")
+                              (build-uri-reference
+                               #:path "/etc/hosts"
+                               #:query "foo=bar")
                               (1 . 1)))
 
 (with-test-prefix "read-response-line"
@@ -298,6 +299,12 @@
   (pass-if-parse content-length "010" 10)
   (pass-if-parse content-location "http://foo/"
                  (build-uri 'http #:host "foo" #:path "/"))
+  (pass-if-parse content-location "//foo/"
+                 (build-uri-reference #:host "foo" #:path "/"))
+  (pass-if-parse content-location "/etc/foo"
+                 (build-uri-reference #:path "/etc/foo"))
+  (pass-if-parse content-location "foo"
+                 (build-uri-reference #:path "foo"))
   (pass-if-parse content-range "bytes 10-20/*" '(bytes (10 . 20) *))
   (pass-if-parse content-range "bytes */*" '(bytes * *))
   (pass-if-parse content-range "bytes */30" '(bytes * 30))
@@ -370,6 +377,14 @@
   (pass-if-parse range "bytes=-20,-30" '(bytes (#f . 20) (#f . 30)))
   (pass-if-parse referer "http://foo/bar?baz"
                  (build-uri 'http #:host "foo" #:path "/bar" #:query "baz"))
+  (pass-if-parse referer "//foo/bar?baz"
+                 (build-uri-reference #:host "foo"
+                                      #:path "/bar"
+                                      #:query "baz"))
+  (pass-if-parse referer "/etc/foo"
+                 (build-uri-reference #:path "/etc/foo"))
+  (pass-if-parse referer "foo"
+                 (build-uri-reference #:path "foo"))
   (pass-if-parse te "trailers" '((trailers)))
   (pass-if-parse te "trailers,foo" '((trailers) (foo)))
   (pass-if-parse user-agent "guile" "guile"))

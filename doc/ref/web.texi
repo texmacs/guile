@@ -173,37 +173,19 @@ Guile provides a standard data type for Universal Resource Identifiers
 The generic URI syntax is as follows:
 
 @example
-URI := scheme ":" ["//" [userinfo "@@"] host [":" port]] path \
-       [ "?" query ] [ "#" fragment ]
+URI-reference := [scheme ":"] ["//" [userinfo "@@"] host [":" port]] path \
+                 [ "?" query ] [ "#" fragment ]
 @end example
 
 For example, in the URI, @indicateurl{http://www.gnu.org/help/}, the
 scheme is @code{http}, the host is @code{www.gnu.org}, the path is
-@code{/help/}, and there is no userinfo, port, query, or fragment.  All
-URIs have a scheme and a path (though the path might be empty).  Some
-URIs have a host, and some of those have ports and userinfo.  Any URI
-might have a query part or a fragment.
-
-There is also a ``URI-reference'' data type, which is the same as a URI
-but where the scheme is optional.  In this case, the scheme is taken to
-be relative to some other related URI.  A common use of URI references
-is when you want to be vague regarding the choice of HTTP or HTTPS --
-serving a web page referring to @code{/foo.css} will use HTTPS if loaded
-over HTTPS, or HTTP otherwise.
+@code{/help/}, and there is no userinfo, port, query, or fragment.
 
 Userinfo is something of an abstraction, as some legacy URI schemes
 allowed userinfo of the form @code{@var{username}:@var{passwd}}.  But
 since passwords do not belong in URIs, the RFC does not want to condone
 this practice, so it calls anything before the @code{@@} sign
 @dfn{userinfo}.
-
-Properly speaking, a fragment is not part of a URI.  For example, when a
-web browser follows a link to @indicateurl{http://example.com/#foo}, it
-sends a request for @indicateurl{http://example.com/}, then looks in the
-resulting page for the fragment identified @code{foo} reference.  A
-fragment identifies a part of a resource, not the resource itself.  But
-it is useful to have a fragment field in the URI record itself, so we
-hope you will forgive the inconsistency.
 
 @example
 (use-modules (web uri))
@@ -213,40 +195,36 @@ The following procedures can be found in the @code{(web uri)}
 module. Load it into your Guile, using a form like the above, to have
 access to them.
 
+The most common way to build a URI from Scheme is with the
+@code{build-uri} function.
+
 @deffn {Scheme Procedure} build-uri scheme @
        [#:userinfo=@code{#f}] [#:host=@code{#f}] [#:port=@code{#f}] @
        [#:path=@code{""}] [#:query=@code{#f}] [#:fragment=@code{#f}] @
        [#:validate?=@code{#t}]
-Construct a URI object.  @var{scheme} should be a symbol, @var{port}
-either a positive, exact integer or @code{#f}, and the rest of the
-fields are either strings or @code{#f}.  If @var{validate?} is true,
-also run some consistency checks to make sure that the constructed URI
-is valid.
+Construct a URI.  @var{scheme} should be a symbol, @var{port} either a
+positive, exact integer or @code{#f}, and the rest of the fields are
+either strings or @code{#f}.  If @var{validate?} is true, also run some
+consistency checks to make sure that the constructed URI is valid.
 @end deffn
-
-@deffn {Scheme Procedure} build-uri-reference [#:scheme=@code{#f}]@
-       [#:userinfo=@code{#f}] [#:host=@code{#f}] [#:port=@code{#f}] @
-       [#:path=@code{""}] [#:query=@code{#f}] [#:fragment=@code{#f}] @
-       [#:validate?=@code{#t}]
-Like @code{build-uri}, but with an optional scheme.
-@end deffn
-
-In Guile, both URI and URI reference data types are represented in the
-same way, as URI objects.
-
 @deffn {Scheme Procedure} uri? obj
-@deffnx {Scheme Procedure} uri-scheme uri
+Return @code{#t} if @var{obj} is a URI.
+@end deffn
+
+Guile, URIs are represented as URI records, with a number of associated
+accessors.
+
+@deffn {Scheme Procedure} uri-scheme uri
 @deffnx {Scheme Procedure} uri-userinfo uri
 @deffnx {Scheme Procedure} uri-host uri
 @deffnx {Scheme Procedure} uri-port uri
 @deffnx {Scheme Procedure} uri-path uri
 @deffnx {Scheme Procedure} uri-query uri
 @deffnx {Scheme Procedure} uri-fragment uri
-A predicate and field accessors for the URI record type.  The URI scheme
-will be a symbol, or @code{#f} if the object is a URI reference but not
-a URI.  The port will be either a positive, exact integer or @code{#f},
-and the rest of the fields will be either strings or @code{#f} if not
-present.
+Field accessors for the URI record type.  The URI scheme will be a
+symbol, or @code{#f} if the object is a relative-ref (see below).  The
+port will be either a positive, exact integer or @code{#f}, and the rest
+of the fields will be either strings or @code{#f} if not present.
 @end deffn
 
 @deffn {Scheme Procedure} string->uri string
@@ -254,15 +232,11 @@ Parse @var{string} into a URI object.  Return @code{#f} if the string
 could not be parsed.
 @end deffn
 
-@deffn {Scheme Procedure} string->uri-reference string
-Parse @var{string} into a URI object, while not requiring a scheme.
-Return @code{#f} if the string could not be parsed.
-@end deffn
-
-@deffn {Scheme Procedure} uri->string uri
+@deffn {Scheme Procedure} uri->string uri [#:include-fragment?=@code{#t}]
 Serialize @var{uri} to a string.  If the URI has a port that is the
 default port for its scheme, the port is not included in the
-serialization.
+serialization.  If @var{include-fragment?} is given as false, the
+resulting string will omit the fragment (if any).
 @end deffn
 
 @deffn {Scheme Procedure} declare-default-port! scheme port
@@ -322,6 +296,70 @@ strings, and join the parts together with @code{/} as a delimiter.
 For example, the list @code{("scrambled eggs" "biscuits&gravy")} encodes
 as @code{"scrambled%20eggs/biscuits%26gravy"}.
 @end deffn
+
+@subsubheading Subtypes of URI
+
+As we noted above, not all URI objects have a scheme.  You might have
+noted in the ``generic URI syntax'' example that the left-hand side of
+that grammar definition was URI-reference, not URI.  A
+@dfn{URI-reference} is a generalization of a URI where the scheme is
+optional.  If no scheme is specified, it is taken to be relative to some
+other related URI.  A common use of URI references is when you want to
+be vague regarding the choice of HTTP or HTTPS -- serving a web page
+referring to @code{/foo.css} will use HTTPS if loaded over HTTPS, or
+HTTP otherwise.
+
+@deffn {Scheme Procedure} build-uri-reference [#:scheme=@code{#f}]@
+       [#:userinfo=@code{#f}] [#:host=@code{#f}] [#:port=@code{#f}] @
+       [#:path=@code{""}] [#:query=@code{#f}] [#:fragment=@code{#f}] @
+       [#:validate?=@code{#t}]
+Like @code{build-uri}, but with an optional scheme.
+@end deffn
+@deffn {Scheme Procedure} uri-reference? obj
+Return @code{#t} if @var{obj} is a URI-reference.  This is the most
+general URI predicate, as it includes not only full URIs that have
+schemes (those that match @code{uri?}) but also URIs without schemes.
+@end deffn
+
+It's also possible to build a @dfn{relative-ref}: a URI-reference that
+explicitly lacks a scheme.
+
+@deffn {Scheme Procedure} build-relative-ref @
+       [#:userinfo=@code{#f}] [#:host=@code{#f}] [#:port=@code{#f}] @
+       [#:path=@code{""}] [#:query=@code{#f}] [#:fragment=@code{#f}] @
+       [#:validate?=@code{#t}]
+Like @code{build-uri}, but with no scheme.
+@end deffn
+@deffn {Scheme Procedure} relative-ref? obj
+Return @code{#t} if @var{obj} is a ``relative-ref'': a URI-reference
+that has no scheme.  Every URI-reference will either match @code{uri?}
+or @code{relative-ref?} (but not both).
+@end deffn
+
+In case it's not clear from the above, the most general of these URI
+types is the URI-reference, with @code{build-uri-reference} as the most
+general constructor.  @code{build-uri} and @code{build-relative-ref}
+enforce enforce specific restrictions on the URI-reference.  The most
+generic URI parser is then @code{string->uri-reference}, and there is
+also a parser for when you know that you want a relative-ref.
+
+@deffn {Scheme Procedure} string->uri-reference string
+Parse @var{string} into a URI object, while not requiring a scheme.
+Return @code{#f} if the string could not be parsed.
+@end deffn
+
+@deffn {Scheme Procedure} string->relative-ref string
+Parse @var{string} into a URI object, while asserting that no scheme is
+present.  Return @code{#f} if the string could not be parsed.
+@end deffn
+
+For compatibility reasons, note that @code{uri?} will return @code{#t}
+for all URI objects, even relative-refs.  In contrast, @code{build-uri}
+and @code{string->uri} require that the resulting URI not be a
+relative-ref.  As a predicate to distinguish relative-refs from proper
+URIs (in the language of RFC 3986), use something like @code{(and
+(uri-reference? @var{x}) (not (relative-ref?  @var{x})))}.
+
 
 @node HTTP
 @subsection The Hyper-Text Transfer Protocol

@@ -164,16 +164,16 @@ host name without trailing dot."
                                             get-position set-position!
                                             close))))
 
-(define (ensure-uri uri-or-string)
+(define (ensure-uri-reference uri-or-string)
   (cond
-   ((string? uri-or-string) (string->uri uri-or-string))
-   ((uri? uri-or-string) uri-or-string)
-   (else (error "Invalid URI" uri-or-string))))
+   ((string? uri-or-string) (string->uri-reference uri-or-string))
+   ((uri-reference? uri-or-string) uri-or-string)
+   (else (error "Invalid URI-reference" uri-or-string))))
 
 (define (open-socket-for-uri uri-or-string)
   "Return an open input/output port for a connection to URI."
   (define http-proxy (current-http-proxy))
-  (define uri (ensure-uri (or http-proxy uri-or-string)))
+  (define uri (ensure-uri-reference (or http-proxy uri-or-string)))
   (define addresses
     (let ((port (uri-port uri)))
       (delete-duplicates
@@ -344,7 +344,7 @@ as is the case by default with a request returned by `build-request'."
                   (streaming? #f)
                   (request
                    (build-request
-                    (ensure-uri uri)
+                    (ensure-uri-reference uri)
                     #:method method
                     #:version version
                     #:headers (if keep-alive?
