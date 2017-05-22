@@ -343,6 +343,9 @@ enforce enforce specific restrictions on the URI-reference.  The most
 generic URI parser is then @code{string->uri-reference}, and there is
 also a parser for when you know that you want a relative-ref.
 
+Note that @code{uri?} will only return @code{#t} for URI objects that
+have schemes; that is, it rejects relative-refs.
+
 @deffn {Scheme Procedure} string->uri-reference string
 Parse @var{string} into a URI object, while not requiring a scheme.
 Return @code{#f} if the string could not be parsed.
@@ -352,13 +355,6 @@ Return @code{#f} if the string could not be parsed.
 Parse @var{string} into a URI object, while asserting that no scheme is
 present.  Return @code{#f} if the string could not be parsed.
 @end deffn
-
-For compatibility reasons, note that @code{uri?} will return @code{#t}
-for all URI objects, even relative-refs.  In contrast, @code{build-uri}
-and @code{string->uri} require that the resulting URI not be a
-relative-ref.  As a predicate to distinguish relative-refs from proper
-URIs (in the language of RFC 3986), use something like @code{(and
-(uri-reference? @var{x}) (not (relative-ref?  @var{x})))}.
 
 
 @node HTTP
