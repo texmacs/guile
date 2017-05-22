@@ -1,7 +1,7 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010, 2011,
-;;;;   2012, 2013, 2015, 2016 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010-2017
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -155,8 +155,8 @@
 
 ;;; Bootstrapping:
 
-;;; When changing syntax-object representations, it is necessary to support
-;;; both old and new syntax-object representations in id-var-name.  It
+;;; When changing syntax representations, it is necessary to support
+;;; both old and new syntax representations in id-var-name.  It
 ;;; should be sufficient to recognize old representations and treat
 ;;; them as not lexically bound.
 
@@ -471,34 +471,13 @@
       ;; 'gensym' so that the generated identifier is reproducible.
       (module-gensym (symbol->string id)))
 
-    (define (syntax-object? x)
-      (or (syntax? x)
-          (and (allow-legacy-syntax-objects?)
-               (vector? x)
-               (= (vector-length x) 4)
-               (eqv? (vector-ref x 0) 'syntax-object))))
-    (define (make-syntax-object expression wrap module)
-      (make-syntax expression wrap module))
-    (define (syntax-object-expression obj)
-      (if (syntax? obj)
-          (syntax-expression obj)
-          (vector-ref obj 1)))
-    (define (syntax-object-wrap obj)
-      (if (syntax? obj)
-          (syntax-wrap obj)
-          (vector-ref obj 2)))
-    (define (syntax-object-module obj)
-      (if (syntax? obj)
-          (syntax-module obj)
-          (vector-ref obj 3)))
-
     (define-syntax no-source (identifier-syntax #f))
 
     (define source-annotation
       (lambda (x)
         (let ((props (source-properties
-                      (if (syntax-object? x)
-                          (syntax-object-expression x)
+                      (if (syntax? x)
+                          (syntax-expression x)
                           x))))
           (and (pair? props) props))))
 
@@ -619,28 +598,28 @@
 
     (define nonsymbol-id?
       (lambda (x)
-        (and (syntax-object? x)
-             (symbol? (syntax-object-expression x)))))
+        (and (syntax? x)
+             (symbol? (syntax-expression x)))))
 
     (define id?
       (lambda (x)
         (cond
          ((symbol? x) #t)
-         ((syntax-object? x) (symbol? (syntax-object-expression x)))
+         ((syntax? x) (symbol? (syntax-expression x)))
          (else #f))))
 
     (define-syntax-rule (id-sym-name e)
       (let ((x e))
-        (if (syntax-object? x)
-            (syntax-object-expression x)
+        (if (syntax? x)
+            (syntax-expression x)
             x)))
 
     (define id-sym-name&marks
       (lambda (x w)
-        (if (syntax-object? x)
+        (if (syntax? x)
             (values
-             (syntax-object-expression x)
-             (join-marks (wrap-marks w) (wrap-marks (syntax-object-wrap x))))
+             (syntax-expression x)
+             (join-marks (wrap-marks w) (wrap-marks (syntax-wrap x))))
             (values x (wrap-marks w)))))
 
     ;; syntax object wraps
@@ -697,10 +676,10 @@
       ;; must receive ids with complete wraps
       (lambda (ribcage id label)
         (set-ribcage-symnames! ribcage
-                               (cons (syntax-object-expression id)
+                               (cons (syntax-expression id)
                                      (ribcage-symnames ribcage)))
         (set-ribcage-marks! ribcage
-                            (cons (wrap-marks (syntax-object-wrap id))
+                            (cons (wrap-marks (syntax-wrap id))
                                   (ribcage-marks ribcage)))
         (set-ribcage-labels! ribcage
                              (cons label (ribcage-labels ribcage)))))
@@ -830,10 +809,10 @@
         (cond
          ((symbol? id)
           (or (first (search id (wrap-subst w) (wrap-marks w) mod)) id))
-         ((syntax-object? id)
-          (let ((id (syntax-object-expression id))
-                (w1 (syntax-object-wrap id))
-                (mod (syntax-object-module id)))
+         ((syntax? id)
+          (let ((id (syntax-expression id))
+                (w1 (syntax-wrap id))
+                (mod (syntax-module id)))
             (let ((marks (join-marks (wrap-marks w) (wrap-marks w1))))
               (call-with-values (lambda () (search id (wrap-subst w) marks mod))
                 (lambda (new-id marks)
@@ -914,7 +893,7 @@
           (values (binding-type b) (binding-value b) mod)))
       (let ((n (id-var-name id w mod)))
         (cond
-         ((syntax-object? n)
+         ((syntax? n)
           (cond
            ((not (eq? n id))
             ;; This identifier aliased another; recurse to allow
@@ -924,18 +903,18 @@
            (else
             ;; Resolved to a free variable that was introduced by this
             ;; macro; continue to resolve this global by name.
-            (resolve-identifier (syntax-object-expression n)
-                                (syntax-object-wrap n)
+            (resolve-identifier (syntax-expression n)
+                                (syntax-wrap n)
                                 r
-                                (syntax-object-module n)
+                                (syntax-module n)
                                 resolve-syntax-parameters?))))
          ((symbol? n)
-          (resolve-global n (if (syntax-object? id)
-                                (syntax-object-module id)
+          (resolve-global n (if (syntax? id)
+                                (syntax-module id)
                                 mod)))
          ((string? n)
-          (resolve-lexical n (if (syntax-object? id)
-                                 (syntax-object-module id)
+          (resolve-lexical n (if (syntax? id)
+                                 (syntax-module id)
                                  mod)))
          (else
           (error "unexpected id-var-name" id w n)))))
@@ -953,8 +932,8 @@
 
     (define free-id=?
       (lambda (i j)
-        (let* ((mi (and (syntax-object? i) (syntax-object-module i)))
-               (mj (and (syntax-object? j) (syntax-object-module j)))
+        (let* ((mi (and (syntax? i) (syntax-module i)))
+               (mj (and (syntax? j) (syntax-module j)))
                (ni (id-var-name i empty-wrap mi))
                (nj (id-var-name j empty-wrap mj)))
           (define (id-module-binding id mod)
@@ -967,8 +946,8 @@
                  (current-module))
              (id-sym-name id)))
           (cond
-           ((syntax-object? ni) (free-id=? ni j))
-           ((syntax-object? nj) (free-id=? i nj))
+           ((syntax? ni) (free-id=? ni j))
+           ((syntax? nj) (free-id=? i nj))
            ((symbol? ni)
             ;; `i' is not lexically bound.  Assert that `j' is free,
             ;; and if so, compare their bindings, that they are either
@@ -992,11 +971,11 @@
 
     (define bound-id=?
       (lambda (i j)
-        (if (and (syntax-object? i) (syntax-object? j))
-            (and (eq? (syntax-object-expression i)
-                      (syntax-object-expression j))
-                 (same-marks? (wrap-marks (syntax-object-wrap i))
-                              (wrap-marks (syntax-object-wrap j))))
+        (if (and (syntax? i) (syntax? j))
+            (and (eq? (syntax-expression i)
+                      (syntax-expression j))
+                 (same-marks? (wrap-marks (syntax-wrap i))
+                              (wrap-marks (syntax-wrap j))))
             (eq? i j))))
 
     ;; "valid-bound-ids?" returns #t if it receives a list of distinct ids.
@@ -1037,13 +1016,13 @@
       (lambda (x w defmod)
         (cond
          ((and (null? (wrap-marks w)) (null? (wrap-subst w))) x)
-         ((syntax-object? x)
-          (make-syntax-object
-           (syntax-object-expression x)
-           (join-wraps w (syntax-object-wrap x))
-           (syntax-object-module x)))
+         ((syntax? x)
+          (make-syntax
+           (syntax-expression x)
+           (join-wraps w (syntax-wrap x))
+           (syntax-module x)))
          ((null? x) x)
-         (else (make-syntax-object x w defmod)))))
+         (else (make-syntax x w defmod)))))
 
     (define source-wrap
       (lambda (x w s defmod)
@@ -1088,13 +1067,13 @@
               ;; the special case of names that are pairs.  See the
               ;; comments in id-var-name for more.
               (extend-ribcage! ribcage id
-                               (cons (syntax-object-module id)
+                               (cons (syntax-module id)
                                      (wrap var top-wrap mod)))))
           (define (macro-introduced-identifier? id)
-            (not (equal? (wrap-marks (syntax-object-wrap id)) '(top))))
+            (not (equal? (wrap-marks (syntax-wrap id)) '(top))))
           (define (fresh-derived-name id orig-form)
             (symbol-append
-             (syntax-object-expression id)
+             (syntax-expression id)
              '-
              (string->symbol
               ;; FIXME: `hash' currently stops descending into nested
@@ -1131,7 +1110,7 @@
                           (label (gen-label))
                           (var (if (macro-introduced-identifier? id)
                                    (fresh-derived-name id x)
-                                   (syntax-object-expression id))))
+                                   (syntax-expression id))))
                      (record-definition! id var)
                      (list
                       (if (eq? m 'c&e)
@@ -1154,7 +1133,7 @@
                           (label (gen-label))
                           (var (if (macro-introduced-identifier? id)
                                    (fresh-derived-name id x)
-                                   (syntax-object-expression id))))
+                                   (syntax-expression id))))
                      (record-definition! id var)
                      (case m
                        ((c)
@@ -1341,7 +1320,7 @@
                        ;; need to make sure the fmod information is
                        ;; propagated back correctly -- hence this
                        ;; consing.
-                       (values 'global-call (make-syntax-object fval w fmod)
+                       (values 'global-call (make-syntax fval w fmod)
                                e e w s mod)))
                   ((macro)
                    (syntax-type (expand-macro fval e r w s rib mod)
@@ -1391,12 +1370,12 @@
                       (values 'define-syntax-parameter-form #'name e #'val w s mod))))
                   (else
                    (values 'call #f e e w s mod)))))))
-         ((syntax-object? e)
-          (syntax-type (syntax-object-expression e)
+         ((syntax? e)
+          (syntax-type (syntax-expression e)
                        r
-                       (join-wraps w (syntax-object-wrap e))
+                       (join-wraps w (syntax-wrap e))
                        (or (source-annotation e) s) rib
-                       (or (syntax-object-module e) mod) for-car?))
+                       (or (syntax-module e) mod) for-car?))
          ((self-evaluating? e) (values 'constant #f e e w s mod))
          (else (values 'other #f e e w s mod)))))
 
@@ -1423,7 +1402,7 @@
            (expand-call
             (let ((id (car e)))
               (build-lexical-reference 'fun (source-annotation id)
-                                       (if (syntax-object? id)
+                                       (if (syntax? id)
                                            (syntax->datum id)
                                            id)
                                        value))
@@ -1431,11 +1410,11 @@
           ((global-call)
            (expand-call
             (build-global-reference (source-annotation (car e))
-                                    (if (syntax-object? value)
-                                        (syntax-object-expression value)
+                                    (if (syntax? value)
+                                        (syntax-expression value)
                                         value)
-                                    (if (syntax-object? value)
-                                        (syntax-object-module value)
+                                    (if (syntax? value)
+                                        (syntax-module value)
                                         mod))
             e r w s mod))
           ((primitive-call)
@@ -1524,23 +1503,23 @@
                     (cons (rebuild-macro-output (car x) m)
                           (rebuild-macro-output (cdr x) m))
                     s))
-                  ((syntax-object? x)
-                   (let ((w (syntax-object-wrap x)))
+                  ((syntax? x)
+                   (let ((w (syntax-wrap x)))
                      (let ((ms (wrap-marks w)) (ss (wrap-subst w)))
                        (if (and (pair? ms) (eq? (car ms) the-anti-mark))
                            ;; output is from original text
-                           (make-syntax-object
-                            (syntax-object-expression x)
+                           (make-syntax
+                            (syntax-expression x)
                             (make-wrap (cdr ms) (if rib (cons rib (cdr ss)) (cdr ss)))
-                            (syntax-object-module x))
+                            (syntax-module x))
                            ;; output introduced by macro
-                           (make-syntax-object
-                            (decorate-source (syntax-object-expression x) s)
+                           (make-syntax
+                            (decorate-source (syntax-expression x) s)
                             (make-wrap (cons m ms)
                                        (if rib
                                            (cons rib (cons 'shift ss))
                                            (cons 'shift ss)))
-                            (syntax-object-module x))))))
+                            (syntax-module x))))))
                 
                   ((vector? x)
                    (let* ((n (vector-length x))
@@ -1746,9 +1725,9 @@
              ;; comparison is done using 'bound-id=?'.
              (call-with-values
                  (lambda () (resolve-identifier
-                             (make-syntax-object '#{ $sc-ellipsis }#
-                                                 (syntax-object-wrap e)
-                                                 (syntax-object-module e))
+                             (make-syntax '#{ $sc-ellipsis }#
+                                                 (syntax-wrap e)
+                                                 (syntax-module e))
                              empty-wrap r mod #f))
                (lambda (type value mod)
                  (if (eq? type 'ellipsis)
@@ -1964,7 +1943,7 @@
 
     ;; data
 
-    ;; strips syntax-objects down to top-wrap
+    ;; strips syntax objects down to top-wrap
     ;;
     ;; since only the head of a list is annotated by the reader, not each pair
     ;; in the spine, we also check for pairs whose cars are annotated in case
@@ -1976,8 +1955,8 @@
             x
             (let f ((x x))
               (cond
-               ((syntax-object? x)
-                (strip (syntax-object-expression x) (syntax-object-wrap x)))
+               ((syntax? x)
+                (strip (syntax-expression x) (syntax-wrap x)))
                ((pair? x)
                 (let ((a (f (car x))) (d (f (cdr x))))
                   (if (and (eq? a (car x)) (eq? d (cdr x)))
@@ -1999,7 +1978,7 @@
 
     (define gen-var
       (lambda (id)
-        (let ((id (if (syntax-object? id) (syntax-object-expression id) id)))
+        (let ((id (if (syntax? id) (syntax-expression id) id)))
           (build-lexical-var no-source id))))
 
     ;; appears to return a reversed list
@@ -2010,10 +1989,10 @@
            ((pair? vars) (lvl (cdr vars) (cons (wrap (car vars) w #f) ls) w))
            ((id? vars) (cons (wrap vars w #f) ls))
            ((null? vars) ls)
-           ((syntax-object? vars)
-            (lvl (syntax-object-expression vars)
+           ((syntax? vars)
+            (lvl (syntax-expression vars)
                  ls
-                 (join-wraps w (syntax-object-wrap vars))))
+                 (join-wraps w (syntax-wrap vars))))
            ;; include anything else to be caught by subsequent error
            ;; checking
            (else (cons vars ls))))))
@@ -2309,9 +2288,9 @@
                         (id? #'dots)
                         (let ((id (if (symbol? #'dots)
                                       '#{ $sc-ellipsis }#
-                                      (make-syntax-object '#{ $sc-ellipsis }#
-                                                          (syntax-object-wrap #'dots)
-                                                          (syntax-object-module #'dots)))))
+                                      (make-syntax '#{ $sc-ellipsis }#
+                                                          (syntax-wrap #'dots)
+                                                          (syntax-module #'dots)))))
                           (let ((ids (list id))
                                 (labels (list (gen-label)))
                                 (bindings (list (make-binding 'ellipsis (source-wrap #'dots w s mod)))))
@@ -2463,10 +2442,10 @@
                          (cond ((pair? x)
                                 (cons (remodulate (car x) mod)
                                       (remodulate (cdr x) mod)))
-                               ((syntax-object? x)
-                                (make-syntax-object
-                                 (remodulate (syntax-object-expression x) mod)
-                                 (syntax-object-wrap x)
+                               ((syntax? x)
+                                (make-syntax
+                                 (remodulate (syntax-expression x) mod)
+                                 (syntax-wrap x)
                                  ;; hither the remodulation
                                  mod))
                                ((vector? x)
@@ -2478,8 +2457,8 @@
                      (syntax-case e (@@ primitive)
                        ((_ primitive id)
                         (and (id? #'id)
-                             (equal? (cdr (if (syntax-object? #'id)
-                                              (syntax-object-module #'id)
+                             (equal? (cdr (if (syntax? #'id)
+                                              (syntax-module #'id)
                                               mod))
                                      '(guile)))
                         ;; Strip the wrap from the identifier and return top-wrap
@@ -2726,8 +2705,8 @@
 
     (set! datum->syntax
           (lambda (id datum)
-            (make-syntax-object datum (syntax-object-wrap id)
-                                (syntax-object-module id))))
+            (make-syntax datum (syntax-wrap id)
+                                (syntax-module id))))
 
     (set! syntax->datum
           ;; accepts any object, since syntax objects may consist partially
@@ -2772,7 +2751,7 @@
     (let ()
       (define (%syntax-module id)
         (arg-check nonsymbol-id? id 'syntax-module)
-        (let ((mod (syntax-object-module id)))
+        (let ((mod (syntax-module id)))
           (and (not (equal? mod '(primitive)))
                (cdr mod))))
 
@@ -2789,10 +2768,10 @@
                    (make-wrap ms (if rib (cons rib s) s)))))
            (call-with-values (lambda ()
                                (resolve-identifier
-                                (syntax-object-expression id)
-                                (strip-anti-mark (syntax-object-wrap id))
+                                (syntax-expression id)
+                                (strip-anti-mark (syntax-wrap id))
                                 r
-                                (syntax-object-module id)
+                                (syntax-module id)
                                 resolve-syntax-parameters?))
              (lambda (type value mod)
                (case type
@@ -2807,15 +2786,15 @@
                       (values 'global (cons value (cdr mod)))))
                  ((ellipsis)
                   (values 'ellipsis
-                          (make-syntax-object (syntax-object-expression value)
-                                              (anti-mark (syntax-object-wrap value))
-                                              (syntax-object-module value))))
+                          (make-syntax (syntax-expression value)
+                                              (anti-mark (syntax-wrap value))
+                                              (syntax-module value))))
                  (else (values 'other #f))))))))
 
       (define (syntax-locally-bound-identifiers id)
         (arg-check nonsymbol-id? id 'syntax-locally-bound-identifiers)
-        (locally-bound-identifiers (syntax-object-wrap id)
-                                   (syntax-object-module id)))
+        (locally-bound-identifiers (syntax-wrap id)
+                                   (syntax-module id)))
 
       ;; Using define! instead of set! to avoid warnings at
       ;; compile-time, after the variables are stolen away into (system
@@ -2859,11 +2838,11 @@
                    (let ((rest (match-each (cdr e) p w mod)))
                      (and rest (cons first rest))))))
            ((null? e) '())
-           ((syntax-object? e)
-            (match-each (syntax-object-expression e)
+           ((syntax? e)
+            (match-each (syntax-expression e)
                         p
-                        (join-wraps w (syntax-object-wrap e))
-                        (syntax-object-module e)))
+                        (join-wraps w (syntax-wrap e))
+                        (syntax-module e)))
            (else #f))))
 
       (define match-each+
@@ -2884,9 +2863,9 @@
                            (cdr y-pat)
                            (match (car e) (car y-pat) w r mod)))
                       (values #f #f #f)))))
-             ((syntax-object? e)
-              (f (syntax-object-expression e)
-                 (join-wraps w (syntax-object-wrap e))))
+             ((syntax? e)
+              (f (syntax-expression e)
+                 (join-wraps w (syntax-wrap e))))
              (else
               (values '() y-pat (match e z-pat w r mod)))))))
 
@@ -2897,9 +2876,9 @@
             (let ((l (match-each-any (cdr e) w mod)))
               (and l (cons (wrap (car e) w mod) l))))
            ((null? e) '())
-           ((syntax-object? e)
-            (match-each-any (syntax-object-expression e)
-                            (join-wraps w (syntax-object-wrap e))
+           ((syntax? e)
+            (match-each-any (syntax-expression e)
+                            (join-wraps w (syntax-wrap e))
                             mod))
            (else #f))))
 
@@ -2970,13 +2949,13 @@
            ((not r) #f)
            ((eq? p '_) r)
            ((eq? p 'any) (cons (wrap e w mod) r))
-           ((syntax-object? e)
+           ((syntax? e)
             (match*
-             (syntax-object-expression e)
+             (syntax-expression e)
              p
-             (join-wraps w (syntax-object-wrap e))
+             (join-wraps w (syntax-wrap e))
              r
-             (syntax-object-module e)))
+             (syntax-module e)))
            (else (match* e p w r mod)))))
 
       (set! $sc-dispatch
@@ -2984,9 +2963,9 @@
               (cond
                ((eq? p 'any) (list e))
                ((eq? p '_) '())
-               ((syntax-object? e)
-                (match* (syntax-object-expression e)
-                        p (syntax-object-wrap e) '() (syntax-object-module e)))
+               ((syntax? e)
+                (match* (syntax-expression e)
+                        p (syntax-wrap e) '() (syntax-module e)))
                (else (match* e p empty-wrap '() #f))))))))
 
 

@@ -16,3 +16,18 @@
 ;;;;
 
 (define-module (ice-9 deprecated))
+
+(define-syntax-rule (define-deprecated name message exp)
+  (begin
+    (define-syntax rule
+      (identifier-syntax
+       (begin
+         (issue-deprecation-warning message)
+         exp)))
+    (export rule)))
+
+(define %allow-legacy-syntax-objects? (make-parameter #f))
+(define-deprecated allow-legacy-syntax-objects?
+  "allow-legacy-syntax-objects? is deprecated and has no effect.  Guile
+3.0 has no legacy syntax objects."
+  %allow-legacy-syntax-objects?)
