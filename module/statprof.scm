@@ -65,7 +65,6 @@
 
             statprof-display
             statprof-display-anomalies
-            statprof-display-anomolies ; Deprecated spelling.
 
             statprof-fetch-stacks
             statprof-fetch-call-tree
@@ -677,11 +676,6 @@ statistics.@code{}"
   (format #t "Total time: ~A\n" (statprof-accumulated-time state))
   (format #t "Sample count: ~A\n" (statprof-sample-count state)))
 
-(define (statprof-display-anomolies)
-  (issue-deprecation-warning "statprof-display-anomolies is a misspelling. "
-                             "Use statprof-display-anomalies instead.")
-  (statprof-display-anomalies))
-
 (define* (statprof-accumulated-time #:optional (state
                                                 (existing-profiler-state)))
   "Returns the time accumulated during the last statprof run.@code{}"
@@ -894,49 +888,6 @@ operation is somewhat expensive."
         (lambda ()
           (statprof-stop state)
           (statprof-display port state #:style display-style))))))
-
-(begin-deprecated
- (define-macro (with-statprof . args)
-   "Profile the expressions in the body, and return the body's return values.
-
-Keyword arguments:
-
-@table @code
-@item #:display-style
-Set the display style, either @code{'flat} or @code{'tree}.
-
-@item #:loop
-Execute the body @var{loop} number of times, or @code{#f} for no looping
-
-default: @code{#f}
-@item #:hz
-Sampling rate
-
-default: @code{20}
-@item #:count-calls?
-Whether to instrument each function call (expensive)
-
-default: @code{#f}
-@end table"
-   (define (kw-arg-ref kw args def)
-     (cond
-      ((null? args) (error "Invalid macro body"))
-      ((keyword? (car args))
-       (if (eq? (car args) kw)
-           (cadr args)
-           (kw-arg-ref kw (cddr args) def)))
-      ((eq? kw #f def) ;; asking for the body
-       args)
-      (else def))) ;; kw not found
-   (issue-deprecation-warning
-    "`with-statprof' is deprecated.  Use `statprof' instead.")
-   `((@ (statprof) statprof)
-     (lambda () ,@(kw-arg-ref #f args #f))
-     #:display-style ,(kw-arg-ref #:display-style args ''flat)
-     #:loop ,(kw-arg-ref #:loop args 1)
-     #:hz ,(kw-arg-ref #:hz args 100)
-     #:count-calls? ,(kw-arg-ref #:count-calls? args #f)))
- (export with-statprof))
 
 (define* (gcprof thunk #:key (loop 1) full-stacks? (port (current-output-port)))
   "Do an allocation profile of the execution of @var{thunk}.

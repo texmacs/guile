@@ -48,7 +48,6 @@
   #:export (current-http-proxy
             open-socket-for-uri
             http-get
-            http-get*
             http-head
             http-post
             http-put
@@ -381,9 +380,7 @@ as is the case by default with a request returned by `build-request'."
                    (body #f)
                    (port (open-socket-for-uri uri))
                    (version '(1 . 1)) (keep-alive? #f)
-                   ;; #:headers is the new name of #:extra-headers.
-                   (extra-headers #f) (headers (or extra-headers '()))
-                   (decode-body? #t) (streaming? #f))
+                   (headers '()) (decode-body? #t) (streaming? #f))
   "Connect to the server corresponding to URI and ask for the
 resource, using the ‘GET’ method.  If you already have a port open,
 pass it as PORT.  The port will be closed at the end of the
@@ -410,29 +407,10 @@ response body has been read.
 Returns two values: the response read from the server, and the response
 body as a string, bytevector, #f value, or as a port (if STREAMING? is
 true)."
-  (when extra-headers
-    (issue-deprecation-warning
-     "The #:extra-headers argument to http-get has been renamed to #:headers. "
-     "Please update your code."))
   (request uri #:method 'GET #:body body
            #:port port #:version version #:keep-alive? keep-alive?
            #:headers headers #:decode-body? decode-body?
            #:streaming? streaming?))
-
-(define* (http-get* uri #:key
-                    (body #f)
-                    (port (open-socket-for-uri uri))
-                    (version '(1 . 1)) (keep-alive? #f)
-                    ;; #:headers is the new name of #:extra-headers.
-                    (extra-headers #f) (headers (or extra-headers '()))
-                    (decode-body? #t))
-  "Deprecated in favor of (http-get #:streaming? #t)."
-  (issue-deprecation-warning
-   "`http-get*' has been deprecated.  "
-   "Instead, use `http-get' with the #:streaming? #t keyword argument.")
-  (http-get uri #:body body
-            #:port port #:version version #:keep-alive? keep-alive?
-            #:headers headers #:decode-body? #t #:streaming? #t))
 
 (define-syntax-rule (define-http-verb http-verb method doc)
   (define* (http-verb uri #:key

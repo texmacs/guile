@@ -45,11 +45,6 @@
            ((not destination) (open-output-string))
            ((boolean? destination) (current-output-port)) ; boolean but not false
            ((output-port? destination) destination)
-           ((number? destination)
-            (issue-deprecation-warning
-             "Passing a number to format as the port is deprecated."
-             "Pass (current-error-port) instead.")
-            (current-error-port))
            (else
             (error "format: bad destination `~a'" destination))))
 
@@ -1602,25 +1597,6 @@
             (let ((str (get-output-string port)))
               (close-port port)
               str)))))))
-
-(begin-deprecated
- (set! format
-       (let ((format format))
-         (case-lambda
-           ((destination format-string . args)
-            (if (string? destination)
-                (begin
-                  (issue-deprecation-warning
-                   "Omitting the destination on a call to format is deprecated."
-                   "Pass #f as the destination, before the format string.")
-                  (apply format #f destination format-string args))
-                (apply format destination format-string args)))
-           ((deprecated-format-string-only)
-            (issue-deprecation-warning
-             "Omitting the destination port on a call to format is deprecated."
-             "Pass #f as the destination port, before the format string.")
-            (format #f deprecated-format-string-only))))))
-
 
 ;; Thanks to Shuji Narazaki
 (module-set! the-root-module 'format format)

@@ -6089,14 +6089,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
                     idx += 4;
                     if (!scm_is_eq (mem2uinteger (mem, &idx, 10, &implicit_x),
                                     SCM_INUM0))
-                      {
-#if SCM_ENABLE_DEPRECATED == 1
-                        scm_c_issue_deprecation_warning
-                          ("Non-zero suffixes to `+nan.' are deprecated.  Use `+nan.0'.");
-#else
-                        return SCM_BOOL_F;
-#endif
-                      }
+                      return SCM_BOOL_F;
           
                     *p_idx = idx;
                     return scm_nan ();

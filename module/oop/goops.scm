@@ -1188,39 +1188,6 @@ function."
     #f)
   (%class-slot-definition (class-of obj) slot-name have-slot no-slot))
 
-(begin-deprecated
- (define (check-slot-args class obj slot-name)
-   (unless (eq? class (class-of obj))
-     (scm-error 'wrong-type-arg #f "~S is not the class of ~S"
-                (list class obj) #f))
-   (unless (symbol? slot-name)
-     (scm-error 'wrong-type-arg #f "Not a symbol: ~S"
-                (list slot-name) #f)))
-
- (define (slot-ref-using-class class obj slot-name)
-   (issue-deprecation-warning "slot-ref-using-class is deprecated.  "
-                              "Use slot-ref instead.")
-   (check-slot-args class obj slot-name)
-   (slot-ref obj slot-name))
-
- (define (slot-set-using-class! class obj slot-name value)
-   (issue-deprecation-warning "slot-set-using-class! is deprecated.  "
-                              "Use slot-set! instead.")
-   (check-slot-args class obj slot-name)
-   (slot-set! obj slot-name value))
-
- (define (slot-bound-using-class? class obj slot-name)
-   (issue-deprecation-warning "slot-bound-using-class? is deprecated.  "
-                              "Use slot-bound? instead.")
-   (check-slot-args class obj slot-name)
-   (slot-bound? obj slot-name))
-
- (define (slot-exists-using-class? class obj slot-name)
-   (issue-deprecation-warning "slot-exists-using-class? is deprecated.  "
-                              "Use slot-exists? instead.")
-   (check-slot-args class obj slot-name)
-   (slot-exists? obj slot-name)))
-
 
 
 
@@ -3096,10 +3063,6 @@ var{initargs}."
 ;;;
 ;;; {SMOB and port classes}
 ;;;
-
-(begin-deprecated
- (define-public <arbiter> (find-subclass <top> '<arbiter>))
- (define-public <async> (find-subclass <top> '<async>)))
 
 (define <promise> (find-subclass <top> '<promise>))
 (define <thread> (find-subclass <top> '<thread>))

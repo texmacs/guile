@@ -1054,10 +1054,6 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 
   var_change_class = scm_c_lookup ("change-class");
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-  scm_init_deprecated_goops ();
-#endif
-
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

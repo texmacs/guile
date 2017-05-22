@@ -54,7 +54,6 @@ SOURCES =					\
   ice-9/common-list.scm				\
   ice-9/control.scm				\
   ice-9/curried-definitions.scm			\
-  ice-9/debug.scm				\
   ice-9/deprecated.scm				\
   ice-9/documentation.scm			\
   ice-9/eval-string.scm				\
@@ -75,7 +74,6 @@ SOURCES =					\
   ice-9/list.scm				\
   ice-9/local-eval.scm				\
   ice-9/ls.scm					\
-  ice-9/mapping.scm				\
   ice-9/match.scm				\
   ice-9/networking.scm				\
   ice-9/null.scm				\
@@ -113,7 +111,6 @@ SOURCES =					\
   ice-9/streams.scm				\
   ice-9/string-fun.scm				\
   ice-9/suspendable-ports.scm			\
-  ice-9/syncase.scm				\
   ice-9/textual-ports.scm			\
   ice-9/threads.scm				\
   ice-9/time.scm				\

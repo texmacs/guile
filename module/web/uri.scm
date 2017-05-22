@@ -75,14 +75,7 @@
 
 (define (uri? obj)
   (and (uri-reference? obj)
-       (if (include-deprecated-features)
-           (begin
-             (unless (uri-scheme obj)
-               (issue-deprecation-warning
-                "Use uri-reference? instead of uri?; in the future, uri?
-will require that the object not be a relative-ref."))
-             #t)
-           (uri-scheme obj))
+       (uri-scheme obj)
        #t))
 
 ;;; RFC 3986, #4.2.

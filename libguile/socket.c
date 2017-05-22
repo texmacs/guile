@@ -58,11 +58,6 @@
 #include "libguile/validate.h"
 #include "libguile/socket.h"
 
-#if SCM_ENABLE_DEPRECATED == 1
-# include "libguile/deprecation.h"
-#endif
-
-
 
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
 #define SUN_LEN(ptr) (offsetof (struct sockaddr_un, sun_path) \
