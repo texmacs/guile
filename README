@@ -414,8 +414,6 @@ Documentation in Info format, in ${prefix}/info:
 
  guile --- Guile reference manual.
 
- guile-tut --- Guile tutorial.
-
  GOOPS --- GOOPS reference manual.
 
  r5rs --- Revised(5) Report on the Algorithmic Language Scheme.
@@ -426,9 +424,7 @@ The Guile source tree is laid out as follows:
 libguile:
 	The Guile Scheme interpreter --- both the object library
 	for you to link with your programs, and the executable you can run.
-ice-9:  Guile's module system, initialization code, and other infrastructure.
-guile-config:
-	Source for the guile-config script.
+module: Scheme libraries included with Guile.
 guile-readline:
         The glue code for using GNU readline with Guile.  This
         will be build when configure can find a recent enough readline
