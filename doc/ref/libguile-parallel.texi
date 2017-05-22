@@ -27,7 +27,7 @@ need to know which version of Guile to ask for, when they build against
 Guile.  Guile solves this problem by installing a file to be read by the
 @code{pkg-config} utility, a tool to query installed packages by name.
 Guile encodes the version into its pkg-config name, so that users can
-ask for @code{guile-2.0} or @code{guile-2.2}, as appropriate.
+ask for @code{guile-2.2} or @code{guile-3.0}, as appropriate.
 
 For effective version @value{EFFECTIVE-VERSION}, for example, you would
 invoke @code{pkg-config --cflags --libs guile-@value{EFFECTIVE-VERSION}}

@@ -87,7 +87,7 @@ static void register_elf (char *data, size_t len, char *frame_maps);
 enum bytecode_kind
   {
     BYTECODE_KIND_NONE,
-    BYTECODE_KIND_GUILE_2_2
+    BYTECODE_KIND_GUILE_3_0
   };
 
 static SCM
@@ -95,7 +95,7 @@ pointer_to_procedure (enum bytecode_kind bytecode_kind, char *ptr)
 {
   switch (bytecode_kind)
     {
-    case BYTECODE_KIND_GUILE_2_2:
+    case BYTECODE_KIND_GUILE_3_0:
       {
         return scm_i_make_program ((scm_t_uint32 *) ptr);
       }
@@ -294,12 +294,11 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
             scm_t_uint16 minor = dyn[i].d_un.d_val & 0xffff;
             switch (major)
               {
-              case 0x0202:
-                bytecode_kind = BYTECODE_KIND_GUILE_2_2;
+              case 0x0300:
+                bytecode_kind = BYTECODE_KIND_GUILE_3_0;
                 if (minor < SCM_OBJCODE_MINIMUM_MINOR_VERSION)
                   return "incompatible bytecode version";
-                /* FIXME for 3.0: Go back to integers.  */
-                if (minor > SCM_OBJCODE_MINOR_VERSION_STRING[0])
+                if (minor > SCM_OBJCODE_MINOR_VERSION)
                   return "incompatible bytecode version";
                 break;
               default:
@@ -320,7 +319,7 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
 
   switch (bytecode_kind)
     {
-    case BYTECODE_KIND_GUILE_2_2:
+    case BYTECODE_KIND_GUILE_3_0:
       if ((scm_t_uintptr) init % 4)
         return "unaligned DT_INIT";
       if ((scm_t_uintptr) entry % 4)
@@ -355,6 +354,8 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   int dynamic_segment = -1;
   SCM init = SCM_BOOL_F, entry = SCM_BOOL_F;
   char *frame_maps = 0;
+
+  errno = 0;
 
   if (len < sizeof *header)
     ABORT ("object file too small");

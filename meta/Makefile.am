@@ -77,7 +77,7 @@ substitute =									\
 	 -e "s|[@]guild[@]|$$guild|g"						\
 	 -e "s|[@]installed_guile[@]|$$installed_guile|g"
 
-# Substitutions for dependencies that appear in 'guile-2.0.pc'.
+# Substitutions for dependencies that appear in 'guile-3.0.pc'.
 dependency_substitutions =				\
   -e "s|[@]BDW_GC_CFLAGS[@]|$(BDW_GC_CFLAGS)|g"		\
   -e "s|[@]BDW_GC_LIBS[@]|$(BDW_GC_LIBS)|g"		\

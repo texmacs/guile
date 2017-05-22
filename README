@@ -1,8 +1,8 @@
-This is version 2.2 of Guile, Project GNU's extension language library.
-Guile is an implementation of the Scheme programming language, packaged
-as a library that can be linked into applications to give them their own
-extension language.  Guile supports other languages as well, giving
-users of Guile-based applications a choice of languages.
+This is a prerelease of version 3.0 of Guile, Project GNU's extension
+language library.  Guile is an implementation of the Scheme programming
+language, packaged as a library that can be linked into applications to
+give them their own extension language.  Guile supports other languages
+as well, giving users of Guile-based applications a choice of languages.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -257,7 +257,7 @@ switches specific to Guile you may find useful in some circumstances.
 
 Cross building Guile  =====================================================
 
-As of Guile 2.2.x, the build process produces a library, libguile-2.2,
+As of Guile 3.0.x, the build process produces a library, libguile-3.0,
 along with Guile "object files" containing bytecode to be interpreted by
 Guile's virtual machine.  The bytecode format depends on the endianness
 and word size of the host CPU.

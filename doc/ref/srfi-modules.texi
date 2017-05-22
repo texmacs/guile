@@ -151,6 +151,7 @@ The Guile core has the following features,
 guile
 guile-2  ;; starting from Guile 2.x
 guile-2.2  ;; starting from Guile 2.2
+guile-3.0  ;; starting from Guile 3.0
 r5rs
 srfi-0
 srfi-4

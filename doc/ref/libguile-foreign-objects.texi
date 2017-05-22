@@ -276,13 +276,11 @@ make_file (int fd)
 @cindex finalization
 
 Note that the finalizer may be invoked in ways and at times you might
-not expect.  In particular, if the user's Guile is built with support
-for threads, the finalizer may be called from any thread that is running
-Guile.  In Guile 2.0, finalizers are invoked via ``asyncs'', which
-interleaves them with running Scheme code; @pxref{Asyncs}.  In Guile 2.2
-there will be a dedicated finalization thread, to ensure that the
-finalization doesn't run within the critical section of any other thread
-known to Guile.
+not expect.  In a Guile built without threading support, finalizers are
+invoked via ``asyncs'', which interleaves them with running Scheme code;
+@pxref{Asyncs}.  If the user's Guile is built with support for threads,
+the finalizer will probably be called by a dedicated finalization
+thread, unless the user invokes @code{scm_run_finalizers ()} explicitly.
 
 In either case, finalizers run concurrently with the main program, and
 so they need to be async-safe and thread-safe.  If for some reason this
