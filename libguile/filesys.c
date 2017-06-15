@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2016 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1679,7 +1679,11 @@ scm_i_relativize_path (SCM path, SCM in_path)
       if (len > 0
 	  && scm_is_true (scm_string_prefix_p (dir, scanon,
 					       SCM_UNDEFINED, SCM_UNDEFINED,
-					       SCM_UNDEFINED, SCM_UNDEFINED)))
+					       SCM_UNDEFINED, SCM_UNDEFINED))
+
+	  /* Make sure SCANON starts with DIR followed by a separator.  */
+	  && (is_file_name_separator (scm_c_string_ref (dir, len - 1))
+	      || is_file_name_separator (scm_c_string_ref (scanon, len))))
 	{
 	  /* DIR either has a trailing delimiter or doesn't.  SCANON
 	     will be delimited by single delimiters.  When DIR does not

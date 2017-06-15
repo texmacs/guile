@@ -1890,6 +1890,10 @@
       (lambda ()
         (set! %load-path old)))))
 
+(define %temporary-directory
+  (string-append (or (getenv "TMPDIR") "/tmp") "/guile-ports-test."
+                 (number->string (getpid))))
+
 (with-test-prefix "%file-port-name-canonicalization"
 
   (pass-if-equal "absolute file name & empty %load-path entry" "/dev/null"
@@ -1915,6 +1919,30 @@
     (with-fluids ((%file-port-name-canonicalization 'relative))
       (port-filename
        (open-input-file (%search-load-path "ice-9/q.scm")))))
+
+  (pass-if-equal "relative canonicalization with common prefixes"
+      "x.scm"
+
+    ;; In Guile up to 2.2.2, this would return "wrong/x.scm'.
+    (let* ((dir1 (string-append %temporary-directory "/something"))
+           (dir2 (string-append dir1 "-wrong")))
+      (with-load-path (append (list dir1 dir2) %load-path)
+        (dynamic-wind
+          (lambda ()
+            (mkdir %temporary-directory)
+            (mkdir dir1)
+            (mkdir dir2)
+            (call-with-output-file (string-append dir2 "/x.scm")
+              (const #t)))
+          (lambda ()
+            (with-fluids ((%file-port-name-canonicalization 'relative))
+              (port-filename
+               (open-input-file (string-append dir2 "/x.scm")))))
+          (lambda ()
+            (delete-file (string-append dir2 "/x.scm"))
+            (rmdir dir2)
+            (rmdir dir1)
+            (rmdir %temporary-directory))))))
 
   (pass-if-equal "absolute canonicalization from ice-9"
       (canonicalize-path
