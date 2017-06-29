@@ -1,9 +1,20 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright (C) 1996-2018 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+
+
+Changes in 2.2.4 (since 2.2.3):
+
+* New interfaces and functionality
+
+** SRFI-71 (Extended LET-syntax for multiple values)
+
+Guile now includes SRFI-71, which extends let, let*, and letrec to
+support assigning multiple values.  See "SRFI-71" in the manual for
+details.
 
 
 Changes in 2.2.3 (since 2.2.2):

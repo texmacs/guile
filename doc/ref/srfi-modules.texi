@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014, 2017
+@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014, 2017, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -58,6 +58,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-64::                     A Scheme API for test suites.
 * SRFI-67::                     Compare procedures
 * SRFI-69::                     Basic hash tables.
+* SRFI-71::                     Extended let-syntax for multiple values.
 * SRFI-87::                     => in case clauses.
 * SRFI-88::                     Keyword objects.
 * SRFI-98::                     Accessing environment variables.
@@ -5398,6 +5399,25 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 
 @code{hash} is a backwards-compatible replacement for Guile's built-in
 @code{hash}.
+
+@node SRFI-71
+@subsection SRFI-71 - Extended let-syntax for multiple values
+@cindex SRFI-71
+
+This SRFI shadows the forms for @code{let}, @code{let*}, and @code{letrec}
+so that they may accept multiple values.  For example:
+
+@example
+(use-modules (srfi srfi-71))
+
+(let* ((x y (values 1 2))
+       (z (+ x y)))
+  (* z 2))
+@result{} 6
+@end example
+
+See @uref{http://srfi.schemers.org/srfi-71/srfi-71.html, the
+specification of SRFI-71}.
 
 @node SRFI-87
 @subsection SRFI-87 => in case clauses
