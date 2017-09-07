@@ -1,5 +1,5 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006,
- *   2008, 2009, 2010, 2011, 2012, 2013, 2014, 2016 Free Software Foundation, Inc.
+ *   2008, 2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -480,9 +480,9 @@ scm_storage_prehistory ()
 
   /* We only need to register a displacement for those types for which the
      higher bits of the type tag are used to store a pointer (that is, a
-     pointer to an 8-octet aligned region).  For `scm_tc3_struct', this is
-     handled in `scm_alloc_struct ()'.  */
+     pointer to an 8-octet aligned region).  */
   GC_REGISTER_DISPLACEMENT (scm_tc3_cons);
+  GC_REGISTER_DISPLACEMENT (scm_tc3_struct);
   /* GC_REGISTER_DISPLACEMENT (scm_tc3_unused); */
 
   /* Sanity check.  */

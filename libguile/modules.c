@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -875,7 +875,7 @@ static void
 scm_post_boot_init_modules ()
 {
   SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
-  scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_struct);
+  scm_module_tag = SCM_UNPACK (module_type) + scm_tc3_struct;
 
   resolve_module_var = scm_c_lookup ("resolve-module");
   define_module_star_var = scm_c_lookup ("define-module*");

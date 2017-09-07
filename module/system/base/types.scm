@@ -366,13 +366,14 @@ TYPE-NUMBER."
                                                  (%visited-cells))))
        body ...))))
 
-(define (address->inferior-struct address vtable-data-address backend)
+(define (address->inferior-struct address vtable-address backend)
   "Read the struct at ADDRESS using BACKEND.  Return an 'inferior-struct'
 object representing it."
   (define %vtable-layout-index 0)
   (define %vtable-name-index 5)
 
-  (let* ((layout-address (+ vtable-data-address
+  (let* ((vtable-data-address (+ vtable-address %word-size))
+         (layout-address (+ vtable-data-address
                             (* %vtable-layout-index %word-size)))
          (layout-bits    (dereference-word backend layout-address))
          (layout         (scm->object layout-bits backend))
@@ -383,7 +384,7 @@ object representing it."
     (if (symbol? layout)
         (let* ((layout (symbol->string layout))
                (len    (/ (string-length layout) 2))
-               (slots  (dereference-word backend (+ address %word-size)))
+               (slots  (+ address %word-size))
                (port   (memory-port backend slots (* len %word-size)))
                (fields (get-bytevector-n port (* len %word-size)))
                (result (inferior-struct name #f)))
@@ -405,9 +406,9 @@ using BACKEND."
   (or (and=> (vhash-assv address (%visited-cells)) cdr) ; circular object
       (let ((port (memory-port backend address)))
         (match-cell port
-          (((vtable-data-address & 7 = %tc3-struct))
+          (((vtable-address & 7 = %tc3-struct))
            (address->inferior-struct address
-                                     (- vtable-data-address %tc3-struct)
+                                     (- vtable-address %tc3-struct)
                                      backend))
           (((_ & #x7f = %tc7-symbol) buf hash props)
            (match (cell->object buf backend)

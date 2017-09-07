@@ -521,9 +521,8 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
   SCM_ASSERT (old_nfields == new_nfields, new, SCM_ARG2, FUNC_NAME);
 
   /* Exchange the data contained in old and new. We exchange rather than
-   * scratch the old value with new to be correct with GC.
-   * See "Class redefinition protocol above".
-   */
+     scratch the old value with new to be correct with GC.  See "Class
+     redefinition protocol" in goops.scm.  */
   scm_i_pthread_mutex_lock (&goops_lock);
   /* Swap vtables.  */
   {

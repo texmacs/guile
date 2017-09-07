@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,42 +28,28 @@
 
 
 
-/* The relationship between a struct and its vtable is a bit complicated,
-   because we want structs to be used as GOOPS' native representation -- which
-   in turn means we need support for changing the "class" (vtable) of an
-   "instance" (struct). This necessitates some indirection and trickery.
+/* Structs are sequences of words where the first word points to the
+   struct's vtable, and the rest are its slots.  The vtable indicates
+   how many words are in the struct among other meta-information.  A
+   vtable is itself a struct and as such has a vtable, and so on until
+   you get to a root struct that is its own vtable.
 
-   To summarize, structs are laid out this way:
-
-                  .-------.
-                  |       |
-     .----------------+---v------------- -
-     | vtable | data  | slot0 | slot1 |
-     `----------------+----------------- -
-         |        .-------.
-         |        |       |
-     .---v------------+---v------------- -
-     | vtable | data  | slot0 | slot1 |
-     `----------------+----------------- -
+     .--------+----------------- -
+     | vtable | slot0 | slot1 |
+     `--------+----------------- -
          |
-         v
-
+         |
+     .---v----+----------------- -
+     | vtable | slot0 | slot1 |
+     `--------+----------------- -
+         |
         ...
-                  .-------.
-         |        |       |
-     .---v------------+---v------------- -
-   .-| vtable | data  | slot0 | slot1 |
-   | `----------------+----------------- -
+         |
+     .---v----+----------------- -
+   .-| vtable | slot0 | slot1 |
+   | `--------+----------------- -
    |     ^
    `-----'
-
-   The DATA indirection (which corresponds to `SCM_STRUCT_DATA ()') is necessary
-   to implement class redefinition.
-
-   For more details, see:
-
-     http://wingolog.org/archives/2009/11/09/class-redefinition-in-guile
-
  */
 
 /* All vtables have the following fields. */
@@ -123,10 +109,10 @@
 typedef void (*scm_t_struct_finalize) (SCM obj);
 
 #define SCM_STRUCTP(X)  		(!SCM_IMP(X) && (SCM_TYP3(X) == scm_tc3_struct))
-#define SCM_STRUCT_SLOTS(X) 		((SCM*)SCM_CELL_WORD_1 ((X)))
+#define SCM_STRUCT_SLOTS(X) 		(SCM_CELL_OBJECT_LOC(X, 1))
 #define SCM_STRUCT_SLOT_REF(X,I) 	(SCM_STRUCT_SLOTS (X)[(I)])
 #define SCM_STRUCT_SLOT_SET(X,I,V) 	SCM_STRUCT_SLOTS (X)[(I)]=(V)
-#define SCM_STRUCT_DATA(X) 		((scm_t_bits*)SCM_CELL_WORD_1 (X))
+#define SCM_STRUCT_DATA(X) 		((scm_t_bits*)SCM_STRUCT_SLOTS (X))
 #define SCM_STRUCT_DATA_REF(X,I) 	(SCM_STRUCT_DATA (X)[(I)])
 #define SCM_STRUCT_DATA_SET(X,I,V) 	SCM_STRUCT_DATA (X)[(I)]=(V)
 
@@ -145,18 +131,12 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_VTABLE_NAME(X)              (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_name))
 #define SCM_SET_VTABLE_NAME(X,V)        (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_name, V))
 
-/* Structs hold a pointer to their vtable's data, not the vtable itself. To get
-   the vtable we have to do an indirection through the self slot. */
-#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits*)(SCM_CELL_WORD_0 (X) - scm_tc3_struct))
-#define SCM_STRUCT_VTABLE_SLOTS(X)      ((SCM*)(SCM_CELL_WORD_0 (X) - scm_tc3_struct))
-#define SCM_STRUCT_VTABLE(X)            (SCM_STRUCT_VTABLE_SLOTS(X)[scm_vtable_index_self])
-/* But often we just need to access the vtable's data; we can do that without
-   the data->self->data indirection. */
-#define SCM_STRUCT_LAYOUT(X) 	        (SCM_STRUCT_VTABLE_SLOTS (X)[scm_vtable_index_layout])
-#define SCM_STRUCT_PRINTER(X) 	        (SCM_STRUCT_VTABLE_SLOTS (X)[scm_vtable_index_instance_printer])
-#define SCM_STRUCT_FINALIZER(X)         ((scm_t_struct_finalize)SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_instance_finalize])
-#define SCM_STRUCT_VTABLE_FLAGS(X) 	(SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_flags])
-#define SCM_STRUCT_VTABLE_FLAG_IS_SET(X,F) (SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_flags]&(F))
+#define SCM_STRUCT_VTABLE(X)            (SCM_PACK (SCM_CELL_WORD_0 (X) - scm_tc3_struct))
+#define SCM_STRUCT_LAYOUT(X) 	        (SCM_VTABLE_LAYOUT (SCM_STRUCT_VTABLE (X)))
+#define SCM_STRUCT_PRINTER(X) 	        (SCM_VTABLE_INSTANCE_PRINTER (SCM_STRUCT_VTABLE (X)))
+#define SCM_STRUCT_FINALIZER(X)         (SCM_VTABLE_INSTANCE_FINALIZER (SCM_STRUCT_VTABLE (X)))
+#define SCM_STRUCT_VTABLE_FLAGS(X)      (SCM_VTABLE_FLAGS (SCM_STRUCT_VTABLE (X)))
+#define SCM_STRUCT_VTABLE_FLAG_IS_SET(X,F) (SCM_VTABLE_FLAG_IS_SET (SCM_STRUCT_VTABLE (X), (F)))
 
 #define SCM_STRUCT_APPLICABLE_P(X) 	(SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_APPLICABLE))
 #define SCM_STRUCT_SETTER_P(X) 	        (SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_SETTER))
@@ -191,7 +171,6 @@ SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
 
 SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
-SCM_INTERNAL SCM scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words);
 SCM_INTERNAL void scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj);
 SCM_INTERNAL void scm_init_struct (void);
 

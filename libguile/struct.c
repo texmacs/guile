@@ -1,5 +1,5 @@
 /* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007,
- *   2008, 2009, 2010, 2011, 2012, 2013, 2015 Free Software Foundation, Inc.
+ *   2008, 2009, 2010, 2011, 2012, 2013, 2015, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -420,30 +420,17 @@ struct_finalizer_trampoline (void *ptr, void *unused_data)
     finalize (obj);
 }
 
-/* All struct data must be allocated at an address whose bottom three
-   bits are zero.  This is because the tag for a struct lives in the
-   bottom three bits of the struct's car, and the upper bits point to
-   the data of its vtable, which is a struct itself.  Thus, if the
-   address of that data doesn't end in three zeros, tagging it will
-   destroy the pointer.
-
-   I suppose we should make it clear here that, the data must be 8-byte aligned,
-   *within* the struct, and the struct itself should be 8-byte aligned. In
-   practice we ensure this because the data starts two words into a struct.
-
-   This function allocates an 8-byte aligned block of memory, whose first word
-   points to the given vtable data, then a data pointer, then n_words of data.
- */
-SCM
-scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words)
+/* A struct is a sequence of words preceded by a pointer to the struct's
+   vtable.  The vtable reference is tagged with the struct tc3.  */
+static SCM
+scm_i_alloc_struct (scm_t_bits vtable_bits, int n_words)
 {
   SCM ret;
 
-  ret = scm_words ((scm_t_bits)vtable_data | scm_tc3_struct, n_words + 2);
-  SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)SCM_CELL_OBJECT_LOC (ret, 2));
+  ret = scm_words (vtable_bits | scm_tc3_struct, n_words + 1);
 
-  /* vtable_data can be null when making a vtable vtable */
-  if (vtable_data && vtable_data[scm_vtable_index_instance_finalize])
+  /* vtable_bits can be 0 when making a vtable vtable */
+  if (vtable_bits && SCM_VTABLE_INSTANCE_FINALIZER (SCM_PACK (vtable_bits)))
     /* Register a finalizer for the newly created instance.  */
     scm_i_set_finalizer (SCM2PTR (ret), struct_finalizer_trampoline, NULL);
 
@@ -481,7 +468,7 @@ scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits *init)
         goto bad_tail;
     }
 
-  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + n_tail);
+  obj = scm_i_alloc_struct (SCM_UNPACK (vtable), basic_size + n_tail);
 
   scm_struct_init (obj, layout, n_tail, n_init, init);
 
@@ -538,7 +525,7 @@ SCM_DEFINE (scm_allocate_struct, "allocate-struct", 2, 0, 0,
   SCM_ASSERT (SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size) == c_nfields,
               nfields, 2, FUNC_NAME);
 
-  ret = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), c_nfields);
+  ret = scm_i_alloc_struct (SCM_UNPACK (vtable), c_nfields);
 
   if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)))
     {
@@ -612,9 +599,9 @@ scm_i_make_vtable_vtable (SCM fields)
 
   basic_size = scm_i_symbol_length (layout) / 2;
 
-  obj = scm_i_alloc_struct (NULL, basic_size);
+  obj = scm_i_alloc_struct (0, basic_size);
   /* Make it so that the vtable of OBJ is itself.  */
-  SCM_SET_CELL_WORD_0 (obj, (scm_t_bits) SCM_STRUCT_DATA (obj) | scm_tc3_struct);
+  SCM_SET_CELL_WORD_0 (obj, SCM_UNPACK (obj) | scm_tc3_struct);
 
   v = SCM_UNPACK (layout);
   scm_struct_init (obj, layout, 0, 1, &v);
@@ -979,16 +966,6 @@ void
 scm_init_struct ()
 {
   SCM name;
-
-  /* The first word of a struct is equal to `SCM_STRUCT_DATA (vtable) +
-     scm_tc3_struct', and `SCM_STRUCT_DATA (vtable)' is 2 words after VTABLE by
-     default.  */
-  GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits) + scm_tc3_struct);
-
-  /* In the general case, `SCM_STRUCT_DATA (obj)' points 2 words after the
-     beginning of a GC-allocated region; that region is different from that of
-     OBJ once OBJ has undergone class redefinition.  */
-  GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits));
 
   required_vtable_fields = scm_from_latin1_string (SCM_VTABLE_BASE_LAYOUT);
   scm_c_define ("standard-vtable-fields", required_vtable_fields);
