@@ -280,7 +280,7 @@
   (class-has-flags? (struct-vtable obj) vtable-flag-goops-class))
 
 (define (class-has-statically-allocated-slots? class)
-  (class-has-flags? class vtable-flag-goops-static))
+  (class-has-flags? class vtable-flag-goops-static-slot-allocation))
 
 ;;;
 ;;; Now that we know the slots that must be present in classes, and
@@ -925,8 +925,8 @@ slots as we go."
 
   ;; Now that we're all done with that, mark <class> and <slot> as
   ;; static.
-  (class-add-flags! <class> vtable-flag-goops-static)
-  (class-add-flags! <slot> vtable-flag-goops-static))
+  (class-add-flags! <class> vtable-flag-goops-static-slot-allocation)
+  (class-add-flags! <slot> vtable-flag-goops-static-slot-allocation))
 
 
 
@@ -2821,7 +2821,7 @@ var{initargs}."
     (match (filter class-has-statically-allocated-slots?
                    (class-precedence-list class))
       (()
-       (class-add-flags! class vtable-flag-goops-static))
+       (class-add-flags! class vtable-flag-goops-static-slot-allocation))
       (classes
        (error "Class has superclasses with static slot allocation" classes))))
   (struct-set! class class-index-direct-slots
