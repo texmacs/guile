@@ -68,7 +68,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 static int goops_loaded_p = 0;
 
 static SCM var_make_standard_class = SCM_BOOL_F;
-static SCM var_migrate_instance = SCM_BOOL_F;
+static SCM var_class_of_obsolete_indirect_instance = SCM_BOOL_F;
 static SCM var_make = SCM_BOOL_F;
 static SCM var_inherit_applicable = SCM_BOOL_F;
 static SCM var_class_name = SCM_BOOL_F;
@@ -174,8 +174,8 @@ SCM_DEFINE (scm_sys_init_layout_x, "%init-layout!", 2, 0, 0,
   SCM_VALIDATE_STRING (2, layout);
 
   SCM_SET_VTABLE_LAYOUT (class, scm_make_struct_layout (layout));
-  scm_i_struct_inherit_vtable_magic (SCM_CLASS_OF (class), class);
-  SCM_SET_CLASS_FLAGS (class, SCM_CLASSF_GOOPS_OR_VALID);
+  scm_i_struct_inherit_vtable_magic (scm_class_of (class), class);
+  SCM_SET_CLASS_FLAGS (class, SCM_VTABLE_FLAG_GOOPS_CLASS);
 
   return SCM_UNSPECIFIED;
 }
@@ -183,6 +183,17 @@ SCM_DEFINE (scm_sys_init_layout_x, "%init-layout!", 2, 0, 0,
 
 
 
+
+static SCM
+get_indirect_slots (SCM x)
+{
+  /* Precondition: X is an indirect instance.  The indirect slots are in
+     the last field.  */
+  scm_t_bits nfields =
+    SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (x), scm_vtable_index_size);
+
+  return SCM_STRUCT_SLOT_REF (x, nfields - 1);
+}
 
 /* This function is used for efficient type dispatch.  */
 SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
@@ -283,24 +294,34 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
             return ptob->output_class;
           }
 	case scm_tcs_struct:
-	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS_VALID)
-            /* A GOOPS object with a valid class.  */
-	    return SCM_CLASS_OF (x);
-	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
-            /* A GOOPS object whose class might have been redefined;
-               try to migrate it over to the new class.  */
-	    {
-              scm_call_1 (scm_variable_ref (var_migrate_instance), x);
-              /* At this point, either the migration succeeded, in which
-                 case SCM_CLASS_OF is the new class, or the migration
-                 failed because it's already in progress on the current
-                 thread, in which case we want to return the old class
-                 for the time being.  SCM_CLASS_OF (x) is the right
-                 answer for both cases.  */
-              return SCM_CLASS_OF (x);
-            }
-	  else
-            return scm_i_define_class_for_vtable (SCM_CLASS_OF (x));
+          {
+            SCM vtable = SCM_STRUCT_VTABLE (x);
+            scm_t_bits flags = SCM_VTABLE_FLAGS (vtable);
+            scm_t_bits direct = SCM_VTABLE_FLAG_GOOPS_CLASS;
+            scm_t_bits indirect = direct | SCM_VTABLE_FLAG_GOOPS_INDIRECT;
+            scm_t_bits mask = indirect;
+            if ((flags & mask) == direct)
+              /* A direct GOOPS object.  */
+              return vtable;
+            else if ((flags & mask) == indirect)
+              /* An indirect GOOPS object.  If the vtable of the slots
+                 object is flagged to indicate that there's a new class
+                 definition available, migrate the instance before
+                 returning the class.  */
+              {
+                SCM slots = get_indirect_slots (x);
+                scm_t_bits slot_flags = SCM_OBJ_CLASS_FLAGS (slots);
+                if (slot_flags & SCM_VTABLE_FLAG_GOOPS_NEEDS_MIGRATION)
+                  return scm_call_1
+                    (scm_variable_ref (var_class_of_obsolete_indirect_instance),
+                     x);
+                else
+                  return vtable;
+              }
+            else
+              /* A non-GOOPS struct.  */
+              return scm_i_define_class_for_vtable (vtable);
+          }
 	default:
 	  if (scm_is_pair (x))
 	    return class_pair;
@@ -334,13 +355,13 @@ SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
 int
 scm_is_generic (SCM x)
 {
-  return SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), class_generic);
+  return SCM_INSTANCEP (x) && SCM_SUBCLASSP (scm_class_of (x), class_generic);
 }
 
 int
 scm_is_method (SCM x)
 {
-  return SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), class_method);
+  return SCM_INSTANCEP (x) && SCM_SUBCLASSP (scm_class_of (x), class_method);
 }
 
 
@@ -483,39 +504,40 @@ SCM_DEFINE (scm_sys_clear_fields_x, "%clear-fields!", 2, 0, 0,
 
 static scm_i_pthread_mutex_t goops_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-SCM_INTERNAL SCM scm_sys_struct_data (SCM);
-SCM_DEFINE (scm_sys_struct_data, "%struct-data", 1, 0, 0,
-            (SCM s),
-            "Internal function used when migrating classes")
-#define FUNC_NAME s_scm_sys_struct_data
-{
-  SCM_VALIDATE_INSTANCE (1, s);
-  return scm_from_uintptr_t (SCM_CELL_WORD_1 (s));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
 	    (SCM old, SCM new),
 	    "Used by change-class to modify objects in place.")
 #define FUNC_NAME s_scm_sys_modify_instance
 {
+  scm_t_bits i, old_nfields, new_nfields;
+
   SCM_VALIDATE_INSTANCE (1, old);
   SCM_VALIDATE_INSTANCE (2, new);
+
+  old_nfields = SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (old),
+                                     scm_vtable_index_size);
+  new_nfields = SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (new),
+                                     scm_vtable_index_size);
+  SCM_ASSERT (old_nfields == new_nfields, new, SCM_ARG2, FUNC_NAME);
 
   /* Exchange the data contained in old and new. We exchange rather than
    * scratch the old value with new to be correct with GC.
    * See "Class redefinition protocol above".
    */
   scm_i_pthread_mutex_lock (&goops_lock);
+  /* Swap vtables.  */
   {
-    scm_t_bits word0, word1;
-    word0 = SCM_CELL_WORD_0 (old);
-    word1 = SCM_CELL_WORD_1 (old);
+    scm_t_bits tmp = SCM_CELL_WORD_0 (old);
     SCM_SET_CELL_WORD_0 (old, SCM_CELL_WORD_0 (new));
-    SCM_SET_CELL_WORD_1 (old, SCM_CELL_WORD_1 (new));
-    SCM_SET_CELL_WORD_0 (new, word0);
-    SCM_SET_CELL_WORD_1 (new, word1);
+    SCM_SET_CELL_WORD_0 (new, tmp);
   }
+  /* Swap data.  */
+  for (i = 0; i < old_nfields; i++)
+    {
+      scm_t_bits tmp = SCM_STRUCT_DATA_REF (old, i);
+      SCM_STRUCT_DATA_SET (old, i, SCM_STRUCT_DATA_REF (new, i));
+      SCM_STRUCT_DATA_SET (new, i, tmp);
+    }
   scm_i_pthread_mutex_unlock (&goops_lock);
   return SCM_UNSPECIFIED;
 }
@@ -529,19 +551,10 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
   SCM_VALIDATE_CLASS (1, old);
   SCM_VALIDATE_CLASS (2, new);
 
-  scm_i_pthread_mutex_lock (&goops_lock);
-  {
-    scm_t_bits word0, word1;
-    word0 = SCM_CELL_WORD_0 (old);
-    word1 = SCM_CELL_WORD_1 (old);
-    SCM_SET_CELL_WORD_0 (old, SCM_CELL_WORD_0 (new));
-    SCM_SET_CELL_WORD_1 (old, SCM_CELL_WORD_1 (new));
-    SCM_STRUCT_DATA (old)[scm_vtable_index_self] = SCM_UNPACK (old);
-    SCM_SET_CELL_WORD_0 (new, word0);
-    SCM_SET_CELL_WORD_1 (new, word1);
-    SCM_STRUCT_DATA (new)[scm_vtable_index_self] = SCM_UNPACK (new);
-  }
-  scm_i_pthread_mutex_unlock (&goops_lock);
+  scm_sys_modify_instance (old, new);
+  SCM_STRUCT_DATA (old)[scm_vtable_index_self] = SCM_UNPACK (old);
+  SCM_STRUCT_DATA (new)[scm_vtable_index_self] = SCM_UNPACK (new);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -997,7 +1010,8 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
   var_method_specializers = scm_c_lookup ("method-specializers");
   var_method_procedure = scm_c_lookup ("method-procedure");
 
-  var_migrate_instance = scm_c_lookup ("migrate-instance");
+  var_class_of_obsolete_indirect_instance =
+    scm_c_lookup ("class-of-obsolete-indirect-instance");
 
   return SCM_UNSPECIFIED;
 }
@@ -1020,12 +1034,14 @@ scm_init_goops_builtins (void *unused)
                 scm_from_int (SCM_VTABLE_FLAG_VALIDATED));
   scm_c_define ("vtable-flag-goops-class",
                 scm_from_int (SCM_VTABLE_FLAG_GOOPS_CLASS));
-  scm_c_define ("vtable-flag-goops-valid",
-                scm_from_int (SCM_VTABLE_FLAG_GOOPS_VALID));
   scm_c_define ("vtable-flag-goops-slot",
                 scm_from_int (SCM_VTABLE_FLAG_GOOPS_SLOT));
   scm_c_define ("vtable-flag-goops-static-slot-allocation",
                 scm_from_int (SCM_VTABLE_FLAG_GOOPS_STATIC_SLOT_ALLOCATION));
+  scm_c_define ("vtable-flag-goops-indirect",
+                scm_from_int (SCM_VTABLE_FLAG_GOOPS_INDIRECT));
+  scm_c_define ("vtable-flag-goops-needs-migration",
+                scm_from_int (SCM_VTABLE_FLAG_GOOPS_NEEDS_MIGRATION));
 }
 
 void

@@ -2905,8 +2905,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (113, class_of, "class-of", OP1 (X8_S12_S12) | OP_DST)
     {
       ARGS1 (obj);
-      if (SCM_INSTANCEP (obj))
-        RETURN (SCM_CLASS_OF (obj));
+      /* FIXME: restore fast path for direct instances.  */
       RETURN_EXP (scm_class_of (obj));
     }
 

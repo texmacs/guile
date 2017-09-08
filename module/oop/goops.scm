@@ -46,6 +46,9 @@
             <protected-hidden-slot> <protected-read-only-slot>
             <scm-slot> <int-slot> <float-slot> <double-slot>
 
+            ;; Redefinable classes.
+            <redefinable-class>
+
             ;; Methods are implementations of generic functions.
             <method> <accessor-method>
 
@@ -250,9 +253,11 @@
 ;;; a vtable are themselves vtables, and `vtable-flag-validated'
 ;;; indicates that the struct's layout has been validated.  goops.c
 ;;; defines a few additional flags: one to indicate that a vtable is
-;;; actually a class, one to indicate that the class is "valid" (meaning
-;;; that it hasn't been redefined), and one to indicate that instances
-;;; of a class are slot definition objects (<slot> instances).
+;;; actually a class, one to indicate that instances of a class are slot
+;;; definition objects (<slot> instances), one to indicate that this
+;;; class has "static slot allocation" (meaning that its slots must
+;;; always be allocated to the same indices in all subclasses), and two
+;;; more flags used for redefinable classes (more below).
 ;;;
 (define vtable-flag-goops-metaclass
   (logior vtable-flag-vtable vtable-flag-goops-class))
@@ -281,6 +286,12 @@
 
 (define (class-has-statically-allocated-slots? class)
   (class-has-flags? class vtable-flag-goops-static-slot-allocation))
+
+(define (class-has-indirect-instances? class)
+  (class-has-flags? class vtable-flag-goops-indirect))
+
+(define (indirect-slots-need-migration? slots)
+  (class-has-flags? (struct-vtable slots) vtable-flag-goops-needs-migration))
 
 ;;;
 ;;; Now that we know the slots that must be present in classes, and
@@ -311,8 +322,7 @@
     (let* ((layout (fold-class-slots macro-fold-right cons-layout ""))
            (nfields (/ (string-length layout) 2))
            (<class> (%make-vtable-vtable layout)))
-      (class-add-flags! <class> (logior vtable-flag-goops-class
-                                        vtable-flag-goops-valid))
+      (class-add-flags! <class> vtable-flag-goops-class)
       (struct-set! <class> class-index-name '<class>)
       (struct-set! <class> class-index-nfields nfields)
       (struct-set! <class> class-index-direct-supers '())
@@ -422,8 +432,7 @@ followed by its associated value.  If @var{l} does not hold a value for
            (nfields (/ (string-length layout) 2))
            (<slot> (make-struct/no-tail <class> (make-struct-layout layout))))
       (class-add-flags! <slot> (logior vtable-flag-goops-class
-                                       vtable-flag-goops-slot
-                                       vtable-flag-goops-valid))
+                                       vtable-flag-goops-slot))
       (struct-set! <slot> class-index-name '<slot>)
       (struct-set! <slot> class-index-nfields nfields)
       (struct-set! <slot> class-index-direct-supers '())
@@ -1094,8 +1103,7 @@ function."
                     (#:body body ())
                     (#:make-procedure make-procedure #f))))
        ((memq <class> (class-precedence-list class))
-        (class-add-flags! z (logior vtable-flag-goops-class
-                                    vtable-flag-goops-valid))
+        (class-add-flags! z vtable-flag-goops-class)
         (for-each (match-lambda
                    ((kw slot default)
                     (slot-set! z slot (get-keyword kw args default))))
@@ -1111,18 +1119,6 @@ function."
 
 ;;;
 ;;; Slot access.
-;;;
-;;; Before we go on, some notes about class redefinition.  In GOOPS,
-;;; classes can be redefined.  Redefinition of a class marks the class
-;;; as invalid, and instances will be lazily migrated over to the new
-;;; representation as they are accessed.  Migration happens when
-;;; `class-of' is called on an instance.  For more technical details on
-;;; object redefinition, see struct.h.
-;;;
-;;; In the following interfaces, class-of handles the redefinition
-;;; protocol.  I would think though that there is some thread-unsafety
-;;; here though as the { class, object data } pair needs to be accessed
-;;; atomically, not the { class, object } pair.
 ;;;
 (define-inlinable (%class-slot-definition class slot-name kt kf)
   (let lp ((slots (struct-ref class class-index-slots)))
@@ -1716,12 +1712,12 @@ function."
 (define-syntax-rule (define-class name supers slot ...)
   (begin
     (define-class-pre-definitions (slot ...))
-    (if (and (defined? 'name)
-             (is-a? name <class>)
-             (memq <object> (class-precedence-list name)))
-        (class-redefinition name
-                            (class supers slot ... #:name 'name))
-        (toplevel-define! 'name (class supers slot ... #:name 'name)))))
+    (let ((cls (class supers slot ... #:name 'name)))
+      (toplevel-define!
+       'name
+       (if (defined? 'name)
+           (class-redefinition name cls)
+           cls)))))
 
 (define-syntax-rule (standard-define-class arg ...)
   (define-class arg ...))
@@ -2118,14 +2114,14 @@ function."
 ;;; have a rest argument.
 ;;;
 
-(define (map* fn . l) 		; A map which accepts dotted lists (arg lists  
+(define (map* fn . l) 		; A map which accepts dotted lists (arg lists
   (cond 			; must be "isomorph"
    ((null? (car l)) '())
    ((pair? (car l)) (cons (apply fn      (map car l))
 			  (apply map* fn (map cdr l))))
    (else            (apply fn l))))
 
-(define (for-each* fn . l) 	; A for-each which accepts dotted lists (arg lists  
+(define (for-each* fn . l) 	; A for-each which accepts dotted lists (arg lists
   (cond 			; must be "isomorph"
    ((null? (car l)) '())
    ((pair? (car l)) (apply fn (map car l)) (apply for-each* fn (map cdr l)))
@@ -2517,115 +2513,6 @@ function."
     clone))
 
 ;;;
-;;; {Class redefinition utilities}
-;;;
-
-;;; (class-redefinition OLD NEW)
-;;;
-
-;;; Has correct the following conditions:
-
-;;; Methods
-;;;
-;;; 1. New accessor specializers refer to new header
-;;;
-;;; Classes
-;;;
-;;; 1. New class cpl refers to the new class header
-;;; 2. Old class header exists on old super classes direct-subclass lists
-;;; 3. New class header exists on new super classes direct-subclass lists
-
-(define-method (class-redefinition (old <class>) (new <class>))
-  ;; Work on direct methods:
-  ;;            1. Remove accessor methods from the old class
-  ;;            2. Patch the occurences of new in the specializers by old
-  ;;            3. Displace the methods from old to new
-  (remove-class-accessors! old)                                 ;; -1-
-  (let ((methods (class-direct-methods new)))
-    (for-each (lambda (m)
-                 (update-direct-method! m new old))     ;; -2-
-              methods)
-    (struct-set! new
-                 class-index-direct-methods
-                 (append methods (class-direct-methods old))))
-
-  ;; Substitute old for new in new cpl
-  (set-car! (struct-ref new class-index-cpl) old)
-
-  ;; Remove the old class from the direct-subclasses list of its super classes
-  (for-each (lambda (c) (struct-set! c class-index-direct-subclasses
-                                     (delv! old (class-direct-subclasses c))))
-            (class-direct-supers old))
-
-  ;; Replace the new class with the old in the direct-subclasses of the supers
-  (for-each (lambda (c)
-              (struct-set! c class-index-direct-subclasses
-                           (cons old (delv! new (class-direct-subclasses c)))))
-            (class-direct-supers new))
-
-  ;; Swap object headers
-  (%modify-class old new)
-
-  ;; Now old is NEW!
-
-  ;; Redefine all the subclasses of old to take into account modification
-  (for-each
-   (lambda (c)
-     (update-direct-subclass! c new old))
-   (class-direct-subclasses new))
-
-  ;; Invalidate class so that subsequent instances slot accesses invoke
-  ;; change-object-class
-  (struct-set! new class-index-redefined old)
-  (class-clear-flags! new vtable-flag-goops-valid) ;must come after slot-set!
-
-  old)
-
-;;;
-;;; remove-class-accessors!
-;;;
-
-(define-method (remove-class-accessors! (c <class>))
-  (for-each (lambda (m)
-              (when (is-a? m <accessor-method>)
-                (let ((gf (slot-ref m 'generic-function)))
-                  ;; remove the method from its GF
-                  (slot-set! gf 'methods
-                             (delq1! m (slot-ref gf 'methods)))
-                  (invalidate-method-cache! gf)
-                  ;; remove the method from its specializers
-                  (remove-method-in-classes! m))))
-            (class-direct-methods c)))
-
-;;;
-;;; update-direct-method!
-;;;
-
-(define-method (update-direct-method! (m  <method>)
-                                      (old <class>)
-                                      (new <class>))
-  (let loop ((l (method-specializers m)))
-    ;; Note: the <top> in dotted list is never used.
-    ;; So we can work as if we had only proper lists.
-    (when (pair? l)
-      (when (eqv? (car l) old)
-        (set-car! l new))
-      (loop (cdr l)))))
-
-;;;
-;;; update-direct-subclass!
-;;;
-
-(define-method (update-direct-subclass! (c <class>)
-                                        (old <class>)
-                                        (new <class>))
-  (class-redefinition c
-                      (make-class (class-direct-supers c)
-                                  (class-direct-slots c)
-                                  #:name (class-name c)
-                                  #:metaclass (class-of c))))
-
-;;;
 ;;; {Utilities for INITIALIZE methods}
 ;;;
 
@@ -2807,8 +2694,7 @@ var{initargs}."
       (compute-direct-slot-definition class initargs)))
 
   (next-method)
-  (class-add-flags! class (logior vtable-flag-goops-class
-                                  vtable-flag-goops-valid))
+  (class-add-flags! class vtable-flag-goops-class)
   (struct-set! class class-index-name (get-keyword #:name initargs '???))
   (struct-set! class class-index-nfields 0)
   (struct-set! class class-index-direct-supers
@@ -2896,68 +2782,6 @@ var{initargs}."
   (slot-set! method 'body (get-keyword #:body initargs '()))
   (slot-set! method 'make-procedure (get-keyword #:make-procedure initargs #f)))
 
-
-;;;
-;;; {Change-class}
-;;;
-
-(define (change-object-class old-instance old-class new-class)
-  (let ((new-instance (allocate-instance new-class '())))
-    ;; Initialize the slots of the new instance
-    (for-each
-     (lambda (slot)
-       (if (and (slot-exists? old-instance slot)
-                (eq? (%slot-definition-allocation
-                      (class-slot-definition old-class slot))
-                     #:instance)
-                (slot-bound? old-instance slot))
-           ;; Slot was present and allocated in old instance; copy it
-           (slot-set! new-instance slot (slot-ref old-instance slot))
-           ;; slot was absent; initialize it with its default value
-           (let ((init (slot-init-function new-class slot)))
-             (when init
-               (slot-set! new-instance slot (init))))))
-     (map slot-definition-name (class-slots new-class)))
-    ;; Exchange old and new instance in place to keep pointers valid
-    (%modify-instance old-instance new-instance)
-    ;; Allow class specific updates of instances (which now are swapped)
-    (update-instance-for-different-class new-instance old-instance)
-    old-instance))
-
-
-(define-method (update-instance-for-different-class (old-instance <object>)
-                                                    (new-instance
-                                                     <object>))
-  ;;not really important what we do, we just need a default method
-  new-instance)
-
-(define-method (change-class (old-instance <object>) (new-class <class>))
-  (change-object-class old-instance (class-of old-instance) new-class))
-
-(define migrate-instance
-  (let ((lock (make-mutex))
-        (stack '()))
-    (lambda (instance)
-      (let ((key (%struct-data instance)))
-        (let/ec return
-          (dynamic-wind
-              (lambda ()
-                (with-mutex lock
-                  (if (memv key stack)
-                      (return #f)
-                      (set! stack (cons key stack)))))
-              (lambda ()
-                (let* ((old-class (struct-vtable instance))
-                       (new-class (slot-ref old-class 'redefined)))
-                  ;; Although migrate-indirect-instance-if-needed should
-                  ;; only be called if the "valid" flag is not present on
-                  ;; the old-class, it's possible that multiple threads can
-                  ;; race, so we need to check again here.
-                  (when new-class
-                    (change-class instance new-class))))
-              (lambda ()
-                (with-mutex lock
-                  (set! stack (delq! key stack))))))))))
 
 ;;;
 ;;; {make}
@@ -3076,6 +2900,332 @@ var{initargs}."
                 no-applicable-method
                 no-method
                 ))
+
+
+
+;;;
+;;; Class redefinition
+;;;
+
+;;; GOOPS has a facility to allow a user to change the definition of
+;;; class.  This will cause instances of that class to lazily migrate
+;;; over to the new definition.  Implementing this is tricky because
+;;; identity is a fundamental part of object-oriented programming; you
+;;; can't just make a new class and start using it, just like that.  In
+;;; GOOPS, classes are objects too and need to be addressable by
+;;; identity (by `eq?').  Classes need the ability to change their
+;;; definition "in place".  The same goes for instances; redefining a
+;;; class might change the amount of storage associated with each
+;;; instance, and yet we need to update the instances in place, and
+;;; without having classes maintain a list of all of their instances.
+;;;
+;;; The way that we implement this is by adding an indirection.  An
+;;; instance of a redefinable class becomes a small object containing
+;;; only a single field, a reference to an external "slots" objects that
+;;; holds the actual slots.  There is an exception however for objects
+;;; that have statically allocated slots, most importantly classes -- in
+;;; that case the indirected slots are allocated "directly" in the
+;;; object.
+;;;
+;;; Instances update by checking the class of their their indirected
+;;; slots object.  In addition to describing the slots of the indirected
+;;; slots object, that slots class (which is a direct class) has a
+;;; "redefined" slot.  If the indirect slots object is current, this
+;;; value is #f.  Otherwise it points to the old class definition
+;;; corresponding to its instances.
+;;;
+;;; To try to clarify things, here is a diagram of the "normal" state of
+;;; affairs.  The redefinable class has an associated slots class.  When
+;;; it makes instances, the instances have a pointer to the indirect
+;;; "slots" object.  The class of the indirect slots object is the slots
+;;; class associated with the instance's class.  The "V" arrows indicate
+;;; a vtable (class-of) relationship.  Dashed arrows indicate a reference
+;;; from a struct slot to an object.
+;;;
+;;;     Initial state.
+;;;     +-------------+  +------------------------------+
+;;;     | class      ----> slots class, redefined: #f   |
+;;;     +-V-----------+  +-V----------------------------+
+;;;       V                V
+;;;     +-V-----------+  +-V----------------------------+
+;;;     | instance   ----> slots ...                    |
+;;;     +-------------+  +------------------------------+
+;;;
+;;; When a class is redefined, it is updated in place.  However existing
+;;; instances are only migrated lazily.  So after a class has been
+;;; redefined but before the instance has been updated, the state looks
+;;; like this:
+;;;
+;;;     Redefined state.
+;;;       ,-------------------------------------------.
+;;;       |                                           |
+;;;     +-v-----------+  +----------------------------|-+
+;;;     | old class  ----> old slots class, redefined:' VVV
+;;;     +-------------+  +------------------------------+ V
+;;;                                                       V
+;;;     +-------------+  +------------------------------+ V
+;;;     | new class  ----> new slots class, redefined:#f| V
+;;;     +-V-----------+  +------------------------------+ V
+;;;       V                                               V
+;;;     +-V-----------+  +------------------------------+ V
+;;;     | old inst   ----> slots ...                    VVV
+;;;     +-------------+  +------------------------------+
+;;;
+;;; That is to say, because the class was updated in place, the old
+;;; instance's vtable is the new class, even though the old instance's
+;;; slots still correspond to the old class.  The vtable of the old slots
+;;; has the "redefined" field, which has been set to point to a fresh
+;;; object containing the direct slots of the old class, and a pointer to
+;;; the old slots class -- as if it were the old class, but with a new
+;;; temporary identity.  This allows us to then call
+;;;
+;;;   (change-object-class obj old-class new-class)
+;;;
+;;; which will allocate a fresh slots object for the old instance
+;;; corresponding to the new class, completing the migration for that
+;;; instance.
+;;;
+;;; Lazy instance migration is triggered by "class-of".  Calling
+;;; "class-of" on an indirect instance will check the indirect slots to
+;;; see if they need redefinition.  If so, we construct a fresh instance
+;;; of the new class and swap fields with the old instance (including
+;;; the indirect-slots field).  Unfortunately there is some
+;;; thread-unsafety here, as retrieving the class is unsynchronized with
+;;; retrieving the indirect slots.
+;;;
+(define-class <indirect-slots-class> (<class>)
+  (%redefined #:init-value #f))
+(define-class <redefinable-class> (<class>)
+  (indirect-slots-class))
+
+(define-method (compute-slots (class <redefinable-class>))
+  (let* ((slots (next-method))
+         ;; The base method ensured that at most one superclass has
+         ;; statically allocated slots.
+         (static-slots
+          (match (filter class-has-statically-allocated-slots?
+                         (cdr (class-precedence-list class)))
+            (() '())
+            ((class) (struct-ref class class-index-direct-slots)))))
+    (define (simplify-slot-definition s)
+      ;; Here we take a slot definition and strip it to just be a plain
+      ;; old name, suitable for use as a slot for the plain-old-data
+      ;; indirect-slots class.
+      (and (eq? (slot-definition-allocation s) #:instance)
+           (make (class-of s) #:name (slot-definition-name s))))
+    (define (maybe-make-indirect-slot-definition s)
+      ;; Here we copy over all the frippery of a slot definition
+      ;; (accessors, init-keywords, and so on), but we change the slot
+      ;; to have virtual allocation and we provide explicit
+      ;; slot-ref/slot-set! functions that access the slot value through
+      ;; the indirect slots object.  For slot definitions without
+      ;; instance allocation though, we just pass them through.
+      (cond
+       ((eq? (slot-definition-allocation s) #:instance)
+        (let* ((s* (class-slot-definition (slot-ref class 'indirect-slots-class)
+                                          (slot-definition-name s)))
+               (ref (slot-definition-slot-ref/raw s*))
+               (set! (slot-definition-slot-set! s*)))
+          (make (class-of s) #:name (slot-definition-name s)
+                #:getter (slot-definition-getter s)
+                #:setter (slot-definition-setter s)
+                #:accessor (slot-definition-accessor s)
+                #:init-keyword (slot-definition-init-keyword s)
+                #:init-thunk (slot-definition-init-thunk s)
+                #:allocation #:virtual
+                ;; TODO: Make faster.
+                #:slot-ref (lambda (o)
+                             (ref (slot-ref o 'indirect-slots)))
+                #:slot-set! (lambda (o v)
+                              (set! (slot-ref o 'indirect-slots) v)))))
+       (else s)))
+    (unless (equal? (list-head slots (length static-slots))
+                    static-slots)
+      (error "unexpected slots"))
+    (let* ((indirect-slots (list-tail slots (length static-slots)))
+           (indirect-slots-class
+            (make-class '()
+                        (filter-map simplify-slot-definition
+                                    indirect-slots)
+                        #:name 'indirect-slots
+                        #:metaclass <indirect-slots-class>)))
+      (slot-set! class 'indirect-slots-class indirect-slots-class)
+      (append static-slots
+              (cons (make <slot> #:name 'indirect-slots)
+                    (map maybe-make-indirect-slot-definition
+                         indirect-slots))))))
+
+(define-method (initialize (class <redefinable-class>) initargs)
+  (next-method)
+  (class-add-flags! class vtable-flag-goops-indirect))
+
+(define-method (allocate-instance (class <redefinable-class>) initargs)
+  (let ((instance (next-method))
+        (nfields (struct-ref class class-index-nfields))
+        (indirect-slots-class (slot-ref class 'indirect-slots-class)))
+    ;; Indirect slots will be last struct field.
+    (struct-set! instance (1- nfields) (make indirect-slots-class))
+    instance))
+
+;; Called when redefining an existing binding, and the new binding is a
+;; class.  Two arguments: the old value, and the new.
+(define-generic class-redefinition)
+
+(define-method (class-redefinition (old <top>) (new <class>))
+  ;; Default class-redefinition method is to just replace old binding
+  ;; with the class.
+  new)
+
+(define-method (class-redefinition (old <redefinable-class>)
+                                   (new <redefinable-class>))
+  ;; When redefining a redefinable class with a redefinable class, we
+  ;; migrate the old definition and its instances to become the new
+  ;; definition.
+  ;;
+  ;; Work on direct methods:
+  ;;            1. Remove accessor methods from the old class
+  ;;            2. Patch the occurences of new in the specializers by old
+  ;;            3. Displace the methods from old to new
+  (remove-class-accessors! old)                                 ;; -1-
+  (let ((methods (class-direct-methods new)))
+    (for-each (lambda (m)
+                (update-direct-method! m new old))     ;; -2-
+              methods)
+    (struct-set! new
+                 class-index-direct-methods
+                 (append methods (class-direct-methods old))))
+
+  ;; Substitute old for new in new cpl
+  (set-car! (struct-ref new class-index-cpl) old)
+
+  ;; Remove the old class from the direct-subclasses list of its super classes
+  (for-each (lambda (c) (struct-set! c class-index-direct-subclasses
+                                     (delv! old (class-direct-subclasses c))))
+            (class-direct-supers old))
+
+  ;; Replace the new class with the old in the direct-subclasses of the supers
+  (for-each (lambda (c)
+              (struct-set! c class-index-direct-subclasses
+                           (cons old (delv! new (class-direct-subclasses c)))))
+            (class-direct-supers new))
+
+  ;; Swap object headers
+  (%modify-class old new)
+
+  ;; Now old is NEW!
+
+  ;; Redefine all the subclasses of old to take into account modification
+  (for-each
+   (lambda (c)
+     (update-direct-subclass! c new old))
+   (class-direct-subclasses new))
+
+  ;; Invalidate class so that subsequent instance slot accesses invoke
+  ;; change-object-class
+  (let ((slots-class (slot-ref new 'indirect-slots-class)))
+    (slot-set! slots-class '%redefined new)
+    (class-add-flags! slots-class vtable-flag-goops-needs-migration))
+
+  old)
+
+(define-method (remove-class-accessors! (c <class>))
+  (for-each (lambda (m)
+              (when (is-a? m <accessor-method>)
+                (let ((gf (slot-ref m 'generic-function)))
+                  ;; remove the method from its GF
+                  (slot-set! gf 'methods
+                             (delq1! m (slot-ref gf 'methods)))
+                  (invalidate-method-cache! gf)
+                  ;; remove the method from its specializers
+                  (remove-method-in-classes! m))))
+            (class-direct-methods c)))
+
+(define-method (update-direct-method! (m  <method>)
+                                      (old <class>)
+                                      (new <class>))
+  (let loop ((l (method-specializers m)))
+    ;; Note: the <top> in dotted list is never used.
+    ;; So we can work as if we had only proper lists.
+    (when (pair? l)
+      (when (eqv? (car l) old)
+        (set-car! l new))
+      (loop (cdr l)))))
+
+(define-method (update-direct-subclass! (c <class>)
+                                        (old <class>)
+                                        (new <class>))
+  (class-redefinition c
+                      (make-class (class-direct-supers c)
+                                  (class-direct-slots c)
+                                  #:name (class-name c)
+                                  #:metaclass (class-of c))))
+
+(define (change-object-class old-instance old-class new-class)
+  (let ((new-instance (allocate-instance new-class '())))
+    ;; Initialize the slots of the new instance
+    (for-each
+     (lambda (slot)
+       (unless (eq? slot 'indirect-slots)
+         (if (and (slot-exists? old-instance slot)
+                  (memq (%slot-definition-allocation
+                         (class-slot-definition old-class slot))
+                        '(#:instance #:virtual))
+                  (slot-bound? old-instance slot))
+             ;; Slot was present and allocated in old instance; copy it
+             (slot-set! new-instance slot (slot-ref old-instance slot))
+             ;; slot was absent; initialize it with its default value
+             (let ((init (slot-init-function new-class slot)))
+               (when init
+                 (slot-set! new-instance slot (init)))))))
+     (map slot-definition-name (class-slots new-class)))
+    ;; Exchange old and new instance in place to keep pointers valid
+    (%modify-instance old-instance new-instance)
+    ;; Allow class specific updates of instances (which now are swapped)
+    (update-instance-for-different-class new-instance old-instance)
+    old-instance))
+
+
+(define-method (update-instance-for-different-class (old-instance <object>)
+                                                    (new-instance
+                                                     <object>))
+  ;;not really important what we do, we just need a default method
+  new-instance)
+
+(define-method (change-class (old-instance <object>)
+                             (new-class <redefinable-class>))
+  (unless (is-a? (class-of old-instance) <redefinable-class>)
+    (error (string-append
+            "Default change-class implementation only works on"
+            " instances of redefinable classes")))
+  (change-object-class old-instance (class-of old-instance) new-class))
+
+(define class-of-obsolete-indirect-instance
+  (let ((lock (make-mutex))
+        (stack '()))
+    (lambda (instance)
+      (let* ((new-class (struct-vtable instance))
+             (nfields (struct-ref new-class class-index-nfields))
+             ;; Indirect slots are in last instance slot.  For normal
+             ;; instances last slot is 0 of course.
+             (slots (struct-ref instance (1- nfields)))
+             (old-class (slot-ref (class-of slots) '%redefined)))
+        (let/ec return
+          (dynamic-wind
+              (lambda ()
+                (with-mutex lock
+                  (if (memv slots stack)
+                      (return (or old-class new-class))
+                      (set! stack (cons slots stack)))))
+              (lambda ()
+                (when old-class
+                  (change-class instance new-class))
+                new-class)
+              (lambda ()
+                (with-mutex lock
+                  (set! stack (delq! slots stack))))))))))
+
+
+
 
 ;;;
 ;;; {Final initialization}

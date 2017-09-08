@@ -112,12 +112,12 @@
 #define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 7) /* instances of this vtable have only "pw" fields and no tail array */
 #define SCM_VTABLE_FLAG_RESERVED_0 (1L << 8)
 #define SCM_VTABLE_FLAG_RESERVED_1 (1L << 9)
-#define SCM_VTABLE_FLAG_RESERVED_2 (1L << 10)
-#define SCM_VTABLE_FLAG_SMOB_0 (1L << 11)
-#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 12)
-#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 13)
-#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 14)
-#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 15)
+#define SCM_VTABLE_FLAG_SMOB_0 (1L << 10)
+#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 11)
+#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 12)
+#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 13)
+#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 14)
+#define SCM_VTABLE_FLAG_GOOPS_4 (1L << 15)
 #define SCM_VTABLE_USER_FLAG_SHIFT 16
 
 typedef void (*scm_t_struct_finalize) (SCM obj);

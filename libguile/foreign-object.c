@@ -58,6 +58,7 @@ scm_make_foreign_object_type (SCM name, SCM slot_names,
 void
 scm_assert_foreign_object_type (SCM type, SCM val)
 {
+  /* FIXME: Add fast path for when type == struct vtable */
   if (!SCM_IS_A_P (val, type))
     scm_error (scm_arg_type_key, NULL, "Wrong type (expecting ~A): ~S",
                scm_list_2 (scm_class_name (type), val), scm_list_1 (val));

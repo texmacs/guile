@@ -40,10 +40,22 @@
  * certain class or its subclasses when traversal of the inheritance
  * graph would be too costly.
  */
+/* Set for all GOOPS classes.  */
 #define SCM_VTABLE_FLAG_GOOPS_CLASS SCM_VTABLE_FLAG_GOOPS_0
-#define SCM_VTABLE_FLAG_GOOPS_VALID SCM_VTABLE_FLAG_GOOPS_1
-#define SCM_VTABLE_FLAG_GOOPS_SLOT SCM_VTABLE_FLAG_GOOPS_2
-#define SCM_VTABLE_FLAG_GOOPS_STATIC_SLOT_ALLOCATION SCM_VTABLE_FLAG_GOOPS_3
+/* Set for GOOPS classes whose instances are <slot> objects.  */
+#define SCM_VTABLE_FLAG_GOOPS_SLOT SCM_VTABLE_FLAG_GOOPS_1
+/* Set for GOOPS classes whose instance's slots must always be allocated
+   to the same indices, for all concrete subclasses.  */
+#define SCM_VTABLE_FLAG_GOOPS_STATIC_SLOT_ALLOCATION SCM_VTABLE_FLAG_GOOPS_2
+/* Set for GOOPS classes whose instances are "indirect", meaning they
+   just have one slot that indirects to a direct instance with the
+   slots.  For non-class instances, this is at struct slot 0.  For class
+   instances, it's the first slot after the <class> fixed slots.  */
+#define SCM_VTABLE_FLAG_GOOPS_INDIRECT SCM_VTABLE_FLAG_GOOPS_3
+/* For indirect classes, the slots object itself has a direct vtable.
+   This flag will be set on that vtable if the instance needs to migrate
+   to a new class.  */
+#define SCM_VTABLE_FLAG_GOOPS_NEEDS_MIGRATION SCM_VTABLE_FLAG_GOOPS_4
 
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_CLASS_FLAGS(class) (SCM_VTABLE_FLAGS (class))
@@ -52,9 +64,7 @@
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLEAR_VTABLE_FLAGS (c, f))
 
 #define SCM_CLASSF_METACLASS     (SCM_VTABLE_FLAG_GOOPS_CLASS|SCM_VTABLE_FLAG_VTABLE)
-#define SCM_CLASSF_GOOPS_VALID   SCM_VTABLE_FLAG_GOOPS_VALID
 #define SCM_CLASSF_GOOPS         SCM_VTABLE_FLAG_GOOPS_CLASS
-#define SCM_CLASSF_GOOPS_OR_VALID (SCM_CLASSF_GOOPS | SCM_CLASSF_GOOPS_VALID)
 
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 
@@ -72,7 +82,7 @@
 #define SCM_SUBCLASSP(c1, c2) \
   (scm_is_true (scm_c_memq (c2, scm_class_precedence_list (c1))))
 #define SCM_IS_A_P(x, c) \
-  (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), c))
+  (SCM_INSTANCEP (x) && SCM_SUBCLASSP (scm_class_of (x), c))
 
 #define SCM_GENERICP(x) (scm_is_generic (x))
 #define SCM_VALIDATE_GENERIC(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, GENERICP, "generic function")

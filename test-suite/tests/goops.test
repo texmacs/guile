@@ -337,25 +337,31 @@
 (with-test-prefix "object update"
   (pass-if "defining class"
     (eval '(define-class <foo> ()
-	     (x #:accessor x #:init-value 123)
-	     (z #:accessor z #:init-value 789))
-	  (current-module))
+             (x #:accessor x #:init-value 123)
+             (z #:accessor z #:init-value 789)
+             #:metaclass <redefinable-class>)
+          (current-module))
     (eval '(is-a? <foo> <class>) (current-module)))
   (pass-if "making instance"
     (eval '(define foo (make <foo>)) (current-module))
     (eval '(and (is-a? foo <foo>) (= (x foo) 123)) (current-module)))
   (pass-if "redefining class"
     (eval '(define-class <foo> ()
-	     (x #:accessor x #:init-value 123)
-	     (y #:accessor y #:init-value 456)
-	     (z #:accessor z #:init-value 789))
-	  (current-module))
+             (x #:accessor x #:init-value 123)
+             (y #:accessor y #:init-value 456)
+             (z #:accessor z #:init-value 789)
+             #:metaclass <redefinable-class>)
+          (current-module))
     (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module)))
 
   (pass-if "changing class"
-    (let* ((c1 (class () (the-slot #:init-keyword #:value)))
-           (c2 (class () (the-slot #:init-keyword #:value)
-                         (the-other-slot #:init-value 888)))
+    (let* ((c1 (class ()
+                      (the-slot #:init-keyword #:value)
+                      #:metaclass <redefinable-class>))
+           (c2 (class ()
+                      (the-slot #:init-keyword #:value)
+                      (the-other-slot #:init-value 888)
+                      #:metaclass <redefinable-class>))
            (o1 (make c1 #:value 777)))
       (and (is-a? o1 c1)
            (not (is-a? o1 c2))
@@ -373,7 +379,8 @@
     ;; array, leading to out-of-bounds accesses.
 
     (let* ((parent-class (class ()
-                           #:name '<class-that-will-be-redefined>))
+                                #:name '<class-that-will-be-redefined>
+                                #:metaclass <redefinable-class>))
            (classes
             (unfold (lambda (i) (>= i 20))
                     (lambda (i)
@@ -383,7 +390,8 @@
                                   #:name (string->symbol
                                           (string-append "<foo-to-redefine-"
                                                          (number->string i)
-                                                         ">"))))
+                                                         ">"))
+                                  #:metaclass <redefinable-class>))
                     (lambda (i)
                       (+ 1 i))
                     0))
@@ -393,7 +401,7 @@
                  classes)))
 
       (define-method (change-class (foo parent-class)
-                                   (new <class>))
+                                   (new <redefinable-class>))
         ;; Called by `scm_change_object_class ()', via `purgatory ()'.
         (if (null? classes)
             (next-method)
@@ -407,8 +415,9 @@
               ;; nested `scm_change_object_class ()' calls, which increases
               ;; the size of HELL and increments N_HELL.
               (class-redefinition class
-                                  (make-class '() (class-slots class)
-                                              #:name (class-name class)))
+                                  (make-class '() (class-direct-slots class)
+                                              #:name (class-name class)
+                                              #:metaclass <redefinable-class>))
 
               ;; Use `slot-ref' to trigger the `scm_change_object_class ()'
               ;; and `go_to_hell ()' calls.
