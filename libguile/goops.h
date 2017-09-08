@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2011, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2011, 2015, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -126,7 +126,6 @@ SCM_API SCM scm_enable_primitive_generic_x (SCM subrs);
 SCM_INTERNAL SCM scm_set_primitive_generic_x (SCM subr, SCM generic);
 SCM_API SCM scm_primitive_generic_generic (SCM subr);
 SCM_API SCM scm_make (SCM args);
-SCM_API void scm_change_object_class (SCM, SCM, SCM);
 
 /* These procedures are for dispatching to a generic when a primitive
    fails to apply.  They raise a wrong-type-arg error if the primitive's

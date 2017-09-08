@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2013,2014,2015
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2013,2014,2015,2017
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 static int goops_loaded_p = 0;
 
 static SCM var_make_standard_class = SCM_BOOL_F;
-static SCM var_change_class = SCM_BOOL_F;
+static SCM var_migrate_instance = SCM_BOOL_F;
 static SCM var_make = SCM_BOOL_F;
 static SCM var_inherit_applicable = SCM_BOOL_F;
 static SCM var_class_name = SCM_BOOL_F;
@@ -287,15 +287,18 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
             /* A GOOPS object with a valid class.  */
 	    return SCM_CLASS_OF (x);
 	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
-            /* A GOOPS object whose class might have been redefined.  */
+            /* A GOOPS object whose class might have been redefined;
+               try to migrate it over to the new class.  */
 	    {
-              SCM class = SCM_CLASS_OF (x);
-              SCM new_class = scm_slot_ref (class, sym_redefined);
-              if (!scm_is_false (new_class))
-		scm_change_object_class (x, class, new_class);
-              /* Re-load class from instance.  */
-	      return SCM_CLASS_OF (x);
-	    }
+              scm_call_1 (scm_variable_ref (var_migrate_instance), x);
+              /* At this point, either the migration succeeded, in which
+                 case SCM_CLASS_OF is the new class, or the migration
+                 failed because it's already in progress on the current
+                 thread, in which case we want to return the old class
+                 for the time being.  SCM_CLASS_OF (x) is the right
+                 answer for both cases.  */
+              return SCM_CLASS_OF (x);
+            }
 	  else
             return scm_i_define_class_for_vtable (SCM_CLASS_OF (x));
 	default:
@@ -480,6 +483,17 @@ SCM_DEFINE (scm_sys_clear_fields_x, "%clear-fields!", 2, 0, 0,
 
 static scm_i_pthread_mutex_t goops_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
+SCM_INTERNAL SCM scm_sys_struct_data (SCM);
+SCM_DEFINE (scm_sys_struct_data, "%struct-data", 1, 0, 0,
+            (SCM s),
+            "Internal function used when migrating classes")
+#define FUNC_NAME s_scm_sys_struct_data
+{
+  SCM_VALIDATE_INSTANCE (1, s);
+  return scm_from_uintptr_t (SCM_CELL_WORD_1 (s));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
 	    (SCM old, SCM new),
 	    "Used by change-class to modify objects in place.")
@@ -531,75 +545,6 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-/* When instances change class, they finally get a new body, but
- * before that, they go through purgatory in hell.  Odd as it may
- * seem, this data structure saves us from eternal suffering in
- * infinite recursions.
- */
-
-static scm_t_bits **hell;
-static long n_hell = 1;		/* one place for the evil one himself */
-static long hell_size = 4;
-static SCM hell_mutex;
-
-static long
-burnin (SCM o)
-{
-  long i;
-  for (i = 1; i < n_hell; ++i)
-    if (SCM_STRUCT_DATA (o) == hell[i])
-      return i;
-  return 0;
-}
-
-static void
-go_to_hell (void *o)
-{
-  SCM obj = *(SCM*)o;
-  scm_lock_mutex (hell_mutex);
-  if (n_hell >= hell_size)
-    {
-      hell_size *= 2;
-      hell = scm_realloc (hell, hell_size * sizeof(*hell));
-    }
-  hell[n_hell++] = SCM_STRUCT_DATA (obj);
-  scm_unlock_mutex (hell_mutex);
-}
-
-static void
-go_to_heaven (void *o)
-{
-  SCM obj = *(SCM*)o;
-  scm_lock_mutex (hell_mutex);
-  hell[burnin (obj)] = hell[--n_hell];
-  scm_unlock_mutex (hell_mutex);
-}
-
-
-static SCM
-purgatory (SCM obj, SCM new_class)
-{
-  return scm_call_2 (SCM_VARIABLE_REF (var_change_class), obj, new_class);
-}
-
-/* This function calls the generic function change-class for all
- * instances which aren't currently undergoing class change.
- */
-
-void
-scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
-{
-  if (!burnin (obj))
-    {
-      scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-      scm_dynwind_rewind_handler (go_to_hell, &obj, SCM_F_WIND_EXPLICITLY);
-      scm_dynwind_unwind_handler (go_to_heaven, &obj, SCM_F_WIND_EXPLICITLY);
-      purgatory (obj, new_class);
-      scm_dynwind_end ();
-    }
-}
-
 
 
 
@@ -1052,7 +997,7 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
   var_method_specializers = scm_c_lookup ("method-specializers");
   var_method_procedure = scm_c_lookup ("method-procedure");
 
-  var_change_class = scm_c_lookup ("change-class");
+  var_migrate_instance = scm_c_lookup ("migrate-instance");
 
   return SCM_UNSPECIFIED;
 }
@@ -1062,9 +1007,6 @@ static void
 scm_init_goops_builtins (void *unused)
 {
   scm_module_goops = scm_current_module ();
-
-  hell = scm_calloc (hell_size * sizeof (*hell));
-  hell_mutex = scm_make_mutex ();
 
 #include "libguile/goops.x"
 

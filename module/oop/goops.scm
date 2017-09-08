@@ -1,6 +1,6 @@
 ;;;; goops.scm -- The Guile Object-Oriented Programming System
 ;;;;
-;;;; Copyright (C) 1998-2003,2006,2009-2011,2013-2015 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998-2003,2006,2009-2011,2013-2015,2017 Free Software Foundation, Inc.
 ;;;; Copyright (C) 1993-1998 Erick Gallesio - I3S-CNRS/ESSI <eg@unice.fr>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@
 (define-module (oop goops)
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
+  #:use-module ((ice-9 control) #:select (let/ec))
+  #:use-module (ice-9 threads)
   #:use-module ((language tree-il primitives)
                 :select (add-interesting-primitive!))
   #:export-syntax (define-class class standard-define-class
@@ -2931,6 +2933,31 @@ var{initargs}."
 
 (define-method (change-class (old-instance <object>) (new-class <class>))
   (change-object-class old-instance (class-of old-instance) new-class))
+
+(define migrate-instance
+  (let ((lock (make-mutex))
+        (stack '()))
+    (lambda (instance)
+      (let ((key (%struct-data instance)))
+        (let/ec return
+          (dynamic-wind
+              (lambda ()
+                (with-mutex lock
+                  (if (memv key stack)
+                      (return #f)
+                      (set! stack (cons key stack)))))
+              (lambda ()
+                (let* ((old-class (struct-vtable instance))
+                       (new-class (slot-ref old-class 'redefined)))
+                  ;; Although migrate-indirect-instance-if-needed should
+                  ;; only be called if the "valid" flag is not present on
+                  ;; the old-class, it's possible that multiple threads can
+                  ;; race, so we need to check again here.
+                  (when new-class
+                    (change-class instance new-class))))
+              (lambda ()
+                (with-mutex lock
+                  (set! stack (delq! key stack))))))))))
 
 ;;;
 ;;; {make}
