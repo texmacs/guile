@@ -73,8 +73,6 @@ jit_init_debug(const char *progname)
     }
     bfd_check_format(disasm_bfd, bfd_object);
     bfd_check_format(disasm_bfd, bfd_archive);
-    disasm_print = disassembler(disasm_bfd);
-    assert(disasm_print);
     INIT_DISASSEMBLE_INFO(disasm_info, disasm_stream, fprintf);
 #  if defined(__i386__) || defined(__x86_64__)
     disasm_info.arch = bfd_arch_i386;
@@ -123,6 +121,14 @@ jit_init_debug(const char *progname)
     disasm_info.mach = bfd_mach_alpha_ev6;
 #  endif
     disasm_info.print_address_func = disasm_print_address;
+
+# if BINUTILS_2_29
+    disasm_print = disassembler(disasm_info.arch, __BYTE_ORDER == __BIG_ENDIAN,
+				disasm_info.mach, disasm_bfd);
+#  else
+    disasm_print = disassembler(disasm_bfd);
+#  endif
+    assert(disasm_print);
 
     if (bfd_get_file_flags(disasm_bfd) & HAS_SYMS) {
 	asymbol		**in;

@@ -1,3 +1,9 @@
+2017-13-09 Paulo Andrade <pcpa@gnu.org>
+
+	* configure.ac: Add check for binutils 2.29 prototype to the
+	disassembler function.
+	* lib/jit_disasm.c: Adapt for binutils 2.29 change.
+
 2017-06-09 Paulo Andrade <pcpa@gnu.org>
 
 	* include/lightning/jit_private.h, lib/lightning.c: Add a
