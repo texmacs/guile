@@ -56,7 +56,6 @@
 #define SCM_VTABLE_BASE_LAYOUT                                          \
   "pr" /* layout */                                                     \
   "uh" /* flags */							\
-  "sr" /* self */                                                       \
   "uh" /* finalizer */                                                  \
   "pw" /* printer */                                                    \
   "ph" /* name (hidden from make-struct for back-compat reasons) */     \
@@ -65,13 +64,12 @@
 
 #define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
 #define scm_vtable_index_flags	           1 /* Class flags */
-#define scm_vtable_index_self	           2 /* A pointer to the vtable itself */
-#define scm_vtable_index_instance_finalize 3 /* Finalizer for instances of this struct type. */
-#define scm_vtable_index_instance_printer  4 /* A printer for this struct type. */
-#define scm_vtable_index_name              5 /* Name of this vtable. */
-#define scm_vtable_index_size              6 /* Number of fields, for simple structs.  */
-#define scm_vtable_index_reserved_7        7
-#define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
+#define scm_vtable_index_instance_finalize 2 /* Finalizer for instances of this struct type. */
+#define scm_vtable_index_instance_printer  3 /* A printer for this struct type. */
+#define scm_vtable_index_name              4 /* Name of this vtable. */
+#define scm_vtable_index_size              5 /* Number of fields, for simple structs.  */
+#define scm_vtable_index_reserved_7        6
+#define scm_vtable_offset_user             7 /* Where do user fields start in the vtable? */
 
 /* All applicable structs have the following fields. */
 #define SCM_APPLICABLE_BASE_LAYOUT              \

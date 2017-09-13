@@ -369,8 +369,8 @@ TYPE-NUMBER."
 (define (address->inferior-struct address vtable-address backend)
   "Read the struct at ADDRESS using BACKEND.  Return an 'inferior-struct'
 object representing it."
-  (define %vtable-layout-index 0)
-  (define %vtable-name-index 5)
+  (define %vtable-layout-index vtable-index-layout)
+  (define %vtable-name-index 4)
 
   (let* ((vtable-data-address (+ vtable-address %word-size))
          (layout-address (+ vtable-data-address

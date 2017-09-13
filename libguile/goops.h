@@ -130,7 +130,6 @@ SCM_API SCM scm_method_procedure (SCM obj);
 SCM_API SCM scm_slot_bound_p (SCM obj, SCM slot_name);
 SCM_API SCM scm_slot_exists_p (SCM obj, SCM slot_name);
 SCM_API SCM scm_sys_modify_instance (SCM old, SCM newinst);
-SCM_API SCM scm_sys_modify_class (SCM old, SCM newcls);
 SCM_API SCM scm_generic_capability_p (SCM proc);
 SCM_API SCM scm_enable_primitive_generic_x (SCM subrs);
 SCM_INTERNAL SCM scm_set_primitive_generic_x (SCM subr, SCM generic);

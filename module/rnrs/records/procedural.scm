@@ -54,22 +54,24 @@
 			hashq-ref
 			hashq-set!
 
-			vector->list)
+			vector->list
+
+                        vtable-offset-user)
 	  (ice-9 receive)
 	  (only (srfi :1) fold split-at take))
 
   (define (record-internal? obj)
     (and (struct? obj) (record-type-descriptor? (struct-vtable obj))))
 
-  (define rtd-index-name 8)
-  (define rtd-index-uid 9)
-  (define rtd-index-parent 10)
-  (define rtd-index-sealed? 11)
-  (define rtd-index-opaque? 12)
-  (define rtd-index-predicate 13)
-  (define rtd-index-field-names 14)
-  (define rtd-index-field-bit-field 15)
-  (define rtd-index-field-binder 16)
+  (define rtd-index-name            (+ vtable-offset-user 0))
+  (define rtd-index-uid             (+ vtable-offset-user 1))
+  (define rtd-index-parent          (+ vtable-offset-user 2))
+  (define rtd-index-sealed?         (+ vtable-offset-user 3))
+  (define rtd-index-opaque?         (+ vtable-offset-user 4))
+  (define rtd-index-predicate       (+ vtable-offset-user 5))
+  (define rtd-index-field-names     (+ vtable-offset-user 6))
+  (define rtd-index-field-bit-field (+ vtable-offset-user 7))
+  (define rtd-index-field-binder    (+ vtable-offset-user 8))
 
   (define rctd-index-rtd 0)
   (define rctd-index-parent 1)

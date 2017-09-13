@@ -42,7 +42,7 @@
             ;; Slot types.
             <slot>
             <foreign-slot> <protected-slot> <hidden-slot> <opaque-slot>
-            <read-only-slot> <self-slot> <protected-opaque-slot>
+            <read-only-slot> <protected-opaque-slot>
             <protected-hidden-slot> <protected-read-only-slot>
             <scm-slot> <int-slot> <float-slot> <double-slot>
 
@@ -186,7 +186,6 @@
 (define-macro-folder fold-class-slots
   (layout #:class <protected-read-only-slot>)
   (flags #:class <hidden-slot>)
-  (self #:class <self-slot>)
   (instance-finalizer #:class <hidden-slot>)
   (print)
   (name #:class <protected-hidden-slot>)
@@ -306,15 +305,12 @@
                 ;; A simple way to compute class layout for the concrete
                 ;; types used in <class>.
                 (syntax-rules (<protected-read-only-slot>
-                               <self-slot>
                                <hidden-slot>
                                <protected-hidden-slot>)
                   ((_ (name) tail)
                    (string-append "pw" tail))
                   ((_ (name #:class <protected-read-only-slot>) tail)
                    (string-append "pr" tail))
-                  ((_ (name #:class <self-slot>) tail)
-                   (string-append "sr" tail))
                   ((_ (name #:class <hidden-slot>) tail)
                    (string-append "uh" tail))
                   ((_ (name #:class <protected-hidden-slot>) tail)
@@ -779,7 +775,6 @@ slots as we go."
     (let ((type (get-keyword #:class (%slot-definition-options slot))))
       (if (and type (subclass? type <foreign-slot>))
           (values (cond
-                   ((subclass? type <self-slot>) #\s)
                    ((subclass? type <protected-slot>) #\p)
                    (else #\u))
                   (cond
@@ -892,7 +887,6 @@ slots as we go."
 (define-standard-class <hidden-slot> (<foreign-slot>))
 (define-standard-class <opaque-slot> (<foreign-slot>))
 (define-standard-class <read-only-slot> (<foreign-slot>))
-(define-standard-class <self-slot> (<read-only-slot>))
 (define-standard-class <protected-opaque-slot> (<protected-slot>
                                                 <opaque-slot>))
 (define-standard-class <protected-hidden-slot> (<protected-slot>
@@ -3110,7 +3104,7 @@ var{initargs}."
             (class-direct-supers new))
 
   ;; Swap object headers
-  (%modify-class old new)
+  (%modify-instance old new)
 
   ;; Now old is NEW!
 

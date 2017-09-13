@@ -46,7 +46,6 @@
 
 (define %condition-type-vtable
   ;; The vtable of all condition types.
-  ;;   vtable fields: vtable, self, printer
   ;;   user fields:   id, parent, all-field-names
   (let ((s (make-vtable (string-append standard-vtable-fields "prprpr")
                         (lambda (ct port)

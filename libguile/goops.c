@@ -115,7 +115,7 @@ static SCM class_atomic_box;
 static SCM class_port, class_input_output_port;
 static SCM class_input_port, class_output_port;
 static SCM class_foreign_slot;
-static SCM class_self, class_protected;
+static SCM class_protected;
 static SCM class_hidden, class_opaque, class_read_only;
 static SCM class_protected_hidden, class_protected_opaque, class_protected_read_only;
 static SCM class_scm;
@@ -542,22 +542,6 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
-	    (SCM old, SCM new),
-	    "")
-#define FUNC_NAME s_scm_sys_modify_class
-{
-  SCM_VALIDATE_CLASS (1, old);
-  SCM_VALIDATE_CLASS (2, new);
-
-  scm_sys_modify_instance (old, new);
-  SCM_STRUCT_DATA (old)[scm_vtable_index_self] = SCM_UNPACK (old);
-  SCM_STRUCT_DATA (new)[scm_vtable_index_self] = SCM_UNPACK (new);
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
 
 
 /* Primitive generics: primitives that can dispatch to generics if their
@@ -920,7 +904,6 @@ SCM_DEFINE (scm_sys_goops_early_init, "%goops-early-init", 0, 0, 0,
   class_hidden = scm_variable_ref (scm_c_lookup ("<hidden-slot>"));
   class_opaque = scm_variable_ref (scm_c_lookup ("<opaque-slot>"));
   class_read_only = scm_variable_ref (scm_c_lookup ("<read-only-slot>"));
-  class_self = scm_variable_ref (scm_c_lookup ("<self-slot>"));
   class_protected_opaque = scm_variable_ref (scm_c_lookup ("<protected-opaque-slot>"));
   class_protected_hidden = scm_variable_ref (scm_c_lookup ("<protected-hidden-slot>"));
   class_protected_read_only = scm_variable_ref (scm_c_lookup ("<protected-read-only-slot>"));
