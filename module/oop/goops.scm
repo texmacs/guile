@@ -191,7 +191,6 @@
   (name #:class <protected-hidden-slot>)
   (nfields #:class <hidden-slot>)
   (%reserved #:class <hidden-slot>)
-  (redefined)
   (direct-supers)
   (direct-slots)
   (direct-subclasses)
@@ -327,7 +326,6 @@
       (struct-set! <class> class-index-direct-methods '())
       (struct-set! <class> class-index-cpl '())
       (struct-set! <class> class-index-slots '())
-      (struct-set! <class> class-index-redefined #f)
       <class>)))
 
 ;;;
@@ -437,7 +435,6 @@ followed by its associated value.  If @var{l} does not hold a value for
       (struct-set! <slot> class-index-direct-methods '())
       (struct-set! <slot> class-index-cpl (list <slot>))
       (struct-set! <slot> class-index-slots '())
-      (struct-set! <slot> class-index-redefined #f)
       <slot>)))
 
 ;;; Access to slot objects is performance-sensitive for slot-ref, so in
@@ -830,7 +827,6 @@ slots as we go."
     (struct-set! z class-index-direct-supers dsupers)
     (struct-set! z class-index-direct-subclasses '())
     (struct-set! z class-index-direct-methods '())
-    (struct-set! z class-index-redefined #f)
     (let ((cpl (compute-cpl z)))
       (struct-set! z class-index-cpl cpl)
       (when (memq <slot> cpl)
@@ -1030,13 +1026,6 @@ slots as we go."
   "An internal routine to redefine a SMOB class that was added after
 GOOPS was loaded, and on which scm_set_smob_apply installed an apply
 function."
-  ;; Why not use class-redefinition?  We would, except that loading the
-  ;; compiler to compile effective methods can happen while GOOPS has
-  ;; only been partially loaded, and loading the compiler might cause
-  ;; SMOB types to be defined that need this facility.  Instead we make
-  ;; a very specific hack, not a general solution.  Probably the right
-  ;; solution is to avoid using the compiler, but that is another kettle
-  ;; of fish.
   (unless (memq <applicable> (class-precedence-list class))
     (unless (null? (class-slots class))
       (error "SMOB object has slots?"))
@@ -2695,7 +2684,6 @@ var{initargs}."
                (get-keyword #:dsupers initargs '()))
   (struct-set! class class-index-direct-subclasses '())
   (struct-set! class class-index-direct-methods '())
-  (struct-set! class class-index-redefined #f)
   (struct-set! class class-index-cpl (compute-cpl class))
   (when (get-keyword #:static-slot-allocation? initargs #f)
     (match (filter class-has-statically-allocated-slots?
