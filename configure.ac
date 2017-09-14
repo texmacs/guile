@@ -94,6 +94,7 @@ AM_CONDITIONAL(with_disassembler, [test "x$DISASSEMBLER" != "xno"])
 if test "x$DISASSEMBLER" != "xno"; then
     LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
     save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS -I$PWD/include -D_GNU_SOURCE"
     AC_COMPILE_IFELSE([AC_LANG_SOURCE(
 	#include <lightning.h>
 	#include <lightning/jit_private.h>
@@ -101,12 +102,11 @@ if test "x$DISASSEMBLER" != "xno"; then
 	int main(int argc, char *argv[])
 	{
 		disassembler_ftype	 print;
-		bdf			*abfd;
+		bfd			*abfd;
 		print = disassembler(abfd);
 		return 0;
 	}
     )], [ac_cv_test_new_disassembler=no],,)
-    CFLAGS="$CFLAGS -I$PWD/include -D_GNU_SOURCE"
     CFLAGS="$save_CFLAGS"
     if test "x$ac_cv_test_new_disassembler" != "xno"; then
 	LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DBINUTILS_2_29=1"
