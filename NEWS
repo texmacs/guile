@@ -6,6 +6,57 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
+Changes in alpha 2.3.0 (since the stable 2.2 series):
+
+* Notable changes
+
+** By default, GOOPS classes are not redefinable
+
+It used to be that all GOOPS classes were redefinable, at least in
+theory.  This facility was supported by an indirection in all "struct"
+instances, even though only a subset of structs would need redefinition.
+We wanted to remove this indirection, in order to speed up Guile
+records, allow immutable Guile records to eventually be described by
+classes, and allow for some optimizations in core GOOPS classes that
+shouldn't be redefined anyway.
+
+Thus in GOOPS now there are classes that are redefinable and classes
+that aren't.  By default, classes created with GOOPS are not
+redefinable.  To make a class redefinable, it should be an instance of
+`<redefinable-class>'.  See "Redefining a Class" in the manual for more
+information.
+
+* New interfaces
+
+* New deprecations
+
+* Bug fixes
+
+* Performance improvements
+
+* Incompatible changes
+
+** All deprecated code removed
+
+All code deprecated in Guile 2.2 has been removed.  See older NEWS, and
+check that your programs can compile without linker warnings and run
+without runtime warnings.  See "Deprecation" in the manual.
+
+** Remove "self" field from vtables and "redefined" field from classes
+
+These fields were used as part of the machinery for class redefinition
+and is no longer needed.
+
+* Changes to the distribution
+
+** New effective version
+
+The "effective version" of Guile is now 3.0, which allows parallel
+installation with other effective versions (for example, the older Guile
+2.2).  See "Parallel Installations" in the manual for full details.
+Notably, the `pkg-config' file is now `guile-3.0'.
+
+
 Changes in 2.2.3 (since 2.2.2):
 
 * New interfaces

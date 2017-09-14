@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008, 2009, 2011
+@c Copyright (C)  2008, 2009, 2011, 2017
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -2758,14 +2758,55 @@ make}).  What then happens if @code{<my-class>} is redefined by calling
 @code{define-class} again?
 
 @menu
+* Redefinable Classes::
 * Default Class Redefinition Behaviour::
 * Customizing Class Redefinition::
 @end menu
 
+@node Redefinable Classes
+@subsection Redefinable Classes
+
+The ability for a class to be redefined is a choice for a class author
+to make.  By default, classes in GOOPS are @emph{not} redefinable.  A
+redefinable class is an instance of @code{<redefinable-class>}; that is
+to say, a class with @code{<redefinable-class>} as its metaclass.
+Accordingly, to define a redefinable class, add @code{#:metaclass
+<redefinable-class>} to its class definition:
+
+@example
+(define-class <foo> ()
+  #:metaclass <redefinable-class>)
+@end example
+
+Note that any subclass of @code{<foo>} is also redefinable, without the
+need to explicitly pass the @code{#:metaclass} argument, so you only
+need to specify @code{#:metaclass} for the roots of your application's
+class hierarchy.
+
+@example
+(define-class <bar> (<foo>))
+(class-of <bar>) @result{} <redefinable-class>
+@end example
+
+Note that prior to Guile 3.0, all GOOPS classes were redefinable in
+theory.  In practice, attempting to, for example, redefine
+@code{<class>} itself would almost certainly not do what you want.
+Still, redefinition is an interesting capability when building
+long-lived resilient systems, so GOOPS does offer this facility.
+
 @node Default Class Redefinition Behaviour
 @subsection Default Class Redefinition Behaviour
 
-GOOPS' default answer to this question is as follows.
+When a class is defined using @code{define-class} and the class name was
+previously defined, by default the new binding just replaces the old
+binding.  This is the normal behavior for @code{define}.  However if
+both the old and new bindings are redefinable classes (instances of
+@code{<redefinable-class>}), then the class will be updated in place,
+and its instances lazily migrated over.
+
+The way that the class is updated and the way that the instances migrate
+over are of course part of the meta-object protocol.  However the
+default behavior usually suffices, and it goes as follows.
 
 @itemize @bullet
 @item
@@ -2822,25 +2863,31 @@ When @code{define-class} notices that a class is being redefined, it
 constructs the new class metaobject as usual, then invokes the
 @code{class-redefinition} generic function with the old and new classes
 as arguments.  Therefore, if the old or new classes have metaclasses
-other than the default @code{<class>}, class redefinition behaviour can
-be customized by defining a @code{class-redefinition} method that is
-specialized for the relevant metaclasses.
+other than the default @code{<redefinable-class>}, class redefinition
+behaviour can be customized by defining a @code{class-redefinition}
+method that is specialized for the relevant metaclasses.
 
 @deffn generic class-redefinition
-Handle the class redefinition from @var{old-class} to @var{new-class},
-and return the new class metaobject that should be bound to the
-variable specified by @code{define-class}'s first argument.
+Handle the class redefinition from @var{old} to @var{new}, and return
+the new class metaobject that should be bound to the variable specified
+by @code{define-class}'s first argument.
 @end deffn
 
-@deffn method class-redefinition (old-class <class>) (new-class <class>)
-Implements GOOPS' default class redefinition behaviour, as described in
-@ref{Default Class Redefinition Behaviour}.  Returns the metaobject
-for the new class definition.
+@deffn method class-redefinition (old <top>) (new <class>)
+Not all classes are redefinable, and not all previous bindings are
+classes.  @xref{Redefinable Classes}.  This default method just returns
+@var{new}.
 @end deffn
 
-The default @code{class-redefinition} method, for classes with the
-default metaclass @code{<class>}, calls the following generic functions,
-which could of course be individually customized.
+@deffn method class-redefinition (old <redefinable-class>) (new <redefinable-class>)
+This method implements GOOPS' default class redefinition behaviour, as
+described in @ref{Default Class Redefinition Behaviour}.  Returns the
+metaobject for the new class definition.
+@end deffn
+
+The @code{class-redefinition} method for classes with metaclass
+@code{<redefinable-class>} calls the following generic functions, which
+could of course be individually customized.
 
 @deffn generic remove-class-accessors! old
 The default @code{remove-class-accessors!} method removes the accessor
@@ -2871,7 +2918,7 @@ should apply, and then defining a @code{class-redefinition} method that
 is specialized for this metaclass:
 
 @example
-(define-class <can-be-nameless> (<class>))
+(define-class <can-be-nameless> (<redefinable-class>))
 
 (define-method (class-redefinition (old <can-be-nameless>)
                                    (new <class>))
@@ -2885,10 +2932,11 @@ implements the far more difficult strategy as its default!
 @node Changing the Class of an Instance
 @section Changing the Class of an Instance
 
-When a class is redefined, any existing instance of the redefined class
-will be modified for the new class definition before the next time that
-any of the instance's slots is referenced or set.  GOOPS modifies each
-instance by calling the generic function @code{change-class}.
+When a redefinable class is redefined, any existing instance of the
+redefined class will be modified for the new class definition before the
+next time that any of the instance's slots is referenced or set.  GOOPS
+modifies each instance by calling the generic function
+@code{change-class}.
 
 More generally, you can change the class of an existing instance at any
 time by invoking the generic function @code{change-class} with two
@@ -2906,8 +2954,9 @@ slot-init-function}).
 @deffn generic change-class instance new-class
 @end deffn
 
-@deffn {method} change-class (obj <object>) (new <class>)
+@deffn {method} change-class (obj <object>) (new <redefinable-class>)
 Modify instance @var{obj} to make it an instance of class @var{new}.
+@var{obj} itself must already be an instance of a redefinable class.
 
 The value of each of @var{obj}'s slots is preserved only if a similarly named
 slot exists in @var{new}; any other slot values are discarded.
