@@ -74,7 +74,9 @@
     (let* ((a (make-typed-array 'f64 0 99 3))
 	   (v (make-shared-array a (lambda (i) (list (- 98 i) 0)) 99)))
       (randomize-vector! v 99)
-      (sorted? (sort! v <) <)))
+      (sorted? (sort! v <) <))))
+
+(with-test-prefix "stable-sort!"
 
   (pass-if "stable-sort!"
     (let ((v (randomize-vector! (make-vector 1000) 1000)))
@@ -92,11 +94,6 @@
       (randomize-vector! v 1000)
       (sorted? (stable-sort! v <) <))))
 
-
-;;;
-;;; stable-sort
-;;;
-
 (with-test-prefix "stable-sort"
 
   ;; in guile 1.8.0 and 1.8.1 this test failed, an empty list provoked a
@@ -108,3 +105,18 @@
   ;; behavior (integer underflow) leading to crashes.
   (pass-if "empty vector"
     (equal? '#() (stable-sort '#() <))))
+
+
+(with-test-prefix "mutable/immutable arguments"
+
+  (with-test-prefix/c&e "immutable arguments"
+
+    (pass-if "sort! of empty vector"
+      (equal? #() (sort! (vector) <)))
+
+    (pass-if "sort of immutable vector"
+      (equal? #(0 1) (sort #(1 0) <))))
+
+  (pass-if-exception "sort! of mutable vector (compile)"
+      exception:wrong-type-arg
+    (compile '(sort! #(0) <) #:to 'value #:env (current-module))))
