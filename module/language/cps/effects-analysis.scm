@@ -1,6 +1,6 @@
 ;;; Effects analysis on CPS
 
-;; Copyright (C) 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -347,7 +347,6 @@ is or might be a read or a write to the same location as A."
 (define-primitive-effects* constants
   ((allocate-struct vt n)          (&allocate &struct)         &type-check)
   ((allocate-struct/immediate v n) (&allocate &struct)         &type-check)
-  ((make-struct vt ntail . _)      (&allocate &struct)         &type-check)
   ((make-struct/no-tail vt . _)    (&allocate &struct)         &type-check)
   ((struct-ref s n)                (read-struct-field n constants) &type-check)
   ((struct-ref/immediate s n)      (read-struct-field n constants) &type-check)
