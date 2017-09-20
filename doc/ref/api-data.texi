@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2006-2016
+@c Copyright (C)  1996, 1997, 2000-2004, 2006-2017
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -8757,7 +8757,6 @@ records in Guile are implemented with structures.
 * Vtable Contents::
 * Meta-Vtables::
 * Vtable Example::
-* Tail Arrays::
 @end menu
 
 @node Vtables
@@ -8808,8 +8807,7 @@ Scheme level.  This can be used for fields which should only be used
 from C code.
 @end itemize
 
-Here are some examples.  @xref{Tail Arrays}, for information on the
-legacy tail array facility.
+Here are some examples.
 
 @example
 (make-vtable "pw")      ;; one writable field
@@ -8840,12 +8838,11 @@ structure.
 @node Structure Basics
 @subsubsection Structure Basics
 
-This section describes the basic procedures for working with
-structures.  @code{make-struct} creates a structure, and
-@code{struct-ref} and @code{struct-set!} access its fields.
+This section describes the basic procedures for working with structures.
+@code{make-struct/no-tail} creates a structure, and @code{struct-ref}
+and @code{struct-set!} access its fields.
 
-@deffn {Scheme Procedure} make-struct vtable tail-size init @dots{}
-@deffnx {Scheme Procedure} make-struct/no-tail vtable init @dots{}
+@deffn {Scheme Procedure} make-struct/no-tail vtable init @dots{}
 Create a new structure, with layout per the given @var{vtable}
 (@pxref{Vtables}).
 
@@ -8855,25 +8852,22 @@ put values in read-only fields.  If there are fewer @var{init}
 arguments than fields then the defaults are @code{#f} for a Scheme
 field (type @code{p}) or 0 for an uninterpreted field (type @code{u}).
 
-Structures also have the ability to allocate a variable number of
-additional cells at the end, at their tails.  However, this legacy
-@dfn{tail array} facilty is confusing and inefficient, and so we do not
-recommend it.  @xref{Tail Arrays}, for more on the legacy tail array
-interface.
+The name is a bit strange, we admit.  The reason for it is that Guile
+used to have a @code{make-struct} that took an additional argument;
+while we deprecate that old interface, @code{make-struct/no-tail} is the
+new name for this functionality.
 
-Type @code{s} self-reference fields, permission @code{o} opaque
-fields, and the count field of a tail array are all ignored for the
-@var{init} arguments, ie.@: an argument is not consumed by such a
-field.  An @code{s} is always set to the structure itself, an @code{o}
-is always set to @code{#f} or 0 (with the intention that C code will
-do something to it later), and the tail count is always the given
-@var{tail-size}.
+Type @code{s} self-reference fields and permission @code{o} opaque
+fields are ignored for the @var{init} arguments, ie.@: an argument is
+not consumed by such a field.  An @code{s} is always set to the
+structure itself and an @code{o} is always set to @code{#f} or 0 (with
+the intention that C code will do something to it later).
 
 For example,
 
 @example
 (define v (make-vtable "prpwpw"))
-(define s (make-struct v 0 123 "abc" 456))
+(define s (make-struct/no-tail v 123 "abc" 456))
 (struct-ref s 0) @result{} 123
 (struct-ref s 1) @result{} "abc"
 @end example
@@ -8886,6 +8880,8 @@ There are a few ways to make structures from C.  @code{scm_make_struct}
 takes a list, @code{scm_c_make_struct} takes variable arguments
 terminated with SCM_UNDEFINED, and @code{scm_c_make_structv} takes a
 packed array.
+
+For all of these, @var{tail_size} should be zero (as a SCM value).
 @end deftypefn
 
 @deffn {Scheme Procedure} struct? obj
@@ -9196,53 +9192,6 @@ included GOOPS system does make most of them.  For more simple use
 cases, the records facility is usually sufficient.  But sometimes you
 need to make new kinds of data abstractions, and for that purpose,
 structs are here.
-
-@node Tail Arrays
-@subsubsection Tail Arrays
-
-Guile's structures have a facility whereby each instance of a vtable can
-contain a variable-length tail array of values.  The length of the tail
-array is stored in the structure.  This facility was originally intended
-to allow C code to expose raw C structures with word-sized tail arrays
-to Scheme.
-
-However, the tail array facility is confusing and doesn't work very
-well.  It is very rarely used, but it insinuates itself into all
-invocations of @code{make-struct}.  For this reason the clumsily-named
-@code{make-struct/no-tail} procedure can actually be more elegant in
-actual use, because it doesn't have a random @code{0} argument stuck in
-the middle.
-
-Tail arrays also inhibit optimization by allowing instances to affect
-their shapes.  In the absence of tail arrays, all instances of a given
-vtable have the same number and kinds of fields.  This uniformity can be
-exploited by the runtime and the optimizer.  The presence of tail arrays
-make some of these optimizations more difficult.
-
-Finally, the tail array facility is ad-hoc and does not compose with the
-rest of Guile.  If a Guile user wants an array with user-specified
-length, it's best to use a vector.  It is more clear in the code, and
-the standard optimization techniques will do a good job with it.
-
-That said, we should mention some details about the interface.  A vtable
-that has tail array has upper-case permission descriptors: @code{W},
-@code{R} or @code{O}, correspoding to tail arrays of writable,
-read-only, or opaque elements.  A tail array permission descriptor may
-only appear in the last element of a vtable layout.
-
-For exampple, @samp{pW} indicates a tail of writable Scheme-valued
-fields.  The @samp{pW} field itself holds the tail size, and the tail
-fields come after it.
-
-@example
-(define v (make-vtable "prpW")) ;; one fixed then a tail array
-(define s (make-struct v 6 "fixed field" 'x 'y))
-(struct-ref s 0) @result{} "fixed field"
-(struct-ref s 1) @result{} 2    ;; tail size
-(struct-ref s 2) @result{} x    ;; tail array ...
-(struct-ref s 3) @result{} y
-(struct-ref s 4) @result{} #f
-@end example
 
 
 @node Dictionary Types
