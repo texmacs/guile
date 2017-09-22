@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2013,2014,2015
+/* Copyright (C) 1998-2004,2008-2015,2017
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -96,7 +96,7 @@ static SCM class_primitive_generic;
 static SCM class_vector, class_null;
 static SCM class_integer, class_real, class_complex, class_fraction;
 static SCM class_unknown;
-static SCM class_top, class_object, class_class;
+static SCM class_top, class_class;
 static SCM class_applicable;
 static SCM class_applicable_struct, class_applicable_struct_with_setter;
 static SCM class_generic, class_generic_with_setter;
@@ -114,12 +114,6 @@ static SCM class_syntax;
 static SCM class_atomic_box;
 static SCM class_port, class_input_output_port;
 static SCM class_input_port, class_output_port;
-static SCM class_foreign_slot;
-static SCM class_self, class_protected;
-static SCM class_hidden, class_opaque, class_read_only;
-static SCM class_protected_hidden, class_protected_opaque, class_protected_read_only;
-static SCM class_scm;
-static SCM class_int, class_float, class_double;
 
 static SCM class_foreign;
 static SCM class_hashtable;
@@ -956,21 +950,6 @@ SCM_DEFINE (scm_sys_goops_early_init, "%goops-early-init", 0, 0, 0,
 
   class_class = scm_variable_ref (scm_c_lookup ("<class>"));
   class_top = scm_variable_ref (scm_c_lookup ("<top>"));
-  class_object = scm_variable_ref (scm_c_lookup ("<object>"));
-
-  class_foreign_slot = scm_variable_ref (scm_c_lookup ("<foreign-slot>"));
-  class_protected = scm_variable_ref (scm_c_lookup ("<protected-slot>"));
-  class_hidden = scm_variable_ref (scm_c_lookup ("<hidden-slot>"));
-  class_opaque = scm_variable_ref (scm_c_lookup ("<opaque-slot>"));
-  class_read_only = scm_variable_ref (scm_c_lookup ("<read-only-slot>"));
-  class_self = scm_variable_ref (scm_c_lookup ("<self-slot>"));
-  class_protected_opaque = scm_variable_ref (scm_c_lookup ("<protected-opaque-slot>"));
-  class_protected_hidden = scm_variable_ref (scm_c_lookup ("<protected-hidden-slot>"));
-  class_protected_read_only = scm_variable_ref (scm_c_lookup ("<protected-read-only-slot>"));
-  class_scm = scm_variable_ref (scm_c_lookup ("<scm-slot>"));
-  class_int = scm_variable_ref (scm_c_lookup ("<int-slot>"));
-  class_float = scm_variable_ref (scm_c_lookup ("<float-slot>"));
-  class_double = scm_variable_ref (scm_c_lookup ("<double-slot>"));
 
   /* Applicables */
   class_procedure_class = scm_variable_ref (scm_c_lookup ("<procedure-class>"));
