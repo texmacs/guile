@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -194,9 +194,9 @@ SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0,
 static SCM
 make_print_state (void)
 {
-  SCM print_state
-    = scm_make_struct (scm_print_state_vtable, SCM_INUM0, SCM_EOL);
+  SCM print_state = scm_make_struct_no_tail (scm_print_state_vtable, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
+  pstate->handle = print_state;
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
   pstate->ceiling = SCM_SIMPLE_VECTOR_LENGTH (pstate->ref_vect);
   pstate->highlight_objects = SCM_EOL;

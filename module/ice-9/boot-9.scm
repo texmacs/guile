@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995-2014, 2016  Free Software Foundation, Inc.
+;;;; Copyright (C) 1995-2014, 2016-2017  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -205,14 +205,6 @@ This is handy for tracing function calls, e.g.:
 (define (provided? feature)
   "Return #t iff FEATURE is available to this Guile interpreter."
   (and (memq feature *features*) #t))
-
-
-
-;;; {Structs}
-;;;
-
-(define (make-struct/no-tail vtable . args)
-  (apply make-struct vtable 0 args))
 
 
 
@@ -1233,7 +1225,7 @@ VALUE."
              (else
               (lambda args
                 (if (= (length args) nfields)
-                    (apply make-struct rtd 0 args)
+                    (apply make-struct/no-tail rtd args)
                     (scm-error 'wrong-number-of-args
                                (format #f "make-~a" type-name)
                                "Wrong number of arguments" '() #f)))))))))
@@ -1252,13 +1244,14 @@ VALUE."
         (loop (cdr fields) (+ 1 off)))))
     (display ">" p))
 
-  (let ((rtd (make-struct record-type-vtable 0
-                          (make-struct-layout
-                           (apply string-append
-                                  (map (lambda (f) "pw") fields)))
-                          (or printer default-record-printer)
-                          type-name
-                          (copy-tree fields))))
+  (let ((rtd (make-struct/no-tail
+              record-type-vtable
+              (make-struct-layout
+               (apply string-append
+                      (map (lambda (f) "pw") fields)))
+              (or printer default-record-printer)
+              type-name
+              (copy-tree fields))))
     (struct-set! rtd (+ vtable-offset-user 2)
                  (make-constructor rtd (length fields)))
     ;; Temporary solution: Associate a name to the record type descriptor
@@ -1283,7 +1276,8 @@ VALUE."
       (struct-ref rtd (+ 2 vtable-offset-user))
       (primitive-eval
        `(lambda ,field-names
-          (make-struct ',rtd 0 ,@(map (lambda (f)
+          (make-struct/no-tail ',rtd
+                               ,@(map (lambda (f)
                                         (if (memq f field-names)
                                             f
                                             #f))
@@ -1334,7 +1328,7 @@ VALUE."
 
 (define <parameter>
   ;; Three fields: the procedure itself, the fluid, and the converter.
-  (make-struct <applicable-struct-vtable> 0 'pwprpr))
+  (make-struct/no-tail <applicable-struct-vtable> 'pwprpr))
 (set-struct-vtable-name! <parameter> '<parameter>)
 
 (define* (make-parameter init #:optional (conv (lambda (x) x)))
@@ -1367,13 +1361,14 @@ including INIT, the initial value.  The default CONV procedure is the
 identity procedure.  CONV is commonly used to ensure some set of
 invariants on the values that a parameter may have."
   (let ((fluid (make-fluid (conv init))))
-    (make-struct <parameter> 0
-                 (case-lambda
-                   (() (fluid-ref fluid))
-                   ((x) (let ((prev (fluid-ref fluid)))
-                          (fluid-set! fluid (conv x))
-                          prev)))
-                 fluid conv)))
+    (make-struct/no-tail
+     <parameter>
+     (case-lambda
+      (() (fluid-ref fluid))
+      ((x) (let ((prev (fluid-ref fluid)))
+             (fluid-set! fluid (conv x))
+             prev)))
+     fluid conv)))
 
 (define (parameter? x)
   (and (struct? x) (eq? (struct-vtable x) <parameter>)))
@@ -1412,13 +1407,14 @@ If the parameter is rebound in some dynamic extent, perhaps via
 `parameterize', the new value will be run through the optional CONV
 procedure, as with any parameter.  Note that unlike `make-parameter',
 CONV is not applied to the initial value."
-  (make-struct <parameter> 0
-               (case-lambda
-                 (() (fluid-ref fluid))
-                 ((x) (let ((prev (fluid-ref fluid)))
-                        (fluid-set! fluid (conv x))
-                        prev)))
-               fluid conv))
+  (make-struct/no-tail
+   <parameter>
+   (case-lambda
+    (() (fluid-ref fluid))
+    ((x) (let ((prev (fluid-ref fluid)))
+           (fluid-set! fluid (conv x))
+           prev)))
+   fluid conv))
 
 
 
@@ -1946,11 +1942,12 @@ name extensions listed in %load-extensions."
              (constructor rtd type-name fields
                           #`(begin
                               (define #,rtd
-                                (make-struct record-type-vtable 0
-                                             '#,(make-layout)
-                                             #,printer
-                                             '#,type-name
-                                             '#,(field-list fields)))
+                                (make-struct/no-tail
+                                 record-type-vtable
+                                 '#,(make-layout)
+                                 #,printer
+                                 '#,type-name
+                                 '#,(field-list fields)))
                               (set-struct-vtable-name! #,rtd '#,type-name)))))
 
          (syntax-case x ()

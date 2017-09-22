@@ -77,6 +77,47 @@ If you don't care whether the URI is a relative-ref or not, use
 In the future `uri?' will return a true value only for URIs that specify
 a scheme.
 
+** Struct tail arrays deprecated
+
+Guile's structures used to have a facility whereby each instance of a
+vtable can contain a variable-length tail array of values.  The length
+of the tail array was stored in the structure.  This facility was
+originally intended to allow C code to expose raw C structures with
+word-sized tail arrays to Scheme.
+
+However, the tail array facility was confusing and doesn't work very
+well.  It was very rarely used, but it insinuates itself into all
+invocations of `make-struct'.  For this reason the clumsily-named
+`make-struct/no-tail' procedure can actually be more elegant in actual
+use, because it doesn't have a random `0' argument stuck in the middle.
+
+Tail arrays also inhibit optimization by allowing instances to affect
+their shapes.  In the absence of tail arrays, all instances of a given
+vtable have the same number and kinds of fields.  This uniformity can be
+exploited by the runtime and the optimizer.  The presence of tail arrays
+make some of these optimizations more difficult.
+
+Finally, the tail array facility is ad-hoc and does not compose with the
+rest of Guile.  If a Guile user wants an array with user-specified
+length, it's best to use a vector.  It is more clear in the code, and
+the standard optimization techniques will do a good job with it.
+
+For all of these reasons, tail arrays are deprecated in Guile 2.2 and
+will be removed from Guile 3.0.  Likewise, `make-struct' /
+`scm_make_struct' is deprecated in favor of `make-struct/no-tail' /
+`scm_make_struct_no_tail'.  Perhaps one day we will be able to reclaim
+the `make-struct' name!
+
+** Struct "self" slots deprecated
+
+It used to be that you could make a structure vtable that had "self"
+slots.  Instances of that vtable would have those slots initialized to
+the instance itself.  This can be useful in C code where you might have
+a pointer to the data array, and want to get the `SCM' handle for the
+structure.  However this was a little used complication without any use
+in Scheme code.  To replace it, just use "p" slots and initialize the
+slot values manually on initialization.
+
 * Bug fixes
 
 ** Enable GNU Readline 7.0's support for "bracketed paste".

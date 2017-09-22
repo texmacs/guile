@@ -493,6 +493,8 @@ platform-dependent size:
 @defvrx {Scheme Variable} unsigned-int
 @defvrx {Scheme Variable} long
 @defvrx {Scheme Variable} unsigned-long
+@defvrx {Scheme Variable} short
+@defvrx {Scheme Variable} unsigned-short
 @defvrx {Scheme Variable} size_t
 @defvrx {Scheme Variable} ssize_t
 @defvrx {Scheme Variable} ptrdiff_t
