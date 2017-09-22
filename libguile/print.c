@@ -196,6 +196,7 @@ make_print_state (void)
 {
   SCM print_state = scm_make_struct_no_tail (scm_print_state_vtable, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
+  pstate->handle = print_state;
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
   pstate->ceiling = SCM_SIMPLE_VECTOR_LENGTH (pstate->ref_vect);
   pstate->highlight_objects = SCM_EOL;

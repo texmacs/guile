@@ -30,6 +30,7 @@
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/chars.h"
+#include "libguile/deprecation.h"
 #include "libguile/eval.h"
 #include "libguile/alist.h"
 #include "libguile/hashtab.h"
@@ -229,6 +230,23 @@ scm_is_valid_vtable_layout (SCM layout)
   return 1;
 }
 
+static void
+issue_deprecation_warning_for_self_slots (SCM vtable)
+{
+  SCM olayout;
+  size_t idx, first_user_slot = 0;
+
+  olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (vtable));
+  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE))
+    first_user_slot = scm_vtable_offset_user;
+
+  for (idx = first_user_slot * 2; idx < scm_c_string_length (olayout); idx += 2)
+    if (scm_is_eq (scm_c_string_ref (olayout, idx), SCM_MAKE_CHAR ('s')))
+      scm_c_issue_deprecation_warning
+        ("Vtables with \"self\" slots are deprecated.  Initialize these "
+         "fields manually.");
+}
+
 /* Have OBJ, a newly created vtable, inherit flags from VTABLE.  VTABLE is a
    vtable-vtable and OBJ is an instance of VTABLE.  */
 void
@@ -287,6 +305,8 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
                         scm_list_1 (olayout));
       SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
     }
+
+  issue_deprecation_warning_for_self_slots (obj);
 
   SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VALIDATED);
 }

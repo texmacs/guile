@@ -26,7 +26,7 @@ If you don't care whether the URI is a relative-ref or not, use
 In the future `uri?' will return a true value only for URIs that specify
 a scheme.
 
-** Tail arrays deprecated
+** Struct tail arrays deprecated
 
 Guile's structures used to have a facility whereby each instance of a
 vtable can contain a variable-length tail array of values.  The length
@@ -56,6 +56,16 @@ will be removed from Guile 3.0.  Likewise, `make-struct' /
 `scm_make_struct' is deprecated in favor of `make-struct/no-tail' /
 `scm_make_struct_no_tail'.  Perhaps one day we will be able to reclaim
 the `make-struct' name!
+
+** Struct "self" slots deprecated
+
+It used to be that you could make a structure vtable that had "self"
+slots.  Instances of that vtable would have those slots initialized to
+the instance itself.  This can be useful in C code where you might have
+a pointer to the data array, and want to get the `SCM' handle for the
+structure.  However this was a little used complication without any use
+in Scheme code.  To replace it, just use "p" slots and initialize the
+slot values manually on initialization.
 
 * Bug fixes
 

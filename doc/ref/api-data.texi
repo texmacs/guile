@@ -8785,13 +8785,6 @@ Scheme level it's read and written as an unsigned integer.  ``u''
 stands for ``uninterpreted'' (it's not treated as a Scheme value), or
 ``unprotected'' (it's not marked during GC), or ``unsigned long'' (its
 size), or all of these things.
-
-@item
-@code{s} -- a self-reference.  Such a field holds the @code{SCM} value
-of the structure itself (a circular reference).  This can be useful in
-C code where you might have a pointer to the data array, and want to
-get the Scheme @code{SCM} handle for the structure.  In Scheme code it
-has no use.
 @end itemize
 
 The second letter for each field is a permission code,
@@ -8857,11 +8850,10 @@ used to have a @code{make-struct} that took an additional argument;
 while we deprecate that old interface, @code{make-struct/no-tail} is the
 new name for this functionality.
 
-Type @code{s} self-reference fields and permission @code{o} opaque
-fields are ignored for the @var{init} arguments, ie.@: an argument is
-not consumed by such a field.  An @code{s} is always set to the
-structure itself and an @code{o} is always set to @code{#f} or 0 (with
-the intention that C code will do something to it later).
+Fields with permission @code{o} opaque fields are ignored for the
+@var{init} arguments, ie.@: an argument is not consumed by such a field.
+An @code{o} slot is always set to @code{#f} or 0 (with the intention
+that C code will do something to it later).
 
 For example,
 

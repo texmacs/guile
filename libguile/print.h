@@ -4,7 +4,7 @@
 #define SCM_PRINT_H
 
 /* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2003, 2004, 2006, 2008,
- *   2010, 2012 Free Software Foundation, Inc.
+ *   2010, 2012, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -53,7 +53,7 @@ do { \
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
 
-#define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwurprpw"
+#define SCM_PRINT_STATE_LAYOUT "pruwuwuwuwuwpwuwuwurprpw"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   int revealed;                 /* Has the state escaped to Scheme? */
