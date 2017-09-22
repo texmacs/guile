@@ -1,5 +1,5 @@
 /* A stack holds a frame chain
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -388,7 +388,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   if (n > 0)
     {
       /* Make the stack object. */
-      SCM stack = scm_make_struct (scm_stack_type, SCM_INUM0, SCM_EOL);
+      SCM stack = scm_make_struct_no_tail (scm_stack_type, SCM_EOL);
       SCM_SET_STACK_LENGTH (stack, n);
       SCM_SET_STACK_ID (stack, scm_stack_id (obj));
       SCM_SET_STACK_FRAME (stack, scm_c_make_frame (kind, &frame));

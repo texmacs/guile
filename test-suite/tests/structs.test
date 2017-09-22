@@ -1,7 +1,7 @@
 ;;;; structs.test --- Structures.      -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>, 2006-06-12.
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009, 2010, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010, 2012, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -30,13 +30,13 @@
   (make-vtable (string-append standard-vtable-fields "pr") 0))
 
 (define (make-ball-type ball-color)
-  (make-struct ball-root 0
-	       (make-struct-layout "pw")
-	       (lambda (ball port)
-		 (format port "#<a ~A ball owned by ~A>"
-			 (color ball)
-			 (owner ball)))
-	       ball-color))
+  (make-struct/no-tail ball-root
+                       (make-struct-layout "pw")
+                       (lambda (ball port)
+                         (format port "#<a ~A ball owned by ~A>"
+                                 (color ball)
+                                 (owner ball)))
+                       ball-color))
 
 (define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))
 (define (owner ball) (struct-ref ball 0))
@@ -45,7 +45,7 @@
 (define red (make-ball-type 'red))
 (define green (make-ball-type 'green))
 
-(define (make-ball type owner) (make-struct type 0 owner))
+(define (make-ball type owner) (make-struct/no-tail type owner))
 
 
 
@@ -90,7 +90,7 @@
 
   (pass-if "struct-set!"
      (let* ((v (make-vtable "pw"))
-            (s (make-struct v 0))
+            (s (make-struct/no-tail v))
             (r (struct-set! s 0 'a)))
        (eq? r
             (struct-ref s 0)
@@ -99,13 +99,13 @@
   (pass-if-exception "struct-ref out-of-range"
      exception:out-of-range
      (let* ((v (make-vtable "prpr"))
-            (s (make-struct v 0 'a 'b)))
+            (s (make-struct/no-tail v 'a 'b)))
        (struct-ref s 2)))
 
   (pass-if-exception "struct-set! out-of-range"
      exception:out-of-range
      (let* ((v (make-vtable "pwpw"))
-            (s (make-struct v 0 'a 'b)))
+            (s (make-struct/no-tail v 'a 'b)))
        (struct-set! s 2 'c))))
 
 
@@ -113,8 +113,8 @@
 
   (pass-if "simple structs"
      (let* ((vtable (make-vtable "pr"))
-            (s1     (make-struct vtable 0 "hello"))
-            (s2     (make-struct vtable 0 "hello")))
+            (s1     (make-struct/no-tail vtable "hello"))
+            (s2     (make-struct/no-tail vtable "hello")))
        (equal? s1 s2)))
 
   (pass-if "more complex structs"
@@ -131,22 +131,22 @@
 
   (pass-if "simple structs"
     (let* ((v  (make-vtable "pr"))
-           (s1 (make-struct v 0 "hello"))
-           (s2 (make-struct v 0 "hello")))
+           (s1 (make-struct/no-tail v "hello"))
+           (s2 (make-struct/no-tail v "hello")))
       (= (hash s1 7777) (hash s2 7777))))
 
   (pass-if "different structs"
     (let* ((v  (make-vtable "pr"))
-           (s1 (make-struct v 0 "hello"))
-           (s2 (make-struct v 0 "world")))
+           (s1 (make-struct/no-tail v "hello"))
+           (s2 (make-struct/no-tail v "world")))
       (or (not (= (hash s1 7777) (hash s2 7777)))
           (throw 'unresolved))))
 
   (pass-if "different struct types"
     (let* ((v1 (make-vtable "pr"))
            (v2 (make-vtable "pr"))
-           (s1 (make-struct v1 0 "hello"))
-           (s2 (make-struct v2 0 "hello")))
+           (s1 (make-struct/no-tail v1 "hello"))
+           (s2 (make-struct/no-tail v2 "hello")))
       (or (not (= (hash s1 7777) (hash s2 7777)))
           (throw 'unresolved))))
 
@@ -157,14 +157,14 @@
 
   (pass-if "struct with weird fields"
     (let* ((v  (make-vtable "prurph"))
-           (s1 (make-struct v 0 "hello" 123 "invisible-secret1"))
-           (s2 (make-struct v 0 "hello" 123 "invisible-secret2")))
+           (s1 (make-struct/no-tail v "hello" 123 "invisible-secret1"))
+           (s2 (make-struct/no-tail v "hello" 123 "invisible-secret2")))
       (= (hash s1 7777) (hash s2 7777))))
 
   (pass-if "cyclic structs"
     (let* ((v (make-vtable "pw"))
-           (a (make-struct v 0 #f))
-           (b (make-struct v 0 a)))
+           (a (make-struct/no-tail v #f))
+           (b (make-struct/no-tail v a)))
       (struct-set! a 0 b)
       (and (hash a 7777) (hash b 7777) #t))))
 
@@ -172,9 +172,6 @@
 ;;
 ;; make-struct
 ;;
-
-(define exception:bad-tail
-  (cons 'misc-error "tail array not allowed unless"))
 
 (with-test-prefix "make-struct"
 
@@ -184,19 +181,8 @@
   ;;
   (pass-if-exception "wrong type for `u' field" exception:wrong-type-arg
     (let* ((vv (make-vtable standard-vtable-fields))
-	   (v  (make-struct vv 0 (make-struct-layout "uw"))))
-      (make-struct v 0 'x)))
-
-  ;; In guile 1.8.1 and earlier, and 1.6.8 and earlier, there was no check
-  ;; on a tail array being created without an R/W/O type for it.  This left
-  ;; it uninitialized by scm_struct_init(), resulting in garbage getting
-  ;; into an SCM when struct-ref read it (and attempting to print a garbage
-  ;; SCM can cause a segv).
-  ;;
-  (pass-if-exception "no R/W/O for tail array" exception:bad-tail
-    (let* ((vv (make-vtable standard-vtable-fields))
-	   (v  (make-struct vv 0 (make-struct-layout "pw"))))
-      (make-struct v 123 'x))))
+	   (v  (make-struct/no-tail vv (make-struct-layout "uw"))))
+      (make-struct/no-tail v 'x))))
 
 ;;
 ;; make-vtable
@@ -206,7 +192,7 @@
 
   (pass-if "without printer"
     (let* ((vtable (make-vtable "pwpr"))
-	   (struct (make-struct vtable 0 'x 'y)))
+	   (struct (make-struct/no-tail vtable 'x 'y)))
       (and (eq? 'x (struct-ref struct 0))
 	   (eq? 'y (struct-ref struct 1)))))
 
@@ -216,7 +202,7 @@
 	(display "hello" port))
 	
       (let* ((vtable (make-vtable "pwpr" print))
-	     (struct (make-struct vtable 0 'x 'y))
+	     (struct (make-struct/no-tail vtable 'x 'y))
 	     (str    (call-with-output-string
 		      (lambda (port)
 			(display struct port)))))

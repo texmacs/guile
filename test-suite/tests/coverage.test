@@ -1,6 +1,6 @@
 ;;;; coverage.test --- Code coverage.    -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -248,9 +248,9 @@
              (zero? (procedure-execution-count data proc))))))
 
   (pass-if "applicable struct"
-    (let* ((<box> (make-struct <applicable-struct-vtable> 0 'pw))
+    (let* ((<box> (make-struct/no-tail <applicable-struct-vtable> 'pw))
            (proc  (lambda args (length args)))
-           (b     (make-struct <box> 0 proc)))
+           (b     (make-struct/no-tail <box> proc)))
       (let-values (((data result)
                     (with-code-coverage b)))
         (and (coverage-data? data)

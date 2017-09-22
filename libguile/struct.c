@@ -1,5 +1,5 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007,
- *   2008, 2009, 2010, 2011, 2012, 2013, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2001, 2003-2004, 2006-2013, 2015,
+ *               2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -553,13 +553,10 @@ SCM_DEFINE (scm_allocate_struct, "allocate-struct", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
-            (SCM vtable, SCM tail_array_size, SCM init),
+SCM_DEFINE (scm_make_struct_no_tail, "make-struct/no-tail", 1, 0, 1, 
+            (SCM vtable, SCM init),
 	    "Create a new structure.\n\n"
 	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
-	    "@var{tail_array_size} must be a non-negative integer.  If the layout\n"
-	    "specification indicated by @var{vtable} includes a tail-array,\n"
-	    "this is the number of elements allocated to that array.\n\n"
 	    "The @var{init1}, @dots{} are optional arguments describing how\n"
 	    "successive fields of the structure should be initialized.  Only fields\n"
 	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
@@ -569,7 +566,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "If fewer optional arguments than initializable fields are supplied,\n"
 	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
 	    "initialized to 0.")
-#define FUNC_NAME s_scm_make_struct
+#define FUNC_NAME s_scm_make_struct_no_tail
 {
   size_t i, n_init;
   long ilen;
@@ -592,7 +589,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   for (i = 0; i < n_init; i++, init = SCM_CDR (init))
     v[i] = SCM_UNPACK (SCM_CAR (init));
 
-  return scm_c_make_structv (vtable, scm_to_size_t (tail_array_size), n_init, v);
+  return scm_c_make_structv (vtable, 0, n_init, v);
 }
 #undef FUNC_NAME
 
@@ -638,9 +635,9 @@ SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
   if (SCM_UNBNDP (printer))
     printer = SCM_BOOL_F;
 
-  return scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
-                          scm_list_2 (scm_make_struct_layout (fields),
-                                      printer));
+  return scm_c_make_struct (scm_standard_vtable_vtable, 0, 2,
+                            SCM_UNPACK (scm_make_struct_layout (fields)),
+                            SCM_UNPACK (printer));
 }
 #undef FUNC_NAME
 
@@ -1002,8 +999,8 @@ scm_init_struct ()
   scm_define (name, scm_standard_vtable_vtable);
 
   scm_applicable_struct_vtable_vtable =
-    scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
-                     scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+    scm_c_make_struct (scm_standard_vtable_vtable, 0, 1,
+                       SCM_UNPACK (scm_make_struct_layout (required_vtable_fields)));
   name = scm_from_utf8_symbol ("<applicable-struct-vtable>");
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_vtable_vtable,
                         SCM_VTABLE_FLAG_APPLICABLE_VTABLE);
@@ -1011,8 +1008,8 @@ scm_init_struct ()
   scm_define (name, scm_applicable_struct_vtable_vtable);
 
   scm_applicable_struct_with_setter_vtable_vtable =
-    scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
-                     scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+    scm_c_make_struct (scm_standard_vtable_vtable, 0, 1,
+                       SCM_UNPACK (scm_make_struct_layout (required_vtable_fields)));
   name = scm_from_utf8_symbol ("<applicable-struct-with-setter-vtable>");
   scm_set_struct_vtable_name_x (scm_applicable_struct_with_setter_vtable_vtable, name);
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_with_setter_vtable_vtable,

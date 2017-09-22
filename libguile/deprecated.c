@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,7 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
+#include <alloca.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -951,6 +952,54 @@ SCM_FDES_RANDOM_P (int fdes)
 
   return (lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1;
 }
+
+
+
+SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
+            (SCM vtable, SCM tail_array_size, SCM init),
+	    "Create a new structure.\n\n"
+	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
+	    "@var{tail_array_size} must be a non-negative integer.  If the layout\n"
+	    "specification indicated by @var{vtable} includes a tail-array,\n"
+	    "this is the number of elements allocated to that array.\n\n"
+	    "The @var{init1}, @dots{} are optional arguments describing how\n"
+	    "successive fields of the structure should be initialized.  Only fields\n"
+	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
+	    "type 's', which are automatically initialized to point to the new\n"
+	    "structure itself. Fields with protection 'o' can not be initialized by\n"
+	    "Scheme programs.\n\n"
+	    "If fewer optional arguments than initializable fields are supplied,\n"
+	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
+	    "initialized to 0.")
+#define FUNC_NAME s_scm_make_struct
+{
+  size_t i, n_init;
+  long ilen;
+  scm_t_bits *v;
+
+  scm_c_issue_deprecation_warning
+    ("make-struct is deprecated.  Use make-struct/no-tail instead.");
+
+  SCM_VALIDATE_VTABLE (1, vtable);
+  ilen = scm_ilength (init);
+  if (ilen < 0)
+    SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL);
+  
+  n_init = (size_t)ilen;
+
+  /* best to use alloca, but init could be big, so hack to avoid a possible
+     stack overflow */
+  if (n_init < 64)
+    v = alloca (n_init * sizeof(scm_t_bits));
+  else
+    v = scm_gc_malloc (n_init * sizeof(scm_t_bits), "struct");
+
+  for (i = 0; i < n_init; i++, init = SCM_CDR (init))
+    v[i] = SCM_UNPACK (SCM_CAR (init));
+
+  return scm_c_make_structv (vtable, scm_to_size_t (tail_array_size), n_init, v);
+}
+#undef FUNC_NAME
 
 
 

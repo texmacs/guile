@@ -208,14 +208,6 @@ This is handy for tracing function calls, e.g.:
 
 
 
-;;; {Structs}
-;;;
-
-(define (make-struct/no-tail vtable . args)
-  (apply make-struct vtable 0 args))
-
-
-
 ;;; {map and for-each}
 ;;;
 
