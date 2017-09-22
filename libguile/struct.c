@@ -51,9 +51,6 @@
 
 
 
-/* A needlessly obscure test. */
-#define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
-
 static SCM required_vtable_fields = SCM_BOOL_F;
 static SCM required_applicable_fields = SCM_BOOL_F;
 static SCM required_applicable_with_setter_fields = SCM_BOOL_F;
@@ -99,7 +96,6 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  {
 	  case 'u':
 	  case 'p':
-	  case 's':
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized field type: ~S", 
@@ -110,20 +106,8 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  {
 	  case 'w':
 	  case 'h':
-	    if (scm_i_string_ref (fields, x) == 's')
-	      SCM_MISC_ERROR ("self fields not writable", SCM_EOL);
 	  case 'r':
 	  case 'o':
-	    break;
-	  case 'R':
-	  case 'W':
-	  case 'O':
-	    if (scm_i_string_ref (fields, x) == 's')
-	      SCM_MISC_ERROR ("self fields not allowed in tail array", 
-			      SCM_EOL);
-	    if (x != len - 2)
-	      SCM_MISC_ERROR ("tail array field must be last field in layout",
-			      SCM_EOL);
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
@@ -139,8 +123,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 
 
 /* Check whether VTABLE instances have a simple layout (i.e., either
-   only "pr" or only "pw" fields and no tail array) and update its flags
-   accordingly.  */
+   only "pr" or only "pw" fields) and update its flags accordingly.  */
 static void
 set_vtable_layout_flags (SCM vtable)
 {
@@ -179,13 +162,9 @@ set_vtable_layout_flags (SCM vtable)
 	  }
     }
 
-  if (flags & SCM_VTABLE_FLAG_SIMPLE)
-    {
-      /* VTABLE is simple so update its flags and record the size of its
-	 instances.  */
-      SCM_SET_VTABLE_FLAGS (vtable, flags);
-      SCM_STRUCT_DATA_SET (vtable, scm_vtable_index_size, len / 2);
-    }
+  /* Record computed size of vtable's instances.  */
+  SCM_SET_VTABLE_FLAGS (vtable, flags);
+  SCM_STRUCT_DATA_SET (vtable, scm_vtable_index_size, len / 2);
 }
 
 static int
@@ -205,14 +184,8 @@ scm_is_valid_vtable_layout (SCM layout)
       {
       case 'u':
       case 'p':
-      case 's':
         switch (c_layout[n+1])
           {
-          case 'W':
-          case 'R':
-          case 'O':
-            if (n + 2 != len)
-              return 0;
           case 'w':
           case 'h':
           case 'r':
@@ -226,23 +199,6 @@ scm_is_valid_vtable_layout (SCM layout)
         return 0;
       }
   return 1;
-}
-
-static void
-issue_deprecation_warning_for_self_slots (SCM vtable)
-{
-  SCM olayout;
-  size_t idx, first_user_slot = 0;
-
-  olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (vtable));
-  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE))
-    first_user_slot = scm_vtable_offset_user;
-
-  for (idx = first_user_slot * 2; idx < scm_c_string_length (olayout); idx += 2)
-    if (scm_is_eq (scm_c_string_ref (olayout, idx), SCM_MAKE_CHAR ('s')))
-      scm_c_issue_deprecation_warning
-        ("Vtables with \"self\" slots are deprecated.  Initialize these "
-         "fields manually.");
 }
 
 /* Have OBJ, a newly created vtable, inherit flags from VTABLE.  VTABLE is a
@@ -304,54 +260,37 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
       SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
     }
 
-  issue_deprecation_warning_for_self_slots (obj);
-
   SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VALIDATED);
 }
 #undef FUNC_NAME
 
 
 static void
-scm_struct_init (SCM handle, SCM layout, size_t n_tail,
-                 size_t n_inits, scm_t_bits *inits)
+scm_struct_init (SCM handle, SCM layout, size_t n_inits, scm_t_bits *inits)
 {
   SCM vtable;
   scm_t_bits *mem;
+  size_t n_fields;
 
   vtable = SCM_STRUCT_VTABLE (handle);
+  n_fields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
   mem = SCM_STRUCT_DATA (handle);
 
-  if (SCM_UNPACK (vtable) != 0
-      && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
-      && n_tail == 0
-      && n_inits == SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size))
+  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
+      && n_inits == n_fields)
     /* The fast path: HANDLE has N_INITS "p" fields.  */
     memcpy (mem, inits, n_inits * sizeof (SCM));
   else
     {
       scm_t_wchar prot = 0;
-      int n_fields = scm_i_symbol_length (layout) / 2;
-      int tailp = 0;
       int i;
       size_t inits_idx = 0;
 
       i = -2;
       while (n_fields)
 	{
-	  if (!tailp)
-	    {
-	      i += 2;
-	      prot = scm_i_symbol_ref (layout, i+1);
-	      if (SCM_LAYOUT_TAILP (prot))
-		{
-		  tailp = 1;
-		  prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
-		  *mem++ = (scm_t_bits)n_tail;
-		  n_fields += n_tail - 1;
-		  if (n_fields == 0)
-		    break;
-		}
-	    }
+          i += 2;
+          prot = scm_i_symbol_ref (layout, i+1);
 	  switch (scm_i_symbol_ref (layout, i))
 	    {
 	    case 'u':
@@ -373,10 +312,6 @@ scm_struct_init (SCM handle, SCM layout, size_t n_tail,
 		  inits_idx++;
 		}
 
-	      break;
-
-	    case 's':
-	      *mem = SCM_UNPACK (handle);
 	      break;
 	    }
 
@@ -455,26 +390,10 @@ scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits *init)
   layout = SCM_VTABLE_LAYOUT (vtable);
   basic_size = scm_i_symbol_length (layout) / 2;
 
-  if (n_tail != 0)
-    {
-      SCM layout_str, last_char;
-      
-      if (basic_size == 0)
-        {
-        bad_tail: 
-          SCM_MISC_ERROR ("tail array not allowed unless layout ends R, W, or O", SCM_EOL);
-        }
+  SCM_ASSERT (n_tail == 0, scm_from_size_t (n_tail), 2, FUNC_NAME);
 
-      layout_str = scm_symbol_to_string (layout);
-      last_char = scm_string_ref (layout_str,
-                                  scm_from_size_t (2 * basic_size - 1));
-      if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
-        goto bad_tail;
-    }
-
-  obj = scm_i_alloc_struct (SCM_UNPACK (vtable), basic_size + n_tail);
-
-  scm_struct_init (obj, layout, n_tail, n_init, init);
+  obj = scm_i_alloc_struct (SCM_UNPACK (vtable), basic_size);
+  scm_struct_init (obj, layout, n_init, init);
 
   /* If we're making a vtable, validate its layout and inherit
      flags. However we allow for separation of allocation and
@@ -495,6 +414,8 @@ scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits init, ..
   scm_t_bits *v;
   size_t i;
 
+  SCM_ASSERT (n_tail == 0, scm_from_size_t (n_tail), 2, "scm_c_make_struct");
+
   v = alloca (sizeof (scm_t_bits) * n_init);
 
   va_start (foo, init);
@@ -505,7 +426,7 @@ scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits init, ..
     }
   va_end (foo);
 
-  return scm_c_make_structv (vtable, n_tail, n_init, v);
+  return scm_c_make_structv (vtable, 0, n_init, v);
 }
 
 SCM_DEFINE (scm_allocate_struct, "allocate-struct", 2, 0, 0,
@@ -538,7 +459,7 @@ SCM_DEFINE (scm_allocate_struct, "allocate-struct", 2, 0, 0,
         SCM_STRUCT_DATA_SET (ret, n, SCM_UNPACK (SCM_BOOL_F));
     }
   else
-    scm_struct_init (ret, SCM_VTABLE_LAYOUT (vtable), 0, 0, NULL);
+    scm_struct_init (ret, SCM_VTABLE_LAYOUT (vtable), 0, NULL);
 
   return ret;
 }
@@ -588,8 +509,7 @@ scm_i_make_vtable_vtable (SCM fields)
 #define FUNC_NAME "make-vtable-vtable"
 {
   SCM layout, obj;
-  size_t basic_size;
-  scm_t_bits v;
+  size_t n, nfields;
 
   SCM_VALIDATE_STRING (1, fields);
 
@@ -597,16 +517,26 @@ scm_i_make_vtable_vtable (SCM fields)
   if (!scm_is_valid_vtable_layout (layout))
     SCM_MISC_ERROR ("invalid user fields", scm_list_1 (fields));
 
-  basic_size = scm_i_symbol_length (layout) / 2;
+  nfields = scm_i_symbol_length (layout) / 2;
 
-  obj = scm_i_alloc_struct (0, basic_size);
+  obj = scm_i_alloc_struct (0, nfields);
   /* Make it so that the vtable of OBJ is itself.  */
   SCM_SET_CELL_WORD_0 (obj, SCM_UNPACK (obj) | scm_tc3_struct);
+  /* Manually initialize fields.  */
+  SCM_STRUCT_SLOT_SET (obj, scm_vtable_index_layout, layout);
+  SCM_STRUCT_DATA_SET (obj, scm_vtable_index_flags,
+                       SCM_VTABLE_FLAG_VTABLE | SCM_VTABLE_FLAG_VALIDATED);
+  SCM_STRUCT_DATA_SET (obj, scm_vtable_index_instance_finalize, 0);
+  SCM_STRUCT_SLOT_SET (obj, scm_vtable_index_instance_printer, SCM_BOOL_F);
+  SCM_STRUCT_SLOT_SET (obj, scm_vtable_index_name, SCM_BOOL_F);
+  SCM_STRUCT_DATA_SET (obj, scm_vtable_index_size, nfields);
+  SCM_STRUCT_DATA_SET (obj, scm_vtable_index_reserved_7, 0);
 
-  v = SCM_UNPACK (layout);
-  scm_struct_init (obj, layout, 0, 1, &v);
-  SCM_SET_VTABLE_FLAGS (obj,
-                        SCM_VTABLE_FLAG_VTABLE | SCM_VTABLE_FLAG_VALIDATED);
+  for (n = scm_vtable_offset_user; n < nfields; n++)
+    if (scm_i_symbol_ref (layout, n*2) == 'p')
+      SCM_STRUCT_SLOT_SET (obj, n, SCM_BOOL_F);
+    else
+      SCM_STRUCT_DATA_SET (obj, n, 0);
 
   return obj;
 }
@@ -672,8 +602,6 @@ scm_i_struct_equalp (SCM s1, SCM s2)
 	  return SCM_BOOL_F;
     }
 
-  /* FIXME: Tail elements should be tested for equality.  */
-
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
@@ -695,72 +623,38 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	    "word.")
 #define FUNC_NAME s_scm_struct_ref
 {
-  SCM vtable, answer = SCM_UNDEFINED;
-  scm_t_bits *data;
-  size_t p;
+  SCM vtable;
+  scm_t_bits data;
+  size_t nfields, p;
 
   SCM_VALIDATE_STRUCT (1, handle);
 
   vtable = SCM_STRUCT_VTABLE (handle);
-  data = SCM_STRUCT_DATA (handle);
+  nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
   p = scm_to_size_t (pos);
 
-  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
-  		  && p < SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size)))
-    /* The fast path: HANDLE is a struct with only "p" fields.  */
-    answer = SCM_PACK (data[p]);
+  SCM_ASSERT_RANGE (2, pos, p < nfields);
+
+  data = SCM_STRUCT_DATA_REF (handle, p);
+
+  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)))
+    /* The fast path: HANDLE is a struct with only readable "p"
+       fields.  */
+    return SCM_PACK (data);
   else
     {
       SCM layout;
-      size_t layout_len, n_fields;
-      scm_t_wchar field_type = 0;
+      scm_t_wchar field_type, protection;
 
       layout = SCM_STRUCT_LAYOUT (handle);
-      layout_len = scm_i_symbol_length (layout);
-      n_fields = layout_len / 2;
+      field_type = scm_i_symbol_ref (layout, p * 2);
+      protection = scm_i_symbol_ref (layout, p * 2 + 1);
 
-      if (SCM_LAYOUT_TAILP (scm_i_symbol_ref (layout, layout_len - 1)))
-	n_fields += data[n_fields - 1];
+      if (protection == 'o')
+        SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
 
-      SCM_ASSERT_RANGE (1, pos, p < n_fields);
-
-      if (p * 2 < layout_len)
-	{
-	  scm_t_wchar ref;
-	  field_type = scm_i_symbol_ref (layout, p * 2);
-	  ref = scm_i_symbol_ref (layout, p * 2 + 1);
-	  if ((ref != 'r') && (ref != 'w') && (ref != 'h'))
-	    {
-	      if ((ref == 'R') || (ref == 'W'))
-		field_type = 'u';
-	      else
-		SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
-	    }
-	}
-      else if (scm_i_symbol_ref (layout, layout_len - 1) != 'O')
-	field_type = scm_i_symbol_ref(layout, layout_len - 2);
-      else
-	SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
-
-      switch (field_type)
-	{
-	case 'u':
-	  answer = scm_from_ulong (data[p]);
-	  break;
-
-	case 's':
-	case 'p':
-	  answer = SCM_PACK (data[p]);
-	break;
-
-
-	default:
-	  SCM_MISC_ERROR ("unrecognized field type: ~S",
-			  scm_list_1 (SCM_MAKE_CHAR (field_type)));
-	}
+      return (field_type == 'p') ? SCM_PACK (data) : scm_from_uintptr_t (data);
     }
-
-  return answer;
 }
 #undef FUNC_NAME
 
@@ -773,65 +667,35 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_struct_set_x
 {
   SCM vtable;
-  scm_t_bits *data;
-  size_t p;
+  size_t nfields, p;
 
   SCM_VALIDATE_STRUCT (1, handle);
 
   vtable = SCM_STRUCT_VTABLE (handle);
-  data = SCM_STRUCT_DATA (handle);
+  nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
   p = scm_to_size_t (pos);
 
-  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
-  		  && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE_RW)
-  		  && p < SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size)))
-    /* The fast path: HANDLE is a struct with only "pw" fields.  */
-    data[p] = SCM_UNPACK (val);
+  SCM_ASSERT_RANGE (2, pos, p < nfields);
+
+  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE_RW)))
+    /* The fast path: HANDLE is a struct with only "p" fields.  */
+    SCM_STRUCT_SLOT_SET (handle, p, val);
   else
     {
       SCM layout;
-      size_t layout_len, n_fields;
-      scm_t_wchar field_type = 0;
+      scm_t_wchar field_type, protection;
 
       layout = SCM_STRUCT_LAYOUT (handle);
-      layout_len = scm_i_symbol_length (layout);
-      n_fields = layout_len / 2;
+      field_type = scm_i_symbol_ref (layout, p * 2);
+      protection = scm_i_symbol_ref (layout, p * 2 + 1);
 
-      if (SCM_LAYOUT_TAILP (scm_i_symbol_ref (layout, layout_len - 1)))
-	n_fields += data[n_fields - 1];
+      if (protection == 'o' || protection == 'r')
+        SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
 
-      SCM_ASSERT_RANGE (1, pos, p < n_fields);
-
-      if (p * 2 < layout_len)
-	{
-	  char set_x;
-	  field_type = scm_i_symbol_ref (layout, p * 2);
-	  set_x = scm_i_symbol_ref (layout, p * 2 + 1);
-	  if (set_x != 'w' && set_x != 'h')
-	    SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
-	}
-      else if (scm_i_symbol_ref (layout, layout_len - 1) == 'W')
-	field_type = scm_i_symbol_ref (layout, layout_len - 2);
+      if (field_type == 'p')
+        SCM_STRUCT_SLOT_SET (handle, p, val);
       else
-	SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
-
-      switch (field_type)
-	{
-	case 'u':
-	  data[p] = SCM_NUM2ULONG (3, val);
-	  break;
-
-	case 'p':
-	  data[p] = SCM_UNPACK (val);
-	  break;
-
-	case 's':
-	  SCM_MISC_ERROR ("self fields immutable", SCM_EOL);
-
-	default:
-	  SCM_MISC_ERROR ("unrecognized field type: ~S",
-			  scm_list_1 (SCM_MAKE_CHAR (field_type)));
-	}
+        SCM_STRUCT_DATA_SET (handle, p, scm_to_uintptr_t (val));
     }
 
   return val;

@@ -911,6 +911,20 @@ slots as we go."
           (compute-direct-slot-definition class initargs)))
       (struct-set! class class-index-direct-slots
                    (map make-direct-slot-definition specs))))
+  ;; Boot definition that avoids munging nfields.
+  (define (allocate-slots class slots)
+    (define (make-effective-slot-definition slot index)
+      (let* ((slot (compute-effective-slot-definition class slot)))
+        (struct-set! slot slot-index-slot-ref/raw (standard-get index))
+        (struct-set! slot slot-index-slot-ref
+                     (if (slot-definition-init-thunk slot)
+                         (struct-ref slot slot-index-slot-ref/raw)
+                         (bound-check-get index)))
+        (struct-set! slot slot-index-slot-set! (standard-set index))
+        (struct-set! slot slot-index-index index)
+        (struct-set! slot slot-index-size 1)
+        slot))
+    (map make-effective-slot-definition slots (iota (length slots))))
   (define (initialize-slots! class)
     (let ((slots (build-slots-list (class-direct-slots class)
                                    (class-precedence-list class))))
