@@ -44,7 +44,7 @@
             <foreign-slot> <protected-slot> <hidden-slot> <opaque-slot>
             <read-only-slot> <protected-opaque-slot>
             <protected-hidden-slot> <protected-read-only-slot>
-            <scm-slot> <int-slot> <float-slot> <double-slot>
+            <scm-slot>
 
             ;; Redefinable classes.
             <redefinable-class>
@@ -890,9 +890,6 @@ slots as we go."
 (define-standard-class <protected-read-only-slot> (<protected-slot>
                                                    <read-only-slot>))
 (define-standard-class <scm-slot> (<protected-slot>))
-(define-standard-class <int-slot> (<foreign-slot>))
-(define-standard-class <float-slot> (<foreign-slot>))
-(define-standard-class <double-slot> (<foreign-slot>))
 
 
 
