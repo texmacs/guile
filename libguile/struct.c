@@ -69,16 +69,14 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "@var{fields} must be a string made up of pairs of characters\n"
 	    "strung together.  The first character of each pair describes a field\n"
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
-	    "GC-protected Scheme data, 'u' for unprotected binary data, and 's' for\n"
-	    "a field that points to the structure itself.    Allowed protections\n"
+	    "GC-protected Scheme data, 'u' for unprotected binary data.  \n"
+            "Allowed protections\n"
 	    "are 'w' for mutable fields, 'h' for hidden fields, 'r' for read-only\n"
             "fields, and 'o' for opaque fields.\n\n"
             "Hidden fields are writable, but they will not consume an initializer arg\n"
             "passed to @code{make-struct}. They are useful to add slots to a struct\n"
             "in a way that preserves backward-compatibility with existing calls to\n"
-            "@code{make-struct}, especially for derived vtables.\n\n"
-            "The last field protection specification may be capitalized to indicate\n"
-	    "that the field is a tail-array.")
+            "@code{make-struct}, especially for derived vtables.")
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
@@ -564,11 +562,10 @@ SCM_DEFINE (scm_make_struct_no_tail, "make-struct/no-tail", 1, 0, 1,
 	    "Create a new structure.\n\n"
 	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
 	    "The @var{init1}, @dots{} are optional arguments describing how\n"
-	    "successive fields of the structure should be initialized.  Only fields\n"
-	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
-	    "type 's', which are automatically initialized to point to the new\n"
-	    "structure itself. Fields with protection 'o' can not be initialized by\n"
-	    "Scheme programs.\n\n"
+	    "successive fields of the structure should be initialized.\n"
+            "Only fields with protection 'r' or 'w' can be initialized.\n"
+            "Fields with protection 'o' can not be initialized by Scheme\n"
+            "programs.\n\n"
 	    "If fewer optional arguments than initializable fields are supplied,\n"
 	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
 	    "initialized to 0.")
