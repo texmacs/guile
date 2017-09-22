@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2013,2014,2015
+/* Copyright (C) 1995-2004,2008-2015,2017
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -529,17 +529,6 @@ enum scm_tc8_tags
 #define SCM_UNSPECIFIED		SCM_PACK (SCM_UNSPECIFIED_BITS)
 #define SCM_UNDEFINED	 	SCM_PACK (SCM_UNDEFINED_BITS)
 #define SCM_EOF_VAL 		SCM_PACK (SCM_EOF_VAL_BITS)
-
-/* When a variable is unbound this is marked by the SCM_UNDEFINED
- * value.  The following is an unbound value which can be handled on
- * the Scheme level, i.e., it can be stored in and retrieved from a
- * Scheme variable.  This value is only intended to mark an unbound
- * slot in GOOPS.  It is needed now, but we should probably rewrite
- * the code which handles this value in C so that SCM_UNDEFINED can be
- * used instead.  It is not ideal to let this kind of unique and
- * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND_BITS	SCM_MAKIFLAG_BITS (11)
-#define SCM_UNBOUND		SCM_PACK (SCM_UNBOUND_BITS)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
