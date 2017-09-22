@@ -100,10 +100,6 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  {
 	  case 'u':
 	  case 'p':
-#if 0
-	  case 'i':
-	  case 'd':
-#endif
 	  case 's':
 	    break;
 	  default:
@@ -134,16 +130,6 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
 			    scm_list_1 (SCM_MAKE_CHAR (c)));
 	  }
-#if 0
-	if (scm_i_string_ref (fields, x, 'd'))
-	  {
-	    if (!scm_i_string_ref (fields, x+2, '-'))
-	      SCM_MISC_ERROR ("missing dash field at position ~A",
-			      scm_list_1 (scm_from_int (x / 2)));
-	    x += 2;
-	    goto recheck_ref;
-	  }
-#endif
       }
     new_sym = scm_string_to_symbol (fields);
   }
@@ -758,16 +744,6 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	  answer = scm_from_ulong (data[p]);
 	  break;
 
-#if 0
-	case 'i':
-	  answer = scm_from_long (data[p]);
-	  break;
-
-	case 'd':
-	  answer = scm_make_real (*((double *)&(data[p])));
-	  break;
-#endif
-
 	case 's':
 	case 'p':
 	  answer = SCM_PACK (data[p]);
@@ -840,16 +816,6 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 	case 'u':
 	  data[p] = SCM_NUM2ULONG (3, val);
 	  break;
-
-#if 0
-	case 'i':
-	  data[p] = SCM_NUM2LONG (3, val);
-	  break;
-
-	case 'd':
-	  *((double *)&(data[p])) = scm_num2dbl (val, (char *)SCM_ARG3);
-	  break;
-#endif
 
 	case 'p':
 	  data[p] = SCM_UNPACK (val);
