@@ -71,8 +71,8 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data.  \n"
             "Allowed protections\n"
-	    "are 'w' for mutable fields, 'h' for hidden fields, 'r' for read-only\n"
-            "fields, and 'o' for opaque fields.\n\n"
+	    "are 'w' for mutable fields, 'h' for hidden fields, and\n"
+            "'r' for read-only fields.\n\n"
             "Hidden fields are writable, but they will not consume an initializer arg\n"
             "passed to @code{make-struct}. They are useful to add slots to a struct\n"
             "in a way that preserves backward-compatibility with existing calls to\n"
@@ -173,6 +173,13 @@ set_vtable_layout_flags (SCM vtable)
 	  case 'r':
 	    flags &= ~SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
+
+          case 'o':
+          case 'O':
+            scm_c_issue_deprecation_warning
+              ("Opaque struct fields are deprecated.  Struct field protection "
+               "should be layered on at a higher level.");
+            /* Fall through.  */
 
 	  default:
 	    flags = 0;
@@ -564,8 +571,8 @@ SCM_DEFINE (scm_make_struct_no_tail, "make-struct/no-tail", 1, 0, 1,
 	    "The @var{init1}, @dots{} are optional arguments describing how\n"
 	    "successive fields of the structure should be initialized.\n"
             "Only fields with protection 'r' or 'w' can be initialized.\n"
-            "Fields with protection 'o' can not be initialized by Scheme\n"
-            "programs.\n\n"
+            "Hidden fields (those with protection 'h') have to be manually\n"
+            "set.\n\n"
 	    "If fewer optional arguments than initializable fields are supplied,\n"
 	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
 	    "initialized to 0.")

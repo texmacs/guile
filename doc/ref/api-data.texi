@@ -8795,9 +8795,6 @@ The second letter for each field is a permission code,
 @item
 @code{r} -- read-only, the field can be read but not written.
 @item
-@code{o} -- opaque, the field can be neither read nor written at the
-Scheme level.  This can be used for fields which should only be used
-from C code.
 @end itemize
 
 Here are some examples.
@@ -8850,11 +8847,6 @@ used to have a @code{make-struct} that took an additional argument;
 while we deprecate that old interface, @code{make-struct/no-tail} is the
 new name for this functionality.
 
-Fields with permission @code{o} opaque fields are ignored for the
-@var{init} arguments, ie.@: an argument is not consumed by such a field.
-An @code{o} slot is always set to @code{#f} or 0 (with the intention
-that C code will do something to it later).
-
 For example,
 
 @example
@@ -8886,8 +8878,7 @@ Return @code{#t} if @var{obj} is a structure, or @code{#f} if not.
 Return the contents of field number @var{n} in @var{struct}.  The
 first field is number 0.
 
-An error is thrown if @var{n} is out of range, or if the field cannot
-be read because it's @code{o} opaque.
+An error is thrown if @var{n} is out of range.
 @end deffn
 
 @deffn {Scheme Procedure} struct-set! struct n value
@@ -8896,7 +8887,7 @@ Set field number @var{n} in @var{struct} to @var{value}.  The first
 field is number 0.
 
 An error is thrown if @var{n} is out of range, or if the field cannot
-be written because it's @code{r} read-only or @code{o} opaque.  
+be written because it's @code{r} read-only.
 @end deffn
 
 @deffn {Scheme Procedure} struct-vtable struct

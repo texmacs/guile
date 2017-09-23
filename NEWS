@@ -67,6 +67,20 @@ structure.  However this was a little used complication without any use
 in Scheme code.  To replace it, just use "p" slots and initialize the
 slot values manually on initialization.
 
+** Struct fields with opaque ("o") protection deprecated
+
+Struct fields are declared with a "protection", meaning read-only ('r'),
+read-write ('w'), or opaque ('o').  There is also "hidden" ('o') which
+is read-write but which isn't initialized by arguments passed to
+`make-struct/no-tail', but that's a detail.  Opaque struct fields were
+used to allocate storage in a struct that could only be accessed by C.
+This facility was very rarely used (unused in Guile itself) but now that
+we are implementing more and more in Scheme, it is completely useless.
+
+To enforce permissions on struct fields, instead layer on an abstraction
+at a higher level, in the same way that immutable record fields are
+simply those which don't have an accessor.
+
 * Bug fixes
 
 ** Enable GNU Readline 7.0's support for "bracketed paste".
