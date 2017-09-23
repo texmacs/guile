@@ -309,7 +309,7 @@
                   ((_ (name) tail)
                    (string-append "pw" tail))
                   ((_ (name #:class <protected-read-only-slot>) tail)
-                   (string-append "pr" tail))
+                   (string-append "pw" tail))
                   ((_ (name #:class <hidden-slot>) tail)
                    (string-append "uh" tail))
                   ((_ (name #:class <protected-hidden-slot>) tail)
@@ -795,7 +795,6 @@ slots as we go."
                    ((subclass? type <protected-slot>) #\p)
                    (else #\u))
                   (cond
-                   ((subclass? type <read-only-slot>) #\r)
                    ((subclass? type <hidden-slot>) #\h)
                    (else #\w)))
           (values #\p #\w))))

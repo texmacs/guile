@@ -80,13 +80,13 @@
   (define vtable-base-layout (symbol->string (struct-layout (make-vtable ""))))
 
   (define record-type-vtable 
-    (make-vtable (string-append vtable-base-layout "prprprprprprprprprpr")
+    (make-vtable (string-append vtable-base-layout "pwpwpwpwpwpwpwpwpwpw")
 		 (lambda (obj port) 
 		   (simple-format port "#<r6rs:record-type:~A>"
 				  (struct-ref obj rtd-index-name)))))
 
   (define record-constructor-vtable 
-    (make-vtable "prprpr"
+    (make-vtable "pwpwpw"
 		 (lambda (obj port) 
 		   (simple-format port "#<r6rs:record-constructor:~A>" 
 				  (struct-ref (struct-ref obj rctd-index-rtd)
@@ -97,7 +97,7 @@
   (define (make-record-type-descriptor name parent uid sealed? opaque? fields)
     (define fields-pair
       (let loop ((field-list (vector->list fields))
-                 (layout-sym 'pr)
+                 (layout-sym 'pw)
                  (layout-bit-field 0)
                  (counter 0))
         (if (null? field-list)
@@ -105,7 +105,7 @@
             (case (caar field-list)
               ((immutable) 
                (loop (cdr field-list)
-                     (symbol-append layout-sym 'pr) 
+                     (symbol-append layout-sym 'pw)
                      layout-bit-field 
                      (+ counter 1)))
               ((mutable)

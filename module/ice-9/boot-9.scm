@@ -1178,7 +1178,7 @@ VALUE."
 
 ;; 0: type-name, 1: fields, 2: constructor
 (define record-type-vtable
-  (let ((s (make-vtable (string-append standard-vtable-fields "prprpw")
+  (let ((s (make-vtable (string-append standard-vtable-fields "pwpwpw")
                         (lambda (s p)
                           (display "#<record-type " p)
                           (display (record-type-name s) p)
@@ -1328,7 +1328,7 @@ VALUE."
 
 (define <parameter>
   ;; Three fields: the procedure itself, the fluid, and the converter.
-  (make-struct/no-tail <applicable-struct-vtable> 'pwprpr))
+  (make-struct/no-tail <applicable-struct-vtable> 'pwpwpw))
 (set-struct-vtable-name! <parameter> '<parameter>)
 
 (define* (make-parameter init #:optional (conv (lambda (x) x)))

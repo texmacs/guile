@@ -67,9 +67,8 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "strung together.  The first character of each pair describes a field\n"
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data.  \n"
-            "Allowed protections\n"
-	    "are 'w' for mutable fields, 'h' for hidden fields, and\n"
-            "'r' for read-only fields.\n\n"
+            "Allowed protections are 'w' for normal fields or 'h' for \n"
+            "hidden fields.\n\n"
             "Hidden fields are writable, but they will not consume an initializer arg\n"
             "passed to @code{make-struct}. They are useful to add slots to a struct\n"
             "in a way that preserves backward-compatibility with existing calls to\n"
@@ -188,7 +187,12 @@ scm_is_valid_vtable_layout (SCM layout)
           {
           case 'w':
           case 'h':
+            break;
           case 'r':
+            scm_c_issue_deprecation_warning
+              ("Read-only struct fields are deprecated.  Implement access "
+               "control at a higher level instead, as structs no longer "
+               "enforce field permissions.");
             break;
           default:
             return 0;
@@ -293,7 +297,7 @@ scm_struct_init (SCM handle, SCM layout, size_t n_inits, scm_t_bits *inits)
 	  switch (scm_i_symbol_ref (layout, i))
 	    {
 	    case 'u':
-	      if ((prot != 'r' && prot != 'w') || inits_idx == n_inits)
+	      if (prot == 'h' || inits_idx == n_inits)
 		*mem = 0;
 	      else
 		{
@@ -303,7 +307,7 @@ scm_struct_init (SCM handle, SCM layout, size_t n_inits, scm_t_bits *inits)
 	      break;
 
 	    case 'p':
-	      if ((prot != 'r' && prot != 'w') || inits_idx == n_inits)
+	      if (prot == 'h' || inits_idx == n_inits)
 		*mem = SCM_UNPACK (SCM_BOOL_F);
 	      else
 		{
@@ -470,9 +474,8 @@ SCM_DEFINE (scm_make_struct_no_tail, "make-struct/no-tail", 1, 0, 1,
 	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
 	    "The @var{init1}, @dots{} are optional arguments describing how\n"
 	    "successive fields of the structure should be initialized.\n"
-            "Only fields with protection 'r' or 'w' can be initialized.\n"
-            "Hidden fields (those with protection 'h') have to be manually\n"
-            "set.\n\n"
+            "Note that hidden fields (those with protection 'h') have to be\n"
+            "manually set.\n\n"
 	    "If fewer optional arguments than initializable fields are supplied,\n"
 	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
 	    "initialized to 0.")
@@ -677,14 +680,10 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   else
     {
       SCM layout;
-      scm_t_wchar field_type, protection;
+      scm_t_wchar field_type;
 
       layout = SCM_STRUCT_LAYOUT (handle);
       field_type = scm_i_symbol_ref (layout, p * 2);
-      protection = scm_i_symbol_ref (layout, p * 2 + 1);
-
-      if (protection == 'r')
-        SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
 
       if (field_type == 'p')
         SCM_STRUCT_SLOT_SET (handle, p, val);

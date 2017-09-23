@@ -27,7 +27,7 @@
 ;;;
 
 (define ball-root
-  (make-vtable (string-append standard-vtable-fields "pr") 0))
+  (make-vtable (string-append standard-vtable-fields "pw") 0))
 
 (define (make-ball-type ball-color)
   (make-struct/no-tail ball-root
@@ -69,13 +69,7 @@
 	  ;; end of the vtable tower
 	  (eq? (struct-vtable <standard-vtable>) <standard-vtable>)))
 
-  (pass-if-exception "write-access denied"
-     exception:struct-set!-denied
-
-     ;; The first field of instances of BALL-ROOT is read-only.
-     (struct-set! red vtable-offset-user "blue"))
-
-  (pass-if "write-access granted"
+  (pass-if "write"
      (set-owner! (make-ball red "Bob") "Fred")
      #t)
 
@@ -98,7 +92,7 @@
 
   (pass-if-exception "struct-ref out-of-range"
      exception:out-of-range
-     (let* ((v (make-vtable "prpr"))
+     (let* ((v (make-vtable "pwpw"))
             (s (make-struct/no-tail v 'a 'b)))
        (struct-ref s 2)))
 
@@ -112,7 +106,7 @@
 (with-test-prefix "equal?"
 
   (pass-if "simple structs"
-     (let* ((vtable (make-vtable "pr"))
+     (let* ((vtable (make-vtable "pw"))
             (s1     (make-struct/no-tail vtable "hello"))
             (s2     (make-struct/no-tail vtable "hello")))
        (equal? s1 s2)))
@@ -130,21 +124,21 @@
 (with-test-prefix "hash"
 
   (pass-if "simple structs"
-    (let* ((v  (make-vtable "pr"))
+    (let* ((v  (make-vtable "pw"))
            (s1 (make-struct/no-tail v "hello"))
            (s2 (make-struct/no-tail v "hello")))
       (= (hash s1 7777) (hash s2 7777))))
 
   (pass-if "different structs"
-    (let* ((v  (make-vtable "pr"))
+    (let* ((v  (make-vtable "pw"))
            (s1 (make-struct/no-tail v "hello"))
            (s2 (make-struct/no-tail v "world")))
       (or (not (= (hash s1 7777) (hash s2 7777)))
           (throw 'unresolved))))
 
   (pass-if "different struct types"
-    (let* ((v1 (make-vtable "pr"))
-           (v2 (make-vtable "pr"))
+    (let* ((v1 (make-vtable "pw"))
+           (v2 (make-vtable "pw"))
            (s1 (make-struct/no-tail v1 "hello"))
            (s2 (make-struct/no-tail v2 "hello")))
       (or (not (= (hash s1 7777) (hash s2 7777)))
@@ -156,7 +150,7 @@
       (= (hash s1 7777) (hash s2 7777))))
 
   (pass-if "struct with weird fields"
-    (let* ((v  (make-vtable "prurph"))
+    (let* ((v  (make-vtable "pwuwph"))
            (s1 (make-struct/no-tail v "hello" 123 "invisible-secret1"))
            (s2 (make-struct/no-tail v "hello" 123 "invisible-secret2")))
       (= (hash s1 7777) (hash s2 7777))))
@@ -191,7 +185,7 @@
 (with-test-prefix "make-vtable"
 
   (pass-if "without printer"
-    (let* ((vtable (make-vtable "pwpr"))
+    (let* ((vtable (make-vtable "pwpw"))
 	   (struct (make-struct/no-tail vtable 'x 'y)))
       (and (eq? 'x (struct-ref struct 0))
 	   (eq? 'y (struct-ref struct 1)))))
@@ -201,7 +195,7 @@
       (define (print struct port)
 	(display "hello" port))
 	
-      (let* ((vtable (make-vtable "pwpr" print))
+      (let* ((vtable (make-vtable "pwpw" print))
 	     (struct (make-struct/no-tail vtable 'x 'y))
 	     (str    (call-with-output-string
 		      (lambda (port)

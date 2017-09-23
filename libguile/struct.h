@@ -55,7 +55,7 @@
 
 /* All vtables have the following fields. */
 #define SCM_VTABLE_BASE_LAYOUT                                          \
-  "pr" /* layout */                                                     \
+  "pw" /* layout */                                                     \
   "uh" /* flags */							\
   "uh" /* finalizer */                                                  \
   "pw" /* printer */                                                    \

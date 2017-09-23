@@ -8787,22 +8787,24 @@ stands for ``uninterpreted'' (it's not treated as a Scheme value), or
 size), or all of these things.
 @end itemize
 
-The second letter for each field is a permission code,
-
-@itemize @bullet{}
-@item
-@code{w} -- writable, the field can be read and written.
-@item
-@code{r} -- read-only, the field can be read but not written.
-@item
-@end itemize
-
-Here are some examples.
+It used to be that the second letter for each field was a permission
+code, such as @code{w} for writable or @code{r} for read-only.  However
+over time structs have become more of a raw low-level facility; access
+control is better implemented as a layer on top.  After all,
+@code{struct-set!} is a cross-cutting operator that can bypass
+abstractions made by higher-level record facilities; it's not generally
+safe (in the sense of abstraction-preserving) to expose
+@code{struct-set!} to ``untrusted'' code, even if the fields happen to
+be writable.  Additionally, permission checks added overhead to every
+structure access in a way that couldn't be optimized out, hampering the
+ability of structs to act as a low-level building block.  For all of
+these reasons, all fields in Guile structs are now writable; attempting
+to make a read-only field will now issue a deprecation warning, and the
+field will be writable regardless.
 
 @example
-(make-vtable "pw")      ;; one writable field
-(make-vtable "prpw")    ;; one read-only and one writable
-(make-vtable "pwuwuw")  ;; one scheme and two uninterpreted
+(make-vtable "pw")      ;; one scheme field
+(make-vtable "pwuwuw")  ;; one scheme and two uninterpreted fields
 @end example
 
 The optional @var{print} argument is a function called by
@@ -8816,7 +8818,7 @@ The following print function for example shows the two fields of its
 structure.
 
 @example
-(make-vtable "prpw"
+(make-vtable "pwpw"
              (lambda (struct port)
                (format port "#<~a and ~a>"
                        (struct-ref struct 0)
@@ -8850,7 +8852,7 @@ new name for this functionality.
 For example,
 
 @example
-(define v (make-vtable "prpwpw"))
+(define v (make-vtable "pwpwpw"))
 (define s (make-struct/no-tail v 123 "abc" 456))
 (struct-ref s 0) @result{} 123
 (struct-ref s 1) @result{} "abc"
@@ -9032,11 +9034,11 @@ vtables with additional data:
 
 @example
 scheme@@(guile-user)> (struct-ref $3 vtable-index-layout)
-$6 = pruhsruhpwphuhuhprprpw
+$6 = pwuhuhpwphuhuhpwpwpw
 scheme@@(guile-user)> (struct-ref $4 vtable-index-layout)
-$7 = pruhsruhpwphuhuh
+$7 = pwuhuhpwphuhuh
 scheme@@(guile-user)> standard-vtable-fields 
-$8 = "pruhsruhpwphuhuh"
+$8 = "pwuhuhpwphuhuh"
 scheme@@(guile-user)> (struct-ref $2 vtable-offset-user)
 $9 = module
 @end example

@@ -53,7 +53,7 @@ do { \
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
 
-#define SCM_PRINT_STATE_LAYOUT "pruwuwuwuwuwpwuwuwurprpw"
+#define SCM_PRINT_STATE_LAYOUT "pwuwuwuwuwuwpwuwuwuwpwpw"
 typedef struct scm_print_state {
   SCM handle;			/* Struct handle */
   int revealed;                 /* Has the state escaped to Scheme? */

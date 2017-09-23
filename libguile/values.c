@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011, 2012, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -141,7 +141,7 @@ scm_init_values (void)
 {
   SCM print = scm_c_define_gsubr ("%print-values", 2, 0, 0, print_values);
 
-  scm_values_vtable = scm_make_vtable (scm_from_locale_string ("pr"), print);
+  scm_values_vtable = scm_make_vtable (scm_from_locale_string ("pw"), print);
 
   scm_add_feature ("values");
 

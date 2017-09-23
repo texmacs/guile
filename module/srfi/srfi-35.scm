@@ -47,7 +47,7 @@
 (define %condition-type-vtable
   ;; The vtable of all condition types.
   ;;   user fields:   id, parent, all-field-names
-  (let ((s (make-vtable (string-append standard-vtable-fields "prprpr")
+  (let ((s (make-vtable (string-append standard-vtable-fields "pwpwpw")
                         (lambda (ct port)
                           (format port "#<condition-type ~a ~a>"
                                   (condition-type-id ct)
@@ -92,11 +92,11 @@
   ;; Return a string denoting the layout required to hold the fields listed
   ;; in FIELD-NAMES.
   (let loop ((field-names field-names)
-	     (layout      '("pr")))
+	     (layout      '("pw")))
     (if (null? field-names)
 	(string-concatenate/shared layout)
 	(loop (cdr field-names)
-	      (cons "pr" layout)))))
+	      (cons "pw" layout)))))
 
 (define (print-condition c port)
   ;; Print condition C to PORT in a way similar to how records print:

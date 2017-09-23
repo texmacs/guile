@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: iso-8859-1; -*-
 ;;; Structs.
 ;;;
-;;; Copyright 2009 Free Software Foundation, Inc.
+;;; Copyright 2009, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -25,44 +25,27 @@
 (define iterations 2000000)
 
 (define vtable2
-  (make-vtable "prpr"))
+  (make-vtable "pwpw"))
 
 (define vtable7
-  (make-vtable (string-concatenate (make-list 7 "pr"))))
+  (make-vtable (string-concatenate (make-list 7 "pw"))))
 
 
 (with-benchmark-prefix "constructors"
 
-  (benchmark "make-struct2 (opcode)" iterations
-    (make-struct vtable2 0 1 2))
+  (benchmark "make-struct2" iterations
+    (make-struct/no-tail vtable2 1 2))
 
-  (benchmark "make-struct2 (procedure)" iterations
-    (let ((s make-struct))
-      (s vtable2 0 1 2)))
-
-  (benchmark "make-struct7 (opcode)" iterations
-    (make-struct vtable7 0 1 2 3 4 5 6 7))
-
-  (benchmark "make-struct7 (procedure)" iterations
-    (let ((s make-struct))
-      (s vtable7 0 1 2 3 4 5 6 7))))
+  (benchmark "make-struct7" iterations
+    (make-struct/no-tail vtable7 1 2 3 4 5 6 7)))
 
 
 (with-benchmark-prefix "pairs" ;; for comparison
-
-  (benchmark "cons (opcode)" iterations
+  (benchmark "cons" iterations
     (cons 1 2))
 
-  (benchmark "cons (procedure)" iterations
-    (let ((c cons))
-      (c 1 2)))
-
-  (benchmark "list (opcode)" iterations
+  (benchmark "list" iterations
     (list 1 2 3 4 5 6 7))
-
-  (benchmark "list (procedure)" iterations
-    (let ((l list))
-      (l 1 2 3 4 5 6 7)))
 
   (benchmark "make-list" iterations
     (make-list 7)))

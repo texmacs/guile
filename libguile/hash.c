@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 2000, 2001, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2014, 2015 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2014, 2015, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -240,25 +240,19 @@ scm_i_struct_hash (SCM obj, size_t depth)
   if (depth > 0)
     for (field_num = 0; field_num < struct_size; field_num++)
       {
-        int protection;
-
-        protection = scm_i_symbol_ref (layout, field_num * 2 + 1);
-        if (protection != 'h' && protection != 'o')
+        int type;
+        type = scm_i_symbol_ref (layout, field_num * 2);
+        switch (type)
           {
-            int type;
-            type = scm_i_symbol_ref (layout, field_num * 2);
-            switch (type)
-              {
-              case 'p':
-                hash ^= scm_raw_ihash (SCM_PACK (data[field_num]),
-                                       depth / 2);
-                break;
-              case 'u':
-                hash ^= scm_raw_ihashq (data[field_num]);
-                break;
-              default:
-                /* Ignore 's' fields.  */;
-              }
+          case 'p':
+            hash ^= scm_raw_ihash (SCM_PACK (data[field_num]),
+                                   depth / 2);
+            break;
+          case 'u':
+            hash ^= scm_raw_ihashq (data[field_num]);
+            break;
+          default:
+            abort ();
           }
       }
 
