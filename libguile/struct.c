@@ -107,7 +107,6 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  case 'w':
 	  case 'h':
 	  case 'r':
-	  case 'o':
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
@@ -149,6 +148,7 @@ set_vtable_layout_flags (SCM vtable)
 	switch (c_layout[field + 1])
 	  {
 	  case 'w':
+	  case 'h':
 	    if (field == 0)
 	      flags |= SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
@@ -157,15 +157,8 @@ set_vtable_layout_flags (SCM vtable)
 	    flags &= ~SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
 
-          case 'o':
-          case 'O':
-            scm_c_issue_deprecation_warning
-              ("Opaque struct fields are deprecated.  Struct field protection "
-               "should be layered on at a higher level.");
-            /* Fall through.  */
-
 	  default:
-	    flags = 0;
+            abort ();
 	  }
     }
 
@@ -196,7 +189,6 @@ scm_is_valid_vtable_layout (SCM layout)
           case 'w':
           case 'h':
           case 'r':
-          case 'o':
             break;
           default:
             return 0;
@@ -570,8 +562,7 @@ SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
 
 
 /* Return true if S1 and S2 are equal structures, i.e., if their vtable and
-   contents are the same.  Field protections are honored.  Thus, it is an
-   error to test the equality of structures that contain opaque fields.  */
+   contents are the same.  */
 SCM
 scm_i_struct_equalp (SCM s1, SCM s2)
 #define FUNC_NAME "scm_i_struct_equalp"
@@ -651,14 +642,10 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   else
     {
       SCM layout;
-      scm_t_wchar field_type, protection;
+      scm_t_wchar field_type;
 
       layout = SCM_STRUCT_LAYOUT (handle);
       field_type = scm_i_symbol_ref (layout, p * 2);
-      protection = scm_i_symbol_ref (layout, p * 2 + 1);
-
-      if (protection == 'o')
-        SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
 
       return (field_type == 'p') ? SCM_PACK (data) : scm_from_uintptr_t (data);
     }
@@ -696,7 +683,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       field_type = scm_i_symbol_ref (layout, p * 2);
       protection = scm_i_symbol_ref (layout, p * 2 + 1);
 
-      if (protection == 'o' || protection == 'r')
+      if (protection == 'r')
         SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
 
       if (field_type == 'p')
