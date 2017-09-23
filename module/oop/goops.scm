@@ -932,13 +932,23 @@ slots as we go."
   ;; Boot definition that avoids munging nfields.
   (define (allocate-slots class slots)
     (define (make-effective-slot-definition slot index)
-      (let* ((slot (compute-effective-slot-definition class slot)))
+      (let* ((slot (compute-effective-slot-definition class slot))
+             (get/raw (standard-get index))
+             (set/raw (standard-set index)))
         (struct-set! slot slot-index-slot-ref/raw (standard-get index))
         (struct-set! slot slot-index-slot-ref
                      (if (slot-definition-init-thunk slot)
-                         (struct-ref slot slot-index-slot-ref/raw)
+                         get/raw
                          (bound-check-get index)))
-        (struct-set! slot slot-index-slot-set! (standard-set index))
+        (struct-set! slot slot-index-slot-set!
+                     (if (read-only-slot? slot)
+                         (lambda (o v)
+                           (let ((v* (get/raw o)))
+                             (if (unbound? v*)
+                                 ;; Allow initialization.
+                                 (set/raw o v)
+                                 (error "Slot is read-only" slot))))
+                         set/raw))
         (struct-set! slot slot-index-index index)
         (struct-set! slot slot-index-size 1)
         slot))
