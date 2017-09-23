@@ -723,6 +723,10 @@ followed by its associated value.  If @var{l} does not hold a value for
 (define-standard-accessor-method ((standard-set n) o v)
   (struct-set! o n v))
 
+;; Boot definitions.
+(define (opaque-slot? slot) #f)
+(define (read-only-slot? slot) #f)
+
 (define (allocate-slots class slots)
   "Transform the computed list of direct slot definitions @var{slots}
 into a corresponding list of effective slot definitions, allocating
@@ -756,11 +760,27 @@ slots as we go."
                                value)))
                        set))))
         (lambda (get/raw get set)
-          (struct-set! slot slot-index-slot-ref/raw get/raw)
-          (struct-set! slot slot-index-slot-ref get)
-          (struct-set! slot slot-index-slot-set! set)
-          (struct-set! slot slot-index-index index)
-          (struct-set! slot slot-index-size size)))
+          (let ((get (if (opaque-slot? slot)
+                         (lambda (o)
+                           (error "Slot is opaque" name))
+                         get))
+                (set (cond
+                      ((opaque-slot? slot)
+                       (lambda (o v)
+                         (error "Slot is opaque" name)))
+                      ((read-only-slot? slot)
+                       (lambda (o v)
+                         (let ((v* (get/raw o)))
+                           (if (unbound? v*)
+                               ;; Allow initialization.
+                               (set o v)
+                               (error "Slot is read-only" name)))))
+                      (else set))))
+            (struct-set! slot slot-index-slot-ref/raw get/raw)
+            (struct-set! slot slot-index-slot-ref get)
+            (struct-set! slot slot-index-slot-set! set)
+            (struct-set! slot slot-index-index index)
+            (struct-set! slot slot-index-size size))))
       slot))
   (struct-set! class class-index-nfields 0)
   (map-in-order make-effective-slot-definition slots))
@@ -775,7 +795,6 @@ slots as we go."
                    ((subclass? type <protected-slot>) #\p)
                    (else #\u))
                   (cond
-                   ((subclass? type <opaque-slot>) #\o)
                    ((subclass? type <read-only-slot>) #\r)
                    ((subclass? type <hidden-slot>) #\h)
                    (else #\w)))
@@ -891,6 +910,8 @@ slots as we go."
                                                    <read-only-slot>))
 (define-standard-class <scm-slot> (<protected-slot>))
 
+(define (opaque-slot? slot) (is-a? slot <opaque-slot>))
+(define (read-only-slot? slot) (is-a? slot <read-only-slot>))
 
 
 
