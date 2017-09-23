@@ -1,5 +1,5 @@
 /* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015 Free Software Foundation, Inc.
+ *   2014, 2015, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2769,23 +2769,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (108, struct_ref, "struct-ref", OP1 (X8_S8_S8_S8) | OP_DST)
     {
       scm_t_uint8 dst, src, idx;
-      SCM obj;
-      scm_t_uint64 index;
+      SCM obj, vtable;
+      scm_t_uint64 index, nfields;
 
       UNPACK_8_8_8 (op, dst, src, idx);
 
       obj = SP_REF (src);
       index = SP_REF_U64 (idx);
 
-      if (SCM_LIKELY (SCM_STRUCTP (obj)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE)
-                      && index < (SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (obj),
-                                                       scm_vtable_index_size))))
-        RETURN (SCM_STRUCT_SLOT_REF (obj, index));
+      VM_VALIDATE_STRUCT (obj, "struct-ref");
+      vtable = SCM_STRUCT_VTABLE (obj);
+      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+      VM_VALIDATE_INDEX (index, nfields, "struct-ref");
 
-      SYNC_IP ();
-      RETURN (scm_struct_ref (obj, scm_from_uint64 (index)));
+      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
+        RETURN (SCM_STRUCT_SLOT_REF (obj, index));
+      else
+        RETURN (scm_from_uintptr_t (SCM_STRUCT_DATA_REF (obj, index)));
     }
 
   /* struct-set! dst:8 idx:8 src:8
@@ -2795,8 +2795,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (109, struct_set, "struct-set!", OP1 (X8_S8_S8_S8))
     {
       scm_t_uint8 dst, idx, src;
-      SCM obj, val;
-      scm_t_uint64 index;
+      SCM obj, vtable, val;
+      scm_t_uint64 index, nfields;
 
       UNPACK_8_8_8 (op, dst, idx, src);
 
@@ -2804,21 +2804,22 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       val = SP_REF (src);
       index = SP_REF_U64 (idx);
 
-      if (SCM_LIKELY (SCM_STRUCTP (obj)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE_RW)
-                      && index < (SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (obj),
-                                                       scm_vtable_index_size))))
+      VM_VALIDATE_STRUCT (obj, "struct-set!");
+      vtable = SCM_STRUCT_VTABLE (obj);
+      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+      VM_VALIDATE_INDEX (index, nfields, "struct-set!");
+
+      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
         {
           SCM_STRUCT_SLOT_SET (obj, index, val);
           NEXT (1);
         }
-
-      SYNC_IP ();
-      scm_struct_set_x (obj, scm_from_uint64 (index), val);
-      NEXT (1);
+      else
+        {
+          SYNC_IP ();
+          SCM_STRUCT_DATA_SET (obj, index, scm_to_uintptr_t (val));
+          NEXT (1);
+        }
     }
 
   /* allocate-struct/immediate dst:8 vtable:8 nfields:8
@@ -2849,21 +2850,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (111, struct_ref_immediate, "struct-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
       scm_t_uint8 dst, src, idx;
-      SCM obj;
+      SCM obj, vtable;
+      scm_t_uint64 index, nfields;
 
       UNPACK_8_8_8 (op, dst, src, idx);
 
       obj = SP_REF (src);
+      index = idx;
 
-      if (SCM_LIKELY (SCM_STRUCTP (obj)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE)
-                      && idx < SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (obj),
-                                                    scm_vtable_index_size)))
-        RETURN (SCM_STRUCT_SLOT_REF (obj, idx));
+      VM_VALIDATE_STRUCT (obj, "struct-ref");
+      vtable = SCM_STRUCT_VTABLE (obj);
+      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+      VM_VALIDATE_INDEX (index, nfields, "struct-ref");
 
-      SYNC_IP ();
-      RETURN (scm_struct_ref (obj, SCM_I_MAKINUM (idx)));
+      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
+        RETURN (SCM_STRUCT_SLOT_REF (obj, index));
+      else
+        RETURN (scm_from_uintptr_t (SCM_STRUCT_DATA_REF (obj, index)));
     }
 
   /* struct-set!/immediate dst:8 idx:8 src:8
@@ -2874,28 +2877,31 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (112, struct_set_immediate, "struct-set!/immediate", OP1 (X8_S8_C8_S8))
     {
       scm_t_uint8 dst, idx, src;
-      SCM obj, val;
+      SCM obj, vtable, val;
+      scm_t_uint64 index, nfields;
 
       UNPACK_8_8_8 (op, dst, idx, src);
 
       obj = SP_REF (dst);
       val = SP_REF (src);
+      index = idx;
 
-      if (SCM_LIKELY (SCM_STRUCTP (obj)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE)
-                      && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
-                                                        SCM_VTABLE_FLAG_SIMPLE_RW)
-                      && idx < SCM_STRUCT_DATA_REF (SCM_STRUCT_VTABLE (obj),
-                                                    scm_vtable_index_size)))
+      VM_VALIDATE_STRUCT (obj, "struct-set!");
+      vtable = SCM_STRUCT_VTABLE (obj);
+      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+      VM_VALIDATE_INDEX (index, nfields, "struct-set!");
+
+      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
         {
-          SCM_STRUCT_SLOT_SET (obj, idx, val);
+          SCM_STRUCT_SLOT_SET (obj, index, val);
           NEXT (1);
         }
-
-      SYNC_IP ();
-      scm_struct_set_x (obj, SCM_I_MAKINUM (idx), val);
-      NEXT (1);
+      else
+        {
+          SYNC_IP ();
+          SCM_STRUCT_DATA_SET (obj, index, scm_to_uintptr_t (val));
+          NEXT (1);
+        }
     }
 
   /* class-of dst:12 type:12
