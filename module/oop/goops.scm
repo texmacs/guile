@@ -3116,7 +3116,7 @@ var{initargs}."
         (nfields (struct-ref/unboxed class class-index-nfields))
         (indirect-slots-class (slot-ref class 'indirect-slots-class)))
     ;; Indirect slots will be last struct field.
-    (struct-set!/unboxed instance (1- nfields) (make indirect-slots-class))
+    (struct-set! instance (1- nfields) (make indirect-slots-class))
     instance))
 
 ;; Called when redefining an existing binding, and the new binding is a
