@@ -587,20 +587,25 @@ scm_i_struct_equalp (SCM s1, SCM s2)
 
   for (field_num = 0; field_num < struct_size; field_num++)
     {
-      SCM s_field_num;
-      SCM field1, field2;
+      scm_t_bits field1, field2;
 
-      /* We have to use `scm_struct_ref ()' here so that fields are accessed
-	 consistently, notably wrt. field types and access rights.  */
-      s_field_num = scm_from_size_t (field_num);
-      field1 = scm_struct_ref (s1, s_field_num);
-      field2 = scm_struct_ref (s2, s_field_num);
+      field1 = SCM_STRUCT_DATA_REF (s1, field_num);
+      field2 = SCM_STRUCT_DATA_REF (s2, field_num);
 
-      /* Self-referencing fields (type `s') must be skipped to avoid infinite
-	 recursion.  */
-      if (!(scm_is_eq (field1, s1) && (scm_is_eq (field2, s2))))
-	if (scm_is_false (scm_equal_p (field1, field2)))
-	  return SCM_BOOL_F;
+      if (field1 != field2) {
+        if (scm_i_symbol_ref (layout, field_num * 2) == 'u')
+          return SCM_BOOL_F;
+
+        /* Having a normal field point to the object itself is a bit
+           bonkers, but R6RS enums do it, so here we have a horrible
+           hack.  */
+        if (field1 != SCM_UNPACK (s1) && field2 != SCM_UNPACK (s2))
+          {
+            if (scm_is_false
+                (scm_equal_p (SCM_PACK (field1), SCM_PACK (field2))))
+              return SCM_BOOL_F;
+          }
+      }
     }
 
   return SCM_BOOL_T;
@@ -624,34 +629,22 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	    "word.")
 #define FUNC_NAME s_scm_struct_ref
 {
-  SCM vtable;
-  scm_t_bits data;
+  SCM vtable, layout;
   size_t nfields, p;
 
   SCM_VALIDATE_STRUCT (1, handle);
 
   vtable = SCM_STRUCT_VTABLE (handle);
+  layout = SCM_VTABLE_LAYOUT (vtable);
   nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
   p = scm_to_size_t (pos);
 
   SCM_ASSERT_RANGE (2, pos, p < nfields);
 
-  data = SCM_STRUCT_DATA_REF (handle, p);
+  /* Only 'p' fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'p', layout, 0, FUNC_NAME);
 
-  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)))
-    /* The fast path: HANDLE is a struct with only readable "p"
-       fields.  */
-    return SCM_PACK (data);
-  else
-    {
-      SCM layout;
-      scm_t_wchar field_type;
-
-      layout = SCM_STRUCT_LAYOUT (handle);
-      field_type = scm_i_symbol_ref (layout, p * 2);
-
-      return (field_type == 'p') ? SCM_PACK (data) : scm_from_uintptr_t (data);
-    }
+  return SCM_STRUCT_SLOT_REF (handle, p);
 }
 #undef FUNC_NAME
 
@@ -663,33 +656,77 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 	    "to.")
 #define FUNC_NAME s_scm_struct_set_x
 {
-  SCM vtable;
+  SCM vtable, layout;
   size_t nfields, p;
 
   SCM_VALIDATE_STRUCT (1, handle);
 
   vtable = SCM_STRUCT_VTABLE (handle);
+  layout = SCM_VTABLE_LAYOUT (vtable);
   nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
   p = scm_to_size_t (pos);
 
   SCM_ASSERT_RANGE (2, pos, p < nfields);
 
-  if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE_RW)))
-    /* The fast path: HANDLE is a struct with only "p" fields.  */
-    SCM_STRUCT_SLOT_SET (handle, p, val);
-  else
-    {
-      SCM layout;
-      scm_t_wchar field_type;
+  /* Only 'p' fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'p', layout, 0, FUNC_NAME);
 
-      layout = SCM_STRUCT_LAYOUT (handle);
-      field_type = scm_i_symbol_ref (layout, p * 2);
+  SCM_STRUCT_SLOT_SET (handle, p, val);
 
-      if (field_type == 'p')
-        SCM_STRUCT_SLOT_SET (handle, p, val);
-      else
-        SCM_STRUCT_DATA_SET (handle, p, scm_to_uintptr_t (val));
-    }
+  return val;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_struct_ref_unboxed, "struct-ref/unboxed", 2, 0, 0,
+            (SCM handle, SCM pos),
+	    "Access the @var{pos}th field of struct associated with\n"
+	    "@var{handle}.  The field must be of type 'u'.")
+#define FUNC_NAME s_scm_struct_ref_unboxed
+{
+  SCM vtable, layout;
+  size_t nfields, p;
+
+  SCM_VALIDATE_STRUCT (1, handle);
+
+  vtable = SCM_STRUCT_VTABLE (handle);
+  layout = SCM_VTABLE_LAYOUT (vtable);
+  nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+  p = scm_to_size_t (pos);
+
+  SCM_ASSERT_RANGE (2, pos, p < nfields);
+
+  /* Only 'u' fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'u', layout, 0, FUNC_NAME);
+
+  return scm_from_uintptr_t (SCM_STRUCT_DATA_REF (handle, p));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_struct_set_x_unboxed, "struct-set!/unboxed", 3, 0, 0,
+            (SCM handle, SCM pos, SCM val),
+	    "Set the slot of the structure @var{handle} with index @var{pos}\n"
+	    "to @var{val}.  Signal an error if the slot can not be written\n"
+	    "to.")
+#define FUNC_NAME s_scm_struct_set_x_unboxed
+{
+  SCM vtable, layout;
+  size_t nfields, p;
+
+  SCM_VALIDATE_STRUCT (1, handle);
+
+  vtable = SCM_STRUCT_VTABLE (handle);
+  layout = SCM_VTABLE_LAYOUT (vtable);
+  nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+  p = scm_to_size_t (pos);
+
+  SCM_ASSERT_RANGE (2, pos, p < nfields);
+
+  /* Only 'u' fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'u', layout, 0, FUNC_NAME);
+
+  SCM_STRUCT_DATA_SET (handle, p, scm_to_uintptr_t (val));
 
   return val;
 }

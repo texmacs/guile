@@ -261,16 +261,20 @@
   (logior vtable-flag-vtable vtable-flag-goops-class))
 
 (define-inlinable (class-add-flags! class flags)
-  (struct-set! class class-index-flags
-               (logior flags (struct-ref class class-index-flags))))
+  (struct-set!/unboxed
+   class
+   class-index-flags
+   (logior flags (struct-ref/unboxed class class-index-flags))))
 
 (define-inlinable (class-clear-flags! class flags)
-  (struct-set! class class-index-flags
-               (logand (lognot flags) (struct-ref class class-index-flags))))
+  (struct-set!/unboxed
+   class
+   class-index-flags
+   (logand (lognot flags) (struct-ref/unboxed class class-index-flags))))
 
 (define-inlinable (class-has-flags? class flags)
   (eqv? flags
-        (logand (struct-ref class class-index-flags) flags)))
+        (logand (struct-ref/unboxed class class-index-flags) flags)))
 
 (define-inlinable (class? obj)
   (class-has-flags? (struct-vtable obj) vtable-flag-goops-metaclass))
@@ -319,7 +323,7 @@
            (<class> (%make-vtable-vtable layout)))
       (class-add-flags! <class> vtable-flag-goops-class)
       (struct-set! <class> class-index-name '<class>)
-      (struct-set! <class> class-index-nfields nfields)
+      (struct-set!/unboxed <class> class-index-nfields nfields)
       (struct-set! <class> class-index-direct-supers '())
       (struct-set! <class> class-index-direct-slots '())
       (struct-set! <class> class-index-direct-subclasses '())
@@ -413,7 +417,8 @@ followed by its associated value.  If @var{l} does not hold a value for
   (eq? x *unbound*))
 
 (define (%allocate-instance class)
-  (let ((obj (allocate-struct class (struct-ref class class-index-nfields))))
+  (let ((obj (allocate-struct class
+                              (struct-ref/unboxed class class-index-nfields))))
     (%clear-fields! obj *unbound*)
     obj))
 
@@ -428,7 +433,7 @@ followed by its associated value.  If @var{l} does not hold a value for
       (class-add-flags! <slot> (logior vtable-flag-goops-class
                                        vtable-flag-goops-slot))
       (struct-set! <slot> class-index-name '<slot>)
-      (struct-set! <slot> class-index-nfields nfields)
+      (struct-set!/unboxed <slot> class-index-nfields nfields)
       (struct-set! <slot> class-index-direct-supers '())
       (struct-set! <slot> class-index-direct-slots '())
       (struct-set! <slot> class-index-direct-subclasses '())
@@ -690,8 +695,8 @@ followed by its associated value.  If @var{l} does not hold a value for
 
 ;; Boot definition.
 (define (compute-get-n-set class slot)
-  (let ((index (struct-ref class class-index-nfields)))
-    (struct-set! class class-index-nfields (1+ index))
+  (let ((index (struct-ref/unboxed class class-index-nfields)))
+    (struct-set!/unboxed class class-index-nfields (1+ index))
     index))
 
 ;;; Pre-generate getters and setters for the first 20 slots.
@@ -723,9 +728,18 @@ followed by its associated value.  If @var{l} does not hold a value for
 (define-standard-accessor-method ((standard-set n) o v)
   (struct-set! o n v))
 
+(define-standard-accessor-method ((unboxed-get n) o)
+  (struct-ref/unboxed o n))
+
+(define-standard-accessor-method ((unboxed-set n) o v)
+  (struct-set!/unboxed o n v))
+
 ;; Boot definitions.
 (define (opaque-slot? slot) #f)
 (define (read-only-slot? slot) #f)
+(define (unboxed-slot? slot)
+  (memq (%slot-definition-name slot)
+        '(flags instance-finalizer nfields %reserved)))
 
 (define (allocate-slots class slots)
   "Transform the computed list of direct slot definitions @var{slots}
@@ -737,20 +751,25 @@ slots as we go."
     ;; the behavior for backward compatibility.
     (let* ((slot (compute-effective-slot-definition class slot))
            (name (%slot-definition-name slot))
-           (index (struct-ref class class-index-nfields))
+           (index (struct-ref/unboxed class class-index-nfields))
            (g-n-s (compute-get-n-set class slot))
-           (size (- (struct-ref class class-index-nfields) index)))
+           (size (- (struct-ref/unboxed class class-index-nfields) index)))
       (call-with-values
           (lambda ()
             (match g-n-s
               ((? integer?)
                (unless (= size 1)
                  (error "unexpected return from compute-get-n-set"))
-               (values (standard-get g-n-s)
-                       (if (slot-definition-init-thunk slot)
-                           (standard-get g-n-s)
-                           (bound-check-get g-n-s))
-                       (standard-set g-n-s)))
+               (cond
+                ((unboxed-slot? slot)
+                 (let ((get (unboxed-get g-n-s)))
+                   (values get get (unboxed-set g-n-s))))
+                (else
+                 (values (standard-get g-n-s)
+                         (if (slot-definition-init-thunk slot)
+                             (standard-get g-n-s)
+                             (bound-check-get g-n-s))
+                         (standard-set g-n-s)))))
               (((? procedure? get) (? procedure? set))
                (values get
                        (lambda (o)
@@ -769,12 +788,19 @@ slots as we go."
                        (lambda (o v)
                          (error "Slot is opaque" name)))
                       ((read-only-slot? slot)
-                       (lambda (o v)
-                         (let ((v* (get/raw o)))
-                           (if (unbound? v*)
-                               ;; Allow initialization.
-                               (set o v)
-                               (error "Slot is read-only" name)))))
+                       (if (unboxed-slot? slot)
+                           (lambda (o v)
+                             (let ((v* (get/raw o)))
+                               (if (zero? v*)
+                                   ;; Allow initialization.
+                                   (set o v)
+                                   (error "Slot is read-only" name))))
+                           (lambda (o v)
+                             (let ((v* (get/raw o)))
+                               (if (unbound? v*)
+                                   ;; Allow initialization.
+                                   (set o v)
+                                   (error "Slot is read-only" name))))))
                       (else set))))
             (struct-set! slot slot-index-slot-ref/raw get/raw)
             (struct-set! slot slot-index-slot-ref get)
@@ -782,7 +808,7 @@ slots as we go."
             (struct-set! slot slot-index-index index)
             (struct-set! slot slot-index-size size))))
       slot))
-  (struct-set! class class-index-nfields 0)
+  (struct-set!/unboxed class class-index-nfields 0)
   (map-in-order make-effective-slot-definition slots))
 
 (define (%compute-layout slots nfields is-class?)
@@ -830,7 +856,7 @@ slots as we go."
 (define (%prep-layout! class)
   (let* ((is-class? (and (memq <class> (struct-ref class class-index-cpl)) #t))
          (layout (%compute-layout (struct-ref class class-index-slots)
-                                  (struct-ref class class-index-nfields)
+                                  (struct-ref/unboxed class class-index-nfields)
                                   is-class?)))
     (%init-layout! class layout)))
 
@@ -841,7 +867,7 @@ slots as we go."
         (compute-direct-slot-definition z initargs)))
 
     (struct-set! z class-index-name name)
-    (struct-set! z class-index-nfields 0)
+    (struct-set!/unboxed z class-index-nfields 0)
     (struct-set! z class-index-direct-supers dsupers)
     (struct-set! z class-index-direct-subclasses '())
     (struct-set! z class-index-direct-methods '())
@@ -911,6 +937,9 @@ slots as we go."
 
 (define (opaque-slot? slot) (is-a? slot <opaque-slot>))
 (define (read-only-slot? slot) (is-a? slot <read-only-slot>))
+(define (unboxed-slot? slot)
+  (and (is-a? slot <foreign-slot>)
+       (not (is-a? slot <protected-slot>))))
 
 
 
@@ -2607,8 +2636,8 @@ function."
   (case (slot-definition-allocation s)
     ((#:instance) ;; Instance slot
      ;; get-n-set is just its offset
-     (let ((already-allocated (struct-ref class class-index-nfields)))
-       (struct-set! class class-index-nfields (+ already-allocated 1))
+     (let ((already-allocated (struct-ref/unboxed class class-index-nfields)))
+       (struct-set!/unboxed class class-index-nfields (+ already-allocated 1))
        already-allocated))
 
     ((#:class) ;; Class slot
@@ -2720,7 +2749,7 @@ var{initargs}."
   (next-method)
   (class-add-flags! class vtable-flag-goops-class)
   (struct-set! class class-index-name (get-keyword #:name initargs '???))
-  (struct-set! class class-index-nfields 0)
+  (struct-set!/unboxed class class-index-nfields 0)
   (struct-set! class class-index-direct-supers
                (get-keyword #:dsupers initargs '()))
   (struct-set! class class-index-direct-subclasses '())
@@ -3084,10 +3113,10 @@ var{initargs}."
 
 (define-method (allocate-instance (class <redefinable-class>) initargs)
   (let ((instance (next-method))
-        (nfields (struct-ref class class-index-nfields))
+        (nfields (struct-ref/unboxed class class-index-nfields))
         (indirect-slots-class (slot-ref class 'indirect-slots-class)))
     ;; Indirect slots will be last struct field.
-    (struct-set! instance (1- nfields) (make indirect-slots-class))
+    (struct-set!/unboxed instance (1- nfields) (make indirect-slots-class))
     instance))
 
 ;; Called when redefining an existing binding, and the new binding is a
@@ -3227,7 +3256,7 @@ var{initargs}."
         (stack '()))
     (lambda (instance)
       (let* ((new-class (struct-vtable instance))
-             (nfields (struct-ref new-class class-index-nfields))
+             (nfields (struct-ref/unboxed new-class class-index-nfields))
              ;; Indirect slots are in last instance slot.  For normal
              ;; instances last slot is 0 of course.
              (slots (struct-ref instance (1- nfields)))

@@ -8781,10 +8781,9 @@ it's protected against garbage collection.
 
 @item
 @code{u} -- an arbitrary word of data (an @code{scm_t_bits}).  At the
-Scheme level it's read and written as an unsigned integer.  ``u''
-stands for ``uninterpreted'' (it's not treated as a Scheme value), or
-``unprotected'' (it's not marked during GC), or ``unsigned long'' (its
-size), or all of these things.
+Scheme level it's read and written as an unsigned integer.  ``u'' stands
+for ``unboxed'', as it's stored as a raw value without additional type
+annotations.
 @end itemize
 
 It used to be that the second letter for each field was a permission
@@ -8804,7 +8803,7 @@ field will be writable regardless.
 
 @example
 (make-vtable "pw")      ;; one scheme field
-(make-vtable "pwuwuw")  ;; one scheme and two uninterpreted fields
+(make-vtable "pwuwuw")  ;; one scheme and two unboxed fields
 @end example
 
 The optional @var{print} argument is a function called by
@@ -8842,7 +8841,7 @@ The optional @var{init}@dots{} arguments are initial values for the
 fields of the structure.  This is the only way to
 put values in read-only fields.  If there are fewer @var{init}
 arguments than fields then the defaults are @code{#f} for a Scheme
-field (type @code{p}) or 0 for an uninterpreted field (type @code{u}).
+field (type @code{p}) or 0 for an unboxed field (type @code{u}).
 
 The name is a bit strange, we admit.  The reason for it is that Guile
 used to have a @code{make-struct} that took an additional argument;
@@ -8890,6 +8889,20 @@ field is number 0.
 
 An error is thrown if @var{n} is out of range, or if the field cannot
 be written because it's @code{r} read-only.
+@end deffn
+
+Unboxed fields (those with type @code{u}) need to be accessed with
+special procedures.
+
+@deffn {Scheme Procedure} struct-ref/unboxed struct n
+@deffnx {Scheme Procedure} struct-set!/unboxed struct n value
+@deffnx {C Function} scm_struct_ref_unboxed (struct, n)
+@deffnx {C Function} scm_struct_set_x_unboxed (struct, n, value)
+Like @code{struct-ref} and @code{struct-set!}, except that these may
+only be used on unboxed fields.  @code{struct-ref/unboxed} will always
+return a positive integer.  Likewise, @code{struct-set!/unboxed} takes
+an unsigned integer as the @var{value} argument, and will signal an
+error otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} struct-vtable struct
