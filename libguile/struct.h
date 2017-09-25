@@ -185,6 +185,8 @@ SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
 SCM_INTERNAL SCM scm_i_make_vtable_vtable (SCM fields);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
+SCM_API SCM scm_struct_ref_unboxed (SCM handle, SCM pos);
+SCM_API SCM scm_struct_set_x_unboxed (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);

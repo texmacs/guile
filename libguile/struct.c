@@ -676,20 +676,37 @@ scm_i_struct_equalp (SCM s1, SCM s2)
 
   for (field_num = 0; field_num < struct_size; field_num++)
     {
-      SCM s_field_num;
-      SCM field1, field2;
+      scm_t_bits field1, field2;
 
-      /* We have to use `scm_struct_ref ()' here so that fields are accessed
-	 consistently, notably wrt. field types and access rights.  */
-      s_field_num = scm_from_size_t (field_num);
-      field1 = scm_struct_ref (s1, s_field_num);
-      field2 = scm_struct_ref (s2, s_field_num);
+      field1 = SCM_STRUCT_DATA_REF (s1, field_num);
+      field2 = SCM_STRUCT_DATA_REF (s2, field_num);
 
-      /* Self-referencing fields (type `s') must be skipped to avoid infinite
-	 recursion.  */
-      if (!(scm_is_eq (field1, s1) && (scm_is_eq (field2, s2))))
-	if (scm_is_false (scm_equal_p (field1, field2)))
-	  return SCM_BOOL_F;
+      if (field1 != field2) {
+        switch (scm_i_symbol_ref (layout, field_num * 2))
+          {
+          case 'p':
+            /* Having a normal field point to the object itself is a bit
+               bonkers, but R6RS enums do it, so here we have a horrible
+               hack.  */
+            if (field1 != SCM_UNPACK (s1) && field2 != SCM_UNPACK (s2))
+              {
+                if (scm_is_false
+                    (scm_equal_p (SCM_PACK (field1), SCM_PACK (field2))))
+                  return SCM_BOOL_F;
+              }
+            break;
+          case 's':
+            /* Skip to avoid infinite recursion.  */
+            break;
+          case 'u':
+            return SCM_BOOL_F;
+          default:
+            /* Don't bother inspecting tail arrays; we never did this in
+               the past and in the future tail arrays are going away
+               anyway.  */
+            return SCM_BOOL_F;
+          }
+      }
     }
 
   /* FIXME: Tail elements should be tested for equality.  */
@@ -765,6 +782,9 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
       switch (field_type)
 	{
 	case 'u':
+          scm_c_issue_deprecation_warning
+            ("Accessing unboxed struct fields with struct-ref is deprecated.  "
+             "Use struct-ref/unboxed instead.");
 	  answer = scm_from_ulong (data[p]);
 	  break;
 
@@ -838,6 +858,9 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       switch (field_type)
 	{
 	case 'u':
+          scm_c_issue_deprecation_warning
+            ("Accessing unboxed struct fields with struct-set! is deprecated.  "
+             "Use struct-set!/unboxed instead.");
 	  data[p] = SCM_NUM2ULONG (3, val);
 	  break;
 
@@ -853,6 +876,80 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 			  scm_list_1 (SCM_MAKE_CHAR (field_type)));
 	}
     }
+
+  return val;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_struct_ref_unboxed, "struct-ref/unboxed", 2, 0, 0,
+            (SCM handle, SCM pos),
+	    "Access the @var{pos}th field of struct associated with\n"
+	    "@var{handle}.  The field must be of type 'u'.")
+#define FUNC_NAME s_scm_struct_ref_unboxed
+{
+  SCM vtable, layout;
+  size_t layout_len, n_fields;
+  size_t p;
+
+  SCM_VALIDATE_STRUCT (1, handle);
+
+  vtable = SCM_STRUCT_VTABLE (handle);
+  p = scm_to_size_t (pos);
+
+  layout = SCM_VTABLE_LAYOUT (vtable);
+  layout_len = scm_i_symbol_length (layout);
+  n_fields = layout_len / 2;
+
+  SCM_ASSERT_RANGE (1, pos, p < n_fields);
+
+  /* Only 'u' fields, no tail arrays.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'u',
+              layout, 0, FUNC_NAME);
+
+  /* Don't support opaque fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2 + 1) != 'o',
+              layout, 0, FUNC_NAME);
+
+  return scm_from_uintptr_t (SCM_STRUCT_DATA_REF (handle, p));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_struct_set_x_unboxed, "struct-set!/unboxed", 3, 0, 0,
+            (SCM handle, SCM pos, SCM val),
+	    "Set the slot of the structure @var{handle} with index @var{pos}\n"
+	    "to @var{val}.  Signal an error if the slot can not be written\n"
+	    "to.")
+#define FUNC_NAME s_scm_struct_set_x_unboxed
+{
+  SCM vtable, layout;
+  size_t layout_len, n_fields;
+  size_t p;
+
+  SCM_VALIDATE_STRUCT (1, handle);
+
+  vtable = SCM_STRUCT_VTABLE (handle);
+  p = scm_to_size_t (pos);
+
+  layout = SCM_VTABLE_LAYOUT (vtable);
+  layout_len = scm_i_symbol_length (layout);
+  n_fields = layout_len / 2;
+
+  SCM_ASSERT_RANGE (1, pos, p < n_fields);
+
+  /* Only 'u' fields, no tail arrays.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2) == 'u',
+              layout, 0, FUNC_NAME);
+
+  /* Don't support opaque fields.  */
+  SCM_ASSERT (scm_i_symbol_ref (layout, p * 2 + 1) != 'o',
+              layout, 0, FUNC_NAME);
+
+  if (scm_i_symbol_ref (layout, p * 2 + 1) == 'r')
+    SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
+
+  SCM_STRUCT_DATA_SET (handle, p, scm_to_uintptr_t (val));
 
   return val;
 }

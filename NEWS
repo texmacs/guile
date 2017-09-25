@@ -17,6 +17,11 @@ The URI standard, RFC 3986, defines additional "relative-ref" and
 for these URI subtypes has been improved.  See "Universal Resource
 Identifiers" in the manual, for more.
 
+** `struct-ref/unboxed' and `struct-set!/unboxed'
+
+These procedures should be used when accessing struct fields with type
+`u' (unboxed).  See "Structure Basics" in the manual, for full details.
+
 * New deprecations
 
 ** Using `uri?' as a predicate on relative-refs deprecated
@@ -80,6 +85,10 @@ we are implementing more and more in Scheme, it is completely useless.
 To enforce permissions on struct fields, instead layer on an abstraction
 at a higher level, in the same way that immutable record fields are
 simply those which don't have an accessor.
+
+** Using `struct-ref' and `struct-set!' on unboxed fields is deprecated
+
+Use the new `struct-ref/unboxed' and `struct-set!/unboxed' instead.
 
 * Bug fixes
 
