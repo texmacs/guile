@@ -441,6 +441,12 @@
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
+#define VM_VALIDATE_BOXED_STRUCT_FIELD(layout, i, proc)                 \
+  VM_ASSERT (scm_i_symbol_ref (layout, i * 2) == 'p',                   \
+             vm_error_boxed_struct_field (proc, i))
+#define VM_VALIDATE_UNBOXED_STRUCT_FIELD(layout, i, proc)               \
+  VM_ASSERT (scm_i_symbol_ref (layout, i * 2) == 'u',                   \
+             vm_error_unboxed_struct_field (proc, i))
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -2781,11 +2787,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       vtable = SCM_STRUCT_VTABLE (obj);
       nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
       VM_VALIDATE_INDEX (index, nfields, "struct-ref");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
+                                      index, "struct-ref");
 
-      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
-        RETURN (SCM_STRUCT_SLOT_REF (obj, index));
-      else
-        RETURN (scm_from_uintptr_t (SCM_STRUCT_DATA_REF (obj, index)));
+      RETURN (SCM_STRUCT_SLOT_REF (obj, index));
     }
 
   /* struct-set! dst:8 idx:8 src:8
@@ -2808,18 +2813,11 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       vtable = SCM_STRUCT_VTABLE (obj);
       nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
       VM_VALIDATE_INDEX (index, nfields, "struct-set!");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
+                                      index, "struct-set!");
 
-      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
-        {
-          SCM_STRUCT_SLOT_SET (obj, index, val);
-          NEXT (1);
-        }
-      else
-        {
-          SYNC_IP ();
-          SCM_STRUCT_DATA_SET (obj, index, scm_to_uintptr_t (val));
-          NEXT (1);
-        }
+      SCM_STRUCT_SLOT_SET (obj, index, val);
+      NEXT (1);
     }
 
   /* allocate-struct/immediate dst:8 vtable:8 nfields:8
@@ -2862,11 +2860,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       vtable = SCM_STRUCT_VTABLE (obj);
       nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
       VM_VALIDATE_INDEX (index, nfields, "struct-ref");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
+                                      index, "struct-ref");
 
-      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
-        RETURN (SCM_STRUCT_SLOT_REF (obj, index));
-      else
-        RETURN (scm_from_uintptr_t (SCM_STRUCT_DATA_REF (obj, index)));
+      RETURN (SCM_STRUCT_SLOT_REF (obj, index));
     }
 
   /* struct-set!/immediate dst:8 idx:8 src:8
@@ -2890,18 +2887,11 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       vtable = SCM_STRUCT_VTABLE (obj);
       nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
       VM_VALIDATE_INDEX (index, nfields, "struct-set!");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
+                                      index, "struct-set!");
 
-      if (scm_i_symbol_ref (SCM_VTABLE_LAYOUT (vtable), index * 2) == 'p')
-        {
-          SCM_STRUCT_SLOT_SET (obj, index, val);
-          NEXT (1);
-        }
-      else
-        {
-          SYNC_IP ();
-          SCM_STRUCT_DATA_SET (obj, index, scm_to_uintptr_t (val));
-          NEXT (1);
-        }
+      SCM_STRUCT_SLOT_SET (obj, index, val);
+      NEXT (1);
     }
 
   /* class-of dst:12 type:12

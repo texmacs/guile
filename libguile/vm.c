@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -439,6 +439,8 @@ static void vm_error_not_a_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOI
 static void vm_error_not_a_mutable_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_uint64 (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_int64 (const char *subr, scm_t_int64 idx) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_boxed_struct_field (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_unboxed_struct_field (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_enough_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_number_of_values (scm_t_uint32 expected) SCM_NORETURN SCM_NOINLINE;
@@ -588,6 +590,18 @@ static void
 vm_error_out_of_range_int64 (const char *subr, scm_t_int64 idx)
 {
   scm_out_of_range (subr, scm_from_int64 (idx));
+}
+
+static void
+vm_error_boxed_struct_field (const char *subr, scm_t_uint64 idx)
+{
+  scm_wrong_type_arg_msg (subr, 2, scm_from_uint64 (idx), "boxed field");
+}
+
+static void
+vm_error_unboxed_struct_field (const char *subr, scm_t_uint64 idx)
+{
+  scm_wrong_type_arg_msg (subr, 2, scm_from_uint64 (idx), "unboxed field");
 }
 
 static void
