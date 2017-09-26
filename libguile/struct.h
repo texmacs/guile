@@ -61,6 +61,7 @@
   "pw" /* printer */                                                    \
   "ph" /* name (hidden from make-struct for back-compat reasons) */     \
   "uh" /* size */							\
+  "uh" /* reserved */							\
   "uh" /* reserved */
 
 #define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
@@ -69,8 +70,9 @@
 #define scm_vtable_index_instance_printer  3 /* A printer for this struct type. */
 #define scm_vtable_index_name              4 /* Name of this vtable. */
 #define scm_vtable_index_size              5 /* Number of fields, for simple structs.  */
-#define scm_vtable_index_reserved_7        6
-#define scm_vtable_offset_user             7 /* Where do user fields start in the vtable? */
+#define scm_vtable_index_reserved_6        6
+#define scm_vtable_index_reserved_7        7
+#define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
 
 /* All applicable structs have the following fields. */
 #define SCM_APPLICABLE_BASE_LAYOUT              \

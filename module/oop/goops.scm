@@ -190,7 +190,8 @@
   (print)
   (name #:class <protected-hidden-slot>)
   (nfields #:class <hidden-slot>)
-  (%reserved #:class <hidden-slot>)
+  (%reserved-6 #:class <hidden-slot>)
+  (%reserved-7 #:class <hidden-slot>)
   (direct-supers)
   (direct-slots)
   (direct-subclasses)
@@ -739,7 +740,7 @@ followed by its associated value.  If @var{l} does not hold a value for
 (define (read-only-slot? slot) #f)
 (define (unboxed-slot? slot)
   (memq (%slot-definition-name slot)
-        '(flags instance-finalizer nfields %reserved)))
+        '(flags instance-finalizer nfields %reserved-6 %reserved-7)))
 
 (define (allocate-slots class slots)
   "Transform the computed list of direct slot definitions @var{slots}
