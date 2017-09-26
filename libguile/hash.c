@@ -227,36 +227,21 @@ static unsigned long scm_raw_ihash (SCM obj, size_t depth);
 static unsigned long
 scm_i_struct_hash (SCM obj, size_t depth)
 {
-  SCM layout;
-  scm_t_bits *data;
   size_t struct_size, field_num;
   unsigned long hash;
 
-  layout = SCM_STRUCT_LAYOUT (obj);
-  struct_size = scm_i_symbol_length (layout) / 2;
-  data = SCM_STRUCT_DATA (obj);
+  struct_size = SCM_STRUCT_SIZE (obj);
 
   hash = scm_raw_ihashq (SCM_UNPACK (SCM_STRUCT_VTABLE (obj)));
   if (depth > 0)
-    for (field_num = 0; field_num < struct_size; field_num++)
-      {
-        int type;
-        type = scm_i_symbol_ref (layout, field_num * 2);
-        switch (type)
-          {
-          case 'p':
-            hash ^= scm_raw_ihash (SCM_PACK (data[field_num]),
-                                   depth / 2);
-            break;
-          case 'u':
-            hash ^= scm_raw_ihashq (data[field_num]);
-            break;
-          default:
-            abort ();
-          }
-      }
-
-  /* FIXME: Tail elements should be taken into account.  */
+    {
+      for (field_num = 0; field_num < struct_size; field_num++)
+        if (SCM_STRUCT_FIELD_IS_UNBOXED (obj, field_num))
+          hash ^= scm_raw_ihashq (SCM_STRUCT_DATA_REF (obj, field_num));
+        else
+          hash ^= scm_raw_ihash (SCM_STRUCT_SLOT_REF (obj, field_num),
+                                 depth / 2);
+    }
 
   return hash;
 }

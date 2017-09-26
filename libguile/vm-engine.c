@@ -441,12 +441,12 @@
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
-#define VM_VALIDATE_BOXED_STRUCT_FIELD(layout, i, proc)                 \
-  VM_ASSERT (scm_i_symbol_ref (layout, i * 2) == 'p',                   \
+#define VM_VALIDATE_BOXED_STRUCT_FIELD(obj, i, proc)                    \
+  VM_ASSERT (!SCM_STRUCT_FIELD_IS_UNBOXED (obj, i),                     \
              vm_error_boxed_struct_field (proc, i))
-#define VM_VALIDATE_UNBOXED_STRUCT_FIELD(layout, i, proc)               \
-  VM_ASSERT (scm_i_symbol_ref (layout, i * 2) == 'u',                   \
-             vm_error_unboxed_struct_field (proc, i))
+#define VM_VALIDATE_UNBOXED_STRUCT_FIELD(obj, i, proc)                  \
+  VM_ASSERT (SCM_STRUCT_FIELD_IS_UNBOXED (obj, i),                      \
+             vm_error_boxed_struct_field (proc, i))
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -2775,8 +2775,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (108, struct_ref, "struct-ref", OP1 (X8_S8_S8_S8) | OP_DST)
     {
       scm_t_uint8 dst, src, idx;
-      SCM obj, vtable;
-      scm_t_uint64 index, nfields;
+      SCM obj;
+      scm_t_uint64 index;
 
       UNPACK_8_8_8 (op, dst, src, idx);
 
@@ -2784,11 +2784,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       index = SP_REF_U64 (idx);
 
       VM_VALIDATE_STRUCT (obj, "struct-ref");
-      vtable = SCM_STRUCT_VTABLE (obj);
-      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-      VM_VALIDATE_INDEX (index, nfields, "struct-ref");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
-                                      index, "struct-ref");
+      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-ref");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-ref");
 
       RETURN (SCM_STRUCT_SLOT_REF (obj, index));
     }
@@ -2800,8 +2797,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (109, struct_set, "struct-set!", OP1 (X8_S8_S8_S8))
     {
       scm_t_uint8 dst, idx, src;
-      SCM obj, vtable, val;
-      scm_t_uint64 index, nfields;
+      SCM obj, val;
+      scm_t_uint64 index;
 
       UNPACK_8_8_8 (op, dst, idx, src);
 
@@ -2810,11 +2807,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       index = SP_REF_U64 (idx);
 
       VM_VALIDATE_STRUCT (obj, "struct-set!");
-      vtable = SCM_STRUCT_VTABLE (obj);
-      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-      VM_VALIDATE_INDEX (index, nfields, "struct-set!");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
-                                      index, "struct-set!");
+      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-set!");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-set!");
 
       SCM_STRUCT_SLOT_SET (obj, index, val);
       NEXT (1);
@@ -2848,8 +2842,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (111, struct_ref_immediate, "struct-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
       scm_t_uint8 dst, src, idx;
-      SCM obj, vtable;
-      scm_t_uint64 index, nfields;
+      SCM obj;
+      scm_t_uint64 index;
 
       UNPACK_8_8_8 (op, dst, src, idx);
 
@@ -2857,11 +2851,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       index = idx;
 
       VM_VALIDATE_STRUCT (obj, "struct-ref");
-      vtable = SCM_STRUCT_VTABLE (obj);
-      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-      VM_VALIDATE_INDEX (index, nfields, "struct-ref");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
-                                      index, "struct-ref");
+      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-ref");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-ref");
 
       RETURN (SCM_STRUCT_SLOT_REF (obj, index));
     }
@@ -2874,8 +2865,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (112, struct_set_immediate, "struct-set!/immediate", OP1 (X8_S8_C8_S8))
     {
       scm_t_uint8 dst, idx, src;
-      SCM obj, vtable, val;
-      scm_t_uint64 index, nfields;
+      SCM obj, val;
+      scm_t_uint64 index;
 
       UNPACK_8_8_8 (op, dst, idx, src);
 
@@ -2884,11 +2875,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       index = idx;
 
       VM_VALIDATE_STRUCT (obj, "struct-set!");
-      vtable = SCM_STRUCT_VTABLE (obj);
-      nfields = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-      VM_VALIDATE_INDEX (index, nfields, "struct-set!");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (SCM_VTABLE_LAYOUT (vtable),
-                                      index, "struct-set!");
+      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-set!");
+      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-set!");
 
       SCM_STRUCT_SLOT_SET (obj, index, val);
       NEXT (1);

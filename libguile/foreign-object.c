@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2014, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -104,21 +104,16 @@ scm_make_foreign_object_n (SCM type, size_t n, void *vals[])
 #define FUNC_NAME "make-foreign-object"
 {
   SCM obj;
-  SCM layout;
   size_t i;
-  const char *layout_chars;
 
   SCM_VALIDATE_VTABLE (SCM_ARG1, type);
 
-  layout = SCM_VTABLE_LAYOUT (type);
-
-  if (scm_i_symbol_length (layout) / 2 < n)
+  if (SCM_VTABLE_SIZE (type) / 2 < n)
     scm_out_of_range (FUNC_NAME, scm_from_size_t (n));
 
-  layout_chars = scm_i_symbol_chars (layout);
   for (i = 0; i < n; i++)
-    if (layout_chars[i * 2] != 'u')
-      scm_wrong_type_arg_msg (FUNC_NAME, 0, layout, "'u' field");
+    if (!SCM_VTABLE_FIELD_IS_UNBOXED (type, i))
+      scm_wrong_type_arg_msg (FUNC_NAME, 0, type, "foreign object type");
 
   obj = scm_c_make_structv (type, 0, 0, NULL);
 
@@ -133,16 +128,13 @@ scm_t_bits
 scm_foreign_object_unsigned_ref (SCM obj, size_t n)
 #define FUNC_NAME "foreign-object-ref"
 {
-  SCM layout;
-
   SCM_VALIDATE_STRUCT (SCM_ARG1, obj);
   
-  layout = SCM_STRUCT_LAYOUT (obj);
-  if (scm_i_symbol_length (layout) / 2 < n)
+  if (SCM_STRUCT_SIZE (obj) <= n)
     scm_out_of_range (FUNC_NAME, scm_from_size_t (n));
 
-  if (scm_i_symbol_ref (layout, n * 2) != 'u')
-    scm_wrong_type_arg_msg (FUNC_NAME, 0, layout, "'u' field");
+  if (!SCM_STRUCT_FIELD_IS_UNBOXED (obj, n))
+    scm_wrong_type_arg_msg (FUNC_NAME, 0, scm_from_size_t (n), "unboxed field");
 
   return SCM_STRUCT_DATA_REF (obj, n);
 }
@@ -152,16 +144,13 @@ void
 scm_foreign_object_unsigned_set_x (SCM obj, size_t n, scm_t_bits val)
 #define FUNC_NAME "foreign-object-set!"
 {
-  SCM layout;
-
   SCM_VALIDATE_STRUCT (SCM_ARG1, obj);
   
-  layout = SCM_STRUCT_LAYOUT (obj);
-  if (scm_i_symbol_length (layout) / 2 < n)
+  if (SCM_STRUCT_SIZE (obj) <= n)
     scm_out_of_range (FUNC_NAME, scm_from_size_t (n));
 
-  if (scm_i_symbol_ref (layout, n * 2) != 'u')
-    scm_wrong_type_arg_msg (FUNC_NAME, 0, layout, "'u' field");
+  if (!SCM_STRUCT_FIELD_IS_UNBOXED (obj, n))
+    scm_wrong_type_arg_msg (FUNC_NAME, 0, scm_from_size_t (n), "unboxed field");
 
   SCM_STRUCT_DATA_SET (obj, n, val);
 }

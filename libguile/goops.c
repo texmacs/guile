@@ -475,17 +475,13 @@ SCM_DEFINE (scm_sys_clear_fields_x, "%clear-fields!", 2, 0, 0,
 #define FUNC_NAME s_scm_sys_clear_fields_x
 {
   scm_t_signed_bits n, i;
-  SCM vtable, layout;
 
   SCM_VALIDATE_STRUCT (1, obj);
-  vtable = SCM_STRUCT_VTABLE (obj);
-
-  n = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-  layout = SCM_VTABLE_LAYOUT (vtable);
+  n = SCM_STRUCT_SIZE (obj);
 
   /* Set all SCM-holding slots to the GOOPS unbound value.  */
   for (i = 0; i < n; i++)
-    if (scm_i_symbol_ref (layout, i*2) == 'p')
+    if (!SCM_STRUCT_FIELD_IS_UNBOXED (obj, i))
       SCM_STRUCT_SLOT_SET (obj, i, unbound);
 
   return SCM_UNSPECIFIED;

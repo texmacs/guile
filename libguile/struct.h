@@ -61,7 +61,7 @@
   "pw" /* printer */                                                    \
   "ph" /* name (hidden from make-struct for back-compat reasons) */     \
   "uh" /* size */							\
-  "uh" /* reserved */							\
+  "uh" /* unboxed fields */						\
   "uh" /* reserved */
 
 #define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
@@ -70,7 +70,7 @@
 #define scm_vtable_index_instance_printer  3 /* A printer for this struct type. */
 #define scm_vtable_index_name              4 /* Name of this vtable. */
 #define scm_vtable_index_size              5 /* Number of fields, for simple structs.  */
-#define scm_vtable_index_reserved_6        6
+#define scm_vtable_index_unboxed_fields    6 /* Raw scm_t_uint32* bitmask indicating unboxed fields.  */
 #define scm_vtable_index_reserved_7        7
 #define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
 
@@ -95,16 +95,16 @@
 #define SCM_VTABLE_FLAG_APPLICABLE (1L << 3) /* instances of this vtable are applicable? */
 #define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 4) /* instances of this vtable are applicable-with-setter vtables? */
 #define SCM_VTABLE_FLAG_SETTER (1L << 5) /* instances of this vtable are applicable-with-setters? */
-#define SCM_VTABLE_FLAG_SIMPLE (1L << 6) /* instances of this vtable have only "p" fields and no tail array*/
-#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 7) /* instances of this vtable have only "pw" fields and no tail array */
-#define SCM_VTABLE_FLAG_RESERVED_0 (1L << 8)
-#define SCM_VTABLE_FLAG_RESERVED_1 (1L << 9)
-#define SCM_VTABLE_FLAG_SMOB_0 (1L << 10)
-#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 11)
-#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 12)
-#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 13)
-#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 14)
-#define SCM_VTABLE_FLAG_GOOPS_4 (1L << 15)
+#define SCM_VTABLE_FLAG_RESERVED_0 (1L << 6)
+#define SCM_VTABLE_FLAG_RESERVED_1 (1L << 7)
+#define SCM_VTABLE_FLAG_SMOB_0 (1L << 8)
+#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 9)
+#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 10)
+#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 11)
+#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 12)
+#define SCM_VTABLE_FLAG_GOOPS_4 (1L << 13)
+#define SCM_VTABLE_FLAG_RESERVED_2 (1L << 14)
+#define SCM_VTABLE_FLAG_RESERVED_3 (1L << 15)
 #define SCM_VTABLE_USER_FLAG_SHIFT 16
 
 typedef void (*scm_t_struct_finalize) (SCM obj);
@@ -131,13 +131,18 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_SET_VTABLE_INSTANCE_PRINTER(X,P) (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_instance_printer, (P)))
 #define SCM_VTABLE_NAME(X)              (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_name))
 #define SCM_SET_VTABLE_NAME(X,V)        (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_name, V))
+#define SCM_VTABLE_SIZE(X)              (SCM_STRUCT_DATA_REF (X, scm_vtable_index_size))
+#define SCM_VTABLE_UNBOXED_FIELDS(X)    ((scm_t_uint32*) SCM_STRUCT_DATA_REF (X, scm_vtable_index_unboxed_fields))
+#define SCM_VTABLE_FIELD_IS_UNBOXED(X,F) (SCM_VTABLE_UNBOXED_FIELDS (X)[(F)>>5]&(1U<<((F)&31)))
 
 #define SCM_STRUCT_VTABLE(X)            (SCM_PACK (SCM_CELL_WORD_0 (X) - scm_tc3_struct))
 #define SCM_STRUCT_LAYOUT(X) 	        (SCM_VTABLE_LAYOUT (SCM_STRUCT_VTABLE (X)))
+#define SCM_STRUCT_SIZE(X) 	        (SCM_VTABLE_SIZE (SCM_STRUCT_VTABLE (X)))
 #define SCM_STRUCT_PRINTER(X) 	        (SCM_VTABLE_INSTANCE_PRINTER (SCM_STRUCT_VTABLE (X)))
 #define SCM_STRUCT_FINALIZER(X)         (SCM_VTABLE_INSTANCE_FINALIZER (SCM_STRUCT_VTABLE (X)))
 #define SCM_STRUCT_VTABLE_FLAGS(X)      (SCM_VTABLE_FLAGS (SCM_STRUCT_VTABLE (X)))
 #define SCM_STRUCT_VTABLE_FLAG_IS_SET(X,F) (SCM_VTABLE_FLAG_IS_SET (SCM_STRUCT_VTABLE (X), (F)))
+#define SCM_STRUCT_FIELD_IS_UNBOXED(X,F) (SCM_VTABLE_FIELD_IS_UNBOXED (SCM_STRUCT_VTABLE (X), (F)))
 
 #define SCM_STRUCT_APPLICABLE_P(X) 	(SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_APPLICABLE))
 #define SCM_STRUCT_SETTER_P(X) 	        (SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_SETTER))
