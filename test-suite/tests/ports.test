@@ -602,6 +602,34 @@
                           (pass-if "unread residue"
                                    (string=? (read-line) "moon"))))
 
+(pass-if-equal "close-port & revealed port"
+    EBADF
+  (let* ((port (open-file "/dev/null" "r0"))
+         (fdes (port->fdes port)))    ;increments revealed count of PORT
+    (close-port port)                 ;closes FDES as a side-effect
+    (catch 'system-error
+      (lambda ()
+        (seek fdes 0 SEEK_CUR)
+        #f)
+      (lambda args
+        (system-error-errno args)))))
+
+(pass-if "revealed port fdes not closed"
+  (let* ((port (open-file "/dev/null" "r0"))
+         (fdes (port->fdes port))     ;increments revealed count of PORT
+         (guardian (make-guardian)))
+    (guardian port)
+    (set! port #f)
+    (gc)
+    (if (port? (guardian))
+        (and (zero? (seek fdes 0 SEEK_CUR))
+             (begin
+               (close-fdes fdes)
+               #t))
+        (begin
+          (close-fdes fdes)
+          (throw 'unresolved)))))
+
 (when (provided? 'threads)
   (let* ((p (pipe))
          (r (car p))

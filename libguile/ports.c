@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2001, 2003-2004, 2006-2016
+/* Copyright (C) 1995-2001, 2003-2004, 2006-2017
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -680,10 +680,12 @@ SCM scm_i_port_weak_set;
 
 /* Port finalization.  */
 
+static SCM close_port (SCM, int);
+
 static SCM
 do_close (void *data)
 {
-  return scm_close_port (SCM_PACK_POINTER (data));
+  return close_port (SCM_PACK_POINTER (data), 0);
 }
 
 /* Finalize the object (a port) pointed to by PTR.  */
@@ -859,6 +861,33 @@ SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
 
 /* Closing ports.  */
 
+/* Close PORT.  If EXPLICIT is true, then we are explicitly closing PORT
+   with 'close-port'; otherwise PORT is just being GC'd.  */
+static SCM
+close_port (SCM port, int explicit)
+{
+  if (SCM_CLOSEDP (port))
+    return SCM_BOOL_F;
+
+  /* May throw an exception.  */
+  if (SCM_OUTPUT_PORT_P (port))
+    scm_flush (port);
+
+  if (explicit && SCM_FPORTP (port))
+    /* We're closing PORT explicitly so clear its revealed count so that
+       it really gets closed.  */
+    SCM_FSTREAM (port)->revealed = 0;
+
+  SCM_CLR_PORT_OPEN_FLAG (port);
+
+  if (SCM_PORT_TYPE (port)->flags & SCM_PORT_TYPE_NEEDS_CLOSE_ON_GC)
+    scm_weak_set_remove_x (scm_i_port_weak_set, port);
+
+  release_port (port);
+
+  return SCM_BOOL_T;
+}
+
 SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
            (SCM port),
 	    "Close the specified port object.  Return @code{#t} if it\n"
@@ -872,21 +901,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_PORT (1, port);
 
-  if (SCM_CLOSEDP (port))
-    return SCM_BOOL_F;
-
-  /* May throw an exception.  */
-  if (SCM_OUTPUT_PORT_P (port))
-    scm_flush (port);
-
-  SCM_CLR_PORT_OPEN_FLAG (port);
-
-  if (SCM_PORT_TYPE (port)->flags & SCM_PORT_TYPE_NEEDS_CLOSE_ON_GC)
-    scm_weak_set_remove_x (scm_i_port_weak_set, port);
-
-  release_port (port);
-
-  return SCM_BOOL_T;
+  return close_port (port, 1);
 }
 #undef FUNC_NAME
 
