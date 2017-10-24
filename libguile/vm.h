@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,10 +35,18 @@ enum {
 #define SCM_VM_DEBUG_ENGINE 1
 #define SCM_VM_NUM_ENGINES 2
 
+enum scm_compare {
+  SCM_F_COMPARE_NONE = 0x0,
+  SCM_F_COMPARE_EQUAL = 0x1,
+  SCM_F_COMPARE_LESS_THAN = 0x2,
+  SCM_F_COMPARE_INVALID = 0x3
+};
+
 struct scm_vm {
   scm_t_uint32 *ip;		/* instruction pointer */
   union scm_vm_stack_element *sp; /* stack pointer */
   union scm_vm_stack_element *fp; /* frame pointer */
+  scm_t_uint8 compare_result;   /* flags register: a value from scm_compare */
   union scm_vm_stack_element *stack_limit; /* stack limit address */
   int trace_level;              /* traces enabled if trace_level > 0 */
   union scm_vm_stack_element *sp_min_since_gc; /* deepest sp since last gc */

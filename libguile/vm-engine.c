@@ -60,6 +60,13 @@
     }                                     \
   while (0)
 
+#define UNPACK_16_16(op,a,b)              \
+  do                                      \
+    {                                     \
+      a = op & 0xffff;                    \
+      b = op >> 16;                       \
+    }                                     \
+  while (0)
 
 /* Assign some registers by hand.  There used to be a bigger list here,
    but it was never tested, and in the case of x86-32, was a source of
@@ -4025,26 +4032,369 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (193, unused_193, NULL, NOP)
-  VM_DEFINE_OP (194, unused_194, NULL, NOP)
-  VM_DEFINE_OP (195, unused_195, NULL, NOP)
-  VM_DEFINE_OP (196, unused_196, NULL, NOP)
-  VM_DEFINE_OP (197, unused_197, NULL, NOP)
-  VM_DEFINE_OP (198, unused_198, NULL, NOP)
-  VM_DEFINE_OP (199, unused_199, NULL, NOP)
-  VM_DEFINE_OP (200, unused_200, NULL, NOP)
-  VM_DEFINE_OP (201, unused_201, NULL, NOP)
-  VM_DEFINE_OP (202, unused_202, NULL, NOP)
-  VM_DEFINE_OP (203, unused_203, NULL, NOP)
-  VM_DEFINE_OP (204, unused_204, NULL, NOP)
-  VM_DEFINE_OP (205, unused_205, NULL, NOP)
-  VM_DEFINE_OP (206, unused_206, NULL, NOP)
-  VM_DEFINE_OP (207, unused_207, NULL, NOP)
-  VM_DEFINE_OP (208, unused_208, NULL, NOP)
-  VM_DEFINE_OP (209, unused_209, NULL, NOP)
-  VM_DEFINE_OP (210, unused_210, NULL, NOP)
-  VM_DEFINE_OP (211, unused_211, NULL, NOP)
-  VM_DEFINE_OP (212, unused_212, NULL, NOP)
+  VM_DEFINE_OP (193, u64_numerically_equal, "u64=?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      scm_t_uint64 x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_U64 (a);
+      y = SP_REF_U64 (b);
+
+      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (194, u64_less, "u64<?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      scm_t_uint64 x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_U64 (a);
+      y = SP_REF_U64 (b);
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (195, s64_numerically_equal, "s64=?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      scm_t_int64 x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_S64 (a);
+      y = SP_REF_S64 (b);
+
+      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (196, s64_less, "s64<?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      scm_t_int64 x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_S64 (a);
+      y = SP_REF_S64 (b);
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (197, f64_numerically_equal, "f64=?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      double x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_F64 (a);
+      y = SP_REF_F64 (b);
+
+      if (x == y)
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        /* This is also the case for NaN.  */
+        vp->compare_result = SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (198, f64_less, "f64<?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      double x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF_F64 (a);
+      y = SP_REF_F64 (b);
+
+      if (x < y)
+        vp->compare_result = SCM_F_COMPARE_LESS_THAN;
+      else if (x >= y)
+        vp->compare_result = SCM_F_COMPARE_NONE;
+      else
+        /* NaN.  */
+        vp->compare_result = SCM_F_COMPARE_INVALID;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (199, numerically_equal, "=?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      SCM x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF (a);
+      y = SP_REF (b);
+
+      SYNC_IP ();
+      if (scm_is_true (scm_num_eq_p (x, y)))
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+      CACHE_SP ();
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (200, less, "<?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      SCM x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF (a);
+      y = SP_REF (b);
+
+      SYNC_IP ();
+      if (scm_is_true (scm_nan_p (x)) || scm_is_true (scm_nan_p (y)))
+        vp->compare_result = SCM_F_COMPARE_INVALID;
+      else if (scm_is_true (scm_less_p (x, y)))
+        vp->compare_result = SCM_F_COMPARE_LESS_THAN;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+      CACHE_SP ();
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (201, check_arguments, "arguments<=?", OP1 (X8_S24))
+    {
+      scm_t_uint8 compare_result;
+      scm_t_uint32 expected;
+      scm_t_ptrdiff nargs;
+
+      UNPACK_24 (op, expected);
+      nargs = FRAME_LOCALS_COUNT ();
+
+      if (nargs < (scm_t_ptrdiff) expected)
+        compare_result = SCM_F_COMPARE_LESS_THAN;
+      else if (nargs == (scm_t_ptrdiff) expected)
+        compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        compare_result = SCM_F_COMPARE_NONE;
+
+      vp->compare_result = compare_result;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (202, check_positional_arguments, "positional-arguments<=?", OP2 (X8_C24, X8_C24))
+    {
+      scm_t_uint8 compare_result;
+      scm_t_uint32 nreq, expected;
+      scm_t_ptrdiff nargs;
+
+      UNPACK_24 (op, nreq);
+      UNPACK_24 (ip[1], expected);
+      nargs = FRAME_LOCALS_COUNT ();
+
+      /* We can only have too many positionals if there are more
+         arguments than NPOS.  */
+      if (nargs < (scm_t_ptrdiff) nreq)
+        compare_result = SCM_F_COMPARE_LESS_THAN;
+      else
+        {
+          scm_t_ptrdiff npos = nreq;
+          for (npos = nreq; npos < nargs && npos <= expected; npos++)
+            if (scm_is_keyword (FP_REF (npos)))
+              break;
+
+          if (npos < (scm_t_ptrdiff) expected)
+            compare_result = SCM_F_COMPARE_LESS_THAN;
+          else if (npos == (scm_t_ptrdiff) expected)
+            compare_result = SCM_F_COMPARE_EQUAL;
+          else
+            compare_result = SCM_F_COMPARE_NONE;
+        }
+
+      vp->compare_result = compare_result;
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (203, immediate_tag_equals, "immediate-tag=?", OP2 (X8_S24, C16_C16))
+    {
+      scm_t_uint32 a;
+      scm_t_uint16 mask, expected;
+      SCM x;
+
+      UNPACK_24 (op, a);
+      UNPACK_16_16 (ip[1], mask, expected);
+      x = SP_REF (a);
+
+      if ((SCM_UNPACK (x) & mask) == expected)
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (204, heap_tag_equals, "heap-tag=?", OP2 (X8_S24, C16_C16))
+    {
+      scm_t_uint32 a;
+      scm_t_uint16 mask, expected;
+      SCM x;
+
+      UNPACK_24 (op, a);
+      UNPACK_16_16 (ip[1], mask, expected);
+      x = SP_REF (a);
+
+      if ((SCM_CELL_TYPE (x) & mask) == expected)
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (205, eq, "eq?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      SCM x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF (a);
+      y = SP_REF (b);
+
+      if (scm_is_eq (x, y))
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  /* j offset:24
+   *
+   * Add OFFSET, a signed 24-bit number, to the current instruction
+   * pointer.
+   */
+  VM_DEFINE_OP (206, j, "j", OP1 (X8_L24))
+    {
+      scm_t_int32 offset = op;
+      offset >>= 8; /* Sign-extending shift. */
+      NEXT (offset);
+    }
+
+  /* jl offset:24
+   *
+   * If the flags register is equal to SCM_F_COMPARE_LESS_THAN, add
+   * OFFSET, a signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (207, jl, "jl", OP1 (X8_L24))
+    {
+      if (vp->compare_result == SCM_F_COMPARE_LESS_THAN)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
+  /* je offset:24
+   *
+   * If the flags register is equal to SCM_F_COMPARE_EQUAL, add
+   * OFFSET, a signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (208, je, "je", OP1 (X8_L24))
+    {
+      if (vp->compare_result == SCM_F_COMPARE_EQUAL)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
+  /* jnl offset:24
+   *
+   * If the flags register is not equal to SCM_F_COMPARE_LESS_THAN, add
+   * OFFSET, a signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (209, jnl, "jnl", OP1 (X8_L24))
+    {
+      if (vp->compare_result != SCM_F_COMPARE_LESS_THAN)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
+  /* jne offset:24
+   *
+   * If the flags register is not equal to SCM_F_COMPARE_EQUAL, add
+   * OFFSET, a signed 24-bit number, to the current instruction pointer.
+   */
+  VM_DEFINE_OP (210, jne, "jne", OP1 (X8_L24))
+    {
+      if (vp->compare_result != SCM_F_COMPARE_EQUAL)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
+  /* jge offset:24
+   *
+   * If the flags register is equal to SCM_F_COMPARE_NONE, add OFFSET, a
+   * signed 24-bit number, to the current instruction pointer.  This is
+   * intended for use after a "<?" comparison, and is different from
+   * "jnl" in the way it handles not-a-number (NaN) values: "<?" sets
+   * SCM_F_COMPARE_UNORDERED instead of SCM_F_COMPARE_NONE if either
+   * value is a NaN.  For exact numbers, "jge" is the same as "jnl".
+   */
+  VM_DEFINE_OP (211, jge, "jge", OP1 (X8_L24))
+    {
+      if (vp->compare_result == SCM_F_COMPARE_NONE)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
+  /* jnge offset:24
+   *
+   * If the flags register is not equal to SCM_F_COMPARE_NONE, add
+   * OFFSET, a signed 24-bit number, to the current instruction pointer.
+   * This is intended for use after a "<?" comparison, and is different
+   * from "jl" in the way it handles not-a-number (NaN) values: "<?"
+   * sets SCM_F_COMPARE_UNORDERED instead of SCM_F_COMPARE_NONE if
+   * either value is a NaN.  For exact numbers, "jnge" is the same as
+   * "jl".
+   */
+  VM_DEFINE_OP (212, jnge, "jnge", OP1 (X8_L24))
+    {
+      if (vp->compare_result != SCM_F_COMPARE_NONE)
+        {
+          scm_t_int32 offset = op;
+          offset >>= 8; /* Sign-extending shift. */
+          NEXT (offset);
+        }
+      else
+        NEXT (1);
+    }
+
   VM_DEFINE_OP (213, unused_213, NULL, NOP)
   VM_DEFINE_OP (214, unused_214, NULL, NOP)
   VM_DEFINE_OP (215, unused_215, NULL, NOP)

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <alloca.h>
 #include <alignof.h>
+#include <math.h>
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -886,6 +887,7 @@ make_vm (void)
   vp->sp = vp->stack_top;
   vp->sp_min_since_gc = vp->sp;
   vp->fp = vp->stack_top;
+  vp->compare_result = SCM_F_COMPARE_NONE;
   vp->engine = vm_default_engine;
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
