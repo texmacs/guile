@@ -1,6 +1,6 @@
 ;;; Guile bytecode assembler
 
-;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -277,6 +277,11 @@
   (let ((x (check-urange x #xff))
         (y (check-srange y #xffffff)))
     (logior x (ash y 8))))
+
+(define-inline (pack-u16-u16 x y)
+  (let ((x (check-urange x #xffff))
+        (y (check-urange y #xffff)))
+    (logior x (ash y 16))))
 
 (define-inline (pack-u1-u7-u24 x y z)
   (let ((x (check-urange x #x1))
@@ -621,6 +626,8 @@ later by the linker."
           (emit asm 0))
          ((C8_C24 a b)
           (emit asm (pack-u8-u24 a b)))
+         ((C16_C16 a b)
+          (emit asm (pack-u16-u16 a b)))
          ((B1_X7_L24 a label)
           (record-label-reference asm label)
           (emit asm (pack-u1-u7-u24 (if a 1 0) 0 0)))
@@ -852,6 +859,7 @@ later by the linker."
           ('L32 #'(label))
           ('LO32 #'(label offset))
           ('C8_C24 #'(a b))
+          ('C16_C16 #'(a b))
           ('B1_X7_L24 #'(a label))
           ('B1_C7_L24 #'(a b label))
           ('B1_X31 #'(a))

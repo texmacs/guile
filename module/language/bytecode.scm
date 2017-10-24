@@ -1,6 +1,6 @@
 ;;; Bytecode
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -58,6 +58,7 @@
       ((L32) 1)
       ((LO32) 1)
       ((C8_C24) 2)
+      ((C16_C16) 2)
       ((B1_C7_L24) 3)
       ((B1_X7_S24) 2)
       ((B1_X7_F24) 2)

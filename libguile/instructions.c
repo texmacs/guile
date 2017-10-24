@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -65,7 +65,8 @@ SCM_SYMBOL (sym_bang, "!");
     M(B1_X7_C24)                                \
     M(B1_X7_S24)                                \
     M(B1_X7_F24)                                \
-    M(B1_X31)
+    M(B1_X31)                                   \
+    M(C16_C16)
 
 #define TYPE_WIDTH 6
 

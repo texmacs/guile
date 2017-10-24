@@ -1,6 +1,6 @@
 ;;; Guile bytecode disassembler
 
-;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -115,6 +115,9 @@
           ((C8_C24)
            #'((logand word #xff)
               (ash word -8)))
+          ((C16_C16)
+           #'((logand word #xffff)
+              (ash word -16)))
           ((B1_C7_L24)
            #'((not (zero? (logand word #x1)))
               (logand (ash word -1) #x7f)
