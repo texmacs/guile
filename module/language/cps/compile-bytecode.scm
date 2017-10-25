@@ -289,7 +289,7 @@
                   (proc-slot (lookup-call-proc-slot label allocation)))
               (emit-prompt asm (from-sp (slot tag)) escape? proc-slot
                            receive-args)
-              (emit-br asm k)
+              (emit-j asm k)
               (emit-label asm receive-args)
               (unless (and rest (zero? nreq))
                 (emit-receive-values asm proc-slot (->bool rest) nreq))
@@ -302,7 +302,7 @@
                           ((src . dst) (emit-fmov asm dst src)))
                         (lookup-parallel-moves handler allocation))
               (emit-reset-frame asm frame-size)
-              (emit-br asm (forward-label khandler-body))))))
+              (emit-j asm (forward-label khandler-body))))))
         (($ $primcall 'cache-current-module! (sym scope))
          (emit-cache-current-module! asm (from-sp (slot sym)) (constant scope)))
         (($ $primcall 'free-set! (closure idx value))
@@ -403,7 +403,7 @@
          (else
           (let ((invert? (not (prefer-true?))))
             (op asm (from-sp (slot sym)) invert? (if invert? kf kt))
-            (emit-br asm (if invert? kt kf))))))
+            (emit-j asm (if invert? kt kf))))))
       (define (binary op a b)
         (cond
          ((eq? kt next-label)
@@ -414,7 +414,7 @@
           (let ((invert? (not (prefer-true?))))
             (op asm (from-sp (slot a)) (from-sp (slot b)) invert?
                 (if invert? kf kt))
-            (emit-br asm (if invert? kt kf))))))
+            (emit-j asm (if invert? kt kf))))))
       (match exp
         (($ $values (sym)) (unary emit-br-if-true sym))
         (($ $primcall 'null? (a)) (unary emit-br-if-null a))
@@ -505,7 +505,7 @@
              (fallthrough? (= forwarded-k (skip-elided-conts (1+ label)))))
         (define (maybe-emit-jump)
           (unless fallthrough?
-            (emit-br asm forwarded-k)))
+            (emit-j asm forwarded-k)))
         (match (intmap-ref cps k)
           (($ $ktail)
            (compile-tail label exp))
@@ -534,7 +534,7 @@
                   (fallthrough? (and fallthrough?
                                      (= kargs (skip-elided-conts (1+ k))))))
              (unless fallthrough?
-               (emit-br asm kargs)))))))
+               (emit-j asm kargs)))))))
 
     (define (compile-cont label cont)
       (match cont
@@ -561,7 +561,7 @@
            ;; contified into another clause.
            (let ((body (forward-label body)))
              (unless (= body (skip-elided-conts (1+ label)))
-               (emit-br asm body)))))
+               (emit-j asm body)))))
         (($ $kargs names vars ($ $continue k src exp))
          (emit-label asm label)
          (for-each (lambda (name var)
