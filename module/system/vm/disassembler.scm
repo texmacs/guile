@@ -24,6 +24,7 @@
   #:use-module (system vm debug)
   #:use-module (system vm program)
   #:use-module (system vm loader)
+  #:use-module (system base types internal)
   #:use-module (system foreign)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 format)
@@ -180,6 +181,56 @@
 address of that offset."
   (+ (debug-context-base context) (* offset 4)))
 
+(define immediate-tag-annotations
+  (let ()
+    (define (common-bits a b)
+      (list (lognot (logxor a b)) (logand a b)))
+    `((#b11 ,%tc2-inum "inum?")
+      (#b111 ,%tc3-heap-object "heap-object?")
+      (#xff ,%tc8-char "char?")
+      (#xffff ,%tc16-nil "eq? #nil")
+      (#xffff ,%tc16-eol "eq? '()")
+      (#xffff ,%tc16-false "eq? #f")
+      (#xffff ,%tc16-true "eq? #t")
+      (#xffff ,%tc16-unspecified "unspecified?")
+      (#xffff ,%tc16-undefined "undefined?")
+      (#xffff ,%tc16-eof "eof-object?")
+      ;; See discussions in boolean.h.
+      (,@(common-bits %tc16-eol %tc16-nil) "null?")
+      (,@(common-bits %tc16-false %tc16-nil) "false?")
+      (,@(common-bits %tc16-false %tc16-eol) "nil?"))))
+
+(define heap-tag-annotations
+  `((#b1 ,%tc1-pair "pair?")
+    (#b111 ,%tc3-struct "struct?")
+    (#xff ,%tc7-symbol "symbol?")
+    (#xff ,%tc7-variable "variable?")
+    (#xff ,%tc7-vector "vector?")
+    (#xff ,%tc7-wvect "weak-vector?")
+    (#xff ,%tc7-string "string?")
+    (#xff ,%tc7-number "number?")
+    (#xff ,%tc7-hashtable "hash-table?")
+    (#xff ,%tc7-pointer "pointer?")
+    (#xff ,%tc7-fluid "fluid?")
+    (#xff ,%tc7-stringbuf "stringbuf?")
+    (#xff ,%tc7-dynamic-state "dynamic-state?")
+    (#xff ,%tc7-frame "frame?")
+    (#xff ,%tc7-keyword "keyword?")
+    (#xff ,%tc7-syntax "syntax?")
+    (#xff ,%tc7-program "program?")
+    (#xff ,%tc7-vm-continuation "vm-continuation?")
+    (#xff ,%tc7-bytevector "bytevector?")
+    (#xff ,%tc7-weak-set "weak-set?")
+    (#xff ,%tc7-weak-table "weak-table?")
+    (#xff ,%tc7-array "array?")
+    (#xff ,%tc7-bitvector "bitvector?")
+    (#xff ,%tc7-port "port?")
+    (#xff ,%tc7-smob "smob?")
+    (#xffff ,%tc16-bignum "bignum?")
+    (#xffff ,%tc16-real "flonum?")
+    (#xffff ,%tc16-complex "complex?")
+    (#xffff ,%tc16-fraction "fraction?")))
+
 (define (code-annotation code len offset start labels context push-addr!)
   ;; FIXME: Print names for register loads and stores that correspond to
   ;; access to named locals.
@@ -205,6 +256,12 @@ address of that offset."
           'br-if-f64-> 'br-if-f64->=
           'br-if-logtest) _ ... target)
      (list "-> ~A" (vector-ref labels (- (+ offset target) start))))
+    (((or 'j 'je 'jl 'jge 'jne 'jnl 'jnge) target)
+     (list "-> ~A" (vector-ref labels (- (+ offset target) start))))
+    (('immediate-tag=? _ mask tag)
+     (assoc-ref immediate-tag-annotations (list mask tag)))
+    (('heap-tag=? _ mask tag)
+     (assoc-ref heap-tag-annotations (list mask tag)))
     (('br-if-tc7 slot invert? tc7 target)
      (list "~A -> ~A"
            (let ((tag (case tc7
@@ -308,7 +365,8 @@ address of that offset."
                    br-if-= br-if-< br-if-<= br-if-> br-if->= br-if-logtest
                    br-if-u64-= br-if-u64-< br-if-u64-<=
                    br-if-u64-<-scm br-if-u64-<=-scm br-if-u64-=-scm
-                   br-if-u64->-scm br-if-u64->=-scm)
+                   br-if-u64->-scm br-if-u64->=-scm
+                   j je jl jge jne jnl jnge)
                   (match arg
                     ((_ ... target)
                      (add-label! (+ offset target) "L"))))
@@ -529,7 +587,8 @@ address of that offset."
                        return-values
                        subr-call foreign-call continuation-call
                        tail-apply
-                       br))
+                       br
+                       j))
   (let ((opcode (logand (bytevector-u32-native-ref code pos) #xff)))
     (not (bitvector-ref non-fallthrough-set opcode))))
 
@@ -538,7 +597,7 @@ address of that offset."
     (syntax-case x ()
       ((_ name opcode kind word0 word* ...)
        (let ((symname (syntax->datum #'name)))
-         (if (or (memq symname '(br prompt))
+         (if (or (memq symname '(br prompt j je jl jge jne jnl jnge))
                  (string-prefix? "br-" (symbol->string symname)))
              (let ((offset (* 4 (length #'(word* ...)))))
                #`(vector-set!

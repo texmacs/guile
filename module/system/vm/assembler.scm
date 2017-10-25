@@ -63,6 +63,27 @@
             (emit-mov* . emit-mov)
             (emit-fmov* . emit-fmov)
 
+            emit-u64=?
+            emit-u64<?
+            emit-s64=?
+            emit-s64<?
+            emit-f64=?
+            emit-f64<?
+            emit-=?
+            emit-<?
+            emit-arguments<=?
+            emit-positional-arguments<=?
+            emit-immediate-tag=?
+            emit-heap-tag=?
+            emit-eq?
+            emit-j
+            emit-jl
+            emit-je
+            emit-jnl
+            emit-jne
+            emit-jge
+            emit-jnge
+
             emit-call
             emit-call-label
             emit-tail-call
