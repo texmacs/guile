@@ -29,6 +29,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 vlist)
   #:use-module (system foreign)
+  #:use-module (system base types internal)
   #:export (%word-size
 
             memory-backend
@@ -225,53 +226,6 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
        (match-scm-clauses bits* clauses ...)))))
 
 
-;;;
-;;; Tags---keep in sync with libguile/tags.h!
-;;;
-
-;; Immediate values.
-(define %tc2-int 2)
-(define %tc3-imm24 4)
-
-(define %tc3-cons 0)
-(define %tc3-int1 %tc2-int)
-(define %tc3-int2 (+ %tc2-int 4))
-
-(define %tc8-char (+ 8 %tc3-imm24))
-(define %tc8-flag (+ %tc3-imm24 0))
-
-;; Cell types.
-(define %tc3-struct #x01)
-(define %tc7-symbol #x05)
-(define %tc7-variable #x07)
-(define %tc7-vector #x0d)
-(define %tc7-wvect #x0f)
-(define %tc7-string #x15)
-(define %tc7-number #x17)
-(define %tc7-hashtable #x1d)
-(define %tc7-pointer #x1f)
-(define %tc7-fluid #x25)
-(define %tc7-stringbuf #x27)
-(define %tc7-dynamic-state #x2d)
-(define %tc7-frame #x2f)
-(define %tc7-keyword #x35)
-(define %tc7-syntax #x3d)
-(define %tc7-program #x45)
-(define %tc7-vm-continuation #x47)
-(define %tc7-bytevector #x4d)
-(define %tc7-weak-set #x55)
-(define %tc7-weak-table #x57)
-(define %tc7-array #x5d)
-(define %tc7-bitvector #x5f)
-(define %tc7-port #x7d)
-(define %tc7-smob #x77)
-
-(define %tc16-bignum (+ %tc7-number (* 1 256)))
-(define %tc16-real (+ %tc7-number (* 2 256)))
-(define %tc16-complex (+ %tc7-number (* 3 256)))
-(define %tc16-fraction (+ %tc7-number (* 4 256)))
-
-
 ;; "Stringbufs".
 (define-record-type <stringbuf>
   (stringbuf string)
@@ -489,11 +443,11 @@ using BACKEND."
   "Return the Scheme object corresponding to BITS, the bits of an 'SCM'
 object."
   (match-scm bits
-    (((integer << 2) || %tc2-int)
+    (((integer << 2) || %tc2-inum)
      integer)
-    ((address & 6 = %tc3-cons)
+    ((address & 7 = %tc3-heap-object)
      (let* ((type  (dereference-word backend address))
-            (pair? (not (bit-set? 0 type))))
+            (pair? (= (logand type #b1) %tc1-pair)))
        (if pair?
            (or (and=> (vhash-assv address (%visited-cells)) cdr)
                (let ((car    type)

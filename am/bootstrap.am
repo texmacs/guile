@@ -1,5 +1,5 @@
 ##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
-##        2014, 2015 Free Software Foundation, Inc.
+##        2014, 2015, 2017 Free Software Foundation, Inc.
 ##
 ##   This file is part of GNU Guile.
 ##
@@ -121,6 +121,7 @@ SOURCES =					\
   system/base/message.scm			\
   system/base/target.scm			\
   system/base/types.scm				\
+  system/base/types/internal.scm		\
   system/base/ck.scm				\
 						\
   ice-9/boot-9.scm				\
