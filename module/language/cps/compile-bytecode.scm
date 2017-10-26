@@ -437,7 +437,7 @@
         (($ $primcall 'nil? (a)) (unary/old emit-br-if-nil a))
         (($ $primcall 'pair? (a)) (unary emit-pair? a))
         (($ $primcall 'struct? (a)) (unary emit-struct? a))
-        (($ $primcall 'char? (a)) (unary/old emit-br-if-char a))
+        (($ $primcall 'char? (a)) (unary emit-char? a))
         (($ $primcall 'symbol? (a)) (unary emit-symbol? a))
         (($ $primcall 'variable? (a)) (unary emit-variable? a))
         (($ $primcall 'vector? (a)) (unary emit-vector? a))
