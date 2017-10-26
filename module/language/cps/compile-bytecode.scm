@@ -394,7 +394,7 @@
             ;; Otherwise prefer a backwards
             ;; branch or a near jump.
             (< kt kf)))
-      (define (unary op sym)
+      (define (unary/old op sym)
         (cond
          ((eq? kt next-label)
           (op asm (from-sp (slot sym)) #t kf))
@@ -416,7 +416,7 @@
          (else
           (emit-jne asm kf)
           (emit-j asm kt))))
-      (define (unary* op a)
+      (define (unary op a)
         (op asm (from-sp (slot a)))
         (emit-branch-for-test))
       (define (binary op a b)
@@ -431,20 +431,20 @@
                 (if invert? kf kt))
             (emit-j asm (if invert? kt kf))))))
       (match exp
-        (($ $values (sym)) (unary emit-br-if-true sym))
-        (($ $primcall 'heap-object? (a)) (unary* emit-heap-object? a))
-        (($ $primcall 'null? (a)) (unary emit-br-if-null a))
-        (($ $primcall 'nil? (a)) (unary emit-br-if-nil a))
-        (($ $primcall 'pair? (a)) (unary emit-br-if-pair a))
-        (($ $primcall 'struct? (a)) (unary emit-br-if-struct a))
-        (($ $primcall 'char? (a)) (unary emit-br-if-char a))
-        (($ $primcall 'symbol? (a)) (unary emit-br-if-symbol a))
-        (($ $primcall 'variable? (a)) (unary emit-br-if-variable a))
-        (($ $primcall 'vector? (a)) (unary emit-br-if-vector a))
-        (($ $primcall 'string? (a)) (unary emit-br-if-string a))
-        (($ $primcall 'bytevector? (a)) (unary emit-br-if-bytevector a))
-        (($ $primcall 'bitvector? (a)) (unary emit-br-if-bitvector a))
-        (($ $primcall 'keyword? (a)) (unary emit-br-if-keyword a))
+        (($ $values (sym)) (unary/old emit-br-if-true sym))
+        (($ $primcall 'heap-object? (a)) (unary emit-heap-object? a))
+        (($ $primcall 'null? (a)) (unary/old emit-br-if-null a))
+        (($ $primcall 'nil? (a)) (unary/old emit-br-if-nil a))
+        (($ $primcall 'pair? (a)) (unary emit-pair? a))
+        (($ $primcall 'struct? (a)) (unary emit-struct? a))
+        (($ $primcall 'char? (a)) (unary/old emit-br-if-char a))
+        (($ $primcall 'symbol? (a)) (unary emit-symbol? a))
+        (($ $primcall 'variable? (a)) (unary emit-variable? a))
+        (($ $primcall 'vector? (a)) (unary emit-vector? a))
+        (($ $primcall 'string? (a)) (unary emit-string? a))
+        (($ $primcall 'bytevector? (a)) (unary emit-bytevector? a))
+        (($ $primcall 'bitvector? (a)) (unary emit-bitvector? a))
+        (($ $primcall 'keyword? (a)) (unary emit-keyword? a))
         ;; Add more TC7 tests here.  Keep in sync with
         ;; *branching-primcall-arities* in (language cps primitives) and
         ;; the set of macro-instructions in assembly.scm.
