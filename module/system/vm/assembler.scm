@@ -44,6 +44,7 @@
 
 (define-module (system vm assembler)
   #:use-module (system base target)
+  #:use-module (system base types internal)
   #:use-module (system vm dwarf)
   #:use-module (system vm elf)
   #:use-module (system vm linker)
@@ -83,6 +84,47 @@
             emit-jne
             emit-jge
             emit-jnge
+
+            emit-inum?
+            emit-heap-object?
+            emit-char?
+            emit-eq-null?
+            emit-eq-nil?
+            emit-eq-false?
+            emit-eq-true?
+            emit-unspecified?
+            emit-undefined?
+            emit-eof-object?
+
+            emit-pair?
+            emit-struct?
+            emit-symbol?
+            emit-variable?
+            emit-vector?
+            emit-weak-vector?
+            emit-string?
+            emit-number?
+            emit-hash-table?
+            emit-pointer?
+            emit-fluid?
+            emit-stringbuf?
+            emit-dynamic-state?
+            emit-frame?
+            emit-keyword?
+            emit-syntax?
+            emit-program?
+            emit-vm-continuation?
+            emit-bytevector?
+            emit-weak-set?
+            emit-weak-table?
+            emit-array?
+            emit-bitvector?
+            emit-port?
+            emit-smob?
+            emit-bignum?
+            emit-flonum?
+            emit-complex?
+            emit-fraction?
 
             emit-call
             emit-call-label
@@ -1189,6 +1231,18 @@ returned instead."
 (define-macro-assembler (load-static-procedure asm dst label)
   (let ((loc (intern-constant asm (make-static-procedure label))))
     (emit-make-non-immediate asm dst loc)))
+
+(define-syntax-rule (define-immediate-tag=?-macro-assembler name pred mask tag)
+  (define-macro-assembler (pred asm slot)
+    (emit-immediate-tag=? asm slot mask tag)))
+
+(visit-immediate-tags define-immediate-tag=?-macro-assembler)
+
+(define-syntax-rule (define-heap-tag=?-macro-assembler name pred mask tag)
+  (define-macro-assembler (pred asm slot)
+    (emit-heap-tag=? asm slot mask tag)))
+
+(visit-heap-tags define-heap-tag=?-macro-assembler)
 
 (define-syntax-rule (define-tc7-macro-assembler name tc7)
   (define-macro-assembler (name asm slot invert? label)
