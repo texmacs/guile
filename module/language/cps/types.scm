@@ -93,17 +93,10 @@
             &fraction
 
             &char
-            &unspecified
-            &unbound
-            &false
-            &true
-            &nil
-            &null
+            &special-immediate
             &symbol
             &keyword
-
             &procedure
-
             &pointer
             &fluid
             &pair
@@ -115,6 +108,10 @@
             &bitvector
             &array
             &syntax
+            &other-heap-object
+
+            ;; Special immediate values.
+            &null &nil &false &true &unspecified &undefined &eof
 
             ;; Union types.
             &exact-integer &number &real
@@ -155,17 +152,11 @@
   &fraction
 
   &char
-  &unspecified
-  &unbound
-  &false
-  &true
-  &nil
-  &null
+  &special-immediate
+
   &symbol
   &keyword
-
   &procedure
-
   &pointer
   &fluid
   &pair
@@ -177,12 +168,23 @@
   &bitvector
   &array
   &syntax
+  &other-heap-object
 
   &f64
   &u64
   &s64)
 
 (define-syntax &no-type (identifier-syntax 0))
+
+;; Special immediate values.  Note that the values for the first 4 of
+;; these are important; see uses below.
+(define-syntax &null        (identifier-syntax 0))
+(define-syntax &nil         (identifier-syntax 1))
+(define-syntax &false       (identifier-syntax 2))
+(define-syntax &true        (identifier-syntax 3))
+(define-syntax &unspecified (identifier-syntax 4))
+(define-syntax &undefined   (identifier-syntax 5))
+(define-syntax &eof         (identifier-syntax 6))
 
 (define-syntax &exact-integer
   (identifier-syntax (logior &fixnum &bignum)))
@@ -350,12 +352,12 @@ minimum, and maximum."
            (if (rational? val) (inexact->exact (floor val)) val)
            (if (rational? val) (inexact->exact (ceiling val)) val))))
      (else (return &complex #f))))
-   ((eq? val '()) (return &null #f))
-   ((eq? val #nil) (return &nil #f))
-   ((eq? val #t) (return &true #f))
-   ((eq? val #f) (return &false #f))
+   ((eq? val '()) (return &special-immediate &null))
+   ((eq? val #nil) (return &special-immediate &nil))
+   ((eq? val #t) (return &special-immediate &true))
+   ((eq? val #f) (return &special-immediate &false))
+   ((eqv? val *unspecified*) (return &special-immediate &unspecified))
    ((char? val) (return &char (char->integer val)))
-   ((eqv? val *unspecified*) (return &unspecified #f))
    ((symbol? val) (return &symbol #f))
    ((keyword? val) (return &keyword #f))
    ((pair? val) (return &pair #f))
@@ -365,7 +367,8 @@ minimum, and maximum."
    ((bitvector? val) (return &bitvector (bitvector-length val)))
    ((array? val) (return &array (array-rank val)))
    ((syntax? val) (return &syntax 0))
-   ((not (variable-bound? (make-variable val))) (return &unbound #f))
+   ((not (variable-bound? (make-variable val)))
+    (return &special-immediate &undefined))
 
    (else (error "unhandled constant" val))))
 
@@ -540,15 +543,58 @@ minimum, and maximum."
 ;;; Generic effect-free predicates.
 ;;;
 
-(define-predicate-inferrer (eq? a b true?)
-  ;; We can only propagate information down the true leg.
-  (when true?
-    (let ((type (logand (&type a) (&type b)))
-          (min (max (&min a) (&min b)))
-          (max (min (&max a) (&max b))))
-      (restrict! a type min max)
-      (restrict! b type min max))))
-(define-type-inferrer-aliases eq? eqv?)
+(define-syntax-rule (define-special-immediate-predicate-inferrer pred imm*)
+  (define-predicate-inferrer (pred val true?)
+    (let ((imm imm*))
+      (define (range-subtract lo hi x)
+        (values (if (eqv? lo x) (1+ lo) lo)
+                (if (eqv? hi x) (1- hi) hi)))
+      (cond
+       (true? (restrict! val &special-immediate imm imm))
+       (else
+        (when (eqv? (&type val) &special-immediate)
+          (let-values (((lo hi) (range-subtract (&min val) (&max val) imm)))
+            (restrict! val &special-immediate lo hi))))))))
+
+(define-special-immediate-predicate-inferrer eq-nil? &nil)
+(define-special-immediate-predicate-inferrer eq-eol? &null)
+(define-special-immediate-predicate-inferrer eq-false? &false)
+(define-special-immediate-predicate-inferrer eq-true? &true)
+(define-special-immediate-predicate-inferrer unspecified? &unspecified)
+(define-special-immediate-predicate-inferrer undefined? &undefined)
+(define-special-immediate-predicate-inferrer eof-object? &eof)
+
+;; Various inferrers rely on these having contiguous values starting from 0.
+(eval-when (expand)
+  (unless (< -1 &null &nil &false &true 4)
+    (error "unexpected special immediate values")))
+(define-predicate-inferrer (null? val true?)
+  (cond
+   (true? (restrict! val &special-immediate &null &nil))
+   (else
+    (when (eqv? (&type val) &special-immediate)
+      (restrict! val &special-immediate (1+ &nil) +inf.0)))))
+
+(define-predicate-inferrer (false? val true?)
+  (cond
+   (true? (restrict! val &special-immediate &nil &false))
+   (else
+    (when (and (eqv? (&type val) &special-immediate) (> (&min val) &null))
+      (restrict! val &special-immediate (1+ &false) +inf.0)))))
+
+(define-predicate-inferrer (nil? val true?)
+  (cond
+   (true? (restrict! val &special-immediate &null &false))
+   (else
+    (when (eqv? (&type val) &special-immediate)
+      (restrict! val &special-immediate (1+ &false) +inf.0)))))
+
+(define-predicate-inferrer (heap-object? val true?)
+  (define &immediate-types
+    (logior &fixnum &char &special-immediate))
+  (define &heap-object-types
+    (logand &all-types (lognot &immediate-types)))
+  (restrict! val (if true? &heap-object-types &immediate-types) -inf.0 +inf.0))
 
 (define-syntax-rule (define-simple-predicate-inferrer predicate type)
   (define-predicate-inferrer (predicate val true?)
@@ -556,9 +602,8 @@ minimum, and maximum."
                     type
                     (logand (&type val) (lognot type)))))
       (restrict! val type -inf.0 +inf.0))))
+
 (define-simple-predicate-inferrer pair? &pair)
-(define-simple-predicate-inferrer null? &null)
-(define-simple-predicate-inferrer nil? &nil)
 (define-simple-predicate-inferrer symbol? &symbol)
 (define-simple-predicate-inferrer variable? &box)
 (define-simple-predicate-inferrer vector? &vector)
@@ -571,6 +616,16 @@ minimum, and maximum."
 (define-simple-predicate-inferrer char? &char)
 (define-simple-predicate-inferrer procedure? &procedure)
 (define-simple-predicate-inferrer thunk? &procedure)
+
+(define-predicate-inferrer (eq? a b true?)
+  ;; We can only propagate information down the true leg.
+  (when true?
+    (let ((type (logand (&type a) (&type b)))
+          (min (max (&min a) (&min b)))
+          (max (min (&max a) (&max b))))
+      (restrict! a type min max)
+      (restrict! b type min max))))
+(define-type-inferrer-aliases eq? eqv?)
 
 
 
@@ -747,7 +802,7 @@ minimum, and maximum."
 
 (define-simple-type (number->string &number) (&string 0 *max-size-t*))
 (define-simple-type (string->number (&string 0 *max-size-t*))
-  ((logior &number &false) -inf.0 +inf.0))
+  ((logior &number &special-immediate) -inf.0 +inf.0))
 
 
 
@@ -1194,46 +1249,33 @@ minimum, and maximum."
       (define-exact-integer! result 0 max-abs-mod)))))
 
 ;; Predicates.
-(define-syntax-rule (define-number-kind-predicate-inferrer name type)
+(define-syntax-rule (define-type-predicate-result val result type)
+  (cond
+   ((zero? (logand (&type val) type))
+    (define! result &special-immediate &false &false))
+   ((zero? (logand (&type val) (lognot type)))
+    (define! result &special-immediate &true &true))
+   (else
+    (define! result &special-immediate &false &true))))
+;; Bah, needs rewrite to turn into actual control flow.
+(define-syntax-rule (define-simple-type-predicate-inferrer name type)
   (define-type-inferrer (name val result)
-    (cond
-     ((zero? (logand (&type val) type))
-      (define! result &false 0 0))
-     ((zero? (logand (&type val) (lognot type)))
-      (define! result &true 0 0))
-     (else
-      (define! result (logior &true &false) 0 0)))))
-(define-number-kind-predicate-inferrer complex? &number)
-(define-number-kind-predicate-inferrer real? &real)
-(define-number-kind-predicate-inferrer rational?
-  (logior &exact-integer &fraction))
-(define-number-kind-predicate-inferrer integer?
-  (logior &exact-integer &flonum))
-(define-number-kind-predicate-inferrer exact-integer?
-  &exact-integer)
+    (define-type-predicate-result val result type)))
+(define-simple-type-predicate-inferrer complex? &number)
+(define-simple-type-predicate-inferrer real? &real)
+(define-simple-type-predicate-inferrer rational? (logior &exact-integer &fraction))
+(define-simple-type-predicate-inferrer integer? (logior &exact-integer &flonum))
+(define-simple-type-predicate-inferrer exact-integer? &exact-integer)
 
 (define-simple-type-checker (exact? &number))
 (define-type-inferrer (exact? val result)
   (restrict! val &number -inf.0 +inf.0)
-  (cond
-   ((zero? (logand (&type val) (logior &exact-integer &fraction)))
-    (define! result &false 0 0))
-   ((zero? (logand (&type val) (lognot (logior &exact-integer &fraction))))
-    (define! result &true 0 0))
-   (else
-    (define! result (logior &true &false) 0 0))))
+  (define-type-predicate-result val result (logior &exact-integer &fraction)))
 
 (define-simple-type-checker (inexact? &number))
 (define-type-inferrer (inexact? val result)
   (restrict! val &number -inf.0 +inf.0)
-  (cond
-   ((zero? (logand (&type val) (logior &flonum &complex)))
-    (define! result &false 0 0))
-   ((zero? (logand (&type val) (logand &number
-                                       (lognot (logior &flonum &complex)))))
-    (define! result &true 0 0))
-   (else
-    (define! result (logior &true &false) 0 0))))
+  (define-type-predicate-result val result (logior &flonum &complex)))
 
 (define-simple-type-checker (inf? &real))
 (define-type-inferrer (inf? val result)
@@ -1241,14 +1283,14 @@ minimum, and maximum."
   (cond
    ((or (zero? (logand (&type val) (logior &flonum &complex)))
         (and (not (inf? (&min val))) (not (inf? (&max val)))))
-    (define! result &false 0 0))
+    (define! result &special-immediate &false &false))
    (else
-    (define! result (logior &true &false) 0 0))))
+    (define! result &special-immediate &false &true))))
 
 (define-type-aliases inf? nan?)
 
 (define-simple-type (even? &exact-integer)
-  ((logior &true &false) 0 0))
+  (&special-immediate &false &true))
 (define-type-aliases even? odd?)
 
 ;; Bit operations.
@@ -1413,9 +1455,9 @@ minimum, and maximum."
         (b-max (&max b)))
     (if (and (eqv? a-min a-max) (>= a-min 0) (not (inf? a-min))
              (eqv? b-min b-max) (>= b-min 0) (not (inf? b-min)))
-        (let ((type (if (logbit? a-min b-min) &true &false)))
-          (define! result type 0 0))
-        (define! result (logior &true &false) 0 0))))
+        (let ((bool (if (logbit? a-min b-min) &true &false)))
+          (define! result &special-immediate bool bool))
+        (define! result &special-immediate &false &true))))
 
 ;; Flonums.
 (define-simple-type-checker (sqrt &number))
@@ -1613,17 +1655,12 @@ maximum, where type is a bitset as a fixnum."
         (values (append changed0 changed1) typev)))
     ;; Each of these branches must propagate to its successors.
     (match exp
-      (($ $branch kt ($ $values (arg)))
-       ;; The "normal" continuation is the #f branch.
-       (let ((kf-types (restrict-var types arg
-                                     (make-type-entry (logior &false &nil)
-                                                      0
-                                                      0)))
-             (kt-types (restrict-var types arg
-                                     (make-type-entry
-                                      (logand &all-types 
-                                              (lognot (logior &false &nil)))
-                                      -inf.0 +inf.0))))
+      (($ $branch kt ($ $values args))
+       ;; In the future a branch on $values will be replaced by a
+       ;; primcall to 'false?; manually do that here.  Note that the
+       ;; sense of the test is reversed.
+       (let ((kt-types (infer-primcall types 0 'false? args #f))
+             (kf-types (infer-primcall types 1 'false? args #f)))
          (propagate2 k kf-types kt kt-types)))
       (($ $branch kt ($ $primcall name args))
        ;; The "normal" continuation is the #f branch.

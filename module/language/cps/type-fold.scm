@@ -41,7 +41,7 @@
 ;; Branch folders.
 
 (define &scalar-types
-  (logior &fixnum &bignum &flonum &char &unspecified &false &true &nil &null))
+  (logior &fixnum &bignum &flonum &char &special-immediate))
 
 (define *branch-folders* (make-hash-table))
 
@@ -59,6 +59,29 @@
                       body ...)
   (define-branch-folder name (lambda (arg0 min0 max0 arg1 min1 max1) body ...)))
 
+(define-syntax-rule (define-special-immediate-predicate-folder name imin imax)
+  (define-unary-branch-folder (name type min max)
+    (let ((type* (logand type &special-immediate)))
+      (cond
+       ((zero? (logand type &special-immediate)) (values #t #f))
+       ((eqv? type &special-immediate)
+        (cond
+         ((or (< imax min) (< max imin)) (values #t #f))
+         ((<= imin min max imax) (values #t #t))
+         (else (values #f #f))))
+       (else (values #f #f))))))
+
+(define-special-immediate-predicate-folder eq-nil? &nil &nil)
+(define-special-immediate-predicate-folder eq-eol? &null &null)
+(define-special-immediate-predicate-folder eq-false? &false &false)
+(define-special-immediate-predicate-folder eq-true? &true &true)
+(define-special-immediate-predicate-folder unspecified? &unspecified &unspecified)
+(define-special-immediate-predicate-folder undefined? &undefined &undefined)
+(define-special-immediate-predicate-folder eof-object? &eof &eof)
+(define-special-immediate-predicate-folder null? &null &nil)
+(define-special-immediate-predicate-folder false? &nil &false)
+(define-special-immediate-predicate-folder nil? &null &false) ;; &nil in middle
+
 (define-syntax-rule (define-unary-type-predicate-folder name &type)
   (define-unary-branch-folder (name type min max)
     (let ((type* (logand type &type)))
@@ -69,8 +92,6 @@
 
 ;; All the cases that are in compile-bytecode.
 (define-unary-type-predicate-folder pair? &pair)
-(define-unary-type-predicate-folder null? &null)
-(define-unary-type-predicate-folder nil? &nil)
 (define-unary-type-predicate-folder symbol? &symbol)
 (define-unary-type-predicate-folder variable? &box)
 (define-unary-type-predicate-folder vector? &vector)
@@ -309,11 +330,16 @@
      ((eqv? type &bignum) val)
      ((eqv? type &flonum) (exact->inexact val))
      ((eqv? type &char) (integer->char val))
-     ((eqv? type &unspecified) *unspecified*)
-     ((eqv? type &false) #f)
-     ((eqv? type &true) #t)
-     ((eqv? type &nil) #nil)
-     ((eqv? type &null) '())
+     ((eqv? type &special-immediate)
+      (cond
+       ((eqv? val &null) '())
+       ((eqv? val &nil) #nil)
+       ((eqv? val &false) #f)
+       ((eqv? val &true) #t)
+       ((eqv? val &unspecified) *unspecified*)
+       ;; FIXME: &undefined here
+       ((eqv? val &eof) the-eof-object)
+       (else (error "unhandled immediate" val))))
      (else (error "unhandled type" type val))))
   (let ((types (infer-types cps start)))
     (define (fold-primcall cps label names vars k src name args def)
@@ -416,19 +442,10 @@
             (or (fold-binary-branch cps label names vars k kt src name x y)
                 cps))))
         (($ $branch kt ($ $values (arg)))
-         ;; We might be able to fold branches on values.
-         (call-with-values (lambda () (lookup-pre-type types label arg))
-           (lambda (type min max)
-             (cond
-              ((zero? (logand type (logior &false &nil)))
-               (with-cps cps
-                 (setk label
-                       ($kargs names vars ($continue kt src ($values ()))))))
-              ((zero? (logand type (lognot (logior &false &nil))))
-               (with-cps cps
-                 (setk label
-                       ($kargs names vars ($continue k src ($values ()))))))
-              (else cps)))))
+         ;; We might be able to fold a branch on the false? primcall.
+         ;; Note inverted true and false continuations.
+         (or (fold-unary-branch cps label names vars kt k src 'false? arg)
+             cps))
         (_ cps)))
     (let lp ((label start) (cps cps))
       (if (<= label end)
