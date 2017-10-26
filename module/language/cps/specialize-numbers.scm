@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2015, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2016, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -186,7 +186,7 @@
 (define (inferred-sigbits types label var)
   (call-with-values (lambda () (lookup-pre-type types label var))
     (lambda (type min max)
-      (and (or (eqv? type &exact-integer) (eqv? type &u64))
+      (and (type<=? type (logior &exact-integer &u64 &s64))
            (range->sigbits min max)))))
 
 (define significant-bits-handlers (make-hash-table))
@@ -284,7 +284,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
       (call-with-values (lambda ()
                           (lookup-pre-type types label var))
         (lambda (type min max)
-          (and (eqv? type &type) (<= &min min max &max)))))
+          (and (type<=? type &type) (<= &min min max &max)))))
     (define (u64-operand? var)
       (operand-in-range? var &exact-integer 0 #xffffffffffffffff))
     (define (all-u64-bits-set? var)
@@ -300,7 +300,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
               (lambda ()
                 (lookup-post-type types label result 0))
             (lambda (type min max)
-              (and (eqv? type &exact-integer)
+              (and (type<=? type &exact-integer)
                    (<= 0 min max #xffffffffffffffff))))))
     (define (f64-operands? vara varb)
       (let-values (((typea mina maxa) (lookup-pre-type types label vara))
@@ -326,7 +326,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                  (with-cps cps
                    (let$ body (specialize-f64-binop k src op a b))
                    (setk label ($kargs names vars ,body))))
-                ((and (eqv? type &exact-integer)
+                ((and (type<=? type &exact-integer)
                       (or (<= 0 min max #xffffffffffffffff)
                           (only-u64-bits-used? result))
                       (u64-operand? a) (u64-operand? b)
@@ -349,7 +349,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                (cond
                 ((or (not (u64-result? result))
                      (not (u64-operand? a))
-                     (not (eqv? b-type &exact-integer))
+                     (not (type<=? b-type &exact-integer))
                      (< b-min 0 b-max)
                      (<= b-min -64)
                      (<= 64 b-max))

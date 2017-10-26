@@ -1,5 +1,5 @@
 ;;; Type analysis on CPS
-;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -86,7 +86,8 @@
   #:use-module (srfi srfi-11)
   #:use-module ((system syntax internal) #:select (syntax?))
   #:export (;; Specific types.
-            &exact-integer
+            &fixnum
+            &bignum
             &flonum
             &complex
             &fraction
@@ -116,13 +117,17 @@
             &syntax
 
             ;; Union types.
-            &number &real
+            &exact-integer &number &real
 
             ;; Untagged types.
             &f64
             &u64
             &s64
 
+            ;; Helper.
+            type<=?
+
+            ;; Interface for type inference.
             infer-types
             lookup-pre-type
             lookup-post-type
@@ -143,7 +148,8 @@
 
 ;; More precise types have fewer bits.
 (define-flags &all-types &type-bits
-  &exact-integer
+  &fixnum
+  &bignum
   &flonum
   &complex
   &fraction
@@ -178,10 +184,15 @@
 
 (define-syntax &no-type (identifier-syntax 0))
 
+(define-syntax &exact-integer
+  (identifier-syntax (logior &fixnum &bignum)))
 (define-syntax &number
-  (identifier-syntax (logior &exact-integer &flonum &complex &fraction)))
+  (identifier-syntax (logior &fixnum &bignum &flonum &complex &fraction)))
 (define-syntax &real
-  (identifier-syntax (logior &exact-integer &flonum &fraction)))
+  (identifier-syntax (logior &fixnum &bignum &flonum &fraction)))
+
+(define-syntax-rule (type<=? x type)
+  (zero? (logand x (lognot type))))
 
 ;; Versions of min and max that do not coerce exact numbers to become
 ;; inexact.
@@ -326,7 +337,11 @@ minimum, and maximum."
   (cond
    ((number? val)
     (cond
-     ((exact-integer? val) (return &exact-integer val))
+     ((exact-integer? val)
+      (return (if (<= most-negative-fixnum val most-positive-fixnum)
+                  &fixnum
+                  &bignum)
+              val))
      ((eqv? (imag-part val) 0)
       (if (nan? val)
           (make-type-entry &flonum -inf.0 +inf.0)
@@ -368,6 +383,14 @@ minimum, and maximum."
 (define-type-helper &type)
 (define-type-helper &min)
 (define-type-helper &max)
+
+(define-syntax-rule (define-exact-integer! result min max)
+  (let ((min* min) (max* max))
+    (define! result
+      (if (<= most-negative-fixnum min* max* most-positive-fixnum)
+          &fixnum
+          &exact-integer)
+      min* max*)))
 
 ;; Accessors to use in type inferrers where you know that the values
 ;; must be in some range for the computation to proceed (not throw an
@@ -761,7 +784,7 @@ minimum, and maximum."
 (define-type-checker (u64->scm u64)
   #t)
 (define-type-inferrer (u64->scm u64 result)
-  (define! result &exact-integer (&min/0 u64) (&max/u64 u64)))
+  (define-exact-integer! result (&min/0 u64) (&max/u64 u64)))
 
 (define-type-checker (scm->s64 scm)
   (check-type scm &exact-integer &s64-min &s64-max))
@@ -773,7 +796,7 @@ minimum, and maximum."
 (define-type-checker (s64->scm s64)
   #t)
 (define-type-inferrer (s64->scm s64 result)
-  (define! result &exact-integer (&min/s64 s64) (&max/s64 s64)))
+  (define-exact-integer! result (&min/s64 s64) (&max/s64 s64)))
 
 
 
@@ -851,7 +874,7 @@ minimum, and maximum."
     (match op
       ((or '< '<=) (values min0 (min max0 max1) (max min0 min1) max1))
       ((or '> '>=) (values (max min0 min1) max0 min1 (min max0 max1)))))
-  (if (= (logior type0 type1) &exact-integer)
+  (if (type<=? (logior type0 type1) &exact-integer)
       (infer-integer-ranges)
       (infer-real-ranges)))
 
@@ -982,8 +1005,8 @@ minimum, and maximum."
                                  (logior &complex &flonum))))
         (define! result result-type min* max*)))
      ;; Exact integers are closed under some operations.
-     ((and closed? (eqv? a-type &exact-integer) (eqv? b-type &exact-integer))
-      (define! result &exact-integer min* max*))
+     ((and closed? (type<=? (logior a-type b-type) &exact-integer))
+      (define-exact-integer! result min* max*))
      (else
       (let* ((type (logior a-type b-type))
              ;; Fractions may become integers.
@@ -1150,11 +1173,11 @@ minimum, and maximum."
   (let ((max-abs-rem (1- (max (abs (&min b)) (abs (&max b))))))
     (cond
      ((< (&min a) 0)
-      (if (< 0 (&max a))
-          (define! result &exact-integer (- max-abs-rem) max-abs-rem)
-          (define! result &exact-integer (- max-abs-rem) 0)))
+      (define-exact-integer! result
+        (- max-abs-rem)
+        (if (< 0 (&max a)) max-abs-rem 0)))
      (else
-      (define! result &exact-integer 0 max-abs-rem)))))
+      (define-exact-integer! result 0 max-abs-rem)))))
 
 (define-type-checker-aliases quo mod)
 (define-type-inferrer (mod a b result)
@@ -1164,11 +1187,11 @@ minimum, and maximum."
   (let ((max-abs-mod (1- (max (abs (&min b)) (abs (&max b))))))
     (cond
      ((< (&min b) 0)
-      (if (< 0 (&max b))
-          (define! result &exact-integer (- max-abs-mod) max-abs-mod)
-          (define! result &exact-integer (- max-abs-mod) 0)))
+      (define-exact-integer! result
+        (- max-abs-mod)
+        (if (< 0 (&max b)) max-abs-mod 0)))
      (else
-      (define! result &exact-integer 0 max-abs-mod)))))
+      (define-exact-integer! result 0 max-abs-mod)))))
 
 ;; Predicates.
 (define-syntax-rule (define-number-kind-predicate-inferrer name type)
@@ -1246,9 +1269,9 @@ minimum, and maximum."
         (-+ (ash* (&min val) (&max count)))
         (++ (ash* (&max val) (&max count)))
         (+- (ash* (&max val) (&min count))))
-    (define! result &exact-integer
-             (min -- -+ ++ +-)
-             (max -- -+ ++ +-))))
+    (define-exact-integer! result
+      (min -- -+ ++ +-)
+      (max -- -+ ++ +-))))
 
 (define-simple-type-checker (ursh &u64 &u64))
 (define-type-inferrer (ursh a b result)
@@ -1291,9 +1314,9 @@ minimum, and maximum."
         0))
   (restrict! a &exact-integer -inf.0 +inf.0)
   (restrict! b &exact-integer -inf.0 +inf.0)
-  (define! result &exact-integer
-           (logand-min (&min a) (&min b))
-           (logand-max (&max a) (&max b))))
+  (define-exact-integer! result
+    (logand-min (&min a) (&min b))
+    (logand-max (&max a) (&max b))))
 
 (define-simple-type-checker (ulogand &u64 &u64))
 (define-type-inferrer (ulogand a b result)
@@ -1324,7 +1347,7 @@ minimum, and maximum."
   (call-with-values (lambda ()
                       (logsub-bounds (&min a) (&max a) (&min b) (&max b)))
     (lambda (min max)
-      (define! result &exact-integer min max))))
+      (define-exact-integer! result min max))))
 
 (define-simple-type-checker (ulogsub &u64 &u64))
 (define-type-inferrer (ulogsub a b result)
@@ -1349,9 +1372,9 @@ minimum, and maximum."
      (else (saturate (logior a b)))))
   (restrict! a &exact-integer -inf.0 +inf.0)
   (restrict! b &exact-integer -inf.0 +inf.0)
-  (define! result &exact-integer
-           (logior-min (&min a) (&min b))
-           (logior-max (&max a) (&max b))))
+  (define-exact-integer! result
+    (logior-min (&min a) (&min b))
+    (logior-max (&max a) (&max b))))
 
 (define-simple-type-checker (ulogior &u64 &u64))
 (define-type-inferrer (ulogior a b result)
@@ -1373,9 +1396,9 @@ minimum, and maximum."
 (define-simple-type-checker (lognot &exact-integer))
 (define-type-inferrer (lognot a result)
   (restrict! a &exact-integer -inf.0 +inf.0)
-  (define! result &exact-integer
-           (- -1 (&max a))
-           (- -1 (&min a))))
+  (define-exact-integer! result
+    (- -1 (&max a))
+    (- -1 (&min a))))
 
 (define-simple-type-checker (logtest &exact-integer &exact-integer))
 (define-predicate-inferrer (logtest a b true?)

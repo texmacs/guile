@@ -1,5 +1,5 @@
 ;;; Abstract constant folding on CPS
-;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -41,7 +41,7 @@
 ;; Branch folders.
 
 (define &scalar-types
-  (logior &exact-integer &flonum &char &unspecified &false &true &nil &null))
+  (logior &fixnum &bignum &flonum &char &unspecified &false &true &nil &null))
 
 (define *branch-folders* (make-hash-table))
 
@@ -157,7 +157,8 @@
     (if (< a b 0)
         0
         (max a b)))
-  (if (and (= min0 max0) (= min1 max1) (eqv? type0 type1 &exact-integer))
+  (if (and (= min0 max0) (= min1 max1)
+           (type<=? (logior type0 type1) &exact-integer))
       (values #t (logtest min0 min1))
       (values #f #f)))
 
@@ -212,16 +213,16 @@
              (build-term ($continue k src ($primcall 'ash (arg bits)))))))))
   (define (mul/constant constant constant-type arg arg-type)
     (cond
-     ((not (or (= constant-type &exact-integer) (= constant-type arg-type)))
+     ((not (or (type<=? constant-type &exact-integer)
+               (= constant-type arg-type)))
       (fail))
      ((eqv? constant -1)
       ;; (* arg -1) -> (- 0 arg)
       (negate arg))
      ((eqv? constant 0)
-      ;; (* arg 0) -> 0 if arg is not a flonum or complex
-      (and (= constant-type &exact-integer)
-           (zero? (logand arg-type
-                          (lognot (logior &flonum &complex))))
+      ;; (* arg 0) -> 0 if arg is exact
+      (and (type<=? constant-type &exact-integer)
+           (type<=? arg-type (logior &exact-integer &fraction))
            (zero)))
      ((eqv? constant 1)
       ;; (* arg 1) -> arg
@@ -229,7 +230,7 @@
      ((eqv? constant 2)
       ;; (* arg 2) -> (+ arg arg)
       (double arg))
-     ((and (= constant-type arg-type &exact-integer)
+     ((and (type<=? (logior constant-type arg-type) &exact-integer)
            (positive? constant)
            (zero? (logand constant (1- constant))))
       ;; (* arg power-of-2) -> (ash arg (log2 power-of-2
@@ -268,7 +269,7 @@
   ;; Hairiness because we are converting from a primcall with unknown
   ;; arity to a branching primcall.
   (let ((positive-fixnum-bits (- (* (target-word-size) 8) 3)))
-    (if (and (= type0 &exact-integer)
+    (if (and (type<=? type0 &exact-integer)
              (<= 0 min0 positive-fixnum-bits)
              (<= 0 max0 positive-fixnum-bits))
         (match (intmap-ref cps k)
@@ -304,7 +305,8 @@
 (define (local-type-fold start end cps)
   (define (scalar-value type val)
     (cond
-     ((eqv? type &exact-integer) val)
+     ((eqv? type &fixnum) val)
+     ((eqv? type &bignum) val)
      ((eqv? type &flonum) (exact->inexact val))
      ((eqv? type &char) (integer->char val))
      ((eqv? type &unspecified) *unspecified*)
