@@ -90,6 +90,13 @@
        ((eqv? type type*) (values #t #t))
        (else (values #f #f))))))
 
+(define-unary-branch-folder (heap-object? type min max)
+  (define &immediate-types (logior &fixnum &char &special-immediate))
+  (cond
+   ((zero? (logand type &immediate-types)) (values #t #t))
+   ((type<=? type &immediate-types) (values #t #f))
+   (else (values #f #f))))
+
 ;; All the cases that are in compile-bytecode.
 (define-unary-type-predicate-folder pair? &pair)
 (define-unary-type-predicate-folder symbol? &symbol)

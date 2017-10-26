@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
   #:use-module (language bytecode)
   #:export (prim-instruction
             branching-primitive?
+            heap-type-predicate?
             prim-arity
             ))
 
@@ -69,42 +70,97 @@
     (cached-toplevel-box . (1 . 3))
     (cached-module-box . (1 . 4))))
 
-(define *branching-primcall-arities*
-  '((null? . (1 . 1))
-    (nil? . (1 . 1))
-    (pair? . (1 . 1))
-    (struct? . (1 . 1))
-    (string? . (1 . 1))
-    (vector? . (1 . 1))
-    (symbol? . (1 . 1))
-    (keyword? . (1 . 1))
-    (variable? . (1 . 1))
-    (bitvector? . (1 . 1))
-    (bytevector? . (1 . 1))
-    (char? . (1 . 1))
-    (eq? . (1 . 2))
-    (eqv? . (1 . 2))
-    (= . (1 . 2))
-    (< . (1 . 2))
-    (> . (1 . 2))
-    (<= . (1 . 2))
-    (>= . (1 . 2))
-    (u64-= . (1 . 2))
-    (u64-< . (1 . 2))
-    (u64-> . (1 . 2))
-    (u64-<= . (1 . 2))
-    (u64->= . (1 . 2))
-    (u64-<-scm . (1 . 2))
-    (u64-<=-scm . (1 . 2))
-    (u64-=-scm . (1 . 2))
-    (u64->=-scm . (1 . 2))
-    (u64->-scm . (1 . 2))
-    (logtest . (1 . 2))
-    (f64-= . (1 . 2))
-    (f64-< . (1 . 2))
-    (f64-> . (1 . 2))
-    (f64-<= . (1 . 2))
-    (f64->= . (1 . 2))))
+(define *immediate-predicates*
+  '(fixnum?
+    char?
+    eq-nil?
+    eq-eol?
+    eq-false?
+    eq-true?
+    unspecified?
+    undefined?
+    eof-object?
+    null?  ;; '() or #nil
+    false? ;; #f or #nil
+    nil?   ;; #f or '() or #nil
+    heap-object?))
+
+;; All of the following tests must be dominated by heap-object?.
+(define *heap-type-predicates*
+  '(pair?
+    struct?
+    symbol?
+    variable?
+    vector?
+    string?
+    keyword?
+    bytevector?
+    bitvector?))
+
+;; FIXME: Support these.
+(define *other-predicates*
+  '(weak-vector?
+    number?
+    hash-table?
+    pointer?
+    fluid?
+    stringbuf?
+    dynamic-state?
+    frame?
+    syntax?
+    program?
+    vm-continuation?
+    weak-set?
+    weak-table?
+    array?
+    port?
+    smob?
+    bignum?
+    flonum?
+    complex?
+    fraction?))
+
+(define (heap-type-predicate? name)
+  "Is @var{name} a predicate that needs guarding by @code{heap-object?}
+before it is lowered to CPS?"
+  (and (memq name *heap-type-predicates*) #t))
+
+(define *comparisons*
+  '(eq?
+    eqv?
+    <
+    <=
+    =
+    u64-<
+    u64-<=
+    u64-=
+    f64-=
+    f64-<
+    f64-<=
+
+    ;; FIXME: Expand these.
+    logtest
+    u64-<-scm
+    u64-<=-scm
+    u64-=-scm
+
+    ;; FIXME: Remove these.
+    >
+    >=
+    u64->
+    u64->=
+    u64->=-scm
+    u64->-scm
+    f64->
+    f64->=))
+
+(define *branching-primcall-arities* (make-hash-table))
+(for-each (lambda (x) (hashq-set! *branching-primcall-arities* x '(1 . 1)))
+          *immediate-predicates*)
+(for-each (lambda (x) (hashq-set! *branching-primcall-arities* x '(1 . 1)))
+          *heap-type-predicates*)
+(for-each (lambda (x) (hashq-set! *branching-primcall-arities* x '(1 . 2)))
+          *comparisons*)
 
 (define (compute-prim-instructions)
   (let ((table (make-hash-table)))
@@ -126,7 +182,7 @@
   (hashq-ref (force *prim-instructions*) name))
 
 (define (branching-primitive? name)
-  (and (assq name *branching-primcall-arities*) #t))
+  (and (hashq-ref *branching-primcall-arities* name) #t))
 
 (define *prim-arities* (make-hash-table))
 
@@ -134,7 +190,7 @@
   (or (hashq-ref *prim-arities* name)
       (let ((arity (cond
                     ((prim-instruction name) => instruction-arity)
-                    ((assq name *branching-primcall-arities*) => cdr)
+                    ((hashq-ref *branching-primcall-arities* name))
                     (else
                      (error "Primitive of unknown arity" name)))))
         (hashq-set! *prim-arities* name arity)

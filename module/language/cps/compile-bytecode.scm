@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -404,6 +404,21 @@
           (let ((invert? (not (prefer-true?))))
             (op asm (from-sp (slot sym)) invert? (if invert? kf kt))
             (emit-j asm (if invert? kt kf))))))
+      (define (emit-branch-for-test)
+        (cond
+         ((eq? kt next-label)
+          (emit-jne asm kf))
+         ((eq? kf next-label)
+          (emit-je asm kt))
+         ((prefer-true?)
+          (emit-je asm kt)
+          (emit-j asm kf))
+         (else
+          (emit-jne asm kf)
+          (emit-j asm kt))))
+      (define (unary* op a)
+        (op asm (from-sp (slot a)))
+        (emit-branch-for-test))
       (define (binary op a b)
         (cond
          ((eq? kt next-label)
@@ -417,6 +432,7 @@
             (emit-j asm (if invert? kt kf))))))
       (match exp
         (($ $values (sym)) (unary emit-br-if-true sym))
+        (($ $primcall 'heap-object? (a)) (unary* emit-heap-object? a))
         (($ $primcall 'null? (a)) (unary emit-br-if-null a))
         (($ $primcall 'nil? (a)) (unary emit-br-if-nil a))
         (($ $primcall 'pair? (a)) (unary emit-br-if-pair a))

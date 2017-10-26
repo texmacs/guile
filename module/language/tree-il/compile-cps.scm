@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -522,14 +522,25 @@
              (build-term ($continue kf* src
                            ($branch kt ($primcall 'eqv? args))))))))
       ((branching-primitive? name)
-       (convert-args cps args
-         (lambda (cps args)
-           (with-cps cps
-             (let$ k (adapt-arity k src 1))
-             (letk kt ($kargs () () ($continue k src ($const #t))))
-             (letk kf ($kargs () () ($continue k src ($const #f))))
-             (build-term ($continue kf src
-                           ($branch kt ($primcall name args))))))))
+       (let ()
+         (define (reify-primcall cps kt kf args)
+           (if (heap-type-predicate? name)
+               (with-cps cps
+                 (letk kt* ($kargs () ()
+                             ($continue kf src
+                               ($branch kt ($primcall name args)))))
+                 (build-term ($continue kf src
+                               ($branch kt* ($primcall 'heap-object? args)))))
+               (with-cps cps
+                 (build-term ($continue kf src
+                               ($branch kt ($primcall name args)))))))
+         (convert-args cps args
+           (lambda (cps args)
+             (with-cps cps
+               (let$ k (adapt-arity k src 1))
+               (letk kt ($kargs () () ($continue k src ($const #t))))
+               (letk kf ($kargs () () ($continue k src ($const #f))))
+               ($ (reify-primcall kt kf args)))))))
       ((and (eq? name 'not) (match args ((_) #t) (_ #f)))
        (convert-args cps args
          (lambda (cps args)
@@ -788,9 +799,17 @@
          (($ <primcall> src (? branching-primitive? name) args)
           (convert-args cps args
             (lambda (cps args)
-              (with-cps cps
-                (build-term ($continue kf src
-                              ($branch kt ($primcall name args))))))))
+              (if (heap-type-predicate? name)
+                  (with-cps cps
+                    (letk kt* ($kargs () ()
+                                ($continue kf src
+                                  ($branch kt ($primcall name args)))))
+                    (build-term
+                      ($continue kf src
+                        ($branch kt* ($primcall 'heap-object? args)))))
+                  (with-cps cps
+                    (build-term ($continue kf src
+                                  ($branch kt ($primcall name args)))))))))
          (($ <conditional> src test consequent alternate)
           (with-cps cps
             (let$ t (convert-test consequent kt kf))
