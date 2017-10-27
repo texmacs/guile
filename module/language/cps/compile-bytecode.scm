@@ -409,6 +409,9 @@
       (define (unary op a)
         (op asm (from-sp (slot a)))
         (emit-branch-for-test))
+      (define (binary-test op a b)
+        (op asm (from-sp (slot a)) (from-sp (slot b)))
+        (emit-branch-for-test))
       (define (binary op a b)
         (cond
          ((eq? kt next-label)
@@ -438,7 +441,7 @@
         ;; Add more TC7 tests here.  Keep in sync with
         ;; *branching-primcall-arities* in (language cps primitives) and
         ;; the set of macro-instructions in assembly.scm.
-        (($ $primcall 'eq? (a b)) (binary emit-br-if-eq a b))
+        (($ $primcall 'eq? (a b)) (binary-test emit-eq? a b))
         (($ $primcall 'eqv? (a b)) (binary emit-br-if-eqv a b))
         (($ $primcall '< (a b)) (binary emit-br-if-< a b))
         (($ $primcall '<= (a b)) (binary emit-br-if-<= a b))
