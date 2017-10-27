@@ -548,8 +548,8 @@
              (let$ k (adapt-arity k src 1))
              (letk kt ($kargs () () ($continue k src ($const #f))))
              (letk kf ($kargs () () ($continue k src ($const #t))))
-             (build-term ($continue kf src
-                           ($branch kt ($values args))))))))
+             (build-term ($continue kt src
+                           ($branch kf ($primcall 'false? args))))))))
       ((and (eq? name 'list)
             (and-map (match-lambda
                        ((or ($ <const>)
@@ -820,8 +820,8 @@
          (_ (convert-arg cps test
               (lambda (cps test)
                 (with-cps cps
-                  (build-term ($continue kf src
-                                ($branch kt ($values (test)))))))))))
+                  (build-term ($continue kt src
+                                ($branch kf ($primcall 'false? (test)))))))))))
      (with-cps cps
        (let$ t (convert consequent k subst))
        (let$ f (convert alternate k subst))

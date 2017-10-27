@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -45,8 +45,6 @@
                   ($callk k (subst proc) ,(map subst args)))
                  (($ $primcall name args)
                   ($primcall name ,(map subst args)))
-                 (($ $branch k ($ $values (arg)))
-                  ($branch k ($values ((subst arg)))))
                  (($ $branch k ($ $primcall name args))
                   ($branch k ($primcall name ,(map subst args))))
                  (($ $values args)

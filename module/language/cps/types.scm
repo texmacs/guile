@@ -1655,13 +1655,6 @@ maximum, where type is a bitset as a fixnum."
         (values (append changed0 changed1) typev)))
     ;; Each of these branches must propagate to its successors.
     (match exp
-      (($ $branch kt ($ $values args))
-       ;; In the future a branch on $values will be replaced by a
-       ;; primcall to 'false?; manually do that here.  Note that the
-       ;; sense of the test is reversed.
-       (let ((kt-types (infer-primcall types 0 'false? args #f))
-             (kf-types (infer-primcall types 1 'false? args #f)))
-         (propagate2 k kf-types kt kt-types)))
       (($ $branch kt ($ $primcall name args))
        ;; The "normal" continuation is the #f branch.
        (let ((kf-types (infer-primcall types 0 name args #f))

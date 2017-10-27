@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -188,8 +188,6 @@ $call, and are always called with a compatible arity."
             (exclude-vars functions (cons proc args)))
            (($ $branch kt ($ $primcall name args))
             (exclude-vars functions args))
-           (($ $branch kt ($ $values (arg)))
-            (exclude-var functions arg))
            (($ $primcall name args)
             (exclude-vars functions args))
            (($ $prompt escape? tag handler)

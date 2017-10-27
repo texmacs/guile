@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -253,7 +253,6 @@ false.  It could be that both true and false proofs are available."
            (cons* 'primcall name (subst-vars var-substs args)))
           (($ $branch _ ($ $primcall name args))
            (cons* 'primcall name (subst-vars var-substs args)))
-          (($ $branch) #f)
           (($ $values args) #f)
           (($ $prompt escape? tag handler) #f)))
 

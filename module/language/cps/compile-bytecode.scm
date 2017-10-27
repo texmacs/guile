@@ -394,16 +394,6 @@
             ;; Otherwise prefer a backwards
             ;; branch or a near jump.
             (< kt kf)))
-      (define (unary/old op sym)
-        (cond
-         ((eq? kt next-label)
-          (op asm (from-sp (slot sym)) #t kf))
-         ((eq? kf next-label)
-          (op asm (from-sp (slot sym)) #f kt))
-         (else
-          (let ((invert? (not (prefer-true?))))
-            (op asm (from-sp (slot sym)) invert? (if invert? kf kt))
-            (emit-j asm (if invert? kt kf))))))
       (define (emit-branch-for-test)
         (cond
          ((eq? kt next-label)
@@ -431,10 +421,10 @@
                 (if invert? kf kt))
             (emit-j asm (if invert? kt kf))))))
       (match exp
-        (($ $values (sym)) (unary/old emit-br-if-true sym))
         (($ $primcall 'heap-object? (a)) (unary emit-heap-object? a))
         (($ $primcall 'null? (a)) (unary emit-null? a))
         (($ $primcall 'nil? (a)) (unary emit-nil? a))
+        (($ $primcall 'false? (a)) (unary emit-false? a))
         (($ $primcall 'pair? (a)) (unary emit-pair? a))
         (($ $primcall 'struct? (a)) (unary emit-struct? a))
         (($ $primcall 'char? (a)) (unary emit-char? a))

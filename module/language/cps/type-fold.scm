@@ -448,11 +448,6 @@
            ((x y)
             (or (fold-binary-branch cps label names vars k kt src name x y)
                 cps))))
-        (($ $branch kt ($ $values (arg)))
-         ;; We might be able to fold a branch on the false? primcall.
-         ;; Note inverted true and false continuations.
-         (or (fold-unary-branch cps label names vars kt k src 'false? arg)
-             cps))
         (_ cps)))
     (let lp ((label start) (cps cps))
       (if (<= label end)

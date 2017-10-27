@@ -263,8 +263,6 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                     (add-unknown-use (add-unknown-uses out args) proc))
                    (($ $callk label proc args)
                     (add-unknown-use (add-unknown-uses out args) proc))
-                   (($ $branch kt ($ $values (arg)))
-                    (add-unknown-use out arg))
                    (($ $branch kt ($ $primcall name args))
                     (add-unknown-uses out args))
                    (($ $primcall name args)

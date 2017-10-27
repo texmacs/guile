@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -89,8 +89,6 @@ conts."
             (add-uses args uses))
            (($ $call proc args)
             (add-uses args uses))
-           (($ $branch kt ($ $values (arg)))
-            (add-use arg uses))
            (($ $branch kt ($ $primcall name args))
             (add-uses args uses))
            (($ $primcall name args)
@@ -249,8 +247,6 @@ shared closures to use the appropriate 'self' variable, if possible."
                       ((closure . label) ($callk label closure ,args)))))
                 (($ $primcall name args)
                  ($primcall name ,(map subst args)))
-                (($ $branch k ($ $values (arg)))
-                 ($branch k ($values ((subst arg)))))
                 (($ $branch k ($ $primcall name args))
                  ($branch k ($primcall name ,(map subst args))))
                 (($ $values args)
@@ -373,8 +369,6 @@ references."
                       (add-use proc (add-uses args uses)))
                      (($ $callk label proc args)
                       (add-use proc (add-uses args uses)))
-                     (($ $branch kt ($ $values (arg)))
-                      (add-use arg uses))
                      (($ $branch kt ($ $primcall name args))
                       (add-uses args uses))
                      (($ $primcall name args)
@@ -777,14 +771,6 @@ bound to @var{var}, and continue to @var{k}."
                (build-term
                  ($continue k src
                    ($branch kt ($primcall name args))))))))
-
-        (($ $continue k src ($ $branch kt ($ $values (arg))))
-         (convert-arg cps arg
-           (lambda (cps arg)
-             (with-cps cps
-               (build-term
-                 ($continue k src
-                   ($branch kt ($values (arg)))))))))
 
         (($ $continue k src ($ $values args))
          (convert-args cps args

@@ -1,6 +1,6 @@
 ;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -175,8 +175,6 @@ by a label, respectively."
            (($ $primcall name args)
             (return (get-defs k) (vars->intset args)))
            (($ $branch kt ($ $primcall name args))
-            (return empty-intset (vars->intset args)))
-           (($ $branch kt ($ $values args))
             (return empty-intset (vars->intset args)))
            (($ $values args)
             (return (get-defs k) (vars->intset args)))

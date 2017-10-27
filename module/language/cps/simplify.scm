@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -78,8 +78,6 @@
           (ref* args))
          (($ $values args)
           (ref* args))
-         (($ $branch kt ($ $values (var)))
-          (ref var))
          (($ $branch kt ($ $primcall name args))
           (ref* args))
          (($ $prompt escape? tag handler)
@@ -154,10 +152,10 @@
                   (($ $kargs (_)
                              ((? (lambda (var) (intset-ref singly-used var))
                                  var))
-                      ($ $continue kf _ ($ $branch kt ($ $values (var)))))
+                      ($ $continue kf _ ($ $branch kt ($ $primcall 'false? (var)))))
                    (build-cont
                      ($kargs names syms
-                       ($continue (subst (if val kt kf)) src ($values ())))))
+                       ($continue (subst (if val kf kt)) src ($values ())))))
                   (_
                    (build-cont
                      ($kargs names syms
@@ -255,8 +253,6 @@
                  ($primcall name ,(map subst args)))
                 (($ $values args)
                  ($values ,(map subst args)))
-                (($ $branch kt ($ $values (var)))
-                 ($branch kt ($values ((subst var)))))
                 (($ $branch kt ($ $primcall name args))
                  ($branch kt ($primcall name ,(map subst args))))
                 (($ $prompt escape? tag handler)

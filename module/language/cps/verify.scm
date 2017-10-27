@@ -1,5 +1,5 @@
 ;;; Diagnostic checker for CPS
-;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -160,9 +160,6 @@ definitions that are available at LABEL."
          (check-use proc)
          (for-each check-use args)
          (visit-first-order kfun))
-        (($ $branch kt ($ $values (arg)))
-         (check-use arg)
-         first-order)
         (($ $branch kt ($ $primcall name args))
          (for-each check-use args)
          first-order)
