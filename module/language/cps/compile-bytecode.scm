@@ -433,8 +433,8 @@
       (match exp
         (($ $values (sym)) (unary/old emit-br-if-true sym))
         (($ $primcall 'heap-object? (a)) (unary emit-heap-object? a))
-        (($ $primcall 'null? (a)) (unary/old emit-br-if-null a))
-        (($ $primcall 'nil? (a)) (unary/old emit-br-if-nil a))
+        (($ $primcall 'null? (a)) (unary emit-null? a))
+        (($ $primcall 'nil? (a)) (unary emit-nil? a))
         (($ $primcall 'pair? (a)) (unary emit-pair? a))
         (($ $primcall 'struct? (a)) (unary emit-struct? a))
         (($ $primcall 'char? (a)) (unary emit-char? a))
