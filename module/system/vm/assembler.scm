@@ -103,7 +103,7 @@
             emit-vector?
             emit-weak-vector?
             emit-string?
-            emit-number?
+            emit-heap-number?
             emit-hash-table?
             emit-pointer?
             emit-fluid?

@@ -417,7 +417,7 @@ using BACKEND."
                   (port    (memory-port backend address (sizeof double)))
                   (words   (get-bytevector-n port (sizeof double))))
              (bytevector-ieee-double-ref words 0 (native-endianness))))
-          (((_ & #x7f = %tc7-number) mpi)
+          (((_ & #x7f = %tc7-heap-number) mpi)
            (inferior-object 'number address))
           (((_ & #x7f = %tc7-hash-table) buckets meta-data unused)
            (inferior-object 'hash-table address))

@@ -36,7 +36,7 @@
             %tc7-vector
             %tc7-weak-vector
             %tc7-string
-            %tc7-number
+            %tc7-heap-number
             %tc7-hash-table
             %tc7-pointer
             %tc7-fluid
@@ -120,7 +120,7 @@
   (vector           vector?                #b1111111       #b0001101)
   (weak-vector      weak-vector?           #b1111111       #b0001111)
   (string           string?                #b1111111       #b0010101)
-  (number           number?                #b1111111       #b0010111)
+  (heap-number      heap-number?           #b1111111       #b0010111)
   (hash-table       hash-table?            #b1111111       #b0011101)
   (pointer          pointer?               #b1111111       #b0011111)
   (fluid            fluid?                 #b1111111       #b0100101)
@@ -148,7 +148,7 @@
   (port             port?                  #b1111111       #b1111101)
   ;;(unused         unused                 #b1111111       #b1111111)
   
-  ;(number          number?                #b1111111       #b0010111)
+  ;(heap-number     heap-number?           #b1111111       #b0010111)
   (bignum           bignum?           #b111111111111  #b000100010111)
   (flonum           flonum?           #b111111111111  #b001000010111)
   (complex          complex?          #b111111111111  #b001100010111)
