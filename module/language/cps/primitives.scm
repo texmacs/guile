@@ -66,7 +66,9 @@
     (bytevector-ieee-double-native-set! . bv-f64-set!)))
 
 (define *macro-instruction-arities*
-  '((cache-current-module! . (0 . 2))
+  '((u64->scm/unlikely . (1 . 1))
+    (s64->scm/unlikely . (1 . 1))
+    (cache-current-module! . (0 . 2))
     (cached-toplevel-box . (1 . 3))
     (cached-module-box . (1 . 4))))
 

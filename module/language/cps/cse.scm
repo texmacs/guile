@@ -310,7 +310,7 @@ false.  It could be that both true and false proofs are available."
              (match defs
                ((u64)
                 (add-def! `(primcall u64->scm ,u64) scm))))
-            (('primcall 'u64->scm u64)
+            (('primcall (or 'u64->scm 'u64->scm/unlikely) u64)
              (match defs
                ((scm)
                 (add-def! `(primcall scm->u64 ,scm) u64)
@@ -319,7 +319,7 @@ false.  It could be that both true and false proofs are available."
              (match defs
                ((s64)
                 (add-def! `(primcall s64->scm ,s64) scm))))
-            (('primcall 's64->scm s64)
+            (('primcall (or 's64->scm 's64->scm/unlikely) s64)
              (match defs
                ((scm)
                 (add-def! `(primcall scm->s64 ,scm) s64))))

@@ -862,6 +862,7 @@ minimum, and maximum."
   #t)
 (define-type-inferrer (u64->scm u64 result)
   (define-exact-integer! result (&min/0 u64) (&max/u64 u64)))
+(define-type-aliases u64->scm u64->scm/unlikely)
 
 (define-type-checker (scm->s64 scm)
   (check-type scm &exact-integer &s64-min &s64-max))
@@ -869,6 +870,7 @@ minimum, and maximum."
   (restrict! scm &exact-integer &s64-min &s64-max)
   (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
 (define-type-aliases scm->s64 load-s64)
+(define-type-aliases s64->scm s64->scm/unlikely)
 
 (define-simple-type-checker (untag-fixnum &fixnum))
 (define-type-inferrer (untag-fixnum scm result)

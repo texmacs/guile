@@ -550,6 +550,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   (define (exp-result-u64? exp)
     (match exp
       ((or ($ $primcall 'u64->scm (_))
+           ($ $primcall 'u64->scm/unlikely (_))
            ($ $const (and (? number?) (? exact-integer?)
                           (? (lambda (n) (<= 0 n #xffffffffffffffff))))))
        #t)

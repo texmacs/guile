@@ -381,9 +381,11 @@ is or might be a read or a write to the same location as A."
   ((scm->u64/truncate _)                                       &type-check)
   ((load-u64 _))
   ((u64->scm _))
+  ((u64->scm/unlikely _))
   ((scm->s64 _)                                                &type-check)
   ((load-s64 _))
   ((s64->scm _))
+  ((s64->scm/unlikely _))
   ((untag-fixnum _)))
 
 ;; Bytevectors.
