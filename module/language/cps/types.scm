@@ -603,6 +603,21 @@ minimum, and maximum."
     (logand &all-types (lognot &heap-number-types)))
   (restrict! val (if true? &heap-number-types &other-types) -inf.0 +inf.0))
 
+(define-predicate-inferrer (fixnum? val true?)
+  (cond
+   (true?
+    (restrict! val &fixnum most-negative-fixnum most-positive-fixnum))
+   ((type<=? (&type val) &exact-integer)
+    (cond
+     ((<= (&max val) most-positive-fixnum)
+      (restrict! val &bignum -inf.0 (1- most-negative-fixnum)))
+     ((>= (&min val) most-negative-fixnum)
+      (restrict! val &bignum most-positive-fixnum +inf.0))
+     (else
+      (restrict! val &bignum -inf.0 +inf.0))))
+   (else
+    (restrict! val (logand &all-types (lognot &fixnum)) -inf.0 +inf.0))))
+
 (define-syntax-rule (define-simple-predicate-inferrer predicate type)
   (define-predicate-inferrer (predicate val true?)
     (let ((type (if true?

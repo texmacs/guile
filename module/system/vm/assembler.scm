@@ -86,7 +86,7 @@
             emit-jge
             emit-jnge
 
-            emit-inum?
+            emit-fixnum?
             emit-heap-object?
             emit-char?
             emit-eq-null?
