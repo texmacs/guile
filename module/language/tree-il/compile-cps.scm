@@ -521,35 +521,6 @@
                          ($continue k src ($primcall 'equal? args))))
              (build-term ($continue kf* src
                            ($branch kt ($primcall 'eqv? args))))))))
-      ((branching-primitive? name)
-       (let ()
-         (define (reify-primcall cps kt kf args)
-           (if (heap-type-predicate? name)
-               (with-cps cps
-                 (letk kt* ($kargs () ()
-                             ($continue kf src
-                               ($branch kt ($primcall name args)))))
-                 (build-term ($continue kf src
-                               ($branch kt* ($primcall 'heap-object? args)))))
-               (with-cps cps
-                 (build-term ($continue kf src
-                               ($branch kt ($primcall name args)))))))
-         (convert-args cps args
-           (lambda (cps args)
-             (with-cps cps
-               (let$ k (adapt-arity k src 1))
-               (letk kt ($kargs () () ($continue k src ($const #t))))
-               (letk kf ($kargs () () ($continue k src ($const #f))))
-               ($ (reify-primcall kt kf args)))))))
-      ((and (eq? name 'not) (match args ((_) #t) (_ #f)))
-       (convert-args cps args
-         (lambda (cps args)
-           (with-cps cps
-             (let$ k (adapt-arity k src 1))
-             (letk kt ($kargs () () ($continue k src ($const #f))))
-             (letk kf ($kargs () () ($continue k src ($const #t))))
-             (build-term ($continue kt src
-                           ($branch kf ($primcall 'false? args))))))))
       ((and (eq? name 'list)
             (and-map (match-lambda
                        ((or ($ <const>)
@@ -998,9 +969,38 @@ integer."
   (optimize x e opts))
 
 (define (canonicalize exp)
+  (define (reduce-conditional exp)
+    (match exp
+      (($ <conditional> src
+          ($ <conditional> _ test ($ <const> _ t) ($ <const> _ f))
+          consequent alternate)
+       (cond
+        ((and t (not f))
+         (reduce-conditional (make-conditional src test consequent alternate)))
+        ((and (not t) f)
+         (reduce-conditional (make-conditional src test alternate consequent)))
+        (else
+         exp)))
+      (_ exp)))
   (post-order
    (lambda (exp)
      (match exp
+       (($ <conditional>)
+        (reduce-conditional exp))
+
+       (($ <primcall> src (? branching-primitive? name) args)
+        ;; No need to reduce because test is not reducible: reifying
+        ;; #t/#f is the right thing.
+        (make-conditional src exp
+                          (make-const src #t)
+                          (make-const src #f)))
+
+       (($ <primcall> src 'not (x))
+        (reduce-conditional
+         (make-conditional src x
+                           (make-const src #f)
+                           (make-const src #t))))
+
        (($ <primcall> src 'vector
            (and args
                 ((or ($ <const>) ($ <void>) ($ <lambda>) ($ <lexical-ref>))
