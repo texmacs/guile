@@ -146,7 +146,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64-< <)
 (define-branch-folder-alias s64-< <)
-(define-branch-folder-alias u64-<-scm <)
 ;; We currently cannot define branch folders for floating point
 ;; comparison ops like the commented one below because we can't prove
 ;; there are no nans involved.
@@ -160,7 +159,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64-<= <=)
 (define-branch-folder-alias s64-<= <=)
-(define-branch-folder-alias u64-<=-scm <=)
 
 (define-binary-branch-folder (= type0 min0 max0 type1 min1 max1)
   (case (compare-ranges type0 min0 max0 type1 min1 max1)
@@ -169,7 +167,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64-= =)
 (define-branch-folder-alias s64-= =)
-(define-branch-folder-alias u64-=-scm =)
 
 (define-binary-branch-folder (>= type0 min0 max0 type1 min1 max1)
   (case (compare-ranges type0 min0 max0 type1 min1 max1)
@@ -178,7 +175,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64->= >=)
 (define-branch-folder-alias s64->= >=)
-(define-branch-folder-alias u64->=-scm >=)
 
 (define-binary-branch-folder (> type0 min0 max0 type1 min1 max1)
   (case (compare-ranges type0 min0 max0 type1 min1 max1)
@@ -187,7 +183,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64-> >)
 (define-branch-folder-alias s64-> >)
-(define-branch-folder-alias u64->-scm >)
 
 (define-binary-branch-folder (logtest type0 min0 max0 type1 min1 max1)
   (define (logand-min a b)

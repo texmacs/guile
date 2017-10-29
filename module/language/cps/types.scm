@@ -991,34 +991,6 @@ minimum, and maximum."
       (restrict! a &u64 min max)
       (restrict! b &u64 min max))))
 
-(define-simple-type-checker (u64-=-scm &u64 &real))
-(define-predicate-inferrer (u64-=-scm a b true?)
-  (when (and true? (zero? (logand (&type b) (lognot &real))))
-    (let ((min (max (&min/0 a) (&min/0 b)))
-          (max (min (&max/u64 a) (&max/u64 b))))
-      (restrict! a &u64 min max)
-      (restrict! b &real min max))))
-
-(define-simple-type-checker (u64-<-scm &u64 &real))
-(define-predicate-inferrer (u64-<-scm a b true?)
-  (when (and true? (zero? (logand (&type b) (lognot &real))))
-    (true-comparison-restrictions '< a b &u64 &real)))
-
-(define-simple-type-checker (u64-<=-scm &u64 &real))
-(define-predicate-inferrer (u64-<=-scm a b true?)
-  (when (and true? (zero? (logand (&type b) (lognot &real))))
-    (true-comparison-restrictions '<= a b &u64 &real)))
-
-(define-simple-type-checker (u64->=-scm &u64 &real))
-(define-predicate-inferrer (u64->=-scm a b true?)
-  (when (and true? (zero? (logand (&type b) (lognot &real))))
-    (true-comparison-restrictions '>= a b &u64 &real)))
-
-(define-simple-type-checker (u64->-scm &u64 &real))
-(define-predicate-inferrer (u64->-scm a b true?)
-  (when (and true? (zero? (logand (&type b) (lognot &real))))
-    (true-comparison-restrictions '> a b &u64 &real)))
-
 (define (infer-u64-comparison-ranges op min0 max0 min1 max1)
   (match op
     ('< (values min0 (min max0 (1- max1)) (max (1+ min0) min1) max1))

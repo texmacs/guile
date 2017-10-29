@@ -145,9 +145,6 @@ before it is lowered to CPS?"
 
     ;; FIXME: Expand these.
     logtest
-    u64-<-scm
-    u64-<=-scm
-    u64-=-scm
 
     ;; FIXME: Remove these.
     >
@@ -156,8 +153,6 @@ before it is lowered to CPS?"
     u64->=
     s64->
     s64->=
-    u64->=-scm
-    u64->-scm
     f64->
     f64->=))
 

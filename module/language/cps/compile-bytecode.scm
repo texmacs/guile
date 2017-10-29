@@ -471,11 +471,6 @@
         (($ $primcall 'f64-= (a b)) (binary-test emit-f64=? a b))
         (($ $primcall 'f64->= (a b)) (binary* emit-f64<? emit-jge emit-jnge a b))
         (($ $primcall 'f64-> (a b)) (binary* emit-f64<? emit-jl emit-jnl b a))
-        (($ $primcall 'u64-<-scm (a b)) (binary emit-br-if-u64-<-scm a b))
-        (($ $primcall 'u64-<=-scm (a b)) (binary emit-br-if-u64-<=-scm a b))
-        (($ $primcall 'u64-=-scm (a b)) (binary emit-br-if-u64-=-scm a b))
-        (($ $primcall 'u64->=-scm (a b)) (binary emit-br-if-u64->=-scm a b))
-        (($ $primcall 'u64->-scm (a b)) (binary emit-br-if-u64->-scm a b))
         (($ $primcall 'logtest (a b)) (binary emit-br-if-logtest a b))))
 
     (define (compile-trunc label k exp nreq rest-var)
