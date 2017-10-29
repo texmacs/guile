@@ -95,12 +95,12 @@
     string?
     keyword?
     bytevector?
-    bitvector?))
+    bitvector?
+    heap-number?))
 
 ;; FIXME: Support these.
 (define *other-predicates*
   '(weak-vector?
-    number?
     hash-table?
     pointer?
     fluid?

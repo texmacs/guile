@@ -596,6 +596,13 @@ minimum, and maximum."
     (logand &all-types (lognot &immediate-types)))
   (restrict! val (if true? &heap-object-types &immediate-types) -inf.0 +inf.0))
 
+(define-predicate-inferrer (heap-number? val true?)
+  (define &heap-number-types
+    (logior &bignum &flonum &complex &fraction))
+  (define &other-types
+    (logand &all-types (lognot &heap-number-types)))
+  (restrict! val (if true? &heap-number-types &other-types) -inf.0 +inf.0))
+
 (define-syntax-rule (define-simple-predicate-inferrer predicate type)
   (define-predicate-inferrer (predicate val true?)
     (let ((type (if true?

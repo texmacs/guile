@@ -97,6 +97,13 @@
    ((type<=? type &immediate-types) (values #t #f))
    (else (values #f #f))))
 
+(define-unary-branch-folder (heap-number? type min max)
+  (define &types (logior &bignum &flonum &fraction &complex))
+  (cond
+   ((zero? (logand type &types)) (values #t #f))
+   ((type<=? type &types) (values #t #t))
+   (else (values #f #f))))
+
 ;; All the cases that are in compile-bytecode.
 (define-unary-type-predicate-folder pair? &pair)
 (define-unary-type-predicate-folder symbol? &symbol)
