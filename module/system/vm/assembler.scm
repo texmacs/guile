@@ -97,6 +97,8 @@
             emit-undefined?
             emit-eof-object?
 
+            emit-untag-fixnum
+
             emit-pair?
             emit-struct?
             emit-symbol?

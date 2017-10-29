@@ -870,10 +870,9 @@ minimum, and maximum."
   (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
 (define-type-aliases scm->s64 load-s64)
 
-(define-type-checker (s64->scm s64)
-  #t)
-(define-type-inferrer (s64->scm s64 result)
-  (define-exact-integer! result (&min/s64 s64) (&max/s64 s64)))
+(define-simple-type-checker (untag-fixnum &fixnum))
+(define-type-inferrer (untag-fixnum scm result)
+  (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
 
 
 

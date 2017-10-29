@@ -4413,7 +4413,17 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (214, unused_214, NULL, NOP)
+  VM_DEFINE_OP (214, untag_fixnum, "untag-fixnum", OP1 (X8_S12_S12) | OP_DST)
+    {
+      scm_t_uint16 dst, src;
+
+      UNPACK_12_12 (op, dst, src);
+
+      SP_SET_S64 (dst, SCM_I_INUM (SP_REF (src)));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (215, unused_215, NULL, NOP)
   VM_DEFINE_OP (216, unused_216, NULL, NOP)
   VM_DEFINE_OP (217, unused_217, NULL, NOP)

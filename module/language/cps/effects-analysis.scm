@@ -383,7 +383,8 @@ is or might be a read or a write to the same location as A."
   ((u64->scm _))
   ((scm->s64 _)                                                &type-check)
   ((load-s64 _))
-  ((s64->scm _)))
+  ((s64->scm _))
+  ((untag-fixnum _)))
 
 ;; Bytevectors.
 (define-primitive-effects

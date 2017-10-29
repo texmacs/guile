@@ -272,6 +272,8 @@
          (emit-atomic-box-compare-and-swap!
           asm (from-sp dst) (from-sp (slot box))
           (from-sp (slot expected)) (from-sp (slot desired))))
+        (($ $primcall 'untag-fixnum (src))
+         (emit-untag-fixnum asm (from-sp dst) (from-sp (slot src))))
         (($ $primcall name args)
          ;; FIXME: Inline all the cases.
          (let ((inst (prim-instruction name)))

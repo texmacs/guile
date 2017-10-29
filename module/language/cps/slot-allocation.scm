@@ -810,7 +810,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                'ursh/immediate 'ulsh/immediate
                                'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref))
               (intmap-add representations var 'u64))
-             (($ $primcall (or 'scm->s64 'load-s64
+             (($ $primcall (or 'untag-fixnum
+                               'scm->s64 'load-s64
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
               (intmap-add representations var 's64))
              (_
