@@ -134,6 +134,9 @@ before it is lowered to CPS?"
     u64-<
     u64-<=
     u64-=
+    s64-<
+    s64-<=
+    s64-=
     f64-=
     f64-<
     f64-<=
@@ -149,6 +152,8 @@ before it is lowered to CPS?"
     >=
     u64->
     u64->=
+    s64->
+    s64->=
     u64->=-scm
     u64->-scm
     f64->

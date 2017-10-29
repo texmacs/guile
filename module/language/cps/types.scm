@@ -1032,6 +1032,44 @@ minimum, and maximum."
 (define-simple-type-checker (u64-> &u64 &u64))
 (define-u64-comparison-inferrer (u64-> > <=))
 
+;; Signed unboxed comparisons.
+(define-simple-type-checker (s64-= &s64 &s64))
+(define-predicate-inferrer (s64-= a b true?)
+  (when true?
+    (let ((min (max (&min/s64 a) (&min/s64 b)))
+          (max (min (&max/s64 a) (&max/s64 b))))
+      (restrict! a &s64 min max)
+      (restrict! b &s64 min max))))
+
+(define (infer-s64-comparison-ranges op min0 max0 min1 max1)
+  (match op
+    ('< (values min0 (min max0 (1- max1)) (max (1+ min0) min1) max1))
+    ('<= (values min0 (min max0 max1) (max min0 min1) max1))
+    ('>= (values (max min0 min1) max0 min1 (min max0 max1)))
+    ('> (values (max min0 (1+ min1)) max0 min1 (min (1- max0) max1)))))
+(define-syntax-rule (define-s64-comparison-inferrer (s64-op op inverse))
+  (define-predicate-inferrer (s64-op a b true?)
+    (call-with-values
+        (lambda ()
+          (infer-s64-comparison-ranges (if true? 'op 'inverse)
+                                       (&min/s64 a) (&max/s64 a)
+                                       (&min/s64 b) (&max/s64 b)))
+      (lambda (min0 max0 min1 max1)
+        (restrict! a &s64 min0 max0)
+        (restrict! b &s64 min1 max1)))))
+
+(define-simple-type-checker (s64-< &s64 &s64))
+(define-s64-comparison-inferrer (s64-< < >=))
+
+(define-simple-type-checker (s64-<= &s64 &s64))
+(define-s64-comparison-inferrer (s64-<= <= >))
+
+(define-simple-type-checker (s64->= &s64 &s64))
+(define-s64-comparison-inferrer (s64-<= >= <))
+
+(define-simple-type-checker (s64-> &s64 &s64))
+(define-s64-comparison-inferrer (s64-> > <=))
+
 ;; Arithmetic.
 (define-syntax-rule (define-unary-result! a result min max)
   (let ((min* min)
