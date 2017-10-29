@@ -817,6 +817,9 @@
             (letk kt* ($kargs () () ,t))
             (letk kf* ($kargs () () ,f))
             ($ (convert-test test kt* kf*))))
+         (($ <const> src c)
+          (with-cps cps
+            (build-term ($continue (if c kt kf) src ($values ())))))
          (_ (convert-arg cps test
               (lambda (cps test)
                 (with-cps cps
