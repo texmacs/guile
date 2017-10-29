@@ -4395,7 +4395,24 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
         NEXT (1);
     }
 
-  VM_DEFINE_OP (213, unused_213, NULL, NOP)
+  VM_DEFINE_OP (213, heap_numbers_equal, "heap-numbers-equal?", OP1 (X8_S12_S12))
+    {
+      scm_t_uint16 a, b;
+      SCM x, y;
+
+      UNPACK_12_12 (op, a, b);
+      x = SP_REF (a);
+      y = SP_REF (b);
+
+      SYNC_IP ();
+      if (scm_is_true (scm_i_heap_numbers_equal_p (x, y)))
+        vp->compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        vp->compare_result = SCM_F_COMPARE_NONE;
+      CACHE_SP ();
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (214, unused_214, NULL, NOP)
   VM_DEFINE_OP (215, unused_215, NULL, NOP)
   VM_DEFINE_OP (216, unused_216, NULL, NOP)

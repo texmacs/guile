@@ -632,7 +632,7 @@ minimum, and maximum."
           (max (min (&max a) (&max b))))
       (restrict! a type min max)
       (restrict! b type min max))))
-(define-type-inferrer-aliases eq? eqv?)
+(define-type-inferrer-aliases eq? heap-numbers-equal?)
 
 
 

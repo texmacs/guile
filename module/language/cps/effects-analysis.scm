@@ -433,6 +433,7 @@ is or might be a read or a write to the same location as A."
 
 ;; Numbers.
 (define-primitive-effects
+  ((heap-numbers-equal? . _))
   ((= . _)                         &type-check)
   ((< . _)                         &type-check)
   ((> . _)                         &type-check)

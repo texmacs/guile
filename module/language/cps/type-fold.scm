@@ -125,7 +125,7 @@
     (values #t #t))
    (else
     (values #f #f))))
-(define-branch-folder-alias eqv? eq?)
+(define-branch-folder-alias heap-numbers-equal? eq?)
 
 (define (compare-ranges type0 min0 max0 type1 min1 max1)
   ;; Since &real, &u64, and &f64 are disjoint, we can compare once

@@ -4,7 +4,7 @@
 #define SCM_NUMBERS_H
 
 /* Copyright (C) 1995, 1996, 1998, 2000-2006, 2008-2011, 2013, 2014,
- *   2016 Free Software Foundation, Inc.
+ *   2016, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -260,6 +260,7 @@ SCM_API SCM scm_string_to_number (SCM str, SCM radix);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
 SCM_API SCM scm_complex_equalp (SCM x, SCM y);
+SCM_INTERNAL SCM scm_i_heap_numbers_equal_p (SCM x, SCM y);
 SCM_API SCM scm_number_p (SCM x);
 SCM_API SCM scm_complex_p (SCM x);
 SCM_API SCM scm_real_p (SCM x);

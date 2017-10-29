@@ -127,7 +127,7 @@ before it is lowered to CPS?"
 
 (define *comparisons*
   '(eq?
-    eqv?
+    heap-numbers-equal?
     <
     <=
     =

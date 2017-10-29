@@ -509,18 +509,6 @@
 
     (($ <primcall> src name args)
      (cond
-      ((eq? name 'equal?)
-       (convert-args cps args
-         (lambda (cps args)
-           (with-cps cps
-             (let$ k* (adapt-arity k src 1))
-             (letk kt ($kargs () () ($continue k* src ($const #t))))
-             (letk kf* ($kargs () ()
-                         ;; Here we continue to the original $kreceive
-                         ;; or $ktail, as equal? doesn't have a VM op.
-                         ($continue k src ($primcall 'equal? args))))
-             (build-term ($continue kf* src
-                           ($branch kt ($primcall 'eqv? args))))))))
       ((and (eq? name 'list)
             (and-map (match-lambda
                        ((or ($ <const>)
@@ -663,6 +651,8 @@
                      (lambda (cps integer)
                        (have-args cps (list integer)))))))
                 (else (have-args cps args))))
+            (when (branching-primitive? name)
+              (error "branching primcall in bad context" name))
             (convert-args cps args
               (lambda (cps args)
                 ;; Tree-IL primcalls are sloppy, in that it could be
@@ -1001,6 +991,48 @@ integer."
                            (make-const src #f)
                            (make-const src #t))))
 
+       (($ <primcall> src (or 'eqv? 'equal?) (a b))
+        (let ()
+          (define-syntax-rule (with-lexical id . body)
+            (let ((k (lambda (id) . body)))
+              (match id
+                (($ <lexical-ref>) (k id))
+                (_
+                 (let ((v (gensym "v ")))
+                   (make-let src (list 'v) (list v) (list id)
+                             (k (make-lexical-ref src 'v v))))))))
+          (define-syntax with-lexicals
+            (syntax-rules ()
+              ((with-lexicals () . body) (let () . body))
+              ((with-lexicals (id . ids) . body)
+               (with-lexical id (with-lexicals ids . body)))))
+          (define-syntax-rule (primcall name . args)
+            (make-primcall src 'name (list . args)))
+          (define-syntax primcall-chain
+            (syntax-rules ()
+              ((_ x) x)
+              ((_ x . y)
+               (make-conditional src (primcall . x) (primcall-chain . y)
+                                 (make-const src #f)))))
+          (define-syntax-rule (bool x)
+            (make-conditional src x (make-const src #t) (make-const src #f)))
+          (with-lexicals (a b)
+            (make-conditional
+             src
+             (primcall eq? a b)
+             (make-const src #t)
+             (match (primcall-name exp)
+               ('eqv?
+                ;; Completely inline.
+                (primcall-chain (heap-number? a)
+                                (heap-number? b)
+                                (bool (primcall heap-numbers-equal? a b))))
+               ('equal?
+                ;; Partially inline.
+                (primcall-chain (heap-object? a)
+                                (heap-object? b)
+                                (primcall equal? a b))))))))
+
        (($ <primcall> src 'vector
            (and args
                 ((or ($ <const>) ($ <void>) ($ <lambda>) ($ <lexical-ref>))
@@ -1110,4 +1142,5 @@ integer."
 ;;; Local Variables:
 ;;; eval: (put 'convert-arg 'scheme-indent-function 2)
 ;;; eval: (put 'convert-args 'scheme-indent-function 2)
+;;; eval: (put 'with-lexicals 'scheme-indent-function 1)
 ;;; End:

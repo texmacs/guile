@@ -77,6 +77,7 @@
             emit-immediate-tag=?
             emit-heap-tag=?
             emit-eq?
+            emit-heap-numbers-equal?
             emit-j
             emit-jl
             emit-je

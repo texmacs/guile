@@ -441,11 +441,13 @@
         (($ $primcall 'bytevector? (a)) (unary emit-bytevector? a))
         (($ $primcall 'bitvector? (a)) (unary emit-bitvector? a))
         (($ $primcall 'keyword? (a)) (unary emit-keyword? a))
+        (($ $primcall 'heap-number? (a)) (unary emit-heap-number? a))
         ;; Add more TC7 tests here.  Keep in sync with
         ;; *branching-primcall-arities* in (language cps primitives) and
         ;; the set of macro-instructions in assembly.scm.
         (($ $primcall 'eq? (a b)) (binary-test emit-eq? a b))
-        (($ $primcall 'eqv? (a b)) (binary emit-br-if-eqv a b))
+        (($ $primcall 'heap-numbers-equal? (a b))
+         (binary-test emit-heap-numbers-equal? a b))
         (($ $primcall '< (a b)) (binary* emit-<? emit-jl emit-jnl a b))
         (($ $primcall '<= (a b)) (binary* emit-<? emit-jge emit-jnge b a))
         (($ $primcall '= (a b)) (binary-test emit-=? a b))
