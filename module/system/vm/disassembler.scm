@@ -206,38 +206,12 @@ address of that offset."
        (dereference-pointer (make-pointer addr)))))
 
   (match code
-    (((or 'br
-          'br-if-nargs-ne 'br-if-nargs-lt 'br-if-nargs-gt
-          'br-if-true 'br-if-null 'br-if-nil 'br-if-pair 'br-if-struct
-          'br-if-char 'br-if-eq 'br-if-eqv
-          'br-if-= 'br-if-< 'br-if-<= 'br-if-> 'br-if->=
-          'br-if-u64-= 'br-if-u64-< 'br-if-u64-<=
-          'br-if-u64-<-scm 'br-if-u64-<=-scm 'br-if-u64-=-scm
-          'br-if-u64->-scm 'br-if-u64->=-scm
-          'br-if-f64-= 'br-if-f64-< 'br-if-f64-<=
-          'br-if-f64-> 'br-if-f64->=
-          'br-if-logtest) _ ... target)
-     (list "-> ~A" (vector-ref labels (- (+ offset target) start))))
     (((or 'j 'je 'jl 'jge 'jne 'jnl 'jnge) target)
      (list "-> ~A" (vector-ref labels (- (+ offset target) start))))
     (('immediate-tag=? _ mask tag)
      (assoc-ref immediate-tag-annotations (list mask tag)))
     (('heap-tag=? _ mask tag)
      (assoc-ref heap-tag-annotations (list mask tag)))
-    (('br-if-tc7 slot invert? tc7 target)
-     (list "~A -> ~A"
-           (let ((tag (case tc7
-                        ((5) "symbol?")
-                        ((7) "variable?")
-                        ((13) "vector?")
-                        ((15) "string?")
-                        ((53) "keyword?")
-                        ((#x3d) "syntax?")
-                        ((77) "bytevector?")
-                        ((95) "bitvector?")
-                        (else (number->string tc7)))))
-             (if invert? (string-append "not " tag) tag))
-           (vector-ref labels (- (+ offset target) start))))
     (('prompt tag escape-only? proc-slot handler)
      ;; The H is for handler.
      (list "H -> ~A" (vector-ref labels (- (+ offset handler) start))))
@@ -320,15 +294,7 @@ address of that offset."
             (match elt
               ((inst arg ...)
                (case inst
-                 ((br
-                   br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt
-                   br-if-true br-if-null br-if-nil br-if-pair br-if-struct
-                   br-if-char br-if-tc7 br-if-eq br-if-eqv
-                   br-if-= br-if-< br-if-<= br-if-> br-if->= br-if-logtest
-                   br-if-u64-= br-if-u64-< br-if-u64-<=
-                   br-if-u64-<-scm br-if-u64-<=-scm br-if-u64-=-scm
-                   br-if-u64->-scm br-if-u64->=-scm
-                   j je jl jge jne jnl jnge)
+                 ((j je jl jge jne jnl jnge)
                   (match arg
                     ((_ ... target)
                      (add-label! (+ offset target) "L"))))
@@ -549,7 +515,6 @@ address of that offset."
                        return-values
                        subr-call foreign-call continuation-call
                        tail-apply
-                       br
                        j))
   (let ((opcode (logand (bytevector-u32-native-ref code pos) #xff)))
     (not (bitvector-ref non-fallthrough-set opcode))))
@@ -559,8 +524,7 @@ address of that offset."
     (syntax-case x ()
       ((_ name opcode kind word0 word* ...)
        (let ((symname (syntax->datum #'name)))
-         (if (or (memq symname '(br prompt j je jl jge jne jnl jnge))
-                 (string-prefix? "br-" (symbol->string symname)))
+         (if (memq symname '(prompt j je jl jge jne jnl jnge))
              (let ((offset (* 4 (length #'(word* ...)))))
                #`(vector-set!
                   jump-parsers
