@@ -184,20 +184,6 @@
 (define-branch-folder-alias u64-> >)
 (define-branch-folder-alias s64-> >)
 
-(define-binary-branch-folder (logtest type0 min0 max0 type1 min1 max1)
-  (define (logand-min a b)
-    (if (< a b 0)
-        (min a b)
-        0))
-  (define (logand-max a b)
-    (if (< a b 0)
-        0
-        (max a b)))
-  (if (and (= min0 max0) (= min1 max1)
-           (type<=? (logior type0 type1) &exact-integer))
-      (values #t (logtest min0 min1))
-      (values #f #f)))
-
 
 
 
@@ -282,6 +268,7 @@
 (define-binary-primcall-reducer (logbit? cps k src
                                          arg0 type0 min0 max0
                                          arg1 type1 min1 max1)
+  ;; FIXME: Use an unboxed number for the mask instead of a fixnum.
   (define (convert-to-logtest cps kbool)
     (define (compute-mask cps kmask src)
       (if (eq? min0 max0)
@@ -293,14 +280,20 @@
                  (build-term
                    ($continue kmask src ($primcall 'ash (one arg0)))))))))
     (with-cps cps
-      (letv mask)
+      (letv mask test)
       (letk kt ($kargs () ()
                  ($continue kbool src ($const #t))))
       (letk kf ($kargs () ()
                  ($continue kbool src ($const #f))))
+      (let$ body (with-cps-constants ((zero 0))
+                   (build-term
+                     ($continue kt src
+                       ($branch kf ($primcall 'eq? (test zero)))))))
+      (letk kand ($kargs (#f) (test)
+                   ,body))
       (letk kmask ($kargs (#f) (mask)
-                    ($continue kf src
-                      ($branch kt ($primcall 'logtest (mask arg1))))))
+                    ($continue kand src
+                      ($primcall 'logand (mask arg1)))))
       ($ (compute-mask kmask src))))
   ;; Hairiness because we are converting from a primcall with unknown
   ;; arity to a branching primcall.

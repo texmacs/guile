@@ -1,6 +1,6 @@
 ;;; Tree-IL partial evaluator
 
-;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1381,19 +1381,25 @@ top-level bindings from ENV and return the resulting expression."
            ($ <lexical-ref> _ _ sym) ($ <lexical-ref> _ _ sym))
           (for-tail (make-const #f #t)))
 
-         (('= ($ <primcall> src2 'logand (a b)) ($ <const> _ 0))
-          (let ((src (or src src2)))
-            (make-primcall src 'not
-                           (list (make-primcall src 'logtest (list a b))))))
-
          (('logbit? ($ <const> src2
                        (? (lambda (bit)
-                            (and (exact-integer? bit) (not (negative? bit))))
+                            (and (exact-integer? bit)
+                                 (<= 0 bit (logcount most-positive-fixnum))))
                           bit))
                     val)
-          (fold-constants src 'logtest
-                          (list (make-const (or src2 src) (ash 1 bit)) val)
-                          ctx))
+          (for-tail
+           (make-primcall src 'logtest
+                          (list (make-const src2 (ash 1 bit)) val))))
+
+         (('logtest a b)
+          (for-tail
+           (make-primcall
+            src
+            'not
+            (list
+             (make-primcall src 'eq?
+                            (list (make-primcall src 'logand (list a b))
+                                  (make-const src 0)))))))
 
          (((? effect-free-primitive?) . args)
           (fold-constants src name args ctx))

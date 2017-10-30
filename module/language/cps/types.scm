@@ -1476,9 +1476,10 @@ minimum, and maximum."
     (- -1 (&min a))))
 
 (define-simple-type-checker (logtest &exact-integer &exact-integer))
-(define-predicate-inferrer (logtest a b true?)
+(define-type-inferrer (logtest a b result)
   (restrict! a &exact-integer -inf.0 +inf.0)
-  (restrict! b &exact-integer -inf.0 +inf.0))
+  (restrict! b &exact-integer -inf.0 +inf.0)
+  (define! result &special-immediate &false &true))
 
 (define-simple-type-checker (logbit? (&exact-integer 0 +inf.0) &exact-integer))
 (define-type-inferrer (logbit? a b result)

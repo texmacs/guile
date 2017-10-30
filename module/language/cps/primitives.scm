@@ -143,9 +143,6 @@ before it is lowered to CPS?"
     f64-<
     f64-<=
 
-    ;; FIXME: Expand these.
-    logtest
-
     ;; FIXME: Remove these.
     >
     >=
