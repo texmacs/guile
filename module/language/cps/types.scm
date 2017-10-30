@@ -543,18 +543,17 @@ minimum, and maximum."
 ;;; Generic effect-free predicates.
 ;;;
 
-(define-syntax-rule (define-special-immediate-predicate-inferrer pred imm*)
+(define-syntax-rule (define-special-immediate-predicate-inferrer pred imm)
   (define-predicate-inferrer (pred val true?)
-    (let ((imm imm*))
-      (define (range-subtract lo hi x)
-        (values (if (eqv? lo x) (1+ lo) lo)
-                (if (eqv? hi x) (1- hi) hi)))
-      (cond
-       (true? (restrict! val &special-immediate imm imm))
-       (else
-        (when (eqv? (&type val) &special-immediate)
-          (let-values (((lo hi) (range-subtract (&min val) (&max val) imm)))
-            (restrict! val &special-immediate lo hi))))))))
+    (define (range-subtract lo hi x)
+      (values (if (eqv? lo x) (1+ lo) lo)
+              (if (eqv? hi x) (1- hi) hi)))
+    (cond
+     (true? (restrict! val &special-immediate imm imm))
+     (else
+      (when (eqv? (&type val) &special-immediate)
+        (let-values (((lo hi) (range-subtract (&min val) (&max val) imm)))
+          (restrict! val &special-immediate lo hi)))))))
 
 (define-special-immediate-predicate-inferrer eq-nil? &nil)
 (define-special-immediate-predicate-inferrer eq-eol? &null)
