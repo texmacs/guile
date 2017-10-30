@@ -151,33 +151,6 @@
             emit-br-if-npos-gt
             emit-bind-kwargs
             emit-bind-rest
-            emit-br
-            emit-br-if-true
-            emit-br-if-null
-            emit-br-if-nil
-            emit-br-if-pair
-            emit-br-if-struct
-            emit-br-if-char
-            emit-br-if-tc7
-            emit-br-if-eq
-            emit-br-if-eqv
-            emit-br-if-=
-            emit-br-if-<
-            emit-br-if-<=
-            emit-br-if-logtest
-            emit-br-if-u64-=
-            emit-br-if-u64-<
-            emit-br-if-u64-<=
-            emit-br-if-u64-<-scm
-            emit-br-if-u64-<=-scm
-            emit-br-if-u64-=-scm
-            emit-br-if-u64->=-scm
-            emit-br-if-u64->-scm
-            emit-br-if-f64-=
-            emit-br-if-f64-<
-            emit-br-if-f64-<=
-            emit-br-if-f64->
-            emit-br-if-f64->=
             emit-box
             emit-box-ref
             emit-box-set!
@@ -1246,43 +1219,6 @@ returned instead."
     (emit-heap-tag=? asm slot mask tag)))
 
 (visit-heap-tags define-heap-tag=?-macro-assembler)
-
-(define-syntax-rule (define-tc7-macro-assembler name tc7)
-  (define-macro-assembler (name asm slot invert? label)
-    (emit-br-if-tc7 asm slot invert? tc7 label)))
-
-;; Keep in sync with tags.h.  Part of Guile's ABI.  Currently unused
-;; macro assemblers are commented out.  See also
-;; *branching-primcall-arities* in (language cps primitives), the set of
-;; macro-instructions in assembly.scm, and
-;; disassembler.scm:code-annotation.
-;;
-;; FIXME: Define all tc7 values in Scheme in one place, derived from
-;; tags.h.
-(define-tc7-macro-assembler br-if-symbol #x05)
-(define-tc7-macro-assembler br-if-variable #x07)
-(define-tc7-macro-assembler br-if-vector #x0d)
-;(define-tc7-macro-assembler br-if-weak-vector 13)
-(define-tc7-macro-assembler br-if-string #x15)
-;(define-tc7-macro-assembler br-if-heap-number 23)
-;(define-tc7-macro-assembler br-if-stringbuf 39)
-(define-tc7-macro-assembler br-if-bytevector #x4d)
-;(define-tc7-macro-assembler br-if-pointer 31)
-;(define-tc7-macro-assembler br-if-hashtable 29)
-;(define-tc7-macro-assembler br-if-fluid 37)
-;(define-tc7-macro-assembler br-if-dynamic-state 45)
-;(define-tc7-macro-assembler br-if-frame 47)
-(define-tc7-macro-assembler br-if-keyword #x35)
-;(define-tc7-macro-assembler br-if-syntax #x3d)
-;(define-tc7-macro-assembler br-if-vm 55)
-;(define-tc7-macro-assembler br-if-vm-cont 71)
-;(define-tc7-macro-assembler br-if-rtl-program 69)
-;(define-tc7-macro-assembler br-if-weak-set 85)
-;(define-tc7-macro-assembler br-if-weak-table 87)
-;(define-tc7-macro-assembler br-if-array 93)
-(define-tc7-macro-assembler br-if-bitvector #x5f)
-;(define-tc7-macro-assembler br-if-port 125)
-;(define-tc7-macro-assembler br-if-smob 127)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)
