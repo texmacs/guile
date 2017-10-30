@@ -273,116 +273,6 @@
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (!scm_is_eq (VARIABLE_REF (v), SCM_UNDEFINED))
 
-#define BR_NARGS(rel)                           \
-  scm_t_uint32 expected;                        \
-  UNPACK_24 (op, expected);                     \
-  if (FRAME_LOCALS_COUNT() rel expected)        \
-    {                                           \
-      scm_t_int32 offset = ip[1];               \
-      offset >>= 8; /* Sign-extending shift. */ \
-      NEXT (offset);                            \
-    }                                           \
-  NEXT (2)
-
-#define BR_UNARY(x, exp)                        \
-  scm_t_uint32 test;                            \
-  SCM x;                                        \
-  UNPACK_24 (op, test);                         \
-  x = SP_REF (test);                            \
-  if ((ip[1] & 0x1) ? !(exp) : (exp))           \
-    {                                           \
-      scm_t_int32 offset = ip[1];               \
-      offset >>= 8; /* Sign-extending shift. */ \
-      NEXT (offset);                            \
-    }                                           \
-  NEXT (2)
-
-#define BR_BINARY(x, y, exp)                    \
-  scm_t_uint32 a, b;                            \
-  SCM x, y;                                     \
-  UNPACK_24 (op, a);                            \
-  UNPACK_24 (ip[1], b);                         \
-  x = SP_REF (a);                               \
-  y = SP_REF (b);                               \
-  if ((ip[2] & 0x1) ? !(exp) : (exp))           \
-    {                                           \
-      scm_t_int32 offset = ip[2];               \
-      offset >>= 8; /* Sign-extending shift. */ \
-      NEXT (offset);                            \
-    }                                           \
-  NEXT (3)
-
-#define BR_ARITHMETIC(crel,srel)                                        \
-  {                                                                     \
-    scm_t_uint32 a, b;                                                  \
-    SCM x, y;                                                           \
-    UNPACK_24 (op, a);                                                  \
-    UNPACK_24 (ip[1], b);                                               \
-    x = SP_REF (a);                                                     \
-    y = SP_REF (b);                                                     \
-    if (SCM_I_INUMP (x) && SCM_I_INUMP (y))                             \
-      {                                                                 \
-        scm_t_signed_bits x_bits = SCM_UNPACK (x);                      \
-        scm_t_signed_bits y_bits = SCM_UNPACK (y);                      \
-        if ((ip[2] & 0x1) ? !(x_bits crel y_bits) : (x_bits crel y_bits)) \
-          {                                                             \
-            scm_t_int32 offset = ip[2];                                 \
-            offset >>= 8; /* Sign-extending shift. */                   \
-            NEXT (offset);                                              \
-          }                                                             \
-        NEXT (3);                                                       \
-      }                                                                 \
-    else                                                                \
-      {                                                                 \
-        SCM res;                                                        \
-        SYNC_IP ();                                                     \
-        res = srel (x, y);                                              \
-        CACHE_SP ();                                                \
-        if ((ip[2] & 0x1) ? scm_is_false (res) : scm_is_true (res))     \
-          {                                                             \
-            scm_t_int32 offset = ip[2];                                 \
-            offset >>= 8; /* Sign-extending shift. */                   \
-            NEXT (offset);                                              \
-          }                                                             \
-        NEXT (3);                                                       \
-      }                                                                 \
-  }
-
-#define BR_U64_ARITHMETIC(crel)                                         \
-  {                                                                     \
-    scm_t_uint32 a, b;                                                  \
-    scm_t_uint64 x, y;                                                  \
-    UNPACK_24 (op, a);                                                  \
-    UNPACK_24 (ip[1], b);                                               \
-    x = SP_REF_U64 (a);                                                 \
-    y = SP_REF_U64 (b);                                                 \
-    if ((ip[2] & 0x1) ? !(x crel y) : (x crel y))                       \
-      {                                                                 \
-        scm_t_int32 offset = ip[2];                                     \
-        offset >>= 8; /* Sign-extending shift. */                       \
-        NEXT (offset);                                                  \
-      }                                                                 \
-    NEXT (3);                                                           \
-  }
-
-#define BR_F64_ARITHMETIC(crel)                                         \
-  {                                                                     \
-    scm_t_uint32 a, b;                                                  \
-    double x, y;                                                        \
-    UNPACK_24 (op, a);                                                  \
-    UNPACK_24 (ip[1], b);                                               \
-    x = SP_REF_F64 (a);                                                 \
-    y = SP_REF_F64 (b);                                                 \
-    if ((ip[2] & 0x1) ? !(x crel y) : (x crel y))                       \
-      {                                                                 \
-        scm_t_int32 offset = ip[2];                                     \
-        offset >>= 8; /* Sign-extending shift. */                       \
-        NEXT (offset);                                                  \
-      }                                                                 \
-    NEXT (3);                                                           \
-  }
-
-
 #define ARGS1(a1)                               \
   scm_t_uint16 dst, src;                        \
   SCM a1;                                       \
@@ -1041,25 +931,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    * Function prologues
    */
 
-  /* br-if-nargs-ne expected:24 _:8 offset:24
-   * br-if-nargs-lt expected:24 _:8 offset:24
-   * br-if-nargs-gt expected:24 _:8 offset:24
-   *
-   * If the number of actual arguments is not equal, less than, or greater
-   * than EXPECTED, respectively, add OFFSET, a signed 24-bit number, to
-   * the current instruction pointer.
-   */
-  VM_DEFINE_OP (18, br_if_nargs_ne, "br-if-nargs-ne", OP2 (X8_C24, X8_L24))
+  VM_DEFINE_OP (18, unused_18, NULL, NOP)
+  VM_DEFINE_OP (19, unused_19, NULL, NOP)
+  VM_DEFINE_OP (20, unused_20, NULL, NOP)
     {
-      BR_NARGS (!=);
-    }
-  VM_DEFINE_OP (19, br_if_nargs_lt, "br-if-nargs-lt", OP2 (X8_C24, X8_L24))
-    {
-      BR_NARGS (<);
-    }
-  VM_DEFINE_OP (20, br_if_nargs_gt, "br-if-nargs-gt", OP2 (X8_C24, X8_L24))
-    {
-      BR_NARGS (>);
+      vm_error_bad_instruction (op);
+      abort ();
     }
 
   /* assert-nargs-ee expected:24
@@ -1198,39 +1075,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* br-if-npos-gt nreq:24 _:8 npos:24 _:8 offset:24
-   *
-   * Find the first positional argument after NREQ.  If it is greater
-   * than NPOS, jump to OFFSET.
-   *
-   * This instruction is only emitted for functions with multiple
-   * clauses, and an earlier clause has keywords and no rest arguments.
-   * See "Case-lambda" in the manual, for more on how case-lambda
-   * chooses the clause to apply.
-   */
-  VM_DEFINE_OP (30, br_if_npos_gt, "br-if-npos-gt", OP3 (X8_C24, X8_C24, X8_L24))
+  VM_DEFINE_OP (30, unused_30, NULL, NOP)
     {
-      scm_t_uint32 nreq, npos;
-
-      UNPACK_24 (op, nreq);
-      UNPACK_24 (ip[1], npos);
-
-      /* We can only have too many positionals if there are more
-         arguments than NPOS.  */
-      if (FRAME_LOCALS_COUNT() > npos)
-        {
-          scm_t_uint32 n;
-          for (n = nreq; n < npos; n++)
-            if (scm_is_keyword (FP_REF (n)))
-              break;
-          if (n == npos && !scm_is_keyword (FP_REF (n)))
-            {
-              scm_t_int32 offset = ip[2];
-              offset >>= 8; /* Sign-extending shift. */
-              NEXT (offset);
-            }
-        }
-      NEXT (3);
+      vm_error_bad_instruction (op);
+      abort ();
     }
 
   /* bind-kwargs nreq:24 flags:8 nreq-and-opt:24 _:8 ntotal:24 kw-offset:32
@@ -1371,167 +1219,25 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  /*
-   * Branching instructions
-   */
-
-  /* br offset:24
-   *
-   * Add OFFSET, a signed 24-bit number, to the current instruction
-   * pointer.
-   */
-  VM_DEFINE_OP (33, br, "br", OP1 (X8_L24))
-    {
-      scm_t_int32 offset = op;
-      offset >>= 8; /* Sign-extending shift. */
-      NEXT (offset);
-    }
-
-  /* br-if-true test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is true for the purposes of Scheme, add
-   * OFFSET, a signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (34, br_if_true, "br-if-true", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, scm_is_true (x));
-    }
-
-  /* br-if-null test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is the end-of-list or Lisp nil, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (35, br_if_null, "br-if-null", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, scm_is_null (x));
-    }
-
-  /* br-if-nil test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is false to Lisp, add OFFSET, a signed 24-bit
-   * number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (36, br_if_nil, "br-if-nil", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, scm_is_lisp_false (x));
-    }
-
-  /* br-if-pair test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is a pair, add OFFSET, a signed 24-bit number,
-   * to the current instruction pointer.
-   */
-  VM_DEFINE_OP (37, br_if_pair, "br-if-pair", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, scm_is_pair (x));
-    }
-
-  /* br-if-struct test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is a struct, add OFFSET, a signed 24-bit
-   * number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (38, br_if_struct, "br-if-struct", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, SCM_STRUCTP (x));
-    }
-
-  /* br-if-char test:24 invert:1 _:7 offset:24
-   *
-   * If the value in TEST is a char, add OFFSET, a signed 24-bit number,
-   * to the current instruction pointer.
-   */
-  VM_DEFINE_OP (39, br_if_char, "br-if-char", OP2 (X8_S24, B1_X7_L24))
-    {
-      BR_UNARY (x, SCM_CHARP (x));
-    }
-
-  /* br-if-tc7 test:24 invert:1 tc7:7 offset:24
-   *
-   * If the value in TEST has the TC7 given in the second word, add
-   * OFFSET, a signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (40, br_if_tc7, "br-if-tc7", OP2 (X8_S24, B1_C7_L24))
-    {
-      BR_UNARY (x, SCM_HAS_TYP7 (x, (ip[1] >> 1) & 0x7f));
-    }
-
-  /* br-if-eq a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is eq? to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (41, br_if_eq, "br-if-eq", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_BINARY (x, y, scm_is_eq (x, y));
-    }
-
-  /* br-if-eqv a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is eqv? to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (42, br_if_eqv, "br-if-eqv", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_BINARY (x, y,
-                 scm_is_eq (x, y)
-                 || (SCM_NIMP (x) && SCM_NIMP (y)
-                     && scm_is_true (scm_eqv_p (x, y))));
-    }
-
+  VM_DEFINE_OP (33, unused_33, NULL, NOP)
+  VM_DEFINE_OP (34, unused_34, NULL, NOP)
+  VM_DEFINE_OP (35, unused_35, NULL, NOP)
+  VM_DEFINE_OP (36, unused_36, NULL, NOP)
+  VM_DEFINE_OP (37, unused_37, NULL, NOP)
+  VM_DEFINE_OP (38, unused_38, NULL, NOP)
+  VM_DEFINE_OP (39, unused_39, NULL, NOP)
+  VM_DEFINE_OP (40, unused_40, NULL, NOP)
+  VM_DEFINE_OP (41, unused_41, NULL, NOP)
+  VM_DEFINE_OP (42, unused_42, NULL, NOP)
   VM_DEFINE_OP (43, unused_43, NULL, NOP)
+  VM_DEFINE_OP (44, unused_44, NULL, NOP)
+  VM_DEFINE_OP (45, unused_45, NULL, NOP)
+  VM_DEFINE_OP (46, unused_46, NULL, NOP)
+  VM_DEFINE_OP (47, unused_47, NULL, NOP)
     {
+      vm_error_bad_instruction (op);
       abort ();
     }
-
-  /* br-if-logtest a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the exact integer in A has any bits in common with the exact
-   * integer in B, add OFFSET, a signed 24-bit number, to the current
-   * instruction pointer.
-   */
-  VM_DEFINE_OP (44, br_if_logtest, "br-if-logtest", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      SYNC_IP ();
-      {
-        BR_BINARY (x, y,
-                   ((SCM_I_INUMP (x) && SCM_I_INUMP (y))
-                    ? (SCM_UNPACK (x) & SCM_UNPACK (y) & ~scm_tc2_int)
-                    : scm_is_true (scm_logtest (x, y))));
-      }
-    }
-
-  /* br-if-= a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is = to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (45, br_if_ee, "br-if-=", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_ARITHMETIC (==, scm_num_eq_p);
-    }
-
-  /* br-if-< a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is < to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (46, br_if_lt, "br-if-<", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_ARITHMETIC (<, scm_less_p);
-    }
-
-  /* br-if-<= a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is <= to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (47, br_if_le, "br-if-<=", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_ARITHMETIC (<=, scm_leq_p);
-    }
-
 
   
 
@@ -3269,29 +2975,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* br-if-= a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is = to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (146, br_if_u64_ee, "br-if-u64-=", OP3 (X8_S24, X8_S24, B1_X7_L24))
+  VM_DEFINE_OP (146, unused_146, NULL, NOP)
+  VM_DEFINE_OP (147, unused_147, NULL, NOP)
+  VM_DEFINE_OP (148, unused_148, NULL, NOP)
     {
-      BR_U64_ARITHMETIC (==);
-    }
-
-  /* br-if-< a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the value in A is < to the value in B, add OFFSET, a signed
-   * 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (147, br_if_u64_lt, "br-if-u64-<", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_ARITHMETIC (<);
-    }
-
-  VM_DEFINE_OP (148, br_if_u64_le, "br-if-u64-<=", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_ARITHMETIC (<=);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* uadd dst:8 a:8 b:8
@@ -3637,93 +3326,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-#define BR_U64_SCM_COMPARISON(x, y, unboxed, boxed)                     \
-  do {                                                                  \
-    scm_t_uint32 a, b;                                                  \
-    scm_t_uint64 x;                                                     \
-    SCM y_scm;                                                          \
-                                                                        \
-    UNPACK_24 (op, a);                                                  \
-    UNPACK_24 (ip[1], b);                                               \
-    x = SP_REF_U64 (a);                                                 \
-    y_scm = SP_REF (b);                                                 \
-                                                                        \
-    if (SCM_I_INUMP (y_scm))                                            \
-      {                                                                 \
-        scm_t_signed_bits y = SCM_I_INUM (y_scm);                       \
-                                                                        \
-        if ((ip[2] & 0x1) ? !(unboxed) : (unboxed))                     \
-          {                                                             \
-            scm_t_int32 offset = ip[2];                                 \
-            offset >>= 8; /* Sign-extending shift. */                   \
-            NEXT (offset);                                              \
-          }                                                             \
-        NEXT (3);                                                       \
-      }                                                                 \
-    else                                                                \
-      {                                                                 \
-        SCM res;                                                        \
-        SYNC_IP ();                                                     \
-        res = boxed (scm_from_uint64 (x), y_scm);                       \
-        CACHE_SP ();                                                    \
-        if ((ip[2] & 0x1) ? scm_is_false (res) : scm_is_true (res))     \
-          {                                                             \
-            scm_t_int32 offset = ip[2];                                 \
-            offset >>= 8; /* Sign-extending shift. */                   \
-            NEXT (offset);                                              \
-          }                                                             \
-        NEXT (3);                                                       \
-      }                                                                 \
-  } while (0)
-
-  /* br-if-u64-=-scm a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the U64 value in A is = to the SCM value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (170, br_if_u64_ee_scm, "br-if-u64-=-scm", OP3 (X8_S24, X8_S24, B1_X7_L24))
+  VM_DEFINE_OP (170, unused_170, NULL, NOP)
+  VM_DEFINE_OP (171, unused_171, NULL, NOP)
+  VM_DEFINE_OP (172, unused_172, NULL, NOP)
+  VM_DEFINE_OP (173, unused_173, NULL, NOP)
+  VM_DEFINE_OP (174, unused_174, NULL, NOP)
     {
-      BR_U64_SCM_COMPARISON(x, y, y >= 0 && (scm_t_uint64) y == x, scm_num_eq_p);
-    }
-
-  /* br-if-u64-<-scm a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the U64 value in A is < than the SCM value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (171, br_if_u64_lt_scm, "br-if-u64-<-scm", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_SCM_COMPARISON(x, y, y > 0 && (scm_t_uint64) y > x, scm_less_p);
-    }
-
-  /* br-if-u64-=-scm a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the U64 value in A is <= than the SCM value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (172, br_if_u64_le_scm, "br-if-u64-<=-scm", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_SCM_COMPARISON(x, y, y >= 0 && (scm_t_uint64) y >= x, scm_leq_p);
-    }
-
-  /* br-if-u64->-scm a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the U64 value in A is > than the SCM value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (173, br_if_u64_gt_scm, "br-if-u64->-scm", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_SCM_COMPARISON(x, y, y < 0 || (scm_t_uint64) y < x, scm_gr_p);
-    }
-
-  /* br-if-u64->=-scm a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the U64 value in A is >= than the SCM value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (174, br_if_u64_ge_scm, "br-if-u64->=-scm", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_U64_SCM_COMPARISON(x, y, y <= 0 || (scm_t_uint64) y <= x, scm_geq_p);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* integer->char a:12 b:12
@@ -3953,54 +3563,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* br-if-f64-= a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the F64 value in A is = to the F64 value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (187, br_if_f64_ee, "br-if-f64-=", OP3 (X8_S24, X8_S24, B1_X7_L24))
+  VM_DEFINE_OP (187, unused_187, NULL, NOP)
+  VM_DEFINE_OP (188, unused_188, NULL, NOP)
+  VM_DEFINE_OP (189, unused_189, NULL, NOP)
+  VM_DEFINE_OP (180, unused_190, NULL, NOP)
+  VM_DEFINE_OP (191, unused_191, NULL, NOP)
     {
-      BR_F64_ARITHMETIC (==);
-    }
-
-  /* br-if-f64-< a:12 b:12 invert:1 _:7 offset:24
-   *
-   * If the F64 value in A is < to the F64 value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (188, br_if_f64_lt, "br-if-f64-<", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_F64_ARITHMETIC (<);
-    }
-
-  /* br-if-f64-<= a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the F64 value in A is <= than the F64 value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (189, br_if_f64_le, "br-if-f64-<=", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_F64_ARITHMETIC (<=);
-    }
-
-  /* br-if-f64-> a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the F64 value in A is > than the F64 value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (190, br_if_f64_gt, "br-if-f64->", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_F64_ARITHMETIC (>);
-    }
-
-  /* br-if-uf4->= a:24 _:8 b:24 invert:1 _:7 offset:24
-   *
-   * If the F64 value in A is >= than the F64 value in B, add OFFSET, a
-   * signed 24-bit number, to the current instruction pointer.
-   */
-  VM_DEFINE_OP (191, br_if_f64_ge, "br-if-f64->=", OP3 (X8_S24, X8_S24, B1_X7_L24))
-    {
-      BR_F64_ARITHMETIC (>=);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* string-set! dst:8 idx:8 src:8
@@ -4474,10 +4044,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef ARGS2
 #undef BEGIN_DISPATCH_SWITCH
 #undef BINARY_INTEGER_OP
-#undef BR_ARITHMETIC
-#undef BR_BINARY
-#undef BR_NARGS
-#undef BR_UNARY
 #undef BV_FIXABLE_INT_REF
 #undef BV_FIXABLE_INT_SET
 #undef BV_FLOAT_REF
