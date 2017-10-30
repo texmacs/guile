@@ -4164,7 +4164,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (201, check_arguments, "arguments<=?", OP1 (X8_S24))
+  VM_DEFINE_OP (201, check_arguments, "arguments<=?", OP1 (X8_C24))
     {
       scm_t_uint8 compare_result;
       scm_t_uint32 expected;
