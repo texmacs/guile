@@ -1,6 +1,6 @@
 ;;;; Low-level tests of the bytecode assembler -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -116,16 +116,17 @@ a procedure."
                           (begin-standard-arity (x) 4 #f)
                           (definition closure 0 scm)
                           (definition x 1 scm)
-                          (br fix-body)
+                          (j fix-body)
                           (label loop-head)
-                          (br-if-= 1 2 #f out)
+                          (=? 1 2)
+                          (je out)
                           (add 0 1 0)
                           (add/immediate 1 1 1)
-                          (br loop-head)
+                          (j loop-head)
                           (label fix-body)
                           (load-constant 1 0)
                           (load-constant 0 0)
-                          (br loop-head)
+                          (j loop-head)
                           (label out)
                           (mov 2 0)
                           (return-values 2)
