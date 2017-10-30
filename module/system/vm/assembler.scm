@@ -139,16 +139,12 @@
             emit-call/cc
             emit-abort
             emit-builtin-ref
-            emit-br-if-nargs-ne
-            emit-br-if-nargs-lt
-            emit-br-if-nargs-gt
             emit-assert-nargs-ee
             emit-assert-nargs-ge
             emit-assert-nargs-le
             emit-alloc-frame
             emit-reset-frame
             emit-assert-nargs-ee/locals
-            emit-br-if-npos-gt
             emit-bind-kwargs
             emit-bind-rest
             emit-box
@@ -1273,7 +1269,8 @@ returned instead."
 (define-macro-assembler (standard-prelude asm nreq nlocals alternate)
   (cond
    (alternate
-    (emit-br-if-nargs-ne asm nreq alternate)
+    (emit-arguments<=? asm nreq)
+    (emit-jne asm alternate)
     (emit-alloc-frame asm nlocals))
    ((and (< nreq (ash 1 12)) (< (- nlocals nreq) (ash 1 12)))
     (emit-assert-nargs-ee/locals asm nreq (- nlocals nreq)))
@@ -1283,13 +1280,20 @@ returned instead."
 
 (define-macro-assembler (opt-prelude asm nreq nopt rest? nlocals alternate)
   (if alternate
-      (emit-br-if-nargs-lt asm nreq alternate)
+      (begin
+        (emit-arguments<=? asm nreq)
+        (emit-jl asm alternate))
       (emit-assert-nargs-ge asm nreq))
   (cond
    (rest?
     (emit-bind-rest asm (+ nreq nopt)))
    (alternate
-    (emit-br-if-nargs-gt asm (+ nreq nopt) alternate))
+    (emit-arguments<=? asm (+ nreq nopt))
+    ;; The arguments<=? instruction sets NONE to indicate greater-than,
+    ;; whereas for <, NONE usually indicates greater-than-or-equal,
+    ;; hence the name jge.  Perhaps we just need to rename jge to
+    ;; br-if-none.
+    (emit-jge asm alternate))
    (else
     (emit-assert-nargs-le asm (+ nreq nopt))))
   (emit-alloc-frame asm nlocals))
@@ -1298,9 +1302,11 @@ returned instead."
                                     allow-other-keys? nlocals alternate)
   (if alternate
       (begin
-        (emit-br-if-nargs-lt asm nreq alternate)
+        (emit-arguments<=? asm nreq)
+        (emit-jl asm alternate)
         (unless rest?
-          (emit-br-if-npos-gt asm nreq (+ nreq nopt) alternate)))
+          (emit-positional-arguments<=? asm nreq (+ nreq nopt))
+          (emit-jge asm alternate)))
       (emit-assert-nargs-ge asm nreq))
   (let ((ntotal (fold (lambda (kw ntotal)
                         (match kw

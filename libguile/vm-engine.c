@@ -4189,30 +4189,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       scm_t_uint8 compare_result;
       scm_t_uint32 nreq, expected;
-      scm_t_ptrdiff nargs;
+      scm_t_ptrdiff nargs, npos;
 
       UNPACK_24 (op, nreq);
       UNPACK_24 (ip[1], expected);
       nargs = FRAME_LOCALS_COUNT ();
 
-      /* We can only have too many positionals if there are more
-         arguments than NPOS.  */
-      if (nargs < (scm_t_ptrdiff) nreq)
-        compare_result = SCM_F_COMPARE_LESS_THAN;
-      else
-        {
-          scm_t_ptrdiff npos = nreq;
-          for (npos = nreq; npos < nargs && npos <= expected; npos++)
-            if (scm_is_keyword (FP_REF (npos)))
-              break;
+      /* Precondition: at least NREQ arguments.  */
+      for (npos = nreq; npos < nargs && npos <= expected; npos++)
+        if (scm_is_keyword (FP_REF (npos)))
+          break;
 
-          if (npos < (scm_t_ptrdiff) expected)
-            compare_result = SCM_F_COMPARE_LESS_THAN;
-          else if (npos == (scm_t_ptrdiff) expected)
-            compare_result = SCM_F_COMPARE_EQUAL;
-          else
-            compare_result = SCM_F_COMPARE_NONE;
-        }
+      if (npos < (scm_t_ptrdiff) expected)
+        compare_result = SCM_F_COMPARE_LESS_THAN;
+      else if (npos == (scm_t_ptrdiff) expected)
+        compare_result = SCM_F_COMPARE_EQUAL;
+      else
+        compare_result = SCM_F_COMPARE_NONE;
 
       vp->compare_result = compare_result;
 
