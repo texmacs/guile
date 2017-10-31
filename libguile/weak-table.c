@@ -31,7 +31,6 @@
 #include "libguile/hash.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
-
 #include "libguile/validate.h"
 #include "libguile/weak-list.h"
 #include "libguile/weak-table.h"
@@ -141,6 +140,7 @@ typedef struct {
   unsigned long upper;		/* when to grow */
   int size_index;		/* index into hashtable_size */
   int min_size_index;		/* minimum size_index */
+  GC_word last_gc_no;
 } scm_t_weak_table;
 
 
@@ -275,7 +275,13 @@ resize_table (scm_t_weak_table *table)
 static void
 vacuum_weak_table (scm_t_weak_table *table)
 {
+  GC_word gc_no = GC_get_gc_no ();
   unsigned long k;
+
+  if (gc_no == table->last_gc_no)
+    return;
+
+  table->last_gc_no = gc_no;
 
   for (k = 0; k < table->n_buckets; k++)
     {
@@ -427,6 +433,7 @@ make_weak_table (unsigned long k, scm_t_weak_table_kind kind)
   table->upper = 9 * n / 10;
   table->size_index = i;
   table->min_size_index = i;
+  table->last_gc_no = GC_get_gc_no ();
   scm_i_pthread_mutex_init (&table->lock, NULL);
 
   return scm_cell (scm_tc7_weak_table, (scm_t_bits)table);
@@ -456,8 +463,10 @@ do_vacuum_weak_table (SCM table)
      custom predicate, or via finalizers run explicitly by (gc) or in an
      async (for non-threaded Guile).  We add a restriction that
      prohibits the first case, by convention.  But since we can't
-     prohibit the second case, here we trylock instead of lock.  Not so
-     nice.  */
+     prohibit the second case, here we trylock instead of lock.  In any
+     case, if the mutex is held by another thread, then the table is in
+     active use, so the next user of the table will handle the vacuum
+     for us.  */
   if (scm_i_pthread_mutex_trylock (&t->lock) == 0)
     {
       vacuum_weak_table (t);
@@ -513,6 +522,8 @@ scm_c_weak_table_ref (SCM table, unsigned long raw_hash,
 
   scm_i_pthread_mutex_lock (&t->lock);
 
+  vacuum_weak_table (t);
+
   ret = weak_table_ref (t, raw_hash, pred, closure, dflt);
 
   scm_i_pthread_mutex_unlock (&t->lock);
@@ -535,6 +546,8 @@ scm_c_weak_table_put_x (SCM table, unsigned long raw_hash,
 
   scm_i_pthread_mutex_lock (&t->lock);
 
+  vacuum_weak_table (t);
+
   weak_table_put_x (t, raw_hash, pred, closure, key, value);
 
   scm_i_pthread_mutex_unlock (&t->lock);
@@ -554,6 +567,8 @@ scm_c_weak_table_remove_x (SCM table, unsigned long raw_hash,
   t = SCM_WEAK_TABLE (table);
 
   scm_i_pthread_mutex_lock (&t->lock);
+
+  vacuum_weak_table (t);
 
   weak_table_remove_x (t, raw_hash, pred, closure);
 
@@ -604,6 +619,8 @@ scm_weak_table_clear_x (SCM table)
 
   scm_i_pthread_mutex_lock (&t->lock);
 
+  t->last_gc_no = GC_get_gc_no ();
+
   for (k = 0; k < t->n_buckets; k++)
     {
       for (entry = t->buckets[k]; entry; entry = entry->next)
@@ -627,6 +644,8 @@ scm_c_weak_table_fold (scm_t_table_fold_fn proc, void *closure,
   t = SCM_WEAK_TABLE (table);
 
   scm_i_pthread_mutex_lock (&t->lock);
+
+  vacuum_weak_table (t);
 
   for (k = 0; k < t->n_buckets; k++)
     {
