@@ -25,7 +25,7 @@
 #include <assert.h>
 
 #include "libguile/bdw-gc.h"
-#include <gc/gc_mark.h>
+#include <gc/gc_typed.h>
 
 #include "libguile/_scm.h"
 #include "libguile/hash.h"
@@ -152,70 +152,10 @@ typedef struct {
 
 
 
-/* The GC "kinds" for singly-weak tables.  */
-static int weak_key_gc_kind;
-static int weak_value_gc_kind;
-static int doubly_weak_gc_kind;
-
-static struct GC_ms_entry *
-mark_weak_key_entry (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
-                     struct GC_ms_entry *mark_stack_limit, GC_word env)
-{
-  scm_t_weak_entry *entry = (scm_t_weak_entry*) addr;
-
-  if (entry->next)
-    mark_stack_ptr = GC_MARK_AND_PUSH ((GC_word*) entry->next,
-                                       mark_stack_ptr, mark_stack_limit,
-                                       NULL);
-
-  if (entry->hash && entry->key)
-    {
-      SCM value = SCM_PACK (entry->value);
-      if (SCM_HEAP_OBJECT_P (value))
-        mark_stack_ptr = GC_MARK_AND_PUSH ((GC_word*) SCM2PTR (value),
-                                           mark_stack_ptr, mark_stack_limit,
-                                           NULL);
-    }
-
-  return mark_stack_ptr;
-}
-
-static struct GC_ms_entry *
-mark_weak_value_entry (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
-                       struct GC_ms_entry *mark_stack_limit, GC_word env)
-{
-  scm_t_weak_entry *entry = (scm_t_weak_entry*) addr;
-
-  if (entry->next)
-    mark_stack_ptr = GC_MARK_AND_PUSH ((GC_word*) entry->next,
-                                       mark_stack_ptr, mark_stack_limit,
-                                       NULL);
-
-  if (entry->hash && entry->value)
-    {
-      SCM key = SCM_PACK (entry->key);
-      if (SCM_HEAP_OBJECT_P (key))
-        mark_stack_ptr = GC_MARK_AND_PUSH ((GC_word*) SCM2PTR (key),
-                                           mark_stack_ptr, mark_stack_limit,
-                                           NULL);
-    }
-
-  return mark_stack_ptr;
-}
-
-static struct GC_ms_entry *
-mark_doubly_weak_entry (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
-                        struct GC_ms_entry *mark_stack_limit, GC_word env)
-{
-  scm_t_weak_entry *entry = (scm_t_weak_entry*) addr;
-
-  if (entry->next)
-    mark_stack_ptr = GC_MARK_AND_PUSH ((GC_word*) entry->next,
-                                       mark_stack_ptr, mark_stack_limit,
-                                       NULL);
-
-  return mark_stack_ptr;
-}
+/* GC descriptors for the various kinds of scm_t_weak_entry.  */
+static GC_descr weak_key_descr;
+static GC_descr weak_value_descr;
+static GC_descr doubly_weak_descr;
 
 static scm_t_weak_entry *
 allocate_entry (scm_t_weak_table_kind kind)
@@ -225,19 +165,17 @@ allocate_entry (scm_t_weak_table_kind kind)
   switch (kind)
     {
     case SCM_WEAK_TABLE_KIND_KEY:
-      ret = GC_generic_malloc (sizeof (*ret), weak_key_gc_kind);
+      ret = GC_malloc_explicitly_typed (sizeof (*ret), weak_key_descr);
       break;
     case SCM_WEAK_TABLE_KIND_VALUE:
-      ret = GC_generic_malloc (sizeof (*ret), weak_value_gc_kind);
+      ret = GC_malloc_explicitly_typed (sizeof (*ret), weak_value_descr);
       break;
     case SCM_WEAK_TABLE_KIND_BOTH:
-      ret = GC_generic_malloc (sizeof (*ret), doubly_weak_gc_kind);
+      ret = GC_malloc_explicitly_typed (sizeof (*ret), doubly_weak_descr);
       break;
     default:
       abort ();
     }
-
-  memset (ret, 0, sizeof (*ret));
 
   return ret;
 }
@@ -852,18 +790,23 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 void
 scm_weak_table_prehistory (void)
 {
-  weak_key_gc_kind =
-    GC_new_kind (GC_new_free_list (),
-		 GC_MAKE_PROC (GC_new_proc (mark_weak_key_entry), 0),
-		 0, 0);
-  weak_value_gc_kind =
-    GC_new_kind (GC_new_free_list (),
-		 GC_MAKE_PROC (GC_new_proc (mark_weak_value_entry), 0),
-		 0, 0);
-  doubly_weak_gc_kind =
-    GC_new_kind (GC_new_free_list (),
-		 GC_MAKE_PROC (GC_new_proc (mark_doubly_weak_entry), 0),
-		 0, 0);
+  GC_word weak_key_bitmap[GC_BITMAP_SIZE (scm_t_weak_entry)] = { 0 };
+  GC_word weak_value_bitmap[GC_BITMAP_SIZE (scm_t_weak_entry)] = { 0 };
+  GC_word doubly_weak_bitmap[GC_BITMAP_SIZE (scm_t_weak_entry)] = { 0 };
+
+  GC_set_bit (weak_key_bitmap, GC_WORD_OFFSET (scm_t_weak_entry, next));
+  GC_set_bit (weak_value_bitmap, GC_WORD_OFFSET (scm_t_weak_entry, next));
+  GC_set_bit (doubly_weak_bitmap, GC_WORD_OFFSET (scm_t_weak_entry, next));
+
+  GC_set_bit (weak_key_bitmap, GC_WORD_OFFSET (scm_t_weak_entry, value));
+  GC_set_bit (weak_value_bitmap, GC_WORD_OFFSET (scm_t_weak_entry, key));
+
+  weak_key_descr = GC_make_descriptor (weak_key_bitmap,
+                                       GC_WORD_LEN (scm_t_weak_entry));
+  weak_value_descr = GC_make_descriptor (weak_value_bitmap,
+                                         GC_WORD_LEN (scm_t_weak_entry));
+  doubly_weak_descr = GC_make_descriptor (doubly_weak_bitmap,
+                                          GC_WORD_LEN (scm_t_weak_entry));
 }
 
 void
