@@ -20,7 +20,8 @@
   #:use-module ((system base compile) #:select (compile))
   #:use-module (test-suite lib)
   #:use-module (srfi srfi-4)
-  #:use-module (srfi srfi-4 gnu))
+  #:use-module (srfi srfi-4 gnu)
+  #:use-module ((ice-9 control) #:select (let/ec)))
 
 ; see strings.test, arrays.test.
 (define exception:wrong-type-arg
@@ -52,4 +53,46 @@
       (begin
         (random:normal-vector! b (random-state-from-platform))
         (random:normal-vector! c (random-state-from-platform))
-        (and (not (equal? a b)) (not (equal? a c)))))))
+        (and (not (equal? a b)) (not (equal? a c))))))
+
+  (pass-if "empty argument"
+    (random:normal-vector! (vector) (random-state-from-platform))
+    (random:normal-vector! (f64vector) (random-state-from-platform))
+    #t))
+
+;;;
+;;; random:hollow-sphere!
+;;;
+
+(with-test-prefix "random:hollow-sphere!"
+
+  (define (sqr a)
+    (* a a))
+  (define (norm a)
+    (sqrt (+ (sqr (array-ref a 0)) (sqr (array-ref a 1)) (sqr (array-ref a 2)))))
+  (define double-eps 1e-15)
+  
+  (pass-if "non uniform"
+    (let ((a (transpose-array (make-array 0. 3 10) 1 0)))
+      (let/ec exit
+        (array-slice-for-each 1
+          (lambda (a)
+            (random:hollow-sphere! a)
+            (if (> (magnitude (- 1 (norm a))) double-eps) (exit #f)))
+          a)
+        #t)))
+
+  (pass-if "uniform (f64)"
+    (let ((a (transpose-array (make-array 0. 3 10) 1 0)))
+      (let/ec exit
+        (array-slice-for-each 1
+          (lambda (a)
+            (random:hollow-sphere! a)
+            (if (> (magnitude (- 1 (norm a))) double-eps) (exit #f)))
+          a)
+        #t)))
+
+  (pass-if "empty argument"
+    (random:hollow-sphere! (vector))
+    (random:hollow-sphere! (f64vector))
+    #t))
