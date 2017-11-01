@@ -95,9 +95,8 @@
 
 (define (builtin-ref cps idx k src)
   (with-cps cps
-    ($ (with-cps-constants ((idx idx))
-         (build-term
-           ($continue k src ($primcall 'builtin-ref #f (idx))))))))
+    (build-term
+      ($continue k src ($primcall 'builtin-ref idx ())))))
 
 (define (reify-clause cps ktail)
   (with-cps cps

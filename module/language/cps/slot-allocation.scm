@@ -340,8 +340,6 @@ the definitions that are live before and after LABEL, as intsets."
                                'ursh/immediate 'ulsh/immediate) #f
                  (x y))
               (defs+ x))
-             (($ $primcall 'builtin-ref #f (idx))
-              defs)
              (_
               (defs+* (get-uses label))))))
         (($ $kreceive arity k)
