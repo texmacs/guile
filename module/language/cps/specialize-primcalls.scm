@@ -53,9 +53,15 @@
       (define (rename name)
         (build-exp ($primcall name param args)))
       (match (cons name args)
-        (('make-vector (? u8? n) init) (rename 'make-vector/immediate))
-        (('vector-ref v (? u8? n)) (rename 'vector-ref/immediate))
-        (('vector-set! v (? u8? n) x) (rename 'vector-set!/immediate))
+        (('make-vector (? u8? n) init)
+         (build-exp
+           ($primcall 'make-vector/immediate (intmap-ref constants n) (init))))
+        (('vector-ref v (? u8? n))
+         (build-exp
+           ($primcall 'vector-ref/immediate (intmap-ref constants n) (v))))
+        (('vector-set! v (? u8? n) x)
+         (build-exp
+           ($primcall 'vector-set!/immediate (intmap-ref constants n) (v x))))
         (('allocate-struct v (? u8? n)) (rename 'allocate-struct/immediate))
         (('struct-ref s (? u8? n)) (rename 'struct-ref/immediate))
         (('struct-set! s (? u8? n) x) (rename 'struct-set!/immediate))

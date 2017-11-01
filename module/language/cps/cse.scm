@@ -280,14 +280,15 @@ false.  It could be that both true and false proofs are available."
              (add-def! `(primcall car #f ,pair) car))
             (('primcall 'set-cdr! #f pair cdr)
              (add-def! `(primcall cdr #f ,pair) cdr))
-            (('primcall (or 'make-vector 'make-vector/immediate) #f len fill)
+            ;; FIXME: how to propagate make-vector/immediate -> vector-length?
+            (('primcall 'make-vector #f len fill)
              (match defs
                ((vec)
                 (add-def! `(primcall vector-length #f ,(subst vec)) len))))
             (('primcall 'vector-set! #f vec idx val)
              (add-def! `(primcall vector-ref #f ,vec ,idx) val))
-            (('primcall 'vector-set!/immediate #f vec idx val)
-             (add-def! `(primcall vector-ref/immediate #f ,vec ,idx) val))
+            (('primcall 'vector-set!/immediate idx vec val)
+             (add-def! `(primcall vector-ref/immediate ,idx ,vec) val))
             (('primcall (or 'allocate-struct 'allocate-struct/immediate) #f
                         vtable size)
              (match defs

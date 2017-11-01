@@ -335,12 +335,6 @@ the definitions that are live before and after LABEL, as intsets."
               empty-intset)
              ;; FIXME: Move all of these instructions to use $primcall
              ;; params.
-             (($ $primcall 'make-vector/immediate #f (len init))
-              (defs+ init))
-             (($ $primcall 'vector-ref/immediate #f (v i))
-              (defs+ v))
-             (($ $primcall 'vector-set!/immediate #f (v i x))
-              (defs+* (intset v x)))
              (($ $primcall 'allocate-struct/immediate #f (vtable nfields))
               (defs+ vtable))
              (($ $primcall 'struct-ref/immediate #f (s n))

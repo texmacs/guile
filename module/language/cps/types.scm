@@ -408,7 +408,7 @@ minimum, and maximum."
 (define-syntax-rule (&max/s64 x) (min (&max x) &s64-max))
 (define-syntax-rule (&max/size x) (min (&max x) *max-size-t*))
 
-(define-syntax-rule (define-type-checker (name arg ...) body ...)
+(define-syntax-rule (define-type-checker/param (name param arg ...) body ...)
   (hashq-set!
    *type-checkers*
    'name
@@ -418,6 +418,9 @@ minimum, and maximum."
           (&min  (syntax-rules () ((_ val) (var-min typeset val))))
           (&max  (syntax-rules () ((_ val) (var-max typeset val)))))
        body ...))))
+
+(define-syntax-rule (define-type-checker (name arg ...) body ...)
+  (define-type-checker/param (name param arg ...) body ...))
 
 (define-syntax-rule (check-type arg type min max)
   ;; If the arg is negative, it is a closure variable.
@@ -744,9 +747,20 @@ minimum, and maximum."
   (restrict! v &vector (1+ (&min/0 idx)) *max-vector-len*)
   (restrict! idx &u64 0 (1- (&max/vector v))))
 
-(define-type-aliases make-vector make-vector/immediate)
-(define-type-aliases vector-ref vector-ref/immediate)
-(define-type-aliases vector-set! vector-set!/immediate)
+(define-simple-type-checker (make-vector/immediate &all-types))
+(define-type-inferrer/param (make-vector/immediate size init result)
+  (define! result &vector size size))
+
+(define-type-checker/param (vector-ref/immediate idx v)
+  (and (check-type v &vector 0 *max-vector-len*) (< idx (&min v))))
+(define-type-inferrer/param (vector-ref/immediate idx v result)
+  (restrict! v &vector (1+ idx) *max-vector-len*)
+  (define! result &all-types -inf.0 +inf.0))
+
+(define-type-checker/param (vector-set!/immediate idx v val)
+  (and (check-type v &vector 0 *max-vector-len*) (< idx (&min v))))
+(define-type-inferrer/param (vector-set!/immediate idx v val)
+  (restrict! v &vector (1+ idx) *max-vector-len*))
 
 (define-simple-type-checker (vector-length &vector))
 (define-type-inferrer (vector-length v result)

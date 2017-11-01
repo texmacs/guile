@@ -331,20 +331,14 @@ is or might be a read or a write to the same location as A."
   ((box-set! v x)                  (&write-object &box)        &type-check))
 
 ;; Vectors.
-(define (vector-field n constants)
-  (indexed-field &vector n constants))
-(define (read-vector-field n constants)
-  (logior &read (vector-field n constants)))
-(define (write-vector-field n constants)
-  (logior &write (vector-field n constants)))
-(define-primitive-effects* constants
+(define-primitive-effects* param
   ((vector . _)                    (&allocate &vector))
   ((make-vector n init)            (&allocate &vector))
-  ((make-vector/immediate n init)  (&allocate &vector))
-  ((vector-ref v n)                (read-vector-field n constants) &type-check)
-  ((vector-ref/immediate v n)      (read-vector-field n constants) &type-check)
-  ((vector-set! v n x)             (write-vector-field n constants) &type-check)
-  ((vector-set!/immediate v n x)   (write-vector-field n constants) &type-check)
+  ((make-vector/immediate init)    (&allocate &vector))
+  ((vector-ref v n)                (&read-object &vector)      &type-check)
+  ((vector-ref/immediate v)        (&read-field &vector param) &type-check)
+  ((vector-set! v n x)             (&write-object &vector)     &type-check)
+  ((vector-set!/immediate v x)     (&write-field &vector param) &type-check)
   ((vector-length v)                                           &type-check))
 
 ;; Structs.
