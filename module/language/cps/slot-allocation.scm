@@ -335,10 +335,6 @@ the definitions that are live before and after LABEL, as intsets."
               empty-intset)
              ;; FIXME: Move all of these instructions to use $primcall
              ;; params.
-             (($ $primcall 'free-ref #f (closure slot))
-              (defs+ closure))
-             (($ $primcall 'free-set! #f (closure slot value))
-              (defs+* (intset closure value)))
              (($ $primcall 'make-vector/immediate #f (len init))
               (defs+ init))
              (($ $primcall 'vector-ref/immediate #f (v i))

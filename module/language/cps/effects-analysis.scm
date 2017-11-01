@@ -244,18 +244,18 @@ is or might be a read or a write to the same location as A."
 
 (define *primitive-effects* (make-hash-table))
 
-(define-syntax-rule (define-primitive-effects* constants
+(define-syntax-rule (define-primitive-effects* param
                       ((name . args) effects ...)
                       ...)
   (begin
     (hashq-set! *primitive-effects* 'name
                 (case-lambda*
-                 ((constants . args) (logior effects ...))
+                 ((param . args) (logior effects ...))
                  (_ &all-effects)))
     ...))
 
 (define-syntax-rule (define-primitive-effects ((name . args) effects ...) ...)
-  (define-primitive-effects* constants ((name . args) effects ...) ...))
+  (define-primitive-effects* param ((name . args) effects ...) ...))
 
 ;; Miscellaneous.
 (define-primitive-effects
@@ -415,15 +415,9 @@ is or might be a read or a write to the same location as A."
   ((bv-f64-set! bv n x)            (&write-object &bytevector) &type-check))
 
 ;; Closures.
-(define (closure-field n constants)
-  (indexed-field &closure n constants))
-(define (read-closure-field n constants)
-  (logior &read (closure-field n constants)))
-(define (write-closure-field n constants)
-  (logior &write (closure-field n constants)))
-(define-primitive-effects* constants
-  ((free-ref closure idx)          (read-closure-field idx constants))
-  ((free-set! closure idx val)     (write-closure-field idx constants)))
+(define-primitive-effects* param
+  ((free-ref closure)              (&read-field &closure param))
+  ((free-set! closure val)         (&write-field &closure param)))
 
 ;; Modules.
 (define-primitive-effects
@@ -515,10 +509,10 @@ is or might be a read or a write to the same location as A."
 ;; so no need to have a case for them here.  (Though, see
 ;; https://jfbastien.github.io/no-sane-compiler/.)
 
-(define (primitive-effects constants name args)
+(define (primitive-effects name param args)
   (let ((proc (hashq-ref *primitive-effects* name)))
     (if proc
-        (apply proc constants args)
+        (apply proc param args)
         &all-effects)))
 
 (define (expression-effects exp constants)
@@ -539,7 +533,9 @@ is or might be a read or a write to the same location as A."
     (($ $branch k exp)
      (expression-effects exp constants))
     (($ $primcall name param args)
-     (primitive-effects constants name args))))
+     ;; FIXME: hack to still support constants table while migrating
+     ;; to immediate parameters.
+     (primitive-effects (or param constants) name args))))
 
 (define (compute-effects conts)
   (let ((constants (compute-constant-values conts)))

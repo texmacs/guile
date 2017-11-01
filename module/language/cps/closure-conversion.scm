@@ -503,10 +503,9 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                  (letv var*)
                  (let$ body (k var*))
                  (letk k* ($kargs (#f) (var*) ,body))
-                 ($ (with-cps-constants ((idx idx))
-                      (build-term
-                        ($continue k* #f
-                          ($primcall 'free-ref #f (self idx)))))))))))))
+                 (build-term
+                   ($continue k* #f
+                     ($primcall 'free-ref idx (self)))))))))))
        (else
         (with-cps cps
           ($ (k var))))))
@@ -609,11 +608,9 @@ bound to @var{var}, and continue to @var{k}."
                                       ($primcall 'scm->u64 #f (idx))))))))
                           (else
                            (with-cps cps
-                             ($ (with-cps-constants ((idx idx))
-                                  (build-term
-                                    ($continue k src
-                                      ($primcall 'free-set! #f
-                                                 (var idx v)))))))))))))))))))
+                             (build-term
+                               ($continue k src
+                                 ($primcall 'free-set! idx (var v)))))))))))))))))
 
     (define (make-single-closure cps k src kfun)
       (let ((free (intmap-ref free-vars kfun)))
