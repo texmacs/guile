@@ -39,13 +39,9 @@
     (letv box)
     (let$ body (val-proc box))
     (letk kbox ($kargs ('box) (box) ,body))
-    ($ (with-cps-constants ((module module)
-                            (name name)
-                            (public? public?)
-                            (bound? bound?))
-         (build-term ($continue kbox src
-                       ($primcall 'cached-module-box #f
-                                  (module name public? bound?))))))))
+    (build-term ($continue kbox src
+                  ($primcall 'cached-module-box
+                             (list module name public? bound?) ())))))
 
 (define (primitive-module name)
   (case name

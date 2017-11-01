@@ -77,9 +77,9 @@
            args))))
 
 (define *macro-instruction-arities*
-  '((cache-current-module! . (0 . 2))
-    (cached-toplevel-box . (1 . 3))
-    (cached-module-box . (1 . 4))))
+  '((cache-current-module! . (0 . 1))
+    (cached-toplevel-box . (1 . 0))
+    (cached-module-box . (1 . 0))))
 
 (define (compute-instruction-arities)
   (let ((table (make-hash-table)))

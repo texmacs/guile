@@ -86,47 +86,42 @@
     scope-id))
 
 (define (toplevel-box cps src name bound? val-proc)
-  (define (lookup cps name bound? k)
+  (define (lookup cps k)
     (match (current-topbox-scope)
       (#f
        (with-cps cps
-         (build-term ($continue k src
-                       ($primcall 'resolve #f (name bound?))))))
-      (scope-id
+         ;; FIXME: Resolve should take name as immediate.
+         ($ (with-cps-constants ((name name))
+              (build-term ($continue k src
+                            ($primcall 'resolve (list bound?) (name))))))))
+      (scope
        (with-cps cps
-         ($ (with-cps-constants ((scope scope-id))
-              (build-term
-               ($continue k src
-                 ($primcall 'cached-toplevel-box #f (scope name bound?))))))))))
+         (build-term
+           ($continue k src
+             ($primcall 'cached-toplevel-box (list scope name bound?)
+                        ())))))))
   (with-cps cps
     (letv box)
     (let$ body (val-proc box))
     (letk kbox ($kargs ('box) (box) ,body))
-    ($ (with-cps-constants ((name name)
-                            (bound? bound?))
-         ($ (lookup name bound? kbox))))))
+    ($ (lookup kbox))))
 
 (define (module-box cps src module name public? bound? val-proc)
   (with-cps cps
     (letv box)
     (let$ body (val-proc box))
     (letk kbox ($kargs ('box) (box) ,body))
-    ($ (with-cps-constants ((module module)
-                            (name name)
-                            (public? public?)
-                            (bound? bound?))
-         (build-term ($continue kbox src
-                       ($primcall 'cached-module-box #f
-                                  (module name public? bound?))))))))
+    (build-term ($continue kbox src
+                  ($primcall 'cached-module-box
+                             (list module name public? bound?) ())))))
 
 (define (capture-toplevel-scope cps src scope-id k)
   (with-cps cps
     (letv module)
-    (let$ body (with-cps-constants ((scope scope-id))
-                 (build-term
-                   ($continue k src
-                     ($primcall 'cache-current-module! #f (module scope))))))
-    (letk kmodule ($kargs ('module) (module) ,body))
+    (letk kmodule
+          ($kargs ('module) (module)
+            ($continue k src
+              ($primcall 'cache-current-module! (list scope-id) (module)))))
     (build-term ($continue kmodule src
                   ($primcall 'current-module #f ())))))
 

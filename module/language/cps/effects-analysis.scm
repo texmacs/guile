@@ -428,10 +428,10 @@ is or might be a read or a write to the same location as A."
 ;; Modules.
 (define-primitive-effects
   ((current-module)                (&read-object &module))
-  ((cache-current-module! m scope) (&write-object &box))
-  ((resolve name bound?)           (&read-object &module)      &type-check)
-  ((cached-toplevel-box scope name bound?)                     &type-check)
-  ((cached-module-box mod name public? bound?)                 &type-check)
+  ((cache-current-module! m)       (&write-object &box))
+  ((resolve name)                  (&read-object &module)      &type-check)
+  ((cached-toplevel-box)                                       &type-check)
+  ((cached-module-box)                                         &type-check)
   ((define! name)                  (&read-object &module)))
 
 ;; Numbers.

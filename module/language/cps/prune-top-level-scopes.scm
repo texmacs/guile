@@ -30,34 +30,32 @@
   #:use-module (language cps intset)
   #:export (prune-top-level-scopes))
 
-(define (compute-used-scopes conts constants)
+(define (compute-used-scopes conts)
   (persistent-intset
    (intmap-fold
     (lambda (label cont used-scopes)
       (match cont
         (($ $kargs _ _
             ($ $continue k src
-               ($ $primcall 'cached-toplevel-box #f (scope name bound?))))
-         (intset-add! used-scopes (intmap-ref constants scope)))
+               ($ $primcall 'cached-toplevel-box (scope name bound?))))
+         (intset-add! used-scopes scope))
         (_
          used-scopes)))
     conts
     empty-intset)))
 
 (define (prune-top-level-scopes conts)
-  (let* ((constants (compute-constant-values conts))
-         (used-scopes (compute-used-scopes conts constants)))
+  (let* ((used-scopes (compute-used-scopes conts)))
     (intmap-map
      (lambda (label cont)
        (match cont
          (($ $kargs names vars
              ($ $continue k src
-                ($ $primcall 'cache-current-module! #f
-                   (module (? (lambda (scope)
-                                (let ((val (intmap-ref constants scope)))
-                                  (not (intset-ref used-scopes val)))))))))
-          (build-cont ($kargs names vars
-                        ($continue k src ($values ())))))
+                ($ $primcall 'cache-current-module! (scope-id) (module))))
+          (if (intset-ref used-scopes scope-id)
+              cont
+              (build-cont ($kargs names vars
+                                  ($continue k src ($values ()))))))
          (_
           cont)))
      conts)))
