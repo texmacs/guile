@@ -289,16 +289,21 @@ false.  It could be that both true and false proofs are available."
              (add-def! `(primcall vector-ref #f ,vec ,idx) val))
             (('primcall 'vector-set!/immediate idx vec val)
              (add-def! `(primcall vector-ref/immediate ,idx ,vec) val))
-            (('primcall (or 'allocate-struct 'allocate-struct/immediate) #f
-                        vtable size)
+            (('primcall 'allocate-struct #f vtable size)
              (match defs
                ((struct)
                 (add-def! `(primcall struct-vtable #f ,(subst struct))
                           vtable))))
+            (('primcall 'allocate-struct/immediate size vtable)
+             (match defs
+               ((struct)
+                (add-def! `(primcall struct-vtable #f ,(subst struct))
+                          vtable))))
+            ;; FIXME: Aren't we missing some "subst" calls here?
             (('primcall 'struct-set! #f struct n val)
              (add-def! `(primcall struct-ref #f ,struct ,n) val))
-            (('primcall 'struct-set!/immediate #f struct n val)
-             (add-def! `(primcall struct-ref/immediate #f ,struct ,n) val))
+            (('primcall 'struct-set!/immediate n struct val)
+             (add-def! `(primcall struct-ref/immediate ,n ,struct) val))
             (('primcall 'scm->f64 #f scm)
              (match defs
                ((f64)

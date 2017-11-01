@@ -62,9 +62,15 @@
         (('vector-set! v (? u8? n) x)
          (build-exp
            ($primcall 'vector-set!/immediate (intmap-ref constants n) (v x))))
-        (('allocate-struct v (? u8? n)) (rename 'allocate-struct/immediate))
-        (('struct-ref s (? u8? n)) (rename 'struct-ref/immediate))
-        (('struct-set! s (? u8? n) x) (rename 'struct-set!/immediate))
+        (('allocate-struct v (? u8? n))
+         (build-exp
+           ($primcall 'allocate-struct/immediate (intmap-ref constants n) (v))))
+        (('struct-ref s (? u8? n))
+         (build-exp
+           ($primcall 'struct-ref/immediate (intmap-ref constants n) (s))))
+        (('struct-set! s (? u8? n) x)
+         (build-exp
+           ($primcall 'struct-set!/immediate (intmap-ref constants n) (s x))))
         (('add x (? u8? y)) (build-exp ($primcall 'add/immediate #f (x y))))
         (('add (? u8? x) y) (build-exp ($primcall 'add/immediate #f (y x))))
         (('sub x (? u8? y)) (build-exp ($primcall 'sub/immediate #f (x y))))

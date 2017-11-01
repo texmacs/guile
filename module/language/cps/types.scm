@@ -784,7 +784,7 @@ minimum, and maximum."
 (define-type-checker (struct-ref s idx)
   (and (check-type s &struct 0 *max-size-t*)
        (check-type idx &u64 0 *max-size-t*)
-       ;; FIXME: is the field readable?
+       ;; FIXME: is the field boxed?
        (< (&max idx) (&min s))))
 (define-type-inferrer (struct-ref s idx result)
   (restrict! s &struct (1+ (&min/0 idx)) *max-size-t*)
@@ -794,15 +794,28 @@ minimum, and maximum."
 (define-type-checker (struct-set! s idx val)
   (and (check-type s &struct 0 *max-size-t*)
        (check-type idx &u64 0 *max-size-t*)
-       ;; FIXME: is the field writable?
+       ;; FIXME: is the field boxed?
        (< (&max idx) (&min s))))
 (define-type-inferrer (struct-set! s idx val)
   (restrict! s &struct (1+ (&min/0 idx)) *max-size-t*)
   (restrict! idx &u64 0 (1- (&max/size s))))
 
-(define-type-aliases allocate-struct allocate-struct/immediate)
-(define-type-aliases struct-ref struct-ref/immediate)
-(define-type-aliases struct-set! struct-set!/immediate)
+(define-type-inferrer/param (allocate-struct/immediate size vt result)
+  (restrict! vt &struct vtable-offset-user *max-size-t*)
+  (define! result &struct size size))
+
+(define-type-checker/param (struct-ref/immediate idx s)
+  ;; FIXME: is the field boxed?
+  (and (check-type s &struct 0 *max-size-t*) (< idx (&min s))))
+(define-type-inferrer/param (struct-ref/immediate idx s result)
+  (restrict! s &struct (1+ idx) *max-size-t*)
+  (define! result &all-types -inf.0 +inf.0))
+
+(define-type-checker/param (struct-set!/immediate idx s val)
+  ;; FIXME: is the field boxed?
+  (and (check-type s &struct 0 *max-size-t*) (< idx (&min s))))
+(define-type-inferrer/param (struct-set!/immediate idx s val)
+  (restrict! s &struct (1+ idx) *max-size-t*))
 
 (define-simple-type (struct-vtable (&struct 0 *max-size-t*))
   (&struct vtable-offset-user *max-size-t*))

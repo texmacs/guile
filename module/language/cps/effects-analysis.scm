@@ -342,20 +342,14 @@ is or might be a read or a write to the same location as A."
   ((vector-length v)                                           &type-check))
 
 ;; Structs.
-(define (struct-field n constants)
-  (indexed-field &struct n constants))
-(define (read-struct-field n constants)
-  (logior &read (struct-field n constants)))
-(define (write-struct-field n constants)
-  (logior &write (struct-field n constants)))
-(define-primitive-effects* constants
+(define-primitive-effects* param
   ((allocate-struct vt n)          (&allocate &struct)         &type-check)
-  ((allocate-struct/immediate v n) (&allocate &struct)         &type-check)
+  ((allocate-struct/immediate vt)  (&allocate &struct)         &type-check)
   ((make-struct/no-tail vt . _)    (&allocate &struct)         &type-check)
-  ((struct-ref s n)                (read-struct-field n constants) &type-check)
-  ((struct-ref/immediate s n)      (read-struct-field n constants) &type-check)
-  ((struct-set! s n x)             (write-struct-field n constants) &type-check)
-  ((struct-set!/immediate s n x)   (write-struct-field n constants) &type-check)
+  ((struct-ref s n)                (&read-object &vector)      &type-check)
+  ((struct-ref/immediate s)        (&read-field &struct param) &type-check)
+  ((struct-set! s n x)             (&write-object &struct)     &type-check)
+  ((struct-set!/immediate s x)     (&write-field &struct param) &type-check)
   ((struct-vtable s)                                           &type-check))
 
 ;; Strings.
