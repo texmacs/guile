@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@
       (match cont
         (($ $kargs _ _
             ($ $continue k src
-               ($ $primcall 'cached-toplevel-box (scope name bound?))))
+               ($ $primcall 'cached-toplevel-box #f (scope name bound?))))
          (intset-add! used-scopes (intmap-ref constants scope)))
         (_
          used-scopes)))
@@ -52,7 +52,7 @@
        (match cont
          (($ $kargs names vars
              ($ $continue k src
-                ($ $primcall 'cache-current-module!
+                ($ $primcall 'cache-current-module! #f
                    (module (? (lambda (scope)
                                 (let ((val (intmap-ref constants scope)))
                                   (not (intset-ref used-scopes val)))))))))

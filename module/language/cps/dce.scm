@@ -149,9 +149,9 @@ sites."
         (($ $callk kfun proc args)
          (values (intset-add live-labels kfun)
                  (adjoin-vars args (adjoin-var proc live-vars))))
-        (($ $primcall name args)
+        (($ $primcall name param args)
          (values live-labels (adjoin-vars args live-vars)))
-        (($ $branch k ($ $primcall name args))
+        (($ $branch k ($ $primcall name param args))
          (values live-labels (adjoin-vars args live-vars)))
         (($ $values args)
          (values live-labels
@@ -191,7 +191,7 @@ sites."
                   (($ $primcall
                       (or 'vector-set! 'vector-set!/immediate
                           'set-car! 'set-cdr!
-                          'box-set!)
+                          'box-set!) #f
                       (obj . _))
                    (or (var-live? obj live-vars)
                        (not (intset-ref known-allocations obj))))

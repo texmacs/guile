@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,7 +59,7 @@
               (with-cps cps
                 (letv rest)
                 (letk krest ($kargs ('rest) (rest)
-                              ($continue k src ($primcall 'cons (v rest)))))
+                              ($continue k src ($primcall 'cons #f (v rest)))))
                 ($ (build-rest krest tail))))))
          (with-cps cps
            (letv rest)
@@ -76,7 +76,7 @@
      (intmap-fold
       (lambda (label cont out)
         (match cont
-          (($ $kargs names vars ($ $continue k src ($ $primcall 'values args)))
+          (($ $kargs names vars ($ $continue k src ($ $primcall 'values #f args)))
            (call-with-values (lambda () (inline-values out k src args))
              (lambda (out term)
                (if term

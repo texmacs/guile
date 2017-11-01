@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -205,22 +205,22 @@ disjoint, an error will be signalled."
      (intmap-fold
       (lambda (var exp out)
         (match exp
-          (($ $primcall (or 'load-f64 'load-u64 'load-s64) (val))
+          (($ $primcall (or 'load-f64 'load-u64 'load-s64) #f (val))
            (intmap-add! out var (intmap-ref out val)))
           ;; Punch through type conversions to allow uadd to specialize
           ;; to uadd/immediate.
-          (($ $primcall 'scm->f64 (val))
+          (($ $primcall 'scm->f64 #f (val))
            (let ((f64 (intmap-ref out val (lambda (_) #f))))
              (if (and f64 (number? f64) (inexact? f64) (real? f64))
                  (intmap-add! out var f64)
                  out)))
-          (($ $primcall (or 'scm->u64 'scm->u64/truncate) (val))
+          (($ $primcall (or 'scm->u64 'scm->u64/truncate) #f (val))
            (let ((u64 (intmap-ref out val (lambda (_) #f))))
              (if (and u64 (number? u64) (exact-integer? u64)
                       (<= 0 u64 #xffffFFFFffffFFFF))
                  (intmap-add! out var u64)
                  out)))
-          (($ $primcall 'scm->s64 (val))
+          (($ $primcall 'scm->s64 #f (val))
            (let ((s64 (intmap-ref out val (lambda (_) #f))))
              (if (and s64 (number? s64) (exact-integer? s64)
                       (<= (- #x8000000000000000) s64 #x7fffFFFFffffFFFF))

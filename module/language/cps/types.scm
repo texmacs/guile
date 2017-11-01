@@ -412,7 +412,7 @@ minimum, and maximum."
   (hashq-set!
    *type-checkers*
    'name
-   (lambda (typeset arg ...)
+   (lambda (typeset param arg ...)
      (syntax-parameterize
          ((&type (syntax-rules () ((_ val) (var-type typeset val))))
           (&min  (syntax-rules () ((_ val) (var-min typeset val))))
@@ -430,7 +430,7 @@ minimum, and maximum."
   (hashq-set!
    *type-inferrers*
    'name
-   (lambda (in succ var ...)
+   (lambda (in succ param var ...)
      (let ((out in))
        (syntax-parameterize
            ((define!
@@ -1625,13 +1625,13 @@ maximum, where type is a bitset as a fixnum."
       ((var . vars)
        (adjoin-vars (adjoin-var types var entry) vars entry))))
 
-  (define (infer-primcall types succ name args result)
+  (define (infer-primcall types succ name param args result)
     (cond
      ((hashq-ref *type-inferrers* name)
       => (lambda (inferrer)
            ;; FIXME: remove the apply?
            ;; (pk 'primcall name args result)
-           (apply inferrer types succ
+           (apply inferrer types succ param
                   (if result
                       (append args (list result))
                       args))))
@@ -1688,19 +1688,19 @@ maximum, where type is a bitset as a fixnum."
         (values (append changed0 changed1) typev)))
     ;; Each of these branches must propagate to its successors.
     (match exp
-      (($ $branch kt ($ $primcall name args))
+      (($ $branch kt ($ $primcall name param args))
        ;; The "normal" continuation is the #f branch.
-       (let ((kf-types (infer-primcall types 0 name args #f))
-             (kt-types (infer-primcall types 1 name args #f)))
+       (let ((kf-types (infer-primcall types 0 name param args #f))
+             (kt-types (infer-primcall types 1 name param args #f)))
          (propagate2 k kf-types kt kt-types)))
       (($ $prompt escape? tag handler)
        ;; The "normal" continuation enters the prompt.
        (propagate2 k types handler types))
-      (($ $primcall name args)
+      (($ $primcall name param args)
        (propagate1 k
                    (match (intmap-ref conts k)
                      (($ $kargs _ defs)
-                      (infer-primcall types 0 name args
+                      (infer-primcall types 0 name param args
                                       (match defs ((var) var) (() #f))))
                      (_
                       ;; (pk 'warning-no-restrictions name)
@@ -1787,9 +1787,9 @@ maximum, where type is a bitset as a fixnum."
             (type-entry-min tentry)
             (type-entry-max tentry))))
 
-(define (primcall-types-check? types label name args)
+(define (primcall-types-check? types label name param args)
   (match (hashq-ref *type-checkers* name)
     (#f #f)
     (checker
      (let ((entry (intmap-ref types label)))
-       (apply checker (vector-ref entry 0) args)))))
+       (apply checker (vector-ref entry 0) param args)))))

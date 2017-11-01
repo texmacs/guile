@@ -91,13 +91,13 @@
       (#f
        (with-cps cps
          (build-term ($continue k src
-                       ($primcall 'resolve (name bound?))))))
+                       ($primcall 'resolve #f (name bound?))))))
       (scope-id
        (with-cps cps
          ($ (with-cps-constants ((scope scope-id))
               (build-term
                ($continue k src
-                 ($primcall 'cached-toplevel-box (scope name bound?))))))))))
+                 ($primcall 'cached-toplevel-box #f (scope name bound?))))))))))
   (with-cps cps
     (letv box)
     (let$ body (val-proc box))
@@ -116,7 +116,7 @@
                             (public? public?)
                             (bound? bound?))
          (build-term ($continue kbox src
-                       ($primcall 'cached-module-box
+                       ($primcall 'cached-module-box #f
                                   (module name public? bound?))))))))
 
 (define (capture-toplevel-scope cps src scope-id k)
@@ -125,10 +125,10 @@
     (let$ body (with-cps-constants ((scope scope-id))
                  (build-term
                    ($continue k src
-                     ($primcall 'cache-current-module! (module scope))))))
+                     ($primcall 'cache-current-module! #f (module scope))))))
     (letk kmodule ($kargs ('module) (module) ,body))
     (build-term ($continue kmodule src
-                  ($primcall 'current-module ())))))
+                  ($primcall 'current-module #f ())))))
 
 (define (fold-formals proc seed arity gensyms inits)
   (match arity
@@ -176,7 +176,7 @@
     ($ (with-cps-constants ((unbound (pointer->scm
                                       (make-pointer unbound-bits))))
          (build-term ($continue kf src
-                       ($branch kt ($primcall 'eq? (var unbound)))))))))
+                       ($branch kt ($primcall 'eq? #f (var unbound)))))))))
 
 (define (init-default-value cps name sym subst init body)
   (match (hashq-ref subst sym)
@@ -187,7 +187,7 @@
              (with-cps cps
                (letv phi)
                (letk kbox ($kargs (name) (phi)
-                            ($continue k src ($primcall 'box (phi)))))
+                            ($continue k src ($primcall 'box #f (phi)))))
                ($ (make-body kbox)))
              (make-body cps k)))
        (with-cps cps
@@ -278,7 +278,7 @@
              (let$ void (with-cps-constants ((unspecified *unspecified*))
                           (build-term
                             ($continue k src
-                              ($primcall 'values (unspecified))))))
+                              ($primcall 'values #f (unspecified))))))
              (letk kvoid ($kargs () () ,void))
              kvoid))))))
     (1
@@ -296,7 +296,7 @@
              (letv val)
              (let$ body (with-cps-constants ((nil '()))
                           (build-term
-                            ($continue kargs src ($primcall 'cons (val nil))))))
+                            ($continue kargs src ($primcall 'cons #f (val nil))))))
              (letk kval ($kargs ('val) (val) ,body))
              kval))
           (($ $arity (_) () #f () #f)
@@ -316,7 +316,7 @@
              (letv val)
              (letk kval ($kargs ('val) (val)
                           ($continue k src
-                            ($primcall 'values (val)))))
+                            ($primcall 'values #f (val)))))
              kval))))))))
 
 ;; cps exp k-name alist -> cps term
@@ -331,7 +331,7 @@
             (letv unboxed)
             (let$ body (k unboxed))
             (letk kunboxed ($kargs ('unboxed) (unboxed) ,body))
-            (build-term ($continue kunboxed src ($primcall 'box-ref (box))))))
+            (build-term ($continue kunboxed src ($primcall 'box-ref #f (box))))))
          ((orig-var subst-var #f) (k cps subst-var))
          (var (k cps var))))
       (else
@@ -356,7 +356,7 @@
       ((orig-var subst-var #t)
        (with-cps cps
          (letk k ($kargs (name) (subst-var) ,body))
-         (build-term ($continue k #f ($primcall 'box (orig-var))))))
+         (build-term ($continue k #f ($primcall 'box #f (orig-var))))))
       (else
        (with-cps cps body))))
   (define (box-bound-vars cps names syms body)
@@ -376,7 +376,7 @@
      (with-cps cps
        (let$ k (adapt-arity k src 1))
        (rewrite-term (hashq-ref subst sym)
-         ((orig-var box #t) ($continue k src ($primcall 'box-ref (box))))
+         ((orig-var box #t) ($continue k src ($primcall 'box-ref #f (box))))
          ((orig-var subst-var #f) ($continue k src ($values (subst-var))))
          (var ($continue k src ($values (var)))))))
 
@@ -456,7 +456,7 @@
       (lambda (cps box)
         (with-cps cps
           (let$ k (adapt-arity k src 1))
-          (build-term ($continue k src ($primcall 'box-ref (box))))))))
+          (build-term ($continue k src ($primcall 'box-ref #f (box))))))))
 
     (($ <module-set> src mod name public? exp)
      (convert-arg cps exp
@@ -467,7 +467,7 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! (box val))))))))))
+                ($continue k src ($primcall 'box-set! #f (box val))))))))))
 
     (($ <toplevel-ref> src name)
      (toplevel-box
@@ -475,7 +475,7 @@
       (lambda (cps box)
         (with-cps cps
           (let$ k (adapt-arity k src 1))
-          (build-term ($continue k src ($primcall 'box-ref (box))))))))
+          (build-term ($continue k src ($primcall 'box-ref #f (box))))))))
 
     (($ <toplevel-set> src name exp)
      (convert-arg cps exp
@@ -486,7 +486,7 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! (box val))))))))))
+                ($continue k src ($primcall 'box-set! #f (box val))))))))))
 
     (($ <toplevel-define> src name exp)
      (convert-arg cps exp
@@ -495,10 +495,10 @@
            (let$ k (adapt-arity k src 0))
            (letv box)
            (letk kset ($kargs ('box) (box)
-                        ($continue k src ($primcall 'box-set! (box val)))))
+                        ($continue k src ($primcall 'box-set! #f (box val)))))
            ($ (with-cps-constants ((name name))
                 (build-term
-                  ($continue kset src ($primcall 'define! (name))))))))))
+                  ($continue kset src ($primcall 'define! #f (name))))))))))
 
     (($ <call> src proc args)
      (convert-args cps (cons proc args)
@@ -535,7 +535,7 @@
                                      (with-cps cps
                                        (build-term
                                          ($continue k src
-                                           ($primcall 'cons (head tail))))))))
+                                           ($primcall 'cons #f (head tail))))))))
                       (letk ktail ($kargs ('tail) (tail) ,body))
                       ($ (lp args ktail)))))))))))
       ((prim-instruction name)
@@ -547,7 +547,7 @@
                    (letv f64)
                    (let$ k (adapt-arity k src out))
                    (letk kbox ($kargs ('f64) (f64)
-                                ($continue k src ($primcall 'f64->scm (f64)))))
+                                ($continue k src ($primcall 'f64->scm #f (f64)))))
                    kbox))
                 ((char->integer
                   string-length vector-length
@@ -556,14 +556,14 @@
                    (letv u64)
                    (let$ k (adapt-arity k src out))
                    (letk kbox ($kargs ('u64) (u64)
-                                ($continue k src ($primcall 'u64->scm (u64)))))
+                                ($continue k src ($primcall 'u64->scm #f (u64)))))
                    kbox))
                 ((bv-s8-ref bv-s16-ref bv-s32-ref bv-s64-ref)
                  (with-cps cps
                    (letv s64)
                    (let$ k (adapt-arity k src out))
                    (letk kbox ($kargs ('s64) (s64)
-                                ($continue k src ($primcall 's64->scm (s64)))))
+                                ($continue k src ($primcall 's64->scm #f (s64)))))
                    kbox))
                 (else
                  (adapt-arity cps k src out))))
@@ -573,7 +573,7 @@
                 (let$ body (have-arg unboxed))
                 (letk kunboxed ($kargs ('unboxed) (unboxed) ,body))
                 (build-term
-                  ($continue kunboxed src ($primcall unbox-op (arg))))))
+                  ($continue kunboxed src ($primcall unbox-op #f (arg))))))
             (define (unbox-args cps args have-args)
               (case instruction
                 ((bv-f32-ref bv-f64-ref
@@ -671,7 +671,7 @@
                                (with-cps cps
                                  (build-term
                                    ($continue k src
-                                     ($primcall instruction args))))))))
+                                     ($primcall instruction #f args))))))))
                        (with-cps cps
                          (letv prim)
                          (letk kprim ($kargs ('prim) (prim)
@@ -685,7 +685,7 @@
          (lambda (cps args)
            (with-cps cps
              (build-term
-               ($continue k src ($primcall name args)))))))))
+               ($continue k src ($primcall name #f args)))))))))
 
     ;; Prompts with inline handlers.
     (($ <prompt> src escape-only? tag body
@@ -718,7 +718,7 @@
                      (with-cps cps
                        (letk kbody ($kargs () ()
                                      ($continue krest (tree-il-src body)
-                                       ($primcall 'call-thunk/no-inline
+                                       ($primcall 'call-thunk/no-inline #f
                                                   (thunk)))))
                        (build-term ($continue kbody (tree-il-src body)
                                      ($prompt #f tag khargs))))))))
@@ -729,11 +729,11 @@
              (letk khbody ($kargs hnames bound-vars ,hbody))
              (letk khargs ($kreceive hreq hrest khbody))
              (letk kprim ($kargs ('prim) (prim)
-                           ($continue k src ($primcall 'apply (prim vals)))))
+                           ($continue k src ($primcall 'apply #f (prim vals)))))
              (letk kret ($kargs () ()
                           ($continue kprim src ($prim 'values))))
              (letk kpop ($kargs ('rest) (vals)
-                          ($continue kret src ($primcall 'unwind ()))))
+                          ($continue kret src ($primcall 'unwind #f ()))))
              ;; FIXME: Attach hsrc to $kreceive.
              (letk krest ($kreceive '() 'rest kpop))
              ($ (convert-body khargs krest)))))))
@@ -743,7 +743,7 @@
        (lambda (cps args*)
          (with-cps cps
            (build-term
-             ($continue k src ($primcall 'abort-to-prompt args*)))))))
+             ($continue k src ($primcall 'abort-to-prompt #f args*)))))))
 
     (($ <abort> src tag args tail)
      (convert-args cps
@@ -752,7 +752,7 @@
                  (list tail))
        (lambda (cps args*)
          (with-cps cps
-           (build-term ($continue k src ($primcall 'apply args*)))))))
+           (build-term ($continue k src ($primcall 'apply #f args*)))))))
 
     (($ <conditional> src test consequent alternate)
      (define (convert-test cps test kt kf)
@@ -764,13 +764,13 @@
                   (with-cps cps
                     (letk kt* ($kargs () ()
                                 ($continue kf src
-                                  ($branch kt ($primcall name args)))))
+                                  ($branch kt ($primcall name #f args)))))
                     (build-term
                       ($continue kf src
-                        ($branch kt* ($primcall 'heap-object? args)))))
+                        ($branch kt* ($primcall 'heap-object? #f args)))))
                   (with-cps cps
                     (build-term ($continue kf src
-                                  ($branch kt ($primcall name args)))))))))
+                                  ($branch kt ($primcall name #f args)))))))))
          (($ <conditional> src test consequent alternate)
           (with-cps cps
             (let$ t (convert-test consequent kt kf))
@@ -785,7 +785,7 @@
               (lambda (cps test)
                 (with-cps cps
                   (build-term ($continue kt src
-                                ($branch kf ($primcall 'false? (test)))))))))))
+                                ($branch kf ($primcall 'false? #f (test)))))))))))
      (with-cps cps
        (let$ t (convert consequent k subst))
        (let$ f (convert alternate k subst))
@@ -801,7 +801,7 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! (box exp))))))))))
+                ($continue k src ($primcall 'box-set! #f (box exp))))))))))
 
     (($ <seq> src head tail)
      (with-cps cps

@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -179,8 +179,8 @@
          ($callk (rename-label k) (rename-var proc) ,(map rename-var args)))
         (($ $branch kt exp)
          ($branch (rename-label kt) ,(rename-exp exp)))
-        (($ $primcall name args)
-         ($primcall name ,(map rename-var args)))
+        (($ $primcall name param args)
+         ($primcall name param ,(map rename-var args)))
         (($ $prompt escape? tag handler)
          ($prompt escape? (rename-var tag) (rename-label handler)))))
     (define (rename-arity arity)

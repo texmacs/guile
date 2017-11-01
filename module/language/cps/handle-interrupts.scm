@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@
          (setk label
                ($kargs names vars
                  ($continue k* src
-                   ($primcall 'handle-interrupts ()))))))))
+                   ($primcall 'handle-interrupts #f ()))))))))
   (let* ((cps (renumber cps))
          (safepoints (compute-safepoints cps)))
     (with-fresh-name-state cps

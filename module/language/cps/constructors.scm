@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -42,13 +42,13 @@
          (letv tail)
          (letk ktail ($kargs ('tail) (tail)
                        ($continue k src
-                         ($primcall 'cons (arg tail)))))
+                         ($primcall 'cons #f (arg tail)))))
          ($ (build-list args ktail))))))
   (with-cps out
     (letv val)
     (letk kvalues ($kargs ('val) (val)
                     ($continue k src
-                      ($primcall 'values (val)))))
+                      ($primcall 'values #f (val)))))
     ($ (build-list args kvalues))))
 
 (define (inline-vector out k src args)
@@ -56,7 +56,7 @@
     (match args
       (()
        (with-cps out
-         (build-term ($continue k src ($primcall 'values (vec))))))
+         (build-term ($continue k src ($primcall 'values #f (vec))))))
       ((arg . args)
        (with-cps out
          (let$ next (initialize vec args (1+ n)))
@@ -64,10 +64,10 @@
          (letv u64)
          (letk kunbox ($kargs ('idx) (u64)
                         ($continue knext src
-                          ($primcall 'vector-set! (vec u64 arg)))))
+                          ($primcall 'vector-set! #f (vec u64 arg)))))
          ($ (with-cps-constants ((idx n))
               (build-term ($continue kunbox src
-                            ($primcall 'scm->u64 (idx))))))))))
+                            ($primcall 'scm->u64 #f (idx))))))))))
   (with-cps out
     (letv vec)
     (let$ body (initialize vec args 0))
@@ -77,9 +77,9 @@
          (letv u64)
          (letk kunbox ($kargs ('len) (u64)
                         ($continue kalloc src
-                          ($primcall 'make-vector (u64 init)))))
+                          ($primcall 'make-vector #f (u64 init)))))
          (build-term ($continue kunbox src
-                       ($primcall 'scm->u64 (len))))))))
+                       ($primcall 'scm->u64 #f (len))))))))
 
 (define (find-constructor-inliner name)
   (match name
@@ -93,7 +93,7 @@
      (intmap-fold
       (lambda (label cont out)
         (match cont
-          (($ $kargs names vars ($ $continue k src ($ $primcall name args)))
+          (($ $kargs names vars ($ $continue k src ($ $primcall name #f args)))
            (let ((inline (find-constructor-inliner name)))
              (if inline
                  (call-with-values (lambda () (inline out k src args))

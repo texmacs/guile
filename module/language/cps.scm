@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -189,7 +189,7 @@
 (define-cps-type $branch kt exp)
 (define-cps-type $call proc args)
 (define-cps-type $callk k proc args) ; First-order.
-(define-cps-type $primcall name args)
+(define-cps-type $primcall name param args)
 (define-cps-type $values args)
 (define-cps-type $prompt escape? tag handler)
 
@@ -241,9 +241,9 @@
     ((_ ($callk k proc (unquote args))) (make-$callk k proc args))
     ((_ ($callk k proc (arg ...))) (make-$callk k proc (list arg ...)))
     ((_ ($callk k proc args)) (make-$callk k proc args))
-    ((_ ($primcall name (unquote args))) (make-$primcall name args))
-    ((_ ($primcall name (arg ...))) (make-$primcall name (list arg ...)))
-    ((_ ($primcall name args)) (make-$primcall name args))
+    ((_ ($primcall name param (unquote args))) (make-$primcall name param args))
+    ((_ ($primcall name param (arg ...))) (make-$primcall name param (list arg ...)))
+    ((_ ($primcall name param args)) (make-$primcall name param args))
     ((_ ($values (unquote args))) (make-$values args))
     ((_ ($values (arg ...))) (make-$values (list arg ...)))
     ((_ ($values args)) (make-$values args))
@@ -299,8 +299,8 @@
      (build-exp ($call proc arg)))
     (('callk k proc arg ...)
      (build-exp ($callk k proc arg)))
-    (('primcall name arg ...)
-     (build-exp ($primcall name arg)))
+    (('primcall name param arg ...)
+     (build-exp ($primcall name param arg)))
     (('branch k exp)
      (build-exp ($branch k ,(parse-cps exp))))
     (('values arg ...)
@@ -346,8 +346,8 @@
      `(call ,proc ,@args))
     (($ $callk k proc args)
      `(callk ,k ,proc ,@args))
-    (($ $primcall name args)
-     `(primcall ,name ,@args))
+    (($ $primcall name param args)
+     `(primcall ,name ,param ,@args))
     (($ $branch k exp)
      `(branch ,k ,(unparse-cps exp)))
     (($ $values args)

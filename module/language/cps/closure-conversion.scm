@@ -89,9 +89,9 @@ conts."
             (add-uses args uses))
            (($ $call proc args)
             (add-uses args uses))
-           (($ $branch kt ($ $primcall name args))
+           (($ $branch kt ($ $primcall name param args))
             (add-uses args uses))
-           (($ $primcall name args)
+           (($ $primcall name param args)
             (add-uses args uses))
            (($ $prompt escape? tag handler)
             (add-use tag uses))))
@@ -245,10 +245,10 @@ shared closures to use the appropriate 'self' variable, if possible."
                     (rewrite-exp (intmap-ref env proc (lambda (_) #f))
                       (#f ($call proc ,args))
                       ((closure . label) ($callk label closure ,args)))))
-                (($ $primcall name args)
-                 ($primcall name ,(map subst args)))
-                (($ $branch k ($ $primcall name args))
-                 ($branch k ($primcall name ,(map subst args))))
+                (($ $primcall name param args)
+                 ($primcall name param ,(map subst args)))
+                (($ $branch k ($ $primcall name param args))
+                 ($branch k ($primcall name param ,(map subst args))))
                 (($ $values args)
                  ($values ,(map subst args)))
                 (($ $prompt escape? tag handler)
@@ -369,9 +369,9 @@ references."
                       (add-use proc (add-uses args uses)))
                      (($ $callk label proc args)
                       (add-use proc (add-uses args uses)))
-                     (($ $branch kt ($ $primcall name args))
+                     (($ $branch kt ($ $primcall name param args))
                       (add-uses args uses))
-                     (($ $primcall name args)
+                     (($ $primcall name param args)
                       (add-uses args uses))
                      (($ $prompt escape? tag handler)
                       (add-use tag uses)))))
@@ -482,7 +482,7 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                (letv var*)
                (let$ body (k var*))
                (letk k* ($kargs (#f) (var*) ,body))
-               (build-term ($continue k* #f ($primcall op (self)))))))
+               (build-term ($continue k* #f ($primcall op #f (self)))))))
           (_
            (let ((idx (intset-find free var)))
              (cond
@@ -493,11 +493,11 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                  (letk k* ($kargs (#f) (var*) ,body))
                  (letk kunbox ($kargs ('idx) (u64)
                                 ($continue k* #f
-                                  ($primcall 'vector-ref (self u64)))))
+                                  ($primcall 'vector-ref #f (self u64)))))
                  ($ (with-cps-constants ((idx idx))
                       (build-term
                         ($continue kunbox #f
-                          ($primcall 'scm->u64 (idx))))))))
+                          ($primcall 'scm->u64 #f (idx))))))))
               (else
                (with-cps cps
                  (letv var*)
@@ -506,7 +506,7 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                  ($ (with-cps-constants ((idx idx))
                       (build-term
                         ($continue k* #f
-                          ($primcall 'free-ref (self idx)))))))))))))
+                          ($primcall 'free-ref #f (self idx)))))))))))))
        (else
         (with-cps cps
           ($ (k var))))))
@@ -540,7 +540,7 @@ term."
          (with-cps cps
            ($ (with-cps-constants ((false #f))
                 (build-term
-                  ($continue k src ($primcall 'cons (false false))))))))
+                  ($continue k src ($primcall 'cons #f (false false))))))))
         ;; Well-known callee with more than two free variables; the closure
         ;; is a vector.
         (#(#t nfree)
@@ -552,9 +552,9 @@ term."
                 (letv u64)
                 (letk kunbox ($kargs ('nfree) (u64)
                                ($continue k src
-                                 ($primcall 'make-vector (u64 false)))))
+                                 ($primcall 'make-vector #f (u64 false)))))
                 (build-term
-                  ($continue kunbox src ($primcall 'scm->u64 (nfree))))))))))
+                  ($continue kunbox src ($primcall 'scm->u64 #f (nfree))))))))))
 
     (define (init-closure cps k src var known? free)
       "Initialize the free variables @var{closure-free} in a closure
@@ -579,10 +579,10 @@ bound to @var{var}, and continue to @var{k}."
                              (with-cps cps
                                (build-term
                                  ($continue k src
-                                   ($primcall 'set-cdr! (var v1))))))))
+                                   ($primcall 'set-cdr! #f (var v1))))))))
                  (letk kcdr ($kargs () () ,body))
                  (build-term
-                   ($continue kcdr src ($primcall 'set-car! (var v0)))))))))
+                   ($continue kcdr src ($primcall 'set-car! #f (var v0)))))))))
         ;; Otherwise residualize a sequence of vector-set! or free-set!,
         ;; depending on whether the callee is well-known or not.
         (_
@@ -602,17 +602,17 @@ bound to @var{var}, and continue to @var{k}."
                              (letk kunbox
                                    ($kargs ('idx) (u64)
                                      ($continue k src
-                                       ($primcall 'vector-set! (var u64 v)))))
+                                       ($primcall 'vector-set! #f (var u64 v)))))
                              ($ (with-cps-constants ((idx idx))
                                   (build-term
                                     ($continue kunbox src
-                                      ($primcall 'scm->u64 (idx))))))))
+                                      ($primcall 'scm->u64 #f (idx))))))))
                           (else
                            (with-cps cps
                              ($ (with-cps-constants ((idx idx))
                                   (build-term
                                     ($continue k src
-                                      ($primcall 'free-set!
+                                      ($primcall 'free-set! #f
                                                  (var idx v)))))))))))))))))))
 
     (define (make-single-closure cps k src kfun)
@@ -757,20 +757,20 @@ bound to @var{var}, and continue to @var{k}."
         (($ $continue k src ($ $callk label proc args))
          (convert-known-proc-call cps k src label proc args))
 
-        (($ $continue k src ($ $primcall name args))
+        (($ $continue k src ($ $primcall name param args))
          (convert-args cps args
            (lambda (cps args)
              (with-cps cps
                (build-term
-                 ($continue k src ($primcall name args)))))))
+                 ($continue k src ($primcall name param args)))))))
 
-        (($ $continue k src ($ $branch kt ($ $primcall name args)))
+        (($ $continue k src ($ $branch kt ($ $primcall name param args)))
          (convert-args cps args
            (lambda (cps args)
              (with-cps cps
                (build-term
                  ($continue k src
-                   ($branch kt ($primcall name args))))))))
+                   ($branch kt ($primcall name param args))))))))
 
         (($ $continue k src ($ $values args))
          (convert-args cps args

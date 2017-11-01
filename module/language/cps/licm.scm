@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -70,8 +70,8 @@
        ((or ($ $const) ($ $prim) ($ $closure)) #t)
        (($ $prompt) #f) ;; ?
        (($ $branch) #f)
-       (($ $primcall 'values) #f)
-       (($ $primcall name args)
+       (($ $primcall 'values #f) #f)
+       (($ $primcall name param args)
         (and-map (lambda (arg) (not (intset-ref loop-vars arg)))
                  args))
        (($ $values args)

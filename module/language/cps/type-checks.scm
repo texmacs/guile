@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -39,8 +39,8 @@
   "Elide &type-check effects from EFFECTS for the function starting at
 KFUN where we can prove that no assertion will be raised at run-time."
   (let ((types (infer-types conts kfun)))
-    (define (visit-primcall effects fx label name args)
-      (if (primcall-types-check? types label name args)
+    (define (visit-primcall effects fx label name param args)
+      (if (primcall-types-check? types label name param args)
           (intmap-replace! effects label (logand fx (lognot &type-check)))
           effects))
     (persistent-intmap
@@ -52,11 +52,11 @@ KFUN where we can prove that no assertion will be raised at run-time."
                         (match (intmap-ref conts label)
                           (($ $kargs _ _ exp)
                            (match exp
-                             (($ $continue k src ($ $primcall name args))
-                              (visit-primcall effects fx label name args))
+                             (($ $continue k src ($ $primcall name param args))
+                              (visit-primcall effects fx label name param args))
                              (($ $continue k src
-                                 ($ $branch _ ($primcall name args)))
-                              (visit-primcall effects fx label name args))
+                                 ($ $branch _ ($primcall name param args)))
+                              (visit-primcall effects fx label name param args))
                              (_ effects)))
                           (_ effects)))
                        (else effects))))

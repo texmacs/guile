@@ -71,16 +71,16 @@
       (letv f64-a f64-b result)
       (letk kbox ($kargs ('result) (result)
                    ($continue k src
-                     ($primcall 'f64->scm (result)))))
+                     ($primcall 'f64->scm #f (result)))))
       (letk kop ($kargs ('f64-b) (f64-b)
                   ($continue kbox src
-                    ($primcall fop (f64-a f64-b)))))
+                    ($primcall fop #f (f64-a f64-b)))))
       (letk kunbox-b ($kargs ('f64-a) (f64-a)
                        ($continue kop src
-                         ($primcall 'scm->f64 (b)))))
+                         ($primcall 'scm->f64 #f (b)))))
       (build-term
         ($continue kunbox-b src
-          ($primcall 'scm->f64 (a)))))))
+          ($primcall 'scm->f64 #f (a)))))))
 
 (define* (specialize-u64-binop cps k src op a b #:key
                                (unbox-a 'scm->u64)
@@ -99,26 +99,26 @@
       (letv u64-a u64-b result)
       (letk kbox ($kargs ('result) (result)
                    ($continue k src
-                     ($primcall 'u64->scm (result)))))
+                     ($primcall 'u64->scm #f (result)))))
       (letk kop ($kargs ('u64-b) (u64-b)
                   ($continue kbox src
-                    ($primcall uop (u64-a u64-b)))))
+                    ($primcall uop #f (u64-a u64-b)))))
       (letk kunbox-b ($kargs ('u64-a) (u64-a)
                        ($continue kop src
-                         ($primcall unbox-b (b)))))
+                         ($primcall unbox-b #f (b)))))
       (build-term
         ($continue kunbox-b src
-          ($primcall unbox-a (a)))))))
+          ($primcall unbox-a #f (a)))))))
 
 (define (truncate-u64 cps k src scm)
   (with-cps cps
     (letv u64)
     (letk kbox ($kargs ('u64) (u64)
                  ($continue k src
-                   ($primcall 'u64->scm (u64)))))
+                   ($primcall 'u64->scm #f (u64)))))
     (build-term
       ($continue kbox src
-        ($primcall 'scm->u64/truncate (scm))))))
+        ($primcall 'scm->u64/truncate #f (scm))))))
 
 (define (specialize-u64-comparison cps kf kt src op a b)
   (let ((op (symbol-append 'u64- op)))
@@ -126,13 +126,13 @@
       (letv u64-a u64-b)
       (letk kop ($kargs ('u64-b) (u64-b)
                   ($continue kf src
-                    ($branch kt ($primcall op (u64-a u64-b))))))
+                    ($branch kt ($primcall op #f (u64-a u64-b))))))
       (letk kunbox-b ($kargs ('u64-a) (u64-a)
                        ($continue kop src
-                         ($primcall 'scm->u64 (b)))))
+                         ($primcall 'scm->u64 #f (b)))))
       (build-term
         ($continue kunbox-b src
-          ($primcall 'scm->u64 (a)))))))
+          ($primcall 'scm->u64 #f (a)))))))
 
 (define (specialize-u64-scm-comparison cps kf kt src op a-u64 b-scm)
   (let ((u64-op (symbol-append 'u64- op)))
@@ -140,33 +140,33 @@
       (letv u64 s64 zero z64 sunk)
       (letk kheap ($kargs ('sunk) (sunk)
                     ($continue kf src
-                      ($branch kt ($primcall op (sunk b-scm))))))
+                      ($branch kt ($primcall op #f (sunk b-scm))))))
       ;; Re-box the variable.  FIXME: currently we use a specially
       ;; marked u64->scm to avoid CSE from hoisting the allocation
       ;; again.  Instaed we should just use a-u64 directly and implement
       ;; an allocation sinking pass that should handle this..
       (letk kretag ($kargs () ()
                      ($continue kheap src
-                       ($primcall 'u64->scm/unlikely (u64)))))
+                       ($primcall 'u64->scm/unlikely #f (u64)))))
       (letk kcmp ($kargs () ()
                    ($continue kf src
-                     ($branch kt ($primcall u64-op (u64 s64))))))
+                     ($branch kt ($primcall u64-op #f (u64 s64))))))
       (letk kz64 ($kargs ('z64) (z64)
                    ($continue (case op ((< <= =) kf) (else kt)) src
-                     ($branch kcmp ($primcall 's64-<= (z64 s64))))))
+                     ($branch kcmp ($primcall 's64-<= #f (z64 s64))))))
       (letk kzero ($kargs ('zero) (zero)
-                    ($continue kz64 src ($primcall 'load-s64 (zero)))))
+                    ($continue kz64 src ($primcall 'load-s64 #f (zero)))))
       (letk ks64 ($kargs ('s64) (s64)
                    ($continue kzero src ($const 0))))
       (letk kfix ($kargs () ()
                    ($continue ks64 src
-                     ($primcall 'untag-fixnum (b-scm)))))
+                     ($primcall 'untag-fixnum #f (b-scm)))))
       (letk ku64 ($kargs ('u64) (u64)
                    ($continue kretag src
-                     ($branch kfix ($primcall 'fixnum? (b-scm))))))
+                     ($branch kfix ($primcall 'fixnum? #f (b-scm))))))
       (build-term
         ($continue ku64 src
-          ($primcall 'scm->u64 (a-u64)))))))
+          ($primcall 'scm->u64 #f (a-u64)))))))
 
 (define (specialize-f64-comparison cps kf kt src op a b)
   (let ((op (symbol-append 'f64- op)))
@@ -174,13 +174,13 @@
       (letv f64-a f64-b)
       (letk kop ($kargs ('f64-b) (f64-b)
                   ($continue kf src
-                    ($branch kt ($primcall op (f64-a f64-b))))))
+                    ($branch kt ($primcall op #f (f64-a f64-b))))))
       (letk kunbox-b ($kargs ('f64-a) (f64-a)
                        ($continue kop src
-                         ($primcall 'scm->f64 (b)))))
+                         ($primcall 'scm->f64 #f (b)))))
       (build-term
         ($continue kunbox-b src
-          ($primcall 'scm->f64 (a)))))))
+          ($primcall 'scm->f64 #f (a)))))))
 
 (define (sigbits-union x y)
   (and x y (logior x y)))
@@ -217,7 +217,7 @@
                       ((primop label types out def ...) arg ...)
                       body ...)
   (hashq-set! significant-bits-handlers 'primop
-              (lambda (label types out args defs)
+              (lambda (label types out param args defs)
                 (match args ((arg ...) (match defs ((def ...) body ...)))))))
 
 (define-significant-bits-handler ((logand label types out res) a b)
@@ -286,14 +286,14 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                     (add-unknown-use (add-unknown-uses out args) proc))
                    (($ $callk label proc args)
                     (add-unknown-use (add-unknown-uses out args) proc))
-                   (($ $branch kt ($ $primcall name args))
+                   (($ $branch kt ($ $primcall name param args))
                     (add-unknown-uses out args))
-                   (($ $primcall name args)
+                   (($ $primcall name param args)
                     (let ((h (significant-bits-handler name)))
                       (if h
                           (match (intmap-ref cps k)
                             (($ $kargs _ defs)
-                             (h label types out args defs)))
+                             (h label types out param args defs)))
                           (add-unknown-uses out args))))
                    (($ $prompt escape? tag handler)
                     (add-unknown-use out tag)))))
@@ -335,7 +335,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
          (values cps types (compute-significant-bits cps types label))))
       (($ $kargs names vars
           ($ $continue k src
-             ($ $primcall (and op (or 'add 'sub 'mul 'div)) (a b))))
+             ($ $primcall (and op (or 'add 'sub 'mul 'div)) #f (a b))))
        (match (intmap-ref cps k)
          (($ $kargs (_) (result))
           (call-with-values (lambda ()
@@ -360,7 +360,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                types
                sigbits))))))
       (($ $kargs names vars
-          ($ $continue k src ($ $primcall 'ash (a b))))
+          ($ $continue k src ($ $primcall 'ash #f (a b))))
        (match (intmap-ref cps k)
          (($ $kargs (_) (result))
           (call-with-values (lambda ()
@@ -391,7 +391,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                            (letk kneg ($kargs ('bits) (bits) ,body))
                            (build-term
                              ($continue kneg src
-                               ($primcall 'sub (zero b))))))
+                               ($primcall 'sub #f (zero b))))))
                    (setk label ($kargs names vars ,body))))
                 (else
                  (with-cps cps
@@ -401,7 +401,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                sigbits))))))
       (($ $kargs names vars
           ($ $continue k src
-             ($ $primcall (and op (or 'logand 'logior 'logsub 'logxor)) (a b))))
+             ($ $primcall (and op (or 'logand 'logior 'logsub 'logxor)) #f (a b))))
        (match (intmap-ref cps k)
          (($ $kargs (_) (result))
           (values
@@ -431,7 +431,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
            types sigbits))))
       (($ $kargs names vars
           ($ $continue k src
-             ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) (a b)))))
+             ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) #f (a b)))))
        (values
         (cond
          ((f64-operands? a b)
@@ -531,7 +531,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
        (match (intmap-ref cps label)
          (($ $kargs _ _ ($ $continue k _ exp))
           (match exp
-            (($ $primcall (? (lambda (op) (memq op unbox-ops))) (var))
+            (($ $primcall (? (lambda (op) (memq op unbox-ops))) #f (var))
              (intset-add unbox-uses var))
             (($ $values vars)
              (match (intmap-ref cps k)
@@ -560,7 +560,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   ;; Can the result of EXP definitely be unboxed as an f64?
   (define (exp-result-f64? exp)
     (match exp
-      ((or ($ $primcall 'f64->scm (_))
+      ((or ($ $primcall 'f64->scm #f (_))
            ($ $const (and (? number?) (? inexact?) (? real?))))
        #t)
       (_ #f)))
@@ -572,8 +572,8 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   ;; Can the result of EXP definitely be unboxed as a u64?
   (define (exp-result-u64? exp)
     (match exp
-      ((or ($ $primcall 'u64->scm (_))
-           ($ $primcall 'u64->scm/unlikely (_))
+      ((or ($ $primcall 'u64->scm #f (_))
+           ($ $primcall 'u64->scm/unlikely #f (_))
            ($ $const (and (? number?) (? exact-integer?)
                           (? (lambda (n) (<= 0 n #xffffffffffffffff))))))
        #t)
@@ -638,7 +638,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
             (let$ body (have-arg unboxed))
             (letk kunboxed ($kargs ('unboxed) (unboxed) ,body))
             (build-term
-              ($continue kunboxed #f ($primcall (unbox-op def-var) (arg)))))
+              ($continue kunboxed #f ($primcall (unbox-op def-var) #f (arg)))))
           (have-arg cps arg)))
     (define (unbox-args cps args def-vars have-args)
       (match args
@@ -677,7 +677,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                      (letv boxed)
                      (letk kunbox ($kargs ('boxed) (boxed)
                                     ($continue k src
-                                      ($primcall (unbox-op def) (boxed)))))
+                                      ($primcall (unbox-op def) #f (boxed)))))
                      (setk label ($kargs names vars
                                    ($continue kunbox src ,exp)))))))))))))
      (compute-unbox-labels)
@@ -707,7 +707,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                       (letk kboxed ($kargs (name) (var) ,term))
                       (build-term
                         ($continue kboxed #f
-                          ($primcall (box-op var) (unboxed)))))
+                          ($primcall (box-op var) #f (unboxed)))))
                     (done cps))))
             (define (box-vars cps names vars done)
               (match vars

@@ -186,9 +186,9 @@ $call, and are always called with a compatible arity."
               (restrict-arity functions proc (length args))))
            (($ $callk k proc args)
             (exclude-vars functions (cons proc args)))
-           (($ $branch kt ($ $primcall name args))
+           (($ $branch kt ($ $primcall name param args))
             (exclude-vars functions args))
-           (($ $primcall name args)
+           (($ $primcall name param args)
             (exclude-vars functions args))
            (($ $prompt escape? tag handler)
             (exclude-var functions tag))))
@@ -394,7 +394,7 @@ function set."
                     ;; continue to $kreceive.
                     (($ $primcall) exp)
                     (($ $values vals)
-                     (build-exp ($primcall 'values vals)))))
+                     (build-exp ($primcall 'values #f vals)))))
                  (($ $ktail) exp)))))))
   (define (visit-exp k src exp)
     (match exp

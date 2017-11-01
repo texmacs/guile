@@ -538,7 +538,7 @@ is or might be a read or a write to the same location as A."
      &all-effects)
     (($ $branch k exp)
      (expression-effects exp constants))
-    (($ $primcall name args)
+    (($ $primcall name param args)
      (primitive-effects constants name args))))
 
 (define (compute-effects conts)

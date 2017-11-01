@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@
                             (public? public?)
                             (bound? bound?))
          (build-term ($continue kbox src
-                       ($primcall 'cached-module-box
+                       ($primcall 'cached-module-box #f
                                   (module name public? bound?))))))))
 
 (define (primitive-module name)
@@ -95,13 +95,13 @@
               (lambda (cps box)
                 (with-cps cps
                   (build-term
-                    ($continue k src ($primcall 'box-ref (box))))))))
+                    ($continue k src ($primcall 'box-ref #f (box))))))))
 
 (define (builtin-ref cps idx k src)
   (with-cps cps
     ($ (with-cps-constants ((idx idx))
          (build-term
-           ($continue k src ($primcall 'builtin-ref (idx))))))))
+           ($continue k src ($primcall 'builtin-ref #f (idx))))))))
 
 (define (reify-clause cps ktail)
   (with-cps cps
@@ -149,20 +149,23 @@
          (let$ body (resolve-prim name k src))
          (setk label ($kargs names vars ,body))))
       (($ $kargs names vars
-          ($ $continue k src ($ $primcall 'call-thunk/no-inline (proc))))
+          ($ $continue k src ($ $primcall 'call-thunk/no-inline #f (proc))))
        (with-cps cps
          (setk label ($kargs names vars ($continue k src ($call proc ()))))))
-      (($ $kargs names vars ($ $continue k src ($ $primcall name args)))
-       (if (or (prim-instruction name) (branching-primitive? name))
-           ;; Assume arities are correct.
-           cps
-           (with-cps cps
-             (letv proc)
-             (let$ k (uniquify-receive k))
-             (letk kproc ($kargs ('proc) (proc)
-                           ($continue k src ($call proc args))))
-             (let$ body (resolve-prim name kproc src))
-             (setk label ($kargs names vars ,body)))))
+      (($ $kargs names vars ($ $continue k src ($ $primcall name param args)))
+       (cond
+        ((or (prim-instruction name) (branching-primitive? name))
+         ;; Assume arities are correct.
+         cps)
+        (param (error "unexpected param to reified primcall" name))
+        (else
+         (with-cps cps
+           (letv proc)
+           (let$ k (uniquify-receive k))
+           (letk kproc ($kargs ('proc) (proc)
+                               ($continue k src ($call proc args))))
+           (let$ body (resolve-prim name kproc src))
+           (setk label ($kargs names vars ,body))))))
       (($ $kargs names vars ($ $continue k src ($ $call proc args)))
        (with-cps cps
          (let$ k (uniquify-receive k))
