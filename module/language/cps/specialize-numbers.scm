@@ -137,7 +137,7 @@
 (define (specialize-u64-scm-comparison cps kf kt src op a-u64 b-scm)
   (let ((u64-op (symbol-append 'u64- op)))
     (with-cps cps
-      (letv u64 s64 zero z64 sunk)
+      (letv u64 s64 z64 sunk)
       (letk kheap ($kargs ('sunk) (sunk)
                     ($continue kf src
                       ($branch kt ($primcall op #f (sunk b-scm))))))
@@ -154,10 +154,8 @@
       (letk kz64 ($kargs ('z64) (z64)
                    ($continue (case op ((< <= =) kf) (else kt)) src
                      ($branch kcmp ($primcall 's64-<= #f (z64 s64))))))
-      (letk kzero ($kargs ('zero) (zero)
-                    ($continue kz64 src ($primcall 'load-s64 #f (zero)))))
       (letk ks64 ($kargs ('s64) (s64)
-                   ($continue kzero src ($const 0))))
+                   ($continue kz64 src ($primcall 'load-s64 0 ()))))
       (letk kfix ($kargs () ()
                    ($continue ks64 src
                      ($primcall 'untag-fixnum #f (b-scm)))))

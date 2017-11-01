@@ -375,15 +375,15 @@ is or might be a read or a write to the same location as A."
 ;; Unboxed floats and integers.
 (define-primitive-effects
   ((scm->f64 _)                                                &type-check)
-  ((load-f64 _))
+  ((load-f64))
   ((f64->scm _))
   ((scm->u64 _)                                                &type-check)
   ((scm->u64/truncate _)                                       &type-check)
-  ((load-u64 _))
+  ((load-u64))
   ((u64->scm _))
   ((u64->scm/unlikely _))
   ((scm->s64 _)                                                &type-check)
-  ((load-s64 _))
+  ((load-s64))
   ((s64->scm _))
   ((s64->scm/unlikely _))
   ((untag-fixnum _)))

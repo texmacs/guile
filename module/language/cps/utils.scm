@@ -205,8 +205,8 @@ disjoint, an error will be signalled."
      (intmap-fold
       (lambda (var exp out)
         (match exp
-          (($ $primcall (or 'load-f64 'load-u64 'load-s64) #f (val))
-           (intmap-add! out var (intmap-ref out val)))
+          (($ $primcall (or 'load-f64 'load-u64 'load-s64) val ())
+           (intmap-add! out var val))
           ;; Punch through type conversions to allow uadd to specialize
           ;; to uadd/immediate.
           (($ $primcall 'scm->f64 #f (val))

@@ -426,7 +426,7 @@ minimum, and maximum."
        (<= min (&min arg))
        (<= (&max arg) max)))
 
-(define-syntax-rule (define-type-inferrer* (name succ var ...) body ...)
+(define-syntax-rule (define-type-inferrer* (name param succ var ...) body ...)
   (hashq-set!
    *type-inferrers*
    'name
@@ -450,10 +450,13 @@ minimum, and maximum."
          out)))))
 
 (define-syntax-rule (define-type-inferrer (name arg ...) body ...)
-  (define-type-inferrer* (name succ arg ...) body ...))
+  (define-type-inferrer* (name param succ arg ...) body ...))
+
+(define-syntax-rule (define-type-inferrer/param (name param arg ...) body ...)
+  (define-type-inferrer* (name param succ arg ...) body ...))
 
 (define-syntax-rule (define-predicate-inferrer (name arg ... true?) body ...)
-  (define-type-inferrer* (name succ arg ...)
+  (define-type-inferrer* (name param succ arg ...)
     (let ((true? (not (zero? succ))))
       body ...)))
 
@@ -837,7 +840,8 @@ minimum, and maximum."
 (define-type-inferrer (scm->f64 scm result)
   (restrict! scm &real -inf.0 +inf.0)
   (define! result &f64 (&min scm) (&max scm)))
-(define-type-aliases scm->f64 load-f64)
+(define-type-inferrer/param (load-f64 param result)
+  (define! result &f64 param param))
 
 (define-type-checker (f64->scm f64)
   #t)
@@ -849,7 +853,8 @@ minimum, and maximum."
 (define-type-inferrer (scm->u64 scm result)
   (restrict! scm &exact-integer 0 &u64-max)
   (define! result &u64 (&min/0 scm) (&max/u64 scm)))
-(define-type-aliases scm->u64 load-u64)
+(define-type-inferrer/param (load-u64 param result)
+  (define! result &u64 param param))
 
 (define-type-checker (scm->u64/truncate scm)
   (check-type scm &exact-integer &range-min &range-max))
@@ -868,8 +873,9 @@ minimum, and maximum."
 (define-type-inferrer (scm->s64 scm result)
   (restrict! scm &exact-integer &s64-min &s64-max)
   (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
-(define-type-aliases scm->s64 load-s64)
 (define-type-aliases s64->scm s64->scm/unlikely)
+(define-type-inferrer/param (load-s64 param result)
+  (define! result &s64 param param))
 
 (define-simple-type-checker (untag-fixnum &fixnum))
 (define-type-inferrer (untag-fixnum scm result)
