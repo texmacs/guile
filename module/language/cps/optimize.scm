@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -106,13 +106,13 @@
 (define-optimizer optimize-first-order-cps
   (specialize-numbers #:specialize-numbers? #t)
   (hoist-loop-invariant-code #:licm? #t)
+  (specialize-primcalls #:specialize-primcalls? #t)
   (eliminate-common-subexpressions #:cse? #t)
   (eliminate-dead-code #:eliminate-dead-code? #t)
   ;; Running simplify here enables rotate-loops to do a better job.
   (simplify #:simplify? #t)
   (rotate-loops #:rotate-loops? #t)
-  (simplify #:simplify? #t)
-  (specialize-primcalls #:specialize-primcalls? #t))
+  (simplify #:simplify? #t))
 
 (define (cps-default-optimization-options)
   (list ;; #:split-rec? #t
