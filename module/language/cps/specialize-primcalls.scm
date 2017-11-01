@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -52,42 +52,34 @@
     (define (specialize-primcall name param args)
       (define (rename name)
         (build-exp ($primcall name param args)))
-      (match (cons name args)
-        (('make-vector (? u8? n) init)
-         (build-exp
-           ($primcall 'make-vector/immediate (intmap-ref constants n) (init))))
-        (('vector-ref v (? u8? n))
-         (build-exp
-           ($primcall 'vector-ref/immediate (intmap-ref constants n) (v))))
-        (('vector-set! v (? u8? n) x)
-         (build-exp
-           ($primcall 'vector-set!/immediate (intmap-ref constants n) (v x))))
-        (('allocate-struct v (? u8? n))
-         (build-exp
-           ($primcall 'allocate-struct/immediate (intmap-ref constants n) (v))))
-        (('struct-ref s (? u8? n))
-         (build-exp
-           ($primcall 'struct-ref/immediate (intmap-ref constants n) (s))))
-        (('struct-set! s (? u8? n) x)
-         (build-exp
-           ($primcall 'struct-set!/immediate (intmap-ref constants n) (s x))))
-        (('add x (? u8? y)) (build-exp ($primcall 'add/immediate #f (x y))))
-        (('add (? u8? x) y) (build-exp ($primcall 'add/immediate #f (y x))))
-        (('sub x (? u8? y)) (build-exp ($primcall 'sub/immediate #f (x y))))
-        (('uadd x (? u8? y)) (build-exp ($primcall 'uadd/immediate #f (x y))))
-        (('uadd (? u8? x) y) (build-exp ($primcall 'uadd/immediate #f (y x))))
-        (('usub x (? u8? y)) (build-exp ($primcall 'usub/immediate #f (x y))))
-        (('umul x (? u8? y)) (build-exp ($primcall 'umul/immediate #f (x y))))
-        (('umul (? u8? x) y) (build-exp ($primcall 'umul/immediate #f (y x))))
-        (('ursh x (? u6? y)) (build-exp ($primcall 'ursh/immediate #f (x y))))
-        (('ulsh x (? u6? y)) (build-exp ($primcall 'ulsh/immediate #f (x y))))
-        (('scm->f64 (? f64? var))
-         (build-exp ($primcall 'load-f64 (intmap-ref constants var) ())))
-        (((or 'scm->u64 'scm->u64/truncate) (? u64? var))
-         (build-exp ($primcall 'load-u64 (intmap-ref constants var) ())))
-        (('scm->s64 (? s64? var))
-         (build-exp ($primcall 'load-s64 (intmap-ref constants var) ())))
-        (_ #f)))
+      (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...)
+        (match (cons name args)
+          (pat
+           (let ((c (intmap-ref constants c)))
+             (build-exp ($primcall 'op c (arg ...)))))
+          ...
+          (_ #f)))
+      (specialize-case
+        (('make-vector (? u8? n) init) (make-vector/immediate n (init)))
+        (('vector-ref v (? u8? n)) (vector-ref/immediate n (v)))
+        (('vector-set! v (? u8? n) x) (vector-set!/immediate n (v x)))
+        (('allocate-struct v (? u8? n)) (allocate-struct/immediate n (v)))
+        (('struct-ref s (? u8? n)) (struct-ref/immediate n (s)))
+        (('struct-set! s (? u8? n) x) (struct-set!/immediate n (s x)))
+        (('add x (? u8? y)) (add/immediate y (x)))
+        (('add (? u8? y) x) (add/immediate y (x)))
+        (('sub x (? u8? y)) (sub/immediate y (x)))
+        (('uadd x (? u8? y)) (uadd/immediate y (x)))
+        (('uadd (? u8? y) x) (uadd/immediate y (x)))
+        (('usub x (? u8? y)) (usub/immediate y (x)))
+        (('umul x (? u8? y)) (umul/immediate y (x)))
+        (('umul (? u8? y) x) (umul/immediate y (x)))
+        (('ursh x (? u6? y)) (ursh/immediate y (x)))
+        (('ulsh x (? u6? y)) (ulsh/immediate y (x)))
+        (('scm->f64 (? f64? var)) (load-f64 var ()))
+        (('scm->u64 (? u64? var)) (load-u64 var ()))
+        (('scm->u64/truncate (? u64? var)) (load-u64 var ()))
+        (('scm->s64 (? s64? var)) (load-s64 var ()))))
     (intmap-map
      (lambda (label cont)
        (match cont
@@ -99,3 +91,7 @@
                 cont)))
          (_ cont)))
      conts)))
+
+;;; Local Variables:
+;;; eval: (put 'specialize-case 'scheme-indent-function 0)
+;;; End:

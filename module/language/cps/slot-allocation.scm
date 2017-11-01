@@ -324,24 +324,8 @@ the definitions that are live before and after LABEL, as intsets."
      (intset-union
       needs-slot
       (match cont
-        (($ $kargs _ _ ($ $continue k src exp))
-         (let ((defs (get-defs label)))
-           (define (defs+* uses)
-             (intset-union defs uses))
-           (define (defs+ use)
-             (intset-add defs use))
-           (match exp
-             (($ $const)
-              empty-intset)
-             ;; FIXME: Move all of these instructions to use $primcall
-             ;; params.
-             (($ $primcall (or 'add/immediate 'sub/immediate
-                               'uadd/immediate 'usub/immediate 'umul/immediate
-                               'ursh/immediate 'ulsh/immediate) #f
-                 (x y))
-              (defs+ x))
-             (_
-              (defs+* (get-uses label))))))
+        (($ $kargs)
+         (intset-union (get-defs label) (get-uses label)))
         (($ $kreceive arity k)
          ;; Only allocate results of function calls to slots if they are
          ;; used.

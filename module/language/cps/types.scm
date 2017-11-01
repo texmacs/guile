@@ -1091,27 +1091,24 @@ minimum, and maximum."
 (define-s64-comparison-inferrer (s64-> > <=))
 
 ;; Arithmetic.
-(define-syntax-rule (define-unary-result! a result min max)
-  (let ((min* min)
-        (max* max)
-        (type (logand (&type a) &number)))
+(define-syntax-rule (define-unary-result! a-type$ result min$ max$)
+  (let ((min min$) (max max$) (type a-type$))
     (cond
-     ((not (= type (&type a)))
-      ;; Not a number.  Punt and do nothing.
+     ((not (type<=? type &number))
+      ;; Not definitely a number.  Punt and do nothing.
       (define! result &all-types -inf.0 +inf.0))
      ;; Complex numbers don't have a range.
      ((eqv? type &complex)
       (define! result &complex -inf.0 +inf.0))
      (else
-      (define! result type min* max*)))))
+      (define! result type min max)))))
 
-(define-syntax-rule (define-binary-result! a b result closed? min max)
-  (let ((min* min)
-        (max* max)
-        (a-type (logand (&type a) &number))
-        (b-type (logand (&type b) &number)))
+(define-syntax-rule (define-binary-result! a-type$ b-type$ result closed?
+                      min$ max$)
+  (let* ((min min$) (max max$) (a-type a-type$) (b-type b-type$)
+         (type (logior a-type b-type)))
     (cond
-     ((or (not (= a-type (&type a))) (not (= b-type (&type b))))
+     ((not (type<=? type &number))
       ;; One input not a number.  Perhaps we end up dispatching to
       ;; GOOPS.
       (define! result &all-types -inf.0 +inf.0))
@@ -1121,33 +1118,35 @@ minimum, and maximum."
      ((or (eqv? a-type &flonum) (eqv? b-type &flonum))
       ;; If one argument is a flonum, the result will be flonum or
       ;; possibly complex.
-      (let ((result-type (logand (logior a-type b-type)
-                                 (logior &complex &flonum))))
-        (define! result result-type min* max*)))
+      (let ((result-type (logand type (logior &complex &flonum))))
+        (define! result result-type min max)))
      ;; Exact integers are closed under some operations.
-     ((and closed? (type<=? (logior a-type b-type) &exact-integer))
-      (define-exact-integer! result min* max*))
+     ((and closed? (type<=? type &exact-integer))
+      (define-exact-integer! result min max))
      (else
-      (let* ((type (logior a-type b-type))
-             ;; Fractions may become integers.
+      (let* (;; Fractions may become integers.
              (type (if (zero? (logand type &fraction))
                        type
                        (logior type &exact-integer)))
              ;; Integers may become fractions under division.
-             (type (if (or closed?
-                           (zero? (logand type (logior &exact-integer))))
+             (type (if (or closed? (zero? (logand type &exact-integer)))
                        type
                        (logior type &fraction))))
-        (define! result type min* max*))))))
+        (define! result type min max))))))
 
 (define-simple-type-checker (add &number &number))
-(define-type-aliases add add/immediate)
+(define-simple-type-checker (add/immediate &number))
 (define-type-checker (fadd a b) #t)
 (define-type-checker (uadd a b) #t)
 (define-type-inferrer (add a b result)
-  (define-binary-result! a b result #t
+  (define-binary-result! (&type a) (&type b) result #t
                          (+ (&min a) (&min b))
                          (+ (&max a) (&max b))))
+(define-type-inferrer/param (add/immediate param a result)
+  (let ((b-type (type-entry-type (constant-type param))))
+    (define-binary-result! (&type a) b-type result #t
+      (+ (&min a) param)
+      (+ (&max a) param))))
 (define-type-inferrer (fadd a b result)
   (define! result &f64
     (+ (&min a) (&min b))
@@ -1158,16 +1157,26 @@ minimum, and maximum."
     (if (<= max &u64-max)
         (define! result &u64 (+ (&min/0 a) (&min/0 b)) max)
         (define! result &u64 0 &u64-max))))
-(define-type-aliases uadd uadd/immediate)
+(define-type-inferrer/param (uadd/immediate param a result)
+  ;; Handle wraparound.
+  (let ((max (+ (&max/u64 a) param)))
+    (if (<= max &u64-max)
+        (define! result &u64 (+ (&min/0 a) param) max)
+        (define! result &u64 0 &u64-max))))
 
 (define-simple-type-checker (sub &number &number))
-(define-type-aliases sub sub/immediate)
+(define-simple-type-checker (sub/immediate &number))
 (define-type-checker (fsub a b) #t)
 (define-type-checker (usub a b) #t)
 (define-type-inferrer (sub a b result)
-  (define-binary-result! a b result #t
+  (define-binary-result! (&type a) (&type b) result #t
                          (- (&min a) (&max b))
                          (- (&max a) (&min b))))
+(define-type-inferrer/param (sub/immediate param a result)
+  (let ((b-type (type-entry-type (constant-type param))))
+    (define-binary-result! (&type a) b-type result #t
+      (- (&min a) param)
+      (- (&max a) param))))
 (define-type-inferrer (fsub a b result)
   (define! result &f64
     (- (&min a) (&max b))
@@ -1178,7 +1187,12 @@ minimum, and maximum."
     (if (< min 0)
         (define! result &u64 0 &u64-max)
         (define! result &u64 min (- (&max/u64 a) (&min/0 b))))))
-(define-type-aliases usub usub/immediate)
+(define-type-inferrer/param (usub/immediate param a result)
+  ;; Handle wraparound.
+  (let ((min (- (&min/0 a) param)))
+    (if (< min 0)
+        (define! result &u64 0 &u64-max)
+        (define! result &u64 min (- (&max/u64 a) param)))))
 
 (define-simple-type-checker (mul &number &number))
 (define-type-checker (fmul a b) #t)
@@ -1215,7 +1229,7 @@ minimum, and maximum."
                         (mul-result-range (eqv? a b) nan-impossible?
                                           min-a max-a min-b max-b))
       (lambda (min max)
-        (define-binary-result! a b result #t min max)))))
+        (define-binary-result! (&type a) (&type b) result #t min max)))))
 (define-type-inferrer (fmul a b result)
   (let ((min-a (&min a)) (max-a (&max a))
         (min-b (&min b)) (max-b (&max b))
@@ -1231,7 +1245,12 @@ minimum, and maximum."
     (if (<= max &u64-max)
         (define! result &u64 (* (&min/0 a) (&min/0 b)) max)
         (define! result &u64 0 &u64-max))))
-(define-type-aliases umul umul/immediate)
+(define-type-inferrer/param (umul/immediate param a result)
+  ;; Handle wraparound.
+  (let ((max (* (&max/u64 a) param)))
+    (if (<= max &u64-max)
+        (define! result &u64 (* (&min/0 a) param) max)
+        (define! result &u64 0 &u64-max))))
 
 (define-type-checker (div a b)
   (and (check-type a &number -inf.0 +inf.0)
@@ -1265,7 +1284,7 @@ minimum, and maximum."
     (call-with-values (lambda ()
                         (div-result-range min-a max-a min-b max-b))
       (lambda (min max)
-        (define-binary-result! a b result #f min max)))))
+        (define-binary-result! (&type a) (&type b) result #f min max)))))
 (define-type-inferrer (fdiv a b result)
   (let ((min-a (&min a)) (max-a (&max a))
         (min-b (&min b)) (max-b (&max b)))
@@ -1382,12 +1401,13 @@ minimum, and maximum."
 
 (define-simple-type-checker (ursh &u64 &u64))
 (define-type-inferrer (ursh a b result)
-  (restrict! a &u64 0 &u64-max)
-  (restrict! b &u64 0 &u64-max)
   (define! result &u64
     (ash (&min/0 a) (- (&max/u64 b)))
     (ash (&max/u64 a) (- (&min/0 b)))))
-(define-type-aliases ursh ursh/immediate)
+(define-type-inferrer/param (ursh/immediate param a result)
+  (define! result &u64
+    (ash (&min/0 a) (- param))
+    (ash (&max/u64 a) (- param))))
 
 (define-simple-type-checker (ulsh &u64 &u64))
 (define-type-inferrer (ulsh a b result)
@@ -1401,7 +1421,14 @@ minimum, and maximum."
         (ash (&max/u64 a) (&max/u64 b)))
       ;; Otherwise assume the whole range.
       (define! result &u64 0 &u64-max)))
-(define-type-aliases ulsh ulsh/immediate)
+(define-type-inferrer/param (ulsh/immediate param a result)
+  (if (and (< param 64) (<= (ash (&max/u64 a) param) &u64-max))
+      ;; No overflow; we can be precise.
+      (define! result &u64
+        (ash (&min/0 a) param)
+        (ash (&max/u64 a) param))
+      ;; Otherwise assume the whole range.
+      (define! result &u64 0 &u64-max)))
 
 (define (next-power-of-two n)
   (let lp ((out 1))
