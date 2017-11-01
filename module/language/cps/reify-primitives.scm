@@ -151,7 +151,52 @@
        (cond
         ((or (prim-instruction name) (branching-primitive? name))
          ;; Assume arities are correct.
-         cps)
+         (let ()
+           (define (u6? val) (and (exact-integer? val) (<= 0 val 63)))
+           (define (u8? val) (and (exact-integer? val) (<= 0 val 255)))
+           (define-syntax-rule (reify-constants wrap
+                                ((op (pred? c) in ...) (op* out ...))
+                                ...
+                                (_ default))
+             (match name
+               ('op
+                (if (pred? param)
+                    cps
+                    (match args
+                      ((in ...)
+                       (with-cps cps
+                         (letv c)
+                         (letk kconst ($kargs ('c) (c)
+                                        ($continue k src
+                                          ($primcall 'op* #f (out ...)))))
+                         (setk label
+                               ($kargs names vars
+                                 ($continue kconst src wrap))))))))
+               ...
+               (_ default)))
+           (define-syntax-rule (reify-scm-constants clause ...)
+             (reify-constants ($const param) clause ...))
+           (define-syntax-rule (reify-u64-constants clause ...)
+             (reify-constants ($primcall 'load-u64 param ()) clause ...))
+           (reify-scm-constants
+            ((add/immediate (u8? y) x) (add x y))
+            ((sub/immediate (u8? y) x) (sub x y))
+            (_
+             (reify-u64-constants
+              ((make-vector/immediate (u8? size) init) (make-vector size init))
+              ((vector-ref/immediate (u8? idx) v) (vector-ref v idx))
+              ((vector-set!/immediate (u8? idx) v val) (vector-set! v idx val))
+              ((allocate-struct/immediate (u8? size) vt) (allocate-struct vt size))
+              ((struct-ref/immediate (u8? idx) s) (struct-ref s idx))
+              ((struct-set!/immediate (u8? idx) s val) (struct-set! s idx val))
+              ((uadd/immediate (u8? y) x) (uadd x y))
+              ((usub/immediate (u8? y) x) (usub x y))
+              ((umul/immediate (u8? y) x) (umul x y))
+              ((rsh/immediate (u6? y) x) (rsh x y))
+              ((lsh/immediate (u6? y) x) (lsh x y))
+              ((ursh/immediate (u6? y) x) (ursh x y))
+              ((ulsh/immediate (u6? y) x) (ulsh x y))
+              (_ cps))))))
         (param (error "unexpected param to reified primcall" name))
         (else
          (with-cps cps
