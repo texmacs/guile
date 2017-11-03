@@ -85,6 +85,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-11)
   #:use-module ((system syntax internal) #:select (syntax?))
+  #:use-module (system base target)
   #:export (;; Specific types.
             &fixnum
             &bignum
@@ -226,14 +227,6 @@
 (define-syntax &range-min (identifier-syntax &s64-min))
 (define-syntax &range-max (identifier-syntax &u64-max))
 
-;; This is a hack that takes advantage of knowing that
-;; most-positive-fixnum is the size of a word, but with two tag bits and
-;; one sign bit.  We also assume that the current common architectural
-;; restriction of a maximum 48-bit address space means that we won't see
-;; a size_t value above 2^48.
-(define *max-size-t*
-  (min (+ (ash most-positive-fixnum 3) #b111)
-       (1- (ash 1 48))))
 (define *max-codepoint* #x10ffff)
 
 (define-inlinable (make-unclamped-type-entry type min max)
@@ -310,7 +303,6 @@
            (b-max (type-entry-max b)))
        (cond
         ((not (> b-max a-max)) a-max)
-        ((> *max-size-t* b-max) *max-size-t*)
         ((> &range-max b-max) &range-max)
         (else +inf.0)))))))
 
@@ -406,7 +398,8 @@ minimum, and maximum."
 (define-syntax-rule (&max/u64 x) (min (&max x) &u64-max))
 (define-syntax-rule (&min/s64 x) (max (&min x) &s64-min))
 (define-syntax-rule (&max/s64 x) (min (&max x) &s64-max))
-(define-syntax-rule (&max/size x) (min (&max x) *max-size-t*))
+(define-syntax-rule (&max/size x) (min (&max x) (target-max-size-t)))
+(define-syntax-rule (&max/scm-size x) (min (&max x) (target-max-size-t/scm)))
 
 (define-syntax-rule (define-type-checker/param (name param arg ...) body ...)
   (hashq-set!
@@ -777,48 +770,48 @@ minimum, and maximum."
 ;; No type-checker for allocate-struct, as we can't currently check that
 ;; vt is actually a vtable.
 (define-type-inferrer (allocate-struct vt size result)
-  (restrict! vt &struct vtable-offset-user *max-size-t*)
-  (restrict! size &u64 0 *max-size-t*)
-  (define! result &struct (&min/0 size) (&max/size size)))
+  (restrict! vt &struct vtable-offset-user (target-max-size-t/scm))
+  (restrict! size &u64 0 (target-max-size-t/scm))
+  (define! result &struct (&min/0 size) (&max/scm-size size)))
 
 (define-type-checker (struct-ref s idx)
-  (and (check-type s &struct 0 *max-size-t*)
-       (check-type idx &u64 0 *max-size-t*)
+  (and (check-type s &struct 0 (target-max-size-t/scm))
+       (check-type idx &u64 0 (target-max-size-t/scm))
        ;; FIXME: is the field boxed?
        (< (&max idx) (&min s))))
 (define-type-inferrer (struct-ref s idx result)
-  (restrict! s &struct (1+ (&min/0 idx)) *max-size-t*)
-  (restrict! idx &u64 0 (1- (&max/size s)))
+  (restrict! s &struct (1+ (&min/0 idx)) (target-max-size-t/scm))
+  (restrict! idx &u64 0 (1- (&max/scm-size s)))
   (define! result &all-types -inf.0 +inf.0))
 
 (define-type-checker (struct-set! s idx val)
-  (and (check-type s &struct 0 *max-size-t*)
-       (check-type idx &u64 0 *max-size-t*)
+  (and (check-type s &struct 0 (target-max-size-t/scm))
+       (check-type idx &u64 0 (target-max-size-t/scm))
        ;; FIXME: is the field boxed?
        (< (&max idx) (&min s))))
 (define-type-inferrer (struct-set! s idx val)
-  (restrict! s &struct (1+ (&min/0 idx)) *max-size-t*)
-  (restrict! idx &u64 0 (1- (&max/size s))))
+  (restrict! s &struct (1+ (&min/0 idx)) (target-max-size-t/scm))
+  (restrict! idx &u64 0 (1- (&max/scm-size s))))
 
 (define-type-inferrer/param (allocate-struct/immediate size vt result)
-  (restrict! vt &struct vtable-offset-user *max-size-t*)
+  (restrict! vt &struct vtable-offset-user (target-max-size-t/scm))
   (define! result &struct size size))
 
 (define-type-checker/param (struct-ref/immediate idx s)
   ;; FIXME: is the field boxed?
-  (and (check-type s &struct 0 *max-size-t*) (< idx (&min s))))
+  (and (check-type s &struct 0 (target-max-size-t/scm)) (< idx (&min s))))
 (define-type-inferrer/param (struct-ref/immediate idx s result)
-  (restrict! s &struct (1+ idx) *max-size-t*)
+  (restrict! s &struct (1+ idx) (target-max-size-t/scm))
   (define! result &all-types -inf.0 +inf.0))
 
 (define-type-checker/param (struct-set!/immediate idx s val)
   ;; FIXME: is the field boxed?
-  (and (check-type s &struct 0 *max-size-t*) (< idx (&min s))))
+  (and (check-type s &struct 0 (target-max-size-t/scm)) (< idx (&min s))))
 (define-type-inferrer/param (struct-set!/immediate idx s val)
-  (restrict! s &struct (1+ idx) *max-size-t*))
+  (restrict! s &struct (1+ idx) (target-max-size-t/scm)))
 
-(define-simple-type (struct-vtable (&struct 0 *max-size-t*))
-  (&struct vtable-offset-user *max-size-t*))
+(define-simple-type (struct-vtable (&struct 0 (target-max-size-t/scm)))
+  (&struct vtable-offset-user (target-max-size-t/scm)))
 
 
 
@@ -828,31 +821,31 @@ minimum, and maximum."
 ;;;
 
 (define-type-checker (string-ref s idx)
-  (and (check-type s &string 0 *max-size-t*)
-       (check-type idx &u64 0 *max-size-t*)
+  (and (check-type s &string 0 (target-max-size-t))
+       (check-type idx &u64 0 (target-max-size-t))
        (< (&max idx) (&min s))))
 (define-type-inferrer (string-ref s idx result)
-  (restrict! s &string (1+ (&min/0 idx)) *max-size-t*)
+  (restrict! s &string (1+ (&min/0 idx)) (target-max-size-t))
   (restrict! idx &u64 0 (1- (&max/size s)))
   (define! result &char 0 *max-codepoint*))
 
 (define-type-checker (string-set! s idx val)
-  (and (check-type s &string 0 *max-size-t*)
-       (check-type idx &u64 0 *max-size-t*)
+  (and (check-type s &string 0 (target-max-size-t))
+       (check-type idx &u64 0 (target-max-size-t))
        (check-type val &char 0 *max-codepoint*)
        (< (&max idx) (&min s))))
 (define-type-inferrer (string-set! s idx val)
-  (restrict! s &string (1+ (&min/0 idx)) *max-size-t*)
+  (restrict! s &string (1+ (&min/0 idx)) (target-max-size-t))
   (restrict! idx &u64 0 (1- (&max/size s)))
   (restrict! val &char 0 *max-codepoint*))
 
 (define-simple-type-checker (string-length &string))
 (define-type-inferrer (string-length s result)
-  (restrict! s &string 0 *max-size-t*)
+  (restrict! s &string 0 (target-max-size-t))
   (define! result &u64 (&min/0 s) (&max/size s)))
 
-(define-simple-type (number->string &number) (&string 0 *max-size-t*))
-(define-simple-type (string->number (&string 0 *max-size-t*))
+(define-simple-type (number->string &number) (&string 0 (target-max-size-t)))
+(define-simple-type (string->number (&string 0 (target-max-size-t)))
   ((logior &number &special-immediate) -inf.0 +inf.0))
 
 
@@ -917,26 +910,26 @@ minimum, and maximum."
 
 (define-simple-type-checker (bv-length &bytevector))
 (define-type-inferrer (bv-length bv result)
-  (restrict! bv &bytevector 0 *max-size-t*)
+  (restrict! bv &bytevector 0 (target-max-size-t))
   (define! result &u64 (&min/0 bv) (&max/size bv)))
 
 (define-syntax-rule (define-bytevector-accessors ref set type size lo hi)
   (begin
     (define-type-checker (ref bv idx)
-      (and (check-type bv &bytevector 0 *max-size-t*)
-           (check-type idx &u64 0 *max-size-t*)
+      (and (check-type bv &bytevector 0 (target-max-size-t))
+           (check-type idx &u64 0 (target-max-size-t))
            (< (&max idx) (- (&min bv) size))))
     (define-type-inferrer (ref bv idx result)
-      (restrict! bv &bytevector (+ (&min/0 idx) size) *max-size-t*)
+      (restrict! bv &bytevector (+ (&min/0 idx) size) (target-max-size-t))
       (restrict! idx &u64 0 (- (&max/size bv) size))
       (define! result type lo hi))
     (define-type-checker (set bv idx val)
-      (and (check-type bv &bytevector 0 *max-size-t*)
-           (check-type idx &u64 0 *max-size-t*)
+      (and (check-type bv &bytevector 0 (target-max-size-t))
+           (check-type idx &u64 0 (target-max-size-t))
            (check-type val type lo hi)
            (< (&max idx) (- (&min bv) size))))
     (define-type-inferrer (set! bv idx val)
-      (restrict! bv &bytevector (+ (&min/0 idx) size) *max-size-t*)
+      (restrict! bv &bytevector (+ (&min/0 idx) size) (target-max-size-t))
       (restrict! idx &u64 0 (- (&max/size bv) size))
       (restrict! val type lo hi))))
 

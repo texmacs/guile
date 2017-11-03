@@ -1,6 +1,6 @@
 ;;; Compilation targets
 
-;; Copyright (C) 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,11 @@
 
             target-cpu target-vendor target-os
 
-            target-endianness target-word-size))
+            target-endianness target-word-size
+
+            target-max-size-t
+            target-max-size-t/scm
+            target-max-vector-length))
 
 
 
@@ -142,3 +146,23 @@
 (define (target-word-size)
   "Return the word size, in bytes, of the target platform."
   (fluid-ref %target-word-size))
+
+(define (target-max-size-t)
+  "Return the maximum size_t value of the target platform, in bytes."
+  ;; Apply the currently-universal restriction of a maximum 48-bit
+  ;; address space.
+  (1- (ash 1 (min (* (target-word-size) 8) 48))))
+
+(define (target-max-size-t/scm)
+  "Return the maximum size_t value of the target platform, in units of
+SCM words."
+  ;; Apply the currently-universal restriction of a maximum 48-bit
+  ;; address space.
+  (/ (target-max-size-t) (target-word-size)))
+
+(define (target-max-vector-length)
+  "Return the maximum vector length of the target platform, in units of
+SCM words."
+  ;; Vector size fits in first word; the low 8 bits are taken by the
+  ;; type tag.  Additionally, restrict to 48-bit address space.
+  (1- (ash 1 (min (- (* (target-word-size) 8) 8) 48))))
