@@ -646,27 +646,64 @@
                      (lambda (cps integer)
                        (have-args cps (list integer)))))))
                 (else (have-args cps args))))
+            (define (convert-primcall cps k src instruction args)
+              (define (default)
+                (convert-args cps args
+                  (lambda (cps args)
+                    (unbox-args
+                     cps args
+                     (lambda (cps args)
+                       (with-cps cps
+                         (build-term
+                           ($continue k src
+                             ($primcall instruction #f args)))))))))
+              (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...
+                                                   (_ def))
+                (match (cons instruction args)
+                  (pat
+                   (convert-args cps (list arg ...)
+                     (lambda (cps args)
+                       (with-cps cps
+                         (build-term
+                           ($continue k src ($primcall 'op c args)))))))
+                  ...
+                  (_ def)))
+              (define (uint? val) (and (exact-integer? val) (<= 0 val)))
+              ;; FIXME: Add cases for mul, rsh, lsh
+              (specialize-case
+                (('make-vector ($ <const> _ (? uint? n)) init)
+                 (make-vector/immediate n (init)))
+                (('vector-ref v ($ <const> _ (? uint? n)))
+                 (vector-ref/immediate n (v)))
+                (('vector-set! v ($ <const> _ (? uint? n)) x)
+                 (vector-set!/immediate n (v x)))
+                (('allocate-struct v ($ <const> _ (? uint? n)))
+                 (allocate-struct/immediate n (v)))
+                (('struct-ref s ($ <const> _ (? uint? n)))
+                 (struct-ref/immediate n (s)))
+                (('struct-set! s ($ <const> _ (? uint? n)) x)
+                 (struct-set!/immediate n (s x)))
+                (('add x ($ <const> _ (? number? y)))
+                 (add/immediate y (x)))
+                (('add ($ <const> _ (? number? y)) x)
+                 (add/immediate y (x)))
+                (('sub x ($ <const> _ (? number? y)))
+                 (sub/immediate y (x)))
+                (_ (default))))
             (when (branching-primitive? name)
               (error "branching primcall in bad context" name))
-            (convert-args cps args
-              (lambda (cps args)
-                ;; Tree-IL primcalls are sloppy, in that it could be
-                ;; that they are called with too many or too few
-                ;; arguments.  In CPS we are more strict and only
-                ;; residualize a $primcall if the argument count
-                ;; matches.
-                (match (prim-arity instruction)
-                  ((out . in)
-                   (if (= in (length args))
-                       (with-cps cps
-                         (let$ k (box+adapt-arity k src out))
-                         ($ (unbox-args
-                             args
-                             (lambda (cps args)
-                               (with-cps cps
-                                 (build-term
-                                   ($continue k src
-                                     ($primcall instruction #f args))))))))
+            ;; Tree-IL primcalls are sloppy, in that it could be that
+            ;; they are called with too many or too few arguments.  In
+            ;; CPS we are more strict and only residualize a $primcall
+            ;; if the argument count matches.
+            (match (prim-arity instruction)
+              ((out . in)
+               (if (= in (length args))
+                   (with-cps cps
+                     (let$ k (box+adapt-arity k src out))
+                     ($ (convert-primcall k src instruction args)))
+                   (convert-args cps args
+                     (lambda (cps args)
                        (with-cps cps
                          (letv prim)
                          (letk kprim ($kargs ('prim) (prim)
