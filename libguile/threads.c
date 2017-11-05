@@ -395,6 +395,7 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
   t.base = base->mem_base;
 #ifdef __ia64__
   t.register_backing_store_base = base->reg_base;
+  t.pending_rbs_continuation = 0;
 #endif
   t.continuation_root = SCM_EOL;
   t.continuation_base = t.base;
