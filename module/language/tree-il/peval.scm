@@ -1193,7 +1193,7 @@ top-level bindings from ENV and return the resulting expression."
               (make-primcall src 'thunk? (list u))
               (make-call src w '())
               (make-primcall
-               src 'scm-error
+               src 'throw
                (list
                 (make-const #f 'wrong-type-arg)
                 (make-const #f "dynamic-wind")

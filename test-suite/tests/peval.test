@@ -1,7 +1,7 @@
 ;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
 ;;;; Andy Wingo <wingo@pobox.com> --- May 2009
 ;;;;
-;;;; 	Copyright (C) 2009-2014 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009-2014, 2017 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1145,7 +1145,7 @@
    (let (tmp tmp) (_ _) ((toplevel foo) (toplevel baz))
         (seq (seq (if (primcall thunk? (lexical tmp _))
                       (call (lexical tmp _))
-                      (primcall scm-error . _))
+                      (primcall throw . _))
                   (primcall wind (lexical tmp _) (lexical tmp _)))
              (let (tmp) (_) ((toplevel bar))
                   (seq (seq (primcall unwind)

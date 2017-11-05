@@ -73,8 +73,7 @@ unreferenced terms.  In that case TAIL-LABEL is either absent or #f."
         (lambda (label cont out)
           (match cont
             (($ $kargs names vars
-                ($ $continue k src
-                   (and exp ($ $primcall (or 'error 'scm-error 'throw)))))
+                ($ $continue k src (and exp ($ $primcall 'throw))))
              (call-with-values (lambda () (prune-bailout out tails k src exp))
                (lambda (out term)
                  (if term

@@ -378,6 +378,43 @@
                                     ,(consequent (cadr in)))
                                   out)))))))
 
+;; Oddly, scm-error is just an explicitly 5-argument `throw'.  Weird.
+(define-primitive-expander scm-error (key who message args data)
+  (throw key who message args data))
+
+(define (escape-format-directives str)
+  (string-join (string-split str #\~) "~~"))
+
+(hashq-set!
+ *primitive-expand-table*
+ 'error
+ (match-lambda*
+  ((src)
+   (make-primcall src 'throw
+                  (list (make-const src 'misc-error)
+                        (make-const src #f)
+                        (make-const src "?")
+                        (make-const src #f)
+                        (make-const src #f))))
+  ((src ($ <const> src2 (? string? message)) . args)
+   (let ((msg (string-join (cons (escape-format-directives message)
+                                 (make-list (length args) "~S")))))
+     (make-primcall src 'throw
+                    (list (make-const src 'misc-error)
+                          (make-const src #f)
+                          (make-const src2 msg)
+                          (make-primcall src 'list args)
+                          (make-const src #f)))))
+  ((src message . args)
+   (let ((msg (string-join (cons "~A" (make-list (length args) "~S")))))
+     (make-primcall src 'throw
+                    (list (make-const src 'misc-error)
+                          (make-const src #f)
+                          (make-const src msg)
+                          (make-const src "?")
+                          (make-primcall src 'list (cons message args))
+                          (make-const src #f)))))))
+
 (define-primitive-expander zero? (x)
   (= x 0))
 

@@ -1149,7 +1149,7 @@ integer."
              (make-primcall src 'procedure? (list (make-lexical-ref #f 'h h)))
              (make-void src)
              (make-primcall
-              src 'scm-error
+              src 'throw
               (list
                (make-const #f 'wrong-type-arg)
                (make-const #f "call-with-prompt")
