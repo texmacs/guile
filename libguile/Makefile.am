@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
 ##   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007,
-##     2008, 2009, 2010, 2011, 2012, 2013, 2014, 2016 Free Software Foundation, Inc.
+##     2008, 2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -468,6 +468,13 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
 install-exec-hook:
 	rm -f $(DESTDIR)$(bindir)/guile-snarf.awk
 
+## Instantiate a template.
+INSTANTIATE =                                                                   \
+  $(SED) -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'                                \
+         -e 's,[@]pkglibdir[@],$(pkglibdir),g'                                  \
+         -e 's,[@]GUILE_EFFECTIVE_VERSION[@],$(GUILE_EFFECTIVE_VERSION),g'      \
+         -i
+
 install-data-hook: libguile-2.2-gdb.scm
 	@$(MKDIR_P) $(DESTDIR)$(libdir)
 ## We want to install libguile-2.2-gdb.scm as SOMETHING-gdb.scm.
@@ -491,7 +498,8 @@ install-data-hook: libguile-2.2-gdb.scm
 	echo " $(INSTALL_DATA) $<				\
 $(DESTDIR)$(libdir)/$$libname-gdb.scm";				\
 	$(INSTALL_DATA) "$<"					\
-	    "$(DESTDIR)$(libdir)/$$libname-gdb.scm"
+	    "$(DESTDIR)$(libdir)/$$libname-gdb.scm";		\
+	$(INSTANTIATE) "$(DESTDIR)$(libdir)/$$libname-gdb.scm"
 
 # Remove the GDB support file and the Info 'dir' file that
 # 'install-info' 5.x installs.

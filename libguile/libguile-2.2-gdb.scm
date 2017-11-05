@@ -1,6 +1,6 @@
 ;;; GDB debugging support for Guile.
 ;;;
-;;; Copyright 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by
@@ -17,7 +17,13 @@
 
 (define-module (guile-gdb)
   #:use-module (system base types)
-  #:use-module (system vm debug)
+
+  ;; Note: (system vm debug) is 2.2-specific, but GDB might be built
+  ;; with Guile 2.0.
+  #:autoload   (system vm debug) (debug-context-from-image
+                                  debug-context-base
+                                  find-program-debug-info)
+
   #:use-module ((gdb) #:hide (symbol? frame?))
   #:use-module ((gdb) #:select ((symbol? . gdb:symbol?) (frame? . gdb:frame?)))
   #:use-module (gdb printing)
@@ -39,6 +45,15 @@
 ;;; (info "(gdb) objfile-gdbdotext file").
 ;;;
 ;;; Code:
+
+;; At run time, make sure we load (system base types) from the Guile
+;; being debugged rather than from the Guile GDB is linked against.
+(set! %load-path
+  (cons "@pkgdatadir@/@GUILE_EFFECTIVE_VERSION@" %load-path))
+(set! %load-compiled-path
+  (cons "@pkglibdir@/@GUILE_EFFECTIVE_VERSION@/site-ccache" %load-compiled-path))
+(reload-module (resolve-module '(system base types)))
+
 
 (define (type-name-from-descriptor descriptor-array type-number)
   "Return the name of the type TYPE-NUMBER as seen in DESCRIPTOR-ARRAY, or #f
