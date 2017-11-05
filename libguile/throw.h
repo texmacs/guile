@@ -3,7 +3,7 @@
 #ifndef SCM_THROW_H
 #define SCM_THROW_H
 
-/* Copyright (C) 1995,1996,1998,2000, 2006, 2008, 2010, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000, 2006, 2008, 2010, 2014, 2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -84,7 +84,7 @@ SCM_API int scm_exit_status (SCM args);
 SCM_API SCM scm_catch_with_pre_unwind_handler (SCM tag, SCM thunk, SCM handler, SCM lazy_handler);
 SCM_API SCM scm_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_with_throw_handler (SCM tag, SCM thunk, SCM handler);
-SCM_API SCM scm_ithrow (SCM key, SCM args, int no_return);
+SCM_API SCM scm_ithrow (SCM key, SCM args, int no_return) SCM_NORETURN;
 
 /* This throws to the `stack-overflow' key, without running pre-unwind
    handlers.  */
@@ -94,7 +94,7 @@ SCM_API void scm_report_stack_overflow (void);
    handlers.  */
 SCM_API void scm_report_out_of_memory (void);
 
-SCM_API SCM scm_throw (SCM key, SCM args);
+SCM_API SCM scm_throw (SCM key, SCM args) SCM_NORETURN;
 SCM_INTERNAL void scm_init_throw (void);
 
 #endif  /* SCM_THROW_H */

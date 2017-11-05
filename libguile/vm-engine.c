@@ -931,12 +931,82 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    * Function prologues
    */
 
-  VM_DEFINE_OP (18, unused_18, NULL, NOP)
-  VM_DEFINE_OP (19, unused_19, NULL, NOP)
-  VM_DEFINE_OP (20, unused_20, NULL, NOP)
+  /* throw key:12 args:12
+   *
+   * Throw to KEY and ARGS.  ARGS should be a list.
+   */
+  VM_DEFINE_OP (18, throw, "throw", OP1 (X8_S12_S12))
     {
-      vm_error_bad_instruction (op);
-      abort ();
+      scm_t_uint16 a, b;
+      SCM key, args;
+
+      UNPACK_12_12 (op, a, b);
+
+      key = SP_REF (a);
+      args = SP_REF (b);
+
+      SYNC_IP ();
+      vm_throw (key, args);
+
+      abort (); /* never reached */
+    }
+
+  /* throw/value val:24 key-subr-and-message:32
+   *
+   * Raise an error, indicating VAL as the bad value.
+   * KEY-SUBR-AND-MESSAGE should be a vector, where the first element is
+   * the symbol to which to throw, the second is the procedure in which
+   * to signal the error (a string) or #f, and the third is a format
+   * string for the message, with one template.
+   */
+  VM_DEFINE_OP (19, throw_value, "throw/value", OP2 (X8_S24, N32))
+    {
+      scm_t_uint32 a;
+      scm_t_int32 offset;
+      scm_t_bits key_subr_and_message_bits;
+      SCM val, key_subr_and_message;
+
+      UNPACK_24 (op, a);
+      val = SP_REF (a);
+
+      offset = ip[1];
+      key_subr_and_message_bits = (scm_t_bits) (ip + offset);
+      VM_ASSERT (!(key_subr_and_message_bits & 0x7), abort());
+      key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
+
+      SYNC_IP ();
+      vm_throw_with_value (val, key_subr_and_message);
+
+      abort (); /* never reached */
+    }
+
+  /* throw/value+data val:24 key-subr-and-message:32
+   *
+   * Raise an error, indicating VAL as the bad value.
+   * KEY-SUBR-AND-MESSAGE should be a vector, where the first element is
+   * the symbol to which to throw, the second is the procedure in which
+   * to signal the error (a string) or #f, and the third is a format
+   * string for the message, with one template.
+   */
+  VM_DEFINE_OP (20, throw_value_and_data, "throw/value+data", OP2 (X8_S24, N32))
+    {
+      scm_t_uint32 a;
+      scm_t_int32 offset;
+      scm_t_bits key_subr_and_message_bits;
+      SCM val, key_subr_and_message;
+
+      UNPACK_24 (op, a);
+      val = SP_REF (a);
+
+      offset = ip[1];
+      key_subr_and_message_bits = (scm_t_bits) (ip + offset);
+      VM_ASSERT (!(key_subr_and_message_bits & 0x7), abort());
+      key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
+
+      SYNC_IP ();
+      vm_throw_with_value_and_data (val, key_subr_and_message);
+
+      abort (); /* never reached */
     }
 
   /* assert-nargs-ee expected:24

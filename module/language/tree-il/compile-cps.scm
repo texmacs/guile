@@ -533,6 +533,41 @@
                                            ($primcall 'cons #f (head tail))))))))
                       (letk ktail ($kargs ('tail) (tail) ,body))
                       ($ (lp args ktail)))))))))))
+      ((eq? name 'throw)
+       (let ()
+         (define (fallback)
+           (match args
+             ((key . args)
+              (convert-args cps (list key (make-primcall src 'list args))
+                (lambda (cps args)
+                  (with-cps cps
+                    (let$ k (adapt-arity k src 0))
+                    (build-term
+                      ($continue k src ($primcall 'throw #f args)))))))))
+         (define (specialize op param . args)
+           (convert-args cps args
+             (lambda (cps args)
+               (with-cps cps
+                 (let$ k (adapt-arity k src 0))
+                 (build-term
+                   ($continue k src ($primcall op param args)))))))
+         (match args
+           ((($ <const> _ key) ($ <const> _ subr) ($ <const> _ msg) args data)
+            ;; Specialize `throw' invocations corresponding to common
+            ;; "error" invocations.
+            (let ()
+              (match (vector args data)
+                (#(($ <primcall> _ 'list (x)) ($ <primcall> _ 'list (x)))
+                 (specialize 'throw/value+data `#(,key ,subr ,msg) x))
+                (#(($ <primcall> _ 'cons (x ($ <const> _ ())))
+                   ($ <primcall> _ 'cons (x ($ <const> _ ()))))
+                 (specialize 'throw/value+data `#(,key ,subr ,msg) x))
+                (#(($ <primcall> _ 'list (x)) ($ <const> _ #f))
+                 (specialize 'throw/value `#(,key ,subr ,msg) x))
+                (#(($ <primcall> _ 'cons (x ($ <const> _ ()))) ($ <const> _ #f))
+                 (specialize 'throw/value `#(,key ,subr ,msg) x))
+                (_ (fallback)))))
+           (_ (fallback)))))
       ((prim-instruction name)
        => (lambda (instruction)
             (define (box+adapt-arity cps k src out)
@@ -1130,6 +1165,9 @@ integer."
         (make-primcall src 'logsub (list x y)))
        (($ <primcall> src 'logand (($ <primcall> _ 'lognot (y)) x))
         (make-primcall src 'logsub (list x y)))
+
+       (($ <primcall> src 'throw ())
+        (make-call src (make-primitive-ref src 'throw) '()))
 
        (($ <prompt> src escape-only? tag body
            ($ <lambda> hsrc hmeta

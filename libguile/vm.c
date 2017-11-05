@@ -418,6 +418,10 @@ vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
  * VM Error Handling
  */
 
+static void vm_throw (SCM key, SCM args) SCM_NORETURN;
+static void vm_throw_with_value (SCM val, SCM key_subr_and_message) SCM_NORETURN SCM_NOINLINE;
+static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM_NORETURN SCM_NOINLINE;
+
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_unbound (SCM sym) SCM_NORETURN SCM_NOINLINE;
@@ -448,12 +452,46 @@ static void vm_error_wrong_number_of_values (scm_t_uint32 expected) SCM_NORETURN
 static void vm_error_continuation_not_rewindable (SCM cont) SCM_NORETURN SCM_NOINLINE;
 
 static void
+vm_throw (SCM key, SCM args)
+{
+  scm_throw (key, args);
+  abort(); /* not reached */
+}
+
+static void
+vm_throw_with_value (SCM val, SCM key_subr_and_message)
+{
+  SCM key, subr, message, args, data;
+
+  key = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 0);
+  subr = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 1);
+  message = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 2);
+  args = scm_list_1 (val);
+  data = SCM_BOOL_F;
+
+  vm_throw (key, scm_list_4 (subr, message, args, data));
+}
+
+static void
+vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message)
+{
+  SCM key, subr, message, args, data;
+
+  key = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 0);
+  subr = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 1);
+  message = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 2);
+  args = scm_list_1 (val);
+  data = args;
+
+  vm_throw (key, scm_list_4 (subr, message, args, data));
+}
+
+static void
 vm_error (const char *msg, SCM arg)
 {
-  scm_throw (sym_vm_error,
-             scm_list_3 (sym_vm_run, scm_from_latin1_string (msg),
-                         SCM_UNBNDP (arg) ? SCM_EOL : scm_list_1 (arg)));
-  abort(); /* not reached */
+  vm_throw (sym_vm_error,
+            scm_list_3 (sym_vm_run, scm_from_latin1_string (msg),
+                        SCM_UNBNDP (arg) ? SCM_EOL : scm_list_1 (arg)));
 }
 
 static void

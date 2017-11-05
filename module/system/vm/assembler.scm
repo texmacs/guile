@@ -99,6 +99,10 @@
 
             emit-untag-fixnum
 
+            emit-throw
+            (emit-throw/value* . emit-throw/value)
+            (emit-throw/value+data* . emit-throw/value+data)
+
             emit-pair?
             emit-struct?
             emit-symbol?
@@ -974,6 +978,12 @@ later by the linker."
         (emit-receive-values asm proc #t 1)
         (emit-fmov* asm dst (1+ proc))
         (emit-reset-frame asm nlocals))))
+
+(define (emit-throw/value* asm val param)
+  (emit-throw/value asm val (intern-non-immediate asm param)))
+
+(define (emit-throw/value+data* asm val param)
+  (emit-throw/value+data asm val (intern-non-immediate asm param)))
 
 (define (emit-text asm instructions)
   "Assemble @var{instructions} using the assembler @var{asm}.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -263,7 +263,9 @@ scm_with_throw_handler (SCM key, SCM thunk, SCM handler)
 SCM
 scm_throw (SCM key, SCM args)
 {
-  return scm_apply_1 (scm_variable_ref (throw_var), key, args);
+  scm_apply_1 (scm_variable_ref (throw_var), key, args);
+  /* Should not be reached.  */
+  abort ();
 }
 
 
@@ -608,7 +610,7 @@ scm_handle_by_throw (void *handler_data SCM_UNUSED, SCM tag, SCM args)
 SCM
 scm_ithrow (SCM key, SCM args, int no_return SCM_UNUSED)
 {
-  return scm_throw (key, args);
+  scm_throw (key, args);
 }
 
 SCM_SYMBOL (scm_stack_overflow_key, "stack-overflow");

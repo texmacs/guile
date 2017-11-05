@@ -260,6 +260,8 @@ address of that offset."
        (when (program? val)
          (push-addr! (program-code val) val))
        (list "~@Y" val)))
+    (((or 'throw/value 'throw/value+data) dst target)
+     (list "~@Y" (reference-scm target)))
     (('builtin-ref dst idx)
      (list "~A" (builtin-index->name idx)))
     (((or 'static-ref 'static-set!) _ target)
@@ -511,6 +513,7 @@ address of that offset."
 (define (instruction-has-fallthrough? code pos)
   (define non-fallthrough-set
     (static-opcode-set halt
+                       throw throw/value throw/value+data
                        tail-call tail-call-label tail-call/shuffle
                        return-values
                        subr-call foreign-call continuation-call

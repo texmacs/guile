@@ -49,22 +49,6 @@ unreferenced terms.  In that case TAIL-LABEL is either absent or #f."
    conts
    empty-intmap))
 
-(define (prune-bailout out tails k src exp)
-  (match (intmap-ref out k)
-    (($ $ktail)
-     (with-cps out #f))
-    (_
-     (match (intmap-ref tails k (lambda (_) #f))
-       (#f
-        (with-cps out #f))
-       (ktail
-        (with-cps out
-          (letv prim rest)
-          (letk kresult ($kargs ('rest) (rest)
-                          ($continue ktail src ($values ()))))
-          (letk kreceive ($kreceive '() 'rest kresult))
-          (build-term ($continue kreceive src ,exp))))))))
-
 (define (prune-bailouts conts)
   (let ((tails (compute-tails conts)))
     (with-fresh-name-state conts
@@ -73,13 +57,17 @@ unreferenced terms.  In that case TAIL-LABEL is either absent or #f."
         (lambda (label cont out)
           (match cont
             (($ $kargs names vars
-                ($ $continue k src (and exp ($ $primcall 'throw))))
-             (call-with-values (lambda () (prune-bailout out tails k src exp))
-               (lambda (out term)
-                 (if term
-                     (let ((cont (build-cont ($kargs names vars ,term))))
-                       (intmap-replace! out label cont))
-                     out))))
+                ($ $continue k src
+                   (and exp ($ $primcall
+                               (or 'throw 'throw/value 'throw/value+data)))))
+             (match (intmap-ref tails k (lambda (_) #f))
+               (#f out)
+               (ktail
+                (with-cps out
+                  (letk knil ($kargs () ()
+                               ($continue ktail src ($values ()))))
+                  (setk label ($kargs names vars
+                                ($continue knil src ,exp)))))))
             (_ out)))
         conts
         conts)))))
