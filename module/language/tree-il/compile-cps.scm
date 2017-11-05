@@ -669,7 +669,8 @@
                   ...
                   (_ def)))
               (define (uint? val) (and (exact-integer? val) (<= 0 val)))
-              ;; FIXME: Add cases for mul, rsh, lsh
+              (define (negint? val) (and (exact-integer? val) (< val 0)))
+              ;; FIXME: Add case for mul
               (specialize-case
                 (('make-vector ($ <const> _ (? uint? n)) init)
                  (make-vector/immediate n (init)))
@@ -689,6 +690,10 @@
                  (add/immediate y (x)))
                 (('sub x ($ <const> _ (? number? y)))
                  (sub/immediate y (x)))
+                (('ash x ($ <const> _ (? uint? y)))
+                 (lsh/immediate y (x)))
+                (('ash x ($ <const> _ (? negint? y)))
+                 (rsh/immediate (- y) (x)))
                 (_ (default))))
             (when (branching-primitive? name)
               (error "branching primcall in bad context" name))

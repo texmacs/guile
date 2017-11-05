@@ -61,6 +61,46 @@
   #:use-module (language cps with-cps)
   #:export (specialize-numbers))
 
+(define (specialize-f64-unop cps k src op a b)
+  (cond
+   ((eq? op 'sub/immediate)
+    (specialize-f64-unop cps k src 'add/immediate a (- b)))
+   (else
+    (let ((fop (match op
+                 ('add/immediate 'fadd/immediate)
+                 ('mul/immediate 'fmul/immediate))))
+      (with-cps cps
+        (letv f64-a result)
+        (letk kbox ($kargs ('result) (result)
+                     ($continue k src
+                       ($primcall 'f64->scm #f (result)))))
+        (letk kop ($kargs ('f64-a) (f64-a)
+                    ($continue kbox src
+                      ($primcall fop b (f64-a)))))
+        (build-term
+          ($continue kop src
+            ($primcall 'scm->f64 #f (a)))))))))
+
+(define* (specialize-u64-unop cps k src op a b #:key
+                               (unbox-a 'scm->u64))
+  (let ((uop (match op
+               ('add/immediate 'uadd/immediate)
+               ('sub/immediate 'usub/immediate)
+               ('mul/immediate 'umul/immediate)
+               ('rsh/immediate 'ursh/immediate)
+               ('lsh/immediate 'ulsh/immediate))))
+    (with-cps cps
+      (letv u64-a result)
+      (letk kbox ($kargs ('result) (result)
+                   ($continue k src
+                     ($primcall 'u64->scm #f (result)))))
+      (letk kop ($kargs ('u64-a) (u64-a)
+                  ($continue kbox src
+                    ($primcall uop b (u64-a)))))
+      (build-term
+        ($continue kop src
+          ($primcall unbox-a #f (a)))))))
+
 (define (specialize-f64-binop cps k src op a b)
   (let ((fop (match op
                ('add 'fadd)
@@ -92,9 +132,7 @@
                ('logand 'ulogand)
                ('logior 'ulogior)
                ('logxor 'ulogxor)
-               ('logsub 'ulogsub)
-               ('rsh 'ursh)
-               ('lsh 'ulsh))))
+               ('logsub 'ulogsub))))
     (with-cps cps
       (letv u64-a u64-b result)
       (letk kbox ($kargs ('result) (result)
@@ -108,6 +146,23 @@
                          ($primcall unbox-b #f (b)))))
       (build-term
         ($continue kunbox-b src
+          ($primcall unbox-a #f (a)))))))
+
+(define* (specialize-u64-shift cps k src op a b #:key
+                               (unbox-a 'scm->u64))
+  (let ((uop (match op
+               ('rsh 'ursh)
+               ('lsh 'ulsh))))
+    (with-cps cps
+      (letv u64-a result)
+      (letk kbox ($kargs ('result) (result)
+                   ($continue k src
+                     ($primcall 'u64->scm #f (result)))))
+      (letk kop ($kargs ('u64-a) (u64-a)
+                       ($continue kbox src
+                         ($primcall uop #f (u64-a b)))))
+      (build-term
+        ($continue kop src
           ($primcall unbox-a #f (a)))))))
 
 (define (truncate-u64 cps k src scm)
@@ -358,6 +413,35 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                types
                sigbits))))))
       (($ $kargs names vars
+          ($ $continue k src
+             ($ $primcall (and op
+                               (or 'add/immediate 'sub/immediate
+                                   'mul/immediate
+                                   'rsh/immediate 'lsh/immediate))
+                b (a))))
+       (match (intmap-ref cps k)
+         (($ $kargs (_) (result))
+          (call-with-values (lambda ()
+                              (lookup-post-type types label result 0))
+            (lambda (type min max)
+              (values
+               (cond
+                ((eqv? type &flonum)
+                 (with-cps cps
+                   (let$ body (specialize-f64-unop k src op a b))
+                   (setk label ($kargs names vars ,body))))
+                ((and (type<=? type &exact-integer)
+                      (or (<= 0 min max #xffffffffffffffff)
+                          (only-u64-bits-used? result))
+                      (u64-operand? a) (<= 0 b #xffffFFFFffffFFFF))
+                 (with-cps cps
+                   (let$ body (specialize-u64-unop k src op a b))
+                   (setk label ($kargs names vars ,body))))
+                (else
+                 cps))
+               types
+               sigbits))))))
+      (($ $kargs names vars
           ($ $continue k src ($ $primcall 'ash #f (a b))))
        (match (intmap-ref cps k)
          (($ $kargs (_) (result))
@@ -373,28 +457,40 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                      (<= b-min -64)
                      (<= 64 b-max))
                  cps)
-                ((and (< b-min 0) (= b-min b-max))
-                 (with-cps cps
-                   (let$ body
-                         (with-cps-constants ((bits (- b-min)))
-                           ($ (specialize-u64-binop k src 'rsh a bits))))
-                   (setk label ($kargs names vars ,body))))
+                ((= b-min b-max)
+                 (if (< b-min 0)
+                     (with-cps cps
+                       (let$ body
+                             (specialize-u64-unop k src
+                                                  'rsh/immediate a (- b-min)))
+                       (setk label ($kargs names vars ,body)))
+                     (with-cps cps
+                       (let$ body
+                             (specialize-u64-unop k src
+                                                  'lsh/immediate a b-min))
+                       (setk label ($kargs names vars ,body)))))
                 ((< b-min 0)
                  (with-cps cps
                    (let$ body
                          (with-cps-constants ((zero 0))
-                           (letv bits)
+                           (letv count ucount)
                            (let$ body
-                                 (specialize-u64-binop k src 'rsh a bits))
-                           (letk kneg ($kargs ('bits) (bits) ,body))
-                           (build-term
-                             ($continue kneg src
-                               ($primcall 'sub #f (zero b))))))
+                                 (specialize-u64-shift k src 'rsh a ucount))
+                           (letk kucount ($kargs ('ucount) (ucount) ,body))
+                           (letk kcount ($kargs ('count) (count)
+                                          ($continue kucount src
+                                            ($primcall 'scm->u64 #f (count)))))
+                           (build-term ($continue kcount src
+                                         ($primcall 'sub #f (zero b))))))
                    (setk label ($kargs names vars ,body))))
                 (else
                  (with-cps cps
-                   (let$ body (specialize-u64-binop k src 'lsh a b))
-                   (setk label ($kargs names vars ,body)))))
+                   (letv ucount)
+                   (let$ body (specialize-u64-shift k src 'lsh a ucount))
+                   (letk kunbox ($kargs ('ucount) (ucount) ,body))
+                   (setk label ($kargs names vars
+                                 ($continue kunbox src
+                                   ($primcall 'scm->u64 #f (b))))))))
                types
                sigbits))))))
       (($ $kargs names vars

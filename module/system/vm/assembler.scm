@@ -189,6 +189,10 @@
             emit-rem
             emit-mod
             emit-ash
+            emit-lsh
+            emit-rsh
+            emit-lsh/immediate
+            emit-rsh/immediate
             emit-fadd
             emit-fsub
             emit-fmul

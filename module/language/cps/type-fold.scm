@@ -231,8 +231,7 @@
     (let ((n (let lp ((bits 0) (constant constant))
                (if (= constant 1) bits (lp (1+ bits) (ash constant -1))))))
       (with-cps cps
-        ($ (with-cps-constants ((bits n))
-             (build-term ($continue k src ($primcall 'ash #f (arg bits)))))))))
+        (build-term ($continue k src ($primcall 'lsh/immediate n (arg)))))))
   (define (mul/constant constant constant-type arg arg-type)
     (cond
      ((not (or (type<=? constant-type &exact-integer)
@@ -255,7 +254,7 @@
      ((and (type<=? (logior constant-type arg-type) &exact-integer)
            (positive? constant)
            (zero? (logand constant (1- constant))))
-      ;; (* arg power-of-2) -> (ash arg (log2 power-of-2
+      ;; (* arg power-of-2) -> (ash arg (log2 power-of-2))
       (power-of-two constant arg))
      (else
       (fail))))

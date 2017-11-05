@@ -1372,25 +1372,45 @@ minimum, and maximum."
 
 ;; Bit operations.
 (define-simple-type-checker (ash &exact-integer &exact-integer))
-(define-type-inferrer (ash val count result)
+(define-simple-type-checker (lsh &exact-integer &u64))
+(define-simple-type-checker (rsh &exact-integer &u64))
+(define (compute-ash-range min-val max-val min-shift max-shift)
   (define (ash* val count)
     ;; As we only precisely represent a 64-bit range, don't bother inferring
     ;; shifts that might exceed that range.
     (cond
      ((inf? val) val) ; Preserves sign.
-     ((< -64 count 64) (ash val count))
+     ((< count 64) (ash val (max count 0)))
      ((zero? val) 0)
      ((positive? val) +inf.0)
      (else -inf.0)))
+  (let ((-- (ash* min-val min-shift))
+        (-+ (ash* min-val max-shift))
+        (++ (ash* max-val max-shift))
+        (+- (ash* max-val min-shift)))
+    (values (min -- -+ ++ +-) (max -- -+ ++ +-))))
+(define-type-inferrer (ash val count result)
   (restrict! val &exact-integer -inf.0 +inf.0)
   (restrict! count &exact-integer -inf.0 +inf.0)
-  (let ((-- (ash* (&min val) (&min count)))
-        (-+ (ash* (&min val) (&max count)))
-        (++ (ash* (&max val) (&max count)))
-        (+- (ash* (&max val) (&min count))))
-    (define-exact-integer! result
-      (min -- -+ ++ +-)
-      (max -- -+ ++ +-))))
+  (let-values (((min max) (compute-ash-range (&min val)
+                                             (&max val)
+                                             (&min count)
+                                             (&max count))))
+    (define-exact-integer! result min max)))
+(define-type-inferrer (lsh val count result)
+  (restrict! val &exact-integer -inf.0 +inf.0)
+  (let-values (((min max) (compute-ash-range (&min val)
+                                             (&max val)
+                                             (&min/0 count)
+                                             (&max/u64 count))))
+    (define-exact-integer! result min max)))
+(define-type-inferrer (rsh val count result)
+  (restrict! val &exact-integer -inf.0 +inf.0)
+  (let-values (((min max) (compute-ash-range (&min val)
+                                             (&max val)
+                                             (- (&min/0 count))
+                                             (- (&max/u64 count)))))
+    (define-exact-integer! result min max)))
 
 (define-simple-type-checker (ursh &u64 &u64))
 (define-type-inferrer (ursh a b result)
@@ -1404,8 +1424,6 @@ minimum, and maximum."
 
 (define-simple-type-checker (ulsh &u64 &u64))
 (define-type-inferrer (ulsh a b result)
-  (restrict! a &u64 0 &u64-max)
-  (restrict! b &u64 0 &u64-max)
   (if (and (< (&max/u64 b) 64)
            (<= (ash (&max/u64 a) (&max/u64 b)) &u64-max))
       ;; No overflow; we can be precise.
