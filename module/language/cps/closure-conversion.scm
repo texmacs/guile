@@ -488,16 +488,12 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
              (cond
               (self-known?
                (with-cps cps
-                 (letv var* u64)
+                 (letv var*)
                  (let$ body (k var*))
                  (letk k* ($kargs (#f) (var*) ,body))
-                 (letk kunbox ($kargs ('idx) (u64)
-                                ($continue k* #f
-                                  ($primcall 'vector-ref #f (self u64)))))
-                 ($ (with-cps-constants ((idx idx))
-                      (build-term
-                        ($continue kunbox #f
-                          ($primcall 'scm->u64 #f (idx))))))))
+                 (build-term
+                   ($continue k* #f
+                     ($primcall 'vector-ref/immediate idx (self))))))
               (else
                (with-cps cps
                  (letv var*)
@@ -546,14 +542,10 @@ term."
          (unless (> nfree 2)
            (error "unexpected well-known nullary, unary, or binary closure"))
          (with-cps cps
-           ($ (with-cps-constants ((nfree nfree)
-                                   (false #f))
-                (letv u64)
-                (letk kunbox ($kargs ('nfree) (u64)
-                               ($continue k src
-                                 ($primcall 'make-vector #f (u64 false)))))
+           ($ (with-cps-constants ((false #f))
                 (build-term
-                  ($continue kunbox src ($primcall 'scm->u64 #f (nfree))))))))))
+                  ($continue k src
+                    ($primcall 'make-vector/immediate nfree (false))))))))))
 
     (define (init-closure cps k src var known? free)
       "Initialize the free variables @var{closure-free} in a closure
@@ -598,14 +590,9 @@ bound to @var{var}, and continue to @var{k}."
                           (known?
                            (with-cps cps
                              (letv u64)
-                             (letk kunbox
-                                   ($kargs ('idx) (u64)
-                                     ($continue k src
-                                       ($primcall 'vector-set! #f (var u64 v)))))
-                             ($ (with-cps-constants ((idx idx))
-                                  (build-term
-                                    ($continue kunbox src
-                                      ($primcall 'scm->u64 #f (idx))))))))
+                             (build-term
+                               ($continue k src
+                                 ($primcall 'vector-set!/immediate idx (var v))))))
                           (else
                            (with-cps cps
                              (build-term
