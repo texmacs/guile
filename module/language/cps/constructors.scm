@@ -61,25 +61,17 @@
        (with-cps out
          (let$ next (initialize vec args (1+ n)))
          (letk knext ($kargs () () ,next))
-         (letv u64)
-         (letk kunbox ($kargs ('idx) (u64)
-                        ($continue knext src
-                          ($primcall 'vector-set! #f (vec u64 arg)))))
-         ($ (with-cps-constants ((idx n))
-              (build-term ($continue kunbox src
-                            ($primcall 'scm->u64 #f (idx))))))))))
+         (build-term
+           ($continue knext src
+             ($primcall 'vector-set!/immediate n (vec arg))))))))
   (with-cps out
     (letv vec)
     (let$ body (initialize vec args 0))
     (letk kalloc ($kargs ('vec) (vec) ,body))
-    ($ (with-cps-constants ((len (length args))
-                            (init #f))
-         (letv u64)
-         (letk kunbox ($kargs ('len) (u64)
-                        ($continue kalloc src
-                          ($primcall 'make-vector #f (u64 init)))))
-         (build-term ($continue kunbox src
-                       ($primcall 'scm->u64 #f (len))))))))
+    ($ (with-cps-constants ((init #f))
+         (build-term
+           ($continue kalloc src
+             ($primcall 'make-vector/immediate (length args) (init))))))))
 
 (define (find-constructor-inliner name)
   (match name
