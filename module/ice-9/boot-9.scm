@@ -886,7 +886,6 @@ for key @var{k}, then invoke @var{thunk}."
               (when name
                 (format port "In procedure ~a:\n" name))))
 
-          (print-location frame port)
           (catch #t
             (lambda ()
               (let ((printer (assq-ref exception-printers key)))
