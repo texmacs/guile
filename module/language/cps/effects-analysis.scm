@@ -374,7 +374,8 @@ is or might be a read or a write to the same location as A."
   ((load-s64))
   ((s64->scm _))
   ((s64->scm/unlikely _))
-  ((untag-fixnum _)))
+  ((untag-fixnum _))
+  ((tag-fixnum _)))
 
 ;; Bytevectors.
 (define-primitive-effects

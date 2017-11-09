@@ -271,6 +271,8 @@
           (from-sp (slot expected)) (from-sp (slot desired))))
         (($ $primcall 'untag-fixnum #f (src))
          (emit-untag-fixnum asm (from-sp dst) (from-sp (slot src))))
+        (($ $primcall 'tag-fixnum #f (src))
+         (emit-tag-fixnum asm (from-sp dst) (from-sp (slot src))))
         (($ $primcall name #f args)
          ;; FIXME: Inline all the cases.
          (let ((inst (prim-instruction name)))

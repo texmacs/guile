@@ -329,6 +329,11 @@ false.  It could be that both true and false proofs are available."
              (match defs
                ((scm)
                 (add-def! `(primcall scm->s64 #f ,scm) s64))))
+            (('primcall 'untag-fixnum #f scm)
+             (match defs
+               ((s64)
+                (add-def! `(primcall s64->scm #f ,s64) scm)
+                (add-def! `(primcall tag-fixnum #f ,s64) scm))))
             (_ #t))))
 
       (define (visit-label label equiv-labels var-substs)

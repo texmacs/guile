@@ -98,6 +98,7 @@
             emit-eof-object?
 
             emit-untag-fixnum
+            emit-tag-fixnum
 
             emit-throw
             (emit-throw/value* . emit-throw/value)

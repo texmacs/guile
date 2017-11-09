@@ -398,6 +398,8 @@ minimum, and maximum."
 (define-syntax-rule (&max/u64 x) (min (&max x) &u64-max))
 (define-syntax-rule (&min/s64 x) (max (&min x) &s64-min))
 (define-syntax-rule (&max/s64 x) (min (&max x) &s64-max))
+(define-syntax-rule (&min/fixnum x) (max (&min x) most-negative-fixnum))
+(define-syntax-rule (&max/fixnum x) (min (&max x) most-positive-fixnum))
 (define-syntax-rule (&max/size x) (min (&max x) (target-max-size-t)))
 (define-syntax-rule (&max/scm-size x) (min (&max x) (target-max-size-t/scm)))
 
@@ -900,6 +902,10 @@ minimum, and maximum."
 (define-simple-type-checker (untag-fixnum &fixnum))
 (define-type-inferrer (untag-fixnum scm result)
   (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
+
+(define-simple-type-checker (tag-fixnum (logior &s64 &u64)))
+(define-type-inferrer (tag-fixnum s64 result)
+  (define! result &fixnum (&min/fixnum s64) (&max/fixnum s64)))
 
 
 
