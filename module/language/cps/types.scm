@@ -332,7 +332,9 @@ minimum, and maximum."
    ((number? val)
     (cond
      ((exact-integer? val)
-      (return (if (<= most-negative-fixnum val most-positive-fixnum)
+      (return (if (<= (target-most-negative-fixnum)
+                      val
+                      (target-most-positive-fixnum))
                   &fixnum
                   &bignum)
               val))
@@ -382,7 +384,9 @@ minimum, and maximum."
 (define-syntax-rule (define-exact-integer! result min max)
   (let ((min* min) (max* max))
     (define! result
-      (if (<= most-negative-fixnum min* max* most-positive-fixnum)
+      (if (<= (target-most-negative-fixnum)
+              min* max*
+              (target-most-positive-fixnum))
           &fixnum
           &exact-integer)
       min* max*)))
@@ -398,8 +402,8 @@ minimum, and maximum."
 (define-syntax-rule (&max/u64 x) (min (&max x) &u64-max))
 (define-syntax-rule (&min/s64 x) (max (&min x) &s64-min))
 (define-syntax-rule (&max/s64 x) (min (&max x) &s64-max))
-(define-syntax-rule (&min/fixnum x) (max (&min x) most-negative-fixnum))
-(define-syntax-rule (&max/fixnum x) (min (&max x) most-positive-fixnum))
+(define-syntax-rule (&min/fixnum x) (max (&min x) (target-most-negative-fixnum)))
+(define-syntax-rule (&max/fixnum x) (min (&max x) (target-most-positive-fixnum)))
 (define-syntax-rule (&max/size x) (min (&max x) (target-max-size-t)))
 (define-syntax-rule (&max/scm-size x) (min (&max x) (target-max-size-t/scm)))
 
@@ -606,13 +610,14 @@ minimum, and maximum."
 (define-predicate-inferrer (fixnum? val true?)
   (cond
    (true?
-    (restrict! val &fixnum most-negative-fixnum most-positive-fixnum))
+    (restrict! val &fixnum
+               (target-most-negative-fixnum) (target-most-positive-fixnum)))
    ((type<=? (&type val) &exact-integer)
     (cond
-     ((<= (&max val) most-positive-fixnum)
-      (restrict! val &bignum -inf.0 (1- most-negative-fixnum)))
-     ((>= (&min val) most-negative-fixnum)
-      (restrict! val &bignum most-positive-fixnum +inf.0))
+     ((<= (&max val) (target-most-positive-fixnum))
+      (restrict! val &bignum -inf.0 (1- (target-most-negative-fixnum))))
+     ((>= (&min val) (target-most-negative-fixnum))
+      (restrict! val &bignum (target-most-positive-fixnum) +inf.0))
      (else
       (restrict! val &bignum -inf.0 +inf.0))))
    (else
@@ -717,29 +722,28 @@ minimum, and maximum."
 ;;; Vectors.
 ;;;
 
-;; This max-vector-len computation is a hack.
-(define *max-vector-len* (ash most-positive-fixnum -5))
-(define-syntax-rule (&max/vector x) (min (&max x) *max-vector-len*))
+(define-syntax-rule (&max/vector x)
+  (min (&max x) (target-max-vector-length)))
 
-(define-simple-type-checker (make-vector (&u64 0 *max-vector-len*)
+(define-simple-type-checker (make-vector (&u64 0 (target-max-vector-length))
                                          &all-types))
 (define-type-inferrer (make-vector size init result)
-  (restrict! size &u64 0 *max-vector-len*)
+  (restrict! size &u64 0 (target-max-vector-length))
   (define! result &vector (&min/0 size) (&max/vector size)))
 
 (define-type-checker (vector-ref v idx)
-  (and (check-type v &vector 0 *max-vector-len*)
+  (and (check-type v &vector 0 (target-max-vector-length))
        (check-type idx &u64 0 (1- (&min v)))))
 (define-type-inferrer (vector-ref v idx result)
-  (restrict! v &vector (1+ (&min/0 idx)) *max-vector-len*)
+  (restrict! v &vector (1+ (&min/0 idx)) (target-max-vector-length))
   (restrict! idx &u64 0 (1- (&max/vector v)))
   (define! result &all-types -inf.0 +inf.0))
 
 (define-type-checker (vector-set! v idx val)
-  (and (check-type v &vector 0 *max-vector-len*)
+  (and (check-type v &vector 0 (target-max-vector-length))
        (check-type idx &u64 0 (1- (&min v)))))
 (define-type-inferrer (vector-set! v idx val)
-  (restrict! v &vector (1+ (&min/0 idx)) *max-vector-len*)
+  (restrict! v &vector (1+ (&min/0 idx)) (target-max-vector-length))
   (restrict! idx &u64 0 (1- (&max/vector v))))
 
 (define-simple-type-checker (make-vector/immediate &all-types))
@@ -747,19 +751,19 @@ minimum, and maximum."
   (define! result &vector size size))
 
 (define-type-checker/param (vector-ref/immediate idx v)
-  (and (check-type v &vector 0 *max-vector-len*) (< idx (&min v))))
+  (and (check-type v &vector 0 (target-max-vector-length)) (< idx (&min v))))
 (define-type-inferrer/param (vector-ref/immediate idx v result)
-  (restrict! v &vector (1+ idx) *max-vector-len*)
+  (restrict! v &vector (1+ idx) (target-max-vector-length))
   (define! result &all-types -inf.0 +inf.0))
 
 (define-type-checker/param (vector-set!/immediate idx v val)
-  (and (check-type v &vector 0 *max-vector-len*) (< idx (&min v))))
+  (and (check-type v &vector 0 (target-max-vector-length)) (< idx (&min v))))
 (define-type-inferrer/param (vector-set!/immediate idx v val)
-  (restrict! v &vector (1+ idx) *max-vector-len*))
+  (restrict! v &vector (1+ idx) (target-max-vector-length)))
 
 (define-simple-type-checker (vector-length &vector))
 (define-type-inferrer (vector-length v result)
-  (restrict! v &vector 0 *max-vector-len*)
+  (restrict! v &vector 0 (target-max-vector-length))
   (define! result &u64 (&min/0 v) (&max/vector v)))
 
 

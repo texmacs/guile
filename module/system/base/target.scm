@@ -30,7 +30,10 @@
 
             target-max-size-t
             target-max-size-t/scm
-            target-max-vector-length))
+            target-max-vector-length
+
+            target-most-negative-fixnum
+            target-most-positive-fixnum))
 
 
 
@@ -166,3 +169,13 @@ SCM words."
   ;; Vector size fits in first word; the low 8 bits are taken by the
   ;; type tag.  Additionally, restrict to 48-bit address space.
   (1- (ash 1 (min (- (* (target-word-size) 8) 8) 48))))
+
+(define (target-most-negative-fixnum)
+  "Return the most negative integer representable as a fixnum on the
+target platform."
+  (- (ash 1 (- (* (target-word-size) 8) 3))))
+
+(define (target-most-positive-fixnum)
+  "Return the most positive integer representable as a fixnum on the
+target platform."
+  (1- (ash 1 (- (* (target-word-size) 8) 3))))
