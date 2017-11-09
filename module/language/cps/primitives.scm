@@ -130,28 +130,18 @@ before it is lowered to CPS?"
 (define *comparisons*
   '(eq?
     heap-numbers-equal?
-    <
-    <=
-    =
-    u64-<
-    u64-<=
-    u64-=
-    s64-<
-    s64-<=
-    s64-=
-    f64-=
-    f64-<
-    f64-<=
 
-    ;; FIXME: Remove these.
-    >
-    >=
-    u64->
-    u64->=
-    s64->
-    s64->=
-    f64->
-    f64->=))
+    <
+    =
+
+    u64-<
+    u64-=
+
+    s64-<
+    s64-=
+
+    f64-<
+    f64-=))
 
 (define *branching-primcall-arities* (make-hash-table))
 (for-each (lambda (x) (hashq-set! *branching-primcall-arities* x '(1 . 1)))

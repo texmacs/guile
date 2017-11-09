@@ -152,14 +152,6 @@
 ;;
 ;; (define-branch-folder-alias f64-< <)
 
-(define-binary-branch-folder (<= type0 min0 max0 type1 min1 max1)
-  (case (compare-ranges type0 min0 max0 type1 min1 max1)
-    ((< <= =) (values #t #t))
-    ((>) (values #t #f))
-    (else (values #f #f))))
-(define-branch-folder-alias u64-<= <=)
-(define-branch-folder-alias s64-<= <=)
-
 (define-binary-branch-folder (= type0 min0 max0 type1 min1 max1)
   (case (compare-ranges type0 min0 max0 type1 min1 max1)
     ((=) (values #t #t))
@@ -167,22 +159,6 @@
     (else (values #f #f))))
 (define-branch-folder-alias u64-= =)
 (define-branch-folder-alias s64-= =)
-
-(define-binary-branch-folder (>= type0 min0 max0 type1 min1 max1)
-  (case (compare-ranges type0 min0 max0 type1 min1 max1)
-    ((> >= =) (values #t #t))
-    ((<) (values #t #f))
-    (else (values #f #f))))
-(define-branch-folder-alias u64->= >=)
-(define-branch-folder-alias s64->= >=)
-
-(define-binary-branch-folder (> type0 min0 max0 type1 min1 max1)
-  (case (compare-ranges type0 min0 max0 type1 min1 max1)
-    ((>) (values #t #t))
-    ((= <= <) (values #t #f))
-    (else (values #f #f))))
-(define-branch-folder-alias u64-> >)
-(define-branch-folder-alias s64-> >)
 
 
 

@@ -207,8 +207,8 @@
                    ($continue kf src
                      ($branch kt ($primcall u64-op #f (u64 s64))))))
       (letk kz64 ($kargs ('z64) (z64)
-                   ($continue (case op ((< <= =) kf) (else kt)) src
-                     ($branch kcmp ($primcall 's64-<= #f (z64 s64))))))
+                   ($continue kcmp src
+                     ($branch kf ($primcall 's64-< #f (s64 z64))))))
       (letk ks64 ($kargs ('s64) (s64)
                    ($continue kz64 src ($primcall 'load-s64 0 ()))))
       (letk kfix ($kargs () ()
@@ -220,6 +220,40 @@
       (build-term
         ($continue ku64 src
           ($primcall 'scm->u64 #f (a-u64)))))))
+
+(define (specialize-scm-u64-comparison cps kf kt src op a-scm b-u64)
+  (match op
+    ('= (specialize-u64-scm-comparison cps kf kt src op b-u64 a-scm))
+    ('<
+     (with-cps cps
+       (letv u64 s64 z64 sunk)
+       (letk kheap ($kargs ('sunk) (sunk)
+                     ($continue kf src
+                       ($branch kt ($primcall '< #f (a-scm sunk))))))
+       ;; Re-box the variable.  FIXME: currently we use a specially
+       ;; marked u64->scm to avoid CSE from hoisting the allocation
+       ;; again.  Instaed we should just use a-u64 directly and implement
+       ;; an allocation sinking pass that should handle this..
+       (letk kretag ($kargs () ()
+                      ($continue kheap src
+                        ($primcall 'u64->scm/unlikely #f (u64)))))
+       (letk kcmp ($kargs () ()
+                    ($continue kf src
+                      ($branch kt ($primcall 'u64-< #f (s64 u64))))))
+       (letk kz64 ($kargs ('z64) (z64)
+                    ($continue kcmp src
+                      ($branch kt ($primcall 's64-< #f (s64 z64))))))
+       (letk ks64 ($kargs ('s64) (s64)
+                    ($continue kz64 src ($primcall 'load-s64 0 ()))))
+       (letk kfix ($kargs () ()
+                    ($continue ks64 src
+                      ($primcall 'untag-fixnum #f (a-scm)))))
+       (letk ku64 ($kargs ('u64) (u64)
+                    ($continue kretag src
+                      ($branch kfix ($primcall 'fixnum? #f (a-scm))))))
+       (build-term
+         ($continue ku64 src
+           ($primcall 'scm->u64 #f (b-u64))))))))
 
 (define (specialize-f64-comparison cps kf kt src op a b)
   (let ((op (symbol-append 'f64- op)))
@@ -525,7 +559,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
            types sigbits))))
       (($ $kargs names vars
           ($ $continue k src
-             ($ $branch kt ($ $primcall (and op (or '< '<= '= '>= '>)) #f (a b)))))
+             ($ $branch kt ($ $primcall (and op (or '< '=)) #f (a b)))))
        (values
         (cond
          ((f64-operands? a b)
@@ -540,11 +574,9 @@ BITS indicating the significant bits needed for a variable.  BITS may be
               (let$ body (specialize k kt src op a b))
               (setk label ($kargs names vars ,body)))))
          ((u64-operand? b)
-          (let ((op (match op
-                      ('< '>) ('<= '>=) ('= '=) ('>= '<=) ('> '<))))
-            (with-cps cps
-              (let$ body (specialize-u64-scm-comparison k kt src op b a))
-              (setk label ($kargs names vars ,body)))))
+          (with-cps cps
+            (let$ body (specialize-scm-u64-comparison k kt src op a b))
+            (setk label ($kargs names vars ,body))))
          (else cps))
         types
         sigbits))

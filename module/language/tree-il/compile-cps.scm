@@ -1050,6 +1050,24 @@ integer."
        (($ <conditional>)
         (reduce-conditional exp))
 
+       (($ <primcall> src '<= (a b))
+        ;; No need to reduce as < is a branching primitive.
+        (make-conditional src (make-primcall src '< (list b a))
+                          (make-const src #f)
+                          (make-const src #t)))
+
+       (($ <primcall> src '>= (a b))
+        ;; No need to reduce as < is a branching primitive.
+        (make-conditional src (make-primcall src '< (list a b))
+                          (make-const src #f)
+                          (make-const src #t)))
+
+       (($ <primcall> src '> (a b))
+        ;; No need to reduce as < is a branching primitive.
+        (make-conditional src (make-primcall src '< (list b a))
+                          (make-const src #t)
+                          (make-const src #f)))
+
        (($ <primcall> src (? branching-primitive? name) args)
         ;; No need to reduce because test is not reducible: reifying
         ;; #t/#f is the right thing.
