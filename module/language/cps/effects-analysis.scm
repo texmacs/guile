@@ -501,7 +501,7 @@ is or might be a read or a write to the same location as A."
 ;; so no need to have a case for them here.  (Though, see
 ;; https://jfbastien.github.io/no-sane-compiler/.)
 
-(define (primitive-effects name param args)
+(define (primitive-effects param name args)
   (let ((proc (hashq-ref *primitive-effects* name)))
     (if proc
         (apply proc param args)
