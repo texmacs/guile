@@ -33,7 +33,8 @@
             target-max-vector-length
 
             target-most-negative-fixnum
-            target-most-positive-fixnum))
+            target-most-positive-fixnum
+            target-fixnum?))
 
 
 
@@ -179,3 +180,9 @@ target platform."
   "Return the most positive integer representable as a fixnum on the
 target platform."
   (1- (ash 1 (- (* (target-word-size) 8) 3))))
+
+(define (target-fixnum? n)
+  (and (exact-integer? n)
+       (<= (target-most-negative-fixnum)
+           n
+           (target-most-positive-fixnum))))

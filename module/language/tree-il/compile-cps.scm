@@ -54,6 +54,7 @@
   #:use-module ((srfi srfi-1) #:select (fold filter-map))
   #:use-module (srfi srfi-26)
   #:use-module ((system foreign) #:select (make-pointer pointer->scm))
+  #:use-module (system base target)
   #:use-module (language cps)
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
@@ -659,6 +660,13 @@
                      cps idx 'scm->u64
                      (lambda (cps idx)
                        (have-args cps (list obj idx val)))))))
+                ((rsh lsh)
+                 (match args
+                   ((a b)
+                    (unbox-arg
+                     cps b 'untag-fixnum
+                     (lambda (cps b)
+                       (have-args cps (list a b)))))))
                 ((make-vector)
                  (match args
                    ((length init)
@@ -725,11 +733,12 @@
                  (add/immediate y (x)))
                 (('sub x ($ <const> _ (? number? y)))
                  (sub/immediate y (x)))
-                (('ash x ($ <const> _ (? uint? y)))
+                (('lsh x ($ <const> _ (? uint? y)))
                  (lsh/immediate y (x)))
-                (('ash x ($ <const> _ (? negint? y)))
-                 (rsh/immediate (- y) (x)))
-                (_ (default))))
+                (('rsh x ($ <const> _ (? uint? y)))
+                 (rsh/immediate y (x)))
+                (_
+                 (default))))
             (when (branching-primitive? name)
               (error "branching primcall in bad context" name))
             ;; Tree-IL primcalls are sloppy, in that it could be that
@@ -1191,6 +1200,37 @@ integer."
            ($ <lambda> hsrc hmeta
               ($ <lambda-case> _ hreq #f hrest #f () hsyms hbody #f)))
         exp)
+
+       (($ <primcall> src 'ash (a b))
+        (match b
+          (($ <const> src2 (? target-fixnum? n))
+           (if (< n 0)
+               (make-primcall src 'rsh (list a (make-const src2 (- n))))
+               (make-primcall src 'lsh (list a b))))
+          (_
+           (let* ((a-sym (gensym "a "))
+                  (b-sym (gensym "b "))
+                  (a-ref (make-lexical-ref src 'a a-sym))
+                  (b-ref (make-lexical-ref src 'b b-sym)))
+             (make-let
+              src (list 'a 'b) (list a-sym b-sym) (list a b)
+              (make-conditional
+               src
+               (make-primcall src 'fixnum? (list b-ref))
+               (make-conditional
+                src
+                (make-primcall src '< (list b-ref (make-const src 0)))
+                (let ((n (make-primcall src '- (list (make-const src 0) b-ref))))
+                  (make-primcall src 'rsh (list a-ref n)))
+                (make-primcall src 'lsh (list a-ref b-ref)))
+               (make-primcall
+                src 'throw
+                (list
+                 (make-const #f 'wrong-type-arg)
+                 (make-const #f "ash")
+                 (make-const #f "Wrong type (expecting fixnum): ~S")
+                 (make-primcall #f 'list (list b-ref))
+                 (make-primcall #f 'list (list b-ref))))))))))
 
        ;; Eta-convert prompts without inline handlers.
        (($ <prompt> src escape-only? tag body handler)

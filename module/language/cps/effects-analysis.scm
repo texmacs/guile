@@ -458,7 +458,6 @@ is or might be a read or a write to the same location as A."
   ((inexact? _)                    &type-check)
   ((even? _)                       &type-check)
   ((odd? _)                        &type-check)
-  ((ash n m)                       &type-check)
   ((rsh n m)                       &type-check)
   ((lsh n m)                       &type-check)
   ((rsh/immediate n)               &type-check)

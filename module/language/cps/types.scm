@@ -1300,7 +1300,6 @@ minimum, and maximum."
 (define-type-aliases even? odd?)
 
 ;; Bit operations.
-(define-simple-type-checker (ash &exact-integer &exact-integer))
 (define-simple-type-checker (lsh &exact-integer &u64))
 (define-simple-type-checker (rsh &exact-integer &u64))
 (define (compute-ash-range min-val max-val min-shift max-shift)
@@ -1318,14 +1317,6 @@ minimum, and maximum."
         (++ (ash* max-val max-shift))
         (+- (ash* max-val min-shift)))
     (values (min -- -+ ++ +-) (max -- -+ ++ +-))))
-(define-type-inferrer (ash val count result)
-  (restrict! val &exact-integer -inf.0 +inf.0)
-  (restrict! count &exact-integer -inf.0 +inf.0)
-  (let-values (((min max) (compute-ash-range (&min val)
-                                             (&max val)
-                                             (&min count)
-                                             (&max count))))
-    (define-exact-integer! result min max)))
 (define-type-inferrer (lsh val count result)
   (restrict! val &exact-integer -inf.0 +inf.0)
   (let-values (((min max) (compute-ash-range (&min val)
