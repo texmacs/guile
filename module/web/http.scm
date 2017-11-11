@@ -1159,9 +1159,9 @@ three values: the method, the URI, and the version."
         (put-string port "://")
         (cond
          ((string-index host #\:)
-          (put-char #\[ port)
-          (put-string port host
-          (put-char port #\])))
+          (put-char port #\[)
+          (put-string port host)
+          (put-char port #\]))
          (else
           (put-string port host)))
         (unless ((@@ (web uri) default-port?) scheme host-port)
