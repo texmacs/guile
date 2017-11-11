@@ -143,6 +143,14 @@
           ($ $continue k src ($ $primcall 'call-thunk/no-inline #f (proc))))
        (with-cps cps
          (setk label ($kargs names vars ($continue k src ($call proc ()))))))
+      (($ $kargs names vars
+          ($ $continue k src ($ $primcall 'mul/immediate b (a))))
+       (with-cps cps
+         (letv b*)
+         (letk kb ($kargs ('b) (b*)
+                    ($continue k src ($primcall 'mul #f (a b*)))))
+         (setk label ($kargs names vars
+                       ($continue kb src ($const b))))))
       (($ $kargs names vars ($ $continue k src ($ $primcall name param args)))
        (cond
         ((or (prim-instruction name) (branching-primitive? name))
