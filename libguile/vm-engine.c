@@ -4068,8 +4068,38 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (216, unused_216, NULL, NOP)
-  VM_DEFINE_OP (217, unused_217, NULL, NOP)
+  /* srsh dst:8 a:8 b:8
+   *
+   * Shift the s64 value in A right by B bits, and place the result in
+   * DST.  Only the lower 6 bits of B are used.
+   */
+  VM_DEFINE_OP (216, srsh, "srsh", OP1 (X8_S8_S8_S8) | OP_DST)
+    {
+      scm_t_uint8 dst, a, b;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+
+      SP_SET_S64 (dst, SCM_SRS (SP_REF_S64 (a), (SP_REF_U64 (b) & 63)));
+
+      NEXT (1);
+    }
+
+  /* srsh/immediate dst:8 a:8 b:8
+   *
+   * Shift the s64 value in A right by the immediate B bits, and place
+   * the result in DST.  Only the lower 6 bits of B are used.
+   */
+  VM_DEFINE_OP (217, srsh_immediate, "srsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, a, b;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+
+      SP_SET_S64 (dst, SCM_SRS (SP_REF_S64 (a), b & 63));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (218, unused_218, NULL, NOP)
   VM_DEFINE_OP (219, unused_219, NULL, NOP)
   VM_DEFINE_OP (220, unused_220, NULL, NOP)

@@ -217,8 +217,10 @@
             emit-ulogxor
             emit-ulogsub
             emit-ursh
+            emit-srsh
             emit-ulsh
             emit-ursh/immediate
+            emit-srsh/immediate
             emit-ulsh/immediate
             emit-char->integer
             emit-integer->char

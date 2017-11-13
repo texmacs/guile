@@ -202,6 +202,8 @@
          (emit-lsh/immediate asm (from-sp dst) (from-sp (slot x)) y))
         (($ $primcall 'ursh/immediate y (x))
          (emit-ursh/immediate asm (from-sp dst) (from-sp (slot x)) y))
+        (($ $primcall 'srsh/immediate y (x))
+         (emit-srsh/immediate asm (from-sp dst) (from-sp (slot x)) y))
         (($ $primcall 'ulsh/immediate y (x))
          (emit-ulsh/immediate asm (from-sp dst) (from-sp (slot x)) y))
         (($ $primcall 'builtin-ref idx ())

@@ -770,6 +770,7 @@ are comparable with eqv?.  A tmp slot may be used."
               (intmap-add representations var 'u64))
              (($ $primcall (or 'untag-fixnum
                                'scm->s64 'load-s64
+                               'srsh 'srsh/immediate
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
               (intmap-add representations var 's64))
              (_

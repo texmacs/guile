@@ -199,6 +199,7 @@
               ((rsh/immediate (u6? y) x) (rsh x y))
               ((lsh/immediate (u6? y) x) (lsh x y))
               ((ursh/immediate (u6? y) x) (ursh x y))
+              ((srsh/immediate (u6? y) x) (srsh x y))
               ((ulsh/immediate (u6? y) x) (ulsh x y))
               (_ cps))))))
         (param (error "unexpected param to reified primcall" name))
