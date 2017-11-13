@@ -79,7 +79,8 @@
         (('scm->f64 (? f64? var)) (load-f64 var ()))
         (('scm->u64 (? u64? var)) (load-u64 var ()))
         (('scm->u64/truncate (? u64? var)) (load-u64 var ()))
-        (('scm->s64 (? s64? var)) (load-s64 var ()))))
+        (('scm->s64 (? s64? var)) (load-s64 var ()))
+        (('untag-fixnum (? s64? var)) (load-s64 var ()))))
     (intmap-map
      (lambda (label cont)
        (match cont

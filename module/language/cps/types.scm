@@ -912,13 +912,12 @@ minimum, and maximum."
 (define-type-inferrer/param (load-s64 param result)
   (define! result &s64 param param))
 
-(define-simple-type-checker (untag-fixnum &fixnum))
 (define-type-inferrer (untag-fixnum scm result)
   (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
 
-(define-simple-type-checker (tag-fixnum (logior &s64 &u64)))
 (define-type-inferrer (tag-fixnum s64 result)
   (define! result &fixnum (&min/fixnum s64) (&max/fixnum s64)))
+(define-type-aliases tag-fixnum tag-fixnum/unlikely)
 
 
 

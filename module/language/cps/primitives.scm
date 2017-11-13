@@ -68,6 +68,7 @@
 (define *macro-instruction-arities*
   '((u64->scm/unlikely . (1 . 1))
     (s64->scm/unlikely . (1 . 1))
+    (tag-fixnum/unlikely . (1 . 1))
     (cache-current-module! . (0 . 1))
     (cached-toplevel-box . (1 . 0))
     (cached-module-box . (1 . 0))))

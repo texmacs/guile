@@ -334,6 +334,13 @@ false.  It could be that both true and false proofs are available."
                ((s64)
                 (add-def! `(primcall s64->scm #f ,s64) scm)
                 (add-def! `(primcall tag-fixnum #f ,s64) scm))))
+            (('primcall 'tag-fixnum #f fx)
+             (match defs
+               ((scm)
+                ;; NB: These definitions rely on FX having top 2 bits
+                ;; equal to 3rd (sign) bit.
+                (add-def! `(primcall scm->s64 #f ,scm) fx)
+                (add-def! `(primcall untag-fixnum #f ,scm) fx))))
             (_ #t))))
 
       (define (visit-label label equiv-labels var-substs)

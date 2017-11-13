@@ -346,6 +346,47 @@
            ($ (convert-to-logtest kbool)))))
       (with-cps cps #f)))
 
+(define-unary-primcall-reducer (u64->scm cps k src constant arg type min max)
+  (cond
+   ((<= max (target-most-positive-fixnum))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'tag-fixnum #f (arg))))))
+   (else
+    (with-cps cps #f))))
+
+(define-unary-primcall-reducer (s64->scm cps k src constant arg type min max)
+  (cond
+   ((<= max (target-most-positive-fixnum))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'tag-fixnum #f (arg))))))
+   (else
+    (with-cps cps #f))))
+
+(define-unary-primcall-reducer (scm->s64 cps k src constant arg type min max)
+  (cond
+   ((and (type<=? type &exact-integer)
+         (<= (target-most-negative-fixnum) min max (target-most-positive-fixnum)))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'untag-fixnum #f (arg))))))
+   (else
+    (with-cps cps #f))))
+
+(define-unary-primcall-reducer (scm->u64 cps k src constant arg type min max)
+  (cond
+   ((and (type<=? type &exact-integer)
+         (<= 0 min max (target-most-positive-fixnum)))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'untag-fixnum #f (arg))))))
+   (else
+    (with-cps cps #f))))
 
 
 

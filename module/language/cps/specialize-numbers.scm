@@ -52,6 +52,7 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-11)
+  #:use-module (system base target)
   #:use-module (language cps)
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
@@ -82,7 +83,8 @@
             ($primcall 'scm->f64 #f (a)))))))))
 
 (define* (specialize-u64-unop cps k src op a b #:key
-                               (unbox-a 'scm->u64))
+                              (unbox-a 'scm->u64)
+                              (box-result 'u64->scm))
   (let ((uop (match op
                ('add/immediate 'uadd/immediate)
                ('sub/immediate 'usub/immediate)
@@ -93,10 +95,31 @@
       (letv u64-a result)
       (letk kbox ($kargs ('result) (result)
                    ($continue k src
-                     ($primcall 'u64->scm #f (result)))))
+                     ($primcall box-result #f (result)))))
       (letk kop ($kargs ('u64-a) (u64-a)
                   ($continue kbox src
                     ($primcall uop b (u64-a)))))
+      (build-term
+        ($continue kop src
+          ($primcall unbox-a #f (a)))))))
+
+(define* (specialize-s64-unop cps k src op a b #:key
+                              (unbox-a 'scm->s64)
+                              (box-result 's64->scm))
+  (let ((sop (match op
+               ('add/immediate 'uadd/immediate)
+               ('sub/immediate 'usub/immediate)
+               ('mul/immediate 'umul/immediate)
+               ('rsh/immediate 'srsh/immediate)
+               ('lsh/immediate 'ulsh/immediate))))
+    (with-cps cps
+      (letv s64-a result)
+      (letk kbox ($kargs ('result) (result)
+                   ($continue k src
+                     ($primcall box-result #f (result)))))
+      (letk kop ($kargs ('s64-a) (s64-a)
+                  ($continue kbox src
+                    ($primcall sop b (s64-a)))))
       (build-term
         ($continue kop src
           ($primcall unbox-a #f (a)))))))
@@ -124,7 +147,8 @@
 
 (define* (specialize-u64-binop cps k src op a b #:key
                                (unbox-a 'scm->u64)
-                               (unbox-b 'scm->u64))
+                               (unbox-b 'scm->u64)
+                               (box-result 'u64->scm))
   (let ((uop (match op
                ('add 'uadd)
                ('sub 'usub)
@@ -137,7 +161,7 @@
       (letv u64-a u64-b result)
       (letk kbox ($kargs ('result) (result)
                    ($continue k src
-                     ($primcall 'u64->scm #f (result)))))
+                     ($primcall box-result #f (result)))))
       (letk kop ($kargs ('u64-b) (u64-b)
                   ($continue kbox src
                     ($primcall uop #f (u64-a u64-b)))))
@@ -149,7 +173,8 @@
           ($primcall unbox-a #f (a)))))))
 
 (define* (specialize-u64-shift cps k src op a b #:key
-                               (unbox-a 'scm->u64))
+                               (unbox-a 'scm->u64)
+                               (box-result 'u64->scm))
   (let ((uop (match op
                ('rsh 'ursh)
                ('lsh 'ulsh))))
@@ -157,7 +182,7 @@
       (letv u64-a result)
       (letk kbox ($kargs ('result) (result)
                    ($continue k src
-                     ($primcall 'u64->scm #f (result)))))
+                     ($primcall box-result #f (result)))))
       (letk kop ($kargs ('u64-a) (u64-a)
                        ($continue kbox src
                          ($primcall uop #f (u64-a b)))))
@@ -165,31 +190,19 @@
         ($continue kop src
           ($primcall unbox-a #f (a)))))))
 
-(define (truncate-u64 cps k src scm)
+(define* (truncate-u64 cps k src scm #:key
+                       (unbox-a 'scm->u64/truncate)
+                       (box-result 'u64->scm))
   (with-cps cps
     (letv u64)
     (letk kbox ($kargs ('u64) (u64)
                  ($continue k src
-                   ($primcall 'u64->scm #f (u64)))))
+                   ($primcall box-result #f (u64)))))
     (build-term
       ($continue kbox src
-        ($primcall 'scm->u64/truncate #f (scm))))))
+        ($primcall unbox-a #f (scm))))))
 
-(define (specialize-u64-comparison cps kf kt src op a b)
-  (let ((op (symbol-append 'u64- op)))
-    (with-cps cps
-      (letv u64-a u64-b)
-      (letk kop ($kargs ('u64-b) (u64-b)
-                  ($continue kf src
-                    ($branch kt ($primcall op #f (u64-a u64-b))))))
-      (letk kunbox-b ($kargs ('u64-a) (u64-a)
-                       ($continue kop src
-                         ($primcall 'scm->u64 #f (b)))))
-      (build-term
-        ($continue kunbox-b src
-          ($primcall 'scm->u64 #f (a)))))))
-
-(define (specialize-s64-comparison cps kf kt src op a b)
+(define (specialize-fixnum-comparison cps kf kt src op a b)
   (let ((op (symbol-append 's64- op)))
     (with-cps cps
       (letv s64-a s64-b)
@@ -198,12 +211,12 @@
                     ($branch kt ($primcall op #f (s64-a s64-b))))))
       (letk kunbox-b ($kargs ('s64-a) (s64-a)
                        ($continue kop src
-                         ($primcall 'scm->s64 #f (b)))))
+                         ($primcall 'untag-fixnum #f (b)))))
       (build-term
         ($continue kunbox-b src
-          ($primcall 'scm->s64 #f (a)))))))
+          ($primcall 'untag-fixnum #f (a)))))))
 
-(define (specialize-s64-scm-comparison cps kf kt src op a-s64 b-scm)
+(define (specialize-fixnum-scm-comparison cps kf kt src op a-fx b-scm)
   (let ((s64-op (match op ('= 's64-=) ('< 's64-<))))
     (with-cps cps
       (letv a b sunk)
@@ -212,11 +225,11 @@
                       ($branch kt ($primcall op #f (sunk b-scm))))))
       ;; Re-box the variable.  FIXME: currently we use a specially
       ;; marked s64->scm to avoid CSE from hoisting the allocation
-      ;; again.  Instaed we should just use a-s64 directly and implement
+      ;; again.  Instead we should just use a-fx directly and implement
       ;; an allocation sinking pass that should handle this..
       (letk kretag ($kargs () ()
                      ($continue kheap src
-                       ($primcall 's64->scm/unlikely #f (a)))))
+                       ($primcall 'tag-fixnum/unlikely #f (a)))))
       (letk kb ($kargs ('b) (b)
                  ($continue kf src
                    ($branch kt ($primcall s64-op #f (a b))))))
@@ -228,11 +241,11 @@
                    ($branch kfix ($primcall 'fixnum? #f (b-scm))))))
       (build-term
         ($continue ka src
-          ($primcall 'scm->s64 #f (a-s64)))))))
+          ($primcall 'untag-fixnum #f (a-fx)))))))
 
-(define (specialize-scm-s64-comparison cps kf kt src op a-scm b-s64)
+(define (specialize-scm-fixnum-comparison cps kf kt src op a-scm b-fx)
   (match op
-    ('= (specialize-s64-scm-comparison cps kf kt src op b-s64 a-scm))
+    ('= (specialize-fixnum-scm-comparison cps kf kt src op b-fx a-scm))
     ('<
      (with-cps cps
        (letv a b sunk)
@@ -241,11 +254,11 @@
                        ($branch kt ($primcall '< #f (a-scm sunk))))))
        ;; Re-box the variable.  FIXME: currently we use a specially
        ;; marked s64->scm to avoid CSE from hoisting the allocation
-       ;; again.  Instaed we should just use a-s64 directly and implement
+       ;; again.  Instead we should just use a-s64 directly and implement
        ;; an allocation sinking pass that should handle this..
        (letk kretag ($kargs () ()
                       ($continue kheap src
-                        ($primcall 's64->scm/unlikely #f (b)))))
+                        ($primcall 'tag-fixnum/unlikely #f (b)))))
        (letk ka ($kargs ('a) (a)
                   ($continue kf src
                     ($branch kt ($primcall 's64-< #f (a b))))))
@@ -257,7 +270,23 @@
                     ($branch kfix ($primcall 'fixnum? #f (a-scm))))))
        (build-term
          ($continue kb src
-           ($primcall 'scm->s64 #f (b-s64))))))))
+           ($primcall 'untag-fixnum #f (b-fx))))))))
+
+(define* (specialize-u64-comparison cps kf kt src op a b #:key
+                                    (unbox-a 'scm->u64)
+                                    (unbox-b 'scm->u64))
+  (let ((op (symbol-append 'u64- op)))
+    (with-cps cps
+      (letv u64-a u64-b)
+      (letk kop ($kargs ('u64-b) (u64-b)
+                  ($continue kf src
+                    ($branch kt ($primcall op #f (u64-a u64-b))))))
+      (letk kunbox-b ($kargs ('u64-a) (u64-a)
+                       ($continue kop src
+                         ($primcall unbox-b #f (b)))))
+      (build-term
+        ($continue kunbox-b src
+          ($primcall unbox-a #f (a)))))))
 
 (define (specialize-f64-comparison cps kf kt src op a b)
   (let ((op (symbol-append 'f64- op)))
@@ -391,6 +420,12 @@ BITS indicating the significant bits needed for a variable.  BITS may be
               (_ out)))))))))
 
 (define (specialize-operations cps)
+  (define (u6-parameter? param)
+    (<= 0 param 63))
+  (define (s64-parameter? param)
+    (<= (ash -1 63) param (1- (ash 1 63))))
+  (define (u64-parameter? param)
+    (<= 0 param (1- (ash 1 64))))
   (define (visit-cont label cont cps types sigbits)
     (define (operand-in-range? var &type &min &max)
       (call-with-values (lambda ()
@@ -398,17 +433,31 @@ BITS indicating the significant bits needed for a variable.  BITS may be
         (lambda (type min max)
           (and (type<=? type &type) (<= &min min max &max)))))
     (define (u64-operand? var)
-      (operand-in-range? var &exact-integer 0 #xffffffffffffffff))
+      (operand-in-range? var &exact-integer 0 (1- (ash 1 64))))
     (define (s64-operand? var)
+      (operand-in-range? var &exact-integer (ash -1 63) (1- (ash 1 63))))
+    (define (fixnum-operand? var)
       (operand-in-range? var &exact-integer
-                         (- #x8000000000000000) #x7fffffffffffffff))
+                         (target-most-negative-fixnum)
+                         (target-most-positive-fixnum)))
     (define (all-u64-bits-set? var)
-      (operand-in-range? var &exact-integer
-                         #xffffffffffffffff
-                         #xffffffffffffffff))
+      (operand-in-range? var &exact-integer (1- (ash 1 64)) (1- (ash 1 64))))
+    (define (only-fixnum-bits-used? var)
+      (let ((bits (intmap-ref sigbits var)))
+        (and bits (= bits (logand bits (target-most-positive-fixnum))))))
+    (define (fixnum-result? result)
+      (or (only-fixnum-bits-used? result)
+          (call-with-values
+              (lambda ()
+                (lookup-post-type types label result 0))
+            (lambda (type min max)
+              (and (type<=? type &exact-integer)
+                   (<= (target-most-negative-fixnum)
+                       min max
+                       (target-most-positive-fixnum)))))))
     (define (only-u64-bits-used? var)
       (let ((bits (intmap-ref sigbits var)))
-        (and bits (= bits (logand bits #xffffFFFFffffFFFF)))))
+        (and bits (= bits (logand bits (1- (ash 1 64)))))))
     (define (u64-result? result)
       (or (only-u64-bits-used? result)
           (call-with-values
@@ -416,121 +465,188 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                 (lookup-post-type types label result 0))
             (lambda (type min max)
               (and (type<=? type &exact-integer)
-                   (<= 0 min max #xffffffffffffffff))))))
+                   (<= 0 min max (1- (ash 1 64))))))))
+    (define (s64-result? result)
+      (call-with-values
+          (lambda ()
+            (lookup-post-type types label result 0))
+        (lambda (type min max)
+          (and (type<=? type &exact-integer)
+               (<= (ash -1 63) min max (1- (ash 1 63)))))))
+    (define (f64-result? result)
+      (call-with-values
+          (lambda ()
+            (lookup-post-type types label result 0))
+        (lambda (type min max)
+          (eqv? type &flonum))))
     (define (f64-operands? vara varb)
       (let-values (((typea mina maxa) (lookup-pre-type types label vara))
                    ((typeb minb maxb) (lookup-pre-type types label varb)))
         (and (zero? (logand (logior typea typeb) (lognot &real)))
              (or (eqv? typea &flonum)
                  (eqv? typeb &flonum)))))
+    (define (integer-unbox-op arg)
+      (let-values (((type min max) (lookup-pre-type types label arg)))
+        (cond
+         ((<= (target-most-negative-fixnum)
+              min max
+              (target-most-positive-fixnum))
+          'untag-fixnum)
+         ((<= (- (ash 1 63)) min max (1- (ash 1 63)))
+          'scm->s64)
+         ((<= 0 min max (1- (ash 1 64)))
+          'scm->u64)
+         (else (error "unreachable")))))
+    (define (integer-unbox-op/truncate arg)
+      (let-values (((type min max) (lookup-pre-type types label arg)))
+        (cond
+         ((<= (target-most-negative-fixnum)
+              min max
+              (target-most-positive-fixnum))
+          'untag-fixnum)
+         ((<= (- (ash 1 63)) min max (1- (ash 1 63)))
+          'scm->s64)
+         ((<= 0 min max (1- (ash 1 64)))
+          'scm->u64)
+         (else
+          'scm->u64/truncate))))
+    (define (integer-box-op result)
+      (let-values (((type min max) (lookup-post-type types label result 0)))
+        (cond
+         ((<= (target-most-negative-fixnum)
+              min max
+              (target-most-positive-fixnum))
+          'tag-fixnum)
+         ((<= (- (ash 1 63)) min max (1- (ash 1 63)))
+          's64->scm)
+         (else
+          'u64->scm))))
+
     (match cont
       (($ $kfun)
        (let ((types (infer-types cps label)))
          (values cps types (compute-significant-bits cps types label))))
-      (($ $kargs names vars
-          ($ $continue k src
-             ($ $primcall (and op (or 'add 'sub 'mul 'div)) #f (a b))))
-       (match (intmap-ref cps k)
-         (($ $kargs (_) (result))
-          (call-with-values (lambda ()
-                              (lookup-post-type types label result 0))
-            (lambda (type min max)
-              (values
-               (cond
-                ((eqv? type &flonum)
-                 (with-cps cps
-                   (let$ body (specialize-f64-binop k src op a b))
-                   (setk label ($kargs names vars ,body))))
-                ((and (type<=? type &exact-integer)
-                      (or (<= 0 min max #xffffffffffffffff)
-                          (only-u64-bits-used? result))
-                      (u64-operand? a) (u64-operand? b)
-                      (not (eq? op 'div)))
-                 (with-cps cps
-                   (let$ body (specialize-u64-binop k src op a b))
-                   (setk label ($kargs names vars ,body))))
-                (else
-                 cps))
-               types
-               sigbits))))))
-      (($ $kargs names vars
-          ($ $continue k src
-             ($ $primcall (and op
-                               (or 'add/immediate 'sub/immediate
-                                   'mul/immediate
-                                   'rsh/immediate 'lsh/immediate))
-                b (a))))
-       (match (intmap-ref cps k)
-         (($ $kargs (_) (result))
-          (call-with-values (lambda ()
-                              (lookup-post-type types label result 0))
-            (lambda (type min max)
-              (values
-               (cond
-                ((eqv? type &flonum)
-                 (with-cps cps
-                   (let$ body (specialize-f64-unop k src op a b))
-                   (setk label ($kargs names vars ,body))))
-                ((and (type<=? type &exact-integer)
-                      (or (<= 0 min max #xffffffffffffffff)
-                          (only-u64-bits-used? result))
-                      (u64-operand? a) (<= 0 b #xffffFFFFffffFFFF))
-                 (with-cps cps
-                   (let$ body (specialize-u64-unop k src op a b))
-                   (setk label ($kargs names vars ,body))))
-                (else
-                 cps))
-               types
-               sigbits))))))
-      (($ $kargs names vars
-          ($ $continue k src
-             ($ $primcall (and op (or 'lsh 'rsh)) (a b))))
-       (match (intmap-ref cps k)
-         (($ $kargs (_) (result))
-          (call-with-values (lambda ()
-                              (lookup-pre-type types label b))
-            (lambda (b-type b-min b-max)
-              (values
-               (cond
-                ((and (u64-result? result)
-                      (u64-operand? a)
-                      (<= b-max 63))
-                 (with-cps cps
-                   (let$ body (specialize-u64-shift k src op a b))
-                   (setk label ($kargs names vars ,body))))
-                (else cps))
-               types
-               sigbits))))))
-      (($ $kargs names vars
-          ($ $continue k src
-             ($ $primcall (and op (or 'logand 'logior 'logsub 'logxor)) #f (a b))))
-       (match (intmap-ref cps k)
-         (($ $kargs (_) (result))
-          (values
-           (cond
-            ((u64-result? result)
-             ;; Given that we know the result can be unboxed to a u64,
-             ;; any out-of-range bits won't affect the result and so we
-             ;; can unconditionally project the operands onto u64.
-             (cond
-              ((and (eq? op 'logand) (all-u64-bits-set? a))
-               (with-cps cps
-                 (let$ body (truncate-u64 k src b))
-                 (setk label ($kargs names vars ,body))))
-              ((and (eq? op 'logand) (all-u64-bits-set? b))
-               (with-cps cps
-                 (let$ body (truncate-u64 k src a))
-                 (setk label ($kargs names vars ,body))))
-              (else
-               (with-cps cps
-                 (let$ body (specialize-u64-binop k src op a b
-                                                  #:unbox-a
-                                                  'scm->u64/truncate
-                                                  #:unbox-b
-                                                  'scm->u64/truncate))
-                 (setk label ($kargs names vars ,body))))))
-            (else cps))
-           types sigbits))))
+
+      (($ $kargs names vars ($ $continue k src ($ $primcall op param args)))
+       (values
+        (match (intmap-ref cps k)
+          (($ $kargs (_) (result))
+           (match (cons* op result param args)
+             (((or 'add 'sub 'mul 'div)
+               (? f64-result?) #f a b)
+              (with-cps cps
+                (let$ body (specialize-f64-binop k src op a b))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'add 'sub 'mul)
+               (? u64-result?) #f (? u64-operand? a) (? u64-operand? b))
+              (with-cps cps
+                (let$ body (specialize-u64-binop
+                            k src op a b
+                            #:unbox-a (integer-unbox-op a)
+                            #:unbox-b (integer-unbox-op b)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'add 'sub 'mul)
+               (? s64-result?) #f (? s64-operand? a) (? s64-operand? b))
+              (with-cps cps
+                ;; "add", "sub", and "mul" behave the same for signed
+                ;; and unsigned values, so we just use
+                ;; specialize-u64-binop.
+                (let$ body (specialize-u64-binop
+                            k src op a b
+                            #:unbox-a (integer-unbox-op a)
+                            #:unbox-b (integer-unbox-op b)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'add/immediate 'sub/immediate 'mul/immediate)
+               (? f64-result?) b a)
+              (with-cps cps
+                (let$ body (specialize-f64-unop k src op a b))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'add/immediate 'sub/immediate 'mul/immediate)
+               (? u64-result?) (? u64-parameter? b) (? u64-operand? a))
+              (with-cps cps
+                (let$ body (specialize-u64-unop
+                            k src op a b
+                            #:unbox-a (integer-unbox-op a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'add/immediate 'sub/immediate 'mul/immediate)
+               (? s64-result?) (? s64-parameter? b) (? s64-operand? a))
+              (with-cps cps
+                (let$ body (specialize-s64-unop
+                            k src op a b
+                            #:unbox-a (integer-unbox-op a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'lsh 'rsh)
+               (? u64-result?) #f (? u64-operand? a) b)
+              (with-cps cps
+                (let$ body (specialize-u64-shift
+                            k src op a b
+                            #:unbox-a (integer-unbox-op a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'lsh/immediate 'rsh/immediate)
+               (? u64-result?) (? u6-parameter? b) (u64-operand? a))
+              (with-cps cps
+                (let$ body (specialize-u64-unop
+                            k src op a param
+                            #:unbox-a (integer-unbox-op a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'lsh/immediate 'rsh/immediate)
+               (? s64-result?) (? u6-parameter? b) (s64-operand? a))
+              (with-cps cps
+                (let$ body (specialize-s64-unop
+                            k src op a param
+                            #:unbox-a (integer-unbox-op a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             ;; FIXME: Should use logand/immediate for this special
+             ;; case.
+             (('logand (? u64-result?) #f (? all-u64-bits-set?) b)
+              (with-cps cps
+                (let$ body (truncate-u64
+                            k src b
+                            #:unbox-a (integer-unbox-op/truncate b)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             ;; FIXME: Should use logand/immediate for this special
+             ;; case.
+             (('logand (? u64-result?) #f a (? all-u64-bits-set?))
+              (with-cps cps
+                (let$ body (truncate-u64
+                            k src a
+                            #:unbox-a (integer-unbox-op/truncate a)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (((or 'logand 'logior 'logsub 'logxor)
+               (? u64-result?) #f a b)
+              (with-cps cps
+                (let$ body (specialize-u64-binop
+                            k src op a b
+                            #:unbox-a (integer-unbox-op/truncate a)
+                            #:unbox-b (integer-unbox-op/truncate b)
+                            #:box-result (integer-box-op result)))
+                (setk label ($kargs names vars ,body))))
+
+             (_ cps)))
+          (_ cps))
+        types
+        sigbits))
+
       (($ $kargs names vars
           ($ $continue k src
              ($ $branch kt ($ $primcall (and op (or '< '=)) #f (a b)))))
@@ -540,20 +656,23 @@ BITS indicating the significant bits needed for a variable.  BITS may be
           (with-cps cps
             (let$ body (specialize-f64-comparison k kt src op a b))
             (setk label ($kargs names vars ,body))))
-         ((and (u64-operand? a) (u64-operand? b))
-          (with-cps cps
-            (let$ body (specialize-u64-comparison k kt src op a b))
-            (setk label ($kargs names vars ,body))))
-         ((s64-operand? a)
-          (let ((specialize (if (s64-operand? b)
-                                specialize-s64-comparison
-                                specialize-s64-scm-comparison)))
+         ((fixnum-operand? a)
+          (let ((specialize (if (fixnum-operand? b)
+                                specialize-fixnum-comparison
+                                specialize-fixnum-scm-comparison)))
             (with-cps cps
               (let$ body (specialize k kt src op a b))
               (setk label ($kargs names vars ,body)))))
-         ((s64-operand? b)
+         ((fixnum-operand? b)
           (with-cps cps
-            (let$ body (specialize-scm-s64-comparison k kt src op a b))
+            (let$ body (specialize-scm-fixnum-comparison k kt src op a b))
+            (setk label ($kargs names vars ,body))))
+         ((and (u64-operand? a) (u64-operand? b))
+          (with-cps cps
+            (let$ body (specialize-u64-comparison
+                        k kt src op a b
+                        #:unbox-a (integer-unbox-op/truncate a)
+                        #:unbox-b (integer-unbox-op/truncate b)))
             (setk label ($kargs names vars ,body))))
          (else cps))
         types
@@ -686,6 +805,27 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   (compute-specializable-vars cps body preds defs exp-result-u64?
                               '(scm->u64 'scm->u64/truncate)))
 
+;; Compute vars whose definitions are all exact integers in the fixnum
+;; range and whose uses include an untag operation.
+(define (compute-specializable-fixnum-vars cps body preds defs)
+  ;; Is the result of EXP definitely a fixnum?
+  (define (exp-result-fixnum? exp)
+    (match exp
+      ((or ($ $primcall 'tag-fixnum #f (_))
+           ($ $primcall 'tag-fixnum/unlikely #f (_))
+           ($ $const (and (? number?) (? exact-integer?)
+                          (? (lambda (n)
+                               (<= (target-most-negative-fixnum)
+                                   n
+                                   (target-most-positive-fixnum)))))))
+       #t)
+      (_ #f)))
+
+  (compute-specializable-vars cps body preds defs exp-result-fixnum?
+                              '(untag-fixnum
+                                scm->s64
+                                scm->u64 scm->u64/truncate)))
+
 (define (compute-phi-vars cps preds)
   (intmap-fold (lambda (label preds phis)
                  (match preds
@@ -705,17 +845,25 @@ BITS indicating the significant bits needed for a variable.  BITS may be
 ;; at least one use that is an unbox operation.
 (define (compute-specializable-phis cps body preds defs)
   (let ((f64-vars (compute-specializable-f64-vars cps body preds defs))
+        (fixnum-vars (compute-specializable-fixnum-vars cps body preds defs))
         (u64-vars (compute-specializable-u64-vars cps body preds defs))
         (phi-vars (compute-phi-vars cps preds)))
+    (unless (eq? empty-intset (intset-intersect f64-vars fixnum-vars))
+      (error "expected f64 and fixnum vars to be disjoint sets"))
     (unless (eq? empty-intset (intset-intersect f64-vars u64-vars))
       (error "expected f64 and u64 vars to be disjoint sets"))
-    (intset-fold (lambda (var out) (intmap-add out var 'u64))
-                 (intset-intersect u64-vars phi-vars)
-                 (intset-fold (lambda (var out) (intmap-add out var 'f64))
-                              (intset-intersect f64-vars phi-vars)
-                              empty-intmap))))
+    (intset-fold
+     (lambda (var out) (intmap-add out var 'u64))
+     (intset-subtract (intset-intersect u64-vars phi-vars) fixnum-vars)
+     (intset-fold
+      (lambda (var out) (intmap-add out var 'fx))
+      (intset-intersect fixnum-vars phi-vars)
+      (intset-fold
+       (lambda (var out) (intmap-add out var 'f64))
+       (intset-intersect f64-vars phi-vars)
+       empty-intmap)))))
 
-;; Each definition of an f64/u64 variable should unbox that variable.
+;; Each definition of an f64/fx/u64 variable should unbox that variable.
 ;; The cont that binds the variable should re-box it under its original
 ;; name, and rely on CSE to remove the boxing as appropriate.
 (define (apply-specialization cps kfun body preds defs phis)
@@ -729,10 +877,12 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   (define (unbox-op var)
     (match (intmap-ref phis var)
       ('f64 'scm->f64)
+      ('fx  'untag-fixnum)
       ('u64 'scm->u64)))
   (define (box-op var)
     (match (intmap-ref phis var)
       ('f64 'f64->scm)
+      ('fx  'tag-fixnum)
       ('u64 'u64->scm)))
   (define (unbox-operands)
     (define (unbox-arg cps arg def-var have-arg)
