@@ -220,9 +220,13 @@
          (var (identifier? #'var)
               (datum->syntax #'var val)))))))
 
-(define-compile-time-value &s64-min (- #x8000000000000000))
-(define-compile-time-value &s64-max    #x7fffFFFFffffFFFF)
-(define-compile-time-value &u64-max    #xffffFFFFffffFFFF)
+(define-compile-time-value &fx32-min (- #x20000000))
+(define-compile-time-value &fx32-max    #x1fffFFFF)
+(define-compile-time-value &fx64-min (- #x2000000000000000))
+(define-compile-time-value &fx64-max    #x1fffFFFFffffFFFF)
+(define-compile-time-value &s64-min  (- #x8000000000000000))
+(define-compile-time-value &s64-max     #x7fffFFFFffffFFFF)
+(define-compile-time-value &u64-max     #xffffFFFFffffFFFF)
 
 (define-syntax &range-min (identifier-syntax &s64-min))
 (define-syntax &range-max (identifier-syntax &u64-max))
@@ -297,12 +301,17 @@
        (cond
         ((not (< b-min a-min)) a-min)
         ((< 0 b-min) 0)
+        ((< &fx32-min b-min) &fx32-min)
+        ((< &fx64-min b-min) &fx64-min)
         ((< &range-min b-min) &range-min)
         (else -inf.0)))
      (let ((a-max (type-entry-max a))
            (b-max (type-entry-max b)))
        (cond
         ((not (> b-max a-max)) a-max)
+        ((> &fx32-max b-max) &fx32-max)
+        ((> &fx64-max b-max) &fx64-max)
+        ((> &s64-max b-max) &s64-max)
         ((> &range-max b-max) &range-max)
         (else +inf.0)))))))
 
