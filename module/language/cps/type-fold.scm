@@ -51,8 +51,12 @@
 (define-syntax-rule (define-branch-folder-alias to from)
   (hashq-set! *branch-folders* 'to (hashq-ref *branch-folders* 'from)))
 
-(define-syntax-rule (define-unary-branch-folder (name arg min max) body ...)
+(define-syntax-rule (define-unary-branch-folder* (name param arg min max)
+                      body ...)
   (define-branch-folder name (lambda (param arg min max) body ...)))
+
+(define-syntax-rule (define-unary-branch-folder (name arg min max) body ...)
+  (define-unary-branch-folder* (name param arg min max) body ...))
 
 (define-syntax-rule (define-binary-branch-folder (name arg0 min0 max0
                                                        arg1 min1 max1)
@@ -151,13 +155,33 @@
 ;;
 ;; (define-branch-folder-alias f64-< <)
 
+(define-unary-branch-folder* (u64-imm-= c type min max)
+  (cond
+   ((= c min max) (values #t #t))
+   ((<= min c max) (values #f #f))
+   (else (values #t #f))))
+(define-branch-folder-alias s64-imm-= u64-imm-=)
+
+(define-unary-branch-folder* (u64-imm-< c type min max)
+  (cond
+   ((< max c) (values #t #t))
+   ((>= min c) (values #t #f))
+   (else (values #f #f))))
+(define-branch-folder-alias s64-imm-< u64-imm-<)
+
+(define-unary-branch-folder* (imm-u64-< c type min max)
+  (cond
+   ((< c min) (values #t #t))
+   ((>= c max) (values #t #f))
+   (else (values #f #f))))
+(define-branch-folder-alias imm-s64-< imm-u64-<)
+
 (define-binary-branch-folder (= type0 min0 max0 type1 min1 max1)
   (case (compare-integer-ranges type0 min0 max0 type1 min1 max1)
     ((=) (values #t #t))
     ((< >) (values #t #f))
     (else (values #f #f))))
 (define-branch-folder-alias u64-= =)
-(define-branch-folder-alias s64-= =)
 
 
 

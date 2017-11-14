@@ -66,8 +66,12 @@
 
             emit-u64=?
             emit-u64<?
-            emit-s64=?
+            emit-u64-imm<?
+            emit-imm-u64<?
+            emit-s64-imm=?
             emit-s64<?
+            emit-s64-imm<?
+            emit-imm-s64<?
             emit-f64=?
             emit-f64<?
             emit-=?
@@ -339,6 +343,12 @@
   (let ((x (check-urange x #xff))
         (y (check-urange y #xfff))
         (z (check-urange z #xfff)))
+    (logior x (ash y 8) (ash z 20))))
+
+(define-inline (pack-u8-u12-s12 x y z)
+  (let ((x (check-urange x #xff))
+        (y (check-urange y #xfff))
+        (z (check-srange z #xfff)))
     (logior x (ash y 8) (ash z 20))))
 
 (define-inline (pack-u8-u8-u16 x y z)
@@ -617,6 +627,8 @@ later by the linker."
             (emit asm (pack-u8-u12-u12 opcode a b)))
            ((X8_S12_C12 a b)
             (emit asm (pack-u8-u12-u12 opcode a b)))
+           ((X8_S12_Z12 a b)
+            (emit asm (pack-u8-u12-s12 opcode a b)))
            ((X8_C12_C12 a b)
             (emit asm (pack-u8-u12-u12 opcode a b)))
            ((X8_F12_F12 a b)
@@ -803,6 +815,14 @@ later by the linker."
     (emit-push asm a)
     (encode-X8_S12_S12-X8_C24 asm 0 0 const opcode)
     (emit-pop asm dst))))
+(define (encode-X8_S12_C12!/shuffle asm a const opcode)
+  (cond
+   ((< a (ash 1 12))
+    (encode-X8_S12_C12 asm a const opcode))
+   (else
+    (emit-push asm a)
+    (encode-X8_S12_C12 asm 0 const opcode)
+    (emit-drop asm 1))))
 (define (encode-X8_S12_C12<-/shuffle asm dst const opcode)
   (cond
    ((< dst (ash 1 12))
@@ -812,6 +832,14 @@ later by the linker."
     (emit-push asm dst)
     (encode-X8_S12_C12 asm 0 const opcode)
     (emit-pop asm dst))))
+(define (encode-X8_S12_Z12!/shuffle asm a const opcode)
+  (cond
+   ((< a (ash 1 12))
+    (encode-X8_S12_Z12 asm a const opcode))
+   (else
+    (emit-push asm a)
+    (encode-X8_S12_Z12 asm 0 const opcode)
+    (emit-drop asm 1))))
 (define (encode-X8_S8_I16<-/shuffle asm dst imm opcode)
   (cond
    ((< dst (ash 1 8))
@@ -877,7 +905,9 @@ later by the linker."
       (('<- 'X8_S12_S12)         #'encode-X8_S12_S12<-/shuffle)
       (('! 'X8_S12_S12 'X8_C24)  #'encode-X8_S12_S12-X8_C24!/shuffle)
       (('<- 'X8_S12_S12 'X8_C24) #'encode-X8_S12_S12-X8_C24<-/shuffle)
+      (('! 'X8_S12_C12)          #'encode-X8_S12_C12!/shuffle)
       (('<- 'X8_S12_C12)         #'encode-X8_S12_C12<-/shuffle)
+      (('! 'X8_S12_Z12)          #'encode-X8_S12_Z12!/shuffle)
       (('<- 'X8_S8_I16)          #'encode-X8_S8_I16<-/shuffle)
       (('! 'X8_S8_S8_S8)         #'encode-X8_S8_S8_S8!/shuffle)
       (('<- 'X8_S8_S8_S8)        #'encode-X8_S8_S8_S8<-/shuffle)
@@ -919,6 +949,7 @@ later by the linker."
           ('X8_S8_I16 #'(a imm))
           ('X8_S12_S12 #'(a b))
           ('X8_S12_C12 #'(a b))
+          ('X8_S12_Z12 #'(a b))
           ('X8_C12_C12 #'(a b))
           ('X8_F12_F12 #'(a b))
           ('X8_S8_S8_S8 #'(a b c))

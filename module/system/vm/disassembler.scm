@@ -72,6 +72,11 @@
       s
       (- s (ash 1 24))))
 
+(define (unpack-s12 s)
+  (if (zero? (logand s (ash 1 11)))
+      s
+      (- s (ash 1 12))))
+
 (define (unpack-s32 s)
   (if (zero? (logand s (ash 1 31)))
       s
@@ -97,6 +102,9 @@
             X8_F12_F12)
            #'((logand (ash word -8) #xfff)
               (ash word -20)))
+          ((X8_S12_Z12)
+           #'((logand (ash word -8) #xfff)
+              (unpack-s12 (ash word -20))))
           ((X8_S8_S8_S8
             X8_S8_S8_C8
             X8_S8_C8_S8)

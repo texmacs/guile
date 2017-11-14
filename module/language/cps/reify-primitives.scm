@@ -153,12 +153,13 @@
                        ($continue kb src ($const b))))))
       (($ $kargs names vars ($ $continue k src ($ $primcall name param args)))
        (cond
-        ((or (prim-instruction name) (branching-primitive? name))
+        ((prim-instruction name)
          ;; Assume arities are correct.
          (let ()
            (define (u6? val) (and (exact-integer? val) (<= 0 val 63)))
            (define (u8? val) (and (exact-integer? val) (<= 0 val 255)))
-           (define-syntax-rule (reify-constants wrap
+           (define-syntax-rule (reify-constants
+                                wrap
                                 ((op (pred? c) in ...) (op* out ...))
                                 ...
                                 (_ default))
@@ -211,6 +212,42 @@
                                ($continue k src ($call proc args))))
            (let$ body (resolve-prim name kproc src))
            (setk label ($kargs names vars ,body))))))
+      (($ $kargs names vars
+          ($ $continue kf src ($ $branch kt ($ $primcall name param args))))
+       (let ()
+         (define (u11? val) (<= 0 val #x7ff))
+         (define (u12? val) (<= 0 val #xfff))
+         (define (s12? val) (<= (- #x800) val #x7ff))
+         (define-syntax-rule (reify-constants ((op (pred? c) in ...)
+                                               wrap-op (op* out ...))
+                                              ...
+                                              (_ default))
+           (match name
+             ('op
+              (if (pred? param)
+                  cps
+                  (match args
+                    ((in ...)
+                     (with-cps cps
+                       (letv c)
+                       (letk kconst
+                             ($kargs ('c) (c)
+                               ($continue kf src
+                                 ($branch kt ($primcall 'op* #f (out ...))))))
+                       (setk label
+                             ($kargs names vars
+                               ($continue kconst src
+                                 ($primcall 'wrap-op param ())))))))))
+             ...
+             (_ default)))
+         (reify-constants
+          ((u64-imm-= (u11? b) a) load-u64 (u64-= a b))
+          ((u64-imm-< (u12? b) a) load-u64 (u64-< a b))
+          ((imm-u64-< (u12? a) b) load-u64 (u64-< a b))
+          ((s64-imm-= (s12? b) a) load-s64 (s64-= a b))
+          ((s64-imm-< (s12? b) a) load-s64 (s64-< a b))
+          ((imm-s64-< (s12? a) b) load-s64 (s64-< a b))
+          (_ cps))))
       (($ $kargs names vars ($ $continue k src ($ $call proc args)))
        (with-cps cps
          (let$ k (uniquify-receive k))

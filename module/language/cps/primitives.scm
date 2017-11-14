@@ -139,7 +139,6 @@ before it is lowered to CPS?"
     u64-=
 
     s64-<
-    s64-=
 
     f64-<
     f64-=))

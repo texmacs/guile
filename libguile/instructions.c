@@ -40,6 +40,7 @@ SCM_SYMBOL (sym_bang, "!");
     M(X8_S8_I16)                                \
     M(X8_S12_S12)                               \
     M(X8_S12_C12)                               \
+    M(X8_S12_Z12)                               \
     M(X8_C12_C12)                               \
     M(X8_F12_F12)                               \
     M(X8_S8_S8_S8)                              \

@@ -4100,11 +4100,77 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (218, unused_218, NULL, NOP)
-  VM_DEFINE_OP (219, unused_219, NULL, NOP)
-  VM_DEFINE_OP (220, unused_220, NULL, NOP)
-  VM_DEFINE_OP (221, unused_221, NULL, NOP)
-  VM_DEFINE_OP (222, unused_222, NULL, NOP)
+  VM_DEFINE_OP (218, s64_imm_numerically_equal, "s64-imm=?", OP1 (X8_S12_Z12))
+    {
+      scm_t_uint16 a;
+      scm_t_int64 x, y;
+
+      a = (op >> 8) & 0xfff;
+      x = SP_REF_S64 (a);
+
+      y = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+
+      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (219, u64_imm_less, "u64-imm<?", OP1 (X8_S12_C12))
+    {
+      scm_t_uint16 a;
+      scm_t_uint64 x, y;
+
+      UNPACK_12_12 (op, a, y);
+      x = SP_REF_U64 (a);
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (220, imm_u64_less, "imm-u64<?", OP1 (X8_S12_C12))
+    {
+      scm_t_uint16 a;
+      scm_t_uint64 x, y;
+
+      UNPACK_12_12 (op, a, x);
+      y = SP_REF_U64 (a);
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (221, s64_imm_less, "s64-imm<?", OP1 (X8_S12_Z12))
+    {
+      scm_t_uint16 a;
+      scm_t_int64 x, y;
+
+      a = (op >> 8) & 0xfff;
+      x = SP_REF_S64 (a);
+
+      y = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (222, imm_s64_less, "imm-s64<?", OP1 (X8_S12_Z12))
+    {
+      scm_t_uint16 a;
+      scm_t_int64 x, y;
+
+      a = (op >> 8) & 0xfff;
+      y = SP_REF_S64 (a);
+
+      x = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+
+      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (223, unused_223, NULL, NOP)
   VM_DEFINE_OP (224, unused_224, NULL, NOP)
   VM_DEFINE_OP (225, unused_225, NULL, NOP)

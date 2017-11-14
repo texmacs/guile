@@ -203,7 +203,7 @@
         ($primcall unbox-a #f (scm))))))
 
 (define (specialize-fixnum-comparison cps kf kt src op a b)
-  (let ((op (symbol-append 's64- op)))
+  (let ((op (match op ('= 'u64-=) ('< 's64-<))))
     (with-cps cps
       (letv s64-a s64-b)
       (letk kop ($kargs ('s64-b) (s64-b)
@@ -217,7 +217,7 @@
           ($primcall 'untag-fixnum #f (a)))))))
 
 (define (specialize-fixnum-scm-comparison cps kf kt src op a-fx b-scm)
-  (let ((s64-op (match op ('= 's64-=) ('< 's64-<))))
+  (let ((s64-op (match op ('= 'u64-=) ('< 's64-<))))
     (with-cps cps
       (letv a b sunk)
       (letk kheap ($kargs ('sunk) (sunk)

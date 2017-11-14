@@ -471,6 +471,12 @@ minimum, and maximum."
     (let ((true? (not (zero? succ))))
       body ...)))
 
+(define-syntax-rule (define-predicate-inferrer/param
+                      (name param arg ... true?) body ...)
+  (define-type-inferrer* (name param succ arg ...)
+    (let ((true? (not (zero? succ))))
+      body ...)))
+
 (define-syntax define-simple-type-checker
   (lambda (x)
     (define (parse-spec l)
@@ -1007,15 +1013,30 @@ minimum, and maximum."
 (define-simple-type-checker (< &real &real))
 (define-<-inferrer (< &real &exact-integer))
 
-(define-simple-type-checker (u64-= &u64 &u64))
 (define-=-inferrer (u64-= &u64))
-(define-simple-type-checker (u64-< &u64 &u64))
 (define-<-inferrer (u64-< &u64 &u64))
 
-(define-simple-type-checker (s64-= &s64 &s64))
-(define-=-inferrer (s64-= &s64))
-(define-simple-type-checker (s64-< &s64 &s64))
 (define-<-inferrer (s64-< &s64 &s64))
+
+(define-predicate-inferrer/param (u64-imm-= b a true?)
+  (when true?
+    (restrict! a (logior &u64 &s64) (max (&min a) b) (min (&max a) b))))
+
+(define-predicate-inferrer/param (u64-imm-< b a true?)
+  (if true?
+      (restrict! a (logior &u64 &s64) (&min a) (min (&max a) (1- b)))
+      (restrict! a (logior &u64 &s64) (max (&min a) b) (&max a))))
+
+(define-predicate-inferrer/param (imm-u64-< b a true?)
+  (if true?
+      (restrict! a (logior &u64 &s64) (max (1+ (&min a)) b) (&max a))
+      (restrict! a (logior &u64 &s64) (&min a) (min (&max a) b))))
+
+(define-type-aliases u64-imm-= s64-imm-=)
+(define-type-aliases u64-imm-< s64-imm-<)
+(define-type-aliases imm-u64-< imm-s64-<)
+
+
 
 ;; Unfortunately, we can't define f64 comparison inferrers because of
 ;; not-a-number values.
