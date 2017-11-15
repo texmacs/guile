@@ -671,6 +671,13 @@ minimum, and maximum."
 
 
 
+(define-type-inferrer/param (load-const/unlikely param result)
+  (let ((ent (constant-type param)))
+    (define! result (type-entry-type ent)
+      (type-entry-min ent) (type-entry-max ent))))
+
+
+
 ;;;
 ;;; Fluids.  Note that we can't track bound-ness of fluids, as pop-fluid
 ;;; can change boundness.

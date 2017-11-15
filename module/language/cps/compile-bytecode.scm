@@ -135,6 +135,8 @@
          (maybe-mov dst (slot arg)))
         (($ $const exp)
          (emit-load-constant asm (from-sp dst) exp))
+        (($ $primcall 'load-const/unlikely exp ())
+         (emit-load-constant asm (from-sp dst) exp))
         (($ $closure k 0)
          (emit-load-static-procedure asm (from-sp dst) k))
         (($ $closure k nfree)

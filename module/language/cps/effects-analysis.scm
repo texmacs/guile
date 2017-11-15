@@ -259,6 +259,7 @@ is or might be a read or a write to the same location as A."
 
 ;; Miscellaneous.
 (define-primitive-effects
+  ((load-const/unlikely))
   ((values . _)))
 
 ;; Generic effect-free predicates.
