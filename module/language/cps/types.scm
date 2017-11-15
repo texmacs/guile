@@ -1382,8 +1382,8 @@ minimum, and maximum."
 
 (define-type-inferrer (ursh a b result)
   (define! result &u64
-    (ash (&min/0 a) (- (min 64 (&max/u64 b))))
-    (ash (&max/u64 a) (- (min 64 (&min/0 b))))))
+    (ash (&min/0 a) (- (min 63 (&max/u64 b))))
+    (ash (&max/u64 a) (- (min 63 (&min/0 b))))))
 (define-type-inferrer/param (ursh/immediate param a result)
   (define! result &u64
     (ash (&min/0 a) (- param))
@@ -1392,8 +1392,8 @@ minimum, and maximum."
 (define-type-inferrer (srsh a b result)
   (let-values (((min max) (compute-ash-range (&min/s64 a)
                                              (&max/s64 a)
-                                             (- (&min/0 b))
-                                             (- (&max/u64 b)))))
+                                             (- (min 63 (&min/0 b)))
+                                             (- (min 63 (&max/u64 b))))))
     (if (<= &s64-min min max &s64-max)
         (define! result &s64 min max)
         (define! result &s64 &s64-min &s64-max))))
@@ -1406,8 +1406,7 @@ minimum, and maximum."
         (define! result &s64 &s64-min &s64-max))))
 
 (define-type-inferrer (ulsh a b result)
-  (if (and (< (&max/u64 b) 64)
-           (<= (ash (&max/u64 a) (&max/u64 b)) &u64-max))
+  (if (<= (ash (&max/u64 a) (&max/u64 b)) &u64-max)
       ;; No overflow; we can be precise.
       (define! result &u64
         (ash (&min/0 a) (&min/0 b))
@@ -1415,7 +1414,7 @@ minimum, and maximum."
       ;; Otherwise assume the whole range.
       (define! result &u64 0 &u64-max)))
 (define-type-inferrer/param (ulsh/immediate param a result)
-  (if (and (< param 64) (<= (ash (&max/u64 a) param) &u64-max))
+  (if (<= (ash (&max/u64 a) param) &u64-max)
       ;; No overflow; we can be precise.
       (define! result &u64
         (ash (&min/0 a) param)

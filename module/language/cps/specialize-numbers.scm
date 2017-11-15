@@ -453,6 +453,8 @@ BITS indicating the significant bits needed for a variable.  BITS may be
           (and (type<=? type &type) (<= &min min max &max)))))
     (define (u64-operand? var)
       (operand-in-range? var &exact-integer 0 (1- (ash 1 64))))
+    (define (u6-operand? var)
+      (operand-in-range? var (logior &s64 &u64) 0 63))
     (define (s64-operand? var)
       (operand-in-range? var &exact-integer (ash -1 63) (1- (ash 1 63))))
     (define (fixnum-operand? var)
@@ -608,7 +610,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                 (setk label ($kargs names vars ,body))))
 
              (((or 'lsh 'rsh)
-               (? u64-result?) #f (? u64-operand? a) b)
+               (? u64-result?) #f (? u64-operand? a) (? u6-operand? b))
               (with-cps cps
                 (let$ body (specialize-u64-shift
                             k src op a b
