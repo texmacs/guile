@@ -17,11 +17,12 @@ Wikipedia has a clear and concise introduction to PEGs if you want to
 familiarize yourself with the syntax:
 @url{http://en.wikipedia.org/wiki/Parsing_expression_grammar}.
 
-The module works by compiling PEGs down to lambda expressions.  These
-can either be stored in variables at compile-time by the define macros
-(@code{define-peg-pattern} and @code{define-peg-string-patterns}) or calculated
-explicitly at runtime with the compile functions
-(@code{compile-peg-pattern} and @code{peg-string-compile}).
+The @code{(ice-9 peg)} module works by compiling PEGs down to lambda
+expressions.  These can either be stored in variables at compile-time by
+the define macros (@code{define-peg-pattern} and
+@code{define-peg-string-patterns}) or calculated explicitly at runtime
+with the compile functions (@code{compile-peg-pattern} and
+@code{peg-string-compile}).
 
 They can then be used for either parsing (@code{match-pattern}) or searching
 (@code{search-for-pattern}).  For convenience, @code{search-for-pattern}
