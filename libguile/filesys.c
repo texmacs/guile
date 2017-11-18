@@ -1841,8 +1841,14 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 static size_t
 scm_dir_free (SCM p)
 {
+  scm_i_pthread_mutex_t *mutex;
+
   if (SCM_DIR_OPEN_P (p))
     closedir ((DIR *) SCM_SMOB_DATA_1 (p));
+
+  mutex = (scm_i_pthread_mutex_t *) SCM_SMOB_DATA_2 (p);
+  scm_i_pthread_mutex_destroy (mutex);
+
   return 0;
 }
 #endif
