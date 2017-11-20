@@ -768,7 +768,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                'fadd 'fsub 'fmul 'fdiv))
               (intmap-add representations var 'f64))
              (($ $primcall (or 'scm->u64 'scm->u64/truncate 'load-u64
-                               'char->integer
+                               'char->integer 's64->u64
                                'bv-length 'vector-length 'string-length
                                'uadd 'usub 'umul
                                'ulogand 'ulogior 'ulogxor 'ulogsub 'ursh 'ulsh
@@ -777,7 +777,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref))
               (intmap-add representations var 'u64 meet-s64-u64))
              (($ $primcall (or 'untag-fixnum
-                               'scm->s64 'load-s64
+                               'scm->s64 'load-s64 'u64->s64
                                'srsh 'srsh/immediate
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
               (intmap-add representations var 's64 meet-s64-u64))

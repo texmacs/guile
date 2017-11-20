@@ -133,6 +133,8 @@
       (match exp
         (($ $values (arg))
          (maybe-mov dst (slot arg)))
+        (($ $primcall (or 's64->u64 'u64->s64) #f (arg))
+         (maybe-mov dst (slot arg)))
         (($ $const exp)
          (emit-load-constant asm (from-sp dst) exp))
         (($ $primcall 'load-const/unlikely exp ())

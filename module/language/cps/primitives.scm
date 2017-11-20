@@ -66,7 +66,17 @@
     (bytevector-ieee-double-native-set! . bv-f64-set!)))
 
 (define *macro-instruction-arities*
-  '((u64->scm/unlikely . (1 . 1))
+  '((u64->s64 . (1 . 1))
+    (s64->u64 . (1 . 1))
+    (sadd . (2 . 1))
+    (ssub . (2 . 1))
+    (smul . (2 . 1))
+    (sadd/immediate . (1 . 1))
+    (ssub/immediate . (1 . 1))
+    (smul/immediate . (1 . 1))
+    (slsh . (2 . 1))
+    (slsh/immediate . (1 . 1))
+    (u64->scm/unlikely . (1 . 1))
     (s64->scm/unlikely . (1 . 1))
     (tag-fixnum/unlikely . (1 . 1))
     (load-const/unlikely . (0 . 1))

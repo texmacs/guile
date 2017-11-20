@@ -676,6 +676,16 @@ minimum, and maximum."
     (define! result (type-entry-type ent)
       (type-entry-min ent) (type-entry-max ent))))
 
+(define-type-inferrer (u64->s64 u64 s64)
+  (if (<= (&max u64) &s64-max)
+      (define! s64 &s64 (&min u64) (&max u64))
+      (define! s64 &s64 &s64-min &s64-max)))
+
+(define-type-inferrer (s64->u64 s64 u64)
+  (if (<= 0 (&min s64))
+      (define! u64 &u64 (&min s64) (&max s64))
+      (define! u64 &u64 0 &u64-max)))
+
 
 
 ;;;
@@ -1094,8 +1104,6 @@ minimum, and maximum."
 
 (define-simple-type-checker (add &number &number))
 (define-simple-type-checker (add/immediate &number))
-(define-type-checker (fadd a b) #t)
-(define-type-checker (uadd a b) #t)
 (define-type-inferrer (add a b result)
   (define-binary-result! (&type a) (&type b) result #t
                          (+ (&min a) (&min b))
@@ -1115,12 +1123,26 @@ minimum, and maximum."
     (if (<= max &u64-max)
         (define! result &u64 (+ (&min/0 a) (&min/0 b)) max)
         (define! result &u64 0 &u64-max))))
+(define-type-inferrer (sadd a b result)
+  ;; Handle wraparound.
+  (let ((min (+ (&min/s64 a) (&min/s64 b)))
+        (max (+ (&max/s64 a) (&max/s64 b))))
+    (if (<= &s64-min min max &s64-max)
+        (define! result &s64 min max)
+        (define! result &s64 &s64-min &s64-max))))
 (define-type-inferrer/param (uadd/immediate param a result)
   ;; Handle wraparound.
   (let ((max (+ (&max/u64 a) param)))
     (if (<= max &u64-max)
         (define! result &u64 (+ (&min/0 a) param) max)
         (define! result &u64 0 &u64-max))))
+(define-type-inferrer/param (sadd/immediate param a result)
+  ;; Handle wraparound.
+  (let ((min (+ (&min/s64 a) param))
+        (max (+ (&max/s64 a) param)))
+    (if (<= &s64-min min max &s64-max)
+        (define! result &s64 min max)
+        (define! result &s64 &s64-min &s64-max))))
 
 (define-simple-type-checker (sub &number &number))
 (define-simple-type-checker (sub/immediate &number))
@@ -1153,8 +1175,6 @@ minimum, and maximum."
         (define! result &u64 min (- (&max/u64 a) param)))))
 
 (define-simple-type-checker (mul &number &number))
-(define-type-checker (fmul a b) #t)
-(define-type-checker (umul a b) #t)
 (define (mul-result-range same? nan-impossible? min-a max-a min-b max-b)
   (define (nan* a b)
     (if (and (or (and (inf? a) (zero? b))
@@ -1203,12 +1223,32 @@ minimum, and maximum."
     (if (<= max &u64-max)
         (define! result &u64 (* (&min/0 a) (&min/0 b)) max)
         (define! result &u64 0 &u64-max))))
+(define-type-inferrer (smul a b result)
+  (call-with-values (lambda ()
+                      (mul-result-range (eqv? a b) #t
+                                        (&min/s64 a) (&max/s64 a)
+                                        (&min/s64 b) (&max/s64 b)))
+    (lambda (min max)
+      ;; Handle wraparound.
+      (if (<= &s64-min min max &s64-max)
+          (define! result &s64 min max)
+          (define! result &s64 &s64-min &s64-max)))))
 (define-type-inferrer/param (umul/immediate param a result)
   ;; Handle wraparound.
   (let ((max (* (&max/u64 a) param)))
     (if (<= max &u64-max)
         (define! result &u64 (* (&min/0 a) param) max)
         (define! result &u64 0 &u64-max))))
+(define-type-inferrer/param (smul/immediate param a result)
+  (call-with-values (lambda ()
+                      (mul-result-range #f #t
+                                        (&min/s64 a) (&max/s64 a)
+                                        param param))
+    (lambda (min max)
+      ;; Handle wraparound.
+      (if (<= &s64-min min max &s64-max)
+          (define! result &s64 min max)
+          (define! result &s64 &s64-min &s64-max)))))
 
 (define-type-checker (div a b)
   (and (check-type a &number -inf.0 +inf.0)
@@ -1421,6 +1461,20 @@ minimum, and maximum."
         (ash (&max/u64 a) param))
       ;; Otherwise assume the whole range.
       (define! result &u64 0 &u64-max)))
+
+(define-type-inferrer (slsh a b result)
+  (let-values (((min max) (compute-ash-range (&min a) (&max a)
+                                             (min 63 (&min/0 b))
+                                             (min 63 (&max/u64 b)))))
+    (if (<= &s64-min min max &s64-max)
+        (define! result &s64 min max)
+        (define! result &s64 &s64-min &s64-max))))
+(define-type-inferrer (slsh/immediate param a result)
+  (let-values (((min max) (compute-ash-range (&min a) (&max a)
+                                             param param)))
+    (if (<= &s64-min min max &s64-max)
+        (define! result &s64 min max)
+        (define! result &s64 &s64-min &s64-max))))
 
 (define (next-power-of-two n)
   (let lp ((out 1))

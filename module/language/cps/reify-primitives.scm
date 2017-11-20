@@ -121,6 +121,50 @@
     (_
      (with-cps cps k))))
 
+(define (wrap-unary cps k src wrap unwrap op param a)
+  (with-cps cps
+    (letv a* res*)
+    (letk kres ($kargs ('res*) (res*)
+                 ($continue k src
+                   ($primcall 'u64->s64 #f (res*)))))
+    (letk ka ($kargs ('a*) (a*)
+               ($continue kres src
+                 ($primcall op param (a*)))))
+    (build-term
+      ($continue ka src
+        ($primcall 's64->u64 #f (a))))))
+
+(define (wrap-binary cps k src wrap unwrap op param a b)
+  (with-cps cps
+    (letv a* b* res*)
+    (letk kres ($kargs ('res*) (res*)
+                 ($continue k src
+                   ($primcall 'u64->s64 #f (res*)))))
+    (letk kb ($kargs ('b*) (b*)
+               ($continue kres src
+                 ($primcall op param (a* b*)))))
+    (letk ka ($kargs ('a*) (a*)
+               ($continue kb src
+                 ($primcall 's64->u64 #f (b)))))
+    (build-term
+      ($continue ka src
+        ($primcall 's64->u64 #f (a))))))
+
+(define (wrap-binary/exp cps k src wrap unwrap op param a b-exp)
+  (with-cps cps
+    (letv a* b* res*)
+    (letk kres ($kargs ('res*) (res*)
+                 ($continue k src
+                   ($primcall 'u64->s64 #f (res*)))))
+    (letk kb ($kargs ('b*) (b*)
+               ($continue kres src
+                 ($primcall op param (a* b*)))))
+    (letk ka ($kargs ('a*) (a*)
+               ($continue kb src ,b-exp)))
+    (build-term
+      ($continue ka src
+        ($primcall 's64->u64 #f (a))))))
+
 (define (reify-primitives cps)
   (define (visit-cont label cont cps)
     (define (resolve-prim cps name k src)
@@ -203,7 +247,47 @@
               ;; ((ursh/immediate (u6? y) x) (ursh x y))
               ;; ((srsh/immediate (u6? y) x) (srsh x y))
               ;; ((ulsh/immediate (u6? y) x) (ulsh x y))
-              (_ cps))))))
+              (_
+               (match (cons name args)
+                 (((or 'sadd 'ssub 'smul) a b)
+                  (let ((op (match name
+                              ('sadd 'uadd) ('ssub 'usub) ('smul 'umul))))
+                    (with-cps cps
+                      (let$ body
+                            (wrap-binary k src 's64->u64 'u64->s64 op #f a b))
+                      (setk label ($kargs names vars ,body)))))
+                 (((or 'sadd/immediate 'ssub/immediate 'smul/immediate) a)
+                  (if (u8? param)
+                      (let ((op (match name
+                                  ('sadd/immediate 'uadd/immediate)
+                                  ('ssub/immediate 'usub/immediate)
+                                  ('smul/immediate 'umul/immediate))))
+                        (with-cps cps
+                          (let$ body (wrap-unary k src 's64->u64 'u64->s64 op param a))
+                          (setk label ($kargs names vars ,body))))
+                      (let* ((op (match name
+                                   ('sadd/immediate 'uadd)
+                                   ('ssub/immediate 'usub)
+                                   ('smul/immediate 'umul)))
+                             (param (logand param (1- (ash 1 64))))
+                             (exp (build-exp ($primcall 'load-u64 param ()))))
+                        (with-cps cps
+                          (let$ body (wrap-binary/exp k src 's64->u64 'u64-s64
+                                                      op #f a exp))
+                          (setk label ($kargs names vars ,body))))))
+                 (('slsh a b)
+                  (let ((op 'ulsh)
+                        (exp (build-exp ($values (b)))))
+                    (with-cps cps
+                      (let$ body (wrap-binary/exp k src 's64->u64 'u64-s64
+                                                  op #f a exp))
+                      (setk label ($kargs names vars ,body)))))
+                 (('slsh/immediate a)
+                  (let ((op 'ulsh/immediate))
+                    (with-cps cps
+                      (let$ body (wrap-unary k src 's64->u64 'u64->s64 op param a))
+                      (setk label ($kargs names vars ,body)))))
+                 (_ cps))))))))
         (param (error "unexpected param to reified primcall" name))
         (else
          (with-cps cps
