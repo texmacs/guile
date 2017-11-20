@@ -744,13 +744,6 @@ are comparable with eqv?.  A tmp slot may be used."
     (match (intmap-ref cps k)
       (($ $kargs names vars) vars)
       (_ '())))
-  (define (meet-s64-u64 old new)
-    (cond
-     ((and (eq? old 's64) (eq? new 'u64))
-      'u64)
-     ((and (eq? old 'u64) (eq? new 's64))
-      'u64)
-     (error "incompatible representations" old new)))
   (intmap-fold
    (lambda (label cont representations)
      (match cont
@@ -761,8 +754,7 @@ are comparable with eqv?.  A tmp slot may be used."
            (match exp
              (($ $values (arg))
               (intmap-add representations var
-                          (intmap-ref representations arg)
-                          meet-s64-u64))
+                          (intmap-ref representations arg)))
              (($ $primcall (or 'scm->f64 'load-f64
                                'bv-f32-ref 'bv-f64-ref
                                'fadd 'fsub 'fmul 'fdiv))
@@ -775,12 +767,12 @@ are comparable with eqv?.  A tmp slot may be used."
                                'uadd/immediate 'usub/immediate 'umul/immediate
                                'ursh/immediate 'ulsh/immediate
                                'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref))
-              (intmap-add representations var 'u64 meet-s64-u64))
+              (intmap-add representations var 'u64))
              (($ $primcall (or 'untag-fixnum
                                'scm->s64 'load-s64 'u64->s64
                                'srsh 'srsh/immediate
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
-              (intmap-add representations var 's64 meet-s64-u64))
+              (intmap-add representations var 's64))
              (_
               (intmap-add representations var 'scm))))
           (vars
@@ -788,8 +780,7 @@ are comparable with eqv?.  A tmp slot may be used."
              (($ $values args)
               (fold (lambda (arg var representations)
                       (intmap-add representations var
-                                  (intmap-ref representations arg)
-                                  meet-s64-u64))
+                                  (intmap-ref representations arg)))
                     representations args vars))))))
        (($ $kfun src meta self)
         (intmap-add representations self 'scm))
