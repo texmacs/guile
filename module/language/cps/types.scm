@@ -778,7 +778,6 @@ minimum, and maximum."
   (restrict! v &vector (1+ (&min/0 idx)) (target-max-vector-length))
   (restrict! idx &u64 0 (1- (&max/vector v))))
 
-(define-simple-type-checker (make-vector/immediate &all-types))
 (define-type-inferrer/param (make-vector/immediate size init result)
   (define! result &vector size size))
 
@@ -1037,22 +1036,27 @@ minimum, and maximum."
 
 (define-predicate-inferrer/param (u64-imm-= b a true?)
   (when true?
-    (restrict! a (logior &u64 &s64) (max (&min a) b) (min (&max a) b))))
-
+    (restrict! a &u64 (max (&min a) b) (min (&max a) b))))
 (define-predicate-inferrer/param (u64-imm-< b a true?)
   (if true?
-      (restrict! a (logior &u64 &s64) (&min a) (min (&max a) (1- b)))
-      (restrict! a (logior &u64 &s64) (max (&min a) b) (&max a))))
-
+      (restrict! a &u64 (&min a) (min (&max a) (1- b)))
+      (restrict! a &u64 (max (&min a) b) (&max a))))
 (define-predicate-inferrer/param (imm-u64-< b a true?)
   (if true?
-      (restrict! a (logior &u64 &s64) (max (1+ (&min a)) b) (&max a))
-      (restrict! a (logior &u64 &s64) (&min a) (min (&max a) b))))
+      (restrict! a &u64 (max (1+ (&min a)) b) (&max a))
+      (restrict! a &u64 (&min a) (min (&max a) b))))
 
-(define-type-aliases u64-imm-= s64-imm-=)
-(define-type-aliases u64-imm-< s64-imm-<)
-(define-type-aliases imm-u64-< imm-s64-<)
-
+(define-predicate-inferrer/param (s64-imm-= b a true?)
+  (when true?
+    (restrict! a &s64 (max (&min a) b) (min (&max a) b))))
+(define-predicate-inferrer/param (s64-imm-< b a true?)
+  (if true?
+      (restrict! a &s64 (&min a) (min (&max a) (1- b)))
+      (restrict! a &s64 (max (&min a) b) (&max a))))
+(define-predicate-inferrer/param (imm-s64-< b a true?)
+  (if true?
+      (restrict! a &s64 (max (1+ (&min a)) b) (&max a))
+      (restrict! a &s64 (&min a) (min (&max a) b))))
 
 
 ;; Unfortunately, we can't define f64 comparison inferrers because of
@@ -1498,7 +1502,6 @@ minimum, and maximum."
     (logand-min (&min a) (&min b))
     (logand-max (&max a) (&max b))))
 
-(define-simple-type-checker (ulogand &u64 &u64))
 (define-type-inferrer (ulogand a b result)
   (restrict! a &u64 0 &u64-max)
   (restrict! b &u64 0 &u64-max)
@@ -1529,7 +1532,6 @@ minimum, and maximum."
     (lambda (min max)
       (define-exact-integer! result min max))))
 
-(define-simple-type-checker (ulogsub &u64 &u64))
 (define-type-inferrer (ulogsub a b result)
   (restrict! a &u64 0 &u64-max)
   (restrict! b &u64 0 &u64-max)
@@ -1556,7 +1558,6 @@ minimum, and maximum."
     (logior-min (&min a) (&min b))
     (logior-max (&max a) (&max b))))
 
-(define-simple-type-checker (ulogior &u64 &u64))
 (define-type-inferrer (ulogior a b result)
   (restrict! a &u64 0 &u64-max)
   (restrict! b &u64 0 &u64-max)
@@ -1567,7 +1568,6 @@ minimum, and maximum."
 ;; For our purposes, treat logxor the same as logior.
 (define-type-aliases logior logxor)
 
-(define-simple-type-checker (ulogxor &u64 &u64))
 (define-type-inferrer (ulogxor a b result)
   (restrict! a &u64 0 &u64-max)
   (restrict! b &u64 0 &u64-max)
@@ -1640,7 +1640,6 @@ minimum, and maximum."
   (restrict! i &u64 0 *max-codepoint*)
   (define! result &char (&min/0 i) (min (&max i) *max-codepoint*)))
 
-(define-simple-type-checker (char->integer &char))
 (define-type-inferrer (char->integer c result)
   (restrict! c &char 0 *max-codepoint*)
   (define! result &u64 (&min/0 c) (min (&max c) *max-codepoint*)))
