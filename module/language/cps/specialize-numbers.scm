@@ -822,6 +822,45 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   (compute-specializable-vars cps body preds defs exp-result-u64?
                               '(scm->u64 'scm->u64/truncate)))
 
+;; Compute vars whose definitions are all exact integers in the fixnum
+;; range and whose uses include an untag operation.
+(define (compute-specializable-fixnum-vars cps body preds defs)
+  ;; Is the result of EXP definitely a fixnum?
+  (define (exp-result-fixnum? exp)
+    (define (fixnum? n)
+      (and (number? n) (exact-integer? n)
+           (<= (target-most-negative-fixnum)
+               n
+               (target-most-positive-fixnum))))
+    (match exp
+      ((or ($ $primcall 'tag-fixnum #f (_))
+           ($ $primcall 'tag-fixnum/unlikely #f (_))
+           ($ $const (? fixnum?))
+           ($ $primcall 'load-const/unlikely (? fixnum?) ()))
+       #t)
+      (_ #f)))
+
+  (compute-specializable-vars cps body preds defs exp-result-fixnum?
+                              '(untag-fixnum)))
+
+;; Compute vars whose definitions are all exact integers in the s64
+;; range and whose uses include an untag operation.
+(define (compute-specializable-s64-vars cps body preds defs)
+  ;; Is the result of EXP definitely a fixnum?
+  (define (exp-result-fixnum? exp)
+    (define (s64? n)
+      (and (number? n) (exact-integer? n)
+           (<= (ash -1 63) n (1- (ash 1 63)))))
+    (match exp
+      ((or ($ $primcall 's64->scm #f (_))
+           ($ $const (? s64?))
+           ($ $primcall 'load-const/unlikely (? s64?) ()))
+       #t)
+      (_ #f)))
+
+  (compute-specializable-vars cps body preds defs exp-result-fixnum?
+                              '(scm->s64)))
+
 (define (compute-phi-vars cps preds)
   (intmap-fold (lambda (label preds phis)
                  (match preds
@@ -840,18 +879,20 @@ BITS indicating the significant bits needed for a variable.  BITS may be
 ;; whose definitions are always f64-valued or u64-valued, and which have
 ;; at least one use that is an unbox operation.
 (define (compute-specializable-phis cps body preds defs)
-  (let ((f64-vars (compute-specializable-f64-vars cps body preds defs))
-        (u64-vars (compute-specializable-u64-vars cps body preds defs))
-        (phi-vars (compute-phi-vars cps preds)))
-    (unless (eq? empty-intset (intset-intersect f64-vars u64-vars))
-      (error "expected f64 and u64 vars to be disjoint sets"))
-    (intset-fold
-     (lambda (var out) (intmap-add out var 'u64))
-     (intset-intersect u64-vars phi-vars)
-     (intset-fold
-      (lambda (var out) (intmap-add out var 'f64))
-      (intset-intersect f64-vars phi-vars)
-      empty-intmap))))
+  (let ((phi-vars (compute-phi-vars cps preds)))
+    (fold1 (lambda (in out)
+             (match in
+               ((kind vars)
+                (intset-fold
+                 (lambda (var out)
+                   (intmap-add out var kind (lambda (old new) old)))
+                 (intset-intersect phi-vars vars)
+                 out))))
+           `((f64 ,(compute-specializable-f64-vars cps body preds defs))
+             (fx ,(compute-specializable-fixnum-vars cps body preds defs))
+             (s64 ,(compute-specializable-s64-vars cps body preds defs))
+             (u64 ,(compute-specializable-u64-vars cps body preds defs)))
+           empty-intmap)))
 
 ;; Each definition of a f64/u64 variable should unbox that variable.
 ;; The cont that binds the variable should re-box it under its original
@@ -867,10 +908,14 @@ BITS indicating the significant bits needed for a variable.  BITS may be
   (define (unbox-op var)
     (match (intmap-ref phis var)
       ('f64 'scm->f64)
+      ('fx 'untag-fixnum)
+      ('s64 'scm->s64)
       ('u64 'scm->u64)))
   (define (box-op var)
     (match (intmap-ref phis var)
       ('f64 'f64->scm)
+      ('fx 'tag-fixnum)
+      ('s64 's64->scm)
       ('u64 'u64->scm)))
   (define (unbox-operands)
     (define (unbox-arg cps arg def-var have-arg)
