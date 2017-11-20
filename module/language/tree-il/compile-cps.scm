@@ -664,7 +664,7 @@
                  (match args
                    ((a b)
                     (unbox-arg
-                     cps b 'untag-fixnum
+                     cps b 'scm->u64
                      (lambda (cps b)
                        (have-args cps (list a b)))))))
                 ((make-vector)
@@ -1203,7 +1203,7 @@ integer."
 
        (($ <primcall> src 'ash (a b))
         (match b
-          (($ <const> src2 (? target-fixnum? n))
+          (($ <const> src2 (? exact-integer? n))
            (if (< n 0)
                (make-primcall src 'rsh (list a (make-const src2 (- n))))
                (make-primcall src 'lsh (list a b))))
@@ -1216,21 +1216,10 @@ integer."
               src (list 'a 'b) (list a-sym b-sym) (list a b)
               (make-conditional
                src
-               (make-primcall src 'fixnum? (list b-ref))
-               (make-conditional
-                src
-                (make-primcall src '< (list b-ref (make-const src 0)))
-                (let ((n (make-primcall src '- (list (make-const src 0) b-ref))))
-                  (make-primcall src 'rsh (list a-ref n)))
-                (make-primcall src 'lsh (list a-ref b-ref)))
-               (make-primcall
-                src 'throw
-                (list
-                 (make-const #f 'wrong-type-arg)
-                 (make-const #f "ash")
-                 (make-const #f "Wrong type (expecting fixnum): ~S")
-                 (make-primcall #f 'list (list b-ref))
-                 (make-primcall #f 'list (list b-ref))))))))))
+               (make-primcall src '< (list b-ref (make-const src 0)))
+               (let ((n (make-primcall src '- (list (make-const src 0) b-ref))))
+                 (make-primcall src 'rsh (list a-ref n)))
+               (make-primcall src 'lsh (list a-ref b-ref))))))))
 
        ;; Eta-convert prompts without inline handlers.
        (($ <prompt> src escape-only? tag body handler)

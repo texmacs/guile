@@ -373,9 +373,13 @@
   (cond
    ((<= max (target-most-positive-fixnum))
     (with-cps cps
+      (letv s64)
+      (letk ks64 ($kargs ('s64) (s64)
+                   ($continue k src
+                     ($primcall 'tag-fixnum #f (s64)))))
       (build-term
-        ($continue k src
-          ($primcall 'tag-fixnum #f (arg))))))
+        ($continue ks64 src
+          ($primcall 'u64->s64 #f (arg))))))
    (else
     (with-cps cps #f))))
 
@@ -405,8 +409,12 @@
    ((and (type<=? type &exact-integer)
          (<= 0 min max (target-most-positive-fixnum)))
     (with-cps cps
+      (letv s64)
+      (letk ks64 ($kargs ('s64) (s64)
+                   ($continue k src
+                     ($primcall 's64->u64 #f (s64)))))
       (build-term
-        ($continue k src
+        ($continue ks64 src
           ($primcall 'untag-fixnum #f (arg))))))
    (else
     (with-cps cps #f))))
