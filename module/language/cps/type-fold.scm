@@ -381,7 +381,7 @@
 
 (define-unary-primcall-reducer (s64->scm cps k src constant arg type min max)
   (cond
-   ((<= max (target-most-positive-fixnum))
+   ((<= (target-most-negative-fixnum) min max (target-most-positive-fixnum))
     (with-cps cps
       (build-term
         ($continue k src
