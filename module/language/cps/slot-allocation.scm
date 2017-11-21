@@ -36,16 +36,13 @@
             lookup-slot
             lookup-maybe-slot
             lookup-representation
-            lookup-constant-value
-            lookup-maybe-constant-value
             lookup-nlocals
             lookup-call-proc-slot
             lookup-parallel-moves
             lookup-slot-map))
 
 (define-record-type $allocation
-  (make-allocation slots representations constant-values call-allocs
-                   shuffles frame-size)
+  (make-allocation slots representations call-allocs shuffles frame-size)
   allocation?
 
   ;; A map of VAR to slot allocation.  A slot allocation is an integer,
@@ -57,10 +54,6 @@
   ;; 'u64, or 's64.
   ;;
   (representations allocation-representations)
-
-  ;; A map of VAR to constant value, for variables with constant values.
-  ;;
-  (constant-values allocation-constant-values)
 
   ;; A map of LABEL to /call allocs/, for expressions that continue to
   ;; $kreceive continuations: non-tail calls and $prompt expressions.
@@ -109,20 +102,6 @@
   (intmap-ref (allocation-representations allocation) var))
 
 (define *absent* (list 'absent))
-
-(define (lookup-constant-value var allocation)
-  (let ((value (intmap-ref (allocation-constant-values allocation) var
-                           (lambda (_) *absent*))))
-    (when (eq? value *absent*)
-      (error "Variable does not have constant value" var))
-    value))
-
-(define (lookup-maybe-constant-value var allocation)
-  (let ((value (intmap-ref (allocation-constant-values allocation) var
-                           (lambda (_) *absent*))))
-    (if (eq? value *absent*)
-        (values #f #f)
-        (values #t value))))
 
 (define (lookup-call-alloc k allocation)
   (intmap-ref (allocation-call-allocs allocation) k))
@@ -800,7 +779,6 @@ are comparable with eqv?.  A tmp slot may be used."
   (let*-values (((defs uses) (compute-defs-and-uses cps))
                 ((representations) (compute-var-representations cps))
                 ((live-in live-out) (compute-live-variables cps defs uses))
-                ((constants) (compute-constant-values cps))
                 ((needs-slot) (compute-needs-slot cps defs uses))
                 ((lazy) (compute-lazy-vars cps live-in live-out defs
                                            needs-slot)))
@@ -995,5 +973,4 @@ are comparable with eqv?.  A tmp slot may be used."
         (let* ((slots (allocate-lazy-vars cps slots calls live-in lazy))
                (shuffles (compute-shuffles cps slots calls live-in))
                (frame-size (compute-frame-size cps slots calls shuffles)))
-          (make-allocation slots representations constants calls
-                           shuffles frame-size))))))
+          (make-allocation slots representations calls shuffles frame-size))))))

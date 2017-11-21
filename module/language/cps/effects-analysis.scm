@@ -208,9 +208,6 @@
   (identifier-syntax
    (logior &all-effect-kinds (&object &unknown-memory-kinds))))
 
-(define-inlinable (constant? effects)
-  (zero? effects))
-
 (define-inlinable (causes-effect? x effects)
   (not (zero? (logand x effects))))
 
@@ -232,12 +229,6 @@ is or might be a read or a write to the same location as A."
   (and (not (zero? (logand a &write)))
        (not (zero? (logand b (logior &read &write))))
        (locations-same?)))
-
-(define-inlinable (indexed-field kind var constants)
-  (let ((val (intmap-ref constants var (lambda (_) #f))))
-    (if (and (exact-integer? val) (<= 0 val))
-        (&field kind val)
-        (&object kind))))
 
 (define *primitive-effects* (make-hash-table))
 
@@ -513,7 +504,7 @@ is or might be a read or a write to the same location as A."
         (apply proc param args)
         &all-effects)))
 
-(define (expression-effects exp constants)
+(define (expression-effects exp)
   (match exp
     ((or ($ $const) ($ $prim) ($ $values))
      &no-effects)
@@ -529,28 +520,25 @@ is or might be a read or a write to the same location as A."
     ((or ($ $call) ($ $callk))
      &all-effects)
     (($ $branch k exp)
-     (expression-effects exp constants))
+     (expression-effects exp))
     (($ $primcall name param args)
-     ;; FIXME: hack to still support constants table while migrating
-     ;; to immediate parameters.
-     (primitive-effects (or param constants) name args))))
+     (primitive-effects param name args))))
 
 (define (compute-effects conts)
-  (let ((constants (compute-constant-values conts)))
-    (intmap-map
-     (lambda (label cont)
-       (match cont
-         (($ $kargs names syms ($ $continue k src exp))
-          (expression-effects exp constants))
-         (($ $kreceive arity kargs)
-          (match arity
-            (($ $arity _ () #f () #f) &type-check)
-            (($ $arity () () _ () #f) (&allocate &pair))
-            (($ $arity _ () _ () #f) (logior (&allocate &pair) &type-check))))
-         (($ $kfun) &type-check)
-         (($ $kclause) &type-check)
-         (($ $ktail) &no-effects)))
-     conts)))
+  (intmap-map
+   (lambda (label cont)
+     (match cont
+       (($ $kargs names syms ($ $continue k src exp))
+        (expression-effects exp))
+       (($ $kreceive arity kargs)
+        (match arity
+          (($ $arity _ () #f () #f) &type-check)
+          (($ $arity () () _ () #f) (&allocate &pair))
+          (($ $arity _ () _ () #f) (logior (&allocate &pair) &type-check))))
+       (($ $kfun) &type-check)
+       (($ $kclause) &type-check)
+       (($ $ktail) &no-effects)))
+   conts))
 
 ;; There is a way to abuse effects analysis in CSE to also do scalar
 ;; replacement, effectively adding `car' and `cdr' expressions to `cons'

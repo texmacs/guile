@@ -169,7 +169,7 @@ the trace should be referenced outside of it."
                         (build-exp ($values ,(rename-uses args))))))
            (($ $primcall name param args)
             ;; exp is effect-free or var of interest in args
-            (let* ((fx (expression-effects exp #f))
+            (let* ((fx (expression-effects exp))
                    (uses-of-interest? (any-use-of-interest? args))
                    (live-vars (subtract-uses live-vars args)))
               ;; If the primcall uses a value of interest,

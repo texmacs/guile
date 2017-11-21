@@ -99,9 +99,6 @@
     (define (slot sym)
       (lookup-slot sym allocation))
 
-    (define (constant sym)
-      (lookup-constant-value sym allocation))
-
     (define (from-sp var)
       (- frame-size 1 var))
 

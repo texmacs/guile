@@ -31,6 +31,62 @@
   #:use-module (language cps intmap)
   #:export (specialize-primcalls))
 
+(define (compute-defining-expressions conts)
+  (define (meet-defining-expressions old new)
+    ;; If there are multiple definitions and they are different, punt
+    ;; and record #f.
+    (if (equal? old new)
+        old
+        #f))
+  (persistent-intmap
+   (intmap-fold (lambda (label cont defs)
+                  (match cont
+                    (($ $kargs _ _ ($ $continue k src exp))
+                     (match (intmap-ref conts k)
+                       (($ $kargs (_) (var))
+                        (intmap-add! defs var exp meet-defining-expressions))
+                       (_ defs)))
+                    (_ defs)))
+                conts
+                empty-intmap)))
+
+(define (compute-constant-values conts)
+  (let ((defs (compute-defining-expressions conts)))
+    (persistent-intmap
+     (intmap-fold
+      (lambda (var exp out)
+        (match exp
+          (($ $primcall (or 'load-f64 'load-u64 'load-s64) val ())
+           (intmap-add! out var val))
+          ;; Punch through type conversions to allow uadd to specialize
+          ;; to uadd/immediate.
+          (($ $primcall 'scm->f64 #f (val))
+           (let ((f64 (intmap-ref out val (lambda (_) #f))))
+             (if (and f64 (number? f64) (inexact? f64) (real? f64))
+                 (intmap-add! out var f64)
+                 out)))
+          (($ $primcall (or 'scm->u64 'scm->u64/truncate) #f (val))
+           (let ((u64 (intmap-ref out val (lambda (_) #f))))
+             (if (and u64 (number? u64) (exact-integer? u64)
+                      (<= 0 u64 #xffffFFFFffffFFFF))
+                 (intmap-add! out var u64)
+                 out)))
+          (($ $primcall 'scm->s64 #f (val))
+           (let ((s64 (intmap-ref out val (lambda (_) #f))))
+             (if (and s64 (number? s64) (exact-integer? s64)
+                      (<= (- #x8000000000000000) s64 #x7fffFFFFffffFFFF))
+                 (intmap-add! out var s64)
+                 out)))
+          (_ out)))
+      defs
+      (intmap-fold (lambda (var exp out)
+                     (match exp
+                       (($ $const val)
+                        (intmap-add! out var val))
+                       (_ out)))
+                   defs
+                   empty-intmap)))))
+
 (define (specialize-primcalls conts)
   (let ((constants (compute-constant-values conts)))
     (define (uint? var)
