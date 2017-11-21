@@ -1040,6 +1040,19 @@ integer."
   (optimize x e opts))
 
 (define (canonicalize exp)
+  (define-syntax-rule (with-lexical src id . body)
+    (let ((k (lambda (id) . body)))
+      (match id
+        (($ <lexical-ref>) (k id))
+        (_
+         (let ((v (gensym "v ")))
+           (make-let src (list 'v) (list v) (list id)
+                     (k (make-lexical-ref src 'v v))))))))
+  (define-syntax with-lexicals
+    (syntax-rules ()
+      ((with-lexicals src () . body) (let () . body))
+      ((with-lexicals src (id . ids) . body)
+       (with-lexical src id (with-lexicals src ids . body)))))
   (define (reduce-conditional exp)
     (match exp
       (($ <conditional> src
@@ -1092,19 +1105,6 @@ integer."
 
        (($ <primcall> src (or 'eqv? 'equal?) (a b))
         (let ()
-          (define-syntax-rule (with-lexical id . body)
-            (let ((k (lambda (id) . body)))
-              (match id
-                (($ <lexical-ref>) (k id))
-                (_
-                 (let ((v (gensym "v ")))
-                   (make-let src (list 'v) (list v) (list id)
-                             (k (make-lexical-ref src 'v v))))))))
-          (define-syntax with-lexicals
-            (syntax-rules ()
-              ((with-lexicals () . body) (let () . body))
-              ((with-lexicals (id . ids) . body)
-               (with-lexical id (with-lexicals ids . body)))))
           (define-syntax-rule (primcall name . args)
             (make-primcall src 'name (list . args)))
           (define-syntax primcall-chain
@@ -1115,7 +1115,7 @@ integer."
                                  (make-const src #f)))))
           (define-syntax-rule (bool x)
             (make-conditional src x (make-const src #t) (make-const src #f)))
-          (with-lexicals (a b)
+          (with-lexicals src (a b)
             (make-conditional
              src
              (primcall eq? a b)
@@ -1171,17 +1171,11 @@ integer."
         ;; Unhappily, and undocumentedly, struct-set! returns the value
         ;; that was set.  There is code that relies on this.  Hackety
         ;; hack...
-        (let ((v (gensym "v ")))
-          (make-let src
-                    (list 'v)
-                    (list v)
-                    (list value)
-                    (make-seq src
-                              (make-primcall src 'struct-set!
-                                             (list struct
-                                                   index
-                                                   (make-lexical-ref src 'v v)))
-                              (make-lexical-ref src 'v v)))))
+        (with-lexicals src (value)
+          (make-seq src
+                    (make-primcall src 'struct-set!
+                                   (list struct index value))
+                    value)))
 
        ;; Lower (logand x (lognot y)) to (logsub x y).  We do it here
        ;; instead of in CPS because it gets rid of the lognot entirely;
@@ -1208,50 +1202,43 @@ integer."
                (make-primcall src 'rsh (list a (make-const src2 (- n))))
                (make-primcall src 'lsh (list a b))))
           (_
-           (let* ((a-sym (gensym "a "))
-                  (b-sym (gensym "b "))
-                  (a-ref (make-lexical-ref src 'a a-sym))
-                  (b-ref (make-lexical-ref src 'b b-sym)))
-             (make-let
-              src (list 'a 'b) (list a-sym b-sym) (list a b)
-              (make-conditional
-               src
-               (make-primcall src '< (list b-ref (make-const src 0)))
-               (let ((n (make-primcall src '- (list (make-const src 0) b-ref))))
-                 (make-primcall src 'rsh (list a-ref n)))
-               (make-primcall src 'lsh (list a-ref b-ref))))))))
+           (with-lexicals src (a b)
+             (make-conditional
+              src
+              (make-primcall src '< (list b (make-const src 0)))
+              (let ((n (make-primcall src '- (list (make-const src 0) b))))
+                (make-primcall src 'rsh (list a n)))
+              (make-primcall src 'lsh (list a b)))))))
 
        ;; Eta-convert prompts without inline handlers.
        (($ <prompt> src escape-only? tag body handler)
         (let ((h (gensym "h "))
               (args (gensym "args ")))
-          (make-let
-           src (list 'h) (list h) (list handler)
-           (make-seq
-            src
-            (make-conditional
+          (with-lexicals src (handler)
+            (make-seq
              src
-             (make-primcall src 'procedure? (list (make-lexical-ref #f 'h h)))
-             (make-void src)
-             (make-primcall
-              src 'throw
-              (list
-               (make-const #f 'wrong-type-arg)
-               (make-const #f "call-with-prompt")
-               (make-const #f "Wrong type (expecting procedure): ~S")
-               (make-primcall #f 'list (list (make-lexical-ref #f 'h h)))
-               (make-primcall #f 'list (list (make-lexical-ref #f 'h h))))))
-            (make-prompt
-             src escape-only? tag body
-             (make-lambda
-              src '()
-              (make-lambda-case
-               src '() #f 'args #f '() (list args)
-               (make-primcall
-                src 'apply
-                (list (make-lexical-ref #f 'h h)
-                      (make-lexical-ref #f 'args args)))
-               #f)))))))
+             (make-conditional
+              src
+              (make-primcall src 'procedure? (list handler))
+              (make-void src)
+              (make-primcall
+               src 'throw
+               (list
+                (make-const #f 'wrong-type-arg)
+                (make-const #f "call-with-prompt")
+                (make-const #f "Wrong type (expecting procedure): ~S")
+                (make-primcall #f 'list (list handler))
+                (make-primcall #f 'list (list handler)))))
+             (make-prompt
+              src escape-only? tag body
+              (make-lambda
+               src '()
+               (make-lambda-case
+                src '() #f 'args #f '() (list args)
+                (make-primcall
+                 src 'apply
+                 (list handler (make-lexical-ref #f 'args args)))
+                #f)))))))
        (_ exp)))
    exp))
 
@@ -1264,5 +1251,5 @@ integer."
 ;;; Local Variables:
 ;;; eval: (put 'convert-arg 'scheme-indent-function 2)
 ;;; eval: (put 'convert-args 'scheme-indent-function 2)
-;;; eval: (put 'with-lexicals 'scheme-indent-function 1)
+;;; eval: (put 'with-lexicals 'scheme-indent-function 2)
 ;;; End:
