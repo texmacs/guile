@@ -1072,6 +1072,16 @@ integer."
        (($ <conditional>)
         (reduce-conditional exp))
 
+       (($ <primcall> src 'exact-integer? (x))
+        ;; Both fixnum? and bignum? are branching primitives.
+        (with-lexicals src (x)
+          (make-conditional
+           src (make-primcall src 'fixnum? (list x))
+           (make-const src #t)
+           (make-conditional src (make-primcall src 'bignum? (list x))
+                             (make-const src #t)
+                             (make-const src #f)))))
+
        (($ <primcall> src '<= (a b))
         ;; No need to reduce as < is a branching primitive.
         (make-conditional src (make-primcall src '< (list b a))

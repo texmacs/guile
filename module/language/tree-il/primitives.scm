@@ -57,6 +57,7 @@
     procedure? thunk?
 
     complex? real? rational? inf? nan? integer? exact? inexact? even? odd?
+    exact-integer?
 
     char<? char<=? char>=? char>?
 
@@ -174,6 +175,7 @@
     symbol? variable? vector? struct? string? number? char?
     bytevector? keyword? bitvector? atomic-box?
     complex? real? rational? inf? nan? integer? exact? inexact? even? odd?
+    exact-integer?
     char<? char<=? char>=? char>?
     integer->char char->integer number->string string->number
     struct-vtable
@@ -194,6 +196,7 @@
     not
     pair? null? nil? list?
     symbol? variable? vector? struct? string? number? char?
+    exact-integer?
     bytevector? keyword? bitvector?
     procedure? thunk? atomic-box?
     acons cons cons* list vector))
