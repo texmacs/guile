@@ -110,7 +110,8 @@
     keyword?
     bytevector?
     bitvector?
-    heap-number?))
+    heap-number?
+    bignum?))
 
 ;; FIXME: Support these.
 (define *other-predicates*
@@ -129,7 +130,6 @@
     array?
     port?
     smob?
-    bignum?
     flonum?
     complex?
     fraction?))
