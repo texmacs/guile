@@ -78,9 +78,6 @@
             &no-effects
             &all-effects
 
-            exclude-effects
-            effect-free?
-            constant?
             causes-effect?
             causes-all-effects?
             effect-clobbers?))
