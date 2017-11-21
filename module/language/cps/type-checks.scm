@@ -55,7 +55,7 @@ KFUN where we can prove that no assertion will be raised at run-time."
                              (($ $continue k src ($ $primcall name param args))
                               (visit-primcall effects fx label name param args))
                              (($ $continue k src
-                                 ($ $branch _ ($primcall name param args)))
+                                 ($ $branch _ ($ $primcall name param args)))
                               (visit-primcall effects fx label name param args))
                              (_ effects)))
                           (_ effects)))
