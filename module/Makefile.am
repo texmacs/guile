@@ -134,6 +134,7 @@ SOURCES =					\
   language/cps/contification.scm		\
   language/cps/cse.scm				\
   language/cps/dce.scm				\
+  language/cps/devirtualize-integers.scm	\
   language/cps/effects-analysis.scm		\
   language/cps/elide-values.scm			\
   language/cps/handle-interrupts.scm		\
