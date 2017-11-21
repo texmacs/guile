@@ -173,8 +173,11 @@ sites."
           (or
            ;; No defs; perhaps continuation is $ktail.
            (not defs)
-           ;; We don't remove branches.
-           (match exp (($ $branch) #t) (_ #f))
+           ;; We don't remove branches, unless both branches go to the
+           ;; same place.
+           (match exp
+             (($ $branch kt) (not (eqv? k kt)))
+             (_ #f))
            ;; Do we have a live def?
            (any-var-live? defs live-vars)
            ;; Does this expression cause all effects?  If so, it's
