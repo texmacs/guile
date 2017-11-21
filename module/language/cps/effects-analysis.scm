@@ -288,7 +288,8 @@ is or might be a read or a write to the same location as A."
   ((bitvector? arg))
   ((procedure? arg))
   ((thunk? arg))
-  ((heap-number? arg)))
+  ((heap-number? arg))
+  ((bignum? arg)))
 
 ;; Fluids.
 (define-primitive-effects
