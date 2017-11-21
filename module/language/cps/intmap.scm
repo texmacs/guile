@@ -1,5 +1,5 @@
 ;;; Functional name maps
-;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -386,7 +386,9 @@ already, and always calls the meet procedure."
        (let ((root* (remove (- i min) shift root)))
          (if (eq? root root*)
              map
-             (make-intmap/prune min shift root*))))
+             (if (absent? root*)
+                 empty-intmap
+                 (make-intmap/prune min shift root*)))))
       (else map)))
     (($ <transient-intmap>)
      (intmap-remove (persistent-intmap map) i))))
