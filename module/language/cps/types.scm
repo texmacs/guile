@@ -1051,16 +1051,18 @@ minimum, and maximum."
             (restrict! b &bignum -inf.0 (1- (target-most-negative-fixnum)))))
        (else
         (infer-integer-< a b true?))))
-     (else
+     ;; Can't include &flonum because of NaN.  Perhaps we should model
+     ;; NaN with a separate type bit.
+     ((type<=? types &exact-number)
       (let ((min0 (&min a)) (max0 (&max a))
             (min1 (&min b)) (max1 (&max b)))
         (cond
          (true?
-          (restrict! a &real min0 (min max0 max1))
-          (restrict! b &real (max min0 min1) max1))
+          (restrict! a &exact-number min0 (min max0 max1))
+          (restrict! b &exact-number (max min0 min1) max1))
          (else
-          (restrict! a &real (max min0 min1) max0)
-          (restrict! b &real min1 (min max0 max1)))))))))
+          (restrict! a &exact-number (max min0 min1) max0)
+          (restrict! b &exact-number min1 (min max0 max1)))))))))
 
 (define-=-inferrer (u64-= &u64))
 (define-predicate-inferrer (u64-< a b true?)
