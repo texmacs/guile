@@ -164,6 +164,17 @@ sites."
                                live-vars args defs)))))))
             
     (define (visit-exp label k exp live-labels live-vars)
+      (define (next-live-term k)
+        ;; FIXME: For a chain of dead branches, this is quadratic.
+        (let lp ((seen empty-intset) (k k))
+          (cond
+           ((intset-ref live-labels k) k)
+           ((intset-ref seen k) k)
+           (else
+            (match (intmap-ref conts k)
+              (($ $kargs _ _ ($ $continue k*))
+               (lp (intset-add seen k) k*))
+              (_ k))))))
       (cond
        ((intset-ref live-labels label)
         ;; Expression live already.
@@ -173,11 +184,6 @@ sites."
           (or
            ;; No defs; perhaps continuation is $ktail.
            (not defs)
-           ;; We don't remove branches, unless both branches go to the
-           ;; same place.
-           (match exp
-             (($ $branch kt) (not (eqv? k kt)))
-             (_ #f))
            ;; Do we have a live def?
            (any-var-live? defs live-vars)
            ;; Does this expression cause all effects?  If so, it's
@@ -186,6 +192,12 @@ sites."
            ;; Does it cause a type check, but we weren't able to prove
            ;; that the types check?
            (causes-effect? fx &type-check)
+           ;; We only remove branches if both continuations are the
+           ;; same.
+           (match exp
+             (($ $branch kt)
+              (not (eqv? (next-live-term k) (next-live-term kt))))
+             (_ #f))
            ;; We might have a setter.  If the object being assigned to
            ;; is live or was not created by us, then this expression is
            ;; live.  Otherwise the value is still dead.
