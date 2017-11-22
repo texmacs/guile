@@ -178,11 +178,18 @@
 (define-branch-folder-alias imm-s64-< imm-u64-<)
 
 (define-binary-branch-folder (= type0 min0 max0 type1 min1 max1)
-  (case (compare-integer-ranges type0 min0 max0 type1 min1 max1)
-    ((=) (values #t #t))
-    ((< >) (values #t #f))
-    (else (values #f #f))))
+  (if (and (type<=? (logior type0 type1)
+                    (logior &exact-integer &fraction))
+           (zero? (logand type0 type1)))
+      ;; If both values are exact but of different types, they are not
+      ;; equal.
+      (values #t #f)
+      (case (compare-integer-ranges type0 min0 max0 type1 min1 max1)
+        ((=) (values #t #t))
+        ((< >) (values #t #f))
+        (else (values #f #f)))))
 (define-branch-folder-alias u64-= =)
+(define-branch-folder-alias s64-= =)
 
 
 
