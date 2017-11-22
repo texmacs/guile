@@ -1013,14 +1013,12 @@ minimum, and maximum."
 ;;; Numbers.
 ;;;
 
-(define-syntax-rule (define-=-inferrer (op &domain))
-  (define-predicate-inferrer (op a b true?)
-    (let ((types (logior (&type a) (&type b))))
-      (when (and true? (type<=? types &domain))
-        (let ((min (max (&min a) (&min b)))
-              (max (min (&max a) (&max b))))
-          (restrict! a &domain min max)
-          (restrict! b &domain min max))))))
+(define-syntax-rule (infer-= a b true?)
+  (when true?
+    (let ((min (max (&min a) (&min b)))
+          (max (min (&max a) (&max b))))
+      (restrict! a &all-types min max)
+      (restrict! b &all-types min max))))
 
 (define-syntax-rule (infer-integer-< a b true?)
   (let ((min0 (&min a)) (max0 (&max a))
@@ -1034,7 +1032,13 @@ minimum, and maximum."
       (restrict! b &all-types min1 (min max0 max1))))))
 
 (define-simple-type-checker (= &number &number))
-(define-=-inferrer (= &number))
+(define-predicate-inferrer (= a b true?)
+  (let ((types (logior (&type a) (&type b))))
+    (when (type<=? types &number)
+      ;; OK if e.g. A is a NaN; in that case the range will be
+      ;; -inf/+inf.
+      (infer-= a b true?))))
+
 (define-simple-type-checker (< &real &real))
 (define-predicate-inferrer (< a b true?)
   (let ((types (logior (&type a) (&type b))))
@@ -1064,11 +1068,13 @@ minimum, and maximum."
           (restrict! a &exact-number (max min0 min1) max0)
           (restrict! b &exact-number min1 (min max0 max1)))))))))
 
-(define-=-inferrer (u64-= &u64))
+(define-predicate-inferrer (u64-= a b true?)
+  (infer-= a b true?))
 (define-predicate-inferrer (u64-< a b true?)
   (infer-integer-< a b true?))
 
-(define-=-inferrer (s64-= &s64))
+(define-predicate-inferrer (s64-= a b true?)
+  (infer-= a b true?))
 (define-predicate-inferrer (s64-< a b true?)
   (infer-integer-< a b true?))
 
