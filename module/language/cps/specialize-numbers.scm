@@ -484,6 +484,26 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                               (unbox-u64 a) (unbox-u64 b) (box-u64 result)))
                   (setk label ($kargs names vars ,body)))))
 
+             (((or 'logand 'logior 'logxor 'logsub)
+               (? u64-result?) #f (? s64-operand? a) (? s64-operand? b))
+              (let ((op (match op
+                          ('logand 'ulogand) ('logior 'ulogior)
+                          ('logxor 'ulogxor) ('logsub 'ulogsub))))
+                (define (unbox-u64* x)
+                  (let ((unbox-s64 (unbox-s64 x)))
+                    (lambda (cps k src x)
+                      (with-cps cps
+                        (letv s64)
+                        (letk ks64 ($kargs ('s64) (s64)
+                                     ($continue k src
+                                       ($primcall 's64->u64 #f (s64)))))
+                        ($ (unbox-s64 k src x))))))
+                (with-cps cps
+                  (let$ body (specialize-binop
+                              k src op a b
+                              (unbox-u64* a) (unbox-u64* b) (box-u64 result)))
+                  (setk label ($kargs names vars ,body)))))
+
              (((or 'add 'sub 'mul)
                (? s64-result?) #f (? s64-operand? a) (? s64-operand? b))
               (let ((op (match op
