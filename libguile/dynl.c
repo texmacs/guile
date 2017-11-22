@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ * 2003, 2008, 2009, 2010, 2011, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -66,10 +66,9 @@ maybe_drag_in_eprintf ()
 
 #include <ltdl.h>
 
-/*
-  From the libtool manual: "Note that libltdl is not threadsafe,
-  i.e. a multithreaded application has to use a mutex for libltdl.".
-*/
+/* From the libtool manual: "Note that libltdl is not threadsafe,
+   i.e. a multithreaded application has to use a mutex for libltdl.".
+   Note: We initialize it as a recursive mutex below.  */
 static scm_i_pthread_mutex_t ltdl_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* LT_PATH_SEP-separated extension library search path, searched last */
@@ -401,6 +400,13 @@ scm_init_dynamic_linking ()
 {
   scm_tc16_dynamic_obj = scm_make_smob_type ("dynamic-object", 0);
   scm_set_smob_print (scm_tc16_dynamic_obj, dynl_obj_print);
+
+  /* Make LTDL_LOCK recursive so that a pre-unwind handler can still use
+     'dynamic-link', as is the case at the REPL.  See
+     <https://bugs.gnu.org/29275>.  */
+  scm_i_pthread_mutex_init (&ltdl_lock,
+			    scm_i_pthread_mutexattr_recursive);
+
   sysdep_dynl_init ();
 #include "libguile/dynl.x"
 }
