@@ -634,11 +634,27 @@ minimum, and maximum."
      ((<= (&max val) (target-most-positive-fixnum))
       (restrict! val &bignum -inf.0 (1- (target-most-negative-fixnum))))
      ((>= (&min val) (target-most-negative-fixnum))
-      (restrict! val &bignum (target-most-positive-fixnum) +inf.0))
+      (restrict! val &bignum (1+ (target-most-positive-fixnum)) +inf.0))
      (else
       (restrict! val &bignum -inf.0 +inf.0))))
    (else
     (restrict! val (logand &all-types (lognot &fixnum)) -inf.0 +inf.0))))
+
+(define-predicate-inferrer (bignum? val true?)
+  (cond
+   (true?
+    (cond
+     ((<= (&max val) (target-most-positive-fixnum))
+      (restrict! val &bignum -inf.0 (1- (target-most-negative-fixnum))))
+     ((>= (&min val) (target-most-negative-fixnum))
+      (restrict! val &bignum (1+ (target-most-positive-fixnum)) +inf.0))
+     (else
+      (restrict! val &bignum -inf.0 +inf.0))))
+   ((type<=? (&type val) &exact-integer)
+    (restrict! val &fixnum
+               (target-most-negative-fixnum) (target-most-positive-fixnum)))
+   (else
+    (restrict! val (logand &all-types (lognot &bignum)) -inf.0 +inf.0))))
 
 (define-syntax-rule (define-simple-predicate-inferrer predicate type)
   (define-predicate-inferrer (predicate val true?)
@@ -1006,34 +1022,53 @@ minimum, and maximum."
           (restrict! a &domain min max)
           (restrict! b &domain min max))))))
 
-(define-syntax-rule (define-<-inferrer (op &domain &integer-domain))
-  (define-predicate-inferrer (op a b true?)
-    (let ((types (logior (&type a) (&type b))))
-      (when (type<=? types &domain)
-        (let ((int? (type<=? types &integer-domain))
-              (min0 (&min a)) (max0 (&max a))
-              (min1 (&min b)) (max1 (&max b)))
-          (cond
-           (true?
-            (restrict! a &domain
-                       min0
-                       (min max0 (if int? (1- max1) max1)))
-            (restrict! b &domain
-                       (max (if int? (1+ min0) min0) min1)
-                       max1))
-           (else
-            (restrict! a &domain (max min0 min1) max0)
-            (restrict! b &domain min1 (min max0 max1)))))))))
+(define-syntax-rule (infer-integer-< a b true?)
+  (let ((min0 (&min a)) (max0 (&max a))
+        (min1 (&min b)) (max1 (&max b)))
+    (cond
+     (true?
+      (restrict! a &all-types min0 (min max0 (1- max1)))
+      (restrict! b &all-types (max (1+ min0) min1) max1))
+     (else
+      (restrict! a &all-types (max min0 min1) max0)
+      (restrict! b &all-types min1 (min max0 max1))))))
 
 (define-simple-type-checker (= &number &number))
 (define-=-inferrer (= &number))
 (define-simple-type-checker (< &real &real))
-(define-<-inferrer (< &real &exact-integer))
+(define-predicate-inferrer (< a b true?)
+  (let ((types (logior (&type a) (&type b))))
+    (cond
+     ((type<=? types &exact-integer)
+      (cond
+       ((and (eqv? (&type a) &bignum) (eqv? (&type b) &fixnum))
+        (if true?
+            (restrict! a &bignum -inf.0 (1- (target-most-negative-fixnum)))
+            (restrict! a &bignum (1+ (target-most-positive-fixnum)) +inf.0)))
+       ((and (eqv? (&type a) &fixnum) (eqv? (&type b) &bignum))
+        (if true?
+            (restrict! b &bignum (1+ (target-most-positive-fixnum)) +inf.0)
+            (restrict! b &bignum -inf.0 (1- (target-most-negative-fixnum)))))
+       (else
+        (infer-integer-< a b true?))))
+     (else
+      (let ((min0 (&min a)) (max0 (&max a))
+            (min1 (&min b)) (max1 (&max b)))
+        (cond
+         (true?
+          (restrict! a &real min0 (min max0 max1))
+          (restrict! b &real (max min0 min1) max1))
+         (else
+          (restrict! a &real (max min0 min1) max0)
+          (restrict! b &real min1 (min max0 max1)))))))))
 
 (define-=-inferrer (u64-= &u64))
-(define-<-inferrer (u64-< &u64 &u64))
+(define-predicate-inferrer (u64-< a b true?)
+  (infer-integer-< a b true?))
 
-(define-<-inferrer (s64-< &s64 &s64))
+(define-=-inferrer (s64-= &s64))
+(define-predicate-inferrer (s64-< a b true?)
+  (infer-integer-< a b true?))
 
 (define-predicate-inferrer/param (u64-imm-= b a true?)
   (when true?
@@ -1064,18 +1099,6 @@ minimum, and maximum."
 ;; not-a-number values.
 
 ;; Arithmetic.
-(define-syntax-rule (define-unary-result! a-type$ result min$ max$)
-  (let ((min min$) (max max$) (type a-type$))
-    (cond
-     ((not (type<=? type &number))
-      ;; Not definitely a number.  Punt and do nothing.
-      (define! result &all-types -inf.0 +inf.0))
-     ;; Complex numbers don't have a range.
-     ((eqv? type &complex)
-      (define! result &complex -inf.0 +inf.0))
-     (else
-      (define! result type min max)))))
-
 (define-syntax-rule (define-binary-result! a-type$ b-type$ result closed?
                       min$ max$)
   (let* ((min min$) (max max$) (a-type a-type$) (b-type b-type$)
@@ -1104,7 +1127,21 @@ minimum, and maximum."
              ;; Integers may become fractions under division.
              (type (if (or closed? (zero? (logand type &exact-integer)))
                        type
-                       (logior type &fraction))))
+                       (logior type &fraction)))
+             ;; Fixnums and bignums may become each other, depending on
+             ;; the range.
+             (type (cond
+                    ((zero? (logand type &exact-integer))
+                     type)
+                    ((<= (target-most-negative-fixnum)
+                         min max
+                         (target-most-positive-fixnum))
+                     (logand type (lognot &bignum)))
+                    ((or (< max (target-most-negative-fixnum))
+                         (> min (target-most-positive-fixnum)))
+                     (logand type (lognot &fixnum)))
+                    (else
+                     (logior type &fixnum &bignum)))))
         (define! result type min max))))))
 
 (define-simple-type-checker (add &number &number))
@@ -1624,17 +1661,25 @@ minimum, and maximum."
 (define-type-inferrer (abs x result)
   (let ((type (&type x)))
     (cond
-     ((eqv? type (logand type &number))
-      (restrict! x &real -inf.0 +inf.0)
-      (define! result (logand type &real)
-        (min (abs (&min x)) (abs (&max x)))
-        (max (abs (&min x)) (abs (&max x)))))
+     ((type<=? type &exact-integer)
+      (if (< (&min x) 0)
+          (define-exact-integer! result 0 (max (abs (&min x)) (abs (&max x))))
+          (define! result type (&min x) (&max x))))
      (else
-      (define! result (logior (logand (&type x) (lognot &number))
-                              (logand (&type x) &real))
-        (&min/0 x)
-        (max (abs (&min x)) (abs (&max x))))))))
-
+      (when (type<=? type &number)
+        (restrict! x &real -inf.0 +inf.0))
+      (let* ((min (if (< (&min x) 0) 0 (&min x)))
+             (max (max (abs (&min x)) (abs (&max x))))
+             (type (cond
+                    ((not (logtest type &exact-integer)) type)
+                    ((< (target-most-positive-fixnum) min)
+                     (logior &bignum (logand type (lognot &fixnum))))
+                    ((<= max (target-most-positive-fixnum))
+                     (logior &fixnum (logand type (lognot &bignum))))
+                    (else (logior type &fixnum &bignum)))))
+        (define! result (logior (logand type (lognot &number))
+                                (logand type &real))
+          min max))))))
 
 
 

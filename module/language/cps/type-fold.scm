@@ -110,6 +110,7 @@
 
 ;; All the cases that are in compile-bytecode.
 (define-unary-type-predicate-folder fixnum? &fixnum)
+(define-unary-type-predicate-folder bignum? &bignum)
 (define-unary-type-predicate-folder pair? &pair)
 (define-unary-type-predicate-folder symbol? &symbol)
 (define-unary-type-predicate-folder variable? &box)
