@@ -305,10 +305,9 @@
 ;;; These helpers create one 32-bit unit from multiple components.
 
 (define-inline (check-urange x mask)
-  (let ((x* (logand x mask)))
-    (unless (= x x*)
-      (error "out of range" x))
-    x*))
+  (unless (and (exact-integer? x) (= x (logand x mask)))
+    (error "out of range" x))
+  x)
 
 (define-inline (check-srange x mask)
   (let ((x* (logand x mask)))
