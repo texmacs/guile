@@ -657,7 +657,6 @@ minimum, and maximum."
 (define-simple-predicate-inferrer number? &number)
 (define-simple-predicate-inferrer char? &char)
 (define-simple-predicate-inferrer procedure? &procedure)
-(define-simple-predicate-inferrer thunk? &procedure)
 
 (define-predicate-inferrer (eq? a b true?)
   ;; We can only propagate information down the true leg.
@@ -1350,7 +1349,9 @@ minimum, and maximum."
 (define-simple-type-predicate-inferrer complex? &number)
 (define-simple-type-predicate-inferrer real? &real)
 (define-simple-type-predicate-inferrer rational? (logior &exact-integer &fraction))
-(define-simple-type-predicate-inferrer integer? (logior &exact-integer &flonum))
+;; FIXME: If it's a flonum it may be an integer, but if it's not an
+;; integer it also may be still be a flonum.
+;; (define-simple-type-predicate-inferrer integer? (logior &exact-integer &flonum))
 (define-simple-type-predicate-inferrer exact-integer? &exact-integer)
 
 (define-simple-type-checker (exact? &number))
