@@ -115,7 +115,7 @@
             &null &nil &false &true &unspecified &undefined &eof
 
             ;; Union types.
-            &exact-integer &number &real
+            &exact-integer &exact-number &real &number
 
             ;; Untagged types.
             &f64
@@ -189,10 +189,12 @@
 
 (define-syntax &exact-integer
   (identifier-syntax (logior &fixnum &bignum)))
-(define-syntax &number
-  (identifier-syntax (logior &fixnum &bignum &flonum &complex &fraction)))
+(define-syntax &exact-number
+  (identifier-syntax (logior &fixnum &bignum &fraction)))
 (define-syntax &real
   (identifier-syntax (logior &fixnum &bignum &flonum &fraction)))
+(define-syntax &number
+  (identifier-syntax (logior &fixnum &bignum &flonum &complex &fraction)))
 
 (define-syntax-rule (type<=? x type)
   (zero? (logand x (lognot type))))
@@ -1348,7 +1350,7 @@ minimum, and maximum."
     (define-type-predicate-result val result type)))
 (define-simple-type-predicate-inferrer complex? &number)
 (define-simple-type-predicate-inferrer real? &real)
-(define-simple-type-predicate-inferrer rational? (logior &exact-integer &fraction))
+(define-simple-type-predicate-inferrer rational? &exact-number)
 ;; FIXME: If it's a flonum it may be an integer, but if it's not an
 ;; integer it also may be still be a flonum.
 ;; (define-simple-type-predicate-inferrer integer? (logior &exact-integer &flonum))
@@ -1356,7 +1358,7 @@ minimum, and maximum."
 (define-simple-type-checker (exact? &number))
 (define-type-inferrer (exact? val result)
   (restrict! val &number -inf.0 +inf.0)
-  (define-type-predicate-result val result (logior &exact-integer &fraction)))
+  (define-type-predicate-result val result &exact-number))
 
 (define-simple-type-checker (inexact? &number))
 (define-type-inferrer (inexact? val result)

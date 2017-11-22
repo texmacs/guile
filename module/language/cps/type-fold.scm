@@ -281,8 +281,7 @@
       ($ (with-cps-constants ((zero 0))
            (build-term
              ($continue k src ($primcall 'sub #f (zero arg))))))))
-   ((and (eqv? constant 0)
-         (type<=? type (logior &exact-integer &fraction)))
+   ((and (eqv? constant 0) (type<=? type &exact-number))
     ;; (* arg 0) -> 0 if arg is exact
     (with-cps cps
       (build-term ($continue k src ($const 0)))))
