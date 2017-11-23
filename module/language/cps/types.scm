@@ -1043,7 +1043,7 @@ minimum, and maximum."
       (restrict! a &u64 (max (&min a) b) (&max a))))
 (define-predicate-inferrer/param (imm-u64-< b a true?)
   (if true?
-      (restrict! a &u64 (max (1+ (&min a)) b) (&max a))
+      (restrict! a &u64 (max (&min a) (1+ b)) (&max a))
       (restrict! a &u64 (&min a) (min (&max a) b))))
 
 (define-predicate-inferrer/param (s64-imm-= b a true?)
@@ -1055,7 +1055,7 @@ minimum, and maximum."
       (restrict! a &s64 (max (&min a) b) (&max a))))
 (define-predicate-inferrer/param (imm-s64-< b a true?)
   (if true?
-      (restrict! a &s64 (max (1+ (&min a)) b) (&max a))
+      (restrict! a &s64 (max (&min a) (1+ b)) (&max a))
       (restrict! a &s64 (&min a) (min (&max a) b))))
 
 
