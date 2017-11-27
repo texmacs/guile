@@ -257,91 +257,62 @@ false.  It could be that both true and false proofs are available."
           (($ $prompt escape? tag handler) #f)))
 
       (define (add-auxiliary-definitions! label var-substs exp-key)
-        (define (subst var)
-          (subst-var var-substs var))
-        (let ((defs (intmap-ref defs label)))
+        (let ((defs (and=> (intmap-ref defs label)
+                           (lambda (defs) (subst-vars var-substs defs)))))
           (define (add-def! aux-key var)
             (let ((equiv (hash-ref equiv-set aux-key '())))
               (hash-set! equiv-set aux-key
                          (acons label (list var) equiv))))
-          (match exp-key
-            (('primcall 'box #f val)
-             (match defs
-               ((box)
-                (add-def! `(primcall box-ref #f ,(subst box)) val))))
-            (('primcall 'box-set! #f box val)
-             (add-def! `(primcall box-ref #f ,box) val))
-            (('primcall 'cons #f car cdr)
-             (match defs
-               ((pair)
-                (add-def! `(primcall car #f ,(subst pair)) car)
-                (add-def! `(primcall cdr #f ,(subst pair)) cdr))))
-            (('primcall 'set-car! #f pair car)
-             (add-def! `(primcall car #f ,pair) car))
-            (('primcall 'set-cdr! #f pair cdr)
-             (add-def! `(primcall cdr #f ,pair) cdr))
-            ;; FIXME: how to propagate make-vector/immediate -> vector-length?
-            (('primcall 'make-vector #f len fill)
-             (match defs
-               ((vec)
-                (add-def! `(primcall vector-length #f ,(subst vec)) len))))
-            (('primcall 'vector-set! #f vec idx val)
-             (add-def! `(primcall vector-ref #f ,vec ,idx) val))
-            (('primcall 'vector-set!/immediate idx vec val)
-             (add-def! `(primcall vector-ref/immediate ,idx ,vec) val))
-            (('primcall 'allocate-struct #f vtable size)
-             (match defs
-               ((struct)
-                (add-def! `(primcall struct-vtable #f ,(subst struct))
-                          vtable))))
-            (('primcall 'allocate-struct/immediate size vtable)
-             (match defs
-               ((struct)
-                (add-def! `(primcall struct-vtable #f ,(subst struct))
-                          vtable))))
-            ;; FIXME: Aren't we missing some "subst" calls here?
-            (('primcall 'struct-set! #f struct n val)
-             (add-def! `(primcall struct-ref #f ,struct ,n) val))
-            (('primcall 'struct-set!/immediate n struct val)
-             (add-def! `(primcall struct-ref/immediate ,n ,struct) val))
-            (('primcall 'scm->f64 #f scm)
-             (match defs
-               ((f64)
-                (add-def! `(primcall f64->scm #f ,f64) scm))))
-            (('primcall 'f64->scm #f f64)
-             (match defs
-               ((scm)
-                (add-def! `(primcall scm->f64 #f ,scm) f64))))
-            (('primcall 'scm->u64 #f scm)
-             (match defs
-               ((u64)
-                (add-def! `(primcall u64->scm #f ,u64) scm))))
-            (('primcall (or 'u64->scm 'u64->scm/unlikely) #f u64)
-             (match defs
-               ((scm)
-                (add-def! `(primcall scm->u64 #f ,scm) u64)
-                (add-def! `(primcall scm->u64/truncate #f ,scm) u64))))
-            (('primcall 'scm->s64 #f scm)
-             (match defs
-               ((s64)
-                (add-def! `(primcall s64->scm #f ,s64) scm))))
-            (('primcall (or 's64->scm 's64->scm/unlikely) #f s64)
-             (match defs
-               ((scm)
-                (add-def! `(primcall scm->s64 #f ,scm) s64))))
-            (('primcall 'untag-fixnum #f scm)
-             (match defs
-               ((s64)
-                (add-def! `(primcall s64->scm #f ,s64) scm)
-                (add-def! `(primcall tag-fixnum #f ,s64) scm))))
-            (('primcall 'tag-fixnum #f fx)
-             (match defs
-               ((scm)
-                ;; NB: These definitions rely on FX having top 2 bits
-                ;; equal to 3rd (sign) bit.
-                (add-def! `(primcall scm->s64 #f ,scm) fx)
-                (add-def! `(primcall untag-fixnum #f ,scm) fx))))
-            (_ #t))))
+          (define-syntax add-definitions
+            (syntax-rules (<-)
+              ((add-definitions)
+               #f)
+              ((add-definitions
+                ((def <- op arg ...) (aux <- op* arg* ...) ...)
+                . clauses)
+               (match exp-key
+                 (('primcall 'op arg ...)
+                  (match defs
+                    ((def) (add-def! (list 'primcall 'op* arg* ...) aux) ...)))
+                 (_ (add-definitions . clauses))))
+              ((add-definitions
+                ((op arg ...) (aux <- op* arg* ...) ...)
+                . clauses)
+               (match exp-key
+                 (('primcall 'op arg ...)
+                  (add-def! (list 'primcall 'op* arg* ...) aux) ...)
+                 (_ (add-definitions . clauses))))))
+          (add-definitions
+           ((b <- box #f o)                  (o <- box-ref #f b))
+           ((box-set! #f b o)                (o <- box-ref #f b))
+           ((o <- cons #f x y)               (x <- car #f o)
+                                             (y <- cdr #f o))
+           ((set-car! #f o x)                (x <- car #f o))
+           ((set-cdr! #f o y)                (y <- cdr #f o))
+           ;; FIXME: how to propagate make-vector/immediate -> vector-length?
+           ((v <- make-vector #f n x)        (n <- vector-length #f v))
+           ((vector-set! #f v i x)           (x <- vector-ref #f v i))
+           ((vector-set!/immediate i v x)    (x <- vector-ref/immediate i v))
+           ((s <- allocate-struct #f v n)    (v <- struct-vtable #f s))
+           ((s <- allocate-struct/immediate n v) (v <- struct-vtable #f s))
+           ((struct-set! #f s i x)           (x <- struct-ref #f s i))
+           ((struct-set!/immediate i s x)    (x <- struct-ref/immediate i s))
+           ((u <- scm->f64 #f s)             (s <- f64->scm #f u))
+           ((s <- f64->scm #f u)             (u <- scm->f64 #f s))
+           ((u <- scm->u64 #f s)             (s <- u64->scm #f u))
+           ((s <- u64->scm #f u)             (u <- scm->u64 #f s)
+                                             (u <- scm->u64/truncate #f s))
+           ((s <- u64->scm/unlikely #f u)    (u <- scm->u64 #f s)
+                                             (u <- scm->u64/truncate #f s))
+           ((u <- scm->s64 #f s)             (s <- s64->scm #f u))
+           ((s <- s64->scm #f u)             (u <- scm->s64 #f s))
+           ((s <- s64->scm/unlikely #f u)    (u <- scm->s64 #f s))
+           ((u <- untag-fixnum #f s)         (s <- s64->scm #f u)
+                                             (s <- tag-fixnum #f u))
+           ;; NB: These definitions rely on U having top 2 bits equal to
+           ;; 3rd (sign) bit.
+           ((s <- tag-fixnum #f u)           (u <- scm->s64 #f s)
+                                             (u <- untag-fixnum #f s)))))
 
       (define (visit-label label equiv-labels var-substs)
         (match (intmap-ref conts label)
