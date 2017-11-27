@@ -534,7 +534,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                   (setk label ($kargs names vars ,body)))))
 
              (((or 'add/immediate 'sub/immediate 'mul/immediate)
-               (? u64-result?) (? u64-parameter? b) (? u64-operand? a))
+               (? u64-result?) (? u64-parameter?) (? u64-operand? a))
               (let ((op (match op
                           ('add/immediate 'uadd/immediate)
                           ('sub/immediate 'usub/immediate)
@@ -546,7 +546,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                   (setk label ($kargs names vars ,body)))))
 
              (((or 'add/immediate 'sub/immediate 'mul/immediate)
-               (? s64-result?) (? s64-parameter? b) (? s64-operand? a))
+               (? s64-result?) (? s64-parameter?) (? s64-operand? a))
               (let ((op (match op
                           ('add/immediate 'sadd/immediate)
                           ('sub/immediate 'ssub/immediate)
@@ -582,24 +582,24 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                   (setk label ($kargs names vars ,body)))))
 
              (((or 'lsh/immediate 'rsh/immediate)
-               (? u64-result?) (? u6-parameter? b) (u64-operand? a))
+               (? u64-result?) (? u6-parameter?) (? u64-operand? a))
               (let ((op (match op
                           ('lsh/immediate 'ulsh/immediate)
                           ('rsh/immediate 'ursh/immediate))))
                 (with-cps cps
                   (let$ body (specialize-unop
-                              k src op a param
+                              k src op param a
                               (unbox-u64 a) (box-u64 result)))
                   (setk label ($kargs names vars ,body)))))
 
              (((or 'lsh/immediate 'rsh/immediate)
-               (? s64-result?) (? u6-parameter? b) (s64-operand? a))
+               (? s64-result?) (? u6-parameter?) (? s64-operand? a))
               (let ((op (match op
                           ('lsh/immediate 'slsh/immediate)
                           ('rsh/immediate 'srsh/immediate))))
                 (with-cps cps
                   (let$ body (specialize-unop
-                              k src op a param
+                              k src op param a
                               (unbox-s64 a) (box-s64 result)))
                   (setk label ($kargs names vars ,body)))))
 
