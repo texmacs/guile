@@ -312,7 +312,9 @@ false.  It could be that both true and false proofs are available."
            ;; NB: These definitions rely on U having top 2 bits equal to
            ;; 3rd (sign) bit.
            ((s <- tag-fixnum #f u)           (u <- scm->s64 #f s)
-                                             (u <- untag-fixnum #f s)))))
+                                             (u <- untag-fixnum #f s))
+           ((s <- u64->s64 #f u)             (u <- s64->u64 #f s))
+           ((u <- s64->u64 #f s)             (s <- u64->s64 #f u)))))
 
       (define (visit-label label equiv-labels var-substs)
         (match (intmap-ref conts label)
