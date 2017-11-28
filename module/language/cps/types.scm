@@ -1520,7 +1520,7 @@ minimum, and maximum."
     (if (<= &s64-min min max &s64-max)
         (define! result &s64 min max)
         (define! result &s64 &s64-min &s64-max))))
-(define-type-inferrer (slsh/immediate param a result)
+(define-type-inferrer/param (slsh/immediate param a result)
   (let-values (((min max) (compute-ash-range (&min a) (&max a)
                                              param param)))
     (if (<= &s64-min min max &s64-max)
