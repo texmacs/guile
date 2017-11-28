@@ -952,7 +952,7 @@ minimum, and maximum."
   (define! result &s64 param param))
 
 (define-type-inferrer (untag-fixnum scm result)
-  (define! result &s64 (&min/s64 scm) (&max/s64 scm)))
+  (define! result &s64 (&min/fixnum scm) (&max/fixnum scm)))
 
 (define-type-inferrer (tag-fixnum s64 result)
   (define! result &fixnum (&min/fixnum s64) (&max/fixnum s64)))
