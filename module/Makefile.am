@@ -44,6 +44,7 @@ ice-9/psyntax-pp.go: ice-9/psyntax.scm ice-9/psyntax-pp.scm
 
 SOURCES =					\
   ice-9/and-let-star.scm			\
+  ice-9/arrays.scm				\
   ice-9/atomic.scm				\
   ice-9/binary-ports.scm			\
   ice-9/boot-9.scm				\

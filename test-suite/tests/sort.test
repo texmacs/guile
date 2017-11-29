@@ -1,25 +1,57 @@
 ;;;; sort.test --- tests Guile's sort functions    -*- scheme -*-
-;;;; Copyright (C) 2003, 2006, 2007, 2009, 2011 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 2003, 2006, 2007, 2009, 2011, 2017
+;;;;   Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(use-modules (test-suite lib)
+             (ice-9 arrays))
 
-(define (randomize-vector! v n)
-  (array-index-map! v (lambda (i) (random n)))
-  v)
+(set! *random-state* (seed->random-state 2017))
+
+; Randomly shuffle u in place, using Fisher-Yates algorithm.
+(define (array-shuffle! v)
+  (unless (= 1 (array-rank v)) (throw 'bad-rank (array-rank v)))
+  (let* ((dims (car (array-shape v)))
+         (lo (car dims)))
+    (let loop ((i (cadr dims)))
+      (if (> i lo)
+        (let* ((j (+ lo (random (- (1+ i) lo))))
+               (t (array-ref v j)))
+          (array-set! v (array-ref v i) j)
+          (array-set! v t i)
+          (loop (- i 1)))
+        v))))
+
+(define* (test-sort! v #:optional (sort sort))
+  (array-index-map! v (lambda (i) i))
+  (let ((before (array-copy v)))
+    (array-shuffle! v)
+    (let ((after (array-copy v)))
+      (and
+       (equal? before (sort v <))
+       (equal? after v)))))
+
+(define* (test-sort-inplace! v #:optional (sort! sort!))
+  (array-index-map! v (lambda (i) i))
+  (let ((before (array-copy v)))
+    (array-shuffle! v)
+    (and (equal? before (sort! v <))
+         (equal? before v)
+         (sorted? v <))))
+
 
 (with-test-prefix "sort"
 
@@ -32,70 +64,72 @@
     (sort '(1 2) (lambda (x y z) z)))
 
   (pass-if "sort of vector"
-    (let* ((v (randomize-vector! (make-vector 1000) 1000))
-           (w (vector-copy v)))
-      (and (sorted? (sort v <) <)
-           (equal? w v))))
+    (test-sort! (make-vector 100)))
 
-  (pass-if "sort of typed array"
-    (let* ((v (randomize-vector! (make-typed-array 'f64 *unspecified* 99) 99))
-           (w (make-typed-array 'f64 *unspecified* 99)))
-      (array-copy! v w)
-      (and (sorted? (sort v <) <)
-           (equal? w v))))
+  (pass-if "sort of typed vector"
+    (test-sort! (make-f64vector 100))))
 
-  (pass-if "sort! of vector"
-    (let ((v (randomize-vector! (make-vector 1000) 1000)))
-      (sorted? (sort! v <) <)))
 
-  (pass-if "sort! of typed array"
-    (let ((v (randomize-vector! (make-typed-array 'f64 *unspecified* 99) 99)))
-      (sorted? (sort! v <) <)))
+(with-test-prefix "sort!"
 
-  (pass-if "sort! of non-contigous vector"
-    (let* ((a (make-array 0 1000 3))
-	   (v (make-shared-array a (lambda (i) (list i 0)) 1000)))
-      (randomize-vector! v 1000)
-      (sorted? (sort! v <) <)))
+  (pass-if "sort of empty vector"
+    (test-sort-inplace! (vector)))
+
+  (pass-if "sort of vector"
+    (test-sort-inplace! (make-vector 100)))
+
+  (pass-if "sort of empty typed vector"
+    (test-sort-inplace! (f64vector)))
+
+  (pass-if "sort! of typed vector"
+    (test-sort-inplace! (make-f64vector 100)))
+
+  (pass-if "sort! of non-contigous array"
+    (let* ((a (make-array 0 100 3))
+	   (v (make-shared-array a (lambda (i) (list i 0)) 100)))
+      (test-sort-inplace! v)))
 
   (pass-if "sort! of non-contigous typed array"
     (let* ((a (make-typed-array 'f64 0 99 3))
 	   (v (make-shared-array a (lambda (i) (list i 0)) 99)))
-      (randomize-vector! v 99)
-      (sorted? (sort! v <) <)))
+      (test-sort-inplace! v)))
 
-  (pass-if "sort! of negative-increment vector"
-    (let* ((a (make-array 0 1000 3))
-	   (v (make-shared-array a (lambda (i) (list (- 999 i) 0)) 1000)))
-      (randomize-vector! v 1000)
-      (sorted? (sort! v <) <)))
+  (pass-if "sort! of negative-increment array"
+    (let* ((a (make-array 0 100 3))
+	   (v (make-shared-array a (lambda (i) (list (- 99 i) 0)) 100)))
+      (test-sort-inplace! v)))
+
+  (pass-if "sort! of non-zero base index array"
+    (test-sort-inplace! (make-array 0 '(-99 0))))
+
+  (pass-if "sort! of non-zero base index typed array"
+    (test-sort-inplace! (make-typed-array 'f64 0 '(-99 0))))
 
   (pass-if "sort! of negative-increment typed array"
     (let* ((a (make-typed-array 'f64 0 99 3))
 	   (v (make-shared-array a (lambda (i) (list (- 98 i) 0)) 99)))
-      (randomize-vector! v 99)
-      (sorted? (sort! v <) <)))
+      (test-sort-inplace! v))))
+
+
+(with-test-prefix "stable-sort!"
 
   (pass-if "stable-sort!"
-    (let ((v (randomize-vector! (make-vector 1000) 1000)))
-      (sorted? (stable-sort! v <) <)))
+    (let ((v (make-vector 100)))
+      (test-sort-inplace! v stable-sort!)))
 
-  (pass-if "stable-sort! of non-contigous vector"
-    (let* ((a (make-array 0 1000 3))
-	   (v (make-shared-array a (lambda (i) (list i 0)) 1000)))
-      (randomize-vector! v 1000)
-      (sorted? (stable-sort! v <) <)))
+  (pass-if "stable-sort! of non-contigous array"
+    (let* ((a (make-array 0 100 3))
+	   (v (make-shared-array a (lambda (i) (list i 0)) 100)))
+      (test-sort-inplace! v stable-sort!)))
 
-  (pass-if "stable-sort! of negative-increment vector"
-    (let* ((a (make-array 0 1000 3))
-	   (v (make-shared-array a (lambda (i) (list (- 999 i) 0)) 1000)))
-      (randomize-vector! v 1000)
-      (sorted? (stable-sort! v <) <))))
+  (pass-if "stable-sort! of negative-increment array"
+    (let* ((a (make-array 0 100 3))
+	   (v (make-shared-array a (lambda (i) (list (- 99 i) 0)) 100)))
+      (test-sort-inplace! v stable-sort!)))
 
+  (pass-if "stable-sort! of non-zero base index array"
+    (test-sort-inplace! (make-array 0 '(-99 0)) stable-sort!)))
 
-;;;
-;;; stable-sort
-;;;
 
 (with-test-prefix "stable-sort"
 
@@ -108,3 +142,18 @@
   ;; behavior (integer underflow) leading to crashes.
   (pass-if "empty vector"
     (equal? '#() (stable-sort '#() <))))
+
+
+(with-test-prefix "mutable/immutable arguments"
+
+  (with-test-prefix/c&e "immutable arguments"
+
+    (pass-if "sort! of empty vector"
+      (equal? #() (sort! (vector) <)))
+
+    (pass-if "sort of immutable vector"
+      (equal? #(0 1) (sort #(1 0) <))))
+
+  (pass-if-exception "sort! of mutable vector (compile)"
+      exception:wrong-type-arg
+    (compile '(sort! #(0) <) #:to 'value #:env (current-module))))

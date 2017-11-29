@@ -3,7 +3,8 @@
 #ifndef SCM_FPORTS_H
 #define SCM_FPORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001, 2006, 2008, 2009, 2011, 2012,
+ *   2017 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,9 +34,8 @@
 typedef struct scm_t_fport {
   /* The file descriptor.  */
   int fdes;
-  /* Revealed count; 0 indicates not revealed, > 1 revealed. Revealed
-     ports do not get garbage-collected.  */
-  int revealed;
+  /* Revealed count; 0 indicates not revealed, > 1 revealed.  */
+  unsigned int revealed;
   /* Set of scm_fport_option flags.  */
   unsigned options;
 } scm_t_fport;

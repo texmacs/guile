@@ -1,5 +1,6 @@
 SCM_BENCHMARKS = benchmarks/0-reference.bm		\
 		 benchmarks/arithmetic.bm		\
+		 benchmarks/bytevector-io.bm	        \
 		 benchmarks/bytevectors.bm		\
 		 benchmarks/chars.bm			\
 		 benchmarks/continuations.bm		\
@@ -13,7 +14,6 @@ SCM_BENCHMARKS = benchmarks/0-reference.bm		\
 		 benchmarks/srfi-13.bm			\
 		 benchmarks/structs.bm			\
 		 benchmarks/subr.bm			\
-		 benchmarks/uniform-vector-read.bm	\
 		 benchmarks/vectors.bm			\
 		 benchmarks/vlists.bm			\
 		 benchmarks/write.bm			\

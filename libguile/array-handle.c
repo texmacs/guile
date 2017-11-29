@@ -149,8 +149,10 @@ initialize_vector_handle (scm_t_array_handle *h, size_t len,
   h->dim0.ubnd = (ssize_t) (len - 1U);
   h->dim0.inc = 1;
   h->element_type = element_type;
-  h->elements = elements;
-  h->writable_elements = mutable_p ? ((void *) elements) : NULL;
+  /* elements != writable_elements is used to check mutability later on.
+     Ignore it if the array is empty. */
+  h->elements = len==0 ? NULL : elements;
+  h->writable_elements = mutable_p ? ((void *) h->elements) : NULL;
   h->vector = h->array;
   h->vref = vref;
   h->vset = vset;

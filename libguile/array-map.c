@@ -263,7 +263,7 @@ racp (SCM src, SCM dst)
     {
       SCM const * el_s = h_s.elements;
       SCM * el_d = h_d.writable_elements;
-      if (!el_d)
+      if (!el_d && n>0)
         scm_wrong_type_arg_msg ("array-copy!", SCM_ARG2, dst, "mutable array");
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
         el_d[i_d] = el_s[i_s];
@@ -679,6 +679,7 @@ SCM_DEFINE (scm_array_slice_for_each, "array-slice-for-each", 2, 0, 1,
             "@end lisp")
 #define FUNC_NAME s_scm_array_slice_for_each
 {
+  SCM xargs = args;
   int const N = scm_ilength (args);
   int const frank = scm_to_int (frame_rank);
   int ocd;
@@ -742,9 +743,9 @@ SCM_DEFINE (scm_array_slice_for_each, "array-slice-for-each", 2, 0, 1,
   assert((pool0+pool_size==pool) && "internal error");
 #undef AFIC_ALLOC_ADVANCE
 
-  for (n=0; scm_is_pair(args); args=scm_cdr(args), ++n)
+  for (n=0, xargs=args; scm_is_pair(xargs); xargs=scm_cdr(xargs), ++n)
     {
-      args_[n] = scm_car(args);
+      args_[n] = scm_car(xargs);
       scm_array_get_handle(args_[n], ah+n);
       as[n] = scm_array_handle_dims(ah+n);
       rank[n] = scm_array_handle_rank(ah+n);
@@ -752,29 +753,24 @@ SCM_DEFINE (scm_array_slice_for_each, "array-slice-for-each", 2, 0, 1,
   /* checks */
   msg = NULL;
   if (frank<0)
-    msg = "bad frame rank";
+    msg = "bad frame rank ~S, ~S";
   else
     {
       for (n=0; n!=N; ++n)
         {
           if (rank[n]<frank)
             {
-              msg = "frame too large for arguments";
+              msg = "frame too large for arguments: ~S, ~S";
               goto check_msg;
             }
           for (k=0; k!=frank; ++k)
             {
-              if (as[n][k].lbnd!=0)
+              if (as[0][k].lbnd!=as[n][k].lbnd || as[0][k].ubnd!=as[n][k].ubnd)
                 {
-                  msg = "non-zero base index is not supported";
+                  msg = "mismatched frames: ~S, ~S";
                   goto check_msg;
                 }
-              if (as[0][k].ubnd!=as[n][k].ubnd)
-                {
-                  msg = "mismatched frames";
-                  goto check_msg;
-                }
-              s[k] = as[n][k].ubnd + 1;
+              s[k] = as[n][k].ubnd - as[n][k].lbnd + 1;
 
               /* this check is needed if the array cannot be entirely */
               /* unrolled, because the unrolled subloop will be run before */
@@ -789,7 +785,7 @@ SCM_DEFINE (scm_array_slice_for_each, "array-slice-for-each", 2, 0, 1,
     {
       for (n=0; n!=N; ++n)
         scm_array_handle_release(ah+n);
-      scm_misc_error("array-slice-for-each", msg, scm_cons_star(frame_rank, args));
+      scm_misc_error("array-slice-for-each", msg, scm_cons(frame_rank, args));
     }
   /* prepare moving cells. */
   for (n=0; n!=N; ++n)

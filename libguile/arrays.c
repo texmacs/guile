@@ -908,49 +908,16 @@ scm_i_print_array_dimension (scm_t_array_handle *h, int dim, int pos,
   return 1;
 }
 
-/* Print an array.
-*/
-
 int
 scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 {
   scm_t_array_handle h;
-  size_t i;
-  int print_lbnds = 0, zero_size = 0, print_lens = 0;
+  int d;
 
+  scm_call_2 (scm_c_private_ref ("ice-9 arrays", "array-print-prefix"),
+              array, port);
+  
   scm_array_get_handle (array, &h);
-
-  scm_putc ('#', port);
-  if (SCM_I_ARRAYP (array))
-    scm_intprint (h.ndims, 10, port);
-  if (h.element_type != SCM_ARRAY_ELEMENT_TYPE_SCM)
-    scm_write (scm_array_handle_element_type (&h), port);
-
-  for (i = 0; i < h.ndims; i++)
-    {
-      if (h.dims[i].lbnd != 0)
-	print_lbnds = 1;
-      if (h.dims[i].ubnd - h.dims[i].lbnd + 1 == 0)
-	zero_size = 1;
-      else if (zero_size)
-	print_lens = 1;
-    }
-
-  if (print_lbnds || print_lens)
-    for (i = 0; i < h.ndims; i++)
-      {
-	if (print_lbnds)
-	  {
-	    scm_putc ('@', port);
-	    scm_intprint (h.dims[i].lbnd, 10, port);
-	  }
-	if (print_lens)
-	  {
-	    scm_putc (':', port);
-	    scm_intprint (h.dims[i].ubnd - h.dims[i].lbnd + 1,
-			  10, port);
-	  }
-      }
 
   if (h.ndims == 0)
     {
@@ -977,10 +944,13 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
       scm_putc ('(', port);
       scm_i_print_array_dimension (&h, 0, 0, port, pstate);
       scm_putc (')', port);
-      return 1;
+      d = 1;
     }
   else
-    return scm_i_print_array_dimension (&h, 0, 0, port, pstate);
+    d = scm_i_print_array_dimension (&h, 0, 0, port, pstate);
+
+  scm_array_handle_release (&h);
+  return d;
 }
 
 void
