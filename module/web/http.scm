@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010-2016 Free Software Foundation, Inc.
+;; Copyright (C)  2010-2017 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -1158,10 +1158,10 @@ three values: the method, the URI, and the version."
         (put-symbol port scheme)
         (put-string port "://")
         (cond
-         ((host string-index #\:)
-          (put-char #\[ port)
-          (put-string port host
-          (put-char port #\])))
+         ((string-index host #\:)
+          (put-char port #\[)
+          (put-string port host)
+          (put-char port #\]))
          (else
           (put-string port host)))
         (unless ((@@ (web uri) default-port?) scheme host-port)

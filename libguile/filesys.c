@@ -1727,10 +1727,17 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 #define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
+  scm_i_pthread_mutex_t *mutex;
+
+  mutex = scm_gc_malloc_pointerless (sizeof *mutex, "dirstream-mutex");
+  scm_i_pthread_mutex_init (mutex, NULL);
+
   STRING_SYSCALL (dirname, c_dirname, ds = opendir (c_dirname));
   if (ds == NULL)
     SCM_SYSERROR;
-  SCM_RETURN_NEWSMOB (scm_tc16_dir | (SCM_DIR_FLAG_OPEN<<16), ds);
+
+  SCM_RETURN_NEWSMOB2 (scm_tc16_dir | (SCM_DIR_FLAG_OPEN << 16),
+		       ds, SCM_PACK_POINTER (mutex));
 }
 #undef FUNC_NAME
 
@@ -1743,14 +1750,17 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 #define FUNC_NAME s_scm_readdir
 {
   SCM ret;
+  scm_i_pthread_mutex_t *mutex;
   struct dirent_or_dirent64 *rdent;
 
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
     SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
+  mutex = (scm_i_pthread_mutex_t *) SCM_SMOB_DATA_2 (port);
+
   scm_dynwind_begin (0);
-  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
+  scm_i_dynwind_pthread_mutex_lock (mutex);
 
   errno = 0;
   SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_SMOB_DATA_1 (port)));
@@ -1761,6 +1771,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
          : SCM_EOF_VAL);
 
   scm_dynwind_end ();
+
   return ret;
 }
 #undef FUNC_NAME
@@ -1772,11 +1783,17 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 	    "@code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
+  scm_i_pthread_mutex_t *mutex;
+
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
     SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
+  mutex = (scm_i_pthread_mutex_t *) SCM_SMOB_DATA_2 (port);
+
+  scm_i_pthread_mutex_lock (mutex);
   rewinddir ((DIR *) SCM_SMOB_DATA_1 (port));
+  scm_i_pthread_mutex_unlock (mutex);
 
   return SCM_UNSPECIFIED;
 }
@@ -1824,8 +1841,14 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 static size_t
 scm_dir_free (SCM p)
 {
+  scm_i_pthread_mutex_t *mutex;
+
   if (SCM_DIR_OPEN_P (p))
     closedir ((DIR *) SCM_SMOB_DATA_1 (p));
+
+  mutex = (scm_i_pthread_mutex_t *) SCM_SMOB_DATA_2 (p);
+  scm_i_pthread_mutex_destroy (mutex);
+
   return 0;
 }
 #endif
