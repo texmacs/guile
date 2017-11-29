@@ -115,9 +115,8 @@ Return @code{#t} if @var{x} is an output port, otherwise return
 Close the specified port object.  Return @code{#t} if it successfully
 closes a port or @code{#f} if it was already closed.  An exception may
 be raised if an error occurs, for example when flushing buffered output.
-@xref{Buffering}, for more on buffered output.  See also @ref{Ports and
-File Descriptors, close}, for a procedure which can close file
-descriptors.
+@xref{Buffering}, for more on buffered output.  @xref{Ports and File
+Descriptors, close}, for a procedure which can close file descriptors.
 @end deffn
 
 @deffn {Scheme Procedure} port-closed? port

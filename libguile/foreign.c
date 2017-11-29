@@ -56,6 +56,8 @@ SCM_SYMBOL (sym_unsigned_long, "unsigned-long");
 SCM_SYMBOL (sym_size_t, "size_t");
 SCM_SYMBOL (sym_ssize_t, "ssize_t");
 SCM_SYMBOL (sym_ptrdiff_t, "ptrdiff_t");
+SCM_SYMBOL (sym_intptr_t, "intptr_t");
+SCM_SYMBOL (sym_uintptr_t, "uintptr_t");
 
 /* that's for pointers, you know. */
 SCM_SYMBOL (sym_asterisk, "*");
@@ -1245,6 +1247,26 @@ scm_init_foreign (void)
 	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
 #else
 # error unsupported sizeof (scm_t_ptrdiff)
+#endif
+	      );
+
+  scm_define (sym_intptr_t,
+#if SCM_SIZEOF_INTPTR_T == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT64)
+#elif SCM_SIZEOF_INTPTR_T == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
+#else
+# error unsupported sizeof (scm_t_intptr)
+#endif
+	      );
+
+  scm_define (sym_uintptr_t,
+#if SCM_SIZEOF_UINTPTR_T == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64)
+#elif SCM_SIZEOF_UINTPTR_T == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
+#else
+# error unsupported sizeof (scm_t_uintptr)
 #endif
 	      );
 
