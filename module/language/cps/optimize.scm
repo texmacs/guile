@@ -98,7 +98,7 @@
   (elide-values #:elide-values? #t)
   (prune-bailouts #:prune-bailouts? #t)
   (simplify #:simplify? #t)
-  (devirtualize-integers #:eliminate-dead-code? #t)
+  (devirtualize-integers #:devirtualize-integers? #t)
   (peel-loops #:peel-loops? #t)
   (eliminate-common-subexpressions #:cse? #t)
   (type-fold #:type-fold? #t)
@@ -131,6 +131,7 @@
    #:cse? #t
    #:type-fold? #t
    #:resolve-self-references? #t
+   #:devirtualize-integers? #t
    #:specialize-numbers? #t
    #:licm? #t
    #:rotate-loops? #t
