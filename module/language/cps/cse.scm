@@ -250,9 +250,9 @@ false.  It could be that both true and false proofs are available."
           (($ $call proc args) #f)
           (($ $callk k proc args) #f)
           (($ $primcall name param args)
-           (cons* 'primcall name param (subst-vars var-substs args)))
+           (cons* name param (subst-vars var-substs args)))
           (($ $branch _ ($ $primcall name param args))
-           (cons* 'primcall name param (subst-vars var-substs args)))
+           (cons* name param (subst-vars var-substs args)))
           (($ $values args) #f)
           (($ $prompt escape? tag handler) #f)))
 
@@ -271,16 +271,16 @@ false.  It could be that both true and false proofs are available."
                 ((def <- op arg ...) (aux <- op* arg* ...) ...)
                 . clauses)
                (match exp-key
-                 (('primcall 'op arg ...)
+                 (('op arg ...)
                   (match defs
-                    ((def) (add-def! (list 'primcall 'op* arg* ...) aux) ...)))
+                    ((def) (add-def! (list 'op* arg* ...) aux) ...)))
                  (_ (add-definitions . clauses))))
               ((add-definitions
                 ((op arg ...) (aux <- op* arg* ...) ...)
                 . clauses)
                (match exp-key
-                 (('primcall 'op arg ...)
-                  (add-def! (list 'primcall 'op* arg* ...) aux) ...)
+                 (('op arg ...)
+                  (add-def! (list 'op* arg* ...) aux) ...)
                  (_ (add-definitions . clauses))))))
           (add-definitions
            ((b <- box #f o)                  (o <- box-ref #f b))
@@ -319,55 +319,56 @@ false.  It could be that both true and false proofs are available."
       (define (visit-label label equiv-labels var-substs)
         (match (intmap-ref conts label)
           (($ $kargs names vars ($ $continue k src exp))
-           (let* ((exp-key (compute-exp-key var-substs exp))
-                  (equiv (hash-ref equiv-set exp-key '()))
-                  (fx (intmap-ref effects label))
-                  (avail (intmap-ref avail label)))
-             (define (finish equiv-labels var-substs)
-               ;; If this expression defines auxiliary definitions,
-               ;; as `cons' does for the results of `car' and `cdr',
-               ;; define those.  Do so after finding equivalent
-               ;; expressions, so that we can take advantage of
-               ;; subst'd output vars.
-               (add-auxiliary-definitions! label var-substs exp-key)
-               (values equiv-labels var-substs))
-             (let lp ((candidates equiv))
-               (match candidates
-                 (()
-                  ;; No matching expressions.  Add our expression
-                  ;; to the equivalence set, if appropriate.  Note
-                  ;; that expressions that allocate a fresh object
-                  ;; or change the current fluid environment can't
-                  ;; be eliminated by CSE (though DCE might do it
-                  ;; if the value proves to be unused, in the
-                  ;; allocation case).
-                  (when (and exp-key
-                             (not (causes-effect? fx &allocation))
-                             (not (effect-clobbers? fx (&read-object &fluid))))
-                    (let ((defs (and (intset-ref singly-referenced k)
-                                     (intmap-ref defs label))))
-                      (when defs
-                        (hash-set! equiv-set exp-key
-                                   (acons label defs equiv)))))
-                  (finish equiv-labels var-substs))
-                 (((and head (candidate . vars)) . candidates)
-                  (cond
-                   ((not (intset-ref avail candidate))
-                    ;; This expression isn't available here; try
-                    ;; the next one.
-                    (lp candidates))
-                   (else
-                    ;; Yay, a match.  Mark expression as equivalent.  If
-                    ;; we provide the definitions for the successor, mark
-                    ;; the vars for substitution.
-                    (finish (intmap-add equiv-labels label head)
-                            (let ((defs (and (intset-ref singly-referenced k)
-                                             (intmap-ref defs label))))
-                              (if defs
-                                  (fold (lambda (def var var-substs)
-                                          (intmap-add var-substs def var))
-                                        var-substs defs vars)
-                                  var-substs))))))))))
+           (match (compute-exp-key var-substs exp)
+             (#f (values equiv-labels var-substs))
+             (exp-key
+              (let* ((equiv (hash-ref equiv-set exp-key '()))
+                     (fx (intmap-ref effects label))
+                     (avail (intmap-ref avail label)))
+                (define (finish equiv-labels var-substs)
+                  ;; If this expression defines auxiliary definitions,
+                  ;; as `cons' does for the results of `car' and `cdr',
+                  ;; define those.  Do so after finding equivalent
+                  ;; expressions, so that we can take advantage of
+                  ;; subst'd output vars.
+                  (add-auxiliary-definitions! label var-substs exp-key)
+                  (values equiv-labels var-substs))
+                (let lp ((candidates equiv))
+                  (match candidates
+                    (()
+                     ;; No matching expressions.  Add our expression
+                     ;; to the equivalence set, if appropriate.  Note
+                     ;; that expressions that allocate a fresh object
+                     ;; or change the current fluid environment can't
+                     ;; be eliminated by CSE (though DCE might do it
+                     ;; if the value proves to be unused, in the
+                     ;; allocation case).
+                     (when (and (not (causes-effect? fx &allocation))
+                                (not (effect-clobbers? fx (&read-object &fluid))))
+                       (let ((defs (and (intset-ref singly-referenced k)
+                                        (intmap-ref defs label))))
+                         (when defs
+                           (hash-set! equiv-set exp-key
+                                      (acons label defs equiv)))))
+                     (finish equiv-labels var-substs))
+                    (((and head (candidate . vars)) . candidates)
+                     (cond
+                      ((not (intset-ref avail candidate))
+                       ;; This expression isn't available here; try
+                       ;; the next one.
+                       (lp candidates))
+                      (else
+                       ;; Yay, a match.  Mark expression as equivalent.  If
+                       ;; we provide the definitions for the successor, mark
+                       ;; the vars for substitution.
+                       (finish (intmap-add equiv-labels label head)
+                               (let ((defs (and (intset-ref singly-referenced k)
+                                                (intmap-ref defs label))))
+                                 (if defs
+                                     (fold (lambda (def var var-substs)
+                                             (intmap-add var-substs def var))
+                                           var-substs defs vars)
+                                     var-substs))))))))))))
           (_ (values equiv-labels var-substs))))
 
       ;; Traverse the labels in fun in reverse post-order, which will
