@@ -285,6 +285,7 @@
           (letk kval ($kargs ('val) (val)
                        ($continue k src ($values (val)))))
           kval))
+       (($ $kargs (_)) (with-cps cps k))
        (($ $kreceive arity kargs)
         (match arity
           (($ $arity () () (not #f) () #f)
@@ -317,6 +318,23 @@
 
 ;; cps exp k-name alist -> cps term
 (define (convert cps exp k subst)
+  (define (single-valued? exp)
+    (match exp
+      ((or ($ <void>) ($ <const>) ($ <primitive-ref>) ($ <module-ref>)
+           ($ <toplevel-ref>) ($ <lambda>))
+       #t)
+      (($ <let> src names syms vals body) (single-valued? body))
+      (($ <fix> src names syms vals body) (single-valued? body))
+      (($ <let-values> src exp body) (single-valued? body))
+      (($ <primcall> src name args)
+       (match (prim-instruction name)
+         (#f #f)
+         (inst
+          (match (prim-arity inst)
+            ((out . in)
+             (and (eqv? out 1)
+                  (eqv? in (length args))))))))
+      (_ #f)))
   ;; exp (v-name -> term) -> term
   (define (convert-arg cps exp k)
     (match exp
@@ -330,7 +348,13 @@
             (build-term ($continue kunboxed src ($primcall 'box-ref #f (box))))))
          ((orig-var subst-var #f) (k cps subst-var))
          (var (k cps var))))
-      (else
+      ((? single-valued?)
+       (with-cps cps
+         (letv arg)
+         (let$ body (k arg))
+         (letk karg ($kargs ('arg) (arg) ,body))
+         ($ (convert exp karg subst))))
+      (_
        (with-cps cps
          (letv arg rest)
          (let$ body (k arg))
@@ -900,10 +924,16 @@
           (with-cps cps
             (let$ body (lp names syms vals))
             (let$ body (box-bound-var name sym body))
-            (letv rest)
-            (letk klet ($kargs (name 'rest) ((bound-var sym) rest) ,body))
-            (letk kreceive ($kreceive (list name) 'rest klet))
-            ($ (convert val kreceive subst)))))))
+            ($ ((lambda (cps)
+                  (if (single-valued? val)
+                      (with-cps cps
+                        (letk klet ($kargs (name) ((bound-var sym)) ,body))
+                        ($ (convert val klet subst)))
+                      (with-cps cps
+                        (letv rest)
+                        (letk klet ($kargs (name 'rest) ((bound-var sym) rest) ,body))
+                        (letk kreceive ($kreceive (list name) 'rest klet))
+                        ($ (convert val kreceive subst))))))))))))
 
     (($ <fix> src names gensyms funs body)
      ;; Some letrecs can be contified; that happens later.
