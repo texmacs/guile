@@ -793,13 +793,15 @@ are comparable with eqv?.  A tmp slot may be used."
    cps
    empty-intmap))
 
-(define (allocate-slots cps)
+(define* (allocate-slots cps #:key (precolor-calls? #t))
   (let*-values (((defs uses) (compute-defs-and-uses cps))
                 ((representations) (compute-var-representations cps))
                 ((live-in live-out) (compute-live-variables cps defs uses))
                 ((needs-slot) (compute-needs-slot cps defs uses))
-                ((lazy) (compute-lazy-vars cps live-in live-out defs
-                                           needs-slot)))
+                ((lazy) (if precolor-calls?
+                            (compute-lazy-vars cps live-in live-out defs
+                                               needs-slot)
+                            empty-intset)))
 
     (define (empty-live-slots)
       #b0)

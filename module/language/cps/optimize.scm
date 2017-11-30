@@ -133,4 +133,6 @@
    #:resolve-self-references? #t
    #:specialize-numbers? #t
    #:licm? #t
-   #:rotate-loops? #t))
+   #:rotate-loops? #t
+   ;; This one is used by the slot allocator.
+   #:precolor-calls? #t))
