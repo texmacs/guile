@@ -42,6 +42,7 @@
 (define-module (language cps effects-analysis)
   #:use-module (language cps)
   #:use-module (language cps utils)
+  #:use-module (language cps intset)
   #:use-module (language cps intmap)
   #:use-module (ice-9 match)
   #:export (expression-effects
@@ -80,7 +81,8 @@
 
             causes-effect?
             causes-all-effects?
-            effect-clobbers?))
+            effect-clobbers?
+            compute-clobber-map))
 
 (define-syntax define-flags
   (lambda (x)
@@ -229,6 +231,39 @@ is or might be a read or a write to the same location as A."
   (and (not (zero? (logand a &write)))
        (not (zero? (logand b (logior &read &write))))
        (locations-same?)))
+
+(define (compute-clobber-map effects)
+  "For the map LABEL->EFFECTS, compute a map LABEL->LABELS indicating
+the LABELS that are clobbered by the effects of LABEL."
+  (let ((clobbered-by-write (make-hash-table)))
+    (intmap-fold
+     (lambda (label fx)
+       ;; Unless an expression causes a read, it isn't clobbered by
+       ;; anything.
+       (when (causes-effect? fx &read)
+         (let ((me (intset label)))
+           (define (add! kind field)
+             (let* ((k (logior (ash field &memory-kind-bits) kind))
+                    (clobber (hashv-ref clobbered-by-write k empty-intset)))
+               (hashv-set! clobbered-by-write k (intset-union me clobber))))
+           ;; Clobbered by write to specific field of this memory
+           ;; kind, write to any field of this memory kind, or
+           ;; write to any field of unknown memory kinds.
+           (let* ((loc (ash fx (- &effect-kind-bits)))
+                  (kind (logand loc &memory-kind-mask))
+                  (field (ash loc (- &memory-kind-bits))))
+             (add! kind field)
+             (add! kind -1)
+             (add! &unknown-memory-kinds -1))))
+       (values))
+     effects)
+    (intmap-map (lambda (label fx)
+                  (if (causes-effect? fx &write)
+                      (hashv-ref clobbered-by-write
+                                 (ash fx (- &effect-kind-bits))
+                                 empty-intset)
+                      empty-intset))
+                effects)))
 
 (define *primitive-effects* (make-hash-table))
 
