@@ -33,6 +33,26 @@
   #:use-module (language cps intset)
   #:export (eliminate-common-subexpressions))
 
+(define (compute-available-expressions succs kfun effects)
+  "Compute and return a map of LABEL->ANCESTOR..., where ANCESTOR... is
+an intset containing ancestor labels whose value is available at LABEL."
+  (let ((init (intmap-map (lambda (label succs) #f) succs))
+        (kill (compute-clobber-map effects))
+        (gen (intmap-map (lambda (label succs) (intset label)) succs))
+        (subtract (lambda (in-1 kill-1)
+                    (if in-1
+                        (intset-subtract in-1 kill-1)
+                        empty-intset)))
+        (add intset-union)
+        (meet (lambda (in-1 in-1*)
+                (if in-1
+                    (intset-intersect in-1 in-1*)
+                    in-1*))))
+    (let ((in (intmap-replace init kfun empty-intset))
+          (out init)
+          (worklist (intset kfun)))
+      (solve-flow-equations succs in out kill gen subtract add meet worklist))))
+
 (define (intset-pop set)
   (match (intset-next set)
     (#f (values set #f))
@@ -56,72 +76,6 @@
   (case-lambda
     ((f worklist seed)
      ((make-worklist-folder* seed) f worklist seed))))
-
-(define (compute-available-expressions conts kfun effects)
-  "Compute and return a map of LABEL->ANCESTOR..., where ANCESTOR... is
-an intset containing ancestor labels whose value is available at LABEL."
-  (define (propagate avail succ out)
-    (let* ((in (intmap-ref avail succ (lambda (_) #f)))
-           (in* (if in (intset-intersect in out) out)))
-      (if (eq? in in*)
-          (values '() avail)
-          (values (list succ)
-                  (intmap-add avail succ in* (lambda (old new) new))))))
-
-  (define (clobber label in)
-    (let ((fx (intmap-ref effects label)))
-      (cond
-       ((not (causes-effect? fx &write))
-        ;; Fast-path if this expression clobbers nothing.
-        in)
-       (else
-        ;; Kill clobbered expressions.  FIXME: there is no need to check
-        ;; on any label before than the last dominating label that
-        ;; clobbered everything.  Another way to speed things up would
-        ;; be to compute a clobber set per-effect, which we could
-        ;; subtract from "in".
-        (let lp ((label 0) (in in))
-          (cond
-           ((intset-next in label)
-            => (lambda (label)
-                 (if (effect-clobbers? fx (intmap-ref effects label))
-                     (lp (1+ label) (intset-remove in label))
-                     (lp (1+ label) in))))
-           (else in)))))))
-
-  (define (visit-cont label avail)
-    (let* ((in (intmap-ref avail label))
-           (out (intset-add (clobber label in) label)))
-      (define (propagate0)
-        (values '() avail))
-      (define (propagate1 succ)
-        (propagate avail succ out))
-      (define (propagate2 succ0 succ1)
-        (let*-values (((changed0 avail) (propagate avail succ0 out))
-                      ((changed1 avail) (propagate avail succ1 out)))
-          (values (append changed0 changed1) avail)))
-
-      (match (intmap-ref conts label)
-        (($ $kargs names vars ($ $continue k src exp))
-         (match exp
-           (($ $branch kt) (propagate2 k kt))
-           (($ $prompt escape? tag handler) (propagate2 k handler))
-           (_ (propagate1 k))))
-        (($ $kreceive arity k)
-         (propagate1 k))
-        (($ $kfun src meta self tail clause)
-         (if clause
-             (propagate1 clause)
-             (propagate0)))
-        (($ $kclause arity kbody kalt)
-         (if kalt
-             (propagate2 kbody kalt)
-             (propagate1 kbody)))
-        (($ $ktail) (propagate0)))))
-
-  (worklist-fold* visit-cont
-                  (intset kfun)
-                  (intmap-add empty-intmap kfun empty-intset)))
 
 (define (compute-truthy-expressions conts kfun)
   "Compute a \"truth map\", indicating which expressions can be shown to
@@ -225,11 +179,16 @@ false.  It could be that both true and false proofs are available."
       (intset-subtract (persistent-intset single)
                        (persistent-intset multiple)))))
 
-(define (compute-equivalent-subexpressions conts kfun effects)
-  (define (visit-fun kfun equiv-labels var-substs)
-    (let* ((succs (compute-successors conts kfun))
+(define (intmap-select map set)
+  (intset->intmap (lambda (label) (intmap-ref map label)) set))
+
+(define (compute-equivalent-subexpressions conts kfun)
+  (define (visit-fun kfun body equiv-labels var-substs)
+    (let* ((conts (intmap-select conts body))
+           (effects (synthesize-definition-effects (compute-effects conts)))
+           (succs (compute-successors conts kfun))
            (singly-referenced (compute-singly-referenced succs))
-           (avail (compute-available-expressions conts kfun effects))
+           (avail (compute-available-expressions succs kfun effects))
            (defs (compute-defs conts kfun))
            (equiv-set (make-hash-table)))
       (define (subst-var var-substs var)
@@ -378,8 +337,8 @@ false.  It could be that both true and false proofs are available."
              equiv-labels
              var-substs)))
 
-  (intset-fold visit-fun
-               (intmap-keys (compute-reachable-functions conts kfun))
+  (intmap-fold visit-fun
+               (compute-reachable-functions conts kfun)
                empty-intmap
                empty-intmap))
 
@@ -440,10 +399,7 @@ false.  It could be that both true and false proofs are available."
    conts))
 
 (define (eliminate-common-subexpressions conts)
-  (call-with-values
-      (lambda ()
-        (let ((effects (synthesize-definition-effects (compute-effects conts))))
-          (compute-equivalent-subexpressions conts 0 effects)))
+  (call-with-values (lambda () (compute-equivalent-subexpressions conts 0))
     (lambda (equiv-labels var-substs)
       (let ((truthy-labels (compute-truthy-expressions conts 0)))
         (apply-cse conts equiv-labels var-substs truthy-labels)))))
