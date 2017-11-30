@@ -248,6 +248,7 @@
                          ($continue k src ($values (unspecified))))))
           (letk kvoid ($kargs () () ,body))
           kvoid))
+       (($ $kargs ()) (with-cps cps k))
        (($ $kreceive arity kargs)
         (match arity
           (($ $arity () () (not #f) () #f)
@@ -318,6 +319,26 @@
 
 ;; cps exp k-name alist -> cps term
 (define (convert cps exp k subst)
+  (define (zero-valued? exp)
+    (match exp
+      ((or ($ <module-set>) ($ <toplevel-set>) ($ <toplevel-define>)
+           ($ <lexical-set>))
+       #t)
+      (($ <let> src names syms vals body) (zero-valued? body))
+      ;; Can't use <fix> here as the hack that <fix> uses to convert its
+      ;; functions relies on continuation being single-valued.
+      ;; (($ <fix> src names syms vals body) (zero-valued? body))
+      (($ <let-values> src exp body) (zero-valued? body))
+      (($ <seq> src head tail) (zero-valued? tail))
+      (($ <primcall> src name args)
+       (match (prim-instruction name)
+         (#f #f)
+         (inst
+          (match (prim-arity inst)
+            ((out . in)
+             (and (eqv? out 0)
+                  (eqv? in (length args))))))))
+      (_ #f)))
   (define (single-valued? exp)
     (match exp
       ((or ($ <void>) ($ <const>) ($ <primitive-ref>) ($ <module-ref>)
@@ -326,6 +347,7 @@
       (($ <let> src names syms vals body) (single-valued? body))
       (($ <fix> src names syms vals body) (single-valued? body))
       (($ <let-values> src exp body) (single-valued? body))
+      (($ <seq> src head tail) (single-valued? tail))
       (($ <primcall> src name args)
        (match (prim-instruction name)
          (#f #f)
@@ -909,12 +931,17 @@
                 ($continue k src ($primcall 'box-set! #f (box exp))))))))))
 
     (($ <seq> src head tail)
-     (with-cps cps
-       (let$ tail (convert tail k subst))
-       (letv vals)
-       (letk kseq ($kargs ('vals) (vals) ,tail))
-       (letk kreceive ($kreceive '() 'vals kseq))
-       ($ (convert head kreceive subst))))
+     (if (zero-valued? head)
+         (with-cps cps
+           (let$ tail (convert tail k subst))
+           (letk kseq ($kargs () () ,tail))
+           ($ (convert head kseq subst)))
+         (with-cps cps
+           (let$ tail (convert tail k subst))
+           (letv vals)
+           (letk kseq ($kargs ('vals) (vals) ,tail))
+           (letk kreceive ($kreceive '() 'vals kseq))
+           ($ (convert head kreceive subst)))))
 
     (($ <let> src names syms vals body)
      (let lp ((cps cps) (names names) (syms syms) (vals vals))
