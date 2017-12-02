@@ -133,10 +133,8 @@
     (values #f #f))))
 (define-branch-folder-alias heap-numbers-equal? eq?)
 
-(define (compare-integer-ranges type0 min0 max0 type1 min1 max1)
-  (and (type<=? (logior type0 type1)
-                (logior &exact-integer &s64 &u64))
-       (cond ((< max0 min1) '<)
+(define (compare-exact-ranges min0 max0 min1 max1)
+  (and (cond ((< max0 min1) '<)
              ((> min0 max1) '>)
              ((= min0 max0 min1 max1) '=)
              ((<= max0 min1) '<=)
@@ -144,12 +142,18 @@
              (else #f))))
 
 (define-binary-branch-folder (< type0 min0 max0 type1 min1 max1)
-  (case (compare-integer-ranges type0 min0 max0 type1 min1 max1)
+  (if (type<=? (logior type0 type1) &exact-number)
+      (case (compare-exact-ranges min0 max0 min1 max1)
+        ((<) (values #t #t))
+        ((= >= >) (values #t #f))
+        (else (values #f #f)))
+      (values #f #f)))
+(define-binary-branch-folder (u64-< type0 min0 max0 type1 min1 max1)
+  (case (compare-exact-ranges min0 max0 min1 max1)
     ((<) (values #t #t))
     ((= >= >) (values #t #f))
     (else (values #f #f))))
-(define-branch-folder-alias u64-< <)
-(define-branch-folder-alias s64-< <)
+(define-branch-folder-alias s64-< u64-<)
 ;; We currently cannot define branch folders for floating point
 ;; comparison ops like the commented one below because we can't prove
 ;; there are no nans involved.
@@ -178,18 +182,24 @@
 (define-branch-folder-alias imm-s64-< imm-u64-<)
 
 (define-binary-branch-folder (= type0 min0 max0 type1 min1 max1)
-  (if (and (type<=? (logior type0 type1)
-                    (logior &exact-integer &fraction))
-           (zero? (logand type0 type1)))
-      ;; If both values are exact but of different types, they are not
-      ;; equal.
-      (values #t #f)
-      (case (compare-integer-ranges type0 min0 max0 type1 min1 max1)
-        ((=) (values #t #t))
-        ((< >) (values #t #f))
-        (else (values #f #f)))))
-(define-branch-folder-alias u64-= =)
-(define-branch-folder-alias s64-= =)
+  (cond
+   ((not (type<=? (logior type0 type1) &exact-number))
+    (values #f #f))
+   ((zero? (logand type0 type1))
+    ;; If both values are exact but of different types, they are not
+    ;; equal.
+    (values #t #f))
+   (else
+    (case (compare-exact-ranges min0 max0 min1 max1)
+      ((=) (values #t #t))
+      ((< >) (values #t #f))
+      (else (values #f #f))))))
+(define-binary-branch-folder (u64-= type0 min0 max0 type1 min1 max1)
+  (case (compare-exact-ranges min0 max0 min1 max1)
+    ((=) (values #t #t))
+    ((< >) (values #t #f))
+    (else (values #f #f))))
+(define-branch-folder-alias s64-= u64-=)
 
 
 
