@@ -521,7 +521,12 @@ address of that offset."
 (define (instruction-has-fallthrough? code pos)
   (define non-fallthrough-set
     (static-opcode-set halt
-                       throw throw/value throw/value+data
+                       ;; FIXME: add throw, throw/value,
+                       ;; throw/value+data.  Currently control flow
+                       ;; nominally continues; we don't add these ops to
+                       ;; the non-fallthrough-set currently to allow the
+                       ;; frame parser to be able to compute the stack
+                       ;; size for following code.
                        tail-call tail-call-label tail-call/shuffle
                        return-values
                        subr-call foreign-call continuation-call
