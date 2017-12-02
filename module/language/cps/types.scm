@@ -1068,6 +1068,12 @@ minimum, and maximum."
           (restrict! a &exact-number (max min0 min1) max0)
           (restrict! b &exact-number min1 (min max0 max1)))))))))
 
+(define (infer-<= types succ param a b)
+  ;; Infer "(<= a b)" as "(not (< b a))", knowing that we only make
+  ;; inferences when NaN is impossible.
+  ((hashq-ref *type-inferrers* '<) types (match succ (0 1) (1 0)) param b a))
+(hashq-set! *type-inferrers* '<= infer-<=)
+
 (define-predicate-inferrer (u64-= a b true?)
   (infer-= a b true?))
 (define-predicate-inferrer (u64-< a b true?)

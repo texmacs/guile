@@ -144,6 +144,7 @@ before it is lowered to CPS?"
     heap-numbers-equal?
 
     <
+    <=
     =
 
     u64-<
@@ -152,6 +153,7 @@ before it is lowered to CPS?"
     s64-<
 
     f64-<
+    f64-<=
     f64-=))
 
 (define *branching-primcall-arities* (make-hash-table))

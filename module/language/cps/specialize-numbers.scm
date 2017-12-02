@@ -565,6 +565,17 @@ BITS indicating the significant bits needed for a variable.  BITS may be
 
     (define (specialize-branch cps kf kt src op param args)
       (match (cons op args)
+        (('<= a b)
+         (cond
+          ((f64-operands? a b)
+           (specialize-comparison cps kf kt src 'f64-<= a b
+                                  (unbox-f64 a) (unbox-f64 b)))
+          ((and (exact-integer-operand? a) (exact-integer-operand? b))
+           ;; If NaN is impossible, reduce (<= a b) to (not (< b a)) and
+           ;; try again.
+           (specialize-branch cps kt kf src '< param (list b a)))
+          (else
+           (with-cps cps #f))))
         (((or '< '=) a b)
          (cond
           ((f64-operands? a b)

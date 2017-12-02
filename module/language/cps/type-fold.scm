@@ -160,6 +160,14 @@
 ;;
 ;; (define-branch-folder-alias f64-< <)
 
+(define-binary-branch-folder (<= type0 min0 max0 type1 min1 max1)
+  (if (type<=? (logior type0 type1) &exact-number)
+      (case (compare-exact-ranges min0 max0 min1 max1)
+        ((< <= =) (values #t #t))
+        ((>) (values #t #f))
+        (else (values #f #f)))
+      (values #f #f)))
+
 (define-unary-branch-folder* (u64-imm-= c type min max)
   (cond
    ((= c min max) (values #t #t))

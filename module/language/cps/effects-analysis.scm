@@ -449,6 +449,7 @@ the LABELS that are clobbered by the effects of LABEL."
 (define-primitive-effects
   ((heap-numbers-equal? . _))
   ((= . _)                         &type-check)
+  ((<= . _)                         &type-check)
   ((< . _)                         &type-check)
   ((u64-= . _))
   ((u64-imm-= . _))
@@ -462,6 +463,7 @@ the LABELS that are clobbered by the effects of LABEL."
   ((imm-s64-< . _))
   ((f64-= . _))
   ((f64-< . _))
+  ((f64-<= . _))
   ((zero? . _)                     &type-check)
   ((add . _)                       &type-check)
   ((add/immediate . _)             &type-check)
