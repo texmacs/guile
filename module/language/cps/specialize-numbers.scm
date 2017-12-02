@@ -451,266 +451,220 @@ BITS indicating the significant bits needed for a variable.  BITS may be
     (define (box-f64 result)
       f64->scm)
 
+    (define (specialize-primcall cps k src op param args)
+      (match (intmap-ref cps k)
+        (($ $kargs (_) (result))
+         (match (cons* op result param args)
+           (((or 'add 'sub 'mul 'div)
+             (? f64-result?) #f a b)
+            (let ((op (match op
+                        ('add 'fadd) ('sub 'fsub) ('mul 'fmul) ('div 'fdiv))))
+              (specialize-binop cps k src op a b
+                                (unbox-f64 a) (unbox-f64 b) (box-f64 result))))
+
+           (((or 'add 'sub 'mul 'logand 'logior 'logxor 'logsub)
+             (? u64-result?) #f (? u64-operand? a) (? u64-operand? b))
+            (let ((op (match op
+                        ('add 'uadd) ('sub 'usub) ('mul 'umul)
+                        ('logand 'ulogand) ('logior 'ulogior)
+                        ('logxor 'ulogxor) ('logsub 'ulogsub))))
+              (specialize-binop cps k src op a b
+                                (unbox-u64 a) (unbox-u64 b) (box-u64 result))))
+
+           (((or 'logand 'logior 'logxor 'logsub)
+             (? u64-result?) #f (? s64-operand? a) (? s64-operand? b))
+            (let ((op (match op
+                        ('logand 'ulogand) ('logior 'ulogior)
+                        ('logxor 'ulogxor) ('logsub 'ulogsub))))
+              (define (unbox-u64* x)
+                (let ((unbox-s64 (unbox-s64 x)))
+                  (lambda (cps k src x)
+                    (with-cps cps
+                      (letv s64)
+                      (letk ks64 ($kargs ('s64) (s64)
+                                         ($continue k src
+                                                    ($primcall 's64->u64 #f (s64)))))
+                      ($ (unbox-s64 k src x))))))
+              (specialize-binop cps k src op a b
+                                (unbox-u64* a) (unbox-u64* b) (box-u64 result))))
+
+           (((or 'add 'sub 'mul)
+             (? s64-result?) #f (? s64-operand? a) (? s64-operand? b))
+            (let ((op (match op
+                        ('add 'sadd) ('sub 'ssub) ('mul 'smul))))
+              (specialize-binop cps k src op a b
+                                (unbox-s64 a) (unbox-s64 b) (box-s64 result))))
+
+           (('sub/immediate
+             (? f64-result?) param a)
+            (specialize-unop cps k src 'fadd/immediate (- param) a
+                             (unbox-f64 a) (box-f64 result)))
+
+           (((or 'add/immediate 'mul/immediate)
+             (? f64-result?) param a)
+            (let ((op (match op
+                        ('add/immediate 'fadd/immediate)
+                        ('mul/immediate 'fmul/immediate))))
+              (specialize-unop cps k src op param a
+                               (unbox-f64 a) (box-f64 result))))
+
+           (((or 'add/immediate 'sub/immediate 'mul/immediate)
+             (? u64-result?) (? u64-parameter?) (? u64-operand? a))
+            (let ((op (match op
+                        ('add/immediate 'uadd/immediate)
+                        ('sub/immediate 'usub/immediate)
+                        ('mul/immediate 'umul/immediate))))
+              (specialize-unop cps k src op param a
+                               (unbox-u64 a) (box-u64 result))))
+
+           (((or 'add/immediate 'sub/immediate 'mul/immediate)
+             (? s64-result?) (? s64-parameter?) (? s64-operand? a))
+            (let ((op (match op
+                        ('add/immediate 'sadd/immediate)
+                        ('sub/immediate 'ssub/immediate)
+                        ('mul/immediate 'smul/immediate))))
+              (specialize-unop cps k src op param a
+                               (unbox-s64 a) (box-s64 result))))
+
+           (((or 'lsh 'rsh)
+             (? u64-result?) #f (? u64-operand? a) (? u6-operand? b))
+            (let ((op (match op ('lsh 'ulsh) ('rsh 'ursh))))
+              (define (pass-u64 cps k src b)
+                (with-cps cps
+                  (build-term ($continue k src ($values (b))))))
+              (specialize-binop cps k src op a b
+                                (unbox-u64 a) pass-u64 (box-u64 result))))
+
+           (((or 'lsh 'rsh)
+             (? s64-result?) #f (? s64-operand? a) (? u6-operand? b))
+            (let ((op (match op ('lsh 'slsh) ('rsh 'srsh))))
+              (define (pass-u64 cps k src b)
+                (with-cps cps
+                  (build-term ($continue k src ($values (b))))))
+              (specialize-binop cps k src op a b
+                                (unbox-s64 a) pass-u64 (box-s64 result))))
+
+           (((or 'lsh/immediate 'rsh/immediate)
+             (? u64-result?) (? u6-parameter?) (? u64-operand? a))
+            (let ((op (match op
+                        ('lsh/immediate 'ulsh/immediate)
+                        ('rsh/immediate 'ursh/immediate))))
+              (specialize-unop cps k src op param a
+                               (unbox-u64 a) (box-u64 result))))
+
+           (((or 'lsh/immediate 'rsh/immediate)
+             (? s64-result?) (? u6-parameter?) (? s64-operand? a))
+            (let ((op (match op
+                        ('lsh/immediate 'slsh/immediate)
+                        ('rsh/immediate 'srsh/immediate))))
+              (specialize-unop cps k src op param a
+                               (unbox-s64 a) (box-s64 result))))
+
+           (_ (with-cps cps #f))))
+        (_ (with-cps cps #f))))
+
+    (define (specialize-branch cps kf kt src op param args)
+      (match (cons op args)
+        (((or '< '=) a b)
+         (cond
+          ((f64-operands? a b)
+           (let ((op (match op ('= 'f64-=) ('< 'f64-<))))
+             (specialize-comparison cps kf kt src op a b
+                                    (unbox-f64 a) (unbox-f64 b))))
+          ((and (s64-operand? a) (s64-operand? b))
+           (cond
+            ((constant-arg a)
+             => (lambda (a)
+                  (let ((op (match op ('= 's64-imm-=) ('< 'imm-s64-<))))
+                    (specialize-comparison/immediate cps kf kt src op b a
+                                                     (unbox-s64 b)))))
+            ((constant-arg b)
+             => (lambda (b)
+                  (let ((op (match op ('= 's64-imm-=) ('< 's64-imm-<))))
+                    (specialize-comparison/immediate cps kf kt src op a b
+                                                     (unbox-s64 a)))))
+            (else
+             (let ((op (match op ('= 's64-=) ('< 's64-<))))
+               (specialize-comparison cps kf kt src op a b
+                                      (unbox-s64 a) (unbox-s64 b))))))
+          ((and (u64-operand? a) (u64-operand? b))
+           (cond
+            ((constant-arg a)
+             => (lambda (a)
+                  (let ((op (match op ('= 'u64-imm-=) ('< 'imm-u64-<))))
+                    (specialize-comparison/immediate cps kf kt src op b a
+                                                     (unbox-u64 b)))))
+            ((constant-arg b)
+             => (lambda (b)
+                  (let ((op (match op ('= 'u64-imm-=) ('< 'u64-imm-<))))
+                    (specialize-comparison/immediate cps kf kt src op a b
+                                                     (unbox-u64 a)))))
+            (else
+             (let ((op (match op ('= 'u64-=) ('< 'u64-<))))
+               (specialize-comparison cps kf kt src op a b
+                                      (unbox-u64 a) (unbox-u64 b))))))
+          ((and (exact-integer-operand? a) (exact-integer-operand? b))
+           (cond
+            ((s64-operand? a)
+             (cond
+              ((constant-arg a)
+               => (lambda (a)
+                    (let ((imm-op (match op ('= 's64-imm-=) ('< 'imm-s64-<))))
+                      (specialize-comparison/immediate-s64-integer
+                       cps kf kt src imm-op a b
+                       (lambda (cps a)
+                         (with-cps cps
+                           (build-exp ($primcall op #f (a b)))))))))
+              (else
+               (specialize-comparison/s64-integer cps kf kt src op a b
+                                                  (unbox-s64 a)
+                                                  (rebox-s64 a)))))
+            ((s64-operand? b)
+             (cond
+              ((constant-arg b)
+               => (lambda (b)
+                    (let ((imm-op (match op ('= 's64-imm-=) ('< 's64-imm-<))))
+                      (specialize-comparison/immediate-s64-integer
+                       cps kf kt src imm-op b a
+                       (lambda (cps b)
+                         (with-cps cps
+                           (build-exp ($primcall op #f (a b)))))))))
+              (else
+               (specialize-comparison/integer-s64 cps kf kt src op a b
+                                                  (unbox-s64 b)
+                                                  (rebox-s64 b)))))
+            (else (with-cps cps #f))))
+          (else (with-cps cps #f))))
+        (_ (with-cps cps #f))))
+
     (match cont
       (($ $kfun)
-       (let ((types (infer-types cps label)))
-         (values cps types (compute-significant-bits cps types label))))
-
-      (($ $kargs names vars ($ $continue k src ($ $primcall op param args)))
-       (values
-        (match (intmap-ref cps k)
-          (($ $kargs (_) (result))
-           (match (cons* op result param args)
-             (((or 'add 'sub 'mul 'div)
-               (? f64-result?) #f a b)
-              (let ((op (match op
-                          ('add 'fadd) ('sub 'fsub) ('mul 'fmul) ('div 'fdiv))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-f64 a) (unbox-f64 b) (box-f64 result)))
-                  ;; FIXME: Remove this repetition.
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'add 'sub 'mul 'logand 'logior 'logxor 'logsub)
-               (? u64-result?) #f (? u64-operand? a) (? u64-operand? b))
-              (let ((op (match op
-                          ('add 'uadd) ('sub 'usub) ('mul 'umul)
-                          ('logand 'ulogand) ('logior 'ulogior)
-                          ('logxor 'ulogxor) ('logsub 'ulogsub))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-u64 a) (unbox-u64 b) (box-u64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'logand 'logior 'logxor 'logsub)
-               (? u64-result?) #f (? s64-operand? a) (? s64-operand? b))
-              (let ((op (match op
-                          ('logand 'ulogand) ('logior 'ulogior)
-                          ('logxor 'ulogxor) ('logsub 'ulogsub))))
-                (define (unbox-u64* x)
-                  (let ((unbox-s64 (unbox-s64 x)))
-                    (lambda (cps k src x)
-                      (with-cps cps
-                        (letv s64)
-                        (letk ks64 ($kargs ('s64) (s64)
-                                     ($continue k src
-                                       ($primcall 's64->u64 #f (s64)))))
-                        ($ (unbox-s64 k src x))))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-u64* a) (unbox-u64* b) (box-u64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'add 'sub 'mul)
-               (? s64-result?) #f (? s64-operand? a) (? s64-operand? b))
-              (let ((op (match op
-                          ('add 'sadd) ('sub 'ssub) ('mul 'smul))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-s64 a) (unbox-s64 b) (box-s64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (('sub/immediate
-               (? f64-result?) param a)
-              (with-cps cps
-                (let$ body (specialize-unop
-                            k src 'fadd/immediate (- param) a
-                            (unbox-f64 a) (box-f64 result)))
-                (setk label ($kargs names vars ,body))))
-
-             (((or 'add/immediate 'mul/immediate)
-               (? f64-result?) param a)
-              (let ((op (match op
-                          ('add/immediate 'fadd/immediate)
-                          ('mul/immediate 'fmul/immediate))))
-                (with-cps cps
-                  (let$ body (specialize-unop
-                              k src op param a
-                              (unbox-f64 a) (box-f64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'add/immediate 'sub/immediate 'mul/immediate)
-               (? u64-result?) (? u64-parameter?) (? u64-operand? a))
-              (let ((op (match op
-                          ('add/immediate 'uadd/immediate)
-                          ('sub/immediate 'usub/immediate)
-                          ('mul/immediate 'umul/immediate))))
-                (with-cps cps
-                  (let$ body (specialize-unop
-                              k src op param a
-                              (unbox-u64 a) (box-u64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'add/immediate 'sub/immediate 'mul/immediate)
-               (? s64-result?) (? s64-parameter?) (? s64-operand? a))
-              (let ((op (match op
-                          ('add/immediate 'sadd/immediate)
-                          ('sub/immediate 'ssub/immediate)
-                          ('mul/immediate 'smul/immediate))))
-                (with-cps cps
-                  (let$ body (specialize-unop
-                              k src op param a
-                              (unbox-s64 a) (box-s64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'lsh 'rsh)
-               (? u64-result?) #f (? u64-operand? a) (? u6-operand? b))
-              (let ((op (match op ('lsh 'ulsh) ('rsh 'ursh))))
-                (define (pass-u64 cps k src b)
-                  (with-cps cps
-                    (build-term ($continue k src ($values (b))))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-u64 a) pass-u64 (box-u64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'lsh 'rsh)
-               (? s64-result?) #f (? s64-operand? a) (? u6-operand? b))
-              (let ((op (match op ('lsh 'slsh) ('rsh 'srsh))))
-                (define (pass-u64 cps k src b)
-                  (with-cps cps
-                    (build-term ($continue k src ($values (b))))))
-                (with-cps cps
-                  (let$ body (specialize-binop
-                              k src op a b
-                              (unbox-s64 a) pass-u64 (box-s64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'lsh/immediate 'rsh/immediate)
-               (? u64-result?) (? u6-parameter?) (? u64-operand? a))
-              (let ((op (match op
-                          ('lsh/immediate 'ulsh/immediate)
-                          ('rsh/immediate 'ursh/immediate))))
-                (with-cps cps
-                  (let$ body (specialize-unop
-                              k src op param a
-                              (unbox-u64 a) (box-u64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (((or 'lsh/immediate 'rsh/immediate)
-               (? s64-result?) (? u6-parameter?) (? s64-operand? a))
-              (let ((op (match op
-                          ('lsh/immediate 'slsh/immediate)
-                          ('rsh/immediate 'srsh/immediate))))
-                (with-cps cps
-                  (let$ body (specialize-unop
-                              k src op param a
-                              (unbox-s64 a) (box-s64 result)))
-                  (setk label ($kargs names vars ,body)))))
-
-             (_ cps)))
-          (_ cps))
-        types
-        sigbits))
+       (let* ((types (infer-types cps label))
+              (sigbits (compute-significant-bits cps types label)))
+         (values cps types sigbits)))
 
       (($ $kargs names vars
-          ($ $continue kf src
-             ($ $branch kt ($ $primcall (and op (or '< '=)) #f (a b)))))
-       (values
-        (cond
-         ((f64-operands? a b)
-          (let ((op (match op ('= 'f64-=) ('< 'f64-<))))
-            (with-cps cps
-              (let$ body (specialize-comparison kf kt src op a b
-                                                (unbox-f64 a) (unbox-f64 b)))
-              (setk label ($kargs names vars ,body)))))
-         ((and (s64-operand? a) (s64-operand? b))
-          (cond
-           ((constant-arg a)
-            => (lambda (a)
-                 (let ((op (match op ('= 's64-imm-=) ('< 'imm-s64-<))))
-                   (with-cps cps
-                     (let$ body (specialize-comparison/immediate
-                                 kf kt src op b a
-                                 (unbox-s64 b)))
-                     (setk label ($kargs names vars ,body))))))
-           ((constant-arg b)
-            => (lambda (b)
-                 (let ((op (match op ('= 's64-imm-=) ('< 's64-imm-<))))
-                   (with-cps cps
-                     (let$ body (specialize-comparison/immediate
-                                 kf kt src op a b
-                                 (unbox-s64 a)))
-                     (setk label ($kargs names vars ,body))))))
-           (else
-            (let ((op (match op ('= 's64-=) ('< 's64-<))))
-              (with-cps cps
-                (let$ body (specialize-comparison
-                            kf kt src op a b
-                            (unbox-s64 a) (unbox-s64 b)))
-                (setk label ($kargs names vars ,body)))))))
-         ((and (u64-operand? a) (u64-operand? b))
-          (cond
-           ((constant-arg a)
-            => (lambda (a)
-                 (let ((op (match op ('= 'u64-imm-=) ('< 'imm-u64-<))))
-                   (with-cps cps
-                     (let$ body (specialize-comparison/immediate
-                                 kf kt src op b a
-                                 (unbox-u64 b)))
-                     (setk label ($kargs names vars ,body))))))
-           ((constant-arg b)
-            => (lambda (b)
-                 (let ((op (match op ('= 'u64-imm-=) ('< 'u64-imm-<))))
-                   (with-cps cps
-                     (let$ body (specialize-comparison/immediate
-                                 kf kt src op a b
-                                 (unbox-u64 a)))
-                     (setk label ($kargs names vars ,body))))))
-           (else
-            (let ((op (match op ('= 'u64-=) ('< 'u64-<))))
-              (with-cps cps
-                (let$ body (specialize-comparison
-                            kf kt src op a b
-                            (unbox-u64 a) (unbox-u64 b)))
-                (setk label ($kargs names vars ,body)))))))
-         ((and (exact-integer-operand? a) (exact-integer-operand? b))
-          (cond
-           ((s64-operand? a)
-            (cond
-             ((constant-arg a)
-              => (lambda (a)
-                   (let ((imm-op (match op ('= 's64-imm-=) ('< 'imm-s64-<))))
-                     (with-cps cps
-                       (let$ body (specialize-comparison/immediate-s64-integer
-                                   kf kt src imm-op a b
-                                   (lambda (cps a)
-                                     (with-cps cps
-                                       (build-exp ($primcall op #f (a b)))))))
-                       (setk label ($kargs names vars ,body))))))
-             (else
-              (with-cps cps
-                (let$ body (specialize-comparison/s64-integer
-                            kf kt src op a b
-                            (unbox-s64 a) (rebox-s64 a)))
-                (setk label ($kargs names vars ,body))))))
-           ((s64-operand? b)
-            (cond
-             ((constant-arg b)
-              => (lambda (b)
-                   (let ((imm-op (match op ('= 's64-imm-=) ('< 's64-imm-<))))
-                     (with-cps cps
-                       (let$ body (specialize-comparison/immediate-s64-integer
-                                   kf kt src imm-op b a
-                                   (lambda (cps b)
-                                     (with-cps cps
-                                       (build-exp ($primcall op #f (a b)))))))
-                       (setk label ($kargs names vars ,body))))))
-             (else
-              (with-cps cps
-                (let$ body (specialize-comparison/integer-s64
-                            kf kt src op a b
-                            (unbox-s64 b) (rebox-s64 b)))
-                (setk label ($kargs names vars ,body))))))
-           (else cps)))
-         (else cps))
-        types
-        sigbits))
+          ($ $continue k src ($ $primcall op param args)))
+       (call-with-values
+           (lambda () (specialize-primcall cps k src op param args))
+         (lambda (cps term)
+           (values (if term
+                       (with-cps cps
+                         (setk label ($kargs names vars ,term)))
+                       cps)
+                   types sigbits))))
+
+      (($ $kargs names vars
+          ($ $continue kf src ($ $branch kt ($ $primcall op param args))))
+       (call-with-values
+           (lambda () (specialize-branch cps kf kt src op param args))
+         (lambda (cps term)
+           (values (if term
+                       (with-cps cps
+                         (setk label ($kargs names vars ,term)))
+                       cps)
+                   types sigbits))))
+
       (_ (values cps types sigbits))))
 
   (values (intmap-fold visit-cont cps cps #f #f)))
