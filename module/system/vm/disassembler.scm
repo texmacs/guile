@@ -527,6 +527,7 @@ address of that offset."
                        ;; the non-fallthrough-set currently to allow the
                        ;; frame parser to be able to compute the stack
                        ;; size for following code.
+                       throw throw/value throw/value+data
                        tail-call tail-call-label tail-call/shuffle
                        return-values
                        subr-call foreign-call continuation-call

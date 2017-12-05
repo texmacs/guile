@@ -126,7 +126,7 @@
                (else (error "bad target" target)))))))
       (when (< n (vector-length parsed))
         (let* ((in (vector-ref in-sizes n))
-               (out (instruction-stack-size-after code pos in)))
+               (out (and in (instruction-stack-size-after code pos in))))
           (vector-set! out-sizes n out)
           (when out
             (when (instruction-has-fallthrough? code pos)
@@ -205,9 +205,11 @@
         (for-each (lambda (slot)
                     (when (< slot (vector-length defs-by-slot))
                       (kill-slot! n slot)))
-                  (instruction-slot-clobbers code pos
-                                             (vector-ref in-sizes n)
-                                             (vector-ref out-sizes n)))
+                  (let ((in (vector-ref in-sizes n))
+                        (out (vector-ref out-sizes n)))
+                    (if out
+                        (instruction-slot-clobbers code pos in out)
+                        (iota (or in 0)))))
         (lp (1+ n) (+ pos (vector-ref parsed n)))))
     killv))
 
