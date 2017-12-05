@@ -164,16 +164,6 @@
                   (fold-kw kw (cdr gensyms) (cdr inits) seed)))))
        (fold-req req gensyms seed)))))
 
-(define (unbound? cps src var kt kf)
-  (define tc8-iflag 4)
-  (define unbound-val 9)
-  (define unbound-bits (logior (ash unbound-val 8) tc8-iflag))
-  (with-cps cps
-    ($ (with-cps-constants ((unbound (pointer->scm
-                                      (make-pointer unbound-bits))))
-         (build-term ($continue kf src
-                       ($branch kt ($primcall 'eq? #f (var unbound)))))))))
-
 (define (init-default-value cps name sym subst init body)
   (match (hashq-ref subst sym)
     ((orig-var subst-var box?)
@@ -200,7 +190,10 @@
                  (letk kreceive ($kreceive (list name) 'rest krest))
                  (let$ init (convert init kreceive subst))
                  (letk kunbound ($kargs () () ,init))
-                 ($ (unbound? src orig-var kunbound kbound)))))))))))
+                 (build-term
+                   ($continue kbound src
+                     ($branch kunbound
+                              ($primcall 'undefined? #f (orig-var))))))))))))))
 
 ;;; The conversion from Tree-IL to CPS essentially wraps every
 ;;; expression in a $kreceive, which models the Tree-IL semantics that
