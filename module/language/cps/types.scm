@@ -706,6 +706,66 @@ minimum, and maximum."
 
 
 ;;;
+;;; Memory.
+;;;
+
+(define (annotation->type ann)
+  ;; Expand me!
+  (match ann
+    ('vector &vector)))
+
+(define-type-inferrer/param (allocate-words param size result)
+  (define! result (annotation->type param) (&min/0 size) (&max/scm-size size)))
+
+(define-type-inferrer/param (allocate-words/immediate param result)
+  (match param
+    ((annotation . size)
+     (define! result (annotation->type annotation) size size))))
+
+(define-type-inferrer/param (scm-ref param obj idx result)
+  (restrict! obj (annotation->type param)
+             (1+ (&min/0 idx)) (target-max-size-t/scm))
+  (define! result &all-types -inf.0 +inf.0))
+
+(define-type-inferrer/param (scm-ref/immediate param obj result)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0)
+     (define! result &all-types -inf.0 +inf.0))))
+
+(define-simple-type-inferrer (scm-ref/tag &pair) &all-types)
+(define-simple-type-inferrer (scm-set!/tag &pair &all-types))
+
+(define-type-inferrer/param (scm-set! param obj idx val)
+  (restrict! obj (annotation->type param) (1+ (&min/0 idx)) +inf.0))
+
+(define-type-inferrer/param (scm-set!/immediate param obj val)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
+
+(define-type-inferrer/param (word-ref param obj idx result)
+  (restrict! obj (annotation->type param)
+             (1+ (&min/0 idx)) (target-max-size-t/scm))
+  (define! result &u64 0 &u64-max))
+
+(define-type-inferrer/param (word-ref/immediate param obj result)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0)
+     (define! result &u64 0 &u64-max))))
+
+(define-type-inferrer/param (word-set! param obj idx word)
+  (restrict! obj (annotation->type param) (1+ (&min/0 idx)) +inf.0))
+
+(define-type-inferrer/param (word-set!/immediate param obj word)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
+
+
+
+;;;
 ;;; Fluids.  Note that we can't track bound-ness of fluids, as pop-fluid
 ;;; can change boundness.
 ;;;

@@ -138,6 +138,21 @@
             emit-complex?
             emit-fraction?
 
+            emit-allocate-words
+            emit-allocate-words/immediate
+
+            emit-scm-ref
+            emit-scm-set!
+            emit-scm-ref/tag
+            emit-scm-set!/tag
+            emit-scm-ref/immediate
+            emit-scm-set!/immediate
+
+            emit-word-ref
+            emit-word-set!
+            emit-word-ref/immediate
+            emit-word-set!/immediate
+
             emit-call
             emit-call-label
             emit-tail-call

@@ -336,6 +336,48 @@ the LABELS that are clobbered by the effects of LABEL."
 (define-primitive-effects
   ((make-prompt-tag #:optional arg) (&allocate &unknown-memory-kinds)))
 
+;; Generic objects.
+(define (annotation->memory-kind annotation)
+  ;; FIXME: Flesh this out.
+  (match annotation
+    ('pair &pair)
+    ('vector &vector)))
+
+(define-primitive-effects* param
+  ((allocate-words size)           (&allocate (annotation->memory-kind param)))
+  ((allocate-words/immediate)      (match param
+                                     ((ann . size)
+                                      (&allocate
+                                       (annotation->memory-kind ann)))))
+  ((scm-ref obj idx)               (&read-object
+                                    (annotation->memory-kind param)))
+  ((scm-ref/tag obj)               (&read-field
+                                    (annotation->memory-kind param) 0))
+  ((scm-ref/immediate obj)         (match param
+                                     ((ann . idx)
+                                      (&read-field
+                                       (annotation->memory-kind ann) idx))))
+  ((scm-set! obj idx val)          (&write-object
+                                    (annotation->memory-kind param)))
+  ((scm-set/tag! obj val)          (&write-field
+                                    (annotation->memory-kind param) 0))
+  ((scm-set!/immediate obj val)    (match param
+                                     ((ann . idx)
+                                      (&write-field
+                                       (annotation->memory-kind ann) idx))))
+  ((word-ref obj idx)              (&read-object
+                                    (annotation->memory-kind param)))
+  ((word-ref/immediate obj)        (match param
+                                     ((ann . idx)
+                                      (&read-field
+                                       (annotation->memory-kind ann) idx))))
+  ((word-set! obj idx val)         (&read-object
+                                    (annotation->memory-kind param)))
+  ((word-set!/immediate obj val)   (match param
+                                     ((ann . idx)
+                                      (&write-field
+                                       (annotation->memory-kind ann) idx)))))
+
 ;; Pairs.
 (define-primitive-effects
   ((cons a b)                      (&allocate &pair))

@@ -1289,18 +1289,143 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  VM_DEFINE_OP (33, unused_33, NULL, NOP)
-  VM_DEFINE_OP (34, unused_34, NULL, NOP)
-  VM_DEFINE_OP (35, unused_35, NULL, NOP)
-  VM_DEFINE_OP (36, unused_36, NULL, NOP)
-  VM_DEFINE_OP (37, unused_37, NULL, NOP)
-  VM_DEFINE_OP (38, unused_38, NULL, NOP)
-  VM_DEFINE_OP (39, unused_39, NULL, NOP)
-  VM_DEFINE_OP (40, unused_40, NULL, NOP)
-  VM_DEFINE_OP (41, unused_41, NULL, NOP)
-  VM_DEFINE_OP (42, unused_42, NULL, NOP)
-  VM_DEFINE_OP (43, unused_43, NULL, NOP)
-  VM_DEFINE_OP (44, unused_44, NULL, NOP)
+  VM_DEFINE_OP (33, allocate_words, "allocate-words", OP1 (X8_S12_S12) | OP_DST)
+    {
+      scm_t_uint16 dst, size;
+
+      UNPACK_12_12 (op, dst, size);
+
+      SYNC_IP ();
+      SP_SET (dst,
+              SCM_PACK_POINTER
+              (scm_inline_gc_malloc_words (thread, SP_REF_U64 (size))));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (34, allocate_words_immediate, "allocate-words/immediate", OP1 (X8_S12_C12) | OP_DST)
+    {
+      scm_t_uint16 dst, size;
+
+      UNPACK_12_12 (op, dst, size);
+
+      SYNC_IP ();
+      SP_SET (dst,
+              SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, size)));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (35, scm_ref, "scm-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET (dst, SCM_CELL_OBJECT (SP_REF (obj), SP_REF_U64 (idx)));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (36, scm_set, "scm-set!", OP1 (X8_S8_S8_S8))
+    {
+      scm_t_uint8 obj, idx, val;
+
+      UNPACK_8_8_8 (op, obj, idx, val);
+
+      SCM_SET_CELL_OBJECT (SP_REF (obj), SP_REF_U64 (idx), SP_REF (val));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (37, scm_ref_tag, "scm-ref/tag", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, tag;
+
+      UNPACK_8_8_8 (op, dst, obj, tag);
+
+      SP_SET (dst, SCM_PACK (SCM_CELL_WORD_0 (SP_REF (obj)) - tag));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (38, scm_set_tag, "scm-set!/tag", OP1 (X8_S8_C8_S8))
+    {
+      scm_t_uint8 obj, tag, val;
+
+      UNPACK_8_8_8 (op, obj, tag, val);
+
+      SCM_SET_CELL_WORD_0 (SP_REF (obj), SCM_UNPACK (SP_REF (val)) + tag);
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (39, scm_ref_immediate, "scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET (dst, SCM_CELL_OBJECT (SP_REF (obj), idx));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (40, scm_set_immediate, "scm-set!/immediate", OP1 (X8_S8_C8_S8))
+    {
+      scm_t_uint8 obj, idx, val;
+
+      UNPACK_8_8_8 (op, obj, idx, val);
+
+      SCM_SET_CELL_OBJECT (SP_REF (obj), idx, SP_REF (val));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (41, word_ref, "word-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET_U64 (dst, SCM_CELL_WORD (SP_REF (obj), SP_REF_U64 (idx)));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (42, word_set, "word-set!", OP1 (X8_S8_S8_S8))
+    {
+      scm_t_uint8 obj, idx, val;
+
+      UNPACK_8_8_8 (op, obj, idx, val);
+
+      SCM_SET_CELL_WORD (SP_REF (obj), SP_REF_U64 (idx), SP_REF_U64 (val));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (43, word_ref_immediate, "word-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET_U64 (dst, SCM_CELL_WORD (SP_REF (obj), idx));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (44, word_set_immediate, "word-set!/immediate", OP1 (X8_S8_C8_S8))
+    {
+      scm_t_uint8 obj, idx, val;
+
+      UNPACK_8_8_8 (op, obj, idx, val);
+
+      SCM_SET_CELL_WORD (SP_REF (obj), idx, SP_REF_U64 (val));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (45, unused_45, NULL, NOP)
   VM_DEFINE_OP (46, unused_46, NULL, NOP)
   VM_DEFINE_OP (47, unused_47, NULL, NOP)

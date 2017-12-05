@@ -248,6 +248,51 @@
               ;; ((ulsh/immediate (u6? y) x) (ulsh x y))
               (_
                (match (cons name args)
+                 (('allocate-words/immediate)
+                  (match param
+                    ((ann . n)
+                     (if (u8? n)
+                         cps
+                         (with-cps cps
+                           (letv n*)
+                           (letk kop ($kargs ('n) (n*)
+                                       ($continue k src
+                                         ($primcall 'allocate-words ann (n)))))
+                           (setk label ($kargs names vars
+                                         ($continue kop src
+                                           ($primcall 'load-u64 n ())))))))))
+                 (((or 'word-ref/immediate 'scm-ref/immediate) obj)
+                  (match param
+                    ((ann . idx)
+                     (if (u8? idx)
+                         cps
+                         (let ((op (match name
+                                     ('word-ref/immediate 'word-ref)
+                                     ('scm-ref/immediate 'scm-ref))))
+                           (with-cps cps
+                             (letv idx*)
+                             (letk kop ($kargs ('idx) (idx*)
+                                         ($continue k src
+                                           ($primcall op ann (obj idx*)))))
+                             (setk label ($kargs names vars
+                                           ($continue kop src
+                                             ($primcall 'load-u64 idx ()))))))))))
+                 (((or 'word-set!/immediate 'scm-set!/immediate) obj val)
+                  (match param
+                    ((ann . idx)
+                     (if (u8? idx)
+                         cps
+                         (let ((op (match name
+                                     ('word-set!/immediate 'word-set!)
+                                     ('scm-set!/immediate 'scm-set!))))
+                           (with-cps cps
+                             (letv idx*)
+                             (letk kop ($kargs ('idx) (idx*)
+                                         ($continue k src
+                                           ($primcall op ann (obj idx*)))))
+                             (setk label ($kargs names vars
+                                           ($continue kop src
+                                             ($primcall 'load-u64 idx ()))))))))))
                  (((or 'sadd 'ssub 'smul) a b)
                   (let ((op (match name
                               ('sadd 'uadd) ('ssub 'usub) ('smul 'umul))))

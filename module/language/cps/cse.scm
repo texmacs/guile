@@ -246,6 +246,12 @@ false.  It could be that both true and false proofs are available."
            ((box-set! #f b o)                (o <- box-ref #f b))
            ((o <- cons #f x y)               (x <- car #f o)
                                              (y <- cdr #f o))
+           ((scm-set! p s i x)               (x <- scm-ref p s i))
+           ((scm-set!/tag p s x)             (x <- scm-ref/tag p s))
+           ((scm-set!/immediate p s x)       (x <- scm-ref/immediate p s))
+           ((word-set! p s i x)              (x <- word-ref p s i))
+           ((word-set!/immediate p s x)      (x <- word-ref/immediate p s))
+
            ((set-car! #f o x)                (x <- car #f o))
            ((set-cdr! #f o y)                (y <- cdr #f o))
            ;; FIXME: how to propagate make-vector/immediate -> vector-length?
