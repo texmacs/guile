@@ -100,12 +100,11 @@
 
 (define (reify-clause cps ktail)
   (with-cps cps
-    (letk knil ($kargs () () ($continue ktail #f ($values ()))))
     (let$ body
           (with-cps-constants ((wna 'wrong-number-of-args)
                                (args '(#f "Wrong number of arguments" () #f)))
             (build-term
-              ($continue knil #f
+              ($continue ktail #f
                 ($primcall 'throw #f (wna args))))))
     (letk kbody ($kargs () () ,body))
     (letk kclause ($kclause ('() '() #f '() #f) kbody #f))

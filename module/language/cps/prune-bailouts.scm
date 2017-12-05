@@ -51,23 +51,20 @@ unreferenced terms.  In that case TAIL-LABEL is either absent or #f."
 
 (define (prune-bailouts conts)
   (let ((tails (compute-tails conts)))
-    (with-fresh-name-state conts
-      (persistent-intmap
-       (intmap-fold
-        (lambda (label cont out)
-          (match cont
-            (($ $kargs names vars
-                ($ $continue k src
-                   (and exp ($ $primcall
-                               (or 'throw 'throw/value 'throw/value+data)))))
-             (match (intmap-ref tails k (lambda (_) #f))
-               (#f out)
-               (ktail
-                (with-cps out
-                  (letk knil ($kargs () ()
-                               ($continue ktail src ($values ()))))
-                  (setk label ($kargs names vars
-                                ($continue knil src ,exp)))))))
-            (_ out)))
-        conts
-        conts)))))
+    (persistent-intmap
+     (intmap-fold
+      (lambda (label cont out)
+        (match cont
+          (($ $kargs names vars
+              ($ $continue k src
+                 (and exp ($ $primcall
+                             (or 'throw 'throw/value 'throw/value+data)))))
+           (match (intmap-ref tails k (lambda (_) #f))
+             (#f out)
+             (ktail
+              (with-cps out
+                (setk label ($kargs names vars
+                              ($continue ktail src ,exp)))))))
+          (_ out)))
+      conts
+      conts))))
