@@ -341,7 +341,8 @@ the LABELS that are clobbered by the effects of LABEL."
   ;; FIXME: Flesh this out.
   (match annotation
     ('pair &pair)
-    ('vector &vector)))
+    ('vector &vector)
+    ('box &box)))
 
 (define-primitive-effects* param
   ((allocate-words size)           (&allocate (annotation->memory-kind param)))

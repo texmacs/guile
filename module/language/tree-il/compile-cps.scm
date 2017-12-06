@@ -360,7 +360,8 @@
             (letv unboxed)
             (let$ body (k unboxed))
             (letk kunboxed ($kargs ('unboxed) (unboxed) ,body))
-            (build-term ($continue kunboxed src ($primcall 'box-ref #f (box))))))
+            (build-term ($continue kunboxed src
+                          ($primcall 'scm-ref/immediate '(box . 1) (box))))))
          ((orig-var subst-var #f) (k cps subst-var))
          (var (k cps var))))
       ((? single-valued?)
@@ -411,7 +412,8 @@
      (with-cps cps
        (let$ k (adapt-arity k src 1))
        (rewrite-term (hashq-ref subst sym)
-         ((orig-var box #t) ($continue k src ($primcall 'box-ref #f (box))))
+         ((orig-var box #t) ($continue k src
+                              ($primcall 'scm-ref/immediate '(box . 1) (box))))
          ((orig-var subst-var #f) ($continue k src ($values (subst-var))))
          (var ($continue k src ($values (var)))))))
 
@@ -491,7 +493,8 @@
       (lambda (cps box)
         (with-cps cps
           (let$ k (adapt-arity k src 1))
-          (build-term ($continue k src ($primcall 'box-ref #f (box))))))))
+          (build-term ($continue k src
+                        ($primcall 'scm-ref/immediate '(box . 1) (box))))))))
 
     (($ <module-set> src mod name public? exp)
      (convert-arg cps exp
@@ -502,7 +505,8 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! #f (box val))))))))))
+                ($continue k src
+                  ($primcall 'scm-set!/immediate '(box . 1) (box val))))))))))
 
     (($ <toplevel-ref> src name)
      (toplevel-box
@@ -510,7 +514,9 @@
       (lambda (cps box)
         (with-cps cps
           (let$ k (adapt-arity k src 1))
-          (build-term ($continue k src ($primcall 'box-ref #f (box))))))))
+          (build-term
+            ($continue k src
+              ($primcall 'scm-ref/immediate '(box . 1) (box))))))))
 
     (($ <toplevel-set> src name exp)
      (convert-arg cps exp
@@ -521,7 +527,8 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! #f (box val))))))))))
+                ($continue k src
+                  ($primcall 'scm-set!/immediate '(box . 1) (box val))))))))))
 
     (($ <toplevel-define> src name exp)
      (convert-arg cps exp
@@ -530,7 +537,8 @@
            (let$ k (adapt-arity k src 0))
            (letv box)
            (letk kset ($kargs ('box) (box)
-                        ($continue k src ($primcall 'box-set! #f (box val)))))
+                        ($continue k src
+                          ($primcall 'scm-set!/immediate '(box . 1) (box val)))))
            ($ (with-cps-constants ((name name))
                 (build-term
                   ($continue kset src ($primcall 'define! #f (name))))))))))
@@ -921,7 +929,8 @@
             (with-cps cps
               (let$ k (adapt-arity k src 0))
               (build-term
-                ($continue k src ($primcall 'box-set! #f (box exp))))))))))
+                ($continue k src
+                  ($primcall 'scm-set!/immediate '(box . 1) (box exp))))))))))
 
     (($ <seq> src head tail)
      (if (zero-valued? head)

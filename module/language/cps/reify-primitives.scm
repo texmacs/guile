@@ -91,7 +91,8 @@
               (lambda (cps box)
                 (with-cps cps
                   (build-term
-                    ($continue k src ($primcall 'box-ref #f (box))))))))
+                    ($continue k src
+                      ($primcall 'scm-ref/immediate '(box . 1) (box))))))))
 
 (define (builtin-ref cps idx k src)
   (with-cps cps
@@ -257,7 +258,7 @@
                            (letv n*)
                            (letk kop ($kargs ('n) (n*)
                                        ($continue k src
-                                         ($primcall 'allocate-words ann (n)))))
+                                         ($primcall 'allocate-words ann (n*)))))
                            (setk label ($kargs names vars
                                          ($continue kop src
                                            ($primcall 'load-u64 n ())))))))))
