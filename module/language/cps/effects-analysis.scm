@@ -342,7 +342,8 @@ the LABELS that are clobbered by the effects of LABEL."
   (match annotation
     ('pair &pair)
     ('vector &vector)
-    ('box &box)))
+    ('box &box)
+    ('closure &closure)))
 
 (define-primitive-effects* param
   ((allocate-words size)           (&allocate (annotation->memory-kind param)))
