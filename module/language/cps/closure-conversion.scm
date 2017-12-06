@@ -469,39 +469,22 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                (letk k* ($kargs (#f) (var*) ,body))
                (build-term ($continue k* #f ($closure kfun 0))))))
        ((intset-ref free var)
-        (match (vector self-known? nfree)
-          (#(#t 1)
-           ;; A reference to the one free var of a well-known function.
-           (with-cps cps
-             ($ (k self))))
-          (#(#t 2)
-           ;; A reference to one of the two free vars in a well-known
-           ;; function.
-           (let ((op (if (= var (intset-next free)) 'car 'cdr)))
-             (with-cps cps
-               (letv var*)
-               (let$ body (k var*))
-               (letk k* ($kargs (#f) (var*) ,body))
-               (build-term ($continue k* #f ($primcall op #f (self)))))))
-          (_
-           (let ((idx (intset-find free var)))
-             (cond
-              (self-known?
-               (with-cps cps
-                 (letv var*)
-                 (let$ body (k var*))
-                 (letk k* ($kargs (#f) (var*) ,body))
-                 (build-term
-                   ($continue k* #f
-                     ($primcall 'vector-ref/immediate idx (self))))))
-              (else
-               (with-cps cps
-                 (letv var*)
-                 (let$ body (k var*))
-                 (letk k* ($kargs (#f) (var*) ,body))
-                 (build-term
-                   ($continue k* #f
-                     ($primcall 'free-ref idx (self)))))))))))
+        (if (and self-known? (eqv? 1 nfree))
+            ;; A reference to the one free var of a well-known function.
+            (with-cps cps
+              ($ (k self)))
+            (let* ((idx (intset-find free var))
+                   (param (cond
+                           ((not self-known?) (cons 'closure (+ idx 2)))
+                           ((= nfree 2)       (cons 'pair idx))
+                           (else              (cons 'vector (+ idx 1))))))
+              (with-cps cps
+                (letv var*)
+                (let$ body (k var*))
+                (letk k* ($kargs (#f) (var*) ,body))
+                (build-term
+                  ($continue k* #f
+                    ($primcall 'scm-ref/immediate param (self))))))))
        (else
         (with-cps cps
           ($ (k var))))))
@@ -550,54 +533,38 @@ term."
     (define (init-closure cps k src var known? free)
       "Initialize the free variables @var{closure-free} in a closure
 bound to @var{var}, and continue to @var{k}."
-      (match (vector known? (intset-count free))
-        ;; Well-known callee with zero or one free variables; no
-        ;; initialization necessary.
-        (#(#t (or 0 1))
-         (with-cps cps
-           (build-term ($continue k src ($values ())))))
-        ;; Well-known callee with two free variables; do a set-car! and
-        ;; set-cdr!.
-        (#(#t 2)
-         (let* ((free0 (intset-next free))
-                (free1 (intset-next free (1+ free0))))
-           (convert-arg cps free0
-             (lambda (cps v0)
-               (with-cps cps
-                 (let$ body
-                       (convert-arg free1
-                           (lambda (cps v1)
-                             (with-cps cps
-                               (build-term
-                                 ($continue k src
-                                   ($primcall 'set-cdr! #f (var v1))))))))
-                 (letk kcdr ($kargs () () ,body))
-                 (build-term
-                   ($continue kcdr src ($primcall 'set-car! #f (var v0)))))))))
-        ;; Otherwise residualize a sequence of vector-set! or free-set!,
-        ;; depending on whether the callee is well-known or not.
-        (_
-         (let lp ((cps cps) (prev #f) (idx 0))
-           (match (intset-next free prev)
-             (#f (with-cps cps
-                   (build-term ($continue k src ($values ())))))
-             (v (with-cps cps
-                  (let$ body (lp (1+ v) (1+ idx)))
-                  (letk k ($kargs () () ,body))
-                  ($ (convert-arg v
-                       (lambda (cps v)
-                         (cond
-                          (known?
-                           (with-cps cps
-                             (letv u64)
-                             (build-term
-                               ($continue k src
-                                 ($primcall 'vector-set!/immediate idx (var v))))))
-                          (else
-                           (with-cps cps
-                             (build-term
-                               ($continue k src
-                                 ($primcall 'free-set! idx (var v)))))))))))))))))
+      (let ((count (intset-count free)))
+        (cond
+         ((and known? (<= count 1))
+          ;; Well-known callee with zero or one free variables; no
+          ;; initialization necessary.
+          (with-cps cps
+            (build-term ($continue k src ($values ())))))
+         (else
+          ;; Otherwise residualize a sequence of scm-set!.
+          (let-values (((kind offset)
+                        ;; What are we initializing?  A closure if the
+                        ;; procedure is not well-known; a pair if it has
+                        ;; only 2 free variables; otherwise, a vector.
+                        (cond
+                         ((not known?) (values 'closure 2))
+                         ((= count 2)  (values 'pair 0))
+                         (else         (values 'vector 1)))))
+            (let lp ((cps cps) (prev #f) (idx 0))
+              (match (intset-next free prev)
+                (#f (with-cps cps
+                      (build-term ($continue k src ($values ())))))
+                (v (with-cps cps
+                     (let$ body (lp (1+ v) (1+ idx)))
+                     (letk k ($kargs () () ,body))
+                     ($ (convert-arg v
+                          (lambda (cps v)
+                            (with-cps cps
+                              (build-term
+                                ($continue k src
+                                  ($primcall 'scm-set!/immediate
+                                             (cons kind (+ offset idx))
+                                             (var v)))))))))))))))))
 
     (define (make-single-closure cps k src kfun)
       (let ((free (intmap-ref free-vars kfun)))
