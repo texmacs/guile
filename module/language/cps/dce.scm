@@ -206,7 +206,9 @@ sites."
                   (($ $primcall
                       (or 'vector-set! 'vector-set!/immediate
                           'set-car! 'set-cdr!
-                          'box-set!) #f
+                          'box-set!
+                          'scm-set! 'scm-set!/tag 'scm-set!/immediate
+                          'word-set! 'word-set!/immediate) _
                       (obj . _))
                    (or (var-live? obj live-vars)
                        (not (intset-ref known-allocations obj))))
