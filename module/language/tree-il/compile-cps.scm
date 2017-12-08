@@ -65,6 +65,131 @@
   #:use-module (language cps intmap)
   #:export (compile-cps))
 
+(define (convert-primcall/default cps k src op param . args)
+  (with-cps cps
+    (build-term
+      ($continue k src ($primcall op param args)))))
+
+(define (convert-indexed-getter cps k src op param obj idx)
+  (with-cps cps
+    (letv idx')
+    (letk k' ($kargs ('idx) (idx')
+               ($continue k src ($primcall op param (obj idx')))))
+    (build-term ($continue k' src ($primcall 'scm->u64 #f (idx))))))
+
+(define (convert-indexed-setter cps k src op param obj idx val)
+  (with-cps cps
+    (letv idx')
+    (letk k' ($kargs ('idx) (idx')
+               ($continue k src ($primcall op param (obj idx' val)))))
+    (build-term ($continue k' src ($primcall 'scm->u64 #f (idx))))))
+
+(define (convert-indexed-getter/tag cps k src op param obj idx tag-result)
+  (with-cps cps
+    (letv res')
+    (letk k' ($kargs ('res) (res')
+               ($continue k src ($primcall tag-result #f (res')))))
+    ($ (convert-indexed-getter k' src op param obj idx))))
+
+(define (convert-indexed-setter/untag cps k src op param obj idx val untag-val)
+  (with-cps cps
+    (letv val')
+    (let$ body (convert-indexed-setter k src op param obj idx val'))
+    (letk k' ($kargs ('val) (val') ,body))
+    (build-term ($continue k' src ($primcall untag-val #f (val))))))
+
+(define convert-scm-u64->scm-primcall convert-indexed-getter)
+(define convert-scm-u64-scm-primcall convert-indexed-setter)
+
+(define (convert-u64-scm->scm-primcall cps k src op param len init)
+  (with-cps cps
+    (letv len')
+    (letk k' ($kargs ('len) (len')
+               ($continue k src ($primcall op param (len' init)))))
+    (build-term ($continue k' src ($primcall 'scm->u64 #f (len))))))
+
+(define (convert-scm-u64->f64-primcall cps k src op param obj idx)
+  (convert-indexed-getter/tag cps k src op param obj idx 'f64->scm))
+(define (convert-scm-u64-f64-primcall cps k src op param obj idx val)
+  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->f64))
+
+(define (convert-scm-u64->u64-primcall cps k src op param obj idx)
+  (convert-indexed-getter/tag cps k src op param obj idx 'u64->scm))
+(define (convert-scm-u64-u64-primcall cps k src op param obj idx val)
+  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->u64))
+
+(define (convert-scm-u64->s64-primcall cps k src op param obj idx)
+  (convert-indexed-getter/tag cps k src op param obj idx 's64->scm))
+(define (convert-scm-u64-s64-primcall cps k src op param obj idx val)
+  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->s64))
+
+(define (convert-*->u64-primcall cps k src op param . args)
+  (with-cps cps
+    (letv res')
+    (letk k' ($kargs ('res) (res')
+               ($continue k src ($primcall 'u64->scm #f (res')))))
+    (build-term ($continue k' src ($primcall op param args)))))
+(define convert-scm->u64-primcall convert-*->u64-primcall)
+(define (convert-u64->scm-primcall cps k src op param arg)
+  (with-cps cps
+    (letv arg')
+    (letk k' ($kargs ('arg) (arg')
+               ($continue k src ($primcall op param (arg')))))
+    (build-term ($continue k' src ($primcall 'scm->u64 #f (arg))))))
+
+(define *primcall-converters* (make-hash-table))
+(define-syntax-rule (define-primcall-converter name proc)
+  (hashq-set! *primcall-converters* 'name proc))
+(define-syntax define-primcall-converters
+  (lambda (x)
+    (define (spec->convert spec)
+      (string->symbol
+       (string-join
+        (append '("convert") (map symbol->string spec) '("primcall"))
+        "-")))
+    (define (compute-converter spec)
+      (datum->syntax #'here (spec->convert (syntax->datum spec))))
+    (syntax-case x ()
+      ((_ (op . spec) ...)
+       (with-syntax (((cvt ...) (map compute-converter #'(spec ...))))
+         #'(begin (define-primcall-converter op cvt) ...))))))
+
+(define-primcall-converters
+  (char->integer scm >u64)
+  (integer->char u64 >scm)
+
+  (string-length scm >u64)
+  (string-ref scm u64 >scm) (string-set! scm u64 scm)
+
+  (make-vector u64 scm >scm)
+  (vector-length scm >u64)
+  (vector-ref scm u64 >scm) (vector-set! scm u64 scm)
+
+  (allocate-struct scm u64 >scm)
+  (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
+
+  (bv-length scm >u64)
+  (bv-f32-ref scm u64 >f64) (bv-f32-set! scm u64 f64)
+  (bv-f64-ref scm u64 >f64) (bv-f64-set! scm u64 f64)
+  (bv-u8-ref scm u64 >u64)  (bv-u8-set! scm u64 u64)
+  (bv-u16-ref scm u64 >u64) (bv-u16-set! scm u64 u64)
+  (bv-u32-ref scm u64 >u64) (bv-u32-set! scm u64 u64)
+  (bv-u64-ref scm u64 >u64) (bv-u64-set! scm u64 u64)
+  (bv-s8-ref  scm u64 >s64) (bv-s8-set!  scm u64 s64)
+  (bv-s16-ref scm u64 >s64) (bv-s16-set! scm u64 s64)
+  (bv-s32-ref scm u64 >s64) (bv-s32-set! scm u64 s64)
+  (bv-s64-ref scm u64 >s64) (bv-s64-set! scm u64 s64)
+
+  (rsh scm u64 >scm)
+  (lsh scm u64 >scm))
+
+(define (convert-primcall* cps k src op param args)
+  (let ((proc (hashq-ref *primcall-converters* op convert-primcall/default)))
+    (apply proc cps k src op param args)))
+
+(define (convert-primcall cps k src op param . args)
+  (convert-primcall* cps k src op param args))
+
 ;;; Guile's semantics are that a toplevel lambda captures a reference on
 ;;; the current module, and that all contained lambdas use that module
 ;;; to resolve toplevel variables.  This parameter tracks whether or not
@@ -93,14 +218,11 @@
        (with-cps cps
          ;; FIXME: Resolve should take name as immediate.
          ($ (with-cps-constants ((name name))
-              (build-term ($continue k src
-                            ($primcall 'resolve (list bound?) (name))))))))
+              ($ (convert-primcall k src 'resolve (list bound?) name))))))
       (scope
        (with-cps cps
-         (build-term
-           ($continue k src
-             ($primcall 'cached-toplevel-box (list scope name bound?)
-                        ())))))))
+         ($ (convert-primcall k src 'cached-toplevel-box
+                              (list scope name bound?)))))))
   (with-cps cps
     (letv box)
     (let$ body (val-proc box))
@@ -112,19 +234,16 @@
     (letv box)
     (let$ body (val-proc box))
     (letk kbox ($kargs ('box) (box) ,body))
-    (build-term ($continue kbox src
-                  ($primcall 'cached-module-box
-                             (list module name public? bound?) ())))))
+    ($ (convert-primcall kbox src 'cached-module-box
+                         (list module name public? bound?)))))
 
 (define (capture-toplevel-scope cps src scope-id k)
   (with-cps cps
     (letv module)
-    (letk kmodule
-          ($kargs ('module) (module)
-            ($continue k src
-              ($primcall 'cache-current-module! (list scope-id) (module)))))
-    (build-term ($continue kmodule src
-                  ($primcall 'current-module #f ())))))
+    (let$ body (convert-primcall k src 'cache-current-module!
+                                 (list scope-id) module))
+    (letk kmodule ($kargs ('module) (module) ,body))
+    ($ (convert-primcall kmodule src 'current-module #f))))
 
 (define (fold-formals proc seed arity gensyms inits)
   (match arity
@@ -172,8 +291,8 @@
          (if box?
              (with-cps cps
                (letv phi)
-               (letk kbox ($kargs (name) (phi)
-                            ($continue k src ($primcall 'box #f (phi)))))
+               (let$ body (convert-primcall k src 'box #f phi))
+               (letk kbox ($kargs (name) (phi) ,body))
                ($ (make-body kbox)))
              (make-body cps k)))
        (with-cps cps
@@ -286,8 +405,8 @@
            (with-cps cps
              (letv val)
              (let$ body (with-cps-constants ((nil '()))
-                          (build-term
-                            ($continue kargs src ($primcall 'cons #f (val nil))))))
+                          ($ (convert-primcall kargs src 'cons #f
+                                               val nil))))
              (letk kval ($kargs ('val) (val) ,body))
              kval))
           (($ $arity (_) () #f () #f)
@@ -392,7 +511,7 @@
       ((orig-var subst-var #t)
        (with-cps cps
          (letk k ($kargs (name) (subst-var) ,body))
-         (build-term ($continue k #f ($primcall 'box #f (orig-var))))))
+         ($ (convert-primcall k #f 'box #f orig-var))))
       (else
        (with-cps cps body))))
   (define (box-bound-vars cps names syms body)
@@ -573,12 +692,12 @@
                    ((arg . args)
                     (with-cps cps
                       (letv tail)
-                      (let$ body (convert-arg arg
-                                   (lambda (cps head)
-                                     (with-cps cps
-                                       (build-term
-                                         ($continue k src
-                                           ($primcall 'cons #f (head tail))))))))
+                      (let$ body
+                            (convert-arg arg
+                              (lambda (cps head)
+                                (with-cps cps
+                                  ($ (convert-primcall k src 'cons #f
+                                                       head tail))))))
                       (letk ktail ($kargs ('tail) (tail) ,body))
                       ($ (lp args ktail)))))))))))
       ((eq? name 'throw)
@@ -590,15 +709,13 @@
                 (lambda (cps args)
                   (with-cps cps
                     (let$ k (adapt-arity k src 0))
-                    (build-term
-                      ($continue k src ($primcall 'throw #f args)))))))))
+                    ($ (convert-primcall* k src 'throw #f args))))))))
          (define (specialize op param . args)
            (convert-args cps args
              (lambda (cps args)
                (with-cps cps
                  (let$ k (adapt-arity k src 0))
-                 (build-term
-                   ($continue k src ($primcall op param args)))))))
+                 ($ (convert-primcall* k src op param args))))))
          (match args
            ((($ <const> _ key) ($ <const> _ subr) ($ <const> _ msg) args data)
             ;; Specialize `throw' invocations corresponding to common
@@ -618,135 +735,12 @@
            (_ (fallback)))))
       ((prim-instruction name)
        => (lambda (instruction)
-            (define (box+adapt-arity cps k src out)
-              (case instruction
-                ((bv-f32-ref bv-f64-ref)
-                 (with-cps cps
-                   (letv f64)
-                   (let$ k (adapt-arity k src out))
-                   (letk kbox ($kargs ('f64) (f64)
-                                ($continue k src ($primcall 'f64->scm #f (f64)))))
-                   kbox))
-                ((char->integer
-                  string-length vector-length
-                  bv-length bv-u8-ref bv-u16-ref bv-u32-ref bv-u64-ref)
-                 (with-cps cps
-                   (letv u64)
-                   (let$ k (adapt-arity k src out))
-                   (letk kbox ($kargs ('u64) (u64)
-                                ($continue k src ($primcall 'u64->scm #f (u64)))))
-                   kbox))
-                ((bv-s8-ref bv-s16-ref bv-s32-ref bv-s64-ref)
-                 (with-cps cps
-                   (letv s64)
-                   (let$ k (adapt-arity k src out))
-                   (letk kbox ($kargs ('s64) (s64)
-                                ($continue k src ($primcall 's64->scm #f (s64)))))
-                   kbox))
-                (else
-                 (adapt-arity cps k src out))))
-            (define (unbox-arg cps arg unbox-op have-arg)
-              (with-cps cps
-                (letv unboxed)
-                (let$ body (have-arg unboxed))
-                (letk kunboxed ($kargs ('unboxed) (unboxed) ,body))
-                (build-term
-                  ($continue kunboxed src ($primcall unbox-op #f (arg))))))
-            (define (unbox-args cps args have-args)
-              (case instruction
-                ((bv-f32-ref bv-f64-ref
-                  bv-s8-ref bv-s16-ref bv-s32-ref bv-s64-ref
-                  bv-u8-ref bv-u16-ref bv-u32-ref bv-u64-ref)
-                 (match args
-                   ((bv idx)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (have-args cps (list bv idx)))))))
-                ((bv-f32-set! bv-f64-set!)
-                 (match args
-                   ((bv idx val)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (unbox-arg
-                        cps val 'scm->f64
-                        (lambda (cps val)
-                          (have-args cps (list bv idx val)))))))))
-                ((bv-s8-set! bv-s16-set! bv-s32-set! bv-s64-set!)
-                 (match args
-                   ((bv idx val)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (unbox-arg
-                        cps val 'scm->s64
-                        (lambda (cps val)
-                          (have-args cps (list bv idx val)))))))))
-                ((bv-u8-set! bv-u16-set! bv-u32-set! bv-u64-set!)
-                 (match args
-                   ((bv idx val)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (unbox-arg
-                        cps val 'scm->u64
-                        (lambda (cps val)
-                          (have-args cps (list bv idx val)))))))))
-                ((vector-ref struct-ref string-ref)
-                 (match args
-                   ((obj idx)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (have-args cps (list obj idx)))))))
-                ((vector-set! struct-set! string-set!)
-                 (match args
-                   ((obj idx val)
-                    (unbox-arg
-                     cps idx 'scm->u64
-                     (lambda (cps idx)
-                       (have-args cps (list obj idx val)))))))
-                ((rsh lsh)
-                 (match args
-                   ((a b)
-                    (unbox-arg
-                     cps b 'scm->u64
-                     (lambda (cps b)
-                       (have-args cps (list a b)))))))
-                ((make-vector)
-                 (match args
-                   ((length init)
-                    (unbox-arg
-                     cps length 'scm->u64
-                     (lambda (cps length)
-                       (have-args cps (list length init)))))))
-                ((allocate-struct)
-                 (match args
-                   ((vtable nfields)
-                    (unbox-arg
-                     cps nfields 'scm->u64
-                     (lambda (cps nfields)
-                       (have-args cps (list vtable nfields)))))))
-                ((integer->char)
-                 (match args
-                   ((integer)
-                    (unbox-arg
-                     cps integer 'scm->u64
-                     (lambda (cps integer)
-                       (have-args cps (list integer)))))))
-                (else (have-args cps args))))
-            (define (convert-primcall cps k src instruction args)
+            (define (cvt cps k src instruction args)
               (define (default)
                 (convert-args cps args
                   (lambda (cps args)
-                    (unbox-args
-                     cps args
-                     (lambda (cps args)
-                       (with-cps cps
-                         (build-term
-                           ($continue k src
-                             ($primcall instruction #f args)))))))))
+                    (with-cps cps
+                      ($ (convert-primcall* k src instruction #f args))))))
               (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...
                                                    (_ def))
                 (match (cons instruction args)
@@ -754,8 +748,7 @@
                    (convert-args cps (list arg ...)
                      (lambda (cps args)
                        (with-cps cps
-                         (build-term
-                           ($continue k src ($primcall 'op c args)))))))
+                         ($ (convert-primcall* k src 'op c args))))))
                   ...
                   (_ def)))
               (define (uint? val) (and (exact-integer? val) (<= 0 val)))
@@ -796,8 +789,8 @@
               ((out . in)
                (if (= in (length args))
                    (with-cps cps
-                     (let$ k (box+adapt-arity k src out))
-                     ($ (convert-primcall k src instruction args)))
+                     (let$ k (adapt-arity k src out))
+                     ($ (cvt k src instruction args)))
                    (convert-args cps args
                      (lambda (cps args)
                        (with-cps cps
