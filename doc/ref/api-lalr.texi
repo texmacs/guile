@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010, 2017
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -8,7 +8,7 @@
 @section LALR(1) Parsing
 
 The @code{(system base lalr)} module provides the
-@uref{http://code.google.com/p/lalr-scm/, @code{lalr-scm} LALR(1) parser
+@uref{https://github.com/schemeway/lalr-scm/, @code{lalr-scm} LALR(1) parser
 generator by Dominique Boucher}.  @code{lalr-scm} uses the same algorithm as GNU
 Bison (@pxref{Introduction, Introduction to Bison,, bison, Bison@comma{} The
 Yacc-compatible Parser Generator}).  Parsers are defined using the
