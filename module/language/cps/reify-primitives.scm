@@ -188,6 +188,25 @@
        (with-cps cps
          (setk label ($kargs names vars ($continue k src ($call proc ()))))))
       (($ $kargs names vars
+          ($ $continue k src ($ $primcall 'u64->scm/unlikely #f (u64))))
+       (with-cps cps
+         (setk label ($kargs names vars
+                       ($continue k src ($primcall 'u64->scm #f (u64)))))))
+      (($ $kargs names vars
+          ($ $continue k src ($ $primcall 's64->scm/unlikely #f (s64))))
+       (with-cps cps
+         (setk label ($kargs names vars
+                       ($continue k src ($primcall 's64->scm #f (s64)))))))
+      (($ $kargs names vars
+          ($ $continue k src ($ $primcall 'tag-fixnum/unlikely #f (s64))))
+       (with-cps cps
+         (setk label ($kargs names vars
+                       ($continue k src ($primcall 'tag-fixnum #f (s64)))))))
+      (($ $kargs names vars
+          ($ $continue k src ($ $primcall 'load-const/unlikely val ())))
+       (with-cps cps
+         (setk label ($kargs names vars ($continue k src ($const val))))))
+      (($ $kargs names vars
           ($ $continue k src ($ $primcall 'mul/immediate b (a))))
        (with-cps cps
          (letv b*)
