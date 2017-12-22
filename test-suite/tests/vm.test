@@ -1,0 +1,54 @@
+;;;; vm.test --- tests for the ELF machinery and VM   -*- scheme -*-
+;;;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (tests vm)
+  #:use-module (test-suite lib)
+  #:use-module (system vm loader)
+  #:use-module (system vm elf)
+  #:use-module (rnrs bytevectors))
+
+(define (elf->bytevector elf)
+  (let ((bv (make-bytevector 1000)))
+    (write-elf-header bv elf)
+    bv))
+
+
+(with-test-prefix "load-thunk-from-memory"
+
+  (pass-if-exception "wrong byte order"
+      '(misc-error . "does not have native byte order")
+    ;; This used to throw to 'system-error' with whatever value errno had.
+    (begin
+      (false-if-exception (open-output-file "/does-not-exist"))
+      (load-thunk-from-memory
+       (elf->bytevector
+        (make-elf #:byte-order (if (eq? (native-endianness)
+                                        (endianness little))
+                                   (endianness big)
+                                   (endianness
+                                    little))
+                  #:shoff 0)))))
+
+  (pass-if-exception "wrong OS ABI"
+      '(misc-error . "OS ABI")
+    ;; This used to throw to 'system-error' with whatever value errno had.
+    (begin
+      (false-if-exception (open-output-file "/does-not-exist"))
+      (load-thunk-from-memory
+       (elf->bytevector
+        (make-elf #:abi ELFOSABI_TRU64            ;RIP
+                  #:shoff 0))))))

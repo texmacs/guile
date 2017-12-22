@@ -1,4 +1,4 @@
-/* Copyright 2001,2009-2015,2018
+/* Copyright 2001,2009-2015,2017-2018
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -371,7 +371,10 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   header = (Elf_Ehdr*) data;
   
   if ((err_msg = check_elf_header (header)))
-    goto cleanup;
+    {
+      errno = 0;				  /* not an OS error */
+      goto cleanup;
+    }
 
   if (header->e_phnum == 0)
     ABORT ("no loadable segments");
