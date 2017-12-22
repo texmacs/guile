@@ -189,6 +189,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/version.test			\
 	    tests/vectors.test			\
 	    tests/vlist.test			\
+	    tests/vm.test			\
 	    tests/weaks.test			\
 	    tests/web-client.test		\
 	    tests/web-http.test			\

@@ -1,5 +1,5 @@
 /* Copyright (C) 2001, 2009, 2010, 2011, 2012
- *    2013, 2014, 2015 Free Software Foundation, Inc.
+ *    2013, 2014, 2015, 2017 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -362,7 +362,10 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   header = (Elf_Ehdr*) data;
   
   if ((err_msg = check_elf_header (header)))
-    goto cleanup;
+    {
+      errno = 0;				  /* not an OS error */
+      goto cleanup;
+    }
 
   if (header->e_phnum == 0)
     ABORT ("no loadable segments");
