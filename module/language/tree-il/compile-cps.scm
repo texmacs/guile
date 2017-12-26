@@ -667,64 +667,47 @@
 
     (($ <primcall> src name args)
      (cond
-      ((and (eq? name 'list)
-            (and-map (match-lambda
-                       ((or ($ <const>)
-                            ($ <void>)
-                            ($ <lambda>)
-                            ($ <lexical-ref>)) #t)
-                       (_ #f))
-                     args))
-       ;; See note below in `canonicalize' about `vector'.  The same
-       ;; thing applies to `list'.
-       (with-cps cps
-         (let$ k (adapt-arity k src 1))
-         ($ ((lambda (cps)
-               (let lp ((cps cps) (args args) (k k))
-                 (match args
-                   (()
-                    (with-cps cps
-                      (build-term ($continue k src ($const '())))))
-                   ((arg . args)
-                    (with-cps cps
-                      (letv tail)
-                      (let$ body
-                            (convert-arg arg
-                              (lambda (cps head)
-                                (with-cps cps
-                                  ($ (convert-primcall k src 'cons #f
-                                                       head tail))))))
-                      (letk ktail ($kargs ('tail) (tail) ,body))
-                      ($ (lp args ktail)))))))))))
       ((eq? name 'throw)
        (let ()
+         (define (build-list cps k vals)
+           (match vals
+             (()
+              (with-cps cps
+                (build-term ($continue k src ($const '())))))
+             ((v . vals)
+              (with-cps cps
+                (letv tail)
+                (letk ktail ($kargs ('tail) (tail)
+                              ($continue k src ($primcall 'cons #f (v tail)))))
+                ($ (build-list ktail vals))))))
          (define (fallback)
-           (match args
-             ((key . args)
-              (convert-args cps (list key (make-primcall src 'list args))
-                (lambda (cps args)
+           (convert-args cps args
+             (lambda (cps args)
+               (match args
+                 ((key . args)
                   (with-cps cps
+                    (letv arglist)
                     (let$ k (adapt-arity k src 0))
-                    ($ (convert-primcall* k src 'throw #f args))))))))
+                    (letk kargs ($kargs ('arglist) (arglist)
+                                  ($continue k src
+                                    ($primcall 'throw #f (key arglist)))))
+                    ($ (build-list kargs args))))))))
          (define (specialize op param . args)
            (convert-args cps args
              (lambda (cps args)
                (with-cps cps
                  (let$ k (adapt-arity k src 0))
-                 ($ (convert-primcall* k src op param args))))))
+                 (build-term
+                   ($continue k src ($primcall op param args)))))))
          (match args
            ((($ <const> _ key) ($ <const> _ subr) ($ <const> _ msg) args data)
             ;; Specialize `throw' invocations corresponding to common
             ;; "error" invocations.
             (let ()
               (match (vector args data)
-                (#(($ <primcall> _ 'list (x)) ($ <primcall> _ 'list (x)))
-                 (specialize 'throw/value+data `#(,key ,subr ,msg) x))
                 (#(($ <primcall> _ 'cons (x ($ <const> _ ())))
                    ($ <primcall> _ 'cons (x ($ <const> _ ()))))
                  (specialize 'throw/value+data `#(,key ,subr ,msg) x))
-                (#(($ <primcall> _ 'list (x)) ($ <const> _ #f))
-                 (specialize 'throw/value `#(,key ,subr ,msg) x))
                 (#(($ <primcall> _ 'cons (x ($ <const> _ ()))) ($ <const> _ #f))
                  (specialize 'throw/value `#(,key ,subr ,msg) x))
                 (_ (fallback)))))
@@ -1112,6 +1095,29 @@ integer."
         (else
          exp)))
       (_ exp)))
+  (define (evaluate-args-eagerly-if-needed src inits k)
+    ;; Some macros generate calls to "vector" or "list" with like 300
+    ;; arguments.  Since we eventually compile to lower-level operations
+    ;; like make-vector and vector-set! or cons, it reduces live
+    ;; variable pressure to sink initializers if we can, if we can prove
+    ;; that the initializer can't capture the continuation.  (More on
+    ;; that caveat here:
+    ;; http://wingolog.org/archives/2013/11/02/scheme-quiz-time).
+    ;;
+    ;; Normally we would do this transformation in the optimizer, but
+    ;; it's quite tricky there and quite easy here, so we do it here.
+    (match inits
+      (() (k '()))
+      ((init . inits)
+       (match init
+         ((or ($ <const>) ($ <void>) ($ <lambda>) ($ <lexical-ref>))
+          (evaluate-args-eagerly-if-needed
+           src inits (lambda (inits) (k (cons init inits)))))
+         (_
+          (with-lexical
+           src init
+           (evaluate-args-eagerly-if-needed
+            src inits (lambda (inits) (k (cons init inits))))))))))
   (post-order
    (lambda (exp)
      (match exp
@@ -1188,40 +1194,37 @@ integer."
                                 (heap-object? b)
                                 (primcall equal? a b))))))))
 
-       (($ <primcall> src 'vector
-           (and args
-                ((or ($ <const>) ($ <void>) ($ <lambda>) ($ <lexical-ref>))
-                 ...)))
-        ;; Some macros generate calls to "vector" with like 300
-        ;; arguments.  Since we eventually compile to make-vector and
-        ;; vector-set!, it reduces live variable pressure to allocate the
-        ;; vector first, then set values as they are produced, if we can
-        ;; prove that no value can capture the continuation.  (More on
-        ;; that caveat here:
-        ;; http://wingolog.org/archives/2013/11/02/scheme-quiz-time).
-        ;;
-        ;; Normally we would do this transformation in the compiler, but
-        ;; it's quite tricky there and quite easy here, so hold your nose
-        ;; while we drop some smelly code.
-        (let ((len (length args))
-              (v (gensym "v ")))
-          (make-let src
-                    (list 'v)
-                    (list v)
-                    (list (make-primcall src 'make-vector
-                                         (list (make-const #f len)
-                                               (make-const #f #f))))
-                    (fold (lambda (arg n tail)
-                            (make-seq
-                             src
-                             (make-primcall
-                              src 'vector-set!
-                              (list (make-lexical-ref src 'v v)
-                                    (make-const #f n)
-                                    arg))
-                             tail))
-                          (make-lexical-ref src 'v v)
-                          (reverse args) (reverse (iota len))))))
+       (($ <primcall> src 'vector args)
+        ;; Expand to "make-vector" + "vector-set!".
+        (evaluate-args-eagerly-if-needed
+         src args
+         (lambda (args)
+           (define-syntax-rule (primcall name . args)
+             (make-primcall src 'name (list . args)))
+           (define-syntax-rule (const val)
+             (make-const src val))
+           (let ((v (primcall make-vector (const (length args)) (const #f))))
+             (with-lexicals src (v)
+               (list->seq
+                src
+                (append (map (lambda (idx arg)
+                               (primcall vector-set! v (const idx) arg))
+                             (iota (length args))
+                             args)
+                        (list v))))))))
+
+       (($ <primcall> src 'list args)
+        ;; Expand to "cons".
+        (evaluate-args-eagerly-if-needed
+         src args
+         (lambda (args)
+           (define-syntax-rule (primcall name . args)
+             (make-primcall src 'name (list . args)))
+           (define-syntax-rule (const val)
+             (make-const src val))
+           (fold (lambda (arg tail) (primcall cons arg tail))
+                 (const '())
+                 (reverse args)))))
 
        (($ <primcall> src 'struct-set! (struct index value))
         ;; Unhappily, and undocumentedly, struct-set! returns the value
@@ -1270,31 +1273,28 @@ integer."
        (($ <prompt> src escape-only? tag body handler)
         (let ((h (gensym "h "))
               (args (gensym "args ")))
+          (define-syntax-rule (primcall name . args)
+            (make-primcall src 'name (list . args)))
+          (define-syntax-rule (const val)
+            (make-const src val))
           (with-lexicals src (handler)
-            (make-seq
+            (make-conditional
              src
-             (make-conditional
-              src
-              (make-primcall src 'procedure? (list handler))
-              (make-void src)
-              (make-primcall
-               src 'throw
-               (list
-                (make-const #f 'wrong-type-arg)
-                (make-const #f "call-with-prompt")
-                (make-const #f "Wrong type (expecting procedure): ~S")
-                (make-primcall #f 'list (list handler))
-                (make-primcall #f 'list (list handler)))))
+             (primcall procedure? handler)
              (make-prompt
               src escape-only? tag body
               (make-lambda
                src '()
                (make-lambda-case
                 src '() #f 'args #f '() (list args)
-                (make-primcall
-                 src 'apply
-                 (list handler (make-lexical-ref #f 'args args)))
-                #f)))))))
+                (primcall apply handler (make-lexical-ref #f 'args args))
+                #f)))
+             (primcall throw
+                       (const 'wrong-type-arg)
+                       (const "call-with-prompt")
+                       (const "Wrong type (expecting procedure): ~S")
+                       (primcall cons handler (const '()))
+                       (primcall cons handler (const '())))))))
        (_ exp)))
    exp))
 
