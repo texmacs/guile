@@ -139,9 +139,12 @@
 
 ;; A helper.
 (define (list->seq loc exps)
-  (if (null? (cdr exps))
-      (car exps)
-      (make-seq loc (car exps) (list->seq #f (cdr exps)))))
+  (match exps
+    ((exp . exps)
+     (let lp ((head exp) (tail exps))
+       (match tail
+         (() head)
+         ((exp . tail) (lp (make-seq loc head exp) tail)))))))
 
 
 
