@@ -29,7 +29,6 @@
   #:use-module (language cps)
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
-  #:use-module (language cps primitives)
   #:use-module (language cps intmap)
   #:use-module (language bytecode)
   #:export (reify-primitives))
@@ -165,6 +164,64 @@
       ($continue ka src
         ($primcall 's64->u64 #f (a))))))
 
+;; Primitives that we need to remove.
+(define *ephemeral-reifiers* (make-hash-table))
+
+(define-syntax-rule (define-ephemeral (name cps k src param arg ...)
+                      . body)
+  (hashq-set! *ephemeral-reifiers* 'name
+              (lambda (cps k src param args)
+                (match args ((arg ...) (let () . body))))))
+
+(define-syntax-rule (define-binary-signed-ephemeral name uname)
+  (define-ephemeral (name cps k src param a b)
+    (wrap-binary cps k src 's64->u64 'u64->s64 'uname #f a b)))
+(define-binary-signed-ephemeral sadd uadd)
+(define-binary-signed-ephemeral ssub usub)
+(define-binary-signed-ephemeral smul umul)
+
+(define-syntax-rule (define-binary-signed-ephemeral/imm name/imm
+                      uname/imm uname)
+  (define-ephemeral (name/imm cps k src param a)
+    (if (and (exact-integer? param) (<= 0 param 255))
+        (wrap-unary cps k src 's64->u64 'u64->s64 'uname/imm param a)
+        (wrap-binary/exp cps k src 's64->u64 'u64->s64 'uname #f a
+                         (let ((param (logand param (1- (ash 1 64)))))
+                           (build-exp ($primcall 'load-u64 param ())))))))
+(define-binary-signed-ephemeral/imm sadd/immediate uadd/immediate uadd)
+(define-binary-signed-ephemeral/imm ssub/immediate usub/immediate usub)
+(define-binary-signed-ephemeral/imm smul/immediate umul/immediate umul)
+
+(define-ephemeral (slsh cps k src param a b)
+  (wrap-binary/exp cps k src 's64->u64 'u64->s64 'ulsh #f a
+                   (build-exp ($values (b)))))
+(define-ephemeral (slsh/immediate cps k src param a)
+  (wrap-unary cps k src 's64->u64 'u64->s64 'ulsh/immediate param a))
+
+;; FIXME: Instead of having to check this, instead every primcall that's
+;; not ephemeral should be handled by compile-bytecode.
+(define (compute-known-primitives)
+  (define *macro-instructions*
+    '(u64->s64
+      s64->u64
+      cache-current-module!
+      cached-toplevel-box
+      cached-module-box))
+  (let ((table (make-hash-table)))
+    (for-each
+     (match-lambda ((inst . _) (hashq-set! table inst #t)))
+     (instruction-list))
+    (for-each
+     (lambda (prim) (hashq-set! table prim #t))
+     *macro-instructions*)
+    table))
+
+(define *known-primitives* (delay (compute-known-primitives)))
+
+(define (known-primitive? name)
+  "Is @var{name} a primitive that can be lowered to bytecode?"
+  (hashq-ref (force *known-primitives*) name))
+
 (define (reify-primitives cps)
   (define (visit-cont label cont cps)
     (define (resolve-prim cps name k src)
@@ -216,7 +273,12 @@
                        ($continue kb src ($const b))))))
       (($ $kargs names vars ($ $continue k src ($ $primcall name param args)))
        (cond
-        ((prim-instruction name)
+        ((hashq-ref *ephemeral-reifiers* name)
+         => (lambda (reify)
+              (with-cps cps
+                (let$ body (reify k src param args))
+                (setk label ($kargs names vars ,body)))))
+        ((known-primitive? name)
          ;; Assume arities are correct.
          (let ()
            (define (u6? val) (and (exact-integer? val) (<= 0 val 63)))
@@ -313,44 +375,6 @@
                              (setk label ($kargs names vars
                                            ($continue kop src
                                              ($primcall 'load-u64 idx ()))))))))))
-                 (((or 'sadd 'ssub 'smul) a b)
-                  (let ((op (match name
-                              ('sadd 'uadd) ('ssub 'usub) ('smul 'umul))))
-                    (with-cps cps
-                      (let$ body
-                            (wrap-binary k src 's64->u64 'u64->s64 op #f a b))
-                      (setk label ($kargs names vars ,body)))))
-                 (((or 'sadd/immediate 'ssub/immediate 'smul/immediate) a)
-                  (if (u8? param)
-                      (let ((op (match name
-                                  ('sadd/immediate 'uadd/immediate)
-                                  ('ssub/immediate 'usub/immediate)
-                                  ('smul/immediate 'umul/immediate))))
-                        (with-cps cps
-                          (let$ body (wrap-unary k src 's64->u64 'u64->s64 op param a))
-                          (setk label ($kargs names vars ,body))))
-                      (let* ((op (match name
-                                   ('sadd/immediate 'uadd)
-                                   ('ssub/immediate 'usub)
-                                   ('smul/immediate 'umul)))
-                             (param (logand param (1- (ash 1 64))))
-                             (exp (build-exp ($primcall 'load-u64 param ()))))
-                        (with-cps cps
-                          (let$ body (wrap-binary/exp k src 's64->u64 'u64-s64
-                                                      op #f a exp))
-                          (setk label ($kargs names vars ,body))))))
-                 (('slsh a b)
-                  (let ((op 'ulsh)
-                        (exp (build-exp ($values (b)))))
-                    (with-cps cps
-                      (let$ body (wrap-binary/exp k src 's64->u64 'u64-s64
-                                                  op #f a exp))
-                      (setk label ($kargs names vars ,body)))))
-                 (('slsh/immediate a)
-                  (let ((op 'ulsh/immediate))
-                    (with-cps cps
-                      (let$ body (wrap-unary k src 's64->u64 'u64->s64 op param a))
-                      (setk label ($kargs names vars ,body)))))
                  (_ cps))))))))
         (param (error "unexpected param to reified primcall" name))
         (else
