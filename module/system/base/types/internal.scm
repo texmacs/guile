@@ -151,8 +151,8 @@
   ;(heap-number     heap-number?           #b1111111       #b0010111)
   (bignum           bignum?           #b111111111111  #b000100010111)
   (flonum           flonum?           #b111111111111  #b001000010111)
-  (complex          complex?          #b111111111111  #b001100010111)
-  (fraction         fraction?         #b111111111111  #b010000010111))
+  (complex          compnum?          #b111111111111  #b001100010111)
+  (fraction         fracnum?          #b111111111111  #b010000010111))
 
 (define-syntax define-tag
   (lambda (x)

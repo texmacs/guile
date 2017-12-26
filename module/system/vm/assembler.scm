@@ -135,8 +135,8 @@
             emit-smob?
             emit-bignum?
             emit-flonum?
-            emit-complex?
-            emit-fraction?
+            emit-compnum?
+            emit-fracnum?
 
             emit-allocate-words
             emit-allocate-words/immediate

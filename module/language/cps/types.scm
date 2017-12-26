@@ -675,6 +675,9 @@ minimum, and maximum."
 (define-simple-predicate-inferrer number? &number)
 (define-simple-predicate-inferrer char? &char)
 (define-simple-predicate-inferrer procedure? &procedure)
+(define-simple-predicate-inferrer flonum? &flonum)
+(define-simple-predicate-inferrer compnum? &complex)
+(define-simple-predicate-inferrer fracnum? &fraction)
 
 (define-predicate-inferrer (eq? a b true?)
   ;; We can only propagate information down the true leg.
@@ -1458,16 +1461,6 @@ minimum, and maximum."
     (define! result &special-immediate &true &true))
    (else
     (define! result &special-immediate &false &true))))
-;; Bah, needs rewrite to turn into actual control flow.
-(define-syntax-rule (define-simple-type-predicate-inferrer name type)
-  (define-type-inferrer (name val result)
-    (define-type-predicate-result val result type)))
-(define-simple-type-predicate-inferrer complex? &number)
-(define-simple-type-predicate-inferrer real? &real)
-(define-simple-type-predicate-inferrer rational? &exact-number)
-;; FIXME: If it's a flonum it may be an integer, but if it's not an
-;; integer it also may be still be a flonum.
-;; (define-simple-type-predicate-inferrer integer? (logior &exact-integer &flonum))
 
 (define-simple-type-checker (exact? &number))
 (define-type-inferrer (exact? val result)

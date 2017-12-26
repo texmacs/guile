@@ -315,7 +315,10 @@ the LABELS that are clobbered by the effects of LABEL."
   ((procedure? arg))
   ((thunk? arg))
   ((heap-number? arg))
-  ((bignum? arg)))
+  ((bignum? arg))
+  ((flonum? arg))
+  ((compnum? arg))
+  ((fracnum? arg)))
 
 ;; Fluids.
 (define-primitive-effects
