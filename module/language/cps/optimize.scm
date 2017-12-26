@@ -29,7 +29,6 @@
   #:use-module (language cps cse)
   #:use-module (language cps devirtualize-integers)
   #:use-module (language cps dce)
-  #:use-module (language cps elide-values)
   #:use-module (language cps licm)
   #:use-module (language cps peel-loops)
   #:use-module (language cps prune-top-level-scopes)
@@ -95,7 +94,6 @@
   (simplify #:simplify? #t)
   (contify #:contify? #t)
   (inline-constructors #:inline-constructors? #t)
-  (elide-values #:elide-values? #t)
   (prune-bailouts #:prune-bailouts? #t)
   (simplify #:simplify? #t)
   (devirtualize-integers #:devirtualize-integers? #t)
@@ -125,7 +123,6 @@
    #:contify? #t
    #:inline-constructors? #t
    #:specialize-primcalls? #t
-   #:elide-values? #t
    #:prune-bailouts? #t
    #:peel-loops? #t
    #:cse? #t
