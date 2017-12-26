@@ -58,7 +58,7 @@
   #:use-module (language cps)
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
-  #:use-module (language cps primitives)
+  #:use-module (language tree-il cps-primitives)
   #:use-module (language tree-il analyze)
   #:use-module (language tree-il optimize)
   #:use-module (language tree-il)
@@ -443,13 +443,11 @@
       (($ <let-values> src exp body) (zero-valued? body))
       (($ <seq> src head tail) (zero-valued? tail))
       (($ <primcall> src name args)
-       (match (prim-instruction name)
+       (match (tree-il-primitive->cps-primitive+nargs+nvalues name)
          (#f #f)
-         (inst
-          (match (prim-arity inst)
-            ((out . in)
-             (and (eqv? out 0)
-                  (eqv? in (length args))))))))
+         (#(cps-prim nargs nvalues)
+          (and (eqv? nvalues 0)
+               (eqv? nargs (length args))))))
       (_ #f)))
   (define (single-valued? exp)
     (match exp
@@ -461,13 +459,11 @@
       (($ <let-values> src exp body) (single-valued? body))
       (($ <seq> src head tail) (single-valued? tail))
       (($ <primcall> src name args)
-       (match (prim-instruction name)
+       (match (tree-il-primitive->cps-primitive+nargs+nvalues name)
          (#f #f)
-         (inst
-          (match (prim-arity inst)
-            ((out . in)
-             (and (eqv? out 1)
-                  (eqv? in (length args))))))))
+         (#(cps-prim nargs nvalues)
+          (and (eqv? nvalues 1)
+               (eqv? nargs (length args))))))
       (_ #f)))
   ;; exp (v-name -> term) -> term
   (define (convert-arg cps exp k)
@@ -733,71 +729,69 @@
                  (specialize 'throw/value `#(,key ,subr ,msg) x))
                 (_ (fallback)))))
            (_ (fallback)))))
-      ((prim-instruction name)
-       => (lambda (instruction)
-            (define (cvt cps k src instruction args)
-              (define (default)
-                (convert-args cps args
+      ((tree-il-primitive->cps-primitive+nargs+nvalues name)
+       =>
+       (match-lambda
+        (#(cps-prim nargs nvalues)
+         (define (cvt cps k src op args)
+           (define (default)
+             (convert-args cps args
+               (lambda (cps args)
+                 (with-cps cps
+                   ($ (convert-primcall* k src op #f args))))))
+           (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...
+                                                (_ def))
+             (match (cons cps-prim args)
+               (pat
+                (convert-args cps (list arg ...)
                   (lambda (cps args)
                     (with-cps cps
-                      ($ (convert-primcall* k src instruction #f args))))))
-              (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...
-                                                   (_ def))
-                (match (cons instruction args)
-                  (pat
-                   (convert-args cps (list arg ...)
-                     (lambda (cps args)
-                       (with-cps cps
-                         ($ (convert-primcall* k src 'op c args))))))
-                  ...
-                  (_ def)))
-              (define (uint? val) (and (exact-integer? val) (<= 0 val)))
-              (define (negint? val) (and (exact-integer? val) (< val 0)))
-              ;; FIXME: Add case for mul
-              (specialize-case
-                (('make-vector ($ <const> _ (? uint? n)) init)
-                 (make-vector/immediate n (init)))
-                (('vector-ref v ($ <const> _ (? uint? n)))
-                 (vector-ref/immediate n (v)))
-                (('vector-set! v ($ <const> _ (? uint? n)) x)
-                 (vector-set!/immediate n (v x)))
-                (('allocate-struct v ($ <const> _ (? uint? n)))
-                 (allocate-struct/immediate n (v)))
-                (('struct-ref s ($ <const> _ (? uint? n)))
-                 (struct-ref/immediate n (s)))
-                (('struct-set! s ($ <const> _ (? uint? n)) x)
-                 (struct-set!/immediate n (s x)))
-                (('add x ($ <const> _ (? number? y)))
-                 (add/immediate y (x)))
-                (('add ($ <const> _ (? number? y)) x)
-                 (add/immediate y (x)))
-                (('sub x ($ <const> _ (? number? y)))
-                 (sub/immediate y (x)))
-                (('lsh x ($ <const> _ (? uint? y)))
-                 (lsh/immediate y (x)))
-                (('rsh x ($ <const> _ (? uint? y)))
-                 (rsh/immediate y (x)))
-                (_
-                 (default))))
-            (when (branching-primitive? name)
-              (error "branching primcall in bad context" name))
-            ;; Tree-IL primcalls are sloppy, in that it could be that
-            ;; they are called with too many or too few arguments.  In
-            ;; CPS we are more strict and only residualize a $primcall
-            ;; if the argument count matches.
-            (match (prim-arity instruction)
-              ((out . in)
-               (if (= in (length args))
-                   (with-cps cps
-                     (let$ k (adapt-arity k src out))
-                     ($ (cvt k src instruction args)))
-                   (convert-args cps args
-                     (lambda (cps args)
-                       (with-cps cps
-                         (letv prim)
-                         (letk kprim ($kargs ('prim) (prim)
-                                       ($continue k src ($call prim args))))
-                         (build-term ($continue kprim src ($prim name)))))))))))
+                      ($ (convert-primcall* k src 'op c args))))))
+               ...
+               (_ def)))
+           (define (uint? val) (and (exact-integer? val) (<= 0 val)))
+           (define (negint? val) (and (exact-integer? val) (< val 0)))
+           ;; FIXME: Add case for mul
+           (specialize-case
+            (('make-vector ($ <const> _ (? uint? n)) init)
+             (make-vector/immediate n (init)))
+            (('vector-ref v ($ <const> _ (? uint? n)))
+             (vector-ref/immediate n (v)))
+            (('vector-set! v ($ <const> _ (? uint? n)) x)
+             (vector-set!/immediate n (v x)))
+            (('allocate-struct v ($ <const> _ (? uint? n)))
+             (allocate-struct/immediate n (v)))
+            (('struct-ref s ($ <const> _ (? uint? n)))
+             (struct-ref/immediate n (s)))
+            (('struct-set! s ($ <const> _ (? uint? n)) x)
+             (struct-set!/immediate n (s x)))
+            (('add x ($ <const> _ (? number? y)))
+             (add/immediate y (x)))
+            (('add ($ <const> _ (? number? y)) x)
+             (add/immediate y (x)))
+            (('sub x ($ <const> _ (? number? y)))
+             (sub/immediate y (x)))
+            (('lsh x ($ <const> _ (? uint? y)))
+             (lsh/immediate y (x)))
+            (('rsh x ($ <const> _ (? uint? y)))
+             (rsh/immediate y (x)))
+            (_
+             (default))))
+         ;; Tree-IL primcalls are sloppy, in that it could be that
+         ;; they are called with too many or too few arguments.  In
+         ;; CPS we are more strict and only residualize a $primcall
+         ;; if the argument count matches.
+         (if (= nargs (length args))
+             (with-cps cps
+               (let$ k (adapt-arity k src nvalues))
+               ($ (cvt k src cps-prim args)))
+             (convert-args cps args
+               (lambda (cps args)
+                 (with-cps cps
+                   (letv prim)
+                   (letk kprim ($kargs ('prim) (prim)
+                                 ($continue k src ($call prim args))))
+                   (build-term ($continue kprim src ($prim name))))))))))
       (else
        ;; We have something that's a primcall for Tree-IL but not for
        ;; CPS, which will get compiled as a call and so the right thing

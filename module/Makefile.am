@@ -144,7 +144,6 @@ SOURCES =					\
   language/cps/licm.scm				\
   language/cps/optimize.scm			\
   language/cps/peel-loops.scm			\
-  language/cps/primitives.scm			\
   language/cps/prune-bailouts.scm		\
   language/cps/prune-top-level-scopes.scm	\
   language/cps/reify-primitives.scm		\
@@ -191,6 +190,7 @@ SOURCES =					\
   language/tree-il/analyze.scm			\
   language/tree-il/canonicalize.scm		\
   language/tree-il/compile-cps.scm		\
+  language/tree-il/cps-primitives.scm		\
   language/tree-il/debug.scm			\
   language/tree-il/effects.scm			\
   language/tree-il/fix-letrec.scm		\

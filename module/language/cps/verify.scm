@@ -27,7 +27,6 @@
   #:use-module (language cps utils)
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
-  #:use-module (language cps primitives)
   #:use-module (srfi srfi-11)
   #:export (verify))
 
@@ -244,16 +243,9 @@ definitions that are available at LABEL."
          (cont (error "bad kt" cont))))
       (($ $primcall name param args)
        (match cont
-         (($ $kargs names)
-          (match (prim-arity name)
-            ((out . in)
-             (unless (= in (length args))
-               (error "bad arity to primcall" name args in))
-             (unless (= out (length names))
-               (error "bad return arity from primcall" name names out)))))
-         (($ $kreceive)
-          (when (false-if-exception (prim-arity name))
-            (error "primitive should continue to $kargs, not $kreceive" name)))
+         (($ $kargs) #t)
+         ;; FIXME: Remove this case; instead use $prim and $call.
+         (($ $kreceive) #t)
          (($ $ktail)
           (unless (memv name '(throw throw/value throw/value+data))
             (error "primitive should continue to $kargs, not $ktail" name)))))
