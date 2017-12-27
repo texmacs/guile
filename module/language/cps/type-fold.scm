@@ -333,66 +333,38 @@
 (define-binary-primcall-reducer (logbit? cps k src param
                                          arg0 type0 min0 max0
                                          arg1 type1 min1 max1)
-  ;; FIXME: Use an unboxed number for the mask instead of a fixnum.
-  (define (convert-to-logtest cps kbool)
-    (define (compute-mask cps kmask src)
-      (if (eq? min0 max0)
-          (with-cps cps
-            (build-term
-              ($continue kmask src ($const (ash 1 min0)))))
-          (with-cps cps
-            ($ (with-cps-constants ((one 1))
-                 (letv n)
-                 (letk kn ($kargs ('n) (n)
-                            ($continue kmask src
-                              ($primcall 'lsh #f (one n)))))
-                 (build-term
-                   ($continue kn src ($primcall 'untag-fixnum #f (arg0)))))))))
+  (define (compute-mask cps kmask src)
+    (if (eq? min0 max0)
+        (with-cps cps
+          (build-term
+            ($continue kmask src ($const (ash 1 min0)))))
+        (with-cps cps
+          ($ (with-cps-constants ((one 1))
+               (letv n)
+               (letk kn ($kargs ('n) (n)
+                          ($continue kmask src
+                            ($primcall 'lsh #f (one n)))))
+               (build-term
+                 ($continue kn src ($primcall 'untag-fixnum #f (arg0)))))))))
+  (cond
+   ((and (type<=? type0 &exact-integer)
+         (<= 0 min0 (target-most-positive-fixnum))
+         (<= 0 max0 (target-most-positive-fixnum)))
     (with-cps cps
-      (letv mask test)
-      (letk kt ($kargs () ()
-                 ($continue kbool src ($const #t))))
-      (letk kf ($kargs () ()
-                 ($continue kbool src ($const #f))))
-      (let$ body (with-cps-constants ((zero 0))
-                   (build-term
-                     ($continue kt src
-                       ($branch kf ($primcall 'eq? #f (test zero)))))))
-      (letk kand ($kargs (#f) (test)
-                   ,body))
+      (letv mask res u64)
+      (letk kt ($kargs () () ($continue k src ($const #t))))
+      (letk kf ($kargs () () ($continue k src ($const #f))))
+      (letk ku64 ($kargs (#f) (u64)
+                   ($continue kt src
+                     ($branch kf ($primcall 's64-imm-= 0 (u64))))))
+      (letk kand ($kargs (#f) (res)
+                   ($continue ku64 src ($primcall 'untag-fixnum #f (res)))))
       (letk kmask ($kargs (#f) (mask)
                     ($continue kand src
                       ($primcall 'logand #f (mask arg1)))))
       ($ (compute-mask kmask src))))
-  ;; Hairiness because we are converting from a primcall with unknown
-  ;; arity to a branching primcall.
-  (if (and (type<=? type0 &exact-integer)
-           (<= 0 min0 (target-most-positive-fixnum))
-           (<= 0 max0 (target-most-positive-fixnum)))
-      (match (intmap-ref cps k)
-        (($ $kreceive arity kargs)
-         (match arity
-           (($ $arity (_) () (not #f) () #f)
-            (with-cps cps
-              (letv bool)
-              (let$ body (with-cps-constants ((nil '()))
-                           (build-term
-                             ($continue kargs src ($values (bool nil))))))
-              (letk kbool ($kargs (#f) (bool) ,body))
-              ($ (convert-to-logtest kbool))))
-           (_
-            (with-cps cps
-              (letv bool)
-              (letk kbool ($kargs (#f) (bool)
-                            ($continue k src ($primcall 'values #f (bool)))))
-              ($ (convert-to-logtest kbool))))))
-        (($ $ktail)
-         (with-cps cps
-           (letv bool)
-           (letk kbool ($kargs (#f) (bool)
-                         ($continue k src ($values (bool)))))
-           ($ (convert-to-logtest kbool)))))
-      (with-cps cps #f)))
+   (else
+    (with-cps cps #f))))
 
 (define-unary-primcall-reducer (u64->scm cps k src constant arg type min max)
   (cond

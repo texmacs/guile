@@ -92,6 +92,7 @@
 (define-cps-primitive logior 2 1)
 (define-cps-primitive logxor 2 1)
 (define-cps-primitive logsub 2 1)
+(define-cps-primitive logbit? 2 1)
 
 (define-cps-primitive make-vector 2 1)
 (define-cps-primitive vector-length 1 1)
