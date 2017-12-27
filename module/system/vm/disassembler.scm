@@ -566,13 +566,13 @@ address of that offset."
     (define (stack-effect-parser name)
       (case name
         ((push)
-         #'(lambda (code pos size) (+ size 1)))
+         #'(lambda (code pos size) (and size (+ size 1))))
         ((pop)
-         #'(lambda (code pos size) (- size 1)))
+         #'(lambda (code pos size) (and size (- size 1))))
         ((drop)
          #'(lambda (code pos size)
              (let ((count (ash (bytevector-u32-native-ref code pos) -8)))
-               (- size count))))
+               (and size (- size count)))))
         ((alloc-frame reset-frame)
          #'(lambda (code pos size)
              (let ((nlocals (ash (bytevector-u32-native-ref code pos) -8)))
@@ -632,7 +632,7 @@ address of that offset."
                                   (match elt
                                     ((_ proc . _)
                                      (let lp ((slot (- proc 2)))
-                                       (if (< slot nslots-in)
+                                       (if (and nslots-in (< slot nslots-in))
                                            (cons slot (lp (1+ slot)))
                                            '())))))))))
                  (vector-set! clobber-parsers opcode parse)))
@@ -650,7 +650,9 @@ address of that offset."
                                       ((X8_F24 X8_F12_F12)
                                        #'(list dst))
                                       (else
-                                       #'(list (- nslots-out 1 dst)))))))))))
+                                       #'(if nslots-out
+                                             (list (- nslots-out 1 dst))
+                                             '()))))))))))
               (vector-set! clobber-parsers opcode parse)))
          (else (error "unexpected instruction kind" #'kind)))))))
 
