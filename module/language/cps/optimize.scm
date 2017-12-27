@@ -24,7 +24,6 @@
 
 (define-module (language cps optimize)
   #:use-module (ice-9 match)
-  #:use-module (language cps constructors)
   #:use-module (language cps contification)
   #:use-module (language cps cse)
   #:use-module (language cps devirtualize-integers)
@@ -93,7 +92,6 @@
   (prune-top-level-scopes #:prune-top-level-scopes? #t)
   (simplify #:simplify? #t)
   (contify #:contify? #t)
-  (inline-constructors #:inline-constructors? #t)
   (prune-bailouts #:prune-bailouts? #t)
   (simplify #:simplify? #t)
   (devirtualize-integers #:devirtualize-integers? #t)
@@ -121,7 +119,6 @@
    #:eliminate-dead-code? #t
    #:prune-top-level-scopes? #t
    #:contify? #t
-   #:inline-constructors? #t
    #:specialize-primcalls? #t
    #:prune-bailouts? #t
    #:peel-loops? #t

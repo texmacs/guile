@@ -131,7 +131,6 @@ SOURCES =					\
   language/cps.scm				\
   language/cps/closure-conversion.scm		\
   language/cps/compile-bytecode.scm		\
-  language/cps/constructors.scm			\
   language/cps/contification.scm		\
   language/cps/cse.scm				\
   language/cps/dce.scm				\
