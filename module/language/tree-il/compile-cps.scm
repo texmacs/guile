@@ -864,13 +864,15 @@
                        (build-term ($continue kbody (tree-il-src body)
                                      ($prompt #f tag khargs))))))))
            (with-cps cps
-             (letv prim vals)
+             (letv prim vals apply)
              (let$ hbody (convert hbody k subst))
              (let$ hbody (box-bound-vars hnames hsyms hbody))
              (letk khbody ($kargs hnames bound-vars ,hbody))
              (letk khargs ($kreceive hreq hrest khbody))
+             (letk kapp ($kargs ('apply) (apply)
+                          ($continue k src ($call apply (prim vals)))))
              (letk kprim ($kargs ('prim) (prim)
-                           ($continue k src ($primcall 'apply #f (prim vals)))))
+                           ($continue kapp src ($prim 'apply))))
              (letk kret ($kargs () ()
                           ($continue kprim src ($prim 'values))))
              (letk kpop ($kargs ('rest) (vals)
@@ -883,17 +885,24 @@
      (convert-args cps (cons tag args)
        (lambda (cps args*)
          (with-cps cps
+           (letv abort)
+           (letk kabort ($kargs ('abort) (abort)
+                          ($continue k src ($call abort args*))))
            (build-term
-             ($continue k src ($primcall 'abort-to-prompt #f args*)))))))
+             ($continue kabort src ($prim 'abort-to-prompt)))))))
 
     (($ <abort> src tag args tail)
      (convert-args cps
-         (append (list (make-primitive-ref #f 'abort-to-prompt) tag)
+         (append (list (make-primitive-ref #f 'apply)
+                       (make-primitive-ref #f 'abort-to-prompt)
+                       tag)
                  args
                  (list tail))
        (lambda (cps args*)
-         (with-cps cps
-           (build-term ($continue k src ($primcall 'apply #f args*)))))))
+         (match args*
+           ((apply . apply-args)
+            (with-cps cps
+              (build-term ($continue k src ($call apply apply-args)))))))))
 
     (($ <conditional> src test consequent alternate)
      (define (convert-test cps test kt kf)
