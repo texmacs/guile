@@ -237,7 +237,6 @@
          (setk label ($kfun src meta self tail clause))))
       (($ $kargs names vars ($ $continue k src ($ $prim name)))
        (with-cps cps
-         (let$ k (uniquify-receive k))
          (let$ body (resolve-prim name k src))
          (setk label ($kargs names vars ,body))))
       (($ $kargs names vars
@@ -380,9 +379,9 @@
         (else
          (with-cps cps
            (letv proc)
-           (let$ k (uniquify-receive k))
+           (letk krecv ($kreceive '(res) #f k))
            (letk kproc ($kargs ('proc) (proc)
-                               ($continue k src ($call proc args))))
+                         ($continue krecv src ($call proc args))))
            (let$ body (resolve-prim name kproc src))
            (setk label ($kargs names vars ,body))))))
       (($ $kargs names vars

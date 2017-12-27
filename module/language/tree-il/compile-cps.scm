@@ -820,13 +820,14 @@
                    (build-term ($continue kprim src ($prim name))))))))))
       (else
        ;; We have something that's a primcall for Tree-IL but not for
-       ;; CPS, which will get compiled as a call and so the right thing
-       ;; to do is to continue to the given $ktail or $kreceive.
+       ;; CPS; compile as a call.
        (convert-args cps args
          (lambda (cps args)
            (with-cps cps
-             (build-term
-               ($continue k src ($primcall name #f args)))))))))
+             (letv prim)
+             (letk kprim ($kargs ('prim) (prim)
+                           ($continue k src ($call prim args))))
+             (build-term ($continue kprim src ($prim name)))))))))
 
     ;; Prompts with inline handlers.
     (($ <prompt> src escape-only? tag body
