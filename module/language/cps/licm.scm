@@ -70,7 +70,6 @@
        ((or ($ $const) ($ $prim) ($ $closure)) #t)
        (($ $prompt) #f) ;; ?
        (($ $branch) #f)
-       (($ $primcall 'values #f) #f)
        (($ $primcall name param args)
         (and-map (lambda (arg) (not (intset-ref loop-vars arg)))
                  args))

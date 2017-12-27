@@ -37,6 +37,7 @@
   #:use-module (language cps utils)
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
+  #:use-module (language cps with-cps)
   #:export (contify))
 
 (define (compute-singly-referenced-labels conts)
@@ -369,72 +370,107 @@ function set."
             (if (arity-matches? arity nargs)
                 body
                 (lp alt))))))))
-  (define (continue k src exp)
+  (define (inline-return cps k* kargs src nreq rest vals)
+    (define (build-list cps k src vals)
+      (match vals
+        (()
+         (with-cps cps
+           (build-term ($continue k src ($const '())))))
+        ((v . vals)
+         (with-cps cps
+           (letv tail)
+           (letk ktail ($kargs ('tail) (tail)
+                         ($continue k src ($primcall 'cons #f (v tail)))))
+           ($ (build-list ktail src vals))))))
+    (cond
+     ((and (not rest) (eqv? (length vals) nreq))
+      (with-cps cps
+        (build-term ($continue kargs src ($values vals)))))
+     ((and rest (<= nreq (length vals)))
+      (with-cps cps
+        (letv rest)
+        (letk krest ($kargs ('rest) (rest)
+                      ($continue kargs src
+                        ($values ,(append (list-head vals nreq)
+                                          (list rest))))))
+        ($ (build-list krest src (list-tail vals nreq)))))
+     (else
+      ;; Fallback case if values don't match.
+      (with-cps cps
+        (letv prim)
+        (letk kprim ($kargs ('prim) (prim)
+                      ($continue k* src ($call prim vals))))
+        (build-term ($continue kprim src ($prim 'values)))))))
+  (define (continue cps k src exp)
     (define (lookup-return-cont k)
       (match (return-subst k)
         (#f k)
         (k (lookup-return-cont k))))
     (let ((k* (lookup-return-cont k)))
       (if (eq? k k*)
-          (build-term ($continue k src ,exp))
+          (with-cps cps (build-term ($continue k src ,exp)))
           ;; We are contifying this return.  It must be a call, a
-          ;; $values expression, or a return primcall.  k* will be
-          ;; either a $ktail or a $kreceive continuation.  CPS has this
-          ;; thing though where $kreceive can't be the target of a
-          ;; $values expression, and "return" can only continue to a
-          ;; tail continuation, so we might have to rewrite to a
-          ;; "values" primcall.
-          (build-term
-            ($continue k* src
-              ,(match (intmap-ref conts k*)
-                 (($ $kreceive)
-                  (match exp
-                    (($ $call) exp)
-                    ;; A primcall that can continue to $ktail can also
-                    ;; continue to $kreceive.
-                    (($ $primcall) exp)
-                    (($ $values vals)
-                     (build-exp ($primcall 'values #f vals)))))
-                 (($ $ktail) exp)))))))
-  (define (visit-exp k src exp)
+          ;; $primcall that can continue to $ktail (basically this is
+          ;; only "throw" and friends), or a $values expression.  k*
+          ;; will be either a $ktail or a $kreceive continuation.
+          (match (intmap-ref conts k*)
+            (($ $kreceive ($ $arity req () rest () #f) kargs)
+             (match exp
+               (($ $call)
+                (with-cps cps (build-term ($continue k* src ,exp))))
+               ;; A primcall that can continue to $ktail can also
+               ;; continue to $kreceive.
+               (($ $primcall)
+                (with-cps cps (build-term ($continue k* src ,exp))))
+               ;; We need to punch through the $kreceive; otherwise we'd
+               ;; have to rewrite as a call to the 'values primitive.
+               (($ $values vals)
+                (inline-return cps k* kargs src (length req) rest vals))))
+            (($ $ktail)
+             (with-cps cps (build-term ($continue k* src ,exp))))))))
+  (define (visit-exp cps k src exp)
     (match exp
       (($ $call proc args)
        ;; If proc is contifiable, replace call with jump.
        (match (call-subst proc)
-         (#f (continue k src exp))
+         (#f (continue cps k src exp))
          (kfun
           (let ((body (find-body kfun (length args))))
-            (build-term ($continue body src ($values args)))))))
+            (with-cps cps
+              (build-term ($continue body src ($values args))))))))
       (($ $fun kfun)
        ;; If the function's tail continuation has been
        ;; substituted, that means it has been contified.
        (if (return-subst (tail-label conts kfun))
-           (continue k src (build-exp ($values ())))
-           (continue k src exp)))
+           (continue cps k src (build-exp ($values ())))
+           (continue cps k src exp)))
       (($ $rec names vars funs)
        (match (filter (match-lambda ((n v f) (not (call-subst v))))
                       (map list names vars funs))
-         (() (continue k src (build-exp ($values ()))))
+         (() (continue cps k src (build-exp ($values ()))))
          (((names vars funs) ...)
-          (continue k src (build-exp ($rec names vars funs))))))
-      (_ (continue k src exp))))
+          (continue cps k src (build-exp ($rec names vars funs))))))
+      (_ (continue cps k src exp))))
 
   ;; Renumbering is not strictly necessary but some passes may not be
   ;; equipped to deal with stale $kfun nodes whose bodies have been
   ;; wired into other functions.
   (renumber
-   (intmap-map
-    (lambda (label cont)
-      (match cont
-        (($ $kargs names vars ($ $continue k src exp))
-         ;; Remove bindings for functions that have been contified.
-         (match (filter (match-lambda ((name var) (not (call-subst var))))
-                        (map list names vars))
-           (((names vars) ...)
-            (build-cont
-              ($kargs names vars ,(visit-exp k src exp))))))
-        (_ cont)))
-    conts)))
+   (with-fresh-name-state conts
+     (intmap-fold
+      (lambda (label cont out)
+        (match cont
+          (($ $kargs names vars ($ $continue k src exp))
+           ;; Remove bindings for functions that have been contified.
+           (match (filter (match-lambda ((name var) (not (call-subst var))))
+                          (map list names vars))
+             (((names vars) ...)
+              (with-cps out
+                (let$ term (visit-exp k src exp))
+                (setk label ($kargs names vars ,term))))))
+          (_ out)))
+      conts
+      conts))))
 
 (define (contify conts)
   ;; FIXME: Renumbering isn't really needed but dead continuations may
