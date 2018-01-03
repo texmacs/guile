@@ -45,26 +45,26 @@
 
 (define *branch-folders* (make-hash-table))
 
-(define-syntax-rule (define-branch-folder name f)
-  (hashq-set! *branch-folders* 'name f))
+(define-syntax-rule (define-branch-folder op f)
+  (hashq-set! *branch-folders* 'op f))
 
 (define-syntax-rule (define-branch-folder-alias to from)
   (hashq-set! *branch-folders* 'to (hashq-ref *branch-folders* 'from)))
 
-(define-syntax-rule (define-unary-branch-folder* (name param arg min max)
+(define-syntax-rule (define-unary-branch-folder* (op param arg min max)
                       body ...)
-  (define-branch-folder name (lambda (param arg min max) body ...)))
+  (define-branch-folder op (lambda (param arg min max) body ...)))
 
-(define-syntax-rule (define-unary-branch-folder (name arg min max) body ...)
-  (define-unary-branch-folder* (name param arg min max) body ...))
+(define-syntax-rule (define-unary-branch-folder (op arg min max) body ...)
+  (define-unary-branch-folder* (op param arg min max) body ...))
 
-(define-syntax-rule (define-binary-branch-folder (name arg0 min0 max0
+(define-syntax-rule (define-binary-branch-folder (op arg0 min0 max0
                                                        arg1 min1 max1)
                       body ...)
-  (define-branch-folder name (lambda (param arg0 min0 max0 arg1 min1 max1) body ...)))
+  (define-branch-folder op (lambda (param arg0 min0 max0 arg1 min1 max1) body ...)))
 
-(define-syntax-rule (define-special-immediate-predicate-folder name imin imax)
-  (define-unary-branch-folder (name type min max)
+(define-syntax-rule (define-special-immediate-predicate-folder op imin imax)
+  (define-unary-branch-folder (op type min max)
     (let ((type* (logand type &special-immediate)))
       (cond
        ((zero? (logand type &special-immediate)) (values #t #f))
@@ -86,8 +86,8 @@
 (define-special-immediate-predicate-folder false? &nil &false)
 (define-special-immediate-predicate-folder nil? &null &false) ;; &nil in middle
 
-(define-syntax-rule (define-unary-type-predicate-folder name &type)
-  (define-unary-branch-folder (name type min max)
+(define-syntax-rule (define-unary-type-predicate-folder op &type)
+  (define-unary-branch-folder (op type min max)
     (let ((type* (logand type &type)))
       (cond
        ((zero? type*) (values #t #f))
@@ -216,22 +216,22 @@
 
 (define *primcall-macro-reducers* (make-hash-table))
 
-(define-syntax-rule (define-primcall-macro-reducer name f)
-  (hashq-set! *primcall-macro-reducers* 'name f))
+(define-syntax-rule (define-primcall-macro-reducer op f)
+  (hashq-set! *primcall-macro-reducers* 'op f))
 
-(define-syntax-rule (define-unary-primcall-macro-reducer (name cps k src
-                                                               arg type min max)
+(define-syntax-rule (define-unary-primcall-macro-reducer (op cps k src
+                                                             arg type min max)
                       body ...)
-  (define-primcall-macro-reducer name
+  (define-primcall-macro-reducer op
     (lambda (cps k src param arg type min max)
       body ...)))
 
 (define-syntax-rule (define-binary-primcall-macro-reducer
-                      (name cps k src
-                            arg0 type0 min0 max0
-                            arg1 type1 min1 max1)
+                      (op cps k src
+                          arg0 type0 min0 max0
+                          arg1 type1 min1 max1)
                       body ...)
-  (define-primcall-macro-reducer name
+  (define-primcall-macro-reducer op
     (lambda (cps k src param arg0 type0 min0 max0 arg1 type1 min1 max1)
       body ...)))
 
@@ -278,21 +278,21 @@
 
 (define *primcall-reducers* (make-hash-table))
 
-(define-syntax-rule (define-primcall-reducer name f)
-  (hashq-set! *primcall-reducers* 'name f))
+(define-syntax-rule (define-primcall-reducer op f)
+  (hashq-set! *primcall-reducers* 'op f))
 
-(define-syntax-rule (define-unary-primcall-reducer (name cps k src param
+(define-syntax-rule (define-unary-primcall-reducer (op cps k src param
                                                     arg type min max)
                       body ...)
-  (define-primcall-reducer name
+  (define-primcall-reducer op
     (lambda (cps k src param arg type min max)
       body ...)))
 
-(define-syntax-rule (define-binary-primcall-reducer (name cps k src param
+(define-syntax-rule (define-binary-primcall-reducer (op cps k src param
                                                      arg0 type0 min0 max0
                                                      arg1 type1 min1 max1)
                       body ...)
-  (define-primcall-reducer name
+  (define-primcall-reducer op
     (lambda (cps k src param arg0 type0 min0 max0 arg1 type1 min1 max1)
       body ...)))
 
@@ -438,7 +438,7 @@
        (else (error "unhandled immediate" val))))
      (else (error "unhandled type" type val))))
   (let ((types (infer-types cps start)))
-    (define (fold-primcall cps label names vars k src name param args def)
+    (define (fold-primcall cps label names vars k src op param args def)
       (call-with-values (lambda () (lookup-post-type types label def 0))
         (lambda (type min max)
           (and (not (zero? type))
@@ -446,7 +446,7 @@
                (zero? (logand type (lognot &scalar-types)))
                (eqv? min max)
                (let ((val (scalar-value type min)))
-                 ;; (pk 'folded src name args val)
+                 ;; (pk 'folded src op args val)
                  (with-cps cps
                    (letv v*)
                    (letk k* ($kargs (#f) (v*)
@@ -455,8 +455,8 @@
                    ;; possible.
                    (setk label
                          ($kargs names vars
-                           ($continue k* src ($primcall name param args))))))))))
-    (define (transform-primcall f cps label names vars k src name param args)
+                           ($continue k* src ($primcall op param args))))))))))
+    (define (transform-primcall f cps label names vars k src op param args)
       (and f
            (match args
              ((arg0)
@@ -481,36 +481,36 @@
                                (with-cps cps
                                  (setk label ($kargs names vars ,term)))))))))))
              (_ #f))))
-    (define (reduce-primcall cps label names vars k src name param args)
+    (define (reduce-primcall cps label names vars k src op param args)
       (cond
-       ((transform-primcall (hashq-ref *primcall-macro-reducers* name)
-                            cps label names vars k src name param args)
+       ((transform-primcall (hashq-ref *primcall-macro-reducers* op)
+                            cps label names vars k src op param args)
         => (lambda (cps)
              (match (intmap-ref cps label)
                (($ $kargs names vars
-                   ($ $continue k src ($ $primcall name param args)))
-                (reduce-primcall cps label names vars k src name param args)))))
-       ((transform-primcall (hashq-ref *primcall-reducers* name)
-                            cps label names vars k src name param args))
+                   ($ $continue k src ($ $primcall op param args)))
+                (reduce-primcall cps label names vars k src op param args)))))
+       ((transform-primcall (hashq-ref *primcall-reducers* op)
+                            cps label names vars k src op param args))
        (else cps)))
-    (define (fold-unary-branch cps label names vars kf kt src name param arg)
+    (define (fold-unary-branch cps label names vars kf kt src op param arg)
       (and=>
-       (hashq-ref *branch-folders* name)
+       (hashq-ref *branch-folders* op)
        (lambda (folder)
          (call-with-values (lambda () (lookup-pre-type types label arg))
            (lambda (type min max)
              (call-with-values (lambda () (folder param type min max))
                (lambda (f? v)
-                 ;; (when f? (pk 'folded-unary-branch label name arg v))
+                 ;; (when f? (pk 'folded-unary-branch label op arg v))
                  (and f?
                       (with-cps cps
                         (setk label
                               ($kargs names vars
                                 ($continue (if v kt kf) src
                                   ($values ())))))))))))))
-    (define (fold-binary-branch cps label names vars kf kt src name param arg0 arg1)
+    (define (fold-binary-branch cps label names vars kf kt src op param arg0 arg1)
       (and=>
-       (hashq-ref *branch-folders* name)
+       (hashq-ref *branch-folders* op)
        (lambda (folder)
          (call-with-values (lambda () (lookup-pre-type types label arg0))
            (lambda (type0 min0 max0)
@@ -519,29 +519,29 @@
                  (call-with-values (lambda ()
                                      (folder param type0 min0 max0 type1 min1 max1))
                    (lambda (f? v)
-                     ;; (when f? (pk 'folded-binary-branch label name arg0 arg1 v))
+                     ;; (when f? (pk 'folded-binary-branch label op arg0 arg1 v))
                      (and f?
                           (with-cps cps
                             (setk label
                                   ($kargs names vars
                                     ($continue (if v kt kf) src
                                       ($values ())))))))))))))))
-    (define (visit-primcall cps label names vars k src name param args)
+    (define (visit-primcall cps label names vars k src op param args)
       ;; We might be able to fold primcalls that define a value.
       (match (intmap-ref cps k)
         (($ $kargs (_) (def))
-         (or (fold-primcall cps label names vars k src name param args def)
-             (reduce-primcall cps label names vars k src name param args)))
+         (or (fold-primcall cps label names vars k src op param args def)
+             (reduce-primcall cps label names vars k src op param args)))
         (_
-         (reduce-primcall cps label names vars k src name param args))))
-    (define (visit-branch cps label names vars kf kt src name param args)
+         (reduce-primcall cps label names vars k src op param args))))
+    (define (visit-branch cps label names vars kf kt src op param args)
       ;; We might be able to fold primcalls that branch.
       (match args
         ((x)
-         (or (fold-unary-branch cps label names vars kf kt src name param x)
+         (or (fold-unary-branch cps label names vars kf kt src op param x)
              cps))
         ((x y)
-         (or (fold-binary-branch cps label names vars kf kt src name param x y)
+         (or (fold-binary-branch cps label names vars kf kt src op param x y)
              cps))))
     (let lp ((label start) (cps cps))
       (if (<= label end)
