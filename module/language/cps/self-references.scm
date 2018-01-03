@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -36,42 +36,42 @@
   (define (subst var)
     (intmap-ref env var (lambda (var) var)))
 
-  (define (rename-exp label cps names vars k src exp)
-    (let ((exp (rewrite-exp exp
-                 ((or ($ $const) ($ $prim)) ,exp)
-                 (($ $call proc args)
-                  ($call (subst proc) ,(map subst args)))
-                 (($ $callk k proc args)
-                  ($callk k (subst proc) ,(map subst args)))
-                 (($ $primcall name param args)
-                  ($primcall name param ,(map subst args)))
-                 (($ $branch k ($ $primcall name param args))
-                  ($branch k ($primcall name param ,(map subst args))))
-                 (($ $values args)
-                  ($values ,(map subst args)))
-                 (($ $prompt escape? tag handler)
-                  ($prompt escape? (subst tag) handler)))))
-      (intmap-replace! cps label
-                       (build-cont
-                         ($kargs names vars ($continue k src ,exp))))))
+  (define (rename-exp exp)
+    (rewrite-exp exp
+      ((or ($ $const) ($ $prim)) ,exp)
+      (($ $call proc args)
+       ($call (subst proc) ,(map subst args)))
+      (($ $callk k proc args)
+       ($callk k (subst proc) ,(map subst args)))
+      (($ $primcall name param args)
+       ($primcall name param ,(map subst args)))
+      (($ $values args)
+       ($values ,(map subst args)))
+      (($ $prompt escape? tag handler)
+       ($prompt escape? (subst tag) handler))))
 
-  (define (visit-exp cps label names vars k src exp)
-    (match exp
-      (($ $fun label)
+  (define (rename-term term)
+    (rewrite-term term
+      (($ $continue k src exp)
+       ($continue k src ,(rename-exp exp)))
+      (($ $branch kf kt src op param args)
+       ($branch kf kt src op param ,(map subst args)))))
+
+  (define (visit-label label cps)
+    (match (intmap-ref cps label)
+      (($ $kargs _ _ ($ $continue k src ($ $fun label)))
        (resolve-self-references cps label env))
-      (($ $rec names vars (($ $fun labels) ...))
+      (($ $kargs _ _ ($ $continue k src
+                        ($ $rec names vars (($ $fun labels) ...))))
        (fold (lambda (label var cps)
                (match (intmap-ref cps label)
                  (($ $kfun src meta self)
                   (resolve-self-references cps label
                                            (intmap-add env var self)))))
              cps labels vars))
-      (_ (rename-exp label cps names vars k src exp))))
-  
-  (intset-fold (lambda (label cps)
-                 (match (intmap-ref cps label)
-                   (($ $kargs names vars ($ $continue k src exp))
-                    (visit-exp cps label names vars k src exp))
-                   (_ cps)))
-               (compute-function-body cps label)
-               cps))
+      (($ $kargs names vars term)
+       (intmap-replace! cps label
+                        (build-cont ($kargs names vars ,(rename-term term)))))
+      (_ cps)))
+
+  (intset-fold visit-label (compute-function-body cps label) cps))

@@ -1,6 +1,6 @@
 ;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -154,12 +154,12 @@ by a label, respectively."
             (return (get-defs k) (intset-add (vars->intset args) proc)))
            (($ $primcall name param args)
             (return (get-defs k) (vars->intset args)))
-           (($ $branch kt ($ $primcall name param args))
-            (return empty-intset (vars->intset args)))
            (($ $values args)
             (return (get-defs k) (vars->intset args)))
            (($ $prompt escape? tag handler)
             (return empty-intset (intset tag)))))
+        (($ $kargs _ _ ($ $branch kf kt src op param args))
+         (return empty-intset (vars->intset args)))
         (($ $kclause arity body alt)
          (return (get-defs body) empty-intset))
         (($ $kreceive arity kargs)
@@ -238,10 +238,10 @@ body continuation in the prompt."
                  (visit-cont handler level (visit-cont k (1+ level) labels)))
                 (($ $kargs names syms ($ $continue k src ($ $primcall 'unwind)))
                  (visit-cont k (1- level) labels))
-                (($ $kargs names syms ($ $continue k src ($ $branch kt)))
-                 (visit-cont k level (visit-cont kt level labels)))
                 (($ $kargs names syms ($ $continue k src exp))
-                 (visit-cont k level labels)))))))))))
+                 (visit-cont k level labels))
+                (($ $kargs names syms ($ $branch kf kt))
+                 (visit-cont kf level (visit-cont kt level labels))))))))))))
   (define (visit-prompt label handler succs)
     (let ((body (compute-prompt-body label)))
       (define (out-or-back-edge? label)
@@ -629,14 +629,14 @@ are comparable with eqv?.  A tmp slot may be used."
                   (max (+ (get-proc-slot label) nargs) size)))
   (define (measure-cont label cont size)
     (match cont
-      (($ $kargs names vars ($ $continue k src exp))
+      (($ $kargs names vars term)
        (let ((size (max-size* vars size)))
-         (match exp
-           (($ $call proc args)
+         (match term
+           (($ $continue _ _ ($ $call proc args))
             (call-size label (1+ (length args)) size))
-           (($ $callk _ proc args)
+           (($ $continue _ _ ($ $callk _ proc args))
             (call-size label (1+ (length args)) size))
-           (($ $values args)
+           (($ $continue _ _ ($ $values args))
             (shuffle-size (get-shuffles label) size))
            (_ size))))
       (($ $kreceive)
@@ -744,6 +744,8 @@ are comparable with eqv?.  A tmp slot may be used."
   (intmap-fold
    (lambda (label cont representations)
      (match cont
+       (($ $kargs _ _ ($ $branch))
+        representations)
        (($ $kargs _ _ ($ $continue k _ exp))
         (match (get-defs k)
           (() representations)
@@ -970,16 +972,16 @@ are comparable with eqv?.  A tmp slot may be used."
 
     (define (allocate-cont label cont slots call-allocs)
       (match cont
-        (($ $kargs names vars ($ $continue k src exp))
+        (($ $kargs names vars term)
          (let-values (((slots live) (allocate-defs label vars slots)))
-           (match exp
-             (($ $call proc args)
+           (match term
+             (($ $continue k src ($ $call proc args))
               (allocate-call label k (cons proc args) slots call-allocs live))
-             (($ $callk _ proc args)
+             (($ $continue k src ($ $callk _ proc args))
               (allocate-call label k (cons proc args) slots call-allocs live))
-             (($ $values args)
+             (($ $continue k src ($ $values args))
               (allocate-values label k args slots call-allocs))
-             (($ $prompt escape? tag handler)
+             (($ $continue k src ($ $prompt escape? tag handler))
               (allocate-prompt label k handler slots call-allocs))
              (_
               (values slots call-allocs)))))

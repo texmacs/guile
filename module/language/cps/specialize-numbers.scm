@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2015, 2016, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2016, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -146,9 +146,7 @@
 (define (specialize-comparison cps kf kt src op a b unbox-a unbox-b)
   (with-cps cps
     (letv a* b*)
-    (letk kop ($kargs ('b) (b*)
-                ($continue kf src
-                  ($branch kt ($primcall op #f (a* b*))))))
+    (letk kop ($kargs ('b) (b*) ($branch kf kt src op #f (a* b*))))
     (let$ unbox-b-body (unbox-b kop src b))
     (letk kunbox-b ($kargs ('a) (a*) ,unbox-b-body))
     ($ (unbox-a kunbox-b src a))))
@@ -157,9 +155,7 @@
                                           unbox-a)
   (with-cps cps
     (letv ia)
-    (letk kop ($kargs ('ia) (ia)
-                ($continue kf src
-                  ($branch kt ($primcall op imm (ia))))))
+    (letk kop ($kargs ('ia) (ia) ($branch kf kt src op imm (ia))))
     ($ (unbox-a kop src a))))
 
 (define (specialize-comparison/s64-integer cps kf kt src op a-s64 b-int
@@ -168,23 +164,19 @@
     (with-cps cps
       (letv a b sunk)
       (letk kheap ($kargs ('sunk) (sunk)
-                    ($continue kf src
-                      ($branch kt ($primcall op #f (sunk b-int))))))
+                    ($branch kf kt src op #f (sunk b-int))))
       ;; Re-box the variable.  FIXME: currently we use a specially
       ;; marked s64->scm to avoid CSE from hoisting the allocation
       ;; again.  Instead we should just use a-s64 directly and implement
       ;; an allocation sinking pass that should handle this..
       (let$ rebox-a-body (rebox-a kheap src a))
       (letk kretag ($kargs () () ,rebox-a-body))
-      (letk kb ($kargs ('b) (b)
-                 ($continue kf src
-                   ($branch kt ($primcall s64-op #f (a b))))))
+      (letk kb ($kargs ('b) (b) ($branch kf kt src s64-op #f (a b))))
       (letk kfix ($kargs () ()
                    ($continue kb src
                      ($primcall 'untag-fixnum #f (b-int)))))
       (letk ka ($kargs ('a) (a)
-                 ($continue kretag src
-                   ($branch kfix ($primcall 'fixnum? #f (b-int))))))
+                 ($branch kretag kfix src 'fixnum? #f (b-int))))
       ($ (unbox-a ka src a-s64)))))
 
 (define (specialize-comparison/integer-s64 cps kf kt src op a-int b-s64
@@ -196,8 +188,7 @@
      (with-cps cps
        (letv a b sunk)
        (letk kheap ($kargs ('sunk) (sunk)
-                     ($continue kf src
-                       ($branch kt ($primcall '< #f (a-int sunk))))))
+                     ($branch kf kt src '< #f (a-int sunk))))
        ;; FIXME: We should just use b-s64 directly and implement an
        ;; allocation sinking pass so that the box op that creates b-64
        ;; should float down here.  Instead, for now we just rebox the
@@ -205,25 +196,19 @@
        ;; CSE.
        (let$ rebox-b-body (rebox-b kheap src b))
        (letk kretag ($kargs () () ,rebox-b-body))
-       (letk ka ($kargs ('a) (a)
-                  ($continue kf src
-                    ($branch kt ($primcall 's64-< #f (a b))))))
+       (letk ka ($kargs ('a) (a) ($branch kf kt src 's64-< #f (a b))))
        (letk kfix ($kargs () ()
                     ($continue ka src
                       ($primcall 'untag-fixnum #f (a-int)))))
        (letk kb ($kargs ('b) (b)
-                  ($continue kretag src
-                    ($branch kfix ($primcall 'fixnum? #f (a-int))))))
+                  ($branch kretag kfix src 'fixnum? #f (a-int))))
        ($ (unbox-b kb src b-s64))))))
 
 (define (specialize-comparison/immediate-s64-integer cps kf kt src op a b-int
                                                      compare-integers)
   (with-cps cps
     (letv b sunk)
-    (let$ sunk-compare-exp (compare-integers sunk))
-    (letk kheap ($kargs ('sunk) (sunk)
-                  ($continue kf src
-                    ($branch kt ,sunk-compare-exp))))
+    (letk kheap ($kargs ('sunk) (sunk) ,(compare-integers kf kt src sunk)))
     ;; Re-box the variable.  FIXME: currently we use a specially marked
     ;; load-const to avoid CSE from hoisting the constant.  Instead we
     ;; should just use a $const directly and implement an allocation
@@ -232,14 +217,11 @@
                    ($continue kheap src
                      ($primcall 'load-const/unlikely a ()))))
     (letk kb ($kargs ('b) (b)
-               ($continue kf src
-                 ($branch kt ($primcall op a (b))))))
+               ($branch kf kt src op a (b))))
     (letk kfix ($kargs () ()
                  ($continue kb src
                    ($primcall 'untag-fixnum #f (b-int)))))
-    (build-term
-      ($continue kretag src
-        ($branch kfix ($primcall 'fixnum? #f (b-int)))))))
+    (build-term ($branch kretag kfix src 'fixnum? #f (b-int)))))
 
 (define (sigbits-union x y)
   (and x y (logior x y)))
@@ -324,38 +306,40 @@ BITS indicating the significant bits needed for a variable.  BITS may be
             (match (intmap-ref cps label)
               (($ $kfun src meta self)
                (add-def out self))
-              (($ $kargs names vars ($ $continue k src exp))
+              (($ $kargs names vars term)
                (let ((out (add-defs out vars)))
-                 (match exp
-                   ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $rec))
-                    ;; No uses, so no info added to sigbits.
-                    out)
-                   (($ $values args)
-                    (match (intmap-ref cps k)
-                      (($ $kargs _ vars)
-                       (if (intset-ref visited k)
-                           (fold (lambda (arg var out)
-                                   (intmap-add out arg (intmap-ref out var)
-                                               sigbits-union))
-                                 out args vars)
-                           out))
-                      (($ $ktail)
-                       (add-unknown-uses out args))))
-                   (($ $call proc args)
-                    (add-unknown-use (add-unknown-uses out args) proc))
-                   (($ $callk label proc args)
-                    (add-unknown-use (add-unknown-uses out args) proc))
-                   (($ $branch kt ($ $primcall name param args))
-                    (add-unknown-uses out args))
-                   (($ $primcall name param args)
-                    (let ((h (significant-bits-handler name)))
-                      (if h
-                          (match (intmap-ref cps k)
-                            (($ $kargs _ defs)
-                             (h label types out param args defs)))
+                 (match term
+                   (($ $continue k src exp)
+                    (match exp
+                      ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $rec))
+                       ;; No uses, so no info added to sigbits.
+                       out)
+                      (($ $values args)
+                       (match (intmap-ref cps k)
+                         (($ $kargs _ vars)
+                          (if (intset-ref visited k)
+                              (fold (lambda (arg var out)
+                                      (intmap-add out arg (intmap-ref out var)
+                                                  sigbits-union))
+                                    out args vars)
+                              out))
+                         (($ $ktail)
                           (add-unknown-uses out args))))
-                   (($ $prompt escape? tag handler)
-                    (add-unknown-use out tag)))))
+                      (($ $call proc args)
+                       (add-unknown-use (add-unknown-uses out args) proc))
+                      (($ $callk label proc args)
+                       (add-unknown-use (add-unknown-uses out args) proc))
+                      (($ $primcall name param args)
+                       (let ((h (significant-bits-handler name)))
+                         (if h
+                             (match (intmap-ref cps k)
+                               (($ $kargs _ defs)
+                                (h label types out param args defs)))
+                             (add-unknown-uses out args))))
+                      (($ $prompt escape? tag handler)
+                       (add-unknown-use out tag))))
+                   (($ $branch kf kt src op param args)
+                    (add-unknown-uses out args)))))
               (_ out)))))))))
 
 (define (specialize-operations cps)
@@ -623,9 +607,8 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                     (let ((imm-op (match op ('= 's64-imm-=) ('< 'imm-s64-<))))
                       (specialize-comparison/immediate-s64-integer
                        cps kf kt src imm-op a b
-                       (lambda (cps a)
-                         (with-cps cps
-                           (build-exp ($primcall op #f (a b)))))))))
+                       (lambda (kf kt src a)
+                         (build-term ($branch kf kt src op #f (a b))))))))
               (else
                (specialize-comparison/s64-integer cps kf kt src op a b
                                                   (unbox-s64 a)
@@ -637,9 +620,8 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                     (let ((imm-op (match op ('= 's64-imm-=) ('< 's64-imm-<))))
                       (specialize-comparison/immediate-s64-integer
                        cps kf kt src imm-op b a
-                       (lambda (cps b)
-                         (with-cps cps
-                           (build-exp ($primcall op #f (a b)))))))))
+                       (lambda (kf kt src b)
+                         (build-term ($branch kf kt src op #f (a b))))))))
               (else
                (specialize-comparison/integer-s64 cps kf kt src op a b
                                                   (unbox-s64 b)
@@ -654,8 +636,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
               (sigbits (compute-significant-bits cps types label)))
          (values cps types sigbits)))
 
-      (($ $kargs names vars
-          ($ $continue k src ($ $primcall op param args)))
+      (($ $kargs names vars ($ $continue k src ($ $primcall op param args)))
        (call-with-values
            (lambda () (specialize-primcall cps k src op param args))
          (lambda (cps term)
@@ -665,8 +646,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                        cps)
                    types sigbits))))
 
-      (($ $kargs names vars
-          ($ $continue kf src ($ $branch kt ($ $primcall op param args))))
+      (($ $kargs names vars ($ $branch kf kt src op param args))
        (call-with-values
            (lambda () (specialize-branch cps kf kt src op param args))
          (lambda (cps term)

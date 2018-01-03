@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -50,14 +50,12 @@ KFUN where we can prove that no assertion will be raised at run-time."
                        ((causes-all-effects? fx) effects)
                        ((causes-effect? fx &type-check)
                         (match (intmap-ref conts label)
-                          (($ $kargs _ _ exp)
-                           (match exp
-                             (($ $continue k src ($ $primcall name param args))
-                              (visit-primcall effects fx label name param args))
-                             (($ $continue k src
-                                 ($ $branch _ ($ $primcall name param args)))
-                              (visit-primcall effects fx label name param args))
-                             (_ effects)))
+                          (($ $kargs names vars
+                              ($ $continue k src ($ $primcall name param args)))
+                           (visit-primcall effects fx label name param args))
+                          (($ $kargs names vars
+                              ($ $branch kf kt src name param args))
+                           (visit-primcall effects fx label name param args))
                           (_ effects)))
                        (else effects))))
                   types

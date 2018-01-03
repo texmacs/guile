@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,6 @@
      (match exp
        ((or ($ $const) ($ $prim) ($ $closure)) #t)
        (($ $prompt) #f) ;; ?
-       (($ $branch) #f)
        (($ $primcall name param args)
         (and-map (lambda (arg) (not (intset-ref loop-vars arg)))
                  args))
@@ -127,93 +126,98 @@
                pre-header-label pre-header-cont)
               pre-header-label)))
   (match cont
-    (($ $kargs names vars ($ $continue k src exp))
-     ;; If k is a loop exit, it will be nullary.
+    (($ $kargs names vars term)
      (let-values (((names vars) (filter-loop-vars names vars)))
-       (match (intmap-ref cps k)
-         (($ $kargs def-names def-vars)
-          (cond
-           ((not (loop-invariant? label exp loop-vars loop-effects
-                                  always-reached?))
-            (let* ((loop-vars (adjoin-loop-vars loop-vars def-vars))
-                   (loop-vars (match exp
-                                (($ $prompt escape? tag handler)
-                                 (match (intmap-ref cps handler)
-                                   (($ $kreceive arity kargs)
-                                    (match (intmap-ref cps kargs)
-                                      (($ $kargs names vars)
-                                       (adjoin-loop-vars loop-vars vars))))))
-                                (_ loop-vars)))
-                   (cont (build-cont
-                           ($kargs names vars
-                             ($continue k src ,exp))))
-                   (always-reached?
-                    (and always-reached?
-                         (match exp
-                           (($ $branch) #f)
-                           (_ (not (causes-effect? (intmap-ref loop-effects label)
-                                                   &type-check)))))))
-              (values cps cont loop-vars loop-effects
-                      pre-header-label always-reached?)))
-           ((trivial-intset (intmap-ref preds k))
-            (let-values
-                (((cps pre-header-label)
-                  (hoist-exp src exp def-names def-vars pre-header-label))
-                 ((cont) (build-cont
-                           ($kargs names vars
-                             ($continue k src ($values ()))))))
-              (values cps cont loop-vars (intmap-remove loop-effects label)
-                      pre-header-label always-reached?)))
-           (else
-            (let*-values
-                (((def-names def-vars)
-                  (match (intmap-ref cps k)
-                    (($ $kargs names vars) (values names vars))))
-                 ((loop-vars) (adjoin-loop-vars loop-vars def-vars))
-                 ((fresh-vars) (map (lambda (_) (fresh-var)) def-vars))
-                 ((cps pre-header-label)
-                  (hoist-exp src exp def-names fresh-vars pre-header-label))
-                 ((cont) (build-cont
-                           ($kargs names vars
-                             ($continue k src ($values fresh-vars))))))
-              (values cps cont loop-vars (intmap-remove loop-effects label)
-                      pre-header-label always-reached?)))))
-         (($ $kreceive ($ $arity req () rest) kargs)
-          (match (intmap-ref cps kargs)
+       (match term
+         (($ $continue k src exp)
+          ;; If k is a loop exit, it will be nullary.
+          (match (intmap-ref cps k)
             (($ $kargs def-names def-vars)
              (cond
               ((not (loop-invariant? label exp loop-vars loop-effects
                                      always-reached?))
                (let* ((loop-vars (adjoin-loop-vars loop-vars def-vars))
+                      (loop-vars (match exp
+                                   (($ $prompt escape? tag handler)
+                                    (match (intmap-ref cps handler)
+                                      (($ $kreceive arity kargs)
+                                       (match (intmap-ref cps kargs)
+                                         (($ $kargs names vars)
+                                          (adjoin-loop-vars loop-vars vars))))))
+                                   (_ loop-vars)))
                       (cont (build-cont
                               ($kargs names vars
-                                ($continue k src ,exp)))))
-                 (values cps cont loop-vars loop-effects pre-header-label #f)))
+                                ($continue k src ,exp))))
+                      (always-reached?
+                       (and always-reached?
+                            (not (causes-effect? (intmap-ref loop-effects label)
+                                                 &type-check)))))
+                 (values cps cont loop-vars loop-effects
+                         pre-header-label always-reached?)))
               ((trivial-intset (intmap-ref preds k))
-               (let ((loop-effects
-                      (intmap-remove (intmap-remove loop-effects label) k)))
-                 (let-values
-                     (((cps pre-header-label)
-                       (hoist-call src exp req rest def-names def-vars
-                                   pre-header-label))
-                      ((cont) (build-cont
-                                ($kargs names vars
-                                  ($continue kargs src ($values ()))))))
-                   (values cps cont loop-vars loop-effects
-                           pre-header-label always-reached?))))
-              (else
-               (let*-values
-                   (((loop-vars) (adjoin-loop-vars loop-vars def-vars))
-                    ((fresh-vars) (map (lambda (_) (fresh-var)) def-vars))
-                    ((cps pre-header-label)
-                     (hoist-call src exp req rest def-names fresh-vars
-                                 pre-header-label))
+               (let-values
+                   (((cps pre-header-label)
+                     (hoist-exp src exp def-names def-vars pre-header-label))
                     ((cont) (build-cont
                               ($kargs names vars
-                                ($continue kargs src
-                                  ($values fresh-vars))))))
-                 (values cps cont loop-vars loop-effects
-                         pre-header-label always-reached?))))))))))
+                                ($continue k src ($values ()))))))
+                 (values cps cont loop-vars (intmap-remove loop-effects label)
+                         pre-header-label always-reached?)))
+              (else
+               (let*-values
+                   (((def-names def-vars)
+                     (match (intmap-ref cps k)
+                       (($ $kargs names vars) (values names vars))))
+                    ((loop-vars) (adjoin-loop-vars loop-vars def-vars))
+                    ((fresh-vars) (map (lambda (_) (fresh-var)) def-vars))
+                    ((cps pre-header-label)
+                     (hoist-exp src exp def-names fresh-vars pre-header-label))
+                    ((cont) (build-cont
+                              ($kargs names vars
+                                ($continue k src ($values fresh-vars))))))
+                 (values cps cont loop-vars (intmap-remove loop-effects label)
+                         pre-header-label always-reached?)))))
+            (($ $kreceive ($ $arity req () rest) kargs)
+             (match (intmap-ref cps kargs)
+               (($ $kargs def-names def-vars)
+                (cond
+                 ((not (loop-invariant? label exp loop-vars loop-effects
+                                        always-reached?))
+                  (let* ((loop-vars (adjoin-loop-vars loop-vars def-vars))
+                         (cont (build-cont
+                                 ($kargs names vars
+                                   ($continue k src ,exp)))))
+                    (values cps cont loop-vars loop-effects pre-header-label #f)))
+                 ((trivial-intset (intmap-ref preds k))
+                  (let ((loop-effects
+                         (intmap-remove (intmap-remove loop-effects label) k)))
+                    (let-values
+                        (((cps pre-header-label)
+                          (hoist-call src exp req rest def-names def-vars
+                                      pre-header-label))
+                         ((cont) (build-cont
+                                   ($kargs names vars
+                                     ($continue kargs src ($values ()))))))
+                      (values cps cont loop-vars loop-effects
+                              pre-header-label always-reached?))))
+                 (else
+                  (let*-values
+                      (((loop-vars) (adjoin-loop-vars loop-vars def-vars))
+                       ((fresh-vars) (map (lambda (_) (fresh-var)) def-vars))
+                       ((cps pre-header-label)
+                        (hoist-call src exp req rest def-names fresh-vars
+                                    pre-header-label))
+                       ((cont) (build-cont
+                                 ($kargs names vars
+                                   ($continue kargs src
+                                     ($values fresh-vars))))))
+                    (values cps cont loop-vars loop-effects
+                            pre-header-label always-reached?)))))))))
+         (($ $branch)
+          (let* ((cont (build-cont ($kargs names vars ,term)))
+                 (always-reached? #f))
+            (values cps cont loop-vars loop-effects
+                    pre-header-label always-reached?))))))
     (($ $kreceive ($ $arity req () rest) kargs)
      (values cps cont loop-vars loop-effects pre-header-label
              always-reached?))))
@@ -252,9 +256,9 @@
     (define (rename-back-edges cont)
       (define (rename label) (if (eqv? label entry) header-label label))
       (rewrite-cont cont
-        (($ $kargs names vars ($ $continue kf src ($ $branch kt exp)))
+        (($ $kargs names vars ($ $branch kf kt src op param args))
          ($kargs names vars
-           ($continue (rename kf) src ($branch (rename kt) ,exp))))
+           ($branch (rename kf) (rename kt) src op param args)))
         (($ $kargs names vars ($ $continue k src exp))
          ($kargs names vars
            ($continue (rename k) src ,exp)))

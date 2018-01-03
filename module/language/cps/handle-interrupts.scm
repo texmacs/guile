@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2016, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -34,12 +34,15 @@
   #:export (add-handle-interrupts))
 
 (define (compute-safepoints cps)
+  (define (maybe-add-safepoint label k safepoints)
+    "Add K to safepoints if it is a target of a backward branch."
+    (if (<= k label)
+        (intset-add! safepoints k)
+        safepoints))
   (define (visit-cont label cont safepoints)
     (match cont
       (($ $kargs names vars ($ $continue k src exp))
-       (let ((safepoints (if (<= k label)
-                             (intset-add! safepoints k)
-                             safepoints)))
+       (let ((safepoints (maybe-add-safepoint label k safepoints)))
          (if (match exp
                (($ $call) #t)
                (($ $callk) #t)
@@ -50,18 +53,21 @@
                (_ #f))
              (intset-add! safepoints label)
              safepoints)))
+      (($ $kargs names vars ($ $branch kf kt))
+       (maybe-add-safepoint label kf
+                            (maybe-add-safepoint label kt safepoints)))
       (_ safepoints)))
   (persistent-intset (intmap-fold visit-cont cps empty-intset)))
 
 (define (add-handle-interrupts cps)
   (define (add-safepoint label cps)
     (match (intmap-ref cps label)
-      (($ $kargs names vars ($ $continue k src exp))
+      (($ $kargs names vars term)
        (with-cps cps
-         (letk k* ($kargs () () ($continue k src ,exp)))
+         (letk k ($kargs () () ,term))
          (setk label
                ($kargs names vars
-                 ($continue k* src
+                 ($continue k #f
                    ($primcall 'handle-interrupts #f ()))))))))
   (let* ((cps (renumber cps))
          (safepoints (compute-safepoints cps)))

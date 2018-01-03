@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -114,11 +114,13 @@ false.  It could be that both true and false proofs are available."
           (values (append changed0 changed1) boolv)))
 
       (match (intmap-ref conts label)
-        (($ $kargs names vars ($ $continue k src exp))
-         (match exp
-           (($ $branch kt) (propagate-branch k kt))
-           (($ $prompt escape? tag handler) (propagate2 k handler))
-           (_ (propagate1 k))))
+        (($ $kargs names vars term)
+         (match term
+           (($ $continue k src exp)
+            (match exp
+              (($ $prompt escape? tag handler) (propagate2 k handler))
+              (_ (propagate1 k))))
+           (($ $branch kf kt) (propagate-branch kf kt))))
         (($ $kreceive arity k)
          (propagate1 k))
         (($ $kfun src meta self tail clause)
@@ -160,10 +162,14 @@ false.  It could be that both true and false proofs are available."
                      (($ $kargs names vars) vars)))
                   (($ $ktail)
                    '())
-                  (($ $kargs names vars ($ $continue k))
-                   (match (intmap-ref conts k)
-                     (($ $kargs names vars) vars)
-                     (_ #f)))))
+                  (($ $kargs names vars term)
+                   (match term
+                     (($ $continue k)
+                      (match (intmap-ref conts k)
+                        (($ $kargs names vars) vars)
+                        (_ #f)))
+                     (($ $branch)
+                      '())))))
                (compute-function-body conts kfun)))
 
 (define (compute-singly-referenced succs)
@@ -199,23 +205,25 @@ false.  It could be that both true and false proofs are available."
             (() '())
             ((var . vars) (cons (subst-var var-substs var) (lp vars))))))
 
-      (define (compute-exp-key var-substs exp)
-        (match exp
-          (($ $const val) (cons 'const val))
-          (($ $prim name) (cons 'prim name))
-          (($ $fun body) #f)
-          (($ $rec names syms funs) #f)
-          (($ $closure label nfree) #f)
-          (($ $call proc args) #f)
-          (($ $callk k proc args) #f)
-          (($ $primcall name param args)
-           (cons* name param (subst-vars var-substs args)))
-          (($ $branch _ ($ $primcall name param args))
-           (cons* name param (subst-vars var-substs args)))
-          (($ $values args) #f)
-          (($ $prompt escape? tag handler) #f)))
+      (define (compute-term-key var-substs term)
+        (match term
+          (($ $continue k src exp)
+           (match exp
+             (($ $const val) (cons 'const val))
+             (($ $prim name) (cons 'prim name))
+             (($ $fun body) #f)
+             (($ $rec names syms funs) #f)
+             (($ $closure label nfree) #f)
+             (($ $call proc args) #f)
+             (($ $callk k proc args) #f)
+             (($ $primcall name param args)
+              (cons* name param (subst-vars var-substs args)))
+             (($ $values args) #f)
+             (($ $prompt escape? tag handler) #f)))
+          (($ $branch kf kt src op param args)
+           (cons* op param (subst-vars var-substs args)))))
 
-      (define (add-auxiliary-definitions! label var-substs exp-key)
+      (define (add-auxiliary-definitions! label var-substs term-key)
         (let ((defs (and=> (intmap-ref defs label)
                            (lambda (defs) (subst-vars var-substs defs)))))
           (define (add-def! aux-key var)
@@ -229,7 +237,7 @@ false.  It could be that both true and false proofs are available."
               ((add-definitions
                 ((def <- op arg ...) (aux <- op* arg* ...) ...)
                 . clauses)
-               (match exp-key
+               (match term-key
                  (('op arg ...)
                   (match defs
                     ((def) (add-def! (list 'op* arg* ...) aux) ...)))
@@ -237,7 +245,7 @@ false.  It could be that both true and false proofs are available."
               ((add-definitions
                 ((op arg ...) (aux <- op* arg* ...) ...)
                 . clauses)
-               (match exp-key
+               (match term-key
                  (('op arg ...)
                   (add-def! (list 'op* arg* ...) aux) ...)
                  (_ (add-definitions . clauses))))))
@@ -282,12 +290,18 @@ false.  It could be that both true and false proofs are available."
            ((u <- s64->u64 #f s)             (s <- u64->s64 #f u)))))
 
       (define (visit-label label equiv-labels var-substs)
+        (define (term-defs term)
+          (match term
+            (($ $continue k)
+             (and (intset-ref singly-referenced k)
+                  (intmap-ref defs label)))
+            (($ $branch) '())))
         (match (intmap-ref conts label)
-          (($ $kargs names vars ($ $continue k src exp))
-           (match (compute-exp-key var-substs exp)
+          (($ $kargs names vars term)
+           (match (compute-term-key var-substs term)
              (#f (values equiv-labels var-substs))
-             (exp-key
-              (let* ((equiv (hash-ref equiv-set exp-key '()))
+             (term-key
+              (let* ((equiv (hash-ref equiv-set term-key '()))
                      (fx (intmap-ref effects label))
                      (avail (intmap-ref avail label)))
                 (define (finish equiv-labels var-substs)
@@ -296,7 +310,7 @@ false.  It could be that both true and false proofs are available."
                   ;; define those.  Do so after finding equivalent
                   ;; expressions, so that we can take advantage of
                   ;; subst'd output vars.
-                  (add-auxiliary-definitions! label var-substs exp-key)
+                  (add-auxiliary-definitions! label var-substs term-key)
                   (values equiv-labels var-substs))
                 (let lp ((candidates equiv))
                   (match candidates
@@ -310,10 +324,9 @@ false.  It could be that both true and false proofs are available."
                      ;; allocation case).
                      (when (and (not (causes-effect? fx &allocation))
                                 (not (effect-clobbers? fx (&read-object &fluid))))
-                       (let ((defs (and (intset-ref singly-referenced k)
-                                        (intmap-ref defs label))))
+                       (let ((defs (term-defs term)))
                          (when defs
-                           (hash-set! equiv-set exp-key
+                           (hash-set! equiv-set term-key
                                       (acons label defs equiv)))))
                      (finish equiv-labels var-substs))
                     (((and head (candidate . vars)) . candidates)
@@ -327,8 +340,7 @@ false.  It could be that both true and false proofs are available."
                        ;; we provide the definitions for the successor, mark
                        ;; the vars for substitution.
                        (finish (intmap-add equiv-labels label head)
-                               (let ((defs (and (intset-ref singly-referenced k)
-                                                (intmap-ref defs label))))
+                               (let ((defs (term-defs term)))
                                  (if defs
                                      (fold (lambda (def var var-substs)
                                              (intmap-add var-substs def var))
@@ -364,44 +376,41 @@ false.  It could be that both true and false proofs are available."
        ($callk k (subst-var proc) ,(map subst-var args)))
       (($ $primcall name param args)
        ($primcall name param ,(map subst-var args)))
-      (($ $branch k exp)
-       ($branch k ,(visit-exp exp)))
       (($ $values args)
        ($values ,(map subst-var args)))
       (($ $prompt escape? tag handler)
        ($prompt escape? (subst-var tag) handler))))
 
+  (define (visit-term label term)
+    (match term
+      (($ $branch kf kt src op param args)
+       (match (intmap-ref equiv-labels label (lambda (_) #f))
+         ((equiv) ; A branch defines no values.
+          (let* ((bool (intmap-ref truthy-labels label))
+                 (t (intset-ref bool (true-idx equiv)))
+                 (f (intset-ref bool (false-idx equiv))))
+            (if (eqv? t f)
+                (build-term
+                  ($branch kf kt src op param ,(map subst-var args)))
+                (build-term
+                  ($continue (if t kt kf) src ($values ()))))))
+         (#f
+          (build-term
+            ($branch kf kt src op param ,(map subst-var args))))))
+      (($ $continue k src exp)
+       (match (intmap-ref equiv-labels label (lambda (_) #f))
+         ((equiv . vars)
+          (build-term ($continue k src ($values vars))))
+         (#f
+          (build-term
+            ($continue k src ,(visit-exp exp))))))))
+
   (intmap-map
    (lambda (label cont)
-     (match cont
-       (($ $kargs names vars ($ $continue k src exp))
-        (build-cont
-          ($kargs names vars
-            ,(match (intmap-ref equiv-labels label (lambda (_) #f))
-               ((equiv . vars)
-                (match exp
-                  (($ $branch kt exp)
-                   (let* ((bool (intmap-ref truthy-labels label))
-                          (t (intset-ref bool (true-idx equiv)))
-                          (f (intset-ref bool (false-idx equiv))))
-                     (if (eqv? t f)
-                         (build-term
-                           ($continue k src
-                             ($branch kt ,(visit-exp exp))))
-                         (build-term
-                           ($continue (if t kt k) src ($values ()))))))
-                  (_
-                   ;; For better or for worse, we only replace primcalls
-                   ;; if they have an associated VM op, which allows
-                   ;; them to continue to $kargs and thus we know their
-                   ;; defs and can use a $values expression instead of a
-                   ;; values primcall.
-                   (build-term
-                     ($continue k src ($values vars))))))
-               (#f
-                (build-term
-                  ($continue k src ,(visit-exp exp))))))))
-       (_ cont)))
+     (rewrite-cont cont
+       (($ $kargs names vars term)
+        ($kargs names vars ,(visit-term label term)))
+       (_ ,cont)))
    conts))
 
 (define (eliminate-common-subexpressions conts)

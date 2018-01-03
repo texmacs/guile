@@ -1,5 +1,5 @@
 ;;; Abstract constant folding on CPS
-;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -355,8 +355,7 @@
       (letk kt ($kargs () () ($continue k src ($const #t))))
       (letk kf ($kargs () () ($continue k src ($const #f))))
       (letk ku64 ($kargs (#f) (u64)
-                   ($continue kt src
-                     ($branch kf ($primcall 's64-imm-= 0 (u64))))))
+                   ($branch kt kf src 's64-imm-= 0 (u64))))
       (letk kand ($kargs (#f) (res)
                    ($continue ku64 src ($primcall 'untag-fixnum #f (res)))))
       (letk kmask ($kargs (#f) (mask)
@@ -527,32 +526,32 @@
                                   ($kargs names vars
                                     ($continue (if v kt kf) src
                                       ($values ())))))))))))))))
-    (define (visit-expression cps label names vars k src exp)
-      (match exp
-        (($ $primcall name param args)
-         ;; We might be able to fold primcalls that define a value.
-         (match (intmap-ref cps k)
-           (($ $kargs (_) (def))
-            (or (fold-primcall cps label names vars k src name param args def)
-                (reduce-primcall cps label names vars k src name param args)))
-           (_
-            (reduce-primcall cps label names vars k src name param args))))
-        (($ $branch kt ($ $primcall name param args))
-         ;; We might be able to fold primcalls that branch.
-         (match args
-           ((x)
-            (or (fold-unary-branch cps label names vars k kt src name param x)
-                cps))
-           ((x y)
-            (or (fold-binary-branch cps label names vars k kt src name param x y)
-                cps))))
-        (_ cps)))
+    (define (visit-primcall cps label names vars k src name param args)
+      ;; We might be able to fold primcalls that define a value.
+      (match (intmap-ref cps k)
+        (($ $kargs (_) (def))
+         (or (fold-primcall cps label names vars k src name param args def)
+             (reduce-primcall cps label names vars k src name param args)))
+        (_
+         (reduce-primcall cps label names vars k src name param args))))
+    (define (visit-branch cps label names vars kf kt src name param args)
+      ;; We might be able to fold primcalls that branch.
+      (match args
+        ((x)
+         (or (fold-unary-branch cps label names vars kf kt src name param x)
+             cps))
+        ((x y)
+         (or (fold-binary-branch cps label names vars kf kt src name param x y)
+             cps))))
     (let lp ((label start) (cps cps))
       (if (<= label end)
           (lp (1+ label)
               (match (intmap-ref cps label)
-                (($ $kargs names vars ($ $continue k src exp))
-                 (visit-expression cps label names vars k src exp))
+                (($ $kargs names vars ($ $continue k src
+                                         ($ $primcall op param args)))
+                 (visit-primcall cps label names vars k src op param args))
+                (($ $kargs names vars ($ $branch kf kt src op param args))
+                 (visit-branch cps label names vars kf kt src op param args))
                 (_ cps)))
           cps))))
 

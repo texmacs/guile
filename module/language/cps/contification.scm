@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -60,8 +60,12 @@ predecessor."
       (($ $kfun src meta self ktail kclause) (ref2 ktail kclause))
       (($ $ktail) (ref0))
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
+      (($ $kargs names syms ($ $branch kf kt))
+       (ref2 kf kt))
       (($ $kargs names syms ($ $continue k src exp))
-       (ref2 k (match exp (($ $branch k) k) (($ $prompt _ _ k) k) (_ #f))))))
+       (match exp
+         (($ $prompt escape-only? tag handler) (ref2 k handler))
+         (_ (ref1 k))))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intmap-fold add-ref conts single multiple)))
     (intset-subtract (persistent-intset single)
@@ -187,12 +191,12 @@ $call, and are always called with a compatible arity."
               (restrict-arity functions proc (length args))))
            (($ $callk k proc args)
             (exclude-vars functions (cons proc args)))
-           (($ $branch kt ($ $primcall name param args))
-            (exclude-vars functions args))
            (($ $primcall name param args)
             (exclude-vars functions args))
            (($ $prompt escape? tag handler)
             (exclude-var functions tag))))
+        (($ $kargs _ _ ($ $branch kf kt src op param args))
+         (exclude-vars functions args))
         (_ functions)))
     (intmap-fold visit-cont conts functions)))
 
@@ -451,6 +455,12 @@ function set."
          (((names vars funs) ...)
           (continue cps k src (build-exp ($rec names vars funs))))))
       (_ (continue cps k src exp))))
+  (define (visit-term cps term)
+    (match term
+      (($ $continue k src exp)
+       (visit-exp cps k src exp))
+      (($ $branch)
+       (with-cps cps term))))
 
   ;; Renumbering is not strictly necessary but some passes may not be
   ;; equipped to deal with stale $kfun nodes whose bodies have been
@@ -460,13 +470,13 @@ function set."
      (intmap-fold
       (lambda (label cont out)
         (match cont
-          (($ $kargs names vars ($ $continue k src exp))
+          (($ $kargs names vars term)
            ;; Remove bindings for functions that have been contified.
            (match (filter (match-lambda ((name var) (not (call-subst var))))
                           (map list names vars))
              (((names vars) ...)
               (with-cps out
-                (let$ term (visit-exp k src exp))
+                (let$ term (visit-term term))
                 (setk label ($kargs names vars ,term))))))
           (_ out)))
       conts

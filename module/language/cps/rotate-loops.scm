@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -55,6 +55,7 @@
   #:use-module (language cps utils)
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
+  #:use-module (language cps with-cps)
   #:export (rotate-loops))
 
 (define (loop-successors scc succs)
@@ -79,7 +80,8 @@
   (match (intmap-ref cps entry-label)
     ((and entry-cont
           ($ $kargs entry-names entry-vars
-             ($ $continue entry-kf entry-src ($ $branch entry-kt entry-exp))))
+             ($ $branch entry-kf entry-kt entry-src
+                entry-op entry-param entry-args)))
      (let* ((exit-if-true? (intset-ref body-labels entry-kf))
             (loop-exits (find-exits body-labels succs))
             (exit (if exit-if-true? entry-kt entry-kf))
@@ -93,49 +95,50 @@
          (map (lambda (_) (fresh-var)) entry-vars))
        (define (make-trampoline k src values)
          (build-cont ($kargs () () ($continue k src ($values values)))))
-       (define (replace-exit k trampoline)
-         (if (eqv? k exit) trampoline k))
-       (define (rename-exp exp vars)
-         (define (rename-var var)
-           (match (list-index entry-vars var)
-             (#f var)
-             (idx (list-ref vars idx))))
-         (rewrite-exp exp
-           ((or ($ $const) ($ $prim) ($ $closure)) ,exp)
-           (($ $values args)
-            ($values ,(map rename-var args)))
-           (($ $call proc args)
-            ($call (rename-var proc) ,(map rename-var args)))
-           (($ $callk k proc args)
-            ($callk k (rename-var proc) ,(map rename-var args)))
-           (($ $branch kt ($ $primcall name param args))
-            ($branch kt ($primcall name param ,(map rename-var args))))
-           (($ $primcall name param args)
-            ($primcall name param ,(map rename-var args)))
-           (($ $prompt escape? tag handler)
-            ($prompt escape? (rename-var tag) handler))))
-       (define (attach-trampoline label src names vars args)
-         (let* ((trampoline-out-label (fresh-label))
-                (trampoline-out-cont
-                 (make-trampoline join-label src args))
-                (trampoline-in-label (fresh-label))
-                (trampoline-in-cont
-                 (make-trampoline new-entry-label src args))
-                (kf (if exit-if-true? trampoline-in-label trampoline-out-label))
-                (kt (if exit-if-true? trampoline-out-label trampoline-in-label))
-                (cont (build-cont
-                        ($kargs names vars
-                          ($continue kf entry-src
-                            ($branch kt ,(rename-exp entry-exp args))))))
-                (cps (intmap-replace! cps label cont))
-                (cps (intmap-add! cps trampoline-in-label trampoline-in-cont)))
-           (intmap-add! cps trampoline-out-label trampoline-out-cont)))
+       (define (rename-var var replacements)
+         "If VAR refers to a member of ENTRY-VARS, replace with a
+corresponding var from REPLACEMENTS; otherwise return VAR."
+         (match (list-index entry-vars var)
+           (#f var)
+           (idx (list-ref replacements idx))))
+       (define (rename-vars vars replacements)
+         (map (lambda (var) (rename-var var replacements)) vars))
+       (define (rename-term term replacements)
+         (define (rename arg) (rename-var arg replacements))
+         (define (rename* arg) (rename-vars arg replacements))
+         (rewrite-term term
+           (($ $continue k src exp)
+            ($continue k src
+              ,(rewrite-exp exp
+                 ((or ($ $const) ($ $prim) ($ $closure)) ,exp)
+                 (($ $values args)
+                  ($values ,(rename* args)))
+                 (($ $call proc args)
+                  ($call (rename proc) ,(rename* args)))
+                 (($ $callk k proc args)
+                  ($callk k (rename proc) ,(rename* args)))
+                 (($ $primcall name param args)
+                  ($primcall name param ,(rename* args)))
+                 (($ $prompt escape? tag handler)
+                  ($prompt escape? (rename tag) handler)))))
+           (($ $branch kf kt src op param args)
+            ($branch kf kt src op param ,(rename* args)))))
+       (define (attach-trampoline cps label src names vars args)
+         (with-cps cps
+           (letk ktramp-out ,(make-trampoline join-label src args))
+           (letk ktramp-in ,(make-trampoline new-entry-label src args))
+           (setk label
+                 ($kargs names vars
+                   ($branch (if exit-if-true? ktramp-in ktramp-out)
+                            (if exit-if-true? ktramp-out ktramp-in)
+                            entry-src
+                     entry-op entry-param ,(rename-vars entry-args args))))))
        ;; Rewrite the targets of the entry branch to go to
        ;; trampolines.  One will pass values out of the loop, and
        ;; one will pass values into the loop.
        (let* ((pre-header-vars (make-fresh-vars))
               (body-vars (make-fresh-vars))
-              (cps (attach-trampoline entry-label entry-src
+              (cps (attach-trampoline cps entry-label entry-src
                                       entry-names pre-header-vars
                                       pre-header-vars))
               (new-entry-cont (build-cont
@@ -148,44 +151,38 @@
             (cond
              ((intset-ref back-edges label)
               (match (intmap-ref cps label)
-                (($ $kargs names vars ($ $continue _ src exp))
-                 (match (rename-exp exp body-vars)
-                   (($ $values args)
-                    (attach-trampoline label src names vars args))
-                   (exp
+                (($ $kargs names vars term)
+                 (match (rename-term term body-vars)
+                   (($ $continue _ src ($ $values args))
+                    (attach-trampoline cps label src names vars args))
+                   (($ $continue _ src exp)
                     (let* ((args (make-fresh-vars))
                            (bind-label (fresh-label))
                            (edge* (build-cont
                                     ($kargs names vars
                                       ($continue bind-label src ,exp))))
                            (cps (intmap-replace! cps label edge*))
-                           ;; attach-trampoline uses intmap-replace!.
+                           ;; attach-trampoline uses setk.
                            (cps (intmap-add! cps bind-label #f)))
-                      (attach-trampoline bind-label src
+                      (attach-trampoline cps bind-label src
                                          entry-names args args)))))))
              ((intset-ref loop-exits label)
               (match (intmap-ref cps label)
-                (($ $kargs names vars
-                    ($ $continue kf src ($ $branch kt exp)))
-                 (let* ((trampoline-out-label (fresh-label))
-                        (trampoline-out-cont
-                         (make-trampoline join-label src body-vars))
-                        (kf (if (eqv? kf exit) trampoline-out-label kf))
-                        (kt (if (eqv? kt exit) trampoline-out-label kt))
-                        (cont (build-cont
-                                ($kargs names vars
-                                  ($continue kf src
-                                    ($branch kt ,(rename-exp exp body-vars))))))
-                        (cps (intmap-replace! cps label cont)))
-                   (intmap-add! cps trampoline-out-label trampoline-out-cont)))))
+                (($ $kargs names vars ($ $branch kf kt src op param args))
+                 (with-cps cps
+                   (letk ktramp-out ,(make-trampoline join-label src body-vars))
+                   (setk label
+                         ($kargs names vars
+                           ($branch (if (eqv? kf exit) ktramp-out kf)
+                                    (if (eqv? kt exit) ktramp-out kt)
+                                    src
+                             op param ,(rename-vars args body-vars))))))))
              (else
               (match (intmap-ref cps label)
-                (($ $kargs names vars ($ $continue k src exp))
-                 (let ((cont (build-cont
-                               ($kargs names vars
-                                 ($continue k src
-                                   ,(rename-exp exp body-vars))))))
-                   (intmap-replace! cps label cont)))
+                (($ $kargs names vars term)
+                 (with-cps cps
+                   (setk label ($kargs names vars
+                                 ,(rename-term term body-vars)))))
                 (($ $kreceive) cps)))))
           (intset-remove body-labels entry-label)
           cps))))))
@@ -195,10 +192,8 @@
     (intset-fold (lambda (label rotate?)
                    (match (intmap-ref cps label)
                      (($ $kreceive) #f)
-                     (($ $kargs _ _ ($ $continue _ _ exp))
-                      (match exp
-                        (($ $branch) #f)
-                        (_ rotate?)))))
+                     (($ $kargs _ _ ($ $branch)) #f)
+                     (($ $kargs _ _ ($ $continue)) rotate?)))
                  edges #t))
   (let* ((succs (compute-successors cps kfun))
          (preds (invert-graph succs)))

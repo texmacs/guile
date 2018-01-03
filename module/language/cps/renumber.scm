@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -85,16 +85,18 @@
             (call-with-values
                 (lambda ()
                   (match (intmap-ref conts k)
-                    (($ $kargs names syms ($ $continue k src exp))
-                     (match exp
-                       (($ $prompt escape? tag handler)
-                        (visit2 k handler order visited))
-                       (($ $branch kt)
-                        (if (visit-kf-first? k kt)
-                            (visit2 k kt order visited)
-                            (visit2 kt k order visited)))
-                       (_
-                        (visit k order visited))))
+                    (($ $kargs names syms term)
+                     (match term
+                       (($ $continue k src exp)
+                        (match exp
+                          (($ $prompt escape? tag handler)
+                           (visit2 k handler order visited))
+                          (_
+                           (visit k order visited))))
+                       (($ $branch kf kt)
+                        (if (visit-kf-first? kf kt)
+                            (visit2 kf kt order visited)
+                            (visit2 kt kf order visited)))))
                     (($ $kreceive arity k) (visit k order visited))
                     (($ $kclause arity kbody kalt)
                      (if kalt
@@ -177,8 +179,6 @@
          ($call (rename-var proc) ,(map rename-var args)))
         (($ $callk k proc args)
          ($callk (rename-label k) (rename-var proc) ,(map rename-var args)))
-        (($ $branch kt exp)
-         ($branch (rename-label kt) ,(rename-exp exp)))
         (($ $primcall name param args)
          ($primcall name param ,(map rename-var args)))
         (($ $prompt escape? tag handler)
@@ -200,18 +200,23 @@
          out
          new-k
          (rewrite-cont (intmap-ref conts old-k)
-                       (($ $kargs names syms ($ $continue k src exp))
-                        ($kargs names (map rename-var syms)
-                          ($continue (rename-label k) src ,(rename-exp exp))))
-                       (($ $kreceive ($ $arity req () rest () #f) k)
-                        ($kreceive req rest (rename-label k)))
-                       (($ $ktail)
-                        ($ktail))
-                       (($ $kfun src meta self tail clause)
-                        ($kfun src meta (rename-var self) (rename-label tail)
-                          (and clause (rename-label clause))))
-                       (($ $kclause arity body alternate)
-                        ($kclause ,(rename-arity arity) (rename-label body)
-                                  (and alternate (rename-label alternate)))))))
+           (($ $kargs names syms term)
+            ($kargs names (map rename-var syms)
+              ,(rewrite-term term
+                 (($ $continue k src exp)
+                  ($continue (rename-label k) src ,(rename-exp exp)))
+                 (($ $branch kf kt src op param args)
+                  ($branch (rename-label kf) (rename-label kt) src
+                    op param ,(map rename-var args))))))
+           (($ $kreceive ($ $arity req () rest () #f) k)
+            ($kreceive req rest (rename-label k)))
+           (($ $ktail)
+            ($ktail))
+           (($ $kfun src meta self tail clause)
+            ($kfun src meta (rename-var self) (rename-label tail)
+              (and clause (rename-label clause))))
+           (($ $kclause arity body alternate)
+            ($kclause ,(rename-arity arity) (rename-label body)
+                      (and alternate (rename-label alternate)))))))
       label-map
       empty-intmap))))

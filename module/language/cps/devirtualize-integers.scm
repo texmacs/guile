@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,22 +59,24 @@
    (intmap-fold
     (lambda (label cont use-counts)
       (match cont
-        (($ $kargs names vars ($ $continue k src exp))
-         (match exp
-           ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $rec))
-            use-counts)
-           (($ $values args)
-            (add-uses use-counts args))
-           (($ $call proc args)
-            (add-uses (add-use use-counts proc) args))
-           (($ $callk kfun proc args)
-            (add-uses (add-use use-counts proc) args))
-           (($ $branch kt ($ $primcall name param args))
-            (add-uses use-counts args))
-           (($ $primcall name param args)
-            (add-uses use-counts args))
-           (($ $prompt escape? tag handler)
-            (add-use use-counts tag))))
+        (($ $kargs names vars term)
+         (match term
+           (($ $continue k src exp)
+            (match exp
+              ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $rec))
+               use-counts)
+              (($ $values args)
+               (add-uses use-counts args))
+              (($ $call proc args)
+               (add-uses (add-use use-counts proc) args))
+              (($ $callk kfun proc args)
+               (add-uses (add-use use-counts proc) args))
+              (($ $primcall name param args)
+               (add-uses use-counts args))
+              (($ $prompt escape? tag handler)
+               (add-use use-counts tag))))
+           (($ $branch kf kt src op param args)
+            (add-uses use-counts args))))
         (_ use-counts)))
     cps
     (transient-intmap))))
@@ -124,7 +126,7 @@ the trace should be referenced outside of it."
       ;; graph to get to $kreceive etc, so we can stop with these two
       ;; continuation kinds.
       (($ $ktail) (fail))
-      (($ $kargs names vars ($ $continue k src exp))
+      (($ $kargs names vars term)
        (let* ((vars-of-interest
                (if defs-of-interest?
                    (fold1 (lambda (var set) (intset-add set var))
@@ -134,7 +136,8 @@ the trace should be referenced outside of it."
               (fresh-vars (fold (lambda (var fresh-vars)
                                   (intmap-add fresh-vars var (fresh-var)))
                                 fresh-vars vars))
-              (vars (map (lambda (var) (intmap-ref fresh-vars var)) vars)))
+              (peeled-vars (map (lambda (var) (intmap-ref fresh-vars var))
+                                vars)))
          (define (rename-uses args)
            (map (lambda (arg) (intmap-ref fresh-vars arg (lambda (arg) arg)))
                 args))
@@ -142,10 +145,10 @@ the trace should be referenced outside of it."
            (or-map (lambda (arg) (intset-ref vars-of-interest arg))
                    args))
          (define (continue k live-vars defs-of-interest? can-terminate-trace?
-                           exp)
+                           make-term)
            (define (stitch cps k)
              (with-cps cps
-               (letk label* ($kargs names vars ($continue k src ,exp)))
+               (letk label* ($kargs names peeled-vars ,(make-term k)))
                label*))
            (define (terminate)
              (stitch cps k))
@@ -158,73 +161,71 @@ the trace should be referenced outside of it."
                     ((and can-terminate-trace? (eq? live-vars empty-intmap))
                      (terminate))
                     (else (fail))))))))
-         (match exp
-           (($ $const)
-            ;; fine.
-            (continue k live-vars #f #f exp))
-           (($ $values args)
-            (let ((live-vars (subtract-uses live-vars args)))
-              (continue k live-vars
-                        (any-use-of-interest? args) #f
-                        (build-exp ($values ,(rename-uses args))))))
-           (($ $primcall name param args)
-            ;; exp is effect-free or var of interest in args
-            (let* ((fx (expression-effects exp))
-                   (uses-of-interest? (any-use-of-interest? args))
-                   (live-vars (subtract-uses live-vars args)))
-              ;; If the primcall uses a value of interest,
-              ;; consider it for peeling even if it would cause a
-              ;; type check; perhaps the peeling causes the type
-              ;; check to go away.
-              (if (or (eqv? fx &no-effects)
-                      (and uses-of-interest? (eqv? fx &type-check)))
-                  (continue k (subtract-uses live-vars args)
-                            ;; Primcalls that use values of interest
-                            ;; define values of interest.
-                            uses-of-interest? #t
-                            (build-exp
-                              ($primcall name param ,(rename-uses args))))
-                  (fail))))
-           (($ $branch kt ($ $primcall name param args))
+         (match term
+           (($ $branch kf kt src op param args)
             ;; kt or k is kf; var of interest is in args
             (let* ((live-vars (subtract-uses live-vars args))
                    (uses-of-interest? (any-use-of-interest? args))
                    (defs-of-interest? #f) ;; Branches don't define values.
                    (can-terminate-trace? uses-of-interest?)
-                   (exp (build-exp
-                          ($primcall name param ,(rename-uses args)))))
+                   (peeled-args (rename-uses args)))
               (cond
                ((not (any-use-of-interest? args))
                 (fail))
                ((bailout? kt)
-                (continue k live-vars defs-of-interest? can-terminate-trace?
-                          (build-exp ($branch kt ,exp))))
-               ((bailout? k)
-                (let ()
-                  (define (stitch cps kt)
-                    (with-cps cps
-                      (letk label*
-                            ($kargs names vars
-                              ($continue k src ($branch kt ,exp))))
-                      label*))
-                  (define (terminate)
-                    (stitch cps kt))
-                  (with-cps cps
-                    (let$ kt* (peel-cont kt live-vars fresh-vars
-                                         vars-of-interest defs-of-interest?))
-                    ($ ((lambda (cps)
-                          (cond
-                           (kt* (stitch cps kt*))
-                           ((and can-terminate-trace? (eq? live-vars empty-intmap))
-                            (terminate))
-                           (else (fail)))))))))
+                (continue kf live-vars defs-of-interest? can-terminate-trace?
+                          (lambda (kf)
+                            (build-term
+                              ($branch kf kt src op param peeled-args)))))
+               ((bailout? kf)
+                (continue kt live-vars defs-of-interest? can-terminate-trace?
+                          (lambda (kt)
+                            (build-term
+                              ($branch kf kt src op param peeled-args)))))
                (else
                 (with-cps cps
                   (letk label*
-                        ($kargs names vars
-                          ($continue k src ($branch kt ,exp))))
+                        ($kargs names peeled-vars
+                          ($branch kf kt src op param peeled-args)))
                   label*)))))
-           (_ (fail))))))))
+           (($ $continue k src exp)
+            (match exp
+              (($ $const)
+               ;; fine.
+               (continue k live-vars #f #f
+                         (lambda (k)
+                           (build-term ($continue k src ,exp)))))
+              (($ $values args)
+               (let ((uses-of-interest? (any-use-of-interest? args))
+                     (live-vars (subtract-uses live-vars args))
+                     (peeled-args (rename-uses args)))
+                 (continue k live-vars
+                           uses-of-interest? #f
+                           (lambda (k)
+                             (build-term
+                               ($continue k src ($values peeled-args)))))))
+              (($ $primcall name param args)
+               ;; exp is effect-free or var of interest in args
+               (let* ((fx (expression-effects exp))
+                      (uses-of-interest? (any-use-of-interest? args))
+                      (live-vars (subtract-uses live-vars args))
+                      (peeled-args (rename-uses args)))
+                 ;; If the primcall uses a value of interest,
+                 ;; consider it for peeling even if it would cause a
+                 ;; type check; perhaps the peeling causes the type
+                 ;; check to go away.
+                 (if (or (eqv? fx &no-effects)
+                         (and uses-of-interest? (eqv? fx &type-check)))
+                     (continue k live-vars
+                               ;; Primcalls that use values of interest
+                               ;; define values of interest.
+                               uses-of-interest? #t
+                               (lambda (k)
+                                 (build-term
+                                   ($continue k src
+                                     ($primcall name param ,peeled-args)))))
+                     (fail))))
+              (_ (fail))))))))))
 
 (define (peel-traces-in-function cps body use-counts)
   (intset-fold
@@ -232,9 +233,7 @@ the trace should be referenced outside of it."
      (match (intmap-ref cps label)
        ;; Traces start with a fixnum? predicate.  We could expand this
        ;; in the future if we wanted to.
-       (($ $kargs names vars
-           ($ $continue kf src
-              ($ $branch kt ($ $primcall 'fixnum? #f (x)))))
+       (($ $kargs names vars ($ $branch kf kt src 'fixnum? #f (x)))
         (with-cps cps
           (let$ kt (peel-trace kt x kf use-counts))
           ($ ((lambda (cps)
@@ -242,8 +241,7 @@ the trace should be referenced outside of it."
                     (with-cps cps
                       (setk label
                             ($kargs names vars
-                              ($continue kf src
-                                ($branch kt ($primcall 'fixnum? #f (x)))))))
+                              ($branch kf kt src 'fixnum? #f (x)))))
                     cps))))))
        (_ cps)))
    body

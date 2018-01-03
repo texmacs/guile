@@ -1,5 +1,5 @@
 ;;; Type analysis on CPS
-;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -1777,8 +1777,9 @@ minimum, and maximum."
   (match cont
     (($ $kargs _ _ ($ $continue k src exp))
      (match exp
-       ((or ($ $branch) ($ $prompt)) 2)
+       (($ $prompt) 2)
        (_ 1)))
+    (($ $kargs _ _ ($ $branch)) 2)
     (($ $kfun src meta self tail clause) (if clause 1 0))
     (($ $kclause arity body alt) (if alt 2 1))
     (($ $kreceive) 1)
@@ -1915,11 +1916,6 @@ maximum, where type is a bitset as a fixnum."
         (values (append changed0 changed1) typev)))
     ;; Each of these branches must propagate to its successors.
     (match exp
-      (($ $branch kt ($ $primcall name param args))
-       ;; The "normal" continuation is the #f branch.
-       (let ((kf-types (infer-primcall types 0 name param args #f))
-             (kt-types (infer-primcall types 1 name param args #f)))
-         (propagate2 k kf-types kt kt-types)))
       (($ $prompt escape? tag handler)
        ;; The "normal" continuation enters the prompt.
        (propagate2 k types handler types))
@@ -1979,6 +1975,10 @@ maximum, where type is a bitset as a fixnum."
       (match (intmap-ref conts label)
         (($ $kargs names vars ($ $continue k src exp))
          (visit-exp label typev k types exp))
+        (($ $kargs names vars ($ $branch kf kt src op param args))
+         ;; The "normal" continuation is the #f branch.
+         (propagate2 kf (infer-primcall types 0 op param args #f)
+                     kt (infer-primcall types 1 op param args #f)))
         (($ $kreceive arity k)
          (match (intmap-ref conts k)
            (($ $kargs names vars)

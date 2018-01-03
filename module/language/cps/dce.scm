@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,10 @@ sites."
                                      (causes-effect? fx &allocation))
                                 (values (intset-add! known k) unknown)
                                 (values known (intset-add! unknown k)))))
+                         (($ $kargs _ _ ($ $branch))
+                          ;; Branches pass no values to their
+                          ;; continuations.
+                          (values known unknown))
                          (($ $kreceive arity kargs)
                           (values known (intset-add! unknown kargs)))
                          (($ $kfun src meta self tail clause)
@@ -151,8 +155,6 @@ sites."
                  (adjoin-vars args (adjoin-var proc live-vars))))
         (($ $primcall name param args)
          (values live-labels (adjoin-vars args live-vars)))
-        (($ $branch k ($ $primcall name param args))
-         (values live-labels (adjoin-vars args live-vars)))
         (($ $values args)
          (values live-labels
                  (match (cont-defs k)
@@ -164,17 +166,6 @@ sites."
                                live-vars args defs)))))))
             
     (define (visit-exp label k exp live-labels live-vars)
-      (define (next-live-term k)
-        ;; FIXME: For a chain of dead branches, this is quadratic.
-        (let lp ((seen empty-intset) (k k))
-          (cond
-           ((intset-ref live-labels k) k)
-           ((intset-ref seen k) k)
-           (else
-            (match (intmap-ref conts k)
-              (($ $kargs _ _ ($ $continue k*))
-               (lp (intset-add seen k) k*))
-              (_ k))))))
       (cond
        ((intset-ref live-labels label)
         ;; Expression live already.
@@ -192,12 +183,6 @@ sites."
            ;; Does it cause a type check, but we weren't able to prove
            ;; that the types check?
            (causes-effect? fx &type-check)
-           ;; We only remove branches if both continuations are the
-           ;; same.
-           (match exp
-             (($ $branch kt)
-              (not (eqv? (next-live-term k) (next-live-term kt))))
-             (_ #f))
            ;; We might have a setter.  If the object being assigned to
            ;; is live or was not created by us, then this expression is
            ;; live.  Otherwise the value is still dead.
@@ -219,6 +204,32 @@ sites."
         ;; Still dead.
         (values live-labels live-vars))))
 
+    (define (visit-branch label kf kt args live-labels live-vars)
+      (define (next-live-term k)
+        ;; FIXME: For a chain of dead branches, this is quadratic.
+        (let lp ((seen empty-intset) (k k))
+          (cond
+           ((intset-ref live-labels k) k)
+           ((intset-ref seen k) k)
+           (else
+            (match (intmap-ref conts k)
+              (($ $kargs _ _ ($ $continue k*))
+               (lp (intset-add seen k) k*))
+              (_ k))))))
+      (cond
+       ((intset-ref live-labels label)
+        ;; Branch live already.
+        (values live-labels (adjoin-vars args live-vars)))
+       ((or (causes-effect? (intmap-ref effects label) &type-check)
+            (not (eqv? (next-live-term kf) (next-live-term kt))))
+        ;; The branch is live if its continuations are not the same, or
+        ;; if the branch itself causes type checks.
+        (values (intset-add live-labels label)
+                (adjoin-vars args live-vars)))
+       (else
+        ;; Still dead.
+        (values live-labels live-vars))))
+
     (define (visit-fun label live-labels live-vars)
       ;; Visit uses before definitions.
       (postorder-fold-local-conts2
@@ -226,6 +237,8 @@ sites."
          (match cont
            (($ $kargs _ _ ($ $continue k src exp))
             (visit-exp label k exp live-labels live-vars))
+           (($ $kargs _ _ ($ $branch kf kt src op param args))
+            (visit-branch label kf kt args live-labels live-vars))
            (($ $kreceive arity kargs)
             (values live-labels live-vars))
            (($ $kclause arity kargs kalt)
@@ -327,7 +340,13 @@ sites."
                  (values cps term)))))
            (values cps
                    (build-term
-                     ($continue k src ($values ()))))))))
+                     ($continue k src ($values ()))))))
+      (($ $branch kf kt src op param args)
+       (if (label-live? label)
+           (values cps term)
+           ;; Dead branches continue to the same continuation
+           ;; (eventually).
+           (values cps (build-term ($continue kf src ($values ()))))))))
   (define (visit-cont label cont cps)
     (match cont
       (($ $kargs names vars term)

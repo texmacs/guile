@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -384,8 +384,7 @@
                          ($continue krecv src ($call proc args))))
            (let$ body (resolve-prim name kproc src))
            (setk label ($kargs names vars ,body))))))
-      (($ $kargs names vars
-          ($ $continue kf src ($ $branch kt ($ $primcall name param args))))
+      (($ $kargs names vars ($ $branch kf kt src name param args))
        (let ()
          (define (u11? val) (<= 0 val #x7ff))
          (define (u12? val) (<= 0 val #xfff))
@@ -404,8 +403,7 @@
                        (letv c)
                        (letk kconst
                              ($kargs ('c) (c)
-                               ($continue kf src
-                                 ($branch kt ($primcall 'op* #f (out ...))))))
+                               ($branch kf kt src 'op* #f (out ...))))
                        (setk label
                              ($kargs names vars
                                ($continue kconst src

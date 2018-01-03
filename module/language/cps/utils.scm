@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -198,13 +198,14 @@ disjoint, an error will be signalled."
             (if kalt
                 (visit-cont kalt (visit-cont kbody labels))
                 (visit-cont kbody labels)))
-           (($ $kargs names syms ($ $continue k src exp))
-            (visit-cont k (match exp
-                            (($ $branch k)
-                             (visit-cont k labels))
-                            (($ $prompt escape? tag k)
-                             (visit-cont k labels))
-                            (_ labels)))))))))))
+           (($ $kargs names syms term)
+            (match term
+              (($ $continue k src ($ $prompt escape? tag handler))
+               (visit-cont k (visit-cont handler labels)))
+              (($ $continue k)
+               (visit-cont k labels))
+              (($ $branch kf kt)
+               (visit-cont kf (visit-cont kt labels))))))))))))
 
 (define* (compute-reachable-functions conts #:optional (kfun 0))
   "Compute a mapping LABEL->LABEL..., where each key is a reachable
@@ -257,11 +258,13 @@ intset."
       (if (intmap-ref succs label (lambda (_) #f))
           succs
           (match (intmap-ref conts label)
-            (($ $kargs names vars ($ $continue k src exp))
-             (match exp
-               (($ $branch kt) (propagate2 k kt))
-               (($ $prompt escape? tag handler) (propagate2 k handler))
-               (_ (propagate1 k))))
+            (($ $kargs names vars term)
+             (match term
+               (($ $continue k src exp)
+                (match exp
+                  (($ $prompt escape? tag handler) (propagate2 k handler))
+                  (_ (propagate1 k))))
+               (($ $branch kf kt) (propagate2 kf kt))))
             (($ $kreceive arity k)
              (propagate1 k))
             (($ $kfun src meta self tail clause)
@@ -291,12 +294,15 @@ intset."
        preds)
       (($ $kclause arity kbody kalt)
        (add-pred kbody (if kalt (add-pred kalt preds) preds)))
-      (($ $kargs names syms ($ $continue k src exp))
-       (add-pred k
-                 (match exp
-                   (($ $branch k) (add-pred k preds))
-                   (($ $prompt _ _ k) (add-pred k preds))
-                   (_ preds))))))
+      (($ $kargs names syms term)
+       (match term
+         (($ $continue k src exp)
+          (add-pred k
+                    (match exp
+                      (($ $prompt _ _ k) (add-pred k preds))
+                      (_ preds))))
+         (($ $branch kf kt)
+          (add-pred kf (add-pred kt preds)))))))
   (persistent-intmap
    (intset-fold add-preds labels
                 (intset->intmap (lambda (label) '()) labels))))

@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -78,10 +78,10 @@
           (ref* args))
          (($ $values args)
           (ref* args))
-         (($ $branch kt ($ $primcall name param args))
-          (ref* args))
          (($ $prompt escape? tag handler)
           (ref tag))))
+      (($ $kargs _ _ ($ $branch kf kt src op param args))
+       (ref* args))
       (_
        (values single multiple))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
@@ -144,15 +144,15 @@
      (lambda (label cont)
        (and (not (intset-ref label-set label))
             (rewrite-cont cont
-              (($ $kargs names syms ($ $continue kf src ($ $branch kt exp)))
+              (($ $kargs names syms ($ $branch kf kt src op param args))
                ($kargs names syms
-                 ($continue (subst kf) src ($branch (subst kt) ,exp))))
+                 ($branch (subst kf) (subst kt) src op param args)))
               (($ $kargs names syms ($ $continue k src ($ $const val)))
                ,(match (intmap-ref conts k)
                   (($ $kargs (_)
                              ((? (lambda (var) (intset-ref singly-used var))
                                  var))
-                      ($ $continue kf _ ($ $branch kt ($ $primcall 'false? #f (var)))))
+                             ($ $branch kf kt _ 'false? #f (var)))
                    (build-cont
                      ($kargs names syms
                        ($continue (subst (if val kf kt)) src ($values ())))))
@@ -189,7 +189,11 @@
       (($ $ktail) (ref0))
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
       (($ $kargs names syms ($ $continue k src exp))
-       (ref2 k (match exp (($ $branch k) k) (($ $prompt _ _ k) k) (_ #f))))))
+       (match exp
+         (($ $prompt _ _ handler) (ref2 k handler))
+         (_ (ref1 k))))
+      (($ $kargs names syms ($ $branch kf kt))
+       (ref2 kf kt))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intset-fold add-ref body single multiple)))
     (intset-subtract (persistent-intset single)
@@ -235,35 +239,37 @@
       (match (intmap-ref var-map var (lambda (_) #f))
         (#f var)
         (val (subst val))))
-    (define (transform-exp label k src exp)
+    (define (transform-term label term)
       (if (intset-ref label-set label)
-          (match (intmap-ref conts k)
-            (($ $kargs _ _ ($ $continue k* src* exp*))
-             (transform-exp k k* src* exp*)))
-          (build-term
-           ($continue k src
-             ,(rewrite-exp exp
-                ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $closure))
-                 ,exp)
-                (($ $call proc args)
-                 ($call (subst proc) ,(map subst args)))
-                (($ $callk k proc args)
-                 ($callk k (subst proc) ,(map subst args)))
-                (($ $primcall name param args)
-                 ($primcall name param ,(map subst args)))
-                (($ $values args)
-                 ($values ,(map subst args)))
-                (($ $branch kt ($ $primcall name param args))
-                 ($branch kt ($primcall name param ,(map subst args))))
-                (($ $prompt escape? tag handler)
-                 ($prompt escape? (subst tag) handler)))))))
+          (match term
+            (($ $continue k)
+             (match (intmap-ref conts k)
+               (($ $kargs _ _ term)
+                (transform-term k term)))))
+          (rewrite-term term
+            (($ $continue k src exp)
+             ($continue k src
+               ,(rewrite-exp exp
+                  ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $closure))
+                   ,exp)
+                  (($ $call proc args)
+                   ($call (subst proc) ,(map subst args)))
+                  (($ $callk k proc args)
+                   ($callk k (subst proc) ,(map subst args)))
+                  (($ $primcall name param args)
+                   ($primcall name param ,(map subst args)))
+                  (($ $values args)
+                   ($values ,(map subst args)))
+                  (($ $prompt escape? tag handler)
+                   ($prompt escape? (subst tag) handler)))))
+            (($ $branch kf kt src op param args)
+             ($branch kf kt src op param ,(map subst args))))))
     (transform-conts
      (lambda (label cont)
-       (match cont
-         (($ $kargs names syms ($ $continue k src exp))
-          (build-cont
-           ($kargs names syms ,(transform-exp label k src exp))))
-         (_ cont)))
+       (rewrite-cont cont
+         (($ $kargs names syms term)
+          ($kargs names syms ,(transform-term label term)))
+         (_ ,cont)))
      conts)))
 
 (define (simplify conts)

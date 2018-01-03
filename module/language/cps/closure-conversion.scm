@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -89,12 +89,12 @@ conts."
             (add-uses args uses))
            (($ $call proc args)
             (add-uses args uses))
-           (($ $branch kt ($ $primcall name param args))
-            (add-uses args uses))
            (($ $primcall name param args)
             (add-uses args uses))
            (($ $prompt escape? tag handler)
             (add-use tag uses))))
+        (($ $kargs _ _ ($ $branch kf kt src op param args))
+         (add-uses args uses))
         (_ uses)))
     conts
     empty-intset)))
@@ -117,8 +117,9 @@ conts."
       (($ $kfun src meta self ktail kclause) (ref2 ktail kclause))
       (($ $ktail) (ref0))
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
-      (($ $kargs names syms ($ $continue k src exp))
-       (ref2 k (match exp (($ $branch k) k) (($ $prompt _ _ k) k) (_ #f))))))
+      (($ $kargs _ _ ($ $continue k _ ($ $prompt _ _ h))) (ref2 k h))
+      (($ $kargs _ _ ($ $continue k)) (ref1 k))
+      (($ $kargs _ _ ($ $branch kf kt)) (ref2 kf kt))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intset-fold add-ref body single multiple)))
     (intset-subtract (persistent-intset single)
@@ -226,35 +227,35 @@ proc argument.  For recursive calls, use the appropriate 'self'
 variable, if possible.  Also rewrite uses of the non-well-known but
 shared closures to use the appropriate 'self' variable, if possible."
   ;; env := var -> (var . label)
-  (define (rewrite-fun kfun cps env)
+  (define (visit-fun kfun cps env)
     (define (subst var)
       (match (intmap-ref env var (lambda (_) #f))
         (#f var)
         ((var . label) var)))
 
-    (define (rename-exp label cps names vars k src exp)
-      (intmap-replace!
-       cps label
-       (build-cont
-         ($kargs names vars
-           ($continue k src
-             ,(rewrite-exp exp
-                ((or ($ $const) ($ $prim)) ,exp)
-                (($ $call proc args)
-                 ,(let ((args (map subst args)))
-                    (rewrite-exp (intmap-ref env proc (lambda (_) #f))
-                      (#f ($call proc ,args))
-                      ((closure . label) ($callk label closure ,args)))))
-                (($ $primcall name param args)
-                 ($primcall name param ,(map subst args)))
-                (($ $branch k ($ $primcall name param args))
-                 ($branch k ($primcall name param ,(map subst args))))
-                (($ $values args)
-                 ($values ,(map subst args)))
-                (($ $prompt escape? tag handler)
-                 ($prompt escape? (subst tag) handler))))))))
+    (define (visit-exp exp)
+      (rewrite-exp exp
+        ((or ($ $const) ($ $prim)) ,exp)
+        (($ $call proc args)
+         ,(let ((args (map subst args)))
+            (rewrite-exp (intmap-ref env proc (lambda (_) #f))
+              (#f ($call proc ,args))
+              ((closure . label) ($callk label closure ,args)))))
+        (($ $primcall name param args)
+         ($primcall name param ,(map subst args)))
+        (($ $values args)
+         ($values ,(map subst args)))
+        (($ $prompt escape? tag handler)
+         ($prompt escape? (subst tag) handler))))
 
-    (define (visit-exp label cps names vars k src exp)
+    (define (visit-term term)
+      (rewrite-term term
+        (($ $continue k src exp)
+         ($continue k src ,(visit-exp exp)))
+        (($ $branch kf kt src op param args)
+         ($branch kf kt src op param ,(map subst args)))))
+
+    (define (visit-rec labels vars cps)
       (define (compute-env label bound self rec-bound rec-labels env)
         (define (add-bound-var bound label env)
           (intmap-add env bound (cons self label) (lambda (old new) new)))
@@ -265,26 +266,27 @@ shared closures to use the appropriate 'self' variable, if possible."
             ;; Otherwise be sure to use "self" references in any
             ;; closure.
             (add-bound-var bound label env)))
-      (match exp
-        (($ $fun label)
-         (rewrite-fun label cps env))
-        (($ $rec names vars (($ $fun labels) ...))
-         (fold (lambda (label var cps)
-                 (match (intmap-ref cps label)
-                   (($ $kfun src meta self)
-                    (rewrite-fun label cps
-                                 (compute-env label var self vars labels
-                                              env)))))
-               cps labels vars))
-        (_ (rename-exp label cps names vars k src exp))))
-    
-    (define (rewrite-cont label cps)
+      (fold (lambda (label var cps)
+              (match (intmap-ref cps label)
+                (($ $kfun src meta self)
+                 (visit-fun label cps
+                            (compute-env label var self vars labels env)))))
+            cps labels vars))
+
+    (define (visit-cont label cps)
       (match (intmap-ref cps label)
-        (($ $kargs names vars ($ $continue k src exp))
-         (visit-exp label cps names vars k src exp))
+        (($ $kargs names vars
+            ($ $continue k src ($ $fun label)))
+         (visit-fun label cps env))
+        (($ $kargs _ _
+            ($ $continue k src ($ $rec names vars (($ $fun labels) ...))))
+         (visit-rec labels vars cps))
+        (($ $kargs names vars term)
+         (with-cps cps
+           (setk label ($kargs names vars ,(visit-term term)))))
         (_ cps)))
 
-    (intset-fold rewrite-cont (intmap-ref functions kfun) cps))
+    (intset-fold visit-cont (intmap-ref functions kfun) cps))
 
   ;; Initial environment is bound-var -> (shared-var . label) map for
   ;; functions with shared closures.
@@ -299,7 +301,7 @@ shared closures to use the appropriate 'self' variable, if possible."
                                          env))
                           shared
                           empty-intmap)))
-    (persistent-intmap (rewrite-fun kfun cps env))))
+    (persistent-intmap (visit-fun kfun cps env))))
 
 (define (compute-free-vars conts kfun shared)
   "Compute a FUN-LABEL->FREE-VAR... map describing all free variable
@@ -350,31 +352,33 @@ references."
             (intset-fold
              (lambda (label defs uses)
                (match (intmap-ref conts label)
-                 (($ $kargs names vars ($ $continue k src exp))
+                 (($ $kargs names vars term)
                   (values
                    (add-defs vars defs)
-                   (match exp
-                     ((or ($ $const) ($ $prim)) uses)
-                     (($ $fun kfun)
-                      (intset-union (persistent-intset uses)
-                                    (intmap-ref free kfun)))
-                     (($ $rec names vars (($ $fun kfun) ...))
-                      (fold (lambda (kfun uses)
-                              (intset-union (persistent-intset uses)
-                                            (intmap-ref free kfun)))
-                            uses kfun))
-                     (($ $values args)
-                      (add-uses args uses))
-                     (($ $call proc args)
-                      (add-use proc (add-uses args uses)))
-                     (($ $callk label proc args)
-                      (add-use proc (add-uses args uses)))
-                     (($ $branch kt ($ $primcall name param args))
-                      (add-uses args uses))
-                     (($ $primcall name param args)
-                      (add-uses args uses))
-                     (($ $prompt escape? tag handler)
-                      (add-use tag uses)))))
+                   (match term
+                     (($ $continue k src exp)
+                      (match exp
+                        ((or ($ $const) ($ $prim)) uses)
+                        (($ $fun kfun)
+                         (intset-union (persistent-intset uses)
+                                       (intmap-ref free kfun)))
+                        (($ $rec names vars (($ $fun kfun) ...))
+                         (fold (lambda (kfun uses)
+                                 (intset-union (persistent-intset uses)
+                                               (intmap-ref free kfun)))
+                               uses kfun))
+                        (($ $values args)
+                         (add-uses args uses))
+                        (($ $call proc args)
+                         (add-use proc (add-uses args uses)))
+                        (($ $callk label proc args)
+                         (add-use proc (add-uses args uses)))
+                        (($ $primcall name param args)
+                         (add-uses args uses))
+                        (($ $prompt escape? tag handler)
+                         (add-use tag uses))))
+                     (($ $branch kf kt src op param args)
+                      (add-uses args uses)))))
                  (($ $kfun src meta self)
                   (values (add-def self defs) uses))
                  (_ (values defs uses))))
@@ -715,14 +719,6 @@ bound to @var{var}, and continue to @var{k}."
                (build-term
                  ($continue k src ($primcall name param args)))))))
 
-        (($ $continue k src ($ $branch kt ($ $primcall name param args)))
-         (convert-args cps args
-           (lambda (cps args)
-             (with-cps cps
-               (build-term
-                 ($continue k src
-                   ($branch kt ($primcall name param args))))))))
-
         (($ $continue k src ($ $values args))
          (convert-args cps args
            (lambda (cps args)
@@ -736,7 +732,14 @@ bound to @var{var}, and continue to @var{k}."
              (with-cps cps
                (build-term
                  ($continue k src
-                   ($prompt escape? tag handler)))))))))
+                   ($prompt escape? tag handler)))))))
+
+        (($ $branch kf kt src op param args)
+         (convert-args cps args
+           (lambda (cps args)
+             (with-cps cps
+               (build-term
+                 ($branch kf kt src op param args))))))))
 
     (intset-fold (lambda (label cps)
                    (match (intmap-ref cps label (lambda (_) #f))

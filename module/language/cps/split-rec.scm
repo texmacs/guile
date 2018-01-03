@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -70,29 +70,31 @@ references."
             (intset-fold
              (lambda (label defs uses)
                (match (intmap-ref conts label)
-                 (($ $kargs names vars ($ $continue k src exp))
+                 (($ $kargs names vars term)
                   (values
                    (add-defs vars defs)
-                   (match exp
-                     ((or ($ $const) ($ $prim)) uses)
-                     (($ $fun kfun)
-                      (intset-union (persistent-intset uses)
-                                    (intmap-ref free kfun)))
-                     (($ $rec names vars (($ $fun kfun) ...))
-                      (fold (lambda (kfun uses)
-                              (intset-union (persistent-intset uses)
-                                            (intmap-ref free kfun)))
-                            uses kfun))
-                     (($ $values args)
-                      (add-uses args uses))
-                     (($ $call proc args)
-                      (add-use proc (add-uses args uses)))
-                     (($ $branch kt ($ $primcall name param args))
-                      (add-uses args uses))
-                     (($ $primcall name param args)
-                      (add-uses args uses))
-                     (($ $prompt escape? tag handler)
-                      (add-use tag uses)))))
+                   (match term
+                     (($ $continue k src exp)
+                      (match exp
+                        ((or ($ $const) ($ $prim)) uses)
+                        (($ $fun kfun)
+                         (intset-union (persistent-intset uses)
+                                       (intmap-ref free kfun)))
+                        (($ $rec names vars (($ $fun kfun) ...))
+                         (fold (lambda (kfun uses)
+                                 (intset-union (persistent-intset uses)
+                                               (intmap-ref free kfun)))
+                               uses kfun))
+                        (($ $values args)
+                         (add-uses args uses))
+                        (($ $call proc args)
+                         (add-use proc (add-uses args uses)))
+                        (($ $primcall name param args)
+                         (add-uses args uses))
+                        (($ $prompt escape? tag handler)
+                         (add-use tag uses))))
+                     (($ $branch kf kt src op param args)
+                      (add-uses args uses)))))
                  (($ $kfun src meta self)
                   (values (add-def self defs) uses))
                  (_ (values defs uses))))

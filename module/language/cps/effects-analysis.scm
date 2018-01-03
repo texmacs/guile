@@ -1,6 +1,6 @@
 ;;; Effects analysis on CPS
 
-;; Copyright (C) 2011-2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -603,8 +603,6 @@ the LABELS that are clobbered by the effects of LABEL."
      &all-effects)
     ((or ($ $call) ($ $callk))
      &all-effects)
-    (($ $branch k exp)
-     (expression-effects exp))
     (($ $primcall name param args)
      (primitive-effects param name args))))
 
@@ -614,6 +612,8 @@ the LABELS that are clobbered by the effects of LABEL."
      (match cont
        (($ $kargs names syms ($ $continue k src exp))
         (expression-effects exp))
+       (($ $kargs names syms ($ $branch kf kt src op param args))
+        (primitive-effects param op args))
        (($ $kreceive arity kargs)
         (match arity
           (($ $arity _ () #f () #f) &type-check)

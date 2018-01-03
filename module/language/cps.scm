@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -127,10 +127,10 @@
             $kreceive $kargs $kfun $ktail $kclause
 
             ;; Terms.
-            $continue
+            $continue $branch
 
             ;; Expressions.
-            $const $prim $fun $rec $closure $branch
+            $const $prim $fun $rec $closure
             $call $callk $primcall $values $prompt
 
             ;; Building macros.
@@ -179,6 +179,7 @@
 
 ;; Terms.
 (define-cps-type $continue k src exp)
+(define-cps-type $branch kf kt src op param args)
 
 ;; Expressions.
 (define-cps-type $const val)
@@ -186,7 +187,6 @@
 (define-cps-type $fun body) ; Higher-order.
 (define-cps-type $rec names syms funs) ; Higher-order.
 (define-cps-type $closure label nfree) ; First-order.
-(define-cps-type $branch kt exp)
 (define-cps-type $call proc args)
 (define-cps-type $callk k proc args) ; First-order.
 (define-cps-type $primcall name param args)
@@ -223,11 +223,17 @@
     ((_ (unquote exp))
      exp)
     ((_ ($continue k src exp))
-     (make-$continue k src (build-exp exp)))))
+     (make-$continue k src (build-exp exp)))
+    ((_ ($branch kf kt src op param (unquote args)))
+     (make-$branch kf kt src op param args))
+    ((_ ($branch kf kt src op param (arg ...)))
+     (make-$branch kf kt src op param (list arg ...)))
+    ((_ ($branch kf kt src op param args))
+     (make-$branch kf kt src op param args))))
 
 (define-syntax build-exp
   (syntax-rules (unquote
-                 $const $prim $fun $rec $closure $branch
+                 $const $prim $fun $rec $closure
                  $call $callk $primcall $values $prompt)
     ((_ (unquote exp)) exp)
     ((_ ($const val)) (make-$const val))
@@ -247,7 +253,6 @@
     ((_ ($values (unquote args))) (make-$values args))
     ((_ ($values (arg ...))) (make-$values (list arg ...)))
     ((_ ($values args)) (make-$values args))
-    ((_ ($branch kt exp)) (make-$branch kt (build-exp exp)))
     ((_ ($prompt escape? tag handler))
      (make-$prompt escape? tag handler))))
 
@@ -280,9 +285,13 @@
     (('kclause (req opt rest kw allow-other-keys?) kbody kalt)
      (build-cont ($kclause (req opt rest kw allow-other-keys?) kbody kalt)))
 
-    ;; Calls.
+    ;; Terms.
     (('continue k exp)
      (build-term ($continue k (src exp) ,(parse-cps exp))))
+    (('branch kf kt op param arg ...)
+     (build-term ($branch kf kt (src exp) op param arg)))
+
+    ;; Expressions.
     (('unspecified)
      (build-exp ($const *unspecified*)))
     (('const exp)
@@ -301,8 +310,6 @@
      (build-exp ($callk k proc arg)))
     (('primcall name param arg ...)
      (build-exp ($primcall name param arg)))
-    (('branch k exp)
-     (build-exp ($branch k ,(parse-cps exp))))
     (('values arg ...)
      (build-exp ($values arg)))
     (('prompt escape? tag handler)
@@ -325,9 +332,13 @@
      `(kclause (,req ,opt ,rest ,kw ,allow-other-keys?) ,kbody
                . ,(if kalternate (list kalternate) '())))
 
-    ;; Calls.
+    ;; Terms.
     (($ $continue k src exp)
      `(continue ,k ,(unparse-cps exp)))
+    (($ $branch kf kt src op param args)
+     `(branch ,kf ,kt ,op ,param ,@args))
+
+    ;; Expressions.
     (($ $const val)
      (if (unspecified? val)
          '(unspecified)
@@ -348,8 +359,6 @@
      `(callk ,k ,proc ,@args))
     (($ $primcall name param args)
      `(primcall ,name ,param ,@args))
-    (($ $branch k exp)
-     `(branch ,k ,(unparse-cps exp)))
     (($ $values args)
      `(values ,@args))
     (($ $prompt escape? tag handler)

@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -310,9 +310,8 @@
                  (let$ init (convert init kreceive subst))
                  (letk kunbound ($kargs () () ,init))
                  (build-term
-                   ($continue kbound src
-                     ($branch kunbound
-                              ($primcall 'undefined? #f (orig-var))))))))))))))
+                   ($branch kbound kunbound src
+                     'undefined? #f (orig-var))))))))))))
 
 (define (build-list cps k src vals)
   (match vals
@@ -914,14 +913,11 @@
               (if (heap-type-predicate? name)
                   (with-cps cps
                     (letk kt* ($kargs () ()
-                                ($continue kf src
-                                  ($branch kt ($primcall name #f args)))))
+                                ($branch kf kt src name #f args)))
                     (build-term
-                      ($continue kf src
-                        ($branch kt* ($primcall 'heap-object? #f args)))))
+                      ($branch kf kt* src 'heap-object? #f args)))
                   (with-cps cps
-                    (build-term ($continue kf src
-                                  ($branch kt ($primcall name #f args)))))))))
+                    (build-term ($branch kf kt src name #f args)))))))
          (($ <conditional> src test consequent alternate)
           (with-cps cps
             (let$ t (convert-test consequent kt kf))
@@ -935,8 +931,7 @@
          (_ (convert-arg cps test
               (lambda (cps test)
                 (with-cps cps
-                  (build-term ($continue kt src
-                                ($branch kf ($primcall 'false? #f (test)))))))))))
+                  (build-term ($branch kt kf src 'false? #f (test)))))))))
      (with-cps cps
        (let$ t (convert consequent k subst))
        (let$ f (convert alternate k subst))
