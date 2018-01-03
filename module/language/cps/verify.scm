@@ -282,12 +282,7 @@ definitions that are available at LABEL."
        (assert-kreceive-or-ktail))
       (($ $primcall name param args)
        (match cont
-         (($ $kargs) #t)
-         ;; FIXME: Remove this case; instead use $prim and $call.
-         (($ $kreceive) #t)
-         (($ $ktail)
-          (unless (memv name '(throw throw/value throw/value+data))
-            (error "primitive should continue to $kargs, not $ktail" name)))))))
+         (($ $kargs) #t)))))
   (define (check-term term)
     (match term
       (($ $continue k src exp)

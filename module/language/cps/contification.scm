@@ -413,18 +413,13 @@ function set."
     (let ((k* (lookup-return-cont k)))
       (if (eq? k k*)
           (with-cps cps (build-term ($continue k src ,exp)))
-          ;; We are contifying this return.  It must be a call, a
-          ;; $primcall that can continue to $ktail (basically this is
-          ;; only "throw" and friends), or a $values expression.  k*
-          ;; will be either a $ktail or a $kreceive continuation.
+          ;; We are contifying this return.  It must be a call or a
+          ;; $values expression.  k* will be either a $ktail or a
+          ;; $kreceive continuation.
           (match (intmap-ref conts k*)
             (($ $kreceive ($ $arity req () rest () #f) kargs)
              (match exp
                (($ $call)
-                (with-cps cps (build-term ($continue k* src ,exp))))
-               ;; A primcall that can continue to $ktail can also
-               ;; continue to $kreceive.
-               (($ $primcall)
                 (with-cps cps (build-term ($continue k* src ,exp))))
                ;; We need to punch through the $kreceive; otherwise we'd
                ;; have to rewrite as a call to the 'values primitive.

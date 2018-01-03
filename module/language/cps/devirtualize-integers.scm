@@ -123,7 +123,8 @@ the trace should be referenced outside of it."
     (match (intmap-ref cps label)
       ;; We know the initial label is a $kargs, and we won't follow the
       ;; graph to get to $kreceive etc, so we can stop with these two
-      ;; continuation kinds.
+      ;; continuation kinds.  (For our purposes, only $values can
+      ;; continue to $ktail.)
       (($ $ktail) (fail))
       (($ $kargs names vars term)
        (let* ((vars-of-interest
