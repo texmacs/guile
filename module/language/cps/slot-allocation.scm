@@ -249,10 +249,9 @@ body continuation in the prompt."
         ;; continuations that postdominate the rest of the body.  Unless
         ;; you pass #:complete? #t, we only invoke F on continuations
         ;; that can leave the body, or on back-edges in loops.
-        (intset-any (lambda (succ)
-                      (or (not (intset-ref body succ))
-                          (<= succ label)))
-                    (intmap-ref succs label)))
+        (not (intset-any (lambda (succ)
+                           (and (intset-ref body succ) (< label succ)))
+                         (intmap-ref succs label))))
       (intset-fold (lambda (pred succs)
                      (intmap-replace succs pred handler intset-add))
                    (if complete? body (intset-filter out-or-back-edge? body))
