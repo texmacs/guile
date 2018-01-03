@@ -204,7 +204,7 @@
                                      ($values fresh-vars))))))
                     (values cps cont loop-vars loop-effects
                             pre-header-label always-reached?)))))))))
-         (($ $branch)
+         ((or ($ $branch) ($ $throw))
           (let* ((cont (build-cont ($kargs names vars ,term)))
                  (always-reached? #f))
             (values cps cont loop-vars loop-effects

@@ -80,12 +80,10 @@ sites."
                                      (causes-effect? fx &allocation))
                                 (values (intset-add! known k) unknown)
                                 (values known (intset-add! unknown k)))))
-                         (($ $kargs _ _ ($ $branch))
-                          ;; Branches pass no values to their
-                          ;; continuations.
-                          (values known unknown))
-                         (($ $kargs _ _ ($ $prompt))
-                          ;; Likewise for prompts.
+                         (($ $kargs _ _ (or ($ $branch) ($ $prompt) ($ $throw)))
+                          ;; Branches and prompts pass no values to
+                          ;; their continuations, and throw terms don't
+                          ;; continue at all.
                           (values known unknown))
                          (($ $kreceive arity kargs)
                           (values known (intset-add! unknown kargs)))
@@ -149,8 +147,6 @@ sites."
                       (intset-add live-labels kfun)
                       live-labels)
                   live-vars)))))
-        (($ $prompt escape? tag handler)
-         (values live-labels (adjoin-var tag live-vars)))
         (($ $call proc args)
          (values live-labels (adjoin-vars args (adjoin-var proc live-vars))))
         (($ $callk kfun proc args)
@@ -247,6 +243,10 @@ sites."
             ;; aborts and remove corresponding "unwind" primcalls.
             (values (intset-add live-labels label)
                     (adjoin-var tag live-vars)))
+           (($ $kargs _ _ ($ $throw src op param args))
+            ;; A reachable "throw" is always live.
+            (values (intset-add live-labels label)
+                    (adjoin-vars args live-vars)))
            (($ $kreceive arity kargs)
             (values live-labels live-vars))
            (($ $kclause arity kargs kalt)
@@ -356,6 +356,8 @@ sites."
            ;; (eventually).
            (values cps (build-term ($continue kf src ($values ()))))))
       (($ $prompt)
+       (values cps term))
+      (($ $throw)
        (values cps term))))
   (define (visit-cont label cont cps)
     (match cont

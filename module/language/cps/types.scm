@@ -1775,9 +1775,9 @@ minimum, and maximum."
 
 (define (successor-count cont)
   (match cont
+    (($ $kargs _ _ ($ $throw)) 0)
     (($ $kargs _ _ ($ $continue)) 1)
-    (($ $kargs _ _ ($ $branch)) 2)
-    (($ $kargs _ _ ($ $prompt)) 2)
+    (($ $kargs _ _ (or ($ $branch) ($ $prompt))) 2)
     (($ $kfun src meta self tail clause) (if clause 1 0))
     (($ $kclause arity body alt) (if alt 2 1))
     (($ $kreceive) 1)
@@ -1977,6 +1977,8 @@ maximum, where type is a bitset as a fixnum."
         (($ $kargs names vars ($ $prompt k kh src escape? tag))
          ;; The "normal" continuation enters the prompt.
          (propagate2 k types kh types))
+        (($ $kargs names vars ($ $throw))
+         (propagate0))
         (($ $kreceive arity k)
          (match (intmap-ref conts k)
            (($ $kargs names vars)

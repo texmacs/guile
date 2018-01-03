@@ -122,7 +122,9 @@ corresponding var from REPLACEMENTS; otherwise return VAR."
            (($ $branch kf kt src op param args)
             ($branch kf kt src op param ,(rename* args)))
            (($ $prompt k kh src escape? tag)
-            ($prompt k kh src escape? (rename tag)))))
+            ($prompt k kh src escape? (rename tag)))
+           (($ $throw src op param args)
+            ($throw src op param ,(rename* args)))))
        (define (attach-trampoline cps label src names vars args)
          (with-cps cps
            (letk ktramp-out ,(make-trampoline join-label src args))

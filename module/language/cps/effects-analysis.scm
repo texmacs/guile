@@ -614,6 +614,9 @@ the LABELS that are clobbered by the effects of LABEL."
         ;; what nonlocal predecessors of the handler do, so we
         ;; conservatively assume &all-effects.
         &all-effects)
+       (($ $kargs names syms ($ $throw))
+        ;; A reachable "throw" term can never be elided.
+        &all-effects)
        (($ $kreceive arity kargs)
         (match arity
           (($ $arity _ () #f () #f) &type-check)

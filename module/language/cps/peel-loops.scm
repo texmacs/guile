@@ -152,7 +152,9 @@
          op param ,(map rename-var args)))
       (($ $prompt k kh src escape? tag)
        ($prompt (rename-label k) (rename-label kh) src
-         escape? (rename-var tag)))))
+         escape? (rename-var tag)))
+      (($ $throw src op param args)
+       ($throw src op param ,(map rename-var args)))))
   (rewrite-cont cont
     (($ $kargs names vars term)
      ($kargs names (map rename-var vars) ,(rename-term term)))

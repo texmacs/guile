@@ -76,7 +76,9 @@
            (($ $branch kf kt src op param args)
             (add-uses use-counts args))
            (($ $prompt k kh src escape? tag)
-            (add-use use-counts tag))))
+            (add-use use-counts tag))
+           (($ $throw src op param args)
+            (add-uses use-counts args))))
         (_ use-counts)))
     cps
     (transient-intmap))))
@@ -116,10 +118,7 @@ the trace should be referenced outside of it."
           vars))))
     (define (bailout? k)
       (match (intmap-ref cps k)
-        (($ $kargs _ _
-            ($ $continue _ _
-               ($ $primcall (or 'throw 'throw/value 'throw/value+data))))
-         #t)
+        (($ $kargs _ _ ($ $throw)) #t)
         (_ #f)))
     (match (intmap-ref cps label)
       ;; We know the initial label is a $kargs, and we won't follow the

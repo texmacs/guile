@@ -125,9 +125,7 @@
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (emit-return-values asm (1+ (length args))))
-        (($ $primcall (or 'throw 'throw/value 'throw/value+data))
-         (compile-effect label exp #f))))
+         (emit-return-values asm (1+ (length args))))))
 
     (define (compile-value label exp dst)
       (match exp
@@ -398,12 +396,15 @@
         (($ $primcall 'atomic-box-set! #f (box val))
          (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))
         (($ $primcall 'handle-interrupts #f ())
-         (emit-handle-interrupts asm))
-        (($ $primcall 'throw #f (key args))
+         (emit-handle-interrupts asm))))
+
+    (define (compile-throw op param args)
+      (match (vector op param args)
+        (#('throw #f (key args))
          (emit-throw asm (from-sp (slot key)) (from-sp (slot args))))
-        (($ $primcall 'throw/value param (val))
+        (#('throw/value param (val))
          (emit-throw/value asm (from-sp (slot val)) param))
-        (($ $primcall 'throw/value+data param (val))
+        (#('throw/value+data param (val))
          (emit-throw/value+data asm (from-sp (slot val)) param))))
 
     (define (compile-prompt label k kh escape? tag)
@@ -632,7 +633,11 @@
         (($ $prompt k kh src escape? tag)
          (when src
            (emit-source asm src))
-         (compile-prompt label (skip-elided-conts k) kh escape? tag))))
+         (compile-prompt label (skip-elided-conts k) kh escape? tag))
+        (($ $throw src op param args)
+         (when src
+           (emit-source asm src))
+         (compile-throw op param args))))
 
     (define (compile-cont label cont)
       (match cont

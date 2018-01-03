@@ -94,7 +94,9 @@
                             (visit2 kf kt order visited)
                             (visit2 kt kf order visited)))
                        (($ $prompt k kh)
-                        (visit2 k kh order visited))))
+                        (visit2 k kh order visited))
+                       (($ $throw)
+                        (values order visited))))
                     (($ $kreceive arity k) (visit k order visited))
                     (($ $kclause arity kbody kalt)
                      (if kalt
@@ -206,7 +208,9 @@
                     op param ,(map rename-var args)))
                  (($ $prompt k kh src escape? tag)
                   ($prompt (rename-label k) (rename-label kh) src
-                    escape? (rename-var tag))))))
+                    escape? (rename-var tag)))
+                 (($ $throw src op param args)
+                  ($throw src op param ,(map rename-var args))))))
            (($ $kreceive ($ $arity req () rest () #f) k)
             ($kreceive req rest (rename-label k)))
            (($ $ktail)

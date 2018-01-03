@@ -82,6 +82,8 @@
        (ref* args))
       (($ $kargs _ _ ($ $prompt k kh src escape? tag))
        (ref tag))
+      (($ $kargs _ _ ($ $throw src op param args))
+       (ref* args))
       (_
        (values single multiple))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
@@ -190,7 +192,8 @@
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
       (($ $kargs names syms ($ $continue k)) (ref1 k))
       (($ $kargs names syms ($ $branch kf kt)) (ref2 kf kt))
-      (($ $kargs names syms ($ $prompt k kh)) (ref2 k kh))))
+      (($ $kargs names syms ($ $prompt k kh)) (ref2 k kh))
+      (($ $kargs names syms ($ $throw)) (ref0))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intset-fold add-ref body single multiple)))
     (intset-subtract (persistent-intset single)
@@ -260,7 +263,9 @@
             (($ $branch kf kt src op param args)
              ($branch kf kt src op param ,(map subst args)))
             (($ $prompt k kh src escape? tag)
-             ($prompt k kh src escape? (subst tag))))))
+             ($prompt k kh src escape? (subst tag)))
+            (($ $throw src op param args)
+             ($throw src op param ,(map subst args))))))
     (transform-conts
      (lambda (label cont)
        (rewrite-cont cont

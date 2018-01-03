@@ -205,7 +205,9 @@ disjoint, an error will be signalled."
               (($ $branch kf kt)
                (visit-cont kf (visit-cont kt labels)))
               (($ $prompt k kh)
-               (visit-cont k (visit-cont kh labels))))))))))))
+               (visit-cont k (visit-cont kh labels)))
+              (($ $throw)
+               labels))))))))))
 
 (define* (compute-reachable-functions conts #:optional (kfun 0))
   "Compute a mapping LABEL->LABEL..., where each key is a reachable
@@ -262,7 +264,8 @@ intset."
              (match term
                (($ $continue k) (propagate1 k))
                (($ $branch kf kt) (propagate2 kf kt))
-               (($ $prompt k kh) (propagate2 k kh))))
+               (($ $prompt k kh) (propagate2 k kh))
+               (($ $throw) (propagate0))))
             (($ $kreceive arity k)
              (propagate1 k))
             (($ $kfun src meta self tail clause)
@@ -296,7 +299,8 @@ intset."
        (match term
          (($ $continue k)   (add-pred k preds))
          (($ $branch kf kt) (add-pred kf (add-pred kt preds)))
-         (($ $prompt k kh)  (add-pred k (add-pred kh preds)))))))
+         (($ $prompt k kh)  (add-pred k (add-pred kh preds)))
+         (($ $throw)        preds)))))
   (persistent-intmap
    (intset-fold add-preds labels
                 (intset->intmap (lambda (label) '()) labels))))

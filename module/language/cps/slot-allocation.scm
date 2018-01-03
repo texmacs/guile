@@ -160,6 +160,8 @@ by a label, respectively."
          (return empty-intset (vars->intset args)))
         (($ $kargs _ _ ($ $prompt k kh src escape? tag))
          (return empty-intset (intset tag)))
+        (($ $kargs _ _ ($ $throw src op param args))
+         (return empty-intset (vars->intset args)))
         (($ $kclause arity body alt)
          (return (get-defs body) empty-intset))
         (($ $kreceive arity kargs)
@@ -223,6 +225,7 @@ body continuation in the prompt."
         ((intset-ref labels label) labels)
         (else
          (match (intmap-ref conts label)
+           ;; fixme: remove me?
            (($ $ktail)
             ;; Possible for bailouts; never reached and not part of
             ;; prompt body.
@@ -231,8 +234,6 @@ body continuation in the prompt."
             (let ((labels (intset-add! labels label)))
               (match cont
                 (($ $kreceive arity k) (visit-cont k level labels))
-                (($ $kargs names syms ($ $prompt k kh src escape? tag))
-                 (visit-cont kh level (visit-cont k (1+ level) labels)))
                 (($ $kargs names syms ($ $continue k src ($ $primcall 'wind)))
                  (visit-cont k (1+ level) labels))
                 (($ $kargs names syms ($ $continue k src ($ $primcall 'unwind)))
@@ -240,7 +241,10 @@ body continuation in the prompt."
                 (($ $kargs names syms ($ $continue k src exp))
                  (visit-cont k level labels))
                 (($ $kargs names syms ($ $branch kf kt))
-                 (visit-cont kf level (visit-cont kt level labels))))))))))))
+                 (visit-cont kf level (visit-cont kt level labels)))
+                (($ $kargs names syms ($ $prompt k kh src escape? tag))
+                 (visit-cont kh level (visit-cont k (1+ level) labels)))
+                (($ $kargs names syms ($ $throw)) labels))))))))))
   (define (visit-prompt label handler succs)
     (let ((body (compute-prompt-body label)))
       (define (out-or-back-edge? label)
@@ -741,10 +745,6 @@ are comparable with eqv?.  A tmp slot may be used."
   (intmap-fold
    (lambda (label cont representations)
      (match cont
-       (($ $kargs _ _ ($ $branch))
-        representations)
-       (($ $kargs _ _ ($ $prompt))
-        representations)
        (($ $kargs _ _ ($ $continue k _ exp))
         (match (get-defs k)
           (() representations)
@@ -780,6 +780,8 @@ are comparable with eqv?.  A tmp slot may be used."
                       (intmap-add representations var
                                   (intmap-ref representations arg)))
                     representations args vars))))))
+       (($ $kargs _ _ (or ($ $branch) ($ $prompt) ($ $throw)))
+        representations)
        (($ $kfun src meta self)
         (intmap-add representations self 'scm))
        (($ $kclause arity body alt)

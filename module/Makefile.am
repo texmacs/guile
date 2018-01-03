@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
-##        2014, 2015, 2017 Free Software Foundation, Inc.
+##        2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -142,7 +142,6 @@ SOURCES =					\
   language/cps/licm.scm				\
   language/cps/optimize.scm			\
   language/cps/peel-loops.scm			\
-  language/cps/prune-bailouts.scm		\
   language/cps/prune-top-level-scopes.scm	\
   language/cps/reify-primitives.scm		\
   language/cps/renumber.scm			\

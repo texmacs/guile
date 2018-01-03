@@ -339,7 +339,9 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                    (($ $branch kf kt src op param args)
                     (add-unknown-uses out args))
                    (($ $prompt k kh src escape? tag)
-                    (add-unknown-use out tag)))))
+                    (add-unknown-use out tag))
+                   (($ $throw src op param args)
+                    (add-unknown-uses out args)))))
               (_ out)))))))))
 
 (define (specialize-operations cps)

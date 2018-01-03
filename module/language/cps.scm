@@ -127,7 +127,7 @@
             $kreceive $kargs $kfun $ktail $kclause
 
             ;; Terms.
-            $continue $branch $prompt
+            $continue $branch $prompt $throw
 
             ;; Expressions.
             $const $prim $fun $rec $closure
@@ -181,6 +181,7 @@
 (define-cps-type $continue k src exp)
 (define-cps-type $branch kf kt src op param args)
 (define-cps-type $prompt k kh src escape? tag)
+(define-cps-type $throw src op param args)
 
 ;; Expressions.
 (define-cps-type $const val)
@@ -231,7 +232,13 @@
     ((_ ($branch kf kt src op param args))
      (make-$branch kf kt src op param args))
     ((_ ($prompt k kh src escape? tag))
-     (make-$prompt k kh src escape? tag))))
+     (make-$prompt k kh src escape? tag))
+    ((_ ($throw src op param (unquote args)))
+     (make-$throw src op param args))
+    ((_ ($throw src op param (arg ...)))
+     (make-$throw src op param (list arg ...)))
+    ((_ ($throw src op param args))
+     (make-$throw src op param args))))
 
 (define-syntax build-exp
   (syntax-rules (unquote
@@ -292,6 +299,8 @@
      (build-term ($branch kf kt (src exp) op param arg)))
     (('prompt k kh escape? tag)
      (build-term ($prompt k kh (src exp) escape? tag)))
+    (('throw op param arg ...)
+     (build-term ($throw (src exp) op param arg)))
 
     ;; Expressions.
     (('unspecified)
@@ -339,6 +348,8 @@
      `(branch ,kf ,kt ,op ,param ,@args))
     (($ $prompt k kh src escape? tag)
      `(prompt ,k ,kh ,escape? ,tag))
+    (($ $throw src op param args)
+     `(throw ,op ,param ,@args))
 
     ;; Expressions.
     (($ $const val)

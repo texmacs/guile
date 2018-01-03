@@ -98,14 +98,12 @@
     (build-term
       ($continue k src ($primcall 'builtin-ref idx ())))))
 
-(define (reify-clause cps ktail)
+(define (reify-clause cps)
   (with-cps cps
     (let$ body
           (with-cps-constants ((wna 'wrong-number-of-args)
                                (args '(#f "Wrong number of arguments" () #f)))
-            (build-term
-              ($continue ktail #f
-                ($primcall 'throw #f (wna args))))))
+            (build-term ($throw #f 'throw #f (wna args)))))
     (letk kbody ($kargs () () ,body))
     (letk kclause ($kclause ('() '() #f '() #f) kbody #f))
     kclause))
@@ -233,7 +231,7 @@
     (match cont
       (($ $kfun src meta self tail #f)
        (with-cps cps
-         (let$ clause (reify-clause tail))
+         (let$ clause (reify-clause))
          (setk label ($kfun src meta self tail clause))))
       (($ $kargs names vars ($ $continue k src ($ $prim name)))
        (with-cps cps

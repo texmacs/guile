@@ -62,7 +62,8 @@ predecessor."
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
       (($ $kargs names syms ($ $continue k)) (ref1 k))
       (($ $kargs names syms ($ $branch kf kt)) (ref2 kf kt))
-      (($ $kargs names syms ($ $prompt k kh)) (ref2 k kh))))
+      (($ $kargs names syms ($ $prompt k kh)) (ref2 k kh))
+      (($ $kargs names syms ($ $throw)) (ref0))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intmap-fold add-ref conts single multiple)))
     (intset-subtract (persistent-intset single)
@@ -194,6 +195,8 @@ $call, and are always called with a compatible arity."
          (exclude-vars functions args))
         (($ $kargs _ _ ($ $prompt k kh src escape? tag))
          (exclude-var functions tag))
+        (($ $kargs _ _ ($ $throw src op param args))
+         (exclude-vars functions args))
         (_ functions)))
     (intmap-fold visit-cont conts functions)))
 
@@ -456,7 +459,7 @@ function set."
     (match term
       (($ $continue k src exp)
        (visit-exp cps k src exp))
-      ((or ($ $branch) ($ $prompt))
+      ((or ($ $branch) ($ $prompt) ($ $throw))
        (with-cps cps term))))
 
   ;; Renumbering is not strictly necessary but some passes may not be

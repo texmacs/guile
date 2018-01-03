@@ -95,6 +95,8 @@ conts."
          (add-uses args uses))
         (($ $kargs _ _ ($ $prompt k kh src escape? tag))
          (add-use tag uses))
+        (($ $kargs _ _ ($ $throw src op param args))
+         (add-uses args uses))
         (_ uses)))
     conts
     empty-intset)))
@@ -119,7 +121,8 @@ conts."
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
       (($ $kargs _ _ ($ $continue k)) (ref1 k))
       (($ $kargs _ _ ($ $branch kf kt)) (ref2 kf kt))
-      (($ $kargs _ _ ($ $prompt k kh)) (ref2 k kh))))
+      (($ $kargs _ _ ($ $prompt k kh)) (ref2 k kh))
+      (($ $kargs _ _ ($ $throw)) (ref0))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intset-fold add-ref body single multiple)))
     (intset-subtract (persistent-intset single)
@@ -253,7 +256,9 @@ shared closures to use the appropriate 'self' variable, if possible."
         (($ $branch kf kt src op param args)
          ($branch kf kt src op param ,(map subst args)))
         (($ $prompt k kh src escape? tag)
-         ($prompt k kh src escape? (subst tag)))))
+         ($prompt k kh src escape? (subst tag)))
+        (($ $throw src op param args)
+         ($throw src op param ,(map subst args)))))
 
     (define (visit-rec labels vars cps)
       (define (compute-env label bound self rec-bound rec-labels env)
@@ -378,7 +383,9 @@ references."
                      (($ $branch kf kt src op param args)
                       (add-uses args uses))
                      (($ $prompt k kh src escape? tag)
-                      (add-use tag uses)))))
+                      (add-use tag uses))
+                     (($ $throw src op param args)
+                      (add-uses args uses)))))
                  (($ $kfun src meta self)
                   (values (add-def self defs) uses))
                  (_ (values defs uses))))
@@ -726,6 +733,13 @@ bound to @var{var}, and continue to @var{k}."
                (build-term
                  ($continue k src ($values args)))))))
 
+        (($ $branch kf kt src op param args)
+         (convert-args cps args
+           (lambda (cps args)
+             (with-cps cps
+               (build-term
+                 ($branch kf kt src op param args))))))
+
         (($ $prompt k kh src escape? tag)
          (convert-arg cps tag
            (lambda (cps tag)
@@ -733,12 +747,12 @@ bound to @var{var}, and continue to @var{k}."
                (build-term
                  ($prompt k kh src escape? tag))))))
 
-        (($ $branch kf kt src op param args)
+        (($ $throw src op param args)
          (convert-args cps args
            (lambda (cps args)
              (with-cps cps
                (build-term
-                 ($branch kf kt src op param args))))))))
+                 ($throw src op param args))))))))
 
     (intset-fold (lambda (label cps)
                    (match (intmap-ref cps label (lambda (_) #f))

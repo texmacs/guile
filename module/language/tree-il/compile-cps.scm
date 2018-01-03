@@ -694,18 +694,15 @@
                  ((key . args)
                   (with-cps cps
                     (letv arglist)
-                    (let$ k (adapt-arity k src 0))
                     (letk kargs ($kargs ('arglist) (arglist)
-                                  ($continue k src
-                                    ($primcall 'throw #f (key arglist)))))
+                                  ($throw src 'throw #f (key arglist))))
                     ($ (build-list kargs src args))))))))
          (define (specialize op param . args)
            (convert-args cps args
              (lambda (cps args)
                (with-cps cps
-                 (let$ k (adapt-arity k src 0))
                  (build-term
-                   ($continue k src ($primcall op param args)))))))
+                   ($throw src op param args))))))
          (match args
            ((($ <const> _ key) ($ <const> _ subr) ($ <const> _ msg) args data)
             ;; Specialize `throw' invocations corresponding to common

@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,6 @@
   #:use-module (language cps licm)
   #:use-module (language cps peel-loops)
   #:use-module (language cps prune-top-level-scopes)
-  #:use-module (language cps prune-bailouts)
   #:use-module (language cps rotate-loops)
   #:use-module (language cps self-references)
   #:use-module (language cps simplify)
@@ -92,7 +91,6 @@
   (prune-top-level-scopes #:prune-top-level-scopes? #t)
   (simplify #:simplify? #t)
   (contify #:contify? #t)
-  (prune-bailouts #:prune-bailouts? #t)
   (simplify #:simplify? #t)
   (devirtualize-integers #:devirtualize-integers? #t)
   (peel-loops #:peel-loops? #t)
@@ -120,7 +118,6 @@
    #:prune-top-level-scopes? #t
    #:contify? #t
    #:specialize-primcalls? #t
-   #:prune-bailouts? #t
    #:peel-loops? #t
    #:cse? #t
    #:type-fold? #t

@@ -116,9 +116,10 @@ false.  It could be that both true and false proofs are available."
       (match (intmap-ref conts label)
         (($ $kargs names vars term)
          (match term
-           (($ $continue k) (propagate1 k))
+           (($ $continue k)   (propagate1 k))
            (($ $branch kf kt) (propagate-branch kf kt))
-           (($ $prompt k kh) (propagate2 k kh))))
+           (($ $prompt k kh)  (propagate2 k kh))
+           (($ $throw)        (propagate0))))
         (($ $kreceive arity k)
          (propagate1 k))
         (($ $kfun src meta self tail clause)
@@ -166,8 +167,10 @@ false.  It could be that both true and false proofs are available."
                       (match (intmap-ref conts k)
                         (($ $kargs names vars) vars)
                         (_ #f)))
-                     ((or ($ $branch) ($ $prompt))
-                      '())))))
+                     (($ $branch)
+                      '())
+                     ((or ($ $prompt) ($ $throw))
+                      #f)))))
                (compute-function-body conts kfun)))
 
 (define (compute-singly-referenced succs)
@@ -219,7 +222,7 @@ false.  It could be that both true and false proofs are available."
              (($ $values args) #f)))
           (($ $branch kf kt src op param args)
            (cons* op param (subst-vars var-substs args)))
-          (($ $prompt) #f)))
+          ((or ($ $prompt) ($ $throw)) #f)))
 
       (define (add-auxiliary-definitions! label var-substs term-key)
         (let ((defs (and=> (intmap-ref defs label)
@@ -402,7 +405,10 @@ false.  It could be that both true and false proofs are available."
             ($continue k src ,(visit-exp exp))))))
       (($ $prompt k kh src escape? tag)
        (build-term
-         ($prompt k kh src escape? (subst-var tag))))))
+         ($prompt k kh src escape? (subst-var tag))))
+      (($ $throw src op param args)
+       (build-term
+         ($throw src op param ,(map subst-var args))))))
 
   (intmap-map
    (lambda (label cont)

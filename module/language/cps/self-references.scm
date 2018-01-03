@@ -55,7 +55,9 @@
       (($ $branch kf kt src op param args)
        ($branch kf kt src op param ,(map subst args)))
       (($ $prompt k kh src escape? tag)
-       ($prompt k kh src escape? (subst tag)))))
+       ($prompt k kh src escape? (subst tag)))
+      (($ $throw src op param args)
+       ($throw src op param ,(map subst args)))))
 
   (define (visit-label label cps)
     (match (intmap-ref cps label)
