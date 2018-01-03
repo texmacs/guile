@@ -1,6 +1,6 @@
 ;;; Sandboxed evaluation of Scheme code
 
-;;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -260,10 +260,7 @@ allocation limit is exceeded, an exception will be thrown to the
       (call-with-time-and-allocation-limits
        time-limit allocation-limit
        (lambda ()
-         ;; Prevent the expression from forging syntax objects.  See "Syntax
-         ;; Transformer Helpers" in the manual.
-         (parameterize ((allow-legacy-syntax-objects? #f))
-           (eval exp module)))))
+         (eval exp module))))
     (lambda () (when sever-module? (sever-module! module)))))
 
 
