@@ -60,12 +60,9 @@ predecessor."
       (($ $kfun src meta self ktail kclause) (ref2 ktail kclause))
       (($ $ktail) (ref0))
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
-      (($ $kargs names syms ($ $branch kf kt))
-       (ref2 kf kt))
-      (($ $kargs names syms ($ $continue k src exp))
-       (match exp
-         (($ $prompt escape-only? tag handler) (ref2 k handler))
-         (_ (ref1 k))))))
+      (($ $kargs names syms ($ $continue k)) (ref1 k))
+      (($ $kargs names syms ($ $branch kf kt)) (ref2 kf kt))
+      (($ $kargs names syms ($ $prompt k kh)) (ref2 k kh))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intmap-fold add-ref conts single multiple)))
     (intset-subtract (persistent-intset single)
@@ -192,11 +189,11 @@ $call, and are always called with a compatible arity."
            (($ $callk k proc args)
             (exclude-vars functions (cons proc args)))
            (($ $primcall name param args)
-            (exclude-vars functions args))
-           (($ $prompt escape? tag handler)
-            (exclude-var functions tag))))
+            (exclude-vars functions args))))
         (($ $kargs _ _ ($ $branch kf kt src op param args))
          (exclude-vars functions args))
+        (($ $kargs _ _ ($ $prompt k kh src escape? tag))
+         (exclude-var functions tag))
         (_ functions)))
     (intmap-fold visit-cont conts functions)))
 
@@ -459,7 +456,7 @@ function set."
     (match term
       (($ $continue k src exp)
        (visit-exp cps k src exp))
-      (($ $branch)
+      ((or ($ $branch) ($ $prompt))
        (with-cps cps term))))
 
   ;; Renumbering is not strictly necessary but some passes may not be

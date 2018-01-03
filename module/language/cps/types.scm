@@ -1775,11 +1775,9 @@ minimum, and maximum."
 
 (define (successor-count cont)
   (match cont
-    (($ $kargs _ _ ($ $continue k src exp))
-     (match exp
-       (($ $prompt) 2)
-       (_ 1)))
+    (($ $kargs _ _ ($ $continue)) 1)
     (($ $kargs _ _ ($ $branch)) 2)
+    (($ $kargs _ _ ($ $prompt)) 2)
     (($ $kfun src meta self tail clause) (if clause 1 0))
     (($ $kclause arity body alt) (if alt 2 1))
     (($ $kreceive) 1)
@@ -1916,9 +1914,6 @@ maximum, where type is a bitset as a fixnum."
         (values (append changed0 changed1) typev)))
     ;; Each of these branches must propagate to its successors.
     (match exp
-      (($ $prompt escape? tag handler)
-       ;; The "normal" continuation enters the prompt.
-       (propagate2 k types handler types))
       (($ $primcall name param args)
        (propagate1 k
                    (match (intmap-ref conts k)
@@ -1979,6 +1974,9 @@ maximum, where type is a bitset as a fixnum."
          ;; The "normal" continuation is the #f branch.
          (propagate2 kf (infer-primcall types 0 op param args #f)
                      kt (infer-primcall types 1 op param args #f)))
+        (($ $kargs names vars ($ $prompt k kh src escape? tag))
+         ;; The "normal" continuation enters the prompt.
+         (propagate2 k types kh types))
         (($ $kreceive arity k)
          (match (intmap-ref conts k)
            (($ $kargs names vars)

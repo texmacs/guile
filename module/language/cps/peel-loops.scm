@@ -142,16 +142,17 @@
       (($ $callk k proc args)
        ($callk k (rename-var proc) ,(map rename-var args)))
       (($ $primcall name param args)
-       ($primcall name param ,(map rename-var args)))
-      (($ $prompt escape? tag handler)
-       ($prompt escape? (rename-var tag) (rename-label handler)))))
+       ($primcall name param ,(map rename-var args)))))
   (define (rename-term term)
     (rewrite-term term
       (($ $continue k src exp)
        ($continue (rename-label k) src ,(rename-exp exp)))
       (($ $branch kf kt src op param args)
        ($branch (rename-label kf) (rename-label kt) src
-         op param ,(map rename-var args)))))
+         op param ,(map rename-var args)))
+      (($ $prompt k kh src escape? tag)
+       ($prompt (rename-label k) (rename-label kh) src
+         escape? (rename-var tag)))))
   (rewrite-cont cont
     (($ $kargs names vars term)
      ($kargs names (map rename-var vars) ,(rename-term term)))

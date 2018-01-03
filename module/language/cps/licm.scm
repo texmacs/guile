@@ -68,7 +68,6 @@
                       loop-effects #t))
      (match exp
        ((or ($ $const) ($ $prim) ($ $closure)) #t)
-       (($ $prompt) #f) ;; ?
        (($ $primcall name param args)
         (and-map (lambda (arg) (not (intset-ref loop-vars arg)))
                  args))
@@ -137,14 +136,6 @@
               ((not (loop-invariant? label exp loop-vars loop-effects
                                      always-reached?))
                (let* ((loop-vars (adjoin-loop-vars loop-vars def-vars))
-                      (loop-vars (match exp
-                                   (($ $prompt escape? tag handler)
-                                    (match (intmap-ref cps handler)
-                                      (($ $kreceive arity kargs)
-                                       (match (intmap-ref cps kargs)
-                                         (($ $kargs names vars)
-                                          (adjoin-loop-vars loop-vars vars))))))
-                                   (_ loop-vars)))
                       (cont (build-cont
                               ($kargs names vars
                                 ($continue k src ,exp))))
@@ -217,6 +208,16 @@
           (let* ((cont (build-cont ($kargs names vars ,term)))
                  (always-reached? #f))
             (values cps cont loop-vars loop-effects
+                    pre-header-label always-reached?)))
+         (($ $prompt k kh src escape? tag)
+          (let* ((loop-vars (match (intmap-ref cps kh)
+                              (($ $kreceive arity kargs)
+                               (match (intmap-ref cps kargs)
+                                 (($ $kargs names vars)
+                                  (adjoin-loop-vars loop-vars vars))))))
+                 (cont (build-cont ($kargs names vars ,term)))
+                 (always-reached? #f))
+            (values cps cont loop-vars loop-effects
                     pre-header-label always-reached?))))))
     (($ $kreceive ($ $arity req () rest) kargs)
      (values cps cont loop-vars loop-effects pre-header-label
@@ -259,6 +260,9 @@
         (($ $kargs names vars ($ $branch kf kt src op param args))
          ($kargs names vars
            ($branch (rename kf) (rename kt) src op param args)))
+        (($ $kargs names vars ($ $prompt k kh src escape? tag))
+         ($kargs names vars
+           ($prompt (rename k) (rename kh) src escape? tag)))
         (($ $kargs names vars ($ $continue k src exp))
          ($kargs names vars
            ($continue (rename k) src ,exp)))

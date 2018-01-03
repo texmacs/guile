@@ -84,6 +84,9 @@ sites."
                           ;; Branches pass no values to their
                           ;; continuations.
                           (values known unknown))
+                         (($ $kargs _ _ ($ $prompt))
+                          ;; Likewise for prompts.
+                          (values known unknown))
                          (($ $kreceive arity kargs)
                           (values known (intset-add! unknown kargs)))
                          (($ $kfun src meta self tail clause)
@@ -239,6 +242,11 @@ sites."
             (visit-exp label k exp live-labels live-vars))
            (($ $kargs _ _ ($ $branch kf kt src op param args))
             (visit-branch label kf kt args live-labels live-vars))
+           (($ $kargs _ _ ($ $prompt k kh src escape? tag))
+            ;; Prompts need special elision passes that would contify
+            ;; aborts and remove corresponding "unwind" primcalls.
+            (values (intset-add live-labels label)
+                    (adjoin-var tag live-vars)))
            (($ $kreceive arity kargs)
             (values live-labels live-vars))
            (($ $kclause arity kargs kalt)
@@ -346,7 +354,9 @@ sites."
            (values cps term)
            ;; Dead branches continue to the same continuation
            ;; (eventually).
-           (values cps (build-term ($continue kf src ($values ()))))))))
+           (values cps (build-term ($continue kf src ($values ()))))))
+      (($ $prompt)
+       (values cps term))))
   (define (visit-cont label cont cps)
     (match cont
       (($ $kargs names vars term)

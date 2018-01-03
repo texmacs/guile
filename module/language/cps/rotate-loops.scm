@@ -118,11 +118,11 @@ corresponding var from REPLACEMENTS; otherwise return VAR."
                  (($ $callk k proc args)
                   ($callk k (rename proc) ,(rename* args)))
                  (($ $primcall name param args)
-                  ($primcall name param ,(rename* args)))
-                 (($ $prompt escape? tag handler)
-                  ($prompt escape? (rename tag) handler)))))
+                  ($primcall name param ,(rename* args))))))
            (($ $branch kf kt src op param args)
-            ($branch kf kt src op param ,(rename* args)))))
+            ($branch kf kt src op param ,(rename* args)))
+           (($ $prompt k kh src escape? tag)
+            ($prompt k kh src escape? (rename tag)))))
        (define (attach-trampoline cps label src names vars args)
          (with-cps cps
            (letk ktramp-out ,(make-trampoline join-label src args))
@@ -211,7 +211,7 @@ corresponding var from REPLACEMENTS; otherwise return VAR."
                          (trivial-intset (loop-successors scc succs))
                          (match (intmap-ref cps entry)
                            ;; Can't rotate $prompt out of loop header.
-                           (($ $kargs _ _ ($ $continue _ _ ($ $prompt))) #f)
+                           (($ $kargs _ _ ($ $prompt)) #f)
                            (_ #t)))
                     ;; Loop header is an exit, and there is only one
                     ;; exit continuation.  Loop header isn't a prompt,

@@ -127,11 +127,11 @@
             $kreceive $kargs $kfun $ktail $kclause
 
             ;; Terms.
-            $continue $branch
+            $continue $branch $prompt
 
             ;; Expressions.
             $const $prim $fun $rec $closure
-            $call $callk $primcall $values $prompt
+            $call $callk $primcall $values
 
             ;; Building macros.
             build-cont build-term build-exp
@@ -180,6 +180,7 @@
 ;; Terms.
 (define-cps-type $continue k src exp)
 (define-cps-type $branch kf kt src op param args)
+(define-cps-type $prompt k kh src escape? tag)
 
 ;; Expressions.
 (define-cps-type $const val)
@@ -191,7 +192,6 @@
 (define-cps-type $callk k proc args) ; First-order.
 (define-cps-type $primcall name param args)
 (define-cps-type $values args)
-(define-cps-type $prompt escape? tag handler)
 
 (define-syntax build-arity
   (syntax-rules (unquote)
@@ -229,12 +229,14 @@
     ((_ ($branch kf kt src op param (arg ...)))
      (make-$branch kf kt src op param (list arg ...)))
     ((_ ($branch kf kt src op param args))
-     (make-$branch kf kt src op param args))))
+     (make-$branch kf kt src op param args))
+    ((_ ($prompt k kh src escape? tag))
+     (make-$prompt k kh src escape? tag))))
 
 (define-syntax build-exp
   (syntax-rules (unquote
                  $const $prim $fun $rec $closure
-                 $call $callk $primcall $values $prompt)
+                 $call $callk $primcall $values)
     ((_ (unquote exp)) exp)
     ((_ ($const val)) (make-$const val))
     ((_ ($prim name)) (make-$prim name))
@@ -252,9 +254,7 @@
     ((_ ($primcall name param args)) (make-$primcall name param args))
     ((_ ($values (unquote args))) (make-$values args))
     ((_ ($values (arg ...))) (make-$values (list arg ...)))
-    ((_ ($values args)) (make-$values args))
-    ((_ ($prompt escape? tag handler))
-     (make-$prompt escape? tag handler))))
+    ((_ ($values args)) (make-$values args))))
 
 (define-syntax-rule (rewrite-cont x (pat cont) ...)
   (match x
@@ -290,6 +290,8 @@
      (build-term ($continue k (src exp) ,(parse-cps exp))))
     (('branch kf kt op param arg ...)
      (build-term ($branch kf kt (src exp) op param arg)))
+    (('prompt k kh escape? tag)
+     (build-term ($prompt k kh (src exp) escape? tag)))
 
     ;; Expressions.
     (('unspecified)
@@ -312,8 +314,6 @@
      (build-exp ($primcall name param arg)))
     (('values arg ...)
      (build-exp ($values arg)))
-    (('prompt escape? tag handler)
-     (build-exp ($prompt escape? tag handler)))
     (_
      (error "unexpected cps" exp))))
 
@@ -337,6 +337,8 @@
      `(continue ,k ,(unparse-cps exp)))
     (($ $branch kf kt src op param args)
      `(branch ,kf ,kt ,op ,param ,@args))
+    (($ $prompt k kh src escape? tag)
+     `(prompt ,k ,kh ,escape? ,tag))
 
     ;; Expressions.
     (($ $const val)
@@ -361,7 +363,5 @@
      `(primcall ,name ,param ,@args))
     (($ $values args)
      `(values ,@args))
-    (($ $prompt escape? tag handler)
-     `(prompt ,escape? ,tag ,handler))
     (_
      (error "unexpected cps" exp))))

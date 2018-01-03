@@ -200,12 +200,12 @@ disjoint, an error will be signalled."
                 (visit-cont kbody labels)))
            (($ $kargs names syms term)
             (match term
-              (($ $continue k src ($ $prompt escape? tag handler))
-               (visit-cont k (visit-cont handler labels)))
               (($ $continue k)
                (visit-cont k labels))
               (($ $branch kf kt)
-               (visit-cont kf (visit-cont kt labels))))))))))))
+               (visit-cont kf (visit-cont kt labels)))
+              (($ $prompt k kh)
+               (visit-cont k (visit-cont kh labels))))))))))))
 
 (define* (compute-reachable-functions conts #:optional (kfun 0))
   "Compute a mapping LABEL->LABEL..., where each key is a reachable
@@ -260,11 +260,9 @@ intset."
           (match (intmap-ref conts label)
             (($ $kargs names vars term)
              (match term
-               (($ $continue k src exp)
-                (match exp
-                  (($ $prompt escape? tag handler) (propagate2 k handler))
-                  (_ (propagate1 k))))
-               (($ $branch kf kt) (propagate2 kf kt))))
+               (($ $continue k) (propagate1 k))
+               (($ $branch kf kt) (propagate2 kf kt))
+               (($ $prompt k kh) (propagate2 k kh))))
             (($ $kreceive arity k)
              (propagate1 k))
             (($ $kfun src meta self tail clause)
@@ -296,13 +294,9 @@ intset."
        (add-pred kbody (if kalt (add-pred kalt preds) preds)))
       (($ $kargs names syms term)
        (match term
-         (($ $continue k src exp)
-          (add-pred k
-                    (match exp
-                      (($ $prompt _ _ k) (add-pred k preds))
-                      (_ preds))))
-         (($ $branch kf kt)
-          (add-pred kf (add-pred kt preds)))))))
+         (($ $continue k)   (add-pred k preds))
+         (($ $branch kf kt) (add-pred kf (add-pred kt preds)))
+         (($ $prompt k kh)  (add-pred k (add-pred kh preds)))))))
   (persistent-intmap
    (intset-fold add-preds labels
                 (intset->intmap (lambda (label) '()) labels))))

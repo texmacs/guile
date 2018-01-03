@@ -853,7 +853,7 @@
                  (with-cps cps
                    (let$ body (convert body krest subst))
                    (letk kbody ($kargs () () ,body))
-                   (build-term ($continue kbody src ($prompt #t tag khargs))))
+                   (build-term ($prompt kbody khargs src #t tag)))
                  (convert-arg cps body
                    (lambda (cps thunk)
                      (with-cps cps
@@ -861,8 +861,8 @@
                                      ($continue krest (tree-il-src body)
                                        ($primcall 'call-thunk/no-inline #f
                                                   (thunk)))))
-                       (build-term ($continue kbody (tree-il-src body)
-                                     ($prompt #f tag khargs))))))))
+                       (build-term ($prompt kbody khargs (tree-il-src body)
+                                     #f tag)))))))
            (with-cps cps
              (letv prim vals apply)
              (let$ hbody (convert hbody k subst))

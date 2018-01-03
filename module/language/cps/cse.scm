@@ -116,11 +116,9 @@ false.  It could be that both true and false proofs are available."
       (match (intmap-ref conts label)
         (($ $kargs names vars term)
          (match term
-           (($ $continue k src exp)
-            (match exp
-              (($ $prompt escape? tag handler) (propagate2 k handler))
-              (_ (propagate1 k))))
-           (($ $branch kf kt) (propagate-branch kf kt))))
+           (($ $continue k) (propagate1 k))
+           (($ $branch kf kt) (propagate-branch kf kt))
+           (($ $prompt k kh) (propagate2 k kh))))
         (($ $kreceive arity k)
          (propagate1 k))
         (($ $kfun src meta self tail clause)
@@ -168,7 +166,7 @@ false.  It could be that both true and false proofs are available."
                       (match (intmap-ref conts k)
                         (($ $kargs names vars) vars)
                         (_ #f)))
-                     (($ $branch)
+                     ((or ($ $branch) ($ $prompt))
                       '())))))
                (compute-function-body conts kfun)))
 
@@ -218,10 +216,10 @@ false.  It could be that both true and false proofs are available."
              (($ $callk k proc args) #f)
              (($ $primcall name param args)
               (cons* name param (subst-vars var-substs args)))
-             (($ $values args) #f)
-             (($ $prompt escape? tag handler) #f)))
+             (($ $values args) #f)))
           (($ $branch kf kt src op param args)
-           (cons* op param (subst-vars var-substs args)))))
+           (cons* op param (subst-vars var-substs args)))
+          (($ $prompt) #f)))
 
       (define (add-auxiliary-definitions! label var-substs term-key)
         (let ((defs (and=> (intmap-ref defs label)
@@ -377,9 +375,7 @@ false.  It could be that both true and false proofs are available."
       (($ $primcall name param args)
        ($primcall name param ,(map subst-var args)))
       (($ $values args)
-       ($values ,(map subst-var args)))
-      (($ $prompt escape? tag handler)
-       ($prompt escape? (subst-var tag) handler))))
+       ($values ,(map subst-var args)))))
 
   (define (visit-term label term)
     (match term
@@ -403,7 +399,10 @@ false.  It could be that both true and false proofs are available."
           (build-term ($continue k src ($values vars))))
          (#f
           (build-term
-            ($continue k src ,(visit-exp exp))))))))
+            ($continue k src ,(visit-exp exp))))))
+      (($ $prompt k kh src escape? tag)
+       (build-term
+         ($prompt k kh src escape? (subst-var tag))))))
 
   (intmap-map
    (lambda (label cont)

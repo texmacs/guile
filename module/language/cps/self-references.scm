@@ -46,16 +46,16 @@
       (($ $primcall name param args)
        ($primcall name param ,(map subst args)))
       (($ $values args)
-       ($values ,(map subst args)))
-      (($ $prompt escape? tag handler)
-       ($prompt escape? (subst tag) handler))))
+       ($values ,(map subst args)))))
 
   (define (rename-term term)
     (rewrite-term term
       (($ $continue k src exp)
        ($continue k src ,(rename-exp exp)))
       (($ $branch kf kt src op param args)
-       ($branch kf kt src op param ,(map subst args)))))
+       ($branch kf kt src op param ,(map subst args)))
+      (($ $prompt k kh src escape? tag)
+       ($prompt k kh src escape? (subst tag)))))
 
   (define (visit-label label cps)
     (match (intmap-ref cps label)

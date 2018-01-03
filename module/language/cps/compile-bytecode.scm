@@ -307,28 +307,6 @@
     (define (compile-effect label exp k)
       (match exp
         (($ $values ()) #f)
-        (($ $prompt escape? tag handler)
-         (match (intmap-ref cps handler)
-           (($ $kreceive ($ $arity req () rest () #f) khandler-body)
-            (let ((receive-args (gensym "handler"))
-                  (nreq (length req))
-                  (proc-slot (lookup-call-proc-slot label allocation)))
-              (emit-prompt asm (from-sp (slot tag)) escape? proc-slot
-                           receive-args)
-              (emit-j asm k)
-              (emit-label asm receive-args)
-              (unless (and rest (zero? nreq))
-                (emit-receive-values asm proc-slot (->bool rest) nreq))
-              (when (and rest
-                         (match (intmap-ref cps khandler-body)
-                           (($ $kargs names (_ ... rest))
-                            (maybe-slot rest))))
-                (emit-bind-rest asm (+ proc-slot 1 nreq)))
-              (for-each (match-lambda
-                          ((src . dst) (emit-fmov asm dst src)))
-                        (lookup-parallel-moves handler allocation))
-              (emit-reset-frame asm frame-size)
-              (emit-j asm (forward-label khandler-body))))))
         (($ $primcall 'cache-current-module! (scope) (mod))
          (emit-cache-current-module! asm (from-sp (slot mod)) scope))
         (($ $primcall 'scm-set! annotation (obj idx val))
@@ -427,6 +405,29 @@
          (emit-throw/value asm (from-sp (slot val)) param))
         (($ $primcall 'throw/value+data param (val))
          (emit-throw/value+data asm (from-sp (slot val)) param))))
+
+    (define (compile-prompt label k kh escape? tag)
+      (match (intmap-ref cps kh)
+        (($ $kreceive ($ $arity req () rest () #f) khandler-body)
+         (let ((receive-args (gensym "handler"))
+               (nreq (length req))
+               (proc-slot (lookup-call-proc-slot label allocation)))
+           (emit-prompt asm (from-sp (slot tag)) escape? proc-slot
+                        receive-args)
+           (emit-j asm k)
+           (emit-label asm receive-args)
+           (unless (and rest (zero? nreq))
+             (emit-receive-values asm proc-slot (->bool rest) nreq))
+           (when (and rest
+                      (match (intmap-ref cps khandler-body)
+                        (($ $kargs names (_ ... rest))
+                         (maybe-slot rest))))
+             (emit-bind-rest asm (+ proc-slot 1 nreq)))
+           (for-each (match-lambda
+                      ((src . dst) (emit-fmov asm dst src)))
+                     (lookup-parallel-moves kh allocation))
+           (emit-reset-frame asm frame-size)
+           (emit-j asm (forward-label khandler-body))))))
 
     (define (compile-values label exp syms)
       (match exp
@@ -627,7 +628,11 @@
            (emit-source asm src))
          (compile-test label (skip-elided-conts (1+ label))
                        (forward-label kf) (forward-label kt)
-                       op param args))))
+                       op param args))
+        (($ $prompt k kh src escape? tag)
+         (when src
+           (emit-source asm src))
+         (compile-prompt label (skip-elided-conts k) kh escape? tag))))
 
     (define (compile-cont label cont)
       (match cont

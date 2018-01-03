@@ -87,16 +87,14 @@
                   (match (intmap-ref conts k)
                     (($ $kargs names syms term)
                      (match term
-                       (($ $continue k src exp)
-                        (match exp
-                          (($ $prompt escape? tag handler)
-                           (visit2 k handler order visited))
-                          (_
-                           (visit k order visited))))
+                       (($ $continue k)
+                        (visit k order visited))
                        (($ $branch kf kt)
                         (if (visit-kf-first? kf kt)
                             (visit2 kf kt order visited)
-                            (visit2 kt kf order visited)))))
+                            (visit2 kt kf order visited)))
+                       (($ $prompt k kh)
+                        (visit2 k kh order visited))))
                     (($ $kreceive arity k) (visit k order visited))
                     (($ $kclause arity kbody kalt)
                      (if kalt
@@ -180,9 +178,7 @@
         (($ $callk k proc args)
          ($callk (rename-label k) (rename-var proc) ,(map rename-var args)))
         (($ $primcall name param args)
-         ($primcall name param ,(map rename-var args)))
-        (($ $prompt escape? tag handler)
-         ($prompt escape? (rename-var tag) (rename-label handler)))))
+         ($primcall name param ,(map rename-var args)))))
     (define (rename-arity arity)
       (match arity
         (($ $arity req opt rest () aok?)
@@ -207,7 +203,10 @@
                   ($continue (rename-label k) src ,(rename-exp exp)))
                  (($ $branch kf kt src op param args)
                   ($branch (rename-label kf) (rename-label kt) src
-                    op param ,(map rename-var args))))))
+                    op param ,(map rename-var args)))
+                 (($ $prompt k kh src escape? tag)
+                  ($prompt (rename-label k) (rename-label kh) src
+                    escape? (rename-var tag))))))
            (($ $kreceive ($ $arity req () rest () #f) k)
             ($kreceive req rest (rename-label k)))
            (($ $ktail)

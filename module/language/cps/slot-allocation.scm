@@ -57,7 +57,7 @@
   (representations allocation-representations)
 
   ;; A map of LABEL to /call allocs/, for expressions that continue to
-  ;; $kreceive continuations: non-tail calls and $prompt expressions.
+  ;; $kreceive continuations: non-tail calls and $prompt terms.
   ;;
   ;; A call alloc contains two pieces of information: the call's /proc
   ;; slot/ and a /dead slot map/.  The proc slot indicates the slot of a
@@ -155,11 +155,11 @@ by a label, respectively."
            (($ $primcall name param args)
             (return (get-defs k) (vars->intset args)))
            (($ $values args)
-            (return (get-defs k) (vars->intset args)))
-           (($ $prompt escape? tag handler)
-            (return empty-intset (intset tag)))))
+            (return (get-defs k) (vars->intset args)))))
         (($ $kargs _ _ ($ $branch kf kt src op param args))
          (return empty-intset (vars->intset args)))
+        (($ $kargs _ _ ($ $prompt k kh src escape? tag))
+         (return empty-intset (intset tag)))
         (($ $kclause arity body alt)
          (return (get-defs body) empty-intset))
         (($ $kreceive arity kargs)
@@ -231,11 +231,10 @@ body continuation in the prompt."
             (let ((labels (intset-add! labels label)))
               (match cont
                 (($ $kreceive arity k) (visit-cont k level labels))
+                (($ $kargs names syms ($ $prompt k kh src escape? tag))
+                 (visit-cont kh level (visit-cont k (1+ level) labels)))
                 (($ $kargs names syms ($ $continue k src ($ $primcall 'wind)))
                  (visit-cont k (1+ level) labels))
-                (($ $kargs names syms
-                           ($ $continue k src ($ $prompt escape? tag handler)))
-                 (visit-cont handler level (visit-cont k (1+ level) labels)))
                 (($ $kargs names syms ($ $continue k src ($ $primcall 'unwind)))
                  (visit-cont k (1- level) labels))
                 (($ $kargs names syms ($ $continue k src exp))
@@ -261,9 +260,8 @@ body continuation in the prompt."
   (intmap-fold
    (lambda (label cont succs)
      (match cont
-       (($ $kargs _ _
-           ($ $continue k _ ($ $prompt escape? tag handler)))
-        (visit-prompt k handler succs))
+       (($ $kargs _ _ ($ $prompt k kh))
+        (visit-prompt k kh succs))
        (_ succs)))
    conts
    succs))
@@ -596,9 +594,9 @@ are comparable with eqv?.  A tmp slot may be used."
           (add-call-shuffles label k (cons proc args) shuffles))
          (($ $values args)
           (add-values-shuffles label k args shuffles))
-         (($ $prompt escape? tag handler)
-          (add-prompt-shuffles label k handler shuffles))
          (_ shuffles)))
+      (($ $kargs names vars ($ $prompt k kh src escape? tag))
+       (add-prompt-shuffles label k kh shuffles))
       (_ shuffles)))
 
   (persistent-intmap
@@ -745,6 +743,8 @@ are comparable with eqv?.  A tmp slot may be used."
    (lambda (label cont representations)
      (match cont
        (($ $kargs _ _ ($ $branch))
+        representations)
+       (($ $kargs _ _ ($ $prompt))
         representations)
        (($ $kargs _ _ ($ $continue k _ exp))
         (match (get-defs k)
@@ -981,8 +981,8 @@ are comparable with eqv?.  A tmp slot may be used."
               (allocate-call label k (cons proc args) slots call-allocs live))
              (($ $continue k src ($ $values args))
               (allocate-values label k args slots call-allocs))
-             (($ $continue k src ($ $prompt escape? tag handler))
-              (allocate-prompt label k handler slots call-allocs))
+             (($ $prompt k kh src escape? tag)
+              (allocate-prompt label k kh slots call-allocs))
              (_
               (values slots call-allocs)))))
         (_

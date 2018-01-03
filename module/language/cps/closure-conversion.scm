@@ -90,11 +90,11 @@ conts."
            (($ $call proc args)
             (add-uses args uses))
            (($ $primcall name param args)
-            (add-uses args uses))
-           (($ $prompt escape? tag handler)
-            (add-use tag uses))))
+            (add-uses args uses))))
         (($ $kargs _ _ ($ $branch kf kt src op param args))
          (add-uses args uses))
+        (($ $kargs _ _ ($ $prompt k kh src escape? tag))
+         (add-use tag uses))
         (_ uses)))
     conts
     empty-intset)))
@@ -117,9 +117,9 @@ conts."
       (($ $kfun src meta self ktail kclause) (ref2 ktail kclause))
       (($ $ktail) (ref0))
       (($ $kclause arity kbody kalt) (ref2 kbody kalt))
-      (($ $kargs _ _ ($ $continue k _ ($ $prompt _ _ h))) (ref2 k h))
       (($ $kargs _ _ ($ $continue k)) (ref1 k))
-      (($ $kargs _ _ ($ $branch kf kt)) (ref2 kf kt))))
+      (($ $kargs _ _ ($ $branch kf kt)) (ref2 kf kt))
+      (($ $kargs _ _ ($ $prompt k kh)) (ref2 k kh))))
   (let*-values (((single multiple) (values empty-intset empty-intset))
                 ((single multiple) (intset-fold add-ref body single multiple)))
     (intset-subtract (persistent-intset single)
@@ -244,16 +244,16 @@ shared closures to use the appropriate 'self' variable, if possible."
         (($ $primcall name param args)
          ($primcall name param ,(map subst args)))
         (($ $values args)
-         ($values ,(map subst args)))
-        (($ $prompt escape? tag handler)
-         ($prompt escape? (subst tag) handler))))
+         ($values ,(map subst args)))))
 
     (define (visit-term term)
       (rewrite-term term
         (($ $continue k src exp)
          ($continue k src ,(visit-exp exp)))
         (($ $branch kf kt src op param args)
-         ($branch kf kt src op param ,(map subst args)))))
+         ($branch kf kt src op param ,(map subst args)))
+        (($ $prompt k kh src escape? tag)
+         ($prompt k kh src escape? (subst tag)))))
 
     (define (visit-rec labels vars cps)
       (define (compute-env label bound self rec-bound rec-labels env)
@@ -374,11 +374,11 @@ references."
                         (($ $callk label proc args)
                          (add-use proc (add-uses args uses)))
                         (($ $primcall name param args)
-                         (add-uses args uses))
-                        (($ $prompt escape? tag handler)
-                         (add-use tag uses))))
+                         (add-uses args uses))))
                      (($ $branch kf kt src op param args)
-                      (add-uses args uses)))))
+                      (add-uses args uses))
+                     (($ $prompt k kh src escape? tag)
+                      (add-use tag uses)))))
                  (($ $kfun src meta self)
                   (values (add-def self defs) uses))
                  (_ (values defs uses))))
@@ -726,13 +726,12 @@ bound to @var{var}, and continue to @var{k}."
                (build-term
                  ($continue k src ($values args)))))))
 
-        (($ $continue k src ($ $prompt escape? tag handler))
+        (($ $prompt k kh src escape? tag)
          (convert-arg cps tag
            (lambda (cps tag)
              (with-cps cps
                (build-term
-                 ($continue k src
-                   ($prompt escape? tag handler)))))))
+                 ($prompt k kh src escape? tag))))))
 
         (($ $branch kf kt src op param args)
          (convert-args cps args
