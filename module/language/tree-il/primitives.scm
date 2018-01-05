@@ -1,6 +1,6 @@
 ;;; open-coding primitive procedures
 
-;; Copyright (C) 2009-2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2015, 2017-2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,8 @@
     not
     pair? null? list? symbol? vector? string? struct? number? char? nil?
     bytevector? keyword? bitvector?
+
+    symbol->string string->symbol
 
     procedure? thunk?
 
@@ -178,6 +180,7 @@
     exact-integer?
     char<? char<=? char>=? char>?
     integer->char char->integer number->string string->number
+    symbol->string string->symbol
     struct-vtable
     length string-length vector-length bytevector-length
     ;; These all should get expanded out by expand-primitives.
