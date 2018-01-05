@@ -1,6 +1,6 @@
 ;;; srfi-43.scm -- SRFI 43 Vector library
 
-;;      Copyright (C) 2014 Free Software Foundation, Inc.
+;;      Copyright (C) 2014, 2018 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -41,10 +41,14 @@
 
 (cond-expand-provide (current-module) '(srfi-43))
 
-(define (error-from who msg . args)
-  (apply error
-         (string-append (symbol->string who) ": " msg)
-         args))
+(define-syntax error-from
+  (lambda (stx)
+    (syntax-case stx (quote)
+      ((_ 'who msg arg ...)
+       #`(error #,(string-append (symbol->string (syntax->datum #'who))
+                                 ": "
+                                 (syntax->datum #'msg))
+                arg ...)))))
 
 (define-syntax-rule (assert-nonneg-exact-integer k who)
   (unless (and (exact-integer? k)

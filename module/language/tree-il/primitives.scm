@@ -470,6 +470,17 @@
   (x y) (logand x y)
   (x y z ... last) (logand (logand x y . z) last))
 
+(hashq-set!
+ *primitive-expand-table*
+ 'make-vector
+ (match-lambda*
+  ((src len)
+   (make-primcall src 'make-vector (list len (make-const src *unspecified*))))
+  ((src len init)
+   (make-primcall src 'make-vector (list len init)))
+  ((src . args)
+   (make-call src (make-primitive-ref src 'make-vector) args))))
+
 (define-primitive-expander caar (x) (car (car x)))
 (define-primitive-expander cadr (x) (car (cdr x)))
 (define-primitive-expander cdar (x) (cdr (car x)))
