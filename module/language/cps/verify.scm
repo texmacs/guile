@@ -282,7 +282,11 @@ definitions that are available at LABEL."
        (assert-kreceive-or-ktail))
       (($ $primcall name param args)
        (match cont
-         (($ $kargs) #t)))))
+         (($ $kargs) #t)
+         (($ $kreceive)
+          (match exp
+            (($ $primcall 'call-thunk/no-inline #f (thunk)) #t)
+            (_ (cont (error "bad continuation" exp cont)))))))))
   (define (check-term term)
     (match term
       (($ $continue k src exp)
