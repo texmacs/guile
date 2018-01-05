@@ -91,6 +91,14 @@
   (persistent-intset
    (fold1 (lambda (var set) (intset-add! set var)) vars empty-intset)))
 
+(define (compute-bailouts cps labels)
+  (intset-fold (lambda (label bailouts)
+                 (match (intmap-ref cps label)
+                   (($ $kargs () () ($ $throw))
+                    (intset-add bailouts label))
+                   (_ bailouts)))
+               labels empty-intset))
+
 (define (compute-live-variables cps entry body succs)
   (let* ((succs (intset-map (lambda (label)
                               (intset-intersect (intmap-ref succs label) body))
@@ -161,6 +169,20 @@
     (($ $kreceive ($ $arity req () rest) kargs)
      ($kreceive req rest (rename-label kargs)))))
 
+(define (add-renamed-bailout cps label new-label fresh-vars)
+  ;; We could recognize longer bailout sequences here; for now just
+  ;; single-term throws.
+  (define (rename-var var)
+    (intmap-ref fresh-vars var (lambda (var) var)))
+  ;; FIXME: Perhaps avoid copying the bailout if it doesn't use any loop
+  ;; var.
+  (match (intmap-ref cps label)
+    (($ $kargs () () ($ $throw src op param args))
+     (intmap-add cps new-label
+                 (build-cont
+                   ($kargs () ()
+                     ($throw src op param ,(map rename-var args))))))))
+
 (define (compute-var-names conts)
   (persistent-intmap
    (intmap-fold (lambda (label cont out)
@@ -172,12 +194,14 @@
                     (_ out)))
                 conts empty-intmap)))
 
-(define (peel-loop cps entry body-labels succs preds)
+(define (peel-loop cps entry body-labels succs preds bailouts)
   (let* ((body-conts (intset-map (lambda (label) (intmap-ref cps label))
                                  body-labels))
          (var-names (compute-var-names body-conts))
-         ;; All loop exits branch to this label.
-         (exit (trivial-intset (loop-successors body-labels succs)))
+         (loop-exits (loop-successors body-labels succs))
+         (loop-bailouts (intset-intersect loop-exits bailouts))
+         ;; All non-bailout loop exits branch to this label.
+         (exit (trivial-intset (intset-subtract loop-exits loop-bailouts)))
          ;; The variables that flow out of the loop, as a list.
          (out-vars (compute-out-vars cps entry body-labels succs exit))
          (out-names (map (lambda (var) (intmap-ref var-names var)) out-vars))
@@ -198,6 +222,9 @@
          (fresh-body-vars
           ;; Fresh vars for the body.
           (intmap-map (lambda (var name) (fresh-var)) var-names))
+         (fresh-body-bailout-labels
+          ;; Fresh labels for bailouts from body.
+          (intset-map (lambda (old) (fresh-label)) loop-bailouts))
          (fresh-body-entry
           ;; The name of the entry, but in the body.
           (intmap-ref fresh-body-labels entry))
@@ -205,6 +232,9 @@
           ;; Fresh names for variables that flow out of the peeled iteration.
           (fold1 (lambda (var out) (intmap-add out var (fresh-var)))
                  out-vars empty-intmap))
+         (peeled-bailout-labels
+          ;; Fresh labels for bailouts from peeled iteration.
+          (intset-map (lambda (old) (fresh-label)) loop-bailouts))
          (peeled-trampoline-label
           ;; Label for trampoline to pass values out of the peeled
           ;; iteration.
@@ -220,7 +250,10 @@
          (peeled-iteration
           ;; The peeled iteration.
           (intmap-map (lambda (label cont)
-                        (rename-cont cont peeled-labels fresh-peeled-vars))
+                        (rename-cont cont
+                                     (intmap-union peeled-labels
+                                                   peeled-bailout-labels)
+                                     fresh-peeled-vars))
                       body-conts))
          (body-trampoline-label
           ;; Label for trampoline to pass values out of the body.
@@ -230,8 +263,10 @@
           (rename-cont trampoline-cont empty-intmap fresh-body-vars))
          (fresh-body
           ;; The body, renamed.
-          (let ((label-map (intmap-add fresh-body-labels
-                                       exit body-trampoline-label)))
+          (let ((label-map (intmap-union
+                            (intmap-add fresh-body-labels
+                                        exit body-trampoline-label)
+                            fresh-body-bailout-labels)))
             (persistent-intmap
              (intmap-fold
               (lambda (label new-label out)
@@ -248,19 +283,31 @@
            (cps (intmap-fold (lambda (label cont cps)
                                (intmap-replace! cps label cont))
                              peeled-iteration cps))
+           (cps (intmap-fold
+                 (lambda (old-label new-label cps)
+                   (add-renamed-bailout cps old-label new-label
+                                        fresh-peeled-vars))
+                 peeled-bailout-labels cps))
            (cps (intmap-fold (lambda (label cont cps)
                                (intmap-add! cps label cont))
-                             fresh-body cps)))
+                             fresh-body cps))
+           (cps (intmap-fold
+                 (lambda (old-label new-label cps)
+                   (add-renamed-bailout cps old-label new-label
+                                        fresh-body-vars))
+                 fresh-body-bailout-labels cps)))
       cps)))
 
 (define (peel-loops-in-function kfun body cps)
   (let* ((succs (compute-successors cps kfun))
+         (bailouts (compute-bailouts cps body))
          (preds (invert-graph succs)))
-    ;; We can peel if there is one successor to the loop, and if the
-    ;; loop has no nested functions.  (Peeling a nested function would
-    ;; cause exponential code growth.)
+    ;; We can peel if there is one non-bailout successor to the loop,
+    ;; and if the loop has no nested functions.  (Peeling a nested
+    ;; function would cause exponential code growth.)
     (define (can-peel? body)
-      (and (trivial-intset (loop-successors body succs))
+      (and (trivial-intset (intset-subtract (loop-successors body succs)
+                                            bailouts))
            (intset-fold (lambda (label peel?)
                           (match (intmap-ref cps label)
                             (($ $kargs _ _ ($ $continue _ _ exp))
@@ -278,7 +325,7 @@
         ((find-entry scc preds)
          => (lambda (entry)
               (if (can-peel? scc)
-                  (peel-loop cps entry scc succs preds)
+                  (peel-loop cps entry scc succs preds bailouts)
                   cps)))
         (else cps)))
      (compute-strongly-connected-components succs kfun)
