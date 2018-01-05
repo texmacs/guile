@@ -1,6 +1,6 @@
 ;;; Tree-il optimizer
 
-;; Copyright (C) 2009, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010-2015, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@
   #:use-module (language tree-il debug)
   #:use-module (ice-9 match)
   #:export (optimize
-            tree-il-default-optimization-options))
+            tree-il-optimizations))
 
 (define (optimize x env opts)
   (let ((peval (match (memq #:partial-eval? opts)
@@ -39,5 +39,11 @@
       (peval (expand-primitives (resolve-primitives x env))
              env)))))
 
-(define (tree-il-default-optimization-options)
-  '(#:partial-eval? #t))
+(define (tree-il-optimizations)
+  ;; Avoid resolve-primitives until -O2, when CPS optimizations kick in.
+  ;; Otherwise, inlining the primcalls during Tree-IL->CPS compilation
+  ;; will result in a lot of code that will never get optimized nicely.
+  '((#:resolve-primitives? 2)
+    (#:expand-primitives? 1)
+    (#:partial-eval? 1)
+    (#:fix-letrec? 1)))

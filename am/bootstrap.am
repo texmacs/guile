@@ -114,6 +114,7 @@ SOURCES =					\
   system/base/pmatch.scm			\
   system/base/syntax.scm			\
   system/base/compile.scm			\
+  system/base/optimize.scm			\
   system/base/language.scm			\
   system/base/lalr.scm				\
   system/base/message.scm			\

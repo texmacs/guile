@@ -1,6 +1,6 @@
 ;;; Compile --- Command-line Guile Scheme compiler  -*- coding: iso-8859-1 -*-
 
-;; Copyright 2005, 2008-2011, 2013, 2014, 2015 Free Software Foundation, Inc.
+;; Copyright 2005, 2008-2011, 2013, 2014, 2015, 2018 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -32,8 +32,7 @@
   #:use-module ((system base compile) #:select (compile-file))
   #:use-module (system base target)
   #:use-module (system base message)
-  #:use-module (language tree-il optimize)
-  #:use-module (language cps optimize)
+  #:use-module (system base optimize)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
   #:use-module (srfi srfi-37)
@@ -47,20 +46,6 @@
 (define (fail . messages)
   (format (current-error-port) "error: ~{~a~}~%" messages)
   (exit 1))
-
-(define (available-optimizations)
-  (append (tree-il-default-optimization-options)
-          (cps-default-optimization-options)))
-
-;; Turn on all optimizations unless -O0.
-(define (optimizations-for-level level)
-  (let lp ((options (available-optimizations)))
-    (match options
-      (() '())
-      ((#:partial-eval? val . options)
-       (cons* #:partial-eval? (> level 0) (lp options)))
-      ((kw val . options)
-       (cons* kw (> level 1) (lp options))))))
 
 (define %options
   ;; Specifications of the command-line options.
@@ -101,7 +86,7 @@
                   (define (return-option name val)
                     (let ((kw (symbol->keyword
                                (string->symbol (string-append name "?")))))
-                      (unless (memq kw (available-optimizations))
+                      (unless (assq kw (available-optimizations))
                         (fail "Unknown optimization pass `~a'" name))
                       (return (list kw val))))
                   (cond
@@ -170,11 +155,10 @@ There is NO WARRANTY, to the extent permitted by law.~%"))
   (let lp ((options (available-optimizations)))
     (match options
       (() #t)
-      ((kw val . options)
+      (((kw level) . options)
        (let ((name (string-trim-right (symbol->string (keyword->symbol kw))
                                       #\?)))
-         (format #t "  -O~a~%"
-                 (if val name (string-append "no-" name)))
+         (format #t "  -O~a~%" name)
          (lp options)))))
   (format #t "~%")
   (format #t "To disable an optimization, prepend it with `no-', for example~%")

@@ -40,7 +40,7 @@
   #:use-module (language cps verify)
   #:export (optimize-higher-order-cps
             optimize-first-order-cps
-            cps-default-optimization-options))
+            cps-optimizations))
 
 (define (kw-arg-ref args kw default)
   (match (memq kw args)
@@ -111,20 +111,20 @@
   (rotate-loops #:rotate-loops? #t)
   (simplify #:simplify? #t))
 
-(define (cps-default-optimization-options)
-  (list ;; #:split-rec? #t
-   #:simplify? #t
-   #:eliminate-dead-code? #t
-   #:prune-top-level-scopes? #t
-   #:contify? #t
-   #:specialize-primcalls? #t
-   #:peel-loops? #t
-   #:cse? #t
-   #:type-fold? #t
-   #:resolve-self-references? #t
-   #:devirtualize-integers? #t
-   #:specialize-numbers? #t
-   #:licm? #t
-   #:rotate-loops? #t
-   ;; This one is used by the slot allocator.
-   #:precolor-calls? #t))
+(define (cps-optimizations)
+  '( ;; (#:split-rec? #t)
+    (#:simplify? 2)
+    (#:eliminate-dead-code? 2)
+    (#:prune-top-level-scopes? 2)
+    (#:contify? 2)
+    (#:specialize-primcalls? 2)
+    (#:peel-loops? 2)
+    (#:cse? 2)
+    (#:type-fold? 2)
+    (#:resolve-self-references? 2)
+    (#:devirtualize-integers? 2)
+    (#:specialize-numbers? 2)
+    (#:licm? 2)
+    (#:rotate-loops? 2)
+    ;; This one is used by the slot allocator.
+    (#:precolor-calls? 2)))
