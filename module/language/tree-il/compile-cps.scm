@@ -55,6 +55,7 @@
   #:use-module (srfi srfi-26)
   #:use-module ((system foreign) #:select (make-pointer pointer->scm))
   #:use-module (system base target)
+  #:use-module (system base types internal)
   #:use-module (language cps)
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
@@ -211,6 +212,34 @@
             ($continue kbound0 src ($primcall 'untag-fixnum #f (idx)))))
     (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (idx)))))
 
+(define (untag-fixnum-in-imm-range cps src op size min max have-int-in-range)
+  (define not-fixnum
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 2 (expecting small integer): ~S"))
+  (define out-of-range
+    (vector 'out-of-range
+            (symbol->string op)
+            "Argument 2 out of range: ~S"))
+  (with-cps cps
+    (letv ssize)
+    (letk knot-fixnum
+          ($kargs () () ($throw src 'throw/value+data not-fixnum (size))))
+    (letk kout-of-range
+          ($kargs () () ($throw src 'throw/value+data out-of-range (size))))
+    (let$ body (have-int-in-range ssize))
+    (letk k ($kargs () () ,body))
+    (letk kboundlen
+          ($kargs () ()
+            ($branch k kout-of-range src 'imm-s64-< max (ssize))))
+    (letk kbound0
+          ($kargs ('ssize) (ssize)
+            ($branch kboundlen kout-of-range src 's64-imm-< min (ssize))))
+    (letk kuntag
+          ($kargs () ()
+            ($continue kbound0 src ($primcall 'untag-fixnum #f (size)))))
+    (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (size)))))
+
 (define (compute-vector-access-pos cps src sidx have-pos)
   (with-cps cps
     (letv spos upos)
@@ -262,14 +291,64 @@
            ($continue k src
              ($primcall 'scm-set! 'vector (v upos val)))))))))
 
+(define-primcall-converter make-vector
+  (lambda (cps k src op param size init)
+    (untag-fixnum-in-imm-range
+     cps src op size 0 (target-max-vector-length)
+     (lambda (cps ssize)
+       (with-cps cps
+         (letv usize nwords v w0-high w0 pos)
+         (letk kloop ,#f) ;; Patched later.
+         (letk kdone
+               ($kargs () ()
+                 ($continue k src ($values (v)))))
+         (letk kback
+               ($kargs () ()
+                 ($continue kloop src
+                   ($primcall 'uadd/immediate 1 (pos)))))
+         (letk kinit
+               ($kargs () ()
+                 ($continue kback src
+                   ($primcall 'scm-set! 'vector (v pos init)))))
+         (setk kloop
+               ($kargs ('pos) (pos)
+                 ($branch kinit kdone src 'u64-< #f (usize pos))))
+         (letk kbody
+               ($kargs () ()
+                 ($continue kloop src
+                   ($primcall 'load-u64 1 ()))))
+         (letk ktag2
+               ($kargs ('w0) (w0)
+                 ($continue kbody src
+                   ($primcall 'word-set!/immediate '(vector . 0) (v w0)))))
+         (letk ktag1
+               ($kargs ('w0-high) (w0-high)
+                 ($continue ktag2 src
+                   ($primcall 'uadd/immediate %tc7-vector (w0-high)))))
+         (letk ktag0
+               ($kargs ('v) (v)
+                 ($continue ktag1 src
+                   ($primcall 'ulsh/immediate 8 (usize)))))
+         (letk kalloc
+               ($kargs ('nwords) (nwords)
+                 ($continue ktag0 src
+                   ($primcall 'allocate-words 'vector (nwords)))))
+         (letk kadd1
+               ($kargs ('usize) (usize)
+                 ($continue kalloc src
+                   ;; Header word.
+                   ($primcall 'uadd/immediate 1 (usize)))))
+         (build-term
+           ($continue kadd1 src
+             ;; Header word.
+             ($primcall 's64->u64 #f (ssize)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
 
   (string-length scm >u64)
   (string-ref scm u64 >scm) (string-set! scm u64 scm)
-
-  (make-vector u64 scm >scm)
 
   (allocate-struct scm u64 >scm)
   (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
