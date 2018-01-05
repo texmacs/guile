@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
-##        2014, 2015 Free Software Foundation, Inc.
+##        2014, 2015, 2018 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -22,7 +22,12 @@
 
 
 GUILE_WARNINGS =
-GUILE_OPTIMIZATIONS = -O1
+# Loading eval.go happens before boot and therefore before modules are
+# resolved.  For some reason if compiled without resolve-primitives,
+# attempts to resolve primitives at boot fail; weird.  Should fix this
+# but in the meantime we turn on primitive resolution (which normally
+# only happens at -O2).
+GUILE_OPTIMIZATIONS = -O1 -Oresolve-primitives
 
 include $(top_srcdir)/am/bootstrap.am
 
