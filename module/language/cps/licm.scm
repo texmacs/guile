@@ -55,7 +55,7 @@
     (and
      (not (causes-effect? fx &allocation))
      (or always-reached?
-         (not (causes-effect? fx &type-check)))
+         (not (causes-effect? fx (logior &type-check &read &write))))
      (or (not (causes-effect? fx &write))
          (intmap-fold (lambda (label fx* invariant?)
                         (and invariant?
