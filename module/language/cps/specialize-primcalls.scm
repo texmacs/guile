@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2017-2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -115,7 +115,9 @@
       (define-syntax-rule (specialize-case (pat (op c (arg ...))) ...)
         (match (cons name args)
           (pat
-           (compute-constant c (build-exp ($primcall 'op c (arg ...)))))
+           (let* ((param* (intmap-ref constants c))
+                  (param (if param (cons param param*) param*)))
+             (build-exp ($primcall 'op param (arg ...)))))
           ...
           (_ #f)))
       (specialize-case
@@ -125,11 +127,11 @@
         (('allocate-struct v (? uint? n)) (allocate-struct/immediate n (v)))
         (('struct-ref s (? uint? n)) (struct-ref/immediate n (s)))
         (('struct-set! s (? uint? n) x) (struct-set!/immediate n (s x)))
-        (('allocate-words (? uint? n)) (allocate-words/immediate (n (cons param n)) ()))
-        (('scm-ref o (? uint? i)) (scm-ref/immediate (i (cons param i)) (o)))
-        (('scm-set! o (? uint? i) x) (scm-set!/immediate (i (cons param i)) (o x)))
-        (('word-ref o (? uint? i)) (word-ref/immediate (i (cons param i)) (o)))
-        (('word-set! o (? uint? i) x) (word-set!/immediate (i (cons param i)) (o x)))
+        (('allocate-words (? uint? n)) (allocate-words/immediate n ()))
+        (('scm-ref o (? uint? i)) (scm-ref/immediate i (o)))
+        (('scm-set! o (? uint? i) x) (scm-set!/immediate i (o x)))
+        (('word-ref o (? uint? i)) (word-ref/immediate i (o)))
+        (('word-set! o (? uint? i) x) (word-set!/immediate i (o x)))
         (('add x (? num? y)) (add/immediate y (x)))
         (('add (? num? y) x) (add/immediate y (x)))
         (('sub x (? num? y)) (sub/immediate y (x)))
