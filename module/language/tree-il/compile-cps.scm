@@ -154,6 +154,114 @@
        (with-syntax (((cvt ...) (map compute-converter #'(spec ...))))
          #'(begin (define-primcall-converter op cvt) ...))))))
 
+(define (ensure-vector cps src op v have-length)
+  (define not-vector
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 1 (expecting vector): ~S"))
+  (with-cps cps
+    (letv w0 slen ulen)
+    (letk knot-vector
+          ($kargs () () ($throw src 'throw/value+data not-vector (v))))
+    (let$ body (have-length slen))
+    (letk k ($kargs ('slen) (slen) ,body))
+    (letk kcast
+          ($kargs ('ulen) (ulen)
+            ($continue k src ($primcall 'u64->s64 #f (ulen)))))
+    (letk krsh
+          ($kargs ('w0) (w0)
+            ($continue kcast src ($primcall 'ursh/immediate 8 (w0)))))
+    (letk kv
+          ($kargs () ()
+            ($continue krsh src
+              ($primcall 'word-ref/immediate '(vector . 0) (v)))))
+    (letk kheap-object
+          ($kargs () ()
+            ($branch knot-vector kv src 'vector? #f (v))))
+    (build-term
+      ($branch knot-vector kheap-object src 'heap-object? #f (v)))))
+
+(define (untag-fixnum-index-in-range cps src op idx slen have-index-in-range)
+  ;; Precondition: SLEN is a non-negative S64 that is representable as a
+  ;; fixnum.
+  (define not-fixnum
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 2 (expecting small integer): ~S"))
+  (define out-of-range
+    (vector 'out-of-range
+            (symbol->string op)
+            "Argument 2 out of range: ~S"))
+  (with-cps cps
+    (letv sidx)
+    (letk knot-fixnum
+          ($kargs () () ($throw src 'throw/value+data not-fixnum (idx))))
+    (letk kout-of-range
+          ($kargs () () ($throw src 'throw/value+data out-of-range (idx))))
+    (let$ body (have-index-in-range sidx))
+    (letk k ($kargs () () ,body))
+    (letk kboundlen
+          ($kargs () ()
+            ($branch kout-of-range k src 's64-< #f (sidx slen))))
+    (letk kbound0
+          ($kargs ('sidx) (sidx)
+            ($branch kboundlen kout-of-range src 's64-imm-< 0 (sidx))))
+    (letk kuntag
+          ($kargs () ()
+            ($continue kbound0 src ($primcall 'untag-fixnum #f (idx)))))
+    (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (idx)))))
+
+(define (compute-vector-access-pos cps src sidx have-pos)
+  (with-cps cps
+    (letv spos upos)
+    (let$ body (have-pos upos))
+    (letk kref ($kargs ('pos) (upos) ,body))
+    (letk kcvt ($kargs ('pos) (spos)
+                 ($continue kref src ($primcall 's64->u64 #f (spos)))))
+    (build-term
+      ($continue kcvt src ($primcall 'sadd/immediate 1 (sidx))))))
+
+(define (prepare-vector-access cps src op v idx access)
+  (ensure-vector
+   cps src op v
+   (lambda (cps slen)
+     (untag-fixnum-index-in-range
+      cps src op idx slen
+      (lambda (cps sidx)
+        (compute-vector-access-pos
+         cps src sidx
+         (lambda (cps pos)
+           (access cps v pos))))))))
+
+(define-primcall-converter vector-length
+  (lambda (cps k src op param v)
+    (ensure-vector
+     cps src op v
+     (lambda (cps slen)
+       (with-cps cps
+         (build-term
+           ($continue k src ($primcall 'tag-fixnum #f (slen)))))))))
+
+(define-primcall-converter vector-ref
+  (lambda (cps k src op param v idx)
+    (prepare-vector-access
+     cps src op v idx
+     (lambda (cps v upos)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-ref 'vector (v upos)))))))))
+
+(define-primcall-converter vector-set!
+  (lambda (cps k src op param v idx val)
+    (prepare-vector-access
+     cps src op v idx
+     (lambda (cps v upos)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-set! 'vector (v upos val)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
@@ -162,8 +270,6 @@
   (string-ref scm u64 >scm) (string-set! scm u64 scm)
 
   (make-vector u64 scm >scm)
-  (vector-length scm >u64)
-  (vector-ref scm u64 >scm) (vector-set! scm u64 scm)
 
   (allocate-struct scm u64 >scm)
   (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
