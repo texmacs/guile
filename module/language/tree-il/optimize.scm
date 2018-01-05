@@ -28,16 +28,30 @@
   #:export (optimize
             tree-il-optimizations))
 
+(define (kw-arg-ref args kw default)
+  (match (memq kw args)
+    ((_ val . _) val)
+    (_ default)))
+
+(define *debug?* #f)
+
+(define (maybe-verify x)
+  (if *debug?*
+      (verify-tree-il x)
+      x))
+
 (define (optimize x env opts)
-  (let ((peval (match (memq #:partial-eval? opts)
-                 ((#:partial-eval? #f _ ...)
-                  ;; Disable partial evaluation.
-                  (lambda (x e) x))
-                 (_ peval))))
-    (fix-letrec
-     (verify-tree-il
-      (peval (expand-primitives (resolve-primitives x env))
-             env)))))
+  (define-syntax-rule (run-pass pass kw default)
+    (when (kw-arg-ref opts kw default)
+      (set! x (maybe-verify (pass x)))))
+  (define (resolve* x) (resolve-primitives x env))
+  (define (peval* x) (peval x env))
+  (maybe-verify x)
+  (run-pass resolve*           #:resolve-primitives? #t)
+  (run-pass expand-primitives  #:expand-primitives?  #t)
+  (run-pass peval*             #:partial-eval?       #t)
+  (run-pass fix-letrec         #:fix-letrec?         #t)
+  x)
 
 (define (tree-il-optimizations)
   ;; Avoid resolve-primitives until -O2, when CPS optimizations kick in.
