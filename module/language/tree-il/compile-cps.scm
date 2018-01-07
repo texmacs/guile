@@ -588,8 +588,8 @@
     ((v . vals)
      (with-cps cps
        (letv tail)
-       (letk ktail ($kargs ('tail) (tail)
-                     ($continue k src ($primcall 'cons #f (v tail)))))
+       (let$ head (convert-primcall k src 'cons #f v tail))
+       (letk ktail ($kargs ('tail) (tail) ,head))
        ($ (build-list ktail src vals))))))
 
 ;;; The conversion from Tree-IL to CPS essentially wraps every
