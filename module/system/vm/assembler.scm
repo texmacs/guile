@@ -212,7 +212,6 @@
             emit-quo
             emit-rem
             emit-mod
-            emit-ash
             emit-lsh
             emit-rsh
             emit-lsh/immediate

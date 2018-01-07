@@ -1,5 +1,5 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2015, 2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2423,41 +2423,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       RETURN_EXP (scm_modulo (x, y));
     }
 
-  /* ash dst:8 a:8 b:8
-   *
-   * Shift A arithmetically by B bits, and place the result in DST.
-   */
-  VM_DEFINE_OP (95, ash, "ash", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (95, unused_95, NULL, NOP)
     {
-      ARGS2 (x, y);
-      if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-        {
-          if (SCM_I_INUM (y) < 0)
-            /* Right shift, will be a fixnum. */
-            RETURN (SCM_I_MAKINUM
-                    (SCM_SRS (SCM_I_INUM (x),
-                              (-SCM_I_INUM (y) <= SCM_I_FIXNUM_BIT-1)
-                              ? -SCM_I_INUM (y) : SCM_I_FIXNUM_BIT-1)));
-          else
-            /* Left shift. See comments in scm_ash. */
-            {
-              scm_t_signed_bits nn, bits_to_shift;
-
-              nn = SCM_I_INUM (x);
-              bits_to_shift = SCM_I_INUM (y);
-
-              if (bits_to_shift < SCM_I_FIXNUM_BIT-1
-                  && ((scm_t_bits)
-                      (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
-                      <= 1))
-                RETURN (SCM_I_MAKINUM (nn < 0
-                                       ? -(-nn << bits_to_shift)
-                                       : (nn << bits_to_shift)));
-              /* fall through */
-            }
-          /* fall through */
-        }
-      RETURN_EXP (scm_ash (x, y));
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* logand dst:8 a:8 b:8
