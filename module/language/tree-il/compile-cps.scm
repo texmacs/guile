@@ -155,11 +155,14 @@
        (with-syntax (((cvt ...) (map compute-converter #'(spec ...))))
          #'(begin (define-primcall-converter op cvt) ...))))))
 
-(define (ensure-vector cps src op v have-length)
-  (define not-vector
-    (vector 'wrong-type-arg
-            (symbol->string op)
-            "Wrong type argument in position 1 (expecting vector): ~S"))
+(define (ensure-vector cps src op pred v have-length)
+  (define msg
+    (match pred
+      ('vector?
+       "Wrong type argument in position 1 (expecting vector): ~S")
+      ('mutable-vector?
+       "Wrong type argument in position 1 (expecting mutable vector): ~S")))
+  (define not-vector (vector 'wrong-type-arg (symbol->string op) msg))
   (with-cps cps
     (letv w0 slen ulen)
     (letk knot-vector
@@ -178,7 +181,7 @@
               ($primcall 'word-ref/immediate '(vector . 0) (v)))))
     (letk kheap-object
           ($kargs () ()
-            ($branch knot-vector kv src 'vector? #f (v))))
+            ($branch knot-vector kv src pred #f (v))))
     (build-term
       ($branch knot-vector kheap-object src 'heap-object? #f (v)))))
 
@@ -250,9 +253,9 @@
     (build-term
       ($continue kcvt src ($primcall 'sadd/immediate 1 (sidx))))))
 
-(define (prepare-vector-access cps src op v idx access)
+(define (prepare-vector-access cps src op pred v idx access)
   (ensure-vector
-   cps src op v
+   cps src op pred v
    (lambda (cps slen)
      (untag-fixnum-index-in-range
       cps src op idx slen
@@ -262,11 +265,11 @@
          (lambda (cps pos)
            (access cps v pos))))))))
 
-(define (prepare-vector-access/immediate cps src op v idx access)
+(define (prepare-vector-access/immediate cps src op pred v idx access)
   (unless (and (exact-integer? idx) (<= 0 idx (1- (target-max-vector-length))))
     (error "precondition failed" idx))
   (ensure-vector
-   cps src op v
+   cps src op pred v
    (lambda (cps slen)
      (define out-of-range
        (vector 'out-of-range
@@ -288,7 +291,7 @@
 (define-primcall-converter vector-length
   (lambda (cps k src op param v)
     (ensure-vector
-     cps src op v
+     cps src op 'vector? v
      (lambda (cps slen)
        (with-cps cps
          (build-term
@@ -297,7 +300,7 @@
 (define-primcall-converter vector-ref
   (lambda (cps k src op param v idx)
     (prepare-vector-access
-     cps src op v idx
+     cps src op 'vector? v idx
      (lambda (cps v upos)
        (with-cps cps
          (build-term
@@ -307,7 +310,7 @@
 (define-primcall-converter vector-ref/immediate
   (lambda (cps k src op param v)
     (prepare-vector-access/immediate
-     cps src op v param
+     cps src 'vector-ref 'vector? v param
      (lambda (cps v pos)
        (with-cps cps
          (build-term
@@ -317,7 +320,7 @@
 (define-primcall-converter vector-set!
   (lambda (cps k src op param v idx val)
     (prepare-vector-access
-     cps src op v idx
+     cps src op 'mutable-vector? v idx
      (lambda (cps v upos)
        (with-cps cps
          (build-term
@@ -327,7 +330,7 @@
 (define-primcall-converter vector-set!/immediate
   (lambda (cps k src op param v val)
     (prepare-vector-access/immediate
-     cps src op v param
+     cps src 'vector-set! 'mutable-vector? v param
      (lambda (cps v pos)
        (with-cps cps
          (build-term
