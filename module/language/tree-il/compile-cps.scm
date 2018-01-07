@@ -337,6 +337,37 @@
            ($continue k src
              ($primcall 'scm-set!/immediate `(vector . ,pos) (v val)))))))))
 
+(define-primcall-converter vector-init!
+  (lambda (cps k src op param v val)
+    (define pos (1+ param))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'scm-set!/immediate `(vector . ,pos) (v val)))))))
+
+(define-primcall-converter allocate-vector
+  (lambda (cps k src op param)
+    (define size param)
+    (define nwords (1+ size))
+    (unless (and (exact-integer? size) (<= 0 size (target-max-vector-length)))
+      (error "precondition failed" size))
+    (with-cps cps
+      (letv v w0)
+      (letk kdone
+            ($kargs () ()
+              ($continue k src ($values (v)))))
+      (letk ktag1
+            ($kargs ('w0) (w0)
+              ($continue kdone src
+                ($primcall 'word-set!/immediate '(vector . 0) (v w0)))))
+      (letk ktag0
+            ($kargs ('v) (v)
+              ($continue ktag1 src
+                ($primcall 'load-u64 (+ %tc7-vector (ash size 8)) ()))))
+      (build-term
+        ($continue ktag0 src
+          ($primcall 'allocate-words/immediate `(vector . ,nwords) ()))))))
+
 (define-primcall-converter make-vector
   (lambda (cps k src op param size init)
     (untag-fixnum-in-imm-range
@@ -1124,12 +1155,16 @@
            (define (negint? val) (and (exact-integer? val) (< val 0)))
            ;; FIXME: Add case for mul
            (specialize-case
+            (('allocate-vector ($ <const> _ n))
+             (allocate-vector n ()))
             (('make-vector ($ <const> _ (? vector-size? n)) init)
              (make-vector/immediate n (init)))
             (('vector-ref v ($ <const> _ (? vector-index? n)))
              (vector-ref/immediate n (v)))
             (('vector-set! v ($ <const> _ (? vector-index? n)) x)
              (vector-set!/immediate n (v x)))
+            (('vector-init! v ($ <const> _ n) x)
+             (vector-init! n (v x)))
             (('allocate-struct v ($ <const> _ (? uint? n)))
              (allocate-struct/immediate n (v)))
             (('struct-ref s ($ <const> _ (? uint? n)))
@@ -1589,7 +1624,7 @@ integer."
                                 (primcall equal? a b))))))))
 
        (($ <primcall> src 'vector args)
-        ;; Expand to "make-vector" + "vector-set!".
+        ;; Expand to "allocate-vector" + "vector-init!".
         (evaluate-args-eagerly-if-needed
          src args
          (lambda (args)
@@ -1597,12 +1632,12 @@ integer."
              (make-primcall src 'name (list . args)))
            (define-syntax-rule (const val)
              (make-const src val))
-           (let ((v (primcall make-vector (const (length args)) (const #f))))
+           (let ((v (primcall allocate-vector (const (length args)))))
              (with-lexicals src (v)
                (list->seq
                 src
                 (append (map (lambda (idx arg)
-                               (primcall vector-set! v (const idx) arg))
+                               (primcall vector-init! v (const idx) arg))
                              (iota (length args))
                              args)
                         (list v))))))))

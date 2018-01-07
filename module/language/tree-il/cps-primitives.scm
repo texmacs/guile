@@ -94,10 +94,12 @@
 (define-cps-primitive logsub 2 1)
 (define-cps-primitive logbit? 2 1)
 
+(define-cps-primitive allocate-vector 1 1)
 (define-cps-primitive make-vector 2 1)
 (define-cps-primitive vector-length 1 1)
 (define-cps-primitive vector-ref 2 1)
 (define-cps-primitive vector-set! 3 0)
+(define-cps-primitive vector-init! 3 0)
 
 (define-cps-primitive struct-vtable 1 1)
 (define-cps-primitive allocate-struct 2 1)
