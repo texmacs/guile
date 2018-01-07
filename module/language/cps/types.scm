@@ -815,20 +815,6 @@ minimum, and maximum."
 
 
 ;;;
-;;; Pairs.
-;;;
-
-(define-simple-types
-  ((cons &all-types &all-types) &pair)
-  ((car &pair) &all-types)
-  ((set-car! &pair &all-types))
-  ((cdr &pair) &all-types)
-  ((set-cdr! &pair &all-types)))
-
-
-
-
-;;;
 ;;; Variables.
 ;;;
 

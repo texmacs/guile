@@ -200,11 +200,6 @@
             emit-string->number
             emit-string->symbol
             emit-symbol->keyword
-            emit-cons
-            emit-car
-            emit-cdr
-            emit-set-car!
-            emit-set-cdr!
             emit-add
             emit-add/immediate
             emit-sub

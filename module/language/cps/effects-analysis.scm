@@ -56,8 +56,6 @@
 
             &fluid
             &prompt
-            &car
-            &cdr
             &vector
             &box
             &module
@@ -382,19 +380,6 @@ the LABELS that are clobbered by the effects of LABEL."
                                      ((ann . idx)
                                       (&write-field
                                        (annotation->memory-kind ann) idx)))))
-
-;; Pairs.
-(define-primitive-effects
-  ((cons a b)                      (&allocate &pair))
-  ((list . _)                      (&allocate &pair))
-  ((car x)                         (&read-field &pair 0)       &type-check)
-  ((set-car! x y)                  (&write-field &pair 0)      &type-check)
-  ((cdr x)                         (&read-field &pair 1)       &type-check)
-  ((set-cdr! x y)                  (&write-field &pair 1)      &type-check)
-  ((memq x y)                      (&read-object &pair)        &type-check)
-  ((memv x y)                      (&read-object &pair)        &type-check)
-  ((list? arg)                     (&read-field &pair 1))
-  ((length l)                      (&read-field &pair 1)       &type-check))
 
 ;; Variables.
 (define-primitive-effects
