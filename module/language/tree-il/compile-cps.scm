@@ -262,6 +262,29 @@
          (lambda (cps pos)
            (access cps v pos))))))))
 
+(define (prepare-vector-access/immediate cps src op v idx access)
+  (unless (and (exact-integer? idx) (<= 0 idx (1- (target-max-vector-length))))
+    (error "precondition failed" idx))
+  (ensure-vector
+   cps src op v
+   (lambda (cps slen)
+     (define out-of-range
+       (vector 'out-of-range
+               (symbol->string op)
+               "Argument 2 out of range: ~S"))
+     (with-cps cps
+       (letv tidx)
+       (letk kthrow
+             ($kargs ('tidx) (tidx)
+               ($throw src 'throw/value+data out-of-range (tidx))))
+       (letk kout-of-range
+             ($kargs () ()
+               ($continue kthrow src ($const idx))))
+       (let$ body (access v (1+ idx)))
+       (letk k ($kargs () () ,body))
+       (build-term
+         ($branch kout-of-range k src 'imm-s64-< idx (slen)))))))
+
 (define-primcall-converter vector-length
   (lambda (cps k src op param v)
     (ensure-vector
@@ -281,6 +304,16 @@
            ($continue k src
              ($primcall 'scm-ref 'vector (v upos)))))))))
 
+(define-primcall-converter vector-ref/immediate
+  (lambda (cps k src op param v)
+    (prepare-vector-access/immediate
+     cps src op v param
+     (lambda (cps v pos)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-ref/immediate `(vector . ,pos) (v)))))))))
+
 (define-primcall-converter vector-set!
   (lambda (cps k src op param v idx val)
     (prepare-vector-access
@@ -290,6 +323,16 @@
          (build-term
            ($continue k src
              ($primcall 'scm-set! 'vector (v upos val)))))))))
+
+(define-primcall-converter vector-set!/immediate
+  (lambda (cps k src op param v val)
+    (prepare-vector-access/immediate
+     cps src op v param
+     (lambda (cps v pos)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-set!/immediate `(vector . ,pos) (v val)))))))))
 
 (define-primcall-converter make-vector
   (lambda (cps k src op param size init)
@@ -342,6 +385,42 @@
            ($continue kadd1 src
              ;; Header word.
              ($primcall 's64->u64 #f (ssize)))))))))
+
+(define-primcall-converter make-vector/immediate
+  (lambda (cps k src op param init)
+    (define size param)
+    (define nwords (1+ size))
+    (define (init-fields cps v pos kdone)
+      (if (< pos nwords)
+          (with-cps cps
+            (let$ knext (init-fields v (1+ pos) kdone))
+            (letk kinit
+                  ($kargs () ()
+                    ($continue knext src
+                      ($primcall 'scm-set!/immediate `(vector . ,pos)
+                                 (v init)))))
+            kinit)
+          (with-cps cps
+            kdone)))
+    (unless (and (exact-integer? size) (<= 0 size (target-max-vector-length)))
+      (error "precondition failed" size))
+    (with-cps cps
+      (letv v w0)
+      (letk kdone
+            ($kargs () ()
+              ($continue k src ($values (v)))))
+      (let$ kinit (init-fields v 1 kdone))
+      (letk ktag1
+            ($kargs ('w0) (w0)
+              ($continue kinit src
+                ($primcall 'word-set!/immediate '(vector . 0) (v w0)))))
+      (letk ktag0
+            ($kargs ('v) (v)
+              ($continue ktag1 src
+                ($primcall 'load-u64 (+ %tc7-vector (ash size 8)) ()))))
+      (build-term
+        ($continue ktag0 src
+          ($primcall 'allocate-words/immediate `(vector . ,nwords) ()))))))
 
 (define-primcall-converters
   (char->integer scm >u64)
@@ -957,14 +1036,20 @@
                ...
                (_ def)))
            (define (uint? val) (and (exact-integer? val) (<= 0 val)))
+           (define (vector-index? val)
+             (and (exact-integer? val)
+                  (<= 0 val (1- (target-max-vector-length)))))
+           (define (vector-size? val)
+             (and (exact-integer? val)
+                  (<= 0 val (target-max-vector-length))))
            (define (negint? val) (and (exact-integer? val) (< val 0)))
            ;; FIXME: Add case for mul
            (specialize-case
-            (('make-vector ($ <const> _ (? uint? n)) init)
+            (('make-vector ($ <const> _ (? vector-size? n)) init)
              (make-vector/immediate n (init)))
-            (('vector-ref v ($ <const> _ (? uint? n)))
+            (('vector-ref v ($ <const> _ (? vector-index? n)))
              (vector-ref/immediate n (v)))
-            (('vector-set! v ($ <const> _ (? uint? n)) x)
+            (('vector-set! v ($ <const> _ (? vector-index? n)) x)
              (vector-set!/immediate n (v x)))
             (('allocate-struct v ($ <const> _ (? uint? n)))
              (allocate-struct/immediate n (v)))
