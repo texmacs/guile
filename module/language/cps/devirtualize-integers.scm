@@ -83,6 +83,11 @@
     cps
     (transient-intmap))))
 
+(define (bailout? cps label)
+  (match (intmap-ref cps label)
+    (($ $kargs _ _ ($ $throw)) #t)
+    (_ #f)))
+
 (define (peel-trace cps label fx kexit use-counts)
   "For the graph starting at LABEL, try to peel out a trace that uses
 the variable FX.  A peelable trace consists of effect-free terms, or
@@ -116,10 +121,6 @@ the trace should be referenced outside of it."
              ((= count 1) (intmap-remove live-vars var))
              (else (intmap-replace live-vars var (1- count)))))
           vars))))
-    (define (bailout? k)
-      (match (intmap-ref cps k)
-        (($ $kargs _ _ ($ $throw)) #t)
-        (_ #f)))
     (match (intmap-ref cps label)
       ;; We know the initial label is a $kargs, and we won't follow the
       ;; graph to get to $kreceive etc, so we can stop with these two
@@ -172,12 +173,12 @@ the trace should be referenced outside of it."
               (cond
                ((not uses-of-interest?)
                 (fail))
-               ((bailout? kt)
+               ((bailout? cps kt)
                 (continue kf live-vars defs-of-interest? can-terminate-trace?
                           (lambda (kf)
                             (build-term
                               ($branch kf kt src op param peeled-args)))))
-               ((bailout? kf)
+               ((bailout? cps kf)
                 (continue kt live-vars defs-of-interest? can-terminate-trace?
                           (lambda (kt)
                             (build-term
@@ -236,15 +237,18 @@ the trace should be referenced outside of it."
        ;; Traces start with a fixnum? predicate.  We could expand this
        ;; in the future if we wanted to.
        (($ $kargs names vars ($ $branch kf kt src 'fixnum? #f (x)))
-        (with-cps cps
-          (let$ kt (peel-trace kt x kf use-counts))
-          ($ ((lambda (cps)
-                (if kt
-                    (with-cps cps
-                      (setk label
-                            ($kargs names vars
-                              ($branch kf kt src 'fixnum? #f (x)))))
-                    cps))))))
+        (if (and (bailout? cps kf) #f)
+            ;; Don't peel traces whose alternate is just a bailout.
+            cps
+            (with-cps cps
+              (let$ kt (peel-trace kt x kf use-counts))
+              ($ ((lambda (cps)
+                    (if kt
+                        (with-cps cps
+                          (setk label
+                                ($kargs names vars
+                                  ($branch kf kt src 'fixnum? #f (x)))))
+                        cps)))))))
        (_ cps)))
    body
    cps))
