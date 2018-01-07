@@ -170,7 +170,7 @@ the trace should be referenced outside of it."
                    (can-terminate-trace? uses-of-interest?)
                    (peeled-args (rename-uses args)))
               (cond
-               ((not (any-use-of-interest? args))
+               ((not uses-of-interest?)
                 (fail))
                ((bailout? kt)
                 (continue kf live-vars defs-of-interest? can-terminate-trace?
@@ -182,12 +182,14 @@ the trace should be referenced outside of it."
                           (lambda (kt)
                             (build-term
                               ($branch kf kt src op param peeled-args)))))
-               (else
+               ((eq? live-vars empty-intmap)
                 (with-cps cps
                   (letk label*
                         ($kargs names peeled-vars
                           ($branch kf kt src op param peeled-args)))
-                  label*)))))
+                  label*))
+               (else
+                (fail)))))
            (($ $continue k src exp)
             (match exp
               (($ $const)
