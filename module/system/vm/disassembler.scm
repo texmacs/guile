@@ -1,6 +1,6 @@
 ;;; Guile bytecode disassembler
 
-;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009-2010, 2012-2015, 2017-2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -199,6 +199,7 @@ address of that offset."
 (define-syntax-rule (define-heap-tag-annotation name pred mask tag)
   (set! heap-tag-annotations
         (cons `((,mask ,tag) ,(symbol->string 'pred)) heap-tag-annotations)))
+
 (visit-heap-tags define-heap-tag-annotation)
 
 (define (code-annotation code len offset start labels context push-addr!)

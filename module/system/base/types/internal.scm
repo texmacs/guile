@@ -1,5 +1,5 @@
 ;;; Details on internal value representation.
-;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU Lesser General Public License as published by
@@ -34,6 +34,8 @@
             %tc7-symbol
             %tc7-variable
             %tc7-vector
+            %tc8-immutable-vector
+            %tc8-mutable-vector
             %tc7-weak-vector
             %tc7-string
             %tc7-heap-number
@@ -118,6 +120,8 @@
   (symbol           symbol?                #b1111111       #b0000101)
   (variable         variable?              #b1111111       #b0000111)
   (vector           vector?                #b1111111       #b0001101)
+  (immutable-vector immutable-vector?     #b11111111      #b10001101)
+  (mutable-vector   mutable-vector?       #b11111111      #b00001101)
   (weak-vector      weak-vector?           #b1111111       #b0001111)
   (string           string?                #b1111111       #b0010101)
   (heap-number      heap-number?           #b1111111       #b0010111)
