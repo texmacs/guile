@@ -757,7 +757,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                'ulogand 'ulogior 'ulogxor 'ulogsub 'ursh 'ulsh
                                'uadd/immediate 'usub/immediate 'umul/immediate
                                'ursh/immediate 'ulsh/immediate
-                               'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref))
+                               'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref
+                               'word-ref 'word-ref/immediate))
               (intmap-add representations var 'u64))
              (($ $primcall (or 'untag-fixnum
                                'scm->s64 'load-s64 'u64->s64
