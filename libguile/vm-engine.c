@@ -321,20 +321,12 @@
   VM_VALIDATE (obj, SCM_MUTABLE_BYTEVECTOR_P, proc, mutable_bytevector)
 #define VM_VALIDATE_CHAR(x, proc)                                       \
   VM_VALIDATE (x, SCM_CHARP, proc, char)
-#define VM_VALIDATE_PAIR(x, proc)                                       \
-  VM_VALIDATE (x, scm_is_pair, proc, pair)
-#define VM_VALIDATE_MUTABLE_PAIR(x, proc)                               \
-  VM_VALIDATE (x, scm_is_mutable_pair, proc, mutable_pair)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
   VM_VALIDATE (obj, scm_is_string, proc, string)
 #define VM_VALIDATE_STRUCT(obj, proc)                                   \
   VM_VALIDATE (obj, SCM_STRUCTP, proc, struct)
 #define VM_VALIDATE_VARIABLE(obj, proc)                                 \
   VM_VALIDATE (obj, SCM_VARIABLEP, proc, variable)
-#define VM_VALIDATE_VECTOR(obj, proc)                                   \
-  VM_VALIDATE (obj, SCM_I_IS_VECTOR, proc, vector)
-#define VM_VALIDATE_MUTABLE_VECTOR(obj, proc)                           \
-  VM_VALIDATE (obj, SCM_I_IS_MUTABLE_VECTOR, proc, mutable_vector)
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
@@ -2231,75 +2223,15 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  /*
-   * Pairs
-   */
-
-  /* cons dst:8 car:8 cdr:8
-   *
-   * Cons CAR and CDR, and store the result in DST.
-   */
-  VM_DEFINE_OP (81, cons, "cons", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (81, unused_81, NULL, NOP)
+  VM_DEFINE_OP (82, unused_82, NULL, NOP)
+  VM_DEFINE_OP (83, unused_83, NULL, NOP)
+  VM_DEFINE_OP (84, unused_84, NULL, NOP)
+  VM_DEFINE_OP (85, unused_85, NULL, NOP)
     {
-      ARGS2 (x, y);
-      SYNC_IP ();
-      RETURN (scm_inline_cons (thread, x, y));
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
-
-  /* car dst:12 src:12
-   *
-   * Place the car of SRC in DST.
-   */
-  VM_DEFINE_OP (82, car, "car", OP1 (X8_S12_S12) | OP_DST)
-    {
-      ARGS1 (x);
-      VM_VALIDATE_PAIR (x, "car");
-      RETURN (SCM_CAR (x));
-    }
-
-  /* cdr dst:12 src:12
-   *
-   * Place the cdr of SRC in DST.
-   */
-  VM_DEFINE_OP (83, cdr, "cdr", OP1 (X8_S12_S12) | OP_DST)
-    {
-      ARGS1 (x);
-      VM_VALIDATE_PAIR (x, "cdr");
-      RETURN (SCM_CDR (x));
-    }
-
-  /* set-car! pair:12 car:12
-   *
-   * Set the car of DST to SRC.
-   */
-  VM_DEFINE_OP (84, set_car, "set-car!", OP1 (X8_S12_S12))
-    {
-      scm_t_uint16 a, b;
-      SCM x, y;
-      UNPACK_12_12 (op, a, b);
-      x = SP_REF (a);
-      y = SP_REF (b);
-      VM_VALIDATE_MUTABLE_PAIR (x, "set-car!");
-      SCM_SETCAR (x, y);
-      NEXT (1);
-    }
-
-  /* set-cdr! pair:12 cdr:12
-   *
-   * Set the cdr of DST to SRC.
-   */
-  VM_DEFINE_OP (85, set_cdr, "set-cdr!", OP1 (X8_S12_S12))
-    {
-      scm_t_uint16 a, b;
-      SCM x, y;
-      UNPACK_12_12 (op, a, b);
-      x = SP_REF (a);
-      y = SP_REF (b);
-      VM_VALIDATE_MUTABLE_PAIR (x, "set-cdr!");
-      SCM_SETCDR (x, y);
-      NEXT (1);
-    }
-
 
   
 
@@ -4367,7 +4299,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef VM_USE_HOOKS
 #undef VM_VALIDATE_ATOMIC_BOX
 #undef VM_VALIDATE_BYTEVECTOR
-#undef VM_VALIDATE_PAIR
 #undef VM_VALIDATE_STRUCT
 
 /*

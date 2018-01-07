@@ -433,8 +433,6 @@ static void vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw) SCM_NORETURN
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_char (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_pair (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_mutable_pair (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_string (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_atomic_box (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
@@ -561,18 +559,6 @@ static void
 vm_error_not_a_char (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "char");
-}
-
-static void
-vm_error_not_a_pair (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "pair");
-}
-
-static void
-vm_error_not_a_mutable_pair (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "mutable pair");
 }
 
 static void
