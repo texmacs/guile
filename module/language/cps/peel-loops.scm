@@ -126,13 +126,13 @@
   (let ((live (compute-live-variables cps entry body succs)))
     (intset-fold-right
      cons
-     (intmap-fold (lambda (label succs live-out)
-                    (if (intset-ref succs exit)
+     (intset-fold (lambda (label live-out)
+                    (if (intset-ref (intmap-ref succs label) exit)
                         (if live-out
                             (intset-intersect live-out (intmap-ref live label))
                             (intmap-ref live label))
                         live-out))
-                  succs #f)
+                  body #f)
      '())))
 
 (define (rename-cont cont fresh-labels fresh-vars)
