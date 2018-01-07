@@ -528,9 +528,9 @@ term."
          ;; Well-known closure with two free variables; the closure is a
          ;; pair.
          (with-cps cps
-           ($ (with-cps-constants ((false #f))
-                (build-term
-                  ($continue k src ($primcall 'cons #f (false false))))))))
+           (build-term
+             ($continue k src
+               ($primcall 'allocate-words/immediate `(pair . 2) ())))))
         ;; Well-known callee with more than two free variables; the closure
         ;; is a vector.
         (#(#t nfree)

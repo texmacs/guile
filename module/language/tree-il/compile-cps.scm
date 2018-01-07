@@ -425,6 +425,82 @@
         ($continue ktag0 src
           ($primcall 'allocate-words/immediate `(vector . ,nwords) ()))))))
 
+(define (ensure-pair cps src op pred x is-pair)
+  (define msg
+    (match pred
+      ('pair?
+       "Wrong type argument in position 1 (expecting pair): ~S")
+      ('mutable-pair?
+       "Wrong type argument in position 1 (expecting mutable pair): ~S")))
+  (define not-pair (vector 'wrong-type-arg (symbol->string op) msg))
+  (with-cps cps
+    (letk knot-pair ($kargs () () ($throw src 'throw/value+data not-pair (x))))
+    (let$ body (is-pair))
+    (letk k ($kargs () () ,body))
+    (letk kheap-object ($kargs () () ($branch knot-pair k src pred #f (x))))
+    (build-term ($branch knot-pair kheap-object src 'heap-object? #f (x)))))
+
+(define-primcall-converter cons
+  (lambda (cps k src op param head tail)
+    (with-cps cps
+      (letv pair)
+      (letk kdone
+            ($kargs () ()
+              ($continue k src ($values (pair)))))
+      (letk ktail
+            ($kargs () ()
+              ($continue kdone src
+                ($primcall 'scm-set!/immediate '(pair . 1) (pair tail)))))
+      (letk khead
+            ($kargs ('pair) (pair)
+              ($continue ktail src
+                ($primcall 'scm-set!/immediate '(pair . 0) (pair head)))))
+      (build-term
+        ($continue khead src
+          ($primcall 'allocate-words/immediate '(pair . 2) ()))))))
+
+(define-primcall-converter car
+  (lambda (cps k src op param pair)
+    (ensure-pair
+     cps src 'car 'pair? pair
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-ref/immediate '(pair . 0) (pair)))))))))
+
+(define-primcall-converter cdr
+  (lambda (cps k src op param pair)
+    (ensure-pair
+     cps src 'cdr 'pair? pair
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-ref/immediate '(pair . 1) (pair)))))))))
+
+(define-primcall-converter set-car!
+  (lambda (cps k src op param pair val)
+    (ensure-pair
+     ;; FIXME: Use mutable-pair? as predicate.
+     cps src 'set-car! 'pair? pair
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-set!/immediate '(pair . 0) (pair val)))))))))
+
+(define-primcall-converter set-cdr!
+  (lambda (cps k src op param pair val)
+    (ensure-pair
+     ;; FIXME: Use mutable-pair? as predicate.
+     cps src 'set-cdr! 'pair? pair
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-set!/immediate '(pair . 1) (pair val)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
