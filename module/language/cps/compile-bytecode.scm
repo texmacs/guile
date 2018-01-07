@@ -479,6 +479,8 @@
         (#('symbol? #f (a)) (unary emit-symbol? a))
         (#('variable? #f (a)) (unary emit-variable? a))
         (#('vector? #f (a)) (unary emit-vector? a))
+        (#('mutable-vector? #f (a)) (unary emit-mutable-vector? a))
+        (#('immutable-vector? #f (a)) (unary emit-immutable-vector? a))
         (#('string? #f (a)) (unary emit-string? a))
         (#('heap-number? #f (a)) (unary emit-heap-number? a))
         (#('hash-table? #f (a)) (unary emit-hash-table? a))

@@ -113,6 +113,8 @@
             emit-symbol?
             emit-variable?
             emit-vector?
+            emit-mutable-vector?
+            emit-immutable-vector?
             emit-weak-vector?
             emit-string?
             emit-heap-number?
