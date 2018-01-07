@@ -2467,140 +2467,16 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       RETURN_EXP (scm_logxor (x, y));
     }
 
-  /* make-vector dst:8 length:8 init:8
-   *
-   * Make a vector and write it to DST.  The vector will have space for
-   * LENGTH slots.  They will be filled with the value in slot INIT.
-   */
-  VM_DEFINE_OP (99, make_vector, "make-vector", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (99, unused_99, NULL, NOP)
+  VM_DEFINE_OP (100, unused_100, NULL, NOP)
+  VM_DEFINE_OP (101, unused_101, NULL, NOP)
+  VM_DEFINE_OP (102, unused_102, NULL, NOP)
+  VM_DEFINE_OP (103, unused_103, NULL, NOP)
+  VM_DEFINE_OP (104, unused_104, NULL, NOP)
+  VM_DEFINE_OP (105, unused_105, NULL, NOP)
     {
-      scm_t_uint8 dst, length, init;
-      scm_t_uint64 length_val;
-
-      UNPACK_8_8_8 (op, dst, length, init);
-      length_val = SP_REF_U64 (length);
-      VM_VALIDATE_INDEX (length_val, (size_t) -1, "make-vector");
-
-      /* TODO: Inline this allocation.  */
-      SYNC_IP ();
-      SP_SET (dst, scm_c_make_vector (length_val, SP_REF (init)));
-
-      NEXT (1);
-    }
-
-  /* make-vector/immediate dst:8 length:8 init:8
-   *
-   * Make a short vector of known size and write it to DST.  The vector
-   * will have space for LENGTH slots, an immediate value.  They will be
-   * filled with the value in slot INIT.
-   */
-  VM_DEFINE_OP (100, make_vector_immediate, "make-vector/immediate", OP1 (X8_S8_C8_S8) | OP_DST)
-    {
-      scm_t_uint8 dst, init;
-      scm_t_int32 length, n;
-      SCM val, vector;
-
-      UNPACK_8_8_8 (op, dst, length, init);
-
-      val = SP_REF (init);
-      SYNC_IP ();
-      vector = scm_inline_words (thread, scm_tc7_vector | (length << 8),
-                                 length + 1);
-      for (n = 0; n < length; n++)
-        SCM_SIMPLE_VECTOR_SET (vector, n, val);
-      SP_SET (dst, vector);
-      NEXT (1);
-    }
-
-  /* vector-length dst:12 src:12
-   *
-   * Store the length of the vector in SRC in DST.
-   */
-  VM_DEFINE_OP (101, vector_length, "vector-length", OP1 (X8_S12_S12) | OP_DST)
-    {
-      ARGS1 (vect);
-      VM_VALIDATE_VECTOR (vect, "vector-length");
-      SP_SET_U64 (dst, SCM_I_VECTOR_LENGTH (vect));
-      NEXT (1);
-    }
-
-  /* vector-ref dst:8 src:8 idx:8
-   *
-   * Fetch the item at position IDX in the vector in SRC, and store it
-   * in DST.
-   */
-  VM_DEFINE_OP (102, vector_ref, "vector-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, idx;
-      SCM vect;
-      scm_t_uint64 c_idx;
-
-      UNPACK_8_8_8 (op, dst, src, idx);
-      vect = SP_REF (src);
-      c_idx = SP_REF_U64 (idx);
-
-      VM_VALIDATE_VECTOR (vect, "vector-ref");
-      VM_VALIDATE_INDEX (c_idx, SCM_I_VECTOR_LENGTH (vect), "vector-ref");
-      RETURN (SCM_I_VECTOR_ELTS (vect)[c_idx]);
-    }
-
-  /* vector-ref/immediate dst:8 src:8 idx:8
-   *
-   * Fill DST with the item IDX elements into the vector at SRC.  Useful
-   * for building data types using vectors.
-   */
-  VM_DEFINE_OP (103, vector_ref_immediate, "vector-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, idx;
-      SCM vect;
-      
-      UNPACK_8_8_8 (op, dst, src, idx);
-      vect = SP_REF (src);
-      VM_VALIDATE_VECTOR (vect, "vector-ref");
-      VM_VALIDATE_INDEX (idx, SCM_I_VECTOR_LENGTH (vect), "vector-ref");
-      SP_SET (dst, SCM_I_VECTOR_ELTS (vect)[idx]);
-      NEXT (1);
-    }
-
-  /* vector-set! dst:8 idx:8 src:8
-   *
-   * Store SRC into the vector DST at index IDX.
-   */
-  VM_DEFINE_OP (104, vector_set, "vector-set!", OP1 (X8_S8_S8_S8))
-    {
-      scm_t_uint8 dst, idx, src;
-      SCM vect, val;
-      scm_t_uint64 c_idx;
-
-      UNPACK_8_8_8 (op, dst, idx, src);
-      vect = SP_REF (dst);
-      c_idx = SP_REF_U64 (idx);
-      val = SP_REF (src);
-
-      VM_VALIDATE_MUTABLE_VECTOR (vect, "vector-set!");
-      VM_VALIDATE_INDEX (c_idx, SCM_I_VECTOR_LENGTH (vect), "vector-set!");
-      SCM_I_VECTOR_WELTS (vect)[c_idx] = val;
-      NEXT (1);
-    }
-
-  /* vector-set!/immediate dst:8 idx:8 src:8
-   *
-   * Store SRC into the vector DST at index IDX.  Here IDX is an
-   * immediate value.
-   */
-  VM_DEFINE_OP (105, vector_set_immediate, "vector-set!/immediate", OP1 (X8_S8_C8_S8))
-    {
-      scm_t_uint8 dst, idx, src;
-      SCM vect, val;
-
-      UNPACK_8_8_8 (op, dst, idx, src);
-      vect = SP_REF (dst);
-      val = SP_REF (src);
-
-      VM_VALIDATE_MUTABLE_VECTOR (vect, "vector-set!");
-      VM_VALIDATE_INDEX (idx, SCM_I_VECTOR_LENGTH (vect), "vector-set!");
-      SCM_I_VECTOR_WELTS (vect)[idx] = val;
-      NEXT (1);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2015, 2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -440,8 +440,6 @@ static void vm_error_not_a_atomic_box (const char *subr, SCM x) SCM_NORETURN SCM
 static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_mutable_bytevector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_struct (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_mutable_vector (const char *subr, SCM v) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_uint64 (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_out_of_range_int64 (const char *subr, scm_t_int64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_boxed_struct_field (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
@@ -605,18 +603,6 @@ static void
 vm_error_not_a_struct (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "struct");
-}
-
-static void
-vm_error_not_a_vector (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "vector");
-}
-
-static void
-vm_error_not_a_mutable_vector (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "mutable vector");
 }
 
 static void
