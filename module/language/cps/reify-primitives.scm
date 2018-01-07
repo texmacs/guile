@@ -368,7 +368,7 @@
                              (letv idx*)
                              (letk kop ($kargs ('idx) (idx*)
                                          ($continue k src
-                                           ($primcall op ann (obj idx*)))))
+                                           ($primcall op ann (obj idx* val)))))
                              (setk label ($kargs names vars
                                            ($continue kop src
                                              ($primcall 'load-u64 idx ()))))))))))
