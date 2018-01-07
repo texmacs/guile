@@ -345,6 +345,25 @@
         ($continue k src
           ($primcall 'scm-set!/immediate `(vector . ,pos) (v val)))))))
 
+(define (emit-initializations-as-loop cps k src obj annotation start nwords init)
+  (with-cps cps
+    (letv pos)
+    (letk kloop ,#f) ;; Patched later.
+    (letk kback
+          ($kargs () ()
+            ($continue kloop src
+              ($primcall 'uadd/immediate 1 (pos)))))
+    (letk kinit
+          ($kargs () ()
+            ($continue kback src
+              ($primcall 'scm-set! annotation (obj pos init)))))
+    (setk kloop
+          ($kargs ('pos) (pos)
+            ($branch k kinit src 'u64-< #f (pos nwords))))
+    (build-term
+      ($continue kloop src
+        ($primcall 'load-u64 start ())))))
+
 (define-primcall-converter allocate-vector
   (lambda (cps k src op param)
     (define size param)
@@ -374,26 +393,13 @@
      cps src op size 0 (target-max-vector-length)
      (lambda (cps ssize)
        (with-cps cps
-         (letv usize nwords v w0-high w0 pos)
-         (letk kloop ,#f) ;; Patched later.
+         (letv usize nwords v w0-high w0)
          (letk kdone
                ($kargs () ()
                  ($continue k src ($values (v)))))
-         (letk kback
-               ($kargs () ()
-                 ($continue kloop src
-                   ($primcall 'uadd/immediate 1 (pos)))))
-         (letk kinit
-               ($kargs () ()
-                 ($continue kback src
-                   ($primcall 'scm-set! 'vector (v pos init)))))
-         (setk kloop
-               ($kargs ('pos) (pos)
-                 ($branch kinit kdone src 'u64-< #f (usize pos))))
-         (letk kbody
-               ($kargs () ()
-                 ($continue kloop src
-                   ($primcall 'load-u64 1 ()))))
+         (let$ init-loop
+               (emit-initializations-as-loop kdone src v 'vector 1 nwords init))
+         (letk kbody ($kargs () () ,init-loop))
          (letk ktag2
                ($kargs ('w0) (w0)
                  ($continue kbody src
@@ -425,17 +431,32 @@
     (define size param)
     (define nwords (1+ size))
     (define (init-fields cps v pos kdone)
-      (if (< pos nwords)
-          (with-cps cps
-            (let$ knext (init-fields v (1+ pos) kdone))
-            (letk kinit
-                  ($kargs () ()
-                    ($continue knext src
-                      ($primcall 'scm-set!/immediate `(vector . ,pos)
-                                 (v init)))))
-            kinit)
-          (with-cps cps
-            kdone)))
+      ;; Inline the initializations, up to vectors of size 32.  Above
+      ;; that it's a bit of a waste, so reify a loop instead.
+      (cond
+       ((<= 32 nwords)
+        (with-cps cps
+          (letv unwords)
+          (let$ init-loop
+                (emit-initializations-as-loop kdone src v 'vector
+                                              pos unwords init))
+          (letk kinit ($kargs ('unwords) (unwords) ,init-loop))
+          (letk kusize ($kargs () ()
+                         ($continue kinit src
+                           ($primcall 'load-u64 nwords ()))))
+          kusize))
+       ((< pos nwords)
+        (with-cps cps
+          (let$ knext (init-fields v (1+ pos) kdone))
+          (letk kinit
+                ($kargs () ()
+                  ($continue knext src
+                    ($primcall 'scm-set!/immediate `(vector . ,pos)
+                               (v init)))))
+          kinit))
+       (else
+        (with-cps cps
+          kdone))))
     (unless (and (exact-integer? size) (<= 0 size (target-max-vector-length)))
       (error "precondition failed" size))
     (with-cps cps
