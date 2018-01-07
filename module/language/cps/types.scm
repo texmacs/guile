@@ -101,7 +101,8 @@
             &pointer
             &fluid
             &pair
-            &vector
+            &immutable-vector
+            &mutable-vector
             &box
             &struct
             &string
@@ -115,7 +116,7 @@
             &null &nil &false &true &unspecified &undefined &eof
 
             ;; Union types.
-            &exact-integer &exact-number &real &number
+            &exact-integer &exact-number &real &number &vector
 
             ;; Untagged types.
             &f64
@@ -161,7 +162,8 @@
   &pointer
   &fluid
   &pair
-  &vector
+  &immutable-vector
+  &mutable-vector
   &box
   &struct
   &string
@@ -195,6 +197,9 @@
   (identifier-syntax (logior &fixnum &bignum &flonum &fraction)))
 (define-syntax &number
   (identifier-syntax (logior &fixnum &bignum &flonum &complex &fraction)))
+
+(define-syntax &vector
+  (identifier-syntax (logior &immutable-vector &mutable-vector)))
 
 (define-syntax-rule (type<=? x type)
   (zero? (logand x (lognot type))))
@@ -366,7 +371,7 @@ minimum, and maximum."
    ((symbol? val) (return &symbol #f))
    ((keyword? val) (return &keyword #f))
    ((pair? val) (return &pair #f))
-   ((vector? val) (return &vector (vector-length val)))
+   ((vector? val) (return &immutable-vector (vector-length val)))
    ((string? val) (return &string (string-length val)))
    ((bytevector? val) (return &bytevector (bytevector-length val)))
    ((bitvector? val) (return &bitvector (bitvector-length val)))
@@ -666,7 +671,8 @@ minimum, and maximum."
 (define-simple-predicate-inferrer pair? &pair)
 (define-simple-predicate-inferrer symbol? &symbol)
 (define-simple-predicate-inferrer variable? &box)
-(define-simple-predicate-inferrer vector? &vector)
+(define-simple-predicate-inferrer immutable-vector? &immutable-vector)
+(define-simple-predicate-inferrer mutable-vector? &mutable-vector)
 (define-simple-predicate-inferrer struct? &struct)
 (define-simple-predicate-inferrer string? &string)
 (define-simple-predicate-inferrer bytevector? &bytevector)
@@ -678,6 +684,10 @@ minimum, and maximum."
 (define-simple-predicate-inferrer flonum? &flonum)
 (define-simple-predicate-inferrer compnum? &complex)
 (define-simple-predicate-inferrer fracnum? &fraction)
+
+(define-predicate-inferrer (vector? val true?)
+  (define &not-vector (logand &all-types (lognot &vector)))
+  (restrict! val (if true? &vector &not-vector) -inf.0 +inf.0))
 
 (define-predicate-inferrer (eq? a b true?)
   ;; We can only propagate information down the true leg.

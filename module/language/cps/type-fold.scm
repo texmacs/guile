@@ -114,11 +114,18 @@
 (define-unary-type-predicate-folder pair? &pair)
 (define-unary-type-predicate-folder symbol? &symbol)
 (define-unary-type-predicate-folder variable? &box)
-(define-unary-type-predicate-folder vector? &vector)
+(define-unary-type-predicate-folder mutable-vector? &mutable-vector)
+(define-unary-type-predicate-folder immutable-vector? &immutable-vector)
 (define-unary-type-predicate-folder struct? &struct)
 (define-unary-type-predicate-folder string? &string)
 (define-unary-type-predicate-folder number? &number)
 (define-unary-type-predicate-folder char? &char)
+
+(define-unary-branch-folder (vector? type min max)
+  (cond
+   ((zero? (logand type &vector)) (values #t #f))
+   ((type<=? type &vector) (values #t #t))
+   (else (values #f #f))))
 
 (define-binary-branch-folder (eq? type0 min0 max0 type1 min1 max1)
   (cond
