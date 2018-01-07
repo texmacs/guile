@@ -834,56 +834,6 @@ minimum, and maximum."
 
 
 ;;;
-;;; Vectors.
-;;;
-
-(define-syntax-rule (&max/vector x)
-  (min (&max x) (target-max-vector-length)))
-
-(define-simple-type-checker (make-vector (&u64 0 (target-max-vector-length))
-                                         &all-types))
-(define-type-inferrer (make-vector size init result)
-  (restrict! size &u64 0 (target-max-vector-length))
-  (define! result &vector (&min/0 size) (&max/vector size)))
-
-(define-type-checker (vector-ref v idx)
-  (and (check-type v &vector 0 (target-max-vector-length))
-       (check-type idx &u64 0 (1- (&min v)))))
-(define-type-inferrer (vector-ref v idx result)
-  (restrict! v &vector (1+ (&min/0 idx)) (target-max-vector-length))
-  (restrict! idx &u64 0 (1- (&max/vector v)))
-  (define! result &all-types -inf.0 +inf.0))
-
-(define-type-checker (vector-set! v idx val)
-  (and (check-type v &vector 0 (target-max-vector-length))
-       (check-type idx &u64 0 (1- (&min v)))))
-(define-type-inferrer (vector-set! v idx val)
-  (restrict! v &vector (1+ (&min/0 idx)) (target-max-vector-length))
-  (restrict! idx &u64 0 (1- (&max/vector v))))
-
-(define-type-inferrer/param (make-vector/immediate size init result)
-  (define! result &vector size size))
-
-(define-type-checker/param (vector-ref/immediate idx v)
-  (and (check-type v &vector 0 (target-max-vector-length)) (< idx (&min v))))
-(define-type-inferrer/param (vector-ref/immediate idx v result)
-  (restrict! v &vector (1+ idx) (target-max-vector-length))
-  (define! result &all-types -inf.0 +inf.0))
-
-(define-type-checker/param (vector-set!/immediate idx v val)
-  (and (check-type v &vector 0 (target-max-vector-length)) (< idx (&min v))))
-(define-type-inferrer/param (vector-set!/immediate idx v val)
-  (restrict! v &vector (1+ idx) (target-max-vector-length)))
-
-(define-simple-type-checker (vector-length &vector))
-(define-type-inferrer (vector-length v result)
-  (restrict! v &vector 0 (target-max-vector-length))
-  (define! result &u64 (&min/0 v) (&max/vector v)))
-
-
-
-
-;;;
 ;;; Structs.
 ;;;
 

@@ -310,9 +310,6 @@
             ((sub/immediate (u8? y) x) (sub x y))
             (_
              (reify-u64-constants
-              ((make-vector/immediate (u8? size) init) (make-vector size init))
-              ((vector-ref/immediate (u8? idx) v) (vector-ref v idx))
-              ((vector-set!/immediate (u8? idx) v val) (vector-set! v idx val))
               ((allocate-struct/immediate (u8? size) vt) (allocate-struct vt size))
               ((struct-ref/immediate (u8? idx) s) (struct-ref s idx))
               ((struct-set!/immediate (u8? idx) s val) (struct-set! s idx val))

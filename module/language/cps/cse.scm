@@ -263,10 +263,6 @@ false.  It could be that both true and false proofs are available."
 
            ((set-car! #f o x)                (x <- car #f o))
            ((set-cdr! #f o y)                (y <- cdr #f o))
-           ;; FIXME: how to propagate make-vector/immediate -> vector-length?
-           ((v <- make-vector #f n x)        (n <- vector-length #f v))
-           ((vector-set! #f v i x)           (x <- vector-ref #f v i))
-           ((vector-set!/immediate i v x)    (x <- vector-ref/immediate i v))
            ((s <- allocate-struct #f v n)    (v <- struct-vtable #f s))
            ((s <- allocate-struct/immediate n v) (v <- struct-vtable #f s))
            ((struct-set! #f s i x)           (x <- struct-ref #f s i))

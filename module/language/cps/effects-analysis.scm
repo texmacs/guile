@@ -402,17 +402,6 @@ the LABELS that are clobbered by the effects of LABEL."
   ((box-ref v)                     (&read-object &box)         &type-check)
   ((box-set! v x)                  (&write-object &box)        &type-check))
 
-;; Vectors.
-(define-primitive-effects* param
-  ((vector . _)                    (&allocate &vector))
-  ((make-vector n init)            (&allocate &vector))
-  ((make-vector/immediate init)    (&allocate &vector))
-  ((vector-ref v n)                (&read-object &vector)      &type-check)
-  ((vector-ref/immediate v)        (&read-field &vector param) &type-check)
-  ((vector-set! v n x)             (&write-object &vector)     &type-check)
-  ((vector-set!/immediate v x)     (&write-field &vector param) &type-check)
-  ((vector-length v)                                           &type-check))
-
 ;; Structs.
 (define-primitive-effects* param
   ((allocate-struct vt n)          (&allocate &struct)         &type-check)

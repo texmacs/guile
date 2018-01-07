@@ -188,8 +188,7 @@ sites."
            (and (causes-effect? fx &write)
                 (match exp
                   (($ $primcall
-                      (or 'vector-set! 'vector-set!/immediate
-                          'set-car! 'set-cdr!
+                      (or 'set-car! 'set-cdr!
                           'box-set!
                           'scm-set! 'scm-set!/tag 'scm-set!/immediate
                           'word-set! 'word-set!/immediate) _

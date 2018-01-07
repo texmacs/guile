@@ -35,6 +35,7 @@
                                         filter-map
                                         ))
   #:use-module (srfi srfi-11)
+  #:use-module (system base types internal)
   #:use-module (language cps)
   #:use-module (language cps utils)
   #:use-module (language cps with-cps)
@@ -536,10 +537,20 @@ term."
          (unless (> nfree 2)
            (error "unexpected well-known nullary, unary, or binary closure"))
          (with-cps cps
-           ($ (with-cps-constants ((false #f))
-                (build-term
-                  ($continue k src
-                    ($primcall 'make-vector/immediate nfree (false))))))))))
+           (letv v w0)
+           (letk k* ($kargs () () ($continue k src ($values (v)))))
+           (letk ktag1
+                 ($kargs ('w0) (w0)
+                   ($continue k* src
+                     ($primcall 'word-set!/immediate '(vector . 0) (v w0)))))
+           (letk ktag0
+                 ($kargs ('v) (v)
+                   ($continue ktag1 src
+                     ($primcall 'load-u64 (+ %tc7-vector (ash nfree 8)) ()))))
+           (build-term
+             ($continue ktag0 src
+               ($primcall 'allocate-words/immediate `(vector . ,(1+ nfree))
+                          ())))))))
 
     (define (init-closure cps k src var known? free)
       "Initialize the free variables @var{closure-free} in a closure

@@ -1,6 +1,6 @@
 ;;; Guile bytecode assembler
 
-;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -243,13 +243,6 @@
             emit-ulsh/immediate
             emit-char->integer
             emit-integer->char
-            emit-make-vector
-            emit-make-vector/immediate
-            emit-vector-length
-            emit-vector-ref
-            emit-vector-ref/immediate
-            emit-vector-set!
-            emit-vector-set!/immediate
             emit-struct-vtable
             emit-allocate-struct/immediate
             emit-struct-ref/immediate

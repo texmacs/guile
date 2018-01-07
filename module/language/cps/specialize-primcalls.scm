@@ -121,9 +121,6 @@
           ...
           (_ #f)))
       (specialize-case
-        (('make-vector (? uint? n) init) (make-vector/immediate n (init)))
-        (('vector-ref v (? uint? n)) (vector-ref/immediate n (v)))
-        (('vector-set! v (? uint? n) x) (vector-set!/immediate n (v x)))
         (('allocate-struct v (? uint? n)) (allocate-struct/immediate n (v)))
         (('struct-ref s (? uint? n)) (struct-ref/immediate n (s)))
         (('struct-set! s (? uint? n) x) (struct-set!/immediate n (s x)))
