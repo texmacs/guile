@@ -238,6 +238,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
   struct scm_frame c_frame;
   scm_t_cell *frame;
   int saved_trace_level;
+  scm_t_uint8 saved_compare_result;
 
   hook = vp->hooks[hook_num];
 
@@ -247,6 +248,8 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
 
   saved_trace_level = vp->trace_level;
   vp->trace_level = 0;
+
+  saved_compare_result = vp->compare_result;
 
   /* Allocate a frame object on the stack.  This is more efficient than calling
      `scm_c_make_frame ()' to allocate on the heap, but it forces hooks to not
@@ -293,6 +296,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
       scm_c_run_hook (hook, scm_cons (SCM_PACK_POINTER (frame), args));
     }
 
+  vp->compare_result = saved_compare_result;
   vp->trace_level = saved_trace_level;
 }
 
