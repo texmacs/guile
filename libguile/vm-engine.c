@@ -1646,6 +1646,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_24 (ip[2], nfree);
 
       // FIXME: Assert range of nfree?
+      SYNC_IP ();
       closure = scm_inline_words (thread, scm_tc7_program | (nfree << 16),
                                   nfree + 2);
       SCM_SET_CELL_WORD_1 (closure, ip + offset);
