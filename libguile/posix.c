@@ -1956,9 +1956,12 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   c_ret = crypt (c_key, c_salt);
 
   if (c_ret == NULL)
-    /* Note: Do not throw until we've released 'scm_i_misc_mutex' since
-       this would cause a deadlock down the path.  */
-    err = errno;
+    {
+      /* Note: Do not throw until we've released 'scm_i_misc_mutex'
+	 since this would cause a deadlock down the path.  */
+      err = errno;
+      ret = SCM_BOOL_F;
+    }
   else
     {
       err = 0;
@@ -1967,7 +1970,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 
   scm_dynwind_end ();
 
-  if (err != 0)
+  if (scm_is_false (ret))
     {
       errno = err;
       SCM_SYSERROR;
