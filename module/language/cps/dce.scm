@@ -188,8 +188,7 @@ sites."
            (and (causes-effect? fx &write)
                 (match exp
                   (($ $primcall
-                      (or 'box-set!
-                          'scm-set! 'scm-set!/tag 'scm-set!/immediate
+                      (or 'scm-set! 'scm-set!/tag 'scm-set!/immediate
                           'word-set! 'word-set!/immediate) _
                       (obj . _))
                    (or (var-live? obj live-vars)

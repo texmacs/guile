@@ -316,8 +316,6 @@
         (($ $primcall 'free-set! idx (closure value))
          (emit-free-set! asm (from-sp (slot closure)) (from-sp (slot value))
                          idx))
-        (($ $primcall 'box-set! #f (box value))
-         (emit-box-set! asm (from-sp (slot box)) (from-sp (slot value))))
         (($ $primcall 'struct-set! #f (struct index value))
          (emit-struct-set! asm (from-sp (slot struct)) (from-sp (slot index))
                            (from-sp (slot value))))

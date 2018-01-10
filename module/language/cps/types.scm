@@ -808,28 +808,6 @@ minimum, and maximum."
 
 
 ;;;
-;;; Prompts.  (Nothing to do.)
-;;;
-
-
-
-
-;;;
-;;; Variables.
-;;;
-
-(define-simple-types
-  ((box &all-types) (&box 1))
-  ((box-ref (&box 1)) &all-types))
-
-(define-simple-type-checker (box-set! (&box 0 1) &all-types))
-(define-type-inferrer (box-set! box val)
-  (restrict! box &box 1 1))
-
-
-
-
-;;;
 ;;; Structs.
 ;;;
 

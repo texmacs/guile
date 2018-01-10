@@ -381,12 +381,6 @@ the LABELS that are clobbered by the effects of LABEL."
                                       (&write-field
                                        (annotation->memory-kind ann) idx)))))
 
-;; Variables.
-(define-primitive-effects
-  ((box v)                         (&allocate &box))
-  ((box-ref v)                     (&read-object &box)         &type-check)
-  ((box-set! v x)                  (&write-object &box)        &type-check))
-
 ;; Structs.
 (define-primitive-effects* param
   ((allocate-struct vt n)          (&allocate &struct)         &type-check)

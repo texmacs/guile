@@ -553,6 +553,69 @@
            ($continue k src
              ($primcall 'scm-set!/immediate '(pair . 1) (pair val)))))))))
 
+(define-primcall-converter box
+  (lambda (cps k src op param val)
+    (with-cps cps
+      (letv obj tag)
+      (letk kdone
+            ($kargs () ()
+              ($continue k src ($values (obj)))))
+      (letk kval
+            ($kargs () ()
+              ($continue kdone src
+                ($primcall 'scm-set!/immediate '(box . 1) (obj val)))))
+      (letk ktag1
+            ($kargs ('tag) (tag)
+              ($continue kval src
+                ($primcall 'word-set!/immediate '(box . 0) (obj tag)))))
+      (letk ktag0
+            ($kargs ('obj) (obj)
+              ($continue ktag1 src
+                ($primcall 'load-u64 %tc7-variable ()))))
+      (build-term
+        ($continue ktag0 src
+          ($primcall 'allocate-words/immediate '(box . 2) ()))))))
+
+(define (ensure-box cps src op x is-box)
+  (define not-box
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 1 (expecting box): ~S"))
+  (with-cps cps
+    (letk knot-box ($kargs () () ($throw src 'throw/value+data not-box (x))))
+    (let$ body (is-box))
+    (letk k ($kargs () () ,body))
+    (letk kheap-object ($kargs () () ($branch knot-box k src 'variable? #f (x))))
+    (build-term ($branch knot-box kheap-object src 'heap-object? #f (x)))))
+
+(define-primcall-converter box-ref
+  (lambda (cps k src op param box)
+    (define unbound
+      #(misc-error "variable-ref" "Unbound variable: ~S"))
+    (ensure-box
+     cps src 'variable-ref box
+     (lambda (cps)
+       (with-cps cps
+         (letv val)
+         (letk kunbound ($kargs () () ($throw src 'throw/value unbound (box))))
+         (letk kbound ($kargs () () ($continue k src ($values (val)))))
+         (letk ktest
+               ($kargs ('val) (val)
+                 ($branch kbound kunbound src 'undefined? #f (val))))
+         (build-term
+           ($continue ktest src
+             ($primcall 'scm-ref/immediate '(box . 1) (box)))))))))
+
+(define-primcall-converter box-set!
+  (lambda (cps k src op param box val)
+    (ensure-box
+     cps src 'variable-set! box
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-set!/immediate '(box . 1) (box val)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)

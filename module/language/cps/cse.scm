@@ -251,9 +251,6 @@ false.  It could be that both true and false proofs are available."
                   (add-def! (list 'op* arg* ...) aux) ...)
                  (_ (add-definitions . clauses))))))
           (add-definitions
-           ((b <- box #f o)                  (o <- box-ref #f b))
-           ((box-set! #f b o)                (o <- box-ref #f b))
-
            ((scm-set! p s i x)               (x <- scm-ref p s i))
            ((scm-set!/tag p s x)             (x <- scm-ref/tag p s))
            ((scm-set!/immediate p s x)       (x <- scm-ref/immediate p s))
