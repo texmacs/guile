@@ -429,7 +429,6 @@ static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_unbound (SCM sym) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_variable (const char *func_name, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_missing_value (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN SCM_NOINLINE;
@@ -506,13 +505,6 @@ vm_error_unbound (SCM sym)
   scm_error_scm (scm_misc_error_key, SCM_BOOL_F,
                  scm_from_latin1_string ("Unbound variable: ~s"),
                  scm_list_1 (sym), SCM_BOOL_F);
-}
-
-static void
-vm_error_not_a_variable (const char *func_name, SCM x)
-{
-  scm_error (scm_arg_type_key, func_name, "Not a variable: ~S",
-             scm_list_1 (x), scm_list_1 (x));
 }
 
 static void

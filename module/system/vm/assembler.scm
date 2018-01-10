@@ -173,9 +173,6 @@
             emit-assert-nargs-ee/locals
             emit-bind-kwargs
             emit-bind-rest
-            emit-box
-            emit-box-ref
-            emit-box-set!
             emit-make-closure
             emit-free-ref
             emit-free-set!

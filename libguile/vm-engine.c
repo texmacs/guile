@@ -1488,50 +1488,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  /* box dst:12 src:12
-   *
-   * Create a new variable holding SRC, and place it in DST.
-   */
-  VM_DEFINE_OP (51, box, "box", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (51, unused_51, NULL, NOP)
+  VM_DEFINE_OP (52, unused_52, NULL, NOP)
+  VM_DEFINE_OP (53, unused_53, NULL, NOP)
     {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst, scm_inline_cell (thread, scm_tc7_variable,
-                                       SCM_UNPACK (SP_REF (src))));
-      NEXT (1);
-    }
-
-  /* box-ref dst:12 src:12
-   *
-   * Unpack the variable at SRC into DST, asserting that the variable is
-   * actually bound.
-   */
-  VM_DEFINE_OP (52, box_ref, "box-ref", OP1 (X8_S12_S12) | OP_DST)
-    {
-      scm_t_uint16 dst, src;
-      SCM var;
-      UNPACK_12_12 (op, dst, src);
-      var = SP_REF (src);
-      VM_VALIDATE_VARIABLE (var, "variable-ref");
-      VM_ASSERT (VARIABLE_BOUNDP (var), vm_error_unbound (var));
-      SP_SET (dst, VARIABLE_REF (var));
-      NEXT (1);
-    }
-
-  /* box-set! dst:12 src:12
-   *
-   * Set the contents of the variable at DST to SET.
-   */
-  VM_DEFINE_OP (53, box_set, "box-set!", OP1 (X8_S12_S12))
-    {
-      scm_t_uint16 dst, src;
-      SCM var;
-      UNPACK_12_12 (op, dst, src);
-      var = SP_REF (dst);
-      VM_VALIDATE_VARIABLE (var, "variable-set!");
-      VARIABLE_SET (var, SP_REF (src));
-      NEXT (1);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* make-closure dst:24 offset:32 _:8 nfree:24
