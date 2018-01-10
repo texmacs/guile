@@ -728,7 +728,8 @@ minimum, and maximum."
     ('pair &pair)
     ('vector &vector)
     ('box &box)
-    ('closure &procedure)))
+    ('closure &procedure)
+    ('struct &struct)))
 
 (define-type-inferrer/param (allocate-words param size result)
   (define! result (annotation->type param) (&min/0 size) (&max/scm-size size)))
@@ -749,8 +750,11 @@ minimum, and maximum."
      (restrict! obj (annotation->type annotation) (1+ idx) +inf.0)
      (define! result &all-types -inf.0 +inf.0))))
 
-(define-simple-type-inferrer (scm-ref/tag &pair) &all-types)
-(define-simple-type-inferrer (scm-set!/tag &pair &all-types))
+(define-type-inferrer/param (scm-ref/tag param obj result)
+  (restrict! obj (annotation->type param) -inf.0 +inf.0)
+  (define! result &all-types -inf.0 +inf.0))
+(define-type-inferrer/param (scm-set!/tag param obj val)
+  (restrict! obj (annotation->type param) -inf.0 +inf.0))
 
 (define-type-inferrer/param (scm-set! param obj idx val)
   (restrict! obj (annotation->type param) (1+ (&min/0 idx)) +inf.0))

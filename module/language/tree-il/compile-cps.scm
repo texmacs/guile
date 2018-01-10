@@ -616,6 +616,32 @@
            ($continue k src
              ($primcall 'scm-set!/immediate '(box . 1) (box val)))))))))
 
+(define (ensure-struct cps src op x have-vtable)
+  (define not-struct
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 1 (expecting struct): ~S"))
+  (with-cps cps
+    (letv vtable)
+    (letk knot-struct
+          ($kargs () () ($throw src 'throw/value+data not-struct (x))))
+    (let$ body (have-vtable vtable))
+    (letk k ($kargs ('vtable) (vtable) ,body))
+    (letk kvtable ($kargs () ()
+                    ($continue k src ($primcall 'scm-ref/tag 'struct (x)))))
+    (letk kheap-object
+          ($kargs () () ($branch knot-struct kvtable src 'struct? #f (x))))
+    (build-term ($branch knot-struct kheap-object src 'heap-object? #f (x)))))
+
+(define-primcall-converter struct-vtable
+  (lambda (cps k src op param struct)
+    (ensure-struct
+     cps src 'struct-vtable struct
+     (lambda (cps vtable)
+       (with-cps cps
+         (build-term
+           ($continue k src ($values (vtable)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
