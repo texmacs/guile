@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
  *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2016, 2017 Free Software Foundation, Inc.
+ *   2014, 2016, 2017, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1955,9 +1955,12 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   c_ret = crypt (c_key, c_salt);
 
   if (c_ret == NULL)
-    /* Note: Do not throw until we've released 'scm_i_misc_mutex' since
-       this would cause a deadlock down the path.  */
-    err = errno;
+    {
+      /* Note: Do not throw until we've released 'scm_i_misc_mutex'
+	 since this would cause a deadlock down the path.  */
+      err = errno;
+      ret = SCM_BOOL_F;
+    }
   else
     {
       err = 0;
@@ -1966,7 +1969,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 
   scm_dynwind_end ();
 
-  if (err != 0)
+  if (scm_is_false (ret))
     {
       errno = err;
       SCM_SYSERROR;
