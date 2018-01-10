@@ -765,6 +765,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                'srsh 'srsh/immediate
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
               (intmap-add representations var 's64))
+             (($ $primcall (or 'gc-pointer-ref/immediate))
+              (intmap-add representations var 'gcptr))
              (_
               (intmap-add representations var 'scm))))
           (vars

@@ -127,6 +127,8 @@
         (('allocate-words (? uint? n)) (allocate-words/immediate n ()))
         (('scm-ref o (? uint? i)) (scm-ref/immediate i (o)))
         (('scm-set! o (? uint? i) x) (scm-set!/immediate i (o x)))
+        ;; Assume gc-pointer-ref/immediate can always be emitted
+        ;; directly.
         (('word-ref o (? uint? i)) (word-ref/immediate i (o)))
         (('word-set! o (? uint? i) x) (word-set!/immediate i (o x)))
         (('add x (? num? y)) (add/immediate y (x)))

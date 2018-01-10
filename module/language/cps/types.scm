@@ -783,6 +783,17 @@ minimum, and maximum."
     ((annotation . idx)
      (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
 
+(define-type-inferrer/param (gc-pointer-ref/immediate param obj result)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0)
+     (define! result &other-heap-object -inf.0 +inf.0))))
+
+(define-type-inferrer/param (gc-pointer-set!/immediate param obj word)
+  (match param
+    ((annotation . idx)
+     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
+
 
 
 ;;;

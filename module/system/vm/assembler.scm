@@ -155,6 +155,9 @@
             emit-word-ref/immediate
             emit-word-set!/immediate
 
+            emit-gc-pointer-ref/immediate
+            emit-gc-pointer-set!/immediate
+
             emit-call
             emit-call-label
             emit-tail-call

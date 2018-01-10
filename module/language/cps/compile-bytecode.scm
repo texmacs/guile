@@ -170,6 +170,8 @@
                        (from-sp (slot idx))))
         (($ $primcall 'word-ref/immediate (annotation . idx) (obj))
          (emit-word-ref/immediate asm (from-sp dst) (from-sp (slot obj)) idx))
+        (($ $primcall 'gc-pointer-ref/immediate (annotation . idx) (obj))
+         (emit-gc-pointer-ref/immediate asm (from-sp dst) (from-sp (slot obj)) idx))
         (($ $primcall 'struct-ref/immediate idx (struct))
          (emit-struct-ref/immediate asm (from-sp dst) (from-sp (slot struct))
                                     idx))
@@ -313,6 +315,9 @@
         (($ $primcall 'word-set!/immediate (annotation . idx) (obj val))
          (emit-word-set!/immediate asm (from-sp (slot obj)) idx
                                    (from-sp (slot val))))
+        (($ $primcall 'gc-pointer-set!/immediate (annotation . idx) (obj val))
+         (emit-gc-pointer-set!/immediate asm (from-sp (slot obj)) idx
+                                         (from-sp (slot val))))
         (($ $primcall 'free-set! idx (closure value))
          (emit-free-set! asm (from-sp (slot closure)) (from-sp (slot value))
                          idx))

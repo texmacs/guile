@@ -380,6 +380,15 @@ the LABELS that are clobbered by the effects of LABEL."
   ((word-set!/immediate obj val)   (match param
                                      ((ann . idx)
                                       (&write-field
+                                       (annotation->memory-kind ann) idx))))
+  ((gc-pointer-ref/immediate obj)  (match param
+                                     ((ann . idx)
+                                      (&read-field
+                                       (annotation->memory-kind ann) idx))))
+  ((gc-pointer-set!/immediate obj val)
+                                   (match param
+                                     ((ann . idx)
+                                      (&write-field
                                        (annotation->memory-kind ann) idx)))))
 
 ;; Structs.
