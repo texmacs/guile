@@ -970,7 +970,7 @@ enum slot_desc
   {
     SLOT_DESC_DEAD = 0,
     SLOT_DESC_LIVE_RAW = 1,
-    SLOT_DESC_LIVE_SCM = 2,
+    SLOT_DESC_LIVE_GC = 2,
     SLOT_DESC_UNUSED = 3
   };
 
@@ -1000,7 +1000,7 @@ scm_i_vm_mark_stack (struct scm_vm *vp, struct GC_ms_entry *mark_stack_ptr,
       size_t slot = nlocals - 1;
       for (slot = nlocals - 1; sp < fp; sp++, slot--)
         {
-          enum slot_desc desc = SLOT_DESC_LIVE_SCM;
+          enum slot_desc desc = SLOT_DESC_LIVE_GC;
 
           if (slot_map)
             desc = (slot_map[slot / 4U] >> ((slot % 4U) * 2)) & 3U;
@@ -1010,7 +1010,7 @@ scm_i_vm_mark_stack (struct scm_vm *vp, struct GC_ms_entry *mark_stack_ptr,
             case SLOT_DESC_LIVE_RAW:
               break;
             case SLOT_DESC_UNUSED:
-            case SLOT_DESC_LIVE_SCM:
+            case SLOT_DESC_LIVE_GC:
               if (SCM_NIMP (sp->as_scm) &&
                   sp->as_ptr >= lower && sp->as_ptr <= upper)
                 mark_stack_ptr = GC_mark_and_push (sp->as_ptr,

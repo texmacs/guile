@@ -1,6 +1,6 @@
 ;;; Guile runtime debug information
 
-;;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2013, 2014, 2015, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -382,12 +382,13 @@ section of the ELF image.  Returns an ELF symbol, or @code{#f}."
              (lambda (def-offset pos)
                (call-with-values (lambda () (read-uleb128 bv pos))
                  (lambda (slot+representation pos)
-                   (let ((slot (ash slot+representation -2))
-                         (representation (case (logand slot+representation #x3)
+                   (let ((slot (ash slot+representation -3))
+                         (representation (case (logand slot+representation #x7)
                                            ((0) 'scm)
                                            ((1) 'f64)
                                            ((2) 'u64)
                                            ((3) 's64)
+                                           ((4) 'gcptr)
                                            (else 'unknown))))
                      (cons (vector name def-offset slot representation)
                            (lp pos names)))))))))))

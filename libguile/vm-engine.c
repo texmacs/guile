@@ -269,6 +269,9 @@
 #define SP_REF_S64(i)		(sp[i].as_s64)
 #define SP_SET_S64(i,o)		(sp[i].as_s64 = o)
 
+#define SP_REF_PTR(i)		(sp[i].as_ptr)
+#define SP_SET_PTR(i,o)		(sp[i].as_ptr = o)
+
 #define VARIABLE_REF(v)		SCM_VARIABLE_REF (v)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (!scm_is_eq (VARIABLE_REF (v), SCM_UNDEFINED))
@@ -1418,8 +1421,28 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (45, unused_45, NULL, NOP)
-  VM_DEFINE_OP (46, unused_46, NULL, NOP)
+  VM_DEFINE_OP (45, gc_pointer_ref_immediate, "gc-pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET_PTR (dst, (void*) SCM_CELL_WORD (SP_REF (obj), idx));
+
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (46, gc_pointer_set_immediate, "gc-pointer-set!/immediate", OP1 (X8_S8_C8_S8))
+    {
+      scm_t_uint8 obj, idx, val;
+
+      UNPACK_8_8_8 (op, obj, idx, val);
+
+      SCM_SET_CELL_WORD (SP_REF (obj), idx, (scm_t_uintptr) SP_REF_PTR (val));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (47, unused_47, NULL, NOP)
     {
       vm_error_bad_instruction (op);

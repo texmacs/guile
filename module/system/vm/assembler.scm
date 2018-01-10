@@ -2128,8 +2128,9 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
                         ((f64) 1)
                         ((u64) 2)
                         ((s64) 3)
+                        ((gc-ptr) 4)
                         (else (error "what!" representation)))))
-             (put-uleb128 names-port (logior (ash slot 2) tag)))
+             (put-uleb128 names-port (logior (ash slot 3) tag)))
            (lp definitions))))))
   (let lp ((metas metas) (pos arities-prefix-len) (relocs '()))
     (match metas
