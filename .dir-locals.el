@@ -2,7 +2,8 @@
 
 ((nil             . ((fill-column . 72)
                      (tab-width   .  8)))
- (c-mode          . ((c-file-style . "gnu")))
+ (c-mode          . ((c-file-style . "gnu")
+                     (indent-tabs-mode . nil)))
  (scheme-mode
   . ((indent-tabs-mode . nil)
      (eval . (put 'pass-if             'scheme-indent-function 1))
