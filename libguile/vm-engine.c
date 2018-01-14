@@ -4059,26 +4059,80 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (223, unused_223, NULL, NOP)
-  VM_DEFINE_OP (224, unused_224, NULL, NOP)
-  VM_DEFINE_OP (225, unused_225, NULL, NOP)
-  VM_DEFINE_OP (226, unused_226, NULL, NOP)
-  VM_DEFINE_OP (227, unused_227, NULL, NOP)
-  VM_DEFINE_OP (228, unused_228, NULL, NOP)
-  VM_DEFINE_OP (229, unused_229, NULL, NOP)
-  VM_DEFINE_OP (230, unused_230, NULL, NOP)
-  VM_DEFINE_OP (231, unused_231, NULL, NOP)
-  VM_DEFINE_OP (232, unused_232, NULL, NOP)
-  VM_DEFINE_OP (233, unused_233, NULL, NOP)
-  VM_DEFINE_OP (234, unused_234, NULL, NOP)
-  VM_DEFINE_OP (235, unused_235, NULL, NOP)
-  VM_DEFINE_OP (236, unused_236, NULL, NOP)
-  VM_DEFINE_OP (237, unused_237, NULL, NOP)
-  VM_DEFINE_OP (238, unused_238, NULL, NOP)
-  VM_DEFINE_OP (239, unused_239, NULL, NOP)
-  VM_DEFINE_OP (240, unused_240, NULL, NOP)
-  VM_DEFINE_OP (241, unused_241, NULL, NOP)
-  VM_DEFINE_OP (242, unused_242, NULL, NOP)
+#define PTR_REF(type, slot)                                             \
+  do {                                                                  \
+    scm_t_uint8 dst, a, b;                                              \
+    char *ptr;                                                          \
+    size_t idx;                                                         \
+    type val;                                                           \
+    UNPACK_8_8_8 (op, dst, a, b);                                       \
+    ptr = SP_REF_PTR (a);                                               \
+    idx = SP_REF_U64 (b);                                               \
+    memcpy (&val, ptr + idx, sizeof (val));                             \
+    SP_SET_ ## slot (dst, val);                                         \
+    NEXT (1);                                                           \
+  } while (0)
+
+#define PTR_SET(type, slot)                                             \
+  do {                                                                  \
+    scm_t_uint8 a, b, c;                                                \
+    char *ptr;                                                          \
+    size_t idx;                                                         \
+    type val;                                                           \
+    UNPACK_8_8_8 (op, a, b, c);                                         \
+    ptr = SP_REF_PTR (a);                                               \
+    idx = SP_REF_U64 (b);                                               \
+    val = SP_REF_ ## slot (c);                                          \
+    memcpy (ptr + idx, &val, sizeof (val));                             \
+    NEXT (1);                                                           \
+  } while (0)
+
+  VM_DEFINE_OP (223, u8_ref, "u8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_uint8, U64);
+  VM_DEFINE_OP (224, u16_ref, "u16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_uint16, U64);
+  VM_DEFINE_OP (225, u32_ref, "u32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_uint32, U64);
+  VM_DEFINE_OP (226, u64_ref, "u64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_uint64, U64);
+
+  VM_DEFINE_OP (227, u8_set, "u8-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_uint8, U64);
+  VM_DEFINE_OP (228, u16_set, "u16-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_uint16, U64);
+  VM_DEFINE_OP (229, u32_set, "u32-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_uint32, U64);
+  VM_DEFINE_OP (230, u64_set, "u64-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_uint64, U64);
+
+  VM_DEFINE_OP (231, s8_ref, "s8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_int8, S64);
+  VM_DEFINE_OP (232, s16_ref, "s16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_int16, S64);
+  VM_DEFINE_OP (233, s32_ref, "s32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_int32, S64);
+  VM_DEFINE_OP (234, s64_ref, "s64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (scm_t_int64, S64);
+
+  VM_DEFINE_OP (235, s8_set, "s8-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_int8, S64);
+  VM_DEFINE_OP (236, s16_set, "s16-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_int16, S64);
+  VM_DEFINE_OP (237, s32_set, "s32-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_int32, S64);
+  VM_DEFINE_OP (238, s64_set, "s64-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (scm_t_int64, S64);
+
+  VM_DEFINE_OP (239, f32_ref, "f32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (float, F64);
+  VM_DEFINE_OP (240, f64_ref, "f64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+    PTR_REF (double, F64);
+
+  VM_DEFINE_OP (241, f32_set, "f32-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (float, F64);
+  VM_DEFINE_OP (242, f64_set, "f64-set!", OP1 (X8_S8_S8_S8))
+    PTR_SET (double, F64);
+
   VM_DEFINE_OP (243, unused_243, NULL, NOP)
   VM_DEFINE_OP (244, unused_244, NULL, NOP)
   VM_DEFINE_OP (245, unused_245, NULL, NOP)

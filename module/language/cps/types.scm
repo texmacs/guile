@@ -1015,6 +1015,28 @@ minimum, and maximum."
 
 
 ;;;
+;;; Pointers
+;;;
+
+(define-syntax-rule (define-pointer-ref-inferrer ref type lo hi)
+  (define-type-inferrer (ref obj bv idx result)
+    (define! result type lo hi)))
+(define-pointer-ref-inferrer u8-ref  &u64 0 #xff)
+(define-pointer-ref-inferrer u16-ref &u64 0 #xffff)
+(define-pointer-ref-inferrer u32-ref &u64 0 #xffffffff)
+(define-pointer-ref-inferrer u64-ref &u64 0 &u64-max)
+
+(define-pointer-ref-inferrer s8-ref  &s64 (- #x80) #x7f)
+(define-pointer-ref-inferrer s16-ref &s64 (- #x8000) #x7fff)
+(define-pointer-ref-inferrer s32-ref &s64 (- #x80000000) #x7fffffff)
+(define-pointer-ref-inferrer s64-ref &s64 &s64-min &s64-max)
+
+(define-pointer-ref-inferrer f32-ref &f64 -inf.0 +inf.0)
+(define-pointer-ref-inferrer f64-ref &f64 -inf.0 +inf.0)
+
+
+
+;;;
 ;;; Numbers.
 ;;;
 

@@ -456,6 +456,30 @@ the LABELS that are clobbered by the effects of LABEL."
   ((bv-f32-set! bv n x)            (&write-object &bytevector) &type-check)
   ((bv-f64-set! bv n x)            (&write-object &bytevector) &type-check))
 
+;; Pointers.
+(define-primitive-effects* param
+  ((u8-ref obj bv n)               (&read-object (annotation->memory-kind param)))
+  ((s8-ref obj bv n)               (&read-object (annotation->memory-kind param)))
+  ((u16-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((s16-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((u32-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((s32-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((u64-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((s64-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((f32-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+  ((f64-ref obj bv n)              (&read-object (annotation->memory-kind param)))
+
+  ((u8-set! obj bv n x)            (&write-object (annotation->memory-kind param)))
+  ((s8-set! obj bv n x)            (&write-object (annotation->memory-kind param)))
+  ((u16-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((s16-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((u32-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((s32-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((u64-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((s64-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((f32-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
+  ((f64-set! obj bv n x)           (&write-object (annotation->memory-kind param))))
+
 ;; Closures.
 (define-primitive-effects* param
   ((free-ref closure)              (&read-field &closure param))

@@ -158,6 +158,27 @@
             emit-gc-pointer-ref/immediate
             emit-gc-pointer-set!/immediate
 
+            emit-u8-ref
+            emit-s8-ref
+            emit-u16-ref
+            emit-s16-ref
+            emit-u32-ref
+            emit-s32-ref
+            emit-u64-ref
+            emit-s64-ref
+            emit-f32-ref
+            emit-f64-ref
+            emit-u8-set!
+            emit-s8-set!
+            emit-u16-set!
+            emit-s16-set!
+            emit-u32-set!
+            emit-s32-set!
+            emit-u64-set!
+            emit-s64-set!
+            emit-f32-set!
+            emit-f64-set!
+
             emit-call
             emit-call-label
             emit-tail-call
