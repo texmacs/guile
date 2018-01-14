@@ -642,6 +642,97 @@
          (build-term
            ($continue k src ($values (vtable)))))))))
 
+(define (untag-bytevector-index cps src op idx ulen width have-uidx)
+  (define not-fixnum
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 2 (expecting small integer): ~S"))
+  (define out-of-range
+    (vector 'out-of-range
+            (symbol->string op)
+            "Argument 2 out of range: ~S"))
+  (with-cps cps
+    (letv sidx uidx maxidx+1)
+    (letk knot-fixnum
+          ($kargs () () ($throw src 'throw/value+data not-fixnum (idx))))
+    (letk kout-of-range
+          ($kargs () () ($throw src 'throw/value+data out-of-range (idx))))
+    (let$ body (have-uidx uidx))
+    (letk k ($kargs () () ,body))
+    (letk ktestidx
+          ($kargs ('maxidx+1) (maxidx+1)
+            ($branch kout-of-range k src 'u64-< #f (uidx maxidx+1))))
+    (letk kdeclen
+          ($kargs () ()
+            ($continue ktestidx src
+              ($primcall 'usub/immediate (1- width) (ulen)))))
+    (letk ktestlen
+          ($kargs ('uidx) (uidx)
+            ($branch kout-of-range kdeclen src 'imm-u64-< (1- width) (ulen))))
+    (letk kcvt
+          ($kargs () ()
+            ($continue ktestlen src ($primcall 's64->u64 #f (sidx)))))
+    (letk kbound0
+          ($kargs ('sidx) (sidx)
+            ($branch kcvt kout-of-range src 's64-imm-< 0 (sidx))))
+    (letk kuntag
+          ($kargs () ()
+            ($continue kbound0 src ($primcall 'untag-fixnum #f (idx)))))
+    (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (idx)))))
+
+(define (ensure-bytevector cps k src op pred x)
+  (define msg
+    (match pred
+      ('bytevector?
+       "Wrong type argument in position 1 (expecting bytevector): ~S")
+      ('mutable-bytevector?
+       "Wrong type argument in position 1 (expecting mutable bytevector): ~S")))
+  (define bad-type (vector 'wrong-type-arg (symbol->string op) msg))
+  (with-cps cps
+    (letk kf ($kargs () () ($throw src 'throw/value+data bad-type (x))))
+    (letk kheap-object ($kargs () () ($branch kf k src pred #f (x))))
+    (build-term ($branch kf kheap-object src 'heap-object? #f (x)))))
+
+(define (prepare-bytevector-access cps src op pred bv idx width
+                                   have-ptr-and-uidx)
+  (with-cps cps
+    (letv ulen)
+    (let$ access
+          (untag-bytevector-index
+           src op idx ulen width
+           (lambda (cps uidx)
+             (with-cps cps
+               (letv ptr)
+               (let$ body (have-ptr-and-uidx ptr uidx))
+               (letk k ($kargs ('ptr) (ptr) ,body))
+               (build-term
+                 ($continue k src
+                   ($primcall 'pointer-ref/immediate '(bytevector . 2)
+                              (bv))))))))
+    (letk k ($kargs ('ulen) (ulen) ,access))
+    (letk klen
+          ($kargs () ()
+            ($continue k src
+              ($primcall 'word-ref/immediate '(bytevector . 1) (bv)))))
+    ($ (ensure-bytevector klen src op pred bv))))
+
+(define-primcall-converter bv-u8-ref
+  (lambda (cps k src op param bv idx)
+    (prepare-bytevector-access
+     cps src 'bytevector-u8-ref 'bytevector? bv idx 1
+     (lambda (cps ptr uidx)
+       (with-cps cps
+         (letv u8 s8)
+         (letk ktag
+               ($kargs ('s8) (s8)
+                 ($continue k src ($primcall 'tag-fixnum #f (s8)))))
+         (letk kcvt
+               ($kargs ('u8) (u8)
+                 ($continue ktag src ($primcall 'u64->s64 #f (u8)))))
+         (build-term
+           ($continue kcvt src
+             ($primcall 'u8-ref 'bytevector (bv ptr uidx)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
@@ -655,7 +746,9 @@
   (bv-length scm >u64)
   (bv-f32-ref scm u64 >f64) (bv-f32-set! scm u64 f64)
   (bv-f64-ref scm u64 >f64) (bv-f64-set! scm u64 f64)
-  (bv-u8-ref scm u64 >u64)  (bv-u8-set! scm u64 u64)
+
+  (bv-u8-set! scm u64 u64)
+
   (bv-u16-ref scm u64 >u64) (bv-u16-set! scm u64 u64)
   (bv-u32-ref scm u64 >u64) (bv-u32-set! scm u64 u64)
   (bv-u64-ref scm u64 >u64) (bv-u64-set! scm u64 u64)

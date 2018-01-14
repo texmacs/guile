@@ -343,6 +343,7 @@ the LABELS that are clobbered by the effects of LABEL."
   (match annotation
     ('pair &pair)
     ('vector &vector)
+    ('bytevector &bytevector)
     ('box &box)
     ('closure &closure)
     ('struct &struct)))

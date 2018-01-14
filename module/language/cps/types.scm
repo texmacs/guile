@@ -727,6 +727,7 @@ minimum, and maximum."
   (match ann
     ('pair &pair)
     ('vector &vector)
+    ('bytevector &bytevector)
     ('box &box)
     ('closure &procedure)
     ('struct &struct)))
