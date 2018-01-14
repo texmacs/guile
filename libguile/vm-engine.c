@@ -1421,7 +1421,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (45, gc_pointer_ref_immediate, "gc-pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (45, pointer_ref_immediate, "pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
       scm_t_uint8 dst, obj, idx;
 
@@ -1432,7 +1432,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (46, gc_pointer_set_immediate, "gc-pointer-set!/immediate", OP1 (X8_S8_C8_S8))
+  VM_DEFINE_OP (46, pointer_set_immediate, "pointer-set!/immediate", OP1 (X8_S8_C8_S8))
     {
       scm_t_uint8 obj, idx, val;
 

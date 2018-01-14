@@ -768,8 +768,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                's8-ref 's16-ref 's32-ref 's64-ref
                                'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
               (intmap-add representations var 's64))
-             (($ $primcall (or 'gc-pointer-ref/immediate))
-              (intmap-add representations var 'gcptr))
+             (($ $primcall (or 'pointer-ref/immediate))
+              (intmap-add representations var 'ptr))
              (_
               (intmap-add representations var 'scm))))
           (vars
@@ -854,7 +854,7 @@ are comparable with eqv?.  A tmp slot may be used."
            (#f slot-map)
            (slot
             (let ((desc (match (intmap-ref representations var)
-                          ((or 'u64 'f64 's64) slot-desc-live-raw)
+                          ((or 'u64 'f64 's64 'ptr) slot-desc-live-raw)
                           ('scm slot-desc-live-scm))))
               (logior slot-map (ash desc (* 2 slot)))))))
        live-vars 0))

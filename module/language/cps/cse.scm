@@ -256,7 +256,7 @@ false.  It could be that both true and false proofs are available."
            ((scm-set!/immediate p s x)       (x <- scm-ref/immediate p s))
            ((word-set! p s i x)              (x <- word-ref p s i))
            ((word-set!/immediate p s x)      (x <- word-ref/immediate p s))
-           ((gc-pointer-set!/immediate p s x) (x <- gc-pointer-ref/immediate p s))
+           ((pointer-set!/immediate p s x)   (x <- pointer-ref/immediate p s))
 
            ((s <- allocate-struct #f v n)    (v <- struct-vtable #f s))
            ((s <- allocate-struct/immediate n v) (v <- struct-vtable #f s))

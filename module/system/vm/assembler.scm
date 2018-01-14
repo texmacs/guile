@@ -155,8 +155,8 @@
             emit-word-ref/immediate
             emit-word-set!/immediate
 
-            emit-gc-pointer-ref/immediate
-            emit-gc-pointer-set!/immediate
+            emit-pointer-ref/immediate
+            emit-pointer-set!/immediate
 
             emit-u8-ref
             emit-s8-ref
@@ -2152,7 +2152,7 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
                         ((f64) 1)
                         ((u64) 2)
                         ((s64) 3)
-                        ((gc-ptr) 4)
+                        ((ptr) 4)
                         (else (error "what!" representation)))))
              (put-uleb128 names-port (logior (ash slot 3) tag)))
            (lp definitions))))))
