@@ -3811,10 +3811,7 @@ when none is available, reading FILE-NAME with READER."
                                               scmstat
                                               go-file-name))))))
 
-    (let ((compiled (and scmstat
-                         (or (and (not %fresh-auto-compile)
-                                  (pre-compiled))
-                             (fallback)))))
+    (let ((compiled (and scmstat (or (pre-compiled) (fallback)))))
       (if compiled
           (begin
             (if %load-hook
