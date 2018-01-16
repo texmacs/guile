@@ -318,10 +318,6 @@
 
 #define VM_VALIDATE_ATOMIC_BOX(x, proc)                                 \
   VM_VALIDATE (x, scm_is_atomic_box, proc, atomic_box)
-#define VM_VALIDATE_BYTEVECTOR(x, proc)                                 \
-  VM_VALIDATE (x, SCM_BYTEVECTOR_P, proc, bytevector)
-#define VM_VALIDATE_MUTABLE_BYTEVECTOR(obj, proc)                       \
-  VM_VALIDATE (obj, SCM_MUTABLE_BYTEVECTOR_P, proc, mutable_bytevector)
 #define VM_VALIDATE_CHAR(x, proc)                                       \
   VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
@@ -2611,168 +2607,30 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (4);
     }
 
-  /* bv-u8-ref dst:8 src:8 idx:8
-   * bv-s8-ref dst:8 src:8 idx:8
-   * bv-u16-ref dst:8 src:8 idx:8
-   * bv-s16-ref dst:8 src:8 idx:8
-   * bv-u32-ref dst:8 src:8 idx:8
-   * bv-s32-ref dst:8 src:8 idx:8
-   * bv-u64-ref dst:8 src:8 idx:8
-   * bv-s64-ref dst:8 src:8 idx:8
-   * bv-f32-ref dst:8 src:8 idx:8
-   * bv-f64-ref dst:8 src:8 idx:8
-   *
-   * Fetch the item at byte offset IDX in the bytevector SRC, and store
-   * it in DST.  All accesses use native endianness.
-   */
-#define BV_REF(stem, type, size, slot)                                  \
-  do {									\
-    type result;                                                        \
-    scm_t_uint8 dst, src, idx;                                          \
-    SCM bv;                                                             \
-    scm_t_uint64 c_idx;                                                 \
-    UNPACK_8_8_8 (op, dst, src, idx);                                   \
-    bv = SP_REF (src);                                                  \
-    c_idx = SP_REF_U64 (idx);                                           \
-									\
-    VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-ref");                    \
-									\
-    VM_ASSERT (SCM_BYTEVECTOR_LENGTH (bv) >= size                       \
-               && SCM_BYTEVECTOR_LENGTH (bv) - size >= c_idx,           \
-               vm_error_out_of_range_uint64 ("bv-" #stem "-ref", c_idx)); \
-                                                                        \
-    memcpy (&result, SCM_BYTEVECTOR_CONTENTS (bv) + c_idx, size);       \
-    SP_SET_ ## slot (dst, result);                                      \
-    NEXT (1);                                                           \
-  } while (0)
-
-  VM_DEFINE_OP (116, bv_u8_ref, "bv-u8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (u8, scm_t_uint8, 1, U64);
-
-  VM_DEFINE_OP (117, bv_s8_ref, "bv-s8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (s8, scm_t_int8, 1, S64);
-
-  VM_DEFINE_OP (118, bv_u16_ref, "bv-u16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (u16, scm_t_uint16, 2, U64);
-
-  VM_DEFINE_OP (119, bv_s16_ref, "bv-s16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (s16, scm_t_int16, 2, S64);
-
-  VM_DEFINE_OP (120, bv_u32_ref, "bv-u32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (u32, scm_t_uint32, 4, U64);
-
-  VM_DEFINE_OP (121, bv_s32_ref, "bv-s32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (s32, scm_t_int32, 4, S64);
-
-  VM_DEFINE_OP (122, bv_u64_ref, "bv-u64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (u64, scm_t_uint64, 8, U64);
-
-  VM_DEFINE_OP (123, bv_s64_ref, "bv-s64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (s64, scm_t_int64, 8, S64);
-
-  VM_DEFINE_OP (124, bv_f32_ref, "bv-f32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (f32, float, 4, F64);
-
-  VM_DEFINE_OP (125, bv_f64_ref, "bv-f64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    BV_REF (f64, double, 8, F64);
-
-  /* bv-u8-set! dst:8 idx:8 src:8
-   * bv-s8-set! dst:8 idx:8 src:8
-   * bv-u16-set! dst:8 idx:8 src:8
-   * bv-s16-set! dst:8 idx:8 src:8
-   * bv-u32-set! dst:8 idx:8 src:8
-   * bv-s32-set! dst:8 idx:8 src:8
-   * bv-u64-set! dst:8 idx:8 src:8
-   * bv-s64-set! dst:8 idx:8 src:8
-   * bv-f32-set! dst:8 idx:8 src:8
-   * bv-f64-set! dst:8 idx:8 src:8
-   *
-   * Store SRC into the bytevector DST at byte offset IDX.  Multibyte
-   * values are written using native endianness.
-   */
-#define BV_BOUNDED_SET(stem, type, min, max, size, slot_type, slot)     \
-  do {									\
-    scm_t_ ## slot_type slot_val;                                       \
-    type val;                                                           \
-    scm_t_uint8 dst, idx, src;                                          \
-    SCM bv;                                                             \
-    scm_t_uint64 c_idx;                                                 \
-    UNPACK_8_8_8 (op, dst, idx, src);                                   \
-    bv = SP_REF (dst);                                                  \
-    c_idx = SP_REF_U64 (idx);                                           \
-    slot_val = SP_REF_ ## slot (src);                                   \
-									\
-    VM_VALIDATE_MUTABLE_BYTEVECTOR (bv, "bv-" #stem "-set!");           \
-									\
-    VM_ASSERT (SCM_BYTEVECTOR_LENGTH (bv) >= size                       \
-               && SCM_BYTEVECTOR_LENGTH (bv) - size >= c_idx,           \
-               vm_error_out_of_range_uint64 ("bv-" #stem "-set!", c_idx)); \
-                                                                        \
-    VM_ASSERT (slot_val >= min && slot_val <= max,                      \
-               vm_error_out_of_range_ ## slot_type ("bv-" #stem "-set!", \
-                                                    slot_val));         \
-                                                                        \
-    val = slot_val;                                                     \
-    memcpy (SCM_BYTEVECTOR_CONTENTS (bv) + c_idx, &val, size);          \
-    NEXT (1);                                                           \
-  } while (0)
-
-#define BV_SET(stem, type, size, slot)                                  \
-  do {									\
-    type val;                                                           \
-    scm_t_uint8 dst, idx, src;                                          \
-    SCM bv;                                                             \
-    scm_t_uint64 c_idx;                                                 \
-    UNPACK_8_8_8 (op, dst, idx, src);                                   \
-    bv = SP_REF (dst);                                                  \
-    c_idx = SP_REF_U64 (idx);                                           \
-    val = SP_REF_ ## slot (src);                                        \
-									\
-    VM_VALIDATE_MUTABLE_BYTEVECTOR (bv, "bv-" #stem "-set!");           \
-									\
-    VM_ASSERT (SCM_BYTEVECTOR_LENGTH (bv) >= size                       \
-               && SCM_BYTEVECTOR_LENGTH (bv) - size >= c_idx,           \
-               vm_error_out_of_range_uint64 ("bv-" #stem "-set!", c_idx)); \
-                                                                        \
-    memcpy (SCM_BYTEVECTOR_CONTENTS (bv) + c_idx, &val, size);          \
-    NEXT (1);                                                           \
-  } while (0)
-
-  VM_DEFINE_OP (126, bv_u8_set, "bv-u8-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (u8, scm_t_uint8,
-                    0, SCM_T_UINT8_MAX, 1, uint64, U64);
-
-  VM_DEFINE_OP (127, bv_s8_set, "bv-s8-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (s8, scm_t_int8,
-                    SCM_T_INT8_MIN, SCM_T_INT8_MAX, 1, int64, S64);
-
-  VM_DEFINE_OP (128, bv_u16_set, "bv-u16-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (u16, scm_t_uint16,
-                    0, SCM_T_UINT16_MAX, 2, uint64, U64);
-
-  VM_DEFINE_OP (129, bv_s16_set, "bv-s16-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (s16, scm_t_int16,
-                    SCM_T_INT16_MIN, SCM_T_INT16_MAX, 2, int64, S64);
-
-  VM_DEFINE_OP (130, bv_u32_set, "bv-u32-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (u32, scm_t_uint32,
-                    0, SCM_T_UINT32_MAX, 4, uint64, U64);
-
-  VM_DEFINE_OP (131, bv_s32_set, "bv-s32-set!", OP1 (X8_S8_S8_S8))
-    BV_BOUNDED_SET (s32, scm_t_int32,
-                    SCM_T_INT32_MIN, SCM_T_INT32_MAX, 4, int64, S64);
-
-  VM_DEFINE_OP (132, bv_u64_set, "bv-u64-set!", OP1 (X8_S8_S8_S8))
-    BV_SET (u64, scm_t_uint64, 8, U64);
-
-  VM_DEFINE_OP (133, bv_s64_set, "bv-s64-set!", OP1 (X8_S8_S8_S8))
-    BV_SET (s64, scm_t_int64, 8, S64);
-
-  VM_DEFINE_OP (134, bv_f32_set, "bv-f32-set!", OP1 (X8_S8_S8_S8))
-    BV_SET (f32, float, 4, F64);
-
-  VM_DEFINE_OP (135, bv_f64_set, "bv-f64-set!", OP1 (X8_S8_S8_S8))
-    BV_SET (f6, double, 8, F64);
+  VM_DEFINE_OP (116, unused_116, NULL, NOP)
+  VM_DEFINE_OP (117, unused_117, NULL, NOP)
+  VM_DEFINE_OP (118, unused_118, NULL, NOP)
+  VM_DEFINE_OP (119, unused_119, NULL, NOP)
+  VM_DEFINE_OP (120, unused_120, NULL, NOP)
+  VM_DEFINE_OP (121, unused_121, NULL, NOP)
+  VM_DEFINE_OP (122, unused_122, NULL, NOP)
+  VM_DEFINE_OP (123, unused_123, NULL, NOP)
+  VM_DEFINE_OP (124, unused_124, NULL, NOP)
+  VM_DEFINE_OP (125, unused_125, NULL, NOP)
+  VM_DEFINE_OP (126, unused_126, NULL, NOP)
+  VM_DEFINE_OP (127, unused_127, NULL, NOP)
+  VM_DEFINE_OP (128, unused_128, NULL, NOP)
+  VM_DEFINE_OP (129, unused_129, NULL, NOP)
+  VM_DEFINE_OP (130, unused_130, NULL, NOP)
+  VM_DEFINE_OP (131, unused_131, NULL, NOP)
+  VM_DEFINE_OP (132, unused_132, NULL, NOP)
+  VM_DEFINE_OP (133, unused_133, NULL, NOP)
+  VM_DEFINE_OP (134, unused_134, NULL, NOP)
+  VM_DEFINE_OP (135, unused_135, NULL, NOP)
+    {
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
+    }
 
   /* scm->f64 dst:12 src:12
    *
@@ -2920,19 +2778,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* bv-length dst:12 src:12
-   *
-   * Store the length of the bytevector in SRC in DST, as an untagged
-   * 64-bit integer.
-   */
-  VM_DEFINE_OP (145, bv_length, "bv-length", OP1 (X8_S12_S12) | OP_DST)
-    {
-      ARGS1 (bv);
-      VM_VALIDATE_BYTEVECTOR (bv, "bytevector-length");
-      SP_SET_U64 (dst, SCM_BYTEVECTOR_LENGTH (bv));
-      NEXT (1);
-    }
-
+  VM_DEFINE_OP (145, unused_145, NULL, NOP)
   VM_DEFINE_OP (146, unused_146, NULL, NOP)
   VM_DEFINE_OP (147, unused_147, NULL, NOP)
   VM_DEFINE_OP (148, unused_148, NULL, NOP)
@@ -4338,7 +4184,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
 #undef VM_VALIDATE_ATOMIC_BOX
-#undef VM_VALIDATE_BYTEVECTOR
 #undef VM_VALIDATE_STRUCT
 
 /*
