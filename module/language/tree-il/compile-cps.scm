@@ -164,17 +164,21 @@
        "Wrong type argument in position 1 (expecting mutable vector): ~S")))
   (define not-vector (vector 'wrong-type-arg (symbol->string op) msg))
   (with-cps cps
-    (letv w0 slen ulen)
+    (letv w0 slen ulen rlen)
     (letk knot-vector
           ($kargs () () ($throw src 'throw/value+data not-vector (v))))
     (let$ body (have-length slen))
     (letk k ($kargs ('slen) (slen) ,body))
     (letk kcast
+          ($kargs ('rlen) (rlen)
+            ($continue k src ($primcall 'u64->s64 #f (rlen)))))
+    (letk kassume
           ($kargs ('ulen) (ulen)
-            ($continue k src ($primcall 'u64->s64 #f (ulen)))))
+            ($continue kcast src
+              ($primcall 'assume-u64 `(0 . ,(target-max-vector-length)) (ulen)))))
     (letk krsh
           ($kargs ('w0) (w0)
-            ($continue kcast src ($primcall 'ursh/immediate 8 (w0)))))
+            ($continue kassume src ($primcall 'ursh/immediate 8 (w0)))))
     (letk kv
           ($kargs () ()
             ($continue krsh src
@@ -696,10 +700,10 @@
 (define (prepare-bytevector-access cps src op pred bv idx width
                                    have-ptr-and-uidx)
   (with-cps cps
-    (letv ulen)
+    (letv ulen rlen)
     (let$ access
           (untag-bytevector-index
-           src op idx ulen width
+           src op idx rlen width
            (lambda (cps uidx)
              (with-cps cps
                (letv ptr)
@@ -709,10 +713,14 @@
                  ($continue k src
                    ($primcall 'pointer-ref/immediate '(bytevector . 2)
                               (bv))))))))
-    (letk k ($kargs ('ulen) (ulen) ,access))
+    (letk k ($kargs ('rlen) (rlen) ,access))
+    (letk kassume
+          ($kargs ('ulen) (ulen)
+            ($continue k src
+              ($primcall 'assume-u64 `(0 . ,(target-max-size-t)) (ulen)))))
     (letk klen
           ($kargs () ()
-            ($continue k src
+            ($continue kassume src
               ($primcall 'word-ref/immediate '(bytevector . 1) (bv)))))
     ($ (ensure-bytevector klen src op pred bv))))
 
@@ -871,6 +879,22 @@
     (define-bytevector-set-converter cvt ...)
     ...))
 
+(define-primcall-converter bv-length
+  (lambda (cps k src op param bv)
+    (with-cps cps
+      (letv ulen rlen)
+      (letk ktag ($kargs ('rlen) (rlen)
+                   ($continue k src ($primcall 'u64->scm #f (rlen)))))
+      (letk kassume
+          ($kargs ('ulen) (ulen)
+            ($continue ktag src
+              ($primcall 'assume-u64 `(0 . ,(target-max-size-t)) (ulen)))))
+      (letk klen
+            ($kargs () ()
+              ($continue kassume src
+                ($primcall 'word-ref/immediate '(bytevector . 1) (bv)))))
+      ($ (ensure-bytevector klen src op 'bytevector? bv)))))
+
 (define-bytevector-ref-converters
   (bv-u8-ref   bytevector-u8-ref                  u8-ref   1 unsigned)
   (bv-u16-ref  bytevector-u16-native-ref          u16-ref  2 unsigned)
@@ -904,8 +928,6 @@
 
   (allocate-struct scm u64 >scm)
   (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
-
-  (bv-length scm >u64)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
