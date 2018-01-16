@@ -760,6 +760,99 @@
            ($continue ktag src
              ($primcall ptr-op 'bytevector (bv ptr uidx)))))))))
 
+(define (bytevector-set-converter scheme-name ptr-op width kind)
+  (define out-of-range
+    (vector 'out-of-range
+            (symbol->string scheme-name)
+            "Argument 3 out of range: ~S"))
+  (define (limit-urange cps src val uval hi in-range)
+    (with-cps cps
+      (letk kbad ($kargs () ()
+                   ($throw src 'throw/value+data out-of-range (val))))
+      (let$ body (in-range uval))
+      (letk k ($kargs () () ,body))
+      (build-term
+        ($branch k kbad src 'imm-u64-< hi (uval)))))
+  (define (limit-srange cps src val sval lo hi in-range)
+    (with-cps cps
+      (letk kbad ($kargs () ()
+                   ($throw src 'throw/value+data out-of-range (val))))
+      (let$ body (in-range sval))
+      (letk k ($kargs () () ,body))
+      (letk k' ($kargs () ()
+                 ($branch k kbad src 's64-imm-< lo (sval))))
+      (build-term
+        ($branch k' kbad src 'imm-s64-< hi (sval)))))
+  (define (integer-unboxer lo hi)
+    (cond
+     ((<= hi (target-most-positive-fixnum))
+      (lambda (cps src val have-val)
+        (let ((have-val (if (zero? lo)
+                            (lambda (cps s)
+                              (with-cps cps
+                                (letv u)
+                                (let$ body (have-val u))
+                                (letk k ($kargs ('u) (u) ,body))
+                                (build-term
+                                  ($continue k src
+                                    ($primcall 's64->u64 #f (s))))))
+                            have-val)))
+          (with-cps cps
+            (letv sval)
+            (letk kbad ($kargs () ()
+                         ($throw src 'throw/value+data out-of-range (val))))
+            (let$ body (have-val sval))
+            (letk k ($kargs () () ,body))
+            (letk khi ($kargs () ()
+                       ($branch k kbad src 'imm-s64-< hi (sval))))
+            (letk klo ($kargs ('sval) (sval)
+                       ($branch khi kbad src 's64-imm-< lo (sval))))
+            (letk kuntag
+                  ($kargs () ()
+                    ($continue klo src ($primcall 'untag-fixnum #f (val)))))
+            (build-term
+              ($branch kbad kuntag src 'fixnum? #f (val)))))))
+     ((zero? lo)
+      (lambda (cps src val have-val)
+        (with-cps cps
+          (letv u)
+          (let$ body (limit-urange src val u hi have-val))
+          (letk khi ($kargs ('u) (u) ,body))
+          (build-term
+            ($continue khi src ($primcall 'scm->u64 #f (val)))))))
+     (else
+      (lambda (cps src val have-val)
+        (with-cps cps
+          (letv s)
+          (let$ body (limit-srange src val s lo hi have-val))
+          (letk khi ($kargs ('s) (s) ,body))
+          (build-term
+            ($continue khi src ($primcall 'scm->s64 #f (val)))))))))
+  (define untag
+    (match kind
+      ('unsigned (integer-unboxer 0 (1- (ash 1 (* width 8)))))
+      ('signed   (integer-unboxer (ash -1 (1- (* width 8)))
+                                  (1- (ash 1 (1- (* width 8))))))
+      ('float
+       (lambda (cps src val have-val)
+         (with-cps cps
+           (letv f)
+           (let$ body (have-val f))
+           (letk k ($kargs ('f) (f) ,body))
+           (build-term
+             ($continue k src ($primcall 'scm->f64 #f (val)))))))))
+  (lambda (cps k src op param bv idx val)
+    (prepare-bytevector-access
+     cps src scheme-name 'bytevector? bv idx width
+     (lambda (cps ptr uidx)
+       (untag
+        cps src val
+        (lambda (cps uval)
+          (with-cps cps
+            (build-term
+              ($continue k src
+                ($primcall ptr-op 'bytevector (bv ptr uidx uval)))))))))))
+
 (define-syntax-rule (define-bytevector-ref-converter
                       cps-name scheme-name op width kind)
   (define-primcall-converter cps-name
@@ -769,17 +862,38 @@
     (define-bytevector-ref-converter cvt ...)
     ...))
 
+(define-syntax-rule (define-bytevector-set-converter
+                      cps-name scheme-name op width kind)
+  (define-primcall-converter cps-name
+    (bytevector-set-converter 'scheme-name 'op width 'kind)))
+(define-syntax-rule (define-bytevector-set-converters (cvt ...) ...)
+  (begin
+    (define-bytevector-set-converter cvt ...)
+    ...))
+
 (define-bytevector-ref-converters
-  (bv-u8-ref  bytevector-u8-ref                 u8-ref  1 unsigned)
-  (bv-u16-ref bytevector-u16-native-ref         u16-ref 2 unsigned)
-  (bv-u32-ref bytevector-u32-native-ref         u32-ref 4 unsigned)
-  (bv-u64-ref bytevector-u64-native-ref         u64-ref 8 unsigned)
-  (bv-s8-ref  bytevector-s8-ref                 s8-ref  1 signed)
-  (bv-s16-ref bytevector-s16-native-ref         s16-ref 2 signed)
-  (bv-s32-ref bytevector-s32-native-ref         s32-ref 4 signed)
-  (bv-s64-ref bytevector-s64-native-ref         s64-ref 8 signed)
-  (bv-f32-ref bytevector-ieee-single-native-ref f32-ref 4 float)
-  (bv-f64-ref bytevector-ieee-double-native-ref f64-ref 8 float))
+  (bv-u8-ref   bytevector-u8-ref                  u8-ref   1 unsigned)
+  (bv-u16-ref  bytevector-u16-native-ref          u16-ref  2 unsigned)
+  (bv-u32-ref  bytevector-u32-native-ref          u32-ref  4 unsigned)
+  (bv-u64-ref  bytevector-u64-native-ref          u64-ref  8 unsigned)
+  (bv-s8-ref   bytevector-s8-ref                  s8-ref   1 signed)
+  (bv-s16-ref  bytevector-s16-native-ref          s16-ref  2 signed)
+  (bv-s32-ref  bytevector-s32-native-ref          s32-ref  4 signed)
+  (bv-s64-ref  bytevector-s64-native-ref          s64-ref  8 signed)
+  (bv-f32-ref  bytevector-ieee-single-native-ref  f32-ref  4 float)
+  (bv-f64-ref  bytevector-ieee-double-native-ref  f64-ref  8 float))
+
+(define-bytevector-set-converters
+  (bv-u8-set!  bytevector-u8-set!                 u8-set!  1 unsigned)
+  (bv-u16-set! bytevector-u16-native-set!         u16-set! 2 unsigned)
+  (bv-u32-set! bytevector-u32-native-set!         u32-set! 4 unsigned)
+  (bv-u64-set! bytevector-u64-native-set!         u64-set! 8 unsigned)
+  (bv-s8-set!  bytevector-s8-set!                 s8-set!  1 signed)
+  (bv-s16-set! bytevector-s16-native-set!         s16-set! 2 signed)
+  (bv-s32-set! bytevector-s32-native-set!         s32-set! 4 signed)
+  (bv-s64-set! bytevector-s64-native-set!         s64-set! 8 signed)
+  (bv-f32-set! bytevector-ieee-single-native-set! f32-set! 4 float)
+  (bv-f64-set! bytevector-ieee-double-native-set! f64-set! 8 float))
 
 (define-primcall-converters
   (char->integer scm >u64)
@@ -792,18 +906,6 @@
   (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
 
   (bv-length scm >u64)
-
-  (bv-f32-set! scm u64 f64)
-  (bv-f64-set! scm u64 f64)
-
-  (bv-u8-set! scm u64 u64)
-  (bv-u16-set! scm u64 u64)
-  (bv-u32-set! scm u64 u64)
-  (bv-u64-set! scm u64 u64)
-  (bv-s8-set!  scm u64 s64)
-  (bv-s16-set! scm u64 s64)
-  (bv-s32-set! scm u64 s64)
-  (bv-s64-set! scm u64 s64)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
