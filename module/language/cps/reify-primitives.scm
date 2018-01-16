@@ -268,6 +268,12 @@
                     ($continue k src ($primcall 'mul #f (a b*)))))
          (setk label ($kargs names vars
                        ($continue kb src ($const b))))))
+      (($ $kargs names vars
+          ($ $continue k src
+             ($ $primcall (or 'assume-u64 'assume-s64) (lo . hi) (val))))
+       (with-cps cps
+         (setk label ($kargs names vars
+                       ($continue k src ($values (val)))))))
       (($ $kargs names vars ($ $continue k src ($ $primcall name param args)))
        (cond
         ((hashq-ref *ephemeral-reifiers* name)

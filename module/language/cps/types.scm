@@ -787,6 +787,15 @@ minimum, and maximum."
 (define-type-inferrer/param (pointer-ref/immediate param obj result)
   (define! result &other-heap-object -inf.0 +inf.0))
 
+(define-type-inferrer/param (assume-u64 param val result)
+  (match param
+    ((lo . hi)
+     (define! result &u64 (max lo (&min val)) (min hi (&max val))))))
+(define-type-inferrer/param (assume-s64 param val result)
+  (match param
+    ((lo . hi)
+     (define! result &s64 (max lo (&min val)) (min hi (&max val))))))
+
 
 
 

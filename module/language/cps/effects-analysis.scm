@@ -427,6 +427,8 @@ the LABELS that are clobbered by the effects of LABEL."
   ((s64->scm/unlikely _))
   ((u64->s64 _))
   ((s64->u64 _))
+  ((assume-u64 _))
+  ((assume-s64 _))
   ((untag-fixnum _))
   ((tag-fixnum _))
   ((tag-fixnum/unlikely _)))
