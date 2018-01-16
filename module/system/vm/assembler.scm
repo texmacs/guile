@@ -279,27 +279,6 @@
             emit-scm->s64
             emit-load-s64
             emit-s64->scm
-            emit-bv-length
-            emit-bv-u8-ref
-            emit-bv-s8-ref
-            emit-bv-u16-ref
-            emit-bv-s16-ref
-            emit-bv-u32-ref
-            emit-bv-s32-ref
-            emit-bv-u64-ref
-            emit-bv-s64-ref
-            emit-bv-f32-ref
-            emit-bv-f64-ref
-            emit-bv-u8-set!
-            emit-bv-s8-set!
-            emit-bv-u16-set!
-            emit-bv-s16-set!
-            emit-bv-u32-set!
-            emit-bv-s32-set!
-            emit-bv-u64-set!
-            emit-bv-s64-set!
-            emit-bv-f32-set!
-            emit-bv-f64-set!
             emit-make-atomic-box
             emit-atomic-box-ref
             emit-atomic-box-set!

@@ -970,54 +970,6 @@ minimum, and maximum."
 
 
 ;;;
-;;; Bytevectors.
-;;;
-
-(define-simple-type-checker (bv-length &bytevector))
-(define-type-inferrer (bv-length bv result)
-  (restrict! bv &bytevector 0 (target-max-size-t))
-  (define! result &u64 (&min/0 bv) (&max/size bv)))
-
-(define-syntax-rule (define-bytevector-accessors ref set type size lo hi)
-  (begin
-    (define-type-checker (ref bv idx)
-      (and (check-type bv &bytevector 0 (target-max-size-t))
-           (check-type idx &u64 0 (target-max-size-t))
-           (< (&max idx) (- (&min bv) size))))
-    (define-type-inferrer (ref bv idx result)
-      (restrict! bv &bytevector (+ (&min/0 idx) size) (target-max-size-t))
-      (restrict! idx &u64 0 (- (&max/size bv) size))
-      (define! result type lo hi))
-    (define-type-checker (set bv idx val)
-      (and (check-type bv &bytevector 0 (target-max-size-t))
-           (check-type idx &u64 0 (target-max-size-t))
-           (check-type val type lo hi)
-           (< (&max idx) (- (&min bv) size))))
-    (define-type-inferrer (set! bv idx val)
-      (restrict! bv &bytevector (+ (&min/0 idx) size) (target-max-size-t))
-      (restrict! idx &u64 0 (- (&max/size bv) size))
-      (restrict! val type lo hi))))
-
-(define-bytevector-accessors bv-u8-ref bv-u8-set! &u64 1 0 #xff)
-(define-bytevector-accessors bv-s8-ref bv-s8-set! &s64 1 (- #x80) #x7f)
-
-(define-bytevector-accessors bv-u16-ref bv-u16-set! &u64 2 0 #xffff)
-(define-bytevector-accessors bv-s16-ref bv-s16-set! &s64 2 (- #x8000) #x7fff)
-
-(define-bytevector-accessors bv-u32-ref bv-u32-set! &u64 4 0 #xffffffff)
-(define-bytevector-accessors bv-s32-ref bv-s32-set! &s64 4
-  (- #x80000000) #x7fffffff)
-
-(define-bytevector-accessors bv-u64-ref bv-u64-set! &u64 8 0 &u64-max)
-(define-bytevector-accessors bv-s64-ref bv-s64-set! &s64 8 &s64-min &s64-max)
-
-(define-bytevector-accessors bv-f32-ref bv-f32-set! &f64 4 -inf.0 +inf.0)
-(define-bytevector-accessors bv-f64-ref bv-f64-set! &f64 8 -inf.0 +inf.0)
-
-
-
-
-;;;
 ;;; Pointers
 ;;;
 

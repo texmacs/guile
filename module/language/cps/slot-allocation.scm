@@ -748,27 +748,24 @@ are comparable with eqv?.  A tmp slot may be used."
                           (intmap-ref representations arg)))
              (($ $primcall (or 'scm->f64 'load-f64
                                'f32-ref 'f64-ref
-                               'bv-f32-ref 'bv-f64-ref
                                'fadd 'fsub 'fmul 'fdiv))
               (intmap-add representations var 'f64))
              (($ $primcall (or 'scm->u64 'scm->u64/truncate 'load-u64
                                'char->integer 's64->u64
-                               'bv-length 'string-length
+                               'string-length
                                'assume-u64
                                'uadd 'usub 'umul
                                'ulogand 'ulogior 'ulogxor 'ulogsub 'ursh 'ulsh
                                'uadd/immediate 'usub/immediate 'umul/immediate
                                'ursh/immediate 'ulsh/immediate
                                'u8-ref 'u16-ref 'u32-ref 'u64-ref
-                               'bv-u8-ref 'bv-u16-ref 'bv-u32-ref 'bv-u64-ref
                                'word-ref 'word-ref/immediate))
               (intmap-add representations var 'u64))
              (($ $primcall (or 'untag-fixnum
                                'assume-s64
                                'scm->s64 'load-s64 'u64->s64
                                'srsh 'srsh/immediate
-                               's8-ref 's16-ref 's32-ref 's64-ref
-                               'bv-s8-ref 'bv-s16-ref 'bv-s32-ref 'bv-s64-ref))
+                               's8-ref 's16-ref 's32-ref 's64-ref))
               (intmap-add representations var 's64))
              (($ $primcall (or 'pointer-ref/immediate))
               (intmap-add representations var 'ptr))

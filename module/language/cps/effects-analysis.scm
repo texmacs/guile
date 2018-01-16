@@ -433,32 +433,6 @@ the LABELS that are clobbered by the effects of LABEL."
   ((tag-fixnum _))
   ((tag-fixnum/unlikely _)))
 
-;; Bytevectors.
-(define-primitive-effects
-  ((bv-length _)                                               &type-check)
-
-  ((bv-u8-ref bv n)                (&read-object &bytevector)  &type-check)
-  ((bv-s8-ref bv n)                (&read-object &bytevector)  &type-check)
-  ((bv-u16-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-s16-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-u32-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-s32-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-u64-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-s64-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-f32-ref bv n)               (&read-object &bytevector)  &type-check)
-  ((bv-f64-ref bv n)               (&read-object &bytevector)  &type-check)
-
-  ((bv-u8-set! bv n x)             (&write-object &bytevector) &type-check)
-  ((bv-s8-set! bv n x)             (&write-object &bytevector) &type-check)
-  ((bv-u16-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-s16-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-u32-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-s32-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-u64-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-s64-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-f32-set! bv n x)            (&write-object &bytevector) &type-check)
-  ((bv-f64-set! bv n x)            (&write-object &bytevector) &type-check))
-
 ;; Pointers.
 (define-primitive-effects* param
   ((u8-ref obj bv n)               (&read-object (annotation->memory-kind param)))
