@@ -646,6 +646,127 @@
          (build-term
            ($continue k src ($values (vtable)))))))))
 
+(define (ensure-struct-index-in-range cps src op vtable idx boxed? in-range)
+  (define vtable-index-size 5)           ; FIXME: pull from struct.h
+  (define vtable-index-unboxed-fields 6) ; FIXME: pull from struct.h
+  (define vtable-offset-size (1+ vtable-index-size))
+  (define vtable-offset-unboxed-fields (1+ vtable-index-unboxed-fields))
+  (define bad-type
+    (vector
+     'wrong-type-arg
+     (symbol->string op)
+     (if boxed?
+         "Wrong type argument in position 2 (expecting boxed field): ~S"
+         "Wrong type argument in position 2 (expecting unboxed field): ~S")))
+  (define out-of-range
+    (vector 'out-of-range
+            (symbol->string op)
+            "Argument 2 out of range: ~S"))
+  (with-cps cps
+    (letv rfields nfields ptr word bits mask res throwval1 throwval2)
+    (letk kthrow1
+          ($kargs (#f) (throwval1)
+            ($throw src 'throw/value+data out-of-range (throwval1))))
+    (letk kthrow2
+          ($kargs (#f) (throwval2)
+            ($throw src 'throw/value+data bad-type (throwval2))))
+    (letk kbadidx ($kargs () () ($continue kthrow1 src ($const idx))))
+    (letk kbadtype ($kargs () () ($continue kthrow2 src ($const idx))))
+
+    (let$ body (in-range))
+    (letk k ($kargs () () ,body))
+    (letk ktest
+          ($kargs ('res) (res)
+            ($branch (if boxed? kbadtype k) (if boxed? k kbadtype) src
+              'u64-imm-= 0 (res))))
+    (letk kand
+          ($kargs ('mask) (mask)
+            ($continue ktest src
+              ($primcall 'ulogand #f (mask bits)))))
+    (letk kbits
+          ($kargs ('bits) (bits)
+            ($continue kand src
+              ($primcall 'load-u64 (ash 1 (logand idx 31)) ()))))
+    (letk kword
+          ($kargs ('word) (word)
+            ($continue kbits src
+              ($primcall 'u32-ref 'bitmask (vtable ptr word)))))
+    (letk kptr
+          ($kargs ('ptr) (ptr)
+            ($continue kword src
+              ($primcall 'load-u64 (ash idx -5) ()))))
+    (letk kaccess
+          ($kargs () ()
+            ($continue kptr src
+              ($primcall 'pointer-ref/immediate
+                         `(struct . ,vtable-offset-unboxed-fields)
+                         (vtable)))))
+    (letk knfields
+          ($kargs ('nfields) (nfields)
+            ($branch kbadidx kaccess src 'imm-u64-< idx (nfields))))
+    (letk kassume
+          ($kargs ('rfields) (rfields)
+            ($continue knfields src
+              ($primcall 'assume-u64 `(0 . ,(target-max-size-t)) (rfields)))))
+    (build-term
+      ($continue kassume src
+        ($primcall 'word-ref/immediate
+                   `(struct . ,vtable-offset-size) (vtable))))))
+
+(define (prepare-struct-scm-access cps src op struct idx boxed? have-pos)
+  (define not-struct
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 1 (expecting struct): ~S"))
+  (ensure-struct
+   cps src op struct
+   (lambda (cps vtable)
+     (ensure-struct-index-in-range
+      cps src op vtable idx boxed?
+      (lambda (cps) (have-pos cps (1+ idx)))))))
+
+(define-primcall-converter struct-ref/immediate
+  (lambda (cps k src op param struct)
+    (prepare-struct-scm-access
+     cps src op struct param #t
+     (lambda (cps pos)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'scm-ref/immediate `(struct . ,pos) (struct)))))))))
+
+(define-primcall-converter struct-set!/immediate
+  (lambda (cps k src op param struct val)
+    (prepare-struct-scm-access
+     cps src op struct param #t
+     (lambda (cps pos)
+       (with-cps cps
+         (letk k* ($kargs () () ($continue k src ($values (val)))))
+         (build-term
+           ($continue k* src
+             ($primcall 'scm-set!/immediate `(struct . ,pos) (struct val)))))))))
+
+(define-primcall-converter struct-ref
+  (lambda (cps k src op param struct idx)
+    (with-cps cps
+      (letv prim res)
+      (letk krecv ($kreceive '(res) #f k))
+      (letk kprim ($kargs ('prim) (prim)
+                    ($continue krecv src ($call prim (struct idx)))))
+      (build-term
+        ($continue kprim src ($prim 'struct-ref))))))
+
+(define-primcall-converter struct-set!
+  (lambda (cps k src op param struct idx val)
+    (with-cps cps
+      (letv prim res)
+      ;; struct-set! prim returns the value.
+      (letk krecv ($kreceive '(res) #f k))
+      (letk kprim ($kargs ('prim) (prim)
+                    ($continue krecv src ($call prim (struct idx val)))))
+      (build-term
+        ($continue kprim src ($prim 'struct-set!))))))
+
 (define (untag-bytevector-index cps src op idx ulen width have-uidx)
   (define not-fixnum
     (vector 'wrong-type-arg
@@ -927,7 +1048,6 @@
   (string-ref scm u64 >scm) (string-set! scm u64 scm)
 
   (allocate-struct scm u64 >scm)
-  (struct-ref scm u64 >scm) (struct-set! scm u64 scm)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
@@ -2029,16 +2149,6 @@ integer."
            (fold (lambda (arg tail) (primcall cons arg tail))
                  (const '())
                  (reverse args)))))
-
-       (($ <primcall> src 'struct-set! (struct index value))
-        ;; Unhappily, and undocumentedly, struct-set! returns the value
-        ;; that was set.  There is code that relies on this.  Hackety
-        ;; hack...
-        (with-lexicals src (value)
-          (make-seq src
-                    (make-primcall src 'struct-set!
-                                   (list struct index value))
-                    value)))
 
        ;; Lower (logand x (lognot y)) to (logsub x y).  We do it here
        ;; instead of in CPS because it gets rid of the lognot entirely;

@@ -104,7 +104,11 @@
 (define-cps-primitive struct-vtable 1 1)
 (define-cps-primitive allocate-struct 2 1)
 (define-cps-primitive struct-ref 2 1)
-(define-cps-primitive struct-set! 3 0)
+
+;; Unhappily, and undocumentedly, struct-set! returns the value that was
+;; set.  There is code that relies on this.  The struct-set! lowering
+;; routines ensure this return arity.
+(define-cps-primitive struct-set! 3 1)
 
 (define-cps-primitive class-of 1 1)
 

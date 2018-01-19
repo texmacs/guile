@@ -185,7 +185,10 @@
   &bytevector
 
   ;; Indicates a dependency on a free variable of a closure.
-  &closure)
+  &closure
+
+  ;; Indicates a dependency on a raw bitmask, measured in 32-bit units.
+  &bitmask)
 
 (define-inlinable (&field kind field)
   (ash (logior (ash field &memory-kind-bits) kind) &effect-kind-bits))
@@ -344,6 +347,7 @@ the LABELS that are clobbered by the effects of LABEL."
     ('pair &pair)
     ('vector &vector)
     ('bytevector &bytevector)
+    ('bitmask &bitmask)
     ('box &box)
     ('closure &closure)
     ('struct &struct)))
