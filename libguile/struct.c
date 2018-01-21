@@ -1,5 +1,5 @@
 /* Copyright (C) 1996-2001, 2003-2004, 2006-2013, 2015,
- *               2017 Free Software Foundation, Inc.
+ *               2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -408,6 +408,44 @@ SCM_DEFINE (scm_allocate_struct, "allocate-struct", 2, 0, 0,
 
   ret = scm_i_alloc_struct (SCM_UNPACK (vtable), c_nfields);
   scm_struct_init (ret, SCM_VTABLE_LAYOUT (vtable), 0, NULL);
+
+  return ret;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_make_struct_simple, "make-struct/simple", 1, 0, 1,
+            (SCM vtable, SCM init),
+	    "Create a new structure.\n\n"
+	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
+	    "The @var{init1}, @dots{} arguments supply the initial values\n"
+	    "for the structure's fields\n.\n"
+	    "This is a restricted variant of @code{make-struct/no-tail}\n"
+            "which applies only if the structure has no unboxed fields.\n"
+            "@code{make-struct/simple} must be called with as many\n"
+            "@var{init} values as the struct has fields.  No finalizer is set\n"
+            "on the instance, even if the vtable has a non-zero finalizer\n"
+            "field.  No magical vtable fields are inherited.\n\n"
+            "The advantage of using @code{make-struct/simple} is that the\n"
+            "compiler can inline it, so it is faster.  When in doubt though,\n"
+            "use @code{make-struct/no-tail}.")
+#define FUNC_NAME s_scm_make_struct_simple
+{
+  long i, n_init;
+  SCM ret;
+
+  SCM_VALIDATE_VTABLE (1, vtable);
+  n_init = scm_ilength (init);
+  if (n_init != SCM_VTABLE_SIZE (vtable))
+    SCM_MISC_ERROR ("Wrong number of initializers.", SCM_EOL);
+
+  ret = scm_words (SCM_UNPACK (vtable) | scm_tc3_struct, n_init + 1);
+
+  for (i = 0; i < n_init; i++, init = scm_cdr (init))
+    {
+      SCM_ASSERT (!SCM_VTABLE_FIELD_IS_UNBOXED (vtable, i),
+                  vtable, 1, FUNC_NAME);
+      SCM_STRUCT_SLOT_SET (ret, i, scm_car (init));
+    }
 
   return ret;
 }

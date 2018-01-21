@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995-2014, 2016-2017  Free Software Foundation, Inc.
+;;;; Copyright (C) 1995-2014, 2016-2018  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1211,14 +1211,10 @@ VALUE."
              #,@(let lp ((n 0))
                   (if (< n *max-static-argument-count*)
                       (cons (with-syntax (((formal ...) (make-formals n))
-                                          ((idx ...) (iota n))
                                           (n n))
                               #'((n)
                                  (lambda (formal ...)
-                                   (let ((s (allocate-struct rtd n)))
-                                     (struct-set! s idx formal)
-                                     ...
-                                     s))))
+                                   (make-struct/simple rtd formal ...))))
                             (lp (1+ n)))
                       '()))
              (else
@@ -1919,12 +1915,7 @@ name extensions listed in %load-extensions."
                                  (define #,ctor
                                    (let ((rtd #,rtd))
                                      (lambda #,args
-                                       (let ((s (allocate-struct rtd #,n)))
-                                         #,@(map
-                                             (lambda (arg slot)
-                                               #`(struct-set! s #,slot #,arg))
-                                             args slots)
-                                         s))))
+                                       (make-struct/simple rtd #,@args))))
                                  (struct-set! #,rtd (+ vtable-offset-user 2)
                                               #,ctor)))))
 

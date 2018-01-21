@@ -4,7 +4,7 @@
 #define SCM_STRUCT_H
 
 /* Copyright (C) 1995,1997,1999-2001, 2006-2013, 2015,
- *               2017 Free Software Foundation, Inc.
+ *               2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -161,6 +161,7 @@ SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_INTERNAL SCM scm_allocate_struct (SCM vtable, SCM n_words);
+SCM_INTERNAL SCM scm_make_struct_simple (SCM vtable, SCM init);
 SCM_API SCM scm_make_struct_no_tail (SCM vtable, SCM init);
 SCM_API SCM scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_inits,
                                scm_t_bits init, ...);

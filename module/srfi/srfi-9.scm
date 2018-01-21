@@ -1,7 +1,7 @@
 ;;; srfi-9.scm --- define-record-type
 
 ;; Copyright (C) 2001, 2002, 2006, 2009, 2010, 2011, 2012,
-;;   2013, 2014 Free Software Foundation, Inc.
+;;   2013, 2014, 2018 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -180,16 +180,12 @@
                           copier-name "unknown getter" x id)))
                    #'(getter ...))
          (with-syntax ((unsafe-expr
-                        #`(let ((new (allocate-struct type-name #,nfields)))
-                            #,@(map (lambda (getter index)
-                                      #`(struct-set!
-                                         new
-                                         #,index
-                                         #,(lookup getter
-                                                   #`(struct-ref s #,index))))
-                                    #'(getter-id ...)
-                                    (iota nfields))
-                            new)))
+                        #`(make-struct/simple
+                           type-name
+                           #,@(map (lambda (getter index)
+                                     (lookup getter #`(struct-ref s #,index)))
+                                   #'(getter-id ...)
+                                   (iota nfields)))))
            (if (syntax->datum #'check?)
                #`(if (eq? (struct-vtable s) type-name)
                      unsafe-expr
@@ -217,23 +213,24 @@
       (syntax-case constructor-spec ()
         ((ctor field ...)
          (every identifier? #'(field ...))
-         (let ((slots (map (lambda (field)
-                             (or (list-index (lambda (x)
-                                               (free-identifier=? x field))
-                                             field-ids)
-                                 (syntax-violation
-                                  (syntax-case form ()
-                                    ((macro . args)
-                                     (syntax->datum #'macro)))
-                                  "unknown field in constructor spec"
-                                  form field)))
-                           #'(field ...))))
+         (letrec* ((id-list-contains?
+                    (lambda (id-list id)
+                      (and (not (null? id-list))
+                           (or (free-identifier=? (car id-list) id)
+                               (id-list-contains? (cdr id-list) id)))))
+                   (inits (map (lambda (id)
+                                 (and (id-list-contains? #'(field ...) id) id))
+                               field-ids)))
+           (for-each
+            (lambda (field)
+              (unless (id-list-contains? field-ids field)
+                (syntax-violation
+                 (syntax-case form () ((macro . args) (syntax->datum #'macro)))
+                 "unknown field in constructor spec"
+                 form field)))
+            #'(field ...))
            #`(define-inlinable #,constructor-spec
-               (let ((s (allocate-struct #,type-name #,(length field-ids))))
-                 #,@(map (lambda (arg slot)
-                           #`(struct-set! s #,slot #,arg))
-                         #'(field ...) slots)
-                 s))))))
+               (make-struct/simple #,type-name #,@inits))))))
 
     (define (getters type-name getter-ids copier-id)
       (map (lambda (getter index)

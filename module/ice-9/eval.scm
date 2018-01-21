@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -157,7 +157,7 @@
                          a))
         ((a b)
          (maybe-primcall (+ - * / ash logand logior logxor
-                          cons vector-ref struct-ref allocate-struct variable-set!)
+                          cons vector-ref struct-ref variable-set!)
                          a b))
         ((a b c)
          (maybe-primcall (vector-set! struct-set!) a b c))
