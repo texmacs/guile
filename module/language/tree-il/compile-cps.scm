@@ -646,6 +646,114 @@
          (build-term
            ($continue k src ($values (vtable)))))))))
 
+(define (ensure-vtable cps src op vtable is-vtable)
+  (ensure-struct
+   cps src op vtable
+   (lambda (cps vtable-vtable)
+     (define not-vtable
+       (vector 'wrong-type-arg
+               (symbol->string op)
+               "Wrong type argument in position 1 (expecting vtable): ~S"))
+     (define vtable-index-flags 1)    ; FIXME: pull from struct.h
+     (define vtable-offset-flags (1+ vtable-index-flags))
+     (define vtable-validated-mask #b11)
+     (define vtable-validated-value #b11)
+     (with-cps cps
+       (letv flags mask res)
+       (letk knot-vtable
+             ($kargs () () ($throw src 'throw/value+data not-vtable (vtable))))
+       (let$ body (is-vtable))
+       (letk k ($kargs () () ,body))
+       (letk ktest
+             ($kargs ('res) (res)
+               ($branch knot-vtable k src
+                 'u64-imm-= vtable-validated-value (res))))
+       (letk kand
+             ($kargs ('mask) (mask)
+               ($continue ktest src
+                 ($primcall 'ulogand #f (flags mask)))))
+       (letk kflags
+             ($kargs ('flags) (flags)
+               ($continue kand src
+                 ($primcall 'load-u64 vtable-validated-mask ()))))
+       (build-term
+         ($continue kflags src
+           ($primcall 'word-ref/immediate
+                      `(struct . ,vtable-offset-flags) (vtable-vtable))))))))
+
+(define-primcall-converter allocate-struct
+  (lambda (cps k src op nwords vtable)
+    (ensure-vtable
+     cps src 'allocate-struct vtable
+     (lambda (cps)
+       (define vtable-index-size 5) ; FIXME: pull from struct.h
+       (define vtable-index-unboxed-fields 6) ; FIXME: pull from struct.h
+       (define vtable-offset-size (1+ vtable-index-size))
+       (define vtable-offset-unboxed-fields (1+ vtable-index-unboxed-fields))
+       (define wrong-number
+         (vector 'wrong-number-of-args
+                 (symbol->string op)
+                 "Wrong number of initializers when instantiating ~A"))
+       (define has-unboxed
+         (vector 'wrong-type-arg
+                 (symbol->string op)
+                 "Expected vtable with no unboxed fields: ~A"))
+       (define (check-all-boxed cps kf kt vtable ptr word)
+         (if (< (* word 32) nwords)
+             (with-cps cps
+               (letv idx bits)
+               (let$ checkboxed (check-all-boxed kf kt vtable ptr (1+ word)))
+               (letk kcheckboxed ($kargs () () ,checkboxed))
+               (letk kcheck
+                     ($kargs ('bits) (bits)
+                       ($branch kf kcheckboxed src 'u64-imm-= 0 (bits))))
+               (letk kword
+                     ($kargs ('idx) (idx)
+                       ($continue kcheck src
+                         ($primcall 'u32-ref 'bitmask (vtable ptr idx)))))
+               (build-term
+                 ($continue kword src
+                   ($primcall 'load-u64 word ()))))
+             (with-cps cps
+               (build-term ($continue kt src ($values ()))))))
+       (with-cps cps
+         (letv rfields nfields ptr s)
+         (letk kwna
+               ($kargs () () ($throw src 'throw/value wrong-number (vtable))))
+         (letk kunboxed
+               ($kargs () () ($throw src 'throw/value+data has-unboxed (vtable))))
+         (letk kdone
+               ($kargs () () ($continue k src ($values (s)))))
+         (letk ktag
+               ($kargs ('s) (s)
+                 ($continue kdone src
+                   ($primcall 'scm-set!/tag 'struct (s vtable)))))
+         (letk kalloc
+               ($kargs () ()
+                 ($continue ktag src
+                   ($primcall 'allocate-words/immediate
+                              `(struct . ,(1+ nwords)) ()))))
+         (let$ checkboxed (check-all-boxed kunboxed kalloc vtable ptr 0))
+         (letk kcheckboxed ($kargs ('ptr) (ptr) ,checkboxed))
+         (letk kaccess
+               ($kargs () ()
+                 ($continue kcheckboxed src
+                   ($primcall 'pointer-ref/immediate
+                              `(struct . ,vtable-offset-unboxed-fields)
+                              (vtable)))))
+         (letk knfields
+               ($kargs ('nfields) (nfields)
+                 ($branch kwna kaccess src 'u64-imm-= nwords (nfields))))
+         (letk kassume
+               ($kargs ('rfields) (rfields)
+                 ($continue knfields src
+                   ($primcall 'assume-u64 `(0 . ,(target-max-size-t/scm))
+                              (rfields)))))
+         (build-term
+           ($continue kassume src
+             ($primcall 'word-ref/immediate
+                        `(struct . ,vtable-offset-size) (vtable)))))))))
+
 (define (ensure-struct-index-in-range cps src op vtable idx boxed? in-range)
   (define vtable-index-size 5)           ; FIXME: pull from struct.h
   (define vtable-index-unboxed-fields 6) ; FIXME: pull from struct.h
@@ -745,6 +853,14 @@
          (build-term
            ($continue k* src
              ($primcall 'scm-set!/immediate `(struct . ,pos) (struct val)))))))))
+
+(define-primcall-converter struct-init!
+  (lambda (cps k src op param s val)
+    (define pos (1+ param))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'scm-set!/immediate `(struct . ,pos) (s val)))))))
 
 (define-primcall-converter struct-ref
   (lambda (cps k src op param struct idx)
@@ -1046,8 +1162,6 @@
 
   (string-length scm >u64)
   (string-ref scm u64 >scm) (string-set! scm u64 scm)
-
-  (allocate-struct scm u64 >scm)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
@@ -1660,12 +1774,14 @@
              (vector-set!/immediate n (v x)))
             (('vector-init! v ($ <const> _ n) x)
              (vector-init! n (v x)))
-            (('allocate-struct v ($ <const> _ (? uint? n)))
-             (allocate-struct/immediate n (v)))
+            (('allocate-struct v ($ <const> _ n))
+             (allocate-struct n (v)))
             (('struct-ref s ($ <const> _ (? uint? n)))
              (struct-ref/immediate n (s)))
             (('struct-set! s ($ <const> _ (? uint? n)) x)
              (struct-set!/immediate n (s x)))
+            (('struct-init! s ($ <const> _ n) x)
+             (struct-init! n (s x)))
             (('add x ($ <const> _ (? number? y)))
              (add/immediate y (x)))
             (('add ($ <const> _ (? number? y)) x)
@@ -2136,6 +2252,25 @@ integer."
                              (iota (length args))
                              args)
                         (list v))))))))
+
+       (($ <primcall> src 'make-struct/simple (vtable . args))
+        ;; Expand to "allocate-struct" + "struct-init!".
+        (evaluate-args-eagerly-if-needed
+         src args
+         (lambda (args)
+           (define-syntax-rule (primcall name . args)
+             (make-primcall src 'name (list . args)))
+           (define-syntax-rule (const val)
+             (make-const src val))
+           (let ((s (primcall allocate-struct vtable (const (length args)))))
+             (with-lexicals src (s)
+               (list->seq
+                src
+                (append (map (lambda (idx arg)
+                               (primcall struct-init! s (const idx) arg))
+                             (iota (length args))
+                             args)
+                        (list s))))))))
 
        (($ <primcall> src 'list args)
         ;; Expand to "cons".

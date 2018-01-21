@@ -109,6 +109,7 @@
 ;; set.  There is code that relies on this.  The struct-set! lowering
 ;; routines ensure this return arity.
 (define-cps-primitive struct-set! 3 1)
+(define-cps-primitive struct-init! 3 0)
 
 (define-cps-primitive class-of 1 1)
 

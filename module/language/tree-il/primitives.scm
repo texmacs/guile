@@ -97,7 +97,7 @@
 
     string-length string-ref string-set!
 
-    allocate-struct struct-vtable make-struct/no-tail struct-ref struct-set!
+    make-struct/simple struct-vtable struct-ref struct-set!
 
     bytevector-length
 
@@ -142,7 +142,7 @@
 (define *primitive-constructors*
   ;; Primitives that return a fresh object.
   '(acons cons cons* list vector make-vector
-    allocate-struct make-struct/no-tail
+    make-struct/simple
     make-prompt-tag))
 
 (define *primitive-accessors*
