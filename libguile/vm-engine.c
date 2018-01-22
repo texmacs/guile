@@ -322,19 +322,11 @@
   VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
   VM_VALIDATE (obj, scm_is_string, proc, string)
-#define VM_VALIDATE_STRUCT(obj, proc)                                   \
-  VM_VALIDATE (obj, SCM_STRUCTP, proc, struct)
 #define VM_VALIDATE_VARIABLE(obj, proc)                                 \
   VM_VALIDATE (obj, SCM_VARIABLEP, proc, variable)
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
-#define VM_VALIDATE_BOXED_STRUCT_FIELD(obj, i, proc)                    \
-  VM_ASSERT (!SCM_STRUCT_FIELD_IS_UNBOXED (obj, i),                     \
-             vm_error_boxed_struct_field (proc, i))
-#define VM_VALIDATE_UNBOXED_STRUCT_FIELD(obj, i, proc)                  \
-  VM_ASSERT (SCM_STRUCT_FIELD_IS_UNBOXED (obj, i),                      \
-             vm_error_boxed_struct_field (proc, i))
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -2388,6 +2380,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (103, unused_103, NULL, NOP)
   VM_DEFINE_OP (104, unused_104, NULL, NOP)
   VM_DEFINE_OP (105, unused_105, NULL, NOP)
+  VM_DEFINE_OP (106, unused_106, NULL, NOP)
+  VM_DEFINE_OP (107, unused_107, NULL, NOP)
+  VM_DEFINE_OP (108, unused_108, NULL, NOP)
+  VM_DEFINE_OP (109, unused_109, NULL, NOP)
+  VM_DEFINE_OP (110, unused_110, NULL, NOP)
+  VM_DEFINE_OP (111, unused_111, NULL, NOP)
+  VM_DEFINE_OP (112, unused_112, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
@@ -2396,158 +2395,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  /*
-   * Structs and GOOPS
-   */
-
-  /* struct-vtable dst:12 src:12
-   *
-   * Store the vtable of SRC into DST.
-   */
-  VM_DEFINE_OP (106, struct_vtable, "struct-vtable", OP1 (X8_S12_S12) | OP_DST)
-    {
-      ARGS1 (obj);
-      VM_VALIDATE_STRUCT (obj, "struct_vtable");
-      RETURN (SCM_STRUCT_VTABLE (obj));
-    }
-
-  /* allocate-struct dst:8 vtable:8 nfields:8
-   *
-   * Allocate a new struct with VTABLE, and place it in DST.  The struct
-   * will be constructed with space for NFIELDS fields, which should
-   * correspond to the field count of the VTABLE.
-   */
-  VM_DEFINE_OP (107, allocate_struct, "allocate-struct", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      scm_t_uint8 dst, vtable, nfields;
-      SCM ret;
-
-      UNPACK_8_8_8 (op, dst, vtable, nfields);
-
-      /* TODO: Specify nfields as untagged value when calling
-         allocate-struct.  */
-      SYNC_IP ();
-      ret = scm_allocate_struct (SP_REF (vtable),
-                                 scm_from_uint64 (SP_REF_U64 (nfields)));
-      SP_SET (dst, ret);
-
-      NEXT (1);
-    }
-
-  /* struct-ref dst:8 src:8 idx:8
-   *
-   * Fetch the item at slot IDX in the struct in SRC, and store it
-   * in DST.
-   */
-  VM_DEFINE_OP (108, struct_ref, "struct-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, idx;
-      SCM obj;
-      scm_t_uint64 index;
-
-      UNPACK_8_8_8 (op, dst, src, idx);
-
-      obj = SP_REF (src);
-      index = SP_REF_U64 (idx);
-
-      VM_VALIDATE_STRUCT (obj, "struct-ref");
-      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-ref");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-ref");
-
-      RETURN (SCM_STRUCT_SLOT_REF (obj, index));
-    }
-
-  /* struct-set! dst:8 idx:8 src:8
-   *
-   * Store SRC into the struct DST at slot IDX.
-   */
-  VM_DEFINE_OP (109, struct_set, "struct-set!", OP1 (X8_S8_S8_S8))
-    {
-      scm_t_uint8 dst, idx, src;
-      SCM obj, val;
-      scm_t_uint64 index;
-
-      UNPACK_8_8_8 (op, dst, idx, src);
-
-      obj = SP_REF (dst);
-      val = SP_REF (src);
-      index = SP_REF_U64 (idx);
-
-      VM_VALIDATE_STRUCT (obj, "struct-set!");
-      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-set!");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-set!");
-
-      SCM_STRUCT_SLOT_SET (obj, index, val);
-      NEXT (1);
-    }
-
-  /* allocate-struct/immediate dst:8 vtable:8 nfields:8
-   *
-   * Allocate a new struct with VTABLE, and place it in DST.  The struct
-   * will be constructed with space for NFIELDS fields, which should
-   * correspond to the field count of the VTABLE.
-   */
-  VM_DEFINE_OP (110, allocate_struct_immediate, "allocate-struct/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
-    {
-      scm_t_uint8 dst, vtable, nfields;
-      SCM ret;
-
-      UNPACK_8_8_8 (op, dst, vtable, nfields);
-
-      SYNC_IP ();
-      ret = scm_allocate_struct (SP_REF (vtable), SCM_I_MAKINUM (nfields));
-      SP_SET (dst, ret);
-
-      NEXT (1);
-    }
-
-  /* struct-ref/immediate dst:8 src:8 idx:8
-   *
-   * Fetch the item at slot IDX in the struct in SRC, and store it
-   * in DST.  IDX is an immediate unsigned 8-bit value.
-   */
-  VM_DEFINE_OP (111, struct_ref_immediate, "struct-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, idx;
-      SCM obj;
-      scm_t_uint64 index;
-
-      UNPACK_8_8_8 (op, dst, src, idx);
-
-      obj = SP_REF (src);
-      index = idx;
-
-      VM_VALIDATE_STRUCT (obj, "struct-ref");
-      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-ref");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-ref");
-
-      RETURN (SCM_STRUCT_SLOT_REF (obj, index));
-    }
-
-  /* struct-set!/immediate dst:8 idx:8 src:8
-   *
-   * Store SRC into the struct DST at slot IDX.  IDX is an immediate
-   * unsigned 8-bit value.
-   */
-  VM_DEFINE_OP (112, struct_set_immediate, "struct-set!/immediate", OP1 (X8_S8_C8_S8))
-    {
-      scm_t_uint8 dst, idx, src;
-      SCM obj, val;
-      scm_t_uint64 index;
-
-      UNPACK_8_8_8 (op, dst, idx, src);
-
-      obj = SP_REF (dst);
-      val = SP_REF (src);
-      index = idx;
-
-      VM_VALIDATE_STRUCT (obj, "struct-set!");
-      VM_VALIDATE_INDEX (index, SCM_STRUCT_SIZE (obj), "struct-set!");
-      VM_VALIDATE_BOXED_STRUCT_FIELD (obj, index, "struct-set!");
-
-      SCM_STRUCT_SLOT_SET (obj, index, val);
-      NEXT (1);
-    }
 
   /* class-of dst:12 type:12
    *
@@ -4184,7 +4031,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
 #undef VM_VALIDATE_ATOMIC_BOX
-#undef VM_VALIDATE_STRUCT
 
 /*
 (defun renumber-ops ()
