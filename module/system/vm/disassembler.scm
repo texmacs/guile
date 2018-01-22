@@ -275,8 +275,6 @@ address of that offset."
      (list "~A" (builtin-index->name idx)))
     (((or 'static-ref 'static-set!) _ target)
      (list "~@Y" (dereference-scm target)))
-    (((or 'free-ref 'free-set!) _ _ index)
-     (list "free var ~a" index))
     (('resolve-module dst name public)
      (list "~a" (if (zero? public) "private" "public")))
     (('toplevel-box _ var-offset mod-offset sym-offset bound?)

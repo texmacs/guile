@@ -198,8 +198,6 @@
             emit-bind-kwargs
             emit-bind-rest
             emit-make-closure
-            emit-free-ref
-            emit-free-set!
             emit-current-module
             emit-resolve
             emit-define!

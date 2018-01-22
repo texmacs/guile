@@ -322,8 +322,6 @@
   VM_VALIDATE (x, SCM_CHARP, proc, char)
 #define VM_VALIDATE_STRING(obj, proc)                                   \
   VM_VALIDATE (obj, scm_is_string, proc, string)
-#define VM_VALIDATE_VARIABLE(obj, proc)                                 \
-  VM_VALIDATE (obj, SCM_VARIABLEP, proc, variable)
 
 #define VM_VALIDATE_INDEX(u64, size, proc)                              \
   VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
@@ -1536,34 +1534,11 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (3);
     }
 
-  /* free-ref dst:12 src:12 _:8 idx:24
-   *
-   * Load free variable IDX from the closure SRC into local slot DST.
-   */
-  VM_DEFINE_OP (55, free_ref, "free-ref", OP2 (X8_S12_S12, X8_C24) | OP_DST)
+  VM_DEFINE_OP (55, unused_55, NULL, NOP)
+  VM_DEFINE_OP (56, unused_56, NULL, NOP)
     {
-      scm_t_uint16 dst, src;
-      scm_t_uint32 idx;
-      UNPACK_12_12 (op, dst, src);
-      UNPACK_24 (ip[1], idx);
-      /* CHECK_FREE_VARIABLE (src); */
-      SP_SET (dst, SCM_PROGRAM_FREE_VARIABLE_REF (SP_REF (src), idx));
-      NEXT (2);
-    }
-
-  /* free-set! dst:12 src:12 _:8 idx:24
-   *
-   * Set free variable IDX from the closure DST to SRC.
-   */
-  VM_DEFINE_OP (56, free_set, "free-set!", OP2 (X8_S12_S12, X8_C24))
-    {
-      scm_t_uint16 dst, src;
-      scm_t_uint32 idx;
-      UNPACK_12_12 (op, dst, src);
-      UNPACK_24 (ip[1], idx);
-      /* CHECK_FREE_VARIABLE (src); */
-      SCM_PROGRAM_FREE_VARIABLE_SET (SP_REF (dst), idx, SP_REF (src));
-      NEXT (2);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
 

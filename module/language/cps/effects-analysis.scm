@@ -450,11 +450,6 @@ the LABELS that are clobbered by the effects of LABEL."
   ((f32-set! obj bv n x)           (&write-object (annotation->memory-kind param)))
   ((f64-set! obj bv n x)           (&write-object (annotation->memory-kind param))))
 
-;; Closures.
-(define-primitive-effects* param
-  ((free-ref closure)              (&read-field &closure param))
-  ((free-set! closure val)         (&write-field &closure param)))
-
 ;; Modules.
 (define-primitive-effects
   ((current-module)                (&read-object &module))
