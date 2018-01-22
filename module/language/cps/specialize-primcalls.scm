@@ -121,9 +121,6 @@
           ...
           (_ #f)))
       (specialize-case
-        (('allocate-struct v (? uint? n)) (allocate-struct/immediate n (v)))
-        (('struct-ref s (? uint? n)) (struct-ref/immediate n (s)))
-        (('struct-set! s (? uint? n) x) (struct-set!/immediate n (s x)))
         (('allocate-words (? uint? n)) (allocate-words/immediate n ()))
         (('scm-ref o (? uint? i)) (scm-ref/immediate i (o)))
         (('scm-set! o (? uint? i) x) (scm-set!/immediate i (o x)))

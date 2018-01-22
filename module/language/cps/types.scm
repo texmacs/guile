@@ -826,59 +826,6 @@ minimum, and maximum."
 
 
 ;;;
-;;; Structs.
-;;;
-
-;; No type-checker for allocate-struct, as we can't currently check that
-;; vt is actually a vtable.
-(define-type-inferrer (allocate-struct vt size result)
-  (restrict! vt &struct vtable-offset-user (target-max-size-t/scm))
-  (restrict! size &u64 0 (target-max-size-t/scm))
-  (define! result &struct (&min/0 size) (&max/scm-size size)))
-
-(define-type-checker (struct-ref s idx)
-  (and (check-type s &struct 0 (target-max-size-t/scm))
-       (check-type idx &u64 0 (target-max-size-t/scm))
-       ;; FIXME: is the field boxed?
-       (< (&max idx) (&min s))))
-(define-type-inferrer (struct-ref s idx result)
-  (restrict! s &struct (1+ (&min/0 idx)) (target-max-size-t/scm))
-  (restrict! idx &u64 0 (1- (&max/scm-size s)))
-  (define! result &all-types -inf.0 +inf.0))
-
-(define-type-checker (struct-set! s idx val)
-  (and (check-type s &struct 0 (target-max-size-t/scm))
-       (check-type idx &u64 0 (target-max-size-t/scm))
-       ;; FIXME: is the field boxed?
-       (< (&max idx) (&min s))))
-(define-type-inferrer (struct-set! s idx val)
-  (restrict! s &struct (1+ (&min/0 idx)) (target-max-size-t/scm))
-  (restrict! idx &u64 0 (1- (&max/scm-size s))))
-
-(define-type-inferrer/param (allocate-struct/immediate size vt result)
-  (restrict! vt &struct vtable-offset-user (target-max-size-t/scm))
-  (define! result &struct size size))
-
-(define-type-checker/param (struct-ref/immediate idx s)
-  ;; FIXME: is the field boxed?
-  (and (check-type s &struct 0 (target-max-size-t/scm)) (< idx (&min s))))
-(define-type-inferrer/param (struct-ref/immediate idx s result)
-  (restrict! s &struct (1+ idx) (target-max-size-t/scm))
-  (define! result &all-types -inf.0 +inf.0))
-
-(define-type-checker/param (struct-set!/immediate idx s val)
-  ;; FIXME: is the field boxed?
-  (and (check-type s &struct 0 (target-max-size-t/scm)) (< idx (&min s))))
-(define-type-inferrer/param (struct-set!/immediate idx s val)
-  (restrict! s &struct (1+ idx) (target-max-size-t/scm)))
-
-(define-simple-type (struct-vtable (&struct 0 (target-max-size-t/scm)))
-  (&struct vtable-offset-user (target-max-size-t/scm)))
-
-
-
-
-;;;
 ;;; Strings.
 ;;;
 

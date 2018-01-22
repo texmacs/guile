@@ -258,10 +258,6 @@ false.  It could be that both true and false proofs are available."
            ((word-set!/immediate p s x)      (x <- word-ref/immediate p s))
            ((pointer-set!/immediate p s x)   (x <- pointer-ref/immediate p s))
 
-           ((s <- allocate-struct #f v n)    (v <- struct-vtable #f s))
-           ((s <- allocate-struct/immediate n v) (v <- struct-vtable #f s))
-           ((struct-set! #f s i x)           (x <- struct-ref #f s i))
-           ((struct-set!/immediate i s x)    (x <- struct-ref/immediate i s))
            ((u <- scm->f64 #f s)             (s <- f64->scm #f u))
            ((s <- f64->scm #f u)             (u <- scm->f64 #f s))
            ((u <- scm->u64 #f s)             (s <- u64->scm #f u))

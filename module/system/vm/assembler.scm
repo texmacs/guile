@@ -260,13 +260,6 @@
             emit-ulsh/immediate
             emit-char->integer
             emit-integer->char
-            emit-struct-vtable
-            emit-allocate-struct/immediate
-            emit-struct-ref/immediate
-            emit-struct-set!/immediate
-            emit-allocate-struct
-            emit-struct-ref
-            emit-struct-set!
             emit-class-of
             emit-make-array
             emit-scm->f64

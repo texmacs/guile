@@ -316,9 +316,6 @@
             ((sub/immediate (u8? y) x) (sub x y))
             (_
              (reify-u64-constants
-              ((allocate-struct/immediate (u8? size) vt) (allocate-struct vt size))
-              ((struct-ref/immediate (u8? idx) s) (struct-ref s idx))
-              ((struct-set!/immediate (u8? idx) s val) (struct-set! s idx val))
               ((uadd/immediate (u8? y) x) (uadd x y))
               ((usub/immediate (u8? y) x) (usub x y))
               ((umul/immediate (u8? y) x) (umul x y))

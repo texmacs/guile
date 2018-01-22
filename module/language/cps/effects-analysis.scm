@@ -396,17 +396,6 @@ the LABELS that are clobbered by the effects of LABEL."
                                       (&write-field
                                        (annotation->memory-kind ann) idx)))))
 
-;; Structs.
-(define-primitive-effects* param
-  ((allocate-struct vt n)          (&allocate &struct)         &type-check)
-  ((allocate-struct/immediate vt)  (&allocate &struct)         &type-check)
-  ((make-struct/no-tail vt . _)    (&allocate &struct)         &type-check)
-  ((struct-ref s n)                (&read-object &struct)      &type-check)
-  ((struct-ref/immediate s)        (&read-field &struct param) &type-check)
-  ((struct-set! s n x)             (&write-object &struct)     &type-check)
-  ((struct-set!/immediate s x)     (&write-field &struct param) &type-check)
-  ((struct-vtable s)                                           &type-check))
-
 ;; Strings.
 (define-primitive-effects
   ((string-ref s n)                (&read-object &string)      &type-check)
