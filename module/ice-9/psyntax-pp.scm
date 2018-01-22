@@ -9,23 +9,19 @@
   (letrec*
     ((make-void
        (lambda (src)
-         (make-struct/no-tail (vector-ref %expanded-vtables 0) src)))
+         (make-struct/simple (vector-ref %expanded-vtables 0) src)))
      (make-const
        (lambda (src exp)
-         (make-struct/no-tail (vector-ref %expanded-vtables 1) src exp)))
+         (make-struct/simple (vector-ref %expanded-vtables 1) src exp)))
      (make-primitive-ref
        (lambda (src name)
-         (make-struct/no-tail (vector-ref %expanded-vtables 2) src name)))
+         (make-struct/simple (vector-ref %expanded-vtables 2) src name)))
      (make-lexical-ref
        (lambda (src name gensym)
-         (make-struct/no-tail
-           (vector-ref %expanded-vtables 3)
-           src
-           name
-           gensym)))
+         (make-struct/simple (vector-ref %expanded-vtables 3) src name gensym)))
      (make-lexical-set
        (lambda (src name gensym exp)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 4)
            src
            name
@@ -33,7 +29,7 @@
            exp)))
      (make-module-ref
        (lambda (src mod name public?)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 5)
            src
            mod
@@ -41,7 +37,7 @@
            public?)))
      (make-module-set
        (lambda (src mod name public? exp)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 6)
            src
            mod
@@ -50,16 +46,16 @@
            exp)))
      (make-toplevel-ref
        (lambda (src name)
-         (make-struct/no-tail (vector-ref %expanded-vtables 7) src name)))
+         (make-struct/simple (vector-ref %expanded-vtables 7) src name)))
      (make-toplevel-set
        (lambda (src name exp)
-         (make-struct/no-tail (vector-ref %expanded-vtables 8) src name exp)))
+         (make-struct/simple (vector-ref %expanded-vtables 8) src name exp)))
      (make-toplevel-define
        (lambda (src name exp)
-         (make-struct/no-tail (vector-ref %expanded-vtables 9) src name exp)))
+         (make-struct/simple (vector-ref %expanded-vtables 9) src name exp)))
      (make-conditional
        (lambda (src test consequent alternate)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 10)
            src
            test
@@ -67,19 +63,19 @@
            alternate)))
      (make-call
        (lambda (src proc args)
-         (make-struct/no-tail (vector-ref %expanded-vtables 11) src proc args)))
+         (make-struct/simple (vector-ref %expanded-vtables 11) src proc args)))
      (make-primcall
        (lambda (src name args)
-         (make-struct/no-tail (vector-ref %expanded-vtables 12) src name args)))
+         (make-struct/simple (vector-ref %expanded-vtables 12) src name args)))
      (make-seq
        (lambda (src head tail)
-         (make-struct/no-tail (vector-ref %expanded-vtables 13) src head tail)))
+         (make-struct/simple (vector-ref %expanded-vtables 13) src head tail)))
      (make-lambda
        (lambda (src meta body)
-         (make-struct/no-tail (vector-ref %expanded-vtables 14) src meta body)))
+         (make-struct/simple (vector-ref %expanded-vtables 14) src meta body)))
      (make-lambda-case
        (lambda (src req opt rest kw inits gensyms body alternate)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 15)
            src
            req
@@ -92,7 +88,7 @@
            alternate)))
      (make-let
        (lambda (src names gensyms vals body)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 16)
            src
            names
@@ -101,7 +97,7 @@
            body)))
      (make-letrec
        (lambda (src in-order? names gensyms vals body)
-         (make-struct/no-tail
+         (make-struct/simple
            (vector-ref %expanded-vtables 17)
            src
            in-order?

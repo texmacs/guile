@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010-2017
+;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010-2018
 ;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -184,7 +184,7 @@
                           (sfields (map (lambda (f) (datum->syntax x f)) fields))
                           (ctor (datum->syntax x (symbol-append 'make- stem))))
                      (cons #`(define (#,ctor #,@sfields)
-                               (make-struct/no-tail
+                               (make-struct/simple
                                 (vector-ref %expanded-vtables #,n)
                                 #,@sfields))
                            out)))
