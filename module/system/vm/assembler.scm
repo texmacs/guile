@@ -792,23 +792,6 @@ later by the linker."
     (emit-push asm a)
     (encode-X8_S12_S12 asm 0 0 opcode)
     (emit-pop asm dst))))
-(define (encode-X8_S12_S12-X8_C24!/shuffle asm a b c opcode)
-  (cond
-   ((< (logior a b) (ash 1 12))
-    (encode-X8_S12_S12-X8_C24 asm a b c opcode))
-   (else
-    (emit-push asm a)
-    (emit-push asm (1+ b))
-    (encode-X8_S12_S12-X8_C24 asm 1 0 c opcode)
-    (emit-drop asm 2))))
-(define (encode-X8_S12_S12-X8_C24<-/shuffle asm dst a const opcode)
-  (cond
-   ((< (logior dst a) (ash 1 12))
-    (encode-X8_S12_S12-X8_C24 asm dst a const opcode))
-   (else
-    (emit-push asm a)
-    (encode-X8_S12_S12-X8_C24 asm 0 0 const opcode)
-    (emit-pop asm dst))))
 (define (encode-X8_S12_C12!/shuffle asm a const opcode)
   (cond
    ((< a (ash 1 12))
