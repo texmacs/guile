@@ -91,10 +91,10 @@ _jit_dataset(jit_state_t *_jit);
 static void
 _jit_setup(jit_state_t *_jit, jit_block_t *block);
 
-#define jit_update(node, live, mask)	_jit_update(_jit, node, live, mask)
+#define jit_update(node, live, mask, r)	_jit_update(_jit, node, live, mask, r)
 static void
 _jit_update(jit_state_t *_jit, jit_node_t *node,
-	    jit_regset_t *live, jit_regset_t *mask);
+	    jit_regset_t *live, jit_regset_t *mask, jit_bool_t recurse);
 
 #define thread_jumps()			_thread_jumps(_jit)
 static void
@@ -1574,7 +1574,7 @@ _jit_optimize(jit_state_t *_jit)
 	    continue;
 	if (block->label->code != jit_code_epilog) {
 	    jit_regset_set(&_jitc->regmask, &block->regmask);
-	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
+	    jit_update(block->label->next, &block->reglive, &_jitc->regmask, 1);
 	}
     }
     /* do a second pass from start to properly handle some conditions
@@ -1587,7 +1587,7 @@ _jit_optimize(jit_state_t *_jit)
 	    continue;
 	if (block->label->code != jit_code_epilog) {
 	    jit_regset_set(&_jitc->regmask, &block->setmask);
-	    jit_update(block->label->next, &block->reglive, &_jitc->regmask);
+	    jit_update(block->label->next, &block->reglive, &_jitc->regmask, 1);
 	}
     }
 
@@ -1767,7 +1767,7 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 	    }
 	    if (jit_regset_set_p(&_jitc->regmask)) {
 		bmp_zero();
-		jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
+		jit_update(node->next, &_jitc->reglive, &_jitc->regmask, 1);
 		if (jit_regset_set_p(&_jitc->regmask)) {
 		    /* any unresolved live state is considered as live */
 		    jit_regset_ior(&_jitc->reglive,
@@ -2193,7 +2193,7 @@ _jit_setup(jit_state_t *_jit, jit_block_t *block)
  */
 static void
 _jit_update(jit_state_t *_jit, jit_node_t *node,
-	    jit_regset_t *live, jit_regset_t *mask)
+	    jit_regset_t *live, jit_regset_t *mask, jit_bool_t recurse)
 {
     jit_int32_t		 spec;
     jit_int32_t		 regno;
@@ -2313,8 +2313,14 @@ _jit_update(jit_state_t *_jit, jit_node_t *node,
 			if (jit_regset_set_p(mask) == 0)
 			    return;
 			/* restore mask if branch is conditional */
-			jit_regset_set(&zmask, mask);
-			jit_update(block->label->next, live, &zmask);
+			if (recurse) {
+			    jit_regset_set(&zmask, mask);
+			    jit_update(block->label->next, live, &zmask, 0);
+			}
+			else {
+			    node = block->label->next;
+			    goto restart;
+			}
 			jit_regset_xor(&ztmp, &zmask, mask);
 			/* remove known live registers from mask */
 			if (jit_regset_set_p(&ztmp)) {
@@ -3124,7 +3130,7 @@ _spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
     if (!jit_regset_tstbit(&_jitc->reglive, regno)) {
 	bmp_zero();
 	jit_regset_setbit(&_jitc->regmask, regno);
-	jit_update(node->next, &_jitc->reglive, &_jitc->regmask);
+	jit_update(node->next, &_jitc->reglive, &_jitc->regmask, 1);
 	if (!jit_regset_tstbit(&_jitc->reglive, regno) &&
 	    register_change_p(node->next, node->link, regno) != jit_reg_change)
 	    return (0);
