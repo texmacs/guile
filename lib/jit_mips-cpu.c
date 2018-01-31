@@ -88,7 +88,7 @@ typedef union {
 #  define _F30_REGNO			30
 #  if __WORDSIZE == 32
 #    if NEW_ABI
-#      define stack_framesize		96
+#      define stack_framesize		144
 #    else
 #      define stack_framesize		112
 #    endif
@@ -2968,8 +2968,13 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
 	index = (_jitc->function->self.size - stack_framesize) >> STACK_SHIFT;
 #endif
 	offset = stack_framesize + index * STACK_SLOT;
-	for (; jit_arg_reg_p(index); ++index, offset += STACK_SLOT)
-	    stxi(offset	+  WORD_ADJUST, _BP_REGNO, rn(_A0 - index));
+	for (; jit_arg_reg_p(index); ++index, offset += STACK_SLOT) {
+#if NEW_ABI
+	    SD(rn(_A0 - index), offset, _BP_REGNO);
+#else
+	    stxi(offset +  WORD_ADJUST, _BP_REGNO, rn(_A0 - index));
+#endif
+	}
     }
 }
 
@@ -3014,7 +3019,7 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
 #if NEW_ABI
     if (jit_arg_reg_p(_jitc->function->vagp))
 	addi(r0, _BP_REGNO, stack_framesize + _jitc->function->vagp *
-	     sizeof(jit_word_t));
+	     sizeof(jit_int64_t));
     else
 #endif
 	addi(r0, _BP_REGNO, _jitc->function->self.size);

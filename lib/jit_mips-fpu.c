@@ -18,6 +18,8 @@
  */
 
 #if PROTO
+#  define BE_P				(__BYTE_ORDER == __BIG_ENDIAN)
+#  define LE_P				(__BYTE_ORDER == __LITTLE_ENDIAN)
 #  define MIPS_fmt_S			0x10		/* float32 */
 #  define MIPS_fmt_D			0x11		/* float64 */
 #  define MIPS_fmt_W			0x14		/* int32 */
@@ -249,6 +251,12 @@ static void _movr_f(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define movi_f(r0, i0)		_movi_f(_jit, r0, i0)
 static void _movi_f(jit_state_t*,jit_int32_t,jit_float32_t*);
 #  if NEW_ABI
+#    if __WORDSIZE == 32
+#      define movi64(r0, i0)		_movi64(_jit, r0, i0)
+static void _movi64(jit_state_t*,jit_int32_t,jit_int64_t);
+#    else
+#      define movi64(r0, i0)		movi(r0, i0)
+#    endif
 #    define movr_w_d(r0, r1)		DMTC1(r1, r0)
 #    define movr_d_w(r0, r1)		DMFC1(r0, r1)
 #    define movi_d_w(r0, i0)		_movi_d_w(_jit,r0,i0)
@@ -759,17 +767,51 @@ dopi(mul)
 dopi(div)
 
 #if NEW_ABI
+/* n32 abi requires 64 bit cpu */
+static void
+_movi64(jit_state_t *_jit, jit_int32_t r0, jit_int64_t i0)
+{
+    if (i0 == 0)
+	OR(r0, _ZERO_REGNO, _ZERO_REGNO);
+    else if (i0 >= -32678 && i0 <= 32767)
+	DADDIU(r0, _ZERO_REGNO, i0);
+    else if (i0 >= 0 && i0 <= 65535)
+	ORI(r0, _ZERO_REGNO, i0);
+    else {
+	if (i0 >= 0 && i0 <= 0x7fffffffLL)
+	    LUI(r0, i0 >> 16);
+	else if (i0 >= 0 && i0 <= 0xffffffffLL) {
+	    if (i0 & 0xffff0000LL) {
+		ORI(r0, _ZERO_REGNO, (jit_word_t)(i0 >> 16));
+		DSLL(r0, r0, 16);
+	    }
+	}
+	else {
+	    movi(r0, (jit_word_t)(i0 >> 32));
+	    if (i0 & 0xffff0000LL) {
+		DSLL(r0, r0, 16);
+		ORI(r0, r0, (jit_word_t)(i0 >> 16));
+		DSLL(r0, r0, 16);
+	    }
+	    else
+		DSLL32(r0, r0, 0);
+	}
+	if ((jit_word_t)i0 & 0xffff)
+	    ORI(r0, r0, (jit_word_t)i0 & 0xffff);
+    }
+}
+
 static void
 _movi_d_w(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
 {
     jit_word_t		w;
     union {
-	jit_word_t	w;
+	jit_int64_t	l;
 	jit_float64_t	d;
     } data;
     if (_jitc->no_data) {
 	data.d = *i0;
-	movi(r0, data.w);
+	movi64(r0, data.l);
     }
     else {
 	w = (jit_word_t)i0;
@@ -787,16 +829,16 @@ static void
 _movr_ww_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     assert(r1 == r2 - 1);
-    MTC1(r1, r0);
-    MTC1(r2, r0 + 1);
+    MTC1(r1, r0 + BE_P);
+    MTC1(r2, r0 + LE_P);
 }
 
 static void
 _movr_d_ww(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     assert(r0 == r1 - 1);
-    MFC1(r0, r2);
-    MFC1(r1, r2 + 1);
+    MFC1(r0, r2 + BE_P);
+    MFC1(r1, r2 + LE_P);
 }
 
 static void
@@ -857,8 +899,8 @@ _ldr_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 #  if __WORDSIZE == 64 || NEW_ABI
     LDC1(r0, 0, r1);
 #  else
-    LWC1(r0, 0, r1);
-    LWC1(r0 + 1, 4, r1);
+    LWC1(r0 + BE_P, 0, r1);
+    LWC1(r0 + LE_P, 4, r1);
 #  endif
 }
 
@@ -877,14 +919,14 @@ _ldi_d(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     }
 #  else
     if (can_sign_extend_short_p(i0) && can_sign_extend_short_p(i0 + 4)) {
-	LWC1(r0, i0, _ZERO_REGNO);
-	LWC1(r0 + 1, i0 + 4, _ZERO_REGNO);
+	LWC1(r0 + BE_P, i0, _ZERO_REGNO);
+	LWC1(r0 + LE_P, i0 + 4, _ZERO_REGNO);
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
-	LWC1(r0, 0, rn(reg));
-	LWC1(r0 + 1, 4, rn(reg));
+	LWC1(r0 + BE_P, 0, rn(reg));
+	LWC1(r0 + LE_P, 4, rn(reg));
 	jit_unget_reg(reg);
     }
 #  endif
@@ -909,8 +951,8 @@ _ldxi_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	LDC1(r0, i0, r1);
 #  else
     if (can_sign_extend_short_p(i0) && can_sign_extend_short_p(i0 + 4)) {
-	LWC1(r0, i0, r1);
-	LWC1(r0 + 1, i0 + 4, r1);
+	LWC1(r0 + BE_P, i0, r1);
+	LWC1(r0 + LE_P, i0 + 4, r1);
     }
 #  endif
     else {
@@ -927,8 +969,8 @@ _str_d(jit_state_t *_jit,jit_int32_t r0, jit_int32_t r1)
 #  if __WORDSIZE == 64 || NEW_ABI
     SDC1(r1, 0, r0);
 #  else
-    SWC1(r1, 0, r0);
-    SWC1(r1 + 1, 4, r0);
+    SWC1(r1 + BE_P, 0, r0);
+    SWC1(r1 + LE_P, 4, r0);
 #  endif
 }
 
@@ -941,8 +983,8 @@ _sti_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 	SDC1(r0, i0, _ZERO_REGNO);
 #  else
     if (can_sign_extend_short_p(i0) && can_sign_extend_short_p(i0 + 4)) {
-	SWC1(r0, i0, _ZERO_REGNO);
-	SWC1(r0 + 1, i0 + 4, _ZERO_REGNO);
+	SWC1(r0 + BE_P, i0, _ZERO_REGNO);
+	SWC1(r0 + LE_P, i0 + 4, _ZERO_REGNO);
     }
 #  endif
     else {
@@ -972,8 +1014,8 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 	SDC1(r1, i0, r0);
 #  else
     if (can_sign_extend_short_p(i0) && can_sign_extend_short_p(i0 + 4)) {
-	SWC1(r1, i0, r0);
-	SWC1(r1 + 1, i0 + 4, r0);
+	SWC1(r1 + BE_P, i0, r0);
+	SWC1(r1 + LE_P, i0 + 4, r0);
     }
 #  endif
     else {
@@ -1006,23 +1048,8 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     if (data.l) {
 	if (_jitc->no_data) {
 	    reg = jit_get_reg(jit_class_gpr);
-#  if __WORDSIZE == 64
-	    movi(rn(reg), data.l);
+	    movi64(rn(reg), data.l);
 	    DMTC1(rn(reg), r0);
-#  else
-	    if (data.i[0]) {
-		movi(rn(reg), data.i[0]);
-		MTC1(rn(reg), r0);
-	    }
-	    else
-		MTC1(_ZERO_REGNO, r0);
-	    if (data.i[1]) {
-		movi(rn(reg), data.i[1]);
-		MTC1(rn(reg), r0 + 1);
-	    }
-	    else
-		MTC1(_ZERO_REGNO, r0 + 1);
-#  endif
 	    jit_unget_reg(reg);
 	}
 	else
@@ -1036,23 +1063,23 @@ _movi_d(jit_state_t *_jit, jit_int32_t r0, jit_float64_t *i0)
     if (data.i[0]) {
 	if (_jitc->no_data) {
 	    movi(rn(reg), data.i[0]);
-	    MTC1(rn(reg), r0);
+	    MTC1(rn(reg), r0 + BE_P);
 	}
 	else
-	    ldi_f(r0, (jit_word_t)i0);
+	    ldi_f(r0 + BE_P, (jit_word_t)i0);
     }
     else
-	MTC1(_ZERO_REGNO, r0);
+	MTC1(_ZERO_REGNO, r0 + BE_P);
     if (data.i[1]) {
 	if (_jitc->no_data) {
 	    movi(rn(reg), data.i[1]);
-	    MTC1(rn(reg), r0 + 1);
+	    MTC1(rn(reg), r0 + LE_P);
 	}
 	else
-	    ldi_f(r0 + 1, ((jit_word_t)i0) + 4);
+	    ldi_f(r0 + LE_P, ((jit_word_t)i0) + 4);
     }
     else
-	MTC1(_ZERO_REGNO, r0 + 1);
+	MTC1(_ZERO_REGNO, r0 + LE_P);
     if (_jitc->no_data)
 	jit_unget_reg(reg);
 #  endif

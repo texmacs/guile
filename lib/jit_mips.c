@@ -21,10 +21,6 @@
 #  include <sys/cachectl.h>
 #endif
 
-/* FIXME Need to detect (from /proc on Linux?) if a Loongson or Godson,
- * because n32 and n64 mandate that float registers are 64 bit, and
- * on the later, registers are 32 bit.
- */
 #if NEW_ABI
 #  define NUM_WORD_ARGS			8
 #  define STACK_SLOT			8
@@ -34,7 +30,7 @@
 #  define STACK_SLOT			4
 #  define STACK_SHIFT			2
 #endif
-#if __BYTE_ORDER == __BIG_ENDIAN && __WORDSIZE == 32
+#if NEW_ABI && __BYTE_ORDER == __BIG_ENDIAN && __WORDSIZE == 32
 #  define WORD_ADJUST			4
 #else
 #  define WORD_ADJUST			0
@@ -614,7 +610,7 @@ _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
     if (jit_arg_reg_p(v->u.w))
 	jit_movr(_A0 - v->u.w, u);
     else
-	jit_stxi(v->u.w, _FP, u);
+	jit_stxi(v->u.w + WORD_ADJUST, _FP, u);
     jit_dec_synth();
 }
 
@@ -629,7 +625,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
     else {
 	regno = jit_get_reg(jit_class_gpr);
 	jit_movi(regno, u);
-	jit_stxi(v->u.w, _FP, regno);
+	jit_stxi(v->u.w + WORD_ADJUST, _FP, regno);
 	jit_unget_reg(regno);
     }
     jit_dec_synth();

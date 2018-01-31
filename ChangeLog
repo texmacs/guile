@@ -1,4 +1,11 @@
-2017-13-09 Paulo Andrade <pcpa@gnu.org>
+2018-01-31 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_mips-cpu.c: Correct frame size and varargs
+	initialization for the n32 abi.
+	* lib/jit_mips.c, lib/jit_mips-fpu.c: Correct 32 bit abis
+	in big-endian.
+
+2017-09-13 Paulo Andrade <pcpa@gnu.org>
 
 	* configure.ac: Add check for binutils 2.29 prototype to the
 	disassembler function.
