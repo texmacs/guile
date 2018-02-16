@@ -906,10 +906,20 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     int rv = scm_std_select (max_fd + 1,
                              &read_set, &write_set, &except_set,
                              time_ptr);
-    /* Let EINTR / EAGAIN cause a return to the user and let them loop
-       to run any asyncs that might be pending.  */
-    if (rv < 0 && errno != EINTR && errno != EAGAIN)
-      SCM_SYSERROR;
+    if (rv < 0)
+      {
+        /* Let EINTR / EAGAIN cause a return to the user and let them
+           loop to run any asyncs that might be pending.  */
+        if (errno != EINTR && errno != EAGAIN)
+          SCM_SYSERROR;
+        else
+          {
+            /* Return empty sets.  */
+            FD_ZERO (&read_set);
+            FD_ZERO (&write_set);
+            FD_ZERO (&except_set);
+          }
+      }
   }
 
   return scm_list_3 (retrieve_select_type (&read_set, read_ports_ready, reads),
