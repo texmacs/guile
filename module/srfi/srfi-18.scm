@@ -235,9 +235,9 @@ object (absolute point in time), or #f."
 (define (thread-yield!) (threads:yield) *unspecified*)
 
 (define (thread-sleep! timeout)
-  (let* ((ct (time->seconds (current-time)))
-	 (t (cond ((time? timeout) (- (time->seconds timeout) ct))
-		  ((number? timeout) (- timeout ct))
+  (let* ((t (cond ((time? timeout) (- (time->seconds timeout)
+                                      (time->seconds (current-time))))
+		  ((number? timeout) timeout)
 		  (else (scm-error 'wrong-type-arg "thread-sleep!"
 				   "Wrong type argument: ~S" 
 				   (list timeout) 

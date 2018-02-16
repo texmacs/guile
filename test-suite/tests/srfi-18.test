@@ -94,13 +94,12 @@
         (unspecified? (thread-sleep! future-time))))
 
     (pass-if "thread sleep with number"
-      (let ((old-secs (car (current-time))))
-        (unspecified? (thread-sleep! (+ (time->seconds (current-time)))))))
+      (unspecified? (thread-sleep! 0)))
 
     (pass-if "thread sleeps fractions of a second"
       (let* ((current (time->seconds (current-time)))
              (future (+ current 0.5)))
-        (thread-sleep! future)
+        (thread-sleep! 0.5)
         (>= (time->seconds (current-time)) future)))
 
     (pass-if "thread does not sleep on past time"
