@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -900,10 +900,20 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     int rv = scm_std_select (max_fd + 1,
                              &read_set, &write_set, &except_set,
                              time_ptr);
-    /* Let EINTR / EAGAIN cause a return to the user and let them loop
-       to run any asyncs that might be pending.  */
-    if (rv < 0 && errno != EINTR && errno != EAGAIN)
-      SCM_SYSERROR;
+    if (rv < 0)
+      {
+        /* Let EINTR / EAGAIN cause a return to the user and let them
+           loop to run any asyncs that might be pending.  */
+        if (errno != EINTR && errno != EAGAIN)
+          SCM_SYSERROR;
+        else
+          {
+            /* Return empty sets.  */
+            FD_ZERO (&read_set);
+            FD_ZERO (&write_set);
+            FD_ZERO (&except_set);
+          }
+      }
   }
 
   return scm_list_3 (retrieve_select_type (&read_set, read_ports_ready, reads),
