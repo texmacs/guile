@@ -7261,7 +7261,7 @@ is an ordinary array of rank 1 with lower bound 2 in dimension 0.
 is a non-uniform array of rank 2; a 2@cross{}3 matrix with index ranges 0..1
 and 0..2.
 
-@item #u32(0 1 2)
+@item #u8(0 1 2)
 is a uniform u8 array of rank 1.
 
 @item #2u32@@2@@3((1 2) (2 3))
