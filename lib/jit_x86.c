@@ -507,8 +507,7 @@ _jit_retr(jit_state_t *_jit, jit_int32_t u)
     if (JIT_RET != u)
 	jit_movr(JIT_RET, u);
     /* explicitly tell it is live */
-    else
-	jit_live(JIT_RET);
+    jit_live(JIT_RET);
     jit_ret();
     jit_dec_synth();
 }

@@ -1,3 +1,12 @@
+2018-02-22 Paulo Andrade <pcpa@gnu.org>
+
+	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
+	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_sparc.c, lib/jit_x86.c:
+	Correct wrong logic in usage of jit_live in jit_retr. The
+	problem is that if a temporary is required during epilog,
+	the return register might be allocated, so, jit_live must always
+	be used.
+
 2018-01-31 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/lightning.c: Avoid deep recursions when computing live

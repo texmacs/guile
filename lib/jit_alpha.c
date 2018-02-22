@@ -251,8 +251,7 @@ _jit_retr(jit_state_t *_jit, jit_int32_t u)
     jit_inc_synth_w(retr, u);
     if (JIT_RET != u)
 	jit_movr(JIT_RET, u);
-    else
-	jit_live(JIT_RET);
+    jit_live(JIT_RET);
     jit_ret();
     jit_dec_synth();
 }
@@ -329,7 +328,7 @@ _jit_arg_register_p(jit_state_t *_jit, jit_node_t *u)
 void
 _jit_ellipsis(jit_state_t *_jit)
 {
-    jit_inc_synth(jit_code_ellipsis);
+    jit_inc_synth(ellipsis);
     if (_jitc->prepare) {
 	jit_link_prepare();
 	assert(!(_jitc->function->call.call & jit_call_varargs));
