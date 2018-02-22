@@ -1,5 +1,12 @@
 2018-02-22 Paulo Andrade <pcpa@gnu.org>
 
+	* lib/jit_alpha-cpu.c: Always set t12 to the address of the
+	current function, to properly work on all systems. Previously
+	the shortcut did only work on Tru64. For Linux and glibc the
+	change is required.
+
+2018-02-22 Paulo Andrade <pcpa@gnu.org>
+
 	* lib/jit_aarch64.c, lib/jit_alpha.c, lib/jit_arm.c,
 	lib/jit_mips.c, lib/jit_ppc.c, lib/jit_sparc.c, lib/jit_x86.c:
 	Correct wrong logic in usage of jit_live in jit_retr. The

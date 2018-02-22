@@ -2550,6 +2550,8 @@ _callr(jit_state_t *_jit, jit_int32_t r0)
 static void
 _calli(jit_state_t *_jit, jit_word_t i0)
 {
+    /* FIXME use a small buffer to load constants - using gp */
+#if 0
     jit_word_t		w;
     jit_word_t		d;
     w = _jit->pc.w;
@@ -2558,6 +2560,10 @@ _calli(jit_state_t *_jit, jit_word_t i0)
 	BSR(_RA_REGNO, d);
     else
 	(void)calli_p(i0);
+#else
+    movi(_PV_REGNO, i0);
+    callr(_PV_REGNO);
+#endif
 }
 
 static jit_word_t
