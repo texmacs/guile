@@ -1253,8 +1253,8 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
     switch (code) {
 	case jit_code_data:	case jit_code_save:	case jit_code_load:
 	case jit_code_name:	case jit_code_label:	case jit_code_note:
-	case jit_code_prolog:	case jit_code_ellipsis:	case jit_code_epilog:
-	case jit_code_ret:	case jit_code_prepare:
+	case jit_code_prolog:	case jit_code_ellipsis:	case jit_code_va_push:
+	case jit_code_epilog:	case jit_code_ret:	case jit_code_prepare:
 	    mask = 0;
 	    break;
 	case jit_code_live:	case jit_code_va_end:

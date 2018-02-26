@@ -400,15 +400,19 @@ that uses the appropriate wordsize call.
 These are:
 @example
 prepare     (not specified)
+va_start    (not specified)
 pushargr                                   _f  _d
 pushargi                                   _f  _d
+va_push     (not specified)
 arg         _c  _uc  _s  _us  _i  _ui  _l  _f  _d
 getarg      _c  _uc  _s  _us  _i  _ui  _l  _f  _d
+va_arg                                         _d
 putargr                                    _f  _d
 putargi                                    _f  _d
 ret         (not specified)
 retr                                       _f  _d
 reti                                       _f  _d
+va_end      (not specified)
 retval      _c  _uc  _s  _us  _i  _ui  _l  _f  _d
 epilog      (not specified)
 @end example
@@ -424,6 +428,12 @@ arguments must, in order: use the @code{prepare} instruction and use
 the @code{pushargr} or @code{pushargi} to push the arguments @strong{in
 left to right order}; and use @code{finish} or @code{call} (explained below)
 to perform the actual call.
+
+@code{va_start} returns a @code{C} compatible @code{va_list}. To fetch
+arguments, use @code{va_arg} for integers and @code{va_arg_d} for doubles.
+@code{va_push} is required when passing a @code{va_list} to another function,
+because not all architectures expect it as a single pointer. Known case
+is DEC Alpha, that requires it as a structure passed by value.
 
 @code{arg}, @code{getarg} and @code{putarg} are used by the callee.
 @code{arg} is different from other instruction in that it does not

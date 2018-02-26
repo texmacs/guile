@@ -202,6 +202,8 @@ typedef enum {
 
 #define jit_ellipsis()		_jit_ellipsis(_jit)
     jit_code_ellipsis,
+#define jit_va_push(u)		_jit_va_push(_jit,u)
+    jit_code_va_push,
 #define jit_allocai(u)		_jit_allocai(_jit,u)
 #define jit_allocar(u, v)	_jit_allocar(_jit,u,v)
     jit_code_allocai,		jit_code_allocar,
@@ -950,6 +952,7 @@ extern void _jit_putargi(jit_state_t*, jit_word_t, jit_node_t*);
 
 extern void _jit_prepare(jit_state_t*);
 extern void _jit_ellipsis(jit_state_t*);
+extern void _jit_va_push(jit_state_t*, jit_gpr_t);
 extern void _jit_pushargr(jit_state_t*, jit_gpr_t);
 extern void _jit_pushargi(jit_state_t*, jit_word_t);
 extern void _jit_finishr(jit_state_t*, jit_gpr_t);

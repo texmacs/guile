@@ -497,7 +497,7 @@ static void bunordr_d(void);	static void bunordi_d(void);
 static void pushargr_d(void);	static void pushargi_d(void);
 static void retr_d(void);	static void reti_d(void);
 static void retval_d(void);
-static void vastart(void);
+static void vastart(void);	static void vapush(void);
 static void vaarg(void);	static void vaarg_d(void);
 static void vaend(void);
 
@@ -811,6 +811,7 @@ static instr_t		  instr_vector[] = {
     entry(retr_d),	entry(reti_d),
     entry(retval_d),
     entry2("va_start", vastart),
+    entry2("va_push", vapush),
     entry2("va_arg", vaarg),
     entry2("va_arg_d", vaarg_d),
     entry2("va_end", vaend),
@@ -1656,6 +1657,12 @@ vastart(void)
 {
     jit_gpr_t	r0 = get_ireg();
     jit_va_start(r0);
+}
+static void
+vapush(void)
+{
+    jit_gpr_t	r0 = get_ireg();
+    jit_va_push(r0);
 }
 static void
 vaarg(void)

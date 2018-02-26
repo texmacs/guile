@@ -11,6 +11,7 @@
     0,	/* label */
     76,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */

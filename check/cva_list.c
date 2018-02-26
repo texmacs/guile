@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
     jit_va_start(JIT_V0);
     jit_prepare();
     jit_pushargr(JIT_V1);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_i_iiiiiiiii);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -603,7 +603,7 @@ int main(int argc, char *argv[])
     jit_prepare();
     jit_pushargr(JIT_V1);
     jit_pushargr(JIT_V2);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_ii_iiiiiiii);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -617,7 +617,7 @@ int main(int argc, char *argv[])
     jit_va_start(JIT_V0);
     jit_prepare();
     jit_pushargr_d(JIT_F3);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_d_ddddddddd);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -634,7 +634,7 @@ int main(int argc, char *argv[])
     jit_prepare();
     jit_pushargr_d(JIT_F3);
     jit_pushargr_d(JIT_F4);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_dd_dddddddd);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
     jit_va_start(JIT_V0);
     jit_prepare();
     jit_pushargr(JIT_V1);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_i_didididid);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -665,7 +665,7 @@ int main(int argc, char *argv[])
     jit_prepare();
     jit_pushargr(JIT_V1);
     jit_pushargr_d(JIT_F3);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_id_idididid);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -679,7 +679,7 @@ int main(int argc, char *argv[])
     jit_va_start(JIT_V0);
     jit_prepare();
     jit_pushargr_d(JIT_F3);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_d_ididididi);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -696,7 +696,7 @@ int main(int argc, char *argv[])
     jit_prepare();
     jit_pushargr_d(JIT_F3);
     jit_pushargr(JIT_V1);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_di_didididi);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -723,7 +723,7 @@ int main(int argc, char *argv[])
     jit_pushargi(1);
     jit_pushargr(JIT_V1);
     jit_pushargr(JIT_V2);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_iii_iiiiiii);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -750,7 +750,7 @@ int main(int argc, char *argv[])
     jit_pushargi(2);
     jit_pushargr(JIT_V1);
     jit_pushargr(JIT_V2);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_iiii_iiiiii);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -771,7 +771,7 @@ int main(int argc, char *argv[])
     jit_pushargi_d(1);
     jit_pushargr_d(JIT_F3);
     jit_pushargr_d(JIT_F4);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_ddd_ddddddd);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -798,7 +798,7 @@ int main(int argc, char *argv[])
     jit_pushargi_d(2);
     jit_pushargr_d(JIT_F3);
     jit_pushargr_d(JIT_F4);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_dddd_dddddd);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -819,7 +819,7 @@ int main(int argc, char *argv[])
     jit_pushargi(1);
     jit_pushargr_d(JIT_F3);
     jit_pushargr(JIT_V1);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_idi_dididid);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -846,7 +846,7 @@ int main(int argc, char *argv[])
     jit_pushargi_d(2);
     jit_pushargr(JIT_V1);
     jit_pushargr_d(JIT_F3);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_idid_ididid);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -867,7 +867,7 @@ int main(int argc, char *argv[])
     jit_pushargi_d(1);
     jit_pushargr(JIT_V1);
     jit_pushargr_d(JIT_F3);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_did_idididi);
     jit_va_end(JIT_V0);
     jit_ret();
@@ -894,7 +894,7 @@ int main(int argc, char *argv[])
     jit_pushargi(2);
     jit_pushargr_d(JIT_F3);
     jit_pushargr(JIT_V1);
-    jit_pushargr(JIT_V0);
+    jit_va_push(JIT_V0);
     jit_finishi(va_didi_dididi);
     jit_va_end(JIT_V0);
     jit_ret();

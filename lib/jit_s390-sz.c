@@ -11,6 +11,7 @@
     2,	/* label */
     42,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */
@@ -412,6 +413,7 @@
     2,	/* label */
     42,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */

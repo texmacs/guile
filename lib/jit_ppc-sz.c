@@ -12,6 +12,7 @@
     0,	/* label */
     44,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */
@@ -416,6 +417,7 @@
     0,	/* label */
     136,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */
@@ -821,6 +823,7 @@
     0,	/* label */
     148,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */
@@ -1226,6 +1229,7 @@
     0,	/* label */
     124,	/* prolog */
     0,	/* ellipsis */
+    0,	/* va_push */
     0,	/* allocai */
     0,	/* allocar */
     0,	/* arg */

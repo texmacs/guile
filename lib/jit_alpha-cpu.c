@@ -2689,7 +2689,10 @@ _vastart(jit_state_t *_jit, jit_int32_t r0)
     stxi(offsetof(jit_va_list_t, base), r0, rn(reg));
 
     /* Initialize the offset field */
-    movi(rn(reg), _jitc->function->vagp * 8);
+    if (_jitc->function.vagp < 6)
+	movi(rn(reg), _jitc->function->vagp * 8);
+    else
+	movi(rn(reg), _jitc->function->self.size - (stack_framesize - 48));
     stxi(offsetof(jit_va_list_t, offset), r0, rn(reg));
 
     jit_unget_reg(reg);

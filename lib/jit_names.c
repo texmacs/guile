@@ -24,7 +24,7 @@ static char *code_name[] = {
     "#name",		"#note",
     "label",
     "prolog",
-    "ellipsis",
+    "ellipsis",		"va_push",
     "allocai",		"allocar",
     "arg",
     "getarg_c",		"getarg_uc",

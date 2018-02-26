@@ -343,6 +343,14 @@ _jit_ellipsis(jit_state_t *_jit)
     jit_dec_synth();
 }
 
+void
+_jit_va_push(jit_state_t *_jit, jit_int32_t u)
+{
+    jit_inc_synth_w(va_push, u);
+    jit_pushargr(u);
+    jit_dec_synth();
+}
+
 jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
@@ -1480,6 +1488,7 @@ _emit_code(jit_state_t *_jit)
 		vaarg_d(rn(node->u.w), rn(node->v.w));
 		break;
 	    case jit_code_live:			case jit_code_ellipsis:
+	    case jit_code_va_push:
 	    case jit_code_allocai:		case jit_code_allocar:
 	    case jit_code_arg:
 	    case jit_code_arg_f:		case jit_code_arg_d:

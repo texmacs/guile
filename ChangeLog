@@ -1,3 +1,29 @@
+2018-02-26 Paulo Andrade <pcpa@gnu.org>
+
+	* check/lightning.c, include/lightning.h: Add the new jit_va_push
+	interface. That should be called when passing a va_list to a C
+	function. This is required because on Alpha a va_list is passed
+	by value, and lightning does not know about data types, so, cannot
+	understand it is pushing a va_list as argument.
+
+	* lib/jit_names.c, lib/lightning.c: Minor changes for the new
+	jit_code_va_push.
+
+	* check/cva_list.c: Update only test case using jit_va_push, to
+	pass a va_list to a C function.
+
+	doc/body.texi: Better documentation of the varargs interface.
+
+	* jit_alpha.c, jit_alpha-cpu.c: Update to properly push a
+	C va_list and correctly calculate varargs offset.
+
+	* lib/jit_aarch64-sz.c, lib/jit_aarch64.c, lib/jit_alpha-sz.c,
+	lib/jit_arm-sz.c, lib/jit_arm.c, lib/jit_hppa-sz.c, lib/jit_hppa.c,
+	lib/jit_ia64-sz.c, lib/jit_ia64.c, lib/jit_mips-sz.c, lib/jit_mips.c,
+	lib/jit_ppc-sz.c, lib/jit_ppc.c, lib/jit_s390-sz.c, lib/jit_s390.c,
+	lib/jit_sparc-sz.c, lib/jit_sparc.c, lib/jit_x86-sz.c, lib/jit_x86.c:
+	Update for the new jit_va_push interface.
+
 2018-02-22 Paulo Andrade <pcpa@gnu.org>
 
 	* lib/jit_alpha-cpu.c: Always set t12 to the address of the
