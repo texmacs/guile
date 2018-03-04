@@ -1012,7 +1012,7 @@ interpreted internally in two steps.
 First, any string PEG is expanded into an s-expression PEG by the code
 in the @code{(ice-9 peg string-peg)} module.
 
-Then, then s-expression PEG that results is compiled into a parsing
+Then, the s-expression PEG that results is compiled into a parsing
 function by the @code{(ice-9 peg codegen)} module. In particular, the
 function @code{compile-peg-pattern} is called on the s-expression. It then
 decides what to do based on the form it is passed.
