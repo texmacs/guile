@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2009-2015
+@c Copyright (C)  1996, 1997, 2000-2004, 2009-2015, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1318,7 +1318,7 @@ macros will be @code{eval}'d in the top-level environment.
 
 In this way @code{(macroexpand @var{foo})} is equivalent to
 @code{(macroexpand @var{foo} 'e '(eval))}.  The second argument is the
-mode (@code{'e} for ``eval'') and the second is the
+mode (@code{'e} for ``eval'') and the third is the
 eval-syntax-expanders-when parameter (only @code{eval} in this default
 setting).
 
