@@ -213,8 +213,96 @@ any @var{person} whose second slot is a promise that evaluates to a
 one-element list containing a @var{person} whose first slot is
 @code{"Bob"}.
 
-Please refer to the @code{ice-9/match.upstream.scm} file in your Guile
-installation for more details.
+The @code{(ice-9 match)} module also provides the following convenient
+syntactic sugar macros wrapping around @code{match}.
+
+@deffn {Scheme Syntax} match-lambda exp clause1 clause2 @dots{}
+Create a procedure of one argument that matches its argument against
+each clause, and returns the result of evaluating the corresponding
+expressions.
+
+@example
+(match-lambda clause1 clause2 @dots{})
+@equiv{}
+(lambda (arg) (match arg clause1 clause2 @dots{}))
+@end example
+@end deffn
+
+@example
+((match-lambda
+   (('hello (who))
+    who))
+ '(hello (world)))
+@result{} world
+@end example
+
+@deffn {Scheme Syntax} match-lambda* exp clause1 clause2 @dots{}
+Create a procedure of any number of arguments that matches its argument
+list against each clause, and returns the result of evaluating the
+corresponding expressions.
+
+@example
+(match-lambda* clause1 clause2 @dots{})
+@equiv{}
+(lambda args (match args clause1 clause2 @dots{}))
+@end example
+@end deffn
+
+@example
+((match-lambda*
+   (('hello (who))
+    who))
+ 'hello '(world))
+@result{} world
+@end example
+
+@deffn {Scheme Syntax} match-let ((pattern expression) @dots{}) body
+Match each pattern to the corresponding expression, and evaluate the
+body with all matched variables in scope.  Raise an error if any of the
+expressions fail to match.  @code{match-let} is analogous to named let
+and can also be used for recursive functions which match on their
+arguments as in @code{match-lambda*}.
+
+@example
+(match-let (((x y) (list 1 2))
+            ((a b) (list 3 4)))
+  (list a b x y))
+@result{}
+(3 4 1 2)
+@end example
+@end deffn
+
+@deffn {Scheme Syntax} match-let variable ((pattern init) @dots{}) body
+Similar to @code{match-let}, but analogously to @dfn{named let}, locally
+bind VARIABLE to a new procedure which accepts as many arguments as
+there are INIT expressions.  The procedure is initially applied to the
+results of evaluating the INIT expressions.  When called, the procedure
+matches each argument against the corresponding PATTERN, and returns the
+result(s) of evaluating the BODY expressions.  @xref{while do,
+Iteration}, for more on @dfn{named let}.
+@end deffn
+
+@deffn {Scheme Syntax} match-let* ((variable expression) @dots{}) body
+Similar to @code{match-let}, but analogously to @code{let*}, match and
+bind the variables in sequence, with preceding match variables in scope.
+
+@example
+(match-let* (((x y) (list 1 2))
+             ((a b) (list x 4)))
+  (list a b x y))
+@equiv{}
+(match-let (((x y) (list 1 2)))
+  (match-let (((a b) (list x 4)))
+    (list a b x y)))
+@result{}
+(1 4 1 2)
+@end example
+@end deffn
+
+@deffn {Scheme Syntax} match-letrec ((variable expression) @dots{}) body
+Similar to @code{match-let}, but analogously to @code{letrec}, match and
+bind the variables with all match variables in scope.
+@end deffn
 
 Guile also comes with a pattern matcher specifically tailored to SXML
 trees, @xref{sxml-match}.
