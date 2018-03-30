@@ -200,7 +200,19 @@
 ;; not ephemeral should be handled by compile-bytecode.
 (define (compute-known-primitives)
   (define *macro-instructions*
-    '(u64->s64
+    '(add
+      add/immediate
+      sub
+      sub/immediate
+      mul
+      div
+      quo
+      rem
+      mod
+      logand
+      logior
+      logxor
+      u64->s64
       s64->u64
       cache-current-module!
       cached-toplevel-box

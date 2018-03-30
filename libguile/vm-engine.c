@@ -2211,177 +2211,19 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (83, unused_83, NULL, NOP)
   VM_DEFINE_OP (84, unused_84, NULL, NOP)
   VM_DEFINE_OP (85, unused_85, NULL, NOP)
-    {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
-    }
-
-  
-
-  /*
-   * Numeric operations
-   */
-
-  /* add dst:8 a:8 b:8
-   *
-   * Add A to B, and place the result in DST.
-   */
-  VM_DEFINE_OP (86, add, "add", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      BINARY_INTEGER_OP (+, scm_sum);
-    }
-
-  /* add/immediate dst:8 src:8 imm:8
-   *
-   * Add the unsigned 8-bit value IMM to the value from SRC, and place
-   * the result in DST.
-   */
-  VM_DEFINE_OP (87, add_immediate, "add/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, imm;
-      SCM x;
-
-      UNPACK_8_8_8 (op, dst, src, imm);
-      x = SP_REF (src);
-
-      if (SCM_LIKELY (SCM_I_INUMP (x)))
-        {
-          scm_t_signed_bits sum = SCM_I_INUM (x) + (scm_t_signed_bits) imm;
-
-          if (SCM_LIKELY (SCM_POSFIXABLE (sum)))
-            RETURN (SCM_I_MAKINUM (sum));
-        }
-
-      RETURN_EXP (scm_sum (x, SCM_I_MAKINUM (imm)));
-    }
-
-  /* sub dst:8 a:8 b:8
-   *
-   * Subtract B from A, and place the result in DST.
-   */
-  VM_DEFINE_OP (88, sub, "sub", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      BINARY_INTEGER_OP (-, scm_difference);
-    }
-
-  /* sub/immediate dst:8 src:8 imm:8
-   *
-   * Subtract the unsigned 8-bit value IMM from the value in SRC, and
-   * place the result in DST.
-   */
-  VM_DEFINE_OP (89, sub_immediate, "sub/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, imm;
-      SCM x;
-
-      UNPACK_8_8_8 (op, dst, src, imm);
-      x = SP_REF (src);
-
-      if (SCM_LIKELY (SCM_I_INUMP (x)))
-        {
-          scm_t_signed_bits diff = SCM_I_INUM (x) - (scm_t_signed_bits) imm;
-
-          if (SCM_LIKELY (SCM_NEGFIXABLE (diff)))
-            RETURN (SCM_I_MAKINUM (diff));
-        }
-
-      RETURN_EXP (scm_difference (x, SCM_I_MAKINUM (imm)));
-    }
-
-  /* mul dst:8 a:8 b:8
-   *
-   * Multiply A and B, and place the result in DST.
-   */
-  VM_DEFINE_OP (90, mul, "mul", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      RETURN_EXP (scm_product (x, y));
-    }
-
-  /* div dst:8 a:8 b:8
-   *
-   * Divide A by B, and place the result in DST.
-   */
-  VM_DEFINE_OP (91, div, "div", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      RETURN_EXP (scm_divide (x, y));
-    }
-
-  /* quo dst:8 a:8 b:8
-   *
-   * Divide A by B, and place the quotient in DST.
-   */
-  VM_DEFINE_OP (92, quo, "quo", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      RETURN_EXP (scm_quotient (x, y));
-    }
-
-  /* rem dst:8 a:8 b:8
-   *
-   * Divide A by B, and place the remainder in DST.
-   */
-  VM_DEFINE_OP (93, rem, "rem", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      RETURN_EXP (scm_remainder (x, y));
-    }
-
-  /* mod dst:8 a:8 b:8
-   *
-   * Place the modulo of A by B in DST.
-   */
-  VM_DEFINE_OP (94, mod, "mod", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      RETURN_EXP (scm_modulo (x, y));
-    }
-
+  VM_DEFINE_OP (86, unused_86, NULL, NOP)
+  VM_DEFINE_OP (87, unused_87, NULL, NOP)
+  VM_DEFINE_OP (88, unused_88, NULL, NOP)
+  VM_DEFINE_OP (89, unused_89, NULL, NOP)
+  VM_DEFINE_OP (90, unused_90, NULL, NOP)
+  VM_DEFINE_OP (91, unused_91, NULL, NOP)
+  VM_DEFINE_OP (92, unused_92, NULL, NOP)
+  VM_DEFINE_OP (93, unused_93, NULL, NOP)
+  VM_DEFINE_OP (94, unused_94, NULL, NOP)
   VM_DEFINE_OP (95, unused_95, NULL, NOP)
-    {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
-    }
-
-  /* logand dst:8 a:8 b:8
-   *
-   * Place the bitwise AND of A and B into DST.
-   */
-  VM_DEFINE_OP (96, logand, "logand", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-        /* Compute bitwise AND without untagging */
-        RETURN (SCM_PACK (SCM_UNPACK (x) & SCM_UNPACK (y)));
-      RETURN_EXP (scm_logand (x, y));
-    }
-
-  /* logior dst:8 a:8 b:8
-   *
-   * Place the bitwise inclusive OR of A with B in DST.
-   */
-  VM_DEFINE_OP (97, logior, "logior", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-        /* Compute bitwise OR without untagging */
-        RETURN (SCM_PACK (SCM_UNPACK (x) | SCM_UNPACK (y)));
-      RETURN_EXP (scm_logior (x, y));
-    }
-
-  /* logxor dst:8 a:8 b:8
-   *
-   * Place the bitwise exclusive OR of A with B in DST.
-   */
-  VM_DEFINE_OP (98, logxor, "logxor", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      ARGS2 (x, y);
-      if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) ^ SCM_I_INUM (y)));
-      RETURN_EXP (scm_logxor (x, y));
-    }
-
+  VM_DEFINE_OP (96, unused_96, NULL, NOP)
+  VM_DEFINE_OP (97, unused_97, NULL, NOP)
+  VM_DEFINE_OP (98, unused_98, NULL, NOP)
   VM_DEFINE_OP (99, unused_99, NULL, NOP)
   VM_DEFINE_OP (100, unused_100, NULL, NOP)
   VM_DEFINE_OP (101, unused_101, NULL, NOP)
