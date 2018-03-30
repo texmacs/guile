@@ -23,22 +23,22 @@
 
 #ifdef BUILDING_LIBGUILE
 
-typedef SCM (*scm_t_binary_scm_intrinsic) (SCM, SCM);
-typedef SCM (*scm_t_binary_uimm_intrinsic) (SCM, scm_t_uint8);
+typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
+typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, scm_t_uint8);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
-  M(binary_scm, add, "add", ADD) \
-  M(binary_uimm, add_immediate, "add/immediate", ADD_IMMEDIATE) \
-  M(binary_scm, sub, "sub", SUB) \
-  M(binary_uimm, sub_immediate, "sub/immediate", SUB_IMMEDIATE) \
-  M(binary_scm, mul, "mul", MUL) \
-  M(binary_scm, div, "div", DIV) \
-  M(binary_scm, quo, "quo", QUO) \
-  M(binary_scm, rem, "rem", REM) \
-  M(binary_scm, mod, "mod", MOD) \
-  M(binary_scm, logand, "logand", LOGAND) \
-  M(binary_scm, logior, "logior", LOGIOR) \
-  M(binary_scm, logxor, "logxor", LOGXOR) \
+  M(scm_from_scm_scm, add, "add", ADD) \
+  M(scm_from_scm_uimm, add_immediate, "add/immediate", ADD_IMMEDIATE) \
+  M(scm_from_scm_scm, sub, "sub", SUB) \
+  M(scm_from_scm_uimm, sub_immediate, "sub/immediate", SUB_IMMEDIATE) \
+  M(scm_from_scm_scm, mul, "mul", MUL) \
+  M(scm_from_scm_scm, div, "div", DIV) \
+  M(scm_from_scm_scm, quo, "quo", QUO) \
+  M(scm_from_scm_scm, rem, "rem", REM) \
+  M(scm_from_scm_scm, mod, "mod", MOD) \
+  M(scm_from_scm_scm, logand, "logand", LOGAND) \
+  M(scm_from_scm_scm, logior, "logior", LOGIOR) \
+  M(scm_from_scm_scm, logxor, "logxor", LOGXOR) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

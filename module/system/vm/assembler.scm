@@ -179,6 +179,20 @@
             emit-f32-set!
             emit-f64-set!
 
+            ;; Intrinsics.
+            emit-add
+            emit-add/immediate
+            emit-sub
+            emit-sub/immediate
+            emit-mul
+            emit-div
+            emit-quo
+            emit-rem
+            emit-mod
+            emit-logand
+            emit-logior
+            emit-logxor
+
             emit-call
             emit-call-label
             emit-tail-call
@@ -219,15 +233,6 @@
             emit-string->number
             emit-string->symbol
             emit-symbol->keyword
-            emit-add
-            emit-add/immediate
-            emit-sub
-            emit-sub/immediate
-            emit-mul
-            emit-div
-            emit-quo
-            emit-rem
-            emit-mod
             emit-lsh
             emit-rsh
             emit-lsh/immediate
@@ -242,9 +247,6 @@
             emit-uadd/immediate
             emit-usub/immediate
             emit-umul/immediate
-            emit-logand
-            emit-logior
-            emit-logxor
             emit-logsub
             emit-ulogand
             emit-ulogior
@@ -871,6 +873,24 @@ later by the linker."
     (emit-push asm a)
     (encode-X8_S8_C8_S8 asm 0 const 0 opcode)
     (emit-pop asm dst))))
+(define (encode-X8_S8_S8_S8-C32<-/shuffle asm dst a b c32 opcode)
+  (cond
+   ((< (logior dst a b) (ash 1 8))
+    (encode-X8_S8_S8_S8-C32 asm dst a b c32 opcode))
+   (else
+    (emit-push asm a)
+    (emit-push asm (1+ b))
+    (encode-X8_S8_S8_S8-C32 asm 1 1 0 c32 opcode)
+    (emit-drop asm 1)
+    (emit-pop asm dst))))
+(define (encode-X8_S8_S8_C8-C32<-/shuffle asm dst a const c32 opcode)
+  (cond
+   ((< (logior dst a) (ash 1 8))
+    (encode-X8_S8_S8_C8-C32 asm dst a const c32 opcode))
+   (else
+    (emit-push asm a)
+    (encode-X8_S8_S8_C8-C32 asm 0 0 const c32 opcode)
+    (emit-pop asm dst))))
 
 (eval-when (expand)
   (define (id-append ctx a b)
@@ -889,6 +909,8 @@ later by the linker."
       (('! 'X8_S8_S8_S8)         #'encode-X8_S8_S8_S8!/shuffle)
       (('<- 'X8_S8_S8_S8)        #'encode-X8_S8_S8_S8<-/shuffle)
       (('<- 'X8_S8_S8_C8)        #'encode-X8_S8_S8_C8<-/shuffle)
+      (('<- 'X8_S8_S8_S8 'C32)   #'encode-X8_S8_S8_S8-C32<-/shuffle)
+      (('<- 'X8_S8_S8_C8 'C32)   #'encode-X8_S8_S8_C8-C32<-/shuffle)
       (('! 'X8_S8_C8_S8)         #'encode-X8_S8_C8_S8!/shuffle)
       (('<- 'X8_S8_C8_S8)        #'encode-X8_S8_C8_S8<-/shuffle)
       (else (encoder-name operands))))
@@ -1240,6 +1262,26 @@ returned instead."
     (emit-heap-tag=? asm slot mask tag)))
 
 (visit-heap-tags define-heap-tag=?-macro-assembler)
+
+(define-syntax-rule (define-scm<-scm-scm-intrinsic name)
+  (define-macro-assembler (name asm dst a b)
+    (emit-call-scm<-scm-scm asm dst a b (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm<-scm-uimm-intrinsic name)
+  (define-macro-assembler (name asm dst a b)
+    (emit-call-scm<-scm-uimm asm dst a b (intrinsic-name->index 'name))))
+
+(define-scm<-scm-scm-intrinsic add)
+(define-scm<-scm-uimm-intrinsic add/immediate)
+(define-scm<-scm-scm-intrinsic sub)
+(define-scm<-scm-uimm-intrinsic sub/immediate)
+(define-scm<-scm-scm-intrinsic mul)
+(define-scm<-scm-scm-intrinsic div)
+(define-scm<-scm-scm-intrinsic quo)
+(define-scm<-scm-scm-intrinsic rem)
+(define-scm<-scm-scm-intrinsic mod)
+(define-scm<-scm-scm-intrinsic logand)
+(define-scm<-scm-scm-intrinsic logior)
+(define-scm<-scm-scm-intrinsic logxor)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

@@ -43,6 +43,7 @@
 #include "libguile/frames.h"
 #include "libguile/gc-inline.h"
 #include "libguile/instructions.h"
+#include "libguile/intrinsics.h"
 #include "libguile/loader.h"
 #include "libguile/programs.h"
 #include "libguile/simpos.h"

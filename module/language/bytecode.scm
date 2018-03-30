@@ -1,6 +1,6 @@
 ;;; Bytecode
 
-;; Copyright (C) 2013, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2017, 2018 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -24,12 +24,16 @@
   #:export (instruction-list
             instruction-arity
             builtin-name->index
-            builtin-index->name))
+            builtin-index->name
+            intrinsic-name->index
+            intrinsic-index->name))
 
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_instructions")
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_vm_builtins")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_intrinsics")
 
 (define (compute-instruction-arity name args)
   (define (first-word-arity word)
@@ -104,3 +108,22 @@
 
 (define (instruction-arity name)
   (hashq-ref (force *instruction-arities*) name))
+
+(define *intrinsic-codes*
+  (delay (let ((tab (make-hash-table)))
+           (for-each (lambda (pair)
+                       (hashv-set! tab (car pair) (cdr pair)))
+                     (intrinsic-list))
+           tab)))
+
+(define *intrinsic-names*
+  (delay (let ((tab (make-hash-table)))
+           (hash-for-each (lambda (k v) (hashq-set! tab v k))
+                          (force *intrinsic-codes*))
+           tab)))
+
+(define (intrinsic-name->index name)
+  (hashq-ref (force *intrinsic-codes*) name))
+
+(define (intrinsic-index->name index)
+  (hashv-ref (force *intrinsic-names*) index))

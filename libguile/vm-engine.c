@@ -358,6 +358,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   jump_table = jump_table_;
 #endif
 
+  void **intrinsics = (void**) &scm_vm_intrinsics;
+
   /* Load VM registers. */
   CACHE_REGISTER ();
 
@@ -1497,8 +1499,40 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (51, unused_51, NULL, NOP)
-  VM_DEFINE_OP (52, unused_52, NULL, NOP)
+  VM_DEFINE_OP (51, call_scm_from_scm_scm, "call-scm<-scm-scm", OP2 (X8_S8_S8_S8, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, a, b;
+      SCM res;
+      scm_t_scm_from_scm_scm_intrinsic intrinsic;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (a), SP_REF (b));
+      CACHE_SP ();
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (52, call_scm_from_scm_uimm, "call-scm<-scm-uimm", OP2 (X8_S8_S8_C8, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, a, b;
+      SCM res;
+      scm_t_scm_from_scm_uimm_intrinsic intrinsic;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (a), b);
+      CACHE_SP ();
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (53, unused_53, NULL, NOP)
     {
       vm_error_bad_instruction (op);
