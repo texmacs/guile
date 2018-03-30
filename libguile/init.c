@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2004, 2006, 2009-2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2006, 2009-2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -74,6 +74,7 @@
 #include "libguile/gettext.h"
 #include "libguile/i18n.h"
 #include "libguile/instructions.h"
+#include "libguile/intrinsics.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
 #include "libguile/list.h"
@@ -396,6 +397,7 @@ scm_i_init_guile (void *base)
   scm_init_array_handle ();
   scm_bootstrap_bytevectors ();   /* Requires array-handle */
   scm_bootstrap_instructions ();
+  scm_bootstrap_intrinsics ();
   scm_bootstrap_loader ();
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();

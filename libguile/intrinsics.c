@@ -1,0 +1,94 @@
+/* Copyright (C) 2018 Free Software Foundation, Inc.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include "_scm.h"
+#include "intrinsics.h"
+
+
+struct scm_vm_intrinsics scm_vm_intrinsics;
+
+SCM_DEFINE (scm_intrinsic_list, "intrinsic-list", 0, 0, 0,
+	    (void),
+	    "")
+#define FUNC_NAME s_scm_intrinsic_list
+{
+  SCM list = SCM_EOL;
+
+#define ADD_INTRINSIC(type, id, name, ID)                   \
+  if (name)                                                 \
+    list = scm_acons (scm_from_latin1_symbol (name),        \
+                      scm_from_int (SCM_VM_INTRINSIC_##ID), \
+                      list);
+  SCM_FOR_ALL_VM_INTRINSICS (ADD_INTRINSIC);
+#undef ADD_INTRINSIC
+
+  return list;
+}
+#undef FUNC_NAME
+
+static SCM
+add_immediate (SCM a, scm_t_uint8 b)
+{
+  return scm_sum (a, scm_from_uint8 (b));
+}
+
+static SCM
+sub_immediate (SCM a, scm_t_uint8 b)
+{
+  return scm_difference (a, scm_from_uint8 (b));
+}
+
+void
+scm_bootstrap_intrinsics (void)
+{
+  scm_vm_intrinsics.add = scm_sum;
+  scm_vm_intrinsics.add_immediate = add_immediate;
+  scm_vm_intrinsics.sub = scm_difference;
+  scm_vm_intrinsics.sub_immediate = sub_immediate;
+  scm_vm_intrinsics.mul = scm_product;
+  scm_vm_intrinsics.div = scm_divide;
+  scm_vm_intrinsics.quo = scm_quotient;
+  scm_vm_intrinsics.rem = scm_remainder;
+  scm_vm_intrinsics.mod = scm_modulo;
+  scm_vm_intrinsics.logand = scm_logand;
+  scm_vm_intrinsics.logior = scm_logior;
+  scm_vm_intrinsics.logxor = scm_logxor;
+
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_intrinsics",
+                            (scm_t_extension_init_func)scm_init_intrinsics,
+                            NULL);
+}
+
+void
+scm_init_intrinsics (void)
+{
+#ifndef SCM_MAGIC_SNARFER
+#include "libguile/intrinsics.x"
+#endif
+}
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/
