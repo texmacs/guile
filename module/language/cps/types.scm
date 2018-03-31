@@ -727,6 +727,7 @@ minimum, and maximum."
   (match ann
     ('pair &pair)
     ('vector &vector)
+    ('string &string)
     ('bytevector &bytevector)
     ('box &box)
     ('closure &procedure)
@@ -847,11 +848,6 @@ minimum, and maximum."
   (restrict! s &string (1+ (&min/0 idx)) (target-max-size-t))
   (restrict! idx &u64 0 (1- (&max/size s)))
   (restrict! val &char 0 *max-codepoint*))
-
-(define-simple-type-checker (string-length &string))
-(define-type-inferrer (string-length s result)
-  (restrict! s &string 0 (target-max-size-t))
-  (define! result &u64 (&min/0 s) (&max/size s)))
 
 (define-simple-type (number->string &number) (&string 0 (target-max-size-t)))
 (define-simple-type (string->number (&string 0 (target-max-size-t)))

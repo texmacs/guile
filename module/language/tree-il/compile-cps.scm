@@ -1156,11 +1156,42 @@
   (bv-f32-set! bytevector-ieee-single-native-set! f32-set! 4 float)
   (bv-f64-set! bytevector-ieee-double-native-set! f64-set! 8 float))
 
+(define (ensure-string cps src op x have-length)
+  (define msg "Wrong type argument in position 1 (expecting string): ~S")
+  (define not-string (vector 'wrong-type-arg (symbol->string op) msg))
+  (with-cps cps
+    (letv ulen rlen)
+    (letk knot-string
+          ($kargs () () ($throw src 'throw/value+data not-string (x))))
+    (let$ body (have-length rlen))
+    (letk k ($kargs ('rlen) (rlen) ,body))
+    (letk kassume
+          ($kargs ('ulen) (ulen)
+            ($continue k src
+              ($primcall 'assume-u64 `(0 . ,(target-max-size-t)) (ulen)))))
+    (letk ks
+          ($kargs () ()
+            ($continue kassume src
+              ($primcall 'word-ref/immediate '(string . 3) (x)))))
+    (letk kheap-object
+          ($kargs () ()
+            ($branch knot-string ks src 'string? #f (x))))
+    (build-term
+      ($branch knot-string kheap-object src 'heap-object? #f (x)))))
+
+(define-primcall-converter string-length
+  (lambda (cps k src op param x)
+    (ensure-string
+     cps src op x
+     (lambda (cps ulen)
+       (with-cps cps
+         (build-term
+           ($continue k src ($primcall 'u64->scm #f (ulen)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
 
-  (string-length scm >u64)
   (string-ref scm u64 >scm) (string-set! scm u64 scm)
 
   (rsh scm u64 >scm)

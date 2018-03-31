@@ -346,6 +346,7 @@ the LABELS that are clobbered by the effects of LABEL."
   (match annotation
     ('pair &pair)
     ('vector &vector)
+    ('string &string)
     ('bytevector &bytevector)
     ('bitmask &bitmask)
     ('box &box)
@@ -401,8 +402,7 @@ the LABELS that are clobbered by the effects of LABEL."
   ((string-ref s n)                (&read-object &string)      &type-check)
   ((string-set! s n c)             (&write-object &string)     &type-check)
   ((number->string _)              (&allocate &string)         &type-check)
-  ((string->number _)              (&read-object &string)      &type-check)
-  ((string-length s)                                           &type-check))
+  ((string->number _)              (&read-object &string)      &type-check))
 
 ;; Unboxed floats and integers.
 (define-primitive-effects
