@@ -758,7 +758,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                'uadd/immediate 'usub/immediate 'umul/immediate
                                'ursh/immediate 'ulsh/immediate
                                'u8-ref 'u16-ref 'u32-ref 'u64-ref
-                               'word-ref 'word-ref/immediate))
+                               'word-ref 'word-ref/immediate
+                               'untag-char))
               (intmap-add representations var 'u64))
              (($ $primcall (or 'untag-fixnum
                                'assume-s64
@@ -766,7 +767,8 @@ are comparable with eqv?.  A tmp slot may be used."
                                'srsh 'srsh/immediate
                                's8-ref 's16-ref 's32-ref 's64-ref))
               (intmap-add representations var 's64))
-             (($ $primcall (or 'pointer-ref/immediate))
+             (($ $primcall (or 'pointer-ref/immediate
+                               'tail-pointer-ref/immediate))
               (intmap-add representations var 'ptr))
              (_
               (intmap-add representations var 'scm))))

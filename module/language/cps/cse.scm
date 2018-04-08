@@ -275,7 +275,10 @@ false.  It could be that both true and false proofs are available."
            ((s <- tag-fixnum #f u)           (u <- scm->s64 #f s)
                                              (u <- untag-fixnum #f s))
            ((s <- u64->s64 #f u)             (u <- s64->u64 #f s))
-           ((u <- s64->u64 #f s)             (s <- u64->s64 #f u)))))
+           ((u <- s64->u64 #f s)             (s <- u64->s64 #f u))
+
+           ((u <- untag-char #f s)           (s <- tag-char #f u))
+           ((s <- tag-char #f u)             (u <- untag-char #f s)))))
 
       (define (visit-label label equiv-labels var-substs)
         (define (term-defs term)

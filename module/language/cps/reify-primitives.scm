@@ -352,7 +352,7 @@
                            (setk label ($kargs names vars
                                          ($continue kop src
                                            ($primcall 'load-u64 n ())))))))))
-                 ;; Assume pointer-ref/immediate is within u8 range.
+                 ;; Assume (tail-)pointer-ref/immediate is within u8 range.
                  (((or 'word-ref/immediate 'scm-ref/immediate) obj)
                   (match param
                     ((ann . idx)

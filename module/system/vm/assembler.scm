@@ -103,6 +103,8 @@
 
             emit-untag-fixnum
             emit-tag-fixnum
+            emit-untag-char
+            emit-tag-char
 
             emit-throw
             (emit-throw/value* . emit-throw/value)
@@ -157,6 +159,7 @@
 
             emit-pointer-ref/immediate
             emit-pointer-set!/immediate
+            emit-tail-pointer-ref/immediate
 
             emit-u8-ref
             emit-s8-ref

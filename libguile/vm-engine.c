@@ -1431,10 +1431,15 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (47, unused_47, NULL, NOP)
+  VM_DEFINE_OP (47, tail_pointer_ref_immediate, "tail-pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      vm_error_bad_instruction (op);
-      abort ();
+      scm_t_uint8 dst, obj, idx;
+
+      UNPACK_8_8_8 (op, dst, obj, idx);
+
+      SP_SET_PTR (dst, ((scm_t_bits *) SCM2PTR (SP_REF (obj))) + idx);
+
+      NEXT (1);
     }
 
   
@@ -2206,8 +2211,24 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  VM_DEFINE_OP (81, unused_81, NULL, NOP)
-  VM_DEFINE_OP (82, unused_82, NULL, NOP)
+  VM_DEFINE_OP (81, tag_char, "tag-char", OP1 (X8_S12_S12) | OP_DST)
+    {
+      scm_t_uint16 dst, src;
+      UNPACK_12_12 (op, dst, src);
+      SP_SET (dst,
+              SCM_MAKE_ITAG8 ((scm_t_bits) (scm_t_wchar) SP_REF_U64 (src),
+                              scm_tc8_char));
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (82, untag_char, "untag-char", OP1 (X8_S12_S12) | OP_DST)
+    {
+      scm_t_uint16 dst, src;
+      UNPACK_12_12 (op, dst, src);
+      SP_SET_U64 (dst, SCM_CHAR (SP_REF (src)));
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (83, unused_83, NULL, NOP)
   VM_DEFINE_OP (84, unused_84, NULL, NOP)
   VM_DEFINE_OP (85, unused_85, NULL, NOP)

@@ -395,7 +395,8 @@ the LABELS that are clobbered by the effects of LABEL."
                                    (match param
                                      ((ann . idx)
                                       (&write-field
-                                       (annotation->memory-kind ann) idx)))))
+                                       (annotation->memory-kind ann) idx))))
+  ((tail-pointer-ref/immediate obj)))
 
 ;; Strings.
 (define-primitive-effects
@@ -542,6 +543,8 @@ the LABELS that are clobbered by the effects of LABEL."
 
 ;; Characters.
 (define-primitive-effects
+  ((untag-char _))
+  ((tag-char _))
   ((integer->char _)               &type-check)
   ((char->integer _)               &type-check))
 

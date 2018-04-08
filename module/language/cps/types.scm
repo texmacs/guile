@@ -787,6 +787,8 @@ minimum, and maximum."
 
 (define-type-inferrer/param (pointer-ref/immediate param obj result)
   (define! result &other-heap-object -inf.0 +inf.0))
+(define-type-inferrer/param (tail-pointer-ref/immediate param obj result)
+  (define! result &other-heap-object -inf.0 +inf.0))
 
 (define-type-inferrer/param (assume-u64 param val result)
   (match param
@@ -1615,6 +1617,11 @@ minimum, and maximum."
 ;;;
 ;;; Characters.
 ;;;
+
+(define-type-inferrer (untag-char c result)
+  (define! result &s64 0 (min (&max c) *max-codepoint*)))
+(define-type-inferrer (tag-char u64 result)
+  (define! result &char 0 (min (&max u64) *max-codepoint*)))
 
 (define-simple-type-checker (integer->char (&u64 0 *max-codepoint*)))
 (define-type-inferrer (integer->char i result)

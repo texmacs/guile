@@ -124,7 +124,7 @@
         (('allocate-words (? uint? n)) (allocate-words/immediate n ()))
         (('scm-ref o (? uint? i)) (scm-ref/immediate i (o)))
         (('scm-set! o (? uint? i) x) (scm-set!/immediate i (o x)))
-        ;; Assume pointer-ref/immediate can always be emitted directly.
+        ;; Assume (tail-)pointer-ref/immediate can always be emitted directly.
         (('word-ref o (? uint? i)) (word-ref/immediate i (o)))
         (('word-set! o (? uint? i) x) (word-set!/immediate i (o x)))
         (('add x (? num? y)) (add/immediate y (x)))
@@ -139,7 +139,11 @@
         (('scm->u64 (? u64? var)) (load-u64 var ()))
         (('scm->u64/truncate (? u64? var)) (load-u64 var ()))
         (('scm->s64 (? s64? var)) (load-s64 var ()))
-        (('untag-fixnum (? s64? var)) (load-s64 var ()))))
+        (('untag-fixnum (? s64? var)) (load-s64 var ()))
+        (('untag-char (? u64? var)) (load-u64 var ()))
+        ;; FIXME: add support for tagging immediate chars
+        ;; (('tag-char (? u64? var)) (load-const var ()))
+        ))
     (intmap-map
      (lambda (label cont)
        (match cont
