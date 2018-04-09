@@ -347,6 +347,7 @@ the LABELS that are clobbered by the effects of LABEL."
     ('pair &pair)
     ('vector &vector)
     ('string &string)
+    ('stringbuf &string)
     ('bytevector &bytevector)
     ('bitmask &bitmask)
     ('box &box)

@@ -1188,11 +1188,81 @@
          (build-term
            ($continue k src ($primcall 'u64->scm #f (ulen)))))))))
 
+(define-primcall-converter string-ref
+  (lambda (cps k src op param s idx)
+    (define out-of-range
+      #(out-of-range string-ref "Argument 2 out of range: ~S"))
+    (define stringbuf-f-wide #x400)
+    (ensure-string
+     cps src op s
+     (lambda (cps ulen)
+       (with-cps cps
+         (letv uidx start upos buf ptr tag mask bits uwpos u32 uchar)
+         (letk kout-of-range
+               ($kargs () ()
+                 ($throw src 'throw/value+data out-of-range (idx))))
+         (letk kchar
+               ($kargs ('uchar) (uchar)
+                 ($continue k src
+                   ($primcall 'tag-char #f (uchar)))))
+         (letk kassume
+               ($kargs ('u32) (u32)
+                 ($continue kchar src
+                   ($primcall 'assume-u64 '(0 . #xffffff) (u32)))))
+         (letk kwideref
+               ($kargs ('uwpos) (uwpos)
+                 ($continue kassume src
+                   ($primcall 'u32-ref 'stringbuf (buf ptr uwpos)))))
+         (letk kwide
+               ($kargs () ()
+                 ($continue kwideref src
+                   ($primcall 'ulsh/immediate 2 (upos)))))
+         (letk knarrow
+               ($kargs () ()
+                 ($continue kchar src
+                   ($primcall 'u8-ref 'stringbuf (buf ptr upos)))))
+         (letk kcmp
+               ($kargs ('bits) (bits)
+                 ($branch kwide knarrow src 'u64-imm-= 0 (bits))))
+         (letk kmask
+               ($kargs ('mask) (mask)
+                 ($continue kcmp src
+                   ($primcall 'ulogand #f (tag mask)))))
+         (letk ktag
+               ($kargs ('tag) (tag)
+                 ($continue kmask src
+                   ($primcall 'load-u64 stringbuf-f-wide ()))))
+         (letk kptr
+               ($kargs ('ptr) (ptr)
+                 ($continue ktag src
+                   ($primcall 'word-ref/immediate '(stringbuf . 0) (buf)))))
+         (letk kwidth
+               ($kargs ('buf) (buf)
+                 ($continue kptr src
+                   ($primcall 'tail-pointer-ref/immediate '(stringbuf . 2) (buf)))))
+         (letk kbuf
+               ($kargs ('upos) (upos)
+                 ($continue kwidth src
+                   ($primcall 'scm-ref/immediate '(string . 1) (s)))))
+         (letk kadd
+               ($kargs ('start) (start)
+                 ($continue kbuf src
+                   ($primcall 'uadd #f (start uidx)))))
+         (letk kstart
+               ($kargs () ()
+                 ($continue kadd src
+                   ($primcall 'word-ref/immediate '(string . 2) (s)))))
+         (letk krange
+               ($kargs ('uidx) (uidx)
+                 ($branch kout-of-range kstart src 'u64-< #f (uidx ulen))))
+         (build-term
+           ($continue krange src ($primcall 'scm->u64 #f (idx)))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
 
-  (string-ref scm u64 >scm) (string-set! scm u64 scm)
+  (string-set! scm u64 scm)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))

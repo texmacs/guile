@@ -728,6 +728,7 @@ minimum, and maximum."
     ('pair &pair)
     ('vector &vector)
     ('string &string)
+    ('stringbuf &string)
     ('bytevector &bytevector)
     ('box &box)
     ('closure &procedure)
