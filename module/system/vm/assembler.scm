@@ -230,8 +230,6 @@
             emit-current-thread
             emit-fluid-ref
             emit-fluid-set!
-            emit-string-length
-            emit-string-ref
             emit-string-set!
             emit-string->number
             emit-string->symbol

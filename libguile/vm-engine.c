@@ -2130,37 +2130,11 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    * Strings, symbols, and keywords
    */
 
-  /* string-length dst:12 src:12
-   *
-   * Store the length of the string in SRC in DST.
-   */
-  VM_DEFINE_OP (76, string_length, "string-length", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (76, unused_76, NULL, NOP)
+  VM_DEFINE_OP (77, unused_77, NULL, NOP)
     {
-      ARGS1 (str);
-      VM_VALIDATE_STRING (str, "string-length");
-      SP_SET_U64 (dst, scm_i_string_length (str));
-      NEXT (1);
-    }
-
-  /* string-ref dst:8 src:8 idx:8
-   *
-   * Fetch the character at position IDX in the string in SRC, and store
-   * it in DST.
-   */
-  VM_DEFINE_OP (77, string_ref, "string-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    {
-      scm_t_uint8 dst, src, idx;
-      SCM str;
-      scm_t_uint64 c_idx;
-
-      UNPACK_8_8_8 (op, dst, src, idx);
-      str = SP_REF (src);
-      c_idx = SP_REF_U64 (idx);
-
-      VM_VALIDATE_STRING (str, "string-ref");
-      VM_VALIDATE_INDEX (c_idx, scm_i_string_length (str), "string-ref");
-
-      RETURN (SCM_MAKE_CHAR (scm_i_string_ref (str, c_idx)));
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* string-set! instruction is currently number 192.  Probably need to
