@@ -1300,8 +1300,6 @@
 
 (define-primcall-converter integer->char
   (lambda (cps k src op param i)
-    ;; Precondition: SLEN is a non-negative S64 that is representable as a
-    ;; fixnum.
     (define not-fixnum
       #(wrong-type-arg
         "integer->char"
@@ -1340,9 +1338,26 @@
               ($continue kbound0 src ($primcall 'untag-fixnum #f (i)))))
       (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (i))))))
 
-(define-primcall-converters
-  (char->integer scm >u64)
+(define-primcall-converter char->integer
+  (lambda (cps k src op param ch)
+    (define not-char
+      #(wrong-type-arg
+        "char->integer"
+        "Wrong type argument in position 1 (expecting char): ~S"))
+    (with-cps cps
+      (letv ui si)
+      (letk knot-char
+            ($kargs () () ($throw src 'throw/value+data not-char (ch))))
+      (letk ktag ($kargs ('si) (si)
+                   ($continue k src ($primcall 'tag-fixnum #f (si)))))
+      (letk kcvt ($kargs ('ui) (ui)
+                   ($continue ktag src ($primcall 'u64->s64 #f (ui)))))
+      (letk kuntag ($kargs () ()
+                     ($continue kcvt src ($primcall 'untag-char #f (ch)))))
+      (build-term
+        ($branch knot-char kuntag src 'char? #f (ch))))))
 
+(define-primcall-converters
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
 

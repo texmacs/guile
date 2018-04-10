@@ -259,7 +259,6 @@
             emit-ursh/immediate
             emit-srsh/immediate
             emit-ulsh/immediate
-            emit-char->integer
             emit-class-of
             emit-make-array
             emit-scm->f64

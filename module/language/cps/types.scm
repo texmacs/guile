@@ -1605,10 +1605,6 @@ minimum, and maximum."
 (define-type-inferrer (tag-char u64 result)
   (define! result &char 0 (min (&max u64) *max-codepoint*)))
 
-(define-type-inferrer (char->integer c result)
-  (restrict! c &char 0 *max-codepoint*)
-  (define! result &u64 (&min/0 c) (min (&max c) *max-codepoint*)))
-
 
 
 

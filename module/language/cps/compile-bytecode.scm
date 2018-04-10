@@ -175,8 +175,6 @@
         (($ $primcall 'tail-pointer-ref/immediate (annotation . idx) (obj))
          (emit-tail-pointer-ref/immediate asm (from-sp dst) (from-sp (slot obj))
                                           idx))
-        (($ $primcall 'char->integer #f (src))
-         (emit-char->integer asm (from-sp dst) (from-sp (slot src))))
         (($ $primcall 'add/immediate y (x))
          (emit-add/immediate asm (from-sp dst) (from-sp (slot x)) y))
         (($ $primcall 'sub/immediate y (x))
