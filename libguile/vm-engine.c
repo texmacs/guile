@@ -2191,16 +2191,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (110, unused_110, NULL, NOP)
   VM_DEFINE_OP (111, unused_111, NULL, NOP)
   VM_DEFINE_OP (112, unused_112, NULL, NOP)
+  VM_DEFINE_OP (113, unused_113, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  VM_DEFINE_OP (113, unused_113, NULL, NOP)
-    {
-      ARGS1 (obj);
-      /* FIXME: restore fast path for direct instances.  */
-      RETURN_EXP (scm_class_of (obj));
     }
 
   
