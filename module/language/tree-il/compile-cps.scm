@@ -71,89 +71,16 @@
     (build-term
       ($continue k src ($primcall op param args)))))
 
-(define (convert-indexed-getter cps k src op param obj idx)
-  (with-cps cps
-    (letv idx')
-    (letk k' ($kargs ('idx) (idx')
-               ($continue k src ($primcall op param (obj idx')))))
-    (build-term ($continue k' src ($primcall 'scm->u64 #f (idx))))))
-
-(define (convert-indexed-setter cps k src op param obj idx val)
-  (with-cps cps
-    (letv idx')
-    (letk k' ($kargs ('idx) (idx')
-               ($continue k src ($primcall op param (obj idx' val)))))
-    (build-term ($continue k' src ($primcall 'scm->u64 #f (idx))))))
-
-(define (convert-indexed-getter/tag cps k src op param obj idx tag-result)
-  (with-cps cps
-    (letv res')
-    (letk k' ($kargs ('res) (res')
-               ($continue k src ($primcall tag-result #f (res')))))
-    ($ (convert-indexed-getter k' src op param obj idx))))
-
-(define (convert-indexed-setter/untag cps k src op param obj idx val untag-val)
-  (with-cps cps
-    (letv val')
-    (let$ body (convert-indexed-setter k src op param obj idx val'))
-    (letk k' ($kargs ('val) (val') ,body))
-    (build-term ($continue k' src ($primcall untag-val #f (val))))))
-
-(define convert-scm-u64->scm-primcall convert-indexed-getter)
-(define convert-scm-u64-scm-primcall convert-indexed-setter)
-
-(define (convert-u64-scm->scm-primcall cps k src op param len init)
-  (with-cps cps
-    (letv len')
-    (letk k' ($kargs ('len) (len')
-               ($continue k src ($primcall op param (len' init)))))
-    (build-term ($continue k' src ($primcall 'scm->u64 #f (len))))))
-
-(define (convert-scm-u64->f64-primcall cps k src op param obj idx)
-  (convert-indexed-getter/tag cps k src op param obj idx 'f64->scm))
-(define (convert-scm-u64-f64-primcall cps k src op param obj idx val)
-  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->f64))
-
-(define (convert-scm-u64->u64-primcall cps k src op param obj idx)
-  (convert-indexed-getter/tag cps k src op param obj idx 'u64->scm))
-(define (convert-scm-u64-u64-primcall cps k src op param obj idx val)
-  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->u64))
-
-(define (convert-scm-u64->s64-primcall cps k src op param obj idx)
-  (convert-indexed-getter/tag cps k src op param obj idx 's64->scm))
-(define (convert-scm-u64-s64-primcall cps k src op param obj idx val)
-  (convert-indexed-setter/untag cps k src op param obj idx val 'scm->s64))
-
-(define (convert-*->u64-primcall cps k src op param . args)
-  (with-cps cps
-    (letv res')
-    (letk k' ($kargs ('res) (res')
-               ($continue k src ($primcall 'u64->scm #f (res')))))
-    (build-term ($continue k' src ($primcall op param args)))))
-(define convert-scm->u64-primcall convert-*->u64-primcall)
-(define (convert-u64->scm-primcall cps k src op param arg)
-  (with-cps cps
-    (letv arg')
-    (letk k' ($kargs ('arg) (arg')
-               ($continue k src ($primcall op param (arg')))))
-    (build-term ($continue k' src ($primcall 'scm->u64 #f (arg))))))
-
 (define *primcall-converters* (make-hash-table))
 (define-syntax-rule (define-primcall-converter name proc)
   (hashq-set! *primcall-converters* 'name proc))
-(define-syntax define-primcall-converters
-  (lambda (x)
-    (define (spec->convert spec)
-      (string->symbol
-       (string-join
-        (append '("convert") (map symbol->string spec) '("primcall"))
-        "-")))
-    (define (compute-converter spec)
-      (datum->syntax #'here (spec->convert (syntax->datum spec))))
-    (syntax-case x ()
-      ((_ (op . spec) ...)
-       (with-syntax (((cvt ...) (map compute-converter #'(spec ...))))
-         #'(begin (define-primcall-converter op cvt) ...))))))
+
+(define (convert-primcall* cps k src op param args)
+  (let ((proc (hashq-ref *primcall-converters* op convert-primcall/default)))
+    (apply proc cps k src op param args)))
+
+(define (convert-primcall cps k src op param . args)
+  (convert-primcall* cps k src op param args))
 
 (define (ensure-vector cps src op pred v have-length)
   (define msg
@@ -1357,16 +1284,15 @@
       (build-term
         ($branch knot-char kuntag src 'char? #f (ch))))))
 
-(define-primcall-converters
-  (rsh scm u64 >scm)
-  (lsh scm u64 >scm))
+(define (convert-shift cps k src op param obj idx)
+  (with-cps cps
+    (letv idx')
+    (letk k' ($kargs ('idx) (idx')
+               ($continue k src ($primcall op param (obj idx')))))
+    (build-term ($continue k' src ($primcall 'scm->u64 #f (idx))))))
 
-(define (convert-primcall* cps k src op param args)
-  (let ((proc (hashq-ref *primcall-converters* op convert-primcall/default)))
-    (apply proc cps k src op param args)))
-
-(define (convert-primcall cps k src op param . args)
-  (convert-primcall* cps k src op param args))
+(define-primcall-converter rsh convert-shift)
+(define-primcall-converter lsh convert-shift)
 
 ;;; Guile's semantics are that a toplevel lambda captures a reference on
 ;;; the current module, and that all contained lambdas use that module
