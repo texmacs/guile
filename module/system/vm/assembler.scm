@@ -263,7 +263,6 @@
             emit-ulsh/immediate
             emit-make-array
             emit-load-f64
-            emit-f64->scm
             emit-scm->u64
             emit-scm->u64/truncate
             emit-load-u64

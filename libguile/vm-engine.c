@@ -2244,12 +2244,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* f64->scm dst:12 src:12
-   *
-   * Pack a raw double-precision floating point value into an inexact
-   * number allocated on the heap.
-   */
-  VM_DEFINE_OP (137, f64_to_scm, "f64->scm", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (137, unused_137, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);
