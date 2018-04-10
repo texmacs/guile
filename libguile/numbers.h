@@ -4,7 +4,7 @@
 #define SCM_NUMBERS_H
 
 /* Copyright (C) 1995, 1996, 1998, 2000-2006, 2008-2011, 2013, 2014,
- *   2016, 2017 Free Software Foundation, Inc.
+ *   2016-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -172,14 +172,18 @@ typedef long scm_t_inum;
 typedef struct scm_t_double
 {
   SCM type;
+#if SCM_SIZEOF_UINTPTR_T != 8
   SCM pad;
+#endif
   double real;
 } scm_t_double;
 
 typedef struct scm_t_complex
 {
   SCM type;
+#if SCM_SIZEOF_UINTPTR_T != 8
   SCM pad;
+#endif
   double real;
   double imag;
 } scm_t_complex;

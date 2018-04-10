@@ -1,5 +1,5 @@
 ;;; 'SCM' type tag decoding.
-;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU Lesser General Public License as published by
@@ -419,7 +419,7 @@ using BACKEND."
           (((_ & #xffff = %tc16-bignum))
            (inferior-object 'bignum address))
           (((_ & #xffff = %tc16-flonum) pad)
-           (let* ((address (+ address (* 2 %word-size)))
+           (let* ((address (+ address (match %word-size (4 8) (8 8))))
                   (port    (memory-port backend address (sizeof double)))
                   (words   (get-bytevector-n port (sizeof double))))
              (bytevector-ieee-double-ref words 0 (native-endianness))))
