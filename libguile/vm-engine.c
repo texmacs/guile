@@ -2192,58 +2192,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (111, unused_111, NULL, NOP)
   VM_DEFINE_OP (112, unused_112, NULL, NOP)
   VM_DEFINE_OP (113, unused_113, NULL, NOP)
-    {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
-    }
-
-  
-
-  /*
-   * Arrays, packed uniform arrays, and bytevectors.
-   */
-
-  /* load-typed-array dst:24 _:8 type:24 _:8 shape:24 offset:32 len:32
-   *
-   * Load the contiguous typed array located at OFFSET 32-bit words away
-   * from the instruction pointer, and store into DST.  LEN is a byte
-   * length.  OFFSET is signed.
-   */
-  VM_DEFINE_OP (114, load_typed_array, "load-typed-array", OP5 (X8_S24, X8_S24, X8_S24, N32, C32) | OP_DST)
-    {
-      scm_t_uint32 dst, type, shape;
-      scm_t_int32 offset;
-      scm_t_uint32 len;
-
-      UNPACK_24 (op, dst);
-      UNPACK_24 (ip[1], type);
-      UNPACK_24 (ip[2], shape);
-      offset = ip[3];
-      len = ip[4];
-      SYNC_IP ();
-      SP_SET (dst, scm_from_contiguous_typed_array (SP_REF (type),
-                                                       SP_REF (shape),
-                                                       ip + offset, len));
-      NEXT (5);
-    }
-
-  /* make-array dst:24 _:8 type:24 _:8 fill:24 _:8 bounds:24
-   *
-   * Make a new array with TYPE, FILL, and BOUNDS, storing it in DST.
-   */
-  VM_DEFINE_OP (115, make_array, "make-array", OP4 (X8_S24, X8_S24, X8_S24, X8_S24) | OP_DST)
-    {
-      scm_t_uint32 dst, type, fill, bounds;
-      UNPACK_24 (op, dst);
-      UNPACK_24 (ip[1], type);
-      UNPACK_24 (ip[2], fill);
-      UNPACK_24 (ip[3], bounds);
-      SYNC_IP ();
-      SP_SET (dst, scm_make_typed_array (SP_REF (type), SP_REF (fill),
-                                            SP_REF (bounds)));
-      NEXT (4);
-    }
-
+  VM_DEFINE_OP (114, unused_114, NULL, NOP)
+  VM_DEFINE_OP (115, unused_115, NULL, NOP)
   VM_DEFINE_OP (116, unused_116, NULL, NOP)
   VM_DEFINE_OP (117, unused_117, NULL, NOP)
   VM_DEFINE_OP (118, unused_118, NULL, NOP)
