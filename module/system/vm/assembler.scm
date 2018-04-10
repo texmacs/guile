@@ -196,6 +196,9 @@
             emit-logior
             emit-logxor
             emit-string-set!
+            emit-string->number
+            emit-string->symbol
+            emit-symbol->keyword
 
             emit-call
             emit-call-label
@@ -231,9 +234,6 @@
             emit-current-thread
             emit-fluid-ref
             emit-fluid-set!
-            emit-string->number
-            emit-string->symbol
-            emit-symbol->keyword
             emit-lsh
             emit-rsh
             emit-lsh/immediate
@@ -900,6 +900,14 @@ later by the linker."
     (emit-push asm (+ c 2))
     (encode-X8_S8_S8_S8-C32 asm 2 1 0 c32 opcode)
     (emit-drop asm 3))))
+(define (encode-X8_S12_S12-C32<-/shuffle asm dst src c32 opcode)
+  (cond
+   ((< (logior dst src) (ash 1 12))
+    (encode-X8_S12_S12-C32 asm dst src c32 opcode))
+   (else
+    (emit-push asm src)
+    (encode-X8_S12_S12-C32 asm 0 0 c32 opcode)
+    (emit-pop asm dst))))
 
 (eval-when (expand)
   (define (id-append ctx a b)
@@ -921,6 +929,7 @@ later by the linker."
       (('<- 'X8_S8_S8_S8 'C32)   #'encode-X8_S8_S8_S8-C32<-/shuffle)
       (('<- 'X8_S8_S8_C8 'C32)   #'encode-X8_S8_S8_C8-C32<-/shuffle)
       (('! 'X8_S8_S8_C8 'C32)    #'encode-X8_S8_S8_C8-C32!/shuffle)
+      (('<- 'X8_S12_S12 'C32)    #'encode-X8_S12_S12-C32<-/shuffle)
       (('! 'X8_S8_C8_S8)         #'encode-X8_S8_C8_S8!/shuffle)
       (('<- 'X8_S8_C8_S8)        #'encode-X8_S8_C8_S8<-/shuffle)
       (else (encoder-name operands))))
@@ -1282,6 +1291,9 @@ returned instead."
 (define-syntax-rule (define-scm-u64-u64-intrinsic name)
   (define-macro-assembler (name asm a b c)
     (emit-call-scm-u64-u64 asm a b c (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm<-scm-intrinsic name)
+  (define-macro-assembler (name asm dst src)
+    (emit-call-scm<-scm asm dst src (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)
@@ -1296,6 +1308,9 @@ returned instead."
 (define-scm<-scm-scm-intrinsic logior)
 (define-scm<-scm-scm-intrinsic logxor)
 (define-scm-u64-u64-intrinsic string-set!)
+(define-scm<-scm-intrinsic string->number)
+(define-scm<-scm-intrinsic string->symbol)
+(define-scm<-scm-intrinsic symbol->keyword)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

@@ -1546,7 +1546,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (54, unused_54, NULL, NOP)
+  VM_DEFINE_OP (54, call_scm_from_scm, "call-scm<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, src;
+      SCM res;
+      scm_t_scm_from_scm_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (src));
+      CACHE_SP ();
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (55, unused_55, NULL, NOP)
   VM_DEFINE_OP (56, unused_56, NULL, NOP)
     {
@@ -2122,14 +2138,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       abort (); /* never reached */
     }
 
-  /* string-set! instruction is currently number 192.  Probably need to
-     reorder before releasing.  */
-
-  /* string->number dst:12 src:12
-   *
-   * Parse a string in SRC to a number, and store in DST.
-   */
-  VM_DEFINE_OP (78, string_to_number, "string->number", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (78, unused_78, NULL, NOP)
     {
       scm_t_uint16 dst, src;
 
@@ -2141,11 +2150,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* string->symbol dst:12 src:12
-   *
-   * Parse a string in SRC to a symbol, and store in DST.
-   */
-  VM_DEFINE_OP (79, string_to_symbol, "string->symbol", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (79, unused_79, NULL, NOP)
     {
       scm_t_uint16 dst, src;
 
@@ -2155,11 +2160,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* symbol->keyword dst:12 src:12
-   *
-   * Make a keyword from the symbol in SRC, and store it in DST.
-   */
-  VM_DEFINE_OP (80, symbol_to_keyword, "symbol->keyword", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (80, unused_80, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);

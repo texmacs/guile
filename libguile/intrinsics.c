@@ -65,6 +65,12 @@ string_set_x (SCM str, scm_t_uint64 idx, scm_t_uint64 ch)
   scm_i_string_stop_writing ();
 }
 
+static SCM
+string_to_number (SCM str)
+{
+  return scm_string_to_number (str, SCM_UNDEFINED /* radix = 10 */);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -81,6 +87,9 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.logior = scm_logior;
   scm_vm_intrinsics.logxor = scm_logxor;
   scm_vm_intrinsics.string_set_x = string_set_x;
+  scm_vm_intrinsics.string_to_number = string_to_number;
+  scm_vm_intrinsics.string_to_symbol = scm_string_to_symbol;
+  scm_vm_intrinsics.symbol_to_keyword = scm_symbol_to_keyword;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
