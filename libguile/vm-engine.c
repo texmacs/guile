@@ -3074,38 +3074,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (189, unused_189, NULL, NOP)
   VM_DEFINE_OP (180, unused_190, NULL, NOP)
   VM_DEFINE_OP (191, unused_191, NULL, NOP)
+  VM_DEFINE_OP (192, unused_192, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  /* string-set! dst:8 idx:8 src:8
-   *
-   * Store the character SRC into the string DST at index IDX.
-   */
-  VM_DEFINE_OP (192, unused_192, NULL, NOP)
-    {
-      scm_t_uint8 dst, idx, src;
-      SCM str, chr;
-      scm_t_uint64 c_idx;
-
-      UNPACK_8_8_8 (op, dst, idx, src);
-      str = SP_REF (dst);
-      c_idx = SP_REF_U64 (idx);
-      chr = SP_REF (src);
-
-      VM_VALIDATE_STRING (str, "string-ref");
-      VM_VALIDATE_INDEX (c_idx, scm_i_string_length (str), "string-ref");
-
-      /* If needed we can speed this up and only SYNC_IP +
-         scm_i_string_writing if the string isn't already a non-shared
-         stringbuf.  */
-      SYNC_IP ();
-      scm_i_string_start_writing (str);
-      scm_i_string_set_x (str, c_idx, SCM_CHAR (chr));
-      scm_i_string_stop_writing ();
-
-      NEXT (1);
     }
 
   VM_DEFINE_OP (193, u64_numerically_equal, "u64=?", OP1 (X8_S12_S12))
