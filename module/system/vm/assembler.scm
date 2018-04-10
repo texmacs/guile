@@ -215,7 +215,6 @@
             emit-assert-nargs-ee/locals
             emit-bind-kwargs
             emit-bind-rest
-            emit-make-closure
             emit-load-label
             emit-current-module
             emit-resolve

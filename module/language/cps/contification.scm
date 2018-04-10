@@ -169,7 +169,7 @@ $call, and are always called with a compatible arity."
       (match cont
         (($ $kargs _ _ ($ $continue _ _ exp))
          (match exp
-           ((or ($ $const) ($ $prim) ($ $closure) ($ $fun) ($ $rec))
+           ((or ($ $const) ($ $prim) ($ $closure) ($ $code) ($ $fun) ($ $rec))
             functions)
            (($ $values args)
             (exclude-vars functions args))

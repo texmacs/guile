@@ -558,7 +558,7 @@ the LABELS that are clobbered by the effects of LABEL."
 
 (define (expression-effects exp)
   (match exp
-    ((or ($ $const) ($ $prim) ($ $values))
+    ((or ($ $const) ($ $prim) ($ $values) ($ $code))
      &no-effects)
     (($ $closure _ 0)
      &no-effects)

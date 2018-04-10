@@ -146,7 +146,7 @@ by a label, respectively."
          (return (intset self) empty-intset))
         (($ $kargs _ _ ($ $continue k src exp))
          (match exp
-           ((or ($ $const) ($ $closure))
+           ((or ($ $const) ($ $closure) ($ $code))
             (return (get-defs k) empty-intset))
            (($ $call proc args)
             (return (get-defs k) (intset-add (vars->intset args) proc)))
@@ -770,6 +770,8 @@ are comparable with eqv?.  A tmp slot may be used."
              (($ $primcall (or 'pointer-ref/immediate
                                'tail-pointer-ref/immediate))
               (intmap-add representations var 'ptr))
+             (($ $code)
+              (intmap-add representations var 'u64))
              (_
               (intmap-add representations var 'scm))))
           (vars

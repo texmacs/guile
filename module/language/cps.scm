@@ -130,7 +130,7 @@
             $continue $branch $prompt $throw
 
             ;; Expressions.
-            $const $prim $fun $rec $closure
+            $const $prim $fun $rec $closure $code
             $call $callk $primcall $values
 
             ;; Building macros.
@@ -189,6 +189,7 @@
 (define-cps-type $fun body) ; Higher-order.
 (define-cps-type $rec names syms funs) ; Higher-order.
 (define-cps-type $closure label nfree) ; First-order.
+(define-cps-type $code label) ; First-order.
 (define-cps-type $call proc args)
 (define-cps-type $callk k proc args) ; First-order.
 (define-cps-type $primcall name param args)
@@ -242,7 +243,7 @@
 
 (define-syntax build-exp
   (syntax-rules (unquote
-                 $const $prim $fun $rec $closure
+                 $const $prim $fun $rec $closure $code
                  $call $callk $primcall $values)
     ((_ (unquote exp)) exp)
     ((_ ($const val)) (make-$const val))
@@ -250,6 +251,7 @@
     ((_ ($fun kentry)) (make-$fun kentry))
     ((_ ($rec names gensyms funs)) (make-$rec names gensyms funs))
     ((_ ($closure k nfree)) (make-$closure k nfree))
+    ((_ ($code k)) (make-$code k))
     ((_ ($call proc (unquote args))) (make-$call proc args))
     ((_ ($call proc (arg ...))) (make-$call proc (list arg ...)))
     ((_ ($call proc args)) (make-$call proc args))
@@ -313,6 +315,8 @@
      (build-exp ($fun kbody)))
     (('closure k nfree)
      (build-exp ($closure k nfree)))
+    (('code k)
+     (build-exp ($code k)))
     (('rec (name sym fun) ...)
      (build-exp ($rec name sym (map parse-cps fun))))
     (('call proc arg ...)
@@ -362,6 +366,8 @@
      `(fun ,kbody))
     (($ $closure k nfree)
      `(closure ,k ,nfree))
+    (($ $code k)
+     `(code ,k))
     (($ $rec names syms funs)
      `(rec ,@(map (lambda (name sym fun)
                     (list name sym (unparse-cps fun)))

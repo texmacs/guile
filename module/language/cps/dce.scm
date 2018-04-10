@@ -136,6 +136,8 @@ sites."
          (values (intset-add live-labels body) live-vars))
         (($ $closure body)
          (values (intset-add live-labels body) live-vars))
+        (($ $code body)
+         (values (intset-add live-labels body) live-vars))
         (($ $rec names vars (($ $fun kfuns) ...))
          (let lp ((vars vars) (kfuns kfuns)
                   (live-labels live-labels) (live-vars live-vars))

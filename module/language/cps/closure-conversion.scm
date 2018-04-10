@@ -19,9 +19,8 @@
 ;;; Commentary:
 ;;;
 ;;; This pass converts a CPS term in such a way that no function has any
-;;; free variables.  Instead, closures are built explicitly with
-;;; make-closure primcalls, and free variables are referenced through
-;;; the closure.
+;;; free variables.  Instead, closures are built explicitly as heap
+;;; objects, and free variables are referenced through the closure.
 ;;;
 ;;; Closure conversion also removes any $rec expressions that
 ;;; contification did not handle.  See (language cps) for a further
@@ -520,10 +519,36 @@ term."
     (define (allocate-closure cps k src label known? nfree)
       "Allocate a new closure, and pass it to $var{k}."
       (match (vector known? nfree)
+        (#(#f 0)
+         ;; The call sites cannot be enumerated, but the closure has no
+         ;; identity; statically allocate it.
+         (with-cps cps
+           (build-term ($continue k src ($closure label 0)))))
         (#(#f nfree)
          ;; The call sites cannot be enumerated; allocate a closure.
          (with-cps cps
-           (build-term ($continue k src ($closure label nfree)))))
+           (letv closure tag code)
+           (letk k* ($kargs () ()
+                      ($continue k src ($values (closure)))))
+           (letk kinit ($kargs ('code) (code)
+                         ($continue k* src
+                           ($primcall 'word-set!/immediate '(closure . 1)
+                                      (closure code)))))
+           (letk kcode ($kargs () ()
+                         ($continue kinit src ($code label))))
+           (letk ktag1
+                 ($kargs ('tag) (tag)
+                   ($continue kcode src
+                     ($primcall 'word-set!/immediate '(closure . 0)
+                                (closure tag)))))
+           (letk ktag0
+                 ($kargs ('closure) (closure)
+                   ($continue ktag1 src
+                     ($primcall 'load-u64 (+ %tc7-program (ash nfree 16)) ()))))
+           (build-term
+             ($continue ktag0 src
+               ($primcall 'allocate-words/immediate `(closure . ,(+ nfree 2))
+                          ())))))
         (#(#t 2)
          ;; Well-known closure with two free variables; the closure is a
          ;; pair.

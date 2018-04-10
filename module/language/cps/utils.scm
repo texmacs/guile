@@ -226,6 +226,7 @@ intset."
             (($ $fun label) (return1 label))
             (($ $rec _ _ (($ $fun labels) ...)) (return labels))
             (($ $closure label nfree) (return1 label))
+            (($ $code label) (return1 label))
             (($ $callk label) (return1 label))
             (_ (return0))))
          (_ (return0))))
