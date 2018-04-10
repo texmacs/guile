@@ -171,6 +171,16 @@
               (lambda (cps k src param args)
                 (match args ((arg ...) (let () . body))))))
 
+(define-ephemeral (fadd/immediate cps k src param a)
+  (with-cps cps
+    (letv b)
+    (letk kb ($kargs ('b) (b)
+               ($continue k src
+                 ($primcall 'fadd #f (a b)))))
+    (build-term
+      ($continue kb src
+        ($primcall 'load-f64 param ())))))
+
 (define-syntax-rule (define-binary-signed-ephemeral name uname)
   (define-ephemeral (name cps k src param a b)
     (wrap-binary cps k src 's64->u64 'u64->s64 'uname #f a b)))
