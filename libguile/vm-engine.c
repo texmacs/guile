@@ -1546,35 +1546,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  /* make-closure dst:24 offset:32 _:8 nfree:24
-   *
-   * Make a new closure, and write it to DST.  The code for the closure
-   * will be found at OFFSET words from the current IP.  OFFSET is a
-   * signed 32-bit integer.  Space for NFREE free variables will be
-   * allocated.
-   */
-  VM_DEFINE_OP (54, make_closure, "make-closure", OP3 (X8_S24, L32, X8_C24) | OP_DST)
-    {
-      scm_t_uint32 dst, nfree, n;
-      scm_t_int32 offset;
-      SCM closure;
-
-      UNPACK_24 (op, dst);
-      offset = ip[1];
-      UNPACK_24 (ip[2], nfree);
-
-      // FIXME: Assert range of nfree?
-      SYNC_IP ();
-      closure = scm_inline_words (thread, scm_tc7_program | (nfree << 16),
-                                  nfree + 2);
-      SCM_SET_CELL_WORD_1 (closure, ip + offset);
-      // FIXME: Elide these initializations?
-      for (n = 0; n < nfree; n++)
-        SCM_PROGRAM_FREE_VARIABLE_SET (closure, n, SCM_BOOL_F);
-      SP_SET (dst, closure);
-      NEXT (3);
-    }
-
+  VM_DEFINE_OP (54, unused_54, NULL, NOP)
   VM_DEFINE_OP (55, unused_55, NULL, NOP)
   VM_DEFINE_OP (56, unused_56, NULL, NOP)
     {
@@ -2135,12 +2107,11 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       scm_t_uint32 dst;
       scm_t_int32 offset;
-      SCM closure;
 
       UNPACK_24 (op, dst);
       offset = ip[1];
 
-      SP_SET_U64 (dst, ip + offset);
+      SP_SET_U64 (dst, (scm_t_uintptr) (ip + offset));
 
       NEXT (2);
     }
