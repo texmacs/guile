@@ -1298,9 +1298,50 @@
             (build-term
               ($continue krange src ($primcall 'scm->u64 #f (idx)))))))))))
 
+(define-primcall-converter integer->char
+  (lambda (cps k src op param i)
+    ;; Precondition: SLEN is a non-negative S64 that is representable as a
+    ;; fixnum.
+    (define not-fixnum
+      #(wrong-type-arg
+        "integer->char"
+        "Wrong type argument in position 1 (expecting small integer): ~S"))
+    (define out-of-range
+      #(out-of-range
+        "integer->char"
+        "Argument 1 out of range: ~S"))
+    (define codepoint-surrogate-start #xd800)
+    (define codepoint-surrogate-end #xdfff)
+    (define codepoint-max #x10ffff)
+    (with-cps cps
+      (letv si ui)
+      (letk knot-fixnum
+            ($kargs () () ($throw src 'throw/value+data not-fixnum (i))))
+      (letk kf
+            ($kargs () () ($throw src 'throw/value+data out-of-range (i))))
+      (letk ktag ($kargs ('ui) (ui)
+                   ($continue k src ($primcall 'tag-char #f (ui)))))
+      (letk kt ($kargs () ()
+                 ($continue ktag src ($primcall 's64->u64 #f (si)))))
+      (letk kmax
+            ($kargs () ()
+              ($branch kt kf src 'imm-s64-< codepoint-max (si))))
+      (letk khi
+            ($kargs () ()
+              ($branch kf kmax src 'imm-s64-< codepoint-surrogate-end (si))))
+      (letk klo
+            ($kargs () ()
+              ($branch khi kt src 's64-imm-< codepoint-surrogate-start (si))))
+      (letk kbound0
+            ($kargs ('si) (si)
+              ($branch klo kf src 's64-imm-< 0 (si))))
+      (letk kuntag
+            ($kargs () ()
+              ($continue kbound0 src ($primcall 'untag-fixnum #f (i)))))
+      (build-term ($branch knot-fixnum kuntag src 'fixnum? #f (i))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
-  (integer->char u64 >scm)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))
