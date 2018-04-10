@@ -2126,13 +2126,25 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
 
-  
-
-  /*
-   * Strings, symbols, and keywords
+  /* load-label dst:24 offset:32
+   *
+   * Load a label OFFSET words away from the current IP and write it to
+   * DST.  OFFSET is a signed 32-bit integer.
    */
+  VM_DEFINE_OP (76, load_label, "load-label", OP2 (X8_S24, L32) | OP_DST)
+    {
+      scm_t_uint32 dst;
+      scm_t_int32 offset;
+      SCM closure;
 
-  VM_DEFINE_OP (76, unused_76, NULL, NOP)
+      UNPACK_24 (op, dst);
+      offset = ip[1];
+
+      SP_SET_U64 (dst, ip + offset);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (77, unused_77, NULL, NOP)
     {
       vm_error_bad_instruction (op);
