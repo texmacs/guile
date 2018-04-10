@@ -57,6 +57,14 @@ sub_immediate (SCM a, scm_t_uint8 b)
   return scm_difference (a, scm_from_uint8 (b));
 }
 
+static void
+string_set_x (SCM str, scm_t_uint64 idx, scm_t_uint64 ch)
+{
+  str = scm_i_string_start_writing (str);
+  scm_i_string_set_x (str, idx, ch);
+  scm_i_string_stop_writing ();
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -72,6 +80,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.logand = scm_logand;
   scm_vm_intrinsics.logior = scm_logior;
   scm_vm_intrinsics.logxor = scm_logxor;
+  scm_vm_intrinsics.string_set_x = string_set_x;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

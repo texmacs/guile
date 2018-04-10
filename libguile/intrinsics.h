@@ -25,6 +25,7 @@
 
 typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
 typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, scm_t_uint8);
+typedef void (*scm_t_scm_u64_u64_intrinsic) (SCM, scm_t_uint64, scm_t_uint64);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -39,6 +40,7 @@ typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, scm_t_uint8);
   M(scm_from_scm_scm, logand, "logand", LOGAND) \
   M(scm_from_scm_scm, logior, "logior", LOGIOR) \
   M(scm_from_scm_scm, logxor, "logxor", LOGXOR) \
+  M(scm_u64_u64, string_set_x, "string-set!", STRING_SET_X) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

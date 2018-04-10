@@ -892,6 +892,16 @@ later by the linker."
     (emit-push asm a)
     (encode-X8_S8_S8_C8-C32 asm 0 0 const c32 opcode)
     (emit-pop asm dst))))
+(define (encode-X8_S8_S8_S8-C32!/shuffle asm a b c c32 opcode)
+  (cond
+   ((< (logior a b c) (ash 1 8))
+    (encode-X8_S8_S8_S8-C32 asm a b c c32 opcode))
+   (else
+    (emit-push asm a)
+    (emit-push asm (+ b 1))
+    (emit-push asm (+ c 2))
+    (encode-X8_S8_S8_S8-C32 asm 2 1 0 c32 opcode)
+    (emit-drop asm 3))))
 
 (eval-when (expand)
   (define (id-append ctx a b)
@@ -912,6 +922,7 @@ later by the linker."
       (('<- 'X8_S8_S8_C8)        #'encode-X8_S8_S8_C8<-/shuffle)
       (('<- 'X8_S8_S8_S8 'C32)   #'encode-X8_S8_S8_S8-C32<-/shuffle)
       (('<- 'X8_S8_S8_C8 'C32)   #'encode-X8_S8_S8_C8-C32<-/shuffle)
+      (('! 'X8_S8_S8_C8 'C32)    #'encode-X8_S8_S8_C8-C32!/shuffle)
       (('! 'X8_S8_C8_S8)         #'encode-X8_S8_C8_S8!/shuffle)
       (('<- 'X8_S8_C8_S8)        #'encode-X8_S8_C8_S8<-/shuffle)
       (else (encoder-name operands))))
@@ -1270,6 +1281,9 @@ returned instead."
 (define-syntax-rule (define-scm<-scm-uimm-intrinsic name)
   (define-macro-assembler (name asm dst a b)
     (emit-call-scm<-scm-uimm asm dst a b (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm-u64-u64-intrinsic name)
+  (define-macro-assembler (name asm a b c)
+    (emit-call-scm-u64-u64 asm a b c (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)

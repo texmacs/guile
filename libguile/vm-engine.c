@@ -1538,10 +1538,19 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (53, unused_53, NULL, NOP)
+  VM_DEFINE_OP (53, call_scm_u64_u64, "call-scm-u64-u64", OP2 (X8_S8_S8_S8, C32))
     {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
+      scm_t_uint8 a, b, c;
+      scm_t_scm_u64_u64_intrinsic intrinsic;
+
+      UNPACK_8_8_8 (op, a, b, c);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      intrinsic (SP_REF (a), SP_REF_U64 (b), SP_REF_U64 (c));
+      CACHE_SP ();
+
+      NEXT (2);
     }
 
   /* make-closure dst:24 offset:32 _:8 nfree:24
