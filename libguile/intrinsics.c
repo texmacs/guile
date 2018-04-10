@@ -91,6 +91,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.string_to_symbol = scm_string_to_symbol;
   scm_vm_intrinsics.symbol_to_keyword = scm_symbol_to_keyword;
   scm_vm_intrinsics.class_of = scm_class_of;
+  scm_vm_intrinsics.scm_to_f64 = scm_to_double;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

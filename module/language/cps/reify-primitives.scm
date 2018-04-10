@@ -217,6 +217,7 @@
       string->symbol
       symbol->keyword
       class-of
+      scm->f64
       u64->s64
       s64->u64
       cache-current-module!
