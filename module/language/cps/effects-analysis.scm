@@ -545,7 +545,6 @@ the LABELS that are clobbered by the effects of LABEL."
 (define-primitive-effects
   ((untag-char _))
   ((tag-char _))
-  ((integer->char _)               &type-check)
   ((char->integer _)               &type-check))
 
 ;; Atomics are a memory and a compiler barrier; they cause all effects

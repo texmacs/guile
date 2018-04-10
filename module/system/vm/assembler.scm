@@ -260,7 +260,6 @@
             emit-srsh/immediate
             emit-ulsh/immediate
             emit-char->integer
-            emit-integer->char
             emit-class-of
             emit-make-array
             emit-scm->f64

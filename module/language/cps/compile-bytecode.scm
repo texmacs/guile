@@ -177,8 +177,6 @@
                                           idx))
         (($ $primcall 'char->integer #f (src))
          (emit-char->integer asm (from-sp dst) (from-sp (slot src))))
-        (($ $primcall 'integer->char #f (src))
-         (emit-integer->char asm (from-sp dst) (from-sp (slot src))))
         (($ $primcall 'add/immediate y (x))
          (emit-add/immediate asm (from-sp dst) (from-sp (slot x)) y))
         (($ $primcall 'sub/immediate y (x))
