@@ -199,6 +199,7 @@
             emit-string->number
             emit-string->symbol
             emit-symbol->keyword
+            emit-class-of
 
             emit-call
             emit-call-label
@@ -259,7 +260,6 @@
             emit-ursh/immediate
             emit-srsh/immediate
             emit-ulsh/immediate
-            emit-class-of
             emit-make-array
             emit-scm->f64
             emit-load-f64
@@ -1311,6 +1311,7 @@ returned instead."
 (define-scm<-scm-intrinsic string->number)
 (define-scm<-scm-intrinsic string->symbol)
 (define-scm<-scm-intrinsic symbol->keyword)
+(define-scm<-scm-intrinsic class-of)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

@@ -45,6 +45,7 @@ typedef SCM (*scm_t_scm_from_scm_intrinsic) (SCM);
   M(scm_from_scm, string_to_number, "string->number", STRING_TO_NUMBER) \
   M(scm_from_scm, string_to_symbol, "string->symbol", STRING_TO_SYMBOL) \
   M(scm_from_scm, symbol_to_keyword, "symbol->keyword", SYMBOL_TO_KEYWORD) \
+  M(scm_from_scm, class_of, "class-of", CLASS_OF) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

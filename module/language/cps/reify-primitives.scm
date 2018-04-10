@@ -216,6 +216,7 @@
       string->number
       string->symbol
       symbol->keyword
+      class-of
       u64->s64
       s64->u64
       cache-current-module!

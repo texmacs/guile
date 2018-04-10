@@ -2196,15 +2196,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       abort (); /* never reached */
     }
 
-
-  
-
-
-  /* class-of dst:12 type:12
-   *
-   * Store the vtable of SRC into DST.
-   */
-  VM_DEFINE_OP (113, class_of, "class-of", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (113, unused_113, NULL, NOP)
     {
       ARGS1 (obj);
       /* FIXME: restore fast path for direct instances.  */
