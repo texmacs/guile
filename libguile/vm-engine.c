@@ -2133,40 +2133,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
   VM_DEFINE_OP (77, unused_77, NULL, NOP)
+  VM_DEFINE_OP (78, unused_78, NULL, NOP)
+  VM_DEFINE_OP (79, unused_79, NULL, NOP)
+  VM_DEFINE_OP (80, unused_80, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  VM_DEFINE_OP (78, unused_78, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst,
-              scm_string_to_number (SP_REF (src),
-                                    SCM_UNDEFINED /* radix = 10 */));
-      NEXT (1);
-    }
-
-  VM_DEFINE_OP (79, unused_79, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst, scm_string_to_symbol (SP_REF (src)));
-      NEXT (1);
-    }
-
-  VM_DEFINE_OP (80, unused_80, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst, scm_symbol_to_keyword (SP_REF (src)));
-      NEXT (1);
     }
 
   
