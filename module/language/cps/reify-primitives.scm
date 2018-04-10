@@ -213,6 +213,9 @@
       logior
       logxor
       string-set!
+      string->number
+      string->symbol
+      symbol->keyword
       u64->s64
       s64->u64
       cache-current-module!
