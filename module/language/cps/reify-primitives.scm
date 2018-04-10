@@ -212,6 +212,7 @@
       logand
       logior
       logxor
+      string-set!
       u64->s64
       s64->u64
       cache-current-module!

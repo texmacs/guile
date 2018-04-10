@@ -833,25 +833,6 @@ minimum, and maximum."
 ;;; Strings.
 ;;;
 
-(define-type-checker (string-ref s idx)
-  (and (check-type s &string 0 (target-max-size-t))
-       (check-type idx &u64 0 (target-max-size-t))
-       (< (&max idx) (&min s))))
-(define-type-inferrer (string-ref s idx result)
-  (restrict! s &string (1+ (&min/0 idx)) (target-max-size-t))
-  (restrict! idx &u64 0 (1- (&max/size s)))
-  (define! result &char 0 *max-codepoint*))
-
-(define-type-checker (string-set! s idx val)
-  (and (check-type s &string 0 (target-max-size-t))
-       (check-type idx &u64 0 (target-max-size-t))
-       (check-type val &char 0 *max-codepoint*)
-       (< (&max idx) (&min s))))
-(define-type-inferrer (string-set! s idx val)
-  (restrict! s &string (1+ (&min/0 idx)) (target-max-size-t))
-  (restrict! idx &u64 0 (1- (&max/size s)))
-  (restrict! val &char 0 *max-codepoint*))
-
 (define-simple-type (number->string &number) (&string 0 (target-max-size-t)))
 (define-simple-type (string->number (&string 0 (target-max-size-t)))
   ((logior &number &special-immediate) -inf.0 +inf.0))

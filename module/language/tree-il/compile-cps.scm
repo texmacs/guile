@@ -1179,6 +1179,20 @@
     (build-term
       ($branch knot-string kheap-object src 'heap-object? #f (x)))))
 
+(define (ensure-char cps src op x have-char)
+  (define msg "Wrong type argument (expecting char): ~S")
+  (define not-char (vector 'wrong-type-arg (symbol->string op) msg))
+  (with-cps cps
+    (letv uchar)
+    (letk knot-char
+          ($kargs () () ($throw src 'throw/value+data not-char (x))))
+    (let$ body (have-char uchar))
+    (letk k ($kargs ('uchar) (uchar) ,body))
+    (letk kchar
+          ($kargs () () ($continue k src ($primcall 'untag-char #f (x)))))
+    (build-term
+      ($branch knot-char kchar src 'char? #f (x)))))
+
 (define-primcall-converter string-length
   (lambda (cps k src op param x)
     (ensure-string
@@ -1258,11 +1272,35 @@
          (build-term
            ($continue krange src ($primcall 'scm->u64 #f (idx)))))))))
 
+(define-primcall-converter string-set!
+  (lambda (cps k src op param s idx ch)
+    (define out-of-range
+      #(out-of-range string-ref "Argument 2 out of range: ~S"))
+    (define stringbuf-f-wide #x400)
+    (ensure-string
+     cps src op s
+     (lambda (cps ulen)
+       (ensure-char
+        cps src op ch
+        (lambda (cps uchar)
+          (with-cps cps
+            (letv uidx)
+            (letk kout-of-range
+                  ($kargs () ()
+                    ($throw src 'throw/value+data out-of-range (idx))))
+            (letk kuidx
+                  ($kargs () ()
+                    ($continue k src
+                      ($primcall 'string-set! #f (s uidx uchar)))))
+            (letk krange
+                  ($kargs ('uidx) (uidx)
+                    ($branch kout-of-range kuidx src 'u64-< #f (uidx ulen))))
+            (build-term
+              ($continue krange src ($primcall 'scm->u64 #f (idx)))))))))))
+
 (define-primcall-converters
   (char->integer scm >u64)
   (integer->char u64 >scm)
-
-  (string-set! scm u64 scm)
 
   (rsh scm u64 >scm)
   (lsh scm u64 >scm))

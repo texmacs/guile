@@ -3083,7 +3083,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    *
    * Store the character SRC into the string DST at index IDX.
    */
-  VM_DEFINE_OP (192, string_set, "string-set!", OP1 (X8_S8_S8_S8))
+  VM_DEFINE_OP (192, unused_192, NULL, NOP)
     {
       scm_t_uint8 dst, idx, src;
       SCM str, chr;

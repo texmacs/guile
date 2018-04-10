@@ -401,7 +401,6 @@ the LABELS that are clobbered by the effects of LABEL."
 
 ;; Strings.
 (define-primitive-effects
-  ((string-ref s n)                (&read-object &string)      &type-check)
   ((string-set! s n c)             (&write-object &string)     &type-check)
   ((number->string _)              (&allocate &string)         &type-check)
   ((string->number _)              (&read-object &string)      &type-check))

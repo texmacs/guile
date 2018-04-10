@@ -195,6 +195,7 @@
             emit-logand
             emit-logior
             emit-logxor
+            emit-string-set!
 
             emit-call
             emit-call-label
@@ -230,7 +231,6 @@
             emit-current-thread
             emit-fluid-ref
             emit-fluid-set!
-            emit-string-set!
             emit-string->number
             emit-string->symbol
             emit-symbol->keyword
@@ -1297,6 +1297,7 @@ returned instead."
 (define-scm<-scm-scm-intrinsic logand)
 (define-scm<-scm-scm-intrinsic logior)
 (define-scm<-scm-scm-intrinsic logxor)
+(define-scm-u64-u64-intrinsic string-set!)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)
