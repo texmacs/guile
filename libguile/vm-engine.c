@@ -318,13 +318,6 @@
 
 #define VM_VALIDATE_ATOMIC_BOX(x, proc)                                 \
   VM_VALIDATE (x, scm_is_atomic_box, proc, atomic_box)
-#define VM_VALIDATE_CHAR(x, proc)                                       \
-  VM_VALIDATE (x, SCM_CHARP, proc, char)
-#define VM_VALIDATE_STRING(obj, proc)                                   \
-  VM_VALIDATE (obj, scm_is_string, proc, string)
-
-#define VM_VALIDATE_INDEX(u64, size, proc)                              \
-  VM_ASSERT (u64 < size, vm_error_out_of_range_uint64 (proc, u64))
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -346,6 +339,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   /* Current opcode: A cache of *ip.  */
   register scm_t_uint32 op;
 
+  void **intrinsics = (void**) &scm_vm_intrinsics;
+
 #ifdef HAVE_LABELS_AS_VALUES
   static const void *jump_table_[256] = {
 #define LABEL_ADDR(opcode, tag, name, meta) &&op_##tag,
@@ -357,8 +352,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
      load instruction at each instruction dispatch.  */
   jump_table = jump_table_;
 #endif
-
-  void **intrinsics = (void**) &scm_vm_intrinsics;
 
   /* Load VM registers. */
   CACHE_REGISTER ();
@@ -2838,27 +2831,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (173, unused_173, NULL, NOP)
   VM_DEFINE_OP (174, unused_174, NULL, NOP)
   VM_DEFINE_OP (175, unused_175, NULL, NOP)
+  VM_DEFINE_OP (176, unused_176, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  /* char->integer a:12 b:12
-   *
-   * Untag the character in B to U64, and return it in A.
-   */
-  VM_DEFINE_OP (176, char_to_integer, "char->integer", OP1 (X8_S12_S12) | OP_DST)
-    {
-      scm_t_uint16 dst, src;
-      SCM x;
-
-      UNPACK_12_12 (op, dst, src);
-      x = SP_REF (src);
-
-      VM_VALIDATE_CHAR (x, "char->integer");
-      SP_SET_U64 (dst, SCM_CHAR (x));
-
-      NEXT (1);
     }
 
   /* ulogxor dst:8 a:8 b:8

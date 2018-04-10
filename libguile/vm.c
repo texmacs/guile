@@ -436,10 +436,7 @@ static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN SCM
 static void vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_char (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_a_string (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_a_atomic_box (const char *subr, SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_out_of_range_uint64 (const char *subr, scm_t_uint64 idx) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_enough_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_number_of_values (scm_t_uint32 expected) SCM_NORETURN SCM_NOINLINE;
@@ -547,27 +544,9 @@ vm_error_wrong_type_apply (SCM proc)
 }
 
 static void
-vm_error_not_a_char (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "char");
-}
-
-static void
-vm_error_not_a_string (const char *subr, SCM x)
-{
-  scm_wrong_type_arg_msg (subr, 1, x, "string");
-}
-
-static void
 vm_error_not_a_atomic_box (const char *subr, SCM x)
 {
   scm_wrong_type_arg_msg (subr, 1, x, "atomic box");
-}
-
-static void
-vm_error_out_of_range_uint64 (const char *subr, scm_t_uint64 idx)
-{
-  scm_out_of_range (subr, scm_from_uint64 (idx));
 }
 
 static void
