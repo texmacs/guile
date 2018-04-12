@@ -2566,19 +2566,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (161, unused_161, NULL, NOP)
     {
-      ARGS2 (x, y);
-
-      if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-        {
-          scm_t_signed_bits a, b;
-
-          a = SCM_I_INUM (x);
-          b = SCM_I_INUM (y);
-
-          RETURN (SCM_I_MAKINUM (a & ~b));
-        }
-
-      RETURN_EXP (scm_logand (x, scm_lognot (y)));
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* ulogand dst:8 a:8 b:8
