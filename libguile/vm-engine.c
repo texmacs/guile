@@ -2357,11 +2357,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (143, unused_143, NULL, NOP)
     {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET_U64 (dst, scm_to_uint64 (SP_REF (src)));
-      NEXT (1);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* u64->scm dst:12 src:12
@@ -2516,11 +2513,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (157, unused_157, NULL, NOP)
     {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET_S64 (dst, scm_to_int64 (SP_REF (src)));
-      NEXT (1);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* s64->scm dst:12 src:12
@@ -2668,23 +2662,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (167, unused_167, NULL, NOP)
     {
-      scm_t_uint16 dst, src;
-      SCM x;
-
-      UNPACK_12_12 (op, dst, src);
-      x = SP_REF (src);
-
-      if (SCM_I_INUMP (x))
-        SP_SET_U64 (dst, (scm_t_uint64) SCM_I_INUM (x));
-      else
-        {
-          SYNC_IP ();
-          SP_SET_U64 (dst,
-                      scm_to_uint64
-                      (scm_logand (x, scm_from_uint64 ((scm_t_uint64) -1))));
-        }
-
-      NEXT (1);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   /* ursh/immediate dst:8 a:8 b:8
