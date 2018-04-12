@@ -2388,20 +2388,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
   VM_DEFINE_OP (143, unused_143, NULL, NOP)
-    {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
-    }
-
   VM_DEFINE_OP (144, unused_144, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst, scm_from_uint64 (SP_REF_U64 (src)));
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (145, unused_145, NULL, NOP)
   VM_DEFINE_OP (146, unused_146, NULL, NOP)
   VM_DEFINE_OP (147, unused_147, NULL, NOP)
@@ -2540,18 +2527,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
   VM_DEFINE_OP (157, unused_157, NULL, NOP)
+  VM_DEFINE_OP (158, unused_158, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  VM_DEFINE_OP (158, unused_158, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-      UNPACK_12_12 (op, dst, src);
-      SYNC_IP ();
-      SP_SET (dst, scm_from_int64 (SP_REF_S64 (src)));
-      NEXT (1);
     }
 
   /* load-s64 dst:24 high-bits:32 low-bits:32
