@@ -182,6 +182,11 @@
             emit-f32-set!
             emit-f64-set!
 
+            emit-atomic-scm-ref/immediate
+            emit-atomic-scm-set!/immediate
+            emit-atomic-scm-swap!/immediate
+            emit-atomic-scm-compare-and-swap!/immediate
+
             ;; Intrinsics.
             emit-add
             emit-add/immediate
@@ -270,11 +275,6 @@
             emit-load-f64
             emit-load-u64
             emit-load-s64
-            emit-make-atomic-box
-            emit-atomic-box-ref
-            emit-atomic-box-set!
-            emit-atomic-box-swap!
-            emit-atomic-box-compare-and-swap!
             emit-handle-interrupts
 
             emit-text
@@ -678,6 +678,8 @@ later by the linker."
           (emit asm 0))
          ((C8_C24 a b)
           (emit asm (pack-u8-u24 a b)))
+         ((C8_S24 a b)
+          (emit asm (pack-u8-u24 a b)))
          ((C16_C16 a b)
           (emit asm (pack-u16-u16 a b)))
          ((B1_X7_L24 a label)
@@ -952,6 +954,7 @@ later by the linker."
           ('L32 #'(label))
           ('LO32 #'(label offset))
           ('C8_C24 #'(a b))
+          ('C8_S24 #'(a b))
           ('C16_C16 #'(a b))
           ('B1_X7_L24 #'(a label))
           ('B1_C7_L24 #'(a b label))

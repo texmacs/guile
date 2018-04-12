@@ -1294,6 +1294,85 @@
 (define-primcall-converter rsh convert-shift)
 (define-primcall-converter lsh convert-shift)
 
+(define-primcall-converter make-atomic-box
+  (lambda (cps k src op param val)
+    (with-cps cps
+      (letv obj tag)
+      (letk kdone
+            ($kargs () ()
+              ($continue k src ($values (obj)))))
+      (letk kval
+            ($kargs () ()
+              ($continue kdone src
+                ($primcall 'atomic-scm-set!/immediate '(atomic-box . 1) (obj val)))))
+      (letk ktag1
+            ($kargs ('tag) (tag)
+              ($continue kval src
+                ($primcall 'word-set!/immediate '(atomic-box . 0) (obj tag)))))
+      (letk ktag0
+            ($kargs ('obj) (obj)
+              ($continue ktag1 src
+                ($primcall 'load-u64 %tc7-atomic-box ()))))
+      (build-term
+        ($continue ktag0 src
+          ($primcall 'allocate-words/immediate '(atomic-box . 2) ()))))))
+
+(define (ensure-atomic-box cps src op x is-atomic-box)
+  (define bad-type
+    (vector 'wrong-type-arg
+            (symbol->string op)
+            "Wrong type argument in position 1 (expecting atomic box): ~S"))
+  (with-cps cps
+    (letk kbad ($kargs () () ($throw src 'throw/value+data bad-type (x))))
+    (let$ body (is-atomic-box))
+    (letk k ($kargs () () ,body))
+    (letk kheap-object ($kargs () () ($branch kbad k src 'atomic-box? #f (x))))
+    (build-term ($branch kbad kheap-object src 'heap-object? #f (x)))))
+
+(define-primcall-converter atomic-box-ref
+  (lambda (cps k src op param x)
+    (ensure-atomic-box
+     cps src 'atomic-box-ref x
+     (lambda (cps)
+       (with-cps cps
+         (letv val)
+         (build-term
+           ($continue k src
+             ($primcall 'atomic-scm-ref/immediate '(atomic-box . 1) (x)))))))))
+
+(define-primcall-converter atomic-box-set!
+  (lambda (cps k src op param x val)
+    (ensure-atomic-box
+     cps src 'atomic-box-set! x
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'atomic-scm-set!/immediate '(atomic-box . 1)
+                        (x val)))))))))
+
+(define-primcall-converter atomic-box-swap!
+  (lambda (cps k src op param x val)
+    (ensure-atomic-box
+     cps src 'atomic-box-swap! x
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'atomic-scm-swap!/immediate '(atomic-box . 1)
+                        (x val)))))))))
+
+(define-primcall-converter atomic-box-compare-and-swap!
+  (lambda (cps k src op param x expected desired)
+    (ensure-atomic-box
+     cps src 'atomic-box-compare-and-swap! x
+     (lambda (cps)
+       (with-cps cps
+         (build-term
+           ($continue k src
+             ($primcall 'atomic-scm-compare-and-swap!/immediate '(atomic-box . 1)
+                        (x expected desired)))))))))
+
 ;;; Guile's semantics are that a toplevel lambda captures a reference on
 ;;; the current module, and that all contained lambdas use that module
 ;;; to resolve toplevel variables.  This parameter tracks whether or not

@@ -723,7 +723,6 @@ minimum, and maximum."
 ;;;
 
 (define (annotation->type ann)
-  ;; Expand me!
   (match ann
     ('pair &pair)
     ('vector &vector)
@@ -732,7 +731,8 @@ minimum, and maximum."
     ('bytevector &bytevector)
     ('box &box)
     ('closure &procedure)
-    ('struct &struct)))
+    ('struct &struct)
+    ('atomic-box &all-types)))
 
 (define-type-inferrer/param (allocate-words param size result)
   (define! result (annotation->type param) (&min/0 size) (&max/scm-size size)))

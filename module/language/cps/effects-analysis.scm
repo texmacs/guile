@@ -342,7 +342,6 @@ the LABELS that are clobbered by the effects of LABEL."
 
 ;; Generic objects.
 (define (annotation->memory-kind annotation)
-  ;; FIXME: Flesh this out.
   (match annotation
     ('pair &pair)
     ('vector &vector)
@@ -352,7 +351,8 @@ the LABELS that are clobbered by the effects of LABEL."
     ('bitmask &bitmask)
     ('box &box)
     ('closure &closure)
-    ('struct &struct)))
+    ('struct &struct)
+    ('atomic-box &unknown-memory-kinds)))
 
 (define-primitive-effects* param
   ((allocate-words size)           (&allocate (annotation->memory-kind param)))

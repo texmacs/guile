@@ -60,6 +60,14 @@
     }                                     \
   while (0)
 
+#define UNPACK_8_24(op,a,b)               \
+  do                                      \
+    {                                     \
+      a = op & 0xff;                      \
+      b = op >> 8;                        \
+    }                                     \
+  while (0)
+
 #define UNPACK_16_16(op,a,b)              \
   do                                      \
     {                                     \
@@ -2236,10 +2244,56 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  VM_DEFINE_OP (83, unused_83, NULL, NOP)
-  VM_DEFINE_OP (84, unused_84, NULL, NOP)
-  VM_DEFINE_OP (85, unused_85, NULL, NOP)
-  VM_DEFINE_OP (86, unused_86, NULL, NOP)
+  VM_DEFINE_OP (83, atomic_ref_scm_immediate, "atomic-scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+    {
+      scm_t_uint8 dst, obj, offset;
+      SCM *loc;
+      UNPACK_8_8_8 (op, dst, obj, offset);
+      loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
+      SP_SET (dst, scm_atomic_ref_scm (loc));
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (84, atomic_set_scm_immediate, "atomic-scm-set!/immediate", OP1 (X8_S8_C8_S8))
+    {
+      scm_t_uint8 obj, offset, val;
+      SCM *loc;
+      UNPACK_8_8_8 (op, obj, offset, val);
+      loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
+      scm_atomic_set_scm (loc, SP_REF (val));
+      NEXT (1);
+    }
+
+  VM_DEFINE_OP (85, atomic_scm_swap_immediate, "atomic-scm-swap!/immediate", OP3 (X8_S24, X8_S24, C8_S24) | OP_DST)
+    {
+      scm_t_uint32 dst, obj, val;
+      scm_t_uint8 offset;
+      SCM *loc;
+      UNPACK_24 (op, dst);
+      UNPACK_24 (ip[1], obj);
+      UNPACK_8_24 (ip[2], offset, val);
+      loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
+      SP_SET (dst, scm_atomic_swap_scm (loc, SP_REF (val)));
+      NEXT (3);
+    }
+
+  VM_DEFINE_OP (86, atomic_scm_compare_and_swap_immediate, "atomic-scm-compare-and-swap!/immediate", OP4 (X8_S24, X8_S24, C8_S24, X8_S24) | OP_DST)
+    {
+      scm_t_uint32 dst, obj, expected, desired;
+      scm_t_uint8 offset;
+      SCM *loc;
+      SCM scm_expected;
+      UNPACK_24 (op, dst);
+      UNPACK_24 (ip[1], obj);
+      UNPACK_8_24 (ip[2], offset, expected);
+      UNPACK_24 (ip[3], desired);
+      loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
+      scm_expected = SP_REF (expected);
+      scm_atomic_compare_and_swap_scm (loc, &scm_expected, SP_REF (desired));
+      SP_SET (dst, scm_expected);
+      NEXT (4);
+    }
+
   VM_DEFINE_OP (87, unused_87, NULL, NOP)
   VM_DEFINE_OP (88, unused_88, NULL, NOP)
   VM_DEFINE_OP (89, unused_89, NULL, NOP)
@@ -2714,11 +2768,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* make-atomic-box dst:12 src:12
-   *
-   * Create a new atomic box initialized to SRC, and place it in DST.
-   */
-  VM_DEFINE_OP (178, make_atomic_box, "make-atomic-box", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (178, unused_178, NULL, NOP)
     {
       SCM box;
       scm_t_uint16 dst, src;
@@ -2731,11 +2781,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* atomic-box-ref dst:12 src:12
-   *
-   * Fetch the value of the atomic box at SRC into DST.
-   */
-  VM_DEFINE_OP (179, atomic_box_ref, "atomic-box-ref", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (179, unused_179, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       SCM box;
@@ -2746,11 +2792,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* atomic-box-set! dst:12 src:12
-   *
-   * Set the contents of the atomic box at DST to SRC.
-   */
-  VM_DEFINE_OP (180, atomic_box_set, "atomic-box-set!", OP1 (X8_S12_S12))
+  VM_DEFINE_OP (180, unused_180, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       SCM box;
@@ -2761,12 +2803,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* atomic-box-swap! dst:12 box:12 _:8 val:24
-   *
-   * Replace the contents of the atomic box at BOX to VAL and store the
-   * previous value at DST.
-   */
-  VM_DEFINE_OP (181, atomic_box_swap, "atomic-box-swap!", OP2 (X8_S12_S12, X8_S24) | OP_DST)
+  VM_DEFINE_OP (181, unused_181, NULL, NOP)
     {
       scm_t_uint16 dst, box;
       scm_t_uint32 val;
@@ -2780,11 +2817,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  /* atomic-box-compare-and-swap! dst:12 box:12 _:8 expected:24  _:8 desired:24
-   *
-   * Set the contents of the atomic box at DST to SET.
-   */
-  VM_DEFINE_OP (182, atomic_box_compare_and_swap, "atomic-box-compare-and-swap!", OP3 (X8_S12_S12, X8_S24, X8_S24) | OP_DST)
+  VM_DEFINE_OP (182, unused_182, NULL, NOP)
     {
       scm_t_uint16 dst, box;
       scm_t_uint32 expected, desired;

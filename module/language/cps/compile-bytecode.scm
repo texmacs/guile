@@ -251,17 +251,18 @@
          (emit-f64-ref asm (from-sp dst) (from-sp (slot ptr))
                        (from-sp (slot idx))))
 
-        (($ $primcall 'make-atomic-box #f (init))
-         (emit-make-atomic-box asm (from-sp dst) (from-sp (slot init))))
-        (($ $primcall 'atomic-box-ref #f (box))
-         (emit-atomic-box-ref asm (from-sp dst) (from-sp (slot box))))
-        (($ $primcall 'atomic-box-swap! #f (box val))
-         (emit-atomic-box-swap! asm (from-sp dst) (from-sp (slot box))
-                                (from-sp (slot val))))
-        (($ $primcall 'atomic-box-compare-and-swap! #f (box expected desired))
-         (emit-atomic-box-compare-and-swap!
-          asm (from-sp dst) (from-sp (slot box))
-          (from-sp (slot expected)) (from-sp (slot desired))))
+        (($ $primcall 'atomic-scm-ref/immediate (annotation . idx) (obj))
+         (emit-atomic-scm-ref/immediate asm (from-sp dst) (from-sp (slot obj))
+                                        idx))
+        (($ $primcall 'atomic-scm-swap!/immediate (annotation . idx) (obj val))
+         (emit-atomic-scm-swap!/immediate asm (from-sp dst) (from-sp (slot obj))
+                                          idx (from-sp (slot val))))
+        (($ $primcall 'atomic-scm-compare-and-swap!/immediate (annotation . idx)
+            (obj expected desired))
+         (emit-atomic-scm-compare-and-swap!/immediate
+          asm (from-sp dst) (from-sp (slot obj)) idx (from-sp (slot expected))
+          (from-sp (slot desired))))
+
         (($ $primcall 'untag-fixnum #f (src))
          (emit-untag-fixnum asm (from-sp dst) (from-sp (slot src))))
         (($ $primcall 'tag-fixnum #f (src))
@@ -350,8 +351,9 @@
          (emit-unwind asm))
         (($ $primcall 'fluid-set! #f (fluid value))
          (emit-fluid-set! asm (from-sp (slot fluid)) (from-sp (slot value))))
-        (($ $primcall 'atomic-box-set! #f (box val))
-         (emit-atomic-box-set! asm (from-sp (slot box)) (from-sp (slot val))))
+        (($ $primcall 'atomic-scm-set!/immediate (annotation . idx) (obj val))
+         (emit-atomic-scm-set!/immediate asm (from-sp (slot obj)) idx
+                                         (from-sp (slot val))))
         (($ $primcall 'handle-interrupts #f ())
          (emit-handle-interrupts asm))))
 

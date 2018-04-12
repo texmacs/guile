@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2013, 2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -47,6 +47,7 @@ SCM_SYMBOL (sym_bang, "!");
     M(X8_S8_C8_S8)                              \
     M(X8_S8_S8_C8)                              \
     M(C8_C24)                                   \
+    M(C8_S24)                                   \
     M(C32) /* Unsigned. */                      \
     M(I32) /* Immediate. */                     \
     M(A32) /* Immediate, high bits. */          \

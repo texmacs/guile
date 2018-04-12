@@ -121,7 +121,7 @@
            #'(word))
           ((N32 R32 L32 LO32)
            #'((unpack-s32 word)))
-          ((C8_C24)
+          ((C8_C24 C8_S24)
            #'((logand word #xff)
               (ash word -8)))
           ((C16_C16)

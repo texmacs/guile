@@ -46,6 +46,7 @@
             %tc7-dynamic-state
             %tc7-frame
             %tc7-keyword
+            %tc7-atomic-box
             %tc7-syntax
             %tc7-program
             %tc7-vm-continuation
