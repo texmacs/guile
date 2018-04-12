@@ -57,6 +57,7 @@ typedef SCM (*scm_t_scm_from_s64_intrinsic) (scm_t_int64);
   M(s64_from_scm, scm_to_s64, "scm->s64", SCM_TO_S64) \
   M(scm_from_u64, u64_to_scm, "u64->scm", U64_TO_SCM) \
   M(scm_from_s64, s64_to_scm, "s64->scm", S64_TO_SCM) \
+  M(scm_from_scm_scm, logsub, "logsub", LOGSUB) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

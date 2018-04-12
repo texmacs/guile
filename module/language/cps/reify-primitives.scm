@@ -224,6 +224,7 @@
       logand
       logior
       logxor
+      logsub
       string-set!
       string->number
       string->symbol

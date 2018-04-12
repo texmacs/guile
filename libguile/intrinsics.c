@@ -80,6 +80,22 @@ scm_to_uint64_truncate (SCM x)
     return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((scm_t_uint64) -1)));
 }
 
+static SCM
+logsub (SCM x, SCM y)
+{
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    {
+      scm_t_signed_bits a, b;
+
+      a = SCM_I_INUM (x);
+      b = SCM_I_INUM (y);
+
+      return SCM_I_MAKINUM (a & ~b);
+    }
+
+  return scm_logand (x, scm_lognot (y));
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -106,6 +122,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.scm_to_s64 = scm_to_int64;
   scm_vm_intrinsics.u64_to_scm = scm_from_uint64;
   scm_vm_intrinsics.s64_to_scm = scm_from_int64;
+  scm_vm_intrinsics.logsub = logsub;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

@@ -195,6 +195,7 @@
             emit-logand
             emit-logior
             emit-logxor
+            emit-logsub
             emit-string-set!
             emit-string->number
             emit-string->symbol
@@ -255,7 +256,6 @@
             emit-uadd/immediate
             emit-usub/immediate
             emit-umul/immediate
-            emit-logsub
             emit-ulogand
             emit-ulogior
             emit-ulogxor
@@ -1321,6 +1321,7 @@ returned instead."
 (define-scm<-scm-scm-intrinsic logand)
 (define-scm<-scm-scm-intrinsic logior)
 (define-scm<-scm-scm-intrinsic logxor)
+(define-scm<-scm-scm-intrinsic logsub)
 (define-scm-u64-u64-intrinsic string-set!)
 (define-scm<-scm-intrinsic string->number)
 (define-scm<-scm-intrinsic string->symbol)

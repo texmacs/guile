@@ -2564,11 +2564,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* logsub dst:8 a:8 b:8
-   *
-   * Place the bitwise AND of A and the bitwise NOT of B into DST.
-   */
-  VM_DEFINE_OP (161, logsub, "logsub", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (161, unused_161, NULL, NOP)
     {
       ARGS2 (x, y);
 
