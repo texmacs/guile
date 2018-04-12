@@ -2176,8 +2176,40 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (78, unused_78, NULL, NOP)
-  VM_DEFINE_OP (79, unused_79, NULL, NOP)
+  VM_DEFINE_OP (78, call_scm_from_u64, "call-scm<-u64", OP2 (X8_S12_S12, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, src;
+      SCM res;
+      scm_t_scm_from_u64_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF_U64 (src));
+      CACHE_SP ();
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (79, call_scm_from_s64, "call-scm<-s64", OP2 (X8_S12_S12, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, src;
+      SCM res;
+      scm_t_scm_from_s64_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF_S64 (src));
+      CACHE_SP ();
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (80, unused_80, NULL, NOP)
     {
       vm_error_bad_instruction (op);
@@ -2361,11 +2393,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       abort (); /* never reached */
     }
 
-  /* u64->scm dst:12 src:12
-   *
-   * Pack an unsigned 64-bit integer into a SCM value.
-   */
-  VM_DEFINE_OP (144, u64_to_scm, "u64->scm", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (144, unused_144, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);
@@ -2517,11 +2545,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       abort (); /* never reached */
     }
 
-  /* s64->scm dst:12 src:12
-   *
-   * Pack an signed 64-bit integer into a SCM value.
-   */
-  VM_DEFINE_OP (158, s64_to_scm, "s64->scm", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (158, unused_158, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);

@@ -230,11 +230,8 @@
       symbol->keyword
       class-of
       scm->f64
-      scm->u64
-      scm->u64/truncate
-      scm->s64
-      u64->s64
-      s64->u64
+      s64->u64 s64->scm scm->s64
+      u64->s64 u64->scm scm->u64 scm->u64/truncate
       cache-current-module!
       cached-toplevel-box
       cached-module-box))

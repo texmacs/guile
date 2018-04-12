@@ -104,6 +104,8 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.scm_to_u64 = scm_to_uint64;
   scm_vm_intrinsics.scm_to_u64_truncate = scm_to_uint64_truncate;
   scm_vm_intrinsics.scm_to_s64 = scm_to_int64;
+  scm_vm_intrinsics.u64_to_scm = scm_from_uint64;
+  scm_vm_intrinsics.s64_to_scm = scm_from_int64;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

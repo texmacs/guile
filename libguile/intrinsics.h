@@ -30,6 +30,8 @@ typedef SCM (*scm_t_scm_from_scm_intrinsic) (SCM);
 typedef double (*scm_t_f64_from_scm_intrinsic) (SCM);
 typedef scm_t_uint64 (*scm_t_u64_from_scm_intrinsic) (SCM);
 typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
+typedef SCM (*scm_t_scm_from_u64_intrinsic) (scm_t_uint64);
+typedef SCM (*scm_t_scm_from_s64_intrinsic) (scm_t_int64);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -53,6 +55,8 @@ typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
   M(u64_from_scm, scm_to_u64, "scm->u64", SCM_TO_U64) \
   M(u64_from_scm, scm_to_u64_truncate, "scm->u64/truncate", SCM_TO_U64_TRUNCATE) \
   M(s64_from_scm, scm_to_s64, "scm->s64", SCM_TO_S64) \
+  M(scm_from_u64, u64_to_scm, "u64->scm", U64_TO_SCM) \
+  M(scm_from_s64, s64_to_scm, "s64->scm", S64_TO_SCM) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
