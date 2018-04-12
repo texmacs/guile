@@ -71,6 +71,15 @@ string_to_number (SCM str)
   return scm_string_to_number (str, SCM_UNDEFINED /* radix = 10 */);
 }
 
+static scm_t_uint64
+scm_to_uint64_truncate (SCM x)
+{
+  if (SCM_I_INUMP (x))
+    return (scm_t_uint64) SCM_I_INUM (x);
+  else
+    return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((scm_t_uint64) -1)));
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -92,6 +101,9 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.symbol_to_keyword = scm_symbol_to_keyword;
   scm_vm_intrinsics.class_of = scm_class_of;
   scm_vm_intrinsics.scm_to_f64 = scm_to_double;
+  scm_vm_intrinsics.scm_to_u64 = scm_to_uint64;
+  scm_vm_intrinsics.scm_to_u64_truncate = scm_to_uint64_truncate;
+  scm_vm_intrinsics.scm_to_s64 = scm_to_int64;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

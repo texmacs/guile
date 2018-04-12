@@ -28,6 +28,8 @@ typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, scm_t_uint8);
 typedef void (*scm_t_scm_u64_u64_intrinsic) (SCM, scm_t_uint64, scm_t_uint64);
 typedef SCM (*scm_t_scm_from_scm_intrinsic) (SCM);
 typedef double (*scm_t_f64_from_scm_intrinsic) (SCM);
+typedef scm_t_uint64 (*scm_t_u64_from_scm_intrinsic) (SCM);
+typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -48,6 +50,9 @@ typedef double (*scm_t_f64_from_scm_intrinsic) (SCM);
   M(scm_from_scm, symbol_to_keyword, "symbol->keyword", SYMBOL_TO_KEYWORD) \
   M(scm_from_scm, class_of, "class-of", CLASS_OF) \
   M(f64_from_scm, scm_to_f64, "scm->f64", SCM_TO_F64) \
+  M(u64_from_scm, scm_to_u64, "scm->u64", SCM_TO_U64) \
+  M(u64_from_scm, scm_to_u64_truncate, "scm->u64/truncate", SCM_TO_U64_TRUNCATE) \
+  M(s64_from_scm, scm_to_s64, "scm->s64", SCM_TO_S64) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

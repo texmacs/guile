@@ -201,6 +201,9 @@
             emit-symbol->keyword
             emit-class-of
             emit-scm->f64
+            emit-scm->u64
+            emit-scm->u64/truncate
+            emit-scm->s64
 
             emit-call
             emit-call-label
@@ -263,11 +266,8 @@
             emit-ulsh/immediate
             emit-make-array
             emit-load-f64
-            emit-scm->u64
-            emit-scm->u64/truncate
             emit-load-u64
             emit-u64->scm
-            emit-scm->s64
             emit-load-s64
             emit-s64->scm
             emit-make-atomic-box
@@ -1296,6 +1296,12 @@ returned instead."
 (define-syntax-rule (define-f64<-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-f64<-scm asm dst src (intrinsic-name->index 'name))))
+(define-syntax-rule (define-u64<-scm-intrinsic name)
+  (define-macro-assembler (name asm dst src)
+    (emit-call-u64<-scm asm dst src (intrinsic-name->index 'name))))
+(define-syntax-rule (define-s64<-scm-intrinsic name)
+  (define-macro-assembler (name asm dst src)
+    (emit-call-s64<-scm asm dst src (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)
@@ -1315,6 +1321,9 @@ returned instead."
 (define-scm<-scm-intrinsic symbol->keyword)
 (define-scm<-scm-intrinsic class-of)
 (define-f64<-scm-intrinsic scm->f64)
+(define-u64<-scm-intrinsic scm->u64)
+(define-u64<-scm-intrinsic scm->u64/truncate)
+(define-s64<-scm-intrinsic scm->s64)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

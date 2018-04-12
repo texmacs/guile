@@ -1580,10 +1580,21 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (56, unused_56, NULL, NOP)
+  VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
+      scm_t_uint8 dst, src;
+      scm_t_uint64 res;
+      scm_t_u64_from_scm_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (src));
+      CACHE_SP ();
+      SP_SET_U64 (dst, res);
+
+      NEXT (2);
     }
 
 
@@ -2148,7 +2159,23 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (77, unused_77, NULL, NOP)
+  VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+    {
+      scm_t_uint8 dst, src;
+      scm_t_int64 res;
+      scm_t_s64_from_scm_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (src));
+      CACHE_SP ();
+      SP_SET_S64 (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (78, unused_78, NULL, NOP)
   VM_DEFINE_OP (79, unused_79, NULL, NOP)
   VM_DEFINE_OP (80, unused_80, NULL, NOP)
@@ -2328,11 +2355,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (0);
     }
 
-  /* scm->u64 dst:12 src:12
-   *
-   * Unpack an unsigned 64-bit integer from SRC and place it in DST.
-   */
-  VM_DEFINE_OP (143, scm_to_u64, "scm->u64", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (143, unused_143, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);
@@ -2491,11 +2514,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (3);
     }
 
-  /* scm->s64 dst:12 src:12
-   *
-   * Unpack a signed 64-bit integer from SRC and place it in DST.
-   */
-  VM_DEFINE_OP (157, scm_to_s64, "scm->s64", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (157, unused_157, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       UNPACK_12_12 (op, dst, src);
@@ -2647,13 +2666,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* scm->u64/truncate dst:12 src:12
-   *
-   * Unpack an exact integer from SRC and place it in the unsigned
-   * 64-bit register DST, truncating any high bits.  If the number in
-   * SRC is negative, all the high bits will be set.
-   */
-  VM_DEFINE_OP (167, scm_to_u64_truncate, "scm->u64/truncate", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (167, unused_167, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       SCM x;
