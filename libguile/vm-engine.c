@@ -131,16 +131,11 @@
 #define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (vp))
 #define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (vp, arg))
 
-#define APPLY_HOOK()                            \
-  RUN_HOOK0 (apply)
-#define PUSH_CONTINUATION_HOOK()                \
-  RUN_HOOK0 (push_continuation)
-#define POP_CONTINUATION_HOOK(old_fp)           \
-  RUN_HOOK1 (pop_continuation, old_fp)
-#define NEXT_HOOK()                             \
-  RUN_HOOK0 (next)
-#define ABORT_CONTINUATION_HOOK()               \
-  RUN_HOOK0 (abort)
+#define APPLY_HOOK()                  RUN_HOOK0 (apply)
+#define PUSH_CONTINUATION_HOOK()      RUN_HOOK0 (push_continuation)
+#define POP_CONTINUATION_HOOK(old_fp) RUN_HOOK1 (pop_continuation, old_fp)
+#define NEXT_HOOK()                   RUN_HOOK0 (next)
+#define ABORT_CONTINUATION_HOOK()     RUN_HOOK0 (abort)
 
 
 
@@ -217,11 +212,6 @@
 #define FRAME_LOCALS_COUNT() (vp->fp - sp)
 #define FRAME_LOCALS_COUNT_FROM(slot) (FRAME_LOCALS_COUNT () - slot)
 
-/* Restore registers after returning from a frame.  */
-#define RESTORE_FRAME()                                             \
-  do {                                                              \
-  } while (0)
-
 
 #ifdef HAVE_LABELS_AS_VALUES
 # define BEGIN_DISPATCH_SWITCH /* */
@@ -280,9 +270,7 @@
 #define SP_REF_PTR(i)		(sp[i].as_ptr)
 #define SP_SET_PTR(i,o)		(sp[i].as_ptr = o)
 
-#define VARIABLE_REF(v)		SCM_VARIABLE_REF (v)
-#define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
-#define VARIABLE_BOUNDP(v)      (!scm_is_eq (VARIABLE_REF (v), SCM_UNDEFINED))
+#define VARIABLE_BOUNDP(v)      (!SCM_UNBNDP (SCM_VARIABLE_REF (v)))
 
 #define ARGS1(a1)                               \
   scm_t_uint16 dst, src;                        \
@@ -299,27 +287,6 @@
   do { SP_SET (dst, x); NEXT (1); } while (0)
 #define RETURN_EXP(exp)                         \
   do { SCM __x; SYNC_IP (); __x = exp; CACHE_SP (); RETURN (__x); } while (0)
-
-/* The maximum/minimum tagged integers.  */
-#define INUM_MAX  \
-  ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_POSITIVE_FIXNUM)))
-#define INUM_MIN  \
-  ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM)))
-#define INUM_STEP                                \
-  ((scm_t_signed_bits) SCM_UNPACK (SCM_INUM1)    \
-   - (scm_t_signed_bits) SCM_UNPACK (SCM_INUM0))
-
-#define BINARY_INTEGER_OP(CFUNC,SFUNC)                          \
-  {                                                             \
-    ARGS2 (x, y);						\
-    if (SCM_I_INUMP (x) && SCM_I_INUMP (y))                     \
-      {                                                         \
-        scm_t_int64 n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);    \
-        if (SCM_FIXABLE (n))                                    \
-          RETURN (SCM_I_MAKINUM (n));                           \
-      }                                                         \
-    RETURN_EXP (SFUNC (x, y));                                  \
-  }
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -3603,19 +3570,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef ARGS1
 #undef ARGS2
 #undef BEGIN_DISPATCH_SWITCH
-#undef BINARY_INTEGER_OP
-#undef BV_FIXABLE_INT_REF
-#undef BV_FIXABLE_INT_SET
-#undef BV_FLOAT_REF
-#undef BV_FLOAT_SET
-#undef BV_INT_REF
-#undef BV_INT_SET
 #undef CACHE_REGISTER
 #undef END_DISPATCH_SWITCH
-#undef FREE_VARIABLE_REF
-#undef INIT
-#undef INUM_MAX
-#undef INUM_MIN
 #undef FP_REF
 #undef FP_SET
 #undef FP_SLOT
@@ -3623,7 +3579,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef SP_SET
 #undef NEXT
 #undef NEXT_HOOK
-#undef NEXT_JUMP
 #undef POP_CONTINUATION_HOOK
 #undef PUSH_CONTINUATION_HOOK
 #undef RETURN
@@ -3637,11 +3592,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef UNPACK_12_12
 #undef UNPACK_24
 #undef VARIABLE_BOUNDP
-#undef VARIABLE_REF
-#undef VARIABLE_SET
-#undef VM_CHECK_FREE_VARIABLE
-#undef VM_CHECK_OBJECT
-#undef VM_CHECK_UNDERFLOW
 #undef VM_DEFINE_OP
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
