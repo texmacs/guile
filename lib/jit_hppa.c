@@ -743,7 +743,7 @@ _jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
     spec = jit_class(_rvs[regno].spec);
     if (spec & jit_class_arg) {
 	if (spec & jit_class_gpr) {
-	    regno = _R26 - regno;
+	    regno -= _R23;
 	    if (regno >= 0 && regno < node->v.w)
 		return (1);
 	}
