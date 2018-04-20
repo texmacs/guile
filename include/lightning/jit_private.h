@@ -95,7 +95,14 @@ typedef jit_uint64_t		jit_regset_t;
 #  define JIT_SP		_SP
 #  define JIT_RET		_I0
 #  define JIT_FRET		_F0
+#  if __WORDSIZE == 32
 typedef jit_uint64_t		jit_regset_t;
+#  else
+typedef struct {
+    jit_uint64_t	rl;
+    jit_uint64_t	rh;
+} jit_regset_t;
+#  endif
 #elif defined(__ia64__)
 #  define JIT_SP		_R12
 #  define JIT_RET		_R8
@@ -217,6 +224,10 @@ extern jit_node_t *_jit_data(jit_state_t*, const void*,
 #define jit_class_sft		0x01000000	/* not a hardware register */
 #define jit_class_rg8		0x04000000	/* x86 8 bits */
 #define jit_class_xpr		0x80000000	/* float / vector */
+/* Used on sparc64 where %f0-%f31 can be encode for single float
+ * but %f32 to %f62 only as double precision */
+#define jit_class_sng		0x10000000	/* Single precision float */
+#define jit_class_dbl		0x20000000	/* Only double precision float */
 #define jit_regno_patch		0x00008000	/* this is a register
 						 * returned by a "user" call
 						 * to jit_get_reg() */
@@ -250,7 +261,7 @@ extern jit_node_t *_jit_data(jit_state_t*, const void*,
 #define jit_cc_a2_flt		0x00200000	/* arg2 is immediate float */
 #define jit_cc_a2_dbl		0x00400000	/* arg2 is immediate double */
 
-#if __ia64__
+#if __ia64__ || (__sparc__ && __WORDSIZE == 64)
 extern void
 jit_regset_com(jit_regset_t*, jit_regset_t*);
 
@@ -286,10 +297,17 @@ jit_regset_setbit(jit_regset_t*, jit_int32_t);
 
 extern jit_bool_t
 jit_regset_tstbit(jit_regset_t*, jit_int32_t);
-#  define jit_regset_new(set)						\
+#  if __sparc__ && __WORDSIZE == 64
+#    define jit_regset_new(set)						\
+    do { (set)->rl = (set)->rh = 0; } while (0)
+#    define jit_regset_del(set)						\
+    do { (set)->rl = (set)->rh = 0; } while (0)
+#  else
+#    define jit_regset_new(set)						\
     do { (set)->rl = (set)->rh = (set)->fl = (set)->fh = 0; } while (0)
-#  define jit_regset_del(set)						\
+#    define jit_regset_del(set)						\
     do { (set)->rl = (set)->rh = (set)->fl = (set)->fh = 0; } while (0)
+#  endif
 #else
 #  define jit_regset_com(u, v)		(*(u) = ~*(v))
 #  define jit_regset_and(u, v, w)	(*(u) = *(v) & *(w))
@@ -457,7 +475,7 @@ struct jit_compiler {
     jit_int32_t		  rout;		/* first output register */
     jit_int32_t		  breg;		/* base register for prolog/epilog */
 #endif
-#if __mips__ || __ia64__ || __alpha__
+#if __mips__ || __ia64__ || __alpha__ || (__sparc__ && __WORDSIZE == 64)
     jit_int32_t		  carry;
 #define jit_carry	  _jitc->carry
 #endif

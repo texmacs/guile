@@ -1,3 +1,16 @@
+2018-04-20 Paulo Andrade <pcpa@gnu.org>
+
+	* include/lightning/jit_private.h: Add new register classes to
+	flag float registers and double only registers, required for sparc64
+	where only low 32 bit fpr registers can be used for single precision
+	operations.
+	Add new 128 bit jit_regset_t type for sparc64 register set.
+
+	* include/lightning/jit_sparc.h, lib/jit_sparc-cpu.c, lib/jit_sparc-fpu.c,
+	lib/jit_sparc-sz.c, lib/jit_sparc.c: Update for 64 bits sparc.
+
+	* lib/lightning.c: Update for new jit_regset_t required for sparc64.
+
 2018-02-26 Paulo Andrade <pcpa@gnu.org>
 
 	* check/lightning.c, include/lightning.h: Add the new jit_va_push

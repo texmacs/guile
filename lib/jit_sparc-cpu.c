@@ -18,6 +18,11 @@
  */
 
 #if PROTO
+#  define _G2_REGNO				0x02
+#  define _G3_REGNO				0x03
+#  define _G4_REGNO				0x04
+#  define _O0_REGNO				0x08
+#  define _O1_REGNO				0x09
 #  define _SP_REGNO				0x0e
 #  define _FP_REGNO				0x1e
 #  define _O7_REGNO				0x0f
@@ -37,12 +42,12 @@
  * fp-	alloca
  * sp+	stack arguments
  * sp+	6 words to save register arguments
- * sp+	1 word for hidden address of aggregate return value
+ * sp+	1 word for hidden address of aggregate return value (32 bits only)
  * sp+	16 words for in and local registers
  * sp	----
  *	decreasing memory address	- next stack frame (not yet allocated)
  */
-#  define stack_framesize			((16 + 1 + 6) * 4)
+#  define stack_framesize			((16 + (__WORDSIZE == 32) + 6) * sizeof(jit_word_t))
 typedef union {
     struct {				jit_uint32_t b: 2;	} op;
     struct {	jit_uint32_t _: 2;	jit_uint32_t b: 1;	} a;
@@ -51,21 +56,30 @@ typedef union {
     struct {	jit_uint32_t _: 3;	jit_uint32_t b: 4;	} cond;
     struct {	jit_uint32_t _: 7;	jit_uint32_t b: 3;	} op2;
     struct {	jit_uint32_t _: 7;	jit_uint32_t b: 6;	} op3;
+    struct {	jit_uint32_t _: 10;	jit_uint32_t b: 1;	} cc1;
     struct {	jit_uint32_t _: 10;	jit_uint32_t b: 22;	} imm22;
     struct {	jit_uint32_t _: 10;	jit_uint32_t b: 22;	} disp22;
+    struct {	jit_uint32_t _: 11;	jit_uint32_t b: 1;	} cc0;
+    struct {	jit_uint32_t _: 12;	jit_uint32_t b: 1;	} p;
+    struct {	jit_uint32_t _: 13;	jit_uint32_t b: 19;	} disp19;
     struct {	jit_uint32_t _: 13;	jit_uint32_t b: 5;	} rs1;
     struct {	jit_uint32_t _: 18;	jit_uint32_t b: 1;	} i;
     struct {	jit_uint32_t _: 18;	jit_uint32_t b: 9;	} opf;
+    struct {	jit_uint32_t _: 19;	jit_uint32_t b: 1;	} x;
     struct {	jit_uint32_t _: 19;	jit_uint32_t b: 8;	} asi;
     struct {	jit_uint32_t _: 19;	jit_uint32_t b: 6;	} res;
     struct {	jit_uint32_t _: 19;	jit_uint32_t b: 13;	} simm13;
-    struct {	jit_uint32_t _: 27;	jit_uint32_t b: 5;	} rs2;
+    struct {	jit_uint32_t _: 20;	jit_uint32_t b: 7;	} asix;
+    struct {	jit_uint32_t _: 20;	jit_uint32_t b: 6;	} asis;
+    struct {	jit_uint32_t _: 26;	jit_uint32_t b: 6;	} shim;
     struct {	jit_uint32_t _: 25;	jit_uint32_t b: 7;	} imm7;
+    struct {	jit_uint32_t _: 27;	jit_uint32_t b: 5;	} rs2;
     jit_int32_t							  v;
 } jit_instr_t;
 #  define ii(i)				*_jit->pc.ui++ = i
 #  define s7_p(imm)			((imm) <= 63 && (imm) >= -64)
 #  define s13_p(imm)			((imm) <= 4095 && (imm) >= -4096)
+#  define s19_p(imm)			((imm) <= 262143 && (imm) >= -262144)
 #  define s22_p(imm)			((imm) <= 2097151 && (imm) >= -20971512)
 #  define s30_p(imm)			((imm) <= 536870911 && (imm) >= -536870912)
 #  define f1(op, disp30)		_f1(_jit, op, disp30)
@@ -75,12 +89,27 @@ static void _f2r(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define f2b(op, a, cond, op2, disp22)	_f2b(_jit, op, a, cond, op2, disp22)
 static void
 _f2b(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+#  if __WORDSIZE == 64
+#    define f2bp(op,a,cond,op2,cc1,cc0,p,disp19)				\
+	_f2bp(_jit,op,a,cond,op2,cc1,cc0,p,disp19)
+static void
+_f2bp(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,
+      jit_int32_t,jit_int32_t,jit_int32_t);
+#  endif
 #  define f3r(op, rd, op3, rs1, rs2)	_f3r(_jit, op, rd, op3, rs1, rs2)
 static void _f3r(jit_state_t*,
 		 jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+#  if __WORDSIZE == 64
+#  define f3rx(op, rd, op3, rs1, rs2)	_f3rx(_jit, op, rd, op3, rs1, rs2)
+static void _f3rx(jit_state_t*,
+		  jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+#  endif
 #  define f3i(op, rd, op3, rs1, simm13)	_f3i(_jit, op, rd, op3, rs1, simm13)
 static void _f3i(jit_state_t*,
-		 jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_word_t);
+		 jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
+#  define f3s(op, rd, op3, rs1, simm13)	_f3s(_jit, op, rd, op3, rs1, simm13)
+static void _f3s(jit_state_t*,
+		 jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define f3t(cond, rs1, i, ri)		_f3t(_jit, cond, rs1, i, ri)
 static void _f3t(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t)
     maybe_unused;
@@ -96,16 +125,31 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define LDUBI(rs1, imm, rd)		f3i(3, rd, 1, rs1, imm)
 #  define LDUH(rs1, rs2, rd)		f3r(3, rd, 2, rs1, rs2)
 #  define LDUHI(rs1, imm, rd)		f3i(3, rd, 2, rs1, imm)
-#  define LD(rs1, rs2, rd)		f3r(3, rd, 0, rs1, rs2)
-#  define LDI(rs1, imm, rd)		f3i(3, rd, 0, rs1, imm)
-#  define LDD(rs1, rs2, rd)		f3r(3, rd, 3, rs1, rs2)
-#  define LDDI(rs1, imm, rd)		f3i(3, rd, 3, rs1, imm)
+#  if __WORDSIZE == 32
+#    define LD(rs1, rs2, rd)		f3r(3, rd, 0, rs1, rs2)
+#    define LDI(rs1, imm, rd)		f3i(3, rd, 0, rs1, imm)
+#    define LDD(rs1, rs2, rd)		f3r(3, rd, 3, rs1, rs2)
+#    define LDDI(rs1, imm, rd)		f3i(3, rd, 3, rs1, imm)
+#  else
+#    define LDSW(rs1, rs2, rd)		f3r(3, rd, 8, rs1, rs2)
+#    define LDSWI(rs1, imm, rd)		f3i(3, rd, 8, rs1, imm)
+#    define LDUW(rs1, rs2, rd)		f3r(3, rd, 0, rs1, rs2)
+#    define LDUWI(rs1, imm, rd)		f3i(3, rd, 0, rs1, imm)
+#    define LDX(rs1, rs2, rd)		f3r(3, rd, 11, rs1, rs2)
+#    define LDXI(rs1, imm, rd)		f3i(3, rd, 11, rs1, imm)
+#  endif
 #  define LDSBA(rs1, rs2, asi, rd)	f3a(3, rd, 25, rs1, asi, rs2)
 #  define LDSHA(rs1, rs2, asi, rd)	f3a(3, rd, 26, rs1, asi, rs2)
 #  define LDUBA(rs1, rs2, asi, rd)	f3a(3, rd, 17, rs1, asi, rs2)
 #  define LDUHA(rs1, rs2, asi, rd)	f3a(3, rd, 18, rs1, asi, rs2)
-#  define LDA(rs1, rs2, asi, rd)	f3a(3, rd, 16, rs1, asi, rs2)
-#  define LDDA(rs1, rs2, asi, rd)	f3a(3, rd, 19, rs1, asi, rs2)
+#  if __WORDSIZE == 32
+#    define LDA(rs1, rs2, asi, rd)	f3a(3, rd, 16, rs1, asi, rs2)
+#    define LDDA(rs1, rs2, asi, rd)	f3a(3, rd, 19, rs1, asi, rs2)
+#  else
+#    define LDSWA(rs1, rs2, asi, rd)	f3a(3, rd, 24, rs1, asi, rs2)
+#    define LDUWA(rs1, rs2, asi, rd)	f3a(3, rd, 16, rs1, asi, rs2)
+#    define LDXA(rs1, rs2, asi, rd)	f3a(3, rd, 27, rs1, asi, rs2)
+#  endif
 #  define LDC(rs1, rs2, rd)		f3r(3, rd, 48, rs1, rs2)
 #  define LDCI(rs1, imm, rd)		f3i(3, rd, 48, rs1, imm)
 #  define LDDC(rs1, rs2, rd)		f3r(3, rd, 51, rs1, rs2)
@@ -116,14 +160,26 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define STBI(rd, rs1, imm)		f3i(3, rd, 5, rs1, imm)
 #  define STH(rd, rs1, rs2)		f3r(3, rd, 6, rs1, rs2)
 #  define STHI(rd, rs1, imm)		f3i(3, rd, 6, rs1, imm)
-#  define ST(rd, rs1, rs2)		f3r(3, rd, 4, rs1, rs2)
-#  define STI(rd, rs1, imm)		f3i(3, rd, 4, rs1, imm)
-#  define STD(rrd, s1, rs2)		f3r(3, rd, 7, rs1, rs2)
-#  define STDI(rd, rs1, imm)		f3i(3, rd, 7, rs1, imm)
+#  if __WORDSIZE == 32
+#    define ST(rd, rs1, rs2)		f3r(3, rd, 4, rs1, rs2)
+#    define STI(rd, rs1, imm)		f3i(3, rd, 4, rs1, imm)
+#    define STD(rrd, s1, rs2)		f3r(3, rd, 7, rs1, rs2)
+#    define STDI(rd, rs1, imm)		f3i(3, rd, 7, rs1, imm)
+#  else
+#    define STW(rd, rs1, rs2)		f3r(3, rd, 4, rs1, rs2)
+#    define STWI(rd, rs1, imm)		f3i(3, rd, 4, rs1, imm)
+#    define STX(rd, rs1, rs2)		f3r(3, rd, 14, rs1, rs2)
+#    define STXI(rd, rs1, imm)		f3i(3, rd, 14, rs1, imm)
+#  endif
 #  define STBA(rd, rs1, rs2)		f3a(3, rd, 21, rs1, asi, rs2)
 #  define STHA(rd, rs1, rs2)		f3a(3, rd, 22, rs1, asi, rs2)
-#  define STA(rd, rs1, rs2)		f3a(3, rd, 20, rs1, asi, rs2)
-#  define STDA(rd, rs1, rs2)		f3a(3, rd, 23, rs1, asi, rs2)
+#  if __WORDSIZE == 32
+#    define STA(rd, rs1, rs2)		f3a(3, rd, 20, rs1, asi, rs2)
+#    define STDA(rd, rs1, rs2)		f3a(3, rd, 23, rs1, asi, rs2)
+#  else
+#    define STWA(rd, rs1, rs2)		f3a(3, rd, 20, rs1, asi, rs2)
+#    define STXA(rd, rs1, rs2)		f3a(3, rd, 30, rs1, asi, rs2)
+#  endif
 #  define STC(rd, rs1, rs2)		f3r(3, rd, 52, rs1, rs2)
 #  define STCI(rd, rs1, imm)		f3i(3, rd, 52, rs1, imm)
 #  define STDC(rd, rs1, rs2)		f3r(3, rd, 55, rs1, rs2)
@@ -174,6 +230,14 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define SRLI(rs1, imm, rd)		f3i(2, rd, 38, rs1, imm)
 #  define SRA(rs1, rs2, rd)		f3r(2, rd, 39, rs1, rs2)
 #  define SRAI(rs1, imm, rd)		f3i(2, rd, 39, rs1, imm)
+#  if __WORDSIZE == 64
+#    define SLLX(rs1, rs2, rd)		f3rx(2, rd, 37, rs1, rs2)
+#    define SLLXI(rs1, imm, rd)		f3s(2, rd, 37, rs1, imm)
+#    define SRLX(rs1, rs2, rd)		f3rx(2, rd, 38, rs1, rs2)
+#    define SRLXI(rs1, imm, rd)		f3s(2, rd, 38, rs1, imm)
+#    define SRAX(rs1, rs2, rd)		f3rx(2, rd, 39, rs1, rs2)
+#    define SRAXI(rs1, imm, rd)		f3s(2, rd, 39, rs1, imm)
+#  endif
 #  define ADD(rs1, rs2, rd)		f3r(2, rd, 0, rs1, rs2)
 #  define ADDI(rs1, imm, rd)		f3i(2, rd, 0, rs1, imm)
 #  define ADDcc(rs1, rs2, rd)		f3r(2, rd, 16, rs1, rs2)
@@ -219,6 +283,14 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define UDIVIcc(rs1, imm, rd)		f3i(2, rd, 30, rs1, imm)
 #  define SDIVcc(rs1, rs2, rd)		f3r(2, rd, 31, rs1, rs2)
 #  define SDIVIcc(rs1, imm, rd)		f3i(2, rd, 31, rs1, imm)
+#  if __WORDSIZE == 64
+#    define MULX(rs1, rs2, rd)		f3r(2, rd, 9, rs1, rs2)
+#    define MULXI(rs1, imm, rd)		f3i(2, rd, 9, rs1, imm)
+#    define SDIVX(rs1, rs2, rd)		f3r(2, rd, 45, rs1, rs2)
+#    define SDIVXI(rs1, imm, rd)	f3i(2, rd, 45, rs1, imm)
+#    define UDIVX(rs1, rs2, rd)		f3r(2, rd, 13, rs1, rs2)
+#    define UDIVXI(rs1, imm, rd)	f3i(2, rd, 13, rs1, imm)
+#  endif
 #  define SAVE(rs1, rs2, rd)		f3r(2, rd, 60, rs1, rs2)
 #  define SAVEI(rs1, imm, rd)		f3i(2, rd, 60, rs1, imm)
 #  define RESTORE(rs1, rs2, rd)		f3r(2, rd, 61, rs1, rs2)
@@ -243,6 +315,25 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define SPARC_BNEG			6	/* negative - N */
 #  define SPARC_BVC			15	/* overflow clear - not V */
 #  define SPARC_BVS			7	/* overflow set - V */
+/* Preferred BPcc integer branch opcodes */
+#  if __WORDSIZE == 64
+#    define SPARC_BPA			8	/* always - 1 */
+#    define SPARC_BPN			0	/* never - 0 */
+#    define SPARC_BPNE			9	/* not equal - not Z */
+#    define SPARC_BPE			1	/* equal - Z */
+#    define SPARC_BPG			10	/* greater - not (Z or (N xor V)) */
+#    define SPARC_BPLE			2	/* less or equal - Z or (N xor V) */
+#    define SPARC_BPGE			11	/* greater or equal - not (N xor V) */
+#    define SPARC_BPL			3	/* less - N xor V */
+#    define SPARC_BPGU			12	/* greater unsigned - not (C or V) */
+#    define SPARC_BPLEU			4	/* less or equal unsigned  - C or Z */
+#    define SPARC_BPCC			13	/* carry clear (greater than or equal, unsigned) - not C */
+#    define SPARC_BPCS			5	/* carry set (less than, unsigned) - C */
+#    define SPARC_BPPOS			14	/* positive - not N */
+#    define SPARC_BPNEG			6	/* negative - N */
+#    define SPARC_BPVC			15	/* overflow clear - not V */
+#    define SPARC_BPVS			7	/* overflow set - V */
+#  endif
 #  define B(cc, imm)			f2b(0, 0, cc, 2, imm)
 #  define Ba(cc, imm)			f2b(0, 1, cc, 2, imm)
 #  define BA(imm)			B(SPARC_BA, imm)
@@ -285,6 +376,28 @@ static void _f3a(jit_state_t*,jit_int32_t,
 #  define BVCa(imm)			Ba(SPARC_BVC, imm)
 #  define BVS(imm)			B(SPARC_BVS, imm)
 #  define BVSa(imm)			Ba(SPARC_BVS, imm)
+#  if __WORDSIZE == 64
+#    define BPccap(cc,a,cc1, cc2,p,imm)	f2bp(0, a, cc, 1, cc1, cc0, p, imm)
+#    define BPap(cc, imm)		f2bp(0, 1, cc, 1, 1, 0, p, imm)
+#    define BPa(cc, imm)		f2bp(0, 1, cc, 1, 1, 0, 1, imm)
+#    define BP(cc, imm)			f2bp(0, 0, cc, 1, 1, 0, 1, imm)
+#    define BPA(imm)			BP(SPARC_BPA, imm)
+#    define BPN(imm)			BP(SPARC_BPN, imm)
+#    define BNPE(imm)			BP(SPARC_BPNE, imm)
+#    define BPE(imm)			BP(SPARC_BPE, imm)
+#    define BPG(imm)			BP(SPARC_BPG, imm)
+#    define BPLE(imm)			BP(SPARC_BPLE, imm)
+#    define BPGE(imm)			BP(SPARC_BPGE, imm)
+#    define BPL(imm)			BP(SPARC_BPL, imm)
+#    define BPGU(imm)			BP(SPARC_BPGU, imm)
+#    define BPLEU(imm)			BP(SPARC_BPLEU, imm)
+#    define BPCC(imm)			BP(SPARC_BPCC, imm)
+#    define BPCS(imm)			BP(SPARC_BPCS, imm)
+#    define BPPOS(imm)			BP(SPARC_BPPOS, imm)
+#    define BPNEG(imm)			BP(SPARC_BPNEG, imm)
+#    define BPVC(imm)			BP(SPARC_BPVC, imm)
+#    define BPVS(imm)			BP(SPARC_BPVS, imm)
+#  endif
 #  define SPARC_CBA			8	/* always */
 #  define SPARC_CBN			0	/* never */
 #  define SPARC_CB3			7	/* 3 */
@@ -437,29 +550,54 @@ static jit_word_t _movi_p(jit_state_t*, jit_int32_t, jit_word_t);
 #  define addr(r0, r1, r2)		ADD(r1, r2, r0)
 #  define addi(r0, r1, i0)		_addi(_jit, r0, r1, i0)
 static void _addi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define addcr(r0, r1, r2)		ADDcc(r1, r2, r0)
+#  if __WORDSIZE == 32
+#    define addcr(r0, r1, r2)		ADDcc(r1, r2, r0)
+#  else
+#    define addcr(r0, r1, r2)		_addcr(_jit, r0, r1, r2)
+static void _addcr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  endif
 #  define addci(r0, r1, i0)		_addci(_jit, r0, r1, i0)
 static void _addci(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define addxr(r0, r1, r2)		ADDXcc(r1, r2, r0)
+#  if __WORDSIZE == 32
+#    define addxr(r0, r1, r2)		ADDXcc(r1, r2, r0)
+#  else
+#    define addxr(r0, r1, r2)		_addxr(_jit, r0, r1, r2)
+static void _addxr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  endif
 #  define addxi(r0, r1, i0)		_addxi(_jit, r0, r1, i0)
 static void _addxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define subr(r0, r1, r2)		SUB(r1, r2, r0)
 #  define subi(r0, r1, i0)		_subi(_jit, r0, r1, i0)
 static void _subi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define subcr(r0, r1, r2)		SUBcc(r1, r2, r0)
+#  if __WORDSIZE == 32
+#    define subcr(r0, r1, r2)		SUBcc(r1, r2, r0)
+#  else
+#    define subcr(r0, r1, r2)		_subcr(_jit, r0, r1, r2)
+static void _subcr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  endif
 #  define subci(r0, r1, i0)		_subci(_jit, r0, r1, i0)
 static void _subci(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define subxr(r0, r1, r2)		SUBXcc(r1, r2, r0)
+#  if __WORDSIZE == 32
+#    define subxr(r0, r1, r2)		SUBXcc(r1, r2, r0)
+#  else
+#    define subxr(r0, r1, r2)		_subxr(_jit, r0, r1, r2)
+static void _subxr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
+#  endif
 #  define subxi(r0, r1, i0)		_subxi(_jit, r0, r1, i0)
 static void _subxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define rsbi(r0, r1, i0)		_rsbi(_jit, r0, r1, i0)
 static void _rsbi(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
-#  define mulr(r0, r1, r2)		UMUL(r1, r2, r0)
+#  if __WORDSIZE == 32
+#    define mulr(r0, r1, r2)		UMUL(r1, r2, r0)
+#  else
+#    define mulr(r0, r1, r2)		MULX(r1, r2, r0)
+#  endif
 #  define muli(r0, r1, i0)		_muli(_jit, r0, r1, i0)
 static void _muli(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define qmulr(r0,r1,r2,r3)		iqmulr(r0,r1,r2,r3,1)
-#  define qmulr_u(r0,r1,r2,r3)		iqmulr(r0,r1,r2,r3,0)
-#  define iqmulr(r0,r1,r2,r3,cc)	_iqmulr(_jit,r0,r1,r2,r3,cc)
+#  if __WORDSIZE == 32
+#    define qmulr(r0,r1,r2,r3)		iqmulr(r0,r1,r2,r3,1)
+#    define qmulr_u(r0,r1,r2,r3)	iqmulr(r0,r1,r2,r3,0)
+#    define iqmulr(r0,r1,r2,r3,cc)	_iqmulr(_jit,r0,r1,r2,r3,cc)
 static void _iqmulr(jit_state_t*,jit_int32_t,jit_int32_t,
 		    jit_int32_t,jit_int32_t,jit_bool_t);
 #  define qmuli(r0,r1,r2,i0)		iqmuli(r0,r1,r2,i0,1)
@@ -467,6 +605,20 @@ static void _iqmulr(jit_state_t*,jit_int32_t,jit_int32_t,
 #  define iqmuli(r0,r1,r2,i0,cc)	_iqmuli(_jit,r0,r1,r2,i0,cc)
 static void _iqmuli(jit_state_t*,jit_int32_t,jit_int32_t,
 		    jit_int32_t,jit_word_t,jit_bool_t);
+#  else
+#    define qmulr(r0,r1,r2,r3)		_qmulr(_jit,r0,r1,r2,r3)
+static void _qmulr(jit_state_t*,jit_int32_t,jit_int32_t,
+		   jit_int32_t,jit_int32_t);
+#  define qmuli(r0,r1,r2,i0)		_qmuli(_jit,r0,r1,r2,i0)
+static void _qmuli(jit_state_t*,jit_int32_t,jit_int32_t,
+		   jit_int32_t,jit_word_t);
+#    define qmulr_u(r0,r1,r2,r3)	_qmulr_u(_jit,r0,r1,r2,r3)
+static void _qmulr_u(jit_state_t*,jit_int32_t,jit_int32_t,
+		     jit_int32_t,jit_int32_t);
+#  define qmuli_u(r0,r1,r2,i0)		_qmuli_u(_jit,r0,r1,r2,i0)
+static void _qmuli_u(jit_state_t*,jit_int32_t,jit_int32_t,
+		     jit_int32_t,jit_word_t);
+#  endif
 #  define divr(r0, r1, r2)		_divr(_jit, r0, r1, r2)
 static void _divr(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define divi(r0, r1, i0)		_divi(_jit, r0, r1, i0)
@@ -502,14 +654,22 @@ static void _ori(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
 #  define xorr(r0, r1, r2)		XOR(r1, r2, r0)
 #  define xori(r0, r1, i0)		_xori(_jit, r0, r1, i0)
 static void _xori(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
-#  define lshr(r0, r1, r2)		SLL(r1, r2, r0)
-#  define lshi(r0, r1, i0)		SLLI(r1, i0, r0)
-#  define rshr(r0, r1, r2)		SRA(r1, r2, r0)
-#  define rshi(r0, r1, i0)		SRAI(r1, i0, r0)
-#  define rshr_u(r0, r1, r2)		SRL(r1, r2, r0)
-#  define rshi_u(r0, r1, i0)		SRLI(r1, i0, r0)
+#  if __WORDSIZE == 32
+#    define lshr(r0, r1, r2)		SLL(r1, r2, r0)
+#    define lshi(r0, r1, i0)		SLLI(r1, i0, r0)
+#    define rshr(r0, r1, r2)		SRA(r1, r2, r0)
+#    define rshi(r0, r1, i0)		SRAI(r1, i0, r0)
+#    define rshr_u(r0, r1, r2)		SRL(r1, r2, r0)
+#    define rshi_u(r0, r1, i0)		SRLI(r1, i0, r0)
+#  else
+#    define lshr(r0, r1, r2)		SLLX(r1, r2, r0)
+#    define lshi(r0, r1, i0)		SLLXI(r1, i0, r0)
+#    define rshr(r0, r1, r2)		SRAX(r1, r2, r0)
+#    define rshi(r0, r1, i0)		SRAXI(r1, i0, r0)
+#    define rshr_u(r0, r1, r2)		SRLX(r1, r2, r0)
+#    define rshi_u(r0, r1, i0)		SRLXI(r1, i0, r0)
+#  endif
 #  define htonr_us(r0,r1)		extr_us(r0,r1)
-#  define htonr_ui(r0,r1)		movr(r0,r1)
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
 static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_uc(r0,r1)		andi(r0, r1, 0xff)
@@ -517,30 +677,63 @@ static void _extr_c(jit_state_t*,jit_int32_t,jit_int32_t);
 static void _extr_s(jit_state_t*,jit_int32_t,jit_int32_t);
 #  define extr_us(r0,r1)		_extr_us(_jit,r0,r1)
 static void _extr_us(jit_state_t*,jit_int32_t,jit_int32_t);
+#  if __WORDSIZE == 32
+#    define htonr_ui(r0,r1)		movr(r0,r1)
+#  else
+#    define htonr_ui(r0,r1)		extr_ui(r0,r1)
+#    define htonr_ul(r0,r1)		movr(r0,r1)
+#    define extr_i(r0,r1)		_extr_i(_jit,r0,r1)
+static void _extr_i(jit_state_t*,jit_int32_t,jit_int32_t);
+#    define extr_ui(r0,r1)		_extr_ui(_jit,r0,r1)
+static void _extr_ui(jit_state_t*,jit_int32_t,jit_int32_t);
+#  endif
 #  define cr(cc, r0, r1, r2)		_cr(_jit, cc, r0, r1, r2)
 static void _cr(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_int32_t);
 #  define cw(cc, r0, r1, i0)		_cw(_jit, cc, r0, r1, i0)
 static void _cw(jit_state_t*,jit_int32_t,jit_int32_t,jit_int32_t,jit_word_t);
-#  define ltr(r0, r1, r2)		cr(SPARC_BL, r0, r1, r2)
-#  define lti(r0, r1, i0)		cw(SPARC_BL, r0, r1, i0)
-#  define ltr_u(r0, r1, r2)		cr(SPARC_BLU, r0, r1, r2)
-#  define lti_u(r0, r1, i0)		cw(SPARC_BLU, r0, r1, i0)
-#  define ler(r0, r1, r2)		cr(SPARC_BLE, r0, r1, r2)
-#  define lei(r0, r1, i0)		cw(SPARC_BLE, r0, r1, i0)
-#  define ler_u(r0, r1, r2)		cr(SPARC_BLEU, r0, r1, r2)
-#  define lei_u(r0, r1, i0)		cw(SPARC_BLEU, r0, r1, i0)
-#  define eqr(r0, r1, r2)		cr(SPARC_BE, r0, r1, r2)
-#  define eqi(r0, r1, i0)		cw(SPARC_BE, r0, r1, i0)
-#  define ger(r0, r1, r2)		cr(SPARC_BGE, r0, r1, r2)
-#  define gei(r0, r1, i0)		cw(SPARC_BGE, r0, r1, i0)
-#  define ger_u(r0, r1, r2)		cr(SPARC_BGEU, r0, r1, r2)
-#  define gei_u(r0, r1, i0)		cw(SPARC_BGEU, r0, r1, i0)
-#  define gtr(r0, r1, r2)		cr(SPARC_BG, r0, r1, r2)
-#  define gti(r0, r1, i0)		cw(SPARC_BG, r0, r1, i0)
-#  define gtr_u(r0, r1, r2)		cr(SPARC_BGU, r0, r1, r2)
-#  define gti_u(r0, r1, i0)		cw(SPARC_BGU, r0, r1, i0)
-#  define ner(r0, r1, r2)		cr(SPARC_BNE, r0, r1, r2)
-#  define nei(r0, r1, i0)		cw(SPARC_BNE, r0, r1, i0)
+#  if __WORDSIZE == 32
+#    define ltr(r0, r1, r2)		cr(SPARC_BL, r0, r1, r2)
+#    define lti(r0, r1, i0)		cw(SPARC_BL, r0, r1, i0)
+#    define ltr_u(r0, r1, r2)		cr(SPARC_BLU, r0, r1, r2)
+#    define lti_u(r0, r1, i0)		cw(SPARC_BLU, r0, r1, i0)
+#    define ler(r0, r1, r2)		cr(SPARC_BLE, r0, r1, r2)
+#    define lei(r0, r1, i0)		cw(SPARC_BLE, r0, r1, i0)
+#    define ler_u(r0, r1, r2)		cr(SPARC_BLEU, r0, r1, r2)
+#    define lei_u(r0, r1, i0)		cw(SPARC_BLEU, r0, r1, i0)
+#    define eqr(r0, r1, r2)		cr(SPARC_BE, r0, r1, r2)
+#    define eqi(r0, r1, i0)		cw(SPARC_BE, r0, r1, i0)
+#    define ger(r0, r1, r2)		cr(SPARC_BGE, r0, r1, r2)
+#    define gei(r0, r1, i0)		cw(SPARC_BGE, r0, r1, i0)
+#    define ger_u(r0, r1, r2)		cr(SPARC_BGEU, r0, r1, r2)
+#    define gei_u(r0, r1, i0)		cw(SPARC_BGEU, r0, r1, i0)
+#    define gtr(r0, r1, r2)		cr(SPARC_BG, r0, r1, r2)
+#    define gti(r0, r1, i0)		cw(SPARC_BG, r0, r1, i0)
+#    define gtr_u(r0, r1, r2)		cr(SPARC_BGU, r0, r1, r2)
+#    define gti_u(r0, r1, i0)		cw(SPARC_BGU, r0, r1, i0)
+#    define ner(r0, r1, r2)		cr(SPARC_BNE, r0, r1, r2)
+#    define nei(r0, r1, i0)		cw(SPARC_BNE, r0, r1, i0)
+#  else
+#  define ltr(r0, r1, r2)		cr(SPARC_BPL, r0, r1, r2)
+#  define lti(r0, r1, i0)		cw(SPARC_BPL, r0, r1, i0)
+#  define ltr_u(r0, r1, r2)		cr(SPARC_BPCS, r0, r1, r2)
+#  define lti_u(r0, r1, i0)		cw(SPARC_BPCS, r0, r1, i0)
+#  define ler(r0, r1, r2)		cr(SPARC_BPLE, r0, r1, r2)
+#  define lei(r0, r1, i0)		cw(SPARC_BPLE, r0, r1, i0)
+#  define ler_u(r0, r1, r2)		cr(SPARC_BPLEU, r0, r1, r2)
+#  define lei_u(r0, r1, i0)		cw(SPARC_BPLEU, r0, r1, i0)
+#  define eqr(r0, r1, r2)		cr(SPARC_BPE, r0, r1, r2)
+#  define eqi(r0, r1, i0)		cw(SPARC_BPE, r0, r1, i0)
+#  define ger(r0, r1, r2)		cr(SPARC_BPGE, r0, r1, r2)
+#  define gei(r0, r1, i0)		cw(SPARC_BPGE, r0, r1, i0)
+#  define ger_u(r0, r1, r2)		cr(SPARC_BPCC, r0, r1, r2)
+#  define gei_u(r0, r1, i0)		cw(SPARC_BPCC, r0, r1, i0)
+#  define gtr(r0, r1, r2)		cr(SPARC_BPG, r0, r1, r2)
+#  define gti(r0, r1, i0)		cw(SPARC_BPG, r0, r1, i0)
+#  define gtr_u(r0, r1, r2)		cr(SPARC_BPGU, r0, r1, r2)
+#  define gti_u(r0, r1, i0)		cw(SPARC_BPGU, r0, r1, i0)
+#  define ner(r0, r1, r2)		cr(SPARC_BPNE, r0, r1, r2)
+#  define nei(r0, r1, i0)		cw(SPARC_BPNE, r0, r1, i0)
+#  endif
 #  define ldr_c(r0, r1)			LDSB(r1, 0, r0)
 #  define ldi_c(r0, i0)			_ldi_c(_jit, r0, i0)
 static void _ldi_c(jit_state_t*,jit_int32_t,jit_word_t);
@@ -553,11 +746,25 @@ static void _ldi_s(jit_state_t*,jit_int32_t,jit_word_t);
 #  define ldr_us(r0, r1)		LDUH(r1, 0, r0)
 #  define ldi_us(r0, i0)		_ldi_us(_jit, r0, i0)
 static void _ldi_us(jit_state_t*,jit_int32_t,jit_word_t);
-#  define ldr(u, v)			ldr_i(u, v)
-#  define ldr_i(r0, r1)			LD(r1, 0, r0)
-#  define ldi(u, v)			ldi_i(u, v)
+#  if __WORDSIZE == 32
+#    define ldr_i(r0, r1)		LD(r1, 0, r0)
+#    define ldr(u, v)			ldr_i(u, v)
+#    define ldi(u, v)			ldi_i(u, v)
+#  else
+#    define ldr_i(r0, r1)		LDSW(r1, 0, r0)
+#    define ldr_ui(r0, r1)		LDUW(r1, 0, r0)
+#    define ldr_l(r0, r1)		LDX(r1, 0, r0)
+#    define ldr(u, v)			ldr_l(u, v)
+#    define ldi(u, v)			ldi_l(u, v)
+#  endif
 #  define ldi_i(r0, i0)			_ldi_i(_jit, r0, i0)
 static void _ldi_i(jit_state_t*,jit_int32_t,jit_word_t);
+#  if __WORDSIZE == 64
+#    define ldi_ui(r0, i0)		_ldi_ui(_jit, r0, i0)
+static void _ldi_ui(jit_state_t*,jit_int32_t,jit_word_t);
+#    define ldi_l(r0, i0)		_ldi_l(_jit, r0, i0)
+static void _ldi_l(jit_state_t*,jit_int32_t,jit_word_t);
+#  endif
 #  define ldxr_c(r0, r1, r2)		LDSB(r1, r2, r0)
 #  define ldxi_c(r0, r1, i0)		_ldxi_c(_jit, r0, r1, i0)
 static void _ldxi_c(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
@@ -570,59 +777,118 @@ static void _ldxi_s(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
 #  define ldxr_us(r0, r1, r2)		LDUH(r1, r2, r0)
 #  define ldxi_us(r0, r1, i0)		_ldxi_us(_jit, r0, r1, i0)
 static void _ldxi_us(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
-#  define ldxr(u, v, w)			ldxr_i(u, v, w)
-#  define ldxr_i(r0, r1, r2)		LD(r1, r2, r0)
-#  define ldxi(u, v, w)			ldxi_i(u, v, w)
+#  if __WORDSIZE == 32
+#    define ldxr(u, v, w)		ldxr_i(u, v, w)
+#    define ldxr_i(r0, r1, r2)		LD(r1, r2, r0)
+#    define ldxi(u, v, w)		ldxi_i(u, v, w)
+#  else
+#    define ldxr(u, v, w)		ldxr_l(u, v, w)
+#    define ldxr_i(r0, r1, r2)		LDSW(r1, r2, r0)
+#    define ldxr_ui(r0, r1, r2)		LDUW(r1, r2, r0)
+#    define ldxr_l(r0, r1, r2)		LDX(r1, r2, r0)
+#    define ldxi(u, v, w)		ldxi_l(u, v, w)
+#  endif
 #  define ldxi_i(r0, r1, i0)		_ldxi_i(_jit, r0, r1, i0)
 static void _ldxi_i(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#  if __WORDSIZE == 64
+#    define ldxi_ui(r0, r1, i0)		_ldxi_ui(_jit, r0, r1, i0)
+static void _ldxi_ui(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#    define ldxi_l(r0, r1, i0)		_ldxi_l(_jit, r0, r1, i0)
+static void _ldxi_l(jit_state_t*,jit_int32_t,jit_int32_t,jit_word_t);
+#  endif
 #  define str_c(r0, r1)			STB(r1, r0, 0)
 #  define sti_c(i0, r0)			_sti_c(_jit, i0, r0)
 static void _sti_c(jit_state_t*,jit_word_t,jit_int32_t);
 #  define str_s(r0, r1)			STH(r1, r0, 0)
 #  define sti_s(i0, r0)			_sti_s(_jit, i0, r0)
 static void _sti_s(jit_state_t*,jit_word_t,jit_int32_t);
-#  define str(u, v)			str_i(u, v)
-#  define str_i(r0, r1)			STI(r1, r0, 0)
-#  define sti(u, v)			sti_i(u, v)
+#  if __WORDSIZE == 32
+#    define str(u, v)			str_i(u, v)
+#    define str_i(r0, r1)		STI(r1, r0, 0)
+#    define sti(u, v)			sti_i(u, v)
+#  else
+#    define str(u, v)			str_l(u, v)
+#    define str_i(r0, r1)		STW(r1, r0, 0)
+#    define str_l(r0, r1)		STX(r1, r0, 0)
+#    define sti(u, v)			sti_l(u, v)
+#  endif
 #  define sti_i(i0, r0)			_sti_i(_jit, i0, r0)
 static void _sti_i(jit_state_t*,jit_word_t,jit_int32_t);
+#  if __WORDSIZE == 64
+#    define sti_l(i0, r0)		_sti_l(_jit, i0, r0)
+static void _sti_l(jit_state_t*,jit_word_t,jit_int32_t);
+#  endif
 #  define stxr_c(r0, r1, r2)		STB(r2, r1, r0)
 #  define stxi_c(i0, r0, r1)		_stxi_c(_jit, i0, r0, r1)
 static void _stxi_c(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
 #  define stxr_s(r0, r1, r2)		STH(r2, r1, r0)
 #  define stxi_s(i0, r0, r1)		_stxi_s(_jit, i0, r0, r1)
 static void _stxi_s(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
-#  define stxr(u, v, w)			stxr_i(u, v, w)
-#  define stxr_i(r0, r1, r2)		ST(r2, r1, r0)
-#  define stxi(u, v, w)			stxi_i(u, v, w)
+#  if __WORDSIZE == 32
+#    define stxr(u, v, w)		stxr_i(u, v, w)
+#    define stxr_i(r0, r1, r2)		ST(r2, r1, r0)
+#    define stxi(u, v, w)		stxi_i(u, v, w)
+#  else
+#    define stxr(u, v, w)		stxr_l(u, v, w)
+#    define stxr_i(r0, r1, r2)		STW(r2, r1, r0)
+#    define stxi(u, v, w)		stxi_l(u, v, w)
+#    define stxr_l(r0, r1, r2)		STX(r2, r1, r0)
+#  endif
 #  define stxi_i(i0, r0, r1)		_stxi_i(_jit, i0, r0, r1)
 static void _stxi_i(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
+#  if __WORDSIZE == 64
+#    define stxi_l(i0, r0, r1)		_stxi_l(_jit, i0, r0, r1)
+static void _stxi_l(jit_state_t*,jit_word_t,jit_int32_t,jit_int32_t);
+#  endif
 #  define br(cc, i0, r0, r1)		_br(_jit, cc, i0, r0, r1)
 static jit_word_t
 _br(jit_state_t*,jit_int32_t,jit_word_t,jit_int32_t,jit_int32_t);
 #  define bw(cc, i0, r0, i1)		_bw(_jit, cc, i0, r0, i1)
 static jit_word_t
 _bw(jit_state_t*,jit_int32_t,jit_word_t,jit_int32_t,jit_word_t);
-#  define bltr(i0, r0, r1)		br(SPARC_BL, i0, r0, r1)
-#  define blti(i0, r0, i1)		bw(SPARC_BL, i0, r0, i1)
-#  define bltr_u(i0, r0, r1)		br(SPARC_BLU, i0, r0, r1)
-#  define blti_u(i0, r0, i1)		bw(SPARC_BLU, i0, r0, i1)
-#  define bler(i0, r0, r1)		br(SPARC_BLE, i0, r0, r1)
-#  define blei(i0, r0, i1)		bw(SPARC_BLE, i0, r0, i1)
-#  define bler_u(i0, r0, r1)		br(SPARC_BLEU, i0, r0, r1)
-#  define blei_u(i0, r0, i1)		bw(SPARC_BLEU, i0, r0, i1)
-#  define beqr(i0, r0, r1)		br(SPARC_BE, i0, r0, r1)
-#  define beqi(i0, r0, i1)		bw(SPARC_BE, i0, r0, i1)
-#  define bger(i0, r0, r1)		br(SPARC_BGE, i0, r0, r1)
-#  define bgei(i0, r0, i1)		bw(SPARC_BGE, i0, r0, i1)
-#  define bger_u(i0, r0, r1)		br(SPARC_BGEU, i0, r0, r1)
-#  define bgei_u(i0, r0, i1)		bw(SPARC_BGEU, i0, r0, i1)
-#  define bgtr(i0, r0, r1)		br(SPARC_BG, i0, r0, r1)
-#  define bgti(i0, r0, i1)		bw(SPARC_BG, i0, r0, i1)
-#  define bgtr_u(i0, r0, r1)		br(SPARC_BGU, i0, r0, r1)
-#  define bgti_u(i0, r0, i1)		bw(SPARC_BGU, i0, r0, i1)
-#  define bner(i0, r0, r1)		br(SPARC_BNE, i0, r0, r1)
-#  define bnei(i0, r0, i1)		bw(SPARC_BNE, i0, r0, i1)
+#  if __WORDSIZE == 32
+#    define bltr(i0, r0, r1)		br(SPARC_BL, i0, r0, r1)
+#    define blti(i0, r0, i1)		bw(SPARC_BL, i0, r0, i1)
+#    define bltr_u(i0, r0, r1)		br(SPARC_BLU, i0, r0, r1)
+#    define blti_u(i0, r0, i1)		bw(SPARC_BLU, i0, r0, i1)
+#    define bler(i0, r0, r1)		br(SPARC_BLE, i0, r0, r1)
+#    define blei(i0, r0, i1)		bw(SPARC_BLE, i0, r0, i1)
+#    define bler_u(i0, r0, r1)		br(SPARC_BLEU, i0, r0, r1)
+#    define blei_u(i0, r0, i1)		bw(SPARC_BLEU, i0, r0, i1)
+#    define beqr(i0, r0, r1)		br(SPARC_BE, i0, r0, r1)
+#    define beqi(i0, r0, i1)		bw(SPARC_BE, i0, r0, i1)
+#    define bger(i0, r0, r1)		br(SPARC_BGE, i0, r0, r1)
+#    define bgei(i0, r0, i1)		bw(SPARC_BGE, i0, r0, i1)
+#    define bger_u(i0, r0, r1)		br(SPARC_BGEU, i0, r0, r1)
+#    define bgei_u(i0, r0, i1)		bw(SPARC_BGEU, i0, r0, i1)
+#    define bgtr(i0, r0, r1)		br(SPARC_BG, i0, r0, r1)
+#    define bgti(i0, r0, i1)		bw(SPARC_BG, i0, r0, i1)
+#    define bgtr_u(i0, r0, r1)		br(SPARC_BGU, i0, r0, r1)
+#    define bgti_u(i0, r0, i1)		bw(SPARC_BGU, i0, r0, i1)
+#    define bner(i0, r0, r1)		br(SPARC_BNE, i0, r0, r1)
+#    define bnei(i0, r0, i1)		bw(SPARC_BNE, i0, r0, i1)
+#  else
+#    define bltr(i0, r0, r1)		br(SPARC_BPL, i0, r0, r1)
+#    define blti(i0, r0, i1)		bw(SPARC_BPL, i0, r0, i1)
+#    define bltr_u(i0, r0, r1)		br(SPARC_BPCS, i0, r0, r1)
+#    define blti_u(i0, r0, i1)		bw(SPARC_BPCS, i0, r0, i1)
+#    define bler(i0, r0, r1)		br(SPARC_BPLE, i0, r0, r1)
+#    define blei(i0, r0, i1)		bw(SPARC_BPLE, i0, r0, i1)
+#    define bler_u(i0, r0, r1)		br(SPARC_BPLEU, i0, r0, r1)
+#    define blei_u(i0, r0, i1)		bw(SPARC_BPLEU, i0, r0, i1)
+#    define beqr(i0, r0, r1)		br(SPARC_BPE, i0, r0, r1)
+#    define beqi(i0, r0, i1)		bw(SPARC_BPE, i0, r0, i1)
+#    define bger(i0, r0, r1)		br(SPARC_BPGE, i0, r0, r1)
+#    define bgei(i0, r0, i1)		bw(SPARC_BPGE, i0, r0, i1)
+#    define bger_u(i0, r0, r1)		br(SPARC_BPCC, i0, r0, r1)
+#    define bgei_u(i0, r0, i1)		bw(SPARC_BPCC, i0, r0, i1)
+#    define bgtr(i0, r0, r1)		br(SPARC_BPG, i0, r0, r1)
+#    define bgti(i0, r0, i1)		bw(SPARC_BPG, i0, r0, i1)
+#    define bgtr_u(i0, r0, r1)		br(SPARC_BPGU, i0, r0, r1)
+#    define bgti_u(i0, r0, i1)		bw(SPARC_BPGU, i0, r0, i1)
+#    define bner(i0, r0, r1)		br(SPARC_BPNE, i0, r0, r1)
+#    define bnei(i0, r0, i1)		bw(SPARC_BPNE, i0, r0, i1)
+#  endif
 #  define b_asr(jif,add,sgn,i0,r0,r1)	_b_asr(_jit,jif,add,sgn,i0,r0,r1)
 static jit_word_t
 _b_asr(jit_state_t*,jit_bool_t,jit_bool_t,jit_bool_t,
@@ -717,6 +983,30 @@ _f2b(jit_state_t *_jit,
     ii(v.v);
 }
 
+#  if __WORDSIZE == 64
+static void
+_f2bp(jit_state_t *_jit,
+      jit_int32_t op, jit_int32_t a, jit_int32_t cond, jit_int32_t op2,
+      jit_int32_t cc1, jit_int32_t cc0, jit_int32_t p, jit_int32_t disp19)
+{
+    jit_instr_t		v;
+    assert(!(op   & 0xfffffffc));
+    assert(!(a    & 0xfffffffe));
+    assert(!(cond & 0xfffffff0));
+    assert(!(op2  & 0xfffffff8));
+    assert(s19_p(disp19));
+    v.op.b     = op;
+    v.a.b      = a;
+    v.cond.b   = cond;
+    v.op2.b    = op2;
+    v.cc1.b    = cc1;
+    v.cc0.b    = cc0;
+    v.p.b      = p;
+    v.disp19.b = disp19;
+    ii(v.v);
+}
+#  endif
+
 static void
 _f3r(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
      jit_int32_t op3, jit_int32_t rs1, jit_int32_t rs2)
@@ -727,15 +1017,59 @@ _f3r(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
     assert(!(op3 & 0xffffffc0));
     assert(!(rs1 & 0xffffffe0));
     assert(!(rs2 & 0xffffffe0));
-    v.op.b    = op;
-    v.rd.b    = rd;
-    v.op3.b   = op3;
-    v.rs1.b   = rs1;
-    v.i.b     = 0;
-    v.asi.b   = 0;
-    v.rs2.b   = rs2;
+    v.op.b  = op;
+    v.rd.b  = rd;
+    v.op3.b = op3;
+    v.rs1.b = rs1;
+    v.i.b   = 0;
+    v.asi.b = 0;
+    v.rs2.b = rs2;
     ii(v.v);
 }
+
+#  if __WORDSIZE == 64
+static void
+_f3rx(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
+      jit_int32_t op3, jit_int32_t rs1, jit_int32_t rs2)
+{
+    jit_instr_t		v;
+    assert(!(op  & 0xfffffffc));
+    assert(!(rd  & 0xffffffe0));
+    assert(!(op3 & 0xffffffc0));
+    assert(!(rs1 & 0xffffffe0));
+    assert(!(rs2 & 0xffffffe0));
+    v.op.b   = op;
+    v.rd.b   = rd;
+    v.op3.b  = op3;
+    v.rs1.b  = rs1;
+    v.i.b    = 0;
+    v.x.b    = 1;
+    v.asix.b = 0;
+    v.rs2.b  = rs2;
+    ii(v.v);
+}
+
+static void
+_f3s(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
+      jit_int32_t op3, jit_int32_t rs1, jit_int32_t shim)
+{
+    jit_instr_t		v;
+    assert(!(op   & 0xfffffffc));
+    assert(!(rd   & 0xffffffe0));
+    assert(!(op3  & 0xffffffc0));
+    assert(!(rs1  & 0xffffffe0));
+    assert(!(shim & 0xffffffc0));
+    v.op.b   = op;
+    v.rd.b   = rd;
+    v.op3.b  = op3;
+    v.rs1.b  = rs1;
+    v.i.b    = 1;
+    v.x.b    = 1;
+    v.asis.b = 0;
+    v.shim.b = shim;
+    ii(v.v);
+}
+#  endif
 
 static void
 _f3i(jit_state_t *_jit, jit_int32_t op, jit_int32_t rd,
@@ -834,9 +1168,23 @@ _movi(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
     if (s13_p(i0))
 	ORI(0, i0, r0);
     else {
-	SETHI(HI(i0), r0);
-	if (LO(i0))
-	    ORI(r0, LO(i0), r0);
+#  if __WORDSIZE == 64
+	if (i0 & 0xffffffff00000000) {
+	    jit_int32_t	reg = jit_get_reg(jit_class_gpr);
+	    movi(rn(reg), (i0 >> 32) & 0xffffffff);
+	    movi(r0, i0 & 0xffffffff);
+	    lshi(rn(reg), rn(reg), 32);
+	    OR(rn(reg), r0, r0);
+	    jit_unget_reg(reg);
+	}
+	else {
+#  endif
+	    SETHI(HI((int)i0), r0);
+	    if (LO(i0))
+		ORI(r0, LO(i0), r0);
+#  if __WORDSIZE == 64
+	}
+#  endif
     }
 }
 
@@ -844,9 +1192,24 @@ static jit_word_t
 _movi_p(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_word_t		w;
+#  if __WORDSIZE == 64
+    jit_int32_t		reg;
+#  endif
     w = _jit->pc.w;
+#  if __WORDSIZE == 64
+    reg = jit_get_reg(jit_class_gpr);
+    SETHI(HI((int)i0), r0);
+    ORI(r0, LO(i0), r0);
+    i0 = (int)(i0 >> 32);
+    SETHI(HI(i0), rn(reg));
+    ORI(rn(reg), LO(i0), rn(reg));
+    SLLXI(rn(reg), 32, rn(reg));
+    OR(rn(reg), r0, r0);
+    jit_unget_reg(reg);
+#  else
     SETHI(HI(i0), r0);
     ORI(r0, LO(i0), r0);
+#  endif
     return (w);
 }
 
@@ -864,9 +1227,31 @@ _addi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
 }
 
+#  if __WORDSIZE == 64
+static void
+_addcr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    if (jit_carry == _NOREG)
+	jit_carry = jit_get_reg(jit_class_gpr);
+    if (r0 == r1) {
+	reg = jit_get_reg(jit_class_gpr);
+	addr(rn(reg), r1, r2);
+	ltr_u(rn(jit_carry), rn(reg), r1);
+	movr(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	addr(r0, r1, r2);
+	ltr_u(rn(jit_carry), r0, r1);
+    }
+}
+#  endif
+
 static void
 _addci(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
+#  if __WORDSIZE == 32
     jit_int32_t		reg;
     if (s13_p(i0))
 	ADDIcc(r1, i0, r0);
@@ -876,11 +1261,42 @@ _addci(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	addcr(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
+#  else
+    jit_int32_t		reg;
+    if (jit_carry == _NOREG)
+	jit_carry = jit_get_reg(jit_class_gpr);
+    if (r0 == r1) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r1, i0);
+	ltr_u(rn(jit_carry), rn(reg), r1);
+	movr(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	addi(r0, r1, i0);
+	ltr_u(rn(jit_carry), r0, r1);
+    }
+#  endif
 }
+
+#  if __WORDSIZE == 64
+static void
+_addxr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    assert(jit_carry != _NOREG);
+    reg = jit_get_reg(jit_class_gpr);
+    movr(rn(reg), rn(jit_carry));
+    addcr(r0, r1, r2);
+    addcr(r0, r0, rn(reg));
+    jit_unget_reg(reg);
+}
+#  endif
 
 static void
 _addxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
+#  if __WORDSIZE == 32
     jit_int32_t		reg;
     if (s13_p(i0))
 	ADDXIcc(r1, i0, r0);
@@ -890,6 +1306,15 @@ _addxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	addxr(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
+#  else
+    jit_int32_t		reg;
+    assert(jit_carry != _NOREG);
+    reg = jit_get_reg(jit_class_gpr);
+    movr(rn(reg), rn(jit_carry));
+    addci(r0, r1, i0);
+    addcr(r0, r0, rn(reg));
+    jit_unget_reg(reg);
+#  endif
 }
 
 static void
@@ -906,9 +1331,31 @@ _subi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
 }
 
+#  if __WORDSIZE == 64
+static void
+_subcr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    if (jit_carry == _NOREG)
+	jit_carry = jit_get_reg(jit_class_gpr);
+    if (r0 == r1) {
+	reg = jit_get_reg(jit_class_gpr);
+	subr(rn(reg), r1, r2);
+	ltr_u(rn(jit_carry), r1, rn(reg));
+	movr(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	subr(r0, r1, r2);
+	ltr_u(rn(jit_carry), r1, r0);
+    }
+}
+#  endif
+
 static void
 _subci(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
+#  if __WORDSIZE == 32
     jit_int32_t		reg;
     if (s13_p(i0))
 	SUBIcc(r1, i0, r0);
@@ -918,11 +1365,42 @@ _subci(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	subcr(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
+#  else
+    jit_int32_t		reg;
+    if (jit_carry == _NOREG)
+	jit_carry = jit_get_reg(jit_class_gpr);
+    if (r0 == r1) {
+	reg = jit_get_reg(jit_class_gpr);
+	addi(rn(reg), r1, -i0);
+	ltr_u(rn(jit_carry), r1, rn(reg));
+	movr(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+    else {
+	addi(r0, r1, -i0);
+	ltr_u(rn(jit_carry), r1, r0);
+    }
+#  endif
 }
+
+#  if __WORDSIZE == 64
+static void
+_subxr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
+{
+    jit_int32_t		reg;
+    assert(jit_carry != _NOREG);
+    reg = jit_get_reg(jit_class_gpr);
+    movr(rn(reg), rn(jit_carry));
+    subcr(r0, r1, r2);
+    subcr(r0, r0, rn(reg));
+    jit_unget_reg(reg);
+}
+#endif
 
 static void
 _subxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
+#  if __WORDSIZE == 32
     jit_int32_t		reg;
     if (s13_p(i0))
 	SUBXIcc(r1, i0, r0);
@@ -932,6 +1410,15 @@ _subxi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	subxr(r0, r1, rn(reg));
 	jit_unget_reg(reg);
     }
+#  else
+    jit_int32_t		reg;
+    assert(jit_carry != _NOREG);
+    reg = jit_get_reg(jit_class_gpr);
+    movr(rn(reg), rn(jit_carry));
+    subci(r0, r1, i0);
+    subcr(r0, r0, rn(reg));
+    jit_unget_reg(reg);
+#  endif
 }
 
 static void
@@ -945,8 +1432,13 @@ static void
 _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	UMULI(r1, i0, r0);
+#  else
+	MULXI(r1, i0, r0);
+#  endif
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -955,6 +1447,7 @@ _muli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
     }
 }
 
+#  if __WORDSIZE == 32
 static void
 _iqmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
 	jit_int32_t r2, jit_int32_t r3, jit_bool_t sign)
@@ -986,39 +1479,149 @@ _iqmuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
     }
 }
 
+#  else
+static __int128_t __llmul(jit_word_t a, jit_word_t b)
+{
+    return (__int128_t)a * (__int128_t)b;
+}
+
+#  define QMUL_PROLOG()						\
+    do {							\
+	(void)jit_get_reg(_O0|jit_class_gpr|jit_class_named);	\
+	(void)jit_get_reg(_O1|jit_class_gpr|jit_class_named);	\
+	if (r0 != _G2_REGNO && r1 != _G2_REGNO)			\
+	    stxi(BIAS(-8), _FP_REGNO, _G2_REGNO);		\
+	if (r0 != _G3_REGNO && r1 != _G3_REGNO)			\
+	    stxi(BIAS(-16), _FP_REGNO, _G3_REGNO);		\
+	if (r0 != _G4_REGNO && r1 != _G4_REGNO)			\
+	    stxi(BIAS(-24), _FP_REGNO, _G4_REGNO);		\
+    } while (0)
+
+#  define QMUL_EPILOG()						\
+    do {							\
+	if (r0 != _G2_REGNO && r1 != _G2_REGNO)			\
+	    ldxi(_G2_REGNO, _FP_REGNO, BIAS(-8));		\
+	if (r0 != _G3_REGNO && r1 != _G3_REGNO)			\
+	    ldxi(_G3_REGNO, _FP_REGNO, BIAS(-16));		\
+	if (r0 != _G4_REGNO && r1 != _G4_REGNO)			\
+	    ldxi(_G4_REGNO, _FP_REGNO, BIAS(-24));		\
+	(void)jit_unget_reg(_O0);				\
+	(void)jit_unget_reg(_O1);				\
+    } while (0)
+
+static void
+_qmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+       jit_int32_t r2, jit_int32_t r3)
+{
+    QMUL_PROLOG();
+    movr(_O0_REGNO, r3);
+    movr(_O1_REGNO, r2);
+    calli((jit_word_t)__llmul);
+    movr(r0, _O1_REGNO);
+    movr(r1, _O0_REGNO);
+    QMUL_EPILOG();
+}
+
+static void
+_qmuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+       jit_int32_t r2, jit_word_t i0)
+{
+    QMUL_PROLOG();
+    movi(_O0_REGNO, i0);
+    movr(_O1_REGNO, r2);
+    calli((jit_word_t)__llmul);
+    movr(r0, _O1_REGNO);
+    movr(r1, _O0_REGNO);
+    QMUL_EPILOG();
+}
+
+static __uint128_t __ullmul(jit_uword_t a, jit_uword_t b)
+{
+    return (__uint128_t)a * (__uint128_t)b;
+}
+
+static void
+_qmulr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	 jit_int32_t r2, jit_int32_t r3)
+{
+    QMUL_PROLOG();
+    movr(_O0_REGNO, r3);
+    movr(_O1_REGNO, r2);
+    calli((jit_word_t)__ullmul);
+    movr(r0, _O1_REGNO);
+    movr(r1, _O0_REGNO);
+    QMUL_EPILOG();
+}
+
+static void
+_qmuli_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1,
+	 jit_int32_t r2, jit_word_t i0)
+{
+    QMUL_PROLOG();
+    movi(_O0_REGNO, i0);
+    movr(_O1_REGNO, r2);
+    calli((jit_word_t)__ullmul);
+    movr(r0, _O1_REGNO);
+    movr(r1, _O0_REGNO);
+    QMUL_EPILOG();
+}
+#  endif
+
 static void
 _divr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#  if __WORDSIZE == 32
     jit_int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     rshi(rn(reg), r1, 31);
     WRY(rn(reg), 0);
     SDIV(r1, r2, r0);
     jit_unget_reg(reg);
+#  else
+    SDIVX(r1, r2, r0);
+#  endif
 }
 
 static void
 _divi(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
+#  if __WORDSIZE == 32
     reg = jit_get_reg(jit_class_gpr);
+#  endif
     if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	rshi(rn(reg), r1, 31);
 	WRY(rn(reg), 0);
 	SDIVI(r1, i0, r0);
+#  else
+	SDIVXI(r1, i0, r0);
+#  endif
     }
     else {
+#  if __WORDSIZE == 64
+	reg = jit_get_reg(jit_class_gpr);
+#  endif
 	movi(rn(reg), i0);
 	divr(r0, r1, rn(reg));
+#  if __WORDSIZE == 64
+	jit_unget_reg(reg);
+#  endif
     }
+#  if __WORDSIZE == 32
     jit_unget_reg(reg);
+#  endif
 }
 
 static void
 _divr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
+#  if __WORDSIZE == 32
     WRYI(0, 0);
     UDIV(r1, r2, r0);
+#  else
+    UDIVX(r1, r2, r0);
+#  endif
 }
 
 static void
@@ -1026,8 +1629,12 @@ _divi_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
     if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	WRYI(0, 0);
 	UDIVI(r1, i0, r0);
+#  else
+	UDIVXI(r1, i0, r0);
+#  endif
     }
     else {
 	reg = jit_get_reg(jit_class_gpr);
@@ -1185,30 +1792,50 @@ _xori(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 static void
 _extr_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    lshi(r0, r1, 24);
-    rshi(r0, r0, 24);
+    lshi(r0, r1, __WORDSIZE - 8);
+    rshi(r0, r0, __WORDSIZE - 8);
 }
 
 static void
 _extr_s(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    lshi(r0, r1, 16);
-    rshi(r0, r0, 16);
+    lshi(r0, r1, __WORDSIZE - 16);
+    rshi(r0, r0, __WORDSIZE - 16);
 }
 
 static void
 _extr_us(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
 {
-    lshi(r0, r1, 16);
-    rshi_u(r0, r0, 16);
+    lshi(r0, r1, __WORDSIZE - 16);
+    rshi_u(r0, r0, __WORDSIZE - 16);
 }
+
+#if __WORDSIZE == 64
+static void
+_extr_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    lshi(r0, r1, __WORDSIZE - 32);
+    rshi(r0, r0, __WORDSIZE - 32);
+}
+
+static void
+_extr_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+{
+    lshi(r0, r1, __WORDSIZE - 32);
+    rshi_u(r0, r0, __WORDSIZE - 32);
+}
+#endif
 
 static void
 _cr(jit_state_t *_jit, jit_int32_t cc,
     jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 {
     CMP(r1, r2);
+#  if __WORDSIZE == 32
     Ba(cc, 3);
+#  else
+    BPa(cc, 3);
+#  endif
     movi(r0, 1);
     movi(r0, 0);
 }
@@ -1220,7 +1847,11 @@ _cw(jit_state_t *_jit, jit_int32_t cc,
     jit_int32_t		reg;
     if (s13_p(i0)) {
 	CMPI(r1, i0);
+#  if __WORDSIZE == 32
 	Ba(cc, 3);
+#  else
+	BPa(cc, 3);
+#  endif
 	movi(r0, 1);
 	movi(r0, 0);
     }
@@ -1292,8 +1923,13 @@ static void
 _ldi_i(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	LDI(0, i0, r0);
+#  else
+	LDSWI(0, i0, r0);
+#  endif
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -1301,6 +1937,36 @@ _ldi_i(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
 	jit_unget_reg(reg);
     }
 }
+
+#  if __WORDSIZE == 64
+static void
+_ldi_ui(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	LDUWI(0, i0, r0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldr_ui(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+}
+
+static void
+_ldi_l(jit_state_t *_jit, jit_int32_t r0, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	LDXI(0, i0, r0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldr_l(r0, rn(reg));
+	jit_unget_reg(reg);
+    }
+}
+#  endif
 
 static void
 _ldxi_c(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
@@ -1362,8 +2028,13 @@ static void
 _ldxi_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	LDI(r1, i0, r0);
+#  else
+	LDSWI(r1, i0, r0);
+#  endif
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -1371,6 +2042,36 @@ _ldxi_i(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 	jit_unget_reg(reg);
     }
 }
+
+#  if __WORDSIZE == 64
+static void
+_ldxi_ui(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	LDUWI(r1, i0, r0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_ui(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+}
+
+static void
+_ldxi_l(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	LDXI(r1, i0, r0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	ldxr_l(r0, r1, rn(reg));
+	jit_unget_reg(reg);
+    }
+}
+#  endif
 
 static void
 _sti_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
@@ -1404,8 +2105,13 @@ static void
 _sti_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	STI(r0, 0, i0);
+#  else
+	STWI(r0, 0, i0);
+#  endif
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -1413,6 +2119,22 @@ _sti_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
 	jit_unget_reg(reg);
     }
 }
+
+#  if __WORDSIZE == 64
+static void
+_sti_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	STXI(r0, 0, i0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	str_l(rn(reg), r0);
+	jit_unget_reg(reg);
+    }
+}
+#  endif
 
 static void
 _stxi_c(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
@@ -1446,8 +2168,13 @@ static void
 _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
 {
     jit_int32_t		reg;
-    if (s13_p(i0))
+    if (s13_p(i0)) {
+#  if __WORDSIZE == 32
 	STI(r1, r0, i0);
+#  else
+	STWI(r1, r0, i0);
+#  endif
+    }
     else {
 	reg = jit_get_reg(jit_class_gpr);
 	movi(rn(reg), i0);
@@ -1456,6 +2183,22 @@ _stxi_i(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
     }
 }
 
+#  if __WORDSIZE == 64
+static void
+_stxi_l(jit_state_t *_jit, jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
+{
+    jit_int32_t		reg;
+    if (s13_p(i0))
+	STXI(r1, r0, i0);
+    else {
+	reg = jit_get_reg(jit_class_gpr);
+	movi(rn(reg), i0);
+	stxr_l(r0, rn(reg), r1);
+	jit_unget_reg(reg);
+    }
+}
+#  endif
+
 static jit_word_t
 _br(jit_state_t *_jit, jit_int32_t cc,
     jit_word_t i0, jit_int32_t r0, jit_int32_t r1)
@@ -1463,7 +2206,11 @@ _br(jit_state_t *_jit, jit_int32_t cc,
     jit_word_t		w;
     CMP(r0, r1);
     w = _jit->pc.w;
+#  if __WORDSIZE == 32
     B(cc, (i0 - w) >> 2);
+#  else
+    BP(cc, (i0 - w) >> 2);
+#  endif
     NOP();
     return (w);
 }
@@ -1477,7 +2224,11 @@ _bw(jit_state_t *_jit, jit_int32_t cc,
     if (s13_p(i1)) {
 	CMPI(r0, i1);
 	w = _jit->pc.w;
+#  if __WORDSIZE == 32
 	B(cc, (i0 - w) >> 2);
+#  else
+	B(cc, (i0 - w) >> 2);
+#  endif
 	NOP();
     }
     else {
@@ -1499,10 +2250,17 @@ _b_asr(jit_state_t *_jit, jit_bool_t jif, jit_bool_t add, jit_bool_t sgn,
     else
 	SUBcc(r0, r1, r0);
     w = _jit->pc.w;
+#  if __WORDSIZE == 32
     B(sgn ?
       (jif ? SPARC_BVS : SPARC_BVC) :
       (jif ? SPARC_BCS : SPARC_BCC),
       (i0 - w) >> 2);
+#  else
+    BP(sgn ?
+       (jif ? SPARC_BPVS : SPARC_BPVC) :
+       (jif ? SPARC_BPCS : SPARC_BPCC),
+       (i0 - w) >> 2);
+#  endif
     NOP();
     return (w);
 }
@@ -1519,10 +2277,17 @@ _b_asw(jit_state_t *_jit, jit_bool_t jif, jit_bool_t add, jit_bool_t sgn,
 	else
 	    SUBIcc(r0, i1, r0);
 	w = _jit->pc.w;
+#  if __WORDSIZE == 32
 	B(sgn ?
 	  (jif ? SPARC_BVS : SPARC_BVC) :
 	  (jif ? SPARC_BCS : SPARC_BCC),
 	  (i0 - w) >> 2);
+#  else
+	BP(sgn ?
+	   (jif ? SPARC_BPVS : SPARC_BPVC) :
+	   (jif ? SPARC_BPCS : SPARC_BPCC),
+	   (i0 - w) >> 2);
+#  endif
 	NOP();
     }
     else {
@@ -1541,7 +2306,11 @@ _bm_r(jit_state_t *_jit, jit_bool_t set,
     jit_word_t		w;
     BTST(r0, r1);
     w = _jit->pc.w;
+#  if __WORDSIZE == 32
     B(set ? SPARC_BNZ : SPARC_BZ, (i0 - w) >> 2);
+#  else
+    BP(set ? SPARC_BPNE : SPARC_BPE, (i0 - w) >> 2);
+#  endif
     NOP();
     return (w);
 }
@@ -1555,7 +2324,11 @@ _bm_w(jit_state_t *_jit, jit_bool_t set,
     if (s13_p(i1)) {
 	BTSTI(r0, i1);
 	w = _jit->pc.w;
+#  if __WORDSIZE == 32
 	B(set ? SPARC_BNZ : SPARC_BZ, (i0 - w) >> 2);
+#  else
+	BP(set ? SPARC_BPNE : SPARC_BPE, (i0 - w) >> 2);
+#  endif
 	NOP();
     }
     else {
@@ -1632,6 +2405,7 @@ _calli_p(jit_state_t *_jit, jit_word_t i0)
     return (w);
 }
 
+#define OFF(n)		BIAS(((n) * sizeof(jit_word_t)))
 static void
 _prolog(jit_state_t *_jit, jit_node_t *node)
 {
@@ -1654,32 +2428,34 @@ _prolog(jit_state_t *_jit, jit_node_t *node)
     /* (most) other backends do not save incoming arguments, so,
      * only save locals here */
     if (jit_regset_tstbit(&_jitc->function->regset, _L0))
-	stxi(0, _SP_REGNO, _L0_REGNO);
+	stxi(OFF(0), _SP_REGNO, _L0_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L1))
-	stxi(4, _SP_REGNO, _L1_REGNO);
+	stxi(OFF(1), _SP_REGNO, _L1_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L2))
-	stxi(8, _SP_REGNO, _L2_REGNO);
+	stxi(OFF(2), _SP_REGNO, _L2_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L3))
-	stxi(12, _SP_REGNO, _L3_REGNO);
+	stxi(OFF(3), _SP_REGNO, _L3_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L4))
-	stxi(16, _SP_REGNO, _L4_REGNO);
+	stxi(OFF(4), _SP_REGNO, _L4_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L5))
-	stxi(20, _SP_REGNO, _L5_REGNO);
+	stxi(OFF(5), _SP_REGNO, _L5_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L6))
-	stxi(24, _SP_REGNO, _L6_REGNO);
+	stxi(OFF(6), _SP_REGNO, _L6_REGNO);
     if (jit_regset_tstbit(&_jitc->function->regset, _L7))
-	stxi(28, _SP_REGNO, _L7_REGNO);
+	stxi(OFF(7), _SP_REGNO, _L7_REGNO);
 
     if (_jitc->function->allocar) {
 	reg = jit_get_reg(jit_class_gpr);
-	movi(rn(reg), _jitc->function->self.aoff);
+	movi(rn(reg), BIAS(_jitc->function->self.aoff));
+	/* Already "biased" by allocai */
 	stxi_i(_jitc->function->aoffoff, _FP_REGNO, rn(reg));
 	jit_unget_reg(reg);
     }
 
     if (_jitc->function->self.call & jit_call_varargs) {
 	for (reg = _jitc->function->vagp; jit_arg_reg_p(reg); ++reg)
-	    stxi(68 + reg * 4, _SP_REGNO, rn(_I0 + reg));
+	    stxi(BIAS((16 + (__WORDSIZE == 32)) * sizeof(jit_word_t) +
+		      reg * sizeof(jit_word_t)), _FP_REGNO, rn(_I0 + reg));
     }
 }
 
@@ -1691,21 +2467,21 @@ _epilog(jit_state_t *_jit, jit_node_t *node)
     /* (most) other backends do not save incoming arguments, so,
      * only save locals here */
     if (jit_regset_tstbit(&_jitc->function->regset, _L0))
-	ldxi(_L0_REGNO, _SP_REGNO, 0);
+	ldxi(_L0_REGNO, _FP_REGNO, _jitc->function->stack + OFF(0));
     if (jit_regset_tstbit(&_jitc->function->regset, _L1))
-	ldxi(_L1_REGNO, _SP_REGNO, 4);
+	ldxi(_L1_REGNO, _FP_REGNO, _jitc->function->stack + OFF(1));
     if (jit_regset_tstbit(&_jitc->function->regset, _L2))
-	ldxi(_L2_REGNO, _SP_REGNO, 8);
+	ldxi(_L2_REGNO, _FP_REGNO, _jitc->function->stack + OFF(2));
     if (jit_regset_tstbit(&_jitc->function->regset, _L3))
-	ldxi(_L3_REGNO, _SP_REGNO, 12);
+	ldxi(_L3_REGNO, _FP_REGNO, _jitc->function->stack + OFF(3));
     if (jit_regset_tstbit(&_jitc->function->regset, _L4))
-	ldxi(_L4_REGNO, _SP_REGNO, 16);
+	ldxi(_L4_REGNO, _FP_REGNO, _jitc->function->stack + OFF(4));
     if (jit_regset_tstbit(&_jitc->function->regset, _L5))
-	ldxi(_L5_REGNO, _SP_REGNO, 20);
+	ldxi(_L5_REGNO, _FP_REGNO, _jitc->function->stack + OFF(5));
     if (jit_regset_tstbit(&_jitc->function->regset, _L6))
-	ldxi(_L6_REGNO, _SP_REGNO, 24);
+	ldxi(_L6_REGNO, _FP_REGNO, _jitc->function->stack + OFF(6));
     if (jit_regset_tstbit(&_jitc->function->regset, _L7))
-	ldxi(_L7_REGNO, _SP_REGNO, 28);
+	ldxi(_L7_REGNO, _FP_REGNO, _jitc->function->stack + OFF(7));
     RESTOREI(0, 0, 0);
     RETL();
     NOP();
@@ -1715,7 +2491,12 @@ static void
 _vastart(jit_state_t *_jit, jit_int32_t r0)
 {
     /* Initialize stack pointer to the first stack argument. */
-    addi(r0, _SP_REGNO, 68 + _jitc->function->vagp * 4);
+    if (jit_arg_reg_p(_jitc->function->vagp))
+	addi(r0, _FP_REGNO, BIAS((16 + (__WORDSIZE == 32) +
+				  _jitc->function->vagp) *
+				 sizeof(jit_word_t)));
+    else
+	addi(r0, _FP_REGNO, BIAS(_jitc->function->self.size));
 }
 
 static void
@@ -1727,7 +2508,7 @@ _vaarg(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
     ldr(r0, r1);
 
     /* Update vararg stack pointer. */
-    addi(r1, r1, 4);
+    addi(r1, r1, sizeof(jit_word_t));
 }
 
 static void
@@ -1747,15 +2528,33 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 	    i.disp22.b = (label - instr) >> 2;
 	    u.i[0] = i.v;
 	}
+#  if __WORDSIZE == 64
+	else if (i.op2.b == 1) {
+	    i.disp19.b = (label - instr) >> 2;
+	    u.i[0] = i.v;
+	}
+#  endif
 	else if (i.op2.b == 4) {	/* movi_p */
 	    /* SETHI */
-	    i.imm22.b = HI(label);
+	    i.imm22.b = HI((int)label);
 	    u.i[0] = i.v;
 	    i.v = u.i[1];
 	    if (i.op.b == 2 && i.op3.b == 2) {
 		/* ORI */
 		i.simm13.b = LO(label);
 		u.i[1] = i.v;
+#  if __WORDSIZE == 64
+		i.v = u.i[2];
+		assert(i.op2.b == 4);
+		label = (label >> 32) & 0xffffffff;
+		i.imm22.b = HI((int)label);
+		u.i[2] = i.v;
+		i.v = u.i[3];
+		assert(i.op.b == 2 && i.op3.b == 2);
+		/* ORI */
+		i.simm13.b = LO(label);
+		u.i[3] = i.v;
+#  endif
 	    }
 	    else
 		abort();

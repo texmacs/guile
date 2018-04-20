@@ -497,6 +497,120 @@ jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
     }
     return (ULONG_MAX);
 }
+
+#elif __sparc__ && __WORDSIZE == 64
+void
+jit_regset_com(jit_regset_t *u, jit_regset_t *v)
+{
+    u->rl = ~v->rl;		u->rh = ~v->rh;
+}
+
+void
+jit_regset_and(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl & w->rl;	u->rh = v->rh & w->rh;
+}
+
+void
+jit_regset_ior(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl | w->rl;	u->rh = v->rh | w->rh;
+}
+
+void
+jit_regset_xor(jit_regset_t *u, jit_regset_t *v, jit_regset_t *w)
+{
+    u->rl = v->rl ^ w->rl;	u->rh = v->rh ^ w->rh;
+}
+
+void
+jit_regset_set(jit_regset_t *u, jit_regset_t *v)
+{
+    u->rl = v->rl;		u->rh = v->rh;
+}
+
+void
+jit_regset_set_mask(jit_regset_t *u, jit_int32_t v)
+{
+    jit_bool_t		w = !!(v & (v - 1));
+
+    assert(v >= 0 && v <= 128);
+    if (v == 0)
+	u->rl = u->rh = -1LL;
+    else if (v <= 64) {
+	u->rl = w ? (1LL << v) - 1 : -1LL;
+	u->rh = 0;
+    }
+    else {
+	u->rl = -1LL;
+	u->rh = w ? (1LL << (v - 64)) - 1 : -1LL;
+    }
+}
+
+jit_bool_t
+jit_regset_cmp_ui(jit_regset_t *u, jit_word_t v)
+{
+    return !((u->rl == v && u->rh == 0));
+}
+
+void
+jit_regset_set_ui(jit_regset_t *u, jit_word_t v)
+{
+    u->rl = v;
+    u->rh = 0;
+}
+
+jit_bool_t
+jit_regset_set_p(jit_regset_t *u)
+{
+    return (u->rl || u->rh);
+}
+
+void
+jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 128);
+    if (bit < 64)
+	set->rl &= ~(1LL << bit);
+    else
+	set->rh &= ~(1LL << (bit - 64));
+}
+
+void
+jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 127);
+    if (bit < 64)
+	set->rl |= 1LL << bit;
+    else
+	set->rh |= 1LL << (bit - 64);
+}
+
+jit_bool_t
+jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
+{
+    assert(bit >= 0 && bit <= 127);
+    if (bit < 64)
+	return (!!(set->rl & (1LL << bit)));
+    else
+	return (!!(set->rh & (1LL << (bit - 64))));
+}
+
+unsigned long
+jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
+{
+    assert(offset >= 0 && offset <= 127);
+    for (; offset < 64; offset++) {
+	if (set->rl & (1LL << offset))
+	    return (offset);
+    }
+    for (; offset < 128; offset++) {
+	if (set->rh & (1LL << (offset - 64)))
+	    return (offset);
+    }
+    return (ULONG_MAX);
+}
+
 #else
 unsigned long
 jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
