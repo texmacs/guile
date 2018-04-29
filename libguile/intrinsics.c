@@ -148,6 +148,20 @@ fluid_set_x (scm_i_thread *thread, SCM fluid, SCM value)
     scm_fluid_set_x (fluid, value);
 }
 
+static void
+push_dynamic_state (scm_i_thread *thread, SCM state)
+{
+  scm_dynstack_push_dynamic_state (&thread->dynstack, state,
+                                   thread->dynamic_state);
+}
+
+static void
+pop_dynamic_state (scm_i_thread *thread)
+{
+  scm_dynstack_unwind_dynamic_state (&thread->dynstack,
+                                     thread->dynamic_state);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -181,6 +195,8 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.pop_fluid = pop_fluid;
   scm_vm_intrinsics.fluid_ref = fluid_ref;
   scm_vm_intrinsics.fluid_set_x = fluid_set_x;
+  scm_vm_intrinsics.push_dynamic_state = push_dynamic_state;
+  scm_vm_intrinsics.pop_dynamic_state = pop_dynamic_state;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

@@ -32,8 +32,9 @@ typedef scm_t_uint64 (*scm_t_u64_from_scm_intrinsic) (SCM);
 typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
 typedef SCM (*scm_t_scm_from_u64_intrinsic) (scm_t_uint64);
 typedef SCM (*scm_t_scm_from_s64_intrinsic) (scm_t_int64);
-typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
 typedef void (*scm_t_thread_intrinsic) (scm_i_thread*);
+typedef void (*scm_t_thread_scm_intrinsic) (scm_i_thread*, SCM);
+typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
 typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
@@ -67,6 +68,8 @@ typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
   M(thread, pop_fluid, "pop-fluid", POP_FLUID) \
   M(scm_from_thread_scm, fluid_ref, "fluid-ref", FLUID_REF) \
   M(thread_scm_scm, fluid_set_x, "fluid-set!", FLUID_SET_X) \
+  M(thread_scm, push_dynamic_state, "push-dynamic-state", PUSH_DYNAMIC_STATE) \
+  M(thread, pop_dynamic_state, "pop-dynamic-state", POP_DYNAMIC_STATE) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

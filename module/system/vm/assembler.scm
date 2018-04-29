@@ -218,6 +218,8 @@
             emit-pop-fluid
             emit-fluid-ref
             emit-fluid-set!
+            emit-push-dynamic-state
+            emit-pop-dynamic-state
 
             emit-call
             emit-call-label
@@ -244,8 +246,6 @@
             emit-toplevel-box
             emit-module-box
             emit-prompt
-            emit-push-dynamic-state
-            emit-pop-dynamic-state
             emit-current-thread
             emit-lsh
             emit-rsh
@@ -1321,12 +1321,15 @@ returned instead."
 (define-syntax-rule (define-scm<-s64-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-scm<-s64 asm dst src (intrinsic-name->index 'name))))
-(define-syntax-rule (define-thread-scm-scm-intrinsic name)
-  (define-macro-assembler (name asm a b)
-    (emit-call-thread-scm-scm asm a b (intrinsic-name->index 'name))))
 (define-syntax-rule (define-thread-intrinsic name)
   (define-macro-assembler (name asm)
     (emit-call-thread asm (intrinsic-name->index 'name))))
+(define-syntax-rule (define-thread-scm-intrinsic name)
+  (define-macro-assembler (name asm a)
+    (emit-call-thread-scm asm a (intrinsic-name->index 'name))))
+(define-syntax-rule (define-thread-scm-scm-intrinsic name)
+  (define-macro-assembler (name asm a b)
+    (emit-call-thread-scm-scm asm a b (intrinsic-name->index 'name))))
 (define-syntax-rule (define-scm<-thread-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-scm<-thread-scm asm dst src (intrinsic-name->index 'name))))
@@ -1361,6 +1364,8 @@ returned instead."
 (define-thread-intrinsic pop-fluid)
 (define-scm<-thread-scm-intrinsic fluid-ref)
 (define-thread-scm-scm-intrinsic fluid-set!)
+(define-thread-scm-intrinsic push-dynamic-state)
+(define-thread-intrinsic pop-dynamic-state)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)
