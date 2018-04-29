@@ -2255,9 +2255,52 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (4);
     }
 
-  VM_DEFINE_OP (87, unused_87, NULL, NOP)
-  VM_DEFINE_OP (88, unused_88, NULL, NOP)
-  VM_DEFINE_OP (89, unused_89, NULL, NOP)
+  VM_DEFINE_OP (87, call_thread_scm_scm, "call-thread-scm-scm", OP2 (X8_S12_S12, C32))
+    {
+      scm_t_uint16 a, b;
+      scm_t_thread_scm_scm_intrinsic intrinsic;
+
+      UNPACK_12_12 (op, a, b);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      intrinsic (thread, SP_REF (a), SP_REF (b));
+      CACHE_SP ();
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (88, call_thread, "call-thread", OP2 (X32, C32))
+    {
+      scm_t_thread_intrinsic intrinsic;
+
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      intrinsic (thread);
+      CACHE_SP ();
+
+      NEXT (2);
+    }
+
+  VM_DEFINE_OP (89, call_scm_from_thread_scm, "call-scm<-thread-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+    {
+      scm_t_uint16 dst, src;
+      scm_t_scm_from_thread_scm_intrinsic intrinsic;
+      SCM res;
+
+      UNPACK_12_12 (op, dst, src);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (thread, SP_REF (src));
+      CACHE_SP ();
+
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (90, unused_90, NULL, NOP)
   VM_DEFINE_OP (91, unused_91, NULL, NOP)
   VM_DEFINE_OP (92, unused_92, NULL, NOP)

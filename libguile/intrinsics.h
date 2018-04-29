@@ -32,6 +32,9 @@ typedef scm_t_uint64 (*scm_t_u64_from_scm_intrinsic) (SCM);
 typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
 typedef SCM (*scm_t_scm_from_u64_intrinsic) (scm_t_uint64);
 typedef SCM (*scm_t_scm_from_s64_intrinsic) (scm_t_int64);
+typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
+typedef void (*scm_t_thread_intrinsic) (scm_i_thread*);
+typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
