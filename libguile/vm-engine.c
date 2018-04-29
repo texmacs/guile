@@ -1992,15 +1992,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (3);
     }
 
-  /* wind winder:12 unwinder:12
-   *
-   * Push wind and unwind procedures onto the dynamic stack. Note that
-   * neither are actually called; the compiler should emit calls to wind
-   * and unwind for the normal dynamic-wind control flow.  Also note that
-   * the compiler should have inserted checks that they wind and unwind
-   * procs are thunks, if it could not prove that to be the case.
-   */
-  VM_DEFINE_OP (70, wind, "wind", OP1 (X8_S12_S12))
+  VM_DEFINE_OP (70, unused_70, NULL, NOP)
     {
       scm_t_uint16 winder, unwinder;
       UNPACK_12_12 (op, winder, unwinder);
@@ -2010,22 +2002,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* unwind _:24
-   *
-   * A normal exit from the dynamic extent of an expression. Pop the top
-   * entry off of the dynamic stack.
-   */
-  VM_DEFINE_OP (71, unwind, "unwind", OP1 (X32))
+  VM_DEFINE_OP (71, unused_71, NULL, NOP)
     {
       scm_dynstack_pop (&thread->dynstack);
       NEXT (1);
     }
 
-  /* push-fluid fluid:12 value:12
-   *
-   * Dynamically bind VALUE to FLUID.
-   */
-  VM_DEFINE_OP (72, push_fluid, "push-fluid", OP1 (X8_S12_S12))
+  VM_DEFINE_OP (72, unused_72, NULL, NOP)
     {
       scm_t_uint32 fluid, value;
 
@@ -2038,12 +2021,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* pop-fluid _:24
-   *
-   * Leave the dynamic extent of a with-fluid* expression, restoring the
-   * fluid to its previous value.
-   */
-  VM_DEFINE_OP (73, pop_fluid, "pop-fluid", OP1 (X32))
+  VM_DEFINE_OP (73, unused_73, NULL, NOP)
     {
       /* This function must not allocate.  */
       scm_dynstack_unwind_fluid (&thread->dynstack,
@@ -2051,11 +2029,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* fluid-ref dst:12 src:12
-   *
-   * Reference the fluid in SRC, and place the value in DST.
-   */
-  VM_DEFINE_OP (74, fluid_ref, "fluid-ref", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (74, unused_74, NULL, NOP)
     {
       scm_t_uint16 dst, src;
       SCM fluid;
@@ -2080,11 +2054,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
         }
     }
 
-  /* fluid-set fluid:12 val:12
-   *
-   * Set the value of the fluid in DST to the value in SRC.
-   */
-  VM_DEFINE_OP (75, fluid_set, "fluid-set!", OP1 (X8_S12_S12))
+  VM_DEFINE_OP (75, unused_75, NULL, NOP)
     {
       scm_t_uint16 a, b;
       SCM fluid, value;

@@ -96,6 +96,58 @@ logsub (SCM x, SCM y)
   return scm_logand (x, scm_lognot (y));
 }
 
+static void
+wind (scm_i_thread *thread, SCM winder, SCM unwinder)
+{
+  scm_dynstack_push_dynwind (&thread->dynstack, winder, unwinder);
+}
+
+static void
+unwind (scm_i_thread *thread)
+{
+  scm_dynstack_pop (&thread->dynstack);
+}
+
+static void
+push_fluid (scm_i_thread *thread, SCM fluid, SCM value)
+{
+  scm_dynstack_push_fluid (&thread->dynstack, fluid, value,
+                           thread->dynamic_state);
+}
+
+static void
+pop_fluid (scm_i_thread *thread)
+{
+  scm_dynstack_unwind_fluid (&thread->dynstack, thread->dynamic_state);
+}
+
+static SCM
+fluid_ref (scm_i_thread *thread, SCM fluid)
+{
+  struct scm_cache_entry *entry;
+
+  /* If we find FLUID in the cache, then it is indeed a fluid.  */
+  entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
+  if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)
+                  && !SCM_UNBNDP (SCM_PACK (entry->value))))
+    return SCM_PACK (entry->value);
+
+  return scm_fluid_ref (fluid);
+}
+
+static void
+fluid_set_x (scm_i_thread *thread, SCM fluid, SCM value)
+{
+  struct scm_cache_entry *entry;
+
+  /* If we find FLUID in the cache, then it is indeed a fluid.  */
+  entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
+  if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)))
+    entry->value = SCM_UNPACK (value);
+  else
+    scm_fluid_set_x (fluid, value);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -123,6 +175,12 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.u64_to_scm = scm_from_uint64;
   scm_vm_intrinsics.s64_to_scm = scm_from_int64;
   scm_vm_intrinsics.logsub = logsub;
+  scm_vm_intrinsics.wind = wind;
+  scm_vm_intrinsics.unwind = unwind;
+  scm_vm_intrinsics.push_fluid = push_fluid;
+  scm_vm_intrinsics.pop_fluid = pop_fluid;
+  scm_vm_intrinsics.fluid_ref = fluid_ref;
+  scm_vm_intrinsics.fluid_set_x = fluid_set_x;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

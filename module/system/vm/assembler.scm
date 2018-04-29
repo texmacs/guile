@@ -212,6 +212,12 @@
             emit-scm->s64
             emit-u64->scm
             emit-s64->scm
+            emit-wind
+            emit-unwind
+            emit-push-fluid
+            emit-pop-fluid
+            emit-fluid-ref
+            emit-fluid-set!
 
             emit-call
             emit-call-label
@@ -238,15 +244,9 @@
             emit-toplevel-box
             emit-module-box
             emit-prompt
-            emit-wind
-            emit-unwind
-            emit-push-fluid
-            emit-pop-fluid
             emit-push-dynamic-state
             emit-pop-dynamic-state
             emit-current-thread
-            emit-fluid-ref
-            emit-fluid-set!
             emit-lsh
             emit-rsh
             emit-lsh/immediate
@@ -1355,6 +1355,12 @@ returned instead."
 (define-s64<-scm-intrinsic scm->s64)
 (define-scm<-u64-intrinsic u64->scm)
 (define-scm<-s64-intrinsic s64->scm)
+(define-thread-scm-scm-intrinsic wind)
+(define-thread-intrinsic unwind)
+(define-thread-scm-scm-intrinsic push-fluid)
+(define-thread-intrinsic pop-fluid)
+(define-scm<-thread-scm-intrinsic fluid-ref)
+(define-thread-scm-scm-intrinsic fluid-set!)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

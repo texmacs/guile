@@ -61,6 +61,12 @@ typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
   M(scm_from_u64, u64_to_scm, "u64->scm", U64_TO_SCM) \
   M(scm_from_s64, s64_to_scm, "s64->scm", S64_TO_SCM) \
   M(scm_from_scm_scm, logsub, "logsub", LOGSUB) \
+  M(thread_scm_scm, wind, "wind", WIND) \
+  M(thread, unwind, "unwind", UNWIND) \
+  M(thread_scm_scm, push_fluid, "push-fluid", PUSH_FLUID) \
+  M(thread, pop_fluid, "pop-fluid", POP_FLUID) \
+  M(scm_from_thread_scm, fluid_ref, "fluid-ref", FLUID_REF) \
+  M(thread_scm_scm, fluid_set_x, "fluid-set!", FLUID_SET_X) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

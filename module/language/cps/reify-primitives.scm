@@ -235,7 +235,9 @@
       u64->s64 u64->scm scm->u64 scm->u64/truncate
       cache-current-module!
       cached-toplevel-box
-      cached-module-box))
+      cached-module-box
+      wind unwind
+      push-fluid pop-fluid fluid-ref fluid-set!))
   (let ((table (make-hash-table)))
     (for-each
      (match-lambda ((inst . _) (hashq-set! table inst #t)))
