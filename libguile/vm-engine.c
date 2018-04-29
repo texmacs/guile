@@ -1993,92 +1993,15 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
   VM_DEFINE_OP (70, unused_70, NULL, NOP)
-    {
-      scm_t_uint16 winder, unwinder;
-      UNPACK_12_12 (op, winder, unwinder);
-      SYNC_IP ();
-      scm_dynstack_push_dynwind (&thread->dynstack,
-                                 SP_REF (winder), SP_REF (unwinder));
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (71, unused_71, NULL, NOP)
-    {
-      scm_dynstack_pop (&thread->dynstack);
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (72, unused_72, NULL, NOP)
-    {
-      scm_t_uint32 fluid, value;
-
-      UNPACK_12_12 (op, fluid, value);
-
-      SYNC_IP ();
-      scm_dynstack_push_fluid (&thread->dynstack,
-                               SP_REF (fluid), SP_REF (value),
-                               thread->dynamic_state);
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (73, unused_73, NULL, NOP)
-    {
-      /* This function must not allocate.  */
-      scm_dynstack_unwind_fluid (&thread->dynstack,
-                                 thread->dynamic_state);
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (74, unused_74, NULL, NOP)
-    {
-      scm_t_uint16 dst, src;
-      SCM fluid;
-      struct scm_cache_entry *entry;
-
-      UNPACK_12_12 (op, dst, src);
-      fluid = SP_REF (src);
-
-      /* If we find FLUID in the cache, then it is indeed a fluid.  */
-      entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
-      if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)
-                      && !SCM_UNBNDP (SCM_PACK (entry->value))))
-        {
-          SP_SET (dst, SCM_PACK (entry->value));
-          NEXT (1);
-        }
-      else
-        {
-          SYNC_IP ();
-          SP_SET (dst, scm_fluid_ref (fluid));
-          NEXT (1);
-        }
-    }
-
   VM_DEFINE_OP (75, unused_75, NULL, NOP)
     {
-      scm_t_uint16 a, b;
-      SCM fluid, value;
-      struct scm_cache_entry *entry;
-
-      UNPACK_12_12 (op, a, b);
-      fluid = SP_REF (a);
-      value = SP_REF (b);
-
-      /* If we find FLUID in the cache, then it is indeed a fluid.  */
-      entry = scm_cache_lookup (&thread->dynamic_state->cache, fluid);
-      if (SCM_LIKELY (scm_is_eq (SCM_PACK (entry->key), fluid)))
-        {
-          entry->value = SCM_UNPACK (value);
-          NEXT (1);
-        }
-      else
-        {
-          SYNC_IP ();
-          scm_fluid_set_x (fluid, value);
-          NEXT (1);
-        }
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
-
 
   /* load-label dst:24 offset:32
    *
@@ -2823,25 +2746,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
 
   VM_DEFINE_OP (185, unused_185, NULL, NOP)
-    {
-      scm_t_uint32 state;
-
-      UNPACK_24 (op, state);
-
-      SYNC_IP ();
-      scm_dynstack_push_dynamic_state (&thread->dynstack, SP_REF (state),
-                                       thread->dynamic_state);
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (186, unused_186, NULL, NOP)
-    {
-      SYNC_IP ();
-      scm_dynstack_unwind_dynamic_state (&thread->dynstack,
-                                         thread->dynamic_state);
-      NEXT (1);
-    }
-
   VM_DEFINE_OP (187, unused_187, NULL, NOP)
   VM_DEFINE_OP (188, unused_188, NULL, NOP)
   VM_DEFINE_OP (189, unused_189, NULL, NOP)
