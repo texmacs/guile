@@ -1517,7 +1517,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (54, call_scm_from_scm, "call-scm<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       SCM res;
       scm_t_scm_from_scm_intrinsic intrinsic;
 
@@ -1534,7 +1534,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (55, call_f64_from_scm, "call-f64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       double res;
       scm_t_f64_from_scm_intrinsic intrinsic;
 
@@ -1551,7 +1551,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       scm_t_uint64 res;
       scm_t_u64_from_scm_intrinsic intrinsic;
 
@@ -2130,7 +2130,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       scm_t_int64 res;
       scm_t_s64_from_scm_intrinsic intrinsic;
 
@@ -2147,7 +2147,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (78, call_scm_from_u64, "call-scm<-u64", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       SCM res;
       scm_t_scm_from_u64_intrinsic intrinsic;
 
@@ -2164,7 +2164,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (79, call_scm_from_s64, "call-scm<-s64", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint8 dst, src;
+      scm_t_uint16 dst, src;
       SCM res;
       scm_t_scm_from_s64_intrinsic intrinsic;
 
