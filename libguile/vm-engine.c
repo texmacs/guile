@@ -3357,127 +3357,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (249, unused_249, NULL, NOP)
   VM_DEFINE_OP (250, unused_250, NULL, NOP)
   VM_DEFINE_OP (251, unused_251, NULL, NOP)
+  VM_DEFINE_OP (252, unused_252, NULL, NOP)
+  VM_DEFINE_OP (253, unused_253, NULL, NOP)
+  VM_DEFINE_OP (254, unused_254, NULL, NOP)
+  VM_DEFINE_OP (255, unused_255, NULL, NOP)
     {
       vm_error_bad_instruction (op);
       abort (); /* never reached */
-    }
-
-  VM_DEFINE_OP (252, unused_252, NULL, NOP)
-    {
-      scm_t_uint8 dst, x, y;
-      SCM a, result;
-      scm_t_uint64 b;
-
-      UNPACK_8_8_8 (op, dst, x, y);
-      a = SP_REF (x);
-      b = SP_REF_U64 (y);
-
-      if (SCM_LIKELY (SCM_I_INUMP (a))
-          && b < (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1)
-          && ((scm_t_bits)
-              (SCM_SRS (SCM_I_INUM (a), (SCM_I_FIXNUM_BIT-1 - b)) + 1)
-              <= 1))
-        {
-          scm_t_signed_bits nn = SCM_I_INUM (a);
-          result = SCM_I_MAKINUM (nn < 0 ? -(-nn << b) : (nn << b));
-        }
-      else
-        {
-          SYNC_IP ();
-          /* B has to be a bignum.  FIXME: use instruction explosion to
-             ensure that.  */
-          result = scm_ash (a, scm_from_uint64 (b));
-          CACHE_SP ();
-        }
-      SP_SET (dst, result);
-      NEXT (1);
-    }
-
-  VM_DEFINE_OP (253, unused_253, NULL, NOP)
-    {
-      scm_t_uint8 dst, x, y;
-      SCM a, result;
-      scm_t_uint64 b;
-
-      UNPACK_8_8_8 (op, dst, x, y);
-      a = SP_REF (x);
-      b = SP_REF_U64 (y);
-
-      if (SCM_LIKELY (SCM_I_INUMP (a)))
-        {
-          if (b > (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1))
-            b = SCM_I_FIXNUM_BIT - 1;
-          result = SCM_I_MAKINUM (SCM_SRS (SCM_I_INUM (a), b));
-        }
-      else
-        {
-          SYNC_IP ();
-          /* B has to be a bignum.  FIXME: use instruction explosion to
-             ensure that.  */
-          result = scm_ash (a, scm_difference (SCM_INUM0, scm_from_uint64 (b)));
-          CACHE_SP ();
-        }
-      SP_SET (dst, result);
-      NEXT (1);
-    }
-
-  VM_DEFINE_OP (254, unused_254, NULL, NOP)
-    {
-      scm_t_uint8 dst, x, y;
-      SCM a, result;
-      unsigned int b;
-
-      UNPACK_8_8_8 (op, dst, x, y);
-      a = SP_REF (x);
-      b = y;
-
-      if (SCM_LIKELY (SCM_I_INUMP (a))
-          && b < (unsigned int) (SCM_I_FIXNUM_BIT - 1)
-          && ((scm_t_bits)
-              (SCM_SRS (SCM_I_INUM (a), (SCM_I_FIXNUM_BIT-1 - b)) + 1)
-              <= 1))
-        {
-          scm_t_signed_bits nn = SCM_I_INUM (a);
-          result = SCM_I_MAKINUM (nn < 0 ? -(-nn << b) : (nn << b));
-        }
-      else
-        {
-          SYNC_IP ();
-          /* B has to be a bignum.  FIXME: use instruction explosion to
-             ensure that.  */
-          result = scm_ash (a, SCM_I_MAKINUM (b));
-          CACHE_SP ();
-        }
-      SP_SET (dst, result);
-      NEXT (1);
-    }
-
-  VM_DEFINE_OP (255, unused_255, NULL, NOP)
-    {
-      scm_t_uint8 dst, x, y;
-      SCM a, result;
-      int b;
-
-      UNPACK_8_8_8 (op, dst, x, y);
-      a = SP_REF (x);
-      b = y;
-
-      if (SCM_LIKELY (SCM_I_INUMP (a)))
-        {
-          if (b > (int) (SCM_I_FIXNUM_BIT - 1))
-            b = SCM_I_FIXNUM_BIT - 1;
-          result = SCM_I_MAKINUM (SCM_SRS (SCM_I_INUM (a), b));
-        }
-      else
-        {
-          SYNC_IP ();
-          /* B has to be a bignum.  FIXME: use instruction explosion to
-             ensure that.  */
-          result = scm_ash (a, SCM_I_MAKINUM (-b));
-          CACHE_SP ();
-        }
-      SP_SET (dst, result);
-      NEXT (1);
     }
 
   END_DISPATCH_SWITCH;
