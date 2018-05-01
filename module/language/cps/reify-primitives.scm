@@ -238,7 +238,8 @@
       cached-module-box
       wind unwind
       push-fluid pop-fluid fluid-ref fluid-set!
-      push-dynamic-state pop-dynamic-state))
+      push-dynamic-state pop-dynamic-state
+      lsh rsh lsh/immediate rsh/immediate))
   (let ((table (make-hash-table)))
     (for-each
      (match-lambda ((inst . _) (hashq-set! table inst #t)))

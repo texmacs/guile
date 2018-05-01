@@ -162,6 +162,47 @@ pop_dynamic_state (scm_i_thread *thread)
                                      thread->dynamic_state);
 }
 
+static SCM
+lsh (SCM a, scm_t_uint64 b)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (a))
+      && b < (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1)
+      && ((scm_t_bits)
+          (SCM_SRS (SCM_I_INUM (a), (SCM_I_FIXNUM_BIT-1 - b)) + 1)
+          <= 1))
+    {
+      scm_t_signed_bits nn = SCM_I_INUM (a);
+      return SCM_I_MAKINUM (nn < 0 ? -(-nn << b) : (nn << b));
+    }
+  else
+    return scm_ash (a, scm_from_uint64 (b));
+}
+
+static SCM
+rsh (SCM a, scm_t_uint64 b)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (a)))
+    {
+      if (b > (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1))
+        b = SCM_I_FIXNUM_BIT - 1;
+      return SCM_I_MAKINUM (SCM_SRS (SCM_I_INUM (a), b));
+    }
+  else
+    return scm_ash (a, scm_difference (SCM_INUM0, scm_from_uint64 (b)));
+}
+
+static SCM
+lsh_immediate (SCM a, scm_t_uint8 b)
+{
+  return lsh (a, b);
+}
+
+static SCM
+rsh_immediate (SCM a, scm_t_uint8 b)
+{
+  return rsh (a, b);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -197,6 +238,10 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.fluid_set_x = fluid_set_x;
   scm_vm_intrinsics.push_dynamic_state = push_dynamic_state;
   scm_vm_intrinsics.pop_dynamic_state = pop_dynamic_state;
+  scm_vm_intrinsics.lsh = lsh;
+  scm_vm_intrinsics.rsh = rsh;
+  scm_vm_intrinsics.lsh_immediate = lsh_immediate;
+  scm_vm_intrinsics.rsh_immediate = rsh_immediate;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

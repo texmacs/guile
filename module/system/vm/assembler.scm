@@ -220,6 +220,10 @@
             emit-fluid-set!
             emit-push-dynamic-state
             emit-pop-dynamic-state
+            emit-lsh
+            emit-rsh
+            emit-lsh/immediate
+            emit-rsh/immediate
 
             emit-call
             emit-call-label
@@ -247,10 +251,6 @@
             emit-module-box
             emit-prompt
             emit-current-thread
-            emit-lsh
-            emit-rsh
-            emit-lsh/immediate
-            emit-rsh/immediate
             emit-fadd
             emit-fsub
             emit-fmul
@@ -1333,6 +1333,9 @@ returned instead."
 (define-syntax-rule (define-scm<-thread-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-scm<-thread-scm asm dst src (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm<-scm-u64-intrinsic name)
+  (define-macro-assembler (name asm dst a b)
+    (emit-call-scm<-scm-u64 asm dst a b (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)
@@ -1366,6 +1369,10 @@ returned instead."
 (define-thread-scm-scm-intrinsic fluid-set!)
 (define-thread-scm-intrinsic push-dynamic-state)
 (define-thread-intrinsic pop-dynamic-state)
+(define-scm<-scm-u64-intrinsic lsh)
+(define-scm<-scm-u64-intrinsic rsh)
+(define-scm<-scm-uimm-intrinsic lsh/immediate)
+(define-scm<-scm-uimm-intrinsic rsh/immediate)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

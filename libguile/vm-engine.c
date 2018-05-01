@@ -2209,7 +2209,24 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (91, unused_91, NULL, NOP)
+  VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", OP2 (X8_S8_S8_S8, C32))
+    {
+      scm_t_uint8 dst, a, b;
+      SCM res;
+      scm_t_scm_from_scm_u64_intrinsic intrinsic;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (SP_REF (a), SP_REF_U64 (b));
+      CACHE_SP ();
+
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (92, unused_92, NULL, NOP)
   VM_DEFINE_OP (93, unused_93, NULL, NOP)
   VM_DEFINE_OP (94, unused_94, NULL, NOP)
@@ -3345,15 +3362,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       abort (); /* never reached */
     }
 
-  /* Temporary instructions down here, while we incrementally proceed
-     with instruction explosion.  */
-
-  /* lsh dst:8 a:8 b:8
-   *
-   * Shift A left by B bits, and place the result in DST.  B is a U64
-   * value.
-   */
-  VM_DEFINE_OP (252, lsh, "lsh", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (252, unused_252, NULL, NOP)
     {
       scm_t_uint8 dst, x, y;
       SCM a, result;
@@ -3383,12 +3392,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SP_SET (dst, result);
       NEXT (1);
     }
-  /* rsh dst:8 a:8 b:8
-   *
-   * Shift A right by B bits, and place the result in DST.  B is a U64
-   * value.
-   */
-  VM_DEFINE_OP (253, rsh, "rsh", OP1 (X8_S8_S8_S8) | OP_DST)
+
+  VM_DEFINE_OP (253, unused_253, NULL, NOP)
     {
       scm_t_uint8 dst, x, y;
       SCM a, result;
@@ -3415,12 +3420,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SP_SET (dst, result);
       NEXT (1);
     }
-  /* lsh/immediate dst:8 a:8 b:8
-   *
-   * Shift A left by B bits, and place the result in DST.  B is an
-   * immediate unsigned integer.
-   */
-  VM_DEFINE_OP (254, lsh_immediate, "lsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+
+  VM_DEFINE_OP (254, unused_254, NULL, NOP)
     {
       scm_t_uint8 dst, x, y;
       SCM a, result;
@@ -3450,12 +3451,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SP_SET (dst, result);
       NEXT (1);
     }
-  /* rsh dst:8 a:8 b:8
-   *
-   * Shift A right by B bits, and place the result in DST.  B is an
-   * immediate unsigned integer.
-   */
-  VM_DEFINE_OP (255, rsh_immediate, "rsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+
+  VM_DEFINE_OP (255, unused_255, NULL, NOP)
     {
       scm_t_uint8 dst, x, y;
       SCM a, result;

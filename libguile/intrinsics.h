@@ -36,6 +36,7 @@ typedef void (*scm_t_thread_intrinsic) (scm_i_thread*);
 typedef void (*scm_t_thread_scm_intrinsic) (scm_i_thread*, SCM);
 typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
 typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
+typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, scm_t_uint64);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -70,6 +71,10 @@ typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
   M(thread_scm_scm, fluid_set_x, "fluid-set!", FLUID_SET_X) \
   M(thread_scm, push_dynamic_state, "push-dynamic-state", PUSH_DYNAMIC_STATE) \
   M(thread, pop_dynamic_state, "pop-dynamic-state", POP_DYNAMIC_STATE) \
+  M(scm_from_scm_u64, lsh, "lsh", LSH) \
+  M(scm_from_scm_u64, rsh, "rsh", RSH) \
+  M(scm_from_scm_uimm, lsh_immediate, "lsh/immediate", LSH_IMMEDIATE) \
+  M(scm_from_scm_uimm, rsh_immediate, "rsh/immediate", RSH_IMMEDIATE) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
