@@ -37,14 +37,6 @@
     }                                     \
   while (0)
 
-#define UNPACK_16_8(op,a,b)               \
-  do                                      \
-    {                                     \
-      a = (op >> 8) & 0xffff;             \
-      b = op >> 24;                       \
-    }                                     \
-  while (0)
-
 #define UNPACK_12_12(op,a,b)              \
   do                                      \
     {                                     \
@@ -271,22 +263,6 @@
 #define SP_SET_PTR(i,o)		(sp[i].as_ptr = o)
 
 #define VARIABLE_BOUNDP(v)      (!SCM_UNBNDP (SCM_VARIABLE_REF (v)))
-
-#define ARGS1(a1)                               \
-  scm_t_uint16 dst, src;                        \
-  SCM a1;                                       \
-  UNPACK_12_12 (op, dst, src);                  \
-  a1 = SP_REF (src)
-#define ARGS2(a1, a2)                           \
-  scm_t_uint8 dst, src1, src2;                  \
-  SCM a1, a2;                                   \
-  UNPACK_8_8_8 (op, dst, src1, src2);           \
-  a1 = SP_REF (src1);                           \
-  a2 = SP_REF (src2)
-#define RETURN(x)                               \
-  do { SP_SET (dst, x); NEXT (1); } while (0)
-#define RETURN_EXP(exp)                         \
-  do { SCM __x; SYNC_IP (); __x = exp; CACHE_SP (); RETURN (__x); } while (0)
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
@@ -3368,8 +3344,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef ABORT_CONTINUATION_HOOK
 #undef ALIGNED_P
 #undef APPLY_HOOK
-#undef ARGS1
-#undef ARGS2
 #undef BEGIN_DISPATCH_SWITCH
 #undef CACHE_REGISTER
 #undef END_DISPATCH_SWITCH
@@ -3382,14 +3356,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef NEXT_HOOK
 #undef POP_CONTINUATION_HOOK
 #undef PUSH_CONTINUATION_HOOK
-#undef RETURN
 #undef RUN_HOOK
 #undef RUN_HOOK0
 #undef RUN_HOOK1
 #undef SYNC_IP
 #undef UNPACK_8_8_8
 #undef UNPACK_8_16
-#undef UNPACK_16_8
 #undef UNPACK_12_12
 #undef UNPACK_24
 #undef VARIABLE_BOUNDP
