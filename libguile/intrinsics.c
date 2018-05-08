@@ -214,6 +214,12 @@ less_p (SCM a, SCM b)
     return SCM_F_COMPARE_NONE;
 }
 
+static int
+numerically_equal_p (SCM a, SCM b)
+{
+  return scm_is_true (scm_num_eq_p (a, b));
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -255,6 +261,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.rsh_immediate = rsh_immediate;
   scm_vm_intrinsics.heap_numbers_equal_p = scm_i_heap_numbers_equal_p;
   scm_vm_intrinsics.less_p = less_p;
+  scm_vm_intrinsics.numerically_equal_p = numerically_equal_p;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

@@ -81,6 +81,7 @@ typedef enum scm_compare (*scm_t_compare_from_scm_scm_intrinsic) (SCM, SCM);
   M(scm_from_scm_uimm, rsh_immediate, "rsh/immediate", RSH_IMMEDIATE) \
   M(bool_from_scm_scm, heap_numbers_equal_p, "heap-numbers-equal?", HEAP_NUMBERS_EQUAL_P) \
   M(compare_from_scm_scm, less_p, "<?", LESS_P) \
+  M(bool_from_scm_scm, numerically_equal_p, "=?", NUMERICALLY_EQUAL_P) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
