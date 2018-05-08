@@ -264,7 +264,7 @@ SCM_API SCM scm_string_to_number (SCM str, SCM radix);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
 SCM_API SCM scm_complex_equalp (SCM x, SCM y);
-SCM_INTERNAL SCM scm_i_heap_numbers_equal_p (SCM x, SCM y);
+SCM_INTERNAL int scm_i_heap_numbers_equal_p (SCM x, SCM y);
 SCM_API SCM scm_number_p (SCM x);
 SCM_API SCM scm_complex_p (SCM x);
 SCM_API SCM scm_real_p (SCM x);

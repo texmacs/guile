@@ -3141,7 +3141,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF (b);
 
       SYNC_IP ();
-      if (scm_is_true (scm_i_heap_numbers_equal_p (x, y)))
+      if (scm_vm_intrinsics.heap_numbers_equal_p (x, y))
         vp->compare_result = SCM_F_COMPARE_EQUAL;
       else
         vp->compare_result = SCM_F_COMPARE_NONE;

@@ -242,6 +242,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.rsh = rsh;
   scm_vm_intrinsics.lsh_immediate = lsh_immediate;
   scm_vm_intrinsics.rsh_immediate = rsh_immediate;
+  scm_vm_intrinsics.heap_numbers_equal_p = scm_i_heap_numbers_equal_p;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1998,2000-2001,2003-2004,2006,2009-2011,2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2001,2003-2004,2006,2009-2011,2017,2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -156,20 +156,20 @@ scm_i_fraction_equalp (SCM x, SCM y)
 				  SCM_FRACTION_DENOMINATOR (y))));
 }
 
-SCM
+int
 scm_i_heap_numbers_equal_p (SCM x, SCM y)
 {
   if (SCM_IMP (x)) abort();
   switch (SCM_TYP16 (x))
     {
     case scm_tc16_big:
-      return scm_bigequal (x, y);
+      return scm_is_true (scm_bigequal (x, y));
     case scm_tc16_real:
-      return scm_real_equalp (x, y);
+      return scm_is_true (scm_real_equalp (x, y));
     case scm_tc16_complex:
-      return scm_complex_equalp (x, y);
+      return scm_is_true (scm_complex_equalp (x, y));
     case scm_tc16_fraction:
-      return scm_i_fraction_equalp (x, y);
+      return scm_is_true (scm_i_fraction_equalp (x, y));
     default:
       abort ();
     }
@@ -229,7 +229,7 @@ SCM scm_eqv_p (SCM x, SCM y)
     default:
       break;
     case scm_tc7_number:
-      return scm_i_heap_numbers_equal_p (x, y);
+      return scm_from_bool (scm_i_heap_numbers_equal_p (x, y));
     }
   return SCM_BOOL_F;
 }
