@@ -2897,12 +2897,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF (b);
 
       SYNC_IP ();
-      if (scm_is_true (scm_nan_p (x)) || scm_is_true (scm_nan_p (y)))
-        vp->compare_result = SCM_F_COMPARE_INVALID;
-      else if (scm_is_true (scm_less_p (x, y)))
-        vp->compare_result = SCM_F_COMPARE_LESS_THAN;
-      else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+      vp->compare_result = scm_vm_intrinsics.less_p (x, y);
       CACHE_SP ();
       NEXT (1);
     }

@@ -203,6 +203,17 @@ rsh_immediate (SCM a, scm_t_uint8 b)
   return rsh (a, b);
 }
 
+static enum scm_compare
+less_p (SCM a, SCM b)
+{
+  if (scm_is_true (scm_nan_p (a)) || scm_is_true (scm_nan_p (b)))
+    return SCM_F_COMPARE_INVALID;
+  else if (scm_is_true (scm_less_p (a, b)))
+    return SCM_F_COMPARE_LESS_THAN;
+  else
+    return SCM_F_COMPARE_NONE;
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -243,6 +254,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.lsh_immediate = lsh_immediate;
   scm_vm_intrinsics.rsh_immediate = rsh_immediate;
   scm_vm_intrinsics.heap_numbers_equal_p = scm_i_heap_numbers_equal_p;
+  scm_vm_intrinsics.less_p = less_p;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
