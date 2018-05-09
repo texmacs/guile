@@ -1,5 +1,5 @@
 /* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015 Free Software Foundation, Inc.
+ *   2014, 2015, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2166,7 +2166,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (73, pop_fluid, "pop-fluid", OP1 (X32))
     {
-      /* This function must not allocate.  */
+      SYNC_IP ();
       scm_dynstack_unwind_fluid (&thread->dynstack,
                                  thread->dynamic_state);
       NEXT (1);
