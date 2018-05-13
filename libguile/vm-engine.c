@@ -2185,7 +2185,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (2);
     }
 
-  VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", OP2 (X8_S8_S8_S8, C32))
+  VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", OP2 (X8_S8_S8_S8, C32) | OP_DST)
     {
       scm_t_uint8 dst, a, b;
       SCM res;
