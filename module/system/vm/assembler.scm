@@ -224,6 +224,8 @@
             emit-rsh
             emit-lsh/immediate
             emit-rsh/immediate
+            emit-resolve-module
+            emit-lookup
 
             emit-call
             emit-call-label
@@ -1336,6 +1338,9 @@ returned instead."
 (define-syntax-rule (define-scm<-scm-u64-intrinsic name)
   (define-macro-assembler (name asm dst a b)
     (emit-call-scm<-scm-u64 asm dst a b (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm<-scm-bool-intrinsic name)
+  (define-macro-assembler (name asm dst a b)
+    (emit-call-scm<-scm-uimm asm dst a (if b 1 0) (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)
@@ -1373,6 +1378,8 @@ returned instead."
 (define-scm<-scm-u64-intrinsic rsh)
 (define-scm<-scm-uimm-intrinsic lsh/immediate)
 (define-scm<-scm-uimm-intrinsic rsh/immediate)
+(define-scm<-scm-bool-intrinsic resolve-module)
+(define-scm<-scm-scm-intrinsic lookup)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

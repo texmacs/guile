@@ -220,6 +220,42 @@ numerically_equal_p (SCM a, SCM b)
   return scm_is_true (scm_num_eq_p (a, b));
 }
 
+static SCM
+resolve_module (SCM name, scm_t_uint8 public_p)
+{
+  SCM mod;
+
+  if (!scm_module_system_booted_p)
+    return SCM_BOOL_F;
+
+  mod = scm_maybe_resolve_module (name);
+  if (scm_is_false (mod))
+    scm_misc_error (NULL, "Module named ~s does not exist",
+                    scm_list_1 (name));
+
+  if (public_p)
+    {
+      mod = scm_module_public_interface (mod);
+
+      if (scm_is_false (mod))
+        scm_misc_error (NULL, "Module named ~s has no public interface",
+                        scm_list_1 (name));
+    }
+
+  return mod;
+}
+
+static SCM
+lookup (SCM module, SCM name)
+{
+  /* If MODULE was captured before modules were booted, use the root
+     module.  Not so nice, but hey...  */
+  if (scm_is_false (module))
+    module = scm_the_root_module ();
+
+  return scm_module_variable (module, name);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -262,6 +298,8 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.heap_numbers_equal_p = scm_i_heap_numbers_equal_p;
   scm_vm_intrinsics.less_p = less_p;
   scm_vm_intrinsics.numerically_equal_p = numerically_equal_p;
+  scm_vm_intrinsics.resolve_module = resolve_module;
+  scm_vm_intrinsics.lookup = lookup;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
