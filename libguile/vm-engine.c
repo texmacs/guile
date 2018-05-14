@@ -1709,40 +1709,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   
 
-  /*
-   * Mutable top-level bindings
-   */
-
-  /* There are three slightly different ways to resolve toplevel
-     variables.
-
-     1. A toplevel reference outside of a function.  These need to be
-        looked up when the expression is evaluated -- no later, and no
-        before.  They are looked up relative to the module that is
-        current when the expression is evaluated.  For example:
-
-          (if (foo) a b)
-
-        The "resolve" instruction resolves the variable (box), and then
-        access is via box-ref or box-set!.
-
-     2. A toplevel reference inside a function.  These are looked up
-        relative to the module that was current when the function was
-        defined.  Unlike code at the toplevel, which is usually run only
-        once, these bindings benefit from memoized lookup, in which the
-        variable resulting from the lookup is cached in the function.
-
-          (lambda () (if (foo) a b))
-
-        The toplevel-box instruction is equivalent to "resolve", but
-        caches the resulting variable in statically allocated memory.
-
-     3. A reference to an identifier with respect to a particular
-        module.  This can happen for primitive references, and
-        references residualized by macro expansions.  These can always
-        be cached.  Use module-box for these.
-     */
-
   /* current-module dst:24
    *
    * Store the current module in DST.
@@ -1759,175 +1725,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       NEXT (1);
     }
 
-  /* resolve dst:24 bound?:1 _:7 sym:24
-   *
-   * Resolve SYM in the current module, and place the resulting variable
-   * in DST.
-   */
-  VM_DEFINE_OP (65, resolve, "resolve", OP2 (X8_S24, B1_X7_S24) | OP_DST)
+  VM_DEFINE_OP (65, unused_65, NULL, NOP)
+  VM_DEFINE_OP (66, unused_66, NULL, NOP)
+  VM_DEFINE_OP (67, unused_67, NULL, NOP)
+  VM_DEFINE_OP (68, unused_68, NULL, NOP)
     {
-      scm_t_uint32 dst;
-      scm_t_uint32 sym;
-      SCM var;
-
-      UNPACK_24 (op, dst);
-      UNPACK_24 (ip[1], sym);
-
-      SYNC_IP ();
-      var = scm_lookup (SP_REF (sym));
-      CACHE_SP ();
-      if (ip[1] & 0x1)
-        VM_ASSERT (VARIABLE_BOUNDP (var), vm_error_unbound (SP_REF (sym)));
-      SP_SET (dst, var);
-
-      NEXT (2);
-    }
-
-  /* define! dst:12 sym:12
-   *
-   * Look up a binding for SYM in the current module, creating it if
-   * necessary.  Set its value to VAL.
-   */
-  VM_DEFINE_OP (66, define, "define!", OP1 (X8_S12_S12) | OP_DST)
-    {
-      scm_t_uint16 dst, sym;
-      SCM var;
-      UNPACK_12_12 (op, dst, sym);
-      SYNC_IP ();
-      var = scm_module_ensure_local_variable (scm_current_module (),
-                                              SP_REF (sym));
-      CACHE_SP ();
-      SP_SET (dst, var);
-      NEXT (1);
-    }
-
-  /* toplevel-box dst:24 var-offset:32 mod-offset:32 sym-offset:32 bound?:1 _:31
-   *
-   * Load a SCM value.  The SCM value will be fetched from memory,
-   * VAR-OFFSET 32-bit words away from the current instruction pointer.
-   * VAR-OFFSET is a signed value.  Up to here, toplevel-box is like
-   * static-ref.
-   *
-   * Then, if the loaded value is a variable, it is placed in DST, and control
-   * flow continues.
-   *
-   * Otherwise, we have to resolve the variable.  In that case we load
-   * the module from MOD-OFFSET, just as we loaded the variable.
-   * Usually the module gets set when the closure is created.  The name
-   * is an offset to a symbol.
-   *
-   * We use the module and the symbol to resolve the variable, placing it in
-   * DST, and caching the resolved variable so that we will hit the cache next
-   * time.
-   */
-  VM_DEFINE_OP (67, toplevel_box, "toplevel-box", OP5 (X8_S24, R32, R32, N32, B1_X31) | OP_DST)
-    {
-      scm_t_uint32 dst;
-      scm_t_int32 var_offset;
-      scm_t_uint32* var_loc_u32;
-      SCM *var_loc;
-      SCM var;
-
-      UNPACK_24 (op, dst);
-      var_offset = ip[1];
-      var_loc_u32 = ip + var_offset;
-      VM_ASSERT (ALIGNED_P (var_loc_u32, SCM), abort());
-      var_loc = (SCM *) var_loc_u32;
-      var = *var_loc;
-
-      if (SCM_UNLIKELY (!SCM_VARIABLEP (var)))
-        {
-          SCM mod, sym;
-          scm_t_int32 mod_offset = ip[2]; /* signed */
-          scm_t_int32 sym_offset = ip[3]; /* signed */
-          scm_t_uint32 *mod_loc = ip + mod_offset;
-          scm_t_uint32 *sym_loc = ip + sym_offset;
-          
-          SYNC_IP ();
-
-          VM_ASSERT (ALIGNED_P (mod_loc, SCM), abort());
-          VM_ASSERT (ALIGNED_P (sym_loc, SCM), abort());
-
-          mod = *((SCM *) mod_loc);
-          sym = *((SCM *) sym_loc);
-
-          /* If the toplevel scope was captured before modules were
-             booted, use the root module.  */
-          if (scm_is_false (mod))
-            mod = scm_the_root_module ();
-
-          var = scm_module_lookup (mod, sym);
-          CACHE_SP ();
-          if (ip[4] & 0x1)
-            VM_ASSERT (VARIABLE_BOUNDP (var), vm_error_unbound (sym));
-
-          *var_loc = var;
-        }
-
-      SP_SET (dst, var);
-      NEXT (5);
-    }
-
-  /* module-box dst:24 var-offset:32 mod-offset:32 sym-offset:32 bound?:1 _:31
-   *
-   * Like toplevel-box, except MOD-OFFSET points at the name of a module
-   * instead of the module itself.
-   */
-  VM_DEFINE_OP (68, module_box, "module-box", OP5 (X8_S24, R32, N32, N32, B1_X31) | OP_DST)
-    {
-      scm_t_uint32 dst;
-      scm_t_int32 var_offset;
-      scm_t_uint32* var_loc_u32;
-      SCM *var_loc;
-      SCM var;
-
-      UNPACK_24 (op, dst);
-      var_offset = ip[1];
-      var_loc_u32 = ip + var_offset;
-      VM_ASSERT (ALIGNED_P (var_loc_u32, SCM), abort());
-      var_loc = (SCM *) var_loc_u32;
-      var = *var_loc;
-
-      if (SCM_UNLIKELY (!SCM_VARIABLEP (var)))
-        {
-          SCM modname, sym;
-          scm_t_int32 modname_offset = ip[2]; /* signed */
-          scm_t_int32 sym_offset = ip[3]; /* signed */
-          scm_t_uint32 *modname_words = ip + modname_offset;
-          scm_t_uint32 *sym_loc = ip + sym_offset;
-
-          SYNC_IP ();
-
-          VM_ASSERT (!(((scm_t_uintptr) modname_words) & 0x7), abort());
-          VM_ASSERT (ALIGNED_P (sym_loc, SCM), abort());
-
-          modname = SCM_PACK ((scm_t_bits) modname_words);
-          sym = *((SCM *) sym_loc);
-
-          if (!scm_module_system_booted_p)
-            {
-              ASSERT (scm_is_true
-                      scm_equal_p (modname,
-                                   scm_list_2
-                                   (SCM_BOOL_T,
-                                    scm_from_utf8_symbol ("guile"))));
-              var = scm_lookup (sym);
-            }
-          else if (scm_is_true (SCM_CAR (modname)))
-            var = scm_public_lookup (SCM_CDR (modname), sym);
-          else
-            var = scm_private_lookup (SCM_CDR (modname), sym);
-
-          CACHE_SP ();
-
-          if (ip[4] & 0x1)
-            VM_ASSERT (VARIABLE_BOUNDP (var), vm_error_unbound (sym));
-
-          *var_loc = var;
-        }
-
-      SP_SET (dst, var);
-      NEXT (5);
+      vm_error_bad_instruction (op);
+      abort (); /* never reached */
     }
 
   
