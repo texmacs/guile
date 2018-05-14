@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008, 2011, 2012, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -108,6 +108,7 @@ SCM_API SCM scm_c_private_ref (const char *module_name, const char *name);
 
 SCM_API SCM scm_c_resolve_module (const char *name);
 SCM_API SCM scm_resolve_module (SCM name);
+SCM_API SCM scm_maybe_resolve_module (SCM name);
 SCM_API SCM scm_c_define_module (const char *name,
 				 void (*init)(void *), void *data);
 SCM_API void scm_c_use_module (const char *name);

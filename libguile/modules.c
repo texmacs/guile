@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2017 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000-2004,2006-2012,2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -174,6 +174,13 @@ SCM
 scm_resolve_module (SCM name)
 {
   return scm_call_1 (SCM_VARIABLE_REF (resolve_module_var), name);
+}
+
+SCM
+scm_maybe_resolve_module (SCM name)
+{
+  return scm_call_3 (SCM_VARIABLE_REF (resolve_module_var), name,
+                     k_ensure, SCM_BOOL_F);
 }
 
 SCM
@@ -633,8 +640,7 @@ scm_public_variable (SCM module_name, SCM name)
 {
   SCM mod, iface;
   
-  mod = scm_call_3 (scm_variable_ref (resolve_module_var), module_name,
-                    k_ensure, SCM_BOOL_F);
+  mod = scm_maybe_resolve_module (module_name);
 
   if (scm_is_false (mod))
     scm_misc_error ("public-lookup", "Module named ~s does not exist",
@@ -654,8 +660,7 @@ scm_private_variable (SCM module_name, SCM name)
 {
   SCM mod;
   
-  mod = scm_call_3 (scm_variable_ref (resolve_module_var), module_name,
-                    k_ensure, SCM_BOOL_F);
+  mod = scm_maybe_resolve_module (module_name);
 
   if (scm_is_false (mod))
     scm_misc_error ("private-lookup", "Module named ~s does not exist",
