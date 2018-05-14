@@ -208,6 +208,73 @@
 (define-ephemeral (slsh/immediate cps k src param a)
   (wrap-unary cps k src 's64->u64 'u64->s64 'ulsh/immediate param a))
 
+(define (reify-lookup cps src mod-var name assert-bound? have-var)
+  (define (%lookup cps kbad k src mod-var name-var var assert-bound?)
+    (if assert-bound?
+        (with-cps cps
+          (letv val)
+          (letk kcheck
+                ($kargs ('val) (val)
+                  ($branch k kbad src 'undefined? #f (val))))
+          (letk kref
+                ($kargs () ()
+                  ($continue kcheck src
+                    ($primcall 'scm-ref/immediate '(box . 1) (var)))))
+          ($ (%lookup kbad kref src mod-var name-var var #f)))
+        (with-cps cps
+          (letk kres
+                ($kargs ('var) (var)
+                  ($branch kbad k src 'heap-object? #f (var))))
+          (build-term
+            ($continue kres src
+              ($primcall 'lookup #f (mod-var name-var)))))))
+  (define %unbound
+    #(unbound-variable #f "Unbound variable: ~S"))
+  (with-cps cps
+    (letv name-var var)
+    (let$ good (have-var var))
+    (letk kgood ($kargs () () ,good))
+    (letk kbad ($kargs () () ($throw src 'throw/value %unbound (name-var))))
+    (let$ body (%lookup kbad kgood src mod-var name-var var assert-bound?))
+    (letk klookup ($kargs ('name) (name-var) ,body))
+    (build-term ($continue klookup src ($const name)))))
+
+(define (reify-resolve-module cps k src module public?)
+  (with-cps cps
+    (letv mod-name)
+    (letk kresolve
+          ($kargs ('mod-name) (mod-name)
+            ($continue k src
+              ($primcall 'resolve-module public? (mod-name)))))
+    (build-term
+      ($continue kresolve src ($const module)))))
+
+(define-ephemeral (cached-module-box cps k src param)
+  (match param
+    ((module name public? bound?)
+     (let ((cache-key (cons module name)))
+       (with-cps cps
+         (letv mod cached)
+         (let$ lookup
+               (reify-lookup
+                src mod name bound?
+                (lambda (cps var)
+                  (with-cps cps
+                    (letk k* ($kargs () () ($continue k src ($values (var)))))
+                    (build-term
+                      ($continue k* src
+                        ($primcall 'cache-set! cache-key (var))))))))
+         (letk kmod ($kargs ('mod) (mod) ,lookup))
+         (let$ module (reify-resolve-module kmod src module public?))
+         (letk kinit ($kargs () () ,module))
+         (letk kok ($kargs () () ($continue k src ($values (cached)))))
+         (letk ktest
+               ($kargs ('cached) (cached)
+                 ($branch kinit kok src 'heap-object? #f (cached))))
+         (build-term
+           ($continue ktest src
+             ($primcall 'cache-ref cache-key ()))))))))
+
 ;; FIXME: Instead of having to check this, instead every primcall that's
 ;; not ephemeral should be handled by compile-bytecode.
 (define (compute-known-primitives)
