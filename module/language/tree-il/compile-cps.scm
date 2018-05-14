@@ -1851,13 +1851,17 @@
        (lambda (cps val)
          (with-cps cps
            (let$ k (adapt-arity k src 0))
-           (letv box)
+           (letv box mod)
            (letk kset ($kargs ('box) (box)
                         ($continue k src
                           ($primcall 'scm-set!/immediate '(box . 1) (box val)))))
            ($ (with-cps-constants ((name name))
+                (letk kmod
+                      ($kargs ('mod) (mod)
+                        ($continue kset src
+                          ($primcall 'define! #f (mod name)))))
                 (build-term
-                  ($continue kset src ($primcall 'define! #f (name))))))))))
+                  ($continue kmod src ($primcall 'current-module #f ())))))))))
 
     (($ <call> src proc args)
      (convert-args cps (cons proc args)

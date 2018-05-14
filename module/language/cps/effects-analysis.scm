@@ -463,7 +463,7 @@ the LABELS that are clobbered by the effects of LABEL."
   ((lookup mod name)               (&read-object &module)      &type-check)
   ((cached-toplevel-box)                                       &type-check)
   ((cached-module-box)                                         &type-check)
-  ((define! name)                  (&read-object &module)))
+  ((define! mod name)              (&read-object &module)))
 
 ;; Cache cells.
 (define-primitive-effects

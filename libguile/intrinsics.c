@@ -300,6 +300,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.numerically_equal_p = numerically_equal_p;
   scm_vm_intrinsics.resolve_module = resolve_module;
   scm_vm_intrinsics.lookup = lookup;
+  scm_vm_intrinsics.define_x = scm_module_ensure_local_variable;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

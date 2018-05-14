@@ -226,6 +226,7 @@
             emit-rsh/immediate
             emit-resolve-module
             emit-lookup
+            emit-define!
 
             emit-cache-ref
             emit-cache-set!
@@ -251,7 +252,6 @@
             emit-load-label
             emit-current-module
             emit-resolve
-            emit-define!
             emit-prompt
             emit-current-thread
             emit-fadd
@@ -1375,6 +1375,7 @@ returned instead."
 (define-scm<-scm-uimm-intrinsic rsh/immediate)
 (define-scm<-scm-bool-intrinsic resolve-module)
 (define-scm<-scm-scm-intrinsic lookup)
+(define-scm<-scm-scm-intrinsic define!)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)
