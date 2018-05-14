@@ -188,7 +188,10 @@
   &closure
 
   ;; Indicates a dependency on a raw bitmask, measured in 32-bit units.
-  &bitmask)
+  &bitmask
+
+  ;; Indicates a dependency on the value of a cache cell.
+  &cache)
 
 (define-inlinable (&field kind field)
   (ash (logior (ash field &memory-kind-bits) kind) &effect-kind-bits))
@@ -454,11 +457,18 @@ the LABELS that are clobbered by the effects of LABEL."
 ;; Modules.
 (define-primitive-effects
   ((current-module)                (&read-object &module))
-  ((cache-current-module! m)       (&write-object &box))
+  ((cache-current-module! m)       (&write-object &cache))
   ((resolve name)                  (&read-object &module)      &type-check)
+  ((resolve-module mod)            (&read-object &module)      &type-check)
+  ((lookup mod name)               (&read-object &module)      &type-check)
   ((cached-toplevel-box)                                       &type-check)
   ((cached-module-box)                                         &type-check)
   ((define! name)                  (&read-object &module)))
+
+;; Cache cells.
+(define-primitive-effects
+  ((cache-ref)                     (&read-object &cache))
+  ((cache-set! x)                  (&write-object &cache)))
 
 ;; Numbers.
 (define-primitive-effects

@@ -252,8 +252,6 @@
             emit-current-module
             emit-resolve
             emit-define!
-            emit-toplevel-box
-            emit-module-box
             emit-prompt
             emit-current-thread
             emit-fadd
@@ -1495,28 +1493,11 @@ returned instead."
                       (- (asm-start asm) (arity-low-pc arity)))))
     (set-arity-definitions! arity (cons def (arity-definitions arity)))))
 
-(define-macro-assembler (cache-current-module! asm module scope)
-  (let ((mod-label (intern-cache-cell asm scope)))
-    (emit-static-set! asm module mod-label 0)))
-
 (define-macro-assembler (cache-ref asm dst key)
   (emit-static-ref asm dst (intern-cache-cell asm key)))
 
 (define-macro-assembler (cache-set! asm key val)
   (emit-static-set! asm val (intern-cache-cell asm key) 0))
-
-(define-macro-assembler (cached-toplevel-box asm dst scope sym bound?)
-  (let ((sym-label (intern-non-immediate asm sym))
-        (mod-label (intern-cache-cell asm scope))
-        (cell-label (intern-cache-cell asm (cons scope sym))))
-    (emit-toplevel-box asm dst cell-label mod-label sym-label bound?)))
-
-(define-macro-assembler (cached-module-box asm dst module-name sym public? bound?)
-  (let* ((sym-label (intern-non-immediate asm sym))
-         (key (cons public? module-name))
-         (mod-name-label (intern-constant asm key))
-         (cell-label (intern-cache-cell asm (acons public? module-name sym))))
-    (emit-module-box asm dst cell-label mod-name-label sym-label bound?)))
 
 (define-macro-assembler (slot-map asm proc-slot slot-map)
   (unless (zero? slot-map)
