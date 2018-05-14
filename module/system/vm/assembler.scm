@@ -227,6 +227,9 @@
             emit-resolve-module
             emit-lookup
 
+            emit-cache-ref
+            emit-cache-set!
+
             emit-call
             emit-call-label
             emit-tail-call
@@ -1121,9 +1124,8 @@ immediate, and @code{#f} otherwise."
   (element-size uniform-vector-backing-store-element-size))
 
 (define-record-type <cache-cell>
-  (make-cache-cell scope key)
+  (make-cache-cell key)
   cache-cell?
-  (scope cache-cell-scope)
   (key cache-cell-key))
 
 (define (simple-vector? obj)
@@ -1232,16 +1234,11 @@ label."
     (error "expected a non-immediate" obj))
   (intern-constant asm obj))
 
-(define (intern-cache-cell asm scope key)
+(define (intern-cache-cell asm key)
   "Intern a cache cell into the constant table, and return its label.
 If there is already a cache cell with the given scope and key, it is
 returned instead."
-  (intern-constant asm (make-cache-cell scope key)))
-
-;; Return the label of the cell that holds the module for a scope.
-(define (intern-module-cache-cell asm scope)
-  "Intern a cache cell for a module, and return its label."
-  (intern-cache-cell asm scope #t))
+  (intern-constant asm (make-cache-cell key)))
 
 
 
@@ -1499,20 +1496,26 @@ returned instead."
     (set-arity-definitions! arity (cons def (arity-definitions arity)))))
 
 (define-macro-assembler (cache-current-module! asm module scope)
-  (let ((mod-label (intern-module-cache-cell asm scope)))
+  (let ((mod-label (intern-cache-cell asm scope)))
     (emit-static-set! asm module mod-label 0)))
+
+(define-macro-assembler (cache-ref asm dst key)
+  (emit-static-ref asm dst (intern-cache-cell asm key)))
+
+(define-macro-assembler (cache-set! asm key val)
+  (emit-static-set! asm val (intern-cache-cell asm key) 0))
 
 (define-macro-assembler (cached-toplevel-box asm dst scope sym bound?)
   (let ((sym-label (intern-non-immediate asm sym))
-        (mod-label (intern-module-cache-cell asm scope))
-        (cell-label (intern-cache-cell asm scope sym)))
+        (mod-label (intern-cache-cell asm scope))
+        (cell-label (intern-cache-cell asm (cons scope sym))))
     (emit-toplevel-box asm dst cell-label mod-label sym-label bound?)))
 
 (define-macro-assembler (cached-module-box asm dst module-name sym public? bound?)
   (let* ((sym-label (intern-non-immediate asm sym))
          (key (cons public? module-name))
          (mod-name-label (intern-constant asm key))
-         (cell-label (intern-cache-cell asm key sym)))
+         (cell-label (intern-cache-cell asm (acons public? module-name sym))))
     (emit-module-box asm dst cell-label mod-name-label sym-label bound?)))
 
 (define-macro-assembler (slot-map asm proc-slot slot-map)
