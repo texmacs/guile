@@ -262,8 +262,6 @@
 #define SP_REF_PTR(i)		(sp[i].as_ptr)
 #define SP_SET_PTR(i,o)		(sp[i].as_ptr = o)
 
-#define VARIABLE_BOUNDP(v)      (!SCM_UNBNDP (SCM_VARIABLE_REF (v)))
-
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
   ((scm_t_uintptr) (ptr) % alignof_type (type) == 0)
@@ -3168,7 +3166,6 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef UNPACK_8_16
 #undef UNPACK_12_12
 #undef UNPACK_24
-#undef VARIABLE_BOUNDP
 #undef VM_DEFINE_OP
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
