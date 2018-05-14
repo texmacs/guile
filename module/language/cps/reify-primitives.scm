@@ -35,15 +35,6 @@
   #:use-module (system base types internal)
   #:export (reify-primitives))
 
-(define (module-box cps src module name public? bound? val-proc)
-  (with-cps cps
-    (letv box)
-    (let$ body (val-proc box))
-    (letk kbox ($kargs ('box) (box) ,body))
-    (build-term ($continue kbox src
-                  ($primcall 'cached-module-box
-                             (list module name public? bound?) ())))))
-
 (define (primitive-module name)
   (case name
     ((bytevector?
@@ -88,12 +79,13 @@
     (else '(guile))))
 
 (define (primitive-ref cps name k src)
-  (module-box cps src (primitive-module name) name #f #t
-              (lambda (cps box)
-                (with-cps cps
-                  (build-term
-                    ($continue k src
-                      ($primcall 'scm-ref/immediate '(box . 1) (box))))))))
+  (with-cps cps
+    (letv box)
+    (letk kbox ($kargs ('box) (box)
+                 ($continue k src
+                   ($primcall 'scm-ref/immediate '(box . 1) (box)))))
+    ($ ((hashq-ref *ephemeral-reifiers* 'cached-module-box)
+        kbox src (list (primitive-module name) name #f #t) '()))))
 
 (define (builtin-ref cps idx k src)
   (with-cps cps
@@ -275,6 +267,40 @@
            ($continue ktest src
              ($primcall 'cache-ref cache-key ()))))))))
 
+(define-ephemeral (cache-current-module! cps k src param mod)
+  (match param
+    ((scope)
+     (with-cps cps
+       (build-term
+         ($continue k src
+           ($primcall 'cache-set! scope (mod))))))))
+
+(define-ephemeral (cached-toplevel-box cps k src param)
+  (match param
+    ((scope name bound?)
+     (let ((cache-key (cons scope name)))
+       (with-cps cps
+         (letv mod cached)
+         (let$ lookup
+               (reify-lookup
+                src mod name bound?
+                (lambda (cps var)
+                  (with-cps cps
+                    (letk k* ($kargs () () ($continue k src ($values (var)))))
+                    (build-term
+                      ($continue k* src
+                        ($primcall 'cache-set! cache-key (var))))))))
+         (letk kmod ($kargs ('mod) (mod) ,lookup))
+         (letk kinit ($kargs () ()
+                       ($continue kmod src ($primcall 'cache-ref scope ()))))
+         (letk kok ($kargs () () ($continue k src ($values (cached)))))
+         (letk ktest
+               ($kargs ('cached) (cached)
+                 ($branch kinit kok src 'heap-object? #f (cached))))
+         (build-term
+           ($continue ktest src
+             ($primcall 'cache-ref cache-key ()))))))))
+
 ;; FIXME: Instead of having to check this, instead every primcall that's
 ;; not ephemeral should be handled by compile-bytecode.
 (define (compute-known-primitives)
@@ -300,9 +326,6 @@
       scm->f64
       s64->u64 s64->scm scm->s64
       u64->s64 u64->scm scm->u64 scm->u64/truncate
-      cache-current-module!
-      cached-toplevel-box
-      cached-module-box
       wind unwind
       push-fluid pop-fluid fluid-ref fluid-set!
       push-dynamic-state pop-dynamic-state
