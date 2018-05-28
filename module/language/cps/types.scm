@@ -1512,13 +1512,16 @@ where (A0 <= A <= A1) and (B0 <= B <= B1)."
 (define-type-inferrer (sqrt x result)
   (let ((type (&type x)))
     (cond
-     ((and (zero? (logand type &complex)) (<= 0 (&min x)))
+     ((and (zero? (logand type &complex))
+           (non-negative? (&min x)))
       (define! result
                (logior type &flonum)
-               (inexact->exact (floor (sqrt (&min x))))
+               (exact-integer-sqrt (&min x))
                (if (inf? (&max x))
                    +inf.0
-                   (inexact->exact (ceiling (sqrt (&max x)))))))
+                   (call-with-values (lambda () (exact-integer-sqrt (&max x)))
+                     (lambda (s r)
+                       (if (zero? r) s (+ s 1)))))))
      (else
       (define! result (logior type &flonum &complex) -inf.0 +inf.0)))))
 
