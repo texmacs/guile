@@ -1481,6 +1481,7 @@ scm_bootstrap_vm (void)
   /* page_size should be a power of two.  */
   if (page_size & (page_size - 1))
     abort ();
+  scm_vm_intrinsics.expand_stack = vm_expand_stack;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");

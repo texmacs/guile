@@ -178,8 +178,9 @@
       {                                                             \
         if (SCM_UNLIKELY (sp < vp->stack_limit))                    \
           {                                                         \
+            struct scm_vm_intrinsics *i = (void*)intrinsics;        \
             SYNC_IP ();                                             \
-            vm_expand_stack (vp, sp);                               \
+            i->expand_stack (vp, sp);                               \
             CACHE_SP ();                                            \
           }                                                         \
         else                                                        \
