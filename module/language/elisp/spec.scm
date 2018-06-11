@@ -1,4 +1,4 @@
-;;; Guile Emac Lisp
+;;; Guile Emacs Lisp
 
 ;; Copyright (C) 2001, 2009, 2010, 2018 Free Software Foundation, Inc.
 
