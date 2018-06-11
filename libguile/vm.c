@@ -429,7 +429,6 @@ static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM
 
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_unbound (SCM sym) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_missing_value (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN SCM_NOINLINE;
@@ -488,14 +487,6 @@ static void
 vm_error_bad_instruction (scm_t_uint32 inst)
 {
   vm_error ("VM: Bad instruction: ~s", scm_from_uint32 (inst));
-}
-
-static void
-vm_error_unbound (SCM sym)
-{
-  scm_error_scm (scm_misc_error_key, SCM_BOOL_F,
-                 scm_from_latin1_string ("Unbound variable: ~s"),
-                 scm_list_1 (sym), SCM_BOOL_F);
 }
 
 static void
