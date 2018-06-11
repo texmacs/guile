@@ -1,6 +1,6 @@
 ;;; Compilation targets
 
-;; Copyright (C) 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014,2017-2018 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 (define-module (system base target)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 regex)
-  #:export (target-type with-target
+  #:export (target-type with-target with-native-target
 
             target-cpu target-vendor target-os
 
@@ -63,6 +63,12 @@
                   (%target-endianness (cpu-endianness cpu))
                   (%target-word-size (triplet-pointer-size target)))
       (thunk))))
+
+(define (with-native-target thunk)
+  (with-fluids ((%target-type %host-type)
+                (%target-endianness (native-endianness))
+                (%target-word-size %native-word-size))
+    (thunk)))
 
 (define (cpu-endianness cpu)
   "Return the endianness for CPU."
