@@ -1,5 +1,5 @@
-/* Copyright (C) 1995-1998, 2000, 2001, 2003, 2004, 2006, 2009, 2011,
- *   2013, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998, 2000-2001, 2003-2004, 2006, 2009, 2011,
+ *   2013, 2015, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +30,7 @@
 #include "libguile/eval.h"
 #include "libguile/hash.h"
 #include "libguile/smob.h"
+#include "libguile/strorder.h"
 #include "libguile/variable.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"

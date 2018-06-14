@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2006, 2009-2014, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,7 +29,9 @@
 #include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/arrays.h"
+#include "libguile/srfi-4.h"
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,
  * but alack, all we have is this crufty C.

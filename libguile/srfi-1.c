@@ -1,7 +1,7 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
  * Copyright (C) 1995-1997, 2000-2003, 2005, 2006, 2008-2011, 2013
- *   2014 Free Software Foundation, Inc.
+ *   2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,8 @@
 #include "libguile/list.h"
 #include "libguile/eval.h"
 #include "libguile/srfi-1.h"
+#include "libguile/values.h"
+#include "libguile/extensions.h"
 
 #include <stdarg.h>
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2004,2008-2015,2017 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2004,2008-2015,2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,7 @@
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"
 #include "libguile/eval.h"
+#include "libguile/extensions.h"
 #include "libguile/gsubr.h"
 #include "libguile/hashtab.h"
 #include "libguile/keywords.h"
@@ -46,6 +47,7 @@
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
+#include "libguile/weak-table.h"
 
 #include "libguile/validate.h"
 #include "libguile/goops.h"

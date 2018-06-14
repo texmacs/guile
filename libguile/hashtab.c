@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
- *   2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996, 1998-2001, 2003-2004, 2006,
+ *   2008-2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,14 +29,16 @@
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
-#include "libguile/hash.h"
-#include "libguile/eval.h"
-#include "libguile/vectors.h"
-#include "libguile/ports.h"
+#include "libguile/boolean.h"
 #include "libguile/bdw-gc.h"
-
-#include "libguile/validate.h"
+#include "libguile/eq.h"
+#include "libguile/eval.h"
+#include "libguile/hash.h"
 #include "libguile/hashtab.h"
+#include "libguile/ports.h"
+#include "libguile/validate.h"
+#include "libguile/vectors.h"
+#include "libguile/weak-table.h"
 
 
 

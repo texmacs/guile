@@ -21,6 +21,12 @@
 #endif
 
 #include "_scm.h"
+#include "alist.h"
+#include "cache-internal.h"
+#include "extensions.h"
+#include "fluids.h"
+#include "goops.h"
+#include "keywords.h"
 #include "intrinsics.h"
 
 

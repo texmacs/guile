@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2014, 2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,9 @@
 #include <string.h>
 #include "_scm.h"
 #include "instructions.h"
+#include "alist.h"
+#include "eval.h"
+#include "extensions.h"
 #include "modules.h"
 #include "programs.h"
 #include "procprop.h" /* scm_sym_name */

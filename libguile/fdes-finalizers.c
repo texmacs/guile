@@ -1,4 +1,4 @@
-/* Copyright (C) 2016  Free Software Foundation, Inc.
+/* Copyright (C) 2016, 2018  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,6 +22,8 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/extensions.h"
+#include "libguile/eval.h"
 #include "libguile/hashtab.h"
 #include "libguile/numbers.h"
 #include "libguile/fdes-finalizers.h"

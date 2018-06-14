@@ -140,6 +140,11 @@
 #include "libguile/extensions.h"
 #include "libguile/uniform.h"
 #include "libguile/deprecated.h"
+#include "libguile/weak-set.h"
+#include "libguile/weak-table.h"
+#include "libguile/weak-vector.h"
+#include "libguile/foreign-object.h"
+#include "libguile/r6rs-ports.h"
 
 #include "libguile/init.h"
 #include "libguile/private-options.h"

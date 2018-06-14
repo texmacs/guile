@@ -1,4 +1,4 @@
-/* Copyright (C) 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2014, 2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,6 +28,8 @@
 #include <gc/gc_typed.h>
 
 #include "libguile/_scm.h"
+#include "libguile/alist.h"
+#include "libguile/finalizers.h"
 #include "libguile/hash.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"

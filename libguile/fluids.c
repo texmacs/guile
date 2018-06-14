@@ -1,5 +1,5 @@
-/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010,
- *    2011, 2012, 2013, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1996-1997,2000-2001,2004,2006-2013, 2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,17 +25,19 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
-#include "libguile/atomics-internal.h"
-#include "libguile/cache-internal.h"
-#include "libguile/print.h"
-#include "libguile/dynwind.h"
-#include "libguile/fluids.h"
 #include "libguile/alist.h"
-#include "libguile/eval.h"
-#include "libguile/ports.h"
-#include "libguile/deprecation.h"
-#include "libguile/validate.h"
+#include "libguile/atomics-internal.h"
 #include "libguile/bdw-gc.h"
+#include "libguile/cache-internal.h"
+#include "libguile/deprecation.h"
+#include "libguile/dynwind.h"
+#include "libguile/eval.h"
+#include "libguile/fluids.h"
+#include "libguile/hashtab.h"
+#include "libguile/ports.h"
+#include "libguile/print.h"
+#include "libguile/validate.h"
+#include "libguile/weak-table.h"
 
 /* A dynamic state associates fluids with values.  There are two
    representations of a dynamic state in Guile: the active

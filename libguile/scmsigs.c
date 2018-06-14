@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006,
- *   2007, 2008, 2009, 2011, 2013, 2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2002, 2004, 2006-2009, 2011, 2013-2014, 2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,6 +44,8 @@
 #include "libguile/_scm.h"
 
 #include "libguile/async.h"
+#include "libguile/dynwind.h"
+#include "libguile/feature.h"
 #include "libguile/eval.h"
 #include "libguile/vectors.h"
 #include "libguile/threads.h"

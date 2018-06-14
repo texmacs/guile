@@ -1,6 +1,6 @@
 /* Printing of backtraces and error messages
  * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009,
- *   2010, 2011, 2014 Free Software Foundation
+ *   2010, 2011, 2014, 2018 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,22 +32,24 @@
 #include <io.h>
 #endif
 
-#include "libguile/deprecation.h"
-#include "libguile/stacks.h"
-#include "libguile/srcprop.h"
-#include "libguile/struct.h"
-#include "libguile/strports.h"
-#include "libguile/throw.h"
-#include "libguile/fluids.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/dynwind.h"
-#include "libguile/frames.h"
-
-#include "libguile/validate.h"
 #include "libguile/backtrace.h"
+#include "libguile/deprecation.h"
+#include "libguile/dynwind.h"
+#include "libguile/eval.h"
 #include "libguile/filesys.h"
+#include "libguile/fluids.h"
+#include "libguile/frames.h"
+#include "libguile/keywords.h"
+#include "libguile/ports.h"
+#include "libguile/posix.h"
 #include "libguile/private-options.h"
+#include "libguile/srcprop.h"
+#include "libguile/stacks.h"
+#include "libguile/strings.h"
+#include "libguile/strports.h"
+#include "libguile/struct.h"
+#include "libguile/throw.h"
+#include "libguile/validate.h"
 
 /* {Error reporting and backtraces}
  *

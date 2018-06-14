@@ -1,5 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,
- *   2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
+/* Copyright (C) 1995-1996,1997-2014,2018
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -28,7 +27,6 @@
 #include <stdarg.h>
 
 #include "libguile/__scm.h"
-
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/async.h"
@@ -38,17 +36,21 @@
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"
+#include "libguile/eval.h"
 #include "libguile/expand.h"
 #include "libguile/feature.h"
+#include "libguile/fluids.h"
 #include "libguile/goops.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
+#include "libguile/keywords.h"
 #include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/memoize.h"
 #include "libguile/modules.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
+#include "libguile/private-options.h"
 #include "libguile/procprop.h"
 #include "libguile/programs.h"
 #include "libguile/smob.h"
@@ -61,9 +63,6 @@
 #include "libguile/values.h"
 #include "libguile/vectors.h"
 #include "libguile/vm.h"
-
-#include "libguile/eval.h"
-#include "libguile/private-options.h"
 
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2016, 2018 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -62,9 +62,12 @@
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
+#include "libguile/finalizers.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
 #include "libguile/bdw-gc.h"
+#include "libguile/goops.h"
+#include "libguile/values.h"
 
 #include "libguile/validate.h"
 #include "libguile/numbers.h"

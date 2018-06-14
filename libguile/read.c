@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1997, 1999-2001, 2003, 2004, 2006-2012, 2014, 2015
+/* Copyright (C) 1995-1997, 1999-2001, 2003-2004, 2006-2012, 2014-2015, 2018
  *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@
 #include "libguile/srcprop.h"
 #include "libguile/hashtab.h"
 #include "libguile/hash.h"
+#include "libguile/eq.h"
+#include "libguile/fluids.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
 #include "libguile/fports.h"

@@ -23,31 +23,29 @@
 
 #include <math.h>
 
-#include "libguile/_scm.h"
-#include "libguile/array-map.h"
-#include "libguile/stackchk.h"
-#include "libguile/strorder.h"
-#include "libguile/async.h"
-#include "libguile/smob.h"
-#include "libguile/arrays.h"
-#include "libguile/vectors.h"
-#include "libguile/hashtab.h"
-#include "libguile/bytevectors.h"
-#include "libguile/syntax.h"
-
-#include "libguile/struct.h"
-#include "libguile/goops.h"
-
-#include "libguile/validate.h"
-#include "libguile/eq.h"
-
-#include "libguile/private-options.h"
-
-
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#include "libguile/_scm.h"
+#include "libguile/array-map.h"
+#include "libguile/async.h"
+#include "libguile/bitvectors.h"
+#include "libguile/bytevectors.h"
+#include "libguile/eq.h"
+#include "libguile/eval.h"
+#include "libguile/generalized-arrays.h"
+#include "libguile/goops.h"
+#include "libguile/hashtab.h"
+#include "libguile/private-options.h"
+#include "libguile/smob.h"
+#include "libguile/stackchk.h"
+#include "libguile/strorder.h"
+#include "libguile/struct.h"
+#include "libguile/syntax.h"
+#include "libguile/validate.h"
+#include "libguile/vectors.h"
+
 
 
 static SCM scm_i_eq_p (SCM x, SCM y, SCM rest);

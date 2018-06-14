@@ -1,5 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2006,
- *   2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2002, 2006, 2008-2012, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,10 +29,12 @@
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/debug.h"
+#include "libguile/keywords.h"
 #include "libguile/hashtab.h"
 #include "libguile/hash.h"
 #include "libguile/ports.h"
 #include "libguile/gc.h"
+#include "libguile/weak-table.h"
 
 #include "libguile/validate.h"
 #include "libguile/srcprop.h"

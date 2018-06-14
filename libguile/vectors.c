@@ -1,5 +1,5 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010,
- *   2011, 2012, 2014 Free Software Foundation, Inc.
+ *   2011, 2012, 2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,6 +29,7 @@
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/array-handle.h"
+#include "libguile/generalized-vectors.h"
 
 #include "libguile/bdw-gc.h"
 
@@ -59,10 +60,6 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
-  /* it's unsafe to access the memory of a weak vector */
-  if (SCM_I_WVECTP (vec))
-    scm_wrong_type_arg_msg (NULL, 0, vec, "non-weak vector");
-
   scm_array_get_handle (vec, h);
   if (1 != scm_array_handle_rank (h))
     {

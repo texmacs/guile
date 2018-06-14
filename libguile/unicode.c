@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -27,6 +27,7 @@
 #include <uniname.h>
 
 #include "libguile/_scm.h"
+#include "libguile/extensions.h"
 #include "libguile/validate.h"
 
 #include "libguile/unicode.h"

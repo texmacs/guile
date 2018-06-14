@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-1998, 2000-2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1994-1998, 2000-2011, 2013-2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,7 @@
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/feature.h"
+#include "libguile/fluids.h"
 #include "libguile/load.h"
 #include "libguile/read.h"
 #include "libguile/script.h"

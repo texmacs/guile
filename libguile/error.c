@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1998, 2000, 2001, 2004, 2006, 2010, 2012-2014
+/* Copyright (C) 1995-1998, 2000-2001, 2004, 2006, 2010, 2012-2014, 2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/dynwind.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"

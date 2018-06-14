@@ -1,4 +1,4 @@
-/* Copyright (C) 2010, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2013, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,8 +28,10 @@
 #include <poll.h>
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/bytevectors.h"
 #include "libguile/error.h"
+#include "libguile/extensions.h"
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/validate.h"

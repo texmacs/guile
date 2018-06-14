@@ -25,6 +25,7 @@
 #include "_scm.h"
 #include "threads.h"
 #include "instructions.h"
+#include "extensions.h"
 
 
 SCM_SYMBOL (sym_left_arrow, "<-");

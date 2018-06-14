@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,16 @@
 #include "libguile/smob.h"
 #include "libguile/control.h"
 #include "libguile/eval.h"
+#include "libguile/goops.h"
+#include "libguile/hashtab.h"
+#include "libguile/weak-set.h"
+#include "libguile/weak-table.h"
+#include "libguile/fluids.h"
+#include "libguile/keywords.h"
+#include "libguile/atomic.h"
+#include "libguile/bitvectors.h"
+#include "libguile/arrays.h"
+#include "libguile/weak-vector.h"
 #include "libguile/macros.h"
 #include "libguile/procprop.h"
 #include "libguile/read.h"

@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2015 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -21,32 +21,31 @@
 # include <config.h>
 #endif
 
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#endif
+
+#include <byteswap.h>
+#include <striconveh.h>
+#include <uniconv.h>
+#include <unistr.h>
+#include <string.h>
 #include <alloca.h>
 #include <assert.h>
 
 #include <gmp.h>
 
 #include "libguile/_scm.h"
+#include "libguile/dynwind.h"
 #include "libguile/extensions.h"
 #include "libguile/bytevectors.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 #include "libguile/arrays.h"
 #include "libguile/array-handle.h"
 #include "libguile/uniform.h"
 #include "libguile/srfi-4.h"
-
-#include <byteswap.h>
-#include <striconveh.h>
-#include <uniconv.h>
-#include <unistr.h>
-
-#ifdef HAVE_LIMITS_H
-# include <limits.h>
-#endif
-
-#include <string.h>
-
 
 
 /* Utilities.  */

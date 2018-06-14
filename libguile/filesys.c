@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,35 +32,24 @@
 #endif
 
 #include <alloca.h>
+#include <dirent.h>
 #include <dirname.h>
-
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
-
-#include "libguile/_scm.h"
-#include "libguile/smob.h"
-#include "libguile/fdes-finalizers.h"
-#include "libguile/feature.h"
-#include "libguile/fports.h"
-#include "libguile/strings.h"
-#include "libguile/iselect.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-
-#include "libguile/validate.h"
-#include "libguile/filesys.h"
-#include "libguile/load.h"	/* for scm_i_mirror_backslashes */
-
-
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
+#include <fcntl.h>
+#include <full-read.h>
+#include <full-write.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef HAVE_DIRECT_H
 #include <direct.h>
+#endif
+
+#ifdef HAVE_IO_H
+#include <io.h>
 #endif
 
 #ifdef TIME_WITH_SYS_TIME
@@ -74,8 +63,6 @@
 # endif
 #endif
 
-#include <unistd.h>
-
 #ifdef LIBC_H_WITH_UNISTD_H
 #include <libc.h>
 #endif
@@ -84,28 +71,39 @@
 #include <string.h>
 #endif
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
-
-#include <dirent.h>
-
-#define NAMLEN(dirent)  strlen ((dirent)->d_name)
 
 #ifdef HAVE_SYS_SENDFILE_H
 # include <sys/sendfile.h>
 #endif
 
+#include "libguile/_scm.h"
+#include "libguile/async.h"
+#include "libguile/dynwind.h"
+#include "libguile/fdes-finalizers.h"
+#include "libguile/feature.h"
+#include "libguile/filesys.h"
+#include "libguile/fports.h"
+#include "libguile/iselect.h"
+#include "libguile/load.h"	/* for scm_i_mirror_backslashes */
+#include "libguile/ports-internal.h"
+#include "libguile/ports.h"
+#include "libguile/posix.h"
+#include "libguile/smob.h"
+#include "libguile/srfi-13.h"
+#include "libguile/strings.h"
+#include "libguile/validate.h"
+#include "libguile/vectors.h"
+
+
+
+#define NAMLEN(dirent)  strlen ((dirent)->d_name)
+
 /* Glibc's `sendfile' function.  */
 #define sendfile_or_sendfile64			\
   CHOOSE_LARGEFILE (sendfile, sendfile64)
-
-#include <full-read.h>
-#include <full-write.h>
 
 
 

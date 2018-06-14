@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2004, 2006, 2008-2017 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2004, 2006, 2008-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/deprecation.h"
+#include "libguile/deprecated.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 

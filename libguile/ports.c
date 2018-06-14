@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2001, 2003-2004, 2006-2017
+/* Copyright (C) 1995-2001, 2003-2004, 2006-2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -48,7 +48,8 @@
 #include "libguile/smob.h"
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"
-
+#include "libguile/extensions.h"
+#include "libguile/finalizers.h"
 #include "libguile/keywords.h"
 #include "libguile/hashtab.h"
 #include "libguile/strings.h"
@@ -56,6 +57,7 @@
 #include "libguile/validate.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
+#include "libguile/private-options.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-set.h"
 #include "libguile/fluids.h"

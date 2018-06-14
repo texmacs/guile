@@ -1,6 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2006-2015, 2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -49,16 +47,21 @@
 #include <full-write.h>
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
+#include "libguile/dynwind.h"
+#include "libguile/extensions.h"
 #include "libguile/fdes-finalizers.h"
+#include "libguile/fluids.h"
+#include "libguile/filesys.h"
+#include "libguile/fports.h"
+#include "libguile/gc.h"
+#include "libguile/hashtab.h"
+#include "libguile/keywords.h"
+#include "libguile/ports-internal.h"
+#include "libguile/posix.h"
+#include "libguile/read.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
-#include "libguile/gc.h"
-#include "libguile/posix.h"
-#include "libguile/dynwind.h"
-#include "libguile/hashtab.h"
-
-#include "libguile/fports.h"
-#include "libguile/ports-internal.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX

@@ -25,12 +25,11 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
-#include "libguile/strings.h"
-#include "libguile/gc.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
-
 #include "libguile/extensions.h"
+#include "libguile/gc.h"
+#include "libguile/strings.h"
 
 typedef struct extension_t
 {

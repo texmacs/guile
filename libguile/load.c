@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2017, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,7 +31,12 @@
 #include "libguile/alist.h"
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"
+#include "libguile/eq.h"
+#include "libguile/strports.h"
+#include "libguile/backtrace.h"
+#include "libguile/keywords.h"
 #include "libguile/eval.h"
+#include "libguile/filesys.h"
 #include "libguile/fports.h"
 #include "libguile/libpath.h"
 #include "libguile/loader.h"

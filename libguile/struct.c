@@ -32,6 +32,8 @@
 #include "libguile/chars.h"
 #include "libguile/deprecation.h"
 #include "libguile/eval.h"
+#include "libguile/finalizers.h"
+#include "libguile/goops.h"
 #include "libguile/alist.h"
 #include "libguile/hashtab.h"
 #include "libguile/ports.h"

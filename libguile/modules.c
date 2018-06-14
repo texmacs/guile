@@ -30,6 +30,7 @@
 #include "libguile/smob.h"
 #include "libguile/procprop.h"
 #include "libguile/vectors.h"
+#include "libguile/keywords.h"
 #include "libguile/hashtab.h"
 #include "libguile/struct.h"
 #include "libguile/variable.h"

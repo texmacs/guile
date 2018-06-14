@@ -1,5 +1,5 @@
 /* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011,
- *   2012, 2013 Free Software Foundation, Inc.
+ *   2012, 2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,18 +50,17 @@
 #endif
 
 #include "libguile/_scm.h"
+
+#include "libguile/bdw-gc.h"
+#include "libguile/deprecation.h"
+#include "libguile/eval.h"
+#include "libguile/guardians.h"
+#include "libguile/hashtab.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"
 #include "libguile/validate.h"
-#include "libguile/hashtab.h"
-#include "libguile/deprecation.h"
-#include "libguile/eval.h"
-
-#include "libguile/guardians.h"
-#include "libguile/bdw-gc.h"
-
-
+#include "libguile/weak-vector.h"
 
 
 static scm_t_bits tc16_guardian;

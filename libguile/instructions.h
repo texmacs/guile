@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2012-2013, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -19,7 +19,7 @@
 #ifndef _SCM_INSTRUCTIONS_H_
 #define _SCM_INSTRUCTIONS_H_
 
-#include <libguile.h>
+#include <libguile/__scm.h>
 #include <libguile/vm-operations.h>
 
 #ifdef BUILDING_LIBGUILE

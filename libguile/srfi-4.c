@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2009, 2010, 2011, 2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +30,7 @@
 #include "libguile/error.h"
 #include "libguile/eval.h"
 #include "libguile/extensions.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/uniform.h"
 #include "libguile/validate.h"
 

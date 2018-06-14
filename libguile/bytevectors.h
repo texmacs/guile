@@ -1,7 +1,7 @@
 #ifndef SCM_BYTEVECTORS_H
 #define SCM_BYTEVECTORS_H
 
-/* Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2011, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,6 +22,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/uniform.h"
 
 
 /* R6RS bytevectors.  */
