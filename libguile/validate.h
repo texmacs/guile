@@ -31,8 +31,6 @@
 
 
 
-#define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NIMP, "non-immediate")
-
 #define SCM_VALIDATE_BOOL(pos, flag) \
   do { \
     SCM_ASSERT_TYPE (scm_is_bool (flag), flag, pos, FUNC_NAME, "boolean"); \

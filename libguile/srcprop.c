@@ -196,6 +196,9 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#define SCM_VALIDATE_NIM(pos, scm) \
+  SCM_MAKE_VALIDATE_MSG (pos, scm, NIMP, "non-immediate")
+
 /* Perhaps this procedure should look through an alist
    and try to make a srcprops-object...? */
 SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,

@@ -411,7 +411,6 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
 #error "Cannot deal with this platform's scm_t_bits size"
 #endif
     }
-  SCM_VALIDATE_NIM (1, n);
   if (SCM_REALP (n))
     return scm_from_double (SCM_REAL_VALUE (n)
 			    * scm_c_uniform01 (SCM_RSTATE (state)));
