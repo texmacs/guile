@@ -43,25 +43,6 @@
 /* The size of `scm_t_bits'.  */
 #define SIZEOF_SCM_T_BITS SIZEOF_VOID_P
 
-/* Undefine HAVE_STRUCT_TIMESPEC, because the libguile C code doesn't
-   need it anymore, and because on MinGW:
-
-   - the definition of struct timespec is provided (if at all) by
-     pthread.h
-
-   - pthread.h will _not_ define struct timespec if
-     HAVE_STRUCT_TIMESPEC is 1, because then it thinks that it doesn't
-     need to.
-
-   The libguile C code doesn't need HAVE_STRUCT_TIMESPEC anymore,
-   because the value of HAVE_STRUCT_TIMESPEC has already been
-   incorporated in how scm_t_timespec is defined (in scmconfig.h), and
-   the rest of the libguile C code now just uses scm_t_timespec.
- */
-#ifdef HAVE_STRUCT_TIMESPEC
-#undef HAVE_STRUCT_TIMESPEC
-#endif
-
 #include <errno.h>
 #include <verify.h>
 #include <alignof.h>
