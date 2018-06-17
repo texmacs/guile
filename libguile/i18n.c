@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2014,2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,6 +29,7 @@
 #include "libguile/strings.h"
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"
+#include "libguile/syscalls.h"
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/threads.h"

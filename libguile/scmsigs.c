@@ -48,6 +48,7 @@
 #include "libguile/feature.h"
 #include "libguile/eval.h"
 #include "libguile/vectors.h"
+#include "libguile/syscalls.h"
 #include "libguile/threads.h"
 
 #include "libguile/validate.h"

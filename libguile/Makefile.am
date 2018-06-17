@@ -456,7 +456,9 @@ BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h $(BUILT_INCLUDES) \
 # Makefile expects it to be built.
 all-local: guile-procedures.texi
 
-EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
+EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = \
+    _scm.h					\
+    syscalls.h					\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     posix.c net_db.c socket.c			\

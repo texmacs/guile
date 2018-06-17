@@ -61,6 +61,7 @@
 #include "libguile/posix.h"
 #include "libguile/read.h"
 #include "libguile/strings.h"
+#include "libguile/syscalls.h"
 #include "libguile/validate.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT

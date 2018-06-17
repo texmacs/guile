@@ -36,6 +36,7 @@
 #include "libguile/validate.h"
 #include "libguile/modules.h"
 #include "libguile/strports.h"
+#include "libguile/syscalls.h"
 #include "libguile/ports-internal.h"
 
 #include <unistd.h>

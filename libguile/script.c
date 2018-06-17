@@ -78,36 +78,6 @@ scm_cat_path (char *str1, const char *str2, long n)
   return str1;
 }
 
-#if 0 
-static char *
-scm_try_path (char *path)
-{
-  FILE *f;
-  /* fprintf(stderr, "Trying %s\n", path);fflush(stderr); */
-  if (!path)
-    return 0L;
-  SCM_SYSCALL (f = fopen (path, "r");
-    );
-  if (f)
-    {
-      fclose (f);
-      return path;
-    }
-  free (path);
-  return 0L;
-}
-
-static char *
-scm_sep_init_try (char *path, const char *sep, const char *initname)
-{
-  if (path)
-    path = scm_cat_path (path, sep, 0L);
-  if (path)
-    path = scm_cat_path (path, initname, 0L);
-  return scm_try_path (path);
-}
-#endif 
-
 #ifndef LINE_INCREMENTORS
 #define LINE_INCREMENTORS  '\n'
 #ifdef MSDOS

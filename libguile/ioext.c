@@ -39,6 +39,7 @@
 #include "libguile/ports-internal.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
+#include "libguile/syscalls.h"
 #include "libguile/validate.h"
 #include "libguile/weak-set.h"
 

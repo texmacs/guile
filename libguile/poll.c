@@ -34,6 +34,7 @@
 #include "libguile/extensions.h"
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
+#include "libguile/syscalls.h"
 #include "libguile/validate.h"
 
 #include "libguile/poll.h"
