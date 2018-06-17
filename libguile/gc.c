@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006,
- *   2008, 2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2003,2006,2008-2014,2016-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,11 +30,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-
-#ifdef __ia64__
-#include <ucontext.h>
-extern unsigned long * __libc_ia64_register_backing_store_base;
-#endif
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"

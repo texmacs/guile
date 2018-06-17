@@ -93,10 +93,6 @@ SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 #define scm_gc_running_p  0
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
-#ifdef __ia64__
-void *scm_ia64_ar_bsp (const void *);
-#endif
-
 
 
 SCM_API unsigned long scm_gc_ports_collected;

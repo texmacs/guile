@@ -3,7 +3,8 @@
 #ifndef SCM_CONTINUATIONS_H
 #define SCM_CONTINUATIONS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2001,2006,2008-2010,2012-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,12 +24,10 @@
 
 
 
+#include <setjmp.h>
+
 #include "libguile/__scm.h"
 
-#ifdef __ia64__
-#include <signal.h>
-#include <ucontext.h>
-#endif /* __ia64__ */
 
 
 #define SCM_CONTINUATIONP(x) \
@@ -44,11 +43,11 @@
 
 typedef struct 
 {
-  scm_i_jmp_buf jmpbuf;
-#ifdef __ia64__
-  void *backing_store;
-  unsigned long backing_store_size;
-#endif /* __ia64__ */
+  jmp_buf jmpbuf;
+#if SCM_HAVE_AUXILIARY_STACK
+  void *auxiliary_stack;
+  unsigned long auxiliary_stack_size;
+#endif
   size_t num_stack_items;   /* size of the saved stack.  */
   SCM root;                 /* continuation root identifier.  */
   struct scm_vm *vp;        /* vm */

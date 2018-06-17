@@ -26,6 +26,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#if SCM_HAVE_AUXILIARY_STACK
+#include <ucontext.h>
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/backtrace.h"
@@ -112,6 +116,49 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 # define SCM_FLUSH_REGISTER_WINDOWS /* empty */
 #endif
 
+static void
+capture_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
+{
+#if SCM_HAVE_AUXILIARY_STACK
+# ifndef __ia64__
+# error missing auxiliary stack implementation for architecture
+# endif
+  char *top;
+  ucontext_t ctx;
+
+  if (getcontext (&ctx) != 0)
+    abort ();
+
+#if defined __hpux
+  __uc_get_ar_bsp (ctx, (uint64_t *) &top);
+#elif defined linux
+  top = (char *) ctx->uc_mcontext.sc_ar_bsp;
+#elif defined __FreeBSD__
+  top = (char *)(ctx->uc_mcontext.mc_special.bspstore
+                 + ctx->uc_mcontext.mc_special.ndirty);
+#else
+#error missing auxiliary stack implementation for ia64 on this OS
+#endif
+
+  continuation->auxiliary_stack_size =
+    top - (char *) thread->auxiliary_stack_base;
+  continuation->auxiliary_stack =
+    scm_gc_malloc (continuation->auxiliary_stack_size,
+                   "continuation auxiliary stack");
+  memcpy (continuation->auxiliary_stack, thread->auxiliary_stack_base,
+          continuation->auxiliary_stack_size);
+#endif /* SCM_HAVE_AUXILIARY_STACK */
+}
+
+static void
+restore_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
+{
+#if SCM_HAVE_AUXILIARY_STACK
+  memcpy (thread->auxiliary_stack_base, continuation->auxiliary_stack,
+          continuation->auxiliary_stack_size);
+#endif
+}
+
 /* this may return more than once: the first time with the escape
    procedure, then subsequently with SCM_UNDEFINED (the vals already having been
    placed on the VM stack). */
@@ -142,27 +189,13 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
   continuation->vp = vp;
   continuation->vm_cont = vm_cont;
   saved_cookie = vp->resumable_prompt_cookie;
+  capture_auxiliary_stack (thread, continuation);
 
   SCM_NEWSMOB (cont, tc16_continuation, continuation);
 
-  *first = !SCM_I_SETJMP (continuation->jmpbuf);
+  *first = !setjmp (continuation->jmpbuf);
   if (*first)
-    {
-#ifdef __ia64__
-      continuation->backing_store_size =
-	(char *) scm_ia64_ar_bsp(&continuation->jmpbuf.ctx)
-	-
-	(char *) thread->register_backing_store_base;
-      continuation->backing_store = NULL;
-      continuation->backing_store = 
-        scm_gc_malloc (continuation->backing_store_size,
-		       "continuation backing store");
-      memcpy (continuation->backing_store, 
-              (void *) thread->register_backing_store_base, 
-              continuation->backing_store_size);
-#endif /* __ia64__ */
-      return make_continuation_trampoline (cont);
-    }
+    return make_continuation_trampoline (cont);
   else
     {
       vp->resumable_prompt_cookie = saved_cookie;
@@ -264,31 +297,12 @@ copy_stack_and_call (scm_t_contregs *continuation,
 
   memcpy (dst, continuation->stack,
 	  sizeof (SCM_STACKITEM) * continuation->num_stack_items);
-#ifdef __ia64__
-  thread->pending_rbs_continuation = continuation;
-#endif
+  restore_auxiliary_stack (thread, continuation);
 
   scm_dynstack_wind (&thread->dynstack, joint);
 
-  SCM_I_LONGJMP (continuation->jmpbuf, 1);
+  longjmp (continuation->jmpbuf, 1);
 }
-
-#ifdef __ia64__
-void
-scm_ia64_longjmp (scm_i_jmp_buf *JB, int VAL)
-{
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  if (t->pending_rbs_continuation)
-    {
-      memcpy (t->register_backing_store_base,
-	      t->pending_rbs_continuation->backing_store,
-	      t->pending_rbs_continuation->backing_store_size);
-      t->pending_rbs_continuation = NULL;
-    }
-  setcontext (&JB->ctx);
-}
-#endif
 
 /* Call grow_stack until the stack space is large enough, then, as the current
  * stack frame might get overwritten, let copy_stack_and_call perform the

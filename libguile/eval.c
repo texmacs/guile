@@ -429,7 +429,7 @@ eval (SCM x, SCM env)
       {
         struct scm_vm *vp;
         SCM k, handler, res;
-        scm_i_jmp_buf registers;
+        jmp_buf registers;
         const void *prev_cookie;
         scm_t_ptrdiff saved_stack_depth;
 
@@ -449,7 +449,7 @@ eval (SCM x, SCM env)
                                   &registers);
 
         prev_cookie = vp->resumable_prompt_cookie;
-        if (SCM_I_SETJMP (registers))
+        if (setjmp (registers))
           {
             /* The prompt exited nonlocally. */
             vp->resumable_prompt_cookie = prev_cookie;

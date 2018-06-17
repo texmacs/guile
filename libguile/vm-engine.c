@@ -269,7 +269,7 @@
 
 static SCM
 VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
-         scm_i_jmp_buf *registers, int resume)
+         jmp_buf *registers, int resume)
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */

@@ -263,12 +263,6 @@ scm_load_startup_files ()
 
 /* The main init code.  */
 
-#ifdef _UNICOS
-typedef int setjmp_type;
-#else
-typedef long setjmp_type;
-#endif
-
 /* All the data needed to invoke the main function.  */
 struct main_func_closure
 {

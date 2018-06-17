@@ -38,7 +38,7 @@
 
 
 
-/* Only to be called if the SCM_I_SETJMP returns 1 */
+/* Only to be called if the setjmp returns 1 */
 SCM
 scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,
                                scm_t_ptrdiff saved_stack_depth)
@@ -86,9 +86,9 @@ reify_partial_continuation (struct scm_vm *vp,
                             union scm_vm_stack_element *saved_fp,
                             union scm_vm_stack_element *saved_sp,
                             scm_t_uint32 *saved_ip,
-                            scm_i_jmp_buf *saved_registers,
+                            jmp_buf *saved_registers,
                             scm_t_dynstack *dynstack,
-                            scm_i_jmp_buf *current_registers)
+                            jmp_buf *current_registers)
 {
   SCM vm_cont;
   scm_t_uint32 flags;
@@ -125,7 +125,7 @@ reify_partial_continuation (struct scm_vm *vp,
 
 void
 scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
-             scm_i_jmp_buf *current_registers)
+             jmp_buf *current_registers)
 {
   SCM cont;
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
@@ -134,7 +134,7 @@ scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
   scm_t_ptrdiff fp_offset, sp_offset;
   union scm_vm_stack_element *fp, *sp;
   scm_t_uint32 *ip;
-  scm_i_jmp_buf *registers;
+  jmp_buf *registers;
   size_t i;
 
   prompt = scm_dynstack_find_prompt (dynstack, tag,
@@ -177,7 +177,7 @@ scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
     vp->sp[n - i - 1].as_scm = argv[i];
 
   /* Jump! */
-  SCM_I_LONGJMP (*registers, 1);
+  longjmp (*registers, 1);
 
   /* Shouldn't get here */
   abort ();
@@ -213,7 +213,7 @@ scm_suspendable_continuation_p (SCM tag)
 {
   scm_t_dynstack_prompt_flags flags;
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
-  scm_i_jmp_buf *registers;
+  jmp_buf *registers;
 
   if (scm_dynstack_find_prompt (&thread->dynstack, tag, &flags,
                                 NULL, NULL, NULL, &registers))

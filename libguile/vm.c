@@ -337,11 +337,11 @@ static void vm_dispatch_abort_hook (struct scm_vm *vp)
 
 static void
 vm_abort (struct scm_vm *vp, SCM tag, size_t nargs,
-          scm_i_jmp_buf *current_registers) SCM_NORETURN;
+          jmp_buf *current_registers) SCM_NORETURN;
 
 static void
 vm_abort (struct scm_vm *vp, SCM tag, size_t nargs,
-          scm_i_jmp_buf *current_registers)
+          jmp_buf *current_registers)
 {
   size_t i;
   SCM *argv;
@@ -381,7 +381,7 @@ vm_reinstate_partial_continuation_inner (void *data_ptr)
 static void
 vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
                                    scm_t_dynstack *dynstack,
-                                   scm_i_jmp_buf *registers)
+                                   jmp_buf *registers)
 {
   struct vm_reinstate_partial_continuation_data data;
   struct scm_vm_cont *cp;
@@ -721,7 +721,7 @@ scm_i_call_with_current_continuation (SCM proc)
 #undef VM_NAME
 
 typedef SCM (*scm_t_vm_engine) (scm_i_thread *current_thread, struct scm_vm *vp,
-                                scm_i_jmp_buf *registers, int resume);
+                                jmp_buf *registers, int resume);
 
 static const scm_t_vm_engine vm_engines[SCM_VM_NUM_ENGINES] =
   { vm_regular_engine, vm_debug_engine };
@@ -1193,12 +1193,12 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
     SCM_FRAME_LOCAL (call_fp, i + 1) = argv[i];
 
   {
-    scm_i_jmp_buf registers;
+    jmp_buf registers;
     int resume;
     const void *prev_cookie = vp->resumable_prompt_cookie;
     SCM ret;
 
-    resume = SCM_I_SETJMP (registers);
+    resume = setjmp (registers);
     if (SCM_UNLIKELY (resume))
       {
         scm_gc_after_nonlocal_exit ();

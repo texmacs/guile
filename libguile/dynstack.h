@@ -3,7 +3,7 @@
 #ifndef SCM_DYNSTACK_H
 #define SCM_DYNSTACK_H
 
-/* Copyright (C) 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2013,2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,6 +22,8 @@
  */
 
 
+
+#include <signal.h>
 
 #include "libguile/__scm.h"
 
@@ -159,7 +161,7 @@ SCM_INTERNAL void scm_dynstack_push_prompt (scm_t_dynstack *,
                                             scm_t_ptrdiff fp_offset,
                                             scm_t_ptrdiff sp_offset,
                                             scm_t_uint32 *ip,
-                                            scm_i_jmp_buf *registers);
+                                            jmp_buf *registers);
 SCM_INTERNAL void scm_dynstack_push_dynwind (scm_t_dynstack *,
                                              SCM enter, SCM leave);
 
@@ -199,7 +201,7 @@ SCM_INTERNAL scm_t_bits* scm_dynstack_find_prompt (scm_t_dynstack *, SCM,
                                                    scm_t_ptrdiff *,
                                                    scm_t_ptrdiff *,
                                                    scm_t_uint32 **,
-                                                   scm_i_jmp_buf **);
+                                                   jmp_buf **);
 
 SCM_INTERNAL SCM scm_dynstack_find_old_fluid_value (scm_t_dynstack *,
                                                     SCM, size_t, SCM);
@@ -208,7 +210,7 @@ SCM_INTERNAL void scm_dynstack_relocate_prompts (scm_t_dynstack *,
                                                  scm_t_ptrdiff);
 
 SCM_INTERNAL void scm_dynstack_wind_prompt (scm_t_dynstack *, scm_t_bits *,
-                                            scm_t_ptrdiff, scm_i_jmp_buf *);
+                                            scm_t_ptrdiff, jmp_buf *);
 
 
 #endif  /* SCM_DYNSTACK_H */

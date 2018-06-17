@@ -414,27 +414,6 @@ typedef void *scm_t_subr;
 
 typedef struct scm_dynamic_state scm_t_dynamic_state;
 
-
-
-/* scm_i_jmp_buf
- *
- * The corresponding SCM_I_SETJMP and SCM_I_LONGJMP are defined in the
- * _scm.h private header.
- */
-
-#if defined (__ia64__)
-# include <signal.h>
-# include <ucontext.h>
-typedef struct {
-  ucontext_t ctx;
-  int fresh;
-} scm_i_jmp_buf;
-
-#else
-# include <setjmp.h>
-typedef jmp_buf scm_i_jmp_buf;
-#endif
-
 
 
 

@@ -393,10 +393,6 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
   t.pending_asyncs = SCM_EOL;
   t.block_asyncs = 1;
   t.base = base->mem_base;
-#ifdef __ia64__
-  t.register_backing_store_base = base->reg_base;
-  t.pending_rbs_continuation = 0;
-#endif
   t.continuation_root = SCM_EOL;
   t.continuation_base = t.base;
   scm_i_pthread_cond_init (&t.sleep_cond, NULL);
@@ -1850,38 +1846,6 @@ scm_init_threads_default_dynamic_state ()
 }
 
 
-/* IA64-specific things.  */
-
-#ifdef __ia64__
-# ifdef __hpux
-void *
-scm_ia64_ar_bsp (const void *ctx)
-{
-  uint64_t bsp;
-  __uc_get_ar_bsp (ctx, &bsp);
-  return (void *) bsp;
-}
-# endif /* hpux */
-# ifdef linux
-#  include <ucontext.h>
-void *
-scm_ia64_ar_bsp (const void *opaque)
-{
-  const ucontext_t *ctx = opaque;
-  return (void *) ctx->uc_mcontext.sc_ar_bsp;
-}
-# endif /* linux */
-# ifdef __FreeBSD__
-#  include <ucontext.h>
-void *
-scm_ia64_ar_bsp (const void *opaque)
-{
-  const ucontext_t *ctx = opaque;
-  return (void *)(ctx->uc_mcontext.mc_special.bspstore
-                  + ctx->uc_mcontext.mc_special.ndirty);
-}
-# endif /* __FreeBSD__ */
-#endif /* __ia64__ */
 
 
 /*

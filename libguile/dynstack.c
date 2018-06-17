@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2013,2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,7 @@
 #endif
 
 #include <assert.h>
+#include <setjmp.h>
 
 #include "libguile/_scm.h"
 #include "libguile/control.h"
@@ -41,7 +42,7 @@
 #define PROMPT_SP(top) ((scm_t_ptrdiff) ((top)[2]))
 #define SET_PROMPT_SP(top, sp) do { top[2] = (scm_t_bits)(sp); } while (0)
 #define PROMPT_IP(top) ((scm_t_uint32 *) ((top)[3]))
-#define PROMPT_JMPBUF(top) ((scm_i_jmp_buf *) ((top)[4]))
+#define PROMPT_JMPBUF(top) ((jmp_buf *) ((top)[4]))
 
 #define WINDER_WORDS 2
 #define WINDER_PROC(top) ((scm_t_guard) ((top)[0]))
@@ -193,7 +194,7 @@ scm_dynstack_push_prompt (scm_t_dynstack *dynstack,
                           scm_t_dynstack_prompt_flags flags,
                           SCM key,
                           scm_t_ptrdiff fp_offset, scm_t_ptrdiff sp_offset,
-                          scm_t_uint32 *ip, scm_i_jmp_buf *registers)
+                          scm_t_uint32 *ip, jmp_buf *registers)
 {
   scm_t_bits *words;
 
@@ -496,7 +497,7 @@ scm_t_bits*
 scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
                           scm_t_dynstack_prompt_flags *flags,
                           scm_t_ptrdiff *fp_offset, scm_t_ptrdiff *sp_offset,
-                          scm_t_uint32 **ip, scm_i_jmp_buf **registers)
+                          scm_t_uint32 **ip, jmp_buf **registers)
 {
   scm_t_bits *walk;
 
@@ -577,7 +578,7 @@ scm_dynstack_find_old_fluid_value (scm_t_dynstack *dynstack, SCM fluid,
 void
 scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
                           scm_t_ptrdiff base_fp_offset,
-                          scm_i_jmp_buf *registers)
+                          jmp_buf *registers)
 {
   scm_t_bits tag = SCM_DYNSTACK_TAG (item);
 

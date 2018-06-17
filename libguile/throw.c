@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2001,2003-2004,2006,2008,2009-2014,2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -77,7 +78,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   SCM res;
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
   scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
-  scm_i_jmp_buf registers;
+  jmp_buf registers;
   const void *prev_cookie;
   scm_t_ptrdiff saved_stack_depth;
 
@@ -116,7 +117,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   scm_dynstack_push_fluid (dynstack, exception_handler_fluid, eh,
                            dynamic_state);
 
-  if (SCM_I_SETJMP (registers))
+  if (setjmp (registers))
     {
       /* A non-local return.  */
       SCM args;

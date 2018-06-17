@@ -158,24 +158,6 @@
 
 
 
-#if defined (__ia64__)
-/* IA64: Implement SCM_I_SETJMP in terms of getcontext. */
-# define SCM_I_SETJMP(JB)			        \
-  ( (JB).fresh = 1,				        \
-    getcontext (&((JB).ctx)),                           \
-    ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
-# define SCM_I_LONGJMP(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
-void scm_ia64_longjmp (scm_i_jmp_buf *, int);
-
-#else
-/* All other systems just use setjmp and longjmp.  */
-
-#define SCM_I_SETJMP setjmp
-#define SCM_I_LONGJMP longjmp
-#endif
-
-
-
 #if (defined __GNUC__)
 # define SCM_NOINLINE __attribute__ ((__noinline__))
 #else

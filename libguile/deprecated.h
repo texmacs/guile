@@ -1,7 +1,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003-2007, 2009-2017 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2007, 2009-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,8 @@
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 /* Deprecated declarations go here.  */
+
+#define scm_i_jmp_buf scm_i_jmp_buf_GONE__USE_JMP_BUF_INSTEAD
 
 void scm_i_init_deprecated (void);
 
