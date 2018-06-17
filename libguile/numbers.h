@@ -655,6 +655,76 @@ SCM_INTERNAL void scm_init_numbers (void);
 
 #define SCM_NUM2DOUBLE(pos, arg) (scm_to_double (arg))
 
+#define SCM_OUT_OF_RANGE(pos, arg) \
+  do { scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
+
+#define SCM_ASSERT_RANGE(pos, arg, f)					\
+  do { if (SCM_UNLIKELY (!(f)))					\
+         scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); }	\
+  while (0)
+
+#define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, REALP, "real")
+
+#define SCM_VALIDATE_NUMBER(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, NUMBERP, "number")
+
+#define SCM_VALIDATE_USHORT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2USHORT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_SHORT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2SHORT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_UINT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2UINT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_INT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2INT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_ULONG_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2ULONG (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_LONG_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2LONG (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_SIZE_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2SIZE (pos, k);              \
+  } while (0)
+
+#define SCM_VALIDATE_FLOAT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2FLOAT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_DOUBLE_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2DOUBLE (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_DOUBLE_DEF_COPY(pos, k, default, cvar) \
+  do { \
+    if (SCM_UNBNDP (k)) \
+      { \
+        k = scm_make_real (default); \
+        cvar = default; \
+      } \
+    else \
+      { \
+        cvar = SCM_NUM2DOUBLE (pos, k); \
+      } \
+  } while (0)
+
 
 
 
