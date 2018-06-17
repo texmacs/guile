@@ -158,21 +158,7 @@
 
 
 
-#if defined (vms)
-/* VMS: Implement SCM_I_SETJMP in terms of setjump.  */
-extern int setjump(scm_i_jmp_buf env);
-extern int longjump(scm_i_jmp_buf env, int ret);
-#define SCM_I_SETJMP setjump
-#define SCM_I_LONGJMP longjump
-
-#elif defined (_CRAY1)
-/* Cray: Implement SCM_I_SETJMP in terms of setjump.  */
-extern int setjump(scm_i_jmp_buf env);
-extern int longjump(scm_i_jmp_buf env, int ret);
-#define SCM_I_SETJMP setjump
-#define SCM_I_LONGJMP longjump
-
-#elif defined (__ia64__)
+#if defined (__ia64__)
 /* IA64: Implement SCM_I_SETJMP in terms of getcontext. */
 # define SCM_I_SETJMP(JB)			        \
   ( (JB).fresh = 1,				        \

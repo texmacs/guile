@@ -3,8 +3,8 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2006,
- *   2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2003,2006-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -422,13 +422,7 @@ typedef struct scm_dynamic_state scm_t_dynamic_state;
  * _scm.h private header.
  */
 
-#if defined (vms)
-typedef int scm_i_jmp_buf[17];
-
-#elif defined (_CRAY1)
-typedef int scm_i_jmp_buf[112];
-
-#elif defined (__ia64__)
+#if defined (__ia64__)
 # include <signal.h>
 # include <ucontext.h>
 typedef struct {
