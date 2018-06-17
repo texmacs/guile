@@ -31,17 +31,6 @@
 
 
 
-#define SCM_VALIDATE_BOOL(pos, flag) \
-  do { \
-    SCM_ASSERT_TYPE (scm_is_bool (flag), flag, pos, FUNC_NAME, "boolean"); \
-  } while (0)
-
-#define SCM_VALIDATE_BOOL_COPY(pos, flag, cvar) \
-  do { \
-    SCM_ASSERT (scm_is_bool (flag), flag, pos, FUNC_NAME); \
-    cvar = scm_to_bool (flag); \
-  } while (0)
-
 #define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
   SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
 		   FUNC_NAME, "bytevector")
@@ -58,20 +47,6 @@
   do { \
     SCM_ASSERT_TYPE (scm_is_string (str), str, pos, FUNC_NAME, "string"); \
   } while (0)
-
-#define SCM_VALIDATE_NULL(pos, scm) \
-  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_null, "empty list")
-
-#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) \
-  SCM_MAKE_VALIDATE_MSG (pos, scm, NULL_OR_NIL_P, "empty list")
-
-#define SCM_VALIDATE_CONS(pos, scm) \
-  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_pair, "pair")
-
-#ifdef BUILDING_LIBGUILE
-#define SCM_VALIDATE_MUTABLE_PAIR(pos, scm) \
-  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_mutable_pair, "mutable pair")
-#endif /* BUILDING_LIBGUILE */
 
 #define SCM_VALIDATE_ALISTCELL(pos, alist) \
   do { \
@@ -120,11 +95,6 @@
 #define SCM_VALIDATE_PROC(pos, proc) \
   do { \
     SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_NULLORCONS(pos, env) \
-  do { \
-    SCM_ASSERT (scm_is_null (env) || scm_is_pair (env), env, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_HOOK(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, HOOKP, "hook")

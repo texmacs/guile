@@ -29,14 +29,8 @@
 #include "libguile/error.h"
 #include "libguile/gc.h"
 
-
 
-#if (SCM_DEBUG_PAIR_ACCESSES == 1)
-# define SCM_VALIDATE_PAIR(cell, expr) \
-    ((!scm_is_pair (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
-#else
-# define SCM_VALIDATE_PAIR(cell, expr) (expr)
-#endif
+
 
 /*
  * Use scm_is_null_and_not_nil if it's important (for correctness)
@@ -112,6 +106,36 @@
 #define SCM_CDADDR(OBJ)		SCM_CDR (SCM_CAR (SCM_CDR (SCM_CDR (OBJ))))
 #define SCM_CADDDR(OBJ)		SCM_CAR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 #define SCM_CDDDDR(OBJ)		SCM_CDR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
+
+
+
+
+#define SCM_VALIDATE_NULL(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_null, "empty list")
+
+#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) \
+  SCM_MAKE_VALIDATE_MSG (pos, scm, NULL_OR_NIL_P, "empty list")
+
+#define SCM_VALIDATE_CONS(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_pair, "pair")
+
+#if (SCM_DEBUG_PAIR_ACCESSES == 1)
+# define SCM_VALIDATE_PAIR(cell, expr) \
+    ((!scm_is_pair (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
+#else
+# define SCM_VALIDATE_PAIR(cell, expr) (expr)
+#endif
+
+#ifdef BUILDING_LIBGUILE
+#define SCM_VALIDATE_MUTABLE_PAIR(pos, scm) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_mutable_pair, "mutable pair")
+#endif /* BUILDING_LIBGUILE */
+
+#define SCM_VALIDATE_NULLORCONS(pos, env) \
+  do { \
+    SCM_ASSERT (scm_is_null (env) || scm_is_pair (env), env, pos, FUNC_NAME); \
+  } while (0)
+
 
 
 

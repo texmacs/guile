@@ -3,7 +3,8 @@
 #ifndef SCM_BOOLEAN_H
 #define SCM_BOOLEAN_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009, 2010, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000,2006,2008-2010,2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -122,11 +123,29 @@ SCM_API int scm_to_bool (SCM x);
 #define scm_is_lisp_false(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_EOL))
 
+
 
 
 SCM_API SCM scm_not (SCM x);
 SCM_API SCM scm_boolean_p (SCM obj);
 SCM_API SCM scm_nil_p (SCM obj);
+
+
+
+
+#define SCM_VALIDATE_BOOL(pos, flag) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_bool (flag), flag, pos, FUNC_NAME, "boolean"); \
+  } while (0)
+
+#define SCM_VALIDATE_BOOL_COPY(pos, flag, cvar) \
+  do { \
+    SCM_ASSERT (scm_is_bool (flag), flag, pos, FUNC_NAME); \
+    cvar = scm_to_bool (flag); \
+  } while (0)
+
+
+
 
 SCM_INTERNAL void scm_init_boolean (void);
 
