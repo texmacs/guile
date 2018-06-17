@@ -711,6 +711,8 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
    proc is the name of the original procedure.
    size returns the size of the structure allocated.  */
 
+#define MAX(A, B) ((A) >= (B) ? (A) : (B))
+
 static struct sockaddr *
 scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 		   const char *proc, size_t *size)
@@ -798,7 +800,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	   connect/bind etc., to fail.  sun_path is always the last
 	   member of the structure.  */
 	addr_size = sizeof (struct sockaddr_un)
-	  + max (0, strlen (c_address) + 1 - (sizeof soka->sun_path));
+	  + MAX (0, strlen (c_address) + 1 - (sizeof soka->sun_path));
 	soka = (struct sockaddr_un *) scm_malloc (addr_size);
 	memset (soka, 0, addr_size);  /* for sun_len: see sin_len above. */
 	soka->sun_family = AF_UNIX;

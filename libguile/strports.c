@@ -81,6 +81,8 @@ string_port_read (SCM port, SCM dst, size_t start, size_t count)
   return count;
 }
 
+#define MAX(A, B) ((A) >= (B) ? (A) : (B))
+
 static size_t
 string_port_write (SCM port, SCM src, size_t start, size_t count)
 {
@@ -91,7 +93,7 @@ string_port_write (SCM port, SCM src, size_t start, size_t count)
       SCM new_bv;
       size_t new_size;
 
-      new_size = max (SCM_BYTEVECTOR_LENGTH (stream->bytevector) * 2,
+      new_size = MAX (SCM_BYTEVECTOR_LENGTH (stream->bytevector) * 2,
                       stream->pos + count);
       new_bv = scm_c_make_bytevector (new_size);
       memcpy (SCM_BYTEVECTOR_CONTENTS (new_bv),

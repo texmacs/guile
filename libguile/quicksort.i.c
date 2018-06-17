@@ -12,6 +12,7 @@
  */
 
 #define SWAP(a, b) do { const SCM _tmp = GET(a); SET(a, GET(b)); SET(b, _tmp); } while (0)
+#define MIN(A, B) ((A) <= (B) ? (A) : (B))
 
 
 /* Order using quicksort.  This implementation incorporates four
@@ -177,7 +178,7 @@ NAME (VEC_PARAM ssize_t lbnd, ssize_t ubnd, INC_PARAM SCM less)
   {
     ssize_t tmp = lbnd;
     ssize_t end = ubnd;
-    ssize_t thresh = min (end, MAX_THRESH);
+    ssize_t thresh = MIN (end, MAX_THRESH);
     ssize_t run;
 
     /* Find smallest element in first threshold and place it at the
@@ -230,6 +231,7 @@ NAME (VEC_PARAM ssize_t lbnd, ssize_t ubnd, INC_PARAM SCM less)
 #undef STACK_NOT_EMPTY
 #undef GET
 #undef SET
+#undef MIN
 
 #undef NAME
 #undef INC_PARAM

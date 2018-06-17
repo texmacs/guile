@@ -1,5 +1,5 @@
-/* Copyright (C) 1996, 1998, 2000, 2001, 2004, 2005, 2006, 2008, 2009,
- *   2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000-2001,2004-2006,2008-2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -85,6 +85,7 @@ cindk (SCM ra, ssize_t *ve, int kend)
 
 #define LBND(ra, k) SCM_I_ARRAY_DIMS (ra)[k].lbnd
 #define UBND(ra, k) SCM_I_ARRAY_DIMS (ra)[k].ubnd
+#define MAX(A, B) ((A) >= (B) ? (A) : (B))
 
 
 /* scm_ramapc() always calls cproc with rank-1 arrays created by
@@ -107,7 +108,7 @@ scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
       va0 = make1array (SCM_I_ARRAY_V (ra0), inc);
 
       /* Find unroll depth */
-      for (kroll = max(0, kmax); kroll > 0; --kroll)
+      for (kroll = MAX (0, kmax); kroll > 0; --kroll)
         {
           inc *= (UBND (ra0, kroll) - LBND (ra0, kroll) + 1);
           if (inc != SCM_I_ARRAY_DIMS (ra0)[kroll-1].inc)

@@ -1000,6 +1000,8 @@ pack (const ffi_type * type, const void *loc, int return_value_p)
 }
 
 
+#define MAX(A, B) ((A) >= (B) ? (A) : (B))
+
 SCM
 scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
                     const union scm_vm_stack_element *argv)
@@ -1029,7 +1031,7 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
 
   /* Space for argument values, followed by return value.  */
   data = alloca (arg_size + cif->rtype->size
-		 + max (sizeof (void *), cif->rtype->alignment));
+		 + MAX (sizeof (void *), cif->rtype->alignment));
 
   /* Unpack ARGV to native values, setting ARGV pointers.  */
   for (i = 0, off = 0;
@@ -1049,7 +1051,7 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
      word-aligned, even if its type doesn't have any alignment requirement as is
      the case with `char'.  */
   rvalue = (void *) ROUND_UP ((scm_t_uintptr) data + off,
-			      max (sizeof (void *), cif->rtype->alignment));
+			      MAX (sizeof (void *), cif->rtype->alignment));
 
   /* off we go! */
   errno = 0;

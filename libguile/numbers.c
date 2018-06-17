@@ -5123,6 +5123,8 @@ SCM_DEFINE (scm_round_ash, "round-ash", 2, 0, 0,
 #undef FUNC_NAME
 
 
+#define MIN(A, B) ((A) <= (B) ? (A) : (B))
+
 SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
 	    "Return the integer composed of the @var{start} (inclusive)\n"
@@ -5151,7 +5153,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 
       /* When istart>=SCM_I_FIXNUM_BIT we can just limit the shift to
          SCM_I_FIXNUM_BIT-1 to get either 0 or -1 per the sign of "in". */
-      in = SCM_SRS (in, min (istart, SCM_I_FIXNUM_BIT-1));
+      in = SCM_SRS (in, MIN (istart, SCM_I_FIXNUM_BIT-1));
 
       if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
 	{
@@ -5166,7 +5168,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 	}
 
       /* mask down to requisite bits */
-      bits = min (bits, SCM_I_FIXNUM_BIT);
+      bits = MIN (bits, SCM_I_FIXNUM_BIT);
       return SCM_I_MAKINUM (in & ((1L << bits) - 1));
     }
   else if (SCM_BIGP (n))
