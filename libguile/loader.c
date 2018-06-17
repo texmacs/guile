@@ -48,14 +48,14 @@
 /* This file contains the loader for Guile's on-disk format: ELF with
    some custom tags in the dynamic segment.  */
 
-#if SIZEOF_SCM_T_BITS == 4
+#if SIZEOF_UINTPTR_T == 4
 #define Elf_Half Elf32_Half
 #define Elf_Word Elf32_Word
 #define Elf_Ehdr Elf32_Ehdr
 #define ELFCLASS ELFCLASS32
 #define Elf_Phdr Elf32_Phdr
 #define Elf_Dyn Elf32_Dyn
-#elif SIZEOF_SCM_T_BITS == 8
+#elif SIZEOF_UINTPTR_T == 8
 #define Elf_Half Elf64_Half
 #define Elf_Word Elf64_Word
 #define Elf_Ehdr Elf64_Ehdr

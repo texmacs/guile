@@ -1589,7 +1589,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       scm_t_bits val;
 
       UNPACK_24 (op, dst);
-#if SIZEOF_SCM_T_BITS > 4
+#if SIZEOF_UINTPTR_T > 4
       val = ip[1];
       val <<= 32;
       val |= ip[2];

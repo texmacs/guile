@@ -62,7 +62,7 @@
 static unsigned long hashtable_size[] = {
   31, 61, 113, 223, 443, 883, 1759, 3517, 7027, 14051, 28099, 56197, 112363,
   224717, 449419, 898823, 1797641, 3595271, 7190537, 14381041
-#if SIZEOF_SCM_T_BITS > 4
+#if SIZEOF_UINTPTR_T > 4
   /* vector lengths are stored in the first word of vectors, shifted by
      8 bits for the tc8, so for 32-bit we only get 2^24-1 = 16777215
      elements.  But we allow a few more sizes for 64-bit. */

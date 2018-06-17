@@ -66,7 +66,7 @@
    result of 'guile -c "(display (assq-ref (gc-stats)
    'heap-total-allocated))"'.  */
 
-#define DEFAULT_INITIAL_HEAP_SIZE (128 * 1024 * SIZEOF_SCM_T_BITS)
+#define DEFAULT_INITIAL_HEAP_SIZE (128 * 1024 * SIZEOF_UINTPTR_T)
 
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */

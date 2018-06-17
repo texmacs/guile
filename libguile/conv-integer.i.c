@@ -29,7 +29,7 @@ SCM_TO_TYPE_PROTO (SCM val)
   if (SCM_I_INUMP (val))
     {
       scm_t_signed_bits n = SCM_I_INUM (val);
-#if SIZEOF_TYPE != 0 && SIZEOF_TYPE > SIZEOF_SCM_T_BITS
+#if SIZEOF_TYPE != 0 && SIZEOF_TYPE > SIZEOF_UINTPTR_T
       return n;
 #else
       if (n >= TYPE_MIN && n <= TYPE_MAX)
@@ -113,7 +113,7 @@ SCM_TO_TYPE_PROTO (SCM val)
 SCM
 SCM_FROM_TYPE_PROTO (TYPE val)
 {
-#if SIZEOF_TYPE != 0 && SIZEOF_TYPE < SIZEOF_SCM_T_BITS
+#if SIZEOF_TYPE != 0 && SIZEOF_TYPE < SIZEOF_UINTPTR_T
   return SCM_I_MAKINUM (val);
 #else
   if (SCM_FIXABLE (val))

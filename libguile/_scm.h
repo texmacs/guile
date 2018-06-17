@@ -36,9 +36,6 @@
 #  include <config.h>
 #endif
 
-/* The size of `scm_t_bits'.  */
-#define SIZEOF_SCM_T_BITS SIZEOF_VOID_P
-
 #include <errno.h>
 #include <verify.h>
 #include <alignof.h>
