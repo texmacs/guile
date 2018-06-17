@@ -36,7 +36,6 @@
 
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
-#include "libguile/error.h"	/* Everyone signals errors.  */
 #include "libguile/print.h"	/* Everyone needs to print.  */
 #include "libguile/pairs.h"	/* Everyone conses.  */
 #include "libguile/list.h"	/* Everyone makes lists.  */
