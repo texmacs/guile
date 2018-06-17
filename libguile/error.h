@@ -3,7 +3,8 @@
 #ifndef SCM_ERROR_H
 #define SCM_ERROR_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2006, 2008, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2002,2006,2008,2011,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -69,6 +70,38 @@ SCM_API void scm_wrong_type_arg_msg (const char *subr, int pos,
 SCM_API void scm_misc_error (const char *subr, const char *message,
 			     SCM args) SCM_NORETURN;
 SCM_INTERNAL void scm_init_error (void);
+
+
+
+#define SCM_MAKE_VALIDATE(pos, var, pred) \
+  do { \
+    SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, #pred); \
+  } while (0)
+
+#define SCM_I_MAKE_VALIDATE_MSG2(pos, var, pred, msg) \
+  do { \
+    SCM_ASSERT_TYPE (pred (var), var, pos, FUNC_NAME, msg); \
+  } while (0)
+
+#define SCM_MAKE_VALIDATE_MSG(pos, var, pred, msg) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, var, SCM_ ## pred, msg)
+
+#define SCM_SYSERROR do { scm_syserror (FUNC_NAME); } while (0)
+
+#define SCM_MEMORY_ERROR do { scm_memory_error (FUNC_NAME); } while (0)
+
+#define SCM_SYSERROR_MSG(str, args, val) \
+  do { scm_syserror_msg (FUNC_NAME, (str), (args), (val)); } while (0)
+
+#define SCM_MISC_ERROR(str, args) \
+  do { scm_misc_error (FUNC_NAME, str, args); } while (0)
+
+#define SCM_WRONG_NUM_ARGS() \
+  do { scm_error_num_args_subr (FUNC_NAME); } while (0)
+
+#define SCM_WRONG_TYPE_ARG(pos, obj) \
+  do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)
+
 
 #endif  /* SCM_ERROR_H */
 

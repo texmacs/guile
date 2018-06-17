@@ -4,7 +4,7 @@
 #define SCM_VALIDATE_H
 
 /* Copyright (C) 1999, 2000, 2001, 2002, 2004, 2006, 2007, 2009,
- *   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+ *   2011, 2012, 2013, 2014, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,21 +26,10 @@
 
 
 
-#define SCM_SYSERROR do { scm_syserror (FUNC_NAME); } while (0)
+#include <libguile/error.h>
 
-#define SCM_MEMORY_ERROR do { scm_memory_error (FUNC_NAME); } while (0)
 
-#define SCM_SYSERROR_MSG(str, args, val) \
-  do { scm_syserror_msg (FUNC_NAME, (str), (args), (val)); } while (0)
-
-#define SCM_MISC_ERROR(str, args) \
-  do { scm_misc_error (FUNC_NAME, str, args); } while (0)
-
-#define SCM_WRONG_NUM_ARGS() \
-  do { scm_error_num_args_subr (FUNC_NAME); } while (0)
-
-#define SCM_WRONG_TYPE_ARG(pos, obj) \
-  do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)
+
 
 #define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
 
@@ -113,19 +102,6 @@
   ((type *) scm_must_malloc (sizeof (type) * (num), FUNC_NAME))
 
 #define SCM_MUST_MALLOC(size) (scm_must_malloc ((size), FUNC_NAME))
-
-#define SCM_MAKE_VALIDATE(pos, var, pred) \
-  do { \
-    SCM_ASSERT_TYPE (SCM_ ## pred (var), var, pos, FUNC_NAME, #pred); \
-  } while (0)
-
-#define SCM_I_MAKE_VALIDATE_MSG2(pos, var, pred, msg) \
-  do { \
-    SCM_ASSERT_TYPE (pred (var), var, pos, FUNC_NAME, msg); \
-  } while (0)
-
-#define SCM_MAKE_VALIDATE_MSG(pos, var, pred, msg) \
-  SCM_I_MAKE_VALIDATE_MSG2 (pos, var, SCM_ ## pred, msg)
 
 
 
