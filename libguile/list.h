@@ -3,7 +3,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2005,2006,2008,2009
+/* Copyright (C) 1995-1997,2000-2001,2003-2006,2008-2009,2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -68,6 +68,40 @@ SCM_API SCM scm_delete1_x (SCM item, SCM lst);
 SCM_API SCM scm_filter (SCM pred, SCM list);
 SCM_API SCM scm_filter_x (SCM pred, SCM list);
 SCM_API SCM scm_copy_tree (SCM obj);
+
+
+
+#define SCM_VALIDATE_REST_ARGUMENT(x) \
+  do { \
+    if (SCM_DEBUG_REST_ARGUMENT) { \
+      if (scm_ilength (x) < 0) { \
+        SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL); \
+      } \
+    } \
+  } while (0)
+
+#define SCM_VALIDATE_LIST(pos, lst) \
+  do { \
+    SCM_ASSERT (scm_ilength (lst) >= 0, lst, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_NONEMPTYLIST(pos, lst) \
+  do { \
+    SCM_ASSERT (scm_ilength (lst) > 0, lst, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_LIST_COPYLEN(pos, lst, cvar) \
+  do { \
+    cvar = scm_ilength (lst); \
+    SCM_ASSERT (cvar >= 0, lst, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_NONEMPTYLIST_COPYLEN(pos, lst, cvar) \
+  do { \
+    cvar = scm_ilength (lst); \
+    SCM_ASSERT (cvar >= 1, lst, pos, FUNC_NAME); \
+  } while (0)
+
 
 
 

@@ -31,17 +31,6 @@
 
 
 
-
-
-#define SCM_VALIDATE_REST_ARGUMENT(x) \
-  do { \
-    if (SCM_DEBUG_REST_ARGUMENT) { \
-      if (scm_ilength (x) < 0) { \
-        SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL); \
-      } \
-    } \
-  } while (0)
-
 #define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NIMP, "non-immediate")
 
 #define SCM_VALIDATE_BOOL(pos, flag) \
@@ -85,28 +74,6 @@
 #define SCM_VALIDATE_MUTABLE_PAIR(pos, scm) \
   SCM_I_MAKE_VALIDATE_MSG2 (pos, scm, scm_is_mutable_pair, "mutable pair")
 #endif /* BUILDING_LIBGUILE */
-
-#define SCM_VALIDATE_LIST(pos, lst) \
-  do { \
-    SCM_ASSERT (scm_ilength (lst) >= 0, lst, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_NONEMPTYLIST(pos, lst) \
-  do { \
-    SCM_ASSERT (scm_ilength (lst) > 0, lst, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_LIST_COPYLEN(pos, lst, cvar) \
-  do { \
-    cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 0, lst, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_NONEMPTYLIST_COPYLEN(pos, lst, cvar) \
-  do { \
-    cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 1, lst, pos, FUNC_NAME); \
-  } while (0)
 
 #define SCM_VALIDATE_ALISTCELL(pos, alist) \
   do { \
