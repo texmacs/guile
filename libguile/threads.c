@@ -1854,18 +1854,6 @@ scm_init_threads_default_dynamic_state ()
 
 #ifdef __ia64__
 # ifdef __hpux
-#  include <sys/param.h>
-#  include <sys/pstat.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  struct pst_vm_status vm_status;
-  int i = 0;
-  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
-    if (vm_status.pst_type == PS_RSESTACK)
-      return (void *) vm_status.pst_vaddr;
-  abort ();
-}
 void *
 scm_ia64_ar_bsp (const void *ctx)
 {
@@ -1877,12 +1865,6 @@ scm_ia64_ar_bsp (const void *ctx)
 # ifdef linux
 #  include <ucontext.h>
 void *
-scm_ia64_register_backing_store_base (void)
-{
-  extern void *__libc_ia64_register_backing_store_base;
-  return __libc_ia64_register_backing_store_base;
-}
-void *
 scm_ia64_ar_bsp (const void *opaque)
 {
   const ucontext_t *ctx = opaque;
@@ -1891,11 +1873,6 @@ scm_ia64_ar_bsp (const void *opaque)
 # endif /* linux */
 # ifdef __FreeBSD__
 #  include <ucontext.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  return (void *)0x8000000000000000;
-}
 void *
 scm_ia64_ar_bsp (const void *opaque)
 {

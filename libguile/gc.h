@@ -3,8 +3,8 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006,
- *   2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2004,2006-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -94,7 +94,6 @@ SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
 #ifdef __ia64__
-void *scm_ia64_register_backing_store_base (void);
 void *scm_ia64_ar_bsp (const void *);
 #endif
 
