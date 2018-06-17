@@ -4,8 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 Free Software Foundation, Inc.
+Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -1347,6 +1346,12 @@ AC_CHECK_FUNCS([GC_pthread_exit GC_pthread_cancel GC_pthread_sigmask])
 
 # Functions from GC 7.3.
 AC_CHECK_FUNCS([GC_move_disappearing_link GC_is_heap_ptr])
+
+# See if there's an auxiliary stack, as in ia64.
+AC_CHECK_MEMBER([struct GC_stack_base.reg_base],
+  [SCM_I_GSC_HAVE_AUXILIARY_STACK=1], [SCM_I_GSC_HAVE_AUXILIARY_STACK=0],
+  [#include <gc/gc.h>])
+AC_SUBST([SCM_I_GSC_HAVE_AUXILIARY_STACK])
 
 LIBS="$save_LIBS"
 

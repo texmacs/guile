@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -414,6 +414,10 @@ main (int argc, char *argv[])
       SCM_I_GSC_ICONVEH_QUESTION_MARK);
   pf ("#define SCM_ICONVEH_ESCAPE_SEQUENCE %d\n",
       SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE);  
+
+  pf ("\n");
+  pf ("/* Define to 1 if there is an auxiliary stack, as in ia64.  */\n");
+  pf ("#define SCM_HAVE_AUXILIARY_STACK %d\n", SCM_I_GSC_HAVE_AUXILIARY_STACK);
 
   printf ("#endif\n");
 
