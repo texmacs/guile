@@ -27,6 +27,7 @@
 #include <gmp.h>
 
 #include "libguile/__scm.h"
+#include "libguile/error.h"
 #include "libguile/print.h"
 
 #ifndef SCM_T_WCHAR_DEFINED
@@ -595,6 +596,67 @@ SCM_API int scm_is_number (SCM val);
 SCM_API int scm_install_gmp_memory_functions;
 
 SCM_INTERNAL void scm_init_numbers (void);
+
+
+
+#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
+
+#define SCM_NUM2SIZE_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_size_t (arg))
+
+#define SCM_NUM2PTRDIFF(pos, arg) (scm_to_ssize_t (arg))
+
+#define SCM_NUM2PTRDIFF_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_ssize_t (arg))
+
+#define SCM_NUM2SHORT(pos, arg) (scm_to_short (arg))
+
+#define SCM_NUM2SHORT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_short (arg))
+
+#define SCM_NUM2USHORT(pos, arg) (scm_to_ushort (arg))
+
+#define SCM_NUM2USHORT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_ushort (arg))
+
+#define SCM_NUM2INT(pos, arg) (scm_to_int (arg))
+
+#define SCM_NUM2INT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_int (arg))
+
+#define SCM_NUM2UINT(pos, arg) (scm_to_uint (arg))
+
+#define SCM_NUM2UINT_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_uint (arg))
+
+#define SCM_NUM2ULONG(pos, arg) (scm_to_ulong (arg))
+
+#define SCM_NUM2ULONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_ulong (arg))
+
+#define SCM_NUM2LONG(pos, arg) (scm_to_long (arg))
+
+#define SCM_NUM2LONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_long (arg))
+
+#define SCM_NUM2LONG_LONG(pos, arg) (scm_to_long_long (arg))
+
+#define SCM_NUM2LONG_LONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_long_long (arg))
+
+#define SCM_NUM2ULONG_LONG(pos, arg) (scm_to_ulong_long (arg))
+
+#define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
+  (SCM_UNBNDP (arg) ? def : scm_to_ulong_long (arg))
+
+#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
+
+#define SCM_NUM2FLOAT(pos, arg) ((float) scm_to_double (arg))
+
+#define SCM_NUM2DOUBLE(pos, arg) (scm_to_double (arg))
+
+
+
 
 #endif  /* SCM_NUMBERS_H */
 

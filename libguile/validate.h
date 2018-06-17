@@ -31,62 +31,6 @@
 
 
 
-#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
-
-#define SCM_NUM2SIZE_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_size_t (arg))
-
-#define SCM_NUM2PTRDIFF(pos, arg) (scm_to_ssize_t (arg))
-
-#define SCM_NUM2PTRDIFF_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_ssize_t (arg))
-
-#define SCM_NUM2SHORT(pos, arg) (scm_to_short (arg))
-
-#define SCM_NUM2SHORT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_short (arg))
-
-#define SCM_NUM2USHORT(pos, arg) (scm_to_ushort (arg))
-
-#define SCM_NUM2USHORT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_ushort (arg))
-
-#define SCM_NUM2INT(pos, arg) (scm_to_int (arg))
-
-#define SCM_NUM2INT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_int (arg))
-
-#define SCM_NUM2UINT(pos, arg) (scm_to_uint (arg))
-
-#define SCM_NUM2UINT_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_uint (arg))
-
-#define SCM_NUM2ULONG(pos, arg) (scm_to_ulong (arg))
-
-#define SCM_NUM2ULONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_ulong (arg))
-
-#define SCM_NUM2LONG(pos, arg) (scm_to_long (arg))
-
-#define SCM_NUM2LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_long (arg))
-
-#define SCM_NUM2LONG_LONG(pos, arg) (scm_to_long_long (arg))
-
-#define SCM_NUM2LONG_LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_long_long (arg))
-
-#define SCM_NUM2ULONG_LONG(pos, arg) (scm_to_ulong_long (arg))
-
-#define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_to_ulong_long (arg))
-
-#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
-
-#define SCM_NUM2FLOAT(pos, arg) ((float) scm_to_double (arg))
-
-#define SCM_NUM2DOUBLE(pos, arg) (scm_to_double (arg))
-
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
 
