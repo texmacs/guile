@@ -59,6 +59,12 @@
 #include "libguile/vm.h"
 #include "libguile/vm-builtins.h"
 
+#if (defined __GNUC__)
+# define SCM_NOINLINE __attribute__ ((__noinline__))
+#else
+# define SCM_NOINLINE /* noinline */
+#endif
+
 static int vm_default_engine = SCM_VM_REGULAR_ENGINE;
 
 /* Unfortunately we can't snarf these: snarfed things are only loaded up from
@@ -239,6 +245,11 @@ static void vm_dispatch_pop_continuation_hook
   (struct scm_vm *vp, union scm_vm_stack_element *old_fp) SCM_NOINLINE;
 static void vm_dispatch_next_hook (struct scm_vm *vp) SCM_NOINLINE;
 static void vm_dispatch_abort_hook (struct scm_vm *vp) SCM_NOINLINE;
+
+/* Return the first integer greater than or equal to LEN such that
+   LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
+#define ROUND_UP(len, align)					\
+  ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 static void
 vm_dispatch_hook (struct scm_vm *vp, int hook_num,
