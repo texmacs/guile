@@ -31,15 +31,6 @@
 
 
 
-#define SCM_MUST_MALLOC_TYPE(type) \
-  ((type *) scm_must_malloc (sizeof (type), FUNC_NAME))
-
-#define SCM_MUST_MALLOC_TYPE_NUM(type, num) \
-  ((type *) scm_must_malloc (sizeof (type) * (num), FUNC_NAME))
-
-#define SCM_MUST_MALLOC(size) (scm_must_malloc ((size), FUNC_NAME))
-
-
 
 
 #define SCM_VALIDATE_REST_ARGUMENT(x) \
