@@ -24,11 +24,6 @@
 
 
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
-
 /* ASYNC_TICK after finding EINTR in order to handle pending signals, if
    any. See comment in scm_syserror. */
 #define SCM_SYSCALL(line)			\

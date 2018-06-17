@@ -32,10 +32,6 @@
  and differences between _scm.h and __scm.h.
  **********************************************************************/
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #include <errno.h>
 #include <verify.h>
 #include <alignof.h>
