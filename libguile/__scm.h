@@ -63,15 +63,6 @@
  * additional information to the developers.
  */
 
-/* Return true (non-zero) if GCC version MAJ.MIN or later is being used
- * (macro taken from glibc.)  */
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define SCM_GNUC_PREREQ(maj, min) \
-	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-# define SCM_GNUC_PREREQ(maj, min) 0
-#endif
-
 /* The macro SCM_NORETURN indicates that a function will never return.
  * Examples:
  *   1) int foo (char arg) SCM_NORETURN;
@@ -99,7 +90,7 @@
 /* The SCM_EXPECT macros provide branch prediction hints to the compiler.  To
  * use only in places where the result of the expression under "normal"
  * circumstances is known.  */
-#if SCM_GNUC_PREREQ (3, 0)
+#ifdef __GNUC__
 # define SCM_EXPECT    __builtin_expect
 #else
 # define SCM_EXPECT(_expr, _value) (_expr)
@@ -118,7 +109,7 @@
  * or variables.  Defining `SCM_BUILDING_DEPRECATED_CODE' allows deprecated
  * functions to be implemented in terms of deprecated functions, and allows
  * deprecated functions to be referred to by `scm_c_define_gsubr ()'.  */
-#if !defined (SCM_BUILDING_DEPRECATED_CODE) && SCM_GNUC_PREREQ (3, 0)
+#if !defined (SCM_BUILDING_DEPRECATED_CODE) && defined __GNUC__
 # define SCM_DEPRECATED  SCM_API __attribute__ ((__deprecated__))
 #else
 # define SCM_DEPRECATED  SCM_API
@@ -139,7 +130,7 @@
 /* The SCM_MALLOC macro can be used in function declarations to tell the
  * compiler that a function may be treated as if any non-NULL pointer it returns
  * cannot alias any other pointer valid when the function returns.  */
-#if SCM_GNUC_PREREQ (3, 0)
+#ifdef __GNUC__
 # define SCM_MALLOC  __attribute__ ((__malloc__))
 #else
 # define SCM_MALLOC

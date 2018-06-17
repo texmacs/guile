@@ -25,6 +25,15 @@
 
 /* Deprecated declarations go here.  */
 
+/* Return true (non-zero) if GCC version MAJ.MIN or later is being used
+ * (macro taken from glibc.)  */
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define SCM_GNUC_PREREQ(maj, min) \
+	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define SCM_GNUC_PREREQ(maj, min) 0
+#endif
+
 #define scm_i_jmp_buf scm_i_jmp_buf_GONE__USE_JMP_BUF_INSTEAD
 
 void scm_i_init_deprecated (void);
