@@ -32,7 +32,6 @@
  and differences between _scm.h and __scm.h.
  **********************************************************************/
 
-#include <alignof.h>
 #include "libguile/__scm.h"
 
 /* Include headers for those files central to the implementation.  The
