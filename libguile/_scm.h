@@ -90,29 +90,7 @@
 
 /* ASYNC_TICK after finding EINTR in order to handle pending signals, if
    any. See comment in scm_syserror. */
-#ifndef SCM_SYSCALL
-#ifdef vms
-# ifndef __GNUC__
-#  include <ssdef.h>
-#   define SCM_SYSCALL(line)						\
-  do									\
-    {									\
-      errno = 0;							\
-      line;								\
-      if (EVMSERR == errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3))	\
-        scm_async_tick ();                                              \
-      else								\
-	break;								\
-    }									\
-  while (1)
-# endif /* ndef __GNUC__ */
-#endif /* def vms */
-#endif /* ndef SCM_SYSCALL  */
-
-#ifndef SCM_SYSCALL
-# ifdef EINTR
-#  if (EINTR > 0)
-#   define SCM_SYSCALL(line)			\
+#define SCM_SYSCALL(line)			\
   do						\
     {						\
       errno = 0;				\
@@ -124,13 +102,7 @@
 	}					\
     }						\
   while (errno == EINTR)
-#  endif /*  (EINTR > 0) */
-# endif /* def EINTR */
-#endif /* ndef SCM_SYSCALL */
 
-#ifndef SCM_SYSCALL
-# define SCM_SYSCALL(line) line;
-#endif /* ndef SCM_SYSCALL */
 
 
 
