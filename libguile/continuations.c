@@ -120,7 +120,7 @@ static void
 capture_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
 {
 #if SCM_HAVE_AUXILIARY_STACK
-# ifndef __ia64__
+# if !(defined __ia64 or defined __ia64__)
 # error missing auxiliary stack implementation for architecture
 # endif
   char *top;
