@@ -3,8 +3,8 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995, 1996, 2000, 2001, 2002, 2006, 2008, 2009, 2010,
- *   2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2002,2006,2008-2011,2013-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -233,31 +233,6 @@ void scm_ia64_longjmp (scm_i_jmp_buf *, int);
 
 
 
-/* The endianness marker in objcode.  */
-#ifdef WORDS_BIGENDIAN
-# define SCM_OBJCODE_ENDIANNESS "BE"
-#else
-# define SCM_OBJCODE_ENDIANNESS "LE"
-#endif
-
-#define _SCM_CPP_STRINGIFY(x)  # x
-#define SCM_CPP_STRINGIFY(x)   _SCM_CPP_STRINGIFY (x)
-
-/* The word size marker in objcode.  */
-#define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
-
-/* Major and minor versions must be single characters. */
-#define SCM_OBJCODE_MAJOR_VERSION 4
-#define SCM_OBJCODE_MINIMUM_MINOR_VERSION 0
-#define SCM_OBJCODE_MINOR_VERSION 0
-#define SCM_OBJCODE_MAJOR_VERSION_STRING        \
-  SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
-#define SCM_OBJCODE_MINOR_VERSION_STRING        \
-  SCM_CPP_STRINGIFY(SCM_OBJCODE_MINOR_VERSION)
-#define SCM_OBJCODE_VERSION_STRING                                      \
-  SCM_OBJCODE_MAJOR_VERSION_STRING "." SCM_OBJCODE_MINOR_VERSION_STRING
-#define SCM_OBJCODE_MACHINE_VERSION_STRING                              \
-  SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE "-" SCM_OBJCODE_VERSION_STRING
 
 #endif  /* SCM__SCM_H */
 

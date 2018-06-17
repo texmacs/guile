@@ -21,6 +21,36 @@
 
 #include <libguile/__scm.h>
 
+#ifdef BUILDING_LIBGUILE
+
+/* The endianness marker in objcode.  */
+#ifdef WORDS_BIGENDIAN
+# define SCM_OBJCODE_ENDIANNESS "BE"
+#else
+# define SCM_OBJCODE_ENDIANNESS "LE"
+#endif
+
+#define _SCM_CPP_STRINGIFY(x)  # x
+#define SCM_CPP_STRINGIFY(x)   _SCM_CPP_STRINGIFY (x)
+
+/* The word size marker in objcode.  */
+#define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
+
+/* Major and minor versions must be single characters. */
+#define SCM_OBJCODE_MAJOR_VERSION 4
+#define SCM_OBJCODE_MINIMUM_MINOR_VERSION 0
+#define SCM_OBJCODE_MINOR_VERSION 0
+#define SCM_OBJCODE_MAJOR_VERSION_STRING        \
+  SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
+#define SCM_OBJCODE_MINOR_VERSION_STRING        \
+  SCM_CPP_STRINGIFY(SCM_OBJCODE_MINOR_VERSION)
+#define SCM_OBJCODE_VERSION_STRING                                      \
+  SCM_OBJCODE_MAJOR_VERSION_STRING "." SCM_OBJCODE_MINOR_VERSION_STRING
+#define SCM_OBJCODE_MACHINE_VERSION_STRING                              \
+  SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE "-" SCM_OBJCODE_VERSION_STRING
+
+#endif
+
 SCM_API SCM scm_load_thunk_from_file (SCM filename);
 SCM_API SCM scm_load_thunk_from_memory (SCM bv);
 
