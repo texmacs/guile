@@ -32,7 +32,6 @@
  and differences between _scm.h and __scm.h.
  **********************************************************************/
 
-#include <verify.h>
 #include <alignof.h>
 #include "libguile/__scm.h"
 
