@@ -74,7 +74,11 @@ if test "$GCC" = yes; then
   AC_MSG_RESULT([-std=gnu11])
   CC="$CC -std=gnu11"
 else
-  AC_MSG_RESULT([assuming $CC supports C11 by default])
+  dnl Guile requires C99 or later.
+  AC_PROG_CC_C99
+  if test "$ac_cv_prog_cc_c99" = "xno"; then
+    AC_MSG_ERROR([Support for C99 required but not found.])
+  fi
 fi
 
 gl_EARLY
@@ -93,9 +97,6 @@ dnl locking support.  See <http://bugs.gnu.org/14404>.
 AC_DEFINE([GNULIB_LOCK], [1],
   [Define to allow Gnulib modules to use Guile's locks.])
 
-
-dnl Guile needs C99 or later.
-gl_PROG_CC_C99
 
 # for per-target cflags in the libguile subdir
 AM_PROG_CC_C_O
