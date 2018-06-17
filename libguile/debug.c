@@ -1,5 +1,6 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation
+ * Copyright (C) 1995-2003,2006,2008-2013,2018
+ *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -21,6 +22,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#include <errno.h>
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>

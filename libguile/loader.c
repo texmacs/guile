@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <alignof.h>
 #include <byteswap.h>
+#include <errno.h>
 #include <verify.h>
 
 #include <full-read.h>

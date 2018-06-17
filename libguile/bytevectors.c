@@ -26,6 +26,7 @@
 #endif
 
 #include <byteswap.h>
+#include <errno.h>
 #include <striconveh.h>
 #include <uniconv.h>
 #include <unistr.h>

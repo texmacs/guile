@@ -25,6 +25,7 @@
 #  include <config.h>
 #endif
 
+#include <errno.h>
 #include <poll.h>
 
 #include "libguile/_scm.h"

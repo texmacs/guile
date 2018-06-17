@@ -22,35 +22,29 @@
 # include <config.h>
 #endif
 
-#include "libguile/bdw-gc.h"
-#include <gc/gc_mark.h>
-#include "libguile/_scm.h"
-#include "libguile/deprecation.h"
-#include "libguile/extensions.h"
-#include "libguile/hashtab.h"
-
-#include <stdlib.h>
-#include <unistd.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <full-read.h>
+#include <nproc.h>
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
+#include <stdlib.h>
 #include <string.h>   /* for memset used by FD_ZERO on Solaris 10 */
-#endif
-
-#if HAVE_SYS_TIME_H
+#include <sys/select.h>
 #include <sys/time.h>
-#endif
+#include <unistd.h>
 
 #if HAVE_PTHREAD_NP_H
 # include <pthread_np.h>
 #endif
 
-#include <sys/select.h>
+#include "libguile/bdw-gc.h"
+#include <gc/gc_mark.h>
 
-#include <assert.h>
-#include <fcntl.h>
-#include <nproc.h>
-
+#include "libguile/_scm.h"
+#include "libguile/deprecation.h"
+#include "libguile/extensions.h"
+#include "libguile/hashtab.h"
 #include "libguile/validate.h"
 #include "libguile/eval.h"
 #include "libguile/async.h"
@@ -66,8 +60,6 @@
 #include "libguile/scmsigs.h"
 #include "libguile/strings.h"
 #include "libguile/vm.h"
-
-#include <full-read.h>
 
 
 
