@@ -28,6 +28,7 @@
 #include "libguile/eq.h"
 
 #include "libguile/extensions.h"
+#include "libguile/list.h"
 #include "libguile/numbers.h"
 
 #include "libguile/srfi-60.h"

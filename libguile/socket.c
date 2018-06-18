@@ -51,6 +51,7 @@
 #include "libguile/arrays.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
+#include "libguile/list.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"

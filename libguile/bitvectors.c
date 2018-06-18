@@ -30,6 +30,7 @@
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
 #include "libguile/generalized-vectors.h"
+#include "libguile/list.h"
 #include "libguile/arrays.h"
 #include "libguile/srfi-4.h"
 

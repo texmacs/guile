@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013, 2014, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,7 @@
 #include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/generalized-arrays.h"
+#include "libguile/list.h"
 
 
 SCM_INTERNAL SCM scm_i_array_ref (SCM v,

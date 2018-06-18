@@ -27,6 +27,7 @@
 #include "libguile/_scm.h"
 
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/ports.h"
 #include "libguile/procprop.h"
 #include "libguile/smob.h"

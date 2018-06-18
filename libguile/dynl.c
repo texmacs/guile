@@ -55,6 +55,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/dynl.h"
 #include "libguile/smob.h"
 #include "libguile/keywords.h"
+#include "libguile/list.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/deprecation.h"

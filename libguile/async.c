@@ -27,6 +27,7 @@
 #include "libguile/atomics-internal.h"
 #include "libguile/eval.h"
 #include "libguile/throw.h"
+#include "libguile/list.h"
 #include "libguile/smob.h"
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"

@@ -39,6 +39,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/frames.h"
+#include "libguile/list.h"
 #include "libguile/keywords.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"

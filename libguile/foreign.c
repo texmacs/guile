@@ -37,6 +37,7 @@
 #include "libguile/finalizers.h"
 #include "libguile/foreign.h"
 #include "libguile/keywords.h"
+#include "libguile/list.h"
 #include "libguile/instructions.h"
 #include "libguile/stacks.h"
 #include "libguile/threads.h"

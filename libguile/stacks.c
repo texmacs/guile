@@ -29,6 +29,7 @@
 #include "libguile/debug.h"
 #include "libguile/continuations.h"
 #include "libguile/fluids.h"
+#include "libguile/list.h"
 #include "libguile/struct.h"
 #include "libguile/macros.h"
 #include "libguile/procprop.h"

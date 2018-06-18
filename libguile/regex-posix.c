@@ -43,6 +43,7 @@
 #endif
 
 #include "libguile/async.h"
+#include "libguile/list.h"
 #include "libguile/smob.h"
 #include "libguile/symbols.h"
 #include "libguile/vectors.h"

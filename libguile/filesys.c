@@ -87,6 +87,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fports.h"
 #include "libguile/iselect.h"
+#include "libguile/list.h"
 #include "libguile/load.h"	/* for scm_i_mirror_backslashes */
 #include "libguile/ports-internal.h"
 #include "libguile/ports.h"

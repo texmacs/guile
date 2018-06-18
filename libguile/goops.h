@@ -32,6 +32,7 @@
  */
 
 #include "libguile/__scm.h"
+#include "libguile/list.h"
 
 
 /* {Class flags}

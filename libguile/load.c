@@ -39,6 +39,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fports.h"
 #include "libguile/libpath.h"
+#include "libguile/list.h"
 #include "libguile/loader.h"
 #include "libguile/modules.h"
 #include "libguile/read.h"

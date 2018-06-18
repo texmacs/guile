@@ -28,6 +28,7 @@
 #include "libguile/finalizers.h"
 #include "libguile/foreign-object.h"
 #include "libguile/goops.h"
+#include "libguile/list.h"
 
 
 

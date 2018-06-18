@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2002, 2004, 2006-2009, 2011, 2013-2014, 2017-2018
+/* Copyright (C) 1995-2002,2004,2006-2009,2011,2013-2014,2017-2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/feature.h"
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/vectors.h"
 #include "libguile/syscalls.h"
 #include "libguile/threads.h"

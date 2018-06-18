@@ -25,6 +25,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
+#include "libguile/list.h"
 
 #include "libguile/vectors.h"
 #include "libguile/array-handle.h"

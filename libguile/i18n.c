@@ -26,6 +26,7 @@
 #include "libguile/extensions.h"
 #include "libguile/feature.h"
 #include "libguile/i18n.h"
+#include "libguile/list.h"
 #include "libguile/strings.h"
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"

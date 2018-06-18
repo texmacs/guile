@@ -35,6 +35,7 @@
 #include "libguile/backtrace.h"
 #include "libguile/debug.h"
 #include "libguile/init.h"
+#include "libguile/list.h"
 #include "libguile/smob.h"
 #include "libguile/stackchk.h"
 #include "libguile/stacks.h"

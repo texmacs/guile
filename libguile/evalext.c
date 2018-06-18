@@ -25,6 +25,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/fluids.h"
 #include "libguile/modules.h"
 

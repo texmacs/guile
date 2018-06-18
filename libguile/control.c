@@ -25,6 +25,7 @@
 #include "libguile/_scm.h"
 #include "libguile/control.h"
 #include "libguile/extensions.h"
+#include "libguile/list.h"
 #include "libguile/programs.h"
 #include "libguile/instructions.h"
 #include "libguile/vm.h"

@@ -27,6 +27,7 @@
 
 #include "libguile/alist.h"
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/procs.h"
 #include "libguile/gsubr.h"
 #include "libguile/smob.h"

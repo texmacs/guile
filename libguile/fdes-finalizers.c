@@ -25,6 +25,7 @@
 #include "libguile/extensions.h"
 #include "libguile/eval.h"
 #include "libguile/hashtab.h"
+#include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/fdes-finalizers.h"
 

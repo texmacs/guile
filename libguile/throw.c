@@ -34,6 +34,7 @@
 #include "libguile/deprecation.h"
 #include "libguile/backtrace.h"
 #include "libguile/debug.h"
+#include "libguile/list.h"
 #include "libguile/stackchk.h"
 #include "libguile/stacks.h"
 #include "libguile/fluids.h"

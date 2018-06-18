@@ -37,7 +37,6 @@
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
 #include "libguile/pairs.h"	/* Everyone conses.  */
-#include "libguile/list.h"	/* Everyone makes lists.  */
 #include "libguile/gc.h"	/* Everyone allocates.  */
 #include "libguile/gsubr.h"	/* Everyone defines global functions.  */
 #include "libguile/procs.h"	/* Same.  */

@@ -25,6 +25,7 @@
 #include "libguile/eval.h"
 #include "libguile/feature.h"
 #include "libguile/gc.h"
+#include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"

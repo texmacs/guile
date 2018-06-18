@@ -29,6 +29,7 @@
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/hash.h"
+#include "libguile/list.h"
 #include "libguile/smob.h"
 #include "libguile/strorder.h"
 #include "libguile/variable.h"

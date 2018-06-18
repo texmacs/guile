@@ -68,6 +68,7 @@
 #include "libguile/extensions.h"
 #include "libguile/finalizers.h"
 #include "libguile/fports.h"
+#include "libguile/list.h"
 #include "libguile/bitvectors.h"
 #include "libguile/scmsigs.h"
 #include "libguile/feature.h"

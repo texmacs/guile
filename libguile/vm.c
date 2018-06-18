@@ -49,6 +49,7 @@
 #include "libguile/extensions.h"
 #include "libguile/alist.h"
 #include "libguile/procprop.h"
+#include "libguile/list.h"
 #include "libguile/stackchk.h"
 #include "libguile/hooks.h"
 #include "libguile/smob.h"

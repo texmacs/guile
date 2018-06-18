@@ -46,6 +46,7 @@
 #include "libguile/extensions.h"
 #include "libguile/hashtab.h"
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/threads.h"

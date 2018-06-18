@@ -31,6 +31,7 @@
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
+#include "libguile/list.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"

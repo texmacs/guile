@@ -29,6 +29,7 @@
 #endif
 
 #include "libguile/chars.h"
+#include "libguile/list.h"
 #include "libguile/modules.h"
 #include "libguile/ports.h"
 #include "libguile/rdelim.h"

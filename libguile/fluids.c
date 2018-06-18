@@ -34,6 +34,7 @@
 #include "libguile/eval.h"
 #include "libguile/fluids.h"
 #include "libguile/hashtab.h"
+#include "libguile/list.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/weak-table.h"

@@ -36,6 +36,7 @@
 
 #include "libguile/smob.h"
 #include "libguile/generalized-arrays.h"
+#include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
 #include "libguile/stime.h"

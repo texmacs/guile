@@ -30,6 +30,7 @@
 #include "libguile/_scm.h"
 
 #include "libguile/deprecation.h"
+#include "libguile/list.h"
 #include "libguile/strings.h"
 #include "libguile/ports.h"
 
