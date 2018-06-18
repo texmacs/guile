@@ -1,0 +1,46 @@
+;;;; srfi-71.test --- Extended 'let' syntax.         -*- mode: scheme; -*-
+;;;;
+;;;; Copyright (C) 2018 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite i18n)
+  #:use-module (srfi srfi-71)
+  #:use-module (test-suite lib))
+
+(pass-if-equal "let"
+  '(1 2 3)
+  (let ((x y z (values 1 2 3)))
+    (list x y z)))
+
+(pass-if-equal "let*"
+  6
+  (let* ((x y (values 1 2))
+         (z (+ x y)))
+    (* z 2)))
+
+(pass-if-equal "letrec"
+    #t
+  (letrec ((odd? even?
+                 (values (lambda (n) (even? (- n 1)))
+                         (lambda (n) (or (zero? n) (odd? (- n 1)))))))
+    (and (odd? 77) (even? 42))))
+
+(pass-if-exception "too few values"
+    exception:wrong-num-args
+  ;; With compiled code we would get:
+  ;; '(vm-error . "Wrong number of values returned to continuations")
+  (let ((x y 1))
+    (+ x y)))
