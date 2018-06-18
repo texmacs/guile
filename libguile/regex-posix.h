@@ -3,7 +3,8 @@
 #ifndef SCM_REGEX_POSIX_H
 #define SCM_REGEX_POSIX_H
 
-/* Copyright (C) 1997,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1997-1998,2000-2001,2006,2008,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,10 +25,13 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 SCM_API scm_t_bits scm_tc16_regex;
 #define SCM_RGX(X)	((regex_t *) SCM_SMOB_DATA (X))
 #define SCM_RGXP(X)	(SCM_SMOB_PREDICATE (scm_tc16_regex, (X)))
+
+#define SCM_VALIDATE_RGXP(pos, a) SCM_MAKE_VALIDATE_MSG (pos, a, RGXP, "regexp")
 
 SCM_API SCM scm_make_regexp (SCM pat, SCM flags);
 SCM_API SCM scm_regexp_p (SCM x);

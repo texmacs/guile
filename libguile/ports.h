@@ -3,8 +3,8 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001,2003-2004,2006,2008-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -86,6 +86,30 @@ typedef struct scm_t_port scm_t_port;
 #define SCM_PORT(x)         ((scm_t_port *) SCM_CELL_WORD_2 (x))
 #define SCM_PORT_TYPE(port) ((scm_t_port_type *) SCM_CELL_WORD_3 (port))
 
+
+#define SCM_VALIDATE_PORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, PORTP, "port")
+
+#define SCM_VALIDATE_INPUT_PORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, INPUT_PORT_P, "input port")
+
+#define SCM_VALIDATE_OUTPUT_PORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OUTPUT_PORT_P, "output port")
+
+#define SCM_VALIDATE_OPINPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPINPORTP, "open input port")
+
+#define SCM_VALIDATE_OPENPORT(pos, port) \
+  do { \
+    SCM_ASSERT (SCM_PORTP (port) && SCM_OPENP (port), \
+                port, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_OPPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPPORTP, "open port")
+
+#define SCM_VALIDATE_OPOUTPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPOUTPORTP, "open output port")
 
 
 

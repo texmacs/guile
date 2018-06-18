@@ -50,6 +50,8 @@
 #include "libguile/alist.h"
 #include "libguile/procprop.h"
 #include "libguile/stackchk.h"
+#include "libguile/hooks.h"
+#include "libguile/smob.h"
 #include "libguile/frames.h"
 #include "libguile/gc-inline.h"
 #include "libguile/instructions.h"

@@ -3,8 +3,8 @@
 #ifndef SCM_FPORTS_H
 #define SCM_FPORTS_H
 
-/* Copyright (C) 1995-2001, 2006, 2008, 2009, 2011, 2012,
- *   2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001,2006,2008-2009,2011-2012,2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,6 +50,11 @@ SCM_API scm_t_port_type *scm_file_port_type;
 #define SCM_OPFPORTP(x) (SCM_FPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_OPN))
 #define SCM_OPINFPORTP(x) (SCM_OPFPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_RDNG))
 #define SCM_OPOUTFPORTP(x) (SCM_OPFPORTP (x) && (SCM_CELL_WORD_0 (x) & SCM_WRTNG))
+
+#define SCM_VALIDATE_FPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, FPORTP, "file port")
+#define SCM_VALIDATE_OPFPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPFPORTP, "open file port")
 
 
 SCM_API void scm_evict_ports (int fd);

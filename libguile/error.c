@@ -85,13 +85,6 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 	    "it will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm
 {
-  if (scm_gc_running_p)
-    {
-      /* The error occured during GC --- abort */
-      fprintf (stderr, "Guile: error during GC.\n"),
-      abort ();
-    }
-
   scm_ithrow (key, scm_list_4 (subr, message, args, data), 1);
   
   /* No return, but just in case: */

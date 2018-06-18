@@ -3,7 +3,8 @@
 #ifndef SCM_RANDOM_H
 #define SCM_RANDOM_H
 
-/* Copyright (C) 1999,2000,2001, 2006, 2008, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2001,2006,2008,2010,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
 /*
@@ -77,6 +79,9 @@ SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 SCM_API scm_t_bits scm_tc16_rstate;
 #define SCM_RSTATEP(obj) SCM_SMOB_PREDICATE (scm_tc16_rstate, obj)
 #define SCM_RSTATE(obj)  ((scm_t_rstate *) SCM_SMOB_DATA (obj))
+
+#define SCM_VALIDATE_RSTATE(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, RSTATEP, "random-generator-state")
 
 SCM_API unsigned char scm_masktab[256];
 

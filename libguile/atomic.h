@@ -1,7 +1,7 @@
 #ifndef SCM_ATOMIC_H
 #define SCM_ATOMIC_H
 
-/* Copyright (C) 2016 Free Software Foundation, Inc.
+/* Copyright (C) 2016, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,6 +38,12 @@ scm_atomic_box_loc (SCM obj)
 {
   return SCM_CELL_OBJECT_LOC (obj, 1);
 }
+
+#define SCM_VALIDATE_ATOMIC_BOX(pos, var) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_atomic_box (var), var, pos, FUNC_NAME, \
+                     "atomic box");                                \
+  } while (0)
 
 
 

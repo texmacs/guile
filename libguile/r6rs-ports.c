@@ -32,6 +32,7 @@
 #include "libguile/extensions.h"
 #include "libguile/r6rs-ports.h"
 #include "libguile/strings.h"
+#include "libguile/smob.h"
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"

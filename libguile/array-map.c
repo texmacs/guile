@@ -37,6 +37,7 @@
 #include "libguile/vectors.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
+#include "libguile/procs.h"
 #include "libguile/generalized-arrays.h"
 
 #include "libguile/validate.h"

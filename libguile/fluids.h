@@ -3,7 +3,8 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000-2001,2006,2008-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 #include "libguile/vectors.h"
 
 
@@ -38,6 +40,9 @@
  */
 
 #define SCM_FLUID_P(x)          (SCM_HAS_TYP7 (x, scm_tc7_fluid))
+
+#define SCM_VALIDATE_FLUID(pos, fluid) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, fluid, scm_is_fluid, "fluid")
 
 #ifdef BUILDING_LIBGUILE
 # include <libguile/cache-internal.h>

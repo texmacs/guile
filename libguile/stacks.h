@@ -3,7 +3,8 @@
 #ifndef SCM_STACKS_H
 #define SCM_STACKS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2001,2004,2006,2008,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 #include "libguile/frames.h"
 
 /* {Frames and stacks}
@@ -45,6 +47,11 @@ SCM_API SCM scm_stack_type;
 #define SCM_SET_STACK_FRAME(obj,f) (SCM_STRUCT_SLOT_SET (obj,2,f))
 
 #define SCM_FRAMEP(obj) (SCM_VM_FRAME_P (obj))
+
+#define SCM_VALIDATE_STACK(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, STACKP, "stack")
+#define SCM_VALIDATE_FRAME(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, FRAMEP, "frame")
 
 
 

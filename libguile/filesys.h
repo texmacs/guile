@@ -3,8 +3,8 @@
 #ifndef SCM_FILESYS_H
 #define SCM_FILESYS_H
 
-/* Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2006, 2008, 2009,
- *   2010, 2011, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997-2001,2006,2008-2011,2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
 
@@ -34,6 +35,9 @@ SCM_API scm_t_bits scm_tc16_dir;
 
 #define SCM_DIRP(x) (SCM_HAS_TYP16 (x, scm_tc16_dir))
 #define SCM_DIR_OPEN_P(x) (SCM_SMOB_FLAGS (x) & SCM_DIR_FLAG_OPEN)
+
+#define SCM_VALIDATE_DIR(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, DIRP, "directory port")
 
 
 

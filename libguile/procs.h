@@ -34,6 +34,11 @@
     SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
   } while (0)
 
+#define SCM_VALIDATE_PROC(pos, proc) \
+  do { \
+    SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, pos, FUNC_NAME); \
+  } while (0)
+
 SCM_API SCM scm_procedure_p (SCM obj);
 SCM_API SCM scm_thunk_p (SCM obj);
 SCM_API SCM scm_procedure_with_setter_p (SCM obj);

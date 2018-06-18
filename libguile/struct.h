@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 #include "libguile/print.h"
 
 
@@ -116,6 +117,13 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_STRUCT_DATA(X) 		((scm_t_bits*)SCM_STRUCT_SLOTS (X))
 #define SCM_STRUCT_DATA_REF(X,I) 	(SCM_STRUCT_DATA (X)[(I)])
 #define SCM_STRUCT_DATA_SET(X,I,V) 	SCM_STRUCT_DATA (X)[(I)]=(V)
+
+#define SCM_VALIDATE_STRUCT(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, STRUCTP, "struct")
+#define SCM_VALIDATE_VTABLE(pos, v) \
+  do { \
+    SCM_ASSERT (scm_is_true (scm_struct_vtable_p (v)), v, pos, FUNC_NAME); \
+  } while (0)
 
 /* The SCM_VTABLE_* macros assume that you're passing them a struct which is a
    valid vtable. */

@@ -3,7 +3,8 @@
 #ifndef SCM_STRPORTS_H
 #define SCM_STRPORTS_H
 
-/* Copyright (C) 1995,1996,2000,2001,2002, 2006, 2008, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2002,2006,2008,2010-2011,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,8 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
+#include <libguile/ports.h>
 
 
 
@@ -36,6 +39,9 @@
  			      (SCM_CELL_WORD_0 (x) & SCM_RDNG))
 #define SCM_OPOUTSTRPORTP(x) (SCM_OPSTRPORTP (x) && \
                               (SCM_CELL_WORD_0 (x) & SCM_WRTNG))
+
+#define SCM_VALIDATE_OPOUTSTRPORT(pos, port) \
+  SCM_MAKE_VALIDATE_MSG (pos, port, OPOUTSTRPORTP, "open output string port")
 
 
 

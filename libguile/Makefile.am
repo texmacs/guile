@@ -130,6 +130,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	bitvectors.c				\
 	bytevectors.c				\
 	chars.c					\
+	chooks.c				\
 	control.c				\
 	continuations.c				\
 	debug.c					\
@@ -591,6 +592,7 @@ modinclude_HEADERS =				\
 	bitvectors.h				\
 	bytevectors.h				\
 	chars.h					\
+	chooks.h				\
 	control.h				\
 	continuations.h				\
 	debug-malloc.h				\

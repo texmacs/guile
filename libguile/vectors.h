@@ -3,7 +3,8 @@
 #ifndef SCM_VECTORS_H
 #define SCM_VECTORS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2004,2005, 2006, 2008, 2009, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998,2000-2002,2004-2006,2008-2009,2011,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
 
@@ -53,6 +55,16 @@ SCM_API const SCM *scm_vector_elements (SCM vec,
 SCM_API SCM *scm_vector_writable_elements (SCM vec,
 					   scm_t_array_handle *h,
 					   size_t *lenp, ssize_t *incp);
+
+#define SCM_VALIDATE_VECTOR(pos, v) \
+  do { \
+    SCM_ASSERT (scm_is_vector (v), v, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \
+  do { \
+    SCM_ASSERT (scm_is_vector (v) && len == scm_c_vector_length (v), v, pos, FUNC_NAME); \
+  } while (0)
 
 /* Fast, non-checking accessors for simple vectors.
  */

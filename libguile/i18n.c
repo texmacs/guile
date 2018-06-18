@@ -30,6 +30,7 @@
 #include "libguile/chars.h"
 #include "libguile/dynwind.h"
 #include "libguile/syscalls.h"
+#include "libguile/smob.h"
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/threads.h"

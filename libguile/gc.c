@@ -40,6 +40,7 @@
 #include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
+#include "libguile/hooks.h"
 #include "libguile/simpos.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
@@ -490,8 +491,6 @@ scm_storage_prehistory ()
   scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
 }
-
-scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 void
 scm_init_gc_protect_object ()

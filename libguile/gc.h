@@ -26,8 +26,7 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/hooks.h"
-#include "libguile/threads.h"
+#include "libguile/chooks.h"
 
 
 /* Before Guile 2.0, Guile had a custom garbage collector and memory
@@ -87,11 +86,6 @@ typedef struct scm_t_cell
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
-
-SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
-
-#define scm_gc_running_p  0
-SCM_INTERNAL scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
 
 

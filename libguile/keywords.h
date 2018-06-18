@@ -3,7 +3,8 @@
 #ifndef SCM_KEYWORDS_H
 #define SCM_KEYWORDS_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001, 2006, 2008, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1999-2001,2006,2008,2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
 
@@ -36,6 +38,9 @@ SCM_API SCM scm_from_locale_keyword (const char *name);
 SCM_API SCM scm_from_locale_keywordn (const char *name, size_t len);
 SCM_API SCM scm_from_latin1_keyword (const char *name);
 SCM_API SCM scm_from_utf8_keyword (const char *name);
+
+#define SCM_VALIDATE_KEYWORD(pos, v) \
+  SCM_MAKE_VALIDATE_MSG (pos, v, KEYWORDP, "keyword")
 
 enum scm_keyword_arguments_flags
 {

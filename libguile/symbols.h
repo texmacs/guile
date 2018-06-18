@@ -3,7 +3,8 @@
 #ifndef SCM_SYMBOLS_H
 #define SCM_SYMBOLS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2001,2003-2004,2006,2008,2010-2011,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,9 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
+
+
 
 
 #define scm_is_symbol(x)            (SCM_HAS_TYP7 (x, scm_tc7_symbol))
@@ -32,6 +36,11 @@
   (!(SCM_CELL_WORD_0 (x) & SCM_I_F_SYMBOL_UNINTERNED))
 
 #define SCM_I_F_SYMBOL_UNINTERNED   0x100
+
+#define SCM_VALIDATE_SYMBOL(pos, str) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_symbol (str), str, pos, FUNC_NAME, "symbol"); \
+  } while (0)
 
 
 

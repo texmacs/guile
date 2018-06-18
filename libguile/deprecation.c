@@ -1,4 +1,5 @@
-/* Copyright (C) 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2006,2010-2011,2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -79,13 +80,8 @@ scm_c_issue_deprecation_warning (const char *msg)
          which could recurse and deadlock.  */
       if (msg)
         {
-          if (scm_gc_running_p)
-            fprintf (stderr, "%s\n", msg);
-          else
-            {
-              scm_puts (msg, scm_current_warning_port ());
-              scm_newline (scm_current_warning_port ());
-            }
+          scm_puts (msg, scm_current_warning_port ());
+          scm_newline (scm_current_warning_port ());
         }
     }
 }
