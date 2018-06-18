@@ -27,6 +27,7 @@
 #include "libguile/__scm.h"
 #include "libguile/boolean.h"
 #include <libguile/error.h>
+#include <libguile/gc.h>
 #include "libguile/print.h"
 
 

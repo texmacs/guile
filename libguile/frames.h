@@ -20,6 +20,8 @@
 #define _SCM_FRAMES_H_
 
 #include <libguile/__scm.h>
+
+#include <libguile/gc.h>
 #include "programs.h"
 
 

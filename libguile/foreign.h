@@ -1,7 +1,7 @@
 #ifndef SCM_FOREIGN_H
 #define SCM_FOREIGN_H
 
-/* Copyright (C) 2010, 2011, 2012, 2013, 2016  Free Software Foundation, Inc.
+/* Copyright (C) 2010-2013,2016,2018  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,6 +20,7 @@
  */
 
 #include "libguile/__scm.h"
+#include "libguile/gc.h"
 
 /* A "foreign pointer" is a wrapped C pointer.  It is represented by a
    cell whose second word is a pointer.  The first word has the

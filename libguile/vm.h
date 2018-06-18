@@ -20,6 +20,7 @@
 #define _SCM_VM_H_
 
 #include <libguile/__scm.h>
+#include <libguile/gc.h>
 #include <libguile/frames.h>
 #include <libguile/programs.h>
 

@@ -28,6 +28,8 @@
 
 #include "libguile/__scm.h"
 #include "libguile/error.h"
+
+#include "libguile/gc.h"
 #include "libguile/print.h"
 
 #ifndef SCM_T_WCHAR_DEFINED

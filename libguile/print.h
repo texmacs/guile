@@ -28,6 +28,7 @@
 
 #include "libguile/chars.h" 
 #include <libguile/error.h>
+#include <libguile/gc.h>
 #include "libguile/options.h"
 
 
