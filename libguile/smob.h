@@ -3,8 +3,8 @@
 #ifndef SCM_SMOB_H
 #define SCM_SMOB_H
 
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2009,
- *   2010, 2011, 2012, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2001,2004,2006,2009-2012,2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 #include "libguile/print.h"
 
 
@@ -53,6 +54,12 @@ typedef struct scm_smob_descriptor
 #define SCM_SMOB_PREDICATE(tag, obj)	SCM_HAS_TYP16 (obj, tag)
 #define SCM_SMOB_DESCRIPTOR(x)		(scm_smobs[SCM_SMOBNUM (x)])
 #define SCM_SMOB_APPLICABLE_P(x)	(SCM_SMOB_DESCRIPTOR (x).apply)
+
+#define SCM_VALIDATE_SMOB(pos, obj, type) \
+  do { \
+    SCM_ASSERT (SCM_SMOB_PREDICATE (scm_tc16_ ## type, obj), \
+                obj, pos, FUNC_NAME); \
+  } while (0)
 
 /* Maximum number of SMOB types.  */
 #define SCM_I_MAX_SMOB_TYPE_COUNT  256

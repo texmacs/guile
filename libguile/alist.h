@@ -3,7 +3,8 @@
 #ifndef SCM_ALIST_H
 #define SCM_ALIST_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000,2006,2008,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,25 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
+#include "libguile/pairs.h"
+
+
+
+
+#define SCM_VALIDATE_ALISTCELL(pos, alist) \
+  do { \
+    SCM_ASSERT (scm_is_pair (alist) && scm_is_pair (SCM_CAR (alist)), \
+                alist, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_ALISTCELL_COPYSCM(pos, alist, cvar) \
+  do { \
+    SCM_ASSERT (scm_is_pair (alist), alist, pos, FUNC_NAME); \
+    cvar = SCM_CAR (alist); \
+    SCM_ASSERT (scm_is_pair (cvar), alist, pos, FUNC_NAME); \
+  } while (0)
+
 
 
 

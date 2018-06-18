@@ -3,7 +3,8 @@
 #ifndef SCM_CHARS_H
 #define SCM_CHARS_H
 
-/* Copyright (C) 1995,1996,2000,2001,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2001,2004,2006,2008-2009,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 #ifndef SCM_T_WCHAR_DEFINED
 typedef scm_t_int32 scm_t_wchar;
@@ -56,6 +58,14 @@ typedef scm_t_int32 scm_t_wchar;
     && (scm_t_wchar) (c) < SCM_CODEPOINT_SURROGATE_START)               \
    || ((scm_t_wchar) (c) > SCM_CODEPOINT_SURROGATE_END                  \
        && (scm_t_wchar) (c) <= SCM_CODEPOINT_MAX))
+
+#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
+
+#define SCM_VALIDATE_CHAR_COPY(pos, scm, cvar) \
+  do { \
+    SCM_ASSERT (SCM_CHARP (scm), scm, pos, FUNC_NAME); \
+    cvar = SCM_CHAR (scm); \
+  } while (0)
 
 
 

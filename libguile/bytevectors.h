@@ -22,6 +22,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 #include "libguile/uniform.h"
 
 
@@ -145,6 +146,10 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
 
 /* Hint that is passed to `scm_gc_malloc ()' and friends.  */
 #define SCM_GC_BYTEVECTOR "bytevector"
+
+#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
+  SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
+		   FUNC_NAME, "bytevector")
 
 SCM_INTERNAL SCM scm_i_make_typed_bytevector (size_t, scm_t_array_element_type);
 SCM_INTERNAL SCM scm_c_take_typed_bytevector (signed char *, size_t,

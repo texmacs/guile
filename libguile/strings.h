@@ -3,8 +3,8 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995-1998, 2000, 2001, 2004-2006, 2008-2011, 2013,
- *   2015-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2001,2004-2006,2008-2011,2013,
+ *   2015-2016,2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
 
@@ -247,6 +248,15 @@ SCM_API SCM scm_sys_stringbuf_hist (void);
 #endif
 
 
+
+
+#define SCM_VALIDATE_STRING(pos, str) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_string (str), str, pos, FUNC_NAME, "string"); \
+  } while (0)
+
+
+
 
 SCM_INTERNAL void scm_init_strings (void);
 

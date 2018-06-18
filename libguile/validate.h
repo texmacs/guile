@@ -31,54 +31,6 @@
 
 
 
-#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
-  SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
-		   FUNC_NAME, "bytevector")
-
-#define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
-
-#define SCM_VALIDATE_CHAR_COPY(pos, scm, cvar) \
-  do { \
-    SCM_ASSERT (SCM_CHARP (scm), scm, pos, FUNC_NAME); \
-    cvar = SCM_CHAR (scm); \
-  } while (0)
-
-#define SCM_VALIDATE_STRING(pos, str) \
-  do { \
-    SCM_ASSERT_TYPE (scm_is_string (str), str, pos, FUNC_NAME, "string"); \
-  } while (0)
-
-#define SCM_VALIDATE_ALISTCELL(pos, alist) \
-  do { \
-    SCM_ASSERT (scm_is_pair (alist) && scm_is_pair (SCM_CAR (alist)), \
-                alist, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_ALISTCELL_COPYSCM(pos, alist, cvar) \
-  do { \
-    SCM_ASSERT (scm_is_pair (alist), alist, pos, FUNC_NAME); \
-    cvar = SCM_CAR (alist); \
-    SCM_ASSERT (scm_is_pair (cvar), alist, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_OPORT_VALUE(pos, port) \
-  do { \
-    SCM_ASSERT (scm_valid_oport_value_p (port), port, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_PRINTSTATE(pos, a) SCM_MAKE_VALIDATE_MSG(pos, a, PRINT_STATE_P, "print-state")
-
-#define SCM_VALIDATE_SMOB(pos, obj, type) \
-  do { \
-    SCM_ASSERT (SCM_SMOB_PREDICATE (scm_tc16_ ## type, obj), \
-                obj, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_THUNK(pos, thunk) \
-  do { \
-    SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
-  } while (0)
-
 #define SCM_VALIDATE_SYMBOL(pos, str) \
   do { \
     SCM_ASSERT_TYPE (scm_is_symbol (str), str, pos, FUNC_NAME, "symbol"); \

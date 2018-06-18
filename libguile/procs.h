@@ -4,7 +4,7 @@
 #define SCM_PROCS_H
 
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2006, 2008, 2009,
- *   2012, 2013 Free Software Foundation, Inc.
+ *   2012, 2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,8 +25,14 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/error.h>
 
 
+
+#define SCM_VALIDATE_THUNK(pos, thunk) \
+  do { \
+    SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
+  } while (0)
 
 SCM_API SCM scm_procedure_p (SCM obj);
 SCM_API SCM scm_thunk_p (SCM obj);

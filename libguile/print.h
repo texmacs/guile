@@ -3,8 +3,8 @@
 #ifndef SCM_PRINT_H
 #define SCM_PRINT_H
 
-/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2003, 2004, 2006, 2008,
- *   2010, 2012, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998,2000-2001,2003-2004,2006,2008,
+ *   2010,2012,2017-2018  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,7 +27,9 @@
 #include "libguile/__scm.h"
 
 #include "libguile/chars.h" 
+#include <libguile/error.h>
 #include "libguile/options.h"
+
 
 
 /* State information passed around during printing.
@@ -52,6 +54,14 @@ do { \
 
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
+
+#define SCM_VALIDATE_OPORT_VALUE(pos, port) \
+  do { \
+    SCM_ASSERT (scm_valid_oport_value_p (port), port, pos, FUNC_NAME); \
+  } while (0)
+
+#define SCM_VALIDATE_PRINTSTATE(pos, a) \
+  SCM_MAKE_VALIDATE_MSG(pos, a, PRINT_STATE_P, "print-state")
 
 #define SCM_PRINT_STATE_LAYOUT "pwuwuwuwuwuwpwuwuwuwpwpw"
 typedef struct scm_print_state {
