@@ -2936,8 +2936,11 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Autoloading modules}
 ;;;
 
-;;; XXX FIXME autoloads-in-progress and autoloads-done
-;;;           are not handled in a thread-safe way.
+(define (call-with-module-autoload-lock thunk)
+  ;; This binding is overridden when (ice-9 threads) is available to
+  ;; implement a critical section around the call to THUNK.  It must be
+  ;; used anytime the autoload variables below are used.
+  (thunk))
 
 (define autoloads-in-progress '())
 
@@ -2957,37 +2960,40 @@ but it fails to load."
                                                 file-name-separator-string))
                                dir-hint-module-name))))
     (resolve-module dir-hint-module-name #f)
-    (and (not (autoload-done-or-in-progress? dir-hint name))
-         (let ((didit #f))
-           (dynamic-wind
-            (lambda () (autoload-in-progress! dir-hint name))
-            (lambda ()
-              (with-fluids ((current-reader #f))
-                (save-module-excursion
-                 (lambda () 
-                   (define (call/ec proc)
-                     (let ((tag (make-prompt-tag)))
-                       (call-with-prompt
-                        tag
-                        (lambda ()
-                          (proc (lambda () (abort-to-prompt tag))))
-                        (lambda (k) (values)))))
-                   ;; The initial environment when loading a module is a fresh
-                   ;; user module.
-                   (set-current-module (make-fresh-user-module))
-                   ;; Here we could allow some other search strategy (other than
-                   ;; primitive-load-path), for example using versions encoded
-                   ;; into the file system -- but then we would have to figure
-                   ;; out how to locate the compiled file, do auto-compilation,
-                   ;; etc. Punt for now, and don't use versions when locating
-                   ;; the file.
-                   (call/ec
-                    (lambda (abort)
-                      (primitive-load-path (in-vicinity dir-hint name)
-                                           abort)
-                      (set! didit #t)))))))
-            (lambda () (set-autoloaded! dir-hint name didit)))
-           didit))))
+
+    (call-with-module-autoload-lock
+     (lambda ()
+       (and (not (autoload-done-or-in-progress? dir-hint name))
+            (let ((didit #f))
+              (dynamic-wind
+                (lambda () (autoload-in-progress! dir-hint name))
+                (lambda ()
+                  (with-fluids ((current-reader #f))
+                    (save-module-excursion
+                     (lambda ()
+                       (define (call/ec proc)
+                         (let ((tag (make-prompt-tag)))
+                           (call-with-prompt
+                               tag
+                             (lambda ()
+                               (proc (lambda () (abort-to-prompt tag))))
+                             (lambda (k) (values)))))
+                       ;; The initial environment when loading a module is a fresh
+                       ;; user module.
+                       (set-current-module (make-fresh-user-module))
+                       ;; Here we could allow some other search strategy (other than
+                       ;; primitive-load-path), for example using versions encoded
+                       ;; into the file system -- but then we would have to figure
+                       ;; out how to locate the compiled file, do auto-compilation,
+                       ;; etc. Punt for now, and don't use versions when locating
+                       ;; the file.
+                       (call/ec
+                        (lambda (abort)
+                          (primitive-load-path (in-vicinity dir-hint name)
+                                               abort)
+                          (set! didit #t)))))))
+                (lambda () (set-autoloaded! dir-hint name didit)))
+              didit))))))
 
 
 
