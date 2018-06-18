@@ -25,6 +25,7 @@
 #include "_scm.h"
 #include "threads.h"
 #include "libguile/list.h"
+#include "libguile/pairs.h"
 #include "instructions.h"
 #include "extensions.h"
 

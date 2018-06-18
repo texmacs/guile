@@ -44,6 +44,7 @@
 #include "libguile/macros.h"
 #include "libguile/smob.h"
 #include "libguile/struct.h"
+#include "libguile/pairs.h"
 #include "libguile/procprop.h"
 #include "libguile/srcprop.h"
 #include "libguile/alist.h"

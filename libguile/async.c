@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/atomics-internal.h"
 #include "libguile/eval.h"
 #include "libguile/throw.h"

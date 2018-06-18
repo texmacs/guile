@@ -39,6 +39,7 @@
 #include <striconveh.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/async.h"
 #include "libguile/atomics-internal.h"

@@ -28,6 +28,7 @@
 #include <unictype.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"

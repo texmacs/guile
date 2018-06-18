@@ -80,6 +80,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/async.h"
 #include "libguile/dynwind.h"

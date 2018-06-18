@@ -29,6 +29,7 @@
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/list.h"
+#include "libguile/pairs.h"
 #include "libguile/ports.h"
 #include "libguile/smob.h"
 #include "libguile/dynwind.h"

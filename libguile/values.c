@@ -22,6 +22,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/eval.h"
 #include "libguile/feature.h"
 #include "libguile/gc.h"

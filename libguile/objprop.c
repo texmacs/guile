@@ -27,6 +27,7 @@
 #include "libguile/async.h"
 #include "libguile/hashtab.h"
 #include "libguile/objprop.h"
+#include "libguile/pairs.h"
 #include "libguile/weak-table.h"
 
 

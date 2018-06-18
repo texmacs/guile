@@ -49,8 +49,8 @@ do { \
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
 #define SCM_PORT_WITH_PS_P(p)    SCM_TYP16_PREDICATE (scm_tc16_port_with_ps, p)
-#define SCM_PORT_WITH_PS_PORT(p) SCM_CAR (SCM_CELL_OBJECT_1 (p))
-#define SCM_PORT_WITH_PS_PS(p)   SCM_CDR (SCM_CELL_OBJECT_1 (p))
+#define SCM_PORT_WITH_PS_PORT(p) SCM_CELL_OBJECT_1 (p)
+#define SCM_PORT_WITH_PS_PS(p)   SCM_CELL_OBJECT_2 (p)
 
 #define SCM_COERCE_OUTPORT(p) \
   (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)

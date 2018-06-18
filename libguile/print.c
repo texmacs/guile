@@ -31,6 +31,7 @@
 #include <unictype.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
@@ -262,8 +263,8 @@ scm_i_port_with_print_state (SCM port, SCM print_state)
     }
   else
     port = SCM_COERCE_OUTPORT (port);
-  SCM_RETURN_NEWSMOB (scm_tc16_port_with_ps,
-		      SCM_UNPACK (scm_cons (port, print_state)));
+  return scm_new_double_smob (scm_tc16_port_with_ps,
+                              SCM_UNPACK (port), SCM_UNPACK (print_state), 0);
 }
 
 static void

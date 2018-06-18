@@ -47,6 +47,7 @@
 #include <gmp.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/async.h"
 #include "libguile/arrays.h"
 #include "libguile/feature.h"

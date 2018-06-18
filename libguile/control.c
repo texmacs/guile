@@ -23,6 +23,7 @@
 #include <alloca.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/control.h"
 #include "libguile/extensions.h"
 #include "libguile/list.h"

@@ -27,7 +27,6 @@
 #include "libguile/boolean.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"
-
 #include "libguile/pairs.h"
 #include "libguile/numbers.h"
 #include "libguile/alist.h"

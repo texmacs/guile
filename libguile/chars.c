@@ -30,8 +30,8 @@
 
 #include "libguile/_scm.h"
 #include "libguile/boolean.h"
-
 #include "libguile/chars.h"
+#include "libguile/pairs.h"
 #include "libguile/srfi-14.h"
 
 

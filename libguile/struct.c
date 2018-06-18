@@ -37,6 +37,7 @@
 #include "libguile/goops.h"
 #include "libguile/alist.h"
 #include "libguile/hashtab.h"
+#include "libguile/pairs.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"

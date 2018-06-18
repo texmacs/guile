@@ -38,6 +38,7 @@
 #include "libguile/generalized-arrays.h"
 #include "libguile/goops.h"
 #include "libguile/hashtab.h"
+#include "libguile/pairs.h"
 #include "libguile/private-options.h"
 #include "libguile/smob.h"
 #include "libguile/stackchk.h"

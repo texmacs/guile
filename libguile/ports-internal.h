@@ -27,6 +27,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/list.h"
+#include "libguile/pairs.h"
 #include "libguile/ports.h"
 
 typedef enum scm_t_port_type_flags {

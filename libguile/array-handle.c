@@ -29,6 +29,7 @@
 #include "libguile/bitvectors.h"
 #include "libguile/list.h"
 #include "libguile/arrays.h"
+#include "libguile/pairs.h"
 #include "libguile/array-handle.h"
 
 

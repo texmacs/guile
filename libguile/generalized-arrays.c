@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/generalized-arrays.h"

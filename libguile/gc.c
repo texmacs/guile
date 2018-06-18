@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/gen-scmconfig.h"
+#include "libguile/pairs.h"
 
 #include <stdio.h>
 #include <errno.h>

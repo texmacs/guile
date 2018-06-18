@@ -28,6 +28,7 @@
 #include "libguile/list.h"
 #include "libguile/fluids.h"
 #include "libguile/modules.h"
+#include "libguile/pairs.h"
 
 #include "libguile/evalext.h"
 

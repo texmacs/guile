@@ -63,6 +63,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
 #include "libguile/extensions.h"

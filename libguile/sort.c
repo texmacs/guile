@@ -40,6 +40,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/eval.h"
 #include "libguile/arrays.h"

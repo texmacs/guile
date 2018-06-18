@@ -44,6 +44,7 @@
 #include "elf.h"
 #include "eval.h"
 #include "extensions.h"
+#include "pairs.h"
 #include "programs.h"
 #include "loader.h"
 

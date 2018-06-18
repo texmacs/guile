@@ -28,6 +28,7 @@
 #include <stdarg.h>
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 
 #include "libguile/deprecation.h"
 #include "libguile/list.h"

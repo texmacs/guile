@@ -39,6 +39,7 @@
 #endif
 
 #include "libguile/bdw-gc.h"
+#include "libguile/pairs.h"
 #include <gc/gc_mark.h>
 
 #include "libguile/_scm.h"

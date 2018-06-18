@@ -39,6 +39,7 @@
 #include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
+#include "libguile/pairs.h"
 #include "libguile/stime.h"
 #include "libguile/strings.h"
 #include "libguile/arrays.h"

@@ -3,7 +3,7 @@
 #ifndef SCM_WEAK_LIST_H
 #define SCM_WEAK_LIST_H
 
-/* Copyright (C) 2016 Free Software Foundation, Inc.
+/* Copyright (C) 2016, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/pairs.h"
 #include "libguile/weak-vector.h"
 
 

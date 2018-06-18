@@ -28,6 +28,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/strings.h"
 #include "libguile/fluids.h"
 

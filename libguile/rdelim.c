@@ -21,6 +21,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 
 #include <stdio.h>
 

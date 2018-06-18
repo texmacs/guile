@@ -36,6 +36,7 @@
 #include "striconveh.h"
 
 #include "libguile/_scm.h"
+#include "libguile/pairs.h"
 #include "libguile/chars.h"
 #include "libguile/strings.h"
 #include "libguile/ports.h"

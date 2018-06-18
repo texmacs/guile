@@ -30,6 +30,7 @@
 #include "libguile/boolean.h"
 #include "libguile/dynstack.h"
 #include "libguile/eval.h"
+#include "libguile/pairs.h"
 #include "libguile/ports.h"
 
 #include "libguile/dynwind.h"
