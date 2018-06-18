@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2001,2003-2004,2006,2008,2010-2012,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +27,7 @@
 #include <assert.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/dynstack.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"

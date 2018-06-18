@@ -31,6 +31,7 @@
 #include "verify.h"
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/__scm.h"
 #include "libguile/eq.h"
 #include "libguile/chars.h"

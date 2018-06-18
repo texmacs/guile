@@ -50,6 +50,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 
 #include "libguile/bdw-gc.h"
 #include "libguile/deprecation.h"

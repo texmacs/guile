@@ -60,6 +60,7 @@
 #include <stdarg.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
 #include "libguile/finalizers.h"

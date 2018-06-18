@@ -46,6 +46,7 @@
 #include <arpa/inet.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/feature.h"
 #include "libguile/list.h"
 #include "libguile/strings.h"

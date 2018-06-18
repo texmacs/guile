@@ -1,6 +1,7 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+ * Copyright (C) 2001,2004,2006-2007,2009,2011,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,10 +27,14 @@
 #include <string.h>
 #include <unictype.h>
 
-#include "libguile.h"
+#include "libguile/_scm.h"
+#include "libguile/boolean.h"
+#include "libguile/chars.h"
+#include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"
-#include "libguile/chars.h"
+#include "libguile/values.h"
 
 /* Include the pre-computed standard charset data.  */
 #include "libguile/srfi-14.i.c"

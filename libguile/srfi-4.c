@@ -23,6 +23,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/__scm.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/srfi-4.h"

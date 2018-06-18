@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include "_scm.h"
+#include "boolean.h"
 #include "instructions.h"
 #include "alist.h"
 #include "eval.h"

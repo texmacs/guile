@@ -22,6 +22,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/extensions.h"
 #include "libguile/eval.h"
 #include "libguile/hashtab.h"

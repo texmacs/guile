@@ -26,6 +26,7 @@
 #include <ctype.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 
 #include <unistd.h>
 #ifdef HAVE_IO_H

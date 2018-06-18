@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/__scm.h"
+#include "libguile/boolean.h"
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/continuations.h"

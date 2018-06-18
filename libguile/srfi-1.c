@@ -25,6 +25,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/eq.h"
 
 #include "libguile/list.h"

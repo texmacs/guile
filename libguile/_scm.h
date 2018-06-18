@@ -42,7 +42,6 @@
 #include "libguile/procs.h"	/* Same.  */
 #include "libguile/numbers.h"	/* Everyone deals with fixnums.  */
 #include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
-#include "libguile/boolean.h"	/* Everyone wonders about the truth.  */
 #include "libguile/threads.h"	/* You are not alone. */
 #include "libguile/snarf.h"	/* Everyone snarfs. */
 #include "libguile/foreign.h"	/* Snarfing needs the foreign data structures. */

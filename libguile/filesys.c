@@ -80,6 +80,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
 #include "libguile/fdes-finalizers.h"

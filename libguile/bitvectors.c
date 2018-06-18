@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"

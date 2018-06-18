@@ -34,6 +34,7 @@
 #include <alloca.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"

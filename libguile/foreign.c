@@ -29,6 +29,7 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/bytevectors.h"
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"

@@ -21,6 +21,7 @@
 #endif
 
 #include "_scm.h"
+#include "boolean.h"
 #include "alist.h"
 #include "cache-internal.h"
 #include "extensions.h"

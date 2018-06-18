@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <unistdio.h>
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/smob.h"
 #include "libguile/eval.h"
 #include "libguile/eq.h"

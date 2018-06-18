@@ -42,6 +42,7 @@
 #include <full-write.h>
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 
 #include "libguile/async.h"
 #include "libguile/dynwind.h"

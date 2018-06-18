@@ -28,6 +28,7 @@
 #define SCM_BUILDING_DEPRECATED_CODE
 
 #include "libguile/_scm.h"
+#include "libguile/boolean.h"
 #include "libguile/async.h"
 #include "libguile/chars.h"
 #include "libguile/deprecation.h"
