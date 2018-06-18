@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -255,6 +255,13 @@ default_duplicate_binding_handlers (void)
   return (scm_call_0 (get_handlers));
 }
 
+/* Each module has an "import obarray" that may be accessed concurrently
+   by several threads.  This mutex protects access to any obarray.  This
+   is coarse-grain but (1) pthread mutexes are quite cheap, and (2)
+   Scheme "programs" have a cache for free variables anyway.  */
+static scm_i_pthread_mutex_t import_obarray_mutex =
+  SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 /* Resolve the import of SYM in MODULE, where SYM is currently provided by
    both IFACE1 as VAR1 and IFACE2 as VAR2.  Return the variable chosen by the
    duplicate binding handlers or `#f'.  */
@@ -280,7 +287,11 @@ resolve_duplicate_binding (SCM module, SCM sym,
   args[5] = SCM_VARIABLE_REF (var2);
   if (SCM_UNBNDP (args[5]))
     args[5] = SCM_BOOL_F;
+
+  scm_i_pthread_mutex_lock (&import_obarray_mutex);
   args[6] = scm_hashq_ref (SCM_MODULE_IMPORT_OBARRAY (module), sym, SCM_BOOL_F);
+  scm_i_pthread_mutex_unlock (&import_obarray_mutex);
+
   args[7] = SCM_BOOL_F;
       
   handlers = SCM_MODULE_DUPLICATE_HANDLERS (module);
@@ -318,7 +329,11 @@ module_imported_variable (SCM module, SCM sym)
 
   /* Search cached imported bindings.  */
   imports = SCM_MODULE_IMPORT_OBARRAY (module);
+
+  scm_i_pthread_mutex_lock (&import_obarray_mutex);
   var = scm_hashq_ref (imports, sym, SCM_UNDEFINED);
+  scm_i_pthread_mutex_unlock (&import_obarray_mutex);
+
   if (SCM_BOUND_THING_P (var))
     return var;
 
@@ -366,7 +381,9 @@ module_imported_variable (SCM module, SCM sym)
     if (SCM_BOUND_THING_P (found_var))
       {
 	/* Save the lookup result for future reference.  */
+        scm_i_pthread_mutex_lock (&import_obarray_mutex);
 	(void) scm_hashq_set_x (imports, sym, found_var);
+        scm_i_pthread_mutex_unlock (&import_obarray_mutex);
 	return found_var;
       }
   }
