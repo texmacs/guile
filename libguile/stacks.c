@@ -37,7 +37,6 @@
 #include "libguile/vm.h" /* to capture vm stacks */
 #include "libguile/frames.h" /* vm frames */
 
-#include "libguile/validate.h"
 #include "libguile/stacks.h"
 #include "libguile/private-options.h"
 

@@ -32,7 +32,6 @@
 #include "libguile/extensions.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/uniform.h"
-#include "libguile/validate.h"
 
 
 #define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                   \

@@ -59,7 +59,6 @@
 #include "libguile/memoize.h"
 #include "libguile/vm.h"
 
-#include "libguile/validate.h"
 #include "libguile/debug.h"
 
 #include "libguile/private-options.h"

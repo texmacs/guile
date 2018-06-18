@@ -1,7 +1,7 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008,
- *   2009, 2010, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000-2003,2006-2010,2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 #include <sys/select.h>
 #include <signal.h>
 
-#include "libguile/validate.h"
 #include "guile-readline/readline.h"
 
 scm_t_option scm_readline_opts[] = {

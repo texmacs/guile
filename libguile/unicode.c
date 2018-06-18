@@ -28,7 +28,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/extensions.h"
-#include "libguile/validate.h"
 
 #include "libguile/unicode.h"
 

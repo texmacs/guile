@@ -27,7 +27,6 @@
 #include "libguile/print.h"
 #include "libguile/random.h"
 #include "libguile/smob.h"
-#include "libguile/validate.h"
 #include "libguile/macros.h"
 
 #include "libguile/private-options.h"

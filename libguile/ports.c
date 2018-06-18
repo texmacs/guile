@@ -54,7 +54,6 @@
 #include "libguile/hashtab.h"
 #include "libguile/strings.h"
 #include "libguile/mallocs.h"
-#include "libguile/validate.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
 #include "libguile/private-options.h"

@@ -49,7 +49,6 @@
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"
 
-#include "libguile/validate.h"
 #include "libguile/goops.h"
 
 /* Objects have identity, so references to classes and instances are by

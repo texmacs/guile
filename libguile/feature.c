@@ -29,7 +29,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
-#include "libguile/validate.h"
 #include "libguile/fluids.h"
 
 #include "libguile/feature.h"

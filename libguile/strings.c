@@ -43,7 +43,6 @@
 #include "libguile/error.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
-#include "libguile/validate.h"
 #include "libguile/private-options.h"
 
 

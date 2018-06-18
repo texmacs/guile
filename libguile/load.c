@@ -46,7 +46,6 @@
 #include "libguile/strings.h"
 #include "libguile/throw.h"
 
-#include "libguile/validate.h"
 #include "libguile/load.h"
 #include "libguile/fluids.h"
 

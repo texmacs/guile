@@ -27,7 +27,6 @@
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/syntax.h"
-#include "libguile/validate.h"
 
 
 

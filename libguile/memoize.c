@@ -39,7 +39,6 @@
 #include "libguile/print.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"
-#include "libguile/validate.h"
 
 
 

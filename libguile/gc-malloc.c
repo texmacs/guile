@@ -42,7 +42,6 @@
 #include "libguile/hashtab.h"
 #include "libguile/tags.h"
 
-#include "libguile/validate.h"
 #include "libguile/deprecation.h"
 #include "libguile/gc.h"
 

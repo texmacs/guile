@@ -1,4 +1,5 @@
-/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011, 2012, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2001,2006,2008-2009,2011-2012,2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,7 +29,6 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/struct.h"
-#include "libguile/validate.h"
 
 #include "libguile/values.h"
 

@@ -59,7 +59,6 @@
 #include "libguile/strings.h"
 #include "libguile/threads.h"
 #include "libguile/throw.h"
-#include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"
 #include "libguile/vm.h"

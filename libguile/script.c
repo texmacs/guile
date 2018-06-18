@@ -39,7 +39,6 @@
 #include "libguile/script.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
-#include "libguile/validate.h"
 #include "libguile/version.h"
 #include "libguile/vm.h"
 

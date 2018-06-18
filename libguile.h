@@ -111,7 +111,6 @@ extern "C" {
 #include "libguile/throw.h"
 #include "libguile/trees.h"
 #include "libguile/uniform.h"
-#include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"

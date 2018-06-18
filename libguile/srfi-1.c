@@ -27,7 +27,6 @@
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 
-#include "libguile/validate.h"
 #include "libguile/list.h"
 #include "libguile/eval.h"
 #include "libguile/srfi-1.h"

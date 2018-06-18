@@ -26,7 +26,6 @@
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 
-#include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/array-handle.h"
 #include "libguile/generalized-vectors.h"

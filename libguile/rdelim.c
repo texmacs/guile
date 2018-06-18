@@ -35,7 +35,6 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/strports.h"
-#include "libguile/validate.h"
 
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM str, SCM gobble, SCM port, SCM start, SCM end),

@@ -36,7 +36,6 @@
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
 #include "libguile/ports.h"
-#include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"
 

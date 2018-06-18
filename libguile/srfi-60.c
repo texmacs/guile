@@ -27,7 +27,6 @@
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 
-#include "libguile/validate.h"
 #include "libguile/extensions.h"
 #include "libguile/numbers.h"
 

@@ -49,7 +49,6 @@
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
 
-#include "libguile/validate.h"
 #include "libguile/sort.h"
 
 /* We have two quicksort variants: one for SCM (#t) arrays and one for

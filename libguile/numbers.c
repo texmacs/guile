@@ -69,7 +69,6 @@
 #include "libguile/goops.h"
 #include "libguile/values.h"
 
-#include "libguile/validate.h"
 #include "libguile/numbers.h"
 #include "libguile/deprecation.h"
 

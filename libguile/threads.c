@@ -45,7 +45,6 @@
 #include "libguile/deprecation.h"
 #include "libguile/extensions.h"
 #include "libguile/hashtab.h"
-#include "libguile/validate.h"
 #include "libguile/eval.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"

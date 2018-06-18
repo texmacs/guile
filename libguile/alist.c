@@ -1,4 +1,5 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004, 2006, 2008, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001,2004,2006,2008,2010-2011,2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,7 +27,6 @@
 #include "libguile/eq.h"
 #include "libguile/list.h"
 
-#include "libguile/validate.h"
 #include "libguile/pairs.h"
 #include "libguile/numbers.h"
 #include "libguile/alist.h"

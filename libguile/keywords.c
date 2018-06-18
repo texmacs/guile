@@ -33,7 +33,6 @@
 #include "libguile/dynwind.h"
 #include "libguile/hashtab.h"
 
-#include "libguile/validate.h"
 #include "libguile/keywords.h"
 #include "libguile/strings.h"
 

@@ -1,7 +1,6 @@
 /* dynl.c - dynamic linking
- *
- * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008, 2009, 2010, 2011, 2017 Free Software Foundation, Inc.
+ * Copyright (C) 1990-2003,2008-2011,2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,7 +58,6 @@ maybe_drag_in_eprintf ()
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/deprecation.h"
-#include "libguile/validate.h"
 #include "libguile/dynwind.h"
 #include "libguile/foreign.h"
 #include "libguile/gc.h"

@@ -32,7 +32,6 @@
 #include "libguile/smob.h"
 #include "libguile/strings.h"
 
-#include "libguile/validate.h"
 #include "libguile/hooks.h"
 
 

@@ -45,7 +45,6 @@
 #include "libguile/vectors.h"
 #include "libguile/generalized-vectors.h"
 
-#include "libguile/validate.h"
 #include "libguile/random.h"
 
 

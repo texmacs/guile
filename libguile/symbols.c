@@ -41,7 +41,6 @@
 #include "libguile/read.h"
 #include "libguile/srfi-13.h"
 
-#include "libguile/validate.h"
 #include "libguile/symbols.h"
 
 #include "libguile/private-options.h"

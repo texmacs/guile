@@ -31,7 +31,6 @@
 #include "libguile/smob.h"
 #include "libguile/deprecation.h"
 
-#include "libguile/validate.h"
 #include "libguile/procs.h"
 #include "libguile/procprop.h"
 #include "libguile/loader.h"

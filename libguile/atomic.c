@@ -25,7 +25,6 @@
 #include "libguile/_scm.h"
 #include "libguile/extensions.h"
 #include "libguile/ports.h"
-#include "libguile/validate.h"
 #include "libguile/atomics-internal.h"
 #include "libguile/atomic.h"
 

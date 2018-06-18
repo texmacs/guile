@@ -49,7 +49,6 @@
 #include "libguile/strports.h"
 #include "libguile/struct.h"
 #include "libguile/throw.h"
-#include "libguile/validate.h"
 
 /* {Error reporting and backtraces}
  *

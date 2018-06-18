@@ -40,7 +40,6 @@
 #include "libguile/procs.h"
 #include "libguile/generalized-arrays.h"
 
-#include "libguile/validate.h"
 #include "libguile/array-map.h"
 #include <assert.h>
 

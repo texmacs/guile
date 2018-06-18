@@ -95,7 +95,6 @@
 #include "libguile/srfi-13.h"
 #include "libguile/strings.h"
 #include "libguile/syscalls.h"
-#include "libguile/validate.h"
 #include "libguile/vectors.h"
 
 

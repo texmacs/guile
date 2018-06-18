@@ -44,7 +44,6 @@
 #include "libguile/vm.h"
 #include "libguile/instructions.h"
 
-#include "libguile/validate.h"
 #include "libguile/continuations.h"
 
 

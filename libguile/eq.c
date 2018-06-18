@@ -43,7 +43,6 @@
 #include "libguile/strorder.h"
 #include "libguile/struct.h"
 #include "libguile/syntax.h"
-#include "libguile/validate.h"
 #include "libguile/vectors.h"
 
 

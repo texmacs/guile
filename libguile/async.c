@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000-2002,2004,2006,2008-2011,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,7 +31,6 @@
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
-#include "libguile/validate.h"
 #include "libguile/async.h"
 
 #ifdef HAVE_STRING_H

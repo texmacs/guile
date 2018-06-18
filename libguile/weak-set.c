@@ -31,7 +31,6 @@
 #include "libguile/ports.h"
 #include "libguile/bdw-gc.h"
 
-#include "libguile/validate.h"
 #include "libguile/weak-list.h"
 #include "libguile/weak-set.h"
 

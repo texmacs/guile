@@ -78,7 +78,6 @@
 #include "libguile/vectors.h"
 #include "libguile/values.h"
 
-#include "libguile/validate.h"
 #include "libguile/posix.h"
 #include "libguile/gettext.h"
 #include "libguile/threads.h"

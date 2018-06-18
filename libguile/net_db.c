@@ -1,6 +1,6 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2006, 2009,
- *   2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ * Copyright (C) 1995-2001,2006,2009-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -51,7 +51,6 @@
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
 
-#include "libguile/validate.h"
 #include "libguile/net_db.h"
 #include "libguile/socket.h"
 

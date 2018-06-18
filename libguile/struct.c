@@ -40,7 +40,6 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 
-#include "libguile/validate.h"
 #include "libguile/struct.h"
 
 #include "libguile/eq.h"

@@ -51,7 +51,6 @@
 #include "libguile/syscalls.h"
 #include "libguile/threads.h"
 
-#include "libguile/validate.h"
 #include "libguile/scmsigs.h"
 
 

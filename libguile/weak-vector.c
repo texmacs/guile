@@ -29,7 +29,6 @@
 #include "libguile/extensions.h"
 #include "libguile/weak-vector.h"
 
-#include "libguile/validate.h"
 
 
 

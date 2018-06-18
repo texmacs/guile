@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006,
- *   2007, 2008, 2009, 2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001,2003-2009,2011,2013-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -57,7 +57,6 @@
 #include "libguile/dynwind.h"
 #include "libguile/strings.h"
 
-#include "libguile/validate.h"
 #include "libguile/stime.h"
 
 #include <unistd.h>

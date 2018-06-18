@@ -3,7 +3,8 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2011, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2003,2006,2008-2009,2011,2015,2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,7 +33,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/validate.h"
 
 /* {Class flags}
  *

@@ -33,7 +33,6 @@
 #include "libguile/hash.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
-#include "libguile/validate.h"
 #include "libguile/weak-list.h"
 #include "libguile/weak-table.h"
 

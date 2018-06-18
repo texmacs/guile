@@ -42,7 +42,6 @@
 #include "libguile/bytevectors.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/strings.h"
-#include "libguile/validate.h"
 #include "libguile/arrays.h"
 #include "libguile/array-handle.h"
 #include "libguile/uniform.h"

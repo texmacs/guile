@@ -1,4 +1,5 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C)  1997-2001,2004,2006-2007,2010-2012,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,7 +51,6 @@
 #include "libguile/feature.h"
 #include "libguile/strings.h"
 
-#include "libguile/validate.h"
 #include "libguile/regex-posix.h"
 
 /* This is defined by some regex libraries and omitted by others. */

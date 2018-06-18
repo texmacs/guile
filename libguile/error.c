@@ -35,7 +35,6 @@
 #include "libguile/strings.h"
 #include "libguile/throw.h"
 
-#include "libguile/validate.h"
 #include "libguile/error.h"
 
 #ifdef HAVE_STRING_H

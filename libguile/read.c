@@ -52,7 +52,6 @@
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
-#include "libguile/validate.h"
 #include "libguile/srfi-4.h"
 #include "libguile/srfi-13.h"
 

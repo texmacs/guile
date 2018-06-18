@@ -36,7 +36,6 @@
 #include "libguile/gc.h"
 #include "libguile/weak-table.h"
 
-#include "libguile/validate.h"
 #include "libguile/srcprop.h"
 #include "libguile/private-options.h"
 
