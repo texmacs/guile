@@ -29,6 +29,7 @@
 #include "extensions.h"
 #include "modules.h"
 #include "pairs.h"
+#include "ports.h"
 #include "programs.h"
 #include "procprop.h" /* scm_sym_name */
 #include "vm.h"

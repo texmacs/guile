@@ -41,6 +41,7 @@
 #include "libguile/list.h"
 #include "libguile/instructions.h"
 #include "libguile/pairs.h"
+#include "libguile/ports.h"
 #include "libguile/stacks.h"
 #include "libguile/threads.h"
 #include "libguile/weak-table.h"

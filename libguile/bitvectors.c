@@ -34,6 +34,7 @@
 #include "libguile/generalized-vectors.h"
 #include "libguile/list.h"
 #include "libguile/arrays.h"
+#include "libguile/ports.h"
 #include "libguile/srfi-4.h"
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,

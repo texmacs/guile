@@ -27,6 +27,7 @@
 #include "eval.h"
 #include "extensions.h"
 #include "frames.h"
+#include "ports.h"
 #include "vm.h"
 
 SCM
