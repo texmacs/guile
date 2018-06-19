@@ -25,6 +25,7 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 
 #include "libguile/__scm.h"
 #include "libguile/pairs.h"

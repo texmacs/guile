@@ -24,6 +24,7 @@
 
 #include <alloca.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
