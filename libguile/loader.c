@@ -40,6 +40,7 @@
 #include <full-read.h>
 
 #include "_scm.h"
+#include "bytevectors.h"
 #include "boolean.h"
 #include "elf.h"
 #include "eval.h"

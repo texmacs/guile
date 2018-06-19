@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "libguile/bytevectors.h"
 #include "libguile/gc.h"
 #include "libguile/tags.h"
 #include "libguile/error.h"

@@ -50,6 +50,7 @@
 #include "libguile/pairs.h"
 #include "libguile/async.h"
 #include "libguile/arrays.h"
+#include "libguile/bytevectors.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/list.h"
