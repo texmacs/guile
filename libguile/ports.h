@@ -26,7 +26,6 @@
 
 #include "libguile/__scm.h"
 
-#include <unistd.h>
 #include "libguile/gc.h"
 #include "libguile/tags.h"
 #include "libguile/error.h"
