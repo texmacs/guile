@@ -29,8 +29,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/error.h"
-
 
 SCM_INLINE int scm_is_string (SCM x);
 
