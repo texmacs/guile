@@ -24,6 +24,8 @@
 #  include <config.h>
 #endif
 
+#include <string.h>
+
 #include "libguile/__scm.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"

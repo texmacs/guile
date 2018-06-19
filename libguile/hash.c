@@ -28,6 +28,7 @@
 #endif
 
 #include <math.h>
+#include <string.h>
 #include <unistr.h>
 
 #include "libguile/_scm.h"

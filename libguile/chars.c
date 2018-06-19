@@ -25,6 +25,7 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <string.h>
 #include <unicase.h>
 #include <unictype.h>
 

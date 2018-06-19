@@ -24,6 +24,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 #include "libguile/_scm.h"
 #include "libguile/extensions.h"

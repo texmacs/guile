@@ -32,6 +32,7 @@
 #  include <config.h>
 #endif
 
+#include <string.h>
 #include <sys/types.h>
 
 #include "libguile/_scm.h"

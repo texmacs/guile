@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <iconv.h>
+#include <string.h>
 
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
