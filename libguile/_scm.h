@@ -36,7 +36,6 @@
 
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
-#include "libguile/numbers.h"	/* Everyone deals with fixnums.  */
 #include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
 #include "libguile/threads.h"	/* You are not alone. */
 #include "libguile/snarf.h"	/* Everyone snarfs. */

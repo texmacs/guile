@@ -35,6 +35,7 @@
 #include "libguile/error.h"
 #include "libguile/hash.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/procs.h"
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"

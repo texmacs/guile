@@ -27,6 +27,7 @@
 #include "libguile/pairs.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 
 #include "libguile/vectors.h"
 #include "libguile/array-handle.h"

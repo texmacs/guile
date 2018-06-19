@@ -31,6 +31,7 @@
 #include "libguile/list.h"
 #include "libguile/strings.h"
 #include "libguile/chars.h"
+#include "libguile/numbers.h"
 #include "libguile/dynwind.h"
 #include "libguile/syscalls.h"
 #include "libguile/smob.h"

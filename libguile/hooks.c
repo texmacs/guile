@@ -30,6 +30,7 @@
 
 #include "libguile/eval.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/procprop.h"
 #include "libguile/smob.h"

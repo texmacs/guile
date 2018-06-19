@@ -29,6 +29,7 @@
 
 #include "libguile/_scm.h"
 
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/simpos.h"
 

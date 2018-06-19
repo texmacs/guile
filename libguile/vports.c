@@ -34,6 +34,7 @@
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
 #include "libguile/fports.h"
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 

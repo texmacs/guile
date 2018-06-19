@@ -43,6 +43,7 @@
 #include "libguile/ports.h"
 #include "libguile/hooks.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/simpos.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"

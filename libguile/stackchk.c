@@ -1,4 +1,5 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2006, 2008, 2010, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1997,2000-2001,2006,2008,2010-2011,2014,2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/threads.h"
 #include "libguile/dynwind.h"

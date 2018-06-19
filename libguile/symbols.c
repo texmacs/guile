@@ -37,6 +37,7 @@
 #include "libguile/variable.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-set.h"

@@ -42,6 +42,7 @@
 #include "libguile/bytevectors.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"

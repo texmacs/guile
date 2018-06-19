@@ -42,6 +42,7 @@
 #include "libguile/frames.h"
 #include "libguile/list.h"
 #include "libguile/keywords.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"
 #include "libguile/private-options.h"

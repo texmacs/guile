@@ -40,6 +40,7 @@
 #include "libguile/feature.h"
 #include "libguile/vectors.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
 #include "libguile/procs.h"

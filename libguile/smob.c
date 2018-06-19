@@ -33,6 +33,7 @@
 #include "libguile/goops.h"
 #include "libguile/finalizers.h"
 #include "libguile/instructions.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/programs.h"
 

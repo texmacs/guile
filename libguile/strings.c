@@ -39,6 +39,7 @@
 #include "libguile/pairs.h"
 #include "libguile/chars.h"
 #include "libguile/strings.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
 #include "libguile/error.h"

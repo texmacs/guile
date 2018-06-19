@@ -35,6 +35,7 @@
 #include "libguile/chars.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/struct.h"
 #include "libguile/symbols.h"

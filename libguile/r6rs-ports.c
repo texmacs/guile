@@ -33,6 +33,7 @@
 #include "libguile/eval.h"
 #include "libguile/extensions.h"
 #include "libguile/procs.h"
+#include "libguile/numbers.h"
 #include "libguile/r6rs-ports.h"
 #include "libguile/strings.h"
 #include "libguile/smob.h"

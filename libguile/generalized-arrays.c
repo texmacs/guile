@@ -33,6 +33,7 @@
 #include "libguile/array-handle.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 
 
 SCM_INTERNAL SCM scm_i_array_ref (SCM v,

@@ -37,6 +37,7 @@
 #include "libguile/fports.h"
 #include "libguile/hashtab.h"
 #include "libguile/ioext.h"
+#include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"

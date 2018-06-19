@@ -27,6 +27,7 @@
 #include "libguile/boolean.h"
 #include "libguile/list.h"
 #include "libguile/mallocs.h"
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 
 #include "libguile/options.h"

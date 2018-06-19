@@ -35,6 +35,7 @@
 #include "libguile/eval.h"
 #include "libguile/list.h"
 #include "libguile/ports.h"
+#include "libguile/numbers.h"
 #include "libguile/procs.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"

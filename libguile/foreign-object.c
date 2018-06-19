@@ -29,6 +29,7 @@
 #include "libguile/foreign-object.h"
 #include "libguile/goops.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/procs.h"
 
 

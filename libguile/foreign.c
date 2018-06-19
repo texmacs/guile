@@ -38,6 +38,7 @@
 #include "libguile/finalizers.h"
 #include "libguile/foreign.h"
 #include "libguile/keywords.h"
+#include "libguile/numbers.h"
 #include "libguile/list.h"
 #include "libguile/instructions.h"
 #include "libguile/pairs.h"

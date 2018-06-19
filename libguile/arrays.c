@@ -43,6 +43,7 @@
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
+#include "libguile/numbers.h"
 #include "libguile/bitvectors.h"
 #include "libguile/procs.h"
 #include "libguile/bytevectors.h"

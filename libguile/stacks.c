@@ -33,6 +33,7 @@
 #include "libguile/list.h"
 #include "libguile/struct.h"
 #include "libguile/macros.h"
+#include "libguile/numbers.h"
 #include "libguile/pairs.h"
 #include "libguile/procprop.h"
 #include "libguile/modules.h"

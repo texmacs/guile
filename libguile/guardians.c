@@ -59,6 +59,7 @@
 #include "libguile/guardians.h"
 #include "libguile/hashtab.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"

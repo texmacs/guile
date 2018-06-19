@@ -33,6 +33,7 @@
 #include "libguile/finalizers.h"
 #include "libguile/hash.h"
 #include "libguile/eval.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/procs.h"
 #include "libguile/weak-list.h"

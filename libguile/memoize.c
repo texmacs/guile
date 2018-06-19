@@ -39,6 +39,7 @@
 #include "libguile/macros.h"
 #include "libguile/memoize.h"
 #include "libguile/modules.h"
+#include "libguile/numbers.h"
 #include "libguile/srcprop.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"

@@ -32,6 +32,7 @@
 #include "libguile/list.h"
 #include "libguile/procs.h"
 #include "libguile/gsubr.h"
+#include "libguile/numbers.h"
 #include "libguile/smob.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"

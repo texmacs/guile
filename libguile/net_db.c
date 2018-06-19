@@ -50,6 +50,7 @@
 #include "libguile/boolean.h"
 #include "libguile/feature.h"
 #include "libguile/list.h"
+#include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"

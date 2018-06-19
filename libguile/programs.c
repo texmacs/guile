@@ -28,6 +28,7 @@
 #include "eval.h"
 #include "extensions.h"
 #include "modules.h"
+#include "numbers.h"
 #include "pairs.h"
 #include "ports.h"
 #include "programs.h"

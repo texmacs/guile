@@ -50,6 +50,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/extensions.h"
 #include "libguile/alist.h"
+#include "libguile/numbers.h"
 #include "libguile/procprop.h"
 #include "libguile/list.h"
 #include "libguile/stackchk.h"

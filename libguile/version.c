@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 1999, 2000, 2001, 2006, 2008, 2010 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1999, 2000, 2001, 2006, 2008, 2010, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
+#include "libguile/numbers.h"
 
 #include "libguile/version.h"
 
