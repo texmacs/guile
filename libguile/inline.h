@@ -29,7 +29,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/threads.h"
 #include "libguile/array-handle.h"
 #include "libguile/ports.h"
 #include "libguile/numbers.h"
