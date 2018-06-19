@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/array-handle.h"
 #include <libguile/error.h>
 #include "libguile/gc.h"
 
