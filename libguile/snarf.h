@@ -26,6 +26,7 @@
 
 
 #include <libguile/gc.h>
+#include <libguile/gsubr.h>
 
 /* Macros for snarfing initialization actions from C source. */
 
