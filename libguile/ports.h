@@ -33,7 +33,6 @@
 #include "libguile/tags.h"
 #include "libguile/error.h"
 #include "libguile/print.h"
-#include "libguile/struct.h"
 #include "libguile/threads.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"

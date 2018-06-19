@@ -29,6 +29,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/smob.h"
+#include "libguile/struct.h"
 #include "libguile/deprecation.h"
 
 #include "libguile/procs.h"
