@@ -33,6 +33,7 @@
 #include "libguile/eval.h"
 #include "libguile/keywords.h"
 #include "libguile/ports.h"
+#include "libguile/procs.h"
 #include "libguile/read.h"
 #include "libguile/strings.h"
 #include "libguile/syscalls.h"

@@ -31,6 +31,7 @@
 
 #include "libguile/list.h"
 #include "libguile/eval.h"
+#include "libguile/procs.h"
 #include "libguile/srfi-1.h"
 #include "libguile/values.h"
 #include "libguile/extensions.h"

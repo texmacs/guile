@@ -48,6 +48,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/procprop.h"
+#include "libguile/procs.h"
 #include "libguile/programs.h"
 #include "libguile/smob.h"
 #include "libguile/srcprop.h"

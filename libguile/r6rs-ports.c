@@ -1,4 +1,5 @@
-/* Copyright (C) 2009, 2010, 2011, 2013-2015, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2011,2013-2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +32,7 @@
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/extensions.h"
+#include "libguile/procs.h"
 #include "libguile/r6rs-ports.h"
 #include "libguile/strings.h"
 #include "libguile/smob.h"

@@ -59,6 +59,7 @@
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"
 #include "libguile/private-options.h"
+#include "libguile/procs.h"
 #include "libguile/syscalls.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-set.h"

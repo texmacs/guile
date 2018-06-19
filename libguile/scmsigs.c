@@ -50,6 +50,7 @@
 #include "libguile/feature.h"
 #include "libguile/eval.h"
 #include "libguile/list.h"
+#include "libguile/procs.h"
 #include "libguile/vectors.h"
 #include "libguile/syscalls.h"
 #include "libguile/threads.h"

@@ -34,6 +34,7 @@
 #include "libguile/hash.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
+#include "libguile/procs.h"
 #include "libguile/weak-list.h"
 #include "libguile/weak-table.h"
 
