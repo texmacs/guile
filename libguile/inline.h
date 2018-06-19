@@ -29,7 +29,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/numbers.h"
 #include "libguile/error.h"
 
 

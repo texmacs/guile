@@ -1,4 +1,5 @@
-/* Copyright (C) 2001, 2006, 2008, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2006,2008,2011-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,9 +23,9 @@
 
 #define SCM_IMPLEMENT_INLINES 1
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
+#include "libguile/gc.h"
 #include "libguile/inline.h"
 #include "libguile/array-handle.h"
-#include "libguile/gc.h"
 #include "libguile/smob.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
