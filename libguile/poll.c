@@ -36,6 +36,7 @@
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/syscalls.h"
+#include "libguile/vectors.h"
 
 #include "libguile/poll.h"
 

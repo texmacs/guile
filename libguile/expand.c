@@ -41,6 +41,7 @@
 #include "libguile/srcprop.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"
+#include "libguile/vectors.h"
 
 
 

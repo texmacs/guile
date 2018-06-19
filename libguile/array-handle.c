@@ -31,6 +31,7 @@
 #include "libguile/list.h"
 #include "libguile/arrays.h"
 #include "libguile/pairs.h"
+#include "libguile/vectors.h"
 #include "libguile/array-handle.h"
 
 

@@ -29,6 +29,7 @@
 #include "libguile/extensions.h"
 #include "libguile/list.h"
 #include "libguile/pairs.h"
+#include "libguile/vectors.h"
 #include "libguile/weak-vector.h"
 
 

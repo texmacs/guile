@@ -34,7 +34,6 @@
 #include "libguile/error.h"
 #include "libguile/print.h"
 #include "libguile/strings.h"
-#include "libguile/vectors.h"
 
 
 

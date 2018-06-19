@@ -34,6 +34,7 @@
 #include "libguile/procs.h"
 #include "libguile/srfi-1.h"
 #include "libguile/values.h"
+#include "libguile/vectors.h"
 #include "libguile/extensions.h"
 
 #include <stdarg.h>

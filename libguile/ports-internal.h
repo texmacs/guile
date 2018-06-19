@@ -30,6 +30,7 @@
 #include "libguile/list.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
+#include "libguile/vectors.h"
 
 typedef enum scm_t_port_type_flags {
   /* Indicates that the port should be closed if it is garbage collected

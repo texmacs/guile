@@ -61,6 +61,7 @@
 #include "libguile/loader.h"
 #include "libguile/programs.h"
 #include "libguile/simpos.h"
+#include "libguile/vectors.h"
 #include "libguile/vm.h"
 #include "libguile/vm-builtins.h"
 
