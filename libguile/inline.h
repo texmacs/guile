@@ -3,8 +3,8 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010,
- *   2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2004,2006,2008-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,7 +29,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/gc.h"
 #include "libguile/threads.h"
 #include "libguile/array-handle.h"
 #include "libguile/ports.h"
