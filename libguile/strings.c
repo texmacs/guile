@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2004, 2006,
- *   2008-2016 Free Software Foundation, Inc.
+ *   2008-2016, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2172,6 +2172,12 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 
   if (!scm_is_string (str))
     scm_wrong_type_arg_msg (NULL, 0, str, "string");
+
+  if (c_strcasecmp (encoding, "UTF-8") == 0)
+    /* This is the most common case--e.g., when calling libc bindings
+       while using a UTF-8 locale.  */
+    return scm_to_utf8_stringn (str, lenp);
+
   ilen = scm_i_string_length (str);
 
   if (ilen == 0)
