@@ -26,6 +26,7 @@
 
 #include "libguile/__scm.h"
 #include <libguile/error.h>
+#include <libguile/snarf.h>
 
 
 
@@ -175,6 +176,39 @@ SCM_API SCM scm_string_normalize_nfc (SCM str);
 SCM_API SCM scm_string_normalize_nfkc (SCM str);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
+
+
+
+
+/* Snarfing support.  See snarf.h.  */
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+#define SCM_IMMUTABLE_STRINGBUF(c_name, contents)	\
+  static SCM_UNUSED const				\
+  struct						\
+  {							\
+    scm_t_bits word_0;					\
+    scm_t_bits word_1;					\
+    const char buffer[sizeof (contents)];		\
+  }							\
+  c_name =						\
+    {							\
+      scm_tc7_stringbuf,                                \
+      sizeof (contents) - 1,				\
+      contents						\
+    }
+
+#define SCM_IMMUTABLE_STRING(c_name, contents)				\
+  SCM_IMMUTABLE_STRINGBUF (scm_i_paste (c_name, _stringbuf), contents);	\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     scm_tc7_ro_string,				\
+			     (scm_t_bits) &scm_i_paste (c_name,		\
+							_stringbuf),	\
+			     (scm_t_bits) 0,				\
+                             (scm_t_bits) (sizeof (contents) - 1))
+
+#endif /* SCM_SUPPORT_STATIC_ALLOCATION */
+
 
 
 /* internal constants */

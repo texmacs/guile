@@ -195,32 +195,8 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
       { SCM_PACK (ccr), SCM_PACK (cdr) }				\
     };									\
   static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
-
-#define SCM_IMMUTABLE_STRINGBUF(c_name, contents)	\
-  static SCM_UNUSED const				\
-  struct						\
-  {							\
-    scm_t_bits word_0;					\
-    scm_t_bits word_1;					\
-    const char buffer[sizeof (contents)];		\
-  }							\
-  c_name =						\
-    {							\
-      scm_tc7_stringbuf,                                \
-      sizeof (contents) - 1,				\
-      contents						\
-    }
-
-#define SCM_IMMUTABLE_STRING(c_name, contents)				\
-  SCM_IMMUTABLE_STRINGBUF (scm_i_paste (c_name, _stringbuf), contents);	\
-  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
-			     scm_tc7_ro_string,				\
-			     (scm_t_bits) &scm_i_paste (c_name,		\
-							_stringbuf),	\
-			     (scm_t_bits) 0,				\
-                             (scm_t_bits) (sizeof (contents) - 1))
-
 #endif /* SCM_SUPPORT_STATIC_ALLOCATION */
+
 
 
 /* Documentation.  */
