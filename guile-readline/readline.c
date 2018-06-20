@@ -27,17 +27,18 @@
 #endif
 
 #ifdef HAVE_RL_GETC_FUNCTION
-#include "libguile.h"
-
 #include <stdio.h>
 #include <unistd.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include <signal.h>
 
-#include "guile-readline/readline.h"
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include <libguile.h>
+
+#include "readline.h"
 
 scm_t_option scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
