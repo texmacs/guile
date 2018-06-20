@@ -25,36 +25,36 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
+#include "gsubr.h"
+#include "boolean.h"
 
 #include <unistd.h>
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
 
-#include "libguile/backtrace.h"
-#include "libguile/deprecation.h"
-#include "libguile/dynwind.h"
-#include "libguile/eval.h"
-#include "libguile/filesys.h"
-#include "libguile/fluids.h"
-#include "libguile/frames.h"
-#include "libguile/list.h"
-#include "libguile/keywords.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/posix.h"
-#include "libguile/private-options.h"
-#include "libguile/srcprop.h"
-#include "libguile/stacks.h"
-#include "libguile/strings.h"
-#include "libguile/strports.h"
-#include "libguile/struct.h"
-#include "libguile/symbols.h"
-#include "libguile/throw.h"
-#include "libguile/variable.h"
+#include "backtrace.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "filesys.h"
+#include "fluids.h"
+#include "frames.h"
+#include "list.h"
+#include "keywords.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "posix.h"
+#include "private-options.h"
+#include "srcprop.h"
+#include "stacks.h"
+#include "strings.h"
+#include "strports.h"
+#include "struct.h"
+#include "symbols.h"
+#include "throw.h"
+#include "variable.h"
 
 /* {Error reporting and backtraces}
  *
@@ -326,5 +326,5 @@ void
 scm_init_backtrace ()
 {
   scm_c_define_gsubr ("print-exception", 4, 0, 0, boot_print_exception);
-#include "libguile/backtrace.x"
+#include "backtrace.x"
 }

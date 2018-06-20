@@ -23,17 +23,17 @@
 #  include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/atomics-internal.h"
-#include "libguile/eval.h"
-#include "libguile/throw.h"
-#include "libguile/list.h"
-#include "libguile/smob.h"
-#include "libguile/dynwind.h"
-#include "libguile/deprecation.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "atomics-internal.h"
+#include "eval.h"
+#include "throw.h"
+#include "list.h"
+#include "smob.h"
+#include "dynwind.h"
+#include "deprecation.h"
 
-#include "libguile/async.h"
+#include "async.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -427,5 +427,5 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 void
 scm_init_async ()
 {
-#include "libguile/async.x"
+#include "async.x"
 }

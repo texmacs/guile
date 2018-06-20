@@ -41,24 +41,24 @@
 
 #include <full-write.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
 
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/feature.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/procs.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
-#include "libguile/syscalls.h"
-#include "libguile/threads.h"
+#include "async.h"
+#include "dynwind.h"
+#include "feature.h"
+#include "eval.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "procs.h"
+#include "variable.h"
+#include "vectors.h"
+#include "syscalls.h"
+#include "threads.h"
 
-#include "libguile/scmsigs.h"
+#include "scmsigs.h"
 
 
 
@@ -754,6 +754,6 @@ scm_init_scmsigs ()
 #endif
 #endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
-#include "libguile/scmsigs.x"
+#include "scmsigs.x"
 }
 

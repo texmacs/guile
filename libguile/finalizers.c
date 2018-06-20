@@ -30,13 +30,13 @@
 
 #include <full-write.h>
 
-#include "libguile/async.h"
-#include "libguile/bdw-gc.h"
-#include "libguile/finalizers.h"
-#include "libguile/gc.h"
-#include "libguile/gsubr.h"
-#include "libguile/init.h"
-#include "libguile/threads.h"
+#include "async.h"
+#include "bdw-gc.h"
+#include "finalizers.h"
+#include "gc.h"
+#include "gsubr.h"
+#include "init.h"
+#include "threads.h"
 
 
 

@@ -22,19 +22,19 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/modules.h"
-#include "libguile/ports.h"
-#include "libguile/print.h"
-#include "libguile/procs.h"
-#include "libguile/random.h"
-#include "libguile/smob.h"
-#include "libguile/symbols.h"
-#include "libguile/macros.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "modules.h"
+#include "ports.h"
+#include "print.h"
+#include "procs.h"
+#include "random.h"
+#include "smob.h"
+#include "symbols.h"
+#include "macros.h"
+#include "variable.h"
 
-#include "libguile/private-options.h"
+#include "private-options.h"
 
 
 static scm_t_bits scm_tc16_macro;
@@ -218,7 +218,7 @@ scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type ("macro", 0);
   scm_set_smob_print (scm_tc16_macro, macro_print);
-#include "libguile/macros.x"
+#include "macros.x"
 
   syntax_session_id = fresh_syntax_session_id();
   scm_c_define_gsubr ("syntax-session-id", 0, 0, 0, scm_syntax_session_id);

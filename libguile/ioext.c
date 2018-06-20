@@ -27,22 +27,22 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/fdes-finalizers.h"
-#include "libguile/feature.h"
-#include "libguile/fports.h"
-#include "libguile/hashtab.h"
-#include "libguile/ioext.h"
-#include "libguile/numbers.h"
-#include "libguile/ports-internal.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/syscalls.h"
-#include "libguile/weak-set.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "async.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "fdes-finalizers.h"
+#include "feature.h"
+#include "fports.h"
+#include "hashtab.h"
+#include "ioext.h"
+#include "numbers.h"
+#include "ports-internal.h"
+#include "ports.h"
+#include "strings.h"
+#include "syscalls.h"
+#include "weak-set.h"
 
 #include <fcntl.h>
 
@@ -312,7 +312,7 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
 static void
 scm_init_ice_9_ioext (void)
 {
-#include "libguile/ioext.x"
+#include "ioext.x"
 }
 
 void 

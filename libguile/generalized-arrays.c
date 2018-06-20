@@ -27,12 +27,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/array-handle.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "array-handle.h"
+#include "generalized-arrays.h"
+#include "list.h"
+#include "numbers.h"
 
 
 SCM_INTERNAL SCM scm_i_array_ref (SCM v,
@@ -404,5 +404,5 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 void
 scm_init_generalized_arrays ()
 {
-#include "libguile/generalized-arrays.x"
+#include "generalized-arrays.x"
 }

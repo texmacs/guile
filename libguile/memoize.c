@@ -27,28 +27,28 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/alist.h"
-#include "libguile/continuations.h"
-#include "libguile/dynstack.h"
-#include "libguile/eq.h"
-#include "libguile/expand.h"
-#include "libguile/list.h"
-#include "libguile/macros.h"
-#include "libguile/memoize.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/srcprop.h"
-#include "libguile/ports.h"
-#include "libguile/print.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/throw.h"
-#include "libguile/threads.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "alist.h"
+#include "continuations.h"
+#include "dynstack.h"
+#include "eq.h"
+#include "expand.h"
+#include "list.h"
+#include "macros.h"
+#include "memoize.h"
+#include "modules.h"
+#include "numbers.h"
+#include "srcprop.h"
+#include "ports.h"
+#include "print.h"
+#include "strings.h"
+#include "symbols.h"
+#include "throw.h"
+#include "threads.h"
+#include "variable.h"
+#include "vectors.h"
 
 
 
@@ -901,7 +901,7 @@ SCM_DEFINE (scm_sys_resolve_variable, "%resolve-variable", 2, 0, 0,
 void
 scm_init_memoize ()
 {
-#include "libguile/memoize.x"
+#include "memoize.x"
 
   wind = scm_c_make_gsubr ("wind", 2, 0, 0, do_wind);
   unwind = scm_c_make_gsubr ("unwind", 0, 0, 0, do_unwind);

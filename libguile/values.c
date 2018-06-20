@@ -21,18 +21,18 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/eval.h"
-#include "libguile/feature.h"
-#include "libguile/gc.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/struct.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "eval.h"
+#include "feature.h"
+#include "gc.h"
+#include "list.h"
+#include "numbers.h"
+#include "ports.h"
+#include "strings.h"
+#include "struct.h"
 
-#include "libguile/values.h"
+#include "values.h"
 
 SCM scm_values_vtable;
 
@@ -147,5 +147,5 @@ scm_init_values (void)
 
   scm_add_feature ("values");
 
-#include "libguile/values.x"
+#include "values.x"
 }

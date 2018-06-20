@@ -135,10 +135,10 @@
 #  include <config.h>
 #endif
 
-#include <libguile/gen-scmconfig.h>
-
 #include <stdio.h>
 #include <string.h>
+
+#include "gen-scmconfig.h"
 
 #define pf printf
 

@@ -27,21 +27,21 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/alist.h"
-#include "libguile/boolean.h"
-#include "libguile/bdw-gc.h"
-#include "libguile/eq.h"
-#include "libguile/eval.h"
-#include "libguile/hash.h"
-#include "libguile/hashtab.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/procs.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-table.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "alist.h"
+#include "boolean.h"
+#include "bdw-gc.h"
+#include "eq.h"
+#include "eval.h"
+#include "hash.h"
+#include "hashtab.h"
+#include "list.h"
+#include "numbers.h"
+#include "ports.h"
+#include "procs.h"
+#include "vectors.h"
+#include "weak-table.h"
 
 
 
@@ -1074,5 +1074,5 @@ scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn, void *closure,
 void
 scm_init_hashtab ()
 {
-#include "libguile/hashtab.x"
+#include "hashtab.x"
 }

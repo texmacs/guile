@@ -23,11 +23,11 @@
 #endif
 
 #include <stdio.h>
-#include "libguile/gsubr.h"
-#include "libguile/strings.h"
-#include "libguile/numbers.h"
+#include "gsubr.h"
+#include "strings.h"
+#include "numbers.h"
 
-#include "libguile/version.h"
+#include "version.h"
 
 
 #define SCM_TMP_MACRO_MKSTR(x) #x
@@ -116,5 +116,5 @@ SCM_DEFINE (scm_effective_version, "effective-version", 0, 0, 0,
 void
 scm_init_version ()
 {
-#include "libguile/version.x"
+#include "version.x"
 }

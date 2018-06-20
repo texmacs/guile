@@ -29,13 +29,13 @@
 #include <unicase.h>
 #include <unictype.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/chars.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/symbols.h"
-#include "libguile/srfi-14.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "chars.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "symbols.h"
+#include "srfi-14.h"
 
 
 
@@ -679,6 +679,6 @@ scm_i_charname_to_char (const char *charname, size_t charname_len)
 void
 scm_init_chars ()
 {
-#include "libguile/chars.x"
+#include "chars.x"
 }
 

@@ -24,10 +24,10 @@
 #  include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/error.h"
+#include "gsubr.h"
+#include "error.h"
 
-#include "libguile/generalized-vectors.h"
+#include "generalized-vectors.h"
 
 
 struct scm_t_vector_ctor
@@ -70,5 +70,5 @@ SCM_DEFINE (scm_make_generalized_vector, "make-generalized-vector", 2, 1, 0,
 void
 scm_init_generalized_vectors ()
 {
-#include "libguile/generalized-vectors.x"
+#include "generalized-vectors.x"
 }

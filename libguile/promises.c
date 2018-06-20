@@ -25,37 +25,37 @@
 
 #include <alloca.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/alist.h"
-#include "libguile/async.h"
-#include "libguile/continuations.h"
-#include "libguile/debug.h"
-#include "libguile/deprecation.h"
-#include "libguile/dynwind.h"
-#include "libguile/eq.h"
-#include "libguile/eval.h"
-#include "libguile/feature.h"
-#include "libguile/fluids.h"
-#include "libguile/goops.h"
-#include "libguile/hash.h"
-#include "libguile/hashtab.h"
-#include "libguile/list.h"
-#include "libguile/macros.h"
-#include "libguile/memoize.h"
-#include "libguile/modules.h"
-#include "libguile/ports.h"
-#include "libguile/print.h"
-#include "libguile/procprop.h"
-#include "libguile/procs.h"
-#include "libguile/programs.h"
-#include "libguile/smob.h"
-#include "libguile/srcprop.h"
-#include "libguile/stackchk.h"
-#include "libguile/strings.h"
-#include "libguile/threads.h"
-#include "libguile/throw.h"
-#include "libguile/values.h"
-#include "libguile/promises.h"
+#include "gsubr.h"
+#include "alist.h"
+#include "async.h"
+#include "continuations.h"
+#include "debug.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eq.h"
+#include "eval.h"
+#include "feature.h"
+#include "fluids.h"
+#include "goops.h"
+#include "hash.h"
+#include "hashtab.h"
+#include "list.h"
+#include "macros.h"
+#include "memoize.h"
+#include "modules.h"
+#include "ports.h"
+#include "print.h"
+#include "procprop.h"
+#include "procs.h"
+#include "programs.h"
+#include "smob.h"
+#include "srcprop.h"
+#include "stackchk.h"
+#include "strings.h"
+#include "threads.h"
+#include "throw.h"
+#include "values.h"
+#include "promises.h"
 
 
 
@@ -133,7 +133,7 @@ scm_init_promises ()
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
-#include "libguile/promises.x"
+#include "promises.x"
 
   scm_add_feature ("delay");
 }

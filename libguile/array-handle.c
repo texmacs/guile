@@ -26,16 +26,16 @@
 
 #include <string.h>
 
-#include "libguile/bitvectors.h"
-#include "libguile/bytevectors.h"
-#include "libguile/list.h"
-#include "libguile/arrays.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/vectors.h"
-#include "libguile/array-handle.h"
+#include "bitvectors.h"
+#include "bytevectors.h"
+#include "list.h"
+#include "arrays.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "strings.h"
+#include "symbols.h"
+#include "vectors.h"
+#include "array-handle.h"
 
 
 SCM scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_LAST + 1];
@@ -373,5 +373,5 @@ scm_init_array_handle (void)
   DEFINE_ARRAY_TYPE (c32, C32);
   DEFINE_ARRAY_TYPE (c64, C64);
 
-#include "libguile/array-handle.x"
+#include "array-handle.x"
 }

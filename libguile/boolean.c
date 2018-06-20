@@ -23,10 +23,10 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 
-#include "libguile/boolean.h"
-#include "libguile/error.h"
+#include "boolean.h"
+#include "error.h"
 
 #include "verify.h"
 
@@ -106,6 +106,6 @@ scm_is_bool (SCM obj)
 void
 scm_init_boolean ()
 {
-#include "libguile/boolean.x"
+#include "boolean.x"
 }
 

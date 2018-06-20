@@ -27,18 +27,18 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/eval.h"
-#include "libguile/chars.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-#include "libguile/fports.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "eval.h"
+#include "chars.h"
+#include "ports.h"
+#include "ports-internal.h"
+#include "fports.h"
+#include "numbers.h"
+#include "strings.h"
+#include "vectors.h"
 
-#include "libguile/vports.h"
+#include "vports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -248,5 +248,5 @@ scm_init_vports ()
 {
   scm_soft_port_type = scm_make_sfptob ();
 
-#include "libguile/vports.x"
+#include "vports.x"
 }

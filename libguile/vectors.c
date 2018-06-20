@@ -23,18 +23,18 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/eq.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "eq.h"
+#include "list.h"
+#include "numbers.h"
 
-#include "libguile/vectors.h"
-#include "libguile/array-handle.h"
-#include "libguile/generalized-vectors.h"
+#include "vectors.h"
+#include "array-handle.h"
+#include "generalized-vectors.h"
 
-#include "libguile/bdw-gc.h"
+#include "bdw-gc.h"
 
 
 
@@ -437,6 +437,6 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector)
 void
 scm_init_vectors ()
 {
-#include "libguile/vectors.x"
+#include "vectors.x"
 }
 

@@ -24,18 +24,18 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/eq.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "eq.h"
 
-#include "libguile/list.h"
-#include "libguile/eval.h"
-#include "libguile/procs.h"
-#include "libguile/srfi-1.h"
-#include "libguile/values.h"
-#include "libguile/vectors.h"
-#include "libguile/extensions.h"
+#include "list.h"
+#include "eval.h"
+#include "procs.h"
+#include "srfi-1.h"
+#include "values.h"
+#include "vectors.h"
+#include "extensions.h"
 
 #include <stdarg.h>
 
@@ -952,7 +952,7 @@ void
 scm_init_srfi_1 (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/srfi-1.x"
+#include "srfi-1.x"
 #endif
 }
 

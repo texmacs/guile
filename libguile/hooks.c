@@ -24,19 +24,19 @@
 #endif
 
 #include <stdio.h>
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
 
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/procprop.h"
-#include "libguile/smob.h"
-#include "libguile/strings.h"
+#include "eval.h"
+#include "list.h"
+#include "numbers.h"
+#include "ports.h"
+#include "procprop.h"
+#include "smob.h"
+#include "strings.h"
 
-#include "libguile/hooks.h"
+#include "hooks.h"
 
 
 /* Scheme level hooks
@@ -228,5 +228,5 @@ scm_init_hooks ()
 {
   scm_tc16_hook = scm_make_smob_type ("hook", 0);
   scm_set_smob_print (scm_tc16_hook, hook_print);
-#include "libguile/hooks.x"
+#include "hooks.x"
 }

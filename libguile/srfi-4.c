@@ -24,19 +24,19 @@
 
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/bdw-gc.h"
-#include "libguile/srfi-4.h"
-#include "libguile/bytevectors.h"
-#include "libguile/error.h"
-#include "libguile/eval.h"
-#include "libguile/extensions.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/uniform.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "bdw-gc.h"
+#include "srfi-4.h"
+#include "bytevectors.h"
+#include "error.h"
+#include "eval.h"
+#include "extensions.h"
+#include "generalized-vectors.h"
+#include "modules.h"
+#include "numbers.h"
+#include "uniform.h"
+#include "variable.h"
 
 
 #define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                   \
@@ -296,7 +296,7 @@ scm_init_srfi_4 (void)
   REGISTER (c32, C32);
   REGISTER (c64, C64);
 
-#include "libguile/srfi-4.x"
+#include "srfi-4.x"
 }
 
 /* End of srfi-4.c.  */

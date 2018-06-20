@@ -22,12 +22,12 @@
 
 #include <string.h>
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 #include "threads.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/symbols.h"
+#include "list.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "symbols.h"
 #include "instructions.h"
 #include "extensions.h"
 
@@ -201,6 +201,6 @@ scm_init_instructions (void)
 #undef INIT
 
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/instructions.x"
+#include "instructions.x"
 #endif
 }

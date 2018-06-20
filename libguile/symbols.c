@@ -25,29 +25,29 @@
 
 #include <unistr.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/chars.h"
-#include "libguile/eval.h"
-#include "libguile/hash.h"
-#include "libguile/list.h"
-#include "libguile/smob.h"
-#include "libguile/strorder.h"
-#include "libguile/variable.h"
-#include "libguile/alist.h"
-#include "libguile/fluids.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-set.h"
-#include "libguile/modules.h"
-#include "libguile/read.h"
-#include "libguile/srfi-13.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "chars.h"
+#include "eval.h"
+#include "hash.h"
+#include "list.h"
+#include "smob.h"
+#include "strorder.h"
+#include "variable.h"
+#include "alist.h"
+#include "fluids.h"
+#include "numbers.h"
+#include "strings.h"
+#include "vectors.h"
+#include "weak-set.h"
+#include "modules.h"
+#include "read.h"
+#include "srfi-13.h"
 
-#include "libguile/symbols.h"
+#include "symbols.h"
 
-#include "libguile/private-options.h"
+#include "private-options.h"
 
 
 #ifdef HAVE_STRING_H
@@ -560,7 +560,7 @@ scm_symbols_prehistory ()
 void
 scm_init_symbols ()
 {
-#include "libguile/symbols.x"
+#include "symbols.x"
 
   default_gensym_prefix = scm_from_latin1_string (" g");
 }

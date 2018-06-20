@@ -22,13 +22,13 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/alist.h"
-#include "libguile/async.h"
-#include "libguile/hashtab.h"
-#include "libguile/objprop.h"
-#include "libguile/pairs.h"
-#include "libguile/weak-table.h"
+#include "gsubr.h"
+#include "alist.h"
+#include "async.h"
+#include "hashtab.h"
+#include "objprop.h"
+#include "pairs.h"
+#include "weak-table.h"
 
 
 /* {Object Properties}
@@ -95,6 +95,6 @@ void
 scm_init_objprop ()
 {
   object_whash = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
-#include "libguile/objprop.x"
+#include "objprop.x"
 }
 

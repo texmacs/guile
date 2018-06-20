@@ -46,28 +46,28 @@
 
 #include <full-write.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/fdes-finalizers.h"
-#include "libguile/fluids.h"
-#include "libguile/filesys.h"
-#include "libguile/fports.h"
-#include "libguile/gc.h"
-#include "libguile/hashtab.h"
-#include "libguile/keywords.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports-internal.h"
-#include "libguile/posix.h"
-#include "libguile/read.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/syscalls.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "async.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "fdes-finalizers.h"
+#include "fluids.h"
+#include "filesys.h"
+#include "fports.h"
+#include "gc.h"
+#include "hashtab.h"
+#include "keywords.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports-internal.h"
+#include "posix.h"
+#include "read.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "variable.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX
@@ -725,7 +725,7 @@ scm_init_fports_keywords ()
 static void
 scm_init_ice_9_fports (void)
 {
-#include "libguile/fports.x"
+#include "fports.x"
 }
 
 void

@@ -22,16 +22,16 @@
 
 #include <alloca.h>
 
-#include "libguile/dynstack.h"
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/control.h"
-#include "libguile/extensions.h"
-#include "libguile/list.h"
-#include "libguile/programs.h"
-#include "libguile/threads.h"
-#include "libguile/instructions.h"
-#include "libguile/vm.h"
+#include "dynstack.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "control.h"
+#include "extensions.h"
+#include "list.h"
+#include "programs.h"
+#include "threads.h"
+#include "instructions.h"
+#include "vm.h"
 
 
 
@@ -236,7 +236,7 @@ scm_init_ice_9_control (void *unused)
 void
 scm_init_control (void)
 {
-#include "libguile/control.x"
+#include "control.x"
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_ice_9_control", scm_init_ice_9_control,

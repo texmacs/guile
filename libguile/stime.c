@@ -49,19 +49,19 @@
 #include <strftime.h>
 #include <unistr.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/feature.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/strings.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "async.h"
+#include "feature.h"
+#include "modules.h"
+#include "numbers.h"
+#include "strings.h"
+#include "vectors.h"
+#include "dynwind.h"
+#include "strings.h"
 
-#include "libguile/stime.h"
+#include "stime.h"
 
 #include <unistd.h>
 #include <time.h>				  /* Gnulib-provided */
@@ -867,6 +867,6 @@ scm_init_stime()
     }
 
   scm_add_feature ("current-time");
-#include "libguile/stime.x"
+#include "stime.x"
 }
 

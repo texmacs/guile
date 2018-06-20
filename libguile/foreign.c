@@ -28,26 +28,26 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/bytevectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/eq.h"
-#include "libguile/eval.h"
-#include "libguile/extensions.h"
-#include "libguile/finalizers.h"
-#include "libguile/foreign.h"
-#include "libguile/keywords.h"
-#include "libguile/numbers.h"
-#include "libguile/list.h"
-#include "libguile/instructions.h"
-#include "libguile/modules.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/stacks.h"
-#include "libguile/symbols.h"
-#include "libguile/threads.h"
-#include "libguile/weak-table.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "bytevectors.h"
+#include "dynwind.h"
+#include "eq.h"
+#include "eval.h"
+#include "extensions.h"
+#include "finalizers.h"
+#include "foreign.h"
+#include "keywords.h"
+#include "numbers.h"
+#include "list.h"
+#include "instructions.h"
+#include "modules.h"
+#include "pairs.h"
+#include "ports.h"
+#include "stacks.h"
+#include "symbols.h"
+#include "threads.h"
+#include "weak-table.h"
 
 
 
@@ -1164,7 +1164,7 @@ static void
 scm_init_foreign (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/foreign.x"
+#include "foreign.x"
 #endif
   scm_define (sym_void, scm_from_uint8 (SCM_FOREIGN_TYPE_VOID));
   scm_define (sym_float, scm_from_uint8 (SCM_FOREIGN_TYPE_FLOAT));

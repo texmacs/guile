@@ -30,32 +30,32 @@
 
 #include "verify.h"
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/eq.h"
-#include "libguile/chars.h"
-#include "libguile/eval.h"
-#include "libguile/fports.h"
-#include "libguile/feature.h"
-#include "libguile/modules.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/srfi-4.h"
-#include "libguile/vectors.h"
-#include "libguile/numbers.h"
-#include "libguile/bitvectors.h"
-#include "libguile/procs.h"
-#include "libguile/bytevectors.h"
-#include "libguile/list.h"
-#include "libguile/dynwind.h"
-#include "libguile/read.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "eq.h"
+#include "chars.h"
+#include "eval.h"
+#include "fports.h"
+#include "feature.h"
+#include "modules.h"
+#include "strings.h"
+#include "srfi-13.h"
+#include "srfi-4.h"
+#include "vectors.h"
+#include "numbers.h"
+#include "bitvectors.h"
+#include "procs.h"
+#include "bytevectors.h"
+#include "list.h"
+#include "dynwind.h"
+#include "read.h"
 
-#include "libguile/arrays.h"
-#include "libguile/array-map.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/uniform.h"
+#include "arrays.h"
+#include "array-map.h"
+#include "generalized-vectors.h"
+#include "generalized-arrays.h"
+#include "uniform.h"
 
 
 size_t
@@ -960,6 +960,6 @@ scm_init_arrays ()
 {
   scm_add_feature ("array");
 
-#include "libguile/arrays.x"
+#include "arrays.x"
 
 }

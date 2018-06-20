@@ -45,21 +45,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/feature.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/symbols.h"
-#include "libguile/throw.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "feature.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "strings.h"
+#include "vectors.h"
+#include "dynwind.h"
+#include "symbols.h"
+#include "throw.h"
 
-#include "libguile/net_db.h"
-#include "libguile/socket.h"
+#include "net_db.h"
+#include "socket.h"
 
 
 #if defined (HAVE_H_ERRNO)
@@ -728,5 +728,5 @@ void
 scm_init_net_db ()
 {
   scm_add_feature ("net-db");
-#include "libguile/net_db.x"
+#include "net_db.x"
 }

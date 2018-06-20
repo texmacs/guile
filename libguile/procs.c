@@ -23,20 +23,20 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 
-#include "libguile/goops.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/smob.h"
-#include "libguile/struct.h"
-#include "libguile/deprecation.h"
-#include "libguile/procprop.h"
-#include "libguile/symbols.h"
-#include "libguile/loader.h"
-#include "libguile/programs.h"
+#include "goops.h"
+#include "strings.h"
+#include "vectors.h"
+#include "smob.h"
+#include "struct.h"
+#include "deprecation.h"
+#include "procprop.h"
+#include "symbols.h"
+#include "loader.h"
+#include "programs.h"
 
-#include "libguile/procs.h"
+#include "procs.h"
 
 
 
@@ -133,5 +133,5 @@ scm_init_procs ()
                        1,
                        SCM_UNPACK (scm_from_latin1_symbol ("pwpw")));
 
-#include "libguile/procs.x"
+#include "procs.x"
 }

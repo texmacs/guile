@@ -26,10 +26,10 @@
 
 #include <stdlib.h>
 
-#include "libguile/ports.h"
-#include "libguile/smob.h"
+#include "ports.h"
+#include "smob.h"
 
-#include "libguile/mallocs.h"
+#include "mallocs.h"
 
 #include <unistd.h>
 

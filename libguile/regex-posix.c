@@ -35,8 +35,8 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
+#include "gsubr.h"
+#include "pairs.h"
 
 #include <regex.h>
 
@@ -44,19 +44,19 @@
 #include <wchar.h>
 #endif
 
-#include "libguile/async.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/smob.h"
-#include "libguile/symbols.h"
-#include "libguile/vectors.h"
-#include "libguile/strports.h"
-#include "libguile/ports.h"
-#include "libguile/feature.h"
-#include "libguile/strings.h"
+#include "async.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "smob.h"
+#include "symbols.h"
+#include "vectors.h"
+#include "strports.h"
+#include "ports.h"
+#include "feature.h"
+#include "strings.h"
 
-#include "libguile/regex-posix.h"
+#include "regex-posix.h"
 
 /* This is defined by some regex libraries and omitted by others. */
 #ifndef REG_BASIC
@@ -332,7 +332,7 @@ scm_init_regex_posix ()
   scm_c_define ("regexp/notbol", scm_from_int (REG_NOTBOL));
   scm_c_define ("regexp/noteol", scm_from_int (REG_NOTEOL));
 
-#include "libguile/regex-posix.x"
+#include "regex-posix.x"
 
   scm_add_feature ("regex");
 }

@@ -31,19 +31,19 @@
 #include <string.h>
 #include <unistr.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/chars.h"
-#include "libguile/foreign.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/struct.h"
-#include "libguile/symbols.h"
-#include "libguile/syntax.h"
-#include "libguile/vectors.h"
+#include "gsubr.h"
+#include "chars.h"
+#include "foreign.h"
+#include "pairs.h"
+#include "ports.h"
+#include "numbers.h"
+#include "strings.h"
+#include "struct.h"
+#include "symbols.h"
+#include "syntax.h"
+#include "vectors.h"
 
-#include "libguile/hash.h"
+#include "hash.h"
 
 
 #ifndef floor
@@ -431,6 +431,6 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 void
 scm_init_hash ()
 {
-#include "libguile/hash.x"
+#include "hash.x"
 }
 

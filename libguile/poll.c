@@ -28,18 +28,18 @@
 #include <errno.h>
 #include <poll.h>
 
-#include "libguile/async.h"
-#include "libguile/bytevectors.h"
-#include "libguile/error.h"
-#include "libguile/extensions.h"
-#include "libguile/gsubr.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports-internal.h"
-#include "libguile/syscalls.h"
-#include "libguile/vectors.h"
+#include "async.h"
+#include "bytevectors.h"
+#include "error.h"
+#include "extensions.h"
+#include "gsubr.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports-internal.h"
+#include "syscalls.h"
+#include "vectors.h"
 
-#include "libguile/poll.h"
+#include "poll.h"
 
 
 

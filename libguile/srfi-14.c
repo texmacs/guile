@@ -28,24 +28,24 @@
 #include <string.h>
 #include <unictype.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/chars.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/ports.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/procs.h"
-#include "libguile/smob.h"
-#include "libguile/srfi-14.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/values.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "chars.h"
+#include "eval.h"
+#include "list.h"
+#include "ports.h"
+#include "modules.h"
+#include "numbers.h"
+#include "procs.h"
+#include "smob.h"
+#include "srfi-14.h"
+#include "strings.h"
+#include "symbols.h"
+#include "values.h"
 
 /* Include the pre-computed standard charset data.  */
-#include "libguile/srfi-14.i.c"
+#include "srfi-14.i.c"
 
 scm_t_char_range cs_full_ranges[] = {
   {0x0000, SCM_CODEPOINT_SURROGATE_START - 1}
@@ -2118,7 +2118,7 @@ scm_init_srfi_14 (void)
   scm_char_set_designated = define_charset ("char-set:designated", &cs_designated);
   scm_char_set_full = define_charset ("char-set:full", &cs_full);
 
-#include "libguile/srfi-14.x"
+#include "srfi-14.x"
 }
 
 /* End of srfi-14.c.  */

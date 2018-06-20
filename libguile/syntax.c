@@ -22,14 +22,14 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/keywords.h"
-#include "libguile/eval.h"
-#include "libguile/modules.h"
-#include "libguile/ports.h"
-#include "libguile/syntax.h"
-#include "libguile/threads.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "keywords.h"
+#include "eval.h"
+#include "modules.h"
+#include "ports.h"
+#include "syntax.h"
+#include "threads.h"
+#include "variable.h"
 
 
 
@@ -112,6 +112,6 @@ scm_i_syntax_print (SCM obj, SCM port, scm_print_state *pstate)
 void
 scm_init_syntax ()
 {
-#include "libguile/syntax.x"
+#include "syntax.x"
 }
 

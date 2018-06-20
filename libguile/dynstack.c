@@ -26,11 +26,11 @@
 #include <assert.h>
 #include <setjmp.h>
 
-#include "libguile/control.h"
-#include "libguile/eval.h"
-#include "libguile/fluids.h"
-#include "libguile/dynstack.h"
-#include "libguile/variable.h"
+#include "control.h"
+#include "eval.h"
+#include "fluids.h"
+#include "dynstack.h"
+#include "variable.h"
 
 
 

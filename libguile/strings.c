@@ -35,19 +35,19 @@
 
 #include "striconveh.h"
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/chars.h"
-#include "libguile/strings.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-#include "libguile/error.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/deprecation.h"
-#include "libguile/symbols.h"
-#include "libguile/threads.h"
-#include "libguile/private-options.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "chars.h"
+#include "strings.h"
+#include "numbers.h"
+#include "ports.h"
+#include "ports-internal.h"
+#include "error.h"
+#include "generalized-vectors.h"
+#include "deprecation.h"
+#include "symbols.h"
+#include "threads.h"
+#include "private-options.h"
 
 
 
@@ -2458,6 +2458,6 @@ scm_init_strings ()
 {
   scm_nullstr = scm_i_make_string (0, NULL, 0);
 
-#include "libguile/strings.x"
+#include "strings.x"
 }
 

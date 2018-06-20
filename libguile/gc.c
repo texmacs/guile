@@ -23,8 +23,8 @@
 #  include <config.h>
 #endif
 
-#include "libguile/gen-scmconfig.h"
-#include "libguile/pairs.h"
+#include "gen-scmconfig.h"
+#include "pairs.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -32,36 +32,36 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/eval.h"
-#include "libguile/stime.h"
-#include "libguile/stackchk.h"
-#include "libguile/struct.h"
-#include "libguile/smob.h"
-#include "libguile/arrays.h"
-#include "libguile/async.h"
-#include "libguile/ports.h"
-#include "libguile/hooks.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/simpos.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/vectors.h"
-#include "libguile/hashtab.h"
+#include "gsubr.h"
+#include "eval.h"
+#include "stime.h"
+#include "stackchk.h"
+#include "struct.h"
+#include "smob.h"
+#include "arrays.h"
+#include "async.h"
+#include "ports.h"
+#include "hooks.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "simpos.h"
+#include "strings.h"
+#include "symbols.h"
+#include "vectors.h"
+#include "hashtab.h"
 
-#include "libguile/deprecation.h"
-#include "libguile/gc.h"
-#include "libguile/dynwind.h"
+#include "deprecation.h"
+#include "gc.h"
+#include "dynwind.h"
 
-#include "libguile/bdw-gc.h"
+#include "bdw-gc.h"
 
 /* For GC_set_start_callback.  */
 #include <gc/gc_mark.h>
 
 #ifdef GUILE_DEBUG_MALLOC
-#include "libguile/debug-malloc.h"
+#include "debug-malloc.h"
 #endif
 
 #include <unistd.h>
@@ -628,7 +628,7 @@ scm_init_gc ()
   GC_set_warn_proc (scm_gc_warn_proc);
   GC_set_start_callback (run_before_gc_c_hook);
 
-#include "libguile/gc.x"
+#include "gc.x"
 }
 
 

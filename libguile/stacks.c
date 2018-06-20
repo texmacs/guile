@@ -23,27 +23,27 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/control.h"
-#include "libguile/eval.h"
-#include "libguile/debug.h"
-#include "libguile/continuations.h"
-#include "libguile/fluids.h"
-#include "libguile/list.h"
-#include "libguile/struct.h"
-#include "libguile/macros.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/procprop.h"
-#include "libguile/modules.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/vm.h" /* to capture vm stacks */
-#include "libguile/frames.h" /* vm frames */
+#include "gsubr.h"
+#include "boolean.h"
+#include "control.h"
+#include "eval.h"
+#include "debug.h"
+#include "continuations.h"
+#include "fluids.h"
+#include "list.h"
+#include "struct.h"
+#include "macros.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "procprop.h"
+#include "modules.h"
+#include "strings.h"
+#include "symbols.h"
+#include "vm.h" /* to capture vm stacks */
+#include "frames.h" /* vm frames */
 
-#include "libguile/stacks.h"
-#include "libguile/private-options.h"
+#include "stacks.h"
+#include "private-options.h"
 
 
 static SCM scm_sys_stacks;
@@ -471,5 +471,5 @@ scm_init_stacks ()
                                     SCM_UNDEFINED);
   scm_set_struct_vtable_name_x (scm_stack_type,
 				scm_from_latin1_symbol ("stack"));
-#include "libguile/stacks.x"
+#include "stacks.x"
 }

@@ -50,19 +50,19 @@ maybe_drag_in_eprintf ()
 #include <stdio.h>
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/libpath.h"
-#include "libguile/dynl.h"
-#include "libguile/smob.h"
-#include "libguile/keywords.h"
-#include "libguile/list.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/deprecation.h"
-#include "libguile/dynwind.h"
-#include "libguile/foreign.h"
-#include "libguile/threads.h"
-#include "libguile/gc.h"
+#include "gsubr.h"
+#include "libpath.h"
+#include "dynl.h"
+#include "smob.h"
+#include "keywords.h"
+#include "list.h"
+#include "ports.h"
+#include "strings.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "foreign.h"
+#include "threads.h"
+#include "gc.h"
 
 #include <ltdl.h>
 
@@ -408,5 +408,5 @@ scm_init_dynamic_linking ()
 			    scm_i_pthread_mutexattr_recursive);
 
   sysdep_dynl_init ();
-#include "libguile/dynl.x"
+#include "dynl.x"
 }

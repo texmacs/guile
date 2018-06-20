@@ -27,12 +27,12 @@
 #include <unictype.h>
 #include <uniname.h>
 
-#include "libguile/chars.h"
-#include "libguile/gsubr.h"
-#include "libguile/extensions.h"
-#include <libguile/strings.h>
+#include "chars.h"
+#include "gsubr.h"
+#include "extensions.h"
+#include "strings.h"
 
-#include "libguile/unicode.h"
+#include "unicode.h"
 
 
 
@@ -78,7 +78,7 @@ static void
 scm_load_unicode (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/unicode.x"
+#include "unicode.x"
 #endif
 }
 

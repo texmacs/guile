@@ -27,16 +27,16 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
+#include "gsubr.h"
+#include "pairs.h"
 
-#include "libguile/deprecation.h"
-#include "libguile/list.h"
-#include "libguile/strings.h"
-#include "libguile/ports.h"
-#include "libguile/threads.h"
+#include "deprecation.h"
+#include "list.h"
+#include "strings.h"
+#include "ports.h"
+#include "threads.h"
 
-#include "libguile/private-options.h"
+#include "private-options.h"
 
 
 
@@ -177,5 +177,5 @@ scm_init_deprecation ()
       SCM_WARN_DEPRECATED = 0;
       atexit (print_deprecation_summary);
     }
-#include "libguile/deprecation.x"
+#include "deprecation.x"
 }

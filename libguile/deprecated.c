@@ -22,8 +22,8 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
-#include "libguile/deprecation.h"
-#include "libguile/deprecated.h"
+#include "deprecation.h"
+#include "deprecated.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -36,7 +36,7 @@
 void
 scm_i_init_deprecated ()
 {
-#include "libguile/deprecated.x"
+#include "deprecated.x"
 }
 
 #endif /* SCM_ENABLE_DEPRECATD == 1 */

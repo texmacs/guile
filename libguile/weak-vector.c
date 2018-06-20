@@ -26,13 +26,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/extensions.h"
-#include "libguile/list.h"
-#include "libguile/pairs.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-vector.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "extensions.h"
+#include "list.h"
+#include "pairs.h"
+#include "vectors.h"
+#include "weak-vector.h"
 
 
 
@@ -255,7 +255,7 @@ static void
 scm_init_weak_vector_builtins (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/weak-vector.x"
+#include "weak-vector.x"
 #endif
 }
 

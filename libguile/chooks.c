@@ -25,8 +25,8 @@
 
 #include <stdio.h>
 
-#include "libguile/gc.h"
-#include "libguile/chooks.h"
+#include "gc.h"
+#include "chooks.h"
 
 
 /* C level hooks

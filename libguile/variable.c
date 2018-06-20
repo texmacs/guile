@@ -23,15 +23,15 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/eq.h"
-#include "libguile/list.h"
-#include "libguile/ports.h"
-#include "libguile/smob.h"
-#include "libguile/deprecation.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "eq.h"
+#include "list.h"
+#include "ports.h"
+#include "smob.h"
+#include "deprecation.h"
 
-#include "libguile/variable.h"
+#include "variable.h"
 
 
 void
@@ -139,5 +139,5 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 void
 scm_init_variable ()
 {
-#include "libguile/variable.x"
+#include "variable.x"
 }

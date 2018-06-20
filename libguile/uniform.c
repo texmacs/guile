@@ -23,7 +23,7 @@
 #  include <config.h>
 #endif
 
-#include "libguile/uniform.h"
+#include "uniform.h"
 
 
 const size_t scm_i_array_element_type_sizes[SCM_ARRAY_ELEMENT_TYPE_LAST + 1] = {
@@ -84,5 +84,5 @@ scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
 void
 scm_init_uniform (void)
 {
-#include "libguile/uniform.x"
+#include "uniform.x"
 }

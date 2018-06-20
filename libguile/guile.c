@@ -28,14 +28,6 @@
 #  include <config.h>
 #endif
 
-#ifdef __MINGW32__
-# define SCM_IMPORT 1
-#endif
-#include <libguile.h>
-
-#ifdef HAVE_CONFIG_H
-#include <libguile/scmconfig.h>
-#endif
 #include <ltdl.h>
 #include <locale.h>
 #include <stdio.h>
@@ -43,6 +35,8 @@
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
+
+#include <libguile.h>
 
 static void
 inner_main (void *closure SCM_UNUSED, int argc, char **argv)

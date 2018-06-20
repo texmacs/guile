@@ -24,22 +24,22 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/alist.h"
-#include "libguile/atomics-internal.h"
-#include "libguile/bdw-gc.h"
-#include "libguile/cache-internal.h"
-#include "libguile/deprecation.h"
-#include "libguile/dynwind.h"
-#include "libguile/eval.h"
-#include "libguile/fluids.h"
-#include "libguile/hashtab.h"
-#include "libguile/list.h"
-#include "libguile/ports.h"
-#include "libguile/print.h"
-#include "libguile/weak-table.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "alist.h"
+#include "atomics-internal.h"
+#include "bdw-gc.h"
+#include "cache-internal.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "fluids.h"
+#include "hashtab.h"
+#include "list.h"
+#include "ports.h"
+#include "print.h"
+#include "weak-table.h"
+#include "variable.h"
 
 /* A dynamic state associates fluids with values.  There are two
    representations of a dynamic state in Guile: the active
@@ -677,5 +677,5 @@ SCM_DEFINE (scm_with_dynamic_state, "with-dynamic-state", 2, 0, 0,
 void
 scm_init_fluids ()
 {
-#include "libguile/fluids.x"
+#include "fluids.x"
 }

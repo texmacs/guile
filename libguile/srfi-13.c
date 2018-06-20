@@ -28,18 +28,18 @@
 #include <unicase.h>
 #include <unictype.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include <libguile/deprecation.h>
-#include "libguile/eval.h"
-#include "libguile/error.h"
-#include "libguile/hash.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/procs.h"
-#include "libguile/srfi-13.h"
-#include "libguile/srfi-14.h"
-#include "libguile/symbols.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "deprecation.h"
+#include "eval.h"
+#include "error.h"
+#include "hash.h"
+#include "list.h"
+#include "numbers.h"
+#include "procs.h"
+#include "srfi-13.h"
+#include "srfi-14.h"
+#include "symbols.h"
 
 #define MY_VALIDATE_SUBSTRING_SPEC(pos_str, str,              \
                                    pos_start, start, c_start, \
@@ -3360,7 +3360,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 void
 scm_init_srfi_13 (void)
 {
-#include "libguile/srfi-13.x"
+#include "srfi-13.x"
 }
 
 /* End of srfi-13.c.  */

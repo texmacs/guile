@@ -25,13 +25,13 @@
 
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/dynl.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/gc.h"
-#include "libguile/strings.h"
-#include "libguile/threads.h"
+#include "gsubr.h"
+#include "dynl.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "gc.h"
+#include "strings.h"
+#include "threads.h"
 
 typedef struct extension_t
 {
@@ -173,5 +173,5 @@ SCM_DEFINE (scm_load_extension, "load-extension", 2, 0, 0,
 void
 scm_init_extensions ()
 {
-#include "libguile/extensions.x"
+#include "extensions.x"
 }

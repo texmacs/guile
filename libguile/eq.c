@@ -27,26 +27,26 @@
 #include <string.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/array-map.h"
-#include "libguile/async.h"
-#include "libguile/bitvectors.h"
-#include "libguile/bytevectors.h"
-#include "libguile/eq.h"
-#include "libguile/eval.h"
-#include "libguile/foreign.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/goops.h"
-#include "libguile/hashtab.h"
-#include "libguile/pairs.h"
-#include "libguile/private-options.h"
-#include "libguile/smob.h"
-#include "libguile/stackchk.h"
-#include "libguile/strorder.h"
-#include "libguile/struct.h"
-#include "libguile/syntax.h"
-#include "libguile/vectors.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "array-map.h"
+#include "async.h"
+#include "bitvectors.h"
+#include "bytevectors.h"
+#include "eq.h"
+#include "eval.h"
+#include "foreign.h"
+#include "generalized-arrays.h"
+#include "goops.h"
+#include "hashtab.h"
+#include "pairs.h"
+#include "private-options.h"
+#include "smob.h"
+#include "stackchk.h"
+#include "strorder.h"
+#include "struct.h"
+#include "syntax.h"
+#include "vectors.h"
 
 
 
@@ -405,6 +405,6 @@ scm_equal_p (SCM x, SCM y)
 void
 scm_init_eq ()
 {
-#include "libguile/eq.x"
+#include "eq.x"
 }
 

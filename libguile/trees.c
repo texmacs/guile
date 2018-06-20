@@ -23,14 +23,14 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/eq.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "eq.h"
 
-#include "libguile/list.h"
-#include "libguile/vectors.h"
-#include "libguile/srcprop.h"
-#include "libguile/trees.h"
+#include "list.h"
+#include "vectors.h"
+#include "srcprop.h"
+#include "trees.h"
 
 #include <stdarg.h>
 
@@ -206,5 +206,5 @@ copy_tree (struct t_trace *const hare,
 void
 scm_init_trees ()
 {
-#include "libguile/trees.x"
+#include "trees.x"
 }

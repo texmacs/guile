@@ -22,15 +22,15 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/chars.h"
-#include "libguile/pairs.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "chars.h"
+#include "pairs.h"
+#include "strings.h"
+#include "symbols.h"
 
-#include "libguile/strorder.h"
-#include "libguile/srfi-13.h"
+#include "strorder.h"
+#include "srfi-13.h"
 
 
 SCM_C_INLINE_KEYWORD static SCM
@@ -341,6 +341,6 @@ SCM scm_string_ci_geq_p (SCM s1, SCM s2)
 void
 scm_init_strorder ()
 {
-#include "libguile/strorder.x"
+#include "strorder.x"
 }
 

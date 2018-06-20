@@ -20,7 +20,7 @@
 #  include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 #include "boolean.h"
 #include "alist.h"
 #include "cache-internal.h"
@@ -28,9 +28,9 @@
 #include "fluids.h"
 #include "goops.h"
 #include "keywords.h"
-#include "libguile/modules.h"
+#include "modules.h"
 #include "numbers.h"
-#include "libguile/symbols.h"
+#include "symbols.h"
 #include "intrinsics.h"
 
 
@@ -322,6 +322,6 @@ void
 scm_init_intrinsics (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/intrinsics.x"
+#include "intrinsics.x"
 #endif
 }

@@ -46,24 +46,24 @@
 
 #include <gmp.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/async.h"
-#include "libguile/arrays.h"
-#include "libguile/bytevectors.h"
-#include "libguile/feature.h"
-#include "libguile/fports.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/srfi-13.h"
-#include "libguile/syscalls.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "async.h"
+#include "arrays.h"
+#include "bytevectors.h"
+#include "feature.h"
+#include "fports.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "strings.h"
+#include "symbols.h"
+#include "vectors.h"
+#include "dynwind.h"
+#include "srfi-13.h"
+#include "syscalls.h"
 
-#include "libguile/socket.h"
+#include "socket.h"
 
 
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
@@ -1770,6 +1770,6 @@ scm_init_socket ()
 
   scm_add_feature ("socket");
 
-#include "libguile/socket.x"
+#include "socket.x"
 }
 

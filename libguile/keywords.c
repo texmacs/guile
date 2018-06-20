@@ -26,18 +26,18 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/async.h"
-#include "libguile/list.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/smob.h"
-#include "libguile/dynwind.h"
-#include "libguile/hashtab.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
+#include "gsubr.h"
+#include "async.h"
+#include "list.h"
+#include "pairs.h"
+#include "ports.h"
+#include "smob.h"
+#include "dynwind.h"
+#include "hashtab.h"
+#include "strings.h"
+#include "symbols.h"
 
-#include "libguile/keywords.h"
+#include "keywords.h"
 
 
 
@@ -197,6 +197,6 @@ void
 scm_init_keywords ()
 {
   keyword_obarray = scm_c_make_hash_table (0);
-#include "libguile/keywords.x"
+#include "keywords.x"
 }
 

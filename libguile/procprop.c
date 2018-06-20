@@ -23,24 +23,24 @@
 # include <config.h>
 #endif
 
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
+#include "pairs.h"
+#include "boolean.h"
 
-#include "libguile/alist.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/procs.h"
-#include "libguile/gsubr.h"
-#include "libguile/numbers.h"
-#include "libguile/smob.h"
-#include "libguile/symbols.h"
-#include "libguile/threads.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-table.h"
-#include "libguile/programs.h"
-#include "libguile/vm-builtins.h"
+#include "alist.h"
+#include "eval.h"
+#include "list.h"
+#include "procs.h"
+#include "gsubr.h"
+#include "numbers.h"
+#include "smob.h"
+#include "symbols.h"
+#include "threads.h"
+#include "vectors.h"
+#include "weak-table.h"
+#include "programs.h"
+#include "vm-builtins.h"
 
-#include "libguile/procprop.h"
+#include "procprop.h"
 
 
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
@@ -339,7 +339,7 @@ scm_init_procprop ()
 {
   overrides = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
   arity_overrides = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
-#include "libguile/procprop.x"
+#include "procprop.x"
   scm_init_vm_builtin_properties ();
 }
 

@@ -25,16 +25,16 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "libguile/foreign.h"
-#include "libguile/frames.h"
-#include "libguile/gsubr.h"
-#include "libguile/instructions.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/private-options.h"
-#include "libguile/programs.h"
-#include "libguile/srfi-4.h"
-#include "libguile/symbols.h"
+#include "foreign.h"
+#include "frames.h"
+#include "gsubr.h"
+#include "instructions.h"
+#include "modules.h"
+#include "numbers.h"
+#include "private-options.h"
+#include "programs.h"
+#include "srfi-4.h"
+#include "symbols.h"
 
 
 /*
@@ -372,5 +372,5 @@ scm_c_define_gsubr_with_generic (const char *name,
 void
 scm_init_gsubr()
 {
-#include "libguile/gsubr.x"
+#include "gsubr.x"
 }

@@ -24,16 +24,16 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/eq.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "eq.h"
 
-#include "libguile/extensions.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
+#include "extensions.h"
+#include "list.h"
+#include "numbers.h"
 
-#include "libguile/srfi-60.h"
+#include "srfi-60.h"
 
 
 SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,
@@ -458,6 +458,6 @@ void
 scm_init_srfi_60 (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/srfi-60.x"
+#include "srfi-60.x"
 #endif
 }

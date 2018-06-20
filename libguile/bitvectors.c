@@ -25,17 +25,17 @@
 
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/array-handle.h"
-#include "libguile/bitvectors.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/numbers.h"
-#include "libguile/list.h"
-#include "libguile/arrays.h"
-#include "libguile/ports.h"
-#include "libguile/srfi-4.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "array-handle.h"
+#include "bitvectors.h"
+#include "generalized-vectors.h"
+#include "numbers.h"
+#include "list.h"
+#include "arrays.h"
+#include "ports.h"
+#include "srfi-4.h"
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,
  * but alack, all we have is this crufty C.
@@ -887,5 +887,5 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector)
 void
 scm_init_bitvectors ()
 {
-#include "libguile/bitvectors.x"
+#include "bitvectors.x"
 }

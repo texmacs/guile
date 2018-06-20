@@ -30,26 +30,26 @@
 #include <ucontext.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/backtrace.h"
-#include "libguile/debug.h"
-#include "libguile/init.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/smob.h"
-#include "libguile/stackchk.h"
-#include "libguile/stacks.h"
-#include "libguile/ports.h"
-#include "libguile/dynstack.h"
-#include "libguile/eval.h"
-#include "libguile/symbols.h"
-#include "libguile/vm.h"
-#include "libguile/instructions.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "async.h"
+#include "backtrace.h"
+#include "debug.h"
+#include "init.h"
+#include "list.h"
+#include "numbers.h"
+#include "smob.h"
+#include "stackchk.h"
+#include "stacks.h"
+#include "ports.h"
+#include "dynstack.h"
+#include "eval.h"
+#include "symbols.h"
+#include "vm.h"
+#include "instructions.h"
 
-#include "libguile/continuations.h"
+#include "continuations.h"
 
 
 
@@ -529,5 +529,5 @@ scm_init_continuations ()
 {
   tc16_continuation = scm_make_smob_type ("continuation", 0);
   scm_set_smob_print (tc16_continuation, continuation_print);
-#include "libguile/continuations.x"
+#include "continuations.x"
 }

@@ -24,24 +24,24 @@
 
 #include <stdarg.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
 
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/smob.h"
-#include "libguile/procprop.h"
-#include "libguile/vectors.h"
-#include "libguile/keywords.h"
-#include "libguile/hashtab.h"
-#include "libguile/struct.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
-#include "libguile/fluids.h"
-#include "libguile/deprecation.h"
+#include "eval.h"
+#include "list.h"
+#include "smob.h"
+#include "procprop.h"
+#include "vectors.h"
+#include "keywords.h"
+#include "hashtab.h"
+#include "struct.h"
+#include "symbols.h"
+#include "variable.h"
+#include "fluids.h"
+#include "deprecation.h"
 
-#include "libguile/modules.h"
+#include "modules.h"
 
 int scm_module_system_booted_p = 0;
 
@@ -875,7 +875,7 @@ scm_modules_prehistory ()
 void
 scm_init_modules ()
 {
-#include "libguile/modules.x"
+#include "modules.x"
   module_make_local_var_x_var = scm_c_define ("module-make-local-var!",
 					    SCM_UNDEFINED);
   the_module = scm_make_fluid ();

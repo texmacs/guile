@@ -39,7 +39,7 @@
 
 #include <full-read.h>
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 #include "bytevectors.h"
 #include "boolean.h"
 #include "elf.h"
@@ -828,7 +828,7 @@ void
 scm_init_loader (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/loader.x"
+#include "loader.x"
 #endif
 
   scm_c_define_gsubr ("find-mapped-elf-image", 1, 0, 0,

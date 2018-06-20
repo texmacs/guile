@@ -27,17 +27,17 @@
 #include <errno.h>
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/async.h"
-#include "libguile/fports.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/rw.h"
-#include "libguile/strings.h"
-#include "libguile/modules.h"
-#include "libguile/strports.h"
-#include "libguile/syscalls.h"
-#include "libguile/ports-internal.h"
+#include "gsubr.h"
+#include "async.h"
+#include "fports.h"
+#include "numbers.h"
+#include "ports.h"
+#include "rw.h"
+#include "strings.h"
+#include "modules.h"
+#include "strports.h"
+#include "syscalls.h"
+#include "ports-internal.h"
 
 #include <unistd.h>
 #ifdef HAVE_IO_H
@@ -272,7 +272,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
 SCM 
 scm_init_rw_builtins ()
 {
-#include "libguile/rw.x"
+#include "rw.x"
 
   return SCM_UNSPECIFIED;
 }

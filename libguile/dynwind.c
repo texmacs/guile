@@ -26,15 +26,15 @@
 
 #include <assert.h>
 
-#include "libguile/boolean.h"
-#include "libguile/dynstack.h"
-#include "libguile/eval.h"
-#include "libguile/threads.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/variable.h"
+#include "boolean.h"
+#include "dynstack.h"
+#include "eval.h"
+#include "threads.h"
+#include "pairs.h"
+#include "ports.h"
+#include "variable.h"
 
-#include "libguile/dynwind.h"
+#include "dynwind.h"
 
 
 
@@ -138,5 +138,5 @@ scm_swap_bindings (SCM vars, SCM vals)
 void
 scm_init_dynwind ()
 {
-#include "libguile/dynwind.x"
+#include "dynwind.x"
 }

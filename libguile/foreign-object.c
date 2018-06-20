@@ -22,18 +22,18 @@
 #  include <config.h>
 #endif
 
-#include "libguile/eval.h"
-#include "libguile/extensions.h"
-#include "libguile/finalizers.h"
-#include "libguile/foreign-object.h"
-#include "libguile/goops.h"
-#include "libguile/gsubr.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/procs.h"
-#include "libguile/threads.h"
-#include "libguile/variable.h"
+#include "eval.h"
+#include "extensions.h"
+#include "finalizers.h"
+#include "foreign-object.h"
+#include "goops.h"
+#include "gsubr.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "procs.h"
+#include "threads.h"
+#include "variable.h"
 
 
 

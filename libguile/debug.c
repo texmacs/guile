@@ -35,35 +35,35 @@
 # include <windows.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/async.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/stackchk.h"
-#include "libguile/throw.h"
-#include "libguile/macros.h"
-#include "libguile/smob.h"
-#include "libguile/struct.h"
-#include "libguile/pairs.h"
-#include "libguile/procprop.h"
-#include "libguile/srcprop.h"
-#include "libguile/alist.h"
-#include "libguile/continuations.h"
-#include "libguile/strports.h"
-#include "libguile/read.h"
-#include "libguile/feature.h"
-#include "libguile/dynwind.h"
-#include "libguile/modules.h"
-#include "libguile/ports.h"
-#include "libguile/fluids.h"
-#include "libguile/programs.h"
-#include "libguile/memoize.h"
-#include "libguile/variable.h"
-#include "libguile/vm.h"
+#include "gsubr.h"
+#include "async.h"
+#include "eval.h"
+#include "list.h"
+#include "stackchk.h"
+#include "throw.h"
+#include "macros.h"
+#include "smob.h"
+#include "struct.h"
+#include "pairs.h"
+#include "procprop.h"
+#include "srcprop.h"
+#include "alist.h"
+#include "continuations.h"
+#include "strports.h"
+#include "read.h"
+#include "feature.h"
+#include "dynwind.h"
+#include "modules.h"
+#include "ports.h"
+#include "fluids.h"
+#include "programs.h"
+#include "memoize.h"
+#include "variable.h"
+#include "vm.h"
 
-#include "libguile/debug.h"
+#include "debug.h"
 
-#include "libguile/private-options.h"
+#include "private-options.h"
 
 
 
@@ -221,5 +221,5 @@ scm_init_debug ()
 
   scm_add_feature ("debug-extensions");
 
-#include "libguile/debug.x"
+#include "debug.x"
 }

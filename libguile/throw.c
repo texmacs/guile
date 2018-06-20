@@ -26,31 +26,31 @@
 #include <alloca.h>
 #include <stdio.h>
 #include <unistdio.h>
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/smob.h"
-#include "libguile/eval.h"
-#include "libguile/eq.h"
-#include "libguile/gsubr.h"
-#include "libguile/control.h"
-#include "libguile/deprecation.h"
-#include "libguile/backtrace.h"
-#include "libguile/debug.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/stackchk.h"
-#include "libguile/stacks.h"
-#include "libguile/fluids.h"
-#include "libguile/ports.h"
-#include "libguile/vm.h"
-#include "libguile/throw.h"
-#include "libguile/init.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "smob.h"
+#include "eval.h"
+#include "eq.h"
+#include "gsubr.h"
+#include "control.h"
+#include "deprecation.h"
+#include "backtrace.h"
+#include "debug.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "stackchk.h"
+#include "stacks.h"
+#include "fluids.h"
+#include "ports.h"
+#include "vm.h"
+#include "throw.h"
+#include "init.h"
+#include "strings.h"
+#include "symbols.h"
+#include "variable.h"
 
-#include "libguile/private-options.h"
+#include "private-options.h"
 
 
 /* Pleasantly enough, the guts of catch are defined in Scheme, in terms
@@ -682,5 +682,5 @@ scm_init_throw ()
                                    SCM_BOOL_F,
                                    SCM_BOOL_F);
 
-#include "libguile/throw.x"
+#include "throw.x"
 }

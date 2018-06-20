@@ -30,18 +30,18 @@
 #include <ctype.h>
 #include <uniconv.h>
 
-#include "libguile/pairs.h"
-#include "libguile/eval.h"
-#include "libguile/feature.h"
-#include "libguile/fluids.h"
-#include "libguile/load.h"
-#include "libguile/modules.h"
-#include "libguile/read.h"
-#include "libguile/script.h"
-#include "libguile/strings.h"
-#include "libguile/strports.h"
-#include "libguile/version.h"
-#include "libguile/vm.h"
+#include "pairs.h"
+#include "eval.h"
+#include "feature.h"
+#include "fluids.h"
+#include "load.h"
+#include "modules.h"
+#include "read.h"
+#include "script.h"
+#include "strings.h"
+#include "strports.h"
+#include "version.h"
+#include "vm.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -430,5 +430,5 @@ scm_shell (int argc, char **argv)
 void
 scm_init_script ()
 {
-#include "libguile/script.x"
+#include "script.x"
 }

@@ -25,16 +25,16 @@
 #include <assert.h>
 #include <string.h>
 
-#include "libguile/pairs.h"
-#include "libguile/finalizers.h"
-#include "libguile/hash.h"
-#include "libguile/eval.h"
-#include "libguile/ports.h"
-#include "libguile/threads.h"
-#include "libguile/bdw-gc.h"
+#include "pairs.h"
+#include "finalizers.h"
+#include "hash.h"
+#include "eval.h"
+#include "ports.h"
+#include "threads.h"
+#include "bdw-gc.h"
 
-#include "libguile/weak-list.h"
-#include "libguile/weak-set.h"
+#include "weak-list.h"
+#include "weak-set.h"
 
 
 /* Weak Sets
@@ -898,7 +898,7 @@ scm_weak_set_map_to_list (SCM proc, SCM set)
 void
 scm_init_weak_set ()
 {
-#include "libguile/weak-set.x"
+#include "weak-set.x"
 
   scm_i_register_async_gc_callback (vacuum_all_weak_sets);
 }

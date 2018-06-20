@@ -27,15 +27,15 @@
 #include <string.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/modules.h"
-#include "libguile/pairs.h"
-#include "libguile/strings.h"
-#include "libguile/fluids.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "modules.h"
+#include "pairs.h"
+#include "strings.h"
+#include "fluids.h"
+#include "symbols.h"
+#include "variable.h"
 
-#include "libguile/feature.h"
+#include "feature.h"
 
 
 
@@ -116,5 +116,5 @@ scm_init_feature()
   scm_add_feature ("threads");
 #endif
 
-#include "libguile/feature.x"
+#include "feature.x"
 }

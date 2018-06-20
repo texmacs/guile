@@ -22,12 +22,12 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/extensions.h"
-#include "libguile/ports.h"
-#include "libguile/atomics-internal.h"
-#include "libguile/atomic.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "extensions.h"
+#include "ports.h"
+#include "atomics-internal.h"
+#include "atomic.h"
 
 
 SCM_DEFINE (scm_make_atomic_box, "make-atomic-box", 1, 0, 0,
@@ -116,7 +116,7 @@ scm_i_atomic_box_print (SCM exp, SCM port, scm_print_state *pstate)
 static void
 scm_init_atomic (void)
 {
-#include "libguile/atomic.x"
+#include "atomic.x"
 }
 
 void

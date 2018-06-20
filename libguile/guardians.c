@@ -49,22 +49,22 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
 
-#include "libguile/bdw-gc.h"
-#include "libguile/deprecation.h"
-#include "libguile/eval.h"
-#include "libguile/guardians.h"
-#include "libguile/hashtab.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/print.h"
-#include "libguile/smob.h"
-#include "libguile/threads.h"
-#include "libguile/weak-vector.h"
+#include "bdw-gc.h"
+#include "deprecation.h"
+#include "eval.h"
+#include "guardians.h"
+#include "hashtab.h"
+#include "list.h"
+#include "numbers.h"
+#include "ports.h"
+#include "print.h"
+#include "smob.h"
+#include "threads.h"
+#include "weak-vector.h"
 
 
 static scm_t_bits tc16_guardian;
@@ -377,5 +377,5 @@ scm_init_guardians ()
   scm_set_smob_print (tc16_guardian, guardian_print);
   scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 1, 0);
 
-#include "libguile/guardians.x"
+#include "guardians.x"
 }

@@ -23,15 +23,15 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/numbers.h"
-#include "libguile/procs.h"
-#include "libguile/eq.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "numbers.h"
+#include "procs.h"
+#include "eq.h"
 
-#include "libguile/list.h"
-#include "libguile/eval.h"
+#include "list.h"
+#include "eval.h"
 
 #include <stdarg.h>
 
@@ -1008,5 +1008,5 @@ SCM_DEFINE (scm_filter_x, "filter!", 2, 0, 0,
 void
 scm_init_list ()
 {
-#include "libguile/list.x"
+#include "list.x"
 }

@@ -33,36 +33,36 @@
 #include <c-ctype.h>
 #include <alloca.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/bytevectors.h"
-#include "libguile/chars.h"
-#include "libguile/eval.h"
-#include "libguile/arrays.h"
-#include "libguile/bitvectors.h"
-#include "libguile/keywords.h"
-#include "libguile/alist.h"
-#include "libguile/srcprop.h"
-#include "libguile/hashtab.h"
-#include "libguile/hash.h"
-#include "libguile/eq.h"
-#include "libguile/fluids.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-#include "libguile/fports.h"
-#include "libguile/strings.h"
-#include "libguile/strports.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
-#include "libguile/srfi-4.h"
-#include "libguile/srfi-13.h"
-#include "libguile/symbols.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "bytevectors.h"
+#include "chars.h"
+#include "eval.h"
+#include "arrays.h"
+#include "bitvectors.h"
+#include "keywords.h"
+#include "alist.h"
+#include "srcprop.h"
+#include "hashtab.h"
+#include "hash.h"
+#include "eq.h"
+#include "fluids.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "ports-internal.h"
+#include "fports.h"
+#include "strings.h"
+#include "strports.h"
+#include "variable.h"
+#include "vectors.h"
+#include "srfi-4.h"
+#include "srfi-13.h"
+#include "symbols.h"
 
-#include "libguile/read.h"
-#include "libguile/private-options.h"
+#include "read.h"
+#include "private-options.h"
 
 
 
@@ -2398,5 +2398,5 @@ scm_init_read ()
     SCM_VARIABLE_LOC (scm_c_define ("%read-hash-procedures", read_hash_procs));
 
   scm_init_opts (scm_read_options, scm_read_opts);
-#include "libguile/read.x"
+#include "read.x"
 }

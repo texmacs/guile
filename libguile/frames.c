@@ -22,17 +22,17 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 #include "boolean.h"
 #include "eval.h"
 #include "extensions.h"
-#include "libguile/modules.h"
+#include "modules.h"
 #include "numbers.h"
 #include "frames.h"
 #include "ports.h"
-#include "libguile/symbols.h"
+#include "symbols.h"
 #include "threads.h"
-#include "libguile/variable.h"
+#include "variable.h"
 #include "vm.h"
 
 SCM
@@ -444,7 +444,7 @@ void
 scm_init_frames (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/frames.x"
+#include "frames.x"
 #endif
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,

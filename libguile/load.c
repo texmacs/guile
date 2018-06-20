@@ -27,34 +27,34 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/alist.h"
-#include "libguile/chars.h"
-#include "libguile/dynwind.h"
-#include "libguile/eq.h"
-#include "libguile/strports.h"
-#include "libguile/backtrace.h"
-#include "libguile/keywords.h"
-#include "libguile/eval.h"
-#include "libguile/filesys.h"
-#include "libguile/fports.h"
-#include "libguile/libpath.h"
-#include "libguile/list.h"
-#include "libguile/loader.h"
-#include "libguile/modules.h"
-#include "libguile/pairs.h"
-#include "libguile/read.h"
-#include "libguile/srfi-13.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/throw.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "alist.h"
+#include "chars.h"
+#include "dynwind.h"
+#include "eq.h"
+#include "strports.h"
+#include "backtrace.h"
+#include "keywords.h"
+#include "eval.h"
+#include "filesys.h"
+#include "fports.h"
+#include "libpath.h"
+#include "list.h"
+#include "loader.h"
+#include "modules.h"
+#include "pairs.h"
+#include "read.h"
+#include "srfi-13.h"
+#include "strings.h"
+#include "symbols.h"
+#include "throw.h"
+#include "variable.h"
 
-#include "libguile/load.h"
-#include "libguile/fluids.h"
+#include "load.h"
+#include "fluids.h"
 
-#include "libguile/vm.h" /* for load-compiled/vm */
+#include "vm.h" /* for load-compiled/vm */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1372,7 +1372,7 @@ scm_init_load ()
 
   init_build_info ();
 
-#include "libguile/load.x"
+#include "load.x"
 }
 
 void

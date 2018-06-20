@@ -62,30 +62,30 @@
 #include <io.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/finalizers.h"
-#include "libguile/fports.h"
-#include "libguile/list.h"
-#include "libguile/bitvectors.h"
-#include "libguile/scmsigs.h"
-#include "libguile/feature.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/srfi-14.h"
-#include "libguile/symbols.h"
-#include "libguile/syscalls.h"
-#include "libguile/vectors.h"
-#include "libguile/values.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "async.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "finalizers.h"
+#include "fports.h"
+#include "list.h"
+#include "bitvectors.h"
+#include "scmsigs.h"
+#include "feature.h"
+#include "modules.h"
+#include "numbers.h"
+#include "strings.h"
+#include "srfi-13.h"
+#include "srfi-14.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "vectors.h"
+#include "values.h"
 
-#include "libguile/posix.h"
-#include "libguile/gettext.h"
-#include "libguile/threads.h"
+#include "posix.h"
+#include "gettext.h"
+#include "threads.h"
 
 
 #ifdef __MINGW32__
@@ -2420,8 +2420,8 @@ scm_init_posix ()
   scm_c_define ("LOCK_NB", scm_from_int (LOCK_NB));
 #endif
 
-#include "libguile/cpp-SIG.c"
-#include "libguile/posix.x"
+#include "cpp-SIG.c"
+#include "posix.x"
 
 #ifdef HAVE_FORK
   scm_add_feature ("fork");

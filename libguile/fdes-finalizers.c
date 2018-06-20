@@ -21,16 +21,16 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/extensions.h"
-#include "libguile/eval.h"
-#include "libguile/hashtab.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/threads.h"
-#include "libguile/fdes-finalizers.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "extensions.h"
+#include "eval.h"
+#include "hashtab.h"
+#include "list.h"
+#include "numbers.h"
+#include "threads.h"
+#include "fdes-finalizers.h"
 
 
 
@@ -120,7 +120,7 @@ scm_run_fdes_finalizers (int fd)
 static void
 scm_init_fdes_finalizers (void)
 {
-#include "libguile/fdes-finalizers.x"
+#include "fdes-finalizers.x"
 }
 
 void

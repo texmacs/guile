@@ -24,21 +24,21 @@
 
 #include <assert.h>
 
-#include "libguile/bdw-gc.h"
-#include "libguile/pairs.h"
+#include "bdw-gc.h"
+#include "pairs.h"
 #include <gc/gc_typed.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/alist.h"
-#include "libguile/finalizers.h"
-#include "libguile/hash.h"
-#include "libguile/eval.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/procs.h"
-#include "libguile/threads.h"
-#include "libguile/weak-list.h"
-#include "libguile/weak-table.h"
+#include "gsubr.h"
+#include "alist.h"
+#include "finalizers.h"
+#include "hash.h"
+#include "eval.h"
+#include "numbers.h"
+#include "ports.h"
+#include "procs.h"
+#include "threads.h"
+#include "weak-list.h"
+#include "weak-table.h"
 
 
 /* Weak Tables
@@ -836,7 +836,7 @@ scm_weak_table_prehistory (void)
 void
 scm_init_weak_table ()
 {
-#include "libguile/weak-table.x"
+#include "weak-table.x"
 
   scm_i_register_async_gc_callback (vacuum_all_weak_tables);
 }

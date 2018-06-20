@@ -24,7 +24,7 @@
 
 #if SCM_USE_NULL_THREADS
 
-#include "libguile/null-threads.h"
+#include "null-threads.h"
 
 static scm_i_pthread_key_t *all_keys = NULL;
 

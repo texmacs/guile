@@ -28,33 +28,33 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/chars.h"
-#include "libguile/deprecation.h"
-#include "libguile/eval.h"
-#include "libguile/finalizers.h"
-#include "libguile/goops.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/alist.h"
-#include "libguile/hashtab.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/symbols.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "async.h"
+#include "chars.h"
+#include "deprecation.h"
+#include "eval.h"
+#include "finalizers.h"
+#include "goops.h"
+#include "modules.h"
+#include "numbers.h"
+#include "alist.h"
+#include "hashtab.h"
+#include "pairs.h"
+#include "ports.h"
+#include "strings.h"
+#include "srfi-13.h"
+#include "symbols.h"
 
-#include "libguile/struct.h"
+#include "struct.h"
 
-#include "libguile/eq.h"
+#include "eq.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 
-#include "libguile/bdw-gc.h"
+#include "bdw-gc.h"
 
 
 
@@ -842,5 +842,5 @@ scm_init_struct ()
   scm_c_define ("vtable-index-printer",
 		scm_from_int (scm_vtable_index_instance_printer));
   scm_c_define ("vtable-offset-user", scm_from_int (scm_vtable_offset_user));
-#include "libguile/struct.x"
+#include "struct.x"
 }

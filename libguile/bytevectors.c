@@ -36,22 +36,22 @@
 
 #include <gmp.h>
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/bytevectors.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/arrays.h"
-#include "libguile/array-handle.h"
-#include "libguile/uniform.h"
-#include "libguile/srfi-4.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "bytevectors.h"
+#include "generalized-vectors.h"
+#include "list.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
+#include "strings.h"
+#include "symbols.h"
+#include "arrays.h"
+#include "array-handle.h"
+#include "uniform.h"
+#include "srfi-4.h"
 
 
 /* Utilities.  */
@@ -2130,5 +2130,5 @@ scm_bootstrap_bytevectors (void)
 void
 scm_init_bytevectors (void)
 {
-#include "libguile/bytevectors.x"
+#include "bytevectors.x"
 }

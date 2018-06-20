@@ -24,27 +24,27 @@
 #  include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 
 #include <stdio.h>
 #include <unistd.h>
 
-#include "libguile/bytevectors.h"
-#include "libguile/eval.h"
-#include "libguile/keywords.h"
-#include "libguile/ports.h"
-#include "libguile/procs.h"
-#include "libguile/read.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/syscalls.h"
-#include "libguile/modules.h"
-#include "libguile/deprecation.h"
-#include "libguile/srfi-4.h"
-#include "libguile/threads.h"
-#include "libguile/variable.h"
+#include "bytevectors.h"
+#include "eval.h"
+#include "keywords.h"
+#include "ports.h"
+#include "procs.h"
+#include "read.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "modules.h"
+#include "deprecation.h"
+#include "srfi-4.h"
+#include "threads.h"
+#include "variable.h"
 
-#include "libguile/strports.h"
+#include "strports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -401,6 +401,6 @@ scm_init_strports ()
 {
   scm_string_port_type = scm_make_string_port_type ();
 
-#include "libguile/strports.x"
+#include "strports.x"
 }
 

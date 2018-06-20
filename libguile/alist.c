@@ -23,13 +23,13 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/eq.h"
-#include "libguile/list.h"
-#include "libguile/pairs.h"
-#include "libguile/numbers.h"
-#include "libguile/alist.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "eq.h"
+#include "list.h"
+#include "pairs.h"
+#include "numbers.h"
+#include "alist.h"
 
 
 
@@ -395,6 +395,6 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
 void
 scm_init_alist ()
 {
-#include "libguile/alist.x"
+#include "alist.x"
 }
 

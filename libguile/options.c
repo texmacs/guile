@@ -22,15 +22,15 @@
 # include <config.h>
 #endif
 
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/list.h"
-#include "libguile/mallocs.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "list.h"
+#include "mallocs.h"
+#include "numbers.h"
+#include "strings.h"
+#include "symbols.h"
 
-#include "libguile/options.h"
+#include "options.h"
 
 
 /* {Run-time options}
@@ -279,5 +279,5 @@ scm_init_opts (SCM (*func) (SCM), scm_t_option options[])
 void
 scm_init_options ()
 {
-#include "libguile/options.x"
+#include "options.x"
 }

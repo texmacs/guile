@@ -23,12 +23,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/alist.h"
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
+#include "gsubr.h"
+#include "alist.h"
+#include "numbers.h"
+#include "strings.h"
 
-#include "libguile/debug-malloc.h"
+#include "debug-malloc.h"
 
 /*
  * The following code is a hack which I wrote quickly in order to
@@ -243,6 +243,6 @@ scm_debug_malloc_prehistory ()
 void
 scm_init_debug_malloc ()
 {
-#include "libguile/debug-malloc.x"
+#include "debug-malloc.x"
 }
 

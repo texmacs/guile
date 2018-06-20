@@ -79,29 +79,29 @@
 # include <sys/sendfile.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/fdes-finalizers.h"
-#include "libguile/feature.h"
-#include "libguile/filesys.h"
-#include "libguile/fports.h"
-#include "libguile/iselect.h"
-#include "libguile/list.h"
-#include "libguile/load.h"	/* for scm_i_mirror_backslashes */
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports-internal.h"
-#include "libguile/ports.h"
-#include "libguile/posix.h"
-#include "libguile/smob.h"
-#include "libguile/srfi-13.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/syscalls.h"
-#include "libguile/vectors.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "async.h"
+#include "dynwind.h"
+#include "fdes-finalizers.h"
+#include "feature.h"
+#include "filesys.h"
+#include "fports.h"
+#include "iselect.h"
+#include "list.h"
+#include "load.h"	/* for scm_i_mirror_backslashes */
+#include "modules.h"
+#include "numbers.h"
+#include "ports-internal.h"
+#include "ports.h"
+#include "posix.h"
+#include "smob.h"
+#include "srfi-13.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "vectors.h"
 
 
 
@@ -1941,5 +1941,5 @@ scm_init_filesys ()
 
   scm_dot_string = scm_from_locale_string (".");
 
-#include "libguile/filesys.x"
+#include "filesys.x"
 }

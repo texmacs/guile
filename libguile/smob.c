@@ -27,18 +27,18 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "libguile/async.h"
-#include "libguile/goops.h"
-#include "libguile/gsubr.h"
-#include "libguile/finalizers.h"
-#include "libguile/instructions.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/programs.h"
+#include "async.h"
+#include "goops.h"
+#include "gsubr.h"
+#include "finalizers.h"
+#include "instructions.h"
+#include "numbers.h"
+#include "ports.h"
+#include "programs.h"
 
-#include "libguile/smob.h"
+#include "smob.h"
 
-#include "libguile/bdw-gc.h"
+#include "bdw-gc.h"
 #include <gc/gc_mark.h>
 
 

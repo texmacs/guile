@@ -26,21 +26,21 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/bytevectors.h"
-#include "libguile/chars.h"
-#include "libguile/eval.h"
-#include "libguile/extensions.h"
-#include "libguile/procs.h"
-#include "libguile/numbers.h"
-#include "libguile/r6rs-ports.h"
-#include "libguile/strings.h"
-#include "libguile/smob.h"
-#include "libguile/symbols.h"
-#include "libguile/values.h"
-#include "libguile/vectors.h"
-#include "libguile/ports-internal.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "bytevectors.h"
+#include "chars.h"
+#include "eval.h"
+#include "extensions.h"
+#include "procs.h"
+#include "numbers.h"
+#include "r6rs-ports.h"
+#include "strings.h"
+#include "smob.h"
+#include "symbols.h"
+#include "values.h"
+#include "vectors.h"
+#include "ports-internal.h"
 
 
 
@@ -1176,5 +1176,5 @@ scm_register_r6rs_ports (void)
 void
 scm_init_r6rs_ports (void)
 {
-#include "libguile/r6rs-ports.x"
+#include "r6rs-ports.x"
 }

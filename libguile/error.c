@@ -28,18 +28,18 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/throw.h"
+#include "gsubr.h"
+#include "async.h"
+#include "dynwind.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "strings.h"
+#include "symbols.h"
+#include "throw.h"
 
-#include "libguile/error.h"
+#include "error.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -299,7 +299,7 @@ scm_misc_error (const char *subr, const char *message, SCM args)
 void
 scm_init_error ()
 {
-#include "libguile/cpp-E.c"
-#include "libguile/error.x"
+#include "cpp-E.c"
+#include "error.x"
 }
 

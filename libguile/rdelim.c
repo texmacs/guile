@@ -20,9 +20,9 @@
 #  include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
 
 #include <stdio.h>
 
@@ -30,15 +30,15 @@
 #include <string.h>
 #endif
 
-#include "libguile/chars.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/rdelim.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/strports.h"
+#include "chars.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "rdelim.h"
+#include "strings.h"
+#include "srfi-13.h"
+#include "strports.h"
 
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM str, SCM gobble, SCM port, SCM start, SCM end),
@@ -206,7 +206,7 @@ SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
 SCM
 scm_init_rdelim_builtins (void)
 {
-#include "libguile/rdelim.x"
+#include "rdelim.x"
 
   return SCM_UNSPECIFIED;
 }

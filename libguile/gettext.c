@@ -21,13 +21,13 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/feature.h"
-#include "libguile/strings.h"
-#include "libguile/numbers.h"
-#include "libguile/dynwind.h"
+#include "gsubr.h"
+#include "feature.h"
+#include "strings.h"
+#include "numbers.h"
+#include "dynwind.h"
 
-#include "libguile/gettext.h"
+#include "gettext.h"
 #include "libgettext.h"
 #include <locale.h>
 
@@ -322,6 +322,6 @@ scm_init_gettext ()
      now.  */
   scm_add_feature ("i18n");
 
-#include "libguile/gettext.x"
+#include "gettext.x"
 }
 

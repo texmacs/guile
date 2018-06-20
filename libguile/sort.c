@@ -39,20 +39,20 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/eval.h"
-#include "libguile/arrays.h"
-#include "libguile/array-map.h"
-#include "libguile/feature.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/list.h"
-#include "libguile/vectors.h"
-#include "libguile/async.h"
-#include "libguile/dynwind.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "eval.h"
+#include "arrays.h"
+#include "array-map.h"
+#include "feature.h"
+#include "generalized-arrays.h"
+#include "list.h"
+#include "vectors.h"
+#include "async.h"
+#include "dynwind.h"
 
-#include "libguile/sort.h"
+#include "sort.h"
 
 /* We have two quicksort variants: one for SCM (#t) arrays and one for
    typed arrays.
@@ -63,14 +63,14 @@
 #define VEC_PARAM   SCM * ra,
 #define GET(i)      ra[(i)*inc]
 #define SET(i, val) ra[(i)*inc] = val
-#include "libguile/quicksort.i.c"
+#include "quicksort.i.c"
 
 #define NAME        quicksorta
 #define INC_PARAM
 #define VEC_PARAM   scm_t_array_handle * const ra,
 #define GET(i)      scm_array_handle_ref (ra, scm_array_handle_pos_1 (ra, i))
 #define SET(i, val) scm_array_handle_set (ra, scm_array_handle_pos_1 (ra, i), val)
-#include "libguile/quicksort.i.c"
+#include "quicksort.i.c"
 
 SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
             (SCM vec, SCM less, SCM startpos, SCM endpos),
@@ -646,7 +646,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 void
 scm_init_sort ()
 {
-#include "libguile/sort.x"
+#include "sort.x"
 
   scm_add_feature ("sort");
 }

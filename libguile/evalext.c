@@ -23,16 +23,16 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/fluids.h"
-#include "libguile/modules.h"
-#include "libguile/pairs.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
+#include "gsubr.h"
+#include "eval.h"
+#include "list.h"
+#include "fluids.h"
+#include "modules.h"
+#include "pairs.h"
+#include "symbols.h"
+#include "variable.h"
 
-#include "libguile/evalext.h"
+#include "evalext.h"
 
 SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
             (SCM sym, SCM module),
@@ -110,5 +110,5 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 void 
 scm_init_evalext ()
 {
-#include "libguile/evalext.x"
+#include "evalext.x"
 }

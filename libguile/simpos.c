@@ -27,12 +27,12 @@
 #include <stdlib.h>  /* for getenv, system, exit, free */
 #include <unistd.h>  /* for _exit */
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
+#include "boolean.h"
+#include "gsubr.h"
 
-#include "libguile/numbers.h"
-#include "libguile/strings.h"
-#include "libguile/simpos.h"
+#include "numbers.h"
+#include "strings.h"
+#include "simpos.h"
 
 
 
@@ -138,6 +138,6 @@ SCM_DEFINE (scm_primitive__exit, "primitive-_exit", 0, 1, 0,
 void
 scm_init_simpos ()
 {
-#include "libguile/simpos.x"
+#include "simpos.x"
 }
 

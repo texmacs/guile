@@ -28,33 +28,33 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/chars.h"
-#include "libguile/dynwind.h"
-#include "libguile/eval.h"
-#include "libguile/extensions.h"
-#include "libguile/foreign.h"
-#include "libguile/gsubr.h"
-#include "libguile/hashtab.h"
-#include "libguile/keywords.h"
-#include "libguile/macros.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-#include "libguile/procprop.h"
-#include "libguile/programs.h"
-#include "libguile/smob.h"
-#include "libguile/strings.h"
-#include "libguile/strports.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-table.h"
+#include "boolean.h"
+#include "async.h"
+#include "chars.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "extensions.h"
+#include "foreign.h"
+#include "gsubr.h"
+#include "hashtab.h"
+#include "keywords.h"
+#include "macros.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
+#include "ports-internal.h"
+#include "procprop.h"
+#include "programs.h"
+#include "smob.h"
+#include "strings.h"
+#include "strports.h"
+#include "symbols.h"
+#include "variable.h"
+#include "vectors.h"
+#include "weak-table.h"
 
-#include "libguile/goops.h"
+#include "goops.h"
 
 /* Objects have identity, so references to classes and instances are by
    value, not by reference.  Redefinition of a class or modification of
@@ -985,7 +985,7 @@ scm_init_goops_builtins (void *unused)
 {
   scm_module_goops = scm_current_module ();
 
-#include "libguile/goops.x"
+#include "goops.x"
 
   scm_c_define ("vtable-flag-vtable",
                 scm_from_int (SCM_VTABLE_FLAG_VTABLE));

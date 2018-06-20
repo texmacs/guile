@@ -23,13 +23,13 @@
 # include <config.h>
 #endif
 
-#include "libguile/gsubr.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/threads.h"
-#include "libguile/dynwind.h"
+#include "gsubr.h"
+#include "numbers.h"
+#include "ports.h"
+#include "threads.h"
+#include "dynwind.h"
 
-#include "libguile/stackchk.h"
+#include "stackchk.h"
 
 
 /* {Stack Checking}
@@ -80,5 +80,5 @@ SCM_DEFINE (scm_sys_get_stack_size, "%get-stack-size", 0, 0, 0,
 void
 scm_init_stackchk ()
 {
-#include "libguile/stackchk.x"
+#include "stackchk.x"
 }

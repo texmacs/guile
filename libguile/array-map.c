@@ -28,26 +28,26 @@
 
 #include <string.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/strings.h"
-#include "libguile/arrays.h"
-#include "libguile/smob.h"
-#include "libguile/chars.h"
-#include "libguile/eq.h"
-#include "libguile/eval.h"
-#include "libguile/feature.h"
-#include "libguile/vectors.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/bitvectors.h"
-#include "libguile/srfi-4.h"
-#include "libguile/symbols.h"
-#include "libguile/procs.h"
-#include "libguile/generalized-arrays.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "strings.h"
+#include "arrays.h"
+#include "smob.h"
+#include "chars.h"
+#include "eq.h"
+#include "eval.h"
+#include "feature.h"
+#include "vectors.h"
+#include "list.h"
+#include "numbers.h"
+#include "bitvectors.h"
+#include "srfi-4.h"
+#include "symbols.h"
+#include "procs.h"
+#include "generalized-arrays.h"
 
-#include "libguile/array-map.h"
+#include "array-map.h"
 #include <assert.h>
 
 /* The WHAT argument for `scm_gc_malloc ()' et al.  */
@@ -904,6 +904,6 @@ SCM_DEFINE (scm_array_slice_for_each_in_order, "array-slice-for-each-in-order", 
 void
 scm_init_array_map (void)
 {
-#include "libguile/array-map.x"
+#include "array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }

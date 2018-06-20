@@ -38,38 +38,38 @@
 #include <unistr.h>
 #include <striconveh.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/async.h"
-#include "libguile/atomics-internal.h"
-#include "libguile/deprecation.h"
-#include "libguile/eval.h"
-#include "libguile/fports.h"  /* direct access for seek and truncate */
-#include "libguile/goops.h"
-#include "libguile/smob.h"
-#include "libguile/chars.h"
-#include "libguile/dynwind.h"
-#include "libguile/extensions.h"
-#include "libguile/finalizers.h"
-#include "libguile/keywords.h"
-#include "libguile/hashtab.h"
-#include "libguile/strings.h"
-#include "libguile/mallocs.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/ports-internal.h"
-#include "libguile/private-options.h"
-#include "libguile/procs.h"
-#include "libguile/symbols.h"
-#include "libguile/syscalls.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
-#include "libguile/weak-set.h"
-#include "libguile/fluids.h"
-#include "libguile/eq.h"
-#include "libguile/alist.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "async.h"
+#include "atomics-internal.h"
+#include "deprecation.h"
+#include "eval.h"
+#include "fports.h"  /* direct access for seek and truncate */
+#include "goops.h"
+#include "smob.h"
+#include "chars.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "finalizers.h"
+#include "keywords.h"
+#include "hashtab.h"
+#include "strings.h"
+#include "mallocs.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "ports-internal.h"
+#include "private-options.h"
+#include "procs.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "variable.h"
+#include "vectors.h"
+#include "weak-set.h"
+#include "fluids.h"
+#include "eq.h"
+#include "alist.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -4150,7 +4150,7 @@ SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
 static void
 scm_init_ice_9_ports (void)
 {
-#include "libguile/ports.x"
+#include "ports.x"
 
   scm_c_define ("the-eof-object", SCM_EOF_VAL);
 

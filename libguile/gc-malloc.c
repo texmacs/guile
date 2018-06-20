@@ -28,23 +28,23 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "libguile/eval.h"
-#include "libguile/stime.h"
-#include "libguile/stackchk.h"
-#include "libguile/struct.h"
-#include "libguile/smob.h"
-#include "libguile/arrays.h"
-#include "libguile/async.h"
-#include "libguile/ports.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/hashtab.h"
+#include "eval.h"
+#include "stime.h"
+#include "stackchk.h"
+#include "struct.h"
+#include "smob.h"
+#include "arrays.h"
+#include "async.h"
+#include "ports.h"
+#include "strings.h"
+#include "vectors.h"
+#include "hashtab.h"
 
-#include "libguile/deprecation.h"
-#include "libguile/gc.h"
+#include "deprecation.h"
+#include "gc.h"
 
 #ifdef GUILE_DEBUG_MALLOC
-#include "libguile/debug-malloc.h"
+#include "debug-malloc.h"
 #endif
 
 #include <unistd.h>

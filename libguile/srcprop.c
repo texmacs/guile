@@ -24,25 +24,25 @@
 
 #include <errno.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/async.h"
-#include "libguile/smob.h"
-#include "libguile/alist.h"
-#include "libguile/debug.h"
-#include "libguile/hashtab.h"
-#include "libguile/hash.h"
-#include "libguile/keywords.h"
-#include "libguile/list.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/gc.h"
-#include "libguile/symbols.h"
-#include "libguile/weak-table.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "async.h"
+#include "smob.h"
+#include "alist.h"
+#include "debug.h"
+#include "hashtab.h"
+#include "hash.h"
+#include "keywords.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "gc.h"
+#include "symbols.h"
+#include "weak-table.h"
 
-#include "libguile/srcprop.h"
-#include "libguile/private-options.h"
+#include "srcprop.h"
+#include "private-options.h"
 
 
 /* {Source Properties}
@@ -360,6 +360,6 @@ scm_init_srcprop ()
   scm_last_alist_filename = scm_cons (SCM_EOL,
 				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL));
 
-#include "libguile/srcprop.x"
+#include "srcprop.x"
 }
 

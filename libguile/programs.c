@@ -21,7 +21,7 @@
 #endif
 
 #include <string.h>
-#include "libguile/gsubr.h"
+#include "gsubr.h"
 #include "boolean.h"
 #include "instructions.h"
 #include "alist.h"
@@ -33,7 +33,7 @@
 #include "ports.h"
 #include "programs.h"
 #include "procprop.h" /* scm_sym_name */
-#include "libguile/variable.h"
+#include "variable.h"
 #include "vm.h"
 
 
@@ -344,6 +344,6 @@ void
 scm_init_programs (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "libguile/programs.x"
+#include "programs.x"
 #endif
 }

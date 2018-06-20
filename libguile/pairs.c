@@ -23,9 +23,9 @@
 # include <config.h>
 #endif
 
-#include "libguile/boolean.h"
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
+#include "boolean.h"
+#include "gsubr.h"
+#include "pairs.h"
 
 #include "verify.h"
 
@@ -48,8 +48,8 @@ verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
 
-#include "libguile/ports.h"
-#include "libguile/strings.h"
+#include "ports.h"
+#include "strings.h"
 
 void scm_error_pair_access (SCM non_pair)
 {
@@ -333,7 +333,7 @@ SCM_DEFINE (scm_caaaar, "caaaar", 1, 0, 0, (SCM x), "")
 void
 scm_init_pairs ()
 {
-#include "libguile/pairs.x"
+#include "pairs.x"
   scm_c_define_gsubr ("cons", 2, 0, 0, scm_cons);
   scm_c_define_gsubr ("car", 1, 0, 0, scm_car);
   scm_c_define_gsubr ("cdr", 1, 0, 0, scm_cdr);

@@ -32,25 +32,25 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/smob.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/list.h"
-#include "libguile/numbers.h"
-#include "libguile/feature.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/pairs.h"
-#include "libguile/stime.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/arrays.h"
-#include "libguile/srfi-4.h"
-#include "libguile/variable.h"
-#include "libguile/vectors.h"
-#include "libguile/generalized-vectors.h"
+#include "gsubr.h"
+#include "smob.h"
+#include "generalized-arrays.h"
+#include "list.h"
+#include "numbers.h"
+#include "feature.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "stime.h"
+#include "strings.h"
+#include "symbols.h"
+#include "arrays.h"
+#include "srfi-4.h"
+#include "variable.h"
+#include "vectors.h"
+#include "generalized-vectors.h"
 
-#include "libguile/random.h"
+#include "random.h"
 
 
 /*
@@ -802,7 +802,7 @@ scm_init_random ()
     for (i = m >> 1; i < m; ++i)
       scm_masktab[i] = m - 1;
 
-#include "libguile/random.x"
+#include "random.x"
 
   scm_add_feature ("random");
 }

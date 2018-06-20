@@ -37,34 +37,34 @@
 # include <pthread_np.h>
 #endif
 
-#include "libguile/bdw-gc.h"
-#include "libguile/pairs.h"
+#include "bdw-gc.h"
+#include "pairs.h"
 #include <gc/gc_mark.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/boolean.h"
-#include "libguile/deprecation.h"
-#include "libguile/extensions.h"
-#include "libguile/hashtab.h"
-#include "libguile/eval.h"
-#include "libguile/list.h"
-#include "libguile/async.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/ports.h"
-#include "libguile/threads.h"
-#include "libguile/dynwind.h"
-#include "libguile/iselect.h"
-#include "libguile/fluids.h"
-#include "libguile/continuations.h"
-#include "libguile/gc.h"
-#include "libguile/gc-inline.h"
-#include "libguile/init.h"
-#include "libguile/scmsigs.h"
-#include "libguile/strings.h"
-#include "libguile/symbols.h"
-#include "libguile/variable.h"
-#include "libguile/vm.h"
+#include "gsubr.h"
+#include "boolean.h"
+#include "deprecation.h"
+#include "extensions.h"
+#include "hashtab.h"
+#include "eval.h"
+#include "list.h"
+#include "async.h"
+#include "modules.h"
+#include "numbers.h"
+#include "ports.h"
+#include "threads.h"
+#include "dynwind.h"
+#include "iselect.h"
+#include "fluids.h"
+#include "continuations.h"
+#include "gc.h"
+#include "gc-inline.h"
+#include "init.h"
+#include "scmsigs.h"
+#include "strings.h"
+#include "symbols.h"
+#include "variable.h"
+#include "vm.h"
 
 
 
@@ -1801,7 +1801,7 @@ scm_t_bits scm_tc16_condvar;
 static void
 scm_init_ice_9_threads (void *unused)
 {
-#include "libguile/threads.x"
+#include "threads.x"
 
   cancel_thread_var =
     scm_module_variable (scm_current_module (),

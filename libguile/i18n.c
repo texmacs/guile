@@ -22,24 +22,24 @@
 
 #include <alloca.h>
 
-#include "libguile/gsubr.h"
-#include "libguile/pairs.h"
-#include "libguile/boolean.h"
-#include "libguile/extensions.h"
-#include "libguile/feature.h"
-#include "libguile/i18n.h"
-#include "libguile/list.h"
-#include "libguile/strings.h"
-#include "libguile/chars.h"
-#include "libguile/modules.h"
-#include "libguile/numbers.h"
-#include "libguile/dynwind.h"
-#include "libguile/syscalls.h"
-#include "libguile/smob.h"
-#include "libguile/symbols.h"
-#include "libguile/values.h"
-#include "libguile/variable.h"
-#include "libguile/threads.h"
+#include "gsubr.h"
+#include "pairs.h"
+#include "boolean.h"
+#include "extensions.h"
+#include "feature.h"
+#include "i18n.h"
+#include "list.h"
+#include "strings.h"
+#include "chars.h"
+#include "modules.h"
+#include "numbers.h"
+#include "dynwind.h"
+#include "syscalls.h"
+#include "smob.h"
+#include "symbols.h"
+#include "values.h"
+#include "variable.h"
+#include "threads.h"
 
 #include <locale.h>
 #include <string.h> /* `strcoll ()' */
@@ -65,7 +65,7 @@
 # define USE_GNU_LOCALE_API
 #endif
 
-#include "libguile/posix.h"  /* for `scm_i_locale_mutex' */
+#include "posix.h"  /* for `scm_i_locale_mutex' */
 
 /* Use Gnulib's header, which also provides `nl_item' & co.  */
 #include <langinfo.h>
@@ -1835,7 +1835,7 @@ scm_init_i18n ()
   scm_add_feature ("nl-langinfo");
   define_langinfo_items ();
 
-#include "libguile/i18n.x"
+#include "i18n.x"
 
   /* Initialize the global locale object with a special `locale' SMOB.  */
   /* XXX: We don't define it as `LC_GLOBAL_LOCALE' because of bugs as of
