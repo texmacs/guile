@@ -28,7 +28,6 @@
 #include <errno.h>
 #include <poll.h>
 
-#include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/bytevectors.h"
 #include "libguile/error.h"

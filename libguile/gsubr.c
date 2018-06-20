@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "libguile/_scm.h"
 #include "libguile/foreign.h"
 #include "libguile/frames.h"
 #include "libguile/gsubr.h"

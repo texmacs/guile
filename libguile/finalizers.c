@@ -30,7 +30,6 @@
 
 #include <full-write.h>
 
-#include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/finalizers.h"

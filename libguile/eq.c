@@ -27,7 +27,6 @@
 #include <string.h>
 #endif
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/boolean.h"
 #include "libguile/array-map.h"

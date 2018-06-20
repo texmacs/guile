@@ -45,7 +45,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"

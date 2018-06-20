@@ -32,7 +32,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/smob.h"
 #include "libguile/generalized-arrays.h"

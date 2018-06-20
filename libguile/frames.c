@@ -22,7 +22,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "_scm.h"
 #include "libguile/gsubr.h"
 #include "boolean.h"
 #include "eval.h"

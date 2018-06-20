@@ -26,7 +26,6 @@
 #include <assert.h>
 #include <setjmp.h>
 
-#include "libguile/_scm.h"
 #include "libguile/control.h"
 #include "libguile/eval.h"
 #include "libguile/fluids.h"

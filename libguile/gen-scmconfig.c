@@ -28,7 +28,6 @@
       installed during "make install" and so may not be referred to by
       any public headers.
 
-    libguile/_scm.h: Guile's private core header.  _scm.h is not
       installed.  It's only visible to the libguile sources
       themselves, and it includes config.h, the private config header.
       Among other things this file provides a place to make decisions

@@ -26,7 +26,6 @@
 
 #include <assert.h>
 
-#include "libguile/_scm.h"
 #include "libguile/boolean.h"
 #include "libguile/dynstack.h"
 #include "libguile/eval.h"

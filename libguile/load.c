@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/boolean.h"
 #include "libguile/alist.h"

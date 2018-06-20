@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <gmp.h>
 
-#include "libguile/_scm.h"
 
 /* Everybody has an init function.  */
 #include "libguile/alist.h"

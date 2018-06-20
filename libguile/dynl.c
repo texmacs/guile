@@ -50,7 +50,6 @@ maybe_drag_in_eprintf ()
 #include <stdio.h>
 #include <string.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/libpath.h"
 #include "libguile/dynl.h"

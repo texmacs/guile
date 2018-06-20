@@ -30,7 +30,6 @@
 #include <uniconv.h>
 #include <unictype.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"

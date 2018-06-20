@@ -22,7 +22,6 @@
 
 #include <string.h>
 
-#include "_scm.h"
 #include "libguile/gsubr.h"
 #include "threads.h"
 #include "libguile/list.h"

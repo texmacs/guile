@@ -28,7 +28,6 @@
 #include "libguile/pairs.h"
 #include <gc/gc_typed.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/alist.h"
 #include "libguile/finalizers.h"

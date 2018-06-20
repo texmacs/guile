@@ -31,7 +31,6 @@
 #include <string.h>
 #include <unistr.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/chars.h"
 #include "libguile/foreign.h"

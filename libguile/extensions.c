@@ -25,7 +25,6 @@
 
 #include <string.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"

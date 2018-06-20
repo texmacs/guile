@@ -23,7 +23,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/alist.h"
 #include "libguile/numbers.h"

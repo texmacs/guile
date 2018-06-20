@@ -22,7 +22,6 @@
 
 #include <alloca.h>
 
-#include "libguile/_scm.h"
 #include "libguile/dynstack.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"

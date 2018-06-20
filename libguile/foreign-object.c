@@ -22,7 +22,6 @@
 #  include <config.h>
 #endif
 
-#include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/extensions.h"
 #include "libguile/finalizers.h"

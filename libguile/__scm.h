@@ -37,17 +37,6 @@
  SIZEOF_BAR.  See configure.in, gen-scmconfig.h.in, and
  gen-scmconfig.c for examples of how to properly handle this issue.
  The main documentation is in gen-scmconfig.c.
-
- "What's the difference between _scm.h and __scm.h?"
-
-   _scm.h is not installed; it's only visible to the libguile sources
-   themselves, and it includes config.h, the private config header.
-
-   __scm.h is installed, and is #included by <libguile.h>.  If both
-   the client and libguile need some piece of information, and it
-   doesn't fit well into the header file for any particular module, it
-   should go in __scm.h.  __scm.h includes scmconfig.h, the public
-   config header.
  **********************************************************************/
 
 /* What did the configure script discover about the outside world?  */

@@ -24,7 +24,6 @@
 #  include <config.h>
 #endif
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 
 #include <stdio.h>

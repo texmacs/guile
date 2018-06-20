@@ -28,7 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
 #include "libguile/stackchk.h"

@@ -27,8 +27,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "libguile/_scm.h"
-
 #include "libguile/async.h"
 #include "libguile/goops.h"
 #include "libguile/gsubr.h"

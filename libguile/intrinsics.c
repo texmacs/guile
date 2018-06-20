@@ -20,7 +20,6 @@
 #  include <config.h>
 #endif
 
-#include "_scm.h"
 #include "libguile/gsubr.h"
 #include "boolean.h"
 #include "alist.h"

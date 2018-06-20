@@ -24,7 +24,6 @@
 
 #include <errno.h>
 
-#include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/async.h"

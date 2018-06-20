@@ -27,7 +27,6 @@
 #include <stdlib.h>  /* for getenv, system, exit, free */
 #include <unistd.h>  /* for _exit */
 
-#include "libguile/_scm.h"
 #include "libguile/boolean.h"
 #include "libguile/gsubr.h"
 

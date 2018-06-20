@@ -22,7 +22,6 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
-#include "libguile/_scm.h"
 #include "libguile/deprecation.h"
 #include "libguile/deprecated.h"
 

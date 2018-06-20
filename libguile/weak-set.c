@@ -25,7 +25,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "libguile/_scm.h"
 #include "libguile/pairs.h"
 #include "libguile/finalizers.h"
 #include "libguile/hash.h"
