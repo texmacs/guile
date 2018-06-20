@@ -20,6 +20,7 @@
  */
 
 #include "libguile/__scm.h"
+#include "libguile/snarf.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -41,6 +42,17 @@
     SCM_ASSERT (scm_is_vector (v) || scm_is_true (scm_f64vector_p (v)), \
                 v, pos, FUNC_NAME); \
   } while (0)
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+#define SCM_STATIC_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
+  static SCM_ALIGNED (8) SCM_UNUSED scm_t_cell                          \
+  c_name ## _raw_cell [2] =						\
+    {									\
+      { SCM_PACK (car), SCM_PACK (cbr) },				\
+      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
+    };									\
+  static SCM_UNUSED SCM c_name = SCM_PACK (& c_name ## _raw_cell)
+#endif /* SCM_SUPPORT_STATIC_ALLOCATION */
 
 #define scm_gc_running_p  0
 

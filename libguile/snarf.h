@@ -196,15 +196,6 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
     };									\
   static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
 
-#define SCM_STATIC_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
-  static SCM_ALIGNED (8) SCM_UNUSED scm_t_cell                          \
-  c_name ## _raw_cell [2] =						\
-    {									\
-      { SCM_PACK (car), SCM_PACK (cbr) },				\
-      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
-    };									\
-  static SCM_UNUSED SCM c_name = SCM_PACK (& c_name ## _raw_cell)
-
 #define SCM_IMMUTABLE_STRINGBUF(c_name, contents)	\
   static SCM_UNUSED const				\
   struct						\
