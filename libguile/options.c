@@ -29,6 +29,7 @@
 #include "libguile/mallocs.h"
 #include "libguile/numbers.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 
 #include "libguile/options.h"
 

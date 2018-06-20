@@ -38,6 +38,7 @@
 #include "libguile/r6rs-ports.h"
 #include "libguile/strings.h"
 #include "libguile/smob.h"
+#include "libguile/symbols.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"
 #include "libguile/ports-internal.h"

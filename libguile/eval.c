@@ -61,6 +61,7 @@
 #include "libguile/srcprop.h"
 #include "libguile/stackchk.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/threads.h"
 #include "libguile/throw.h"
 #include "libguile/values.h"

@@ -37,6 +37,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/syscalls.h"
 #include "libguile/smob.h"
+#include "libguile/symbols.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/threads.h"

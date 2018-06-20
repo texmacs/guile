@@ -48,6 +48,7 @@
 #include "libguile/numbers.h"
 #include "libguile/simpos.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
 #include "libguile/tags.h"

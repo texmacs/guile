@@ -100,6 +100,7 @@
 #include "libguile/smob.h"
 #include "libguile/srfi-13.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/syscalls.h"
 #include "libguile/vectors.h"
 

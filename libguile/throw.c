@@ -48,6 +48,7 @@
 #include "libguile/throw.h"
 #include "libguile/init.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/variable.h"
 
 #include "libguile/private-options.h"

@@ -66,6 +66,7 @@
 #include "libguile/ports.h"
 #include "libguile/programs.h"
 #include "libguile/simpos.h"
+#include "libguile/symbols.h"
 #include "libguile/vectors.h"
 #include "libguile/vm.h"
 #include "libguile/vm-builtins.h"

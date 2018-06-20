@@ -37,6 +37,7 @@
 #include "libguile/numbers.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/throw.h"
 
 #include "libguile/error.h"

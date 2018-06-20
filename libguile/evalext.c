@@ -30,6 +30,7 @@
 #include "libguile/fluids.h"
 #include "libguile/modules.h"
 #include "libguile/pairs.h"
+#include "libguile/symbols.h"
 #include "libguile/variable.h"
 
 #include "libguile/evalext.h"

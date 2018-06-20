@@ -46,6 +46,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/throw.h"
 #include "libguile/threads.h"
 #include "libguile/variable.h"

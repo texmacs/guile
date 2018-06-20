@@ -59,6 +59,7 @@
 #include "libguile/ports-internal.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
+#include "libguile/symbols.h"
 #include "libguile/syntax.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"

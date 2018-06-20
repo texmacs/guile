@@ -31,6 +31,7 @@
 #include "keywords.h"
 #include "libguile/modules.h"
 #include "numbers.h"
+#include "libguile/symbols.h"
 #include "intrinsics.h"
 
 

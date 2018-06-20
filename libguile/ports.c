@@ -63,6 +63,7 @@
 #include "libguile/ports-internal.h"
 #include "libguile/private-options.h"
 #include "libguile/procs.h"
+#include "libguile/symbols.h"
 #include "libguile/syscalls.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"

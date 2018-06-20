@@ -35,6 +35,7 @@
 #include "libguile/private-options.h"
 #include "libguile/programs.h"
 #include "libguile/srfi-4.h"
+#include "libguile/symbols.h"
 
 
 /*

@@ -41,6 +41,7 @@
 #include "libguile/print.h"
 #include "libguile/srcprop.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/throw.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"

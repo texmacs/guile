@@ -37,6 +37,7 @@
 #include "libguile/keywords.h"
 #include "libguile/hashtab.h"
 #include "libguile/struct.h"
+#include "libguile/symbols.h"
 #include "libguile/variable.h"
 #include "libguile/fluids.h"
 #include "libguile/deprecation.h"

@@ -37,6 +37,7 @@
 #include "libguile/procs.h"
 #include "libguile/read.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/syscalls.h"
 #include "libguile/modules.h"
 #include "libguile/deprecation.h"

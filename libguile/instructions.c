@@ -28,6 +28,7 @@
 #include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/pairs.h"
+#include "libguile/symbols.h"
 #include "instructions.h"
 #include "extensions.h"
 

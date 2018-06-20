@@ -31,6 +31,7 @@
 #include "libguile/procs.h"
 #include "libguile/random.h"
 #include "libguile/smob.h"
+#include "libguile/symbols.h"
 #include "libguile/macros.h"
 #include "libguile/variable.h"
 

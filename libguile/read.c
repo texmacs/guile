@@ -60,6 +60,7 @@
 #include "libguile/vectors.h"
 #include "libguile/srfi-4.h"
 #include "libguile/srfi-13.h"
+#include "libguile/symbols.h"
 
 #include "libguile/read.h"
 #include "libguile/private-options.h"

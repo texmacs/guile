@@ -48,6 +48,7 @@
 #include "libguile/read.h"
 #include "libguile/srfi-13.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/throw.h"
 #include "libguile/variable.h"
 

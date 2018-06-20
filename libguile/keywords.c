@@ -35,9 +35,10 @@
 #include "libguile/smob.h"
 #include "libguile/dynwind.h"
 #include "libguile/hashtab.h"
+#include "libguile/strings.h"
+#include "libguile/symbols.h"
 
 #include "libguile/keywords.h"
-#include "libguile/strings.h"
 
 
 

@@ -32,11 +32,13 @@
 #include "libguile/smob.h"
 #include "libguile/struct.h"
 #include "libguile/deprecation.h"
-
-#include "libguile/procs.h"
 #include "libguile/procprop.h"
+#include "libguile/symbols.h"
 #include "libguile/loader.h"
 #include "libguile/programs.h"
+
+#include "libguile/procs.h"
+
 
 
 

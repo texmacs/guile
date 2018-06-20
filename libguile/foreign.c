@@ -46,6 +46,7 @@
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
 #include "libguile/stacks.h"
+#include "libguile/symbols.h"
 #include "libguile/threads.h"
 #include "libguile/weak-table.h"
 

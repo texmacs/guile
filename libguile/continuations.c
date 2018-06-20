@@ -46,6 +46,7 @@
 #include "libguile/ports.h"
 #include "libguile/dynstack.h"
 #include "libguile/eval.h"
+#include "libguile/symbols.h"
 #include "libguile/vm.h"
 #include "libguile/instructions.h"
 

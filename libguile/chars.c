@@ -35,6 +35,7 @@
 #include "libguile/chars.h"
 #include "libguile/numbers.h"
 #include "libguile/pairs.h"
+#include "libguile/symbols.h"
 #include "libguile/srfi-14.h"
 
 

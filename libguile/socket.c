@@ -58,6 +58,7 @@
 #include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
 #include "libguile/srfi-13.h"

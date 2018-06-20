@@ -44,6 +44,7 @@
 #include "libguile/numbers.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
+#include "libguile/symbols.h"
 #include "libguile/procs.h"
 #include "libguile/generalized-arrays.h"
 

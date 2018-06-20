@@ -40,6 +40,7 @@
 #include "libguile/procs.h"
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"
+#include "libguile/symbols.h"
 
 #define MY_VALIDATE_SUBSTRING_SPEC(pos_str, str,              \
                                    pos_start, start, c_start, \

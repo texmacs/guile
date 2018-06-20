@@ -39,6 +39,7 @@
 #include "libguile/procprop.h"
 #include "libguile/modules.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/vm.h" /* to capture vm stacks */
 #include "libguile/frames.h" /* vm frames */
 

@@ -39,6 +39,7 @@
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/gc.h"
+#include "libguile/symbols.h"
 #include "libguile/weak-table.h"
 
 #include "libguile/srcprop.h"

@@ -42,6 +42,7 @@
 #include "libguile/smob.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/values.h"
 
 /* Include the pre-computed standard charset data.  */

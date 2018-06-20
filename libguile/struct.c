@@ -45,6 +45,7 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
+#include "libguile/symbols.h"
 
 #include "libguile/struct.h"
 

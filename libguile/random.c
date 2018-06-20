@@ -44,6 +44,7 @@
 #include "libguile/pairs.h"
 #include "libguile/stime.h"
 #include "libguile/strings.h"
+#include "libguile/symbols.h"
 #include "libguile/arrays.h"
 #include "libguile/srfi-4.h"
 #include "libguile/variable.h"
