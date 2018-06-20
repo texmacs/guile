@@ -50,6 +50,7 @@
 #include "libguile/keywords.h"
 #include "libguile/dynwind.h"
 #include "libguile/extensions.h"
+#include "libguile/foreign.h"
 #include "libguile/alist.h"
 #include "libguile/modules.h"
 #include "libguile/numbers.h"

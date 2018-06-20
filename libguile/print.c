@@ -39,6 +39,7 @@
 #include "libguile/smob.h"
 #include "libguile/control.h"
 #include "libguile/eval.h"
+#include "libguile/foreign.h"
 #include "libguile/goops.h"
 #include "libguile/hashtab.h"
 #include "libguile/weak-set.h"

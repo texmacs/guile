@@ -36,6 +36,7 @@
 #include "libguile/bytevectors.h"
 #include "libguile/eq.h"
 #include "libguile/eval.h"
+#include "libguile/foreign.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/goops.h"
 #include "libguile/hashtab.h"

@@ -61,6 +61,7 @@
 #include "libguile/filesys.h"
 #include "libguile/finalizers.h"
 #include "libguile/fluids.h"
+#include "libguile/foreign.h"
 #include "libguile/fports.h"
 #include "libguile/frames.h"
 #include "libguile/gc.h"

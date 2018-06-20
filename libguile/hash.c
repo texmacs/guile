@@ -34,6 +34,7 @@
 #include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/chars.h"
+#include "libguile/foreign.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
 #include "libguile/numbers.h"

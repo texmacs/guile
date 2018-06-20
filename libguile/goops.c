@@ -35,6 +35,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/eval.h"
 #include "libguile/extensions.h"
+#include "libguile/foreign.h"
 #include "libguile/gsubr.h"
 #include "libguile/hashtab.h"
 #include "libguile/keywords.h"
