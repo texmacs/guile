@@ -103,7 +103,7 @@ static SCM word_type_symbols[] =
    by Scheme to generate assemblers and disassemblers for the
    instructions.  */
 
-#define NOP SCM_T_UINT64_MAX
+#define NOP UINT64_MAX
 #define OP1(type0) \
   (OP (0, type0))
 #define OP2(type0, type1) \

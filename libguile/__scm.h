@@ -37,6 +37,8 @@
  The main documentation is in gen-scmconfig.c.
  **********************************************************************/
 
+#include <stdint.h>
+
 /* What did the configure script discover about the outside world?  */
 #include "libguile/scmconfig.h"
 
@@ -289,29 +291,29 @@
 #define SCM_I_TYPE_MAX(type,umax)  ((type)((umax)/2))
 #define SCM_I_TYPE_MIN(type,umax)  (-((type)((umax)/2))-1)
 
-#define SCM_T_UINT8_MAX   SCM_I_UTYPE_MAX(scm_t_uint8)
-#define SCM_T_INT8_MIN    SCM_I_TYPE_MIN(scm_t_int8,SCM_T_UINT8_MAX)
-#define SCM_T_INT8_MAX    SCM_I_TYPE_MAX(scm_t_int8,SCM_T_UINT8_MAX)
+#define SCM_T_UINT8_MAX   UINT8_MAX
+#define SCM_T_INT8_MIN    INT8_MIN
+#define SCM_T_INT8_MAX    INT8_MAX
 
-#define SCM_T_UINT16_MAX  SCM_I_UTYPE_MAX(scm_t_uint16)
-#define SCM_T_INT16_MIN   SCM_I_TYPE_MIN(scm_t_int16,SCM_T_UINT16_MAX)
-#define SCM_T_INT16_MAX   SCM_I_TYPE_MAX(scm_t_int16,SCM_T_UINT16_MAX)
+#define SCM_T_UINT16_MAX  UINT16_MAX
+#define SCM_T_INT16_MIN   INT16_MIN
+#define SCM_T_INT16_MAX   INT16_MAX
 
-#define SCM_T_UINT32_MAX  SCM_I_UTYPE_MAX(scm_t_uint32)
-#define SCM_T_INT32_MIN   SCM_I_TYPE_MIN(scm_t_int32,SCM_T_UINT32_MAX)
-#define SCM_T_INT32_MAX   SCM_I_TYPE_MAX(scm_t_int32,SCM_T_UINT32_MAX)
+#define SCM_T_UINT32_MAX  UINT32_MAX
+#define SCM_T_INT32_MIN   INT32_MIN
+#define SCM_T_INT32_MAX   INT32_MAX
 
-#define SCM_T_UINT64_MAX  SCM_I_UTYPE_MAX(scm_t_uint64)
-#define SCM_T_INT64_MIN   SCM_I_TYPE_MIN(scm_t_int64,SCM_T_UINT64_MAX)
-#define SCM_T_INT64_MAX   SCM_I_TYPE_MAX(scm_t_int64,SCM_T_UINT64_MAX)
+#define SCM_T_UINT64_MAX  UINT64_MAX
+#define SCM_T_INT64_MIN   INT64_MIN
+#define SCM_T_INT64_MAX   INT64_MAX
 
-#define SCM_T_UINTMAX_MAX SCM_I_UTYPE_MAX(scm_t_uintmax)
-#define SCM_T_INTMAX_MIN  SCM_I_TYPE_MIN(scm_t_intmax,SCM_T_UINTMAX_MAX)
-#define SCM_T_INTMAX_MAX  SCM_I_TYPE_MAX(scm_t_intmax,SCM_T_UINTMAX_MAX)
+#define SCM_T_UINTMAX_MAX UINTMAX_MAX
+#define SCM_T_INTMAX_MIN  INTMAX_MIN
+#define SCM_T_INTMAX_MAX  INTMAX_MAX
 
-#define SCM_T_UINTPTR_MAX SCM_I_UTYPE_MAX(scm_t_uintptr)
-#define SCM_T_INTPTR_MIN  SCM_I_TYPE_MIN(scm_t_intptr,SCM_T_UINTPTR_MAX)
-#define SCM_T_INTPTR_MAX  SCM_I_TYPE_MAX(scm_t_intptr,SCM_T_UINTPTR_MAX)
+#define SCM_T_UINTPTR_MAX UINTPTR_MAX
+#define SCM_T_INTPTR_MIN  INTPTR_MIN
+#define SCM_T_INTPTR_MAX  INTPTR_MAX
 
 
 

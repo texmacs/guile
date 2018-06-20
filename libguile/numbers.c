@@ -9742,8 +9742,8 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #include "libguile/conv-uinteger.i.c"
 
 #define TYPE                     scm_t_int8
-#define TYPE_MIN                 SCM_T_INT8_MIN
-#define TYPE_MAX                 SCM_T_INT8_MAX
+#define TYPE_MIN                 INT8_MIN
+#define TYPE_MAX                 INT8_MAX
 #define SIZEOF_TYPE              1
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_int8 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int8 (arg)
@@ -9751,15 +9751,15 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 
 #define TYPE                     scm_t_uint8
 #define TYPE_MIN                 0
-#define TYPE_MAX                 SCM_T_UINT8_MAX
+#define TYPE_MAX                 UINT8_MAX
 #define SIZEOF_TYPE              1
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint8 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint8 (arg)
 #include "libguile/conv-uinteger.i.c"
 
 #define TYPE                     scm_t_int16
-#define TYPE_MIN                 SCM_T_INT16_MIN
-#define TYPE_MAX                 SCM_T_INT16_MAX
+#define TYPE_MIN                 INT16_MIN
+#define TYPE_MAX                 INT16_MAX
 #define SIZEOF_TYPE              2
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_int16 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int16 (arg)
@@ -9767,15 +9767,15 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 
 #define TYPE                     scm_t_uint16
 #define TYPE_MIN                 0
-#define TYPE_MAX                 SCM_T_UINT16_MAX
+#define TYPE_MAX                 UINT16_MAX
 #define SIZEOF_TYPE              2
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint16 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint16 (arg)
 #include "libguile/conv-uinteger.i.c"
 
 #define TYPE                     scm_t_int32
-#define TYPE_MIN                 SCM_T_INT32_MIN
-#define TYPE_MAX                 SCM_T_INT32_MAX
+#define TYPE_MIN                 INT32_MIN
+#define TYPE_MAX                 INT32_MAX
 #define SIZEOF_TYPE              4
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_int32 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int32 (arg)
@@ -9783,7 +9783,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 
 #define TYPE                     scm_t_uint32
 #define TYPE_MIN                 0
-#define TYPE_MAX                 SCM_T_UINT32_MAX
+#define TYPE_MAX                 UINT32_MAX
 #define SIZEOF_TYPE              4
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint32 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint32 (arg)
@@ -9798,8 +9798,8 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #include "libguile/conv-integer.i.c"
 
 #define TYPE                     scm_t_int64
-#define TYPE_MIN                 SCM_T_INT64_MIN
-#define TYPE_MAX                 SCM_T_INT64_MAX
+#define TYPE_MIN                 INT64_MIN
+#define TYPE_MAX                 INT64_MAX
 #define SIZEOF_TYPE              8
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_int64 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int64 (arg)
@@ -9807,7 +9807,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 
 #define TYPE                     scm_t_uint64
 #define TYPE_MIN                 0
-#define TYPE_MAX                 SCM_T_UINT64_MAX
+#define TYPE_MAX                 UINT64_MAX
 #define SIZEOF_TYPE              8
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint64 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint64 (arg)

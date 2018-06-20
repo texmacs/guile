@@ -1,4 +1,5 @@
-/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2001,2003-2004,2006-2010,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,57 +60,57 @@ static void
 test_is_signed_integer ()
 {
   test_1 ("'foo", 
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  0);
   test_1 ("3.0", 
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  0);
   test_1 ("(inexact->exact 3.0)", 
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  1);
   test_1 ("3.5",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  0);
   test_1 ("most-positive-fixnum",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  1);
   test_1 ("(+ most-positive-fixnum 1)",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  1);
   test_1 ("most-negative-fixnum",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  1);
   test_1 ("(- most-negative-fixnum 1)",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  1);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_1 ("(- (expt 2 63) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      1);
       test_1 ("(expt 2 63)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0);
       test_1 ("(- (expt 2 63))",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      1);
       test_1 ("(- (- (expt 2 63)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_1 ("(- (expt 2 31) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      1);
       test_1 ("(expt 2 31)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0);
       test_1 ("(- (expt 2 31))",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      1);
       test_1 ("(- (- (expt 2 31)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0);
     }
   else
@@ -145,45 +146,45 @@ static void
 test_is_unsigned_integer ()
 {
   test_2 ("'foo", 
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0);
   test_2 ("3.0", 
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0);
   test_2 ("(inexact->exact 3.0)", 
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  1);
   test_2 ("3.5",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0);
   test_2 ("most-positive-fixnum",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  1);
   test_2 ("(+ most-positive-fixnum 1)",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  1);
   test_2 ("most-negative-fixnum",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0);
   test_2 ("(- most-negative-fixnum 1)",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_2 ("(- (expt 2 64) 1)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      1);
       test_2 ("(expt 2 64)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_2 ("(- (expt 2 32) 1)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      1);
       test_2 ("(expt 2 32)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      0);
     }
   else
@@ -294,13 +295,13 @@ static void
 test_to_signed_integer ()
 {
   test_3 ("'foo",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  0, 0, 1);
   test_3 ("3.5",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  0, 0, 1);
   test_3 ("12",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  12, 0, 0);
   test_3 ("1000",
 	  -999, 999,
@@ -309,51 +310,51 @@ test_to_signed_integer ()
 	  -999, 999,
 	  0, 1, 0);
   test_3 ("most-positive-fixnum",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM, 0, 0);
   test_3 ("most-negative-fixnum",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  SCM_MOST_NEGATIVE_FIXNUM, 0, 0);
   test_3 ("(+ most-positive-fixnum 1)",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM+1, 0, 0);
   test_3 ("(- most-negative-fixnum 1)",
-	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  INTMAX_MIN, INTMAX_MAX,
 	  SCM_MOST_NEGATIVE_FIXNUM-1, 0, 0);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_3 ("(- (expt 2 63) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MAX, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MAX, 0, 0);
       test_3 ("(+ (- (expt 2 63)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MIN+1, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MIN+1, 0, 0);
       test_3 ("(- (expt 2 63))",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MIN, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MIN, 0, 0);
       test_3 ("(expt 2 63)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0, 1, 0);
       test_3 ("(- (- (expt 2 63)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0, 1, 0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_3 ("(- (expt 2 31) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MAX, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MAX, 0, 0);
       test_3 ("(+ (- (expt 2 31)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MIN+1, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MIN+1, 0, 0);
       test_3 ("(- (expt 2 31))",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
-	      SCM_T_INTMAX_MIN, 0, 0);
+	      INTMAX_MIN, INTMAX_MAX,
+	      INTMAX_MIN, 0, 0);
       test_3 ("(expt 2 31)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0, 1, 0);
       test_3 ("(- (- (expt 2 31)) 1)",
-	      SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	      INTMAX_MIN, INTMAX_MAX,
 	      0, 1, 0);
     }
   else
@@ -429,39 +430,39 @@ static void
 test_to_unsigned_integer ()
 {
   test_4 ("'foo",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0, 0, 1);
   test_4 ("3.5",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  0, 0, 1);
   test_4 ("12",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  12, 0, 0);
   test_4 ("1000",
 	  0, 999,
 	  0, 1, 0);
   test_4 ("most-positive-fixnum",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM, 0, 0);
   test_4 ("(+ most-positive-fixnum 1)",
-	  0, SCM_T_UINTMAX_MAX,
+	  0, UINTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM+1, 0, 0);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_4 ("(- (expt 2 64) 1)",
-	      0, SCM_T_UINTMAX_MAX,
-	      SCM_T_UINTMAX_MAX, 0, 0);
+	      0, UINTMAX_MAX,
+	      UINTMAX_MAX, 0, 0);
       test_4 ("(expt 2 64)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      0, 1, 0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_4 ("(- (expt 2 32) 1)",
-	      0, SCM_T_UINTMAX_MAX,
-	      SCM_T_UINTMAX_MAX, 0, 0);
+	      0, UINTMAX_MAX,
+	      UINTMAX_MAX, 0, 0);
       test_4 ("(expt 2 32)",
-	      0, SCM_T_UINTMAX_MAX,
+	      0, UINTMAX_MAX,
 	      0, 1, 0);
     }
   else
@@ -486,13 +487,13 @@ test_from_signed_integer ()
   test_5 (12, "12");
   if (sizeof (scm_t_intmax) == 8)
     {
-      test_5 (SCM_T_INTMAX_MAX, "(- (expt 2 63) 1)");
-      test_5 (SCM_T_INTMAX_MIN, "(- (expt 2 63))");
+      test_5 (INTMAX_MAX, "(- (expt 2 63) 1)");
+      test_5 (INTMAX_MIN, "(- (expt 2 63))");
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
-      test_5 (SCM_T_INTMAX_MAX, "(- (expt 2 31) 1)");
-      test_5 (SCM_T_INTMAX_MIN, "(- (expt 2 31))");
+      test_5 (INTMAX_MAX, "(- (expt 2 31) 1)");
+      test_5 (INTMAX_MIN, "(- (expt 2 31))");
     }
   test_5 (SCM_MOST_POSITIVE_FIXNUM, "most-positive-fixnum");
   test_5 (SCM_MOST_NEGATIVE_FIXNUM, "most-negative-fixnum");
@@ -519,11 +520,11 @@ test_from_unsigned_integer ()
   test_6 (12, "12");
   if (sizeof (scm_t_intmax) == 8)
     {
-      test_6 (SCM_T_UINTMAX_MAX, "(- (expt 2 64) 1)");
+      test_6 (UINTMAX_MAX, "(- (expt 2 64) 1)");
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
-      test_6 (SCM_T_UINTMAX_MAX, "(- (expt 2 32) 1)");
+      test_6 (UINTMAX_MAX, "(- (expt 2 32) 1)");
     }
   test_6 (SCM_MOST_POSITIVE_FIXNUM, "most-positive-fixnum");
   test_6 (SCM_MOST_POSITIVE_FIXNUM+1, "(+ most-positive-fixnum 1)");
@@ -739,14 +740,14 @@ test_int_sizes ()
   TEST_7S (scm_from_int16,  32768, "-32768");
   TEST_7U (scm_from_uint16, 65535,  "65535");
 
-  TEST_7S (scm_from_int32,  SCM_T_INT32_MIN,     "-2147483648");
-  TEST_7S (scm_from_int32,  SCM_T_INT32_MAX,      "2147483647");
-  TEST_7S (scm_from_int32,  SCM_T_INT32_MAX+1LL, "-2147483648");
-  TEST_7U (scm_from_uint32, SCM_T_UINT32_MAX,     "4294967295");
+  TEST_7S (scm_from_int32,  INT32_MIN,     "-2147483648");
+  TEST_7S (scm_from_int32,  INT32_MAX,      "2147483647");
+  TEST_7S (scm_from_int32,  INT32_MAX+1LL, "-2147483648");
+  TEST_7U (scm_from_uint32, UINT32_MAX,     "4294967295");
 
-  TEST_7S (scm_from_int64,  SCM_T_INT64_MIN,  "-9223372036854775808");
-  TEST_7S (scm_from_int64,  SCM_T_INT64_MAX,   "9223372036854775807");
-  TEST_7U (scm_from_uint64, SCM_T_UINT64_MAX, "18446744073709551615");
+  TEST_7S (scm_from_int64,  INT64_MIN,  "-9223372036854775808");
+  TEST_7S (scm_from_int64,  INT64_MAX,   "9223372036854775807");
+  TEST_7U (scm_from_uint64, UINT64_MAX, "18446744073709551615");
 
   TEST_8S ("91",   scm_to_schar,   91, 0, 0);
   TEST_8U ("91",   scm_to_uchar,   91, 0, 0);
@@ -764,38 +765,38 @@ test_int_sizes ()
   TEST_8U ("911",  scm_to_size_t,   911, 0, 0);
   TEST_8S ("911",  scm_to_ssize_t,  911, 0, 0);
 
-  TEST_8S ("-128", scm_to_int8,   SCM_T_INT8_MIN, 0, 0);
-  TEST_8S ("127",  scm_to_int8,   SCM_T_INT8_MAX, 0, 0);
+  TEST_8S ("-128", scm_to_int8,   INT8_MIN, 0, 0);
+  TEST_8S ("127",  scm_to_int8,   INT8_MAX, 0, 0);
   TEST_8S ("128",  scm_to_int8,                0, 1, 0);
   TEST_8S ("#f",   scm_to_int8,                0, 0, 1);
-  TEST_8U ("255",  scm_to_uint8, SCM_T_UINT8_MAX, 0, 0);
+  TEST_8U ("255",  scm_to_uint8, UINT8_MAX, 0, 0);
   TEST_8U ("256",  scm_to_uint8,               0, 1, 0);
   TEST_8U ("-1",   scm_to_uint8,               0, 1, 0);
   TEST_8U ("#f",   scm_to_uint8,               0, 0, 1);
 
-  TEST_8S ("-32768", scm_to_int16,   SCM_T_INT16_MIN, 0, 0);
-  TEST_8S ("32767",  scm_to_int16,   SCM_T_INT16_MAX, 0, 0);
+  TEST_8S ("-32768", scm_to_int16,   INT16_MIN, 0, 0);
+  TEST_8S ("32767",  scm_to_int16,   INT16_MAX, 0, 0);
   TEST_8S ("32768",  scm_to_int16,                 0, 1, 0);
   TEST_8S ("#f",     scm_to_int16,                 0, 0, 1);
-  TEST_8U ("65535",  scm_to_uint16, SCM_T_UINT16_MAX, 0, 0);
+  TEST_8U ("65535",  scm_to_uint16, UINT16_MAX, 0, 0);
   TEST_8U ("65536",  scm_to_uint16,                0, 1, 0);
   TEST_8U ("-1",     scm_to_uint16,                0, 1, 0);
   TEST_8U ("#f",     scm_to_uint16,                0, 0, 1);
 
-  TEST_8S ("-2147483648", scm_to_int32,   SCM_T_INT32_MIN, 0, 0);
-  TEST_8S ("2147483647",  scm_to_int32,   SCM_T_INT32_MAX, 0, 0);
+  TEST_8S ("-2147483648", scm_to_int32,   INT32_MIN, 0, 0);
+  TEST_8S ("2147483647",  scm_to_int32,   INT32_MAX, 0, 0);
   TEST_8S ("2147483648",  scm_to_int32,                 0, 1, 0);
   TEST_8S ("#f",          scm_to_int32,                 0, 0, 1);
-  TEST_8U ("4294967295",  scm_to_uint32, SCM_T_UINT32_MAX, 0, 0);
+  TEST_8U ("4294967295",  scm_to_uint32, UINT32_MAX, 0, 0);
   TEST_8U ("4294967296",  scm_to_uint32,                0, 1, 0);
   TEST_8U ("-1",          scm_to_uint32,                0, 1, 0);
   TEST_8U ("#f",          scm_to_uint32,                0, 0, 1);
 
-  TEST_8S ("-9223372036854775808", scm_to_int64,   SCM_T_INT64_MIN, 0, 0);
-  TEST_8S ("9223372036854775807",  scm_to_int64,   SCM_T_INT64_MAX, 0, 0);
+  TEST_8S ("-9223372036854775808", scm_to_int64,   INT64_MIN, 0, 0);
+  TEST_8S ("9223372036854775807",  scm_to_int64,   INT64_MAX, 0, 0);
   TEST_8S ("9223372036854775808",  scm_to_int64,                 0, 1, 0);
   TEST_8S ("#f",                   scm_to_int64,                 0, 0, 1);
-  TEST_8U ("18446744073709551615", scm_to_uint64, SCM_T_UINT64_MAX, 0, 0);
+  TEST_8U ("18446744073709551615", scm_to_uint64, UINT64_MAX, 0, 0);
   TEST_8U ("18446744073709551616", scm_to_uint64,                0, 1, 0);
   TEST_8U ("-1",                   scm_to_uint64,                0, 1, 0);
   TEST_8U ("#f",                   scm_to_uint64,                0, 0, 1);

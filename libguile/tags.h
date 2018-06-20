@@ -63,9 +63,9 @@
 typedef scm_t_intptr  scm_t_signed_bits;
 typedef scm_t_uintptr scm_t_bits;
 
-#define SCM_T_SIGNED_BITS_MAX SCM_T_INTPTR_MAX
-#define SCM_T_SIGNED_BITS_MIN SCM_T_INTPTR_MIN
-#define SCM_T_BITS_MAX        SCM_T_UINTPTR_MAX
+#define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
+#define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
+#define SCM_T_BITS_MAX        UINTPTR_MAX
 
 
 /* But as external interface, we define SCM, which may, according to the

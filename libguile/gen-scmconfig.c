@@ -375,8 +375,8 @@ main (int argc, char *argv[])
 
 #if defined GUILE_USE_64_CALLS && defined HAVE_STAT64
   pf ("typedef scm_t_int64 scm_t_off;\n");
-  pf ("#define SCM_T_OFF_MAX SCM_T_INT64_MAX\n");
-  pf ("#define SCM_T_OFF_MIN SCM_T_INT64_MIN\n");
+  pf ("#define SCM_T_OFF_MAX INT64_MAX\n");
+  pf ("#define SCM_T_OFF_MIN INT64_MIN\n");
 #elif SIZEOF_OFF_T == SIZEOF_INT
   pf ("typedef int scm_t_off;\n");
   pf ("#define SCM_T_OFF_MAX INT_MAX\n");

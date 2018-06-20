@@ -278,7 +278,7 @@ scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m)
   scm_t_uint64 r;
   scm_t_uint32 mask;
 
-  if (m <= SCM_T_UINT32_MAX)
+  if (m <= UINT32_MAX)
     return scm_c_random (state, (scm_t_uint32) m);
   
   mask = scm_i_mask32 (m >> 32);
