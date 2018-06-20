@@ -30,6 +30,7 @@
 #include "libguile/frames.h"
 #include "libguile/gsubr.h"
 #include "libguile/instructions.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/private-options.h"
 #include "libguile/programs.h"

@@ -37,6 +37,7 @@
 #include "libguile/eval.h"
 #include "libguile/finalizers.h"
 #include "libguile/goops.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/alist.h"
 #include "libguile/hashtab.h"

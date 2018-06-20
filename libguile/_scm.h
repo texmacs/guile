@@ -39,7 +39,6 @@
 #include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
 #include "libguile/foreign.h"	/* Snarfing needs the foreign data structures. */
 #include "libguile/programs.h"	/* ... and program.h. */
-#include "libguile/modules.h"
 #include "libguile/strings.h"
 
 

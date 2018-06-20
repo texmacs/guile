@@ -27,6 +27,7 @@
 #include "boolean.h"
 #include "eval.h"
 #include "extensions.h"
+#include "libguile/modules.h"
 #include "numbers.h"
 #include "frames.h"
 #include "ports.h"

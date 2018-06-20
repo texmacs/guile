@@ -92,6 +92,7 @@
 #include "libguile/iselect.h"
 #include "libguile/list.h"
 #include "libguile/load.h"	/* for scm_i_mirror_backslashes */
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/ports.h"

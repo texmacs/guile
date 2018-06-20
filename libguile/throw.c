@@ -38,6 +38,7 @@
 #include "libguile/backtrace.h"
 #include "libguile/debug.h"
 #include "libguile/list.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/stackchk.h"
 #include "libguile/stacks.h"

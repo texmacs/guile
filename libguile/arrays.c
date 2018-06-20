@@ -40,6 +40,7 @@
 #include "libguile/eval.h"
 #include "libguile/fports.h"
 #include "libguile/feature.h"
+#include "libguile/modules.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-4.h"

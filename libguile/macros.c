@@ -25,6 +25,7 @@
 #include "libguile/_scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/boolean.h"
+#include "libguile/modules.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/procs.h"

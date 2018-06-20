@@ -74,6 +74,7 @@
 #include "libguile/bitvectors.h"
 #include "libguile/scmsigs.h"
 #include "libguile/feature.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"

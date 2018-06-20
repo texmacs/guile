@@ -51,6 +51,7 @@
 #include "libguile/eval.h"
 #include "libguile/list.h"
 #include "libguile/async.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/threads.h"

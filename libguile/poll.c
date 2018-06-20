@@ -34,6 +34,7 @@
 #include "libguile/error.h"
 #include "libguile/extensions.h"
 #include "libguile/gsubr.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/syscalls.h"

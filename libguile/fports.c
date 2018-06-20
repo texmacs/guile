@@ -60,6 +60,7 @@
 #include "libguile/gc.h"
 #include "libguile/hashtab.h"
 #include "libguile/keywords.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports-internal.h"
 #include "libguile/posix.h"

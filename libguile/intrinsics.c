@@ -29,6 +29,7 @@
 #include "fluids.h"
 #include "goops.h"
 #include "keywords.h"
+#include "libguile/modules.h"
 #include "numbers.h"
 #include "intrinsics.h"
 

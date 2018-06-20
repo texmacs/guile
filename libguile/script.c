@@ -36,6 +36,7 @@
 #include "libguile/feature.h"
 #include "libguile/fluids.h"
 #include "libguile/load.h"
+#include "libguile/modules.h"
 #include "libguile/read.h"
 #include "libguile/script.h"
 #include "libguile/strings.h"

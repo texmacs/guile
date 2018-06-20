@@ -49,6 +49,7 @@
 #include "libguile/hash.h"
 #include "libguile/eq.h"
 #include "libguile/fluids.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/ports-internal.h"

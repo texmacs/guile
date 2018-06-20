@@ -68,6 +68,7 @@
 #include "libguile/finalizers.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
+#include "libguile/modules.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/goops.h"
 #include "libguile/values.h"

@@ -51,6 +51,7 @@
 #include "libguile/boolean.h"
 #include "libguile/feature.h"
 #include "libguile/list.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"

@@ -26,6 +26,7 @@
 #include "libguile/gsubr.h"
 #include "libguile/keywords.h"
 #include "libguile/eval.h"
+#include "libguile/modules.h"
 #include "libguile/ports.h"
 #include "libguile/syntax.h"
 #include "libguile/threads.h"

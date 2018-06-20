@@ -29,6 +29,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/gsubr.h"
+#include "libguile/modules.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"
 #include "libguile/fluids.h"

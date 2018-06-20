@@ -33,6 +33,7 @@
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
 #include "libguile/list.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"

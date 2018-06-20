@@ -35,6 +35,7 @@
 #include "libguile/hash.h"
 #include "libguile/keywords.h"
 #include "libguile/list.h"
+#include "libguile/modules.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/gc.h"
