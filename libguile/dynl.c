@@ -1,4 +1,5 @@
 /* dynl.c - dynamic linking
+ *
  * Copyright (C) 1990-2003,2008-2011,2017-2018
  *   Free Software Foundation, Inc.
  * 

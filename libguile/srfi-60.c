@@ -1,6 +1,7 @@
 /* srfi-60.c --- Integers as Bits
  *
- * Copyright (C) 2005, 2006, 2008, 2010, 2014, 2018 Free Software Foundation, Inc.
+ * Copyright (C) 2005-2006,2008,2010,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

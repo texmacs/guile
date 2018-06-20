@@ -1,5 +1,5 @@
-/* A stack holds a frame chain
- * Copyright (C) 1996,1997,2000-2001,2006-2014,2017-2018 Free Software Foundation
+/* Copyright (C) 1996-1997,2000-2001,2006-2014,2017-2018
+ *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

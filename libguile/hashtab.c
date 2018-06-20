@@ -1,5 +1,5 @@
-/* Copyright (C) 1995-1996, 1998-2001, 2003-2004, 2006,
- *   2008-2013, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2001,2003-2004,2006,2008-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
