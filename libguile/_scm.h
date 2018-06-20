@@ -38,7 +38,6 @@
    rest should be explicitly #included in the C files themselves.  */
 #include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
 #include "libguile/threads.h"	/* You are not alone. */
-#include "libguile/snarf.h"	/* Everyone snarfs. */
 #include "libguile/foreign.h"	/* Snarfing needs the foreign data structures. */
 #include "libguile/programs.h"	/* ... and program.h. */
 #include "libguile/variable.h"
