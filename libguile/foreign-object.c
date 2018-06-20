@@ -32,6 +32,7 @@
 #include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/procs.h"
+#include "libguile/variable.h"
 
 
 

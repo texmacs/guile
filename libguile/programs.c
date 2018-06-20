@@ -34,6 +34,7 @@
 #include "ports.h"
 #include "programs.h"
 #include "procprop.h" /* scm_sym_name */
+#include "libguile/variable.h"
 #include "vm.h"
 
 

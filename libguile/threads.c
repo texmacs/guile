@@ -63,6 +63,7 @@
 #include "libguile/init.h"
 #include "libguile/scmsigs.h"
 #include "libguile/strings.h"
+#include "libguile/variable.h"
 #include "libguile/vm.h"
 
 

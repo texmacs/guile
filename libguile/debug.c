@@ -59,6 +59,7 @@
 #include "libguile/fluids.h"
 #include "libguile/programs.h"
 #include "libguile/memoize.h"
+#include "libguile/variable.h"
 #include "libguile/vm.h"
 
 #include "libguile/debug.h"

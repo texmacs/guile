@@ -40,6 +40,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/weak-table.h"
+#include "libguile/variable.h"
 
 /* A dynamic state associates fluids with values.  There are two
    representations of a dynamic state in Guile: the active

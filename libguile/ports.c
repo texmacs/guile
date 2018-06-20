@@ -63,6 +63,7 @@
 #include "libguile/private-options.h"
 #include "libguile/procs.h"
 #include "libguile/syscalls.h"
+#include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-set.h"
 #include "libguile/fluids.h"

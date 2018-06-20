@@ -45,6 +45,7 @@
 #include "libguile/strings.h"
 #include "libguile/arrays.h"
 #include "libguile/srfi-4.h"
+#include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/generalized-vectors.h"
 

@@ -32,6 +32,7 @@
 #include "libguile/eval.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
+#include "libguile/variable.h"
 
 #include "libguile/dynwind.h"
 

@@ -37,6 +37,7 @@
 #include "libguile/syscalls.h"
 #include "libguile/smob.h"
 #include "libguile/values.h"
+#include "libguile/variable.h"
 #include "libguile/threads.h"
 
 #include <locale.h>

@@ -60,6 +60,7 @@
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/syntax.h"
+#include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/numbers.h"
 #include "libguile/vm.h"

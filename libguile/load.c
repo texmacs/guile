@@ -49,6 +49,7 @@
 #include "libguile/srfi-13.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"
+#include "libguile/variable.h"
 
 #include "libguile/load.h"
 #include "libguile/fluids.h"

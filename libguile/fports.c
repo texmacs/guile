@@ -66,6 +66,7 @@
 #include "libguile/read.h"
 #include "libguile/strings.h"
 #include "libguile/syscalls.h"
+#include "libguile/variable.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX

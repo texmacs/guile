@@ -30,6 +30,7 @@
 #include "libguile/random.h"
 #include "libguile/smob.h"
 #include "libguile/macros.h"
+#include "libguile/variable.h"
 
 #include "libguile/private-options.h"
 

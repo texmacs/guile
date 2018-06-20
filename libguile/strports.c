@@ -41,6 +41,7 @@
 #include "libguile/modules.h"
 #include "libguile/deprecation.h"
 #include "libguile/srfi-4.h"
+#include "libguile/variable.h"
 
 #include "libguile/strports.h"
 

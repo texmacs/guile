@@ -31,6 +31,7 @@
 #include "libguile/eval.h"
 #include "libguile/fluids.h"
 #include "libguile/dynstack.h"
+#include "libguile/variable.h"
 
 
 

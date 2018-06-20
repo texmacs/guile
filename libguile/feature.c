@@ -32,6 +32,7 @@
 #include "libguile/pairs.h"
 #include "libguile/strings.h"
 #include "libguile/fluids.h"
+#include "libguile/variable.h"
 
 #include "libguile/feature.h"
 

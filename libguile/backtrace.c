@@ -53,6 +53,7 @@
 #include "libguile/strports.h"
 #include "libguile/struct.h"
 #include "libguile/throw.h"
+#include "libguile/variable.h"
 
 /* {Error reporting and backtraces}
  *

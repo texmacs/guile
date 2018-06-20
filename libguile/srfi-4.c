@@ -37,6 +37,7 @@
 #include "libguile/generalized-vectors.h"
 #include "libguile/numbers.h"
 #include "libguile/uniform.h"
+#include "libguile/variable.h"
 
 
 #define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                   \

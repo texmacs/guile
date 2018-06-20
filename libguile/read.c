@@ -55,6 +55,7 @@
 #include "libguile/fports.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
+#include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/srfi-4.h"
 #include "libguile/srfi-13.h"

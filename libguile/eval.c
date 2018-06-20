@@ -64,6 +64,7 @@
 #include "libguile/threads.h"
 #include "libguile/throw.h"
 #include "libguile/values.h"
+#include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/vm.h"
 
