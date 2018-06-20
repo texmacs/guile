@@ -459,7 +459,6 @@ all-local: guile-procedures.texi
 
 EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = \
     syscalls.h					\
-    memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     posix.c net_db.c socket.c			\
     debug-malloc.c				\
