@@ -408,9 +408,3 @@ scm_init_eq ()
 #include "libguile/eq.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

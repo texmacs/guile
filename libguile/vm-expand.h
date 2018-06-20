@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,9 +71,3 @@
 #endif /* VM_INSTRUCTION_TO_OPCODE */
 #endif /* VM_INSTRUCTION_TO_LABEL */
 #endif /* VM_INSTRUCTION_TO_TABLE */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

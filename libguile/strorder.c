@@ -344,9 +344,3 @@ scm_init_strorder ()
 #include "libguile/strorder.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -33,9 +33,3 @@ SCM_INTERNAL SCM scm_program_arguments_fluid;
 SCM_INTERNAL void scm_init_feature (void);
 
 #endif  /* SCM_FEATURE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

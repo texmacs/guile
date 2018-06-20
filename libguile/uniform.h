@@ -47,9 +47,3 @@ SCM_INTERNAL void scm_init_uniform (void);
 
 
 #endif  /* SCM_UNIFORM_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

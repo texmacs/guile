@@ -376,9 +376,3 @@ scm_init_array_handle (void)
 
 #include "libguile/array-handle.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

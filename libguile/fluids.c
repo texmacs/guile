@@ -679,9 +679,3 @@ scm_init_fluids ()
 {
 #include "libguile/fluids.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -88,9 +88,3 @@ scm_init_uniform (void)
 {
 #include "libguile/uniform.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

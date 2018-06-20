@@ -531,9 +531,3 @@ scm_init_continuations ()
   scm_set_smob_print (tc16_continuation, continuation_print);
 #include "libguile/continuations.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

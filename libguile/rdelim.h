@@ -33,9 +33,3 @@ SCM_API SCM scm_init_rdelim_builtins (void);
 SCM_INTERNAL void scm_init_rdelim (void);
 
 #endif  /* SCM_RDELIM_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

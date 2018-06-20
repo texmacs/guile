@@ -724,9 +724,3 @@ SCM_INTERNAL void scm_init_numbers (void);
 
 
 #endif  /* SCM_NUMBERS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

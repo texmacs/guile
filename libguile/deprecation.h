@@ -38,9 +38,3 @@ SCM_API SCM scm_include_deprecated_features (void);
 SCM_INTERNAL void scm_init_deprecation (void);
 
 #endif  /* SCM_DEPRECATION_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

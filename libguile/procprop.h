@@ -46,9 +46,3 @@ SCM_API SCM scm_procedure_documentation (SCM proc);
 SCM_INTERNAL void scm_init_procprop (void);
 
 #endif  /* SCM_PROCPROP_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

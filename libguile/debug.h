@@ -39,9 +39,3 @@ SCM_API SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 
 #endif  /* SCM_DEBUG_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

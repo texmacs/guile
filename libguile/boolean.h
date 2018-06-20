@@ -148,9 +148,3 @@ SCM_API SCM scm_nil_p (SCM obj);
 SCM_INTERNAL void scm_init_boolean (void);
 
 #endif  /* SCM_BOOLEAN_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

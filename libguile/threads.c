@@ -1844,9 +1844,3 @@ scm_init_threads_default_dynamic_state ()
 
 
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

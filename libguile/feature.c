@@ -118,9 +118,3 @@ scm_init_feature()
 
 #include "libguile/feature.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

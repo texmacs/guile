@@ -192,9 +192,3 @@ SCM_INTERNAL void scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj);
 SCM_INTERNAL void scm_init_struct (void);
 
 #endif  /* SCM_STRUCT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -92,9 +92,3 @@ SCM_INTERNAL void scm_init_eval (void);
 
 
 #endif  /* SCM_EVAL_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -139,10 +139,3 @@ scm_init_promises ()
 
   scm_add_feature ("delay");
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/
-

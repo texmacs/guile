@@ -404,9 +404,3 @@ scm_init_strports ()
 #include "libguile/strports.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -200,9 +200,3 @@ scm_init_keywords ()
 #include "libguile/keywords.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -39,9 +39,3 @@ SCM_API SCM scm_string_ci_geq_p (SCM s1, SCM s2);
 SCM_INTERNAL void scm_init_strorder (void);
 
 #endif  /* SCM_STRORDER_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

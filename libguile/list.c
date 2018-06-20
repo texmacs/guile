@@ -1010,9 +1010,3 @@ scm_init_list ()
 {
 #include "libguile/list.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

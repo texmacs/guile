@@ -46,9 +46,3 @@ SCM_API void scm_init_opts (SCM (*) (SCM), scm_t_option []);
 SCM_INTERNAL void scm_init_options (void);
 
 #endif  /* SCM_OPTIONS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

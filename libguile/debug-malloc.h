@@ -36,9 +36,3 @@ SCM_INTERNAL void scm_debug_malloc_prehistory (void);
 SCM_INTERNAL void scm_init_debug_malloc (void);
 
 #endif  /* SCM_DEBUG_MALLOC_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

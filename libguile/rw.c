@@ -282,9 +282,3 @@ scm_init_rw ()
 {
   scm_c_define_gsubr ("%init-rw-builtins", 0, 0, 0, scm_init_rw_builtins);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

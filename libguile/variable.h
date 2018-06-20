@@ -74,9 +74,3 @@ SCM_INTERNAL void scm_i_variable_print (SCM var, SCM port, scm_print_state *psta
 SCM_INTERNAL void scm_init_variable (void);
 
 #endif  /* SCM_VARIABLE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

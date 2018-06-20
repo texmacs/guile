@@ -682,9 +682,3 @@ scm_init_chars ()
 #include "libguile/chars.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

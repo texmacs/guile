@@ -289,9 +289,3 @@ SCM_INTERNAL void scm_init_gc_protect_object (void);
 SCM_INTERNAL void scm_init_gc (void);
 
 #endif  /* SCM_GC_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

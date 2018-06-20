@@ -90,9 +90,3 @@ scm_init_unicode (void)
                             (scm_t_extension_init_func)scm_load_unicode,
                             NULL);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

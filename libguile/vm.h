@@ -129,9 +129,3 @@ SCM_INTERNAL void scm_bootstrap_vm (void);
 SCM_INTERNAL void scm_init_vm (void);
 
 #endif /* _SCM_VM_H_ */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

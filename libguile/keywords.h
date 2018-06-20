@@ -64,9 +64,3 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
 SCM_INTERNAL void scm_init_keywords (void);
 
 #endif  /* SCM_KEYWORDS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

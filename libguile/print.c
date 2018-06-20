@@ -1322,9 +1322,3 @@ scm_init_print ()
     SCM_UNPACK (scm_from_locale_string ("}"));
   scm_print_opts[SCM_PRINT_KEYWORD_STYLE_I].val = SCM_UNPACK (sym_reader);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

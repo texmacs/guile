@@ -72,9 +72,3 @@ SCM_INTERNAL void scm_init_generalized_arrays (void);
 
 
 #endif  /* SCM_GENERALIZED_ARRAYS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

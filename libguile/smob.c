@@ -513,9 +513,3 @@ scm_smob_prehistory ()
   finalized_smob_tc16 = scm_make_smob_type ("finalized smob", 0);
   if (SCM_TC2SMOBNUM (finalized_smob_tc16) != 0) abort ();
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

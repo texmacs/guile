@@ -213,9 +213,3 @@ SCM_INTERNAL void scm_dynstack_wind_prompt (scm_t_dynstack *, scm_t_bits *,
 
 
 #endif  /* SCM_DYNSTACK_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

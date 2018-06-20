@@ -95,9 +95,3 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
 SCM_INTERNAL void scm_init_continuations (void);
 
 #endif  /* SCM_CONTINUATIONS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

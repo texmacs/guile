@@ -39,9 +39,3 @@ SCM_API SCM scm_backtrace_with_highlights (SCM highlights);
 SCM_INTERNAL void scm_init_backtrace (void);
 
 #endif  /* SCM_BACKTRACE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

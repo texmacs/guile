@@ -92,9 +92,3 @@ SCM_INTERNAL SCM scm_i_fdes_to_port (int fdes, long mode_bits, SCM name,
 #endif /* BUILDING_LIBGUILE */
 
 #endif  /* SCM_FPORTS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

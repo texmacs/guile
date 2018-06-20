@@ -139,9 +139,3 @@ SCM_INTERNAL void scm_symbols_prehistory (void);
 SCM_INTERNAL void scm_init_symbols (void);
 
 #endif  /* SCM_SYMBOLS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

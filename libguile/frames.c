@@ -452,9 +452,3 @@ scm_init_frames (void)
                             scm_init_frames_builtins,
                             NULL);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

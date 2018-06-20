@@ -223,9 +223,3 @@ scm_init_macros ()
   syntax_session_id = fresh_syntax_session_id();
   scm_c_define_gsubr ("syntax-session-id", 0, 0, 0, scm_syntax_session_id);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

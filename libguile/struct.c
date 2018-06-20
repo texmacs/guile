@@ -844,9 +844,3 @@ scm_init_struct ()
   scm_c_define ("vtable-offset-user", scm_from_int (scm_vtable_offset_user));
 #include "libguile/struct.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

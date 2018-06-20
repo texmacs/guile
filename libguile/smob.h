@@ -260,9 +260,3 @@ SCM_API SCM scm_make_smob (scm_t_bits tc);
 SCM_API void scm_smob_prehistory (void);
 
 #endif  /* SCM_SMOB_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

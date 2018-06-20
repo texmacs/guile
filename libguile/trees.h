@@ -35,9 +35,3 @@ SCM_API SCM scm_copy_tree (SCM obj);
 SCM_INTERNAL void scm_init_trees (void);
 
 #endif  /* SCM_TREES_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

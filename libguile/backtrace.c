@@ -328,9 +328,3 @@ scm_init_backtrace ()
   scm_c_define_gsubr ("print-exception", 4, 0, 0, boot_print_exception);
 #include "libguile/backtrace.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -281,9 +281,3 @@ scm_init_options ()
 {
 #include "libguile/options.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

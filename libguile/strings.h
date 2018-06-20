@@ -310,9 +310,3 @@ scm_is_string (SCM x)
 SCM_INTERNAL void scm_init_strings (void);
 
 #endif  /* SCM_STRINGS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

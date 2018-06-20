@@ -46,9 +46,3 @@ SCM_INTERNAL void scm_init_weak_vectors (void);
 
 
 #endif  /* SCM_WEAK_VECTOR_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

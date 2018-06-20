@@ -141,9 +141,3 @@ scm_init_simpos ()
 #include "libguile/simpos.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

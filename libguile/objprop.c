@@ -98,9 +98,3 @@ scm_init_objprop ()
 #include "libguile/objprop.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

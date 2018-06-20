@@ -907,9 +907,3 @@ scm_init_array_map (void)
 #include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

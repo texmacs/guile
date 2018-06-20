@@ -73,9 +73,3 @@ scm_init_generalized_vectors ()
 {
 #include "libguile/generalized-vectors.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

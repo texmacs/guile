@@ -48,9 +48,3 @@ SCM_INTERNAL void scm_i_ensure_signal_delivery_thread (void);
 SCM_INTERNAL scm_i_thread *scm_i_signal_delivery_thread;
 
 #endif  /* SCM_SCMSIGS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

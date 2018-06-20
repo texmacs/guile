@@ -101,9 +101,3 @@ SCM_INTERNAL void scm_init_random (void);
 SCM_INTERNAL void scm_i_random_bytes_from_platform (unsigned char *buf, size_t len);
 
 #endif  /* SCM_RANDOM_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

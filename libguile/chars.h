@@ -94,9 +94,3 @@ SCM_INTERNAL SCM scm_i_charname_to_char (const char *charname,
 SCM_INTERNAL void scm_init_chars (void);
 
 #endif  /* SCM_CHARS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

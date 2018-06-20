@@ -1855,9 +1855,3 @@ scm_bootstrap_i18n ()
 
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

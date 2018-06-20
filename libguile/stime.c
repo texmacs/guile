@@ -870,9 +870,3 @@ scm_init_stime()
 #include "libguile/stime.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

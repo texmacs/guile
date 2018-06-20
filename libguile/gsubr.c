@@ -374,9 +374,3 @@ scm_init_gsubr()
 {
 #include "libguile/gsubr.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

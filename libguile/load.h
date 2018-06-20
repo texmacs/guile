@@ -46,9 +46,3 @@ SCM_INTERNAL void scm_init_eval_in_scheme (void);
 SCM_INTERNAL char *scm_i_mirror_backslashes (char *path);
 
 #endif  /* SCM_LOAD_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

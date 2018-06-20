@@ -45,9 +45,3 @@ SCM_API SCM scm_strptime (SCM format, SCM string);
 SCM_INTERNAL void scm_init_stime (void);
 
 #endif  /* SCM_STIME_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

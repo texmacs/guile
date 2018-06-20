@@ -32,9 +32,3 @@ SCM_INTERNAL SCM scm_init_rw_builtins (void);
 SCM_INTERNAL void scm_init_rw (void);
 
 #endif  /* SCM_RW_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

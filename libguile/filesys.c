@@ -1943,9 +1943,3 @@ scm_init_filesys ()
 
 #include "libguile/filesys.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

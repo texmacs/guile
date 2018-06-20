@@ -96,9 +96,3 @@ SCM_INTERNAL void scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state 
 SCM_INTERNAL void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

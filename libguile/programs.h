@@ -81,9 +81,3 @@ SCM_INTERNAL void scm_bootstrap_programs (void);
 SCM_INTERNAL void scm_init_programs (void);
 
 #endif /* _SCM_PROGRAMS_H_ */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

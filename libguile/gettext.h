@@ -33,9 +33,3 @@ SCM_INTERNAL int scm_i_to_lc_category (SCM category, int allow_lc_all);
 SCM_INTERNAL void scm_init_gettext (void);
 
 #endif  /* SCM_GETTEXT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

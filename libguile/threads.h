@@ -210,9 +210,3 @@ SCM_API SCM scm_total_processor_count (void);
 SCM_API SCM scm_current_processor_count (void);
 
 #endif  /* SCM_THREADS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

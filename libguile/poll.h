@@ -29,9 +29,3 @@
 SCM_INTERNAL void scm_register_poll (void);
 
 #endif  /* SCM_POLL_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

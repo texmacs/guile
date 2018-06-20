@@ -42,9 +42,3 @@ SCM_INTERNAL SCM scm_i_array_rebase (SCM a, size_t base);
 SCM_INTERNAL void scm_init_array_map (void);
 
 #endif  /* SCM_ARRAY_MAP_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

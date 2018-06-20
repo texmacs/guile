@@ -109,9 +109,3 @@ SCM_INTERNAL SCM scm_i_finite_list_copy (SCM /* a list known to be finite */);
 SCM_INTERNAL void scm_init_list (void);
 
 #endif  /* SCM_LIST_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

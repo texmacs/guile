@@ -174,9 +174,3 @@ SCM_INTERNAL void scm_i_frame_print (SCM frame, SCM port,
 SCM_INTERNAL void scm_init_frames (void);
 
 #endif /* _SCM_FRAMES_H_ */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

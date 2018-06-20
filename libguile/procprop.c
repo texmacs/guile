@@ -343,9 +343,3 @@ scm_init_procprop ()
   scm_init_vm_builtin_properties ();
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

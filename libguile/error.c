@@ -303,9 +303,3 @@ scm_init_error ()
 #include "libguile/error.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -407,9 +407,3 @@ scm_init_generalized_arrays ()
 {
 #include "libguile/generalized-arrays.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

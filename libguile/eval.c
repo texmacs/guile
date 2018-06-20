@@ -974,10 +974,3 @@ scm_init_eval ()
 
 #include "libguile/eval.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/
-

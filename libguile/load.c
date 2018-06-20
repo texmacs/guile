@@ -1399,9 +1399,3 @@ scm_init_load_should_auto_compile ()
 }
   
   
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

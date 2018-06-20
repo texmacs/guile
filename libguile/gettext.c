@@ -325,9 +325,3 @@ scm_init_gettext ()
 #include "libguile/gettext.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

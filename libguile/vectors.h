@@ -94,9 +94,3 @@ SCM_INTERNAL SCM  scm_i_vector_equal_p (SCM x, SCM y);
 SCM_INTERNAL void scm_init_vectors (void);
 
 #endif  /* SCM_VECTORS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

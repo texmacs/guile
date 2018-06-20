@@ -64,9 +64,3 @@ scm_i_visit_weak_list (SCM *list_loc, void (*visit) (SCM))
 
 
 #endif  /* SCM_WEAK_LIST_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -42,9 +42,3 @@ SCM_API SCM scm_sort_list_x (SCM ls, SCM less);
 SCM_INTERNAL void scm_init_sort (void);
 
 #endif  /* SCM_SORT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

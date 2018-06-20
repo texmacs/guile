@@ -42,9 +42,3 @@ SCM_INTERNAL void scm_i_init_guile (void *base);
 SCM_API void scm_load_startup_files (void);
 
 #endif  /* SCM_INIT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

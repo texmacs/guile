@@ -217,9 +217,3 @@ scm_init_rdelim (void)
   scm_c_define_gsubr ("%init-rdelim-builtins", 0, 0, 0,
 		      scm_init_rdelim_builtins);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

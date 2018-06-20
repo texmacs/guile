@@ -33,9 +33,3 @@ SCM_INTERNAL int scm_i_mark_inaccessible_guardeds (void);
 SCM_INTERNAL void scm_init_guardians (void);
 
 #endif  /* SCM_GUARDIANS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

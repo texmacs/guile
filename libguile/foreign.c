@@ -1305,9 +1305,3 @@ scm_register_foreign (void)
                             NULL);
   pointer_weak_refs = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

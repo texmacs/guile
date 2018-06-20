@@ -59,9 +59,3 @@ SCM_INTERNAL void scm_i_weak_set_print (SCM exp, SCM port, scm_print_state *psta
 SCM_INTERNAL void scm_init_weak_set (void);
 
 #endif  /* SCM_WEAK_SET_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

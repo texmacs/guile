@@ -262,9 +262,3 @@ SCM_API SCM scm_caaaar (SCM x);
 SCM_INTERNAL void scm_init_pairs (void);
 
 #endif  /* SCM_PAIRS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -112,9 +112,3 @@ SCM_INTERNAL void scm_bootstrap_intrinsics (void);
 SCM_INTERNAL void scm_init_intrinsics (void);
 
 #endif /* _SCM_INSTRUCTIONS_H_ */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

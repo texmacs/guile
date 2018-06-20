@@ -410,9 +410,3 @@ scm_init_dynamic_linking ()
   sysdep_dynl_init ();
 #include "libguile/dynl.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

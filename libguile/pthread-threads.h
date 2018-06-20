@@ -97,9 +97,3 @@ extern pthread_mutexattr_t scm_i_pthread_mutexattr_recursive[1];
 #define scm_i_scm_pthread_cond_timedwait    scm_pthread_cond_timedwait
 
 #endif  /* SCM_PTHREADS_THREADS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -76,9 +76,3 @@ SCM_INTERNAL SCM scm_i_bitvector_equal_p (SCM vec1, SCM vec2);
 SCM_INTERNAL void scm_init_bitvectors (void);
 
 #endif  /* SCM_BITVECTORS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

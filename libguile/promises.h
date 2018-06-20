@@ -51,9 +51,3 @@ SCM_INTERNAL void scm_init_promises (void);
 
 
 #endif  /* SCM_PROMISES_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

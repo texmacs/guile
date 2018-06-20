@@ -38,9 +38,3 @@ SCM_API SCM scm_fdes_to_ports (SCM fd);
 SCM_INTERNAL void scm_init_ioext (void);
 
 #endif  /* SCM_IOEXT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

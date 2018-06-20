@@ -806,9 +806,3 @@ scm_init_random ()
 
   scm_add_feature ("random");
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

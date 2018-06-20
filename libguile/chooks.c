@@ -106,9 +106,3 @@ scm_c_hook_run (scm_t_c_hook *hook, void *data)
     }
   return res;
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

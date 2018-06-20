@@ -31,9 +31,3 @@ SCM_API SCM scm_self_evaluating_p (SCM obj);
 SCM_INTERNAL void scm_init_evalext (void);
 
 #endif  /* SCM_EVALEXT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

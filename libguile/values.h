@@ -38,9 +38,3 @@ SCM_API SCM scm_c_value_ref (SCM obj, size_t idx);
 SCM_INTERNAL void scm_init_values (void);
 
 #endif  /* SCM_VALUES_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

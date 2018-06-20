@@ -132,9 +132,3 @@ SCM_INTERNAL void scm_init_array_handle (void);
 
 
 #endif  /* SCM_ARRAY_HANDLE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -429,9 +429,3 @@ scm_init_async ()
 {
 #include "libguile/async.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

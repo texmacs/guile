@@ -58,9 +58,3 @@ SCM_API void scm_dynwind_free (void *mem);
 
 
 #endif  /* SCM_DYNWIND_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

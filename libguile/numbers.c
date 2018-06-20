@@ -10378,9 +10378,3 @@ scm_init_numbers ()
 
 #include "libguile/numbers.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

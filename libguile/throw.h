@@ -97,9 +97,3 @@ SCM_API SCM scm_throw (SCM key, SCM args) SCM_NORETURN;
 SCM_INTERNAL void scm_init_throw (void);
 
 #endif  /* SCM_THROW_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

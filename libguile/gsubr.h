@@ -145,9 +145,3 @@ scm_c_define_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
 SCM_INTERNAL void scm_init_gsubr (void);
 
 #endif  /* SCM_GSUBR_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -112,9 +112,3 @@ scm_init_evalext ()
 {
 #include "libguile/evalext.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

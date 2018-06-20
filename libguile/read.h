@@ -64,9 +64,3 @@ SCM_INTERNAL void scm_i_input_error (const char *func, SCM port,
 SCM_INTERNAL void scm_init_read (void);
 
 #endif  /* SCM_READ_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

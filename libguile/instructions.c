@@ -204,9 +204,3 @@ scm_init_instructions (void)
 #include "libguile/instructions.x"
 #endif
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

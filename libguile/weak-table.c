@@ -840,9 +840,3 @@ scm_init_weak_table ()
 
   scm_i_register_async_gc_callback (vacuum_all_weak_tables);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

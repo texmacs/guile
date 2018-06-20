@@ -1,5 +1,6 @@
 /* Turning errno values into English error messages.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 2000, 2001, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988,1993,1994,1995,2000-2001,2006,2018
+     Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -27,9 +28,3 @@ strerror (int errnum)
     return sys_errlist[errnum];
   return (char *) "Unknown error";
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -75,9 +75,3 @@ SCM_INTERNAL SCM scm_i_relativize_path (SCM path, SCM in_path);
 SCM_INTERNAL void scm_init_filesys (void);
 
 #endif  /* SCM_FILESYS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

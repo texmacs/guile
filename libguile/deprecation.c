@@ -179,9 +179,3 @@ scm_init_deprecation ()
     }
 #include "libguile/deprecation.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
- */

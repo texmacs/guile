@@ -66,9 +66,3 @@ scm_init_mallocs ()
   scm_tc16_malloc = scm_make_smob_type ("malloc", 0);
   scm_set_smob_print (scm_tc16_malloc, malloc_print);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

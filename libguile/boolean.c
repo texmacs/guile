@@ -110,9 +110,3 @@ scm_init_boolean ()
 #include "libguile/boolean.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

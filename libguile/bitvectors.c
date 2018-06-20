@@ -890,9 +890,3 @@ scm_init_bitvectors ()
 {
 #include "libguile/bitvectors.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

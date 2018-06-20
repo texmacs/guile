@@ -363,9 +363,3 @@ scm_init_srcprop ()
 #include "libguile/srcprop.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

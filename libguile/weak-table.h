@@ -84,9 +84,3 @@ SCM_INTERNAL void scm_weak_table_prehistory (void);
 SCM_INTERNAL void scm_init_weak_table (void);
 
 #endif  /* SCM_WEAK_TABLE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -1539,9 +1539,3 @@ scm_init_vm (void)
 #include "libguile/vm.x"
 #endif
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

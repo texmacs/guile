@@ -111,9 +111,3 @@ SCM_API SCM scm_current_pstate (void);
 #endif 
 
 #endif  /* SCM_PRINT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

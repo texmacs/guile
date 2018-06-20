@@ -223,9 +223,3 @@ scm_init_debug ()
 
 #include "libguile/debug.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -149,9 +149,3 @@ scm_init_values (void)
 
 #include "libguile/values.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

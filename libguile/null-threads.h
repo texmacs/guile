@@ -222,9 +222,3 @@ SCM_API int scm_i_pthread_key_create (scm_i_pthread_key_t *key,
 
 
 #endif  /* SCM_NULL_THREADS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -684,9 +684,3 @@ scm_init_throw ()
 
 #include "libguile/throw.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

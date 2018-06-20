@@ -115,9 +115,3 @@ scm_init_syntax ()
 #include "libguile/syntax.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -268,9 +268,3 @@ scm_init_weak_vectors ()
                             NULL);
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

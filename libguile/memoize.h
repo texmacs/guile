@@ -92,9 +92,3 @@ SCM_INTERNAL void scm_init_memoize (void);
 
 
 #endif  /* SCM_MEMOIZE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -224,9 +224,3 @@ scm_register_poll (void)
 			    (scm_t_extension_init_func) scm_init_poll,
 			    NULL);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -135,9 +135,3 @@ scm_init_procs ()
 
 #include "libguile/procs.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

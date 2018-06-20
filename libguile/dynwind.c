@@ -140,9 +140,3 @@ scm_init_dynwind ()
 {
 #include "libguile/dynwind.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

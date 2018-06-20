@@ -36,9 +36,3 @@ SCM_API SCM scm_dynamic_call (SCM symb, SCM dobj);
 SCM_INTERNAL void scm_init_dynamic_linking (void);
 
 #endif  /* SCM_DYNL_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

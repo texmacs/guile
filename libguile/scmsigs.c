@@ -757,9 +757,3 @@ scm_init_scmsigs ()
 #include "libguile/scmsigs.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

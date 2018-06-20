@@ -62,9 +62,3 @@ SCM_API struct sockaddr *scm_c_make_socket_address (SCM family, SCM address,
 SCM_API SCM scm_make_socket_address (SCM family, SCM address, SCM args);
 
 #endif  /* SCM_SOCKET_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

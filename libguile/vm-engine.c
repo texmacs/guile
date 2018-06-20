@@ -3183,8 +3183,3 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
           t t nil 1)))))
 (renumber-ops)
 */
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

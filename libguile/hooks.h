@@ -52,9 +52,3 @@ SCM_API SCM scm_hook_to_list (SCM hook);
 SCM_INTERNAL void scm_init_hooks (void);
 
 #endif  /* SCM_HOOKS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

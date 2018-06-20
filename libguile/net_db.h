@@ -39,9 +39,3 @@ SCM_API SCM scm_gai_strerror (SCM);
 SCM_INTERNAL void scm_init_net_db (void);
 
 #endif  /* SCM_NET_DB_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

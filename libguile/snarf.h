@@ -110,9 +110,3 @@ DOCSTRING ^^ }
 #endif /* SCM_MAGIC_SNARF_DOCS */
 
 #endif  /* SCM_SNARF_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

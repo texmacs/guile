@@ -326,9 +326,3 @@ scm_init_ioext ()
 			    NULL);
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -85,9 +85,3 @@ SCM_INTERNAL SCM scm_i_shap2ra (SCM args);
 SCM_INTERNAL void scm_init_arrays (void);
 
 #endif  /* SCM_ARRAYS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

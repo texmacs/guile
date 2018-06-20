@@ -836,9 +836,3 @@ scm_init_loader (void)
   scm_c_define_gsubr ("all-mapped-elf-images", 0, 0, 0,
                       (scm_t_subr) scm_all_mapped_elf_images);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

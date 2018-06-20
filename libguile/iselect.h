@@ -38,9 +38,3 @@ SCM_API int scm_std_select (int fds,
 #define SELECT_TYPE fd_set
 
 #endif  /* SCM_ISELECT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

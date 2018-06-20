@@ -173,9 +173,3 @@ scm_inline_cons (scm_i_thread *thread, SCM x, SCM y)
 
 
 #endif  /* SCM_GC_INLINE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

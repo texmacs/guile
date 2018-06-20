@@ -284,9 +284,3 @@ SCM_INTERNAL void scm_init_ports (void);
 
 
 #endif  /* SCM_PORTS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

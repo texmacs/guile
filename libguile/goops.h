@@ -151,9 +151,3 @@ SCM_INTERNAL SCM scm_i_define_class_for_vtable (SCM vtable);
 SCM_INTERNAL void scm_init_goops (void);
 
 #endif  /* SCM_GOOPS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -37,9 +37,3 @@ SCM_API SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
 SCM_INTERNAL void scm_init_regex_posix (void);
 
 #endif  /* SCM_REGEX_POSIX_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

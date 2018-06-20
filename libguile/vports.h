@@ -30,9 +30,3 @@ SCM_API SCM scm_make_soft_port (SCM pv, SCM modes);
 SCM_INTERNAL void scm_init_vports (void);
 
 #endif  /* SCM_VPORTS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

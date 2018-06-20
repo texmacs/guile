@@ -38,9 +38,3 @@ SCM_INTERNAL void scm_i_register_vector_constructor (SCM type, SCM (*ctor)(SCM, 
 SCM_INTERNAL void scm_init_generalized_vectors (void);
 
 #endif  /* SCM_GENERALIZED_VECTORS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

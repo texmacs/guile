@@ -34,9 +34,3 @@ SCM_INTERNAL int scm_getenv_int (const char *var, int def);
 SCM_INTERNAL void scm_init_simpos (void);
 
 #endif  /* SCM_SIMPOS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

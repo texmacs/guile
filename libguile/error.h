@@ -105,9 +105,3 @@ SCM_INTERNAL void scm_init_error (void);
 
 
 #endif  /* SCM_ERROR_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

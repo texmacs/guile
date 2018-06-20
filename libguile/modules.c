@@ -899,9 +899,3 @@ scm_post_boot_init_modules ()
 
   scm_module_system_booted_p = 1;
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

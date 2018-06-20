@@ -641,9 +641,3 @@ scm_gc_sweep (void)
   fprintf (stderr, "%s: doing nothing\n", FUNC_NAME);
 }
 #undef FUNC_NAME
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -37,9 +37,3 @@ SCM_API SCM scm_malloc_obj (size_t n);
 SCM_INTERNAL void scm_init_mallocs (void);
 
 #endif  /* SCM_MALLOCS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

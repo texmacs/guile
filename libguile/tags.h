@@ -643,9 +643,3 @@ enum scm_tc8_tags
 
 
 #endif  /* SCM_TAGS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -347,9 +347,3 @@ scm_init_programs (void)
 #include "libguile/programs.x"
 #endif
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -398,9 +398,3 @@ scm_init_alist ()
 #include "libguile/alist.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

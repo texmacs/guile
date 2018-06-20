@@ -432,9 +432,3 @@ scm_init_script ()
 {
 #include "libguile/script.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

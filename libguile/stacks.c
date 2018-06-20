@@ -473,9 +473,3 @@ scm_init_stacks ()
 				scm_from_latin1_symbol ("stack"));
 #include "libguile/stacks.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

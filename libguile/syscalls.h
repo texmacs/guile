@@ -85,9 +85,3 @@
 
 
 #endif  /* SCM_SYSCALLS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

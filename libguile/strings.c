@@ -2461,9 +2461,3 @@ scm_init_strings ()
 #include "libguile/strings.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

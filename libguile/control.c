@@ -242,9 +242,3 @@ scm_init_control (void)
                             "scm_init_ice_9_control", scm_init_ice_9_control,
 			    NULL);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

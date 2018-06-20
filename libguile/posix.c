@@ -2434,9 +2434,3 @@ scm_init_posix ()
 			    NULL);
 #endif /* HAVE_START_CHILD */
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -39,9 +39,3 @@ SCM_API SCM scm_equal_p (SCM x, SCM y);
 SCM_INTERNAL void scm_init_eq (void);
 
 #endif  /* SCM_EQ_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

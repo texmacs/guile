@@ -146,9 +146,3 @@ SCM_FROM_TYPE_PROTO (TYPE val)
 #undef SIZEOF_TYPE
 #undef SCM_TO_TYPE_PROTO
 #undef SCM_FROM_TYPE_PROTO
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

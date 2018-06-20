@@ -40,9 +40,3 @@ SCM_INTERNAL void scm_i_set_boot_program_arguments (int argc, char *argv[]);
 SCM_INTERNAL void scm_init_script (void);
 
 #endif  /* SCM_SCRIPT_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -339,9 +339,3 @@ scm_init_pairs ()
   scm_c_define_gsubr ("cdr", 1, 0, 0, scm_cdr);
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -542,9 +542,3 @@ scm_i_init_guile (void *base)
   /* Finally, cause finalizers to run in a separate thread.  */
   scm_init_finalizer_thread ();
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

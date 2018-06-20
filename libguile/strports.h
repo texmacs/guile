@@ -64,9 +64,3 @@ SCM_API SCM scm_eval_string_in_module (SCM string, SCM module);
 SCM_INTERNAL void scm_init_strports (void);
 
 #endif  /* SCM_STRPORTS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

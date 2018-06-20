@@ -751,9 +751,3 @@ scm_init_fports ()
   scm_c_define ("%file-port-name-canonicalization",
                 sys_file_port_name_canonicalization);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

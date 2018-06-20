@@ -4236,9 +4236,3 @@ scm_init_ports (void)
   scm_c_define_gsubr (s_scm_current_warning_port, 0, 0, 0,
                       (scm_t_subr) scm_current_warning_port);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

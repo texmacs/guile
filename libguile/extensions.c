@@ -175,9 +175,3 @@ scm_init_extensions ()
 {
 #include "libguile/extensions.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

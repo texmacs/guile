@@ -64,9 +64,3 @@ SCM_API SCM scm_assoc_remove_x (SCM alist, SCM key);
 SCM_INTERNAL void scm_init_alist (void);
 
 #endif  /* SCM_ALIST_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -564,9 +564,3 @@ scm_init_symbols ()
 
   default_gensym_prefix = scm_from_latin1_string (" g");
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

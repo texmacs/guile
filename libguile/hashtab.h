@@ -139,9 +139,3 @@ SCM_INTERNAL void scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pst
 SCM_INTERNAL void scm_init_hashtab (void);
 
 #endif  /* SCM_HASHTAB_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

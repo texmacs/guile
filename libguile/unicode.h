@@ -28,9 +28,3 @@ SCM_INTERNAL SCM scm_char_to_formal_name (SCM);
 SCM_INTERNAL void scm_init_unicode (void);
 
 #endif  /* SCM_UNICODE_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

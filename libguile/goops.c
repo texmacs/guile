@@ -1014,9 +1014,3 @@ scm_init_goops ()
                             "scm_init_goops_builtins", scm_init_goops_builtins,
                             NULL);
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -51,9 +51,3 @@ SCM_INTERNAL void scm_bootstrap_i18n (void);
 
 
 #endif  /* SCM_I18N_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

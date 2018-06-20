@@ -230,9 +230,3 @@ scm_init_hooks ()
   scm_set_smob_print (scm_tc16_hook, hook_print);
 #include "libguile/hooks.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

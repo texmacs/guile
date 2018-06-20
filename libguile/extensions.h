@@ -37,9 +37,3 @@ SCM_API SCM scm_load_extension (SCM lib, SCM init);
 SCM_INTERNAL void scm_init_extensions (void);
 
 #endif  /* SCM_EXTENSIONS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -62,9 +62,3 @@ SCM_API SCM scm_sys_get_stack_size (void);
 SCM_INTERNAL void scm_init_stackchk (void);
 
 #endif  /* SCM_STACKCHK_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

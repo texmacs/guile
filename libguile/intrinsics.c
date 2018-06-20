@@ -325,9 +325,3 @@ scm_init_intrinsics (void)
 #include "libguile/intrinsics.x"
 #endif
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

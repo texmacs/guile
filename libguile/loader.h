@@ -61,9 +61,3 @@ SCM_INTERNAL void scm_bootstrap_loader (void);
 SCM_INTERNAL void scm_init_loader (void);
 
 #endif /* _SCM_LOADER_H_ */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

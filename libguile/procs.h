@@ -47,9 +47,3 @@ SCM_API SCM scm_setter (SCM proc);
 SCM_INTERNAL void scm_init_procs (void);
 
 #endif  /* SCM_PROCS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

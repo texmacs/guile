@@ -124,9 +124,3 @@ SCM_INTERNAL void scm_modules_prehistory (void);
 SCM_INTERNAL void scm_init_modules (void);
 
 #endif  /* SCM_MODULES_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

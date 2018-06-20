@@ -43,9 +43,3 @@ SCM_API SCM scm_hash (SCM obj, SCM n);
 SCM_INTERNAL void scm_init_hash (void);
 
 #endif  /* SCM_HASH_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

@@ -44,9 +44,3 @@ SCM_INTERNAL void scm_init_macros (void);
 
 
 #endif  /* SCM_MACROS_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

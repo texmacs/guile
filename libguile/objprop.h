@@ -33,9 +33,3 @@ SCM_API SCM scm_set_object_property_x (SCM obj, SCM key, SCM val);
 SCM_INTERNAL void scm_init_objprop (void);
 
 #endif  /* SCM_OBJPROP_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

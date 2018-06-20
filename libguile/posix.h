@@ -96,9 +96,3 @@ SCM_INTERNAL void scm_init_posix (void);
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_locale_mutex;
 
 #endif  /* SCM_POSIX_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

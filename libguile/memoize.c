@@ -915,9 +915,3 @@ scm_init_memoize ()
 
   list_of_guile = scm_list_1 (scm_from_latin1_symbol ("guile"));
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

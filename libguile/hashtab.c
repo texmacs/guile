@@ -1076,9 +1076,3 @@ scm_init_hashtab ()
 {
 #include "libguile/hashtab.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

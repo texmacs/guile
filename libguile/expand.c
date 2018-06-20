@@ -1657,9 +1657,3 @@ scm_init_expand ()
   
 #include "libguile/expand.x"
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

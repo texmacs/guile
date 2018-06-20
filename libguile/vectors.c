@@ -440,9 +440,3 @@ scm_init_vectors ()
 #include "libguile/vectors.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

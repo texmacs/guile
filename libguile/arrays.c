@@ -964,9 +964,3 @@ scm_init_arrays ()
 #include "libguile/arrays.x"
 
 }
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

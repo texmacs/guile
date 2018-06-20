@@ -434,9 +434,3 @@ scm_init_hash ()
 #include "libguile/hash.x"
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/

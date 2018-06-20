@@ -665,9 +665,3 @@ scm_dynstack_unwind_dynamic_state (scm_t_dynstack *dynstack,
   clear_scm_t_bits (words, len);
 }
 
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  End:
-*/
