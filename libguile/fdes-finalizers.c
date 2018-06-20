@@ -30,6 +30,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/list.h"
 #include "libguile/numbers.h"
+#include "libguile/threads.h"
 #include "libguile/fdes-finalizers.h"
 
 

@@ -46,6 +46,7 @@
 #include "libguile/error.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
+#include "libguile/threads.h"
 #include "libguile/private-options.h"
 
 

@@ -34,6 +34,7 @@
 #include "libguile/gsubr.h"
 #include "libguile/numbers.h"
 #include "libguile/smob.h"
+#include "libguile/threads.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"
 #include "libguile/programs.h"

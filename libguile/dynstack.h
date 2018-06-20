@@ -23,13 +23,14 @@
 
 
 
+#include <setjmp.h>
 #include <signal.h>
 
 #include "libguile/__scm.h"
 
 
 
-typedef struct
+typedef struct scm_dynstack
 {
   scm_t_bits *base;
   scm_t_bits *top;

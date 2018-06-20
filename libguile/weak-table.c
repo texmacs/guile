@@ -37,6 +37,7 @@
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
 #include "libguile/procs.h"
+#include "libguile/threads.h"
 #include "libguile/weak-list.h"
 #include "libguile/weak-table.h"
 

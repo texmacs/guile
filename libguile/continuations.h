@@ -27,6 +27,7 @@
 #include <setjmp.h>
 
 #include "libguile/__scm.h"
+#include "libguile/throw.h"
 
 
 

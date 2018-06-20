@@ -34,6 +34,7 @@
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/continuations.h"
+#include "libguile/dynstack.h"
 #include "libguile/eq.h"
 #include "libguile/expand.h"
 #include "libguile/list.h"
@@ -46,6 +47,7 @@
 #include "libguile/print.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"
+#include "libguile/threads.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 

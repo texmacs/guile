@@ -40,6 +40,7 @@
 #include "libguile/list.h"
 #include "libguile/numbers.h"
 #include "libguile/ports.h"
+#include "libguile/procs.h"
 #include "libguile/vectors.h"
 #include "libguile/weak-table.h"
 

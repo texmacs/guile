@@ -64,6 +64,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"
+#include "libguile/threads.h"
 #include "libguile/weak-vector.h"
 
 

@@ -23,12 +23,14 @@
 #include <alloca.h>
 
 #include "libguile/_scm.h"
+#include "libguile/dynstack.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/control.h"
 #include "libguile/extensions.h"
 #include "libguile/list.h"
 #include "libguile/programs.h"
+#include "libguile/threads.h"
 #include "libguile/instructions.h"
 #include "libguile/vm.h"
 

@@ -426,6 +426,8 @@ typedef long SCM_STACKITEM;
 
 
 /* Trivial type declarations and forward declarations.  */
+typedef struct scm_print_state scm_print_state;
+typedef struct scm_dynstack scm_t_dynstack;
 typedef scm_t_int32 scm_t_wchar;
 
 

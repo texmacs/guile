@@ -62,6 +62,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 #include "libguile/foreign.h"
+#include "libguile/threads.h"
 #include "libguile/gc.h"
 
 #include <ltdl.h>

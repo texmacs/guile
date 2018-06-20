@@ -32,6 +32,7 @@
 #include "libguile/extensions.h"
 #include "libguile/gc.h"
 #include "libguile/strings.h"
+#include "libguile/threads.h"
 
 typedef struct extension_t
 {

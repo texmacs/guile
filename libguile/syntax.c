@@ -28,6 +28,7 @@
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/syntax.h"
+#include "libguile/threads.h"
 #include "libguile/variable.h"
 
 

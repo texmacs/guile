@@ -38,6 +38,7 @@
 #include "libguile/ports.h"
 #include "libguile/numbers.h"
 #include "libguile/procs.h"
+#include "libguile/smob.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"
 #include "libguile/values.h"

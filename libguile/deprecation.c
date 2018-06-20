@@ -35,6 +35,7 @@
 #include "libguile/list.h"
 #include "libguile/strings.h"
 #include "libguile/ports.h"
+#include "libguile/threads.h"
 
 #include "libguile/private-options.h"
 

@@ -30,6 +30,7 @@
 #include "numbers.h"
 #include "frames.h"
 #include "ports.h"
+#include "threads.h"
 #include "libguile/variable.h"
 #include "vm.h"
 

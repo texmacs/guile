@@ -55,6 +55,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
+#include "libguile/throw.h"
 
 #include "libguile/net_db.h"
 #include "libguile/socket.h"

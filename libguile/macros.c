@@ -27,6 +27,7 @@
 #include "libguile/boolean.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
+#include "libguile/procs.h"
 #include "libguile/random.h"
 #include "libguile/smob.h"
 #include "libguile/macros.h"

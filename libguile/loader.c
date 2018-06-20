@@ -48,6 +48,7 @@
 #include "extensions.h"
 #include "pairs.h"
 #include "programs.h"
+#include "threads.h"
 #include "loader.h"
 
 /* This file contains the loader for Guile's on-disk format: ELF with

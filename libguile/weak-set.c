@@ -31,6 +31,7 @@
 #include "libguile/hash.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
+#include "libguile/threads.h"
 #include "libguile/bdw-gc.h"
 
 #include "libguile/weak-list.h"
