@@ -85,14 +85,6 @@ DOCSTRING ^^ }
 # endif
 #endif
 
-#define SCM_KEYWORD(c_name, scheme_name) \
-SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_from_locale_keyword (scheme_name))
-
-#define SCM_GLOBAL_KEYWORD(c_name, scheme_name) \
-SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_from_locale_keyword (scheme_name))
-
 #define SCM_VARIABLE(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
 SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, SCM_BOOL_F);)
