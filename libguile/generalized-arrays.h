@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_GENERALIZED_ARRAYS_H
 #define SCM_GENERALIZED_ARRAYS_H
 

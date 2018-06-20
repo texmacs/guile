@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_ARRAY_HANDLE_H
 #define SCM_ARRAY_HANDLE_H
 

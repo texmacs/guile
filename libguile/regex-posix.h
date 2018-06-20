@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_REGEX_POSIX_H
 #define SCM_REGEX_POSIX_H
 

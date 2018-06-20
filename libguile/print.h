@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_PRINT_H
 #define SCM_PRINT_H
 

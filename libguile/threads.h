@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 

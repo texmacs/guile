@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_RANDOM_H
 #define SCM_RANDOM_H
 

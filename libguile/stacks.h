@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_STACKS_H
 #define SCM_STACKS_H
 

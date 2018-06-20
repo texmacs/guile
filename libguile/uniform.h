@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_UNIFORM_H
 #define SCM_UNIFORM_H
 

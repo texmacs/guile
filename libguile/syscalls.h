@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_SYSCALLS_H
 #define SCM_SYSCALLS_H
 

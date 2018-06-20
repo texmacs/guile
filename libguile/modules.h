@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 

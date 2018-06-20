@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 

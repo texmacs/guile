@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 

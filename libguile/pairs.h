@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_PAIRS_H
 #define SCM_PAIRS_H
 

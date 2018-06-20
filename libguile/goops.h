@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 

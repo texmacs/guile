@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_HOOKS_H
 #define SCM_HOOKS_H
 

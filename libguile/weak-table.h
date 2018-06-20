@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_WEAK_TABLE_H
 #define SCM_WEAK_TABLE_H
 

@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 

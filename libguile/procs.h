@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_PROCS_H
 #define SCM_PROCS_H
 

@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_SYMBOLS_H
 #define SCM_SYMBOLS_H
 

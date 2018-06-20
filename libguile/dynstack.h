@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_DYNSTACK_H
 #define SCM_DYNSTACK_H
 

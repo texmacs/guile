@@ -1,10 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_ISELECT_H
 #define SCM_ISELECT_H
 
-/* Copyright (C) 1997,1998,2000,2001, 2002, 2006,
- *   2013 Free Software Foundation, Inc.
+/* Copyright (C) 1997-1998,2000-2002,2006,2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

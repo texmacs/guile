@@ -1,9 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_THROW_H
 #define SCM_THROW_H
 
-/* Copyright (C) 1995,1996,1998,2000, 2006, 2008, 2010, 2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998,2000,2006,2008,2010,2014,2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

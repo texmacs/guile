@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_CHARS_H
 #define SCM_CHARS_H
 

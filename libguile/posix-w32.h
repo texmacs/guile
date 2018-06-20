@@ -1,9 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_POSIX_W32_H
 #define SCM_POSIX_W32_H
 
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2006,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

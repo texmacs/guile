@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_CONTINUATIONS_H
 #define SCM_CONTINUATIONS_H
 

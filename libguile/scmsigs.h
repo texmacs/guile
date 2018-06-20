@@ -1,9 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_SCMSIGS_H
 #define SCM_SCMSIGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000, 2002, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998,2000,2002,2006-2008,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

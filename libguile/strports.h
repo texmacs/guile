@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_STRPORTS_H
 #define SCM_STRPORTS_H
 

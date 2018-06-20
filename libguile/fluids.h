@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 

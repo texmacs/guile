@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_FILESYS_H
 #define SCM_FILESYS_H
 

@@ -1,9 +1,7 @@
-/* classes: h_files */
-
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995-2004,2008-2015,2017
+/* Copyright (C) 1995-2004,2008-2015,2017-2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

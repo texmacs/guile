@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_HASHTAB_H
 #define SCM_HASHTAB_H
 

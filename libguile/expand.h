@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_EXPAND_H
 #define SCM_EXPAND_H
 

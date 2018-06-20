@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_VARIABLE_H
 #define SCM_VARIABLE_H
 

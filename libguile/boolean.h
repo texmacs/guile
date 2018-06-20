@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_BOOLEAN_H
 #define SCM_BOOLEAN_H
 

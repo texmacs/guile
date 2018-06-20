@@ -1,9 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_WEAK_VECTOR_H
 #define SCM_WEAK_VECTOR_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008, 2009, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,2000-2001,2003,2006,2008-2009,2011,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

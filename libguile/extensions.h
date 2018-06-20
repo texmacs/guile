@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_EXTENSIONS_H
 #define SCM_EXTENSIONS_H
 

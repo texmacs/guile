@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_BITVECTORS_H
 #define SCM_BITVECTORS_H
 

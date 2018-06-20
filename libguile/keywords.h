@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_KEYWORDS_H
 #define SCM_KEYWORDS_H
 

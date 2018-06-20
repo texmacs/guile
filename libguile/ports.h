@@ -1,5 +1,3 @@
-/* classes: h_files */
-
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
