@@ -27,7 +27,6 @@
 
 #include "libguile/boolean.h"
 #include "libguile/error.h"
-#include "libguile/tags.h"
 
 #include "verify.h"
 
@@ -39,7 +38,7 @@
  * terms of the SCM_MATCHES_BITS_IN_COMMON macro.
  *
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information.
  */
 verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
         (SCM_BOOL_F_BITS, SCM_BOOL_T_BITS));

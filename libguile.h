@@ -107,7 +107,6 @@ extern "C" {
 #include "libguile/strports.h"
 #include "libguile/struct.h"
 #include "libguile/symbols.h"
-#include "libguile/tags.h"
 #include "libguile/throw.h"
 #include "libguile/trees.h"
 #include "libguile/uniform.h"

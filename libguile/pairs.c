@@ -40,7 +40,7 @@
  * which is defined in terms of the SCM_MATCHES_BITS_IN_COMMON macro.
  *
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information.
  */
 verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
         (SCM_ELISP_NIL_BITS, SCM_EOL_BITS));

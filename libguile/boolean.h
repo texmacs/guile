@@ -48,7 +48,7 @@
 
 /*
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information on
  * how the following macro works.
  */
 #define scm_is_false_or_nil(x)    \
@@ -68,7 +68,7 @@
  * which will be ignored by SCM_MATCHES_BITS_IN_COMMON below.
  *
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information.
  *
  * If SCM_ENABLE_ELISP is true, then scm_is_bool_or_nil(x)
  * returns 1 if and only if x is one of the following: SCM_BOOL_F,
@@ -112,7 +112,7 @@ SCM_API int scm_to_bool (SCM x);
  * ignored by SCM_MATCHES_BITS_IN_COMMON below.
  *
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information.
  *
  * scm_is_lisp_false(x) returns 1 if and only if x is one of the
  * following: SCM_BOOL_F, SCM_ELISP_NIL, SCM_EOL or

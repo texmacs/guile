@@ -84,7 +84,7 @@ static void write_character (scm_t_wchar, SCM);
  * This table must agree with the declarations in scm.h: {Immediate Symbols}.
  */
 
-/* This table must agree with the list of flags in tags.h.  */
+/* This table must agree with the list of flags in __scm.h.  */
 static const char *iflagnames[] =
 {
   "#f",

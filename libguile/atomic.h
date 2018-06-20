@@ -23,7 +23,6 @@
 
 #include "libguile/__scm.h"
 #include "libguile/gc.h"
-#include "libguile/tags.h"
 
 
 

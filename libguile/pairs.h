@@ -46,7 +46,7 @@
 
 /*
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
+ * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information on
  * how the following macro works.
  */
 #define scm_is_null_or_nil(x)  \

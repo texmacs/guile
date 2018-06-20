@@ -24,7 +24,6 @@
 
 
 #include <libguile/__scm.h>
-#include <libguile/tags.h>
 
 
 /* Macros for snarfing initialization actions from C source. */

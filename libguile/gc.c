@@ -50,7 +50,6 @@
 #include "libguile/symbols.h"
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
-#include "libguile/tags.h"
 
 #include "libguile/deprecation.h"
 #include "libguile/gc.h"
