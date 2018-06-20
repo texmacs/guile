@@ -32,11 +32,6 @@
 #include "libguile/gc.h"
 #include "libguile/print.h"
 
-#ifndef SCM_T_WCHAR_DEFINED
-typedef scm_t_int32 scm_t_wchar;
-#define SCM_T_WCHAR_DEFINED
-#endif /* SCM_T_WCHAR_DEFINED */
-
 
 
 /* Immediate Numbers, also known as fixnums

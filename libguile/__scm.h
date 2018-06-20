@@ -422,6 +422,15 @@ typedef long SCM_STACKITEM;
 
 #endif  /* SCM___SCM_H */
 
+
+
+
+/* Trivial type declarations and forward declarations.  */
+typedef scm_t_int32 scm_t_wchar;
+
+
+
+
 /*
   Local Variables:
   c-file-style: "gnu"
