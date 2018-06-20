@@ -48,6 +48,7 @@
 #include "extensions.h"
 #include "pairs.h"
 #include "programs.h"
+#include "strings.h"
 #include "threads.h"
 #include "loader.h"
 

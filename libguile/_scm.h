@@ -34,7 +34,6 @@
 
 #include "libguile/__scm.h"
 
-#include "libguile/strings.h"
 
 
 #endif  /* SCM__SCM_H */

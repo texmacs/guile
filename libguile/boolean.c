@@ -27,6 +27,7 @@
 #include "libguile/gsubr.h"
 
 #include "libguile/boolean.h"
+#include "libguile/error.h"
 #include "libguile/tags.h"
 
 #include "verify.h"

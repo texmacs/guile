@@ -28,6 +28,7 @@
 #include <libguile/error.h>
 #include <libguile/gc.h>
 #include <libguile/snarf.h>
+#include <libguile/strings.h>
 
 
 

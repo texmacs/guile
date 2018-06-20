@@ -31,6 +31,7 @@
 #include "libguile/chars.h"
 #include "libguile/gsubr.h"
 #include "libguile/extensions.h"
+#include <libguile/strings.h>
 
 #include "libguile/unicode.h"
 
