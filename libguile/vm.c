@@ -39,6 +39,7 @@
 #include <gc/gc_mark.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/atomic.h"
 #include "libguile/atomics-internal.h"
 #include "libguile/cache-internal.h"

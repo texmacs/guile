@@ -23,6 +23,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/boolean.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"

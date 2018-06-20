@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"
 #include "libguile/ports.h"

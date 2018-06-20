@@ -37,6 +37,7 @@
 #include <gmp.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/dynwind.h"
 #include "libguile/extensions.h"
 #include "libguile/bytevectors.h"

@@ -23,6 +23,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/extensions.h"
 #include "libguile/ports.h"
 #include "libguile/atomics-internal.h"

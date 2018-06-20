@@ -40,6 +40,7 @@
 #include <full-read.h>
 
 #include "_scm.h"
+#include "libguile/gsubr.h"
 #include "bytevectors.h"
 #include "boolean.h"
 #include "elf.h"

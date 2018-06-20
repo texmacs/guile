@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 
 #include "libguile/goops.h"
 #include "libguile/strings.h"

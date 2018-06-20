@@ -35,6 +35,7 @@
 #include "libguile/bdw-gc.h"
 #include "libguile/finalizers.h"
 #include "libguile/gc.h"
+#include "libguile/gsubr.h"
 #include "libguile/init.h"
 #include "libguile/threads.h"
 

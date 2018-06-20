@@ -33,6 +33,7 @@
 #include <math.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
 #include "libguile/stackchk.h"

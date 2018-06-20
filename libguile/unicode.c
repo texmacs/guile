@@ -28,6 +28,7 @@
 #include <uniname.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/extensions.h"
 
 #include "libguile/unicode.h"

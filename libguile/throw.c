@@ -32,6 +32,7 @@
 #include "libguile/smob.h"
 #include "libguile/eval.h"
 #include "libguile/eq.h"
+#include "libguile/gsubr.h"
 #include "libguile/control.h"
 #include "libguile/deprecation.h"
 #include "libguile/backtrace.h"

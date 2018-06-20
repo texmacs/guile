@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/strings.h"
 #include "libguile/numbers.h"
 

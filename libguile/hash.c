@@ -32,6 +32,7 @@
 #include <unistr.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/chars.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"

@@ -26,6 +26,7 @@
 #include <unistr.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"
 #include "libguile/chars.h"

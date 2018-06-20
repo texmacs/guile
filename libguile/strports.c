@@ -25,6 +25,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 
 #include <stdio.h>
 #include <unistd.h>

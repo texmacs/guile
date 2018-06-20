@@ -31,6 +31,7 @@
 
 #include "libguile/async.h"
 #include "libguile/goops.h"
+#include "libguile/gsubr.h"
 #include "libguile/finalizers.h"
 #include "libguile/instructions.h"
 #include "libguile/numbers.h"

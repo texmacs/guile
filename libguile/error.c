@@ -29,6 +29,7 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
+#include "libguile/gsubr.h"
 #include "libguile/async.h"
 #include "libguile/dynwind.h"
 #include "libguile/list.h"

@@ -36,9 +36,12 @@ SCM_API SCM scm_misc_error_key;
 
 
 
+/* Snarfing for docs may override SCM_ASSERT; see snarf.h.  */
+#ifndef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr)			\
   do { if (SCM_UNLIKELY (!(_cond)))                             \
       scm_wrong_type_arg (_subr, _pos, _arg); } while (0)
+#endif
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)			\
   do { if (SCM_UNLIKELY (!(_cond)))                                     \
       scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg);  } while (0)

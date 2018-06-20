@@ -3,8 +3,8 @@
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 
-/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2006, 2008, 2009,
- *   2010, 2011, 2013, 2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998,2000-2001,2006,2008,2009-2011,2013,2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/snarf.h"
 
 
 
@@ -71,6 +72,77 @@ SCM_API SCM scm_c_define_gsubr (const char *name,
 SCM_API SCM scm_c_define_gsubr_with_generic (const char *name,
 					     int req, int opt, int rst,
 					     scm_t_subr fcn, SCM *gf);
+
+
+
+/* Casting to a function that can take any number of arguments.  */
+#define SCM_FUNC_CAST_ARBITRARY_ARGS  scm_t_subr
+
+#define SCM_DEFINE_GSUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
+SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
+                    (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
+)\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+/* Always use the generic subr case.  */
+#define SCM_DEFINE SCM_DEFINE_GSUBR
+
+
+#define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
+static SCM g_ ## FNAME; \
+SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+g_ ## FNAME = SCM_PACK (0); \
+scm_c_define_gsubr_with_generic (s_ ## FNAME, REQ, OPT, VAR, \
+                    		 (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME, \
+				 &g_ ## FNAME); \
+)\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#define SCM_DEFINE_PUBLIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
+SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
+                    (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
+scm_c_export (s_ ## FNAME, NULL); \
+)\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+SCM_SNARF_HERE(SCM_UNUSED static const char RANAME[]=STR) \
+SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
+                                   (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
+
+#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+SCM_SNARF_HERE(SCM_UNUSED static const char RANAME[]=STR) \
+SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
+                                   (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
+SCM_SNARF_DOCS(register, CFN, STR, (), REQ, OPT, VAR, \
+               "implemented by the C function \"" #CFN "\"")
+
+#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
+SCM_SNARF_HERE(\
+SCM_UNUSED static const char RANAME[]=STR;\
+static SCM GF \
+)SCM_SNARF_INIT(\
+GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
+scm_c_define_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
+                                 (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+)
+
+
+
 
 SCM_INTERNAL void scm_init_gsubr (void);
 
