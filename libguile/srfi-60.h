@@ -1,6 +1,6 @@
 /* srfi-60.h --- SRFI-60 procedures for Guile
  *
- * 	Copyright (C) 2005, 2006, 2010 Free Software Foundation, Inc.
+ * 	Copyright (C) 2005, 2006, 2010, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,7 +22,7 @@
 #ifndef SCM_SRFI_60_H
 #define SCM_SRFI_60_H
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_INTERNAL SCM scm_srfi60_log2_binary_factors (SCM n);
 SCM_INTERNAL SCM scm_srfi60_copy_bit (SCM index, SCM n, SCM bit);

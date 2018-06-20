@@ -22,7 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/boolean.h"
 #include <libguile/error.h>

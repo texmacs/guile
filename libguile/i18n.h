@@ -20,7 +20,7 @@
  * 02110-1301 USA
  */
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API SCM scm_global_locale;
 SCM_API SCM scm_make_locale (SCM category_mask, SCM locale_name, SCM base_locale);

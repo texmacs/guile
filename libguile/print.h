@@ -22,8 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/chars.h" 
 #include <libguile/error.h>
 #include <libguile/gc.h>

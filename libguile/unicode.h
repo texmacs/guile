@@ -21,7 +21,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_INTERNAL SCM scm_formal_name_to_char (SCM);
 SCM_INTERNAL SCM scm_char_to_formal_name (SCM);

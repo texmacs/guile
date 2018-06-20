@@ -22,8 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/error.h"
 #include "libguile/gc.h"
 #include "libguile/inline.h"
@@ -46,8 +44,8 @@
 
 /*
  * See the comments preceeding the definitions of SCM_BOOL_F and
- * SCM_MATCHES_BITS_IN_COMMON in __scm.h for more information on
- * how the following macro works.
+ * SCM_MATCHES_BITS_IN_COMMON in scm.h for more information on how the
+ * following macro works.
  */
 #define scm_is_null_or_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_EOL))

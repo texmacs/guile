@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 
 SCM_API scm_t_bits scm_tc16_malloc;

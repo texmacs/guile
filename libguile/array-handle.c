@@ -26,7 +26,6 @@
 
 #include <string.h>
 
-#include "libguile/__scm.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
 #include "libguile/list.h"

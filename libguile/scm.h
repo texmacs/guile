@@ -1,5 +1,5 @@
-#ifndef SCM___SCM_H
-#define SCM___SCM_H
+#ifndef SCM_SCM_H
+#define SCM_SCM_H
 
 /* Copyright (C) 1995-2004,2006-2015,2017-2018
  *   Free Software Foundation, Inc.
@@ -848,4 +848,4 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#endif  /* SCM___SCM_H */
+#endif  /* SCM_SCM_H */

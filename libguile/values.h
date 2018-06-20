@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/struct.h"
 
 SCM_API SCM scm_values_vtable;
 

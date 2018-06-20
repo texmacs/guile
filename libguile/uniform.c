@@ -23,8 +23,6 @@
 #  include <config.h>
 #endif
 
-#include "libguile/__scm.h"
-
 #include "libguile/uniform.h"
 
 

@@ -22,8 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
 

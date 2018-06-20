@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port,
 				  SCM offset, SCM length);

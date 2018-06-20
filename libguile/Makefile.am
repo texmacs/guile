@@ -577,6 +577,7 @@ pkginclude_HEADERS =
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/libguile
 modinclude_HEADERS =				\
+	scm.h					\
 	__scm.h					\
 	alist.h					\
 	array-handle.h				\

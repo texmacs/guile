@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 #include "libguile/alist.h"
 #include "libguile/array-handle.h"
 #include "libguile/array-map.h"

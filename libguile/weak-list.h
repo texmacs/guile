@@ -21,7 +21,6 @@
 
 
 
-#include "libguile/__scm.h"
 #include "libguile/pairs.h"
 #include "libguile/weak-vector.h"
 

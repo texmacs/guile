@@ -20,7 +20,7 @@
  * 02110-1301 USA
  */
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API SCM scm_gettext (SCM msgid, SCM domainname, SCM category);
 SCM_API SCM scm_ngettext (SCM msgid, SCM msgid_plural, SCM n, SCM domainname, SCM category);

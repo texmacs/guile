@@ -29,7 +29,6 @@
 
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
-#include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/list.h"

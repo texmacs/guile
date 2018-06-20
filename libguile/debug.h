@@ -22,9 +22,8 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/options.h"
+
 
 
 SCM_API SCM scm_local_eval (SCM exp, SCM env);

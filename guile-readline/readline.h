@@ -1,7 +1,7 @@
 #ifndef READLINEH
 #define READLINEH
 
-/*	Copyright (C) 1997, 1999, 2000, 2006 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1999, 2000, 2006, 2018 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
  *
  */
 
+#include <libguile.h>
+
 /* SCM_RL_API is a macro prepended to all function and data definitions
    which should be exported or imported in the resulting dynamic link
    library in the Win32 port. */
@@ -31,8 +33,6 @@
 #else
 # define SCM_RL_API extern
 #endif
-
-#include "libguile/__scm.h"
 
 SCM_RL_API scm_t_option scm_readline_opts[];
 

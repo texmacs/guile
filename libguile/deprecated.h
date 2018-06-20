@@ -19,7 +19,6 @@
  * 02110-1301 USA
  */
 
-#include "libguile/__scm.h"
 #include "libguile/snarf.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)

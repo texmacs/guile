@@ -26,7 +26,6 @@
 #include <alloca.h>
 #include <stdarg.h>
 
-#include "libguile/__scm.h"
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"

@@ -22,11 +22,11 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 
 
-/* scm_is_eq is defined in __scm.h for some reason. */
+/* scm_is_eq is defined in scm.h for some reason. */
 
 /* An older spelling for scm_is_eq. */
 #define SCM_EQ_P(x,y) (scm_is_eq (x, y))

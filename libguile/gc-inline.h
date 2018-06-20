@@ -39,8 +39,6 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/gc.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/threads.h"

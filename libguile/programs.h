@@ -19,7 +19,6 @@
 #ifndef _SCM_PROGRAMS_H_
 #define _SCM_PROGRAMS_H_
 
-#include <libguile/__scm.h>
 #include <libguile/gc.h>
 
 /*

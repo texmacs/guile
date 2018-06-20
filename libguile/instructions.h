@@ -19,7 +19,7 @@
 #ifndef _SCM_INSTRUCTIONS_H_
 #define _SCM_INSTRUCTIONS_H_
 
-#include <libguile/__scm.h>
+#include <libguile/scm.h>
 #include <libguile/vm-operations.h>
 
 #ifdef BUILDING_LIBGUILE

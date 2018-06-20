@@ -22,7 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
 #include <libguile/error.h>
 #include <libguile/smob.h>
 

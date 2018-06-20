@@ -22,12 +22,11 @@
 
 
 
-#include "libguile/__scm.h"
-
-/* Needed for FD_SET on some systems.  */
-#include <sys/types.h>
-
+#include <sys/types.h> /* Needed for FD_SET on some systems.  */
 #include <sys/select.h>
+
+#include "libguile/scm.h"
+
 
 SCM_API int scm_std_select (int fds,
 			    fd_set *rfds,

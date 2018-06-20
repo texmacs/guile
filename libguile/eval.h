@@ -22,8 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
-
 #include "libguile/struct.h"
 #include "libguile/memoize.h"
 

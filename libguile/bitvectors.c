@@ -28,7 +28,6 @@
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"
-#include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
 #include "libguile/generalized-vectors.h"

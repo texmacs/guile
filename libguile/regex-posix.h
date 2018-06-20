@@ -22,7 +22,6 @@
 
 
 
-#include "libguile/__scm.h"
 #include <libguile/error.h>
 
 SCM_API scm_t_bits scm_tc16_regex;

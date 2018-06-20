@@ -21,7 +21,6 @@
  */
 
 
-#include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 
 SCM_API SCM scm_make_srfi_4_vector (SCM type, SCM len, SCM fill);

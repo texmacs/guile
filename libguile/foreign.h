@@ -19,7 +19,6 @@
  * 02110-1301 USA
  */
 
-#include "libguile/__scm.h"
 #include "libguile/gc.h"
 #include "libguile/snarf.h"
 

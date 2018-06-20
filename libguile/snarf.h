@@ -23,7 +23,7 @@
 
 
 
-#include <libguile/__scm.h>
+#include <libguile/scm.h>
 
 
 /* Macros for snarfing initialization actions from C source. */

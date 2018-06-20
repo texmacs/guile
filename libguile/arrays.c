@@ -33,7 +33,6 @@
 #include "libguile/gsubr.h"
 #include "libguile/pairs.h"
 #include "libguile/boolean.h"
-#include "libguile/__scm.h"
 #include "libguile/eq.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"

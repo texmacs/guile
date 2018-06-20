@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API void scm_add_feature (const char* str);
 SCM_API SCM scm_program_arguments (void);

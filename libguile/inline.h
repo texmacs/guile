@@ -25,7 +25,7 @@
    platforms that do support inline functions, the definitions are still
    compiled into the library, once, in inline.c.  */
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 /* Define SCM_C_INLINE_KEYWORD so that it can be used as a replacement
    for the "inline" keyword, expanding to nothing when "inline" is not

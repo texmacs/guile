@@ -19,7 +19,7 @@
 #ifndef _SCM_VM_INTRINSICS_H_
 #define _SCM_VM_INTRINSICS_H_
 
-#include <libguile/__scm.h>
+#include <libguile/scm.h>
 
 #ifdef BUILDING_LIBGUILE
 

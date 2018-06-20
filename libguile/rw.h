@@ -21,7 +21,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
 				       SCM end);

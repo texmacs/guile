@@ -19,7 +19,7 @@
  * 02110-1301 USA
  */
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_INTERNAL SCM scm_syntax_p (SCM obj);
 SCM_INTERNAL SCM scm_make_syntax (SCM exp, SCM wrap, SCM module);

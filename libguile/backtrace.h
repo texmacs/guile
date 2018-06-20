@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 SCM_API SCM scm_print_exception (SCM port, SCM frame, SCM key, SCM args);
 

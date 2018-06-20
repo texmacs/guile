@@ -24,7 +24,6 @@
 
 #include <setjmp.h>
 
-#include "libguile/__scm.h"
 #include "libguile/procs.h"
 #include "libguile/throw.h"
 #include "libguile/dynstack.h"

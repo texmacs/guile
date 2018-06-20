@@ -29,7 +29,6 @@
  * Erick Gallesio <eg@unice.fr>.
  */
 
-#include "libguile/__scm.h"
 #include "libguile/boolean.h"
 #include "libguile/list.h"
 #include "libguile/ports.h"

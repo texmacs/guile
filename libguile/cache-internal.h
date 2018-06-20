@@ -1,7 +1,7 @@
 #ifndef SCM_CACHE_INTERNAL_H
 #define SCM_CACHE_INTERNAL_H
 
-/* Copyright (C) 2016
+/* Copyright (C) 2016,2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@
 
 #include <string.h>
 
-#include "libguile/__scm.h"
 #include "libguile/gc.h"
 #include "libguile/hash.h"
 #include "libguile/threads.h"

@@ -24,7 +24,7 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 
 

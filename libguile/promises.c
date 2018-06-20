@@ -25,9 +25,7 @@
 
 #include <alloca.h>
 
-#include "libguile/__scm.h"
 #include "libguile/gsubr.h"
-
 #include "libguile/alist.h"
 #include "libguile/async.h"
 #include "libguile/continuations.h"

@@ -26,7 +26,6 @@
 
 #include "libguile/gsubr.h"
 #include "libguile/boolean.h"
-#include "libguile/__scm.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/srfi-4.h"
 #include "libguile/bytevectors.h"
