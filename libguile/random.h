@@ -1,7 +1,7 @@
 #ifndef SCM_RANDOM_H
 #define SCM_RANDOM_H
 
-/* Copyright (C) 1999-2001,2006,2008,2010,2018
+/* Copyright 1999-2001,2006,2008,2010,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

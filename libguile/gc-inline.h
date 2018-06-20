@@ -1,7 +1,7 @@
 #ifndef SCM_GC_INLINE_H
 #define SCM_GC_INLINE_H
 
-/* Copyright (C) 1995-1996,1998-2004,2006-2014,2018
+/* Copyright 1995-1996,1998-2004,2006-2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -24,8 +24,8 @@
  * collector.  Its copyright notice is:
  *
  * Copyright 1988, 1989 Hans-J. Boehm, Alan J. Demers
- * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
- * Copyright (c) 2005 Hewlett-Packard Development Company, L.P.
+ * Copyright 1991-1995 by Xerox Corporation.  All rights reserved.
+ * Copyright 2005 Hewlett-Packard Development Company, L.P.
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.

@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000-2003,2006-2010,2013,2018
+/* Copyright 1997,1999,2000-2003,2006-2010,2013,2018
  *   Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,7 +1,7 @@
 #ifndef SCM_SYSCALLS_H
 #define SCM_SYSCALLS_H
 
-/* Copyright (C) 1995-1996,2000-2002,2006,2008-2011,2013-2014,2018
+/* Copyright 1995-1996,2000-2002,2006,2008-2011,2013-2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

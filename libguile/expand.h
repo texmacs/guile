@@ -1,7 +1,7 @@
 #ifndef SCM_EXPAND_H
 #define SCM_EXPAND_H
 
-/* Copyright (C) 2010, 2011, 2013, 2014, 2018
+/* Copyright 2010, 2011, 2013, 2014, 2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

@@ -1,6 +1,6 @@
 /* dynl.c - dynamic linking
  *
- * Copyright (C) 1990-2003,2008-2011,2017-2018
+ * Copyright 1990-2003,2008-2011,2017-2018
  *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or

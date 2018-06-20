@@ -1,7 +1,7 @@
 #ifndef SCM_ISELECT_H
 #define SCM_ISELECT_H
 
-/* Copyright (C) 1997-1998,2000-2002,2006,2013,2018
+/* Copyright 1997-1998,2000-2002,2006,2013,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

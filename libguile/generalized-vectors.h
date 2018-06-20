@@ -1,7 +1,7 @@
 #ifndef SCM_GENERALIZED_VECTORS_H
 #define SCM_GENERALIZED_VECTORS_H
 
-/* Copyright (C) 1995-1997,1999-2001,2004,2006,2008-2009,2013,2018
+/* Copyright 1995-1997,1999-2001,2004,2006,2008-2009,2013,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

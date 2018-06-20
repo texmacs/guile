@@ -1,7 +1,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright (C) 1995-1997,2000-2001,2003-2006,2008-2009,2018
+/* Copyright 1995-1997,2000-2001,2003-2006,2008-2009,2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

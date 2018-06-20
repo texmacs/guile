@@ -1,7 +1,7 @@
 #ifndef SCM_FPORTS_H
 #define SCM_FPORTS_H
 
-/* Copyright (C) 1995-2001,2006,2008-2009,2011-2012,2017-2018
+/* Copyright 1995-2001,2006,2008-2009,2011-2012,2017-2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

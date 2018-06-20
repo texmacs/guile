@@ -1,7 +1,7 @@
 #ifndef SCM_REGEX_POSIX_H
 #define SCM_REGEX_POSIX_H
 
-/* Copyright (C) 1997-1998,2000-2001,2006,2008,2018
+/* Copyright 1997-1998,2000-2001,2006,2008,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

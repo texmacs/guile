@@ -1,7 +1,7 @@
 #ifndef SCM_CACHE_INTERNAL_H
 #define SCM_CACHE_INTERNAL_H
 
-/* Copyright (C) 2016,2018
+/* Copyright 2016,2018
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

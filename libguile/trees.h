@@ -1,7 +1,7 @@
 #ifndef SCM_TREES_H
 #define SCM_TREES_H
 
-/* Copyright (C) 2009,2018
+/* Copyright 2009,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

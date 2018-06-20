@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995-2001,2006,2009-2013,2018
+ * Copyright 1995-2001,2006,2009-2013,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

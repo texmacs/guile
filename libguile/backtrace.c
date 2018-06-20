@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996-2001,2003-2004,2006,2009-2011,2014,2018
+ * Copyright 1996-2001,2003-2004,2006,2009-2011,2014,2018
  *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or

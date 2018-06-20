@@ -3,7 +3,8 @@
  * Test items of the Guile C API that aren't covered by any other tests.
  */
 
-/* Copyright (C) 2009, 2012, 2014 Free Software Foundation, Inc.
+/* Copyright 2009,2012,2014,2018
+ *  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

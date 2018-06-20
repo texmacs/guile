@@ -1,5 +1,5 @@
 /* srfi-1.h --- SRFI-1 procedures for Guile
- * Copyright (C) 2002-2003,2005-2006,2010-2011,2018
+ * Copyright 2002-2003,2005-2006,2010-2011,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

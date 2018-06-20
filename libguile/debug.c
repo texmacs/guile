@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995-2003,2006,2008-2013,2018
+ * Copyright 1995-2003,2006,2008-2013,2018
  *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or

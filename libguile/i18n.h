@@ -1,7 +1,7 @@
 #ifndef SCM_I18N_H
 #define SCM_I18N_H
 
-/* Copyright (C) 2006,2008-2009,2018
+/* Copyright 2006,2008-2009,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

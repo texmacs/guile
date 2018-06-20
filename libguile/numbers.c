@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016,2018
+/* Copyright 1995-2016,2018
  *   Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories

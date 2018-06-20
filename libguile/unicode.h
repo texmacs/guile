@@ -1,7 +1,7 @@
 #ifndef SCM_UNICODE_H
 #define SCM_UNICODE_H
 
-/* Copyright (C) 2014,2018
+/* Copyright 2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software: you can redistribute it and/or modify

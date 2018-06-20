@@ -1,7 +1,7 @@
 /*
  * ports-internal.h - internal-only declarations for ports.
  *
- * Copyright (C) 2013, 2018 Free Software Foundation, Inc.
+ * Copyright 2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

@@ -1,7 +1,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995-2004,2006,2009-2011,2013-2014,2018
+/* Copyright 1995-2004,2006,2009-2011,2013-2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

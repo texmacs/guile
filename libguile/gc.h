@@ -1,7 +1,7 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995-1996,1998-2004,2006-2014,2018
+/* Copyright 1995-1996,1998-2004,2006-2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

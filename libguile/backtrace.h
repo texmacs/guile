@@ -1,7 +1,7 @@
 #ifndef SCM_BACKTRACE_H
 #define SCM_BACKTRACE_H
 
-/* Copyright (C) 1996,1998-2001,2004,2006,2008,2010-2011,2018
+/* Copyright 1996,1998-2001,2004,2006,2008,2010-2011,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

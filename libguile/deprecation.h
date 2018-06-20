@@ -1,7 +1,7 @@
 #ifndef SCM_DEPRECATION_H
 #define SCM_DEPRECATION_H
 
-/* Copyright (C) 2001,2006,2008-2009, 2018
+/* Copyright 2001,2006,2008-2009, 2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

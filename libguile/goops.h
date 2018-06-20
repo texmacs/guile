@@ -1,7 +1,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998-2003,2006,2008-2009,2011,2015,2017-2018
+/* Copyright 1998-2003,2006,2008-2009,2011,2015,2017-2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

@@ -1,7 +1,7 @@
 #ifndef SCM_HASHTAB_H
 #define SCM_HASHTAB_H
 
-/* Copyright (C) 1995-1996,1999-2001,2003-2004,2006,2008-2009,2011,2018
+/* Copyright 1995-1996,1999-2001,2003-2004,2006,2008-2009,2011,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

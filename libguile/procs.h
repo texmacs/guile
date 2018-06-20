@@ -1,7 +1,7 @@
 #ifndef SCM_PROCS_H
 #define SCM_PROCS_H
 
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2006, 2008, 2009,
+/* Copyright 1995, 1996, 1998, 1999, 2000, 2001, 2006, 2008, 2009,
  *   2012, 2013, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

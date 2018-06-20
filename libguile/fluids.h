@@ -1,7 +1,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000-2001,2006,2008-2013,2018
+/* Copyright 1996,2000-2001,2006,2008-2013,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

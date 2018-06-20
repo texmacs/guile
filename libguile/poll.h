@@ -1,7 +1,7 @@
 #ifndef SCM_POLL_H
 #define SCM_POLL_H
 
-/* Copyright (C) 2010,2018
+/* Copyright 2010,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

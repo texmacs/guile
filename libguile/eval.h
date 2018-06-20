@@ -1,7 +1,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995-1996,1998-2004,2008-2012,2018
+/* Copyright 1995-1996,1998-2004,2008-2012,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

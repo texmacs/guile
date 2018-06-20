@@ -2,7 +2,7 @@
 #define SCM_SRFI_13_H
 
 /* srfi-13.c --- SRFI-13 procedures for Guile
- * Copyright (C) 2001,2004,2006,2008,2010,2018
+ * Copyright 2001,2004,2006,2008,2010,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

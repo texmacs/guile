@@ -1,7 +1,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999-2001, 2006-2013, 2015,
+/* Copyright 1995,1997,1999-2001, 2006-2013, 2015,
  *               2017-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

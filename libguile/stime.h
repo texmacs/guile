@@ -1,7 +1,7 @@
 #ifndef SCM_STIME_H
 #define SCM_STIME_H
 
-/* Copyright (C) 1995-1998,2000,2003,2006,2008,2011,2018
+/* Copyright 1995-1998,2000,2003,2006,2008,2011,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

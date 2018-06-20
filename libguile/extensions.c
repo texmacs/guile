@@ -1,6 +1,6 @@
 /* extensions.c - registering and loading extensions.
  *
- * Copyright (C) 2001,2006,2009-2011,2018
+ * Copyright 2001,2006,2009-2011,2018
  *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or

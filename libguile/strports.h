@@ -1,7 +1,7 @@
 #ifndef SCM_STRPORTS_H
 #define SCM_STRPORTS_H
 
-/* Copyright (C) 1995-1996,2000-2002,2006,2008,2010-2011,2018
+/* Copyright 1995-1996,2000-2002,2006,2008,2010-2011,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

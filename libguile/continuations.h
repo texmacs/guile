@@ -1,7 +1,7 @@
 #ifndef SCM_CONTINUATIONS_H
 #define SCM_CONTINUATIONS_H
 
-/* Copyright (C) 1995-1996,2000-2001,2006,2008-2010,2012-2014,2018
+/* Copyright 1995-1996,2000-2001,2006,2008-2010,2012-2014,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

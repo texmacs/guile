@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2001,2004,2006-2007,2010-2012,2018
+/* Copyright 1997-2001,2004,2006-2007,2010-2012,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

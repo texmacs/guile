@@ -1,9 +1,8 @@
-/* classes: h_files */
-
 #ifndef SCM_VERSION_H
 #define SCM_VERSION_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2010 Free Software Foundation, Inc.
+/* Copyright 1995-1996,1998-2001,2006,2008,2010,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,7 +22,7 @@
 
 
 
-#include "libguile/__scm.h"
+#include "libguile/scm.h"
 
 
 
@@ -40,10 +39,3 @@ SCM_API SCM scm_version (void);
 SCM_INTERNAL void scm_init_version (void);
 
 #endif  /* SCM_VERSION_H */
-
-/*
-  Local Variables:
-  c-file-style: "gnu"
-  mode: c
-  End:
-*/

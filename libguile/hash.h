@@ -1,7 +1,7 @@
 #ifndef SCM_HASH_H
 #define SCM_HASH_H
 
-/* Copyright (C) 1995-1996,2000,2006,2008,2011,2015,2018
+/* Copyright 1995-1996,2000,2006,2008,2011,2015,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or

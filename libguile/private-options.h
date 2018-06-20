@@ -4,7 +4,7 @@
  * We put this in a private header, since layout of data structures
  * is an implementation detail that we want to hide.
  * 
- * Copyright (C) 2007, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
+ * Copyright 2007, 2009, 2010, 2011, 2014, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

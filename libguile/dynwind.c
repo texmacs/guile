@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1996,1998-2001,2003-2004,2006,2008,2010-2012,2018
+/* Copyright 1995-1996,1998-2001,2003-2004,2006,2008,2010-2012,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,6 @@
  * 02110-1301 USA
  */
 
-
-
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -36,8 +33,6 @@
 
 #include "dynwind.h"
 
-
-
 
 SCM
 scm_dynamic_wind (SCM in_guard, SCM thunk, SCM out_guard)
