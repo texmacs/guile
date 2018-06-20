@@ -27,6 +27,10 @@
 
 
 
+#define SCM_TICK scm_async_tick ()
+
+
+
 SCM_API void scm_async_tick (void);
 SCM_API void scm_switch (void);
 SCM_API SCM scm_system_async_mark (SCM a);

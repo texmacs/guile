@@ -321,10 +321,6 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#define SCM_TICK scm_async_tick ()
-
-
-
 #ifndef SCM_MAGIC_SNARFER
 /* Let these macros pass through if
    we are snarfing;  thus we can tell the
