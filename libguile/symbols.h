@@ -26,8 +26,8 @@
 
 #include "libguile/__scm.h"
 #include <libguile/error.h>
-
 #include <libguile/gc.h>
+#include <libguile/snarf.h>
 
 
 
@@ -43,6 +43,39 @@
   do { \
     SCM_ASSERT_TYPE (scm_is_symbol (str), str, pos, FUNC_NAME, "symbol"); \
   } while (0)
+
+
+
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
+  static SCM c_name)							\
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
+
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
+  SCM c_name)								\
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
+
+#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(static SCM c_name)					\
+SCM_SNARF_INIT(c_name = scm_from_utf8_symbol (scheme_name))
+
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(SCM c_name)						\
+SCM_SNARF_INIT(c_name = scm_from_utf8_symbol (scheme_name))
+
+#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
 
 

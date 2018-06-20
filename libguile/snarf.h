@@ -152,36 +152,6 @@ scm_c_define_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
                                  (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
-#ifdef SCM_SUPPORT_STATIC_ALLOCATION
-
-# define SCM_SYMBOL(c_name, scheme_name)				\
-SCM_SNARF_HERE(								\
-  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
-  static SCM c_name)							\
-SCM_SNARF_INIT(								\
-  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
-)
-
-# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
-SCM_SNARF_HERE(								\
-  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
-  SCM c_name)								\
-SCM_SNARF_INIT(								\
-  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
-)
-
-#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
-
-# define SCM_SYMBOL(c_name, scheme_name)				\
-SCM_SNARF_HERE(static SCM c_name)					\
-SCM_SNARF_INIT(c_name = scm_from_utf8_symbol (scheme_name))
-
-# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
-SCM_SNARF_HERE(SCM c_name)						\
-SCM_SNARF_INIT(c_name = scm_from_utf8_symbol (scheme_name))
-
-#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
-
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
 SCM_SNARF_INIT(c_name = scm_from_locale_keyword (scheme_name))
