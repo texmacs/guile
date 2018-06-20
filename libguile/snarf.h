@@ -25,7 +25,8 @@
 
 
 
-#include <libguile/gc.h>
+#include <libguile/__scm.h>
+#include <libguile/tags.h>
 
 
 /* Macros for snarfing initialization actions from C source. */
@@ -91,22 +92,14 @@ DOCSTRING ^^ }
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION
 
 #define SCM_IMMUTABLE_CELL(c_name, car, cdr)		\
-  static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
-       c_name ## _raw_scell =						\
-  {                                                                     \
-    SCM_PACK (car),                                                     \
-    SCM_PACK (cdr)                                                      \
-  };                                                                    \
-  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_scell)
+  static SCM_ALIGNED (8) const SCM c_name ## _raw [2] =			\
+    { SCM_PACK (car), SCM_PACK (cdr) };					\
+  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw)
 
 #define SCM_IMMUTABLE_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
-  static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
-  c_name ## _raw_cell [2] =						\
-    {									\
-      { SCM_PACK (car), SCM_PACK (cbr) },				\
-      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
-    };									\
-  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
+  static SCM_ALIGNED (8) const SCM c_name ## _raw [4] =			\
+    { SCM_PACK (car), SCM_PACK (cbr), SCM_PACK (ccr), SCM_PACK (cdr) };	\
+  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw)
 #endif /* SCM_SUPPORT_STATIC_ALLOCATION */
 
 
