@@ -314,22 +314,7 @@ typedef struct scm_dynamic_state scm_t_dynamic_state;
 /* If stack is not longword aligned then
  */
 
-/* #define SHORT_ALIGN */
-#ifdef THINK_C
-# define SHORT_ALIGN
-#endif
-#ifdef MSDOS
-# define SHORT_ALIGN
-#endif
-#ifdef atarist
-# define SHORT_ALIGN
-#endif
-
-#ifdef SHORT_ALIGN
-typedef short SCM_STACKITEM;
-#else
 typedef long SCM_STACKITEM;
-#endif
 
 /* Cast pointer through (void *) in order to avoid compiler warnings
    when strict aliasing is enabled */
