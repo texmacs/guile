@@ -321,28 +321,6 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#ifndef SCM_MAGIC_SNARFER
-/* Let these macros pass through if
-   we are snarfing;  thus we can tell the
-   difference between the use of an actual
-   number vs. the use of one of these macros --
-   actual numbers in SCM_VALIDATE_* and SCM_ASSERT
-   constructs must match the formal argument name,
-   but using SCM_ARG* avoids the test */
-
-#define SCM_ARGn 		0
-#define SCM_ARG1 		1
-#define SCM_ARG2 		2
-#define SCM_ARG3 		3
-#define SCM_ARG4 		4
-#define SCM_ARG5 		5
-#define SCM_ARG6 		6
-#define SCM_ARG7 		7
-
-#endif /* SCM_MAGIC_SNARFER */
-
-
-
 /* Handling thread-local storage (TLS).  */
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
