@@ -19,30 +19,30 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
+#include <full-write.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "atomics-internal.h"
-#include "eval.h"
-#include "throw.h"
-#include "list.h"
-#include "smob.h"
-#include "dynwind.h"
 #include "deprecation.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "gsubr.h"
+#include "list.h"
+#include "pairs.h"
+#include "smob.h"
+#include "throw.h"
 
 #include "async.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <unistd.h>
-
-#include <full-write.h>
 
 
+
 /* {Asynchronous Events}
  *
  * Asyncs are used to run arbitrary code at the next safe point in a

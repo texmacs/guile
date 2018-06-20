@@ -22,8 +22,8 @@
 
 #include <stdlib.h>
 
-#if SCM_USE_NULL_THREADS
 
+#if SCM_USE_NULL_THREADS
 #include "null-threads.h"
 
 static scm_i_pthread_key_t *all_keys = NULL;

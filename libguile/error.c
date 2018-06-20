@@ -24,13 +24,20 @@
 #  include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "gsubr.h"
+/* For Windows... */
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+
 #include "async.h"
 #include "dynwind.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
@@ -41,15 +48,7 @@
 
 #include "error.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <unistd.h>
 
-/* For Windows... */
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
 
 
 /* {Errors and Exceptional Conditions}

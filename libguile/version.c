@@ -18,16 +18,20 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <stdio.h>
+
 #include "gsubr.h"
-#include "strings.h"
 #include "numbers.h"
+#include "strings.h"
 
 #include "version.h"
+
+
 
 
 #define SCM_TMP_MACRO_MKSTR(x) #x

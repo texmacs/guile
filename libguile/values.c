@@ -21,18 +21,19 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "eval.h"
 #include "feature.h"
 #include "gc.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "strings.h"
 #include "struct.h"
 
 #include "values.h"
+
 
 SCM scm_values_vtable;
 

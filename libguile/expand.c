@@ -23,18 +23,17 @@
 #  include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 #include "alist.h"
+#include "boolean.h"
 #include "continuations.h"
 #include "eq.h"
-#include "expand.h"
+#include "gsubr.h"
 #include "hashtab.h"
 #include "keywords.h"
 #include "list.h"
 #include "macros.h"
 #include "modules.h"
+#include "pairs.h"
 #include "ports.h"
 #include "print.h"
 #include "srcprop.h"
@@ -43,6 +42,8 @@
 #include "throw.h"
 #include "variable.h"
 #include "vectors.h"
+
+#include "expand.h"
 
 
 

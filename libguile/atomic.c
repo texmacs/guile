@@ -1,4 +1,4 @@
-/* Copyright (C) 2016, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2016,2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -18,18 +18,22 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "boolean.h"
-#include "gsubr.h"
-#include "extensions.h"
-#include "ports.h"
 #include "atomics-internal.h"
+#include "boolean.h"
+#include "extensions.h"
+#include "gsubr.h"
+#include "ports.h"
+
 #include "atomic.h"
 
+
 
+
 SCM_DEFINE (scm_make_atomic_box, "make-atomic-box", 1, 0, 0,
             (SCM init),
             "Return an atomic box initialized to value @var{init}.")

@@ -24,32 +24,34 @@
 #  include <config.h>
 #endif
 
-#include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#include "gsubr.h"
-#include "pairs.h"
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
+
 #include "async.h"
 #include "dynwind.h"
 #include "extensions.h"
 #include "fdes-finalizers.h"
 #include "feature.h"
 #include "fports.h"
+#include "gsubr.h"
 #include "hashtab.h"
-#include "ioext.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports-internal.h"
 #include "ports.h"
 #include "strings.h"
 #include "syscalls.h"
 #include "weak-set.h"
 
-#include <fcntl.h>
+#include "ioext.h"
 
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
-#include <unistd.h>
+
 
 
 SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 

@@ -25,22 +25,22 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-
-#include "gsubr.h"
 #include "boolean.h"
 #include "bytevectors.h"
 #include "chars.h"
 #include "eval.h"
 #include "extensions.h"
-#include "procs.h"
+#include "gsubr.h"
 #include "numbers.h"
-#include "r6rs-ports.h"
-#include "strings.h"
+#include "ports-internal.h"
+#include "procs.h"
 #include "smob.h"
+#include "strings.h"
 #include "symbols.h"
 #include "values.h"
 #include "vectors.h"
-#include "ports-internal.h"
+
+#include "r6rs-ports.h"
 
 
 

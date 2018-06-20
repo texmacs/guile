@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2016,2018 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -42,40 +42,37 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
-#include <verify.h>
 #include <assert.h>
-
 #include <math.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unicase.h>
 #include <unictype.h>
+#include <verify.h>
 
 #if HAVE_COMPLEX_H
 #include <complex.h>
 #endif
 
-#include <stdarg.h>
-
-#include "gsubr.h"
+#include "bdw-gc.h"
 #include "boolean.h"
+#include "deprecation.h"
+#include "eq.h"
 #include "feature.h"
+#include "finalizers.h"
+#include "goops.h"
+#include "gsubr.h"
+#include "modules.h"
 #include "pairs.h"
 #include "ports.h"
-#include "finalizers.h"
 #include "smob.h"
 #include "strings.h"
-#include "modules.h"
-#include "bdw-gc.h"
-#include "goops.h"
 #include "values.h"
 
 #include "numbers.h"
-#include "deprecation.h"
-
-#include "eq.h"
 
 /* values per glibc, if not already defined */
 #ifndef M_LOG10E

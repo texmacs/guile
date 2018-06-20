@@ -36,22 +36,24 @@
 
 #include <gmp.h>
 
+#include "array-handle.h"
+#include "arrays.h"
 #include "boolean.h"
-#include "gsubr.h"
 #include "dynwind.h"
 #include "extensions.h"
-#include "bytevectors.h"
 #include "generalized-vectors.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
 #include "pairs.h"
 #include "ports.h"
+#include "srfi-4.h"
 #include "strings.h"
 #include "symbols.h"
-#include "arrays.h"
-#include "array-handle.h"
 #include "uniform.h"
-#include "srfi-4.h"
+
+#include "bytevectors.h"
+
 
 
 /* Utilities.  */

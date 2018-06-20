@@ -19,31 +19,32 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "gsubr.h"
 #include "boolean.h"
-#include "control.h"
-#include "eval.h"
-#include "debug.h"
 #include "continuations.h"
+#include "control.h"
+#include "debug.h"
+#include "eval.h"
 #include "fluids.h"
+#include "frames.h" /* vm frames */
+#include "gsubr.h"
 #include "list.h"
-#include "struct.h"
 #include "macros.h"
+#include "modules.h"
 #include "numbers.h"
 #include "pairs.h"
+#include "private-options.h"
 #include "procprop.h"
-#include "modules.h"
 #include "strings.h"
+#include "struct.h"
 #include "symbols.h"
 #include "vm.h" /* to capture vm stacks */
-#include "frames.h" /* vm frames */
 
 #include "stacks.h"
-#include "private-options.h"
 
 
 static SCM scm_sys_stacks;

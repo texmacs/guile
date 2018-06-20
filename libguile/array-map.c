@@ -26,29 +26,30 @@
 # include <config.h>
 #endif
 
+#include <assert.h>
 #include <string.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-#include "strings.h"
 #include "arrays.h"
-#include "smob.h"
+#include "bitvectors.h"
+#include "boolean.h"
 #include "chars.h"
 #include "eq.h"
 #include "eval.h"
 #include "feature.h"
-#include "vectors.h"
+#include "generalized-arrays.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
-#include "bitvectors.h"
-#include "srfi-4.h"
-#include "symbols.h"
+#include "pairs.h"
 #include "procs.h"
-#include "generalized-arrays.h"
+#include "smob.h"
+#include "srfi-4.h"
+#include "strings.h"
+#include "symbols.h"
+#include "vectors.h"
 
 #include "array-map.h"
-#include <assert.h>
+
 
 /* The WHAT argument for `scm_gc_malloc ()' et al.  */
 static const char vi_gc_hint[] = "array-indices";

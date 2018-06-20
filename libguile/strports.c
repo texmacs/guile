@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1998-2003, 2005-2006,
- *   2009-2014, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998-2003,2005-2006,2009-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,31 +24,28 @@
 #  include <config.h>
 #endif
 
-#include "gsubr.h"
-
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "bytevectors.h"
+#include "deprecation.h"
 #include "eval.h"
+#include "gsubr.h"
 #include "keywords.h"
+#include "modules.h"
 #include "ports.h"
 #include "procs.h"
 #include "read.h"
+#include "srfi-4.h"
 #include "strings.h"
 #include "symbols.h"
 #include "syscalls.h"
-#include "modules.h"
-#include "deprecation.h"
-#include "srfi-4.h"
 #include "threads.h"
 #include "variable.h"
 
 #include "strports.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 
 
 

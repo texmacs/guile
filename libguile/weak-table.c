@@ -18,27 +18,29 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <assert.h>
 
-#include "bdw-gc.h"
-#include "pairs.h"
-#include <gc/gc_typed.h>
-
-#include "gsubr.h"
 #include "alist.h"
-#include "finalizers.h"
-#include "hash.h"
+#include "bdw-gc.h"
 #include "eval.h"
+#include "finalizers.h"
+#include "gsubr.h"
+#include "hash.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "procs.h"
 #include "threads.h"
 #include "weak-list.h"
+
 #include "weak-table.h"
+
+#include <gc/gc_typed.h>
 
 
 /* Weak Tables

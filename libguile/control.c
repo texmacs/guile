@@ -23,15 +23,16 @@
 #include <alloca.h>
 
 #include "dynstack.h"
-#include "gsubr.h"
-#include "pairs.h"
-#include "control.h"
 #include "extensions.h"
+#include "gsubr.h"
+#include "instructions.h"
 #include "list.h"
+#include "pairs.h"
 #include "programs.h"
 #include "threads.h"
-#include "instructions.h"
 #include "vm.h"
+
+#include "control.h"
 
 
 

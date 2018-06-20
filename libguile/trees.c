@@ -23,16 +23,16 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "eq.h"
-
-#include "list.h"
-#include "vectors.h"
-#include "srcprop.h"
-#include "trees.h"
-
 #include <stdarg.h>
+
+#include "eq.h"
+#include "gsubr.h"
+#include "list.h"
+#include "pairs.h"
+#include "srcprop.h"
+#include "vectors.h"
+
+#include "trees.h"
 
 
 /* scm_copy_tree creates deep copies of pairs and vectors, but not of any other

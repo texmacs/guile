@@ -19,22 +19,22 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include "array-handle.h"
+#include "bdw-gc.h"
 #include "boolean.h"
-#include "gsubr.h"
-#include "pairs.h"
 #include "eq.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
-
+#include "pairs.h"
 #include "vectors.h"
-#include "array-handle.h"
-#include "generalized-vectors.h"
 
-#include "bdw-gc.h"
+#include "generalized-vectors.h"
 
 
 

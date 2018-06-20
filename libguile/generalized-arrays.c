@@ -20,19 +20,20 @@
 
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "array-handle.h"
-#include "generalized-arrays.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
+
+#include "generalized-arrays.h"
 
 
 SCM_INTERNAL SCM scm_i_array_ref (SCM v,

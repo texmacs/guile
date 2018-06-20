@@ -39,18 +39,18 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-#include "eval.h"
-#include "arrays.h"
 #include "array-map.h"
+#include "arrays.h"
+#include "async.h"
+#include "boolean.h"
+#include "dynwind.h"
+#include "eval.h"
 #include "feature.h"
 #include "generalized-arrays.h"
+#include "gsubr.h"
 #include "list.h"
+#include "pairs.h"
 #include "vectors.h"
-#include "async.h"
-#include "dynwind.h"
 
 #include "sort.h"
 

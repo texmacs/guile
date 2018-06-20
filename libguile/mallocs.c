@@ -25,13 +25,12 @@
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "ports.h"
 #include "smob.h"
 
 #include "mallocs.h"
-
-#include <unistd.h>
 
 
 

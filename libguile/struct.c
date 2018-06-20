@@ -25,36 +25,32 @@
 #include <alloca.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
-#include "gsubr.h"
-#include "boolean.h"
+#include "alist.h"
 #include "async.h"
+#include "bdw-gc.h"
+#include "boolean.h"
 #include "chars.h"
 #include "deprecation.h"
+#include "eq.h"
 #include "eval.h"
 #include "finalizers.h"
 #include "goops.h"
+#include "gsubr.h"
+#include "hashtab.h"
 #include "modules.h"
 #include "numbers.h"
-#include "alist.h"
-#include "hashtab.h"
 #include "pairs.h"
 #include "ports.h"
-#include "strings.h"
 #include "srfi-13.h"
+#include "strings.h"
 #include "symbols.h"
 
 #include "struct.h"
 
-#include "eq.h"
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#include "bdw-gc.h"
 
 
 

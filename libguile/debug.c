@@ -35,37 +35,37 @@
 # include <windows.h>
 #endif
 
-#include "gsubr.h"
-#include "async.h"
-#include "eval.h"
-#include "list.h"
-#include "stackchk.h"
-#include "throw.h"
-#include "macros.h"
-#include "smob.h"
-#include "struct.h"
-#include "pairs.h"
-#include "procprop.h"
-#include "srcprop.h"
 #include "alist.h"
+#include "async.h"
 #include "continuations.h"
-#include "strports.h"
-#include "read.h"
-#include "feature.h"
 #include "dynwind.h"
-#include "modules.h"
-#include "ports.h"
+#include "eval.h"
+#include "feature.h"
 #include "fluids.h"
-#include "programs.h"
+#include "gsubr.h"
+#include "list.h"
+#include "macros.h"
 #include "memoize.h"
+#include "modules.h"
+#include "pairs.h"
+#include "ports.h"
+#include "private-options.h"
+#include "procprop.h"
+#include "programs.h"
+#include "read.h"
+#include "smob.h"
+#include "srcprop.h"
+#include "stackchk.h"
+#include "strports.h"
+#include "struct.h"
+#include "throw.h"
 #include "variable.h"
 #include "vm.h"
 
 #include "debug.h"
 
-#include "private-options.h"
-
 
+
 
 /*
  * Debugging options.

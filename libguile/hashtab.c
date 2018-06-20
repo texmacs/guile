@@ -24,24 +24,25 @@
 #endif
 
 #include <alloca.h>
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "alist.h"
-#include "boolean.h"
 #include "bdw-gc.h"
+#include "boolean.h"
 #include "eq.h"
 #include "eval.h"
+#include "gsubr.h"
 #include "hash.h"
-#include "hashtab.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "procs.h"
 #include "vectors.h"
 #include "weak-table.h"
+
+#include "hashtab.h"
 
 
 

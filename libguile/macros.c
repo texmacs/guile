@@ -22,19 +22,19 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
 #include "boolean.h"
+#include "gsubr.h"
 #include "modules.h"
 #include "ports.h"
 #include "print.h"
+#include "private-options.h"
 #include "procs.h"
 #include "random.h"
 #include "smob.h"
 #include "symbols.h"
-#include "macros.h"
 #include "variable.h"
 
-#include "private-options.h"
+#include "macros.h"
 
 
 static scm_t_bits scm_tc16_macro;

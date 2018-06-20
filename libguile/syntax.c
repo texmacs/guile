@@ -18,18 +18,21 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include "eval.h"
 #include "gsubr.h"
 #include "keywords.h"
-#include "eval.h"
 #include "modules.h"
 #include "ports.h"
-#include "syntax.h"
 #include "threads.h"
 #include "variable.h"
+
+#include "syntax.h"
+
 
 
 

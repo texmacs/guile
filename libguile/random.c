@@ -18,39 +18,40 @@
  */
 
 
-
 /* Original Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
-#include <gmp.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "gsubr.h"
-#include "smob.h"
-#include "generalized-arrays.h"
-#include "list.h"
-#include "numbers.h"
+#include <gmp.h>
+
+#include "arrays.h"
 #include "feature.h"
+#include "generalized-arrays.h"
+#include "generalized-vectors.h"
+#include "gsubr.h"
+#include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "numbers.h"
 #include "pairs.h"
+#include "smob.h"
+#include "srfi-4.h"
 #include "stime.h"
 #include "strings.h"
 #include "symbols.h"
-#include "arrays.h"
-#include "srfi-4.h"
 #include "variable.h"
 #include "vectors.h"
-#include "generalized-vectors.h"
 
 #include "random.h"
+
 
 
 /*

@@ -25,13 +25,15 @@
 
 #include <string.h>
 
-#include "gsubr.h"
 #include "dynl.h"
 #include "dynwind.h"
-#include "extensions.h"
 #include "gc.h"
+#include "gsubr.h"
 #include "strings.h"
 #include "threads.h"
+
+#include "extensions.h"
+
 
 typedef struct extension_t
 {

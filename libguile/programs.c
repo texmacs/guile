@@ -1,4 +1,5 @@
-/* Copyright (C) 2001, 2009-2014, 2017-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2009-2014,2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -21,20 +22,22 @@
 #endif
 
 #include <string.h>
-#include "gsubr.h"
-#include "boolean.h"
-#include "instructions.h"
+
 #include "alist.h"
+#include "boolean.h"
 #include "eval.h"
 #include "extensions.h"
+#include "gsubr.h"
+#include "instructions.h"
 #include "modules.h"
 #include "numbers.h"
 #include "pairs.h"
 #include "ports.h"
-#include "programs.h"
 #include "procprop.h" /* scm_sym_name */
 #include "variable.h"
 #include "vm.h"
+
+#include "programs.h"
 
 
 static SCM write_program = SCM_BOOL_F;

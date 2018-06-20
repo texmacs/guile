@@ -37,34 +37,35 @@
 # include <pthread_np.h>
 #endif
 
-#include "bdw-gc.h"
-#include "pairs.h"
-#include <gc/gc_mark.h>
-
-#include "gsubr.h"
-#include "boolean.h"
-#include "deprecation.h"
-#include "extensions.h"
-#include "hashtab.h"
-#include "eval.h"
-#include "list.h"
 #include "async.h"
+#include "bdw-gc.h"
+#include "boolean.h"
+#include "continuations.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "extensions.h"
+#include "fluids.h"
+#include "gc-inline.h"
+#include "gc.h"
+#include "gsubr.h"
+#include "hashtab.h"
+#include "init.h"
+#include "iselect.h"
+#include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
-#include "threads.h"
-#include "dynwind.h"
-#include "iselect.h"
-#include "fluids.h"
-#include "continuations.h"
-#include "gc.h"
-#include "gc-inline.h"
-#include "init.h"
 #include "scmsigs.h"
 #include "strings.h"
 #include "symbols.h"
 #include "variable.h"
 #include "vm.h"
+
+#include "threads.h"
+
+#include <gc/gc_mark.h>
 
 
 

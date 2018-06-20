@@ -1,4 +1,5 @@
-/* Copyright (C) 2010-2016, 2018  Free Software Foundation, Inc.
+/* Copyright (C) 2010-2016,2018
+ *  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,15 +21,14 @@
 #  include <config.h>
 #endif
 
-#include <ffi.h>
-
-#include <alloca.h>
 #include <alignof.h>
-#include <string.h>
+#include <alloca.h>
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 
-#include "gsubr.h"
+#include <ffi.h>
+
 #include "boolean.h"
 #include "bytevectors.h"
 #include "dynwind.h"
@@ -36,18 +36,20 @@
 #include "eval.h"
 #include "extensions.h"
 #include "finalizers.h"
-#include "foreign.h"
-#include "keywords.h"
-#include "numbers.h"
-#include "list.h"
+#include "gsubr.h"
 #include "instructions.h"
+#include "keywords.h"
+#include "list.h"
 #include "modules.h"
+#include "numbers.h"
 #include "pairs.h"
 #include "ports.h"
 #include "stacks.h"
 #include "symbols.h"
 #include "threads.h"
 #include "weak-table.h"
+
+#include "foreign.h"
 
 
 

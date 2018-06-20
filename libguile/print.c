@@ -1,5 +1,5 @@
-/* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004,2006,2008,2009-2015,2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,45 +30,45 @@
 #include <uniconv.h>
 #include <unictype.h>
 
-#include "gsubr.h"
-#include "pairs.h"
+#include "alist.h"
+#include "arrays.h"
+#include "atomic.h"
+#include "bitvectors.h"
 #include "boolean.h"
 #include "chars.h"
 #include "continuations.h"
-#include "smob.h"
 #include "control.h"
 #include "eval.h"
+#include "fluids.h"
 #include "foreign.h"
 #include "goops.h"
+#include "gsubr.h"
 #include "hashtab.h"
-#include "weak-set.h"
-#include "weak-table.h"
-#include "fluids.h"
 #include "keywords.h"
-#include "atomic.h"
-#include "bitvectors.h"
-#include "arrays.h"
-#include "weak-vector.h"
 #include "macros.h"
-#include "procprop.h"
-#include "read.h"
-#include "programs.h"
-#include "alist.h"
-#include "struct.h"
-#include "ports.h"
+#include "numbers.h"
+#include "pairs.h"
 #include "ports-internal.h"
+#include "ports.h"
+#include "private-options.h"
+#include "procprop.h"
+#include "programs.h"
+#include "read.h"
+#include "smob.h"
 #include "strings.h"
 #include "strports.h"
+#include "struct.h"
 #include "symbols.h"
 #include "syntax.h"
 #include "variable.h"
 #include "vectors.h"
-#include "numbers.h"
 #include "vm.h"
+#include "weak-set.h"
+#include "weak-table.h"
+#include "weak-vector.h"
 
 #include "print.h"
 
-#include "private-options.h"
 
 
 

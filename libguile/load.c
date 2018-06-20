@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2017, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2001,2004,2006,2008-2014,2017-2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,38 +24,9 @@
 #  include <config.h>
 #endif
 
+#include <stat-time.h>
 #include <string.h>
 #include <stdio.h>
-
-#include "gsubr.h"
-#include "boolean.h"
-#include "alist.h"
-#include "chars.h"
-#include "dynwind.h"
-#include "eq.h"
-#include "strports.h"
-#include "backtrace.h"
-#include "keywords.h"
-#include "eval.h"
-#include "filesys.h"
-#include "fports.h"
-#include "libpath.h"
-#include "list.h"
-#include "loader.h"
-#include "modules.h"
-#include "pairs.h"
-#include "read.h"
-#include "srfi-13.h"
-#include "strings.h"
-#include "symbols.h"
-#include "throw.h"
-#include "variable.h"
-
-#include "load.h"
-#include "fluids.h"
-
-#include "vm.h" /* for load-compiled/vm */
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -64,11 +35,37 @@
 #include <pwd.h>
 #endif /* HAVE_PWD_H */
 
+#include "alist.h"
+#include "backtrace.h"
+#include "boolean.h"
+#include "chars.h"
+#include "dynwind.h"
+#include "eq.h"
+#include "eval.h"
+#include "filesys.h"
+#include "fluids.h"
+#include "fports.h"
+#include "gsubr.h"
+#include "keywords.h"
+#include "libpath.h"
+#include "list.h"
+#include "loader.h"
+#include "modules.h"
+#include "pairs.h"
+#include "read.h"
+#include "srfi-13.h"
+#include "strings.h"
+#include "strports.h"
+#include "symbols.h"
+#include "throw.h"
+#include "variable.h"
+#include "vm.h" /* for load-compiled/vm */
+
+#include "load.h"
+
 #ifndef R_OK
 #define R_OK 4
 #endif
-
-#include <stat-time.h>
 
 
 /* Loading a file, given an absolute filename.  */

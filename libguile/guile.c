@@ -18,7 +18,6 @@
  */
 
 /* This is the 'main' function for the `guile' executable.  It is not
-   included in libguile.a.
 
    Eventually, we hope this file will be automatically generated,
    based on the list of installed, statically linked libraries on the

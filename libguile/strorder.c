@@ -18,20 +18,24 @@
  */
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "gsubr.h"
 #include "boolean.h"
 #include "chars.h"
+#include "gsubr.h"
 #include "pairs.h"
+#include "srfi-13.h"
 #include "strings.h"
 #include "symbols.h"
 
 #include "strorder.h"
-#include "srfi-13.h"
+
+
 
+
 
 SCM_C_INLINE_KEYWORD static SCM
 srfi13_cmp (SCM s1, SCM s2, SCM (*cmp) (SCM, SCM, SCM, SCM, SCM, SCM))

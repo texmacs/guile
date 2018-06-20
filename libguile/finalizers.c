@@ -24,19 +24,20 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
+#include <full-write.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <fcntl.h>
-
-#include <full-write.h>
 
 #include "async.h"
 #include "bdw-gc.h"
-#include "finalizers.h"
 #include "gc.h"
 #include "gsubr.h"
 #include "init.h"
 #include "threads.h"
+
+#include "finalizers.h"
+
 
 
 

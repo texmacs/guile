@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2015, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1996,1998-2001,2003-2004,2006,2009-2013,2015,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -19,18 +19,20 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #include "async.h"
+#include "bdw-gc.h"
+#include "finalizers.h"
 #include "goops.h"
 #include "gsubr.h"
-#include "finalizers.h"
 #include "instructions.h"
 #include "numbers.h"
 #include "ports.h"
@@ -38,7 +40,6 @@
 
 #include "smob.h"
 
-#include "bdw-gc.h"
 #include <gc/gc_mark.h>
 
 

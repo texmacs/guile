@@ -18,6 +18,7 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -25,7 +26,6 @@
 #include "eval.h"
 #include "extensions.h"
 #include "finalizers.h"
-#include "foreign-object.h"
 #include "goops.h"
 #include "gsubr.h"
 #include "list.h"
@@ -34,6 +34,8 @@
 #include "procs.h"
 #include "threads.h"
 #include "variable.h"
+
+#include "foreign-object.h"
 
 
 

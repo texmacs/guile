@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1997, 1999-2001, 2003-2004, 2006-2012, 2014-2015, 2018
+/* Copyright (C) 1995-1997,1999-2001,2003-2004,2006-2012,2014-2015,2018
  *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -24,45 +24,45 @@
 # include <config.h>
 #endif
 
+#include <alloca.h>
+#include <c-ctype.h>
+#include <c-strcase.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <unicase.h>
 #include <unictype.h>
-#include <c-strcase.h>
-#include <c-ctype.h>
-#include <alloca.h>
+#include <unistd.h>
 
-#include "gsubr.h"
-#include "pairs.h"
+#include "alist.h"
+#include "arrays.h"
+#include "bitvectors.h"
 #include "boolean.h"
 #include "bytevectors.h"
 #include "chars.h"
-#include "eval.h"
-#include "arrays.h"
-#include "bitvectors.h"
-#include "keywords.h"
-#include "alist.h"
-#include "srcprop.h"
-#include "hashtab.h"
-#include "hash.h"
 #include "eq.h"
+#include "eval.h"
 #include "fluids.h"
+#include "fports.h"
+#include "gsubr.h"
+#include "hash.h"
+#include "hashtab.h"
+#include "keywords.h"
 #include "modules.h"
 #include "numbers.h"
-#include "ports.h"
+#include "pairs.h"
 #include "ports-internal.h"
-#include "fports.h"
+#include "ports.h"
+#include "private-options.h"
+#include "srcprop.h"
+#include "srfi-13.h"
+#include "srfi-4.h"
 #include "strings.h"
 #include "strports.h"
+#include "symbols.h"
 #include "variable.h"
 #include "vectors.h"
-#include "srfi-4.h"
-#include "srfi-13.h"
-#include "symbols.h"
 
 #include "read.h"
-#include "private-options.h"
 
 
 

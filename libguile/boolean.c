@@ -19,16 +19,17 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include "error.h"
 #include "gsubr.h"
+#include "verify.h"
 
 #include "boolean.h"
-#include "error.h"
 
-#include "verify.h"
 
 
 

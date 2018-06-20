@@ -19,6 +19,7 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -31,12 +32,12 @@
 #include <string.h>
 #include <unistr.h>
 
-#include "gsubr.h"
 #include "chars.h"
 #include "foreign.h"
+#include "gsubr.h"
+#include "numbers.h"
 #include "pairs.h"
 #include "ports.h"
-#include "numbers.h"
 #include "strings.h"
 #include "struct.h"
 #include "symbols.h"
@@ -44,6 +45,8 @@
 #include "vectors.h"
 
 #include "hash.h"
+
+
 
 
 #ifndef floor

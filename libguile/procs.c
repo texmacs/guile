@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1997, 1999-2001, 2006, 2008-2013, 2017-2018
+/* Copyright (C) 1995-1997,1999-2001,2006,2008-2013,2017-2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -23,23 +23,22 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-
-#include "goops.h"
-#include "strings.h"
-#include "vectors.h"
-#include "smob.h"
-#include "struct.h"
 #include "deprecation.h"
-#include "procprop.h"
-#include "symbols.h"
+#include "goops.h"
+#include "gsubr.h"
 #include "loader.h"
+#include "procprop.h"
 #include "programs.h"
+#include "smob.h"
+#include "strings.h"
+#include "struct.h"
+#include "symbols.h"
+#include "vectors.h"
 
 #include "procs.h"
 
-
 
+
 
 /* {Procedures}
  */

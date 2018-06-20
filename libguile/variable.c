@@ -19,19 +19,22 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include "boolean.h"
-#include "gsubr.h"
+#include "deprecation.h"
 #include "eq.h"
+#include "gsubr.h"
 #include "list.h"
 #include "ports.h"
 #include "smob.h"
-#include "deprecation.h"
 
 #include "variable.h"
+
+
 
 
 void

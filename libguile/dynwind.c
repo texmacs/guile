@@ -29,9 +29,9 @@
 #include "boolean.h"
 #include "dynstack.h"
 #include "eval.h"
-#include "threads.h"
 #include "pairs.h"
 #include "ports.h"
+#include "threads.h"
 #include "variable.h"
 
 #include "dynwind.h"

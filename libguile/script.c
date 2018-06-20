@@ -23,35 +23,33 @@
 #  include <config.h>
 #endif
 
-#include <localcharset.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
 #include <ctype.h>
-#include <uniconv.h>
-
-#include "pairs.h"
-#include "eval.h"
-#include "feature.h"
-#include "fluids.h"
-#include "load.h"
-#include "modules.h"
-#include "read.h"
-#include "script.h"
-#include "strings.h"
-#include "strports.h"
-#include "version.h"
-#include "vm.h"
-
-#ifdef HAVE_STRING_H
+#include <errno.h>
+#include <localcharset.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
-
+#include <uniconv.h>
 #include <unistd.h>		/* for X_OK define */
 
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
+
+#include "eval.h"
+#include "feature.h"
+#include "fluids.h"
+#include "load.h"
+#include "modules.h"
+#include "pairs.h"
+#include "read.h"
+#include "strings.h"
+#include "strports.h"
+#include "version.h"
+#include "vm.h"
+
+#include "script.h"
+
 
 /* Concatentate str2 onto str1 at position n and return concatenated
    string if file exists; 0 otherwise. */

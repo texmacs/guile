@@ -23,48 +23,46 @@
 #  include <config.h>
 #endif
 
-#include "gen-scmconfig.h"
-#include "pairs.h"
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
-#include "gsubr.h"
-#include "eval.h"
-#include "stime.h"
-#include "stackchk.h"
-#include "struct.h"
-#include "smob.h"
 #include "arrays.h"
 #include "async.h"
-#include "ports.h"
+#include "bdw-gc.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "gen-scmconfig.h"
+#include "gsubr.h"
+#include "hashtab.h"
 #include "hooks.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
 #include "simpos.h"
+#include "smob.h"
+#include "stackchk.h"
+#include "stime.h"
 #include "strings.h"
+#include "struct.h"
 #include "symbols.h"
 #include "vectors.h"
-#include "hashtab.h"
-
-#include "deprecation.h"
-#include "gc.h"
-#include "dynwind.h"
-
-#include "bdw-gc.h"
-
-/* For GC_set_start_callback.  */
-#include <gc/gc_mark.h>
 
 #ifdef GUILE_DEBUG_MALLOC
 #include "debug-malloc.h"
 #endif
 
-#include <unistd.h>
+#include "gc.h"
+
+/* For GC_set_start_callback.  */
+#include <gc/gc_mark.h>
+
 
 /* Size in bytes of the initial heap.  This should be about the size of
    result of 'guile -c "(display (assq-ref (gc-stats)

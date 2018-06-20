@@ -19,52 +19,36 @@
  */
 
 
+/* "dynl.c" dynamically link&load object files.
+   Author: Aubrey Jaffer
+   Modified for libguile by Marius Vollmer */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <alloca.h>
-#include <string.h>
-
-/* "dynl.c" dynamically link&load object files.
-   Author: Aubrey Jaffer
-   Modified for libguile by Marius Vollmer */
-
-#if 0 /* Disabled until we know for sure that it isn't needed */
-/* XXX - This is only here to drag in a definition of __eprintf. This
-   is needed for proper operation of dynamic linking. The real
-   solution would probably be a shared libgcc. */
-
-#undef NDEBUG
-#include <assert.h>
-
-static void
-maybe_drag_in_eprintf ()
-{
-  assert (!maybe_drag_in_eprintf);
-}
-#endif
-
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "gsubr.h"
-#include "libpath.h"
-#include "dynl.h"
-#include "smob.h"
-#include "keywords.h"
-#include "list.h"
-#include "ports.h"
-#include "strings.h"
+#include <ltdl.h>
+
 #include "deprecation.h"
 #include "dynwind.h"
 #include "foreign.h"
-#include "threads.h"
 #include "gc.h"
+#include "gsubr.h"
+#include "keywords.h"
+#include "libpath.h"
+#include "list.h"
+#include "ports.h"
+#include "smob.h"
+#include "strings.h"
+#include "threads.h"
 
-#include <ltdl.h>
+#include "dynl.h"
+
 
 /* From the libtool manual: "Note that libltdl is not threadsafe,
    i.e. a multithreaded application has to use a mutex for libltdl.".

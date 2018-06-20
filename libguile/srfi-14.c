@@ -23,26 +23,27 @@
 #  include <config.h>
 #endif
 
-
 #include <stdio.h>
 #include <string.h>
 #include <unictype.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "boolean.h"
 #include "chars.h"
 #include "eval.h"
+#include "gsubr.h"
 #include "list.h"
-#include "ports.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
 #include "procs.h"
 #include "smob.h"
-#include "srfi-14.h"
 #include "strings.h"
 #include "symbols.h"
 #include "values.h"
+
+#include "srfi-14.h"
+
 
 /* Include the pre-computed standard charset data.  */
 #include "srfi-14.i.c"

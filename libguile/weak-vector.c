@@ -27,11 +27,12 @@
 #include <string.h>
 
 #include "boolean.h"
-#include "gsubr.h"
 #include "extensions.h"
+#include "gsubr.h"
 #include "list.h"
 #include "pairs.h"
 #include "vectors.h"
+
 #include "weak-vector.h"
 
 

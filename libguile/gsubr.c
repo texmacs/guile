@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2001, 2006, 2008-2011, 2013, 2015, 2018
+/* Copyright (C) 1995-2001,2006,2008-2011,2013,2015,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
  */
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -27,7 +28,6 @@
 
 #include "foreign.h"
 #include "frames.h"
-#include "gsubr.h"
 #include "instructions.h"
 #include "modules.h"
 #include "numbers.h"
@@ -35,6 +35,9 @@
 #include "programs.h"
 #include "srfi-4.h"
 #include "symbols.h"
+
+#include "gsubr.h"
+
 
 
 /*

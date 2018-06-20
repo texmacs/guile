@@ -33,21 +33,22 @@
 #include <uniconv.h>
 #include <c-strcase.h>
 
-#include "striconveh.h"
-
-#include "gsubr.h"
-#include "pairs.h"
 #include "chars.h"
-#include "strings.h"
-#include "numbers.h"
-#include "ports.h"
-#include "ports-internal.h"
+#include "deprecation.h"
 #include "error.h"
 #include "generalized-vectors.h"
-#include "deprecation.h"
+#include "gsubr.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "ports-internal.h"
+#include "ports.h"
+#include "private-options.h"
+#include "striconveh.h"
 #include "symbols.h"
 #include "threads.h"
-#include "private-options.h"
+
+#include "strings.h"
+
 
 
 

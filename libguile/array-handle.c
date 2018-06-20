@@ -26,15 +26,16 @@
 
 #include <string.h>
 
+#include "arrays.h"
 #include "bitvectors.h"
 #include "bytevectors.h"
 #include "list.h"
-#include "arrays.h"
 #include "numbers.h"
 #include "pairs.h"
 #include "strings.h"
 #include "symbols.h"
 #include "vectors.h"
+
 #include "array-handle.h"
 
 

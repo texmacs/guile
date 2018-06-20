@@ -23,11 +23,12 @@
 # include <config.h>
 #endif
 
+#include <verify.h>
+
 #include "boolean.h"
 #include "gsubr.h"
-#include "pairs.h"
 
-#include "verify.h"
+#include "pairs.h"
 
 
 

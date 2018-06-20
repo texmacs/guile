@@ -28,8 +28,8 @@
 # include <config.h>
 #endif
 
-#include "boolean.h"
 #include "async.h"
+#include "boolean.h"
 #include "chars.h"
 #include "dynwind.h"
 #include "eval.h"
@@ -42,8 +42,8 @@
 #include "modules.h"
 #include "numbers.h"
 #include "pairs.h"
-#include "ports.h"
 #include "ports-internal.h"
+#include "ports.h"
 #include "procprop.h"
 #include "programs.h"
 #include "smob.h"
@@ -55,6 +55,7 @@
 #include "weak-table.h"
 
 #include "goops.h"
+
 
 /* Objects have identity, so references to classes and instances are by
    value, not by reference.  Redefinition of a class or modification of

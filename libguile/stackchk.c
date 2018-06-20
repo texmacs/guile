@@ -19,17 +19,20 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include "dynwind.h"
 #include "gsubr.h"
 #include "numbers.h"
 #include "ports.h"
 #include "threads.h"
-#include "dynwind.h"
 
 #include "stackchk.h"
+
+
 
 
 /* {Stack Checking}

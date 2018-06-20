@@ -18,6 +18,7 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -25,16 +26,16 @@
 #include <assert.h>
 #include <string.h>
 
-#include "pairs.h"
+#include "bdw-gc.h"
+#include "eval.h"
 #include "finalizers.h"
 #include "hash.h"
-#include "eval.h"
+#include "pairs.h"
 #include "ports.h"
 #include "threads.h"
-#include "bdw-gc.h"
+#include "weak-set.h"
 
 #include "weak-list.h"
-#include "weak-set.h"
 
 
 /* Weak Sets

@@ -23,9 +23,10 @@
 
 #define SCM_IMPLEMENT_INLINES 1
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
-#include "gc.h"
+
 #include "array-handle.h"
-#include "smob.h"
+#include "gc.h"
 #include "pairs.h"
 #include "ports.h"
+#include "smob.h"
 #include "strings.h"

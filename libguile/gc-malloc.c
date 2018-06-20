@@ -27,27 +27,26 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-#include "eval.h"
-#include "stime.h"
-#include "stackchk.h"
-#include "struct.h"
-#include "smob.h"
 #include "arrays.h"
 #include "async.h"
-#include "ports.h"
-#include "strings.h"
-#include "vectors.h"
-#include "hashtab.h"
-
-#include "deprecation.h"
-#include "gc.h"
-
 #ifdef GUILE_DEBUG_MALLOC
 #include "debug-malloc.h"
 #endif
+#include "deprecation.h"
+#include "eval.h"
+#include "hashtab.h"
+#include "ports.h"
+#include "smob.h"
+#include "stackchk.h"
+#include "stime.h"
+#include "strings.h"
+#include "struct.h"
+#include "vectors.h"
 
-#include <unistd.h>
+#include "gc.h"
+
 
 /*
   INIT_MALLOC_LIMIT is the initial amount of malloc usage which will

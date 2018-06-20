@@ -1,4 +1,5 @@
-/* Copyright (C) 1995-2004, 2006-2015, 2017-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004,2006-2015,2017-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -43,24 +44,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/select.h>
-
 #include <full-write.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 #include "async.h"
+#include "boolean.h"
 #include "dynwind.h"
 #include "extensions.h"
 #include "fdes-finalizers.h"
-#include "fluids.h"
 #include "filesys.h"
-#include "fports.h"
+#include "fluids.h"
 #include "gc.h"
+#include "gsubr.h"
 #include "hashtab.h"
 #include "keywords.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports-internal.h"
 #include "posix.h"
 #include "read.h"
@@ -68,6 +67,9 @@
 #include "symbols.h"
 #include "syscalls.h"
 #include "variable.h"
+
+#include "fports.h"
+
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX

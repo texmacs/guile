@@ -27,28 +27,29 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 #include "alist.h"
+#include "boolean.h"
 #include "continuations.h"
 #include "dynstack.h"
 #include "eq.h"
 #include "expand.h"
+#include "gsubr.h"
 #include "list.h"
 #include "macros.h"
-#include "memoize.h"
 #include "modules.h"
 #include "numbers.h"
-#include "srcprop.h"
+#include "pairs.h"
 #include "ports.h"
 #include "print.h"
+#include "srcprop.h"
 #include "strings.h"
 #include "symbols.h"
-#include "throw.h"
 #include "threads.h"
+#include "throw.h"
 #include "variable.h"
 #include "vectors.h"
+
+#include "memoize.h"
 
 
 

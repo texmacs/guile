@@ -21,35 +21,35 @@
 #  include <config.h>
 #endif
 
-#include <string.h>
+#include <alignof.h>
+#include <assert.h>
+#include <byteswap.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <full-read.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <verify.h>
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <alignof.h>
-#include <byteswap.h>
-#include <errno.h>
-#include <verify.h>
-
-#include <full-read.h>
-
-#include "gsubr.h"
-#include "bytevectors.h"
 #include "boolean.h"
+#include "bytevectors.h"
 #include "elf.h"
 #include "eval.h"
 #include "extensions.h"
+#include "gsubr.h"
 #include "pairs.h"
 #include "programs.h"
 #include "strings.h"
 #include "threads.h"
+
 #include "loader.h"
+
 
 /* This file contains the loader for Guile's on-disk format: ELF with
    some custom tags in the dynamic segment.  */

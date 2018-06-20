@@ -45,21 +45,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "boolean.h"
+#include "dynwind.h"
 #include "feature.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "socket.h"
 #include "strings.h"
-#include "vectors.h"
-#include "dynwind.h"
 #include "symbols.h"
 #include "throw.h"
+#include "vectors.h"
 
 #include "net_db.h"
-#include "socket.h"
 
 
 #if defined (HAVE_H_ERRNO)

@@ -22,22 +22,18 @@
 #endif
 
 #include <math.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
-#include "gsubr.h"
-#include "boolean.h"
 #include "array-map.h"
 #include "async.h"
 #include "bitvectors.h"
+#include "boolean.h"
 #include "bytevectors.h"
-#include "eq.h"
 #include "eval.h"
 #include "foreign.h"
 #include "generalized-arrays.h"
 #include "goops.h"
+#include "gsubr.h"
 #include "hashtab.h"
 #include "pairs.h"
 #include "private-options.h"
@@ -47,6 +43,9 @@
 #include "struct.h"
 #include "syntax.h"
 #include "vectors.h"
+
+#include "eq.h"
+
 
 
 

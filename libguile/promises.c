@@ -25,7 +25,6 @@
 
 #include <alloca.h>
 
-#include "gsubr.h"
 #include "alist.h"
 #include "async.h"
 #include "continuations.h"
@@ -37,6 +36,7 @@
 #include "feature.h"
 #include "fluids.h"
 #include "goops.h"
+#include "gsubr.h"
 #include "hash.h"
 #include "hashtab.h"
 #include "list.h"
@@ -55,11 +55,11 @@
 #include "threads.h"
 #include "throw.h"
 #include "values.h"
+
 #include "promises.h"
 
 
 
-
 
 scm_t_bits scm_tc16_promise;
 

@@ -18,22 +18,24 @@
 
 
 
-/* Include the headers for just about everything.
-   We call all their initialization functions.  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <gmp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
+#include <gmp.h>
 
 /* Everybody has an init function.  */
 #include "alist.h"
+#include "array-map.h"
+#include "arrays.h"
 #include "async.h"
 #include "atomic.h"
 #include "backtrace.h"
@@ -41,12 +43,13 @@
 #include "boolean.h"
 #include "bytevectors.h"
 #include "chars.h"
-#include "control.h"
 #include "continuations.h"
+#include "control.h"
 #include "debug.h"
 #ifdef GUILE_DEBUG_MALLOC
 #include "debug-malloc.h"
 #endif
+#include "deprecated.h"
 #include "deprecation.h"
 #include "dynl.h"
 #include "dynwind.h"
@@ -55,23 +58,26 @@
 #include "eval.h"
 #include "evalext.h"
 #include "expand.h"
+#include "extensions.h"
 #include "fdes-finalizers.h"
 #include "feature.h"
 #include "filesys.h"
 #include "finalizers.h"
 #include "fluids.h"
+#include "foreign-object.h"
 #include "foreign.h"
 #include "fports.h"
 #include "frames.h"
 #include "gc.h"
 #include "generalized-arrays.h"
 #include "generalized-vectors.h"
+#include "gettext.h"
 #include "goops.h"
 #include "gsubr.h"
+#include "guardians.h"
 #include "hash.h"
 #include "hashtab.h"
 #include "hooks.h"
-#include "gettext.h"
 #include "i18n.h"
 #include "instructions.h"
 #include "intrinsics.h"
@@ -79,28 +85,29 @@
 #include "keywords.h"
 #include "list.h"
 #include "load.h"
+#include "loader.h"
 #include "macros.h"
 #include "mallocs.h"
 #include "memoize.h"
 #include "modules.h"
 #include "net_db.h"
 #include "numbers.h"
-#include "loader.h"
 #include "objprop.h"
 #include "options.h"
 #include "pairs.h"
 #include "poll.h"
 #include "ports.h"
 #include "posix.h"
-#ifdef ENABLE_REGEX
-#include "regex-posix.h"
-#endif
 #include "print.h"
+#include "private-options.h"
 #include "procprop.h"
 #include "procs.h"
 #include "programs.h"
 #include "promises.h"
-#include "array-map.h"
+#ifdef ENABLE_REGEX
+#include "regex-posix.h"
+#endif
+#include "r6rs-ports.h"
 #include "random.h"
 #include "rdelim.h"
 #include "read.h"
@@ -112,47 +119,35 @@
 #include "socket.h"
 #include "sort.h"
 #include "srcprop.h"
+#include "srfi-1.h"
+#include "srfi-13.h"
+#include "srfi-14.h"
+#include "srfi-4.h"
+#include "srfi-60.h"
 #include "stackchk.h"
 #include "stacks.h"
 #include "stime.h"
 #include "strings.h"
-#include "srfi-1.h"
-#include "srfi-4.h"
-#include "srfi-13.h"
-#include "srfi-14.h"
-#include "srfi-60.h"
 #include "strorder.h"
 #include "strports.h"
 #include "struct.h"
 #include "symbols.h"
 #include "syntax.h"
 #include "throw.h"
-#include "arrays.h"
 #include "trees.h"
 #include "unicode.h"
+#include "uniform.h"
 #include "values.h"
 #include "variable.h"
 #include "vectors.h"
 #include "version.h"
 #include "vm.h"
 #include "vports.h"
-#include "guardians.h"
-#include "extensions.h"
-#include "uniform.h"
-#include "deprecated.h"
 #include "weak-set.h"
 #include "weak-table.h"
 #include "weak-vector.h"
-#include "foreign-object.h"
-#include "r6rs-ports.h"
 
 #include "init.h"
-#include "private-options.h"
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <unistd.h>
 
 
 

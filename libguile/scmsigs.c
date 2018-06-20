@@ -41,22 +41,21 @@
 
 #include <full-write.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-
 #include "async.h"
+#include "boolean.h"
 #include "dynwind.h"
-#include "feature.h"
 #include "eval.h"
+#include "feature.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "procs.h"
-#include "variable.h"
-#include "vectors.h"
 #include "syscalls.h"
 #include "threads.h"
+#include "variable.h"
+#include "vectors.h"
 
 #include "scmsigs.h"
 

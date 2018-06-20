@@ -28,15 +28,14 @@
 #include <stdarg.h>
 
 #include "gsubr.h"
-#include "pairs.h"
-
-#include "deprecation.h"
 #include "list.h"
-#include "strings.h"
+#include "pairs.h"
 #include "ports.h"
+#include "private-options.h"
+#include "strings.h"
 #include "threads.h"
 
-#include "private-options.h"
+#include "deprecation.h"
 
 
 

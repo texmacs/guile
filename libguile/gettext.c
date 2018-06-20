@@ -21,15 +21,16 @@
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "feature.h"
-#include "strings.h"
-#include "numbers.h"
+#include <locale.h>
+
 #include "dynwind.h"
+#include "feature.h"
+#include "gsubr.h"
+#include "libgettext.h"
+#include "numbers.h"
+#include "strings.h"
 
 #include "gettext.h"
-#include "libgettext.h"
-#include <locale.h>
 
 
 int

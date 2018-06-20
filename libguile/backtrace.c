@@ -1,6 +1,6 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009,
- *   2010, 2011, 2014, 2018 Free Software Foundation
+ * Copyright (C) 1996-2001,2003-2004,2006,2009-2011,2014,2018
+ *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,24 +24,22 @@
 
 #include <stdio.h>
 #include <ctype.h>
-
-#include "gsubr.h"
-#include "boolean.h"
-
 #include <unistd.h>
+
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
 
-#include "backtrace.h"
+#include "boolean.h"
 #include "deprecation.h"
 #include "dynwind.h"
 #include "eval.h"
 #include "filesys.h"
 #include "fluids.h"
 #include "frames.h"
-#include "list.h"
+#include "gsubr.h"
 #include "keywords.h"
+#include "list.h"
 #include "modules.h"
 #include "numbers.h"
 #include "ports.h"
@@ -55,6 +53,8 @@
 #include "symbols.h"
 #include "throw.h"
 #include "variable.h"
+
+#include "backtrace.h"
 
 /* {Error reporting and backtraces}
  *

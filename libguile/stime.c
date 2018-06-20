@@ -44,35 +44,34 @@
 #  include <config.h>
 #endif
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 #include <strftime.h>
-#include <unistr.h>
-
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-#include "async.h"
-#include "feature.h"
-#include "modules.h"
-#include "numbers.h"
-#include "strings.h"
-#include "vectors.h"
-#include "dynwind.h"
-#include "strings.h"
-
-#include "stime.h"
-
-#include <unistd.h>
-#include <time.h>				  /* Gnulib-provided */
-
-#include <sys/types.h>
 #include <string.h>
 #include <sys/times.h>
+#include <sys/types.h>
+#include <time.h>				  /* Gnulib-provided */
+#include <unistd.h>
+#include <unistr.h>
 
 #ifdef HAVE_SYS_TIMEB_H
 # include <sys/timeb.h>
 #endif
+
+#include "async.h"
+#include "boolean.h"
+#include "dynwind.h"
+#include "feature.h"
+#include "gsubr.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "strings.h"
+#include "strings.h"
+#include "vectors.h"
+
+#include "stime.h"
+
 
 #if ! HAVE_DECL_STRPTIME
 extern char *strptime ();

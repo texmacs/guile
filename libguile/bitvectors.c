@@ -25,17 +25,19 @@
 
 #include <string.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 #include "array-handle.h"
-#include "bitvectors.h"
-#include "generalized-vectors.h"
-#include "numbers.h"
-#include "list.h"
 #include "arrays.h"
+#include "boolean.h"
+#include "generalized-vectors.h"
+#include "gsubr.h"
+#include "list.h"
+#include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "srfi-4.h"
+
+#include "bitvectors.h"
+
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,
  * but alack, all we have is this crufty C.

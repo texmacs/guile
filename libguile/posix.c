@@ -22,18 +22,20 @@
 #  include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <uniconv.h>
+#include <unistd.h>
 
 #ifdef HAVE_SCHED_H
 # include <sched.h>
 #endif
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -45,52 +47,45 @@
 # endif
 #endif
 
-#include <unistd.h>
-
 #ifdef LIBC_H_WITH_UNISTD_H
-#include <libc.h>
+# include <libc.h>
 #endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #ifdef HAVE_PWD_H
-#include <pwd.h>
+# include <pwd.h>
 #endif
 #ifdef HAVE_IO_H
-#include <io.h>
+# include <io.h>
 #endif
-
-#include "gsubr.h"
-#include "pairs.h"
-#include "async.h"
-#include "dynwind.h"
-#include "extensions.h"
-#include "finalizers.h"
-#include "fports.h"
-#include "list.h"
-#include "bitvectors.h"
-#include "scmsigs.h"
-#include "feature.h"
-#include "modules.h"
-#include "numbers.h"
-#include "strings.h"
-#include "srfi-13.h"
-#include "srfi-14.h"
-#include "symbols.h"
-#include "syscalls.h"
-#include "vectors.h"
-#include "values.h"
-
-#include "posix.h"
-#include "gettext.h"
-#include "threads.h"
-
 
 #ifdef __MINGW32__
 # include "posix-w32.h"
 #endif
+
+#include "async.h"
+#include "bitvectors.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "feature.h"
+#include "finalizers.h"
+#include "fports.h"
+#include "gettext.h"
+#include "gsubr.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "scmsigs.h"
+#include "srfi-13.h"
+#include "srfi-14.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "threads.h"
+#include "values.h"
+#include "vectors.h"
+
+#include "posix.h"
 
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>

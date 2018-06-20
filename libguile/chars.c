@@ -19,6 +19,7 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -29,13 +30,15 @@
 #include <unicase.h>
 #include <unictype.h>
 
-#include "gsubr.h"
 #include "boolean.h"
-#include "chars.h"
+#include "gsubr.h"
 #include "numbers.h"
 #include "pairs.h"
-#include "symbols.h"
 #include "srfi-14.h"
+#include "symbols.h"
+
+#include "chars.h"
+
 
 
 

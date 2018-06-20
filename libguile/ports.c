@@ -19,7 +19,6 @@
 
 
 
-/* Headers.  */
 
 #define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 
@@ -28,62 +27,60 @@
 #endif
 
 #include <assert.h>
-#include <stdio.h>
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>  /* for chsize on mingw */
-#include <assert.h>
 #include <iconv.h>
 #include <poll.h>
-#include <uniconv.h>
-#include <unistr.h>
+#include <stdio.h>
 #include <striconveh.h>
-
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-#include "async.h"
-#include "atomics-internal.h"
-#include "deprecation.h"
-#include "eval.h"
-#include "fports.h"  /* direct access for seek and truncate */
-#include "goops.h"
-#include "smob.h"
-#include "chars.h"
-#include "dynwind.h"
-#include "extensions.h"
-#include "finalizers.h"
-#include "keywords.h"
-#include "hashtab.h"
-#include "strings.h"
-#include "mallocs.h"
-#include "modules.h"
-#include "numbers.h"
-#include "ports.h"
-#include "ports-internal.h"
-#include "private-options.h"
-#include "procs.h"
-#include "symbols.h"
-#include "syscalls.h"
-#include "variable.h"
-#include "vectors.h"
-#include "weak-set.h"
-#include "fluids.h"
-#include "eq.h"
-#include "alist.h"
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
+#include <uniconv.h>
+#include <unistd.h>
+#include <unistr.h>
 
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
 
-#include <unistd.h>
-
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
+
+#include "alist.h"
+#include "async.h"
+#include "atomics-internal.h"
+#include "boolean.h"
+#include "chars.h"
+#include "deprecation.h"
+#include "dynwind.h"
+#include "eq.h"
+#include "eval.h"
+#include "extensions.h"
+#include "finalizers.h"
+#include "fluids.h"
+#include "fports.h"  /* direct access for seek and truncate */
+#include "goops.h"
+#include "gsubr.h"
+#include "hashtab.h"
+#include "keywords.h"
+#include "mallocs.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "ports-internal.h"
+#include "private-options.h"
+#include "procs.h"
+#include "smob.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "variable.h"
+#include "vectors.h"
+#include "weak-set.h"
+
+#include "ports.h"
+
 
 /* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
    already, but have this code here in case that wasn't so in past versions,

@@ -19,24 +19,26 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <stdio.h>
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 
+#include "boolean.h"
 #include "eval.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "procprop.h"
 #include "smob.h"
 #include "strings.h"
 
 #include "hooks.h"
+
 
 
 /* Scheme level hooks

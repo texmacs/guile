@@ -25,13 +25,12 @@
 #endif
 
 #include "boolean.h"
-#include "gsubr.h"
-#include "pairs.h"
 #include "eq.h"
-
 #include "extensions.h"
+#include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
 
 #include "srfi-60.h"
 

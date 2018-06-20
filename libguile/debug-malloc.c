@@ -23,12 +23,13 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "gsubr.h"
 #include "alist.h"
+#include "gsubr.h"
 #include "numbers.h"
 #include "strings.h"
 
 #include "debug-malloc.h"
+
 
 /*
  * The following code is a hack which I wrote quickly in order to

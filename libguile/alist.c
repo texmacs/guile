@@ -19,17 +19,20 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "gsubr.h"
 #include "boolean.h"
 #include "eq.h"
+#include "gsubr.h"
 #include "list.h"
-#include "pairs.h"
 #include "numbers.h"
+#include "pairs.h"
+
 #include "alist.h"
+
 
 
 

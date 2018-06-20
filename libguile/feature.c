@@ -19,23 +19,23 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
+#include "fluids.h"
 #include "gsubr.h"
 #include "modules.h"
 #include "pairs.h"
 #include "strings.h"
-#include "fluids.h"
 #include "symbols.h"
 #include "variable.h"
 
 #include "feature.h"
+
 
 
 

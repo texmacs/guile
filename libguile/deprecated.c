@@ -23,6 +23,7 @@
 #define SCM_BUILDING_DEPRECATED_CODE
 
 #include "deprecation.h"
+
 #include "deprecated.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)

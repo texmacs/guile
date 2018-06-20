@@ -32,9 +32,10 @@
 #include <io.h>
 #include <fcntl.h>
 
-#include "posix-w32.h"
 #include "gc.h"        /* for scm_*alloc, scm_strdup */
 #include "threads.h"   /* for scm_i_scm_pthread_mutex_lock */
+
+#include "posix-w32.h"
 
 /*
  * Get name and information about current kernel.

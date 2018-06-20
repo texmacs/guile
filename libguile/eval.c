@@ -26,22 +26,20 @@
 #include <alloca.h>
 #include <stdarg.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
 #include "alist.h"
 #include "async.h"
+#include "boolean.h"
 #include "continuations.h"
 #include "control.h"
 #include "debug.h"
 #include "deprecation.h"
 #include "dynwind.h"
 #include "eq.h"
-#include "eval.h"
 #include "expand.h"
 #include "feature.h"
 #include "fluids.h"
 #include "goops.h"
+#include "gsubr.h"
 #include "hash.h"
 #include "hashtab.h"
 #include "keywords.h"
@@ -50,6 +48,7 @@
 #include "memoize.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "print.h"
 #include "private-options.h"
@@ -67,8 +66,10 @@
 #include "vectors.h"
 #include "vm.h"
 
-
+#include "eval.h"
 
+
+
 
 /* We have three levels of EVAL here:
 

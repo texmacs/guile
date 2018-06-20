@@ -23,36 +23,32 @@
 #  include <config.h>
 #endif
 
+#include <string.h>
 #include <unistr.h>
 
-#include "gsubr.h"
-#include "pairs.h"
+#include "alist.h"
 #include "boolean.h"
 #include "chars.h"
 #include "eval.h"
+#include "fluids.h"
+#include "gsubr.h"
 #include "hash.h"
 #include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "private-options.h"
+#include "read.h"
 #include "smob.h"
+#include "srfi-13.h"
+#include "strings.h"
 #include "strorder.h"
 #include "variable.h"
-#include "alist.h"
-#include "fluids.h"
-#include "numbers.h"
-#include "strings.h"
 #include "vectors.h"
 #include "weak-set.h"
-#include "modules.h"
-#include "read.h"
-#include "srfi-13.h"
 
 #include "symbols.h"
 
-#include "private-options.h"
-
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 
 
 

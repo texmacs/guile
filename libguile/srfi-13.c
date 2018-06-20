@@ -28,18 +28,20 @@
 #include <unicase.h>
 #include <unictype.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "deprecation.h"
-#include "eval.h"
 #include "error.h"
+#include "eval.h"
+#include "gsubr.h"
 #include "hash.h"
 #include "list.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "procs.h"
-#include "srfi-13.h"
 #include "srfi-14.h"
 #include "symbols.h"
+
+#include "srfi-13.h"
+
 
 #define MY_VALIDATE_SUBSTRING_SPEC(pos_str, str,              \
                                    pos_start, start, c_start, \

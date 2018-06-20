@@ -1,4 +1,4 @@
-/* Copyright (C)  1997-2001,2004,2006-2007,2010-2012,2018
+/* Copyright (C) 1997-2001,2004,2006-2007,2010-2012,2018
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -32,29 +32,27 @@
 #  include <config.h>
 #endif
 
+#include <regex.h>
 #include <string.h>
 #include <sys/types.h>
-
-#include "gsubr.h"
-#include "pairs.h"
-
-#include <regex.h>
 
 #ifdef HAVE_WCHAR_H
 #include <wchar.h>
 #endif
 
 #include "async.h"
+#include "feature.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
 #include "smob.h"
+#include "strings.h"
+#include "strports.h"
 #include "symbols.h"
 #include "vectors.h"
-#include "strports.h"
-#include "ports.h"
-#include "feature.h"
-#include "strings.h"
 
 #include "regex-posix.h"
 

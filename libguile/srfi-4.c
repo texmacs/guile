@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
- *
- * 	Copyright (C) 2001, 2004, 2006, 2009, 2010, 2011, 2014, 2018 Free Software Foundation, Inc.
+ * Copyright (C) 2001,2004,2006,2009-2011,2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,19 +24,20 @@
 
 #include <string.h>
 
-#include "gsubr.h"
-#include "boolean.h"
 #include "bdw-gc.h"
-#include "srfi-4.h"
+#include "boolean.h"
 #include "bytevectors.h"
 #include "error.h"
 #include "eval.h"
 #include "extensions.h"
 #include "generalized-vectors.h"
+#include "gsubr.h"
 #include "modules.h"
 #include "numbers.h"
 #include "uniform.h"
 #include "variable.h"
+
+#include "srfi-4.h"
 
 
 #define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                   \

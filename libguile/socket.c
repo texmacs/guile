@@ -34,8 +34,8 @@
 #include <string.h>
 #endif
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
 #include <sys/un.h>
 #endif
@@ -46,22 +46,22 @@
 
 #include <gmp.h>
 
-#include "gsubr.h"
-#include "pairs.h"
-#include "async.h"
 #include "arrays.h"
+#include "async.h"
 #include "bytevectors.h"
+#include "dynwind.h"
 #include "feature.h"
 #include "fports.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "srfi-13.h"
 #include "strings.h"
 #include "symbols.h"
-#include "vectors.h"
-#include "dynwind.h"
-#include "srfi-13.h"
 #include "syscalls.h"
+#include "vectors.h"
 
 #include "socket.h"
 

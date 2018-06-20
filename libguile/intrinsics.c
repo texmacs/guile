@@ -1,4 +1,5 @@
-/* Copyright (C) 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,17 +21,18 @@
 #  include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "boolean.h"
 #include "alist.h"
+#include "boolean.h"
 #include "cache-internal.h"
 #include "extensions.h"
 #include "fluids.h"
 #include "goops.h"
+#include "gsubr.h"
 #include "keywords.h"
 #include "modules.h"
 #include "numbers.h"
 #include "symbols.h"
+
 #include "intrinsics.h"
 
 

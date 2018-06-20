@@ -21,32 +21,33 @@
 #endif
 
 #include <alloca.h>
-
-#include "gsubr.h"
-#include "pairs.h"
-#include "boolean.h"
-#include "extensions.h"
-#include "feature.h"
-#include "i18n.h"
-#include "list.h"
-#include "strings.h"
-#include "chars.h"
-#include "modules.h"
-#include "numbers.h"
-#include "dynwind.h"
-#include "syscalls.h"
-#include "smob.h"
-#include "symbols.h"
-#include "values.h"
-#include "variable.h"
-#include "threads.h"
-
 #include <locale.h>
 #include <string.h> /* `strcoll ()' */
 #include <ctype.h>  /* `toupper ()' et al. */
 #include <errno.h>
 #include <unicase.h>
 #include <unistr.h>
+
+#include "boolean.h"
+#include "chars.h"
+#include "dynwind.h"
+#include "extensions.h"
+#include "feature.h"
+#include "gsubr.h"
+#include "list.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
+#include "posix.h"  /* for `scm_i_locale_mutex' */
+#include "smob.h"
+#include "strings.h"
+#include "symbols.h"
+#include "syscalls.h"
+#include "threads.h"
+#include "values.h"
+#include "variable.h"
+
+#include "i18n.h"
 
 #if defined HAVE_NEWLOCALE && defined HAVE_STRCOLL_L && defined HAVE_USELOCALE
 /* The GNU thread-aware locale API is documented in ``Thread-Aware Locale
@@ -64,8 +65,6 @@
      http://www.opengroup.org/onlinepubs/9699919799/basedefs/locale.h.html  */
 # define USE_GNU_LOCALE_API
 #endif
-
-#include "posix.h"  /* for `scm_i_locale_mutex' */
 
 /* Use Gnulib's header, which also provides `nl_item' & co.  */
 #include <langinfo.h>

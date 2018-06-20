@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009-2015, 2017-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2009-2015,2017-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,42 +34,43 @@
 #include <sys/mman.h>
 #endif
 
-#include "bdw-gc.h"
-#include "pairs.h"
-#include <gc/gc_mark.h>
-
-#include "gsubr.h"
+#include "alist.h"
+#include "async.h"
 #include "atomic.h"
 #include "atomics-internal.h"
+#include "bdw-gc.h"
 #include "cache-internal.h"
 #include "control.h"
-#include "eval.h"
-#include "values.h"
-#include "async.h"
-#include "keywords.h"
 #include "dynwind.h"
+#include "eval.h"
 #include "extensions.h"
 #include "foreign.h"
-#include "alist.h"
-#include "modules.h"
-#include "numbers.h"
-#include "procprop.h"
-#include "list.h"
-#include "stackchk.h"
-#include "hooks.h"
-#include "smob.h"
 #include "frames.h"
 #include "gc-inline.h"
+#include "gsubr.h"
+#include "hooks.h"
 #include "instructions.h"
 #include "intrinsics.h"
+#include "keywords.h"
+#include "list.h"
 #include "loader.h"
+#include "modules.h"
+#include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
+#include "procprop.h"
 #include "programs.h"
 #include "simpos.h"
+#include "smob.h"
+#include "stackchk.h"
 #include "symbols.h"
+#include "values.h"
 #include "vectors.h"
-#include "vm.h"
 #include "vm-builtins.h"
+
+#include "vm.h"
+
+#include <gc/gc_mark.h>
 
 #if (defined __GNUC__)
 # define SCM_NOINLINE __attribute__ ((__noinline__))

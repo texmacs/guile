@@ -19,37 +19,35 @@
 
 
 
+
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
 #include <assert.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "gsubr.h"
 #include "boolean.h"
-#include "eval.h"
 #include "chars.h"
-#include "ports.h"
-#include "ports-internal.h"
+#include "eval.h"
 #include "fports.h"
+#include "gsubr.h"
 #include "numbers.h"
+#include "ports-internal.h"
+#include "ports.h"
 #include "strings.h"
 #include "vectors.h"
 
 #include "vports.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 
 
 
 /* {Ports - soft ports}
  * 
  */
-
 
 static scm_t_port_type *scm_soft_port_type;
 

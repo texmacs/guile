@@ -24,24 +24,24 @@
 
 #include <stdarg.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "boolean.h"
-
+#include "deprecation.h"
 #include "eval.h"
-#include "list.h"
-#include "smob.h"
-#include "procprop.h"
-#include "vectors.h"
-#include "keywords.h"
+#include "fluids.h"
+#include "gsubr.h"
 #include "hashtab.h"
+#include "keywords.h"
+#include "list.h"
+#include "pairs.h"
+#include "procprop.h"
+#include "smob.h"
 #include "struct.h"
 #include "symbols.h"
 #include "variable.h"
-#include "fluids.h"
-#include "deprecation.h"
+#include "vectors.h"
 
 #include "modules.h"
+
 
 int scm_module_system_booted_p = 0;
 

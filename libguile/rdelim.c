@@ -20,25 +20,22 @@
 #  include <config.h>
 #endif
 
-#include "boolean.h"
-#include "gsubr.h"
-#include "pairs.h"
-
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
+#include "boolean.h"
 #include "chars.h"
+#include "gsubr.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
-#include "rdelim.h"
-#include "strings.h"
 #include "srfi-13.h"
+#include "strings.h"
 #include "strports.h"
+
+#include "rdelim.h"
 
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM str, SCM gobble, SCM port, SCM start, SCM end),

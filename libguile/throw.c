@@ -26,31 +26,32 @@
 #include <alloca.h>
 #include <stdio.h>
 #include <unistdio.h>
-#include "pairs.h"
-#include "boolean.h"
-#include "smob.h"
-#include "eval.h"
-#include "eq.h"
-#include "gsubr.h"
-#include "control.h"
-#include "deprecation.h"
+
 #include "backtrace.h"
+#include "boolean.h"
+#include "control.h"
 #include "debug.h"
+#include "deprecation.h"
+#include "eq.h"
+#include "eval.h"
+#include "fluids.h"
+#include "gsubr.h"
+#include "init.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
+#include "ports.h"
+#include "private-options.h"
+#include "smob.h"
 #include "stackchk.h"
 #include "stacks.h"
-#include "fluids.h"
-#include "ports.h"
-#include "vm.h"
-#include "throw.h"
-#include "init.h"
 #include "strings.h"
 #include "symbols.h"
 #include "variable.h"
+#include "vm.h"
 
-#include "private-options.h"
+#include "throw.h"
 
 
 /* Pleasantly enough, the guts of catch are defined in Scheme, in terms

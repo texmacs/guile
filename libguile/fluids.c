@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gsubr.h"
-#include "pairs.h"
 #include "alist.h"
 #include "atomics-internal.h"
 #include "bdw-gc.h"
@@ -33,13 +31,17 @@
 #include "deprecation.h"
 #include "dynwind.h"
 #include "eval.h"
-#include "fluids.h"
+#include "gsubr.h"
 #include "hashtab.h"
 #include "list.h"
+#include "pairs.h"
 #include "ports.h"
 #include "print.h"
-#include "weak-table.h"
 #include "variable.h"
+#include "weak-table.h"
+
+#include "fluids.h"
+
 
 /* A dynamic state associates fluids with values.  There are two
    representations of a dynamic state in Guile: the active

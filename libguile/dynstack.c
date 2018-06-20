@@ -29,8 +29,9 @@
 #include "control.h"
 #include "eval.h"
 #include "fluids.h"
-#include "dynstack.h"
 #include "variable.h"
+
+#include "dynstack.h"
 
 
 

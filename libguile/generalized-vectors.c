@@ -24,8 +24,8 @@
 #  include <config.h>
 #endif
 
-#include "gsubr.h"
 #include "error.h"
+#include "gsubr.h"
 
 #include "generalized-vectors.h"
 

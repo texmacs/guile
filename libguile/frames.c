@@ -17,23 +17,26 @@
  */
 
 #if HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
 #include <stdlib.h>
 #include <string.h>
-#include "gsubr.h"
+
 #include "boolean.h"
 #include "eval.h"
 #include "extensions.h"
+#include "gsubr.h"
 #include "modules.h"
 #include "numbers.h"
-#include "frames.h"
 #include "ports.h"
 #include "symbols.h"
 #include "threads.h"
 #include "variable.h"
 #include "vm.h"
+
+#include "frames.h"
+
 
 SCM
 scm_c_make_frame (enum scm_vm_frame_kind kind, const struct scm_frame *frame)

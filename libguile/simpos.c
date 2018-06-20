@@ -29,9 +29,9 @@
 
 #include "boolean.h"
 #include "gsubr.h"
-
 #include "numbers.h"
 #include "strings.h"
+
 #include "simpos.h"
 
 

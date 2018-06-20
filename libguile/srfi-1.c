@@ -1,7 +1,7 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * Copyright (C) 1995-1997, 2000-2003, 2005, 2006, 2008-2011, 2013
- *   2014, 2018 Free Software Foundation, Inc.
+ * Copyright (C) 1995-1997,2000-2003,2005-2006,2008-2011,2013-2014,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -19,25 +19,27 @@
  * 02110-1301 USA
  */
 
+
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "gsubr.h"
-#include "pairs.h"
+#include <stdarg.h>
+
 #include "boolean.h"
 #include "eq.h"
-
-#include "list.h"
 #include "eval.h"
+#include "extensions.h"
+#include "gsubr.h"
+#include "list.h"
+#include "pairs.h"
 #include "procs.h"
-#include "srfi-1.h"
 #include "values.h"
 #include "vectors.h"
-#include "extensions.h"
 
-#include <stdarg.h>
+#include "srfi-1.h"
 
 
 /* The intent of this file was to gradually replace those Scheme
