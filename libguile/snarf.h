@@ -85,22 +85,6 @@ DOCSTRING ^^ }
 # endif
 #endif
 
-#define SCM_MUTEX(c_name) \
-SCM_SNARF_HERE(static scm_t_mutex c_name) \
-SCM_SNARF_INIT(scm_i_plugin_mutex_init (&c_name, &scm_i_plugin_mutex))
-
-#define SCM_GLOBAL_MUTEX(c_name) \
-SCM_SNARF_HERE(scm_t_mutex c_name) \
-SCM_SNARF_INIT(scm_i_plugin_mutex_init (&c_name, &scm_i_plugin_mutex))
-
-#define SCM_REC_MUTEX(c_name) \
-SCM_SNARF_HERE(static scm_t_rec_mutex c_name) \
-SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
-
-#define SCM_GLOBAL_REC_MUTEX(c_name) \
-SCM_SNARF_HERE(scm_t_rec_mutex c_name) \
-SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
-
 #define SCM_SMOB(tag, scheme_name, size) \
 SCM_SNARF_HERE(static scm_t_bits tag) \
 SCM_SNARF_INIT((tag)=scm_make_smob_type((scheme_name), (size));)
