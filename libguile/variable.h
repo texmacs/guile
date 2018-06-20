@@ -27,6 +27,7 @@
 #include "libguile/__scm.h"
 #include <libguile/error.h>
 #include <libguile/gc.h>
+#include <libguile/snarf.h>
 
 
 
@@ -39,6 +40,26 @@
 
 #define SCM_VALIDATE_VARIABLE(pos, var) \
   SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
+
+
+
+
+#define SCM_VARIABLE(c_name, scheme_name) \
+SCM_SNARF_HERE(static SCM c_name) \
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, SCM_BOOL_F);)
+
+#define SCM_GLOBAL_VARIABLE(c_name, scheme_name) \
+SCM_SNARF_HERE(SCM c_name) \
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, SCM_BOOL_F);)
+
+#define SCM_VARIABLE_INIT(c_name, scheme_name, init_val) \
+SCM_SNARF_HERE(static SCM c_name) \
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, init_val);)
+
+#define SCM_GLOBAL_VARIABLE_INIT(c_name, scheme_name, init_val) \
+SCM_SNARF_HERE(SCM c_name) \
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, init_val);)
+
 
 
 
