@@ -34,9 +34,6 @@
 
 #include "libguile/__scm.h"
 
-/* Include headers for those files central to the implementation.  The
-   rest should be explicitly #included in the C files themselves.  */
-#include "libguile/programs.h"	/* ... and program.h. */
 #include "libguile/strings.h"
 
 

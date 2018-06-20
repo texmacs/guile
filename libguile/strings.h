@@ -25,6 +25,7 @@
 
 
 #include "libguile/__scm.h"
+#include <libguile/gc.h>
 #include <libguile/error.h>
 #include "libguile/inline.h"
 #include <libguile/snarf.h>
