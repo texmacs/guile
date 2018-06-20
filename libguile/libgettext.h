@@ -1,20 +1,21 @@
 /* Convenience header for conditional use of GNU <libintl.h>.
-   Copyright 1995-1998, 2000-2002, 2006 Free Software Foundation, Inc.
+   Copyright 1995-1998, 2000-2002, 2    Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU Library General Public License as published
-   by the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   This file is part of Guile.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Guile is free software: you can redistribute it and/or modify it
+   under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-   USA.  */
+   Guile is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+   License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with Guile.  If not, see
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LIBGETTEXT_H
 #define _LIBGETTEXT_H 1
