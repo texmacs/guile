@@ -287,34 +287,6 @@
 # define SCM_LONG_BIT (SCM_SIZEOF_LONG * 8)
 #endif
 
-#define SCM_I_UTYPE_MAX(type)      ((type)-1)
-#define SCM_I_TYPE_MAX(type,umax)  ((type)((umax)/2))
-#define SCM_I_TYPE_MIN(type,umax)  (-((type)((umax)/2))-1)
-
-#define SCM_T_UINT8_MAX   UINT8_MAX
-#define SCM_T_INT8_MIN    INT8_MIN
-#define SCM_T_INT8_MAX    INT8_MAX
-
-#define SCM_T_UINT16_MAX  UINT16_MAX
-#define SCM_T_INT16_MIN   INT16_MIN
-#define SCM_T_INT16_MAX   INT16_MAX
-
-#define SCM_T_UINT32_MAX  UINT32_MAX
-#define SCM_T_INT32_MIN   INT32_MIN
-#define SCM_T_INT32_MAX   INT32_MAX
-
-#define SCM_T_UINT64_MAX  UINT64_MAX
-#define SCM_T_INT64_MIN   INT64_MIN
-#define SCM_T_INT64_MAX   INT64_MAX
-
-#define SCM_T_UINTMAX_MAX UINTMAX_MAX
-#define SCM_T_INTMAX_MIN  INTMAX_MIN
-#define SCM_T_INTMAX_MAX  INTMAX_MAX
-
-#define SCM_T_UINTPTR_MAX UINTPTR_MAX
-#define SCM_T_INTPTR_MIN  INTPTR_MIN
-#define SCM_T_INTPTR_MAX  INTPTR_MAX
-
 
 
 #include "libguile/tags.h"
