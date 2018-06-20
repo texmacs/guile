@@ -1,7 +1,8 @@
 #ifndef SCM_DYNSTACK_H
 #define SCM_DYNSTACK_H
 
-/* Copyright 2012-2013,2018 Free Software Foundation, Inc.
+/* Copyright 2012-2013,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

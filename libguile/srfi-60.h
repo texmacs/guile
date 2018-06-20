@@ -1,6 +1,7 @@
 /* srfi-60.h --- SRFI-60 procedures for Guile
  *
- * 	Copyright 2005, 2006, 2010, 2018 Free Software Foundation, Inc.
+ * Copyright 2005-2006,2010,2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

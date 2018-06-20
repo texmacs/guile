@@ -1,8 +1,8 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright 1995, 1996, 1998, 2000-2006, 2008-2011, 2013, 2014,
- *   2016-2018 Free Software Foundation, Inc.
+/* Copyright 1995-1996,1998,2000-2006,2008-2011,2013-2014,2016-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
