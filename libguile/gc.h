@@ -25,7 +25,7 @@
 
 
 #include "libguile/__scm.h"
-
+#include "libguile/inline.h"
 #include "libguile/chooks.h"
 
 

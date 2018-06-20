@@ -24,8 +24,8 @@
 #define SCM_IMPLEMENT_INLINES 1
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
 #include "libguile/gc.h"
-#include "libguile/inline.h"
 #include "libguile/array-handle.h"
 #include "libguile/smob.h"
 #include "libguile/pairs.h"
 #include "libguile/ports.h"
+#include "libguile/strings.h"

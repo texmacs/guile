@@ -26,6 +26,7 @@
 
 #include "libguile/__scm.h"
 #include <libguile/error.h>
+#include "libguile/inline.h"
 #include <libguile/snarf.h>
 
 
@@ -106,6 +107,7 @@ SCM_INTERNAL SCM scm_nullstr;
 SCM_INTERNAL scm_t_string_failed_conversion_handler
 scm_i_default_string_failed_conversion_handler (void);
 
+SCM_INLINE int scm_is_string (SCM x);
 SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
@@ -279,6 +281,20 @@ SCM_API SCM scm_sys_string_dump (SCM);
 SCM_API SCM scm_sys_symbol_dump (SCM);
 #ifdef SCM_STRING_LENGTH_HISTOGRAM
 SCM_API SCM scm_sys_stringbuf_hist (void);
+#endif
+
+
+
+
+#if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
+/* Either inlining, or being included from inline.c.  */
+
+SCM_INLINE_IMPLEMENTATION int
+scm_is_string (SCM x)
+{
+  return SCM_HAS_TYP7 (x, scm_tc7_string);
+}
+
 #endif
 
 
