@@ -27,6 +27,17 @@
 
 #include "libguile/__scm.h"
 
+/* Define SCM_C_INLINE_KEYWORD so that it can be used as a replacement
+   for the "inline" keyword, expanding to nothing when "inline" is not
+   available.
+*/
+
+#ifdef SCM_C_INLINE
+#define SCM_C_INLINE_KEYWORD SCM_C_INLINE
+#else
+#define SCM_C_INLINE_KEYWORD
+#endif
+
 /* We would like gnu89 extern inline semantics, not C99 extern inline
    semantics, so that we can be sure to avoid reifying definitions of
    inline functions in all compilation units, which is a possibility at

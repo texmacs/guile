@@ -388,17 +388,6 @@ typedef long SCM_STACKITEM;
 
 
 
-/* Define SCM_C_INLINE_KEYWORD so that it can be used as a replacement
-   for the "inline" keyword, expanding to nothing when "inline" is not
-   available.
-*/
-
-#ifdef SCM_C_INLINE
-#define SCM_C_INLINE_KEYWORD SCM_C_INLINE
-#else
-#define SCM_C_INLINE_KEYWORD
-#endif
-
 /* Handling thread-local storage (TLS).  */
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
