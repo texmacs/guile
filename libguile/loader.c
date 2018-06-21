@@ -264,7 +264,7 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
   Elf_Dyn *dyn = (Elf_Dyn *) dyn_addr;
   size_t i, dyn_size = dyn_phdr->p_memsz / sizeof (Elf_Dyn);
   char *init = 0, *gc_root = 0, *entry = 0, *frame_maps = 0;
-  scm_t_ptrdiff gc_root_size = 0;
+  ptrdiff_t gc_root_size = 0;
   enum bytecode_kind bytecode_kind = BYTECODE_KIND_NONE;
 
   for (i = 0; i < dyn_size; i++)

@@ -435,7 +435,7 @@ eval (SCM x, SCM env)
         SCM k, handler, res;
         jmp_buf registers;
         const void *prev_cookie;
-        scm_t_ptrdiff saved_stack_depth;
+        ptrdiff_t saved_stack_depth;
 
         k = EVAL1 (CAR (mx), env);
         handler = EVAL1 (CDDR (mx), env);

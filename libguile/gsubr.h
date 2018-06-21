@@ -57,7 +57,7 @@ SCM_INTERNAL uintptr_t scm_i_primitive_call_ip (SCM subr);
 
 union scm_vm_stack_element;
 SCM_INTERNAL SCM scm_apply_subr (union scm_vm_stack_element *sp,
-                                 scm_t_ptrdiff nargs);
+                                 ptrdiff_t nargs);
 
 SCM_API SCM scm_c_make_gsubr (const char *name,
 			      int req, int opt, int rst, scm_t_subr fcn);

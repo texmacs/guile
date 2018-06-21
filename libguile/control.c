@@ -47,10 +47,10 @@
 /* Only to be called if the setjmp returns 1 */
 SCM
 scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,
-                               scm_t_ptrdiff saved_stack_depth)
+                               ptrdiff_t saved_stack_depth)
 {
   size_t i, n;
-  scm_t_ptrdiff stack_depth;
+  ptrdiff_t stack_depth;
   SCM vals = SCM_EOL;
 
   stack_depth = vp->stack_top - vp->sp;
@@ -137,7 +137,7 @@ scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
   scm_t_bits *prompt;
   scm_t_dynstack_prompt_flags flags;
-  scm_t_ptrdiff fp_offset, sp_offset;
+  ptrdiff_t fp_offset, sp_offset;
   union scm_vm_stack_element *fp, *sp;
   uint32_t *ip;
   jmp_buf *registers;

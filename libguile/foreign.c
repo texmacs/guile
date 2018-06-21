@@ -1029,7 +1029,7 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
   void **args;
   unsigned i;
   size_t arg_size;
-  scm_t_ptrdiff off;
+  ptrdiff_t off;
 
   cif = SCM_POINTER_VALUE (cif_scm);
   func = SCM_POINTER_VALUE (pointer_scm);
@@ -1270,7 +1270,7 @@ scm_init_foreign (void)
 #elif SCM_SIZEOF_SCM_T_PTRDIFF == 4
 	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
 #else
-# error unsupported sizeof (scm_t_ptrdiff)
+# error unsupported sizeof (ptrdiff_t)
 #endif
 	      );
 

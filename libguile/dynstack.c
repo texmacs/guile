@@ -39,9 +39,9 @@
 
 #define PROMPT_WORDS 5
 #define PROMPT_KEY(top) (SCM_PACK ((top)[0]))
-#define PROMPT_FP(top) ((scm_t_ptrdiff) ((top)[1]))
+#define PROMPT_FP(top) ((ptrdiff_t) ((top)[1]))
 #define SET_PROMPT_FP(top, fp) do { top[1] = (scm_t_bits)(fp); } while (0)
-#define PROMPT_SP(top) ((scm_t_ptrdiff) ((top)[2]))
+#define PROMPT_SP(top) ((ptrdiff_t) ((top)[2]))
 #define SET_PROMPT_SP(top, sp) do { top[2] = (scm_t_bits)(sp); } while (0)
 #define PROMPT_IP(top) ((uint32_t *) ((top)[3]))
 #define PROMPT_JMPBUF(top) ((jmp_buf *) ((top)[4]))
@@ -195,7 +195,7 @@ void
 scm_dynstack_push_prompt (scm_t_dynstack *dynstack,
                           scm_t_dynstack_prompt_flags flags,
                           SCM key,
-                          scm_t_ptrdiff fp_offset, scm_t_ptrdiff sp_offset,
+                          ptrdiff_t fp_offset, ptrdiff_t sp_offset,
                           uint32_t *ip, jmp_buf *registers)
 {
   scm_t_bits *words;
@@ -293,7 +293,7 @@ scm_dynstack_capture (scm_t_dynstack *dynstack, scm_t_bits *item)
 }
 
 void
-scm_dynstack_relocate_prompts (scm_t_dynstack *dynstack, scm_t_ptrdiff base)
+scm_dynstack_relocate_prompts (scm_t_dynstack *dynstack, ptrdiff_t base)
 {
   scm_t_bits *walk;
 
@@ -498,7 +498,7 @@ scm_dynstack_unwind_fork (scm_t_dynstack *dynstack, scm_t_dynstack *branch)
 scm_t_bits*
 scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
                           scm_t_dynstack_prompt_flags *flags,
-                          scm_t_ptrdiff *fp_offset, scm_t_ptrdiff *sp_offset,
+                          ptrdiff_t *fp_offset, ptrdiff_t *sp_offset,
                           uint32_t **ip, jmp_buf **registers)
 {
   scm_t_bits *walk;
@@ -579,7 +579,7 @@ scm_dynstack_find_old_fluid_value (scm_t_dynstack *dynstack, SCM fluid,
 
 void
 scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
-                          scm_t_ptrdiff base_fp_offset,
+                          ptrdiff_t base_fp_offset,
                           jmp_buf *registers)
 {
   scm_t_bits tag = SCM_DYNSTACK_TAG (item);

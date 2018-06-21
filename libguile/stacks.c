@@ -101,10 +101,10 @@ stack_depth (enum scm_vm_frame_kind kind, const struct scm_frame *frame)
  * encountered.
  */
 
-static scm_t_ptrdiff
+static ptrdiff_t
 find_prompt (SCM key)
 {
-  scm_t_ptrdiff fp_offset;
+  ptrdiff_t fp_offset;
 
   if (!scm_dynstack_find_prompt (&SCM_I_CURRENT_THREAD->dynstack, key,
                                  NULL, &fp_offset, NULL, NULL, NULL))
@@ -180,7 +180,7 @@ narrow_stack (long len, enum scm_vm_frame_kind kind, struct scm_frame *frame,
   else
     {
       /* Cut until the given prompt tag is seen. */
-      scm_t_ptrdiff fp_offset = find_prompt (inner_cut);
+      ptrdiff_t fp_offset = find_prompt (inner_cut);
       for (; len; len--, scm_c_frame_previous (kind, frame))
         if (fp_offset == frame->fp_offset)
           break;
@@ -240,7 +240,7 @@ narrow_stack (long len, enum scm_vm_frame_kind kind, struct scm_frame *frame,
       /* Cut until the given prompt tag is seen. */
       long i;
       struct scm_frame tmp;
-      scm_t_ptrdiff fp_offset = find_prompt (outer_cut);
+      ptrdiff_t fp_offset = find_prompt (outer_cut);
 
       memcpy (&tmp, frame, sizeof tmp);
 

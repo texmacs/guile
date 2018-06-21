@@ -59,7 +59,7 @@ typedef struct
      into the live stack, you need to add OFFSET so that it points
      into the copy.
   */
-  scm_t_ptrdiff offset;
+  ptrdiff_t offset;
 
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_t_contregs;

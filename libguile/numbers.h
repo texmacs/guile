@@ -534,7 +534,7 @@ SCM_API SCM  scm_from_mpz (mpz_t rop);
 #define scm_to_ptrdiff_t    scm_to_int64
 #define scm_from_ptrdiff_t  scm_from_int64
 #else
-#error sizeof(scm_t_ptrdiff) is not 4 or 8.
+#error sizeof(ptrdiff_t) is not 4 or 8.
 #endif
 #endif
 

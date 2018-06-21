@@ -93,10 +93,10 @@ struct scm_vm_cont {
   /* IP of newest frame.  */
   uint32_t *ra;
   /* Offset of FP of newest frame, relative to stack top.  */
-  scm_t_ptrdiff fp_offset;
+  ptrdiff_t fp_offset;
   /* Besides being the stack size, this is also the offset of the SP of
      the newest frame.  */
-  scm_t_ptrdiff stack_size;
+  ptrdiff_t stack_size;
   /* Stack bottom, which also keeps saved stack alive for GC.  */
   union scm_vm_stack_element *stack_bottom;
   /* Saved dynamic stack, with prompts relocated to record saved SP/FP

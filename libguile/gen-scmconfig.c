@@ -88,7 +88,7 @@
    - make sure that anything that we explicitly typedef publically is
      prefixed with scm_t_.  i.e. we used to typedef long to ptrdiff_t
      if we didn't detect ptrdiff_t, but this has been changed so that
-     we typedef scm_t_ptrdiff instead so that we won't conflict with
+     we typedef ptrdiff_t instead so that we won't conflict with
      any non-guile header definitions of the same type.  For types
      like intptr_t and uintptr_t which we just try to detect and don't
      actually define, it's fine not to have a corresponding scm_t_

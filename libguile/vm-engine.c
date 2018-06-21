@@ -2685,14 +2685,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       uint8_t compare_result;
       uint32_t expected;
-      scm_t_ptrdiff nargs;
+      ptrdiff_t nargs;
 
       UNPACK_24 (op, expected);
       nargs = FRAME_LOCALS_COUNT ();
 
-      if (nargs < (scm_t_ptrdiff) expected)
+      if (nargs < (ptrdiff_t) expected)
         compare_result = SCM_F_COMPARE_LESS_THAN;
-      else if (nargs == (scm_t_ptrdiff) expected)
+      else if (nargs == (ptrdiff_t) expected)
         compare_result = SCM_F_COMPARE_EQUAL;
       else
         compare_result = SCM_F_COMPARE_NONE;
@@ -2706,7 +2706,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       uint8_t compare_result;
       uint32_t nreq, expected;
-      scm_t_ptrdiff nargs, npos;
+      ptrdiff_t nargs, npos;
 
       UNPACK_24 (op, nreq);
       UNPACK_24 (ip[1], expected);
@@ -2717,9 +2717,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
         if (scm_is_keyword (FP_REF (npos)))
           break;
 
-      if (npos < (scm_t_ptrdiff) expected)
+      if (npos < (ptrdiff_t) expected)
         compare_result = SCM_F_COMPARE_LESS_THAN;
-      else if (npos == (scm_t_ptrdiff) expected)
+      else if (npos == (ptrdiff_t) expected)
         compare_result = SCM_F_COMPARE_EQUAL;
       else
         compare_result = SCM_F_COMPARE_NONE;

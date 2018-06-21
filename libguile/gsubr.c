@@ -298,7 +298,7 @@ scm_i_primitive_call_ip (SCM subr)
 }
 
 SCM
-scm_apply_subr (union scm_vm_stack_element *sp, scm_t_ptrdiff nslots)
+scm_apply_subr (union scm_vm_stack_element *sp, ptrdiff_t nslots)
 {
   SCM (*subr)() = SCM_SUBRF (sp[nslots - 1].as_scm);
 

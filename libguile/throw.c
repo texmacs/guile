@@ -87,7 +87,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
   jmp_buf registers;
   const void *prev_cookie;
-  scm_t_ptrdiff saved_stack_depth;
+  ptrdiff_t saved_stack_depth;
 
   if (!scm_is_eq (tag, SCM_BOOL_T) && !scm_is_symbol (tag))
     scm_wrong_type_arg ("catch", 1, tag);

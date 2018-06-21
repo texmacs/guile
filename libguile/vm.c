@@ -411,7 +411,7 @@ vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
   struct vm_reinstate_partial_continuation_data data;
   struct scm_vm_cont *cp;
   union scm_vm_stack_element *args;
-  scm_t_ptrdiff old_fp_offset;
+  ptrdiff_t old_fp_offset;
 
   args = alloca (nargs * sizeof (*args));
   memcpy (args, vp->sp, nargs * sizeof (*args));
@@ -952,7 +952,7 @@ scm_i_vm_mark_stack (struct scm_vm *vp, struct GC_ms_entry *mark_stack_ptr,
        fp < vp->stack_top;
        fp = SCM_FRAME_DYNAMIC_LINK (fp))
     {
-      scm_t_ptrdiff nlocals = SCM_FRAME_NUM_LOCALS (fp, sp);
+      ptrdiff_t nlocals = SCM_FRAME_NUM_LOCALS (fp, sp);
       size_t slot = nlocals - 1;
       for (slot = nlocals - 1; sp < fp; sp++, slot--)
         {
@@ -1018,7 +1018,7 @@ vm_expand_stack_inner (void *data_ptr)
   struct scm_vm *vp = data->vp;
   union scm_vm_stack_element *old_top, *new_bottom;
   size_t new_size;
-  scm_t_ptrdiff reloc;
+  ptrdiff_t reloc;
 
   old_top = vp->stack_top;
   new_size = vp->stack_size;
@@ -1042,7 +1042,7 @@ vm_expand_stack_inner (void *data_ptr)
   return new_bottom;
 }
 
-static scm_t_ptrdiff
+static ptrdiff_t
 current_overflow_size (struct scm_vm *vp)
 {
   if (scm_is_pair (vp->overflow_handler_stack))
@@ -1051,9 +1051,9 @@ current_overflow_size (struct scm_vm *vp)
 }
 
 static int
-should_handle_stack_overflow (struct scm_vm *vp, scm_t_ptrdiff stack_size)
+should_handle_stack_overflow (struct scm_vm *vp, ptrdiff_t stack_size)
 {
-  scm_t_ptrdiff overflow_size = current_overflow_size (vp);
+  ptrdiff_t overflow_size = current_overflow_size (vp);
   return overflow_size >= 0 && stack_size >= overflow_size;
 }
 
@@ -1095,7 +1095,7 @@ unwind_overflow_handler (void *ptr)
 static void
 vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
 {
-  scm_t_ptrdiff stack_size = vp->stack_top - new_sp;
+  ptrdiff_t stack_size = vp->stack_top - new_sp;
 
   if (stack_size > vp->stack_size)
     {
@@ -1181,7 +1181,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
      greater than INTMAX/2 and therefore we don't have to check for
      overflow here or below.  */
   size_t return_nlocals = 1, call_nlocals = nargs + 1, frame_size = 2;
-  scm_t_ptrdiff stack_reserve_words;
+  ptrdiff_t stack_reserve_words;
   size_t i;
 
   thread = SCM_I_CURRENT_THREAD;
@@ -1424,7 +1424,7 @@ SCM_DEFINE (scm_call_with_stack_overflow_handler,
 #define FUNC_NAME s_scm_call_with_stack_overflow_handler
 {
   struct scm_vm *vp;
-  scm_t_ptrdiff c_limit, stack_size;
+  ptrdiff_t c_limit, stack_size;
   struct overflow_handler_data data;
   SCM new_limit, ret;
 

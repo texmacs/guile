@@ -120,8 +120,8 @@ union scm_vm_stack_element
 struct scm_frame 
 {
   void *stack_holder;
-  scm_t_ptrdiff fp_offset;
-  scm_t_ptrdiff sp_offset;
+  ptrdiff_t fp_offset;
+  ptrdiff_t sp_offset;
   uint32_t *ip;
 };
 
