@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2010, 2011, 2012, 2013, 2015 Free Software Foundation, Inc.
+@c Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Web
@@ -1467,24 +1467,18 @@ how to install the GnuTLS bindings for Guile,, gnutls-guile,
 GnuTLS-Guile}, for more information.
 @end deffn
 
-@deffn {Scheme Procedure} http-get uri arg...
-@deffnx {Scheme Procedure} http-head uri arg...
-@deffnx {Scheme Procedure} http-post uri arg...
-@deffnx {Scheme Procedure} http-put uri arg...
-@deffnx {Scheme Procedure} http-delete uri arg...
-@deffnx {Scheme Procedure} http-trace uri arg...
-@deffnx {Scheme Procedure} http-options uri arg...
+@anchor{http-request}@deffn {Scheme Procedure} http-request @var{uri} @var{arg}@dots{}
 
 Connect to the server corresponding to @var{uri} and make a request over
-HTTP, using the appropriate method (@code{GET}, @code{HEAD}, etc.).
+HTTP, using @var{method} (@code{GET}, @code{HEAD}, @code{POST}, etc.).
 
-All of these procedures have the same prototype: a URI followed by an
-optional sequence of keyword arguments.  These keyword arguments allow
-you to modify the requests in various ways, for example attaching a body
-to the request, or setting specific headers.  The following table lists
-the keyword arguments and their default values.
+The following keyword arguments allow you to modify the requests in
+various ways, for example attaching a body to the request, or setting
+specific headers.  The following table lists the keyword arguments and
+their default values.
 
 @table @code
+@item #:method 'GET
 @item #:body #f
 @item #:port (open-socket-for-uri @var{uri})]
 @item #:version '(1 . 1)
@@ -1520,6 +1514,25 @@ response body has been read.
 Returns two values: the response read from the server, and the response
 body as a string, bytevector, #f value, or as a port (if
 @var{streaming?} is true).
+@end deffn
+
+@deffn {Scheme Procedure} http-get @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-head @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-post @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-put @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-delete @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-trace @var{uri} @var{arg}@dots{}
+@deffnx {Scheme Procedure} http-options @var{uri} @var{arg}@dots{}
+Connect to the server corresponding to @var{uri} and make a request over
+HTTP, using the appropriate method (@code{GET}, @code{HEAD},
+@code{POST}, etc.).
+
+These procedures are variants of @code{http-request} specialized with a
+specific @var{method} argument, and have the same prototype: a URI
+followed by an optional sequence of keyword arguments.
+@xref{http-request}, for full documentation on the various keyword
+arguments.
+
 @end deffn
 
 @code{http-get} is useful for making one-off requests to web sites.  If
