@@ -89,6 +89,26 @@
 
 #define SCM_HAVE_ARRAYS 1 /* always true now */
 
+#ifdef __GNUC__
+#define SCM_DEPRECATED_TYPE __attribute__((__deprecated__))
+#else
+#define SCM_DEPRECATED_TYPE /*deprecated*/
+#endif
+typedef int8_t scm_t_int8 SCM_DEPRECATED_TYPE;
+typedef uint8_t scm_t_uint8 SCM_DEPRECATED_TYPE;
+typedef int16_t scm_t_int16 SCM_DEPRECATED_TYPE;
+typedef uint16_t scm_t_uint16 SCM_DEPRECATED_TYPE;
+typedef int32_t scm_t_int32 SCM_DEPRECATED_TYPE;
+typedef uint32_t scm_t_uint32 SCM_DEPRECATED_TYPE;
+typedef intmax_t scm_t_intmax SCM_DEPRECATED_TYPE;
+typedef uintmax_t scm_t_uintmax SCM_DEPRECATED_TYPE;
+typedef intptr_t scm_t_intptr SCM_DEPRECATED_TYPE;
+typedef uintptr_t scm_t_uintptr SCM_DEPRECATED_TYPE;
+typedef int64_t scm_t_int64 SCM_DEPRECATED_TYPE;
+typedef uint64_t scm_t_uint64 SCM_DEPRECATED_TYPE;
+typedef ptrdiff_t scm_t_ptrdiff SCM_DEPRECATED_TYPE;
+#undef SCM_DEPRECATED_TYPE
+
 void scm_i_init_deprecated (void);
 
 #endif

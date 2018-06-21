@@ -255,20 +255,6 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_INTPTR_T %zu\n", sizeof (intptr_t));
   pf ("#define SCM_SIZEOF_UINTPTR_T %zu\n", sizeof (uintptr_t));
 
-  pf("typedef int8_t scm_t_int8;\n");
-  pf("typedef uint8_t scm_t_uint8;\n");
-  pf("typedef int16_t scm_t_int16;\n");
-  pf("typedef uint16_t scm_t_uint16;\n");
-  pf("typedef int32_t scm_t_int32;\n");
-  pf("typedef uint32_t scm_t_uint32;\n");
-  pf("typedef intmax_t scm_t_intmax;\n");
-  pf("typedef uintmax_t scm_t_uintmax;\n");
-  pf("typedef intptr_t scm_t_intptr;\n");
-  pf("typedef uintptr_t scm_t_uintptr;\n");
-  pf("typedef int64_t scm_t_int64;\n");
-  pf("typedef uint64_t scm_t_uint64;\n");
-  pf("typedef ptrdiff_t scm_t_ptrdiff;\n");
-
   pf ("\n");
   pf ("/* same as POSIX \"struct timespec\" -- always defined */\n");
 #ifdef HAVE_SYSTEM_STRUCT_TIMESPEC
@@ -345,7 +331,7 @@ main (int argc, char *argv[])
      how the application that uses Guile is compiled.  */
 
 #if defined GUILE_USE_64_CALLS && defined HAVE_STAT64
-  pf ("typedef scm_t_int64 scm_t_off;\n");
+  pf ("typedef int64_t scm_t_off;\n");
   pf ("#define SCM_T_OFF_MAX INT64_MAX\n");
   pf ("#define SCM_T_OFF_MIN INT64_MIN\n");
 #elif SIZEOF_OFF_T == SIZEOF_INT
