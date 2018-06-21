@@ -27,7 +27,7 @@
  */
 
 #define SCM_PROGRAM_P(x) (SCM_HAS_TYP7 (x, scm_tc7_program))
-#define SCM_PROGRAM_CODE(x) ((scm_t_uint32 *) SCM_CELL_WORD_1 (x))
+#define SCM_PROGRAM_CODE(x) ((uint32_t *) SCM_CELL_WORD_1 (x))
 #define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_CELL_OBJECT_LOC (x, 2))
 #define SCM_PROGRAM_FREE_VARIABLE_REF(x,i) (SCM_PROGRAM_FREE_VARIABLES (x)[i])
 #define SCM_PROGRAM_FREE_VARIABLE_SET(x,i,v) (SCM_PROGRAM_FREE_VARIABLES (x)[i]=(v))
@@ -50,7 +50,7 @@
 
 #ifdef BUILDING_LIBGUILE
 static inline SCM
-scm_i_make_program (const scm_t_uint32 *code)
+scm_i_make_program (const uint32_t *code)
 {
   return scm_cell (scm_tc7_program, (scm_t_bits)code);
 }

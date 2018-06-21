@@ -32,7 +32,7 @@ SCM_API SCM scm_make_srfi_4_vector (SCM type, SCM len, SCM fill);
 
 SCM_API SCM scm_u8vector_p (SCM obj);
 SCM_API SCM scm_make_u8vector (SCM n, SCM fill);
-SCM_API SCM scm_take_u8vector (scm_t_uint8 *data, size_t n);
+SCM_API SCM scm_take_u8vector (uint8_t *data, size_t n);
 SCM_API SCM scm_u8vector (SCM l);
 SCM_API SCM scm_u8vector_length (SCM uvec);
 SCM_API SCM scm_u8vector_ref (SCM uvec, SCM index);
@@ -40,19 +40,19 @@ SCM_API SCM scm_u8vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u8vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u8vector (SCM l);
 SCM_API SCM scm_any_to_u8vector (SCM obj);
-SCM_API const scm_t_uint8 *scm_array_handle_u8_elements (scm_t_array_handle *h);
-SCM_API scm_t_uint8 *scm_array_handle_u8_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_uint8 *scm_u8vector_elements (SCM uvec, 
+SCM_API const uint8_t *scm_array_handle_u8_elements (scm_t_array_handle *h);
+SCM_API uint8_t *scm_array_handle_u8_writable_elements (scm_t_array_handle *h);
+SCM_API const uint8_t *scm_u8vector_elements (SCM uvec, 
 						  scm_t_array_handle *h,
 						  size_t *lenp, ssize_t *incp);
-SCM_API scm_t_uint8 *scm_u8vector_writable_elements (SCM uvec, 
+SCM_API uint8_t *scm_u8vector_writable_elements (SCM uvec, 
 						     scm_t_array_handle *h,
 						     size_t *lenp,
 						     ssize_t *incp);
 
 SCM_API SCM scm_s8vector_p (SCM obj);
 SCM_API SCM scm_make_s8vector (SCM n, SCM fill);
-SCM_API SCM scm_take_s8vector (scm_t_int8 *data, size_t n);
+SCM_API SCM scm_take_s8vector (int8_t *data, size_t n);
 SCM_API SCM scm_s8vector (SCM l);
 SCM_API SCM scm_s8vector_length (SCM uvec);
 SCM_API SCM scm_s8vector_ref (SCM uvec, SCM index);
@@ -60,19 +60,19 @@ SCM_API SCM scm_s8vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s8vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s8vector (SCM l);
 SCM_API SCM scm_any_to_s8vector (SCM obj);
-SCM_API const scm_t_int8 *scm_array_handle_s8_elements (scm_t_array_handle *h);
-SCM_API scm_t_int8 *scm_array_handle_s8_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_int8 *scm_s8vector_elements (SCM uvec, 
+SCM_API const int8_t *scm_array_handle_s8_elements (scm_t_array_handle *h);
+SCM_API int8_t *scm_array_handle_s8_writable_elements (scm_t_array_handle *h);
+SCM_API const int8_t *scm_s8vector_elements (SCM uvec, 
 						 scm_t_array_handle *h,
 						 size_t *lenp, ssize_t *incp);
-SCM_API scm_t_int8 *scm_s8vector_writable_elements (SCM uvec, 
+SCM_API int8_t *scm_s8vector_writable_elements (SCM uvec, 
 						    scm_t_array_handle *h,
 						    size_t *lenp,
 						    ssize_t *incp);
 
 SCM_API SCM scm_u16vector_p (SCM obj);
 SCM_API SCM scm_make_u16vector (SCM n, SCM fill);
-SCM_API SCM scm_take_u16vector (scm_t_uint16 *data, size_t n);
+SCM_API SCM scm_take_u16vector (uint16_t *data, size_t n);
 SCM_API SCM scm_u16vector (SCM l);
 SCM_API SCM scm_u16vector_length (SCM uvec);
 SCM_API SCM scm_u16vector_ref (SCM uvec, SCM index);
@@ -80,20 +80,20 @@ SCM_API SCM scm_u16vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u16vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u16vector (SCM l);
 SCM_API SCM scm_any_to_u16vector (SCM obj);
-SCM_API const scm_t_uint16 *scm_array_handle_u16_elements (scm_t_array_handle *h);
-SCM_API scm_t_uint16 *scm_array_handle_u16_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_uint16 *scm_u16vector_elements (SCM uvec, 
+SCM_API const uint16_t *scm_array_handle_u16_elements (scm_t_array_handle *h);
+SCM_API uint16_t *scm_array_handle_u16_writable_elements (scm_t_array_handle *h);
+SCM_API const uint16_t *scm_u16vector_elements (SCM uvec, 
 						    scm_t_array_handle *h,
 						    size_t *lenp,
 						    ssize_t *incp);
-SCM_API scm_t_uint16 *scm_u16vector_writable_elements (SCM uvec, 
+SCM_API uint16_t *scm_u16vector_writable_elements (SCM uvec, 
 						       scm_t_array_handle *h,
 						       size_t *lenp,
 						       ssize_t *incp);
 
 SCM_API SCM scm_s16vector_p (SCM obj);
 SCM_API SCM scm_make_s16vector (SCM n, SCM fill);
-SCM_API SCM scm_take_s16vector (scm_t_int16 *data, size_t n);
+SCM_API SCM scm_take_s16vector (int16_t *data, size_t n);
 SCM_API SCM scm_s16vector (SCM l);
 SCM_API SCM scm_s16vector_length (SCM uvec);
 SCM_API SCM scm_s16vector_ref (SCM uvec, SCM index);
@@ -101,19 +101,19 @@ SCM_API SCM scm_s16vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s16vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s16vector (SCM l);
 SCM_API SCM scm_any_to_s16vector (SCM obj);
-SCM_API const scm_t_int16 *scm_array_handle_s16_elements (scm_t_array_handle *h);
-SCM_API scm_t_int16 *scm_array_handle_s16_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_int16 *scm_s16vector_elements (SCM uvec, 
+SCM_API const int16_t *scm_array_handle_s16_elements (scm_t_array_handle *h);
+SCM_API int16_t *scm_array_handle_s16_writable_elements (scm_t_array_handle *h);
+SCM_API const int16_t *scm_s16vector_elements (SCM uvec, 
 						   scm_t_array_handle *h,
 						   size_t *lenp, ssize_t *incp);
-SCM_API scm_t_int16 *scm_s16vector_writable_elements (SCM uvec, 
+SCM_API int16_t *scm_s16vector_writable_elements (SCM uvec, 
 						      scm_t_array_handle *h,
 						      size_t *lenp,
 						      ssize_t *incp);
 
 SCM_API SCM scm_u32vector_p (SCM obj);
 SCM_API SCM scm_make_u32vector (SCM n, SCM fill);
-SCM_API SCM scm_take_u32vector (scm_t_uint32 *data, size_t n);
+SCM_API SCM scm_take_u32vector (uint32_t *data, size_t n);
 SCM_API SCM scm_u32vector (SCM l);
 SCM_API SCM scm_u32vector_length (SCM uvec);
 SCM_API SCM scm_u32vector_ref (SCM uvec, SCM index);
@@ -121,20 +121,20 @@ SCM_API SCM scm_u32vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_u32vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u32vector (SCM l);
 SCM_API SCM scm_any_to_u32vector (SCM obj);
-SCM_API const scm_t_uint32 *scm_array_handle_u32_elements (scm_t_array_handle *h);
-SCM_API scm_t_uint32 *scm_array_handle_u32_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_uint32 *scm_u32vector_elements (SCM uvec, 
+SCM_API const uint32_t *scm_array_handle_u32_elements (scm_t_array_handle *h);
+SCM_API uint32_t *scm_array_handle_u32_writable_elements (scm_t_array_handle *h);
+SCM_API const uint32_t *scm_u32vector_elements (SCM uvec, 
 						    scm_t_array_handle *h,
 						    size_t *lenp,
 						    ssize_t *incp);
-SCM_API scm_t_uint32 *scm_u32vector_writable_elements (SCM uvec, 
+SCM_API uint32_t *scm_u32vector_writable_elements (SCM uvec, 
 						       scm_t_array_handle *h,
 						       size_t *lenp,
 						       ssize_t *incp);
 
 SCM_API SCM scm_s32vector_p (SCM obj);
 SCM_API SCM scm_make_s32vector (SCM n, SCM fill);
-SCM_API SCM scm_take_s32vector (scm_t_int32 *data, size_t n);
+SCM_API SCM scm_take_s32vector (int32_t *data, size_t n);
 SCM_API SCM scm_s32vector (SCM l);
 SCM_API SCM scm_s32vector_length (SCM uvec);
 SCM_API SCM scm_s32vector_ref (SCM uvec, SCM index);
@@ -142,12 +142,12 @@ SCM_API SCM scm_s32vector_set_x (SCM uvec, SCM index, SCM value);
 SCM_API SCM scm_s32vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s32vector (SCM l);
 SCM_API SCM scm_any_to_s32vector (SCM obj);
-SCM_API const scm_t_int32 *scm_array_handle_s32_elements (scm_t_array_handle *h);
-SCM_API scm_t_int32 *scm_array_handle_s32_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_int32 *scm_s32vector_elements (SCM uvec, 
+SCM_API const int32_t *scm_array_handle_s32_elements (scm_t_array_handle *h);
+SCM_API int32_t *scm_array_handle_s32_writable_elements (scm_t_array_handle *h);
+SCM_API const int32_t *scm_s32vector_elements (SCM uvec, 
 						   scm_t_array_handle *h,
 						   size_t *lenp, ssize_t *incp);
-SCM_API scm_t_int32 *scm_s32vector_writable_elements (SCM uvec, 
+SCM_API int32_t *scm_s32vector_writable_elements (SCM uvec, 
 						      scm_t_array_handle *h,
 						      size_t *lenp,
 						      ssize_t *incp);
@@ -162,14 +162,14 @@ SCM_API SCM scm_u64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u64vector (SCM l);
 SCM_API SCM scm_any_to_u64vector (SCM obj);
 
-SCM_API SCM scm_take_u64vector (scm_t_uint64 *data, size_t n);
-SCM_API const scm_t_uint64 *scm_array_handle_u64_elements (scm_t_array_handle *h);
-SCM_API scm_t_uint64 *scm_array_handle_u64_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_uint64 *scm_u64vector_elements (SCM uvec, 
+SCM_API SCM scm_take_u64vector (uint64_t *data, size_t n);
+SCM_API const uint64_t *scm_array_handle_u64_elements (scm_t_array_handle *h);
+SCM_API uint64_t *scm_array_handle_u64_writable_elements (scm_t_array_handle *h);
+SCM_API const uint64_t *scm_u64vector_elements (SCM uvec, 
 						    scm_t_array_handle *h,
 						    size_t *lenp,
 						    ssize_t *incp);
-SCM_API scm_t_uint64 *scm_u64vector_writable_elements (SCM uvec, 
+SCM_API uint64_t *scm_u64vector_writable_elements (SCM uvec, 
 						       scm_t_array_handle *h,
 						       size_t *lenp,
 						       ssize_t *incp);
@@ -184,13 +184,13 @@ SCM_API SCM scm_s64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s64vector (SCM l);
 SCM_API SCM scm_any_to_s64vector (SCM obj);
 
-SCM_API SCM scm_take_s64vector (scm_t_int64 *data, size_t n);
-SCM_API const scm_t_int64 *scm_array_handle_s64_elements (scm_t_array_handle *h);
-SCM_API scm_t_int64 *scm_array_handle_s64_writable_elements (scm_t_array_handle *h);
-SCM_API const scm_t_int64 *scm_s64vector_elements (SCM uvec, 
+SCM_API SCM scm_take_s64vector (int64_t *data, size_t n);
+SCM_API const int64_t *scm_array_handle_s64_elements (scm_t_array_handle *h);
+SCM_API int64_t *scm_array_handle_s64_writable_elements (scm_t_array_handle *h);
+SCM_API const int64_t *scm_s64vector_elements (SCM uvec, 
 						   scm_t_array_handle *h,
 						   size_t *lenp, ssize_t *incp);
-SCM_API scm_t_int64 *scm_s64vector_writable_elements (SCM uvec, 
+SCM_API int64_t *scm_s64vector_writable_elements (SCM uvec, 
 						      scm_t_array_handle *h,
 						      size_t *lenp,
 						      ssize_t *incp);

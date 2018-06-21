@@ -673,7 +673,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
      character to the format string, so that valid returns are always
      nonzero. */
   myfmt = scm_malloc (len+2);
-  *myfmt = (scm_t_uint8) 'x';
+  *myfmt = (uint8_t) 'x';
   strncpy (myfmt + 1, fmt, len);
   myfmt[len + 1] = 0;
   scm_remember_upto_here_1 (format);
@@ -809,7 +809,7 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 #endif
 
   /* Compute the number of UTF-8 characters.  */
-  used_len = u8_strnlen ((scm_t_uint8*) str, rest-str);
+  used_len = u8_strnlen ((uint8_t*) str, rest-str);
   scm_remember_upto_here_2 (format, string);
   free (str);
   free (fmt);

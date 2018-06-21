@@ -265,7 +265,7 @@
 
 /* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
 #define ALIGNED_P(ptr, type)			\
-  ((scm_t_uintptr) (ptr) % alignof_type (type) == 0)
+  ((uintptr_t) (ptr) % alignof_type (type) == 0)
 
 static SCM
 VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
@@ -273,7 +273,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */
-  register scm_t_uint32 *ip IP_REG;
+  register uint32_t *ip IP_REG;
 
   /* Stack pointer: A pointer to the hot end of the stack, off of which
      we index arguments and local variables.  Pushed at function calls,
@@ -281,7 +281,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   register union scm_vm_stack_element *sp FP_REG;
 
   /* Current opcode: A cache of *ip.  */
-  register scm_t_uint32 op;
+  register uint32_t op;
 
   void **intrinsics = (void**) &scm_vm_intrinsics;
 
@@ -310,7 +310,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
     ip = SCM_PROGRAM_CODE (FP_REF (0));
   else
-    ip = (scm_t_uint32 *) vm_apply_non_program_code;
+    ip = (uint32_t *) vm_apply_non_program_code;
 
   APPLY_HOOK ();
 
@@ -333,14 +333,14 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       /* Boot closure in r0, empty frame in r1/r2, proc in r3, values from r4.  */
 
-      scm_t_uint32 nvals = FRAME_LOCALS_COUNT_FROM (4);
+      uint32_t nvals = FRAME_LOCALS_COUNT_FROM (4);
       SCM ret;
 
       if (nvals == 1)
         ret = FP_REF (4);
       else
         {
-          scm_t_uint32 n;
+          uint32_t n;
           ret = SCM_EOL;
           SYNC_IP ();
           for (n = nvals; n > 0; n--)
@@ -370,7 +370,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (1, call, "call", OP2 (X8_F24, X8_C24))
     {
-      scm_t_uint32 proc, nlocals;
+      uint32_t proc, nlocals;
       union scm_vm_stack_element *old_fp;
 
       UNPACK_24 (op, proc);
@@ -388,7 +388,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (scm_t_uint32 *) vm_apply_non_program_code;
+        ip = (uint32_t *) vm_apply_non_program_code;
 
       APPLY_HOOK ();
 
@@ -407,8 +407,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (2, call_label, "call-label", OP3 (X8_F24, X8_C24, L32))
     {
-      scm_t_uint32 proc, nlocals;
-      scm_t_int32 label;
+      uint32_t proc, nlocals;
+      int32_t label;
       union scm_vm_stack_element *old_fp;
 
       UNPACK_24 (op, proc);
@@ -439,7 +439,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (3, tail_call, "tail-call", OP1 (X8_C24))
     {
-      scm_t_uint32 nlocals;
+      uint32_t nlocals;
       
       UNPACK_24 (op, nlocals);
 
@@ -448,7 +448,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (scm_t_uint32 *) vm_apply_non_program_code;
+        ip = (uint32_t *) vm_apply_non_program_code;
 
       APPLY_HOOK ();
 
@@ -462,8 +462,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (4, tail_call_label, "tail-call-label", OP2 (X8_C24, L32))
     {
-      scm_t_uint32 nlocals;
-      scm_t_int32 label;
+      uint32_t nlocals;
+      int32_t label;
       
       UNPACK_24 (op, nlocals);
       label = ip[1];
@@ -486,7 +486,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (5, tail_call_shuffle, "tail-call/shuffle", OP1 (X8_F24))
     {
-      scm_t_uint32 n, from, nlocals;
+      uint32_t n, from, nlocals;
 
       UNPACK_24 (op, from);
 
@@ -501,7 +501,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (scm_t_uint32 *) vm_apply_non_program_code;
+        ip = (uint32_t *) vm_apply_non_program_code;
 
       APPLY_HOOK ();
 
@@ -516,8 +516,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (6, receive, "receive", OP2 (X8_F12_F12, X8_C24) | OP_DST)
     {
-      scm_t_uint16 dst, proc;
-      scm_t_uint32 nlocals;
+      uint16_t dst, proc;
+      uint32_t nlocals;
       UNPACK_12_12 (op, dst, proc);
       UNPACK_24 (ip[1], nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () > proc + 1, vm_error_no_values ());
@@ -536,7 +536,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (7, receive_values, "receive-values", OP2 (X8_F24, B1_X7_C24))
     {
-      scm_t_uint32 proc, nvalues;
+      uint32_t proc, nvalues;
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nvalues);
       if (ip[1] & 0x1)
@@ -566,7 +566,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (9, return_values, "return-values", OP1 (X8_C24))
     {
       union scm_vm_stack_element *old_fp;
-      scm_t_uint32 nlocals;
+      uint32_t nlocals;
 
       UNPACK_24 (op, nlocals);
       if (nlocals)
@@ -637,7 +637,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (11, foreign_call, "foreign-call", OP1 (X8_C12_C12))
     {
-      scm_t_uint16 cif_idx, ptr_idx;
+      uint16_t cif_idx, ptr_idx;
       int err = 0;
       SCM closure, cif, pointer, ret;
 
@@ -669,7 +669,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (12, continuation_call, "continuation-call", OP1 (X8_C24))
     {
       SCM contregs;
-      scm_t_uint32 contregs_idx;
+      uint32_t contregs_idx;
 
       UNPACK_24 (op, contregs_idx);
 
@@ -699,7 +699,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (13, compose_continuation, "compose-continuation", OP1 (X8_C24))
     {
       SCM vmcont;
-      scm_t_uint32 cont_idx;
+      uint32_t cont_idx;
 
       UNPACK_24 (op, cont_idx);
       vmcont = SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), cont_idx);
@@ -750,7 +750,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (scm_t_uint32 *) vm_apply_non_program_code;
+        ip = (uint32_t *) vm_apply_non_program_code;
 
       APPLY_HOOK ();
 
@@ -794,7 +794,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
           if (SCM_LIKELY (SCM_PROGRAM_P (SP_REF (1))))
             ip = SCM_PROGRAM_CODE (SP_REF (1));
           else
-            ip = (scm_t_uint32 *) vm_apply_non_program_code;
+            ip = (uint32_t *) vm_apply_non_program_code;
 
           APPLY_HOOK ();
 
@@ -816,7 +816,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (16, abort, "abort", OP1 (X32))
     {
-      scm_t_uint32 nlocals = FRAME_LOCALS_COUNT ();
+      uint32_t nlocals = FRAME_LOCALS_COUNT ();
 
       ASSERT (nlocals >= 2);
       /* FIXME: Really we should capture the caller's registers.  Until
@@ -836,7 +836,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (17, builtin_ref, "builtin-ref", OP1 (X8_S12_C12) | OP_DST)
     {
-      scm_t_uint16 dst, idx;
+      uint16_t dst, idx;
 
       UNPACK_12_12 (op, dst, idx);
       SP_SET (dst, scm_vm_builtin_ref (idx));
@@ -857,7 +857,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (18, throw, "throw", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       SCM key, args;
 
       UNPACK_12_12 (op, a, b);
@@ -881,8 +881,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (19, throw_value, "throw/value", OP2 (X8_S24, N32))
     {
-      scm_t_uint32 a;
-      scm_t_int32 offset;
+      uint32_t a;
+      int32_t offset;
       scm_t_bits key_subr_and_message_bits;
       SCM val, key_subr_and_message;
 
@@ -910,8 +910,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (20, throw_value_and_data, "throw/value+data", OP2 (X8_S24, N32))
     {
-      scm_t_uint32 a;
-      scm_t_int32 offset;
+      uint32_t a;
+      int32_t offset;
       scm_t_bits key_subr_and_message_bits;
       SCM val, key_subr_and_message;
 
@@ -938,7 +938,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (21, assert_nargs_ee, "assert-nargs-ee", OP1 (X8_C24))
     {
-      scm_t_uint32 expected;
+      uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
                  vm_error_wrong_num_args (FP_REF (0)));
@@ -946,7 +946,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
   VM_DEFINE_OP (22, assert_nargs_ge, "assert-nargs-ge", OP1 (X8_C24))
     {
-      scm_t_uint32 expected;
+      uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () >= expected,
                  vm_error_wrong_num_args (FP_REF (0)));
@@ -954,7 +954,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     }
   VM_DEFINE_OP (23, assert_nargs_le, "assert-nargs-le", OP1 (X8_C24))
     {
-      scm_t_uint32 expected;
+      uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () <= expected,
                  vm_error_wrong_num_args (FP_REF (0)));
@@ -969,7 +969,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (24, alloc_frame, "alloc-frame", OP1 (X8_C24))
     {
-      scm_t_uint32 nlocals, nargs;
+      uint32_t nlocals, nargs;
       UNPACK_24 (op, nlocals);
 
       nargs = FRAME_LOCALS_COUNT ();
@@ -988,7 +988,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (25, reset_frame, "reset-frame", OP1 (X8_C24))
     {
-      scm_t_uint32 nlocals;
+      uint32_t nlocals;
       UNPACK_24 (op, nlocals);
       RESET_FRAME (nlocals);
       NEXT (1);
@@ -1000,7 +1000,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (26, push, "push", OP1 (X8_S24))
     {
-      scm_t_uint32 src;
+      uint32_t src;
       union scm_vm_stack_element val;
 
       /* FIXME: The compiler currently emits "push" for SCM, F64, U64,
@@ -1020,7 +1020,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (27, pop, "pop", OP1 (X8_S24) | OP_DST)
     {
-      scm_t_uint32 dst;
+      uint32_t dst;
       union scm_vm_stack_element val;
 
       /* FIXME: The compiler currently emits "pop" for SCM, F64, U64,
@@ -1040,7 +1040,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (28, drop, "drop", OP1 (X8_C24))
     {
-      scm_t_uint32 count;
+      uint32_t count;
 
       UNPACK_24 (op, count);
       vp->sp = sp = sp + count;
@@ -1054,7 +1054,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (29, assert_nargs_ee_locals, "assert-nargs-ee/locals", OP1 (X8_C12_C12))
     {
-      scm_t_uint16 expected, nlocals;
+      uint16_t expected, nlocals;
       UNPACK_12_12 (op, expected, nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
                  vm_error_wrong_num_args (FP_REF (0)));
@@ -1086,8 +1086,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (31, bind_kwargs, "bind-kwargs", OP4 (X8_C24, C8_C24, X8_C24, N32))
     {
-      scm_t_uint32 nreq, nreq_and_opt, ntotal, npositional, nkw, n, nargs;
-      scm_t_int32 kw_offset;
+      uint32_t nreq, nreq_and_opt, ntotal, npositional, nkw, n, nargs;
+      int32_t kw_offset;
       scm_t_bits kw_bits;
       SCM kw;
       char allow_other_keys, has_rest;
@@ -1176,7 +1176,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (32, bind_rest, "bind-rest", OP1 (X8_F24) | OP_DST)
     {
-      scm_t_uint32 dst, nargs;
+      uint32_t dst, nargs;
       SCM rest = SCM_EOL;
 
       UNPACK_24 (op, dst);
@@ -1211,7 +1211,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (33, allocate_words, "allocate-words", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst, size;
+      uint16_t dst, size;
 
       UNPACK_12_12 (op, dst, size);
 
@@ -1225,7 +1225,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (34, allocate_words_immediate, "allocate-words/immediate", OP1 (X8_S12_C12) | OP_DST)
     {
-      scm_t_uint16 dst, size;
+      uint16_t dst, size;
 
       UNPACK_12_12 (op, dst, size);
 
@@ -1238,7 +1238,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (35, scm_ref, "scm-ref", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1249,7 +1249,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (36, scm_set, "scm-set!", OP1 (X8_S8_S8_S8))
     {
-      scm_t_uint8 obj, idx, val;
+      uint8_t obj, idx, val;
 
       UNPACK_8_8_8 (op, obj, idx, val);
 
@@ -1260,7 +1260,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (37, scm_ref_tag, "scm-ref/tag", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, tag;
+      uint8_t dst, obj, tag;
 
       UNPACK_8_8_8 (op, dst, obj, tag);
 
@@ -1271,7 +1271,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (38, scm_set_tag, "scm-set!/tag", OP1 (X8_S8_C8_S8))
     {
-      scm_t_uint8 obj, tag, val;
+      uint8_t obj, tag, val;
 
       UNPACK_8_8_8 (op, obj, tag, val);
 
@@ -1282,7 +1282,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (39, scm_ref_immediate, "scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1293,7 +1293,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (40, scm_set_immediate, "scm-set!/immediate", OP1 (X8_S8_C8_S8))
     {
-      scm_t_uint8 obj, idx, val;
+      uint8_t obj, idx, val;
 
       UNPACK_8_8_8 (op, obj, idx, val);
 
@@ -1304,7 +1304,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (41, word_ref, "word-ref", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1315,7 +1315,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (42, word_set, "word-set!", OP1 (X8_S8_S8_S8))
     {
-      scm_t_uint8 obj, idx, val;
+      uint8_t obj, idx, val;
 
       UNPACK_8_8_8 (op, obj, idx, val);
 
@@ -1326,7 +1326,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (43, word_ref_immediate, "word-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1337,7 +1337,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (44, word_set_immediate, "word-set!/immediate", OP1 (X8_S8_C8_S8))
     {
-      scm_t_uint8 obj, idx, val;
+      uint8_t obj, idx, val;
 
       UNPACK_8_8_8 (op, obj, idx, val);
 
@@ -1348,7 +1348,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (45, pointer_ref_immediate, "pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1359,18 +1359,18 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (46, pointer_set_immediate, "pointer-set!/immediate", OP1 (X8_S8_C8_S8))
     {
-      scm_t_uint8 obj, idx, val;
+      uint8_t obj, idx, val;
 
       UNPACK_8_8_8 (op, obj, idx, val);
 
-      SCM_SET_CELL_WORD (SP_REF (obj), idx, (scm_t_uintptr) SP_REF_PTR (val));
+      SCM_SET_CELL_WORD (SP_REF (obj), idx, (uintptr_t) SP_REF_PTR (val));
 
       NEXT (1);
     }
 
   VM_DEFINE_OP (47, tail_pointer_ref_immediate, "tail-pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, idx;
+      uint8_t dst, obj, idx;
 
       UNPACK_8_8_8 (op, dst, obj, idx);
 
@@ -1391,8 +1391,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (48, mov, "mov", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst;
-      scm_t_uint16 src;
+      uint16_t dst;
+      uint16_t src;
 
       UNPACK_12_12 (op, dst, src);
       /* FIXME: The compiler currently emits "mov" for SCM, F64, U64,
@@ -1410,8 +1410,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (49, long_mov, "long-mov", OP2 (X8_S24, X8_S24) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_uint32 src;
+      uint32_t dst;
+      uint32_t src;
 
       UNPACK_24 (op, dst);
       UNPACK_24 (ip[1], src);
@@ -1431,8 +1431,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (50, long_fmov, "long-fmov", OP2 (X8_F24, X8_F24) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_uint32 src;
+      uint32_t dst;
+      uint32_t src;
 
       UNPACK_24 (op, dst);
       UNPACK_24 (ip[1], src);
@@ -1443,7 +1443,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (51, call_scm_from_scm_scm, "call-scm<-scm-scm", OP2 (X8_S8_S8_S8, C32) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       SCM res;
       scm_t_scm_from_scm_scm_intrinsic intrinsic;
 
@@ -1460,7 +1460,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (52, call_scm_from_scm_uimm, "call-scm<-scm-uimm", OP2 (X8_S8_S8_C8, C32) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       SCM res;
       scm_t_scm_from_scm_uimm_intrinsic intrinsic;
 
@@ -1477,7 +1477,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (53, call_scm_u64_u64, "call-scm-u64-u64", OP2 (X8_S8_S8_S8, C32))
     {
-      scm_t_uint8 a, b, c;
+      uint8_t a, b, c;
       scm_t_scm_u64_u64_intrinsic intrinsic;
 
       UNPACK_8_8_8 (op, a, b, c);
@@ -1492,7 +1492,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (54, call_scm_from_scm, "call-scm<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       SCM res;
       scm_t_scm_from_scm_intrinsic intrinsic;
 
@@ -1509,7 +1509,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (55, call_f64_from_scm, "call-f64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       double res;
       scm_t_f64_from_scm_intrinsic intrinsic;
 
@@ -1526,8 +1526,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
-      scm_t_uint64 res;
+      uint16_t dst, src;
+      uint64_t res;
       scm_t_u64_from_scm_intrinsic intrinsic;
 
       UNPACK_12_12 (op, dst, src);
@@ -1555,7 +1555,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (57, make_short_immediate, "make-short-immediate", OP1 (X8_S8_I16) | OP_DST)
     {
-      scm_t_uint8 dst;
+      uint8_t dst;
       scm_t_bits val;
 
       UNPACK_8_16 (op, dst, val);
@@ -1570,7 +1570,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (58, make_long_immediate, "make-long-immediate", OP2 (X8_S24, I32) | OP_DST)
     {
-      scm_t_uint32 dst;
+      uint32_t dst;
       scm_t_bits val;
 
       UNPACK_24 (op, dst);
@@ -1585,7 +1585,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (59, make_long_long_immediate, "make-long-long-immediate", OP3 (X8_S24, A32, B32) | OP_DST)
     {
-      scm_t_uint32 dst;
+      uint32_t dst;
       scm_t_bits val;
 
       UNPACK_24 (op, dst);
@@ -1616,9 +1616,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (60, make_non_immediate, "make-non-immediate", OP2 (X8_S24, N32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_int32 offset;
-      scm_t_uint32* loc;
+      uint32_t dst;
+      int32_t offset;
+      uint32_t* loc;
       scm_t_bits unpacked;
 
       UNPACK_24 (op, dst);
@@ -1645,15 +1645,15 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (61, static_ref, "static-ref", OP2 (X8_S24, R32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_int32 offset;
-      scm_t_uint32* loc;
-      scm_t_uintptr loc_bits;
+      uint32_t dst;
+      int32_t offset;
+      uint32_t* loc;
+      uintptr_t loc_bits;
 
       UNPACK_24 (op, dst);
       offset = ip[1];
       loc = ip + offset;
-      loc_bits = (scm_t_uintptr) loc;
+      loc_bits = (uintptr_t) loc;
       VM_ASSERT (ALIGNED_P (loc, SCM), abort());
 
       SP_SET (dst, *((SCM *) loc_bits));
@@ -1668,9 +1668,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (62, static_set, "static-set!", OP2 (X8_S24, LO32))
     {
-      scm_t_uint32 src;
-      scm_t_int32 offset;
-      scm_t_uint32* loc;
+      uint32_t src;
+      int32_t offset;
+      uint32_t* loc;
 
       UNPACK_24 (op, src);
       offset = ip[1];
@@ -1690,7 +1690,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (63, static_patch, "static-patch!", OP3 (X32, LO32, L32))
     {
-      scm_t_int32 dst_offset, src_offset;
+      int32_t dst_offset, src_offset;
       void *src;
       void** dst_loc;
 
@@ -1714,7 +1714,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (64, current_module, "current-module", OP1 (X8_S24) | OP_DST)
     {
-      scm_t_uint32 dst;
+      uint32_t dst;
 
       UNPACK_24 (op, dst);
 
@@ -1748,9 +1748,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (69, prompt, "prompt", OP3 (X8_S24, B1_X7_F24, X8_L24))
     {
-      scm_t_uint32 tag, proc_slot;
-      scm_t_int32 offset;
-      scm_t_uint8 escape_only_p;
+      uint32_t tag, proc_slot;
+      int32_t offset;
+      uint8_t escape_only_p;
       scm_t_dynstack_prompt_flags flags;
 
       UNPACK_24 (op, tag);
@@ -1789,21 +1789,21 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (76, load_label, "load-label", OP2 (X8_S24, L32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_int32 offset;
+      uint32_t dst;
+      int32_t offset;
 
       UNPACK_24 (op, dst);
       offset = ip[1];
 
-      SP_SET_U64 (dst, (scm_t_uintptr) (ip + offset));
+      SP_SET_U64 (dst, (uintptr_t) (ip + offset));
 
       NEXT (2);
     }
 
   VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
-      scm_t_int64 res;
+      uint16_t dst, src;
+      int64_t res;
       scm_t_s64_from_scm_intrinsic intrinsic;
 
       UNPACK_12_12 (op, dst, src);
@@ -1819,7 +1819,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (78, call_scm_from_u64, "call-scm<-u64", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       SCM res;
       scm_t_scm_from_u64_intrinsic intrinsic;
 
@@ -1836,7 +1836,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (79, call_scm_from_s64, "call-scm<-s64", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       SCM res;
       scm_t_scm_from_s64_intrinsic intrinsic;
 
@@ -1861,7 +1861,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (81, tag_char, "tag-char", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       UNPACK_12_12 (op, dst, src);
       SP_SET (dst,
               SCM_MAKE_ITAG8 ((scm_t_bits) (scm_t_wchar) SP_REF_U64 (src),
@@ -1871,7 +1871,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (82, untag_char, "untag-char", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       UNPACK_12_12 (op, dst, src);
       SP_SET_U64 (dst, SCM_CHAR (SP_REF (src)));
       NEXT (1);
@@ -1879,7 +1879,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (83, atomic_ref_scm_immediate, "atomic-scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, obj, offset;
+      uint8_t dst, obj, offset;
       SCM *loc;
       UNPACK_8_8_8 (op, dst, obj, offset);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
@@ -1889,7 +1889,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (84, atomic_set_scm_immediate, "atomic-scm-set!/immediate", OP1 (X8_S8_C8_S8))
     {
-      scm_t_uint8 obj, offset, val;
+      uint8_t obj, offset, val;
       SCM *loc;
       UNPACK_8_8_8 (op, obj, offset, val);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
@@ -1899,8 +1899,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (85, atomic_scm_swap_immediate, "atomic-scm-swap!/immediate", OP3 (X8_S24, X8_S24, C8_S24) | OP_DST)
     {
-      scm_t_uint32 dst, obj, val;
-      scm_t_uint8 offset;
+      uint32_t dst, obj, val;
+      uint8_t offset;
       SCM *loc;
       UNPACK_24 (op, dst);
       UNPACK_24 (ip[1], obj);
@@ -1912,8 +1912,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (86, atomic_scm_compare_and_swap_immediate, "atomic-scm-compare-and-swap!/immediate", OP4 (X8_S24, X8_S24, C8_S24, X8_S24) | OP_DST)
     {
-      scm_t_uint32 dst, obj, expected, desired;
-      scm_t_uint8 offset;
+      uint32_t dst, obj, expected, desired;
+      uint8_t offset;
       SCM *loc;
       SCM scm_expected;
       UNPACK_24 (op, dst);
@@ -1929,7 +1929,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (87, call_thread_scm_scm, "call-thread-scm-scm", OP2 (X8_S12_S12, C32))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       scm_t_thread_scm_scm_intrinsic intrinsic;
 
       UNPACK_12_12 (op, a, b);
@@ -1957,7 +1957,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (89, call_scm_from_thread_scm, "call-scm<-thread-scm", OP2 (X8_S12_S12, C32) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
       scm_t_scm_from_thread_scm_intrinsic intrinsic;
       SCM res;
 
@@ -1975,7 +1975,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (90, call_thread_scm, "call-thread-scm", OP2 (X8_S24, C32))
     {
-      scm_t_uint32 a;
+      uint32_t a;
       scm_t_thread_scm_intrinsic intrinsic;
 
       UNPACK_24 (op, a);
@@ -1990,7 +1990,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", OP2 (X8_S8_S8_S8, C32) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       SCM res;
       scm_t_scm_from_scm_u64_intrinsic intrinsic;
 
@@ -2064,7 +2064,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (138, fadd, "fadd", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_F64 (dst, SP_REF_F64 (a) + SP_REF_F64 (b));
       NEXT (1);
@@ -2077,7 +2077,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (139, fsub, "fsub", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_F64 (dst, SP_REF_F64 (a) - SP_REF_F64 (b));
       NEXT (1);
@@ -2090,7 +2090,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (140, fmul, "fmul", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_F64 (dst, SP_REF_F64 (a) * SP_REF_F64 (b));
       NEXT (1);
@@ -2103,7 +2103,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (141, fdiv, "fdiv", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_F64 (dst, SP_REF_F64 (a) / SP_REF_F64 (b));
       NEXT (1);
@@ -2127,7 +2127,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
             }
           if (SCM_HAS_TYP7 (proc, scm_tc7_smob) && SCM_SMOB_APPLICABLE_P (proc))
             {
-              scm_t_uint32 n = FRAME_LOCALS_COUNT();
+              uint32_t n = FRAME_LOCALS_COUNT();
 
               /* Shuffle args up.  (FIXME: no real need to shuffle; just set
                  IP and go. ) */
@@ -2167,7 +2167,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (149, uadd, "uadd", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_U64 (dst, SP_REF_U64 (a) + SP_REF_U64 (b));
       NEXT (1);
@@ -2181,7 +2181,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (150, usub, "usub", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_U64 (dst, SP_REF_U64 (a) - SP_REF_U64 (b));
       NEXT (1);
@@ -2195,7 +2195,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (151, umul, "umul", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
       SP_SET_U64 (dst, SP_REF_U64 (a) * SP_REF_U64 (b));
       NEXT (1);
@@ -2209,12 +2209,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (152, uadd_immediate, "uadd/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, src, imm;
-      scm_t_uint64 x;
+      uint8_t dst, src, imm;
+      uint64_t x;
 
       UNPACK_8_8_8 (op, dst, src, imm);
       x = SP_REF_U64 (src);
-      SP_SET_U64 (dst, x + (scm_t_uint64) imm);
+      SP_SET_U64 (dst, x + (uint64_t) imm);
       NEXT (1);
     }
 
@@ -2226,12 +2226,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (153, usub_immediate, "usub/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, src, imm;
-      scm_t_uint64 x;
+      uint8_t dst, src, imm;
+      uint64_t x;
 
       UNPACK_8_8_8 (op, dst, src, imm);
       x = SP_REF_U64 (src);
-      SP_SET_U64 (dst, x - (scm_t_uint64) imm);
+      SP_SET_U64 (dst, x - (uint64_t) imm);
       NEXT (1);
     }
 
@@ -2243,12 +2243,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (154, umul_immediate, "umul/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, src, imm;
-      scm_t_uint64 x;
+      uint8_t dst, src, imm;
+      uint64_t x;
 
       UNPACK_8_8_8 (op, dst, src, imm);
       x = SP_REF_U64 (src);
-      SP_SET_U64 (dst, x * (scm_t_uint64) imm);
+      SP_SET_U64 (dst, x * (uint64_t) imm);
       NEXT (1);
     }
 
@@ -2259,8 +2259,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (155, load_f64, "load-f64", OP3 (X8_S24, AF32, BF32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_uint64 val;
+      uint32_t dst;
+      uint64_t val;
 
       UNPACK_24 (op, dst);
       val = ip[1];
@@ -2276,8 +2276,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (156, load_u64, "load-u64", OP3 (X8_S24, AU32, BU32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_uint64 val;
+      uint32_t dst;
+      uint64_t val;
 
       UNPACK_24 (op, dst);
       val = ip[1];
@@ -2300,8 +2300,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (159, load_s64, "load-s64", OP3 (X8_S24, AS32, BS32) | OP_DST)
     {
-      scm_t_uint32 dst;
-      scm_t_uint64 val;
+      uint32_t dst;
+      uint64_t val;
 
       UNPACK_24 (op, dst);
       val = ip[1];
@@ -2317,7 +2317,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (160, current_thread, "current-thread", OP1 (X8_S24) | OP_DST)
     {
-      scm_t_uint32 dst;
+      uint32_t dst;
 
       UNPACK_24 (op, dst);
       SP_SET (dst, thread->handle);
@@ -2337,7 +2337,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (162, ulogand, "ulogand", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2353,7 +2353,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (163, ulogior, "ulogior", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2368,7 +2368,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (164, ulogsub, "ulogsub", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2384,7 +2384,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (165, ursh, "ursh", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2400,7 +2400,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (166, ulsh, "ulsh", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2422,7 +2422,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (168, ursh_immediate, "ursh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2438,7 +2438,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (169, ulsh_immediate, "ulsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2466,7 +2466,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (177, ulogxor, "ulogxor", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2519,7 +2519,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
         SP_SET (0, proc);
 
-        ip = (scm_t_uint32 *) vm_handle_interrupt_code;
+        ip = (uint32_t *) vm_handle_interrupt_code;
 
         APPLY_HOOK ();
 
@@ -2556,8 +2556,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (193, u64_numerically_equal, "u64=?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
-      scm_t_uint64 x, y;
+      uint16_t a, b;
+      uint64_t x, y;
 
       UNPACK_12_12 (op, a, b);
       x = SP_REF_U64 (a);
@@ -2570,8 +2570,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (194, u64_less, "u64<?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
-      scm_t_uint64 x, y;
+      uint16_t a, b;
+      uint64_t x, y;
 
       UNPACK_12_12 (op, a, b);
       x = SP_REF_U64 (a);
@@ -2584,8 +2584,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (195, s64_numerically_equal, "s64=?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
-      scm_t_int64 x, y;
+      uint16_t a, b;
+      int64_t x, y;
 
       UNPACK_12_12 (op, a, b);
       x = SP_REF_S64 (a);
@@ -2598,8 +2598,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (196, s64_less, "s64<?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
-      scm_t_int64 x, y;
+      uint16_t a, b;
+      int64_t x, y;
 
       UNPACK_12_12 (op, a, b);
       x = SP_REF_S64 (a);
@@ -2612,7 +2612,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (197, f64_numerically_equal, "f64=?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       double x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2630,7 +2630,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (198, f64_less, "f64<?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       double x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2650,7 +2650,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (199, numerically_equal, "=?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       SCM x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2668,7 +2668,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (200, less, "<?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       SCM x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2683,8 +2683,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (201, check_arguments, "arguments<=?", OP1 (X8_C24))
     {
-      scm_t_uint8 compare_result;
-      scm_t_uint32 expected;
+      uint8_t compare_result;
+      uint32_t expected;
       scm_t_ptrdiff nargs;
 
       UNPACK_24 (op, expected);
@@ -2704,8 +2704,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (202, check_positional_arguments, "positional-arguments<=?", OP2 (X8_C24, X8_C24))
     {
-      scm_t_uint8 compare_result;
-      scm_t_uint32 nreq, expected;
+      uint8_t compare_result;
+      uint32_t nreq, expected;
       scm_t_ptrdiff nargs, npos;
 
       UNPACK_24 (op, nreq);
@@ -2731,8 +2731,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (203, immediate_tag_equals, "immediate-tag=?", OP2 (X8_S24, C16_C16))
     {
-      scm_t_uint32 a;
-      scm_t_uint16 mask, expected;
+      uint32_t a;
+      uint16_t mask, expected;
       SCM x;
 
       UNPACK_24 (op, a);
@@ -2749,8 +2749,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (204, heap_tag_equals, "heap-tag=?", OP2 (X8_S24, C16_C16))
     {
-      scm_t_uint32 a;
-      scm_t_uint16 mask, expected;
+      uint32_t a;
+      uint16_t mask, expected;
       SCM x;
 
       UNPACK_24 (op, a);
@@ -2767,7 +2767,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (205, eq, "eq?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       SCM x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2789,7 +2789,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (206, j, "j", OP1 (X8_L24))
     {
-      scm_t_int32 offset = op;
+      int32_t offset = op;
       offset >>= 8; /* Sign-extending shift. */
       NEXT (offset);
     }
@@ -2803,7 +2803,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result == SCM_F_COMPARE_LESS_THAN)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2820,7 +2820,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result == SCM_F_COMPARE_EQUAL)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2837,7 +2837,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result != SCM_F_COMPARE_LESS_THAN)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2854,7 +2854,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result != SCM_F_COMPARE_EQUAL)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2875,7 +2875,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result == SCM_F_COMPARE_NONE)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2897,7 +2897,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       if (vp->compare_result != SCM_F_COMPARE_NONE)
         {
-          scm_t_int32 offset = op;
+          int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
           NEXT (offset);
         }
@@ -2907,7 +2907,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (213, heap_numbers_equal, "heap-numbers-equal?", OP1 (X8_S12_S12))
     {
-      scm_t_uint16 a, b;
+      uint16_t a, b;
       SCM x, y;
 
       UNPACK_12_12 (op, a, b);
@@ -2925,7 +2925,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (214, untag_fixnum, "untag-fixnum", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
 
       UNPACK_12_12 (op, dst, src);
 
@@ -2936,7 +2936,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (215, tag_fixnum, "tag-fixnum", OP1 (X8_S12_S12) | OP_DST)
     {
-      scm_t_uint16 dst, src;
+      uint16_t dst, src;
 
       UNPACK_12_12 (op, dst, src);
 
@@ -2952,7 +2952,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (216, srsh, "srsh", OP1 (X8_S8_S8_S8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2968,7 +2968,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (217, srsh_immediate, "srsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
     {
-      scm_t_uint8 dst, a, b;
+      uint8_t dst, a, b;
 
       UNPACK_8_8_8 (op, dst, a, b);
 
@@ -2979,13 +2979,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (218, s64_imm_numerically_equal, "s64-imm=?", OP1 (X8_S12_Z12))
     {
-      scm_t_uint16 a;
-      scm_t_int64 x, y;
+      uint16_t a;
+      int64_t x, y;
 
       a = (op >> 8) & 0xfff;
       x = SP_REF_S64 (a);
 
-      y = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+      y = ((int32_t) op) >> 20; /* Sign extension.  */
 
       vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
 
@@ -2994,8 +2994,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (219, u64_imm_less, "u64-imm<?", OP1 (X8_S12_C12))
     {
-      scm_t_uint16 a;
-      scm_t_uint64 x, y;
+      uint16_t a;
+      uint64_t x, y;
 
       UNPACK_12_12 (op, a, y);
       x = SP_REF_U64 (a);
@@ -3007,8 +3007,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (220, imm_u64_less, "imm-u64<?", OP1 (X8_S12_C12))
     {
-      scm_t_uint16 a;
-      scm_t_uint64 x, y;
+      uint16_t a;
+      uint64_t x, y;
 
       UNPACK_12_12 (op, a, x);
       y = SP_REF_U64 (a);
@@ -3020,13 +3020,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (221, s64_imm_less, "s64-imm<?", OP1 (X8_S12_Z12))
     {
-      scm_t_uint16 a;
-      scm_t_int64 x, y;
+      uint16_t a;
+      int64_t x, y;
 
       a = (op >> 8) & 0xfff;
       x = SP_REF_S64 (a);
 
-      y = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+      y = ((int32_t) op) >> 20; /* Sign extension.  */
 
       vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
@@ -3035,13 +3035,13 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
   VM_DEFINE_OP (222, imm_s64_less, "imm-s64<?", OP1 (X8_S12_Z12))
     {
-      scm_t_uint16 a;
-      scm_t_int64 x, y;
+      uint16_t a;
+      int64_t x, y;
 
       a = (op >> 8) & 0xfff;
       y = SP_REF_S64 (a);
 
-      x = ((scm_t_int32) op) >> 20; /* Sign extension.  */
+      x = ((int32_t) op) >> 20; /* Sign extension.  */
 
       vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
@@ -3050,7 +3050,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
 #define PTR_REF(type, slot)                                             \
   do {                                                                  \
-    scm_t_uint8 dst, a, b;                                              \
+    uint8_t dst, a, b;                                                  \
     char *ptr;                                                          \
     size_t idx;                                                         \
     type val;                                                           \
@@ -3064,7 +3064,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
 #define PTR_SET(type, slot)                                             \
   do {                                                                  \
-    scm_t_uint8 a, b, c;                                                \
+    uint8_t a, b, c;                                                    \
     char *ptr;                                                          \
     size_t idx;                                                         \
     type val;                                                           \
@@ -3077,40 +3077,40 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   } while (0)
 
   VM_DEFINE_OP (223, u8_ref, "u8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_uint8, U64);
+    PTR_REF (uint8_t, U64);
   VM_DEFINE_OP (224, u16_ref, "u16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_uint16, U64);
+    PTR_REF (uint16_t, U64);
   VM_DEFINE_OP (225, u32_ref, "u32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_uint32, U64);
+    PTR_REF (uint32_t, U64);
   VM_DEFINE_OP (226, u64_ref, "u64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_uint64, U64);
+    PTR_REF (uint64_t, U64);
 
   VM_DEFINE_OP (227, u8_set, "u8-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_uint8, U64);
+    PTR_SET (uint8_t, U64);
   VM_DEFINE_OP (228, u16_set, "u16-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_uint16, U64);
+    PTR_SET (uint16_t, U64);
   VM_DEFINE_OP (229, u32_set, "u32-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_uint32, U64);
+    PTR_SET (uint32_t, U64);
   VM_DEFINE_OP (230, u64_set, "u64-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_uint64, U64);
+    PTR_SET (uint64_t, U64);
 
   VM_DEFINE_OP (231, s8_ref, "s8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_int8, S64);
+    PTR_REF (int8_t, S64);
   VM_DEFINE_OP (232, s16_ref, "s16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_int16, S64);
+    PTR_REF (int16_t, S64);
   VM_DEFINE_OP (233, s32_ref, "s32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_int32, S64);
+    PTR_REF (int32_t, S64);
   VM_DEFINE_OP (234, s64_ref, "s64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
-    PTR_REF (scm_t_int64, S64);
+    PTR_REF (int64_t, S64);
 
   VM_DEFINE_OP (235, s8_set, "s8-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_int8, S64);
+    PTR_SET (int8_t, S64);
   VM_DEFINE_OP (236, s16_set, "s16-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_int16, S64);
+    PTR_SET (int16_t, S64);
   VM_DEFINE_OP (237, s32_set, "s32-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_int32, S64);
+    PTR_SET (int32_t, S64);
   VM_DEFINE_OP (238, s64_set, "s64-set!", OP1 (X8_S8_S8_S8))
-    PTR_SET (scm_t_int64, S64);
+    PTR_SET (int64_t, S64);
 
   VM_DEFINE_OP (239, f32_ref, "f32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
     PTR_REF (float, F64);

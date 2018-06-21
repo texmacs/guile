@@ -365,8 +365,8 @@ substring_with_immutable_stringbuf (SCM str, size_t start, size_t end,
       if (STRINGBUF_WIDE (buf))
         {
           new_buf = make_wide_stringbuf (len);
-          u32_cpy ((scm_t_uint32 *) STRINGBUF_WIDE_CHARS (new_buf),
-                   (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) + start), len);
+          u32_cpy ((uint32_t *) STRINGBUF_WIDE_CHARS (new_buf),
+                   (uint32_t *) (STRINGBUF_WIDE_CHARS (buf) + start), len);
           new_str = scm_double_cell (tag, SCM_UNPACK (new_buf), 0, len);
           scm_i_try_narrow_string (new_str);
         }
@@ -433,8 +433,8 @@ scm_i_string_ensure_mutable_x (SCM str)
     if (STRINGBUF_WIDE (buf))
       {
         new_buf = make_wide_stringbuf (len);
-        u32_cpy ((scm_t_uint32 *) STRINGBUF_WIDE_CHARS (new_buf),
-                 (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
+        u32_cpy ((uint32_t *) STRINGBUF_WIDE_CHARS (new_buf),
+                 (uint32_t *) STRINGBUF_WIDE_CHARS (buf), len);
       }
     else
       {
@@ -920,8 +920,8 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
       size_t len = STRINGBUF_LENGTH (buf);
       scm_t_wchar *cbuf;
       SCM sbc = scm_i_make_wide_string (len, &cbuf, 0);
-      u32_cpy ((scm_t_uint32 *) cbuf, 
-               (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
+      u32_cpy ((uint32_t *) cbuf, 
+               (uint32_t *) STRINGBUF_WIDE_CHARS (buf), len);
       e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
@@ -993,8 +993,8 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
       size_t len = STRINGBUF_LENGTH (buf);
       scm_t_wchar *cbuf;
       SCM sbc = scm_i_make_wide_string (len, &cbuf, 0);
-      u32_cpy ((scm_t_uint32 *) cbuf, 
-               (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
+      u32_cpy ((uint32_t *) cbuf, 
+               (uint32_t *) STRINGBUF_WIDE_CHARS (buf), len);
       e4 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
@@ -1423,8 +1423,8 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
                 data.wide[i] = (unsigned char) src[i];
             }
           else
-            u32_cpy ((scm_t_uint32 *) data.wide,
-                     (scm_t_uint32 *) scm_i_string_wide_chars (s), len);
+            u32_cpy ((uint32_t *) data.wide,
+                     (uint32_t *) scm_i_string_wide_chars (s), len);
           data.wide += len;
         }
       total -= len;
@@ -1542,7 +1542,7 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
     {
       scm_t_wchar *wdst;
       res = scm_i_make_wide_string (u32len, &wdst, 0);
-      u32_cpy ((scm_t_uint32 *) wdst, (scm_t_uint32 *) u32, u32len);
+      u32_cpy ((uint32_t *) wdst, (uint32_t *) u32, u32len);
       wdst[u32len] = 0;
     }
 
@@ -1602,7 +1602,7 @@ SCM
 scm_from_utf8_stringn (const char *str, size_t len)
 {
   size_t i, char_len;
-  const scm_t_uint8 *ustr = (const scm_t_uint8 *) str;
+  const uint8_t *ustr = (const uint8_t *) str;
   int ascii = 1, narrow = 1;
   SCM res;
 
@@ -1932,7 +1932,7 @@ scm_to_utf8_string (SCM str)
 }
 
 static size_t
-latin1_u8_strlen (const scm_t_uint8 *str, size_t len)
+latin1_u8_strlen (const uint8_t *str, size_t len)
 {
   size_t ret, i;
   for (i = 0, ret = 0; i < len; i++)
@@ -1940,9 +1940,9 @@ latin1_u8_strlen (const scm_t_uint8 *str, size_t len)
   return ret;
 }
 
-static scm_t_uint8*
-latin1_to_u8 (const scm_t_uint8 *str, size_t latin_len,
-              scm_t_uint8 *u8_result, size_t *u8_lenp)
+static uint8_t*
+latin1_to_u8 (const uint8_t *str, size_t latin_len,
+              uint8_t *u8_result, size_t *u8_lenp)
 {
   size_t i, n;
   size_t u8_len = latin1_u8_strlen (str, latin_len);
@@ -1982,13 +1982,13 @@ latin1_to_u8 (const scm_t_uint8 *str, size_t latin_len,
 */
 
 static size_t
-u32_u8_length_in_bytes (const scm_t_uint32 *str, size_t len)
+u32_u8_length_in_bytes (const uint32_t *str, size_t len)
 {
   size_t ret, i;
 
   for (i = 0, ret = 0; i < len; i++)
     {
-      scm_t_uint32 c = str[i];
+      uint32_t c = str[i];
 
       if (c <= 0x7f)
         ret += 1;
@@ -2011,11 +2011,11 @@ static size_t
 utf8_length (SCM str)
 {
   if (scm_i_is_narrow_string (str))
-    return latin1_u8_strlen ((scm_t_uint8 *) scm_i_string_chars (str),
+    return latin1_u8_strlen ((uint8_t *) scm_i_string_chars (str),
                              scm_i_string_length (str));
   else
     return u32_u8_length_in_bytes
-      ((scm_t_uint32 *) scm_i_string_wide_chars (str),
+      ((uint32_t *) scm_i_string_wide_chars (str),
        scm_i_string_length (str));
 }
 
@@ -2046,13 +2046,13 @@ scm_to_utf8_stringn (SCM str, size_t *lenp)
   SCM_VALIDATE_STRING (1, str);
 
   if (scm_i_is_narrow_string (str))
-    return (char *) latin1_to_u8 ((scm_t_uint8 *) scm_i_string_chars (str),
+    return (char *) latin1_to_u8 ((uint8_t *) scm_i_string_chars (str),
                                   scm_i_string_length (str),
                                   NULL, lenp);
   else
     {
-      scm_t_uint32 *chars = (scm_t_uint32 *) scm_i_string_wide_chars (str);
-      scm_t_uint8 *buf, *ret;
+      uint32_t *chars = (uint32_t *) scm_i_string_wide_chars (str);
+      uint8_t *buf, *ret;
       size_t num_chars = scm_i_string_length (str);
       size_t num_bytes_predicted, num_bytes_actual;
 
@@ -2109,10 +2109,10 @@ scm_to_utf32_stringn (SCM str, size_t *lenp)
 
   if (scm_i_is_narrow_string (str))
     {
-      scm_t_uint8 *codepoints;
+      uint8_t *codepoints;
       size_t i, len;
 
-      codepoints = (scm_t_uint8*) scm_i_string_chars (str);
+      codepoints = (uint8_t*) scm_i_string_chars (str);
       len = scm_i_string_length (str);
       if (lenp)
 	*lenp = len;
@@ -2240,7 +2240,7 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
     {
       buf = u32_conv_to_encoding (enc,
                                   (enum iconv_ilseq_handler) handler,
-                                  (scm_t_uint32 *) scm_i_string_wide_chars (str),
+                                  (uint32_t *) scm_i_string_wide_chars (str),
                                   ilen,
                                   NULL,
                                   NULL, &len);
@@ -2306,7 +2306,7 @@ static SCM
 normalize_str (SCM string, uninorm_t form)
 {
   SCM ret;
-  scm_t_uint32 *w_str;
+  uint32_t *w_str;
   scm_t_wchar *cbuf;
   size_t rlen, len = scm_i_string_length (string);
   
@@ -2322,12 +2322,12 @@ normalize_str (SCM string, uninorm_t form)
       w_str[len] = 0;
     }
   else 
-    w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+    w_str = (uint32_t *) scm_i_string_wide_chars (string);
 
   w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
   
   ret = scm_i_make_wide_string (rlen, &cbuf, 0);
-  u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
+  u32_cpy ((uint32_t *) cbuf, w_str, rlen);
   free (w_str);
 
   scm_i_try_narrow_string (ret);

@@ -1493,11 +1493,11 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
   scm_dynwind_begin (0);
   /* Make sure the child can't kill us (as per normal system call).  */
   scm_dynwind_sigaction (SIGINT,
-                         scm_from_uintptr_t ((scm_t_uintptr) SIG_IGN),
+                         scm_from_uintptr_t ((uintptr_t) SIG_IGN),
                          SCM_UNDEFINED);
 #ifdef SIGQUIT
   scm_dynwind_sigaction (SIGQUIT,
-                         scm_from_uintptr_t ((scm_t_uintptr) SIG_IGN),
+                         scm_from_uintptr_t ((uintptr_t) SIG_IGN),
                          SCM_UNDEFINED);
 #endif
 
@@ -2113,7 +2113,7 @@ SCM_DEFINE (scm_setaffinity, "setaffinity", 2, 0, 0,
 {
   cpu_set_t cs;
   scm_t_array_handle handle;
-  const scm_t_uint32 *c_mask;
+  const uint32_t *c_mask;
   size_t len, off, cpu;
   ssize_t inc;
   int err;

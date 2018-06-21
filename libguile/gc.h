@@ -150,8 +150,8 @@ SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what)
 
 SCM_INLINE SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_INLINE SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
-			     scm_t_bits ccr, scm_t_bits cdr);
-SCM_INLINE SCM scm_words (scm_t_bits car, scm_t_uint32 n_words);
+                                scm_t_bits ccr, scm_t_bits cdr);
+SCM_INLINE SCM scm_words (scm_t_bits car, uint32_t n_words);
 
 #if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
 
@@ -211,7 +211,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 }
 
 SCM_INLINE_IMPLEMENTATION SCM
-scm_words (scm_t_bits car, scm_t_uint32 n_words)
+scm_words (scm_t_bits car, uint32_t n_words)
 {
   SCM z;
 

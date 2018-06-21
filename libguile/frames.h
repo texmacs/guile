@@ -89,12 +89,12 @@
 /* Each element on the stack occupies the same amount of space.  */
 union scm_vm_stack_element
 {
-  scm_t_uintptr as_uint;
-  scm_t_uint32 *as_ip;
+  uintptr_t as_uint;
+  uint32_t *as_ip;
   SCM as_scm;
   double as_f64;
-  scm_t_uint64 as_u64;
-  scm_t_int64 as_s64;
+  uint64_t as_u64;
+  int64_t as_s64;
 
   /* For GC purposes.  */
   void *as_ptr;
@@ -122,7 +122,7 @@ struct scm_frame
   void *stack_holder;
   scm_t_ptrdiff fp_offset;
   scm_t_ptrdiff sp_offset;
-  scm_t_uint32 *ip;
+  uint32_t *ip;
 };
 
 enum scm_vm_frame_kind

@@ -164,8 +164,8 @@ scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame)
 SCM
 scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
                         union scm_vm_stack_element *fp,
-                        union scm_vm_stack_element *sp, scm_t_uint32 *ra,
-                        scm_t_dynstack *dynstack, scm_t_uint32 flags)
+                        union scm_vm_stack_element *sp, uint32_t *ra,
+                        scm_t_dynstack *dynstack, uint32_t flags)
 {
   struct scm_vm_cont *p;
 
@@ -273,7 +273,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
   struct scm_frame c_frame;
   scm_t_cell *frame;
   int saved_trace_level;
-  scm_t_uint8 saved_compare_result;
+  uint8_t saved_compare_result;
 
   hook = vp->hooks[hook_num];
 
@@ -301,7 +301,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
 
   /* Arrange for FRAME to be 8-byte aligned, like any other cell.  */
   frame = alloca (sizeof (*frame) + 8);
-  frame = (scm_t_cell *) ROUND_UP ((scm_t_uintptr) frame, 8UL);
+  frame = (scm_t_cell *) ROUND_UP ((uintptr_t) frame, 8UL);
 
   frame->word_0 = SCM_PACK (scm_tc7_frame | (SCM_VM_FRAME_KIND_VM << 8));
   frame->word_1 = SCM_PACK_POINTER (&c_frame);
@@ -462,7 +462,7 @@ static void vm_throw_with_value (SCM val, SCM key_subr_and_message) SCM_NORETURN
 static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM_NORETURN SCM_NOINLINE;
 
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
-static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_bad_instruction (uint32_t inst) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_missing_value (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN SCM_NOINLINE;
@@ -471,7 +471,7 @@ static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_enough_values (void) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_wrong_number_of_values (scm_t_uint32 expected) SCM_NORETURN SCM_NOINLINE;
+static void vm_error_wrong_number_of_values (uint32_t expected) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_continuation_not_rewindable (SCM cont) SCM_NORETURN SCM_NOINLINE;
 
 static void
@@ -518,7 +518,7 @@ vm_error (const char *msg, SCM arg)
 }
 
 static void
-vm_error_bad_instruction (scm_t_uint32 inst)
+vm_error_bad_instruction (uint32_t inst)
 {
   vm_error ("VM: Bad instruction: ~s", scm_from_uint32 (inst));
 }
@@ -581,7 +581,7 @@ vm_error_not_enough_values (void)
 }
 
 static void
-vm_error_wrong_number_of_values (scm_t_uint32 expected)
+vm_error_wrong_number_of_values (uint32_t expected)
 {
   vm_error ("Wrong number of values returned to continuation (expected ~a)",
             scm_from_uint32 (expected));
@@ -603,31 +603,31 @@ static SCM vm_builtin_abort_to_prompt;
 static SCM vm_builtin_call_with_values;
 static SCM vm_builtin_call_with_current_continuation;
 
-static const scm_t_uint32 vm_boot_continuation_code[] = {
+static const uint32_t vm_boot_continuation_code[] = {
   SCM_PACK_OP_24 (halt, 0)
 };
 
-static const scm_t_uint32 vm_apply_non_program_code[] = {
+static const uint32_t vm_apply_non_program_code[] = {
   SCM_PACK_OP_24 (apply_non_program, 0)
 };
 
-static const scm_t_uint32 vm_builtin_apply_code[] = {
+static const uint32_t vm_builtin_apply_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ge, 3),
   SCM_PACK_OP_24 (tail_apply, 0), /* proc in r1, args from r2 */
 };
 
-static const scm_t_uint32 vm_builtin_values_code[] = {
+static const uint32_t vm_builtin_values_code[] = {
   SCM_PACK_OP_24 (return_values, 0) /* vals from r1 */
 };
 
-static const scm_t_uint32 vm_builtin_abort_to_prompt_code[] = {
+static const uint32_t vm_builtin_abort_to_prompt_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ge, 2),
   SCM_PACK_OP_24 (abort, 0), /* tag in r1, vals from r2 */
   /* FIXME: Partial continuation should capture caller regs.  */
   SCM_PACK_OP_24 (return_values, 0) /* vals from r1 */
 };
 
-static const scm_t_uint32 vm_builtin_call_with_values_code[] = {
+static const uint32_t vm_builtin_call_with_values_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ee, 3),
   SCM_PACK_OP_24 (alloc_frame, 7),
   SCM_PACK_OP_12_12 (mov, 0, 5),
@@ -636,12 +636,12 @@ static const scm_t_uint32 vm_builtin_call_with_values_code[] = {
   SCM_PACK_OP_24 (tail_call_shuffle, 7)
 };
 
-static const scm_t_uint32 vm_builtin_call_with_current_continuation_code[] = {
+static const uint32_t vm_builtin_call_with_current_continuation_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ee, 2),
   SCM_PACK_OP_24 (call_cc, 0)
 };
 
-static const scm_t_uint32 vm_handle_interrupt_code[] = {
+static const uint32_t vm_handle_interrupt_code[] = {
   SCM_PACK_OP_24 (alloc_frame, 3),
   SCM_PACK_OP_12_12 (mov, 0, 2),
   SCM_PACK_OP_24 (call, 2), SCM_PACK_OP_ARG_8_24 (0, 1),
@@ -650,7 +650,7 @@ static const scm_t_uint32 vm_handle_interrupt_code[] = {
 
 
 int
-scm_i_vm_is_boot_continuation_code (scm_t_uint32 *ip)
+scm_i_vm_is_boot_continuation_code (uint32_t *ip)
 {
   return ip == vm_boot_continuation_code;
 }
@@ -863,11 +863,11 @@ static void
 return_unused_stack_to_os (struct scm_vm *vp)
 {
 #if HAVE_SYS_MMAN_H
-  scm_t_uintptr lo = (scm_t_uintptr) vp->stack_bottom;
-  scm_t_uintptr hi = (scm_t_uintptr) vp->sp;
+  uintptr_t lo = (uintptr_t) vp->stack_bottom;
+  uintptr_t hi = (uintptr_t) vp->sp;
   /* The second condition is needed to protect against wrap-around.  */
   if (vp->sp_min_since_gc >= vp->stack_bottom && vp->sp >= vp->sp_min_since_gc)
-    lo = (scm_t_uintptr) vp->sp_min_since_gc;
+    lo = (uintptr_t) vp->sp_min_since_gc;
 
   lo &= ~(page_size - 1U); /* round down */
   hi &= ~(page_size - 1U); /* round down */
@@ -893,8 +893,8 @@ return_unused_stack_to_os (struct scm_vm *vp)
 #define SLOT_MAP_CACHE_SIZE 32U
 struct slot_map_cache_entry
 {
-  scm_t_uint32 *ip;
-  const scm_t_uint8 *map;
+  uint32_t *ip;
+  const uint8_t *map;
 };
 
 struct slot_map_cache
@@ -902,13 +902,13 @@ struct slot_map_cache
   struct slot_map_cache_entry entries[SLOT_MAP_CACHE_SIZE];
 };
 
-static const scm_t_uint8 *
-find_slot_map (scm_t_uint32 *ip, struct slot_map_cache *cache)
+static const uint8_t *
+find_slot_map (uint32_t *ip, struct slot_map_cache *cache)
 {
   /* The lower two bits should be zero.  FIXME: Use a better hash
      function; we don't expose scm_raw_hashq currently.  */
-  size_t slot = (((scm_t_uintptr) ip) >> 2) % SLOT_MAP_CACHE_SIZE;
-  const scm_t_uint8 *map;
+  size_t slot = (((uintptr_t) ip) >> 2) % SLOT_MAP_CACHE_SIZE;
+  const uint8_t *map;
 
   if (cache->entries[slot].ip == ip)
     map = cache->entries[slot].map;
@@ -941,7 +941,7 @@ scm_i_vm_mark_stack (struct scm_vm *vp, struct GC_ms_entry *mark_stack_ptr,
      activation, due to multiple threads or per-instruction hooks, and
      providing slot maps for all points in a program would take a
      prohibitive amount of space.  */
-  const scm_t_uint8 *slot_map = NULL;
+  const uint8_t *slot_map = NULL;
   void *upper = (void *) GC_greatest_plausible_heap_addr;
   void *lower = (void *) GC_least_plausible_heap_addr;
   struct slot_map_cache cache;
@@ -1208,7 +1208,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   SCM_FRAME_SET_DYNAMIC_LINK (return_fp, vp->fp);
   SCM_FRAME_LOCAL (return_fp, 0) = vm_boot_continuation;
 
-  vp->ip = (scm_t_uint32 *) vm_boot_continuation_code;
+  vp->ip = (uint32_t *) vm_boot_continuation_code;
   vp->fp = call_fp;
 
   SCM_FRAME_SET_RETURN_ADDRESS (call_fp, vp->ip);

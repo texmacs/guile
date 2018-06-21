@@ -232,9 +232,9 @@ SCM_INTERNAL SCM scm_port_auxiliary_write_buffer (SCM port);
 /* Output.  */
 SCM_API void scm_c_write (SCM port, const void *buffer, size_t size);
 SCM_API void scm_c_write_bytes (SCM port, SCM src, size_t start, size_t count);
-SCM_API void scm_c_put_latin1_chars (SCM port, const scm_t_uint8 *buf,
+SCM_API void scm_c_put_latin1_chars (SCM port, const uint8_t *buf,
                                      size_t len);
-SCM_API void scm_c_put_utf32_chars (SCM port, const scm_t_uint32 *buf,
+SCM_API void scm_c_put_utf32_chars (SCM port, const uint32_t *buf,
                                     size_t len);
 SCM_API void scm_c_put_string (SCM port, SCM str, size_t start, size_t count);
 SCM_API SCM scm_put_string (SCM port, SCM str, SCM start, SCM count);

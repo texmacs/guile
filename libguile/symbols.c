@@ -154,7 +154,7 @@ struct utf8_lookup_data
 };
 
 static int
-utf8_string_equals_wide_string (const scm_t_uint8 *narrow, size_t nlen,
+utf8_string_equals_wide_string (const uint8_t *narrow, size_t nlen,
                                 const scm_t_wchar *wide, size_t wlen)
 {
   size_t byte_idx = 0, char_idx = 0;
@@ -192,7 +192,7 @@ utf8_lookup_predicate_fn (SCM sym, void *closure)
     return (scm_i_symbol_length (sym) == data->len
             && strncmp (scm_i_symbol_chars (sym), data->str, data->len) == 0);
   else
-    return utf8_string_equals_wide_string ((const scm_t_uint8 *) data->str,
+    return utf8_string_equals_wide_string ((const uint8_t *) data->str,
                                            data->len,
                                            scm_i_symbol_wide_chars (sym),
                                            scm_i_symbol_length (sym));

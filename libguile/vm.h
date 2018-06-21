@@ -45,10 +45,10 @@ enum scm_compare {
 };
 
 struct scm_vm {
-  scm_t_uint32 *ip;		/* instruction pointer */
+  uint32_t *ip;		/* instruction pointer */
   union scm_vm_stack_element *sp; /* stack pointer */
   union scm_vm_stack_element *fp; /* frame pointer */
-  scm_t_uint8 compare_result;   /* flags register: a value from scm_compare */
+  uint8_t compare_result;   /* flags register: a value from scm_compare */
   union scm_vm_stack_element *stack_limit; /* stack limit address */
   int trace_level;              /* traces enabled if trace_level > 0 */
   union scm_vm_stack_element *sp_min_since_gc; /* deepest sp since last gc */
@@ -91,7 +91,7 @@ SCM_INTERNAL void scm_i_vm_free_stack (struct scm_vm *vp);
 
 struct scm_vm_cont {
   /* IP of newest frame.  */
-  scm_t_uint32 *ra;
+  uint32_t *ra;
   /* Offset of FP of newest frame, relative to stack top.  */
   scm_t_ptrdiff fp_offset;
   /* Besides being the stack size, this is also the offset of the SP of
@@ -103,7 +103,7 @@ struct scm_vm_cont {
      offsets from the stack top of this scm_vm_cont.  */
   scm_t_dynstack *dynstack;
   /* See the continuation is partial and/or rewindable.  */
-  scm_t_uint32 flags;
+  uint32_t flags;
 };
 
 #define SCM_VM_CONT_P(OBJ)	(SCM_HAS_TYP7 (OBJ, scm_tc7_vm_cont))
@@ -118,13 +118,13 @@ SCM_INTERNAL SCM scm_i_capture_current_stack (void);
 SCM_INTERNAL SCM scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
                                          union scm_vm_stack_element *fp,
                                          union scm_vm_stack_element *sp,
-                                         scm_t_uint32 *ra,
+                                         uint32_t *ra,
                                          scm_t_dynstack *dynstack,
-                                         scm_t_uint32 flags);
+                                         uint32_t flags);
 SCM_INTERNAL int scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
                                        scm_print_state *pstate);
-SCM_INTERNAL int scm_i_vm_is_boot_continuation_code (scm_t_uint32 *ip);
+SCM_INTERNAL int scm_i_vm_is_boot_continuation_code (uint32_t *ip);
 SCM_INTERNAL void scm_bootstrap_vm (void);
 SCM_INTERNAL void scm_init_vm (void);
 

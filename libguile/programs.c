@@ -49,7 +49,7 @@ SCM_DEFINE (scm_program_code, "program-code", 1, 0, 0,
 {
   SCM_VALIDATE_PROGRAM (1, program);
 
-  return scm_from_uintptr_t ((scm_t_uintptr) SCM_PROGRAM_CODE (program));
+  return scm_from_uintptr_t ((uintptr_t) SCM_PROGRAM_CODE (program));
 }
 #undef FUNC_NAME
 
@@ -131,7 +131,7 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
       scm_puts ("#<program ", port);
       scm_uintprint (SCM_UNPACK (program), 16, port);
       scm_putc (' ', port);
-      scm_uintprint ((scm_t_uintptr) SCM_PROGRAM_CODE (program), 16, port);
+      scm_uintprint ((uintptr_t) SCM_PROGRAM_CODE (program), 16, port);
       scm_putc ('>', port);
     }
   else
@@ -161,7 +161,7 @@ SCM_DEFINE (scm_primitive_code_p, "primitive-code?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_primitive_code_p
 {
-  const scm_t_uint32 * ptr = (const scm_t_uint32 *) scm_to_uintptr_t (code);
+  const uint32_t * ptr = (const uint32_t *) scm_to_uintptr_t (code);
 
   return scm_from_bool (scm_i_primitive_code_p (ptr));
 }
@@ -252,8 +252,8 @@ SCM_DEFINE (scm_program_free_variable_set_x, "program-free-variable-set!", 3, 0,
 static int
 try_parse_arity (SCM program, int *req, int *opt, int *rest)
 {
-  scm_t_uint32 *code = SCM_PROGRAM_CODE (program);
-  scm_t_uint32 slots, min;
+  uint32_t *code = SCM_PROGRAM_CODE (program);
+  uint32_t slots, min;
 
   switch (code[0] & 0xff) {
   case scm_op_assert_nargs_ee:

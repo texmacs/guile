@@ -260,22 +260,22 @@ scm_port_buffer_did_put (SCM buf, size_t prev_end, size_t count)
   scm_port_buffer_set_end (buf, SCM_I_MAKINUM (prev_end + count));
 }
 
-static inline const scm_t_uint8 *
+static inline const uint8_t *
 scm_port_buffer_take_pointer (SCM buf, size_t cur)
 {
   signed char *ret = SCM_BYTEVECTOR_CONTENTS (scm_port_buffer_bytevector (buf));
-  return ((scm_t_uint8 *) ret) + cur;
+  return ((uint8_t *) ret) + cur;
 }
 
-static inline scm_t_uint8 *
+static inline uint8_t *
 scm_port_buffer_put_pointer (SCM buf, size_t end)
 {
   signed char *ret = SCM_BYTEVECTOR_CONTENTS (scm_port_buffer_bytevector (buf));
-  return ((scm_t_uint8 *) ret) + end;
+  return ((uint8_t *) ret) + end;
 }
 
 static inline size_t
-scm_port_buffer_take (SCM buf, scm_t_uint8 *dst, size_t count,
+scm_port_buffer_take (SCM buf, uint8_t *dst, size_t count,
                       size_t cur, size_t avail)
 {
   if (avail < count)
@@ -287,7 +287,7 @@ scm_port_buffer_take (SCM buf, scm_t_uint8 *dst, size_t count,
 }
 
 static inline size_t
-scm_port_buffer_put (SCM buf, const scm_t_uint8 *src, size_t count,
+scm_port_buffer_put (SCM buf, const uint8_t *src, size_t count,
                      size_t end, size_t avail)
 {
   if (avail < count)
@@ -299,7 +299,7 @@ scm_port_buffer_put (SCM buf, const scm_t_uint8 *src, size_t count,
 }
 
 static inline void
-scm_port_buffer_putback (SCM buf, const scm_t_uint8 *src, size_t count,
+scm_port_buffer_putback (SCM buf, const uint8_t *src, size_t count,
                          size_t cur)
 {
   assert (count <= cur);
@@ -337,14 +337,14 @@ struct scm_t_port
      a refcount which is positive if close has not yet been called.
      Reading, writing, and the like temporarily increments this
      refcount, provided it was nonzero to start with.  */
-  scm_t_uint32 refcount;
+  uint32_t refcount;
 
   /* True if the port is random access.  Implies that the buffers must
      be flushed before switching between reading and writing, seeking,
      and so on.  */
-  scm_t_uint32 rw_random : 1;
-  scm_t_uint32 at_stream_start_for_bom_read  : 1;
-  scm_t_uint32 at_stream_start_for_bom_write : 1;
+  uint32_t rw_random : 1;
+  uint32_t at_stream_start_for_bom_read  : 1;
+  uint32_t at_stream_start_for_bom_write : 1;
 
   /* Character encoding support.  */
   SCM encoding;  /* A symbol of upper-case ASCII.  */

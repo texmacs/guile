@@ -129,7 +129,7 @@ set_vtable_access_fields (SCM vtable)
   size_t len, nfields, bitmask_size, field;
   SCM layout;
   const char *c_layout;
-  scm_t_uint32 *unboxed_fields;
+  uint32_t *unboxed_fields;
 
   layout = SCM_VTABLE_LAYOUT (vtable);
   c_layout = scm_i_symbol_chars (layout);
@@ -151,7 +151,7 @@ set_vtable_access_fields (SCM vtable)
   SCM_SET_VTABLE_FLAGS (vtable, 0);
   SCM_STRUCT_DATA_SET (vtable, scm_vtable_index_size, len / 2);
   SCM_STRUCT_DATA_SET (vtable, scm_vtable_index_unboxed_fields,
-                       (scm_t_uintptr) unboxed_fields);
+                       (uintptr_t) unboxed_fields);
 }
 
 static int

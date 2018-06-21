@@ -80,7 +80,7 @@ thread_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
              struct GC_ms_entry *mark_stack_limit, GC_word env)
 {
   int word;
-  const struct scm_i_thread *t = (struct scm_i_thread *) addr;
+  struct scm_i_thread *t = (struct scm_i_thread *) addr;
 
   if (SCM_UNPACK (t->handle) == 0)
     /* T must be on the free-list; ignore.  (See warning in
@@ -250,11 +250,11 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
     unsigned short us;
     unsigned int   ui;
     unsigned long  ul;
-    scm_t_uintmax  um;
+    uintmax_t  um;
   } u;
   scm_i_thread *t = SCM_I_THREAD_DATA (exp);
   scm_i_pthread_t p = t->pthread;
-  scm_t_uintmax id;
+  uintmax_t id;
   u.p = p;
   if (sizeof (p) == sizeof (unsigned short))
     id = u.us;

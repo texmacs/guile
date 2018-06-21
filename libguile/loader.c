@@ -105,7 +105,7 @@ pointer_to_procedure (enum bytecode_kind bytecode_kind, char *ptr)
     {
     case BYTECODE_KIND_GUILE_3_0:
       {
-        return scm_i_make_program ((scm_t_uint32 *) ptr);
+        return scm_i_make_program ((uint32_t *) ptr);
       }
     case BYTECODE_KIND_NONE:
     default:
@@ -178,7 +178,7 @@ elf_alignment (const char *data, size_t len)
       Elf_Phdr *phdr;
       const char *phdr_addr = data + header->e_phoff + i * header->e_phentsize;
 
-      if (!IS_ALIGNED ((scm_t_uintptr) phdr_addr, alignof_type (Elf_Phdr)))
+      if (!IS_ALIGNED ((uintptr_t) phdr_addr, alignof_type (Elf_Phdr)))
         return alignment;
       phdr = (Elf_Phdr *) phdr_addr;
 
@@ -220,7 +220,7 @@ alloc_aligned (size_t len, unsigned alignment)
       ret = malloc (len + alignment - 1);
       if (!ret)
         abort ();
-      ret = (char *) ALIGN ((scm_t_uintptr) ret, (scm_t_uintptr) alignment);
+      ret = (char *) ALIGN ((uintptr_t) ret, (uintptr_t) alignment);
     }
 
   return ret;
@@ -298,8 +298,8 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
           if (bytecode_kind != BYTECODE_KIND_NONE)
             return "duplicate DT_GUILE_VM_VERSION";
           {
-            scm_t_uint16 major = dyn[i].d_un.d_val >> 16;
-            scm_t_uint16 minor = dyn[i].d_un.d_val & 0xffff;
+            uint16_t major = dyn[i].d_un.d_val >> 16;
+            uint16_t minor = dyn[i].d_un.d_val & 0xffff;
             switch (major)
               {
               case 0x0300:
@@ -328,9 +328,9 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
   switch (bytecode_kind)
     {
     case BYTECODE_KIND_GUILE_3_0:
-      if ((scm_t_uintptr) init % 4)
+      if ((uintptr_t) init % 4)
         return "unaligned DT_INIT";
-      if ((scm_t_uintptr) entry % 4)
+      if ((uintptr_t) entry % 4)
         return "unaligned DT_GUILE_ENTRY";
       break;
     case BYTECODE_KIND_NONE:
@@ -437,7 +437,7 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
      (for the mmap path) that the base _is_ page-aligned, we proceed
      ahead even if the image alignment is greater than the page
      size.  */
-  if (!IS_ALIGNED ((scm_t_uintptr) data, alignment)
+  if (!IS_ALIGNED ((uintptr_t) data, alignment)
       && !IS_ALIGNED (alignment, page_size))
     ABORT ("incorrectly aligned base");
 
@@ -754,27 +754,27 @@ scm_all_mapped_elf_images (void)
 
 struct frame_map_prefix
 {
-  scm_t_uint32 text_offset;
-  scm_t_uint32 maps_offset;
+  uint32_t text_offset;
+  uint32_t maps_offset;
 };
 
 struct frame_map_header
 {
-  scm_t_uint32 addr;
-  scm_t_uint32 map_offset;
+  uint32_t addr;
+  uint32_t map_offset;
 };
 
 verify (sizeof (struct frame_map_prefix) == 8);
 verify (sizeof (struct frame_map_header) == 8);
 
-const scm_t_uint8 *
-scm_find_slot_map_unlocked (const scm_t_uint32 *ip)
+const uint8_t *
+scm_find_slot_map_unlocked (const uint32_t *ip)
 {
   struct mapped_elf_image *image;
   char *base;
   struct frame_map_prefix *prefix;
   struct frame_map_header *headers;
-  scm_t_uintptr addr = (scm_t_uintptr) ip;
+  uintptr_t addr = (uintptr_t) ip;
   size_t start, end;
 
   image = find_mapped_elf_image_unlocked ((char *) ip);
@@ -785,9 +785,9 @@ scm_find_slot_map_unlocked (const scm_t_uint32 *ip)
   prefix = (struct frame_map_prefix *) base;
   headers = (struct frame_map_header *) (base + sizeof (*prefix));
 
-  if (addr < ((scm_t_uintptr) image->start) + prefix->text_offset)
+  if (addr < ((uintptr_t) image->start) + prefix->text_offset)
     return NULL;
-  addr -= ((scm_t_uintptr) image->start) + prefix->text_offset;
+  addr -= ((uintptr_t) image->start) + prefix->text_offset;
 
   start = 0;
   end = (prefix->maps_offset - sizeof (*prefix)) / sizeof (*headers);
@@ -800,7 +800,7 @@ scm_find_slot_map_unlocked (const scm_t_uint32 *ip)
       size_t n = start + (end - start) / 2;
 
       if (addr == headers[n].addr)
-        return (const scm_t_uint8*) (base + headers[n].map_offset);
+        return (const uint8_t*) (base + headers[n].map_offset);
       else if (addr < headers[n].addr)
         end = n;
       else

@@ -61,12 +61,12 @@
 
 /* Convenience macros.  These are used by the various templates (macros) that
    are parameterized by integer signedness.  */
-#define INT8_T_signed           scm_t_int8
-#define INT8_T_unsigned         scm_t_uint8
-#define INT16_T_signed          scm_t_int16
-#define INT16_T_unsigned        scm_t_uint16
-#define INT32_T_signed          scm_t_int32
-#define INT32_T_unsigned        scm_t_uint32
+#define INT8_T_signed           int8_t
+#define INT8_T_unsigned         uint8_t
+#define INT16_T_signed          int16_t
+#define INT16_T_unsigned        uint16_t
+#define INT32_T_signed          int32_t
+#define INT32_T_unsigned        uint32_t
 #define is_signed_int8(_x)      (((_x) >= -128L) && ((_x) <= 127L))
 #define is_unsigned_int8(_x)    ((_x) <= 255UL)
 #define is_signed_int16(_x)     (((_x) >= -32768L) && ((_x) <= 32767L))
@@ -374,17 +374,17 @@ scm_c_bytevector_length (SCM bv)
 }
 #undef FUNC_NAME
 
-scm_t_uint8
+uint8_t
 scm_c_bytevector_ref (SCM bv, size_t index)
 #define FUNC_NAME "scm_c_bytevector_ref"
 {
   size_t c_len;
-  const scm_t_uint8 *c_bv;
+  const uint8_t *c_bv;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   if (SCM_UNLIKELY (index >= c_len))
     scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
@@ -394,16 +394,16 @@ scm_c_bytevector_ref (SCM bv, size_t index)
 #undef FUNC_NAME
 
 void
-scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
+scm_c_bytevector_set_x (SCM bv, size_t index, uint8_t value)
 #define FUNC_NAME "scm_c_bytevector_set_x"
 {
   size_t c_len;
-  scm_t_uint8 *c_bv;
+  uint8_t *c_bv;
 
   SCM_VALIDATE_MUTABLE_BYTEVECTOR (1, bv);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   if (SCM_UNLIKELY (index >= c_len))
     scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
@@ -483,7 +483,7 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
 {
   SCM bv;
   size_t c_len;
-  scm_t_uint8 c_fill = 0;
+  uint8_t c_fill = 0;
 
   SCM_VALIDATE_SIZE_COPY (1, len, c_len);
   if (!scm_is_eq (fill, SCM_UNDEFINED))
@@ -493,16 +493,16 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
       value = scm_to_int (fill);
       if (SCM_UNLIKELY ((value < -128) || (value > 255)))
 	scm_out_of_range (FUNC_NAME, fill);
-      c_fill = (scm_t_uint8) value;
+      c_fill = (uint8_t) value;
     }
 
   bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   if (!scm_is_eq (fill, SCM_UNDEFINED))
     {
       size_t i;
-      scm_t_uint8 *contents;
+      uint8_t *contents;
 
-      contents = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+      contents = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
       for (i = 0; i < c_len; i++)
 	contents[i] = c_fill;
     }
@@ -558,7 +558,7 @@ SCM_DEFINE (scm_bytevector_fill_x, "bytevector-fill!", 2, 0, 0,
 #define FUNC_NAME s_scm_bytevector_fill_x
 {
   size_t c_len, i;
-  scm_t_uint8 *c_bv, c_fill;
+  uint8_t *c_bv, c_fill;
   int value;
 
   SCM_VALIDATE_MUTABLE_BYTEVECTOR (1, bv);
@@ -566,10 +566,10 @@ SCM_DEFINE (scm_bytevector_fill_x, "bytevector-fill!", 2, 0, 0,
   value = scm_to_int (fill);
   if (SCM_UNLIKELY ((value < -128) || (value > 255)))
     scm_out_of_range (FUNC_NAME, fill);
-  c_fill = (scm_t_uint8) value;
+  c_fill = (uint8_t) value;
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   for (i = 0; i < c_len; i++)
     c_bv[i] = c_fill;
@@ -726,12 +726,12 @@ SCM_DEFINE (scm_bytevector_to_u8_list, "bytevector->u8-list", 1, 0, 0,
 {
   SCM lst, pair;
   size_t c_len, i;
-  scm_t_uint8 *c_bv;
+  uint8_t *c_bv;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   lst = scm_make_list (scm_from_size_t (c_len), SCM_UNSPECIFIED);
   for (i = 0, pair = lst;
@@ -752,12 +752,12 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 {
   SCM bv, item;
   size_t c_len, i;
-  scm_t_uint8 *c_bv;
+  uint8_t *c_bv;
 
   SCM_VALIDATE_LIST_COPYLEN (1, lst, c_len);
 
   bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   for (i = 0; i < c_len; lst = SCM_CDR (lst), i++)
     {
@@ -769,7 +769,7 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 
 	  c_item = SCM_I_INUM (item);
 	  if (SCM_LIKELY ((c_item >= 0) && (c_item < 256)))
-	    c_bv[i] = (scm_t_uint8) c_item;
+	    c_bv[i] = (uint8_t) c_item;
 	  else
 	    goto type_error;
 	}
@@ -1605,13 +1605,13 @@ SCM_DEFINE (scm_bytevector_s64_native_set_x, "bytevector-s64-native-set!",
 union scm_ieee754_float
 {
   float f;
-  scm_t_uint32 i;
+  uint32_t i;
 };
 
 union scm_ieee754_double
 {
   double d;
-  scm_t_uint64 i;
+  uint64_t i;
 };
 
 
@@ -1916,7 +1916,7 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
                                                                         \
   SCM_VALIDATE_STRING (1, str);                                         \
   if (scm_is_eq (endianness, SCM_UNDEFINED))                            \
-    endianness = sym_big;                                           \
+    endianness = sym_big;                                               \
   else                                                                  \
     SCM_VALIDATE_SYMBOL (2, endianness);                                \
                                                                         \
@@ -1938,7 +1938,7 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
       const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);          \
       c_utf = u32_conv_to_encoding (c_utf_name,                         \
                                     iconveh_question_mark,              \
-                                    (scm_t_uint32 *) wbuf,              \
+                                    (uint32_t *) wbuf,                  \
                                     c_strlen, NULL, NULL, &c_utf_len);  \
       if (SCM_UNLIKELY (c_utf == NULL))                                 \
         scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",    \
@@ -1962,12 +1962,12 @@ SCM_DEFINE (scm_string_to_utf8, "string->utf8",
 #define FUNC_NAME s_scm_string_to_utf8
 {
   SCM utf;
-  scm_t_uint8 *c_utf;
+  uint8_t *c_utf;
   size_t c_utf_len = 0;
 
   SCM_VALIDATE_STRING (1, str);
 
-  c_utf = (scm_t_uint8 *) scm_to_utf8_stringn (str, &c_utf_len);
+  c_utf = (uint8_t *) scm_to_utf8_stringn (str, &c_utf_len);
   utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);
   free (c_utf);

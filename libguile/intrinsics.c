@@ -58,19 +58,19 @@ SCM_DEFINE (scm_intrinsic_list, "intrinsic-list", 0, 0, 0,
 #undef FUNC_NAME
 
 static SCM
-add_immediate (SCM a, scm_t_uint8 b)
+add_immediate (SCM a, uint8_t b)
 {
   return scm_sum (a, scm_from_uint8 (b));
 }
 
 static SCM
-sub_immediate (SCM a, scm_t_uint8 b)
+sub_immediate (SCM a, uint8_t b)
 {
   return scm_difference (a, scm_from_uint8 (b));
 }
 
 static void
-string_set_x (SCM str, scm_t_uint64 idx, scm_t_uint64 ch)
+string_set_x (SCM str, uint64_t idx, uint64_t ch)
 {
   str = scm_i_string_start_writing (str);
   scm_i_string_set_x (str, idx, ch);
@@ -83,13 +83,13 @@ string_to_number (SCM str)
   return scm_string_to_number (str, SCM_UNDEFINED /* radix = 10 */);
 }
 
-static scm_t_uint64
+static uint64_t
 scm_to_uint64_truncate (SCM x)
 {
   if (SCM_I_INUMP (x))
-    return (scm_t_uint64) SCM_I_INUM (x);
+    return (uint64_t) SCM_I_INUM (x);
   else
-    return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((scm_t_uint64) -1)));
+    return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((uint64_t) -1)));
 }
 
 static SCM
@@ -175,10 +175,10 @@ pop_dynamic_state (scm_i_thread *thread)
 }
 
 static SCM
-lsh (SCM a, scm_t_uint64 b)
+lsh (SCM a, uint64_t b)
 {
   if (SCM_LIKELY (SCM_I_INUMP (a))
-      && b < (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1)
+      && b < (uint64_t) (SCM_I_FIXNUM_BIT - 1)
       && ((scm_t_bits)
           (SCM_SRS (SCM_I_INUM (a), (SCM_I_FIXNUM_BIT-1 - b)) + 1)
           <= 1))
@@ -191,11 +191,11 @@ lsh (SCM a, scm_t_uint64 b)
 }
 
 static SCM
-rsh (SCM a, scm_t_uint64 b)
+rsh (SCM a, uint64_t b)
 {
   if (SCM_LIKELY (SCM_I_INUMP (a)))
     {
-      if (b > (scm_t_uint64) (SCM_I_FIXNUM_BIT - 1))
+      if (b > (uint64_t) (SCM_I_FIXNUM_BIT - 1))
         b = SCM_I_FIXNUM_BIT - 1;
       return SCM_I_MAKINUM (SCM_SRS (SCM_I_INUM (a), b));
     }
@@ -204,13 +204,13 @@ rsh (SCM a, scm_t_uint64 b)
 }
 
 static SCM
-lsh_immediate (SCM a, scm_t_uint8 b)
+lsh_immediate (SCM a, uint8_t b)
 {
   return lsh (a, b);
 }
 
 static SCM
-rsh_immediate (SCM a, scm_t_uint8 b)
+rsh_immediate (SCM a, uint8_t b)
 {
   return rsh (a, b);
 }
@@ -233,7 +233,7 @@ numerically_equal_p (SCM a, SCM b)
 }
 
 static SCM
-resolve_module (SCM name, scm_t_uint8 public_p)
+resolve_module (SCM name, uint8_t public_p)
 {
   SCM mod;
 

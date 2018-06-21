@@ -85,8 +85,8 @@ scm_t_rng scm_the_rng;
 
 typedef struct scm_t_i_rstate {
   scm_t_rstate rstate;
-  scm_t_uint32 w;
-  scm_t_uint32 c;
+  uint32_t w;
+  uint32_t c;
 } scm_t_i_rstate;
 
 
@@ -96,12 +96,12 @@ typedef struct scm_t_i_rstate {
 #define M_PI 3.14159265359
 #endif
 
-static scm_t_uint32
+static uint32_t
 scm_i_uniform32 (scm_t_rstate *state)
 {
   scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
-  scm_t_uint64 x = (scm_t_uint64) A * istate->w + istate->c;
-  scm_t_uint32 w = x & 0xffffffffUL;
+  uint64_t x = (uint64_t) A * istate->w + istate->c;
+  uint32_t w = x & 0xffffffffUL;
   istate->w = w;
   istate->c = x >> 32L;
   return w;
@@ -111,8 +111,8 @@ static void
 scm_i_init_rstate (scm_t_rstate *state, const char *seed, int n)
 {
   scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
-  scm_t_uint32 w = 0L;
-  scm_t_uint32 c = 0L;
+  uint32_t w = 0L;
+  uint32_t c = 0L;
   int i, m;
   for (i = 0; i < n; ++i)
     {
@@ -145,7 +145,7 @@ scm_i_rstate_from_datum (scm_t_rstate *state, SCM value)
 #define FUNC_NAME "scm_i_rstate_from_datum"
 {
   scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
-  scm_t_uint32 w, c;
+  uint32_t w, c;
   long length;
   
   SCM_VALIDATE_LIST_COPYLEN (SCM_ARG1, value, length);
@@ -253,8 +253,8 @@ scm_c_exp1 (scm_t_rstate *state)
 
 unsigned char scm_masktab[256];
 
-static inline scm_t_uint32
-scm_i_mask32 (scm_t_uint32 m)
+static inline uint32_t
+scm_i_mask32 (uint32_t m)
 {
   return (m < 0x100
 	  ? scm_masktab[m]
@@ -262,28 +262,28 @@ scm_i_mask32 (scm_t_uint32 m)
 	     ? scm_masktab[m >> 8] << 8 | 0xff
 	     : (m < 0x1000000
 		? scm_masktab[m >> 16] << 16 | 0xffff
-		: ((scm_t_uint32) scm_masktab[m >> 24]) << 24 | 0xffffff)));
+		: ((uint32_t) scm_masktab[m >> 24]) << 24 | 0xffffff)));
 }
 
-scm_t_uint32
-scm_c_random (scm_t_rstate *state, scm_t_uint32 m)
+uint32_t
+scm_c_random (scm_t_rstate *state, uint32_t m)
 {
-  scm_t_uint32 r, mask = scm_i_mask32 (m);
+  uint32_t r, mask = scm_i_mask32 (m);
   while ((r = state->rng->random_bits (state) & mask) >= m);
   return r;
 }
 
-scm_t_uint64
-scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m)
+uint64_t
+scm_c_random64 (scm_t_rstate *state, uint64_t m)
 {
-  scm_t_uint64 r;
-  scm_t_uint32 mask;
+  uint64_t r;
+  uint32_t mask;
 
   if (m <= UINT32_MAX)
-    return scm_c_random (state, (scm_t_uint32) m);
+    return scm_c_random (state, (uint32_t) m);
   
   mask = scm_i_mask32 (m >> 32);
-  while ((r = ((scm_t_uint64) (state->rng->random_bits (state) & mask) << 32)
+  while ((r = ((uint64_t) (state->rng->random_bits (state) & mask) << 32)
           | state->rng->random_bits (state)) >= m)
     ;
   return r;
@@ -309,24 +309,24 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
   SCM result = scm_i_mkbig ();
   const size_t m_bits = mpz_sizeinbase (SCM_I_BIG_MPZ (m), 2);
-  /* how many bits would only partially fill the last scm_t_uint32? */
-  const size_t end_bits = m_bits % (sizeof (scm_t_uint32) * SCM_CHAR_BIT);
-  scm_t_uint32 *random_chunks = NULL;
-  const scm_t_uint32 num_full_chunks =
-    m_bits / (sizeof (scm_t_uint32) * SCM_CHAR_BIT);
-  const scm_t_uint32 num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
+  /* how many bits would only partially fill the last uint32_t? */
+  const size_t end_bits = m_bits % (sizeof (uint32_t) * SCM_CHAR_BIT);
+  uint32_t *random_chunks = NULL;
+  const uint32_t num_full_chunks =
+    m_bits / (sizeof (uint32_t) * SCM_CHAR_BIT);
+  const uint32_t num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
 
   /* we know the result will be this big */
   mpz_realloc2 (SCM_I_BIG_MPZ (result), m_bits);
 
   random_chunks =
-    (scm_t_uint32 *) scm_gc_calloc (num_chunks * sizeof (scm_t_uint32),
+    (uint32_t *) scm_gc_calloc (num_chunks * sizeof (uint32_t),
                                      "random bignum chunks");
 
   do
     {
-      scm_t_uint32 *current_chunk = random_chunks + (num_chunks - 1);
-      scm_t_uint32 chunks_left = num_chunks;
+      uint32_t *current_chunk = random_chunks + (num_chunks - 1);
+      uint32_t chunks_left = num_chunks;
 
       mpz_set_ui (SCM_I_BIG_MPZ (result), 0);
       
@@ -334,24 +334,24 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
         {
           /* generate a mask with ones in the end_bits position, i.e. if
              end_bits is 3, then we'd have a mask of ...0000000111 */
-          const scm_t_uint32 rndbits = state->rng->random_bits (state);
-          int rshift = (sizeof (scm_t_uint32) * SCM_CHAR_BIT) - end_bits;
-          scm_t_uint32 mask = ((scm_t_uint32)-1) >> rshift;
-          scm_t_uint32 highest_bits = rndbits & mask;
+          const uint32_t rndbits = state->rng->random_bits (state);
+          int rshift = (sizeof (uint32_t) * SCM_CHAR_BIT) - end_bits;
+          uint32_t mask = ((uint32_t)-1) >> rshift;
+          uint32_t highest_bits = rndbits & mask;
           *current_chunk-- = highest_bits;
           chunks_left--;
         }
       
       while (chunks_left)
         {
-          /* now fill in the remaining scm_t_uint32 sized chunks */
+          /* now fill in the remaining uint32_t sized chunks */
           *current_chunk-- = state->rng->random_bits (state);
           chunks_left--;
         }
       mpz_import (SCM_I_BIG_MPZ (result),
                   num_chunks,
                   -1,
-                  sizeof (scm_t_uint32),
+                  sizeof (uint32_t),
                   0,
                   0,
                   random_chunks);
@@ -359,7 +359,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 	 all bits in order not to get a distorted distribution) */
     } while (mpz_cmp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (m)) >= 0);
   scm_gc_free (random_chunks,
-               num_chunks * sizeof (scm_t_uint32),
+               num_chunks * sizeof (uint32_t),
                "random bignum chunks");
   return scm_i_normbig (result);
 }
@@ -408,10 +408,10 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
       SCM_ASSERT_RANGE (1, n, SCM_I_INUM (n) > 0);
 #if SCM_SIZEOF_UINTPTR_T <= 4
       return scm_from_uint32 (scm_c_random (SCM_RSTATE (state),
-                                            (scm_t_uint32) m));
+                                            (uint32_t) m));
 #elif SCM_SIZEOF_UINTPTR_T <= 8
       return scm_from_uint64 (scm_c_random64 (SCM_RSTATE (state),
-                                              (scm_t_uint64) m));
+                                              (uint64_t) m));
 #else
 #error "Cannot deal with this platform's scm_t_bits size"
 #endif

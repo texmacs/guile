@@ -163,7 +163,7 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
   \
   for (i = 0; i < 8; i++)\
     {\
-      scm_t_uint8 c = (addr)[i];\
+      uint8_t c = (addr)[i];\
       \
       (addr)[i] = (addr)[15 - i];\
       (addr)[15 - i] = c;\
@@ -176,8 +176,8 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 #else
 #define FLIPCPY_NET_HOST_128(dest, src) \
 { \
-  const scm_t_uint8 *tmp_srcp = (src) + 15; \
-  scm_t_uint8 *tmp_destp = (dest); \
+  const uint8_t *tmp_srcp = (src) + 15; \
+  uint8_t *tmp_destp = (dest); \
   \
   do { \
     *tmp_destp++ = *tmp_srcp--; \
@@ -201,7 +201,7 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 /* convert a 128 bit IPv6 address in network order to a host ordered
    SCM integer.  */
 static SCM
-scm_from_ipv6 (const scm_t_uint8 *src)
+scm_from_ipv6 (const uint8_t *src)
 {
   SCM result = scm_i_mkbig ();
   mpz_import (SCM_I_BIG_MPZ (result),
@@ -217,7 +217,7 @@ scm_from_ipv6 (const scm_t_uint8 *src)
 /* convert a host ordered SCM integer to a 128 bit IPv6 address in
    network order.  */
 static void
-scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
+scm_to_ipv6 (uint8_t dst[16], SCM src)
 {
   if (SCM_I_INUMP (src))
     {
@@ -295,7 +295,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 		    );
   if (af == AF_INET)
     {
-      scm_t_uint32 addr4;
+      uint32_t addr4;
 
       addr4 = htonl (SCM_NUM2ULONG (2, address));
       result = inet_ntop (af, &addr4, dst, sizeof (dst));
@@ -305,7 +305,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
     {
       char addr6[16];
 
-      scm_to_ipv6 ((scm_t_uint8 *) addr6, address);
+      scm_to_ipv6 ((uint8_t *) addr6, address);
       result = inet_ntop (af, &addr6, dst, sizeof (dst));
     }
 #endif
@@ -334,7 +334,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
 {
   int af;
   char *src;
-  scm_t_uint32 dst[4];
+  uint32_t dst[4];
   int rv, eno;
 
   af = scm_to_int (family);
@@ -359,7 +359,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
     return scm_from_ulong (ntohl (*dst));
 #ifdef HAVE_IPV6
   else if (af == AF_INET6)
-    return scm_from_ipv6 ((scm_t_uint8 *) dst);
+    return scm_from_ipv6 ((uint8_t *) dst);
 #endif
   else
     SCM_MISC_ERROR ("unsupported address family", family);

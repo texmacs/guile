@@ -45,7 +45,7 @@ typedef struct scm_t_rstate {
 
 typedef struct scm_t_rng {
   size_t rstate_size;				    /* size of random state */
-  scm_t_uint32 (*random_bits) (scm_t_rstate *state); /* gives 32 random bits */
+  uint32_t (*random_bits) (scm_t_rstate *state); /* gives 32 random bits */
   void (*init_rstate) (scm_t_rstate *state, const char *seed, int n);
   scm_t_rstate *(*copy_rstate) (scm_t_rstate *state);
   void (*from_datum) (scm_t_rstate *state, SCM datum);
@@ -65,8 +65,8 @@ SCM_API scm_t_rstate *scm_c_default_rstate (void);
 SCM_API double scm_c_uniform01 (scm_t_rstate *);
 SCM_API double scm_c_normal01 (scm_t_rstate *);
 SCM_API double scm_c_exp1 (scm_t_rstate *);
-SCM_API scm_t_uint32 scm_c_random (scm_t_rstate *, scm_t_uint32 m);
-SCM_API scm_t_uint64 scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m);
+SCM_API uint32_t scm_c_random (scm_t_rstate *, uint32_t m);
+SCM_API uint64_t scm_c_random64 (scm_t_rstate *state, uint64_t m);
 SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 
 

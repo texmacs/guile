@@ -127,7 +127,7 @@ static SCM word_type_symbols[] =
 /* Scheme interface */
 
 static SCM
-parse_instruction (scm_t_uint8 opcode, const char *name, scm_t_uint64 meta)
+parse_instruction (uint8_t opcode, const char *name, uint64_t meta)
 {
   SCM tail = SCM_EOL;
   int len;

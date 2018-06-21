@@ -60,7 +60,7 @@ struct soft_port {
   SCM read_char;
   SCM close;
   SCM input_waiting;
-  scm_t_uint8 encode_buf[ENCODE_BUF_SIZE];
+  uint8_t encode_buf[ENCODE_BUF_SIZE];
   size_t encode_cur;
   size_t encode_end;
 };

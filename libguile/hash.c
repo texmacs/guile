@@ -82,10 +82,10 @@ extern double floor();
 
 #define JENKINS_LOOKUP3_HASHWORD2(k, length, ret)                       \
   do {                                                                  \
-    scm_t_uint32 a, b, c;                                               \
+    uint32_t a, b, c;                                                   \
                                                                         \
     /* Set up the internal state.  */                                   \
-    a = b = c = 0xdeadbeef + ((scm_t_uint32)(length<<2)) + 47;          \
+    a = b = c = 0xdeadbeef + ((uint32_t)(length<<2)) + 47;              \
                                                                         \
     /* Handle most of the key.  */                                      \
     while (length > 3)                                                  \
@@ -117,7 +117,7 @@ extern double floor();
 
 
 static unsigned long
-narrow_string_hash (const scm_t_uint8 *str, size_t len)
+narrow_string_hash (const uint8_t *str, size_t len)
 {
   unsigned long ret;
   JENKINS_LOOKUP3_HASHWORD2 (str, len, ret);
@@ -140,7 +140,7 @@ scm_i_string_hash (SCM str)
   size_t len = scm_i_string_length (str);
 
   if (scm_i_is_narrow_string (str))
-    return narrow_string_hash ((const scm_t_uint8 *) scm_i_string_chars (str),
+    return narrow_string_hash ((const uint8_t *) scm_i_string_chars (str),
                                len);
   else
     return wide_string_hash (scm_i_string_wide_chars (str), len);
@@ -158,21 +158,21 @@ scm_i_latin1_string_hash (const char *str, size_t len)
   if (len == (size_t) -1)
     len = strlen (str);
 
-  return narrow_string_hash ((const scm_t_uint8 *) str, len);
+  return narrow_string_hash ((const uint8_t *) str, len);
 }
 
 /* A tricky optimization, but probably worth it.  */
 unsigned long 
 scm_i_utf8_string_hash (const char *str, size_t len)
 {
-  const scm_t_uint8 *end, *ustr = (const scm_t_uint8 *) str;
+  const uint8_t *end, *ustr = (const uint8_t *) str;
   unsigned long ret;
 
   /* The length of the string in characters.  This name corresponds to
      Jenkins' original name.  */
   size_t length;
 
-  scm_t_uint32 a, b, c, u32;
+  uint32_t a, b, c, u32;
 
   if (len == (size_t) -1)
     len = strlen (str);
@@ -186,7 +186,7 @@ scm_i_utf8_string_hash (const char *str, size_t len)
   length = u8_strnlen (ustr, len);
 
   /* Set up the internal state.  */
-  a = b = c = 0xdeadbeef + ((scm_t_uint32)(length<<2)) + 47;
+  a = b = c = 0xdeadbeef + ((uint32_t)(length<<2)) + 47;
 
   /* Handle most of the key.  */
   while (length > 3)
@@ -308,7 +308,7 @@ scm_raw_ihash (SCM obj, size_t depth)
     case scm_tc7_symbol:
       return scm_i_symbol_hash (obj);
     case scm_tc7_pointer:
-      return scm_raw_ihashq ((scm_t_uintptr) SCM_POINTER_VALUE (obj));
+      return scm_raw_ihashq ((uintptr_t) SCM_POINTER_VALUE (obj));
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {

@@ -30,7 +30,7 @@ SCM_TO_TYPE_PROTO (SCM val)
     {
       scm_t_signed_bits n = SCM_I_INUM (val);
       if (n >= 0
-	  && ((scm_t_uintmax)n) >= TYPE_MIN && ((scm_t_uintmax)n) <= TYPE_MAX)
+	  && ((uintmax_t)n) >= TYPE_MIN && ((uintmax_t)n) <= TYPE_MAX)
 	return n;
       else
 	{
@@ -66,7 +66,7 @@ SCM_TO_TYPE_PROTO (SCM val)
 	}
       else
 	{
-	  scm_t_uintmax n;
+	  uintmax_t n;
 	  size_t count;
 
 	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) < 0)

@@ -67,7 +67,7 @@ scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,
 }
 
 
-static const scm_t_uint32 compose_continuation_code[] =
+static const uint32_t compose_continuation_code[] =
   {
     SCM_PACK_OP_24 (compose_continuation, 0)
   };
@@ -91,13 +91,13 @@ static SCM
 reify_partial_continuation (struct scm_vm *vp,
                             union scm_vm_stack_element *saved_fp,
                             union scm_vm_stack_element *saved_sp,
-                            scm_t_uint32 *saved_ip,
+                            uint32_t *saved_ip,
                             jmp_buf *saved_registers,
                             scm_t_dynstack *dynstack,
                             jmp_buf *current_registers)
 {
   SCM vm_cont;
-  scm_t_uint32 flags;
+  uint32_t flags;
   union scm_vm_stack_element *base_fp;
 
   flags = SCM_F_VM_CONT_PARTIAL;
@@ -139,7 +139,7 @@ scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
   scm_t_dynstack_prompt_flags flags;
   scm_t_ptrdiff fp_offset, sp_offset;
   union scm_vm_stack_element *fp, *sp;
-  scm_t_uint32 *ip;
+  uint32_t *ip;
   jmp_buf *registers;
   size_t i;
 

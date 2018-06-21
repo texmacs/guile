@@ -52,9 +52,9 @@
    ((SCM_CELL_TYPE (x) & (0x7f | SCM_F_BITVECTOR_IMMUTABLE))    \
     == scm_tc7_bitvector))
 #define BITVECTOR_LENGTH(obj)   ((size_t)SCM_CELL_WORD_1(obj))
-#define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_CELL_WORD_2(obj))
+#define BITVECTOR_BITS(obj)     ((uint32_t *)SCM_CELL_WORD_2(obj))
 
-scm_t_uint32 *
+uint32_t *
 scm_i_bitvector_bits (SCM vec)
 {
   if (!IS_BITVECTOR (vec))
@@ -73,13 +73,13 @@ scm_i_print_bitvector (SCM vec, SCM port, scm_print_state *pstate)
 {
   size_t bit_len = BITVECTOR_LENGTH (vec);
   size_t word_len = (bit_len+31)/32;
-  scm_t_uint32 *bits = BITVECTOR_BITS (vec);
+  uint32_t *bits = BITVECTOR_BITS (vec);
   size_t i, j;
 
   scm_puts ("#*", port);
   for (i = 0; i < word_len; i++, bit_len -= 32)
     {
-      scm_t_uint32 mask = 1;
+      uint32_t mask = 1;
       for (j = 0; j < 32 && j < bit_len; j++, mask <<= 1)
 	scm_putc ((bits[i] & mask)? '1' : '0', port);
     }
@@ -92,9 +92,9 @@ scm_i_bitvector_equal_p (SCM vec1, SCM vec2)
 {
   size_t bit_len = BITVECTOR_LENGTH (vec1);
   size_t word_len = (bit_len + 31) / 32;
-  scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - bit_len);
-  scm_t_uint32 *bits1 = BITVECTOR_BITS (vec1);
-  scm_t_uint32 *bits2 = BITVECTOR_BITS (vec2);
+  uint32_t last_mask =  ((uint32_t)-1) >> (32*word_len - bit_len);
+  uint32_t *bits1 = BITVECTOR_BITS (vec1);
+  uint32_t *bits2 = BITVECTOR_BITS (vec2);
 
   /* compare lengths */
   if (BITVECTOR_LENGTH (vec2) != bit_len)
@@ -103,7 +103,7 @@ scm_i_bitvector_equal_p (SCM vec1, SCM vec2)
   if (bit_len == 0)
     return SCM_BOOL_T;
   /* compare full words */
-  if (memcmp (bits1, bits2, sizeof (scm_t_uint32) * (word_len-1)))
+  if (memcmp (bits1, bits2, sizeof (uint32_t) * (word_len-1)))
     return SCM_BOOL_F;
   /* compare partial last words */
   if ((bits1[word_len-1] & last_mask) != (bits2[word_len-1] & last_mask))
@@ -131,17 +131,17 @@ SCM
 scm_c_make_bitvector (size_t len, SCM fill)
 {
   size_t word_len = (len + 31) / 32;
-  scm_t_uint32 *bits;
+  uint32_t *bits;
   SCM res;
 
-  bits = scm_gc_malloc_pointerless (sizeof (scm_t_uint32) * word_len,
+  bits = scm_gc_malloc_pointerless (sizeof (uint32_t) * word_len,
 				    "bitvector");
   res = scm_double_cell (scm_tc7_bitvector, len, (scm_t_bits)bits, 0);
 
   if (!SCM_UNBNDP (fill))
     scm_bitvector_fill_x (res, fill);
   else
-    memset (bits, 0, sizeof (scm_t_uint32) * word_len);
+    memset (bits, 0, sizeof (uint32_t) * word_len);
       
   return res;
 }
@@ -182,20 +182,20 @@ SCM_DEFINE (scm_bitvector_length, "bitvector-length", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-const scm_t_uint32 *
+const uint32_t *
 scm_array_handle_bit_elements (scm_t_array_handle *h)
 {
   if (h->element_type != SCM_ARRAY_ELEMENT_TYPE_BIT)
     scm_wrong_type_arg_msg (NULL, 0, h->array, "bit array");
-  return ((const scm_t_uint32 *) h->elements) + h->base/32;
+  return ((const uint32_t *) h->elements) + h->base/32;
 }
 
-scm_t_uint32 *
+uint32_t *
 scm_array_handle_bit_writable_elements (scm_t_array_handle *h)
 {
   if (h->writable_elements != h->elements)
     scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable bit array");
-  return (scm_t_uint32 *) scm_array_handle_bit_elements (h);
+  return (uint32_t *) scm_array_handle_bit_elements (h);
 }
 
 size_t
@@ -204,7 +204,7 @@ scm_array_handle_bit_elements_offset (scm_t_array_handle *h)
   return h->base % 32;
 }
 
-const scm_t_uint32 *
+const uint32_t *
 scm_bitvector_elements (SCM vec,
 			scm_t_array_handle *h,
 			size_t *offp,
@@ -228,26 +228,26 @@ scm_bitvector_elements (SCM vec,
 }
 
 
-scm_t_uint32 *
+uint32_t *
 scm_bitvector_writable_elements (SCM vec,
 				 scm_t_array_handle *h,
 				 size_t *offp,
 				 size_t *lenp,
 				 ssize_t *incp)
 {
-  const scm_t_uint32 *ret = scm_bitvector_elements (vec, h, offp, lenp, incp);
+  const uint32_t *ret = scm_bitvector_elements (vec, h, offp, lenp, incp);
 
   if (h->writable_elements != h->elements)
     scm_wrong_type_arg_msg (NULL, 0, h->array, "mutable bit array");
 
-  return (scm_t_uint32 *) ret;
+  return (uint32_t *) ret;
 }
 
 SCM
 scm_c_bitvector_ref (SCM vec, size_t idx)
 {
   scm_t_array_handle handle;
-  const scm_t_uint32 *bits;
+  const uint32_t *bits;
 
   if (IS_BITVECTOR (vec))
     {
@@ -286,7 +286,7 @@ void
 scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
 {
   scm_t_array_handle handle;
-  scm_t_uint32 *bits, mask;
+  uint32_t *bits, mask;
 
   if (IS_MUTABLE_BITVECTOR (vec))
     {
@@ -335,7 +335,7 @@ SCM_DEFINE (scm_bitvector_fill_x, "bitvector-fill!", 2, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  scm_t_uint32 *bits;
+  uint32_t *bits;
 
   bits = scm_bitvector_writable_elements (vec, &handle,
 					  &off, &len, &inc);
@@ -345,16 +345,16 @@ SCM_DEFINE (scm_bitvector_fill_x, "bitvector-fill!", 2, 0, 0,
       /* the usual case
        */
       size_t word_len = (len + 31) / 32;
-      scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - len);
+      uint32_t last_mask =  ((uint32_t)-1) >> (32*word_len - len);
 
       if (scm_is_true (val))
 	{
-	  memset (bits, 0xFF, sizeof(scm_t_uint32)*(word_len-1));
+	  memset (bits, 0xFF, sizeof(uint32_t)*(word_len-1));
 	  bits[word_len-1] |= last_mask;
 	}
       else
 	{
-	  memset (bits, 0x00, sizeof(scm_t_uint32)*(word_len-1));
+	  memset (bits, 0x00, sizeof(uint32_t)*(word_len-1));
 	  bits[word_len-1] &= ~last_mask;
 	}
     }
@@ -381,13 +381,13 @@ SCM_DEFINE (scm_list_to_bitvector, "list->bitvector", 1, 0, 0,
   SCM vec = scm_c_make_bitvector (bit_len, SCM_UNDEFINED);
   size_t word_len = (bit_len+31)/32;
   scm_t_array_handle handle;
-  scm_t_uint32 *bits = scm_bitvector_writable_elements (vec, &handle,
+  uint32_t *bits = scm_bitvector_writable_elements (vec, &handle,
 							NULL, NULL, NULL);
   size_t i, j;
 
   for (i = 0; i < word_len && scm_is_pair (list); i++, bit_len -= 32)
     {
-      scm_t_uint32 mask = 1;
+      uint32_t mask = 1;
       bits[i] = 0;
       for (j = 0; j < 32 && j < bit_len;
 	   j++, mask <<= 1, list = SCM_CDR (list))
@@ -410,7 +410,7 @@ SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  const scm_t_uint32 *bits;
+  const uint32_t *bits;
   SCM res = SCM_EOL;
 
   bits = scm_bitvector_elements (vec, &handle, &off, &len, &inc);
@@ -424,7 +424,7 @@ SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
 
       for (i = 0; i < word_len; i++, len -= 32)
 	{
-	  scm_t_uint32 mask = 1;
+	  uint32_t mask = 1;
 	  for (j = 0; j < 32 && j < len; j++, mask <<= 1)
 	    res = scm_cons ((bits[i] & mask)? SCM_BOOL_T : SCM_BOOL_F, res);
 	}
@@ -455,7 +455,7 @@ SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
 */
 
 static size_t
-count_ones (scm_t_uint32 x)
+count_ones (uint32_t x)
 {
   x=x-((x>>1)&0x55555555);
   x=(x&0x33333333)+((x>>2)&0x33333333);
@@ -473,7 +473,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  const scm_t_uint32 *bits;
+  const uint32_t *bits;
   int bit = scm_to_bool (b);
   size_t count = 0;
 
@@ -484,7 +484,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
       /* the usual case
        */
       size_t word_len = (len + 31) / 32;
-      scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - len);
+      uint32_t last_mask =  ((uint32_t)-1) >> (32*word_len - len);
       size_t i;
 
       for (i = 0; i < word_len-1; i++)
@@ -508,7 +508,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 /* returns 32 for x == 0. 
 */
 static size_t
-find_first_one (scm_t_uint32 x)
+find_first_one (uint32_t x)
 {
   size_t pos = 0;
   /* do a binary search in x. */
@@ -541,7 +541,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
   scm_t_array_handle handle;
   size_t off, len, first_bit;
   ssize_t inc;
-  const scm_t_uint32 *bits;
+  const uint32_t *bits;
   int bit = scm_to_bool (item);
   SCM res = SCM_BOOL_F;
   
@@ -551,11 +551,11 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
   if (off == 0 && inc == 1 && len > 0)
     {
       size_t i, word_len = (len + 31) / 32;
-      scm_t_uint32 last_mask =  ((scm_t_uint32)-1) >> (32*word_len - len);
+      uint32_t last_mask =  ((uint32_t)-1) >> (32*word_len - len);
       size_t first_word = first_bit / 32;
-      scm_t_uint32 first_mask =
-	((scm_t_uint32)-1) << (first_bit - 32*first_word);
-      scm_t_uint32 w;
+      uint32_t first_mask =
+	((uint32_t)-1) << (first_bit - 32*first_word);
+      uint32_t w;
       
       for (i = first_word; i < word_len; i++)
 	{
@@ -624,7 +624,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
   scm_t_array_handle v_handle;
   size_t v_off, v_len;
   ssize_t v_inc;
-  scm_t_uint32 *v_bits;
+  uint32_t *v_bits;
   int bit;
 
   /* Validate that OBJ is a boolean so this is done even if we don't
@@ -640,7 +640,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       scm_t_array_handle kv_handle;
       size_t kv_off, kv_len;
       ssize_t kv_inc;
-      const scm_t_uint32 *kv_bits;
+      const uint32_t *kv_bits;
       
       kv_bits = scm_bitvector_elements (kv, &kv_handle,
 					&kv_off, &kv_len, &kv_inc);
@@ -653,7 +653,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       if (v_off == 0 && v_inc == 1 && kv_off == 0 && kv_inc == 1 && kv_len > 0)
 	{
 	  size_t word_len = (kv_len + 31) / 32;
-	  scm_t_uint32 last_mask = ((scm_t_uint32)-1) >> (32*word_len - kv_len);
+	  uint32_t last_mask = ((uint32_t)-1) >> (32*word_len - kv_len);
 	  size_t i;
  
 	  if (bit == 0)
@@ -685,7 +685,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       scm_t_array_handle kv_handle;
       size_t i, kv_len;
       ssize_t kv_inc;
-      const scm_t_uint32 *kv_elts;
+      const uint32_t *kv_elts;
 
       kv_elts = scm_u32vector_elements (kv, &kv_handle, &kv_len, &kv_inc);
       for (i = 0; i < kv_len; i++, kv_elts += kv_inc)
@@ -727,7 +727,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
   scm_t_array_handle v_handle;
   size_t v_off, v_len;
   ssize_t v_inc;
-  const scm_t_uint32 *v_bits;
+  const uint32_t *v_bits;
   size_t count = 0;
   int bit;
 
@@ -744,7 +744,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       scm_t_array_handle kv_handle;
       size_t kv_off, kv_len;
       ssize_t kv_inc;
-      const scm_t_uint32 *kv_bits;
+      const uint32_t *kv_bits;
       
       kv_bits = scm_bitvector_elements (kv, &kv_handle,
 					&kv_off, &kv_len, &kv_inc);
@@ -757,8 +757,8 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       if (v_off == 0 && v_inc == 1 && kv_off == 0 && kv_inc == 1 && kv_len > 0)
 	{
 	  size_t i, word_len = (kv_len + 31) / 32;
-	  scm_t_uint32 last_mask = ((scm_t_uint32)-1) >> (32*word_len - kv_len);
-	  scm_t_uint32 xor_mask = bit? 0 : ((scm_t_uint32)-1);
+	  uint32_t last_mask = ((uint32_t)-1) >> (32*word_len - kv_len);
+	  uint32_t xor_mask = bit? 0 : ((uint32_t)-1);
 
 	  for (i = 0; i < word_len-1; i++)
 	    count += count_ones ((v_bits[i]^xor_mask) & kv_bits[i]);
@@ -784,7 +784,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       scm_t_array_handle kv_handle;
       size_t i, kv_len;
       ssize_t kv_inc;
-      const scm_t_uint32 *kv_elts;
+      const uint32_t *kv_elts;
 
       kv_elts = scm_u32vector_elements (kv, &kv_handle, &kv_len, &kv_inc);
       for (i = 0; i < kv_len; i++, kv_elts += kv_inc)
@@ -814,14 +814,14 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
   scm_t_array_handle handle;
   size_t off, len;
   ssize_t inc;
-  scm_t_uint32 *bits;
+  uint32_t *bits;
 
   bits = scm_bitvector_writable_elements (v, &handle, &off, &len, &inc);
   
   if (off == 0 && inc == 1 && len > 0)
     {
       size_t word_len = (len + 31) / 32;
-      scm_t_uint32 last_mask = ((scm_t_uint32)-1) >> (32*word_len - len);
+      uint32_t last_mask = ((uint32_t)-1) >> (32*word_len - len);
       size_t i;
 
       for (i = 0; i < word_len-1; i++)
@@ -851,10 +851,10 @@ scm_istr2bve (SCM str)
   SCM vec = scm_c_make_bitvector (len, SCM_UNDEFINED);
   SCM res = vec;
 
-  scm_t_uint32 mask;
+  uint32_t mask;
   size_t k, j;
   const char *c_str;
-  scm_t_uint32 *data;
+  uint32_t *data;
 
   data = scm_bitvector_writable_elements (vec, &handle, NULL, NULL, NULL);
   c_str = scm_i_string_chars (str);

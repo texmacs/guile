@@ -75,7 +75,7 @@ static scm_t_bits tc16_continuation;
    of that trampoline function.
  */
 
-static const scm_t_uint32 continuation_stub_code[] =
+static const uint32_t continuation_stub_code[] =
   {
     SCM_PACK_OP_24 (continuation_call, 0)
   };

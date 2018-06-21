@@ -437,12 +437,12 @@ print_normal_symbol (SCM sym, SCM port)
   if (scm_i_is_narrow_symbol (sym))
     {
       const char *ptr = scm_i_symbol_chars (sym);
-      scm_c_put_latin1_chars (port, (const scm_t_uint8 *) ptr, len);
+      scm_c_put_latin1_chars (port, (const uint8_t *) ptr, len);
     }
   else
     {
       const scm_t_wchar *ptr = scm_i_symbol_wide_chars (sym);
-      scm_c_put_utf32_chars (port, (const scm_t_uint32 *) ptr, len);
+      scm_c_put_utf32_chars (port, (const uint32_t *) ptr, len);
     }
 }
 
@@ -848,7 +848,7 @@ write_string (const void *str, int narrow_p, size_t len, SCM port)
 {
   size_t i;
 
-  scm_c_put_char (port, (scm_t_uint8) '"');
+  scm_c_put_char (port, (uint8_t) '"');
 
   for (i = 0; i < len; ++i)
     {
@@ -862,11 +862,11 @@ write_string (const void *str, int narrow_p, size_t len, SCM port)
          representable in PORT's encoding.  If CH needs to be escaped,
          it is escaped using the in-string escape syntax.  */
       if (ch == '"')
-        scm_c_put_latin1_chars (port, (const scm_t_uint8 *) "\\\"", 2);
+        scm_c_put_latin1_chars (port, (const uint8_t *) "\\\"", 2);
       else if (ch == '\\')
-        scm_c_put_latin1_chars (port, (const scm_t_uint8 *) "\\\\", 2);
+        scm_c_put_latin1_chars (port, (const uint8_t *) "\\\\", 2);
       else if (ch == '\n' && SCM_PRINT_ESCAPE_NEWLINES_P)
-        scm_c_put_latin1_chars (port, (const scm_t_uint8 *) "\\n", 2);
+        scm_c_put_latin1_chars (port, (const uint8_t *) "\\n", 2);
       else if (ch == ' ' || ch == '\n'
                || (uc_is_general_category_withtable (ch,
                                                      UC_CATEGORY_MASK_L |
@@ -880,7 +880,7 @@ write_string (const void *str, int narrow_p, size_t len, SCM port)
         scm_c_put_escaped_char (port, ch);
     }
 
-  scm_c_put_char (port, (scm_t_uint8) '"');
+  scm_c_put_char (port, (uint8_t) '"');
 }
 
 /* Write CH to PORT, escaping it if it's non-graphic or not
@@ -933,14 +933,14 @@ write_character (scm_t_wchar ch, SCM port)
  */
 
 void 
-scm_intprint (scm_t_intmax n, int radix, SCM port)
+scm_intprint (intmax_t n, int radix, SCM port)
 {
   char num_buf[SCM_INTBUFLEN];
   scm_lfwrite (num_buf, scm_iint2str (n, radix, num_buf), port);
 }
 
 void 
-scm_uintprint (scm_t_uintmax n, int radix, SCM port)
+scm_uintprint (uintmax_t n, int radix, SCM port)
 {
   char num_buf[SCM_INTBUFLEN];
   scm_lfwrite (num_buf, scm_iuint2str (n, radix, num_buf), port);

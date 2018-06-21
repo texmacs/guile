@@ -66,10 +66,10 @@ const void *
 scm_array_handle_uniform_elements (scm_t_array_handle *h)
 {
   size_t esize;
-  const scm_t_uint8 *ret;
+  const uint8_t *ret;
 
   esize = scm_array_handle_uniform_element_size (h);
-  ret = ((const scm_t_uint8 *) h->elements) + h->base * esize;
+  ret = ((const uint8_t *) h->elements) + h->base * esize;
   return ret;
 }
 

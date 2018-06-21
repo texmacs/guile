@@ -152,14 +152,14 @@ narrow_stack (long len, enum scm_vm_frame_kind kind, struct scm_frame *frame,
            && scm_is_integer (scm_cdr (inner_cut)))
     {
       /* Cut until an IP within the given range is found.  */
-      scm_t_uintptr low_pc, high_pc, pc;
+      uintptr_t low_pc, high_pc, pc;
 
       low_pc = scm_to_uintptr_t (scm_car (inner_cut));
       high_pc = scm_to_uintptr_t (scm_cdr (inner_cut));
 
       for (; len ;)
         {
-          pc = (scm_t_uintptr) frame->ip;
+          pc = (uintptr_t) frame->ip;
           len--;
           scm_c_frame_previous (kind, frame);
           if (low_pc <= pc && pc < high_pc)
@@ -206,7 +206,7 @@ narrow_stack (long len, enum scm_vm_frame_kind kind, struct scm_frame *frame,
            && scm_is_integer (scm_cdr (outer_cut)))
     {
       /* Cut until an IP within the given range is found.  */
-      scm_t_uintptr low_pc, high_pc, pc;
+      uintptr_t low_pc, high_pc, pc;
       long i, new_len;
       struct scm_frame tmp;
 
@@ -218,7 +218,7 @@ narrow_stack (long len, enum scm_vm_frame_kind kind, struct scm_frame *frame,
       /* Cut until the given procedure is seen. */
       for (new_len = i = 0; i < len; i++, scm_c_frame_previous (kind, &tmp))
         {
-          pc = (scm_t_uintptr) tmp.ip;
+          pc = (uintptr_t) tmp.ip;
           if (low_pc <= pc && pc < high_pc)
             new_len = i;
         }

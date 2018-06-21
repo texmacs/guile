@@ -31,184 +31,184 @@ void test_ffi_v_ (void)
   return;
 }
 
-void test_ffi_v_u8 (scm_t_uint8 a);
-void test_ffi_v_u8 (scm_t_uint8 a)
+void test_ffi_v_u8 (uint8_t a);
+void test_ffi_v_u8 (uint8_t a)
 {
   return;
 }
 
-void test_ffi_v_s64 (scm_t_int64 a);
-void test_ffi_v_s64 (scm_t_int64 a)
+void test_ffi_v_s64 (int64_t a);
+void test_ffi_v_s64 (int64_t a)
 {
   return;
 }
 
-scm_t_int8 test_ffi_s8_ (void);
-scm_t_int8 test_ffi_s8_ (void)
+int8_t test_ffi_s8_ (void);
+int8_t test_ffi_s8_ (void)
 {
   return -100;
 }
-scm_t_int8 test_ffi_s8_u8 (scm_t_uint8 a);
-scm_t_int8 test_ffi_s8_u8 (scm_t_uint8 a)
+int8_t test_ffi_s8_u8 (uint8_t a);
+int8_t test_ffi_s8_u8 (uint8_t a)
 {
   return -100 + a;
 }
 
-scm_t_int8 test_ffi_s8_s64 (scm_t_int64 a);
-scm_t_int8 test_ffi_s8_s64 (scm_t_int64 a)
+int8_t test_ffi_s8_s64 (int64_t a);
+int8_t test_ffi_s8_s64 (int64_t a)
 {
   return -100 + a;
 }
 
-scm_t_uint8 test_ffi_u8_ (void);
-scm_t_uint8 test_ffi_u8_ (void)
+uint8_t test_ffi_u8_ (void);
+uint8_t test_ffi_u8_ (void)
 {
   return 200;
 }
 
-scm_t_uint8 test_ffi_u8_u8 (scm_t_uint8 a);
-scm_t_uint8 test_ffi_u8_u8 (scm_t_uint8 a)
+uint8_t test_ffi_u8_u8 (uint8_t a);
+uint8_t test_ffi_u8_u8 (uint8_t a)
 {
   return 200 + a;
 }
 
-scm_t_uint8 test_ffi_u8_s64 (scm_t_int64 a);
-scm_t_uint8 test_ffi_u8_s64 (scm_t_int64 a)
+uint8_t test_ffi_u8_s64 (int64_t a);
+uint8_t test_ffi_u8_s64 (int64_t a)
 {
   return 200 + a;
 }
 
-scm_t_int16 test_ffi_s16_ (void);
-scm_t_int16 test_ffi_s16_ (void)
+int16_t test_ffi_s16_ (void);
+int16_t test_ffi_s16_ (void)
 {
   return -20000;
 }
 
-scm_t_int16 test_ffi_s16_u8 (scm_t_uint8 a);
-scm_t_int16 test_ffi_s16_u8 (scm_t_uint8 a)
+int16_t test_ffi_s16_u8 (uint8_t a);
+int16_t test_ffi_s16_u8 (uint8_t a)
 {
   return -20000 + a;
 }
 
-scm_t_int16 test_ffi_s16_s64 (scm_t_int64 a);
-scm_t_int16 test_ffi_s16_s64 (scm_t_int64 a)
+int16_t test_ffi_s16_s64 (int64_t a);
+int16_t test_ffi_s16_s64 (int64_t a)
 {
   return -20000 + a;
 }
 
-scm_t_uint16 test_ffi_u16_ (void);
-scm_t_uint16 test_ffi_u16_ (void)
+uint16_t test_ffi_u16_ (void);
+uint16_t test_ffi_u16_ (void)
 {
   return 40000;
 }
 
-scm_t_uint16 test_ffi_u16_u8 (scm_t_uint8 a);
-scm_t_uint16 test_ffi_u16_u8 (scm_t_uint8 a)
+uint16_t test_ffi_u16_u8 (uint8_t a);
+uint16_t test_ffi_u16_u8 (uint8_t a)
 {
   return 40000 + a;
 }
 
-scm_t_uint16 test_ffi_u16_s64 (scm_t_int64 a);
-scm_t_uint16 test_ffi_u16_s64 (scm_t_int64 a)
+uint16_t test_ffi_u16_s64 (int64_t a);
+uint16_t test_ffi_u16_s64 (int64_t a)
 {
   return 40000 + a;
 }
 
-scm_t_int32 test_ffi_s32_ (void);
-scm_t_int32 test_ffi_s32_ (void)
+int32_t test_ffi_s32_ (void);
+int32_t test_ffi_s32_ (void)
 {
   return -2000000000;
 }
 
-scm_t_int32 test_ffi_s32_u8 (scm_t_uint8 a);
-scm_t_int32 test_ffi_s32_u8 (scm_t_uint8 a)
+int32_t test_ffi_s32_u8 (uint8_t a);
+int32_t test_ffi_s32_u8 (uint8_t a)
 {
   return -2000000000 + a;
 }
 
-scm_t_int32 test_ffi_s32_s64 (scm_t_int64 a);
-scm_t_int32 test_ffi_s32_s64 (scm_t_int64 a)
+int32_t test_ffi_s32_s64 (int64_t a);
+int32_t test_ffi_s32_s64 (int64_t a)
 {
   return -2000000000 + a;
 }
 
-scm_t_uint32 test_ffi_u32_ (void);
-scm_t_uint32 test_ffi_u32_ (void)
+uint32_t test_ffi_u32_ (void);
+uint32_t test_ffi_u32_ (void)
 {
   return 4000000000U;
 }
 
-scm_t_uint32 test_ffi_u32_u8 (scm_t_uint8 a);
-scm_t_uint32 test_ffi_u32_u8 (scm_t_uint8 a)
+uint32_t test_ffi_u32_u8 (uint8_t a);
+uint32_t test_ffi_u32_u8 (uint8_t a)
 {
   return 4000000000U + a;
 }
 
-scm_t_uint32 test_ffi_u32_s64 (scm_t_int64 a);
-scm_t_uint32 test_ffi_u32_s64 (scm_t_int64 a)
+uint32_t test_ffi_u32_s64 (int64_t a);
+uint32_t test_ffi_u32_s64 (int64_t a)
 {
   return 4000000000U + a;
 }
 
 /* FIXME: use 64-bit literals */
-scm_t_int64 test_ffi_s64_ (void);
-scm_t_int64 test_ffi_s64_ (void)
+int64_t test_ffi_s64_ (void);
+int64_t test_ffi_s64_ (void)
 {
   return -2000000000;
 }
 
-scm_t_int64 test_ffi_s64_u8 (scm_t_uint8 a);
-scm_t_int64 test_ffi_s64_u8 (scm_t_uint8 a)
+int64_t test_ffi_s64_u8 (uint8_t a);
+int64_t test_ffi_s64_u8 (uint8_t a)
 {
   return -2000000000 + a;
 }
 
-scm_t_int64 test_ffi_s64_s64 (scm_t_int64 a);
-scm_t_int64 test_ffi_s64_s64 (scm_t_int64 a)
+int64_t test_ffi_s64_s64 (int64_t a);
+int64_t test_ffi_s64_s64 (int64_t a)
 {
   return -2000000000 + a;
 }
 
-scm_t_uint64 test_ffi_u64_ (void);
-scm_t_uint64 test_ffi_u64_ (void)
+uint64_t test_ffi_u64_ (void);
+uint64_t test_ffi_u64_ (void)
 {
   return 4000000000UL;
 }
 
-scm_t_uint64 test_ffi_u64_u8 (scm_t_uint8 a);
-scm_t_uint64 test_ffi_u64_u8 (scm_t_uint8 a)
+uint64_t test_ffi_u64_u8 (uint8_t a);
+uint64_t test_ffi_u64_u8 (uint8_t a)
 {
   return 4000000000UL + a;
 }
 
-scm_t_uint64 test_ffi_u64_s64 (scm_t_int64 a);
-scm_t_uint64 test_ffi_u64_s64 (scm_t_int64 a)
+uint64_t test_ffi_u64_s64 (int64_t a);
+uint64_t test_ffi_u64_s64 (int64_t a)
 {
   return 4000000000UL + a;
 }
 
 
-scm_t_int64 test_ffi_sum (scm_t_int8 a, scm_t_int16 b,
-                          scm_t_int32 c, scm_t_int64 d);
-scm_t_int64 test_ffi_sum (scm_t_int8 a, scm_t_int16 b,
-                          scm_t_int32 c, scm_t_int64 d)
+int64_t test_ffi_sum (int8_t a, int16_t b,
+                          int32_t c, int64_t d);
+int64_t test_ffi_sum (int8_t a, int16_t b,
+                          int32_t c, int64_t d)
 {
   return d + c + b + a;
 }
 
 
-scm_t_int64 test_ffi_sum_many (scm_t_uint8 a, scm_t_uint16 b,
-                               scm_t_uint32 c, scm_t_uint64 d,
-                               scm_t_int8 e, scm_t_int16 f,
-                               scm_t_int32 g, scm_t_int64 h,
-                               scm_t_int8 i, scm_t_int16 j,
-                               scm_t_int32 k, scm_t_int64 l);
-scm_t_int64 test_ffi_sum_many (scm_t_uint8 a, scm_t_uint16 b,
-                               scm_t_uint32 c, scm_t_uint64 d,
-                               scm_t_int8 e, scm_t_int16 f,
-                               scm_t_int32 g, scm_t_int64 h,
-                               scm_t_int8 i, scm_t_int16 j,
-                               scm_t_int32 k, scm_t_int64 l)
+int64_t test_ffi_sum_many (uint8_t a, uint16_t b,
+                           uint32_t c, uint64_t d,
+                           int8_t e, int16_t f,
+                           int32_t g, int64_t h,
+                           int8_t i, int16_t j,
+                           int32_t k, int64_t l);
+int64_t test_ffi_sum_many (uint8_t a, uint16_t b,
+                           uint32_t c, uint64_t d,
+                           int8_t e, int16_t f,
+                           int32_t g, int64_t h,
+                           int8_t i, int16_t j,
+                           int32_t k, int64_t l)
 {
   return l + k + j + i + h + g + f + e + d + c + b + a;
 }
@@ -216,20 +216,20 @@ scm_t_int64 test_ffi_sum_many (scm_t_uint8 a, scm_t_uint16 b,
 
 struct foo
 {
-  scm_t_int8 a;
-  scm_t_int16 b;
-  scm_t_int32 c;
-  scm_t_int64 d;
+  int8_t a;
+  int16_t b;
+  int32_t c;
+  int64_t d;
 };
-scm_t_int64 test_ffi_sum_struct (struct foo foo);
-scm_t_int64 test_ffi_sum_struct (struct foo foo)
+int64_t test_ffi_sum_struct (struct foo foo);
+int64_t test_ffi_sum_struct (struct foo foo)
 {
   return foo.d + foo.c + foo.b + foo.a;
 }
 
 
-void* test_ffi_memcpy (void *dest, void *src, scm_t_int32 n);
-void* test_ffi_memcpy (void *dest, void *src, scm_t_int32 n)
+void* test_ffi_memcpy (void *dest, void *src, int32_t n);
+void* test_ffi_memcpy (void *dest, void *src, int32_t n)
 {
   return memcpy (dest, src, n);
 }

@@ -120,7 +120,7 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
 
 /* The compiler should unroll this. */
 #define CHASE_PAIRS(tree, FUNC_NAME, pattern)                           \
-  scm_t_uint32 pattern_var = pattern;                                   \
+  uint32_t pattern_var = pattern;                                   \
   do                                                                    \
     {                                                                   \
       if (!scm_is_pair (tree))                                          \

@@ -43,7 +43,7 @@
 #define SET_PROMPT_FP(top, fp) do { top[1] = (scm_t_bits)(fp); } while (0)
 #define PROMPT_SP(top) ((scm_t_ptrdiff) ((top)[2]))
 #define SET_PROMPT_SP(top, sp) do { top[2] = (scm_t_bits)(sp); } while (0)
-#define PROMPT_IP(top) ((scm_t_uint32 *) ((top)[3]))
+#define PROMPT_IP(top) ((uint32_t *) ((top)[3]))
 #define PROMPT_JMPBUF(top) ((jmp_buf *) ((top)[4]))
 
 #define WINDER_WORDS 2
@@ -196,7 +196,7 @@ scm_dynstack_push_prompt (scm_t_dynstack *dynstack,
                           scm_t_dynstack_prompt_flags flags,
                           SCM key,
                           scm_t_ptrdiff fp_offset, scm_t_ptrdiff sp_offset,
-                          scm_t_uint32 *ip, jmp_buf *registers)
+                          uint32_t *ip, jmp_buf *registers)
 {
   scm_t_bits *words;
 
@@ -499,7 +499,7 @@ scm_t_bits*
 scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
                           scm_t_dynstack_prompt_flags *flags,
                           scm_t_ptrdiff *fp_offset, scm_t_ptrdiff *sp_offset,
-                          scm_t_uint32 **ip, jmp_buf **registers)
+                          uint32_t **ip, jmp_buf **registers)
 {
   scm_t_bits *walk;
 

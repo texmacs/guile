@@ -70,7 +70,7 @@
 #define scm_vtable_index_instance_printer  3 /* A printer for this struct type. */
 #define scm_vtable_index_name              4 /* Name of this vtable. */
 #define scm_vtable_index_size              5 /* Number of fields, for simple structs.  */
-#define scm_vtable_index_unboxed_fields    6 /* Raw scm_t_uint32* bitmask indicating unboxed fields.  */
+#define scm_vtable_index_unboxed_fields    6 /* Raw uint32_t* bitmask indicating unboxed fields.  */
 #define scm_vtable_index_reserved_7        7
 #define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
 
@@ -139,7 +139,7 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_VTABLE_NAME(X)              (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_name))
 #define SCM_SET_VTABLE_NAME(X,V)        (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_name, V))
 #define SCM_VTABLE_SIZE(X)              (SCM_STRUCT_DATA_REF (X, scm_vtable_index_size))
-#define SCM_VTABLE_UNBOXED_FIELDS(X)    ((scm_t_uint32*) SCM_STRUCT_DATA_REF (X, scm_vtable_index_unboxed_fields))
+#define SCM_VTABLE_UNBOXED_FIELDS(X)    ((uint32_t*) SCM_STRUCT_DATA_REF (X, scm_vtable_index_unboxed_fields))
 #define SCM_VTABLE_FIELD_IS_UNBOXED(X,F) (SCM_VTABLE_UNBOXED_FIELDS (X)[(F)>>5]&(1U<<((F)&31)))
 
 #define SCM_STRUCT_VTABLE(X)            (SCM_PACK (SCM_CELL_WORD_0 (X) - scm_tc3_struct))

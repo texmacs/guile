@@ -40,7 +40,7 @@ test_writable_elements ()
     size_t len;
     ssize_t inc;
     scm_t_array_handle h;
-    scm_t_uint32 *elts = scm_u32vector_writable_elements (v, &h, &len, &inc);
+    uint32_t *elts = scm_u32vector_writable_elements (v, &h, &len, &inc);
     assert (len == 4);
     assert (inc == 1);
     assert (elts[0] == 1);

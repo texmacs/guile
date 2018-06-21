@@ -138,7 +138,7 @@ SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
 #define FUNC_NAME s_scm_make_pointer
 {
   void *c_finalizer;
-  scm_t_uintptr c_address;
+  uintptr_t c_address;
 
   c_address = scm_to_uintptr_t (address);
   if (SCM_UNBNDP (finalizer))
@@ -188,7 +188,7 @@ SCM_DEFINE (scm_pointer_address, "pointer-address", 1, 0, 0,
 {
   SCM_VALIDATE_POINTER (1, pointer);
 
-  return scm_from_uintptr_t ((scm_t_uintptr) SCM_POINTER_VALUE (pointer));
+  return scm_from_uintptr_t ((uintptr_t) SCM_POINTER_VALUE (pointer));
 }
 #undef FUNC_NAME
 
@@ -236,7 +236,7 @@ SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 #define FUNC_NAME s_scm_pointer_to_bytevector
 {
   SCM ret;
-  scm_t_int8 *ptr;
+  int8_t *ptr;
   size_t boffset, blen;
   scm_t_array_element_type btype;
 
@@ -469,21 +469,21 @@ SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type),
         case SCM_FOREIGN_TYPE_DOUBLE:
           return scm_from_size_t (alignof_type (double));
         case SCM_FOREIGN_TYPE_UINT8:
-          return scm_from_size_t (alignof_type (scm_t_uint8));
+          return scm_from_size_t (alignof_type (uint8_t));
         case SCM_FOREIGN_TYPE_INT8:
-          return scm_from_size_t (alignof_type (scm_t_int8));
+          return scm_from_size_t (alignof_type (int8_t));
         case SCM_FOREIGN_TYPE_UINT16:
-          return scm_from_size_t (alignof_type (scm_t_uint16));
+          return scm_from_size_t (alignof_type (uint16_t));
         case SCM_FOREIGN_TYPE_INT16:
-          return scm_from_size_t (alignof_type (scm_t_int16));
+          return scm_from_size_t (alignof_type (int16_t));
         case SCM_FOREIGN_TYPE_UINT32:
-          return scm_from_size_t (alignof_type (scm_t_uint32));
+          return scm_from_size_t (alignof_type (uint32_t));
         case SCM_FOREIGN_TYPE_INT32:
-          return scm_from_size_t (alignof_type (scm_t_int32));
+          return scm_from_size_t (alignof_type (int32_t));
         case SCM_FOREIGN_TYPE_UINT64:
-          return scm_from_size_t (alignof_type (scm_t_uint64));
+          return scm_from_size_t (alignof_type (uint64_t));
         case SCM_FOREIGN_TYPE_INT64:
-          return scm_from_size_t (alignof_type (scm_t_int64));
+          return scm_from_size_t (alignof_type (int64_t));
         default:
           scm_wrong_type_arg (FUNC_NAME, 1, type);
         }
@@ -533,21 +533,21 @@ SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type),
         case SCM_FOREIGN_TYPE_DOUBLE:
           return scm_from_size_t (sizeof (double));
         case SCM_FOREIGN_TYPE_UINT8:
-          return scm_from_size_t (sizeof (scm_t_uint8));
+          return scm_from_size_t (sizeof (uint8_t));
         case SCM_FOREIGN_TYPE_INT8:
-          return scm_from_size_t (sizeof (scm_t_int8));
+          return scm_from_size_t (sizeof (int8_t));
         case SCM_FOREIGN_TYPE_UINT16:
-          return scm_from_size_t (sizeof (scm_t_uint16));
+          return scm_from_size_t (sizeof (uint16_t));
         case SCM_FOREIGN_TYPE_INT16:
-          return scm_from_size_t (sizeof (scm_t_int16));
+          return scm_from_size_t (sizeof (int16_t));
         case SCM_FOREIGN_TYPE_UINT32:
-          return scm_from_size_t (sizeof (scm_t_uint32));
+          return scm_from_size_t (sizeof (uint32_t));
         case SCM_FOREIGN_TYPE_INT32:
-          return scm_from_size_t (sizeof (scm_t_int32));
+          return scm_from_size_t (sizeof (int32_t));
         case SCM_FOREIGN_TYPE_UINT64:
-          return scm_from_size_t (sizeof (scm_t_uint64));
+          return scm_from_size_t (sizeof (uint64_t));
         case SCM_FOREIGN_TYPE_INT64:
-          return scm_from_size_t (sizeof (scm_t_int64));
+          return scm_from_size_t (sizeof (int64_t));
         default:
           scm_wrong_type_arg (FUNC_NAME, 1, type);
         }
@@ -824,14 +824,14 @@ SCM_DEFINE (scm_i_pointer_to_procedure, "pointer->procedure", 3, 0, 1,
 
 
 
-static const scm_t_uint32 *
+static const uint32_t *
 get_foreign_stub_code (unsigned int nargs, int with_errno)
 {
   size_t i;
   size_t code_len = with_errno ? 4 : 5;
-  scm_t_uint32 *code;
+  uint32_t *code;
 
-  code = scm_gc_malloc_pointerless (code_len * sizeof (scm_t_uint32),
+  code = scm_gc_malloc_pointerless (code_len * sizeof (uint32_t),
                                     "foreign code");
 
   if (nargs >= (1 << 24) + 1)
@@ -888,43 +888,43 @@ unpack (const ffi_type *type, void *loc, SCM x, int return_value_p)
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_uint8 (x);
       else
-	*(scm_t_uint8 *) loc = scm_to_uint8 (x);
+	*(uint8_t *) loc = scm_to_uint8 (x);
       break;
     case FFI_TYPE_SINT8:
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_int8 (x);
       else
-	*(scm_t_int8 *) loc = scm_to_int8 (x);
+	*(int8_t *) loc = scm_to_int8 (x);
       break;
     case FFI_TYPE_UINT16:
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_uint16 (x);
       else
-	*(scm_t_uint16 *) loc = scm_to_uint16 (x);
+	*(uint16_t *) loc = scm_to_uint16 (x);
       break;
     case FFI_TYPE_SINT16:
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_int16 (x);
       else
-	*(scm_t_int16 *) loc = scm_to_int16 (x);
+	*(int16_t *) loc = scm_to_int16 (x);
       break;
     case FFI_TYPE_UINT32:
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_uint32 (x);
       else
-	*(scm_t_uint32 *) loc = scm_to_uint32 (x);
+	*(uint32_t *) loc = scm_to_uint32 (x);
       break;
     case FFI_TYPE_SINT32:
       if (return_value_p)
 	*(ffi_arg *) loc = scm_to_int32 (x);
       else
-	*(scm_t_int32 *) loc = scm_to_int32 (x);
+	*(int32_t *) loc = scm_to_int32 (x);
       break;
     case FFI_TYPE_UINT64:
-      *(scm_t_uint64 *) loc = scm_to_uint64 (x);
+      *(uint64_t *) loc = scm_to_uint64 (x);
       break;
     case FFI_TYPE_SINT64:
-      *(scm_t_int64 *) loc = scm_to_int64 (x);
+      *(int64_t *) loc = scm_to_int64 (x);
       break;
     case FFI_TYPE_STRUCT:
       SCM_VALIDATE_POINTER (1, x);
@@ -967,38 +967,38 @@ pack (const ffi_type * type, const void *loc, int return_value_p)
 
     case FFI_TYPE_UINT8:
       if (return_value_p)
-	return scm_from_uint8 ((scm_t_uint8) *(ffi_arg *) loc);
+	return scm_from_uint8 ((uint8_t) *(ffi_arg *) loc);
       else
-	return scm_from_uint8 (* (scm_t_uint8 *) loc);
+	return scm_from_uint8 (* (uint8_t *) loc);
     case FFI_TYPE_SINT8:
       if (return_value_p)
-	return scm_from_int8 ((scm_t_int8) *(ffi_arg *) loc);
+	return scm_from_int8 ((int8_t) *(ffi_arg *) loc);
       else
-	return scm_from_int8 (* (scm_t_int8 *) loc);
+	return scm_from_int8 (* (int8_t *) loc);
     case FFI_TYPE_UINT16:
       if (return_value_p)
-	return scm_from_uint16 ((scm_t_uint16) *(ffi_arg *) loc);
+	return scm_from_uint16 ((uint16_t) *(ffi_arg *) loc);
       else
-	return scm_from_uint16 (* (scm_t_uint16 *) loc);
+	return scm_from_uint16 (* (uint16_t *) loc);
     case FFI_TYPE_SINT16:
       if (return_value_p)
-	return scm_from_int16 ((scm_t_int16) *(ffi_arg *) loc);
+	return scm_from_int16 ((int16_t) *(ffi_arg *) loc);
       else
-	return scm_from_int16 (* (scm_t_int16 *) loc);
+	return scm_from_int16 (* (int16_t *) loc);
     case FFI_TYPE_UINT32:
       if (return_value_p)
-	return scm_from_uint32 ((scm_t_uint32) *(ffi_arg *) loc);
+	return scm_from_uint32 ((uint32_t) *(ffi_arg *) loc);
       else
-	return scm_from_uint32 (* (scm_t_uint32 *) loc);
+	return scm_from_uint32 (* (uint32_t *) loc);
     case FFI_TYPE_SINT32:
       if (return_value_p)
-	return scm_from_int32 ((scm_t_int32) *(ffi_arg *) loc);
+	return scm_from_int32 ((int32_t) *(ffi_arg *) loc);
       else
-	return scm_from_int32 (* (scm_t_int32 *) loc);
+	return scm_from_int32 (* (int32_t *) loc);
     case FFI_TYPE_UINT64:
-      return scm_from_uint64 (*(scm_t_uint64 *) loc);
+      return scm_from_uint64 (*(uint64_t *) loc);
     case FFI_TYPE_SINT64:
-      return scm_from_int64 (*(scm_t_int64 *) loc);
+      return scm_from_int64 (*(int64_t *) loc);
 
     case FFI_TYPE_STRUCT:
       {
@@ -1024,7 +1024,7 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
      objtable. */
   ffi_cif *cif;
   void (*func) (void);
-  scm_t_uint8 *data;
+  uint8_t *data;
   void *rvalue;
   void **args;
   unsigned i;
@@ -1050,13 +1050,13 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
   /* Unpack ARGV to native values, setting ARGV pointers.  */
   for (i = 0, off = 0;
        i < cif->nargs;
-       off = (scm_t_uint8 *) args[i] - data + cif->arg_types[i]->size,
+       off = (uint8_t *) args[i] - data + cif->arg_types[i]->size,
 	 i++)
     {
       /* Suitably align the storage area for argument I.  */
-      args[i] = (void *) ROUND_UP ((scm_t_uintptr) data + off,
+      args[i] = (void *) ROUND_UP ((uintptr_t) data + off,
 				   cif->arg_types[i]->alignment);
-      assert ((scm_t_uintptr) args[i] % cif->arg_types[i]->alignment == 0);
+      assert ((uintptr_t) args[i] % cif->arg_types[i]->alignment == 0);
       unpack (cif->arg_types[i], args[i], argv[cif->nargs - i - 1].as_scm, 0);
     }
 
@@ -1064,7 +1064,7 @@ scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
      `armv5tel-*-linux-gnueabi', the return value has to be at least
      word-aligned, even if its type doesn't have any alignment requirement as is
      the case with `char'.  */
-  rvalue = (void *) ROUND_UP ((scm_t_uintptr) data + off,
+  rvalue = (void *) ROUND_UP ((uintptr_t) data + off,
 			      MAX (sizeof (void *), cif->rtype->alignment));
 
   /* off we go! */
@@ -1280,7 +1280,7 @@ scm_init_foreign (void)
 #elif SCM_SIZEOF_INTPTR_T == 4
 	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
 #else
-# error unsupported sizeof (scm_t_intptr)
+# error unsupported sizeof (intptr_t)
 #endif
 	      );
 
@@ -1290,7 +1290,7 @@ scm_init_foreign (void)
 #elif SCM_SIZEOF_UINTPTR_T == 4
 	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
 #else
-# error unsupported sizeof (scm_t_uintptr)
+# error unsupported sizeof (uintptr_t)
 #endif
 	      );
 

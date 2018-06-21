@@ -175,7 +175,7 @@
        (generate-bytecode i)
        (setq i (1+ i)))))
 */
-static const scm_t_uint32 subr_stub_code[] = {
+static const uint32_t subr_stub_code[] = {
   /* C-u 1 0 M-x generate-bytecodes RET */
   /* 0 arguments */
   A(0),
@@ -234,7 +234,7 @@ static const scm_t_uint32 subr_stub_code[] = {
   &subr_stub_code[((nreq + nopt + rest) * (nreq + nopt + rest)        \
                    + nopt + rest * (nreq + nopt + rest + 1)) * 6]
 
-static const scm_t_uint32*
+static const uint32_t*
 get_subr_stub_code (unsigned int nreq, unsigned int nopt, unsigned int rest)
 {
   if (SCM_UNLIKELY (rest > 1 || nreq + nopt + rest > 10))
@@ -272,28 +272,28 @@ create_subr (int define, const char *name,
 }
 
 int
-scm_i_primitive_code_p (const scm_t_uint32 *code)
+scm_i_primitive_code_p (const uint32_t *code)
 {
   if (code < subr_stub_code)
     return 0;
-  if (code > subr_stub_code + (sizeof(subr_stub_code) / sizeof(scm_t_uint32)))
+  if (code > subr_stub_code + (sizeof(subr_stub_code) / sizeof(uint32_t)))
     return 0;
 
   return 1;
 }
 
-scm_t_uintptr
+uintptr_t
 scm_i_primitive_call_ip (SCM subr)
 {
   size_t i;
-  const scm_t_uint32 *code = SCM_PROGRAM_CODE (subr);
+  const uint32_t *code = SCM_PROGRAM_CODE (subr);
 
   /* A stub is 6 32-bit words long, or 24 bytes.  The call will be one
      instruction, in either the fourth, third, or second word.  Return a
      byte offset from the entry.  */
   for (i = 1; i < 4; i++)
     if ((code[i] & 0xff) == scm_op_subr_call)
-      return (scm_t_uintptr) (code + i);
+      return (uintptr_t) (code + i);
   abort ();
 }
 

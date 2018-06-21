@@ -154,7 +154,7 @@ scm_inline_double_cell (scm_i_thread *thread, scm_t_bits car, scm_t_bits cbr,
 }
 
 static inline SCM
-scm_inline_words (scm_i_thread *thread, scm_t_bits car, scm_t_uint32 n_words)
+scm_inline_words (scm_i_thread *thread, scm_t_bits car, uint32_t n_words)
 {
   SCM obj = SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, n_words));
   

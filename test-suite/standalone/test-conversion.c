@@ -43,7 +43,7 @@
 
 
 static void
-test_1 (const char *str, scm_t_intmax min, scm_t_intmax max,
+test_1 (const char *str, intmax_t min, intmax_t max,
 	int result)
 {
   int r = scm_is_signed_integer (scm_c_eval_string (str), min, max);
@@ -83,7 +83,7 @@ test_is_signed_integer ()
   test_1 ("(- most-negative-fixnum 1)",
 	  INTMAX_MIN, INTMAX_MAX,
 	  1);
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_1 ("(- (expt 2 63) 1)",
 	      INTMAX_MIN, INTMAX_MAX,
@@ -98,7 +98,7 @@ test_is_signed_integer ()
 	      INTMAX_MIN, INTMAX_MAX,
 	      0);
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_1 ("(- (expt 2 31) 1)",
 	      INTMAX_MIN, INTMAX_MAX,
@@ -129,7 +129,7 @@ test_is_signed_integer ()
 }
 
 static void
-test_2 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
+test_2 (const char *str, uintmax_t min, uintmax_t max,
 	int result)
 {
   int r = scm_is_unsigned_integer (scm_c_eval_string (str), min, max);
@@ -169,7 +169,7 @@ test_is_unsigned_integer ()
   test_2 ("(- most-negative-fixnum 1)",
 	  0, UINTMAX_MAX,
 	  0);
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_2 ("(- (expt 2 64) 1)",
 	      0, UINTMAX_MAX,
@@ -178,7 +178,7 @@ test_is_unsigned_integer ()
 	      0, UINTMAX_MAX,
 	      0);
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_2 ("(- (expt 2 32) 1)",
 	      0, UINTMAX_MAX,
@@ -204,8 +204,8 @@ test_is_unsigned_integer ()
 
 typedef struct {
   SCM val;
-  scm_t_intmax min, max;
-  scm_t_intmax result;
+  intmax_t min, max;
+  intmax_t result;
 } to_signed_data;
 
 static SCM
@@ -241,8 +241,8 @@ to_signed_integer_body (void *data)
 }
 
 static void
-test_3 (const char *str, scm_t_intmax min, scm_t_intmax max,
-	scm_t_intmax result, int range_error, int type_error)
+test_3 (const char *str, intmax_t min, intmax_t max,
+	intmax_t result, int range_error, int type_error)
 {
   to_signed_data data;
   data.val = scm_c_eval_string (str);
@@ -321,7 +321,7 @@ test_to_signed_integer ()
   test_3 ("(- most-negative-fixnum 1)",
 	  INTMAX_MIN, INTMAX_MAX,
 	  SCM_MOST_NEGATIVE_FIXNUM-1, 0, 0);
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_3 ("(- (expt 2 63) 1)",
 	      INTMAX_MIN, INTMAX_MAX,
@@ -339,7 +339,7 @@ test_to_signed_integer ()
 	      INTMAX_MIN, INTMAX_MAX,
 	      0, 1, 0);
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_3 ("(- (expt 2 31) 1)",
 	      INTMAX_MIN, INTMAX_MAX,
@@ -363,8 +363,8 @@ test_to_signed_integer ()
 
 typedef struct {
   SCM val;
-  scm_t_uintmax min, max;
-  scm_t_uintmax result;
+  uintmax_t min, max;
+  uintmax_t result;
 } to_unsigned_data;
 
 static SCM
@@ -376,8 +376,8 @@ to_unsigned_integer_body (void *data)
 }
 
 static void
-test_4 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
-	scm_t_uintmax result, int range_error, int type_error)
+test_4 (const char *str, uintmax_t min, uintmax_t max,
+	uintmax_t result, int range_error, int type_error)
 {
   to_unsigned_data data;
   data.val = scm_c_eval_string (str);
@@ -447,7 +447,7 @@ test_to_unsigned_integer ()
   test_4 ("(+ most-positive-fixnum 1)",
 	  0, UINTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM+1, 0, 0);
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_4 ("(- (expt 2 64) 1)",
 	      0, UINTMAX_MAX,
@@ -456,7 +456,7 @@ test_to_unsigned_integer ()
 	      0, UINTMAX_MAX,
 	      0, 1, 0);
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_4 ("(- (expt 2 32) 1)",
 	      0, UINTMAX_MAX,
@@ -470,7 +470,7 @@ test_to_unsigned_integer ()
 }
 
 static void
-test_5 (scm_t_intmax val, const char *result)
+test_5 (intmax_t val, const char *result)
 {
   SCM res = scm_c_eval_string (result);
   if (scm_is_false (scm_equal_p (scm_from_signed_integer (val), res)))
@@ -485,12 +485,12 @@ static void
 test_from_signed_integer ()
 {
   test_5 (12, "12");
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_5 (INTMAX_MAX, "(- (expt 2 63) 1)");
       test_5 (INTMAX_MIN, "(- (expt 2 63))");
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_5 (INTMAX_MAX, "(- (expt 2 31) 1)");
       test_5 (INTMAX_MIN, "(- (expt 2 31))");
@@ -502,7 +502,7 @@ test_from_signed_integer ()
 }
 
 static void
-test_6 (scm_t_uintmax val, const char *result)
+test_6 (uintmax_t val, const char *result)
 {
   SCM res = scm_c_eval_string (result);
   if (scm_is_false (scm_equal_p (scm_from_unsigned_integer (val), res)))
@@ -518,11 +518,11 @@ static void
 test_from_unsigned_integer ()
 {
   test_6 (12, "12");
-  if (sizeof (scm_t_intmax) == 8)
+  if (sizeof (intmax_t) == 8)
     {
       test_6 (UINTMAX_MAX, "(- (expt 2 64) 1)");
     }
-  else if (sizeof (scm_t_intmax) == 4)
+  else if (sizeof (intmax_t) == 4)
     {
       test_6 (UINTMAX_MAX, "(- (expt 2 32) 1)");
     }
@@ -531,7 +531,7 @@ test_from_unsigned_integer ()
 }
 
 static void
-test_7s (SCM n, scm_t_intmax c_n, const char *result, const char *func)
+test_7s (SCM n, intmax_t c_n, const char *result, const char *func)
 {
   SCM r = scm_c_eval_string (result);
 
@@ -545,7 +545,7 @@ test_7s (SCM n, scm_t_intmax c_n, const char *result, const char *func)
 #define TEST_7S(func,arg,res) test_7s (func(arg), arg, res, #func)
 
 static void
-test_7u (SCM n, scm_t_uintmax c_n, const char *result, const char *func)
+test_7u (SCM n, uintmax_t c_n, const char *result, const char *func)
 {
   SCM r = scm_c_eval_string (result);
 
@@ -560,8 +560,8 @@ test_7u (SCM n, scm_t_uintmax c_n, const char *result, const char *func)
 
 typedef struct {
   SCM val;
-  scm_t_intmax (*func) (SCM);
-  scm_t_intmax result;
+  intmax_t (*func) (SCM);
+  intmax_t result;
 } to_signed_func_data;
 
 static SCM
@@ -573,8 +573,8 @@ to_signed_func_body (void *data)
 }
 
 static void
-test_8s (const char *str, scm_t_intmax (*func) (SCM), const char *func_name,
-	 scm_t_intmax result, int range_error, int type_error)
+test_8s (const char *str, intmax_t (*func) (SCM), const char *func_name,
+	 intmax_t result, int range_error, int type_error)
 {
   to_signed_func_data data;
   data.val = scm_c_eval_string (str);
@@ -618,8 +618,8 @@ test_8s (const char *str, scm_t_intmax (*func) (SCM), const char *func_name,
 
 typedef struct {
   SCM val;
-  scm_t_uintmax (*func) (SCM);
-  scm_t_uintmax result;
+  uintmax_t (*func) (SCM);
+  uintmax_t result;
 } to_unsigned_func_data;
 
 static SCM
@@ -631,8 +631,8 @@ to_unsigned_func_body (void *data)
 }
 
 static void
-test_8u (const char *str, scm_t_uintmax (*func) (SCM), const char *func_name,
-	 scm_t_uintmax result, int range_error, int type_error)
+test_8u (const char *str, uintmax_t (*func) (SCM), const char *func_name,
+	 uintmax_t result, int range_error, int type_error)
 {
   to_unsigned_func_data data;
   data.val = scm_c_eval_string (str);
@@ -679,8 +679,8 @@ test_8u (const char *str, scm_t_uintmax (*func) (SCM), const char *func_name,
    need to give them a common return type.
 */
 
-#define DEFSTST(f) static scm_t_intmax  tst_##f (SCM x) { return f(x); }
-#define DEFUTST(f) static scm_t_uintmax tst_##f (SCM x) { return f(x); }
+#define DEFSTST(f) static intmax_t  tst_##f (SCM x) { return f(x); }
+#define DEFUTST(f) static uintmax_t tst_##f (SCM x) { return f(x); }
 
 DEFSTST (scm_to_schar)
 DEFUTST (scm_to_uchar)

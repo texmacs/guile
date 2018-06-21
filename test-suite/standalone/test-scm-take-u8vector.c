@@ -35,7 +35,7 @@ do_test (void *result)
 {
 #define LEN 123
   SCM u8v;
-  scm_t_uint8 *data;
+  uint8_t *data;
   scm_t_array_handle handle;
 
   data = scm_malloc (LEN);

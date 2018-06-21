@@ -5557,12 +5557,12 @@ iflo2str (SCM flt, char *str, int radix)
   return i;
 }
 
-/* convert a scm_t_intmax to a string (unterminated).  returns the number of
+/* convert a intmax_t to a string (unterminated).  returns the number of
    characters in the result. 
    rad is output base
    p is destination: worst case (base 2) is SCM_INTBUFLEN  */
 size_t
-scm_iint2str (scm_t_intmax num, int rad, char *p)
+scm_iint2str (intmax_t num, int rad, char *p)
 {
   if (num < 0)
     {
@@ -5573,16 +5573,16 @@ scm_iint2str (scm_t_intmax num, int rad, char *p)
     return scm_iuint2str (num, rad, p);
 }
 
-/* convert a scm_t_intmax to a string (unterminated).  returns the number of
+/* convert a intmax_t to a string (unterminated).  returns the number of
    characters in the result. 
    rad is output base
    p is destination: worst case (base 2) is SCM_INTBUFLEN  */
 size_t
-scm_iuint2str (scm_t_uintmax num, int rad, char *p)
+scm_iuint2str (uintmax_t num, int rad, char *p)
 {
   size_t j = 1;
   size_t i;
-  scm_t_uintmax n = num;
+  uintmax_t n = num;
 
   if (rad < 2 || rad > 36)
     scm_out_of_range ("scm_iuint2str", scm_from_int (rad));
@@ -5771,10 +5771,10 @@ enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
 /* Caller is responsible for checking that the return value is in range
    for the given radix, which should be <= 36. */
 static unsigned int
-char_decimal_value (scm_t_uint32 c)
+char_decimal_value (uint32_t c)
 {
-  if (c >= (scm_t_uint32) '0' && c <= (scm_t_uint32) '9')
-    return c - (scm_t_uint32) '0';
+  if (c >= (uint32_t) '0' && c <= (uint32_t) '9')
+    return c - (uint32_t) '0';
   else
     {
       /* uc_decimal_value returns -1 on error. When cast to an unsigned int,
@@ -5787,8 +5787,8 @@ char_decimal_value (scm_t_uint32 c)
       if (d >= 10U)
         {
           c = uc_tolower (c);
-          if (c >= (scm_t_uint32) 'a')
-            d = c - (scm_t_uint32)'a' + 10U;
+          if (c >= (uint32_t) 'a')
+            d = c - (uint32_t)'a' + 10U;
         }
       return d;
     }
@@ -5900,7 +5900,7 @@ mem2decimal_from_point (SCM result, SCM mem,
       while (idx != len)
 	{
 	  scm_t_wchar c = scm_i_string_ref (mem, idx);
-	  if (uc_is_property_decimal_digit ((scm_t_uint32) c))
+	  if (uc_is_property_decimal_digit ((uint32_t) c))
 	    {
 	      if (x == INEXACT)
 		return SCM_BOOL_F;
@@ -5990,7 +5990,7 @@ mem2decimal_from_point (SCM result, SCM mem,
 	  else
 	    sign = 1;
 
-	  if (!uc_is_property_decimal_digit ((scm_t_uint32) c))
+	  if (!uc_is_property_decimal_digit ((uint32_t) c))
 	    return SCM_BOOL_F;
 
 	  idx++;
@@ -5998,7 +5998,7 @@ mem2decimal_from_point (SCM result, SCM mem,
 	  while (idx != len)
 	    {
 	      scm_t_wchar c = scm_i_string_ref (mem, idx);
-	      if (uc_is_property_decimal_digit ((scm_t_uint32) c))
+	      if (uc_is_property_decimal_digit ((uint32_t) c))
 		{
 		  idx++;
 		  if (exponent <= SCM_MAXEXP)
@@ -6105,7 +6105,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
 	return SCM_BOOL_F;
       else if (idx + 1 == len)
 	return SCM_BOOL_F;
-      else if (!uc_is_property_decimal_digit ((scm_t_uint32) scm_i_string_ref (mem, idx+1)))
+      else if (!uc_is_property_decimal_digit ((uint32_t) scm_i_string_ref (mem, idx+1)))
 	return SCM_BOOL_F;
       else
 	result = mem2decimal_from_point (SCM_INUM0, mem,
@@ -8017,7 +8017,7 @@ scm_product (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 #if SCM_I_FIXNUM_BIT < 32 && SCM_HAVE_T_INT64
-          scm_t_int64 kk = xx * (scm_t_int64) yy;
+          int64_t kk = xx * (int64_t) yy;
           if (SCM_FIXABLE (kk))
             return SCM_I_MAKINUM (kk);
 #else
@@ -9608,7 +9608,7 @@ scm_is_exact_integer (SCM val)
 }
 
 int
-scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
+scm_is_signed_integer (SCM val, intmax_t min, intmax_t max)
 {
   if (SCM_I_INUMP (val))
     {
@@ -9631,15 +9631,15 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	}
       else
 	{
-	  scm_t_uintmax abs_n;
-	  scm_t_intmax n;
+	  uintmax_t abs_n;
+	  intmax_t n;
 	  size_t count;
 
 	  if (mpz_sizeinbase (SCM_I_BIG_MPZ (val), 2) 
-	      > CHAR_BIT*sizeof (scm_t_uintmax))
+	      > CHAR_BIT*sizeof (uintmax_t))
 	    return 0;
 	  
-	  mpz_export (&abs_n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
+	  mpz_export (&abs_n, &count, 1, sizeof (uintmax_t), 0, 0,
 		      SCM_I_BIG_MPZ (val));
 
 	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) >= 0)
@@ -9653,7 +9653,7 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	    {
 	      /* Carefully avoid signed integer overflow. */
 	      if (min < 0 && abs_n - 1 <= -(min + 1))
-		n = -1 - (scm_t_intmax)(abs_n - 1);
+		n = -1 - (intmax_t)(abs_n - 1);
 	      else
 		return 0;
 	    }
@@ -9666,12 +9666,12 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 }
 
 int
-scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
+scm_is_unsigned_integer (SCM val, uintmax_t min, uintmax_t max)
 {
   if (SCM_I_INUMP (val))
     {
       scm_t_signed_bits n = SCM_I_INUM (val);
-      return n >= 0 && ((scm_t_uintmax)n) >= min && ((scm_t_uintmax)n) <= max;
+      return n >= 0 && ((uintmax_t)n) >= min && ((uintmax_t)n) <= max;
     }
   else if (SCM_BIGP (val))
     {
@@ -9689,17 +9689,17 @@ scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
 	}
       else
 	{
-	  scm_t_uintmax n;
+	  uintmax_t n;
 	  size_t count;
 
 	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) < 0)
 	    return 0;
 
 	  if (mpz_sizeinbase (SCM_I_BIG_MPZ (val), 2)
-	      > CHAR_BIT*sizeof (scm_t_uintmax))
+	      > CHAR_BIT*sizeof (uintmax_t))
 	    return 0;
 	  
-	  mpz_export (&n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
+	  mpz_export (&n, &count, 1, sizeof (uintmax_t), 0, 0,
 		      SCM_I_BIG_MPZ (val));
 
 	  return n >= min && n <= max;
@@ -9719,23 +9719,23 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
              scm_list_1 (bad_val));
 }
 
-#define TYPE                     scm_t_intmax
+#define TYPE                     intmax_t
 #define TYPE_MIN                 min
 #define TYPE_MAX                 max
 #define SIZEOF_TYPE              0
-#define SCM_TO_TYPE_PROTO(arg)   scm_to_signed_integer (arg, scm_t_intmax min, scm_t_intmax max)
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_signed_integer (arg, intmax_t min, intmax_t max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_signed_integer (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_uintmax
+#define TYPE                     uintmax_t
 #define TYPE_MIN                 min
 #define TYPE_MAX                 max
 #define SIZEOF_TYPE              0
-#define SCM_TO_TYPE_PROTO(arg)   scm_to_unsigned_integer (arg, scm_t_uintmax min, scm_t_uintmax max)
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_unsigned_integer (arg, uintmax_t min, uintmax_t max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_unsigned_integer (arg)
 #include "conv-uinteger.i.c"
 
-#define TYPE                     scm_t_int8
+#define TYPE                     int8_t
 #define TYPE_MIN                 INT8_MIN
 #define TYPE_MAX                 INT8_MAX
 #define SIZEOF_TYPE              1
@@ -9743,7 +9743,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int8 (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_uint8
+#define TYPE                     uint8_t
 #define TYPE_MIN                 0
 #define TYPE_MAX                 UINT8_MAX
 #define SIZEOF_TYPE              1
@@ -9751,7 +9751,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint8 (arg)
 #include "conv-uinteger.i.c"
 
-#define TYPE                     scm_t_int16
+#define TYPE                     int16_t
 #define TYPE_MIN                 INT16_MIN
 #define TYPE_MAX                 INT16_MAX
 #define SIZEOF_TYPE              2
@@ -9759,7 +9759,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int16 (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_uint16
+#define TYPE                     uint16_t
 #define TYPE_MIN                 0
 #define TYPE_MAX                 UINT16_MAX
 #define SIZEOF_TYPE              2
@@ -9767,7 +9767,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint16 (arg)
 #include "conv-uinteger.i.c"
 
-#define TYPE                     scm_t_int32
+#define TYPE                     int32_t
 #define TYPE_MIN                 INT32_MIN
 #define TYPE_MAX                 INT32_MAX
 #define SIZEOF_TYPE              4
@@ -9775,7 +9775,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int32 (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_uint32
+#define TYPE                     uint32_t
 #define TYPE_MIN                 0
 #define TYPE_MAX                 UINT32_MAX
 #define SIZEOF_TYPE              4
@@ -9784,14 +9784,14 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #include "conv-uinteger.i.c"
 
 #define TYPE                     scm_t_wchar
-#define TYPE_MIN                 (scm_t_int32)-1
-#define TYPE_MAX                 (scm_t_int32)0x10ffff
+#define TYPE_MIN                 (int32_t)-1
+#define TYPE_MAX                 (int32_t)0x10ffff
 #define SIZEOF_TYPE              4
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_wchar (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_wchar (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_int64
+#define TYPE                     int64_t
 #define TYPE_MIN                 INT64_MIN
 #define TYPE_MAX                 INT64_MAX
 #define SIZEOF_TYPE              8
@@ -9799,7 +9799,7 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_int64 (arg)
 #include "conv-integer.i.c"
 
-#define TYPE                     scm_t_uint64
+#define TYPE                     uint64_t
 #define TYPE_MIN                 0
 #define TYPE_MAX                 UINT64_MAX
 #define SIZEOF_TYPE              8

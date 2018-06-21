@@ -119,7 +119,7 @@
 #define DEFINE_SRFI_4_C_FUNCS(TAG, tag, ctype, width)                   \
   SCM scm_take_##tag##vector (ctype *data, size_t n)                    \
   {                                                                     \
-    return scm_c_take_typed_bytevector ((scm_t_int8*)data, n, ETYPE (TAG), \
+    return scm_c_take_typed_bytevector ((int8_t*)data, n, ETYPE (TAG), \
                                         SCM_BOOL_F);                    \
   }                                                                     \
   const ctype* scm_array_handle_##tag##_elements (scm_t_array_handle *h) \
@@ -163,28 +163,28 @@
 #define MOD "srfi srfi-4"
 
 DEFINE_SRFI_4_PROXIES (u8);
-DEFINE_SRFI_4_C_FUNCS (U8, u8, scm_t_uint8, 1);
+DEFINE_SRFI_4_C_FUNCS (U8, u8, uint8_t, 1);
 
 DEFINE_SRFI_4_PROXIES (s8);
-DEFINE_SRFI_4_C_FUNCS (S8, s8, scm_t_int8, 1);
+DEFINE_SRFI_4_C_FUNCS (S8, s8, int8_t, 1);
 
 DEFINE_SRFI_4_PROXIES (u16);
-DEFINE_SRFI_4_C_FUNCS (U16, u16, scm_t_uint16, 1);
+DEFINE_SRFI_4_C_FUNCS (U16, u16, uint16_t, 1);
 
 DEFINE_SRFI_4_PROXIES (s16);
-DEFINE_SRFI_4_C_FUNCS (S16, s16, scm_t_int16, 1);
+DEFINE_SRFI_4_C_FUNCS (S16, s16, int16_t, 1);
 
 DEFINE_SRFI_4_PROXIES (u32);
-DEFINE_SRFI_4_C_FUNCS (U32, u32, scm_t_uint32, 1);
+DEFINE_SRFI_4_C_FUNCS (U32, u32, uint32_t, 1);
 
 DEFINE_SRFI_4_PROXIES (s32);
-DEFINE_SRFI_4_C_FUNCS (S32, s32, scm_t_int32, 1);
+DEFINE_SRFI_4_C_FUNCS (S32, s32, int32_t, 1);
 
 DEFINE_SRFI_4_PROXIES (u64);
-DEFINE_SRFI_4_C_FUNCS (U64, u64, scm_t_uint64, 1);
+DEFINE_SRFI_4_C_FUNCS (U64, u64, uint64_t, 1);
 
 DEFINE_SRFI_4_PROXIES (s64);
-DEFINE_SRFI_4_C_FUNCS (S64, s64, scm_t_int64, 1);
+DEFINE_SRFI_4_C_FUNCS (S64, s64, int64_t, 1);
 
 DEFINE_SRFI_4_PROXIES (f32);
 DEFINE_SRFI_4_C_FUNCS (F32, f32, float, 1);

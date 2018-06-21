@@ -118,11 +118,11 @@ typedef long scm_t_inum;
 
 
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for
- * the printed or scm_string representation of an scm_t_intmax in
+ * the printed or scm_string representation of an intmax_t in
  * radix 2.  The buffer passed to scm_iint2str and scm_iuint2str must
  * be of this size, for example.
  */
-#define SCM_INTBUFLEN (5 + SCM_CHAR_BIT*sizeof(scm_t_intmax))
+#define SCM_INTBUFLEN (5 + SCM_CHAR_BIT*sizeof(intmax_t))
 
 
 
@@ -245,8 +245,8 @@ SCM_INTERNAL SCM scm_i_logand (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_logior (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_logxor (SCM x, SCM y, SCM rest);
 
-SCM_API size_t scm_iint2str (scm_t_intmax num, int rad, char *p);
-SCM_API size_t scm_iuint2str (scm_t_uintmax num, int rad, char *p);
+SCM_API size_t scm_iint2str (intmax_t num, int rad, char *p);
+SCM_API size_t scm_iuint2str (uintmax_t num, int rad, char *p);
 SCM_API SCM scm_number_to_string (SCM x, SCM radix);
 SCM_API int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
@@ -355,46 +355,46 @@ SCM_INTERNAL void scm_i_print_complex (double real, double imag, SCM port);
 SCM_API int scm_is_integer (SCM val);
 SCM_API int scm_is_exact_integer (SCM val);
 SCM_API int scm_is_signed_integer (SCM val,
-				   scm_t_intmax min, scm_t_intmax max);
+				   intmax_t min, intmax_t max);
 SCM_API int scm_is_unsigned_integer (SCM val,
-				     scm_t_uintmax min, scm_t_uintmax max);
+				     uintmax_t min, uintmax_t max);
 
-SCM_API SCM scm_from_signed_integer (scm_t_intmax val);
-SCM_API SCM scm_from_unsigned_integer (scm_t_uintmax val);
+SCM_API SCM scm_from_signed_integer (intmax_t val);
+SCM_API SCM scm_from_unsigned_integer (uintmax_t val);
 
-SCM_API scm_t_intmax scm_to_signed_integer (SCM val,
-					    scm_t_intmax min,
-					    scm_t_intmax max);
-SCM_API scm_t_uintmax scm_to_unsigned_integer (SCM val,
-					       scm_t_uintmax min,
-					       scm_t_uintmax max);
+SCM_API intmax_t scm_to_signed_integer (SCM val,
+					    intmax_t min,
+					    intmax_t max);
+SCM_API uintmax_t scm_to_unsigned_integer (SCM val,
+					       uintmax_t min,
+					       uintmax_t max);
 
-SCM_API scm_t_int8   scm_to_int8     (SCM x);
-SCM_API SCM          scm_from_int8   (scm_t_int8 x);
+SCM_API int8_t   scm_to_int8     (SCM x);
+SCM_API SCM          scm_from_int8   (int8_t x);
 
-SCM_API scm_t_uint8  scm_to_uint8    (SCM x);
-SCM_API SCM          scm_from_uint8  (scm_t_uint8 x);
+SCM_API uint8_t      scm_to_uint8    (SCM x);
+SCM_API SCM          scm_from_uint8  (uint8_t x);
 
-SCM_API scm_t_int16  scm_to_int16    (SCM x);
-SCM_API SCM          scm_from_int16  (scm_t_int16 x);
+SCM_API int16_t      scm_to_int16    (SCM x);
+SCM_API SCM          scm_from_int16  (int16_t x);
 
-SCM_API scm_t_uint16 scm_to_uint16   (SCM x);
-SCM_API SCM          scm_from_uint16 (scm_t_uint16 x);
+SCM_API uint16_t     scm_to_uint16   (SCM x);
+SCM_API SCM          scm_from_uint16 (uint16_t x);
 
-SCM_API scm_t_int32  scm_to_int32    (SCM x);
-SCM_API SCM          scm_from_int32  (scm_t_int32 x);
+SCM_API int32_t      scm_to_int32    (SCM x);
+SCM_API SCM          scm_from_int32  (int32_t x);
 
-SCM_API scm_t_uint32 scm_to_uint32   (SCM x);
-SCM_API SCM          scm_from_uint32 (scm_t_uint32 x);
+SCM_API uint32_t     scm_to_uint32   (SCM x);
+SCM_API SCM          scm_from_uint32 (uint32_t x);
 
 SCM_API scm_t_wchar  scm_to_wchar    (SCM x);
 SCM_API SCM          scm_from_wchar  (scm_t_wchar x);
 
-SCM_API scm_t_int64  scm_to_int64    (SCM x);
-SCM_API SCM          scm_from_int64  (scm_t_int64 x);
+SCM_API int64_t      scm_to_int64    (SCM x);
+SCM_API SCM          scm_from_int64  (int64_t x);
 
-SCM_API scm_t_uint64 scm_to_uint64   (SCM x);
-SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
+SCM_API uint64_t     scm_to_uint64   (SCM x);
+SCM_API SCM          scm_from_uint64 (uint64_t x);
 
 SCM_API void scm_to_mpz (SCM x, mpz_t rop);
 SCM_API SCM  scm_from_mpz (mpz_t rop);
@@ -494,7 +494,7 @@ SCM_API SCM  scm_from_mpz (mpz_t rop);
 #define scm_to_uintmax   scm_to_uint64
 #define scm_from_uintmax scm_from_uint64
 #else
-#error sizeof(scm_t_intmax) is not 4 or 8.
+#error sizeof(intmax_t) is not 4 or 8.
 #endif
 #endif
 

@@ -26,19 +26,19 @@
 #include <libguile/vm.h>
 
 typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
-typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, scm_t_uint8);
-typedef void (*scm_t_scm_u64_u64_intrinsic) (SCM, scm_t_uint64, scm_t_uint64);
+typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, uint8_t);
+typedef void (*scm_t_scm_u64_u64_intrinsic) (SCM, uint64_t, uint64_t);
 typedef SCM (*scm_t_scm_from_scm_intrinsic) (SCM);
 typedef double (*scm_t_f64_from_scm_intrinsic) (SCM);
-typedef scm_t_uint64 (*scm_t_u64_from_scm_intrinsic) (SCM);
-typedef scm_t_int64 (*scm_t_s64_from_scm_intrinsic) (SCM);
-typedef SCM (*scm_t_scm_from_u64_intrinsic) (scm_t_uint64);
-typedef SCM (*scm_t_scm_from_s64_intrinsic) (scm_t_int64);
+typedef uint64_t (*scm_t_u64_from_scm_intrinsic) (SCM);
+typedef int64_t (*scm_t_s64_from_scm_intrinsic) (SCM);
+typedef SCM (*scm_t_scm_from_u64_intrinsic) (uint64_t);
+typedef SCM (*scm_t_scm_from_s64_intrinsic) (int64_t);
 typedef void (*scm_t_thread_intrinsic) (scm_i_thread*);
 typedef void (*scm_t_thread_scm_intrinsic) (scm_i_thread*, SCM);
 typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
 typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
-typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, scm_t_uint64);
+typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, uint64_t);
 typedef int (*scm_t_bool_from_scm_scm_intrinsic) (SCM, SCM);
 typedef enum scm_compare (*scm_t_compare_from_scm_scm_intrinsic) (SCM, SCM);
 typedef void (*scm_t_vp_sp_intrinsic) (struct scm_vm*, union scm_vm_stack_element*);

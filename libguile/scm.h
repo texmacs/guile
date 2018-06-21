@@ -138,8 +138,8 @@
 
 /* For dealing with the bit level representation of scheme objects we
    define scm_t_bits.  */
-typedef scm_t_intptr  scm_t_signed_bits;
-typedef scm_t_uintptr scm_t_bits;
+typedef intptr_t  scm_t_signed_bits;
+typedef uintptr_t scm_t_bits;
 
 #define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
 #define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
@@ -823,7 +823,7 @@ typedef void *scm_t_subr;
 typedef struct scm_dynamic_state scm_t_dynamic_state;
 typedef struct scm_print_state scm_print_state;
 typedef struct scm_dynstack scm_t_dynstack;
-typedef scm_t_int32 scm_t_wchar;
+typedef int32_t scm_t_wchar;
 
 
 

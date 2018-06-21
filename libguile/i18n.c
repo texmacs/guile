@@ -763,11 +763,11 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
 
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, 
-                           result = u32_strcoll ((const scm_t_uint32 *) c_s1, 
-                                                 (const scm_t_uint32 *) c_s2));
+                           result = u32_strcoll ((const uint32_t *) c_s1, 
+                                                 (const uint32_t *) c_s2));
   else
-    result = u32_strcoll ((const scm_t_uint32 *) c_s1,
-			  (const scm_t_uint32 *) c_s2);
+    result = u32_strcoll ((const uint32_t *) c_s1,
+			  (const uint32_t *) c_s2);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
@@ -787,8 +787,8 @@ locale_language ()
 }
 
 static inline int
-u32_locale_casecoll (const char *func_name, const scm_t_uint32 *c_s1,
-                     const scm_t_uint32 *c_s2,
+u32_locale_casecoll (const char *func_name, const uint32_t *c_s1,
+                     const uint32_t *c_s2,
 		     int *result)
 {
   /* Note: Since this is called from `RUN_IN_LOCALE_SECTION', it must note
@@ -820,13 +820,13 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
     RUN_IN_LOCALE_SECTION
       (c_locale,
        ret = u32_locale_casecoll (func_name,
-				  (const scm_t_uint32 *) c_s1,
-				  (const scm_t_uint32 *) c_s2,
+				  (const uint32_t *) c_s1,
+				  (const uint32_t *) c_s2,
 				  &result));
   else
     ret = u32_locale_casecoll (func_name,
-			       (const scm_t_uint32 *) c_s1,
-			       (const scm_t_uint32 *) c_s2,
+			       (const uint32_t *) c_s1,
+			       (const uint32_t *) c_s2,
 			       &result);
 
   if (SCM_UNLIKELY (ret != 0))
@@ -1044,16 +1044,16 @@ SCM_DEFINE (scm_char_locale_ci_eq, "char-locale-ci=?", 2, 1, 0,
 /* Locale-dependent alphabetic character mapping.  */
 
 static inline int
-u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
-                   scm_t_uint32 **p_c_s2, size_t * p_len2,
-                   scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t,
+u32_locale_tocase (const uint32_t *c_s1, size_t len,
+                   uint32_t **p_c_s2, size_t * p_len2,
+                   uint32_t *(*func) (const uint32_t *, size_t,
                                           const char *, uninorm_t,
-                                          scm_t_uint32 *, size_t *))
+                                          uint32_t *, size_t *))
 {
   /* Note: Since this is called from `RUN_IN_LOCALE_SECTION', it must not
      make any non-local exit.  */
 
-  scm_t_uint32 *ret;
+  uint32_t *ret;
   const char *loc = locale_language ();
 
   /* The first NULL here indicates that no NFC or NFKC normalization
@@ -1063,7 +1063,7 @@ u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
 
   if (ret == NULL)
     {
-      *p_c_s2 = (scm_t_uint32 *) NULL;
+      *p_c_s2 = (uint32_t *) NULL;
       *p_len2 = 0;
       return errno;
     }
@@ -1075,15 +1075,15 @@ u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
 
 static SCM
 chr_to_case (SCM chr, scm_t_locale c_locale, 
-	     scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t, const char *,
-				    uninorm_t, scm_t_uint32 *, size_t *),
+	     uint32_t *(*func) (const uint32_t *, size_t, const char *,
+				    uninorm_t, uint32_t *, size_t *),
 	     const char *func_name,
 	     int *err)
 #define FUNC_NAME func_name
 {
   int ret;
-  scm_t_uint32 c;
-  scm_t_uint32 *convbuf;
+  uint32_t c;
+  uint32_t *convbuf;
   size_t convlen;
   SCM convchar;
 
@@ -1186,14 +1186,14 @@ SCM_DEFINE (scm_char_locale_titlecase, "char-locale-titlecase", 1, 1, 0,
 
 static SCM
 str_to_case (SCM str, scm_t_locale c_locale,
-	     scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t, const char *,
-				    uninorm_t, scm_t_uint32 *, size_t *),
+	     uint32_t *(*func) (const uint32_t *, size_t, const char *,
+				    uninorm_t, uint32_t *, size_t *),
 	     const char *func_name,
 	     int *err)
 #define FUNC_NAME func_name
 {
   scm_t_wchar *c_str, *c_buf;
-  scm_t_uint32 *c_convstr;
+  uint32_t *c_convstr;
   size_t len, convlen;
   int ret;
   SCM convstr;
@@ -1205,12 +1205,12 @@ str_to_case (SCM str, scm_t_locale c_locale,
 
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
-                           u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+                           u32_locale_tocase ((uint32_t *) c_str, len,
                                               &c_convstr,
                                               &convlen, func));
   else
     ret =
-      u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+      u32_locale_tocase ((uint32_t *) c_str, len,
                          &c_convstr, &convlen, func);
 
   scm_remember_upto_here (str);

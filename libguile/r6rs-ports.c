@@ -399,7 +399,7 @@ SCM_DEFINE (scm_lookahead_u8, "lookahead-u8", 1, 0, 0,
   if (u8 == EOF)
     result = SCM_EOF_VAL;
   else
-    result = SCM_I_MAKINUM ((scm_t_uint8) u8);
+    result = SCM_I_MAKINUM ((uint8_t) u8);
 
   return result;
 }
@@ -501,7 +501,7 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
     }
 
   bv = scm_c_make_bytevector (avail);
-  scm_port_buffer_take (buf, (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv),
+  scm_port_buffer_take (buf, (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv),
                         avail, cur, avail);
 
   return bv;
@@ -571,7 +571,7 @@ SCM_DEFINE (scm_put_u8, "put-u8", 2, 0, 0,
 	    "Write @var{octet} to binary port @var{port}.")
 #define FUNC_NAME s_scm_put_u8
 {
-  scm_t_uint8 c_octet;
+  uint8_t c_octet;
 
   SCM_VALIDATE_BINARY_OUTPUT_PORT (1, port);
   c_octet = scm_to_uint8 (octet);
