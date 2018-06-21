@@ -136,6 +136,8 @@
 #  include <config.h>
 #endif
 
+#include <stdint.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -155,10 +157,8 @@ main (int argc, char *argv[])
   /*** various important headers ***/
   pf ("\n");
   pf ("/* Important headers */\n");
-  if (SCM_I_GSC_NEEDS_STDINT_H)
-    pf ("#include <stdint.h>\n");
-  if (SCM_I_GSC_NEEDS_INTTYPES_H)
-    pf ("#include <inttypes.h>\n");
+  pf ("#include <stdint.h>\n");
+  pf ("#include <stddef.h>\n");
 
 #ifdef HAVE_LIMITS_H
   pf ("#include <limits.h>\n");
@@ -239,65 +239,35 @@ main (int argc, char *argv[])
   pf ("\n");
   pf ("/* Standard types. */\n");
 
-  pf ("/* These are always defined */\n");  
-  pf ("#define SCM_SIZEOF_CHAR %d\n", SIZEOF_CHAR);
-  pf ("#define SCM_SIZEOF_UNSIGNED_CHAR %d\n", SIZEOF_UNSIGNED_CHAR);
-  pf ("#define SCM_SIZEOF_SHORT %d\n", SIZEOF_SHORT);
-  pf ("#define SCM_SIZEOF_UNSIGNED_SHORT %d\n", SIZEOF_UNSIGNED_SHORT);
-  pf ("#define SCM_SIZEOF_LONG %d\n", SIZEOF_LONG);
-  pf ("#define SCM_SIZEOF_UNSIGNED_LONG %d\n", SIZEOF_UNSIGNED_LONG);
-  pf ("#define SCM_SIZEOF_INT %d\n", SIZEOF_INT);
-  pf ("#define SCM_SIZEOF_UNSIGNED_INT %d\n", SIZEOF_UNSIGNED_INT);
-  pf ("#define SCM_SIZEOF_SIZE_T %d\n", SIZEOF_SIZE_T);
+  pf ("#define SCM_SIZEOF_CHAR %zu\n", sizeof (char));
+  pf ("#define SCM_SIZEOF_UNSIGNED_CHAR %zu\n", sizeof (unsigned char));
+  pf ("#define SCM_SIZEOF_SHORT %zu\n", sizeof (short));
+  pf ("#define SCM_SIZEOF_UNSIGNED_SHORT %zu\n", sizeof (unsigned short));
+  pf ("#define SCM_SIZEOF_LONG %zu\n", sizeof (long));
+  pf ("#define SCM_SIZEOF_UNSIGNED_LONG %zu\n", sizeof (unsigned long));
+  pf ("#define SCM_SIZEOF_INT %zu\n", sizeof (int));
+  pf ("#define SCM_SIZEOF_UNSIGNED_INT %zu\n", sizeof (unsigned int));
+  pf ("#define SCM_SIZEOF_SIZE_T %zu\n", sizeof (size_t));
+  pf ("#define SCM_SIZEOF_LONG_LONG %zu\n", sizeof (long long));
+  pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %zu\n", sizeof (unsigned long long));
+  pf ("#define SCM_SIZEOF_INTMAX %zu\n", sizeof (intmax_t));
+  pf ("#define SCM_SIZEOF_SCM_T_PTRDIFF %zu\n", sizeof (ptrdiff_t));
+  pf ("#define SCM_SIZEOF_INTPTR_T %zu\n", sizeof (intptr_t));
+  pf ("#define SCM_SIZEOF_UINTPTR_T %zu\n", sizeof (uintptr_t));
 
-  pf ("\n");
-  pf ("/* Size of (unsigned) long long or 0 if not available (scm_t_*64 may\n"
-      "   be more likely to be what you want */\n");
-  pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
-  pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
-
-  pf ("\n");
-  pf ("/* These are always defined. */\n");
-  pf ("typedef %s scm_t_int8;\n", SCM_I_GSC_T_INT8);
-  pf ("typedef %s scm_t_uint8;\n", SCM_I_GSC_T_UINT8);
-  pf ("typedef %s scm_t_int16;\n", SCM_I_GSC_T_INT16);
-  pf ("typedef %s scm_t_uint16;\n", SCM_I_GSC_T_UINT16);
-  pf ("typedef %s scm_t_int32;\n", SCM_I_GSC_T_INT32);
-  pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
-  pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
-  pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
-  pf ("typedef %s scm_t_intptr;\n", SCM_I_GSC_T_INTPTR);
-  pf ("typedef %s scm_t_uintptr;\n", SCM_I_GSC_T_UINTPTR);
-
-  if (0 == strcmp ("intmax_t", SCM_I_GSC_T_INTMAX))
-    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_INTMAX_T);
-  else if (0 == strcmp ("long long", SCM_I_GSC_T_INTMAX))
-    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_LONG_LONG);
-  else if (0 == strcmp ("__int64", SCM_I_GSC_T_INTMAX))
-    pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF___INT64);
-  else
-    return 1;
-
-  pf ("\n");
-  pf ("#define SCM_HAVE_T_INT64 1 /* 0 or 1 */\n");
-  pf ("typedef %s scm_t_int64;\n", SCM_I_GSC_T_INT64);
-  pf ("#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */\n");
-  pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
-
-  pf ("\n");
-  pf ("/* scm_t_ptrdiff and size, always defined -- defined to long if\n"
-      "   platform doesn't have ptrdiff_t. */\n");
-  pf ("typedef %s scm_t_ptrdiff;\n", SCM_I_GSC_T_PTRDIFF);
-  if (0 == strcmp ("long", SCM_I_GSC_T_PTRDIFF))
-    pf ("#define SCM_SIZEOF_SCM_T_PTRDIFF %d\n", SIZEOF_LONG);
-  else
-    pf ("#define SCM_SIZEOF_SCM_T_PTRDIFF %d\n", SIZEOF_PTRDIFF_T);
-
-  pf ("\n");
-  pf ("/* Size of intptr_t or 0 if not available */\n");
-  pf ("#define SCM_SIZEOF_INTPTR_T %d\n", SIZEOF_INTPTR_T);
-  pf ("/* Size of uintptr_t or 0 if not available */\n");
-  pf ("#define SCM_SIZEOF_UINTPTR_T %d\n", SIZEOF_UINTPTR_T);
+  pf("typedef int8_t scm_t_int8;\n");
+  pf("typedef uint8_t scm_t_uint8;\n");
+  pf("typedef int16_t scm_t_int16;\n");
+  pf("typedef uint16_t scm_t_uint16;\n");
+  pf("typedef int32_t scm_t_int32;\n");
+  pf("typedef uint32_t scm_t_uint32;\n");
+  pf("typedef intmax_t scm_t_intmax;\n");
+  pf("typedef uintmax_t scm_t_uintmax;\n");
+  pf("typedef intptr_t scm_t_intptr;\n");
+  pf("typedef uintptr_t scm_t_uintptr;\n");
+  pf("typedef int64_t scm_t_int64;\n");
+  pf("typedef uint64_t scm_t_uint64;\n");
+  pf("typedef ptrdiff_t scm_t_ptrdiff;\n");
 
   pf ("\n");
   pf ("/* same as POSIX \"struct timespec\" -- always defined */\n");
@@ -403,9 +373,6 @@ main (int argc, char *argv[])
   pf ("# define __READLINE_IMPORT__ 1\n");
   pf ("# define QT_IMPORT 1\n");
 #endif
-
-  pf ("\n");
-  pf ("#define SCM_HAVE_ARRAYS 1 /* always true now */\n");
 
   pf ("\n");
   pf ("/* Constants from uniconv.h.  */\n");

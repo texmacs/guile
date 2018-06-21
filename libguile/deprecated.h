@@ -84,6 +84,11 @@
 #define SCM_T_INTPTR_MIN  INTPTR_MIN
 #define SCM_T_INTPTR_MAX  INTPTR_MAX
 
+#define SCM_HAVE_T_INT64 1 /* 0 or 1 */
+#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */
+
+#define SCM_HAVE_ARRAYS 1 /* always true now */
+
 void scm_i_init_deprecated (void);
 
 #endif
