@@ -114,9 +114,8 @@ thread_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
         }
     }
 
-  if (t->vm.stack_bottom)
-    mark_stack_ptr = scm_i_vm_mark_stack (&t->vm, mark_stack_ptr,
-                                          mark_stack_limit);
+  mark_stack_ptr = scm_i_vm_mark_stack (&t->vm, mark_stack_ptr,
+                                        mark_stack_limit);
 
   return mark_stack_ptr;
 }
@@ -391,6 +390,7 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
   t.continuation_root = SCM_EOL;
   t.continuation_base = t.base;
   scm_i_pthread_cond_init (&t.sleep_cond, NULL);
+  scm_i_vm_prepare_stack (&t.vm);
 
   if (pipe2 (t.sleep_pipe, O_CLOEXEC) != 0)
     /* FIXME: Error conditions during the initialization phase are handled
@@ -490,6 +490,10 @@ on_thread_exit (void *v)
 	break;
       }
   thread_count--;
+
+  /* Prevent any concurrent or future marker from visiting this
+     thread.  */
+  t->handle = SCM_PACK (0);
 
   /* If there's only one other thread, it could be the signal delivery
      thread, so we need to notify it to shut down by closing its read pipe.

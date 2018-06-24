@@ -431,7 +431,7 @@ eval (SCM x, SCM env)
 
     case SCM_M_CALL_WITH_PROMPT:
       {
-        struct scm_vm *vp;
+        scm_i_thread *t;
         SCM k, handler, res;
         jmp_buf registers;
         const void *prev_cookie;
@@ -439,32 +439,32 @@ eval (SCM x, SCM env)
 
         k = EVAL1 (CAR (mx), env);
         handler = EVAL1 (CDDR (mx), env);
-        vp = scm_the_vm ();
+        t = SCM_I_CURRENT_THREAD;
 
-        saved_stack_depth = vp->stack_top - vp->sp;
+        saved_stack_depth = t->vm.stack_top - t->vm.sp;
 
         /* Push the prompt onto the dynamic stack. */
-        scm_dynstack_push_prompt (&SCM_I_CURRENT_THREAD->dynstack,
+        scm_dynstack_push_prompt (&t->dynstack,
                                   SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY,
                                   k,
-                                  vp->stack_top - vp->fp,
+                                  t->vm.stack_top - t->vm.fp,
                                   saved_stack_depth,
-                                  vp->ip,
+                                  t->vm.ip,
                                   &registers);
 
-        prev_cookie = vp->resumable_prompt_cookie;
+        prev_cookie = t->vm.resumable_prompt_cookie;
         if (setjmp (registers))
           {
             /* The prompt exited nonlocally. */
-            vp->resumable_prompt_cookie = prev_cookie;
+            t->vm.resumable_prompt_cookie = prev_cookie;
             scm_gc_after_nonlocal_exit ();
             proc = handler;
-            args = scm_i_prompt_pop_abort_args_x (vp, saved_stack_depth);
+            args = scm_i_prompt_pop_abort_args_x (&t->vm, saved_stack_depth);
             goto apply_proc;
           }
         
         res = scm_call_0 (eval (CADR (mx), env));
-        scm_dynstack_pop (&SCM_I_CURRENT_THREAD->dynstack);
+        scm_dynstack_pop (&t->dynstack);
         return res;
       }
 

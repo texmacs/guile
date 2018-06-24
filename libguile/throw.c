@@ -80,11 +80,11 @@ static SCM exception_handler_fluid;
 static SCM
 catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
 {
-  struct scm_vm *vp;
   SCM eh, prompt_tag;
   SCM res;
-  scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
-  scm_t_dynamic_state *dynamic_state = SCM_I_CURRENT_THREAD->dynamic_state;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_t_dynstack *dynstack = &t->dynstack;
+  scm_t_dynamic_state *dynamic_state = t->dynamic_state;
   jmp_buf registers;
   const void *prev_cookie;
   ptrdiff_t saved_stack_depth;
@@ -109,17 +109,16 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   scm_c_vector_set_x (eh, 1, prompt_tag);
   scm_c_vector_set_x (eh, 2, pre_unwind_handler);
 
-  vp = scm_the_vm ();
-  prev_cookie = vp->resumable_prompt_cookie;
-  saved_stack_depth = vp->stack_top - vp->sp;
+  prev_cookie = t->vm.resumable_prompt_cookie;
+  saved_stack_depth = t->vm.stack_top - t->vm.sp;
 
   /* Push the prompt and exception handler onto the dynamic stack. */
   scm_dynstack_push_prompt (dynstack,
                             SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY,
                             prompt_tag,
-                            vp->stack_top - vp->fp,
+                            t->vm.stack_top - t->vm.fp,
                             saved_stack_depth,
-                            vp->ip,
+                            t->vm.ip,
                             &registers);
   scm_dynstack_push_fluid (dynstack, exception_handler_fluid, eh,
                            dynamic_state);
@@ -129,12 +128,12 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
       /* A non-local return.  */
       SCM args;
 
-      vp->resumable_prompt_cookie = prev_cookie;
+      t->vm.resumable_prompt_cookie = prev_cookie;
       scm_gc_after_nonlocal_exit ();
 
       /* FIXME: We know where the args will be on the stack; we could
          avoid consing them.  */
-      args = scm_i_prompt_pop_abort_args_x (vp, saved_stack_depth);
+      args = scm_i_prompt_pop_abort_args_x (&t->vm, saved_stack_depth);
 
       /* Cdr past the continuation. */
       args = scm_cdr (args);
@@ -196,7 +195,7 @@ abort_to_prompt (SCM prompt_tag, SCM tag, SCM args)
   for (i = 1; i < n; i++, args = scm_cdr (args))
     argv[i] = scm_car (args);
 
-  scm_c_abort (scm_the_vm (), prompt_tag, n, argv, NULL);
+  scm_c_abort (&SCM_I_CURRENT_THREAD->vm, prompt_tag, n, argv, NULL);
 
   /* Oh, what, you're still here? The abort must have been reinstated. Actually,
      that's quite impossible, given that we're already in C-land here, so...

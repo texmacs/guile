@@ -238,7 +238,6 @@ vm_return_to_continuation (struct scm_vm *vp, SCM cont, size_t n,
   vp->ip = cp->ra;
 }
 
-static struct scm_vm * thread_vm (scm_i_thread *t);
 SCM
 scm_i_capture_current_stack (void)
 {
@@ -246,7 +245,7 @@ scm_i_capture_current_stack (void)
   struct scm_vm *vp;
 
   thread = SCM_I_CURRENT_THREAD;
-  vp = thread_vm (thread);
+  vp = &thread->vm;
 
   return scm_i_vm_capture_stack (vp->stack_top, vp->fp, vp->sp, vp->ip,
                                  scm_dynstack_capture_all (&thread->dynstack),
@@ -826,10 +825,20 @@ expand_stack (union scm_vm_stack_element *old_bottom, size_t old_size,
 }
 #undef FUNC_NAME
 
-static void
-init_vm (struct scm_vm *vp)
+void
+scm_i_vm_prepare_stack (struct scm_vm *vp)
 {
   int i;
+
+  /* Not racey, as this will be run the first time a thread enters
+     Guile.  */
+  if (page_size == 0)
+    {
+      page_size = getpagesize ();
+      /* page_size should be a power of two.  */
+      if (page_size & (page_size - 1))
+        abort ();
+    }
 
   vp->stack_size = page_size / sizeof (union scm_vm_stack_element);
   vp->stack_bottom = allocate_stack (vp->stack_size);
@@ -992,8 +1001,9 @@ void
 scm_i_vm_free_stack (struct scm_vm *vp)
 {
   free_stack (vp->stack_bottom, vp->stack_size);
-  vp->stack_bottom = vp->stack_top = vp->stack_limit = NULL;
-  vp->stack_size = 0;
+  /* Not strictly necessary, but good to avoid confusion when debugging
+     thread-related GC issues.  */
+  memset (vp, 0, sizeof (*vp));
 }
 
 struct vm_expand_stack_data
@@ -1148,21 +1158,6 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
     }
 }
 
-static struct scm_vm *
-thread_vm (scm_i_thread *t)
-{
-  if (SCM_UNLIKELY (!t->vm.stack_bottom))
-    init_vm (&t->vm);
-
-  return &t->vm;
-}
-
-struct scm_vm *
-scm_the_vm (void)
-{
-  return thread_vm (SCM_I_CURRENT_THREAD);
-}
-
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1178,7 +1173,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   size_t i;
 
   thread = SCM_I_CURRENT_THREAD;
-  vp = thread_vm (thread);
+  vp = &thread->vm;
 
   SCM_CHECK_STACK;
 
@@ -1236,11 +1231,10 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 
 #define VM_DEFINE_HOOK(n)				\
 {							\
-  struct scm_vm *vp;					\
-  vp = scm_the_vm ();                                   \
-  if (scm_is_false (vp->hooks[n]))			\
-    vp->hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
-  return vp->hooks[n];					\
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;		\
+  if (scm_is_false (t->vm.hooks[n]))			\
+    t->vm.hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
+  return t->vm.hooks[n];				\
 }
 
 SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 0, 0, 0,
@@ -1293,7 +1287,7 @@ SCM_DEFINE (scm_vm_trace_level, "vm-trace-level", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_trace_level
 {
-  return scm_from_int (scm_the_vm ()->trace_level);
+  return scm_from_int (SCM_I_CURRENT_THREAD->vm.trace_level);
 }
 #undef FUNC_NAME
 
@@ -1302,7 +1296,7 @@ SCM_DEFINE (scm_set_vm_trace_level_x, "set-vm-trace-level!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_set_vm_trace_level_x
 {
-  scm_the_vm ()->trace_level = scm_to_int (level);
+  SCM_I_CURRENT_THREAD->vm.trace_level = scm_to_int (level);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1344,7 +1338,7 @@ SCM_DEFINE (scm_vm_engine, "vm-engine", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_engine
 {
-  return vm_engine_to_symbol (scm_the_vm ()->engine, FUNC_NAME);
+  return vm_engine_to_symbol (SCM_I_CURRENT_THREAD->vm.engine, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1356,7 +1350,7 @@ scm_c_set_vm_engine_x (int engine)
     SCM_MISC_ERROR ("Unknown VM engine: ~a",
                     scm_list_1 (scm_from_int (engine)));
     
-  scm_the_vm ()->engine = engine;
+  SCM_I_CURRENT_THREAD->vm.engine = engine;
 }
 #undef FUNC_NAME
 
@@ -1416,29 +1410,28 @@ SCM_DEFINE (scm_call_with_stack_overflow_handler,
             "@code{call-with-stack-overflow-handler} was called.")
 #define FUNC_NAME s_scm_call_with_stack_overflow_handler
 {
-  struct scm_vm *vp;
+  struct scm_i_thread *t = SCM_I_CURRENT_THREAD;
   ptrdiff_t c_limit, stack_size;
   struct overflow_handler_data data;
   SCM new_limit, ret;
 
-  vp = scm_the_vm ();
-  stack_size = vp->stack_top - vp->sp;
+  stack_size = t->vm.stack_top - t->vm.sp;
 
   c_limit = scm_to_ptrdiff_t (limit);
   if (c_limit <= 0)
     scm_out_of_range (FUNC_NAME, limit);
 
   new_limit = scm_sum (scm_from_ptrdiff_t (stack_size), limit);
-  if (scm_is_pair (vp->overflow_handler_stack))
-    new_limit = scm_min (new_limit, scm_caar (vp->overflow_handler_stack));
+  if (scm_is_pair (t->vm.overflow_handler_stack))
+    new_limit = scm_min (new_limit, scm_caar (t->vm.overflow_handler_stack));
 
   /* Hacky check that the current stack depth plus the limit is within
      the range of a ptrdiff_t.  */
   scm_to_ptrdiff_t (new_limit);
 
-  data.vp = vp;
+  data.vp = &t->vm;
   data.overflow_handler_stack =
-    scm_acons (limit, handler, vp->overflow_handler_stack);
+    scm_acons (limit, handler, t->vm.overflow_handler_stack);
 
   scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
 
@@ -1447,9 +1440,8 @@ SCM_DEFINE (scm_call_with_stack_overflow_handler,
   scm_dynwind_unwind_handler (unwind_overflow_handler, &data,
                               SCM_F_WIND_EXPLICITLY);
 
-  /* Reset vp->sp_min_since_gc so that the VM checks actually
-     trigger.  */
-  return_unused_stack_to_os (vp);
+  /* Reset sp_min_since_gc so that the VM checks actually trigger.  */
+  return_unused_stack_to_os (&t->vm);
 
   ret = scm_call_0 (thunk);
 
@@ -1504,10 +1496,6 @@ scm_bootstrap_vm (void)
                             (scm_t_extension_init_func)scm_init_vm_builtins,
                             NULL);
 
-  page_size = getpagesize ();
-  /* page_size should be a power of two.  */
-  if (page_size & (page_size - 1))
-    abort ();
   scm_vm_intrinsics.expand_stack = vm_expand_stack;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");

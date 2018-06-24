@@ -61,7 +61,6 @@ struct scm_vm {
   int engine;                   /* which vm engine we're using */
 };
 
-SCM_INTERNAL struct scm_vm *scm_the_vm (void);
 SCM_API SCM scm_call_with_vm (SCM proc, SCM args);
 
 SCM_API SCM scm_call_with_stack_overflow_handler (SCM limit, SCM thunk,
@@ -80,6 +79,7 @@ SCM_API SCM scm_set_default_vm_engine_x (SCM engine);
 SCM_API void scm_c_set_vm_engine_x (int engine);
 SCM_API void scm_c_set_default_vm_engine_x (int engine);
 
+SCM_INTERNAL void scm_i_vm_prepare_stack (struct scm_vm *vp);
 struct GC_ms_entry;
 SCM_INTERNAL struct GC_ms_entry * scm_i_vm_mark_stack (struct scm_vm *,
                                                        struct GC_ms_entry *,
