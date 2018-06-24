@@ -182,7 +182,7 @@
           {                                                         \
             struct scm_vm_intrinsics *i = (void*)intrinsics;        \
             SYNC_IP ();                                             \
-            i->expand_stack (VP, sp);                               \
+            i->expand_stack (thread, sp);                           \
             CACHE_SP ();                                            \
           }                                                         \
         else                                                        \

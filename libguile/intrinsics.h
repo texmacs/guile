@@ -42,7 +42,7 @@ typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
 typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, uint64_t);
 typedef int (*scm_t_bool_from_scm_scm_intrinsic) (SCM, SCM);
 typedef enum scm_compare (*scm_t_compare_from_scm_scm_intrinsic) (SCM, SCM);
-typedef void (*scm_t_vp_sp_intrinsic) (struct scm_vm*, union scm_vm_stack_element*);
+typedef void (*scm_t_thread_sp_intrinsic) (scm_i_thread*, union scm_vm_stack_element*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -87,7 +87,7 @@ typedef void (*scm_t_vp_sp_intrinsic) (struct scm_vm*, union scm_vm_stack_elemen
   M(scm_from_scm_uimm, resolve_module, "resolve-module", RESOLVE_MODULE) \
   M(scm_from_scm_scm, lookup, "lookup", LOOKUP) \
   M(scm_from_scm_scm, define_x, "define!", DEFINE_X) \
-  M(vp_sp, expand_stack, "expand-stack", EXPAND_STACK) \
+  M(thread_sp, expand_stack, "expand-stack", EXPAND_STACK) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

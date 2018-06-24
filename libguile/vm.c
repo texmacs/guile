@@ -1158,6 +1158,12 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
     }
 }
 
+static void
+thread_expand_stack (scm_i_thread *thread, union scm_vm_stack_element *new_sp)
+{
+  vm_expand_stack (&thread->vm, new_sp);
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1496,7 +1502,7 @@ scm_bootstrap_vm (void)
                             (scm_t_extension_init_func)scm_init_vm_builtins,
                             NULL);
 
-  scm_vm_intrinsics.expand_stack = vm_expand_stack;
+  scm_vm_intrinsics.expand_stack = thread_expand_stack;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");
