@@ -43,6 +43,11 @@ typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, uint64_t);
 typedef int (*scm_t_bool_from_scm_scm_intrinsic) (SCM, SCM);
 typedef enum scm_compare (*scm_t_compare_from_scm_scm_intrinsic) (SCM, SCM);
 typedef void (*scm_t_thread_sp_intrinsic) (scm_i_thread*, union scm_vm_stack_element*);
+typedef SCM (*scm_t_scm_from_thread_u32_intrinsic) (scm_i_thread*, uint32_t);
+typedef uint32_t (*scm_t_u32_from_thread_u32_u32_intrinsic) (scm_i_thread*, uint32_t, uint32_t);
+typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_t,
+                                                          uint32_t, SCM, uint8_t,
+                                                          uint8_t);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -88,6 +93,9 @@ typedef void (*scm_t_thread_sp_intrinsic) (scm_i_thread*, union scm_vm_stack_ele
   M(scm_from_scm_scm, lookup, "lookup", LOOKUP) \
   M(scm_from_scm_scm, define_x, "define!", DEFINE_X) \
   M(thread_sp, expand_stack, "expand-stack", EXPAND_STACK) \
+  M(scm_from_thread_u32, cons_rest, "cons-rest", CONS_REST) \
+  M(u32_from_thread_u32_u32, compute_kwargs_npositional, "compute-kwargs-npositional", COMPUTE_KWARGS_NPOSITIONAL) \
+  M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS)  \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

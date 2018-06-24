@@ -1087,11 +1087,12 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (31, bind_kwargs, "bind-kwargs", OP4 (X8_C24, C8_C24, X8_C24, N32))
     {
-      uint32_t nreq, nreq_and_opt, ntotal, npositional, nkw, n, nargs;
+      uint32_t nreq, nreq_and_opt, ntotal, npositional;
       int32_t kw_offset;
       scm_t_bits kw_bits;
       SCM kw;
-      char allow_other_keys, has_rest;
+      uint8_t allow_other_keys, has_rest;
+      struct scm_vm_intrinsics *i = (void*)intrinsics;
 
       UNPACK_24 (op, nreq);
       allow_other_keys = ip[1] & 0x1;
@@ -1103,67 +1104,17 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
       VM_ASSERT (!(kw_bits & 0x7), abort());
       kw = SCM_PACK (kw_bits);
 
-      nargs = FRAME_LOCALS_COUNT ();
+      /* Note that if nopt == 0 then npositional = nreq.  */
+      npositional = i->compute_kwargs_npositional (thread, nreq,
+                                                   nreq_and_opt - nreq);
 
-      /* look in optionals for first keyword or last positional */
-      /* starting after the last required positional arg */
-      npositional = nreq;
-      while (/* while we have args */
-             npositional < nargs
-             /* and we still have positionals to fill */
-             && npositional < nreq_and_opt
-             /* and we haven't reached a keyword yet */
-             && !scm_is_keyword (FP_REF (npositional)))
-        /* bind this optional arg (by leaving it in place) */
-        npositional++;
-      nkw = nargs - npositional;
-      /* shuffle non-positional arguments above ntotal */
-      ALLOC_FRAME (ntotal + nkw);
-      n = nkw;
-      while (n--)
-        FP_SET (ntotal + n, FP_REF (npositional + n));
-      /* and fill optionals & keyword args with SCM_UNDEFINED */
-      n = npositional;
-      while (n < ntotal)
-        FP_SET (n++, SCM_UNDEFINED);
-
-      /* Now bind keywords, in the order given.  */
-      for (n = 0; n < nkw; n++)
-        if (scm_is_keyword (FP_REF (ntotal + n)))
-          {
-            SCM walk;
-            for (walk = kw; scm_is_pair (walk); walk = SCM_CDR (walk))
-              if (scm_is_eq (SCM_CAAR (walk), FP_REF (ntotal + n)))
-                {
-                  SCM si = SCM_CDAR (walk);
-                  if (n + 1 < nkw)
-                    {
-                      FP_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_uint32 (si),
-                              FP_REF (ntotal + n + 1));
-                    }
-                  else
-                    vm_error_kwargs_missing_value (FP_REF (0),
-                                                   FP_REF (ntotal + n));
-                  break;
-                }
-            VM_ASSERT (scm_is_pair (walk) || allow_other_keys,
-                       vm_error_kwargs_unrecognized_keyword (FP_REF (0),
-                                                             FP_REF (ntotal + n)));
-            n++;
-          }
-        else
-          VM_ASSERT (has_rest, vm_error_kwargs_invalid_keyword (FP_REF (0),
-                                                                FP_REF (ntotal + n)));
+      SYNC_IP ();
+      i->bind_kwargs(thread, npositional, ntotal, kw, !has_rest,
+                     allow_other_keys);
+      CACHE_SP ();
 
       if (has_rest)
-        {
-          SCM rest = SCM_EOL;
-          n = nkw;
-          SYNC_IP ();
-          while (n--)
-            rest = scm_inline_cons (thread, FP_REF (ntotal + n), rest);
-          FP_SET (nreq_and_opt, rest);
-        }
+        FP_SET (nreq_and_opt, i->cons_rest (thread, ntotal));
 
       RESET_FRAME (ntotal);
 

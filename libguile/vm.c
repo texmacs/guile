@@ -463,9 +463,6 @@ static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (uint32_t inst) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_kwargs_missing_value (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
@@ -527,30 +524,6 @@ vm_error_apply_to_non_list (SCM x)
 {
   scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
              scm_list_1 (x), scm_list_1 (x));
-}
-
-static void
-vm_error_kwargs_missing_value (SCM proc, SCM kw)
-{
-  scm_error_scm (sym_keyword_argument_error, proc,
-                 scm_from_latin1_string ("Keyword argument has no value"),
-                 SCM_EOL, scm_list_1 (kw));
-}
-
-static void
-vm_error_kwargs_invalid_keyword (SCM proc, SCM obj)
-{
-  scm_error_scm (sym_keyword_argument_error, proc,
-                 scm_from_latin1_string ("Invalid keyword"),
-                 SCM_EOL, scm_list_1 (obj));
-}
-
-static void
-vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw)
-{
-  scm_error_scm (sym_keyword_argument_error, proc,
-                 scm_from_latin1_string ("Unrecognized keyword"),
-                 SCM_EOL, scm_list_1 (kw));
 }
 
 static void
@@ -1158,10 +1131,134 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
     }
 }
 
+static uint32_t
+frame_locals_count (scm_i_thread *thread)
+{
+  return SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp);
+}
+
 static void
 thread_expand_stack (scm_i_thread *thread, union scm_vm_stack_element *new_sp)
 {
   vm_expand_stack (&thread->vm, new_sp);
+}
+
+/* This duplicates the inlined "ALLOC_FRAME" macro from vm-engine.c, but
+   it seems to be necessary for perf; the inlined version avoids the
+   needs to flush IP in the common case.  */
+static void
+alloc_frame (scm_i_thread *thread, uint32_t nlocals)
+{
+  union scm_vm_stack_element *sp = thread->vm.fp - nlocals;
+
+  if (sp < thread->vm.sp_min_since_gc)
+    {
+      if (SCM_UNLIKELY (sp < thread->vm.stack_limit))
+        thread_expand_stack (thread, sp);
+      else
+        thread->vm.sp_min_since_gc = thread->vm.sp = sp;
+    }
+  else
+    thread->vm.sp = sp;
+}
+
+static uint32_t
+compute_kwargs_npositional (scm_i_thread *thread, uint32_t nreq, uint32_t nopt)
+{
+  uint32_t npositional, nargs;
+
+  nargs = frame_locals_count (thread);
+
+  /* look in optionals for first keyword or last positional */
+  /* starting after the last required positional arg */
+  npositional = nreq;
+  while (/* while we have args */
+         npositional < nargs
+         /* and we still have positionals to fill */
+         && npositional < nreq + nopt
+         /* and we haven't reached a keyword yet */
+         && !scm_is_keyword (SCM_FRAME_LOCAL (thread->vm.fp, npositional)))
+    /* bind this optional arg (by leaving it in place) */
+    npositional++;
+
+  return npositional;
+}
+
+static void
+bind_kwargs (scm_i_thread *thread, uint32_t npositional, uint32_t nlocals,
+             SCM kwargs, uint8_t strict, uint8_t allow_other_keys)
+{
+  uint32_t nargs, nkw, n;
+  union scm_vm_stack_element *fp;
+
+  nargs = frame_locals_count (thread);
+  nkw = nargs - npositional;
+
+  /* shuffle non-positional arguments above nlocals */
+  alloc_frame (thread, nlocals + nkw);
+
+  fp = thread->vm.fp;
+  n = nkw;
+  while (n--)
+    SCM_FRAME_LOCAL (fp, nlocals + n) = SCM_FRAME_LOCAL (fp, npositional + n);
+
+  /* Fill optionals & keyword args with SCM_UNDEFINED */
+  n = npositional;
+  while (n < nlocals)
+    SCM_FRAME_LOCAL (fp, n++) = SCM_UNDEFINED;
+
+  /* Now bind keywords, in the order given.  */
+  for (n = 0; n < nkw; n++)
+    {
+      SCM kw = SCM_FRAME_LOCAL (fp, nlocals + n);
+
+      if (scm_is_keyword (kw))
+        {
+          SCM walk;
+          for (walk = kwargs; scm_is_pair (walk); walk = SCM_CDR (walk))
+            if (scm_is_eq (SCM_CAAR (walk), kw))
+              {
+                SCM si = SCM_CDAR (walk);
+                if (n + 1 < nkw)
+                  SCM_FRAME_LOCAL (fp, scm_to_uint32 (si)) =
+                    SCM_FRAME_LOCAL (fp, nlocals + n + 1);
+                else
+                  scm_error_scm (sym_keyword_argument_error, SCM_BOOL_F,
+                                 scm_from_latin1_string
+                                 ("Keyword argument has no value"),
+                                 SCM_EOL, scm_list_1 (kw));
+                break;
+              }
+          if (!allow_other_keys && !scm_is_pair (walk))
+            scm_error_scm (sym_keyword_argument_error, SCM_BOOL_F,
+                           scm_from_latin1_string ("Unrecognized keyword"),
+                           SCM_EOL, scm_list_1 (kw));
+          n++;
+        }
+      else if (strict)
+        {
+          scm_error_scm (sym_keyword_argument_error, SCM_BOOL_F,
+                         scm_from_latin1_string ("Invalid keyword"),
+                         SCM_EOL, scm_list_1 (kw));
+        }
+      else
+        {
+          /* Ignore this argument.  It might get consed onto a rest list.  */
+        }
+    }
+}
+
+static SCM
+cons_rest (scm_i_thread *thread, uint32_t base)
+{
+  SCM rest = SCM_EOL;
+  uint32_t n = frame_locals_count (thread) - base;
+
+  while (n--)
+    rest = scm_inline_cons (thread, SCM_FRAME_LOCAL (thread->vm.fp, base + n),
+                            rest);
+
+  return rest;
 }
 
 SCM
@@ -1503,6 +1600,9 @@ scm_bootstrap_vm (void)
                             NULL);
 
   scm_vm_intrinsics.expand_stack = thread_expand_stack;
+  scm_vm_intrinsics.cons_rest = cons_rest;
+  scm_vm_intrinsics.compute_kwargs_npositional = compute_kwargs_npositional;
+  scm_vm_intrinsics.bind_kwargs = bind_kwargs;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");
