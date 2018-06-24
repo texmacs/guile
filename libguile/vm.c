@@ -902,7 +902,6 @@ return_unused_stack_to_os (struct scm_vm *vp)
 
       do
         ret = madvise ((void *) lo, hi - lo, MADV_DONTNEED);
-      while (ret && errno == -EAGAIN);
       while (ret && errno == EAGAIN);
 
       if (ret)
