@@ -339,6 +339,14 @@ if the information is not available."
                      (dump-vm-frame frame port))
                    (vm-frames)))
 
+(register-command!
+ (make-command "guile-backtrace"
+               #:command-class COMMAND_STACK
+               #:doc "Display a backtrace of Guile's VM stack for the \
+current thread"
+               #:invoke (lambda (self args from-tty)
+                          (display-vm-frames))))
+
 
 ;;;
 ;;; Frame filters.
