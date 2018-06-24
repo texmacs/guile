@@ -1,6 +1,6 @@
 ;;;; types.test --- Type tag decoding.      -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2014, 2015, 2018 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GNU Guile.
 ;;;;
@@ -98,8 +98,8 @@
 (with-test-prefix "opaque objects"
   (test-inferior-objects
    ((make-guardian) smob (? integer?))
-   ((%make-void-port "w") port (? integer?))
-   ((open-input-string "hello") port (? integer?))
+   ((%make-void-port "w") port (? inferior-object?))
+   ((open-input-string "hello") port (? inferior-object?))
    ((lambda () #t) program _)
    ((make-variable 'foo) variable _)
    ((make-weak-vector 3 #t) weak-vector _)
@@ -110,6 +110,31 @@
    (#*00000110 bitvector _)
    ((expt 2 70) bignum _)
    ((make-fluid) fluid _)))
+
+(define-syntax test-inferior-ports
+  (syntax-rules ()
+    "Test whether each OBJECT is a port with the given TYPE-NAME."
+    ((_ (object type-name) rest ...)
+     (begin
+       (pass-if-equal (object->string object)
+           type-name
+         (let ((result (scm->object (object-address object))))
+           (and (eq? 'port (inferior-object-kind result))
+                (let ((type (inferior-object-sub-kind result)))
+                  (and (eq? 'port-type (inferior-object-kind type))
+                       (inferior-object-sub-kind type))))))
+       (test-inferior-ports rest ...)))
+    ((_)
+     *unspecified*)))
+
+(with-test-prefix "ports"
+  (test-inferior-ports
+   ((open-input-file "/dev/null") "file")
+   ((open-output-file "/dev/null") "file")
+   ((open-input-string "the string") "string")
+   ((open-output-string) "string")
+   ((open-bytevector-input-port #vu8(1 2 3 4 5)) "r6rs-bytevector-input-port")
+   ((open-bytevector-output-port) "r6rs-bytevector-output-port")))
 
 (define-record-type <some-struct>
   (some-struct x y z)
