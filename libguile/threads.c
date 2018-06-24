@@ -114,8 +114,8 @@ thread_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
         }
     }
 
-  if (t->vp)
-    mark_stack_ptr = scm_i_vm_mark_stack (t->vp, mark_stack_ptr,
+  if (t->vm.stack_bottom)
+    mark_stack_ptr = scm_i_vm_mark_stack (&t->vm, mark_stack_ptr,
                                           mark_stack_limit);
 
   return mark_stack_ptr;
@@ -380,23 +380,17 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
      cause GC to run, and GC could cause finalizers, which could invoke
      Scheme functions, which need the current thread to be set.  */
 
+  memset (&t, 0, sizeof (t));
+
   t.pthread = scm_i_pthread_self ();
   t.handle = SCM_BOOL_F;
   t.result = SCM_BOOL_F;
-  t.freelists = NULL;
-  t.pointerless_freelists = NULL;
-  t.dynamic_state = NULL;
-  t.dynstack.base = NULL;
-  t.dynstack.top = NULL;
-  t.dynstack.limit = NULL;
   t.pending_asyncs = SCM_EOL;
   t.block_asyncs = 1;
   t.base = base->mem_base;
   t.continuation_root = SCM_EOL;
   t.continuation_base = t.base;
   scm_i_pthread_cond_init (&t.sleep_cond, NULL);
-  t.wake = NULL;
-  t.vp = NULL;
 
   if (pipe2 (t.sleep_pipe, O_CLOEXEC) != 0)
     /* FIXME: Error conditions during the initialization phase are handled
@@ -514,12 +508,7 @@ on_thread_exit (void *v)
   t->dynstack.base = NULL;
   t->dynstack.top = NULL;
   t->dynstack.limit = NULL;
-  {
-    struct scm_vm *vp = t->vp;
-    t->vp = NULL;
-    if (vp)
-      scm_i_vm_free_stack (vp);
-  }
+  scm_i_vm_free_stack (&t->vm);
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_current_thread = NULL;

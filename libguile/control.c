@@ -223,7 +223,7 @@ scm_suspendable_continuation_p (SCM tag)
 
   if (scm_dynstack_find_prompt (&thread->dynstack, tag, &flags,
                                 NULL, NULL, NULL, &registers))
-    return scm_from_bool (registers == thread->vp->resumable_prompt_cookie);
+    return scm_from_bool (registers == thread->vm.resumable_prompt_cookie);
 
   return SCM_BOOL_F;
 }

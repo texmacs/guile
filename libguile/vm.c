@@ -826,14 +826,10 @@ expand_stack (union scm_vm_stack_element *old_bottom, size_t old_size,
 }
 #undef FUNC_NAME
 
-static struct scm_vm *
-make_vm (void)
-#define FUNC_NAME "make_vm"
+static void
+init_vm (struct scm_vm *vp)
 {
   int i;
-  struct scm_vm *vp;
-
-  vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
   vp->stack_size = page_size / sizeof (union scm_vm_stack_element);
   vp->stack_bottom = allocate_stack (vp->stack_size);
@@ -854,10 +850,7 @@ make_vm (void)
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
-
-  return vp;
 }
-#undef FUNC_NAME
 
 static void
 return_unused_stack_to_os (struct scm_vm *vp)
@@ -1158,10 +1151,10 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
 static struct scm_vm *
 thread_vm (scm_i_thread *t)
 {
-  if (SCM_UNLIKELY (!t->vp))
-    t->vp = make_vm ();
+  if (SCM_UNLIKELY (!t->vm.stack_bottom))
+    init_vm (&t->vm);
 
-  return t->vp;
+  return &t->vm;
 }
 
 struct scm_vm *

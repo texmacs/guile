@@ -30,6 +30,7 @@
 #include "libguile/iselect.h"
 #include "libguile/smob.h"
 #include "libguile/continuations.h"
+#include "libguile/vm.h"
 
 #if SCM_USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.h"
@@ -102,7 +103,7 @@ typedef struct scm_i_thread {
   SCM_STACKITEM *continuation_base;
 
   /* For keeping track of the stack and registers. */
-  struct scm_vm *vp;
+  struct scm_vm vm;
   SCM_STACKITEM *base;
   jmp_buf regs;
 } scm_i_thread;
