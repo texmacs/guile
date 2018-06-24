@@ -355,6 +355,9 @@ if the information is not available."
        #'(begin)))))
 
 (compile-time-cond
+ ;; What follows depends on (gdb frame-filters), which unfortunately has
+ ;; not yet been merged in GDB:
+ ;; <https://sourceware.org/ml/gdb-patches/2015-02/msg00362.html>.
  ((false-if-exception (resolve-interface '(gdb frame-filters)))
   (use-modules (gdb frame-filters))
 
