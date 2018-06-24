@@ -170,6 +170,7 @@ if the information is not available."
 (define ip-type (type-pointer (lookup-type "scm_t_uint32")))
 (define fp-type (type-pointer (lookup-type "SCM")))
 (define sp-type (type-pointer (lookup-type "SCM")))
+(define uint-type (type-pointer (lookup-type "scm_t_uintptr")))
 
 (define-record-type <vm-frame>
   (make-vm-frame ip sp fp saved-ip saved-fp)
@@ -186,10 +187,16 @@ if the information is not available."
   (make-vm-frame ip
                  sp
                  fp
-                 (value-dereference (value-cast (value-sub fp 1)
-                                                (type-pointer ip-type)))
-                 (value-dereference (value-cast (value-sub fp 2)
-                                                (type-pointer fp-type)))))
+
+                 ;; fp[0] is the return address.
+                 (value-dereference (value-cast fp (type-pointer ip-type)))
+
+                 ;; fp[1] is the offset to the previous frame pointer.
+                 (value-add fp
+                            (value->integer
+                             (value-dereference
+                              (value-cast (value-add fp 1)
+                                          (type-pointer uint-type)))))))
 
 (define (vm-engine-frame? frame)
   (let ((sym (frame-function frame)))
@@ -217,7 +224,7 @@ if the information is not available."
   (let ((ip (vm-frame-saved-ip frame))
         (sp (value-sub (vm-frame-fp frame) 3))
         (fp (vm-frame-saved-fp frame)))
-    (and (not (zero? (value->integer fp)))
+    (and (not (zero? (value->integer ip)))
          (vm-frame ip sp fp backend))))
 
 (define (vm-frames)
@@ -279,7 +286,7 @@ if the information is not available."
   (define (default-name)
     "[unknown]")
   (cond
-   ((vm-frame-program-debug-info frame)
+   ((false-if-exception (vm-frame-program-debug-info frame))
     => (lambda (pdi)
          (or (and=> (program-debug-info-name pdi) symbol->string)
              "[anonymous]")))
