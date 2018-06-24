@@ -92,6 +92,8 @@
 # define JT_REG
 #endif
 
+#define VP (&thread->vm)
+
 #define VM_ASSERT(condition, handler)     \
   do {                                    \
     if (SCM_UNLIKELY (!(condition)))      \
@@ -110,7 +112,7 @@
 #if VM_USE_HOOKS
 #define RUN_HOOK(exp)                                   \
   do {                                                  \
-    if (SCM_UNLIKELY (vp->trace_level > 0))             \
+    if (SCM_UNLIKELY (VP->trace_level > 0))             \
       {                                                 \
         SYNC_IP ();                                     \
         exp;                                            \
@@ -120,8 +122,8 @@
 #else
 #define RUN_HOOK(exp)
 #endif
-#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (vp))
-#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (vp, arg))
+#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (VP))
+#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (VP, arg))
 
 #define APPLY_HOOK()                  RUN_HOOK0 (apply)
 #define PUSH_CONTINUATION_HOOK()      RUN_HOOK0 (push_continuation)
@@ -140,12 +142,12 @@
    the VM.  We do the same for SP.  The FP is used more by code outside
    the VM than by the VM itself, we don't bother caching it locally.
 
-   Keeping vp->ip in sync with the local IP would be a big lose, as it
-   is updated so often.  Instead of updating vp->ip all the time, we
+   Keeping VP->ip in sync with the local IP would be a big lose, as it
+   is updated so often.  Instead of updating VP->ip all the time, we
    call SYNC_IP whenever we would need to know the IP of the top frame.
    In practice, we need to SYNC_IP whenever we call out of the VM to a
    function that would like to walk the stack, perhaps as the result of
-   an exception.  On the other hand, we do always keep vp->sp in sync
+   an exception.  On the other hand, we do always keep VP->sp in sync
    with the local SP.
 
    One more thing.  We allow the stack to move, when it expands.
@@ -153,12 +155,12 @@
    code, or otherwise push anything on the stack, you will need to
    CACHE_SP afterwards to restore the possibly-changed stack pointer.  */
 
-#define SYNC_IP() vp->ip = (ip)
+#define SYNC_IP() VP->ip = (ip)
 
-#define CACHE_SP() sp = vp->sp
+#define CACHE_SP() sp = VP->sp
 #define CACHE_REGISTER()                        \
   do {                                          \
-    ip = vp->ip;                                \
+    ip = VP->ip;                                \
     CACHE_SP ();                                \
   } while (0)
 
@@ -173,36 +175,36 @@
    FP is valid across an ALLOC_FRAME call.  Be careful!  */
 #define ALLOC_FRAME(n)                                              \
   do {                                                              \
-    sp = vp->fp - (n);                                              \
-    if (sp < vp->sp_min_since_gc)                                   \
+    sp = VP->fp - (n);                                              \
+    if (sp < VP->sp_min_since_gc)                                   \
       {                                                             \
-        if (SCM_UNLIKELY (sp < vp->stack_limit))                    \
+        if (SCM_UNLIKELY (sp < VP->stack_limit))                    \
           {                                                         \
             struct scm_vm_intrinsics *i = (void*)intrinsics;        \
             SYNC_IP ();                                             \
-            i->expand_stack (vp, sp);                               \
+            i->expand_stack (VP, sp);                               \
             CACHE_SP ();                                            \
           }                                                         \
         else                                                        \
-          vp->sp_min_since_gc = vp->sp = sp;                        \
+          VP->sp_min_since_gc = VP->sp = sp;                        \
       }                                                             \
     else                                                            \
-      vp->sp = sp;                                                  \
+      VP->sp = sp;                                                  \
   } while (0)
 
 /* Reset the current frame to hold N locals.  Used when we know that no
    stack expansion is needed.  */
 #define RESET_FRAME(n)                                              \
   do {                                                              \
-    vp->sp = sp = vp->fp - (n);                                     \
-    if (sp < vp->sp_min_since_gc)                                   \
-      vp->sp_min_since_gc = sp;                                     \
+    VP->sp = sp = VP->fp - (n);                                     \
+    if (sp < VP->sp_min_since_gc)                                   \
+      VP->sp_min_since_gc = sp;                                     \
   } while (0)
 
 /* Compute the number of locals in the frame.  At a call, this is equal
    to the number of actual arguments when a function is first called,
    plus one for the function.  */
-#define FRAME_LOCALS_COUNT() (vp->fp - sp)
+#define FRAME_LOCALS_COUNT() (VP->fp - sp)
 #define FRAME_LOCALS_COUNT_FROM(slot) (FRAME_LOCALS_COUNT () - slot)
 
 
@@ -241,9 +243,9 @@
   case opcode:
 #endif
 
-#define FP_SLOT(i)	        SCM_FRAME_SLOT (vp->fp, i)
-#define FP_REF(i)		SCM_FRAME_LOCAL (vp->fp, i)
-#define FP_SET(i,o)		SCM_FRAME_LOCAL (vp->fp, i) = o
+#define FP_SLOT(i)	        SCM_FRAME_SLOT (VP->fp, i)
+#define FP_REF(i)		SCM_FRAME_LOCAL (VP->fp, i)
+#define FP_SET(i,o)		SCM_FRAME_LOCAL (VP->fp, i) = o
 
 #define SP_REF_SLOT(i)		(sp[i])
 #define SP_SET_SLOT(i,o)	(sp[i] = o)
@@ -268,8 +270,7 @@
   ((uintptr_t) (ptr) % alignof_type (type) == 0)
 
 static SCM
-VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
-         jmp_buf *registers, int resume)
+VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */
@@ -348,9 +349,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
           ret = scm_values (ret);
         }
 
-      vp->ip = SCM_FRAME_RETURN_ADDRESS (vp->fp);
-      vp->sp = SCM_FRAME_PREVIOUS_SP (vp->fp);
-      vp->fp = SCM_FRAME_DYNAMIC_LINK (vp->fp);
+      VP->ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      VP->sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       return ret;
     }
@@ -378,10 +379,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       PUSH_CONTINUATION_HOOK ();
 
-      old_fp = vp->fp;
-      vp->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip + 2);
+      old_fp = VP->fp;
+      VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 2);
 
       RESET_FRAME (nlocals);
 
@@ -417,10 +418,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       PUSH_CONTINUATION_HOOK ();
 
-      old_fp = vp->fp;
-      vp->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip + 3);
+      old_fp = VP->fp;
+      VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 3);
 
       RESET_FRAME (nlocals);
 
@@ -572,9 +573,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       if (nlocals)
         RESET_FRAME (nlocals);
 
-      old_fp = vp->fp;
-      ip = SCM_FRAME_RETURN_ADDRESS (vp->fp);
-      vp->fp = SCM_FRAME_DYNAMIC_LINK (vp->fp);
+      old_fp = VP->fp;
+      ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       /* Clear stack frame.  */
       old_fp[0].as_scm = SCM_BOOL_F;
@@ -707,7 +708,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SYNC_IP ();
       VM_ASSERT (SCM_VM_CONT_REWINDABLE_P (vmcont),
                  vm_error_continuation_not_rewindable (vmcont));
-      vm_reinstate_partial_continuation (vp, vmcont, FRAME_LOCALS_COUNT_FROM (1),
+      vm_reinstate_partial_continuation (VP, vmcont, FRAME_LOCALS_COUNT_FROM (1),
                                          &thread->dynstack, registers);
       CACHE_REGISTER ();
       NEXT (0);
@@ -771,10 +772,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       SYNC_IP ();
       dynstack = scm_dynstack_capture_all (&thread->dynstack);
-      vm_cont = scm_i_vm_capture_stack (vp->stack_top,
-                                        SCM_FRAME_DYNAMIC_LINK (vp->fp),
-                                        SCM_FRAME_PREVIOUS_SP (vp->fp),
-                                        SCM_FRAME_RETURN_ADDRESS (vp->fp),
+      vm_cont = scm_i_vm_capture_stack (VP->stack_top,
+                                        SCM_FRAME_DYNAMIC_LINK (VP->fp),
+                                        SCM_FRAME_PREVIOUS_SP (VP->fp),
+                                        SCM_FRAME_RETURN_ADDRESS (VP->fp),
                                         dynstack,
                                         0);
       /* FIXME: Seems silly to capture the registers here, when they are
@@ -782,7 +783,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
          copying out to the heap; and likewise, the setjmp(&registers)
          code already has the non-local return handler.  But oh
          well!  */
-      cont = scm_i_make_continuation (&first, vp, vm_cont);
+      cont = scm_i_make_continuation (&first, VP, vm_cont);
 
       if (first)
         {
@@ -824,7 +825,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
          it continues with the next instruction.  */
       ip++;
       SYNC_IP ();
-      vm_abort (vp, FP_REF (1), nlocals - 2, registers);
+      vm_abort (VP, FP_REF (1), nlocals - 2, registers);
 
       /* vm_abort should not return */
       abort ();
@@ -1029,7 +1030,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
          move a 64-bit number.  */
       UNPACK_24 (op, dst);
       val = SP_REF_SLOT (0);
-      vp->sp = sp = sp + 1;
+      VP->sp = sp = sp + 1;
       SP_SET_SLOT (dst, val);
       NEXT (1);
     }
@@ -1043,7 +1044,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       uint32_t count;
 
       UNPACK_24 (op, count);
-      vp->sp = sp = sp + count;
+      VP->sp = sp = sp + count;
       NEXT (1);
     }
 
@@ -1764,8 +1765,8 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       SYNC_IP ();
       scm_dynstack_push_prompt (&thread->dynstack, flags,
                                 SP_REF (tag),
-                                vp->stack_top - vp->fp,
-                                vp->stack_top - FP_SLOT (proc_slot),
+                                VP->stack_top - VP->fp,
+                                VP->stack_top - FP_SLOT (proc_slot),
                                 ip + offset,
                                 registers);
       NEXT (3);
@@ -2512,10 +2513,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
         /* Set up a frame that will return right back to this
            handle-interrupts opcode to handle any additional
            interrupts.  */
-        old_fp = vp->fp;
-        vp->fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
-        SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-        SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip);
+        old_fp = VP->fp;
+        VP->fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
+        SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
+        SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip);
 
         SP_SET (0, proc);
 
@@ -2534,9 +2535,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (184, return_from_interrupt, "return-from-interrupt", OP1 (X32))
     {
-      vp->sp = sp = SCM_FRAME_PREVIOUS_SP (vp->fp);
-      ip = SCM_FRAME_RETURN_ADDRESS (vp->fp);
-      vp->fp = SCM_FRAME_DYNAMIC_LINK (vp->fp);
+      VP->sp = sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
+      ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       NEXT (0);
     }
@@ -2563,7 +2564,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF_U64 (a);
       y = SP_REF_U64 (b);
 
-      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+      VP->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2577,7 +2578,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF_U64 (a);
       y = SP_REF_U64 (b);
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2591,7 +2592,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF_S64 (a);
       y = SP_REF_S64 (b);
 
-      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+      VP->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2605,7 +2606,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF_S64 (a);
       y = SP_REF_S64 (b);
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2620,10 +2621,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF_F64 (b);
 
       if (x == y)
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
         /* This is also the case for NaN.  */
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2638,12 +2639,12 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF_F64 (b);
 
       if (x < y)
-        vp->compare_result = SCM_F_COMPARE_LESS_THAN;
+        VP->compare_result = SCM_F_COMPARE_LESS_THAN;
       else if (x >= y)
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
       else
         /* NaN.  */
-        vp->compare_result = SCM_F_COMPARE_INVALID;
+        VP->compare_result = SCM_F_COMPARE_INVALID;
 
       NEXT (1);
     }
@@ -2659,9 +2660,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       SYNC_IP ();
       if (scm_vm_intrinsics.numerically_equal_p (x, y))
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
       CACHE_SP ();
       NEXT (1);
     }
@@ -2676,7 +2677,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF (b);
 
       SYNC_IP ();
-      vp->compare_result = scm_vm_intrinsics.less_p (x, y);
+      VP->compare_result = scm_vm_intrinsics.less_p (x, y);
       CACHE_SP ();
       NEXT (1);
     }
@@ -2697,7 +2698,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       else
         compare_result = SCM_F_COMPARE_NONE;
 
-      vp->compare_result = compare_result;
+      VP->compare_result = compare_result;
 
       NEXT (1);
     }
@@ -2724,7 +2725,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       else
         compare_result = SCM_F_COMPARE_NONE;
 
-      vp->compare_result = compare_result;
+      VP->compare_result = compare_result;
 
       NEXT (2);
     }
@@ -2740,9 +2741,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF (a);
 
       if ((SCM_UNPACK (x) & mask) == expected)
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
 
       NEXT (2);
     }
@@ -2758,9 +2759,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       x = SP_REF (a);
 
       if ((SCM_CELL_TYPE (x) & mask) == expected)
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
 
       NEXT (2);
     }
@@ -2775,9 +2776,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       y = SP_REF (b);
 
       if (scm_is_eq (x, y))
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -2801,7 +2802,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (207, jl, "jl", OP1 (X8_L24))
     {
-      if (vp->compare_result == SCM_F_COMPARE_LESS_THAN)
+      if (VP->compare_result == SCM_F_COMPARE_LESS_THAN)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2818,7 +2819,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (208, je, "je", OP1 (X8_L24))
     {
-      if (vp->compare_result == SCM_F_COMPARE_EQUAL)
+      if (VP->compare_result == SCM_F_COMPARE_EQUAL)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2835,7 +2836,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (209, jnl, "jnl", OP1 (X8_L24))
     {
-      if (vp->compare_result != SCM_F_COMPARE_LESS_THAN)
+      if (VP->compare_result != SCM_F_COMPARE_LESS_THAN)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2852,7 +2853,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (210, jne, "jne", OP1 (X8_L24))
     {
-      if (vp->compare_result != SCM_F_COMPARE_EQUAL)
+      if (VP->compare_result != SCM_F_COMPARE_EQUAL)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2873,7 +2874,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (211, jge, "jge", OP1 (X8_L24))
     {
-      if (vp->compare_result == SCM_F_COMPARE_NONE)
+      if (VP->compare_result == SCM_F_COMPARE_NONE)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2895,7 +2896,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
    */
   VM_DEFINE_OP (212, jnge, "jnge", OP1 (X8_L24))
     {
-      if (vp->compare_result != SCM_F_COMPARE_NONE)
+      if (VP->compare_result != SCM_F_COMPARE_NONE)
         {
           int32_t offset = op;
           offset >>= 8; /* Sign-extending shift. */
@@ -2916,9 +2917,9 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       SYNC_IP ();
       if (scm_vm_intrinsics.heap_numbers_equal_p (x, y))
-        vp->compare_result = SCM_F_COMPARE_EQUAL;
+        VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
-        vp->compare_result = SCM_F_COMPARE_NONE;
+        VP->compare_result = SCM_F_COMPARE_NONE;
       CACHE_SP ();
       NEXT (1);
     }
@@ -2987,7 +2988,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       y = ((int32_t) op) >> 20; /* Sign extension.  */
 
-      vp->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
+      VP->compare_result = x == y ? SCM_F_COMPARE_EQUAL : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -3000,7 +3001,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_12_12 (op, a, y);
       x = SP_REF_U64 (a);
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -3013,7 +3014,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       UNPACK_12_12 (op, a, x);
       y = SP_REF_U64 (a);
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -3028,7 +3029,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       y = ((int32_t) op) >> 20; /* Sign extension.  */
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -3043,7 +3044,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 
       x = ((int32_t) op) >> 20; /* Sign extension.  */
 
-      vp->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+      VP->compare_result = x < y ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
 
       NEXT (1);
     }
@@ -3170,6 +3171,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
 #undef VM_DEFINE_OP
 #undef VM_INSTRUCTION_TO_LABEL
 #undef VM_USE_HOOKS
+#undef VP
 
 /*
 (defun renumber-ops ()

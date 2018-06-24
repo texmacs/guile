@@ -744,7 +744,7 @@ scm_i_call_with_current_continuation (SCM proc)
 #undef VM_USE_HOOKS
 #undef VM_NAME
 
-typedef SCM (*scm_t_vm_engine) (scm_i_thread *current_thread, struct scm_vm *vp,
+typedef SCM (*scm_t_vm_engine) (scm_i_thread *current_thread,
                                 jmp_buf *registers, int resume);
 
 static const scm_t_vm_engine vm_engines[SCM_VM_NUM_ENGINES] =
@@ -1220,7 +1220,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
       }
 
     vp->resumable_prompt_cookie = &registers;
-    ret = vm_engines[vp->engine](thread, vp, &registers, resume);
+    ret = vm_engines[vp->engine](thread, &registers, resume);
     vp->resumable_prompt_cookie = prev_cookie;
 
     return ret;
