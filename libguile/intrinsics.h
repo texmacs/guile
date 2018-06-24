@@ -1,4 +1,5 @@
-/* Copyright 2    Free Software Foundation, Inc.
+/* Copyright 2018
+     Free Software Foundation, Inc.
 
    This file is part of Guile.
 
@@ -111,4 +112,4 @@ SCM_INTERNAL SCM scm_intrinsic_list (void);
 SCM_INTERNAL void scm_bootstrap_intrinsics (void);
 SCM_INTERNAL void scm_init_intrinsics (void);
 
-#endif /* _SCM_INSTRUCTIONS_H_ */
+#endif /* _SCM_VM_INTRINSICS_H_ */
