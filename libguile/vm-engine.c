@@ -2443,6 +2443,8 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (183, handle_interrupts, "handle-interrupts", OP1 (X32))
     {
+      struct scm_vm_intrinsics *i = (void*)intrinsics;
+
       if (SCM_LIKELY (scm_is_null
                       (scm_atomic_ref_scm (&thread->pending_asyncs))))
         NEXT (1);
@@ -2450,33 +2452,12 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
       if (thread->block_asyncs > 0)
         NEXT (1);
 
-      {
-        union scm_vm_stack_element *old_fp;
-        size_t old_frame_size = FRAME_LOCALS_COUNT ();
-        SCM proc = scm_i_async_pop (thread);
-
-        /* No PUSH_CONTINUATION_HOOK, as we can't usefully
-           POP_CONTINUATION_HOOK because there are no return values.  */
-
-        /* Three slots: two for RA and dynamic link, one for proc.  */
-        ALLOC_FRAME (old_frame_size + 3);
-
-        /* Set up a frame that will return right back to this
-           handle-interrupts opcode to handle any additional
-           interrupts.  */
-        old_fp = VP->fp;
-        VP->fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
-        SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
-        SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip);
-
-        SP_SET (0, proc);
-
-        ip = (uint32_t *) vm_handle_interrupt_code;
-
-        APPLY_HOOK ();
-
-        NEXT (0);
-      }
+      SYNC_IP ();
+      i->push_interrupt_frame (thread);
+      CACHE_SP ();
+      ip = (uint32_t *) vm_handle_interrupt_code;
+      APPLY_HOOK ();
+      NEXT (0);
     }
 
   /* return-from-interrupt _:24

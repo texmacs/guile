@@ -95,7 +95,8 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_
   M(thread_sp, expand_stack, "expand-stack", EXPAND_STACK) \
   M(scm_from_thread_u32, cons_rest, "cons-rest", CONS_REST) \
   M(u32_from_thread_u32_u32, compute_kwargs_npositional, "compute-kwargs-npositional", COMPUTE_KWARGS_NPOSITIONAL) \
-  M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS)  \
+  M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS) \
+  M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

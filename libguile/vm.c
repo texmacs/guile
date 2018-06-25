@@ -1261,6 +1261,29 @@ cons_rest (scm_i_thread *thread, uint32_t base)
   return rest;
 }
 
+static void
+push_interrupt_frame (scm_i_thread *thread)
+{
+  union scm_vm_stack_element *old_fp;
+  size_t old_frame_size = frame_locals_count (thread);
+  SCM proc = scm_i_async_pop (thread);
+
+  /* No PUSH_CONTINUATION_HOOK, as we can't usefully
+     POP_CONTINUATION_HOOK because there are no return values.  */
+
+  /* Three slots: two for RA and dynamic link, one for proc.  */
+  alloc_frame (thread, old_frame_size + 3);
+
+  old_fp = thread->vm.fp;
+  thread->vm.fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
+  SCM_FRAME_SET_DYNAMIC_LINK (thread->vm.fp, old_fp);
+  /* Arrange to return to the same handle-interrupts opcode to handle
+     any additional interrupts.  */
+  SCM_FRAME_SET_RETURN_ADDRESS (thread->vm.fp, thread->vm.ip);
+
+  SCM_FRAME_LOCAL (thread->vm.fp, 0) = proc;
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1603,6 +1626,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.cons_rest = cons_rest;
   scm_vm_intrinsics.compute_kwargs_npositional = compute_kwargs_npositional;
   scm_vm_intrinsics.bind_kwargs = bind_kwargs;
+  scm_vm_intrinsics.push_interrupt_frame = push_interrupt_frame;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");
