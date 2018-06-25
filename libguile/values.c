@@ -21,59 +21,37 @@
 # include <config.h>
 #endif
 
-#include "eval.h"
 #include "feature.h"
 #include "gc.h"
 #include "gsubr.h"
 #include "list.h"
 #include "numbers.h"
 #include "pairs.h"
-#include "ports.h"
-#include "strings.h"
-#include "struct.h"
 
 #include "values.h"
 
-
-SCM scm_values_vtable;
 
 /* OBJ must be a values object containing exactly two values.
    scm_i_extract_values_2 puts those two values into *p1 and *p2.  */
 void
 scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2)
 {
-  SCM values;
-
-  SCM_ASSERT_TYPE (SCM_VALUESP (obj), obj, SCM_ARG1,
+  SCM_ASSERT_TYPE (scm_is_values (obj), obj, SCM_ARG1,
 		   "scm_i_extract_values_2", "values");
-  values = scm_struct_ref (obj, SCM_INUM0);
-  if (scm_ilength (values) != 2)
+  if (scm_i_nvalues (obj) != 2)
     scm_wrong_type_arg_msg
       ("scm_i_extract_values_2", SCM_ARG1, obj,
        "a values object containing exactly two values");
-  *p1 = SCM_CAR (values);
-  *p2 = SCM_CADR (values);
-}
 
-static SCM
-print_values (SCM obj, SCM pwps)
-{
-  SCM values = scm_struct_ref (obj, SCM_INUM0);
-  SCM port = SCM_PORT_WITH_PS_PORT (pwps);
-  scm_print_state *ps = SCM_PRINT_STATE (SCM_PORT_WITH_PS_PS (pwps));
-
-  scm_puts ("#<values ", port);
-  scm_iprin1 (values, port, ps);
-  scm_puts (">", port);
-
-  return SCM_UNSPECIFIED;
+  *p1 = scm_i_value_ref (obj, 0);
+  *p2 = scm_i_value_ref (obj, 1);
 }
 
 size_t
 scm_c_nvalues (SCM obj)
 {
-  if (SCM_LIKELY (SCM_VALUESP (obj)))
-    return scm_ilength (scm_struct_ref (obj, SCM_INUM0));
+  if (SCM_LIKELY (scm_is_values (obj)))
+    return scm_i_nvalues (obj);
   else
     return 1;
 }
@@ -81,18 +59,8 @@ scm_c_nvalues (SCM obj)
 SCM
 scm_c_value_ref (SCM obj, size_t idx)
 {
-  if (SCM_LIKELY (SCM_VALUESP (obj)))
-    {
-      SCM values = scm_struct_ref (obj, SCM_INUM0);
-      size_t i = idx;
-      while (SCM_LIKELY (scm_is_pair (values)))
-        {
-          if (i == 0)
-            return SCM_CAR (values);
-          values = SCM_CDR (values);
-          i--;
-        }
-    }
+  if (SCM_LIKELY (scm_is_values (obj) && idx < scm_i_nvalues (obj)))
+    return scm_i_value_ref (obj, idx);
   else if (idx == 0)
     return obj;
 
@@ -119,7 +87,17 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
   if (n == 1)
     result = SCM_CAR (args);
   else
-    result = scm_c_make_struct (scm_values_vtable, 0, 1, SCM_UNPACK (args));
+    {
+      size_t i;
+
+      if ((size_t) n > (size_t) (UINTPTR_MAX >> 8))
+        scm_error (scm_out_of_range_key, FUNC_NAME, "Too many values",
+                   SCM_EOL, SCM_EOL);
+
+      result = scm_words ((((scm_t_bits) n) << 8) | scm_tc7_values, n + 1);
+      for (i = 0; i < n; i++, args = SCM_CDR (args))
+        SCM_SET_CELL_OBJECT (result, i + 1, SCM_CAR (args));
+    }
 
   return result;
 }
@@ -128,24 +106,52 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
 SCM
 scm_c_values (SCM *base, size_t nvalues)
 {
-  SCM ret, *walk;
+  SCM ret;
+  size_t i;
 
   if (nvalues == 1)
     return *base;
 
-  for (ret = SCM_EOL, walk = base + nvalues - 1; walk >= base; walk--)
-    ret = scm_cons (*walk, ret);
+  if ((uintptr_t) nvalues > (UINTPTR_MAX >> 8))
+    scm_error (scm_out_of_range_key, "scm_c_values", "Too many values",
+               SCM_EOL, SCM_EOL);
 
-  return scm_values (ret);
+  ret = scm_words ((((scm_t_bits) nvalues) << 8) | scm_tc7_values, nvalues + 1);
+
+  for (i = 0; i < nvalues; i++)
+    SCM_SET_CELL_OBJECT (ret, i + 1, base[i]);
+
+  return ret;
+}
+
+SCM
+scm_values_2 (SCM a, SCM b)
+{
+  SCM ret;
+
+  ret = scm_words ((2 << 8) | scm_tc7_values, 3);
+  SCM_SET_CELL_OBJECT_1 (ret, a);
+  SCM_SET_CELL_OBJECT_2 (ret, b);
+
+  return ret;
+}
+
+SCM
+scm_values_3 (SCM a, SCM b, SCM c)
+{
+  SCM ret;
+
+  ret = scm_words ((3 << 8) | scm_tc7_values, 4);
+  SCM_SET_CELL_OBJECT_1 (ret, a);
+  SCM_SET_CELL_OBJECT_2 (ret, b);
+  SCM_SET_CELL_OBJECT_3 (ret, c);
+
+  return ret;
 }
 
 void
 scm_init_values (void)
 {
-  SCM print = scm_c_define_gsubr ("%print-values", 2, 0, 0, print_values);
-
-  scm_values_vtable = scm_make_vtable (scm_from_locale_string ("pw"), print);
-
   scm_add_feature ("values");
 
 #include "values.x"

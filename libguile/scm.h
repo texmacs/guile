@@ -489,7 +489,7 @@ typedef uintptr_t scm_t_bits;
 #define scm_tc7_keyword		0x35
 #define scm_tc7_atomic_box	0x37
 #define scm_tc7_syntax		0x3d
-#define scm_tc7_unused_3f	0x3f
+#define scm_tc7_values		0x3f
 #define scm_tc7_program		0x45
 #define scm_tc7_vm_cont		0x47
 #define scm_tc7_bytevector	0x4d

@@ -224,13 +224,12 @@ static void error_unrecognized_keyword (SCM proc, SCM kw)
 static SCM
 truncate_values (SCM x)
 {
-  if (SCM_LIKELY (!SCM_VALUESP (x)))
+  if (SCM_LIKELY (!scm_is_values (x)))
     return x;
   else
     {
-      SCM l = scm_struct_ref (x, SCM_INUM0);
-      if (SCM_LIKELY (scm_is_pair (l)))
-        return scm_car (l);
+      if (SCM_LIKELY (scm_i_nvalues (x) > 0))
+        return scm_i_value_ref (x, 0);
       else
         {
           scm_ithrow (scm_from_latin1_symbol ("vm-run"),
@@ -368,8 +367,13 @@ eval (SCM x, SCM env)
         /* `proc' is the consumer.  */
         proc = EVAL1 (CDR (mx), env);
         v = scm_call_0 (producer);
-        if (SCM_VALUESP (v))
-          args = scm_struct_ref (v, SCM_INUM0);
+        if (scm_is_values (v))
+          {
+            size_t i = scm_i_nvalues (v);
+            args = SCM_EOL;
+            while (i--)
+              args = scm_cons (scm_i_value_ref (v, i), args);
+          }
         else
           args = scm_list_1 (v);
         goto apply_proc;

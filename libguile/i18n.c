@@ -1360,7 +1360,7 @@ SCM_DEFINE (scm_locale_string_to_integer, "locale-string->integer",
   else
     result = scm_from_long (c_result);
 
-  return (scm_values (scm_list_2 (result, scm_from_long (c_endptr - c_str))));
+  return scm_values_2 (result, scm_from_long (c_endptr - c_str));
 }
 #undef FUNC_NAME
 
@@ -1404,7 +1404,7 @@ SCM_DEFINE (scm_locale_string_to_inexact, "locale-string->inexact",
   else
     result = scm_from_double (c_result);
 
-  return (scm_values (scm_list_2 (result, scm_from_long (c_endptr - c_str))));
+  return scm_values_2 (result, scm_from_long (c_endptr - c_str));
 }
 #undef FUNC_NAME
 

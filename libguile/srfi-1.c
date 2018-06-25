@@ -818,12 +818,7 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
       dropped_tail = new_tail;
     }
   }
-  /* re-use the initial conses for the values list */
-  SCM_SETCAR(kept, SCM_CDR(kept));
-  SCM_SETCDR(kept, dropped);
-  SCM_SETCAR(dropped, SCM_CDR(dropped));
-  SCM_SETCDR(dropped, SCM_EOL);
-  return scm_values(kept);
+  return scm_values_2 (SCM_CDR (kept), SCM_CDR (dropped));
 }
 #undef FUNC_NAME
 
@@ -877,7 +872,7 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
   *tp = SCM_EOL;
   *fp = SCM_EOL;
 
-  return scm_values (scm_list_2 (tlst, flst));
+  return scm_values_2 (tlst, flst);
 }
 #undef FUNC_NAME
 

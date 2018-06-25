@@ -60,6 +60,7 @@
 #include "struct.h"
 #include "symbols.h"
 #include "syntax.h"
+#include "values.h"
 #include "variable.h"
 #include "vectors.h"
 #include "vm.h"
@@ -703,6 +704,12 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_variable:
 	  scm_i_variable_print (exp, port, pstate);
 	  break;
+        case scm_tc7_values:
+          scm_puts ("#<values (", port);
+          print_vector_or_weak_vector (exp, scm_i_nvalues (exp),
+                                       scm_c_value_ref, port, pstate);
+          scm_puts (">", port);
+          break;
 	case scm_tc7_program:
 	  scm_i_program_print (exp, port, pstate);
 	  break;

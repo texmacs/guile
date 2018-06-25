@@ -599,10 +599,10 @@ SCM_DEFINE (scm_getrlimit, "getrlimit", 1, 0, 0,
   if (getrlimit (iresource, &lim) != 0)
     scm_syserror (FUNC_NAME);
 
-  return scm_values (scm_list_2 ((lim.rlim_cur == RLIM_INFINITY) ? SCM_BOOL_F
-                                 : scm_from_long (lim.rlim_cur),
-                                 (lim.rlim_max == RLIM_INFINITY) ? SCM_BOOL_F
-                                 : scm_from_long (lim.rlim_max)));
+  return scm_values_2 ((lim.rlim_cur == RLIM_INFINITY) ? SCM_BOOL_F
+                       : scm_from_long (lim.rlim_cur),
+                       (lim.rlim_max == RLIM_INFINITY) ? SCM_BOOL_F
+                       : scm_from_long (lim.rlim_max));
 }
 #undef FUNC_NAME
 
@@ -1435,9 +1435,7 @@ scm_open_process (SCM mode, SCM prog, SCM args)
                                        SCM_FPORT_OPTION_NOT_SEEKABLE);
     }
 
-  return scm_values (scm_list_3 (read_port,
-                                 write_port,
-                                 scm_from_int (pid)));
+  return scm_values_3 (read_port, write_port, scm_from_int (pid));
 }
 #undef FUNC_NAME
 

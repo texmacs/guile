@@ -763,7 +763,7 @@ make_bytevector_output_port (void)
 
   SCM_NEWSMOB (proc, bytevector_output_port_procedure, buf);
 
-  return scm_values (scm_list_2 (port, proc));
+  return scm_values_2 (port, proc);
 }
 
 /* Write octets from WRITE_BUF to the backing store.  */

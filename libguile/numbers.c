@@ -1500,7 +1500,7 @@ SCM_PRIMITIVE_GENERIC (scm_i_floor_divide, "floor/", 2, 0, 0,
   SCM q, r;
 
   scm_floor_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  return scm_values_2 (q, r);
 }
 #undef FUNC_NAME
 
@@ -2038,7 +2038,7 @@ SCM_PRIMITIVE_GENERIC (scm_i_ceiling_divide, "ceiling/", 2, 0, 0,
   SCM q, r;
 
   scm_ceiling_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  return scm_values_2 (q, r);
 }
 #undef FUNC_NAME
 
@@ -2529,7 +2529,7 @@ SCM_PRIMITIVE_GENERIC (scm_i_truncate_divide, "truncate/", 2, 0, 0,
   SCM q, r;
 
   scm_truncate_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  return scm_values_2 (q, r);
 }
 #undef FUNC_NAME
 
@@ -3140,7 +3140,7 @@ SCM_PRIMITIVE_GENERIC (scm_i_centered_divide, "centered/", 2, 0, 0,
   SCM q, r;
 
   scm_centered_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  return scm_values_2 (q, r);
 }
 #undef FUNC_NAME
 
@@ -3815,7 +3815,7 @@ SCM_PRIMITIVE_GENERIC (scm_i_round_divide, "round/", 2, 0, 0,
   SCM q, r;
 
   scm_round_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  return scm_values_2 (q, r);
 }
 #undef FUNC_NAME
 
@@ -10094,7 +10094,7 @@ SCM_DEFINE (scm_i_exact_integer_sqrt, "exact-integer-sqrt", 1, 0, 0,
   SCM s, r;
 
   scm_exact_integer_sqrt (k, &s, &r);
-  return scm_values (scm_list_2 (s, r));
+  return scm_values_2 (s, r);
 }
 #undef FUNC_NAME
 

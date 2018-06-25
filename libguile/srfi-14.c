@@ -1900,7 +1900,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection, "char-set-diff+intersection", 1
       charsets_intersection (p, r);
       rest = SCM_CDR (rest);
     }
-  return scm_values (scm_list_2 (res1, res2));
+  return scm_values_2 (res1, res2);
 }
 #undef FUNC_NAME
 
@@ -1988,7 +1988,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x,
     scm_char_set_intersection (scm_cons (cs1, scm_cons (cs2, rest)));
   cs1 = diff;
   cs2 = intersect;
-  return scm_values (scm_list_2 (cs1, cs2));
+  return scm_values_2 (cs1, cs2);
 }
 #undef FUNC_NAME
 

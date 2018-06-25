@@ -342,11 +342,11 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
       else
         {
           uint32_t n;
-          ret = SCM_EOL;
           SYNC_IP ();
-          for (n = nvals; n > 0; n--)
-            ret = scm_inline_cons (thread, FP_REF (4 + n - 1), ret);
-          ret = scm_values (ret);
+          VM_ASSERT (nvals <= (UINTPTR_MAX >> 8), abort ());
+          ret = scm_words ((nvals << 8) | scm_tc7_values, nvals + 1);
+          for (n = 0; n < nvals; n++)
+            SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (4 + n - 1));
         }
 
       VP->ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
@@ -608,16 +608,12 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
       ret = scm_apply_subr (sp, FRAME_LOCALS_COUNT ());
       CACHE_SP ();
 
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+      if (SCM_UNLIKELY (scm_is_values (ret)))
         {
-          SCM vals = scm_struct_ref (ret, SCM_INUM0);
-          long len = scm_ilength (vals);
-          ALLOC_FRAME (1 + len);
-          while (len--)
-            {
-              SP_SET (len, SCM_CAR (vals));
-              vals = SCM_CDR (vals);
-            }
+          size_t n, nvals = scm_i_nvalues (ret);
+          ALLOC_FRAME (1 + nvals);
+          for (n = 0; n < nvals; n++)
+            FP_SET (n + 1, scm_i_value_ref (ret, n));
           NEXT (1);
         }
       else
