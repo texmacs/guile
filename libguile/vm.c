@@ -1298,6 +1298,20 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
   scm_i_reinstate_continuation (cont);
 }
 
+static SCM
+capture_continuation (scm_thread *thread, jmp_buf *registers)
+{
+  struct scm_vm *vp = &thread->vm;
+  SCM vm_cont =
+    scm_i_vm_capture_stack (vp->stack_top,
+                            SCM_FRAME_DYNAMIC_LINK (vp->fp),
+                            SCM_FRAME_PREVIOUS_SP (vp->fp),
+                            SCM_FRAME_RETURN_ADDRESS (vp->fp),
+                            scm_dynstack_capture_all (&thread->dynstack),
+                            0);
+  return scm_i_make_continuation (registers, thread, vm_cont);
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1642,6 +1656,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.bind_kwargs = bind_kwargs;
   scm_vm_intrinsics.push_interrupt_frame = push_interrupt_frame;
   scm_vm_intrinsics.reinstate_continuation_x = reinstate_continuation_x;
+  scm_vm_intrinsics.capture_continuation = capture_continuation;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");

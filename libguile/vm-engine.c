@@ -756,18 +756,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (15, call_cc, "call/cc", OP1 (X32))
     {
-      SCM vm_cont, cont;
-      scm_t_dynstack *dynstack;
+      SCM cont;
 
       SYNC_IP ();
-      dynstack = scm_dynstack_capture_all (&thread->dynstack);
-      vm_cont = scm_i_vm_capture_stack (VP->stack_top,
-                                        SCM_FRAME_DYNAMIC_LINK (VP->fp),
-                                        SCM_FRAME_PREVIOUS_SP (VP->fp),
-                                        SCM_FRAME_RETURN_ADDRESS (VP->fp),
-                                        dynstack,
-                                        0);
-      cont = scm_i_make_continuation (registers, thread, vm_cont);
+      cont = scm_vm_intrinsics.capture_continuation (thread, registers);
 
       RESET_FRAME (2);
 

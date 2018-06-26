@@ -24,6 +24,8 @@
 #error intrinsics.h is private and uninstalled
 #endif
 
+#include <setjmp.h>
+
 #include <libguile/scm.h>
 
 
@@ -52,6 +54,7 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_thread*, uint32_t,
 typedef SCM (*scm_t_scm_from_scm_scm_scmp_sp_intrinsic) (SCM, SCM, SCM*,
                                                          const union scm_vm_stack_element*);
 typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORETURN;
+typedef SCM (*scm_t_scm_from_thread_regs_intrinsic) (scm_thread*, jmp_buf*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -103,6 +106,7 @@ typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORET
   M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(scm_from_scm_scm_scmp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
+  M(scm_from_thread_regs, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
