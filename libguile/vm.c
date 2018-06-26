@@ -1329,8 +1329,10 @@ capture_delimited_continuation (struct scm_vm *vp,
 
   scm_dynstack_relocate_prompts (dynstack, vp->stack_top - base_fp);
 
-  /* Capture from the base_fp to the top thunk application frame. */
-  vm_cont = scm_i_vm_capture_stack (base_fp, vp->fp, vp->sp, vp->ip, dynstack,
+  /* Capture from the base_fp to the top thunk application frame.  Don't
+     capture values from the most recent frame, as they are the abort
+     args.  */
+  vm_cont = scm_i_vm_capture_stack (base_fp, vp->fp, vp->fp, vp->ip, dynstack,
                                     flags);
 
   return scm_i_make_composable_continuation (vm_cont);
@@ -1345,18 +1347,21 @@ scm_i_vm_abort (SCM *tag_and_argv, size_t n)
 }
 
 static void
-vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
-          jmp_buf *current_registers)
+abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
 {
-  SCM cont;
-  scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
+  struct scm_vm *vp = &thread->vm;
+  scm_t_dynstack *dynstack = &thread->dynstack;
+  SCM tag, cont;
+  size_t nargs;
   scm_t_bits *prompt;
   scm_t_dynstack_prompt_flags flags;
   ptrdiff_t fp_offset, sp_offset;
   union scm_vm_stack_element *fp, *sp;
   uint32_t *ip;
   jmp_buf *registers;
-  size_t i;
+
+  tag = SCM_FRAME_LOCAL (vp->fp, 1);
+  nargs = frame_locals_count (thread) - 2;
 
   prompt = scm_dynstack_find_prompt (dynstack, tag,
                                      &flags, &fp_offset, &sp_offset, &ip,
@@ -1383,46 +1388,26 @@ vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
   /* Unwind.  */
   scm_dynstack_unwind (dynstack, prompt);
 
+  sp = sp - nargs - 1;
+
+  /* Shuffle abort arguments down to the prompt continuation.  We have
+     to be jumping to an older part of the stack.  */
+  if (sp < vp->sp)
+    abort ();
+  sp[nargs].as_scm = cont;
+  while (nargs--)
+    sp[nargs] = vp->sp[nargs];
+
   /* Restore VM regs */
   vp->fp = fp;
-  vp->sp = sp - n - 1;
+  vp->sp = sp;
   vp->ip = ip;
-
-  /* Since we're jumping down, we should always have enough space.  */
-  if (vp->sp < vp->stack_limit)
-    abort ();
-
-  /* Push vals */
-  vp->sp[n].as_scm = cont;
-  for (i = 0; i < n; i++)
-    vp->sp[n - i - 1].as_scm = argv[i];
 
   /* Jump! */
   longjmp (*registers, 1);
 
   /* Shouldn't get here */
   abort ();
-}
-
-static void
-abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
-{
-  struct scm_vm *vp = &thread->vm;
-  SCM tag;
-  size_t nargs, i;
-  SCM *argv;
-
-  tag = SCM_FRAME_LOCAL (vp->fp, 1);
-  nargs = frame_locals_count (thread) - 2;
-
-  /* FIXME: Avoid this alloca.  */
-  argv = alloca (nargs * sizeof (SCM));
-  for (i = 0; i < nargs; i++)
-    argv[i] = vp->sp[nargs - i - 1].as_scm;
-
-  vp->sp = vp->fp;
-
-  vm_abort (vp, tag, nargs, argv, current_registers);
 }
 
 SCM
