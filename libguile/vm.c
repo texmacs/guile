@@ -323,78 +323,6 @@ vm_abort (struct scm_vm *vp, SCM tag, size_t nargs,
   scm_c_abort (vp, tag, nargs, argv, current_registers);
 }
 
-struct vm_reinstate_partial_continuation_data
-{
-  struct scm_vm *vp;
-  struct scm_vm_cont *cp;
-};
-
-static void *
-vm_reinstate_partial_continuation_inner (void *data_ptr)
-{
-  struct vm_reinstate_partial_continuation_data *data = data_ptr;
-  struct scm_vm *vp = data->vp;
-  struct scm_vm_cont *cp = data->cp;
-
-  memcpy (vp->fp - cp->stack_size,
-          cp->stack_bottom,
-          cp->stack_size * sizeof (*cp->stack_bottom));
-
-  vp->fp -= cp->fp_offset;
-  vp->ip = cp->ra;
-
-  return NULL;
-}
-
-static void
-vm_reinstate_partial_continuation (struct scm_vm *vp, SCM cont, size_t nargs,
-                                   scm_t_dynstack *dynstack,
-                                   jmp_buf *registers)
-{
-  struct vm_reinstate_partial_continuation_data data;
-  struct scm_vm_cont *cp;
-  union scm_vm_stack_element *args;
-  ptrdiff_t old_fp_offset;
-
-  args = alloca (nargs * sizeof (*args));
-  memcpy (args, vp->sp, nargs * sizeof (*args));
-
-  cp = SCM_VM_CONT_DATA (cont);
-
-  old_fp_offset = vp->stack_top - vp->fp;
-
-  vm_push_sp (vp, vp->fp - (cp->stack_size + nargs + 1));
-
-  data.vp = vp;
-  data.cp = cp;
-  GC_call_with_alloc_lock (vm_reinstate_partial_continuation_inner, &data);
-
-  /* The resume continuation will expect ARGS on the stack as if from a
-     multiple-value return.  Fill in the closure slot with #f, and copy
-     the arguments into place.  */
-  vp->sp[nargs].as_scm = SCM_BOOL_F;
-  memcpy (vp->sp, args, nargs * sizeof (*args));
-
-  /* The prompt captured a slice of the dynamic stack.  Here we wind
-     those entries onto the current thread's stack.  We also have to
-     relocate any prompts that we see along the way.  */
-  {
-    scm_t_bits *walk;
-
-    for (walk = SCM_DYNSTACK_FIRST (cp->dynstack);
-         SCM_DYNSTACK_TAG (walk);
-         walk = SCM_DYNSTACK_NEXT (walk))
-      {
-        scm_t_bits tag = SCM_DYNSTACK_TAG (walk);
-
-        if (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_PROMPT)
-          scm_dynstack_wind_prompt (dynstack, walk, old_fp_offset, registers);
-        else
-          scm_dynstack_wind_1 (dynstack, walk);
-      }
-  }
-}
-
 
 /*
  * VM Error Handling
@@ -412,7 +340,6 @@ static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_not_enough_values (void) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_number_of_values (uint32_t expected) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_continuation_not_rewindable (SCM cont) SCM_NORETURN SCM_NOINLINE;
 
 static void
 vm_throw (SCM key, SCM args)
@@ -501,12 +428,6 @@ vm_error_wrong_number_of_values (uint32_t expected)
 {
   vm_error ("Wrong number of values returned to continuation (expected ~a)",
             scm_from_uint32 (expected));
-}
-
-static void
-vm_error_continuation_not_rewindable (SCM cont)
-{
-  vm_error ("Unrewindable partial continuation", cont);
 }
 
 
@@ -1274,7 +1195,7 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
        "invoking continuation would cross continuation barrier: ~A",
        scm_list_1 (cont));
 
-  n = frame_locals_count (thread) - 1,
+  n = frame_locals_count (thread) - 1;
   argv = alloca (n * sizeof (*argv));
   memcpy (argv, vp->sp, n * sizeof (*argv));
 
@@ -1310,6 +1231,83 @@ capture_continuation (scm_thread *thread, jmp_buf *registers)
                             scm_dynstack_capture_all (&thread->dynstack),
                             0);
   return scm_i_make_continuation (registers, thread, vm_cont);
+}
+
+struct compose_continuation_data
+{
+  struct scm_vm *vp;
+  struct scm_vm_cont *cp;
+};
+
+static void *
+compose_continuation_inner (void *data_ptr)
+{
+  struct compose_continuation_data *data = data_ptr;
+  struct scm_vm *vp = data->vp;
+  struct scm_vm_cont *cp = data->cp;
+
+  memcpy (vp->fp - cp->stack_size,
+          cp->stack_bottom,
+          cp->stack_size * sizeof (*cp->stack_bottom));
+
+  vp->fp -= cp->fp_offset;
+  vp->ip = cp->ra;
+
+  return NULL;
+}
+
+static void
+compose_continuation (scm_thread *thread, jmp_buf *registers, SCM cont)
+{
+  struct scm_vm *vp = &thread->vm;
+  size_t nargs;
+  struct compose_continuation_data data;
+  struct scm_vm_cont *cp;
+  union scm_vm_stack_element *args;
+  ptrdiff_t old_fp_offset;
+
+  if (SCM_UNLIKELY (! SCM_VM_CONT_REWINDABLE_P (cont)))
+    vm_error ("Unrewindable partial continuation", cont);
+
+  nargs = frame_locals_count (thread) - 1;
+  args = alloca (nargs * sizeof (*args));
+  memcpy (args, vp->sp, nargs * sizeof (*args));
+
+  cp = SCM_VM_CONT_DATA (cont);
+
+  old_fp_offset = vp->stack_top - vp->fp;
+
+  vm_push_sp (vp, vp->fp - (cp->stack_size + nargs + 1));
+
+  data.vp = vp;
+  data.cp = cp;
+  GC_call_with_alloc_lock (compose_continuation_inner, &data);
+
+  /* The resumed continuation will expect ARGS on the stack as if from a
+     multiple-value return.  Fill in the closure slot with #f, and copy
+     the arguments into place.  */
+  vp->sp[nargs].as_scm = SCM_BOOL_F;
+  memcpy (vp->sp, args, nargs * sizeof (*args));
+
+  /* The prompt captured a slice of the dynamic stack.  Here we wind
+     those entries onto the current thread's stack.  We also have to
+     relocate any prompts that we see along the way.  */
+  {
+    scm_t_bits *walk;
+
+    for (walk = SCM_DYNSTACK_FIRST (cp->dynstack);
+         SCM_DYNSTACK_TAG (walk);
+         walk = SCM_DYNSTACK_NEXT (walk))
+      {
+        scm_t_bits tag = SCM_DYNSTACK_TAG (walk);
+
+        if (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_PROMPT)
+          scm_dynstack_wind_prompt (&thread->dynstack, walk, old_fp_offset,
+                                    registers);
+        else
+          scm_dynstack_wind_1 (&thread->dynstack, walk);
+      }
+  }
 }
 
 SCM
@@ -1657,6 +1655,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.push_interrupt_frame = push_interrupt_frame;
   scm_vm_intrinsics.reinstate_continuation_x = reinstate_continuation_x;
   scm_vm_intrinsics.capture_continuation = capture_continuation;
+  scm_vm_intrinsics.compose_continuation = compose_continuation;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");

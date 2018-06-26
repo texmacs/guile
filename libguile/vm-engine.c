@@ -696,10 +696,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       vmcont = SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), cont_idx);
 
       SYNC_IP ();
-      VM_ASSERT (SCM_VM_CONT_REWINDABLE_P (vmcont),
-                 vm_error_continuation_not_rewindable (vmcont));
-      vm_reinstate_partial_continuation (VP, vmcont, FRAME_LOCALS_COUNT_FROM (1),
-                                         &thread->dynstack, registers);
+      scm_vm_intrinsics.compose_continuation (thread, registers, vmcont);
       CACHE_REGISTER ();
       NEXT (0);
     }
