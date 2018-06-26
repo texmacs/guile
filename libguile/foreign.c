@@ -1018,7 +1018,7 @@ pack (const ffi_type * type, const void *loc, int return_value_p)
 #define MAX(A, B) ((A) >= (B) ? (A) : (B))
 
 static SCM
-foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
+foreign_call (SCM cif_scm, SCM pointer_scm, SCM *errno_ret,
               const union scm_vm_stack_element *argv)
 {
   /* FOREIGN is the pair that cif_to_procedure set as the 0th element of the
@@ -1071,7 +1071,7 @@ foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
   /* off we go! */
   errno = 0;
   ffi_call (cif, func, rvalue, args);
-  *errno_ret = errno;
+  *errno_ret = scm_from_int (errno);
 
   return pack (cif->rtype, rvalue, 1);
 }

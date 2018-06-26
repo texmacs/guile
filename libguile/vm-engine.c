@@ -635,8 +635,7 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
   VM_DEFINE_OP (11, foreign_call, "foreign-call", OP1 (X8_C12_C12))
     {
       uint16_t cif_idx, ptr_idx;
-      int err = 0;
-      SCM closure, cif, pointer, ret;
+      SCM closure, cif, pointer, ret, err;
 
       UNPACK_12_12 (op, cif_idx, ptr_idx);
 
@@ -650,7 +649,7 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
 
       ALLOC_FRAME (3);
       SP_SET (1, ret);
-      SP_SET (0, scm_vm_intrinsics.s64_to_scm (err));
+      SP_SET (0, err);
 
       NEXT (1);
     }
