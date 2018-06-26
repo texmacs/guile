@@ -827,7 +827,7 @@ typedef int32_t scm_t_wchar;
 struct scm_frame;
 struct scm_vm;
 union scm_vm_stack_element;
-
+typedef struct scm_i_thread scm_i_thread; /* FIXME: Rename.  */
 
 
 

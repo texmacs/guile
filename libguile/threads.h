@@ -48,7 +48,7 @@ SCM_API scm_t_bits scm_tc16_condvar;
 
 struct scm_thread_wake_data;
 
-typedef struct scm_i_thread {
+struct scm_i_thread {
   struct scm_i_thread *next_thread;
 
   SCM handle;
@@ -105,7 +105,7 @@ typedef struct scm_i_thread {
   struct scm_vm vm;
   SCM_STACKITEM *base;
   jmp_buf regs;
-} scm_i_thread;
+};
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)
 #define SCM_I_THREAD_DATA(x)  ((scm_i_thread *) SCM_SMOB_DATA (x))

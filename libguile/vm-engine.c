@@ -758,7 +758,6 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
     {
       SCM vm_cont, cont;
       scm_t_dynstack *dynstack;
-      int first;
 
       SYNC_IP ();
       dynstack = scm_dynstack_capture_all (&thread->dynstack);
@@ -768,35 +767,21 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
                                         SCM_FRAME_RETURN_ADDRESS (VP->fp),
                                         dynstack,
                                         0);
-      /* FIXME: Seems silly to capture the registers here, when they are
-         already captured in the registers local, which here we are
-         copying out to the heap; and likewise, the setjmp(&registers)
-         code already has the non-local return handler.  But oh
-         well!  */
-      cont = scm_i_make_continuation (&first, VP, vm_cont);
+      cont = scm_i_make_continuation (registers, thread, vm_cont);
 
-      if (first)
-        {
-          RESET_FRAME (2);
+      RESET_FRAME (2);
 
-          SP_SET (1, SP_REF (0));
-          SP_SET (0, cont);
+      SP_SET (1, SP_REF (0));
+      SP_SET (0, cont);
 
-          if (SCM_LIKELY (SCM_PROGRAM_P (SP_REF (1))))
-            ip = SCM_PROGRAM_CODE (SP_REF (1));
-          else
-            ip = (uint32_t *) vm_apply_non_program_code;
-
-          APPLY_HOOK ();
-
-          NEXT (0);
-        }
+      if (SCM_LIKELY (SCM_PROGRAM_P (SP_REF (1))))
+        ip = SCM_PROGRAM_CODE (SP_REF (1));
       else
-        {
-          CACHE_REGISTER ();
-          ABORT_CONTINUATION_HOOK ();
-          NEXT (0);
-        }
+        ip = (uint32_t *) vm_apply_non_program_code;
+
+      APPLY_HOOK ();
+
+      NEXT (0);
     }
 
   /* abort _:24

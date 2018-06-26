@@ -166,18 +166,12 @@ restore_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
 #endif
 }
 
-/* this may return more than once: the first time with the escape
-   procedure, then subsequently with SCM_UNDEFINED (the vals already having been
-   placed on the VM stack). */
-#define FUNC_NAME "scm_i_make_continuation"
 SCM 
-scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
+scm_i_make_continuation (jmp_buf *registers, scm_i_thread *thread, SCM vm_cont)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   SCM cont;
   scm_t_contregs *continuation;
   long stack_size;
-  const void *saved_cookie;
   SCM_STACKITEM * src;
 
   SCM_FLUSH_REGISTER_WINDOWS;
@@ -193,23 +187,14 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
+  memcpy (continuation->jmpbuf, registers, sizeof (*registers));
   continuation->vm_cont = vm_cont;
-  saved_cookie = vp->resumable_prompt_cookie;
   capture_auxiliary_stack (thread, continuation);
 
   SCM_NEWSMOB (cont, tc16_continuation, continuation);
 
-  *first = !setjmp (continuation->jmpbuf);
-  if (*first)
-    return make_continuation_trampoline (cont);
-  else
-    {
-      vp->resumable_prompt_cookie = saved_cookie;
-      scm_gc_after_nonlocal_exit ();
-      return SCM_UNDEFINED;
-    }
+  return make_continuation_trampoline (cont);
 }
-#undef FUNC_NAME
 
 int
 scm_i_continuation_to_frame (SCM continuation, struct scm_frame *frame)
