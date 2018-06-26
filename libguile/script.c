@@ -46,6 +46,7 @@
 #include "read.h"
 #include "strings.h"
 #include "strports.h"
+#include "throw.h"
 #include "version.h"
 #include "vm.h"
 

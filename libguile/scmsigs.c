@@ -100,7 +100,7 @@ static SCM signal_handler_asyncs;
 static SCM signal_handler_threads;
 
 /* The signal delivery thread.  */
-scm_i_thread *scm_i_signal_delivery_thread = NULL;
+scm_thread *scm_i_signal_delivery_thread = NULL;
 
 /* The mutex held when launching the signal delivery thread.  */
 static scm_i_pthread_mutex_t signal_delivery_thread_mutex =
@@ -233,7 +233,7 @@ static SIGRETTYPE
 take_signal (int signum)
 {
   SCM cell = SCM_SIMPLE_VECTOR_REF (signal_handler_asyncs, signum);
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   if (scm_is_false (SCM_CDR (cell)))
     {

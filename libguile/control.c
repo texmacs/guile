@@ -219,7 +219,7 @@ static SCM
 scm_suspendable_continuation_p (SCM tag)
 {
   scm_t_dynstack_prompt_flags flags;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   jmp_buf *registers;
 
   if (scm_dynstack_find_prompt (&thread->dynstack, tag, &flags,

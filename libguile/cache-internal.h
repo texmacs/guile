@@ -27,7 +27,6 @@
 
 #include "libguile/gc.h"
 #include "libguile/hash.h"
-#include "libguile/threads.h"
 
 
 /* A simple cache with 8 entries.  The cache entries are stored in a

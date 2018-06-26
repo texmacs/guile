@@ -543,7 +543,7 @@ queue_after_gc_hook (void * hook_data SCM_UNUSED,
                      void *fn_data SCM_UNUSED,
                      void *data SCM_UNUSED)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   if (scm_is_false (SCM_CDR (after_gc_async_cell)))
     {

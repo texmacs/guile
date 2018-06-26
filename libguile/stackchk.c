@@ -57,7 +57,7 @@ scm_stack_report ()
 {
   SCM port = scm_current_error_port ();
   SCM_STACKITEM stack;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   scm_uintprint ((scm_stack_size (thread->continuation_base) 
 		  * sizeof (SCM_STACKITEM)),

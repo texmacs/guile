@@ -270,7 +270,7 @@
   ((uintptr_t) (ptr) % alignof_type (type) == 0)
 
 static SCM
-VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
+VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */

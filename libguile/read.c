@@ -53,6 +53,7 @@
 #include "ports-internal.h"
 #include "ports.h"
 #include "private-options.h"
+#include "procs.h"
 #include "srcprop.h"
 #include "srfi-13.h"
 #include "srfi-4.h"

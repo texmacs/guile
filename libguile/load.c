@@ -52,6 +52,7 @@
 #include "loader.h"
 #include "modules.h"
 #include "pairs.h"
+#include "procs.h"
 #include "read.h"
 #include "srfi-13.h"
 #include "strings.h"

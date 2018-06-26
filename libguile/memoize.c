@@ -98,7 +98,7 @@ do_unwind (void)
 static SCM
 do_push_fluid (SCM fluid, SCM val)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_dynstack_push_fluid (&thread->dynstack, fluid, val,
                            thread->dynamic_state);
   return SCM_UNSPECIFIED;
@@ -107,7 +107,7 @@ do_push_fluid (SCM fluid, SCM val)
 static SCM
 do_pop_fluid (void)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_dynstack_unwind_fluid (&thread->dynstack, thread->dynamic_state);
   return SCM_UNSPECIFIED;
 }
@@ -115,7 +115,7 @@ do_pop_fluid (void)
 static SCM
 do_push_dynamic_state (SCM state)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_dynstack_push_dynamic_state (&thread->dynstack, state,
                                    thread->dynamic_state);
   return SCM_UNSPECIFIED;
@@ -124,7 +124,7 @@ do_push_dynamic_state (SCM state)
 static SCM
 do_pop_dynamic_state (void)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_dynstack_unwind_dynamic_state (&thread->dynstack,
                                      thread->dynamic_state);
   return SCM_UNSPECIFIED;

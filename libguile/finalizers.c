@@ -155,7 +155,7 @@ run_finalizers_async_thunk (void)
 static void
 queue_finalizer_async (void)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   /* Could be that the current thread is is NULL when we're allocating
      in threads.c:guilify_self_1.  In that case, rely on the

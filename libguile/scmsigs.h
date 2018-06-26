@@ -22,7 +22,7 @@
 
 
 
-#include "libguile/threads.h"
+#include "libguile/scm.h"
 
 
 
@@ -44,6 +44,6 @@ SCM_INTERNAL void scm_init_scmsigs (void);
 SCM_INTERNAL void scm_i_close_signal_pipe (void);
 SCM_INTERNAL void scm_i_ensure_signal_delivery_thread (void);
 
-SCM_INTERNAL scm_i_thread *scm_i_signal_delivery_thread;
+SCM_INTERNAL scm_thread *scm_i_signal_delivery_thread;
 
 #endif  /* SCM_SCMSIGS_H */

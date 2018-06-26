@@ -56,7 +56,7 @@
  */
 
 void
-scm_i_async_push (scm_i_thread *t, SCM proc)
+scm_i_async_push (scm_thread *t, SCM proc)
 {
   SCM asyncs;
 
@@ -102,7 +102,7 @@ scm_i_async_push (scm_i_thread *t, SCM proc)
 
 /* Precondition: there are pending asyncs.  */
 SCM
-scm_i_async_pop (scm_i_thread *t)
+scm_i_async_pop (scm_thread *t)
 {
   while (1)
     {
@@ -140,7 +140,7 @@ scm_i_async_pop (scm_i_thread *t)
 void
 scm_async_tick (void)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   if (t->block_asyncs)
     return;
@@ -163,7 +163,7 @@ struct scm_thread_wake_data {
 };
 
 int
-scm_i_prepare_to_wait (scm_i_thread *t,
+scm_i_prepare_to_wait (scm_thread *t,
                        struct scm_thread_wake_data *wake)
 {
   if (t->block_asyncs)
@@ -183,13 +183,13 @@ scm_i_prepare_to_wait (scm_i_thread *t,
 }
 
 void
-scm_i_wait_finished (scm_i_thread *t)
+scm_i_wait_finished (scm_thread *t)
 {
   scm_atomic_set_pointer ((void **)&t->wake, NULL);
 }
 
 int
-scm_i_prepare_to_wait_on_fd (scm_i_thread *t, int fd)
+scm_i_prepare_to_wait_on_fd (scm_thread *t, int fd)
 {
   struct scm_thread_wake_data *wake;
   wake = scm_gc_typed_calloc (struct scm_thread_wake_data);
@@ -205,7 +205,7 @@ scm_c_prepare_to_wait_on_fd (int fd)
 }
 
 int
-scm_i_prepare_to_wait_on_cond (scm_i_thread *t,
+scm_i_prepare_to_wait_on_cond (scm_thread *t,
                                scm_i_pthread_mutex_t *m,
                                scm_i_pthread_cond_t *c)
 {
@@ -242,7 +242,7 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "signal handlers.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
-  scm_i_thread *t;
+  scm_thread *t;
   struct scm_thread_wake_data *wake;
 
   if (SCM_UNBNDP (thread))
@@ -321,14 +321,14 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 static void
 increase_block (void *data)
 {
-  scm_i_thread *t = data;
+  scm_thread *t = data;
   t->block_asyncs++;
 }
 
 static void
 decrease_block (void *data)
 {
-  scm_i_thread *t = data;
+  scm_thread *t = data;
   if (--t->block_asyncs == 0)
     scm_async_tick ();
 }
@@ -336,7 +336,7 @@ decrease_block (void *data)
 void
 scm_dynwind_block_asyncs (void)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   scm_dynwind_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
   scm_dynwind_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
 }
@@ -344,7 +344,7 @@ scm_dynwind_block_asyncs (void)
 void
 scm_dynwind_unblock_asyncs (void)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   if (t->block_asyncs == 0)
     scm_misc_error ("scm_with_unblocked_asyncs", 
 		    "asyncs already unblocked", SCM_EOL);

@@ -68,7 +68,7 @@ typedef struct
 
 
 SCM_INTERNAL SCM scm_i_make_continuation (jmp_buf *registers,
-                                          scm_i_thread *thread,
+                                          scm_thread *thread,
                                           SCM vm_cont);
 SCM_INTERNAL void scm_i_reinstate_continuation (SCM cont) SCM_NORETURN;
 

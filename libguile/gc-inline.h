@@ -99,7 +99,7 @@ scm_inline_gc_alloc (void **freelist, size_t idx, scm_inline_gc_kind kind)
 }
 
 static inline void *
-scm_inline_gc_malloc_pointerless (scm_i_thread *thread, size_t bytes)
+scm_inline_gc_malloc_pointerless (scm_thread *thread, size_t bytes)
 {
   size_t idx = scm_inline_gc_bytes_to_freelist_index (bytes);
 
@@ -111,7 +111,7 @@ scm_inline_gc_malloc_pointerless (scm_i_thread *thread, size_t bytes)
 }
 
 static inline void *
-scm_inline_gc_malloc (scm_i_thread *thread, size_t bytes)
+scm_inline_gc_malloc (scm_thread *thread, size_t bytes)
 {
   size_t idx = scm_inline_gc_bytes_to_freelist_index (bytes);
 
@@ -123,13 +123,13 @@ scm_inline_gc_malloc (scm_i_thread *thread, size_t bytes)
 }
 
 static inline void *
-scm_inline_gc_malloc_words (scm_i_thread *thread, size_t words)
+scm_inline_gc_malloc_words (scm_thread *thread, size_t words)
 {
   return scm_inline_gc_malloc (thread, words * sizeof (void *));
 }
 
 static inline SCM
-scm_inline_cell (scm_i_thread *thread, scm_t_bits car, scm_t_bits cdr)
+scm_inline_cell (scm_thread *thread, scm_t_bits car, scm_t_bits cdr)
 {
   SCM cell = SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, 2));
   
@@ -140,7 +140,7 @@ scm_inline_cell (scm_i_thread *thread, scm_t_bits car, scm_t_bits cdr)
 }
 
 static inline SCM
-scm_inline_double_cell (scm_i_thread *thread, scm_t_bits car, scm_t_bits cbr,
+scm_inline_double_cell (scm_thread *thread, scm_t_bits car, scm_t_bits cbr,
                            scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM cell = SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, 4));
@@ -154,7 +154,7 @@ scm_inline_double_cell (scm_i_thread *thread, scm_t_bits car, scm_t_bits cbr,
 }
 
 static inline SCM
-scm_inline_words (scm_i_thread *thread, scm_t_bits car, uint32_t n_words)
+scm_inline_words (scm_thread *thread, scm_t_bits car, uint32_t n_words)
 {
   SCM obj = SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, n_words));
   
@@ -164,7 +164,7 @@ scm_inline_words (scm_i_thread *thread, scm_t_bits car, uint32_t n_words)
 }
 
 static inline SCM
-scm_inline_cons (scm_i_thread *thread, SCM x, SCM y)
+scm_inline_cons (scm_thread *thread, SCM x, SCM y)
 {
   return scm_inline_cell (thread, SCM_UNPACK (x), SCM_UNPACK (y));
 }

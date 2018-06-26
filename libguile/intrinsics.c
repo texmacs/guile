@@ -32,6 +32,7 @@
 #include "modules.h"
 #include "numbers.h"
 #include "symbols.h"
+#include "threads.h"
 
 #include "intrinsics.h"
 
@@ -109,32 +110,32 @@ logsub (SCM x, SCM y)
 }
 
 static void
-wind (scm_i_thread *thread, SCM winder, SCM unwinder)
+wind (scm_thread *thread, SCM winder, SCM unwinder)
 {
   scm_dynstack_push_dynwind (&thread->dynstack, winder, unwinder);
 }
 
 static void
-unwind (scm_i_thread *thread)
+unwind (scm_thread *thread)
 {
   scm_dynstack_pop (&thread->dynstack);
 }
 
 static void
-push_fluid (scm_i_thread *thread, SCM fluid, SCM value)
+push_fluid (scm_thread *thread, SCM fluid, SCM value)
 {
   scm_dynstack_push_fluid (&thread->dynstack, fluid, value,
                            thread->dynamic_state);
 }
 
 static void
-pop_fluid (scm_i_thread *thread)
+pop_fluid (scm_thread *thread)
 {
   scm_dynstack_unwind_fluid (&thread->dynstack, thread->dynamic_state);
 }
 
 static SCM
-fluid_ref (scm_i_thread *thread, SCM fluid)
+fluid_ref (scm_thread *thread, SCM fluid)
 {
   struct scm_cache_entry *entry;
 
@@ -148,7 +149,7 @@ fluid_ref (scm_i_thread *thread, SCM fluid)
 }
 
 static void
-fluid_set_x (scm_i_thread *thread, SCM fluid, SCM value)
+fluid_set_x (scm_thread *thread, SCM fluid, SCM value)
 {
   struct scm_cache_entry *entry;
 
@@ -161,14 +162,14 @@ fluid_set_x (scm_i_thread *thread, SCM fluid, SCM value)
 }
 
 static void
-push_dynamic_state (scm_i_thread *thread, SCM state)
+push_dynamic_state (scm_thread *thread, SCM state)
 {
   scm_dynstack_push_dynamic_state (&thread->dynstack, state,
                                    thread->dynamic_state);
 }
 
 static void
-pop_dynamic_state (scm_i_thread *thread)
+pop_dynamic_state (scm_thread *thread)
 {
   scm_dynstack_unwind_dynamic_state (&thread->dynstack,
                                      thread->dynamic_state);

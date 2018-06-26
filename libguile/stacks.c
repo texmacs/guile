@@ -42,6 +42,7 @@
 #include "strings.h"
 #include "struct.h"
 #include "symbols.h"
+#include "threads.h"
 #include "vm.h" /* to capture vm stacks */
 
 #include "stacks.h"

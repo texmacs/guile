@@ -43,6 +43,7 @@
 #include "srfi-13.h"
 #include "strings.h"
 #include "strorder.h"
+#include "threads.h"
 #include "variable.h"
 #include "vectors.h"
 #include "weak-set.h"

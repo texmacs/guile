@@ -37,6 +37,7 @@
 #include "pairs.h"
 #include "ports.h"
 #include "print.h"
+#include "threads.h"
 #include "variable.h"
 #include "weak-table.h"
 
@@ -508,7 +509,7 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 {
   SCM ans;
   long flen, vlen, i;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
   SCM_VALIDATE_LIST_COPYLEN (2, values, vlen);
@@ -545,7 +546,7 @@ scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluid"
 {
   SCM ans;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   scm_dynstack_push_fluid (&thread->dynstack, fluid, value,
                            thread->dynamic_state);
@@ -616,7 +617,7 @@ SCM_DEFINE (scm_set_current_dynamic_state, "set-current-dynamic-state", 1,0,0,
 	    "and return the previous current dynamic state object.")
 #define FUNC_NAME s_scm_set_current_dynamic_state
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   SCM old = scm_current_dynamic_state ();
   SCM_ASSERT (is_dynamic_state (state), state, SCM_ARG1, FUNC_NAME);
   restore_dynamic_state (get_dynamic_state (state), t->dynamic_state);

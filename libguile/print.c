@@ -61,6 +61,7 @@
 #include "struct.h"
 #include "symbols.h"
 #include "syntax.h"
+#include "threads.h"
 #include "values.h"
 #include "variable.h"
 #include "vectors.h"

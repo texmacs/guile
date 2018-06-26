@@ -80,7 +80,7 @@ thread_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
              struct GC_ms_entry *mark_stack_limit, GC_word env)
 {
   int word;
-  struct scm_i_thread *t = (struct scm_i_thread *) addr;
+  struct scm_thread *t = (struct scm_thread *) addr;
 
   if (SCM_UNPACK (t->handle) == 0)
     /* T must be on the free-list; ignore.  (See warning in
@@ -251,7 +251,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
     unsigned long  ul;
     uintmax_t  um;
   } u;
-  scm_i_thread *t = SCM_I_THREAD_DATA (exp);
+  scm_thread *t = SCM_I_THREAD_DATA (exp);
   scm_i_pthread_t p = t->pthread;
   uintmax_t id;
   u.p = p;
@@ -301,7 +301,7 @@ static int
 block_self (SCM queue, scm_i_pthread_mutex_t *mutex,
 	    const scm_t_timespec *waittime)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   SCM q_handle;
   int err;
 
@@ -356,13 +356,13 @@ scm_i_pthread_key_t scm_i_thread_key;
    itself in TLS (rather than a pointer to some malloc'd memory) is not
    possible since thread objects may live longer than the actual thread they
    represent.  */
-SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread = NULL;
+SCM_THREAD_LOCAL scm_thread *scm_i_current_thread = NULL;
 
 #endif /* SCM_HAVE_THREAD_STORAGE_CLASS */
 
 
 static scm_i_pthread_mutex_t thread_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-static scm_i_thread *all_threads = NULL;
+static scm_thread *all_threads = NULL;
 static int thread_count;
 
 static SCM default_dynamic_state;
@@ -372,7 +372,7 @@ static SCM default_dynamic_state;
 static void
 guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
 {
-  scm_i_thread t;
+  scm_thread t;
 
   /* We must arrange for SCM_I_CURRENT_THREAD to point to a valid value
      before allocating anything in this thread, because allocation could
@@ -404,7 +404,7 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
 
   /* The switcheroo.  */
   {
-    scm_i_thread *t_ptr = &t;
+    scm_thread *t_ptr = &t;
     
     GC_disable ();
     t_ptr = GC_generic_malloc (sizeof (*t_ptr), thread_gc_kind);
@@ -432,7 +432,7 @@ guilify_self_1 (struct GC_stack_base *base, int needs_unregister)
 static void
 guilify_self_2 (SCM dynamic_state)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   t->guile_mode = 1;
 
@@ -470,7 +470,7 @@ on_thread_exit (void *v)
   /* This handler is executed in non-guile mode.  Note that although
      libgc isn't guaranteed to see thread-locals, for this thread-local
      that isn't an issue as we have the all_threads list.  */
-  scm_i_thread *t = (scm_i_thread *) v, **tp;
+  scm_thread *t = (scm_thread *) v, **tp;
 
   t->exited = 1;
 
@@ -636,7 +636,7 @@ with_guile (struct GC_stack_base *base, void *data)
 {
   void *res;
   int new_thread;
-  scm_i_thread *t;
+  scm_thread *t;
   struct with_guile_args *args = data;
 
   new_thread = scm_i_init_thread_for_guile (base, args->dynamic_state);
@@ -702,7 +702,7 @@ void *
 scm_without_guile (void *(*func)(void *), void *data)
 {
   void *result;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   if (t->guile_mode)
     {
@@ -775,7 +775,7 @@ unprotect_launch_data (launch_data *data)
 static void *
 really_launch (void *d)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   unprotect_launch_data (d);
   /* The thread starts with asyncs blocked.  */
   t->block_asyncs++;
@@ -995,7 +995,7 @@ scm_lock_mutex (SCM mx)
 
 static inline SCM
 lock_mutex (enum scm_mutex_kind kind, struct scm_mutex *m,
-            scm_i_thread *current_thread, scm_t_timespec *waittime)
+            scm_thread *current_thread, scm_t_timespec *waittime)
 #define FUNC_NAME "lock-mutex"
 {
   scm_i_scm_pthread_mutex_lock (&m->lock);
@@ -1066,7 +1066,7 @@ SCM_DEFINE (scm_timed_lock_mutex, "lock-mutex", 1, 1, 0,
 {
   scm_t_timespec cwaittime, *waittime = NULL;
   struct scm_mutex *m;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   SCM ret;
 
   SCM_VALIDATE_MUTEX (1, mutex);
@@ -1132,7 +1132,7 @@ scm_try_mutex (SCM mutex)
    against the mutex kind.  */
 static inline void
 unlock_mutex (enum scm_mutex_kind kind, struct scm_mutex *m,
-              scm_i_thread *current_thread)
+              scm_thread *current_thread)
 #define FUNC_NAME "unlock-mutex"
 {
   scm_i_scm_pthread_mutex_lock (&m->lock);
@@ -1173,7 +1173,7 @@ SCM_DEFINE (scm_unlock_mutex, "unlock-mutex", 1, 0, 0, (SCM mutex),
 #define FUNC_NAME s_scm_unlock_mutex
 {
   struct scm_mutex *m;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
 
   SCM_VALIDATE_MUTEX (1, mutex);
 
@@ -1296,7 +1296,7 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 
 static inline SCM
 timed_wait (enum scm_mutex_kind kind, struct scm_mutex *m, struct scm_cond *c,
-            scm_i_thread *current_thread, scm_t_timespec *waittime)
+            scm_thread *current_thread, scm_t_timespec *waittime)
 #define FUNC_NAME "wait-condition-variable"
 {
   scm_i_scm_pthread_mutex_lock (&m->lock);
@@ -1405,7 +1405,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
   scm_t_timespec waittime_val, *waittime = NULL;
   struct scm_cond *c;
   struct scm_mutex *m;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   SCM ret;
 
   SCM_VALIDATE_CONDVAR (1, cond);
@@ -1520,7 +1520,7 @@ scm_std_select (int nfds,
 {
   fd_set my_readfds;
   int res, eno, wakeup_fd;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   struct select_args args;
 
   if (readfds == NULL)
@@ -1684,7 +1684,7 @@ SCM_DEFINE (scm_all_threads, "all-threads", 0, 0, 0,
      of the way GC is done.
   */
   int n = thread_count;
-  scm_i_thread *t;
+  scm_thread *t;
   SCM list = scm_c_make_list (n, SCM_UNSPECIFIED), *l;
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
@@ -1717,7 +1717,7 @@ int
 scm_c_thread_exited_p (SCM thread)
 #define FUNC_NAME  s_scm_thread_exited_p
 {
-  scm_i_thread *t;
+  scm_thread *t;
   SCM_VALIDATE_THREAD (1, thread);
   t = SCM_I_THREAD_DATA (thread);
   return t->exited;
@@ -1812,7 +1812,7 @@ scm_init_ice_9_threads (void *unused)
 void
 scm_init_threads ()
 {
-  scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_i_thread));
+  scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_thread));
   scm_set_smob_print (scm_tc16_thread, thread_print);
 
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (struct scm_mutex));

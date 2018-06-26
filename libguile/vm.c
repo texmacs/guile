@@ -185,7 +185,7 @@ scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
 SCM
 scm_i_capture_current_stack (void)
 {
-  scm_i_thread *thread;
+  scm_thread *thread;
   struct scm_vm *vp;
 
   thread = SCM_I_CURRENT_THREAD;
@@ -661,7 +661,7 @@ scm_i_call_with_current_continuation (SCM proc)
 #undef VM_USE_HOOKS
 #undef VM_NAME
 
-typedef SCM (*scm_t_vm_engine) (scm_i_thread *current_thread,
+typedef SCM (*scm_t_vm_engine) (scm_thread *current_thread,
                                 jmp_buf *registers, int resume);
 
 static const scm_t_vm_engine vm_engines[SCM_VM_NUM_ENGINES] =
@@ -1076,13 +1076,13 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
 }
 
 static uint32_t
-frame_locals_count (scm_i_thread *thread)
+frame_locals_count (scm_thread *thread)
 {
   return SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp);
 }
 
 static void
-thread_expand_stack (scm_i_thread *thread, union scm_vm_stack_element *new_sp)
+thread_expand_stack (scm_thread *thread, union scm_vm_stack_element *new_sp)
 {
   vm_expand_stack (&thread->vm, new_sp);
 }
@@ -1091,7 +1091,7 @@ thread_expand_stack (scm_i_thread *thread, union scm_vm_stack_element *new_sp)
    it seems to be necessary for perf; the inlined version avoids the
    needs to flush IP in the common case.  */
 static void
-alloc_frame (scm_i_thread *thread, uint32_t nlocals)
+alloc_frame (scm_thread *thread, uint32_t nlocals)
 {
   union scm_vm_stack_element *sp = thread->vm.fp - nlocals;
 
@@ -1107,7 +1107,7 @@ alloc_frame (scm_i_thread *thread, uint32_t nlocals)
 }
 
 static uint32_t
-compute_kwargs_npositional (scm_i_thread *thread, uint32_t nreq, uint32_t nopt)
+compute_kwargs_npositional (scm_thread *thread, uint32_t nreq, uint32_t nopt)
 {
   uint32_t npositional, nargs;
 
@@ -1129,7 +1129,7 @@ compute_kwargs_npositional (scm_i_thread *thread, uint32_t nreq, uint32_t nopt)
 }
 
 static void
-bind_kwargs (scm_i_thread *thread, uint32_t npositional, uint32_t nlocals,
+bind_kwargs (scm_thread *thread, uint32_t npositional, uint32_t nlocals,
              SCM kwargs, uint8_t strict, uint8_t allow_other_keys)
 {
   uint32_t nargs, nkw, n;
@@ -1193,7 +1193,7 @@ bind_kwargs (scm_i_thread *thread, uint32_t npositional, uint32_t nlocals,
 }
 
 static SCM
-cons_rest (scm_i_thread *thread, uint32_t base)
+cons_rest (scm_thread *thread, uint32_t base)
 {
   SCM rest = SCM_EOL;
   uint32_t n = frame_locals_count (thread) - base;
@@ -1206,7 +1206,7 @@ cons_rest (scm_i_thread *thread, uint32_t base)
 }
 
 static void
-push_interrupt_frame (scm_i_thread *thread)
+push_interrupt_frame (scm_thread *thread)
 {
   union scm_vm_stack_element *old_fp;
   size_t old_frame_size = frame_locals_count (thread);
@@ -1256,10 +1256,10 @@ vm_return_to_continuation_inner (void *data_ptr)
   return NULL;
 }
 
-static void reinstate_continuation_x (scm_i_thread *thread, SCM cont) SCM_NORETURN;
+static void reinstate_continuation_x (scm_thread *thread, SCM cont) SCM_NORETURN;
 
 static void
-reinstate_continuation_x (scm_i_thread *thread, SCM cont)
+reinstate_continuation_x (scm_thread *thread, SCM cont)
 {
   scm_t_contregs *continuation = scm_i_contregs (cont);
   struct scm_vm *vp = &thread->vm;
@@ -1301,7 +1301,7 @@ reinstate_continuation_x (scm_i_thread *thread, SCM cont)
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
-  scm_i_thread *thread;
+  scm_thread *thread;
   struct scm_vm *vp;
   union scm_vm_stack_element *return_fp, *call_fp;
   /* Since nargs can only describe the length of a valid argv array in
@@ -1371,7 +1371,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 
 #define VM_DEFINE_HOOK(n)				\
 {							\
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;		\
+  scm_thread *t = SCM_I_CURRENT_THREAD;                 \
   if (scm_is_false (t->vm.hooks[n]))			\
     t->vm.hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
   return t->vm.hooks[n];				\
@@ -1550,7 +1550,7 @@ SCM_DEFINE (scm_call_with_stack_overflow_handler,
             "@code{call-with-stack-overflow-handler} was called.")
 #define FUNC_NAME s_scm_call_with_stack_overflow_handler
 {
-  struct scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  struct scm_thread *t = SCM_I_CURRENT_THREAD;
   ptrdiff_t c_limit, stack_size;
   struct overflow_handler_data data;
   SCM new_limit, ret;

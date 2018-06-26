@@ -82,7 +82,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
 {
   SCM eh, prompt_tag;
   SCM res;
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_thread *t = SCM_I_CURRENT_THREAD;
   scm_t_dynstack *dynstack = &t->dynstack;
   scm_t_dynamic_state *dynamic_state = t->dynamic_state;
   jmp_buf registers;

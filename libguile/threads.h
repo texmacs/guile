@@ -48,8 +48,8 @@ SCM_API scm_t_bits scm_tc16_condvar;
 
 struct scm_thread_wake_data;
 
-struct scm_i_thread {
-  struct scm_i_thread *next_thread;
+struct scm_thread {
+  struct scm_thread *next_thread;
 
   SCM handle;
   scm_i_pthread_t pthread;
@@ -108,7 +108,7 @@ struct scm_i_thread {
 };
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)
-#define SCM_I_THREAD_DATA(x)  ((scm_i_thread *) SCM_SMOB_DATA (x))
+#define SCM_I_THREAD_DATA(x)  ((scm_thread *) SCM_SMOB_DATA (x))
 
 #define SCM_VALIDATE_THREAD(pos, a) \
   scm_assert_smob_type (scm_tc16_thread, (a))
@@ -171,13 +171,13 @@ SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
 
 # ifdef SCM_HAVE_THREAD_STORAGE_CLASS
 
-SCM_INTERNAL SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread;
+SCM_INTERNAL SCM_THREAD_LOCAL scm_thread *scm_i_current_thread;
 #  define SCM_I_CURRENT_THREAD (scm_i_current_thread)
 
 # else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
 #  define SCM_I_CURRENT_THREAD						\
-    ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
+    ((scm_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
 
 # endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 

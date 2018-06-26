@@ -107,6 +107,8 @@ typedef uintptr_t scm_t_uintptr SCM_DEPRECATED_TYPE;
 typedef int64_t scm_t_int64 SCM_DEPRECATED_TYPE;
 typedef uint64_t scm_t_uint64 SCM_DEPRECATED_TYPE;
 typedef ptrdiff_t scm_t_ptrdiff SCM_DEPRECATED_TYPE;
+
+typedef struct scm_thread scm_i_thread SCM_DEPRECATED_TYPE;
 #undef SCM_DEPRECATED_TYPE
 
 void scm_i_init_deprecated (void);

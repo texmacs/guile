@@ -39,7 +39,7 @@ scm_dynamic_wind (SCM in_guard, SCM thunk, SCM out_guard)
 #define FUNC_NAME "dynamic-wind"
 {
   SCM ans;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   SCM_ASSERT (scm_is_true (scm_thunk_p (out_guard)), out_guard,
 	      SCM_ARG3, FUNC_NAME);
@@ -60,7 +60,7 @@ scm_dynamic_wind (SCM in_guard, SCM thunk, SCM out_guard)
 void
 scm_dynwind_begin (scm_t_dynwind_flags flags)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   scm_dynstack_push_frame (&thread->dynstack, flags);
 }
@@ -75,7 +75,7 @@ void
 scm_dynwind_unwind_handler (void (*proc) (void *), void *data,
 			    scm_t_wind_flags flags)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_dynstack *dynstack = &thread->dynstack;
 
   scm_dynstack_push_unwinder (dynstack, flags, proc, data);
@@ -85,7 +85,7 @@ void
 scm_dynwind_rewind_handler (void (*proc) (void *), void *data,
 			    scm_t_wind_flags flags)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_dynstack *dynstack = &thread->dynstack;
 
   scm_dynstack_push_rewinder (dynstack, 0, proc, data);

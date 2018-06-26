@@ -124,7 +124,7 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 #endif
 
 static void
-capture_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
+capture_auxiliary_stack (scm_thread *thread, scm_t_contregs *continuation)
 {
 #if SCM_HAVE_AUXILIARY_STACK
 # if !(defined __ia64 or defined __ia64__)
@@ -158,7 +158,7 @@ capture_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
 }
 
 static void
-restore_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
+restore_auxiliary_stack (scm_thread *thread, scm_t_contregs *continuation)
 {
 #if SCM_HAVE_AUXILIARY_STACK
   memcpy (thread->auxiliary_stack_base, continuation->auxiliary_stack,
@@ -167,7 +167,7 @@ restore_auxiliary_stack (scm_i_thread *thread, scm_t_contregs *continuation)
 }
 
 SCM 
-scm_i_make_continuation (jmp_buf *registers, scm_i_thread *thread, SCM vm_cont)
+scm_i_make_continuation (jmp_buf *registers, scm_thread *thread, SCM vm_cont)
 {
   SCM cont;
   scm_t_contregs *continuation;
@@ -277,7 +277,7 @@ copy_stack_and_call (scm_t_contregs *continuation,
 {
   scm_t_dynstack *dynstack;
   scm_t_bits *joint;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
 
   dynstack = SCM_VM_CONT_DATA (continuation->vm_cont)->dynstack;
 
@@ -299,7 +299,7 @@ copy_stack_and_call (scm_t_contregs *continuation,
 static void 
 scm_dynthrow (SCM cont)
 {
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
   SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
@@ -333,7 +333,7 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
 				 void *pre_unwind_handler_data)
 {
   SCM_STACKITEM stack_item;
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
   SCM old_controot;
   SCM_STACKITEM *old_contbase;
   SCM result;

@@ -25,7 +25,6 @@
 #endif
 
 #include <libguile/scm.h>
-#include <libguile/threads.h>
 
 
 typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
@@ -37,22 +36,22 @@ typedef uint64_t (*scm_t_u64_from_scm_intrinsic) (SCM);
 typedef int64_t (*scm_t_s64_from_scm_intrinsic) (SCM);
 typedef SCM (*scm_t_scm_from_u64_intrinsic) (uint64_t);
 typedef SCM (*scm_t_scm_from_s64_intrinsic) (int64_t);
-typedef void (*scm_t_thread_intrinsic) (scm_i_thread*);
-typedef void (*scm_t_thread_scm_intrinsic) (scm_i_thread*, SCM);
-typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_i_thread*, SCM, SCM);
-typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_i_thread*, SCM);
+typedef void (*scm_t_thread_intrinsic) (scm_thread*);
+typedef void (*scm_t_thread_scm_intrinsic) (scm_thread*, SCM);
+typedef void (*scm_t_thread_scm_scm_intrinsic) (scm_thread*, SCM, SCM);
+typedef SCM (*scm_t_scm_from_thread_scm_intrinsic) (scm_thread*, SCM);
 typedef SCM (*scm_t_scm_from_scm_u64_intrinsic) (SCM, uint64_t);
 typedef int (*scm_t_bool_from_scm_scm_intrinsic) (SCM, SCM);
 typedef enum scm_compare (*scm_t_compare_from_scm_scm_intrinsic) (SCM, SCM);
-typedef void (*scm_t_thread_sp_intrinsic) (scm_i_thread*, union scm_vm_stack_element*);
-typedef SCM (*scm_t_scm_from_thread_u32_intrinsic) (scm_i_thread*, uint32_t);
-typedef uint32_t (*scm_t_u32_from_thread_u32_u32_intrinsic) (scm_i_thread*, uint32_t, uint32_t);
-typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_t,
+typedef void (*scm_t_thread_sp_intrinsic) (scm_thread*, union scm_vm_stack_element*);
+typedef SCM (*scm_t_scm_from_thread_u32_intrinsic) (scm_thread*, uint32_t);
+typedef uint32_t (*scm_t_u32_from_thread_u32_u32_intrinsic) (scm_thread*, uint32_t, uint32_t);
+typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_thread*, uint32_t,
                                                           uint32_t, SCM, uint8_t,
                                                           uint8_t);
 typedef SCM (*scm_t_scm_from_scm_scm_scmp_sp_intrinsic) (SCM, SCM, SCM*,
                                                          const union scm_vm_stack_element*);
-typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_i_thread*, SCM) SCM_NORETURN;
+typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORETURN;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \

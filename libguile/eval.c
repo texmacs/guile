@@ -436,7 +436,7 @@ eval (SCM x, SCM env)
 
     case SCM_M_CALL_WITH_PROMPT:
       {
-        scm_i_thread *t;
+        scm_thread *t;
         SCM k, handler, res;
         jmp_buf registers;
         const void *prev_cookie;

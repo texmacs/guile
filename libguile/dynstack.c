@@ -31,6 +31,7 @@
 #include "eval.h"
 #include "fluids.h"
 #include "variable.h"
+#include "threads.h"
 
 #include "dynstack.h"
 
