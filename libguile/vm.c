@@ -334,7 +334,6 @@ static void vm_throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM
 
 static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (uint32_t inst) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
@@ -388,13 +387,6 @@ static void
 vm_error_bad_instruction (uint32_t inst)
 {
   vm_error ("VM: Bad instruction: ~s", scm_from_uint32 (inst));
-}
-
-static void
-vm_error_apply_to_non_list (SCM x)
-{
-  scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
-             scm_list_1 (x), scm_list_1 (x));
 }
 
 static void
@@ -1310,6 +1302,18 @@ compose_continuation (scm_thread *thread, jmp_buf *registers, SCM cont)
   }
 }
 
+static int
+rest_arg_length (SCM x)
+{
+  int len = scm_ilength (x);
+
+  if (SCM_UNLIKELY (len < 0))
+    scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
+               scm_list_1 (x), scm_list_1 (x));
+
+  return len;
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1656,6 +1660,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.reinstate_continuation_x = reinstate_continuation_x;
   scm_vm_intrinsics.capture_continuation = capture_continuation;
   scm_vm_intrinsics.compose_continuation = compose_continuation;
+  scm_vm_intrinsics.rest_arg_length = rest_arg_length;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");

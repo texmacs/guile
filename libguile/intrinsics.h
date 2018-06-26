@@ -56,6 +56,7 @@ typedef SCM (*scm_t_scm_from_scm_scm_scmp_sp_intrinsic) (SCM, SCM, SCM*,
 typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORETURN;
 typedef SCM (*scm_t_scm_from_thread_regs_intrinsic) (scm_thread*, jmp_buf*);
 typedef void (*scm_t_thread_regs_scm_intrinsic) (scm_thread*, jmp_buf*, SCM);
+typedef int (*scm_t_int_from_scm_intrinsic) (SCM);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -109,6 +110,7 @@ typedef void (*scm_t_thread_regs_scm_intrinsic) (scm_thread*, jmp_buf*, SCM);
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
   M(scm_from_thread_regs, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
   M(thread_regs_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
+  M(int_from_scm, rest_arg_length, "rest-arg-length", REST_ARG_LENGTH) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
