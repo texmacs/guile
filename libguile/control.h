@@ -22,7 +22,7 @@
 
 #include <setjmp.h>
 
-#include "libguile/vm.h"
+#include "libguile/scm.h"
 
 
 SCM_INTERNAL SCM scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,

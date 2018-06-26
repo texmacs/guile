@@ -41,6 +41,7 @@
 #include "eval.h"
 #include "fluids.h"
 #include "foreign.h"
+#include "frames.h"
 #include "goops.h"
 #include "gsubr.h"
 #include "hashtab.h"

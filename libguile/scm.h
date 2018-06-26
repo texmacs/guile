@@ -824,6 +824,9 @@ typedef struct scm_dynamic_state scm_t_dynamic_state;
 typedef struct scm_print_state scm_print_state;
 typedef struct scm_dynstack scm_t_dynstack;
 typedef int32_t scm_t_wchar;
+struct scm_frame;
+struct scm_vm;
+union scm_vm_stack_element;
 
 
 

@@ -25,6 +25,7 @@
 
 #include "dynstack.h"
 #include "extensions.h"
+#include "frames.h"
 #include "gsubr.h"
 #include "instructions.h"
 #include "list.h"

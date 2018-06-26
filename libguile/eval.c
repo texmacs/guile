@@ -37,6 +37,7 @@
 #include "eq.h"
 #include "expand.h"
 #include "feature.h"
+#include "frames.h"
 #include "fluids.h"
 #include "goops.h"
 #include "gsubr.h"

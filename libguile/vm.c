@@ -41,6 +41,7 @@
 #include "atomics-internal.h"
 #include "bdw-gc.h"
 #include "cache-internal.h"
+#include "continuations.h"
 #include "control.h"
 #include "dynwind.h"
 #include "eval.h"

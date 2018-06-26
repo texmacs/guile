@@ -98,8 +98,6 @@ SCM_INTERNAL SCM scm_pointer_to_string (SCM pointer, SCM length, SCM encoding);
    arguments.
  */
 
-union scm_vm_stack_element;
-
 SCM_API SCM scm_pointer_to_procedure (SCM return_type, SCM func_ptr,
 				      SCM arg_types);
 SCM_API SCM scm_pointer_to_procedure_with_errno (SCM return_type, SCM func_ptr,

@@ -24,6 +24,7 @@
 
 #include <setjmp.h>
 
+#include "libguile/programs.h"
 #include "libguile/throw.h"
 
 

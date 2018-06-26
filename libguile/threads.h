@@ -29,7 +29,6 @@
 #include "libguile/dynstack.h"
 #include "libguile/iselect.h"
 #include "libguile/smob.h"
-#include "libguile/continuations.h"
 #include "libguile/vm.h"
 
 #if SCM_USE_PTHREAD_THREADS
