@@ -1403,11 +1403,11 @@ abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
   vp->sp = sp;
   vp->ip = ip;
 
-  /* Jump! */
-  longjmp (*registers, 1);
-
-  /* Shouldn't get here */
-  abort ();
+  /* If there are intervening C frames, then jump over them, making a
+     nonlocal exit.  Otherwise fall through and let the VM pick up where
+     it left off.  */
+  if (current_registers != registers)
+    longjmp (*registers, 1);
 }
 
 SCM

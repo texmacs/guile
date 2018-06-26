@@ -788,8 +788,12 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       SYNC_IP ();
       scm_vm_intrinsics.abort_to_prompt (thread, registers);
 
-      /* vm_abort should not return */
-      abort ();
+      /* If abort_to_prompt returned, that means there were no
+         intervening C frames to jump over, so we just continue
+         directly.  */
+      CACHE_REGISTER ();
+      ABORT_CONTINUATION_HOOK ();
+      NEXT (0);
     }
 
   /* builtin-ref dst:12 idx:12
