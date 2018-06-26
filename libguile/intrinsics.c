@@ -269,6 +269,45 @@ lookup (SCM module, SCM name)
   return scm_module_variable (module, name);
 }
 
+static void throw_ (SCM key, SCM args) SCM_NORETURN;
+static void throw_with_value (SCM val, SCM key_subr_and_message) SCM_NORETURN;
+static void throw_with_value_and_data (SCM val, SCM key_subr_and_message) SCM_NORETURN;
+
+static void
+throw_ (SCM key, SCM args)
+{
+  scm_throw (key, args);
+  abort(); /* not reached */
+}
+
+static void
+throw_with_value (SCM val, SCM key_subr_and_message)
+{
+  SCM key, subr, message, args, data;
+
+  key = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 0);
+  subr = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 1);
+  message = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 2);
+  args = scm_list_1 (val);
+  data = SCM_BOOL_F;
+
+  throw_ (key, scm_list_4 (subr, message, args, data));
+}
+
+static void
+throw_with_value_and_data (SCM val, SCM key_subr_and_message)
+{
+  SCM key, subr, message, args, data;
+
+  key = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 0);
+  subr = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 1);
+  message = SCM_SIMPLE_VECTOR_REF (key_subr_and_message, 2);
+  args = scm_list_1 (val);
+  data = args;
+
+  throw_ (key, scm_list_4 (subr, message, args, data));
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -314,6 +353,9 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.resolve_module = resolve_module;
   scm_vm_intrinsics.lookup = lookup;
   scm_vm_intrinsics.define_x = scm_module_ensure_local_variable;
+  scm_vm_intrinsics.throw_ = throw_;
+  scm_vm_intrinsics.throw_with_value = throw_with_value;
+  scm_vm_intrinsics.throw_with_value_and_data = throw_with_value_and_data;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

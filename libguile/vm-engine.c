@@ -832,7 +832,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       args = SP_REF (b);
 
       SYNC_IP ();
-      vm_throw (key, args);
+      scm_vm_intrinsics.throw_ (key, args);
 
       abort (); /* never reached */
     }
@@ -861,7 +861,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
 
       SYNC_IP ();
-      vm_throw_with_value (val, key_subr_and_message);
+      scm_vm_intrinsics.throw_with_value (val, key_subr_and_message);
 
       abort (); /* never reached */
     }
@@ -890,7 +890,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
 
       SYNC_IP ();
-      vm_throw_with_value_and_data (val, key_subr_and_message);
+      scm_vm_intrinsics.throw_with_value_and_data (val, key_subr_and_message);
 
       abort (); /* never reached */
     }
