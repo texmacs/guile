@@ -303,26 +303,6 @@ static void vm_dispatch_abort_hook (struct scm_vm *vp)
                            vp->sp, SCM_FRAME_NUM_LOCALS (vp->fp, vp->sp) - 1);
 }
 
-static void
-vm_abort (struct scm_vm *vp, SCM tag, size_t nargs,
-          jmp_buf *current_registers) SCM_NORETURN;
-
-static void
-vm_abort (struct scm_vm *vp, SCM tag, size_t nargs,
-          jmp_buf *current_registers)
-{
-  size_t i;
-  SCM *argv;
-  
-  argv = alloca (nargs * sizeof (SCM));
-  for (i = 0; i < nargs; i++)
-    argv[i] = vp->sp[nargs - i - 1].as_scm;
-
-  vp->sp = vp->fp;
-
-  scm_c_abort (vp, tag, nargs, argv, current_registers);
-}
-
 
 /*
  * VM Error Handling
@@ -1314,6 +1294,129 @@ rest_arg_length (SCM x)
   return len;
 }
 
+static SCM
+capture_delimited_continuation (struct scm_vm *vp,
+                                union scm_vm_stack_element *saved_fp,
+                                union scm_vm_stack_element *saved_sp,
+                                uint32_t *saved_ip,
+                                jmp_buf *saved_registers,
+                                scm_t_dynstack *dynstack,
+                                jmp_buf *current_registers)
+{
+  SCM vm_cont;
+  uint32_t flags;
+  union scm_vm_stack_element *base_fp;
+
+  flags = SCM_F_VM_CONT_PARTIAL;
+  /* If we are aborting to a prompt that has the same registers as those
+     of the abort, it means there are no intervening C frames on the
+     stack, and so the continuation can be relocated elsewhere on the
+     stack: it is rewindable.  */
+  if (saved_registers && saved_registers == current_registers)
+    flags |= SCM_F_VM_CONT_REWINDABLE;
+
+  /* Walk the stack until we find the first frame newer than saved_fp.
+     We will save the stack until that frame.  It used to be that we
+     could determine the stack base in O(1) time, but that's no longer
+     the case, since the thunk application doesn't occur where the
+     prompt is saved.  */
+  for (base_fp = vp->fp;
+       SCM_FRAME_DYNAMIC_LINK (base_fp) < saved_fp;
+       base_fp = SCM_FRAME_DYNAMIC_LINK (base_fp));
+
+  if (SCM_FRAME_DYNAMIC_LINK (base_fp) != saved_fp)
+    abort();
+
+  scm_dynstack_relocate_prompts (dynstack, vp->stack_top - base_fp);
+
+  /* Capture from the base_fp to the top thunk application frame. */
+  vm_cont = scm_i_vm_capture_stack (base_fp, vp->fp, vp->sp, vp->ip, dynstack,
+                                    flags);
+
+  return scm_i_make_composable_continuation (vm_cont);
+}
+
+void
+scm_i_vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
+                jmp_buf *current_registers)
+{
+  SCM cont;
+  scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
+  scm_t_bits *prompt;
+  scm_t_dynstack_prompt_flags flags;
+  ptrdiff_t fp_offset, sp_offset;
+  union scm_vm_stack_element *fp, *sp;
+  uint32_t *ip;
+  jmp_buf *registers;
+  size_t i;
+
+  prompt = scm_dynstack_find_prompt (dynstack, tag,
+                                     &flags, &fp_offset, &sp_offset, &ip,
+                                     &registers);
+
+  if (!prompt)
+    scm_misc_error ("abort", "Abort to unknown prompt", scm_list_1 (tag));
+
+  fp = vp->stack_top - fp_offset;
+  sp = vp->stack_top - sp_offset;
+
+  /* Only reify if the continuation referenced in the handler. */
+  if (flags & SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY)
+    cont = SCM_BOOL_F;
+  else
+    {
+      scm_t_dynstack *captured;
+
+      captured = scm_dynstack_capture (dynstack, SCM_DYNSTACK_NEXT (prompt));
+      cont = capture_delimited_continuation (vp, fp, sp, ip, registers, captured,
+                                             current_registers);
+    }
+
+  /* Unwind.  */
+  scm_dynstack_unwind (dynstack, prompt);
+
+  /* Restore VM regs */
+  vp->fp = fp;
+  vp->sp = sp - n - 1;
+  vp->ip = ip;
+
+  /* Since we're jumping down, we should always have enough space.  */
+  if (vp->sp < vp->stack_limit)
+    abort ();
+
+  /* Push vals */
+  vp->sp[n].as_scm = cont;
+  for (i = 0; i < n; i++)
+    vp->sp[n - i - 1].as_scm = argv[i];
+
+  /* Jump! */
+  longjmp (*registers, 1);
+
+  /* Shouldn't get here */
+  abort ();
+}
+
+static void
+abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
+{
+  struct scm_vm *vp = &thread->vm;
+  SCM tag;
+  size_t nargs, i;
+  SCM *argv;
+
+  tag = SCM_FRAME_LOCAL (vp->fp, 1);
+  nargs = frame_locals_count (thread) - 2;
+
+  /* FIXME: Avoid this alloca.  */
+  argv = alloca (nargs * sizeof (SCM));
+  for (i = 0; i < nargs; i++)
+    argv[i] = vp->sp[nargs - i - 1].as_scm;
+
+  vp->sp = vp->fp;
+
+  scm_i_vm_abort (vp, tag, nargs, argv, current_registers);
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1661,6 +1764,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.capture_continuation = capture_continuation;
   scm_vm_intrinsics.compose_continuation = compose_continuation;
   scm_vm_intrinsics.rest_arg_length = rest_arg_length;
+  scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");

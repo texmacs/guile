@@ -20,16 +20,14 @@
 #ifndef SCM_CONTROL_H
 #define SCM_CONTROL_H
 
-#include <setjmp.h>
-
 #include "libguile/scm.h"
 
 
 SCM_INTERNAL SCM scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,
                                                 ptrdiff_t saved_stack_depth);
 
-SCM_INTERNAL void scm_c_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
-                               jmp_buf *registers) SCM_NORETURN;
+SCM_INTERNAL SCM scm_i_make_composable_continuation (SCM vmcont);
+
 SCM_INTERNAL SCM scm_abort_to_prompt_star (SCM tag, SCM args) SCM_NORETURN;
 
 

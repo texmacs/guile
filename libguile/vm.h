@@ -20,6 +20,8 @@
 #ifndef _SCM_VM_H_
 #define _SCM_VM_H_
 
+#include <setjmp.h>
+
 #include <libguile/gc.h>
 #include <libguile/programs.h>
 
@@ -120,6 +122,8 @@ SCM_INTERNAL SCM scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
                                          uint32_t *ra,
                                          scm_t_dynstack *dynstack,
                                          uint32_t flags);
+SCM_INTERNAL void scm_i_vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
+                                  jmp_buf *registers) SCM_NORETURN;
 SCM_INTERNAL int scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
                                        scm_print_state *pstate);

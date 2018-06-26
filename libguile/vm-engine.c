@@ -781,15 +781,12 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (16, abort, "abort", OP1 (X32))
     {
-      uint32_t nlocals = FRAME_LOCALS_COUNT ();
-
-      ASSERT (nlocals >= 2);
       /* FIXME: Really we should capture the caller's registers.  Until
          then, manually advance the IP so that when the prompt resumes,
          it continues with the next instruction.  */
       ip++;
       SYNC_IP ();
-      vm_abort (VP, FP_REF (1), nlocals - 2, registers);
+      scm_vm_intrinsics.abort_to_prompt (thread, registers);
 
       /* vm_abort should not return */
       abort ();

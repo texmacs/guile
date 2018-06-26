@@ -195,7 +195,7 @@ abort_to_prompt (SCM prompt_tag, SCM tag, SCM args)
   for (i = 1; i < n; i++, args = scm_cdr (args))
     argv[i] = scm_car (args);
 
-  scm_c_abort (&SCM_I_CURRENT_THREAD->vm, prompt_tag, n, argv, NULL);
+  scm_i_vm_abort (&SCM_I_CURRENT_THREAD->vm, prompt_tag, n, argv, NULL);
 
   /* Oh, what, you're still here? The abort must have been reinstated. Actually,
      that's quite impossible, given that we're already in C-land here, so...
