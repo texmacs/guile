@@ -645,7 +645,7 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
       pointer = SCM_PROGRAM_FREE_VARIABLE_REF (closure, ptr_idx);
 
       SYNC_IP ();
-      ret = scm_i_foreign_call (cif, pointer, &err, sp);
+      ret = scm_vm_intrinsics.foreign_call (cif, pointer, &err, sp);
       CACHE_SP ();
 
       ALLOC_FRAME (3);

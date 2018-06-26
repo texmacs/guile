@@ -17,14 +17,16 @@
    License along with Guile.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _SCM_VM_INTRINSICS_H_
-#define _SCM_VM_INTRINSICS_H_
+#ifndef _SCM_INTRINSICS_H_
+#define _SCM_INTRINSICS_H_
+
+#ifndef BUILDING_LIBGUILE
+#error intrinsics.h is private and uninstalled
+#endif
 
 #include <libguile/scm.h>
+#include <libguile/threads.h>
 
-#ifdef BUILDING_LIBGUILE
-
-#include <libguile/vm.h>
 
 typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
 typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, uint8_t);
@@ -48,6 +50,8 @@ typedef uint32_t (*scm_t_u32_from_thread_u32_u32_intrinsic) (scm_i_thread*, uint
 typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_t,
                                                           uint32_t, SCM, uint8_t,
                                                           uint8_t);
+typedef SCM (*scm_t_scm_from_scm_scm_intp_sp_intrinsic) (SCM, SCM, int*,
+                                                         const union scm_vm_stack_element*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -97,6 +101,7 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_
   M(u32_from_thread_u32_u32, compute_kwargs_npositional, "compute-kwargs-npositional", COMPUTE_KWARGS_NPOSITIONAL) \
   M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS) \
   M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
+  M(scm_from_scm_scm_intp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
@@ -114,11 +119,9 @@ SCM_INTERNAL struct scm_vm_intrinsics
 #undef DEFINE_MEMBER
 } scm_vm_intrinsics;
 
-#endif /* BUILDING_LIBGUILE  */
-
 SCM_INTERNAL SCM scm_intrinsic_list (void);
 
 SCM_INTERNAL void scm_bootstrap_intrinsics (void);
 SCM_INTERNAL void scm_init_intrinsics (void);
 
-#endif /* _SCM_VM_INTRINSICS_H_ */
+#endif /* _SCM_INTRINSICS_H_ */

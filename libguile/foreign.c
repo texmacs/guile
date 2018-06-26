@@ -38,6 +38,7 @@
 #include "finalizers.h"
 #include "gsubr.h"
 #include "instructions.h"
+#include "intrinsics.h"
 #include "keywords.h"
 #include "list.h"
 #include "modules.h"
@@ -870,7 +871,7 @@ cif_to_procedure (SCM cif, SCM func_ptr, int with_errno)
 /* Set *LOC to the foreign representation of X with TYPE.  */
 static void
 unpack (const ffi_type *type, void *loc, SCM x, int return_value_p)
-#define FUNC_NAME "scm_i_foreign_call"
+#define FUNC_NAME "foreign-call"
 {
   switch (type->type)
     {
@@ -1016,9 +1017,9 @@ pack (const ffi_type * type, const void *loc, int return_value_p)
 
 #define MAX(A, B) ((A) >= (B) ? (A) : (B))
 
-SCM
-scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
-                    const union scm_vm_stack_element *argv)
+static SCM
+foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
+              const union scm_vm_stack_element *argv)
 {
   /* FOREIGN is the pair that cif_to_procedure set as the 0th element of the
      objtable. */
@@ -1305,5 +1306,6 @@ scm_register_foreign (void)
                             "scm_init_foreign",
                             (scm_t_extension_init_func)scm_init_foreign,
                             NULL);
+  scm_vm_intrinsics.foreign_call = foreign_call;
   pointer_weak_refs = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
 }

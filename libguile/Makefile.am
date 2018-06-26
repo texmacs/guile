@@ -516,6 +516,7 @@ uninstall-hook:
 ## working.
 noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  elf.h						\
+                 intrinsics.h					\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
                  atomics-internal.h				\
@@ -631,7 +632,6 @@ modinclude_HEADERS =				\
 	init.h					\
 	inline.h				\
 	instructions.h				\
-	intrinsics.h				\
 	ioext.h					\
 	iselect.h				\
 	keywords.h				\
