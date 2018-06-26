@@ -52,6 +52,7 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_i_thread*, uint32_
                                                           uint8_t);
 typedef SCM (*scm_t_scm_from_scm_scm_intp_sp_intrinsic) (SCM, SCM, int*,
                                                          const union scm_vm_stack_element*);
+typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_i_thread*, SCM) SCM_NORETURN;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -102,6 +103,7 @@ typedef SCM (*scm_t_scm_from_scm_scm_intp_sp_intrinsic) (SCM, SCM, int*,
   M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS) \
   M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(scm_from_scm_scm_intp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
+  M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

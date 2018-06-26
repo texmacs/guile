@@ -193,7 +193,6 @@ scm_i_make_continuation (int *first, struct scm_vm *vp, SCM vm_cont)
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
-  continuation->vp = vp;
   continuation->vm_cont = vm_cont;
   saved_cookie = vp->resumable_prompt_cookie;
   capture_auxiliary_stack (thread, continuation);
@@ -236,16 +235,13 @@ scm_i_continuation_to_frame (SCM continuation, struct scm_frame *frame)
     return 0;
 }
 
-struct scm_vm *
-scm_i_contregs_vp (SCM contregs)
+scm_t_contregs *
+scm_i_contregs (SCM contregs)
 {
-  return SCM_CONTREGS (contregs)->vp;
-}
+  if (!SCM_CONTREGSP (contregs))
+    abort ();
 
-SCM
-scm_i_contregs_vm_cont (SCM contregs)
-{
-  return SCM_CONTREGS (contregs)->vm_cont;
+  return SCM_CONTREGS (contregs);
 }
 
 
@@ -336,24 +332,11 @@ scm_dynthrow (SCM cont)
   copy_stack_and_call (continuation, dst);
 }
 
-
-void
-scm_i_check_continuation (SCM cont)
-{
-  scm_i_thread *thread = SCM_I_CURRENT_THREAD;
-  scm_t_contregs *continuation = SCM_CONTREGS (cont);
-
-  if (!scm_is_eq (continuation->root, thread->continuation_root))
-    scm_misc_error
-      ("%continuation-call", 
-       "invoking continuation would cross continuation barrier: ~A",
-       scm_list_1 (cont));
-}
-
 void
 scm_i_reinstate_continuation (SCM cont)
 {
   scm_dynthrow (cont);
+  abort (); /* Unreachable.  */
 }
 
 SCM

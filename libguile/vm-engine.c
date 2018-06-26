@@ -650,7 +650,7 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
 
       ALLOC_FRAME (3);
       SP_SET (1, ret);
-      SP_SET (0, scm_from_int (err));
+      SP_SET (0, scm_vm_intrinsics.s64_to_scm (err));
 
       NEXT (1);
     }
@@ -674,12 +674,7 @@ VM_NAME (scm_i_thread *thread, jmp_buf *registers, int resume)
         SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), contregs_idx);
 
       SYNC_IP ();
-      scm_i_check_continuation (contregs);
-      vm_return_to_continuation (scm_i_contregs_vp (contregs),
-                                 scm_i_contregs_vm_cont (contregs),
-                                 FRAME_LOCALS_COUNT_FROM (1),
-                                 sp);
-      scm_i_reinstate_continuation (contregs);
+      scm_vm_intrinsics.reinstate_continuation_x (thread, contregs);
 
       /* no NEXT */
       abort ();

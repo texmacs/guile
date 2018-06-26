@@ -182,63 +182,6 @@ scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
   return scm_cell (scm_tc7_vm_cont, (scm_t_bits) p);
 }
 
-struct return_to_continuation_data
-{
-  struct scm_vm_cont *cp;
-  struct scm_vm *vp;
-};
-
-/* Called with the GC lock to prevent the stack marker from traversing a
-   stack in an inconsistent state.  */
-static void *
-vm_return_to_continuation_inner (void *data_ptr)
-{
-  struct return_to_continuation_data *data = data_ptr;
-  struct scm_vm *vp = data->vp;
-  struct scm_vm_cont *cp = data->cp;
-
-  /* We know that there is enough space for the continuation, because we
-     captured it in the past.  However there may have been an expansion
-     since the capture, so we may have to re-link the frame
-     pointers.  */
-  memcpy (vp->stack_top - cp->stack_size,
-          cp->stack_bottom,
-          cp->stack_size * sizeof (*cp->stack_bottom));
-  vp->fp = vp->stack_top - cp->fp_offset;
-  vm_restore_sp (vp, vp->stack_top - cp->stack_size);
-
-  return NULL;
-}
-
-static void
-vm_return_to_continuation (struct scm_vm *vp, SCM cont, size_t n,
-                           union scm_vm_stack_element *argv)
-{
-  struct scm_vm_cont *cp;
-  union scm_vm_stack_element *argv_copy;
-  struct return_to_continuation_data data;
-
-  argv_copy = alloca (n * sizeof (*argv));
-  memcpy (argv_copy, argv, n * sizeof (*argv));
-
-  cp = SCM_VM_CONT_DATA (cont);
-
-  data.cp = cp;
-  data.vp = vp;
-  GC_call_with_alloc_lock (vm_return_to_continuation_inner, &data);
-
-  /* Now we have the continuation properly copied over.  We just need to
-     copy on an empty frame and the return values, as the continuation
-     expects.  */
-  vm_push_sp (vp, vp->sp - 3 - n);
-  vp->sp[n+2].as_scm = SCM_BOOL_F;
-  vp->sp[n+1].as_scm = SCM_BOOL_F;
-  vp->sp[n].as_scm = SCM_BOOL_F;
-  memcpy(vp->sp, argv_copy, n * sizeof (union scm_vm_stack_element));
-
-  vp->ip = cp->ra;
-}
-
 SCM
 scm_i_capture_current_stack (void)
 {
@@ -1285,6 +1228,76 @@ push_interrupt_frame (scm_i_thread *thread)
   SCM_FRAME_LOCAL (thread->vm.fp, 0) = proc;
 }
 
+struct return_to_continuation_data
+{
+  struct scm_vm_cont *cp;
+  struct scm_vm *vp;
+};
+
+/* Called with the GC lock to prevent the stack marker from traversing a
+   stack in an inconsistent state.  */
+static void *
+vm_return_to_continuation_inner (void *data_ptr)
+{
+  struct return_to_continuation_data *data = data_ptr;
+  struct scm_vm *vp = data->vp;
+  struct scm_vm_cont *cp = data->cp;
+
+  /* We know that there is enough space for the continuation, because we
+     captured it in the past.  However there may have been an expansion
+     since the capture, so we may have to re-link the frame
+     pointers.  */
+  memcpy (vp->stack_top - cp->stack_size,
+          cp->stack_bottom,
+          cp->stack_size * sizeof (*cp->stack_bottom));
+  vp->fp = vp->stack_top - cp->fp_offset;
+  vm_restore_sp (vp, vp->stack_top - cp->stack_size);
+
+  return NULL;
+}
+
+static void reinstate_continuation_x (scm_i_thread *thread, SCM cont) SCM_NORETURN;
+
+static void
+reinstate_continuation_x (scm_i_thread *thread, SCM cont)
+{
+  scm_t_contregs *continuation = scm_i_contregs (cont);
+  struct scm_vm *vp = &thread->vm;
+  struct scm_vm_cont *cp;
+  size_t n;
+  union scm_vm_stack_element *argv;
+  struct return_to_continuation_data data;
+
+  if (!scm_is_eq (continuation->root, thread->continuation_root))
+    scm_misc_error
+      ("%continuation-call",
+       "invoking continuation would cross continuation barrier: ~A",
+       scm_list_1 (cont));
+
+  n = frame_locals_count (thread) - 1,
+  argv = alloca (n * sizeof (*argv));
+  memcpy (argv, vp->sp, n * sizeof (*argv));
+
+  cp = SCM_VM_CONT_DATA (continuation->vm_cont);
+
+  data.cp = cp;
+  data.vp = vp;
+  GC_call_with_alloc_lock (vm_return_to_continuation_inner, &data);
+
+  /* Now we have the continuation properly copied over.  We just need to
+     copy on an empty frame and the return values, as the continuation
+     expects.  */
+  vm_push_sp (vp, vp->sp - 3 - n);
+  vp->sp[n+2].as_scm = SCM_BOOL_F;
+  vp->sp[n+1].as_scm = SCM_BOOL_F;
+  vp->sp[n].as_scm = SCM_BOOL_F;
+  memcpy(vp->sp, argv, n * sizeof (union scm_vm_stack_element));
+
+  vp->ip = cp->ra;
+
+  scm_i_reinstate_continuation (cont);
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1628,6 +1641,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.compute_kwargs_npositional = compute_kwargs_npositional;
   scm_vm_intrinsics.bind_kwargs = bind_kwargs;
   scm_vm_intrinsics.push_interrupt_frame = push_interrupt_frame;
+  scm_vm_intrinsics.reinstate_continuation_x = reinstate_continuation_x;
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");
