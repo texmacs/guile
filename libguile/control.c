@@ -94,16 +94,18 @@ SCM_DEFINE (scm_abort_to_prompt_star, "abort-to-prompt*", 2, 0, 0,
             "values in the list, @var{args}.")
 #define FUNC_NAME s_scm_abort_to_prompt_star
 {
-  SCM *argv;
+  SCM *tag_and_argv;
   size_t i;
   long n;
 
   SCM_VALIDATE_LIST_COPYLEN (SCM_ARG2, args, n);
-  argv = alloca (sizeof (SCM)*n);
-  for (i = 0; i < n; i++, args = scm_cdr (args))
-    argv[i] = scm_car (args);
+  n = n + 1; /* Add space for the tag.  */
+  tag_and_argv = alloca (sizeof (SCM)*(n+1));
+  tag_and_argv[0] = tag;
+  for (i = 1; i < n; i++, args = scm_cdr (args))
+    tag_and_argv[i] = scm_car (args);
 
-  scm_i_vm_abort (&SCM_I_CURRENT_THREAD->vm, tag, n, argv, NULL);
+  scm_i_vm_abort (tag_and_argv, n);
 
   /* Oh, what, you're still here? The abort must have been reinstated. Actually,
      that's quite impossible, given that we're already in C-land here, so...

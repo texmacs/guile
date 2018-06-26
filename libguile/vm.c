@@ -1337,8 +1337,16 @@ capture_delimited_continuation (struct scm_vm *vp,
 }
 
 void
-scm_i_vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
-                jmp_buf *current_registers)
+scm_i_vm_abort (SCM *tag_and_argv, size_t n)
+{
+  scm_call_n (vm_builtin_abort_to_prompt, tag_and_argv, n);
+  /* Unreachable.  */
+  abort ();
+}
+
+static void
+vm_abort (struct scm_vm *vp, SCM tag, size_t n, SCM *argv,
+          jmp_buf *current_registers)
 {
   SCM cont;
   scm_t_dynstack *dynstack = &SCM_I_CURRENT_THREAD->dynstack;
@@ -1414,7 +1422,7 @@ abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
 
   vp->sp = vp->fp;
 
-  scm_i_vm_abort (vp, tag, nargs, argv, current_registers);
+  vm_abort (vp, tag, nargs, argv, current_registers);
 }
 
 SCM

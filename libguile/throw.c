@@ -185,17 +185,18 @@ default_exception_handler (SCM k, SCM args)
 static void
 abort_to_prompt (SCM prompt_tag, SCM tag, SCM args)
 {
-  SCM *argv;
+  SCM *tag_and_argv;
   size_t i;
   long n;
 
-  n = scm_ilength (args) + 1;
-  argv = alloca (sizeof (SCM)*n);
-  argv[0] = tag;
-  for (i = 1; i < n; i++, args = scm_cdr (args))
-    argv[i] = scm_car (args);
+  n = scm_ilength (args) + 2;
+  tag_and_argv = alloca (sizeof (SCM)*n);
+  tag_and_argv[0] = prompt_tag;
+  tag_and_argv[1] = tag;
+  for (i = 2; i < n; i++, args = scm_cdr (args))
+    tag_and_argv[i] = scm_car (args);
 
-  scm_i_vm_abort (&SCM_I_CURRENT_THREAD->vm, prompt_tag, n, argv, NULL);
+  scm_i_vm_abort (tag_and_argv, n);
 
   /* Oh, what, you're still here? The abort must have been reinstated. Actually,
      that's quite impossible, given that we're already in C-land here, so...
