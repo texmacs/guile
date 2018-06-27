@@ -216,6 +216,9 @@ vm_dispatch_hook (scm_thread *thread, int hook_num, int n)
   int saved_trace_level;
   uint8_t saved_compare_result;
 
+  if (vp->trace_level <= 0 || vp->engine != SCM_VM_DEBUG_ENGINE)
+    return;
+
   hook = vp->hooks[hook_num];
 
   if (SCM_LIKELY (scm_is_false (hook))
@@ -1418,7 +1421,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
       {
         scm_gc_after_nonlocal_exit ();
         /* Non-local return.  */
-        if (vp->engine == SCM_VM_DEBUG_ENGINE && vp->trace_level > 0)
+        if (vp->trace_level)
           vm_dispatch_abort_hook (thread);
       }
     else
@@ -1429,7 +1432,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
           /* FIXME: Make this return an IP.  */
           apply_non_program (thread);
 
-        if (vp->engine == SCM_VM_DEBUG_ENGINE && vp->trace_level > 0)
+        if (vp->trace_level)
           vm_dispatch_apply_hook (thread);
       }
 

@@ -112,7 +112,7 @@
 #if VM_USE_HOOKS
 #define RUN_HOOK(exp)                                   \
   do {                                                  \
-    if (SCM_UNLIKELY (VP->trace_level > 0))             \
+    if (SCM_UNLIKELY (VP->trace_level))                 \
       {                                                 \
         SYNC_IP ();                                     \
         exp;                                            \
