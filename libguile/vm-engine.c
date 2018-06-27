@@ -110,19 +110,6 @@
 #endif
 
 #if VM_USE_HOOKS
-#define GOTO_HOOK(h)                                    \
-  do {                                                  \
-    if (SCM_UNLIKELY (VP->trace_level))                 \
-      goto run_##h##_hook;                              \
-  } while (0)
-#define HOOK_HANDLER(h)                                 \
-  do {                                                  \
-  run_##h##_hook:                                       \
-    SYNC_IP ();                                         \
-    vm_dispatch_##h##_hook (thread);                    \
-    CACHE_SP ();                                        \
-    CONTINUE;                                           \
-  } while (0)
 #define RUN_HOOK(exp)                                   \
   do {                                                  \
     if (SCM_UNLIKELY (VP->trace_level))                 \
@@ -134,18 +121,16 @@
   } while (0)
 #else
 #define RUN_HOOK(exp)
-#define GOTO_HOOK(h)
-#define HOOK_HANDLER(h)
 #endif
+#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (thread))
+#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (thread, arg))
 
-#define APPLY_HOOK()                  GOTO_HOOK (apply)
-#define PUSH_CONTINUATION_HOOK()      GOTO_HOOK (push_continuation)
-#define NEXT_HOOK()                   GOTO_HOOK (next)
-#define ABORT_CONTINUATION_HOOK()     GOTO_HOOK (abort)
+#define APPLY_HOOK()                  RUN_HOOK0 (apply)
+#define PUSH_CONTINUATION_HOOK()      RUN_HOOK0 (push_continuation)
+#define POP_CONTINUATION_HOOK(old_fp) RUN_HOOK1 (pop_continuation, old_fp)
+#define NEXT_HOOK()                   RUN_HOOK0 (next)
+#define ABORT_CONTINUATION_HOOK()     RUN_HOOK0 (abort)
 
-/* The only hook that needs an arg, currently.  */
-#define POP_CONTINUATION_HOOK(old_fp) \
-  RUN_HOOK (vm_dispatch_pop_continuation_hook (thread, old_fp))
 
 
 
@@ -228,13 +213,13 @@
 #ifdef HAVE_LABELS_AS_VALUES
 # define BEGIN_DISPATCH_SWITCH /* */
 # define END_DISPATCH_SWITCH /* */
-# define CONTINUE do { op = *ip; goto *jump_table[op & 0xff]; } while (0)
 # define NEXT(n)                                \
   do                                            \
     {                                           \
       ip += n;                                  \
       NEXT_HOOK ();                             \
-      CONTINUE;					\
+      op = *ip;                                 \
+      goto *jump_table[op & 0xff];              \
     }                                           \
   while (0)
 # define VM_DEFINE_OP(opcode, tag, name, meta)  \
@@ -248,12 +233,11 @@
     {
 # define END_DISPATCH_SWITCH                    \
     }
-# define CONTINUE do { goto vm_start; } while (0)
 # define NEXT(n)                                \
   do                                            \
     {                                           \
       ip += n;                                  \
-      CONTINUE;                                 \
+      goto vm_start;                            \
     }                                           \
   while (0)
 # define VM_DEFINE_OP(opcode, tag, name, meta)  \
@@ -379,10 +363,10 @@ VM_NAME (scm_thread *thread)
       uint32_t proc, nlocals;
       union scm_vm_stack_element *old_fp;
 
-      PUSH_CONTINUATION_HOOK ();
-
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
+
+      PUSH_CONTINUATION_HOOK ();
 
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
@@ -421,11 +405,11 @@ VM_NAME (scm_thread *thread)
       int32_t label;
       union scm_vm_stack_element *old_fp;
 
-      PUSH_CONTINUATION_HOOK ();
-
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
       label = ip[2];
+
+      PUSH_CONTINUATION_HOOK ();
 
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
@@ -3010,14 +2994,6 @@ VM_NAME (scm_thread *thread)
     }
 
   END_DISPATCH_SWITCH;
-
-  HOOK_HANDLER (apply);
-  HOOK_HANDLER (push_continuation);
-  HOOK_HANDLER (next);
-  HOOK_HANDLER (abort);
-
-  /* Unreachable.  */
-  abort ();
 }
 
 
@@ -3037,8 +3013,8 @@ VM_NAME (scm_thread *thread)
 #undef POP_CONTINUATION_HOOK
 #undef PUSH_CONTINUATION_HOOK
 #undef RUN_HOOK
-#undef HOOK_HANDLER
-#undef GOTO_HOOK
+#undef RUN_HOOK0
+#undef RUN_HOOK1
 #undef SYNC_IP
 #undef UNPACK_8_8_8
 #undef UNPACK_8_16
