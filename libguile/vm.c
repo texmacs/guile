@@ -84,8 +84,6 @@ static int vm_default_engine = SCM_VM_REGULAR_ENGINE;
 
 /* Unfortunately we can't snarf these: snarfed things are only loaded up from
    (system vm vm), which might not be loaded before an error happens. */
-static SCM sym_vm_run;
-static SCM sym_vm_error;
 static SCM sym_keyword_argument_error;
 static SCM sym_regular;
 static SCM sym_debug;
@@ -309,32 +307,14 @@ static void vm_dispatch_abort_hook (struct scm_vm *vp)
  */
 
 
-static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
 static void vm_error_bad_instruction (uint32_t inst) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN SCM_NOINLINE;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_no_values (void) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_not_enough_values (void) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_wrong_number_of_values (uint32_t expected) SCM_NORETURN SCM_NOINLINE;
-
-static void
-vm_error (const char *msg, SCM arg)
-{
-  scm_throw (sym_vm_error,
-             scm_list_3 (sym_vm_run, scm_from_latin1_string (msg),
-                         SCM_UNBNDP (arg) ? SCM_EOL : scm_list_1 (arg)));
-}
 
 static void
 vm_error_bad_instruction (uint32_t inst)
 {
-  vm_error ("VM: Bad instruction: ~s", scm_from_uint32 (inst));
-}
-
-static void
-vm_error_wrong_num_args (SCM proc)
-{
-  scm_wrong_num_args (proc);
+  fprintf (stderr, "VM: Bad instruction: %x\n", inst);
+  abort ();
 }
 
 static void
@@ -342,26 +322,6 @@ vm_error_wrong_type_apply (SCM proc)
 {
   scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
              scm_list_1 (proc), scm_list_1 (proc));
-}
-
-static void
-vm_error_no_values (void)
-{
-  vm_error ("Zero values returned to single-valued continuation",
-            SCM_UNDEFINED);
-}
-
-static void
-vm_error_not_enough_values (void)
-{
-  vm_error ("Too few values returned to continuation", SCM_UNDEFINED);
-}
-
-static void
-vm_error_wrong_number_of_values (uint32_t expected)
-{
-  vm_error ("Wrong number of values returned to continuation (expected ~a)",
-            scm_from_uint32 (expected));
 }
 
 
@@ -1201,7 +1161,7 @@ compose_continuation (scm_thread *thread, jmp_buf *registers, SCM cont)
   ptrdiff_t old_fp_offset;
 
   if (SCM_UNLIKELY (! SCM_VM_CONT_REWINDABLE_P (cont)))
-    vm_error ("Unrewindable partial continuation", cont);
+    scm_wrong_type_arg_msg (NULL, 0, cont, "resumable continuation");
 
   nargs = frame_locals_count (thread) - 1;
   args = alloca (nargs * sizeof (*args));
@@ -1721,8 +1681,6 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.rest_arg_length = rest_arg_length;
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
 
-  sym_vm_run = scm_from_latin1_symbol ("vm-run");
-  sym_vm_error = scm_from_latin1_symbol ("vm-error");
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");
   sym_debug = scm_from_latin1_symbol ("debug");

@@ -59,6 +59,9 @@ typedef void (*scm_t_thread_regs_scm_intrinsic) (scm_thread*, jmp_buf*, SCM);
 typedef int (*scm_t_int_from_scm_intrinsic) (SCM);
 typedef void (*scm_t_thread_regs_intrinsic) (scm_thread*, jmp_buf*);
 typedef void (*scm_t_scm_scm_noreturn_intrinsic) (SCM, SCM) SCM_NORETURN;
+typedef void (*scm_t_noreturn_intrinsic) (void) SCM_NORETURN;
+typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
+typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -117,6 +120,10 @@ typedef void (*scm_t_scm_scm_noreturn_intrinsic) (SCM, SCM) SCM_NORETURN;
   M(scm_scm_noreturn, throw_, "throw", THROW) \
   M(scm_scm_noreturn, throw_with_value, "throw/value", THROW_WITH_VALUE) \
   M(scm_scm_noreturn, throw_with_value_and_data, "throw/value+data", THROW_WITH_VALUE_AND_DATA) \
+  M(scm_noreturn, error_wrong_num_args, "wrong-num-args", ERROR_WRONG_NUM_ARGS) \
+  M(noreturn, error_no_values, "no-values", ERROR_NO_VALUES) \
+  M(noreturn, error_not_enough_values, "not-enough-values", ERROR_NOT_ENOUGH_VALUES) \
+  M(u32_noreturn, error_wrong_number_of_values, "wrong-number-of-values", ERROR_WRONG_NUMBER_OF_VALUES) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

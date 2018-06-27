@@ -308,6 +308,32 @@ throw_with_value_and_data (SCM val, SCM key_subr_and_message)
   throw_ (key, scm_list_4 (subr, message, args, data));
 }
 
+static void error_no_values (void) SCM_NORETURN;
+static void error_not_enough_values (void) SCM_NORETURN;
+static void error_wrong_number_of_values (uint32_t expected) SCM_NORETURN;
+
+static void
+error_no_values (void)
+{
+  scm_misc_error (NULL, "Zero values returned to single-valued continuation",
+                  SCM_EOL);
+}
+
+static void
+error_not_enough_values (void)
+{
+  scm_misc_error (NULL, "Too few values returned to continuation", SCM_EOL);
+}
+
+static void
+error_wrong_number_of_values (uint32_t expected)
+{
+  scm_misc_error (NULL,
+                  "Wrong number of values returned to continuation (expected ~a)",
+                  scm_list_1 (scm_from_uint32 (expected)));
+}
+
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -356,6 +382,10 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.throw_ = throw_;
   scm_vm_intrinsics.throw_with_value = throw_with_value;
   scm_vm_intrinsics.throw_with_value_and_data = throw_with_value_and_data;
+  scm_vm_intrinsics.error_wrong_num_args = scm_wrong_num_args;
+  scm_vm_intrinsics.error_no_values = error_no_values;
+  scm_vm_intrinsics.error_not_enough_values = error_not_enough_values;
+  scm_vm_intrinsics.error_wrong_number_of_values = error_wrong_number_of_values;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

@@ -521,7 +521,8 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t nlocals;
       UNPACK_12_12 (op, dst, proc);
       UNPACK_24 (ip[1], nlocals);
-      VM_ASSERT (FRAME_LOCALS_COUNT () > proc + 1, vm_error_no_values ());
+      VM_ASSERT (FRAME_LOCALS_COUNT () > proc + 1,
+                 scm_vm_intrinsics.error_no_values ());
       FP_SET (dst, FP_REF (proc + 1));
       RESET_FRAME (nlocals);
       NEXT (2);
@@ -542,10 +543,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_24 (ip[1], nvalues);
       if (ip[1] & 0x1)
         VM_ASSERT (FRAME_LOCALS_COUNT () > proc + nvalues,
-                   vm_error_not_enough_values ());
+                   scm_vm_intrinsics.error_not_enough_values ());
       else
         VM_ASSERT (FRAME_LOCALS_COUNT () == proc + 1 + nvalues,
-                   vm_error_wrong_number_of_values (nvalues));
+                   scm_vm_intrinsics.error_wrong_number_of_values (nvalues));
       NEXT (2);
     }
 
@@ -907,7 +908,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 vm_error_wrong_num_args (FP_REF (0)));
+                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
       NEXT (1);
     }
   VM_DEFINE_OP (22, assert_nargs_ge, "assert-nargs-ge", OP1 (X8_C24))
@@ -915,7 +916,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () >= expected,
-                 vm_error_wrong_num_args (FP_REF (0)));
+                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
       NEXT (1);
     }
   VM_DEFINE_OP (23, assert_nargs_le, "assert-nargs-le", OP1 (X8_C24))
@@ -923,7 +924,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () <= expected,
-                 vm_error_wrong_num_args (FP_REF (0)));
+                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
       NEXT (1);
     }
 
@@ -1023,7 +1024,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint16_t expected, nlocals;
       UNPACK_12_12 (op, expected, nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 vm_error_wrong_num_args (FP_REF (0)));
+                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
       ALLOC_FRAME (expected + nlocals);
       while (nlocals--)
         SP_SET (nlocals, SCM_UNDEFINED);
