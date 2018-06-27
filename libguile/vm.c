@@ -194,12 +194,12 @@ scm_i_capture_current_stack (void)
                                  0);
 }
 
-static void vm_dispatch_apply_hook (struct scm_vm *vp) SCM_NOINLINE;
-static void vm_dispatch_push_continuation_hook (struct scm_vm *vp) SCM_NOINLINE;
+static void vm_dispatch_apply_hook (scm_thread *thread) SCM_NOINLINE;
+static void vm_dispatch_push_continuation_hook (scm_thread *thread) SCM_NOINLINE;
 static void vm_dispatch_pop_continuation_hook
-  (struct scm_vm *vp, union scm_vm_stack_element *old_fp) SCM_NOINLINE;
-static void vm_dispatch_next_hook (struct scm_vm *vp) SCM_NOINLINE;
-static void vm_dispatch_abort_hook (struct scm_vm *vp) SCM_NOINLINE;
+  (scm_thread *thread, union scm_vm_stack_element *old_fp) SCM_NOINLINE;
+static void vm_dispatch_next_hook (scm_thread *thread) SCM_NOINLINE;
+static void vm_dispatch_abort_hook (scm_thread *thread) SCM_NOINLINE;
 
 /* Return the first integer greater than or equal to LEN such that
    LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
@@ -207,9 +207,9 @@ static void vm_dispatch_abort_hook (struct scm_vm *vp) SCM_NOINLINE;
   ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 static void
-vm_dispatch_hook (struct scm_vm *vp, int hook_num,
-                  union scm_vm_stack_element *argv, int n)
+vm_dispatch_hook (scm_thread *thread, int hook_num, int n)
 {
+  struct scm_vm *vp = &thread->vm;
   SCM hook;
   struct scm_frame c_frame;
   scm_t_cell *frame;
@@ -259,7 +259,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
       SCM args[2];
 
       args[0] = SCM_PACK_POINTER (frame);
-      args[1] = argv[0].as_scm;
+      args[1] = vp->sp[0].as_scm;
       scm_c_run_hookn (hook, args, 2);
     }
   else
@@ -268,7 +268,7 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
       int i;
 
       for (i = 0; i < n; i++)
-        args = scm_cons (argv[i].as_scm, args);
+        args = scm_cons (vp->sp[i].as_scm, args);
       scm_c_run_hook (hook, scm_cons (SCM_PACK_POINTER (frame), args));
     }
 
@@ -277,28 +277,28 @@ vm_dispatch_hook (struct scm_vm *vp, int hook_num,
 }
 
 static void
-vm_dispatch_apply_hook (struct scm_vm *vp)
+vm_dispatch_apply_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (vp, SCM_VM_APPLY_HOOK, NULL, 0);
+  return vm_dispatch_hook (thread, SCM_VM_APPLY_HOOK, 0);
 }
-static void vm_dispatch_push_continuation_hook (struct scm_vm *vp)
+static void vm_dispatch_push_continuation_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (vp, SCM_VM_PUSH_CONTINUATION_HOOK, NULL, 0);
+  return vm_dispatch_hook (thread, SCM_VM_PUSH_CONTINUATION_HOOK, 0);
 }
-static void vm_dispatch_pop_continuation_hook (struct scm_vm *vp,
+static void vm_dispatch_pop_continuation_hook (scm_thread *thread,
                                                union scm_vm_stack_element *old_fp)
 {
-  return vm_dispatch_hook (vp, SCM_VM_POP_CONTINUATION_HOOK,
-                           vp->sp, SCM_FRAME_NUM_LOCALS (old_fp, vp->sp) - 1);
+  return vm_dispatch_hook (thread, SCM_VM_POP_CONTINUATION_HOOK,
+                           SCM_FRAME_NUM_LOCALS (old_fp, thread->vm.sp) - 1);
 }
-static void vm_dispatch_next_hook (struct scm_vm *vp)
+static void vm_dispatch_next_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (vp, SCM_VM_NEXT_HOOK, NULL, 0);
+  return vm_dispatch_hook (thread, SCM_VM_NEXT_HOOK, 0);
 }
-static void vm_dispatch_abort_hook (struct scm_vm *vp)
+static void vm_dispatch_abort_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (vp, SCM_VM_ABORT_CONTINUATION_HOOK,
-                           vp->sp, SCM_FRAME_NUM_LOCALS (vp->fp, vp->sp) - 1);
+  return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK,
+                           SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp) - 1);
 }
 
 
@@ -1418,7 +1418,8 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
       {
         scm_gc_after_nonlocal_exit ();
         /* Non-local return.  */
-        vm_dispatch_abort_hook (vp);
+        if (vp->engine == SCM_VM_DEBUG_ENGINE && vp->trace_level > 0)
+          vm_dispatch_abort_hook (thread);
       }
     else
       {
@@ -1429,7 +1430,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
           apply_non_program (thread);
 
         if (vp->engine == SCM_VM_DEBUG_ENGINE && vp->trace_level > 0)
-          vm_dispatch_apply_hook (vp);
+          vm_dispatch_apply_hook (thread);
       }
 
     thread->vm.registers = &registers;

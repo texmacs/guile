@@ -122,8 +122,8 @@
 #else
 #define RUN_HOOK(exp)
 #endif
-#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (VP))
-#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (VP, arg))
+#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (thread))
+#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (thread, arg))
 
 #define APPLY_HOOK()                  RUN_HOOK0 (apply)
 #define PUSH_CONTINUATION_HOOK()      RUN_HOOK0 (push_continuation)
