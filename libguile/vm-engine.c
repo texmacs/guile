@@ -1643,22 +1643,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
 
   
 
-  /* current-module dst:24
-   *
-   * Store the current module in DST.
-   */
-  VM_DEFINE_OP (64, current_module, "current-module", OP1 (X8_S24) | OP_DST)
-    {
-      uint32_t dst;
-
-      UNPACK_24 (op, dst);
-
-      SYNC_IP ();
-      SP_SET (dst, scm_current_module ());
-
-      NEXT (1);
-    }
-
+  VM_DEFINE_OP (64, unused_64, NULL, NOP)
   VM_DEFINE_OP (65, unused_65, NULL, NOP)
   VM_DEFINE_OP (66, unused_66, NULL, NOP)
   VM_DEFINE_OP (67, unused_67, NULL, NOP)
