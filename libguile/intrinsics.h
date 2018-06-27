@@ -124,6 +124,7 @@ typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
   M(noreturn, error_no_values, "no-values", ERROR_NO_VALUES) \
   M(noreturn, error_not_enough_values, "not-enough-values", ERROR_NOT_ENOUGH_VALUES) \
   M(u32_noreturn, error_wrong_number_of_values, "wrong-number-of-values", ERROR_WRONG_NUMBER_OF_VALUES) \
+  M(thread, apply_non_program, "apply-non-program", APPLY_NON_PROGRAM) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

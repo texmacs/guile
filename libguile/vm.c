@@ -308,20 +308,12 @@ static void vm_dispatch_abort_hook (struct scm_vm *vp)
 
 
 static void vm_error_bad_instruction (uint32_t inst) SCM_NORETURN SCM_NOINLINE;
-static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN SCM_NOINLINE;
 
 static void
 vm_error_bad_instruction (uint32_t inst)
 {
   fprintf (stderr, "VM: Bad instruction: %x\n", inst);
   abort ();
-}
-
-static void
-vm_error_wrong_type_apply (SCM proc)
-{
-  scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
-             scm_list_1 (proc), scm_list_1 (proc));
 }
 
 
@@ -1332,6 +1324,47 @@ abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
     longjmp (*registers, 1);
 }
 
+static void
+apply_non_program (scm_thread *thread)
+{
+  struct scm_vm *vp = &thread->vm;
+
+  SCM proc = SCM_FRAME_LOCAL (vp->fp, 0);
+
+  while (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
+    {
+      proc = SCM_STRUCT_PROCEDURE (proc);
+      SCM_FRAME_LOCAL (vp->fp, 0) = proc;
+
+      if (SCM_PROGRAM_P (proc))
+        {
+          vp->ip = SCM_PROGRAM_CODE (proc);
+          return;
+        }
+    }
+
+  if (SCM_HAS_TYP7 (proc, scm_tc7_smob) && SCM_SMOB_APPLICABLE_P (proc))
+    {
+      uint32_t n = frame_locals_count (thread);
+
+      alloc_frame (thread, n + 1);
+
+      /* Although we could make VM modifications to avoid this shuffle,
+         it's easier to piggy-back on the subr arg parsing machinery.
+         Hopefully applicable smobs will go away in the mid-term.  */
+      while (n--)
+        SCM_FRAME_LOCAL (vp->fp, n + 1) = SCM_FRAME_LOCAL (vp->fp, n);
+
+      proc = SCM_SMOB_DESCRIPTOR (proc).apply_trampoline;
+      SCM_FRAME_LOCAL (vp->fp, 0) = proc;
+      vp->ip = SCM_PROGRAM_CODE (proc);
+      return;
+    }
+
+  scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
+             scm_list_1 (proc), scm_list_1 (proc));
+}
+
 SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
@@ -1680,6 +1713,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.compose_continuation = compose_continuation;
   scm_vm_intrinsics.rest_arg_length = rest_arg_length;
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
+  scm_vm_intrinsics.apply_non_program = apply_non_program;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");

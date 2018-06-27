@@ -2033,36 +2033,9 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (142, apply_non_program, "apply-non-program", OP1 (X32))
     {
-      SCM proc = FP_REF (0);
-
-      while (!SCM_PROGRAM_P (proc))
-        {
-          if (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
-            {
-              proc = SCM_STRUCT_PROCEDURE (proc);
-              FP_SET (0, proc);
-              continue;
-            }
-          if (SCM_HAS_TYP7 (proc, scm_tc7_smob) && SCM_SMOB_APPLICABLE_P (proc))
-            {
-              uint32_t n = FRAME_LOCALS_COUNT();
-
-              /* Shuffle args up.  (FIXME: no real need to shuffle; just set
-                 IP and go. ) */
-              ALLOC_FRAME (n + 1);
-              while (n--)
-                FP_SET (n + 1, FP_REF (n));
-
-              proc = SCM_SMOB_DESCRIPTOR (proc).apply_trampoline;
-              FP_SET (0, proc);
-              continue;
-            }
-
-          SYNC_IP();
-          vm_error_wrong_type_apply (proc);
-        }
-
-      ip = SCM_PROGRAM_CODE (proc);
+      SYNC_IP ();
+      scm_vm_intrinsics.apply_non_program (thread);
+      CACHE_REGISTER ();
       NEXT (0);
     }
 
