@@ -311,7 +311,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
   if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
     ip = SCM_PROGRAM_CODE (FP_REF (0));
   else
-    ip = (uint32_t *) vm_apply_non_program_code;
+    {
+      scm_vm_intrinsics.apply_non_program (thread);
+      CACHE_REGISTER ();
+    }
 
   APPLY_HOOK ();
 
@@ -389,7 +392,11 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (uint32_t *) vm_apply_non_program_code;
+        {
+          SYNC_IP ();
+          scm_vm_intrinsics.apply_non_program (thread);
+          CACHE_REGISTER ();
+        }
 
       APPLY_HOOK ();
 
@@ -449,7 +456,11 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (uint32_t *) vm_apply_non_program_code;
+        {
+          SYNC_IP ();
+          scm_vm_intrinsics.apply_non_program (thread);
+          CACHE_REGISTER ();
+        }
 
       APPLY_HOOK ();
 
@@ -502,7 +513,11 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (uint32_t *) vm_apply_non_program_code;
+        {
+          SYNC_IP ();
+          scm_vm_intrinsics.apply_non_program (thread);
+          CACHE_REGISTER ();
+        }
 
       APPLY_HOOK ();
 
@@ -739,7 +754,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
-        ip = (uint32_t *) vm_apply_non_program_code;
+        {
+          scm_vm_intrinsics.apply_non_program (thread);
+          CACHE_REGISTER ();
+        }
 
       APPLY_HOOK ();
 
@@ -767,7 +785,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       if (SCM_LIKELY (SCM_PROGRAM_P (SP_REF (1))))
         ip = SCM_PROGRAM_CODE (SP_REF (1));
       else
-        ip = (uint32_t *) vm_apply_non_program_code;
+        {
+          scm_vm_intrinsics.apply_non_program (thread);
+          CACHE_REGISTER ();
+        }
 
       APPLY_HOOK ();
 
@@ -2027,18 +2048,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       NEXT (1);
     }
 
-  /* apply-non-program _:24
-   *
-   * Used by the VM as a trampoline to apply non-programs.
-   */
-  VM_DEFINE_OP (142, apply_non_program, "apply-non-program", OP1 (X32))
-    {
-      SYNC_IP ();
-      scm_vm_intrinsics.apply_non_program (thread);
-      CACHE_REGISTER ();
-      NEXT (0);
-    }
-
+  VM_DEFINE_OP (142, unused_142, NULL, NOP)
   VM_DEFINE_OP (143, unused_143, NULL, NOP)
   VM_DEFINE_OP (144, unused_144, NULL, NOP)
   VM_DEFINE_OP (145, unused_145, NULL, NOP)
