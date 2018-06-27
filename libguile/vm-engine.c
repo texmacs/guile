@@ -1671,7 +1671,6 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t tag, proc_slot;
       int32_t offset;
       uint8_t escape_only_p;
-      scm_t_dynstack_prompt_flags flags;
 
       UNPACK_24 (op, tag);
       escape_only_p = ip[1] & 0x1;
@@ -1680,14 +1679,11 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       offset >>= 8; /* Sign extension */
   
       /* Push the prompt onto the dynamic stack. */
-      flags = escape_only_p ? SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY : 0;
       SYNC_IP ();
-      scm_dynstack_push_prompt (&thread->dynstack, flags,
-                                SP_REF (tag),
-                                VP->stack_top - VP->fp,
-                                VP->stack_top - FP_SLOT (proc_slot),
-                                ip + offset,
-                                registers);
+      scm_vm_intrinsics.push_prompt (thread, registers, escape_only_p,
+                                     SP_REF (tag), FP_SLOT (proc_slot),
+                                     ip + offset);
+
       NEXT (3);
     }
 

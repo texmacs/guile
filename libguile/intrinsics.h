@@ -64,6 +64,10 @@ typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
 typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
 typedef SCM (*scm_t_scm_from_thread_u64_intrinsic) (scm_thread*, uint64_t);
 typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
+typedef void (*scm_t_thread_regs_u8_scm_sp_ra_intrinsic) (scm_thread*, jmp_buf*,
+                                                          uint8_t, SCM,
+                                                          const union scm_vm_stack_element*,
+                                                          void*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -129,6 +133,7 @@ typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
   M(thread, apply_non_program, "apply-non-program", APPLY_NON_PROGRAM) \
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
+  M(thread_regs_u8_scm_sp_ra, push_prompt, "push-prompt", PUSH_PROMPT) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

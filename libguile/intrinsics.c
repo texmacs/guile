@@ -26,6 +26,7 @@
 #include "cache-internal.h"
 #include "extensions.h"
 #include "fluids.h"
+#include "frames.h"
 #include "gc-inline.h"
 #include "goops.h"
 #include "gsubr.h"
@@ -346,6 +347,18 @@ current_module (scm_thread *thread)
   return scm_i_current_module (thread);
 }
 
+static void
+push_prompt (scm_thread *thread, jmp_buf *registers, uint8_t escape_only_p,
+             SCM tag, const union scm_vm_stack_element *sp, void *ra)
+{
+  struct scm_vm *vp = &thread->vm;
+  scm_t_dynstack_prompt_flags flags;
+
+  flags = escape_only_p ? SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY : 0;
+  scm_dynstack_push_prompt (&thread->dynstack, flags, tag,
+                            vp->stack_top - vp->fp, vp->stack_top - sp,
+                            ra, registers);
+}
 
 void
 scm_bootstrap_intrinsics (void)
@@ -401,6 +414,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.error_wrong_number_of_values = error_wrong_number_of_values;
   scm_vm_intrinsics.allocate_words = allocate_words;
   scm_vm_intrinsics.current_module = current_module;
+  scm_vm_intrinsics.push_prompt = push_prompt;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
