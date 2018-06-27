@@ -340,6 +340,12 @@ allocate_words (scm_thread *thread, uint64_t n)
   return SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, n));
 }
 
+static SCM
+current_module (scm_thread *thread)
+{
+  return scm_i_current_module (thread);
+}
+
 
 void
 scm_bootstrap_intrinsics (void)
@@ -394,6 +400,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.error_not_enough_values = error_not_enough_values;
   scm_vm_intrinsics.error_wrong_number_of_values = error_wrong_number_of_values;
   scm_vm_intrinsics.allocate_words = allocate_words;
+  scm_vm_intrinsics.current_module = current_module;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

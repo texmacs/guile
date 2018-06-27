@@ -38,6 +38,7 @@
 #include "smob.h"
 #include "struct.h"
 #include "symbols.h"
+#include "threads.h"
 #include "variable.h"
 #include "vectors.h"
 
@@ -81,15 +82,21 @@ scm_the_root_module (void)
     return SCM_BOOL_F;
 }
 
+SCM
+scm_i_current_module (scm_thread *thread)
+{
+  if (scm_module_system_booted_p)
+    return scm_i_fluid_ref (thread, the_module);
+  else
+    return SCM_BOOL_F;
+}
+
 SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 	    (),
 	    "Return the current module.")
 #define FUNC_NAME s_scm_current_module
 {
-  if (scm_module_system_booted_p)
-    return scm_fluid_ref (the_module);
-  else
-    return SCM_BOOL_F;
+  return scm_i_current_module (SCM_I_CURRENT_THREAD);
 }
 #undef FUNC_NAME
 

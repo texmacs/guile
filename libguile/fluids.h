@@ -66,6 +66,8 @@ SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
 SCM_API SCM scm_fluid_unset_x (SCM fluid);
 SCM_API SCM scm_fluid_bound_p (SCM fluid);
 
+SCM_INTERNAL SCM scm_i_fluid_ref (scm_thread *thread, SCM fluid);
+
 SCM_INTERNAL void scm_swap_fluid (SCM fluid, SCM value_box,
                                   scm_t_dynamic_state *dynamic_state);
 

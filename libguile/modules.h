@@ -65,6 +65,7 @@ SCM_API scm_t_bits scm_module_tag;
 
 
 SCM_API SCM scm_current_module (void);
+SCM_INTERNAL SCM scm_i_current_module (scm_thread *thread);
 SCM_API SCM scm_the_root_module (void);
 SCM_API SCM scm_interaction_environment (void);
 SCM_API SCM scm_set_current_module (SCM module);

@@ -331,7 +331,7 @@
       push-dynamic-state pop-dynamic-state
       lsh rsh lsh/immediate rsh/immediate
       cache-ref cache-set!
-      resolve-module lookup define!))
+      resolve-module lookup define! current-module))
   (let ((table (make-hash-table)))
     (for-each
      (match-lambda ((inst . _) (hashq-set! table inst #t)))

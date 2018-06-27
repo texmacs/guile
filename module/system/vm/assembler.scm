@@ -227,6 +227,7 @@
             emit-resolve-module
             emit-lookup
             emit-define!
+            emit-current-module
 
             emit-cache-ref
             emit-cache-set!
@@ -250,7 +251,6 @@
             emit-bind-kwargs
             emit-bind-rest
             emit-load-label
-            emit-current-module
             emit-resolve
             emit-prompt
             emit-current-thread
@@ -1336,6 +1336,9 @@ returned instead."
 (define-syntax-rule (define-scm<-scm-bool-intrinsic name)
   (define-macro-assembler (name asm dst a b)
     (emit-call-scm<-scm-uimm asm dst a (if b 1 0) (intrinsic-name->index 'name))))
+(define-syntax-rule (define-scm<-thread-intrinsic name)
+  (define-macro-assembler (name asm dst)
+    (emit-call-scm<-thread asm dst (intrinsic-name->index 'name))))
 
 (define-scm<-scm-scm-intrinsic add)
 (define-scm<-scm-uimm-intrinsic add/immediate)
@@ -1376,6 +1379,7 @@ returned instead."
 (define-scm<-scm-bool-intrinsic resolve-module)
 (define-scm<-scm-scm-intrinsic lookup)
 (define-scm<-scm-scm-intrinsic define!)
+(define-scm<-thread-intrinsic current-module)
 
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)

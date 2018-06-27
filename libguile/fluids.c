@@ -370,6 +370,17 @@ fluid_ref (scm_t_dynamic_state *dynamic_state, SCM fluid)
   return val;
 }
 
+SCM
+scm_i_fluid_ref (scm_thread *thread, SCM fluid)
+{
+  SCM ret = fluid_ref (thread->dynamic_state, fluid);
+
+  if (SCM_UNBNDP (ret))
+    scm_misc_error ("fluid-ref", "unbound fluid: ~S", scm_list_1 (fluid));
+
+  return ret;
+}
+
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
 	    (SCM fluid),
 	    "Return the value associated with @var{fluid} in the current\n"
@@ -377,12 +388,8 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    "its default value.")
 #define FUNC_NAME s_scm_fluid_ref
 {
-  SCM ret;
   SCM_VALIDATE_FLUID (1, fluid);
-  ret = fluid_ref (SCM_I_CURRENT_THREAD->dynamic_state, fluid);
-  if (SCM_UNBNDP (ret))
-    scm_misc_error ("fluid-ref", "unbound fluid: ~S", scm_list_1 (fluid));
-  return ret;
+  return scm_i_fluid_ref (SCM_I_CURRENT_THREAD, fluid);
 }
 #undef FUNC_NAME
 
