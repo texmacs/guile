@@ -1411,7 +1411,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   {
     jmp_buf registers;
     int resume;
-    const void *prev_cookie = vp->resumable_prompt_cookie;
+    jmp_buf *prev_registers = thread->vm.registers;
     SCM ret;
 
     resume = setjmp (registers);
@@ -1422,9 +1422,9 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         vm_dispatch_abort_hook (vp);
       }
 
-    vp->resumable_prompt_cookie = &registers;
+    thread->vm.registers = &registers;
     ret = vm_engines[vp->engine](thread, &registers, resume);
-    vp->resumable_prompt_cookie = prev_cookie;
+    thread->vm.registers = prev_registers;
 
     return ret;
   }

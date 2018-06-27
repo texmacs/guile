@@ -22,8 +22,6 @@
 
 
 
-#include <setjmp.h>
-
 #include "libguile/procs.h"
 #include "libguile/throw.h"
 #include "libguile/dynstack.h"
@@ -101,10 +99,9 @@ struct scm_thread {
   SCM continuation_root;
   SCM_STACKITEM *continuation_base;
 
-  /* For keeping track of the stack and registers. */
+  /* VM state for this thread.  */
   struct scm_vm vm;
   SCM_STACKITEM *base;
-  jmp_buf regs;
 };
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)

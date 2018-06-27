@@ -439,7 +439,7 @@ eval (SCM x, SCM env)
         scm_thread *t;
         SCM k, handler, res;
         jmp_buf registers;
-        const void *prev_cookie;
+        jmp_buf *prev_registers;
         ptrdiff_t saved_stack_depth;
 
         k = EVAL1 (CAR (mx), env);
@@ -457,11 +457,11 @@ eval (SCM x, SCM env)
                                   t->vm.ip,
                                   &registers);
 
-        prev_cookie = t->vm.resumable_prompt_cookie;
+        prev_registers = t->vm.registers;
         if (setjmp (registers))
           {
             /* The prompt exited nonlocally. */
-            t->vm.resumable_prompt_cookie = prev_cookie;
+            t->vm.registers = prev_registers;
             scm_gc_after_nonlocal_exit ();
             proc = handler;
             args = scm_i_prompt_pop_abort_args_x (&t->vm, saved_stack_depth);
