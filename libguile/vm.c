@@ -464,7 +464,7 @@ scm_i_call_with_current_continuation (SCM proc)
 #undef VM_USE_HOOKS
 #undef VM_NAME
 
-typedef SCM (*scm_t_vm_engine) (scm_thread *current_thread, int resume);
+typedef SCM (*scm_t_vm_engine) (scm_thread *current_thread);
 
 static const scm_t_vm_engine vm_engines[SCM_VM_NUM_ENGINES] =
   { vm_regular_engine, vm_debug_engine };
@@ -1420,9 +1420,20 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         /* Non-local return.  */
         vm_dispatch_abort_hook (vp);
       }
+    else
+      {
+        if (SCM_LIKELY (SCM_PROGRAM_P (proc)))
+          vp->ip = SCM_PROGRAM_CODE (proc);
+        else
+          /* FIXME: Make this return an IP.  */
+          apply_non_program (thread);
+
+        if (vp->engine == SCM_VM_DEBUG_ENGINE && vp->trace_level > 0)
+          vm_dispatch_apply_hook (vp);
+      }
 
     thread->vm.registers = &registers;
-    ret = vm_engines[vp->engine](thread, resume);
+    ret = vm_engines[vp->engine](thread);
     thread->vm.registers = prev_registers;
 
     return ret;

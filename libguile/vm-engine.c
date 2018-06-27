@@ -272,7 +272,7 @@
   ((uintptr_t) (ptr) % alignof_type (type) == 0)
 
 static SCM
-VM_NAME (scm_thread *thread, int resume)
+VM_NAME (scm_thread *thread)
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */
@@ -303,23 +303,7 @@ VM_NAME (scm_thread *thread, int resume)
   /* Load VM registers. */
   CACHE_REGISTER ();
 
-  /* Usually a call to the VM happens on application, with the boot
-     continuation on the next frame.  Sometimes it happens after a
-     non-local exit however; in that case the VM state is all set up,
-     and we have but to jump to the next opcode.  */
-  if (SCM_UNLIKELY (resume))
-    NEXT (0);
-
-  if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
-    ip = SCM_PROGRAM_CODE (FP_REF (0));
-  else
-    {
-      CALL_INTRINSIC (apply_non_program, (thread));
-      CACHE_REGISTER ();
-    }
-
-  APPLY_HOOK ();
-
+  /* Start processing!  */
   NEXT (0);
 
   BEGIN_DISPATCH_SWITCH;
