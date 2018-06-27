@@ -165,6 +165,9 @@
   } while (0)
 
 
+#define CALL_INTRINSIC(x, args) \
+  (((struct scm_vm_intrinsics *) (void*) intrinsics)->x args)
+
 /* Reserve stack space for a frame.  Will check that there is sufficient
    stack space for N locals, including the procedure.  Invoke after
    preparing the new frame and setting the fp and ip.
@@ -180,9 +183,8 @@
       {                                                             \
         if (SCM_UNLIKELY (sp < VP->stack_limit))                    \
           {                                                         \
-            struct scm_vm_intrinsics *i = (void*)intrinsics;        \
             SYNC_IP ();                                             \
-            i->expand_stack (thread, sp);                           \
+            CALL_INTRINSIC (expand_stack, (thread, sp));            \
             CACHE_SP ();                                            \
           }                                                         \
         else                                                        \
@@ -312,7 +314,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
     ip = SCM_PROGRAM_CODE (FP_REF (0));
   else
     {
-      scm_vm_intrinsics.apply_non_program (thread);
+      CALL_INTRINSIC (apply_non_program, (thread));
       CACHE_REGISTER ();
     }
 
@@ -394,7 +396,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       else
         {
           SYNC_IP ();
-          scm_vm_intrinsics.apply_non_program (thread);
+          CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
 
@@ -458,7 +460,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       else
         {
           SYNC_IP ();
-          scm_vm_intrinsics.apply_non_program (thread);
+          CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
 
@@ -515,7 +517,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       else
         {
           SYNC_IP ();
-          scm_vm_intrinsics.apply_non_program (thread);
+          CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
 
@@ -537,7 +539,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_12_12 (op, dst, proc);
       UNPACK_24 (ip[1], nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () > proc + 1,
-                 scm_vm_intrinsics.error_no_values ());
+                 CALL_INTRINSIC (error_no_values, ()));
       FP_SET (dst, FP_REF (proc + 1));
       RESET_FRAME (nlocals);
       NEXT (2);
@@ -558,10 +560,10 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_24 (ip[1], nvalues);
       if (ip[1] & 0x1)
         VM_ASSERT (FRAME_LOCALS_COUNT () > proc + nvalues,
-                   scm_vm_intrinsics.error_not_enough_values ());
+                   CALL_INTRINSIC (error_not_enough_values, ()));
       else
         VM_ASSERT (FRAME_LOCALS_COUNT () == proc + 1 + nvalues,
-                   scm_vm_intrinsics.error_wrong_number_of_values (nvalues));
+                   CALL_INTRINSIC (error_wrong_number_of_values, (nvalues)));
       NEXT (2);
     }
 
@@ -660,7 +662,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       pointer = SCM_PROGRAM_FREE_VARIABLE_REF (closure, ptr_idx);
 
       SYNC_IP ();
-      ret = scm_vm_intrinsics.foreign_call (cif, pointer, &err, sp);
+      ret = CALL_INTRINSIC (foreign_call, (cif, pointer, &err, sp));
       CACHE_SP ();
 
       ALLOC_FRAME (3);
@@ -689,7 +691,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
         SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), contregs_idx);
 
       SYNC_IP ();
-      scm_vm_intrinsics.reinstate_continuation_x (thread, contregs);
+      CALL_INTRINSIC (reinstate_continuation_x, (thread, contregs));
 
       /* no NEXT */
       abort ();
@@ -712,7 +714,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       vmcont = SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), cont_idx);
 
       SYNC_IP ();
-      scm_vm_intrinsics.compose_continuation (thread, registers, vmcont);
+      CALL_INTRINSIC (compose_continuation, (thread, registers, vmcont));
       CACHE_REGISTER ();
       NEXT (0);
     }
@@ -735,7 +737,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       list = FP_REF (list_idx);
 
       SYNC_IP ();
-      list_len = scm_vm_intrinsics.rest_arg_length (list);
+      list_len = CALL_INTRINSIC (rest_arg_length, (list));
 
       nlocals = nlocals - 2 + list_len;
       ALLOC_FRAME (nlocals);
@@ -755,7 +757,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
         ip = SCM_PROGRAM_CODE (FP_REF (0));
       else
         {
-          scm_vm_intrinsics.apply_non_program (thread);
+          CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
 
@@ -775,7 +777,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       SCM cont;
 
       SYNC_IP ();
-      cont = scm_vm_intrinsics.capture_continuation (thread, registers);
+      cont = CALL_INTRINSIC (capture_continuation, (thread, registers));
 
       RESET_FRAME (2);
 
@@ -786,7 +788,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
         ip = SCM_PROGRAM_CODE (SP_REF (1));
       else
         {
-          scm_vm_intrinsics.apply_non_program (thread);
+          CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
 
@@ -808,7 +810,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
          it continues with the next instruction.  */
       ip++;
       SYNC_IP ();
-      scm_vm_intrinsics.abort_to_prompt (thread, registers);
+      CALL_INTRINSIC (abort_to_prompt, (thread, registers));
 
       /* If abort_to_prompt returned, that means there were no
          intervening C frames to jump over, so we just continue
@@ -854,7 +856,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       args = SP_REF (b);
 
       SYNC_IP ();
-      scm_vm_intrinsics.throw_ (key, args);
+      CALL_INTRINSIC (throw_, (key, args));
 
       abort (); /* never reached */
     }
@@ -883,7 +885,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
 
       SYNC_IP ();
-      scm_vm_intrinsics.throw_with_value (val, key_subr_and_message);
+      CALL_INTRINSIC (throw_with_value, (val, key_subr_and_message));
 
       abort (); /* never reached */
     }
@@ -912,7 +914,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       key_subr_and_message = SCM_PACK (key_subr_and_message_bits);
 
       SYNC_IP ();
-      scm_vm_intrinsics.throw_with_value_and_data (val, key_subr_and_message);
+      CALL_INTRINSIC (throw_with_value_and_data, (val, key_subr_and_message));
 
       abort (); /* never reached */
     }
@@ -929,7 +931,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
+                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
       NEXT (1);
     }
   VM_DEFINE_OP (22, assert_nargs_ge, "assert-nargs-ge", OP1 (X8_C24))
@@ -937,7 +939,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () >= expected,
-                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
+                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
       NEXT (1);
     }
   VM_DEFINE_OP (23, assert_nargs_le, "assert-nargs-le", OP1 (X8_C24))
@@ -945,7 +947,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () <= expected,
-                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
+                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
       NEXT (1);
     }
 
@@ -1045,7 +1047,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       uint16_t expected, nlocals;
       UNPACK_12_12 (op, expected, nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 scm_vm_intrinsics.error_wrong_num_args (FP_REF (0)));
+                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
       ALLOC_FRAME (expected + nlocals);
       while (nlocals--)
         SP_SET (nlocals, SCM_UNDEFINED);
@@ -1079,7 +1081,6 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       scm_t_bits kw_bits;
       SCM kw;
       uint8_t allow_other_keys, has_rest;
-      struct scm_vm_intrinsics *i = (void*)intrinsics;
 
       UNPACK_24 (op, nreq);
       allow_other_keys = ip[1] & 0x1;
@@ -1092,16 +1093,17 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       kw = SCM_PACK (kw_bits);
 
       /* Note that if nopt == 0 then npositional = nreq.  */
-      npositional = i->compute_kwargs_npositional (thread, nreq,
-                                                   nreq_and_opt - nreq);
+      npositional = CALL_INTRINSIC (compute_kwargs_npositional,
+                                    (thread, nreq, nreq_and_opt - nreq));
 
       SYNC_IP ();
-      i->bind_kwargs(thread, npositional, ntotal, kw, !has_rest,
-                     allow_other_keys);
+      CALL_INTRINSIC (bind_kwargs,
+                      (thread, npositional, ntotal, kw, !has_rest,
+                       allow_other_keys));
       CACHE_SP ();
 
       if (has_rest)
-        FP_SET (nreq_and_opt, i->cons_rest (thread, ntotal));
+        FP_SET (nreq_and_opt, CALL_INTRINSIC (cons_rest, (thread, ntotal)));
 
       RESET_FRAME (ntotal);
 
@@ -1130,7 +1132,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       else
         {
           SYNC_IP ();
-          rest = scm_vm_intrinsics.cons_rest (thread, dst);
+          rest = CALL_INTRINSIC (cons_rest, (thread, dst));
           RESET_FRAME (dst + 1);
         }
 
@@ -1149,7 +1151,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_12_12 (op, dst, size);
 
       SYNC_IP ();
-      SP_SET (dst, scm_vm_intrinsics.allocate_words (thread, SP_REF_U64 (size)));
+      SP_SET (dst, CALL_INTRINSIC (allocate_words, (thread, SP_REF_U64 (size))));
       NEXT (1);
     }
 
@@ -1160,7 +1162,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_12_12 (op, dst, size);
 
       SYNC_IP ();
-      SP_SET (dst, scm_vm_intrinsics.allocate_words (thread, size));
+      SP_SET (dst, CALL_INTRINSIC (allocate_words, (thread, size)));
 
       NEXT (1);
     }
@@ -1674,9 +1676,9 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
   
       /* Push the prompt onto the dynamic stack. */
       SYNC_IP ();
-      scm_vm_intrinsics.push_prompt (thread, registers, escape_only_p,
-                                     SP_REF (tag), FP_SLOT (proc_slot),
-                                     ip + offset);
+      CALL_INTRINSIC (push_prompt,
+                      (thread, registers, escape_only_p,
+                       SP_REF (tag), FP_SLOT (proc_slot), ip + offset));
 
       NEXT (3);
     }
@@ -2380,8 +2382,6 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
    */
   VM_DEFINE_OP (183, handle_interrupts, "handle-interrupts", OP1 (X32))
     {
-      struct scm_vm_intrinsics *i = (void*)intrinsics;
-
       if (SCM_LIKELY (scm_is_null
                       (scm_atomic_ref_scm (&thread->pending_asyncs))))
         NEXT (1);
@@ -2390,7 +2390,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
         NEXT (1);
 
       SYNC_IP ();
-      i->push_interrupt_frame (thread);
+      CALL_INTRINSIC (push_interrupt_frame, (thread));
       CACHE_SP ();
       ip = (uint32_t *) vm_handle_interrupt_code;
       APPLY_HOOK ();
@@ -2528,7 +2528,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       y = SP_REF (b);
 
       SYNC_IP ();
-      if (scm_vm_intrinsics.numerically_equal_p (x, y))
+      if (CALL_INTRINSIC (numerically_equal_p, (x, y)))
         VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
         VP->compare_result = SCM_F_COMPARE_NONE;
@@ -2546,7 +2546,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       y = SP_REF (b);
 
       SYNC_IP ();
-      VP->compare_result = scm_vm_intrinsics.less_p (x, y);
+      VP->compare_result = CALL_INTRINSIC (less_p, (x, y));
       CACHE_SP ();
       NEXT (1);
     }
@@ -2785,7 +2785,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       y = SP_REF (b);
 
       SYNC_IP ();
-      if (scm_vm_intrinsics.heap_numbers_equal_p (x, y))
+      if (CALL_INTRINSIC (heap_numbers_equal_p, (x, y)))
         VP->compare_result = SCM_F_COMPARE_EQUAL;
       else
         VP->compare_result = SCM_F_COMPARE_NONE;
