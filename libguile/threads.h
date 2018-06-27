@@ -99,9 +99,11 @@ struct scm_thread {
   SCM continuation_root;
   SCM_STACKITEM *continuation_base;
 
+  /* Stack base.  Used when checking for C stack overflow.  */
+  SCM_STACKITEM *base;
+
   /* VM state for this thread.  */
   struct scm_vm vm;
-  SCM_STACKITEM *base;
 };
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)
