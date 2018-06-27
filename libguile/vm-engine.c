@@ -1130,13 +1130,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       else
         {
           SYNC_IP ();
-
-          while (nargs-- > dst)
-            {
-              rest = scm_inline_cons (thread, FP_REF (nargs), rest);
-              FP_SET (nargs, SCM_UNDEFINED);
-            }
-
+          rest = scm_vm_intrinsics.cons_rest (thread, dst);
           RESET_FRAME (dst + 1);
         }
 
