@@ -26,6 +26,7 @@
 #include "cache-internal.h"
 #include "extensions.h"
 #include "fluids.h"
+#include "gc-inline.h"
 #include "goops.h"
 #include "gsubr.h"
 #include "keywords.h"
@@ -333,6 +334,12 @@ error_wrong_number_of_values (uint32_t expected)
                   scm_list_1 (scm_from_uint32 (expected)));
 }
 
+static SCM
+allocate_words (scm_thread *thread, uint64_t n)
+{
+  return SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, n));
+}
+
 
 void
 scm_bootstrap_intrinsics (void)
@@ -386,6 +393,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.error_no_values = error_no_values;
   scm_vm_intrinsics.error_not_enough_values = error_not_enough_values;
   scm_vm_intrinsics.error_wrong_number_of_values = error_wrong_number_of_values;
+  scm_vm_intrinsics.allocate_words = allocate_words;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

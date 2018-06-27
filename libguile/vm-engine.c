@@ -1155,10 +1155,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_12_12 (op, dst, size);
 
       SYNC_IP ();
-      SP_SET (dst,
-              SCM_PACK_POINTER
-              (scm_inline_gc_malloc_words (thread, SP_REF_U64 (size))));
-
+      SP_SET (dst, scm_vm_intrinsics.allocate_words (thread, SP_REF_U64 (size)));
       NEXT (1);
     }
 
@@ -1169,8 +1166,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       UNPACK_12_12 (op, dst, size);
 
       SYNC_IP ();
-      SP_SET (dst,
-              SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, size)));
+      SP_SET (dst, scm_vm_intrinsics.allocate_words (thread, size));
 
       NEXT (1);
     }
@@ -1945,7 +1941,24 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (92, unused_92, NULL, NOP)
+  VM_DEFINE_OP (92, call_scm_from_thread, "call-scm<-thread", OP2 (X8_S24, C32) | OP_DST)
+    {
+      uint32_t dst;
+      scm_t_scm_from_thread_intrinsic intrinsic;
+      SCM res;
+
+      UNPACK_24 (op, dst);
+      intrinsic = intrinsics[ip[1]];
+
+      SYNC_IP ();
+      res = intrinsic (thread);
+      CACHE_SP ();
+
+      SP_SET (dst, res);
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (93, unused_93, NULL, NOP)
   VM_DEFINE_OP (94, unused_94, NULL, NOP)
   VM_DEFINE_OP (95, unused_95, NULL, NOP)
