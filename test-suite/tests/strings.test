@@ -1,8 +1,8 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004-2006, 2008-2011, 2013,
-;;;;   2015 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999,2001,2004-2006,2008-2011,2013,2015,2018
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,10 +26,6 @@
   (cons 'misc-error "^string is read-only"))
 (define exception:illegal-escape
   (cons 'read-error "illegal character in escape sequence"))
-;; Wrong types may have either the 'wrong-type-arg key when
-;; interpreted or 'vm-error when compiled.  This matches both.
-(define exception:wrong-type-arg
-  (cons #t "Wrong type"))
 
 ;; Create a string from integer char values, eg. (string-ints 65) => "A"
 (define (string-ints . args)

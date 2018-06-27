@@ -1,6 +1,6 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999-2001,2004,2006-2007,2009-2014,2018
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,6 @@
  exception:string-contains-nul
  exception:read-error
  exception:null-pointer-error
- exception:vm-error
 
  ;; Reporting passes and failures.
  run-test
@@ -294,8 +293,6 @@
   (cons 'read-error "^.*$"))
 (define exception:null-pointer-error
   (cons 'null-pointer-error "^.*$"))
-(define exception:vm-error
-  (cons 'vm-error "^.*$"))
 
 ;; as per throw in scm_to_locale_stringn()
 (define exception:string-contains-nul
