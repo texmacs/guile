@@ -167,7 +167,7 @@ restore_auxiliary_stack (scm_thread *thread, scm_t_contregs *continuation)
 }
 
 SCM 
-scm_i_make_continuation (jmp_buf *registers, scm_thread *thread, SCM vm_cont)
+scm_i_make_continuation (scm_thread *thread, SCM vm_cont)
 {
   SCM cont;
   scm_t_contregs *continuation;
@@ -187,7 +187,7 @@ scm_i_make_continuation (jmp_buf *registers, scm_thread *thread, SCM vm_cont)
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
-  memcpy (continuation->jmpbuf, registers, sizeof (*registers));
+  memcpy (continuation->jmpbuf, thread->vm.registers, sizeof (jmp_buf));
   continuation->vm_cont = vm_cont;
   capture_auxiliary_stack (thread, continuation);
 

@@ -54,20 +54,17 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_thread*, uint32_t,
 typedef SCM (*scm_t_scm_from_scm_scm_scmp_sp_intrinsic) (SCM, SCM, SCM*,
                                                          const union scm_vm_stack_element*);
 typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORETURN;
-typedef SCM (*scm_t_scm_from_thread_regs_intrinsic) (scm_thread*, jmp_buf*);
-typedef void (*scm_t_thread_regs_scm_intrinsic) (scm_thread*, jmp_buf*, SCM);
 typedef int (*scm_t_int_from_scm_intrinsic) (SCM);
-typedef void (*scm_t_thread_regs_intrinsic) (scm_thread*, jmp_buf*);
 typedef void (*scm_t_scm_scm_noreturn_intrinsic) (SCM, SCM) SCM_NORETURN;
 typedef void (*scm_t_noreturn_intrinsic) (void) SCM_NORETURN;
 typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
 typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
 typedef SCM (*scm_t_scm_from_thread_u64_intrinsic) (scm_thread*, uint64_t);
 typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
-typedef void (*scm_t_thread_regs_u8_scm_sp_ra_intrinsic) (scm_thread*, jmp_buf*,
-                                                          uint8_t, SCM,
-                                                          const union scm_vm_stack_element*,
-                                                          void*);
+typedef void (*scm_t_thread_u8_scm_sp_ra_intrinsic) (scm_thread*,
+                                                     uint8_t, SCM,
+                                                     const union scm_vm_stack_element*,
+                                                     void*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -119,10 +116,10 @@ typedef void (*scm_t_thread_regs_u8_scm_sp_ra_intrinsic) (scm_thread*, jmp_buf*,
   M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(scm_from_scm_scm_scmp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
-  M(scm_from_thread_regs, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
-  M(thread_regs_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
+  M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
+  M(thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
   M(int_from_scm, rest_arg_length, "rest-arg-length", REST_ARG_LENGTH) \
-  M(thread_regs, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \
+  M(thread, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \
   M(scm_scm_noreturn, throw_, "throw", THROW) \
   M(scm_scm_noreturn, throw_with_value, "throw/value", THROW_WITH_VALUE) \
   M(scm_scm_noreturn, throw_with_value_and_data, "throw/value+data", THROW_WITH_VALUE_AND_DATA) \
@@ -133,7 +130,7 @@ typedef void (*scm_t_thread_regs_u8_scm_sp_ra_intrinsic) (scm_thread*, jmp_buf*,
   M(thread, apply_non_program, "apply-non-program", APPLY_NON_PROGRAM) \
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
-  M(thread_regs_u8_scm_sp_ra, push_prompt, "push-prompt", PUSH_PROMPT) \
+  M(thread_u8_scm_sp_ra, push_prompt, "push-prompt", PUSH_PROMPT) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

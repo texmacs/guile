@@ -272,7 +272,7 @@
   ((uintptr_t) (ptr) % alignof_type (type) == 0)
 
 static SCM
-VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
+VM_NAME (scm_thread *thread, int resume)
 {
   /* Instruction pointer: A pointer to the opcode that is currently
      running.  */
@@ -714,7 +714,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       vmcont = SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), cont_idx);
 
       SYNC_IP ();
-      CALL_INTRINSIC (compose_continuation, (thread, registers, vmcont));
+      CALL_INTRINSIC (compose_continuation, (thread, vmcont));
       CACHE_REGISTER ();
       NEXT (0);
     }
@@ -777,7 +777,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
       SCM cont;
 
       SYNC_IP ();
-      cont = CALL_INTRINSIC (capture_continuation, (thread, registers));
+      cont = CALL_INTRINSIC (capture_continuation, (thread));
 
       RESET_FRAME (2);
 
@@ -810,7 +810,7 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
          it continues with the next instruction.  */
       ip++;
       SYNC_IP ();
-      CALL_INTRINSIC (abort_to_prompt, (thread, registers));
+      CALL_INTRINSIC (abort_to_prompt, (thread));
 
       /* If abort_to_prompt returned, that means there were no
          intervening C frames to jump over, so we just continue
@@ -1676,9 +1676,8 @@ VM_NAME (scm_thread *thread, jmp_buf *registers, int resume)
   
       /* Push the prompt onto the dynamic stack. */
       SYNC_IP ();
-      CALL_INTRINSIC (push_prompt,
-                      (thread, registers, escape_only_p,
-                       SP_REF (tag), FP_SLOT (proc_slot), ip + offset));
+      CALL_INTRINSIC (push_prompt, (thread, escape_only_p, SP_REF (tag),
+                                    FP_SLOT (proc_slot), ip + offset));
 
       NEXT (3);
     }

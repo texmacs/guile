@@ -464,8 +464,7 @@ scm_i_call_with_current_continuation (SCM proc)
 #undef VM_USE_HOOKS
 #undef VM_NAME
 
-typedef SCM (*scm_t_vm_engine) (scm_thread *current_thread,
-                                jmp_buf *registers, int resume);
+typedef SCM (*scm_t_vm_engine) (scm_thread *current_thread, int resume);
 
 static const scm_t_vm_engine vm_engines[SCM_VM_NUM_ENGINES] =
   { vm_regular_engine, vm_debug_engine };
@@ -1102,7 +1101,7 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
 }
 
 static SCM
-capture_continuation (scm_thread *thread, jmp_buf *registers)
+capture_continuation (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
   SCM vm_cont =
@@ -1112,7 +1111,7 @@ capture_continuation (scm_thread *thread, jmp_buf *registers)
                             SCM_FRAME_RETURN_ADDRESS (vp->fp),
                             scm_dynstack_capture_all (&thread->dynstack),
                             0);
-  return scm_i_make_continuation (registers, thread, vm_cont);
+  return scm_i_make_continuation (thread, vm_cont);
 }
 
 struct compose_continuation_data
@@ -1139,7 +1138,7 @@ compose_continuation_inner (void *data_ptr)
 }
 
 static void
-compose_continuation (scm_thread *thread, jmp_buf *registers, SCM cont)
+compose_continuation (scm_thread *thread, SCM cont)
 {
   struct scm_vm *vp = &thread->vm;
   size_t nargs;
@@ -1185,7 +1184,7 @@ compose_continuation (scm_thread *thread, jmp_buf *registers, SCM cont)
 
         if (SCM_DYNSTACK_TAG_TYPE (tag) == SCM_DYNSTACK_TYPE_PROMPT)
           scm_dynstack_wind_prompt (&thread->dynstack, walk, old_fp_offset,
-                                    registers);
+                                    thread->vm.registers);
         else
           scm_dynstack_wind_1 (&thread->dynstack, walk);
       }
@@ -1257,7 +1256,7 @@ scm_i_vm_abort (SCM *tag_and_argv, size_t n)
 }
 
 static void
-abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
+abort_to_prompt (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
   scm_t_dynstack *dynstack = &thread->dynstack;
@@ -1292,7 +1291,7 @@ abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
 
       captured = scm_dynstack_capture (dynstack, SCM_DYNSTACK_NEXT (prompt));
       cont = capture_delimited_continuation (vp, fp, sp, ip, registers, captured,
-                                             current_registers);
+                                             thread->vm.registers);
     }
 
   /* Unwind.  */
@@ -1316,7 +1315,7 @@ abort_to_prompt (scm_thread *thread, jmp_buf *current_registers)
   /* If there are intervening C frames, then jump over them, making a
      nonlocal exit.  Otherwise fall through and let the VM pick up where
      it left off.  */
-  if (current_registers != registers)
+  if (thread->vm.registers != registers)
     longjmp (*registers, 1);
 }
 
@@ -1423,7 +1422,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
       }
 
     thread->vm.registers = &registers;
-    ret = vm_engines[vp->engine](thread, &registers, resume);
+    ret = vm_engines[vp->engine](thread, resume);
     thread->vm.registers = prev_registers;
 
     return ret;

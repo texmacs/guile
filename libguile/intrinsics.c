@@ -348,7 +348,7 @@ current_module (scm_thread *thread)
 }
 
 static void
-push_prompt (scm_thread *thread, jmp_buf *registers, uint8_t escape_only_p,
+push_prompt (scm_thread *thread, uint8_t escape_only_p,
              SCM tag, const union scm_vm_stack_element *sp, void *ra)
 {
   struct scm_vm *vp = &thread->vm;
@@ -357,7 +357,7 @@ push_prompt (scm_thread *thread, jmp_buf *registers, uint8_t escape_only_p,
   flags = escape_only_p ? SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY : 0;
   scm_dynstack_push_prompt (&thread->dynstack, flags, tag,
                             vp->stack_top - vp->fp, vp->stack_top - sp,
-                            ra, registers);
+                            ra, thread->vm.registers);
 }
 
 void
