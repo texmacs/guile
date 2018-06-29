@@ -548,7 +548,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
   VM_DEFINE_OP (1, call, "call", OP2 (X8_F24, X8_C24))
     {
       scm_t_uint32 proc, nlocals;
-      union scm_vm_stack_element *old_fp;
+      union scm_vm_stack_element *old_fp, *new_fp;
 
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
@@ -556,9 +556,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = vp->fp;
-      vp->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip + 2);
+      new_fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (new_fp, ip + 2);
+      vp->fp = new_fp;
 
       RESET_FRAME (nlocals);
 
@@ -586,7 +587,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       scm_t_uint32 proc, nlocals;
       scm_t_int32 label;
-      union scm_vm_stack_element *old_fp;
+      union scm_vm_stack_element *old_fp, *new_fp;
 
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
@@ -595,9 +596,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = vp->fp;
-      vp->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip + 3);
+      new_fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (new_fp, ip + 3);
+      vp->fp = new_fp;
 
       RESET_FRAME (nlocals);
 
@@ -3893,7 +3895,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
         NEXT (1);
 
       {
-        union scm_vm_stack_element *old_fp;
+        union scm_vm_stack_element *old_fp, *new_fp;
         size_t old_frame_size = FRAME_LOCALS_COUNT ();
         SCM proc = scm_i_async_pop (thread);
 
@@ -3907,9 +3909,10 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
            handle-interrupts opcode to handle any additional
            interrupts.  */
         old_fp = vp->fp;
-        vp->fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
-        SCM_FRAME_SET_DYNAMIC_LINK (vp->fp, old_fp);
-        SCM_FRAME_SET_RETURN_ADDRESS (vp->fp, ip);
+        new_fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
+        SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
+        SCM_FRAME_SET_RETURN_ADDRESS (new_fp, ip);
+        vp->fp = new_fp;
 
         SP_SET (0, proc);
 
