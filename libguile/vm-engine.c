@@ -324,6 +324,7 @@ VM_NAME (scm_thread *thread)
       /* Boot closure in r0, empty frame in r1/r2, proc in r3, values from r4.  */
 
       uint32_t nvals = FRAME_LOCALS_COUNT_FROM (4);
+      union scm_vm_stack_element *fp;
       SCM ret;
 
       if (nvals == 1)
@@ -338,9 +339,10 @@ VM_NAME (scm_thread *thread)
             SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (4 + n));
         }
 
-      VP->ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
-      VP->sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
-      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
+      fp = VP->fp;
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (fp);
+      VP->ip = SCM_FRAME_RETURN_ADDRESS (fp);
+      VP->sp = SCM_FRAME_PREVIOUS_SP (fp);
 
       return ret;
     }
@@ -361,7 +363,7 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (1, call, "call", OP2 (X8_F24, X8_C24))
     {
       uint32_t proc, nlocals;
-      union scm_vm_stack_element *old_fp;
+      union scm_vm_stack_element *old_fp, *new_fp;
 
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
@@ -369,9 +371,10 @@ VM_NAME (scm_thread *thread)
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = VP->fp;
-      VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 2);
+      new_fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (new_fp, ip + 2);
+      VP->fp = new_fp;
 
       RESET_FRAME (nlocals);
 
@@ -403,7 +406,7 @@ VM_NAME (scm_thread *thread)
     {
       uint32_t proc, nlocals;
       int32_t label;
-      union scm_vm_stack_element *old_fp;
+      union scm_vm_stack_element *old_fp, *new_fp;
 
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
@@ -412,9 +415,10 @@ VM_NAME (scm_thread *thread)
       PUSH_CONTINUATION_HOOK ();
 
       old_fp = VP->fp;
-      VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
-      SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 3);
+      new_fp = SCM_FRAME_SLOT (old_fp, proc - 1);
+      SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
+      SCM_FRAME_SET_RETURN_ADDRESS (new_fp, ip + 3);
+      VP->fp = new_fp;
 
       RESET_FRAME (nlocals);
 
@@ -2387,9 +2391,11 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (184, return_from_interrupt, "return-from-interrupt", OP1 (X32))
     {
-      VP->sp = sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
-      ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
-      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
+      union scm_vm_stack_element *fp = VP->fp;
+
+      ip = SCM_FRAME_RETURN_ADDRESS (fp);
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (fp);
+      VP->sp = sp = SCM_FRAME_PREVIOUS_SP (fp);
 
       NEXT (0);
     }
