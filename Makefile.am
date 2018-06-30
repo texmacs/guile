@@ -1,5 +1,5 @@
 #
-# Copyright 2000, 2001, 2002, 2012-2017 Free Software Foundation, Inc.
+# Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU lightning.
 #
@@ -24,22 +24,3 @@ SUBDIRS =		\
 
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = lightning.pc
-
-if get_jit_size
-JIT_SIZE_PATH = "$(top_builddir)/jit_$(cpu)-sz.c"
-AM_CPPFLAGS=-DGET_JIT_SIZE=1 -DJIT_SIZE_PATH='$(JIT_SIZE_PATH)'
-AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE $(LIGHTNING_CFLAGS)
-
-noinst_PROGRAMS = size
-size_LDADD = $(top_builddir)/lib/liblightning.la -lm $(SHLIB)
-size_SOURCES = size.c
-
-get_jit_size::	$(JIT_SIZE_PATH)
-
-$(JIT_SIZE_PATH):
-	make clean
-	make CFLAGS='-O0 -g3' check
-	$(top_builddir)/size
-
-CLEANFILES = $(JIT_SIZE_PATH)
-endif

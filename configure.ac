@@ -1,5 +1,5 @@
 dnl
-dnl Copyright 2000, 2001, 2002, 2012-2017 Free Software Foundation, Inc.
+dnl Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GNU lightning.
 dnl
@@ -134,13 +134,6 @@ else
     LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DNDEBUG"
     DEBUG=no
 fi
-
-# This option is only useful during development.
-AC_ARG_ENABLE(devel-get-jit-size,
-	      AS_HELP_STRING([--enable-devel-get-jit-size],
-			     [Devel mode to regenerate jit size information]),
-	      [GET_JIT_SIZE=$enableval], [GET_JIT_SIZE=no])
-AM_CONDITIONAL(get_jit_size, [test $GET_JIT_SIZE = yes])
 
 case "$host_os" in
     *bsd*|osf*)		SHLIB=""	;;
