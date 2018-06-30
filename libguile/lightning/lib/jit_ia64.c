@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -1099,9 +1099,6 @@ _emit_code(jit_state_t *_jit)
 	    return (NULL);
 
 	value = jit_classify(node->code);
-#if GET_JIT_SIZE
-	sync();
-#endif
 #if DEVEL_DISASSEMBLER
 	/* FIXME DEVEL_DISASSEMBLER should become DISASSEMBLER,
 	 * but a "real" DEVEL_DISASSEMBLER should be required
@@ -1648,9 +1645,6 @@ _emit_code(jit_state_t *_jit)
 		    break;
 	    }
 	}
-#if GET_JIT_SIZE
-	sync();
-#endif
 	jit_regarg_clr(node, value);
 	if (jit_carry == _NOREG)
 	    assert(jit_regset_cmp_ui(&_jitc->regarg, 0) == 0);

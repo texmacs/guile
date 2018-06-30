@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -19,17 +19,11 @@
 
 #include <lightning.h>
 #include <lightning/jit_private.h>
-#if GET_JIT_SIZE
-#  include <stdio.h>
-#endif
 
 /*
  * Initialization
  */
 static jit_int16_t	_szs[jit_code_last_code] = {
-#if GET_JIT_SIZE
-#  define JIT_INSTR_MAX		256
-#else
 #  if defined(__i386__) || defined(__x86_64__)
 #    include "jit_x86-sz.c"
 #  elif defined(__mips__)
@@ -51,7 +45,6 @@ static jit_int16_t	_szs[jit_code_last_code] = {
 #  elif defined(__alpha__)
 #    include "jit_alpha-sz.c"
 #  endif
-#endif
 };
 
 /*
@@ -61,7 +54,6 @@ void
 jit_init_size(void)
 {
 #if DEBUG
-#  if !GET_JIT_SIZE
     jit_word_t		offset;
 
     for (offset = 0; offset < jit_size(_szs); offset++)
@@ -69,43 +61,8 @@ jit_init_size(void)
 	    return;
     /* Ensure data was collected */
     abort();
-#  endif
 #endif
 }
-
-#if GET_JIT_SIZE
-void
-_jit_size_prepare(jit_state_t *_jit)
-{
-    _jitc->cptr = _jit->code.ptr;
-    _jitc->size = _jit->pc.w;
-}
-
-void
-_jit_size_collect(jit_state_t *_jit, jit_node_t *node)
-{
-    jit_word_t		length;
-
-    if (_jitc->cptr == _jit->code.ptr) {
-	length = _jit->pc.w - _jitc->size;
-	if (_szs[node->code] < length)
-	    _szs[node->code] = length;
-    }
-}
-
-#else
-jit_word_t
-_jit_get_size(jit_state_t *_jit)
-{
-    jit_word_t		 size;
-    jit_node_t		*node;
-
-    for (size = JIT_INSTR_MAX, node = _jitc->head; node; node = node->next)
-	size += _szs[node->code];
-
-    return ((size + 4095) & -4096);
-}
-#endif
 
 jit_word_t
 jit_get_max_instr(void)
@@ -116,15 +73,4 @@ jit_get_max_instr(void)
 void
 jit_finish_size(void)
 {
-#if GET_JIT_SIZE
-    FILE		*fp;
-    jit_word_t		 offset;
-
-    /* Define a single path */
-    fp = fopen(JIT_SIZE_PATH, "a");
-    assert(fp);
-    for (offset = 0; offset < jit_size(_szs); offset++)
-	fprintf(fp, "%d %d\n", offset, _szs[offset]);
-    fclose(fp);
-#endif
 }

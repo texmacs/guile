@@ -1,5 +1,5 @@
 #
-# Copyright 2000, 2001, 2002, 2012-2017 Free Software Foundation, Inc.
+# Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU lightning.
 #
@@ -17,11 +17,6 @@
 AM_CFLAGS = -I$(top_srcdir)/include -D_GNU_SOURCE $(LIGHTNING_CFLAGS)
 liblightning_LTLIBRARIES = liblightning.la
 liblightning_la_LDFLAGS = -version-info 1:0:0
-
-if get_jit_size
-JIT_SIZE_PATH = "$(top_builddir)/jit_$(cpu)-sz.c"
-AM_CPPFLAGS=-DGET_JIT_SIZE=1 -DJIT_SIZE_PATH='$(JIT_SIZE_PATH)'
-endif
 
 liblightningdir = $(libdir)
 liblightning_la_SOURCES =	\

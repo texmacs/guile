@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -583,14 +583,6 @@ struct jit_compiler {
     } prolog;
     jit_bool_t		  jump;
 #endif
-#if GET_JIT_SIZE
-    /* Temporary storage to calculate instructions length */
-    jit_word_t		  size;
-    /* Global flag for code buffer heuristic size computation */
-    jit_word_t		  mult;
-    /* Pointer to code to prevent miscalculation if reallocating buffer */
-    jit_uint8_t		 *cptr;
-#endif
 };
 
 #define _jitc				_jit->comp
@@ -736,20 +728,6 @@ void jit_free(jit_pointer_t*);
 
 extern void jit_init_size(void);
 extern void jit_finish_size(void);
-
-#if GET_JIT_SIZE
-#  define jit_size_prepare()		_jit_size_prepare(_jit)
-extern void
-_jit_size_prepare(jit_state_t*);
-
-#  define jit_size_collect(node)	_jit_size_collect(_jit, node)
-extern void
-_jit_size_collect(jit_state_t*, jit_node_t*);
-#else
-#  define jit_get_size()		_jit_get_size(_jit)
-extern jit_word_t
-_jit_get_size(jit_state_t*);
-#endif
 
 extern jit_word_t
 jit_get_max_instr(void);
