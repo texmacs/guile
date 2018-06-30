@@ -19,6 +19,3 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS =		\
 	include		\
 	lib
-
-pkgconfiglibdir = $(libdir)/pkgconfig
-pkgconfiglib_DATA = lightning.pc
