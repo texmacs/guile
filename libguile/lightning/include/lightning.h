@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -26,9 +26,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#if HAVE_STDINT_H
-#  include <stdint.h>
-#endif
+#include <stdint.h>
 #include <string.h>
 
 #if defined(__hpux) && defined(__hppa__)

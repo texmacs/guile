@@ -1,31 +1,4 @@
-dnl
-dnl Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
-dnl
-dnl This file is part of GNU lightning.
-dnl
-dnl GNU lightning is free software; you can redistribute it and/or modify it
-dnl under the terms of the GNU Lesser General Public License as published
-dnl by the Free Software Foundation; either version 3, or (at your option)
-dnl any later version.
-dnl 
-dnl GNU lightning is distributed in the hope that it will be useful, but
-dnl WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-dnl or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-dnl License for more details.
-dnl
-
-AC_PREREQ(2.57)
-AC_INIT([GNU lightning], 2.1.2, pcpa@gnu.org, lightning)
-AC_CANONICAL_TARGET
-AC_CONFIG_SRCDIR([Makefile.am])
-AM_INIT_AUTOMAKE([dist-bzip2])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-
-AC_CONFIG_HEADERS(config.h)
-
-AC_PROG_CC
-AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+LIGHTNING_CFLAGS=
 
 case "$target_cpu" in
     ia64)
@@ -59,9 +32,7 @@ case "$target_cpu" in
     *)						;;
 esac
 
-AC_CHECK_FUNCS(mremap ffsl getopt_long_only isnan isinf,,)
-
-AC_CHECK_HEADERS([getopt.h stdint.h],,,)
+AC_CHECK_FUNCS(mremap ffsl isnan isinf,,)
 
 AC_ARG_ENABLE(disassembler,
 	      AS_HELP_STRING([--enable-disassembler],
