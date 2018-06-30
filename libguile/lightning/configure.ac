@@ -280,5 +280,4 @@ AC_OUTPUT([Makefile
 	   lightning.pc
 	   include/Makefile
 	   include/lightning/Makefile
-	   lib/Makefile
-	   check/Makefile])
+	   lib/Makefile])
