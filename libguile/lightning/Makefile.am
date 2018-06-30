@@ -14,8 +14,6 @@
 # License for more details.
 #
 
-ACLOCAL_AMFLAGS = -I m4
-
 SUBDIRS =		\
 	include		\
 	lib
