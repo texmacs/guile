@@ -1,0 +1,31 @@
+#
+# Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
+#
+# This file is part of GNU lightning.
+#
+# GNU lightning is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# GNU lightning is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+#
+
+lightning = $(top_srcdir)/libguile/lightning
+
+EXTRA_DIST = \
+	$(lightning)/include/lightning.h \
+	$(lightning)/include/lightning/jit_private.h a\
+	$(lightning)/include/lightning/jit_arm.h \
+	$(lightning)/include/lightning/jit_mips.h \
+	$(lightning)/include/lightning/jit_ppc.h \
+	$(lightning)/include/lightning/jit_sparc.h \
+	$(lightning)/include/lightning/jit_x86.h \
+	$(lightning)/include/lightning/jit_ia64.h \
+	$(lightning)/include/lightning/jit_hppa.h \
+	$(lightning)/include/lightning/jit_aarch64.h \
+	$(lightning)/include/lightning/jit_s390.h \
+	$(lightning)/include/lightning/jit_alpha.h
