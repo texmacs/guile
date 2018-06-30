@@ -16,16 +16,72 @@
 
 lightning = $(top_srcdir)/libguile/lightning
 
-EXTRA_DIST = \
-	$(lightning)/include/lightning.h \
-	$(lightning)/include/lightning/jit_private.h a\
-	$(lightning)/include/lightning/jit_arm.h \
-	$(lightning)/include/lightning/jit_mips.h \
-	$(lightning)/include/lightning/jit_ppc.h \
-	$(lightning)/include/lightning/jit_sparc.h \
-	$(lightning)/include/lightning/jit_x86.h \
-	$(lightning)/include/lightning/jit_ia64.h \
-	$(lightning)/include/lightning/jit_hppa.h \
-	$(lightning)/include/lightning/jit_aarch64.h \
-	$(lightning)/include/lightning/jit_s390.h \
-	$(lightning)/include/lightning/jit_alpha.h
+# FIXME: define in C files: -D_GNU_SOURCE
+# FIXME: set LIGHTNING_CFLAGS=-I$(lightning)/include in configure.ac
+
+lightning_c_files = 				\
+	$(lightning)/lib/jit_disasm.c		\
+	$(lightning)/lib/jit_memory.c		\
+	$(lightning)/lib/jit_names.c		\
+	$(lightning)/lib/jit_note.c		\
+	$(lightning)/lib/jit_print.c		\
+	$(lightning)/lib/jit_size.c		\
+	$(lightning)/lib/lightning.c
+
+lightning_extra_files =					\
+	$(lightning)/include/lightning.h		\
+	$(lightning)/include/lightning/jit_private.h 	\
+	$(lightning)/include/lightning/jit_arm.h	\
+	$(lightning)/include/lightning/jit_mips.h	\
+	$(lightning)/include/lightning/jit_ppc.h	\
+	$(lightning)/include/lightning/jit_sparc.h	\
+	$(lightning)/include/lightning/jit_x86.h	\
+	$(lightning)/include/lightning/jit_ia64.h	\
+	$(lightning)/include/lightning/jit_hppa.h	\
+	$(lightning)/include/lightning/jit_aarch64.h	\
+	$(lightning)/include/lightning/jit_s390.h	\
+	$(lightning)/include/lightning/jit_alpha.h	\
+							\
+	$(lightning)/lib/jit_rewind.c			\
+	$(lightning)/lib/jit_aarch64.c			\
+	$(lightning)/lib/jit_aarch64-cpu.c		\
+	$(lightning)/lib/jit_aarch64-fpu.c		\
+	$(lightning)/lib/jit_aarch64-sz.c		\
+	$(lightning)/lib/jit_alpha.c			\
+	$(lightning)/lib/jit_alpha-cpu.c		\
+	$(lightning)/lib/jit_alpha-fpu.c		\
+	$(lightning)/lib/jit_alpha-sz.c			\
+	$(lightning)/lib/jit_arm.c			\
+	$(lightning)/lib/jit_arm-cpu.c			\
+	$(lightning)/lib/jit_arm-swf.c			\
+	$(lightning)/lib/jit_arm-vfp.c			\
+	$(lightning)/lib/jit_arm-sz.c			\
+	$(lightning)/lib/jit_hppa.c			\
+	$(lightning)/lib/jit_hppa-cpu.c			\
+	$(lightning)/lib/jit_hppa-fpu.c			\
+	$(lightning)/lib/jit_hppa-sz.c			\
+	$(lightning)/lib/jit_ia64.c			\
+	$(lightning)/lib/jit_ia64-cpu.c			\
+	$(lightning)/lib/jit_ia64-fpu.c			\
+	$(lightning)/lib/jit_ia64-sz.c			\
+	$(lightning)/lib/jit_mips.c			\
+	$(lightning)/lib/jit_mips-cpu.c			\
+	$(lightning)/lib/jit_mips-fpu.c			\
+	$(lightning)/lib/jit_mips-sz.c			\
+	$(lightning)/lib/jit_ppc.c			\
+	$(lightning)/lib/jit_ppc-cpu.c			\
+	$(lightning)/lib/jit_ppc-fpu.c			\
+	$(lightning)/lib/jit_ppc-sz.c			\
+	$(lightning)/lib/jit_s390.c			\
+	$(lightning)/lib/jit_s390-cpu.c			\
+	$(lightning)/lib/jit_s390-fpu.c			\
+	$(lightning)/lib/jit_s390-sz.c			\
+	$(lightning)/lib/jit_sparc.c			\
+	$(lightning)/lib/jit_sparc-cpu.c		\
+	$(lightning)/lib/jit_sparc-fpu.c		\
+	$(lightning)/lib/jit_sparc-sz.c			\
+	$(lightning)/lib/jit_x86.c			\
+	$(lightning)/lib/jit_x86-cpu.c			\
+	$(lightning)/lib/jit_x86-sse.c			\
+	$(lightning)/lib/jit_x86-x87.c			\
+	$(lightning)/lib/jit_x86-sz.c

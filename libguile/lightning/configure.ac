@@ -274,6 +274,3 @@ fi
 AC_SUBST(cpu)
 
 AC_SUBST([LIGHTNING_CFLAGS])
-
-AC_OUTPUT([Makefile
-	   lib/Makefile])
