@@ -18,7 +18,6 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS =		\
 	check		\
-	doc		\
 	include		\
 	lib
 

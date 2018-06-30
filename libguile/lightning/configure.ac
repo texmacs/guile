@@ -278,7 +278,6 @@ AC_SUBST([LIGHTNING_CFLAGS])
 
 AC_OUTPUT([Makefile
 	   lightning.pc
-	   doc/Makefile
 	   include/Makefile
 	   include/lightning/Makefile
 	   lib/Makefile
