@@ -449,8 +449,8 @@ vm-operations.h: vm-engine.c
 	| sed -e 's,VM_DEFINE_OP (\(.*\)).*,  M (\1) \\,' >> $@
 	@echo '' >> $@
 
-BUILT_INCLUDES = vm-operations.h scmconfig.h
-BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h $(BUILT_INCLUDES) \
+BUILT_INCLUDES = vm-operations.h scmconfig.h libpath.h
+BUILT_SOURCES = cpp-E.c cpp-SIG.c $(BUILT_INCLUDES) \
     $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 # Force the generation of `guile-procedures.texi' because the top-level
@@ -781,8 +781,6 @@ $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): $(BUILT_INCLUDES) snarf.h guile-snarf-d
 
 error.x: cpp-E.c
 posix.x: cpp-SIG.c
-load.x: libpath.h
-dynl.x: libpath.h
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 snarf2checkedtexi = GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/build-env guild snarf-check-and-output-texi
