@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
-##        2014, 2015 Free Software Foundation, Inc.
+##        2014, 2015, 2018 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -294,6 +294,7 @@ SOURCES =					\
   srfi/srfi-64.scm				\
   srfi/srfi-67.scm				\
   srfi/srfi-69.scm				\
+  srfi/srfi-71.scm				\
   srfi/srfi-88.scm				\
   srfi/srfi-98.scm				\
   srfi/srfi-111.scm				\
