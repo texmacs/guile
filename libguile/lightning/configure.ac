@@ -1,37 +1,5 @@
 LIGHTNING_CFLAGS=
 
-case "$target_cpu" in
-    ia64)
-	case "$host_os" in
-	    # Only supported mode
-	    *hpux*)
-		LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -mlp64"		;;
-	    *)					;;
-	esac					;;
-    *mips*)
-	case "$host_os" in
-	    # (Hack) Flags to pass configure with gcc 3.x
-	    # Should not set LIGHTNINT_CFLAGS
-	    *irix*)
-		CFLAGS="$CFLAGS -D__c99 -Drestrict=";;
-	    *)					;;
-	esac					;;
-    alpha*)
-	case "$host_os" in
-	    osf*)
-		# Get proper varargs and mmap prototypes and definitions
-		CFLAGS="$CFLAGS -D_ANSI_C_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_OSF_SOURCE -D_POSIX_C_SOURCE=199309L"
-		# Want to generate NaN with 0.0/0.0 and Inf with 1.0/0.0
-		if test x$GCC = "xyes"; then
-		    CFLAGS="$CFLAGS -mieee"
-		else
-		    CFLAGS="$CFLAGS -ieee_with_no_inexact"
-		fi				;;
-	    *)					;;
-	esac					;;
-    *)						;;
-esac
-
 AC_CHECK_FUNCS(mremap ffsl isnan isinf,,)
 
 AC_ARG_ENABLE(assertions,
