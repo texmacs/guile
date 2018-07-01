@@ -72,6 +72,63 @@ Guile now includes SRFI-71, which extends let, let*, and letrec to
 support assigning multiple values.  See "SRFI-71" in the manual for
 details.
 
+** (web client) export 'http-request' procedure
+
+The 'http-request' procedure is the generalized procedure underneath
+'http-get', 'http-post', etc.
+
+** GDB support now registers the 'guile-backtrace' GDB command
+
+The 'guile-backtrace' GDB command displays a backtrace of the VM stack
+for the current thread.
+
+** Recognize RISC-V compilation targets in (system base target)
+
+* Bug fixes
+
+** Fix stack-marking bug affecting multi-threaded programs
+   (<https://bugs.gnu.org/28211>)
+
+** Add missing SYNC_IP calls in the VM
+
+These could cause multi-threaded code to crash.
+
+** Fix multi-threaded access to modules
+   (<https://bugs.gnu.org/30602>, <https://bugs.gnu.org/31879>,
+    and <https://bugs.gnu.org/31878>)
+
+** (ice-9 match) now has better documentation
+
+** 'get-bytevector-n' and 'get-bytevector-n!' can now read more than 4 GB
+
+** Fix cross-compilation support for elisp
+
+** Fix error reporting in 'load-thunk-from-memory'
+
+** Fix GOOPS 'instance?' to work on objects that aren't structs
+   (<https://bugs.gnu.org/31606>)
+
+** Fix type inference for bitwise logical operators
+   (<https://bugs.gnu.org/31474>)
+
+** Avoid inexact arithmetic in the type inferrer for 'sqrt'
+
+** Fix floating point unboxing regression in 2.2.3
+   (<https://bugs.gnu.org/30020>)
+
+** Fix eta-conversion edge cases in peval (<https://bugs.gnu.org/29520>)
+
+** Correctly interpret SRFI-18 timeout parameters
+   (<https://bugs.gnu.org/29704>)
+
+** 'select' returns empty sets upon EINTR and EAGAIN
+   (<https://bugs.gnu.org/30368>)
+
+** Restore pre-2.2.3 '%fresh-auto-compile' behavior
+
+This reverts an incorrect fix for <https://bugs.gnu.org/29226>.
+
+
 
 Changes in 2.2.3 (since 2.2.2):
 
