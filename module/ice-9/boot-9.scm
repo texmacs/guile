@@ -2607,6 +2607,14 @@ interfaces are added to the inports list."
 
 
 
+(define (call-with-module-autoload-lock thunk)
+  ;; This binding is overridden when (ice-9 threads) is available to
+  ;; implement a critical section around the call to THUNK.  It must be
+  ;; used anytime 'autoloads-done' and related variables are accessed
+  ;; and whenever submodules are accessed (via the 'nested-'
+  ;; procedures.)
+  (thunk))
+
 ;; Now that modules are booted, give module-name its final definition.
 ;;
 (define module-name
@@ -2618,7 +2626,9 @@ interfaces are added to the inports list."
             ;; `resolve-module'. This is important as `psyntax' stores module
             ;; names and relies on being able to `resolve-module' them.
             (set-module-name! mod name)
-            (nested-define-module! (resolve-module '() #f) name mod)
+            (call-with-module-autoload-lock
+             (lambda ()
+               (nested-define-module! (resolve-module '() #f) name mod)))
             (accessor mod))))))
 
 (define* (module-gensym #:optional (id " mg") (m (current-module)))
@@ -2700,25 +2710,27 @@ deterministic."
     (module-define-submodule! root 'guile the-root-module)
 
     (lambda* (name #:optional (autoload #t) (version #f) #:key (ensure #t))
-      (let ((already (nested-ref-module root name)))
-        (cond
-         ((and already
-               (or (not autoload) (module-public-interface already)))
-          ;; A hit, a palpable hit.
-          (if (and version
-                   (not (version-matches? version (module-version already))))
-              (error "incompatible module version already loaded" name))
-          already)
-         (autoload
-          ;; Try to autoload the module, and recurse.
-          (try-load-module name version)
-          (resolve-module name #f #:ensure ensure))
-         (else
-          ;; No module found (or if one was, it had no public interface), and
-          ;; we're not autoloading. Make an empty module if #:ensure is true.
-          (or already
-              (and ensure
-                   (make-modules-in root name)))))))))
+      (call-with-module-autoload-lock
+       (lambda ()
+         (let ((already (nested-ref-module root name)))
+           (cond
+            ((and already
+                  (or (not autoload) (module-public-interface already)))
+             ;; A hit, a palpable hit.
+             (if (and version
+                      (not (version-matches? version (module-version already))))
+                 (error "incompatible module version already loaded" name))
+             already)
+            (autoload
+             ;; Try to autoload the module, and recurse.
+             (try-load-module name version)
+             (resolve-module name #f #:ensure ensure))
+            (else
+             ;; No module found (or if one was, it had no public interface), and
+             ;; we're not autoloading. Make an empty module if #:ensure is true.
+             (or already
+                 (and ensure
+                      (make-modules-in root name)))))))))))
 
 
 (define (try-load-module name version)
@@ -2951,12 +2963,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 ;;; {Autoloading modules}
 ;;;
-
-(define (call-with-module-autoload-lock thunk)
-  ;; This binding is overridden when (ice-9 threads) is available to
-  ;; implement a critical section around the call to THUNK.  It must be
-  ;; used anytime the autoload variables below are used.
-  (thunk))
 
 (define autoloads-in-progress '())
 
