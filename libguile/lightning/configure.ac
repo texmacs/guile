@@ -2,17 +2,6 @@ LIGHTNING_CFLAGS=
 
 AC_CHECK_FUNCS(mremap ffsl isnan isinf,,)
 
-AC_ARG_ENABLE(assertions,
-	      AS_HELP_STRING([--enable-assertions],
-			     [Enable runtime code generation assertions]),
-	      [DEBUG=$enableval], [DEBUG=auto])
-if test "x$DEBUG" = xyes; then
-    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDEBUG=1"
-else
-    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DNDEBUG"
-    DEBUG=no
-fi
-
 case "$host_os" in
     *bsd*|osf*)		SHLIB=""	;;
     *hpux*)		SHLIB="-ldld"	;;

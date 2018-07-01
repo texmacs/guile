@@ -17,6 +17,7 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
+#define DEBUG 1
 #define DISASSEMBLER 0
 
 #include <lightning.h>
