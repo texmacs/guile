@@ -289,6 +289,7 @@ SOURCES =					\
   srfi/srfi-64.scm				\
   srfi/srfi-67.scm				\
   srfi/srfi-69.scm				\
+  srfi/srfi-71.scm				\
   srfi/srfi-88.scm				\
   srfi/srfi-98.scm				\
   srfi/srfi-111.scm				\
