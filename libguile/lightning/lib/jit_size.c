@@ -17,6 +17,8 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
+#define DISASSEMBLER 0
+
 #include <lightning.h>
 #include <lightning/jit_private.h>
 

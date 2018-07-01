@@ -17,6 +17,9 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
+#define DISASSEMBLER 0
+#define DEVEL_DISASSEMBLER 0
+
 #include <lightning.h>
 #include <lightning/jit_private.h>
 #include <sys/mman.h>
@@ -184,14 +187,12 @@ void
 init_jit(const char *progname)
 {
     jit_get_cpu();
-    jit_init_debug(progname);
     jit_init_size();
 }
 
 void
 finish_jit(void)
 {
-    jit_finish_debug();
     jit_finish_size();
 }
 
@@ -943,10 +944,6 @@ jit_new_state(void)
 	      (_jitc->pool.length = 16) * sizeof(jit_node_t*));
     jit_alloc((jit_pointer_t *)&_jitc->blocks.ptr,
 	      (_jitc->blocks.length = 16) * sizeof(jit_block_t));
-#if __arm__ && DISASSEMBLER
-    jit_alloc((jit_pointer_t *)&_jitc->data_info.ptr,
-	      (_jitc->data_info.length = 1024) * sizeof(jit_data_info_t));
-#endif
 
     /* allocate at most one extra note in case jit_name() is
      * never called, or called after adding at least one note */
@@ -959,13 +956,6 @@ jit_new_state(void)
 void
 _jit_clear_state(jit_state_t *_jit)
 {
-#if DEVEL_DISASSEMBLER
-#  define jit_really_clear_state()	_jit_really_clear_state(_jit)
-}
-
-void _jit_really_clear_state(jit_state_t *_jit)
-{
-#endif
     jit_word_t		 offset;
     jit_function_t	*function;
 
@@ -1005,10 +995,6 @@ void _jit_really_clear_state(jit_state_t *_jit)
 	_jitc->note.name = _jitc->note.note = NULL;
     _jitc->note.base = NULL;
 
-#if __arm__ && DISASSEMBLER
-    jit_free((jit_pointer_t *)&_jitc->data_info.ptr);
-#endif
-
 #if __powerpc64__ || __ia64__
     jit_free((jit_pointer_t *)&_jitc->prolog.ptr);
 #endif
@@ -1023,9 +1009,6 @@ void _jit_really_clear_state(jit_state_t *_jit)
 void
 _jit_destroy_state(jit_state_t *_jit)
 {
-#if DEVEL_DISASSEMBLER
-    jit_really_clear_state();
-#endif
     if (!_jit->user_code)
 	munmap(_jit->code.ptr, _jit->code.length);
     if (!_jit->user_data)

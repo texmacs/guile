@@ -34,66 +34,6 @@ esac
 
 AC_CHECK_FUNCS(mremap ffsl isnan isinf,,)
 
-AC_ARG_ENABLE(disassembler,
-	      AS_HELP_STRING([--enable-disassembler],
-			     [Enable jit disassembler using binutils]),
-	      [DISASSEMBLER=$enableval], [DISASSEMBLER=auto])
-if test "x$DISASSEMBLER" != "xno"; then
-    # FIXME need to check for libiberty first or will fail to link
-    AC_CHECK_LIB(iberty, htab_try_create, ,
-		 [HAVE_IBERTY="no"])
-    AC_CHECK_LIB(bfd, bfd_init, ,
-		 [HAVE_BFD="no"])
-    AC_CHECK_LIB(z, compressBound, ,
-		 [HAVE_Z="no"])
-    AC_CHECK_LIB(opcodes, init_disassemble_info, ,
-		 [HAVE_OPCODES="no"])
-    if test "x$HAVE_IBERTY"  = "xno" -o \
-	    "x$HAVE_BFD"     = "xno" -o \
-	    "x$HAVE_Z"       = "xno" -o \
-	    "x$HAVE_OPCODES" = "xno"; then
-	if test "x$DISASSEMBLER" != "xauto"; then
-	    AC_MSG_ERROR([binutils not found, see http://www.gnu.org/software/binutils/])
-	else
-	    AC_MSG_WARN([binutils not found, see http://www.gnu.org/software/binutils/])
-	    DISASSEMBLER="no"
-	fi
-    fi
-fi
-AM_CONDITIONAL(with_disassembler, [test "x$DISASSEMBLER" != "xno"])
-if test "x$DISASSEMBLER" != "xno"; then
-    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDISASSEMBLER=1"
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -I$PWD/include -D_GNU_SOURCE"
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-	#include <lightning.h>
-	#include <lightning/jit_private.h>
-	#include <dis-asm.h>
-	int main(int argc, char *argv[])
-	{
-		disassembler_ftype	 print;
-		bfd			*abfd;
-		print = disassembler(abfd);
-		return 0;
-	}
-    )], [ac_cv_test_new_disassembler=no],,)
-    CFLAGS="$save_CFLAGS"
-    if test "x$ac_cv_test_new_disassembler" != "xno"; then
-	LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DBINUTILS_2_29=1"
-    fi
-fi
-
-AC_ARG_ENABLE(devel-disassembler,
-	      AS_HELP_STRING([--enable-devel-disassembler],
-			     [Enable extra disassembly options]),
-	      [DEVEL_DISASSEMBLER=$enableval], [DEVEL_DISASSEMBLER=no])
-if test "x$DEVEL_DISASSEMBLER" != "xno"; then
-    if test "x$DISASSEMBLER" = "xno"; then
-	AC_MSG_ERROR(devel-disassembler needs disassembler enabled)
-    fi
-    LIGHTNING_CFLAGS="$LIGHTNING_CFLAGS -DDEVEL_DISASSEMBLER=1"
-fi
-
 AC_ARG_ENABLE(assertions,
 	      AS_HELP_STRING([--enable-assertions],
 			     [Enable runtime code generation assertions]),
@@ -222,13 +162,6 @@ elif test $cpu = arm; then
 	return 1;
     }
     ]])],[ac_cv_test_arm_swf=yes],[],[ac_cv_test_arm_swf=no])
-elif test $cpu = ppc; then
-    if test "x$DISASSEMBLER" != "xno"; then
-	save_LIBS="$LIBS"
-	LIBS="$LIBS $SHLIB"
-	AC_CHECK_FUNCS(disassemble_init_for_target disassemble_init_powerpc)
-	LIBS="$save_LIBS"
-    fi
 fi
 CFLAGS=$save_CFLAGS
 
