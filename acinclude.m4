@@ -1,7 +1,7 @@
 dnl -*- Autoconf -*-
 
-dnl Copyright (C) 1997, 1999, 2000, 2001, 2002, 2004, 2006,
-dnl   2007, 2008, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+dnl Copyright (C) 1997,1999-2002,2004,2006-2011,2013,2018
+dnl   Free Software Foundation, Inc.
 dnl
 dnl This file is part of GUILE
 dnl
@@ -578,3 +578,58 @@ AC_DEFUN([GUILE_CHECK_GUILE_FOR_BUILD], [
 dnl Declare file $1 to be a script that needs configuring,
 dnl and arrange to make it executable in the process.
 AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
+
+AC_DEFUN([GUILE_ENABLE_JIT], [
+  JIT_AVAILABLE=no
+  AC_MSG_CHECKING([if JIT code generation supported for target CPU])
+  case "$target_cpu" in
+    i?86|x86_64|amd64)    JIT_AVAILABLE=yes ;;
+    *arm*)                JIT_AVAILABLE=yes ;;
+    *mips*)               JIT_AVAILABLE=yes ;;
+    *powerpc*)            JIT_AVAILABLE=yes ;;
+    *sparc*)              JIT_AVAILABLE=yes ;;
+    ia64)                 JIT_AVAILABLE=yes ;;
+    hppa*)                JIT_AVAILABLE=yes ;;
+    aarch64)              JIT_AVAILABLE=yes ;;
+    s390*)                JIT_AVAILABLE=yes ;;
+    alpha*)               JIT_AVAILABLE=yes ;;
+    *)                                      ;;
+  esac
+  AC_MSG_RESULT($JIT_AVAILABLE)
+
+  case "$target_cpu" in
+    *arm*)
+      AC_CHECK_LIB(m, sqrtf, , [
+        JIT_AVAILABLE=no;
+        AC_MSG_WARN([JIT on ARM unavailable due to missing sqrtf])
+      ])
+    ;;
+  esac
+
+  AC_ARG_ENABLE(jit,
+    [AS_HELP_STRING([--enable-jit[=yes/no/auto]],
+                    [enable just-in-time code generation [default=auto]])])
+
+  enable_jit=auto
+  AC_MSG_CHECKING([whether to enable JIT code generation])
+  case "$enable_jit" in
+    y*) enable_jit=yes ;;
+    n*) enable_jit=no ;;
+    a*) enable_jit=$JIT_AVAILABLE ;;
+    *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
+  esac
+  AC_MSG_RESULT($enable_jit)
+
+  if test $enable_jit = yes; then
+    if test $JIT_AVAILABLE = no; then
+      AC_MSG_ERROR(
+        [JIT explicitly enabled with --enable-jit but not supported on $target_cpu])
+    fi
+    AC_CHECK_FUNCS(mremap ffsl isnan isinf,,)
+  fi
+
+  AM_CONDITIONAL([ENABLE_JIT], [test "$enable_jit" = "yes"])
+  ENABLE_JIT_VAL=$(if test "$enable_jit" = "yes"; then echo 1; else echo 0; fi)
+  AC_DEFINE_UNQUOTED([ENABLE_JIT], [$ENABLE_JIT_VAL],
+    [Define to 1 if JIT compilation is enabled, or 0 otherwise.])
+])
