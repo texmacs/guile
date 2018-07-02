@@ -141,6 +141,9 @@ AC_ARG_ENABLE(debug-malloc,
       [Define this if you want to debug scm_must_malloc/realloc/free calls.])
   fi)
 
+# Check if JIT is available.
+GUILE_ENABLE_JIT
+
 SCM_I_GSC_GUILE_DEBUG=0
 AC_ARG_ENABLE(guile-debug,
   [AS_HELP_STRING([--enable-guile-debug],

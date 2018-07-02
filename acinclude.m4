@@ -581,6 +581,7 @@ AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
 
 AC_DEFUN([GUILE_ENABLE_JIT], [
   JIT_AVAILABLE=no
+  AC_CANONICAL_TARGET
   AC_MSG_CHECKING([if JIT code generation supported for target CPU])
   case "$target_cpu" in
     i?86|x86_64|amd64)    JIT_AVAILABLE=yes ;;
