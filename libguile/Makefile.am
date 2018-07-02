@@ -21,6 +21,7 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 include $(top_srcdir)/am/snarf
+include $(top_srcdir)/libguile/lightning/lightning.am
 
 AUTOMAKE_OPTIONS = gnu
 
@@ -37,6 +38,10 @@ DEFAULT_INCLUDES =
 ## building.  Also look for Gnulib headers in `lib'.
 AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib $(LIBFFI_CFLAGS)
+
+if ENABLE_JIT
+AM_CPPFLAGS += -I$(top_srcdir)/libguile/lightning/include
+endif
 
 AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
 
@@ -170,6 +175,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	instructions.c				\
 	intrinsics.c				\
 	ioext.c					\
+	jit.c					\
 	keywords.c				\
 	list.c					\
 	load.c					\
@@ -229,6 +235,10 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	weak-set.c				\
 	weak-table.c				\
 	weak-vector.c
+
+if ENABLE_JIT
+libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES += $(lightning_c_files)
+endif
 
 DOT_X_FILES =					\
 	alist.x					\
@@ -634,6 +644,7 @@ modinclude_HEADERS =				\
 	instructions.h				\
 	ioext.h					\
 	iselect.h				\
+	jit.h					\
 	keywords.h				\
 	list.h					\
 	load.h					\
@@ -716,7 +727,8 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads				\
     cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c				\
     c-tokenize.lex							\
     scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map	\
-    vm-operations.h libguile-2.2-gdb.scm
+    vm-operations.h libguile-2.2-gdb.scm				\
+    $(lightning_c_files) $(lightning_extra_files)
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 

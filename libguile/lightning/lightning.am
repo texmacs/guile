@@ -16,9 +16,6 @@
 
 lightning = $(top_srcdir)/libguile/lightning
 
-# FIXME: define in C files: -D_GNU_SOURCE
-# FIXME: set LIGHTNING_CFLAGS=-I$(lightning)/include in configure.ac
-
 lightning_c_files = 				\
 	$(lightning)/lib/jit_memory.c		\
 	$(lightning)/lib/jit_names.c		\
@@ -28,6 +25,16 @@ lightning_c_files = 				\
 	$(lightning)/lib/lightning.c
 
 lightning_extra_files =					\
+	$(lightning)/AUTHORS				\
+	$(lightning)/ChangeLog				\
+	$(lightning)/COPYING				\
+	$(lightning)/COPYING.LESSER			\
+	$(lightning)/lightning.am			\
+	$(lightning)/NEWS				\
+	$(lightning)/README				\
+	$(lightning)/THANKS				\
+	$(lightning)/TODO				\
+							\
 	$(lightning)/include/lightning.h		\
 	$(lightning)/include/lightning/jit_private.h 	\
 	$(lightning)/include/lightning/jit_arm.h	\
