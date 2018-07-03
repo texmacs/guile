@@ -516,7 +516,7 @@ VM_NAME (scm_thread *thread)
    * PROC, asserting that the call actually returned at least one
    * value.  Afterwards, resets the frame to NLOCALS locals.
    */
-  VM_DEFINE_OP (6, receive, "receive", OP2 (X8_F12_F12, X8_C24) | OP_DST)
+  VM_DEFINE_OP (6, receive, "receive", DOP2 (X8_F12_F12, X8_C24))
     {
       uint16_t dst, proc;
       uint32_t nlocals;
@@ -808,7 +808,7 @@ VM_NAME (scm_thread *thread)
    *
    * Load a builtin stub by index into DST.
    */
-  VM_DEFINE_OP (17, builtin_ref, "builtin-ref", OP1 (X8_S12_C12) | OP_DST)
+  VM_DEFINE_OP (17, builtin_ref, "builtin-ref", DOP1 (X8_S12_C12))
     {
       uint16_t dst, idx;
 
@@ -992,7 +992,7 @@ VM_NAME (scm_thread *thread)
    *
    * Pop the stack, storing to DST.
    */
-  VM_DEFINE_OP (27, pop, "pop", OP1 (X8_S24) | OP_DST)
+  VM_DEFINE_OP (27, pop, "pop", DOP1 (X8_S24))
     {
       uint32_t dst;
       union scm_vm_stack_element val;
@@ -1099,7 +1099,7 @@ VM_NAME (scm_thread *thread)
    * Collect any arguments at or above DST into a list, and store that
    * list at DST.
    */
-  VM_DEFINE_OP (32, bind_rest, "bind-rest", OP1 (X8_F24) | OP_DST)
+  VM_DEFINE_OP (32, bind_rest, "bind-rest", DOP1 (X8_F24))
     {
       uint32_t dst, nargs;
       SCM rest = SCM_EOL;
@@ -1128,7 +1128,7 @@ VM_NAME (scm_thread *thread)
 
   
 
-  VM_DEFINE_OP (33, allocate_words, "allocate-words", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (33, allocate_words, "allocate-words", DOP1 (X8_S12_S12))
     {
       uint16_t dst, size;
 
@@ -1139,7 +1139,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (34, allocate_words_immediate, "allocate-words/immediate", OP1 (X8_S12_C12) | OP_DST)
+  VM_DEFINE_OP (34, allocate_words_immediate, "allocate-words/immediate", DOP1 (X8_S12_C12))
     {
       uint16_t dst, size;
 
@@ -1151,7 +1151,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (35, scm_ref, "scm-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (35, scm_ref, "scm-ref", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, obj, idx;
 
@@ -1173,7 +1173,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (37, scm_ref_tag, "scm-ref/tag", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (37, scm_ref_tag, "scm-ref/tag", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, tag;
 
@@ -1195,7 +1195,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (39, scm_ref_immediate, "scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (39, scm_ref_immediate, "scm-ref/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, idx;
 
@@ -1217,7 +1217,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (41, word_ref, "word-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (41, word_ref, "word-ref", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, obj, idx;
 
@@ -1239,7 +1239,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (43, word_ref_immediate, "word-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (43, word_ref_immediate, "word-ref/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, idx;
 
@@ -1261,7 +1261,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (45, pointer_ref_immediate, "pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (45, pointer_ref_immediate, "pointer-ref/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, idx;
 
@@ -1283,7 +1283,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (47, tail_pointer_ref_immediate, "tail-pointer-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (47, tail_pointer_ref_immediate, "tail-pointer-ref/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, idx;
 
@@ -1304,7 +1304,7 @@ VM_NAME (scm_thread *thread)
    *
    * Copy a value from one local slot to another.
    */
-  VM_DEFINE_OP (48, mov, "mov", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (48, mov, "mov", DOP1 (X8_S12_S12))
     {
       uint16_t dst;
       uint16_t src;
@@ -1323,7 +1323,7 @@ VM_NAME (scm_thread *thread)
    *
    * Copy a value from one local slot to another.
    */
-  VM_DEFINE_OP (49, long_mov, "long-mov", OP2 (X8_S24, X8_S24) | OP_DST)
+  VM_DEFINE_OP (49, long_mov, "long-mov", DOP2 (X8_S24, X8_S24))
     {
       uint32_t dst;
       uint32_t src;
@@ -1344,7 +1344,7 @@ VM_NAME (scm_thread *thread)
    * Copy a value from one local slot to another.  Slot indexes are
    * relative to the FP.
    */
-  VM_DEFINE_OP (50, long_fmov, "long-fmov", OP2 (X8_F24, X8_F24) | OP_DST)
+  VM_DEFINE_OP (50, long_fmov, "long-fmov", DOP2 (X8_F24, X8_F24))
     {
       uint32_t dst;
       uint32_t src;
@@ -1356,7 +1356,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (51, call_scm_from_scm_scm, "call-scm<-scm-scm", OP2 (X8_S8_S8_S8, C32) | OP_DST)
+  VM_DEFINE_OP (51, call_scm_from_scm_scm, "call-scm<-scm-scm", DOP2 (X8_S8_S8_S8, C32))
     {
       uint8_t dst, a, b;
       SCM res;
@@ -1373,7 +1373,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (52, call_scm_from_scm_uimm, "call-scm<-scm-uimm", OP2 (X8_S8_S8_C8, C32) | OP_DST)
+  VM_DEFINE_OP (52, call_scm_from_scm_uimm, "call-scm<-scm-uimm", DOP2 (X8_S8_S8_C8, C32))
     {
       uint8_t dst, a, b;
       SCM res;
@@ -1405,7 +1405,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (54, call_scm_from_scm, "call-scm<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (54, call_scm_from_scm, "call-scm<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       SCM res;
@@ -1422,7 +1422,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (55, call_f64_from_scm, "call-f64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (55, call_f64_from_scm, "call-f64<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       double res;
@@ -1439,7 +1439,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       uint64_t res;
@@ -1468,7 +1468,7 @@ VM_NAME (scm_thread *thread)
    * Make an immediate whose low bits are LOW-BITS, and whose top bits are
    * 0.
    */
-  VM_DEFINE_OP (57, make_short_immediate, "make-short-immediate", OP1 (X8_S8_I16) | OP_DST)
+  VM_DEFINE_OP (57, make_short_immediate, "make-short-immediate", DOP1 (X8_S8_I16))
     {
       uint8_t dst;
       scm_t_bits val;
@@ -1483,7 +1483,7 @@ VM_NAME (scm_thread *thread)
    * Make an immediate whose low bits are LOW-BITS, and whose top bits are
    * 0.
    */
-  VM_DEFINE_OP (58, make_long_immediate, "make-long-immediate", OP2 (X8_S24, I32) | OP_DST)
+  VM_DEFINE_OP (58, make_long_immediate, "make-long-immediate", DOP2 (X8_S24, I32))
     {
       uint32_t dst;
       scm_t_bits val;
@@ -1498,7 +1498,7 @@ VM_NAME (scm_thread *thread)
    *
    * Make an immediate with HIGH-BITS and LOW-BITS.
    */
-  VM_DEFINE_OP (59, make_long_long_immediate, "make-long-long-immediate", OP3 (X8_S24, A32, B32) | OP_DST)
+  VM_DEFINE_OP (59, make_long_long_immediate, "make-long-long-immediate", DOP3 (X8_S24, A32, B32))
     {
       uint32_t dst;
       scm_t_bits val;
@@ -1529,7 +1529,7 @@ VM_NAME (scm_thread *thread)
    * Whether the object is mutable or immutable depends on where it was
    * allocated by the compiler, and loaded by the loader.
    */
-  VM_DEFINE_OP (60, make_non_immediate, "make-non-immediate", OP2 (X8_S24, N32) | OP_DST)
+  VM_DEFINE_OP (60, make_non_immediate, "make-non-immediate", DOP2 (X8_S24, N32))
     {
       uint32_t dst;
       int32_t offset;
@@ -1558,7 +1558,7 @@ VM_NAME (scm_thread *thread)
    * that the compiler is unable to statically allocate, like symbols.
    * These values would be initialized when the object file loads.
    */
-  VM_DEFINE_OP (61, static_ref, "static-ref", OP2 (X8_S24, R32) | OP_DST)
+  VM_DEFINE_OP (61, static_ref, "static-ref", DOP2 (X8_S24, R32))
     {
       uint32_t dst;
       int32_t offset;
@@ -1682,7 +1682,7 @@ VM_NAME (scm_thread *thread)
    * Load a label OFFSET words away from the current IP and write it to
    * DST.  OFFSET is a signed 32-bit integer.
    */
-  VM_DEFINE_OP (76, load_label, "load-label", OP2 (X8_S24, L32) | OP_DST)
+  VM_DEFINE_OP (76, load_label, "load-label", DOP2 (X8_S24, L32))
     {
       uint32_t dst;
       int32_t offset;
@@ -1695,7 +1695,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       int64_t res;
@@ -1712,7 +1712,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (78, call_scm_from_u64, "call-scm<-u64", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (78, call_scm_from_u64, "call-scm<-u64", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       SCM res;
@@ -1729,7 +1729,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (79, call_scm_from_s64, "call-scm<-s64", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (79, call_scm_from_s64, "call-scm<-s64", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       SCM res;
@@ -1754,7 +1754,7 @@ VM_NAME (scm_thread *thread)
 
   
 
-  VM_DEFINE_OP (81, tag_char, "tag-char", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (81, tag_char, "tag-char", DOP1 (X8_S12_S12))
     {
       uint16_t dst, src;
       UNPACK_12_12 (op, dst, src);
@@ -1764,7 +1764,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (82, untag_char, "untag-char", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (82, untag_char, "untag-char", DOP1 (X8_S12_S12))
     {
       uint16_t dst, src;
       UNPACK_12_12 (op, dst, src);
@@ -1772,7 +1772,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (83, atomic_ref_scm_immediate, "atomic-scm-ref/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (83, atomic_ref_scm_immediate, "atomic-scm-ref/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, obj, offset;
       SCM *loc;
@@ -1792,7 +1792,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (85, atomic_scm_swap_immediate, "atomic-scm-swap!/immediate", OP3 (X8_S24, X8_S24, C8_S24) | OP_DST)
+  VM_DEFINE_OP (85, atomic_scm_swap_immediate, "atomic-scm-swap!/immediate", DOP3 (X8_S24, X8_S24, C8_S24))
     {
       uint32_t dst, obj, val;
       uint8_t offset;
@@ -1805,7 +1805,7 @@ VM_NAME (scm_thread *thread)
       NEXT (3);
     }
 
-  VM_DEFINE_OP (86, atomic_scm_compare_and_swap_immediate, "atomic-scm-compare-and-swap!/immediate", OP4 (X8_S24, X8_S24, C8_S24, X8_S24) | OP_DST)
+  VM_DEFINE_OP (86, atomic_scm_compare_and_swap_immediate, "atomic-scm-compare-and-swap!/immediate", DOP4 (X8_S24, X8_S24, C8_S24, X8_S24))
     {
       uint32_t dst, obj, expected, desired;
       uint8_t offset;
@@ -1850,7 +1850,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (89, call_scm_from_thread_scm, "call-scm<-thread-scm", OP2 (X8_S12_S12, C32) | OP_DST)
+  VM_DEFINE_OP (89, call_scm_from_thread_scm, "call-scm<-thread-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
       scm_t_scm_from_thread_scm_intrinsic intrinsic;
@@ -1883,7 +1883,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", OP2 (X8_S8_S8_S8, C32) | OP_DST)
+  VM_DEFINE_OP (91, call_scm_from_scm_u64, "call-scm<-scm-u64", DOP2 (X8_S8_S8_S8, C32))
     {
       uint8_t dst, a, b;
       SCM res;
@@ -1901,7 +1901,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (92, call_scm_from_thread, "call-scm<-thread", OP2 (X8_S24, C32) | OP_DST)
+  VM_DEFINE_OP (92, call_scm_from_thread, "call-scm<-thread", DOP2 (X8_S24, C32))
     {
       uint32_t dst;
       scm_t_scm_from_thread_intrinsic intrinsic;
@@ -1974,7 +1974,7 @@ VM_NAME (scm_thread *thread)
    * Add A to B, and place the result in DST.  The operands and the
    * result are unboxed double-precision floating-point numbers.
    */
-  VM_DEFINE_OP (138, fadd, "fadd", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (138, fadd, "fadd", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -1987,7 +1987,7 @@ VM_NAME (scm_thread *thread)
    * Subtract B from A, and place the result in DST.  The operands and
    * the result are unboxed double-precision floating-point numbers.
    */
-  VM_DEFINE_OP (139, fsub, "fsub", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (139, fsub, "fsub", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2000,7 +2000,7 @@ VM_NAME (scm_thread *thread)
    * Multiply A and B, and place the result in DST.  The operands and
    * the result are unboxed double-precision floating-point numbers.
    */
-  VM_DEFINE_OP (140, fmul, "fmul", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (140, fmul, "fmul", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2013,7 +2013,7 @@ VM_NAME (scm_thread *thread)
    * Divide A by B, and place the result in DST.  The operands and the
    * result are unboxed double-precision floating-point numbers.
    */
-  VM_DEFINE_OP (141, fdiv, "fdiv", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (141, fdiv, "fdiv", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2039,7 +2039,7 @@ VM_NAME (scm_thread *thread)
    * result are unboxed unsigned 64-bit integers.  Overflow will wrap
    * around.
    */
-  VM_DEFINE_OP (149, uadd, "uadd", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (149, uadd, "uadd", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2053,7 +2053,7 @@ VM_NAME (scm_thread *thread)
    * the result are unboxed unsigned 64-bit integers.  Overflow will
    * wrap around.
    */
-  VM_DEFINE_OP (150, usub, "usub", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (150, usub, "usub", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2067,7 +2067,7 @@ VM_NAME (scm_thread *thread)
    * the result are unboxed unsigned 64-bit integers.  Overflow will
    * wrap around.
    */
-  VM_DEFINE_OP (151, umul, "umul", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (151, umul, "umul", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
       UNPACK_8_8_8 (op, dst, a, b);
@@ -2081,7 +2081,7 @@ VM_NAME (scm_thread *thread)
    * value IMM and place the raw unsigned 64-bit result in DST.
    * Overflow will wrap around.
    */
-  VM_DEFINE_OP (152, uadd_immediate, "uadd/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (152, uadd_immediate, "uadd/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, src, imm;
       uint64_t x;
@@ -2098,7 +2098,7 @@ VM_NAME (scm_thread *thread)
    * value in SRC and place the raw unsigned 64-bit result in DST.
    * Overflow will wrap around.
    */
-  VM_DEFINE_OP (153, usub_immediate, "usub/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (153, usub_immediate, "usub/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, src, imm;
       uint64_t x;
@@ -2115,7 +2115,7 @@ VM_NAME (scm_thread *thread)
    * value IMM and place the raw unsigned 64-bit result in DST.
    * Overflow will wrap around.
    */
-  VM_DEFINE_OP (154, umul_immediate, "umul/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (154, umul_immediate, "umul/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, src, imm;
       uint64_t x;
@@ -2131,7 +2131,7 @@ VM_NAME (scm_thread *thread)
    * Make a double-precision floating-point value with HIGH-BITS and
    * LOW-BITS.
    */
-  VM_DEFINE_OP (155, load_f64, "load-f64", OP3 (X8_S24, AF32, BF32) | OP_DST)
+  VM_DEFINE_OP (155, load_f64, "load-f64", DOP3 (X8_S24, AF32, BF32))
     {
       uint32_t dst;
       uint64_t val;
@@ -2148,7 +2148,7 @@ VM_NAME (scm_thread *thread)
    *
    * Make an unsigned 64-bit integer with HIGH-BITS and LOW-BITS.
    */
-  VM_DEFINE_OP (156, load_u64, "load-u64", OP3 (X8_S24, AU32, BU32) | OP_DST)
+  VM_DEFINE_OP (156, load_u64, "load-u64", DOP3 (X8_S24, AU32, BU32))
     {
       uint32_t dst;
       uint64_t val;
@@ -2172,7 +2172,7 @@ VM_NAME (scm_thread *thread)
    *
    * Make an unsigned 64-bit integer with HIGH-BITS and LOW-BITS.
    */
-  VM_DEFINE_OP (159, load_s64, "load-s64", OP3 (X8_S24, AS32, BS32) | OP_DST)
+  VM_DEFINE_OP (159, load_s64, "load-s64", DOP3 (X8_S24, AS32, BS32))
     {
       uint32_t dst;
       uint64_t val;
@@ -2189,7 +2189,7 @@ VM_NAME (scm_thread *thread)
    *
    * Write the current thread into DST.
    */
-  VM_DEFINE_OP (160, current_thread, "current-thread", OP1 (X8_S24) | OP_DST)
+  VM_DEFINE_OP (160, current_thread, "current-thread", DOP1 (X8_S24))
     {
       uint32_t dst;
 
@@ -2209,7 +2209,7 @@ VM_NAME (scm_thread *thread)
    *
    * Place the bitwise AND of the u64 values in A and B into DST.
    */
-  VM_DEFINE_OP (162, ulogand, "ulogand", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (162, ulogand, "ulogand", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2225,7 +2225,7 @@ VM_NAME (scm_thread *thread)
    * Place the bitwise inclusive OR of the u64 values in A and B into
    * DST.
    */
-  VM_DEFINE_OP (163, ulogior, "ulogior", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (163, ulogior, "ulogior", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2240,7 +2240,7 @@ VM_NAME (scm_thread *thread)
    *
    * Place the (A & ~B) of the u64 values A and B into DST.
    */
-  VM_DEFINE_OP (164, ulogsub, "ulogsub", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (164, ulogsub, "ulogsub", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2256,7 +2256,7 @@ VM_NAME (scm_thread *thread)
    * Shift the u64 value in A right by B bits, and place the result in
    * DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (165, ursh, "ursh", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (165, ursh, "ursh", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2272,7 +2272,7 @@ VM_NAME (scm_thread *thread)
    * Shift the u64 value in A left by B bits, and place the result in
    * DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (166, ulsh, "ulsh", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (166, ulsh, "ulsh", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2294,7 +2294,7 @@ VM_NAME (scm_thread *thread)
    * Shift the u64 value in A right by the immediate B bits, and place
    * the result in DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (168, ursh_immediate, "ursh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (168, ursh_immediate, "ursh/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, a, b;
 
@@ -2310,7 +2310,7 @@ VM_NAME (scm_thread *thread)
    * Shift the u64 value in A left by the immediate B bits, and place
    * the result in DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (169, ulsh_immediate, "ulsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (169, ulsh_immediate, "ulsh/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, a, b;
 
@@ -2338,7 +2338,7 @@ VM_NAME (scm_thread *thread)
    * Place the bitwise exclusive OR of the u64 values in A and B into
    * DST.
    */
-  VM_DEFINE_OP (177, ulogxor, "ulogxor", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (177, ulogxor, "ulogxor", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2776,7 +2776,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (214, untag_fixnum, "untag-fixnum", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (214, untag_fixnum, "untag-fixnum", DOP1 (X8_S12_S12))
     {
       uint16_t dst, src;
 
@@ -2787,7 +2787,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (215, tag_fixnum, "tag-fixnum", OP1 (X8_S12_S12) | OP_DST)
+  VM_DEFINE_OP (215, tag_fixnum, "tag-fixnum", DOP1 (X8_S12_S12))
     {
       uint16_t dst, src;
 
@@ -2803,7 +2803,7 @@ VM_NAME (scm_thread *thread)
    * Shift the s64 value in A right by B bits, and place the result in
    * DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (216, srsh, "srsh", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (216, srsh, "srsh", DOP1 (X8_S8_S8_S8))
     {
       uint8_t dst, a, b;
 
@@ -2819,7 +2819,7 @@ VM_NAME (scm_thread *thread)
    * Shift the s64 value in A right by the immediate B bits, and place
    * the result in DST.  Only the lower 6 bits of B are used.
    */
-  VM_DEFINE_OP (217, srsh_immediate, "srsh/immediate", OP1 (X8_S8_S8_C8) | OP_DST)
+  VM_DEFINE_OP (217, srsh_immediate, "srsh/immediate", DOP1 (X8_S8_S8_C8))
     {
       uint8_t dst, a, b;
 
@@ -2929,13 +2929,13 @@ VM_NAME (scm_thread *thread)
     NEXT (1);                                                           \
   } while (0)
 
-  VM_DEFINE_OP (223, u8_ref, "u8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (223, u8_ref, "u8-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (uint8_t, U64);
-  VM_DEFINE_OP (224, u16_ref, "u16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (224, u16_ref, "u16-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (uint16_t, U64);
-  VM_DEFINE_OP (225, u32_ref, "u32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (225, u32_ref, "u32-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (uint32_t, U64);
-  VM_DEFINE_OP (226, u64_ref, "u64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (226, u64_ref, "u64-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (uint64_t, U64);
 
   VM_DEFINE_OP (227, u8_set, "u8-set!", OP1 (X8_S8_S8_S8))
@@ -2947,13 +2947,13 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (230, u64_set, "u64-set!", OP1 (X8_S8_S8_S8))
     PTR_SET (uint64_t, U64);
 
-  VM_DEFINE_OP (231, s8_ref, "s8-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (231, s8_ref, "s8-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (int8_t, S64);
-  VM_DEFINE_OP (232, s16_ref, "s16-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (232, s16_ref, "s16-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (int16_t, S64);
-  VM_DEFINE_OP (233, s32_ref, "s32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (233, s32_ref, "s32-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (int32_t, S64);
-  VM_DEFINE_OP (234, s64_ref, "s64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (234, s64_ref, "s64-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (int64_t, S64);
 
   VM_DEFINE_OP (235, s8_set, "s8-set!", OP1 (X8_S8_S8_S8))
@@ -2965,9 +2965,9 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (238, s64_set, "s64-set!", OP1 (X8_S8_S8_S8))
     PTR_SET (int64_t, S64);
 
-  VM_DEFINE_OP (239, f32_ref, "f32-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (239, f32_ref, "f32-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (float, F64);
-  VM_DEFINE_OP (240, f64_ref, "f64-ref", OP1 (X8_S8_S8_S8) | OP_DST)
+  VM_DEFINE_OP (240, f64_ref, "f64-ref", DOP1 (X8_S8_S8_S8))
     PTR_REF (double, F64);
 
   VM_DEFINE_OP (241, f32_set, "f32-set!", OP1 (X8_S8_S8_S8))
@@ -2989,6 +2989,7 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (254, unused_254, NULL, NOP)
   VM_DEFINE_OP (255, unused_255, NULL, NOP)
     {
+
       vm_error_bad_instruction (op);
       abort (); /* never reached */
     }

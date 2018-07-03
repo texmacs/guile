@@ -117,6 +117,12 @@ static SCM word_type_symbols[] =
 
 #define OP_DST (1 << (TYPE_WIDTH * 5))
 
+#define DOP1(t0)                 (OP1(t0) | OP_DST)
+#define DOP2(t0, t1)             (OP2(t0, t1) | OP_DST)
+#define DOP3(t0, t1, t2)         (OP3(t0, t1, t2) | OP_DST)
+#define DOP4(t0, t1, t2, t3)     (OP4(t0, t1, t2, t3) | OP_DST)
+#define DOP5(t0, t1, t2, t3, t4) (OP5(t0, t1, t2, t3, t4) | OP_DST)
+
 #define WORD_TYPE_AND_FLAG(n, word) \
   (((word) >> ((n) * TYPE_WIDTH)) & ((1 << TYPE_WIDTH) - 1))
 #define WORD_TYPE(n, word) \
