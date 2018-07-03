@@ -1308,7 +1308,7 @@ case "$GCC" in
 
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
       -Wdeclaration-after-statement -Wpointer-arith \
-      -Wswitch-enum -fno-strict-aliasing -fwrapv"
+      -fno-strict-aliasing -fwrapv"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes
