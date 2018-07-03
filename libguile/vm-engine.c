@@ -2399,7 +2399,7 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (187, unused_187, NULL, NOP)
   VM_DEFINE_OP (188, unused_188, NULL, NOP)
   VM_DEFINE_OP (189, unused_189, NULL, NOP)
-  VM_DEFINE_OP (180, unused_190, NULL, NOP)
+  VM_DEFINE_OP (190, unused_190, NULL, NOP)
   VM_DEFINE_OP (191, unused_191, NULL, NOP)
   VM_DEFINE_OP (192, unused_192, NULL, NOP)
     {
