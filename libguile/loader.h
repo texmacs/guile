@@ -55,8 +55,11 @@
 SCM_API SCM scm_load_thunk_from_file (SCM filename);
 SCM_API SCM scm_load_thunk_from_memory (SCM bv);
 
-SCM_INTERNAL const uint8_t *
-scm_find_slot_map_unlocked (const uint32_t *ip);
+SCM_INTERNAL const uint8_t * scm_find_slot_map_unlocked (const uint32_t *ip);
+
+SCM_INTERNAL int scm_i_program_address_range (const char *code,
+                                              const char **start,
+                                              const char **end);
 
 SCM_INTERNAL void scm_bootstrap_loader (void);
 SCM_INTERNAL void scm_init_loader (void);

@@ -61,6 +61,7 @@
 #define ELFCLASS ELFCLASS32
 #define Elf_Phdr Elf32_Phdr
 #define Elf_Dyn Elf32_Dyn
+#define Elf_Sym Elf32_Sym
 #elif SIZEOF_UINTPTR_T == 8
 #define Elf_Half Elf64_Half
 #define Elf_Word Elf64_Word
@@ -68,6 +69,7 @@
 #define ELFCLASS ELFCLASS64
 #define Elf_Phdr Elf64_Phdr
 #define Elf_Dyn Elf64_Dyn
+#define Elf_Sym Elf64_Sym
 #else
 #error
 #endif
@@ -90,7 +92,8 @@
 /* The page size.  */
 static size_t page_size;
 
-static void register_elf (char *data, size_t len, char *frame_maps);
+static void register_elf (char *data, size_t len, char *frame_maps,
+                          char *symtab, char *strtab);
 
 enum bytecode_kind
   {
@@ -258,12 +261,14 @@ segment_flags_to_prot (Elf_Word flags)
 
 static char*
 process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
-                         SCM *init_out, SCM *entry_out, char **frame_maps_out)
+                         SCM *init_out, SCM *entry_out, char **frame_maps_out,
+                         char **symtab_out, char **strtab_out)
 {
   char *dyn_addr = base + dyn_phdr->p_vaddr;
   Elf_Dyn *dyn = (Elf_Dyn *) dyn_addr;
   size_t i, dyn_size = dyn_phdr->p_memsz / sizeof (Elf_Dyn);
   char *init = 0, *gc_root = 0, *entry = 0, *frame_maps = 0;
+  char *symtab = 0, *strtab = 0;
   ptrdiff_t gc_root_size = 0;
   enum bytecode_kind bytecode_kind = BYTECODE_KIND_NONE;
 
@@ -278,6 +283,12 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
           if (init)
             return "duplicate DT_INIT";
           init = base + dyn[i].d_un.d_val;
+          break;
+        case DT_SYMTAB:
+          symtab = base + dyn[i].d_un.d_val;
+          break;
+        case DT_STRTAB:
+          strtab = base + dyn[i].d_un.d_val;
           break;
         case DT_GUILE_GC_ROOT:
           if (gc_root)
@@ -344,6 +355,8 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
   *init_out = init ? pointer_to_procedure (bytecode_kind, init) : SCM_BOOL_F;
   *entry_out = pointer_to_procedure (bytecode_kind, entry);
   *frame_maps_out = frame_maps;
+  *symtab_out = symtab;
+  *strtab_out = strtab;
 
   return NULL;
 }
@@ -361,7 +374,7 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   int i;
   int dynamic_segment = -1;
   SCM init = SCM_BOOL_F, entry = SCM_BOOL_F;
-  char *frame_maps = 0;
+  char *frame_maps = 0, *symtab = 0, *strtab = 0;
 
   errno = 0;
 
@@ -465,13 +478,14 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
     }
 
   if ((err_msg = process_dynamic_segment (data, &ph[dynamic_segment],
-                                          &init, &entry, &frame_maps)))
+                                          &init, &entry, &frame_maps,
+                                          &symtab, &strtab)))
     goto cleanup;
 
   if (scm_is_true (init))
     scm_call_0 (init);
 
-  register_elf (data, len, frame_maps);
+  register_elf (data, len, frame_maps, symtab, strtab);
 
   /* Finally!  Return the thunk.  */
   return entry;
@@ -602,9 +616,11 @@ SCM_DEFINE (scm_load_thunk_from_memory, "load-thunk-from-memory", 1, 0, 0,
 
 struct mapped_elf_image
 {
-  char *start;
-  char *end;
-  char *frame_maps;
+  const char *start;
+  const char *end;
+  const char *frame_maps;
+  const char *symtab;
+  const char *strtab;
 };
 
 static struct mapped_elf_image *mapped_elf_images = NULL;
@@ -612,7 +628,7 @@ static size_t mapped_elf_images_count = 0;
 static size_t mapped_elf_images_allocated = 0;
 
 static size_t
-find_mapped_elf_insertion_index (char *ptr)
+find_mapped_elf_insertion_index (const char *ptr)
 {
   /* "mapped_elf_images_count" must never be dereferenced.  */
   size_t start = 0, end = mapped_elf_images_count;
@@ -631,7 +647,8 @@ find_mapped_elf_insertion_index (char *ptr)
 }
 
 static void
-register_elf (char *data, size_t len, char *frame_maps)
+register_elf (char *data, size_t len, char *frame_maps, char *symtab,
+              char *strtab)
 {
   scm_i_pthread_mutex_lock (&scm_i_misc_mutex);
   {
@@ -639,7 +656,7 @@ register_elf (char *data, size_t len, char *frame_maps)
     if (mapped_elf_images_count == mapped_elf_images_allocated)
       {
         struct mapped_elf_image *prev;
-        size_t n;
+        size_t old_size, new_size;
 
         if (mapped_elf_images_allocated)
           mapped_elf_images_allocated *= 2;
@@ -647,42 +664,33 @@ register_elf (char *data, size_t len, char *frame_maps)
           mapped_elf_images_allocated = 16;
 
         prev = mapped_elf_images;
-        mapped_elf_images =
-          scm_gc_malloc_pointerless (sizeof (*mapped_elf_images)
-                                     * mapped_elf_images_allocated,
-                                     "mapped elf images");
+        old_size = mapped_elf_images_count * sizeof (*mapped_elf_images);
+        new_size = mapped_elf_images_allocated * sizeof (*mapped_elf_images);
+        mapped_elf_images = scm_gc_malloc_pointerless (new_size, "mapped elf");
 
-        for (n = 0; n < mapped_elf_images_count; n++)
-          {
-            mapped_elf_images[n].start = prev[n].start;
-            mapped_elf_images[n].end = prev[n].end;
-            mapped_elf_images[n].frame_maps = prev[n].frame_maps;
-          }
+        memcpy (mapped_elf_images, prev, old_size);
       }
 
     {
-      size_t end;
       size_t n = find_mapped_elf_insertion_index (data);
 
-      for (end = mapped_elf_images_count; n < end; end--)
-        {
-          const struct mapped_elf_image *prev = &mapped_elf_images[end - 1];
-          mapped_elf_images[end].start = prev->start;
-          mapped_elf_images[end].end = prev->end;
-          mapped_elf_images[end].frame_maps = prev->frame_maps;
-        }
+      memmove (&mapped_elf_images[n+1], &mapped_elf_images[n],
+               (mapped_elf_images_count - n) * sizeof (*mapped_elf_images));
+
       mapped_elf_images_count++;
 
       mapped_elf_images[n].start = data;
       mapped_elf_images[n].end = data + len;
       mapped_elf_images[n].frame_maps = frame_maps;
+      mapped_elf_images[n].symtab = symtab;
+      mapped_elf_images[n].strtab = strtab;
     }
   }
   scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
 }
 
 static struct mapped_elf_image *
-find_mapped_elf_image_unlocked (char *ptr)
+find_mapped_elf_image_unlocked (const char *ptr)
 {
   size_t n = find_mapped_elf_insertion_index ((char *) ptr);
 
@@ -695,7 +703,7 @@ find_mapped_elf_image_unlocked (char *ptr)
 }
 
 static int
-find_mapped_elf_image (char *ptr, struct mapped_elf_image *image)
+find_mapped_elf_image (const char *ptr, struct mapped_elf_image *image)
 {
   int result;
 
@@ -771,9 +779,9 @@ const uint8_t *
 scm_find_slot_map_unlocked (const uint32_t *ip)
 {
   struct mapped_elf_image *image;
-  char *base;
-  struct frame_map_prefix *prefix;
-  struct frame_map_header *headers;
+  const char *base;
+  const struct frame_map_prefix *prefix;
+  const struct frame_map_header *headers;
   uintptr_t addr = (uintptr_t) ip;
   size_t start, end;
 
@@ -782,8 +790,8 @@ scm_find_slot_map_unlocked (const uint32_t *ip)
     return NULL;
 
   base = image->frame_maps;
-  prefix = (struct frame_map_prefix *) base;
-  headers = (struct frame_map_header *) (base + sizeof (*prefix));
+  prefix = (const struct frame_map_prefix *) base;
+  headers = (const struct frame_map_header *) (base + sizeof (*prefix));
 
   if (addr < ((uintptr_t) image->start) + prefix->text_offset)
     return NULL;
@@ -808,6 +816,49 @@ scm_find_slot_map_unlocked (const uint32_t *ip)
     }
 
   return NULL;
+}
+
+int
+scm_i_program_address_range (const char *code, const char **start,
+                             const char **end)
+{
+  struct mapped_elf_image image;
+  ptrdiff_t size;
+  const Elf_Sym *symtab, *sym;
+  ptrdiff_t lo, hi, offset;
+
+  if (!find_mapped_elf_image (code, &image))
+    return 0;
+
+  if (!image.symtab || !image.strtab)
+    return 0;
+
+  /* The compiler will put the strtab directly after the symtab, which
+     lets us know the symtab size without traversing the section
+     table.  It's hacky but it's what glibc does.  */
+  if (image.symtab >= image.strtab)
+    abort ();
+
+  size = (image.strtab - image.symtab) / sizeof (Elf_Sym);
+  symtab = (const Elf_Sym *) image.symtab;
+  lo = 0, hi = size, offset = code - image.start;
+  while (lo < hi)
+    {
+      ptrdiff_t test = (lo + hi) / 2;
+      sym = symtab + test;
+      if (offset < sym->st_value)
+        hi = test;
+      else if (offset < sym->st_value + sym->st_size)
+        {
+          *start = image.start + sym->st_value;
+          *end = *start + sym->st_size;
+          return 1;
+        }
+      else
+        lo = test + 1;
+    }
+
+  return 0;
 }
 
 
