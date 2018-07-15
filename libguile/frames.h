@@ -39,29 +39,30 @@
    Stack frame layout
    ------------------
 
-   | ...              |
-   +==================+ <- fp + 2 = SCM_FRAME_PREVIOUS_SP (fp)
-   | Dynamic link     |
-   +------------------+
-   | Return address   |
-   +==================+ <- fp
-   | Local 0          |
-   +------------------+
-   | Local 1          |
-   +------------------+
-   | ...              |
-   +------------------+
-   | Local N-1        |
-   \------------------/ <- sp
+   | ...                          |
+   +==============================+ <- fp + 2 = SCM_FRAME_PREVIOUS_SP (fp)
+   | Dynamic link                 |
+   +------------------------------+
+   | Virtual return address (vRA) |
+   +==============================+ <- fp
+   | Local 0                      |
+   +------------------------------+
+   | Local 1                      |
+   +------------------------------+
+   | ...                          |
+   +------------------------------+
+   | Local N-1                    |
+   \------------------------------/ <- sp
 
    The stack grows down.
 
    The calling convention is that a caller prepares a stack frame
-   consisting of the saved FP and the return address, followed by the
-   procedure and then the arguments to the call, in order.  Thus in the
-   beginning of a call, the procedure being called is in slot 0, the
-   first argument is in slot 1, and the SP points to the last argument.
-   The number of arguments, including the procedure, is thus FP - SP.
+   consisting of the saved FP and the saved virtual return address,
+   followed by the procedure and then the arguments to the call, in
+   order.  Thus in the beginning of a call, the procedure being called
+   is in slot 0, the first argument is in slot 1, and the SP points to
+   the last argument.  The number of arguments, including the procedure,
+   is thus FP - SP.
 
    After ensuring that the correct number of arguments have been passed,
    a function will set the stack pointer to point to the last local
@@ -90,7 +91,8 @@
 union scm_vm_stack_element
 {
   uintptr_t as_uint;
-  uint32_t *as_ip;
+  uint32_t *as_vcode;
+  uint8_t *as_mcode;
   SCM as_scm;
   double as_f64;
   uint64_t as_u64;
@@ -102,8 +104,8 @@ union scm_vm_stack_element
 };
 
 #define SCM_FRAME_PREVIOUS_SP(fp)	((fp) + 2)
-#define SCM_FRAME_RETURN_ADDRESS(fp)    ((fp)[0].as_ip)
-#define SCM_FRAME_SET_RETURN_ADDRESS(fp, ra) ((fp)[0].as_ip = (ra))
+#define SCM_FRAME_VIRTUAL_RETURN_ADDRESS(fp)    ((fp)[0].as_vcode)
+#define SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS(fp, ra) ((fp)[0].as_vcode = (ra))
 #define SCM_FRAME_DYNAMIC_LINK(fp)      ((fp) + (fp)[1].as_uint)
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl) ((fp)[1].as_uint = ((dl) - (fp)))
 #define SCM_FRAME_SLOT(fp,i)            ((fp) - (i) - 1)

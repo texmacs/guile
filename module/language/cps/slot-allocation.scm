@@ -807,11 +807,13 @@ are comparable with eqv?.  A tmp slot may be used."
                                                needs-slot)
                             empty-intset)))
 
+    (define frame-size 2)
+
     (define (empty-live-slots)
       #b0)
 
     (define (compute-call-proc-slot live-slots)
-      (+ 2 (find-first-trailing-zero live-slots)))
+      (+ frame-size (find-first-trailing-zero live-slots)))
 
     (define (compute-prompt-handler-proc-slot live-slots)
       (if (zero? live-slots)
@@ -927,7 +929,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                                 (length results))))
                     (allocate* results result-slots slots post-live)))))
               ((slot-map) (compute-slot-map slots (intmap-ref live-out label)
-                                            (- proc-slot 2)))
+                                            (- proc-slot frame-size)))
               ((call) (make-call-alloc proc-slot slot-map)))
            (values slots
                    (intmap-add! call-allocs label call))))))
@@ -962,7 +964,7 @@ are comparable with eqv?.  A tmp slot may be used."
              (((handler-live) (compute-live-in-slots slots handler))
               ((proc-slot) (compute-prompt-handler-proc-slot handler-live))
               ((slot-map)  (compute-slot-map slots (intmap-ref live-in handler)
-                                             (- proc-slot 2)))
+                                             (- proc-slot frame-size)))
               ((result-vars) (match (get-cont kargs)
                                (($ $kargs names vars) vars)))
               ((value-slots) (integers (1+ proc-slot) (length result-vars)))

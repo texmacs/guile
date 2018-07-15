@@ -61,10 +61,11 @@ typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
 typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
 typedef SCM (*scm_t_scm_from_thread_u64_intrinsic) (scm_thread*, uint64_t);
 typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
-typedef void (*scm_t_thread_u8_scm_sp_ra_intrinsic) (scm_thread*,
-                                                     uint8_t, SCM,
-                                                     const union scm_vm_stack_element*,
-                                                     void*);
+typedef void (*scm_t_thread_u8_scm_sp_vra_intrinsic) (scm_thread*,
+                                                      uint8_t, SCM,
+                                                      const union scm_vm_stack_element*,
+                                                      uint32_t*);
+typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -113,7 +114,7 @@ typedef void (*scm_t_thread_u8_scm_sp_ra_intrinsic) (scm_thread*,
   M(scm_from_thread_u32, cons_rest, "cons-rest", CONS_REST) \
   M(u32_from_thread_u32_u32, compute_kwargs_npositional, "compute-kwargs-npositional", COMPUTE_KWARGS_NPOSITIONAL) \
   M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS) \
-  M(thread, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
+  M(thread_mra, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(scm_from_scm_scm_scmp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
   M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
@@ -130,7 +131,7 @@ typedef void (*scm_t_thread_u8_scm_sp_ra_intrinsic) (scm_thread*,
   M(thread, apply_non_program, "apply-non-program", APPLY_NON_PROGRAM) \
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
-  M(thread_u8_scm_sp_ra, push_prompt, "push-prompt", PUSH_PROMPT) \
+  M(thread_u8_scm_sp_vra, push_prompt, "push-prompt", PUSH_PROMPT) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

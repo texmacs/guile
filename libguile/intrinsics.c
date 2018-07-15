@@ -349,7 +349,7 @@ current_module (scm_thread *thread)
 
 static void
 push_prompt (scm_thread *thread, uint8_t escape_only_p,
-             SCM tag, const union scm_vm_stack_element *sp, void *ra)
+             SCM tag, const union scm_vm_stack_element *sp, uint32_t *ra)
 {
   struct scm_vm *vp = &thread->vm;
   scm_t_dynstack_prompt_flags flags;

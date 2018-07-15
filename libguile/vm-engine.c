@@ -321,13 +321,14 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (0, halt, "halt", OP1 (X32))
     {
-      /* Boot closure in r0, empty frame in r1/r2, proc in r3, values from r4.  */
-
-      uint32_t nvals = FRAME_LOCALS_COUNT_FROM (4);
+      size_t frame_size = 2;
+      /* Boot closure, then empty frame, then callee, then values.  */
+      size_t first_value = 1 + frame_size + 1;
+      uint32_t nvals = FRAME_LOCALS_COUNT_FROM (first_value);
       SCM ret;
 
       if (nvals == 1)
-        ret = FP_REF (4);
+        ret = FP_REF (first_value);
       else
         {
           uint32_t n;
@@ -335,10 +336,10 @@ VM_NAME (scm_thread *thread)
           VM_ASSERT (nvals <= (UINTPTR_MAX >> 8), abort ());
           ret = scm_words ((nvals << 8) | scm_tc7_values, nvals + 1);
           for (n = 0; n < nvals; n++)
-            SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (4 + n));
+            SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (first_value + n));
         }
 
-      VP->ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      VP->ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
       VP->sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
       VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
@@ -371,7 +372,7 @@ VM_NAME (scm_thread *thread)
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
       SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 2);
+      SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (VP->fp, ip + 2);
 
       RESET_FRAME (nlocals);
 
@@ -414,7 +415,7 @@ VM_NAME (scm_thread *thread)
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
       SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
-      SCM_FRAME_SET_RETURN_ADDRESS (VP->fp, ip + 3);
+      SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (VP->fp, ip + 3);
 
       RESET_FRAME (nlocals);
 
@@ -576,7 +577,7 @@ VM_NAME (scm_thread *thread)
         RESET_FRAME (nlocals);
 
       old_fp = VP->fp;
-      ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
       VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       /* Clear stack frame.  */
@@ -2373,7 +2374,7 @@ VM_NAME (scm_thread *thread)
         NEXT (1);
 
       SYNC_IP ();
-      CALL_INTRINSIC (push_interrupt_frame, (thread));
+      CALL_INTRINSIC (push_interrupt_frame, (thread, 0));
       CACHE_SP ();
       ip = (uint32_t *) vm_handle_interrupt_code;
       APPLY_HOOK ();
@@ -2388,7 +2389,7 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (184, return_from_interrupt, "return-from-interrupt", OP1 (X32))
     {
       VP->sp = sp = SCM_FRAME_PREVIOUS_SP (VP->fp);
-      ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
+      ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
       VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       NEXT (0);

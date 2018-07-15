@@ -615,9 +615,10 @@ address of that offset."
                                   (lambda ()
                                     (disassemble-one code (/ pos 4)))
                                 (lambda (len elt)
+                                  (define frame-size 2)
                                   (match elt
                                     ((_ proc . _)
-                                     (let lp ((slot (- proc 2)))
+                                     (let lp ((slot (- proc frame-size)))
                                        (if (and nslots-in (< slot nslots-in))
                                            (cons slot (lp (1+ slot)))
                                            '())))))))))

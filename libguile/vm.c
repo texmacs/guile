@@ -710,7 +710,7 @@ scm_i_vm_mark_stack (struct scm_vm *vp, struct GC_ms_entry *mark_stack_ptr,
          Note that there may be other reasons to not have a dead slots
          map, e.g. if all of the frame's slots below the callee frame
          are live.  */
-      slot_map = find_slot_map (SCM_FRAME_RETURN_ADDRESS (fp), &cache);
+      slot_map = find_slot_map (SCM_FRAME_VIRTUAL_RETURN_ADDRESS (fp), &cache);
     }
 
   return_unused_stack_to_os (vp);
@@ -1011,24 +1011,25 @@ cons_rest (scm_thread *thread, uint32_t base)
 }
 
 static void
-push_interrupt_frame (scm_thread *thread)
+push_interrupt_frame (scm_thread *thread, uint8_t *mra)
 {
   union scm_vm_stack_element *old_fp;
+  size_t frame_overhead = 2;
   size_t old_frame_size = frame_locals_count (thread);
   SCM proc = scm_i_async_pop (thread);
 
   /* No PUSH_CONTINUATION_HOOK, as we can't usefully
      POP_CONTINUATION_HOOK because there are no return values.  */
 
-  /* Three slots: two for RA and dynamic link, one for proc.  */
-  alloc_frame (thread, old_frame_size + 3);
+  /* Reserve space for frame and callee.  */
+  alloc_frame (thread, old_frame_size + frame_overhead + 1);
 
   old_fp = thread->vm.fp;
-  thread->vm.fp = SCM_FRAME_SLOT (old_fp, old_frame_size + 1);
+  thread->vm.fp = SCM_FRAME_SLOT (old_fp, old_frame_size + frame_overhead - 1);
   SCM_FRAME_SET_DYNAMIC_LINK (thread->vm.fp, old_fp);
   /* Arrange to return to the same handle-interrupts opcode to handle
      any additional interrupts.  */
-  SCM_FRAME_SET_RETURN_ADDRESS (thread->vm.fp, thread->vm.ip);
+  SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (thread->vm.fp, thread->vm.ip);
 
   SCM_FRAME_LOCAL (thread->vm.fp, 0) = proc;
 }
@@ -1069,7 +1070,7 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
   scm_t_contregs *continuation = scm_i_contregs (cont);
   struct scm_vm *vp = &thread->vm;
   struct scm_vm_cont *cp;
-  size_t n;
+  size_t n, i, frame_overhead = 2;
   union scm_vm_stack_element *argv;
   struct return_to_continuation_data data;
 
@@ -1091,11 +1092,11 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
 
   /* Now we have the continuation properly copied over.  We just need to
      copy on an empty frame and the return values, as the continuation
-     expects.  */
-  vm_push_sp (vp, vp->sp - 3 - n);
-  vp->sp[n+2].as_scm = SCM_BOOL_F;
-  vp->sp[n+1].as_scm = SCM_BOOL_F;
-  vp->sp[n].as_scm = SCM_BOOL_F;
+     expects.  The extra 1 is for the unused slot 0 that's part of the
+     multiple-value return convention.  */
+  vm_push_sp (vp, vp->sp - (frame_overhead + 1) - n);
+  for (i = 0; i < frame_overhead + 1; i++)
+    vp->sp[n+i].as_scm = SCM_BOOL_F;
   memcpy(vp->sp, argv, n * sizeof (union scm_vm_stack_element));
 
   vp->ip = cp->ra;
@@ -1111,7 +1112,7 @@ capture_continuation (scm_thread *thread)
     scm_i_vm_capture_stack (vp->stack_top,
                             SCM_FRAME_DYNAMIC_LINK (vp->fp),
                             SCM_FRAME_PREVIOUS_SP (vp->fp),
-                            SCM_FRAME_RETURN_ADDRESS (vp->fp),
+                            SCM_FRAME_VIRTUAL_RETURN_ADDRESS (vp->fp),
                             scm_dynstack_capture_all (&thread->dynstack),
                             0);
   return scm_i_make_continuation (thread, vm_cont);
@@ -1397,14 +1398,14 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   call_fp = vp->sp + call_nlocals;
   return_fp = call_fp + frame_size + return_nlocals;
 
-  SCM_FRAME_SET_RETURN_ADDRESS (return_fp, vp->ip);
+  SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (return_fp, vp->ip);
   SCM_FRAME_SET_DYNAMIC_LINK (return_fp, vp->fp);
   SCM_FRAME_LOCAL (return_fp, 0) = vm_boot_continuation;
 
   vp->ip = (uint32_t *) vm_boot_continuation_code;
   vp->fp = call_fp;
 
-  SCM_FRAME_SET_RETURN_ADDRESS (call_fp, vp->ip);
+  SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (call_fp, vp->ip);
   SCM_FRAME_SET_DYNAMIC_LINK (call_fp, return_fp);
   SCM_FRAME_LOCAL (call_fp, 0) = proc;
   for (i = 0; i < nargs; i++)

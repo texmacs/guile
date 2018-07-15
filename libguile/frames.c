@@ -366,8 +366,8 @@ SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_return_address
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
-  return scm_from_uintptr_t ((uintptr_t) (SCM_FRAME_RETURN_ADDRESS
-                                              (SCM_VM_FRAME_FP (frame))));
+  return scm_from_uintptr_t ((uintptr_t) (SCM_FRAME_VIRTUAL_RETURN_ADDRESS
+                                          (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 
@@ -404,7 +404,7 @@ scm_c_frame_previous (enum scm_vm_frame_kind kind, struct scm_frame *frame)
   new_sp = SCM_FRAME_PREVIOUS_SP (this_fp);
   frame->fp_offset = stack_top - new_fp;
   frame->sp_offset = stack_top - new_sp;
-  frame->ip = SCM_FRAME_RETURN_ADDRESS (this_fp);
+  frame->ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (this_fp);
 
   if (scm_i_vm_is_boot_continuation_code (frame->ip))
     goto again;
