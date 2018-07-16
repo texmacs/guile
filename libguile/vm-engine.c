@@ -335,7 +335,7 @@ VM_NAME (scm_thread *thread)
           VM_ASSERT (nvals <= (UINTPTR_MAX >> 8), abort ());
           ret = scm_words ((nvals << 8) | scm_tc7_values, nvals + 1);
           for (n = 0; n < nvals; n++)
-            SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (4 + n - 1));
+            SCM_SET_CELL_OBJECT (ret, n+1, FP_REF (4 + n));
         }
 
       VP->ip = SCM_FRAME_RETURN_ADDRESS (VP->fp);
