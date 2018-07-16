@@ -321,7 +321,7 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (0, halt, "halt", OP1 (X32))
     {
-      size_t frame_size = 2;
+      size_t frame_size = 3;
       /* Boot closure, then empty frame, then callee, then values.  */
       size_t first_value = 1 + frame_size + 1;
       uint32_t nvals = FRAME_LOCALS_COUNT_FROM (first_value);
@@ -373,6 +373,7 @@ VM_NAME (scm_thread *thread)
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
       SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
       SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (VP->fp, ip + 2);
+      SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (VP->fp, 0);
 
       RESET_FRAME (nlocals);
 
@@ -416,6 +417,7 @@ VM_NAME (scm_thread *thread)
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
       SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
       SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (VP->fp, ip + 3);
+      SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (VP->fp, 0);
 
       RESET_FRAME (nlocals);
 

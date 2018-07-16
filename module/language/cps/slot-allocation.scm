@@ -807,7 +807,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                                needs-slot)
                             empty-intset)))
 
-    (define frame-size 2)
+    (define frame-size 3)
 
     (define (empty-live-slots)
       #b0)

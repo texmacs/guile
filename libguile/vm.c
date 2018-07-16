@@ -351,11 +351,11 @@ static const uint32_t vm_builtin_abort_to_prompt_code[] = {
 
 static const uint32_t vm_builtin_call_with_values_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ee, 3),
-  SCM_PACK_OP_24 (alloc_frame, 7),
-  SCM_PACK_OP_12_12 (mov, 0, 5),
-  SCM_PACK_OP_24 (call, 6), SCM_PACK_OP_ARG_8_24 (0, 1),
+  SCM_PACK_OP_24 (alloc_frame, 8),
+  SCM_PACK_OP_12_12 (mov, 0, 6),
+  SCM_PACK_OP_24 (call, 7), SCM_PACK_OP_ARG_8_24 (0, 1),
   SCM_PACK_OP_24 (long_fmov, 0), SCM_PACK_OP_ARG_8_24 (0, 2),
-  SCM_PACK_OP_24 (tail_call_shuffle, 7)
+  SCM_PACK_OP_24 (tail_call_shuffle, 8)
 };
 
 static const uint32_t vm_builtin_call_with_current_continuation_code[] = {
@@ -364,9 +364,9 @@ static const uint32_t vm_builtin_call_with_current_continuation_code[] = {
 };
 
 static const uint32_t vm_handle_interrupt_code[] = {
-  SCM_PACK_OP_24 (alloc_frame, 3),
-  SCM_PACK_OP_12_12 (mov, 0, 2),
-  SCM_PACK_OP_24 (call, 2), SCM_PACK_OP_ARG_8_24 (0, 1),
+  SCM_PACK_OP_24 (alloc_frame, 4),
+  SCM_PACK_OP_12_12 (mov, 0, 3),
+  SCM_PACK_OP_24 (call, 3), SCM_PACK_OP_ARG_8_24 (0, 1),
   SCM_PACK_OP_24 (return_from_interrupt, 0)
 };
 
@@ -1014,7 +1014,7 @@ static void
 push_interrupt_frame (scm_thread *thread, uint8_t *mra)
 {
   union scm_vm_stack_element *old_fp;
-  size_t frame_overhead = 2;
+  size_t frame_overhead = 3;
   size_t old_frame_size = frame_locals_count (thread);
   SCM proc = scm_i_async_pop (thread);
 
@@ -1030,6 +1030,7 @@ push_interrupt_frame (scm_thread *thread, uint8_t *mra)
   /* Arrange to return to the same handle-interrupts opcode to handle
      any additional interrupts.  */
   SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (thread->vm.fp, thread->vm.ip);
+  SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (thread->vm.fp, mra);
 
   SCM_FRAME_LOCAL (thread->vm.fp, 0) = proc;
 }
@@ -1070,7 +1071,7 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
   scm_t_contregs *continuation = scm_i_contregs (cont);
   struct scm_vm *vp = &thread->vm;
   struct scm_vm_cont *cp;
-  size_t n, i, frame_overhead = 2;
+  size_t n, i, frame_overhead = 3;
   union scm_vm_stack_element *argv;
   struct return_to_continuation_data data;
 
@@ -1374,7 +1375,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
      elements and each element is at least 4 bytes, nargs will not be
      greater than INTMAX/2 and therefore we don't have to check for
      overflow here or below.  */
-  size_t return_nlocals = 1, call_nlocals = nargs + 1, frame_size = 2;
+  size_t return_nlocals = 1, call_nlocals = nargs + 1, frame_size = 3;
   ptrdiff_t stack_reserve_words;
   size_t i;
 
@@ -1399,6 +1400,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   return_fp = call_fp + frame_size + return_nlocals;
 
   SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (return_fp, vp->ip);
+  SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (return_fp, 0);
   SCM_FRAME_SET_DYNAMIC_LINK (return_fp, vp->fp);
   SCM_FRAME_LOCAL (return_fp, 0) = vm_boot_continuation;
 
@@ -1406,6 +1408,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   vp->fp = call_fp;
 
   SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (call_fp, vp->ip);
+  SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (call_fp, 0);
   SCM_FRAME_SET_DYNAMIC_LINK (call_fp, return_fp);
   SCM_FRAME_LOCAL (call_fp, 0) = proc;
   for (i = 0; i < nargs; i++)

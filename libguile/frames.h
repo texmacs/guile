@@ -44,6 +44,8 @@
    | Dynamic link                 |
    +------------------------------+
    | Virtual return address (vRA) |
+   +------------------------------+
+   | Machine return address (mRA) |
    +==============================+ <- fp
    | Local 0                      |
    +------------------------------+
@@ -57,12 +59,12 @@
    The stack grows down.
 
    The calling convention is that a caller prepares a stack frame
-   consisting of the saved FP and the saved virtual return address,
-   followed by the procedure and then the arguments to the call, in
-   order.  Thus in the beginning of a call, the procedure being called
-   is in slot 0, the first argument is in slot 1, and the SP points to
-   the last argument.  The number of arguments, including the procedure,
-   is thus FP - SP.
+   consisting of the saved FP, the saved virtual return addres, and the
+   saved machine return address of the calling function, followed by the
+   procedure and then the arguments to the call, in order.  Thus in the
+   beginning of a call, the procedure being called is in slot 0, the
+   first argument is in slot 1, and the SP points to the last argument.
+   The number of arguments, including the procedure, is thus FP - SP.
 
    After ensuring that the correct number of arguments have been passed,
    a function will set the stack pointer to point to the last local
@@ -103,11 +105,13 @@ union scm_vm_stack_element
   scm_t_bits as_bits;
 };
 
-#define SCM_FRAME_PREVIOUS_SP(fp)	((fp) + 2)
-#define SCM_FRAME_VIRTUAL_RETURN_ADDRESS(fp)    ((fp)[0].as_vcode)
-#define SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS(fp, ra) ((fp)[0].as_vcode = (ra))
-#define SCM_FRAME_DYNAMIC_LINK(fp)      ((fp) + (fp)[1].as_uint)
-#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl) ((fp)[1].as_uint = ((dl) - (fp)))
+#define SCM_FRAME_PREVIOUS_SP(fp)	((fp) + 3)
+#define SCM_FRAME_MACHINE_RETURN_ADDRESS(fp)         ((fp)[0].as_mcode)
+#define SCM_FRAME_SET_MACHINE_RETURN_ADDRESS(fp, ra) ((fp)[0].as_mcode = (ra))
+#define SCM_FRAME_VIRTUAL_RETURN_ADDRESS(fp)         ((fp)[1].as_vcode)
+#define SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS(fp, ra) ((fp)[1].as_vcode = (ra))
+#define SCM_FRAME_DYNAMIC_LINK(fp)      ((fp) + (fp)[2].as_uint)
+#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl) ((fp)[2].as_uint = ((dl) - (fp)))
 #define SCM_FRAME_SLOT(fp,i)            ((fp) - (i) - 1)
 #define SCM_FRAME_LOCAL(fp,i)           (SCM_FRAME_SLOT (fp, i)->as_scm)
 #define SCM_FRAME_NUM_LOCALS(fp, sp)    ((fp) - (sp))
