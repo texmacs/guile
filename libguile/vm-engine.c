@@ -545,14 +545,15 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (9, return_values, "return-values", OP1 (X32))
     {
       union scm_vm_stack_element *old_fp;
+      size_t frame_size = 3;
 
       old_fp = VP->fp;
       ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
       VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
 
       /* Clear stack frame.  */
-      old_fp[0].as_scm = SCM_BOOL_F;
-      old_fp[1].as_scm = SCM_BOOL_F;
+      while (frame_size--)
+        old_fp[frame_size].as_scm = SCM_BOOL_F;
 
       POP_CONTINUATION_HOOK (old_fp);
 
