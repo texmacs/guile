@@ -1,6 +1,6 @@
 ;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009-2012, 2013-2015 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009-2012, 2013-2015, 2018 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -497,6 +497,16 @@ not `set-port-position!'"
            (bytevector=? (get-bytevector-all port)
                          (u8-list->bytevector
                           (map char->integer (string->list "Port!")))))))
+
+  (pass-if-equal "custom binary input port position, long offset"
+      (expt 2 42)
+    ;; In Guile <= 2.2.4, 'seek' would throw to 'out-of-range'.
+    (let* ((port (make-custom-binary-input-port "the port"
+                                                (const 0)
+                                                (const (expt 2 42))
+                                                #f #f)))
+      (port-position port)))
+
 
   (pass-if-equal "custom binary input port buffered partial reads"
       "Hello Port!"

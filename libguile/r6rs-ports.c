@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011, 2013-2015 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2013-2015, 2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -219,7 +219,7 @@ custom_binary_port_seek (SCM port, scm_t_off offset, int whence)
 	  scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
 				  "R6RS custom binary port with "
 				  "`port-position' support");
-	c_result = scm_to_int (result);
+	c_result = scm_to_off_t (result);
 	if (offset == 0)
 	  /* We just want to know the current position.  */
 	  break;
