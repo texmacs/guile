@@ -235,14 +235,8 @@ address of that offset."
      (list "~a slot~:p" nlocals))
     (('reset-frame nlocals)
      (list "~a slot~:p" nlocals))
-    (('return-values nlocals)
-     (if (zero? nlocals)
-         (list "all values")
-         (list "~a value~:p" (1- nlocals))))
     (('bind-rest dst)
      (list "~a slot~:p" (1+ dst)))
-    (('tail-call nargs proc)
-     (list "~a arg~:p" nargs))
     (('make-closure dst target nfree)
      (let* ((addr (u32-offset->addr (+ offset target) context))
             (pdi (find-program-debug-info addr context))
@@ -264,7 +258,7 @@ address of that offset."
                       "anonymous procedure")))
        (push-addr! addr name)
        (list "~A at #x~X" name addr)))
-    (('tail-call-label nlocals target)
+    (('tail-call-label target)
      (let* ((addr (u32-offset->addr (+ offset target) context))
             (pdi (find-program-debug-info addr context))
             (name (or (and pdi (program-debug-info-name pdi))
@@ -507,17 +501,10 @@ address of that offset."
 (define (instruction-has-fallthrough? code pos)
   (define non-fallthrough-set
     (static-opcode-set halt
-                       ;; FIXME: add throw, throw/value,
-                       ;; throw/value+data.  Currently control flow
-                       ;; nominally continues; we don't add these ops to
-                       ;; the non-fallthrough-set currently to allow the
-                       ;; frame parser to be able to compute the stack
-                       ;; size for following code.
                        throw throw/value throw/value+data
-                       tail-call tail-call-label tail-call/shuffle
+                       tail-call tail-call-label
                        return-values
                        subr-call foreign-call continuation-call
-                       tail-apply
                        j))
   (let ((opcode (logand (bytevector-u32-native-ref code pos) #xff)))
     (not (bitvector-ref non-fallthrough-set opcode))))
@@ -582,10 +569,14 @@ address of that offset."
                                   #xfff))
                    (nlocals (ash (bytevector-u32-native-ref code pos) -20)))
                (+ nargs nlocals))))
-        ((call call-label)
+        ((call call-label tail-call tail-call-label expand-apply-argument)
          #'(lambda (code pos size) #f))
-        ((tail-call tail-call-label tail-call/shuffle tail-apply)
-         #'(lambda (code pos size) #f))
+        ((shuffle-down)
+         #'(lambda (code pos size)
+             (let ((from (logand (ash (bytevector-u32-native-ref code pos) -8)
+                                 #xfff))
+                   (to (ash (bytevector-u32-native-ref code pos) -20)))
+               (and size (- size (- from to))))))
         (else
          #f)))
     (syntax-case x ()

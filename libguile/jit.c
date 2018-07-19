@@ -61,17 +61,12 @@ compile_call_label (scm_jit_state *j, uint32_t a, uint32_t b, int32_t offset)
 }
 
 static void
-compile_tail_call (scm_jit_state *j, uint32_t a)
+compile_tail_call (scm_jit_state *j)
 {
 }
 
 static void
-compile_tail_call_label (scm_jit_state *j, uint32_t a, int32_t offset)
-{
-}
-
-static void
-compile_tail_call_shuffle (scm_jit_state *j, uint32_t a)
+compile_tail_call_label (scm_jit_state *j, int32_t offset)
 {
 }
 
@@ -86,7 +81,12 @@ compile_receive_values (scm_jit_state *j, uint32_t a, uint8_t b, uint32_t c)
 }
 
 static void
-compile_return_values (scm_jit_state *j, uint32_t a)
+compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
+{
+}
+
+static void
+compile_return_values (scm_jit_state *j)
 {
 }
 
@@ -107,11 +107,6 @@ compile_continuation_call (scm_jit_state *j, uint32_t a)
 
 static void
 compile_compose_continuation (scm_jit_state *j, uint32_t a)
-{
-}
-
-static void
-compile_tail_apply (scm_jit_state *j)
 {
 }
 
@@ -187,6 +182,11 @@ compile_drop (scm_jit_state *j, uint32_t a)
 
 static void
 compile_assert_nargs_ee_locals (scm_jit_state *j, uint16_t a, uint16_t b)
+{
+}
+
+static void
+compile_expand_apply_argument (scm_jit_state *j)
 {
 }
 
@@ -917,6 +917,8 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
   COMPILE_X8_C12_C12 (j, comp)
 #define COMPILE_X8_S12_S12(j, comp)                                     \
   COMPILE_X8_C12_C12 (j, comp)
+#define COMPILE_X8_F12_F12(j, comp)                                     \
+  COMPILE_X8_C12_C12 (j, comp)
 
 #define COMPILE_X8_S12_Z12(j, comp)                                     \
   {                                                                     \
@@ -951,6 +953,13 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
   {                                                                     \
     comp (j, j->ip[1]);                                                 \
     j->ip += 2;                                                         \
+  }
+
+#define COMPILE_X32__L32(j, comp)                                       \
+  {                                                                     \
+    int32_t a = j->ip[1];                                               \
+    comp (j, a);                                                        \
+    j->ip += 1;                                                         \
   }
 
 #define COMPILE_X8_C24__L32(j, comp)                                    \

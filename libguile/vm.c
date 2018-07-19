@@ -335,11 +335,13 @@ static const uint32_t vm_boot_continuation_code[] = {
 
 static const uint32_t vm_builtin_apply_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ge, 3),
-  SCM_PACK_OP_24 (tail_apply, 0), /* proc in r1, args from r2 */
+  SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
+  SCM_PACK_OP_24 (expand_apply_argument, 0),
+  SCM_PACK_OP_24 (tail_call, 0),
 };
 
 static const uint32_t vm_builtin_values_code[] = {
-  SCM_PACK_OP_24 (return_values, 0) /* vals from r1 */
+  SCM_PACK_OP_24 (return_values, 0)
 };
 
 static const uint32_t vm_builtin_abort_to_prompt_code[] = {
@@ -355,7 +357,8 @@ static const uint32_t vm_builtin_call_with_values_code[] = {
   SCM_PACK_OP_12_12 (mov, 0, 6),
   SCM_PACK_OP_24 (call, 7), SCM_PACK_OP_ARG_8_24 (0, 1),
   SCM_PACK_OP_24 (long_fmov, 0), SCM_PACK_OP_ARG_8_24 (0, 2),
-  SCM_PACK_OP_24 (tail_call_shuffle, 8)
+  SCM_PACK_OP_12_12 (shuffle_down, 8, 1),
+  SCM_PACK_OP_24 (tail_call, 0)
 };
 
 static const uint32_t vm_builtin_call_with_current_continuation_code[] = {

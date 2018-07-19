@@ -237,7 +237,6 @@
             emit-tail-call
             emit-tail-call-label
             emit-receive-values
-            emit-return
             emit-return-values
             emit-call/cc
             emit-abort
@@ -1562,7 +1561,7 @@ a procedure to do that and return its label.  Otherwise return
                         (assert-nargs-ee/locals 1 1)
                         ,@(reverse inits)
                         (load-constant 0 ,*unspecified*)
-                        (return-values 2)
+                        (return-values)
                         (end-program)))
            label))))
 

@@ -110,22 +110,28 @@
     (define (compile-tail label exp)
       ;; There are only three kinds of expressions in tail position:
       ;; tail calls, multiple-value returns, and single-value returns.
+      (define (maybe-reset-frame nlocals)
+        (unless (= frame-size nlocals)
+          (emit-reset-frame asm nlocals)))
       (match exp
         (($ $call proc args)
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (emit-tail-call asm (1+ (length args))))
+         (maybe-reset-frame (1+ (length args)))
+         (emit-tail-call asm))
         (($ $callk k proc args)
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (emit-tail-call-label asm (1+ (length args)) k))
+         (maybe-reset-frame (1+ (length args)))
+         (emit-tail-call-label asm k))
         (($ $values args)
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (emit-return-values asm (1+ (length args))))))
+         (maybe-reset-frame (1+ (length args)))
+         (emit-return-values asm))))
 
     (define (compile-value label exp dst)
       (match exp
