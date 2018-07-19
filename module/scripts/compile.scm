@@ -68,6 +68,10 @@
 		  (if (assoc-ref result 'output-file)
 		      (fail "`-o' option cannot be specified more than once")
 		      (alist-cons 'output-file arg result))))
+        (option '(#\x) #t #f
+                (lambda (opt name arg result)
+                  (set! %load-extensions (cons arg %load-extensions))
+                  result))
 
         (option '(#\W "warn") #t #f
                 (lambda (opt name arg result)
@@ -197,6 +201,7 @@ Compile each Guile source file FILE into a Guile object.
 
   -L, --load-path=DIR  add DIR to the front of the module load path
   -o, --output=OFILE   write output to OFILE
+  -x EXTENSION         add EXTENSION to the set of source file extensions
 
   -W, --warn=WARNING   emit warnings of type WARNING; use `--warn=help'
                        for a list of available warnings
