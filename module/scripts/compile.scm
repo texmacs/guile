@@ -127,7 +127,7 @@
 options."
   (args-fold args %options
              (lambda (opt name arg result)
-               (format (current-error-port) "~A: unrecognized option" name)
+               (format (current-error-port) "~A: unrecognized option~%" name)
 	       (exit 1))
              (lambda (file result)
 	       (let ((input-files (assoc-ref result 'input-files)))
