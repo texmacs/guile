@@ -130,7 +130,7 @@
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (maybe-reset-frame (1+ (length args)))
+         (maybe-reset-frame (length args))
          (emit-return-values asm))))
 
     (define (compile-value label exp dst)
@@ -391,7 +391,7 @@
                       (match (intmap-ref cps khandler-body)
                         (($ $kargs names (_ ... rest))
                          (maybe-slot rest))))
-             (emit-bind-rest asm (+ proc-slot 1 nreq)))
+             (emit-bind-rest asm (+ proc-slot nreq)))
            (for-each (match-lambda
                       ((src . dst) (emit-fmov asm dst src)))
                      (lookup-parallel-moves kh allocation))
@@ -525,7 +525,7 @@
           (cond
            ((and (= 1 nreq) (and rest-var) (not (maybe-slot rest-var))
                  (match (lookup-parallel-moves k allocation)
-                   ((((? (lambda (src) (= src (1+ proc-slot))) src)
+                   ((((? (lambda (src) (= src proc-slot)) src)
                       . dst)) dst)
                    (_ #f)))
             ;; The usual case: one required live return value, ignoring
@@ -536,7 +536,7 @@
             (unless (and (zero? nreq) rest-var)
               (emit-receive-values asm proc-slot (->bool rest-var) nreq))
             (when (and rest-var (maybe-slot rest-var))
-              (emit-bind-rest asm (+ proc-slot 1 nreq)))
+              (emit-bind-rest asm (+ proc-slot nreq)))
             (for-each (match-lambda
                        ((src . dst) (emit-fmov asm dst src)))
                       (lookup-parallel-moves k allocation))

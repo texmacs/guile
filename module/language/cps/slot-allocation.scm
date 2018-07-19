@@ -528,7 +528,7 @@ are comparable with eqv?.  A tmp slot may be used."
       (($ $kreceive arity kargs)
        (let* ((results (match (get-cont kargs)
                          (($ $kargs names vars) vars)))
-              (value-slots (integers (1+ proc-slot) (length results)))
+              (value-slots (integers proc-slot (length results)))
               (result-slots (get-slots results))
               ;; Filter out unused results.
               (value-slots (filter-map (lambda (val result) (and result val))
@@ -563,7 +563,7 @@ are comparable with eqv?.  A tmp slot may be used."
       (($ $ktail)
        (let* ((live (compute-live-slots label))
               (src-slots (get-slots args))
-              (dst-slots (integers 1 (length args)))
+              (dst-slots (integers 0 (length args)))
               (moves (parallel-move src-slots dst-slots
                                     (compute-tmp-slot live dst-slots))))
          (intmap-add! shuffles label moves)))
@@ -705,7 +705,7 @@ are comparable with eqv?.  A tmp slot may be used."
   (define (allocate-values label k args slots)
     (match (intmap-ref cps k)
       (($ $ktail)
-       (allocate* args (integers 1 (length args))
+       (allocate* args (integers 0 (length args))
                   slots (compute-live-slots slots label)))
       (($ $kargs names vars)
        (allocate* args
@@ -816,9 +816,7 @@ are comparable with eqv?.  A tmp slot may be used."
       (+ frame-size (find-first-trailing-zero live-slots)))
 
     (define (compute-prompt-handler-proc-slot live-slots)
-      (if (zero? live-slots)
-          0
-          (1- (find-first-trailing-zero live-slots))))
+      (find-first-trailing-zero live-slots))
 
     (define (get-cont label)
       (intmap-ref cps label))
@@ -925,7 +923,7 @@ are comparable with eqv?.  A tmp slot may be used."
                  (($ $kargs () ())
                   (values slots post-live))
                  (($ $kargs (_ . _) (_ . results))
-                  (let ((result-slots (integers (+ proc-slot 2)
+                  (let ((result-slots (integers (+ proc-slot 1)
                                                 (length results))))
                     (allocate* results result-slots slots post-live)))))
               ((slot-map) (compute-slot-map slots (intmap-ref live-out label)
@@ -967,7 +965,7 @@ are comparable with eqv?.  A tmp slot may be used."
                                              (- proc-slot frame-size)))
               ((result-vars) (match (get-cont kargs)
                                (($ $kargs names vars) vars)))
-              ((value-slots) (integers (1+ proc-slot) (length result-vars)))
+              ((value-slots) (integers proc-slot (length result-vars)))
               ((slots result-live) (allocate* result-vars value-slots
                                               slots handler-live)))
            (values slots

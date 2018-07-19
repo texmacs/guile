@@ -844,7 +844,7 @@ get_foreign_stub_code (unsigned int nargs, int with_errno)
   code[i++] = SCM_PACK_OP_12_12 (foreign_call, 0, 1);
   code[i++] = SCM_PACK_OP_24 (handle_interrupts, 0);
   if (!with_errno)
-    code[i++] = SCM_PACK_OP_24 (reset_frame, 2);
+    code[i++] = SCM_PACK_OP_24 (reset_frame, 1);
   code[i++] = SCM_PACK_OP_24 (return_values, 0);
 
   return code;

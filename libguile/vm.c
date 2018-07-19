@@ -292,7 +292,7 @@ static void vm_dispatch_pop_continuation_hook (scm_thread *thread,
                                                union scm_vm_stack_element *old_fp)
 {
   return vm_dispatch_hook (thread, SCM_VM_POP_CONTINUATION_HOOK,
-                           SCM_FRAME_NUM_LOCALS (old_fp, thread->vm.sp) - 1);
+                           SCM_FRAME_NUM_LOCALS (old_fp, thread->vm.sp));
 }
 static void vm_dispatch_next_hook (scm_thread *thread)
 {
@@ -301,7 +301,7 @@ static void vm_dispatch_next_hook (scm_thread *thread)
 static void vm_dispatch_abort_hook (scm_thread *thread)
 {
   return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK,
-                           SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp) - 1);
+                           SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp));
 }
 
 
@@ -341,6 +341,7 @@ static const uint32_t vm_builtin_apply_code[] = {
 };
 
 static const uint32_t vm_builtin_values_code[] = {
+  SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
   SCM_PACK_OP_24 (return_values, 0)
 };
 
@@ -348,7 +349,7 @@ static const uint32_t vm_builtin_abort_to_prompt_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ge, 2),
   SCM_PACK_OP_24 (abort, 0), /* tag in r1, vals from r2 */
   /* FIXME: Partial continuation should capture caller regs.  */
-  SCM_PACK_OP_24 (return_values, 0) /* vals from r1 */
+  SCM_PACK_OP_24 (return_values, 0) /* vals from r0 */
 };
 
 static const uint32_t vm_builtin_call_with_values_code[] = {
@@ -357,7 +358,7 @@ static const uint32_t vm_builtin_call_with_values_code[] = {
   SCM_PACK_OP_12_12 (mov, 0, 6),
   SCM_PACK_OP_24 (call, 7), SCM_PACK_OP_ARG_8_24 (0, 1),
   SCM_PACK_OP_24 (long_fmov, 0), SCM_PACK_OP_ARG_8_24 (0, 2),
-  SCM_PACK_OP_12_12 (shuffle_down, 8, 1),
+  SCM_PACK_OP_12_12 (shuffle_down, 7, 1),
   SCM_PACK_OP_24 (tail_call, 0)
 };
 
@@ -1096,10 +1097,9 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
 
   /* Now we have the continuation properly copied over.  We just need to
      copy on an empty frame and the return values, as the continuation
-     expects.  The extra 1 is for the unused slot 0 that's part of the
-     multiple-value return convention.  */
-  vm_push_sp (vp, vp->sp - (frame_overhead + 1) - n);
-  for (i = 0; i < frame_overhead + 1; i++)
+     expects.  */
+  vm_push_sp (vp, vp->sp - frame_overhead - n);
+  for (i = 0; i < frame_overhead; i++)
     vp->sp[n+i].as_scm = SCM_BOOL_F;
   memcpy(vp->sp, argv, n * sizeof (union scm_vm_stack_element));
 
@@ -1166,16 +1166,14 @@ compose_continuation (scm_thread *thread, SCM cont)
 
   old_fp_offset = vp->stack_top - vp->fp;
 
-  vm_push_sp (vp, vp->fp - (cp->stack_size + nargs + 1));
+  vm_push_sp (vp, vp->fp - (cp->stack_size + nargs));
 
   data.vp = vp;
   data.cp = cp;
   GC_call_with_alloc_lock (compose_continuation_inner, &data);
 
   /* The resumed continuation will expect ARGS on the stack as if from a
-     multiple-value return.  Fill in the closure slot with #f, and copy
-     the arguments into place.  */
-  vp->sp[nargs].as_scm = SCM_BOOL_F;
+     multiple-value return.  */
   memcpy (vp->sp, args, nargs * sizeof (*args));
 
   /* The prompt captured a slice of the dynamic stack.  Here we wind
@@ -1214,8 +1212,6 @@ rest_arg_length (SCM x)
 static SCM
 capture_delimited_continuation (struct scm_vm *vp,
                                 union scm_vm_stack_element *saved_fp,
-                                union scm_vm_stack_element *saved_sp,
-                                uint32_t *saved_ip,
                                 jmp_buf *saved_registers,
                                 scm_t_dynstack *dynstack,
                                 jmp_buf *current_registers)
@@ -1298,13 +1294,14 @@ abort_to_prompt (scm_thread *thread)
       scm_t_dynstack *captured;
 
       captured = scm_dynstack_capture (dynstack, SCM_DYNSTACK_NEXT (prompt));
-      cont = capture_delimited_continuation (vp, fp, sp, ip, registers, captured,
+      cont = capture_delimited_continuation (vp, fp, registers, captured,
                                              thread->vm.registers);
     }
 
   /* Unwind.  */
   scm_dynstack_unwind (dynstack, prompt);
 
+  /* Continuation gets nargs+1 values: the one more is for the cont.  */
   sp = sp - nargs - 1;
 
   /* Shuffle abort arguments down to the prompt continuation.  We have
@@ -1378,7 +1375,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
      elements and each element is at least 4 bytes, nargs will not be
      greater than INTMAX/2 and therefore we don't have to check for
      overflow here or below.  */
-  size_t return_nlocals = 1, call_nlocals = nargs + 1, frame_size = 3;
+  size_t return_nlocals = 0, call_nlocals = nargs + 1, frame_size = 3;
   ptrdiff_t stack_reserve_words;
   size_t i;
 
@@ -1405,7 +1402,6 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (return_fp, vp->ip);
   SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (return_fp, 0);
   SCM_FRAME_SET_DYNAMIC_LINK (return_fp, vp->fp);
-  SCM_FRAME_LOCAL (return_fp, 0) = vm_boot_continuation;
 
   vp->ip = (uint32_t *) vm_boot_continuation_code;
   vp->fp = call_fp;

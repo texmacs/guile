@@ -322,8 +322,8 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (0, halt, "halt", OP1 (X32))
     {
       size_t frame_size = 3;
-      /* Boot closure, then empty frame, then callee, then values.  */
-      size_t first_value = 1 + frame_size + 1;
+      /* Empty frame, then values.  */
+      size_t first_value = frame_size;
       uint32_t nvals = FRAME_LOCALS_COUNT_FROM (first_value);
       SCM ret;
 
@@ -486,9 +486,9 @@ VM_NAME (scm_thread *thread)
       uint32_t nlocals;
       UNPACK_12_12 (op, dst, proc);
       UNPACK_24 (ip[1], nlocals);
-      VM_ASSERT (FRAME_LOCALS_COUNT () > proc + 1,
+      VM_ASSERT (FRAME_LOCALS_COUNT () > proc,
                  CALL_INTRINSIC (error_no_values, ()));
-      FP_SET (dst, FP_REF (proc + 1));
+      FP_SET (dst, FP_REF (proc));
       RESET_FRAME (nlocals);
       NEXT (2);
     }
@@ -507,10 +507,10 @@ VM_NAME (scm_thread *thread)
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nvalues);
       if (ip[1] & 0x1)
-        VM_ASSERT (FRAME_LOCALS_COUNT () > proc + nvalues,
+        VM_ASSERT (FRAME_LOCALS_COUNT () >= proc + nvalues,
                    CALL_INTRINSIC (error_not_enough_values, ()));
       else
-        VM_ASSERT (FRAME_LOCALS_COUNT () == proc + 1 + nvalues,
+        VM_ASSERT (FRAME_LOCALS_COUNT () == proc + nvalues,
                    CALL_INTRINSIC (error_wrong_number_of_values, (nvalues)));
       NEXT (2);
     }
@@ -585,14 +585,14 @@ VM_NAME (scm_thread *thread)
       if (SCM_UNLIKELY (scm_is_values (ret)))
         {
           size_t n, nvals = scm_i_nvalues (ret);
-          ALLOC_FRAME (1 + nvals);
+          ALLOC_FRAME (nvals);
           for (n = 0; n < nvals; n++)
-            FP_SET (n + 1, scm_i_value_ref (ret, n));
+            FP_SET (n, scm_i_value_ref (ret, n));
           NEXT (1);
         }
       else
         {
-          ALLOC_FRAME (2);
+          RESET_FRAME (1);
           SP_SET (0, ret);
           NEXT (1);
         }
@@ -621,7 +621,7 @@ VM_NAME (scm_thread *thread)
       ret = CALL_INTRINSIC (foreign_call, (cif, pointer, &err, sp));
       CACHE_SP ();
 
-      ALLOC_FRAME (3);
+      ALLOC_FRAME (2);
       SP_SET (1, ret);
       SP_SET (0, err);
 
@@ -1612,7 +1612,7 @@ VM_NAME (scm_thread *thread)
       /* Push the prompt onto the dynamic stack. */
       SYNC_IP ();
       CALL_INTRINSIC (push_prompt, (thread, escape_only_p, SP_REF (tag),
-                                    FP_SLOT (proc_slot), ip + offset));
+                                    VP->fp - proc_slot, ip + offset));
 
       NEXT (3);
     }
