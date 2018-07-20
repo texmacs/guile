@@ -59,10 +59,16 @@ scm_c_nvalues (SCM obj)
 SCM
 scm_c_value_ref (SCM obj, size_t idx)
 {
-  if (SCM_LIKELY (scm_is_values (obj) && idx < scm_i_nvalues (obj)))
-    return scm_i_value_ref (obj, idx);
-  else if (idx == 0)
-    return obj;
+  if (scm_is_values (obj))
+    {
+      if (idx < scm_i_nvalues (obj))
+        return scm_i_value_ref (obj, idx);
+    }
+  else
+    {
+      if (idx == 0)
+        return obj;
+    }
 
   scm_error (scm_out_of_range_key,
 	     "scm_c_value_ref",
