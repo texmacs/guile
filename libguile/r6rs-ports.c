@@ -583,7 +583,7 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
 	    "octets.")
 #define FUNC_NAME s_scm_put_bytevector
 {
-  unsigned c_start, c_count, c_len;
+  size_t c_start, c_count, c_len;
 
   SCM_VALIDATE_BINARY_OUTPUT_PORT (1, port);
   SCM_VALIDATE_BYTEVECTOR (2, bv);
@@ -592,11 +592,11 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
 
   if (!scm_is_eq (start, SCM_UNDEFINED))
     {
-      c_start = scm_to_uint (start);
+      c_start = scm_to_size_t (start);
 
       if (!scm_is_eq (count, SCM_UNDEFINED))
 	{
-	  c_count = scm_to_uint (count);
+	  c_count = scm_to_size_t (count);
 	  if (SCM_UNLIKELY (c_start + c_count > c_len))
 	    scm_out_of_range (FUNC_NAME, count);
 	}
