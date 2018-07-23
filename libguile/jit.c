@@ -34,12 +34,12 @@
 typedef struct {
   scm_thread *thread;
   const uint32_t *start;
-  const uint32_t *ip;
+  uint32_t *ip;
   const uint32_t *end;
 } scm_jit_state;
 
 static void
-bad_instruction(scm_jit_state *j)
+bad_instruction (scm_jit_state *j)
 {
   abort ();
 }
@@ -56,7 +56,7 @@ compile_call (scm_jit_state *j, uint32_t a, uint32_t b)
 }
 
 static void
-compile_call_label (scm_jit_state *j, uint32_t a, uint32_t b, int32_t offset)
+compile_call_label (scm_jit_state *j, uint32_t a, uint32_t b, const uint32_t *vcode)
 {
 }
 
@@ -66,7 +66,17 @@ compile_tail_call (scm_jit_state *j)
 }
 
 static void
-compile_tail_call_label (scm_jit_state *j, int32_t offset)
+compile_tail_call_label (scm_jit_state *j, const uint32_t *vcode)
+{
+}
+
+static void
+compile_instrument_call (scm_jit_state *j, void *data)
+{
+}
+
+static void
+compile_instrument_loop (scm_jit_state *j, void *data)
 {
 }
 
@@ -131,12 +141,12 @@ compile_throw (scm_jit_state *j, uint16_t a, uint16_t b)
 }
 
 static void
-compile_throw_value (scm_jit_state *j, uint32_t a, int32_t offset)
+compile_throw_value (scm_jit_state *j, uint32_t a, const void *data)
 {
 }
 
 static void
-compile_throw_value_and_data (scm_jit_state *j, uint32_t a, int32_t offset)
+compile_throw_value_and_data (scm_jit_state *j, uint32_t a, const void *data)
 {
 }
 
@@ -191,7 +201,7 @@ compile_expand_apply_argument (scm_jit_state *j)
 }
 
 static void
-compile_bind_kwargs (scm_jit_state *j, uint32_t a, uint8_t b, uint32_t c, uint32_t d, int32_t offset)
+compile_bind_kwargs (scm_jit_state *j, uint32_t a, uint8_t b, uint32_t c, uint32_t d, const void *data)
 {
 }
 
@@ -336,32 +346,32 @@ compile_make_long_long_immediate (scm_jit_state *j, uint32_t dst, SCM a)
 }
 
 static void
-compile_make_non_immediate (scm_jit_state *j, uint32_t dst, int32_t offset)
+compile_make_non_immediate (scm_jit_state *j, uint32_t dst, const void *data)
 {
 }
 
 static void
-compile_static_ref (scm_jit_state *j, uint32_t dst, int32_t offset)
+compile_static_ref (scm_jit_state *j, uint32_t dst, void *loc)
 {
 }
 
 static void
-compile_static_set (scm_jit_state *j, uint32_t a, int32_t offset)
+compile_static_set (scm_jit_state *j, uint32_t a, void *loc)
 {
 }
 
 static void
-compile_static_patch (scm_jit_state *j, int32_t a, int32_t b)
+compile_static_patch (scm_jit_state *j, void *dst, const void *src)
 {
 }
 
 static void
-compile_prompt (scm_jit_state *j, uint32_t a, uint8_t b, uint32_t c, int32_t offset)
+compile_prompt (scm_jit_state *j, uint32_t a, uint8_t b, uint32_t c, const uint32_t *vcode)
 {
 }
 
 static void
-compile_load_label (scm_jit_state *j, uint32_t dst, int32_t offset)
+compile_load_label (scm_jit_state *j, uint32_t dst, const uint32_t *vcode)
 {
 }
 
@@ -626,37 +636,37 @@ compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
 }
 
 static void
-compile_j (scm_jit_state *j, int32_t offset)
+compile_j (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_jl (scm_jit_state *j, int32_t offset)
+compile_jl (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_je (scm_jit_state *j, int32_t offset)
+compile_je (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_jnl (scm_jit_state *j, int32_t offset)
+compile_jnl (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_jne (scm_jit_state *j, int32_t offset)
+compile_jne (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_jge (scm_jit_state *j, int32_t offset)
+compile_jge (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
 static void
-compile_jnge (scm_jit_state *j, int32_t offset)
+compile_jnge (scm_jit_state *j, const uint32_t *vcode)
 {
 }
 
@@ -903,7 +913,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
   {                                                                     \
     int32_t a = j->ip[0];                                               \
     a >>= 8; /* Sign extension.  */                                     \
-    comp (j, a);                                                        \
+    comp (j, j->ip + a);                                                \
     j->ip += 1;                                                         \
   }
 #define COMPILE_X8_C12_C12(j, comp)                                     \
@@ -958,9 +968,11 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
 #define COMPILE_X32__L32(j, comp)                                       \
   {                                                                     \
     int32_t a = j->ip[1];                                               \
-    comp (j, a);                                                        \
-    j->ip += 1;                                                         \
+    comp (j, j->ip + a);                                                \
+    j->ip += 2;                                                         \
   }
+#define COMPILE_X32__N32(j, comp)                                       \
+  COMPILE_X32__L32 (j, comp)
 
 #define COMPILE_X8_C24__L32(j, comp)                                    \
   {                                                                     \
@@ -968,7 +980,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
     int32_t b;                                                          \
     UNPACK_24 (j->ip[0], a);                                            \
     b = j->ip[1];                                                       \
-    comp (j, a, b);                                                     \
+    comp (j, a, j->ip + b);                                             \
     j->ip += 2;                                                         \
   }
 #define COMPILE_X8_S24__L32(j, comp)                                    \
@@ -1070,7 +1082,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
 #define COMPILE_X32__LO32__L32(j, comp)                                 \
   {                                                                     \
     int32_t a = j->ip[1], b = j->ip[2];                                 \
-    comp (j, a, b);                                                     \
+    comp (j, j->ip + a, j->ip + b);                                     \
     j->ip += 3;                                                         \
   }
 
@@ -1081,7 +1093,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
     UNPACK_24 (j->ip[0], a);                                            \
     UNPACK_24 (j->ip[1], b);                                            \
     c = j->ip[2];                                                       \
-    comp (j, a, b, c);                                                  \
+    comp (j, a, b, j->ip + c);                                          \
     j->ip += 3;                                                         \
   }
 
@@ -1135,7 +1147,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
     b = j->ip[1] & 0x1;                                                 \
     UNPACK_24 (j->ip[1], c);                                            \
     d = j->ip[2]; d >>= 8; /* Sign extension.  */                       \
-    comp (j, a, b, c, d);                                               \
+    comp (j, a, b, c, j->ip + d);                                       \
     j->ip += 3;                                                         \
   }
 
@@ -1159,7 +1171,7 @@ compile_f64_set (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c)
     UNPACK_8_24 (j->ip[1], b, c);                                       \
     UNPACK_24 (j->ip[2], d);                                            \
     e = j->ip[3]; e >>= 8; /* Sign extension.  */                       \
-    comp (j, a, b, c, d, e);                                            \
+    comp (j, a, b, c, d, j->ip + e);                                    \
     j->ip += 4;                                                         \
   }
 
@@ -1192,9 +1204,21 @@ compile1 (scm_jit_state *j)
 static void
 compile (scm_jit_state *j)
 {
-  j->ip = j->start;
+  j->ip = (uint32_t *) j->start;
   while (j->ip < j->end)
     compile1 (j);
+}
+
+const uint8_t *
+scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
+{
+  return NULL;
+}
+
+void
+scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
+{
+  abort ();
 }
 
 void

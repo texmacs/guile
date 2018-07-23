@@ -53,6 +53,7 @@
 #include "hooks.h"
 #include "instructions.h"
 #include "intrinsics.h"
+#include "jit.h"
 #include "keywords.h"
 #include "list.h"
 #include "loader.h"

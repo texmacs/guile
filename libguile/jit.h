@@ -26,6 +26,35 @@
 
 
 
+struct scm_jit_function_data;
+
+#ifdef BUILDING_LIBGUILE
+struct scm_jit_function_data
+{
+  uint8_t *mcode;
+  uint32_t counter;
+  uint32_t start;
+  uint32_t end;
+#if SCM_SIZEOF_UINTPTR_T == 4
+#elif SCM_SIZEOF_UINTPTR_T == 8
+  uint32_t pad;
+#else
+#error unhandled sizeof(uintptr_t)
+#endif
+};
+
+enum scm_jit_counter_value
+{
+  SCM_JIT_COUNTER_CALL_INCREMENT = 15,
+  SCM_JIT_COUNTER_LOOP_INCREMENT = 1,
+  SCM_JIT_COUNTER_THRESHOLD = 50
+};
+#endif
+
+SCM_INTERNAL const uint8_t *scm_jit_compute_mcode (scm_thread *thread,
+                                                   struct scm_jit_function_data *data);
+SCM_INTERNAL void scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode);
+
 SCM_INTERNAL void scm_init_jit (void);
 
 #endif  /* SCM_JIT_H */

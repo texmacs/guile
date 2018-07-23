@@ -468,10 +468,38 @@ VM_NAME (scm_thread *thread)
       NEXT (0);
     }
 
-  VM_DEFINE_OP (5, unused_5, NULL, NOP)
+  /* instrument-call _:24 data:32
+   *
+   * Increase execution counter for this function and potentially tier
+   * up to the next JIT level.  DATA is an offset to raw profiler,
+   * recording execution counts and the next-level JIT code
+   * corresponding to this function.  Also run the apply hook.
+   */
+  VM_DEFINE_OP (5, instrument_call, "instrument-call", OP2 (X32, N32))
     {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
+      int32_t data_offset = ip[1];
+      struct scm_jit_function_data *data;
+
+      data = (struct scm_jit_function_data *) (ip + data_offset);
+
+      if (data->counter > SCM_JIT_COUNTER_THRESHOLD)
+        {
+          const uint8_t *mcode;
+
+          SYNC_IP ();
+          mcode = scm_jit_compute_mcode (thread, data);
+
+          if (mcode)
+            {
+              scm_jit_enter_mcode (thread, mcode);
+              CACHE_REGISTER ();
+              NEXT (0);
+            }
+        }
+      else
+        data->counter += SCM_JIT_COUNTER_CALL_INCREMENT;
+
+      NEXT (2);
     }
 
   /* receive dst:12 proc:12 _:8 nlocals:24
@@ -675,10 +703,38 @@ VM_NAME (scm_thread *thread)
       NEXT (0);
     }
 
-  VM_DEFINE_OP (14, unused_14, NULL, NOP)
+  /* instrument-loop _:24 data:32
+   *
+   * Increase execution counter for this function and potentially tier
+   * up to the next JIT level.  DATA is an offset to raw profiler,
+   * recording execution counts and the next-level JIT code
+   * corresponding to this function.
+   */
+  VM_DEFINE_OP (14, instrument_loop, "instrument-loop", OP2 (X32, N32))
     {
-      vm_error_bad_instruction (op);
-      abort (); /* never reached */
+      int32_t data_offset = ip[1];
+      struct scm_jit_function_data *data;
+
+      data = (struct scm_jit_function_data *) (ip + data_offset);
+
+      if (data->counter > SCM_JIT_COUNTER_THRESHOLD)
+        {
+          const uint8_t *mcode;
+
+          SYNC_IP ();
+          mcode = scm_jit_compute_mcode (thread, data);
+
+          if (mcode)
+            {
+              scm_jit_enter_mcode (thread, mcode);
+              CACHE_REGISTER ();
+              NEXT (0);
+            }
+        }
+      else
+        data->counter += SCM_JIT_COUNTER_LOOP_INCREMENT;
+
+      NEXT (2);
     }
 
   /* call/cc _:24

@@ -236,6 +236,8 @@
             emit-call-label
             emit-tail-call
             emit-tail-call-label
+            emit-instrument-call
+            emit-instrument-loop
             emit-receive-values
             emit-return-values
             emit-call/cc
