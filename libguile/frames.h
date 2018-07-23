@@ -40,7 +40,7 @@
    ------------------
 
    | ...                          |
-   +==============================+ <- fp + 2 = SCM_FRAME_PREVIOUS_SP (fp)
+   +==============================+ <- fp + 3 = SCM_FRAME_PREVIOUS_SP (fp)
    | Dynamic link                 |
    +------------------------------+
    | Virtual return address (vRA) |
@@ -59,7 +59,7 @@
    The stack grows down.
 
    The calling convention is that a caller prepares a stack frame
-   consisting of the saved FP, the saved virtual return addres, and the
+   consisting of the saved FP, the saved virtual return address, and the
    saved machine return address of the calling function, followed by the
    procedure and then the arguments to the call, in order.  Thus in the
    beginning of a call, the procedure being called is in slot 0, the
@@ -73,14 +73,10 @@
    popping the stack pointer during the call's extent.
 
    When a program returns, it returns its values in the slots starting
-   from local 1, as if the values were arguments to a tail call.  We
-   start from 1 instead of 0 for the convenience of the "values" builtin
-   function, which can just leave its arguments in place.
-
-   The callee resets the stack pointer to point to the last value.  In
-   this way the caller knows how many values there are: it's the number
-   of words between the stack pointer and the slot at which the caller
-   placed the procedure.
+   from local 0.  The callee resets the stack pointer to point to the
+   last value.  In this way the caller knows how many values there are:
+   it's the number of words between the stack pointer and the slot at
+   which the caller placed the procedure.
 
    After checking that the number of values returned is appropriate, the
    caller shuffles the values around (if needed), and resets the stack
