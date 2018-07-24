@@ -670,7 +670,9 @@ For example, to compile R6RS code, you might want to pass @command{-x
 Emit warnings of type @var{warning}; use @code{--warn=help} for a list
 of available warnings and their description.  Currently recognized
 warnings include @code{unused-variable}, @code{unused-toplevel},
-@code{unbound-variable}, @code{arity-mismatch}, @code{format},
+@code{shadowed-toplevel}, @code{unbound-variable},
+@code{macro-use-before-definition},
+@code{arity-mismatch}, @code{format},
 @code{duplicate-case-datum}, and @code{bad-case-datum}.
 
 @item -f @var{lang}
