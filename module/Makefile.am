@@ -136,10 +136,10 @@ SOURCES =					\
   language/cps/dce.scm				\
   language/cps/devirtualize-integers.scm	\
   language/cps/effects-analysis.scm		\
-  language/cps/handle-interrupts.scm		\
   language/cps/intmap.scm			\
   language/cps/intset.scm			\
   language/cps/licm.scm				\
+  language/cps/loop-instrumentation.scm		\
   language/cps/optimize.scm			\
   language/cps/peel-loops.scm			\
   language/cps/prune-top-level-scopes.scm	\

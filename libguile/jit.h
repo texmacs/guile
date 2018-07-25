@@ -45,7 +45,7 @@ struct scm_jit_function_data
 
 enum scm_jit_counter_value
 {
-  SCM_JIT_COUNTER_CALL_INCREMENT = 15,
+  SCM_JIT_COUNTER_ENTRY_INCREMENT = 15,
   SCM_JIT_COUNTER_LOOP_INCREMENT = 1,
   SCM_JIT_COUNTER_THRESHOLD = 50
 };

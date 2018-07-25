@@ -468,14 +468,14 @@ VM_NAME (scm_thread *thread)
       NEXT (0);
     }
 
-  /* instrument-call _:24 data:32
+  /* instrument-entry _:24 data:32
    *
    * Increase execution counter for this function and potentially tier
    * up to the next JIT level.  DATA is an offset to raw profiler,
    * recording execution counts and the next-level JIT code
    * corresponding to this function.  Also run the apply hook.
    */
-  VM_DEFINE_OP (5, instrument_call, "instrument-call", OP2 (X32, N32))
+  VM_DEFINE_OP (5, instrument_entry, "instrument-entry", OP2 (X32, N32))
     {
       int32_t data_offset = ip[1];
       struct scm_jit_function_data *data;
@@ -497,7 +497,7 @@ VM_NAME (scm_thread *thread)
             }
         }
       else
-        data->counter += SCM_JIT_COUNTER_CALL_INCREMENT;
+        data->counter += SCM_JIT_COUNTER_ENTRY_INCREMENT;
 
       NEXT (2);
     }

@@ -71,7 +71,7 @@ compile_tail_call_label (scm_jit_state *j, const uint32_t *vcode)
 }
 
 static void
-compile_instrument_call (scm_jit_state *j, void *data)
+compile_instrument_entry (scm_jit_state *j, void *data)
 {
 }
 

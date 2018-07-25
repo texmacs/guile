@@ -81,8 +81,8 @@ SOURCES =					\
   language/cps/dce.scm				\
   language/cps/devirtualize-integers.scm	\
   language/cps/effects-analysis.scm		\
-  language/cps/handle-interrupts.scm		\
   language/cps/licm.scm				\
+  language/cps/loop-instrumentation.scm		\
   language/cps/peel-loops.scm			\
   language/cps/prune-top-level-scopes.scm	\
   language/cps/reify-primitives.scm		\

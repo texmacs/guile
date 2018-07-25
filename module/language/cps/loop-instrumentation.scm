@@ -18,12 +18,11 @@
 
 ;;; Commentary:
 ;;;
-;;; A pass to add "handle-interrupts" primcalls before calls, loop
-;;; back-edges, and returns.
+;;; A pass to add "instrument-loop" primcalls at loop headers.
 ;;;
 ;;; Code:
 
-(define-module (language cps handle-interrupts)
+(define-module (language cps loop-instrumentation)
   #:use-module (ice-9 match)
   #:use-module (language cps)
   #:use-module (language cps utils)
@@ -31,36 +30,25 @@
   #:use-module (language cps intmap)
   #:use-module (language cps intset)
   #:use-module (language cps renumber)
-  #:export (add-handle-interrupts))
+  #:export (add-loop-instrumentation))
 
-(define (compute-safepoints cps)
-  (define (maybe-add-safepoint label k safepoints)
-    "Add K to safepoints if it is a target of a backward branch."
+(define (compute-loop-headers cps)
+  (define (maybe-add-header label k headers)
+    "Add K to headers if it is a target of a backward branch."
     (if (<= k label)
-        (intset-add! safepoints k)
-        safepoints))
-  (define (visit-cont label cont safepoints)
+        (intset-add! headers k)
+        headers))
+  (define (visit-cont label cont headers)
     (match cont
-      (($ $kargs names vars ($ $continue k src exp))
-       (let ((safepoints (maybe-add-safepoint label k safepoints)))
-         (if (match exp
-               (($ $call) #t)
-               (($ $callk) #t)
-               (($ $values)
-                (match (intmap-ref cps k)
-                  (($ $ktail) #t)
-                  (_ #f)))
-               (_ #f))
-             (intset-add! safepoints label)
-             safepoints)))
+      (($ $kargs names vars ($ $continue k))
+       (maybe-add-header label k headers))
       (($ $kargs names vars ($ $branch kf kt))
-       (maybe-add-safepoint label kf
-                            (maybe-add-safepoint label kt safepoints)))
-      (_ safepoints)))
+       (maybe-add-header label kf (maybe-add-header label kt headers)))
+      (_ headers)))
   (persistent-intset (intmap-fold visit-cont cps empty-intset)))
 
-(define (add-handle-interrupts cps)
-  (define (add-safepoint label cps)
+(define (add-loop-instrumentation cps)
+  (define (add-instrumentation label cps)
     (match (intmap-ref cps label)
       (($ $kargs names vars term)
        (with-cps cps
@@ -68,8 +56,8 @@
          (setk label
                ($kargs names vars
                  ($continue k #f
-                   ($primcall 'handle-interrupts #f ()))))))))
+                   ($primcall 'instrument-loop #f ()))))))))
   (let* ((cps (renumber cps))
-         (safepoints (compute-safepoints cps)))
+         (headers (compute-loop-headers cps)))
     (with-fresh-name-state cps
-      (persistent-intmap (intset-fold add-safepoint safepoints cps)))))
+      (persistent-intmap (intset-fold add-instrumentation headers cps)))))

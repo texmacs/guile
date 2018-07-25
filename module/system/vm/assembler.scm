@@ -236,8 +236,8 @@
             emit-call-label
             emit-tail-call
             emit-tail-call-label
-            emit-instrument-call
-            emit-instrument-loop
+            (emit-instrument-entry* . emit-instrument-entry)
+            (emit-instrument-loop* . emit-instrument-loop)
             emit-receive-values
             emit-return-values
             emit-call/cc
@@ -399,19 +399,28 @@ N-byte unit."
       (unless (match x (pattern #t) (_ #f))
         (error (string-append "expected " kind) x)))))
 
+(define-record-type <jit-data>
+  (make-jit-data label entry-label exit-label)
+  jit-data?
+  (label jit-data-label)
+  (entry-label jit-data-entry-label)
+  (exit-label jit-data-exit-label))
+
 (define-record-type <meta>
-  (%make-meta label properties low-pc high-pc arities)
+  (%make-meta label properties low-pc high-pc arities jit-data)
   meta?
   (label meta-label)
   (properties meta-properties set-meta-properties!)
   (low-pc meta-low-pc)
   (high-pc meta-high-pc set-meta-high-pc!)
-  (arities meta-arities set-meta-arities!))
+  (arities meta-arities set-meta-arities!)
+  (jit-data meta-jit-data))
 
 (define (make-meta label properties low-pc)
   (assert-match label (or (? exact-integer?) (? symbol?)) "symbol")
   (assert-match properties (((? symbol?) . _) ...) "alist with symbolic keys")
-  (%make-meta label properties low-pc #f '()))
+  (let ((jit-data (make-jit-data (gensym "jit-data") label (gensym "end"))))
+    (%make-meta label properties low-pc #f '() jit-data)))
 
 (define (meta-name meta)
   (assq-ref (meta-properties meta) 'name))
@@ -1053,6 +1062,14 @@ later by the linker."
 (define (emit-throw/value+data* asm val param)
   (emit-throw/value+data asm val (intern-non-immediate asm param)))
 
+(define (emit-instrument-entry* asm)
+  (let ((meta (car (asm-meta asm))))
+    (emit-instrument-entry asm (jit-data-label (meta-jit-data meta)))))
+
+(define (emit-instrument-loop* asm)
+  (let ((meta (car (asm-meta asm))))
+    (emit-instrument-loop asm (jit-data-label (meta-jit-data meta)))))
+
 (define (emit-text asm instructions)
   "Assemble @var{instructions} using the assembler @var{asm}.
 @var{instructions} is a sequence of instructions, expressed as a list of
@@ -1389,6 +1406,10 @@ returned instead."
 
 (define-macro-assembler (end-program asm)
   (let ((meta (car (asm-meta asm))))
+    (match (meta-jit-data meta)
+      ((and jit-data ($ <jit-data> label entry-label exit-label))
+       (emit-label asm exit-label)
+       (set-asm-constants! asm (vhash-cons jit-data label (asm-constants asm)))))
     (set-meta-high-pc! meta (asm-start asm))
     (set-meta-arities! meta (reverse (meta-arities meta)))))
 
@@ -1619,6 +1640,11 @@ should be .data or .rodata), and return the resulting linker object.
         (* (1+ (vector-length x)) word-size))
        ((syntax? x)
         (* 4 word-size))
+       ((jit-data? x)
+        (case word-size
+          ((4) (+ word-size (* 4 3)))
+          ((8) (+ word-size (* 4 4))) ;; One additional uint32_t for padding.
+          (else (error word-size))))
        ((simple-uniform-vector? x)
         (* 4 word-size))
        ((uniform-vector-backing-store? x)
@@ -1684,6 +1710,10 @@ should be .data or .rodata), and return the resulting linker object.
 
        ((cache-cell? obj)
         (write-placeholder asm buf pos))
+
+       ((jit-data? obj)
+        ;; Default initialization of 0.
+        (values))
 
        ((string? obj)
         (let ((tag (logior tc7-string string-read-only-flag)))
@@ -1805,6 +1835,17 @@ should be .data or .rodata), and return the resulting linker object.
        (else
         (error "unrecognized object" obj))))
 
+    (define (add-relocs obj pos relocs)
+      (match obj
+        (($ <jit-data> label entry-label exit-label)
+         ;; Patch "start" and "end" fields of "struct jit_data".
+         (cons* (make-linker-reloc 'rel32/1 (+ pos word-size 4) (+ word-size 4)
+                                   entry-label)
+                (make-linker-reloc 'rel32/1 (+ pos word-size 8) (+ word-size 8)
+                                   exit-label)
+                relocs))
+        (_ relocs)))
+
     (cond
      ((vlist-null? data) #f)
      (else
@@ -1812,7 +1853,7 @@ should be .data or .rodata), and return the resulting linker object.
                                      (+ (byte-length k) (align len 8)))
                                    0 data))
              (buf (make-bytevector byte-len 0)))
-        (let lp ((i 0) (pos 0) (symbols '()))
+        (let lp ((i 0) (pos 0) (relocs '()) (symbols '()))
           (if (< i (vlist-length data))
               (let* ((pair (vlist-ref data i))
                      (obj (car pair))
@@ -1820,8 +1861,9 @@ should be .data or .rodata), and return the resulting linker object.
                 (write buf pos obj)
                 (lp (1+ i)
                     (align (+ (byte-length obj) pos) 8)
+                    (add-relocs obj pos relocs)
                     (cons (make-linker-symbol obj-label pos) symbols)))
-              (make-object asm name buf '() symbols
+              (make-object asm name buf relocs symbols
                            #:flags (match name
                                      ('.data (logior SHF_ALLOC SHF_WRITE))
                                      ('.rodata SHF_ALLOC))))))))))

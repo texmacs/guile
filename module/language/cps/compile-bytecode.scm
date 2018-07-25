@@ -30,7 +30,7 @@
   #:use-module (language cps slot-allocation)
   #:use-module (language cps utils)
   #:use-module (language cps closure-conversion)
-  #:use-module (language cps handle-interrupts)
+  #:use-module (language cps loop-instrumentation)
   #:use-module (language cps optimize)
   #:use-module (language cps reify-primitives)
   #:use-module (language cps renumber)
@@ -119,18 +119,21 @@
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
          (maybe-reset-frame (1+ (length args)))
+         (emit-handle-interrupts asm)
          (emit-tail-call asm))
         (($ $callk k proc args)
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
          (maybe-reset-frame (1+ (length args)))
+         (emit-handle-interrupts asm)
          (emit-tail-call-label asm k))
         (($ $values args)
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
          (maybe-reset-frame (length args))
+         (emit-handle-interrupts asm)
          (emit-return-values asm))))
 
     (define (compile-value label exp dst)
@@ -363,7 +366,8 @@
         (($ $primcall 'atomic-scm-set!/immediate (annotation . idx) (obj val))
          (emit-atomic-scm-set!/immediate asm (from-sp (slot obj)) idx
                                          (from-sp (slot val))))
-        (($ $primcall 'handle-interrupts #f ())
+        (($ $primcall 'instrument-loop #f ())
+         (emit-instrument-loop asm)
          (emit-handle-interrupts asm))))
 
     (define (compile-throw op param args)
@@ -520,6 +524,7 @@
           (for-each (match-lambda
                      ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                     (lookup-parallel-moves label allocation))
+          (emit-handle-interrupts asm)
           (emit-call asm proc-slot nargs)
           (emit-slot-map asm proc-slot (lookup-slot-map label allocation))
           (cond
@@ -671,7 +676,7 @@
   (set! exp (convert-closures exp))
   (set! exp (optimize-first-order-cps exp opts))
   (set! exp (reify-primitives exp))
-  (set! exp (add-handle-interrupts exp))
+  (set! exp (add-loop-instrumentation exp))
   (renumber exp))
 
 (define (compile-bytecode exp env opts)
