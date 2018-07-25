@@ -400,27 +400,25 @@ N-byte unit."
         (error (string-append "expected " kind) x)))))
 
 (define-record-type <jit-data>
-  (make-jit-data label entry-label exit-label)
+  (make-jit-data low-pc high-pc)
   jit-data?
-  (label jit-data-label)
-  (entry-label jit-data-entry-label)
-  (exit-label jit-data-exit-label))
+  (low-pc jit-data-low-pc)
+  (high-pc jit-data-high-pc))
 
 (define-record-type <meta>
-  (%make-meta label properties low-pc high-pc arities jit-data)
+  (%make-meta label properties low-pc high-pc arities jit-data-label)
   meta?
   (label meta-label)
   (properties meta-properties set-meta-properties!)
   (low-pc meta-low-pc)
   (high-pc meta-high-pc set-meta-high-pc!)
   (arities meta-arities set-meta-arities!)
-  (jit-data meta-jit-data))
+  (jit-data-label meta-jit-data-label))
 
 (define (make-meta label properties low-pc)
   (assert-match label (or (? exact-integer?) (? symbol?)) "symbol")
   (assert-match properties (((? symbol?) . _) ...) "alist with symbolic keys")
-  (let ((jit-data (make-jit-data (gensym "jit-data") label (gensym "end"))))
-    (%make-meta label properties low-pc #f '() jit-data)))
+  (%make-meta label properties low-pc #f '() (gensym "jit-data")))
 
 (define (meta-name meta)
   (assq-ref (meta-properties meta) 'name))
@@ -479,7 +477,7 @@ N-byte unit."
   (labels asm-labels set-asm-labels!)
 
   ;; A list of relocations needed by the program text.  We use an
-  ;; internal representation for relocations, and handle textualn
+  ;; internal representation for relocations, and handle textual
   ;; relative relocations in the assembler.  Other kinds of relocations
   ;; are later reified as linker relocations and resolved by the linker.
   ;;
@@ -1064,11 +1062,11 @@ later by the linker."
 
 (define (emit-instrument-entry* asm)
   (let ((meta (car (asm-meta asm))))
-    (emit-instrument-entry asm (jit-data-label (meta-jit-data meta)))))
+    (emit-instrument-entry asm (meta-jit-data-label meta))))
 
 (define (emit-instrument-loop* asm)
   (let ((meta (car (asm-meta asm))))
-    (emit-instrument-loop asm (jit-data-label (meta-jit-data meta)))))
+    (emit-instrument-loop asm (meta-jit-data-label meta))))
 
 (define (emit-text asm instructions)
   "Assemble @var{instructions} using the assembler @var{asm}.
@@ -1402,16 +1400,18 @@ returned instead."
 (define-macro-assembler (begin-program asm label properties)
   (emit-label asm label)
   (let ((meta (make-meta label properties (asm-start asm))))
-    (set-asm-meta! asm (cons meta (asm-meta asm)))))
+    (set-asm-meta! asm (cons meta (asm-meta asm))))
+  (emit-instrument-entry* asm))
 
 (define-macro-assembler (end-program asm)
   (let ((meta (car (asm-meta asm))))
-    (match (meta-jit-data meta)
-      ((and jit-data ($ <jit-data> label entry-label exit-label))
-       (emit-label asm exit-label)
-       (set-asm-constants! asm (vhash-cons jit-data label (asm-constants asm)))))
     (set-meta-high-pc! meta (asm-start asm))
-    (set-meta-arities! meta (reverse (meta-arities meta)))))
+    (set-meta-arities! meta (reverse (meta-arities meta)))
+    (set-asm-constants!
+     asm
+     (vhash-cons (make-jit-data (meta-low-pc meta) (meta-high-pc meta))
+                 (meta-jit-data-label meta)
+                 (asm-constants asm)))))
 
 (define-macro-assembler (begin-standard-arity asm req nlocals alternate)
   (emit-begin-opt-arity asm req '() #f nlocals alternate))
@@ -1431,7 +1431,12 @@ returned instead."
   (assert-match alternate (or #f (? exact-integer?) (? symbol?)) "#f or symbol")
   (let* ((meta (car (asm-meta asm)))
          (arity (make-arity req opt rest kw-indices allow-other-keys?
-                            (asm-start asm) #f '()))
+                            ;; Include the initial instrument-entry in
+                            ;; the first arity.
+                            (if (null? (meta-arities meta))
+                                (meta-low-pc meta)
+                                (asm-start asm))
+                            #f '()))
          ;; The procedure itself is in slot 0, in the standard calling
          ;; convention.  For procedure prologues, nreq includes the
          ;; procedure, so here we add 1.
@@ -1837,12 +1842,14 @@ should be .data or .rodata), and return the resulting linker object.
 
     (define (add-relocs obj pos relocs)
       (match obj
-        (($ <jit-data> label entry-label exit-label)
+        (($ <jit-data> low-pc high-pc)
          ;; Patch "start" and "end" fields of "struct jit_data".
-         (cons* (make-linker-reloc 'rel32/1 (+ pos word-size 4) (+ word-size 4)
-                                   entry-label)
-                (make-linker-reloc 'rel32/1 (+ pos word-size 8) (+ word-size 8)
-                                   exit-label)
+         (cons* (make-linker-reloc 'rel32/1 (+ pos word-size 4)
+                                   (- (+ word-size 4) low-pc)
+                                   '.rtl-text)
+                (make-linker-reloc 'rel32/1 (+ pos word-size 8)
+                                   (- (+ word-size 8) high-pc)
+                                   '.rtl-text)
                 relocs))
         (_ relocs)))
 
@@ -1855,14 +1862,13 @@ should be .data or .rodata), and return the resulting linker object.
              (buf (make-bytevector byte-len 0)))
         (let lp ((i 0) (pos 0) (relocs '()) (symbols '()))
           (if (< i (vlist-length data))
-              (let* ((pair (vlist-ref data i))
-                     (obj (car pair))
-                     (obj-label (cdr pair)))
-                (write buf pos obj)
-                (lp (1+ i)
-                    (align (+ (byte-length obj) pos) 8)
-                    (add-relocs obj pos relocs)
-                    (cons (make-linker-symbol obj-label pos) symbols)))
+              (match (vlist-ref data i)
+                ((obj . obj-label)
+                 (write buf pos obj)
+                 (lp (1+ i)
+                     (align (+ (byte-length obj) pos) 8)
+                     (add-relocs obj pos relocs)
+                     (cons (make-linker-symbol obj-label pos) symbols))))
               (make-object asm name buf relocs symbols
                            #:flags (match name
                                      ('.data (logior SHF_ALLOC SHF_WRITE))
@@ -1887,7 +1893,8 @@ these may be @code{#f}."
                  (lp (1+ i))))))
      ((uniform-vector-backing-store? x) #t)
      (else #f)))
-  (let* ((constants (asm-constants asm))
+  (let* ((init-constants (emit-init-constants asm))
+         (constants (asm-constants asm))
          (len (vlist-length constants)))
     (let lp ((i 0)
              (ro vlist-null)
@@ -1895,11 +1902,12 @@ these may be @code{#f}."
       (if (= i len)
           (values (link-data asm ro '.rodata)
                   (link-data asm rw '.data)
-                  (emit-init-constants asm))
-          (let ((pair (vlist-ref constants i)))
-            (if (shareable? (car pair))
-                (lp (1+ i) (vhash-consq (car pair) (cdr pair) ro) rw)
-                (lp (1+ i) ro (vhash-consq (car pair) (cdr pair) rw))))))))
+                  init-constants)
+          (match (vlist-ref constants i)
+            ((obj . label)
+             (if (shareable? obj)
+                 (lp (1+ i) (vhash-consq obj label ro) rw)
+                 (lp (1+ i) ro (vhash-consq obj label rw)))))))))
 
 
 

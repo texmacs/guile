@@ -255,6 +255,9 @@ try_parse_arity (SCM program, int *req, int *opt, int *rest)
   uint32_t *code = SCM_PROGRAM_CODE (program);
   uint32_t slots, min;
 
+  if ((code[0] & 0xff) == scm_op_instrument_entry)
+    code += 2;
+
   switch (code[0] & 0xff) {
   case scm_op_assert_nargs_ee:
     slots = code[0] >> 8;
