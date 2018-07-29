@@ -33,8 +33,8 @@ struct scm_jit_function_data
 {
   uint8_t *mcode;
   uint32_t counter;
-  uint32_t start;
-  uint32_t end;
+  int32_t start;
+  int32_t end;
 #if SCM_SIZEOF_UINTPTR_T == 4
 #elif SCM_SIZEOF_UINTPTR_T == 8
   uint32_t pad;
