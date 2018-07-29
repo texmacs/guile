@@ -101,7 +101,7 @@ compile_return_values (scm_jit_state *j)
 }
 
 static void
-compile_subr_call (scm_jit_state *j)
+compile_subr_call (scm_jit_state *j, uint32_t idx)
 {
 }
 

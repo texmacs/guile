@@ -178,6 +178,20 @@ SCM_DEFINE (scm_primitive_call_ip, "primitive-call-ip", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_primitive_code_name, "primitive-code-name", 1, 0, 0,
+	    (SCM code),
+	    "")
+#define FUNC_NAME s_scm_primitive_code_name
+{
+  const uint32_t * ptr = (const uint32_t *) scm_to_uintptr_t (code);
+
+  if (scm_i_primitive_code_p (ptr))
+    return scm_i_primitive_name (ptr);
+
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 SCM
 scm_find_source_for_addr (SCM ip)
 {

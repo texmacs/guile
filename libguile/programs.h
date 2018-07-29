@@ -60,6 +60,7 @@ SCM_INTERNAL SCM scm_program_p (SCM obj);
 SCM_INTERNAL SCM scm_program_code (SCM program);
 
 SCM_INTERNAL SCM scm_primitive_code_p (SCM code);
+SCM_INTERNAL SCM scm_primitive_code_name (SCM code);
 SCM_INTERNAL SCM scm_primitive_call_ip (SCM prim);
 
 SCM_INTERNAL SCM scm_i_program_name (SCM program);

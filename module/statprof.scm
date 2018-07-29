@@ -1,7 +1,7 @@
 ;;;; (statprof) -- a statistical profiler for Guile
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011, 2013-2017  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2013-2018  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 ;;;; 
@@ -91,26 +91,16 @@
 ;;; distinguish between different closures which share the same code,
 ;;; but that is usually what we want anyway.
 ;;;
-;;; One case in which we do want to distinguish closures is the case of
-;;; primitive procedures.  If slot 0 in the frame is a primitive
-;;; procedure, we record the procedure's name into the buffer instead of
-;;; the IP.  It's fairly cheap to check whether a value is a primitive
-;;; procedure, and then get its name, as its name is stored in the
-;;; closure data.  Calling procedure-name in the stack sampler isn't
-;;; something you want to do for other kinds of procedures, though, as
-;;; that involves grovelling the debug information.
-;;;
 ;;; The other part of data collection is the exact call counter, which
 ;;; uses the VM's "apply" hook to record each procedure call.
 ;;; Naturally, this is quite expensive, and it is off by default.
 ;;; Running code at every procedure call effectively penalizes procedure
 ;;; calls.  Still, it's useful sometimes.  If the profiler state has a
 ;;; call-counts table, then calls will be counted.  As with the stack
-;;; counter, usually the key in the hash table is the code pointer of
-;;; the procedure being called, except for primitive procedures, in
-;;; which case it is the name of the primitive.  The call counter can
-;;; also see calls of non-programs, for example in the case of
-;;; applicable structs.  In that case the key is the procedure itself.
+;;; counter, the key in the hash table is the code pointer of the
+;;; procedure being called.  The call counter can also see calls of
+;;; non-programs, for example in the case of applicable structs.  In
+;;; that case the key is the procedure itself.
 ;;;
 ;;; After collection is finished, the data can be analyzed.  The first
 ;;; step is usually to run over the stack traces, tabulating sample
@@ -249,8 +239,7 @@
       (set-buffer! state buffer)
       (set-buffer-pos! state (1+ pos)))
      (else
-      (write-sample-and-continue
-       (frame-instruction-pointer-or-primitive-procedure-name frame))))))
+      (write-sample-and-continue (frame-instruction-pointer frame))))))
 
 (define (reset-sigprof-timer usecs)
   ;; Guile's setitimer binding is terrible.
@@ -296,7 +285,7 @@
 (define (count-call frame)
   (let ((state (existing-profiler-state)))
     (unless (inside-profiler? state)
-      (let* ((key (frame-instruction-pointer-or-primitive-procedure-name frame))
+      (let* ((key (frame-instruction-pointer frame))
              (handle (hashv-create-handle! (call-counts state) key 0)))
         (set-cdr! handle (1+ (cdr handle)))))))
 
@@ -447,42 +436,26 @@ always collects full stacks.)"
               (hashv-set! table entry data)
               data))))
 
-    (define (callee->call-data callee)
-      (cond
-       ((number? callee) (addr->call-data callee))
-       ((hashv-ref table callee))
-       (else
-        (let ((data (make-call-data
-                     (cond ((procedure? callee) (procedure-name callee))
-                           ;; a primitive
-                           ((symbol? callee) callee)
-                           (else #f))
-                     (with-output-to-string (lambda () (write callee)))
-                     #f
-                     (and call-counts (hashv-ref call-counts callee))
-                     0
-                     0)))
-          (hashv-set! table callee data)
-          data))))
-
     (when call-counts
       (hash-for-each (lambda (callee count)
-                       (callee->call-data callee))
+                       (unless (number? callee)
+                         (error "unexpected callee" callee))
+                       (addr->call-data callee))
                      call-counts))
 
     (let visit-stacks ((pos 0))
       (cond
        ((< pos len)
         (let ((pos (if call-counts
-                       (skip-count-call buffer pos len)
-                       pos)))
+                        (skip-count-call buffer pos len)
+                        pos)))
           (inc-call-data-self-sample-count!
-           (callee->call-data (vector-ref buffer pos)))
+           (addr->call-data (vector-ref buffer pos)))
           (let visit-stack ((pos pos))
             (cond
              ((vector-ref buffer pos)
-              => (lambda (callee)
-                   (inc-call-data-cum-sample-count! (callee->call-data callee))
+              => (lambda (ip)
+                   (inc-call-data-cum-sample-count! (addr->call-data ip))
                    (visit-stack (1+ pos))))
              (else
               (visit-stacks (1+ pos)))))))

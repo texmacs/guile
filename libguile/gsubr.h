@@ -38,14 +38,11 @@
 
 #define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x))
 
-#define SCM_SUBRF(x)							\
-  ((SCM (*) (void))                                                     \
-   SCM_POINTER_VALUE (SCM_PROGRAM_FREE_VARIABLE_REF (x, 0)))
-
-#define SCM_SUBR_NAME(x) (SCM_PROGRAM_FREE_VARIABLE_REF (x, 1))
+#define SCM_SUBRF(x) scm_subr_function (x)
+#define SCM_SUBR_NAME(x) scm_subr_name (x)
 
 #define SCM_SUBR_GENERIC(x)						\
-  ((SCM *) SCM_POINTER_VALUE (SCM_PROGRAM_FREE_VARIABLE_REF (x, 2)))
+  ((SCM *) SCM_POINTER_VALUE (SCM_PROGRAM_FREE_VARIABLE_REF (x, 0)))
 
 #define SCM_SET_SUBR_GENERIC(x, g) \
   (*SCM_SUBR_GENERIC (x) = (g))
@@ -54,9 +51,13 @@
 
 SCM_INTERNAL int scm_i_primitive_code_p (const uint32_t *code);
 SCM_INTERNAL uintptr_t scm_i_primitive_call_ip (SCM subr);
+SCM_INTERNAL SCM scm_i_primitive_name (const uint32_t *code);
+
+SCM_API scm_t_subr scm_subr_function (SCM subr);
+SCM_API SCM scm_subr_name (SCM subr);
 
 SCM_INTERNAL SCM scm_apply_subr (union scm_vm_stack_element *sp,
-                                 ptrdiff_t nargs);
+                                 uint32_t subr_idx, ptrdiff_t nargs);
 
 SCM_API SCM scm_c_make_gsubr (const char *name,
 			      int req, int opt, int rst, scm_t_subr fcn);
