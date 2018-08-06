@@ -206,12 +206,13 @@ static void vm_dispatch_abort_hook (scm_thread *thread) SCM_NOINLINE;
   ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 static void
-vm_dispatch_hook (scm_thread *thread, int hook_num, int n)
+vm_dispatch_hook (scm_thread *thread, int hook_num)
 {
   struct scm_vm *vp = &thread->vm;
   SCM hook;
   struct scm_frame c_frame;
   scm_t_cell *frame;
+  SCM scm_frame;
   int saved_trace_level;
   uint8_t saved_compare_result;
 
@@ -249,30 +250,8 @@ vm_dispatch_hook (scm_thread *thread, int hook_num, int n)
   frame->word_0 = SCM_PACK (scm_tc7_frame | (SCM_VM_FRAME_KIND_VM << 8));
   frame->word_1 = SCM_PACK_POINTER (&c_frame);
 
-  if (n == 0)
-    {
-      SCM args[1];
-
-      args[0] = SCM_PACK_POINTER (frame);
-      scm_c_run_hookn (hook, args, 1);
-    }
-  else if (n == 1)
-    {
-      SCM args[2];
-
-      args[0] = SCM_PACK_POINTER (frame);
-      args[1] = vp->sp[0].as_scm;
-      scm_c_run_hookn (hook, args, 2);
-    }
-  else
-    {
-      SCM args = SCM_EOL;
-      int i;
-
-      for (i = 0; i < n; i++)
-        args = scm_cons (vp->sp[i].as_scm, args);
-      scm_c_run_hook (hook, scm_cons (SCM_PACK_POINTER (frame), args));
-    }
+  scm_frame = SCM_PACK_POINTER (frame);
+  scm_c_run_hookn (hook, &scm_frame, 1);
 
   vp->compare_result = saved_compare_result;
   vp->trace_level = saved_trace_level;
@@ -281,23 +260,22 @@ vm_dispatch_hook (scm_thread *thread, int hook_num, int n)
 static void
 vm_dispatch_apply_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_APPLY_HOOK, 0);
+  return vm_dispatch_hook (thread, SCM_VM_APPLY_HOOK);
 }
 static void
 vm_dispatch_return_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_RETURN_HOOK, 0);
+  return vm_dispatch_hook (thread, SCM_VM_RETURN_HOOK);
 }
 static void
 vm_dispatch_next_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_NEXT_HOOK, 0);
+  return vm_dispatch_hook (thread, SCM_VM_NEXT_HOOK);
 }
 static void
 vm_dispatch_abort_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK,
-                           SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp));
+  return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK);
 }
 
 

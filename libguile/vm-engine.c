@@ -110,25 +110,23 @@
 #endif
 
 #if VM_USE_HOOKS
-#define RUN_HOOK(exp)                                   \
+#define RUN_HOOK(h)                                     \
   do {                                                  \
     if (SCM_UNLIKELY (VP->trace_level))                 \
       {                                                 \
         SYNC_IP ();                                     \
-        exp;                                            \
+        vm_dispatch_##h##_hook (thread);                \
         CACHE_SP ();                                    \
       }                                                 \
   } while (0)
 #else
-#define RUN_HOOK(exp)
+#define RUN_HOOK(h)
 #endif
-#define RUN_HOOK0(h)      RUN_HOOK (vm_dispatch_##h##_hook (thread))
-#define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (thread, arg))
 
-#define APPLY_HOOK()                  RUN_HOOK0 (apply)
-#define RETURN_HOOK()                 RUN_HOOK0 (return)
-#define NEXT_HOOK()                   RUN_HOOK0 (next)
-#define ABORT_CONTINUATION_HOOK()     RUN_HOOK0 (abort)
+#define APPLY_HOOK()                  RUN_HOOK (apply)
+#define RETURN_HOOK()                 RUN_HOOK (return)
+#define NEXT_HOOK()                   RUN_HOOK (next)
+#define ABORT_CONTINUATION_HOOK()     RUN_HOOK (abort)
 
 
 
@@ -3011,8 +3009,6 @@ VM_NAME (scm_thread *thread)
 #undef NEXT_HOOK
 #undef RETURN_HOOK
 #undef RUN_HOOK
-#undef RUN_HOOK0
-#undef RUN_HOOK1
 #undef SYNC_IP
 #undef UNPACK_8_8_8
 #undef UNPACK_8_16

@@ -197,7 +197,7 @@
         (if (our-frame? prev)
             (enter-proc prev))))
 
-    (define (abort-hook frame . values)
+    (define (abort-hook frame)
       (if in-proc?
           (exit-proc frame))
       (if (our-frame? frame)
@@ -402,11 +402,11 @@
             (set! fp #f)
             (return-handler frame))))
     
-    (define (abort-hook frame . values)
+    (define (abort-hook frame)
       (if (and fp (<= (frame-address frame) fp))
           (begin
             (set! fp #f)
-            (apply abort-handler frame values))))
+            (abort-handler frame))))
     
     (new-enabled-trap
      frame
@@ -436,7 +436,7 @@
       (set! exit-trap #f)
       (return-handler frame))
     
-    (define (abort-hook frame . values)
+    (define (abort-hook frame)
       (exit-trap frame) ; disable the return/abort trap.
       (set! exit-trap #f)
       (abort-handler frame))
@@ -570,7 +570,7 @@
                 (return-handler frame depth))
         
               ;; FIXME: abort handler?
-              (define (abort-hook frame . values)
+              (define (abort-hook frame)
                 (frame-finished frame))
         
               (set! finish-trap
