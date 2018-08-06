@@ -339,7 +339,7 @@
 ;;; Pretty printing
 ;;;
 
-;; Basically there are two cases to deal with here:
+;; Basically there are three cases to deal with here:
 ;;
 ;;   1. We've already parsed the arguments, and bound them to local
 ;;      variables. In a standard (lambda (a b c) ...) call, this doesn't
@@ -353,6 +353,10 @@
 ;;      number of arguments, or perhaps we're doing a typed dispatch and
 ;;      the types don't match. In that case the arguments are all on the
 ;;      stack, and nothing else is on the stack.
+;;
+;;   3. Alternately it's possible that we're between a primitive call
+;;      and its associated return.  In that case, we won't be able to
+;;      say anything at all.
 
 (define* (frame-call-representation frame #:key top-frame?)
   (let* ((ip (frame-instruction-pointer frame))

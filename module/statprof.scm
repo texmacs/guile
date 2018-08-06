@@ -503,11 +503,7 @@ none is available."
     (error "Can't call statprof-proc-call-data while profiler is running."))
   (unless (program? proc)
     (error "statprof-call-data only works for VM programs"))
-  (let* ((code (program-code proc))
-         (key (if (primitive-code? code)
-                  (procedure-name proc)
-                  code)))
-    (hashv-ref (stack-samples->procedure-data state) key)))
+  (hashv-ref (stack-samples->procedure-data state) (program-code proc)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stats
