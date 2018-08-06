@@ -386,8 +386,6 @@ VM_NAME (scm_thread *thread)
           CACHE_REGISTER ();
         }
 
-      APPLY_HOOK ();
-
       NEXT (0);
     }
 
@@ -423,8 +421,6 @@ VM_NAME (scm_thread *thread)
 
       ip += label;
 
-      APPLY_HOOK ();
-
       NEXT (0);
     }
 
@@ -445,8 +441,6 @@ VM_NAME (scm_thread *thread)
           CACHE_REGISTER ();
         }
 
-      APPLY_HOOK ();
-
       NEXT (0);
     }
 
@@ -462,8 +456,6 @@ VM_NAME (scm_thread *thread)
       label = ip[1];
 
       ip += label;
-
-      APPLY_HOOK ();
 
       NEXT (0);
     }
@@ -498,6 +490,8 @@ VM_NAME (scm_thread *thread)
         }
       else
         data->counter += SCM_JIT_COUNTER_ENTRY_INCREMENT;
+
+      APPLY_HOOK ();
 
       NEXT (2);
     }
@@ -766,8 +760,6 @@ VM_NAME (scm_thread *thread)
           CALL_INTRINSIC (apply_non_program, (thread));
           CACHE_REGISTER ();
         }
-
-      APPLY_HOOK ();
 
       NEXT (0);
     }
@@ -2387,7 +2379,7 @@ VM_NAME (scm_thread *thread)
       CALL_INTRINSIC (push_interrupt_frame, (thread, 0));
       CACHE_SP ();
       ip = (uint32_t *) vm_handle_interrupt_code;
-      APPLY_HOOK ();
+
       NEXT (0);
     }
 

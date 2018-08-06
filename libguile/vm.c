@@ -1435,9 +1435,6 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         else
           /* FIXME: Make this return an IP.  */
           apply_non_program (thread);
-
-        if (vp->trace_level)
-          vm_dispatch_apply_hook (thread);
       }
 
     thread->vm.registers = &registers;
