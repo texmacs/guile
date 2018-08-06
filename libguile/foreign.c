@@ -830,14 +830,13 @@ get_foreign_stub_code (unsigned int nargs, int with_errno)
 {
   size_t i;
   size_t code_len = with_errno ? 4 : 5;
-  uint32_t *code;
-
-  code = scm_gc_malloc_pointerless (code_len * sizeof (uint32_t),
-                                    "foreign code");
+  uint32_t *ret, *code;
 
   if (nargs >= (1 << 24) + 1)
     scm_misc_error ("make-foreign-function", "too many arguments: ~a",
                     scm_list_1 (scm_from_uint (nargs)));
+
+  ret = scm_i_alloc_primitive_code_with_instrumentation (code_len, &code);
 
   i = 0;
   code[i++] = SCM_PACK_OP_24 (assert_nargs_ee, nargs + 1);
@@ -847,7 +846,7 @@ get_foreign_stub_code (unsigned int nargs, int with_errno)
     code[i++] = SCM_PACK_OP_24 (reset_frame, 1);
   code[i++] = SCM_PACK_OP_24 (return_values, 0);
 
-  return code;
+  return ret;
 }
 
 static SCM
