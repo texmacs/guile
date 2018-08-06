@@ -28,6 +28,7 @@
 #include "frames.h"
 #include "gsubr.h"
 #include "instructions.h"
+#include "jit.h"
 #include "list.h"
 #include "pairs.h"
 #include "programs.h"
@@ -68,11 +69,25 @@ scm_i_prompt_pop_abort_args_x (struct scm_vm *vp,
 }
 
 
-static const uint32_t compose_continuation_code[] =
-  {
-    SCM_PACK_OP_24 (compose_continuation, 0)
-  };
+struct compose_continuation_code
+{
+  struct scm_jit_function_data data;
+  uint32_t code[3];
+};
 
+struct compose_continuation_code compose_continuation_code = {
+  {
+    /* mcode = */ 0,
+    /* counter = */ 0,
+    /* start = */ sizeof (struct scm_jit_function_data),
+    /* end = */ sizeof (struct compose_continuation_code)
+  },
+  {
+    SCM_PACK_OP_24 (instrument_entry, 0),
+    ((uint32_t) -(sizeof (struct scm_jit_function_data) / 4)),
+    SCM_PACK_OP_24 (compose_continuation, 0),
+  }
+};
 
 SCM
 scm_i_make_composable_continuation (SCM vmcont)
@@ -82,7 +97,7 @@ scm_i_make_composable_continuation (SCM vmcont)
   SCM ret;
 
   ret = scm_words (scm_tc7_program | (nfree << 16) | flags, nfree + 2);
-  SCM_SET_CELL_WORD_1 (ret, compose_continuation_code);
+  SCM_SET_CELL_WORD_1 (ret, compose_continuation_code.code);
   SCM_PROGRAM_FREE_VARIABLE_SET (ret, 0, vmcont);
 
   return ret;

@@ -41,6 +41,7 @@
 #include "gsubr.h"
 #include "init.h"
 #include "instructions.h"
+#include "jit.h"
 #include "list.h"
 #include "numbers.h"
 #include "pairs.h"
@@ -75,10 +76,25 @@ static scm_t_bits tc16_continuation;
    of that trampoline function.
  */
 
-static const uint32_t continuation_stub_code[] =
+struct goto_continuation_code
+{
+  struct scm_jit_function_data data;
+  uint32_t code[3];
+};
+
+struct goto_continuation_code goto_continuation_code = {
   {
-    SCM_PACK_OP_24 (continuation_call, 0)
-  };
+    /* mcode = */ 0,
+    /* counter = */ 0,
+    /* start = */ sizeof (struct scm_jit_function_data),
+    /* end = */ sizeof (struct goto_continuation_code)
+  },
+  {
+    SCM_PACK_OP_24 (instrument_entry, 0),
+    ((uint32_t) -(sizeof (struct scm_jit_function_data) / 4)),
+    SCM_PACK_OP_24 (continuation_call, 0),
+  }
+};
 
 static SCM
 make_continuation_trampoline (SCM contregs)
@@ -88,7 +104,7 @@ make_continuation_trampoline (SCM contregs)
   scm_t_bits flags = SCM_F_PROGRAM_IS_CONTINUATION;
 
   ret = scm_words (scm_tc7_program | (nfree << 16) | flags, nfree + 2);
-  SCM_SET_CELL_WORD_1 (ret, continuation_stub_code);
+  SCM_SET_CELL_WORD_1 (ret, goto_continuation_code.code);
   SCM_PROGRAM_FREE_VARIABLE_SET (ret, 0, contregs);
 
   return ret;
