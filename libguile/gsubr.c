@@ -23,6 +23,7 @@
 # include <config.h>
 #endif
 
+#include <flexmember.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -49,6 +50,9 @@
  * and rest arguments.
  */
 
+/* In July 2018 there were 1140 subrs defined in stock Guile.  */
+static const size_t expected_subr_count = 1500;
+
 static scm_i_pthread_mutex_t admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 static void **subrs = NULL;
@@ -73,8 +77,7 @@ alloc_subr_idx (void *subr)
       if (subrs_array_size)
         subrs_array_size *= 2;
       else
-        /* In July 2018 there were 1140 subrs defined in stock Guile.  */
-        subrs_array_size = 1500;
+        subrs_array_size = expected_subr_count;
 
       /* Leak this allocation, as code lives as long as the program
          does.  In the likely case, we only make one malloc for the
@@ -108,13 +111,10 @@ record_subr_name (uint32_t idx, SCM name)
       SCM *new_names;
       uint32_t new_size;
 
-      /* See comments in alloc_subr_idx about how we choose 1500 as
-         initial size.  It's a GC-managed allocation though.  */
-
       if (names_array_size)
         new_size = names_array_size * 2;
       else
-        new_size = 1500;
+        new_size = expected_subr_count;
 
       new_names = SCM_GC_MALLOC (new_size * sizeof (SCM));
       memcpy (new_names, names, names_array_size * sizeof (SCM));
@@ -131,14 +131,32 @@ record_subr_name (uint32_t idx, SCM name)
 
 
 
-static char *arena = NULL;
-static size_t arena_used = 0;
-static size_t arena_size = 0;
+struct code_arena {
+  struct code_arena *next;
+  size_t size;
+  size_t used;
+  char data[FLEXIBLE_ARRAY_MEMBER];
+};
+
+static struct code_arena *code_arena = NULL;
 
 static size_t
 round_up_power_of_two (size_t n, size_t m)
 {
   return (n + (m-1)) & ~(m-1);
+}
+
+static struct code_arena *
+alloc_chunk (size_t size, struct code_arena *next)
+{
+  /* Leak the allocation, as we currently don't allow code to be
+     collected.  */
+  struct code_arena *ret = malloc (FLEXSIZEOF (struct code_arena, data, size));
+  if (!ret) abort ();
+  ret->next = next;
+  ret->size = size;
+  ret->used = 0;
+  return ret;
 }
 
 static char *
@@ -150,29 +168,21 @@ alloc (size_t byte_size)
 
   scm_i_pthread_mutex_lock (&admin_mutex);
 
-  while (arena_used + byte_size > arena_size)
+  if (code_arena == NULL || code_arena->size - code_arena->used < byte_size)
     {
-      char *new_arena;
+      size_t chunk_size;
+      size_t avg_code_size = 6 * sizeof(uint32_t);
+      avg_code_size += sizeof (struct scm_jit_function_data);
 
-      /* See comments in alloc_subr_idx about how we choose 1500 as
-         initial size and why we leak the allocation.  */
+      chunk_size = expected_subr_count * avg_code_size;
+      if (chunk_size < byte_size)
+        chunk_size = byte_size;
 
-      if (arena_size)
-        arena_size *= 2;
-      else
-        {
-          size_t avg_size = 6 * sizeof(uint32_t);
-          avg_size += sizeof(struct scm_jit_function_data);
-          arena_size = 1500 * avg_size;
-        }
-
-      new_arena = malloc (arena_size);
-      memcpy (new_arena, arena, arena_used);
-      arena = new_arena;
+      code_arena = alloc_chunk (chunk_size, code_arena);
     }
 
-  ret = arena + arena_used;
-  arena_used += byte_size;
+  ret = &code_arena->data[code_arena->used];
+  code_arena->used += byte_size;
 
   scm_i_pthread_mutex_unlock (&admin_mutex);
 
@@ -181,9 +191,9 @@ alloc (size_t byte_size)
   return ret;
 }
 
-static uint32_t *
-alloc_primitive_code_with_instrumentation (size_t uint32_count,
-                                           uint32_t **write_ptr)
+uint32_t *
+scm_i_alloc_primitive_code_with_instrumentation (size_t uint32_count,
+                                                 uint32_t **write_ptr)
 {
   char *ptr;
   uint32_t *ret;
@@ -196,7 +206,7 @@ alloc_primitive_code_with_instrumentation (size_t uint32_count,
   /* Reserve space for jit data.  */
   ptr = alloc (padded_byte_size + sizeof (struct scm_jit_function_data));
   ret = (uint32_t *) ptr;
-  data = (struct scm_jit_function_data*) (ret + padded_byte_size);
+  data = (struct scm_jit_function_data*) (ptr + padded_byte_size);
 
   ret[0] = SCM_PACK_OP_24 (instrument_entry, 0);
   ret[1] = padded_byte_size / 4;
@@ -208,17 +218,23 @@ alloc_primitive_code_with_instrumentation (size_t uint32_count,
   data->start = -padded_byte_size;
   data->end = -(padded_byte_size - byte_size);
 
-  return (uint32_t *) ret;
+  return ret;
 }
 
 static int
 is_primitive_code (const void *ptr)
 {
   const char *cptr = ptr;
-  int ret;
+  int ret = 0;
+  struct code_arena *arena;
 
   scm_i_pthread_mutex_lock (&admin_mutex);
-  ret = cptr >= arena && (cptr - arena) < arena_used;
+  for (arena = code_arena; arena; arena = arena->next)
+    if (&arena->data[0] <= cptr && cptr < &arena->data[arena->used])
+      {
+        ret = 1;
+        break;
+      }
   scm_i_pthread_mutex_unlock (&admin_mutex);
 
   return ret;
@@ -232,7 +248,7 @@ alloc_subr_code (uint32_t subr_idx, uint32_t code[], size_t code_size)
                        SCM_PACK_OP_24 (return_values, 0) };
   uint32_t *ret, *write;
 
-  ret = alloc_primitive_code_with_instrumentation (code_size + 3, &write);
+  ret = scm_i_alloc_primitive_code_with_instrumentation (code_size + 3, &write);
 
   memcpy (write, code, code_size * sizeof (uint32_t));
   write += code_size;
@@ -371,6 +387,7 @@ primitive_call_ip (const uint32_t *code)
           code += 1;
           break;
         case scm_op_subr_call:
+        case scm_op_foreign_call:
           return (uintptr_t) code;
         case scm_op_return_values:
         case scm_op_handle_interrupts:
@@ -388,13 +405,21 @@ primitive_call_ip (const uint32_t *code)
     }
 }
 
+static const uint32_t NOT_A_SUBR_CALL = 0xffffffff;
+
 static uint32_t
 primitive_subr_idx (const uint32_t *code)
 {
   uintptr_t call_ip = primitive_call_ip (code);
-  uint32_t idx = ((uint32_t *) call_ip)[0] >> 8;
-  if (idx >= next_subr_idx) abort();
-  return idx;
+  uint32_t word = ((uint32_t *) call_ip)[0];
+  if ((word & 0xff) == scm_op_subr_call)
+    {
+      uint32_t idx = word >> 8;
+      if (idx >= next_subr_idx) abort();
+      return idx;
+    }
+  else
+    return NOT_A_SUBR_CALL;
 }
 
 uintptr_t
@@ -406,13 +431,19 @@ scm_i_primitive_call_ip (SCM subr)
 SCM
 scm_i_primitive_name (const uint32_t *code)
 {
-  return names[primitive_subr_idx (code)];
+  uint32_t idx = primitive_subr_idx (code);
+  if (idx == NOT_A_SUBR_CALL)
+    return SCM_BOOL_F;
+  return names[idx];
 }
 
 scm_t_subr
 scm_subr_function (SCM subr)
 {
-  return subrs[primitive_subr_idx (SCM_PROGRAM_CODE (subr))];
+  uint32_t idx = primitive_subr_idx (SCM_PROGRAM_CODE (subr));
+  if (idx == NOT_A_SUBR_CALL)
+    abort ();
+  return subrs[idx];
 }
 
 SCM

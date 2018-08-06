@@ -49,6 +49,9 @@
 
 
 
+SCM_INTERNAL uint32_t *
+scm_i_alloc_primitive_code_with_instrumentation (size_t uint32_count,
+                                                 uint32_t **write_ptr);
 SCM_INTERNAL int scm_i_primitive_code_p (const uint32_t *code);
 SCM_INTERNAL uintptr_t scm_i_primitive_call_ip (SCM subr);
 SCM_INTERNAL SCM scm_i_primitive_name (const uint32_t *code);
