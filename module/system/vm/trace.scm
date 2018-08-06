@@ -1,6 +1,6 @@
 ;;; Guile VM tracer
 
-;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2009-2010,2012-2014,2018 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -48,8 +48,9 @@
             width
             (frame-call-representation frame #:top-frame? #t))))
 
-(define (print-return depth width prefix max-indent values)
-  (let ((prefix (build-prefix prefix depth "|  " "~d< "max-indent)))
+(define (print-return frame depth width prefix max-indent)
+  (let ((prefix (build-prefix prefix depth "|  " "~d< "max-indent))
+        (values (frame-return-values frame)))
     (case (length values)
       ((0)
        (format (current-error-port) "~ano values\n" prefix))
@@ -72,8 +73,8 @@
                                    (max-indent (- width 40)))
   (define (apply-handler frame depth)
     (print-application frame depth width prefix max-indent))
-  (define (return-handler frame depth . values)
-    (print-return depth width prefix max-indent values))
+  (define (return-handler frame depth values)
+    (print-return frame depth width prefix max-indent))
   (trap-calls-to-procedure proc apply-handler return-handler))
 
 (define* (trace-calls-in-procedure proc #:key (width 80)
@@ -81,8 +82,8 @@
                                    (max-indent (- width 40)))
   (define (apply-handler frame depth)
     (print-application frame depth width prefix max-indent))
-  (define (return-handler frame depth . values)
-    (print-return depth width prefix max-indent values))
+  (define (return-handler frame depth)
+    (print-return frame depth width prefix max-indent))
   (trap-calls-in-dynamic-extent proc apply-handler return-handler))
 
 (define* (trace-instructions-in-procedure proc #:key (width 80)

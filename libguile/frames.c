@@ -28,8 +28,10 @@
 #include "eval.h"
 #include "extensions.h"
 #include "gsubr.h"
+#include "instructions.h"
 #include "modules.h"
 #include "numbers.h"
+#include "pairs.h"
 #include "ports.h"
 #include "symbols.h"
 #include "threads.h"
@@ -328,6 +330,33 @@ scm_frame_local_set_x (SCM frame, SCM index, SCM val, SCM representation)
 }
 #undef FUNC_NAME
 
+static const char s_scm_frame_return_values[] = "frame-return-values";
+static SCM
+scm_frame_return_values (SCM frame)
+#define FUNC_NAME s_scm_frame_return_values
+{
+  const uint32_t *ip;
+  union scm_vm_stack_element *fp, *sp;
+  SCM vals = SCM_EOL;
+  size_t n;
+
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  ip = SCM_VM_FRAME_IP (frame);
+  fp = SCM_VM_FRAME_FP (frame);
+  sp = SCM_VM_FRAME_SP (frame);
+
+  if ((*ip & 0xff) != scm_op_return_values)
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, frame, "not a return frame");
+
+  n = SCM_FRAME_NUM_LOCALS (fp, sp);
+  while (n--)
+    vals = scm_cons (SCM_FRAME_LOCAL (fp, n), vals);
+
+  return vals;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_frame_address, "frame-address", 1, 0, 0,
 	    (SCM frame),
 	    "Return the frame pointer for @var{frame}.")
@@ -442,6 +471,8 @@ scm_init_frames_builtins (void *unused)
                       (scm_t_subr) scm_frame_local_ref);
   scm_c_define_gsubr (s_scm_frame_local_set_x, 4, 0, 0,
                       (scm_t_subr) scm_frame_local_set_x);
+  scm_c_define_gsubr (s_scm_frame_return_values, 1, 0, 0,
+                      (scm_t_subr) scm_frame_return_values);
 }
 
 void

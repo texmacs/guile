@@ -38,6 +38,7 @@
             binding-ref binding-set!
 
             frame-call-representation
+            frame-return-values
             frame-environment
             frame-object-binding frame-object-name))
 

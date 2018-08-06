@@ -1,6 +1,6 @@
 ;;; Traps: stepping, breakpoints, and such.
 
-;; Copyright (C)  2010, 2012, 2013, 2014, 2017 Free Software Foundation, Inc.
+;; Copyright (C)  2010,2012-2014,2017-2018 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@
 ;;; Code:
 
 (define-module (system vm traps)
-  #:use-module (system base pmatch)
+  #:use-module (ice-9 match)
   #:use-module (system vm vm)
   #:use-module (system vm debug)
   #:use-module (system vm frame)
@@ -190,11 +190,12 @@
       (if (our-frame? frame)
           (enter-proc frame)))
 
-    (define (pop-cont-hook frame . values)
+    (define (return-hook frame)
       (if in-proc?
           (exit-proc frame))
-      (if (our-frame? frame)
-          (enter-proc frame)))
+      (let ((prev (frame-previous frame)))
+        (if (our-frame? prev)
+            (enter-proc prev))))
 
     (define (abort-hook frame . values)
       (if in-proc?
@@ -206,7 +207,7 @@
      current-frame
      (lambda (frame)
        (add-hook! (vm-apply-hook) apply-hook)
-       (add-hook! (vm-pop-continuation-hook) pop-cont-hook)
+       (add-hook! (vm-return-hook) return-hook)
        (add-hook! (vm-abort-continuation-hook) abort-hook)
        (if (and frame (our-frame? frame))
            (enter-proc frame)))
@@ -214,7 +215,7 @@
        (if in-proc?
            (exit-proc frame))
        (remove-hook! (vm-apply-hook) apply-hook)
-       (remove-hook! (vm-pop-continuation-hook) pop-cont-hook)
+       (remove-hook! (vm-return-hook) return-hook)
        (remove-hook! (vm-abort-continuation-hook) abort-hook)))))
 
 ;; Building on trap-in-procedure, we have trap-instructions-in-procedure
@@ -307,34 +308,31 @@
     (let ((code (program-code proc)))
       (let lp ((sources (program-sources proc))
                (out '()))
-        (if (pair? sources)
-            (lp (cdr sources)
-                (pmatch (car sources)
-                  ((,start-ip ,start-file ,start-line . ,start-col)
-                   (if (equal? start-file file)
-                       (acons start-line
-                              (if (pair? (cdr sources))
-                                  (pmatch (cadr sources)
-                                    ((,end-ip . _)
-                                     (cons (+ start-ip code)
-                                           (+ end-ip code)))
-                                    (else (error "unexpected")))
-                                  (cons (+ start-ip code)
-                                        (program-last-ip proc)))
-                              out)
-                       out))
-                  (else (error "unexpected"))))
-            (let ((alist '()))
-              (for-each
-               (lambda (pair)
-                 (set! alist
-                       (assv-set! alist (car pair)
-                                  (cons (cdr pair)
-                                        (or (assv-ref alist (car pair))
-                                            '())))))
-               out)
-              (sort! alist (lambda (x y) (< (car x) (car y))))
-              alist)))))
+        (match sources
+          (((start-ip start-file start-line . start-col) . sources)
+           (lp sources
+               (if (equal? start-file file)
+                   (acons start-line
+                          (cons (+ start-ip code)
+                                (match sources
+                                  (((end-ip . _) . _)
+                                   (+ end-ip code))
+                                  (()
+                                   (program-last-ip proc))))
+                          out)
+                   out)))
+          (()
+           (let ((alist '()))
+             (for-each
+              (lambda (pair)
+                (set! alist
+                      (assv-set! alist (car pair)
+                                 (cons (cdr pair)
+                                       (or (assv-ref alist (car pair))
+                                           '())))))
+              out)
+             (sort! alist (lambda (x y) (< (car x) (car y))))
+             alist))))))
    (else '())))
 
 (define (source->ip-range proc file line)
@@ -398,14 +396,14 @@
   (arg-check return-handler procedure?)
   (arg-check abort-handler procedure?)
   (let ((fp (frame-address frame)))
-    (define (pop-cont-hook frame . values)
-      (if (and fp (< (frame-address frame) fp))
+    (define (return-hook frame)
+      (if (and fp (<= (frame-address frame) fp))
           (begin
             (set! fp #f)
-            (apply return-handler frame values))))
+            (return-handler frame))))
     
     (define (abort-hook frame . values)
-      (if (and fp (< (frame-address frame) fp))
+      (if (and fp (<= (frame-address frame) fp))
           (begin
             (set! fp #f)
             (apply abort-handler frame values))))
@@ -415,11 +413,11 @@
      (lambda (frame)
        (if (not fp)
            (error "return-or-abort traps may only be enabled once"))
-       (add-hook! (vm-pop-continuation-hook) pop-cont-hook)
+       (add-hook! (vm-return-hook) return-hook)
        (add-hook! (vm-abort-continuation-hook) abort-hook))
      (lambda (frame)
        (set! fp #f)
-       (remove-hook! (vm-pop-continuation-hook) pop-cont-hook)
+       (remove-hook! (vm-return-hook) return-hook)
        (remove-hook! (vm-abort-continuation-hook) abort-hook)))))
 
 ;; A more traditional dynamic-wind trap. Perhaps this should not be
@@ -433,7 +431,7 @@
   (arg-check return-handler procedure?)
   (arg-check abort-handler procedure?)
   (let ((exit-trap #f))
-    (define (return-hook frame . values)
+    (define (return-hook frame)
       (exit-trap frame) ; disable the return/abort trap.
       (set! exit-trap #f)
       (return-handler frame))
@@ -469,27 +467,44 @@
   (arg-check proc procedure?)
   (arg-check apply-handler procedure?)
   (arg-check return-handler procedure?)
-  (let ((*call-depth* 0))
-    (define (trace-push frame)
-      (set! *call-depth* (1+ *call-depth*)))
-  
-    (define (trace-pop frame . values)
-      (apply return-handler frame *call-depth* values)
-      (set! *call-depth* (1- *call-depth*)))
+  (let ((*stack* '()))
+    (define (trace-return frame)
+      (let ((fp* (frame-address frame)))
+        (let lp ((stack *stack*))
+          (match stack
+            (() (values))
+            ((fp . stack)
+             (cond
+              ((> fp fp*)
+               (set! *stack* stack)
+               (lp stack))
+              ((= fp fp*) (set! *stack* stack))
+              ((< fp fp*) (values)))))))
+      (return-handler frame (1+ (length *stack*))))
   
     (define (trace-apply frame)
-      (apply-handler frame *call-depth*))
+      (let ((fp* (frame-address frame)))
+        (define (same-fp? fp) (= fp fp*))
+        (define (newer-fp? fp) (> fp fp*))
+        (let lp ((stack *stack*))
+          (match stack
+            (((? same-fp?) . stack)
+             ;; A tail call, nothing to do.
+             (values))
+            (((? newer-fp?) . stack)
+             ;; Unless there are continuations, we shouldn't get here.
+             (set! *stack* stack)
+             (lp stack))
+            (stack
+             (set! *stack* (cons fp* stack))))))
+      (apply-handler frame (length *stack*)))
   
-    ;; FIXME: recalc depth on abort
-
     (define (enter frame)
-      (add-hook! (vm-push-continuation-hook) trace-push)
-      (add-hook! (vm-pop-continuation-hook) trace-pop)
+      (add-hook! (vm-return-hook) trace-return)
       (add-hook! (vm-apply-hook) trace-apply))
   
     (define (leave frame)
-      (remove-hook! (vm-push-continuation-hook) trace-push)
-      (remove-hook! (vm-pop-continuation-hook) trace-pop)
+      (remove-hook! (vm-return-hook) trace-return)
       (remove-hook! (vm-apply-hook) trace-apply))
   
     (define (return frame)
@@ -550,9 +565,9 @@
                       (delq finish-trap pending-finish-traps))
                 (set! finish-trap #f))
               
-              (define (return-hook frame . values)
+              (define (return-hook frame)
                 (frame-finished frame)
-                (apply return-handler frame depth values))
+                (return-handler frame depth))
         
               ;; FIXME: abort handler?
               (define (abort-hook frame . values)

@@ -27,8 +27,7 @@
 
 enum {
   SCM_VM_APPLY_HOOK,
-  SCM_VM_PUSH_CONTINUATION_HOOK,
-  SCM_VM_POP_CONTINUATION_HOOK,
+  SCM_VM_RETURN_HOOK,
   SCM_VM_NEXT_HOOK,
   SCM_VM_ABORT_CONTINUATION_HOOK,
   SCM_VM_NUM_HOOKS,
@@ -68,8 +67,7 @@ SCM_API SCM scm_call_with_stack_overflow_handler (SCM limit, SCM thunk,
                                                   SCM handler);
 
 SCM_API SCM scm_vm_apply_hook (void);
-SCM_API SCM scm_vm_push_continuation_hook (void);
-SCM_API SCM scm_vm_pop_continuation_hook (void);
+SCM_API SCM scm_vm_return_hook (void);
 SCM_API SCM scm_vm_abort_continuation_hook (void);
 SCM_API SCM scm_vm_next_hook (void);
 SCM_API SCM scm_vm_trace_level (void);

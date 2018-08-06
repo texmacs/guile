@@ -126,8 +126,7 @@
 #define RUN_HOOK1(h, arg) RUN_HOOK (vm_dispatch_##h##_hook (thread, arg))
 
 #define APPLY_HOOK()                  RUN_HOOK0 (apply)
-#define PUSH_CONTINUATION_HOOK()      RUN_HOOK0 (push_continuation)
-#define POP_CONTINUATION_HOOK(old_fp) RUN_HOOK1 (pop_continuation, old_fp)
+#define RETURN_HOOK()                 RUN_HOOK0 (return)
 #define NEXT_HOOK()                   RUN_HOOK0 (next)
 #define ABORT_CONTINUATION_HOOK()     RUN_HOOK0 (abort)
 
@@ -367,8 +366,6 @@ VM_NAME (scm_thread *thread)
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
 
-      PUSH_CONTINUATION_HOOK ();
-
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
       SCM_FRAME_SET_DYNAMIC_LINK (VP->fp, old_fp);
@@ -408,8 +405,6 @@ VM_NAME (scm_thread *thread)
       UNPACK_24 (op, proc);
       UNPACK_24 (ip[1], nlocals);
       label = ip[2];
-
-      PUSH_CONTINUATION_HOOK ();
 
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_SLOT (old_fp, proc - 1);
@@ -569,6 +564,8 @@ VM_NAME (scm_thread *thread)
       union scm_vm_stack_element *old_fp;
       size_t frame_size = 3;
 
+      RETURN_HOOK ();
+
       old_fp = VP->fp;
       ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
       VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
@@ -576,8 +573,6 @@ VM_NAME (scm_thread *thread)
       /* Clear stack frame.  */
       while (frame_size--)
         old_fp[frame_size].as_scm = SCM_BOOL_F;
-
-      POP_CONTINUATION_HOOK (old_fp);
 
       NEXT (0);
     }
@@ -3014,8 +3009,7 @@ VM_NAME (scm_thread *thread)
 #undef SP_SET
 #undef NEXT
 #undef NEXT_HOOK
-#undef POP_CONTINUATION_HOOK
-#undef PUSH_CONTINUATION_HOOK
+#undef RETURN_HOOK
 #undef RUN_HOOK
 #undef RUN_HOOK0
 #undef RUN_HOOK1

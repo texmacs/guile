@@ -196,9 +196,7 @@ scm_i_capture_current_stack (void)
 }
 
 static void vm_dispatch_apply_hook (scm_thread *thread) SCM_NOINLINE;
-static void vm_dispatch_push_continuation_hook (scm_thread *thread) SCM_NOINLINE;
-static void vm_dispatch_pop_continuation_hook
-  (scm_thread *thread, union scm_vm_stack_element *old_fp) SCM_NOINLINE;
+static void vm_dispatch_return_hook (scm_thread *thread) SCM_NOINLINE;
 static void vm_dispatch_next_hook (scm_thread *thread) SCM_NOINLINE;
 static void vm_dispatch_abort_hook (scm_thread *thread) SCM_NOINLINE;
 
@@ -285,21 +283,18 @@ vm_dispatch_apply_hook (scm_thread *thread)
 {
   return vm_dispatch_hook (thread, SCM_VM_APPLY_HOOK, 0);
 }
-static void vm_dispatch_push_continuation_hook (scm_thread *thread)
+static void
+vm_dispatch_return_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_PUSH_CONTINUATION_HOOK, 0);
+  return vm_dispatch_hook (thread, SCM_VM_RETURN_HOOK, 0);
 }
-static void vm_dispatch_pop_continuation_hook (scm_thread *thread,
-                                               union scm_vm_stack_element *old_fp)
-{
-  return vm_dispatch_hook (thread, SCM_VM_POP_CONTINUATION_HOOK,
-                           SCM_FRAME_NUM_LOCALS (old_fp, thread->vm.sp));
-}
-static void vm_dispatch_next_hook (scm_thread *thread)
+static void
+vm_dispatch_next_hook (scm_thread *thread)
 {
   return vm_dispatch_hook (thread, SCM_VM_NEXT_HOOK, 0);
 }
-static void vm_dispatch_abort_hook (scm_thread *thread)
+static void
+vm_dispatch_abort_hook (scm_thread *thread)
 {
   return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK,
                            SCM_FRAME_NUM_LOCALS (thread->vm.fp, thread->vm.sp));
@@ -1023,9 +1018,6 @@ push_interrupt_frame (scm_thread *thread, uint8_t *mra)
   size_t old_frame_size = frame_locals_count (thread);
   SCM proc = scm_i_async_pop (thread);
 
-  /* No PUSH_CONTINUATION_HOOK, as we can't usefully
-     POP_CONTINUATION_HOOK because there are no return values.  */
-
   /* Reserve space for frame and callee.  */
   alloc_frame (thread, old_frame_size + frame_overhead + 1);
 
@@ -1464,21 +1456,12 @@ SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_push_continuation_hook, "vm-push-continuation-hook", 0, 0, 0,
+SCM_DEFINE (scm_vm_return_hook, "vm-return-hook", 0, 0, 0,
 	    (void),
 	    "")
-#define FUNC_NAME s_scm_vm_push_continuation_hook
+#define FUNC_NAME s_scm_vm_return_hook
 {
-  VM_DEFINE_HOOK (SCM_VM_PUSH_CONTINUATION_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_pop_continuation_hook, "vm-pop-continuation-hook", 0, 0, 0,
-	    (void),
-	    "")
-#define FUNC_NAME s_scm_vm_pop_continuation_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_POP_CONTINUATION_HOOK);
+  VM_DEFINE_HOOK (SCM_VM_RETURN_HOOK);
 }
 #undef FUNC_NAME
 
