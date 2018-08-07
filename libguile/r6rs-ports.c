@@ -37,6 +37,7 @@
 #include "smob.h"
 #include "strings.h"
 #include "symbols.h"
+#include "syscalls.h"
 #include "values.h"
 #include "vectors.h"
 
