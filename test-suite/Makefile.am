@@ -156,6 +156,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/srfi-64.test			\
 	    tests/srfi-67.test			\
 	    tests/srfi-69.test			\
+	    tests/srfi-71.test			\
 	    tests/srfi-88.test			\
 	    tests/srfi-98.test			\
 	    tests/srfi-105.test			\
@@ -189,6 +190,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/version.test			\
 	    tests/vectors.test			\
 	    tests/vlist.test			\
+	    tests/vm.test			\
 	    tests/weaks.test			\
 	    tests/web-client.test		\
 	    tests/web-http.test			\

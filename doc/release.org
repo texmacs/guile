@@ -128,9 +128,11 @@ Announcements").
 
 ** Update web pages
 
-  - Replace any references to the previous version number and replace it
-    with the new one.
-  - Update news.html.
+  - Update the version number in ‘latest-guile-version’ in the (website
+    utils) module of the web site.
+  - Add a news item by dropping a Markdown file under posts/.
+  - Build the web site: =haunt build=.
+  - Synchronize the files under site/ over the CVS repo.
 
 ** Update the on-line copy of the manual
 
@@ -165,14 +167,10 @@ Send to these places, preferably in the morning on a working day (UTC):
   - info-gnu@gnu.org (for stable releases only!)
   - comp.lang.scheme
 
-** Post a news item on [[http://sv.gnu.org/p/guile/][Savannah]]
-
-The news will end up on planet.gnu.org.  The text can be shorter and
-more informal, with a link to the email announcement for details.
 
 
 
-Copyright © 2011, 2012, 2013, 2017 Free Software Foundation, Inc.
+Copyright © 2011, 2012, 2013, 2017, 2018 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

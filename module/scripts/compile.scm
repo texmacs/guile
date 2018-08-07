@@ -1,6 +1,6 @@
 ;;; Compile --- Command-line Guile Scheme compiler  -*- coding: iso-8859-1 -*-
 
-;; Copyright 2005, 2008-2011, 2013, 2014, 2015, 2018 Free Software Foundation, Inc.
+;; Copyright 2005,2008-2011,2013-2015,2017-2018 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -29,6 +29,7 @@
 ;;; Code:
 
 (define-module (scripts compile)
+  #:use-module ((system base language) #:select (lookup-language))
   #:use-module ((system base compile) #:select (compile-file))
   #:use-module (system base target)
   #:use-module (system base message)
@@ -67,6 +68,10 @@
 		  (if (assoc-ref result 'output-file)
 		      (fail "`-o' option cannot be specified more than once")
 		      (alist-cons 'output-file arg result))))
+        (option '(#\x) #t #f
+                (lambda (opt name arg result)
+                  (set! %load-extensions (cons arg %load-extensions))
+                  result))
 
         (option '(#\W "warn") #t #f
                 (lambda (opt name arg result)
@@ -122,7 +127,7 @@
 options."
   (args-fold args %options
              (lambda (opt name arg result)
-               (format (current-error-port) "~A: unrecognized option" name)
+               (format (current-error-port) "~A: unrecognized option~%" name)
 	       (exit 1))
              (lambda (file result)
 	       (let ((input-files (assoc-ref result 'input-files)))
@@ -136,7 +141,7 @@ options."
 
 (define (show-version)
   (format #t "compile (GNU Guile) ~A~%" (version))
-  (format #t "Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+  (format #t "Copyright (C) 2018 Free Software Foundation, Inc.
 License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.~%"))
@@ -196,6 +201,7 @@ Compile each Guile source file FILE into a Guile object.
 
   -L, --load-path=DIR  add DIR to the front of the module load path
   -o, --output=OFILE   write output to OFILE
+  -x EXTENSION         add EXTENSION to the set of source file extensions
 
   -W, --warn=WARNING   emit warnings of type WARNING; use `--warn=help'
                        for a list of available warnings
@@ -211,6 +217,13 @@ Note that auto-compilation will be turned off.
 Report bugs to <~A>.~%"
                   %guile-bug-report-address)
           (exit 0)))
+
+    ;; Load FROM and TO before we have changed the load path.  That way, when
+    ;; cross-compiling Guile itself, we can be sure we're loading our own
+    ;; language modules and not those of the Guile being compiled, which may
+    ;; have incompatible .go files.
+    (lookup-language from)
+    (lookup-language to)
 
     (set! %load-path (append load-path %load-path))
     (set! %load-should-auto-compile #f)

@@ -153,7 +153,7 @@ static SCM flo_log10e;
 
 #define SCM_SWAP(x, y) do { SCM __t = x; x = y; y = __t; } while (0)
 
-/* FLOBUFLEN is the maximum number of characters neccessary for the
+/* FLOBUFLEN is the maximum number of characters necessary for the
  * printed or scm_string representation of an inexact number.
  */
 #define FLOBUFLEN (40+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)

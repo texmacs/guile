@@ -1202,16 +1202,13 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
                                *scm_loc_load_extensions, SCM_BOOL_F,
                                &stat_source);
 
-  if (scm_is_false (*scm_loc_fresh_auto_compile))
-    compiled_thunk = load_thunk_from_path (filename, full_filename,
-					   &stat_source,
-					   &found_stale_compiled_file);
-  else
-    compiled_thunk = SCM_BOOL_F;
+  compiled_thunk = load_thunk_from_path (filename, full_filename, &stat_source,
+                                         &found_stale_compiled_file);
 
   if (scm_is_false (compiled_thunk)
       && scm_is_true (full_filename)
       && scm_is_true (*scm_loc_compile_fallback_path)
+      && scm_is_false (*scm_loc_fresh_auto_compile)
       && scm_is_pair (*scm_loc_load_compiled_extensions)
       && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {

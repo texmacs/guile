@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -53,7 +53,7 @@ struct image @{
   SCM update_func;
 @};
 
-static SCM image_type image_type;
+static SCM image_type;
 
 void
 init_image_type (void)

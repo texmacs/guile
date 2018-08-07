@@ -225,7 +225,7 @@ custom_binary_port_seek (SCM port, scm_t_off offset, int whence)
 	  scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
 				  "R6RS custom binary port with "
 				  "`port-position' support");
-	c_result = scm_to_int (result);
+	c_result = scm_to_off_t (result);
 	if (offset == 0)
 	  /* We just want to know the current position.  */
 	  break;
@@ -414,11 +414,11 @@ SCM_DEFINE (scm_get_bytevector_n, "get-bytevector-n", 2, 0, 0,
 #define FUNC_NAME s_scm_get_bytevector_n
 {
   SCM result;
-  unsigned c_count;
+  size_t c_count;
   size_t c_read;
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
-  c_count = scm_to_uint (count);
+  c_count = scm_to_size_t (count);
 
   result = scm_c_make_bytevector (c_count);
 
@@ -450,13 +450,13 @@ SCM_DEFINE (scm_get_bytevector_n_x, "get-bytevector-n!", 4, 0, 0,
 #define FUNC_NAME s_scm_get_bytevector_n_x
 {
   SCM result;
-  unsigned c_start, c_count, c_len;
+  size_t c_start, c_count, c_len;
   size_t c_read;
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
   SCM_VALIDATE_BYTEVECTOR (2, bv);
-  c_start = scm_to_uint (start);
-  c_count = scm_to_uint (count);
+  c_start = scm_to_size_t (start);
+  c_count = scm_to_size_t (count);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
 
@@ -589,7 +589,7 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
 	    "octets.")
 #define FUNC_NAME s_scm_put_bytevector
 {
-  unsigned c_start, c_count, c_len;
+  size_t c_start, c_count, c_len;
 
   SCM_VALIDATE_BINARY_OUTPUT_PORT (1, port);
   SCM_VALIDATE_BYTEVECTOR (2, bv);
@@ -598,11 +598,11 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
 
   if (!scm_is_eq (start, SCM_UNDEFINED))
     {
-      c_start = scm_to_uint (start);
+      c_start = scm_to_size_t (start);
 
       if (!scm_is_eq (count, SCM_UNDEFINED))
 	{
-	  c_count = scm_to_uint (count);
+	  c_count = scm_to_size_t (count);
 	  if (SCM_UNLIKELY (c_start + c_count > c_len))
 	    scm_out_of_range (FUNC_NAME, count);
 	}

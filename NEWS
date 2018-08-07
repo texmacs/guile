@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright (C) 1996-2018 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -62,9 +62,77 @@ installation with other effective versions (for example, the older Guile
 Notably, the `pkg-config' file is now `guile-3.0'.
 
 
+Changes in 2.2.4 (since 2.2.3):
+
+* New interfaces and functionality
+
+** SRFI-71 (Extended LET-syntax for multiple values)
+
+Guile now includes SRFI-71, which extends let, let*, and letrec to
+support assigning multiple values.  See "SRFI-71" in the manual for
+details.
+
+** (web client) export 'http-request' procedure
+
+The 'http-request' procedure is the generalized procedure underneath
+'http-get', 'http-post', etc.
+
+** GDB support now registers the 'guile-backtrace' GDB command
+
+The 'guile-backtrace' GDB command displays a backtrace of the VM stack
+for the current thread.
+
+** Recognize RISC-V compilation targets in (system base target)
+
+* Bug fixes
+
+** Fix stack-marking bug affecting multi-threaded programs
+   (<https://bugs.gnu.org/28211>)
+
+** Add missing SYNC_IP calls in the VM
+
+These could cause multi-threaded code to crash.
+
+** Fix multi-threaded access to modules
+   (<https://bugs.gnu.org/30602>, <https://bugs.gnu.org/31879>,
+    and <https://bugs.gnu.org/31878>)
+
+** (ice-9 match) now has better documentation
+
+** 'get-bytevector-n' and 'get-bytevector-n!' can now read more than 4 GB
+
+** Fix cross-compilation support for elisp
+
+** Fix error reporting in 'load-thunk-from-memory'
+
+** Fix GOOPS 'instance?' to work on objects that aren't structs
+   (<https://bugs.gnu.org/31606>)
+
+** Fix type inference for bitwise logical operators
+   (<https://bugs.gnu.org/31474>)
+
+** Avoid inexact arithmetic in the type inferrer for 'sqrt'
+
+** Fix floating point unboxing regression in 2.2.3
+   (<https://bugs.gnu.org/30020>)
+
+** Fix eta-conversion edge cases in peval (<https://bugs.gnu.org/29520>)
+
+** Correctly interpret SRFI-18 timeout parameters
+   (<https://bugs.gnu.org/29704>)
+
+** 'select' returns empty sets upon EINTR and EAGAIN
+   (<https://bugs.gnu.org/30368>)
+
+** Restore pre-2.2.3 '%fresh-auto-compile' behavior
+
+This reverts an incorrect fix for <https://bugs.gnu.org/29226>.
+
+
+
 Changes in 2.2.3 (since 2.2.2):
 
-* New interfaces
+* New interfaces and functionality
 
 ** (web uri) module has better support for RFC 3986
 
@@ -77,6 +145,53 @@ Identifiers" in the manual, for more.
 
 These procedures should be used when accessing struct fields with type
 `u' (unboxed).  See "Structure Basics" in the manual, for full details.
+
+** Improved support for arrays with non-zero lower bounds
+
+Thanks to work by Daniel Llorens, Guile no longer exhibits buggy
+behavior in "sort" or "sort!" on arrays with non-zero lower dimension
+bounds.  Arrays with non-zero lower dimension bounds are now allowed for
+array-slice-for-each, and truncated-print now supports bitvectors and
+arrays with non-zero lower bounds.  General arrays are now supported as
+well for random:hollow-sphere!.
+
+** Add `uintptr_t' and `intptr_t' to FFI types.
+
+See "Foreign Types" in the manual for full details.
+
+* Compiler improvements
+
+** Improve speed of compiler backend for functions without loops
+
+This is a marginal speed improvement, especially for code compiled with
+optimization level "-O1" or below.
+
+** Disable slot pre-coloring for optimization level "-O1" or below
+
+This improves the speed of the compiler backend.
+
+** Improve complexity of constant subexpression elimination pass
+
+This is a large speed improvement when compiling large files with the
+default "-O2" pass.
+
+** CPS conversion avoids generating return arity adapters if possible
+
+In Guile, the expression in (define a EXP) may return 1 or more values.
+This value elision in "value" context is implicit earlier in the Guile
+compiler, in Tree-IL, but is made explicit in the CPS middle-end
+language by the addition of the equivalent of explicit call-with-values
+continuations that ignore additional values.  However in many cases we
+can avoid generating these extra continuations if we know that EXP is
+single-valued, as is the case for example for constants or variable
+references or the like.
+
+Although these "arity-adapting continuations" would be removed by dead
+code elimination at optimization level "-O2" or above, they were still
+being needlessly generated in the first place.  Guile now avoids
+generating them, speeding up not only the optimizer at -O2 but also the
+entire compiler pipeline at -O1 or below, as well as improving the
+residual code at -O1 or below.
 
 * New deprecations
 
@@ -131,7 +246,7 @@ slot values manually on initialization.
 ** Struct fields with opaque ("o") protection deprecated
 
 Struct fields are declared with a "protection", meaning read-only ('r'),
-read-write ('w'), or opaque ('o').  There is also "hidden" ('o') which
+read-write ('w'), or opaque ('o').  There is also "hidden" ('h') which
 is read-write but which isn't initialized by arguments passed to
 `make-struct/no-tail', but that's a detail.  Opaque struct fields were
 used to allocate storage in a struct that could only be accessed by C.
@@ -147,6 +262,47 @@ simply those which don't have an accessor.
 Use the new `struct-ref/unboxed' and `struct-set!/unboxed' instead.
 
 * Bug fixes
+
+** guile.m4 now checks for Guile 2.2 by default
+
+Before, it was still preferring Guile 2.0.  It now also supports the
+Guile 3.0 prereleases.
+
+** Fix setting breakpoints from the REPL
+
+** Allow GDB support to be used with GDB linked against Guile 2.0.
+
+** Fix deadlock in `readdir' on error.
+
+** Fix crash on ia64 during thread switches.
+
+** Fix bug inferring range of `logand' computations with negative numbers
+
+** Fix bug when issuing HTTP requests through proxies.
+
+** Refactor weak hash table implementation to be more robust
+
+Guile 2.2's weak hash table implementation had three big problems.  The
+first was a bug causing these tables to leak memory when they would be
+resized.  The second was that the implementation was designed so that
+tables should be visited by the mark phase of the garbage collector in
+one big piece.  This could cause the garbage collector to see too many
+newly marked objects at once, causing inefficies in garbage collection.
+Finally, the way in which lost weak references were ultimately removed
+from weak tables caused a race between the finalizer threads and the
+mutator threads, leading to unbounded excess space retention in
+pathological cases.  All of this problems have been fixed.
+
+** Allow garbage collection of revealed file ports
+
+Guile can mark a file port as "revealed" if Scheme has been given access
+to the file descriptor.  In that case, the file descriptor will not be
+closed when the port is garbage-collected.  However we had a bug that
+for revealed ports prevented the port from ever being garbage-collected,
+leading to memory leaks of Guile's internal port buffers.  This is now
+fixed.
+
+** Fix put-bytevector, unget-bytevector with start == bytevector length
 
 ** Enable GNU Readline 7.0's support for "bracketed paste".
 

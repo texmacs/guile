@@ -1,7 +1,7 @@
 ;;;; srfi-18.test --- Test suite for Guile's SRFI-18 functions. -*- scheme -*-
 ;;;; Julian Graham, 2007-10-26
 ;;;;
-;;;; Copyright (C) 2007, 2008, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2007, 2008, 2012, 2018 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -94,13 +94,12 @@
         (unspecified? (thread-sleep! future-time))))
 
     (pass-if "thread sleep with number"
-      (let ((old-secs (car (current-time))))
-        (unspecified? (thread-sleep! (+ (time->seconds (current-time)))))))
+      (unspecified? (thread-sleep! 0)))
 
     (pass-if "thread sleeps fractions of a second"
       (let* ((current (time->seconds (current-time)))
              (future (+ current 0.5)))
-        (thread-sleep! future)
+        (thread-sleep! 0.5)
         (>= (time->seconds (current-time)) future)))
 
     (pass-if "thread does not sleep on past time"
@@ -233,7 +232,7 @@
 
     (pass-if "mutex-lock! returns false on timeout"
       (let* ((m (make-mutex 'mutex-lock-2))
-             (t (make-thread (lambda () (mutex-lock! m (current-time) #f)))))
+             (t (make-thread (lambda () (mutex-lock! m 0 #f)))))
         (mutex-lock! m)
         (thread-start! t)
         (not (thread-join! t))))
@@ -241,9 +240,7 @@
     (pass-if "mutex-lock! returns true when lock obtained within timeout"
       (let* ((m (make-mutex 'mutex-lock-3))
              (t (make-thread (lambda () 
-                               (mutex-lock! m (+ (time->seconds (current-time)) 
-                                                 100)
-                                            #f)))))
+                               (mutex-lock! m 100 #f)))))
         (mutex-lock! m)
         (thread-start! t)
         (mutex-unlock! m)
@@ -306,8 +303,7 @@
       (let* ((m (make-mutex 'mutex-unlock-2))
              (t (make-thread (lambda ()
                                (mutex-lock! m)
-                               (let ((now (time->seconds (current-time))))
-                                 (mutex-lock! m (+ now 0.1)))
+                               (mutex-lock! m 0.1)
                                (mutex-unlock! m))
                              'mutex-unlock-2)))
         (thread-start! t)
@@ -352,7 +348,7 @@
       (let* ((m (make-mutex 'mutex-unlock-4))
              (c (make-condition-variable 'mutex-unlock-4)))
         (mutex-lock! m)
-        (not (mutex-unlock! m c (+ (time->seconds (current-time)) 1))))))
+        (not (mutex-unlock! m c 1)))))
 
   (with-test-prefix "condition-variable?"
 

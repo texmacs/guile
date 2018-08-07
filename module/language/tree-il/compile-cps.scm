@@ -2319,6 +2319,7 @@ integer."
 (define %warning-passes
   `((unused-variable             . ,unused-variable-analysis)
     (unused-toplevel             . ,unused-toplevel-analysis)
+    (shadowed-toplevel           . ,shadowed-toplevel-analysis)
     (unbound-variable            . ,unbound-variable-analysis)
     (macro-use-before-definition . ,macro-use-before-definition-analysis)
     (arity-mismatch              . ,arity-analysis)

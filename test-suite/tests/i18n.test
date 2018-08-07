@@ -1,7 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
-;;;;   2013, 2014, 2015, 2016, 2017 Free Software Foundation, Inc.
+;;;;   2013, 2014, 2015, 2016, 2017, 2018 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -562,6 +562,19 @@
 ;;; Numbers.
 ;;;
 
+(define (french-number-string=? expected result)
+  ;; Return true if RESULT is equal to EXPECTED, modulo white space.
+  ;; This is meant to deal with French locales: glibc 2.27+ uses
+  ;; NO-BREAK SPACE to separate 3-digit groups, whereas earlier versions
+  ;; used SPACE.
+  (or (string=? expected result)
+      (string=? (string-map (lambda (chr)
+                              (case chr
+                                ((#\space) #\240)
+                                (else      chr))) ;NO-BREAK SPACE
+                            expected)
+                result)))
+
 (with-test-prefix "number->locale-string"
 
   ;; We assume the global locale is "C" at this point.
@@ -600,33 +613,33 @@
 
   (with-test-prefix "French"
 
-    (pass-if-equal "integer"
-        "123 456"
+    (pass-if "integer"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string 123456 #t fr)))))
+           (french-number-string=? "123 456"
+                                   (number->locale-string 123456 #t fr))))))
 
-    (pass-if-equal "negative integer"
-        "-1 234 567"
+    (pass-if "negative integer"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string -1234567 #t fr)))))
+           (french-number-string=? "-1 234 567"
+                                   (number->locale-string -1234567 #t fr))))))
 
-    (pass-if-equal "fraction"
-        "1 234,567"
+    (pass-if "fraction"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string 1234.567 #t fr)))))
+           (french-number-string=? "1 234,567"
+                                   (number->locale-string 1234.567 #t fr))))))
 
-    (pass-if-equal "fraction, 1 digit"
-        "1 234,6"
+    (pass-if "fraction, 1 digit"
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (number->locale-string 1234.567 1 fr)))))))
+           (french-number-string=? "1 234,6"
+                                   (number->locale-string 1234.567 1 fr))))))))
 
 (with-test-prefix "format ~h"
 
@@ -636,13 +649,14 @@
 
   (with-test-prefix "French"
 
-    (pass-if-equal "12345.678"
-        "12 345,678"
+    (pass-if "12345.678"
       (under-french-locale-or-unresolved
        (lambda ()
          (if (null? (locale-digit-grouping %french-locale))
              (throw 'unresolved)
-             (format #f "~:h" 12345.678 %french-locale))))))
+             (french-number-string=? "12 345,678"
+                                     (format #f "~:h" 12345.678
+                                             %french-locale)))))))
 
   (with-test-prefix "English"
 
@@ -659,19 +673,23 @@
 
   (with-test-prefix "French"
 
-    (pass-if-equal "integer"
-        "123 456,00 +EUR"
+    (pass-if "integer"
       (under-french-locale-or-unresolved
        (lambda ()
-         (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (monetary-amount->locale-string 123456 #f fr)))))
+         (let* ((fr  (make-locale LC_ALL %french-locale-name))
+                (str (monetary-amount->locale-string 123456 #f fr)))
+           ;; Check for both NO-BREAK SPACE and SPACE.
+           (or (string=? "123 456,00 +EUR" str)
+               (string=? "123 456,00 +EUR" str))))))
 
-    (pass-if-equal "fraction"
-        "1 234,57 EUR "
+    (pass-if "fraction"
       (under-french-locale-or-unresolved
        (lambda ()
-         (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (monetary-amount->locale-string 1234.567 #t fr)))))
+         (let* ((fr  (make-locale LC_ALL %french-locale-name))
+                (str (monetary-amount->locale-string 1234.567 #t fr)))
+           ;; Check for both NO-BREAK SPACE and SPACE.
+           (or (string=? "1 234,57 EUR " str)
+               (string=? "1 234,57 EUR " str))))))
 
     (pass-if-equal "positive inexact zero"
         "0,00 +EUR"

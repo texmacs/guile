@@ -1,4 +1,4 @@
-/* Copyright 2001,2009-2015,2018
+/* Copyright 2001,2009-2015,2017-2018
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -348,7 +348,7 @@ process_dynamic_segment (char *base, Elf_Phdr *dyn_phdr,
   return NULL;
 }
 
-#define ABORT(msg) do { err_msg = msg; goto cleanup; } while (0)
+#define ABORT(msg) do { err_msg = msg; errno = 0; goto cleanup; } while (0)
 
 static SCM
 load_thunk_from_memory (char *data, size_t len, int is_read_only)
@@ -371,7 +371,10 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
   header = (Elf_Ehdr*) data;
   
   if ((err_msg = check_elf_header (header)))
-    goto cleanup;
+    {
+      errno = 0;				  /* not an OS error */
+      goto cleanup;
+    }
 
   if (header->e_phnum == 0)
     ABORT ("no loadable segments");
@@ -466,7 +469,10 @@ load_thunk_from_memory (char *data, size_t len, int is_read_only)
 
   if ((err_msg = process_dynamic_segment (data, &ph[dynamic_segment],
                                           &init, &entry, &frame_maps)))
-    goto cleanup;
+    {
+      errno = 0;				  /* not an OS error */
+      goto cleanup;
+    }
 
   if (scm_is_true (init))
     scm_call_0 (init);

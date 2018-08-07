@@ -482,11 +482,10 @@ install-exec-hook:
 	rm -f $(DESTDIR)$(bindir)/guile-snarf.awk
 
 ## Instantiate a template.
-INSTANTIATE =                                                                   \
-  $(SED) -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'                                \
-         -e 's,[@]pkglibdir[@],$(pkglibdir),g'                                  \
-         -e 's,[@]GUILE_EFFECTIVE_VERSION[@],$(GUILE_EFFECTIVE_VERSION),g'      \
-         -i
+INSTANTIATE =									\
+  $(SED) -i -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'				\
+            -e 's,[@]pkglibdir[@],$(pkglibdir),g'				\
+            -e 's,[@]GUILE_EFFECTIVE_VERSION[@],$(GUILE_EFFECTIVE_VERSION),g'
 
 install-data-hook: libguile-2.2-gdb.scm
 	@$(MKDIR_P) $(DESTDIR)$(libdir)

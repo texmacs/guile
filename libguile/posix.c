@@ -1,4 +1,4 @@
-/* Copyright 1995-2014,2016,2018
+/* Copyright 1995-2014,2016-2018
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -1936,26 +1936,46 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 	    "crypt(3) library call.")
 #define FUNC_NAME s_scm_crypt
 {
+  int err;
   SCM ret;
   char *c_key, *c_salt, *c_ret;
 
   scm_dynwind_begin (0);
-  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
   c_key = scm_to_locale_string (key);
   scm_dynwind_free (c_key);
   c_salt = scm_to_locale_string (salt);
   scm_dynwind_free (c_salt);
 
+  /* Take the lock because 'crypt' uses a static buffer.  */
+  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
+
   /* The Linux crypt(3) man page says crypt will return NULL and set errno
      on error.  (Eg. ENOSYS if legal restrictions mean it cannot be
      implemented).  */
   c_ret = crypt (c_key, c_salt);
-  if (c_ret == NULL)
-    SCM_SYSERROR;
 
-  ret = scm_from_locale_string (c_ret);
+  if (c_ret == NULL)
+    {
+      /* Note: Do not throw until we've released 'scm_i_misc_mutex'
+	 since this would cause a deadlock down the path.  */
+      err = errno;
+      ret = SCM_BOOL_F;
+    }
+  else
+    {
+      err = 0;
+      ret = scm_from_locale_string (c_ret);
+    }
+
   scm_dynwind_end ();
+
+  if (scm_is_false (ret))
+    {
+      errno = err;
+      SCM_SYSERROR;
+    }
+
   return ret;
 }
 #undef FUNC_NAME

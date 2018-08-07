@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; Copyright (C) 2001-2003, 2005-2011, 2014, 2016-2017
+;; Copyright (C) 2001-2003, 2005-2011, 2014, 2016-2018
 ;;   Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
@@ -284,24 +284,6 @@
 
 (define (make-time type nanosecond second)
   (time-normalize! (make-time-unnormalized type nanosecond second)))
-
-;; Helpers
-;; FIXME: finish this and publish it?
-(define (date->broken-down-time date)
-  (let ((result (mktime 0)))
-    ;; FIXME: What should we do about leap-seconds which may overflow
-    ;; set-tm:sec?
-    (set-tm:sec result (date-second date))
-    (set-tm:min result (date-minute date))
-    (set-tm:hour result (date-hour date))
-    ;; FIXME: SRFI day ranges from 0-31.  (not compatible with set-tm:mday).
-    (set-tm:mday result (date-day date))
-    (set-tm:mon result (- (date-month date) 1))
-    ;; FIXME: need to signal error on range violation.
-    (set-tm:year result (+ 1900 (date-year date)))
-    (set-tm:isdst result -1)
-    (set-tm:gmtoff result (- (date-zone-offset date)))
-    result))
 
 ;;; current-time
 

@@ -658,13 +658,21 @@ Write output bytecode to @var{ofile}.  By convention, bytecode file
 names end in @code{.go}.  When @option{-o} is omitted, the output file
 name is as for @code{compile-file} (see below).
 
+@item -x @var{extension}
+Recognize @var{extension} as a valid source file name extension.
+
+For example, to compile R6RS code, you might want to pass @command{-x
+.sls} so that files ending in @file{.sls} can be found.
+
 @item -W @var{warning}
 @itemx --warn=@var{warning}
 @cindex warnings, compiler
 Emit warnings of type @var{warning}; use @code{--warn=help} for a list
 of available warnings and their description.  Currently recognized
 warnings include @code{unused-variable}, @code{unused-toplevel},
-@code{unbound-variable}, @code{arity-mismatch}, @code{format},
+@code{shadowed-toplevel}, @code{unbound-variable},
+@code{macro-use-before-definition},
+@code{arity-mismatch}, @code{format},
 @code{duplicate-case-datum}, and @code{bad-case-datum}.
 
 @item -f @var{lang}

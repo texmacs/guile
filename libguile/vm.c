@@ -582,7 +582,7 @@ return_unused_stack_to_os (struct scm_vm *vp)
 
       do
         ret = madvise ((void *) lo, hi - lo, MADV_DONTNEED);
-      while (ret && errno == -EAGAIN);
+      while (ret && errno == EAGAIN);
 
       if (ret)
         perror ("madvise failed");
@@ -991,7 +991,7 @@ cons_rest (scm_thread *thread, uint32_t base)
 static void
 push_interrupt_frame (scm_thread *thread, uint8_t *mra)
 {
-  union scm_vm_stack_element *old_fp;
+  union scm_vm_stack_element *old_fp, *new_fp;
   size_t frame_overhead = 3;
   size_t old_frame_size = frame_locals_count (thread);
   SCM proc = scm_i_async_pop (thread);
@@ -1000,14 +1000,15 @@ push_interrupt_frame (scm_thread *thread, uint8_t *mra)
   alloc_frame (thread, old_frame_size + frame_overhead + 1);
 
   old_fp = thread->vm.fp;
-  thread->vm.fp = SCM_FRAME_SLOT (old_fp, old_frame_size + frame_overhead - 1);
-  SCM_FRAME_SET_DYNAMIC_LINK (thread->vm.fp, old_fp);
+  new_fp = SCM_FRAME_SLOT (old_fp, old_frame_size + frame_overhead - 1);
+  SCM_FRAME_SET_DYNAMIC_LINK (new_fp, old_fp);
   /* Arrange to return to the same handle-interrupts opcode to handle
      any additional interrupts.  */
-  SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (thread->vm.fp, thread->vm.ip);
-  SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (thread->vm.fp, mra);
+  SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (new_fp, thread->vm.ip);
+  SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (new_fp, mra);
+  SCM_FRAME_LOCAL (new_fp, 0) = proc;
 
-  SCM_FRAME_LOCAL (thread->vm.fp, 0) = proc;
+  thread->vm.fp = new_fp;
 }
 
 struct return_to_continuation_data
@@ -1375,7 +1376,6 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   SCM_FRAME_SET_DYNAMIC_LINK (return_fp, vp->fp);
 
   vp->ip = (uint32_t *) vm_boot_continuation_code;
-  vp->fp = call_fp;
 
   SCM_FRAME_SET_VIRTUAL_RETURN_ADDRESS (call_fp, vp->ip);
   SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (call_fp, 0);
@@ -1383,6 +1383,8 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
   SCM_FRAME_LOCAL (call_fp, 0) = proc;
   for (i = 0; i < nargs; i++)
     SCM_FRAME_LOCAL (call_fp, i + 1) = argv[i];
+
+  vp->fp = call_fp;
 
   {
     jmp_buf registers;
