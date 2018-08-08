@@ -192,12 +192,18 @@
   } while (0)
 
 /* Reset the current frame to hold N locals.  Used when we know that no
-   stack expansion is needed.  */
+   stack expansion is needed.  Note that in some cases this may lower
+   SP, e.g. after a return but where there are more locals below, but we
+   know it was preceded by an alloc-frame in that case, so no stack need
+   be allocated.
+
+   As an optimization, we don't update sp_min_since_gc in this case; the
+   principal place stacks are expanded is in ALLOC_FRAME. it doesn't
+   need to strictly be the min since GC, as it's just an optimization to
+   prevent passing too-large of a range to madvise.  */
 #define RESET_FRAME(n)                                              \
   do {                                                              \
     VP->sp = sp = VP->fp - (n);                                     \
-    if (sp < VP->sp_min_since_gc)                                   \
-      VP->sp_min_since_gc = sp;                                     \
   } while (0)
 
 /* Compute the number of locals in the frame.  At a call, this is equal
