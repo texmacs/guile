@@ -121,7 +121,7 @@ compile_compose_continuation (scm_jit_state *j, uint32_t a)
 }
 
 static void
-compile_call_cc (scm_jit_state *j)
+compile_capture_continuation (scm_jit_state *j, uint32_t dst)
 {
 }
 

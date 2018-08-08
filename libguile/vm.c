@@ -338,7 +338,9 @@ static const uint32_t vm_builtin_call_with_values_code[] = {
 
 static const uint32_t vm_builtin_call_with_current_continuation_code[] = {
   SCM_PACK_OP_24 (assert_nargs_ee, 2),
-  SCM_PACK_OP_24 (call_cc, 0)
+  SCM_PACK_OP_12_12 (mov, 1, 0),
+  SCM_PACK_OP_24 (capture_continuation, 0),
+  SCM_PACK_OP_24 (tail_call, 0)
 };
 
 static const uint32_t vm_handle_interrupt_code[] = {
@@ -1331,6 +1333,8 @@ get_callee_vcode (scm_thread *thread)
       SCM_FRAME_LOCAL (vp->fp, 0) = proc;
       return SCM_PROGRAM_CODE (proc);
     }
+
+  vp->ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (vp->fp);
 
   scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
              scm_list_1 (proc), scm_list_1 (proc));
