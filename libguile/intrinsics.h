@@ -66,6 +66,7 @@ typedef void (*scm_t_thread_u8_scm_sp_vra_intrinsic) (scm_thread*,
                                                       const union scm_vm_stack_element*,
                                                       uint32_t*);
 typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
+typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -128,7 +129,7 @@ typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(noreturn, error_no_values, "no-values", ERROR_NO_VALUES) \
   M(noreturn, error_not_enough_values, "not-enough-values", ERROR_NOT_ENOUGH_VALUES) \
   M(u32_noreturn, error_wrong_number_of_values, "wrong-number-of-values", ERROR_WRONG_NUMBER_OF_VALUES) \
-  M(thread, apply_non_program, "apply-non-program", APPLY_NON_PROGRAM) \
+  M(vra_from_thread, get_callee_vcode, "get-callee-vcode", GET_CALLEE_VCODE) \
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
   M(thread_u8_scm_sp_vra, push_prompt, "push-prompt", PUSH_PROMPT) \

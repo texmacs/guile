@@ -1296,12 +1296,15 @@ abort_to_prompt (scm_thread *thread)
     longjmp (*registers, 1);
 }
 
-static void
-apply_non_program (scm_thread *thread)
+static uint32_t *
+get_callee_vcode (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
 
   SCM proc = SCM_FRAME_LOCAL (vp->fp, 0);
+
+  if (SCM_LIKELY (SCM_PROGRAM_P (proc)))
+    return SCM_PROGRAM_CODE (proc);
 
   while (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
     {
@@ -1309,10 +1312,7 @@ apply_non_program (scm_thread *thread)
       SCM_FRAME_LOCAL (vp->fp, 0) = proc;
 
       if (SCM_PROGRAM_P (proc))
-        {
-          vp->ip = SCM_PROGRAM_CODE (proc);
-          return;
-        }
+        return SCM_PROGRAM_CODE (proc);
     }
 
   if (SCM_HAS_TYP7 (proc, scm_tc7_smob) && SCM_SMOB_APPLICABLE_P (proc))
@@ -1329,8 +1329,7 @@ apply_non_program (scm_thread *thread)
 
       proc = SCM_SMOB_DESCRIPTOR (proc).apply_trampoline;
       SCM_FRAME_LOCAL (vp->fp, 0) = proc;
-      vp->ip = SCM_PROGRAM_CODE (proc);
-      return;
+      return SCM_PROGRAM_CODE (proc);
     }
 
   scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
@@ -1401,13 +1400,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
           vm_dispatch_abort_hook (thread);
       }
     else
-      {
-        if (SCM_LIKELY (SCM_PROGRAM_P (proc)))
-          vp->ip = SCM_PROGRAM_CODE (proc);
-        else
-          /* FIXME: Make this return an IP.  */
-          apply_non_program (thread);
-      }
+      vp->ip = get_callee_vcode (thread);
 
     thread->vm.registers = &registers;
     ret = vm_engines[vp->engine](thread);
@@ -1687,7 +1680,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.compose_continuation = compose_continuation;
   scm_vm_intrinsics.rest_arg_length = rest_arg_length;
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
-  scm_vm_intrinsics.apply_non_program = apply_non_program;
+  scm_vm_intrinsics.get_callee_vcode = get_callee_vcode;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");

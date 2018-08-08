@@ -379,16 +379,10 @@ VM_NAME (scm_thread *thread)
       SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (new_fp, 0);
       VP->fp = new_fp;
 
+      SYNC_IP ();
       RESET_FRAME (nlocals);
-
-      if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
-        ip = SCM_PROGRAM_CODE (FP_REF (0));
-      else
-        {
-          SYNC_IP ();
-          CALL_INTRINSIC (apply_non_program, (thread));
-          CACHE_REGISTER ();
-        }
+      ip = CALL_INTRINSIC (get_callee_vcode, (thread));
+      CACHE_SP ();
 
       NEXT (0);
     }
@@ -435,15 +429,9 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (3, tail_call, "tail-call", OP1 (X32))
     {
-      if (SCM_LIKELY (SCM_PROGRAM_P (FP_REF (0))))
-        ip = SCM_PROGRAM_CODE (FP_REF (0));
-      else
-        {
-          SYNC_IP ();
-          CALL_INTRINSIC (apply_non_program, (thread));
-          CACHE_REGISTER ();
-        }
-
+      SYNC_IP ();
+      ip = CALL_INTRINSIC (get_callee_vcode, (thread));
+      CACHE_SP ();
       NEXT (0);
     }
 
@@ -756,13 +744,8 @@ VM_NAME (scm_thread *thread)
       SP_SET (1, SP_REF (0));
       SP_SET (0, cont);
 
-      if (SCM_LIKELY (SCM_PROGRAM_P (SP_REF (1))))
-        ip = SCM_PROGRAM_CODE (SP_REF (1));
-      else
-        {
-          CALL_INTRINSIC (apply_non_program, (thread));
-          CACHE_REGISTER ();
-        }
+      ip = CALL_INTRINSIC (get_callee_vcode, (thread));
+      CACHE_SP ();
 
       NEXT (0);
     }
