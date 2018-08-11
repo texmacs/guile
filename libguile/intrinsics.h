@@ -133,6 +133,7 @@ typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
   M(thread_u8_scm_sp_vra, push_prompt, "push-prompt", PUSH_PROMPT) \
+  M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

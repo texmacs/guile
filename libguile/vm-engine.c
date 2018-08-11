@@ -595,14 +595,10 @@ VM_NAME (scm_thread *thread)
       SYNC_IP ();
       ret = scm_apply_subr (sp, idx, FRAME_LOCALS_COUNT ());
 
-      CACHE_SP ();
-
       if (SCM_UNLIKELY (scm_is_values (ret)))
         {
-          size_t n, nvals = scm_i_nvalues (ret);
-          ALLOC_FRAME (nvals);
-          for (n = 0; n < nvals; n++)
-            FP_SET (n, scm_i_value_ref (ret, n));
+          CALL_INTRINSIC (unpack_values_object, (thread, ret));
+          CACHE_SP ();
           NEXT (1);
         }
       else

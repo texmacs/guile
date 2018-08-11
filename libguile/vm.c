@@ -1183,6 +1183,17 @@ rest_arg_length (SCM x)
   return len;
 }
 
+/* This is here to avoid putting the code for "alloc-frame" in subr
+   calls. */
+static void
+unpack_values_object (scm_thread *thread, SCM obj)
+{
+  size_t n, nvals = scm_i_nvalues (obj);
+  alloc_frame (thread, nvals);
+  for (n = 0; n < nvals; n++)
+    SCM_FRAME_LOCAL (thread->vm.fp, n) = scm_i_value_ref (obj, n);
+}
+
 static SCM
 capture_delimited_continuation (struct scm_vm *vp,
                                 union scm_vm_stack_element *saved_fp,
@@ -1685,6 +1696,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.rest_arg_length = rest_arg_length;
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
   scm_vm_intrinsics.get_callee_vcode = get_callee_vcode;
+  scm_vm_intrinsics.unpack_values_object = unpack_values_object;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");
