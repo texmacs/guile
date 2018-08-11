@@ -195,10 +195,10 @@ scm_i_capture_current_stack (void)
                                  0);
 }
 
-static void vm_dispatch_apply_hook (scm_thread *thread) SCM_NOINLINE;
-static void vm_dispatch_return_hook (scm_thread *thread) SCM_NOINLINE;
-static void vm_dispatch_next_hook (scm_thread *thread) SCM_NOINLINE;
-static void vm_dispatch_abort_hook (scm_thread *thread) SCM_NOINLINE;
+static void invoke_apply_hook (scm_thread *thread);
+static void invoke_return_hook (scm_thread *thread);
+static void invoke_next_hook (scm_thread *thread);
+static void invoke_abort_hook (scm_thread *thread);
 
 /* Return the first integer greater than or equal to LEN such that
    LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
@@ -206,7 +206,7 @@ static void vm_dispatch_abort_hook (scm_thread *thread) SCM_NOINLINE;
   ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 static void
-vm_dispatch_hook (scm_thread *thread, int hook_num)
+invoke_hook (scm_thread *thread, int hook_num)
 {
   struct scm_vm *vp = &thread->vm;
   SCM hook;
@@ -258,24 +258,24 @@ vm_dispatch_hook (scm_thread *thread, int hook_num)
 }
 
 static void
-vm_dispatch_apply_hook (scm_thread *thread)
+invoke_apply_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_APPLY_HOOK);
+  return invoke_hook (thread, SCM_VM_APPLY_HOOK);
 }
 static void
-vm_dispatch_return_hook (scm_thread *thread)
+invoke_return_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_RETURN_HOOK);
+  return invoke_hook (thread, SCM_VM_RETURN_HOOK);
 }
 static void
-vm_dispatch_next_hook (scm_thread *thread)
+invoke_next_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_NEXT_HOOK);
+  return invoke_hook (thread, SCM_VM_NEXT_HOOK);
 }
 static void
-vm_dispatch_abort_hook (scm_thread *thread)
+invoke_abort_hook (scm_thread *thread)
 {
-  return vm_dispatch_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK);
+  return invoke_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK);
 }
 
 
@@ -1412,7 +1412,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         scm_gc_after_nonlocal_exit ();
         /* Non-local return.  */
         if (vp->trace_level)
-          vm_dispatch_abort_hook (thread);
+          invoke_abort_hook (thread);
       }
     else
       vp->ip = get_callee_vcode (thread);
@@ -1697,6 +1697,10 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
   scm_vm_intrinsics.get_callee_vcode = get_callee_vcode;
   scm_vm_intrinsics.unpack_values_object = unpack_values_object;
+  scm_vm_intrinsics.invoke_apply_hook = invoke_apply_hook;
+  scm_vm_intrinsics.invoke_return_hook = invoke_return_hook;
+  scm_vm_intrinsics.invoke_next_hook = invoke_next_hook;
+  scm_vm_intrinsics.invoke_abort_hook = invoke_abort_hook;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");

@@ -134,6 +134,10 @@ typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
   M(thread_u8_scm_sp_vra, push_prompt, "push-prompt", PUSH_PROMPT) \
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
+  M(thread, invoke_apply_hook, "invoke-apply-hook", INVOKE_APPLY_HOOK) \
+  M(thread, invoke_return_hook, "invoke-return-hook", INVOKE_RETURN_HOOK) \
+  M(thread, invoke_next_hook, "invoke-next-hook", INVOKE_NEXT_HOOK) \
+  M(thread, invoke_abort_hook, "invoke-abort-hook", INVOKE_ABORT_HOOK) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

@@ -115,7 +115,7 @@
     if (SCM_UNLIKELY (VP->trace_level))                 \
       {                                                 \
         SYNC_IP ();                                     \
-        vm_dispatch_##h##_hook (thread);                \
+        CALL_INTRINSIC (invoke_##h##_hook, (thread));   \
         CACHE_SP ();                                    \
       }                                                 \
   } while (0)
