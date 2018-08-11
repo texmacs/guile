@@ -1194,6 +1194,19 @@ unpack_values_object (scm_thread *thread, SCM obj)
     SCM_FRAME_LOCAL (thread->vm.fp, n) = scm_i_value_ref (obj, n);
 }
 
+static void
+foreign_call (scm_thread *thread, SCM cif, SCM pointer)
+{
+  SCM ret;
+  int err = 0;
+
+  ret = scm_i_foreign_call (cif, pointer, &err, thread->vm.sp);
+
+  alloc_frame (thread, 2);
+  SCM_FRAME_LOCAL (thread->vm.fp, 0) = ret;
+  SCM_FRAME_LOCAL (thread->vm.fp, 1) = scm_from_int (err);
+}
+
 static SCM
 capture_delimited_continuation (struct scm_vm *vp,
                                 union scm_vm_stack_element *saved_fp,
@@ -1701,6 +1714,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.invoke_return_hook = invoke_return_hook;
   scm_vm_intrinsics.invoke_next_hook = invoke_next_hook;
   scm_vm_intrinsics.invoke_abort_hook = invoke_abort_hook;
+  scm_vm_intrinsics.foreign_call = foreign_call;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");

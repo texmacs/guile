@@ -1016,9 +1016,9 @@ pack (const ffi_type * type, const void *loc, int return_value_p)
 
 #define MAX(A, B) ((A) >= (B) ? (A) : (B))
 
-static SCM
-foreign_call (SCM cif_scm, SCM pointer_scm, SCM *errno_ret,
-              const union scm_vm_stack_element *argv)
+SCM
+scm_i_foreign_call (SCM cif_scm, SCM pointer_scm, int *errno_ret,
+                    const union scm_vm_stack_element *argv)
 {
   /* FOREIGN is the pair that cif_to_procedure set as the 0th element of the
      objtable. */
@@ -1070,7 +1070,7 @@ foreign_call (SCM cif_scm, SCM pointer_scm, SCM *errno_ret,
   /* off we go! */
   errno = 0;
   ffi_call (cif, func, rvalue, args);
-  *errno_ret = scm_from_int (errno);
+  *errno_ret = errno;
 
   return pack (cif->rtype, rvalue, 1);
 }
@@ -1305,6 +1305,5 @@ scm_register_foreign (void)
                             "scm_init_foreign",
                             (scm_t_extension_init_func)scm_init_foreign,
                             NULL);
-  scm_vm_intrinsics.foreign_call = foreign_call;
   pointer_weak_refs = scm_c_make_weak_table (0, SCM_WEAK_TABLE_KIND_KEY);
 }

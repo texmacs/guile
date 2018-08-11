@@ -116,7 +116,7 @@ typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
   M(u32_from_thread_u32_u32, compute_kwargs_npositional, "compute-kwargs-npositional", COMPUTE_KWARGS_NPOSITIONAL) \
   M(thread_u32_u32_scm_u8_u8, bind_kwargs, "bind-kwargs", BIND_KWARGS) \
   M(thread_mra, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
-  M(scm_from_scm_scm_scmp_sp, foreign_call, "foreign-call", FOREIGN_CALL) \
+  M(thread_scm_scm, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
   M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
   M(thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \

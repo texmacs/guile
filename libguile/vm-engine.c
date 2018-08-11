@@ -620,7 +620,7 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (11, foreign_call, "foreign-call", OP1 (X8_C12_C12))
     {
       uint16_t cif_idx, ptr_idx;
-      SCM closure, cif, pointer, ret, err;
+      SCM closure, cif, pointer;
 
       UNPACK_12_12 (op, cif_idx, ptr_idx);
 
@@ -629,12 +629,8 @@ VM_NAME (scm_thread *thread)
       pointer = SCM_PROGRAM_FREE_VARIABLE_REF (closure, ptr_idx);
 
       SYNC_IP ();
-      ret = CALL_INTRINSIC (foreign_call, (cif, pointer, &err, sp));
+      CALL_INTRINSIC (foreign_call, (thread, cif, pointer));
       CACHE_SP ();
-
-      ALLOC_FRAME (2);
-      SP_SET (1, ret);
-      SP_SET (0, err);
 
       NEXT (1);
     }

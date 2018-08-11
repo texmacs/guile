@@ -104,6 +104,9 @@ SCM_API SCM scm_pointer_to_procedure_with_errno (SCM return_type, SCM func_ptr,
                                                  SCM arg_types);
 SCM_API SCM scm_procedure_to_pointer (SCM return_type, SCM func_ptr,
 				      SCM arg_types);
+SCM_INTERNAL SCM scm_i_foreign_call (SCM cif_scm, SCM pointer_scm,
+                                     int *errno_ret,
+                                     const union scm_vm_stack_element *argv);
 
 
 
