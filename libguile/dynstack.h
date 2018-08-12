@@ -160,7 +160,8 @@ SCM_INTERNAL void scm_dynstack_push_prompt (scm_t_dynstack *,
                                             SCM key,
                                             ptrdiff_t fp_offset,
                                             ptrdiff_t sp_offset,
-                                            uint32_t *ip,
+                                            uint32_t *vra,
+                                            uint8_t *mra,
                                             jmp_buf *registers);
 SCM_INTERNAL void scm_dynstack_push_dynwind (scm_t_dynstack *,
                                              SCM enter, SCM leave);
@@ -201,6 +202,7 @@ SCM_INTERNAL scm_t_bits* scm_dynstack_find_prompt (scm_t_dynstack *, SCM,
                                                    ptrdiff_t *,
                                                    ptrdiff_t *,
                                                    uint32_t **,
+                                                   uint8_t **,
                                                    jmp_buf **);
 
 SCM_INTERNAL SCM scm_dynstack_find_old_fluid_value (scm_t_dynstack *,

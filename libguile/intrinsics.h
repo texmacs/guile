@@ -61,12 +61,15 @@ typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
 typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
 typedef SCM (*scm_t_scm_from_thread_u64_intrinsic) (scm_thread*, uint64_t);
 typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
-typedef void (*scm_t_thread_u8_scm_sp_vra_intrinsic) (scm_thread*,
-                                                      uint8_t, SCM,
-                                                      const union scm_vm_stack_element*,
-                                                      uint32_t*);
+typedef void (*scm_t_thread_u8_scm_sp_vra_mra_intrinsic) (scm_thread*,
+                                                          uint8_t, SCM,
+                                                          const union scm_vm_stack_element*,
+                                                          uint32_t*, uint8_t*);
 typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
+typedef uint8_t* (*scm_t_mra_from_thread_scm_intrinsic) (scm_thread*, SCM);
+typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
+typedef SCM (*scm_t_scm_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -118,10 +121,10 @@ typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
   M(thread_mra, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(thread_scm_scm, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
-  M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
-  M(thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
+  M(scm_from_thread_mra, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
+  M(mra_from_thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
   M(int_from_scm, rest_arg_length, "rest-arg-length", REST_ARG_LENGTH) \
-  M(thread, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \
+  M(mra_from_thread_mra, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \
   M(scm_scm_noreturn, throw_, "throw", THROW) \
   M(scm_scm_noreturn, throw_with_value, "throw/value", THROW_WITH_VALUE) \
   M(scm_scm_noreturn, throw_with_value_and_data, "throw/value+data", THROW_WITH_VALUE_AND_DATA) \
@@ -132,7 +135,7 @@ typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
   M(vra_from_thread, get_callee_vcode, "get-callee-vcode", GET_CALLEE_VCODE) \
   M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
-  M(thread_u8_scm_sp_vra, push_prompt, "push-prompt", PUSH_PROMPT) \
+  M(thread_u8_scm_sp_vra_mra, push_prompt, "push-prompt", PUSH_PROMPT)     \
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
   M(thread, invoke_apply_hook, "invoke-apply-hook", INVOKE_APPLY_HOOK) \
   M(thread, invoke_return_hook, "invoke-return-hook", INVOKE_RETURN_HOOK) \

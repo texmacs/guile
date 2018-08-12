@@ -153,7 +153,7 @@ scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame)
   frame->stack_holder = data;
   frame->fp_offset = data->fp_offset;
   frame->sp_offset = data->stack_size;
-  frame->ip = data->ra;
+  frame->ip = data->vra;
 
   return 1;
 }
@@ -161,11 +161,13 @@ scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame)
 /* Ideally we could avoid copying the C stack if the continuation root
    is inside VM code, and call/cc was invoked within that same call to
    vm_run.  That's currently not implemented.  */
-SCM
-scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
-                        union scm_vm_stack_element *fp,
-                        union scm_vm_stack_element *sp, uint32_t *ra,
-                        scm_t_dynstack *dynstack, uint32_t flags)
+static SCM
+capture_stack (union scm_vm_stack_element *stack_top,
+               union scm_vm_stack_element *fp,
+               union scm_vm_stack_element *sp,
+               uint32_t *vra,
+               uint8_t *mra,
+               scm_t_dynstack *dynstack, uint32_t flags)
 {
   struct scm_vm_cont *p;
 
@@ -173,7 +175,8 @@ scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
   p->stack_size = stack_top - sp;
   p->stack_bottom = scm_gc_malloc (p->stack_size * sizeof (*p->stack_bottom),
                                    "capture_vm_cont");
-  p->ra = ra;
+  p->vra = vra;
+  p->mra = mra;
   p->fp_offset = stack_top - fp;
   memcpy (p->stack_bottom, sp, p->stack_size * sizeof (*p->stack_bottom));
   p->dynstack = dynstack;
@@ -190,9 +193,9 @@ scm_i_capture_current_stack (void)
   thread = SCM_I_CURRENT_THREAD;
   vp = &thread->vm;
 
-  return scm_i_vm_capture_stack (vp->stack_top, vp->fp, vp->sp, vp->ip,
-                                 scm_dynstack_capture_all (&thread->dynstack),
-                                 0);
+  return capture_stack (vp->stack_top, vp->fp, vp->sp, vp->ip, NULL,
+                        scm_dynstack_capture_all (&thread->dynstack),
+                        0);
 }
 
 static void invoke_apply_hook (scm_thread *thread);
@@ -1077,22 +1080,22 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
     vp->sp[n+i].as_scm = SCM_BOOL_F;
   memcpy(vp->sp, argv, n * sizeof (union scm_vm_stack_element));
 
-  vp->ip = cp->ra;
+  vp->ip = cp->vra;
 
-  scm_i_reinstate_continuation (cont);
+  scm_i_reinstate_continuation (cont, cp->mra);
 }
 
 static SCM
-capture_continuation (scm_thread *thread)
+capture_continuation (scm_thread *thread, uint8_t *mra)
 {
   struct scm_vm *vp = &thread->vm;
-  SCM vm_cont =
-    scm_i_vm_capture_stack (vp->stack_top,
-                            SCM_FRAME_DYNAMIC_LINK (vp->fp),
-                            SCM_FRAME_PREVIOUS_SP (vp->fp),
-                            SCM_FRAME_VIRTUAL_RETURN_ADDRESS (vp->fp),
-                            scm_dynstack_capture_all (&thread->dynstack),
-                            0);
+  SCM vm_cont = capture_stack (vp->stack_top,
+                               SCM_FRAME_DYNAMIC_LINK (vp->fp),
+                               SCM_FRAME_PREVIOUS_SP (vp->fp),
+                               SCM_FRAME_VIRTUAL_RETURN_ADDRESS (vp->fp),
+                               SCM_FRAME_MACHINE_RETURN_ADDRESS (vp->fp),
+                               scm_dynstack_capture_all (&thread->dynstack),
+                               0);
   return scm_i_make_continuation (thread, vm_cont);
 }
 
@@ -1114,12 +1117,12 @@ compose_continuation_inner (void *data_ptr)
           cp->stack_size * sizeof (*cp->stack_bottom));
 
   vp->fp -= cp->fp_offset;
-  vp->ip = cp->ra;
+  vp->ip = cp->vra;
 
-  return NULL;
+  return cp->mra;
 }
 
-static void
+static uint8_t*
 compose_continuation (scm_thread *thread, SCM cont)
 {
   struct scm_vm *vp = &thread->vm;
@@ -1128,6 +1131,7 @@ compose_continuation (scm_thread *thread, SCM cont)
   struct scm_vm_cont *cp;
   union scm_vm_stack_element *args;
   ptrdiff_t old_fp_offset;
+  uint8_t *mra;
 
   if (SCM_UNLIKELY (! SCM_VM_CONT_REWINDABLE_P (cont)))
     scm_wrong_type_arg_msg (NULL, 0, cont, "resumable continuation");
@@ -1144,7 +1148,7 @@ compose_continuation (scm_thread *thread, SCM cont)
 
   data.vp = vp;
   data.cp = cp;
-  GC_call_with_alloc_lock (compose_continuation_inner, &data);
+  mra = GC_call_with_alloc_lock (compose_continuation_inner, &data);
 
   /* The resumed continuation will expect ARGS on the stack as if from a
      multiple-value return.  */
@@ -1169,6 +1173,8 @@ compose_continuation (scm_thread *thread, SCM cont)
           scm_dynstack_wind_1 (&thread->dynstack, walk);
       }
   }
+
+  return mra;
 }
 
 static int
@@ -1210,6 +1216,7 @@ foreign_call (scm_thread *thread, SCM cif, SCM pointer)
 static SCM
 capture_delimited_continuation (struct scm_vm *vp,
                                 union scm_vm_stack_element *saved_fp,
+                                uint8_t *saved_mra,
                                 jmp_buf *saved_registers,
                                 scm_t_dynstack *dynstack,
                                 jmp_buf *current_registers)
@@ -1243,8 +1250,8 @@ capture_delimited_continuation (struct scm_vm *vp,
   /* Capture from the base_fp to the top thunk application frame.  Don't
      capture values from the most recent frame, as they are the abort
      args.  */
-  vm_cont = scm_i_vm_capture_stack (base_fp, vp->fp, vp->fp, vp->ip, dynstack,
-                                    flags);
+  vm_cont = capture_stack (base_fp, vp->fp, vp->fp, vp->ip,
+                           saved_mra, dynstack, flags);
 
   return scm_i_make_composable_continuation (vm_cont);
 }
@@ -1257,8 +1264,8 @@ scm_i_vm_abort (SCM *tag_and_argv, size_t n)
   abort ();
 }
 
-static void
-abort_to_prompt (scm_thread *thread)
+static uint8_t *
+abort_to_prompt (scm_thread *thread, uint8_t *saved_mra)
 {
   struct scm_vm *vp = &thread->vm;
   scm_t_dynstack *dynstack = &thread->dynstack;
@@ -1268,15 +1275,16 @@ abort_to_prompt (scm_thread *thread)
   scm_t_dynstack_prompt_flags flags;
   ptrdiff_t fp_offset, sp_offset;
   union scm_vm_stack_element *fp, *sp;
-  uint32_t *ip;
+  uint32_t *vra;
+  uint8_t *mra;
   jmp_buf *registers;
 
   tag = SCM_FRAME_LOCAL (vp->fp, 1);
   nargs = frame_locals_count (thread) - 2;
 
   prompt = scm_dynstack_find_prompt (dynstack, tag,
-                                     &flags, &fp_offset, &sp_offset, &ip,
-                                     &registers);
+                                     &flags, &fp_offset, &sp_offset,
+                                     &vra, &mra, &registers);
 
   if (!prompt)
     scm_misc_error ("abort", "Abort to unknown prompt", scm_list_1 (tag));
@@ -1292,8 +1300,8 @@ abort_to_prompt (scm_thread *thread)
       scm_t_dynstack *captured;
 
       captured = scm_dynstack_capture (dynstack, SCM_DYNSTACK_NEXT (prompt));
-      cont = capture_delimited_continuation (vp, fp, registers, captured,
-                                             thread->vm.registers);
+      cont = capture_delimited_continuation (vp, fp, saved_mra, registers,
+                                             captured, thread->vm.registers);
     }
 
   /* Unwind.  */
@@ -1313,13 +1321,18 @@ abort_to_prompt (scm_thread *thread)
   /* Restore VM regs */
   vp->fp = fp;
   vp->sp = sp;
-  vp->ip = ip;
+  vp->ip = vra;
 
   /* If there are intervening C frames, then jump over them, making a
      nonlocal exit.  Otherwise fall through and let the VM pick up where
      it left off.  */
   if (thread->vm.registers != registers)
-    longjmp (*registers, 1);
+    {
+      vp->mra_after_abort = mra;
+      longjmp (*registers, 1);
+    }
+
+  return mra;
 }
 
 static uint32_t *
@@ -1422,10 +1435,13 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
     resume = setjmp (registers);
     if (SCM_UNLIKELY (resume))
       {
+        uint8_t *mcode = vp->mra_after_abort;
         scm_gc_after_nonlocal_exit ();
         /* Non-local return.  */
         if (vp->trace_level)
           invoke_abort_hook (thread);
+        if (mcode)
+          vp->ip = scm_jit_enter_mcode (thread, mcode);
       }
     else
       vp->ip = get_callee_vcode (thread);

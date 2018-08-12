@@ -58,6 +58,7 @@ struct scm_vm {
   SCM overflow_handler_stack;   /* alist of max-stack-size -> thunk */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   jmp_buf *registers;           /* registers captured at latest vm entry  */
+  uint8_t *mra_after_abort;     /* mra to resume after nonlocal exit, or NULL */
   int engine;                   /* which vm engine we're using */
 };
 
@@ -90,7 +91,9 @@ SCM_INTERNAL void scm_i_vm_free_stack (struct scm_vm *vp);
 
 struct scm_vm_cont {
   /* IP of newest frame.  */
-  uint32_t *ra;
+  uint32_t *vra;
+  /* Machine code corresponding to IP.  */
+  uint8_t *mra;
   /* Offset of FP of newest frame, relative to stack top.  */
   ptrdiff_t fp_offset;
   /* Besides being the stack size, this is also the offset of the SP of
@@ -114,12 +117,6 @@ SCM_API SCM scm_load_compiled_with_vm (SCM file);
 
 SCM_INTERNAL SCM scm_i_call_with_current_continuation (SCM proc);
 SCM_INTERNAL SCM scm_i_capture_current_stack (void);
-SCM_INTERNAL SCM scm_i_vm_capture_stack (union scm_vm_stack_element *stack_top,
-                                         union scm_vm_stack_element *fp,
-                                         union scm_vm_stack_element *sp,
-                                         uint32_t *ra,
-                                         scm_t_dynstack *dynstack,
-                                         uint32_t flags);
 SCM_INTERNAL void scm_i_vm_abort (SCM *tag_and_argv, size_t n) SCM_NORETURN;
 SCM_INTERNAL int scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,

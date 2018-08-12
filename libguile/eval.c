@@ -441,6 +441,7 @@ eval (SCM x, SCM env)
         jmp_buf registers;
         jmp_buf *prev_registers;
         ptrdiff_t saved_stack_depth;
+        uint8_t *mra = NULL;
 
         k = EVAL1 (CAR (mx), env);
         handler = EVAL1 (CDDR (mx), env);
@@ -454,7 +455,7 @@ eval (SCM x, SCM env)
                                   k,
                                   t->vm.stack_top - t->vm.fp,
                                   saved_stack_depth,
-                                  t->vm.ip,
+                                  t->vm.ip, mra,
                                   &registers);
 
         prev_registers = t->vm.registers;

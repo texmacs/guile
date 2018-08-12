@@ -108,7 +108,7 @@ find_prompt (SCM key)
   ptrdiff_t fp_offset;
 
   if (!scm_dynstack_find_prompt (&SCM_I_CURRENT_THREAD->dynstack, key,
-                                 NULL, &fp_offset, NULL, NULL, NULL))
+                                 NULL, &fp_offset, NULL, NULL, NULL, NULL))
     scm_misc_error ("make-stack", "Prompt tag not found while narrowing stack",
                     scm_list_1 (key));
 
@@ -334,7 +334,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       frame.stack_holder = c;
       frame.fp_offset = c->fp_offset;
       frame.sp_offset = c->stack_size;
-      frame.ip = c->ra;
+      frame.ip = c->vra;
     }
   else if (SCM_VM_FRAME_P (obj))
     {

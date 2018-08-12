@@ -88,6 +88,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   jmp_buf registers;
   jmp_buf *prev_registers;
   ptrdiff_t saved_stack_depth;
+  uint8_t *mra = NULL;
 
   if (!scm_is_eq (tag, SCM_BOOL_T) && !scm_is_symbol (tag))
     scm_wrong_type_arg ("catch", 1, tag);
@@ -119,6 +120,7 @@ catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
                             t->vm.stack_top - t->vm.fp,
                             saved_stack_depth,
                             t->vm.ip,
+                            mra,
                             &registers);
   scm_dynstack_push_fluid (dynstack, exception_handler_fluid, eh,
                            dynamic_state);

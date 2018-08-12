@@ -472,8 +472,8 @@ VM_NAME (scm_thread *thread)
 
           if (mcode)
             {
-              scm_jit_enter_mcode (thread, mcode);
-              CACHE_REGISTER ();
+              ip = scm_jit_enter_mcode (thread, mcode);
+              CACHE_SP ();
               NEXT (0);
             }
         }
@@ -672,14 +672,25 @@ VM_NAME (scm_thread *thread)
     {
       SCM vmcont;
       uint32_t cont_idx;
+      uint8_t *mcode;
 
       UNPACK_24 (op, cont_idx);
       vmcont = SCM_PROGRAM_FREE_VARIABLE_REF (FP_REF (0), cont_idx);
 
       SYNC_IP ();
-      CALL_INTRINSIC (compose_continuation, (thread, vmcont));
-      CACHE_REGISTER ();
-      NEXT (0);
+      mcode = CALL_INTRINSIC (compose_continuation, (thread, vmcont));
+
+      if (mcode)
+        {
+          ip = scm_jit_enter_mcode (thread, mcode);
+          CACHE_SP ();
+          NEXT (0);
+        }
+      else
+        {
+          CACHE_REGISTER ();
+          NEXT (0);
+        }
     }
 
   /* instrument-loop _:24 data:32
@@ -705,8 +716,8 @@ VM_NAME (scm_thread *thread)
 
           if (mcode)
             {
-              scm_jit_enter_mcode (thread, mcode);
-              CACHE_REGISTER ();
+              ip = scm_jit_enter_mcode (thread, mcode);
+              CACHE_SP ();
               NEXT (0);
             }
         }
@@ -724,11 +735,12 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (15, capture_continuation, "capture-continuation", DOP1 (X8_S24))
     {
       uint32_t dst;
+      uint8_t *mra = NULL;
 
       UNPACK_24 (op, dst);
 
       SYNC_IP ();
-      SP_SET (dst, CALL_INTRINSIC (capture_continuation, (thread)));
+      SP_SET (dst, CALL_INTRINSIC (capture_continuation, (thread, mra)));
 
       NEXT (1);
     }
@@ -741,19 +753,32 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (16, abort, "abort", OP1 (X32))
     {
+      uint8_t *mcode = NULL;
+
       /* FIXME: Really we should capture the caller's registers.  Until
          then, manually advance the IP so that when the prompt resumes,
          it continues with the next instruction.  */
       ip++;
       SYNC_IP ();
-      CALL_INTRINSIC (abort_to_prompt, (thread));
+      mcode = CALL_INTRINSIC (abort_to_prompt, (thread, mcode));
 
       /* If abort_to_prompt returned, that means there were no
          intervening C frames to jump over, so we just continue
          directly.  */
-      CACHE_REGISTER ();
+
       ABORT_CONTINUATION_HOOK ();
-      NEXT (0);
+
+      if (mcode)
+        {
+          ip = scm_jit_enter_mcode (thread, mcode);
+          CACHE_SP ();
+          NEXT (0);
+        }
+      else
+        {
+          CACHE_REGISTER ();
+          NEXT (0);
+        }
     }
 
   /* builtin-ref dst:12 idx:12
@@ -1623,6 +1648,7 @@ VM_NAME (scm_thread *thread)
       uint32_t tag, proc_slot;
       int32_t offset;
       uint8_t escape_only_p;
+      uint8_t *mra = NULL;
 
       UNPACK_24 (op, tag);
       escape_only_p = ip[1] & 0x1;
@@ -1633,7 +1659,7 @@ VM_NAME (scm_thread *thread)
       /* Push the prompt onto the dynamic stack. */
       SYNC_IP ();
       CALL_INTRINSIC (push_prompt, (thread, escape_only_p, SP_REF (tag),
-                                    VP->fp - proc_slot, ip + offset));
+                                    VP->fp - proc_slot, ip + offset, mra));
 
       NEXT (3);
     }

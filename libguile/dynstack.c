@@ -38,14 +38,15 @@
 
 
 
-#define PROMPT_WORDS 5
+#define PROMPT_WORDS 6
 #define PROMPT_KEY(top) (SCM_PACK ((top)[0]))
 #define PROMPT_FP(top) ((ptrdiff_t) ((top)[1]))
 #define SET_PROMPT_FP(top, fp) do { top[1] = (scm_t_bits)(fp); } while (0)
 #define PROMPT_SP(top) ((ptrdiff_t) ((top)[2]))
 #define SET_PROMPT_SP(top, sp) do { top[2] = (scm_t_bits)(sp); } while (0)
-#define PROMPT_IP(top) ((uint32_t *) ((top)[3]))
-#define PROMPT_JMPBUF(top) ((jmp_buf *) ((top)[4]))
+#define PROMPT_VRA(top) ((uint32_t *) ((top)[3]))
+#define PROMPT_MRA(top) ((uint8_t *) ((top)[4]))
+#define PROMPT_JMPBUF(top) ((jmp_buf *) ((top)[5]))
 
 #define WINDER_WORDS 2
 #define WINDER_PROC(top) ((scm_t_guard) ((top)[0]))
@@ -197,7 +198,7 @@ scm_dynstack_push_prompt (scm_t_dynstack *dynstack,
                           scm_t_dynstack_prompt_flags flags,
                           SCM key,
                           ptrdiff_t fp_offset, ptrdiff_t sp_offset,
-                          uint32_t *ip, jmp_buf *registers)
+                          uint32_t *vra, uint8_t *mra, jmp_buf *registers)
 {
   scm_t_bits *words;
 
@@ -206,8 +207,9 @@ scm_dynstack_push_prompt (scm_t_dynstack *dynstack,
   words[0] = SCM_UNPACK (key);
   words[1] = (scm_t_bits) fp_offset;
   words[2] = (scm_t_bits) sp_offset;
-  words[3] = (scm_t_bits) ip;
-  words[4] = (scm_t_bits) registers;
+  words[3] = (scm_t_bits) vra;
+  words[4] = (scm_t_bits) mra;
+  words[5] = (scm_t_bits) registers;
 }
 
 void
@@ -500,7 +502,7 @@ scm_t_bits*
 scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
                           scm_t_dynstack_prompt_flags *flags,
                           ptrdiff_t *fp_offset, ptrdiff_t *sp_offset,
-                          uint32_t **ip, jmp_buf **registers)
+                          uint32_t **vra, uint8_t **mra, jmp_buf **registers)
 {
   scm_t_bits *walk;
 
@@ -518,8 +520,10 @@ scm_dynstack_find_prompt (scm_t_dynstack *dynstack, SCM key,
             *fp_offset = PROMPT_FP (walk);
           if (sp_offset)
             *sp_offset = PROMPT_SP (walk);
-          if (ip)
-            *ip = PROMPT_IP (walk);
+          if (vra)
+            *vra = PROMPT_VRA (walk);
+          if (mra)
+            *mra = PROMPT_MRA (walk);
           if (registers)
             *registers = PROMPT_JMPBUF (walk);
           return walk;
@@ -593,7 +597,8 @@ scm_dynstack_wind_prompt (scm_t_dynstack *dynstack, scm_t_bits *item,
                             PROMPT_KEY (item),
                             PROMPT_FP (item) + base_fp_offset,
                             PROMPT_SP (item) + base_fp_offset,
-                            PROMPT_IP (item),
+                            PROMPT_VRA (item),
+                            PROMPT_MRA (item),
                             registers);
 }
 

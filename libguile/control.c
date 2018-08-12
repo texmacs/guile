@@ -138,7 +138,7 @@ scm_suspendable_continuation_p (SCM tag)
   jmp_buf *registers;
 
   if (scm_dynstack_find_prompt (&thread->dynstack, tag, &flags,
-                                NULL, NULL, NULL, &registers))
+                                NULL, NULL, NULL, NULL, &registers))
     return scm_from_bool (registers == thread->vm.registers);
 
   return SCM_BOOL_F;

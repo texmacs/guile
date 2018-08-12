@@ -228,7 +228,7 @@ scm_i_continuation_to_frame (SCM continuation, struct scm_frame *frame)
       frame->stack_holder = data;
       frame->fp_offset = data->fp_offset;
       frame->sp_offset = data->stack_size;
-      frame->ip = data->ra;
+      frame->ip = data->vra;
 
       return 1;
     }
@@ -261,7 +261,7 @@ scm_i_contregs (SCM contregs)
  * with their correct stack.
  */
 
-static void scm_dynthrow (SCM);
+static void scm_dynthrow (SCM, uint8_t *);
 
 /* Grow the stack by a fixed amount to provide space to copy in the
  * continuation.  Possibly this function has to be called several times
@@ -273,12 +273,12 @@ static void scm_dynthrow (SCM);
 static scm_t_bits scm_i_dummy;
 
 static void 
-grow_stack (SCM cont)
+grow_stack (SCM cont, uint8_t *mra)
 {
   scm_t_bits growth[100];
 
   scm_i_dummy = (scm_t_bits) growth;
-  scm_dynthrow (cont);
+  scm_dynthrow (cont, mra);
 }
 
 
@@ -289,7 +289,7 @@ grow_stack (SCM cont)
 
 static void
 copy_stack_and_call (scm_t_contregs *continuation,
-		     SCM_STACKITEM * dst)
+		     SCM_STACKITEM * dst, uint8_t *mra)
 {
   scm_t_dynstack *dynstack;
   scm_t_bits *joint;
@@ -305,6 +305,7 @@ copy_stack_and_call (scm_t_contregs *continuation,
 
   scm_dynstack_wind (&thread->dynstack, joint);
 
+  thread->vm.mra_after_abort = mra;
   longjmp (continuation->jmpbuf, 1);
 }
 
@@ -313,7 +314,7 @@ copy_stack_and_call (scm_t_contregs *continuation,
  * actual copying and continuation calling.
  */
 static void 
-scm_dynthrow (SCM cont)
+scm_dynthrow (SCM cont, uint8_t *mra)
 {
   scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
@@ -326,17 +327,17 @@ scm_dynthrow (SCM cont)
 #else
   dst -= continuation->num_stack_items;
   if (dst <= &stack_top_element)
-    grow_stack (cont);
+    grow_stack (cont, mra);
 #endif /* def SCM_STACK_GROWS_UP */
 
   SCM_FLUSH_REGISTER_WINDOWS;
-  copy_stack_and_call (continuation, dst);
+  copy_stack_and_call (continuation, dst, mra);
 }
 
 void
-scm_i_reinstate_continuation (SCM cont)
+scm_i_reinstate_continuation (SCM cont, uint8_t *mra)
 {
-  scm_dynthrow (cont);
+  scm_dynthrow (cont, mra);
   abort (); /* Unreachable.  */
 }
 
