@@ -310,9 +310,17 @@ throw_with_value_and_data (SCM val, SCM key_subr_and_message)
   throw_ (key, scm_list_4 (subr, message, args, data));
 }
 
+static void error_wrong_num_args (scm_thread *) SCM_NORETURN;
 static void error_no_values (void) SCM_NORETURN;
 static void error_not_enough_values (void) SCM_NORETURN;
 static void error_wrong_number_of_values (uint32_t expected) SCM_NORETURN;
+
+static void
+error_wrong_num_args (scm_thread *thread)
+{
+  SCM callee = SCM_FRAME_LOCAL (thread->vm.fp, 0);
+  scm_wrong_num_args (callee);
+}
 
 static void
 error_no_values (void)
@@ -409,7 +417,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.throw_ = throw_;
   scm_vm_intrinsics.throw_with_value = throw_with_value;
   scm_vm_intrinsics.throw_with_value_and_data = throw_with_value_and_data;
-  scm_vm_intrinsics.error_wrong_num_args = scm_wrong_num_args;
+  scm_vm_intrinsics.error_wrong_num_args = error_wrong_num_args;
   scm_vm_intrinsics.error_no_values = error_no_values;
   scm_vm_intrinsics.error_not_enough_values = error_not_enough_values;
   scm_vm_intrinsics.error_wrong_number_of_values = error_wrong_number_of_values;

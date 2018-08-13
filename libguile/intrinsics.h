@@ -53,6 +53,7 @@ typedef void (*scm_t_thread_u32_u32_scm_u8_u8_intrinsic) (scm_thread*, uint32_t,
                                                           uint8_t);
 typedef SCM (*scm_t_scm_from_scm_scm_scmp_sp_intrinsic) (SCM, SCM, SCM*,
                                                          const union scm_vm_stack_element*);
+typedef void (*scm_t_thread_noreturn_intrinsic) (scm_thread*) SCM_NORETURN;
 typedef void (*scm_t_thread_scm_noreturn_intrinsic) (scm_thread*, SCM) SCM_NORETURN;
 typedef int (*scm_t_int_from_scm_intrinsic) (SCM);
 typedef void (*scm_t_scm_scm_noreturn_intrinsic) (SCM, SCM) SCM_NORETURN;
@@ -127,7 +128,7 @@ typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(scm_scm_noreturn, throw_, "throw", THROW) \
   M(scm_scm_noreturn, throw_with_value, "throw/value", THROW_WITH_VALUE) \
   M(scm_scm_noreturn, throw_with_value_and_data, "throw/value+data", THROW_WITH_VALUE_AND_DATA) \
-  M(scm_noreturn, error_wrong_num_args, "wrong-num-args", ERROR_WRONG_NUM_ARGS) \
+  M(thread_noreturn, error_wrong_num_args, "wrong-num-args", ERROR_WRONG_NUM_ARGS) \
   M(noreturn, error_no_values, "no-values", ERROR_NO_VALUES) \
   M(noreturn, error_not_enough_values, "not-enough-values", ERROR_NOT_ENOUGH_VALUES) \
   M(u32_noreturn, error_wrong_number_of_values, "wrong-number-of-values", ERROR_WRONG_NUMBER_OF_VALUES) \

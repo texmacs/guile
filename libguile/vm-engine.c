@@ -885,7 +885,7 @@ VM_NAME (scm_thread *thread)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
+                 CALL_INTRINSIC (error_wrong_num_args, (thread)));
       NEXT (1);
     }
   VM_DEFINE_OP (22, assert_nargs_ge, "assert-nargs-ge", OP1 (X8_C24))
@@ -893,7 +893,7 @@ VM_NAME (scm_thread *thread)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () >= expected,
-                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
+                 CALL_INTRINSIC (error_wrong_num_args, (thread)));
       NEXT (1);
     }
   VM_DEFINE_OP (23, assert_nargs_le, "assert-nargs-le", OP1 (X8_C24))
@@ -901,7 +901,7 @@ VM_NAME (scm_thread *thread)
       uint32_t expected;
       UNPACK_24 (op, expected);
       VM_ASSERT (FRAME_LOCALS_COUNT () <= expected,
-                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
+                 CALL_INTRINSIC (error_wrong_num_args, (thread)));
       NEXT (1);
     }
 
@@ -1001,7 +1001,7 @@ VM_NAME (scm_thread *thread)
       uint16_t expected, nlocals;
       UNPACK_12_12 (op, expected, nlocals);
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
-                 CALL_INTRINSIC (error_wrong_num_args, (FP_REF (0))));
+                 CALL_INTRINSIC (error_wrong_num_args, (thread)));
       ALLOC_FRAME (expected + nlocals);
       while (nlocals--)
         SP_SET (nlocals, SCM_UNDEFINED);
