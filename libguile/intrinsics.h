@@ -88,6 +88,10 @@ typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
 typedef uint8_t* (*scm_t_mra_from_thread_scm_intrinsic) (scm_thread*, SCM);
 typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
+typedef SCM (*scm_t_scm_from_ptr_intrinsic) (SCM*);
+typedef void (*scm_t_ptr_scm_intrinsic) (SCM*, SCM);
+typedef SCM (*scm_t_scm_from_ptr_scm_intrinsic) (SCM*, SCM);
+typedef SCM (*scm_t_scm_from_ptr_scm_scm_intrinsic) (SCM*, SCM, SCM);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -159,6 +163,10 @@ typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(thread, invoke_return_hook, "invoke-return-hook", INVOKE_RETURN_HOOK) \
   M(thread, invoke_next_hook, "invoke-next-hook", INVOKE_NEXT_HOOK) \
   M(thread, invoke_abort_hook, "invoke-abort-hook", INVOKE_ABORT_HOOK) \
+  M(scm_from_ptr, atomic_ref_scm, "atomic-ref-scm", ATOMIC_REF_SCM) \
+  M(ptr_scm, atomic_set_scm, "atomic-set-scm", ATOMIC_SET_SCM) \
+  M(scm_from_ptr_scm, atomic_swap_scm, "atomic-swap-scm", ATOMIC_SWAP_SCM) \
+  M(scm_from_ptr_scm_scm, atomic_compare_and_swap_scm, "atomic-compare-and-swap-scm", ATOMIC_COMPARE_AND_SWAP_SCM) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

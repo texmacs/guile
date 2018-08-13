@@ -1784,7 +1784,7 @@ VM_NAME (scm_thread *thread)
       SCM *loc;
       UNPACK_8_8_8 (op, dst, obj, offset);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
-      SP_SET (dst, scm_atomic_ref_scm (loc));
+      SP_SET (dst, CALL_INTRINSIC (atomic_ref_scm, (loc)));
       NEXT (1);
     }
 
@@ -1794,7 +1794,7 @@ VM_NAME (scm_thread *thread)
       SCM *loc;
       UNPACK_8_8_8 (op, obj, offset, val);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
-      scm_atomic_set_scm (loc, SP_REF (val));
+      CALL_INTRINSIC (atomic_set_scm, (loc, SP_REF (val)));
       NEXT (1);
     }
 
@@ -1807,7 +1807,7 @@ VM_NAME (scm_thread *thread)
       UNPACK_24 (ip[1], obj);
       UNPACK_8_24 (ip[2], offset, val);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
-      SP_SET (dst, scm_atomic_swap_scm (loc, SP_REF (val)));
+      SP_SET (dst, CALL_INTRINSIC (atomic_swap_scm, (loc, SP_REF (val))));
       NEXT (3);
     }
 
@@ -1816,15 +1816,15 @@ VM_NAME (scm_thread *thread)
       uint32_t dst, obj, expected, desired;
       uint8_t offset;
       SCM *loc;
-      SCM scm_expected;
+      SCM got;
       UNPACK_24 (op, dst);
       UNPACK_24 (ip[1], obj);
       UNPACK_8_24 (ip[2], offset, expected);
       UNPACK_24 (ip[3], desired);
       loc = SCM_CELL_OBJECT_LOC (SP_REF (obj), offset);
-      scm_expected = SP_REF (expected);
-      scm_atomic_compare_and_swap_scm (loc, &scm_expected, SP_REF (desired));
-      SP_SET (dst, scm_expected);
+      got = CALL_INTRINSIC (atomic_compare_and_swap_scm,
+                            (loc, SP_REF (expected), SP_REF (desired)));
+      SP_SET (dst, got);
       NEXT (4);
     }
 
