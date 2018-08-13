@@ -1420,16 +1420,24 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (56, call_u64_from_scm, "call-u64<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
-      uint64_t res;
       scm_t_u64_from_scm_intrinsic intrinsic;
 
       UNPACK_12_12 (op, dst, src);
       intrinsic = intrinsics[ip[1]];
 
       SYNC_IP ();
-      res = intrinsic (SP_REF (src));
-      CACHE_SP ();
-      SP_SET_U64 (dst, res);
+#if INDIRECT_INT64_INTRINSICS
+      intrinsic (& SP_REF_U64 (dst), SP_REF (src));
+#else
+      {
+        uint64_t res = intrinsic (SP_REF (src));
+        SP_SET_U64 (dst, res);
+      }
+#endif
+
+      /* No CACHE_SP () after the intrinsic, as the indirect variants
+         have an out argument that points at the stack; stack relocation
+         during this kind of intrinsic is not supported!  */
 
       NEXT (2);
     }
@@ -1677,16 +1685,24 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (77, call_s64_from_scm, "call-s64<-scm", DOP2 (X8_S12_S12, C32))
     {
       uint16_t dst, src;
-      int64_t res;
       scm_t_s64_from_scm_intrinsic intrinsic;
 
       UNPACK_12_12 (op, dst, src);
       intrinsic = intrinsics[ip[1]];
 
       SYNC_IP ();
-      res = intrinsic (SP_REF (src));
-      CACHE_SP ();
-      SP_SET_S64 (dst, res);
+#if INDIRECT_INT64_INTRINSICS
+      intrinsic (& SP_REF_S64 (dst), SP_REF (src));
+#else
+      {
+        int64_t res = intrinsic (SP_REF (src));
+        SP_SET_S64 (dst, res);
+      }
+#endif
+
+      /* No CACHE_SP () after the intrinsic, as the indirect variants
+         have an out argument that points at the stack; stack relocation
+         during this kind of intrinsic is not supported!  */
 
       NEXT (2);
     }
@@ -1701,9 +1717,16 @@ VM_NAME (scm_thread *thread)
       intrinsic = intrinsics[ip[1]];
 
       SYNC_IP ();
+#if INDIRECT_INT64_INTRINSICS
+      res = intrinsic (& SP_REF_U64 (src));
+#else
       res = intrinsic (SP_REF_U64 (src));
-      CACHE_SP ();
+#endif
       SP_SET (dst, res);
+
+      /* No CACHE_SP () after the intrinsic, as the indirect variants
+         pass stack pointers directly; stack relocation during this kind
+         of intrinsic is not supported!  */
 
       NEXT (2);
     }
@@ -1718,7 +1741,11 @@ VM_NAME (scm_thread *thread)
       intrinsic = intrinsics[ip[1]];
 
       SYNC_IP ();
+#if INDIRECT_INT64_INTRINSICS
+      res = intrinsic (& SP_REF_S64 (src));
+#else
       res = intrinsic (SP_REF_S64 (src));
+#endif
       CACHE_SP ();
       SP_SET (dst, res);
 
@@ -1872,7 +1899,11 @@ VM_NAME (scm_thread *thread)
       intrinsic = intrinsics[ip[1]];
 
       SYNC_IP ();
+#if INDIRECT_INT64_INTRINSICS
+      res = intrinsic (SP_REF (a), & SP_REF_U64 (b));
+#else
       res = intrinsic (SP_REF (a), SP_REF_U64 (b));
+#endif
       CACHE_SP ();
 
       SP_SET (dst, res);

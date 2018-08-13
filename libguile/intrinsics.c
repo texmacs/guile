@@ -95,6 +95,34 @@ scm_to_uint64_truncate (SCM x)
     return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((uint64_t) -1)));
 }
 
+#if INDIRECT_INT64_INTRINSICS
+static void
+indirect_scm_to_int64 (int64_t *dst, SCM x)
+{
+  *dst = scm_to_int64 (x);
+}
+static void
+indirect_scm_to_uint64 (uint64_t *dst, SCM x)
+{
+  *dst = scm_to_uint64 (x);
+}
+static void
+indirect_scm_to_uint64_truncate (uint64_t *dst, SCM x)
+{
+  *dst = scm_to_uint64_truncate (x);
+}
+static SCM
+indirect_scm_from_int64 (int64_t *src)
+{
+  return scm_from_int64 (*src);
+}
+static SCM
+indirect_scm_from_uint64 (uint64_t *src)
+{
+  return scm_from_uint64 (*src);
+}
+#endif
+
 static SCM
 logsub (SCM x, SCM y)
 {
@@ -205,6 +233,19 @@ rsh (SCM a, uint64_t b)
   else
     return scm_ash (a, scm_difference (SCM_INUM0, scm_from_uint64 (b)));
 }
+
+#if INDIRECT_INT64_INTRINSICS
+static SCM
+indirect_lsh (SCM a, uint64_t *b)
+{
+  return lsh (a, *b);
+}
+static SCM
+indirect_rsh (SCM a, uint64_t *b)
+{
+  return rsh (a, *b);
+}
+#endif
 
 static SCM
 lsh_immediate (SCM a, uint8_t b)
@@ -390,11 +431,19 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.symbol_to_keyword = scm_symbol_to_keyword;
   scm_vm_intrinsics.class_of = scm_class_of;
   scm_vm_intrinsics.scm_to_f64 = scm_to_double;
+#if INDIRECT_INT64_INTRINSICS
+  scm_vm_intrinsics.scm_to_u64 = indirect_scm_to_uint64;
+  scm_vm_intrinsics.scm_to_u64_truncate = indirect_scm_to_uint64_truncate;
+  scm_vm_intrinsics.scm_to_s64 = indirect_scm_to_int64;
+  scm_vm_intrinsics.u64_to_scm = indirect_scm_from_uint64;
+  scm_vm_intrinsics.s64_to_scm = indirect_scm_from_int64;
+#else
   scm_vm_intrinsics.scm_to_u64 = scm_to_uint64;
   scm_vm_intrinsics.scm_to_u64_truncate = scm_to_uint64_truncate;
   scm_vm_intrinsics.scm_to_s64 = scm_to_int64;
   scm_vm_intrinsics.u64_to_scm = scm_from_uint64;
   scm_vm_intrinsics.s64_to_scm = scm_from_int64;
+#endif
   scm_vm_intrinsics.logsub = logsub;
   scm_vm_intrinsics.wind = wind;
   scm_vm_intrinsics.unwind = unwind;
@@ -404,8 +453,13 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.fluid_set_x = fluid_set_x;
   scm_vm_intrinsics.push_dynamic_state = push_dynamic_state;
   scm_vm_intrinsics.pop_dynamic_state = pop_dynamic_state;
+#if INDIRECT_INT64_INTRINSICS
+  scm_vm_intrinsics.lsh = indirect_lsh;
+  scm_vm_intrinsics.rsh = indirect_rsh;
+#else
   scm_vm_intrinsics.lsh = lsh;
   scm_vm_intrinsics.rsh = rsh;
+#endif
   scm_vm_intrinsics.lsh_immediate = lsh_immediate;
   scm_vm_intrinsics.rsh_immediate = rsh_immediate;
   scm_vm_intrinsics.heap_numbers_equal_p = scm_i_heap_numbers_equal_p;
