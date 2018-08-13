@@ -1177,16 +1177,23 @@ compose_continuation (scm_thread *thread, SCM cont)
   return mra;
 }
 
-static int
-rest_arg_length (SCM x)
+static void
+expand_apply_argument (scm_thread *thread)
 {
+  SCM x = thread->vm.sp[0].as_scm;
   int len = scm_ilength (x);
 
   if (SCM_UNLIKELY (len < 0))
     scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
                scm_list_1 (x), scm_list_1 (x));
 
-  return len;
+  alloc_frame (thread, frame_locals_count (thread) - 1 + len);
+
+  while (len--)
+    {
+      thread->vm.sp[len].as_scm = SCM_CAR (x);
+      x = SCM_CDR (x);
+    }
 }
 
 /* This is here to avoid putting the code for "alloc-frame" in subr
@@ -1722,7 +1729,7 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.reinstate_continuation_x = reinstate_continuation_x;
   scm_vm_intrinsics.capture_continuation = capture_continuation;
   scm_vm_intrinsics.compose_continuation = compose_continuation;
-  scm_vm_intrinsics.rest_arg_length = rest_arg_length;
+  scm_vm_intrinsics.expand_apply_argument = expand_apply_argument;
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
   scm_vm_intrinsics.get_callee_vcode = get_callee_vcode;
   scm_vm_intrinsics.unpack_values_object = unpack_values_object;

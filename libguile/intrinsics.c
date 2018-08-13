@@ -73,7 +73,7 @@ sub_immediate (SCM a, uint8_t b)
 }
 
 static void
-string_set_x (SCM str, uint64_t idx, uint64_t ch)
+string_set_x (SCM str, size_t idx, uint32_t ch)
 {
   str = scm_i_string_start_writing (str);
   scm_i_string_set_x (str, idx, ch);
@@ -344,7 +344,7 @@ error_wrong_number_of_values (uint32_t expected)
 }
 
 static SCM
-allocate_words (scm_thread *thread, uint64_t n)
+allocate_words (scm_thread *thread, size_t n)
 {
   return SCM_PACK_POINTER (scm_inline_gc_malloc_words (thread, n));
 }

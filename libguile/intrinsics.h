@@ -31,7 +31,7 @@
 
 typedef SCM (*scm_t_scm_from_scm_scm_intrinsic) (SCM, SCM);
 typedef SCM (*scm_t_scm_from_scm_uimm_intrinsic) (SCM, uint8_t);
-typedef void (*scm_t_scm_u64_u64_intrinsic) (SCM, uint64_t, uint64_t);
+typedef void (*scm_t_scm_sz_u32_intrinsic) (SCM, size_t, uint32_t);
 typedef SCM (*scm_t_scm_from_scm_intrinsic) (SCM);
 typedef double (*scm_t_f64_from_scm_intrinsic) (SCM);
 typedef uint64_t (*scm_t_u64_from_scm_intrinsic) (SCM);
@@ -60,7 +60,7 @@ typedef void (*scm_t_scm_scm_noreturn_intrinsic) (SCM, SCM) SCM_NORETURN;
 typedef void (*scm_t_noreturn_intrinsic) (void) SCM_NORETURN;
 typedef void (*scm_t_scm_noreturn_intrinsic) (SCM) SCM_NORETURN;
 typedef void (*scm_t_u32_noreturn_intrinsic) (uint32_t) SCM_NORETURN;
-typedef SCM (*scm_t_scm_from_thread_u64_intrinsic) (scm_thread*, uint64_t);
+typedef SCM (*scm_t_scm_from_thread_sz_intrinsic) (scm_thread*, size_t);
 typedef SCM (*scm_t_scm_from_thread_intrinsic) (scm_thread*);
 typedef void (*scm_t_thread_u8_scm_sp_vra_mra_intrinsic) (scm_thread*,
                                                           uint8_t, SCM,
@@ -84,7 +84,7 @@ typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(scm_from_scm_scm, logand, "logand", LOGAND) \
   M(scm_from_scm_scm, logior, "logior", LOGIOR) \
   M(scm_from_scm_scm, logxor, "logxor", LOGXOR) \
-  M(scm_u64_u64, string_set_x, "string-set!", STRING_SET_X) \
+  M(scm_sz_u32, string_set_x, "string-set!", STRING_SET_X) \
   M(scm_from_scm, string_to_number, "string->number", STRING_TO_NUMBER) \
   M(scm_from_scm, string_to_symbol, "string->symbol", STRING_TO_SYMBOL) \
   M(scm_from_scm, symbol_to_keyword, "symbol->keyword", SYMBOL_TO_KEYWORD) \
@@ -123,7 +123,7 @@ typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
   M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
   M(mra_from_thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
-  M(int_from_scm, rest_arg_length, "rest-arg-length", REST_ARG_LENGTH) \
+  M(thread, expand_apply_argument, "expand-apply-argument", EXPAND_APPLY_ARGUMENT) \
   M(mra_from_thread_mra, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \
   M(scm_scm_noreturn, throw_, "throw", THROW) \
   M(scm_scm_noreturn, throw_with_value, "throw/value", THROW_WITH_VALUE) \
@@ -133,7 +133,7 @@ typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(noreturn, error_not_enough_values, "not-enough-values", ERROR_NOT_ENOUGH_VALUES) \
   M(u32_noreturn, error_wrong_number_of_values, "wrong-number-of-values", ERROR_WRONG_NUMBER_OF_VALUES) \
   M(vra_from_thread, get_callee_vcode, "get-callee-vcode", GET_CALLEE_VCODE) \
-  M(scm_from_thread_u64, allocate_words, "allocate-words", ALLOCATE_WORDS) \
+  M(scm_from_thread_sz, allocate_words, "allocate-words", ALLOCATE_WORDS) \
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
   M(thread_u8_scm_sp_vra_mra, push_prompt, "push-prompt", PUSH_PROMPT)     \
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \

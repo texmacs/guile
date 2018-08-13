@@ -311,7 +311,7 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
 }
 
 static void
-compile_call_scm_u64_u64 (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c, uint32_t d)
+compile_call_scm_sz_u32 (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c, uint32_t d)
 {
 }
 

@@ -1016,21 +1016,9 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (30, expand_apply_argument, "expand-apply-argument", OP1 (X32))
     {
-      int list_len;
-      SCM list;
-
-      list = SP_REF (0);
-
       SYNC_IP ();
-      list_len = CALL_INTRINSIC (rest_arg_length, (list));
-
-      ALLOC_FRAME (FRAME_LOCALS_COUNT () - 1 + list_len);
-
-      while (list_len--)
-        {
-          SP_SET (list_len, SCM_CAR (list));
-          list = SCM_CDR (list);
-        }
+      CALL_INTRINSIC (expand_apply_argument, (thread));
+      CACHE_SP ();
 
       NEXT (1);
     }
@@ -1380,10 +1368,10 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (53, call_scm_u64_u64, "call-scm-u64-u64", OP2 (X8_S8_S8_S8, C32))
+  VM_DEFINE_OP (53, call_scm_sz_u32, "call-scm-sz-u32", OP2 (X8_S8_S8_S8, C32))
     {
       uint8_t a, b, c;
-      scm_t_scm_u64_u64_intrinsic intrinsic;
+      scm_t_scm_sz_u32_intrinsic intrinsic;
 
       UNPACK_8_8_8 (op, a, b, c);
       intrinsic = intrinsics[ip[1]];
