@@ -69,7 +69,6 @@ typedef void (*scm_t_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 typedef uint32_t* (*scm_t_vra_from_thread_intrinsic) (scm_thread*);
 typedef uint8_t* (*scm_t_mra_from_thread_scm_intrinsic) (scm_thread*, SCM);
 typedef uint8_t* (*scm_t_mra_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
-typedef SCM (*scm_t_scm_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -121,7 +120,7 @@ typedef SCM (*scm_t_scm_from_thread_mra_intrinsic) (scm_thread*, uint8_t*);
   M(thread_mra, push_interrupt_frame, "push-interrupt-frame", PUSH_INTERRUPT_FRAME) \
   M(thread_scm_scm, foreign_call, "foreign-call", FOREIGN_CALL) \
   M(thread_scm_noreturn, reinstate_continuation_x, "reinstate-continuation!", REINSTATE_CONTINUATION_X) \
-  M(scm_from_thread_mra, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
+  M(scm_from_thread, capture_continuation, "capture-continuation", CAPTURE_CONTINUATION) \
   M(mra_from_thread_scm, compose_continuation, "compose-continuation", COMPOSE_CONTINUATION) \
   M(int_from_scm, rest_arg_length, "rest-arg-length", REST_ARG_LENGTH) \
   M(mra_from_thread_mra, abort_to_prompt, "abort-to-prompt", ABORT_TO_PROMPT) \

@@ -1086,7 +1086,7 @@ reinstate_continuation_x (scm_thread *thread, SCM cont)
 }
 
 static SCM
-capture_continuation (scm_thread *thread, uint8_t *mra)
+capture_continuation (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
   SCM vm_cont = capture_stack (vp->stack_top,
@@ -1441,7 +1441,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         if (vp->trace_level)
           invoke_abort_hook (thread);
         if (mcode)
-          vp->ip = scm_jit_enter_mcode (thread, mcode);
+          scm_jit_enter_mcode (thread, mcode);
       }
     else
       vp->ip = get_callee_vcode (thread);

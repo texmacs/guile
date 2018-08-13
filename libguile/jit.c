@@ -1215,11 +1215,10 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   return NULL;
 }
 
-uint32_t *
+void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
   abort ();
-  return NULL;
 }
 
 void

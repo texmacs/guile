@@ -53,8 +53,8 @@ enum scm_jit_counter_value
 
 SCM_INTERNAL const uint8_t *scm_jit_compute_mcode (scm_thread *thread,
                                                    struct scm_jit_function_data *data);
-SCM_INTERNAL uint32_t *scm_jit_enter_mcode (scm_thread *thread,
-                                            const uint8_t *mcode);
+SCM_INTERNAL void scm_jit_enter_mcode (scm_thread *thread,
+                                       const uint8_t *mcode);
 
 SCM_INTERNAL void scm_init_jit (void);
 

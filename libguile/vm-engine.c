@@ -472,8 +472,8 @@ VM_NAME (scm_thread *thread)
 
           if (mcode)
             {
-              ip = scm_jit_enter_mcode (thread, mcode);
-              CACHE_SP ();
+              scm_jit_enter_mcode (thread, mcode);
+              CACHE_REGISTER ();
               NEXT (0);
             }
         }
@@ -682,8 +682,8 @@ VM_NAME (scm_thread *thread)
 
       if (mcode)
         {
-          ip = scm_jit_enter_mcode (thread, mcode);
-          CACHE_SP ();
+          scm_jit_enter_mcode (thread, mcode);
+          CACHE_REGISTER ();
           NEXT (0);
         }
       else
@@ -716,8 +716,8 @@ VM_NAME (scm_thread *thread)
 
           if (mcode)
             {
-              ip = scm_jit_enter_mcode (thread, mcode);
-              CACHE_SP ();
+              scm_jit_enter_mcode (thread, mcode);
+              CACHE_REGISTER ();
               NEXT (0);
             }
         }
@@ -735,12 +735,11 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (15, capture_continuation, "capture-continuation", DOP1 (X8_S24))
     {
       uint32_t dst;
-      uint8_t *mra = NULL;
 
       UNPACK_24 (op, dst);
 
       SYNC_IP ();
-      SP_SET (dst, CALL_INTRINSIC (capture_continuation, (thread, mra)));
+      SP_SET (dst, CALL_INTRINSIC (capture_continuation, (thread)));
 
       NEXT (1);
     }
@@ -769,16 +768,10 @@ VM_NAME (scm_thread *thread)
       ABORT_CONTINUATION_HOOK ();
 
       if (mcode)
-        {
-          ip = scm_jit_enter_mcode (thread, mcode);
-          CACHE_SP ();
-          NEXT (0);
-        }
-      else
-        {
-          CACHE_REGISTER ();
-          NEXT (0);
-        }
+        scm_jit_enter_mcode (thread, mcode);
+
+      CACHE_REGISTER ();
+      NEXT (0);
     }
 
   /* builtin-ref dst:12 idx:12
