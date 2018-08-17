@@ -300,59 +300,16 @@ vm_error_bad_instruction (uint32_t inst)
 
 
 static SCM vm_boot_continuation;
-static SCM vm_builtin_apply;
-static SCM vm_builtin_values;
-static SCM vm_builtin_abort_to_prompt;
-static SCM vm_builtin_call_with_values;
-static SCM vm_builtin_call_with_current_continuation;
+
+#define DECLARE_BUILTIN(builtin, BUILTIN, req, opt, rest)               \
+  static SCM vm_builtin_##builtin;                                      \
+  static uint32_t *vm_builtin_##builtin##_code;
+FOR_EACH_VM_BUILTIN (DECLARE_BUILTIN)
+#undef DECLARE_BUILTIN
 
 static const uint32_t vm_boot_continuation_code[] = {
   SCM_PACK_OP_24 (halt, 0)
 };
-
-static const uint32_t vm_builtin_apply_code[] = {
-  SCM_PACK_OP_24 (assert_nargs_ge, 3),
-  SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
-  SCM_PACK_OP_24 (expand_apply_argument, 0),
-  SCM_PACK_OP_24 (tail_call, 0),
-};
-
-static const uint32_t vm_builtin_values_code[] = {
-  SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
-  SCM_PACK_OP_24 (return_values, 0)
-};
-
-static const uint32_t vm_builtin_abort_to_prompt_code[] = {
-  SCM_PACK_OP_24 (assert_nargs_ge, 2),
-  SCM_PACK_OP_24 (abort, 0), /* tag in r1, vals from r2 */
-  /* FIXME: Partial continuation should capture caller regs.  */
-  SCM_PACK_OP_24 (return_values, 0) /* vals from r0 */
-};
-
-static const uint32_t vm_builtin_call_with_values_code[] = {
-  SCM_PACK_OP_24 (assert_nargs_ee, 3),
-  SCM_PACK_OP_24 (alloc_frame, 8),
-  SCM_PACK_OP_12_12 (mov, 0, 6),
-  SCM_PACK_OP_24 (call, 7), SCM_PACK_OP_ARG_8_24 (0, 1),
-  SCM_PACK_OP_24 (long_fmov, 0), SCM_PACK_OP_ARG_8_24 (0, 2),
-  SCM_PACK_OP_12_12 (shuffle_down, 7, 1),
-  SCM_PACK_OP_24 (tail_call, 0)
-};
-
-static const uint32_t vm_builtin_call_with_current_continuation_code[] = {
-  SCM_PACK_OP_24 (assert_nargs_ee, 2),
-  SCM_PACK_OP_12_12 (mov, 1, 0),
-  SCM_PACK_OP_24 (capture_continuation, 0),
-  SCM_PACK_OP_24 (tail_call, 0)
-};
-
-static const uint32_t vm_handle_interrupt_code[] = {
-  SCM_PACK_OP_24 (alloc_frame, 4),
-  SCM_PACK_OP_12_12 (mov, 0, 3),
-  SCM_PACK_OP_24 (call, 3), SCM_PACK_OP_ARG_8_24 (0, 1),
-  SCM_PACK_OP_24 (return_from_interrupt, 0)
-};
-
 
 int
 scm_i_vm_is_boot_continuation_code (uint32_t *ip)
@@ -421,6 +378,75 @@ scm_init_vm_builtins (void)
                       scm_vm_builtin_name_to_index);
   scm_c_define_gsubr ("builtin-index->name", 1, 0, 0,
                       scm_vm_builtin_index_to_name);
+}
+
+static uint32_t*
+instrumented_code (const uint32_t *code, size_t byte_size)
+{
+  uint32_t *ret, *write;
+  ret = scm_i_alloc_primitive_code_with_instrumentation (byte_size / 4, &write);
+  memcpy (write, code, byte_size);
+  return ret;
+}
+
+static void
+define_vm_builtins (void)
+{
+  const uint32_t apply_code[] = {
+    SCM_PACK_OP_24 (assert_nargs_ge, 3),
+    SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
+    SCM_PACK_OP_24 (expand_apply_argument, 0),
+    SCM_PACK_OP_24 (tail_call, 0),
+  };
+
+  const uint32_t values_code[] = {
+    SCM_PACK_OP_12_12 (shuffle_down, 1, 0),
+    SCM_PACK_OP_24 (return_values, 0)
+  };
+
+  const uint32_t abort_to_prompt_code[] = {
+    SCM_PACK_OP_24 (assert_nargs_ge, 2),
+    SCM_PACK_OP_24 (abort, 0), /* tag in r1, vals from r2 */
+    /* FIXME: Partial continuation should capture caller regs.  */
+    SCM_PACK_OP_24 (return_values, 0) /* vals from r0 */
+  };
+
+  const uint32_t call_with_values_code[] = {
+    SCM_PACK_OP_24 (assert_nargs_ee, 3),
+    SCM_PACK_OP_24 (alloc_frame, 8),
+    SCM_PACK_OP_12_12 (mov, 0, 6),
+    SCM_PACK_OP_24 (call, 7), SCM_PACK_OP_ARG_8_24 (0, 1),
+    SCM_PACK_OP_24 (long_fmov, 0), SCM_PACK_OP_ARG_8_24 (0, 2),
+    SCM_PACK_OP_12_12 (shuffle_down, 7, 1),
+    SCM_PACK_OP_24 (tail_call, 0)
+  };
+
+  const uint32_t call_with_current_continuation_code[] = {
+    SCM_PACK_OP_24 (assert_nargs_ee, 2),
+    SCM_PACK_OP_12_12 (mov, 1, 0),
+    SCM_PACK_OP_24 (capture_continuation, 0),
+    SCM_PACK_OP_24 (tail_call, 0)
+  };
+
+  /* This one isn't exactly a builtin but we still handle it here.  */
+  const uint32_t handle_interrupt_code[] = {
+    SCM_PACK_OP_24 (alloc_frame, 4),
+    SCM_PACK_OP_12_12 (mov, 0, 3),
+    SCM_PACK_OP_24 (call, 3), SCM_PACK_OP_ARG_8_24 (0, 1),
+    SCM_PACK_OP_24 (return_from_interrupt, 0)
+  };
+
+#define DEFINE_BUILTIN(builtin, BUILTIN, req, opt, rest)                \
+  {                                                                     \
+    size_t sz = sizeof (builtin##_code);                                \
+    vm_builtin_##builtin##_code = instrumented_code (builtin##_code, sz); \
+    vm_builtin_##builtin = scm_i_make_program (vm_builtin_##builtin##_code); \
+  }
+  FOR_EACH_VM_BUILTIN (DEFINE_BUILTIN);
+#undef INDEX_TO_NAME
+
+  scm_vm_intrinsics.handle_interrupt_code =
+    instrumented_code (handle_interrupt_code, sizeof (handle_interrupt_code));
 }
 
 SCM
@@ -1701,11 +1727,7 @@ scm_init_vm_builtin_properties (void)
 
 #define INIT_BUILTIN(builtin, BUILTIN, req, opt, rest)                  \
   scm_set_procedure_property_x (vm_builtin_##builtin, scm_sym_name,     \
-                                scm_sym_##builtin);                     \
-  scm_set_procedure_minimum_arity_x (vm_builtin_##builtin,              \
-                                     SCM_I_MAKINUM (req),               \
-                                     SCM_I_MAKINUM (opt),               \
-                                     scm_from_bool (rest));
+                                scm_sym_##builtin);
   FOR_EACH_VM_BUILTIN (INIT_BUILTIN);
 #undef INIT_BUILTIN
 }
@@ -1748,10 +1770,7 @@ scm_bootstrap_vm (void)
                        (SCM_CELL_WORD_0 (vm_boot_continuation)
                         | SCM_F_PROGRAM_IS_BOOT));
 
-#define DEFINE_BUILTIN(builtin, BUILTIN, req, opt, rest)                \
-  vm_builtin_##builtin = scm_i_make_program (vm_builtin_##builtin##_code);
-  FOR_EACH_VM_BUILTIN (DEFINE_BUILTIN);
-#undef DEFINE_BUILTIN
+  define_vm_builtins ();
 }
 
 void

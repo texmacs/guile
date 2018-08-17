@@ -172,9 +172,12 @@ SCM_DEFINE (scm_primitive_call_ip, "primitive-call-ip", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_primitive_call_ip
 {
+  uintptr_t ip;
+
   SCM_MAKE_VALIDATE (1, prim, PRIMITIVE_P);
 
-  return scm_from_uintptr_t (scm_i_primitive_call_ip (prim));
+  ip = scm_i_primitive_call_ip (prim);
+  return ip ? scm_from_uintptr_t (ip) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -312,11 +315,18 @@ try_parse_arity (SCM program, int *req, int *opt, int *rest)
       *opt = slots - min;
       *rest = 1;
       return 1;
+    case scm_op_shuffle_down:
+    case scm_op_abort:
+      *req = min - 1;
+      *opt = 0;
+      *rest = 1;
+      return 1;
     default:
       return 0;
     }
   case scm_op_continuation_call:
   case scm_op_compose_continuation:
+  case scm_op_shuffle_down:
     *req = 0;
     *opt = 0;
     *rest = 1;

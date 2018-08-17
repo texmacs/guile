@@ -204,7 +204,7 @@ of integers."
         ((nreq nopt rest?)
          (let ((start (primitive-call-ip prog)))
            ;; Assume that there is only one IP for the call.
-           (and (or (not ip) (= start ip))
+           (and (or (not ip) (and start (= start ip)))
                 (arity->arguments-alist
                  prog
                  (list 0 0 nreq nopt rest? '(#f . ()))))))))

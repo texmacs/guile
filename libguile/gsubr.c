@@ -400,7 +400,7 @@ primitive_call_ip (const uint32_t *code)
           code -= 1;
           break;
         default:
-          abort ();
+          return 0;
         }
     }
 }
@@ -410,8 +410,11 @@ static const uint32_t NOT_A_SUBR_CALL = 0xffffffff;
 static uint32_t
 primitive_subr_idx (const uint32_t *code)
 {
+  uint32_t word;
   uintptr_t call_ip = primitive_call_ip (code);
-  uint32_t word = ((uint32_t *) call_ip)[0];
+  if (call_ip == 0)
+    return NOT_A_SUBR_CALL;
+  word = ((uint32_t *) call_ip)[0];
   if ((word & 0xff) == scm_op_subr_call)
     {
       uint32_t idx = word >> 8;

@@ -92,6 +92,7 @@ typedef SCM (*scm_t_scm_from_ptr_intrinsic) (SCM*);
 typedef void (*scm_t_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_scm_intrinsic) (SCM*, SCM, SCM);
+typedef uint32_t* scm_t_vcode_intrinsic;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
   M(scm_from_scm_scm, add, "add", ADD) \
@@ -167,6 +168,7 @@ typedef SCM (*scm_t_scm_from_ptr_scm_scm_intrinsic) (SCM*, SCM, SCM);
   M(ptr_scm, atomic_set_scm, "atomic-set-scm", ATOMIC_SET_SCM) \
   M(scm_from_ptr_scm, atomic_swap_scm, "atomic-swap-scm", ATOMIC_SWAP_SCM) \
   M(scm_from_ptr_scm_scm, atomic_compare_and_swap_scm, "atomic-compare-and-swap-scm", ATOMIC_COMPARE_AND_SWAP_SCM) \
+  M(vcode, handle_interrupt_code, "%handle-interrupt-code", HANDLE_INTERRUPT_CODE) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

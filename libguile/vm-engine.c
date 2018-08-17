@@ -2385,7 +2385,7 @@ VM_NAME (scm_thread *thread)
       SYNC_IP ();
       CALL_INTRINSIC (push_interrupt_frame, (thread, 0));
       CACHE_SP ();
-      ip = (uint32_t *) vm_handle_interrupt_code;
+      ip = scm_vm_intrinsics.handle_interrupt_code;
 
       NEXT (0);
     }
