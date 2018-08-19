@@ -57,6 +57,7 @@ SCM_INTERNAL uintptr_t scm_i_primitive_call_ip (SCM subr);
 SCM_INTERNAL SCM scm_i_primitive_name (const uint32_t *code);
 
 SCM_API scm_t_subr scm_subr_function (SCM subr);
+SCM_INTERNAL scm_t_subr scm_subr_function_by_index (uint32_t subr_idx);
 SCM_API SCM scm_subr_name (SCM subr);
 
 SCM_INTERNAL SCM scm_apply_subr (union scm_vm_stack_element *sp,

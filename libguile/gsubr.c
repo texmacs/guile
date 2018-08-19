@@ -441,12 +441,18 @@ scm_i_primitive_name (const uint32_t *code)
 }
 
 scm_t_subr
-scm_subr_function (SCM subr)
+scm_subr_function_by_index (uint32_t idx)
 {
-  uint32_t idx = primitive_subr_idx (SCM_PROGRAM_CODE (subr));
   if (idx == NOT_A_SUBR_CALL)
     abort ();
   return subrs[idx];
+}  
+
+scm_t_subr
+scm_subr_function (SCM subr)
+{
+  uint32_t idx = primitive_subr_idx (SCM_PROGRAM_CODE (subr));
+  return scm_subr_function_by_index (idx);
 }
 
 SCM
