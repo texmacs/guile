@@ -39,6 +39,7 @@ enum scm_vm_builtins
   SCM_VM_BUILTIN_COUNT
 };
 
+SCM_INTERNAL SCM scm_vm_builtin_ref (unsigned idx);
 SCM_INTERNAL SCM scm_vm_builtin_name_to_index (SCM name);
 SCM_INTERNAL SCM scm_vm_builtin_index_to_name (SCM idx);
 SCM_INTERNAL void scm_init_vm_builtin_properties (void);

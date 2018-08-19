@@ -317,7 +317,7 @@ scm_i_vm_is_boot_continuation_code (uint32_t *ip)
   return ip == vm_boot_continuation_code;
 }
 
-static SCM
+SCM
 scm_vm_builtin_ref (unsigned idx)
 {
   switch (idx)
