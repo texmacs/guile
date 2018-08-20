@@ -2070,6 +2070,9 @@ _jit_emit(jit_state_t *_jit)
 #if defined(__sgi)
 	mmap_fd = open("/dev/zero", O_RDWR);
 #endif
+        if (_jit->code.length == 0)
+          _jit->code.length = 4096;
+
 	_jit->code.ptr = mmap(NULL, _jit->code.length,
 			      PROT_EXEC | PROT_READ | PROT_WRITE,
 			      MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
