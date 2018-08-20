@@ -43,6 +43,8 @@
 
 static void (*enter_mcode) (scm_thread *thread, const uint8_t *mcode);
 static void *exit_mcode;
+static void *handle_interrupts_trampoline;
+static void compute_mcode (scm_thread *, struct scm_jit_function_data *);
 
 struct scm_jit_state {
   jit_state_t *jit;
@@ -599,6 +601,36 @@ emit_entry_trampoline (scm_jit_state *j)
   /* When mcode returns, interpreter should continue with vp->ip.  */
   jit_ret ();
   return exit;
+}
+
+static void
+emit_handle_interrupts_trampoline (scm_jit_state *j)
+{
+  jit_prolog ();
+  jit_tramp (entry_frame_size);
+
+  /* Precondition: IP synced, MRA in T0.  */
+  emit_call_r_r (j, scm_vm_intrinsics.push_interrupt_frame, THREAD, T0);
+  emit_reload_sp (j);
+  emit_direct_tail_call (j, scm_vm_intrinsics.handle_interrupt_code);
+}
+
+static scm_i_pthread_once_t initialize_handle_interrupts_trampoline_once =
+  SCM_I_PTHREAD_ONCE_INIT;
+static void
+initialize_handle_interrupts_trampoline (void)
+{
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_jit_state saved_jit_state, *j = thread->jit_state;
+
+  memcpy (&saved_jit_state, j, sizeof (*j));
+
+  j->jit = jit_new_state ();
+  emit_handle_interrupts_trampoline (j);
+  handle_interrupts_trampoline = jit_emit ();
+  jit_clear_state ();
+
+  memcpy (j, &saved_jit_state, sizeof (*j));
 }
 
 static void
@@ -2236,6 +2268,11 @@ compile_handle_interrupts (scm_jit_state *j)
 {
   jit_node_t *again, *mra, *none_pending, *blocked;
 
+  /* The slow case is a fair amount of code, so generate it once for the
+     whole process and share that code.  */
+  scm_i_pthread_once (&initialize_handle_interrupts_trampoline_once,
+                      initialize_handle_interrupts_trampoline);
+
   again = jit_label ();
   jit_addi (T0, THREAD, thread_offset_pending_asyncs);
   emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
@@ -2247,9 +2284,7 @@ compile_handle_interrupts (scm_jit_state *j)
   emit_store_current_ip (j, T0);
   mra = jit_movi (T0, 0);
   jit_patch_at (mra, again);
-  emit_call_r_r (j, scm_vm_intrinsics.push_interrupt_frame, THREAD, T0);
-  emit_reload_sp (j);
-  emit_direct_tail_call (j, scm_vm_intrinsics.handle_interrupt_code);
+  jit_patch_abs (jit_jmpi (), handle_interrupts_trampoline);
 
   jit_patch (none_pending);
   jit_patch (blocked);
