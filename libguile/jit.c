@@ -198,14 +198,14 @@ emit_store_vra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t, const uint32_t *vra
 }
 
 static void
-emit_load_prev_frame_size (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
+emit_load_prev_fp_offset (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
 {
   jit_ldxi (dst, fp, frame_offset_prev);
 }
 
 static void
-emit_store_prev_frame_size (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t,
-                            uint32_t n)
+emit_store_prev_fp_offset (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t,
+                           uint32_t n)
 {
   jit_movi (t, n);
   jit_stxi (frame_offset_prev, fp, t);
@@ -371,7 +371,7 @@ emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
   emit_subtract_stack_slots (j, fp, old_fp, proc_slot);
   continuation = emit_store_mra (j, fp, T1);
   emit_store_vra (j, fp, T1, vra);
-  emit_store_prev_frame_size (j, fp, T1, proc_slot - frame_overhead_slots);
+  emit_store_prev_fp_offset (j, fp, T1, proc_slot);
   emit_store_fp (j, fp);
   emit_reset_frame (j, fp, nlocals);
 
@@ -589,11 +589,6 @@ emit_entry_trampoline (scm_jit_state *j)
   jit_frame (entry_frame_size);
   thread = jit_arg ();
   ip = jit_arg ();
-  /* Ensure that callee-saved registers are used and thus saved by
-     lightning in the prolog.  */
-  jit_xorr (JIT_V0, JIT_V0, JIT_V0);
-  jit_xorr (JIT_V1, JIT_V1, JIT_V1);
-  jit_xorr (JIT_V2, JIT_V2, JIT_V2);
   /* Load our reserved registers: THREAD and SP.  */
   jit_getarg (THREAD, thread);
   emit_reload_sp (j);
@@ -935,8 +930,7 @@ compile_return_values (scm_jit_state *j)
     emit_run_hook (j, T0, scm_vm_intrinsics.invoke_return_hook);
 
   emit_load_fp (j, old_fp);
-  emit_load_prev_frame_size (j, offset, old_fp);
-  jit_addi (offset, offset, frame_overhead_slots);
+  emit_load_prev_fp_offset (j, offset, old_fp);
   jit_lshi (offset, offset, 3); /* Multiply by sizeof (scm_vm_stack_element) */
   jit_addr (new_fp, old_fp, offset);
   emit_store_fp (j, new_fp);
@@ -2271,8 +2265,7 @@ compile_return_from_interrupt (scm_jit_state *j)
     emit_run_hook (j, T0, scm_vm_intrinsics.invoke_return_hook);
 
   emit_load_fp (j, old_fp);
-  emit_load_prev_frame_size (j, offset, old_fp);
-  jit_addi (offset, offset, frame_overhead_slots);
+  emit_load_prev_fp_offset (j, offset, old_fp);
   jit_lshi (offset, offset, 3); /* Multiply by sizeof (scm_vm_stack_element) */
   jit_addr (new_fp, old_fp, offset);
   emit_store_fp (j, new_fp);
@@ -3594,7 +3587,7 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
-  fprintf (stderr, "entering mcode! %p\n", mcode);
+  // fprintf (stderr, "entering mcode! %p\n", mcode);
   enter_mcode (thread, mcode);
 }
 
