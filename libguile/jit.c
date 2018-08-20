@@ -52,6 +52,7 @@ struct scm_jit_state {
   const uint32_t *start;
   uint32_t *ip;
   const uint32_t *end;
+  jit_node_t **labels;
   int32_t frame_size;
   uint8_t hooks_enabled;
 };
@@ -811,7 +812,9 @@ static void
 add_inter_instruction_patch (scm_jit_state *j, jit_node_t *label,
                              const uint32_t *target)
 {
-  abort ();
+  if (target < j->start || target >= j->end)
+    abort ();
+  jit_patch_at (label, j->labels[target - j->start]);
 }
 
 
@@ -1967,11 +1970,11 @@ compile_uadd_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_addi (T0, T0, a);
+  jit_addi (T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
-  jit_addci (T0, T0, a);
+  jit_addci (T0, T0, b);
   jit_addxi (T1, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -1982,11 +1985,11 @@ compile_usub_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_subi (T0, T0, a);
+  jit_subi (T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
-  jit_subci (T0, T0, a);
+  jit_subci (T0, T0, b);
   jit_subxi (T1, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -3498,13 +3501,19 @@ compile1 (scm_jit_state *j)
 static void
 compile (scm_jit_state *j)
 {
+  uint32_t offset;
+
   jit_prolog ();
   jit_tramp (entry_frame_size);
+
+  for (offset = 0; j->start + offset < j->end; offset++)
+    j->labels[offset] = jit_forward ();
 
   j->ip = (uint32_t *) j->start;
   while (j->ip < j->end)
     {
       fprintf (stderr, "compile %p <= %p < %p\n", j->start, j->ip, j->end);
+      jit_link (j->labels[j->ip - j->start]);
       compile1 (j);
     }
 }
@@ -3555,6 +3564,8 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   j->thread = thread;
   j->start = (const uint32_t *) (((char *)data) + data->start);
   j->end = (const uint32_t *) (((char *)data) + data->end);
+  j->labels = malloc ((j->end - j->start) * sizeof (*j->labels));
+  if (!j->labels) abort ();
 
   if (j->start >= j->end)
     abort ();
@@ -3573,6 +3584,8 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
     fprintf (stderr, "mcode: %p,+%zu\n", data->mcode, size);
   }
 
+  free (j->labels);
+  j->labels = NULL;
   jit_clear_state ();
   j->jit = NULL;
 
