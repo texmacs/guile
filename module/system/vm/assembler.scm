@@ -1845,10 +1845,10 @@ should be .data or .rodata), and return the resulting linker object.
         (($ <jit-data> low-pc high-pc)
          ;; Patch "start" and "end" fields of "struct jit_data".
          (cons* (make-linker-reloc 'rel32/1 (+ pos word-size 4)
-                                   (- (+ word-size 4) low-pc)
+                                   (+ low-pc word-size 4)
                                    '.rtl-text)
                 (make-linker-reloc 'rel32/1 (+ pos word-size 8)
-                                   (- (+ word-size 8) high-pc)
+                                   (+ high-pc word-size 8)
                                    '.rtl-text)
                 relocs))
         (_ relocs)))
