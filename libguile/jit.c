@@ -300,9 +300,9 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
 {
   jit_node_t *k, *fast, *watermark;
 
-  jit_ldxr (t, THREAD, thread_offset_sp_min_since_gc);
+  jit_ldxi (t, THREAD, thread_offset_sp_min_since_gc);
   fast = jit_bger (SP, t);
-  jit_ldxr (t, THREAD, thread_offset_stack_limit);
+  jit_ldxi (t, THREAD, thread_offset_stack_limit);
   watermark = jit_bger (SP, t);
 
   /* Slow case: call out to expand stack.  */
@@ -314,7 +314,7 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
   /* Past sp_min_since_gc, but within stack_limit: update watermark and
      fall through.  */
   jit_patch (watermark);
-  jit_stxr (thread_offset_sp_min_since_gc, THREAD, SP);
+  jit_stxi (thread_offset_sp_min_since_gc, THREAD, SP);
   jit_patch (fast);
   /* Fast case: Just update sp.  */
   emit_store_sp (j);
@@ -1163,6 +1163,11 @@ static void
 compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 {
   jit_gpr_t fp = T0, t = T1;
+
+  /* Possible for assert-nargs-ee/locals with no extra locals.  */
+  if (j->frame_size == nlocals)
+    return;
+
   emit_load_fp (j, fp);
   if (j->frame_size < 0)
     jit_movr (T3_PRESERVED, SP);
@@ -2009,7 +2014,7 @@ compile_load_s64 (scm_jit_state *j, uint32_t dst, int64_t a)
 static void
 compile_current_thread (scm_jit_state *j, uint32_t dst)
 {
-  jit_ldxr (T0, THREAD, thread_offset_handle);
+  jit_ldxi (T0, THREAD, thread_offset_handle);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -3471,7 +3476,7 @@ compile (scm_jit_state *j)
   j->ip = (uint32_t *) j->start;
   while (j->ip < j->end)
     {
-      printf ("compile %p <= %p < %p\n\n\n\n", j->start, j->ip, j->end);
+      fprintf (stderr, "compile %p <= %p < %p\n", j->start, j->ip, j->end);
       compile1 (j);
     }
 }
@@ -3534,6 +3539,11 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   compile (j);
 
   data->mcode = jit_emit ();
+  {
+    jit_word_t size = 0;
+    jit_get_code (&size);
+    fprintf (stderr, "mcode: %p,+%zu\n", data->mcode, size);
+  }
 
   jit_clear_state ();
   j->jit = NULL;
@@ -3557,7 +3567,10 @@ scm_sys_jit_compile (SCM fn)
   if (code[0] != scm_op_instrument_entry)
     scm_wrong_type_arg ("%jit-compile", 1, fn);
 
+  fprintf (stderr, "compiling function at %p\n", code);
   data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
+  fprintf (stderr, "data %p start=%d, end=%d\n", data, data->start, data->end);
+
   compute_mcode (SCM_I_CURRENT_THREAD, data);
 
   return SCM_UNSPECIFIED;
@@ -3581,6 +3594,7 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
+  fprintf (stderr, "entering mcode! %p\n", mcode);
   enter_mcode (thread, mcode);
 }
 
