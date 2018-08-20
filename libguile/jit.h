@@ -27,6 +27,7 @@
 
 
 struct scm_jit_function_data;
+struct scm_jit_state;
 
 #ifdef BUILDING_LIBGUILE
 struct scm_jit_function_data
@@ -55,6 +56,7 @@ SCM_INTERNAL const uint8_t *scm_jit_compute_mcode (scm_thread *thread,
                                                    struct scm_jit_function_data *data);
 SCM_INTERNAL void scm_jit_enter_mcode (scm_thread *thread,
                                        const uint8_t *mcode);
+SCM_INTERNAL void scm_jit_state_free (struct scm_jit_state *j);
 
 SCM_INTERNAL void scm_init_jit (void);
 

@@ -102,6 +102,9 @@ struct scm_thread {
   /* Stack base.  Used when checking for C stack overflow.  */
   SCM_STACKITEM *base;
 
+  /* JIT state; NULL until this thread needs to JIT-compile something.  */
+  struct scm_jit_state *jit_state;
+
   /* VM state for this thread.  */
   struct scm_vm vm;
 };

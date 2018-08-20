@@ -53,6 +53,7 @@
 #include "hashtab.h"
 #include "init.h"
 #include "iselect.h"
+#include "jit.h"
 #include "list.h"
 #include "modules.h"
 #include "numbers.h"
@@ -513,6 +514,8 @@ on_thread_exit (void *v)
   t->dynstack.top = NULL;
   t->dynstack.limit = NULL;
   scm_i_vm_free_stack (&t->vm);
+  scm_jit_state_free (t->jit_state);
+  t->jit_state = NULL;
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_current_thread = NULL;

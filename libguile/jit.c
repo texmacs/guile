@@ -22,6 +22,8 @@
 # include <config.h>
 #endif
 
+#include <stdio.h> // FIXME: Remove me!
+
 #if ENABLE_JIT
 #include <lightning.h>
 #endif
@@ -39,7 +41,10 @@
 
 
 
-typedef struct {
+static void (*enter_mcode) (scm_thread *thread, const uint8_t *mcode);
+static void *exit_mcode;
+
+struct scm_jit_state {
   jit_state_t *jit;
   scm_thread *thread;
   const uint32_t *start;
@@ -47,13 +52,29 @@ typedef struct {
   const uint32_t *end;
   int32_t frame_size;
   uint8_t hooks_enabled;
-} scm_jit_state;
+};
+
+typedef struct scm_jit_state scm_jit_state;
 
 /* Lightning routines take an implicit parameter, _jit.  All functions
    that call lightning API should have a parameter "scm_jit_state *j";
    this definition makes lightning load its state from that
    parameter.  */
 #define _jit (j->jit)
+
+/* From the Lightning documentation:
+
+     'frame' receives an integer argument that defines the size in bytes
+     for the stack frame of the current, 'C' callable, jit function.  To
+     calculate this value, a good formula is maximum number of arguments
+     to any called native function times eight, plus the sum of the
+     arguments to any call to 'jit_allocai'.  GNU lightning
+     automatically adjusts this value for any backend specific stack
+     memory it may need, or any alignment constraint.
+
+   Here we assume that we don't have intrinsics with more than 8
+   arguments.  */
+static const uint32_t entry_frame_size = 8 * 8;
 
 static const uint32_t program_word_offset_free_variable = 2;
 
@@ -333,6 +354,12 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
   jit_addr (dst, dst, ip);
 }
 
+static void
+emit_exit (scm_jit_state *j)
+{
+  jit_patch_abs (jit_jmpi (), exit_mcode);
+}
+
 static jit_node_t*
 emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
                  const uint32_t *vra)
@@ -369,7 +396,7 @@ emit_indirect_tail_call (scm_jit_state *j)
   jit_patch (no_mcode);
 
   emit_store_ip (j, T0);
-  jit_ret ();
+  emit_exit (j);
 }
 
 static void
@@ -379,7 +406,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
     {
       jit_movi (T0, (intptr_t) vcode);
       emit_store_ip (j, T0);
-      jit_ret ();
+      emit_exit (j);
     }
   else
     {
@@ -400,7 +427,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
           jit_patch (no_mcode);
           jit_movi (T0, (intptr_t) vcode);
           emit_store_ip (j, T0);
-          jit_ret ();
+          emit_exit (j);
         }
     }
 }
@@ -554,11 +581,12 @@ emit_branch_if_heap_object_not_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
   return emit_branch_if_heap_object_not_tc (j, r, t, 0x7f, tc7);
 }
 
-static void
+static jit_node_t*
 emit_entry_trampoline (scm_jit_state *j)
 {
-  jit_node_t *thread, *ip;
+  jit_node_t *thread, *ip, *exit;
   jit_prolog ();
+  jit_frame (entry_frame_size);
   thread = jit_arg ();
   ip = jit_arg ();
   /* Ensure that callee-saved registers are used and thus saved by
@@ -569,11 +597,13 @@ emit_entry_trampoline (scm_jit_state *j)
   /* Load our reserved registers: THREAD and SP.  */
   jit_getarg (THREAD, thread);
   emit_reload_sp (j);
-  /* Call the mcode!  */
+  /* Jump to the mcode!  */
   jit_getarg (JIT_R0, ip);
-  jit_callr (JIT_R0);
+  jit_jmpr (JIT_R0);
+  exit = jit_indirect ();
   /* When mcode returns, interpreter should continue with vp->ip.  */
   jit_ret ();
+  return exit;
 }
 
 static void
@@ -918,7 +948,7 @@ compile_return_values (scm_jit_state *j)
   jit_patch (interp);
   emit_load_vra (j, ra, old_fp);
   emit_store_ip (j, ra);
-  jit_ret ();
+  emit_exit (j);
 }
 
 static void
@@ -1005,7 +1035,7 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
   jit_jmpr (T0);
 
   jit_patch (interp);
-  jit_ret ();
+  emit_exit (j);
 
   j->frame_size = -1;
 }
@@ -1038,7 +1068,7 @@ compile_abort (scm_jit_state *j)
   jit_jmpr (T3_PRESERVED);
 
   jit_patch (interp);
-  jit_ret ();
+  emit_exit (j);
 
   jit_patch (k);
 
@@ -2253,7 +2283,7 @@ compile_return_from_interrupt (scm_jit_state *j)
   emit_store_ip (j, ra);
   jit_addi (SP, old_fp, frame_overhead_slots * sizeof (union scm_vm_stack_element));
   emit_store_sp (j);
-  jit_ret ();
+  emit_exit (j);
 }
 
 static void
@@ -2411,7 +2441,7 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_check_arguments (scm_jit_state *j, uint32_t expected)
 {
-  jit_node_t *eq, *k;
+  jit_node_t *eq;
   jit_gpr_t fp = T0, t = T1, res = T2;
   
   emit_load_fp (j, fp);
@@ -2430,7 +2460,6 @@ compile_check_arguments (scm_jit_state *j, uint32_t expected)
   else
     jit_movi (res, SCM_F_COMPARE_NONE);
   jit_patch (eq);
-  jit_patch (k);
   emit_store_compare_result (j, T2);
 }
 
@@ -3419,13 +3448,13 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     j->ip += 4;                                                         \
   }
 
-static const uint32_t *
+static void
 compile1 (scm_jit_state *j)
 {
   switch (j->ip[0] & 0xff)
     {
 #define COMPILE1(code, cname, name, arity) \
-    case code: COMPILE_##arity(j, compile_##cname)
+      case code: COMPILE_##arity(j, compile_##cname); break;
       FOR_EACH_VM_OPERATION(COMPILE1)
 #undef COMPILE1
     default:
@@ -3436,24 +3465,137 @@ compile1 (scm_jit_state *j)
 static void
 compile (scm_jit_state *j)
 {
+  jit_prolog ();
+  jit_tramp (entry_frame_size);
+
   j->ip = (uint32_t *) j->start;
   while (j->ip < j->end)
-    compile1 (j);
+    {
+      printf ("compile %p <= %p < %p\n\n\n\n", j->start, j->ip, j->end);
+      compile1 (j);
+    }
+}
+
+static scm_i_pthread_once_t initialize_jit_once = SCM_I_PTHREAD_ONCE_INIT;
+
+static void
+initialize_jit (void)
+{
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
+  scm_jit_state *j;
+  jit_node_t *exit;
+
+  init_jit (NULL);
+
+  /* Init the thread's jit state so we can emit the entry
+     trampoline.  */
+  j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
+  memset (j, 0, sizeof (*j));
+  thread->jit_state = j;
+
+  j->jit = jit_new_state ();
+  exit = emit_entry_trampoline (j);
+  enter_mcode = jit_emit ();
+  exit_mcode = jit_address (exit);
+  jit_clear_state ();
+  j->jit = NULL;
+}
+
+static void
+compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
+{
+  scm_jit_state *j = thread->jit_state;
+
+  if (!j)
+    {
+      scm_i_pthread_once (&initialize_jit_once, initialize_jit);
+      j = thread->jit_state;
+      /* Count be the initialize_jit_once inits the jit state.  */
+      if (!j)
+        {
+          j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
+          memset (j, 0, sizeof (*j));
+          thread->jit_state = j;
+        }
+    }
+
+  j->thread = thread;
+  j->start = (const uint32_t *) (((char *)data) + data->start);
+  j->end = (const uint32_t *) (((char *)data) + data->end);
+
+  if (j->start >= j->end)
+    abort ();
+
+  j->frame_size = -1;
+  j->hooks_enabled = 0; /* ? */
+
+  j->jit = jit_new_state ();
+
+  compile (j);
+
+  data->mcode = jit_emit ();
+
+  jit_clear_state ();
+  j->jit = NULL;
+
+  j->start = j->end = j->ip = NULL;
+  j->frame_size = -1;
+}
+
+/* This is a temporary function; just here while we're still kicking the
+   tires.  */
+static SCM
+scm_sys_jit_compile (SCM fn)
+{
+  uint32_t *code;
+  struct scm_jit_function_data *data;
+
+  if (!SCM_PROGRAM_P (fn))
+    scm_wrong_type_arg ("%jit-compile", 1, fn);
+
+  code = SCM_PROGRAM_CODE (fn);
+  if (code[0] != scm_op_instrument_entry)
+    scm_wrong_type_arg ("%jit-compile", 1, fn);
+
+  data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
+  compute_mcode (SCM_I_CURRENT_THREAD, data);
+
+  return SCM_UNSPECIFIED;
 }
 
 const uint8_t *
 scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 {
+  const uint32_t *start = (const uint32_t *) (((char *)data) + data->start);
+
+  /* Until the JIT is tested, don't automatically JIT-compile code.
+     Just return whatever code is already there.  If we decide to buy
+     later, replace with something that wires up a call to
+     "compute_mcode".  */
+  if (start == thread->vm.ip)
+    return data->mcode;
+
   return NULL;
 }
 
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
-  abort ();
+  enter_mcode (thread, mcode);
+}
+
+void
+scm_jit_state_free (scm_jit_state *j)
+{
+  if (j)
+    {
+      jit_destroy_state ();
+      j->jit = NULL;
+    }
 }
 
 void
 scm_init_jit (void)
 {
+  scm_c_define_gsubr ("%jit-compile", 1, 0, 0, (scm_t_subr) scm_sys_jit_compile);
 }

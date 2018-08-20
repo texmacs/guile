@@ -83,6 +83,7 @@
 #include "instructions.h"
 #include "intrinsics.h"
 #include "ioext.h"
+#include "jit.h"
 #include "keywords.h"
 #include "list.h"
 #include "load.h"
@@ -512,6 +513,7 @@ scm_i_init_guile (void *base)
   scm_bootstrap_i18n ();
   scm_init_script ();
   scm_init_unicode ();
+  scm_init_jit ();
 
   scm_init_goops ();
 
