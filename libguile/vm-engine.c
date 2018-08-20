@@ -463,6 +463,14 @@ VM_NAME (scm_thread *thread)
 
       data = (struct scm_jit_function_data *) (ip + data_offset);
 
+      if (data->mcode)
+        {
+          SYNC_IP ();
+          scm_jit_enter_mcode (thread, data->mcode);
+          CACHE_REGISTER ();
+          NEXT (0);
+        }
+
       if (data->counter > SCM_JIT_COUNTER_THRESHOLD)
         {
           const uint8_t *mcode;
