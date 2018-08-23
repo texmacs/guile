@@ -441,7 +441,7 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
                            uint32_t offset)
 {
   uint32_t byte_offset = offset * sizeof (uint32_t);
-  jit_ldxi (dst, ip, byte_offset);
+  jit_ldxi_i (dst, ip, byte_offset);
   jit_lshi (dst, dst, 2); /* Multiply by sizeof (uint32_t) */
   jit_addr (dst, dst, ip);
 }
@@ -477,8 +477,11 @@ emit_indirect_tail_call (scm_jit_state *j)
 
   emit_get_callee_vcode (j, T0);
 
+  /* FIXME: If all functions start with instrument-entry, no need for
+     this check.  */
   emit_get_vcode_low_byte (j, T1, T0);
   not_instrumented = jit_bnei (T1, scm_op_instrument_entry);
+
   emit_get_ip_relative_addr (j, T1, T0, 1);
   jit_ldr (T1, T1);
   no_mcode = jit_beqi (T1, 0);
