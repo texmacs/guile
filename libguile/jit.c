@@ -41,11 +41,100 @@
 
 
 
+/* Guile's just-in-time (JIT) compiler is a simple "template JIT".  It
+   produces machine code corresponding to each VM instruction,
+   substituting in the arguments from the bytecode.  The generated code
+   performs the same operations on the Guile program state the VM
+   interpreter would: the same stack reads and writes, the same calls,
+   the same control flow: the same thing.  It's a very simple JIT.
+
+   This JIT uses GNU Lightning, a library for generating assembly code.
+   It has backends for every architecture you can think of.  Lightning
+   exposes a minimum of 3 "volatile" or "scratch" registers, those that
+   may be overwritten by called functions, and 3 "non-volatile" or
+   "preserved" registers, those whose values will persist over calls.
+   Guile's JIT uses two preserved registers for itself, to store the
+   current thread and the current stack pointer.  The other four
+   registers are available for the JIT.  However as Guile's JIT is
+   really simple and doesn't do register allocation, no other register
+   is live between bytecodes; the other four registers are just scratch
+   space.
+
+   Machine code emitted by the JIT (mcode) should only ever be entered
+   from the interpreter (the VM).  To enter bytecode, the interpreter
+   calls an "entry trampoline" that saves the needed non-volatile
+   registers, reserves some stack space, loads the thread and stack
+   pointer into the reserved registers, then jumps into the mcode.  The
+   mcode then does its thing.
+
+   When mcode needs to call out to another function, e.g. via the "call"
+   instruction, it makes a new frame in just the same way the VM would,
+   with the difference that it also sets the machine return address
+   (mRA) in the stack frame, in addition to the virtual (bytecode)
+   return address (vRA).  If the callee has mcode, then the caller jumps
+   to the callee's mcode.  It's a jump, not a call, as the stack is
+   maintained on the side: it's not the stack used by the e.g. x86
+   "call" instruction.
+
+   When mcode calls a function that doesn't have vcode, or returns to a
+   continuation that doesn't have vcode, the mcode simply returns to the
+   VM interpreter, allowing the interpreter to pick up from there.  The
+   return actually happens via an exit trampoline, which restores the
+   saved register values.
+
+   Every function in Guile's VM begins with an "instrument-entry"
+   instruction.  The instruction links to a statically allocated "struct
+   scm_jit_function_data" corresponding to that function.  When the
+   interpreter sees instrument-entry, first it checks that if the
+   function has mcode, by looking in the scm_jit_function_data.  If it
+   has mcode, the interpreter enters mcode directly, as described above.
+
+   If a function doesn't have mcode, "instrument-entry" will increment a
+   counter in the scm_jit_function_data.  If the counter exceeds a
+   threshold, the interpreter will ask the JIT compiler to produce
+   mcode.  If the JIT compiler was able to do so (always possible except
+   in case of resource exhaustion), then it sets the mcode pointer in
+   the scm_jit_function_data, and returns the mcode pointer to the
+   interpreter.  At that point the interpreter will enter mcode.
+
+   If the counter value does not exceed the threshold, then the VM
+   will interpret the function instead of running compiled code.
+
+   Additionally, Guile puts an "instrument-loop" instruction into the
+   body of each loop iteration.  It works similarly, except that the
+   returned mcode pointer starts in the middle of the function, at the
+   point that corresponds to the program point of the "instrument-loop"
+   instruction.  The idea is that some functions have long-running loops
+   in them, and it would be a shame to have to wait until the next time
+   they're called to enter mcode.  Being able to "tier up" from inside a
+   loop reduces overall program latency.
+
+   Think of the JIT as microarchitecture.  The interpreter specifies the
+   architecture of the VM, in terms of the stack, stack and frame
+   pointers, and a virtual instruction pointer.  Sometimes this
+   architectural state is manipulated by the interpreter.  Sometimes
+   it's compiled down to native code.  But the existence of native code
+   is a detail that's fully encapsulated; systems-oriented Guile Scheme
+   can walk stacks, throw errors, reinstate partial continuations, and
+   so on without being aware of the existence of the JIT.  */
+
+
+
+
+/* Entry trampoline: saves registers, initializes THREAD and SP
+   registers, and jumps into mcode. */
 static void (*enter_mcode) (scm_thread *thread, const uint8_t *mcode);
+
+/* Exit trampoline: restores registers and returns to interpreter.  */
 static void *exit_mcode;
+
+/* Handle interrupts trampoline: the slow path of the handle-interrupts
+   instruction, compiled as a stub on the side to reduce code size.  */
 static void *handle_interrupts_trampoline;
+
 static void compute_mcode (scm_thread *, struct scm_jit_function_data *);
 
+/* State of the JIT compiler for the current thread.  */
 struct scm_jit_state {
   jit_state_t *jit;
   scm_thread *thread;
