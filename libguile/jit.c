@@ -753,7 +753,7 @@ static void
 emit_run_hook (scm_jit_state *j, jit_gpr_t t, scm_t_thread_intrinsic f)
 {
   jit_node_t *k;
-  jit_ldxi_ui (T0, THREAD, thread_offset_trace_level);
+  jit_ldxi_i (T0, THREAD, thread_offset_trace_level);
   k = jit_beqi (T0, 0);
   emit_store_current_ip (j, T0);
   emit_call_r (j, f, THREAD);
