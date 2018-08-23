@@ -37,7 +37,7 @@ DEFAULT_INCLUDES =
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
 AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
-	      -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(builddir) \
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib -iquote$(builddir) \
 	      $(LIBFFI_CFLAGS)
 
 if ENABLE_JIT
