@@ -1082,17 +1082,14 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
 
   subr = scm_subr_function_by_index (idx);
   emit_store_current_ip (j, t);
-  emit_load_fp (j, fp);
   jit_prepare ();
-  for (i = 0; i < j->frame_size; i++)
+  for (i = 2; i <= j->frame_size; i++)
     {
-      emit_fp_ref_scm (j, t, fp, i);
+      emit_sp_ref_scm (j, t, j->frame_size - i);
       jit_pushargr (t);
     }
   jit_finishi (subr);
   jit_retval (ret);
-
-  emit_load_fp (j, fp);
 
   immediate = emit_branch_if_immediate (j, ret);
   not_values = emit_branch_if_heap_object_not_tc7 (j, ret, t, scm_tc7_values);
@@ -1102,6 +1099,7 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
 
   jit_patch (immediate);
   jit_patch (not_values);
+  emit_load_fp (j, fp);
   emit_subtract_stack_slots (j, SP, fp, 1);
   emit_store_sp (j);
   jit_str (SP, ret);
