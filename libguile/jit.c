@@ -510,6 +510,8 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 
       if (data->mcode)
         {
+          /* FIXME: Jump indirectly, to allow mcode to be changed
+             (e.g. to add/remove breakpoints or hooks).  */
           jit_patch_abs (jit_jmpi (), data->mcode);
         }
       else
@@ -557,33 +559,193 @@ emit_sp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
     jit_stxi (8 * slot, SP, val);
 }
 
+/* Use when you know that the u64 value will be within the size_t range,
+   for example when it's ensured by the compiler.  */
+static void
+emit_sp_ref_sz (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  if (BIGENDIAN && sizeof (size_t) == 4)
+    jit_ldxi (dst, SP, src * 8 + 4);
+  else
+    jit_ldxi (dst, SP, src * 8);
+}
+
+static void
+emit_sp_set_sz (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
+{
+  size_t offset = dst * 8;
+
+  if (sizeof (size_t) == 4)
+    {
+      size_t lo, hi;
+      if (BIGENDIAN)
+        lo = offset + 4, hi = offset;
+      else
+        lo = offset, hi = offset + 4;
+      
+      jit_stxi (lo, SP, src);
+      /* Set high word to 0.  Clobber src.  */
+      jit_xorr (src, src, src);
+      jit_stxi (hi, SP, src);
+    }
+  else
+    jit_stxi (offset, SP, src);
+}
+
+#if SIZEOF_UINTPTR_T >= 8
+static void
+emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  size_t offset = src * 8;
+
+  if (offset == 0)
+    jit_ldr (dst, SP);
+  else
+    jit_ldxi (dst, SP, offset);
+}
+
+static void
+emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
+{
+  size_t offset = dst * 8;
+
+  if (dst == 0)
+    jit_str (SP, src);
+  else
+    jit_stxi (offset, SP, src);
+}
+
+static void
+emit_sp_ref_s64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  emit_sp_ref_u64 (j, dst, src);
+}
+
+static void
+emit_sp_set_s64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
+{
+  emit_sp_set_u64 (j, dst, src);
+}
+
+static void
+emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  emit_sp_ref_u64 (j, dst, src);
+}
+
+#else /* SCM_SIZEOF_UINTPTR_T >= 8 */
+
+static void
+emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
+                 uint32_t src)
+{
+  size_t offset = src * 8;
+  jit_gpr_t first, second;
+
+#if BIGENDIAN
+  first = dst_hi, second = dst_lo;
+#else
+  first = dst_lo, second = dst_hi;
+#endif
+
+  if (offset == 0)
+    jit_ldr (first, SP);
+  else
+    jit_ldxi (first, SP, offset);
+  jit_ldxi (second, SP, offset + 4);
+}
+
+static void
+emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
+{
+  size_t offset = dst * 8;
+  jit_gpr_t first, second;
+
+#if BIGENDIAN
+  first = hi, second = lo;
+#else
+  first = lo, second = hi;
+#endif
+
+  if (offset == 0)
+    jit_str (SP, first);
+  else
+    jit_stxi (offset, SP, first);
+  jit_stxi (offset + 4, SP, second);
+}
+
+static void
+emit_sp_ref_s64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
+                 uint32_t src)
+{
+  emit_sp_ref_u64 (j, dst_lo, dst_hi, src);
+}
+
+static void
+emit_sp_set_s64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
+{
+  emit_sp_set_u64 (j, dst, lo, hi);
+}
+
+static void
+emit_sp_ref_u64_lower_half (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  size_t offset = src * 8;
+
+  if (offset == 0)
+    emit_ldr (dst, SP);
+  else
+    emit_ldxi (dst, SP, offset);
+}
+
+static void
+emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  emit_sp_ref_u64_lower_half (j, dst, src);
+}
+#endif /* SCM_SIZEOF_UINTPTR_T >= 8 */
+
+static void
+emit_sp_ref_f64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  size_t offset = src * 8;
+
+  if (offset == 0)
+    jit_ldr_d (dst, SP);
+  else
+    jit_ldxi_d (dst, SP, offset);
+}
+
+static void
+emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
+{
+  size_t offset = dst * 8;
+
+  if (offset == 0)
+    jit_str_d (SP, src);
+  else
+    jit_stxi_d (offset, SP, src);
+}
+
+
 static void
 emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
 {
-  /* FIXME: The compiler currently emits "push" for SCM, F64, U64,
-     and S64 variables.  However SCM values are the usual case, and
-     on a 32-bit machine it might be cheaper to move a SCM than to
-     move a 64-bit number.  */
+  emit_sp_ref_scm (j, t, src);
+  emit_sp_set_scm (j, dst, t);
+
+  /* FIXME: The compiler currently emits "push", "mov", etc for SCM,
+     F64, U64, and S64 variables.  However SCM values are the usual
+     case, and on a 32-bit machine it might be cheaper to move a SCM
+     than to move a 64-bit number.  */
   if (sizeof (void*) < sizeof (union scm_vm_stack_element))
     {
+      /* Copy the high word as well.  */
       uintptr_t src_offset = src * sizeof (union scm_vm_stack_element);
       uintptr_t dst_offset = dst * sizeof (union scm_vm_stack_element);
 
       jit_ldxi (t, SP, src_offset + sizeof (void*));
       jit_stxi (dst_offset + sizeof (void*), SP, t);
-      if (src_offset == 0)
-        jit_ldr (t, SP);
-      else
-        jit_ldxi (t, SP, src_offset);
-      if (dst_offset == 0)
-        jit_str (SP, t);
-      else
-        jit_stxi (dst_offset, SP, t);
-    }
-  else
-    {
-      emit_sp_ref_scm (j, t, src);
-      emit_sp_set_scm (j, dst, t);
     }
 }
 
@@ -732,172 +894,6 @@ emit_free_variable_ref (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t prog,
 {
   emit_load_heap_object_word (j, dst, prog,
                               n + program_word_offset_free_variable);
-}
-
-/* Use when you know that the u64 value will be within the size_t range,
-   for example when it's ensured by the compiler.  */
-static void
-emit_sp_ref_sz (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  if (BIGENDIAN && sizeof (size_t) == 4)
-    jit_ldxi (dst, SP, src * 8 + 4);
-  else
-    jit_ldxi (dst, SP, src * 8);
-}
-
-static void
-emit_sp_set_sz (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
-{
-  size_t offset = dst * 8;
-
-  if (sizeof (size_t) == 4)
-    {
-      size_t lo, hi;
-      if (BIGENDIAN)
-        lo = offset + 4, hi = offset;
-      else
-        lo = offset, hi = offset + 4;
-      
-      jit_stxi (lo, SP, src);
-      /* Set high word to 0.  Clobber src.  */
-      jit_xorr (src, src, src);
-      jit_stxi (hi, SP, src);
-    }
-  else
-    jit_stxi (offset, SP, src);
-}
-
-#if SIZEOF_UINTPTR_T >= 8
-static void
-emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  size_t offset = src * 8;
-
-  if (offset == 0)
-    jit_ldr (dst, SP);
-  else
-    jit_ldxi (dst, SP, offset);
-}
-
-static void
-emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
-{
-  size_t offset = dst * 8;
-
-  if (dst == 0)
-    jit_str (SP, src);
-  else
-    jit_stxi (offset, SP, src);
-}
-
-static void
-emit_sp_ref_s64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  emit_sp_ref_u64 (j, dst, src);
-}
-
-static void
-emit_sp_set_s64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
-{
-  emit_sp_set_u64 (j, dst, src);
-}
-
-static void
-emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  emit_sp_ref_u64 (j, dst, src);
-}
-#else
-static void
-emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
-                 uint32_t src)
-{
-  size_t offset = src * 8;
-  jit_gpr_t first, second;
-
-#if BIGENDIAN
-  first = dst_hi, second = dst_lo;
-#else
-  first = dst_lo, second = dst_hi;
-#endif
-
-  if (offset == 0)
-    jit_ldr (first, SP);
-  else
-    jit_ldxi (first, SP, offset);
-  jit_ldxi (second, SP, offset + 4);
-}
-
-static void
-emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
-{
-  size_t offset = dst * 8;
-  jit_gpr_t first, second;
-
-#if BIGENDIAN
-  first = hi, second = lo;
-#else
-  first = lo, second = hi;
-#endif
-
-  if (offset == 0)
-    jit_str (SP, first);
-  else
-    jit_stxi (offset, SP, first);
-  jit_stxi (offset + 4, SP, second);
-}
-
-static void
-emit_sp_ref_s64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
-                 uint32_t src)
-{
-  emit_sp_ref_u64 (j, dst_lo, dst_hi, src);
-}
-
-static void
-emit_sp_set_s64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
-{
-  emit_sp_set_u64 (j, dst, lo, hi);
-}
-
-static void
-emit_sp_ref_u64_lower_half (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  size_t offset = src * 8;
-
-  if (offset == 0)
-    emit_ldr (dst, SP);
-  else
-    emit_ldxi (dst, SP, offset);
-}
-
-static void
-emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  emit_sp_ref_u64_lower_half (j, dst, src);
-}
-#endif
-
-static void
-emit_sp_ref_f64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
-{
-  size_t offset = src * 8;
-
-  if (offset == 0)
-    jit_ldr_d (dst, SP);
-  else
-    jit_ldxi_d (dst, SP, offset);
-}
-
-static void
-emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
-{
-  size_t offset = dst * 8;
-
-  if (offset == 0)
-    jit_str_d (SP, src);
-  else
-    jit_stxi_d (offset, SP, src);
 }
 
 static void
