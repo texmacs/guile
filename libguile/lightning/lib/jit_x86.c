@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -185,7 +185,7 @@ jit_register_t		_rvs[] = {
     { rc(arg) | rc(gpr) | rc(rg8) | 0,	"%rax" },
     { rc(gpr) | rc(rg8) | 10,		"%r10" },
     { rc(gpr) | rc(rg8) | 11,		"%r11" },
-    { rc(gpr) | rc(rg8) | 12,		"%r12" },
+    { rc(sav) | rc(gpr) | rc(rg8) | 12,	"%r12" },
     { rc(sav) | rc(rg8) | rc(gpr) | 3,	"%rbx" },
     { rc(sav) | rc(rg8) | rc(gpr) | 13,	"%r13" },
     { rc(sav) | rc(rg8) | rc(gpr) | 14,	"%r14" },
