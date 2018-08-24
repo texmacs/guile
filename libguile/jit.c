@@ -1066,6 +1066,8 @@ compile_return_values (scm_jit_state *j)
   emit_load_vra (j, ra, old_fp);
   emit_store_ip (j, ra);
   emit_exit (j);
+
+  j->frame_size = -1;
 }
 
 static void
@@ -1103,6 +1105,8 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   emit_store_sp (j);
   jit_str (SP, ret);
   jit_patch (k);
+
+  j->frame_size = -1;
 }
 
 static void
