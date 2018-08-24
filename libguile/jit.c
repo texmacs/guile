@@ -1441,8 +1441,8 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
   emit_store_current_ip (j, t);
   emit_call_r_i (j, scm_vm_intrinsics.cons_rest, THREAD, dst);
   jit_retval (t);
-  emit_sp_set_scm (j, 0, t);
   compile_reset_frame (j, dst + 1);
+  emit_sp_set_scm (j, 0, t);
   
   jit_patch (k);
 }
