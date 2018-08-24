@@ -1308,10 +1308,9 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
       jit_node_t *head, *k, *back;
       jit_movi (T0, SCM_UNPACK (SCM_UNDEFINED));
       k = jit_bler (T3_PRESERVED, SP);
-      jit_subi (T3_PRESERVED, T3_PRESERVED, sizeof (union scm_vm_stack_element));
       head = jit_label ();
-      jit_str (T3_PRESERVED, T0);
       jit_subi (T3_PRESERVED, T3_PRESERVED, sizeof (union scm_vm_stack_element));
+      jit_str (T3_PRESERVED, T0);
       back = jit_bner (T3_PRESERVED, SP);
       jit_patch_at (back, head);
       jit_patch (k);
