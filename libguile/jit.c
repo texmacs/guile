@@ -532,13 +532,13 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 static void
 emit_fp_ref_scm (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp, uint32_t slot)
 {
-  jit_ldxi (dst, fp, -8 * (slot + 1));
+  jit_ldxi (dst, fp, -8 * ((ptrdiff_t) slot + 1));
 }
 
 static void
 emit_fp_set_scm (scm_jit_state *j, jit_gpr_t fp, uint32_t slot, jit_gpr_t val)
 {
-  jit_stxi (-8 * (slot + 1), fp, val);
+  jit_stxi (-8 * ((ptrdiff_t) slot + 1), fp, val);
 }
 
 static void
