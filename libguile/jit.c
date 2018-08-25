@@ -191,7 +191,6 @@ DEFINE_THREAD_OFFSET (block_asyncs);
 DEFINE_THREAD_VP_OFFSET (fp);
 DEFINE_THREAD_VP_OFFSET (sp);
 DEFINE_THREAD_VP_OFFSET (ip);
-DEFINE_THREAD_VP_OFFSET (compare_result);
 DEFINE_THREAD_VP_OFFSET (sp_min_since_gc);
 DEFINE_THREAD_VP_OFFSET (stack_limit);
 DEFINE_THREAD_VP_OFFSET (trace_level);
@@ -331,18 +330,6 @@ emit_store_current_ip (scm_jit_state *j, jit_gpr_t t)
 {
   jit_movi (t, (intptr_t) j->ip);
   emit_store_ip (j, t);
-}
-
-static void
-emit_load_compare_result (scm_jit_state *j, jit_gpr_t dst)
-{
-  jit_ldxi_uc (dst, THREAD, thread_offset_compare_result);
-}
-
-static void
-emit_store_compare_result (scm_jit_state *j, jit_gpr_t src)
-{
-  jit_stxi_c (thread_offset_compare_result, THREAD, src);
 }
 
 static void
@@ -796,6 +783,14 @@ emit_branch_if_frame_locals_count_eq (scm_jit_state *j, jit_gpr_t fp,
 {
   jit_subr (t, fp, SP);
   return jit_beqi (t, nlocals * sizeof (union scm_vm_stack_element));
+}
+
+static jit_node_t*
+emit_branch_if_frame_locals_count_not_eq (scm_jit_state *j, jit_gpr_t fp,
+                                          jit_gpr_t t, uint32_t nlocals)
+{
+  jit_subr (t, fp, SP);
+  return jit_bnei (t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
 static jit_node_t*
@@ -2433,59 +2428,115 @@ compile_return_from_interrupt (scm_jit_state *j)
   emit_exit (j);
 }
 
+static enum scm_opcode
+fuse_conditional_branch (scm_jit_state *j, uint32_t **target)
+{
+  uint8_t next = j->next_ip[0] & 0xff;
+
+  switch (next)
+    {
+    case scm_op_jl:
+    case scm_op_je:
+    case scm_op_jnl:
+    case scm_op_jne:
+    case scm_op_jge:
+    case scm_op_jnge:
+      *target = j->next_ip + (((int32_t) j->next_ip[0]) >> 8);
+      j->next_ip += op_lengths[next];
+      return next;
+    default:
+      abort ();
+    }
+}
+
 static void
 compile_u64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
+  uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  k = jit_bner (T0, T1);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqr (T0, T1);
+      break;
+    case scm_op_jne:
+      k = jit_bner (T0, T1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *k3;
+  jit_node_t *k1, *k2;
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3, b);
-  k1 = jit_bner (T0, T2);
-  k2 = jit_bner (T1, T3);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  k3 = jit_jmpi ();
-  jit_patch (k1);
-  jit_patch (k2);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k1 = jit_bner (T0, T2);
+      k2 = jit_beqr (T1, T3);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    case scm_op_jne:
+      k1 = jit_bner (T0, T2);
+      k2 = jit_bner (T1, T3);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
 compile_u64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
+  uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  k = jit_bger_u (T0, T1);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_bltr_u (T0, T1);
+      break;
+    case scm_op_jnl:
+      k = jit_bger_u (T0, T1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *less, *k3;
+  jit_node_t *k1, *k2, *k3;
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3, b);
-  less = jit_bltr_u (T1, T3);
-  k1 = jit_bner (T1, T3);
-  k2 = jit_bger_u (T0, T2);
-  jit_patch (less);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  k3 = jit_jmpi ();
-  jit_patch (k1);
-  jit_patch (k2);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k3);
+  k1 = jit_bltr_u (T1, T3);
+  k2 = jit_bner (T1, T3);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k3 = jit_bltr_u (T0, T2);
+      jit_patch (k2);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    case scm_op_jnl:
+      k3 = jit_bger_u (T0, T2);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
@@ -2497,152 +2548,216 @@ compile_s64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_s64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
+  uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  emit_sp_ref_u64 (j, T0, a);
-  emit_sp_ref_u64 (j, T1, b);
-  k = jit_bger (T0, T1);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k);
+  emit_sp_ref_s64 (j, T0, a);
+  emit_sp_ref_s64 (j, T1, b);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_bltr (T0, T1);
+      break;
+    case scm_op_jnl:
+      k = jit_bger (T0, T1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *less, *k3;
-  emit_sp_ref_u64 (j, T0, T1, a);
-  emit_sp_ref_u64 (j, T2, T3, b);
-  less = jit_bltr (T1, T3);
-  k1 = jit_bner (T1, T3);
-  k2 = jit_bger (T0, T2);
-  jit_patch (less);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  k3 = jit_jmpi ();
-  jit_patch (k1);
-  jit_patch (k2);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k3);
+  jit_node_t *k1, *k2, *k3;
+  emit_sp_ref_s64 (j, T0, T1, a);
+  emit_sp_ref_s64 (j, T2, T3, b);
+  k1 = jit_bltr (T1, T3);
+  k2 = jit_bner (T1, T3);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k3 = jit_bltr (T0, T2);
+      jit_patch (k2);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    case scm_op_jnl:
+      k3 = jit_bger (T0, T2);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
 compile_f64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
+  uint32_t *target;
+
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  k = jit_beqr_d (JIT_F0, JIT_F1);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqr_d (JIT_F0, JIT_F1);
+      break;
+    case scm_op_jne:
+      k = jit_bner_d (JIT_F0, JIT_F1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_f64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *less, *ge, *k1, *k2;
+  jit_node_t *k;
+  uint32_t *target;
+
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  less = jit_bltr_d (JIT_F0, JIT_F1);
-  ge = jit_bger_d (JIT_F0, JIT_F1);
-  jit_movi (T2, SCM_F_COMPARE_INVALID);
-  k1 = jit_jmpi ();
-  jit_patch (ge);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  k2 = jit_jmpi ();
-  jit_patch (less);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k1);
-  jit_patch (k2);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_bltr_d (JIT_F0, JIT_F1);
+      break;
+    case scm_op_jnl:
+      k = jit_bunger_d (JIT_F0, JIT_F1);
+      break;
+    case scm_op_jge:
+      k = jit_bger_d (JIT_F0, JIT_F1);
+      break;
+    case scm_op_jnge:
+      k = jit_bunltr_d (JIT_F0, JIT_F1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   jit_node_t *k;
+  uint32_t *target;
+
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.numerically_equal_p, T0, T1);
   jit_retval (T0);
   emit_reload_sp (j);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  k = jit_bnei (T0, 0);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_bnei (T0, 0);
+      break;
+    case scm_op_jne:
+      k = jit_beqi (T0, 0);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
+  jit_node_t *k;
+  uint32_t *target;
+
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
-  jit_retval (T2);
+  jit_retval (T0);
   emit_reload_sp (j);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_beqi (T0, SCM_F_COMPARE_LESS_THAN);
+      break;
+    case scm_op_jnl:
+      k = jit_bnei (T0, SCM_F_COMPARE_LESS_THAN);
+      break;
+    case scm_op_jge:
+      k = jit_beqi (T0, SCM_F_COMPARE_NONE);
+      break;
+    case scm_op_jnge:
+      k = jit_bnei (T0, SCM_F_COMPARE_NONE);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_check_arguments (scm_jit_state *j, uint32_t expected)
 {
-  jit_node_t *eq;
-  jit_gpr_t fp = T0, t = T1, res = T2;
+  jit_node_t *k;
+  uint32_t *target;
+  jit_gpr_t fp = T0, t = T1;
   
   emit_load_fp (j, fp);
-  jit_movi (res, SCM_F_COMPARE_EQUAL);
-  eq = emit_branch_if_frame_locals_count_eq (j, fp, t, expected);
-  if (expected > 0)
+  switch (fuse_conditional_branch (j, &target))
     {
-      jit_node_t *k2, *ge;
-      ge = emit_branch_if_frame_locals_count_greater_than (j, fp, t, expected-1);
-      jit_movi (res, SCM_F_COMPARE_LESS_THAN);
-      k2 = jit_jmpi ();
-      jit_patch (ge);
-      jit_movi (res, SCM_F_COMPARE_NONE);
-      jit_patch (k2);
+    case scm_op_jne:
+      k = emit_branch_if_frame_locals_count_not_eq (j, fp, t, expected);
+      break;
+    case scm_op_jl:
+      k = emit_branch_if_frame_locals_count_less_than (j, fp, t, expected);
+      break;
+    case scm_op_jge:
+      if (expected == 0)
+        k = jit_jmpi (); /* Shouldn't happen.  */
+      else
+        k = emit_branch_if_frame_locals_count_greater_than (j, fp, t, expected - 1);
+      break;
+    default:
+      abort ();
     }
-  else
-    jit_movi (res, SCM_F_COMPARE_NONE);
-  jit_patch (eq);
-  emit_store_compare_result (j, T2);
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t expected)
 {
-  jit_node_t *k, *head, *lt, *eq, *done1, *done2;
-  jit_gpr_t walk = T0, npos = T1, obj = T2, t = T3, res = T0;
+  uint32_t *target;
+  jit_node_t *lt, *ge, *head;
+  jit_gpr_t walk = T0, min = T1, obj = T2, t = T3;
+
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jge:
+      /* Break to target if npos >= expected.  */
+      break;
+    default:
+      abort ();
+    }
 
   emit_load_fp (j, walk);
-  if (nreq == 0) abort ();
-  emit_subtract_stack_slots (j, walk, walk, nreq-1);
-  jit_movi (npos, nreq - 1);
+  emit_subtract_stack_slots (j, min, walk, expected);
+  emit_subtract_stack_slots (j, walk, walk, nreq);
   
   head = jit_label ();
-  jit_addi (npos, npos, 1);
   emit_subtract_stack_slots (j, walk, walk, 1);
-  k = jit_beqr (walk, SP);
+  lt = jit_bltr (walk, SP);
+  /* npos >= expected if walk <= min.  */
+  ge = jit_bler (walk, min);
   jit_ldr (obj, walk);
   jit_patch_at (emit_branch_if_immediate (j, obj), head);
   jit_patch_at (emit_branch_if_heap_object_not_tc7 (j, obj, t, scm_tc7_keyword),
                 head);
-  jit_patch (k);
-
-  lt = jit_blti (npos, expected);
-  eq = jit_beqi (npos, expected);
-  jit_movi (res, SCM_F_COMPARE_NONE);
-  done1 = jit_jmpi ();
   jit_patch (lt);
-  jit_movi (res, SCM_F_COMPARE_LESS_THAN);
-  done2 = jit_jmpi ();
-  jit_patch (eq);
-  jit_movi (res, SCM_F_COMPARE_EQUAL);
-  jit_patch (done1);
-  jit_patch (done2);
-  jit_stxi (thread_offset_compare_result, THREAD, res);
+  add_inter_instruction_patch (j, ge, target);
 }
 
 static void
@@ -2650,13 +2765,22 @@ compile_immediate_tag_equals (scm_jit_state *j, uint32_t a, uint16_t mask,
                               uint16_t expected)
 {
   jit_node_t *k;
+  uint32_t *target;
+
   emit_sp_ref_scm (j, T0, a);
   jit_andi (T0, T0, mask);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  k = jit_beqi (T0, expected);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqi (T0, expected);
+      break;
+    case scm_op_jne:
+      k = jit_bnei (T0, expected);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
@@ -2664,25 +2788,43 @@ compile_heap_tag_equals (scm_jit_state *j, uint32_t obj,
                          uint16_t mask, uint16_t expected)
 {
   jit_node_t *k;
+  uint32_t *target;
+
   emit_sp_ref_scm (j, T0, obj);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  k = emit_branch_if_heap_object_has_tc (j, T0, T0, mask, expected);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = emit_branch_if_heap_object_has_tc (j, T0, T0, mask, expected);
+      break;
+    case scm_op_jne:
+      k = emit_branch_if_heap_object_not_tc (j, T0, T0, mask, expected);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
 compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   jit_node_t *k;
+  uint32_t *target;
+
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  k = jit_beqi (T0, T1);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqi (T0, T1);
+      break;
+    case scm_op_jne:
+      k = jit_bnei (T0, T1);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
@@ -2696,72 +2838,63 @@ compile_j (scm_jit_state *j, const uint32_t *vcode)
 static void
 compile_jl (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_beqi (T0, SCM_F_COMPARE_LESS_THAN);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_je (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_beqi (T0, SCM_F_COMPARE_EQUAL);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_jnl (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_bnei (T0, SCM_F_COMPARE_LESS_THAN);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_jne (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_bnei (T0, SCM_F_COMPARE_EQUAL);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_jge (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_beqi (T0, SCM_F_COMPARE_NONE);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_jnge (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  emit_load_compare_result (j, T0);
-  jmp = jit_bnei (T0, SCM_F_COMPARE_NONE);
-  add_inter_instruction_patch (j, jmp, vcode);
+  abort (); /* All tests should fuse their following branches.  */
 }
 
 static void
 compile_heap_numbers_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   jit_node_t *k;
+  uint32_t *target;
+
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.heap_numbers_equal_p, T0, T1);
   jit_retval (T0);
   emit_reload_sp (j);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  k = jit_bnei (T0, 0);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  jit_patch (k);
-  emit_store_compare_result (j, T2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_bnei (T0, 0);
+      break;
+    case scm_op_jne:
+      k = jit_beqi (T0, 0);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 }
 
 static void
@@ -2871,22 +3004,44 @@ compile_s64_imm_numerically_equal (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  emit_sp_ref_u64 (j, T0, a);
-  k = jit_bnei (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  jit_patch (k);
+  uint32_t *target;
+
+  emit_sp_ref_s64 (j, T0, a);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqi (T0, b);
+      break;
+    case scm_op_jne:
+      k = jit_bnei (T0, b);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
   jit_node_t *k1, *k2;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  emit_sp_ref_u64 (j, T0, T1, a);
-  k1 = jit_bnei (T0, b);
-  k2 = jit_bnei (T1, b < 0 ? -1 : 0);
-  jit_movi (T2, SCM_F_COMPARE_EQUAL);
-  jit_patch (k1);
-  jit_patch (k2);
+  uint32_t *target;
+
+  emit_sp_ref_s64 (j, T0, T1, a);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k1 = jit_bnei (T0, b);
+      k2 = jit_beqi (T1, b < 0 ? -1 : 0);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    case scm_op_jne:
+      k1 = jit_bnei (T0, b);
+      k2 = jit_bnei (T1, b < 0 ? -1 : 0);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
@@ -2894,22 +3049,44 @@ compile_u64_imm_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  uint32_t *target;
+
   emit_sp_ref_u64 (j, T0, a);
-  k = jit_bgei_u (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_blti_u (T0, b);
+      break;
+    case scm_op_jnl:
+      k = jit_bgei_u (T0, b);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
   jit_node_t *k1, *k2;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  uint32_t *target;
+
   emit_sp_ref_u64 (j, T0, T1, a);
-  k1 = jit_bgei_u (T0, b);
-  k2 = jit_bnei (T1, 0);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k1);
-  jit_patch (k2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k1 = jit_bnei (T1, 0);
+      k2 = jit_blti_u (T0, b);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    case scm_op_jnl:
+      k1 = jit_bgti (T1, 0);
+      k2 = jit_bgei_u (T0, b);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
@@ -2917,22 +3094,44 @@ compile_imm_u64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
+  uint32_t *target;
+
   emit_sp_ref_u64 (j, T0, a);
-  k = jit_bgti_u (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_bgti_u (T0, b);
+      break;
+    case scm_op_jnl:
+      k = jit_blei_u (T0, b);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
   jit_node_t *k1, *k2;
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
+  uint32_t *target;
+
   emit_sp_ref_u64 (j, T0, T1, a);
-  k1 = jit_bnei (T1, 0);
-  k2 = jit_bgti_u (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k1);
-  jit_patch (k2);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k1 = jit_bnei (T1, 0);
+      k2 = jit_bgti_u (T0, b);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    case scm_op_jnl:
+      k1 = jit_bnei (T1, 0);
+      k2 = jit_blei_u (T0, b);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
@@ -2940,25 +3139,49 @@ compile_s64_imm_less (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  uint32_t *target;
+
   emit_sp_ref_s64 (j, T0, a);
-  k = jit_bgei (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_blti (T0, b);
+      break;
+    case scm_op_jnl:
+      k = jit_bgei (T0, b);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
   jit_node_t *k1, *k2, *k3;
   int32_t sign = b < 0 ? -1 : 0;
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
+  uint32_t *target;
+
   emit_sp_ref_s64 (j, T0, T1, a);
-  k1 = jit_blti (T1, sign);
-  k2 = jit_bnei (T1, sign);
-  k3 = jit_blti (T0, b);
-  jit_patch (k2);
-  jit_movi (T2, SCM_F_COMPARE_NONE);
-  jit_patch (k1);
-  jit_patch (k3);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k1 = jit_blti (T1, sign);
+      k2 = jit_bnei (T1, sign);
+      k3 = jit_blti (T0, b);
+      jit_patch (k2);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    case scm_op_jnl:
+      k1 = jit_bgti (T1, sign);
+      k2 = jit_bnei (T1, sign);
+      k3 = jit_bgei (T0, b);
+      jit_patch (k2);
+      add_inter_instruction_patch (j, k1, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
@@ -2966,25 +3189,49 @@ compile_imm_s64_less (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   jit_node_t *k;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  uint32_t *target;
+
   emit_sp_ref_s64 (j, T0, a);
-  k = jit_blei (T0, b);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k = jit_bgti (T0, b);
+      break;
+    case scm_op_jnl:
+      k = jit_blei (T0, b);
+      break;
+    default:
+      abort ();
+    }
+  add_inter_instruction_patch (j, k, target);
 #else
   jit_node_t *k1, *k2, *k3;
   int32_t sign = b < 0 ? -1 : 0;
-  jit_movi (T2, SCM_F_COMPARE_NONE);
+  uint32_t *target;
+
   emit_sp_ref_s64 (j, T0, T1, a);
-  k1 = jit_blti (T1, sign);
-  k2 = jit_bnei (T1, sign);
-  k3 = jit_blei (T0, b);
-  jit_patch (k2);
-  jit_movi (T2, SCM_F_COMPARE_LESS_THAN);
-  jit_patch (k1);
-  jit_patch (k3);
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+      k1 = jit_blti (T1, sign);
+      k2 = jit_bnei (T1, sign);
+      k3 = jit_bgti (T0, b);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    case scm_op_jnl:
+      k1 = jit_bgti (T1, sign);
+      k2 = jit_bnei (T1, sign);
+      k3 = jit_blei (T0, b);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
+      add_inter_instruction_patch (j, k3, target);
+      break;
+    default:
+      abort ();
+    }
 #endif
-  emit_store_compare_result (j, T2);
 }
 
 static void
