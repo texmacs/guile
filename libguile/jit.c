@@ -140,6 +140,7 @@ struct scm_jit_state {
   scm_thread *thread;
   const uint32_t *start;
   uint32_t *ip;
+  uint32_t *next_ip;
   const uint32_t *end;
   jit_node_t **labels;
   int32_t frame_size;
@@ -226,6 +227,22 @@ static const uint32_t log2_sizeof_uintptr_t = 3;
 #else
 #error unhandled uintptr_t size
 #endif
+
+#define LENGTH_NOP 0
+#define LENGTH_OP1(a) 1
+#define LENGTH_OP2(a,b) 2
+#define LENGTH_OP3(a,b,c) 3
+#define LENGTH_OP4(a,b,c,d) 4
+#define LENGTH_DOP1(a) 1
+#define LENGTH_DOP2(a,b) 2
+#define LENGTH_DOP3(a,b,c) 3
+#define LENGTH_DOP4(a,b,c,d) 4
+
+static const uint8_t op_lengths[256] = {
+#define OP_LENGTH(code, cname, name, arity) LENGTH_##arity,
+FOR_EACH_VM_OPERATION(OP_LENGTH)
+#undef OP_LENGTH
+};
 
 static void
 emit_reload_sp (scm_jit_state *j)
@@ -497,7 +514,11 @@ emit_indirect_tail_call (scm_jit_state *j)
 static void
 emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 {
-  if ((vcode[0] & 0xff) != scm_op_instrument_entry)
+  if (vcode == j->start)
+    {
+      jit_patch_at (jit_jmpi (), j->labels[0]);
+    }
+  else if ((vcode[0] & 0xff) != scm_op_instrument_entry)
     {
       jit_movi (T0, (intptr_t) vcode);
       emit_store_ip (j, T0);
@@ -3275,13 +3296,12 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
 
 #define COMPILE_NOP(j, comp)          \
   {                                   \
-    bad_instruction(j);               \
+    bad_instruction (j);              \
   }
 
 #define COMPILE_X32(j, comp)                                            \
   {                                                                     \
     comp (j);                                                           \
-    j->ip += 1;                                                         \
   }
 
 #define COMPILE_X8_C24(j, comp)                                         \
@@ -3289,7 +3309,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     uint32_t a;                                                         \
     UNPACK_24 (j->ip[0], a);                                            \
     comp (j, a);                                                        \
-    j->ip += 1;                                                         \
   }
 #define COMPILE_X8_F24(j, comp)                                         \
   COMPILE_X8_C24 (j, comp)
@@ -3301,14 +3320,12 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     int32_t a = j->ip[0];                                               \
     a >>= 8; /* Sign extension.  */                                     \
     comp (j, j->ip + a);                                                \
-    j->ip += 1;                                                         \
   }
 #define COMPILE_X8_C12_C12(j, comp)                                     \
   {                                                                     \
     uint16_t a, b;                                                      \
     UNPACK_12_12 (j->ip[0], a, b);                                      \
     comp (j, a, b);                                                     \
-    j->ip += 1;                                                         \
   }
 #define COMPILE_X8_S12_C12(j, comp)                                     \
   COMPILE_X8_C12_C12 (j, comp)
@@ -3322,7 +3339,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     uint16_t a = (j->ip[0] >> 8) & 0xfff;                               \
     int16_t b = ((int32_t) j->ip[0]) >> 20; /* Sign extension.  */      \
     comp (j, a, b);                                                     \
-    j->ip += 1;                                                         \
   }
 
 #define COMPILE_X8_S8_C8_S8(j, comp)                                    \
@@ -3330,7 +3346,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     uint8_t a, b, c;                                                    \
     UNPACK_8_8_8 (j->ip[0], a, b, c);                                   \
     comp (j, a, b, c);                                                  \
-    j->ip += 1;                                                         \
   }
 #define COMPILE_X8_S8_S8_C8(j, comp)                                    \
   COMPILE_X8_S8_C8_S8 (j, comp)
@@ -3343,20 +3358,17 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     scm_t_bits b;                                                       \
     UNPACK_8_16 (j->ip[0], a, b);                                       \
     comp (j, a, SCM_PACK (b));                                          \
-    j->ip += 1;                                                         \
   }
 
 #define COMPILE_X32__C32(j, comp)                                       \
   {                                                                     \
     comp (j, j->ip[1]);                                                 \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X32__L32(j, comp)                                       \
   {                                                                     \
     int32_t a = j->ip[1];                                               \
     comp (j, j->ip + a);                                                \
-    j->ip += 2;                                                         \
   }
 #define COMPILE_X32__N32(j, comp)                                       \
   COMPILE_X32__L32 (j, comp)
@@ -3368,7 +3380,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b = j->ip[1];                                                       \
     comp (j, a, j->ip + b);                                             \
-    j->ip += 2;                                                         \
   }
 #define COMPILE_X8_S24__L32(j, comp)                                    \
   COMPILE_X8_C24__L32 (j, comp)
@@ -3385,7 +3396,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     UNPACK_24 (j->ip[1], b);                                            \
     comp (j, a, b);                                                     \
-    j->ip += 2;                                                         \
   }
 #define COMPILE_X8_F24__X8_C24(j, comp)                                 \
   COMPILE_X8_C24__X8_C24(j, comp)
@@ -3401,7 +3411,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_12_12 (j->ip[0], a, b);                                      \
     UNPACK_24 (j->ip[1], c);                                            \
     comp (j, a, b, c);                                                  \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_F24__B1_X7_C24(j, comp)                              \
@@ -3412,7 +3421,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     b = j->ip[1] & 0x1;                                                 \
     UNPACK_24 (j->ip[1], c);                                            \
     comp (j, a, b, c);                                                  \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_S12_S12__C32(j, comp)                                \
@@ -3422,7 +3430,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_12_12 (j->ip[0], a, b);                                      \
     c = j->ip[1];                                                       \
     comp (j, a, b, c);                                                  \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_S24__C16_C16(j, comp)                                \
@@ -3432,7 +3439,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     UNPACK_16_16 (j->ip[1], b, c);                                      \
     comp (j, a, b, c);                                                  \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_S24__C32(j, comp)                                    \
@@ -3441,7 +3447,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b = j->ip[1];                                                       \
     comp (j, a, b);                                                     \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_S24__I32(j, comp)                                    \
@@ -3451,7 +3456,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b = j->ip[1];                                                       \
     comp (j, a, SCM_PACK (b));                                          \
-    j->ip += 2;                                                         \
   }
 
 #define COMPILE_X8_S8_S8_C8__C32(j, comp)                               \
@@ -3461,7 +3465,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_8_8_8 (j->ip[0], a, b, c);                                   \
     d = j->ip[1];                                                       \
     comp (j, a, b, c, d);                                               \
-    j->ip += 2;                                                         \
   }
 #define COMPILE_X8_S8_S8_S8__C32(j, comp)                               \
   COMPILE_X8_S8_S8_C8__C32(j, comp)
@@ -3470,7 +3473,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   {                                                                     \
     int32_t a = j->ip[1], b = j->ip[2];                                 \
     comp (j, j->ip + a, j->ip + b);                                     \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_F24__X8_C24__L32(j, comp)                            \
@@ -3481,7 +3483,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[1], b);                                            \
     c = j->ip[2];                                                       \
     comp (j, a, b, j->ip + c);                                          \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__A32__B32(j, comp)                               \
@@ -3492,7 +3493,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     b = (((uint64_t) j->ip[1]) << 32) | ((uint64_t) j->ip[2]);          \
     if (b > (uint64_t) UINTPTR_MAX) abort ();                           \
     comp (j, a, SCM_PACK ((uintptr_t) b));                              \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__AF32__BF32(j, comp)                             \
@@ -3502,7 +3502,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b.u = (((uint64_t) j->ip[1]) << 32) | ((uint64_t) j->ip[2]);        \
     comp (j, a, b.d);                                                   \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__AS32__BS32(j, comp)                             \
@@ -3512,7 +3511,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b = (((uint64_t) j->ip[1]) << 32) | ((uint64_t) j->ip[2]);          \
     comp (j, a, (int64_t) b);                                           \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__AU32__BU32(j, comp)                             \
@@ -3522,7 +3520,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     b = (((uint64_t) j->ip[1]) << 32) | ((uint64_t) j->ip[2]);          \
     comp (j, a, b);                                                     \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__B1_X7_F24__X8_L24(j, comp)                      \
@@ -3535,7 +3532,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[1], c);                                            \
     d = j->ip[2]; d >>= 8; /* Sign extension.  */                       \
     comp (j, a, b, c, j->ip + d);                                       \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_S24__X8_S24__C8_S24(j, comp)                         \
@@ -3546,7 +3542,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[1], b);                                            \
     UNPACK_8_24 (j->ip[2], c, d);                                       \
     comp (j, a, b, c, d);                                               \
-    j->ip += 3;                                                         \
   }
 
 #define COMPILE_X8_C24__C8_C24__X8_C24__N32(j, comp)                    \
@@ -3559,7 +3554,6 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[2], d);                                            \
     e = j->ip[3]; e >>= 8; /* Sign extension.  */                       \
     comp (j, a, b, c, d, j->ip + e);                                    \
-    j->ip += 4;                                                         \
   }
 
 #define COMPILE_X8_S24__X8_S24__C8_S24__X8_S24(j, comp)                 \
@@ -3571,13 +3565,16 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_8_24 (j->ip[2], c, d);                                       \
     UNPACK_24 (j->ip[3], e);                                            \
     comp (j, a, b, c, d, e);                                            \
-    j->ip += 4;                                                         \
   }
 
 static void
 compile1 (scm_jit_state *j)
 {
-  switch (j->ip[0] & 0xff)
+  uint8_t opcode = j->ip[0] & 0xff;
+
+  j->next_ip = j->ip + op_lengths[opcode];
+
+  switch (opcode)
     {
 #define COMPILE1(code, cname, name, arity) \
       case code: COMPILE_##arity(j, compile_##cname); break;
@@ -3586,6 +3583,8 @@ compile1 (scm_jit_state *j)
     default:
       abort ();
     }
+
+  j->ip = j->next_ip;
 }
 
 static void
