@@ -460,14 +460,14 @@ static jit_node_t*
 emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
                  const uint32_t *vra)
 {
-  jit_gpr_t fp = T0, old_fp = T1;
+  jit_gpr_t fp = T0, t = T1;
   jit_node_t *continuation;
 
-  emit_load_fp (j, old_fp);
-  emit_subtract_stack_slots (j, fp, old_fp, proc_slot);
-  continuation = emit_store_mra (j, fp, T1);
-  emit_store_vra (j, fp, T1, vra);
-  emit_store_prev_fp_offset (j, fp, T1, proc_slot);
+  emit_load_fp (j, fp);
+  emit_subtract_stack_slots (j, fp, fp, proc_slot);
+  continuation = emit_store_mra (j, fp, t);
+  emit_store_vra (j, fp, t, vra);
+  emit_store_prev_fp_offset (j, fp, t, proc_slot);
   emit_store_fp (j, fp);
   emit_reset_frame (j, fp, nlocals);
 
@@ -1305,7 +1305,7 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 
   emit_load_fp (j, fp);
   if (j->frame_size < 0)
-    jit_movr (T3_PRESERVED, SP);
+    jit_subr (T3_PRESERVED, fp, SP);
   emit_alloc_frame (j, fp, t, nlocals);
 
   if (j->frame_size >= 0)
@@ -1323,6 +1323,8 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
     {
       jit_node_t *head, *k, *back;
       jit_movi (T0, SCM_UNPACK (SCM_UNDEFINED));
+      emit_load_fp (j, fp);
+      jit_subr (T3_PRESERVED, fp, T3_PRESERVED);
       k = jit_bler (T3_PRESERVED, SP);
       head = jit_label ();
       jit_subi (T3_PRESERVED, T3_PRESERVED, sizeof (union scm_vm_stack_element));
