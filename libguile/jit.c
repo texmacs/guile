@@ -392,7 +392,7 @@ emit_call_r_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b,
 }
 
 static void
-emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
+emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 {
   jit_node_t *k, *fast, *watermark;
 
@@ -421,7 +421,7 @@ static void
 emit_alloc_frame (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t, uint32_t nlocals)
 {
   emit_subtract_stack_slots (j, SP, fp, nlocals);
-  emit_alloc_frame_for_sp (j, fp, t);
+  emit_alloc_frame_for_sp (j, t);
 }
 
 static void
@@ -1348,10 +1348,9 @@ compile_reset_frame (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_push (scm_jit_state *j, uint32_t src)
 {
-  jit_gpr_t fp = T0, t = T1;
-  emit_load_fp (j, fp);
+  jit_gpr_t t = T0;
   jit_subi (SP, SP, sizeof (union scm_vm_stack_element));
-  emit_alloc_frame_for_sp (j, fp, t);
+  emit_alloc_frame_for_sp (j, t);
   emit_mov (j, 0, src + 1, t);
 
   if (j->frame_size >= 0)
