@@ -147,6 +147,10 @@ struct scm_jit_state {
   int32_t frame_size;
   uint8_t hooks_enabled;
   uint32_t register_state;
+  jit_gpr_t sp_cache_gpr;
+  jit_fpr_t sp_cache_fpr;
+  uint32_t sp_cache_gpr_idx;
+  uint32_t sp_cache_fpr_idx;
 };
 
 typedef struct scm_jit_state scm_jit_state;
@@ -225,6 +229,8 @@ static const jit_gpr_t T1_PRESERVED = JIT_V2;
 
 static const uint32_t SP_IN_REGISTER = 0x1;
 static const uint32_t FP_IN_REGISTER = 0x2;
+static const uint32_t SP_CACHE_GPR = 0x4;
+static const uint32_t SP_CACHE_FPR = 0x8;
 
 static const uint8_t OP_ATTR_BLOCK = 0x1;
 static const uint8_t OP_ATTR_ENTRY = 0x2;
@@ -282,6 +288,12 @@ die (int line, const char *msg)
   DIE ("unreachable")
 
 static void
+reset_register_state (scm_jit_state *j, uint32_t state)
+{
+  j->register_state = state;
+}
+
+static void
 clear_register_state (scm_jit_state *j, uint32_t state)
 {
   j->register_state &= ~state;
@@ -290,7 +302,7 @@ clear_register_state (scm_jit_state *j, uint32_t state)
 static void
 clear_scratch_register_state (scm_jit_state *j)
 {
-  j->register_state = 0;
+  reset_register_state (j, 0);
 }
 
 static void
@@ -308,9 +320,150 @@ has_register_state (scm_jit_state *j, uint32_t state)
 #define ASSERT_HAS_REGISTER_STATE(state) ASSERT (has_register_state (j, state))
 
 static void
+record_gpr_clobber (scm_jit_state *j, jit_gpr_t r)
+{
+  if (j->sp_cache_gpr == r)
+    clear_register_state (j, SP_CACHE_GPR);
+}
+
+static void
+record_fpr_clobber (scm_jit_state *j, jit_gpr_t r)
+{
+  if (j->sp_cache_fpr == r)
+    clear_register_state (j, SP_CACHE_FPR);
+}
+
+static void
+set_sp_cache_gpr (scm_jit_state *j, uint32_t idx, jit_gpr_t r)
+{
+  set_register_state (j, SP_CACHE_GPR);
+  j->sp_cache_gpr_idx = idx;
+  if (j->sp_cache_fpr_idx == idx)
+    clear_register_state (j, SP_CACHE_FPR);
+}
+
+static void
+set_sp_cache_fpr (scm_jit_state *j, uint32_t idx, jit_fpr_t r)
+{
+  set_register_state (j, SP_CACHE_FPR);
+  j->sp_cache_fpr_idx = idx;
+  if (j->sp_cache_gpr_idx == idx)
+    clear_register_state (j, SP_CACHE_GPR);
+}
+
+/* Q: When should I use emit_retval instead of jit_retval?  When to use
+   emit_movi, emit_ldxi?
+
+   A: Generally you should use the emit_ variants instead of the jit_
+   variants.  Guile's JIT compiler has a primitive form of local
+   (intrablock) register allocation that records recent stores.  A
+   subsequent load might be able to replace a register read instead of a
+   memory load.  This simple allocator works for straight-line code, and
+   it works as long as register writes are recorded.  The JIT itself
+   will clear the register allocator state at control-flow joins, but
+   control flow within an instruction needs to be careful.
+
+   It's OK to use the jit_emit, jit_retval etc primitives if you
+   manually make corresponding changes to the register_state, perhaps by
+   inserting record_gpr_clobber calls.  If the register is later
+   clobbered by e.g. emit_sp_set_scm, sometimes those can be omitted
+   though.  Also, if your instruction includes a call, that code will
+   invalidate any cached register-stack-index associations, so if
+   there's a call, maybe you can avoid calling emit_*.
+
+   Note of course that an association between registers and
+   stack-indexed locals is also invalidated if the stack frame expands
+   via alloc-frame or push, or shrinks via reset-frame, pop, drop,
+   etc.  */
+static void
+emit_retval (scm_jit_state *j, jit_gpr_t r)
+{
+  jit_retval (r);
+  record_gpr_clobber (j, r);
+}
+
+static jit_node_t *
+emit_movi (scm_jit_state *j, jit_gpr_t r, jit_word_t i)
+{
+  jit_node_t *k = jit_movi (r, i);
+  record_gpr_clobber (j, r);
+  return k;
+}
+
+static void
+emit_ldxi (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t src, jit_word_t offset)
+{
+  if (offset == 0)
+    jit_ldr (dst, src);
+  else
+    jit_ldxi (dst, src, offset);
+  record_gpr_clobber (j, dst);
+}
+
+#define DEFINE_CLOBBER_RECORDING_EMITTER_R(stem, typ)                   \
+static void                                                             \
+emit_##stem (scm_jit_state *j, jit_##typ##_t dst, jit_##typ##_t a)      \
+{                                                                       \
+  jit_##stem (dst, a);                                                  \
+  record_##typ##_clobber (j, dst);                                      \
+}
+
+#define DEFINE_CLOBBER_RECORDING_EMITTER_P(stem, typ)                   \
+static void                                                             \
+emit_##stem (scm_jit_state *j, jit_##typ##_t dst, jit_pointer_t a)      \
+{                                                                       \
+  jit_##stem (dst, a);                                                  \
+  record_##typ##_clobber (j, dst);                                      \
+}
+
+#define DEFINE_CLOBBER_RECORDING_EMITTER_R_I(stem, typ)                 \
+static void                                                             \
+emit_##stem (scm_jit_state *j, jit_##typ##_t dst,                       \
+            jit_##typ##_t a, jit_word_t b)                              \
+{                                                                       \
+  jit_##stem (dst, a, b);                                               \
+  record_##typ##_clobber (j, dst);                                      \
+}
+
+#define DEFINE_CLOBBER_RECORDING_EMITTER_R_R(stem, typ)                 \
+static void                                                             \
+emit_##stem (scm_jit_state *j, jit_##typ##_t dst,                       \
+            jit_##typ##_t a, jit_##typ##_t b)                           \
+{                                                                       \
+  jit_##stem (dst, a, b);                                               \
+  record_##typ##_clobber (j, dst);                                      \
+}
+
+DEFINE_CLOBBER_RECORDING_EMITTER_R(ldr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_P(ldi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R(movr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R(comr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(ldxr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(addi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(addr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(addr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(subi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(subr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(subr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(muli, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(mulr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(mulr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(divr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(andi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(andr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(orr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(xorr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(rshi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(rshi_u, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(rshr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(rshr_u, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(lshi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(lshr, gpr)
+
+static void
 emit_reload_sp (scm_jit_state *j)
 {
-  jit_ldxi (SP, THREAD, thread_offset_sp);
+  emit_ldxi (j, SP, THREAD, thread_offset_sp);
   set_register_state (j, SP_IN_REGISTER);
 }
 
@@ -324,7 +477,7 @@ emit_store_sp (scm_jit_state *j)
 static void
 emit_reload_fp (scm_jit_state *j)
 {
-  jit_ldxi (FP, THREAD, thread_offset_fp);
+  emit_ldxi (j, FP, THREAD, thread_offset_fp);
   set_register_state (j, FP_IN_REGISTER);
 }
 
@@ -335,8 +488,14 @@ emit_store_fp (scm_jit_state *j)
   jit_stxi (thread_offset_fp, THREAD, FP);
 }
 
+static uint32_t
+save_reloadable_register_state (scm_jit_state *j)
+{
+  return j->register_state & (SP_IN_REGISTER | FP_IN_REGISTER);
+}
+
 static void
-ensure_register_state (scm_jit_state *j, uint32_t state)
+restore_reloadable_register_state (scm_jit_state *j, uint32_t state)
 {
   if ((state & SP_IN_REGISTER) && !has_register_state (j, SP_IN_REGISTER))
     emit_reload_sp (j);
@@ -348,20 +507,19 @@ static void
 emit_subtract_stack_slots (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t src,
                            uint32_t n)
 {
-  jit_subi (dst, src, n * sizeof (union scm_vm_stack_element));
+  emit_subi (j, dst, src, n * sizeof (union scm_vm_stack_element));
 }
 
 static void
 emit_load_mra (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
 {
-  ASSERT (frame_offset_mra == 0);
-  jit_ldr (dst, fp);
+  emit_ldxi (j, dst, fp, frame_offset_mra);
 }
 
 static jit_node_t *
 emit_store_mra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
 {
-  jit_node_t *addr = jit_movi (t, 0); /* patched later */
+  jit_node_t *addr = emit_movi (j, t, 0); /* patched later */
   ASSERT (frame_offset_mra == 0);
   jit_str (fp, t);
   return addr;
@@ -370,27 +528,27 @@ emit_store_mra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
 static void
 emit_load_vra (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
 {
-  jit_ldxi (dst, fp, frame_offset_vra);
+  emit_ldxi (j, dst, fp, frame_offset_vra);
 }
 
 static void
 emit_store_vra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t, const uint32_t *vra)
 {
-  jit_movi (t, (intptr_t) vra);
+  emit_movi (j, t, (intptr_t) vra);
   jit_stxi (frame_offset_vra, fp, t);
 }
 
 static void
 emit_load_prev_fp_offset (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
 {
-  jit_ldxi (dst, fp, frame_offset_prev);
+  emit_ldxi (j, dst, fp, frame_offset_prev);
 }
 
 static void
 emit_store_prev_fp_offset (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t,
                            uint32_t n)
 {
-  jit_movi (t, n);
+  emit_movi (j, t, n);
   jit_stxi (frame_offset_prev, fp, t);
 }
 
@@ -403,17 +561,17 @@ emit_store_ip (scm_jit_state *j, jit_gpr_t ip)
 static void
 emit_store_current_ip (scm_jit_state *j, jit_gpr_t t)
 {
-  jit_movi (t, (intptr_t) j->ip);
+  emit_movi (j, t, (intptr_t) j->ip);
   emit_store_ip (j, t);
 }
 
 static void
 emit_pop_fp (scm_jit_state *j, jit_gpr_t old_fp)
 {
-  jit_ldxi (old_fp, THREAD, thread_offset_fp);
+  emit_ldxi (j, old_fp, THREAD, thread_offset_fp);
   emit_load_prev_fp_offset (j, FP, old_fp);
-  jit_lshi (FP, FP, 3); /* Multiply by sizeof (scm_vm_stack_element) */
-  jit_addr (FP, old_fp, FP);
+  emit_lshi (j, FP, FP, 3); /* Multiply by sizeof (scm_vm_stack_element) */
+  emit_addr (j, FP, old_fp, FP);
   set_register_state (j, FP_IN_REGISTER);
   emit_store_fp (j);
 }
@@ -425,6 +583,7 @@ emit_reset_frame (scm_jit_state *j, uint32_t nlocals)
   emit_subtract_stack_slots (j, SP, FP, nlocals);
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
 static void
@@ -492,9 +651,9 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
-  jit_ldxi (t, THREAD, thread_offset_sp_min_since_gc);
+  emit_ldxi (j, t, THREAD, thread_offset_sp_min_since_gc);
   fast = jit_bger (SP, t);
-  jit_ldxi (t, THREAD, thread_offset_stack_limit);
+  emit_ldxi (j, t, THREAD, thread_offset_stack_limit);
   watermark = jit_bger (SP, t);
 
   /* Slow case: call out to expand stack.  */
@@ -512,6 +671,8 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
   /* Fast case: Just update sp.  */
   emit_store_sp (j);
   jit_patch (k);
+
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
 static void
@@ -526,7 +687,7 @@ static void
 emit_get_callee_vcode (scm_jit_state *j, jit_gpr_t dst)
 {
   emit_call_r (j, scm_vm_intrinsics.get_callee_vcode, THREAD);
-  jit_retval (dst);
+  emit_retval (j, dst);
   emit_reload_sp (j);
   emit_reload_fp (j);
 }
@@ -538,6 +699,7 @@ emit_get_vcode_low_byte (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t addr)
     jit_ldr_uc (dst, addr);
   else
     jit_ldxi_uc (dst, addr, uint32_offset_low_byte);
+  record_gpr_clobber (j, dst);
 }
 
 static void
@@ -546,8 +708,9 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
 {
   uint32_t byte_offset = offset * sizeof (uint32_t);
   jit_ldxi_i (dst, ip, byte_offset);
-  jit_lshi (dst, dst, 2); /* Multiply by sizeof (uint32_t) */
-  jit_addr (dst, dst, ip);
+  record_gpr_clobber (j, dst);
+  emit_lshi (j, dst, dst, 2); /* Multiply by sizeof (uint32_t) */
+  emit_addr (j, dst, dst, ip);
 }
 
 static void
@@ -587,7 +750,7 @@ emit_indirect_tail_call (scm_jit_state *j)
   not_instrumented = jit_bnei (T1, scm_op_instrument_entry);
 
   emit_get_ip_relative_addr (j, T1, T0, 1);
-  jit_ldr (T1, T1);
+  emit_ldxi (j, T1, T1, 0);
   no_mcode = jit_beqi (T1, 0);
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
   jit_jmpr (T1);
@@ -610,7 +773,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
     }
   else if ((vcode[0] & 0xff) != scm_op_instrument_entry)
     {
-      jit_movi (T0, (intptr_t) vcode);
+      emit_movi (j, T0, (intptr_t) vcode);
       emit_store_ip (j, T0);
       emit_exit (j);
     }
@@ -629,6 +792,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
         {
           jit_node_t *no_mcode;
 
+          /* No need to track clobbers.  */
           jit_ldi (T0, &data->mcode);
           no_mcode = jit_beqi (T0, 0);
           jit_jmpr (T0);
@@ -645,7 +809,7 @@ emit_fp_ref_scm (scm_jit_state *j, jit_gpr_t dst, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
-  jit_ldxi (dst, FP, -8 * ((ptrdiff_t) slot + 1));
+  emit_ldxi (j, dst, FP, -8 * ((ptrdiff_t) slot + 1));
 }
 
 static void
@@ -654,6 +818,7 @@ emit_fp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
   jit_stxi (-8 * ((ptrdiff_t) slot + 1), FP, val);
+  clear_register_state (j, SP_CACHE_GPR);
 }
 
 static void
@@ -661,10 +826,7 @@ emit_sp_ref_scm (scm_jit_state *j, jit_gpr_t dst, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  if (slot == 0)
-    jit_ldr (dst, SP);
-  else
-    jit_ldxi (dst, SP, 8 * slot);
+  emit_ldxi (j, dst, SP, 8 * slot);
 }
 
 static void
@@ -676,6 +838,8 @@ emit_sp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
     jit_str (SP, val);
   else
     jit_stxi (8 * slot, SP, val);
+
+  set_sp_cache_gpr (j, slot, val);
 }
 
 /* Use when you know that the u64 value will be within the size_t range,
@@ -686,9 +850,9 @@ emit_sp_ref_sz (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   if (BIGENDIAN && sizeof (size_t) == 4)
-    jit_ldxi (dst, SP, src * 8 + 4);
+    emit_ldxi (j, dst, SP, src * 8 + 4);
   else
-    jit_ldxi (dst, SP, src * 8);
+    emit_ldxi (j, dst, SP, src * 8);
 }
 
 static void
@@ -708,11 +872,14 @@ emit_sp_set_sz (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
       
       jit_stxi (lo, SP, src);
       /* Set high word to 0.  Clobber src.  */
-      jit_xorr (src, src, src);
+      emit_xorr (j, src, src, src);
       jit_stxi (hi, SP, src);
     }
   else
-    jit_stxi (offset, SP, src);
+    {
+      jit_stxi (offset, SP, src);
+      set_sp_cache_gpr (j, dst, src);
+    }
 }
 
 #if SIZEOF_UINTPTR_T >= 8
@@ -723,10 +890,7 @@ emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  if (offset == 0)
-    jit_ldr (dst, SP);
-  else
-    jit_ldxi (dst, SP, offset);
+  emit_ldxi (j, dst, SP, offset);
 }
 
 static void
@@ -740,6 +904,8 @@ emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
     jit_str (SP, src);
   else
     jit_stxi (offset, SP, src);
+
+  set_sp_cache_gpr (j, dst, src);
 }
 
 static void
@@ -777,11 +943,8 @@ emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
   first = dst_lo, second = dst_hi;
 #endif
 
-  if (offset == 0)
-    jit_ldr (first, SP);
-  else
-    jit_ldxi (first, SP, offset);
-  jit_ldxi (second, SP, offset + 4);
+  emit_ldxi (j, first, SP, offset);
+  emit_ldxi (j, second, SP, offset + 4);
 }
 
 static void
@@ -803,6 +966,8 @@ emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
   else
     jit_stxi (offset, SP, first);
   jit_stxi (offset + 4, SP, second);
+
+  clear_register_state (j, SP_CACHE_GPR);
 }
 
 static void
@@ -825,10 +990,7 @@ emit_sp_ref_u64_lower_half (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  if (offset == 0)
-    emit_ldr (dst, SP);
-  else
-    emit_ldxi (dst, SP, offset);
+  emit_ldxi (j, dst, SP, offset);
 }
 
 static void
@@ -839,7 +1001,7 @@ emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 #endif /* SCM_SIZEOF_UINTPTR_T >= 8 */
 
 static void
-emit_sp_ref_f64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+emit_sp_ref_f64 (scm_jit_state *j, jit_fpr_t dst, uint32_t src)
 {
   size_t offset = src * 8;
 
@@ -849,10 +1011,12 @@ emit_sp_ref_f64 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
     jit_ldr_d (dst, SP);
   else
     jit_ldxi_d (dst, SP, offset);
+
+  record_fpr_clobber (j, dst);
 }
 
 static void
-emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
+emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_fpr_t src)
 {
   size_t offset = dst * 8;
 
@@ -862,8 +1026,9 @@ emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
     jit_str_d (SP, src);
   else
     jit_stxi_d (offset, SP, src);
-}
 
+  set_sp_cache_fpr (j, dst, src);
+}
 
 static void
 emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
@@ -883,19 +1048,26 @@ emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
 
       jit_ldxi (t, SP, src_offset + sizeof (void*));
       jit_stxi (dst_offset + sizeof (void*), SP, t);
+
+      clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
     }
+  else
+    /* In any case since we move the register using GPRs, it won't be in
+       a cached FPR.  */
+    clear_register_state (j, SP_CACHE_FPR);
 }
 
 static void
 emit_run_hook (scm_jit_state *j, jit_gpr_t t, scm_t_thread_intrinsic f)
 {
   jit_node_t *k;
-  uint32_t saved_state = j->register_state;
+  uint32_t saved_state = save_reloadable_register_state (j);
   jit_ldxi_i (T0, THREAD, thread_offset_trace_level);
+  record_gpr_clobber (j, T0);
   k = jit_beqi (T0, 0);
   emit_store_current_ip (j, T0);
   emit_call_r (j, f, THREAD);
-  ensure_register_state (j, saved_state);
+  restore_reloadable_register_state (j, saved_state);
   jit_patch (k);
 }
 
@@ -905,7 +1077,7 @@ emit_branch_if_frame_locals_count_less_than (scm_jit_state *j, jit_gpr_t t,
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
-  jit_subr (t, FP, SP);
+  emit_subr (j, t, FP, SP);
   return jit_blti (t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
@@ -915,7 +1087,7 @@ emit_branch_if_frame_locals_count_eq (scm_jit_state *j, jit_gpr_t t,
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
-  jit_subr (t, FP, SP);
+  emit_subr (j, t, FP, SP);
   return jit_beqi (t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
@@ -925,7 +1097,7 @@ emit_branch_if_frame_locals_count_not_eq (scm_jit_state *j, jit_gpr_t t,
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
-  jit_subr (t, FP, SP);
+  emit_subr (j, t, FP, SP);
   return jit_bnei (t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
@@ -935,7 +1107,7 @@ emit_branch_if_frame_locals_count_greater_than (scm_jit_state *j, jit_gpr_t t,
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
-  jit_subr (t, FP, SP);
+  emit_subr (j, t, FP, SP);
   return jit_bgti (t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
@@ -944,7 +1116,7 @@ emit_load_fp_slot (scm_jit_state *j, jit_gpr_t dst, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
-  jit_subi (dst, FP, (slot + 1) * sizeof (union scm_vm_stack_element));
+  emit_subi (j, dst, FP, (slot + 1) * sizeof (union scm_vm_stack_element));
 }
 
 static jit_node_t *
@@ -957,10 +1129,7 @@ static void
 emit_load_heap_object_word (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t r,
                             uint32_t word)
 {
-  if (word == 0)
-    jit_ldr (dst, r);
-  else
-    jit_ldxi (dst, r, word * sizeof(SCM));
+  emit_ldxi (j, dst, r, word * sizeof(SCM));
 }
 
 static void
@@ -968,7 +1137,7 @@ emit_load_heap_object_tc (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t r,
                           scm_t_bits mask)
 {
   emit_load_heap_object_word (j, dst, r, 0);
-  jit_andi (dst, dst, mask);
+  emit_andi (j, dst, dst, mask);
 }
 
 static jit_node_t *
@@ -1087,7 +1256,7 @@ compile_call (scm_jit_state *j, uint32_t proc, uint32_t nlocals)
 
   jit_patch (mcont);
 
-  set_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
+  reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size = -1;
 }
 
@@ -1101,7 +1270,7 @@ compile_call_label (scm_jit_state *j, uint32_t proc, uint32_t nlocals, const uin
 
   jit_patch (mcont);
 
-  set_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
+  reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size = -1;
 }
 
@@ -1109,7 +1278,7 @@ static void
 compile_tail_call (scm_jit_state *j)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
-  ensure_register_state (j, FP_IN_REGISTER);
+  restore_reloadable_register_state (j, FP_IN_REGISTER);
 
   emit_indirect_tail_call (j);
 
@@ -1120,7 +1289,7 @@ static void
 compile_tail_call_label (scm_jit_state *j, const uint32_t *vcode)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
-  ensure_register_state (j, FP_IN_REGISTER);
+  restore_reloadable_register_state (j, FP_IN_REGISTER);
 
   emit_direct_tail_call (j, vcode);
 
@@ -1186,6 +1355,8 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
 
       j->frame_size = proc + nvalues;
     }
+
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
 static void
@@ -1208,6 +1379,8 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
   jit_patch (done);
   jit_addi (SP, SP, offset);
   emit_store_sp (j);
+
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
   if (j->frame_size >= 0)
     j->frame_size -= (from - to);
@@ -1273,6 +1446,8 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   jit_str (SP, ret);
   jit_patch (k);
 
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
+
   j->frame_size = -1;
 }
 
@@ -1289,9 +1464,9 @@ compile_foreign_call (scm_jit_state *j, uint16_t cif_idx, uint16_t ptr_idx)
   emit_free_variable_ref (j, T2, T0, ptr_idx);
 
   /* FIXME: Inline the foreign call.  */
-  saved_state = j->register_state;
+  saved_state = save_reloadable_register_state (j);
   emit_call_r_r_r (j, scm_vm_intrinsics.foreign_call, THREAD, T1, T2);
-  ensure_register_state (j, saved_state);
+  restore_reloadable_register_state (j, saved_state);
 
   j->frame_size = 2; /* Return value and errno.  */
 }
@@ -1375,7 +1550,7 @@ compile_builtin_ref (scm_jit_state *j, uint16_t dst, uint16_t idx)
 {
   SCM builtin = scm_vm_builtin_ref (idx);
 
-  jit_movi (T0, SCM_UNPACK (builtin));
+  emit_movi (j, T0, SCM_UNPACK (builtin));
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1466,6 +1641,8 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 
   if (j->frame_size < 0)
     jit_subr (saved_frame_size, FP, SP);
+
+  /* This will clear the regalloc, so no need to track clobbers.  */
   emit_alloc_frame (j, t, nlocals);
 
   if (j->frame_size >= 0)
@@ -1502,7 +1679,7 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_reset_frame (scm_jit_state *j, uint32_t nlocals)
 {
-  ensure_register_state (j, FP_IN_REGISTER);
+  restore_reloadable_register_state (j, FP_IN_REGISTER);
   emit_reset_frame (j, nlocals);
 
   j->frame_size = nlocals;
@@ -1516,6 +1693,8 @@ compile_push (scm_jit_state *j, uint32_t src)
   emit_alloc_frame_for_sp (j, t);
   emit_mov (j, 0, src + 1, t);
 
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
+
   if (j->frame_size >= 0)
     j->frame_size++;
 }
@@ -1527,6 +1706,8 @@ compile_pop (scm_jit_state *j, uint32_t dst)
   jit_addi (SP, SP, sizeof (union scm_vm_stack_element));
   emit_store_sp (j);
 
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
+
   if (j->frame_size >= 0)
     j->frame_size--;
 }
@@ -1536,6 +1717,8 @@ compile_drop (scm_jit_state *j, uint32_t nvalues)
 {
   jit_addi (SP, SP, nvalues * sizeof (union scm_vm_stack_element));
   emit_store_sp (j);
+
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
   if (j->frame_size >= 0)
     j->frame_size -= nvalues;
@@ -1611,14 +1794,14 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
   cons = emit_branch_if_frame_locals_count_greater_than (j, t, dst);
 
   compile_alloc_frame (j, dst + 1);
-  jit_movi (t, SCM_UNPACK (SCM_EOL));
+  emit_movi (j, t, SCM_UNPACK (SCM_EOL));
   emit_sp_set_scm (j, 0, t);
   k = jit_jmpi ();
 
   jit_patch (cons);
   emit_store_current_ip (j, t);
   emit_call_r_i (j, scm_vm_intrinsics.cons_rest, THREAD, dst);
-  jit_retval (t);
+  emit_retval (j, t);
   compile_reset_frame (j, dst + 1);
   emit_sp_set_scm (j, 0, t);
   
@@ -1633,7 +1816,8 @@ compile_allocate_words (scm_jit_state *j, uint16_t dst, uint16_t nwords)
   emit_store_current_ip (j, t);
   emit_sp_ref_sz (j, t, nwords);
   emit_call_r_r (j, scm_vm_intrinsics.allocate_words, THREAD, t);
-  jit_retval (t);
+  emit_retval (j, t);
+  record_gpr_clobber (j, t);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, t);
 }
@@ -1644,9 +1828,9 @@ compile_allocate_words_immediate (scm_jit_state *j, uint16_t dst, uint16_t nword
   jit_gpr_t t = T0;
 
   emit_store_current_ip (j, t);
-  jit_movi (t, nwords);
+  emit_movi (j, t, nwords);
   emit_call_r_r (j, scm_vm_intrinsics.allocate_words, THREAD, t);
-  jit_retval (t);
+  emit_retval (j, t);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, t);
 }
@@ -1656,8 +1840,8 @@ compile_scm_ref (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_sz (j, T1, idx);
-  jit_lshi (T1, T1, log2_sizeof_uintptr_t);
-  jit_ldxr (T0, T0, T1);
+  emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
+  emit_ldxr (j, T0, T0, T1);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1667,7 +1851,7 @@ compile_scm_set (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t val)
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_sz (j, T1, idx);
   emit_sp_ref_scm (j, T2, val);
-  jit_lshi (T1, T1, log2_sizeof_uintptr_t);
+  emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
   jit_stxr (T0, T1, T2);
 }
 
@@ -1675,8 +1859,8 @@ static void
 compile_scm_ref_tag (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t tag)
 {
   emit_sp_ref_scm (j, T0, obj);
-  jit_ldr (T0, T0);
-  jit_subi (T0, T0, tag);
+  emit_ldr (j, T0, T0);
+  emit_subi (j, T0, T0, tag);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1685,7 +1869,7 @@ compile_scm_set_tag (scm_jit_state *j, uint8_t obj, uint8_t tag, uint8_t val)
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_scm (j, T1, val);
-  jit_addi (T1, T1, tag);
+  emit_addi (j, T1, T1, tag);
   jit_str (T0, T1);
 }
 
@@ -1693,7 +1877,7 @@ static void
 compile_scm_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
-  jit_ldxi (T0, T0, idx * sizeof (SCM));
+  emit_ldxi (j, T0, T0, idx * sizeof (SCM));
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1710,8 +1894,8 @@ compile_word_ref (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_sz (j, T1, idx);
-  jit_lshi (T1, T1, log2_sizeof_uintptr_t);
-  jit_ldxr (T0, T0, T1);
+  emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
+  emit_ldxr (j, T0, T0, T1);
   emit_sp_set_sz (j, dst, T0);
 }
 
@@ -1721,7 +1905,7 @@ compile_word_set (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t val)
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_sz (j, T1, idx);
   emit_sp_ref_sz (j, T2, val);
-  jit_lshi (T1, T1, log2_sizeof_uintptr_t);
+  emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
   jit_stxr (T0, T1, T2);
 }
 
@@ -1729,7 +1913,7 @@ static void
 compile_word_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
-  jit_ldxi (T0, T0, idx * sizeof (SCM));
+  emit_ldxi (j, T0, T0, idx * sizeof (SCM));
   emit_sp_set_sz (j, dst, T0);
 }
 
@@ -1745,7 +1929,7 @@ static void
 compile_pointer_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
-  jit_ldxi (T0, T0, idx * sizeof (SCM));
+  emit_ldxi (j, T0, T0, idx * sizeof (SCM));
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1761,7 +1945,7 @@ static void
 compile_tail_pointer_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t idx)
 {
   emit_sp_ref_scm (j, T0, obj);
-  jit_addi (T0, T0, idx * sizeof (SCM));
+  emit_addi (j, T0, T0, idx * sizeof (SCM));
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1781,7 +1965,7 @@ static void
 compile_long_fmov (scm_jit_state *j, uint32_t dst, uint32_t src)
 {
   jit_gpr_t t = T0;
-  ensure_register_state (j, FP_IN_REGISTER);
+  restore_reloadable_register_state (j, FP_IN_REGISTER);
   emit_fp_ref_scm (j, t, src);
   emit_fp_set_scm (j, dst, t);
 }
@@ -1795,7 +1979,7 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, intrinsic, T0, T1);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -1812,7 +1996,7 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
   jit_pushargi (b);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -1846,7 +2030,7 @@ compile_call_scm_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   jit_pushargr (T0);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -1862,7 +2046,7 @@ compile_call_f64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   jit_pushargr (T0);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (JIT_F0);
+  emit_retval (j, JIT_F0);
   emit_reload_sp (j);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
@@ -1887,7 +2071,7 @@ compile_call_u64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   jit_pushargr (T0);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_u64 (j, dst, T0);
 #endif
@@ -1896,35 +2080,35 @@ compile_call_u64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
 static void
 compile_make_short_immediate (scm_jit_state *j, uint8_t dst, SCM a)
 {
-  jit_movi (T0, SCM_UNPACK (a));
+  emit_movi (j, T0, SCM_UNPACK (a));
   emit_sp_set_scm (j, dst, T0);
 }
 
 static void
 compile_make_long_immediate (scm_jit_state *j, uint32_t dst, SCM a)
 {
-  jit_movi (T0, SCM_UNPACK (a));
+  emit_movi (j, T0, SCM_UNPACK (a));
   emit_sp_set_scm (j, dst, T0);
 }
 
 static void
 compile_make_long_long_immediate (scm_jit_state *j, uint32_t dst, SCM a)
 {
-  jit_movi (T0, SCM_UNPACK (a));
+  emit_movi (j, T0, SCM_UNPACK (a));
   emit_sp_set_scm (j, dst, T0);
 }
 
 static void
 compile_make_non_immediate (scm_jit_state *j, uint32_t dst, const void *data)
 {
-  jit_movi (T0, (uintptr_t)data);
+  emit_movi (j, T0, (uintptr_t)data);
   emit_sp_set_scm (j, dst, T0);
 }
 
 static void
 compile_static_ref (scm_jit_state *j, uint32_t dst, void *loc)
 {
-  jit_ldi (T0, loc);
+  emit_ldi (j, T0, loc);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -1938,7 +2122,7 @@ compile_static_set (scm_jit_state *j, uint32_t obj, void *loc)
 static void
 compile_static_patch (scm_jit_state *j, void *dst, const void *src)
 {
-  jit_movi (T0, (uintptr_t) src);
+  emit_movi (j, T0, (uintptr_t) src);
   jit_sti (dst, T0);
 }
 
@@ -1957,7 +2141,7 @@ compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
   jit_subi (FP, FP, proc_slot * sizeof (union scm_vm_stack_element));
   jit_pushargr (FP);
   jit_pushargi ((uintptr_t) vcode);
-  mra = jit_movi (T2, 0);
+  mra = emit_movi (j, T2, 0);
   jit_finishi (scm_vm_intrinsics.push_prompt);
   clear_scratch_register_state (j);
   emit_reload_sp (j);
@@ -1968,11 +2152,11 @@ compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
 static void
 compile_load_label (scm_jit_state *j, uint32_t dst, const uint32_t *vcode)
 {
-  jit_movi (T0, (uintptr_t) vcode);
+  emit_movi (j, T0, (uintptr_t) vcode);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_movi (T1, 0);
+  emit_movi (j, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -1994,11 +2178,11 @@ compile_call_scm_from_u64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_
   jit_addi (T0, SP, src * sizeof (union scm_vm_stack_element));
 #else
   emit_sp_ref_u64 (j, T0, src);
-  jit_pushargr (T0);
 #endif
+  jit_pushargr (T0);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -2017,8 +2201,8 @@ compile_tag_char (scm_jit_state *j, uint16_t dst, uint16_t src)
 #else
   emit_sp_ref_u64_lower_half (j, T0, src);
 #endif
-  jit_lshi (T0, T0, 8);
-  jit_addi (T0, T0, scm_tc8_char);
+  emit_lshi (j, T0, T0, 8);
+  emit_addi (j, T0, T0, scm_tc8_char);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -2026,11 +2210,11 @@ static void
 compile_untag_char (scm_jit_state *j, uint16_t dst, uint16_t src)
 {
   emit_sp_ref_scm (j, T0, src);
-  jit_rshi (T0, T0, 8);
+  emit_rshi (j, T0, T0, 8);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_movi (T1, 0);
+  emit_movi (j, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2041,13 +2225,13 @@ compile_atomic_ref_scm_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, ui
   emit_sp_ref_scm (j, T0, obj);
 #if defined(__i386__) || defined(__x86_64__)
   /* Disassembly of atomic_ref_scm is just a mov.  */
-  jit_ldxi (T0, T0, offset * sizeof (SCM));
+  emit_ldxi (j, T0, T0, offset * sizeof (SCM));
 #else
-  jit_addi (T0, T0, offset * sizeof (SCM));
-  jit_movr (T1_PRESERVED, SP);
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
+  emit_movr (j, T1_PRESERVED, SP);
   emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
-  jit_retval (T0);
-  jit_movr (SP, T1_PRESERVED);
+  emit_retval (j, T0);
+  emit_movr (j, SP, T1_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
 #endif
   emit_sp_set_scm (j, dst, T0);
@@ -2058,10 +2242,10 @@ compile_atomic_set_scm_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset,
 {
   emit_sp_ref_scm (j, T1, obj);
   emit_sp_ref_scm (j, T2, val);
-  jit_addi (T1, T1, offset * sizeof (SCM));
-  jit_movr (T0_PRESERVED, SP);
+  emit_addi (j, T1, T1, offset * sizeof (SCM));
+  emit_movr (j, T0_PRESERVED, SP);
   emit_call_r_r (j, scm_vm_intrinsics.atomic_set_scm, T1, T2);
-  jit_movr (SP, T0_PRESERVED);
+  emit_movr (j, SP, T0_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
 }
 
@@ -2070,11 +2254,11 @@ compile_atomic_scm_swap_immediate (scm_jit_state *j, uint32_t dst, uint32_t obj,
 {
   emit_sp_ref_scm (j, T1, obj);
   emit_sp_ref_scm (j, T2, val);
-  jit_addi (T1, T1, offset * sizeof (SCM));
-  jit_movr (T0_PRESERVED, SP);
+  emit_addi (j, T1, T1, offset * sizeof (SCM));
+  emit_movr (j, T0_PRESERVED, SP);
   emit_call_r_r (j, scm_vm_intrinsics.atomic_swap_scm, T1, T2);
-  jit_retval (T1);
-  jit_movr (SP, T0_PRESERVED);
+  emit_retval (j, T1);
+  emit_movr (j, SP, T0_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
   emit_sp_set_scm (j, dst, T1);
 }
@@ -2087,9 +2271,9 @@ compile_atomic_scm_compare_and_swap_immediate (scm_jit_state *j, uint32_t dst,
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_scm (j, T1, expected);
   emit_sp_ref_scm (j, T2, desired);
-  jit_addi (T0, T0, offset * sizeof (SCM));
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
   emit_call_r_r_r (j, scm_vm_intrinsics.atomic_swap_scm, T0, T1, T2);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -2124,7 +2308,7 @@ compile_call_scm_from_thread_scm (scm_jit_state *j, uint16_t dst, uint16_t a, ui
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_call_r_r (j, intrinsic, THREAD, T0);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -2150,14 +2334,14 @@ compile_call_scm_from_scm_u64 (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
   jit_prepare ();
   jit_pushargr (T0);
 #if INDIRECT_INT64_INTRINSICS
-  jit_addi (T1, SP, b * sizeof (union scm_vm_stack_element));
+  emit_addi (j, T1, SP, b * sizeof (union scm_vm_stack_element));
 #else
   emit_sp_ref_u64 (j, T1, b);
-  jit_pushargr (T1);
 #endif
+  jit_pushargr (T1);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -2169,7 +2353,7 @@ compile_call_scm_from_thread (scm_jit_state *j, uint32_t dst, uint32_t idx)
 
   emit_store_current_ip (j, T0);
   emit_call_r (j, intrinsic, THREAD);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
 }
@@ -2179,7 +2363,7 @@ compile_fadd (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  jit_addr_d (JIT_F0, JIT_F0, JIT_F1);
+  emit_addr_d (j, JIT_F0, JIT_F0, JIT_F1);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -2188,7 +2372,7 @@ compile_fsub (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  jit_subr_d (JIT_F0, JIT_F0, JIT_F1);
+  emit_subr_d (j, JIT_F0, JIT_F0, JIT_F1);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -2197,7 +2381,7 @@ compile_fmul (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  jit_mulr_d (JIT_F0, JIT_F0, JIT_F1);
+  emit_mulr_d (j, JIT_F0, JIT_F0, JIT_F1);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -2206,7 +2390,7 @@ compile_fdiv (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
   emit_sp_ref_f64 (j, JIT_F0, a);
   emit_sp_ref_f64 (j, JIT_F1, b);
-  jit_divr_d (JIT_F0, JIT_F0, JIT_F1);
+  emit_divr_d (j, JIT_F0, JIT_F0, JIT_F1);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -2216,13 +2400,13 @@ compile_uadd (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_addr (T0, T0, T1);
+  emit_addr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_addcr (T0, T0, T2);
-  jit_addxr (T1, T1, T3_OR_FP);
+  emit_addcr (j, T0, T0, T2);
+  emit_addxr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2233,13 +2417,13 @@ compile_usub (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_subr (T0, T0, T1);
+  emit_subr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_subcr (T0, T0, T2);
-  jit_subxr (T1, T1, T3_OR_FP);
+  emit_subcr (j, T0, T0, T2);
+  emit_subxr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2250,17 +2434,18 @@ compile_umul (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_mulr (T0, T0, T1);
+  emit_mulr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: This is untested!  */
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_mulr (T1, T1, T2);      /* High A times low B */
-  jit_mulr (T3_OR_FP, T3_OR_FP, T0); /* High B times low A */
-  jit_addr (T1, T1, T3_OR_FP); /* Add high results, throw away overflow */
-  jit_qmulr_u (T0, T2, T0, T2); /* Low A times low B */
-  jit_addr (T1, T1, T2);        /* Add high result of low product */
+  emit_mulr (j, T1, T1, T2);      /* High A times low B */
+  emit_mulr (j, T3_OR_FP, T3_OR_FP, T0); /* High B times low A */
+  emit_addr (j, T1, T1, T3_OR_FP); /* Add high results, throw away overflow */
+  emit_qmulr_u (j, T0, T2, T0, T2); /* Low A times low B */
+  emit_addr (j, T1, T1, T2);        /* Add high result of low product */
+  clear_register_state (j, SP_CACHE_FPR | SP_CACHE_GPR);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2270,12 +2455,12 @@ compile_uadd_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_addi (T0, T0, b);
+  emit_addi (j, T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
-  jit_addci (T0, T0, b);
-  jit_addxi (T1, T1, 0);
+  emit_addci (j, T0, T0, b);
+  emit_addxi (j, T1, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2285,12 +2470,12 @@ compile_usub_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_subi (T0, T0, b);
+  emit_subi (j, T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
-  jit_subci (T0, T0, b);
-  jit_subxi (T1, T1, 0);
+  emit_subci (j, T0, T0, b);
+  emit_subxi (j, T1, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2300,16 +2485,16 @@ compile_umul_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_muli (T0, T0, b);
+  emit_muli (j, T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: This is untested!  */
   emit_sp_ref_u64 (j, T0, T1, a);
-  jit_muli (T1, T1, b);         /* High A times low B */
+  emit_muli (j, T1, T1, b);         /* High A times low B */
   /* High B times low A is 0.  */
-  jit_movi (T2, b);
-  jit_qmulr_u (T0, T2, T0, T2); /* Low A times low B */
-  jit_addr (T1, T1, T2);        /* Add high result of low product */
+  emit_movi (j, j, T2, b);
+  emit_qmulr_u (j, T0, T2, T0, T2); /* Low A times low B */
+  emit_addr (j, T1, T1, T2);        /* Add high result of low product */
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2318,6 +2503,7 @@ static void
 compile_load_f64 (scm_jit_state *j, uint32_t dst, double a)
 {
   jit_movi_d (JIT_F0, a);
+  record_fpr_clobber (j, JIT_F0);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -2325,11 +2511,11 @@ static void
 compile_load_u64 (scm_jit_state *j, uint32_t dst, uint64_t a)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_movi (T0, a);
+  emit_movi (j, T0, a);
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_movi (T0, a & 0xffffffff);
-  jit_movi (T1, a >> 32);
+  emit_movi (j, T0, a & 0xffffffff);
+  emit_movi (j, T1, a >> 32);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2343,7 +2529,7 @@ compile_load_s64 (scm_jit_state *j, uint32_t dst, int64_t a)
 static void
 compile_current_thread (scm_jit_state *j, uint32_t dst)
 {
-  jit_ldxi (T0, THREAD, thread_offset_handle);
+  emit_ldxi (j, T0, THREAD, thread_offset_handle);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -2353,13 +2539,13 @@ compile_ulogand (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_andr (T0, T0, T1);
+  emit_andr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_andr (T0, T0, T2);
-  jit_andr (T1, T1, T3_OR_FP);
+  emit_andr (j, T0, T0, T2);
+  emit_andr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2370,13 +2556,13 @@ compile_ulogior (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_orr (T0, T0, T1);
+  emit_orr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_orr (T0, T0, T2);
-  jit_orr (T1, T1, T3_OR_FP);
+  emit_orr (j, T0, T0, T2);
+  emit_orr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2387,16 +2573,16 @@ compile_ulogsub (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_comr (T1, T1);
-  jit_andr (T0, T0, T1);
+  emit_comr (j, T1, T1);
+  emit_andr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_comr (T2, T2);
-  jit_comr (T3_OR_FP, T3_OR_FP);
-  jit_andr (T0, T0, T2);
-  jit_andr (T1, T1, T3_OR_FP);
+  emit_comr (j, T2, T2);
+  emit_comr (j, T3_OR_FP, T3_OR_FP);
+  emit_andr (j, T0, T0, T2);
+  emit_andr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2407,8 +2593,8 @@ compile_ursh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_andi (T1, T1, 63);
-  jit_rshr_u (T0, T0, T1);
+  emit_andi (j, T1, T1, 63);
+  emit_rshr_u (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -2416,24 +2602,24 @@ compile_ursh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_andi (T2, T2, 63);
+  emit_andi (j, T2, T2, 63);
   zero = jit_beqi (T2, 0);
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = 0, lo = hi >> (s-32) */
-  jit_subi (T2, 32);
-  jit_rshr_u (T0, T1, T2);
-  jit_movi (T1, 0);
+  emit_subi (j, T2, 32);
+  emit_rshr_u (j, T0, T1, T2);
+  emit_movi (j, T1, 0);
   done = jit_jmpi ();
 
   jit_patch (both);
   /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
   jit_negr (T3_OR_FP, T2);
-  jit_addi (T3_OR_FP, T3_OR_FP, 32);
-  jit_lshr (T3_OR_FP, T1, T3_OR_FP);
-  jit_rshr_u (T1, T1, T2);
-  jit_rshr_u (T0, T0, T2);
-  jit_addr (T0, T0, T3_OR_FP);
+  emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
+  emit_lshr (j, T3_OR_FP, T1, T3_OR_FP);
+  emit_rshr_u (j, T1, T1, T2);
+  emit_rshr_u (j, T0, T0, T2);
+  emit_addr (j, T0, T0, T3_OR_FP);
 
   jit_patch (done);
   jit_patch (zero);
@@ -2447,8 +2633,8 @@ compile_ulsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_andi (T1, T1, 63);
-  jit_lshr (T0, T0, T1);
+  emit_andi (j, T1, T1, 63);
+  emit_lshr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -2456,24 +2642,24 @@ compile_ulsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_andi (T2, T2, 63);
+  emit_andi (j, T2, T2, 63);
   zero = jit_beqi (T2, 0);
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = lo << (s-32), lo = 0 */
-  jit_subi (T2, 32);
-  jit_lshr (T1, T0, T2);
-  jit_movi (T0, 0);
+  emit_subi (j, T2, 32);
+  emit_lshr (j, T1, T0, T2);
+  emit_movi (j, T0, 0);
   done = jit_jmpi ();
 
   jit_patch (both);
   /* 0 < s < 32: hi = hi << s + lo >> (32-s), lo = lo << s */
-  jit_negr (T3_OR_FP, T2);
-  jit_addi (T3_OR_FP, T3_OR_FP, 32);
-  jit_rshr_u (T3_OR_FP, T0, T3_OR_FP);
-  jit_lshr (T1, T1, T2);
-  jit_lshr (T0, T0, T2);
-  jit_addr (T1, T1, T3_OR_FP);
+  emit_negr (j, T3_OR_FP, T2);
+  emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
+  emit_rshr_u (j, T3_OR_FP, T0, T3_OR_FP);
+  emit_lshr (j, T1, T1, T2);
+  emit_lshr (j, T0, T0, T2);
+  emit_addr (j, T1, T1, T3_OR_FP);
 
   jit_patch (done);
   jit_patch (zero);
@@ -2488,7 +2674,7 @@ compile_ursh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_rshi_u (T0, T0, b);
+  emit_rshi_u (j, T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -2500,16 +2686,16 @@ compile_ursh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   else if (b >= 32)
     {
       /*  hi = 0, lo = hi >> (s-32) */
-      jit_rshi_u (T0, T1, b - 32);
-      jit_movi (T1, 0);
+      emit_rshi_u (j, T0, T1, b - 32);
+      emit_movi (j, T1, 0);
     }
   else
     {
       /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
-      jit_lshi (T2, T1, 32 - b);
-      jit_rshi_u (T1, T1, b);
-      jit_rshi_u (T0, T0, b);
-      jit_addr (T0, T0, T2);
+      emit_lshi (j, T2, T1, 32 - b);
+      emit_rshi_u (j, T1, T1, b);
+      emit_rshi_u (j, T0, T0, b);
+      emit_addr (j, T0, T0, T2);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -2522,7 +2708,7 @@ compile_ulsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
-  jit_lshi (T0, T0, b);
+  emit_lshi (j, T0, T0, b);
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -2534,16 +2720,16 @@ compile_ulsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   else if (b >= 32)
     {
       /* hi = lo << (s-32), lo = 0 */
-      jit_lshr (T1, T0, b - 32);
-      jit_movi (T0, 0);
+      emit_lshr (j, T1, T0, b - 32);
+      emit_movi (j, T0, 0);
     }
   else
     {
       /* hi = hi << s + lo >> (32-s), lo = lo << s */
-      jit_rshi_u (T2, T0, 32 - b);
-      jit_lshi (T1, T1, b);
-      jit_lshi (T0, T0, b);
-      jit_addr (T1, T1, T2);
+      emit_rshi_u (j, T2, T0, 32 - b);
+      emit_lshi (j, T1, T1, b);
+      emit_lshi (j, T0, T0, b);
+      emit_addr (j, T1, T1, T2);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -2555,13 +2741,13 @@ compile_ulogxor (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
-  jit_xorr (T0, T0, T1);
+  emit_xorr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  jit_xorr (T0, T0, T2);
-  jit_xorr (T1, T1, T3_OR_FP);
+  emit_xorr (j, T0, T0, T2);
+  emit_xorr (j, T1, T1, T3_OR_FP);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2570,7 +2756,9 @@ static void
 compile_handle_interrupts (scm_jit_state *j)
 {
   jit_node_t *again, *mra, *none_pending, *blocked;
-  uint32_t saved_state = j->register_state;
+  uint32_t saved_state = save_reloadable_register_state (j);
+
+  /* This instruction invalidates SP_CACHE_GPR / SP_CACHE_FPR.  */
 
   /* The slow case is a fair amount of code, so generate it once for the
      whole process and share that code.  */
@@ -2585,15 +2773,15 @@ compile_handle_interrupts (scm_jit_state *j)
 #else
   jit_addi (T0, THREAD, thread_offset_pending_asyncs);
   emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
-  jit_retval (T0);
-  ensure_register_state (j, saved_state);
+  emit_retval (j, T0);
+  restore_reloadable_register_state (j, saved_state);
 #endif
   none_pending = jit_beqi (T0, SCM_UNPACK (SCM_EOL));
   jit_ldxi_i (T0, THREAD, thread_offset_block_asyncs);
   blocked = jit_beqi (T0, 0);
 
   emit_store_current_ip (j, T0);
-  mra = jit_movi (T0, 0);
+  mra = emit_movi (j, T0, 0);
   jit_patch_at (mra, again);
   jit_patch_abs (jit_jmpi (), handle_interrupts_trampoline);
 
@@ -2627,6 +2815,8 @@ compile_return_from_interrupt (scm_jit_state *j)
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
   emit_exit (j);
+
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
 static enum scm_opcode
@@ -2852,7 +3042,7 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.numerically_equal_p, T0, T1);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
     {
@@ -2878,7 +3068,7 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
     {
@@ -2954,7 +3144,7 @@ compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t ex
   lt = jit_bltr (walk, SP);
   /* npos >= expected if walk <= min.  */
   ge = jit_bler (walk, min);
-  jit_ldr (obj, walk);
+  emit_ldr (j, obj, walk);
   jit_patch_at (emit_branch_if_immediate (j, obj), head);
   jit_patch_at (emit_branch_if_heap_object_not_tc7 (j, obj, obj, scm_tc7_keyword),
                 head);
@@ -2970,7 +3160,7 @@ compile_immediate_tag_equals (scm_jit_state *j, uint32_t a, uint16_t mask,
   uint32_t *target;
 
   emit_sp_ref_scm (j, T0, a);
-  jit_andi (T0, T0, mask);
+  emit_andi (j, T0, T0, mask);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
@@ -3083,7 +3273,7 @@ compile_heap_numbers_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
   emit_call_r_r (j, scm_vm_intrinsics.heap_numbers_equal_p, T0, T1);
-  jit_retval (T0);
+  emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
     {
@@ -3103,13 +3293,13 @@ static void
 compile_untag_fixnum (scm_jit_state *j, uint16_t dst, uint16_t a)
 {
   emit_sp_ref_scm (j, T0, a);
-  jit_rshi (T0, T0, 2);
+  emit_rshi (j, T0, T0, 2);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_s64 (j, dst, T0);
 #else
   /* FIXME: Untested!  */
-  jit_movi (T1, T0);
-  jit_rshi (T1, T1, 31);
+  emit_movi (j, T1, T0);
+  emit_rshi (j, T1, T1, 31);
   emit_sp_set_s64 (j, dst, T0, T1);
 #endif
 }
@@ -3122,8 +3312,8 @@ compile_tag_fixnum (scm_jit_state *j, uint16_t dst, uint16_t a)
 #else
   emit_sp_ref_s32 (j, T0, a);
 #endif
-  jit_lshi (T0, T0, 2);
-  jit_addi (T0, T0, scm_tc2_int);
+  emit_lshi (j, T0, T0, 2);
+  emit_addi (j, T0, T0, scm_tc2_int);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -3133,8 +3323,8 @@ compile_srsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_s64 (j, T0, a);
   emit_sp_ref_s64 (j, T1, b);
-  jit_andi (T1, T1, 63);
-  jit_rshr (T0, T0, T1);
+  emit_andi (j, T1, T1, 63);
+  emit_rshr (j, T0, T0, T1);
   emit_sp_set_s64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -3142,24 +3332,24 @@ compile_srsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
   emit_sp_ref_s64 (j, T0, T1, a);
   emit_sp_ref_s64 (j, T2, T3_OR_FP, b);
-  jit_andi (T2, T2, 63);
+  emit_andi (j, T2, T2, 63);
   zero = jit_beqi (T2, 0);
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = hi >> 31, lo = hi >> (s-32) */
-  jit_subi (T2, 32);
-  jit_rshr (T0, T1, T2);
-  jit_rshi (T1, T1, 31);
+  emit_subi (j, T2, 32);
+  emit_rshr (j, T0, T1, T2);
+  emit_rshi (j, T1, T1, 31);
   done = jit_jmpi ();
 
   jit_patch (both);
   /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
-  jit_negr (T3_OR_FP, T2);
-  jit_addi (T3_OR_FP, T3_OR_FP, 32);
-  jit_lshr (T3_OR_FP, T1, T3_OR_FP);
-  jit_rshr (T1, T1, T2);
-  jit_rshr_u (T0, T0, T2);
-  jit_addr (T0, T0, T3_OR_FP);
+  emit_negr (j, T3_OR_FP, T2);
+  emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
+  emit_lshr (j, T3_OR_FP, T1, T3_OR_FP);
+  emit_rshr (j, T1, T1, T2);
+  emit_rshr_u (j, T0, T0, T2);
+  emit_addr (j, T0, T0, T3_OR_FP);
 
   jit_patch (done);
   jit_patch (zero);
@@ -3174,7 +3364,7 @@ compile_srsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_s64 (j, T0, a);
-  jit_rshi (T0, T0, b);
+  emit_rshi (j, T0, T0, b);
   emit_sp_set_s64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
@@ -3186,16 +3376,16 @@ compile_srsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   else if (b >= 32)
     {
       /*  hi = sign-ext, lo = hi >> (s-32) */
-      jit_rshi (T0, T1, b - 32);
-      jit_rshi (T1, T1, 31);
+      emit_rshi (j, T0, T1, b - 32);
+      emit_rshi (j, T1, T1, 31);
     }
   else
     {
       /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
-      jit_lshi (T2, T1, 32 - b);
-      jit_rshi (T1, T1, b);
-      jit_rshi_u (T0, T0, b);
-      jit_addr (T0, T0, T2);
+      emit_lshi (j, T2, T1, 32 - b);
+      emit_rshi (j, T1, T1, b);
+      emit_rshi_u (j, T0, T0, b);
+      emit_addr (j, T0, T0, T2);
     }
   emit_sp_set_s64 (j, dst, T0, T1);
 #endif
@@ -3442,10 +3632,11 @@ compile_u8_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_uc (T0, T0, T1);
+  record_gpr_clobber (j, T0);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_movi (T1, 0);
+  emit_movi (j, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3456,10 +3647,11 @@ compile_u16_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_us (T0, T0, T1);
+  record_gpr_clobber (j, T0);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_movi (T1, 0);
+  emit_movi (j, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3471,10 +3663,11 @@ compile_u32_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_sz (j, T1, idx);
 #if SIZEOF_UINTPTR_T >= 8
   jit_ldxr_ui (T0, T0, T1);
+  record_gpr_clobber (j, T0);
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_ldxr (T0, T0, T1);
-  jit_movi (T1, 0);
+  emit_ldxr (j, T0, T0, T1);
+  emit_movi (j, T1, 0);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3485,19 +3678,19 @@ compile_u64_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
 #if SIZEOF_UINTPTR_T >= 8
-  jit_ldxr (T0, T0, T1);
+  emit_ldxr (j, T0, T0, T1);
   emit_sp_set_u64 (j, dst, T0);
 #else
-  jit_addr (T0, T0, T1);
+  emit_addr (j, T0, T0, T1);
   if (BIGENDIAN)
     {
-      jit_ldxi (T1, T0, 4);
-      jit_ldr (T0, T0);
+      emit_ldxi (j, T1, T0, 4);
+      emit_ldr (j, T0, T0);
     }
   else
     {
-      jit_ldr (T1, T0);
-      jit_ldxi (T0, T0, 4);
+      emit_ldr (j, T1, T0);
+      emit_ldxi (j, T0, T0, 4);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -3573,10 +3766,11 @@ compile_s8_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_c (T0, T0, T1);
+  record_gpr_clobber (j, T0);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_s64 (j, dst, T0);
 #else
-  jit_rshi (T1, T0, 7);
+  emit_rshi (j, T1, T0, 7);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3587,10 +3781,11 @@ compile_s16_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_s (T0, T0, T1);
+  record_gpr_clobber (j, T0);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_s64 (j, dst, T0);
 #else
-  jit_rshi (T1, T0, 15);
+  emit_rshi (j, T1, T0, 15);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3601,10 +3796,11 @@ compile_s32_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_i (T0, T0, T1);
+  record_gpr_clobber (j, T0);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_set_s64 (j, dst, T0);
 #else
-  jit_rshi (T1, T0, 31);
+  emit_rshi (j, T1, T0, 31);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3645,6 +3841,7 @@ compile_f32_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_f (JIT_F0, T0, T1);
+  record_fpr_clobber (j, JIT_F0);
   jit_extr_f_d (JIT_F0, JIT_F0);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
@@ -3655,6 +3852,7 @@ compile_f64_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_sp_ref_ptr (j, T0, ptr);
   emit_sp_ref_sz (j, T1, idx);
   jit_ldxr_d (JIT_F0, T0, T1);
+  record_fpr_clobber (j, JIT_F0);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
@@ -3665,6 +3863,7 @@ compile_f32_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   emit_sp_ref_sz (j, T1, idx);
   emit_sp_ref_f64 (j, JIT_F0, v);
   jit_extr_d_f (JIT_F0, JIT_F0);
+  record_fpr_clobber (j, JIT_F0);
   jit_stxr_d (T0, T1, JIT_F0);
 }
 
