@@ -1374,7 +1374,7 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
   jit_ldr (t, walk);
   jit_stxi (offset, walk, t);
   jit_subi (walk, walk, sizeof (union scm_vm_stack_element));
-  back = jit_bltr (walk, SP);
+  back = jit_bger (walk, SP);
   jit_patch_at (back, head);
   jit_patch (done);
   jit_addi (SP, SP, offset);
