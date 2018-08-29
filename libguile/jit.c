@@ -2142,6 +2142,7 @@ compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
   jit_pushargr (FP);
   jit_pushargi ((uintptr_t) vcode);
   mra = emit_movi (j, T2, 0);
+  jit_pushargr (T2);
   jit_finishi (scm_vm_intrinsics.push_prompt);
   clear_scratch_register_state (j);
   emit_reload_sp (j);
@@ -4278,9 +4279,20 @@ analyze (scm_jit_state *j)
           break;
 
         case scm_op_j:
-          attrs |= OP_ATTR_BLOCK;
           target = j->ip + (((int32_t)j->ip[0]) >> 8);
           j->op_attrs[target - j->start] |= OP_ATTR_BLOCK;
+          break;
+
+        case scm_op_call:
+        case scm_op_call_label:
+          attrs = OP_ATTR_BLOCK;
+          target = j->next_ip;
+          j->op_attrs[target - j->start] |= OP_ATTR_BLOCK | OP_ATTR_ENTRY;
+          break;
+
+        case scm_op_prompt:
+          target = j->ip + (((int32_t) j->ip[2]) >> 8);
+          j->op_attrs[target - j->start] |= OP_ATTR_BLOCK | OP_ATTR_ENTRY;
           break;
 
         default:
