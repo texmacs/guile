@@ -64,12 +64,28 @@ SCM_DEFINE (scm_intrinsic_list, "intrinsic-list", 0, 0, 0,
 static SCM
 add_immediate (SCM a, uint8_t b)
 {
+  if (SCM_LIKELY (SCM_I_INUMP (a)))
+    {
+      scm_t_signed_bits sum = SCM_I_INUM (a) + b;
+
+      if (SCM_LIKELY (SCM_POSFIXABLE (sum)))
+        return SCM_I_MAKINUM (sum);
+    }
+
   return scm_sum (a, scm_from_uint8 (b));
 }
 
 static SCM
 sub_immediate (SCM a, uint8_t b)
 {
+  if (SCM_LIKELY (SCM_I_INUMP (a)))
+    {
+      scm_t_signed_bits diff = SCM_I_INUM (a) - b;
+
+      if (SCM_LIKELY (SCM_NEGFIXABLE (diff)))
+        return SCM_I_MAKINUM (diff);
+    }
+
   return scm_difference (a, scm_from_uint8 (b));
 }
 
@@ -90,7 +106,7 @@ string_to_number (SCM str)
 static uint64_t
 scm_to_uint64_truncate (SCM x)
 {
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     return (uint64_t) SCM_I_INUM (x);
   else
     return scm_to_uint64 (scm_logand (x, scm_from_uint64 ((uint64_t) -1)));
@@ -263,6 +279,13 @@ rsh_immediate (SCM a, uint8_t b)
 static enum scm_compare
 less_p (SCM a, SCM b)
 {
+  if (SCM_LIKELY (SCM_I_INUMP (a) && SCM_I_INUMP (b)))
+    {
+      scm_t_signed_bits a_bits = SCM_UNPACK (a);
+      scm_t_signed_bits b_bits = SCM_UNPACK (b);
+      return a_bits < b_bits ? SCM_F_COMPARE_LESS_THAN : SCM_F_COMPARE_NONE;
+    }
+
   if (scm_is_true (scm_nan_p (a)) || scm_is_true (scm_nan_p (b)))
     return SCM_F_COMPARE_INVALID;
   else if (scm_is_true (scm_less_p (a, b)))
@@ -274,6 +297,9 @@ less_p (SCM a, SCM b)
 static int
 numerically_equal_p (SCM a, SCM b)
 {
+  if (SCM_LIKELY (SCM_I_INUMP (a) && SCM_I_INUMP (b)))
+    return scm_is_eq (a, b);
+
   return scm_is_true (scm_num_eq_p (a, b));
 }
 
