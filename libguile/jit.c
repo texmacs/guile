@@ -1532,7 +1532,7 @@ compile_abort (scm_jit_state *j)
   if (j->hooks_enabled)
     emit_run_hook (j, T0, scm_vm_intrinsics.invoke_abort_hook);
 
-  interp = jit_bnei (T1_PRESERVED, 0);
+  interp = jit_beqi (T1_PRESERVED, 0);
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (T1_PRESERVED);
