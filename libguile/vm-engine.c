@@ -565,18 +565,25 @@ VM_NAME (scm_thread *thread)
     {
       union scm_vm_stack_element *old_fp;
       size_t frame_size = 3;
+      uint8_t *mcode;
 
       RETURN_HOOK ();
 
       old_fp = VP->fp;
-      ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (VP->fp);
-      VP->fp = SCM_FRAME_DYNAMIC_LINK (VP->fp);
+      VP->fp = SCM_FRAME_DYNAMIC_LINK (old_fp);
 
-      /* Clear stack frame.  */
-      while (frame_size--)
-        old_fp[frame_size].as_scm = SCM_BOOL_F;
-
-      NEXT (0);
+      mcode = SCM_FRAME_MACHINE_RETURN_ADDRESS (old_fp);
+      if (mcode)
+        {
+          scm_jit_enter_mcode (thread, mcode);
+          CACHE_REGISTER ();
+          NEXT (0);
+        }
+      else
+        {
+          ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (old_fp);
+          NEXT (0);
+        }
     }
 
 

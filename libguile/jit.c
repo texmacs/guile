@@ -4425,14 +4425,11 @@ scm_sys_jit_compile (SCM fn)
 const uint8_t *
 scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 {
-  const uint32_t *start = (const uint32_t *) (((char *)data) + data->start);
+  uint8_t *mcode_start = data->mcode;
+  const uint32_t *vcode_start = (const uint32_t *) (((char *)data) + data->start);
 
-  /* Until the JIT is tested, don't automatically JIT-compile code.
-     Just return whatever code is already there.  If we decide to buy
-     later, replace with something that wires up a call to
-     "compute_mcode".  */
-  if (start == thread->vm.ip)
-    return data->mcode;
+  if (mcode_start && vcode_start == thread->vm.ip)
+    return mcode_start;
 
   return NULL;
 }
