@@ -4201,7 +4201,7 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     UNPACK_24 (j->ip[0], a);                                            \
     UNPACK_8_24 (j->ip[1], b, c);                                       \
     UNPACK_24 (j->ip[2], d);                                            \
-    e = j->ip[3]; e >>= 8; /* Sign extension.  */                       \
+    e = j->ip[3];                                                       \
     comp (j, a, b, c, d, j->ip + e);                                    \
   }
 
