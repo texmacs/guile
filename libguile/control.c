@@ -80,7 +80,7 @@ struct compose_continuation_code compose_continuation_code = {
     /* mcode = */ 0,
     /* counter = */ 0,
     /* start = */ sizeof (struct scm_jit_function_data),
-    /* end = */ sizeof (struct compose_continuation_code)
+    /* end = */ sizeof (struct scm_jit_function_data) + 12
   },
   {
     SCM_PACK_OP_24 (instrument_entry, 0),

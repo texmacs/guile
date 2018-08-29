@@ -1496,7 +1496,7 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
   emit_free_variable_ref (j, T0, T0, cont_idx);
   emit_call_r_r (j, scm_vm_intrinsics.compose_continuation, THREAD, T0);
   jit_retval (T0);
-  interp = jit_bnei (T0, 0);
+  interp = jit_beqi (T0, 0);
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (T0);
