@@ -471,7 +471,7 @@ VM_NAME (scm_thread *thread)
           NEXT (0);
         }
 
-      if (data->counter > SCM_JIT_COUNTER_THRESHOLD)
+      if (data->counter > scm_jit_counter_threshold)
         {
           const uint8_t *mcode;
 
@@ -722,7 +722,7 @@ VM_NAME (scm_thread *thread)
 
       data = (struct scm_jit_function_data *) (ip + data_offset);
 
-      if (data->counter > SCM_JIT_COUNTER_THRESHOLD)
+      if (data->counter > scm_jit_counter_threshold)
         {
           const uint8_t *mcode;
 

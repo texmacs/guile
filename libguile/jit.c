@@ -32,6 +32,7 @@
 #include "gsubr.h"
 #include "instructions.h"
 #include "intrinsics.h"
+#include "simpos.h" /* scm_getenv_int */
 #include "threads.h"
 #include "vm-builtins.h"
 #include "vm-operations.h"
@@ -120,6 +121,10 @@
 
 
 
+
+/* Threshold for when to JIT-compile a function.  Set from the
+   GUILE_JIT_THRESHOLD environment variable.  */
+uint32_t scm_jit_counter_threshold = -1;
 
 /* Entry trampoline: saves registers, initializes THREAD and SP
    registers, and jumps into mcode. */
@@ -4465,5 +4470,6 @@ scm_jit_state_free (scm_jit_state *j)
 void
 scm_init_jit (void)
 {
+  scm_jit_counter_threshold = scm_getenv_int ("GUILE_JIT_COUNTER_THRESHOLD", -1);
   scm_c_define_gsubr ("%jit-compile", 1, 0, 0, (scm_t_subr) scm_sys_jit_compile);
 }

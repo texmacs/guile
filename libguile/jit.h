@@ -48,9 +48,10 @@ enum scm_jit_counter_value
 {
   SCM_JIT_COUNTER_ENTRY_INCREMENT = 15,
   SCM_JIT_COUNTER_LOOP_INCREMENT = 1,
-  SCM_JIT_COUNTER_THRESHOLD = 50
 };
 #endif
+
+SCM_INTERNAL uint32_t scm_jit_counter_threshold;
 
 SCM_INTERNAL const uint8_t *scm_jit_compute_mcode (scm_thread *thread,
                                                    struct scm_jit_function_data *data);
