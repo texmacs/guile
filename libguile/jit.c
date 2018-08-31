@@ -1661,7 +1661,6 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
       jit_node_t *head, *k, *back;
       jit_gpr_t walk = saved_frame_size;
 
-      emit_reload_fp (j);
       jit_subr (walk, FP, saved_frame_size);
       k = jit_bler (walk, SP);
       jit_movi (t, SCM_UNPACK (SCM_UNDEFINED));
