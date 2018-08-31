@@ -123,7 +123,7 @@
 
 
 /* Threshold for when to JIT-compile a function.  Set from the
-   GUILE_JIT_THRESHOLD environment variable.  */
+   GUILE_JIT_COUNTER_THRESHOLD environment variable.  */
 uint32_t scm_jit_counter_threshold = -1;
 
 /* Entry trampoline: saves registers, initializes THREAD and SP
@@ -4220,10 +4220,27 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
     comp (j, a, b, c, d, e);                                            \
   }
 
+static uint8_t first_seen[256];
+
 static void
 compile1 (scm_jit_state *j)
 {
   uint8_t opcode = j->ip[0] & 0xff;
+
+  if (!first_seen[opcode])
+    {
+      const char *n;
+      switch (opcode)
+        {
+#define NAME(code, cname, name, arity) case code: n = name; break;
+          FOR_EACH_VM_OPERATION(NAME)
+#undef NAME
+        default:
+          UNREACHABLE ();
+        }
+      first_seen[opcode] = 1;
+      fprintf (stderr, "Instruction first seen at vcode %p: %s\n", j->ip, n);
+    }
 
   j->next_ip = j->ip + op_lengths[opcode];
 
@@ -4396,6 +4413,8 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 
   j->jit = jit_new_state ();
 
+  fprintf (stderr, "vcode: start=%p,+%zu\n", j->start, j->end - j->start);
+
   compile (j);
 
   data->mcode = jit_emit ();
@@ -4431,7 +4450,6 @@ scm_sys_jit_compile (SCM fn)
 
   fprintf (stderr, "compiling function at %p\n", code);
   data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
-  fprintf (stderr, "data %p start=%d, end=%d\n", data, data->start, data->end);
 
   compute_mcode (SCM_I_CURRENT_THREAD, data);
 
@@ -4441,11 +4459,15 @@ scm_sys_jit_compile (SCM fn)
 const uint8_t *
 scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 {
-  uint8_t *mcode_start = data->mcode;
   const uint32_t *vcode_start = (const uint32_t *) (((char *)data) + data->start);
 
-  if (mcode_start && vcode_start == thread->vm.ip)
-    return mcode_start;
+  if (vcode_start == thread->vm.ip)
+    {
+      if (!data->mcode)
+        compute_mcode (thread, data);
+
+      return data->mcode;
+    }
 
   return NULL;
 }
@@ -4453,8 +4475,9 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
-  // fprintf (stderr, "entering mcode! %p\n", mcode);
+  fprintf (stderr, "entering mcode: %p\n", mcode);
   enter_mcode (thread, mcode);
+  fprintf (stderr, "exited mcode\n");
 }
 
 void
