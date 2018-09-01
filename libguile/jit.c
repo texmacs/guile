@@ -3213,10 +3213,10 @@ compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqi (T0, T1);
+      k = jit_beqr (T0, T1);
       break;
     case scm_op_jne:
-      k = jit_bnei (T0, T1);
+      k = jit_bner (T0, T1);
       break;
     default:
       UNREACHABLE ();
