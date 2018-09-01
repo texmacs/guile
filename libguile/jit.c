@@ -126,6 +126,14 @@
    GUILE_JIT_COUNTER_THRESHOLD environment variable.  */
 uint32_t scm_jit_counter_threshold = -1;
 
+/* If positive, stop JIT compilation after the Nth compilation.  Useful
+   for hunting down bugs.  */
+static int jit_stop_after = -1;
+
+/* If nonzero, pause when stopping JIT compilation after the Nth
+   compilation.  For debugging.  */
+static int jit_pause_when_stopping = 0;
+
 /* Entry trampoline: saves registers, initializes THREAD and SP
    registers, and jumps into mcode. */
 static void (*enter_mcode) (scm_thread *thread, const uint8_t *mcode);
@@ -4463,7 +4471,21 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   if (vcode_start == thread->vm.ip)
     {
       if (!data->mcode)
-        compute_mcode (thread, data);
+        {
+          compute_mcode (thread, data);
+
+          if (--jit_stop_after == 0)
+            {
+              scm_jit_counter_threshold = -1;
+              fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
+              if (jit_pause_when_stopping)
+                {
+                  fprintf (stderr, "sleeping for 30s; to debug:\n");
+                  fprintf (stderr, "   gdb -p %d\n\n", getpid ());
+                  sleep (30);
+                }
+            }
+        }
 
       return data->mcode;
     }
@@ -4474,9 +4496,9 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
-  fprintf (stderr, "entering mcode: %p\n", mcode);
+  // fprintf (stderr, "entering mcode: %p\n", mcode);
   enter_mcode (thread, mcode);
-  fprintf (stderr, "exited mcode\n");
+  // fprintf (stderr, "exited mcode\n");
 }
 
 void
@@ -4493,5 +4515,7 @@ void
 scm_init_jit (void)
 {
   scm_jit_counter_threshold = scm_getenv_int ("GUILE_JIT_COUNTER_THRESHOLD", -1);
+  jit_stop_after = scm_getenv_int ("GUILE_JIT_STOP_AFTER", -1);
+  jit_pause_when_stopping = scm_getenv_int ("GUILE_JIT_PAUSE_WHEN_STOPPING", 0);
   scm_c_define_gsubr ("%jit-compile", 1, 0, 0, (scm_t_subr) scm_sys_jit_compile);
 }
