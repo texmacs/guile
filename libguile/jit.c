@@ -3303,8 +3303,7 @@ compile_untag_fixnum (scm_jit_state *j, uint16_t dst, uint16_t a)
   emit_sp_set_s64 (j, dst, T0);
 #else
   /* FIXME: Untested!  */
-  emit_movi (j, T1, T0);
-  emit_rshi (j, T1, T1, 31);
+  emit_rshi (j, T1, T0, 31);
   emit_sp_set_s64 (j, dst, T0, T1);
 #endif
 }
