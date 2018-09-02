@@ -4466,14 +4466,15 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->start = (const uint32_t *) (((char *)data) + data->start);
   j->end = (const uint32_t *) (((char *)data) + data->end);
   j->entry = entry_ip;
-  j->op_attrs = malloc ((j->end - j->start) * sizeof (*j->op_attrs));
-  ASSERT (j->op_attrs);
-  j->labels = malloc ((j->end - j->start) * sizeof (*j->labels));
-  ASSERT (j->labels);
 
   ASSERT (j->start < j->end);
   ASSERT (j->start <= j->entry);
   ASSERT (j->entry < j->end);
+
+  j->op_attrs = malloc ((j->end - j->start) * sizeof (*j->op_attrs));
+  ASSERT (j->op_attrs);
+  j->labels = malloc ((j->end - j->start) * sizeof (*j->labels));
+  ASSERT (j->labels);
 
   j->frame_size = -1;
   j->hooks_enabled = 0; /* ? */
