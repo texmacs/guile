@@ -134,6 +134,9 @@ static int jit_stop_after = -1;
    compilation.  For debugging.  */
 static int jit_pause_when_stopping = 0;
 
+/* Log level for JIT events.  0 means off.  */
+static int jit_log_level = 0;
+
 /* Entry trampoline: saves registers, initializes THREAD and SP
    registers, and jumps into mcode. */
 static void (*enter_mcode) (scm_thread *thread, const uint8_t *mcode);
@@ -299,6 +302,23 @@ die (int line, const char *msg)
 
 #define UNREACHABLE()                                                   \
   DIE ("unreachable")
+
+#define _LOG(level, ...)                                                \
+  do {                                                                  \
+    if (SCM_UNLIKELY (jit_log_level >= level))                          \
+      fprintf (stderr, "jit: " __VA_ARGS__);                            \
+  } while (0)
+
+enum {
+  LOG_LEVEL_NONE,
+  LOG_LEVEL_INFO,
+  LOG_LEVEL_DEBUG,
+  LOG_LEVEL_LOG
+};
+
+#define INFO(...)  _LOG(LOG_LEVEL_INFO, __VA_ARGS__)
+#define DEBUG(...) _LOG(LOG_LEVEL_DEBUG, __VA_ARGS__)
+#define LOG(...)   _LOG(LOG_LEVEL_LOG, __VA_ARGS__)
 
 static void
 reset_register_state (scm_jit_state *j, uint32_t state)
@@ -4276,7 +4296,7 @@ compile1 (scm_jit_state *j)
           UNREACHABLE ();
         }
       first_seen[opcode] = 1;
-      fprintf (stderr, "Instruction first seen at vcode %p: %s\n", j->ip, n);
+      DEBUG ("Instruction first seen at vcode %p: %s\n", j->ip, n);
     }
 
   j->next_ip = j->ip + op_lengths[opcode];
@@ -4450,7 +4470,7 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 
   j->jit = jit_new_state ();
 
-  fprintf (stderr, "vcode: start=%p,+%zu\n", j->start, j->end - j->start);
+  INFO ("vcode: start=%p,+%zu\n", j->start, j->end - j->start);
 
   compile (j);
 
@@ -4458,7 +4478,7 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   {
     jit_word_t size = 0;
     jit_get_code (&size);
-    fprintf (stderr, "mcode: %p,+%zu\n", data->mcode, size);
+    DEBUG ("mcode: %p,+%zu\n", data->mcode, size);
   }
 
   free (j->labels);
@@ -4485,7 +4505,6 @@ scm_sys_jit_compile (SCM fn)
   if (code[0] != scm_op_instrument_entry)
     scm_wrong_type_arg ("%jit-compile", 1, fn);
 
-  fprintf (stderr, "compiling function at %p\n", code);
   data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
 
   compute_mcode (SCM_I_CURRENT_THREAD, data);
@@ -4526,9 +4545,9 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
-  // fprintf (stderr, "entering mcode: %p\n", mcode);
+  LOG ("entering mcode: %p\n", mcode);
   enter_mcode (thread, mcode);
-  // fprintf (stderr, "exited mcode\n");
+  LOG ("exited mcode\n");
 }
 
 void
@@ -4547,5 +4566,6 @@ scm_init_jit (void)
   scm_jit_counter_threshold = scm_getenv_int ("GUILE_JIT_COUNTER_THRESHOLD", -1);
   jit_stop_after = scm_getenv_int ("GUILE_JIT_STOP_AFTER", -1);
   jit_pause_when_stopping = scm_getenv_int ("GUILE_JIT_PAUSE_WHEN_STOPPING", 0);
+  jit_log_level = scm_getenv_int ("GUILE_JIT_LOG_LEVEL", 0);
   scm_c_define_gsubr ("%jit-compile", 1, 0, 0, (scm_t_subr) scm_sys_jit_compile);
 }
