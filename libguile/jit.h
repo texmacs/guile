@@ -44,10 +44,13 @@ struct scm_jit_function_data
 #endif
 };
 
+/* These values should be even, so that a function's counter is never
+   0xffffffff, so that setting the JIT threshold to 0xffffffff always
+   disables compilation.  */
 enum scm_jit_counter_value
 {
-  SCM_JIT_COUNTER_ENTRY_INCREMENT = 15,
-  SCM_JIT_COUNTER_LOOP_INCREMENT = 1,
+  SCM_JIT_COUNTER_ENTRY_INCREMENT = 30,
+  SCM_JIT_COUNTER_LOOP_INCREMENT = 2,
 };
 #endif
 
