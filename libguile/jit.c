@@ -4495,6 +4495,7 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
            entry_mcode - data->mcode);
   }
 
+  free (j->op_attrs);
   free (j->labels);
   j->labels = NULL;
   jit_clear_state ();
