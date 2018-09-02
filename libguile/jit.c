@@ -681,8 +681,9 @@ static void
 emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 {
   jit_node_t *k, *fast, *watermark;
+  uint32_t saved_state = save_reloadable_register_state (j);
 
-  ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
+  ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   emit_ldxi (j, t, THREAD, thread_offset_sp_min_since_gc);
   fast = jit_bger (SP, t);
@@ -692,8 +693,7 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
   /* Slow case: call out to expand stack.  */
   emit_store_current_ip (j, t);
   emit_call_r_r (j, scm_vm_intrinsics.expand_stack, THREAD, SP);
-  emit_reload_sp (j);
-  emit_reload_fp (j);
+  restore_reloadable_register_state (j, saved_state);
   k = jit_jmpi ();
 
   /* Past sp_min_since_gc, but within stack_limit: update watermark and
