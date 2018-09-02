@@ -148,8 +148,6 @@ static void *exit_mcode;
    instruction, compiled as a stub on the side to reduce code size.  */
 static void *handle_interrupts_trampoline;
 
-static void compute_mcode (scm_thread *, struct scm_jit_function_data *);
-
 /* State of the JIT compiler for the current thread.  */
 struct scm_jit_state {
   jit_state_t *jit;
@@ -158,6 +156,8 @@ struct scm_jit_state {
   uint32_t *ip;
   uint32_t *next_ip;
   const uint32_t *end;
+  uint32_t *entry;
+  jit_node_t *entry_label;
   uint8_t *op_attrs;
   jit_node_t **labels;
   int32_t frame_size;
@@ -4377,6 +4377,9 @@ analyze (scm_jit_state *j)
           break;
         }
     }
+
+  /* Even in loops, the entry should be a jump target.  */
+  ASSERT (j->op_attrs[j->entry - j->start] & OP_ATTR_BLOCK);
 }
 
 static void
@@ -4408,6 +4411,8 @@ compile (scm_jit_state *j)
           j->register_state = state;
           jit_link (j->labels[offset]);
         }
+      if (j->ip == j->entry)
+        j->entry_label = jit_indirect ();
       compile1 (j);
     }
 }
@@ -4437,10 +4442,12 @@ initialize_jit (void)
   j->jit = NULL;
 }
 
-static void
-compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
+static uint8_t *
+compute_mcode (scm_thread *thread, uint32_t *entry_ip,
+               struct scm_jit_function_data *data)
 {
   scm_jit_state *j = thread->jit_state;
+  uint8_t *entry_mcode;
 
   if (!j)
     {
@@ -4458,27 +4465,34 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
   j->thread = thread;
   j->start = (const uint32_t *) (((char *)data) + data->start);
   j->end = (const uint32_t *) (((char *)data) + data->end);
+  j->entry = entry_ip;
   j->op_attrs = malloc ((j->end - j->start) * sizeof (*j->op_attrs));
   ASSERT (j->op_attrs);
   j->labels = malloc ((j->end - j->start) * sizeof (*j->labels));
   ASSERT (j->labels);
 
   ASSERT (j->start < j->end);
+  ASSERT (j->start <= j->entry);
+  ASSERT (j->entry < j->end);
 
   j->frame_size = -1;
   j->hooks_enabled = 0; /* ? */
 
   j->jit = jit_new_state ();
 
-  INFO ("vcode: start=%p,+%zu\n", j->start, j->end - j->start);
+  INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
+        j->entry - j->start);
 
   compile (j);
 
   data->mcode = jit_emit ();
+  entry_mcode = jit_address (j->entry_label);
+
   {
     jit_word_t size = 0;
     jit_get_code (&size);
-    DEBUG ("mcode: %p,+%zu\n", data->mcode, size);
+    DEBUG ("mcode: %p,+%zu entry=+%zu\n", data->mcode, size,
+           entry_mcode - data->mcode);
   }
 
   free (j->labels);
@@ -4488,6 +4502,8 @@ compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 
   j->start = j->end = j->ip = NULL;
   j->frame_size = -1;
+
+  return entry_mcode;
 }
 
 /* This is a temporary function; just here while we're still kicking the
@@ -4507,7 +4523,7 @@ scm_sys_jit_compile (SCM fn)
 
   data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
 
-  compute_mcode (SCM_I_CURRENT_THREAD, data);
+  compute_mcode (SCM_I_CURRENT_THREAD, code, data);
 
   return SCM_UNSPECIFIED;
 }
@@ -4517,29 +4533,36 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 {
   const uint32_t *vcode_start = (const uint32_t *) (((char *)data) + data->start);
 
-  if (vcode_start == thread->vm.ip)
+  if (data->mcode)
     {
-      if (!data->mcode)
-        {
-          compute_mcode (thread, data);
+      if (vcode_start == thread->vm.ip)
+        return data->mcode;
 
-          if (--jit_stop_after == 0)
+      /* FIXME: The function has mcode, compiled via some other
+         activation (possibly in another thread), but right now we're
+         currently in an interpreted loop (not at the beginning of the
+         function).  We should re-compute the offset into the mcode.
+         For now though, just punt.  */
+      return NULL;
+    }
+  else
+    {
+      uint8_t *mcode = compute_mcode (thread, thread->vm.ip, data);
+
+      if (--jit_stop_after == 0)
+        {
+          scm_jit_counter_threshold = -1;
+          fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
+          if (jit_pause_when_stopping)
             {
-              scm_jit_counter_threshold = -1;
-              fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
-              if (jit_pause_when_stopping)
-                {
-                  fprintf (stderr, "sleeping for 30s; to debug:\n");
-                  fprintf (stderr, "   gdb -p %d\n\n", getpid ());
-                  sleep (30);
-                }
+              fprintf (stderr, "sleeping for 30s; to debug:\n");
+              fprintf (stderr, "   gdb -p %d\n\n", getpid ());
+              sleep (30);
             }
         }
 
-      return data->mcode;
+      return mcode;
     }
-
-  return NULL;
 }
 
 void
