@@ -729,6 +729,36 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
 static void
 emit_exit (scm_jit_state *j)
 {
+  /* emit_exit drops back to the interpreter.  As such, it's always used
+     in a context like:
+
+        mcode = get_mcode
+        if mcode:
+           goto mcode
+        else
+           emit_exit
+
+     Likewise, this position is usually around calls or returns, where
+     SP and FP are both live.  However!  Lightning has a little register
+     allocator internally which it uses to get temporary registers.  It
+     tracks what registers are used, to avoid clobbering live registers.
+     Often the get_mcode operation looks like
+
+        jit_ldi (T0, code_loc)
+
+     But on many architectures, this requires a temporary, and because
+     Lightning doesn't see a use of SP or FP before the goto, it thinks
+     it can use these registers.
+
+     So, here we insert a bogus dependencies on SP and FP, on the exit
+     path.  On this path they aren't needed, but they should keep the
+     registers live up to the preceding branch, forcing the jit_ldi to
+     choose another temporary to use.  THREAD shouldn't need this
+     treatment as Lightning won't allocate a callee-save register as a
+     temporary, but who knows!
+  */
+  jit_xorr (FP, FP, FP);
+  jit_xorr (SP, SP, SP);
   jit_patch_abs (jit_jmpi (), exit_mcode);
 }
 
