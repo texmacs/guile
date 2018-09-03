@@ -1466,6 +1466,9 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
     SCM ret;
 
     resume = setjmp (registers);
+
+    thread->vm.registers = &registers;
+
     if (SCM_UNLIKELY (resume))
       {
         uint8_t *mcode = vp->mra_after_abort;
@@ -1479,7 +1482,6 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
     else
       vp->ip = get_callee_vcode (thread);
 
-    thread->vm.registers = &registers;
     ret = vm_engines[vp->engine](thread);
     thread->vm.registers = prev_registers;
 
