@@ -4497,12 +4497,13 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   }
 
   free (j->op_attrs);
+  j->op_attrs = NULL;
   free (j->labels);
   j->labels = NULL;
   jit_clear_state ();
   j->jit = NULL;
 
-  j->start = j->end = j->ip = NULL;
+  j->start = j->end = j->ip = j->entry = NULL;
   j->frame_size = -1;
 
   return entry_mcode;
