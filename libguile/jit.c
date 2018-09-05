@@ -3170,10 +3170,12 @@ compile_check_arguments (scm_jit_state *j, uint32_t expected)
       k = emit_branch_if_frame_locals_count_less_than (j, t, expected);
       break;
     case scm_op_jge:
-      if (expected == 0)
-        k = jit_jmpi (); /* Shouldn't happen.  */
-      else
-        k = emit_branch_if_frame_locals_count_greater_than (j, t, expected - 1);
+      /* The arguments<=? instruction sets NONE to indicate
+         greater-than, whereas for <, NONE usually indicates
+         greater-than-or-equal, hence the name jge.  So we need to fuse
+         to greater-than, not greater-than-or-equal.  Perhaps we just
+         need to rename jge to br-if-none.  */
+      k = emit_branch_if_frame_locals_count_greater_than (j, t, expected);
       break;
     default:
       UNREACHABLE ();
@@ -3185,7 +3187,7 @@ static void
 compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t expected)
 {
   uint32_t *target;
-  jit_node_t *lt, *ge, *head;
+  jit_node_t *lt, *gt, *head;
   jit_gpr_t walk = T0, min = T1, obj = T2;
 
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
@@ -3193,7 +3195,12 @@ compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t ex
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jge:
-      /* Break to target if npos >= expected.  */
+      /* Like arguments<=?, this instruction sets NONE to indicate
+         greater-than, whereas for <, NONE usually indicates
+         greater-than-or-equal, hence the name jge.  So we need to fuse
+         to greater-than, not greater-than-or-equal.  Perhaps we just
+         need to rename jge to br-if-none.  */
+      /* Break to target if npos > expected.  */
       break;
     default:
       UNREACHABLE ();
@@ -3205,14 +3212,14 @@ compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t ex
   head = jit_label ();
   emit_subtract_stack_slots (j, walk, walk, 1);
   lt = jit_bltr (walk, SP);
-  /* npos >= expected if walk <= min.  */
-  ge = jit_bler (walk, min);
+  /* npos > expected if walk < min.  */
+  gt = jit_bltr (walk, min);
   emit_ldr (j, obj, walk);
   jit_patch_at (emit_branch_if_immediate (j, obj), head);
   jit_patch_at (emit_branch_if_heap_object_not_tc7 (j, obj, obj, scm_tc7_keyword),
                 head);
   jit_patch (lt);
-  add_inter_instruction_patch (j, ge, target);
+  add_inter_instruction_patch (j, gt, target);
 }
 
 static void
