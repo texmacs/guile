@@ -2036,13 +2036,50 @@ static void
 compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+  jit_node_t *fast = NULL;
 
-  emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
+
+  switch ((enum scm_vm_intrinsic) idx)
+    {
+    case SCM_VM_INTRINSIC_ADD:
+      {
+        jit_node_t *a_not_inum = jit_bmci (T0, scm_tc2_int);
+        jit_node_t *b_not_inum = jit_bmci (T1, scm_tc2_int);
+        jit_subi (T0, T0, scm_tc2_int);
+        fast = jit_bxaddr (T0, T1);
+        /* Restore previous value before slow path.  */
+        jit_subr (T0, T0, T1);
+        jit_addi (T0, T0, scm_tc2_int);
+        jit_patch (a_not_inum);
+        jit_patch (b_not_inum);
+        break;
+      }
+    case SCM_VM_INTRINSIC_SUB:
+      {
+        jit_node_t *a_not_inum = jit_bmci (T0, scm_tc2_int);
+        jit_node_t *b_not_inum = jit_bmci (T1, scm_tc2_int);
+        jit_subi (T1, T1, scm_tc2_int);
+        fast = jit_bxsubr (T0, T1);
+        /* Restore previous values before slow path.  */
+        jit_addr (T0, T0, T1);
+        jit_addi (T1, T1, scm_tc2_int);
+        jit_patch (a_not_inum);
+        jit_patch (b_not_inum);
+        break;
+      }
+    default:
+      break;
+    }
+
+  emit_store_current_ip (j, T2);
   emit_call_r_r (j, intrinsic, T0, T1);
   emit_retval (j, T0);
   emit_reload_sp (j);
+
+  if (fast)
+    jit_patch (fast);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -2050,9 +2087,37 @@ static void
 compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+  jit_node_t *fast = NULL;
 
-  emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
+
+  switch ((enum scm_vm_intrinsic) idx)
+    {
+    case SCM_VM_INTRINSIC_ADD_IMMEDIATE:
+      {
+        scm_t_bits addend = b << 2;
+        jit_node_t *not_inum = jit_bmci (T0, 2);
+        fast = jit_bxaddi (T0, addend);
+        /* Restore previous value before slow path.  */
+        jit_subi (T0, T0, addend);
+        jit_patch (not_inum);
+        break;
+      }
+    case SCM_VM_INTRINSIC_SUB_IMMEDIATE:
+      {
+        scm_t_bits subtrahend = b << 2;
+        jit_node_t *not_inum = jit_bmci (T0, 2);
+        fast = jit_bxsubi (T0, subtrahend);
+        /* Restore previous value before slow path.  */
+        jit_addi (T0, T0, subtrahend);
+        jit_patch (not_inum);
+        break;
+      }
+    default:
+      break;
+    }
+
+  emit_store_current_ip (j, T1);
   jit_prepare ();
   jit_pushargr (T0);
   jit_pushargi (b);
@@ -2060,6 +2125,9 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
   clear_scratch_register_state (j);
   emit_retval (j, T0);
   emit_reload_sp (j);
+
+  if (fast)
+    jit_patch (fast);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -3124,33 +3192,58 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_node_t *fast, *k1, *k2, *k3;
   uint32_t *target;
+  enum scm_opcode op = fuse_conditional_branch (j, &target);
 
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
+
+  jit_andr (T2, T0, T1);
+  fast = jit_bmsi (T2, scm_tc2_int);
+
   emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
   emit_retval (j, T0);
   emit_reload_sp (j);
-  switch (fuse_conditional_branch (j, &target))
+  switch (op)
     {
     case scm_op_jl:
-      k = jit_beqi (T0, SCM_F_COMPARE_LESS_THAN);
+      k1 = jit_beqi (T0, SCM_F_COMPARE_LESS_THAN);
       break;
     case scm_op_jnl:
-      k = jit_bnei (T0, SCM_F_COMPARE_LESS_THAN);
+      k1 = jit_bnei (T0, SCM_F_COMPARE_LESS_THAN);
       break;
     case scm_op_jge:
-      k = jit_beqi (T0, SCM_F_COMPARE_NONE);
+      k1 = jit_beqi (T0, SCM_F_COMPARE_NONE);
       break;
     case scm_op_jnge:
-      k = jit_bnei (T0, SCM_F_COMPARE_NONE);
+      k1 = jit_bnei (T0, SCM_F_COMPARE_NONE);
       break;
     default:
       UNREACHABLE ();
     }
-  add_inter_instruction_patch (j, k, target);
+  k2 = jit_jmpi ();
+
+  jit_patch (fast);
+  switch (op)
+    {
+    case scm_op_jl:
+    case scm_op_jnge:
+      k3 = jit_bltr (T0, T1);
+      break;
+    case scm_op_jnl:
+    case scm_op_jge:
+      k3 = jit_bger (T0, T1);
+      break;
+    default:
+      UNREACHABLE ();
+    }
+
+  jit_patch (k2);
+
+  add_inter_instruction_patch (j, k1, target);
+  add_inter_instruction_patch (j, k3, target);
 }
 
 static void
