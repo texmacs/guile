@@ -3192,7 +3192,10 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *fast, *k1, *k2, *k3;
+#if 0
+  jit_node_t *fast, *k2, *k3;
+#endif
+  jit_node_t *k1;
   uint32_t *target;
   enum scm_opcode op = fuse_conditional_branch (j, &target);
 
@@ -3200,8 +3203,10 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
 
-  jit_andr (T2, T0, T1);
+#if 0
+  emit_andr (j, T2, T0, T1);
   fast = jit_bmsi (T2, scm_tc2_int);
+#endif
 
   emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
   emit_retval (j, T0);
@@ -3223,6 +3228,7 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
     default:
       UNREACHABLE ();
     }
+#if 0
   k2 = jit_jmpi ();
 
   jit_patch (fast);
@@ -3241,9 +3247,12 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
     }
 
   jit_patch (k2);
+#endif
 
   add_inter_instruction_patch (j, k1, target);
+#if 0
   add_inter_instruction_patch (j, k3, target);
+#endif
 }
 
 static void
