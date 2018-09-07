@@ -426,6 +426,13 @@ emit_retval (scm_jit_state *j, jit_gpr_t r)
   record_gpr_clobber (j, r);
 }
 
+static void
+emit_retval_d (scm_jit_state *j, jit_fpr_t r)
+{
+  jit_retval_d (r);
+  record_fpr_clobber (j, r);
+}
+
 static jit_node_t *
 emit_movi (scm_jit_state *j, jit_gpr_t r, jit_word_t i)
 {
@@ -2287,7 +2294,7 @@ compile_call_f64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   jit_pushargr (T0);
   jit_finishi (intrinsic);
   clear_scratch_register_state (j);
-  emit_retval (j, JIT_F0);
+  emit_retval_d (j, JIT_F0);
   emit_reload_sp (j);
   emit_sp_set_f64 (j, dst, JIT_F0);
 }
