@@ -22,7 +22,8 @@
 # include <config.h>
 #endif
 
-#include <stdio.h> // FIXME: Remove me!
+#include <stdio.h>
+#include <sys/mman.h>
 
 #if ENABLE_JIT
 #include <lightning.h>
@@ -148,6 +149,15 @@ static void *exit_mcode;
    instruction, compiled as a stub on the side to reduce code size.  */
 static void *handle_interrupts_trampoline;
 
+/* Thread-local buffer into which to write code.  */
+struct code_arena
+{
+  uint8_t *base;
+  size_t used;
+  size_t size;
+  struct code_arena *prev;
+};
+
 /* State of the JIT compiler for the current thread.  */
 struct scm_jit_state {
   jit_state_t *jit;
@@ -167,6 +177,7 @@ struct scm_jit_state {
   jit_fpr_t sp_cache_fpr;
   uint32_t sp_cache_gpr_idx;
   uint32_t sp_cache_fpr_idx;
+  struct code_arena *code_arena;
 };
 
 typedef struct scm_jit_state scm_jit_state;
@@ -1277,6 +1288,107 @@ initialize_handle_interrupts_trampoline (void)
   jit_clear_state ();
 
   memcpy (j, &saved_jit_state, sizeof (*j));
+}
+
+/* To limit the number of mmap calls and re-emission of JIT code, use
+   256 kB code arenas.  Unused pages won't be resident.  Assume pages
+   are power-of-two-sized and this size is a multiple of the page size
+   on all architectures.  */
+static const size_t default_code_arena_size = 0x40000;
+
+static struct code_arena *
+allocate_code_arena (size_t size, struct code_arena *prev)
+{
+  struct code_arena *ret = malloc (sizeof (struct code_arena));
+
+  if (!ret) return NULL;
+
+  memset (ret, 0, sizeof (*ret));
+  ret->used = 0;
+  ret->size = size;
+  ret->prev = prev;
+  ret->base = mmap (NULL, ret->size,
+                    PROT_EXEC | PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+  if (ret->base == MAP_FAILED)
+    {
+      perror ("allocating JIT code buffer failed");
+      free (ret);
+      return NULL;
+    }
+
+  INFO ("allocated code arena, %p-%p\n", ret->base, ret->base + ret->size);
+
+  return ret;
+}
+
+static uint8_t *
+emit_code (scm_jit_state *j)
+{
+  uint8_t *ret = NULL;
+
+  jit_realize ();
+
+  if (!j->code_arena)
+    j->code_arena = allocate_code_arena (default_code_arena_size, NULL);
+
+  if (!j->code_arena)
+    /* Resource exhaustion; turn off JIT.  */
+    return NULL;
+
+  while (1)
+    {
+      struct code_arena *arena = j->code_arena;
+
+      jit_set_code (arena->base + arena->used, arena->size - arena->used);
+
+      ret = jit_emit ();
+
+      if (ret)
+        {
+          jit_word_t size = 0;
+          jit_get_code (&size);
+          ASSERT (size <= (arena->size - arena->used));
+          DEBUG ("mcode: %p,+%zu\n", ret, size);
+          arena->used += size;
+          /* Align next JIT to 16-byte boundaries to optimize initial
+             icache fetch.  */
+          arena->used = (arena->used + 15) & ~15;
+          /* Assertion should not be invalidated as arena size is a
+             multiple of 16.  */
+          ASSERT (arena->used <= arena->size);
+          return ret;
+        }
+      else
+        {
+          if (arena->used == 0)
+            {
+              /* Code too big to fit into empty arena; allocate a larger
+                 one.  */
+              INFO ("code didn't fit in empty arena of size %zu\n", arena->size);
+              arena = allocate_code_arena (arena->size * 2, arena->prev);
+              if (!arena)
+                return NULL;
+              munmap (j->code_arena->base, j->code_arena->size);
+              free (j->code_arena);
+              j->code_arena = arena;
+            }
+          else
+            {
+              /* Arena full; allocate another.  */
+              /* FIXME: If partial code that we wrote crosses a page
+                 boundary, we could tell the OS to forget about the tail
+                 pages.  */
+              INFO ("code didn't fit in arena tail %zu\n",
+                    arena->size - arena->used);
+              arena = allocate_code_arena (arena->size, arena);
+              if (!arena)
+                return NULL;
+              j->code_arena = arena;
+            }
+        }
+    }
 }
 
 static void
@@ -4595,15 +4707,11 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
 
   compile (j);
 
-  data->mcode = jit_emit ();
-  entry_mcode = jit_address (j->entry_label);
-
-  {
-    jit_word_t size = 0;
-    jit_get_code (&size);
-    DEBUG ("mcode: %p,+%zu entry=+%zu\n", data->mcode, size,
-           entry_mcode - data->mcode);
-  }
+  data->mcode = emit_code (j);
+  if (data->mcode)
+    entry_mcode = jit_address (j->entry_label);
+  else
+    entry_mcode = NULL;
 
   free (j->op_attrs);
   j->op_attrs = NULL;
@@ -4661,7 +4769,13 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
     {
       uint8_t *mcode = compute_mcode (thread, thread->vm.ip, data);
 
-      if (--jit_stop_after == 0)
+      if (!mcode)
+        {
+          scm_jit_counter_threshold = -1;
+          fprintf (stderr, "JIT failed due to resource exhaustion\n");
+          fprintf (stderr, "disabling automatic JIT compilation\n");
+        }
+      else if (--jit_stop_after == 0)
         {
           scm_jit_counter_threshold = -1;
           fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
