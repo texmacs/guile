@@ -2514,7 +2514,7 @@ compile_atomic_scm_compare_and_swap_immediate (scm_jit_state *j, uint32_t dst,
   emit_sp_ref_scm (j, T1, expected);
   emit_sp_ref_scm (j, T2, desired);
   emit_addi (j, T0, T0, offset * sizeof (SCM));
-  emit_call_r_r_r (j, scm_vm_intrinsics.atomic_swap_scm, T0, T1, T2);
+  emit_call_r_r_r (j, scm_vm_intrinsics.atomic_compare_and_swap_scm, T0, T1, T2);
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
