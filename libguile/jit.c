@@ -3021,7 +3021,7 @@ compile_handle_interrupts (scm_jit_state *j)
 #endif
   none_pending = jit_beqi (T0, SCM_UNPACK (SCM_EOL));
   jit_ldxi_i (T0, THREAD, thread_offset_block_asyncs);
-  blocked = jit_beqi (T0, 0);
+  blocked = jit_bnei (T0, 0);
 
   emit_store_current_ip (j, T0);
   mra = emit_movi (j, T0, 0);
