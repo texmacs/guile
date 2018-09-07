@@ -1272,24 +1272,6 @@ emit_handle_interrupts_trampoline (scm_jit_state *j)
   emit_direct_tail_call (j, scm_vm_intrinsics.handle_interrupt_code);
 }
 
-static scm_i_pthread_once_t initialize_handle_interrupts_trampoline_once =
-  SCM_I_PTHREAD_ONCE_INIT;
-static void
-initialize_handle_interrupts_trampoline (void)
-{
-  scm_thread *thread = SCM_I_CURRENT_THREAD;
-  scm_jit_state saved_jit_state, *j = thread->jit_state;
-
-  memcpy (&saved_jit_state, j, sizeof (*j));
-
-  j->jit = jit_new_state ();
-  emit_handle_interrupts_trampoline (j);
-  handle_interrupts_trampoline = jit_emit ();
-  jit_clear_state ();
-
-  memcpy (j, &saved_jit_state, sizeof (*j));
-}
-
 /* To limit the number of mmap calls and re-emission of JIT code, use
    256 kB code arenas.  Unused pages won't be resident.  Assume pages
    are power-of-two-sized and this size is a multiple of the page size
@@ -1323,12 +1305,29 @@ allocate_code_arena (size_t size, struct code_arena *prev)
   return ret;
 }
 
-static uint8_t *
+static void
+prepare_jit_state (scm_jit_state *j)
+{
+  j->jit = jit_new_state ();
+}
+
+static void
+reset_jit_state (scm_jit_state *j)
+{
+  jit_clear_state ();
+  jit_destroy_state ();
+  j->jit = NULL;
+}
+
+static void *
 emit_code (scm_jit_state *j)
 {
   uint8_t *ret = NULL;
 
   jit_realize ();
+
+  jit_get_data (NULL, NULL);
+  jit_set_data (NULL, 0, JIT_DISABLE_DATA | JIT_DISABLE_NOTE);
 
   if (!j->code_arena)
     j->code_arena = allocate_code_arena (default_code_arena_size, NULL);
@@ -3003,11 +3002,6 @@ compile_handle_interrupts (scm_jit_state *j)
 
   /* This instruction invalidates SP_CACHE_GPR / SP_CACHE_FPR.  */
 
-  /* The slow case is a fair amount of code, so generate it once for the
-     whole process and share that code.  */
-  scm_i_pthread_once (&initialize_handle_interrupts_trampoline_once,
-                      initialize_handle_interrupts_trampoline);
-
   again = jit_label ();
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -4640,27 +4634,43 @@ compile (scm_jit_state *j)
 
 static scm_i_pthread_once_t initialize_jit_once = SCM_I_PTHREAD_ONCE_INIT;
 
+static scm_jit_state *
+initialize_thread_jit_state (scm_thread *thread)
+{
+  scm_jit_state *j;
+
+  ASSERT (!thread->jit_state);
+
+  j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
+  memset (j, 0, sizeof (*j));
+  thread->jit_state = j;
+
+  return j;
+}
+
 static void
 initialize_jit (void)
 {
-  scm_thread *thread = SCM_I_CURRENT_THREAD;
   scm_jit_state *j;
   jit_node_t *exit;
 
   init_jit (NULL);
 
   /* Init the thread's jit state so we can emit the entry
-     trampoline.  */
-  j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
-  memset (j, 0, sizeof (*j));
-  thread->jit_state = j;
+     trampoline and the handle-interrupts trampoline.  */
+  j = initialize_thread_jit_state (SCM_I_CURRENT_THREAD);
 
-  j->jit = jit_new_state ();
+  prepare_jit_state (j);
   exit = emit_entry_trampoline (j);
-  enter_mcode = jit_emit ();
+  enter_mcode = emit_code (j);
+  ASSERT (enter_mcode);
   exit_mcode = jit_address (exit);
-  jit_clear_state ();
-  j->jit = NULL;
+  reset_jit_state (j);
+
+  prepare_jit_state (j);
+  emit_handle_interrupts_trampoline (j);
+  handle_interrupts_trampoline = emit_code (j);
+  reset_jit_state (j);
 }
 
 static uint8_t *
@@ -4674,13 +4684,10 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
     {
       scm_i_pthread_once (&initialize_jit_once, initialize_jit);
       j = thread->jit_state;
-      /* Count be the initialize_jit_once inits the jit state.  */
+      /* It's possible that initialize_jit_once inits this thread's jit
+         state.  */
       if (!j)
-        {
-          j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
-          memset (j, 0, sizeof (*j));
-          thread->jit_state = j;
-        }
+        j = initialize_thread_jit_state (thread);
     }
 
   j->thread = thread;
@@ -4700,11 +4707,10 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->frame_size = -1;
   j->hooks_enabled = 0; /* ? */
 
-  j->jit = jit_new_state ();
-
   INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
         j->entry - j->start);
 
+  prepare_jit_state (j);
   compile (j);
 
   data->mcode = emit_code (j);
@@ -4717,8 +4723,7 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->op_attrs = NULL;
   free (j->labels);
   j->labels = NULL;
-  jit_clear_state ();
-  j->jit = NULL;
+  reset_jit_state (j);
 
   j->start = j->end = j->ip = j->entry = NULL;
   j->frame_size = -1;
@@ -4802,11 +4807,7 @@ scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 void
 scm_jit_state_free (scm_jit_state *j)
 {
-  if (j)
-    {
-      jit_destroy_state ();
-      j->jit = NULL;
-    }
+  /* Nothing to do; we leave j->jit NULL between compilations.  */
 }
 
 void
