@@ -3418,10 +3418,10 @@ compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t ex
   emit_subtract_stack_slots (j, walk, FP, nreq);
   
   head = jit_label ();
-  emit_subtract_stack_slots (j, walk, walk, 1);
-  lt = jit_bltr (walk, SP);
   /* npos > expected if walk < min.  */
   gt = jit_bltr (walk, min);
+  emit_subtract_stack_slots (j, walk, walk, 1);
+  lt = jit_bltr (walk, SP);
   emit_ldr (j, obj, walk);
   jit_patch_at (emit_branch_if_immediate (j, obj), head);
   jit_patch_at (emit_branch_if_heap_object_not_tc7 (j, obj, obj, scm_tc7_keyword),
