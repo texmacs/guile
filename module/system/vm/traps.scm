@@ -145,9 +145,9 @@
     (new-enabled-trap
      #f
      (lambda (frame)
-       (add-hook! (vm-apply-hook) apply-hook))
+       (vm-add-apply-hook! apply-hook))
      (lambda (frame)
-       (remove-hook! (vm-apply-hook) apply-hook)))))
+       (vm-remove-apply-hook! apply-hook)))))
 
 ;; A more complicated trap, traps when control enters a procedure.
 ;;
@@ -206,17 +206,17 @@
     (new-enabled-trap
      current-frame
      (lambda (frame)
-       (add-hook! (vm-apply-hook) apply-hook)
-       (add-hook! (vm-return-hook) return-hook)
-       (add-hook! (vm-abort-continuation-hook) abort-hook)
+       (vm-add-apply-hook! apply-hook)
+       (vm-add-return-hook! return-hook)
+       (vm-add-abort-hook! abort-hook)
        (if (and frame (our-frame? frame))
            (enter-proc frame)))
      (lambda (frame)
        (if in-proc?
            (exit-proc frame))
-       (remove-hook! (vm-apply-hook) apply-hook)
-       (remove-hook! (vm-return-hook) return-hook)
-       (remove-hook! (vm-abort-continuation-hook) abort-hook)))))
+       (vm-remove-apply-hook! apply-hook)
+       (vm-remove-return-hook! return-hook)
+       (vm-remove-abort-hook! abort-hook)))))
 
 ;; Building on trap-in-procedure, we have trap-instructions-in-procedure
 ;;
@@ -232,12 +232,12 @@
           (next-handler frame)))
     
     (define (enter frame)
-      (add-hook! (vm-next-hook) next-hook)
+      (vm-add-next-hook! next-hook)
       (if frame (next-hook frame)))
 
     (define (exit frame)
       (exit-handler frame)
-      (remove-hook! (vm-next-hook) next-hook))
+      (vm-remove-next-hook! next-hook))
 
     (trap-in-procedure proc enter exit
                        #:current-frame current-frame
@@ -413,12 +413,12 @@
      (lambda (frame)
        (if (not fp)
            (error "return-or-abort traps may only be enabled once"))
-       (add-hook! (vm-return-hook) return-hook)
-       (add-hook! (vm-abort-continuation-hook) abort-hook))
+       (vm-add-return-hook! return-hook)
+       (vm-add-abort-hook! abort-hook))
      (lambda (frame)
        (set! fp #f)
-       (remove-hook! (vm-return-hook) return-hook)
-       (remove-hook! (vm-abort-continuation-hook) abort-hook)))))
+       (vm-remove-return-hook! return-hook)
+       (vm-remove-abort-hook! abort-hook)))))
 
 ;; A more traditional dynamic-wind trap. Perhaps this should not be
 ;; based on the above trap-frame-finish?
@@ -451,12 +451,12 @@
     (new-enabled-trap
      current-frame
      (lambda (frame)
-       (add-hook! (vm-apply-hook) apply-hook))
+       (vm-add-apply-hook! apply-hook))
      (lambda (frame)
        (if exit-trap
            (abort-hook frame))
        (set! exit-trap #f)
-       (remove-hook! (vm-apply-hook) apply-hook)))))
+       (vm-remove-apply-hook! apply-hook)))))
 
 ;; Trapping all procedure calls within a dynamic extent, recording the
 ;; depth of the call stack relative to the original procedure.
@@ -500,12 +500,12 @@
       (apply-handler frame (length *stack*)))
   
     (define (enter frame)
-      (add-hook! (vm-return-hook) trace-return)
-      (add-hook! (vm-apply-hook) trace-apply))
+      (vm-add-return-hook! trace-return)
+      (vm-add-apply-hook! trace-apply))
   
     (define (leave frame)
-      (remove-hook! (vm-return-hook) trace-return)
-      (remove-hook! (vm-apply-hook) trace-apply))
+      (vm-remove-return-hook! trace-return)
+      (vm-remove-apply-hook! trace-apply))
   
     (define (return frame)
       (leave frame))
@@ -529,10 +529,10 @@
       (next-handler frame))
   
     (define (enter frame)
-      (add-hook! (vm-next-hook) trace-next))
+      (vm-add-next-hook! trace-next))
   
     (define (leave frame)
-      (remove-hook! (vm-next-hook) trace-next))
+      (vm-remove-next-hook! trace-next))
   
     (define (return frame)
       (leave frame))
@@ -618,6 +618,6 @@
     (new-enabled-trap
      #f
      (lambda (frame)
-       (add-hook! (vm-next-hook) next-hook))
+       (vm-add-next-hook! next-hook))
      (lambda (frame)
-       (remove-hook! (vm-next-hook) next-hook)))))
+       (vm-remove-next-hook! next-hook)))))

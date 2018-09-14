@@ -29,7 +29,7 @@ enum {
   SCM_VM_APPLY_HOOK,
   SCM_VM_RETURN_HOOK,
   SCM_VM_NEXT_HOOK,
-  SCM_VM_ABORT_CONTINUATION_HOOK,
+  SCM_VM_ABORT_HOOK,
   SCM_VM_NUM_HOOKS,
 };
 
@@ -57,6 +57,7 @@ struct scm_vm {
   union scm_vm_stack_element *stack_top; /* highest address in allocated stack */
   SCM overflow_handler_stack;   /* alist of max-stack-size -> thunk */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
+  uint8_t hooks_enabled[SCM_VM_NUM_HOOKS]; /* if corresponding hook is enabled */
   jmp_buf *registers;           /* registers captured at latest vm entry  */
   uint8_t *mra_after_abort;     /* mra to resume after nonlocal exit, or NULL */
   int engine;                   /* which vm engine we're using */
@@ -67,10 +68,14 @@ SCM_API SCM scm_call_with_vm (SCM proc, SCM args);
 SCM_API SCM scm_call_with_stack_overflow_handler (SCM limit, SCM thunk,
                                                   SCM handler);
 
-SCM_API SCM scm_vm_apply_hook (void);
-SCM_API SCM scm_vm_return_hook (void);
-SCM_API SCM scm_vm_abort_continuation_hook (void);
-SCM_API SCM scm_vm_next_hook (void);
+SCM_INTERNAL SCM scm_vm_add_apply_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_add_return_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_add_abort_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_add_next_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_remove_apply_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_remove_return_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_remove_abort_hook_x (SCM);
+SCM_INTERNAL SCM scm_vm_remove_next_hook_x (SCM);
 SCM_API SCM scm_vm_trace_level (void);
 SCM_API SCM scm_set_vm_trace_level_x (SCM level);
 SCM_API SCM scm_vm_engine (void);

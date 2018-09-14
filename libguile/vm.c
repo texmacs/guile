@@ -278,7 +278,7 @@ invoke_next_hook (scm_thread *thread)
 static void
 invoke_abort_hook (scm_thread *thread)
 {
-  return invoke_hook (thread, SCM_VM_ABORT_CONTINUATION_HOOK);
+  return invoke_hook (thread, SCM_VM_ABORT_HOOK);
 }
 
 
@@ -1491,47 +1491,105 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 
 /* Scheme interface */
 
-#define VM_DEFINE_HOOK(n)				\
+static void
+reset_vm_hook_enabled (scm_thread *thread, int i)
+{
+  SCM hook = thread->vm.hooks[i];
+  int empty = scm_is_false (hook) || scm_is_true (scm_hook_empty_p (hook));
+
+  if (thread->vm.trace_level > 0)
+    thread->vm.hooks_enabled[i] = !empty;
+  else
+    thread->vm.hooks_enabled[i] = 0;
+}
+
+#define VM_ADD_HOOK(n, f)                               \
 {							\
   scm_thread *t = SCM_I_CURRENT_THREAD;                 \
   if (scm_is_false (t->vm.hooks[n]))			\
     t->vm.hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
-  return t->vm.hooks[n];				\
+  scm_add_hook_x (t->vm.hooks[n], f, SCM_UNDEFINED);    \
+  reset_vm_hook_enabled (t, n);                         \
+  return SCM_UNSPECIFIED;                               \
 }
 
-SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 0, 0, 0,
-	    (void),
-	    "")
-#define FUNC_NAME s_scm_vm_apply_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_APPLY_HOOK);
+#define VM_REMOVE_HOOK(n, f)                            \
+{							\
+  scm_thread *t = SCM_I_CURRENT_THREAD;                 \
+  scm_remove_hook_x (t->vm.hooks[n], f);                \
+  reset_vm_hook_enabled (t, n);                         \
+  return SCM_UNSPECIFIED;                               \
 }
-#undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_return_hook, "vm-return-hook", 0, 0, 0,
-	    (void),
+SCM_DEFINE (scm_vm_add_apply_hook_x, "vm-add-apply-hook!", 1, 0, 0,
+	    (SCM f),
 	    "")
-#define FUNC_NAME s_scm_vm_return_hook
+#define FUNC_NAME s_scm_vm_add_apply_hook_x
 {
-  VM_DEFINE_HOOK (SCM_VM_RETURN_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 0, 0, 0,
-	    (void),
-	    "")
-#define FUNC_NAME s_scm_vm_next_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_NEXT_HOOK);
+  VM_ADD_HOOK (SCM_VM_APPLY_HOOK, f);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_abort_continuation_hook, "vm-abort-continuation-hook", 0, 0, 0,
-	    (void),
+SCM_DEFINE (scm_vm_remove_apply_hook_x, "vm-remove-apply-hook!", 1, 0, 0,
+	    (SCM f),
 	    "")
-#define FUNC_NAME s_scm_vm_abort_continuation_hook
+#define FUNC_NAME s_scm_vm_remove_apply_hook_x
 {
-  VM_DEFINE_HOOK (SCM_VM_ABORT_CONTINUATION_HOOK);
+  VM_REMOVE_HOOK (SCM_VM_APPLY_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_add_return_hook_x, "vm-add-return-hook!", 1, 0, 0,
+	    (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_add_return_hook_x
+{
+  VM_ADD_HOOK (SCM_VM_RETURN_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_remove_return_hook_x, "vm-remove-return-hook!", 1, 0, 0,
+	    (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_remove_return_hook_x
+{
+  VM_REMOVE_HOOK (SCM_VM_RETURN_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_add_next_hook_x, "vm-add-next-hook!", 1, 0, 0,
+	    (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_add_next_hook_x
+{
+  VM_ADD_HOOK (SCM_VM_NEXT_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_remove_next_hook_x, "vm-remove-next-hook!", 1, 0, 0,
+	    (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_remove_next_hook_x
+{
+  VM_REMOVE_HOOK (SCM_VM_NEXT_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_add_abort_hook_x, "vm-add-abort-hook!", 1, 0, 0,
+	    (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_add_abort_hook_x
+{
+  VM_ADD_HOOK (SCM_VM_ABORT_HOOK, f);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_remove_abort_hook_x, "vm-remove-abort-hook!", 1, 0, 0,
+            (SCM f),
+	    "")
+#define FUNC_NAME s_scm_vm_remove_abort_hook_x
+{
+  VM_REMOVE_HOOK (SCM_VM_ABORT_HOOK, f);
 }
 #undef FUNC_NAME
 
@@ -1549,7 +1607,12 @@ SCM_DEFINE (scm_set_vm_trace_level_x, "set-vm-trace-level!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_set_vm_trace_level_x
 {
-  SCM_I_CURRENT_THREAD->vm.trace_level = scm_to_int (level);
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
+  int i;
+
+  thread->vm.trace_level = scm_to_int (level);
+  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
+    reset_vm_hook_enabled (thread, i);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

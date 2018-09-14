@@ -23,9 +23,10 @@
             call-with-stack-overflow-handler
             vm-trace-level set-vm-trace-level!
             vm-engine set-vm-engine! set-default-vm-engine!
-            vm-apply-hook vm-return-hook
-            vm-next-hook
-            vm-abort-continuation-hook))
+            vm-add-apply-hook! vm-add-return-hook!
+            vm-add-next-hook! vm-add-abort-hook!
+            vm-remove-apply-hook! vm-remove-return-hook!
+            vm-remove-next-hook! vm-remove-abort-hook!))
 
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_vm")

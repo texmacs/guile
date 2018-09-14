@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010, 2013 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2013, 2018 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -70,17 +70,16 @@ by THUNK."
   ;; VM is different from the current one, continuations will not be
   ;; resumable.
   (call-with-values (lambda ()
-                      (let ((level   (vm-trace-level))
-                            (hook    (vm-next-hook)))
+                      (let ((level   (vm-trace-level)))
                         (dynamic-wind
                           (lambda ()
                             (set-vm-trace-level! (+ level 1))
-                            (add-hook! hook collect!))
+                            (vm-add-next-hook! collect!))
                           (lambda ()
                             (call-with-vm thunk))
                           (lambda ()
                             (set-vm-trace-level! level)
-                            (remove-hook! hook collect!)))))
+                            (vm-remove-next-hook! collect!)))))
     (lambda args
       (apply values (make-coverage-data ip-counts) args))))
 

@@ -313,7 +313,7 @@ than @code{statprof-stop}, @code{#f} otherwise."
         (set-prev-sigprof-handler! state (car prev)))
       (reset-sigprof-timer (if (zero? rpt) (sampling-period state) rpt))
       (when (call-counts state)
-        (add-hook! (vm-apply-hook) count-call)
+        (vm-add-apply-hook! count-call)
         (set-vm-trace-level! (1+ (vm-trace-level))))
       #t)))
   
@@ -326,7 +326,7 @@ than @code{statprof-stop}, @code{#f} otherwise."
   (when (zero? (profile-level state))
     (when (call-counts state)
       (set-vm-trace-level! (1- (vm-trace-level)))
-      (remove-hook! (vm-apply-hook) count-call))
+      (vm-remove-apply-hook! count-call))
     (set-gc-time-taken! state
                         (- (assq-ref (gc-stats) 'gc-time-taken)
                            (gc-time-taken state)))

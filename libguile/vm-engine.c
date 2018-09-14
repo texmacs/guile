@@ -126,7 +126,7 @@
 #define APPLY_HOOK()                  RUN_HOOK (apply)
 #define RETURN_HOOK()                 RUN_HOOK (return)
 #define NEXT_HOOK()                   RUN_HOOK (next)
-#define ABORT_CONTINUATION_HOOK()     RUN_HOOK (abort)
+#define ABORT_HOOK()                  RUN_HOOK (abort)
 
 
 
@@ -780,7 +780,7 @@ VM_NAME (scm_thread *thread)
          intervening C frames to jump over, so we just continue
          directly.  */
 
-      ABORT_CONTINUATION_HOOK ();
+      ABORT_HOOK ();
 
       if (mcode)
         scm_jit_enter_mcode (thread, mcode);
@@ -3025,7 +3025,7 @@ VM_NAME (scm_thread *thread)
 }
 
 
-#undef ABORT_CONTINUATION_HOOK
+#undef ABORT_HOOK
 #undef ALIGNED_P
 #undef APPLY_HOOK
 #undef BEGIN_DISPATCH_SWITCH
