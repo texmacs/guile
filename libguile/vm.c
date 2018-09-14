@@ -198,11 +198,6 @@ scm_i_capture_current_stack (void)
                         0);
 }
 
-static void invoke_apply_hook (scm_thread *thread);
-static void invoke_return_hook (scm_thread *thread);
-static void invoke_next_hook (scm_thread *thread);
-static void invoke_abort_hook (scm_thread *thread);
-
 /* Return the first integer greater than or equal to LEN such that
    LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
 #define ROUND_UP(len, align)					\
@@ -260,26 +255,19 @@ invoke_hook (scm_thread *thread, int hook_num)
   vp->trace_level = saved_trace_level;
 }
 
-static void
-invoke_apply_hook (scm_thread *thread)
-{
-  return invoke_hook (thread, SCM_VM_APPLY_HOOK);
-}
-static void
-invoke_return_hook (scm_thread *thread)
-{
-  return invoke_hook (thread, SCM_VM_RETURN_HOOK);
-}
-static void
-invoke_next_hook (scm_thread *thread)
-{
-  return invoke_hook (thread, SCM_VM_NEXT_HOOK);
-}
-static void
-invoke_abort_hook (scm_thread *thread)
-{
-  return invoke_hook (thread, SCM_VM_ABORT_HOOK);
-}
+#define DEFINE_INVOKE_HOOK(H, h) \
+  static void                                             \
+  invoke_##h##_hook (scm_thread *thread) SCM_NOINLINE;    \
+  static void                                             \
+  invoke_##h##_hook (scm_thread *thread)                  \
+  {                                                       \
+    return invoke_hook (thread, SCM_VM_##H##_HOOK);       \
+  }
+
+DEFINE_INVOKE_HOOK(APPLY, apply)
+DEFINE_INVOKE_HOOK(RETURN, return)
+DEFINE_INVOKE_HOOK(NEXT, next)
+DEFINE_INVOKE_HOOK(ABORT, abort)
 
 
 /*
@@ -1820,10 +1808,6 @@ scm_bootstrap_vm (void)
   scm_vm_intrinsics.abort_to_prompt = abort_to_prompt;
   scm_vm_intrinsics.get_callee_vcode = get_callee_vcode;
   scm_vm_intrinsics.unpack_values_object = unpack_values_object;
-  scm_vm_intrinsics.invoke_apply_hook = invoke_apply_hook;
-  scm_vm_intrinsics.invoke_return_hook = invoke_return_hook;
-  scm_vm_intrinsics.invoke_next_hook = invoke_next_hook;
-  scm_vm_intrinsics.invoke_abort_hook = invoke_abort_hook;
   scm_vm_intrinsics.foreign_call = foreign_call;
 
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");

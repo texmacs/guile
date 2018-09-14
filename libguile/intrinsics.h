@@ -160,10 +160,6 @@ typedef uint32_t* scm_t_vcode_intrinsic;
   M(scm_from_thread, current_module, "current-module", CURRENT_MODULE) \
   M(thread_u8_scm_sp_vra_mra, push_prompt, "push-prompt", PUSH_PROMPT)     \
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
-  M(thread, invoke_apply_hook, "invoke-apply-hook", INVOKE_APPLY_HOOK) \
-  M(thread, invoke_return_hook, "invoke-return-hook", INVOKE_RETURN_HOOK) \
-  M(thread, invoke_next_hook, "invoke-next-hook", INVOKE_NEXT_HOOK) \
-  M(thread, invoke_abort_hook, "invoke-abort-hook", INVOKE_ABORT_HOOK) \
   M(scm_from_ptr, atomic_ref_scm, "atomic-ref-scm", ATOMIC_REF_SCM) \
   M(ptr_scm, atomic_set_scm, "atomic-set-scm", ATOMIC_SET_SCM) \
   M(scm_from_ptr_scm, atomic_swap_scm, "atomic-swap-scm", ATOMIC_SWAP_SCM) \

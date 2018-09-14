@@ -171,7 +171,6 @@ struct scm_jit_state {
   uint8_t *op_attrs;
   jit_node_t **labels;
   int32_t frame_size;
-  uint8_t hooks_enabled;
   uint32_t register_state;
   jit_gpr_t sp_cache_gpr;
   jit_fpr_t sp_cache_fpr;
@@ -226,7 +225,6 @@ DEFINE_THREAD_VP_OFFSET (sp);
 DEFINE_THREAD_VP_OFFSET (ip);
 DEFINE_THREAD_VP_OFFSET (sp_min_since_gc);
 DEFINE_THREAD_VP_OFFSET (stack_limit);
-DEFINE_THREAD_VP_OFFSET (trace_level);
 
 /* The current scm_thread*.  Preserved across callouts.  */
 static const jit_gpr_t THREAD = JIT_V0;
@@ -1138,20 +1136,6 @@ emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
     clear_register_state (j, SP_CACHE_FPR);
 }
 
-static void
-emit_run_hook (scm_jit_state *j, jit_gpr_t t, scm_t_thread_intrinsic f)
-{
-  jit_node_t *k;
-  uint32_t saved_state = save_reloadable_register_state (j);
-  jit_ldxi_i (T0, THREAD, thread_offset_trace_level);
-  record_gpr_clobber (j, T0);
-  k = jit_beqi (T0, 0);
-  emit_store_current_ip (j, T0);
-  emit_call_r (j, f, THREAD);
-  restore_reloadable_register_state (j, saved_state);
-  jit_patch (k);
-}
-
 static jit_node_t*
 emit_branch_if_frame_locals_count_less_than (scm_jit_state *j, jit_gpr_t t,
                                              uint32_t nlocals)
@@ -1480,8 +1464,6 @@ compile_tail_call_label (scm_jit_state *j, const uint32_t *vcode)
 static void
 compile_instrument_entry (scm_jit_state *j, void *data)
 {
-  if (j->hooks_enabled)
-    emit_run_hook (j, T0, scm_vm_intrinsics.invoke_apply_hook);
 }
 
 static void
@@ -1572,8 +1554,6 @@ compile_return_values (scm_jit_state *j)
 {
   jit_gpr_t old_fp = T0, ra = T1;
   jit_node_t *interp;
-  if (j->hooks_enabled)
-    emit_run_hook (j, T0, scm_vm_intrinsics.invoke_return_hook);
 
   emit_pop_fp (j, old_fp);
 
@@ -1710,9 +1690,6 @@ compile_abort (scm_jit_state *j)
   emit_call_r_r (j, scm_vm_intrinsics.abort_to_prompt, THREAD, T0);
   jit_retval (T1_PRESERVED);
   
-  if (j->hooks_enabled)
-    emit_run_hook (j, T0, scm_vm_intrinsics.invoke_abort_hook);
-
   interp = jit_beqi (T1_PRESERVED, 0);
   emit_reload_sp (j);
   emit_reload_fp (j);
@@ -3039,9 +3016,6 @@ compile_return_from_interrupt (scm_jit_state *j)
 {
   jit_gpr_t old_fp = T0, ra = T1;
   jit_node_t *interp;
-
-  if (j->hooks_enabled)
-    emit_run_hook (j, T0, scm_vm_intrinsics.invoke_return_hook);
 
   emit_pop_fp (j, old_fp);
 
@@ -4712,7 +4686,6 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   ASSERT (j->labels);
 
   j->frame_size = -1;
-  j->hooks_enabled = 0; /* ? */
 
   INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
         j->entry - j->start);
