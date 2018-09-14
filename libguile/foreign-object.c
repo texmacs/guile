@@ -120,7 +120,7 @@ scm_make_foreign_object_n (SCM type, size_t n, void *vals[])
 
   SCM_VALIDATE_VTABLE (SCM_ARG1, type);
 
-  if (SCM_VTABLE_SIZE (type) / 2 < n)
+  if (SCM_VTABLE_SIZE (type) < n)
     scm_out_of_range (FUNC_NAME, scm_from_size_t (n));
 
   for (i = 0; i < n; i++)
