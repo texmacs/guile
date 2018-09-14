@@ -198,6 +198,18 @@ scm_i_capture_current_stack (void)
                         0);
 }
 
+/* Call to force a thread to go back to the interpreter, for example
+   when single-stepping is enabled.  */
+static void
+vm_clear_mcode_return_addresses (scm_thread *thread)
+{
+  union scm_vm_stack_element *fp;
+  struct scm_vm *vp = &thread->vm;
+
+  for (fp = vp->fp; fp < vp->stack_top; fp = SCM_FRAME_DYNAMIC_LINK (fp))
+    SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (fp, NULL);
+}
+
 #define FOR_EACH_HOOK(M) \
   M(apply) \
   M(return) \
@@ -219,12 +231,17 @@ vm_hook_compute_enabled (scm_thread *thread, SCM hook, uint8_t *enabled)
 static void
 vm_recompute_disable_mcode (scm_thread *thread)
 {
+  uint8_t was_disabled = thread->vm.disable_mcode;
   thread->vm.disable_mcode = 0;
+
 #define DISABLE_MCODE_IF_HOOK_ENABLED(h) \
   if (thread->vm.h##_hook_enabled)       \
     thread->vm.disable_mcode = 1;
-  FOR_EACH_HOOK (DISABLE_MCODE_IF_HOOK_ENABLED)
+  FOR_EACH_HOOK (DISABLE_MCODE_IF_HOOK_ENABLED);
 #undef DISABLE_MCODE_IF_HOOK_ENABLED
+
+  if (thread->vm.disable_mcode && !was_disabled)
+    vm_clear_mcode_return_addresses (thread);
 }
 
 static int
@@ -1499,9 +1516,9 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         uint8_t *mcode = vp->mra_after_abort;
         scm_gc_after_nonlocal_exit ();
         /* Non-local return.  */
-        if (vp->trace_level)
+        if (vp->abort_hook_enabled)
           invoke_abort_hook (thread);
-        if (mcode)
+        if (mcode && !vp->disable_mcode)
           scm_jit_enter_mcode (thread, mcode);
       }
     else

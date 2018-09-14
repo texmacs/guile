@@ -458,35 +458,38 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (5, instrument_entry, "instrument-entry", OP2 (X32, N32))
     {
-      int32_t data_offset = ip[1];
-      struct scm_jit_function_data *data;
-
-      data = (struct scm_jit_function_data *) (ip + data_offset);
-
-      if (data->mcode)
+      if (!VP->disable_mcode)
         {
-          SYNC_IP ();
-          scm_jit_enter_mcode (thread, data->mcode);
-          CACHE_REGISTER ();
-          NEXT (0);
-        }
+          struct scm_jit_function_data *data;
 
-      if (data->counter >= scm_jit_counter_threshold)
-        {
-          const uint8_t *mcode;
+          int32_t data_offset = ip[1];
+          data = (struct scm_jit_function_data *) (ip + data_offset);
 
-          SYNC_IP ();
-          mcode = scm_jit_compute_mcode (thread, data);
-
-          if (mcode)
+          if (data->mcode)
             {
-              scm_jit_enter_mcode (thread, mcode);
+              SYNC_IP ();
+              scm_jit_enter_mcode (thread, data->mcode);
               CACHE_REGISTER ();
               NEXT (0);
             }
+
+          if (data->counter >= scm_jit_counter_threshold)
+            {
+              const uint8_t *mcode;
+
+              SYNC_IP ();
+              mcode = scm_jit_compute_mcode (thread, data);
+
+              if (mcode)
+                {
+                  scm_jit_enter_mcode (thread, mcode);
+                  CACHE_REGISTER ();
+                  NEXT (0);
+                }
+            }
+          else
+            data->counter += SCM_JIT_COUNTER_ENTRY_INCREMENT;
         }
-      else
-        data->counter += SCM_JIT_COUNTER_ENTRY_INCREMENT;
 
       APPLY_HOOK ();
 
@@ -572,18 +575,19 @@ VM_NAME (scm_thread *thread)
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_DYNAMIC_LINK (old_fp);
 
-      mcode = SCM_FRAME_MACHINE_RETURN_ADDRESS (old_fp);
-      if (mcode)
+      if (!VP->disable_mcode)
         {
-          scm_jit_enter_mcode (thread, mcode);
-          CACHE_REGISTER ();
-          NEXT (0);
+          mcode = SCM_FRAME_MACHINE_RETURN_ADDRESS (old_fp);
+          if (mcode)
+            {
+              scm_jit_enter_mcode (thread, mcode);
+              CACHE_REGISTER ();
+              NEXT (0);
+            }
         }
-      else
-        {
-          ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (old_fp);
-          NEXT (0);
-        }
+
+      ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (old_fp);
+      NEXT (0);
     }
 
 
@@ -695,7 +699,7 @@ VM_NAME (scm_thread *thread)
       SYNC_IP ();
       mcode = CALL_INTRINSIC (compose_continuation, (thread, vmcont));
 
-      if (mcode)
+      if (mcode && !VP->disable_mcode)
         {
           scm_jit_enter_mcode (thread, mcode);
           CACHE_REGISTER ();
@@ -717,27 +721,30 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (14, instrument_loop, "instrument-loop", OP2 (X32, N32))
     {
-      int32_t data_offset = ip[1];
-      struct scm_jit_function_data *data;
-
-      data = (struct scm_jit_function_data *) (ip + data_offset);
-
-      if (data->counter >= scm_jit_counter_threshold)
+      if (!VP->disable_mcode)
         {
-          const uint8_t *mcode;
+          int32_t data_offset = ip[1];
+          struct scm_jit_function_data *data;
 
-          SYNC_IP ();
-          mcode = scm_jit_compute_mcode (thread, data);
+          data = (struct scm_jit_function_data *) (ip + data_offset);
 
-          if (mcode)
+          if (data->counter >= scm_jit_counter_threshold)
             {
-              scm_jit_enter_mcode (thread, mcode);
-              CACHE_REGISTER ();
-              NEXT (0);
+              const uint8_t *mcode;
+
+              SYNC_IP ();
+              mcode = scm_jit_compute_mcode (thread, data);
+
+              if (mcode)
+                {
+                  scm_jit_enter_mcode (thread, mcode);
+                  CACHE_REGISTER ();
+                  NEXT (0);
+                }
             }
+          else
+            data->counter += SCM_JIT_COUNTER_LOOP_INCREMENT;
         }
-      else
-        data->counter += SCM_JIT_COUNTER_LOOP_INCREMENT;
 
       NEXT (2);
     }
@@ -782,7 +789,7 @@ VM_NAME (scm_thread *thread)
 
       ABORT_HOOK ();
 
-      if (mcode)
+      if (mcode && !VP->disable_mcode)
         scm_jit_enter_mcode (thread, mcode);
 
       CACHE_REGISTER ();
