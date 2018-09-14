@@ -198,34 +198,72 @@ scm_i_capture_current_stack (void)
                         0);
 }
 
+#define FOR_EACH_HOOK(M) \
+  M(apply) \
+  M(return) \
+  M(next) \
+  M(abort)
+
+static void
+vm_hook_compute_enabled (scm_thread *thread, SCM hook, uint8_t *enabled)
+{
+  if (thread->vm.trace_level <= 0
+      || thread->vm.engine == SCM_VM_REGULAR_ENGINE
+      || scm_is_false (hook)
+      || scm_is_true (scm_hook_empty_p (hook)))
+    *enabled = 0;
+  else
+    *enabled = 1;
+}
+
+static void
+vm_recompute_disable_mcode (scm_thread *thread)
+{
+  thread->vm.disable_mcode = 0;
+#define DISABLE_MCODE_IF_HOOK_ENABLED(h) \
+  if (thread->vm.h##_hook_enabled)       \
+    thread->vm.disable_mcode = 1;
+  FOR_EACH_HOOK (DISABLE_MCODE_IF_HOOK_ENABLED)
+#undef DISABLE_MCODE_IF_HOOK_ENABLED
+}
+
+static int
+set_vm_trace_level (scm_thread *thread, int level)
+{
+  int old_level;
+  struct scm_vm *vp = &thread->vm;
+
+  old_level = vp->trace_level;
+  vp->trace_level = level;
+  vp->disable_mcode = 0;
+#define RESET_LEVEL(h) \
+  vm_hook_compute_enabled (thread, vp->h##_hook, &vp->h##_hook_enabled);
+  FOR_EACH_HOOK (RESET_LEVEL);
+#undef RESET_LEVEL
+  vm_recompute_disable_mcode (thread);
+
+  return old_level;
+}
+
 /* Return the first integer greater than or equal to LEN such that
    LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
 #define ROUND_UP(len, align)					\
   ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 static void
-invoke_hook (scm_thread *thread, int hook_num)
+invoke_hook (scm_thread *thread, SCM hook)
 {
   struct scm_vm *vp = &thread->vm;
-  SCM hook;
   struct scm_frame c_frame;
   scm_t_cell *frame;
   SCM scm_frame;
   int saved_trace_level;
   uint8_t saved_compare_result;
 
-  if (vp->trace_level <= 0 || vp->engine != SCM_VM_DEBUG_ENGINE)
+  if (scm_is_false (hook) || scm_is_null (SCM_HOOK_PROCEDURES (hook)))
     return;
 
-  hook = vp->hooks[hook_num];
-
-  if (SCM_LIKELY (scm_is_false (hook))
-      || scm_is_null (SCM_HOOK_PROCEDURES (hook)))
-    return;
-
-  saved_trace_level = vp->trace_level;
-  vp->trace_level = 0;
-
+  saved_trace_level = set_vm_trace_level (thread, 0);
   saved_compare_result = vp->compare_result;
 
   /* Allocate a frame object on the stack.  This is more efficient than calling
@@ -252,22 +290,22 @@ invoke_hook (scm_thread *thread, int hook_num)
   scm_c_run_hookn (hook, &scm_frame, 1);
 
   vp->compare_result = saved_compare_result;
-  vp->trace_level = saved_trace_level;
+  set_vm_trace_level (thread, saved_trace_level);
 }
 
-#define DEFINE_INVOKE_HOOK(H, h) \
+#define DEFINE_INVOKE_HOOK(h) \
   static void                                             \
   invoke_##h##_hook (scm_thread *thread) SCM_NOINLINE;    \
   static void                                             \
   invoke_##h##_hook (scm_thread *thread)                  \
   {                                                       \
-    return invoke_hook (thread, SCM_VM_##H##_HOOK);       \
+    if (thread->vm.h##_hook_enabled)                      \
+      return invoke_hook (thread, thread->vm.h##_hook);   \
   }
 
-DEFINE_INVOKE_HOOK(APPLY, apply)
-DEFINE_INVOKE_HOOK(RETURN, return)
-DEFINE_INVOKE_HOOK(NEXT, next)
-DEFINE_INVOKE_HOOK(ABORT, abort)
+FOR_EACH_HOOK (DEFINE_INVOKE_HOOK)
+
+#undef DEFINE_INVOKE_HOOK
 
 
 /*
@@ -547,8 +585,6 @@ expand_stack (union scm_vm_stack_element *old_bottom, size_t old_size,
 void
 scm_i_vm_prepare_stack (struct scm_vm *vp)
 {
-  int i;
-
   /* Not racey, as this will be run the first time a thread enters
      Guile.  */
   if (page_size == 0)
@@ -576,8 +612,9 @@ scm_i_vm_prepare_stack (struct scm_vm *vp)
   vp->compare_result = SCM_F_COMPARE_NONE;
   vp->engine = vm_default_engine;
   vp->trace_level = 0;
-  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    vp->hooks[i] = SCM_BOOL_F;
+#define INIT_HOOK(h) vp->h##_hook = SCM_BOOL_F;
+  FOR_EACH_HOOK (INIT_HOOK)
+#undef INIT_HOOK
 }
 
 static void
@@ -1479,42 +1516,35 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 
 /* Scheme interface */
 
-static void
-reset_vm_hook_enabled (scm_thread *thread, int i)
-{
-  SCM hook = thread->vm.hooks[i];
-  int empty = scm_is_false (hook) || scm_is_true (scm_hook_empty_p (hook));
+#define VM_ADD_HOOK(h, f)                                               \
+  {                                                                     \
+    scm_thread *t = SCM_I_CURRENT_THREAD;                               \
+    SCM hook = t->vm.h##_hook;                                          \
+    if (scm_is_false (hook))                                            \
+      hook = t->vm.h##_hook = scm_make_hook (SCM_I_MAKINUM (1));        \
+    scm_add_hook_x (hook, f, SCM_UNDEFINED);                            \
+    vm_hook_compute_enabled (t, hook, &t->vm.h##_hook_enabled);         \
+    vm_recompute_disable_mcode (t);                                     \
+    return SCM_UNSPECIFIED;                                             \
+  }
 
-  if (thread->vm.trace_level > 0)
-    thread->vm.hooks_enabled[i] = !empty;
-  else
-    thread->vm.hooks_enabled[i] = 0;
-}
-
-#define VM_ADD_HOOK(n, f)                               \
-{							\
-  scm_thread *t = SCM_I_CURRENT_THREAD;                 \
-  if (scm_is_false (t->vm.hooks[n]))			\
-    t->vm.hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
-  scm_add_hook_x (t->vm.hooks[n], f, SCM_UNDEFINED);    \
-  reset_vm_hook_enabled (t, n);                         \
-  return SCM_UNSPECIFIED;                               \
-}
-
-#define VM_REMOVE_HOOK(n, f)                            \
-{							\
-  scm_thread *t = SCM_I_CURRENT_THREAD;                 \
-  scm_remove_hook_x (t->vm.hooks[n], f);                \
-  reset_vm_hook_enabled (t, n);                         \
-  return SCM_UNSPECIFIED;                               \
-}
+#define VM_REMOVE_HOOK(h, f)                                            \
+  {                                                                     \
+    scm_thread *t = SCM_I_CURRENT_THREAD;                               \
+    SCM hook = t->vm.h##_hook;                                          \
+    if (scm_is_true (hook))                                             \
+      scm_remove_hook_x (hook, f);                                      \
+    vm_hook_compute_enabled (t, hook, &t->vm.h##_hook_enabled);         \
+    vm_recompute_disable_mcode (t);                                     \
+    return SCM_UNSPECIFIED;                                             \
+  }
 
 SCM_DEFINE (scm_vm_add_apply_hook_x, "vm-add-apply-hook!", 1, 0, 0,
 	    (SCM f),
 	    "")
 #define FUNC_NAME s_scm_vm_add_apply_hook_x
 {
-  VM_ADD_HOOK (SCM_VM_APPLY_HOOK, f);
+  VM_ADD_HOOK (apply, f);
 }
 #undef FUNC_NAME
 
@@ -1523,7 +1553,7 @@ SCM_DEFINE (scm_vm_remove_apply_hook_x, "vm-remove-apply-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_remove_apply_hook_x
 {
-  VM_REMOVE_HOOK (SCM_VM_APPLY_HOOK, f);
+  VM_REMOVE_HOOK (apply, f);
 }
 #undef FUNC_NAME
 
@@ -1532,7 +1562,7 @@ SCM_DEFINE (scm_vm_add_return_hook_x, "vm-add-return-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_add_return_hook_x
 {
-  VM_ADD_HOOK (SCM_VM_RETURN_HOOK, f);
+  VM_ADD_HOOK (return, f);
 }
 #undef FUNC_NAME
 
@@ -1541,7 +1571,7 @@ SCM_DEFINE (scm_vm_remove_return_hook_x, "vm-remove-return-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_remove_return_hook_x
 {
-  VM_REMOVE_HOOK (SCM_VM_RETURN_HOOK, f);
+  VM_REMOVE_HOOK (return, f);
 }
 #undef FUNC_NAME
 
@@ -1550,7 +1580,7 @@ SCM_DEFINE (scm_vm_add_next_hook_x, "vm-add-next-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_add_next_hook_x
 {
-  VM_ADD_HOOK (SCM_VM_NEXT_HOOK, f);
+  VM_ADD_HOOK (next, f);
 }
 #undef FUNC_NAME
 
@@ -1559,7 +1589,7 @@ SCM_DEFINE (scm_vm_remove_next_hook_x, "vm-remove-next-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_remove_next_hook_x
 {
-  VM_REMOVE_HOOK (SCM_VM_NEXT_HOOK, f);
+  VM_REMOVE_HOOK (next, f);
 }
 #undef FUNC_NAME
 
@@ -1568,7 +1598,7 @@ SCM_DEFINE (scm_vm_add_abort_hook_x, "vm-add-abort-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_add_abort_hook_x
 {
-  VM_ADD_HOOK (SCM_VM_ABORT_HOOK, f);
+  VM_ADD_HOOK (abort, f);
 }
 #undef FUNC_NAME
 
@@ -1577,7 +1607,7 @@ SCM_DEFINE (scm_vm_remove_abort_hook_x, "vm-remove-abort-hook!", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_remove_abort_hook_x
 {
-  VM_REMOVE_HOOK (SCM_VM_ABORT_HOOK, f);
+  VM_REMOVE_HOOK (abort, f);
 }
 #undef FUNC_NAME
 
@@ -1596,12 +1626,7 @@ SCM_DEFINE (scm_set_vm_trace_level_x, "set-vm-trace-level!", 1, 0, 0,
 #define FUNC_NAME s_scm_set_vm_trace_level_x
 {
   scm_thread *thread = SCM_I_CURRENT_THREAD;
-  int i;
-
-  thread->vm.trace_level = scm_to_int (level);
-  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    reset_vm_hook_enabled (thread, i);
-  return SCM_UNSPECIFIED;
+  return scm_from_int (set_vm_trace_level (thread, scm_to_int (level)));
 }
 #undef FUNC_NAME
 
@@ -1650,11 +1675,15 @@ void
 scm_c_set_vm_engine_x (int engine)
 #define FUNC_NAME "set-vm-engine!"
 {
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
+
   if (engine < 0 || engine >= SCM_VM_NUM_ENGINES)
     SCM_MISC_ERROR ("Unknown VM engine: ~a",
                     scm_list_1 (scm_from_int (engine)));
     
-  SCM_I_CURRENT_THREAD->vm.engine = engine;
+  thread->vm.engine = engine;
+  /* Trigger update of the various hook_enabled flags.  */
+  set_vm_trace_level (thread, thread->vm.trace_level);
 }
 #undef FUNC_NAME
 

@@ -25,14 +25,6 @@
 #include <libguile/gc.h>
 #include <libguile/programs.h>
 
-enum {
-  SCM_VM_APPLY_HOOK,
-  SCM_VM_RETURN_HOOK,
-  SCM_VM_NEXT_HOOK,
-  SCM_VM_ABORT_HOOK,
-  SCM_VM_NUM_HOOKS,
-};
-
 #define SCM_VM_REGULAR_ENGINE 0
 #define SCM_VM_DEBUG_ENGINE 1
 #define SCM_VM_NUM_ENGINES 2
@@ -48,19 +40,27 @@ struct scm_vm {
   uint32_t *ip;		/* instruction pointer */
   union scm_vm_stack_element *sp; /* stack pointer */
   union scm_vm_stack_element *fp; /* frame pointer */
-  uint8_t compare_result;   /* flags register: a value from scm_compare */
-  union scm_vm_stack_element *stack_limit; /* stack limit address */
-  int trace_level;              /* traces enabled if trace_level > 0 */
   union scm_vm_stack_element *sp_min_since_gc; /* deepest sp since last gc */
+  union scm_vm_stack_element *stack_limit; /* stack limit address */
+  uint8_t compare_result;       /* flags register: a value from scm_compare */
+  uint8_t apply_hook_enabled;   /* if apply hook is enabled */
+  uint8_t return_hook_enabled;  /* if return hook is enabled */
+  uint8_t next_hook_enabled;    /* if next hook is enabled */
+  uint8_t abort_hook_enabled;   /* if abort hook is enabled */
+  uint8_t disable_mcode;        /* if mcode is disabled (because debugging) */
+  uint8_t engine;               /* which vm engine we're using */
+  uint8_t unused;               /* padding */
   size_t stack_size;		/* stack size */
   union scm_vm_stack_element *stack_bottom; /* lowest address in allocated stack */
+  SCM apply_hook;               /* apply hook */
+  SCM return_hook;              /* return hook */
+  SCM next_hook;                /* next hook */
+  SCM abort_hook;               /* abort hook */
   union scm_vm_stack_element *stack_top; /* highest address in allocated stack */
   SCM overflow_handler_stack;   /* alist of max-stack-size -> thunk */
-  SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
-  uint8_t hooks_enabled[SCM_VM_NUM_HOOKS]; /* if corresponding hook is enabled */
   jmp_buf *registers;           /* registers captured at latest vm entry  */
   uint8_t *mra_after_abort;     /* mra to resume after nonlocal exit, or NULL */
-  int engine;                   /* which vm engine we're using */
+  int trace_level;              /* traces enabled if trace_level > 0 */
 };
 
 SCM_API SCM scm_call_with_vm (SCM proc, SCM args);

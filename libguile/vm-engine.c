@@ -110,9 +110,9 @@
 #endif
 
 #if VM_USE_HOOKS
-#define RUN_HOOK(H, h)                                       \
+#define RUN_HOOK(h)                                          \
   do {                                                       \
-    if (SCM_UNLIKELY (VP->hooks_enabled[SCM_VM_##H##_HOOK])) \
+    if (SCM_UNLIKELY (VP->h##_hook_enabled))                 \
       {                                                      \
         SYNC_IP ();                                          \
         invoke_##h##_hook (thread);                          \
@@ -120,13 +120,13 @@
       }                                                      \
   } while (0)
 #else
-#define RUN_HOOK(H, h)
+#define RUN_HOOK(h)
 #endif
 
-#define APPLY_HOOK()                  RUN_HOOK (APPLY, apply)
-#define RETURN_HOOK()                 RUN_HOOK (RETURN, return)
-#define NEXT_HOOK()                   RUN_HOOK (NEXT, next)
-#define ABORT_HOOK()                  RUN_HOOK (ABORT, abort)
+#define APPLY_HOOK()                  RUN_HOOK (apply)
+#define RETURN_HOOK()                 RUN_HOOK (return)
+#define NEXT_HOOK()                   RUN_HOOK (next)
+#define ABORT_HOOK()                  RUN_HOOK (abort)
 
 
 
