@@ -49,6 +49,9 @@ struct scm_thread_wake_data;
 struct scm_thread {
   struct scm_thread *next_thread;
 
+  /* VM state for this thread.  */
+  struct scm_vm vm;
+
   SCM handle;
   scm_i_pthread_t pthread;
 
@@ -104,9 +107,6 @@ struct scm_thread {
 
   /* JIT state; NULL until this thread needs to JIT-compile something.  */
   struct scm_jit_state *jit_state;
-
-  /* VM state for this thread.  */
-  struct scm_vm vm;
 };
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)
