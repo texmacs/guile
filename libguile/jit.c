@@ -123,8 +123,10 @@
 
 
 
+static const uint32_t default_jit_threshold = 50000;
+
 /* Threshold for when to JIT-compile a function.  Set from the
-   GUILE_JIT_COUNTER_THRESHOLD environment variable.  */
+   GUILE_JIT_THRESHOLD environment variable.  */
 uint32_t scm_jit_counter_threshold = -1;
 
 /* If positive, stop JIT compilation after the Nth compilation.  Useful
@@ -4711,28 +4713,6 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   return entry_mcode;
 }
 
-/* This is a temporary function; just here while we're still kicking the
-   tires.  */
-static SCM
-scm_sys_jit_compile (SCM fn)
-{
-  uint32_t *code;
-  struct scm_jit_function_data *data;
-
-  if (!SCM_PROGRAM_P (fn))
-    scm_wrong_type_arg ("%jit-compile", 1, fn);
-
-  code = SCM_PROGRAM_CODE (fn);
-  if (code[0] != scm_op_instrument_entry)
-    scm_wrong_type_arg ("%jit-compile", 1, fn);
-
-  data = (struct scm_jit_function_data *) (code + (int32_t)code[1]);
-
-  compute_mcode (SCM_I_CURRENT_THREAD, code, data);
-
-  return SCM_UNSPECIFIED;
-}
-
 const uint8_t *
 scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
 {
@@ -4793,9 +4773,9 @@ scm_jit_state_free (scm_jit_state *j)
 void
 scm_init_jit (void)
 {
-  scm_jit_counter_threshold = scm_getenv_int ("GUILE_JIT_COUNTER_THRESHOLD", -1);
+  scm_jit_counter_threshold = scm_getenv_int ("GUILE_JIT_THRESHOLD",
+                                              default_jit_threshold);
   jit_stop_after = scm_getenv_int ("GUILE_JIT_STOP_AFTER", -1);
   jit_pause_when_stopping = scm_getenv_int ("GUILE_JIT_PAUSE_WHEN_STOPPING", 0);
-  jit_log_level = scm_getenv_int ("GUILE_JIT_LOG_LEVEL", 0);
-  scm_c_define_gsubr ("%jit-compile", 1, 0, 0, (scm_t_subr) scm_sys_jit_compile);
+  jit_log_level = scm_getenv_int ("GUILE_JIT_LOG", 0);
 }
