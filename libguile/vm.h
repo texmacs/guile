@@ -123,6 +123,7 @@ SCM_API SCM scm_load_compiled_with_vm (SCM file);
 SCM_INTERNAL SCM scm_i_call_with_current_continuation (SCM proc);
 SCM_INTERNAL SCM scm_i_capture_current_stack (void);
 SCM_INTERNAL void scm_i_vm_abort (SCM *tag_and_argv, size_t n) SCM_NORETURN;
+SCM_INTERNAL void scm_i_vm_emergency_abort (SCM *tag_and_argv, size_t n) SCM_NORETURN;
 SCM_INTERNAL int scm_i_vm_cont_to_frame (SCM cont, struct scm_frame *frame);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
                                        scm_print_state *pstate);

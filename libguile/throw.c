@@ -198,12 +198,8 @@ abort_to_prompt (SCM prompt_tag, SCM tag, SCM args)
   for (i = 2; i < n; i++, args = scm_cdr (args))
     tag_and_argv[i] = scm_car (args);
 
-  scm_i_vm_abort (tag_and_argv, n);
-
-  /* Oh, what, you're still here? The abort must have been reinstated. Actually,
-     that's quite impossible, given that we're already in C-land here, so...
-     abort! */
-
+  scm_i_vm_emergency_abort (tag_and_argv, n);
+  /* Unreachable.  */
   abort ();
 }
 

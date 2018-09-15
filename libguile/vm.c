@@ -1339,6 +1339,76 @@ scm_i_vm_abort (SCM *tag_and_argv, size_t n)
   abort ();
 }
 
+/* The same as scm_i_vm_abort(), but possibly called in response to
+   resource allocation failures, so we might not be able to make a
+   call, as that might require stack expansion.  Grrr.  */
+void
+scm_i_vm_emergency_abort (SCM *tag_and_argv, size_t n)
+{
+  scm_thread *thread = SCM_I_CURRENT_THREAD;
+  struct scm_vm *vp = &thread->vm;
+  scm_t_dynstack *dynstack = &thread->dynstack;
+  SCM tag, cont;
+  size_t nargs;
+  scm_t_bits *prompt;
+  scm_t_dynstack_prompt_flags flags;
+  ptrdiff_t fp_offset, sp_offset;
+  union scm_vm_stack_element *fp, *sp;
+  SCM *argv;
+  uint32_t *vra;
+  uint8_t *mra;
+  jmp_buf *registers;
+
+  tag = tag_and_argv[0];
+  argv = tag_and_argv + 1;
+  nargs = n - 1;
+
+  prompt = scm_dynstack_find_prompt (dynstack, tag,
+                                     &flags, &fp_offset, &sp_offset,
+                                     &vra, &mra, &registers);
+
+  if (!prompt)
+    {
+      fprintf (stderr, "guile: fatal: emergency abort to unknown prompt\n");
+      abort ();
+    }
+
+  fp = vp->stack_top - fp_offset;
+  sp = vp->stack_top - sp_offset;
+
+  if (!(flags & SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY))
+    {
+      fprintf (stderr, "guile: fatal: emergency abort to non-linear prompt\n");
+      abort ();
+    }
+
+  cont = SCM_BOOL_F;
+
+  /* Unwind.  */
+  scm_dynstack_unwind (dynstack, prompt);
+
+  /* Continuation gets nargs+1 values: the one more is for the cont.  */
+  sp = sp - nargs - 1;
+
+  /* Shuffle abort arguments down to the prompt continuation.  We have
+     to be jumping to an older part of the stack.  */
+  if (sp < vp->sp)
+    abort ();
+  sp[nargs].as_scm = cont;
+
+  while (nargs--)
+    sp[nargs].as_scm = *argv++;
+
+  /* Restore VM regs */
+  vp->fp = fp;
+  vp->sp = sp;
+  vp->ip = vra;
+
+  /* Jump! */
+  vp->mra_after_abort = mra;
+  longjmp (*registers, 1);
+}
+
 static uint8_t *
 abort_to_prompt (scm_thread *thread, uint8_t *saved_mra)
 {
