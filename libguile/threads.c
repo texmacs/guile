@@ -514,7 +514,9 @@ on_thread_exit (void *v)
   t->dynstack.top = NULL;
   t->dynstack.limit = NULL;
   scm_i_vm_free_stack (&t->vm);
+#if ENABLE_JIT
   scm_jit_state_free (t->jit_state);
+#endif
   t->jit_state = NULL;
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS

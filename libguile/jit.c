@@ -22,12 +22,13 @@
 # include <config.h>
 #endif
 
+/* All of this whole file is within an ENABLE_JIT flag.  */
+#if ENABLE_JIT
+
 #include <stdio.h>
 #include <sys/mman.h>
 
-#if ENABLE_JIT
 #include <lightning.h>
-#endif
 
 #include "frames.h"
 #include "gsubr.h"
@@ -4779,3 +4780,5 @@ scm_init_jit (void)
   jit_pause_when_stopping = scm_getenv_int ("GUILE_JIT_PAUSE_WHEN_STOPPING", 0);
   jit_log_level = scm_getenv_int ("GUILE_JIT_LOG", 0);
 }
+
+#endif /* ENABLE_JIT */

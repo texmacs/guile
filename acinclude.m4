@@ -581,7 +581,6 @@ AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
 
 AC_DEFUN([GUILE_ENABLE_JIT], [
   JIT_AVAILABLE=no
-  AC_CANONICAL_TARGET
   AC_MSG_CHECKING([if JIT code generation supported for target CPU])
   case "$target_cpu" in
     i?86|x86_64|amd64)    JIT_AVAILABLE=yes ;;
@@ -611,12 +610,11 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
     [AS_HELP_STRING([--enable-jit[=yes/no/auto]],
                     [enable just-in-time code generation [default=auto]])])
 
-  enable_jit=auto
   AC_MSG_CHECKING([whether to enable JIT code generation])
-  case "$enable_jit" in
-    y*) enable_jit=yes ;;
-    n*) enable_jit=no ;;
-    a*) enable_jit=$JIT_AVAILABLE ;;
+  case "x$enable_jit" in
+    xy*) enable_jit=yes ;;
+    xn*) enable_jit=no ;;
+    xa* | x) enable_jit=$JIT_AVAILABLE ;;
     *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
   esac
   AC_MSG_RESULT($enable_jit)

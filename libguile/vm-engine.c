@@ -458,6 +458,7 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (5, instrument_entry, "instrument-entry", OP2 (X32, N32))
     {
+#if ENABLE_JIT
       if (!VP->disable_mcode)
         {
           struct scm_jit_function_data *data;
@@ -490,6 +491,7 @@ VM_NAME (scm_thread *thread)
           else
             data->counter += SCM_JIT_COUNTER_ENTRY_INCREMENT;
         }
+#endif
 
       APPLY_HOOK ();
 
@@ -575,6 +577,7 @@ VM_NAME (scm_thread *thread)
       old_fp = VP->fp;
       VP->fp = SCM_FRAME_DYNAMIC_LINK (old_fp);
 
+#if ENABLE_JIT
       if (!VP->disable_mcode)
         {
           mcode = SCM_FRAME_MACHINE_RETURN_ADDRESS (old_fp);
@@ -585,6 +588,7 @@ VM_NAME (scm_thread *thread)
               NEXT (0);
             }
         }
+#endif
 
       ip = SCM_FRAME_VIRTUAL_RETURN_ADDRESS (old_fp);
       NEXT (0);
@@ -699,6 +703,7 @@ VM_NAME (scm_thread *thread)
       SYNC_IP ();
       mcode = CALL_INTRINSIC (compose_continuation, (thread, vmcont));
 
+#if ENABLE_JIT
       if (mcode && !VP->disable_mcode)
         {
           scm_jit_enter_mcode (thread, mcode);
@@ -706,6 +711,7 @@ VM_NAME (scm_thread *thread)
           NEXT (0);
         }
       else
+#endif
         {
           CACHE_REGISTER ();
           NEXT (0);
@@ -721,6 +727,7 @@ VM_NAME (scm_thread *thread)
    */
   VM_DEFINE_OP (14, instrument_loop, "instrument-loop", OP2 (X32, N32))
     {
+#if ENABLE_JIT
       if (!VP->disable_mcode)
         {
           int32_t data_offset = ip[1];
@@ -745,6 +752,7 @@ VM_NAME (scm_thread *thread)
           else
             data->counter += SCM_JIT_COUNTER_LOOP_INCREMENT;
         }
+#endif
 
       NEXT (2);
     }
@@ -789,8 +797,10 @@ VM_NAME (scm_thread *thread)
 
       ABORT_HOOK ();
 
+#if ENABLE_JIT
       if (mcode && !VP->disable_mcode)
         scm_jit_enter_mcode (thread, mcode);
+#endif
 
       CACHE_REGISTER ();
       NEXT (0);

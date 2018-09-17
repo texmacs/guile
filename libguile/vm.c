@@ -1588,8 +1588,10 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
         /* Non-local return.  */
         if (vp->abort_hook_enabled)
           invoke_abort_hook (thread);
+#if ENABLE_JIT
         if (mcode && !vp->disable_mcode)
           scm_jit_enter_mcode (thread, mcode);
+#endif
       }
     else
       vp->ip = get_callee_vcode (thread);

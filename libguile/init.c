@@ -513,7 +513,9 @@ scm_i_init_guile (void *base)
   scm_bootstrap_i18n ();
   scm_init_script ();
   scm_init_unicode ();
+#if ENABLE_JIT
   scm_init_jit ();
+#endif
 
   scm_init_goops ();
 
