@@ -2449,7 +2449,7 @@ compile_untag_char (scm_jit_state *j, uint16_t dst, uint16_t src)
 }
 
 static void
-compile_atomic_ref_scm_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t offset)
+compile_atomic_scm_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t offset)
 {
   emit_sp_ref_scm (j, T0, obj);
 #if defined(__i386__) || defined(__x86_64__)
@@ -2467,7 +2467,7 @@ compile_atomic_ref_scm_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, ui
 }
 
 static void
-compile_atomic_set_scm_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset, uint8_t val)
+compile_atomic_scm_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset, uint8_t val)
 {
   emit_sp_ref_scm (j, T1, obj);
   emit_sp_ref_scm (j, T2, val);
@@ -3149,12 +3149,6 @@ compile_u64_less (scm_jit_state *j, uint16_t a, uint16_t b)
       UNREACHABLE ();
     }
 #endif
-}
-
-static void
-compile_s64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
-{
-  compile_u64_numerically_equal (j, a, b);
 }
 
 static void
