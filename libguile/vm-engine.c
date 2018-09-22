@@ -1118,14 +1118,17 @@ VM_NAME (scm_thread *thread)
          intervening C frames to jump over, so we just continue
          directly.  */
 
+      CACHE_REGISTER ();
       ABORT_HOOK ();
 
 #if ENABLE_JIT
       if (mcode && !VP->disable_mcode)
-        scm_jit_enter_mcode (thread, mcode);
+        {
+          scm_jit_enter_mcode (thread, mcode);
+          CACHE_REGISTER ();
+        }
 #endif
 
-      CACHE_REGISTER ();
       NEXT (0);
     }
 
