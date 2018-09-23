@@ -1624,7 +1624,10 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
 	    "(utime \"foo\" (- (current-time) 3600))\n"
 	    "@end lisp\n"
 	    "will set the access time to one hour in the past and the\n"
-	    "modification time to the current time.")
+	    "modification time to the current time.\n\n"
+            "Last, @var{flags} may be either @code{0} or the\n"
+            "@code{AT_SYMLINK_NOFOLLOW} constant, to set the time of\n"
+            "@var{pathname} even if it is a symbolic link.\n")
 #define FUNC_NAME s_scm_utime
 {
   int rv;
@@ -2431,6 +2434,19 @@ scm_init_posix ()
 #endif
 #ifdef LOCK_NB
   scm_c_define ("LOCK_NB", scm_from_int (LOCK_NB));
+#endif
+
+#ifdef AT_SYMLINK_NOFOLLOW
+  scm_c_define ("AT_SYMLINK_NOFOLLOW", scm_from_int (AT_SYMLINK_NOFOLLOW));
+#endif
+#ifdef AT_SYMLINK_FOLLOW
+  scm_c_define ("AT_SYMLINK_FOLLOW", scm_from_int (AT_SYMLINK_FOLLOW));
+#endif
+#ifdef AT_NO_AUTOMOUNT
+  scm_c_define ("AT_NO_AUTOMOUNT", scm_from_int (AT_NO_AUTOMOUNT));
+#endif
+#ifdef AT_EMPTY_PATH
+  scm_c_define ("AT_EMPTY_PATH", scm_from_int (AT_EMPTY_PATH));
 #endif
 
 #include "libguile/cpp-SIG.c"
