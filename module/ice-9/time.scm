@@ -29,8 +29,8 @@
 ;;; Code:
 
 (define-module (ice-9 time)
-  :use-module (ice-9 format)
-  :export (time))
+  #:use-module (ice-9 format)
+  #:export (time))
 
 (define (time-proc proc)
   (let* ((gc-start (gc-run-time))
