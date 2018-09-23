@@ -1,7 +1,7 @@
 ;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2006, 2007, 2010, 2012,
-;;;;   2015, 2017, 2019 Free Software Foundation, Inc.
+;;;; Copyright 2003-2004,2006-2007,2010,2012,2015,2017-2019
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -181,7 +181,22 @@
               (and (= (stat:atime info) accessed)
                    (= (stat:mtime info) modified)))))
         (lambda ()
-          (delete-file file))))))
+          (delete-file file)))))
+
+  (pass-if-equal "AT_SYMLINK_NOFOLLOW"
+      '(1 1)
+    (if (defined? 'AT_SYMLINK_NOFOLLOW)
+        (let ((file "posix.test-utime"))
+          (dynamic-wind
+            (lambda ()
+              (symlink "/dev/null" file))
+            (lambda ()
+              (utime file 1 1 0 0 AT_SYMLINK_NOFOLLOW)
+              (let ((info (lstat file)))
+                (list (stat:atime info) (stat:mtime info))))
+            (lambda ()
+              (delete-file file))))
+        (throw 'unsupported))))
 
 ;;
 ;; affinity

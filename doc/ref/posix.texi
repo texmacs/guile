@@ -801,6 +801,11 @@ systems.
 @end lisp
 will set the access time to one hour in the past and the
 modification time to the current time.
+
+@vindex AT_SYMLINK_NOFOLLOW
+Last, @var{flags} may be either @code{0} or the
+@code{AT_SYMLINK_NOFOLLOW} constant, to set the time of
+@var{pathname} even if it is a symbolic link.
 @end deffn
 
 @findex unlink
