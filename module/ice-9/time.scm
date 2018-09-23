@@ -35,7 +35,7 @@
 (define (time-proc proc)
   (let* ((gc-start (gc-run-time))
          (tms-start (times))
-         (result (proc))
+         (results (call-with-values proc list))
          (tms-end (times))
          (gc-end (gc-run-time)))
     ;; FIXME: We would probably like format ~f to accept rationals, but
@@ -50,7 +50,7 @@
             (get tms:cutime tms-start tms-end)
             (get tms:cstime tms-start tms-end)
             (get identity gc-start gc-end))
-    result))
+    (apply values results)))
 
 (define-syntax-rule (time exp)
   (time-proc (lambda () exp)))
