@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008, 2010, 2011, 2013
+@c Copyright (C)  2008, 2010, 2011, 2013, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -212,12 +212,17 @@ Schemes: SRFI-18 threads, module-hygienic macros, a profiler, tracer,
 and debugger, SSAX XML integration, bytevectors, a dynamic FFI,
 delimited continuations, module versions, and partial support for R6RS.
 
-@item 2.2 --- mid-2014
+@item 2.2 --- 15 March 2017
 The virtual machine and introduced in 2.0 was completely rewritten,
 along with much of the compiler and toolchain.  This speeds up many
-Guile programs as well as reducing startup time and memory usage.  A PEG
-parser toolkit was added, making it easier to write other language
-frontends.
+Guile programs as well as reducing startup time and memory usage.
+Guile's POSIX multithreading was improved, stacks became dynamically
+expandable, the ports facility gained support for non-blocking I/O.
+
+@item 3.0 -- early 2019 (unreleased at time of writing)
+Guile gained support for native code generation via a simple
+just-in-time (JIT) compiler, further improving the speed of its virtual
+machine.
 @end table
 
 @node Status
@@ -259,11 +264,12 @@ entirely from high-level languages, through byte-code and native
 compilation, speed gains in the underlying hardware, and foreign call
 interfaces in the high-level language.  Smalltalk systems are like this,
 as are Common Lisp-based systems.  While there already are a number of
-pure-Guile applications out there, users still need to drop down to C
-for some tasks: interfacing to system libraries that don't have prebuilt
-Guile interfaces, and for some tasks requiring high performance.  Native
-ahead-of-time compilation, planned for Guile 3.0, should help with
-this.
+pure-Guile applications out there, in the past users have still needed
+to drop down to C for some tasks: interfacing to system libraries that
+don't have prebuilt Guile interfaces, and for some tasks requiring high
+performance.  With the arrival of native code generation via a JIT
+compiler in Guile 3.0, most of these older applications can now be
+updated to move more C code to Scheme.
 
 Still, even with an all-Guile application, sometimes you want to
 provide an opportunity for users to extend your program from a
