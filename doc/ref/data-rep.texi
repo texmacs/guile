@@ -365,24 +365,24 @@ in question is stored in that data.
 
 This section describes how the @code{SCM} type is actually represented
 and used at the C level. Interested readers should see
-@code{libguile/tags.h} for an exposition of how Guile stores type
+@code{libguile/scm.h} for an exposition of how Guile stores type
 information.
 
 In fact, there are two basic C data types to represent objects in
 Guile: @code{SCM} and @code{scm_t_bits}.
 
 @menu
-* Relationship between SCM and scm_t_bits::
-* Immediate objects::
-* Non-immediate objects::
-* Allocating Cells::
-* Heap Cell Type Information::
-* Accessing Cell Entries::
+* Relationship Between SCM and scm_t_bits::
+* Immediate Objects::
+* Non-Immediate Objects::
+* Allocating Heap Objects::
+* Heap Object Type Information::
+* Accessing Heap Object Fields::
 @end menu
 
 
-@node Relationship between SCM and scm_t_bits
-@subsubsection Relationship between @code{SCM} and @code{scm_t_bits}
+@node Relationship Between SCM and scm_t_bits
+@subsubsection Relationship Between @code{SCM} and @code{scm_t_bits}
 
 A variable of type @code{SCM} is guaranteed to hold a valid Scheme
 object.  A variable of type @code{scm_t_bits}, on the other hand, may
@@ -402,19 +402,20 @@ chapter (@pxref{Cheaper Pairs}).  Conversely, a valid bit encoding of a
 Scheme value as a @code{scm_t_bits} variable can be transformed into the
 corresponding @code{SCM} value using the @code{SCM_PACK} macro.
 
-@node Immediate objects
-@subsubsection Immediate objects
+@node Immediate Objects
+@subsubsection Immediate Objects
 
-A Scheme object may either be an immediate, i.e.@: carrying all necessary
-information by itself, or it may contain a reference to a @dfn{cell}
-with additional information on the heap.  Although in general it should
-be irrelevant for user code whether an object is an immediate or not,
-within Guile's own code the distinction is sometimes of importance.
-Thus, the following low level macro is provided:
+A Scheme object may either be an immediate, i.e.@: carrying all
+necessary information by itself, or it may contain a reference to a
+@dfn{heap object} which is, as the name implies, data on the heap.
+Although in general it should be irrelevant for user code whether an
+object is an immediate or not, within Guile's own code the distinction
+is sometimes of importance.  Thus, the following low level macro is
+provided:
 
 @deftypefn Macro int SCM_IMP (SCM @var{x})
 A Scheme object is an immediate if it fulfills the @code{SCM_IMP}
-predicate, otherwise it holds an encoded reference to a heap cell.  The
+predicate, otherwise it holds an encoded reference to a heap object.  The
 result of the predicate is delivered as a C style boolean value.  User
 code and code that extends Guile should normally not be required to use
 this macro.
@@ -475,67 +476,88 @@ to us.
 @end deftypefn
 
 
-@node Non-immediate objects
-@subsubsection Non-immediate objects
+@node Non-Immediate Objects
+@subsubsection Non-Immediate Objects
 
 A Scheme object of type @code{SCM} that does not fulfill the
-@code{SCM_IMP} predicate holds an encoded reference to a heap cell.
-This reference can be decoded to a C pointer to a heap cell using the
-@code{SCM2PTR} macro.  The encoding of a pointer to a heap cell into a
-@code{SCM} value is done using the @code{PTR2SCM} macro.
+@code{SCM_IMP} predicate holds an encoded reference to a heap object.
+This reference can be decoded to a C pointer to a heap object using the
+@code{SCM_UNPACK_POINTER} macro.  The encoding of a pointer to a heap
+object into a @code{SCM} value is done using the @code{SCM_PACK_POINTER}
+macro.
 
-@c (FIXME:: this name should be changed)
-@deftypefn Macro {scm_t_cell *} SCM2PTR (SCM @var{x})
-Extract and return the heap cell pointer from a non-immediate @code{SCM}
-object @var{x}.
+@cindex cells, deprecated concept
+Before Guile 2.0, Guile had a custom garbage collector that allocated
+heap objects in units of 2-word @dfn{cells}.  With the move to the
+BDW-GC collector in Guile 2.0, Guile can allocate heap objects of any
+size, and the concept of a cell is now obsolete.  Still, we mention
+it here as the name stil appears in various low-level interfaces.
+
+@deftypefn Macro {scm_t_bits *} SCM_UNPACK_POINTER (SCM @var{x})
+@deftypefnx Macro {scm_t_cell *} SCM2PTR (SCM @var{x})
+Extract and return the heap object pointer from a non-immediate
+@code{SCM} object @var{x}.  The name @code{SCM2PTR} is deprecated but
+still common.
 @end deftypefn
 
-@c (FIXME:: this name should be changed)
-@deftypefn Macro SCM PTR2SCM (scm_t_cell * @var{x})
-Return a @code{SCM} value that encodes a reference to the heap cell
-pointer @var{x}.
+@deftypefn Macro SCM_PACK_POINTER (scm_t_bits * @var{x})
+@deftypefnx Macro SCM PTR2SCM (scm_t_cell * @var{x})
+Return a @code{SCM} value that encodes a reference to the heap object
+pointer @var{x}.  The name @code{PTR2SCM} is deprecated but still
+common.
 @end deftypefn
 
 Note that it is also possible to transform a non-immediate @code{SCM}
 value by using @code{SCM_UNPACK} into a @code{scm_t_bits} variable.
 However, the result of @code{SCM_UNPACK} may not be used as a pointer to
-a @code{scm_t_cell}: only @code{SCM2PTR} is guaranteed to transform a
-@code{SCM} object into a valid pointer to a heap cell.  Also, it is not
-allowed to apply @code{PTR2SCM} to anything that is not a valid pointer
-to a heap cell.
+a heap object: only @code{SCM_UNPACK_POINTER} is guaranteed to transform
+a @code{SCM} object into a valid pointer to a heap object.  Also, it is
+not allowed to apply @code{SCM_PACK_POINTER} to anything that is not a
+valid pointer to a heap object.
 
 @noindent
 Summary:  
 @itemize @bullet
 @item
-Only use @code{SCM2PTR} on @code{SCM} values for which @code{SCM_IMP} is
-false!
+Only use @code{SCM_UNPACK_POINTER} on @code{SCM} values for which
+@code{SCM_IMP} is false!
 @item
-Don't use @code{(scm_t_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
-(@var{x})} instead!
+Don't use @code{(scm_t_cell *) SCM_UNPACK (@var{x})}!  Use
+@code{SCM_UNPACK_POINTER (@var{x})} instead!
 @item
-Don't use @code{PTR2SCM} for anything but a cell pointer!
+Don't use @code{SCM_PACK_POINTER} for anything but a heap object pointer!
 @end itemize
 
-@node Allocating Cells
-@subsubsection Allocating Cells
+@node Allocating Heap Objects
+@subsubsection Allocating Heap Objects
 
-Guile provides both ordinary cells with two slots, and double cells
-with four slots.  The following two function are the most primitive
-way to allocate such cells.
+Heap objects are heap-allocated data pointed to by non-immediate
+@code{SCM} value.  The first word of the heap object should contain a
+type code.  The object may be any number of words in length, and is
+generally scanned by the garbage collector for additional unless the
+object was allocated using a ``pointerless'' allocation function.
 
-If the caller intends to use it as a header for some other type, she
-must pass an appropriate magic value in @var{word_0}, to mark it as a
-member of that type, and pass whatever value as @var{word_1}, etc that
-the type expects.  You should generally not need these functions,
-unless you are implementing a new datatype, and thoroughly understand
-the code in @code{<libguile/tags.h>}.
+You should generally not need these functions, unless you are
+implementing a new data type, and thoroughly understand the code in
+@code{<libguile/scm.h>}.
 
 If you just want to allocate pairs, use @code{scm_cons}.
 
+@deftypefn Function SCM scm_words (scm_t_bits word_0, uint32_t n_words)
+Allocate a new heap object containing @var{n_words}, and initialize the
+first slot to @var{word_0}, and return a non-immediate @code{SCM} value
+encoding a pointer to the object.  Typically @var{word_0} will contain
+the type tag.
+@end deftypefn
+
+There are also deprecated but common variants of @code{scm_words} that
+use the term ``cell'' to indicate 2-word objects.
+
 @deftypefn Function SCM scm_cell (scm_t_bits word_0, scm_t_bits word_1)
-Allocate a new cell, initialize the two slots with @var{word_0} and
-@var{word_1}, and return it.
+Allocate a new 2-word heap object, initialize the two slots with
+@var{word_0} and @var{word_1}, and return it.  Just like calling
+@code{scm_words (@var{word_0}, 2)}, then initializing the second slot to
+@var{word_1}.
 
 Note that @var{word_0} and @var{word_1} are of type @code{scm_t_bits}.
 If you want to pass a @code{SCM} object, you need to use
@@ -543,123 +565,80 @@ If you want to pass a @code{SCM} object, you need to use
 @end deftypefn
 
 @deftypefn Function SCM scm_double_cell (scm_t_bits word_0, scm_t_bits word_1, scm_t_bits word_2, scm_t_bits word_3)
-Like @code{scm_cell}, but allocates a double cell with four
-slots.
+Like @code{scm_cell}, but allocates a 4-word heap object.
 @end deftypefn
 
-@node Heap Cell Type Information
-@subsubsection Heap Cell Type Information
+@node Heap Object Type Information
+@subsubsection Heap Object Type Information
 
-Heap cells contain a number of entries, each of which is either a scheme
-object of type @code{SCM} or a raw C value of type @code{scm_t_bits}.
-Which of the cell entries contain Scheme objects and which contain raw C
-values is determined by the first entry of the cell, which holds the
-cell type information.
+Heap objects contain a type tag and are followed by a number of
+word-sized slots.  The interpretation of the object contents depends on
+the type of the object.
 
 @deftypefn Macro scm_t_bits SCM_CELL_TYPE (SCM @var{x})
-For a non-immediate Scheme object @var{x}, deliver the content of the
-first entry of the heap cell referenced by @var{x}.  This value holds
-the information about the cell type.
+Extract the first word of the heap object pointed to by @var{x}.  This
+value holds the information about the cell type.
 @end deftypefn
 
 @deftypefn Macro void SCM_SET_CELL_TYPE (SCM @var{x}, scm_t_bits @var{t})
 For a non-immediate Scheme object @var{x}, write the value @var{t} into
-the first entry of the heap cell referenced by @var{x}.  The value
+the first word of the heap object referenced by @var{x}.  The value
 @var{t} must hold a valid cell type.
 @end deftypefn
 
 
-@node Accessing Cell Entries
-@subsubsection Accessing Cell Entries
+@node Accessing Heap Object Fields
+@subsubsection Accessing Heap Object Fields
 
 For a non-immediate Scheme object @var{x}, the object type can be
-determined by reading the cell type entry using the @code{SCM_CELL_TYPE}
-macro.  For each different type of cell it is known which cell entries
-hold Scheme objects and which cell entries hold raw C data.  To access
-the different cell entries appropriately, the following macros are
-provided.
+determined by using the @code{SCM_CELL_TYPE} macro described in the
+previous section.  For each different type of heap object it is known
+which fields hold tagged Scheme objects and which fields hold untagged
+raw data.  To access the different fields appropriately, the following
+macros are provided.
 
 @deftypefn Macro scm_t_bits SCM_CELL_WORD (SCM @var{x}, unsigned int @var{n})
-Deliver the cell entry @var{n} of the heap cell referenced by the
-non-immediate Scheme object @var{x} as raw data.  It is illegal, to
-access cell entries that hold Scheme objects by using these macros.  For
-convenience, the following macros are also provided.
-@itemize @bullet
-@item
-SCM_CELL_WORD_0 (@var{x}) @result{} SCM_CELL_WORD (@var{x}, 0)
-@item
-SCM_CELL_WORD_1 (@var{x}) @result{} SCM_CELL_WORD (@var{x}, 1)
-@item
-@dots{}
-@item
-SCM_CELL_WORD_@var{n} (@var{x}) @result{} SCM_CELL_WORD (@var{x}, @var{n})
-@end itemize
+@deftypefnx Macro scm_t_bits SCM_CELL_WORD_0 (@var{x})
+@deftypefnx Macro scm_t_bits SCM_CELL_WORD_1 (@var{x})
+@deftypefnx Macro scm_t_bits SCM_CELL_WORD_2 (@var{x})
+@deftypefnx Macro scm_t_bits SCM_CELL_WORD_3 (@var{x})
+Deliver the field @var{n} of the heap object referenced by the
+non-immediate Scheme object @var{x} as raw untagged data.  Only use this
+macro for fields containing untagged data; don't use it for fields
+containing tagged @code{SCM} objects.
 @end deftypefn
 
 @deftypefn Macro SCM SCM_CELL_OBJECT (SCM @var{x}, unsigned int @var{n})
-Deliver the cell entry @var{n} of the heap cell referenced by the
-non-immediate Scheme object @var{x} as a Scheme object.  It is illegal,
-to access cell entries that do not hold Scheme objects by using these
-macros.  For convenience, the following macros are also provided.
-@itemize @bullet
-@item
-SCM_CELL_OBJECT_0 (@var{x}) @result{} SCM_CELL_OBJECT (@var{x}, 0)
-@item
-SCM_CELL_OBJECT_1 (@var{x}) @result{} SCM_CELL_OBJECT (@var{x}, 1)
-@item
-@dots{}
-@item
-SCM_CELL_OBJECT_@var{n} (@var{x}) @result{} SCM_CELL_OBJECT (@var{x},
-@var{n})
-@end itemize
+@deftypefnx Macro SCM SCM_CELL_OBJECT_0 (SCM @var{x})
+@deftypefnx Macro SCM SCM_CELL_OBJECT_1 (SCM @var{x})
+@deftypefnx Macro SCM SCM_CELL_OBJECT_2 (SCM @var{x})
+@deftypefnx Macro SCM SCM_CELL_OBJECT_3 (SCM @var{x})
+Deliver the field @var{n} of the heap object referenced by the
+non-immediate Scheme object @var{x} as a Scheme object.  Only use this
+macro for fields containing tagged @code{SCM} objects; don't use it for
+fields containing untagged data.
 @end deftypefn
 
 @deftypefn Macro void SCM_SET_CELL_WORD (SCM @var{x}, unsigned int @var{n}, scm_t_bits @var{w})
-Write the raw C value @var{w} into entry number @var{n} of the heap cell
+@deftypefnx Macro void SCM_SET_CELL_WORD_0 (@var{x}, @var{w})
+@deftypefnx Macro void SCM_SET_CELL_WORD_1 (@var{x}, @var{w})
+@deftypefnx Macro void SCM_SET_CELL_WORD_2 (@var{x}, @var{w})
+@deftypefnx Macro void SCM_SET_CELL_WORD_3 (@var{x}, @var{w})
+Write the raw value @var{w} into field number @var{n} of the heap object
 referenced by the non-immediate Scheme value @var{x}.  Values that are
-written into cells this way may only be read from the cells using the
-@code{SCM_CELL_WORD} macros or, in case cell entry 0 is written, using
-the @code{SCM_CELL_TYPE} macro.  For the special case of cell entry 0 it
-has to be made sure that @var{w} contains a cell type information which
-does not describe a Scheme object.  For convenience, the following
-macros are also provided.
-@itemize @bullet
-@item
-SCM_SET_CELL_WORD_0 (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
-(@var{x}, 0, @var{w})
-@item
-SCM_SET_CELL_WORD_1 (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
-(@var{x}, 1, @var{w})
-@item
-@dots{}
-@item
-SCM_SET_CELL_WORD_@var{n} (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
-(@var{x}, @var{n}, @var{w})
-@end itemize
+written into heap objects as raw values should only be read later using
+the @code{SCM_CELL_WORD} macros.
 @end deftypefn
 
 @deftypefn Macro void SCM_SET_CELL_OBJECT (SCM @var{x}, unsigned int @var{n}, SCM @var{o})
-Write the Scheme object @var{o} into entry number @var{n} of the heap
-cell referenced by the non-immediate Scheme value @var{x}.  Values that
-are written into cells this way may only be read from the cells using
-the @code{SCM_CELL_OBJECT} macros or, in case cell entry 0 is written,
-using the @code{SCM_CELL_TYPE} macro.  For the special case of cell
-entry 0 the writing of a Scheme object into this cell is only allowed
-if the cell forms a Scheme pair.  For convenience, the following macros
-are also provided.
-@itemize @bullet
-@item
-SCM_SET_CELL_OBJECT_0 (@var{x}, @var{o}) @result{} SCM_SET_CELL_OBJECT
-(@var{x}, 0, @var{o})
-@item
-SCM_SET_CELL_OBJECT_1 (@var{x}, @var{o}) @result{} SCM_SET_CELL_OBJECT
-(@var{x}, 1, @var{o})
-@item
-@dots{}
-@item
-SCM_SET_CELL_OBJECT_@var{n} (@var{x}, @var{o}) @result{}
-SCM_SET_CELL_OBJECT (@var{x}, @var{n}, @var{o})
-@end itemize
+@deftypefnx Macro void SCM_SET_CELL_OBJECT_0 (SCM @var{x}, SCM @var{o})
+@deftypefnx Macro void SCM_SET_CELL_OBJECT_1 (SCM @var{x}, SCM @var{o})
+@deftypefnx Macro void SCM_SET_CELL_OBJECT_2 (SCM @var{x}, SCM @var{o})
+@deftypefnx Macro void SCM_SET_CELL_OBJECT_3 (SCM @var{x}, SCM @var{o})
+Write the Scheme object @var{o} into field number @var{n} of the heap
+object referenced by the non-immediate Scheme value @var{x}.  Values
+that are written into heap objects as objects should only be read using
+the @code{SCM_CELL_OBJECT} macros.
 @end deftypefn
 
 @noindent
@@ -669,9 +648,13 @@ Summary:
 For a non-immediate Scheme object @var{x} of unknown type, get the type
 information by using @code{SCM_CELL_TYPE (@var{x})}.
 @item
-As soon as the cell type information is available, only use the
-appropriate access methods to read and write data to the different cell
-entries.
+As soon as the type information is available, only use the appropriate
+access methods to read and write data to the different heap object
+fields.
+@item
+Note that field 0 stores the cell type information.  Generally speaking,
+other data associated with a heap object is stored starting from field
+1.
 @end itemize
 
 

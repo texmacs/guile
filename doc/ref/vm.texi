@@ -272,7 +272,7 @@ program)}.  @xref{Compiled Procedures}, for a full API reference.
 
 A procedure may reference data that was statically allocated when the
 procedure was compiled.  For example, a pair of immediate objects
-(@pxref{Immediate objects}) can be allocated directly in the memory
+(@pxref{Immediate Objects}) can be allocated directly in the memory
 segment that contains the compiled bytecode, and accessed directly by
 the bytecode.
 
@@ -495,7 +495,7 @@ An offset from the current @code{ip}, in 32-bit units, as a signed
 24-bit value.  Indicates a bytecode address, for a relative jump.
 @item i16
 @itemx i32
-An immediate Scheme value (@pxref{Immediate objects}), encoded directly
+An immediate Scheme value (@pxref{Immediate Objects}), encoded directly
 in 16 or 32 bits.
 @item a32
 @itemx b32
