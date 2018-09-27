@@ -3868,16 +3868,25 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
     {
       scm_t_uint16 dst, box;
       scm_t_uint32 expected, desired;
-      SCM scm_box, scm_expected;
+      SCM scm_box, scm_expected, scm_result;
       UNPACK_12_12 (op, dst, box);
       UNPACK_24 (ip[1], expected);
       UNPACK_24 (ip[2], desired);
       scm_box = SP_REF (box);
       VM_VALIDATE_ATOMIC_BOX (scm_box, "atomic-box-compare-and-swap!");
-      scm_expected = SP_REF (expected);
-      scm_atomic_compare_and_swap_scm (scm_atomic_box_loc (scm_box),
-                                       &scm_expected, SP_REF (desired));
-      SP_SET (dst, scm_expected);
+      scm_result = scm_expected = SP_REF (expected);
+      while (!scm_atomic_compare_and_swap_scm (scm_atomic_box_loc (scm_box),
+                                               &scm_result, SP_REF (desired))
+             && scm_is_eq (scm_result, scm_expected))
+        {
+          /* 'scm_atomic_compare_and_swap_scm' has spuriously failed,
+             i.e. it has returned 0 to indicate failure, although the
+             observed value is 'eq?' to EXPECTED.  In this case, we *must*
+             try again, because the API of 'atomic-box-compare-and-swap!'
+             provides no way to indicate to the caller that the exchange
+             failed when the observed value is 'eq?' to EXPECTED.  */
+        }
+      SP_SET (dst, scm_result);
       NEXT (3);
     }
 
