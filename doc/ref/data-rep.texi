@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010, 2015
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010, 2015, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -324,24 +324,28 @@ is a nightmare to maintain. Thus, the BDW-GC uses a technique called
 @dfn{conservative garbage collection}, to make the local variable list
 unnecessary.
 
-The trick to conservative collection is to treat the stack as an
-ordinary range of memory, and assume that @emph{every} word on the stack
-is a pointer into the heap.  Thus, the collector marks all objects whose
-addresses appear anywhere in the stack, without knowing for sure how
-that word is meant to be interpreted.
+The trick to conservative collection is to treat the C stack as an
+ordinary range of memory, and assume that @emph{every} word on the C
+stack is a pointer into the heap.  Thus, the collector marks all objects
+whose addresses appear anywhere in the C stack, without knowing for sure
+how that word is meant to be interpreted.
 
 In addition to the stack, the BDW-GC will also scan static data
 sections. This means that global variables are also scanned when looking
 for live Scheme objects.
 
 Obviously, such a system will occasionally retain objects that are
-actually garbage, and should be freed. In practice, this is not a
-problem. The alternative, an explicitly maintained list of local
-variable addresses, is effectively much less reliable, due to programmer
-error. Interested readers should see the BDW-GC web page at
-@uref{http://www.hboehm.info/gc/}, for more
-information.
+actually garbage, and should be freed.  In practice, this is not a
+problem, as the set of conservatively-scanned locations is fixed; the
+Scheme stack is maintained apart from the C stack, and is scanned
+precisely (as opposed to conservatively).  The GC-managed heap is also
+partitioned into parts that can contain pointers (such as vectors) and
+parts that can't (such as bytevectors), limiting the potential for
+confusing a raw integer with a pointer to a live object.
 
+Interested readers should see the BDW-GC web page at
+@uref{http://www.hboehm.info/gc/}, for more information on conservative
+GC in general and the BDW-GC implementation in particular.
 
 @node The SCM Type in Guile
 @subsection The SCM Type in Guile
