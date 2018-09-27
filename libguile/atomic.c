@@ -1,4 +1,4 @@
-/* Copyright 2016,2018
+/* Copyright 2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -102,10 +102,21 @@ SCM_DEFINE (scm_atomic_box_compare_and_swap_x,
             "if the return value is @code{eq?} to @var{expected}.")
 #define FUNC_NAME s_scm_atomic_box_compare_and_swap_x
 {
+  SCM result = expected;
+
   SCM_VALIDATE_ATOMIC_BOX (1, box);
-  scm_atomic_compare_and_swap_scm (scm_atomic_box_loc (box),
-                                   &expected, desired);
-  return expected;
+  while (!scm_atomic_compare_and_swap_scm (scm_atomic_box_loc (box),
+                                           &result, desired)
+         && scm_is_eq (result, expected))
+    {
+      /* 'scm_atomic_compare_and_swap_scm' has spuriously failed,
+         i.e. it has returned 0 to indicate failure, although the
+         observed value is 'eq?' to EXPECTED.  In this case, we *must*
+         try again, because the API of 'atomic-box-compare-and-swap!'
+         provides no way to indicate to the caller that the exchange
+         failed when the observed value is 'eq?' to EXPECTED.  */
+    }
+  return result;
 }
 #undef FUNC_NAME
 

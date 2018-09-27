@@ -1,4 +1,4 @@
-/* Copyright 2018
+/* Copyright 2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -459,8 +459,20 @@ atomic_swap_scm (SCM *loc, SCM val)
 static SCM
 atomic_compare_and_swap_scm (SCM *loc, SCM expected, SCM desired)
 {
-  scm_atomic_compare_and_swap_scm (loc, &expected, desired);
-  return expected;
+  SCM result = expected;
+
+  while (!scm_atomic_compare_and_swap_scm (loc, &result, desired)
+         && scm_is_eq (result, expected))
+    {
+      /* 'scm_atomic_compare_and_swap_scm' has spuriously failed,
+         i.e. it has returned 0 to indicate failure, although the
+         observed value is 'eq?' to EXPECTED.  In this case, we *must*
+         try again, because the API of 'atomic-box-compare-and-swap!'
+         provides no way to indicate to the caller that the exchange
+         failed when the observed value is 'eq?' to EXPECTED.  */
+    }
+
+  return result;
 }
 
 void
