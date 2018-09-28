@@ -50,26 +50,28 @@ programs to Guile's VM.
 @subsection Why a VM?
 
 @cindex interpreter
-For a long time, Guile only had an interpreter. Guile's interpreter
-operated directly on the S-expression representation of Scheme source
-code.
+For a long time, Guile only had a Scheme interpreter, implemented in C.
+Guile's interpreter operated directly on the S-expression representation
+of Scheme source code.
 
 But while the interpreter was highly optimized and hand-tuned, it still
-performed many needless computations during the course of evaluating an
-expression. For example, application of a function to arguments
+performed many needless computations during the course of evaluating a
+Scheme expression.  For example, application of a function to arguments
 needlessly consed up the arguments in a list. Evaluation of an
-expression always had to figure out what the car of the expression is --
-a procedure, a memoized form, or something else. All values have to be
-allocated on the heap. Et cetera.
+expression like @code{(f x y)} always had to figure out whether @var{f}
+was a procedure, or a special form like @code{if}, or something else.
+The interpreter represented the lexical environment as a heap data
+structure, so every evaluation caused allocation, which was of course
+slow.  Et cetera.
 
-The solution to this problem was to compile the higher-level language,
-Scheme, into a lower-level language for which all of the checks and
-dispatching have already been done---the code is instead stripped to
-the bare minimum needed to ``do the job''.
+The solution to the slow-interpreter problem was to compile the
+higher-level language, Scheme, into a lower-level language for which all
+of the checks and dispatching have already been done---the code is
+instead stripped to the bare minimum needed to ``do the job''.
 
-The question becomes then, what low-level language to choose? There
-are many options. We could compile to native code directly, but that
-poses portability problems for Guile, as it is a highly cross-platform
+The question becomes then, what low-level language to choose? There are
+many options.  We could compile to native code directly, but that poses
+portability problems for Guile, as it is a highly cross-platform
 project.
 
 So we want the performance gains that compilation provides, but we
@@ -78,37 +80,40 @@ The obvious solution is to compile to a virtual machine that is
 present on all Guile installations.
 
 The easiest (and most fun) way to depend on a virtual machine is to
-implement the virtual machine within Guile itself. Guile contains a
+implement the virtual machine within Guile itself.  Guile contains a
 bytecode interpreter (written in C) and a Scheme to bytecode compiler
-(written in Scheme). This way the virtual machine provides what Scheme
+(written in Scheme).  This way the virtual machine provides what Scheme
 needs (tail calls, multiple values, @code{call/cc}) and can provide
-optimized inline instructions for Guile (@code{cons}, @code{struct-ref},
-etc.).
+optimized inline instructions for Guile as well (GC-managed allocations,
+type checks, etc.).
 
-So this is what Guile does. The rest of this section describes that VM
-that Guile implements, and the compiled procedures that run on it.
+Guie also includes a just-in-time (JIT) compiler to translate bytecode
+to native code.  Because Guile uses the portable GNU Lightning library
+to emit that code, we keep the benefits of portability while also
+benefitting from fast native code.  To avoid too much time spent in the
+JIT compiler itself, Guile is tuned to only emit machine code for
+bytecode that is called often.
+
+The rest of this section describes that VM that Guile implements, and
+the compiled procedures that run on it.
 
 Before moving on, though, we should note that though we spoke of the
 interpreter in the past tense, Guile still has an interpreter. The
-difference is that before, it was Guile's main evaluator, and so was
-implemented in highly optimized C; now, it is actually implemented in
-Scheme, and compiled down to VM bytecode, just like any other program.
-(There is still a C interpreter around, used to bootstrap the compiler,
-but it is not normally used at runtime.)
+difference is that before, it was Guile's main Scheme implementation,
+and so was implemented in highly optimized C; now, it is actually
+implemented in Scheme, and compiled down to VM bytecode, just like any
+other program.  (There is still a C interpreter around, used to
+bootstrap the compiler, but it is not normally used at runtime.)
 
 The upside of implementing the interpreter in Scheme is that we preserve
 tail calls and multiple-value handling between interpreted and compiled
-code. The downside is that the interpreter in Guile 2.2 is still about
-twice as slow as the interpreter in 1.8.  Since Scheme users are mostly
-running compiled code, the compiler's speed more than makes up for the
-loss.  In any case, once we have native compilation for Scheme code, we
-expect the self-hosted interpreter to handily beat the old hand-tuned C
-implementation.
+code, and with advent of the JIT compiler in Guile 3.0 we reach the
+speed of the old hand-tuned C implementation; it's the best of both
+worlds.
 
 Also note that this decision to implement a bytecode compiler does not
-preclude native compilation. We can compile from bytecode to native
-code at runtime, or even do ahead of time compilation. More
-possibilities are discussed in @ref{Extending the Compiler}.
+preclude ahead-of-time native compilation.  More possibilities are
+discussed in @ref{Extending the Compiler}.
 
 @node VM Concepts
 @subsection VM Concepts
