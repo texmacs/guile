@@ -7,18 +7,34 @@
 @node A Virtual Machine for Guile
 @section A Virtual Machine for Guile
 
-Guile has both an interpreter and a compiler. To a user, the difference
-is transparent---interpreted and compiled procedures can call each other
-as they please.
+Enough about data---how does Guile run code?
 
-The difference is that the compiler creates and interprets bytecode
-for a custom virtual machine, instead of interpreting the
-S-expressions directly. Loading and running compiled code is faster
-than loading and running source code.
+Computer systems consist of towers of languages, each level defining a
+higher level language and implemented using lower-level facilities.
+Sometimes these languages are implemented using interpreters: programs
+that run along-side the program being interpreted, dynamically
+translating the high-level code to low-level code.  Sometimes these
+languages are implemented using compilers: programs that translate
+high-level programs to equivalent low-level code, and pass on that
+low-level code to the next level down.  Each of these levels can be
+throught to be virtual machines; they offer programs an abstract machine
+on which to run.
 
-The virtual machine that does the bytecode interpretation is a part of
-Guile itself. This section describes the nature of Guile's virtual
-machine.
+Guile implements a number of interpreters and compilers on different
+language levels.  For example, there is an interpreter for the Scheme
+language that is itself implemented as a Scheme program compiled to a
+bytecode for a low-level virtual machine shipped with Guile.  That
+virtual machine is implemented by both an interpreter---a C program that
+interprets the bytecodes---and a compiler---a C program that dynamically
+translates bytecode programs to native machine code.
+
+Even the lowest-level machine code can be thought to be interpreted by
+the CPU, and indeed is often implemented by compiling machine
+instructions to ``micro-operations''.
+
+This section describes the language implemented by Guile's bytecode
+virtual machine, as well as some examples of translations of Scheme
+programs to Guile's VM.
 
 @menu
 * Why a VM?::                   
