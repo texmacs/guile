@@ -240,7 +240,7 @@ Consider the following Scheme code as an example:
 
 @example
   (define (foo a)
-    (lambda (b) (list foo a b)))
+    (lambda (b) (vector foo a b)))
 @end example
 
 Within the lambda expression, @code{foo} is a top-level variable,
@@ -307,50 +307,107 @@ segment that contains the compiled bytecode, and accessed directly by
 the bytecode.
 
 Another use for statically allocated data is to serve as a cache for a
-bytecode.  Top-level variable lookups are handled in this way.  If the
-@code{toplevel-box} instruction finds that it does not have a cached
-variable for a top-level reference, it accesses other static data to
-resolve the reference, and fills in the cache slot.  Thereafter all
-access to the variable goes through the cache cell.  The variable's
-value may change in the future, but the variable itself will not.
+bytecode.  Top-level variable lookups are handled in this way; the first
+time a top-level binding is referenced, the resolved variable will be
+stored in a cache.  Thereafter all access to the variable goes through
+the cache cell.  The variable's value may change in the future, but the
+variable itself will not.
 
 We can see how these concepts tie together by disassembling the
 @code{foo} function we defined earlier to see what is going on:
 
 @smallexample
-scheme@@(guile-user)> (define (foo a) (lambda (b) (list foo a b)))
+scheme@@(guile-user)> (define (foo a) (lambda (b) (vector foo a b)))
 scheme@@(guile-user)> ,x foo
-Disassembly of #<procedure foo (a)> at #xea4ce4:
+Disassembly of #<procedure foo (a)> at #xf1da30:
 
-   0    (assert-nargs-ee/locals 2 0)    ;; 2 slots (1 arg)    at (unknown file):1:0
-   1    (make-closure 1 7 1)            ;; anonymous procedure at #xea4d04 (1 free var)
-   4    (free-set! 1 0 0)               ;; free var 0
-   6    (mov 0 1)
-   7    (return-values 2)               ;; 1 value
+   0    (instrument-entry 164)                                at (unknown file):5:0
+   2    (assert-nargs-ee/locals 2 1)    ;; 3 slots (1 arg)
+   3    (allocate-words/immediate 2 3)                        at (unknown file):5:16
+   4    (load-u64 0 0 65605)
+   7    (word-set!/immediate 2 0 0)
+   8    (load-label 0 7)                ;; anonymous procedure at #xf1da6c
+  10    (word-set!/immediate 2 1 0)
+  11    (scm-set!/immediate 2 2 1)
+  12    (reset-frame 1)                 ;; 1 slot
+  13    (handle-interrupts)
+  14    (return-values)
 
 ----------------------------------------
-Disassembly of anonymous procedure at #xea4d04:
+Disassembly of anonymous procedure at #xf1da6c:
 
-   0    (assert-nargs-ee/locals 2 2)    ;; 4 slots (1 arg)    at (unknown file):1:16
-   1    (toplevel-box 1 74 58 68 #t)    ;; `foo'
-   6    (box-ref 1 1)                   
-   7    (make-short-immediate 0 772)    ;; ()                 at (unknown file):1:28
-   8    (cons 2 2 0)                    
-   9    (free-ref 3 3 0)                ;; free var 0
-  11    (cons 3 3 2)
-  12    (cons 2 1 3)
-  13    (return-values 2)               ;; 1 value
+   0    (instrument-entry 183)                                at (unknown file):5:16
+   2    (assert-nargs-ee/locals 2 3)    ;; 5 slots (1 arg)
+   3    (static-ref 2 152)              ;; #<variable 112e530 value: #<procedure foo (a)>>
+   5    (immediate-tag=? 2 7 0)         ;; heap-object?
+   7    (je 19)                         ;; -> L2
+   8    (static-ref 2 119)              ;; #<directory (guile-user) ca9750>
+  10    (static-ref 1 127)              ;; foo
+  12    (call-scm<-scm-scm 2 2 1 40)
+  14    (immediate-tag=? 2 7 0)         ;; heap-object?
+  16    (jne 8)                         ;; -> L1
+  17    (scm-ref/immediate 0 2 1)
+  18    (immediate-tag=? 0 4095 2308)   ;; undefined?
+  20    (je 4)                          ;; -> L1
+  21    (static-set! 2 134)             ;; #<variable 112e530 value: #<procedure foo (a)>>
+  23    (j 3)                           ;; -> L2
+L1:
+  24    (throw/value 1 151)             ;; #(unbound-variable #f "Unbound variable: ~S")
+L2:
+  26    (scm-ref/immediate 2 2 1)
+  27    (allocate-words/immediate 1 4)                        at (unknown file):5:28
+  28    (load-u64 0 0 781)
+  31    (word-set!/immediate 1 0 0)
+  32    (scm-set!/immediate 1 1 2)
+  33    (scm-ref/immediate 4 4 2)
+  34    (scm-set!/immediate 1 2 4)
+  35    (scm-set!/immediate 1 3 3)
+  36    (mov 4 1)
+  37    (reset-frame 1)                 ;; 1 slot
+  38    (handle-interrupts)
+  39    (return-values)
 @end smallexample
 
-First there's some prelude, where @code{foo} checks that it was called
-with only 1 argument.  Then at @code{ip} 1, we allocate a new closure
-and store it in slot 1, relative to the @code{sp}.
+The first thing to notice is that the bytecode is at a fairly low level.
+When a program is compiled from Scheme to bytecode, it is expressed in
+terms of more primitive operations.  As such, there can be more
+instructions than you might expect.
 
-At run-time, local variables in Guile are usually addressed relative to
-the stack pointer, which leads to a pleasantly efficient
-@code{sp[@var{n}]} access.  However it can make the disassembly hard to
-read, because the @code{sp} can change during the function, and because
-incoming arguments are relative to the @code{fp}, not the @code{sp}.
+The first chunk of instructions is the outer @code{foo} procedure.  It
+is followed by the code for the contained closure.  The code can look
+daunting at first glance, but with practice it quickly becomes
+comprehensible, and indeed being able to read bytecode is an important
+step to understanding the low-level performance of Guile programs.
+
+The @code{foo} function begins with a prelude.  The
+@code{instrument-entry} bytecode increments a counter associated with
+the function.  If the counter reaches a certain threshold, Guile will
+emit machine code (``JIT-compile'') for @code{foo}.  Emitting machine
+code is fairly cheap but it does take time, so it's not something you
+want to do for every function.  Using a per-function counter and a
+global threshold allows Guile to spend time JIT-compiling only the
+``hot'' functions.
+
+Next in the prelude is an argument-checking instruction, which checks
+that it was called with only 1 argument (plus the callee function itself
+makes 2) and then reserves stack space for an additional 2 locals.
+
+Then from @code{ip} 3 to 11, we allocate a new closure by allocating a
+three-word object, initializing its first word to store a type tag,
+setting its second word to its code pointer, and finally at @code{ip}
+11, storing local value 1 (the @code{a} argument) into the third word
+(the first free variable).
+
+Before returning, @code{foo} ``resets the frame'' to hold only one local
+(the return value), runs any pending interrupts (@pxref{Asyncs}) and
+then returns.
+
+Note that local variables in Guile's virtual machine are usually
+addressed relative to the stack pointer, which leads to a pleasantly
+efficient @code{sp[@var{n}]} access.  However it can make the
+disassembly hard to read, because the @code{sp} can change during the
+function, and because incoming arguments are relative to the @code{fp},
+not the @code{sp}.
 
 To know what @code{fp}-relative slot corresponds to an
 @code{sp}-relative reference, scan up in the disassembly until you get
@@ -362,30 +419,30 @@ Guile doesn't need the value of the closure to compute its result, and
 so slot 0 was free for re-use, in this case for the result of making a
 new closure.
 
-A closure is code with data.  The @code{6} in the @code{(make-closure 1
-6 1)} is a relative offset from the instruction pointer of the code for
-the closure, and the final @code{1} indicates that the closure has space
-for 1 free variable.  @code{Ip} 4 initializes free variable 0 in the new
-closure with the value from @code{sp}-relative slot 0, which corresponds
-to @code{fp}-relative slot 1, the first argument of @code{foo}:
-@code{a}.  Finally we return the closure.
+A closure is code with data.  As you can see, making the closure
+involved making an object (@code{ip} 3), putting a code pointer in it
+(@code{ip} 8 and 10), and putting in the closure's free variable
+(@code{ip} 11).
 
 The second stanza disassembles the code for the closure.  After the
-prelude, we load the variable for the toplevel variable @code{foo} into
-slot 1.  This lookup occurs lazily, the first time the variable is
-actually referenced, and the location of the lookup is cached so that
-future references are very cheap.  @xref{Top-Level Environment
-Instructions}, for more details.  The @code{box-ref} dereferences the
-variable cell, replacing the contents of slot 1.
+prelude, all of the code between @code{ip} 5 and 24 related to loading
+the load the variable for the toplevel variable @code{foo} into slot 1.
+This lookup happens only once, and is associated with a cache; after the
+first run, the value in the cache will be a bound variable, and the code
+will jump from @code{ip} 7 to 26.  On the first run, Guile gets the
+module associated with the function, calls out to a run-time routine to
+look up the variable, and checks that the variable is bound before
+initializing the cache.  Either way, @code{ip} 26 dereferences the
+variable into local 2.
 
-What follows is a sequence of conses to build up the result list.
-@code{Ip} 7 makes the tail of the list.  @code{Ip} 8 conses on the value
-in slot 2, corresponding to the first argument to the closure: @code{b}.
-@code{Ip} 9 loads free variable 0 of slot 3 -- the procedure being
-called, in @code{fp}-relative slot 0 -- into slot 3, then @code{ip} 11
-conses it onto the list.  Finally we cons the value in slot 1,
-containing the @code{foo} toplevel, onto the front of the list, and we
-return it.
+What follows is the allocation and initialization of the vector return
+value.  @code{Ip} 27 does the allocation, and the following two
+instructions initialize the type-and-length tag for the object's first
+word.  @code{Ip} 32 sets word 1 of the object (the first vector slot) to
+the value of @code{foo}; @code{ip} 33 fetches the closure variable for
+@code{a}, then in @code{ip} 34 stores it in the second vector slot; and
+finally, in @code{ip} 35, local @code{b} is stored to the third vector
+slot.  This is followed by the return sequence.
 
 
 @node Object File Format
