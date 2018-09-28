@@ -118,9 +118,9 @@ discussed in @ref{Extending the Compiler}.
 @node VM Concepts
 @subsection VM Concepts
 
-Compiled code is run by a virtual machine (VM).  Each thread has its own
-VM.  The virtual machine executes the sequence of instructions in a
-procedure.
+The bytecode in a Scheme procedure is interpreted by a virtual machine
+(VM).  Each thread has its own instantiation of the VM.  The virtual
+machine executes the sequence of instructions in a procedure.
 
 Each VM instruction starts by indicating which operation it is, and then
 follows by encoding its source and destination operands.  Each procedure
