@@ -167,20 +167,22 @@ course is the tail call case, @pxref{Tail Calls}.)
 The structure of the top stack frame is as follows:
 
 @example
-   | ...              |
-   +==================+ <- fp + 2 = SCM_FRAME_PREVIOUS_SP (fp)
-   | Dynamic link     |
-   +------------------+
-   | Return address   |
-   +==================+ <- fp
-   | Local 0          |
-   +------------------+
-   | Local 1          |
-   +------------------+
-   | ...              |
-   +------------------+
-   | Local N-1        |
-   \------------------/ <- sp
+   | ...previous frame locals...  |
+   +==============================+ <- fp + 3
+   | Dynamic link                 |
+   +------------------------------+
+   | Virtual return address (vRA) |
+   +------------------------------+
+   | Machine return address (mRA) |
+   +==============================+ <- fp
+   | Local 0                      |
+   +------------------------------+
+   | Local 1                      |
+   +------------------------------+
+   | ...                          |
+   +------------------------------+
+   | Local N-1                    |
+   \------------------------------/ <- sp
 @end example
 
 In the above drawing, the stack grows downward.  At the beginning of a
@@ -196,18 +198,25 @@ backtraces in Guile aren't always able to show all of the arguments: it
 could be that the slot corresponding to that argument was re-used by
 some other variable.
 
-The @dfn{return address} is the @code{ip} that was in effect before this
-program was applied.  When we return from this activation frame, we will
-jump back to this @code{ip}.  Likewise, the @dfn{dynamic link} is the
-offset of the @code{fp} that was in effect before this program was
-applied, relative to the current @code{fp}.
+The @dfn{virtual return address} is the @code{ip} that was in effect
+before this program was applied.  When we return from this activation
+frame, we will jump back to this @code{ip}.  Likewise, the @dfn{dynamic
+link} is the offset of the @code{fp} that was in effect before this
+program was applied, relative to the current @code{fp}.
+
+There are two return addresses: the virtual return address (vRA), and
+the machine return address (mRA).  The vRA is always present and
+indicates a bytecode address.  The mRA is only present when a call is
+made from a function with machine code (e.g. a function that has been
+JIT-compiled).
 
 To prepare for a non-tail application, Guile's VM will emit code that
 shuffles the function to apply and its arguments into appropriate stack
-slots, with two free slots below them.  The call then initializes those
-free slots with the current @code{ip} and @code{fp}, and updates
-@code{ip} to point to the function entry, and @code{fp} to point to the
-new call frame.
+slots, with three free slots below them.  The call then initializes
+those free slots to hold the machine return address (or NULL), the
+virtual return address, and the offset to the previous frame pointer
+(@code{fp}).  It then gets the @code{ip} for the function being called
+and adjusts @code{fp} to point to the new call frame.
 
 In this way, the dynamic link links the current frame to the previous
 frame.  Computing a stack trace involves traversing these frames.
