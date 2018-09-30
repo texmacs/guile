@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008-2016
+@c Copyright (C)  2008-2016, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1175,15 +1175,15 @@ compile-time from a machine-readable description of the VM.  With a few
 exceptions for certain operand types, each operand of an emit procedure
 corresponds to an operand of the corresponding instruction.
 
-Consider @code{vector-length}, from @pxref{Miscellaneous Instructions}.
+Consider @code{allocate-words}, from @pxref{Memory Access Instructions}.
 It is documented as:
 
-@deftypefn Instruction {} vector-length u12:@var{dst} u12:@var{src}
+@deftypefn Instruction {} allocate-words s12:@var{dst} s12:@var{nwords}
 @end deftypefn
 
 Therefore the emit procedure has the form:
 
-@deffn {Scheme Procedure} emit-vector-length asm dst src
+@deffn {Scheme Procedure} emit-allocate-words asm dst nwords
 @end deffn
 
 All emit procedure take the assembler as their first argument, and
@@ -1191,9 +1191,9 @@ return no useful values.
 
 The argument types depend on the operand types.  @xref{Instruction Set}.
 Most are integers within a restricted range, though labels are generally
-expressed as opaque symbols.
-
-There are a few macro-instructions as well.
+expressed as opaque symbols.  Besides the emitters that correspond to
+instructions, there are a few additional helpers defined in the
+assembler module.
 
 @deffn {Scheme Procedure} emit-label asm label
 Define a label at the current program point.
@@ -1203,15 +1203,11 @@ Define a label at the current program point.
 Associate @var{source} with the current program point.
 @end deffn
 
-@deffn {Scheme Procedure} emit-cache-current-module! asm module scope
-@deffnx {Scheme Procedure} emit-cached-toplevel-box asm dst scope sym bound?
-@deffnx {Scheme Procedure} emit-cached-module-box asm dst module-name sym public? bound?
-Macro-instructions to implement caching of top-level variables.  The
-first takes the current module, in the slot @var{module}, and associates
-it with a cache location identified by @var{scope}.  The second takes a
-@var{scope}, and resolves the variable.  @xref{Top-Level Environment
-Instructions}.  The last does not need a cached module, rather taking
-the module name directly.
+@deffn {Scheme Procedure} emit-cache-ref asm dst key
+@deffnx {Scheme Procedure} emit-cache-set! asm key val
+Macro-instructions to implement compilation-unit caches.  A single cache
+cell corresponding to @var{key} will be allocated for the compilation
+unit.
 @end deffn
 
 @deffn {Scheme Procedure} emit-load-constant asm dst constant
@@ -1235,17 +1231,6 @@ variables -- procedures that are not closures.
 @deffnx {Scheme Procedure} emit-begin-kw-arity asm req opt rest kw-indices allow-other-keys? nlocals alternate
 @deffnx {Scheme Procedure} emit-end-arity asm
 Delimit a clause of a procedure.
-@end deffn
-
-@deffn {Scheme Procedure} emit-br-if-symbol asm slot invert? label
-@deffnx {Scheme Procedure} emit-br-if-variable asm slot invert? label
-@deffnx {Scheme Procedure} emit-br-if-vector asm slot invert? label
-@deffnx {Scheme Procedure} emit-br-if-string asm slot invert? label
-@deffnx {Scheme Procedure} emit-br-if-bytevector asm slot invert? label
-@deffnx {Scheme Procedure} emit-br-if-bitvector asm slot invert? label
-TC7-specific test-and-branch instructions.  The TC7 is a 7-bit code that
-is part of a heap object's type.  @xref{The SCM Type in Guile}.  Also,
-@xref{Branch Instructions}.
 @end deffn
 
 The linker is a complicated beast.  Hackers interested in how it works

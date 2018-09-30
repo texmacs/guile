@@ -1382,7 +1382,7 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  /* call-thread dst:24 IDX:32
+  /* call-scm<-thread dst:24 IDX:32
    *
    * Call the SCM-returning instrinsic with index IDX, passing the
    * current scm_thread* as argument.  Place the SCM result in DST.
@@ -1895,8 +1895,8 @@ VM_NAME (scm_thread *thread)
 
   /* scm-ref/tag dst:8 obj:8 tag:8
    *
-   * Reference the first word of OBJ, subtract the immediate TAG, and
-   * store the resulting SCM to DST.
+   * Load the first word of OBJ, subtract the immediate TAG, and store
+   * the resulting SCM to DST.
    */
   VM_DEFINE_OP (69, scm_ref_tag, "scm-ref/tag", DOP1 (X8_S8_S8_C8))
     {
@@ -1909,10 +1909,10 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  /* scm-ref/tag dst:8 obj:8 tag:8
+  /* scm-set!/tag obj:8 tag:8 val:8
    *
-   * Reference the first word of OBJ, subtract the immediate TAG, and
-   * store the resulting SCM to DST.
+   * Set the first word of OBJ to the SCM value VAL plus the immediate
+   * value TAG.
    */
   VM_DEFINE_OP (70, scm_set_tag, "scm-set!/tag", OP1 (X8_S8_C8_S8))
     {
@@ -2068,7 +2068,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  /* scm-ref/immediate dst:8 obj:8 idx:8
+  /* atomic-scm-ref/immediate dst:8 obj:8 idx:8
    *
    * Atomically reference the SCM object at word offset IDX from local
    * OBJ, and store it to DST, using the sequential consistency memory
@@ -2805,7 +2805,7 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  /* =? a:12 b:12
+  /* heap-numbers-equal? a:12 b:12
    *
    * Set the comparison result to EQUAL if the SCM values A and B are
    * numerically equal, in the sense of "=".  Set to NONE otherwise.  It
