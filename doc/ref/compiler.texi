@@ -654,7 +654,7 @@ them together can be matched like this, using the @code{match} form from
 @smallexample
 (match cont
   (($ $kargs (x-name y-name) (x-var y-var)
-      ($ $continue k src ($ $primcall '+ (x-var y-var))))
+      ($ $continue k src ($ $primcall '+ #f (x-var y-var))))
    (format #t "Add ~a and ~a and pass the result to label ~a"
            x-var y-var k)))
 @end smallexample
@@ -684,12 +684,22 @@ source.
 There are a number of expression kinds.  Above you see an example of
 @code{$primcall}.
 
-@deftp {CPS Expression} $primcall name args
+@deftp {CPS Expression} $primcall name param args
 Perform the primitive operation identified by @code{name}, a well-known
 symbol, passing it the arguments @var{args}, and pass all resulting
-values to the continuation.  The set of available primitives includes
-all primitives known to Tree-IL and then some more; see the source code
-for details.
+values to the continuation.
+
+@var{param} is a constant parameter whose interpretation is up to the
+primcall in question.  Usually it's @code{#f} but for a primcall that
+might need some compile-time constant information -- such as
+@code{add/immediate}, which adds a constant number to a value -- the
+parameter holds this information.
+
+The set of available primitives includes many primitives known to
+Tree-IL and then some more; see the source code for details.  Note that
+some Tree-IL primcalls need to be converted to a sequence of lower-level
+CPS primcalls.  Again, see @code{(language tree-il compile-cps)} for
+full details.
 @end deftp
 
 @cindex dominate, CPS
@@ -729,29 +739,7 @@ should all be variable names.  The continuation identified by the term's
 Pass the values named by the list @var{args} to the continuation.
 @end deftp
 
-@deftp {CPS Expression} $branch kt exp
-Evaluate the branching expression @var{exp}, and continue to @var{kt}
-with zero values if the test evaluates to true.  Otherwise continue to
-the continuation named in the outer @code{$continue} term.
-
-Only certain expressions are valid in a @var{$branch}.  Compiling a
-@code{$branch} avoids allocating space for the test variable, so the
-expression should be evaluatable without temporary values.  In practice
-this condition is true for @code{$primcall}s to @code{null?}, @code{=},
-and similar primitives that have corresponding @code{br-if-@var{foo}} VM
-operations; see the source code for full details.  When in doubt, bind
-the test expression to a variable, and branch on a @code{$values}
-expression that references that variable.  The optimizer should inline
-the reference if possible.
-@end deftp
-
 @deftp {CPS Expression} $prompt escape? tag handler
-Push a prompt on the stack identified by the variable name @var{tag},
-which may be escape-only if @var{escape?} is true, and continue with
-zero values.  If the body aborts to this prompt, control will proceed at
-the continuation labelled @var{handler}, which should be a
-@code{$kreceive} continuation.  Prompts are later popped by
-@code{pop-prompt} primcalls.
 @end deftp
 
 @cindex higher-order CPS
@@ -784,21 +772,36 @@ continuation should also define @var{names}/@var{vars} bindings.
 
 The contification pass will attempt to transform the functions declared
 in a @code{$rec} into local continuations.  Any remaining @code{$fun}
-instances are later removed by the closure conversion pass.  By default,
-a closure is represented as an object built by a @code{$closure}
-expression.
+instances are later removed by the closure conversion pass.  If the
+function has no free variables, it gets allocated as a constant.
 
-@deftp {CPS Expression} $closure label nfree
-Build a closure that joins the code at the continuation named
-@var{label} with space for @var{nfree} free variables.  The variables
-will be initialized later via @code{free-set!} primcalls.  This
-expression kind is part of first-order CPS.
+@deftp {CPS Expression} $const-fun label
+A constant which is a function whose entry point is @var{label}.  As a
+constant, instances of @code{$const-fun} with the same @var{label} will
+not allocate; the space for the function is allocated as part of the
+compilation unit.
+
+In practice, @code{$const-fun} expressions are reified by CPS-conversion
+for functions whose call sites are not all visible within the
+compilation unit and which have no free variables.  This expression kind
+is part of first-order CPS.
 @end deftp
 
-If the closure can be proven to never escape its scope then other
-lighter-weight representations can be chosen.  Additionally, if all call
-sites are known, closure conversion will hard-wire the calls by lowering
-@code{$call} to @code{$callk}.
+Otherwise, if the closure has free variables, it will be allocated at
+its definition site via an @code{allocate-words} primcall and its free
+variables initialized there.  The code pointer in the closure is
+initialized from a @code{$code} expression.
+
+@deftp {CPS Expression} $code label
+Continue with the value of @var{label}, which should denote some
+@code{$kfun} continuation in the program.  Used when initializing the
+code pointer of closure objects.
+@end deftp
+
+However, If the closure can be proven to never escape its scope then
+other lighter-weight representations can be chosen.  Additionally, if
+all call sites are known, closure conversion will hard-wire the calls by
+lowering @code{$call} to @code{$callk}.
 
 @deftp {CPS Expression} $callk label proc args
 Like @code{$call}, but for the case where the call target is known to be
@@ -806,6 +809,52 @@ in the same compilation unit.  @var{label} should denote some
 @code{$kfun} continuation in the program.  In this case the @var{proc}
 is simply an additional argument, since it is not used to determine the
 call target at run-time.
+@end deftp
+
+To summarize: a @code{$continue} is a CPS term that continues to a
+single label.  But there are other kinds of CPS terms that can continue
+to a different number of labels: @code{$branch}, @code{$throw}, and
+@code{$prompt}.
+
+@deftp {CPS Term} $branch kf kt src op param args
+Evaluate the branching primcall @var{op}, with arguments @var{args} and
+constant parameter @var{param}, and continue to @var{kt} with zero
+values if the test is true.  Otherwise continue to @var{kf}.
+
+The @code{$branch} term is like a @code{$continue} term with a
+@code{$primcall} expression, except that instead of binding a value and
+continuing to a single label, the result of the test is not bound but
+instead used to choose the continuation label.
+
+The set of operations (corresponding to @var{op} values) that are valid
+in a @var{$branch} is limited.  In the general case, bind the result of
+a test expression to a variable, and then make a @code{$branch} on a
+@code{true?} op referencing that variable.  The optimizer should inline
+the branch if possible.
+@end deftp
+
+@deftp {CPS Term} $throw src op param args
+Throw a non-resumable exception.  Throw terms do not continue at all.
+The usual value of @var{op} is @code{throw}, with two arguments
+@var{key} and @var{args}.  There are also some specific primcalls that
+compile to the VM @code{throw/value} and @code{throw/value+data}
+instructions; see the code for full details.
+
+The advantage of having @code{$throw} as a term is that, because it does
+not continue, this allows the optimizer to gather more information from
+type predicates.  For example, if the predicate is @code{char?} and the
+@var{kf} continues to a throw, the set of labels dominated by @var{kt}
+is larger than if the throw notationally continued to some label that
+would never be reached by the throw.
+@end deftp
+
+@deftp {CPS Term} $prompt k kh src escape? tag
+Push a prompt on the stack identified by the variable name @var{tag},
+which may be escape-only if @var{escape?} is true, and continue to
+@var{kh} with zero values.  If the body aborts to this prompt, control
+will proceed at the continuation labelled @var{kh}, which should be a
+@code{$kreceive} continuation.  Prompts are later popped by
+@code{pop-prompt} primcalls.
 @end deftp
 
 At this point we have described terms, expressions, and the most common
@@ -896,19 +945,24 @@ below for full details.
 @deffnx {Scheme Syntax} build-exp ,val
 @deffnx {Scheme Syntax} build-exp ($const val)
 @deffnx {Scheme Syntax} build-exp ($prim name)
-@deffnx {Scheme Syntax} build-exp ($branch kt exp)
 @deffnx {Scheme Syntax} build-exp ($fun kentry)
+@deffnx {Scheme Syntax} build-exp ($const-fun kentry)
+@deffnx {Scheme Syntax} build-exp ($code kentry)
 @deffnx {Scheme Syntax} build-exp ($rec names syms funs)
-@deffnx {Scheme Syntax} build-exp ($closure k nfree)
 @deffnx {Scheme Syntax} build-exp ($call proc (arg ...))
 @deffnx {Scheme Syntax} build-exp ($call proc args)
 @deffnx {Scheme Syntax} build-exp ($callk k proc (arg ...))
 @deffnx {Scheme Syntax} build-exp ($callk k proc args)
-@deffnx {Scheme Syntax} build-exp ($primcall name (arg ...))
-@deffnx {Scheme Syntax} build-exp ($primcall name args)
+@deffnx {Scheme Syntax} build-exp ($primcall name param (arg ...))
+@deffnx {Scheme Syntax} build-exp ($primcall name param args)
 @deffnx {Scheme Syntax} build-exp ($values (arg ...))
 @deffnx {Scheme Syntax} build-exp ($values args)
 @deffnx {Scheme Syntax} build-exp ($prompt escape? tag handler)
+@deffnx {Scheme Syntax} build-term ($branch kf kt src op param (arg ...))
+@deffnx {Scheme Syntax} build-term ($branch kf kt src op param args)
+@deffnx {Scheme Syntax} build-term ($throw src op param (arg ...))
+@deffnx {Scheme Syntax} build-term ($throw src op param args)
+@deffnx {Scheme Syntax} build-term ($prompt k kh src escape? tag)
 @deffnx {Scheme Syntax} build-cont ,val
 @deffnx {Scheme Syntax} build-cont ($kargs (name ...) (sym ...) term)
 @deffnx {Scheme Syntax} build-cont ($kargs names syms term)
@@ -949,14 +1003,15 @@ continuation of the entry to the program, which should be a function of
 no arguments.  The body of a function consists of the labelled
 continuations that are reachable from the function entry.  A program can
 refer to other functions, either via @code{$fun} and @code{$rec} in
-higher-order CPS, or via @code{$closure} and @code{$callk} in
-first-order CPS.  The program logically contains all continuations of
-all functions reachable from the entry function.  A compiler pass may
-leave unreachable continuations in a program; subsequent compiler passes
-should ensure that their transformations and analyses only take
-reachable continuations into account.  It's OK though if transformation
-runs over all continuations if including the unreachable continuations
-has no effect on the transformations on the live continuations.
+higher-order CPS, or via @code{$const-fun}, @code{$callk}, and allocated
+closures in first-order CPS.  The program logically contains all
+continuations of all functions reachable from the entry function.  A
+compiler pass may leave unreachable continuations in a program;
+subsequent compiler passes should ensure that their transformations and
+analyses only take reachable continuations into account.  It's OK though
+if transformation runs over all continuations if including the
+unreachable continuations has no effect on the transformations on the
+live continuations.
 
 @cindex intmap
 The ``soup'' itself is implemented as an @dfn{intmap}, a functional
