@@ -478,7 +478,7 @@ Otherwise @var{var} is bound, so @var{k} is called with @var{var}."
                (letv var*)
                (let$ body (k var*))
                (letk k* ($kargs (#f) (var*) ,body))
-               (build-term ($continue k* #f ($closure kfun 0))))))
+               (build-term ($continue k* #f ($const-fun kfun))))))
        ((intset-ref free var)
         (if (and self-known? (eqv? 1 nfree))
             ;; A reference to the one free var of a well-known function.
@@ -523,7 +523,7 @@ term."
          ;; The call sites cannot be enumerated, but the closure has no
          ;; identity; statically allocate it.
          (with-cps cps
-           (build-term ($continue k src ($closure label 0)))))
+           (build-term ($continue k src ($const-fun label)))))
         (#(#f nfree)
          ;; The call sites cannot be enumerated; allocate a closure.
          (with-cps cps
@@ -618,7 +618,7 @@ bound to @var{var}, and continue to @var{k}."
         (match (vector (well-known? kfun) (intset-count free))
           (#(#f 0)
            (with-cps cps
-             (build-term ($continue k src ($closure kfun 0)))))
+             (build-term ($continue k src ($const-fun kfun)))))
           (#(#t 0)
            (with-cps cps
              (build-term ($continue k src ($const #f)))))

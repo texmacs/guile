@@ -142,7 +142,7 @@
     (intmap-ref fresh-vars var (lambda (var) var)))
   (define (rename-exp exp)
     (rewrite-exp exp
-      ((or ($ $const) ($ $prim) ($ $closure) ($ $code) ($ $rec ())) ,exp)
+      ((or ($ $const) ($ $prim) ($ $const-fun) ($ $code) ($ $rec ())) ,exp)
       (($ $values args)
        ($values ,(map rename-var args)))
       (($ $call proc args)

@@ -68,7 +68,7 @@
     (match cont
       (($ $kargs _ _ ($ $continue _ _ exp))
        (match exp
-         ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $closure) ($ $code))
+         ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $const-fun) ($ $code))
           (values single multiple))
          (($ $call proc args)
           (ref* (cons proc args)))
@@ -250,7 +250,7 @@
             (($ $continue k src exp)
              ($continue k src
                ,(rewrite-exp exp
-                  ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $closure)
+                  ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $const-fun)
                        ($ $code))
                    ,exp)
                   (($ $call proc args)

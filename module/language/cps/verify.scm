@@ -143,10 +143,9 @@ definitions that are available at LABEL."
             (visit-fun kfun empty-intset (intset-add first-order kfun))))
       (match exp
         ((or ($ $const) ($ $prim)) first-order)
-        ;; todo: $closure
         (($ $fun kfun)
          (visit-fun kfun bound first-order))
-        (($ $closure kfun)
+        (($ $const-fun kfun)
          (visit-first-order kfun))
         (($ $code kfun)
          (visit-first-order kfun))
@@ -181,10 +180,9 @@ definitions that are available at LABEL."
         (($ $continue k src exp)
          (match exp
            ((or ($ $const) ($ $prim)) first-order)
-           ;; todo: $closure
            (($ $fun kfun)
             (visit-fun kfun bound first-order))
-           (($ $closure kfun)
+           (($ $const-fun kfun)
             (visit-first-order kfun))
            (($ $code kfun)
             (visit-first-order kfun))
@@ -266,7 +264,7 @@ definitions that are available at LABEL."
         ((or ($ $kreceive) ($ $ktail)) #t)
         (_ (error "expected $kreceive or $ktail continuation" cont))))
     (match exp
-      ((or ($ $const) ($ $prim) ($ $closure) ($ $code) ($ $fun))
+      ((or ($ $const) ($ $prim) ($ $const-fun) ($ $code) ($ $fun))
        (assert-unary))
       (($ $rec names vars funs)
        (unless (= (length names) (length vars) (length funs))

@@ -67,7 +67,7 @@
                              (not (effect-clobbers? fx* fx))))
                       loop-effects #t))
      (match exp
-       ((or ($ $const) ($ $prim) ($ $closure) ($ $code)) #t)
+       ((or ($ $const) ($ $prim) ($ $const-fun) ($ $code)) #t)
        (($ $primcall name param args)
         (and-map (lambda (arg) (not (intset-ref loop-vars arg)))
                  args))

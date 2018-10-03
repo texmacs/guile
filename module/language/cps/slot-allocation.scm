@@ -146,7 +146,7 @@ by a label, respectively."
          (return (intset self) empty-intset))
         (($ $kargs _ _ ($ $continue k src exp))
          (match exp
-           ((or ($ $const) ($ $closure) ($ $code))
+           ((or ($ $const) ($ $const-fun) ($ $code))
             (return (get-defs k) empty-intset))
            (($ $call proc args)
             (return (get-defs k) (intset-add (vars->intset args) proc)))

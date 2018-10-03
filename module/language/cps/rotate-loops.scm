@@ -110,7 +110,7 @@ corresponding var from REPLACEMENTS; otherwise return VAR."
            (($ $continue k src exp)
             ($continue k src
               ,(rewrite-exp exp
-                 ((or ($ $const) ($ $prim) ($ $closure) ($ $code)) ,exp)
+                 ((or ($ $const) ($ $prim) ($ $const-fun) ($ $code)) ,exp)
                  (($ $values args)
                   ($values ,(rename* args)))
                  (($ $call proc args)

@@ -1897,7 +1897,7 @@ maximum, where type is a bitset as a fixnum."
           (let ((entry (match exp
                          (($ $const val)
                           (constant-type val))
-                         ((or ($ $prim) ($ $fun) ($ $closure) ($ $code))
+                         ((or ($ $prim) ($ $fun) ($ $const-fun) ($ $code))
                           ;; Could be more precise here.
                           (make-type-entry &procedure -inf.0 +inf.0)))))
             (propagate1 k (adjoin-var types var entry))))))))

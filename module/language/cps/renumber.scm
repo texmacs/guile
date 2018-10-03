@@ -141,14 +141,14 @@
       (($ $kargs names syms ($ $continue k src ($ $rec names* syms*
                                                   (($ $fun kfun) ...))))
        (fold2 visit-fun kfun labels vars))
-      (($ $kargs names syms ($ $continue k src ($ $closure kfun nfree)))
+      (($ $kargs names syms ($ $continue k src ($ $const-fun kfun)))
        ;; Closures with zero free vars get copy-propagated so it's
        ;; possible to already have visited them.
        (maybe-visit-fun kfun labels vars))
       (($ $kargs names syms ($ $continue k src ($ $code kfun)))
        (maybe-visit-fun kfun labels vars))
       (($ $kargs names syms ($ $continue k src ($ $callk kfun)))
-       ;; Well-known functions never have a $closure created for them
+       ;; Well-known functions never have a $const-fun created for them
        ;; and are only referenced by their $callk call sites.
        (maybe-visit-fun kfun labels vars))
       (_ (values labels vars))))
@@ -169,8 +169,8 @@
     (define (rename-exp exp)
       (rewrite-exp exp
         ((or ($ $const) ($ $prim)) ,exp)
-        (($ $closure k nfree)
-         ($closure (rename-label k) nfree))
+        (($ $const-fun k)
+         ($const-fun (rename-label k)))
         (($ $code k)
          ($code (rename-label k)))
         (($ $fun body)

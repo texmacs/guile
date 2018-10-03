@@ -311,7 +311,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
                  (match term
                    (($ $continue k src exp)
                     (match exp
-                      ((or ($ $const) ($ $prim) ($ $fun) ($ $closure)
+                      ((or ($ $const) ($ $prim) ($ $fun) ($ $const-fun)
                            ($ $code) ($ $rec))
                        ;; No uses, so no info added to sigbits.
                        out)

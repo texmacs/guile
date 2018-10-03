@@ -130,7 +130,7 @@
             $continue $branch $prompt $throw
 
             ;; Expressions.
-            $const $prim $fun $rec $closure $code
+            $const $prim $fun $rec $const-fun $code
             $call $callk $primcall $values
 
             ;; Building macros.
@@ -188,7 +188,7 @@
 (define-cps-type $prim name)
 (define-cps-type $fun body) ; Higher-order.
 (define-cps-type $rec names syms funs) ; Higher-order.
-(define-cps-type $closure label nfree) ; First-order.
+(define-cps-type $const-fun label) ; First-order.
 (define-cps-type $code label) ; First-order.
 (define-cps-type $call proc args)
 (define-cps-type $callk k proc args) ; First-order.
@@ -243,14 +243,14 @@
 
 (define-syntax build-exp
   (syntax-rules (unquote
-                 $const $prim $fun $rec $closure $code
+                 $const $prim $fun $rec $const-fun $code
                  $call $callk $primcall $values)
     ((_ (unquote exp)) exp)
     ((_ ($const val)) (make-$const val))
     ((_ ($prim name)) (make-$prim name))
     ((_ ($fun kentry)) (make-$fun kentry))
     ((_ ($rec names gensyms funs)) (make-$rec names gensyms funs))
-    ((_ ($closure k nfree)) (make-$closure k nfree))
+    ((_ ($const-fun k)) (make-$const-fun k))
     ((_ ($code k)) (make-$code k))
     ((_ ($call proc (unquote args))) (make-$call proc args))
     ((_ ($call proc (arg ...))) (make-$call proc (list arg ...)))
@@ -313,8 +313,8 @@
      (build-exp ($prim name)))
     (('fun kbody)
      (build-exp ($fun kbody)))
-    (('closure k nfree)
-     (build-exp ($closure k nfree)))
+    (('const-fun k)
+     (build-exp ($const-fun k)))
     (('code k)
      (build-exp ($code k)))
     (('rec (name sym fun) ...)
@@ -364,8 +364,8 @@
      `(prim ,name))
     (($ $fun kbody)
      `(fun ,kbody))
-    (($ $closure k nfree)
-     `(closure ,k ,nfree))
+    (($ $const-fun k)
+     `(const-fun ,k))
     (($ $code k)
      `(code ,k))
     (($ $rec names syms funs)

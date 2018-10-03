@@ -144,7 +144,7 @@
          (maybe-mov dst (slot arg)))
         (($ $const exp)
          (emit-load-constant asm (from-sp dst) exp))
-        (($ $closure k 0)
+        (($ $const-fun k)
          (emit-load-static-procedure asm (from-sp dst) k))
         (($ $code k)
          (emit-load-label asm (from-sp dst) k))

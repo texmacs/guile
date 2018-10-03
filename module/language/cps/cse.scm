@@ -214,7 +214,7 @@ false.  It could be that both true and false proofs are available."
              (($ $prim name) (cons 'prim name))
              (($ $fun body) #f)
              (($ $rec names syms funs) #f)
-             (($ $closure label nfree) #f)
+             (($ $const-fun label) #f)
              (($ $code label) (cons 'code label))
              (($ $call proc args) #f)
              (($ $callk k proc args) #f)
@@ -361,7 +361,7 @@ false.  It could be that both true and false proofs are available."
 
   (define (visit-exp exp)
     (rewrite-exp exp
-      ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $closure) ($ $code)) ,exp)
+      ((or ($ $const) ($ $prim) ($ $fun) ($ $rec) ($ $const-fun) ($ $code)) ,exp)
       (($ $call proc args)
        ($call (subst-var proc) ,(map subst-var args)))
       (($ $callk k proc args)

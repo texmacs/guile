@@ -63,7 +63,7 @@
          (match term
            (($ $continue k src exp)
             (match exp
-              ((or ($ $const) ($ $prim) ($ $fun) ($ $closure) ($ $code) ($ $rec))
+              ((or ($ $const) ($ $prim) ($ $fun) ($ $const-fun) ($ $code) ($ $rec))
                use-counts)
               (($ $values args)
                (add-uses use-counts args))

@@ -134,7 +134,7 @@ sites."
          (values live-labels live-vars))
         (($ $fun body)
          (values (intset-add live-labels body) live-vars))
-        (($ $closure body)
+        (($ $const-fun body)
          (values (intset-add live-labels body) live-vars))
         (($ $code body)
          (values (intset-add live-labels body) live-vars))
@@ -307,7 +307,7 @@ sites."
              (($ $fun body)
               (values cps
                       term))
-             (($ $closure body nfree)
+             (($ $const-fun body)
               (values cps
                       term))
              (($ $rec names vars funs)
