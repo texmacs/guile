@@ -4119,7 +4119,7 @@ compile_f32_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   emit_sp_ref_f64 (j, JIT_F0, v);
   jit_extr_d_f (JIT_F0, JIT_F0);
   record_fpr_clobber (j, JIT_F0);
-  jit_stxr_d (T0, T1, JIT_F0);
+  jit_stxr_f (T0, T1, JIT_F0);
 }
 
 static void
