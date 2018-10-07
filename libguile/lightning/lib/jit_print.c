@@ -45,6 +45,11 @@
     } while (0)
 
 /*
+ * Initialization
+ */
+#include "jit_names.c"
+
+/*
  * Implementation
  */
 void

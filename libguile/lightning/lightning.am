@@ -18,6 +18,7 @@ lightning = $(top_srcdir)/libguile/lightning
 
 lightning_c_files = 				\
 	$(lightning)/lib/jit_memory.c		\
+	$(lightning)/lib/jit_names.c		\
 	$(lightning)/lib/jit_note.c		\
 	$(lightning)/lib/jit_print.c		\
 	$(lightning)/lib/jit_size.c		\
