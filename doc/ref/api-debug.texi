@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012, 2013, 2014
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012, 2013, 2014, 2018
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -938,15 +938,15 @@ when running your program, or otherwise use the @code{call-with-vm} and
 @code{set-vm-engine!}  procedures to ensure that you are running in a VM
 with the @code{debug} engine.
 
-To digress, Guile's VM has 6 different hooks (@pxref{Hooks}) that can be
-fired at different times, which may be accessed with the following
-procedures.
+To digress, Guile's VM has 4 different hooks that can be fired at
+different times.  For implementation reasons, these hooks are not
+actually implemented with first-class Scheme hooks (@pxref{Hooks}); they
+are managed using an ad-hoc interface.
 
-The first argument of calls to these hooks is the frame in question.
-@xref{Frames}.  Some hooks may call their procedures with more
-arguments.  Since these hooks may be fired very frequently, Guile does a
-terrible thing: it allocates the frames on the C stack instead of the
-garbage-collected heap.
+VM hooks are called with one argument: the current frame.
+@xref{Frames}.  Since these hooks may be fired very frequently, Guile
+does a terrible thing: it allocates the frames on the C stack instead of
+the garbage-collected heap.
 
 The upshot here is that the frames are only valid within the dynamic
 extent of the call to the hook. If a hook procedure keeps a reference to
@@ -962,48 +962,44 @@ The interface to hooks is provided by the @code{(system vm vm)} module:
 All of these functions implicitly act on the VM for the current thread
 only.
 
-@deffn {Scheme Procedure} vm-next-hook
-The hook that will be fired before an instruction is retired (and
+@deffn {Scheme Procedure} vm-add-next-hook! f
+Arrange to call @var{f} when before an instruction is retired (and
 executed).
 @end deffn
 
-@deffn {Scheme Procedure} vm-push-continuation-hook
-The hook that will be fired after preparing a new frame. Fires just
-before applying a procedure in a non-tail context, just before the
-corresponding apply-hook.
-@end deffn
-
-@deffn {Scheme Procedure} vm-pop-continuation-hook
-The hook that will be fired before returning from a frame.
-
-This hook fires with a variable number of arguments, corresponding to
-the values that the frame returns to its continuation.
-@end deffn
-
-@deffn {Scheme Procedure} vm-apply-hook
-The hook that will be fired before a procedure is applied. The frame's
-procedure will have already been set to the new procedure.
+@deffn {Scheme Procedure} vm-add-apply-hook! f
+Arrange to call @var{f} whenever a procedure is applied.  The frame
+locals will be the callee, followed by the arguments to the call.
 
 Note that procedure application is somewhat orthogonal to continuation
-pushes and pops. A non-tail call to a procedure will result first in a
-firing of the push-continuation hook, then this application hook,
-whereas a tail call will run without having fired a push-continuation
-hook.
+pushes and pops.  To know whether a call is a tail call or not, with
+respect to the frame previously in place, check the value of the frame
+pointer compared the previous frame pointer.
 @end deffn
 
-@deffn {Scheme Procedure} vm-abort-continuation-hook
-The hook that will be called after aborting to a
-prompt.  @xref{Prompts}.
+@deffn {Scheme Procedure} vm-add-return-hook! f
+Arrange to call @var{f} before returning from a frame.  The values in
+the frame will be the frame's return values.
 
-Like the pop-continuation hook, this hook fires with a variable number
-of arguments, corresponding to the values that returned to the
-continuation.
+Note that it's possible to return from an ``inner'' frame: one that was
+not immediately proceeded by a call with that frame pointer.  In that
+case, it corresponds to a non-local control flow jump, either because of
+applying a composable continuation or because of restoring a saved
+undelimited continuation.
 @end deffn
 
-@deffn {Scheme Procedure} vm-restore-continuation-hook
-The hook that will be called after restoring an undelimited
-continuation. Unfortunately it's not currently possible to introspect on
-the values that were given to the continuation.
+@deffn {Scheme Procedure} vm-add-abort-hook!
+Arrange to call @var{f} after aborting to a prompt.  @xref{Prompts}.
+
+Unfortunately, the values passed to the prompt handler are not easily
+available to @var{f}.
+@end deffn
+
+@deffn {Scheme Procedure} vm-remove-next-hook! f
+@deffnx {Scheme Procedure} vm-remove-apply-hook! f
+@deffnx {Scheme Procedure} vm-remove-return-hook! f
+@deffnx {Scheme Procedure} vm-remove-abort-hook! f
+Remove @var{f} from the corresponding VM hook for the current thread.
 @end deffn
 
 @cindex VM trace level
