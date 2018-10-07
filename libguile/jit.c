@@ -247,8 +247,8 @@ static const jit_gpr_t FP = JIT_R1;
 static const jit_gpr_t T0 = JIT_V1;
 static const jit_gpr_t T1 = JIT_V2;
 static const jit_gpr_t T2 = JIT_R2;
-static const jit_gpr_t T3_OR_FP = JIT_R1;
-static const jit_gpr_t T4_OR_SP = JIT_R0;
+/* static const jit_gpr_t T3_OR_FP = JIT_R1;  */
+/* static const jit_gpr_t T4_OR_SP = JIT_R0;  */
 
 /* Sometimes you want to call out the fact that T0 and T1 are preserved
    across calls.  In that case, use these.  */
