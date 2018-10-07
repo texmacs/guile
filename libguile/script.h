@@ -25,7 +25,6 @@
 #include "libguile/scm.h"
 
 
-SCM_API char *scm_find_executable (const char *name);
 SCM_API char **scm_get_meta_args (int argc, char **argv);
 SCM_API int scm_count_argv (char **argv);
 SCM_API void scm_shell_usage (int fatal, char *message);

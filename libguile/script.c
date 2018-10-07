@@ -53,81 +53,13 @@
 #include "script.h"
 
 
-/* Concatentate str2 onto str1 at position n and return concatenated
-   string if file exists; 0 otherwise. */
-
-static char *
-scm_cat_path (char *str1, const char *str2, long n)
-{
-  if (!n)
-    n = strlen (str2);
-  if (str1)
-    {
-      size_t len = strlen (str1);
-      str1 = (char *) realloc (str1, (size_t) (len + n + 1));
-      if (!str1)
-	return 0L;
-      strncat (str1 + len, str2, n);
-      return str1;
-    }
-  str1 = (char *) scm_malloc ((size_t) (n + 1));
-  if (!str1)
-    return 0L;
-  str1[0] = 0;
-  strncat (str1, str2, n);
-  return str1;
-}
-
-#ifndef LINE_INCREMENTORS
-#define LINE_INCREMENTORS  '\n'
+#ifndef WHITE_SPACES
 #ifdef MSDOS
 #define WHITE_SPACES  ' ':case '\t':case '\r':case '\f':case 26
 #else
 #define WHITE_SPACES  ' ':case '\t':case '\r':case '\f'
 #endif /* def MSDOS */
 #endif /* ndef LINE_INCREMENTORS */
-
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 80
-#endif /* ndef MAXPATHLEN */
-#ifndef X_OK
-#define X_OK 1
-#endif /* ndef X_OK */
-
-char *
-scm_find_executable (const char *name)
-{
-  char tbuf[MAXPATHLEN];
-  int i = 0, c;
-  FILE *f;
-
-  /* fprintf(stderr, "s_f_e checking access %s ->%d\n", name, access(name, X_OK)); fflush(stderr); */
-  if (access (name, X_OK))
-    return 0L;
-  f = fopen (name, "r");
-  if (!f)
-    return 0L;
-  if ((fgetc (f) == '#') && (fgetc (f) == '!'))
-    {
-      while (1)
-	switch (c = fgetc (f))
-	  {
-	  case /*WHITE_SPACES */ ' ':
-	  case '\t':
-	  case '\r':
-	  case '\f':
-	  case EOF:
-	    tbuf[i] = 0;
-	    fclose (f);
-	    return scm_cat_path (0L, tbuf, 0L);
-	  default:
-	    tbuf[i++] = c;
-	    break;
-	  }
-    }
-  fclose (f);
-  return scm_cat_path (0L, name, 0L);
-}
 
 
 /* Read a \nnn-style escape.  We've just read the backslash.  */

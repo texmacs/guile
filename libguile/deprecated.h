@@ -111,6 +111,8 @@ typedef ptrdiff_t scm_t_ptrdiff SCM_DEPRECATED_TYPE;
 typedef struct scm_thread scm_i_thread SCM_DEPRECATED_TYPE;
 #undef SCM_DEPRECATED_TYPE
 
+SCM_DEPRECATED char* scm_find_executable (const char *name);
+
 void scm_i_init_deprecated (void);
 
 #endif

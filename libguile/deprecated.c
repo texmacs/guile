@@ -21,9 +21,14 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 #define SCM_BUILDING_DEPRECATED_CODE
 
 #include "deprecation.h"
+#include "gc.h"
 
 #include "deprecated.h"
 
@@ -31,7 +36,50 @@
 
 
 
-/* Newly deprecated code goes here.  */
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 80
+#endif /* ndef MAXPATHLEN */
+#ifndef X_OK
+#define X_OK 1
+#endif /* ndef X_OK */
+
+char *
+scm_find_executable (const char *name)
+{
+  char tbuf[MAXPATHLEN];
+  int i = 0, c;
+  FILE *f;
+
+  scm_c_issue_deprecation_warning ("scm_find_executable is deprecated.");
+
+  /* fprintf(stderr, "s_f_e checking access %s ->%d\n", name, access(name, X_OK)); fflush(stderr); */
+  if (access (name, X_OK))
+    return 0L;
+  f = fopen (name, "r");
+  if (!f)
+    return 0L;
+  if ((fgetc (f) == '#') && (fgetc (f) == '!'))
+    {
+      while (1)
+	switch (c = fgetc (f))
+	  {
+	  case /*WHITE_SPACES */ ' ':
+	  case '\t':
+	  case '\r':
+	  case '\f':
+	  case EOF:
+	    tbuf[i] = 0;
+	    fclose (f);
+	    return strdup (tbuf);
+	  default:
+	    tbuf[i++] = c;
+	    break;
+	  }
+    }
+  fclose (f);
+  return strdup (name);
+}
+
 
 
 
