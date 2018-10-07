@@ -540,7 +540,6 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (7, return_values, "return-values", OP1 (X32))
     {
       union scm_vm_stack_element *old_fp;
-      size_t frame_size = 3;
       uint8_t *mcode;
 
       RETURN_HOOK ();
