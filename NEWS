@@ -6,9 +6,37 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in alpha 2.3.0 (since the stable 2.2 series):
+Changes in alpha 2.3.1 (since the stable 2.2 series):
 
 * Notable changes
+
+** Just-in-time code generation
+
+Guile programs now run up to 4 times faster, relative to Guile 2.2,
+thanks to just-in-time (JIT) native code generation.  Notably, this
+brings the performance of "eval" as written in Scheme back to the level
+of "eval" written in C, as in the days of Guile 1.8.
+
+See "Just-In-Time Native Code" in the manual, for more information.  JIT
+compilation will be enabled automatically and transparently.  To disable
+JIT compilation, configure Guile with `--enable-jit=no' or
+`--disable-jit'.  See `./configure --help' for more.
+
+Guile uses an embedded copy of GNU lightning, providing support for JIT
+on about a dozen platforms.
+
+** Lower-level bytecode
+
+Relative to the virtual machine in Guile 2.2, Guile's VM instruction set
+is now more low-level.  This allows it to express more advanced
+optimizations, for example type check elision or integer
+devirtualization, and makes the task of JIT code generation easier.
+
+Note that this change can mean that for a given function, the
+corresponding number of instructions in Guile 3.0 may be higher than
+Guile 2.2, which can lead to slowdowns when the function is interpreted.
+We hope that JIT compilation more than makes up for this slight
+slowdown.
 
 ** By default, GOOPS classes are not redefinable
 
@@ -26,13 +54,18 @@ redefinable.  To make a class redefinable, it should be an instance of
 `<redefinable-class>'.  See "Redefining a Class" in the manual for more
 information.
 
-* New interfaces
-
 * New deprecations
 
-* Bug fixes
+** scm_t_uint8, etc deprecated in favor of C99 stdint.h
 
-* Performance improvements
+It used to be that Guile defined its own `scm_t_uint8' because C99
+`uint8_t' wasn't widely enough available.  Now Guile finally made the
+change to use C99 types, both internally and in Guile's public headers.
+
+Note that this also applies to SCM_T_UINT8_MAX, SCM_T_INT8_MIN, for intN
+and uintN for N in 8, 16, 32, and 64.  Guile also now uses ptrdiff_t
+instead of scm_t_ptrdiff, and similarly for intmax_t, uintmax_t,
+intptr_t, and uintptr_t.
 
 * Incompatible changes
 
@@ -51,6 +84,12 @@ and `scm_array_handle_rank' to check the rank.
 
 These fields were used as part of the machinery for class redefinition
 and is no longer needed.
+
+** VM hook manipulation simplified
+
+The low-level mechanism to instrument a running virtual machine for
+debugging and tracing has been simplified.  See "VM Hooks" in the
+manual, for more.
 
 * Changes to the distribution
 
