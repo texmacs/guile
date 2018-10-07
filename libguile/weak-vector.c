@@ -32,6 +32,7 @@
 #include "list.h"
 #include "pairs.h"
 #include "vectors.h"
+#include "version.h"
 
 #include "weak-vector.h"
 

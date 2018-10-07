@@ -47,6 +47,7 @@
 #include "programs.h"
 #include "strings.h"
 #include "threads.h"
+#include "version.h"
 
 #include "loader.h"
 

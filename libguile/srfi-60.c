@@ -32,6 +32,7 @@
 #include "list.h"
 #include "numbers.h"
 #include "pairs.h"
+#include "version.h"
 
 #include "srfi-60.h"
 

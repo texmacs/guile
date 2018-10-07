@@ -48,6 +48,7 @@
 #include "strings.h"
 #include "syscalls.h"
 #include "weak-set.h"
+#include "version.h"
 
 #include "ioext.h"
 

@@ -85,6 +85,7 @@
 #include "threads.h"
 #include "values.h"
 #include "vectors.h"
+#include "version.h"
 
 #include "posix.h"
 

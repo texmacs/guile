@@ -35,6 +35,7 @@
 #include "ports.h"
 #include "procprop.h" /* scm_sym_name */
 #include "variable.h"
+#include "version.h"
 #include "vm.h"
 
 #include "programs.h"

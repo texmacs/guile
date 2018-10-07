@@ -47,6 +47,7 @@
 #include "threads.h"
 #include "values.h"
 #include "variable.h"
+#include "version.h"
 
 #include "i18n.h"
 

@@ -77,6 +77,7 @@
 #include "syscalls.h"
 #include "variable.h"
 #include "vectors.h"
+#include "version.h"
 #include "weak-set.h"
 
 #include "ports.h"

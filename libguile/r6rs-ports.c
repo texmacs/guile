@@ -40,6 +40,7 @@
 #include "syscalls.h"
 #include "values.h"
 #include "vectors.h"
+#include "version.h"
 
 #include "r6rs-ports.h"
 

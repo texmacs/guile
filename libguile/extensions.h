@@ -23,7 +23,6 @@
 
 
 #include "libguile/scm.h"
-#include "libguile/libpath.h"
 
 
 

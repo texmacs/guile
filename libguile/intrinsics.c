@@ -36,6 +36,7 @@
 #include "numbers.h"
 #include "symbols.h"
 #include "threads.h"
+#include "version.h"
 
 #include "intrinsics.h"
 

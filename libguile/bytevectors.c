@@ -52,6 +52,7 @@
 #include "strings.h"
 #include "symbols.h"
 #include "uniform.h"
+#include "version.h"
 
 #include "bytevectors.h"
 

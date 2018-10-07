@@ -31,6 +31,7 @@
 #include "numbers.h"
 #include "pairs.h"
 #include "threads.h"
+#include "version.h"
 
 #include "fdes-finalizers.h"
 

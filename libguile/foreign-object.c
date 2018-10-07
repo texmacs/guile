@@ -35,6 +35,7 @@
 #include "procs.h"
 #include "threads.h"
 #include "variable.h"
+#include "version.h"
 
 #include "foreign-object.h"
 

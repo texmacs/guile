@@ -53,6 +53,7 @@
 #include "symbols.h"
 #include "variable.h"
 #include "vectors.h"
+#include "version.h"
 #include "weak-table.h"
 
 #include "goops.h"

@@ -49,6 +49,7 @@
 #include "symbols.h"
 #include "threads.h"
 #include "weak-table.h"
+#include "version.h"
 
 #include "foreign.h"
 

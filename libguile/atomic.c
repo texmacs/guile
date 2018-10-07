@@ -29,6 +29,7 @@
 #include "extensions.h"
 #include "gsubr.h"
 #include "ports.h"
+#include "version.h"
 
 #include "atomic.h"
 

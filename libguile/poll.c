@@ -39,6 +39,7 @@
 #include "ports-internal.h"
 #include "syscalls.h"
 #include "vectors.h"
+#include "version.h"
 
 #include "poll.h"
 

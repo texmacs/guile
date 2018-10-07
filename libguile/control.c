@@ -33,6 +33,7 @@
 #include "pairs.h"
 #include "programs.h"
 #include "threads.h"
+#include "version.h"
 #include "vm.h"
 
 #include "control.h"

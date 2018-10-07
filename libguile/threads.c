@@ -63,6 +63,7 @@
 #include "strings.h"
 #include "symbols.h"
 #include "variable.h"
+#include "version.h"
 #include "vm.h"
 
 #include "threads.h"

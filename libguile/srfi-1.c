@@ -38,6 +38,7 @@
 #include "procs.h"
 #include "values.h"
 #include "vectors.h"
+#include "version.h"
 
 #include "srfi-1.h"
 

@@ -60,6 +60,7 @@
 #include "symbols.h"
 #include "throw.h"
 #include "variable.h"
+#include "version.h"
 #include "vm.h" /* for load-compiled/vm */
 
 #include "load.h"

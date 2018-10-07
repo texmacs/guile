@@ -67,6 +67,7 @@
 #include "symbols.h"
 #include "syscalls.h"
 #include "variable.h"
+#include "version.h"
 
 #include "fports.h"
 

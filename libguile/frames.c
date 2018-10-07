@@ -36,6 +36,7 @@
 #include "symbols.h"
 #include "threads.h"
 #include "variable.h"
+#include "version.h"
 #include "vm.h"
 
 #include "frames.h"

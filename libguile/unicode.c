@@ -34,6 +34,7 @@
 #include "extensions.h"
 #include "gsubr.h"
 #include "strings.h"
+#include "version.h"
 
 #include "unicode.h"
 
