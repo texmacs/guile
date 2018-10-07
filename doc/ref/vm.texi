@@ -42,6 +42,7 @@ programs to Guile's VM.
 * VM Programs::         
 * Object File Format::
 * Instruction Set::
+* Just-In-Time Native Code::
 @end menu
 
 @node Why a VM?
@@ -1862,3 +1863,99 @@ The @var{idx} value should be an unboxed unsigned 64-bit integer.
 The @var{val} values are all unboxed, either as signed 64-bit integers,
 unsigned 64-bit integers, or IEEE double floating point numbers.
 @end deftypefn
+
+@node Just-In-Time Native Code
+@subsection Just-In-Time Native Code
+
+@cindex just-in-time compiler
+@cindex jit compiler
+@cindex template jit
+@cindex compiler, just-in-time
+The final piece of Guile's virtual machine is a just-in-time (JIT)
+compiler from bytecode instructions to native code.  It is faster to run
+a function when its bytecode instructions are compiled to native code,
+compared to having the VM interpret the instructions.
+
+The JIT compiler runs automatically, triggered by counters associated
+with each function.  The counter increments when functions are called
+and during each loop iteration.  Once a function's counter passes a
+certain value, the function gets JIT-compiled.  @xref{Instrumentation
+Instructions}, for full details.
+
+Guile's JIT compiler is what is known as a @dfn{template JIT}.  This
+kind of JIT is very simple: for each instruction in a function, the JIT
+compiler will emit a generic sequence of machine code corresponding to
+the instruction kind, specializing that generic template to reference
+the specific operands of the instruction being compiled.
+
+The strength of a template JIT is principally that is that it is very
+fast at emitting code.  It doesn't need to do any time-consuming
+analysis on the bytecode that it is compiling to do its job.
+
+A template JIT is also very predictable: the native code emitted by a
+template JIT has the same performance characteristics of the
+corresponding bytecode, only that it runs faster.  In theory you could
+even generate the template-JIT machine code ahead of time, as it doesn't
+depend on any value seen at run-time.
+
+This predictability makes it possible to reason about the performance of
+a system in terms of bytecode, knowing that the conclusions apply to
+native code emitted by a template JIT.
+
+Because the machine code corresponding to an instruction always performs
+the same tasks that the interpreter would do for that instruction,
+bytecode and a template JIT also allows Guile programmers to debug their
+programs in terms of the bytecode model.  When a Guile programmer sets a
+breakpoint, Guile will disable the JIT for the thread being debugged,
+falling back to the interpreter (which has the corresponding code to run
+the hooks).  @xref{VM Hooks}.
+
+Guile uses the GNU Lightning library to emit native code.  This allows
+Guile's template JIT supports practically all architectures, from
+Itanium to MIPS.  You can optimize a program on your x86-64 desktop and
+you can know that the corresponding program on an AArch64 phone will
+also get faster.
+
+The weaknesses of a template JIT are two-fold.  Firstly, as a simple
+back-end that has to run fast, a template JIT doesn't have time to do
+analysis that could help it generate better code, notably global
+register allocation and instruction selection.
+
+However this is a minor weakness compared to the inability to perform
+significant, speculative program transformations.  For example, Guile
+could see that in an expression @code{(f x)}, that in practice @var{f}
+always refers to the same function.  An advanced JIT compiler would
+speculatively inline @var{f} into the call-site, along with a dynamic
+check to make sure that the assertion still held.  But as a template JIT
+doesn't pay attention to values only known at run-time, it can't make
+this transformation.
+
+This limitation is mitigated in part by Guile's robust ahead-of-time
+compiler which can already perform significant optimizations when it can
+prove they will always be valid, and its low-level bytecode which is
+able to represent the effect of those optimizations (e.g. elided
+type-checks).  @xref{Compiling to the Virtual Machine}, for more on
+Guile's compiler.
+
+An ahead-of-time Scheme-to-bytecode strategy, complemented by a template
+JIT, also particularly suits the somewhat static nature of Scheme.
+Scheme programmers often write code in a way that makes the identity of
+free variable references lexically apparent.  For example, the @code{(f
+x)} expression could appear within a @code{(let ((f (lambda (x) (1+
+x)))) ...)} expression, or we could see that @code{f} was imported from
+a particular module where we know its binding.  Ahead-of-time
+compilation techniques can work well for a language like Scheme where
+there is little polymorphism and much first-order programming.  They do
+not work so well for a language like JavaScript, which is highly mutable
+at run-time and difficult to analyze due to method calls (which are
+effectively higher-order calls).
+
+All that said, a template JIT works well for Guile at this point.  It's
+only a few thousand lines of maintainable code, it speeds up Scheme
+programs, and it keeps the bulk of the Guile Scheme implementation
+written in Scheme itself.  The next step is probably to add
+ahead-of-time native code emission to the back-end of the compiler
+written in Scheme, to take advantage of the opportunity to do global
+register allocation and instruction selection.  Once this is working, it
+can allow Guile to experiment with speculative optimizations in Scheme
+as well.  @xref{Extending the Compiler}, for more on future directions.
