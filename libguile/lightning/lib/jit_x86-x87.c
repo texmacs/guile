@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -37,8 +37,10 @@
 #  define x87rx(code, md, rb, ri, ms)	_x87rx(_jit, code, md, rb, ri, ms)
 #  define fldcwm(md, rb, ri, ms)	x87rx(015, md, rb, ri, ms)
 #  define fstcwm(md, rb, ri, ms)	_fstcwm(_jit, md, rb, ri, ms)
+#if defined(sun)
 static void
 _fstcwm(jit_state_t*, jit_int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
+#endif
 #  define fldsm(md, rb, ri, ms)		x87rx(010, md, rb, ri, ms)
 #  define fstsm(md, rb, ri, ms)		x87rx(012, md, rb, ri, ms)
 #  define fldlm(md, rb, ri, ms)		x87rx(050, md, rb, ri, ms)
@@ -422,6 +424,7 @@ _x87_b##name##i_##type(jit_state_t *_jit,				\
 #  define dopi(name)			fpr_opi(name, d, 64)
 #  define dbopi(name)			fpr_bopi(name, d, 64)
 
+#if defined(sun)
 static void
 _fstcwm(jit_state_t *_jit, jit_int32_t md,
 	jit_int32_t rb,	jit_int32_t ri, jit_int32_t ms)
@@ -430,6 +433,7 @@ _fstcwm(jit_state_t *_jit, jit_int32_t md,
     rex(0, 1, rb, ri, _NOREG);
     x87rx(017, md, rb, ri, ms);
 }
+#endif
 
 static void
 _x87rx(jit_state_t *_jit, jit_int32_t code, jit_int32_t md,
