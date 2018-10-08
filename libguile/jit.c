@@ -247,8 +247,8 @@ static const jit_gpr_t FP = JIT_R1;
 static const jit_gpr_t T0 = JIT_V1;
 static const jit_gpr_t T1 = JIT_V2;
 static const jit_gpr_t T2 = JIT_R2;
-/* static const jit_gpr_t T3_OR_FP = JIT_R1;  */
-/* static const jit_gpr_t T4_OR_SP = JIT_R0;  */
+SCM_UNUSED static const jit_gpr_t T3_OR_FP = JIT_R1;
+SCM_UNUSED static const jit_gpr_t T4_OR_SP = JIT_R0;
 
 /* Sometimes you want to call out the fact that T0 and T1 are preserved
    across calls.  In that case, use these.  */
@@ -486,6 +486,17 @@ emit_##stem (scm_jit_state *j, jit_##typ##_t dst,                       \
   record_##typ##_clobber (j, dst);                                      \
 }
 
+#define DEFINE_CLOBBER_RECORDING_EMITTER_R_R_2(stem, typ)               \
+static void                                                             \
+emit_##stem (scm_jit_state *j,                                          \
+             jit_##typ##_t dst1, jit_##typ##_t dst2,                    \
+             jit_##typ##_t a, jit_##typ##_t b)                          \
+{                                                                       \
+  jit_##stem (dst1, dst2, a, b);                                        \
+  record_##typ##_clobber (j, dst1);                                     \
+  record_##typ##_clobber (j, dst2);                                     \
+}
+
 DEFINE_CLOBBER_RECORDING_EMITTER_R(ldr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_P(ldi, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R(movr, gpr)
@@ -511,6 +522,19 @@ DEFINE_CLOBBER_RECORDING_EMITTER_R_R(rshr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(rshr_u, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_I(lshi, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(lshr, gpr)
+
+#if SIZEOF_UINTPTR_T < 8
+DEFINE_CLOBBER_RECORDING_EMITTER_R(negr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(addci, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(addcr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(addxi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(addxr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(subci, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(subcr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_I(subxi, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R(subxr, gpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R_R_2(qmulr_u, gpr)
+#endif
 
 static void
 emit_reload_sp (scm_jit_state *j)
@@ -1009,6 +1033,12 @@ emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 }
 
 #else /* SCM_SIZEOF_UINTPTR_T >= 8 */
+
+static void
+emit_sp_ref_s32 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
+{
+  emit_sp_ref_sz (j, dst, src);
+}
 
 static void
 emit_sp_ref_u64 (scm_jit_state *j, jit_gpr_t dst_lo, jit_gpr_t dst_hi,
@@ -2721,7 +2751,7 @@ compile_umul_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_muli (j, T1, T1, b);         /* High A times low B */
   /* High B times low A is 0.  */
-  emit_movi (j, j, T2, b);
+  emit_movi (j, T2, b);
   emit_qmulr_u (j, T0, T2, T0, T2); /* Low A times low B */
   emit_addr (j, T1, T1, T2);        /* Add high result of low product */
   emit_sp_set_u64 (j, dst, T0, T1);
@@ -2836,14 +2866,14 @@ compile_ursh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = 0, lo = hi >> (s-32) */
-  emit_subi (j, T2, 32);
+  emit_subi (j, T2, T2, 32);
   emit_rshr_u (j, T0, T1, T2);
   emit_movi (j, T1, 0);
   done = jit_jmpi ();
 
   jit_patch (both);
   /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
-  jit_negr (T3_OR_FP, T2);
+  emit_negr (j, T3_OR_FP, T2);
   emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
   emit_lshr (j, T3_OR_FP, T1, T3_OR_FP);
   emit_rshr_u (j, T1, T1, T2);
@@ -2876,7 +2906,7 @@ compile_ulsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = lo << (s-32), lo = 0 */
-  emit_subi (j, T2, 32);
+  emit_subi (j, T2, T2, 32);
   emit_lshr (j, T1, T0, T2);
   emit_movi (j, T0, 0);
   done = jit_jmpi ();
@@ -3592,7 +3622,7 @@ compile_srsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   both = jit_blti (T2, 32);
 
   /* 32 <= s < 64: hi = hi >> 31, lo = hi >> (s-32) */
-  emit_subi (j, T2, 32);
+  emit_subi (j, T2, T2, 32);
   emit_rshr (j, T0, T1, T2);
   emit_rshi (j, T1, T1, 31);
   done = jit_jmpi ();
