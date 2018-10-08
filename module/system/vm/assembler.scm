@@ -1550,7 +1550,8 @@ corresponding linker symbol for the start of the section."
   (let ((name-idx (intern-section-name! asm (symbol->string name)))
         (index (asm-next-section-number asm)))
     (set-asm-next-section-number! asm (1+ index))
-    (make-linker-object (apply make-elf-section
+    (make-linker-object (symbol->string name)
+                        (apply make-elf-section
                                #:index index
                                #:name name-idx
                                #:size (bytevector-length bv)

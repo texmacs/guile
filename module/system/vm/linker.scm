@@ -79,6 +79,7 @@
 
             make-linker-object
             linker-object?
+            linker-object-name
             linker-object-section
             linker-object-bv
             linker-object-relocs
@@ -133,18 +134,20 @@
   (address linker-symbol-address))
 
 (define-record-type <linker-object>
-  (%make-linker-object section bv relocs symbols)
+  (%make-linker-object name section bv relocs symbols)
   linker-object?
+  (name linker-object-name)
   (section linker-object-section)
   (bv linker-object-bv)
   (relocs linker-object-relocs)
   (symbols linker-object-symbols))
 
-(define (make-linker-object section bv relocs symbols)
-  "Create a linker object with the @code{<elf-section>} header
-@var{section}, bytevector contents @var{bv}, list of linker relocations
-@var{relocs}, and list of linker symbols @var{symbols}."
-  (%make-linker-object section bv relocs
+(define (make-linker-object name section bv relocs symbols)
+  "Create a linker object named @var{name} (a string, or #f for no name),
+@code{<elf-section>} header @var{section}, bytevector contents @var{bv},
+list of linker relocations @var{relocs}, and list of linker symbols
+@var{symbols}."
+  (%make-linker-object name section bv relocs
                        ;; Hide a symbol to the beginning of the section
                        ;; in the symbols.
                        (cons (make-linker-symbol (gensym "*section*") 0)
@@ -396,6 +399,7 @@ the segment table using @code{write-segment-header!}."
                   (addr (align addr (elf-section-addralign section))))
              (values
               (cons (make-linker-object
+                     (linker-object-name o)
                      (relocate-section-header section addr)
                      (linker-object-bv o)
                      (linker-object-relocs o)
@@ -474,13 +478,8 @@ locations, as given in @var{symtab}."
   "Find the section name string table in @var{objects}, and return its
 section index."
   (or-map (lambda (object)
-            (let* ((section (linker-object-section object))
-                   (bv (linker-object-bv object))
-                   (name (elf-section-name section)))
-              (and (= (elf-section-type section) SHT_STRTAB)
-                   (< name (bytevector-length bv))
-                   (string=? (string-table-ref bv name) ".shstrtab")
-                   (elf-section-index section))))
+            (and (equal? (linker-object-name object) ".shstrtab")
+                 (elf-section-index (linker-object-section object))))
           objects))
 
 (define (add-elf-objects objects endianness word-size abi type machine-type)
@@ -513,7 +512,8 @@ list of objects, augmented with objects for the special ELF sections."
   ;; SHT_NULL.
   ;;
   (define (make-null-section)
-    (make-linker-object (make-elf-section #:index 0 #:type SHT_NULL
+    (make-linker-object ""
+                        (make-elf-section #:index 0 #:type SHT_NULL
                                           #:flags 0 #:addralign 0)
                         #vu8() '() '()))
 
@@ -534,7 +534,8 @@ list of objects, augmented with objects for the special ELF sections."
       (write-elf-header bv header)
       ;; Leave the segment table uninitialized; it will be filled in
       ;; later by calls to the write-segment-header! closure.
-      (make-linker-object (make-elf-section #:index index #:type SHT_PROGBITS
+      (make-linker-object #f
+                          (make-elf-section #:index index #:type SHT_PROGBITS
                                             #:flags SHF_ALLOC #:size size)
                           bv
                           (list shoff-reloc)
@@ -580,7 +581,7 @@ list of objects, augmented with objects for the special ELF sections."
                         relocs))
                      objects
                      (write-and-reloc shoff-label section-table '()))))
-        (%make-linker-object section-table bv relocs
+        (%make-linker-object #f section-table bv relocs
                              (list (make-linker-symbol shoff-label 0))))))
 
   (let* ((null-section (make-null-section))
