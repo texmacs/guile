@@ -3779,7 +3779,7 @@ compile_u64_imm_less (scm_jit_state *j, uint16_t a, uint16_t b)
       add_inter_instruction_patch (j, k2, target);
       break;
     case scm_op_jnl:
-      k1 = jit_bgti (T1, 0);
+      k1 = jit_bnei (T1, 0);
       k2 = jit_bgei_u (T0, b);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k2, target);
@@ -3867,16 +3867,16 @@ compile_s64_imm_less (scm_jit_state *j, uint16_t a, int16_t b)
       k1 = jit_blti (T1, sign);
       k2 = jit_bnei (T1, sign);
       k3 = jit_blti (T0, b);
-      jit_patch (k2);
       add_inter_instruction_patch (j, k1, target);
+      jit_patch (k2);
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k1 = jit_bgti (T1, sign);
+      k1 = jit_blti (T1, sign);
       k2 = jit_bnei (T1, sign);
       k3 = jit_bgei (T0, b);
-      jit_patch (k2);
-      add_inter_instruction_patch (j, k1, target);
+      jit_patch (k1);
+      add_inter_instruction_patch (j, k2, target);
       add_inter_instruction_patch (j, k3, target);
       break;
     default:
@@ -3922,11 +3922,11 @@ compile_imm_s64_less (scm_jit_state *j, uint16_t a, int16_t b)
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k1 = jit_bgti (T1, sign);
+      k1 = jit_blti (T1, sign);
       k2 = jit_bnei (T1, sign);
       k3 = jit_blei (T0, b);
-      jit_patch (k1);
-      add_inter_instruction_patch (j, k2, target);
+      add_inter_instruction_patch (j, k1, target);
+      jit_patch (k2);
       add_inter_instruction_patch (j, k3, target);
       break;
     default:
