@@ -369,6 +369,11 @@ record_gpr_clobber (scm_jit_state *j, jit_gpr_t r)
 {
   if (j->sp_cache_gpr == r)
     clear_register_state (j, SP_CACHE_GPR);
+
+  if (r == SP)
+    clear_register_state (j, SP_IN_REGISTER);
+  else if (r == FP)
+    clear_register_state (j, FP_IN_REGISTER);
 }
 
 static void
@@ -756,6 +761,7 @@ emit_alloc_frame (scm_jit_state *j, jit_gpr_t t, uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
   emit_subtract_stack_slots (j, SP, FP, nlocals);
+  set_register_state (j, SP_IN_REGISTER);
   emit_alloc_frame_for_sp (j, t);
 }
 
@@ -834,6 +840,7 @@ emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
 
   emit_reload_fp (j);
   emit_subtract_stack_slots (j, FP, FP, proc_slot);
+  set_register_state (j, FP_IN_REGISTER);
   continuation = emit_store_mra (j, FP, t);
   emit_store_vra (j, FP, t, vra);
   emit_store_prev_fp_offset (j, FP, t, proc_slot);
@@ -2704,7 +2711,6 @@ compile_umul (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_addr (j, T1, T1, T3_OR_FP); /* Add high results, throw away overflow */
   emit_qmulr_u (j, T0, T2, T0, T2); /* Low A times low B */
   emit_addr (j, T1, T1, T2);        /* Add high result of low product */
-  clear_register_state (j, SP_CACHE_FPR | SP_CACHE_GPR);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
