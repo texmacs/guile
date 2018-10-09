@@ -2948,19 +2948,25 @@ compile_ursh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
     {
       /* Nothing to do.  */
     }
-  else if (b >= 32)
-    {
-      /*  hi = 0, lo = hi >> (s-32) */
-      emit_rshi_u (j, T0, T1, b - 32);
-      emit_movi (j, T1, 0);
-    }
-  else
+  else if (b < 32)
     {
       /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
       emit_lshi (j, T2, T1, 32 - b);
       emit_rshi_u (j, T1, T1, b);
       emit_rshi_u (j, T0, T0, b);
       emit_addr (j, T0, T0, T2);
+    }
+  else if (b == 32)
+    {
+      /*  hi = 0, lo = hi */
+      emit_movi (j, T0, T1);
+      emit_movi (j, T1, 0);
+    }
+  else /* b > 32 */
+    {
+      /*  hi = 0, lo = hi >> (s-32) */
+      emit_rshi_u (j, T0, T1, b - 32);
+      emit_movi (j, T1, 0);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -2982,19 +2988,25 @@ compile_ulsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
     {
       /* Nothing to do.  */
     }
-  else if (b >= 32)
-    {
-      /* hi = lo << (s-32), lo = 0 */
-      emit_lshr (j, T1, T0, b - 32);
-      emit_movi (j, T0, 0);
-    }
-  else
+  else if (b < 32)
     {
       /* hi = hi << s + lo >> (32-s), lo = lo << s */
       emit_rshi_u (j, T2, T0, 32 - b);
       emit_lshi (j, T1, T1, b);
       emit_lshi (j, T0, T0, b);
       emit_addr (j, T1, T1, T2);
+    }
+  else if (b == 32)
+    {
+      /*  hi = lo, lo = 0 */
+      emit_movi (j, T1, T0);
+      emit_movi (j, T0, 0);
+    }
+  else /* b > 32 */
+    {
+      /* hi = lo << (s-32), lo = 0 */
+      emit_lshr (j, T1, T0, b - 32);
+      emit_movi (j, T0, 0);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
@@ -3664,19 +3676,25 @@ compile_srsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
     {
       /* Nothing to do.  */
     }
-  else if (b >= 32)
-    {
-      /*  hi = sign-ext, lo = hi >> (s-32) */
-      emit_rshi (j, T0, T1, b - 32);
-      emit_rshi (j, T1, T1, 31);
-    }
-  else
+  else if (b < 32)
     {
       /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
       emit_lshi (j, T2, T1, 32 - b);
       emit_rshi (j, T1, T1, b);
       emit_rshi_u (j, T0, T0, b);
       emit_addr (j, T0, T0, T2);
+    }
+  else if (b == 32)
+    {
+      /*  hi = sign-ext, lo = hi */
+      emit_movr (j, T0, T1);
+      emit_rshi (j, T1, T1, 31);
+    }
+  else /* b > 32 */
+    {
+      /*  hi = sign-ext, lo = hi >> (s-32) */
+      emit_rshi (j, T0, T1, b - 32);
+      emit_rshi (j, T1, T1, 31);
     }
   emit_sp_set_s64 (j, dst, T0, T1);
 #endif
