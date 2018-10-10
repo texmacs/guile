@@ -6,7 +6,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in alpha 2.3.1 (since the stable 2.2 series):
+Changes in alpha 2.9.1 (since the stable 2.2 series):
 
 * Notable changes
 
@@ -20,11 +20,13 @@ of "eval" written in C, as in the days of Guile 1.8.
 See "Just-In-Time Native Code" in the manual, for more information.  JIT
 compilation will be enabled automatically and transparently.  To disable
 JIT compilation, configure Guile with `--enable-jit=no' or
-`--disable-jit'.  See `./configure --help' for more.
+`--disable-jit'.  The default is `--enable-jit=auto', which enables the
+JIT if it is available.  See `./configure --help' for more.
 
 In this release, JIT compilation is enabled only on x86-64.  In future
 prereleases support will be added for all architectures supported by GNU
-lightning.
+lightning.  Intrepid users on other platforms can try passing
+`--enable-jit=yes' to see the state of JIT on their platform.
 
 ** Lower-level bytecode
 
