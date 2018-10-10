@@ -88,7 +88,7 @@
   _sign char *c_bv;						\
 								\
   SCM_VALIDATE_##validate (1, bv);                              \
-  c_index = scm_to_uint (index);				\
+  c_index = scm_to_size_t (index);				\
 								\
   c_len = SCM_BYTEVECTOR_LENGTH (bv);				\
   c_bv = (_sign char *) SCM_BYTEVECTOR_CONTENTS (bv);		\
