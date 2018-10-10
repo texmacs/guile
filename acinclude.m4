@@ -614,7 +614,12 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
   case "x$enable_jit" in
     xy*) enable_jit=yes ;;
     xn*) enable_jit=no ;;
-    xa* | x) enable_jit=$JIT_AVAILABLE ;;
+    xa* | x)
+      # For the time being, only enable JIT on x86-64.
+      case "$target_cpu" in
+        x86_64|amd64)     enable_jit=yes ;;
+        *)                enable_jit=no ;;
+      esac
     *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
   esac
   AC_MSG_RESULT($enable_jit)
