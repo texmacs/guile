@@ -619,7 +619,7 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
       case "$target_cpu" in
         x86_64|amd64)     enable_jit=yes ;;
         *)                enable_jit=no ;;
-      esac
+      esac ;;
     *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
   esac
   AC_MSG_RESULT($enable_jit)
