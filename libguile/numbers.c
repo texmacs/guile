@@ -1,5 +1,8 @@
-/* Copyright 1995-2016,2018
+/* Copyright 1995-2016,2018-2019
      Free Software Foundation, Inc.
+
+   Portions Copyright 1990-1993 by AT&T Bell Laboratories and Bellcore.
+   See scm_divide.
 
    This file is part of Guile.
 
@@ -5066,7 +5069,21 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 {
   if (SCM_I_INUMP (n) || SCM_BIGP (n))
     {
-      long bits_to_shift = scm_to_long (count);
+      long bits_to_shift;
+
+      if (SCM_I_INUMP (count))  /* fast path, not strictly needed */
+        bits_to_shift = SCM_I_INUM (count);
+      else if (scm_is_signed_integer (count, LONG_MIN, LONG_MAX))
+        bits_to_shift = scm_to_long (count);
+      else if (scm_is_false (scm_positive_p (scm_sum (scm_integer_length (n),
+                                                      count))))
+        /* Huge right shift that eliminates all but the sign bit */
+        return scm_is_false (scm_negative_p (n))
+          ? SCM_INUM0 : SCM_I_MAKINUM (-1);
+      else if (scm_is_true (scm_zero_p (n)))
+        return SCM_INUM0;
+      else
+        scm_num_overflow ("ash");
 
       if (bits_to_shift > 0)
         return left_shift_exact_integer (n, bits_to_shift);
@@ -5104,7 +5121,21 @@ SCM_DEFINE (scm_round_ash, "round-ash", 2, 0, 0,
 {
   if (SCM_I_INUMP (n) || SCM_BIGP (n))
     {
-      long bits_to_shift = scm_to_long (count);
+      long bits_to_shift;
+
+      if (SCM_I_INUMP (count))  /* fast path, not strictly needed */
+        bits_to_shift = SCM_I_INUM (count);
+      else if (scm_is_signed_integer (count, LONG_MIN, LONG_MAX))
+        bits_to_shift = scm_to_long (count);
+      else if (scm_is_false (scm_positive_p (scm_sum (scm_integer_length (n),
+                                                      count))))
+        /* Huge right shift that eliminates all but the sign bit */
+        return scm_is_false (scm_negative_p (n))
+          ? SCM_INUM0 : SCM_I_MAKINUM (-1);
+      else if (scm_is_true (scm_zero_p (n)))
+        return SCM_INUM0;
+      else
+        scm_num_overflow ("round-ash");
 
       if (bits_to_shift > 0)
         return left_shift_exact_integer (n, bits_to_shift);
