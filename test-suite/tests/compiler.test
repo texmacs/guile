@@ -1,5 +1,5 @@
 ;;;; compiler.test --- tests for the compiler      -*- scheme -*-
-;;;; Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 2008-2014, 2018 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -251,3 +251,52 @@
 
   (pass-if-equal "test flonum" 0.0 (test-proc #t))
   (pass-if-equal "test complex" 0.0+0.0i (test-proc #f)))
+
+(with-test-prefix "null? and nil? inference"
+  (pass-if-equal "nil? after null?"
+      '((f . f)  ; 3
+        (f . f)  ; #t
+        (f . t)  ; #f
+        (t . t)  ; #nil
+        (t . t)) ; ()
+    (map (compile '(lambda (x)
+                     (if (null? x)
+                         (cons 't (if (nil? x) 't 'f))
+                         (cons 'f (if (nil? x) 't 'f)))))
+         '(3 #t #f #nil ())))
+
+  (pass-if-equal "nil? after truth test"
+      '((t . f)  ; 3
+        (t . f)  ; #t
+        (f . t)  ; #f
+        (f . t)  ; #nil
+        (t . t)) ; ()
+    (map (compile '(lambda (x)
+                     (if x
+                         (cons 't (if (nil? x) 't 'f))
+                         (cons 'f (if (nil? x) 't 'f)))))
+         '(3 #t #f #nil ())))
+
+  (pass-if-equal "null? after nil?"
+      '((f . f)  ; 3
+        (f . f)  ; #t
+        (t . f)  ; #f
+        (t . t)  ; #nil
+        (t . t)) ; ()
+    (map (compile '(lambda (x)
+                     (if (nil? x)
+                         (cons 't (if (null? x) 't 'f))
+                         (cons 'f (if (null? x) 't 'f)))))
+         '(3 #t #f #nil ())))
+
+  (pass-if-equal "truth test after nil?"
+      '((f . t)  ; 3
+        (f . t)  ; #t
+        (t . f)  ; #f
+        (t . f)  ; #nil
+        (t . t)) ; ()
+    (map (compile '(lambda (x)
+                     (if (nil? x)
+                         (cons 't (if x 't 'f))
+                         (cons 'f (if x 't 'f)))))
+         '(3 #t #f #nil ()))))
