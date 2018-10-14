@@ -5377,7 +5377,7 @@
 ;;;
 
 (let ()
-  (define (test-ash-variant name ash-variant round-variant)
+  (define (test-ash-variant name ash-variant round-variant rounded?)
     (with-test-prefix name
       (define (test n count)
         (pass-if (list n count)
@@ -5434,17 +5434,17 @@
           0
         (ash-variant 123 (- (expt 2 1000))))
       (pass-if-equal "Huge right shift of negative integer"
-          -1
+          (if rounded? 0 -1)
         (ash-variant -123 (- (expt 2 1000))))
       (pass-if-equal "Huge right shift of -1"
-          -1
+          (if rounded? 0 -1)
         (ash-variant -1 (- (expt 2 1000))))
       (pass-if-exception "Huge left shift of non-zero => numerical overflow"
           exception:numerical-overflow
         (ash-variant 123 (expt 2 1000)))))
 
-  (test-ash-variant       'ash       ash floor)
-  (test-ash-variant 'round-ash round-ash round))
+  (test-ash-variant       'ash       ash floor #f)
+  (test-ash-variant 'round-ash round-ash round #t))
 
 ;;;
 ;;; regressions

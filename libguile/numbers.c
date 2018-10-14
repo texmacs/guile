@@ -91,6 +91,11 @@ verify (FLT_RADIX == 2);
 /* Make sure that scm_t_inum fits within a SCM value.  */
 verify (sizeof (scm_t_inum) <= sizeof (scm_t_bits));
 
+/* Several functions below assume that fixnums fit within a long, and
+   furthermore that there is some headroom to spare for other operations
+   without overflowing. */
+verify (SCM_I_FIXNUM_BIT <= SCM_LONG_BIT - 2);
+
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
 /* Test an inum to see if it can be converted to a double without loss
@@ -5127,12 +5132,11 @@ SCM_DEFINE (scm_round_ash, "round-ash", 2, 0, 0,
         bits_to_shift = SCM_I_INUM (count);
       else if (scm_is_signed_integer (count, LONG_MIN, LONG_MAX))
         bits_to_shift = scm_to_long (count);
-      else if (scm_is_false (scm_positive_p (scm_sum (scm_integer_length (n),
-                                                      count))))
-        /* Huge right shift that eliminates all but the sign bit */
-        return scm_is_false (scm_negative_p (n))
-          ? SCM_INUM0 : SCM_I_MAKINUM (-1);
-      else if (scm_is_true (scm_zero_p (n)))
+      else if (scm_is_true (scm_negative_p (scm_sum (scm_integer_length (n),
+                                                     count)))
+               || scm_is_true (scm_zero_p (n)))
+        /* If N is zero, or the right shift count exceeds the integer
+           length, the result is zero. */
         return SCM_INUM0;
       else
         scm_num_overflow ("round-ash");
