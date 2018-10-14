@@ -1,6 +1,6 @@
 ;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
 ;;;; Copyright (C) 2000, 2001, 2003-2006, 2009-2013,
-;;;;   2015  Free Software Foundation, Inc.
+;;;;   2015, 2018  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -5421,7 +5421,27 @@
       (for-each (lambda (base)
                   (for-each (lambda (offset) (test (+ base offset) -3))
                             '(#b11001 #b11100 #b11101 #b10001 #b10100 #b10101)))
-                (list 0 64 -64 (* 64 fixnum-max) (* 64 fixnum-min)))))
+                (list 0 64 -64 (* 64 fixnum-max) (* 64 fixnum-min)))
+
+      ;; Huge shift counts
+      (pass-if-equal "Huge left shift of 0"
+          0
+        (ash-variant 0 (expt 2 1000)))
+      (pass-if-equal "Huge right shift of 0"
+          0
+        (ash-variant 0 (- (expt 2 1000))))
+      (pass-if-equal "Huge right shift of positive integer"
+          0
+        (ash-variant 123 (- (expt 2 1000))))
+      (pass-if-equal "Huge right shift of negative integer"
+          -1
+        (ash-variant -123 (- (expt 2 1000))))
+      (pass-if-equal "Huge right shift of -1"
+          -1
+        (ash-variant -1 (- (expt 2 1000))))
+      (pass-if-exception "Huge left shift of non-zero => numerical overflow"
+          exception:numerical-overflow
+        (ash-variant 123 (expt 2 1000)))))
 
   (test-ash-variant       'ash       ash floor)
   (test-ash-variant 'round-ash round-ash round))
