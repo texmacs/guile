@@ -3,8 +3,8 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999, 2000, 2001, 2002, 2004, 2006, 2007, 2009,
- *   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2002, 2004, 2006, 2007, 2009, 2011-2014,
+ *   2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -255,16 +255,20 @@
     SCM_ASSERT (scm_ilength (lst) > 0, lst, pos, FUNC_NAME); \
   } while (0)
 
+/* Note: we use (cvar != -1) instead of (cvar >= 0) below
+   in case 'cvar' is of unsigned type. */
 #define SCM_VALIDATE_LIST_COPYLEN(pos, lst, cvar) \
   do { \
     cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 0, lst, pos, FUNC_NAME); \
+    SCM_ASSERT (cvar != -1, lst, pos, FUNC_NAME); \
   } while (0)
 
+/* Note: we use (cvar != -1 && cvar != 0) instead of
+   (cvar >= 1) below in case 'cvar' is of unsigned type. */
 #define SCM_VALIDATE_NONEMPTYLIST_COPYLEN(pos, lst, cvar) \
   do { \
     cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 1, lst, pos, FUNC_NAME); \
+    SCM_ASSERT (cvar != -1 && cvar != 0, lst, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_ALISTCELL(pos, alist) \

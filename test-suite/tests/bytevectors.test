@@ -1,6 +1,6 @@
 ;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009-2015 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 ;;;;
 ;;;; Ludovic Courtès
 ;;;;
@@ -19,10 +19,11 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-bytevector)
-  :use-module (test-suite lib)
-  :use-module (system base compile)
-  :use-module (rnrs bytevectors)
-  :use-module (srfi srfi-4))
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-4))
 
 (define exception:decoding-error
   (cons 'decoding-error "input (locale conversion|decoding) error"))
@@ -110,6 +111,14 @@
     (let ((lst '(1 2 3 128 150 255)))
       (equal? lst
               (bytevector->u8-list (u8-list->bytevector lst)))))
+
+  (pass-if-exception "u8-list->bytevector [invalid argument type]"
+      exception:wrong-type-arg
+    (u8-list->bytevector 'not-a-list))
+
+  (pass-if-exception "u8-list->bytevector [circular list]"
+      exception:wrong-type-arg
+    (u8-list->bytevector (circular-list 1 2 3)))
 
   (pass-if "bytevector-uint-{ref,set!} [small]"
     (let ((b (make-bytevector 15)))
@@ -205,6 +214,24 @@
                            (bytevector-u8-set! bv 2 #x7f)
                            (bytevector-u8-set! bv 3 #xff)
                            bv)))
+
+  (pass-if-exception "sint-list->bytevector [invalid argument type]"
+      exception:wrong-type-arg
+    (sint-list->bytevector 'not-a-list (endianness big) 2))
+
+  (pass-if-exception "uint-list->bytevector [invalid argument type]"
+      exception:wrong-type-arg
+    (uint-list->bytevector 'not-a-list (endianness big) 2))
+
+  (pass-if-exception "sint-list->bytevector [circular list]"
+      exception:wrong-type-arg
+    (sint-list->bytevector (circular-list 1 2 3) (endianness big)
+                           2))
+
+  (pass-if-exception "uint-list->bytevector [circular list]"
+      exception:wrong-type-arg
+    (uint-list->bytevector (circular-list 1 2 3) (endianness big)
+                           2))
 
   (pass-if-exception "sint-list->bytevector [out-of-range]"
     exception:out-of-range
