@@ -1,7 +1,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright 1995-1997,2000-2001,2003-2006,2008-2009,2018
+/* Copyright 1995-1997,2000-2001,2003-2006,2008-2009,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -88,16 +88,20 @@ SCM_API SCM scm_copy_tree (SCM obj);
     SCM_ASSERT (scm_ilength (lst) > 0, lst, pos, FUNC_NAME); \
   } while (0)
 
+/* Note: we use (cvar != -1) instead of (cvar >= 0) below
+   in case 'cvar' is of unsigned type. */
 #define SCM_VALIDATE_LIST_COPYLEN(pos, lst, cvar) \
   do { \
     cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 0, lst, pos, FUNC_NAME); \
+    SCM_ASSERT (cvar != -1, lst, pos, FUNC_NAME); \
   } while (0)
 
+/* Note: we use (cvar != -1) instead of (cvar >= 0) below
+   in case 'cvar' is of unsigned type. */
 #define SCM_VALIDATE_NONEMPTYLIST_COPYLEN(pos, lst, cvar) \
   do { \
     cvar = scm_ilength (lst); \
-    SCM_ASSERT (cvar >= 1, lst, pos, FUNC_NAME); \
+    SCM_ASSERT (cvar != -1, lst, pos, FUNC_NAME); \
   } while (0)
 
 
