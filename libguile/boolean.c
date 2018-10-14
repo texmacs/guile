@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,2000-2001,2006,2008-2011,2018
+/* Copyright 1995-1996,2000-2001,2006,2008-2011,2018,2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -65,7 +65,15 @@ SCM_DEFINE (scm_not, "not", 1, 0, 0,
 
 SCM_DEFINE (scm_nil_p, "nil?", 1, 0, 0,
             (SCM x),
-            "Return @code{#t} iff @var{x} is nil, else return @code{#f}.")
+            "Return @code{#t} if @var{x} would be interpreted as @code{nil}\n"
+            "by Emacs Lisp code, else return @code{#f}.\n"
+            "\n"
+            "@example\n"
+            "(nil? #nil) @result{} #t\n"
+            "(nil? #f)   @result{} #t\n"
+            "(nil? '())  @result{} #t\n"
+            "(nil? 3)    @result{} #f\n"
+            "@end example")
 #define FUNC_NAME s_scm_nil_p
 {
   return scm_from_bool (scm_is_lisp_false (x));

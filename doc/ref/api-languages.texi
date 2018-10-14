@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010, 2016,
+@c   2017, 2018 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Other Languages
@@ -107,6 +107,24 @@ from @code{#f} and @code{'()}. This allows existing Scheme and Elisp
 code to maintain their current semantics. @code{nil}, which in Elisp
 would just be written and read as @code{nil}, in Scheme has the external
 representation @code{#nil}.
+
+In Elisp code, @code{#nil}, @code{#f}, and @code{'()} behave like
+@code{nil}, in the sense that they are all interpreted as @code{nil} by
+Elisp @code{if}, @code{cond}, @code{when}, @code{not}, @code{null}, etc.
+To test whether Elisp would interpret an object as @code{nil} from
+within Scheme code, use @code{nil?}:
+
+@deffn {Scheme Procedure} nil? obj
+Return @code{#t} if @var{obj} would be interpreted as @code{nil} by
+Emacs Lisp code, else return @code{#f}.
+
+@lisp
+(nil? #nil) @result{} #t
+(nil? #f)   @result{} #t
+(nil? '())  @result{} #t
+(nil? 3)    @result{} #f
+@end lisp
+@end deffn
 
 This decision to have @code{nil} as a low-level distinct value
 facilitates interoperability between the two languages. Guile has chosen
