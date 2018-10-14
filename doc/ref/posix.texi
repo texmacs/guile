@@ -1749,13 +1749,14 @@ The return value is a pair containing:
 The process ID of the child process, or 0 if @code{WNOHANG} was
 specified and no process was collected.
 @item
-The integer status value.
+The integer status value (@pxref{Process Completion Status,,, libc, The
+GNU C Library Reference Manual}).
 @end enumerate
 @end deffn
 
 The following three
-functions can be used to decode the process status code returned
-by @code{waitpid}.
+functions can be used to decode the integer status value returned by
+@code{waitpid}.
 
 @deffn {Scheme Procedure} status:exit-val status
 @deffnx {C Function} scm_status_exit_val (status)
