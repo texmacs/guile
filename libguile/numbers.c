@@ -5053,6 +5053,11 @@ round_right_shift_exact_integer (SCM n, long count)
     assert (0);
 }
 
+/* 'scm_ash' and 'scm_round_ash' assume that fixnums fit within a long,
+   and moreover that they can be negated without overflow. */
+verify (SCM_MOST_NEGATIVE_FIXNUM >= LONG_MIN + 1
+        && SCM_MOST_POSITIVE_FIXNUM <= LONG_MAX);
+
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM count),
 	    "Return @math{floor(@var{n} * 2^@var{count})}.\n"
@@ -5078,7 +5083,9 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 
       if (SCM_I_INUMP (count))  /* fast path, not strictly needed */
         bits_to_shift = SCM_I_INUM (count);
-      else if (scm_is_signed_integer (count, LONG_MIN, LONG_MAX))
+      else if (scm_is_signed_integer (count, LONG_MIN + 1, LONG_MAX))
+        /* We exclude LONG_MIN to ensure that 'bits_to_shift' can be
+           negated without overflowing. */
         bits_to_shift = scm_to_long (count);
       else if (scm_is_false (scm_positive_p (scm_sum (scm_integer_length (n),
                                                       count))))
@@ -5130,7 +5137,9 @@ SCM_DEFINE (scm_round_ash, "round-ash", 2, 0, 0,
 
       if (SCM_I_INUMP (count))  /* fast path, not strictly needed */
         bits_to_shift = SCM_I_INUM (count);
-      else if (scm_is_signed_integer (count, LONG_MIN, LONG_MAX))
+      else if (scm_is_signed_integer (count, LONG_MIN + 1, LONG_MAX))
+        /* We exclude LONG_MIN to ensure that 'bits_to_shift' can be
+           negated without overflowing. */
         bits_to_shift = scm_to_long (count);
       else if (scm_is_true (scm_negative_p (scm_sum (scm_integer_length (n),
                                                      count)))

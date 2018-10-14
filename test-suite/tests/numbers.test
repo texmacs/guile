@@ -5390,11 +5390,19 @@
       (for-each (lambda (n)
                   (for-each (lambda (count) (test n count))
                             `(-1000
+                              ,(* 2 (- fixnum-bit))
+                              ,(- -3 fixnum-bit)
+                              ,(- -2 fixnum-bit)
+                              ,(- -1 fixnum-bit)
                               ,(- fixnum-bit)
                               ,(- (- fixnum-bit 1))
                               -3 -2 -1 0 1 2 3
                               ,(- fixnum-bit 1)
                               ,fixnum-bit
+                              ,(+ fixnum-bit 1)
+                              ,(+ fixnum-bit 2)
+                              ,(+ fixnum-bit 3)
+                              ,(* 2 fixnum-bit)
                               1000)))
                 (list 0 1 3 23 -1 -3 -23
                       fixnum-max
@@ -5422,6 +5430,22 @@
                   (for-each (lambda (offset) (test (+ base offset) -3))
                             '(#b11001 #b11100 #b11101 #b10001 #b10100 #b10101)))
                 (list 0 64 -64 (* 64 fixnum-max) (* 64 fixnum-min)))
+
+      ;; Right shift by LONG_MIN, typically (ash -1 63) and (ash -1 31)
+      ;; depending on the word size, where negating the shift count
+      ;; overflows.  See <https://bugs.gnu.org/21901>.
+      (pass-if-equal "Right shift of positive integer by (ash -1 63) bits"
+          0
+        (ash-variant 123 (ash -1 63)))
+      (pass-if-equal "Right shift of negative integer by (ash -1 63) bits"
+          (if rounded? 0 -1)
+        (ash-variant -123 (ash -1 63)))
+      (pass-if-equal "Right shift of positive integer by (ash -1 31) bits"
+          0
+        (ash-variant 123 (ash -1 31)))
+      (pass-if-equal "Right shift of negative integer by (ash -1 31) bits"
+          (if rounded? 0 -1)
+        (ash-variant -123 (ash -1 31)))
 
       ;; Huge shift counts
       (pass-if-equal "Huge left shift of 0"
