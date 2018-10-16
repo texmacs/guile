@@ -1,7 +1,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright 1995-2004,2006,2009-2011,2013-2014,2018
+/* Copyright 1995-2004,2006,2009-2011,2013-2014,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.

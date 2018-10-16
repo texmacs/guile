@@ -1,4 +1,4 @@
-/* Copyright 1995-2001,2003-2009,2011,2013-2014,2018
+/* Copyright 1995-2001,2003-2009,2011,2013-2014,2016-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -698,7 +698,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 	   some OSs, e.g., Solaris.  */
 	SCM zone =
 	  scm_string_append (scm_list_2 (zone_spec,
-					 scm_from_locale_string ("0")));
+					 scm_from_utf8_string ("0")));
 
 	have_zone = 1;
         scm_pthread_mutex_lock (&tz_lock);

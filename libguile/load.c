@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,1998-2001,2004,2006,2008-2014,2017-2018
+/* Copyright 1995-1996,1998-2001,2004,2006,2008-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_sys_package_data_dir, "%package-data-dir", 0, 0, 0,
 	    "@samp{/usr/local/share/guile}.")
 #define FUNC_NAME s_scm_sys_package_data_dir
 {
-  return scm_from_locale_string (SCM_PKGDATA_DIR);
+  return scm_from_utf8_string (SCM_PKGDATA_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_PKGDATA_DIR */
@@ -166,7 +166,7 @@ SCM_DEFINE (scm_sys_library_dir, "%library-dir", 0,0,0,
 	    "E.g., may return \"/usr/share/guile/1.3.5\".")
 #define FUNC_NAME s_scm_sys_library_dir
 {
-  return scm_from_locale_string (SCM_LIBRARY_DIR);
+  return scm_from_utf8_string (SCM_LIBRARY_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_LIBRARY_DIR */
@@ -192,7 +192,7 @@ SCM_DEFINE (scm_sys_global_site_dir, "%global-site-dir", 0,0,0,
 	    "E.g., may return \"/usr/share/guile/site\".")
 #define FUNC_NAME s_scm_sys_global_site_dir
 {
-  return scm_from_locale_string (SCM_GLOBAL_SITE_DIR);
+  return scm_from_utf8_string (SCM_GLOBAL_SITE_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_GLOBAL_SITE_DIR */
@@ -205,7 +205,7 @@ SCM_DEFINE (scm_sys_site_ccache_dir, "%site-ccache-dir", 0,0,0,
 	    "E.g., may return \"/usr/lib/guile/" SCM_EFFECTIVE_VERSION "/site-ccache\".")
 #define FUNC_NAME s_scm_sys_site_ccache_dir
 {
-  return scm_from_locale_string (SCM_SITE_CCACHE_DIR);
+  return scm_from_utf8_string (SCM_SITE_CCACHE_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_SITE_CCACHE_DIR */
@@ -310,6 +310,9 @@ scm_i_mirror_backslashes (char *path)
 
       while (*p)
 	{
+          /* FIXME: When the locale encoding is Shift_JIS, backslash '\'
+             has a multibyte representation, so this code will
+             misbehave.  */
 	  if (*p == '\\')
 	    *p = '/';
 	  p++;
@@ -339,10 +342,10 @@ scm_init_load_path ()
   else if (env)
     path = scm_parse_path (scm_from_locale_string (env), path);
   else
-    path = scm_list_4 (scm_from_locale_string (SCM_LIBRARY_DIR),
-                       scm_from_locale_string (SCM_SITE_DIR),
-                       scm_from_locale_string (SCM_GLOBAL_SITE_DIR),
-                       scm_from_locale_string (SCM_PKGDATA_DIR));
+    path = scm_list_4 (scm_from_utf8_string (SCM_LIBRARY_DIR),
+                       scm_from_utf8_string (SCM_SITE_DIR),
+                       scm_from_utf8_string (SCM_GLOBAL_SITE_DIR),
+                       scm_from_utf8_string (SCM_PKGDATA_DIR));
 
   env = scm_i_mirror_backslashes (getenv ("GUILE_SYSTEM_COMPILED_PATH"));
   if (env && strcmp (env, "") == 0)
@@ -352,8 +355,8 @@ scm_init_load_path ()
     cpath = scm_parse_path (scm_from_locale_string (env), cpath);
   else
     {
-      cpath = scm_list_2 (scm_from_locale_string (SCM_CCACHE_DIR),
-                          scm_from_locale_string (SCM_SITE_CCACHE_DIR));
+      cpath = scm_list_2 (scm_from_utf8_string (SCM_CCACHE_DIR),
+                          scm_from_utf8_string (SCM_SITE_CCACHE_DIR));
     }
 
 #endif /* SCM_LIBRARY_DIR */
@@ -954,7 +957,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
 	    {
 	      require_exts = SCM_CADR (rest);
 	      if (SCM_UNLIKELY (!scm_is_null (SCM_CDDR (rest))))
-		scm_wrong_num_args (scm_from_locale_string (FUNC_NAME));
+		scm_wrong_num_args (scm_from_utf8_string (FUNC_NAME));
 	    }
 	}
       else
@@ -1280,10 +1283,10 @@ scm_init_eval_in_scheme (void)
   int found_stale_eval_go = 0;
 
   eval_scm = search_path (*scm_loc_load_path,
-                          scm_from_locale_string ("ice-9/eval.scm"),
+                          scm_from_utf8_string ("ice-9/eval.scm"),
                           SCM_EOL, SCM_BOOL_F, &stat_source);
   eval_thunk =
-    load_thunk_from_path (scm_from_locale_string ("ice-9/eval.go"),
+    load_thunk_from_path (scm_from_utf8_string ("ice-9/eval.go"),
                           eval_scm, &stat_source, &found_stale_eval_go);
   
   if (scm_is_true (eval_thunk))
@@ -1341,13 +1344,13 @@ scm_init_load ()
   scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
-				      scm_list_2 (scm_from_locale_string (".scm"),
+				      scm_list_2 (scm_from_utf8_string (".scm"),
 						  scm_nullstr)));
   scm_loc_load_compiled_path
     = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-path", SCM_EOL));
   scm_loc_load_compiled_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-extensions",
-				      scm_list_1 (scm_from_locale_string (".go"))));
+				      scm_list_1 (scm_from_utf8_string (".go"))));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   scm_loc_compile_fallback_path

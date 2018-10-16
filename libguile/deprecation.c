@@ -1,4 +1,4 @@
-/* Copyright 2001,2006,2010-2011,2018
+/* Copyright 2001,2005-2006,2009-2012,2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -115,7 +115,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
     print_summary = 1;
   else
     {
-      SCM nl = scm_from_locale_string ("\n");
+      SCM nl = scm_from_utf8_string ("\n");
       SCM msgs_nl = SCM_EOL;
       char *c_msgs;
       while (scm_is_pair (msgs))

@@ -1,4 +1,4 @@
-/* Copyright 2000-2001,2006,2008-2009,2011-2012,2017-2018
+/* Copyright 2000-2001,2006,2008-2009,2011-2013,2016-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.

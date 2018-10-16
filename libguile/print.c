@@ -1,4 +1,4 @@
-/* Copyright 1995-2004,2006,2008,2009-2015,2017-2018
+/* Copyright 1995-2004,2006,2008-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -1313,9 +1313,9 @@ scm_init_print ()
 {
   SCM type;
 
-  type = scm_make_vtable (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT),
+  type = scm_make_vtable (scm_from_utf8_string (SCM_PRINT_STATE_LAYOUT),
                           SCM_BOOL_F);
-  scm_set_struct_vtable_name_x (type, scm_from_latin1_symbol ("print-state"));
+  scm_set_struct_vtable_name_x (type, scm_from_utf8_symbol ("print-state"));
   scm_print_state_vtable = type;
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
@@ -1326,8 +1326,8 @@ scm_init_print ()
 
   scm_init_opts (scm_print_options, scm_print_opts);
   scm_print_opts[SCM_PRINT_HIGHLIGHT_PREFIX_I].val =
-    SCM_UNPACK (scm_from_locale_string ("{"));
+    SCM_UNPACK (scm_from_utf8_string ("{"));
   scm_print_opts[SCM_PRINT_HIGHLIGHT_SUFFIX_I].val =
-    SCM_UNPACK (scm_from_locale_string ("}"));
+    SCM_UNPACK (scm_from_utf8_string ("}"));
   scm_print_opts[SCM_PRINT_KEYWORD_STYLE_I].val = SCM_UNPACK (sym_reader);
 }

@@ -1,4 +1,4 @@
-/* Copyright 1995-1997,1999-2001,2003-2004,2006-2012,2014-2015,2018
+/* Copyright 1995-1997,1999-2001,2003-2004,2006-2012,2014-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -150,21 +150,21 @@ scm_i_input_error (char const *function,
 {
   SCM fn = (scm_is_string (SCM_FILENAME(port))
 	    ? SCM_FILENAME(port)
-	    : scm_from_locale_string ("#<unknown port>"));
+	    : scm_from_utf8_string ("#<unknown port>"));
 
   SCM string_port = scm_open_output_string ();
   SCM string = SCM_EOL;
   scm_simple_format (string_port,
-		     scm_from_locale_string ("~A:~S:~S: ~A"),
+		     scm_from_utf8_string ("~A:~S:~S: ~A"),
 		     scm_list_4 (fn,
 				 scm_sum (scm_port_line (port), SCM_INUM1),
 				 scm_sum (scm_port_column (port), SCM_INUM1),
-				 scm_from_locale_string (message)));
+				 scm_from_utf8_string (message)));
     
   string = scm_get_output_string (string_port);
   scm_close_output_port (string_port);
-  scm_error_scm (scm_from_latin1_symbol ("read-error"),
-		 function? scm_from_locale_string (function) : SCM_BOOL_F,
+  scm_error_scm (scm_from_utf8_symbol ("read-error"),
+		 function? scm_from_utf8_string (function) : SCM_BOOL_F,
 		 string,
 		 arg,
 		 SCM_BOOL_F);
@@ -2219,7 +2219,10 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
     return SCM_BOOL_F;
   else
     {
-      s_enc = scm_string_upcase (scm_from_locale_string (enc));
+      /* It's not obvious what encoding to use here, but latin1 has the
+         advantage of never causing a decoding error, and a valid
+         encoding name should be ASCII anyway. */
+      s_enc = scm_string_upcase (scm_from_latin1_string (enc));
       return s_enc;
     }
 

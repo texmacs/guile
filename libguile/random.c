@@ -1,4 +1,4 @@
-/* Copyright 1999-2001,2003,2005-2006,2009-2010,2012-2014,2017-2018
+/* Copyright 1999-2001,2003,2005-2006,2009-2010,2012-2014,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -381,7 +381,10 @@ make_rstate (scm_t_rstate *state)
  * Scheme level interface.
  */
 
-SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_from_locale_string ("URL:http://stat.fsu.edu/~geo/diehard.html")));
+SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*",
+                          scm_seed_to_random_state
+                          (scm_from_utf8_string
+                           ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
 SCM_DEFINE (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),

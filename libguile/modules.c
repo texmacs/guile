@@ -1,4 +1,4 @@
-/* Copyright 1998,2000-2004,2006-2012,2017-2018
+/* Copyright 1998,2000-2004,2006-2012,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -920,7 +920,7 @@ scm_post_boot_init_modules ()
   default_duplicate_binding_procedures_var = 
     scm_c_lookup ("default-duplicate-binding-procedures");
   module_public_interface_var = scm_c_lookup ("module-public-interface");
-  k_ensure = scm_from_locale_keyword ("ensure");
+  k_ensure = scm_from_utf8_keyword ("ensure");
 
   scm_module_system_booted_p = 1;
 }

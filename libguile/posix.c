@@ -376,11 +376,11 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   SCM_SIMPLE_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
   SCM_SIMPLE_VECTOR_SET(result, 4, scm_from_locale_string (entry->pw_gecos));
   if (!entry->pw_dir)
-    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_utf8_string (""));
   else
     SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (entry->pw_dir));
   if (!entry->pw_shell)
-    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_utf8_string (""));
   else
     SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (entry->pw_shell));
   return result;

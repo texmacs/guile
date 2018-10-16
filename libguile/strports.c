@@ -1,4 +1,4 @@
-/* Copyright 1995,1996,1998-2003,2005-2006,2009-2014,2018
+/* Copyright 1995,1996,1998-2003,2005-2006,2009-2014,2016-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -348,7 +348,7 @@ static void
 init_eval_string_var_and_k_module (void)
 {
   eval_string_var = scm_c_public_variable ("ice-9 eval-string", "eval-string");
-  k_module = scm_from_locale_keyword ("module");
+  k_module = scm_from_utf8_keyword ("module");
 }
 
 SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0, 

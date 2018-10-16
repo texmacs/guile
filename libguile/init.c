@@ -1,4 +1,4 @@
-/* Copyright 1995-2004,2006,2009-2014,2018
+/* Copyright 1995-2004,2006,2009-2014,2016-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -244,7 +244,7 @@ scm_load_startup_files ()
      SCM_SITE_DIR and SCM_LIBRARY_DIR when searching for the site init
      file, so we do this before loading Ice-9.  */
   SCM init_path =
-    scm_sys_search_load_path (scm_from_locale_string ("init.scm"));
+    scm_sys_search_load_path (scm_from_utf8_string ("init.scm"));
 
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)

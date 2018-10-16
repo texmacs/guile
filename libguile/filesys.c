@@ -1,4 +1,4 @@
-/* Copyright 1996-2002,2004,2006,2009-2014,2016-2018
+/* Copyright 1996-2002,2004,2006,2009-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -1951,7 +1951,7 @@ scm_init_filesys ()
   scm_c_define ("X_OK", scm_from_int (X_OK));
   scm_c_define ("F_OK", scm_from_int (F_OK));
 
-  scm_dot_string = scm_from_locale_string (".");
+  scm_dot_string = scm_from_utf8_string (".");
 
 #include "filesys.x"
 }

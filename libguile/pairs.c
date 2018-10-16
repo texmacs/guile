@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,2000-2001,2004-2006,2008-2009,2011-2013,2018
+/* Copyright 1995-1996,2000-2001,2004-2006,2008-2013,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -55,7 +55,7 @@ verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
 void scm_error_pair_access (SCM non_pair)
 {
   static unsigned int running = 0;
-  SCM message = scm_from_locale_string ("Non-pair accessed with SCM_C[AD]R: `~S'\n");
+  SCM message = scm_from_utf8_string ("Non-pair accessed with SCM_C[AD]R: `~S'\n");
 
   if (!running)
     {

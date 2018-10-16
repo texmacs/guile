@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,1997-2014,2018
+/* Copyright 1995-2014,2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -224,7 +224,7 @@ SCM_KEYWORD (kw_rest, "rest");
 static void 
 syntax_error (const char* const msg, const SCM form, const SCM expr)
 {
-  SCM msg_string = scm_from_locale_string (msg);
+  SCM msg_string = scm_from_utf8_string (msg);
   SCM filename = SCM_BOOL_F;
   SCM linenr = SCM_BOOL_F;
   const char *format;
@@ -487,7 +487,7 @@ expand_cond_clauses (SCM clause, SCM rest, int elp, int alp, SCM env)
       && scm_is_eq (CADR (clause), scm_sym_arrow)
       && alp)
     {
-      SCM tmp = scm_gensym (scm_from_locale_string ("cond "));
+      SCM tmp = scm_gensym (scm_from_utf8_string ("cond "));
       SCM new_env = scm_acons (tmp, tmp, env);
       ASSERT_SYNTAX (length > 2, s_missing_recipient, clause);
       ASSERT_SYNTAX (length == 3, s_extra_expression, clause);
@@ -1596,7 +1596,7 @@ make_exp_vtable (size_t n)
   
   layout = scm_string_to_symbol
     (scm_string_append (scm_make_list (scm_from_size_t (exp_nfields[n]),
-                                       scm_from_locale_string ("pw"))));
+                                       scm_from_utf8_string ("pw"))));
   printer = SCM_BOOL_F;
   name = scm_from_utf8_symbol (exp_names[n]);
   code = scm_from_size_t (n);
@@ -1638,7 +1638,7 @@ scm_init_expand ()
   DEFINE_NAMES (LETREC);
 
   scm_exp_vtable_vtable =
-    scm_make_vtable (scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT "pwuwpw"),
+    scm_make_vtable (scm_from_utf8_string (SCM_VTABLE_BASE_LAYOUT "pwuwpw"),
                      SCM_BOOL_F);
 
   for (n = 0; n < SCM_NUM_EXPANDED_TYPES; n++)

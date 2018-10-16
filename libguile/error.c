@@ -1,4 +1,4 @@
-/* Copyright 1995-1998,2000-2001,2004,2006,2010,2012-2014,2018
+/* Copyright 1995-1998,2000-2001,2004,2006,2010,2012-2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -61,8 +61,8 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 {
   scm_error_scm 
     (key,
-     (subr == NULL) ? SCM_BOOL_F : scm_from_locale_string (subr),
-     (message == NULL) ? SCM_BOOL_F : scm_from_locale_string (message),
+     (subr == NULL) ? SCM_BOOL_F : scm_from_utf8_string (subr),
+     (message == NULL) ? SCM_BOOL_F : scm_from_utf8_string (message),
      args, rest);
 }
 
@@ -235,7 +235,7 @@ scm_error_num_args_subr (const char *subr)
   scm_error (scm_args_number_key,
 	     NULL,
 	     "Wrong number of arguments to ~A",
-	     scm_list_1 (scm_from_locale_string (subr)),
+	     scm_list_1 (scm_from_utf8_string (subr)),
 	     SCM_BOOL_F);
 }
 
@@ -258,8 +258,8 @@ scm_i_wrong_type_arg_symbol (SCM symbol, int pos, SCM bad_value)
 {
   scm_error_scm (scm_arg_type_key,
 		 scm_symbol_to_string (symbol),
-		 (pos == 0) ? scm_from_locale_string ("Wrong type: ~S")
-		 : scm_from_locale_string ("Wrong type argument in position ~A: ~S"),
+		 (pos == 0) ? scm_from_utf8_string ("Wrong type: ~S")
+		 : scm_from_utf8_string ("Wrong type argument in position ~A: ~S"),
 		 (pos == 0) ? scm_list_1 (bad_value)
 		 : scm_list_2 (scm_from_int (pos), bad_value),
 		 scm_list_1 (bad_value));
@@ -269,7 +269,7 @@ scm_i_wrong_type_arg_symbol (SCM symbol, int pos, SCM bad_value)
 void
 scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *szMessage)
 {
-  SCM msg = scm_from_locale_string (szMessage);
+  SCM msg = scm_from_utf8_string (szMessage);
   if (pos == 0)
     {
       scm_error (scm_arg_type_key,
