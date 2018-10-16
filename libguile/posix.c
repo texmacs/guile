@@ -1,6 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2016, 2017, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2014, 2016-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -372,11 +370,11 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   SCM_SIMPLE_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
   SCM_SIMPLE_VECTOR_SET(result, 4, scm_from_locale_string (entry->pw_gecos));
   if (!entry->pw_dir)
-    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_utf8_string (""));
   else
     SCM_SIMPLE_VECTOR_SET(result, 5, scm_from_locale_string (entry->pw_dir));
   if (!entry->pw_shell)
-    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (""));
+    SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_utf8_string (""));
   else
     SCM_SIMPLE_VECTOR_SET(result, 6, scm_from_locale_string (entry->pw_shell));
   return result;

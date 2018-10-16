@@ -1,4 +1,5 @@
-/* Copyright (C) 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2005, 2006, 2009-2012, 2016, 2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -117,7 +118,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
     print_summary = 1;
   else
     {
-      SCM nl = scm_from_locale_string ("\n");
+      SCM nl = scm_from_utf8_string ("\n");
       SCM msgs_nl = SCM_EOL;
       char *c_msgs;
       while (scm_is_pair (msgs))

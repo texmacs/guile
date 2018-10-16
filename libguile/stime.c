@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006,
- *   2007, 2008, 2009, 2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001, 2003-2009, 2011, 2013, 2014, 2016-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -696,7 +696,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 	   some OSs, e.g., Solaris.  */
 	SCM zone =
 	  scm_string_append (scm_list_2 (zone_spec,
-					 scm_from_locale_string ("0")));
+					 scm_from_utf8_string ("0")));
 
 	have_zone = 1;
         scm_pthread_mutex_lock (&tz_lock);

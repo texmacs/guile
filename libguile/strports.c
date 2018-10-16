@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998-2003, 2005, 2006, 2009-2014,
+ *   2016-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -344,7 +344,7 @@ static void
 init_eval_string_var_and_k_module (void)
 {
   eval_string_var = scm_c_public_variable ("ice-9 eval-string", "eval-string");
-  k_module = scm_from_locale_keyword ("module");
+  k_module = scm_from_utf8_keyword ("module");
 }
 
 SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0, 

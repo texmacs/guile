@@ -1,6 +1,7 @@
 /* extensions.c - registering and loading extensions.
  *
- * Copyright (C) 2001, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2002, 2004, 2006, 2009-2011, 2018
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -90,9 +91,9 @@ load_extension (SCM lib, SCM init)
 
       scm_dynwind_begin (0);
 
-      clib = scm_to_locale_string (lib);
+      clib = scm_to_utf8_string (lib);
       scm_dynwind_free (clib);
-      cinit = scm_to_locale_string (init);
+      cinit = scm_to_utf8_string (init);
       scm_dynwind_free (cinit);
 
       for (ext = head; ext; ext = ext->next)
@@ -123,7 +124,7 @@ load_extension (SCM lib, SCM init)
 void
 scm_c_load_extension (const char *lib, const char *init)
 {
-  load_extension (scm_from_locale_string (lib), scm_from_locale_string (init));
+  load_extension (scm_from_utf8_string (lib), scm_from_utf8_string (init));
 }
 
 SCM_DEFINE (scm_load_extension, "load-extension", 2, 0, 0,

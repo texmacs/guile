@@ -1,5 +1,4 @@
-/* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2006, 2008-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1290,9 +1289,9 @@ scm_init_print ()
 {
   SCM type;
 
-  type = scm_make_vtable (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT),
+  type = scm_make_vtable (scm_from_utf8_string (SCM_PRINT_STATE_LAYOUT),
                           SCM_BOOL_F);
-  scm_set_struct_vtable_name_x (type, scm_from_latin1_symbol ("print-state"));
+  scm_set_struct_vtable_name_x (type, scm_from_utf8_symbol ("print-state"));
   scm_print_state_vtable = type;
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
@@ -1303,9 +1302,9 @@ scm_init_print ()
 
   scm_init_opts (scm_print_options, scm_print_opts);
   scm_print_opts[SCM_PRINT_HIGHLIGHT_PREFIX_I].val =
-    SCM_UNPACK (scm_from_locale_string ("{"));
+    SCM_UNPACK (scm_from_utf8_string ("{"));
   scm_print_opts[SCM_PRINT_HIGHLIGHT_SUFFIX_I].val =
-    SCM_UNPACK (scm_from_locale_string ("}"));
+    SCM_UNPACK (scm_from_utf8_string ("}"));
   scm_print_opts[SCM_PRINT_KEYWORD_STYLE_I].val = SCM_UNPACK (sym_reader);
 }
 

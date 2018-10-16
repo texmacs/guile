@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2005, 2006, 2008, 2009,
- *   2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 2000, 2001, 2004-2006, 2008-2013,
+ *   2017, 2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -55,7 +55,7 @@ verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
 void scm_error_pair_access (SCM non_pair)
 {
   static unsigned int running = 0;
-  SCM message = scm_from_locale_string ("Non-pair accessed with SCM_C[AD]R: `~S'\n");
+  SCM message = scm_from_utf8_string ("Non-pair accessed with SCM_C[AD]R: `~S'\n");
 
   if (!running)
     {

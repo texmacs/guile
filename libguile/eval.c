@@ -1,6 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,
- *   2005,2006,2007,2008,2009,2010,2011,2012,2013,2014
- * Free Software Foundation, Inc.
+/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -197,22 +195,22 @@ env_set (SCM env, int depth, int width, SCM val)
 
 static void error_missing_value (SCM proc, SCM kw)
 {
-  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
-                 scm_from_locale_string ("Keyword argument has no value"), SCM_EOL,
+  scm_error_scm (scm_from_utf8_symbol ("keyword-argument-error"), proc,
+                 scm_from_utf8_string ("Keyword argument has no value"), SCM_EOL,
                  scm_list_1 (kw));
 }
 
 static void error_invalid_keyword (SCM proc, SCM obj)
 {
-  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
-                 scm_from_locale_string ("Invalid keyword"), SCM_EOL,
+  scm_error_scm (scm_from_utf8_symbol ("keyword-argument-error"), proc,
+                 scm_from_utf8_string ("Invalid keyword"), SCM_EOL,
                  scm_list_1 (obj));
 }
 
 static void error_unrecognized_keyword (SCM proc, SCM kw)
 {
-  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
-                 scm_from_locale_string ("Unrecognized keyword"), SCM_EOL,
+  scm_error_scm (scm_from_utf8_symbol ("keyword-argument-error"), proc,
+                 scm_from_utf8_string ("Unrecognized keyword"), SCM_EOL,
                  scm_list_1 (kw));
 }
 
@@ -230,9 +228,9 @@ truncate_values (SCM x)
         return scm_car (l);
       else
         {
-          scm_ithrow (scm_from_latin1_symbol ("vm-run"),
-                      scm_list_3 (scm_from_latin1_symbol ("vm-run"),
-                                  scm_from_locale_string
+          scm_ithrow (scm_from_utf8_symbol ("vm-run"),
+                      scm_list_3 (scm_from_utf8_symbol ("vm-run"),
+                                  scm_from_utf8_string
                                   ("Too few values returned to continuation"),
                                   SCM_EOL),
                       1);

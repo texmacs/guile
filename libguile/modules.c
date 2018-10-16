@@ -1,4 +1,5 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012,2018 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000-2004, 2006-2012, 2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -902,7 +903,7 @@ scm_post_boot_init_modules ()
   default_duplicate_binding_procedures_var = 
     scm_c_lookup ("default-duplicate-binding-procedures");
   module_public_interface_var = scm_c_lookup ("module-public-interface");
-  k_ensure = scm_from_locale_keyword ("ensure");
+  k_ensure = scm_from_utf8_keyword ("ensure");
 
   scm_module_system_booted_p = 1;
 }

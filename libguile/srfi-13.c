@@ -1,6 +1,7 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004-2006, 2008-2013, 2017, 2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -405,7 +406,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
   /* Validate the delimiter and record its length.  */
   if (SCM_UNBNDP (delimiter))
     {
-      delimiter = scm_from_locale_string (" ");
+      delimiter = scm_from_utf8_string (" ");
       delimiter_len = 1;
     }
   else

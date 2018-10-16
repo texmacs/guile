@@ -1,5 +1,7 @@
 /* A stack holds a frame chain
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2017 Free Software Foundation
+ *
+ * Copyright (C) 1996, 1997, 2000, 2001, 2006-2015, 2017, 2018
+ *   Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -462,10 +464,10 @@ scm_init_stacks ()
   scm_sys_stacks = scm_make_thread_local_fluid (SCM_BOOL_F);
   scm_c_define ("%stacks", scm_sys_stacks);
   
-  scm_stack_type = scm_make_vtable (scm_from_locale_string (SCM_STACK_LAYOUT),
+  scm_stack_type = scm_make_vtable (scm_from_utf8_string (SCM_STACK_LAYOUT),
                                     SCM_UNDEFINED);
   scm_set_struct_vtable_name_x (scm_stack_type,
-				scm_from_latin1_symbol ("stack"));
+				scm_from_utf8_symbol ("stack"));
 #include "libguile/stacks.x"
 }
 

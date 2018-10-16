@@ -1,5 +1,5 @@
-/* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014, 2016, 2017, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2002, 2004, 2006, 2009-2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1945,7 +1945,7 @@ scm_init_filesys ()
   scm_c_define ("X_OK", scm_from_int (X_OK));
   scm_c_define ("F_OK", scm_from_int (F_OK));
 
-  scm_dot_string = scm_from_locale_string (".");
+  scm_dot_string = scm_from_utf8_string (".");
 
 #include "libguile/filesys.x"
 }

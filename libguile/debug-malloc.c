@@ -1,4 +1,5 @@
-/* Copyright (C) 2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2002, 2004, 2006, 2008, 2009, 2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -221,7 +222,7 @@ SCM_DEFINE (scm_malloc_stats, "malloc-stats", 0, 0, 0,
   int i;
   for (i = 0; i < malloc_type_size + N_SEEK; ++i)
     if (malloc_type[i].key)
-      res = scm_acons (scm_from_locale_string ((char *) malloc_type[i].key),
+      res = scm_acons (scm_from_utf8_string ((char *) malloc_type[i].key),
 		       scm_from_int ((int) malloc_type[i].data),
 		       res);
   return res;

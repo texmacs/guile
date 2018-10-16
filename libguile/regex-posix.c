@@ -1,4 +1,5 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2001, 2004, 2006, 2007, 2010-2012, 2018
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -173,7 +174,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
       SCM errmsg = scm_regexp_error_msg (status, rx);
       scm_gc_free (rx, sizeof(regex_t), "regex");
       scm_error_scm (scm_regexp_error_key,
-		     scm_from_locale_string (FUNC_NAME),
+		     scm_from_utf8_string (FUNC_NAME),
 		     errmsg,
 		     SCM_BOOL_F,
 		     scm_list_1 (pat));
@@ -304,7 +305,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 
   if (status != 0 && status != REG_NOMATCH)
     scm_error_scm (scm_regexp_error_key,
-		   scm_from_locale_string (FUNC_NAME),
+		   scm_from_utf8_string (FUNC_NAME),
 		   scm_regexp_error_msg (status, SCM_RGX (rx)),
 		   SCM_BOOL_F, SCM_BOOL_F);
   return mvec;
