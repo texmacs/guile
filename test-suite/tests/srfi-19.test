@@ -1,8 +1,8 @@
 ;;;; srfi-19.test --- test suite for SRFI-19 -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008,
-;;;;   2011, 2014, 2017 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003-2008, 2011, 2014, 2017, 2018
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -211,6 +211,9 @@ incomplete numerical tower implementation.)"
     (pass-if "31dec98 23:59:59"
       (time-equal? (make-time time-tai 0 915148830)
 		   (date->time-tai (make-date 0 59 59 23 31 12 1998 0))))
+    (pass-if "31dec98 23:59:60"
+      (time-equal? (make-time time-tai 0 915148831)
+		   (date->time-tai (make-date 0 60 59 23 31 12 1998 0))))
     (pass-if "1jan99 0:00:00"
       (time-equal? (make-time time-tai 0 915148832)
 		   (date->time-tai (make-date 0 0  0  0   1  1 1999 0))))
@@ -220,9 +223,119 @@ incomplete numerical tower implementation.)"
     (pass-if "31dec05 23:59:59"
       (time-equal? (make-time time-tai 0 1136073631)
 		   (date->time-tai (make-date 0 59 59 23 31 12 2005 0))))
+    (pass-if "31dec05 23:59:60"
+      (time-equal? (make-time time-tai 0 1136073632)
+		   (date->time-tai (make-date 0 60 59 23 31 12 2005 0))))
     (pass-if "1jan06 0:00:00"
       (time-equal? (make-time time-tai 0 1136073633)
 		   (date->time-tai (make-date 0 0  0  0   1  1 2006 0)))))
+
+  (with-test-prefix "date->time-monotonic"
+    ;; leap second 1 Jan 1999, 1 second of UTC in make-date is out as 2
+    ;; seconds of MONOTONIC in date->time-monotonic
+    (pass-if "31dec98 23:59:59"
+      (time-equal? (make-time time-monotonic 0 915148830)
+		   (date->time-monotonic (make-date 0 59 59 23 31 12 1998 0))))
+    (pass-if "31dec98 23:59:60"
+      (time-equal? (make-time time-monotonic 0 915148831)
+		   (date->time-monotonic (make-date 0 60 59 23 31 12 1998 0))))
+    (pass-if "1jan99 0:00:00"
+      (time-equal? (make-time time-monotonic 0 915148832)
+		   (date->time-monotonic (make-date 0 0  0  0   1  1 1999 0))))
+
+    ;; leap second 1 Jan 2006, 1 second of UTC in make-date is out as 2
+    ;; seconds of MONOTONIC in date->time-monotonic
+    (pass-if "31dec05 23:59:59"
+      (time-equal? (make-time time-monotonic 0 1136073631)
+		   (date->time-monotonic (make-date 0 59 59 23 31 12 2005 0))))
+    (pass-if "31dec05 23:59:60"
+      (time-equal? (make-time time-monotonic 0 1136073632)
+		   (date->time-monotonic (make-date 0 60 59 23 31 12 2005 0))))
+    (pass-if "1jan06 0:00:00"
+      (time-equal? (make-time time-monotonic 0 1136073633)
+		   (date->time-monotonic (make-date 0 0  0  0   1  1 2006 0)))))
+
+  (with-test-prefix "julian-day->date"
+    (pass-if-equal "0002-07-29T12:00:00Z" "0002-07-29T12:00:00Z"
+      (date->string (julian-day->date 1722000 0) "~4"))
+    (pass-if-equal "0024-06-23T12:00:00Z" "0024-06-23T12:00:00Z"
+      (date->string (julian-day->date 1730000 0) "~4"))
+    (pass-if-equal "2000-01-01T00:00:00Z" "2000-01-01T00:00:00Z"
+      (date->string (julian-day->date 4903089/2 0) "~4")))
+
+  (with-test-prefix "time-utc->date"
+    (pass-if-equal "2012-07-01T00:59:59+0100" "2012-07-01T00:59:59+0100"
+      (date->string (time-utc->date (make-time time-utc 0 1341100799)
+                                    3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:00+0100" "2012-07-01T01:00:00+0100"
+      (date->string (time-utc->date (make-time time-utc 0 1341100800)
+                                    3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:01+0100" "2012-07-01T01:00:01+0100"
+      (date->string (time-utc->date (make-time time-utc 0 1341100801)
+                                    3600)
+                    "~4")))
+
+  (with-test-prefix "time-tai->date"
+    (pass-if-equal "2012-07-01T00:59:59+0100" "2012-07-01T00:59:59+0100"
+      (date->string (time-tai->date (make-time time-tai 0 1341100833)
+                                    3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T00:59:60+0100" "2012-07-01T00:59:60+0100"
+      (date->string (time-tai->date (make-time time-tai 0 1341100834)
+                                    3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:00+0100" "2012-07-01T01:00:00+0100"
+      (date->string (time-tai->date (make-time time-tai 0 1341100835)
+                                    3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:01+0100" "2012-07-01T01:00:01+0100"
+      (date->string (time-tai->date (make-time time-tai 0 1341100836)
+                                    3600)
+                    "~4")))
+
+  (with-test-prefix "time-monotonic->date"
+    (pass-if-equal "2012-07-01T00:59:59+0100" "2012-07-01T00:59:59+0100"
+      (date->string (time-monotonic->date (make-time time-monotonic
+                                                     0 1341100833)
+                                          3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T00:59:60+0100" "2012-07-01T00:59:60+0100"
+      (date->string (time-monotonic->date (make-time time-monotonic
+                                                     0 1341100834)
+                                          3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:00+0100" "2012-07-01T01:00:00+0100"
+      (date->string (time-monotonic->date (make-time time-monotonic
+                                                     0 1341100835)
+                                          3600)
+                    "~4"))
+    (pass-if-equal "2012-07-01T01:00:01+0100" "2012-07-01T01:00:01+0100"
+      (date->string (time-monotonic->date (make-time time-monotonic
+                                                     0 1341100836)
+                                          3600)
+                    "~4")))
+
+  (with-test-prefix "time-tai->julian-day"
+    (pass-if-equal "2012-07-01T00:59:59+0100" 212207860799/86400
+      (time-tai->julian-day (make-time time-tai 0 1341100833)))
+    (pass-if-equal "2012-07-01T00:59:60+0100" 4912219/2
+      (time-tai->julian-day (make-time time-tai 0 1341100834)))
+    (pass-if-equal "2012-07-01T01:00:00+0100" 4912219/2
+      (time-tai->julian-day (make-time time-tai 0 1341100835)))
+    (pass-if-equal "2012-07-01T01:00:01+0100" 212207860801/86400
+      (time-tai->julian-day (make-time time-tai 0 1341100836))))
+
+  (with-test-prefix "time-monotonic->julian-day"
+    (pass-if-equal "2012-07-01T00:59:59+0100" 212207860799/86400
+      (time-monotonic->julian-day (make-time time-monotonic 0 1341100833)))
+    (pass-if-equal "2012-07-01T00:59:60+0100" 4912219/2
+      (time-monotonic->julian-day (make-time time-monotonic 0 1341100834)))
+    (pass-if-equal "2012-07-01T01:00:00+0100" 4912219/2
+      (time-monotonic->julian-day (make-time time-monotonic 0 1341100835)))
+    (pass-if-equal "2012-07-01T01:00:01+0100" 212207860801/86400
+      (time-monotonic->julian-day (make-time time-monotonic 0 1341100836))))
 
   (with-test-prefix "date-week-number"
     (pass-if (= 0 (date-week-number (make-date 0 0 0 0 1 1 1984 0) 0)))
