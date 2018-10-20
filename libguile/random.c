@@ -441,11 +441,33 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 #define FUNC_NAME s_scm_seed_to_random_state
 {
   SCM res;
+  char *c_str;
+  size_t len;
+
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
   SCM_VALIDATE_STRING (1, seed);
-  res = make_rstate (scm_c_make_rstate (scm_i_string_chars (seed),
-					scm_i_string_length (seed)));
+
+  if (scm_i_is_narrow_string (seed))
+    /* This special case of a narrow string, where latin1 is used, is
+       for backward compatibility during the 2.2 stable series.  In
+       future major releases, we should use UTF-8 uniformly. */
+    c_str = scm_to_latin1_stringn (seed, &len);
+  else
+    c_str = scm_to_utf8_stringn (seed, &len);
+
+  /* 'scm_to_*_stringn' returns a 'size_t' for the length in bytes, but
+     'scm_c_make_rstate' accepts an 'int'.  Make sure the length fits in
+     an 'int'. */
+  if (len > INT_MAX)
+    {
+      free (c_str);
+      SCM_OUT_OF_RANGE (1, seed);
+    }
+
+  res = make_rstate (scm_c_make_rstate (c_str, len));
+  free (c_str);
+
   scm_remember_upto_here_1 (seed);
   return res;
   
