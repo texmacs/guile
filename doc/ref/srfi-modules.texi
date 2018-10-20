@@ -2401,8 +2401,8 @@ functions and variables described here are provided by
 @cindex UTC
 @cindex TAI
 This module implements time and date representations and calculations,
-in various time systems, including universal time (UTC) and atomic
-time (TAI).
+in various time systems, including Coordinated Universal Time (UTC)
+and International Atomic Time (TAI).
 
 For those not familiar with these time systems, TAI is based on a
 fixed length second derived from oscillations of certain atoms.  UTC
@@ -2434,18 +2434,14 @@ in @file{srfi-19.scm} for how to update this table.
 @cindex julian day
 @cindex modified julian day
 Also, for those not familiar with the terminology, a @dfn{Julian Day}
-is a real number which is a count of days and fraction of a day, in
-UTC, starting from -4713-01-01T12:00:00Z, ie.@: midday Monday 1 Jan
-4713 B.C.  A @dfn{Modified Julian Day} is the same, but starting from
-1858-11-17T00:00:00Z, ie.@: midnight 17 November 1858 UTC.  That time
-is julian day 2400000.5.
+represents a point in time as a real number of days since
+-4713-11-24T12:00:00Z, i.e.@: midday UT on 24 November 4714 BC in the
+proleptic Gregorian calendar (1 January 4713 BC in the proleptic Julian
+calendar).
 
-@c  The SRFI-1 spec says -4714-11-24T12:00:00Z (November 24, -4714 at
-@c  noon, UTC), but this is incorrect.  It looks like it might have
-@c  arisen from the code incorrectly treating years a multiple of 100
-@c  but not 400 prior to 1582 as non-leap years, where instead the Julian
-@c  calendar should be used so all multiples of 4 before 1582 are leap
-@c  years.
+A @dfn{Modified Julian Day} represents a point in time as a real number
+of days since 1858-11-17T00:00:00Z, i.e.@: midnight UT on Wednesday 17
+November AD 1858.  That time is julian day 2400000.5.
 
 
 @node SRFI-19 Time

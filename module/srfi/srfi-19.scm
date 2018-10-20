@@ -40,13 +40,14 @@
 ;; the DATE structure.
 
 (define-module (srfi srfi-19)
-  :use-module (srfi srfi-6)
-  :use-module (srfi srfi-8)
-  :use-module (srfi srfi-9)
-  :autoload   (ice-9 rdelim) (read-line)
-  :use-module (ice-9 i18n)
-  :replace (current-time)
-  :export (;; Constants
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-6)
+  #:use-module (srfi srfi-8)
+  #:use-module (srfi srfi-9)
+  #:autoload   (ice-9 rdelim) (read-line)
+  #:use-module (ice-9 i18n)
+  #:replace (current-time)
+  #:export (;; Constants
            time-duration
            time-monotonic
            time-process
@@ -242,6 +243,16 @@
                          (cdar table))
                         (else (lsd (cdr table)))))))
     (if (< utc-seconds  (* (- 1972 1970) 365 sid)) 0
+        (lsd  leap-second-table))))
+
+;; going from tai seconds to utc seconds ...
+(define (leap-second-neg-delta tai-seconds)
+  (letrec ((lsd (lambda (table)
+                  (cond ((null? table) 0)
+                        ((>= tai-seconds (+ (caar table) (cdar table)))
+                         (cdar table))
+                        (else (lsd (cdr table)))))) )
+    (if (< tai-seconds  (* (- 1972 1970) 365 sid)) 0
         (lsd  leap-second-table))))
 
 
@@ -449,7 +460,7 @@
   (set-time-type! time-out time-utc)
   (set-time-nanosecond! time-out (time-nanosecond time-in))
   (set-time-second!     time-out (- (time-second time-in)
-                                    (leap-second-delta
+                                    (leap-second-neg-delta
                                      (time-second time-in))))
   time-out)
 
@@ -594,7 +605,7 @@
 ;; This should be written to be OS specific.
 
 (define (local-tz-offset utc-time)
-  ;; SRFI uses seconds West, but guile (and libc) use seconds East.
+  ;; SRFI 19 uses seconds East, but 'tm:gmtoff' returns seconds West.
   (- (tm:gmtoff (localtime (time-second utc-time)))))
 
 ;; special thing -- ignores nanos
@@ -603,21 +614,16 @@
         sid)
      tai-epoch-in-jd))
 
-(define (leap-second? second)
-  (and (assoc second leap-second-table) #t))
+(define (tai-before-leap-second? second)
+  (any (lambda (x)
+         (= second (+ (car x) (cdr x) -1)))
+       leap-second-table))
 
-(define (time-utc->date time . tz-offset)
+(define* (time-utc->date time #:optional (tz-offset
+                                          (local-tz-offset time)))
   (if (not (eq? (time-type time) time-utc))
       (time-error 'time-utc->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset)
-		     (local-tz-offset time)
-		     (car tz-offset)))
-         (leap-second? (leap-second? (+ offset (time-second time))))
-         (jdn (time->julian-day-number (if leap-second?
-                                           (- (time-second time) 1)
-                                           (time-second time))
-                                       offset)))
-
+  (let ((jdn (time->julian-day-number (time-second time) tz-offset)))
     (call-with-values (lambda () (decode-julian-day-number jdn))
       (lambda (secs date month year)
 	;; secs is a real because jdn is a real in Guile;
@@ -628,78 +634,34 @@
                (minutes  (quotient rem 60))
                (seconds  (remainder rem 60)))
           (make-date (time-nanosecond time)
-                     (if leap-second? (+ seconds 1) seconds)
+                     seconds
                      minutes
                      hours
                      date
                      month
                      year
-                     offset))))))
+                     tz-offset))))))
 
 (define (time-tai->date time  . tz-offset)
   (if (not (eq? (time-type time) time-tai))
       (time-error 'time-tai->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset)
-		     (local-tz-offset (time-tai->time-utc time))
-		     (car tz-offset)))
-         (seconds (- (time-second time)
-                     (leap-second-delta (time-second time))))
-         (leap-second? (leap-second? (+ offset seconds)))
-         (jdn (time->julian-day-number (if leap-second?
-                                           (- seconds 1)
-                                           seconds)
-                                       offset)))
-    (call-with-values (lambda () (decode-julian-day-number jdn))
-      (lambda (secs date month year)
-	;; secs is a real because jdn is a real in Guile;
-	;; but it is conceptionally an integer.
-        ;; adjust for leap seconds if necessary ...
-        (let* ((int-secs (inexact->exact (round secs)))
-	       (hours    (quotient int-secs (* 60 60)))
-               (rem      (remainder int-secs (* 60 60)))
-               (minutes  (quotient rem 60))
-               (seconds  (remainder rem 60)))
-          (make-date (time-nanosecond time)
-                     (if leap-second? (+ seconds 1) seconds)
-                     minutes
-                     hours
-                     date
-                     month
-                     year
-                     offset))))))
+  (if (tai-before-leap-second? (time-second time))
+      ;; If it's *right* before the leap, we must handle this case to
+      ;; avoid the information lost when converting to UTC.  We subtract
+      ;; a second before conversion, and then effectively add it back
+      ;; after conversion by setting the second field to 60.
+      (let ((d (apply time-utc->date
+                      (subtract-duration! (time-tai->time-utc time)
+                                          (make-time time-duration 0 1))
+                      tz-offset)))
+        (set-date-second! d 60)
+        d)
+      (apply time-utc->date (time-tai->time-utc time) tz-offset)))
 
-;; this is the same as time-tai->date.
 (define (time-monotonic->date time . tz-offset)
   (if (not (eq? (time-type time) time-monotonic))
       (time-error 'time-monotonic->date 'incompatible-time-types  time))
-  (let* ((offset (if (null? tz-offset)
-		     (local-tz-offset (time-monotonic->time-utc time))
-		     (car tz-offset)))
-         (seconds (- (time-second time)
-                     (leap-second-delta (time-second time))))
-         (leap-second? (leap-second? (+ offset seconds)))
-         (jdn (time->julian-day-number (if leap-second?
-                                           (- seconds 1)
-                                           seconds)
-                                       offset)))
-    (call-with-values (lambda () (decode-julian-day-number jdn))
-      (lambda (secs date month year)
-	;; secs is a real because jdn is a real in Guile;
-	;; but it is conceptionally an integer.
-        ;; adjust for leap seconds if necessary ...
-        (let* ((int-secs (inexact->exact (round secs)))
-	       (hours    (quotient int-secs (* 60 60)))
-               (rem      (remainder int-secs (* 60 60)))
-               (minutes  (quotient rem 60))
-               (seconds  (remainder rem 60)))
-          (make-date (time-nanosecond time)
-                     (if leap-second? (+ seconds 1) seconds)
-                     minutes
-                     hours
-                     date
-                     month
-                     year
-                     offset))))))
+  (apply time-tai->date (time-monotonic->time-tai time) tz-offset))
 
 (define (date->time-utc date)
   (let* ((jdays (- (encode-julian-day-number (date-day date)
@@ -717,11 +679,17 @@
         (date-second date)
 	(- (date-zone-offset date))))))
 
-(define (date->time-tai date)
-  (time-utc->time-tai! (date->time-utc date)))
+(define (date->time-tai d)
+  (if (= (date-second d) 60)
+      (subtract-duration! (time-utc->time-tai! (date->time-utc d))
+                          (make-time time-duration 0 1))
+      (time-utc->time-tai! (date->time-utc d))))
 
-(define (date->time-monotonic date)
-  (time-utc->time-monotonic! (date->time-utc date)))
+(define (date->time-monotonic d)
+  (if (= (date-second d) 60)
+      (subtract-duration! (time-utc->time-monotonic! (date->time-utc d))
+                          (make-time time-duration 0 1))
+      (time-utc->time-monotonic! (date->time-utc d))))
 
 (define (leap-year? year)
   (or (= (modulo year 400) 0)
@@ -835,7 +803,7 @@
   (if (not (eq? (time-type time) time-tai))
       (time-error 'time-tai->julian-day 'incompatible-time-types  time))
   (+ (/ (+ (- (time-second time)
-              (leap-second-delta (time-second time)))
+              (leap-second-neg-delta (time-second time)))
            (/ (time-nanosecond time) nano))
         sid)
      tai-epoch-in-jd))
@@ -849,7 +817,7 @@
   (if (not (eq? (time-type time) time-monotonic))
       (time-error 'time-monotonic->julian-day 'incompatible-time-types  time))
   (+ (/ (+ (- (time-second time)
-              (leap-second-delta (time-second time)))
+              (leap-second-neg-delta (time-second time)))
            (/ (time-nanosecond time) nano))
         sid)
      tai-epoch-in-jd))
@@ -1093,7 +1061,10 @@
                                  2)
                         port)))
    (cons #\Y (lambda (date pad-with port)
-               (display (date-year date) port)))
+               (display (padding (date-year date)
+                                 pad-with
+                                 4)
+                        port)))
    (cons #\z (lambda (date pad-with port)
                (tz-printer (date-zone-offset date) port)))
    (cons #\Z (lambda (date pad-with port)
