@@ -1,7 +1,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright 1995-1998,2000-2001,2004-2006,2008-2011,2013,2015-2016,2018
+/* Copyright 1995-1998,2000-2001,2004-2006,2008-2011,2013,2015-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -48,7 +48,7 @@
 
    Internal, low level interface to the character arrays
 
-   - Use scm_is_narrow_string to determine is the string is narrow or
+   - Use scm_i_is_narrow_string to determine is the string is narrow or
      wide.
 
    - Use scm_i_string_chars or scm_i_string_wide_chars to get a
