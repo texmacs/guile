@@ -4,7 +4,7 @@
 #define SCM_STRINGS_H
 
 /* Copyright (C) 1995-1998, 2000, 2001, 2004-2006, 2008-2011, 2013,
- *   2015-2016 Free Software Foundation, Inc.
+ *   2015-2018 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -47,7 +47,7 @@
 
    Internal, low level interface to the character arrays
 
-   - Use scm_is_narrow_string to determine is the string is narrow or
+   - Use scm_i_is_narrow_string to determine is the string is narrow or
      wide.
 
    - Use scm_i_string_chars or scm_i_string_wide_chars to get a
