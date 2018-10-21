@@ -206,6 +206,14 @@ incomplete numerical tower implementation.)"
     (test-time-arithmetic add-duration time1 diff time2)
     (test-time-arithmetic subtract-duration time2 diff time1))
 
+  (with-test-prefix "nanosecond normalization"
+    (pass-if "small positive duration"
+      (time-equal? (make-time time-duration 999999000 0)
+                   (time-difference (make-time time-tai 0 1) (make-time time-tai 1000 0))))
+    (pass-if "small negative duration"
+      (time-equal? (make-time time-duration -999999000 0)
+                   (time-difference (make-time time-tai 1000 0) (make-time time-tai 0 1)))))
+
   (with-test-prefix "date->time-tai"
     ;; leap second 1 Jan 1999, 1 second of UTC in make-date is out as 2
     ;; seconds of TAI in date->time-tai
