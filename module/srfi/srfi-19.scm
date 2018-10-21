@@ -579,20 +579,20 @@
     (+ day
        (quotient (+ (* 153 m) 2) 5)
        (* 365 y)
-       (quotient y 4)
-       (- (quotient y 100))
-       (quotient y 400)
+       (floor-quotient y 4)
+       (- (floor-quotient y 100))
+       (floor-quotient y 400)
        -32045)))
 
 ;; gives the seconds/date/month/year
 (define (decode-julian-day-number jdn)
-  (let* ((days (inexact->exact (truncate jdn)))
+  (let* ((days (inexact->exact (floor jdn)))
          (a (+ days 32044))
-         (b (quotient (+ (* 4 a) 3) 146097))
-         (c (- a (quotient (* 146097 b) 4)))
-         (d (quotient (+ (* 4 c) 3) 1461))
-         (e (- c (quotient (* 1461 d) 4)))
-         (m (quotient (+ (* 5 e) 2) 153))
+         (b (floor-quotient (+ (* 4 a) 3) 146097))
+         (c (- a (floor-quotient (* 146097 b) 4)))
+         (d (floor-quotient (+ (* 4 c) 3) 1461))
+         (e (- c (floor-quotient (* 1461 d) 4)))
+         (m (floor-quotient (+ (* 5 e) 2) 153))
          (y (+ (* 100 b) d -4800 (quotient m 10))))
     (values ; seconds date month year
      (* (- jdn days) sid)
@@ -623,7 +623,10 @@
                                           (local-tz-offset time)))
   (if (not (eq? (time-type time) time-utc))
       (time-error 'time-utc->date 'incompatible-time-types  time))
-  (let ((jdn (time->julian-day-number (time-second time) tz-offset)))
+  (let* ((nanoseconds (+ (time-nanosecond time)
+                         (* nano (time-second time))))
+         (jdn (time->julian-day-number (floor-quotient nanoseconds nano)
+                                       tz-offset)))
     (call-with-values (lambda () (decode-julian-day-number jdn))
       (lambda (secs date month year)
 	;; secs is a real because jdn is a real in Guile;
@@ -633,7 +636,7 @@
                (rem      (remainder int-secs (* 60 60)))
                (minutes  (quotient rem 60))
                (seconds  (remainder rem 60)))
-          (make-date (time-nanosecond time)
+          (make-date (modulo nanoseconds nano)
                      seconds
                      minutes
                      hours
@@ -692,8 +695,10 @@
       (time-utc->time-monotonic! (date->time-utc d))))
 
 (define (leap-year? year)
-  (or (= (modulo year 400) 0)
-      (and (= (modulo year 4) 0) (not (= (modulo year 100) 0)))))
+  (let ((y (if (negative? year) (+ year 1) year)))
+    (and (zero? (modulo y 4))
+         (or (not (zero? (modulo y 100)))
+             (zero? (modulo y 400))))))
 
 ;; Map 1-based month number M to number of days in the year before the
 ;; start of month M (in a non-leap year).
@@ -714,15 +719,16 @@
 
 ;; from calendar faq
 (define (week-day day month year)
-  (let* ((a (quotient (- 14 month) 12))
-         (y (- year a))
+  (let* ((yy (if (negative? year) (+ year 1) year))
+         (a (quotient (- 14 month) 12))
+         (y (- yy a))
          (m (+ month (* 12 a) -2)))
     (modulo (+ day
                y
-               (quotient y 4)
-               (- (quotient y 100))
-               (quotient y 400)
-               (quotient (* 31 m) 12))
+               (floor-quotient y 4)
+               (- (floor-quotient y 100))
+               (floor-quotient y 400)
+               (floor-quotient (* 31 m) 12))
             7)))
 
 (define (date-week-day date)
@@ -743,10 +749,10 @@
 ;; a day starting from 1 for 1st Jan.
 ;;
 (define (date-week-number date day-of-week-starting-week)
-  (quotient (- (date-year-day date)
-	       1
-               (days-before-first-week  date day-of-week-starting-week))
-            7))
+  (floor-quotient (- (date-year-day date)
+                     1
+                     (days-before-first-week  date day-of-week-starting-week))
+                  7))
 
 (define (current-date . tz-offset)
   (let ((time (current-time time-utc)))
@@ -1061,10 +1067,11 @@
                                  2)
                         port)))
    (cons #\Y (lambda (date pad-with port)
-               (display (padding (date-year date)
-                                 pad-with
-                                 4)
-                        port)))
+               (let* ((yy (date-year date))
+                      (y (if (negative? yy) (+ yy 1) yy)))
+                 (unless (<= 0 y 9999)
+                   (display (if (negative? y) #\- #\+) port))
+                 (display (padding (abs y) pad-with 4) port))))
    (cons #\z (lambda (date pad-with port)
                (tz-printer (date-zone-offset date) port)))
    (cons #\Z (lambda (date pad-with port)
@@ -1344,8 +1351,12 @@
      (list #\y char-fail eireader2
            (lambda (val object)
              (set-date-year! object (natural-year val))))
+
+     ;; XXX FIXME: Support the extended year format used by
+     ;; 'date->string' when the year is not in the range 0-9999.
      (list #\Y char-numeric? ireader4 (lambda (val object)
                                         (set-date-year! object val)))
+
      (list #\z (lambda (c)
                  (or (char=? c #\Z)
                      (char=? c #\z)
