@@ -22,10 +22,11 @@
 ;; separate module, or later tests will fail.
 
 (define-module (test-suite test-srfi-19)
-  :duplicates (last)  ;; avoid warning about srfi-19 replacing `current-time'
-  :use-module (test-suite lib)
-  :use-module (srfi srfi-19)
-  :use-module (ice-9 format))
+  #:duplicates (last)  ;; avoid warning about srfi-19 replacing `current-time'
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-19)
+  #:use-module (ice-9 format))
 
 ;; Make sure we use the default locale.
 (when (defined? 'setlocale)
@@ -261,7 +262,49 @@ incomplete numerical tower implementation.)"
     (pass-if-equal "0024-06-23T12:00:00Z" "0024-06-23T12:00:00Z"
       (date->string (julian-day->date 1730000 0) "~4"))
     (pass-if-equal "2000-01-01T00:00:00Z" "2000-01-01T00:00:00Z"
-      (date->string (julian-day->date 4903089/2 0) "~4")))
+      (date->string (julian-day->date 4903089/2 0) "~4"))
+    (pass-if-equal "negative julian days"
+        '((-2000000 . "-10188-02-01T14:24:00Z wk=04 dow=6 doy=032")
+          (-20000 . "-4767-02-20T14:24:00Z wk=08 dow=0 doy=051")
+          (-10 . "-4713-11-14T14:24:00Z wk=45 dow=5 doy=318")
+          (-9 . "-4713-11-15T14:24:00Z wk=45 dow=6 doy=319")
+          (-8 . "-4713-11-16T14:24:00Z wk=46 dow=0 doy=320")
+          (-7 . "-4713-11-17T14:24:00Z wk=46 dow=1 doy=321")
+          (-6 . "-4713-11-18T14:24:00Z wk=46 dow=2 doy=322")
+          (-5 . "-4713-11-19T14:24:00Z wk=46 dow=3 doy=323")
+          (-4 . "-4713-11-20T14:24:00Z wk=46 dow=4 doy=324")
+          (-3 . "-4713-11-21T14:24:00Z wk=46 dow=5 doy=325")
+          (-2 . "-4713-11-22T14:24:00Z wk=46 dow=6 doy=326")
+          (-1 . "-4713-11-23T14:24:00Z wk=47 dow=0 doy=327")
+          (0 . "-4713-11-24T14:24:00Z wk=47 dow=1 doy=328")
+          (1 . "-4713-11-25T14:24:00Z wk=47 dow=2 doy=329")
+          (2 . "-4713-11-26T14:24:00Z wk=47 dow=3 doy=330")
+          (3 . "-4713-11-27T14:24:00Z wk=47 dow=4 doy=331")
+          (4 . "-4713-11-28T14:24:00Z wk=47 dow=5 doy=332")
+          (5 . "-4713-11-29T14:24:00Z wk=47 dow=6 doy=333")
+          (6 . "-4713-11-30T14:24:00Z wk=48 dow=0 doy=334")
+          (7 . "-4713-12-01T14:24:00Z wk=48 dow=1 doy=335")
+          (8 . "-4713-12-02T14:24:00Z wk=48 dow=2 doy=336")
+          (9 . "-4713-12-03T14:24:00Z wk=48 dow=3 doy=337"))
+      (map (lambda (n)
+             (cons n (date->string (julian-day->date (+ n 1/10) 0)
+                                   "~4 wk=~U dow=~w doy=~j")))
+           (cons* -2000000 -20000 (iota 20 -10))))
+    (pass-if-equal "negative year numbers"
+        '((1721055 . "-0001-12-27T14:24:00Z wk=52 dow=1 doy=361")
+          (1721056 . "-0001-12-28T14:24:00Z wk=52 dow=2 doy=362")
+          (1721057 . "-0001-12-29T14:24:00Z wk=52 dow=3 doy=363")
+          (1721058 . "-0001-12-30T14:24:00Z wk=52 dow=4 doy=364")
+          (1721059 . "-0001-12-31T14:24:00Z wk=52 dow=5 doy=365")
+          (1721060 . "0000-01-01T14:24:00Z wk=00 dow=6 doy=001")
+          (1721061 . "0000-01-02T14:24:00Z wk=01 dow=0 doy=002")
+          (1721062 . "0000-01-03T14:24:00Z wk=01 dow=1 doy=003")
+          (1721063 . "0000-01-04T14:24:00Z wk=01 dow=2 doy=004")
+          (1721064 . "0000-01-05T14:24:00Z wk=01 dow=3 doy=005"))
+      (map (lambda (n)
+             (cons n (date->string (julian-day->date (+ n 1/10) 0)
+                                   "~4 wk=~U dow=~w doy=~j")))
+           (iota 10 1721055))))
 
   (with-test-prefix "time-utc->date"
     (pass-if-equal "2012-07-01T00:59:59+0100" "2012-07-01T00:59:59+0100"
