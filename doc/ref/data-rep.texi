@@ -491,7 +491,7 @@ Before Guile 2.0, Guile had a custom garbage collector that allocated
 heap objects in units of 2-word @dfn{cells}.  With the move to the
 BDW-GC collector in Guile 2.0, Guile can allocate heap objects of any
 size, and the concept of a cell is now obsolete.  Still, we mention
-it here as the name stil appears in various low-level interfaces.
+it here as the name still appears in various low-level interfaces.
 
 @deftypefn Macro {scm_t_bits *} SCM_UNPACK_POINTER (SCM @var{x})
 @deftypefnx Macro {scm_t_cell *} SCM2PTR (SCM @var{x})

@@ -16,7 +16,7 @@ high-level code to low-level code.  Sometimes these languages are
 implemented using compilers:  programs that translate high-level
 programs to equivalent low-level code, and pass on that low-level code
 to some other language implementation.  Each of these languages can be
-throught to be virtual machines: they offer programs an abstract machine
+thought to be virtual machines: they offer programs an abstract machine
 on which to run.
 
 Guile implements a number of interpreters and compilers on different
@@ -86,7 +86,7 @@ needs (tail calls, multiple values, @code{call/cc}) and can provide
 optimized inline instructions for Guile as well (GC-managed allocations,
 type checks, etc.).
 
-Guie also includes a just-in-time (JIT) compiler to translate bytecode
+Guile also includes a just-in-time (JIT) compiler to translate bytecode
 to native code.  Because Guile uses the portable GNU Lightning library
 to emit that code, we keep the benefits of portability while also
 benefitting from fast native code.  To avoid too much time spent in the
