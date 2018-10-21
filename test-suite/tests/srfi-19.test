@@ -263,6 +263,10 @@ incomplete numerical tower implementation.)"
       (date->string (julian-day->date 1730000 0) "~4"))
     (pass-if-equal "2000-01-01T00:00:00Z" "2000-01-01T00:00:00Z"
       (date->string (julian-day->date 4903089/2 0) "~4"))
+    (pass-if-equal "9999-12-31T12:00:00Z" "9999-12-31T12:00:00Z"
+      (date->string (julian-day->date 5373484 0) "~4"))
+    (pass-if-equal "+10000-01-01T12:00:00Z" "+10000-01-01T12:00:00Z"
+      (date->string (julian-day->date 5373485 0) "~4"))
     (pass-if-equal "negative julian days"
         '((-2000000 . "-10188-02-01T14:24:00Z wk=04 dow=6 doy=032")
           (-20000 . "-4767-02-20T14:24:00Z wk=08 dow=0 doy=051")
