@@ -374,35 +374,39 @@
       (else (time-error 'time-resolution 'invalid-clock-type clock-type)))))
 
 ;; -- Time comparisons
+ 
+(define (time-compare-check t1 t2 caller)
+  (unless (and (time? t1) (time? t2)
+               (eq? (time-type t1) (time-type t2)))
+    (time-error caller 'incompatible-time-types (cons t1 t2))))
 
 (define (time=? t1 t2)
   ;; Arrange tests for speed and presume that t1 and t2 are actually times.
   ;; also presume it will be rare to check two times of different types.
+  (time-compare-check t1 t2 'time=?)
   (and (= (time-second t1) (time-second t2))
-       (= (time-nanosecond t1) (time-nanosecond t2))
-       ;; XXX The SRFI-19 reference implementation raises an error in
-       ;; case of unequal time types.  Here we return #false.
-       (eq? (time-type t1) (time-type t2))))
-
-;; XXX In the following comparison procedures, the SRFI-19 reference
-;; implementation raises an error in case of unequal time types.
+       (= (time-nanosecond t1) (time-nanosecond t2))))
 
 (define (time>? t1 t2)
+  (time-compare-check t1 t2 'time>?)
   (or (> (time-second t1) (time-second t2))
       (and (= (time-second t1) (time-second t2))
            (> (time-nanosecond t1) (time-nanosecond t2)))))
 
 (define (time<? t1 t2)
+  (time-compare-check t1 t2 'time<?)
   (or (< (time-second t1) (time-second t2))
       (and (= (time-second t1) (time-second t2))
            (< (time-nanosecond t1) (time-nanosecond t2)))))
 
 (define (time>=? t1 t2)
+  (time-compare-check t1 t2 'time>=?)
   (or (> (time-second t1) (time-second t2))
       (and (= (time-second t1) (time-second t2))
            (>= (time-nanosecond t1) (time-nanosecond t2)))))
 
 (define (time<=? t1 t2)
+  (time-compare-check t1 t2 'time<=?)
   (or (< (time-second t1) (time-second t2))
       (and (= (time-second t1) (time-second t2))
            (<= (time-nanosecond t1) (time-nanosecond t2)))))
@@ -413,6 +417,7 @@
 ;; implementation raises an error in case of unequal time types.
 
 (define (time-difference! time1 time2)
+  (time-compare-check time1 time2 'time-difference!)
   (let ((sec-diff (- (time-second time1) (time-second time2)))
         (nsec-diff (- (time-nanosecond time1) (time-nanosecond time2))))
     (set-time-type! time1 time-duration)
