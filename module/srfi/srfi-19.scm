@@ -639,7 +639,7 @@
                (rem      (remainder int-secs (* 60 60)))
                (minutes  (quotient rem 60))
                (seconds  (remainder rem 60)))
-          (make-date (modulo nanoseconds nano)
+          (make-date (floor-remainder nanoseconds nano)
                      seconds
                      minutes
                      hours
