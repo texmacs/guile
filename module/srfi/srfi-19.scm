@@ -237,23 +237,23 @@
   (set! leap-second-table (read-tai-utc-data filename)))
 
 
-(define (leap-second-delta utc-seconds)
-  (letrec ((lsd (lambda (table)
-                  (cond ((>= utc-seconds (caar table))
-                         (cdar table))
-                        (else (lsd (cdr table)))))))
-    (if (< utc-seconds  (* (- 1972 1970) 365 sid)) 0
-        (lsd  leap-second-table))))
+(define (utc->tai utc-seconds)
+  (let loop ((table leap-second-table))
+    (cond ((null? table)
+           utc-seconds)
+          ((>= utc-seconds (caar table))
+           (+ utc-seconds (cdar table)))
+          (else
+           (loop (cdr table))))))
 
-;; going from tai seconds to utc seconds ...
-(define (leap-second-neg-delta tai-seconds)
-  (letrec ((lsd (lambda (table)
-                  (cond ((null? table) 0)
-                        ((>= tai-seconds (+ (caar table) (cdar table)))
-                         (cdar table))
-                        (else (lsd (cdr table)))))) )
-    (if (< tai-seconds  (* (- 1972 1970) 365 sid)) 0
-        (lsd  leap-second-table))))
+(define (tai->utc tai-seconds)
+  (let loop ((table leap-second-table))
+    (cond ((null? table)
+           tai-seconds)
+          ((>= tai-seconds (+ (caar table) (cdar table)))
+           (- tai-seconds (cdar table)))
+          (else
+           (loop (cdr table))))))
 
 
 ;;; the TIME structure; creates the accessors, too.
@@ -311,7 +311,7 @@
          (usec (cdr tod)))
     (make-time time-tai
                (* usec 1000)
-               (+ (car tod) (leap-second-delta sec)))))
+               (utc->tai sec))))
 
 ;;(define (current-time-ms-time time-type proc)
 ;;  (let ((current-ms (proc)))
@@ -462,9 +462,7 @@
       (time-error caller 'incompatible-time-types time-in))
   (set-time-type! time-out time-utc)
   (set-time-nanosecond! time-out (time-nanosecond time-in))
-  (set-time-second!     time-out (- (time-second time-in)
-                                    (leap-second-neg-delta
-                                     (time-second time-in))))
+  (set-time-second!     time-out (tai->utc (time-second time-in)))
   time-out)
 
 (define (time-tai->time-utc time-in)
@@ -479,9 +477,7 @@
       (time-error caller 'incompatible-time-types time-in))
   (set-time-type! time-out time-tai)
   (set-time-nanosecond! time-out (time-nanosecond time-in))
-  (set-time-second!     time-out (+ (time-second time-in)
-                                    (leap-second-delta
-                                     (time-second time-in))))
+  (set-time-second!     time-out (utc->tai (time-second time-in)))
   time-out)
 
 (define (time-utc->time-tai time-in)
@@ -811,8 +807,7 @@
 (define (time-tai->julian-day time)
   (if (not (eq? (time-type time) time-tai))
       (time-error 'time-tai->julian-day 'incompatible-time-types  time))
-  (+ (/ (+ (- (time-second time)
-              (leap-second-neg-delta (time-second time)))
+  (+ (/ (+ (tai->utc (time-second time))
            (/ (time-nanosecond time) nano))
         sid)
      tai-epoch-in-jd))
@@ -825,8 +820,7 @@
 (define (time-monotonic->julian-day time)
   (if (not (eq? (time-type time) time-monotonic))
       (time-error 'time-monotonic->julian-day 'incompatible-time-types  time))
-  (+ (/ (+ (- (time-second time)
-              (leap-second-neg-delta (time-second time)))
+  (+ (/ (+ (tai->utc (time-second time))
            (/ (time-nanosecond time) nano))
         sid)
      tai-epoch-in-jd))
