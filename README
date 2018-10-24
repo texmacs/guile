@@ -116,6 +116,12 @@ Guile requires the following external packages:
 
     - LIBFFI_LIBS=<linker flags for picking up the libffi library>
 
+  - texinfo
+
+    Guile uses `makeinfo' to create info documentation in the directory
+    `doc' and `install-info' (which is provided by a separate package in
+    some distributions) to install it.
+
 
 Special Instructions For Some Systems =====================================
 
