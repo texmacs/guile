@@ -156,13 +156,13 @@
 (define iso-8601-date-time-format "~Y-~m-~dT~H:~M:~S~z")
 
 ;;-- Miscellaneous Constants.
-;;-- only the tai-epoch-in-jd might need changing if
+;;-- only the utc-epoch-in-jd might need changing if
 ;;   a different epoch is used.
 
 (define nano 1000000000)           ; nanoseconds in a second
 (define sid  86400)                ; seconds in a day
 (define sihd 43200)                ; seconds in a half day
-(define tai-epoch-in-jd 4881175/2) ; julian day number for 'the epoch'
+(define utc-epoch-in-jd 4881175/2) ; julian day number for 'the epoch'
 
 ;; FIXME: should this be something other than misc-error?
 (define (time-error caller type value)
@@ -181,7 +181,7 @@
 
 (define (read-tai-utc-data filename)
   (define (convert-jd jd)
-    (* (- (inexact->exact jd) tai-epoch-in-jd) sid))
+    (* (- (inexact->exact jd) utc-epoch-in-jd) sid))
   (define (convert-sec sec)
     (inexact->exact sec))
   (let ((port (open-input-file filename))
@@ -611,7 +611,7 @@
 (define (time->julian-day-number seconds tz-offset)
   (+ (/ (+ seconds tz-offset sihd)
         sid)
-     tai-epoch-in-jd))
+     utc-epoch-in-jd))
 
 (define (tai-before-leap-second? second)
   (any (lambda (x)
@@ -667,9 +667,9 @@
 
 (define (date->time-utc date)
   (let* ((jdays (- (encode-julian-day-number (date-day date)
-                                                 (date-month date)
-                                                 (date-year date))
-		   tai-epoch-in-jd))
+                                             (date-month date)
+                                             (date-year date))
+		   utc-epoch-in-jd))
 	 ;; jdays is an integer plus 1/2,
 	 (jdays-1/2 (inexact->exact (- jdays 1/2))))
     (make-time
@@ -798,7 +798,7 @@
       (time-error 'time-utc->julian-day 'incompatible-time-types  time))
   (+ (/ (+ (time-second time) (/ (time-nanosecond time) nano))
         sid)
-     tai-epoch-in-jd))
+     utc-epoch-in-jd))
 
 (define (time-utc->modified-julian-day time)
   (- (time-utc->julian-day time)
@@ -810,7 +810,7 @@
   (+ (/ (+ (tai->utc (time-second time))
            (/ (time-nanosecond time) nano))
         sid)
-     tai-epoch-in-jd))
+     utc-epoch-in-jd))
 
 (define (time-tai->modified-julian-day time)
   (- (time-tai->julian-day time)
@@ -823,14 +823,14 @@
   (+ (/ (+ (tai->utc (time-second time))
            (/ (time-nanosecond time) nano))
         sid)
-     tai-epoch-in-jd))
+     utc-epoch-in-jd))
 
 (define (time-monotonic->modified-julian-day time)
   (- (time-monotonic->julian-day time)
      4800001/2))
 
 (define (julian-day->time-utc jdn)
-  (let ((secs (* sid (- jdn tai-epoch-in-jd))))
+  (let ((secs (* sid (- jdn utc-epoch-in-jd))))
     (receive (seconds parts)
 	(split-real secs)
       (make-time time-utc
