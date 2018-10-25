@@ -32,5 +32,9 @@ GUILE_OPTIMIZATIONS = -O1 -Oresolve-primitives
 include $(top_srcdir)/am/bootstrap.am
 
 # We must build the evaluator first, so that we can be sure to control
-# the stack.
-$(filter-out ice-9/eval.go, $(GOBJECTS)): ice-9/eval.go
+# the stack. Then, we build the syntax-case macro expander before the
+# rest, in order to speed up parallel builds.
+ice-9/psyntax-pp.go: | ice-9/eval.go
+
+$(filter-out ice-9/eval.go ice-9/psyntax-pp.go, $(GOBJECTS)): | \
+	ice-9/psyntax-pp.go
