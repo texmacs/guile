@@ -1888,9 +1888,9 @@ compiler will emit a generic sequence of machine code corresponding to
 the instruction kind, specializing that generic template to reference
 the specific operands of the instruction being compiled.
 
-The strength of a template JIT is principally that is that it is very
-fast at emitting code.  It doesn't need to do any time-consuming
-analysis on the bytecode that it is compiling to do its job.
+The strength of a template JIT is principally that it is very fast at
+emitting code.  It doesn't need to do any time-consuming analysis on the
+bytecode that it is compiling to do its job.
 
 A template JIT is also very predictable: the native code emitted by a
 template JIT has the same performance characteristics of the
