@@ -424,15 +424,15 @@ involved making an object (@code{ip} 3), putting a code pointer in it
 (@code{ip} 11).
 
 The second stanza disassembles the code for the closure.  After the
-prelude, all of the code between @code{ip} 5 and 24 related to loading
-the load the variable for the toplevel variable @code{foo} into slot 1.
-This lookup happens only once, and is associated with a cache; after the
-first run, the value in the cache will be a bound variable, and the code
-will jump from @code{ip} 7 to 26.  On the first run, Guile gets the
-module associated with the function, calls out to a run-time routine to
-look up the variable, and checks that the variable is bound before
-initializing the cache.  Either way, @code{ip} 26 dereferences the
-variable into local 2.
+prelude, all of the code between @code{ip} 5 and 24 is related to
+loading the toplevel variable @code{foo} into slot 1.  This lookup
+happens only once, and is associated with a cache; after the first run,
+the value in the cache will be a bound variable, and the code will jump
+from @code{ip} 7 to 26.  On the first run, Guile gets the module
+associated with the function, calls out to a run-time routine to look up
+the variable, and checks that the variable is bound before initializing
+the cache.  Either way, @code{ip} 26 dereferences the variable into
+local 2.
 
 What follows is the allocation and initialization of the vector return
 value.  @code{Ip} 27 does the allocation, and the following two
