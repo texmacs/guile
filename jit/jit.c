@@ -3402,23 +3402,23 @@ _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
 }
 
 #if defined(__i386__) || defined(__x86_64__)
-#  include "jit_x86.c"
+#  include "x86.c"
 #elif defined(__mips__)
-#  include "jit_mips.c"
+#  include "mips.c"
 #elif defined(__arm__)
-#  include "jit_arm.c"
+#  include "arm.c"
 #elif defined(__ppc__) || defined(__powerpc__)
-#  include "jit_ppc.c"
+#  include "ppc.c"
 #elif defined(__sparc__)
-#  include "jit_sparc.c"
+#  include "sparc.c"
 #elif defined(__ia64__)
-#  include "jit_ia64.c"
+#  include "ia64.c"
 #elif defined(__hppa__)
-#  include "jit_hppa.c"
+#  include "hppa.c"
 #elif defined(__aarch64__)
-#  include "jit_aarch64.c"
+#  include "aarch64.c"
 #elif defined(__s390__) || defined(__s390x__)
-#  include "jit_s390.c"
+#  include "s390.c"
 #elif defined(__alpha__)
-#  include "jit_alpha.c"
+#  include "alpha.c"
 #endif

@@ -133,25 +133,25 @@ typedef jit_int32_t		jit_gpr_t;
 typedef jit_int32_t		jit_fpr_t;
 
 #if defined(__i386__) || defined(__x86_64__)
-#  include <jit/jit_x86.h>
+#  include "jit/x86.h"
 #elif defined(__mips__)
-#  include <jit/jit_mips.h>
+#  include "jit/mips.h"
 #elif defined(__arm__)
-#  include <jit/jit_arm.h>
+#  include "jit/arm.h"
 #elif defined(__ppc__) || defined(__powerpc__)
-#  include <jit/jit_ppc.h>
+#  include "jit/ppc.h"
 #elif defined(__sparc__)
-#  include <jit/jit_sparc.h>
+#  include "jit/sparc.h"
 #elif defined(__ia64__)
-#  include <jit/jit_ia64.h>
+#  include "jit/ia64.h"
 #elif defined(__hppa__)
-#  include <jit/jit_hppa.h>
+#  include "jit/hppa.h"
 #elif defined(__aarch64__)
-#  include <jit/jit_aarch64.h>
+#  include "jit/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
-#  include <jit/jit_s390.h>
+#  include "jit/s390.h"
 #elif defined(__alpha__)
-#  include <jit/jit_alpha.h>
+#  include "jit/alpha.h"
 #endif
 
 #define jit_flag_node		0x0001	/* patch node not absolute */

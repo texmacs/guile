@@ -111,9 +111,9 @@ static void _x87_from_sse_f(jit_state_t*,jit_int32_t,jit_int32_t);
 static void _x87_from_sse_d(jit_state_t*,jit_int32_t,jit_int32_t);
 
 #define PROTO				1
-#  include "jit_x86-cpu.c"
-#  include "jit_x86-sse.c"
-#  include "jit_x86-x87.c"
+#  include "x86-cpu.c"
+#  include "x86-sse.c"
+#  include "x86-x87.c"
 #undef PROTO
 
 /*
@@ -2173,9 +2173,9 @@ _emit_code(jit_state_t *_jit)
 }
 
 #define CODE				1
-#  include "jit_x86-cpu.c"
-#  include "jit_x86-sse.c"
-#  include "jit_x86-x87.c"
+#  include "x86-cpu.c"
+#  include "x86-sse.c"
+#  include "x86-x87.c"
 #undef CODE
 
 void

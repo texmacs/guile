@@ -31,25 +31,25 @@ static jit_int16_t	_szs[jit_code_last_code] = {
 #  define JIT_INSTR_MAX		256
 #else
 #  if defined(__i386__) || defined(__x86_64__)
-#    include "jit_x86-sz.c"
+#    include "x86-sz.c"
 #  elif defined(__mips__)
-#    include "jit_mips-sz.c"
+#    include "mips-sz.c"
 #  elif defined(__arm__)
-#    include "jit_arm-sz.c"
+#    include "arm-sz.c"
 #  elif defined(__ppc__) || defined(__powerpc__)
-#    include "jit_ppc-sz.c"
+#    include "ppc-sz.c"
 #  elif defined(__sparc__)
-#    include "jit_sparc-sz.c"
+#    include "sparc-sz.c"
 #  elif defined(__ia64__)
-#    include "jit_ia64-sz.c"
+#    include "ia64-sz.c"
 #  elif defined(__hppa__)
-#    include "jit_hppa-sz.c"
+#    include "hppa-sz.c"
 #  elif defined(__aarch64__)
-#    include "jit_aarch64-sz.c"
+#    include "aarch64-sz.c"
 #  elif defined(__s390__) || defined(__s390x__)
-#    include "jit_s390-sz.c"
+#    include "s390-sz.c"
 #  elif defined(__alpha__)
-#    include "jit_alpha-sz.c"
+#    include "alpha-sz.c"
 #  endif
 #endif
 };

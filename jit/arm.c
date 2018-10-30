@@ -86,10 +86,10 @@ extern void __clear_cache(void *, void *);
 #endif
 
 #define PROTO				1
-#  include "jit_rewind.c"
-#  include "jit_arm-cpu.c"
-#  include "jit_arm-swf.c"
-#  include "jit_arm-vfp.c"
+#  include "rewind.c"
+#  include "arm-cpu.c"
+#  include "arm-swf.c"
+#  include "arm-vfp.c"
 #undef PROTO
 
 /*
@@ -1995,10 +1995,10 @@ _emit_code(jit_state_t *_jit)
 }
 
 #define CODE				1
-#  include "jit_rewind.c"
-#  include "jit_arm-cpu.c"
-#  include "jit_arm-swf.c"
-#  include "jit_arm-vfp.c"
+#  include "rewind.c"
+#  include "arm-cpu.c"
+#  include "arm-swf.c"
+#  include ", 2018arm-vfp.c"
 #undef CODE
 
 void

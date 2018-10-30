@@ -44,7 +44,7 @@
 /*
  * Initialization
  */
-#include "jit_names.c"
+#include "names.c"
 
 /*
  * Implementation
