@@ -21,7 +21,7 @@
 #define  mmap_fd			-1
 #endif
 
-jit_uint8_t		 *data;
+uint8_t		 *data;
 jit_state_t		 *_jit;
 jit_word_t		  data_length;
 jit_word_t		  note_length;

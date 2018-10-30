@@ -127,12 +127,12 @@ _redundant_store(jit_state_t *_jit, jit_node_t *node, jit_bool_t jump);
 #define simplify_movr(p, n, k, s)	_simplify_movr(_jit, p, n, k, s)
 static jit_bool_t
 _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
-	       jit_int32_t kind, jit_int32_t size);
+	       int32_t kind, jit_int32_t size);
 
 #define simplify_movi(p, n, k, s)	_simplify_movi(_jit, p, n, k, s)
 static jit_bool_t
 _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
-	       jit_int32_t kind, jit_int32_t size);
+	       int32_t kind, jit_int32_t size);
 
 #define simplify_ldxi(prev, node)	_simplify_ldxi(_jit, prev, node)
 static jit_bool_t
@@ -144,7 +144,7 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node);
 
 #define simplify_spill(node, regno)	_simplify_spill(_jit, node, regno)
 static void
-_simplify_spill(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno);
+_simplify_spill(jit_state_t *_jit, jit_node_t *node, int32_t regno);
 
 #define simplify()			_simplify(_jit)
 static void
@@ -154,13 +154,13 @@ _simplify(jit_state_t *_jit);
 #define jit_reg_static			 0
 #define jit_reg_change			 1
 #define register_change_p(n, l, r)	_register_change_p(_jit, n, l, r)
-static jit_int32_t
+static int32_t
 _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
-		   jit_int32_t regno);
+		   int32_t regno);
 
 #define spill_reglive_p(node, regno)	_spill_reglive_p(_jit, node, regno)
 static jit_bool_t
-_spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno);
+_spill_reglive_p(jit_state_t *_jit, jit_node_t *node, int32_t regno);
 
 #define patch_registers()		_patch_registers(_jit)
 static void
@@ -169,7 +169,7 @@ _patch_registers(jit_state_t *_jit);
 #define patch_register(n,l,r,p)		_patch_register(_jit,n,l,r,p)
 static void
 _patch_register(jit_state_t *jit, jit_node_t *node, jit_node_t *link,
-		jit_int32_t regno, jit_int32_t patch);
+		int32_t regno, jit_int32_t patch);
 
 /*
  * Initialization
@@ -196,11 +196,11 @@ finish_jit(void)
     jit_finish_size();
 }
 
-jit_int32_t
-_jit_get_reg(jit_state_t *_jit, jit_int32_t regspec)
+int32_t
+_jit_get_reg(jit_state_t *_jit, int32_t regspec)
 {
-    jit_int32_t		spec;
-    jit_int32_t		regno;
+    int32_t		spec;
+    int32_t		regno;
 
     spec = regspec & ~(jit_class_chk|jit_class_nospill);
     if (spec & jit_class_named) {
@@ -311,7 +311,7 @@ fail:
 }
 
 void
-_jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
+_jit_unget_reg(jit_state_t *_jit, int32_t regno)
 {
     regno = jit_regno(regno);
     if (jit_regset_tstbit(&_jitc->regsav, regno)) {
@@ -339,7 +339,7 @@ _jit_unget_reg(jit_state_t *_jit, jit_int32_t regno)
 }
 
 jit_bool_t
-_jit_callee_save_p(jit_state_t *_jit, jit_int32_t regno)
+_jit_callee_save_p(jit_state_t *_jit, int32_t regno)
 {
     assert(regno >= 0 && regno < JIT_NOREG);
     return (!!(_rvs[regno].spec & jit_class_sav));
@@ -348,7 +348,7 @@ _jit_callee_save_p(jit_state_t *_jit, jit_int32_t regno)
 extern jit_bool_t
 _jit_pointer_p(jit_state_t *_jit, jit_pointer_t address)
 {
-    return ((jit_uint8_t *)address >= _jit->code.ptr &&
+    return ((uint8_t *)address >= _jit->code.ptr &&
 	    (jit_word_t)address < _jit->pc.w);
 }
 
@@ -389,7 +389,7 @@ jit_regset_set(jit_regset_t *u, jit_regset_t *v)
 }
 
 void
-jit_regset_set_mask(jit_regset_t *u, jit_int32_t v)
+jit_regset_set_mask(jit_regset_t *u, int32_t v)
 {
     jit_bool_t		w = !!(v & (v - 1));
 
@@ -436,7 +436,7 @@ jit_regset_set_p(jit_regset_t *u)
 }
 
 void
-jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_clrbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 255);
     if (bit < 64)
@@ -450,7 +450,7 @@ jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 void
-jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_setbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 255);
     if (bit < 64)
@@ -464,7 +464,7 @@ jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 jit_bool_t
-jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_tstbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 255);
     if (bit < 64)
@@ -477,7 +477,7 @@ jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 unsigned long
-jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
+jit_regset_scan1(jit_regset_t *set, int32_t offset)
 {
     assert(offset >= 0 && offset <= 255);
     for (; offset < 64; offset++) {
@@ -531,7 +531,7 @@ jit_regset_set(jit_regset_t *u, jit_regset_t *v)
 }
 
 void
-jit_regset_set_mask(jit_regset_t *u, jit_int32_t v)
+jit_regset_set_mask(jit_regset_t *u, int32_t v)
 {
     jit_bool_t		w = !!(v & (v - 1));
 
@@ -568,7 +568,7 @@ jit_regset_set_p(jit_regset_t *u)
 }
 
 void
-jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_clrbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 128);
     if (bit < 64)
@@ -578,7 +578,7 @@ jit_regset_clrbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 void
-jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_setbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 127);
     if (bit < 64)
@@ -588,7 +588,7 @@ jit_regset_setbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 jit_bool_t
-jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
+jit_regset_tstbit(jit_regset_t *set, int32_t bit)
 {
     assert(bit >= 0 && bit <= 127);
     if (bit < 64)
@@ -598,7 +598,7 @@ jit_regset_tstbit(jit_regset_t *set, jit_int32_t bit)
 }
 
 unsigned long
-jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
+jit_regset_scan1(jit_regset_t *set, int32_t offset)
 {
     assert(offset >= 0 && offset <= 127);
     for (; offset < 64; offset++) {
@@ -614,7 +614,7 @@ jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 
 #else
 unsigned long
-jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
+jit_regset_scan1(jit_regset_t *set, int32_t offset)
 {
     jit_regset_t       mask;
     assert(offset >= 0 && offset <= 63);
@@ -631,7 +631,7 @@ jit_regset_scan1(jit_regset_t *set, jit_int32_t offset)
 #endif
 
 void
-_jit_save(jit_state_t *_jit, jit_int32_t reg)
+_jit_save(jit_state_t *_jit, int32_t reg)
 {
     reg = jit_regno(reg);
     assert(!_jitc->realize);
@@ -639,7 +639,7 @@ _jit_save(jit_state_t *_jit, jit_int32_t reg)
 }
 
 void
-_jit_load(jit_state_t *_jit, jit_int32_t reg)
+_jit_load(jit_state_t *_jit, int32_t reg)
 {
     jit_node_t		*node;
 
@@ -656,7 +656,7 @@ _jit_load(jit_state_t *_jit, jit_int32_t reg)
 static jit_word_t
 hash_data(const void *data, jit_word_t length)
 {
-    const jit_uint8_t		*ptr;
+    const uint8_t		*ptr;
     jit_word_t		 i, key;
     for (i = key = 0, ptr = data; i < length; i++)
 	key = (key << (key & 1)) ^ ptr[i];
@@ -677,7 +677,7 @@ _jit_address(jit_state_t *_jit, jit_node_t *node)
 
 jit_node_t *
 _jit_data(jit_state_t *_jit, const void *data,
-	  jit_word_t length, jit_int32_t align)
+	  jit_word_t length, int32_t align)
 {
     jit_word_t		 key;
     jit_node_t		*node;
@@ -769,10 +769,10 @@ static void
 _new_pool(jit_state_t *_jit)
 {
     jit_node_t		*list;
-    jit_int32_t		 offset;
+    int32_t		 offset;
 
     if (_jitc->pool.offset >= _jitc->pool.length) {
-	jit_int32_t	 length;
+	int32_t	 length;
 
 	length = _jitc->pool.length + 16;
 	jit_realloc((jit_pointer_t *)&_jitc->pool.ptr,
@@ -932,7 +932,7 @@ jit_new_state(void)
     jit_alloc((jit_pointer_t *)&_jitc->spill,
 	      _jitc->reglen * sizeof(jit_node_t*));
     jit_alloc((jit_pointer_t *)&_jitc->gen,
-	      _jitc->reglen * sizeof(jit_int32_t));
+	      _jitc->reglen * sizeof(int32_t));
     jit_alloc((jit_pointer_t *)&_jitc->values,
 	      _jitc->reglen * sizeof(jit_value_t));
 
@@ -1192,7 +1192,7 @@ _jit_new_node_www(jit_state_t *_jit, jit_code_t code,
 
 jit_node_t *
 _jit_new_node_qww(jit_state_t *_jit, jit_code_t code,
-		  jit_int32_t l, jit_int32_t h,
+		  int32_t l, jit_int32_t h,
 		  jit_word_t v, jit_word_t w)
 {
     jit_node_t		*node = new_node(code);
@@ -1360,10 +1360,10 @@ _jit_patch(jit_state_t* _jit, jit_node_t *instr)
     jit_patch_at(instr, label);
 }
 
-jit_int32_t
+int32_t
 _jit_classify(jit_state_t *_jit, jit_code_t code)
 {
-    jit_int32_t		mask;
+    int32_t		mask;
 
     switch (code) {
 	case jit_code_data:	case jit_code_save:	case jit_code_load:
@@ -1612,7 +1612,7 @@ _jit_classify(jit_state_t *_jit, jit_code_t code)
 void
 _jit_patch_abs(jit_state_t *_jit, jit_node_t *instr, jit_pointer_t address)
 {
-    jit_int32_t		mask;
+    int32_t		mask;
 
     if (instr->code == jit_code_movi)
 	instr->v.p = address;
@@ -1626,7 +1626,7 @@ _jit_patch_abs(jit_state_t *_jit, jit_node_t *instr, jit_pointer_t address)
 void
 _jit_patch_at(jit_state_t *_jit, jit_node_t *instr, jit_node_t *label)
 {
-    jit_int32_t		mask;
+    int32_t		mask;
 
     assert(!(instr->flag & jit_flag_node));
     instr->flag |= jit_flag_node;
@@ -1659,7 +1659,7 @@ void
 _jit_optimize(jit_state_t *_jit)
 {
     jit_bool_t		 jump;
-    jit_int32_t		 mask;
+    int32_t		 mask;
     jit_node_t		*node;
     jit_block_t		*block;
     jit_word_t		 offset;
@@ -1809,8 +1809,8 @@ _jit_optimize(jit_state_t *_jit)
 void
 _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 {
-    jit_int32_t		 spec;
-    jit_int32_t		 value;
+    int32_t		 spec;
+    int32_t		 value;
     jit_block_t		*block;
 
     switch (node->code) {
@@ -1895,7 +1895,7 @@ _jit_reglive(jit_state_t *_jit, jit_node_t *node)
 }
 
 void
-_jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
+_jit_regarg_set(jit_state_t *_jit, jit_node_t *node, int32_t value)
 {
 #if GET_JIT_SIZE
     jit_size_prepare();
@@ -1915,7 +1915,7 @@ _jit_regarg_set(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
 }
 
 void
-_jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, jit_int32_t value)
+_jit_regarg_clr(jit_state_t *_jit, jit_node_t *node, int32_t value)
 {
 #if GET_JIT_SIZE
     jit_size_collect(node);
@@ -1958,7 +1958,7 @@ _jit_realize(jit_state_t *_jit)
 void
 _jit_dataset(jit_state_t *_jit)
 {
-    jit_uint8_t		*ptr;
+    uint8_t		*ptr;
     jit_node_t		*node;
     jit_word_t		 offset;
 #if defined(__sgi)
@@ -2184,21 +2184,21 @@ fail:
 }
 
 void
-_jit_frame(jit_state_t *_jit, jit_int32_t frame)
+_jit_frame(jit_state_t *_jit, int32_t frame)
 {
     jit_trampoline(frame, 1);
 }
 
 void
-_jit_tramp(jit_state_t *_jit, jit_int32_t frame)
+_jit_tramp(jit_state_t *_jit, int32_t frame)
 {
     jit_trampoline(frame, 0);
 }
 
 void
-_jit_trampoline(jit_state_t *_jit, jit_int32_t frame, jit_bool_t prolog)
+_jit_trampoline(jit_state_t *_jit, int32_t frame, jit_bool_t prolog)
 {
-    jit_int32_t		regno;
+    int32_t		regno;
 
     /* Must be called after prolog, actually, just to simplify
      * tests and know there is a current function and that
@@ -2310,8 +2310,8 @@ static void
 _jit_update(jit_state_t *_jit, jit_node_t *node,
 	    jit_regset_t *live, jit_regset_t *mask, jit_bool_t recurse)
 {
-    jit_int32_t		 spec;
-    jit_int32_t		 regno;
+    int32_t		 spec;
+    int32_t		 regno;
     jit_regset_t	 ztmp;
     jit_regset_t	 zmask;
     unsigned long	 value;
@@ -2477,7 +2477,7 @@ _thread_jumps(jit_state_t *_jit)
     jit_node_t		*prev;
     jit_node_t		*node;
     jit_node_t		*next;
-    jit_int32_t		 mask;
+    int32_t		 mask;
 
     for (prev = node = _jitc->head; node;) {
 	next = node->next;
@@ -2826,8 +2826,8 @@ _redundant_store(jit_state_t *_jit, jit_node_t *node, jit_bool_t jump)
     jit_node_t		*iter;
     jit_node_t		*prev;
     jit_word_t		 word;
-    jit_int32_t		 spec;
-    jit_int32_t		 regno;
+    int32_t		 spec;
+    int32_t		 regno;
 
     if (jump) {
 	prev = node->u.n;
@@ -2889,10 +2889,10 @@ _redundant_store(jit_state_t *_jit, jit_node_t *node, jit_bool_t jump)
 
 static jit_bool_t
 _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
-	       jit_int32_t kind, jit_int32_t size)
+	       int32_t kind, jit_int32_t size)
 {
-    jit_int32_t		 regno;
-    jit_int32_t		 right;
+    int32_t		 regno;
+    int32_t		 right;
     jit_value_t		*value;
 
     regno = jit_regno(node->u.w);
@@ -2920,12 +2920,12 @@ _simplify_movr(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
 
 static jit_bool_t
 _simplify_movi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node,
-	       jit_int32_t kind, jit_int32_t size)
+	       int32_t kind, jit_int32_t size)
 {
     jit_value_t		*value;
-    jit_int32_t		 spec;
-    jit_int32_t		 regno;
-    jit_int32_t		 offset;
+    int32_t		 spec;
+    int32_t		 regno;
+    int32_t		 offset;
 
     regno = jit_regno(node->u.w);
     value = _jitc->values + regno;
@@ -2976,8 +2976,8 @@ static jit_bool_t
 _simplify_ldxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 {
     jit_value_t		*value;
-    jit_int32_t		 regno;
-    jit_int32_t		 right;
+    int32_t		 regno;
+    int32_t		 right;
 
     regno = jit_regno(node->u.w);
     right = jit_regno(node->v.w);
@@ -3003,9 +3003,9 @@ static jit_bool_t
 _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
 {
     jit_value_t		*value;
-    jit_int32_t		 regno;
-    jit_int32_t		 right;
-    jit_int32_t		 offset;
+    int32_t		 regno;
+    int32_t		 right;
+    int32_t		 offset;
 
     regno = jit_regno(node->w.w);
     right = jit_regno(node->v.w);
@@ -3055,7 +3055,7 @@ _simplify_stxi(jit_state_t *_jit, jit_node_t *prev, jit_node_t *node)
  * jit_get_reg/jit_unget_reg, but properly handle
  * multiple ones by moving the save node */
 static void
-_simplify_spill(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
+_simplify_spill(jit_state_t *_jit, jit_node_t *node, int32_t regno)
 {
     jit_node_t		*save;
     jit_node_t		*temp;
@@ -3078,8 +3078,8 @@ _simplify(jit_state_t *_jit)
     jit_node_t		*prev;
     jit_node_t		*node;
     jit_node_t		*next;
-    jit_int32_t		 info;
-    jit_int32_t		 regno;
+    int32_t		 info;
+    int32_t		 regno;
 
     for (prev = NULL, node = _jitc->head; node; prev = node, node = next) {
 	next = node->next;
@@ -3087,7 +3087,7 @@ _simplify(jit_state_t *_jit)
 	    case jit_code_label:	case jit_code_prolog:
 	    case jit_code_callr:	case jit_code_calli:
 	    reset:
-		memset(_jitc->gen, 0, sizeof(jit_int32_t) * _jitc->reglen);
+		memset(_jitc->gen, 0, sizeof(int32_t) * _jitc->reglen);
 		memset(_jitc->values, 0, sizeof(jit_value_t) * _jitc->reglen);
 		break;
 	    case jit_code_save:
@@ -3197,11 +3197,11 @@ _simplify(jit_state_t *_jit)
     }
 }
 
-static jit_int32_t
+static int32_t
 _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
-		   jit_int32_t regno)
+		   int32_t regno)
 {
-    jit_int32_t		value;
+    int32_t		value;
 
     for (; node != link; node = node->next) {
 	switch (node->code) {
@@ -3240,7 +3240,7 @@ _register_change_p(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
  * avoid complications on different cpu backends and patch spill/loads
  * here, by simulating jit generation */
 static jit_bool_t
-_spill_reglive_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
+_spill_reglive_p(jit_state_t *_jit, jit_node_t *node, int32_t regno)
 {
     if (!jit_regset_tstbit(&_jitc->reglive, regno)) {
 	bmp_zero();
@@ -3260,10 +3260,10 @@ _patch_registers(jit_state_t *_jit)
     jit_node_t		*prev;
     jit_node_t		*node;
     jit_node_t		*next;
-    jit_int32_t		 info;
-    jit_int32_t		 spec;
-    jit_int32_t		 regno;
-    jit_int32_t		 value;
+    int32_t		 info;
+    int32_t		 spec;
+    int32_t		 regno;
+    int32_t		 value;
 
     _jitc->function = NULL;
 
@@ -3376,9 +3376,9 @@ _patch_registers(jit_state_t *_jit)
 
 static void
 _patch_register(jit_state_t *_jit, jit_node_t *node, jit_node_t *link,
-		jit_int32_t regno, jit_int32_t patch)
+		int32_t regno, jit_int32_t patch)
 {
-    jit_int32_t		value;
+    int32_t		value;
 
     for (; node != link; node = node->next) {
 	value = jit_classify(node->code);

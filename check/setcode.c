@@ -24,7 +24,7 @@
 int
 main(int argc, char *argv[])
 {
-    jit_uint8_t		 *ptr;
+    uint8_t		 *ptr;
     jit_state_t		 *_jit;
     jit_word_t		  length;
 #if defined(__sgi)

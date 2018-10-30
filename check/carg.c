@@ -60,7 +60,7 @@ main(int argc, char *argv[])
     void		(*code)(void);
     jit_node_t		*jmp, *pass;
     jit_node_t		 *jw,  *jf,  *jd;
-    jit_int32_t		  s1,   s2,   s3,   s4,   s5,   s6,   s7,   s8,
+    int32_t		  s1,   s2,   s3,   s4,   s5,   s6,   s7,   s8,
 			  s9,  s10,  s11,  s12,  s13,  s14,  s15,  s16;
     jit_node_t		 *a1,  *a2,  *a3,  *a4,  *a5,  *a6,  *a7,  *a8,
 			 *a9, *a10, *a11, *a12, *a13, *a14, *a15, *a16;

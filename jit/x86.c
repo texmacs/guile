@@ -66,17 +66,17 @@
 typedef jit_pointer_t jit_va_list_t;
 #else
 typedef struct jit_va_list {
-    jit_int32_t		gpoff;
-    jit_int32_t		fpoff;
+    int32_t		gpoff;
+    int32_t		fpoff;
     jit_pointer_t	over;
     jit_pointer_t	save;
     /* Declared explicitly as int64 for the x32 abi */
-    jit_int64_t		rdi;
-    jit_int64_t		rsi;
-    jit_int64_t		rdx;
-    jit_int64_t		rcx;
-    jit_int64_t		r8;
-    jit_int64_t		r9;
+    int64_t		rdi;
+    int64_t		rsi;
+    int64_t		rdx;
+    int64_t		rcx;
+    int64_t		r8;
+    int64_t		r9;
     jit_float64_t	xmm0;
     jit_float64_t	_up0;
     jit_float64_t	xmm1;
@@ -102,13 +102,13 @@ typedef struct jit_va_list {
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 #define sse_from_x87_f(r0, r1)		_sse_from_x87_f(_jit, r0, r1)
-static void _sse_from_x87_f(jit_state_t*,jit_int32_t,jit_int32_t);
+static void _sse_from_x87_f(jit_state_t*,int32_t,jit_int32_t);
 #define sse_from_x87_d(r0, r1)		_sse_from_x87_d(_jit, r0, r1)
-static void _sse_from_x87_d(jit_state_t*,jit_int32_t,jit_int32_t);
+static void _sse_from_x87_d(jit_state_t*,int32_t,jit_int32_t);
 #define x87_from_sse_f(r0, r1)		_x87_from_sse_f(_jit, r0, r1)
-static void _x87_from_sse_f(jit_state_t*,jit_int32_t,jit_int32_t);
+static void _x87_from_sse_f(jit_state_t*,int32_t,jit_int32_t);
 #define x87_from_sse_d(r0, r1)		_x87_from_sse_d(_jit, r0, r1)
-static void _x87_from_sse_d(jit_state_t*,jit_int32_t,jit_int32_t);
+static void _x87_from_sse_d(jit_state_t*,int32_t,jit_int32_t);
 
 #define PROTO				1
 #  include "x86-cpu.c"
@@ -235,75 +235,75 @@ jit_get_cpu(void)
 {
     union {
 	struct {
-	    jit_uint32_t sse3		: 1;
-	    jit_uint32_t pclmulqdq	: 1;
-	    jit_uint32_t dtes64		: 1;	/* amd reserved */
-	    jit_uint32_t monitor	: 1;
-	    jit_uint32_t ds_cpl		: 1;	/* amd reserved */
-	    jit_uint32_t vmx		: 1;	/* amd reserved */
-	    jit_uint32_t smx		: 1;	/* amd reserved */
-	    jit_uint32_t est		: 1;	/* amd reserved */
-	    jit_uint32_t tm2		: 1;	/* amd reserved */
-	    jit_uint32_t ssse3		: 1;
-	    jit_uint32_t cntx_id	: 1;	/* amd reserved */
-	    jit_uint32_t __reserved0	: 1;
-	    jit_uint32_t fma		: 1;
-	    jit_uint32_t cmpxchg16b	: 1;
-	    jit_uint32_t xtpr		: 1;	/* amd reserved */
-	    jit_uint32_t pdcm		: 1;	/* amd reserved */
-	    jit_uint32_t __reserved1	: 1;
-	    jit_uint32_t pcid		: 1;	/* amd reserved */
-	    jit_uint32_t dca		: 1;	/* amd reserved */
-	    jit_uint32_t sse4_1		: 1;
-	    jit_uint32_t sse4_2		: 1;
-	    jit_uint32_t x2apic		: 1;	/* amd reserved */
-	    jit_uint32_t movbe		: 1;	/* amd reserved */
-	    jit_uint32_t popcnt		: 1;
-	    jit_uint32_t tsc		: 1;	/* amd reserved */
-	    jit_uint32_t aes		: 1;
-	    jit_uint32_t xsave		: 1;
-	    jit_uint32_t osxsave	: 1;
-	    jit_uint32_t avx		: 1;
-	    jit_uint32_t __reserved2	: 1;	/* amd F16C */
-	    jit_uint32_t __reserved3	: 1;
-	    jit_uint32_t __alwayszero	: 1;	/* amd RAZ */
+	    uint32_t sse3		: 1;
+	    uint32_t pclmulqdq	: 1;
+	    uint32_t dtes64		: 1;	/* amd reserved */
+	    uint32_t monitor	: 1;
+	    uint32_t ds_cpl		: 1;	/* amd reserved */
+	    uint32_t vmx		: 1;	/* amd reserved */
+	    uint32_t smx		: 1;	/* amd reserved */
+	    uint32_t est		: 1;	/* amd reserved */
+	    uint32_t tm2		: 1;	/* amd reserved */
+	    uint32_t ssse3		: 1;
+	    uint32_t cntx_id	: 1;	/* amd reserved */
+	    uint32_t __reserved0	: 1;
+	    uint32_t fma		: 1;
+	    uint32_t cmpxchg16b	: 1;
+	    uint32_t xtpr		: 1;	/* amd reserved */
+	    uint32_t pdcm		: 1;	/* amd reserved */
+	    uint32_t __reserved1	: 1;
+	    uint32_t pcid		: 1;	/* amd reserved */
+	    uint32_t dca		: 1;	/* amd reserved */
+	    uint32_t sse4_1		: 1;
+	    uint32_t sse4_2		: 1;
+	    uint32_t x2apic		: 1;	/* amd reserved */
+	    uint32_t movbe		: 1;	/* amd reserved */
+	    uint32_t popcnt		: 1;
+	    uint32_t tsc		: 1;	/* amd reserved */
+	    uint32_t aes		: 1;
+	    uint32_t xsave		: 1;
+	    uint32_t osxsave	: 1;
+	    uint32_t avx		: 1;
+	    uint32_t __reserved2	: 1;	/* amd F16C */
+	    uint32_t __reserved3	: 1;
+	    uint32_t __alwayszero	: 1;	/* amd RAZ */
 	} bits;
 	jit_uword_t	cpuid;
     } ecx;
     union {
 	struct {
-	    jit_uint32_t fpu		: 1;
-	    jit_uint32_t vme		: 1;
-	    jit_uint32_t de		: 1;
-	    jit_uint32_t pse		: 1;
-	    jit_uint32_t tsc		: 1;
-	    jit_uint32_t msr		: 1;
-	    jit_uint32_t pae		: 1;
-	    jit_uint32_t mce		: 1;
-	    jit_uint32_t cmpxchg8b	: 1;
-	    jit_uint32_t apic		: 1;
-	    jit_uint32_t __reserved0	: 1;
-	    jit_uint32_t sep		: 1;
-	    jit_uint32_t mtrr		: 1;
-	    jit_uint32_t pge		: 1;
-	    jit_uint32_t mca		: 1;
-	    jit_uint32_t cmov		: 1;
-	    jit_uint32_t pat		: 1;
-	    jit_uint32_t pse36		: 1;
-	    jit_uint32_t psn		: 1;	/* amd reserved */
-	    jit_uint32_t clfsh		: 1;
-	    jit_uint32_t __reserved1	: 1;
-	    jit_uint32_t ds		: 1;	/* amd reserved */
-	    jit_uint32_t acpi		: 1;	/* amd reserved */
-	    jit_uint32_t mmx		: 1;
-	    jit_uint32_t fxsr		: 1;
-	    jit_uint32_t sse		: 1;
-	    jit_uint32_t sse2		: 1;
-	    jit_uint32_t ss		: 1;	/* amd reserved */
-	    jit_uint32_t htt		: 1;
-	    jit_uint32_t tm		: 1;	/* amd reserved */
-	    jit_uint32_t __reserved2	: 1;
-	    jit_uint32_t pbe		: 1;	/* amd reserved */
+	    uint32_t fpu		: 1;
+	    uint32_t vme		: 1;
+	    uint32_t de		: 1;
+	    uint32_t pse		: 1;
+	    uint32_t tsc		: 1;
+	    uint32_t msr		: 1;
+	    uint32_t pae		: 1;
+	    uint32_t mce		: 1;
+	    uint32_t cmpxchg8b	: 1;
+	    uint32_t apic		: 1;
+	    uint32_t __reserved0	: 1;
+	    uint32_t sep		: 1;
+	    uint32_t mtrr		: 1;
+	    uint32_t pge		: 1;
+	    uint32_t mca		: 1;
+	    uint32_t cmov		: 1;
+	    uint32_t pat		: 1;
+	    uint32_t pse36		: 1;
+	    uint32_t psn		: 1;	/* amd reserved */
+	    uint32_t clfsh		: 1;
+	    uint32_t __reserved1	: 1;
+	    uint32_t ds		: 1;	/* amd reserved */
+	    uint32_t acpi		: 1;	/* amd reserved */
+	    uint32_t mmx		: 1;
+	    uint32_t fxsr		: 1;
+	    uint32_t sse		: 1;
+	    uint32_t sse2		: 1;
+	    uint32_t ss		: 1;	/* amd reserved */
+	    uint32_t htt		: 1;
+	    uint32_t tm		: 1;	/* amd reserved */
+	    uint32_t __reserved2	: 1;
+	    uint32_t pbe		: 1;	/* amd reserved */
 	} bits;
 	jit_uword_t	cpuid;
     } edx;
@@ -379,7 +379,7 @@ void
 _jit_init(jit_state_t *_jit)
 {
 #if __X32
-    jit_int32_t		regno;
+    int32_t		regno;
     static jit_bool_t	first = 1;
 #endif
 
@@ -400,7 +400,7 @@ _jit_init(jit_state_t *_jit)
 void
 _jit_prolog(jit_state_t *_jit)
 {
-    jit_int32_t		offset;
+    int32_t		offset;
 
     if (_jitc->function)
 	jit_epilog();
@@ -421,7 +421,7 @@ _jit_prolog(jit_state_t *_jit)
     _jitc->function->self.aoff = CVT_OFFSET;
     _jitc->function->self.call = jit_call_default;
     jit_alloc((jit_pointer_t *)&_jitc->function->regoff,
-	      _jitc->reglen * sizeof(jit_int32_t));
+	      _jitc->reglen * sizeof(int32_t));
 
     /* _no_link here does not mean the jit_link() call can be removed
      * by rewriting as:
@@ -440,8 +440,8 @@ _jit_prolog(jit_state_t *_jit)
     jit_regset_new(&_jitc->function->regset);
 }
 
-jit_int32_t
-_jit_allocai(jit_state_t *_jit, jit_int32_t length)
+int32_t
+_jit_allocai(jit_state_t *_jit, int32_t length)
 {
     assert(_jitc->function);
     switch (length) {
@@ -467,13 +467,13 @@ _jit_allocai(jit_state_t *_jit, jit_int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, jit_int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
 {
-    jit_int32_t		 reg;
+    int32_t		 reg;
     assert(_jitc->function);
     jit_inc_synth_ww(allocar, u, v);
     if (!_jitc->function->allocar) {
-	_jitc->function->aoffoff = jit_allocai(sizeof(jit_int32_t));
+	_jitc->function->aoffoff = jit_allocai(sizeof(int32_t));
 	_jitc->function->allocar = 1;
     }
     reg = jit_get_reg(jit_class_gpr);
@@ -500,7 +500,7 @@ _jit_ret(jit_state_t *_jit)
 }
 
 void
-_jit_retr(jit_state_t *_jit, jit_int32_t u)
+_jit_retr(jit_state_t *_jit, int32_t u)
 {
     jit_inc_synth_w(retr, u);
     /* movr(%ret, %ret) would be optimized out */
@@ -522,7 +522,7 @@ _jit_reti(jit_state_t *_jit, jit_word_t u)
 }
 
 void
-_jit_retr_f(jit_state_t *_jit, jit_int32_t u)
+_jit_retr_f(jit_state_t *_jit, int32_t u)
 {
     jit_inc_synth_w(retr_f, u);
     if (JIT_FRET != u)
@@ -543,7 +543,7 @@ _jit_reti_f(jit_state_t *_jit, jit_float32_t u)
 }
 
 void
-_jit_retr_d(jit_state_t *_jit, jit_int32_t u)
+_jit_retr_d(jit_state_t *_jit, int32_t u)
 {
     jit_inc_synth_w(retr_d, u);
     if (JIT_FRET != u)
@@ -621,7 +621,7 @@ _jit_ellipsis(jit_state_t *_jit)
 }
 
 void
-_jit_va_push(jit_state_t *_jit, jit_int32_t u)
+_jit_va_push(jit_state_t *_jit, int32_t u)
 {
     jit_inc_synth_w(va_push, u);
     jit_pushargr(u);
@@ -632,7 +632,7 @@ jit_node_t *
 _jit_arg(jit_state_t *_jit)
 {
     jit_node_t		*node;
-    jit_int32_t		 offset;
+    int32_t		 offset;
     assert(_jitc->function);
     assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
@@ -658,7 +658,7 @@ jit_node_t *
 _jit_arg_f(jit_state_t *_jit)
 {
     jit_node_t		*node;
-    jit_int32_t		 offset;
+    int32_t		 offset;
     assert(_jitc->function);
     assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
@@ -687,7 +687,7 @@ jit_node_t *
 _jit_arg_d(jit_state_t *_jit)
 {
     jit_node_t		*node;
-    jit_int32_t		 offset;
+    int32_t		 offset;
     assert(_jitc->function);
     assert(!(_jitc->function->self.call & jit_call_varargs));
 #if __X64
@@ -713,7 +713,7 @@ _jit_arg_d(jit_state_t *_jit)
 }
 
 void
-_jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_c(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_c, u, v);
@@ -727,7 +727,7 @@ _jit_getarg_c(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_uc(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_uc, u, v);
@@ -741,7 +741,7 @@ _jit_getarg_uc(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_s(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_s, u, v);
@@ -755,7 +755,7 @@ _jit_getarg_s(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_us(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_us, u, v);
@@ -769,7 +769,7 @@ _jit_getarg_us(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_i(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_i, u, v);
@@ -789,7 +789,7 @@ _jit_getarg_i(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 
 #if __X64 && !__X64_32
 void
-_jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_ui(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_ui, u, v);
@@ -801,7 +801,7 @@ _jit_getarg_ui(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_l(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(getarg_l, u, v);
@@ -814,7 +814,7 @@ _jit_getarg_l(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 #endif
 
 void
-_jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_putargr(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(putargr, u, v);
@@ -830,7 +830,7 @@ _jit_putargr(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 {
-    jit_int32_t		regno;
+    int32_t		regno;
     assert(v->code == jit_code_arg);
     jit_inc_synth_wp(putargi, u, v);
 #if __X64
@@ -848,7 +848,7 @@ _jit_putargi(jit_state_t *_jit, jit_word_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_f(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
     jit_inc_synth_wp(getarg_f, u, v);
@@ -862,7 +862,7 @@ _jit_getarg_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_putargr_f(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_f);
     jit_inc_synth_wp(putargr_f, u, v);
@@ -878,7 +878,7 @@ _jit_putargr_f(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
 {
-    jit_int32_t		regno;
+    int32_t		regno;
     assert(v->code == jit_code_arg_f);
     jit_inc_synth_fp(putargi_f, u, v);
 #if __X64
@@ -896,7 +896,7 @@ _jit_putargi_f(jit_state_t *_jit, jit_float32_t u, jit_node_t *v)
 }
 
 void
-_jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_getarg_d(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
     jit_inc_synth_wp(getarg_d, u, v);
@@ -910,7 +910,7 @@ _jit_getarg_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 }
 
 void
-_jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
+_jit_putargr_d(jit_state_t *_jit, int32_t u, jit_node_t *v)
 {
     assert(v->code == jit_code_arg_d);
     jit_inc_synth_wp(putargr_d, u, v);
@@ -926,7 +926,7 @@ _jit_putargr_d(jit_state_t *_jit, jit_int32_t u, jit_node_t *v)
 void
 _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 {
-    jit_int32_t		regno;
+    int32_t		regno;
     assert(v->code == jit_code_arg_d);
     jit_inc_synth_dp(putargi_d, u, v);
 #if __X64
@@ -944,7 +944,7 @@ _jit_putargi_d(jit_state_t *_jit, jit_float64_t u, jit_node_t *v)
 }
 
 void
-_jit_pushargr(jit_state_t *_jit, jit_int32_t u)
+_jit_pushargr(jit_state_t *_jit, int32_t u)
 {
     assert(_jitc->function);
     jit_inc_synth_w(pushargr, u);
@@ -971,7 +971,7 @@ _jit_pushargr(jit_state_t *_jit, jit_int32_t u)
 void
 _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 {
-    jit_int32_t		 regno;
+    int32_t		 regno;
     assert(_jitc->function);
     jit_inc_synth_w(pushargi, u);
     jit_link_prepare();
@@ -999,7 +999,7 @@ _jit_pushargi(jit_state_t *_jit, jit_word_t u)
 }
 
 void
-_jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
+_jit_pushargr_f(jit_state_t *_jit, int32_t u)
 {
     assert(_jitc->function);
     jit_inc_synth_w(pushargr_f, u);
@@ -1035,7 +1035,7 @@ _jit_pushargr_f(jit_state_t *_jit, jit_int32_t u)
 void
 _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 {
-    jit_int32_t		regno;
+    int32_t		regno;
     assert(_jitc->function);
     jit_inc_synth_f(pushargi_f, u);
     jit_link_prepare();
@@ -1071,7 +1071,7 @@ _jit_pushargi_f(jit_state_t *_jit, jit_float32_t u)
 }
 
 void
-_jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
+_jit_pushargr_d(jit_state_t *_jit, int32_t u)
 {
     assert(_jitc->function);
     jit_inc_synth_w(pushargr_d, u);
@@ -1107,7 +1107,7 @@ _jit_pushargr_d(jit_state_t *_jit, jit_int32_t u)
 void
 _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 {
-    jit_int32_t		 regno;
+    int32_t		 regno;
     assert(_jitc->function);
     jit_inc_synth_d(pushargi_d, u);
     jit_link_prepare();
@@ -1143,10 +1143,10 @@ _jit_pushargi_d(jit_state_t *_jit, jit_float64_t u)
 }
 
 jit_bool_t
-_jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
+_jit_regarg_p(jit_state_t *_jit, jit_node_t *node, int32_t regno)
 {
 #if __X64
-    jit_int32_t		spec;
+    int32_t		spec;
 
     spec = jit_class(_rvs[regno].spec);
     if (spec & jit_class_arg) {
@@ -1166,9 +1166,9 @@ _jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
 }
 
 void
-_jit_finishr(jit_state_t *_jit, jit_int32_t r0)
+_jit_finishr(jit_state_t *_jit, int32_t r0)
 {
-    jit_int32_t		 reg;
+    int32_t		 reg;
     jit_node_t		*call;
     assert(_jitc->function);
     reg = r0;
@@ -1204,7 +1204,7 @@ jit_node_t *
 _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 {
 #if __X64
-    jit_int32_t		reg;
+    int32_t		reg;
 #endif
     jit_node_t		*node;
     assert(_jitc->function);
@@ -1237,7 +1237,7 @@ _jit_finishi(jit_state_t *_jit, jit_pointer_t i0)
 }
 
 void
-_jit_retval_c(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_c(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_c, r0);
     jit_extr_c(r0, JIT_RET);
@@ -1245,7 +1245,7 @@ _jit_retval_c(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_uc(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_uc(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_uc, r0);
     jit_extr_uc(r0, JIT_RET);
@@ -1253,7 +1253,7 @@ _jit_retval_uc(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_s(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_s(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_s, r0);
     jit_extr_s(r0, JIT_RET);
@@ -1261,7 +1261,7 @@ _jit_retval_s(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_us(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_us(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_us, r0);
     jit_extr_us(r0, JIT_RET);
@@ -1269,7 +1269,7 @@ _jit_retval_us(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_i(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_i(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_i, r0);
 #if __X32 || __X64_32
@@ -1283,7 +1283,7 @@ _jit_retval_i(jit_state_t *_jit, jit_int32_t r0)
 
 #if __X64 && !__X64_32
 void
-_jit_retval_ui(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_ui(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_ui, r0);
     jit_extr_ui(r0, JIT_RET);
@@ -1291,7 +1291,7 @@ _jit_retval_ui(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_l(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_l(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_l, r0);
     if (r0 != JIT_RET)
@@ -1301,7 +1301,7 @@ _jit_retval_l(jit_state_t *_jit, jit_int32_t r0)
 #endif
 
 void
-_jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_f(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_f, r0);
 #if __X64
@@ -1312,7 +1312,7 @@ _jit_retval_f(jit_state_t *_jit, jit_int32_t r0)
 }
 
 void
-_jit_retval_d(jit_state_t *_jit, jit_int32_t r0)
+_jit_retval_d(jit_state_t *_jit, int32_t r0)
 {
     jit_inc_synth_w(retval_d, r0);
 #if __X64
@@ -1328,15 +1328,15 @@ _emit_code(jit_state_t *_jit)
     jit_node_t		*node;
     jit_node_t		*temp;
     jit_word_t		 word;
-    jit_int32_t		 value;
-    jit_int32_t		 offset;
+    int32_t		 value;
+    int32_t		 offset;
     struct {
 	jit_node_t	*node;
 	jit_word_t	 word;
 #if DEVEL_DISASSEMBLER
 	jit_word_t	 prevw;
 #endif
-	jit_int32_t	 patch_offset;
+	int32_t	 patch_offset;
     } undo;
 #if DEVEL_DISASSEMBLER
     jit_word_t		 prevw;
@@ -2216,7 +2216,7 @@ _emit_stxi_d(jit_state_t *_jit, jit_word_t i0, jit_gpr_t r0, jit_fpr_t r1)
 static void
 _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 {
-    jit_int32_t		flag;
+    int32_t		flag;
 
     assert(node->flag & jit_flag_node);
     if (node->code == jit_code_movi)
@@ -2236,28 +2236,28 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 }
 
 static void
-_sse_from_x87_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_sse_from_x87_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 {
     x87_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
     sse_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_sse_from_x87_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_sse_from_x87_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 {
     x87_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
     sse_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_x87_from_sse_f(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_x87_from_sse_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 {
     sse_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
     x87_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_x87_from_sse_d(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1)
+_x87_from_sse_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 {
     sse_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
     x87_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);

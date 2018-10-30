@@ -105,18 +105,18 @@ typedef enum {
 } jit_reg_t;
 
 typedef struct {
-    jit_uint32_t version	: 4;
-    jit_uint32_t extend		: 1;
+    uint32_t version	: 4;
+    uint32_t extend		: 1;
     /* only generate thumb instructions for thumb2 */
-    jit_uint32_t thumb		: 1;
-    jit_uint32_t vfp		: 3;
-    jit_uint32_t neon		: 1;
-    jit_uint32_t abi		: 2;
+    uint32_t thumb		: 1;
+    uint32_t vfp		: 3;
+    uint32_t neon		: 1;
+    uint32_t abi		: 2;
     /* use strt+offset instead of str.w?
      * on special cases it causes a SIGILL at least on qemu, probably
      * due to some memory ordering constraint not being respected, so,
      * disable by default */
-    jit_uint32_t ldrt_strt	: 1;
+    uint32_t ldrt_strt	: 1;
 } jit_cpu_t;
 
 /*

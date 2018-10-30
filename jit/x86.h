@@ -154,41 +154,41 @@ typedef enum {
 
 typedef struct {
     /* x87 present */
-    jit_uint32_t fpu		: 1;
+    uint32_t fpu		: 1;
     /* cmpxchg8b instruction */
-    jit_uint32_t cmpxchg8b	: 1;
+    uint32_t cmpxchg8b	: 1;
     /* cmov and fcmov branchless conditional mov */
-    jit_uint32_t cmov		: 1;
+    uint32_t cmov		: 1;
     /* mmx registers/instructions available */
-    jit_uint32_t mmx		: 1;
+    uint32_t mmx		: 1;
     /* sse registers/instructions available */
-    jit_uint32_t sse		: 1;
+    uint32_t sse		: 1;
     /* sse2 registers/instructions available */
-    jit_uint32_t sse2		: 1;
+    uint32_t sse2		: 1;
     /* sse3 instructions available */
-    jit_uint32_t sse3		: 1;
+    uint32_t sse3		: 1;
     /* pcmulqdq instruction */
-    jit_uint32_t pclmulqdq	: 1;
+    uint32_t pclmulqdq	: 1;
     /* ssse3 suplemental sse3 instructions available */
-    jit_uint32_t ssse3		: 1;
+    uint32_t ssse3		: 1;
     /* fused multiply/add using ymm state */
-    jit_uint32_t fma		: 1;
+    uint32_t fma		: 1;
     /* cmpxchg16b instruction */
-    jit_uint32_t cmpxchg16b	: 1;
+    uint32_t cmpxchg16b	: 1;
     /* sse4.1 instructions available */
-    jit_uint32_t sse4_1		: 1;
+    uint32_t sse4_1		: 1;
     /* sse4.2 instructions available */
-    jit_uint32_t sse4_2		: 1;
+    uint32_t sse4_2		: 1;
     /* movbe instruction available */
-    jit_uint32_t movbe		: 1;
+    uint32_t movbe		: 1;
     /* popcnt instruction available */
-    jit_uint32_t popcnt		: 1;
+    uint32_t popcnt		: 1;
     /* aes instructions available */
-    jit_uint32_t aes		: 1;
+    uint32_t aes		: 1;
     /* avx instructions available */
-    jit_uint32_t avx		: 1;
+    uint32_t avx		: 1;
     /* lahf/sahf available in 64 bits mode */
-    jit_uint32_t lahf		: 1;
+    uint32_t lahf		: 1;
 } jit_cpu_t;
 
 /*

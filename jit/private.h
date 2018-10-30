@@ -55,7 +55,7 @@
 #  define JIT_RET		_RAX
 #  if __X32
 #    define JIT_FRET		_ST0
-typedef jit_uint32_t		jit_regset_t;
+typedef uint32_t		jit_regset_t;
 #  else
 #    if __CYGWIN__
 #      define JIT_RA0		_RCX
@@ -64,7 +64,7 @@ typedef jit_uint32_t		jit_regset_t;
 #    endif
 #    define JIT_FA0		_XMM0
 #    define JIT_FRET		_XMM0
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #  endif
 #elif defined(__mips__)
 #  define JIT_RA0		_A0
@@ -72,7 +72,7 @@ typedef jit_uint64_t		jit_regset_t;
 #  define JIT_SP		_SP
 #  define JIT_RET		_V0
 #  define JIT_FRET		_F0
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #elif defined(__arm__)
 #  define JIT_RA0		_R0
 #  define JIT_FA0		_D0
@@ -83,24 +83,24 @@ typedef jit_uint64_t		jit_regset_t;
 #  else
 #    define JIT_FRET		_R0
 #  endif
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #elif defined(__ppc__) || defined(__powerpc__)
 #  define JIT_RA0		_R3
 #  define JIT_FA0		_F1
 #  define JIT_SP		_R1
 #  define JIT_RET		_R3
 #  define JIT_FRET		_F1
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #elif defined(__sparc__)
 #  define JIT_SP		_SP
 #  define JIT_RET		_I0
 #  define JIT_FRET		_F0
 #  if __WORDSIZE == 32
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #  else
 typedef struct {
-    jit_uint64_t	rl;
-    jit_uint64_t	rh;
+    uint64_t	rl;
+    uint64_t	rh;
 } jit_regset_t;
 #  endif
 #elif defined(__ia64__)
@@ -108,38 +108,38 @@ typedef struct {
 #  define JIT_RET		_R8
 #  define JIT_FRET		_F8
 typedef struct {
-    jit_uint64_t	rl;
-    jit_uint64_t	rh;
-    jit_uint64_t	fl;
-    jit_uint64_t	fh;
+    uint64_t	rl;
+    uint64_t	rh;
+    uint64_t	fl;
+    uint64_t	fh;
 } jit_regset_t;
 #elif defined(__hppa__)
 #  define JIT_SP		_R30
 #  define JIT_RET		_R28
 #  define JIT_FRET		_F4
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #elif defined(__aarch64__)
 #  define JIT_RA0		_R0
 #  define JIT_FA0		_V0
 #  define JIT_SP		_SP
 #  define JIT_RET		_R0
 #  define JIT_FRET		_V0
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #elif defined(__s390__) || defined(__s390x__)
 #  define JIT_SP		_R15
 #  define JIT_RET		_R2
 #  define JIT_FRET		_F0
-typedef jit_uint32_t		jit_regset_t;
+typedef uint32_t		jit_regset_t;
 #elif defined(__alpha__)
 #  define JIT_SP		_SP
 #  define JIT_RET		_V0
 #  define JIT_FRET		_F0
-typedef jit_uint64_t		jit_regset_t;
+typedef uint64_t		jit_regset_t;
 #endif
 
 #define jit_data(u,v,w)		_jit_data(_jit,u,v,w)
 extern jit_node_t *_jit_data(jit_state_t*, const void*,
-			     jit_word_t, jit_int32_t);
+			     jit_word_t, int32_t);
 
 #define jit_size(vector)	(sizeof(vector) / sizeof((vector)[0]))
 
@@ -278,7 +278,7 @@ extern void
 jit_regset_set(jit_regset_t*, jit_regset_t*);
 
 extern void
-jit_regset_set_mask(jit_regset_t*, jit_int32_t);
+jit_regset_set_mask(jit_regset_t*, int32_t);
 
 extern jit_bool_t
 jit_regset_cmp_ui(jit_regset_t*, jit_word_t);
@@ -290,13 +290,13 @@ extern jit_bool_t
 jit_regset_set_p(jit_regset_t*);
 
 extern void
-jit_regset_clrbit(jit_regset_t*, jit_int32_t);
+jit_regset_clrbit(jit_regset_t*, int32_t);
 
 extern void
-jit_regset_setbit(jit_regset_t*, jit_int32_t);
+jit_regset_setbit(jit_regset_t*, int32_t);
 
 extern jit_bool_t
-jit_regset_tstbit(jit_regset_t*, jit_int32_t);
+jit_regset_tstbit(jit_regset_t*, int32_t);
 #  if __sparc__ && __WORDSIZE == 64
 #    define jit_regset_new(set)						\
     do { (set)->rl = (set)->rh = 0; } while (0)
@@ -325,7 +325,7 @@ jit_regset_tstbit(jit_regset_t*, jit_int32_t);
 #  define jit_regset_del(set)		(*(set) = 0)
 #endif
 extern unsigned long
-jit_regset_scan1(jit_regset_t*, jit_int32_t);
+jit_regset_scan1(jit_regset_t*, int32_t);
 
 #define jit_reglive_setup()						\
     do {								\
@@ -353,11 +353,11 @@ typedef struct jit_data_info	jit_data_info_t;
 union jit_data {
     struct {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_int32_t	 l;
-	jit_int32_t	 h;
+	int32_t	 l;
+	int32_t	 h;
 #else
-	jit_int32_t	 h;
-	jit_int32_t	 l;
+	int32_t	 h;
+	int32_t	 l;
 #endif
     } q;
     jit_word_t		 w;
@@ -368,7 +368,7 @@ union jit_data {
 };
 
 struct jit_note {
-    jit_uint8_t		*code;
+    uint8_t		*code;
     char		*name;
     jit_line_t		*lines;
     jit_word_t		 length;
@@ -377,16 +377,16 @@ struct jit_note {
 
 struct jit_line {
     char		*file;
-    jit_int32_t		*linenos;
-    jit_int32_t		*offsets;
+    int32_t		*linenos;
+    int32_t		*offsets;
     jit_word_t		 length;
 };
 
 struct jit_node {
     jit_node_t		*next;
     jit_code_t		 code;
-    jit_uint16_t	 flag;
-    jit_uint16_t	 offset;	/* Used if DEVEL_DISASSEMBLER */
+    uint16_t	 flag;
+    uint16_t	 offset;	/* Used if DEVEL_DISASSEMBLER */
     jit_data_t		 u;
     jit_data_t		 v;
     jit_data_t		 w;
@@ -401,7 +401,7 @@ struct jit_block {
 };
 
 struct jit_value {
-    jit_int32_t		kind;
+    int32_t		kind;
     jit_code_t		code;
     jit_data_t		base;
     jit_data_t		disp;
@@ -424,76 +424,76 @@ struct jit_data_info {
 
 struct jit_function {
     struct {
-	jit_int32_t	 argi;
-	jit_int32_t	 argf;
-	jit_int32_t	 size;
-	jit_int32_t	 aoff;
-	jit_int32_t	 alen;
-	jit_int32_t	 call;
-	jit_int32_t	 argn;		/* for debug output */
+	int32_t	 argi;
+	int32_t	 argf;
+	int32_t	 size;
+	int32_t	 aoff;
+	int32_t	 alen;
+	int32_t	 call;
+	int32_t	 argn;		/* for debug output */
     } self;
     struct {
-	jit_int32_t	 argi;
-	jit_int32_t	 argf;
-	jit_int32_t	 size;
-	jit_int32_t	 call;
+	int32_t	 argi;
+	int32_t	 argf;
+	int32_t	 size;
+	int32_t	 call;
     } call;
     jit_node_t		*prolog;
     jit_node_t		*epilog;
-    jit_int32_t		*regoff;
+    int32_t		*regoff;
     jit_regset_t	 regset;
-    jit_int32_t		 stack;
+    int32_t		 stack;
 
     /* Helper for common jit generation pattern, used in GNU Smalltalk
      * and possibly others, where a static frame layout is required or
      * assumed. */
-    jit_int32_t		 frame;
-    jit_uint32_t	 define_frame : 1;
-    jit_uint32_t	 assume_frame : 1;
+    int32_t		 frame;
+    uint32_t	 define_frame : 1;
+    uint32_t	 assume_frame : 1;
 
     /* alloca offset offset */
-    jit_int32_t		 aoffoff;
+    int32_t		 aoffoff;
     /* uses allocar flag */
-    jit_uint32_t	 allocar : 1;
+    uint32_t	 allocar : 1;
 
     /* varargs state offsets */
-    jit_int32_t		 vaoff;		/* offset of jit_va_list */
-    jit_int32_t		 vagp;		/* first gp va argument */
-    jit_int32_t		 vafp;		/* first fp va argument */
+    int32_t		 vaoff;		/* offset of jit_va_list */
+    int32_t		 vagp;		/* first gp va argument */
+    int32_t		 vafp;		/* first fp va argument */
 };
 
 /* data used only during jit generation */
 struct jit_compiler {
 #if __ia64__
     struct {
-	jit_uint64_t	  i : 41;
-	jit_uint64_t	  t :  4;
+	uint64_t	  i : 41;
+	uint64_t	  t :  4;
     } inst[3];
     jit_regset_t	  regs;		/* changed regs since last stop */
-    jit_int32_t		  pred;		/* changed preds last stop */
-    jit_int32_t		  ioff;		/* offset in inst vector */
-    jit_int32_t		  rout;		/* first output register */
-    jit_int32_t		  breg;		/* base register for prolog/epilog */
+    int32_t		  pred;		/* changed preds last stop */
+    int32_t		  ioff;		/* offset in inst vector */
+    int32_t		  rout;		/* first output register */
+    int32_t		  breg;		/* base register for prolog/epilog */
 #endif
 #if __mips__ || __ia64__ || __alpha__ || (__sparc__ && __WORDSIZE == 64)
-    jit_int32_t		  carry;
+    int32_t		  carry;
 #define jit_carry	  _jitc->carry
 #endif
     jit_node_t		 *head;
     jit_node_t		 *tail;
     jit_node_t		 *prepare;	/* inside prepare/finish* block */
-    jit_uint32_t	  realize : 1;	/* jit_realize() called? */
-    jit_uint32_t	  dataset : 1;	/* jit_dataset() called? */
-    jit_uint32_t	  done	: 1;	/* emit state finished */
-    jit_uint32_t	  emit	: 1;	/* emit state entered */
-    jit_uint32_t	  again	: 1;	/* start over emiting function */
-    jit_uint32_t	  synth : 8;	/* emiting synthesized instructions */
+    uint32_t	  realize : 1;	/* jit_realize() called? */
+    uint32_t	  dataset : 1;	/* jit_dataset() called? */
+    uint32_t	  done	: 1;	/* emit state finished */
+    uint32_t	  emit	: 1;	/* emit state entered */
+    uint32_t	  again	: 1;	/* start over emiting function */
+    uint32_t	  synth : 8;	/* emiting synthesized instructions */
 #if DEBUG
-    jit_uint32_t	  getreg : 1;
+    uint32_t	  getreg : 1;
 #endif
-    jit_uint32_t	  no_data : 1;
-    jit_uint32_t	  no_note : 1;
-    jit_int32_t		  reglen;	/* number of registers */
+    uint32_t	  no_data : 1;
+    uint32_t	  no_note : 1;
+    int32_t		  reglen;	/* number of registers */
     jit_regset_t	  regarg;	/* cannot allocate */
     jit_regset_t	  regsav;	/* automatic spill only once */
     jit_regset_t	  reglive;	/* known live registers at some point */
@@ -503,17 +503,17 @@ struct jit_compiler {
 	jit_word_t	  length;
     } blockmask;			/* mask of visited basic blocks */
     struct {
-	jit_uint8_t	 *end;
+	uint8_t	 *end;
     } code;
     struct {
-	jit_uint8_t	 *ptr;
+	uint8_t	 *ptr;
 	jit_node_t	**table;	/* very simple hash table */
 	jit_word_t	  size;		/* number of vectors in table */
 	jit_word_t	  count;	/* number of hash table entries */
 	jit_word_t	  offset;	/* offset in bytes in ptr */
     } data;
     jit_node_t		**spill;
-    jit_int32_t		 *gen;		/* ssa like "register version" */
+    int32_t		 *gen;		/* ssa like "register version" */
     jit_value_t		 *values;	/* temporary jit_value_t vector */
     struct {
 	jit_block_t	 *ptr;
@@ -544,11 +544,11 @@ struct jit_compiler {
 	jit_word_t	  size;
 	jit_node_t	 *name;
 	jit_node_t	 *note;
-	jit_uint8_t	 *base;
+	uint8_t	 *base;
     } note;
 #if __arm__
     /* prevent using thumb instructions that set flags? */
-    jit_uint32_t	  no_set_flags : 1;
+    uint32_t	  no_set_flags : 1;
 #  if DISASSEMBLER
     struct {
 	jit_data_info_t	 *ptr;
@@ -565,11 +565,11 @@ struct jit_compiler {
      * test cases start with a "jmpi main" call. */
     jit_uword_t		  thumb;
     struct {
-	jit_uint8_t	 *data;		/* pointer to code */
+	uint8_t	 *data;		/* pointer to code */
 	jit_word_t	  size;		/* size data */
 	jit_word_t	  offset;	/* pending patches */
 	jit_word_t	  length;	/* number of pending constants */
-	jit_int32_t	  values[1024];	/* pending constants */
+	int32_t	  values[1024];	/* pending constants */
 	jit_word_t	  patches[2048];
     } consts;
 #elif __powerpc__ || __ia64__
@@ -589,25 +589,25 @@ struct jit_compiler {
     /* Global flag for code buffer heuristic size computation */
     jit_word_t		  mult;
     /* Pointer to code to prevent miscalculation if reallocating buffer */
-    jit_uint8_t		 *cptr;
+    uint8_t		 *cptr;
 #endif
 };
 
 #define _jitc				_jit->comp
 struct jit_state {
     union {
-	jit_uint8_t	 *uc;
-	jit_uint16_t	 *us;
-	jit_uint32_t	 *ui;
-	jit_uint64_t	 *ul;
+	uint8_t	 *uc;
+	uint16_t	 *us;
+	uint32_t	 *ui;
+	uint64_t	 *ul;
 	jit_word_t	  w;
     } pc;
     struct {
-	jit_uint8_t	*ptr;
+	uint8_t	*ptr;
 	jit_word_t	 length;
     } code;
     struct {
-	jit_uint8_t	*ptr;
+	uint8_t	*ptr;
 	jit_word_t	 length;
     } data;
     struct {
@@ -616,8 +616,8 @@ struct jit_state {
     } note;
     jit_compiler_t	*comp;
     /* Flags to know if user did set the code and data buffers */
-    jit_uint32_t	 user_code	: 1;
-    jit_uint32_t	 user_data	: 1;
+    uint32_t	 user_code	: 1;
+    uint32_t	 user_data	: 1;
 };
 
 struct jit_register {
@@ -655,42 +655,42 @@ _jit_reglive(jit_state_t*, jit_node_t*);
 
 #define jit_regarg_set(n,v)	_jit_regarg_set(_jit,n,v)
 extern void
-_jit_regarg_set(jit_state_t*, jit_node_t*, jit_int32_t);
+_jit_regarg_set(jit_state_t*, jit_node_t*, int32_t);
 
 #define jit_regarg_clr(n,v)	_jit_regarg_clr(_jit,n,v)
 extern void
-_jit_regarg_clr(jit_state_t*, jit_node_t*, jit_int32_t);
+_jit_regarg_clr(jit_state_t*, jit_node_t*, int32_t);
 
 #define jit_get_reg(s)		_jit_get_reg(_jit,s)
-extern jit_int32_t
-_jit_get_reg(jit_state_t*, jit_int32_t);
+extern int32_t
+_jit_get_reg(jit_state_t*, int32_t);
 
 #define jit_unget_reg(r)	_jit_unget_reg(_jit,r)
 extern void
-_jit_unget_reg(jit_state_t*, jit_int32_t);
+_jit_unget_reg(jit_state_t*, int32_t);
 
 #define jit_save(reg)		_jit_save(_jit, reg)
 extern void
-_jit_save(jit_state_t*, jit_int32_t);
+_jit_save(jit_state_t*, int32_t);
 
 #define jit_load(reg)		_jit_load(_jit, reg)
 extern void
-_jit_load(jit_state_t*, jit_int32_t);
+_jit_load(jit_state_t*, int32_t);
 
 #define jit_trampoline(u,v)	_jit_trampoline(_jit, u, v)
-extern void _jit_trampoline(jit_state_t*, jit_int32_t, jit_bool_t);
+extern void _jit_trampoline(jit_state_t*, int32_t, jit_bool_t);
 
 #define jit_optimize()		_jit_optimize(_jit)
 extern void
 _jit_optimize(jit_state_t*);
 
 #define jit_classify(code)	_jit_classify(_jit, code)
-extern jit_int32_t
+extern int32_t
 _jit_classify(jit_state_t*, jit_code_t);
 
 #define jit_regarg_p(n, r)	_jit_regarg_p(_jit, n, r)
 extern jit_bool_t
-_jit_regarg_p(jit_state_t*, jit_node_t*, jit_int32_t);
+_jit_regarg_p(jit_state_t*, jit_node_t*, int32_t);
 
 #define emit_code()		_emit_code(_jit)
 extern jit_pointer_t
@@ -701,19 +701,19 @@ jit_flush(void *fptr, void *tptr);
 
 #define emit_ldxi(r0, r1, i0)	_emit_ldxi(_jit, r0, r1, i0)
 extern void
-_emit_ldxi(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
+_emit_ldxi(jit_state_t*, int32_t, jit_int32_t, jit_word_t);
 
 #define emit_stxi(i0, r0, r1)	_emit_stxi(_jit, i0, r0, r1)
 extern void
-_emit_stxi(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
+_emit_stxi(jit_state_t*, jit_word_t, int32_t, jit_int32_t);
 
 #define emit_ldxi_d(r0, r1, i0)	_emit_ldxi_d(_jit, r0, r1, i0)
 extern void
-_emit_ldxi_d(jit_state_t*, jit_int32_t, jit_int32_t, jit_word_t);
+_emit_ldxi_d(jit_state_t*, int32_t, jit_int32_t, jit_word_t);
 
 #define emit_stxi_d(i0, r0, r1)	_emit_stxi_d(_jit, i0, r0, r1)
 extern void
-_emit_stxi_d(jit_state_t*, jit_word_t, jit_int32_t, jit_int32_t);
+_emit_stxi_d(jit_state_t*, jit_word_t, int32_t, jit_int32_t);
 
 extern void jit_init_debug(const char*);
 extern void jit_finish_debug(void);
@@ -721,7 +721,7 @@ extern void jit_finish_debug(void);
 extern void jit_init_note(void);
 extern void jit_finish_note(void);
 #define jit_set_note(n,u,v,w)	_jit_set_note(_jit, n, u, v, w)
-extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, jit_int32_t);
+extern void _jit_set_note(jit_state_t*, jit_note_t*, char*, int, int32_t);
 #define jit_annotate()		_jit_annotate(_jit)
 extern void _jit_annotate(jit_state_t*);
 
