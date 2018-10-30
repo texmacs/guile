@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -17,9 +17,10 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include <lightning.h>
-#include <lightning/jit_private.h>
 #include <sys/mman.h>
+
+#include "jit.h"
+#include "jit/jit_private.h"
 
 /*
  * Prototypes

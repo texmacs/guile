@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -17,8 +17,8 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#ifndef _lightning_h
-#define _lightning_h
+#ifndef _jit_h
+#define _jit_h
 
 #if HAVE_CONFIG_H
 # include "config.h"
@@ -133,25 +133,25 @@ typedef jit_int32_t		jit_gpr_t;
 typedef jit_int32_t		jit_fpr_t;
 
 #if defined(__i386__) || defined(__x86_64__)
-#  include <lightning/jit_x86.h>
+#  include <jit/jit_x86.h>
 #elif defined(__mips__)
-#  include <lightning/jit_mips.h>
+#  include <jit/jit_mips.h>
 #elif defined(__arm__)
-#  include <lightning/jit_arm.h>
+#  include <jit/jit_arm.h>
 #elif defined(__ppc__) || defined(__powerpc__)
-#  include <lightning/jit_ppc.h>
+#  include <jit/jit_ppc.h>
 #elif defined(__sparc__)
-#  include <lightning/jit_sparc.h>
+#  include <jit/jit_sparc.h>
 #elif defined(__ia64__)
-#  include <lightning/jit_ia64.h>
+#  include <jit/jit_ia64.h>
 #elif defined(__hppa__)
-#  include <lightning/jit_hppa.h>
+#  include <jit/jit_hppa.h>
 #elif defined(__aarch64__)
-#  include <lightning/jit_aarch64.h>
+#  include <jit/jit_aarch64.h>
 #elif defined(__s390__) || defined(__s390x__)
-#  include <lightning/jit_s390.h>
+#  include <jit/jit_s390.h>
 #elif defined(__alpha__)
-#  include <lightning/jit_alpha.h>
+#  include <jit/jit_alpha.h>
 #endif
 
 #define jit_flag_node		0x0001	/* patch node not absolute */
@@ -1095,4 +1095,4 @@ extern void jit_get_memory_functions(jit_alloc_func_ptr*,
 				     jit_realloc_func_ptr*,
 				     jit_free_func_ptr*);
 
-#endif /* _lightning_h */
+#endif /* _jit_h */

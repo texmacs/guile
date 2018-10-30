@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -17,12 +17,13 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include <lightning.h>
-#include <lightning/jit_private.h>
 #include <sys/mman.h>
 #if defined(__sgi)
 #  include <fcntl.h>
 #endif
+
+#include "jit.h"
+#include "jit/jit_private.h"
 
 #ifndef MAP_ANON
 #  define MAP_ANON			MAP_ANONYMOUS

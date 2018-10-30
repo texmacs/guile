@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2015-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -17,8 +17,8 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include <lightning.h>
-#include <lightning/jit_private.h>
+#include "jit.h"
+#include "jit/jit_private.h"
 
 #if PROTO
 #  define free_synth_list(node)		_free_synth_list(_jit,node)
