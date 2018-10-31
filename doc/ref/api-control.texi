@@ -1699,7 +1699,7 @@ file descriptors), in Guile you can arrange to call a function while
 binding a fluid to a particular value.  That association between fluid
 and value will exist during the dynamic extent of the function call.
 
-Fluids are a therefore a building block for implementing dynamically
+Fluids are therefore a building block for implementing dynamically
 scoped variables.  Dynamically scoped variables are useful when you want
 to set a variable to a value during some dynamic extent in the execution
 of your program and have them revert to their original value when the
