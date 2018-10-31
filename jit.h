@@ -110,9 +110,9 @@ extern void init_jit(void);
 extern jit_state_t *jit_new_state(void);
 extern void jit_destroy_state(jit_state_t*);
 
-extern void jit_begin(jit_state_t*);
-extern void jit_end(jit_state_t*, jit_addr_t*, size_t*);
+extern void jit_begin(jit_state_t*, jit_addr_t, size_t);
 extern void jit_reset(jit_state_t*);
+extern jit_addr_t jit_end(jit_state_t*, size_t*);
 
 extern void jit_align(jit_state_t*, unsigned);
 extern void jit_allocai(jit_state_t*, size_t);
@@ -123,7 +123,7 @@ extern void jit_patch_here(jit_state_t*, jit_reloc_t);
 extern void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
 extern void jit_calli(jit_state_t *, jit_pointer_t f,
-                       size_t argc, const jit_arg_t *argv);
+                      size_t argc, const jit_arg_t *argv);
 extern void jit_callr(jit_state_t *, jit_gpr_t f,
                       size_t argc, const jit_arg_t *argv);
 extern void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
