@@ -45,6 +45,7 @@ typedef void*		jit_addr_t;
 typedef ptrdiff_t	jit_off_t;
 typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
+typedef struct jit_reloc *jit_reloc_t;
 
 #if defined(__i386__) || defined(__x86_64__)
 #  include "jit/x86.h"
@@ -83,75 +84,60 @@ typedef uintptr_t	jit_uimm_t;
 #define jit_class(reg)		((reg) & 0xffff0000)
 #define jit_regno(reg)		((reg) & 0x00007fff)
 
-typedef struct jit_node		jit_node_t;
 typedef struct jit_state	jit_state_t;
+enum jit_arg_kind
+{
+  JIT_CALL_ARG_IMM,
+  JIT_CALL_ARG_GPR,
+  JIT_CALL_ARG_FPR,
+  JIT_CALL_ARG_MEM
+};
 
+typedef struct jit_arg
+{
+  enum jit_arg_kind kind;
+  union
+  {
+    intptr_t imm;
+    jit_gpr_t gpr;
+    jit_fpr_t fpr;
+    struct { jit_gpr_t base; ptrdiff_t offset; } mem;
+  } loc;
+} jit_arg_t;
 
-#if __WORDSIZE == 32
-#  define jit_ldr(u,v)		jit_ldr_i(u,v)
-#  define jit_ldi(u,v)		jit_ldi_i(u,v)
-#  define jit_ldxr(u,v,w)	jit_ldxr_i(u,v,w)
-#  define jit_ldxi(u,v,w)	jit_ldxi_i(u,v,w)
-#  define jit_str(u,v)		jit_str_i(u,v)
-#  define jit_sti(u,v)		jit_sti_i(u,v)
-#  define jit_stxr(u,v,w)	jit_stxr_i(u,v,w)
-#  define jit_stxi(u,v,w)	jit_stxi_i(u,v,w)
-#  define jit_getarg(u,v)	jit_getarg_i(u,v)
-#  define jit_retval(u)		jit_retval_i(u)
-#  define jit_bswapr(u,v)	jit_bswapr_ui(u,v)
-#  define jit_truncr_d(u,v)	jit_truncr_d_i(u,v)
-#  define jit_truncr_f(u,v)	jit_truncr_f_i(u,v)
-#else
-#  define jit_ldr(u,v)		jit_ldr_l(u,v)
-#  define jit_ldi(u,v)		jit_ldi_l(u,v)
-#  define jit_ldxr(u,v,w)	jit_ldxr_l(u,v,w)
-#  define jit_ldxi(u,v,w)	jit_ldxi_l(u,v,w)
-#  define jit_str(u,v)		jit_str_l(u,v)
-#  define jit_sti(u,v)		jit_sti_l(u,v)
-#  define jit_stxr(u,v,w)	jit_stxr_l(u,v,w)
-#  define jit_stxi(u,v,w)	jit_stxi_l(u,v,w)
-#  define jit_getarg(u,v)	jit_getarg_l(u,v)
-#  define jit_retval(u)		jit_retval_l(u)
-#  define jit_bswapr(u,v)	jit_bswapr_ul(u,v)
-#  define jit_truncr_d(u,v)	jit_truncr_d_l(u,v)
-#  define jit_truncr_f(u,v)	jit_truncr_f_l(u,v)
-#endif
+extern void init_jit(void);
 
-#define jit_clear_state()	_jit_clear_state(_jit)
-#define jit_destroy_state()	_jit_destroy_state(_jit)
+extern jit_state_t *jit_new_state(void);
+extern void jit_destroy_state(jit_state_t*);
 
-#define jit_address(node)	_jit_address(_jit, node)
-#define jit_forward_p(u)	_jit_forward_p(_jit,u)
-#define jit_indirect_p(u)	_jit_indirect_p(_jit,u)
-#define jit_target_p(u)		_jit_target_p(_jit,u)
+extern void jit_begin(jit_state_t*);
+extern void jit_end(jit_state_t*, jit_addr_t*, size_t*);
+extern void jit_reset(jit_state_t*);
 
-#define jit_patch(u)		_jit_patch(_jit,u)
-#define jit_patch_at(u,v)	_jit_patch_at(_jit,u,v)
-#define jit_patch_abs(u,v)	_jit_patch_abs(_jit,u,v)
-#define jit_realize()		_jit_realize(_jit)
-#define jit_get_code(u)		_jit_get_code(_jit,u)
-#define jit_set_code(u,v)	_jit_set_code(_jit,u,v)
-#define jit_get_data(u,v)	_jit_get_data(_jit,u,v)
-#define jit_set_data(u,v,w)	_jit_set_data(_jit,u,v,w)
-#define jit_frame(u)		_jit_frame(_jit,u)
-#define jit_tramp(u)		_jit_tramp(_jit,u)
-#define jit_emit()		_jit_emit(_jit)
-#define jit_print()		_jit_print(_jit)
+extern void jit_align(jit_state_t*, unsigned);
+extern void jit_allocai(jit_state_t*, size_t);
+extern void jit_allocar(jit_state_t*, jit_gpr_t, jit_gpr_t);
 
-#define jit_arg_register_p(u)	_jit_arg_register_p(_jit,u)
-#define jit_callee_save_p(u)	_jit_callee_save_p(_jit,u)
-#define jit_pointer_p(u)	_jit_pointer_p(_jit,u)
+extern jit_pointer_t jit_address(jit_state_t*);
+extern void jit_patch_here(jit_state_t*, jit_reloc_t);
+extern void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
+
+extern void jit_calli(jit_state_t *, jit_pointer_t f,
+                       size_t argc, const jit_arg_t *argv);
+extern void jit_callr(jit_state_t *, jit_gpr_t f,
+                      size_t argc, const jit_arg_t *argv);
+extern void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
 
 #define JIT_PROTO_0(stem, ret) \
-  extern ret _jit_##stem (jit_state*)
+  extern ret jit_##stem (jit_state_t*)
 #define JIT_PROTO_1(stem, ret, a) \
-  extern ret _jit_##stem (jit_state*, jit_##a##_t)
+  extern ret jit_##stem (jit_state_t*, jit_##a##_t)
 #define JIT_PROTO_2(stem, ret, a, b) \
-  extern ret _jit_##stem (jit_state*, jit_##a##_t, jit_##b##_t)
+  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t)
 #define JIT_PROTO_3(stem, ret, a, b, c) \
-  extern ret _jit_##stem (jit_state*, jit_##a##_t, jit_##b##_t, jit_##c##_t)
+  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t)
 #define JIT_PROTO_4(stem, ret, a, b, c, d) \
-  extern ret _jit_##stem (jit_state*, jit_##a##_t, jit_##b##_t, jit_##c##_t, jit_##d##_t)
+  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t, jit_##d##_t)
 
 #define JIT_PROTO_RFF__(stem) JIT_PROTO_2(stem, jit_reloc_t, fpr, fpr)
 #define JIT_PROTO_RGG__(stem) JIT_PROTO_2(stem, jit_reloc_t, gpr, gpr)
@@ -162,26 +148,24 @@ typedef struct jit_state	jit_state_t;
 #define JIT_PROTO__FFF_(stem) JIT_PROTO_3(stem, void, fpr, fpr, fpr)
 #define JIT_PROTO__FF__(stem) JIT_PROTO_2(stem, void, fpr, fpr)
 #define JIT_PROTO__FGG_(stem) JIT_PROTO_3(stem, void, fpr, gpr, gpr)
-#define JIT_PROTO__FG__(stem) JIT_PROTO_3(stem, void, fpr, gpr)
+#define JIT_PROTO__FG__(stem) JIT_PROTO_2(stem, void, fpr, gpr)
 #define JIT_PROTO__FGo_(stem) JIT_PROTO_3(stem, void, fpr, gpr, off)
 #define JIT_PROTO__F___(stem) JIT_PROTO_1(stem, void, fpr)
-#define JIT_PROTO__Fd__(stem) JIT_PROTO_2(stem, void, fpr, double)
-#define JIT_PROTO__Ff__(stem) JIT_PROTO_2(stem, void, fpr, float)
+#define JIT_PROTO__Fd__(stem) JIT_PROTO_2(stem, void, fpr, float64)
+#define JIT_PROTO__Ff__(stem) JIT_PROTO_2(stem, void, fpr, float32)
 #define JIT_PROTO__Fp__(stem) JIT_PROTO_2(stem, void, fpr, pointer)
-#define JIT_PROTO__GF__(stem) JIT_PROTO_2(stem, void, gpr)
 #define JIT_PROTO__GF__(stem) JIT_PROTO_2(stem, void, gpr, fpr)
 #define JIT_PROTO__GGF_(stem) JIT_PROTO_3(stem, void, gpr, gpr, fpr)
 #define JIT_PROTO__GGGG(stem) JIT_PROTO_4(stem, void, gpr, gpr, gpr, gpr)
 #define JIT_PROTO__GGG_(stem) JIT_PROTO_3(stem, void, gpr, gpr, gpr)
 #define JIT_PROTO__GGGi(stem) JIT_PROTO_3(stem, void, gpr, gpr, imm)
 #define JIT_PROTO__GGGu(stem) JIT_PROTO_3(stem, void, gpr, gpr, uimm)
-#define JIT_PROTO__GG__(stem) JIT_PROTO_3(stem, void, gpr, gpr)
+#define JIT_PROTO__GG__(stem) JIT_PROTO_2(stem, void, gpr, gpr)
 #define JIT_PROTO__GGi_(stem) JIT_PROTO_3(stem, void, gpr, gpr, imm)
 #define JIT_PROTO__GGo_(stem) JIT_PROTO_3(stem, void, gpr, gpr, off)
 #define JIT_PROTO__GGu_(stem) JIT_PROTO_3(stem, void, gpr, gpr, uimm)
 #define JIT_PROTO__G___(stem) JIT_PROTO_1(stem, void, gpr)
 #define JIT_PROTO__Gi__(stem) JIT_PROTO_2(stem, void, gpr, imm)
-#define JIT_PROTO__Gp__(stem) JIT_PROTO_2(stem, void, a, b, c)
 #define JIT_PROTO__Gp__(stem) JIT_PROTO_2(stem, void, gpr, pointer)
 #define JIT_PROTO______(stem) JIT_PROTO_0(stem, void)
 #define JIT_PROTO__i___(stem) JIT_PROTO_1(stem, void, imm)
@@ -401,23 +385,12 @@ typedef struct jit_state	jit_state_t;
           M(_G___, jmpr)		\
           M(_p___, jmpi)		\
           M(R____, jmp)			\
-          M(_G___, callr)		\
-          M(_p___, calli)		\
-          M(R____, call)		\
   					\
           M(_G___, pushr)		\
           M(_F___, pushr_d)		\
           M(_G___, popr)		\
           M(_F___, popr_d)		\
 					\
-          M(_____, prepare)		\
-          M(_G___, pushargr)		\
-          M(_F___, pushargr_f)		\
-          M(_F___, pushargr_d)		\
-          M(_i___, pushargi)		\
-          M(_G___, finishr)		\
-          M(_p___, finishi)		\
-          M(R____, finish)		\
           M(_____, ret)			\
           M(_G___, retr)		\
           M(_F___, retr_f)		\
@@ -432,18 +405,6 @@ typedef struct jit_state	jit_state_t;
   WHEN_64(M(_G___, retval_l))		\
           M(_F___, retval_f)		\
           M(_F___, retval_d)		\
-          M(A____, arg)			\
-          M(A____, arg_f)		\
-          M(A____, arg_d)		\
-          M(_GA__, getarg_c)		\
-          M(_GA__, getarg_uc)		\
-          M(_GA__, getarg_s)		\
-          M(_GA__, getarg_us)		\
-          M(_GA__, getarg_i)		\
-  WHEN_64(M(_GA__, getarg_ui))		\
-  WHEN_64(M(_GA__, getarg_l))		\
-          M(_GA__, getarg_f)		\
-          M(_GA__, getarg_d)		\
   					\
           M(_FF__, negr_f)		\
           M(_FF__, negr_d)		\
@@ -466,23 +427,36 @@ typedef struct jit_state	jit_state_t;
   WHEN_64(M(_GF__, truncr_d_l))		\
           /* EOL */
 
-#define DECLARE_JIT_API(kind, stem) JIT_PROTO_##kind(stem);
-FOR_EACH_INSTRUCTION(DECLARE_JIT_API);
-#undef DECLARE_JIT_API
+#define DECLARE_INSTRUCTION(kind, stem) JIT_PROTO_##kind(stem);
+FOR_EACH_INSTRUCTION(DECLARE_INSTRUCTION)
+#undef DECLARE_INSTRUCTION
 
-extern void init_jit(void);
-
-extern jit_state_t *jit_new_state(void);
-extern void jit_clear_state(jit_state*);
-extern void jit_destroy_state(jit_state*);
-
-extern void jit_align(jit_state*, unsigned);
-extern void jit_allocai(jit_state*, size_t);
-extern void jit_allocar(jit_state*, jit_gpr_t, jit_gpr_t);
-
-extern jit_pointer_t jit_address(jit_state*);
-extern void jit_patch_here(jit_state_t*, jit_reloc_t);
-extern void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
-
+#if __WORDSIZE == 32
+#  define jit_ldr(u,v)		jit_ldr_i(u,v)
+#  define jit_ldi(u,v)		jit_ldi_i(u,v)
+#  define jit_ldxr(u,v,w)	jit_ldxr_i(u,v,w)
+#  define jit_ldxi(u,v,w)	jit_ldxi_i(u,v,w)
+#  define jit_str(u,v)		jit_str_i(u,v)
+#  define jit_sti(u,v)		jit_sti_i(u,v)
+#  define jit_stxr(u,v,w)	jit_stxr_i(u,v,w)
+#  define jit_stxi(u,v,w)	jit_stxi_i(u,v,w)
+#  define jit_retval(u)		jit_retval_i(u)
+#  define jit_bswapr(u,v)	jit_bswapr_ui(u,v)
+#  define jit_truncr_d(u,v)	jit_truncr_d_i(u,v)
+#  define jit_truncr_f(u,v)	jit_truncr_f_i(u,v)
+#else
+#  define jit_ldr(u,v)		jit_ldr_l(u,v)
+#  define jit_ldi(u,v)		jit_ldi_l(u,v)
+#  define jit_ldxr(u,v,w)	jit_ldxr_l(u,v,w)
+#  define jit_ldxi(u,v,w)	jit_ldxi_l(u,v,w)
+#  define jit_str(u,v)		jit_str_l(u,v)
+#  define jit_sti(u,v)		jit_sti_l(u,v)
+#  define jit_stxr(u,v,w)	jit_stxr_l(u,v,w)
+#  define jit_stxi(u,v,w)	jit_stxi_l(u,v,w)
+#  define jit_retval(u)		jit_retval_l(u)
+#  define jit_bswapr(u,v)	jit_bswapr_ul(u,v)
+#  define jit_truncr_d(u,v)	jit_truncr_d_l(u,v)
+#  define jit_truncr_f(u,v)	jit_truncr_f_l(u,v)
+#endif
 
 #endif /* _jit_h */
