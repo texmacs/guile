@@ -9,7 +9,7 @@
 
 Compilers!  The word itself inspires excitement and awe, even among
 experienced practitioners.  But a compiler is just a program: an
-eminently hackable thing.  This section aims to to describe Guile's
+eminently hackable thing.  This section aims to describe Guile's
 compiler in such a way that interested Scheme hackers can feel
 comfortable reading and extending it.
 
@@ -200,11 +200,11 @@ expression from the same source language within the same module.
 
 For example, you might compile the expression, @code{(define-module
 (foo))}. This will result in a Tree-IL expression and environment. But
-if you compiled a second expression, you would want to take into
-account the compile-time effect of compiling the previous expression,
-which puts the user in the @code{(foo)} module. That is purpose of the
-``continuation environment''; you would pass it as the environment
-when compiling the subsequent expression.
+if you compiled a second expression, you would want to take into account
+the compile-time effect of compiling the previous expression, which puts
+the user in the @code{(foo)} module. That is the purpose of the
+``continuation environment''; you would pass it as the environment when
+compiling the subsequent expression.
 
 For Scheme, an environment is a module. By default, the @code{compile}
 and @code{compile-file} procedures compile in a fresh module, such
@@ -897,7 +897,7 @@ Note that all of these names with the exception of the @var{var}s in the
 Additionally, there are three specific kinds of continuations that are
 only used in function entries.
 
-@deftp {CPS Continuation} $kfun src meta self tail clauses
+@deftp {CPS Continuation} $kfun src meta self tail clause
 Declare a function entry.  @var{src} is the source information for the
 procedure declaration, and @var{meta} is the metadata alist as described
 above in Tree-IL's @code{<lambda>}.  @var{self} is a variable bound to
@@ -1043,7 +1043,7 @@ value associated with a given key, requiring that the key was present
 already, and @code{intmap-remove}, which removes a key from an intmap.
 
 Intmaps have a tree-like structure that is well-suited to set operations
-such as union and intersection, so there is are also the binary
+such as union and intersection, so there are also the binary
 @code{intmap-union} and @code{intmap-intersect} procedures.  If the
 result is equivalent to either argument, that argument is returned
 as-is; in that way, one can detect whether the set operation produced a
