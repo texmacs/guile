@@ -28,44 +28,44 @@
 #endif
 
 #define f39(o,b,x,t)			_f39(_jit,o,b,x,t)
-static void _f39(jit_state_t*,int32_t,int32_t,jit_int32_t,jit_int32_t);
+static void _f39(jit_state_t*,int32_t,int32_t,int32_t,int32_t);
 #define f40(o,b,x,r)			_f40(_jit,o,b,x,r)
-static void _f40(jit_state_t*,int32_t,int32_t,jit_int32_t,jit_int32_t)
+static void _f40(jit_state_t*,int32_t,int32_t,int32_t,int32_t)
     maybe_unused;
 #define f41(o,b,x,t)			_f41(_jit,o,b,x,t)
-static void _f41(jit_state_t*,int32_t,int32_t,jit_int32_t,jit_int32_t);
+static void _f41(jit_state_t*,int32_t,int32_t,int32_t,int32_t);
 #define f42(o,b,i,r)			_f42(_jit,o,b,i,r)
-static void _f42(jit_state_t*,int32_t,int32_t,jit_int32_t,jit_int32_t);
+static void _f42(jit_state_t*,int32_t,int32_t,int32_t,int32_t);
 #define f43(o,b,t,i)			f1(o,b,t,i)
 #define f45(o,r,a,b,fmt,c,d,e,t)	_f45(_jit,o,r,a,b,fmt,c,d,e,t)
 static void _f45(jit_state_t*,int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t) maybe_unused;
+		 int32_t,int32_t,int32_t,int32_t,
+		 int32_t,int32_t,int32_t,int32_t) maybe_unused;
 #define f46(o,r,a,s,df,sf,b,c,d,t)	_f46(_jit,o,r,a,s,df,sf,b,c,d,t)
 static void _f46(jit_state_t*,int32_t,int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t);
+		 int32_t,int32_t,int32_t,int32_t,
+		 int32_t,int32_t,int32_t,int32_t);
 #define f47(o,r1,r2,a,fmt,b,c,d,t)	f47_48(o,r1,r2,a,fmt,b,c,d,t)
 #define f48(o,r1,r2,a,fmt,b,c,d,t)	f47_48(o,r1,r2,a,fmt,b,c,d,t)
 #define f47_48(o,r1,r2,y,fmt,b,c,d,t)	_f47_48(_jit,o,r1,r2,y,fmt,b,c,d,t)
 static void _f47_48(jit_state_t*,int32_t,
-		    int32_t,int32_t,jit_int32_t,jit_int32_t,
-		    int32_t,int32_t,jit_int32_t,jit_int32_t);
+		    int32_t,int32_t,int32_t,int32_t,
+		    int32_t,int32_t,int32_t,int32_t);
 #define f49(o,r,a,b,c,f,d,e,g,h,i,t)	f49_52(o,r,a,b,c,f,d,e,g,h,i,t)
 #define f51(o,r1,r2,y,a,f,b,d,e,g,h,c)	f49_52(o,r1,r2,y,a,f,b,d,e,g,h,c)
 #define f52(o,r1,r2,a,b,f,c,d,e,g,h,t)	f49_52(o,r1,r2,a,b,f,c,d,e,g,h,t)
 #define f49_52(o,r1,r2,y,v,f,a,b,u,c,d,t) _f49_52(_jit,o,r1,r2,y,v,f,a,b,u,c,d,t)
 static void _f49_52(jit_state_t*,int32_t,
-		    int32_t,int32_t,jit_int32_t,
-		    int32_t,int32_t,jit_int32_t,jit_int32_t,
-		    int32_t,int32_t,jit_int32_t,jit_int32_t);
+		    int32_t,int32_t,int32_t,
+		    int32_t,int32_t,int32_t,int32_t,
+		    int32_t,int32_t,int32_t,int32_t);
 #define f53(o,r1,r2,ta,ra,f,tm)		_f53(_jit,o,r1,r2,ta,ra,f,tm)
-static void _f53(jit_state_t*,int32_t,int32_t,jit_int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t) maybe_unused;
+static void _f53(jit_state_t*,int32_t,int32_t,int32_t,
+		 int32_t,int32_t,int32_t,int32_t) maybe_unused;
 #define f54(o,r1,r2,a,b,f,c,d,e,g,t)	_f54(_jit,o,r1,r2,a,b,f,c,d,e,g,t)
-static void _f54(jit_state_t*,int32_t,int32_t,jit_int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t,
-		 int32_t,int32_t,jit_int32_t,jit_int32_t) maybe_unused;
+static void _f54(jit_state_t*,int32_t,int32_t,int32_t,
+		 int32_t,int32_t,int32_t,int32_t,
+		 int32_t,int32_t,int32_t,int32_t) maybe_unused;
 #define FABS_(f,r,t)			f49(0xe,r,0,3,0,f,0,0,0,0,0,t)
 #define FABS_S(r,t)			FABS_(0,r,t)
 #define FABS_D(r,t)			FABS_(1,r,t)
@@ -322,13 +322,13 @@ static void _divi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 static void _divi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #define cmpr_f(c,r0,r1,r2)		_cmpr_f(_jit,c,r0,r1,r2)
 static void _cmpr_f(jit_state_t*,jit_word_t,
-		    int32_t,int32_t,jit_int32_t);
+		    int32_t,int32_t,int32_t);
 #define cmpi_f(c,r0,r1,i0)		_cmpi_f(_jit,c,r0,r1,i0)
 static void _cmpi_f(jit_state_t*,jit_word_t,
 		    int32_t,int32_t,jit_float32_t*);
 #define cmpr_d(c,r0,r1,r2)		_cmpr_d(_jit,c,r0,r1,r2)
 static void _cmpr_d(jit_state_t*,jit_word_t,
-		    int32_t,int32_t,jit_int32_t);
+		    int32_t,int32_t,int32_t);
 #define cmpi_d(c,r0,r1,i0)		_cmpi_d(_jit,c,r0,r1,i0)
 static void _cmpi_d(jit_state_t*,jit_word_t,
 		    int32_t,int32_t,jit_float64_t*);
@@ -408,9 +408,9 @@ static void _sti_f(jit_state_t*,jit_word_t,int32_t);
 #  define stxr_d(r0,r1,r2)		FSTD(r2,r1,r0)
 #else
 #  define stxr_f(r0,r1,r2)		_stxr_f(_jit,r0,r1,r2)
-static void _stxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _stxr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define stxr_d(r0,r1,r2)		_stxr_d(_jit,r0,r1,r2)
-static void _stxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _stxr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #endif
 #define stxi_f(i0,r0,r1)		_stxi_f(_jit,i0,r0,r1)
 static void _stxi_f(jit_state_t*,jit_word_t,int32_t,int32_t);
@@ -494,7 +494,7 @@ static void _vaarg_d(jit_state_t*, int32_t, int32_t);
 #if CODE
 static void
 _f39(jit_state_t *_jit, int32_t o,
-     int32_t b, int32_t x, jit_int32_t t)
+     int32_t b, int32_t x, int32_t t)
 {
     assert(!(o & ~0x3f));
     assert(!(b & ~0x1f));
@@ -505,7 +505,7 @@ _f39(jit_state_t *_jit, int32_t o,
 
 static void
 _f40(jit_state_t *_jit, int32_t o,
-     int32_t b, int32_t x, jit_int32_t r)
+     int32_t b, int32_t x, int32_t r)
 {
     assert(!(o & ~0x3f));
     assert(!(b & ~0x1f));
@@ -516,7 +516,7 @@ _f40(jit_state_t *_jit, int32_t o,
 
 static void
 _f41(jit_state_t *_jit, int32_t o,
-     int32_t b, int32_t x, jit_int32_t t)
+     int32_t b, int32_t x, int32_t t)
 {
     assert(!(o & ~0x3f));
     assert(!(b & ~0x1f));
@@ -527,7 +527,7 @@ _f41(jit_state_t *_jit, int32_t o,
 
 static void
 _f42(jit_state_t *_jit, int32_t o,
-     int32_t b, int32_t i, jit_int32_t r)
+     int32_t b, int32_t i, int32_t r)
 {
     assert(!(o & ~0x3f));
     assert(!(b & ~0x1f));
@@ -538,8 +538,8 @@ _f42(jit_state_t *_jit, int32_t o,
 
 static void
 _f45(jit_state_t *_jit, int32_t o,
-     int32_t r, int32_t a, jit_int32_t b, jit_int32_t fmt,
-     int32_t c, int32_t d, jit_int32_t e, jit_int32_t t)
+     int32_t r, int32_t a, int32_t b, int32_t fmt,
+     int32_t c, int32_t d, int32_t e, int32_t t)
 {
     assert(!(o   & ~0x3f));
     assert(!(r   & ~0x1f));
@@ -555,8 +555,8 @@ _f45(jit_state_t *_jit, int32_t o,
 
 static void
 _f46(jit_state_t *_jit, int32_t o, int32_t r,
-     int32_t a, int32_t s, jit_int32_t df, jit_int32_t sf,
-     int32_t b, int32_t c, jit_int32_t d, jit_int32_t t)
+     int32_t a, int32_t s, int32_t df, int32_t sf,
+     int32_t b, int32_t c, int32_t d, int32_t t)
 {
     assert(!(o  & ~0x3f));
     assert(!(r  & ~0x1f));
@@ -574,8 +574,8 @@ _f46(jit_state_t *_jit, int32_t o, int32_t r,
 
 static void
 _f47_48(jit_state_t *_jit, int32_t o,
-	int32_t r2, int32_t r1, jit_int32_t y, jit_int32_t fmt,
-	int32_t a, int32_t b, jit_int32_t c, jit_int32_t t)
+	int32_t r2, int32_t r1, int32_t y, int32_t fmt,
+	int32_t a, int32_t b, int32_t c, int32_t t)
 {
     assert(!(o   & ~0x3f));
     assert(!(r2  & ~0x1f));
@@ -591,9 +591,9 @@ _f47_48(jit_state_t *_jit, int32_t o,
 
 static void
 _f49_52(jit_state_t *_jit, int32_t o,
-	int32_t r1, int32_t r2, jit_int32_t y,
-	int32_t v, int32_t f, jit_int32_t a, jit_int32_t b,
-	int32_t u, int32_t c, jit_int32_t d, jit_int32_t t)
+	int32_t r1, int32_t r2, int32_t y,
+	int32_t v, int32_t f, int32_t a, int32_t b,
+	int32_t u, int32_t c, int32_t d, int32_t t)
 {
     assert(!(o  & ~0x3f));
     assert(!(r1 & ~0x1f));
@@ -612,8 +612,8 @@ _f49_52(jit_state_t *_jit, int32_t o,
 }
 
 static void
-_f53(jit_state_t *_jit, int32_t o, int32_t r1, jit_int32_t r2,
-     int32_t ta, int32_t ra, jit_int32_t f, jit_int32_t tm)
+_f53(jit_state_t *_jit, int32_t o, int32_t r1, int32_t r2,
+     int32_t ta, int32_t ra, int32_t f, int32_t tm)
 {
     assert(!(o  & ~0x3f));
     assert(!(r1 & ~0x1f));
@@ -629,9 +629,9 @@ _f53(jit_state_t *_jit, int32_t o, int32_t r1, jit_int32_t r2,
 }
 
 static void
-_f54(jit_state_t *_jit, int32_t o, int32_t r1, jit_int32_t r2,
-     int32_t a, int32_t b, jit_int32_t f, jit_int32_t c,
-     int32_t d, int32_t e, jit_int32_t g, jit_int32_t t)
+_f54(jit_state_t *_jit, int32_t o, int32_t r1, int32_t r2,
+     int32_t a, int32_t b, int32_t f, int32_t c,
+     int32_t d, int32_t e, int32_t g, int32_t t)
 {
     assert(!(o  & ~0x3f));
     assert(!(r1 & ~0x1f));
@@ -759,7 +759,7 @@ dopi(div)
 
 static void
 _cmpr_f(jit_state_t *_jit, jit_word_t c,
-	int32_t r0, int32_t r1, jit_int32_t r2)
+	int32_t r0, int32_t r1, int32_t r2)
 {
     LDI(0, r0);
     FCMP_S_(r1, r2, c);
@@ -779,7 +779,7 @@ _cmpi_f(jit_state_t *_jit, jit_word_t c,
 
 static void
 _cmpr_d(jit_state_t *_jit, jit_word_t c,
-	int32_t r0, int32_t r1, jit_int32_t r2)
+	int32_t r0, int32_t r1, int32_t r2)
 {
     LDI(0, r0);
     FCMP_D_(r1, r2, c);
@@ -878,7 +878,7 @@ _sti_f(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 
 #if !FSTXR
 static void
-_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -888,7 +888,7 @@ _stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 }
 
 static void
-_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);

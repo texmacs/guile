@@ -529,9 +529,9 @@ static void _vfp_cmp_d(jit_state_t*,int32_t,int32_t);
 #  define vcmp01_x(c0,c1,r0)		_vcmp01_x(_jit,c0,c1,r0)
 static void _vcmp01_x(jit_state_t*,int,int,int32_t);
 #  define vcmp01_f(c0,c1,r0,r1,r2)	_vcmp01_f(_jit,c0,c1,r0,r1,r2)
-static void _vcmp01_f(jit_state_t*,int,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp01_f(jit_state_t*,int,int,int32_t,int32_t,int32_t);
 #  define vcmp01_d(c0,c1,r0,r1,r2)	_vcmp01_d(_jit,c0,c1,r0,r1,r2)
-static void _vcmp01_d(jit_state_t*,int,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp01_d(jit_state_t*,int,int,int32_t,int32_t,int32_t);
 #  define vfp_ltr_f(r0,r1,r2)		vcmp01_f(ARM_CC_PL,ARM_CC_MI,r0,r1,r2)
 #  define vfp_lti_f(r0,r1,i0)		_vfp_lti_f(_jit,r0,r1,i0)
 static void _vfp_lti_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
@@ -571,9 +571,9 @@ static void _vfp_nei_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vcmp10_x(c0,r0)		_vcmp10_x(_jit,c0,r0)
 static void _vcmp10_x(jit_state_t*,int,int32_t);
 #  define vcmp_10_f(c0,r0,r1,r2)	_vcmp_10_f(_jit,c0,r0,r1,r2)
-static void _vcmp_10_f(jit_state_t*,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp_10_f(jit_state_t*,int,int32_t,int32_t,int32_t);
 #  define vcmp_10_d(c0,r0,r1,r2)	_vcmp_10_d(_jit,c0,r0,r1,r2)
-static void _vcmp_10_d(jit_state_t*,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp_10_d(jit_state_t*,int,int32_t,int32_t,int32_t);
 #  define vfp_unltr_f(r0,r1,r2)		vcmp_10_f(ARM_CC_GE,r0,r1,r2)
 #  define vfp_unlti_f(r0,r1,i0)		_vfp_unlti_f(_jit,r0,r1,i0)
 static void _vfp_unlti_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
@@ -589,19 +589,19 @@ static void _vfp_unlei_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vfp_uneqr_x(r0)		_vfp_uneqr_x(_jit,r0)
 static void _vfp_uneqr_x(jit_state_t*,int32_t);
 #  define vfp_uneqr_f(r0,r1,r2)		_vfp_uneqr_f(_jit,r0,r1,r2)
-static void _vfp_uneqr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_uneqr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_uneqi_f(r0,r1,i0)		_vfp_uneqi_f(_jit,r0,r1,i0)
 static void _vfp_uneqi_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define vfp_uneqr_d(r0,r1,r2)		_vfp_uneqr_d(_jit,r0,r1,r2)
-static void _vfp_uneqr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_uneqr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_uneqi_d(r0,r1,i0)		_vfp_uneqi_d(_jit,r0,r1,i0)
 static void _vfp_uneqi_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vcmp_01_x(c0,r0)		_vcmp_01_x(_jit,c0,r0)
 static void _vcmp_01_x(jit_state_t*,int,int32_t);
 #  define vcmp_01_f(c0,r0,r1,r2)	_vcmp_01_f(_jit,c0,r0,r1,r2)
-static void _vcmp_01_f(jit_state_t*,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp_01_f(jit_state_t*,int,int32_t,int32_t,int32_t);
 #  define vcmp_01_d(c0,r0,r1,r2)	_vcmp_01_d(_jit,c0,r0,r1,r2)
-static void _vcmp_01_d(jit_state_t*,int,int32_t,int32_t,jit_int32_t);
+static void _vcmp_01_d(jit_state_t*,int,int32_t,int32_t,int32_t);
 #  define vfp_unger_f(r0,r1,r2)		vcmp_01_f(ARM_CC_CS,r0,r1,r2)
 #  define vfp_ungei_f(r0,r1,i0)		_vfp_ungei_f(_jit,r0,r1,i0)
 static void _vfp_ungei_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
@@ -617,27 +617,27 @@ static void _vfp_ungti_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vfp_ltgtr_x(r0)		_vfp_ltgtr_x(_jit,r0)
 static void _vfp_ltgtr_x(jit_state_t*,int32_t);
 #  define vfp_ltgtr_f(r0,r1,r2)		_vfp_ltgtr_f(_jit,r0,r1,r2)
-static void _vfp_ltgtr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ltgtr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ltgti_f(r0,r1,i0)		_vfp_ltgti_f(_jit,r0,r1,i0)
 static void _vfp_ltgti_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define vfp_ltgtr_d(r0,r1,r2)		_vfp_ltgtr_d(_jit,r0,r1,r2)
-static void _vfp_ltgtr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ltgtr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ltgti_d(r0,r1,i0)		_vfp_ltgti_d(_jit,r0,r1,i0)
 static void _vfp_ltgti_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vfp_ordr_f(r0,r1,r2)		_vfp_ordr_f(_jit,r0,r1,r2)
-static void _vfp_ordr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ordr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ordi_f(r0,r1,i0)		_vfp_ordi_f(_jit,r0,r1,i0)
 static void _vfp_ordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define vfp_ordr_d(r0,r1,r2)		_vfp_ordr_d(_jit,r0,r1,r2)
-static void _vfp_ordr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ordr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ordi_d(r0,r1,i0)		_vfp_ordi_d(_jit,r0,r1,i0)
 static void _vfp_ordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vfp_unordr_f(r0,r1,r2)	_vfp_unordr_f(_jit,r0,r1,r2)
-static void _vfp_unordr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_unordr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_unordi_f(r0,r1,i0)	_vfp_unordi_f(_jit,r0,r1,i0)
 static void _vfp_unordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define vfp_unordr_d(r0,r1,r2)	_vfp_unordr_d(_jit,r0,r1,r2)
-static void _vfp_unordr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_unordr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_unordi_d(r0,r1,i0)	_vfp_unordi_d(_jit,r0,r1,i0)
 static void _vfp_unordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define vbcmp_x(cc,i0)		_vbcmp_x(_jit,cc,i0)
@@ -783,9 +783,9 @@ static void _vfp_ldi_f(jit_state_t*,int32_t,jit_word_t);
 #  define vfp_ldi_d(r0,i0)		_vfp_ldi_d(_jit,r0,i0)
 static void _vfp_ldi_d(jit_state_t*,int32_t,jit_word_t);
 #  define vfp_ldxr_f(r0,r1,r2)		_vfp_ldxr_f(_jit,r0,r1,r2)
-static void _vfp_ldxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ldxr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ldxr_d(r0,r1,r2)		_vfp_ldxr_d(_jit,r0,r1,r2)
-static void _vfp_ldxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_ldxr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_ldxi_f(r0,r1,i0)		_vfp_ldxi_f(_jit,r0,r1,i0)
 static void _vfp_ldxi_f(jit_state_t*,int32_t,int32_t,jit_word_t);
 #  define vfp_ldxi_d(r0,r1,i0)		_vfp_ldxi_d(_jit,r0,r1,i0)
@@ -797,9 +797,9 @@ static void _vfp_sti_f(jit_state_t*,jit_word_t,int32_t);
 #  define vfp_sti_d(i0,r0)		_vfp_sti_d(_jit,i0,r0)
 static void _vfp_sti_d(jit_state_t*,jit_word_t,int32_t);
 #  define vfp_stxr_f(r0,r1,r2)		_vfp_stxr_f(_jit,r0,r1,r2)
-static void _vfp_stxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_stxr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_stxr_d(r0,r1,r2)		_vfp_stxr_d(_jit,r0,r1,r2)
-static void _vfp_stxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _vfp_stxr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define vfp_stxi_f(i0,r0,r1)		_vfp_stxi_f(_jit,i0,r0,r1)
 static void _vfp_stxi_f(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define vfp_stxi_d(i0,r0,r1)		_vfp_stxi_d(_jit,i0,r0,r1)
@@ -1571,7 +1571,7 @@ _vcmp01_x(jit_state_t *_jit, int c0, int c1, int32_t r0)
 
 static void
 _vcmp01_f(jit_state_t *_jit, int c0, int c1,
-	  int32_t r0, int32_t r1, jit_int32_t r2)
+	  int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vcmp01_x(c0, c1, r0);
@@ -1579,7 +1579,7 @@ _vcmp01_f(jit_state_t *_jit, int c0, int c1,
 
 static void
 _vcmp01_d(jit_state_t *_jit, int c0, int c1,
-	  int32_t r0, int32_t r1, jit_int32_t r2)
+	  int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vcmp01_x(c0, c1, r0);
@@ -1610,7 +1610,7 @@ _vcmp10_x(jit_state_t *_jit, int cc, int32_t r0)
 }
 static void
 _vcmp_10_f(jit_state_t *_jit, int cc,
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vcmp10_x(cc, r0);
@@ -1618,7 +1618,7 @@ _vcmp_10_f(jit_state_t *_jit, int cc,
 
 static void
 _vcmp_10_d(jit_state_t *_jit, int cc,
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vcmp10_x(cc, r0);
@@ -1668,7 +1668,7 @@ _vfp_uneqr_x(jit_state_t *_jit, int32_t r0)
 }
 
 static void
-_vfp_uneqr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_uneqr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vfp_uneqr_x(r0);
@@ -1677,7 +1677,7 @@ _vfp_uneqr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 fopi(uneq)
 
 static void
-_vfp_uneqr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_uneqr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vfp_uneqr_x(r0);
@@ -1711,7 +1711,7 @@ _vcmp_01_x(jit_state_t *_jit, int cc, int32_t r0)
 
 static void
 _vcmp_01_f(jit_state_t *_jit, int cc,
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vcmp_01_x(cc, r0);
@@ -1719,7 +1719,7 @@ _vcmp_01_f(jit_state_t *_jit, int cc,
 
 static void
 _vcmp_01_d(jit_state_t *_jit, int cc,
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vcmp_01_x(cc, r0);
@@ -1757,7 +1757,7 @@ _vfp_ltgtr_x(jit_state_t *_jit, int32_t r0)
 }
 
 static void
-_vfp_ltgtr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ltgtr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vfp_ltgtr_x(r0);
@@ -1766,7 +1766,7 @@ _vfp_ltgtr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 fopi(ltgt)
 
 static void
-_vfp_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vfp_ltgtr_x(r0);
@@ -1775,7 +1775,7 @@ _vfp_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 dopi(ltgt)
 
 static void
-_vfp_ordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vcmp10_x(ARM_CC_VS, r0);
@@ -1784,7 +1784,7 @@ _vfp_ordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 fopi(ord)
 
 static void
-_vfp_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vcmp10_x(ARM_CC_VS, r0);
@@ -1793,7 +1793,7 @@ _vfp_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 dopi(ord)
 
 static void
-_vfp_unordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_unordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_f(r1, r2);
     vcmp_01_x(ARM_CC_VS, r0);
@@ -1802,7 +1802,7 @@ _vfp_unordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 fopi(unord)
 
 static void
-_vfp_unordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_unordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     vfp_cmp_d(r1, r2);
     vcmp_01_x(ARM_CC_VS, r0);
@@ -2076,7 +2076,7 @@ _vfp_ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 }
 
 static void
-_vfp_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     if (jit_fpr_p(r0)) {
@@ -2090,7 +2090,7 @@ _vfp_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 }
 
 static void
-_vfp_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -2205,7 +2205,7 @@ _vfp_sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 }
 
 static void
-_vfp_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     if (jit_fpr_p(r2)) {
@@ -2219,7 +2219,7 @@ _vfp_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 }
 
 static void
-_vfp_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_vfp_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);

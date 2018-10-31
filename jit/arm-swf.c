@@ -56,10 +56,10 @@ static void
 _swf_dd(jit_state_t*,double(*)(double),int32_t,int32_t) maybe_unused;
 #  define swf_fff(i0,r0,r1,r2)		_swf_fff(_jit,i0,r0,r1,r2)
 static void _swf_fff(jit_state_t*,float(*)(float,float),
-		     int32_t,int32_t,jit_int32_t);
+		     int32_t,int32_t,int32_t);
 #  define swf_ddd(i0,r0,r1,r2)		_swf_ddd(_jit,i0,r0,r1,r2)
 static void _swf_ddd(jit_state_t*,double(*)(double,double),
-		     int32_t,int32_t,jit_int32_t);
+		     int32_t,int32_t,int32_t);
 #  define swf_fff_(i0,r0,r1,i1)		_swf_fff_(_jit,i0,r0,r1,i1)
 static void _swf_fff_(jit_state_t*,float(*)(float,float),
 		      int32_t,int32_t,jit_float32_t);
@@ -68,10 +68,10 @@ static void _swf_ddd_(jit_state_t*,double(*)(double,double),
 		      int32_t,int32_t,jit_float64_t);
 #  define swf_iff(i0,r0,r1,r2)		_swf_iff(_jit,i0,r0,r1,r2)
 static void _swf_iff(jit_state_t*,int(*)(float,float),
-		     int32_t,int32_t,jit_int32_t);
+		     int32_t,int32_t,int32_t);
 #  define swf_idd(i0,r0,r1,r2)		_swf_idd(_jit,i0,r0,r1,r2)
 static void _swf_idd(jit_state_t*,int(*)(double,double),
-		     int32_t,int32_t,jit_int32_t);
+		     int32_t,int32_t,int32_t);
 #  define swf_iff_(i0,r0,r1,r2)		_swf_iff_(_jit,i0,r0,r1,r2)
 static void _swf_iff_(jit_state_t*,int(*)(float,float),
 		      int32_t,int32_t,jit_float32_t);
@@ -80,10 +80,10 @@ static void _swf_idd_(jit_state_t*,int(*)(double,double),
 		      int32_t,int32_t,jit_float64_t);
 #  define swf_iunff(i0,r0,r1,r2)	_swf_iunff(_jit,i0,r0,r1,r2)
 static void _swf_iunff(jit_state_t*,int(*)(float,float),
-		       int32_t,int32_t,jit_int32_t);
+		       int32_t,int32_t,int32_t);
 #  define swf_iundd(i0,r0,r1,r2)	_swf_iundd(_jit,i0,r0,r1,r2)
 static void _swf_iundd(jit_state_t*,int(*)(double,double),
-		       int32_t,int32_t,jit_int32_t);
+		       int32_t,int32_t,int32_t);
 #  define swf_iunff_(i0,r0,r1,i1)	_swf_iunff_(_jit,i0,r0,r1,i1)
 static void _swf_iunff_(jit_state_t*,int(*)(float,float),
 			int32_t,int32_t,jit_float32_t);
@@ -187,11 +187,11 @@ static void _swf_rsbi_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define swf_gtr_d(r0,r1,r2)		swf_idd(__aeabi_dcmpgt,r0,r1,r2)
 #  define swf_gti_d(r0,r1,i0)		swf_idd_(__aeabi_dcmpgt,r0,r1,i0)
 #  define swf_ner_f(r0,r1,r2)		_swf_ner_f(_jit,r0,r1,r2)
-static void _swf_ner_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ner_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_nei_f(r0,r1,i0)		_swf_nei_f(_jit,r0,r1,i0)
 static void _swf_nei_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define swf_ner_d(r0,r1,r2)		_swf_ner_d(_jit,r0,r1,r2)
-static void _swf_ner_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ner_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_nei_d(r0,r1,i0)		_swf_nei_d(_jit,r0,r1,i0)
 static void _swf_nei_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define swf_unltr_f(r0,r1,r2)		swf_iunff(__aeabi_fcmplt,r0,r1,r2)
@@ -215,19 +215,19 @@ static void _swf_nei_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define swf_ungtr_d(r0,r1,r2)		swf_iundd(__aeabi_dcmpgt,r0,r1,r2)
 #  define swf_ungti_d(r0,r1,i0)		swf_iundd_(__aeabi_dcmpgt,r0,r1,i0)
 #  define swf_ltgtr_f(r0,r1,r2)		_swf_ltgtr_f(_jit,r0,r1,r2)
-static void _swf_ltgtr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ltgtr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ltgti_f(r0,r1,i0)		_swf_ltgti_f(_jit,r0,r1,i0)
 static void _swf_ltgti_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define swf_ltgtr_d(r0,r1,r2)		_swf_ltgtr_d(_jit,r0,r1,r2)
-static void _swf_ltgtr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ltgtr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ltgti_d(r0,r1,i0)		_swf_ltgti_d(_jit,r0,r1,i0)
 static void _swf_ltgti_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define swf_ordr_f(r0,r1,r2)		_swf_ordr_f(_jit,r0,r1,r2)
-static void _swf_ordr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ordr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ordi_f(r0,r1,i0)		_swf_ordi_f(_jit,r0,r1,i0)
 static void _swf_ordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t);
 #  define swf_ordr_d(r0,r1,r2)		_swf_ordr_d(_jit,r0,r1,r2)
-static void _swf_ordr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ordr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ordi_d(r0,r1,i0)		_swf_ordi_d(_jit,r0,r1,i0)
 static void _swf_ordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t);
 #  define swf_unordr_f(r0,r1,r2)	swf_iunff(__aeabi_fcmpun,r0,r1,r2)
@@ -299,9 +299,9 @@ static void _swf_ldi_f(jit_state_t*,int32_t,jit_word_t);
 #  define swf_ldi_d(r0,i0)		_swf_ldi_d(_jit,r0,i0)
 static void _swf_ldi_d(jit_state_t*,int32_t,jit_word_t);
 #  define swf_ldxr_f(r0,r1,r2)		_swf_ldxr_f(_jit,r0,r1,r2)
-static void _swf_ldxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ldxr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ldxr_d(r0,r1,r2)		_swf_ldxr_d(_jit,r0,r1,r2)
-static void _swf_ldxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_ldxr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_ldxi_f(r0,r1,i0)		_swf_ldxi_f(_jit,r0,r1,i0)
 static void _swf_ldxi_f(jit_state_t*,int32_t,int32_t,jit_word_t);
 #  define swf_ldxi_d(r0,r1,i0)		_swf_ldxi_d(_jit,r0,r1,i0)
@@ -315,9 +315,9 @@ static void _swf_sti_f(jit_state_t*,jit_word_t,int32_t);
 #  define swf_sti_d(r0,i0)		_swf_sti_d(_jit,r0,i0)
 static void _swf_sti_d(jit_state_t*,jit_word_t,int32_t);
 #  define swf_stxr_f(r0,r1,r2)		_swf_stxr_f(_jit,r0,r1,r2)
-static void _swf_stxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_stxr_f(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_stxr_d(r0,r1,r2)		_swf_stxr_d(_jit,r0,r1,r2)
-static void _swf_stxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
+static void _swf_stxr_d(jit_state_t*,int32_t,int32_t,int32_t);
 #  define swf_stxi_f(r0,r1,i0)		_swf_stxi_f(_jit,r0,r1,i0)
 static void _swf_stxi_f(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define swf_stxi_d(r0,r1,i0)		_swf_stxi_d(_jit,r0,r1,i0)
@@ -611,7 +611,7 @@ _swf_dd(jit_state_t *_jit, double (*i0)(double),
 
 static void
 _swf_fff(jit_state_t *_jit, float (*i0)(float, float),
-	 int32_t r0, int32_t r1, jit_int32_t r2)
+	 int32_t r0, int32_t r1, int32_t r2)
 {
     jit_get_reg_args();
     if (jit_fpr_p(r1))
@@ -632,7 +632,7 @@ _swf_fff(jit_state_t *_jit, float (*i0)(float, float),
 
 static void
 _swf_ddd(jit_state_t *_jit, double (*i0)(double, double),
-	 int32_t r0, int32_t r1, jit_int32_t r2)
+	 int32_t r0, int32_t r1, int32_t r2)
 {
     jit_get_reg_args();
     if (jit_fpr_p(r1)) {
@@ -802,7 +802,7 @@ _swf_rsbi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float64_t i0)
 
 static void
 _swf_iff(jit_state_t *_jit, int (*i0)(float, float),
-	 int32_t r0, int32_t r1, jit_int32_t r2)
+	 int32_t r0, int32_t r1, int32_t r2)
 {
     jit_get_reg_args();
     if (jit_fpr_p(r1))
@@ -820,7 +820,7 @@ _swf_iff(jit_state_t *_jit, int (*i0)(float, float),
 
 static void
 _swf_idd(jit_state_t *_jit, int (*i0)(double, double),
-	 int32_t r0, int32_t r1, jit_int32_t r2)
+	 int32_t r0, int32_t r1, int32_t r2)
 {
     jit_get_reg_args();
     if (jit_fpr_p(r1)) {
@@ -903,7 +903,7 @@ _swf_idd_(jit_state_t *_jit, int (*i0)(double, double),
 
 static void
 _swf_iunff(jit_state_t *_jit, int (*i0)(float, float),
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     jit_word_t		instr;
     jit_get_reg_args();
@@ -948,7 +948,7 @@ _swf_iunff(jit_state_t *_jit, int (*i0)(float, float),
 
 static void
 _swf_iundd(jit_state_t *_jit, int (*i0)(double, double),
-	   int32_t r0, int32_t r1, jit_int32_t r2)
+	   int32_t r0, int32_t r1, int32_t r2)
 {
     jit_word_t		instr;
     jit_get_reg_args();
@@ -2082,7 +2082,7 @@ _swf_negr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
-_swf_ner_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ner_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_iff(__aeabi_fcmpeq, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2096,7 +2096,7 @@ _swf_nei_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float32_t i0)
 }
 
 static void
-_swf_ner_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ner_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_idd(__aeabi_dcmpeq, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2110,7 +2110,7 @@ _swf_nei_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float64_t i0)
 }
 
 static void
-_swf_ltgtr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ltgtr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_iunff(__aeabi_fcmpeq, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2124,7 +2124,7 @@ _swf_ltgti_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float32_t i0)
 }
 
 static void
-_swf_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_iundd(__aeabi_dcmpeq, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2138,7 +2138,7 @@ _swf_ltgti_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float64_t i0)
 }
 
 static void
-_swf_ordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ordr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_iff(__aeabi_fcmpun, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2152,7 +2152,7 @@ _swf_ordi_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_float32_t i0)
 }
 
 static void
-_swf_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     swf_idd(__aeabi_dcmpun, r0, r1, r2);
     xori(r0, r0, 1);
@@ -2254,7 +2254,7 @@ _swf_ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 }
 
 static void
-_swf_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     if (jit_fpr_p(r0)) {
@@ -2268,7 +2268,7 @@ _swf_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 }
 
 static void
-_swf_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		rg0, rg1;
     if (jit_fpr_p(r0)) {
@@ -2484,7 +2484,7 @@ _swf_sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 }
 
 static void
-_swf_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		reg;
     if (jit_fpr_p(r2)) {
@@ -2498,7 +2498,7 @@ _swf_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 }
 
 static void
-_swf_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
+_swf_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
     int32_t		rg0, rg1;
     if (jit_fpr_p(r2)) {
