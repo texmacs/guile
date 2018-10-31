@@ -41,9 +41,12 @@
 #define jit_regload_isdead		2	/* delete and unset live bit */
 
 
-/*
- * Implementation
- */
+static void jit_get_cpu(void);
+static void jit_flush(jit_state_t *, const char *, const char *);
+static void jit_nop(jit_state_t *, unsigned);
+static void jit_patch(jit_state_t *, const uint8_t *loc, const uint8_t *addr);
+static void jit_patch_last(jit_state_t *, const uint8_t *loc, const uint8_t *addr);
+
 void
 init_jit(void)
 {
@@ -134,18 +137,20 @@ jit_align(jit_state_t *_jit, unsigned align)
 }
 
 void
-jit_patch_here(jit_state_t *_jit, jit_reloc_t *reloc)
+jit_patch_here(jit_state_t *_jit, jit_reloc_t reloc)
 {
   jit_patch_there (_jit, reloc, jit_address (_jit));
 }
 
 void
-jit_patch_there(jit_state_t* _jit, jit_reloc_t *reloc, jit_pointer_t *addr)
+jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 {
-  if (reloc == _jit->last_instruction)
-    jit_patch_last (_jit, reloc, addr);
+  const uint8_t *loc = jit_reloc_instruction (reloc);
+
+  if (loc == _jit->last_instruction_start)
+    jit_patch_last (_jit, loc, addr);
   else
-    jit_patch (_jit, reloc, addr);
+    jit_patch (_jit, loc, addr);
 }
 
 #if defined(__i386__) || defined(__x86_64__)

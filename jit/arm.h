@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -122,6 +122,6 @@ typedef struct {
 /*
  * Initialization
  */
-extern jit_cpu_t		jit_cpu;
+JIT_API jit_cpu_t		jit_cpu;
 
 #endif /* _jit_arm_h */

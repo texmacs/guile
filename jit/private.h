@@ -130,34 +130,32 @@
 						 * returned by a "user" call
 						 * to jit_get_reg() */
 
-/*
- * Types
- */
-typedef struct jit_register	jit_register_t;
-
-struct jit_state {
-    union {
-	uint8_t	 *uc;
-	uint16_t	 *us;
-	uint32_t	 *ui;
-	uint64_t	 *ul;
-	jit_word_t	  w;
-    } pc;
-    struct {
-	uint8_t	*ptr;
-	uint8_t	*end;
-	jit_word_t	 length;
-    } code;
+struct jit_state
+{
+  union {
+    uint8_t *uc;
+    uint16_t *us;
+    uint32_t *ui;
+    uint64_t *ul;
+    intptr_t w;
+    uintptr_t uw;
+  } pc;
+  uint8_t *start;
+  uint8_t *last_instruction_start;
+  uint8_t *end;
 };
 
-struct jit_register {
-    jit_reg_t		 spec;
-    char		*name;
+struct jit_register
+{
+  jit_reg_t spec;
+  char *name;
 };
 
-extern void jit_get_cpu(void);
-extern void jit_flush(void *fptr, void *tptr);
+typedef struct jit_register jit_register_t;
 
-extern jit_register_t	 _rvs[];
+static void jit_get_cpu(void);
+static void jit_flush(void *fptr, void *tptr);
+
+static jit_register_t _rvs[];
 
 #endif /* _jit_private_h */

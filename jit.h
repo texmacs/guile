@@ -47,6 +47,12 @@ typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
 typedef struct jit_reloc *jit_reloc_t;
 
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#  define JIT_API		extern __attribute__ ((__visibility__("hidden")))
+#else
+#  define JIT_API		extern
+#endif
+
 #if defined(__i386__) || defined(__x86_64__)
 #  include "jit/x86.h"
 #elif defined(__mips__)
@@ -105,39 +111,39 @@ typedef struct jit_arg
   } loc;
 } jit_arg_t;
 
-extern void init_jit(void);
+JIT_API void init_jit(void);
 
-extern jit_state_t *jit_new_state(void);
-extern void jit_destroy_state(jit_state_t*);
+JIT_API jit_state_t *jit_new_state(void);
+JIT_API void jit_destroy_state(jit_state_t*);
 
-extern void jit_begin(jit_state_t*, jit_addr_t, size_t);
-extern void jit_reset(jit_state_t*);
-extern jit_addr_t jit_end(jit_state_t*, size_t*);
+JIT_API void jit_begin(jit_state_t*, jit_addr_t, size_t);
+JIT_API void jit_reset(jit_state_t*);
+JIT_API jit_addr_t jit_end(jit_state_t*, size_t*);
 
-extern void jit_align(jit_state_t*, unsigned);
-extern void jit_allocai(jit_state_t*, size_t);
-extern void jit_allocar(jit_state_t*, jit_gpr_t, jit_gpr_t);
+JIT_API void jit_align(jit_state_t*, unsigned);
+JIT_API void jit_allocai(jit_state_t*, size_t);
+JIT_API void jit_allocar(jit_state_t*, jit_gpr_t, jit_gpr_t);
 
-extern jit_pointer_t jit_address(jit_state_t*);
-extern void jit_patch_here(jit_state_t*, jit_reloc_t);
-extern void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
+JIT_API jit_pointer_t jit_address(jit_state_t*);
+JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
+JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
-extern void jit_calli(jit_state_t *, jit_pointer_t f,
+JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,
                       size_t argc, const jit_arg_t *argv);
-extern void jit_callr(jit_state_t *, jit_gpr_t f,
+JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
                       size_t argc, const jit_arg_t *argv);
-extern void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
+JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
 
 #define JIT_PROTO_0(stem, ret) \
-  extern ret jit_##stem (jit_state_t*)
+  JIT_API ret jit_##stem (jit_state_t*)
 #define JIT_PROTO_1(stem, ret, a) \
-  extern ret jit_##stem (jit_state_t*, jit_##a##_t)
+  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t)
 #define JIT_PROTO_2(stem, ret, a, b) \
-  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t)
+  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t)
 #define JIT_PROTO_3(stem, ret, a, b, c) \
-  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t)
+  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t)
 #define JIT_PROTO_4(stem, ret, a, b, c, d) \
-  extern ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t, jit_##d##_t)
+  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t, jit_##d##_t)
 
 #define JIT_PROTO_RFF__(stem) JIT_PROTO_2(stem, jit_reloc_t, fpr, fpr)
 #define JIT_PROTO_RGG__(stem) JIT_PROTO_2(stem, jit_reloc_t, gpr, gpr)
