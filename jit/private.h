@@ -32,19 +32,10 @@
 #  define maybe_unused		__attribute__ ((unused))
 #  define unlikely(exprn)	__builtin_expect(!!(exprn), 0)
 #  define likely(exprn)		__builtin_expect(!!(exprn), 1)
-#  if (__GNUC__ >= 4)
-#    define PUBLIC		__attribute__ ((visibility("default")))
-#    define HIDDEN		__attribute__ ((visibility("hidden")))
-#  else
-#    define PUBLIC		/**/
-#    define HIDDEN		/**/
-#  endif
 #else
 #  define maybe_unused		/**/
 #  define unlikely(exprn)	exprn
 #  define likely(exprn)		exprn
-#  define PUBLIC		/**/
-#  define HIDDEN		/**/
 #endif
 
 #define rc(value)		jit_class_##value
