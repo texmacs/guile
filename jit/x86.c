@@ -17,9 +17,6 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include "jit.h"
-#include "jit/jit_private.h"
-
 #if __X32
 #  define jit_arg_reg_p(i)		0
 #  define jit_arg_f_reg_p(i)		0
@@ -102,13 +99,13 @@ typedef struct jit_va_list {
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 #define sse_from_x87_f(r0, r1)		_sse_from_x87_f(_jit, r0, r1)
-static void _sse_from_x87_f(jit_state_t*,int32_t,jit_int32_t);
+static void _sse_from_x87_f(jit_state_t*,int32_t,int32_t);
 #define sse_from_x87_d(r0, r1)		_sse_from_x87_d(_jit, r0, r1)
-static void _sse_from_x87_d(jit_state_t*,int32_t,jit_int32_t);
+static void _sse_from_x87_d(jit_state_t*,int32_t,int32_t);
 #define x87_from_sse_f(r0, r1)		_x87_from_sse_f(_jit, r0, r1)
-static void _x87_from_sse_f(jit_state_t*,int32_t,jit_int32_t);
+static void _x87_from_sse_f(jit_state_t*,int32_t,int32_t);
 #define x87_from_sse_d(r0, r1)		_x87_from_sse_d(_jit, r0, r1)
-static void _x87_from_sse_d(jit_state_t*,int32_t,jit_int32_t);
+static void _x87_from_sse_d(jit_state_t*,int32_t,int32_t);
 
 #define PROTO				1
 #  include "x86-cpu.c"
@@ -467,7 +464,7 @@ _jit_allocai(jit_state_t *_jit, int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, int32_t v)
 {
     int32_t		 reg;
     assert(_jitc->function);
@@ -2236,28 +2233,28 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 }
 
 static void
-_sse_from_x87_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_sse_from_x87_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     x87_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
     sse_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_sse_from_x87_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_sse_from_x87_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     x87_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
     sse_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_x87_from_sse_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_from_sse_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     sse_stxi_f(CVT_OFFSET, _RBP_REGNO, r1);
     x87_ldxi_f(r0, _RBP_REGNO, CVT_OFFSET);
 }
 
 static void
-_x87_from_sse_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_from_sse_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     sse_stxi_d(CVT_OFFSET, _RBP_REGNO, r1);
     x87_ldxi_d(r0, _RBP_REGNO, CVT_OFFSET);

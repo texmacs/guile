@@ -17,9 +17,6 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include "jit.h"
-#include "jit/jit_private.h"
-
 #define jit_arg_reg_p(i)		(i >= 0 && i < 4)
 
 #define PROTO				1
@@ -208,7 +205,7 @@ _jit_allocai(jit_state_t *_jit, int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, int32_t v)
 {
     int32_t		 reg;
     assert(_jitc->function);

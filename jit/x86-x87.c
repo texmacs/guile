@@ -38,7 +38,7 @@
 #  define fldcwm(md, rb, ri, ms)	x87rx(015, md, rb, ri, ms)
 #  define fstcwm(md, rb, ri, ms)	_fstcwm(_jit, md, rb, ri, ms)
 static void
-_fstcwm(jit_state_t*, int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
+_fstcwm(jit_state_t*, int32_t, int32_t, jit_int32_t, jit_int32_t);
 #  define fldsm(md, rb, ri, ms)		x87rx(010, md, rb, ri, ms)
 #  define fstsm(md, rb, ri, ms)		x87rx(012, md, rb, ri, ms)
 #  define fldlm(md, rb, ri, ms)		x87rx(050, md, rb, ri, ms)
@@ -49,8 +49,8 @@ _fstcwm(jit_state_t*, int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
 #  define fildlm(md, rb, ri, ms)	x87rx(030, md, rb,ri, ms)
 #  define fildqm(md, rb, ri, ms)	x87rx(075, md, rb,ri, ms)
 static void
-_x87rx(jit_state_t*, int32_t, jit_int32_t,
-       int32_t, jit_int32_t, jit_int32_t);
+_x87rx(jit_state_t*, int32_t, int32_t,
+       int32_t, int32_t, jit_int32_t);
 #  define x87ri(cc,r0)			_x87ri(_jit,cc,r0)
 #  define fchs_()			x87ri(014, 0)
 #  define fabs_()			x87ri(014, 1)
@@ -68,7 +68,7 @@ _x87rx(jit_state_t*, int32_t, jit_int32_t,
 #  define fstpr(r0)			x87ri(053, r0)
 #  define fucomir(r0)			x87ri(035, r0)
 #  define fucomipr(r0)			x87ri(075, r0)
-static void _x87ri(jit_state_t*, int32_t, jit_int32_t);
+static void _x87ri(jit_state_t*, int32_t, int32_t);
 #  define faddr(r0, r1)			x87rri(000, r0, r1)
 #  define fmulr(r0, r1)			x87rri(001, r0, r1)
 #  define fsubr(r0, r1)			x87rri(004, r0, r1)
@@ -76,201 +76,201 @@ static void _x87ri(jit_state_t*, int32_t, jit_int32_t);
 #  define fdivr(r0, r1)			x87rri(006, r0, r1)
 #  define fdivrr(r0, r1)		x87rri(007, r0, r1)
 #  define x87rri(cc, r0, r1)		_x87rri(_jit, cc, r0, r1)
-static void _x87rri(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87rri(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_addr_f(r0, r1, r2)	_x87_addr_d(_jit, r0, r1, r2)
 #  define x87_addi_f(r0, r1, i0)	_x87_addi_f(_jit, r0, r1, i0)
-static void _x87_addi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_addi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_addr_d(r0, r1, r2)	_x87_addr_d(_jit, r0, r1, r2)
-static void _x87_addr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_addr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_addi_d(r0, r1, i0)	_x87_addi_d(_jit, r0, r1, i0)
-static void _x87_addi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_addi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_subr_f(r0, r1, r2)	_x87_subr_d(_jit, r0, r1, r2)
 #  define x87_subi_f(r0, r1, i0)	_x87_subi_f(_jit, r0, r1, i0)
-static void _x87_subi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_subi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_subr_d(r0, r1, r2)	_x87_subr_d(_jit, r0, r1, r2)
-static void _x87_subr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_subr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_subi_d(r0, r1, i0)	_x87_subi_d(_jit, r0, r1, i0)
-static void _x87_subi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_subi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_rsbr_f(r0, r1, r2)	x87_subr_f(r0, r2, r1)
 #  define x87_rsbi_f(r0, r1, i0)	_x87_rsbi_f(_jit, r0, r1, i0)
-static void _x87_rsbi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_rsbi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_rsbr_d(r0, r1, r2)	x87_subr_d(r0, r2, r1)
 #  define x87_rsbi_d(r0, r1, i0)	_x87_rsbi_d(_jit, r0, r1, i0)
-static void _x87_rsbi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_rsbi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_mulr_f(r0, r1, r2)	_x87_mulr_d(_jit, r0, r1, r2)
 #  define x87_muli_f(r0, r1, i0)	_x87_muli_f(_jit, r0, r1, i0)
-static void _x87_muli_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_muli_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_mulr_d(r0, r1, r2)	_x87_mulr_d(_jit, r0, r1, r2)
-static void _x87_mulr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_mulr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_muli_d(r0, r1, i0)	_x87_muli_d(_jit, r0, r1, i0)
-static void _x87_muli_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_muli_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_divr_f(r0, r1, r2)	_x87_divr_d(_jit, r0, r1, r2)
 #  define x87_divi_f(r0, r1, i0)	_x87_divi_f(_jit, r0, r1, i0)
-static void _x87_divi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_divi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_divr_d(r0, r1, r2)	_x87_divr_d(_jit, r0, r1, r2)
-static void _x87_divr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_divr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_divi_d(r0, r1, i0)	_x87_divi_d(_jit, r0, r1, i0)
-static void _x87_divi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_divi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_absr_f(r0, r1)		_x87_absr_d(_jit, r0, r1)
 #  define x87_absr_d(r0, r1)		_x87_absr_d(_jit, r0, r1)
-static void _x87_absr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_absr_d(jit_state_t*, int32_t, int32_t);
 #  define x87_negr_f(r0, r1)		_x87_negr_d(_jit, r0, r1)
 #  define x87_negr_d(r0, r1)		_x87_negr_d(_jit, r0, r1)
-static void _x87_negr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_negr_d(jit_state_t*, int32_t, int32_t);
 #  define x87_sqrtr_f(r0, r1)		_x87_sqrtr_d(_jit, r0, r1)
 #  define x87_sqrtr_d(r0, r1)		_x87_sqrtr_d(_jit, r0, r1)
-static void _x87_sqrtr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_sqrtr_d(jit_state_t*, int32_t, int32_t);
 #  define x87_truncr_f_i(r0, r1)	_x87_truncr_d_i(_jit, r0, r1)
 #  define x87_truncr_d_i(r0, r1)	_x87_truncr_d_i(_jit, r0, r1)
-static void _x87_truncr_d_i(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_truncr_d_i(jit_state_t*, int32_t, int32_t);
 #  if __X64
 #    define x87_truncr_f_l(r0, r1)	_x87_truncr_d_l(_jit, r0, r1)
 #    define x87_truncr_d_l(r0, r1)	_x87_truncr_d_l(_jit, r0, r1)
-static void _x87_truncr_d_l(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_truncr_d_l(jit_state_t*, int32_t, int32_t);
 #  endif
 #  define x87_extr_f(r0, r1)		_x87_extr_d(_jit, r0, r1)
 #  define x87_extr_d(r0, r1)		_x87_extr_d(_jit, r0, r1)
 #  define x87_extr_f_d(r0, r1)		x87_movr_d(r0, r1)
 #  define x87_extr_d_f(r0, r1)		x87_movr_d(r0, r1)
-static void _x87_extr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_extr_d(jit_state_t*, int32_t, int32_t);
 #  define x87cmp(code, r0, r1, r2)	_x87cmp(_jit, code, r0, r1, r2)
 static void
-_x87cmp(jit_state_t*, int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
+_x87cmp(jit_state_t*, int32_t, int32_t, jit_int32_t, jit_int32_t);
 #  define x87cmp2(code, r0, r1, r2)	_x87cmp2(_jit, code, r0, r1, r2)
 static void
-_x87cmp2(jit_state_t*, int32_t, jit_int32_t, jit_int32_t, jit_int32_t);
+_x87cmp2(jit_state_t*, int32_t, int32_t, jit_int32_t, jit_int32_t);
 #  define x87jcc(code, i0, r0, r1)	_x87jcc(_jit, code, i0, r0, r1)
 static jit_word_t
-_x87jcc(jit_state_t*, int32_t, jit_word_t, jit_int32_t, jit_int32_t);
+_x87jcc(jit_state_t*, int32_t, jit_word_t, int32_t, jit_int32_t);
 #  define x87jcc2(code, i0, r0, r1)	_x87jcc2(_jit, code, i0, r0, r1)
 static jit_word_t
-_x87jcc2(jit_state_t*, int32_t, jit_word_t, jit_int32_t, jit_int32_t);
+_x87jcc2(jit_state_t*, int32_t, jit_word_t, int32_t, jit_int32_t);
 #define x87_movi_f(r0,i0)		_x87_movi_f(_jit,r0,i0)
 static void _x87_movi_f(jit_state_t*, int32_t, jit_float32_t*);
 #  define x87_ldr_f(r0, r1)		_x87_ldr_f(_jit, r0, r1)
-static void _x87_ldr_f(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_ldr_f(jit_state_t*, int32_t, int32_t);
 #  define x87_ldi_f(r0, i0)		_x87_ldi_f(_jit, r0, i0)
 static void _x87_ldi_f(jit_state_t*, int32_t, jit_word_t);
 #  define x87_ldxr_f(r0, r1, r2)	_x87_ldxr_f(_jit, r0, r1, r2)
-static void _x87_ldxr_f(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_ldxr_f(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_ldxi_f(r0, r1, i0)	_x87_ldxi_f(_jit, r0, r1, i0)
-static void _x87_ldxi_f(jit_state_t*, int32_t, jit_int32_t, jit_word_t);
+static void _x87_ldxi_f(jit_state_t*, int32_t, int32_t, jit_word_t);
 #  define x87_str_f(r0, r1)		_x87_str_f(_jit, r0, r1)
-static void _x87_str_f(jit_state_t*,int32_t,jit_int32_t);
+static void _x87_str_f(jit_state_t*,int32_t,int32_t);
 #  define x87_sti_f(i0, r0)		_x87_sti_f(_jit, i0, r0)
 static void _x87_sti_f(jit_state_t*,jit_word_t, int32_t);
 #  define x87_stxr_f(r0, r1, r2)	_x87_stxr_f(_jit, r0, r1, r2)
-static void _x87_stxr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _x87_stxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define x87_stxi_f(i0, r0, r1)	_x87_stxi_f(_jit, i0, r0, r1)
-static void _x87_stxi_f(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static void _x87_stxi_f(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define x87_ltr_f(r0, r1, r2)		x87cmp(X86_CC_A, r0, r2, r1)
 #  define x87_lti_f(r0, r1, i0)		_x87_lti_f(_jit, r0, r1, i0)
-static void _x87_lti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_lti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ler_f(r0, r1, r2)		x87cmp(X86_CC_AE, r0, r2, r1)
 #  define x87_lei_f(r0, r1, i0)		_x87_lei_f(_jit, r0, r1, i0)
-static void _x87_lei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_lei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_eqr_f(r0, r1, r2)		x87_eqr_d(r0, r2, r1)
 #  define x87_eqi_f(r0, r1, i0)		_x87_eqi_f(_jit, r0, r1, i0)
-static void _x87_eqi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_eqi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ger_f(r0, r1, r2)		x87cmp(X86_CC_AE, r0, r1, r2)
 #  define x87_gei_f(r0, r1, i0)		_x87_gei_f(_jit, r0, r1, i0)
-static void _x87_gei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_gei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_gtr_f(r0, r1, r2)		x87cmp(X86_CC_A, r0, r1, r2)
 #  define x87_gti_f(r0, r1, i0)		_x87_gti_f(_jit, r0, r1, i0)
-static void _x87_gti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_gti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ner_f(r0, r1, r2)		x87_ner_d(r0, r2, r1)
 #  define x87_nei_f(r0, r1, i0)		_x87_nei_f(_jit, r0, r1, i0)
-static void _x87_nei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_nei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_unltr_f(r0, r1, r2)	x87cmp(X86_CC_NAE, r0, r1, r2)
 #  define x87_unlti_f(r0, r1, i0)	_x87_unlti_f(_jit, r0, r1, i0)
-static void _x87_unlti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_unlti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_unler_f(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r1, r2)
 #  define x87_unlei_f(r0, r1, i0)	_x87_unlei_f(_jit, r0, r1, i0)
-static void _x87_unlei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_unlei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_uneqr_f(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r2)
 #  define x87_uneqi_f(r0, r1, i0)	_x87_uneqi_f(_jit, r0, r1, i0)
-static void _x87_uneqi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_uneqi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_unger_f(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r2, r1)
 #  define x87_ungei_f(r0, r1, i0)	_x87_ungei_f(_jit, r0, r1, i0)
-static void _x87_ungei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_ungei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ungtr_f(r0, r1, r2)	x87cmp(X86_CC_NAE, r0, r2, r1)
 #  define x87_ungti_f(r0, r1, i0)	_x87_ungti_f(_jit, r0, r1, i0)
-static void _x87_ungti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_ungti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ltgtr_f(r0, r1, r2)	x87_ltgtr_d(r0, r1, r2)
 #  define x87_ltgti_f(r0, r1, i0)	_x87_ltgti_f(_jit, r0, r1, i0)
-static void _x87_ltgti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_ltgti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ordr_f(r0, r1, r2)	x87cmp2(X86_CC_NP, r0, r2, r1)
 #  define x87_ordi_f(r0, r1, i0)	_x87_ordi_f(_jit, r0, r1, i0)
-static void _x87_ordi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_ordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_unordr_f(r0, r1, r2)	x87cmp2(X86_CC_P, r0, r2, r1)
 #  define x87_unordi_f(r0, r1, i0)	_x87_unordi_f(_jit, r0, r1, i0)
-static void _x87_unordi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _x87_unordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define x87_ltr_d(r0, r1, r2)		x87cmp(X86_CC_A, r0, r2, r1)
 #  define x87_lti_d(r0, r1, i0)		_x87_lti_d(_jit, r0, r1, i0)
-static void _x87_lti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_lti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ler_d(r0, r1, r2)		x87cmp(X86_CC_AE, r0, r2, r1)
 #  define x87_lei_d(r0, r1, i0)		_x87_lei_d(_jit, r0, r1, i0)
-static void _x87_lei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_lei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_eqr_d(r0, r1, r2)		_x87_eqr_d(_jit, r0, r2, r1)
-static void _x87_eqr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_eqr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_eqi_d(r0, r1, i0)		_x87_eqi_d(_jit, r0, r1, i0)
-static void _x87_eqi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_eqi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ger_d(r0, r1, r2)		x87cmp(X86_CC_AE, r0, r1, r2)
 #  define x87_gei_d(r0, r1, i0)		_x87_gei_d(_jit, r0, r1, i0)
-static void _x87_gei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_gei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_gtr_d(r0, r1, r2)		x87cmp(X86_CC_A, r0, r1, r2)
 #  define x87_gti_d(r0, r1, i0)		_x87_gti_d(_jit, r0, r1, i0)
-static void _x87_gti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_gti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ner_d(r0, r1, r2)		_x87_ner_d(_jit, r0, r2, r1)
-static void _x87_ner_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_ner_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_nei_d(r0, r1, i0)		_x87_nei_d(_jit, r0, r1, i0)
-static void _x87_nei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_nei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_unltr_d(r0, r1, r2)	x87cmp(X86_CC_NAE, r0, r1, r2)
 #  define x87_unlti_d(r0, r1, i0)	_x87_unlti_d(_jit, r0, r1, i0)
-static void _x87_unlti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_unlti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_unler_d(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r1, r2)
 #  define x87_unlei_d(r0, r1, i0)	_x87_unlei_d(_jit, r0, r1, i0)
-static void _x87_unlei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_unlei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_uneqr_d(r0, r1, r2)	x87cmp2(X86_CC_E, r0, r1, r2)
 #  define x87_uneqi_d(r0, r1, i0)	_x87_uneqi_d(_jit, r0, r1, i0)
-static void _x87_uneqi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_uneqi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_unger_d(r0, r1, r2)	x87cmp(X86_CC_NA, r0, r2, r1)
 #  define x87_ungei_d(r0, r1, i0)	_x87_ungei_d(_jit, r0, r1, i0)
-static void _x87_ungei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_ungei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ungtr_d(r0, r1, r2)	x87cmp(X86_CC_NAE, r0, r2, r1)
 #  define x87_ungti_d(r0, r1, i0)	_x87_ungti_d(_jit, r0, r1, i0)
-static void _x87_ungti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_ungti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ltgtr_d(r0, r1, r2)	_x87_ltgtr_d(_jit, r0, r1, r2)
-static void _x87_ltgtr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_ltgtr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_ltgti_d(r0, r1, i0)	_x87_ltgti_d(_jit, r0, r1, i0)
-static void _x87_ltgti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_ltgti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_ordr_d(r0, r1, r2)	x87cmp2(X86_CC_NP, r0, r2, r1)
 #  define x87_ordi_d(r0, r1, i0)	_x87_ordi_d(_jit, r0, r1, i0)
-static void _x87_ordi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_ordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define x87_unordr_d(r0, r1, r2)	x87cmp2(X86_CC_P, r0, r2, r1)
 #  define x87_unordi_d(r0, r1, i0)	_x87_unordi_d(_jit, r0, r1, i0)
-static void _x87_unordi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _x87_unordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #define x87_movr_f(r0,r1)		_x87_movr_d(_jit,r0,r1)
 #define x87_movr_d(r0,r1)		_x87_movr_d(_jit,r0,r1)
-static void _x87_movr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_movr_d(jit_state_t*, int32_t, int32_t);
 #define x87_movi_d(r0,i0)		_x87_movi_d(_jit,r0,i0)
 static void _x87_movi_d(jit_state_t*, int32_t, jit_float64_t*);
 #  define x87_ldr_d(r0, r1)		_x87_ldr_d(_jit, r0, r1)
-static void _x87_ldr_d(jit_state_t*, int32_t, jit_int32_t);
+static void _x87_ldr_d(jit_state_t*, int32_t, int32_t);
 #  define x87_ldi_d(r0, i0)		_x87_ldi_d(_jit, r0, i0)
 static void _x87_ldi_d(jit_state_t*, int32_t, jit_word_t);
 #  define x87_ldxr_d(r0, r1, r2)	_x87_ldxr_d(_jit, r0, r1, r2)
-static void _x87_ldxr_d(jit_state_t*, int32_t, jit_int32_t, jit_int32_t);
+static void _x87_ldxr_d(jit_state_t*, int32_t, int32_t, jit_int32_t);
 #  define x87_ldxi_d(r0, r1, i0)	_x87_ldxi_d(_jit, r0, r1, i0)
-static void _x87_ldxi_d(jit_state_t*, int32_t, jit_int32_t, jit_word_t);
+static void _x87_ldxi_d(jit_state_t*, int32_t, int32_t, jit_word_t);
 #  define x87_str_d(r0, r1)		_x87_str_d(_jit, r0, r1)
-static void _x87_str_d(jit_state_t*,int32_t,jit_int32_t);
+static void _x87_str_d(jit_state_t*,int32_t,int32_t);
 #  define x87_sti_d(i0, r0)		_x87_sti_d(_jit, i0, r0)
 static void _x87_sti_d(jit_state_t*,jit_word_t,int32_t);
 #  define x87_stxr_d(r0, r1, r2)	_x87_stxr_d(_jit, r0, r1, r2)
-static void _x87_stxr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _x87_stxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define x87_stxi_d(i0, r0, r1)	_x87_stxi_d(_jit, i0, r0, r1)
-static void _x87_stxi_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static void _x87_stxi_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define x87_bltr_f(i0, r0, r1)	x87jcc(X86_CC_A, i0, r1, r0)
 #  define x87_blti_f(i0, r0, i1)	_x87_blti_f(_jit, i0, r0, i1)
 static jit_word_t
@@ -337,7 +337,7 @@ static jit_word_t
 _x87_blei_d(jit_state_t*, jit_word_t, int32_t, jit_float64_t*);
 #  define x87_beqr_d(i0, r0, r1)	_x87_beqr_d(_jit, i0, r0, r1)
 static jit_word_t
-_x87_beqr_d(jit_state_t*, jit_word_t, int32_t, jit_int32_t);
+_x87_beqr_d(jit_state_t*, jit_word_t, int32_t, int32_t);
 #  define x87_beqi_d(i0, r0, i1)	_x87_beqi_d(_jit, i0, r0, i1)
 static jit_word_t
 _x87_beqi_d(jit_state_t*, jit_word_t, int32_t, jit_float64_t*);
@@ -351,7 +351,7 @@ static jit_word_t
 _x87_bgti_d(jit_state_t*, jit_word_t, int32_t, jit_float64_t*);
 #  define x87_bner_d(i0, r0, r1)	_x87_bner_d(_jit, i0, r0, r1)
 static jit_word_t
-_x87_bner_d(jit_state_t*, jit_word_t, int32_t, jit_int32_t);
+_x87_bner_d(jit_state_t*, jit_word_t, int32_t, int32_t);
 #  define x87_bnei_d(i0, r0, i1)	_x87_bnei_d(_jit, i0, r0, i1)
 static jit_word_t
 _x87_bnei_d(jit_state_t*, jit_word_t, int32_t, jit_float64_t*);
@@ -393,7 +393,7 @@ _x87_bunordi_d(jit_state_t*, jit_word_t, int32_t, jit_float64_t*);
 #  define fpr_opi(name, type, size)					\
 static void								\
 _x87_##name##i_##type(jit_state_t *_jit,				\
-		      int32_t r0, jit_int32_t r1,			\
+		      int32_t r0, int32_t r1,			\
 		      jit_float##size##_t *i0)				\
 {									\
     int32_t		reg = jit_get_reg(jit_class_fpr);		\
@@ -424,7 +424,7 @@ _x87_b##name##i_##type(jit_state_t *_jit,				\
 
 static void
 _fstcwm(jit_state_t *_jit, int32_t md,
-	int32_t rb,	jit_int32_t ri, jit_int32_t ms)
+	int32_t rb,	int32_t ri, jit_int32_t ms)
 {
     ic(0x9b);
     rex(0, 1, rb, ri, _NOREG);
@@ -432,8 +432,8 @@ _fstcwm(jit_state_t *_jit, int32_t md,
 }
 
 static void
-_x87rx(jit_state_t *_jit, int32_t code, jit_int32_t md,
-       int32_t rb, jit_int32_t ri, jit_int32_t ms)
+_x87rx(jit_state_t *_jit, int32_t code, int32_t md,
+       int32_t rb, int32_t ri, jit_int32_t ms)
 {
     rex(0, 1, rb, ri, _NOREG);
     ic(0xd8 | (code >> 3));
@@ -441,14 +441,14 @@ _x87rx(jit_state_t *_jit, int32_t code, jit_int32_t md,
 }
 
 static void
-_x87ri(jit_state_t *_jit, int32_t code, jit_int32_t r0)
+_x87ri(jit_state_t *_jit, int32_t code, int32_t r0)
 {
     ic(0xd8 | (code >> 3));
     mrm(0x03, (code & 7), r0);
 }
 
 static void
-_x87rri(jit_state_t *_jit, int32_t code, jit_int32_t r0, jit_int32_t r1)
+_x87rri(jit_state_t *_jit, int32_t code, int32_t r0, jit_int32_t r1)
 {
     if (r1 == _ST0_REGNO)
 	x87ri(code | 040, r0);
@@ -465,7 +465,7 @@ fopi(mul)
 fopi(div)
 
 static void
-_x87_addr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_addr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     if (r0 == r1) {
 	if (r2 == _ST0_REGNO)
@@ -499,7 +499,7 @@ _x87_addr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(add)
 
 static void
-_x87_subr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_subr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     if (r0 == r1) {
 	if (r2 == _ST0_REGNO)
@@ -535,7 +535,7 @@ dopi(sub)
 dopi(rsb)
 
 static void
-_x87_mulr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_mulr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     if (r0 == r1) {
 	if (r2 == _ST0_REGNO)
@@ -569,7 +569,7 @@ _x87_mulr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(mul)
 
 static void
-_x87_divr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_divr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     if (r0 == r1) {
 	if (r2 == _ST0_REGNO)
@@ -603,7 +603,7 @@ _x87_divr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(div)
 
 static void
-_x87_absr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_absr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r0 == r1) {
 	if (r1 == _ST0_REGNO)
@@ -622,7 +622,7 @@ _x87_absr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_x87_negr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_negr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r0 == r1) {
 	if (r1 == _ST0_REGNO)
@@ -641,7 +641,7 @@ _x87_negr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_x87_sqrtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_sqrtr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r0 == r1) {
 	if (r1 == _ST0_REGNO)
@@ -660,7 +660,7 @@ _x87_sqrtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_x87_truncr_d_i(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_truncr_d_i(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
 #if defined(sun)
     /* for the sake of passing test cases in x87 mode, otherwise only sse
@@ -690,7 +690,7 @@ _x87_truncr_d_i(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 
 #  if __X64
 static void
-_x87_truncr_d_l(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_truncr_d_l(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     fldr(r1);
     fisttpqm(CVT_OFFSET, _RBP_REGNO, _NOREG, _SCL1);
@@ -699,7 +699,7 @@ _x87_truncr_d_l(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 #  endif
 
 static void
-_x87_extr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_extr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     stxi(CVT_OFFSET, _RBP_REGNO, r1);
 #  if __X32
@@ -712,7 +712,7 @@ _x87_extr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 
 static void
 _x87cmp(jit_state_t *_jit, int32_t code,
-	int32_t r0, jit_int32_t r1, jit_int32_t r2)
+	int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_bool_t		rc;
     int32_t		reg;
@@ -736,7 +736,7 @@ _x87cmp(jit_state_t *_jit, int32_t code,
 
 static void
 _x87cmp2(jit_state_t *_jit, int32_t code,
-	 int32_t r0, jit_int32_t r1, jit_int32_t r2)
+	 int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_bool_t			rc;
     int32_t			reg;
@@ -763,7 +763,7 @@ _x87cmp2(jit_state_t *_jit, int32_t code,
 
 static jit_word_t
 _x87jcc(jit_state_t *_jit, int32_t code,
-	jit_word_t i0, int32_t r0, jit_int32_t r1)
+	jit_word_t i0, int32_t r0, int32_t r1)
 {
     if (r0 == _ST0_REGNO)
 	fucomir(r1);
@@ -777,7 +777,7 @@ _x87jcc(jit_state_t *_jit, int32_t code,
 
 static jit_word_t
 _x87jcc2(jit_state_t *_jit, int32_t code,
-	 jit_word_t i0, int32_t r0, jit_int32_t r1)
+	 jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t			f0, f1;
     if (r1 == _ST0_REGNO)	f0 = r1, f1 = r0;
@@ -861,7 +861,7 @@ _x87_movi_f(jit_state_t *_jit, int32_t r0, jit_float32_t *i0)
 }
 
 static void
-_x87_ldr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_ldr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     fldsm(0, r1, _NOREG, _SCL1);
     fstpr(r0 + 1);
@@ -884,7 +884,7 @@ _x87_ldi_f(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 }
 
 static void
-_x87_ldxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
 #if __X64_32
     int32_t		reg;
@@ -899,7 +899,7 @@ _x87_ldxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_x87_ldxi_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_x87_ldxi_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
     int32_t		reg;
     if (can_sign_extend_int_p(i0)) {
@@ -920,7 +920,7 @@ _x87_ldxi_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
-_x87_str_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_str_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r1 == _ST0_REGNO)
 	fstsm(0, r0, _NOREG, _SCL1);
@@ -951,7 +951,7 @@ _x87_sti_f(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 }
 
 static void
-_x87_stxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
 #if __X64_32
     int32_t		reg;
@@ -971,7 +971,7 @@ _x87_stxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_x87_stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_x87_stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
@@ -995,7 +995,7 @@ _x87_stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_x87_movr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_movr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r0 != r1) {
 	if (r1 == _ST0)
@@ -1062,7 +1062,7 @@ dopi(lt)
 dopi(le)
 
 static void
-_x87_eqr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_eqr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_bool_t			rc;
     jit_word_t			jp_code;
@@ -1095,7 +1095,7 @@ dopi(ge)
 dopi(gt)
 
 static void
-_x87_ner_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_ner_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_bool_t			rc;
     jit_word_t			jp_code;
@@ -1131,7 +1131,7 @@ dopi(unge)
 dopi(ungt)
 
 static void
-_x87_ltgtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     if (r1 == r2)
 	movi(r0, 1);
@@ -1144,7 +1144,7 @@ dopi(ord)
 dopi(unord)
 
 static void
-_x87_ldr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_ldr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     fldlm(0, r1, _NOREG, _SCL1);
     fstpr(r0 + 1);
@@ -1167,7 +1167,7 @@ _x87_ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 }
 
 static void
-_x87_ldxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
 #if __X64_32
     int32_t		reg;
@@ -1182,7 +1182,7 @@ _x87_ldxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_x87_ldxi_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_x87_ldxi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
     int32_t		reg;
     if (can_sign_extend_int_p(i0)) {
@@ -1203,7 +1203,7 @@ _x87_ldxi_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
-_x87_str_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_x87_str_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r1 == _ST0_REGNO)
 	fstlm(0, r0, _NOREG, _SCL1);
@@ -1234,7 +1234,7 @@ _x87_sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 }
 
 static void
-_x87_stxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_x87_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
 #if __X64_32
     int32_t		reg;
@@ -1254,7 +1254,7 @@ _x87_stxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_x87_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_x87_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     if (!can_sign_extend_int_p(i0)) {
@@ -1281,7 +1281,7 @@ dbopi(lt)
 dbopi(le)
 
 static jit_word_t
-_x87_beqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_x87_beqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t			f0, f1;
     jit_word_t			jp_code;
@@ -1304,7 +1304,7 @@ dbopi(ge)
 dbopi(gt)
 
 static jit_word_t
-_x87_bner_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_x87_bner_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t			f0, f1;
     jit_word_t			jp_code;

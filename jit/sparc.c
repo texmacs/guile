@@ -232,7 +232,7 @@ _jit_allocai(jit_state_t *_jit, int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, int32_t v)
 {
     int32_t		 reg;
     assert(_jitc->function);

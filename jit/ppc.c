@@ -204,7 +204,7 @@ _jit_allocai(jit_state_t *_jit, int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, int32_t v)
 {
     int32_t		 r0, r1;
     assert(_jitc->function);
@@ -1691,7 +1691,7 @@ jit_flush(void *fptr, void *tptr)
 }
 
 void
-_emit_ldxi(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_emit_ldxi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
 #if __WORDSIZE == 32
     ldxi_i(rn(r0), rn(r1), i0);
@@ -1701,7 +1701,7 @@ _emit_ldxi(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 void
-_emit_stxi(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_emit_stxi(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
 #if __WORDSIZE == 32
     stxi_i(i0, rn(r0), rn(r1));
@@ -1711,13 +1711,13 @@ _emit_stxi(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
 }
 
 void
-_emit_ldxi_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_emit_ldxi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
     ldxi_d(rn(r0), rn(r1), i0);
 }
 
 void
-_emit_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_emit_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     stxi_d(i0, rn(r0), rn(r1));
 }

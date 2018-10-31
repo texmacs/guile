@@ -17,9 +17,6 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include "jit.h"
-#include "jit/jit_private.h"
-
 #if __WORDSIZE == 32
 #  define NUM_FLOAT_REG_ARGS		2
 #else
@@ -77,7 +74,7 @@ static int32_t _jit_get_reg_pair(jit_state_t*);
 #define jit_unget_reg_pair(regno)	_jit_unget_reg_pair(_jit,regno)
 static void _jit_unget_reg_pair(jit_state_t*,int32_t);
 #define jit_get_reg_but_zero(flags)	_jit_get_reg_but_zero(_jit,flags)
-static int32_t _jit_get_reg_but_zero(jit_state_t*,jit_int32_t);
+static int32_t _jit_get_reg_but_zero(jit_state_t*,int32_t);
 #define jit_unget_reg_but_zero(reg)	jit_unget_reg(reg)
 #define patch(instr, node)		_patch(_jit, instr, node)
 static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
@@ -207,7 +204,7 @@ _jit_allocai(jit_state_t *_jit, int32_t length)
 }
 
 void
-_jit_allocar(jit_state_t *_jit, int32_t u, jit_int32_t v)
+_jit_allocar(jit_state_t *_jit, int32_t u, int32_t v)
 {
     int32_t		 reg;
     assert(_jitc->function);

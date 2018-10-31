@@ -300,7 +300,7 @@ static void _Opr(jit_state_t*,int,int,int,unsigned int,int);
 #  define FNEGT(ra,rc)			CPYSN(ra,ra,rc)
 #  define movr_f(r0,r1)			movr_d(r0,r1)
 #  define movr_d(r0,r1)			_movr_d(_jit,r0,r1)
-static void _movr_d(jit_state_t*,int32_t,jit_int32_t);
+static void _movr_d(jit_state_t*,int32_t,int32_t);
 #  define movi_f(r0,i0)			_movi_f(_jit,r0,i0)
 static void _movi_f(jit_state_t*,int32_t,jit_float32_t*);
 #  define movi_d(r0,i0)			_movi_d(_jit,r0,i0)
@@ -310,250 +310,250 @@ static void _movi_d(jit_state_t*,int32_t,jit_float64_t*);
 #  define negr_f(r0,r1)			FNEGS(r1,r0)
 #  define negr_d(r0,r1)			FNEGT(r1,r0)
 #  define sqrtr_f(r0,r1)		_sqrtr_f(_jit,r0,r1)
-static void _sqrtr_f(jit_state_t*,int32_t,jit_int32_t);
+static void _sqrtr_f(jit_state_t*,int32_t,int32_t);
 #  define sqrtr_d(r0,r1)		_sqrtr_d(_jit,r0,r1)
-static void _sqrtr_d(jit_state_t*,int32_t,jit_int32_t);
+static void _sqrtr_d(jit_state_t*,int32_t,int32_t);
 #  define extr_f_d(r0,r1)		movr_d(r0,r1)
 #  define extr_d_f(r0,r1)		movr_f(r0,r1)
 #  define truncr_f_i(r0,r1)		truncr_d_i(r0,r1)
 #  define truncr_f_l(r0,r1)		truncr_d_l(r0,r1)
 #  define truncr_d_i(r0,r1)		truncr_d_l(r0,r1)
 #  define truncr_d_l(r0,r1)		_truncr_d_l(_jit,r0,r1)
-static void _truncr_d_l(jit_state_t*,int32_t,jit_int32_t);
+static void _truncr_d_l(jit_state_t*,int32_t,int32_t);
 #  define extr_f(r0,r1)			_extr_f(_jit,r0,r1)
-static void _extr_f(jit_state_t*,int32_t,jit_int32_t);
+static void _extr_f(jit_state_t*,int32_t,int32_t);
 #  define extr_d(r0,r1)			_extr_d(_jit,r0,r1)
-static void _extr_d(jit_state_t*,int32_t,jit_int32_t);
+static void _extr_d(jit_state_t*,int32_t,int32_t);
 #  define addr_f(r0,r1,r2)		_addr_f(_jit,r0,r1,r2)
-static void _addr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _addr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define addi_f(r0,r1,i0)		_addi_f(_jit,r0,r1,i0)
-static void _addi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _addi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define addr_d(r0,r1,r2)		_addr_d(_jit,r0,r1,r2)
-static void _addr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _addr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define addi_d(r0,r1,i0)		_addi_d(_jit,r0,r1,i0)
-static void _addi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _addi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define subr_f(r0,r1,r2)		_subr_f(_jit,r0,r1,r2)
-static void _subr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _subr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define subi_f(r0,r1,i0)		_subi_f(_jit,r0,r1,i0)
-static void _subi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _subi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define subr_d(r0,r1,r2)		_subr_d(_jit,r0,r1,r2)
-static void _subr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _subr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define subi_d(r0,r1,i0)		_subi_d(_jit,r0,r1,i0)
-static void _subi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _subi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define rsbr_f(r0, r1, r2)		subr_f(r0, r2, r1)
 #  define rsbi_f(r0, r1, i0)		_rsbi_f(_jit, r0, r1, i0)
-static void _rsbi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _rsbi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define rsbr_d(r0, r1, r2)		subr_d(r0, r2, r1)
 #  define rsbi_d(r0, r1, i0)		_rsbi_d(_jit, r0, r1, i0)
-static void _rsbi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _rsbi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define mulr_f(r0,r1,r2)		_mulr_f(_jit,r0,r1,r2)
-static void _mulr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _mulr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define muli_f(r0,r1,i0)		_muli_f(_jit,r0,r1,i0)
-static void _muli_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _muli_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define mulr_d(r0,r1,r2)		_mulr_d(_jit,r0,r1,r2)
-static void _mulr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _mulr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define muli_d(r0,r1,i0)		_muli_d(_jit,r0,r1,i0)
-static void _muli_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _muli_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define divr_f(r0,r1,r2)		_divr_f(_jit,r0,r1,r2)
-static void _divr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _divr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define divi_f(r0,r1,i0)		_divi_f(_jit,r0,r1,i0)
-static void _divi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _divi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define divr_d(r0,r1,r2)		_divr_d(_jit,r0,r1,r2)
-static void _divr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _divr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define divi_d(r0,r1,i0)		_divi_d(_jit,r0,r1,i0)
-static void _divi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _divi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ltr_f(r0,r1,r2)		ltr_d(r0,r1,r2)
 #  define ltr_d(r0,r1,r2)		_ltr_d(_jit,r0,r1,r2)
-static void _ltr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ltr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define lti_f(r0,r1,i0)		_lti_f(_jit,r0,r1,i0)
-static void _lti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _lti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define lti_d(r0,r1,i0)		_lti_d(_jit,r0,r1,i0)
-static void _lti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _lti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ler_f(r0,r1,r2)		ler_d(r0,r1,r2)
 #  define ler_d(r0,r1,r2)		_ler_d(_jit,r0,r1,r2)
-static void _ler_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ler_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define lei_f(r0,r1,i0)		_lei_f(_jit,r0,r1,i0)
-static void _lei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _lei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define lei_d(r0,r1,i0)		_lei_d(_jit,r0,r1,i0)
-static void _lei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _lei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define eqr_f(r0,r1,r2)		eqr_d(r0,r1,r2)
 #  define eqr_d(r0,r1,r2)		_eqr_d(_jit,r0,r1,r2)
-static void _eqr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _eqr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define eqi_f(r0,r1,i0)		_eqi_f(_jit,r0,r1,i0)
-static void _eqi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _eqi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define eqi_d(r0,r1,i0)		_eqi_d(_jit,r0,r1,i0)
-static void _eqi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _eqi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ger_f(r0,r1,r2)		ger_d(r0,r1,r2)
 #  define ger_d(r0,r1,r2)		_ger_d(_jit,r0,r1,r2)
-static void _ger_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ger_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define gei_f(r0,r1,i0)		_gei_f(_jit,r0,r1,i0)
-static void _gei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _gei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define gei_d(r0,r1,i0)		_gei_d(_jit,r0,r1,i0)
-static void _gei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _gei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define gtr_f(r0,r1,r2)		gtr_d(r0,r1,r2)
 #  define gtr_d(r0,r1,r2)		_gtr_d(_jit,r0,r1,r2)
-static void _gtr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _gtr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define gti_f(r0,r1,i0)		_gti_f(_jit,r0,r1,i0)
-static void _gti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _gti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define gti_d(r0,r1,i0)		_gti_d(_jit,r0,r1,i0)
-static void _gti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _gti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ner_f(r0,r1,r2)		ner_d(r0,r1,r2)
 #  define ner_d(r0,r1,r2)		_ner_d(_jit,r0,r1,r2)
-static void _ner_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ner_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define nei_f(r0,r1,i0)		_nei_f(_jit,r0,r1,i0)
-static void _nei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _nei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define nei_d(r0,r1,i0)		_nei_d(_jit,r0,r1,i0)
-static void _nei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _nei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define unltr_f(r0,r1,r2)		unltr_d(r0,r1,r2)
 #  define unltr_d(r0,r1,r2)		_unltr_d(_jit,r0,r1,r2)
-static void _unltr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _unltr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define unlti_f(r0,r1,i0)		_unlti_f(_jit,r0,r1,i0)
-static void _unlti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _unlti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define unlti_d(r0,r1,i0)		_unlti_d(_jit,r0,r1,i0)
-static void _unlti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _unlti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define unler_f(r0,r1,r2)		unler_d(r0,r1,r2)
 #  define unler_d(r0,r1,r2)		_unler_d(_jit,r0,r1,r2)
-static void _unler_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _unler_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define unlei_f(r0,r1,i0)		_unlei_f(_jit,r0,r1,i0)
-static void _unlei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _unlei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define unlei_d(r0,r1,i0)		_unlei_d(_jit,r0,r1,i0)
-static void _unlei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _unlei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define uneqr_f(r0,r1,r2)		uneqr_d(r0,r1,r2)
 #  define uneqr_d(r0,r1,r2)		_uneqr_d(_jit,r0,r1,r2)
-static void _uneqr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _uneqr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define uneqi_f(r0,r1,i0)		_uneqi_f(_jit,r0,r1,i0)
-static void _uneqi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _uneqi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define uneqi_d(r0,r1,i0)		_uneqi_d(_jit,r0,r1,i0)
-static void _uneqi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _uneqi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define unger_f(r0,r1,r2)		unger_d(r0,r1,r2)
 #  define unger_d(r0,r1,r2)		_unger_d(_jit,r0,r1,r2)
-static void _unger_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _unger_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ungei_f(r0,r1,i0)		_ungei_f(_jit,r0,r1,i0)
-static void _ungei_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _ungei_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define ungei_d(r0,r1,i0)		_ungei_d(_jit,r0,r1,i0)
-static void _ungei_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _ungei_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ungtr_f(r0,r1,r2)		ungtr_d(r0,r1,r2)
 #  define ungtr_d(r0,r1,r2)		_ungtr_d(_jit,r0,r1,r2)
-static void _ungtr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ungtr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ungti_f(r0,r1,i0)		_ungti_f(_jit,r0,r1,i0)
-static void _ungti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _ungti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define ungti_d(r0,r1,i0)		_ungti_d(_jit,r0,r1,i0)
-static void _ungti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _ungti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ltgtr_f(r0,r1,r2)		ltgtr_d(r0,r1,r2)
 #  define ltgtr_d(r0,r1,r2)		_ltgtr_d(_jit,r0,r1,r2)
-static void _ltgtr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ltgtr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ltgti_f(r0,r1,i0)		_ltgti_f(_jit,r0,r1,i0)
-static void _ltgti_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _ltgti_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define ltgti_d(r0,r1,i0)		_ltgti_d(_jit,r0,r1,i0)
-static void _ltgti_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _ltgti_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define ordr_f(r0,r1,r2)		ordr_d(r0,r1,r2)
 #  define ordr_d(r0,r1,r2)		_ordr_d(_jit,r0,r1,r2)
-static void _ordr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ordr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ordi_f(r0,r1,i0)		_ordi_f(_jit,r0,r1,i0)
-static void _ordi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _ordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define ordi_d(r0,r1,i0)		_ordi_d(_jit,r0,r1,i0)
-static void _ordi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _ordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define unordr_f(r0,r1,r2)		unordr_d(r0,r1,r2)
 #  define unordr_d(r0,r1,r2)		_unordr_d(_jit,r0,r1,r2)
-static void _unordr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _unordr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define unordi_f(r0,r1,i0)		_unordi_f(_jit,r0,r1,i0)
-static void _unordi_f(jit_state_t*,int32_t,jit_int32_t,jit_float32_t*);
+static void _unordi_f(jit_state_t*,int32_t,int32_t,jit_float32_t*);
 #  define unordi_d(r0,r1,i0)		_unordi_d(_jit,r0,r1,i0)
-static void _unordi_d(jit_state_t*,int32_t,jit_int32_t,jit_float64_t*);
+static void _unordi_d(jit_state_t*,int32_t,int32_t,jit_float64_t*);
 #  define bltr_f(i0,r0,r1)		bltr_d(i0,r0,r1)
 #  define bltr_d(i0,r0,r1)		_bltr_d(_jit,i0,r0,r1)
-static jit_word_t _bltr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bltr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define blti_f(i0,r0,i1)		_blti_f(_jit,i0,r0,i1)
 static jit_word_t _blti_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define blti_d(i0,r0,i1)		_blti_d(_jit,i0,r0,i1)
 static jit_word_t _blti_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bler_f(i0,r0,r1)		bler_d(i0,r0,r1)
 #  define bler_d(i0,r0,r1)		_bler_d(_jit,i0,r0,r1)
-static jit_word_t _bler_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bler_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define blei_f(i0,r0,i1)		_blei_f(_jit,i0,r0,i1)
 static jit_word_t _blei_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define blei_d(i0,r0,i1)		_blei_d(_jit,i0,r0,i1)
 static jit_word_t _blei_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define beqr_f(i0,r0,r1)		beqr_d(i0,r0,r1)
 #  define beqr_d(i0,r0,r1)		_beqr_d(_jit,i0,r0,r1)
-static jit_word_t _beqr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _beqr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define beqi_f(i0,r0,i1)		_beqi_f(_jit,i0,r0,i1)
 static jit_word_t _beqi_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define beqi_d(i0,r0,i1)		_beqi_d(_jit,i0,r0,i1)
 static jit_word_t _beqi_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bger_f(i0,r0,r1)		bger_d(i0,r0,r1)
 #  define bger_d(i0,r0,r1)		_bger_d(_jit,i0,r0,r1)
-static jit_word_t _bger_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bger_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bgei_f(i0,r0,i1)		_bgei_f(_jit,i0,r0,i1)
 static jit_word_t _bgei_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bgei_d(i0,r0,i1)		_bgei_d(_jit,i0,r0,i1)
 static jit_word_t _bgei_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bgtr_f(i0,r0,r1)		bgtr_d(i0,r0,r1)
 #  define bgtr_d(i0,r0,r1)		_bgtr_d(_jit,i0,r0,r1)
-static jit_word_t _bgtr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bgtr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bgti_f(i0,r0,i1)		_bgti_f(_jit,i0,r0,i1)
 static jit_word_t _bgti_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bgti_d(i0,r0,i1)		_bgti_d(_jit,i0,r0,i1)
 static jit_word_t _bgti_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bner_f(i0,r0,r1)		bner_d(i0,r0,r1)
 #  define bner_d(i0,r0,r1)		_bner_d(_jit,i0,r0,r1)
-static jit_word_t _bner_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bner_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bnei_f(i0,r0,i1)		_bnei_f(_jit,i0,r0,i1)
 static jit_word_t _bnei_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bnei_d(i0,r0,i1)		_bnei_d(_jit,i0,r0,i1)
 static jit_word_t _bnei_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bunltr_f(i0,r0,r1)		bunltr_d(i0,r0,r1)
 #  define bunltr_d(i0,r0,r1)		_bunltr_d(_jit,i0,r0,r1)
-static jit_word_t _bunltr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bunltr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bunlti_f(i0,r0,i1)		_bunlti_f(_jit,i0,r0,i1)
 static jit_word_t _bunlti_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bunlti_d(i0,r0,i1)		_bunlti_d(_jit,i0,r0,i1)
 static jit_word_t _bunlti_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bunler_f(i0,r0,r1)		bunler_d(i0,r0,r1)
 #  define bunler_d(i0,r0,r1)		_bunler_d(_jit,i0,r0,r1)
-static jit_word_t _bunler_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bunler_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bunlei_f(i0,r0,i1)		_bunlei_f(_jit,i0,r0,i1)
 static jit_word_t _bunlei_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bunlei_d(i0,r0,i1)		_bunlei_d(_jit,i0,r0,i1)
 static jit_word_t _bunlei_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define buneqr_f(i0,r0,r1)		buneqr_d(i0,r0,r1)
 #  define buneqr_d(i0,r0,r1)		_buneqr_d(_jit,i0,r0,r1)
-static jit_word_t _buneqr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _buneqr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define buneqi_f(i0,r0,i1)		_buneqi_f(_jit,i0,r0,i1)
 static jit_word_t _buneqi_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define buneqi_d(i0,r0,i1)		_buneqi_d(_jit,i0,r0,i1)
 static jit_word_t _buneqi_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bunger_f(i0,r0,r1)		bunger_d(i0,r0,r1)
 #  define bunger_d(i0,r0,r1)		_bunger_d(_jit,i0,r0,r1)
-static jit_word_t _bunger_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bunger_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bungei_f(i0,r0,i1)		_bungei_f(_jit,i0,r0,i1)
 static jit_word_t _bungei_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bungei_d(i0,r0,i1)		_bungei_d(_jit,i0,r0,i1)
 static jit_word_t _bungei_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bungtr_f(i0,r0,r1)		bungtr_d(i0,r0,r1)
 #  define bungtr_d(i0,r0,r1)		_bungtr_d(_jit,i0,r0,r1)
-static jit_word_t _bungtr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bungtr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bungti_f(i0,r0,i1)		_bungti_f(_jit,i0,r0,i1)
 static jit_word_t _bungti_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bungti_d(i0,r0,i1)		_bungti_d(_jit,i0,r0,i1)
 static jit_word_t _bungti_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bltgtr_f(i0,r0,r1)		bltgtr_d(i0,r0,r1)
 #  define bltgtr_d(i0,r0,r1)		_bltgtr_d(_jit,i0,r0,r1)
-static jit_word_t _bltgtr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bltgtr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bltgti_f(i0,r0,i1)		_bltgti_f(_jit,i0,r0,i1)
 static jit_word_t _bltgti_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bltgti_d(i0,r0,i1)		_bltgti_d(_jit,i0,r0,i1)
 static jit_word_t _bltgti_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bordr_f(i0,r0,r1)		bordr_d(i0,r0,r1)
 #  define bordr_d(i0,r0,r1)		_bordr_d(_jit,i0,r0,r1)
-static jit_word_t _bordr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bordr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bordi_f(i0,r0,i1)		_bordi_f(_jit,i0,r0,i1)
 static jit_word_t _bordi_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bordi_d(i0,r0,i1)		_bordi_d(_jit,i0,r0,i1)
 static jit_word_t _bordi_d(jit_state_t*,jit_word_t,int32_t,jit_float64_t*);
 #  define bunordr_f(i0,r0,r1)		bunordr_d(i0,r0,r1)
 #  define bunordr_d(i0,r0,r1)		_bunordr_d(_jit,i0,r0,r1)
-static jit_word_t _bunordr_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static jit_word_t _bunordr_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define bunordi_f(i0,r0,i1)		_bunordi_f(_jit,i0,r0,i1)
 static jit_word_t _bunordi_f(jit_state_t*,jit_word_t,int32_t,jit_float32_t*);
 #  define bunordi_d(i0,r0,i1)		_bunordi_d(_jit,i0,r0,i1)
@@ -565,13 +565,13 @@ static void _ldi_f(jit_state_t*,int32_t,jit_word_t);
 #  define ldi_d(r0,i0)			_ldi_d(_jit,r0,i0)
 static void _ldi_d(jit_state_t*,int32_t,jit_word_t);
 #  define ldxr_f(r0,r1,r2)		_ldxr_f(_jit,r0,r1,r2)
-static void _ldxr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ldxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ldxi_f(r0,r1,i0)		_ldxi_f(_jit,r0,r1,i0)
-static void _ldxi_f(jit_state_t*,int32_t,jit_int32_t,jit_word_t);
+static void _ldxi_f(jit_state_t*,int32_t,int32_t,jit_word_t);
 #  define ldxr_d(r0,r1,r2)		_ldxr_d(_jit,r0,r1,r2)
-static void _ldxr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _ldxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define ldxi_d(r0,r1,i0)		_ldxi_d(_jit,r0,r1,i0)
-static void _ldxi_d(jit_state_t*,int32_t,jit_int32_t,jit_word_t);
+static void _ldxi_d(jit_state_t*,int32_t,int32_t,jit_word_t);
 #  define str_f(r0,r1)			STS(r1,r0,0)
 #  define sti_f(i0,r0)			_sti_f(_jit,i0,r0)
 static void _sti_f(jit_state_t*,jit_word_t,int32_t);
@@ -579,22 +579,22 @@ static void _sti_f(jit_state_t*,jit_word_t,int32_t);
 #  define sti_d(i0,r0)			_sti_d(_jit,i0,r0)
 static void _sti_d(jit_state_t*,jit_word_t,int32_t);
 #  define stxr_f(r0,r1,r2)		_stxr_f(_jit,r0,r1,r2)
-static void _stxr_f(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _stxr_f(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define stxi_f(i0,r0,r1)		_stxi_f(_jit,i0,r0,r1)
-static void _stxi_f(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static void _stxi_f(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define stxr_d(r0,r1,r2)		_stxr_d(_jit,r0,r1,r2)
-static void _stxr_d(jit_state_t*,int32_t,jit_int32_t,jit_int32_t);
+static void _stxr_d(jit_state_t*,int32_t,int32_t,jit_int32_t);
 #  define stxi_d(i0,r0,r1)		_stxi_d(_jit,i0,r0,r1)
-static void _stxi_d(jit_state_t*,jit_word_t,int32_t,jit_int32_t);
+static void _stxi_d(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define vaarg_d(r0, r1)		_vaarg_d(_jit, r0, r1)
-static void _vaarg_d(jit_state_t*, int32_t, jit_int32_t);
+static void _vaarg_d(jit_state_t*, int32_t, int32_t);
 #endif
 
 #if CODE
 #  define fpr_opi(name, type, size)					\
 static void								\
 _##name##i_##type(jit_state_t *_jit,					\
-		  int32_t r0, jit_int32_t r1,			\
+		  int32_t r0, int32_t r1,			\
 		  jit_float##size##_t *i0)				\
 {									\
     int32_t		reg = jit_get_reg(jit_class_fpr);		\
@@ -621,7 +621,7 @@ _b##name##i_##type(jit_state_t *_jit,					\
 #  define dbopi(name)			fpr_bopi(name, d, 64)
 
 static void
-_movr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_movr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     if (r0 != r1)
 	FMOV(r1, r0);
@@ -670,7 +670,7 @@ _movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t *i0)
 }
 
 static void
-_truncr_d_l(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_truncr_d_l(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_fpr);
@@ -682,21 +682,21 @@ _truncr_d_l(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_sqrtr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_sqrtr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     SQRTS_SU(r1, r0);
     TRAPB();
 }
 
 static void
-_sqrtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_sqrtr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     SQRTT_SU(r1, r0);
     TRAPB();
 }
 
 static void
-_extr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_extr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     stxi_l(-8, _FP_REGNO, r1);
     ldxi_d(r0, _FP_REGNO, -8);
@@ -704,7 +704,7 @@ _extr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_extr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_extr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     stxi_l(-8, _FP_REGNO, r1);
     ldxi_d(r0, _FP_REGNO, -8);
@@ -712,7 +712,7 @@ _extr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_addr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_addr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     ADDS_SU(r1, r2, r0);
     TRAPB();
@@ -720,7 +720,7 @@ _addr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 fopi(add)
 
 static void
-_addr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_addr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     ADDT_SU(r1, r2, r0);
     TRAPB();
@@ -728,7 +728,7 @@ _addr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(add)
 
 static void
-_subr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_subr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     SUBS_SU(r1, r2, r0);
     TRAPB();
@@ -737,7 +737,7 @@ fopi(sub)
 fopi(rsb)
 
 static void
-_subr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_subr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     SUBT_SU(r1, r2, r0);
     TRAPB();
@@ -746,7 +746,7 @@ dopi(sub)
 dopi(rsb)
 
 static void
-_mulr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_mulr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     MULS_SU(r1, r2, r0);
     TRAPB();
@@ -754,7 +754,7 @@ _mulr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 fopi(mul)
 
 static void
-_mulr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_mulr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     MULT_SU(r1, r2, r0);
     TRAPB();
@@ -762,7 +762,7 @@ _mulr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(mul)
 
 static void
-_divr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_divr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     DIVS_SU(r1, r2, r0);
     TRAPB();
@@ -770,7 +770,7 @@ _divr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 fopi(div)
 
 static void
-_divr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_divr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     DIVT_SU(r1, r2, r0);
     TRAPB();
@@ -778,7 +778,7 @@ _divr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 dopi(div)
 
 static void
-_ltr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ltr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -801,7 +801,7 @@ fopi(lt);
 dopi(lt);
 
 static void
-_ler_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ler_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -824,7 +824,7 @@ fopi(le);
 dopi(le);
 
 static void
-_eqr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_eqr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -847,7 +847,7 @@ fopi(eq);
 dopi(eq);
 
 static void
-_ger_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ger_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -870,7 +870,7 @@ fopi(ge);
 dopi(ge);
 
 static void
-_gtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_gtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -893,7 +893,7 @@ fopi(gt);
 dopi(gt);
 
 static void
-_ner_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ner_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -916,7 +916,7 @@ fopi(ne);
 dopi(ne);
 
 static void
-_unltr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_unltr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -939,7 +939,7 @@ fopi(unlt);
 dopi(unlt);
 
 static void
-_unler_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_unler_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -962,7 +962,7 @@ fopi(unle);
 dopi(unle);
 
 static void
-_uneqr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_uneqr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -985,7 +985,7 @@ fopi(uneq);
 dopi(uneq);
 
 static void
-_unger_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_unger_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1008,7 +1008,7 @@ fopi(unge);
 dopi(unge);
 
 static void
-_ungtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ungtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1031,7 +1031,7 @@ fopi(ungt);
 dopi(ungt);
 
 static void
-_ltgtr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ltgtr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1054,7 +1054,7 @@ fopi(ltgt);
 dopi(ltgt);
 
 static void
-_ordr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		w;
     int32_t		reg;
@@ -1072,7 +1072,7 @@ fopi(ord);
 dopi(ord);
 
 static void
-_unordr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_unordr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		w;
     int32_t		reg;
@@ -1090,7 +1090,7 @@ fopi(unord);
 dopi(unord);
 
 static jit_word_t
-_bltr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bltr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1111,7 +1111,7 @@ fbopi(lt);
 dbopi(lt);
 
 static jit_word_t
-_bler_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bler_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1132,7 +1132,7 @@ fbopi(le);
 dbopi(le);
 
 static jit_word_t
-_beqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_beqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1153,7 +1153,7 @@ fbopi(eq);
 dbopi(eq);
 
 static jit_word_t
-_bger_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bger_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1174,7 +1174,7 @@ fbopi(ge);
 dbopi(ge);
 
 static jit_word_t
-_bgtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bgtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		v, w;
@@ -1195,7 +1195,7 @@ fbopi(gt);
 dbopi(gt);
 
 static jit_word_t
-_bner_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bner_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1219,7 +1219,7 @@ fbopi(ne);
 dbopi(ne);
 
 static jit_word_t
-_bunltr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bunltr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1243,7 +1243,7 @@ fbopi(unlt);
 dbopi(unlt);
 
 static jit_word_t
-_bunler_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bunler_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1267,7 +1267,7 @@ fbopi(unle);
 dbopi(unle);
 
 static jit_word_t
-_buneqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_buneqr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1291,7 +1291,7 @@ fbopi(uneq);
 dbopi(uneq);
 
 static jit_word_t
-_bunger_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bunger_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1315,7 +1315,7 @@ fbopi(unge);
 dbopi(unge);
 
 static jit_word_t
-_bungtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bungtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     jit_word_t		u, v, w;
@@ -1339,7 +1339,7 @@ fbopi(ungt);
 dbopi(ungt);
 
 static jit_word_t
-_bltgtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bltgtr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     jit_word_t		u, v, w;
     int32_t		reg;
@@ -1363,7 +1363,7 @@ fbopi(ltgt);
 dbopi(ltgt);
 
 static jit_word_t
-_bordr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bordr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     jit_word_t		w;
     int32_t		reg;
@@ -1379,7 +1379,7 @@ fbopi(ord);
 dbopi(ord);
 
 static jit_word_t
-_bunordr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_bunordr_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     jit_word_t		w;
     int32_t		reg;
@@ -1423,7 +1423,7 @@ _ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 }
 
 static void
-_ldxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -1433,7 +1433,7 @@ _ldxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_ldxi_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_ldxi_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
     jit_word_t		reg;
     if (_s16_p(i0))
@@ -1447,7 +1447,7 @@ _ldxi_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
 }
 
 static void
-_ldxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -1457,7 +1457,7 @@ _ldxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_ldxi_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_word_t i0)
+_ldxi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
     jit_word_t		reg;
     if (_s16_p(i0))
@@ -1499,7 +1499,7 @@ _sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
 }
 
 static void
-_stxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -1509,7 +1509,7 @@ _stxr_f(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     jit_word_t		reg;
     if (_s16_p(i0))
@@ -1523,7 +1523,7 @@ _stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_stxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
+_stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_int32_t r2)
 {
     jit_word_t		reg;
     reg = jit_get_reg(jit_class_gpr);
@@ -1533,7 +1533,7 @@ _stxr_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1, jit_int32_t r2)
 }
 
 static void
-_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
+_stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
     jit_word_t		reg;
     if (_s16_p(i0))
@@ -1547,7 +1547,7 @@ _stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, jit_int32_t r1)
 }
 
 static void
-_vaarg_d(jit_state_t *_jit, int32_t r0, jit_int32_t r1)
+_vaarg_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     jit_word_t		ge_code;
     int32_t		rg0, rg1, rg2;
