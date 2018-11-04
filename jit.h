@@ -135,15 +135,15 @@ JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
 JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
 
 #define JIT_PROTO_0(stem, ret) \
-  JIT_API ret jit_##stem (jit_state_t*)
-#define JIT_PROTO_1(stem, ret, a) \
-  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t)
-#define JIT_PROTO_2(stem, ret, a, b) \
-  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t)
-#define JIT_PROTO_3(stem, ret, a, b, c) \
-  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t)
-#define JIT_PROTO_4(stem, ret, a, b, c, d) \
-  JIT_API ret jit_##stem (jit_state_t*, jit_##a##_t, jit_##b##_t, jit_##c##_t, jit_##d##_t)
+  ret jit_##stem (jit_state_t* _jit)
+#define JIT_PROTO_1(stem, ret, ta) \
+  ret jit_##stem (jit_state_t* _jit, jit_##ta##_t a)
+#define JIT_PROTO_2(stem, ret, ta, tb) \
+  ret jit_##stem (jit_state_t* _jit, jit_##ta##_t a, jit_##tb##_t b)
+#define JIT_PROTO_3(stem, ret, ta, tb, tc) \
+  ret jit_##stem (jit_state_t* _jit, jit_##ta##_t a, jit_##tb##_t b, jit_##tc##_t c)
+#define JIT_PROTO_4(stem, ret, ta, tb, tc, td) \
+  ret jit_##stem (jit_state_t* _jit, jit_##ta##_t a, jit_##tb##_t b, jit_##tc##_t c, jit_##td##_t d)
 
 #define JIT_PROTO_RFF__(stem) JIT_PROTO_2(stem, jit_reloc_t, fpr, fpr)
 #define JIT_PROTO_RGG__(stem) JIT_PROTO_2(stem, jit_reloc_t, gpr, gpr)
@@ -433,7 +433,7 @@ JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
   WHEN_64(M(_GF__, truncr_d_l))		\
           /* EOL */
 
-#define DECLARE_INSTRUCTION(kind, stem) JIT_PROTO_##kind(stem);
+#define DECLARE_INSTRUCTION(kind, stem) JIT_API JIT_PROTO_##kind(stem);
 FOR_EACH_INSTRUCTION(DECLARE_INSTRUCTION)
 #undef DECLARE_INSTRUCTION
 

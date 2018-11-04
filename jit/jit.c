@@ -17,35 +17,150 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
-#include <sys/mman.h>
-#if defined(__sgi)
-#  include <fcntl.h>
+#if HAVE_CONFIG_H
+# include "config.h"
 #endif
+
+#include <assert.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <stdio.h>
+#include <sys/mman.h>
 
 #include "../jit.h"
-#include "private.h"
 
-#ifndef MAP_ANON
-#  define MAP_ANON			MAP_ANONYMOUS
-#  ifndef MAP_ANONYMOUS
-#    define MAP_ANONYMOUS		0
+#if defined(__GNUC__)
+#  define maybe_unused		__attribute__ ((unused))
+#else
+#  define maybe_unused		/**/
+#endif
+
+#define rc(value)		jit_class_##value
+#define rn(reg)			(jit_regno(_rvs[jit_regno(reg)].spec))
+
+#if defined(__i386__) || defined(__x86_64__)
+#  define JIT_SP		_RSP
+#  define JIT_RET		_RAX
+#  if __X32
+#    define JIT_FRET		_ST0
+#  else
+#    if __CYGWIN__
+#      define JIT_RA0		_RCX
+#    else
+#      define JIT_RA0		_RDI
+#    endif
+#    define JIT_FA0		_XMM0
+#    define JIT_FRET		_XMM0
 #  endif
+#elif defined(__mips__)
+#  define JIT_RA0		_A0
+#  define JIT_FA0		_F12
+#  define JIT_SP		_SP
+#  define JIT_RET		_V0
+#  define JIT_FRET		_F0
+#elif defined(__arm__)
+#  define JIT_RA0		_R0
+#  define JIT_FA0		_D0
+#  define JIT_SP		_R13
+#  define JIT_RET		_R0
+#  if defined(__ARM_PCS_VFP)
+#    define JIT_FRET		_D0
+#  else
+#    define JIT_FRET		_R0
+#  endif
+#elif defined(__ppc__) || defined(__powerpc__)
+#  define JIT_RA0		_R3
+#  define JIT_FA0		_F1
+#  define JIT_SP		_R1
+#  define JIT_RET		_R3
+#  define JIT_FRET		_F1
+#elif defined(__sparc__)
+#  define JIT_SP		_SP
+#  define JIT_RET		_I0
+#  define JIT_FRET		_F0
+#elif defined(__ia64__)
+#  define JIT_SP		_R12
+#  define JIT_RET		_R8
+#  define JIT_FRET		_F8
+#elif defined(__hppa__)
+#  define JIT_SP		_R30
+#  define JIT_RET		_R28
+#  define JIT_FRET		_F4
+#elif defined(__aarch64__)
+#  define JIT_RA0		_R0
+#  define JIT_FA0		_V0
+#  define JIT_SP		_SP
+#  define JIT_RET		_R0
+#  define JIT_FRET		_V0
+#elif defined(__s390__) || defined(__s390x__)
+#  define JIT_SP		_R15
+#  define JIT_RET		_R2
+#  define JIT_FRET		_F0
+#elif defined(__alpha__)
+#  define JIT_SP		_SP
+#  define JIT_RET		_V0
+#  define JIT_FRET		_F0
 #endif
 
-#if !defined(__sgi)
-#define  mmap_fd			-1
-#endif
+/*
+ * Private jit_class bitmasks
+ */
+#define jit_class_named		0x00400000	/* hit must be the named reg */
+#define jit_class_nospill	0x00800000	/* hint to fail if need spill */
+#define jit_class_sft		0x01000000	/* not a hardware register */
+#define jit_class_rg8		0x04000000	/* x86 8 bits */
+#define jit_class_xpr		0x80000000	/* float / vector */
+/* Used on sparc64 where %f0-%f31 can be encode for single float
+ * but %f32 to %f62 only as double precision */
+#define jit_class_sng		0x10000000	/* Single precision float */
+#define jit_class_dbl		0x20000000	/* Only double precision float */
+#define jit_regno_patch		0x00008000	/* this is a register
+						 * returned by a "user" call
+						 * to jit_get_reg() */
+
+struct jit_state
+{
+  union {
+    uint8_t *uc;
+    uint16_t *us;
+    uint32_t *ui;
+    uint64_t *ul;
+    intptr_t w;
+    uintptr_t uw;
+  } pc;
+  uint8_t *start;
+  uint8_t *last_instruction_start;
+  uint8_t *limit;
+};
+
+struct jit_register
+{
+  jit_reg_t spec;
+  char *name;
+};
+
+typedef struct jit_register jit_register_t;
+
+static jit_register_t _rvs[];
 
 #define jit_regload_reload		0	/* convert to reload */
 #define jit_regload_delete		1	/* just remove node */
 #define jit_regload_isdead		2	/* delete and unset live bit */
 
+#define ASSERT(x) do { if (!(x)) abort(); } while (0)
+
+static inline uint8_t*
+jit_reloc_instruction (jit_reloc_t reloc)
+{
+  return (uint8_t*) reloc;
+}
 
 static void jit_get_cpu(void);
-static void jit_flush(jit_state_t *, const char *, const char *);
+static void jit_init(jit_state_t *);
 static void jit_nop(jit_state_t *, unsigned);
 static void jit_patch(jit_state_t *, const uint8_t *loc, const uint8_t *addr);
 static void jit_patch_last(jit_state_t *, const uint8_t *loc, const uint8_t *addr);
+static void jit_flush(void *fptr, void *tptr);
 
 void
 init_jit(void)
@@ -174,3 +289,53 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 #elif defined(__alpha__)
 #  include "alpha.c"
 #endif
+
+#define JIT_CALL_0(stem) _jit_##stem (_jit)
+#define JIT_CALL_1(stem) _jit_##stem (_jit, a)
+#define JIT_CALL_2(stem) _jit_##stem (_jit, a, b)
+#define JIT_CALL_3(stem) _jit_##stem (_jit, a, b, c)
+#define JIT_CALL_4(stem) _jit_##stem (_jit, a, b, c, d)
+
+#define JIT_TAIL_CALL_RFF__(stem) return JIT_CALL_2(stem)
+#define JIT_TAIL_CALL_RGG__(stem) return JIT_CALL_2(stem)
+#define JIT_TAIL_CALL_RG___(stem) return JIT_CALL_1(stem)
+#define JIT_TAIL_CALL_RGi__(stem) return JIT_CALL_2(stem)
+#define JIT_TAIL_CALL_RGu__(stem) return JIT_CALL_2(stem)
+#define JIT_TAIL_CALL_R____(stem) return JIT_CALL_0(stem)
+#define JIT_TAIL_CALL__FFF_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__FF__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__FGG_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__FG__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__FGo_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__F___(stem) JIT_CALL_1(stem)
+#define JIT_TAIL_CALL__Fd__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__Ff__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__Fp__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__GF__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__GGF_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GGGG(stem) JIT_CALL_4(stem)
+#define JIT_TAIL_CALL__GGG_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GGGi(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GGGu(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GG__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__GGi_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GGo_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__GGu_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__G___(stem) JIT_CALL_1(stem)
+#define JIT_TAIL_CALL__Gi__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__Gp__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL______(stem) JIT_CALL_0(stem)
+#define JIT_TAIL_CALL__i___(stem) JIT_CALL_1(stem)
+#define JIT_TAIL_CALL__oGF_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__oGG_(stem) JIT_CALL_3(stem)
+#define JIT_TAIL_CALL__pF__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__pG__(stem) JIT_CALL_2(stem)
+#define JIT_TAIL_CALL__p___(stem) JIT_CALL_1(stem)
+
+#define DEFINE_INSTRUCTION(kind, stem) \
+  JIT_PROTO_##kind(stem)               \
+  {                                    \
+    JIT_TAIL_CALL_##kind(stem);        \
+  }
+FOR_EACH_INSTRUCTION(DEFINE_INSTRUCTION)
+#undef DEFINE_INSTRUCTION
