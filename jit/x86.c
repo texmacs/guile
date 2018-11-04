@@ -96,8 +96,6 @@ typedef struct jit_va_list {
 /*
  * Prototypes
  */
-#define patch(instr, node)		_patch(_jit, instr, node)
-static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 #define sse_from_x87_f(r0, r1)		_sse_from_x87_f(_jit, r0, r1)
 static void _sse_from_x87_f(jit_state_t*,int32_t,int32_t);
 #define sse_from_x87_d(r0, r1)		_sse_from_x87_d(_jit, r0, r1)
