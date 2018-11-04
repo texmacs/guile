@@ -90,7 +90,7 @@ extern void __clear_cache(void *, void *);
 /*
  * Initialization
  */
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
     { rc(gpr) | 0x0,			"%r0" },
     { rc(gpr) | 0x1,			"%r1" },
     { rc(gpr) | rc(sav) | 0xc,		"%r12" },

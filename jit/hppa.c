@@ -41,7 +41,7 @@ extern void __clear_cache(void *, void *);
 /*
  * Initialization
  */
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
     { 0,			"r0" },		/* Zero */
     /* Not register starved, so, avoid allocating r1 and rp
      * due to being implicit target of ADDIL and B,L */

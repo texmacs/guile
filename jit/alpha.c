@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2014-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -69,7 +69,7 @@ static void _patch(jit_state_t*,jit_word_t,jit_node_t*);
 /*
  * Initialization
  */
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
     { rc(gpr) | 0x1c,			"at" },
     { rc(gpr) | 0x00,			"v0" },
     { rc(gpr) | 0x01,			"t0" },

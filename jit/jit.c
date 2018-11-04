@@ -141,7 +141,7 @@ struct jit_register
 
 typedef struct jit_register jit_register_t;
 
-static jit_register_t _rvs[];
+static const jit_register_t _rvs[];
 
 #define jit_regload_reload		0	/* convert to reload */
 #define jit_regload_delete		1	/* just remove node */

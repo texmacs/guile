@@ -54,7 +54,7 @@ extern void __clear_cache(void *, void *);
 /*
  * Initialization
  */
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
     /* Always 0 */
     { 0,		 "r0"  },
     /* Global Pointer */

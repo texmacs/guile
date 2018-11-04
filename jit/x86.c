@@ -117,7 +117,7 @@ static void _x87_from_sse_d(jit_state_t*,int32_t,int32_t);
  * Initialization
  */
 jit_cpu_t		jit_cpu;
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
 #if __X32
     { rc(gpr) | rc(rg8) | 0,		"%eax" },
     { rc(gpr) | rc(rg8) | 1,		"%ecx" },

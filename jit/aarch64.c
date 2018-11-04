@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2018  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -70,7 +70,7 @@ extern void __clear_cache(void *, void *);
 /*
  * Initialization
  */
-jit_register_t		_rvs[] = {
+static const jit_register_t _rvs[] = {
     { rc(gpr) | 0x08,			"x8" },
     { rc(gpr) | 0x12,			"x18" },
     { rc(gpr) | 0x11,			"x17" },
