@@ -210,6 +210,11 @@
 ;; performance can be found at
 ;;   http://synthcode.com/scheme/match-cond-expand.scm
 ;;
+;; 2016/03/06 - fixing named match-let (thanks to Stefan Israelsson Tampe)
+;; 2015/05/09 - fixing bug in var extraction of quasiquote patterns
+;; 2014/11/24 - [OMITTED IN GUILE] adding Gauche's `@' pattern for named record field matching
+;; 2012/12/26 - wrapping match-let&co body in lexical closure
+;; 2012/11/28 - fixing typo s/vetor/vector in largely unused set! code
 ;; 2012/05/23 - fixing combinatorial explosion of code in certain or patterns
 ;; 2011/09/25 - fixing bug when directly matching an identifier repeated in
 ;;              the pattern (thanks to Stefan Israelsson Tampe)
@@ -675,7 +680,7 @@
        (if (>= j len)
          (let ((id (reverse id-ls)) ...) (sk ... i))
          (let ((w (vector-ref v j)))
-           (match-one w p ((vector-ref v j) (vetor-set! v j))
+           (match-one w p ((vector-ref v j) (vector-set! v j))
                       (match-drop-ids (loop (+ j 1) (cons id id-ls) ...))
                       fk i)))))))
 
@@ -765,13 +770,13 @@
      (match-extract-vars x k i v))
     ((match-extract-quasiquote-vars (unquote x) k i v (#t . d))
      (match-extract-quasiquote-vars x k i v d))
-    ((match-extract-quasiquote-vars (x . y) k i v (#t . d))
+    ((match-extract-quasiquote-vars (x . y) k i v d)
      (match-extract-quasiquote-vars
       x
-      (match-extract-quasiquote-vars-step y k i v d) i ()))
-    ((match-extract-quasiquote-vars #(x ...) k i v (#t . d))
+      (match-extract-quasiquote-vars-step y k i v d) i () d))
+    ((match-extract-quasiquote-vars #(x ...) k i v d)
      (match-extract-quasiquote-vars (x ...) k i v d))
-    ((match-extract-quasiquote-vars x (k ...) i v (#t . d))
+    ((match-extract-quasiquote-vars x (k ...) i v d)
      (k ... v))
     ))
 
@@ -812,7 +817,7 @@
     ((_ ((var value) ...) . body)
      (match-let/helper let () () ((var value) ...) . body))
     ((_ loop ((var init) ...) . body)
-     (match-named-let loop ((var init) ...) . body))))
+     (match-named-let loop () ((var init) ...) . body))))
 
 ;;> Similar to @scheme{match-let}, but analogously to @scheme{letrec}
 ;;> matches and binds the variables with all match variables in scope.
@@ -857,7 +862,7 @@
 (define-syntax match-let*
   (syntax-rules ()
     ((_ () . body)
-     (begin . body))
+     (let () . body))
     ((_ ((pat expr) . rest) . body)
      (match expr (pat (match-let* rest . body))))))
 
