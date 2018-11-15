@@ -1955,7 +1955,7 @@ name extensions listed in %load-extensions."
   ;; NOTE: If you change the set of fields or their order, you also need to
   ;; change the constants in libguile/modules.h.
   ;;
-  ;; NOTE: The getter `module-transfomer' is defined libguile/modules.c.
+  ;; NOTE: The getter `module-transformer' is defined libguile/modules.c.
   ;; NOTE: The getter `module-name' is defined later, due to boot reasons.
   ;; NOTE: The getter `module-public-interface' is used in libguile/modules.c.
   ;;
