@@ -2926,6 +2926,11 @@ the date.
 @tab minute
 @tab @nicode{date-minute}
 
+@item @nicode{~N}
+@tab @nicode{char-numeric?}
+@tab nanosecond
+@tab @nicode{date-nanosecond}
+
 @item @nicode{~S}
 @tab @nicode{char-numeric?}
 @tab second

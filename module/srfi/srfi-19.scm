@@ -1193,6 +1193,24 @@
   (lambda (port)
     (integer-reader upto port)))
 
+;; read an fractional integer upto n characters long on port; upto -> #f if any length
+;;
+;; The return value is normalized to upto decimal places. For example, if upto is 9 and
+;; the string read is "123", the return value is 123000000.
+(define (fractional-integer-reader upto port)
+  (define (accum-int port accum nchars)
+    (let ((ch (peek-char port)))
+      (if (or (eof-object? ch)
+              (not (char-numeric? ch))
+              (and upto (>= nchars  upto)))
+          (* accum (expt 10 (- upto nchars)))
+          (accum-int port (+ (* accum 10) (char->int (read-char port))) (+ nchars 1)))))
+  (accum-int port 0 0))
+
+(define (make-fractional-integer-reader upto)
+  (lambda (port)
+    (fractional-integer-reader upto port)))
+
 ;; read *exactly* n characters and convert to integer; could be padded
 (define (integer-reader-exact n port)
   (let ((padding-ok #t))
@@ -1305,6 +1323,7 @@
 (define read-directives
   (let ((ireader4 (make-integer-reader 4))
         (ireader2 (make-integer-reader 2))
+        (fireader9 (make-fractional-integer-reader 9))
         (eireader2 (make-integer-exact-reader 2))
         (locale-reader-abbr-weekday (make-locale-reader
                                      locale-abbr-weekday->index))
@@ -1343,6 +1362,9 @@
      (list #\M char-numeric? ireader2 (lambda (val object)
                                         (set-date-minute!
                                          object val)))
+     (list #\N char-numeric? fireader9 (lambda (val object)
+					 (set-date-nanosecond!
+                                          object val)))
      (list #\S char-numeric? ireader2 (lambda (val object)
                                         (set-date-second! object val)))
      (list #\y char-fail eireader2
