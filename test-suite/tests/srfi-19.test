@@ -177,14 +177,18 @@ incomplete numerical tower implementation.)"
               (date->string date))))
 
   (pass-if "string->date understands nanoseconds (1)"
-    (time=? (date->time-utc (string->date "2018-12-10 10:53:24.189"
-                                          "~Y-~m-~d ~H:~M:~S.~N"))
-            (date->time-utc (make-date 189000000 24 53 10 10 12 2018 3600))))
+    (let ((date (string->date "2018-12-10 10:53:24.189"
+                              "~Y-~m-~d ~H:~M:~S.~N")))
+      (time=? (date->time-utc date)
+              (date->time-utc (make-date 189000000 24 53 10 10 12 2018
+                                         (date-zone-offset date))))))
 
   (pass-if "string->date understands nanoseconds (2)"
-    (time=? (date->time-utc (string->date "2018-12-10 10:53:24.189654321"
-                                          "~Y-~m-~d ~H:~M:~S.~N"))
-            (date->time-utc (make-date 189654321 24 53 10 10 12 2018 3600))))
+    (let ((date (string->date "2018-12-10 10:53:24.189654321"
+                              "~Y-~m-~d ~H:~M:~S.~N")))
+      (time=? (date->time-utc date)
+              (date->time-utc (make-date 189654321 24 53 10 10 12 2018
+                                         (date-zone-offset date))))))
 
   (pass-if "date->string pads small nanoseconds values correctly"
     (let* ((date (make-date 99999999 5 34 12 26 3 2017 0)))
