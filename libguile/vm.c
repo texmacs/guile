@@ -660,7 +660,10 @@ return_unused_stack_to_os (struct scm_vm *vp)
         ret = madvise ((void *) lo, hi - lo, MADV_DONTNEED);
       while (ret && errno == EAGAIN);
 
-      if (ret)
+      /* If the OS doesn't implement 'madvise' (as is currently the case
+         for GNU/Hurd), don't warn the user since there's nothing they
+         can do about it.  */
+      if (ret && errno != ENOSYS)
         perror ("madvise failed");
     }
 
