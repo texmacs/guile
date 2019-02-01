@@ -262,10 +262,17 @@
   (pass-if "basic usage"
     (string? (crypt "pass" "abcdefg")))
 
-  (pass-if-exception "glibc EINVAL" exception:system-error
-    ;; This used to deadlock while trying to throw to 'system-error'.
-    ;; This test uses the special interpretation of the salt that glibc
-    ;; does; specifically, we pass a syntactically invalid salt here.
-    (if (string-contains %host-type "-gnu")
-        (crypt "pass" "$X$abc")                   ;EINVAL
-        (throw 'unresolved))))
+  (pass-if "crypt invalid salt on glibc"
+    (begin
+      (unless (string-contains %host-type "-gnu")
+        (throw 'unresolved))
+      (catch 'system-error
+             (lambda ()
+               ;; This used to deadlock on glibc while trying to throw to
+               ;; 'system-error'.  This test uses the special
+               ;; interpretation of the salt that glibc does;
+               ;; specifically, we pass a salt that's probably
+               ;; syntactically invalid here.  Note, whether it's invalid
+               ;; or not is system-defined, so it's possible it just works.
+               (string? (crypt "pass" "$X$abc")))
+             (lambda _ #t)))))
