@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;      2011, 2012, 2013, 2014, 2015, 2017 Free Software Foundation, Inc.
+;;;;      2011, 2012, 2013, 2014, 2015, 2017, 2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -315,7 +315,7 @@
 
 (pass-if "valid wide mode string"
   ;; Pass 'open-file' a valid mode string, but as a wide string.
-  (let ((mode "λ"))
+  (let ((mode (string-copy "λ")))
     (string-set! mode 0 #\r)
     (let ((port (open-file "/dev/null" mode)))
       (and (input-port? port)
