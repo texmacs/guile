@@ -1,4 +1,4 @@
-/* Copyright 2004-2005,2008-2010,2013,2018
+/* Copyright 2004-2005,2008-2010,2013,2018-2019
     Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -201,6 +201,7 @@ check_ports ()
 #define FILENAME_TEMPLATE "/check-ports.XXXXXX"
   char *filename;
   const char *tmpdir = getenv ("TMPDIR");
+  int fd;
 #ifdef __MINGW32__
   extern int mkstemp (char *);
 
@@ -222,8 +223,10 @@ check_ports ()
 
   /* Sanity check: Make sure that `filename' is actually writeable.
      We used to use mktemp(3), but that is now considered a security risk.  */
-  if (0 > mkstemp (filename))
+  fd = mkstemp (filename);
+  if (fd < 0)
     exit (EXIT_FAILURE);
+  close (fd);
 
   scm_dynwind_begin (0);
   {
