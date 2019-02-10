@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2002, 2004, 2006, 2009-2018
+/* Copyright (C) 1996-2002, 2004, 2006, 2009-2019
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -1507,9 +1507,9 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
       /* mkostemp(2) only defines O_APPEND, O_SYNC, and O_CLOEXEC to be
          useful, as O_RDWR|O_CREAT|O_EXCL are implicitly added.  It also
          notes that other flags may error on some systems, which turns
-         out to be the case.  Of those flags, O_APPEND is the only one
-         of interest anyway, so limit to that flag.  */
-      open_flags &= O_APPEND;
+         out to be the case.  Of those flags, O_APPEND and O_BINARY are
+         the only ones of interest anyway, so limit to those flags.  */
+      open_flags &= O_APPEND | O_BINARY;
       mode_bits = scm_i_mode_bits (mode);
     }
 
