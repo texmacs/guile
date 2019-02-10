@@ -76,7 +76,22 @@
            (result   (not (string=? str template))))
       (close-port port)
       (delete-file str)
-      result)))
+      result))
+
+  (pass-if "binary mode honored"
+    (let* ((template "T-XXXXXX")
+           (str      (string-copy template))
+           (outport  (mkstemp! str "wb")))
+      (display "\n" outport)
+      (close-port outport)
+      (let* ((inport (open-input-file str #:binary #t))
+             (char1  (read-char inport))
+             (char2  (read-char inport))
+             (result (and (char=? char1 #\newline)
+                          (eof-object? char2))))
+        (close-port inport)
+        (delete-file str)
+        result))))
 
 ;;
 ;; putenv
