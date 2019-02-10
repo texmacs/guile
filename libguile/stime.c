@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2001, 2003-2009, 2011, 2013, 2014, 2016-2018
+/* Copyright (C) 1995-2001, 2003-2009, 2011, 2013, 2014, 2016-2019
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -699,7 +699,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 					 scm_from_utf8_string ("0")));
 
 	have_zone = 1;
-        scm_pthread_mutex_lock (&tz_lock);
+        scm_i_scm_pthread_mutex_lock (&tz_lock);
 	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
       }
 #endif
