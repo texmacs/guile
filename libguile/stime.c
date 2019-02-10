@@ -701,7 +701,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 					 scm_from_utf8_string ("0")));
 
 	have_zone = 1;
-        scm_pthread_mutex_lock (&tz_lock);
+        scm_i_scm_pthread_mutex_lock (&tz_lock);
 	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
       }
 #endif
