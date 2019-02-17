@@ -26,4 +26,4 @@ $ ls ../*deb
 ```
 Install `guile-1.8`, `guile-1.8-dev`, `guile-1.8-libs` via `dpkg`.
 
-To install the pre-packaged deb for Debian, just download the wanted deb from [Binary GNU/Linux packages for TeXmacs](http://www.texmacs.org/tmweb/download/linux-packages.en.html).
+To install the pre-packaged deb for Debian, just download the wanted deb from [Binary GNU/Linux packages for TeXmacs](http://www.texmacs.org/tmweb/download/linux-packages.en.html). Or compile GNU TeXmacs by yourself according to [Compiling TeXmacs from the source code](http://www.texmacs.org/tmweb/download/sources.en.html) or [Build with CMake on GNU/Linux](https://github.com/texmacs/texmacs/wiki/Build-with-CMake-on-GNU-Linux).
