@@ -1,4 +1,4 @@
-/* Copyright 1995-1998,2000-2003,2006,2008-2012,2018
+/* Copyright 1995-1998,2000-2003,2006,2008-2012,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -64,6 +64,8 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
   return 1;
 }
 
+SCM_SYMBOL (sym_primitive_macro, "primitive-macro");
+
 /* Return a mmacro that is known to be one of guile's built in macros. */
 SCM
 scm_i_make_primitive_macro (const char *name, scm_t_macro_primitive fn)
@@ -71,7 +73,7 @@ scm_i_make_primitive_macro (const char *name, scm_t_macro_primitive fn)
   SCM z = scm_words (scm_tc16_macro, 5);
   SCM_SET_SMOB_DATA_N (z, 1, (scm_t_bits)fn);
   SCM_SET_SMOB_OBJECT_N (z, 2, scm_from_utf8_symbol (name));
-  SCM_SET_SMOB_OBJECT_N (z, 3, SCM_BOOL_F);
+  SCM_SET_SMOB_OBJECT_N (z, 3, sym_primitive_macro);
   SCM_SET_SMOB_OBJECT_N (z, 4, SCM_BOOL_F);
   return z;
 }
