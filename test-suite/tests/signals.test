@@ -1,6 +1,6 @@
 ;;;; signals.test --- test suite for Guile's signal functions       -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2009, 2014, 2017 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2014, 2017, 2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,14 +37,23 @@
 (when (defined? 'setitimer)
   (with-test-prefix "setitimer"
     (with-test-prefix "current itimers are 0"
+
       (pass-if "ITIMER_REAL"
-        (equal? (setitimer ITIMER_REAL 0 0 0 0)
-                '((0 . 0) (0 . 0))))
+        ;; setitimer may have already been called in other tests.  For
+        ;; some versions of Cygwin, the return value of setitimer is
+        ;; invalid after an alarm has occurred.  See
+        ;; https://www.cygwin.com/ml/cygwin/2019-02/msg00395.html
+        (if (string-contains %host-type "cygwin")
+            (throw 'unresolved)
+            (equal? (setitimer ITIMER_REAL 0 0 0 0)
+                    '((0 . 0) (0 . 0)))))
+
       (pass-if "ITIMER_VIRTUAL"
         (if (not (provided? 'ITIMER_VIRTUAL))
             (throw 'unsupported)
             (equal? (setitimer ITIMER_VIRTUAL 0 0 0 0)
                     '((0 . 0) (0 . 0)))))
+
       (pass-if "ITIMER_PROF"
         (if (not (provided? 'ITIMER_PROF))
             (throw 'unsupported)
