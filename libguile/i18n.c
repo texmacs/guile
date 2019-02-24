@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2014, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2014, 2017, 2019 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -69,6 +69,31 @@ setlocale (int category, const char *name)
   errno = ENOSYS;
   return NULL;
 }
+#endif
+
+/* The newlib C library has alternative names for locale constants.  */
+#if HAVE_DECL__NL_NUMERIC_GROUPING
+#define INT_CURR_SYMBOL    _NL_MONETARY_INT_CURR_SYMBOL
+#define MON_DECIMAL_POINT  _NL_MONETARY_MON_DECIMAL_POINT
+#define MON_THOUSANDS_SEP  _NL_MONETARY_MON_THOUSANDS_SEP
+#define MON_GROUPING       _NL_MONETARY_MON_GROUPING
+#define POSITIVE_SIGN      _NL_MONETARY_POSITIVE_SIGN
+#define NEGATIVE_SIGN      _NL_MONETARY_NEGATIVE_SIGN
+#define GROUPING           _NL_NUMERIC_GROUPING
+#define INT_FRAC_DIGITS    _NL_MONETARY_INT_FRAC_DIGITS
+#define FRAC_DIGITS        _NL_MONETARY_FRAC_DIGITS
+#define P_CS_PRECEDES      _NL_MONETARY_P_CS_PRECEDES
+#define P_SEP_BY_SPACE     _NL_MONETARY_P_SEP_BY_SPACE
+#define N_CS_PRECEDES      _NL_MONETARY_N_CS_PRECEDES
+#define N_SEP_BY_SPACE     _NL_MONETARY_N_SEP_BY_SPACE
+#define P_SIGN_POSN        _NL_MONETARY_P_SIGN_POSN
+#define N_SIGN_POSN        _NL_MONETARY_N_SIGN_POSN
+#define INT_P_CS_PRECEDES  _NL_MONETARY_INT_P_CS_PRECEDES
+#define INT_P_SEP_BY_SPACE _NL_MONETARY_INT_P_SEP_BY_SPACE
+#define INT_N_CS_PRECEDES  _NL_MONETARY_INT_N_CS_PRECEDES
+#define INT_N_SEP_BY_SPACE _NL_MONETARY_INT_N_SEP_BY_SPACE
+#define INT_P_SIGN_POSN    _NL_MONETARY_INT_P_SIGN_POSN
+#define INT_N_SIGN_POSN    _NL_MONETARY_INT_N_SIGN_POSN
 #endif
 
 /* Helper stringification macro.  */
