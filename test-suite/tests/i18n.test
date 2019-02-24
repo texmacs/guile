@@ -677,7 +677,7 @@
       (under-french-locale-or-unresolved
        (lambda ()
          (let* ((fr  (make-locale LC_ALL %french-locale-name))
-                (str (monetary-amount->locale-string 123456 #f fr)))
+                (str (string-trim-both (monetary-amount->locale-string 123456 #f fr))))
            ;; Check for both NO-BREAK SPACE and SPACE.
            (or (string=? "123 456,00 +EUR" str)
                (string=? "123 456,00 +EUR" str))))))
@@ -696,7 +696,7 @@
       (under-french-locale-or-unresolved
        (lambda ()
          (let ((fr (make-locale LC_ALL %french-locale-name)))
-           (monetary-amount->locale-string 0. #f fr)))))
+           (string-trim-both (monetary-amount->locale-string 0. #f fr))))))
 
     (pass-if-equal "one cent"
         "0,01 EUR "
