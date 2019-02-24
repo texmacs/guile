@@ -492,6 +492,9 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   strcoll strcoll_l strtod_l strtol_l newlocale uselocale utimensat	\
   sched_getaffinity sched_setaffinity sendfile])
 
+# The newlib C library uses _NL_ prefixed locale langinfo constants.
+AC_CHECK_DECLS([_NL_NUMERIC_GROUPING], [], [], [[#include <langinfo.h>]])
+
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw
