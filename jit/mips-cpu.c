@@ -581,21 +581,21 @@ static void _stxr_l(jit_state_t*,int32_t,int32_t,int32_t);
 static void _stxi_l(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  endif
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-#    define htonr_us(r0,r1)		_htonr_us(_jit,r0,r1)
-static void _htonr_us(jit_state_t*,int32_t,int32_t);
-#    define htonr_ui(r0,r1)		_htonr_ui(_jit,r0,r1)
-static void _htonr_ui(jit_state_t*,int32_t,int32_t);
+#    define bswapr_us(r0,r1)		_bswapr_us(_jit,r0,r1)
+static void _bswapr_us(jit_state_t*,int32_t,int32_t);
+#    define bswapr_ui(r0,r1)		_bswapr_ui(_jit,r0,r1)
+static void _bswapr_ui(jit_state_t*,int32_t,int32_t);
 #    if __WORDSIZE == 64
-#      define htonr_ul(r0,r1)		_htonr_ul(_jit,r0,r1)
-static void _htonr_ul(jit_state_t*,int32_t,int32_t);
+#      define bswapr_ul(r0,r1)		_bswapr_ul(_jit,r0,r1)
+static void _bswapr_ul(jit_state_t*,int32_t,int32_t);
 #    endif
 #  else
-#    define htonr_us(r0,r1)		extr_us(r0,r1)
+#    define bswapr_us(r0,r1)		extr_us(r0,r1)
 #    if __WORDSIZE == 32
-#      define htonr_ui(r0,r1)		movr(r0,r1)
+#      define bswapr_ui(r0,r1)		movr(r0,r1)
 #    else
-#      define htonr_ui(r0,r1)		extr_ui(r0,r1)
-#      define htonr_ul(r0,r1)		movr(r0,r1)
+#      define bswapr_ui(r0,r1)		extr_ui(r0,r1)
+#      define bswapr_ul(r0,r1)		movr(r0,r1)
 #    endif
 #  endif
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
@@ -1676,7 +1676,7 @@ _stxi_l(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
 static void
-_htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		t0;
     t0 = jit_get_reg(jit_class_gpr);
@@ -1689,7 +1689,7 @@ _htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
-_htonr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		t0;
     int32_t		t1;
@@ -1716,13 +1716,13 @@ _htonr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
-_htonr_ul(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_ul(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     reg = jit_get_reg(jit_class_gpr);
     rshi_u(rn(reg), r1, 32);
-    htonr_ui(r0, r1);
-    htonr_ui(rn(reg), rn(reg));
+    bswapr_ui(r0, r1);
+    bswapr, 2019_ui(rn(reg), rn(reg));
     lshi(r0, r0, 32);
     orr(r0, r0, rn(reg));
     jit_unget_reg(reg);

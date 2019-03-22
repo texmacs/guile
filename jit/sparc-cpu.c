@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2017, 2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -669,7 +669,7 @@ static void _xori(jit_state_t*, int32_t, int32_t, jit_word_t);
 #    define rshr_u(r0, r1, r2)		SRLX(r1, r2, r0)
 #    define rshi_u(r0, r1, i0)		SRLXI(r1, i0, r0)
 #  endif
-#  define htonr_us(r0,r1)		extr_us(r0,r1)
+#  define bswapr_us(r0,r1)		extr_us(r0,r1)
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
 static void _extr_c(jit_state_t*,int32_t,int32_t);
 #  define extr_uc(r0,r1)		andi(r0, r1, 0xff)
@@ -678,10 +678,10 @@ static void _extr_s(jit_state_t*,int32_t,int32_t);
 #  define extr_us(r0,r1)		_extr_us(_jit,r0,r1)
 static void _extr_us(jit_state_t*,int32_t,int32_t);
 #  if __WORDSIZE == 32
-#    define htonr_ui(r0,r1)		movr(r0,r1)
+#    define bswapr_ui(r0,r1)		movr(r0,r1)
 #  else
-#    define htonr_ui(r0,r1)		extr_ui(r0,r1)
-#    define htonr_ul(r0,r1)		movr(r0,r1)
+#    define bswapr_ui(r0,r1)		extr_ui(r0,r1)
+#    define bswapr_ul(r0,r1)		movr(r0,r1)
 #    define extr_i(r0,r1)		_extr_i(_jit,r0,r1)
 static void _extr_i(jit_state_t*,int32_t,int32_t);
 #    define extr_ui(r0,r1)		_extr_ui(_jit,r0,r1)

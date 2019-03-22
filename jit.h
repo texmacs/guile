@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -45,7 +45,23 @@ typedef void*		jit_addr_t;
 typedef ptrdiff_t	jit_off_t;
 typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
-typedef struct jit_reloc *jit_reloc_t;
+
+enum jit_reloc_kind
+{
+  JIT_RELOC_ABSOLUTE,
+  JIT_RELOC_REL8,
+  JIT_RELOC_REL16,
+  JIT_RELOC_REL32,
+  JIT_RELOC_REL64,
+};
+
+typedef struct jit_reloc
+{
+  uint8_t kind;
+  uint8_t inst_start_offset;
+  uint16_t flags;
+  uint32_t offset;
+} jit_reloc_t;
 
 #if defined(__GNUC__) && (__GNUC__ >= 4)
 #  define JIT_API		extern __attribute__ ((__visibility__("hidden")))
@@ -91,17 +107,32 @@ typedef struct jit_reloc *jit_reloc_t;
 #define jit_regno(reg)		((reg) & 0x00007fff)
 
 typedef struct jit_state	jit_state_t;
-enum jit_arg_kind
+enum jit_arg_loc
 {
-  JIT_CALL_ARG_IMM,
-  JIT_CALL_ARG_GPR,
-  JIT_CALL_ARG_FPR,
-  JIT_CALL_ARG_MEM
+  JIT_ARG_LOC_IMM,
+  JIT_ARG_LOC_GPR,
+  JIT_ARG_LOC_FPR,
+  JIT_ARG_LOC_MEM
 };
+
+typedef enum jit_arg_abi
+{
+  JIT_ARG_ABI_UINT8,
+  JIT_ARG_ABI_INT8,
+  JIT_ARG_ABI_UINT16,
+  JIT_ARG_ABI_INT16,
+  JIT_ARG_ABI_UINT32,
+  JIT_ARG_ABI_INT32,
+  JIT_ARG_ABI_UINT64,
+  JIT_ARG_ABI_INT64,
+  JIT_ARG_ABI_POINTER,
+  JIT_ARG_ABI_FLOAT,
+  JIT_ARG_ABI_DOUBLE
+} jit_arg_abi_t;
 
 typedef struct jit_arg
 {
-  enum jit_arg_kind kind;
+  enum jit_arg_loc kind;
   union
   {
     intptr_t imm;
@@ -111,28 +142,30 @@ typedef struct jit_arg
   } loc;
 } jit_arg_t;
 
-JIT_API void init_jit(void);
+JIT_API jit_bool_t init_jit(void);
 
 JIT_API jit_state_t *jit_new_state(void);
 JIT_API void jit_destroy_state(jit_state_t*);
 
-JIT_API void jit_begin(jit_state_t*, jit_addr_t, size_t);
+JIT_API void jit_begin(jit_state_t*, uint8_t*, size_t);
+JIT_API jit_bool_t jit_has_overflow(jit_state_t*);
 JIT_API void jit_reset(jit_state_t*);
-JIT_API jit_addr_t jit_end(jit_state_t*, size_t*);
+JIT_API void* jit_end(jit_state_t*, size_t*);
 
 JIT_API void jit_align(jit_state_t*, unsigned);
-JIT_API void jit_allocai(jit_state_t*, size_t);
-JIT_API void jit_allocar(jit_state_t*, jit_gpr_t, jit_gpr_t);
 
 JIT_API jit_pointer_t jit_address(jit_state_t*);
 JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
 JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,
-                      size_t argc, const jit_arg_t *argv);
+                       size_t argc, const jit_arg_abi_t abi[],
+                       const jit_arg_t args[]);
 JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
-                      size_t argc, const jit_arg_t *argv);
-JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
+                       size_t argc, const jit_arg_abi_t abi[],
+                       const jit_arg_t args[]);
+JIT_API void jit_receive(jit_state_t*, size_t argc,
+                         const jit_arg_abi_t abi[], jit_arg_t args[]);
 
 #define JIT_PROTO_0(stem, ret) \
   ret jit_##stem (jit_state_t* _jit)
@@ -164,8 +197,8 @@ JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
 #define JIT_PROTO__GGF_(stem) JIT_PROTO_3(stem, void, gpr, gpr, fpr)
 #define JIT_PROTO__GGGG(stem) JIT_PROTO_4(stem, void, gpr, gpr, gpr, gpr)
 #define JIT_PROTO__GGG_(stem) JIT_PROTO_3(stem, void, gpr, gpr, gpr)
-#define JIT_PROTO__GGGi(stem) JIT_PROTO_3(stem, void, gpr, gpr, imm)
-#define JIT_PROTO__GGGu(stem) JIT_PROTO_3(stem, void, gpr, gpr, uimm)
+#define JIT_PROTO__GGGi(stem) JIT_PROTO_4(stem, void, gpr, gpr, gpr, imm)
+#define JIT_PROTO__GGGu(stem) JIT_PROTO_4(stem, void, gpr, gpr, gpr, uimm)
 #define JIT_PROTO__GG__(stem) JIT_PROTO_2(stem, void, gpr, gpr)
 #define JIT_PROTO__GGi_(stem) JIT_PROTO_3(stem, void, gpr, gpr, imm)
 #define JIT_PROTO__GGo_(stem) JIT_PROTO_3(stem, void, gpr, gpr, off)
@@ -192,7 +225,7 @@ JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
           M(_GGi_, addxi)		\
           M(_GGG_, subr)		\
           M(_FFF_, subr_f)		\
-          M(_FFF_, subr_f)		\
+          M(_FFF_, subr_d)		\
           M(_GGi_, subi)		\
           M(_GGG_, subcr)		\
           M(_GGi_, subci)		\
@@ -388,6 +421,8 @@ JIT_API void jit_receive(jit_state_t*, size_t argc, jit_arg_t *argv);
           M(RGG__, bxsubr_u)		\
           M(RGu__, bxsubi_u)		\
   					\
+          M(_i___, nop)			\
+                                        \
           M(_G___, jmpr)		\
           M(_p___, jmpi)		\
           M(R____, jmp)			\

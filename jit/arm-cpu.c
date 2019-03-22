@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2017, 2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -1092,13 +1092,13 @@ static void _stxr_i(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  define stxi_i(r0,r1,i0)		_stxi_i(_jit,r0,r1,i0)
 static void _stxi_i(jit_state_t*,jit_word_t,int32_t,int32_t);
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-#  define htonr_us(r0,r1)		_htonr_us(_jit,r0,r1)
-static void _htonr_us(jit_state_t*,int32_t,int32_t);
-#  define htonr_ui(r0,r1)		_htonr_ui(_jit,r0,r1)
-static void _htonr_ui(jit_state_t*,int32_t,int32_t);
+#  define bswapr_us(r0,r1)		_bswapr_us(_jit,r0,r1)
+static void _bswapr_us(jit_state_t*,int32_t,int32_t);
+#  define bswapr_ui(r0,r1)		_bswapr_ui(_jit,r0,r1)
+static void _bswapr_ui(jit_state_t*,int32_t,int32_t);
 #  else
-#    define htonr_us(r0,r1)		extr_us(r0,r1)
-#    define htonr(r0,r1)		movr(r0,r1)
+#    define bswapr_us(r0,r1)		extr_us(r0,r1)
+#    define bswapr(r0,r1)		movr(r0,r1)
 #  endif
 #  define extr_c(r0,r1)			_extr_c(_jit,r0,r1)
 static void _extr_c(jit_state_t*,int32_t,int32_t);
@@ -3578,7 +3578,7 @@ _stxi_i(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
 static void
-_htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		t0;
     if (jit_thumb_p()) {
@@ -3607,7 +3607,7 @@ _htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 
 /* inline glibc htonl (without register clobber) */
 static void
-_htonr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		reg;
     if (jit_thumb_p()) {

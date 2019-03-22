@@ -1079,12 +1079,12 @@ static void _ori(jit_state_t*,int32_t,int32_t,jit_word_t);
 static void _xorr(jit_state_t*,int32_t,int32_t,int32_t);
 #  define xori(r0,r1,i0)		_xori(_jit,r0,r1,i0)
 static void _xori(jit_state_t*,int32_t,int32_t,jit_word_t);
-#  define htonr_us(r0,r1)		extr_us(r0,r1)
+#  define bswapr_us(r0,r1)		extr_us(r0,r1)
 #  if __WORDSIZE == 32
-#    define htonr_ui(r0,r1)		movr(r0,r1)
+#    define bswapr_ui(r0,r1)		movr(r0,r1)
 #  else
-#    define htonr_ui(r0,r1)		extr_ui(r0,r1)
-#    define htonr_ul(r0,r1)		movr(r0,r1)
+#    define bswapr_ui(r0,r1)		extr_ui(r0,r1)
+#    define bswapr, 2019_ul(r0,r1)		movr(r0,r1)
 #  endif
 #  define extr_c(r0,r1)			LGBR(r0,r1)
 #  define extr_uc(r0,r1)		LLGCR(r0,r1)

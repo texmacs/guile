@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2017  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2017, 2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -1308,15 +1308,15 @@ static void _movi(jit_state_t*,int32_t,jit_word_t);
 #define movi_p(r0,i0)			_movi_p(_jit,r0,i0)
 static jit_word_t _movi_p(jit_state_t*,int32_t,jit_word_t);
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#  define htonr_us(r0,r1)		_htonr_us(_jit,r0,r1)
-static void _htonr_us(jit_state_t*,int32_t,int32_t);
-#  define htonr_ui(r0,r1)		_htonr_ui(_jit,r0,r1)
-static void _htonr_ui(jit_state_t*,int32_t,int32_t);
-#  define htonr_ul(r0,r1)		MUX1(r0,r1,MUX_REV)
+#  define bswapr_us(r0,r1)		_bswapr_us(_jit,r0,r1)
+static void _bswapr_us(jit_state_t*,int32_t,int32_t);
+#  define bswapr_ui(r0,r1)		_bswapr_ui(_jit,r0,r1)
+static void _bswapr_ui(jit_state_t*,int32_t,int32_t);
+#  define bswapr_ul(r0,r1)		MUX1(r0,r1,MUX_REV)
 #else
-#  define htonr_us(r0,r1)		extr_us(r0,r1)
-#  define htonr_ui(r0,r1)		extr_ui(r0,r1)
-#  define htonr_ul(r0,r1)		movr(r0,r1)
+#  define bswapr_us(r0,r1)		extr_us(r0,r1)
+#  define bswapr_ui(r0,r1)		extr_ui(r0,r1)
+#  define bswapr_ul(r0,r1)		movr(r0,r1)
 #endif
 #define extr_c(r0,r1)			SXT1(r0,r1)
 #define extr_uc(r0,r1)			ZXT1(r0,r1)
@@ -3951,7 +3951,7 @@ _xori(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static void
-_htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		t0;
     t0 = jit_get_reg(jit_class_gpr);
@@ -3964,7 +3964,7 @@ _htonr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
-_htonr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
+_bswapr_ui(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
     int32_t		t0;
     int32_t		t1;
