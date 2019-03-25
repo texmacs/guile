@@ -1,9 +1,17 @@
-TESTS = addr
+TESTS = addr addi
 
 CC = gcc
 CFLAGS = -Wall -O0 -g
 
 all: $(addprefix test-,$(TESTS))
+
+check: all
+	@echo "Running unit tests..."
+	@set -e; for test in $(TESTS); do \
+	  echo "Testing: $$test"; \
+	  ./test-$$test; \
+	done
+	@echo "Success."
 
 jit.o: ../jit.h ../jit/*.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -flto -I.. -o jit.o -c ../jit/jit.c

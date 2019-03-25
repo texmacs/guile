@@ -1,3 +1,5 @@
 *.o
 +*
 /lightning.info
+/tests/test-addr
+/tests/test-addi
