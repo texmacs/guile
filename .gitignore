@@ -3,3 +3,6 @@
 /lightning.info
 /tests/test-addr
 /tests/test-addi
+/tests/test-addr_d
+/tests/test-addr_f
+/tests/test-addx

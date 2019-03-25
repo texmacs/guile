@@ -1,4 +1,4 @@
-TESTS = addr addi
+TESTS=$(sort $(patsubst test-%.c,%,$(wildcard test-*.c)))
 
 CC = gcc
 CFLAGS = -Wall -O0 -g

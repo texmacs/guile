@@ -127,7 +127,8 @@ typedef enum jit_arg_abi
   JIT_ARG_ABI_INT64,
   JIT_ARG_ABI_POINTER,
   JIT_ARG_ABI_FLOAT,
-  JIT_ARG_ABI_DOUBLE
+  JIT_ARG_ABI_DOUBLE,
+  JIT_ARG_ABI_INTMAX = CHOOSE_32_64(JIT_ARG_ABI_INT32, JIT_ARG_ABI_INT64)
 } jit_arg_abi_t;
 
 typedef struct jit_arg
@@ -141,6 +142,12 @@ typedef struct jit_arg
     struct { jit_gpr_t base; ptrdiff_t offset; } mem;
   } loc;
 } jit_arg_t;
+
+typedef union jit_anyreg
+{
+  jit_gpr_t gpr;
+  jit_fpr_t fpr;
+} jit_anyreg_t;
 
 JIT_API jit_bool_t init_jit(void);
 
@@ -166,6 +173,9 @@ JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
                        const jit_arg_t args[]);
 JIT_API void jit_receive(jit_state_t*, size_t argc,
                          const jit_arg_abi_t abi[], jit_arg_t args[]);
+JIT_API void jit_load_args(jit_state_t *_jit, size_t argc,
+                           const jit_arg_abi_t abi[], jit_arg_t args[],
+                           const jit_anyreg_t regs[]);
 
 #define JIT_PROTO_0(stem, ret) \
   ret jit_##stem (jit_state_t* _jit)
