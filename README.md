@@ -27,3 +27,11 @@ the registers that we would like to have.
 Guile needs a simple, light-weight code generation library.  The GNU
 Lightning architecture-specific backends provide the bulk of this
 functionality, and Lightening wraps it all in a lightweight API.
+
+## Status
+
+Only the x86-64 port is currently usable.  I plan to re-enable 32-bit
+x86 shortly, and then work on 32-bit and 64-bit ARM.  Other
+architectures may come with time, but help is very much appreciated
+there.  The test suite is still in progress but will be fairly
+comprehensive in terms of API surface.
