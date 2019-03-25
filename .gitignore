@@ -6,3 +6,10 @@
 /tests/test-addr_d
 /tests/test-addr_f
 /tests/test-addx
+/tests/test-mulr
+/tests/test-mulr_d
+/tests/test-mulr_f
+/tests/test-subr
+/tests/test-subr_d
+/tests/test-subr_f
+/tests/test-subx
