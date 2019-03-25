@@ -15,3 +15,5 @@
 /tests/test-subx
 /tests/test-qmulr
 /tests/test-qmulr_u
+/tests/test-divr
+/tests/test-divr_u
