@@ -29,3 +29,9 @@
 /tests/test-orr
 /tests/test-xori
 /tests/test-xorr
+/tests/test-lshi
+/tests/test-lshr
+/tests/test-rshi
+/tests/test-rshr
+/tests/test-rshr_u
+/tests/test-rshi_u
