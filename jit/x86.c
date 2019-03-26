@@ -483,6 +483,7 @@ jit_load_args(jit_state_t *_jit, size_t argc,
             args[i].loc.gpr = reg.gpr;
           }
       }
+      break;
     case JIT_ARG_LOC_FPR:
       {
         if (arg.loc.fpr != reg.fpr)
@@ -508,6 +509,7 @@ jit_load_args(jit_state_t *_jit, size_t argc,
             args[i].loc.fpr = reg.fpr;
           }
       }
+      break;
     case JIT_ARG_LOC_MEM:
       /* Load spilled arguments once we're done with registers.  */
       break;
