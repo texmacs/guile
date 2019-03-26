@@ -923,7 +923,7 @@ stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
     str_d(_jit, rn(reg), r1);
 #else
     movi(_jit, rn(reg), i0);
-    stxr_f(_jit, rn(reg), r0, r1);
+    stxr_d(_jit, rn(reg), r0, r1);
 #endif
     unget_temp_gpr(_jit);
   }
