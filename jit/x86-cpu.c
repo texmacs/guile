@@ -401,7 +401,7 @@ mov_addr(jit_state_t *_jit, int32_t r0)
   rex(_jit, 0, WIDE, _NOREG, _NOREG, r0);
   ic(_jit, 0xb8 | r7(r0));
   ptrdiff_t inst_start = _jit->pc.uc - pc_start;
-  return jit_reloc(_jit, JIT_RELOC_ABSOLUTE, inst_start, 0, 0);
+  return jit_reloc(_jit, JIT_RELOC_ABSOLUTE, inst_start, 0);
 }
 
 static void
@@ -2253,7 +2253,7 @@ static jit_reloc_t
 jccs(jit_state_t *_jit, int32_t code)
 {
   ic(_jit, 0x70 | code);
-  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0, -_jit->pc.w);
+  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0);
 }
 
 static jit_reloc_t
@@ -2261,7 +2261,7 @@ jcc(jit_state_t *_jit, int32_t code)
 {
   ic(_jit, 0x0f);
   ic(_jit, 0x80 | code);
-  return jit_reloc(_jit, JIT_RELOC_REL32, 2, 0, -_jit->pc.w);
+  return jit_reloc(_jit, JIT_RELOC_REL32, 2, 0);
 }
 
 #define DEFINE_JUMPS(cc, CC, code)                                      \
@@ -2673,14 +2673,14 @@ static jit_reloc_t
 jmp(jit_state_t *_jit)
 {
   ic(_jit, 0xe9);
-  return jit_reloc(_jit, JIT_RELOC_REL32, 1, 0, -_jit->pc.w);
+  return jit_reloc(_jit, JIT_RELOC_REL32, 1, 0);
 }
 
 static jit_reloc_t
 jmpsi(jit_state_t *_jit)
 {
   ic(_jit, 0xeb);
-  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0, -_jit->pc.w);
+  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0);
 }
 
 static void

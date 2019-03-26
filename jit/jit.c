@@ -300,7 +300,7 @@ static inline void emit_u64(jit_state_t *_jit, uint64_t u64) {
 
 static inline jit_reloc_t
 jit_reloc (jit_state_t *_jit, enum jit_reloc_kind kind,
-           uint8_t inst_start_offset, uint16_t flags, intptr_t addend)
+           uint8_t inst_start_offset, uint16_t flags)
 {
   jit_reloc_t ret;
 
@@ -313,24 +313,21 @@ jit_reloc (jit_state_t *_jit, enum jit_reloc_kind kind,
     {
     case JIT_RELOC_ABSOLUTE:
       if (sizeof(intptr_t) == 4)
-        emit_u32 (_jit, addend);
+        emit_u32 (_jit, 0);
       else
-        emit_u64 (_jit, addend);
+        emit_u64 (_jit, 0);
       break;
     case JIT_RELOC_REL8:
-      ASSERT (INT8_MIN <= addend && addend <= INT8_MAX);
-      emit_u8 (_jit, addend - 1);
+      emit_u8 (_jit, 0);
       break;
     case JIT_RELOC_REL16:
-      ASSERT (INT16_MIN <= addend && addend <= INT16_MAX);
-      emit_u16 (_jit, addend - 2);
+      emit_u16 (_jit, 0);
       break;
     case JIT_RELOC_REL32:
-      ASSERT (INT32_MIN <= addend && addend <= INT32_MAX);
-      emit_u32 (_jit, addend - 4);
+      emit_u32 (_jit, 0);
       break;
     case JIT_RELOC_REL64:
-      emit_u64 (_jit, addend - 8);
+      emit_u64 (_jit, 0);
       break;
     default:
       abort ();
@@ -352,40 +349,41 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
     return;
   union jit_pc loc;
   loc.uc = _jit->start + reloc.offset;
-  ptrdiff_t diff = addr - ((void*) 0);
+  ptrdiff_t diff;
 
   switch (reloc.kind)
     {
     case JIT_RELOC_ABSOLUTE:
       if (sizeof(diff) == 4)
-        *loc.ui = diff + (int32_t)*loc.ui;
+        *loc.ui = (uintptr_t)addr;
       else
-        *loc.ul = diff + (int64_t)*loc.ul;
+        *loc.ul = (uintptr_t)addr;
       if (loc.uc + sizeof(diff) == _jit->pc.uc &&
           (reloc.flags & JIT_RELOC_CAN_SHORTEN))
         jit_try_shorten (_jit, reloc);
       break;
     case JIT_RELOC_REL8:
-      diff += (int8_t)*loc.uc;
+      diff = ((uint8_t*)addr) - (loc.uc + 1);
       ASSERT (INT8_MIN <= diff && diff <= INT8_MAX);
       *loc.uc = diff;
       break;
     case JIT_RELOC_REL16:
-      diff += (int16_t)*loc.us;
+      diff = ((uint8_t*)addr) - (loc.uc + 2);
       ASSERT (INT16_MIN <= diff && diff <= INT16_MAX);
       *loc.us = diff;
       if ((loc.uc + 1) == _jit->pc.uc && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
         jit_try_shorten (_jit, reloc);
       break;
     case JIT_RELOC_REL32:
-      diff += (int32_t)*loc.ui;
+      diff = ((uint8_t*)addr) - (loc.uc + 4);
       ASSERT (INT32_MIN <= diff && diff <= INT32_MAX);
       *loc.ui = diff;
       if ((loc.ui + 1) == _jit->pc.ui && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
         jit_try_shorten (_jit, reloc);
       break;
     case JIT_RELOC_REL64:
-      *loc.ul = diff + (int64_t)*loc.ul;
+      diff = ((uint8_t*)addr) - (loc.uc + 8);
+      *loc.ul = diff;
       if ((loc.ul + 1) == _jit->pc.ul && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
         jit_try_shorten (_jit, reloc);
       break;
