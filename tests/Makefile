@@ -14,10 +14,10 @@ check: all
 	@echo "Success."
 
 jit.o: ../jit.h ../jit/*.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -flto -I.. -o jit.o -c ../jit/jit.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o jit.o -c ../jit/jit.c
 
 test-%: %.c jit.o test.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -flto -I.. -o $@ jit.o $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ jit.o $<
 
 clean:
 	rm -f $(addprefix test-,$(TESTS))

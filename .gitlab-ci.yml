@@ -3,17 +3,6 @@
 # see https://hub.docker.com/_/gcc/
 image: gcc
 
-build:
-  stage: build
-  before_script: 
-    - apt update && apt -y install make
-  script: 
-    - make -C tests
-  cache:
-    paths:
-      - "tests/*.o"
-      - "tests/test-*"
-
 test:
   stage: test
   script:
