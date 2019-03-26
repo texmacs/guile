@@ -21,3 +21,5 @@
 /tests/test-divr_f
 /tests/test-qdivr
 /tests/test-qdivr_u
+/tests/test-remr
+/tests/test-remr_u
