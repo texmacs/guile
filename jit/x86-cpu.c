@@ -2638,17 +2638,18 @@ callr(jit_state_t *_jit, int32_t r0)
 static void
 calli(jit_state_t *_jit, jit_word_t i0)
 {
-  if (__X64)
+  ptrdiff_t rel32 = i0 - (_jit->pc.w + 4);
+  if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
+    {
+      ic(_jit, 0xe8);
+      ii(_jit, rel32);
+    }
+  else
     {
       int32_t reg = get_temp_gpr(_jit);
       jit_patch_there(_jit, mov_addr(_jit, rn(reg)), (void*)i0);
       callr(_jit, rn(reg));
       unget_temp_gpr(_jit);
-    }
-  else
-    {
-      ic(_jit, 0xe8);
-      ii(_jit, i0 - (_jit->pc.w + 4));
     }
 }
 
@@ -2663,10 +2664,19 @@ jmpr(jit_state_t *_jit, int32_t r0)
 static void
 jmpi(jit_state_t *_jit, jit_word_t i0)
 {
-  jit_word_t            w;
-  ic(_jit, 0xe9);
-  w = i0 - (_jit->pc.w + 4);
-  ii(_jit, w);
+  ptrdiff_t rel32 = i0 - (_jit->pc.w + 4);
+  if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
+    {
+      ic(_jit, 0xe9);
+      ii(_jit, rel32);
+    }
+  else
+    {
+      int32_t reg = get_temp_gpr(_jit);
+      jit_patch_there(_jit, mov_addr(_jit, rn(reg)), (void*)i0);
+      jmpr(_jit, rn(reg));
+      unget_temp_gpr(_jit);
+    }
 }
 
 static jit_reloc_t
