@@ -23,3 +23,9 @@
 /tests/test-qdivr_u
 /tests/test-remr
 /tests/test-remr_u
+/tests/test-andi
+/tests/test-andr
+/tests/test-ori
+/tests/test-orr
+/tests/test-xori
+/tests/test-xorr
