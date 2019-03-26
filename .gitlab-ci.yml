@@ -1,0 +1,20 @@
+# use the official gcc image, based on debian
+# can use verions as well, like gcc:5.2
+# see https://hub.docker.com/_/gcc/
+image: gcc
+
+build:
+  stage: build
+  before_script: 
+    - apt update && apt -y install make
+  script: 
+    - make -C tests
+  cache:
+    paths:
+      - "tests/*.o"
+      - "tests/test-*"
+
+test:
+  stage: test
+  script:
+    - make -C tests check
