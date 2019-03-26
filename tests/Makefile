@@ -1,4 +1,4 @@
-TESTS=$(sort $(patsubst test-%.c,%,$(wildcard test-*.c)))
+TESTS=$(sort $(basename $(wildcard *.c)))
 
 CC = gcc
 CFLAGS = -Wall -O0 -g
@@ -16,7 +16,7 @@ check: all
 jit.o: ../jit.h ../jit/*.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -flto -I.. -o jit.o -c ../jit/jit.c
 
-test-%: test-%.c jit.o test.h
+test-%: %.c jit.o test.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -flto -I.. -o $@ jit.o $<
 
 clean:
