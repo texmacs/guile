@@ -17,3 +17,7 @@
 /tests/test-qmulr_u
 /tests/test-divr
 /tests/test-divr_u
+/tests/test-divr_d
+/tests/test-divr_f
+/tests/test-qdivr
+/tests/test-qdivr_u
