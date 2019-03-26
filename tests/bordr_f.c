@@ -12,23 +12,23 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   jit_receive(j, 2, abi, args);
   jit_load_args(j, 2, abi, args, regs);
 
-  jit_reloc_t r = jit_bner_f(j, JIT_F0, JIT_F1);
+  jit_reloc_t r = jit_bordr_f(j, JIT_F0, JIT_F1);
   jit_reti(j, 0);
   jit_patch_here(j, r);
   jit_reti(j, 1);
 
   intmax_t (*f)(float, float) = jit_end(j, NULL);
 
-  ASSERT(f(0, 0) == 0);
+  ASSERT(f(0, 0) == 1);
   ASSERT(f(0, 1) == 1);
   ASSERT(f(1, 0) == 1);
   ASSERT(f(-1, 0) == 1);
   ASSERT(f(0, -1) == 1);
-  ASSERT(f(1, 1) == 0);
+  ASSERT(f(1, 1) == 1);
 
-  ASSERT(f(0, 0.0/0.0) == 1);
-  ASSERT(f(0.0/0.0, 0) == 1);
-  ASSERT(f(0.0/0.0, 0.0/0.0) == 1);
+  ASSERT(f(0, 0.0/0.0) == 0);
+  ASSERT(f(0.0/0.0, 0) == 0);
+  ASSERT(f(0.0/0.0, 0.0/0.0) == 0);
 }
 
 int
