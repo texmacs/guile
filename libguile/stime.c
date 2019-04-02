@@ -340,10 +340,11 @@ setzone (SCM zone, int pos, const char *subr)
   if (!SCM_UNBNDP (zone))
     {
       static char *tmpenv[2];
+      char dummy_buf[1];
       char *buf;
       size_t zone_len;
       
-      zone_len = scm_to_locale_stringbuf (zone, NULL, 0);
+      zone_len = scm_to_locale_stringbuf (zone, dummy_buf, 0);
       buf = scm_malloc (zone_len + sizeof (tzvar) + 1);
       strcpy (buf, tzvar);
       buf[sizeof(tzvar)-1] = '=';
