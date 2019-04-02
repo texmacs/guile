@@ -1,6 +1,4 @@
-/* srfi-14.c --- SRFI-14 procedures for Guile
-
-   Copyright 2001,2004,2006-2007,2009,2011,2018
+/* Copyright 2001,2004,2006-2007,2009,2011,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -376,6 +374,12 @@ charsets_equal (scm_t_char_set *a, scm_t_char_set *b)
 {
   if (a->len != b->len)
     return 0;
+
+  /* Empty charsets may have ranges == NULL.  We must avoid passing
+     NULL to memcmp, even if the length is zero, to avoid undefined
+     behavior. */
+  if (a->len == 0)
+    return 1;
 
   if (memcmp (a->ranges, b->ranges, sizeof (scm_t_char_range) * a->len) != 0)
     return 0;

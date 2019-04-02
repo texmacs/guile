@@ -1,4 +1,4 @@
-/* Copyright 2009-2015,2018
+/* Copyright 2009-2015,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -671,7 +671,11 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
     SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
   ret = make_bytevector (byte_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);
+  if (byte_len != 0)
+    /* Empty arrays may have elements == NULL.  We must avoid passing
+       NULL to memcpy, even if the length is zero, to avoid undefined
+       behavior. */
+    memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);
 
   scm_array_handle_release (&h);
 

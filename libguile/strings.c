@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,1998,2000-2001,2004,2006,2008-2016,2018
+/* Copyright 1995-1996,1998,2000-2001,2004,2006,2008-2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -2288,13 +2288,18 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 size_t
 scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
 {
-  size_t len;
+  size_t len, copy_len;
   char *result = NULL;
   if (!scm_is_string (str))
     scm_wrong_type_arg_msg (NULL, 0, str, "string");
   result = scm_to_locale_stringn (str, &len);
 
-  memcpy (buf, result, (len > max_len) ? max_len : len);
+  copy_len = (len > max_len) ? max_len : len;
+  if (copy_len != 0)
+    /* Some users of 'scm_to_locale_stringbuf' may pass NULL for buf
+       when max_len is zero, and yet we must avoid passing NULL to
+       memcpy to avoid undefined behavior. */
+    memcpy (buf, result, copy_len);
   free (result);
 
   scm_remember_upto_here_1 (str);
