@@ -735,6 +735,22 @@ prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
     }
 }
 
+static void
+cleanup_stack_after_call(jit_state_t *_jit, size_t argc,
+                         const jit_arg_abi_t abi[])
+{
+  jit_arg_t scratch;
+  struct abi_arg_iterator iter;
+
+  // Compute stack arg size.
+  reset_abi_arg_iterator(&iter, argc, abi);
+  for (size_t i = 0; i < argc; i++)
+    next_abi_arg(&iter, &scratch);
+
+  if (iter.stack_size)
+    jit_addi(_jit, JIT_SP, JIT_SP, iter.stack_size);
+}
+
 void
 jit_calli(jit_state_t *_jit, jit_pointer_t f,
           size_t argc, const jit_arg_abi_t abi[], jit_arg_t args[])
@@ -742,6 +758,8 @@ jit_calli(jit_state_t *_jit, jit_pointer_t f,
   prepare_args(_jit, argc, abi, args);
 
   calli(_jit, (jit_word_t)f);
+
+  cleanup_stack_after_call(_jit, argc, abi);
 }
 
 void
@@ -751,6 +769,8 @@ jit_callr(jit_state_t *_jit, jit_gpr_t f,
   prepare_args(_jit, argc, abi, args);
 
   callr(_jit, rn(f));
+
+  cleanup_stack_after_call(_jit, argc, abi);
 }
 
 void

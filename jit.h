@@ -170,7 +170,7 @@ JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
 /* Note that all functions that take jit_arg_t args[] use the args as scratch
-   space.  */
+   space while shuffling values into position.  */
 JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,
                        size_t argc, const jit_arg_abi_t abi[],
                        jit_arg_t args[]);
