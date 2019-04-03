@@ -3,7 +3,7 @@ dnl   Process this file with autoconf to produce configure.
 dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
-Copyright 1998-2018 Free Software Foundation, Inc.
+Copyright 1998-2019 Free Software Foundation, Inc.
 
 This file is part of Guile.
 
@@ -1309,8 +1309,7 @@ case "$GCC" in
     ## <http://lists.gnu.org/archive/html/guile-devel/2012-01/msg00487.html>.
 
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
-      -Wdeclaration-after-statement -Wpointer-arith \
-      -fno-strict-aliasing -fwrapv"
+      -Wpointer-arith -fno-strict-aliasing -fwrapv"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes
