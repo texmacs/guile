@@ -172,7 +172,7 @@ movr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 static void
 pushr_d(jit_state_t *_jit, int32_t r0)
 {
-  int32_t tmp = get_temp_gpr(_jit);
+  jit_gpr_t tmp = get_temp_gpr(_jit);
   movdqxr(_jit, rn(tmp), r0);
   pushr(_jit, rn(tmp));
   unget_temp_gpr(_jit);
@@ -187,13 +187,13 @@ popr_d(jit_state_t *_jit, int32_t r0)
   unget_temp_gpr(_jit);
 }
 
-static int32_t
+static jit_fpr_t
 get_temp_xpr(jit_state_t *_jit)
 {
   /* Reserve XMM7 for the JIT.  */
   ASSERT(!_jit->temp_fpr_saved);
   _jit->temp_fpr_saved = 1;
-  return _XMM7_REGNO;
+  return _XMM7;
 }
 
 static void

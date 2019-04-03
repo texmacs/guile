@@ -265,16 +265,16 @@ popr(jit_state_t *_jit, int32_t r0)
   ic(_jit, 0x58 | r7(r0));
 }
 
-static int32_t
+static jit_gpr_t
 get_temp_gpr(jit_state_t *_jit)
 {
   ASSERT(!_jit->temp_gpr_saved);
   _jit->temp_gpr_saved = 1;
 #if __X32
   pushr(_jit, _RBP_REGNO);
-  return _RBP_REGNO;
+  return _RBP;
 #else
-  return _R8_REGNO;
+  return _R8;
 #endif
 }
 
