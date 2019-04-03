@@ -1,4 +1,4 @@
-/* Copyright 2018
+/* Copyright 2018, 2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-#include <lightning.h>
+#include <lightening.h>
 
 #include "frames.h"
 #include "gsubr.h"

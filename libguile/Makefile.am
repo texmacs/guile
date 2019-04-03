@@ -21,9 +21,9 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 include $(top_srcdir)/am/snarf
-include $(top_srcdir)/libguile/lightning/lightning.am
+include $(top_srcdir)/libguile/lightening/lightening.am
 
-AUTOMAKE_OPTIONS = gnu subdir-objects
+AUTOMAKE_OPTIONS = gnu
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@
@@ -41,7 +41,7 @@ AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      $(LIBFFI_CFLAGS)
 
 if ENABLE_JIT
-AM_CPPFLAGS += -I$(top_srcdir)/libguile/lightning
+AM_CPPFLAGS += -I$(top_srcdir)/libguile/lightening
 endif
 
 AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
@@ -238,7 +238,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	weak-vector.c
 
 if ENABLE_JIT
-libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES += $(lightning_c_files)
+libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES += $(lightening_c_files)
 endif
 
 DOT_X_FILES =					\
@@ -728,7 +728,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads				\
     c-tokenize.lex							\
     scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map	\
     vm-operations.h libguile-2.2-gdb.scm				\
-    $(lightning_c_files) $(lightning_extra_files)
+    $(lightening_c_files) $(lightening_extra_files)
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
