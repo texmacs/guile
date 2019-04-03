@@ -1,5 +1,5 @@
 #
-# Copyright 2000, 2001, 2002, 2012-2018 Free Software Foundation, Inc.
+# Copyright 2000, 2001, 2002, 2012-2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU lightning.
 #
@@ -16,78 +16,63 @@
 
 lightning = $(top_srcdir)/libguile/lightning
 
-lightning_c_files = 				\
-	$(lightning)/lib/jit_memory.c		\
-	$(lightning)/lib/jit_note.c		\
-	$(lightning)/lib/jit_print.c		\
-	$(lightning)/lib/jit_size.c		\
-	$(lightning)/lib/lightning.c
+lightning_c_files = 					\
+	$(lightning)/jit/jit.c
 
 lightning_extra_files =					\
 	$(lightning)/AUTHORS				\
 	$(lightning)/ChangeLog				\
+	$(lightning)/ChangeLog.lightning		\
 	$(lightning)/COPYING				\
+	$(lightning)/COPYING.DOC			\
 	$(lightning)/COPYING.LESSER			\
 	$(lightning)/lightning.am			\
+	$(lightning)/lightning.texi			\
 	$(lightning)/NEWS				\
-	$(lightning)/README				\
+	$(lightning)/README.md				\
 	$(lightning)/THANKS				\
-	$(lightning)/TODO				\
 							\
-	$(lightning)/include/lightning.h		\
-	$(lightning)/include/lightning/jit_private.h 	\
-	$(lightning)/include/lightning/jit_arm.h	\
-	$(lightning)/include/lightning/jit_mips.h	\
-	$(lightning)/include/lightning/jit_ppc.h	\
-	$(lightning)/include/lightning/jit_sparc.h	\
-	$(lightning)/include/lightning/jit_x86.h	\
-	$(lightning)/include/lightning/jit_ia64.h	\
-	$(lightning)/include/lightning/jit_hppa.h	\
-	$(lightning)/include/lightning/jit_aarch64.h	\
-	$(lightning)/include/lightning/jit_s390.h	\
-	$(lightning)/include/lightning/jit_alpha.h	\
+	$(lightning)/jit.h				\
 							\
-	$(lightning)/lib/jit_names.c			\
-	$(lightning)/lib/jit_rewind.c			\
-	$(lightning)/lib/jit_aarch64.c			\
-	$(lightning)/lib/jit_aarch64-cpu.c		\
-	$(lightning)/lib/jit_aarch64-fpu.c		\
-	$(lightning)/lib/jit_aarch64-sz.c		\
-	$(lightning)/lib/jit_alpha.c			\
-	$(lightning)/lib/jit_alpha-cpu.c		\
-	$(lightning)/lib/jit_alpha-fpu.c		\
-	$(lightning)/lib/jit_alpha-sz.c			\
-	$(lightning)/lib/jit_arm.c			\
-	$(lightning)/lib/jit_arm-cpu.c			\
-	$(lightning)/lib/jit_arm-swf.c			\
-	$(lightning)/lib/jit_arm-vfp.c			\
-	$(lightning)/lib/jit_arm-sz.c			\
-	$(lightning)/lib/jit_hppa.c			\
-	$(lightning)/lib/jit_hppa-cpu.c			\
-	$(lightning)/lib/jit_hppa-fpu.c			\
-	$(lightning)/lib/jit_hppa-sz.c			\
-	$(lightning)/lib/jit_ia64.c			\
-	$(lightning)/lib/jit_ia64-cpu.c			\
-	$(lightning)/lib/jit_ia64-fpu.c			\
-	$(lightning)/lib/jit_ia64-sz.c			\
-	$(lightning)/lib/jit_mips.c			\
-	$(lightning)/lib/jit_mips-cpu.c			\
-	$(lightning)/lib/jit_mips-fpu.c			\
-	$(lightning)/lib/jit_mips-sz.c			\
-	$(lightning)/lib/jit_ppc.c			\
-	$(lightning)/lib/jit_ppc-cpu.c			\
-	$(lightning)/lib/jit_ppc-fpu.c			\
-	$(lightning)/lib/jit_ppc-sz.c			\
-	$(lightning)/lib/jit_s390.c			\
-	$(lightning)/lib/jit_s390-cpu.c			\
-	$(lightning)/lib/jit_s390-fpu.c			\
-	$(lightning)/lib/jit_s390-sz.c			\
-	$(lightning)/lib/jit_sparc.c			\
-	$(lightning)/lib/jit_sparc-cpu.c		\
-	$(lightning)/lib/jit_sparc-fpu.c		\
-	$(lightning)/lib/jit_sparc-sz.c			\
-	$(lightning)/lib/jit_x86.c			\
-	$(lightning)/lib/jit_x86-cpu.c			\
-	$(lightning)/lib/jit_x86-sse.c			\
-	$(lightning)/lib/jit_x86-x87.c			\
-	$(lightning)/lib/jit_x86-sz.c
+	$(lightning)/jit/arm.h				\
+	$(lightning)/jit/mips.h				\
+	$(lightning)/jit/ppc.h				\
+	$(lightning)/jit/sparc.h			\
+	$(lightning)/jit/x86.h				\
+	$(lightning)/jit/ia64.h				\
+	$(lightning)/jit/hppa.h				\
+	$(lightning)/jit/aarch64.h			\
+	$(lightning)/jit/s390.h				\
+	$(lightning)/jit/alpha.h			\
+							\
+	$(lightning)/jit/aarch64.c			\
+	$(lightning)/jit/aarch64-cpu.c			\
+	$(lightning)/jit/aarch64-fpu.c			\
+	$(lightning)/jit/alpha.c			\
+	$(lightning)/jit/alpha-cpu.c			\
+	$(lightning)/jit/alpha-fpu.c			\
+	$(lightning)/jit/arm.c				\
+	$(lightning)/jit/arm-cpu.c			\
+	$(lightning)/jit/arm-swf.c			\
+	$(lightning)/jit/arm-vfp.c			\
+	$(lightning)/jit/hppa.c				\
+	$(lightning)/jit/hppa-cpu.c			\
+	$(lightning)/jit/hppa-fpu.c			\
+	$(lightning)/jit/ia64.c				\
+	$(lightning)/jit/ia64-cpu.c			\
+	$(lightning)/jit/ia64-fpu.c			\
+	$(lightning)/jit/mips.c				\
+	$(lightning)/jit/mips-cpu.c			\
+	$(lightning)/jit/mips-fpu.c			\
+	$(lightning)/jit/ppc.c				\
+	$(lightning)/jit/ppc-cpu.c			\
+	$(lightning)/jit/ppc-fpu.c			\
+	$(lightning)/jit/s390.c				\
+	$(lightning)/jit/s390-cpu.c			\
+	$(lightning)/jit/s390-fpu.c			\
+	$(lightning)/jit/sparc.c			\
+	$(lightning)/jit/sparc-cpu.c			\
+	$(lightning)/jit/sparc-fpu.c			\
+	$(lightning)/jit/x86.c				\
+	$(lightning)/jit/x86-cpu.c			\
+	$(lightning)/jit/x86-sse.c

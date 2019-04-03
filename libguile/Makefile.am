@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 1998-2004, 2006-2014, 2016-2018
+##   Copyright (C) 1998-2004, 2006-2014, 2016-2019
 ##     Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
@@ -41,7 +41,7 @@ AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      $(LIBFFI_CFLAGS)
 
 if ENABLE_JIT
-AM_CPPFLAGS += -I$(top_srcdir)/libguile/lightning/include
+AM_CPPFLAGS += -I$(top_srcdir)/libguile/lightning
 endif
 
 AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
