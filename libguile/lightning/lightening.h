@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stddef.h>
 
-#include "jit/endian.h"
+#include "lightening/endian.h"
 
 CHOOSE_32_64(typedef int32_t jit_word_t,
              typedef int64_t jit_word_t);
@@ -74,25 +74,25 @@ typedef struct jit_reloc
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
-#  include "jit/x86.h"
+#  include "lightening/x86.h"
 #elif defined(__mips__)
-#  include "jit/mips.h"
+#  include "lightening/mips.h"
 #elif defined(__arm__)
-#  include "jit/arm.h"
+#  include "lightening/arm.h"
 #elif defined(__ppc__) || defined(__powerpc__)
-#  include "jit/ppc.h"
+#  include "lightening/ppc.h"
 #elif defined(__sparc__)
-#  include "jit/sparc.h"
+#  include "lightening/sparc.h"
 #elif defined(__ia64__)
-#  include "jit/ia64.h"
+#  include "lightening/ia64.h"
 #elif defined(__hppa__)
-#  include "jit/hppa.h"
+#  include "lightening/hppa.h"
 #elif defined(__aarch64__)
-#  include "jit/aarch64.h"
+#  include "lightening/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
-#  include "jit/s390.h"
+#  include "lightening/s390.h"
 #elif defined(__alpha__)
-#  include "jit/alpha.h"
+#  include "lightening/alpha.h"
 #endif
 
 #define JIT_R(index)		JIT_GPR(jit_r(index))

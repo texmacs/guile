@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-#include "../jit.h"
+#include "../lightening.h"
 
 #if defined(__GNUC__)
 # define maybe_unused           __attribute__ ((unused))

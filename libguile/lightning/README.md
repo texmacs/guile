@@ -6,8 +6,8 @@ Lightning, adapted to the purposes of the GNU Guile project.
 ## Use
 
 ```
-gcc -flto -O2 -g -o jit.o -c jit/jit.c
-gcc -flto -O2 -g -o my-program jit.o my-program.c
+gcc -flto -O2 -g -o lightening.o -c lightening/lightening.c
+gcc -flto -O2 -g -o my-program lightening.o my-program.c
 ```
 
 See the GNU Lightning manual for more on how to program against

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-#include <jit.h>
+#include <lightening.h>
 
 #define ASSERT(x) \
   do {                                                                  \
