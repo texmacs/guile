@@ -1,4 +1,4 @@
-/* Copyright 2018, 2019
+()/* Copyright 2018, 2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -161,6 +161,13 @@ struct code_arena
   struct code_arena *prev;
 };
 
+/* Branches between instructions.  */
+struct pending_reloc
+{
+  jit_reloc_t source;
+  const uint32_t *target;
+};
+
 /* State of the JIT compiler for the current thread.  */
 struct scm_jit_state {
   jit_state_t *jit;
@@ -170,9 +177,12 @@ struct scm_jit_state {
   uint32_t *next_ip;
   const uint32_t *end;
   uint32_t *entry;
-  jit_node_t *entry_label;
+  void *entry_mcode;
   uint8_t *op_attrs;
-  jit_node_t **labels;
+  struct pending_reloc *relocs;
+  size_t reloc_index;
+  size_t reloc_count;
+  void **labels;
   int32_t frame_size;
   uint32_t register_state;
   jit_gpr_t sp_cache_gpr;
@@ -183,26 +193,6 @@ struct scm_jit_state {
 };
 
 typedef struct scm_jit_state scm_jit_state;
-
-/* Lightning routines take an implicit parameter, _jit.  All functions
-   that call lightning API should have a parameter "scm_jit_state *j";
-   this definition makes lightning load its state from that
-   parameter.  */
-#define _jit (j->jit)
-
-/* From the Lightning documentation:
-
-     'frame' receives an integer argument that defines the size in bytes
-     for the stack frame of the current, 'C' callable, jit function.  To
-     calculate this value, a good formula is maximum number of arguments
-     to any called native function times eight, plus the sum of the
-     arguments to any call to 'jit_allocai'.  GNU lightning
-     automatically adjusts this value for any backend specific stack
-     memory it may need, or any alignment constraint.
-
-   Here we assume that we don't have intrinsics with more than 8
-   arguments.  */
-static const uint32_t entry_frame_size = 8 * 8;
 
 static const uint32_t program_word_offset_free_variable = 2;
 
@@ -428,32 +418,38 @@ set_sp_cache_fpr (scm_jit_state *j, uint32_t idx, jit_fpr_t r)
 static void
 emit_retval (scm_jit_state *j, jit_gpr_t r)
 {
-  jit_retval (r);
+  jit_retval (j->jit, r);
   record_gpr_clobber (j, r);
 }
 
 static void
 emit_retval_d (scm_jit_state *j, jit_fpr_t r)
 {
-  jit_retval_d (r);
+  jit_retval_d (j->jit, r);
   record_fpr_clobber (j, r);
 }
 
-static jit_node_t *
+static void
 emit_movi (scm_jit_state *j, jit_gpr_t r, jit_word_t i)
 {
-  jit_node_t *k = jit_movi (r, i);
+  jit_movi (j->jit, r, i);
   record_gpr_clobber (j, r);
-  return k;
+}
+
+static jit_reloc_t
+emit_mov_addr (scm_jit_state *j, jit_gpr_t r)
+{
+  record_gpr_clobber (j, r);
+  return jit_mov_addr (j->jit, r);
 }
 
 static void
 emit_ldxi (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t src, jit_word_t offset)
 {
   if (offset == 0)
-    jit_ldr (dst, src);
+    jit_ldr (j->jit, dst, src);
   else
-    jit_ldxi (dst, src, offset);
+    jit_ldxi (j->jit, dst, src, offset);
   record_gpr_clobber (j, dst);
 }
 
@@ -461,7 +457,7 @@ emit_ldxi (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t src, jit_word_t offset)
 static void                                                             \
 emit_##stem (scm_jit_state *j, jit_##typ##_t dst, jit_##typ##_t a)      \
 {                                                                       \
-  jit_##stem (dst, a);                                                  \
+  jit_##stem (j->jit, dst, a);                                          \
   record_##typ##_clobber (j, dst);                                      \
 }
 
@@ -469,7 +465,7 @@ emit_##stem (scm_jit_state *j, jit_##typ##_t dst, jit_##typ##_t a)      \
 static void                                                             \
 emit_##stem (scm_jit_state *j, jit_##typ##_t dst, jit_pointer_t a)      \
 {                                                                       \
-  jit_##stem (dst, a);                                                  \
+  jit_##stem (j->jit, dst, a);                                          \
   record_##typ##_clobber (j, dst);                                      \
 }
 
@@ -478,7 +474,7 @@ static void                                                             \
 emit_##stem (scm_jit_state *j, jit_##typ##_t dst,                       \
             jit_##typ##_t a, jit_word_t b)                              \
 {                                                                       \
-  jit_##stem (dst, a, b);                                               \
+  jit_##stem (j->jit, dst, a, b);                                       \
   record_##typ##_clobber (j, dst);                                      \
 }
 
@@ -487,7 +483,7 @@ static void                                                             \
 emit_##stem (scm_jit_state *j, jit_##typ##_t dst,                       \
             jit_##typ##_t a, jit_##typ##_t b)                           \
 {                                                                       \
-  jit_##stem (dst, a, b);                                               \
+  jit_##stem (j->jit, dst, a, b);                                       \
   record_##typ##_clobber (j, dst);                                      \
 }
 
@@ -552,7 +548,7 @@ static void
 emit_store_sp (scm_jit_state *j)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
-  jit_stxi (thread_offset_sp, THREAD, SP);
+  jit_stxi (j->jit, thread_offset_sp, THREAD, SP);
 }
 
 static void
@@ -566,7 +562,7 @@ static void
 emit_store_fp (scm_jit_state *j)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
-  jit_stxi (thread_offset_fp, THREAD, FP);
+  jit_stxi (j->jit, thread_offset_fp, THREAD, FP);
 }
 
 static uint32_t
@@ -597,13 +593,13 @@ emit_load_mra (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
   emit_ldxi (j, dst, fp, frame_offset_mra);
 }
 
-static jit_node_t *
+static jit_reloc_t
 emit_store_mra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
 {
-  jit_node_t *addr = emit_movi (j, t, 0); /* patched later */
+  jit_reloc_t reloc = emit_mov_addr (j, t);
   ASSERT (frame_offset_mra == 0);
-  jit_str (fp, t);
-  return addr;
+  jit_str (j->jit, fp, t);
+  return reloc;
 }
 
 static void
@@ -616,7 +612,7 @@ static void
 emit_store_vra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t, const uint32_t *vra)
 {
   emit_movi (j, t, (intptr_t) vra);
-  jit_stxi (frame_offset_vra, fp, t);
+  jit_stxi (j->jit, frame_offset_vra, fp, t);
 }
 
 static void
@@ -630,13 +626,13 @@ emit_store_prev_fp_offset (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t,
                            uint32_t n)
 {
   emit_movi (j, t, n);
-  jit_stxi (frame_offset_prev, fp, t);
+  jit_stxi (j->jit, frame_offset_prev, fp, t);
 }
 
 static void
 emit_store_ip (scm_jit_state *j, jit_gpr_t ip)
 {
-  jit_stxi (thread_offset_ip, THREAD, ip);
+  jit_stxi (j->jit, thread_offset_ip, THREAD, ip);
 }
 
 static void
@@ -670,46 +666,49 @@ emit_reset_frame (scm_jit_state *j, uint32_t nlocals)
 static void
 emit_call (scm_jit_state *j, void *f)
 {
-  jit_prepare ();
-  jit_finishi (f);
+  jit_calli (j->jit, f, 0, NULL, NULL);
   clear_scratch_register_state (j);
 }
 
 static void
 emit_call_r (scm_jit_state *j, void *f, jit_gpr_t a)
 {
-  jit_prepare ();
-  jit_pushargr (a);
-  jit_finishi (f);
+  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
+  const jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } } };
+    
+  jit_calli (j->jit, f, 1, abi, args);
   clear_scratch_register_state (j);
 }
 
 static void
 emit_call_i (scm_jit_state *j, void *f, intptr_t a)
 {
-  jit_prepare ();
-  jit_pushargi (a);
-  jit_finishi (f);
+  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
+  const jit_arg_t args[] = { { JIT_ARG_LOC_IMM, { .imm = a } } };
+    
+  jit_calli (j->jit, f, 1, abi, args);
   clear_scratch_register_state (j);
 }
 
 static void
 emit_call_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b)
 {
-  jit_prepare ();
-  jit_pushargr (a);
-  jit_pushargr (b);
-  jit_finishi (f);
+  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
+  const jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
+                             { JIT_ARG_LOC_GPR, { .gpr = b } } };
+    
+  jit_calli (j->jit, f, 2, abi, args);
   clear_scratch_register_state (j);
 }
 
 static void
 emit_call_r_i (scm_jit_state *j, void *f, jit_gpr_t a, intptr_t b)
 {
-  jit_prepare ();
-  jit_pushargr (a);
-  jit_pushargi ((intptr_t) b);
-  jit_finishi (f);
+  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_IMM };
+  const jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
+                             { JIT_ARG_LOC_IMM, { .imm = b } } };
+    
+  jit_calli (j->jit, f, 2, abi, args);
   clear_scratch_register_state (j);
 }
 
@@ -717,41 +716,43 @@ static void
 emit_call_r_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b,
                  jit_gpr_t c)
 {
-  jit_prepare ();
-  jit_pushargr (a);
-  jit_pushargr (b);
-  jit_pushargr (c);
-  jit_finishi (f);
+  const jit_arg_abi_t abi[] =
+    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
+  const jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
+                             { JIT_ARG_LOC_GPR, { .gpr = b } },
+                             { JIT_ARG_LOC_GPR, { .gpr = c } } };
+    
+  jit_calli (j->jit, f, 3, abi, args);
   clear_scratch_register_state (j);
 }
 
 static void
 emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 {
-  jit_node_t *k, *fast, *watermark;
+  jit_reloc_t k, fast, watermark;
   uint32_t saved_state = save_reloadable_register_state (j);
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   emit_ldxi (j, t, THREAD, thread_offset_sp_min_since_gc);
-  fast = jit_bger (SP, t);
+  fast = jit_bger (j->jit, SP, t);
   emit_ldxi (j, t, THREAD, thread_offset_stack_limit);
-  watermark = jit_bger (SP, t);
+  watermark = jit_bger (j->jit, SP, t);
 
   /* Slow case: call out to expand stack.  */
   emit_store_current_ip (j, t);
   emit_call_r_r (j, scm_vm_intrinsics.expand_stack, THREAD, SP);
   restore_reloadable_register_state (j, saved_state);
-  k = jit_jmpi ();
+  k = jit_jmp (j->jit);
 
   /* Past sp_min_since_gc, but within stack_limit: update watermark and
      fall through.  */
-  jit_patch (watermark);
-  jit_stxi (thread_offset_sp_min_since_gc, THREAD, SP);
-  jit_patch (fast);
+  jit_patch_here (j->jit, watermark);
+  jit_stxi (j->jit, thread_offset_sp_min_since_gc, THREAD, SP);
+  jit_patch_here (j->jit, fast);
   /* Fast case: Just update sp.  */
   emit_store_sp (j);
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
@@ -778,9 +779,9 @@ static void
 emit_get_vcode_low_byte (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t addr)
 {
   if (uint32_offset_low_byte == 0)
-    jit_ldr_uc (dst, addr);
+    jit_ldr_uc (j->jit, dst, addr);
   else
-    jit_ldxi_uc (dst, addr, uint32_offset_low_byte);
+    jit_ldxi_uc (j->jit, dst, addr, uint32_offset_low_byte);
   record_gpr_clobber (j, dst);
 }
 
@@ -789,7 +790,7 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
                            uint32_t offset)
 {
   uint32_t byte_offset = offset * sizeof (uint32_t);
-  jit_ldxi_i (dst, ip, byte_offset);
+  jit_ldxi_i (j->jit, dst, ip, byte_offset);
   record_gpr_clobber (j, dst);
   emit_lshi (j, dst, dst, 2); /* Multiply by sizeof (uint32_t) */
   emit_addr (j, dst, dst, ip);
@@ -798,45 +799,15 @@ emit_get_ip_relative_addr (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t ip,
 static void
 emit_exit (scm_jit_state *j)
 {
-  /* emit_exit drops back to the interpreter.  As such, it's always used
-     in a context like:
-
-        mcode = get_mcode
-        if mcode:
-           goto mcode
-        else
-           emit_exit
-
-     Likewise, this position is usually around calls or returns, where
-     SP and FP are both live.  However!  Lightning has a little register
-     allocator internally which it uses to get temporary registers.  It
-     tracks what registers are used, to avoid clobbering live registers.
-     Often the get_mcode operation looks like
-
-        jit_ldi (T0, code_loc)
-
-     But on many architectures, this requires a temporary, and because
-     Lightning doesn't see a use of SP or FP before the goto, it thinks
-     it can use these registers.
-
-     So, here we insert a bogus dependencies on SP and FP, on the exit
-     path.  On this path they aren't needed, but they should keep the
-     registers live up to the preceding branch, forcing the jit_ldi to
-     choose another temporary to use.  THREAD shouldn't need this
-     treatment as Lightning won't allocate a callee-save register as a
-     temporary, but who knows!
-  */
-  jit_xorr (FP, FP, FP);
-  jit_xorr (SP, SP, SP);
-  jit_patch_abs (jit_jmpi (), exit_mcode);
+  jit_jmpi (j->jit, exit_mcode);
 }
 
-static jit_node_t*
+static jit_reloc_t
 emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
                  const uint32_t *vra)
 {
   jit_gpr_t t = T0;
-  jit_node_t *continuation;
+  jit_reloc_t continuation;
 
   emit_reload_fp (j);
   emit_subtract_stack_slots (j, FP, FP, proc_slot);
@@ -853,23 +824,23 @@ emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
 static void
 emit_indirect_tail_call (scm_jit_state *j)
 {
-  jit_node_t *not_instrumented, *no_mcode;
+  jit_reloc_t not_instrumented, no_mcode;
 
   emit_get_callee_vcode (j, T0);
 
   /* FIXME: If all functions start with instrument-entry, no need for
      this check.  */
   emit_get_vcode_low_byte (j, T1, T0);
-  not_instrumented = jit_bnei (T1, scm_op_instrument_entry);
+  not_instrumented = jit_bnei (j->jit, T1, scm_op_instrument_entry);
 
   emit_get_ip_relative_addr (j, T1, T0, 1);
   emit_ldxi (j, T1, T1, 0);
-  no_mcode = jit_beqi (T1, 0);
+  no_mcode = jit_beqi (j->jit, T1, 0);
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
-  jit_jmpr (T1);
+  jit_jmpr (j->jit, T1);
 
-  jit_patch (not_instrumented);
-  jit_patch (no_mcode);
+  jit_patch_here (j->jit, not_instrumented);
+  jit_patch_here (j->jit, no_mcode);
 
   emit_store_ip (j, T0);
   emit_exit (j);
@@ -882,7 +853,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 
   if (vcode == j->start)
     {
-      jit_patch_at (jit_jmpi (), j->labels[0]);
+      jit_jmpi (j->jit, j->labels[0]);
     }
   else if ((vcode[0] & 0xff) != scm_op_instrument_entry)
     {
@@ -899,18 +870,18 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
         {
           /* FIXME: Jump indirectly, to allow mcode to be changed
              (e.g. to add/remove breakpoints or hooks).  */
-          jit_patch_abs (jit_jmpi (), data->mcode);
+          jit_jmpi (j->jit, data->mcode);
         }
       else
         {
-          jit_node_t *no_mcode;
+          jit_reloc_t no_mcode;
 
           /* No need to track clobbers.  */
-          jit_ldi (T0, &data->mcode);
-          no_mcode = jit_beqi (T0, 0);
-          jit_jmpr (T0);
-          jit_patch (no_mcode);
-          jit_movi (T0, (intptr_t) vcode);
+          jit_ldi (j->jit, T0, &data->mcode);
+          no_mcode = jit_beqi (j->jit, T0, 0);
+          jit_jmpr (j->jit, T0);
+          jit_patch_here (j->jit, no_mcode);
+          jit_movi (j->jit, T0, (intptr_t) vcode);
           emit_store_ip (j, T0);
           emit_exit (j);
         }
@@ -930,7 +901,7 @@ emit_fp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
-  jit_stxi (-8 * ((ptrdiff_t) slot + 1), FP, val);
+  jit_stxi (j->jit, -8 * ((ptrdiff_t) slot + 1), FP, val);
   clear_register_state (j, SP_CACHE_GPR);
 }
 
@@ -948,9 +919,9 @@ emit_sp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   if (slot == 0)
-    jit_str (SP, val);
+    jit_str (j->jit, SP, val);
   else
-    jit_stxi (8 * slot, SP, val);
+    jit_stxi (j->jit, 8 * slot, SP, val);
 
   set_sp_cache_gpr (j, slot, val);
 }
@@ -983,14 +954,14 @@ emit_sp_set_sz (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
       else
         lo = offset, hi = offset + 4;
       
-      jit_stxi (lo, SP, src);
+      jit_stxi (j->jit, lo, SP, src);
       /* Set high word to 0.  Clobber src.  */
       emit_xorr (j, src, src, src);
-      jit_stxi (hi, SP, src);
+      jit_stxi (j->jit, hi, SP, src);
     }
   else
     {
-      jit_stxi (offset, SP, src);
+      jit_stxi (j->jit, offset, SP, src);
       set_sp_cache_gpr (j, dst, src);
     }
 }
@@ -1014,9 +985,9 @@ emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   if (dst == 0)
-    jit_str (SP, src);
+    jit_str (j->jit, SP, src);
   else
-    jit_stxi (offset, SP, src);
+    jit_stxi (j->jit, offset, SP, src);
 
   set_sp_cache_gpr (j, dst, src);
 }
@@ -1081,10 +1052,10 @@ emit_sp_set_u64 (scm_jit_state *j, uint32_t dst, jit_gpr_t lo, jit_gpr_t hi)
 #endif
 
   if (offset == 0)
-    jit_str (SP, first);
+    jit_str (j->jit, SP, first);
   else
-    jit_stxi (offset, SP, first);
-  jit_stxi (offset + 4, SP, second);
+    jit_stxi (j->jit, offset, SP, first);
+  jit_stxi (j->jit, offset + 4, SP, second);
 
   clear_register_state (j, SP_CACHE_GPR);
 }
@@ -1127,9 +1098,9 @@ emit_sp_ref_f64 (scm_jit_state *j, jit_fpr_t dst, uint32_t src)
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   if (offset == 0)
-    jit_ldr_d (dst, SP);
+    jit_ldr_d (j->jit, dst, SP);
   else
-    jit_ldxi_d (dst, SP, offset);
+    jit_ldxi_d (j->jit, dst, SP, offset);
 
   record_fpr_clobber (j, dst);
 }
@@ -1142,9 +1113,9 @@ emit_sp_set_f64 (scm_jit_state *j, uint32_t dst, jit_fpr_t src)
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
   if (offset == 0)
-    jit_str_d (SP, src);
+    jit_str_d (j->jit, SP, src);
   else
-    jit_stxi_d (offset, SP, src);
+    jit_stxi_d (j->jit, offset, SP, src);
 
   set_sp_cache_fpr (j, dst, src);
 }
@@ -1165,8 +1136,8 @@ emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
       uintptr_t src_offset = src * sizeof (union scm_vm_stack_element);
       uintptr_t dst_offset = dst * sizeof (union scm_vm_stack_element);
 
-      jit_ldxi (t, SP, src_offset + sizeof (void*));
-      jit_stxi (dst_offset + sizeof (void*), SP, t);
+      jit_ldxi (j->jit, t, SP, src_offset + sizeof (void*));
+      jit_stxi (j->jit, dst_offset + sizeof (void*), SP, t);
 
       clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
     }
@@ -1176,44 +1147,44 @@ emit_mov (scm_jit_state *j, uint32_t dst, uint32_t src, jit_gpr_t t)
     clear_register_state (j, SP_CACHE_FPR);
 }
 
-static jit_node_t*
+static jit_reloc_t
 emit_branch_if_frame_locals_count_less_than (scm_jit_state *j, jit_gpr_t t,
                                              uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_subr (j, t, FP, SP);
-  return jit_blti (t, nlocals * sizeof (union scm_vm_stack_element));
+  return jit_blti (j->jit, t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
-static jit_node_t*
+static jit_reloc_t
 emit_branch_if_frame_locals_count_eq (scm_jit_state *j, jit_gpr_t t,
                                       uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_subr (j, t, FP, SP);
-  return jit_beqi (t, nlocals * sizeof (union scm_vm_stack_element));
+  return jit_beqi (j->jit, t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
-static jit_node_t*
+static jit_reloc_t
 emit_branch_if_frame_locals_count_not_eq (scm_jit_state *j, jit_gpr_t t,
                                           uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_subr (j, t, FP, SP);
-  return jit_bnei (t, nlocals * sizeof (union scm_vm_stack_element));
+  return jit_bnei (j->jit, t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
-static jit_node_t*
+static jit_reloc_t
 emit_branch_if_frame_locals_count_greater_than (scm_jit_state *j, jit_gpr_t t,
                                                 uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_subr (j, t, FP, SP);
-  return jit_bgti (t, nlocals * sizeof (union scm_vm_stack_element));
+  return jit_bgti (j->jit, t, nlocals * sizeof (union scm_vm_stack_element));
 }
 
 static void
@@ -1224,10 +1195,10 @@ emit_load_fp_slot (scm_jit_state *j, jit_gpr_t dst, uint32_t slot)
   emit_subi (j, dst, FP, (slot + 1) * sizeof (union scm_vm_stack_element));
 }
 
-static jit_node_t *
+static jit_reloc_t 
 emit_branch_if_immediate (scm_jit_state *j, jit_gpr_t r)
 {
-  return jit_bmsi (r, 6);
+  return jit_bmsi (j->jit, r, 6);
 }
 
 static void
@@ -1245,57 +1216,81 @@ emit_load_heap_object_tc (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t r,
   emit_andi (j, dst, dst, mask);
 }
 
-static jit_node_t *
+static jit_reloc_t 
 emit_branch_if_heap_object_has_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                    scm_t_bits mask, scm_t_bits tc)
 {
   emit_load_heap_object_tc (j, t, r, mask);
-  return jit_beqi (t, tc);
+  return jit_beqi (j->jit, t, tc);
 }
 
-static jit_node_t *
+static jit_reloc_t 
 emit_branch_if_heap_object_not_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                    scm_t_bits mask, scm_t_bits tc)
 {
   emit_load_heap_object_tc (j, t, r, mask);
-  return jit_bnei (t, tc);
+  return jit_bnei (j->jit, t, tc);
 }
 
-static jit_node_t *
+static jit_reloc_t 
 emit_branch_if_heap_object_not_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                     scm_t_bits tc7)
 {
   return emit_branch_if_heap_object_not_tc (j, r, t, 0x7f, tc7);
 }
 
-static jit_node_t*
+static void*
 emit_entry_trampoline (scm_jit_state *j)
 {
-  jit_node_t *thread, *ip, *exit;
-  jit_prolog ();
-  jit_frame (entry_frame_size);
-  thread = jit_arg ();
-  ip = jit_arg ();
-  /* Load our reserved registers: THREAD and SP.  */
-  jit_getarg (THREAD, thread);
+  const jit_gpr_t gprs[] = { JIT_R0, JIT_R1, JIT_R2, JIT_V0, JIT_V1, JIT_V2 };
+  size_t gpr_count = sizeof(gprs) / sizeof(gprs[0]);
+  const jit_fpr_t fprs[] = { JIT_F0, JIT_F1, JIT_F2 };
+  size_t fpr_count = sizeof(gprs) / sizeof(gprs[0]);
+    
+  /* Save values of callee-save registers.  */
+  for (size_t i = 0; i < gpr_count; i++)
+    if (jit_gpr_is_callee_save (gprs[i]))
+      jit_pushr (j->jit, gprs[i]);
+
+  for (size_t i = 0; i < fpr_count; i++)
+    if (jit_fpr_is_callee_save (fprs[i]))
+      jit_pushr_d (j->jit, fprs[i]);
+
+  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
+  jit_arg_t args[2];
+  const jit_anyreg_t regs[] = { { .gpr=THREAD }, { .gpr=T0 } };
+
+  /* Load our reserved registers: THREAD and SP.  Also load IP for the
+     mcode jump.  */
+  jit_receive(j, 2, abi, args);
+  jit_load_args(j, 2, abi, args, regs);
   emit_reload_sp (j);
+
   /* Load FP, set during call sequences.  */
   emit_reload_fp (j);
+
   /* Jump to the mcode!  */
-  jit_getarg (T0, ip);
-  jit_jmpr (T0);
-  exit = jit_indirect ();
-  /* When mcode returns, interpreter should continue with vp->ip.  */
-  jit_ret ();
-  return exit;
+  jit_jmpr (j->jit, T0);
+
+  /* Initialize global exit_mcode to point here.  */
+  exit_mcode = jit_address (j->jit);
+
+  /* Restore callee-save registers.  */
+  for (size_t i = 0; i < fpr_count; i++)
+    if (jit_fpr_is_callee_save (fprs[fpr_count - i - 1]))
+      jit_popr_d (j->jit, fprs[fpr_count - i - 1]);
+
+  for (size_t i = 0; i < gpr_count; i++)
+    if (jit_gpr_is_callee_save (gprs[gpr_count - i - 1]))
+      jit_pushr (j->jit, gprs[gpr_count - i - 1]);
+
+  /* When mcode finishes, interpreter will continue with vp->ip.  */
+  jit_ret (j->jit);
 }
 
 static void
 emit_handle_interrupts_trampoline (scm_jit_state *j)
 {
-  jit_prolog ();
-  jit_tramp (entry_frame_size);
-
   /* Precondition: IP synced, MRA in T0.  */
   emit_call_r_r (j, scm_vm_intrinsics.push_interrupt_frame, THREAD, T0);
   emit_reload_sp (j);
@@ -1339,27 +1334,11 @@ allocate_code_arena (size_t size, struct code_arena *prev)
 static void
 prepare_jit_state (scm_jit_state *j)
 {
-  j->jit = jit_new_state ();
-}
-
-static void
-reset_jit_state (scm_jit_state *j)
-{
-  jit_clear_state ();
-  jit_destroy_state ();
-  j->jit = NULL;
 }
 
 static void *
-emit_code (scm_jit_state *j)
+emit_code (scm_jit_state *j, void (*emit) (scm_jit_state *))
 {
-  uint8_t *ret = NULL;
-
-  jit_realize ();
-
-  jit_get_data (NULL, NULL);
-  jit_set_data (NULL, 0, JIT_DISABLE_DATA | JIT_DISABLE_NOTE);
-
   if (!j->code_arena)
     j->code_arena = allocate_code_arena (default_code_arena_size, NULL);
 
@@ -1371,14 +1350,16 @@ emit_code (scm_jit_state *j)
     {
       struct code_arena *arena = j->code_arena;
 
-      jit_set_code (arena->base + arena->used, arena->size - arena->used);
+      jit_begin(j, arena->base + arena->used, arena->size - arena->used);
 
-      ret = jit_emit ();
+      uint8_t *ret = jit_address (j->jit);
 
-      if (ret)
+      emit (j);
+
+      if (!jit_has_overflow (j->jit))
         {
-          jit_word_t size = 0;
-          jit_get_code (&size);
+          size_t size;
+          jit_end (j->jit, &size);
           ASSERT (size <= (arena->size - arena->used));
           DEBUG ("mcode: %p,+%zu\n", ret, size);
           arena->used += size;
@@ -1392,6 +1373,7 @@ emit_code (scm_jit_state *j)
         }
       else
         {
+          jit_reset (j->jit);
           if (arena->used == 0)
             {
               /* Code too big to fit into empty arena; allocate a larger
@@ -1430,11 +1412,14 @@ emit_free_variable_ref (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t prog,
 }
 
 static void
-add_inter_instruction_patch (scm_jit_state *j, jit_node_t *label,
+add_inter_instruction_patch (scm_jit_state *j, jit_reloc_t reloc,
                              const uint32_t *target)
 {
   ASSERT (j->start <= target && target < j->end);
-  jit_patch_at (label, j->labels[target - j->start]);
+  ASSERT (j->reloc_idx <= j->reloc_count);
+  j->relocs[j->reloc_idx].reloc = reloc;
+  j->relocs[j->reloc_idx].target = target;
+  j->reloc_idx++;
 }
 
 
@@ -1455,11 +1440,11 @@ static void
 compile_call (scm_jit_state *j, uint32_t proc, uint32_t nlocals)
 {
   /* 2 = size of call inst */
-  jit_node_t *mcont = emit_push_frame (j, proc, nlocals, j->ip + 2);
+  jit_reloc_t mcont = emit_push_frame (j, proc, nlocals, j->ip + 2);
 
   emit_indirect_tail_call (j);
 
-  jit_patch (mcont);
+  jit_patch_here (j->jit, mcont);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size = -1;
@@ -1469,11 +1454,11 @@ static void
 compile_call_label (scm_jit_state *j, uint32_t proc, uint32_t nlocals, const uint32_t *vcode)
 {
   /* 2 = size of call-label inst */
-  jit_node_t *mcont = emit_push_frame (j, proc, nlocals, j->ip + 3);
+  jit_reloc_t mcont = emit_push_frame (j, proc, nlocals, j->ip + 3);
 
   emit_direct_tail_call (j, vcode);
 
-  jit_patch (mcont);
+  jit_patch_here (j->jit, mcont);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size = -1;
@@ -1516,14 +1501,14 @@ static void
 compile_receive (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals)
 {
   jit_gpr_t t = T0;
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t saved_state = j->register_state;
 
   k = emit_branch_if_frame_locals_count_greater_than (j, t, proc);
   emit_store_current_ip (j, T0);
   emit_call (j, scm_vm_intrinsics.error_no_values);
   j->register_state = saved_state;
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
   emit_fp_ref_scm (j, t, proc);
   emit_fp_set_scm (j, dst, t);
   emit_reset_frame (j, nlocals);
@@ -1540,21 +1525,21 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
 
   if (allow_extra)
     {
-      jit_node_t *k;
+      jit_reloc_t k;
       k = emit_branch_if_frame_locals_count_greater_than (j, t, proc+nvalues-1);
       emit_store_current_ip (j, T0);
       emit_call (j, scm_vm_intrinsics.error_not_enough_values);
       j->register_state = saved_state;
-      jit_patch (k);
+      jit_patch_here (j->jit, k);
     }
   else
     {
-      jit_node_t *k;
+      jit_reloc_t k;
       k = emit_branch_if_frame_locals_count_eq (j, t, proc + nvalues);
       emit_store_current_ip (j, T0);
       emit_call_i (j, scm_vm_intrinsics.error_wrong_number_of_values, nvalues);
       j->register_state = saved_state;
-      jit_patch (k);
+      jit_patch_here (j->jit, k);
 
       j->frame_size = proc + nvalues;
     }
@@ -1567,20 +1552,18 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
 {
   jit_gpr_t walk = T0, t = T1;
   size_t offset = (from - to) * sizeof (union scm_vm_stack_element);
-  jit_node_t *done, *head, *back;
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_load_fp_slot (j, walk, from);
-  done = jit_bltr (walk, SP);
-  head = jit_label ();
+  jit_reloc_t done = jit_bltr (j->jit, walk, SP);
+  void *head = jit_address (j->jit);
   jit_ldr (t, walk);
-  jit_stxi (offset, walk, t);
+  jit_stxi (j->jit, offset, walk, t);
   jit_subi (walk, walk, sizeof (union scm_vm_stack_element));
-  back = jit_bger (walk, SP);
-  jit_patch_at (back, head);
-  jit_patch (done);
-  jit_addi (SP, SP, offset);
+  jit_patch_there (j->jit, jit_bger (j->jit, walk, SP), head);
+  jit_patch_here (j->jit, done);
+  jit_addi (j->jit, SP, SP, offset);
   emit_store_sp (j);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
@@ -1593,15 +1576,15 @@ static void
 compile_return_values (scm_jit_state *j)
 {
   jit_gpr_t old_fp = T0, ra = T1;
-  jit_node_t *interp;
+  jit_reloc_t interp;
 
   emit_pop_fp (j, old_fp);
 
   emit_load_mra (j, ra, old_fp);
-  interp = jit_beqi (ra, 0);
+  interp = jit_beqi (j->jit, ra, 0);
   jit_jmpr (ra);
 
-  jit_patch (interp);
+  jit_patch_here (j->jit, interp);
   emit_load_vra (j, ra, old_fp);
   emit_store_ip (j, ra);
   emit_exit (j);
@@ -1615,7 +1598,7 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   jit_gpr_t t = T0, ret = T1;
   void *subr;
   uint32_t i;
-  jit_node_t *immediate, *not_values, *k;
+  jit_reloc_t immediate, not_values, k;
 
   ASSERT (j->frame_size >= 0);
 
@@ -1636,16 +1619,16 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   emit_call_r_r (j, scm_vm_intrinsics.unpack_values_object, THREAD, ret);
   emit_reload_fp (j);
   emit_reload_sp (j);
-  k = jit_jmpi ();
+  k = jit_jmp (j->jit);
 
-  jit_patch (immediate);
-  jit_patch (not_values);
+  jit_patch_here (j->jit, immediate);
+  jit_patch_here (j->jit, not_values);
   emit_reload_fp (j);
   emit_subtract_stack_slots (j, SP, FP, 1);
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
-  jit_str (SP, ret);
-  jit_patch (k);
+  jit_str (j->jit, SP, ret);
+  jit_patch_here (j->jit, k);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
@@ -1688,7 +1671,7 @@ compile_continuation_call (scm_jit_state *j, uint32_t contregs_idx)
 static void
 compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
 {
-  jit_node_t *interp;
+  jit_reloc_t interp;
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
@@ -1697,12 +1680,12 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
   emit_free_variable_ref (j, T0, T0, cont_idx);
   emit_call_r_r (j, scm_vm_intrinsics.compose_continuation, THREAD, T0);
   jit_retval (T0);
-  interp = jit_beqi (T0, 0);
+  interp = jit_beqi (j->jit, T0, 0);
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (T0);
 
-  jit_patch (interp);
+  jit_patch_here (j->jit, interp);
   emit_exit (j);
 
   j->frame_size = -1;
@@ -1722,7 +1705,7 @@ compile_capture_continuation (scm_jit_state *j, uint32_t dst)
 static void
 compile_abort (scm_jit_state *j)
 {
-  jit_node_t *k, *interp;
+  jit_reloc_t k, interp;
 
   jit_movi (T0, (intptr_t) (j->ip + 1));
   emit_store_ip (j, T0);
@@ -1730,15 +1713,15 @@ compile_abort (scm_jit_state *j)
   emit_call_r_r (j, scm_vm_intrinsics.abort_to_prompt, THREAD, T0);
   jit_retval (T1_PRESERVED);
   
-  interp = jit_beqi (T1_PRESERVED, 0);
+  interp = jit_beqi (j->jit, T1_PRESERVED, 0);
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (T1_PRESERVED);
 
-  jit_patch (interp);
+  jit_patch_here (j->jit, interp);
   emit_exit (j);
 
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
 
   j->frame_size = -1;
 }
@@ -1787,14 +1770,14 @@ compile_throw_value_and_data (scm_jit_state *j, uint32_t val,
 static void
 compile_assert_nargs_ee (scm_jit_state *j, uint32_t nlocals)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   jit_gpr_t t = T0;
   uint32_t saved_state = j->register_state;
 
   k = emit_branch_if_frame_locals_count_eq (j, t, nlocals);
   emit_store_current_ip (j, t);
   emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
   j->frame_size = nlocals;
@@ -1806,13 +1789,13 @@ compile_assert_nargs_ge (scm_jit_state *j, uint32_t nlocals)
   if (nlocals > 0)
     {
       jit_gpr_t t = T0;
-      jit_node_t *k;
+      jit_reloc_t k;
       uint32_t saved_state = j->register_state;
 
       k = emit_branch_if_frame_locals_count_greater_than (j, t, nlocals-1);
       emit_store_current_ip (j, t);
       emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
-      jit_patch (k);
+      jit_patch_here (j->jit, k);
       j->register_state = saved_state;
     }
 }
@@ -1820,14 +1803,14 @@ compile_assert_nargs_ge (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_assert_nargs_le (scm_jit_state *j, uint32_t nlocals)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   jit_gpr_t t = T0;
   uint32_t saved_state = j->register_state;
 
   k = emit_branch_if_frame_locals_count_less_than (j, t, nlocals + 1);
   emit_store_current_ip (j, t);
   emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
 }
@@ -1856,18 +1839,16 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
     }
   else
     {
-      jit_node_t *head, *k, *back;
       jit_gpr_t walk = saved_frame_size;
 
       jit_subr (walk, FP, saved_frame_size);
-      k = jit_bler (walk, SP);
+      jit_reloc_t k = jit_bler (j->jit, walk, SP);
       jit_movi (t, SCM_UNPACK (SCM_UNDEFINED));
-      head = jit_label ();
+      void *head = jit_address (j->jit);
       jit_subi (walk, walk, sizeof (union scm_vm_stack_element));
-      jit_str (walk, t);
-      back = jit_bner (walk, SP);
-      jit_patch_at (back, head);
-      jit_patch (k);
+      jit_str (j->jit, walk, t);
+      jit_patch_there (j->jit, jit_bner (j->jit, walk, SP), head);
+      jit_patch_here (j->jit, k);
     }
 
   j->frame_size = nlocals;
@@ -1900,7 +1881,7 @@ static void
 compile_pop (scm_jit_state *j, uint32_t dst)
 {
   emit_mov (j, dst + 1, 0, T0);
-  jit_addi (SP, SP, sizeof (union scm_vm_stack_element));
+  jit_addi (j->jit, SP, SP, sizeof (union scm_vm_stack_element));
   emit_store_sp (j);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
@@ -1912,7 +1893,7 @@ compile_pop (scm_jit_state *j, uint32_t dst)
 static void
 compile_drop (scm_jit_state *j, uint32_t nvalues)
 {
-  jit_addi (SP, SP, nvalues * sizeof (union scm_vm_stack_element));
+  jit_addi (j->jit, SP, SP, nvalues * sizeof (union scm_vm_stack_element));
   emit_store_sp (j);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
@@ -1985,7 +1966,7 @@ compile_bind_kwargs (scm_jit_state *j, uint32_t nreq, uint8_t flags,
 static void
 compile_bind_rest (scm_jit_state *j, uint32_t dst)
 {
-  jit_node_t *k, *cons;
+  jit_reloc_t k, cons;
   jit_gpr_t t = T1;
   
   cons = emit_branch_if_frame_locals_count_greater_than (j, t, dst);
@@ -1993,16 +1974,16 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
   compile_alloc_frame (j, dst + 1);
   emit_movi (j, t, SCM_UNPACK (SCM_EOL));
   emit_sp_set_scm (j, 0, t);
-  k = jit_jmpi ();
+  k = jit_jmp (j->jit);
 
-  jit_patch (cons);
+  jit_patch_here (j->jit, cons);
   emit_store_current_ip (j, t);
   emit_call_r_i (j, scm_vm_intrinsics.cons_rest, THREAD, dst);
   emit_retval (j, t);
   compile_reset_frame (j, dst + 1);
   emit_sp_set_scm (j, 0, t);
   
-  jit_patch (k);
+  jit_patch_here (j->jit, k);
 }
 
 static void
@@ -2049,7 +2030,7 @@ compile_scm_set (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t val)
   emit_sp_ref_sz (j, T1, idx);
   emit_sp_ref_scm (j, T2, val);
   emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
-  jit_stxr (T0, T1, T2);
+  jit_stxr (j->jit, T0, T1, T2);
 }
 
 static void
@@ -2067,7 +2048,7 @@ compile_scm_set_tag (scm_jit_state *j, uint8_t obj, uint8_t tag, uint8_t val)
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_scm (j, T1, val);
   emit_addi (j, T1, T1, tag);
-  jit_str (T0, T1);
+  jit_str (j->jit, T0, T1);
 }
 
 static void
@@ -2083,7 +2064,7 @@ compile_scm_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t v
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_scm (j, T1, val);
-  jit_stxi (idx * sizeof (SCM), T0, T1);
+  jit_stxi (j->jit, idx * sizeof (SCM), T0, T1);
 }
 
 static void
@@ -2103,7 +2084,7 @@ compile_word_set (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t val)
   emit_sp_ref_sz (j, T1, idx);
   emit_sp_ref_sz (j, T2, val);
   emit_lshi (j, T1, T1, log2_sizeof_uintptr_t);
-  jit_stxr (T0, T1, T2);
+  jit_stxr (j->jit, T0, T1, T2);
 }
 
 static void
@@ -2119,7 +2100,7 @@ compile_word_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8_t 
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_sz (j, T1, val);
-  jit_stxi (idx * sizeof (SCM), T0, T1);
+  jit_stxi (j->jit, idx * sizeof (SCM), T0, T1);
 }
 
 static void
@@ -2135,7 +2116,7 @@ compile_pointer_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t idx, uint8
 {
   emit_sp_ref_scm (j, T0, obj);
   emit_sp_ref_scm (j, T1, val);
-  jit_stxi (idx * sizeof (SCM), T0, T1);
+  jit_stxi (j->jit, idx * sizeof (SCM), T0, T1);
 }
 
 static void
@@ -2171,7 +2152,7 @@ static void
 compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
-  jit_node_t *fast = NULL;
+  jit_reloc_t fast = NULL;
 
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
@@ -2180,28 +2161,28 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
     {
     case SCM_VM_INTRINSIC_ADD:
       {
-        jit_node_t *a_not_inum = jit_bmci (T0, scm_tc2_int);
-        jit_node_t *b_not_inum = jit_bmci (T1, scm_tc2_int);
+        jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
+        jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
         jit_subi (T0, T0, scm_tc2_int);
-        fast = jit_bxaddr (T0, T1);
+        fast = jit_bxaddr (j->jit, T0, T1);
         /* Restore previous value before slow path.  */
         jit_subr (T0, T0, T1);
-        jit_addi (T0, T0, scm_tc2_int);
-        jit_patch (a_not_inum);
-        jit_patch (b_not_inum);
+        jit_addi (j->jit, T0, T0, scm_tc2_int);
+        jit_patch_here (j->jit, a_not_inum);
+        jit_patch_here (j->jit, b_not_inum);
         break;
       }
     case SCM_VM_INTRINSIC_SUB:
       {
-        jit_node_t *a_not_inum = jit_bmci (T0, scm_tc2_int);
-        jit_node_t *b_not_inum = jit_bmci (T1, scm_tc2_int);
+        jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
+        jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
         jit_subi (T1, T1, scm_tc2_int);
-        fast = jit_bxsubr (T0, T1);
+        fast = jit_bxsubr (j->jit, T0, T1);
         /* Restore previous values before slow path.  */
-        jit_addr (T0, T0, T1);
-        jit_addi (T1, T1, scm_tc2_int);
-        jit_patch (a_not_inum);
-        jit_patch (b_not_inum);
+        jit_addr (j->jit, T0, T0, T1);
+        jit_addi (j->jit, T1, T1, scm_tc2_int);
+        jit_patch_here (j->jit, a_not_inum);
+        jit_patch_here (j->jit, b_not_inum);
         break;
       }
     default:
@@ -2214,7 +2195,7 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
   emit_reload_sp (j);
 
   if (fast)
-    jit_patch (fast);
+    jit_patch_here (j->jit, fast);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -2222,7 +2203,7 @@ static void
 compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
-  jit_node_t *fast = NULL;
+  jit_reloc_t fast = NULL;
 
   emit_sp_ref_scm (j, T0, a);
 
@@ -2231,21 +2212,21 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
     case SCM_VM_INTRINSIC_ADD_IMMEDIATE:
       {
         scm_t_bits addend = b << 2;
-        jit_node_t *not_inum = jit_bmci (T0, 2);
-        fast = jit_bxaddi (T0, addend);
+        jit_reloc_t not_inum = jit_bmci (j->jit, T0, 2);
+        fast = jit_bxaddi (j->jit, T0, addend);
         /* Restore previous value before slow path.  */
         jit_subi (T0, T0, addend);
-        jit_patch (not_inum);
+        jit_patch_here (j->jit, not_inum);
         break;
       }
     case SCM_VM_INTRINSIC_SUB_IMMEDIATE:
       {
         scm_t_bits subtrahend = b << 2;
-        jit_node_t *not_inum = jit_bmci (T0, 2);
-        fast = jit_bxsubi (T0, subtrahend);
+        jit_reloc_t not_inum = jit_bmci (j->jit, T0, 2);
+        fast = jit_bxsubi (j->jit, T0, subtrahend);
         /* Restore previous value before slow path.  */
-        jit_addi (T0, T0, subtrahend);
-        jit_patch (not_inum);
+        jit_addi (j->jit, T0, T0, subtrahend);
+        jit_patch_here (j->jit, not_inum);
         break;
       }
     default:
@@ -2262,7 +2243,7 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
   emit_reload_sp (j);
 
   if (fast)
-    jit_patch (fast);
+    jit_patch_here (j->jit, fast);
   emit_sp_set_scm (j, dst, T0);
 }
 
@@ -2325,7 +2306,7 @@ compile_call_u64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   emit_sp_ref_scm (j, T0, a);
 #if INDIRECT_INT64_INTRINSICS
   jit_prepare ();
-  jit_addi (T1, SP, dst * sizeof (union scm_vm_stack_element));
+  jit_addi (j->jit, T1, SP, dst * sizeof (union scm_vm_stack_element));
   jit_pushargr (T1);
   jit_pushargr (T0);
   jit_finishi (intrinsic);
@@ -2388,14 +2369,14 @@ static void
 compile_static_patch (scm_jit_state *j, void *dst, const void *src)
 {
   emit_movi (j, T0, (uintptr_t) src);
-  jit_sti (dst, T0);
+  jit_sti (j->jit, dst, T0);
 }
 
 static void
 compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
                 uint32_t proc_slot, const uint32_t *vcode)
 {
-  jit_node_t *mra;
+  jit_reloc_t mra;
   emit_store_current_ip (j, T0);
   jit_prepare ();
   jit_pushargr (THREAD);
@@ -2406,7 +2387,7 @@ compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
   jit_subi (FP, FP, proc_slot * sizeof (union scm_vm_stack_element));
   jit_pushargr (FP);
   jit_pushargi ((uintptr_t) vcode);
-  mra = emit_movi (j, T2, 0);
+  mra = emit_mov_addr (j, T2);
   jit_pushargr (T2);
   jit_finishi (scm_vm_intrinsics.push_prompt);
   clear_scratch_register_state (j);
@@ -2441,7 +2422,7 @@ compile_call_scm_from_u64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_
   emit_store_current_ip (j, T0);
   jit_prepare ();
 #if INDIRECT_INT64_INTRINSICS
-  jit_addi (T0, SP, src * sizeof (union scm_vm_stack_element));
+  jit_addi (j->jit, T0, SP, src * sizeof (union scm_vm_stack_element));
 #else
   emit_sp_ref_u64 (j, T0, src);
 #endif
@@ -2863,21 +2844,21 @@ compile_ursh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
-  jit_node_t *zero, *both, *done;
+  jit_reloc_t zero, both, done;
 
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
   emit_andi (j, T2, T2, 63);
-  zero = jit_beqi (T2, 0);
-  both = jit_blti (T2, 32);
+  zero = jit_beqi (j->jit, T2, 0);
+  both = jit_blti (j->jit, T2, 32);
 
   /* 32 <= s < 64: hi = 0, lo = hi >> (s-32) */
   emit_subi (j, T2, T2, 32);
   emit_rshr_u (j, T0, T1, T2);
   emit_movi (j, T1, 0);
-  done = jit_jmpi ();
+  done = jit_jmp (j->jit);
 
-  jit_patch (both);
+  jit_patch_here (j->jit, both);
   /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
   emit_negr (j, T3_OR_FP, T2);
   emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
@@ -2886,8 +2867,8 @@ compile_ursh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_rshr_u (j, T0, T0, T2);
   emit_addr (j, T0, T0, T3_OR_FP);
 
-  jit_patch (done);
-  jit_patch (zero);
+  jit_patch_here (j->jit, done);
+  jit_patch_here (j->jit, zero);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -2903,21 +2884,21 @@ compile_ulsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_sp_set_u64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
-  jit_node_t *zero, *both, *done;
+  jit_reloc_t zero, both, done;
 
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
   emit_andi (j, T2, T2, 63);
-  zero = jit_beqi (T2, 0);
-  both = jit_blti (T2, 32);
+  zero = jit_beqi (j->jit, T2, 0);
+  both = jit_blti (j->jit, T2, 32);
 
   /* 32 <= s < 64: hi = lo << (s-32), lo = 0 */
   emit_subi (j, T2, T2, 32);
   emit_lshr (j, T1, T0, T2);
   emit_movi (j, T0, 0);
-  done = jit_jmpi ();
+  done = jit_jmp (j->jit);
 
-  jit_patch (both);
+  jit_patch_here (j->jit, both);
   /* 0 < s < 32: hi = hi << s + lo >> (32-s), lo = lo << s */
   emit_negr (j, T3_OR_FP, T2);
   emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
@@ -2926,8 +2907,8 @@ compile_ulsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_lshr (j, T0, T0, T2);
   emit_addr (j, T1, T1, T3_OR_FP);
 
-  jit_patch (done);
-  jit_patch (zero);
+  jit_patch_here (j->jit, done);
+  jit_patch_here (j->jit, zero);
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
 }
@@ -3032,33 +3013,31 @@ compile_ulogxor (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 static void
 compile_handle_interrupts (scm_jit_state *j)
 {
-  jit_node_t *again, *mra, *none_pending, *blocked;
   uint32_t saved_state = save_reloadable_register_state (j);
 
   /* This instruction invalidates SP_CACHE_GPR / SP_CACHE_FPR.  */
 
-  again = jit_label ();
+  void *again = jit_address (j->jit);
 
 #if defined(__i386__) || defined(__x86_64__)
   /* Disassembly of atomic_ref_scm is just a mov.  */
   jit_ldxi (T0, THREAD, thread_offset_pending_asyncs);
 #else
-  jit_addi (T0, THREAD, thread_offset_pending_asyncs);
+  jit_addi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
   emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
   emit_retval (j, T0);
   restore_reloadable_register_state (j, saved_state);
 #endif
-  none_pending = jit_beqi (T0, SCM_UNPACK (SCM_EOL));
+  jit_reloc_t none_pending = jit_beqi (j->jit, T0, SCM_UNPACK (SCM_EOL));
   jit_ldxi_i (T0, THREAD, thread_offset_block_asyncs);
-  blocked = jit_bnei (T0, 0);
+  jit_reloc_t blocked = jit_bnei (j->jit, T0, 0);
 
   emit_store_current_ip (j, T0);
-  mra = emit_movi (j, T0, 0);
-  jit_patch_at (mra, again);
-  jit_patch_abs (jit_jmpi (), handle_interrupts_trampoline);
+  emit_mov_addr (j, T0, again);
+  jit_jmpi (j->jit, handle_interrupts_trampoline);
 
-  jit_patch (none_pending);
-  jit_patch (blocked);
+  jit_patch_here (j->jit, none_pending);
+  jit_patch_here (j->jit, blocked);
   j->register_state = saved_state;
 }
 
@@ -3066,21 +3045,21 @@ static void
 compile_return_from_interrupt (scm_jit_state *j)
 {
   jit_gpr_t old_fp = T0, ra = T1;
-  jit_node_t *interp;
+  jit_reloc_t interp;
 
   emit_pop_fp (j, old_fp);
 
   emit_load_mra (j, ra, old_fp);
-  interp = jit_beqi (ra, 0);
-  jit_addi (SP, old_fp, frame_overhead_slots * sizeof (union scm_vm_stack_element));
+  interp = jit_beqi (j->jit, ra, 0);
+  jit_addi (j->jit, SP, old_fp, frame_overhead_slots * sizeof (union scm_vm_stack_element));
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
-  jit_jmpr (ra);
+  jit_jmpr (j->jit, ra);
 
-  jit_patch (interp);
+  jit_patch_here (j->jit, interp);
   emit_load_vra (j, ra, old_fp);
   emit_store_ip (j, ra);
-  jit_addi (SP, old_fp, frame_overhead_slots * sizeof (union scm_vm_stack_element));
+  jit_addi (j->jit, SP, old_fp, frame_overhead_slots * sizeof (union scm_vm_stack_element));
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
   emit_exit (j);
@@ -3114,36 +3093,36 @@ compile_u64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqr (T0, T1);
+      k = jit_beqr (j->jit, T0, T1);
       break;
     case scm_op_jne:
-      k = jit_bner (T0, T1);
+      k = jit_bner (j->jit, T0, T1);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2;
+  jit_reloc_t k1, k2;
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k1 = jit_bner (T0, T2);
-      k2 = jit_beqr (T1, T3_OR_FP);
-      jit_patch (k1);
+      k1 = jit_bner (j->jit, T0, T2);
+      k2 = jit_beqr (j->jit, T1, T3_OR_FP);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       break;
     case scm_op_jne:
-      k1 = jit_bner (T0, T2);
-      k2 = jit_bner (T1, T3_OR_FP);
+      k1 = jit_bner (j->jit, T0, T2);
+      k2 = jit_bner (j->jit, T1, T3_OR_FP);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k2, target);
       break;
@@ -3158,38 +3137,38 @@ compile_u64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   emit_sp_ref_u64 (j, T0, a);
   emit_sp_ref_u64 (j, T1, b);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_bltr_u (T0, T1);
+      k = jit_bltr_u (j->jit, T0, T1);
       break;
     case scm_op_jnl:
-      k = jit_bger_u (T0, T1);
+      k = jit_bger_u (j->jit, T0, T1);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *k3;
+  jit_reloc_t k1, k2, k3;
   emit_sp_ref_u64 (j, T0, T1, a);
   emit_sp_ref_u64 (j, T2, T3_OR_FP, b);
-  k1 = jit_bltr_u (T1, T3_OR_FP);
-  k2 = jit_bner (T1, T3_OR_FP);
+  k1 = jit_bltr_u (j->jit, T1, T3_OR_FP);
+  k2 = jit_bner (j->jit, T1, T3_OR_FP);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k3 = jit_bltr_u (T0, T2);
-      jit_patch (k2);
+      k3 = jit_bltr_u (j->jit, T0, T2);
+      jit_patch_here (j->jit, k2);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k3 = jit_bger_u (T0, T2);
-      jit_patch (k1);
+      k3 = jit_bger_u (j->jit, T0, T2);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       add_inter_instruction_patch (j, k3, target);
       break;
@@ -3204,38 +3183,38 @@ compile_s64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
   uint32_t *target;
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   emit_sp_ref_s64 (j, T0, a);
   emit_sp_ref_s64 (j, T1, b);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_bltr (T0, T1);
+      k = jit_bltr (j->jit, T0, T1);
       break;
     case scm_op_jnl:
-      k = jit_bger (T0, T1);
+      k = jit_bger (j->jit, T0, T1);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *k3;
+  jit_reloc_t k1, k2, k3;
   emit_sp_ref_s64 (j, T0, T1, a);
   emit_sp_ref_s64 (j, T2, T3_OR_FP, b);
-  k1 = jit_bltr (T1, T3_OR_FP);
-  k2 = jit_bner (T1, T3_OR_FP);
+  k1 = jit_bltr (j->jit, T1, T3_OR_FP);
+  k2 = jit_bner (j->jit, T1, T3_OR_FP);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k3 = jit_bltr (T0, T2);
-      jit_patch (k2);
+      k3 = jit_bltr (j->jit, T0, T2);
+      jit_patch_here (j->jit, k2);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k3 = jit_bger (T0, T2);
-      jit_patch (k1);
+      k3 = jit_bger (j->jit, T0, T2);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       add_inter_instruction_patch (j, k3, target);
       break;
@@ -3248,7 +3227,7 @@ compile_s64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_f64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_f64 (j, JIT_F0, a);
@@ -3256,10 +3235,10 @@ compile_f64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqr_d (JIT_F0, JIT_F1);
+      k = jit_beqr_d (j->jit, JIT_F0, JIT_F1);
       break;
     case scm_op_jne:
-      k = jit_bner_d (JIT_F0, JIT_F1);
+      k = jit_bner_d (j->jit, JIT_F0, JIT_F1);
       break;
     default:
       UNREACHABLE ();
@@ -3270,7 +3249,7 @@ compile_f64_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_f64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_f64 (j, JIT_F0, a);
@@ -3278,16 +3257,16 @@ compile_f64_less (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_bltr_d (JIT_F0, JIT_F1);
+      k = jit_bltr_d (j->jit, JIT_F0, JIT_F1);
       break;
     case scm_op_jnl:
-      k = jit_bunger_d (JIT_F0, JIT_F1);
+      k = jit_bunger_d (j->jit, JIT_F0, JIT_F1);
       break;
     case scm_op_jge:
-      k = jit_bger_d (JIT_F0, JIT_F1);
+      k = jit_bger_d (j->jit, JIT_F0, JIT_F1);
       break;
     case scm_op_jnge:
-      k = jit_bunltr_d (JIT_F0, JIT_F1);
+      k = jit_bunltr_d (j->jit, JIT_F0, JIT_F1);
       break;
     default:
       UNREACHABLE ();
@@ -3298,7 +3277,7 @@ compile_f64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_store_current_ip (j, T0);
@@ -3310,10 +3289,10 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_bnei (T0, 0);
+      k = jit_bnei (j->jit, T0, 0);
       break;
     case scm_op_jne:
-      k = jit_beqi (T0, 0);
+      k = jit_beqi (j->jit, T0, 0);
       break;
     default:
       UNREACHABLE ();
@@ -3325,9 +3304,9 @@ static void
 compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
 #if 0
-  jit_node_t *fast, *k2, *k3;
+  jit_reloc_t fast, k2, k3;
 #endif
-  jit_node_t *k1;
+  jit_reloc_t k1;
   uint32_t *target;
   enum scm_opcode op = fuse_conditional_branch (j, &target);
 
@@ -3337,7 +3316,7 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 
 #if 0
   emit_andr (j, T2, T0, T1);
-  fast = jit_bmsi (T2, scm_tc2_int);
+  fast = jit_bmsi (j->jit, T2, scm_tc2_int);
 #endif
 
   emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
@@ -3346,39 +3325,39 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (op)
     {
     case scm_op_jl:
-      k1 = jit_beqi (T0, SCM_F_COMPARE_LESS_THAN);
+      k1 = jit_beqi (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
       break;
     case scm_op_jnl:
-      k1 = jit_bnei (T0, SCM_F_COMPARE_LESS_THAN);
+      k1 = jit_bnei (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
       break;
     case scm_op_jge:
-      k1 = jit_beqi (T0, SCM_F_COMPARE_NONE);
+      k1 = jit_beqi (j->jit, T0, SCM_F_COMPARE_NONE);
       break;
     case scm_op_jnge:
-      k1 = jit_bnei (T0, SCM_F_COMPARE_NONE);
+      k1 = jit_bnei (j->jit, T0, SCM_F_COMPARE_NONE);
       break;
     default:
       UNREACHABLE ();
     }
 #if 0
-  k2 = jit_jmpi ();
+  k2 = jit_jmp (j->jit);
 
-  jit_patch (fast);
+  jit_patch_here (j->jit, fast);
   switch (op)
     {
     case scm_op_jl:
     case scm_op_jnge:
-      k3 = jit_bltr (T0, T1);
+      k3 = jit_bltr (j->jit, T0, T1);
       break;
     case scm_op_jnl:
     case scm_op_jge:
-      k3 = jit_bger (T0, T1);
+      k3 = jit_bger (j->jit, T0, T1);
       break;
     default:
       UNREACHABLE ();
     }
 
-  jit_patch (k2);
+  jit_patch_here (j->jit, k2);
 #endif
 
   add_inter_instruction_patch (j, k1, target);
@@ -3390,7 +3369,7 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_check_arguments (scm_jit_state *j, uint32_t expected)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
   jit_gpr_t t = T0;
   
@@ -3421,7 +3400,7 @@ static void
 compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t expected)
 {
   uint32_t *target;
-  jit_node_t *lt, *gt, *head;
+  jit_reloc_t lt, gt, head;
   jit_gpr_t walk = T0, min = T1, obj = T2;
 
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
@@ -3443,16 +3422,16 @@ compile_check_positional_arguments (scm_jit_state *j, uint32_t nreq, uint32_t ex
   emit_subtract_stack_slots (j, min, FP, expected);
   emit_subtract_stack_slots (j, walk, FP, nreq);
   
-  head = jit_label ();
+  void *address = jit_address (j->jit);
   /* npos > expected if walk < min.  */
-  gt = jit_bltr (walk, min);
+  gt = jit_bltr (j->jit, walk, min);
   emit_subtract_stack_slots (j, walk, walk, 1);
-  lt = jit_bltr (walk, SP);
+  lt = jit_bltr (j->jit, walk, SP);
   emit_ldr (j, obj, walk);
   jit_patch_at (emit_branch_if_immediate (j, obj), head);
   jit_patch_at (emit_branch_if_heap_object_not_tc7 (j, obj, obj, scm_tc7_keyword),
                 head);
-  jit_patch (lt);
+  jit_patch_here (j->jit, lt);
   add_inter_instruction_patch (j, gt, target);
 }
 
@@ -3460,7 +3439,7 @@ static void
 compile_immediate_tag_equals (scm_jit_state *j, uint32_t a, uint16_t mask,
                               uint16_t expected)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_scm (j, T0, a);
@@ -3468,10 +3447,10 @@ compile_immediate_tag_equals (scm_jit_state *j, uint32_t a, uint16_t mask,
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqi (T0, expected);
+      k = jit_beqi (j->jit, T0, expected);
       break;
     case scm_op_jne:
-      k = jit_bnei (T0, expected);
+      k = jit_bnei (j->jit, T0, expected);
       break;
     default:
       UNREACHABLE ();
@@ -3483,7 +3462,7 @@ static void
 compile_heap_tag_equals (scm_jit_state *j, uint32_t obj,
                          uint16_t mask, uint16_t expected)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_scm (j, T0, obj);
@@ -3504,7 +3483,7 @@ compile_heap_tag_equals (scm_jit_state *j, uint32_t obj,
 static void
 compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_scm (j, T0, a);
@@ -3512,10 +3491,10 @@ compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqr (T0, T1);
+      k = jit_beqr (j->jit, T0, T1);
       break;
     case scm_op_jne:
-      k = jit_bner (T0, T1);
+      k = jit_bner (j->jit, T0, T1);
       break;
     default:
       UNREACHABLE ();
@@ -3526,8 +3505,8 @@ compile_eq (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_j (scm_jit_state *j, const uint32_t *vcode)
 {
-  jit_node_t *jmp;
-  jmp = jit_jmpi ();
+  jit_reloc_t jmp;
+  jmp = jit_jmp (j->jit);
   add_inter_instruction_patch (j, jmp, vcode);
 }
 
@@ -3570,7 +3549,7 @@ compile_jnge (scm_jit_state *j, const uint32_t *vcode)
 static void
 compile_heap_numbers_equal (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_store_current_ip (j, T0);
@@ -3582,10 +3561,10 @@ compile_heap_numbers_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_bnei (T0, 0);
+      k = jit_bnei (j->jit, T0, 0);
       break;
     case scm_op_jne:
-      k = jit_beqi (T0, 0);
+      k = jit_beqi (j->jit, T0, 0);
       break;
     default:
       UNREACHABLE ();
@@ -3631,21 +3610,21 @@ compile_srsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_sp_set_s64 (j, dst, T0);
 #else
   /* FIXME: Not tested.  */
-  jit_node_t *zero, *both, *done;
+  jit_reloc_t zero, both, done;
 
   emit_sp_ref_s64 (j, T0, T1, a);
   emit_sp_ref_s64 (j, T2, T3_OR_FP, b);
   emit_andi (j, T2, T2, 63);
-  zero = jit_beqi (T2, 0);
-  both = jit_blti (T2, 32);
+  zero = jit_beqi (j->jit, T2, 0);
+  both = jit_blti (j->jit, T2, 32);
 
   /* 32 <= s < 64: hi = hi >> 31, lo = hi >> (s-32) */
   emit_subi (j, T2, T2, 32);
   emit_rshr (j, T0, T1, T2);
   emit_rshi (j, T1, T1, 31);
-  done = jit_jmpi ();
+  done = jit_jmp (j->jit);
 
-  jit_patch (both);
+  jit_patch_here (j->jit, both);
   /* 0 < s < 32: hi = hi >> s, lo = lo >> s + hi << (32-s) */
   emit_negr (j, T3_OR_FP, T2);
   emit_addi (j, T3_OR_FP, T3_OR_FP, 32);
@@ -3654,8 +3633,8 @@ compile_srsh (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   emit_rshr_u (j, T0, T0, T2);
   emit_addr (j, T0, T0, T3_OR_FP);
 
-  jit_patch (done);
-  jit_patch (zero);
+  jit_patch_here (j->jit, done);
+  jit_patch_here (j->jit, zero);
   emit_sp_set_s64 (j, dst, T0, T1);
 #endif
 }
@@ -3704,38 +3683,38 @@ static void
 compile_s64_imm_numerically_equal (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_s64 (j, T0, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k = jit_beqi (T0, b);
+      k = jit_beqi (j->jit, T0, b);
       break;
     case scm_op_jne:
-      k = jit_bnei (T0, b);
+      k = jit_bnei (j->jit, T0, b);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2;
+  jit_reloc_t k1, k2;
   uint32_t *target;
 
   emit_sp_ref_s64 (j, T0, T1, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_je:
-      k1 = jit_bnei (T0, b);
-      k2 = jit_beqi (T1, b < 0 ? -1 : 0);
-      jit_patch (k1);
+      k1 = jit_bnei (j->jit, T0, b);
+      k2 = jit_beqi (j->jit, T1, b < 0 ? -1 : 0);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       break;
     case scm_op_jne:
-      k1 = jit_bnei (T0, b);
-      k2 = jit_bnei (T1, b < 0 ? -1 : 0);
+      k1 = jit_bnei (j->jit, T0, b);
+      k2 = jit_bnei (j->jit, T1, b < 0 ? -1 : 0);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k2, target);
       break;
@@ -3749,38 +3728,38 @@ static void
 compile_u64_imm_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_u64 (j, T0, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_blti_u (T0, b);
+      k = jit_blti_u (j->jit, T0, b);
       break;
     case scm_op_jnl:
-      k = jit_bgei_u (T0, b);
+      k = jit_bgei_u (j->jit, T0, b);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2;
+  jit_reloc_t k1, k2;
   uint32_t *target;
 
   emit_sp_ref_u64 (j, T0, T1, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k1 = jit_bnei (T1, 0);
-      k2 = jit_blti_u (T0, b);
-      jit_patch (k1);
+      k1 = jit_bnei (j->jit, T1, 0);
+      k2 = jit_blti_u (j->jit, T0, b);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       break;
     case scm_op_jnl:
-      k1 = jit_bnei (T1, 0);
-      k2 = jit_bgei_u (T0, b);
+      k1 = jit_bnei (j->jit, T1, 0);
+      k2 = jit_bgei_u (j->jit, T0, b);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k2, target);
       break;
@@ -3794,39 +3773,39 @@ static void
 compile_imm_u64_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_u64 (j, T0, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_bgti_u (T0, b);
+      k = jit_bgti_u (j->jit, T0, b);
       break;
     case scm_op_jnl:
-      k = jit_blei_u (T0, b);
+      k = jit_blei_u (j->jit, T0, b);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2;
+  jit_reloc_t k1, k2;
   uint32_t *target;
 
   emit_sp_ref_u64 (j, T0, T1, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k1 = jit_bnei (T1, 0);
-      k2 = jit_bgti_u (T0, b);
+      k1 = jit_bnei (j->jit, T1, 0);
+      k2 = jit_bgti_u (j->jit, T0, b);
       add_inter_instruction_patch (j, k1, target);
       add_inter_instruction_patch (j, k2, target);
       break;
     case scm_op_jnl:
-      k1 = jit_bnei (T1, 0);
-      k2 = jit_blei_u (T0, b);
-      jit_patch (k1);
+      k1 = jit_bnei (j->jit, T1, 0);
+      k2 = jit_blei_u (j->jit, T0, b);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       break;
     default:
@@ -3839,24 +3818,24 @@ static void
 compile_s64_imm_less (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_s64 (j, T0, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_blti (T0, b);
+      k = jit_blti (j->jit, T0, b);
       break;
     case scm_op_jnl:
-      k = jit_bgei (T0, b);
+      k = jit_bgei (j->jit, T0, b);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *k3;
+  jit_reloc_t k1, k2, k3;
   int32_t sign = b < 0 ? -1 : 0;
   uint32_t *target;
 
@@ -3864,18 +3843,18 @@ compile_s64_imm_less (scm_jit_state *j, uint16_t a, int16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k1 = jit_blti (T1, sign);
-      k2 = jit_bnei (T1, sign);
-      k3 = jit_blti (T0, b);
+      k1 = jit_blti (j->jit, T1, sign);
+      k2 = jit_bnei (j->jit, T1, sign);
+      k3 = jit_blti (j->jit, T0, b);
       add_inter_instruction_patch (j, k1, target);
-      jit_patch (k2);
+      jit_patch_here (j->jit, k2);
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k1 = jit_blti (T1, sign);
-      k2 = jit_bnei (T1, sign);
-      k3 = jit_bgei (T0, b);
-      jit_patch (k1);
+      k1 = jit_blti (j->jit, T1, sign);
+      k2 = jit_bnei (j->jit, T1, sign);
+      k3 = jit_bgei (j->jit, T0, b);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       add_inter_instruction_patch (j, k3, target);
       break;
@@ -3889,24 +3868,24 @@ static void
 compile_imm_s64_less (scm_jit_state *j, uint16_t a, int16_t b)
 {
 #if SIZEOF_UINTPTR_T >= 8
-  jit_node_t *k;
+  jit_reloc_t k;
   uint32_t *target;
 
   emit_sp_ref_s64 (j, T0, a);
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k = jit_bgti (T0, b);
+      k = jit_bgti (j->jit, T0, b);
       break;
     case scm_op_jnl:
-      k = jit_blei (T0, b);
+      k = jit_blei (j->jit, T0, b);
       break;
     default:
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
 #else
-  jit_node_t *k1, *k2, *k3;
+  jit_reloc_t k1, k2, k3;
   int32_t sign = b < 0 ? -1 : 0;
   uint32_t *target;
 
@@ -3914,19 +3893,19 @@ compile_imm_s64_less (scm_jit_state *j, uint16_t a, int16_t b)
   switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-      k1 = jit_blti (T1, sign);
-      k2 = jit_bnei (T1, sign);
-      k3 = jit_bgti (T0, b);
-      jit_patch (k1);
+      k1 = jit_blti (j->jit, T1, sign);
+      k2 = jit_bnei (j->jit, T1, sign);
+      k3 = jit_bgti (j->jit, T0, b);
+      jit_patch_here (j->jit, k1);
       add_inter_instruction_patch (j, k2, target);
       add_inter_instruction_patch (j, k3, target);
       break;
     case scm_op_jnl:
-      k1 = jit_blti (T1, sign);
-      k2 = jit_bnei (T1, sign);
-      k3 = jit_blei (T0, b);
+      k1 = jit_blti (j->jit, T1, sign);
+      k2 = jit_bnei (j->jit, T1, sign);
+      k3 = jit_blei (j->jit, T0, b);
       add_inter_instruction_patch (j, k1, target);
-      jit_patch (k2);
+      jit_patch_here (j->jit, k2);
       add_inter_instruction_patch (j, k3, target);
       break;
     default:
@@ -4041,7 +4020,7 @@ compile_u32_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   jit_stxr_i (T0, T1, T2);
 #else
   emit_sp_ref_u64_lower_half (j, T2, v);
-  jit_stxr (T0, T1, T2);
+  jit_stxr (j->jit, T0, T1, T2);
 #endif
 }
 
@@ -4052,19 +4031,19 @@ compile_u64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   emit_sp_ref_sz (j, T1, idx);
 #if SIZEOF_UINTPTR_T >= 8
   emit_sp_ref_u64 (j, T2, v);
-  jit_stxr (T0, T1, T2);
+  jit_stxr (j->jit, T0, T1, T2);
 #else
-  jit_addr (T0, T0, T1);
+  jit_addr (j->jit, T0, T0, T1);
   emit_sp_ref_u64 (j, T1, T2, v);
   if (BIGENDIAN)
     {
-      jit_str (T0, T2);
-      jit_stxi (4, T0, T1);
+      jit_str (j->jit, T0, T2);
+      jit_stxi (j->jit, 4, T0, T1);
     }
   else
     {
-      jit_str (T0, T1);
-      jit_stxi (4, T0, T2);
+      jit_str (j->jit, T0, T1);
+      jit_stxi (j->jit, 4, T0, T2);
     }
 #endif
 }
@@ -4639,10 +4618,6 @@ compile (scm_jit_state *j)
 
   analyze (j);
 
-  for (offset = 0; j->start + offset < j->end; offset++)
-    if (j->op_attrs[offset] & OP_ATTR_BLOCK)
-      j->labels[offset] = jit_forward ();
-
   j->ip = (uint32_t *) j->start;
   set_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
 
@@ -4666,6 +4641,17 @@ compile (scm_jit_state *j)
 
 static scm_i_pthread_once_t initialize_jit_once = SCM_I_PTHREAD_ONCE_INIT;
 
+static void*
+jit_alloc_fn (size_t size)
+{
+  return scm_gc_malloc_pointerless (size, "jit state");
+}
+
+static void
+jit_free_fn (void *)
+{
+}
+
 static scm_jit_state *
 initialize_thread_jit_state (scm_thread *thread)
 {
@@ -4676,6 +4662,7 @@ initialize_thread_jit_state (scm_thread *thread)
   j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
   memset (j, 0, sizeof (*j));
   thread->jit_state = j;
+  j->jit = jit_new_state (jit_alloc_fn, jit_free_fn);
 
   return j;
 }
@@ -4684,7 +4671,6 @@ static void
 initialize_jit (void)
 {
   scm_jit_state *j;
-  jit_node_t *exit;
 
   init_jit (NULL);
 
@@ -4692,17 +4678,12 @@ initialize_jit (void)
      trampoline and the handle-interrupts trampoline.  */
   j = initialize_thread_jit_state (SCM_I_CURRENT_THREAD);
 
-  prepare_jit_state (j);
-  exit = emit_entry_trampoline (j);
-  enter_mcode = emit_code (j);
+  enter_mcode = emit_code (j, emit_entry_trampoline);
   ASSERT (enter_mcode);
-  exit_mcode = jit_address (exit);
-  reset_jit_state (j);
 
-  prepare_jit_state (j);
-  emit_handle_interrupts_trampoline (j);
-  handle_interrupts_trampoline = emit_code (j);
-  reset_jit_state (j);
+  handle_interrupts_trampoline =
+    emit_code (j, emit_handle_interrupts_trampoline);
+  ASSERT (handle_interrupts_trampoline);
 }
 
 static uint8_t *
@@ -4744,7 +4725,7 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   prepare_jit_state (j);
   compile (j);
 
-  data->mcode = emit_code (j);
+  data->mcode = emit_code (j, compile);
   if (data->mcode)
     entry_mcode = jit_address (j->entry_label);
   else
