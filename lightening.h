@@ -111,6 +111,18 @@ typedef struct jit_reloc
 #define jit_regno(bits)		((bits) & 0x00007fff)
 
 static inline jit_bool_t
+jit_same_gprs (jit_gpr_t a, jit_gpr_t b)
+{
+  return a.bits == b.bits;
+}
+
+static inline jit_bool_t
+jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
+{
+  return a.bits == b.bits;
+}
+
+static inline jit_bool_t
 jit_gpr_is_callee_save (jit_gpr_t reg)
 {
   return jit_class(reg.bits) & jit_class_sav;
