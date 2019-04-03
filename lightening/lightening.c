@@ -214,9 +214,9 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
 {
   ASSERT (!_jit->start);
 
-  _jit->start = buf;
+  _jit->pc.uc = _jit->start = buf;
   _jit->limit = buf + length;
-  jit_reset(_jit);
+  _jit->overflow = 0;
 }
 
 jit_bool_t
@@ -230,7 +230,7 @@ void
 jit_reset(jit_state_t *_jit)
 {
   ASSERT (_jit->start);
-  _jit->pc.uc = _jit->start;
+  _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
 }
 
