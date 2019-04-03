@@ -13,12 +13,12 @@ check: all
 	done
 	@echo "Success."
 
-jit.o: ../jit.h ../jit/*.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o jit.o -c ../jit/jit.c
+lightening.o: ../lightening.h ../lightening/*.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o lightening.o -c ../lightening/lightening.c
 
-test-%: %.c jit.o test.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ jit.o $<
+test-%: %.c lightening.o test.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening.o $<
 
 clean:
 	rm -f $(addprefix test-,$(TESTS))
-	rm -f jit.o
+	rm -f lightening.o
