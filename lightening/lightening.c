@@ -137,6 +137,8 @@ struct jit_state
   uint8_t temp_gpr_saved;
   uint8_t temp_fpr_saved;
   uint8_t overflow;
+  void* (*alloc)(size_t);
+  void (*free)(void*);
 };
 
 enum jit_reloc_flags
@@ -177,13 +179,18 @@ init_jit(void)
 }
 
 jit_state_t *
-jit_new_state(void)
+jit_new_state(void* (*alloc_fn)(size_t), void (*free_fn)(void*))
 {
-  jit_state_t *_jit = malloc (sizeof (*_jit));
+  if (!alloc_fn) alloc_fn = malloc;
+  if (!free_fn) free_fn = free;
+
+  jit_state_t *_jit = alloc_fn (sizeof (*_jit));
   if (!_jit)
     abort ();
 
   memset(_jit, 0, sizeof (*_jit));
+  _jit->alloc = alloc_fn;
+  _jit->free = free_fn;
 
   if (!jit_init (_jit));
 
@@ -193,7 +200,7 @@ jit_new_state(void)
 void
 jit_destroy_state(jit_state_t *_jit)
 {
-  free (_jit);
+  _jit->free (_jit);
 }
 
 jit_pointer_t

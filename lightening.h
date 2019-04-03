@@ -110,6 +110,18 @@ typedef struct jit_reloc
 #define jit_class(bits)		((bits) & 0xffff0000)
 #define jit_regno(bits)		((bits) & 0x00007fff)
 
+static inline jit_bool_t
+jit_gpr_is_callee_save (jit_gpr_t reg)
+{
+  return jit_class(reg.bits) & jit_class_sav;
+}
+
+static inline jit_bool_t
+jit_fpr_is_callee_save (jit_fpr_t reg)
+{
+  return jit_class(reg.bits) & jit_class_sav;
+}
+
 typedef struct jit_state	jit_state_t;
 enum jit_arg_loc
 {
@@ -155,7 +167,8 @@ typedef union jit_anyreg
 
 JIT_API jit_bool_t init_jit(void);
 
-JIT_API jit_state_t *jit_new_state(void);
+JIT_API jit_state_t *jit_new_state(void* (*alloc_fn)(size_t),
+                                   void (*free_fn)(void*));
 JIT_API void jit_destroy_state(jit_state_t*);
 
 JIT_API void jit_begin(jit_state_t*, uint8_t*, size_t);
