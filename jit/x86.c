@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -347,22 +347,6 @@ jit_epilog(jit_state_t *_jit)
   /* TODO: Restore registers.  */
 }
 
-void
-jit_calli(jit_state_t *_jit, jit_pointer_t f,
-          size_t argc, const jit_arg_abi_t abi[], const jit_arg_t args[])
-{
-  /* TODO: Do the call!  */
-  calli(_jit, (jit_word_t)f);
-}
-
-void
-jit_callr(jit_state_t *_jit, jit_gpr_t f,
-          size_t argc, const jit_arg_abi_t abi[], const jit_arg_t args[])
-{
-  /* TODO: Do the call!  */
-  callr(_jit, f);
-}
-
 static jit_bool_t
 is_fpr_arg(jit_arg_abi_t arg)
 {
@@ -392,62 +376,392 @@ is_gpr_arg(jit_arg_abi_t arg)
   return !is_fpr_arg(arg);
 }
 
+static const jit_reg_t abi_gpr_args[] = {
+#if __X32
+  /* No GPRs in args.  */
+#elif __CYGWIN__
+  _RCX, _RDX, _R8, _R9
+#else
+  _RDI, _RSI, _RDX, _RCX, _R8, _R9
+#endif
+};
+
+static const jit_reg_t abi_fpr_args[] = {
+#if __X32
+  /* No FPRs in args.  */
+#elif __CYGWIN__
+  _XMM0, _XMM1, _XMM2, _XMM3
+#else
+  _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7
+#endif
+};
+
+static const int abi_gpr_arg_count = sizeof(abi_gpr_args) / sizeof(abi_gpr_args[0]);
+static const int abi_fpr_arg_count = sizeof(abi_fpr_args) / sizeof(abi_fpr_args[0]);
+
+struct abi_arg_iterator
+{
+  const jit_arg_abi_t *abi;
+  size_t argc;
+
+  size_t arg_idx;
+  size_t gpr_idx;
+  size_t fpr_idx;
+  size_t stack_size;
+};
+
+static void
+next_abi_arg(struct abi_arg_iterator *iter, jit_arg_t *arg)
+{
+  ASSERT(iter->arg_idx < iter->argc);
+  jit_arg_abi_t abi = iter->abi[iter->arg_idx];
+  if (is_gpr_arg(abi)) {
+    if (iter->gpr_idx < abi_gpr_arg_count) {
+      arg->kind = JIT_ARG_LOC_GPR;
+      arg->loc.gpr = abi_gpr_args[iter->gpr_idx++];
+#ifdef __CYGWIN__
+      iter->fpr_idx++;
+#endif
+    } else {
+      abort();
+    }
+  } else {
+    ASSERT(is_fpr_arg(abi));
+    if (iter->fpr_idx < abi_fpr_arg_count) {
+      arg->kind = JIT_ARG_LOC_FPR;
+      arg->loc.fpr = abi_fpr_args[iter->fpr_idx++];
+#ifdef __CYGWIN__
+      iter->gpr_idx++;
+#endif
+    } else {
+      abort();
+    }
+  }
+  iter->arg_idx++;
+}
+
+static void
+abi_gpr_to_mem(jit_state_t *_jit, jit_arg_abi_t abi,
+               jit_gpr_t src, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_UINT8:
+  case JIT_ARG_ABI_INT8:
+    jit_stxi_c(_jit, offset, base, src);
+    break;
+  case JIT_ARG_ABI_UINT16:
+  case JIT_ARG_ABI_INT16:
+    jit_stxi_s(_jit, offset, base, src);
+    break;
+  case JIT_ARG_ABI_UINT32:
+  case JIT_ARG_ABI_INT32:
+#if __WORDSIZE == 32
+  case JIT_ARG_ABI_POINTER:
+#endif
+    jit_stxi_i(_jit, offset, base, src);
+    break;
+#if __WORDSIZE == 64
+  case JIT_ARG_ABI_UINT64:
+  case JIT_ARG_ABI_INT64:
+  case JIT_ARG_ABI_POINTER:
+    jit_stxi_l(_jit, offset, base, src);
+    break;
+#endif
+  default:
+    abort();
+  }
+}
+
+static void
+abi_fpr_to_mem(jit_state_t *_jit, jit_arg_abi_t abi,
+               jit_fpr_t src, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_FLOAT:
+    jit_stxi_f(_jit, offset, base, src);
+    break;
+  case JIT_ARG_ABI_DOUBLE:
+    jit_stxi_d(_jit, offset, base, src);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+abi_mem_to_gpr(jit_state_t *_jit, jit_arg_abi_t abi,
+               jit_gpr_t dst, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_UINT8:
+    jit_ldxi_uc(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_INT8:
+    jit_ldxi_c(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_UINT16:
+    jit_ldxi_us(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_INT16:
+    jit_ldxi_s(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_UINT32:
+    jit_ldxi_ui(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_INT32:
+    jit_ldxi_i(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_UINT64:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_INT64:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_POINTER:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+abi_mem_to_fpr(jit_state_t *_jit, jit_arg_abi_t abi,
+               jit_fpr_t dst, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_FLOAT:
+    jit_ldxi_f(_jit, dst, base, offset);
+    break;
+  case JIT_ARG_ABI_DOUBLE:
+    jit_ldxi_d(_jit, dst, base, offset);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+store_mem_abi_arg(jit_state_t *_jit, jit_arg_abi_t abi,
+                  jit_arg_t *arg, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (arg->kind) {
+  case JIT_ARG_LOC_GPR:
+    abi_gpr_to_mem(_jit, abi, arg->loc.gpr, base, offset);
+    break;
+
+  case JIT_ARG_LOC_FPR:
+    abi_fpr_to_mem(_jit, abi, arg->loc.fpr, base, offset);
+    break;
+
+  case JIT_ARG_LOC_MEM:
+    if (is_gpr_arg(abi)) {
+      jit_gpr_t tmp = get_temp_gpr(_jit);
+      abi_mem_to_gpr(_jit, abi, tmp, arg->loc.mem.base, arg->loc.mem.offset);
+      abi_gpr_to_mem(_jit, abi, tmp, base, offset);
+      unget_temp_gpr(_jit);
+    } else {
+      jit_fpr_t tmp = get_temp_xpr(_jit);
+      abi_mem_to_fpr(_jit, abi, tmp, arg->loc.mem.base, arg->loc.mem.offset);
+      abi_fpr_to_mem(_jit, abi, tmp, base, offset);
+      unget_temp_xpr(_jit);
+    }
+    break;
+
+  default:
+    abort();
+  }
+
+  arg->kind = JIT_ARG_LOC_MEM;
+  arg->loc.mem.base = base;
+  arg->loc.mem.offset = offset;
+}
+
+static void
+shuffle_gpr_arg(jit_state_t *_jit, jit_gpr_t dst, size_t argc,
+                jit_arg_t *args, size_t idx)
+{
+  ASSERT(args[idx].kind == JIT_ARG_LOC_GPR);
+
+  if (args[idx].loc.gpr == dst)
+    return;
+
+  /* Arg in a reg but it's not the right one.  See if this reg
+     holds some other arg, and swap if so.  */
+  for (size_t j=idx+1; j<argc; j++)
+    if (args[j].kind == JIT_ARG_LOC_GPR && args[j].loc.gpr == dst)
+      {
+        xchgr(_jit, rn(args[idx].loc.gpr), rn(dst));
+        args[j].loc.gpr = args[idx].loc.gpr;
+        args[idx].loc.gpr = dst;
+        /* Could be this register holds a value for more than one argument;
+           update subsequent args if any.  */
+        for (size_t k=j+1; k<argc; k++)
+          if (args[k].kind == JIT_ARG_LOC_GPR && args[k].loc.gpr == dst)
+            args[k].loc.gpr = args[j].loc.gpr;
+        return;
+      }
+
+  /* Arg in reg, but it's not the right one, and the desired reg
+     is free.  */
+  jit_movr(_jit, dst, args[idx].loc.gpr);
+  args[idx].loc.gpr = dst;
+}
+
+static void
+shuffle_fpr_arg(jit_state_t *_jit, jit_fpr_t dst, size_t argc,
+                jit_arg_t *args, size_t idx)
+{
+  ASSERT(args[idx].kind == JIT_ARG_LOC_FPR);
+
+  if (args[idx].loc.fpr == dst)
+    return;
+
+  /* Arg in a reg but it's not the right one.  See if this reg
+     holds some other arg, and swap if so.  */
+  for (size_t j=idx+1; j<argc; j++)
+    if (args[j].kind == JIT_ARG_LOC_FPR && args[j].loc.fpr == dst)
+      {
+        jit_fpr_t tmp = get_temp_xpr(_jit);
+        jit_movr_d (_jit, tmp, args[idx].loc.fpr);
+        jit_movr_d (_jit, args[idx].loc.fpr, dst);
+        jit_movr_d (_jit, dst, tmp);
+        unget_temp_xpr(_jit);
+        args[j].loc.fpr = args[idx].loc.fpr;
+        args[idx].loc.fpr = dst;
+        /* Could be this register holds a value for more than one argument;
+           update subsequent args if any.  */
+        for (size_t k=j+1; k<argc; k++)
+          if (args[k].kind == JIT_ARG_LOC_FPR && args[k].loc.fpr == dst)
+            args[k].loc.fpr = args[j].loc.fpr;
+        return;
+      }
+
+  /* Arg in reg, but it's not the right one, and the desired reg
+     is free.  */
+  jit_movr_d(_jit, dst, args[idx].loc.fpr);
+  args[idx].loc.fpr = dst;
+}
+
+static void
+reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
+                       const jit_arg_abi_t *abi)
+{
+  memset(iter, 0, sizeof *iter);
+  iter->argc = argc;
+  iter->abi = abi;
+}
+
+static void
+prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
+             jit_arg_t args[])
+{
+  jit_arg_t scratch;
+  struct abi_arg_iterator iter;
+  
+  // Compute stack arg size.
+  reset_abi_arg_iterator(&iter, argc, abi);
+  for (size_t i = 0; i < argc; i++)
+    next_abi_arg(&iter, &scratch);
+
+  // Put all ABI memory arguments in place.  We do this first because it might
+  // free up some registers.
+  if (iter.stack_size)
+    {
+      size_t stack_size = iter.stack_size;
+      subi(_jit, _RSP_REGNO, _RSP_REGNO, stack_size);
+      reset_abi_arg_iterator(&iter, argc, abi);
+      for (size_t i = 0; i < argc; i++) {
+        next_abi_arg(&iter, &scratch);
+        if (scratch.kind == JIT_ARG_LOC_MEM)
+          store_mem_abi_arg(_jit, abi[i], &args[i],
+                            scratch.loc.mem.base, scratch.loc.mem.offset);
+      }
+    }
+
+  // We move on now to the ABI register arguments.  All args whose values are in
+  // registers are ABI register arguments, but they might not be the right
+  // register for the correponding ABI argument.  Note that there may be ABI
+  // register arguments whose values are still in memory; we will load them
+  // later.
+  reset_abi_arg_iterator(&iter, argc, abi);
+  for (size_t i = 0; i < argc; i++)
+    {
+      next_abi_arg(&iter, &scratch);
+      switch (scratch.kind) {
+      case JIT_ARG_LOC_GPR:
+        if (args[i].kind == JIT_ARG_LOC_GPR)
+          shuffle_gpr_arg(_jit, scratch.loc.gpr, argc, args, i);
+        break;
+        
+      case JIT_ARG_LOC_FPR:
+        if (args[i].kind == JIT_ARG_LOC_FPR)
+          shuffle_fpr_arg(_jit, scratch.loc.fpr, argc, args, i);
+        break;
+
+      default:
+        break;
+      }
+    }
+  
+  // The only thing that's left is ABI register arguments whose values are still
+  // in memory; load them now.
+  reset_abi_arg_iterator(&iter, argc, abi);
+  for (size_t i = 0; i < argc; i++)
+    {
+      next_abi_arg(&iter, &scratch);
+      switch (scratch.kind) {
+      case JIT_ARG_LOC_GPR:
+        if (args[i].kind == JIT_ARG_LOC_MEM) {
+          abi_mem_to_gpr(_jit, abi[i], scratch.loc.gpr, args[i].loc.mem.base,
+                         args[i].loc.mem.offset);
+          args[i].kind = JIT_ARG_LOC_GPR;
+          args[i].loc.gpr = scratch.loc.gpr;
+        }
+        break;
+        
+      case JIT_ARG_LOC_FPR:
+        if (args[i].kind == JIT_ARG_LOC_MEM) {
+          abi_mem_to_fpr(_jit, abi[i], scratch.loc.fpr, args[i].loc.mem.base,
+                         args[i].loc.mem.offset);
+          args[i].kind = JIT_ARG_LOC_FPR;
+          args[i].loc.fpr = scratch.loc.fpr;
+        }
+        break;
+
+      default:
+        break;
+      }
+    }
+}
+
+void
+jit_calli(jit_state_t *_jit, jit_pointer_t f,
+          size_t argc, const jit_arg_abi_t abi[], jit_arg_t args[])
+{
+  prepare_args(_jit, argc, abi, args);
+
+  calli(_jit, (jit_word_t)f);
+}
+
+void
+jit_callr(jit_state_t *_jit, jit_gpr_t f,
+          size_t argc, const jit_arg_abi_t abi[], jit_arg_t args[])
+{
+  prepare_args(_jit, argc, abi, args);
+
+  callr(_jit, f);
+}
+
 void
 jit_receive(jit_state_t *_jit,
             size_t argc, const jit_arg_abi_t abi[], jit_arg_t args[])
 {
-  const jit_reg_t gpr_args[] = {
-#if __X32
-    /* No GPRs in args.  */
-#elif __CYGWIN__
-    _RCX, _RDX, _R8, _R9
-#else
-    _RDI, _RSI, _RDX, _RCX, _R8, _R9
-#endif
-  };
-  const jit_reg_t fpr_args[] = {
-#if __X32
-    /* No FPRs in args.  */
-#elif __CYGWIN__
-    _XMM0, _XMM1, _XMM2, _XMM3
-#else
-    _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7
-#endif
-  };
-  size_t gpr_arg_idx = 0;
-  size_t fpr_arg_idx = 0;
-  /* size_t stack_offset = 0; */
-  size_t gpr_arg_count = sizeof(gpr_args) / sizeof(jit_reg_t);
-  size_t fpr_arg_count = sizeof(fpr_args) / sizeof(jit_reg_t);
-  
-#if __CYGWIN__
-#define NEXT_GPR() do { gpr_arg_idx++; fpr_arg_idx++; } while (0)
-#define NEXT_FPR() do { gpr_arg_idx++; fpr_arg_idx++; } while (0)
-#else
-#define NEXT_GPR() do { gpr_arg_idx++; } while (0)
-#define NEXT_FPR() do { fpr_arg_idx++; } while (0)
-#endif
-
-  for (size_t i = 0; i < argc; i++) {
-    if (is_gpr_arg(abi[i])) {
-      if (gpr_arg_idx < gpr_arg_count) {
-        args[i].kind = JIT_ARG_LOC_GPR;
-        args[i].loc.gpr = gpr_args[gpr_arg_idx];
-        NEXT_GPR();
-      } else {
-        abort();
-      }
-    } else {
-      ASSERT(is_fpr_arg(abi[i]));
-      if (fpr_arg_idx < fpr_arg_count) {
-        args[i].kind = JIT_ARG_LOC_FPR;
-        args[i].loc.fpr = fpr_args[fpr_arg_idx];
-        NEXT_FPR();
-      } else {
-        abort();
-      }
-    }
-  }
+  struct abi_arg_iterator iter;
+    
+  reset_abi_arg_iterator(&iter, argc, abi);
+  for (size_t i = 0; i < argc; i++)
+    next_abi_arg(&iter, &args[i]);
 }
 
 void

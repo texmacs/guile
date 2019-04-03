@@ -165,12 +165,14 @@ JIT_API jit_pointer_t jit_address(jit_state_t*);
 JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
+/* Note that all functions that take jit_arg_t args[] use the args as scratch
+   space.  */
 JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,
                        size_t argc, const jit_arg_abi_t abi[],
-                       const jit_arg_t args[]);
+                       jit_arg_t args[]);
 JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
                        size_t argc, const jit_arg_abi_t abi[],
-                       const jit_arg_t args[]);
+                       jit_arg_t args[]);
 JIT_API void jit_receive(jit_state_t*, size_t argc,
                          const jit_arg_abi_t abi[], jit_arg_t args[]);
 JIT_API void jit_load_args(jit_state_t *_jit, size_t argc,
