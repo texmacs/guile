@@ -18,7 +18,7 @@ main_helper (int argc, char *argv[],
              void (*run_test)(jit_state_t*, uint8_t*, size_t))
 {
   ASSERT(init_jit());
-  jit_state_t *j = jit_new_state();
+  jit_state_t *j = jit_new_state (NULL, NULL);
   ASSERT(j);
 
   const size_t arena_size = 4096;
