@@ -14,7 +14,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   jit_receive(j, 1, abi, args);
   jit_load_args(j, 1, abi, args, regs);
 
-  jit_sti_f(j, &data[1], JIT_R0);
+  jit_sti_f(j, &data[1], JIT_F0);
   jit_ret(j);
 
   void (*f)(float) = jit_end(j, NULL);

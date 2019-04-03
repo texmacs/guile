@@ -14,7 +14,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   jit_receive(j, 2, abi, args);
   jit_load_args(j, 2, abi, args, regs);
 
-  jit_str_d(j, JIT_F0, JIT_R0);
+  jit_str_d(j, JIT_R0, JIT_F0);
   jit_ret(j);
 
   void (*f)(void*, double) = jit_end(j, NULL);

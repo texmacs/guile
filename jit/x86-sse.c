@@ -181,7 +181,7 @@ pushr_d(jit_state_t *_jit, int32_t r0)
 static void
 popr_d(jit_state_t *_jit, int32_t r0)
 {
-  int32_t tmp = get_temp_gpr(_jit);
+  jit_gpr_t tmp = get_temp_gpr(_jit);
   popr(_jit, rn(tmp));
   ssexr(_jit, 0x66, X86_SSE_G2X, r0, rn(tmp));
   unget_temp_gpr(_jit);
@@ -193,7 +193,7 @@ get_temp_xpr(jit_state_t *_jit)
   /* Reserve XMM7 for the JIT.  */
   ASSERT(!_jit->temp_fpr_saved);
   _jit->temp_fpr_saved = 1;
-  return _XMM7;
+  return JIT_FPR(_XMM7);
 }
 
 static void
@@ -379,7 +379,7 @@ movi_f(jit_state_t *_jit, int32_t r0, jit_float32_t i0)
   if (data.f == 0.0 && !(data.i & 0x80000000))
     xorpsr(_jit, r0, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
     movi(_jit, rn(reg), data.i);
     movdlxr(_jit, r0, rn(reg));
     unget_temp_gpr(_jit);
@@ -399,7 +399,7 @@ movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t i0)
   if (data.d == 0.0 && !(data.ii[1] & 0x80000000))
     xorpdr(_jit, r0, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64 && !__X64_32
     movi(_jit, rn(reg), data.w);
     movdqxr(_jit, r0, rn(reg));
@@ -477,7 +477,7 @@ subr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     subssr(_jit, r0, r2);
   else if (r0 == r2) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     movr_f(_jit, rn(reg), r0);
     movr_f(_jit, r0, r1);
     subssr(_jit, r0, rn(reg));
@@ -495,7 +495,7 @@ subr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     subsdr(_jit, r0, r2);
   else if (r0 == r2) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     movr_d(_jit, rn(reg), r0);
     movr_d(_jit, r0, r1);
     subsdr(_jit, r0, rn(reg));
@@ -539,7 +539,7 @@ divr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     divssr(_jit, r0, r2);
   else if (r0 == r2) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     movr_f(_jit, rn(reg), r0);
     movr_f(_jit, r0, r1);
     divssr(_jit, r0, rn(reg));
@@ -557,7 +557,7 @@ divr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     divsdr(_jit, r0, r2);
   else if (r0 == r2) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     movr_d(_jit, rn(reg), r0);
     movr_d(_jit, r0, r1);
     divsdr(_jit, r0, rn(reg));
@@ -573,7 +573,7 @@ static void
 absr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     pcmpeqlr(_jit, rn(reg), rn(reg));
     psrl(_jit, rn(reg), 1);
     andpsr(_jit, r0, rn(reg));
@@ -590,7 +590,7 @@ static void
 absr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
-    int32_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_xpr(_jit);
     pcmpeqlr(_jit, rn(reg), rn(reg));
     psrq(_jit, rn(reg), 1);
     andpdr(_jit, r0, rn(reg));
@@ -606,10 +606,10 @@ absr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 static void
 negr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
-  int32_t ireg = get_temp_gpr(_jit);
+  jit_gpr_t ireg = get_temp_gpr(_jit);
   imovi(_jit, rn(ireg), 0x80000000);
   if (r0 == r1) {
-    int32_t freg = get_temp_xpr(_jit);
+    jit_fpr_t freg = get_temp_xpr(_jit);
     movdlxr(_jit, rn(freg), rn(ireg));
     xorpsr(_jit, r0, rn(freg));
     unget_temp_xpr(_jit);
@@ -623,10 +623,10 @@ negr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 static void
 negr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
-  int32_t ireg = get_temp_gpr(_jit);
+  jit_gpr_t ireg = get_temp_gpr(_jit);
   imovi(_jit, rn(ireg), 0x80000000);
   if (r0 == r1) {
-    int32_t freg = get_temp_xpr(_jit);
+    jit_fpr_t freg = get_temp_xpr(_jit);
     movdlxr(_jit, rn(freg), rn(ireg));
     pslq(_jit, rn(freg), 32);
     xorpdr(_jit, r0, rn(freg));
@@ -653,7 +653,7 @@ ldi_f(jit_state_t *_jit, int32_t r0, jit_word_t i0)
   if (sse_address_p(i0))
     movssmr(_jit, i0, _NOREG, _NOREG, _SCL1, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
     movi(_jit, rn(reg), i0);
     ldr_f(_jit, r0, rn(reg));
     unget_temp_gpr(_jit);
@@ -664,7 +664,7 @@ static void
 ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
-  int32_t reg = get_temp_gpr(_jit);
+  jit_gpr_t reg = get_temp_gpr(_jit);
   addr(_jit, rn(reg), r1, r2);
   ldr_f(_jit, r0, rn(reg));
   unget_temp_gpr(_jit);
@@ -679,7 +679,7 @@ ldxi_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (can_sign_extend_int_p(i0))
     movssmr(_jit, i0, r1, _NOREG, _SCL1, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
     addi(rn(reg), r1, i0);
     ldr_f(_jit, r0, rn(reg));
@@ -697,7 +697,7 @@ sti_f(jit_state_t *_jit, jit_word_t i0, int32_t r0)
   if (sse_address_p(i0))
     movssrm(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
     movi(_jit, rn(reg), i0);
     str_f(_jit, rn(reg), r0);
     unget_temp_gpr(_jit);
@@ -708,7 +708,7 @@ static void
 stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
-  int32_t reg = get_temp_gpr(_jit);
+  jit_gpr_t reg = get_temp_gpr(_jit);
   addr(_jit, rn(reg), r0, r1);
   str_f(_jit, rn(reg), r2);
   unget_temp_gpr(_jit);
@@ -723,7 +723,7 @@ stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (can_sign_extend_int_p(i0))
     movssrm(_jit, r1, i0, r0, _NOREG, _SCL1);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
     addi(rn(reg), r0, i0);
     str_f(_jit, rn(reg), r1);
@@ -847,7 +847,7 @@ ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
   if (sse_address_p(i0))
     movsdmr(_jit, i0, _NOREG, _NOREG, _SCL1, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
     movi(_jit, rn(reg), i0);
     ldr_d(_jit, r0, rn(reg));
     unget_temp_gpr(_jit);
@@ -858,7 +858,7 @@ static void
 ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
-  int32_t reg = get_temp_gpr(_jit);
+  jit_gpr_t reg = get_temp_gpr(_jit);
   addr(_jit, rn(reg), r1, r2);
   ldr_d(_jit, r0, rn(reg));
   unget_temp_gpr(_jit);
@@ -873,7 +873,7 @@ ldxi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (can_sign_extend_int_p(i0))
     movsdmr(_jit, i0, r1, _NOREG, _SCL1, r0);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
     addi(rn(reg), r1, i0);
     ldr_d(_jit, r0, rn(reg));
@@ -891,7 +891,7 @@ sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
   if (sse_address_p(i0))
     movsdrm(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
     movi(_jit, rn(reg), i0);
     str_d(_jit, rn(reg), r0);
     unget_temp_gpr(_jit);
@@ -902,7 +902,7 @@ static void
 stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
-  int32_t reg = get_temp_gpr(_jit);
+  jit_gpr_t reg = get_temp_gpr(_jit);
   addr(_jit, rn(reg), r0, r1);
   str_d(_jit, rn(reg), r2);
   unget_temp_gpr(_jit);
@@ -917,7 +917,7 @@ stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (can_sign_extend_int_p(i0))
     movsdrm(_jit, r1, i0, r0, _NOREG, _SCL1);
   else {
-    int32_t reg = get_temp_gpr(_jit);
+    jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
     addi(rn(reg), r0, i0);
     str_d(_jit, rn(reg), r1);

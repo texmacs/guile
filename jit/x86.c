@@ -376,23 +376,23 @@ is_gpr_arg(jit_arg_abi_t arg)
   return !is_fpr_arg(arg);
 }
 
-static const jit_reg_t abi_gpr_args[] = {
+static const jit_gpr_t abi_gpr_args[] = {
 #if __X32
   /* No GPRs in args.  */
 #elif __CYGWIN__
-  _RCX, _RDX, _R8, _R9
+  JIT_GPR(_RCX), JIT_GPR(_RDX), JIT_GPR(_R8), JIT_GPR(_R9)
 #else
-  _RDI, _RSI, _RDX, _RCX, _R8, _R9
+  JIT_GPR(_RDI), JIT_GPR(_RSI), JIT_GPR(_RDX), JIT_GPR(_RCX), JIT_GPR(_R8), JIT_GPR(_R9)
 #endif
 };
 
-static const jit_reg_t abi_fpr_args[] = {
+static const jit_fpr_t abi_fpr_args[] = {
 #if __X32
   /* No FPRs in args.  */
 #elif __CYGWIN__
-  _XMM0, _XMM1, _XMM2, _XMM3
+  JIT_FPR(_XMM0), JIT_FPR(_XMM1), JIT_FPR(_XMM2), JIT_FPR(_XMM3)
 #else
-  _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7
+  JIT_FPR(_XMM0), JIT_FPR(_XMM1), JIT_FPR(_XMM2), JIT_FPR(_XMM3), JIT_FPR(_XMM4), JIT_FPR(_XMM5), JIT_FPR(_XMM6), JIT_FPR(_XMM7)
 #endif
 };
 
@@ -583,13 +583,13 @@ shuffle_gpr_arg(jit_state_t *_jit, jit_gpr_t dst, size_t argc,
 {
   ASSERT(args[idx].kind == JIT_ARG_LOC_GPR);
 
-  if (args[idx].loc.gpr == dst)
+  if (rn(args[idx].loc.gpr) == rn(dst))
     return;
 
   /* Arg in a reg but it's not the right one.  See if this reg
      holds some other arg, and swap if so.  */
   for (size_t j=idx+1; j<argc; j++)
-    if (args[j].kind == JIT_ARG_LOC_GPR && args[j].loc.gpr == dst)
+    if (args[j].kind == JIT_ARG_LOC_GPR && rn(args[j].loc.gpr) == rn(dst))
       {
         xchgr(_jit, rn(args[idx].loc.gpr), rn(dst));
         args[j].loc.gpr = args[idx].loc.gpr;
@@ -597,7 +597,7 @@ shuffle_gpr_arg(jit_state_t *_jit, jit_gpr_t dst, size_t argc,
         /* Could be this register holds a value for more than one argument;
            update subsequent args if any.  */
         for (size_t k=j+1; k<argc; k++)
-          if (args[k].kind == JIT_ARG_LOC_GPR && args[k].loc.gpr == dst)
+          if (args[k].kind == JIT_ARG_LOC_GPR && rn(args[k].loc.gpr) == rn(dst))
             args[k].loc.gpr = args[j].loc.gpr;
         return;
       }
@@ -614,13 +614,13 @@ shuffle_fpr_arg(jit_state_t *_jit, jit_fpr_t dst, size_t argc,
 {
   ASSERT(args[idx].kind == JIT_ARG_LOC_FPR);
 
-  if (args[idx].loc.fpr == dst)
+  if (rn(args[idx].loc.fpr) == rn(dst))
     return;
 
   /* Arg in a reg but it's not the right one.  See if this reg
      holds some other arg, and swap if so.  */
   for (size_t j=idx+1; j<argc; j++)
-    if (args[j].kind == JIT_ARG_LOC_FPR && args[j].loc.fpr == dst)
+    if (args[j].kind == JIT_ARG_LOC_FPR && rn(args[j].loc.fpr) == rn(dst))
       {
         jit_fpr_t tmp = get_temp_xpr(_jit);
         jit_movr_d (_jit, tmp, args[idx].loc.fpr);
@@ -632,7 +632,7 @@ shuffle_fpr_arg(jit_state_t *_jit, jit_fpr_t dst, size_t argc,
         /* Could be this register holds a value for more than one argument;
            update subsequent args if any.  */
         for (size_t k=j+1; k<argc; k++)
-          if (args[k].kind == JIT_ARG_LOC_FPR && args[k].loc.fpr == dst)
+          if (args[k].kind == JIT_ARG_LOC_FPR && rn(args[k].loc.fpr) == rn(dst))
             args[k].loc.fpr = args[j].loc.fpr;
         return;
       }
@@ -750,7 +750,7 @@ jit_callr(jit_state_t *_jit, jit_gpr_t f,
 {
   prepare_args(_jit, argc, abi, args);
 
-  callr(_jit, f);
+  callr(_jit, rn(f));
 }
 
 void
@@ -769,123 +769,34 @@ jit_load_args(jit_state_t *_jit, size_t argc,
               const jit_arg_abi_t abi[], jit_arg_t args[],
               const jit_anyreg_t regs[])
 {
-  /* First shuffle the arguments in registers into position.  */
+  /* First shuffle any arguments that are already in registers into
+     position.  */
   for (size_t i = 0; i < argc; i++) {
-    const jit_arg_t arg = args[i];
-    const jit_anyreg_t reg = regs[i];
-    switch (arg.kind) {
+    switch (args[i].kind) {
     case JIT_ARG_LOC_IMM:
       abort();
     case JIT_ARG_LOC_GPR:
-      {
-        if (arg.loc.gpr != reg.gpr)
-          /* Arg in a reg but it's not the right one.  See if this reg
-             holds some other arg, and swap if so.  */
-          for (size_t j=i+1; j<argc; j++)
-            if (args[j].kind == JIT_ARG_LOC_GPR && args[j].loc.gpr == reg.gpr)
-              {
-                xchgr(_jit, rn(arg.loc.gpr), rn(reg.gpr));
-                args[j].loc.gpr = arg.loc.gpr;
-                args[i].loc.gpr = reg.gpr;
-                break;
-              }
-        if (arg.loc.gpr != reg.gpr)
-          /* Arg in reg, but it's not the right one, and the desired reg
-             is free.  */
-          {
-            movr(_jit, rn(reg.gpr), rn(arg.loc.gpr));
-            args[i].loc.gpr = reg.gpr;
-          }
-      }
+      shuffle_gpr_arg(_jit, regs[i].gpr, argc, args, i);
       break;
     case JIT_ARG_LOC_FPR:
-      {
-        if (arg.loc.fpr != reg.fpr)
-          /* Arg in a reg but it's not the right one.  See if this reg
-             holds some other arg, and swap if so.  */
-          for (size_t j=i+1; j<argc; j++)
-            if (args[j].kind == JIT_ARG_LOC_FPR && args[j].loc.fpr == reg.fpr)
-              {
-                jit_fpr_t tmp = get_temp_xpr(_jit);
-                movr_d (_jit, tmp, rn(arg.loc.fpr));
-                movr_d (_jit, rn(arg.loc.fpr), rn(reg.fpr));
-                movr_d (_jit, rn(reg.fpr), tmp);
-                unget_temp_xpr(_jit);
-                args[j].loc.fpr = arg.loc.fpr;
-                args[i].loc.fpr = reg.fpr;
-                break;
-              }
-        if (arg.loc.fpr != reg.fpr)
-          /* Arg in reg, but it's not the right one, and the desired reg
-             is free.  */
-          {
-            movr_d(_jit, rn(reg.fpr), rn(arg.loc.fpr));
-            args[i].loc.fpr = reg.fpr;
-          }
-      }
+      shuffle_fpr_arg(_jit, regs[i].fpr, argc, args, i);
       break;
     case JIT_ARG_LOC_MEM:
-      /* Load spilled arguments once we're done with registers.  */
       break;
     default:
       abort();
     }
   }
 
-  /* Load spilled arguments from memory into registers.  */
+  /* Now load spilled arguments from memory into registers.  */
   for (size_t i = 0; i < argc; i++) {
-    const jit_arg_t arg = args[i];
-    const jit_anyreg_t reg = regs[i];
-    switch (arg.kind) {
-    case JIT_ARG_LOC_IMM:
-      abort();
-    case JIT_ARG_LOC_GPR:
-    case JIT_ARG_LOC_FPR:
-      break;
-    case JIT_ARG_LOC_MEM:
-      {
-        jit_gpr_t base = arg.loc.mem.base;
-        ptrdiff_t offset = arg.loc.mem.offset;
-        switch (abi[i]) {
-        case JIT_ARG_ABI_UINT8:
-          jit_ldxi_uc(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_INT8:
-          jit_ldxi_c(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_UINT16:
-          jit_ldxi_us(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_INT16:
-          jit_ldxi_s(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_UINT32:
-          jit_ldxi_ui(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_INT32:
-          jit_ldxi_i(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_UINT64:
-          jit_ldxi_l(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_INT64:
-          jit_ldxi_l(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_POINTER:
-          jit_ldxi_l(_jit, reg.gpr, base, offset);
-          break;
-        case JIT_ARG_ABI_FLOAT:
-          jit_ldxi_f(_jit, reg.fpr, base, offset);
-          break;
-        case JIT_ARG_ABI_DOUBLE:
-          jit_ldxi_d(_jit, reg.fpr, base, offset);
-          break;
-        default:
-          abort();
-        }
-      }
-    default:
-      abort();
+    if (args[i].kind == JIT_ARG_LOC_MEM) {
+      if (is_gpr_arg(abi[i]))
+        abi_mem_to_gpr(_jit, abi[i], regs[i].gpr, args[i].loc.mem.base,
+                       args[i].loc.mem.offset);
+      else
+        abi_mem_to_fpr(_jit, abi[i], regs[i].fpr, args[i].loc.mem.base,
+                       args[i].loc.mem.offset);
     }
   }
 }

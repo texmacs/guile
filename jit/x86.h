@@ -44,7 +44,7 @@
 #  define __X32    0
 #endif
 
-#define JIT_FP                  _RBP
+#define JIT_FP                  JIT_GPR(_RBP)
 typedef enum {
 #if __X32
 #  define jit_r(i)              (_RAX + (i))
@@ -53,22 +53,22 @@ typedef enum {
 #  define jit_v_num()           3
 #  define jit_f(i)              (jit_cpu.sse2 ? _XMM0 + (i) : _ST0 + (i))
 #  define jit_f_num()           (jit_cpu.sse2 ? 8 : 6)
-#  define JIT_R0                _RAX
-#  define JIT_R1                _RCX
-#  define JIT_R2                _RDX
+#  define JIT_R0                JIT_GPR(_RAX)
+#  define JIT_R1                JIT_GPR(_RCX)
+#  define JIT_R2                JIT_GPR(_RDX)
   _RAX, _RCX, _RDX,
-#  define JIT_V0                _RBX
-#  define JIT_V1                _RSI
-#  define JIT_V2                _RDI
+#  define JIT_V0                JIT_GPR(_RBX)
+#  define JIT_V1                JIT_GPR(_RSI)
+#  define JIT_V2                JIT_GPR(_RDI)
   _RBX, _RSI, _RDI,
   _RSP, _RBP,
-#  define JIT_F0                _XMM0
-#  define JIT_F1                _XMM1
-#  define JIT_F2                _XMM2
-#  define JIT_F3                _XMM3
-#  define JIT_F4                _XMM4
-#  define JIT_F5                _XMM5
-#  define JIT_F6                _XMM6
+#  define JIT_F0                JIT_FPR(_XMM0)
+#  define JIT_F1                JIT_FPR(_XMM1)
+#  define JIT_F2                JIT_FPR(_XMM2)
+#  define JIT_F3                JIT_FPR(_XMM3)
+#  define JIT_F4                JIT_FPR(_XMM4)
+#  define JIT_F5                JIT_FPR(_XMM5)
+#  define JIT_F6                JIT_FPR(_XMM6)
   _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7,
 #  define jit_sse_reg_p(reg)    ((reg) >= _XMM0 && (reg) <= _XMM7)
 #else
@@ -79,16 +79,16 @@ typedef enum {
 #    define jit_v_num()         7
 #    define jit_f(index)        (_XMM4 + (index))
 #    define jit_f_num()         12
-#    define JIT_R0              _RAX
-#    define JIT_R1              _R10
-#    define JIT_R2              _R11
-#    define JIT_V0              _RBX
-#    define JIT_V1              _RDI
-#    define JIT_V2              _RSI
-#    define JIT_V3              _R12
-#    define JIT_V4              _R13
-#    define JIT_V5              _R14
-#    define JIT_V6              _R15
+#    define JIT_R0              JIT_GPR(_RAX)
+#    define JIT_R1              JIT_GPR(_R10)
+#    define JIT_R2              JIT_GPR(_R11)
+#    define JIT_V0              JIT_GPR(_RBX)
+#    define JIT_V1              JIT_GPR(_RDI)
+#    define JIT_V2              JIT_GPR(_RSI)
+#    define JIT_V3              JIT_GPR(_R12)
+#    define JIT_V4              JIT_GPR(_R13)
+#    define JIT_V5              JIT_GPR(_R14)
+#    define JIT_V6              JIT_GPR(_R15)
   /* Volatile - Return value register */
   _RAX,
   /* Volatile */
@@ -100,22 +100,22 @@ typedef enum {
   _R9, _R8, _RDX, _RCX,
   /* Nonvolatile */
   _RSP, _RBP,
-#    define JIT_F0              _XMM0
-#    define JIT_F1              _XMM1
-#    define JIT_F2              _XMM2
-#    define JIT_F3              _XMM3
-#    define JIT_F4              _XMM4
-#    define JIT_F5              _XMM5
-#    define JIT_F6              _XMM6
-#    define JIT_F7              _XMM7
-#    define JIT_F8              _XMM8
-#    define JIT_F9              _XMM9
-#    define JIT_F10             _XMM10
-#    define JIT_F11             _XMM11
-#    define JIT_F12             _XMM12
-#    define JIT_F13             _XMM13
-#    define JIT_F14             _XMM14
-#    define JIT_F15             _XMM15
+#    define JIT_F0              JIT_FPR(_XMM0)
+#    define JIT_F1              JIT_FPR(_XMM1)
+#    define JIT_F2              JIT_FPR(_XMM2)
+#    define JIT_F3              JIT_FPR(_XMM3)
+#    define JIT_F4              JIT_FPR(_XMM4)
+#    define JIT_F5              JIT_FPR(_XMM5)
+#    define JIT_F6              JIT_FPR(_XMM6)
+#    define JIT_F7              JIT_FPR(_XMM7)
+#    define JIT_F8              JIT_FPR(_XMM8)
+#    define JIT_F9              JIT_FPR(_XMM9)
+#    define JIT_F10             JIT_FPR(_XMM10)
+#    define JIT_F11             JIT_FPR(_XMM11)
+#    define JIT_F12             JIT_FPR(_XMM12)
+#    define JIT_F13             JIT_FPR(_XMM13)
+#    define JIT_F14             JIT_FPR(_XMM14)
+#    define JIT_F15             JIT_FPR(_XMM15)
   /* Volatile */
   _XMM4, _XMM5,
   /* Nonvolatile */
@@ -131,34 +131,34 @@ typedef enum {
 #    define jit_v_num()         4
 #    define jit_f(index)        (_XMM8 + (index))
 #    define jit_f_num()         8
-#    define JIT_R0              _RAX
-#    define JIT_R1              _R10
-#    define JIT_R2              _R11
-#    define JIT_R3              _R12
+#    define JIT_R0              JIT_GPR(_RAX)
+#    define JIT_R1              JIT_GPR(_R10)
+#    define JIT_R2              JIT_GPR(_R11)
+#    define JIT_R3              JIT_GPR(_R12)
   _RAX, _R10, _R11, _R12,
-#    define JIT_V0              _RBX
-#    define JIT_V1              _R13
-#    define JIT_V2              _R14
-#    define JIT_V3              _R15
+#    define JIT_V0              JIT_GPR(_RBX)
+#    define JIT_V1              JIT_GPR(_R13)
+#    define JIT_V2              JIT_GPR(_R14)
+#    define JIT_V3              JIT_GPR(_R15)
   _RBX, _R13, _R14, _R15,
   _R9, _R8, _RCX, _RDX, _RSI, _RDI,
   _RSP, _RBP,
-#    define JIT_F0              _XMM0
-#    define JIT_F1              _XMM1
-#    define JIT_F2              _XMM2
-#    define JIT_F3              _XMM3
-#    define JIT_F4              _XMM4
-#    define JIT_F5              _XMM5
-#    define JIT_F6              _XMM6
-#    define JIT_F7              _XMM7
-#    define JIT_F8              _XMM8
-#    define JIT_F9              _XMM9
-#    define JIT_F10             _XMM10
-#    define JIT_F11             _XMM11
-#    define JIT_F12             _XMM12
-#    define JIT_F13             _XMM13
-#    define JIT_F14             _XMM14
-#    define JIT_F15             _XMM15
+#    define JIT_F0              JIT_FPR(_XMM0)
+#    define JIT_F1              JIT_FPR(_XMM1)
+#    define JIT_F2              JIT_FPR(_XMM2)
+#    define JIT_F3              JIT_FPR(_XMM3)
+#    define JIT_F4              JIT_FPR(_XMM4)
+#    define JIT_F5              JIT_FPR(_XMM5)
+#    define JIT_F6              JIT_FPR(_XMM6)
+#    define JIT_F7              JIT_FPR(_XMM7)
+#    define JIT_F8              JIT_FPR(_XMM8)
+#    define JIT_F9              JIT_FPR(_XMM9)
+#    define JIT_F10             JIT_FPR(_XMM10)
+#    define JIT_F11             JIT_FPR(_XMM11)
+#    define JIT_F12             JIT_FPR(_XMM12)
+#    define JIT_F13             JIT_FPR(_XMM13)
+#    define JIT_F14             JIT_FPR(_XMM14)
+#    define JIT_F15             JIT_FPR(_XMM15)
   _XMM8, _XMM9, _XMM10, _XMM11, _XMM12, _XMM13, _XMM14, _XMM15,
   _XMM7, _XMM6, _XMM5, _XMM4, _XMM3, _XMM2, _XMM1, _XMM0,
 #    define jit_sse_reg_p(reg)  ((reg) >= _XMM8 && (reg) <= _XMM0)

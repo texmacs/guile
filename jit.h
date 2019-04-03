@@ -37,14 +37,18 @@ typedef float		jit_float32_t;
 typedef double		jit_float64_t;
 typedef void*		jit_pointer_t;
 typedef int		jit_bool_t;
-/* FIXME: Make the compiler warn when confusing GPR/FPR/immediate.  */
-typedef int		jit_gpr_t;
-typedef int		jit_fpr_t;
+typedef struct jit_gpr { int bits; } jit_gpr_t;
+typedef struct jit_fpr { int bits; } jit_fpr_t;
 
 typedef void*		jit_addr_t;
 typedef ptrdiff_t	jit_off_t;
 typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
+
+#define JIT_GPR(bits) ((jit_gpr_t) { bits })
+#define JIT_FPR(bits) ((jit_fpr_t) { bits })
+static inline jit_gpr_t jit_gpr(int bits) { return JIT_GPR(bits); }
+static inline jit_fpr_t jit_fpr(int bits) { return JIT_FPR(bits); }
 
 enum jit_reloc_kind
 {
@@ -91,9 +95,9 @@ typedef struct jit_reloc
 #  include "jit/alpha.h"
 #endif
 
-#define JIT_R(index)		jit_r(index)
-#define JIT_V(index)		jit_v(index)
-#define JIT_F(index)		jit_f(index)
+#define JIT_R(index)		JIT_GPR(jit_r(index))
+#define JIT_V(index)		JIT_GPR(jit_v(index))
+#define JIT_F(index)		JIT_FPR(jit_f(index))
 #define JIT_R_NUM		jit_r_num()
 #define JIT_V_NUM		jit_v_num()
 #define JIT_F_NUM		jit_f_num()
@@ -103,8 +107,8 @@ typedef struct jit_reloc
 #define jit_class_sav		0x10000000	/* callee save */
 #define jit_class_gpr		0x20000000	/* general purpose */
 #define jit_class_fpr		0x40000000	/* float */
-#define jit_class(reg)		((reg) & 0xffff0000)
-#define jit_regno(reg)		((reg) & 0x00007fff)
+#define jit_class(bits)		((bits) & 0xffff0000)
+#define jit_regno(bits)		((bits) & 0x00007fff)
 
 typedef struct jit_state	jit_state_t;
 enum jit_arg_loc
