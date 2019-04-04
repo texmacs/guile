@@ -177,7 +177,6 @@ struct scm_jit_state {
   uint32_t *next_ip;
   const uint32_t *end;
   uint32_t *entry;
-  void *entry_mcode;
   uint8_t *op_attrs;
   struct pending_reloc *relocs;
   size_t reloc_idx;
@@ -1486,7 +1485,7 @@ add_inter_instruction_patch (scm_jit_state *j, jit_reloc_t reloc,
         }
     }
 
-  ASSERT (j->reloc_idx <= j->reloc_count);
+  ASSERT (j->reloc_idx < j->reloc_count);
   j->relocs[j->reloc_idx].reloc = reloc;
   j->relocs[j->reloc_idx].target_vcode_offset = offset;
   j->reloc_idx++;
@@ -4702,6 +4701,7 @@ compile (scm_jit_state *j)
 {
   analyze (j);
 
+  j->reloc_idx = 0;
   j->ip = (uint32_t *) j->start;
   set_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
 
@@ -4709,16 +4709,14 @@ compile (scm_jit_state *j)
     {
       ptrdiff_t offset = j->ip - j->start;
       uint8_t attrs = j->op_attrs[offset];
+      j->labels[offset] = jit_address (j->jit);
       if (attrs & OP_ATTR_BLOCK)
         {
           uint32_t state = SP_IN_REGISTER;
           if (attrs & OP_ATTR_ENTRY)
             state |= FP_IN_REGISTER;
           j->register_state = state;
-          j->labels[offset] = jit_address (j->jit);
         }
-      if (j->ip == j->entry)
-        j->entry_mcode = jit_address (j->jit);
       compile1 (j);
     }
 
