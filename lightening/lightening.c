@@ -399,6 +399,18 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
     }
 }
 
+jit_bool_t
+jit_gpr_is_callee_save (jit_state_t *_jit, jit_gpr_t reg)
+{
+  return jit_class(_rvs[jit_regno(reg.bits)].spec) & jit_class_sav;
+}
+
+jit_bool_t
+jit_fpr_is_callee_save (jit_state_t *_jit, jit_fpr_t reg)
+{
+  return jit_class(_rvs[jit_regno(reg.bits)].spec) & jit_class_sav;
+}
+
 #if defined(__i386__) || defined(__x86_64__)
 # include "x86.c"
 #elif defined(__mips__)

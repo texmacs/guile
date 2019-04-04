@@ -122,18 +122,6 @@ jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
   return a.bits == b.bits;
 }
 
-static inline jit_bool_t
-jit_gpr_is_callee_save (jit_gpr_t reg)
-{
-  return jit_class(reg.bits) & jit_class_sav;
-}
-
-static inline jit_bool_t
-jit_fpr_is_callee_save (jit_fpr_t reg)
-{
-  return jit_class(reg.bits) & jit_class_sav;
-}
-
 typedef struct jit_state	jit_state_t;
 enum jit_arg_loc
 {
@@ -193,6 +181,9 @@ JIT_API void jit_align(jit_state_t*, unsigned);
 JIT_API jit_pointer_t jit_address(jit_state_t*);
 JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
+
+JIT_API jit_bool_t jit_gpr_is_callee_save (jit_state_t*, jit_gpr_t);
+JIT_API jit_bool_t jit_fpr_is_callee_save (jit_state_t*, jit_fpr_t);
 
 /* Note that all functions that take jit_arg_t args[] use the args as scratch
    space while shuffling values into position.  */
