@@ -2638,7 +2638,7 @@ callr(jit_state_t *_jit, int32_t r0)
 static void
 calli(jit_state_t *_jit, jit_word_t i0)
 {
-  ptrdiff_t rel32 = i0 - (_jit->pc.w + 4);
+  ptrdiff_t rel32 = i0 - (_jit->pc.w + 1 + 4);
   if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
     {
       ic(_jit, 0xe8);
@@ -2664,7 +2664,7 @@ jmpr(jit_state_t *_jit, int32_t r0)
 static void
 jmpi(jit_state_t *_jit, jit_word_t i0)
 {
-  ptrdiff_t rel32 = i0 - (_jit->pc.w + 4);
+  ptrdiff_t rel32 = i0 - (_jit->pc.w + 1 + 4);
   if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
     {
       ic(_jit, 0xe9);
