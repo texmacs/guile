@@ -4722,7 +4722,7 @@ compile (scm_jit_state *j)
       compile1 (j);
     }
 
-  for (size_t i = 0; i < j->reloc_count; i++)
+  for (size_t i = 0; i < j->reloc_idx; i++)
     {
       void *target = j->labels[j->relocs[i].target_vcode_offset];
       ASSERT(target);
@@ -4830,7 +4830,7 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
 
   data->mcode = emit_code (j, compile);
   if (data->mcode)
-    entry_mcode = jit_address (j->jit);
+    entry_mcode = j->labels[j->entry - j->start];
   else
     entry_mcode = NULL;
 
