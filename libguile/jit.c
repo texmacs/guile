@@ -4687,9 +4687,10 @@ analyze (scm_jit_state *j)
 static void
 compile (scm_jit_state *j)
 {
-  analyze (j);
-
+  for (ptrdiff_t offset = 0; j->ip + offset < j->end; offset++)
+    j->labels[offset] = NULL;
   j->reloc_idx = 0;
+
   j->ip = (uint32_t *) j->start;
   set_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
 
@@ -4706,6 +4707,9 @@ compile (scm_jit_state *j)
           j->register_state = state;
         }
       compile1 (j);
+
+      if (jit_has_overflow (j->jit))
+        return;
     }
 
   for (size_t i = 0; i < j->reloc_idx; i++)
@@ -4810,6 +4814,8 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
 
   INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
         j->entry - j->start);
+
+  analyze (j);
 
   data->mcode = emit_code (j, compile);
   if (data->mcode)
