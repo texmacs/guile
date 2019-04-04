@@ -674,7 +674,7 @@ emit_call_r (scm_jit_state *j, void *f, jit_gpr_t a)
 {
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
   jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } } };
-    
+
   jit_calli (j->jit, f, 1, abi, args);
   clear_scratch_register_state (j);
 }
@@ -684,7 +684,7 @@ emit_call_i (scm_jit_state *j, void *f, intptr_t a)
 {
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
   jit_arg_t args[] = { { JIT_ARG_LOC_IMM, { .imm = a } } };
-    
+
   jit_calli (j->jit, f, 1, abi, args);
   clear_scratch_register_state (j);
 }
@@ -695,7 +695,7 @@ emit_call_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b)
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
   jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
                        { JIT_ARG_LOC_GPR, { .gpr = b } } };
-    
+
   jit_calli (j->jit, f, 2, abi, args);
   clear_scratch_register_state (j);
 }
@@ -706,7 +706,7 @@ emit_call_r_i (scm_jit_state *j, void *f, jit_gpr_t a, intptr_t b)
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
   jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
                        { JIT_ARG_LOC_IMM, { .imm = b } } };
-    
+
   jit_calli (j->jit, f, 2, abi, args);
   clear_scratch_register_state (j);
 }
@@ -720,7 +720,7 @@ emit_call_r_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b,
   jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
                        { JIT_ARG_LOC_GPR, { .gpr = b } },
                        { JIT_ARG_LOC_GPR, { .gpr = c } } };
-    
+
   jit_calli (j->jit, f, 3, abi, args);
   clear_scratch_register_state (j);
 }
@@ -890,7 +890,7 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 static jit_arg_t
 fp_scm_operand (scm_jit_state *j, uint32_t slot)
 {
-  ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
+  ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
   return (jit_arg_t) { JIT_ARG_LOC_MEM,
       { .mem = { FP, -8 * ((ptrdiff_t) slot + 1) } } };
@@ -1057,12 +1057,6 @@ static void
 emit_sp_ref_s32 (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 {
   emit_sp_ref_sz (j, dst, src);
-}
-
-static jit_arg_t
-sp_s64_operand (scm_jit_state *j, uint32_t src)
-{
-  return sp_sz_operand (j, src);
 }
 
 static void
@@ -1242,7 +1236,7 @@ emit_load_fp_slot (scm_jit_state *j, jit_gpr_t dst, uint32_t slot)
   emit_subi (j, dst, FP, (slot + 1) * sizeof (union scm_vm_stack_element));
 }
 
-static jit_reloc_t 
+static jit_reloc_t
 emit_branch_if_immediate (scm_jit_state *j, jit_gpr_t r)
 {
   return jit_bmsi (j->jit, r, 6);
@@ -1263,7 +1257,7 @@ emit_load_heap_object_tc (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t r,
   emit_andi (j, dst, dst, mask);
 }
 
-static jit_reloc_t 
+static jit_reloc_t
 emit_branch_if_heap_object_has_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                    scm_t_bits mask, scm_t_bits tc)
 {
@@ -1271,7 +1265,7 @@ emit_branch_if_heap_object_has_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
   return jit_beqi (j->jit, t, tc);
 }
 
-static jit_reloc_t 
+static jit_reloc_t
 emit_branch_if_heap_object_not_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                    scm_t_bits mask, scm_t_bits tc)
 {
@@ -1279,7 +1273,7 @@ emit_branch_if_heap_object_not_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
   return jit_bnei (j->jit, t, tc);
 }
 
-static jit_reloc_t 
+static jit_reloc_t
 emit_branch_if_heap_object_not_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                     scm_t_bits tc7)
 {
@@ -1293,7 +1287,7 @@ emit_entry_trampoline (scm_jit_state *j)
   size_t gpr_count = sizeof(gprs) / sizeof(gprs[0]);
   const jit_fpr_t fprs[] = { JIT_F0, JIT_F1, JIT_F2 };
   size_t fpr_count = sizeof(fprs) / sizeof(fprs[0]);
-    
+
   /* Save values of callee-save registers.  */
   for (size_t i = 0; i < gpr_count; i++)
     if (jit_gpr_is_callee_save (j->jit, gprs[i]))
@@ -2335,7 +2329,7 @@ compile_call_scm_sz_u32 (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c, uint
   emit_store_current_ip (j, T0);
 
   const jit_arg_abi_t abi[] =
-    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_INTMAX, JIT_ARG_ABI_INTMAX };
+    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_INTMAX, JIT_ARG_ABI_UINT32 };
   jit_arg_t args[] = { sp_scm_operand (j, a),
                        sp_sz_operand (j, b),
                        sp_sz_operand (j, c) };
@@ -2661,7 +2655,6 @@ compile_call_scm_from_scm_u64 (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
   jit_arg_t args[] = { sp_scm_operand (j, a), sp_u64_loc_operand (j, b) };
 #else
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT64 };
-  // jit_addi (j->jit, T0, SP, src * sizeof (union scm_vm_stack_element));
   jit_arg_t args[] = { sp_scm_operand (j, a), sp_u64_operand (j, b) };
 #endif
   jit_calli (j->jit, intrinsic, 2, abi, args);
