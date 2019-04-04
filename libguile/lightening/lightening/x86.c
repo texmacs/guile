@@ -410,6 +410,50 @@ struct abi_arg_iterator
   size_t stack_size;
 };
 
+static size_t
+jit_arg_abi_sizeof(jit_arg_abi_t abi)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_UINT8:
+  case JIT_ARG_ABI_INT8:
+    return 1;
+  case JIT_ARG_ABI_UINT16:
+  case JIT_ARG_ABI_INT16:
+    return 2;
+  case JIT_ARG_ABI_UINT32:
+  case JIT_ARG_ABI_INT32:
+    return 4;
+  case JIT_ARG_ABI_UINT64:
+  case JIT_ARG_ABI_INT64:
+    return 8;
+  case JIT_ARG_ABI_POINTER:
+    return CHOOSE_32_64(4, 8);
+  case JIT_ARG_ABI_FLOAT:
+    return 4;
+  case JIT_ARG_ABI_DOUBLE:
+    return 8;
+  default:
+    abort();
+  }
+}
+
+static size_t
+round_size_up_to_words(size_t bytes)
+{
+  size_t word_size = CHOOSE_32_64(4, 8);
+  size_t words = (bytes + word_size - 1) / word_size;
+  return words * word_size;
+}
+
+static void
+reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
+                       const jit_arg_abi_t *abi)
+{
+  memset(iter, 0, sizeof *iter);
+  iter->argc = argc;
+  iter->abi = abi;
+}
+
 static void
 next_abi_arg(struct abi_arg_iterator *iter, jit_arg_t *arg)
 {
@@ -423,7 +467,11 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_arg_t *arg)
       iter->fpr_idx++;
 #endif
     } else {
-      abort();
+      arg->kind = JIT_ARG_LOC_MEM;
+      arg->loc.mem.base = JIT_GPR(_RSP);
+      arg->loc.mem.offset = iter->stack_size;
+      size_t bytes = jit_arg_abi_sizeof (abi);
+      iter->stack_size += round_size_up_to_words (bytes);
     }
   } else {
     ASSERT(is_fpr_arg(abi));
@@ -434,7 +482,11 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_arg_t *arg)
       iter->gpr_idx++;
 #endif
     } else {
-      abort();
+      arg->kind = JIT_ARG_LOC_MEM;
+      arg->loc.mem.base = JIT_GPR(_RSP);
+      arg->loc.mem.offset = iter->stack_size;
+      size_t bytes = jit_arg_abi_sizeof (abi);
+      iter->stack_size += round_size_up_to_words (bytes);
     }
   }
   iter->arg_idx++;
@@ -695,15 +747,6 @@ shuffle_fpr_arg(jit_state_t *_jit, jit_fpr_t dst, size_t argc,
      is free.  */
   jit_movr_d(_jit, dst, args[idx].loc.fpr);
   args[idx].loc.fpr = dst;
-}
-
-static void
-reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
-                       const jit_arg_abi_t *abi)
-{
-  memset(iter, 0, sizeof *iter);
-  iter->argc = argc;
-  iter->abi = abi;
 }
 
 static void
