@@ -1378,11 +1378,6 @@ allocate_code_arena (size_t size, struct code_arena *prev)
   return ret;
 }
 
-static void
-prepare_jit_state (scm_jit_state *j)
-{
-}
-
 static void *
 emit_code (scm_jit_state *j, void (*emit) (scm_jit_state *))
 {
@@ -4748,7 +4743,7 @@ initialize_thread_jit_state (scm_thread *thread)
 
   ASSERT (!thread->jit_state);
 
-  j = scm_gc_malloc_pointerless (sizeof (*j), "jit state");
+  j = scm_gc_malloc (sizeof (*j), "jit state");
   memset (j, 0, sizeof (*j));
   thread->jit_state = j;
   j->jit = jit_new_state (jit_alloc_fn, jit_free_fn);
@@ -4822,9 +4817,6 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
 
   INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
         j->entry - j->start);
-
-  prepare_jit_state (j);
-  compile (j);
 
   data->mcode = emit_code (j, compile);
   if (data->mcode)
