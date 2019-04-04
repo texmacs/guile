@@ -441,6 +441,47 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_arg_t *arg)
 }
 
 static void
+abi_imm_to_gpr(jit_state_t *_jit, jit_arg_abi_t abi, jit_gpr_t dst, intptr_t imm)
+{
+  switch (abi) {
+  case JIT_ARG_ABI_UINT8:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT8_MAX);
+    break;
+  case JIT_ARG_ABI_INT8:
+    ASSERT(INT8_MIN <= imm);
+    ASSERT(imm <= INT8_MAX);
+    break;
+  case JIT_ARG_ABI_UINT16:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT16_MAX);
+    break;
+  case JIT_ARG_ABI_INT16:
+    ASSERT(INT16_MIN <= imm);
+    ASSERT(imm <= INT16_MAX);
+    break;
+  case JIT_ARG_ABI_UINT32:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT32_MAX);
+    break;
+  case JIT_ARG_ABI_INT32:
+    ASSERT(INT32_MIN <= imm);
+    ASSERT(imm <= INT32_MAX);
+    break;
+#if __WORDSIZE > 32
+  case JIT_ARG_ABI_UINT64:
+  case JIT_ARG_ABI_INT64:
+    break;
+#endif
+  case JIT_ARG_ABI_POINTER:
+    break;
+  default:
+    abort();
+  }
+  jit_movi (_jit, dst, imm);
+}
+
+static void
 abi_gpr_to_mem(jit_state_t *_jit, jit_arg_abi_t abi,
                jit_gpr_t src, jit_gpr_t base, ptrdiff_t offset)
 {
@@ -568,6 +609,19 @@ store_mem_abi_arg(jit_state_t *_jit, jit_arg_abi_t abi,
     }
     break;
 
+  case JIT_ARG_LOC_IMM: {
+    if (is_gpr_arg(abi)) {
+      jit_gpr_t tmp = get_temp_gpr(_jit);
+      abi_imm_to_gpr(_jit, abi, tmp, arg->loc.imm);
+      abi_gpr_to_mem(_jit, abi, tmp, base, offset);
+      unget_temp_gpr(_jit);
+    } else {
+      /* Floating-point immediates not supported yet.  */
+      abort ();
+    }
+    break;
+  }
+
   default:
     abort();
   }
@@ -682,8 +736,8 @@ prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
   // We move on now to the ABI register arguments.  All args whose values are in
   // registers are ABI register arguments, but they might not be the right
   // register for the correponding ABI argument.  Note that there may be ABI
-  // register arguments whose values are still in memory; we will load them
-  // later.
+  // register arguments whose values are still in memory or as immediates; we
+  // will load them later.
   reset_abi_arg_iterator(&iter, argc, abi);
   for (size_t i = 0; i < argc; i++)
     {
@@ -705,7 +759,7 @@ prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
     }
   
   // The only thing that's left is ABI register arguments whose values are still
-  // in memory; load them now.
+  // in memory or immediates; load them now.
   reset_abi_arg_iterator(&iter, argc, abi);
   for (size_t i = 0; i < argc; i++)
     {
@@ -717,6 +771,10 @@ prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
                          args[i].loc.mem.offset);
           args[i].kind = JIT_ARG_LOC_GPR;
           args[i].loc.gpr = scratch.loc.gpr;
+        } else if (args[i].kind == JIT_ARG_LOC_IMM) {
+          abi_imm_to_gpr(_jit, abi[i], scratch.loc.gpr, args[i].loc.imm);
+          args[i].kind = JIT_ARG_LOC_GPR;
+          args[i].loc.gpr = scratch.loc.gpr;
         }
         break;
         
@@ -726,6 +784,9 @@ prepare_args(jit_state_t *_jit, size_t argc, const jit_arg_abi_t abi[],
                          args[i].loc.mem.offset);
           args[i].kind = JIT_ARG_LOC_FPR;
           args[i].loc.fpr = scratch.loc.fpr;
+        } else if (args[i].kind == JIT_ARG_LOC_IMM) {
+          /* Currently unsupported.  */
+          abort ();
         }
         break;
 
