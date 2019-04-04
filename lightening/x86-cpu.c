@@ -1392,11 +1392,11 @@ andi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 static void
 orr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
-  if (r1 == r2)
+  if (r1 == r2) {
     movr(_jit, r0, r1);
-  else if (r0 == r1)
+  } else if (r0 == r1) {
     iorr(_jit, r0, r2);
-  else if (r0 == r2) {
+  } else if (r0 == r2) {
     iorr(_jit, r0, r1);
   } else {
     movr(_jit, r0, r1);
