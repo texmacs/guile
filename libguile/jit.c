@@ -2494,10 +2494,10 @@ compile_call_scm_from_u64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_
 #if INDIRECT_INT64_INTRINSICS
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
   // jit_addi (j->jit, T0, SP, src * sizeof (union scm_vm_stack_element));
-  jit_arg_t args[] = { sp_u64_loc_operand (j, dst) };
+  jit_arg_t args[] = { sp_u64_loc_operand (j, src) };
 #else
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_UINT64 };
-  jit_arg_t args[] = { sp_u64_operand (j, dst) };
+  jit_arg_t args[] = { sp_u64_operand (j, src) };
 #endif
   jit_calli (j->jit, intrinsic, 1, abi, args);
   clear_scratch_register_state (j);
