@@ -165,7 +165,7 @@ struct code_arena
 struct pending_reloc
 {
   jit_reloc_t reloc;
-  const uint32_t *target;
+  ptrdiff_t target_vcode_offset;
 };
 
 /* State of the JIT compiler for the current thread.  */
@@ -1293,7 +1293,7 @@ emit_entry_trampoline (scm_jit_state *j)
   const jit_gpr_t gprs[] = { JIT_R0, JIT_R1, JIT_R2, JIT_V0, JIT_V1, JIT_V2 };
   size_t gpr_count = sizeof(gprs) / sizeof(gprs[0]);
   const jit_fpr_t fprs[] = { JIT_F0, JIT_F1, JIT_F2 };
-  size_t fpr_count = sizeof(gprs) / sizeof(gprs[0]);
+  size_t fpr_count = sizeof(fprs) / sizeof(fprs[0]);
     
   /* Save values of callee-save registers.  */
   for (size_t i = 0; i < gpr_count; i++)
@@ -1464,9 +1464,31 @@ add_inter_instruction_patch (scm_jit_state *j, jit_reloc_t reloc,
                              const uint32_t *target)
 {
   ASSERT (j->start <= target && target < j->end);
+  ptrdiff_t offset = target - j->start;
+
+  if (j->labels[offset])
+    {
+      jit_patch_there (j->jit, reloc, j->labels[offset]);
+      return;
+    }
+
+  if (j->reloc_idx >= j->reloc_count)
+    {
+      size_t count = j->reloc_count * 2;
+      if (!count) count = 10;
+      size_t size = sizeof(*j->relocs) * count;
+      ASSERT(size / sizeof(*j->relocs) == count);
+      struct pending_reloc *relocs = realloc (j->relocs, size);
+      if (relocs)
+        {
+          j->reloc_count = count;
+          j->relocs = relocs;
+        }
+    }
+
   ASSERT (j->reloc_idx <= j->reloc_count);
   j->relocs[j->reloc_idx].reloc = reloc;
-  j->relocs[j->reloc_idx].target = target;
+  j->relocs[j->reloc_idx].target_vcode_offset = offset;
   j->reloc_idx++;
 }
 
@@ -4699,6 +4721,13 @@ compile (scm_jit_state *j)
         j->entry_mcode = jit_address (j->jit);
       compile1 (j);
     }
+
+  for (size_t i = 0; i < j->reloc_count; i++)
+    {
+      void *target = j->labels[j->relocs[i].target_vcode_offset];
+      ASSERT(target);
+      jit_patch_there (j->jit, j->relocs[i].reloc, target);
+    }
 }
 
 static scm_i_pthread_once_t initialize_jit_once = SCM_I_PTHREAD_ONCE_INIT;
@@ -4786,9 +4815,9 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   ASSERT (j->start <= j->entry);
   ASSERT (j->entry < j->end);
 
-  j->op_attrs = malloc ((j->end - j->start) * sizeof (*j->op_attrs));
+  j->op_attrs = calloc ((j->end - j->start), sizeof (*j->op_attrs));
   ASSERT (j->op_attrs);
-  j->labels = malloc ((j->end - j->start) * sizeof (*j->labels));
+  j->labels = calloc ((j->end - j->start), sizeof (*j->labels));
   ASSERT (j->labels);
 
   j->frame_size = -1;
@@ -4809,7 +4838,10 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->op_attrs = NULL;
   free (j->labels);
   j->labels = NULL;
-  jit_reset (j->jit);
+  free (j->relocs);
+  j->relocs = NULL;
+  j->reloc_idx = 0;
+  j->reloc_count = 0;
 
   j->start = j->end = j->ip = j->entry = NULL;
   j->frame_size = -1;
