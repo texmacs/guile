@@ -1297,11 +1297,11 @@ emit_entry_trampoline (scm_jit_state *j)
     
   /* Save values of callee-save registers.  */
   for (size_t i = 0; i < gpr_count; i++)
-    if (jit_gpr_is_callee_save (gprs[i]))
+    if (jit_gpr_is_callee_save (j->jit, gprs[i]))
       jit_pushr (j->jit, gprs[i]);
 
   for (size_t i = 0; i < fpr_count; i++)
-    if (jit_fpr_is_callee_save (fprs[i]))
+    if (jit_fpr_is_callee_save (j->jit, fprs[i]))
       jit_pushr_d (j->jit, fprs[i]);
 
   const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
@@ -1325,12 +1325,12 @@ emit_entry_trampoline (scm_jit_state *j)
 
   /* Restore callee-save registers.  */
   for (size_t i = 0; i < fpr_count; i++)
-    if (jit_fpr_is_callee_save (fprs[fpr_count - i - 1]))
+    if (jit_fpr_is_callee_save (j->jit, fprs[fpr_count - i - 1]))
       jit_popr_d (j->jit, fprs[fpr_count - i - 1]);
 
   for (size_t i = 0; i < gpr_count; i++)
-    if (jit_gpr_is_callee_save (gprs[gpr_count - i - 1]))
-      jit_pushr (j->jit, gprs[gpr_count - i - 1]);
+    if (jit_gpr_is_callee_save (j->jit, gprs[gpr_count - i - 1]))
+      jit_popr (j->jit, gprs[gpr_count - i - 1]);
 
   /* When mcode finishes, interpreter will continue with vp->ip.  */
   jit_ret (j->jit);
