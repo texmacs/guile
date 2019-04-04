@@ -4687,12 +4687,13 @@ analyze (scm_jit_state *j)
 static void
 compile (scm_jit_state *j)
 {
-  for (ptrdiff_t offset = 0; j->ip + offset < j->end; offset++)
-    j->labels[offset] = NULL;
-  j->reloc_idx = 0;
-
   j->ip = (uint32_t *) j->start;
   set_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
+
+  for (ptrdiff_t offset = 0; j->ip + offset < j->end; offset++)
+    j->labels[offset] = NULL;
+
+  j->reloc_idx = 0;
 
   while (j->ip < j->end)
     {
