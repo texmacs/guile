@@ -31,4 +31,4 @@ test-ia32-%: %.c lightening-ia32.o test.h
 
 clean:
 	rm -f $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
-	rm -f $(foreach TARGET,$(TARGETS),lightning-$(TARGET).o)
+	rm -f $(foreach TARGET,$(TARGETS),lightening-$(TARGET).o)
