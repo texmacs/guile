@@ -1,24 +1,29 @@
 TESTS=$(sort $(basename $(wildcard *.c)))
+TARGETS=native
 
 CC = gcc
 CFLAGS = -Wall -O0 -g
 
-all: $(addprefix test-,$(TESTS))
+all: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
 
-check: all
+check: $(addprefix test-$(TARGET),$(TARGETS))
+
+test-%: $(addprefix test-%-,$(TESTS))
 	@echo "Running unit tests..."
-	@set -e; for test in $(TESTS); do \
+	@set -e; for test in $?; do \
 	  echo "Testing: $$test"; \
-	  ./test-$$test; \
+	  ./$$test; \
 	done
 	@echo "Success."
+
+.PHONY: test check
 
 lightening.o: ../lightening.h ../lightening/*.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o lightening.o -c ../lightening/lightening.c
 
-test-%: %.c lightening.o test.h
+test-native-%: %.c lightening.o test.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening.o $<
 
 clean:
-	rm -f $(addprefix test-,$(TESTS))
+	rm -f $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
 	rm -f lightening.o
