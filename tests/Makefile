@@ -2,6 +2,7 @@ TESTS=$(sort $(basename $(wildcard *.c)))
 TARGETS=native
 
 CC = gcc
+CC_IA32 = gcc -m32
 CFLAGS = -Wall -O0 -g
 
 all: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
@@ -18,12 +19,16 @@ test-%: $(addprefix test-%-,$(TESTS))
 
 .PHONY: test check
 
-lightening.o: ../lightening.h ../lightening/*.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o lightening.o -c ../lightening/lightening.c
+lightening-%.o: ../lightening.h ../lightening/*.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ -c ../lightening/lightening.c
 
-test-native-%: %.c lightening.o test.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening.o $<
+test-native-%: %.c lightening-native.o test.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening-native.o $<
+
+test-ia32-%: CC = $(CC_IA32)
+test-ia32-%: %.c lightening-ia32.o test.h
+	$(CC) -m32 $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening-ia32.o $<
 
 clean:
 	rm -f $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
-	rm -f lightening.o
+	rm -f $(foreach TARGET,$(TARGETS),lightning-$(TARGET).o)
