@@ -174,6 +174,14 @@ signal_delivery_thread (void *data)
     {
       struct signal_pipe_data sigdata;
 
+      /* This tick gives any pending asyncs a chance to run before we
+         block indefinitely waiting for a signal to arrive.  For example
+         it can happen that the garbage collector is triggered while
+         marking the signal handler for future execution.  Due to the
+         way the after-gc-hook is designed, without a call to
+         scm_async_tick, the after-gc-hook will not be triggered. */
+      scm_async_tick ();
+
       scm_without_guile (read_signal_pipe_data, &sigdata);
       
       sig = sigdata.sigbyte;
