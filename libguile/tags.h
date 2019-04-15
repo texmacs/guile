@@ -3,8 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2013,2014,2015
- * Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2008-2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -352,10 +351,6 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 #define SCM_IMP(x) 		(6 & SCM_UNPACK (x))
 #define SCM_NIMP(x) 		(!SCM_IMP (x))
 #define SCM_HEAP_OBJECT_P(x)    (SCM_NIMP (x))
-
-/* Checking if a SCM variable holds an immediate integer: See numbers.h for
- * the definition of the following macros: SCM_I_FIXNUM_BIT,
- * SCM_MOST_POSITIVE_FIXNUM, SCM_I_INUMP, SCM_I_MAKINUM, SCM_I_INUM.  */
 
 /* Checking if a SCM variable holds a pair (for historical reasons, in Guile
  * also known as a cons-cell): This is done by first checking that the SCM
