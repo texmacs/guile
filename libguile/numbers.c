@@ -588,7 +588,7 @@ scm_i_divide2double (SCM n, SCM d)
   mpz_mul_2exp (hi, lo, 1);
 
   /* Adjust e as needed to satisfy the inequality lo <= x < hi,
-     (but without making e less then the minimum exponent) */
+     (but without making e less than the minimum exponent) */
   while (mpz_cmp (x, lo) < 0 && e > DBL_MIN_EXP - DBL_MANT_DIG)
     {
       mpz_mul_2exp (x, x, 1);
