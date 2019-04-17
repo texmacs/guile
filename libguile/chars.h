@@ -1,7 +1,7 @@
 #ifndef SCM_CHARS_H
 #define SCM_CHARS_H
 
-/* Copyright 1995-1996,2000-2001,2004,2006,2008-2009,2018
+/* Copyright 1995-1996,2000-2001,2004,2006,2008-2009,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -30,16 +30,18 @@
 #define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
 #define SCM_CHAR(x) ((scm_t_wchar)SCM_ITAG8_DATA(x))
 
-/* SCM_MAKE_CHAR maps signed chars (-128 to 127) and unsigned chars (0
-   to 255) to Latin-1 codepoints (0 to 255) while allowing higher
+/* SCM_MAKE_CHAR maps signed chars (-128 to 127) and unsigned chars
+   (0 to 255) to Latin-1 codepoints (0 to 255) while allowing higher
    codepoints (256 to 1114111) to pass through unchanged.
 
-   This macro evaluates x twice, which may lead to side effects if not
-   used properly. */
-#define SCM_MAKE_CHAR(x)                                                \
-  ((x) <= 1                                                             \
-   ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) (x), scm_tc8_char)    \
-   : SCM_MAKE_ITAG8 ((scm_t_bits) (x), scm_tc8_char))
+   To avoid evaluating X more than once, we use an arithmetic trick: we
+   compute (X mod 2^N) mod (2^N - 256), which is equal to the required
+   mapping in the range -256 .. (2^N - 257).  Here, N is the number of
+   bits in scm_t_bits.  Note that (scm_t_bits) (x) implicitly computes
+   (X mod 2^N), and (scm_t_bits) -256 equals (2^N - 256).  GCC is able
+   to optimize away these operations in practice.  */
+#define SCM_MAKE_CHAR(x) \
+  (SCM_MAKE_ITAG8 ((scm_t_bits) (x) % (scm_t_bits) -256, scm_tc8_char))
 
 #define SCM_CODEPOINT_DOTTED_CIRCLE (0x25cc)
 #define SCM_CODEPOINT_SURROGATE_START (0xd800)
