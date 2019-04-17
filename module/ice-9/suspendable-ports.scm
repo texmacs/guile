@@ -1,5 +1,5 @@
 ;;; Ports, implemented in Scheme
-;;; Copyright (C) 2016 Free Software Foundation, Inc.
+;;; Copyright (C) 2016, 2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -291,6 +291,34 @@
        ((= pos count) (if (zero? pos) the-eof-object ret))
        ((< (- count pos) (port-read-buffering port)) (buffer-and-fill pos))
        (else (fill-directly pos))))))
+
+(define (get-bytevector-some port)
+  (call-with-values (lambda () (fill-input port 1 'binary))
+    (lambda (buf cur buffered)
+      (if (zero? buffered)
+          (begin
+            (set-port-buffer-has-eof?! buf #f)
+            the-eof-object)
+          (let ((result (make-bytevector buffered)))
+            (bytevector-copy! (port-buffer-bytevector buf) cur
+                              result 0 buffered)
+            (set-port-buffer-cur! buf (+ cur buffered))
+            result)))))
+
+(define (get-bytevector-some! port bv start count)
+  (if (zero? count)
+      0
+      (call-with-values (lambda () (fill-input port 1 'binary))
+        (lambda (buf cur buffered)
+          (if (zero? buffered)
+              (begin
+                (set-port-buffer-has-eof?! buf #f)
+                the-eof-object)
+              (let ((transfer-size (min count buffered)))
+                (bytevector-copy! (port-buffer-bytevector buf) cur
+                                  transfer-size start buffered)
+                (set-port-buffer-cur! buf (+ cur transfer-size))
+                transfer-size))))))
 
 (define (put-u8 port byte)
   (let* ((buf (port-write-buffer port))
@@ -703,6 +731,7 @@
      accept connect)
     ((ice-9 binary-ports)
      get-u8 lookahead-u8 get-bytevector-n
+     get-bytevector-some get-bytevector-some!
      put-u8 put-bytevector)
     ((ice-9 textual-ports)
      put-char put-string)
