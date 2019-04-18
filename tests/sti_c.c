@@ -6,13 +6,7 @@ static void
 run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
 {
   jit_begin(j, arena_base, arena_size);
-
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_INT8 };
-  jit_arg_t args[1];
-  const jit_anyreg_t regs[] = { { .gpr=JIT_R1 } };
-
-  jit_receive(j, 1, abi, args);
-  jit_load_args(j, 1, abi, args, regs);
+  jit_load_args_1(j, jit_operand_gpr (JIT_OPERAND_ABI_INT8, JIT_R1));
 
   jit_sti_c(j, &data[1], JIT_R1);
   jit_ret(j);

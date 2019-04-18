@@ -123,33 +123,36 @@ jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
 }
 
 typedef struct jit_state	jit_state_t;
-enum jit_arg_loc
+
+enum jit_operand_abi
 {
-  JIT_ARG_LOC_IMM,
-  JIT_ARG_LOC_GPR,
-  JIT_ARG_LOC_FPR,
-  JIT_ARG_LOC_MEM
+  JIT_OPERAND_ABI_UINT8,
+  JIT_OPERAND_ABI_INT8,
+  JIT_OPERAND_ABI_UINT16,
+  JIT_OPERAND_ABI_INT16,
+  JIT_OPERAND_ABI_UINT32,
+  JIT_OPERAND_ABI_INT32,
+  JIT_OPERAND_ABI_UINT64,
+  JIT_OPERAND_ABI_INT64,
+  JIT_OPERAND_ABI_POINTER,
+  JIT_OPERAND_ABI_FLOAT,
+  JIT_OPERAND_ABI_DOUBLE,
+  JIT_OPERAND_ABI_INTMAX = CHOOSE_32_64(JIT_OPERAND_ABI_INT32,
+                                        JIT_OPERAND_ABI_INT64)
 };
 
-typedef enum jit_arg_abi
+enum jit_operand_kind
 {
-  JIT_ARG_ABI_UINT8,
-  JIT_ARG_ABI_INT8,
-  JIT_ARG_ABI_UINT16,
-  JIT_ARG_ABI_INT16,
-  JIT_ARG_ABI_UINT32,
-  JIT_ARG_ABI_INT32,
-  JIT_ARG_ABI_UINT64,
-  JIT_ARG_ABI_INT64,
-  JIT_ARG_ABI_POINTER,
-  JIT_ARG_ABI_FLOAT,
-  JIT_ARG_ABI_DOUBLE,
-  JIT_ARG_ABI_INTMAX = CHOOSE_32_64(JIT_ARG_ABI_INT32, JIT_ARG_ABI_INT64)
-} jit_arg_abi_t;
+  JIT_OPERAND_KIND_IMM,
+  JIT_OPERAND_KIND_GPR,
+  JIT_OPERAND_KIND_FPR,
+  JIT_OPERAND_KIND_MEM
+};
 
-typedef struct jit_arg
+typedef struct jit_operand
 {
-  enum jit_arg_loc kind;
+  enum jit_operand_abi abi;
+  enum jit_operand_kind kind;
   union
   {
     intptr_t imm;
@@ -157,7 +160,31 @@ typedef struct jit_arg
     jit_fpr_t fpr;
     struct { jit_gpr_t base; ptrdiff_t offset; } mem;
   } loc;
-} jit_arg_t;
+} jit_operand_t;
+
+static inline jit_operand_t
+jit_operand_imm (enum jit_operand_abi abi, intptr_t imm)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_IMM, { .imm = imm } };
+}
+
+static inline jit_operand_t
+jit_operand_gpr (enum jit_operand_abi abi, jit_gpr_t gpr)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_GPR, { .gpr = gpr } };
+}
+
+static inline jit_operand_t
+jit_operand_fpr (enum jit_operand_abi abi, jit_fpr_t fpr)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_FPR, { .fpr = fpr } };
+}
+
+static inline jit_operand_t
+jit_operand_mem (enum jit_operand_abi abi, jit_gpr_t base, ptrdiff_t offset)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM, { .mem = { base, offset } } };
+}
 
 typedef union jit_anyreg
 {
@@ -185,19 +212,93 @@ JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 JIT_API jit_bool_t jit_gpr_is_callee_save (jit_state_t*, jit_gpr_t);
 JIT_API jit_bool_t jit_fpr_is_callee_save (jit_state_t*, jit_fpr_t);
 
-/* Note that all functions that take jit_arg_t args[] use the args as scratch
-   space while shuffling values into position.  */
+/* Note that all functions that take jit_operand_t args[] use the args
+   as scratch space while shuffling values into position.  */
 JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,
-                       size_t argc, const jit_arg_abi_t abi[],
-                       jit_arg_t args[]);
+                       size_t argc, jit_operand_t args[]);
 JIT_API void jit_callr(jit_state_t *, jit_gpr_t f,
-                       size_t argc, const jit_arg_abi_t abi[],
-                       jit_arg_t args[]);
-JIT_API void jit_receive(jit_state_t*, size_t argc,
-                         const jit_arg_abi_t abi[], jit_arg_t args[]);
-JIT_API void jit_load_args(jit_state_t *_jit, size_t argc,
-                           const jit_arg_abi_t abi[], jit_arg_t args[],
-                           const jit_anyreg_t regs[]);
+                       size_t argc, jit_operand_t args[]);
+JIT_API void jit_locate_args(jit_state_t*, size_t argc, jit_operand_t args[]);
+JIT_API void jit_load_args(jit_state_t*, size_t argc, jit_operand_t dst[]);
+
+static inline void
+jit_calli_0(jit_state_t *_jit, jit_pointer_t f)
+{
+  return jit_calli(_jit, f, 0, NULL);
+}
+
+static inline void
+jit_calli_1(jit_state_t *_jit, jit_pointer_t f, jit_operand_t arg)
+{
+  jit_operand_t args[] = { arg };
+  return jit_calli(_jit, f, 1, args);
+}
+
+static inline void
+jit_calli_2(jit_state_t *_jit, jit_pointer_t f, jit_operand_t a,
+            jit_operand_t b)
+{
+  jit_operand_t args[] = { a, b };
+  return jit_calli(_jit, f, 2, args);
+}
+
+static inline void
+jit_calli_3(jit_state_t *_jit, jit_pointer_t f, jit_operand_t a,
+            jit_operand_t b, jit_operand_t c)
+{
+  jit_operand_t args[] = { a, b, c };
+  return jit_calli(_jit, f, 3, args);
+}
+
+static inline void
+jit_callr_0(jit_state_t *_jit, jit_gpr_t f)
+{
+  return jit_callr(_jit, f, 0, NULL);
+}
+
+static inline void
+jit_callr_1(jit_state_t *_jit, jit_gpr_t f, jit_operand_t arg)
+{
+  jit_operand_t args[] = { arg };
+  return jit_callr(_jit, f, 1, args);
+}
+
+static inline void
+jit_callr_2(jit_state_t *_jit, jit_gpr_t f, jit_operand_t a, jit_operand_t b)
+{
+  jit_operand_t args[] = { a, b };
+  return jit_callr(_jit, f, 2, args);
+}
+
+static inline void
+jit_callr_3(jit_state_t *_jit, jit_gpr_t f, jit_operand_t a, jit_operand_t b,
+            jit_operand_t c)
+{
+  jit_operand_t args[] = { a, b, c };
+  return jit_callr(_jit, f, 3, args);
+}
+
+static inline void
+jit_load_args_1(jit_state_t *_jit, jit_operand_t a)
+{
+  jit_operand_t args[] = { a };
+  return jit_load_args(_jit, 1, args);
+}
+
+static inline void
+jit_load_args_2(jit_state_t *_jit, jit_operand_t a, jit_operand_t b)
+{
+  jit_operand_t args[] = { a, b };
+  return jit_load_args(_jit, 2, args);
+}
+
+static inline void
+jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
+                jit_operand_t c)
+{
+  jit_operand_t args[] = { a, b, c };
+  return jit_load_args(_jit, 3, args);
+}
 
 #define JIT_PROTO_0(stem, ret) \
   ret jit_##stem (jit_state_t* _jit)
