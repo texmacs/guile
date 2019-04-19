@@ -1,5 +1,5 @@
-/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011,
- *   2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2001, 2006, 2008, 2009, 2011-2013, 2019
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -89,7 +89,7 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint ((scm_t_bits) g, 16, port);
 
   scm_puts (" (reachable: ", port);
-  scm_display (scm_from_uint (g->live), port);
+  scm_display (scm_from_ulong (g->live), port);
   scm_puts (" unreachable: ", port);
   scm_display (scm_length (g->zombies), port);
   scm_puts (")", port);

@@ -1,6 +1,5 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2006-2015, 2017, 2019
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -620,6 +619,11 @@ fport_seek (SCM port, scm_t_off offset, int whence)
 
   if (result == -1)
     scm_syserror ("fport_seek");
+
+  /* Check to make sure the result fits in scm_t_off,
+     which might be smaller than off_t_or_off64_t.  */
+  if (result > SCM_T_OFF_MAX)
+    scm_num_overflow ("fport_seek");
 
   return result;
 }

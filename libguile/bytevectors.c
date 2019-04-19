@@ -84,7 +84,8 @@
   c_len = SCM_BYTEVECTOR_LENGTH (bv);				\
   c_bv = (_sign char *) SCM_BYTEVECTOR_CONTENTS (bv);		\
 								\
-  if (SCM_UNLIKELY (c_index + ((_len) >> 3UL) - 1 >= c_len))	\
+  if (SCM_UNLIKELY (c_len < c_index				\
+                    || (c_len - c_index < (_len) / 8)))		\
     scm_out_of_range (FUNC_NAME, index);
 
 #define INTEGER_GETTER_PROLOGUE(_len, _sign)            \
@@ -206,11 +207,16 @@ make_bytevector (size_t len, scm_t_array_element_type element_type)
   size_t c_len;
 
   if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
-                    || scm_i_array_element_type_sizes[element_type] < 8
-                    || len >= (((size_t) -1)
-                               / (scm_i_array_element_type_sizes[element_type]/8))))
+                    || scm_i_array_element_type_sizes[element_type] < 8))
     /* This would be an internal Guile programming error */
     abort ();
+
+  /* Make sure that the total allocation size will not overflow size_t,
+     with ~30 extra bytes to spare to avoid an overflow within the
+     allocator.  */
+  if (SCM_UNLIKELY (len >= (((size_t) -(SCM_BYTEVECTOR_HEADER_BYTES + 32))
+                            / (scm_i_array_element_type_sizes[element_type]/8))))
+    scm_num_overflow ("make-bytevector");
 
   if (SCM_UNLIKELY (len == 0 && element_type == SCM_ARRAY_ELEMENT_TYPE_VU8
 		    && SCM_BYTEVECTOR_P (scm_null_bytevector)))
@@ -252,7 +258,7 @@ make_bytevector_from_buffer (size_t len, void *contents,
       size_t c_len;
 
       ret = SCM_PACK_POINTER (scm_gc_malloc (SCM_BYTEVECTOR_HEADER_BYTES,
-				    SCM_GC_BYTEVECTOR));
+                                             SCM_GC_BYTEVECTOR));
 
       c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
 
@@ -510,7 +516,7 @@ SCM_DEFINE (scm_bytevector_length, "bytevector-length", 1, 0, 0,
 	    "Return the length (in bytes) of @var{bv}.")
 #define FUNC_NAME s_scm_bytevector_length
 {
-  return scm_from_uint (scm_c_bytevector_length (bv));
+  return scm_from_size_t (scm_c_bytevector_length (bv));
 }
 #undef FUNC_NAME
 
@@ -595,9 +601,11 @@ SCM_DEFINE (scm_bytevector_copy_x, "bytevector-copy!", 5, 0, 0,
   c_source_len = SCM_BYTEVECTOR_LENGTH (source);
   c_target_len = SCM_BYTEVECTOR_LENGTH (target);
 
-  if (SCM_UNLIKELY (c_source_start + c_len > c_source_len))
+  if (SCM_UNLIKELY (c_source_len < c_source_start
+                    || (c_source_len - c_source_start < c_len)))
     scm_out_of_range (FUNC_NAME, source_start);
-  if (SCM_UNLIKELY (c_target_start + c_len > c_target_len))
+  if (SCM_UNLIKELY (c_target_len < c_target_start
+                    || (c_target_len - c_target_start < c_len)))
     scm_out_of_range (FUNC_NAME, target_start);
 
   memmove (c_target + c_target_start,
@@ -915,7 +923,8 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
      size_t.  */							\
   if (SCM_UNLIKELY (c_size == 0 || c_size >= (SIZE_MAX >> 3)))		\
     scm_out_of_range (FUNC_NAME, size);					\
-  if (SCM_UNLIKELY (c_index + c_size > c_len))				\
+  if (SCM_UNLIKELY (c_len < c_index					\
+                    || (c_len - c_index < c_size)))			\
     scm_out_of_range (FUNC_NAME, index);
 
 #define GENERIC_INTEGER_GETTER_PROLOGUE(_sign)          \

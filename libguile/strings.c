@@ -31,6 +31,7 @@
 #include <unistr.h>
 #include <uniconv.h>
 #include <c-strcase.h>
+#include <intprops.h>
 
 #include "striconveh.h"
 
@@ -124,6 +125,12 @@ make_stringbuf (size_t len)
     lenhist[1000]++;
 #endif
 
+  /* Make sure that the total allocation size will not overflow size_t,
+     with ~30 extra bytes to spare to avoid an overflow within the
+     allocator.  */
+  if (INT_ADD_OVERFLOW (len, STRINGBUF_HEADER_BYTES + 32))
+    scm_num_overflow ("make_stringbuf");
+
   buf = SCM_PACK_POINTER (scm_gc_malloc_pointerless (STRINGBUF_HEADER_BYTES + len + 1,
 					    "string"));
 
@@ -150,9 +157,16 @@ make_wide_stringbuf (size_t len)
     lenhist[1000]++;
 #endif
 
+  /* Make sure that the total allocation size will not overflow size_t,
+     with ~30 extra bytes to spare to avoid an overflow within the
+     allocator.  */
+  if (len > (((size_t) -(STRINGBUF_HEADER_BYTES + 32 + sizeof (scm_t_wchar)))
+             / sizeof (scm_t_wchar)))
+    scm_num_overflow ("make_wide_stringbuf");
+    
   raw_len = (len + 1) * sizeof (scm_t_wchar);
   buf = SCM_PACK_POINTER (scm_gc_malloc_pointerless (STRINGBUF_HEADER_BYTES + raw_len,
-					    "string"));
+                                                     "string"));
 
   SCM_SET_CELL_TYPE (buf, STRINGBUF_TAG | STRINGBUF_F_WIDE);
   SCM_SET_CELL_WORD_1 (buf, (scm_t_bits) len);
@@ -1388,8 +1402,8 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
       s = SCM_CAR (l);
       SCM_VALIDATE_STRING (SCM_ARGn, s);
       len = scm_i_string_length (s);
-      if (((size_t) -1) - total < len)
-        scm_num_overflow (s_scm_string_append);
+      if (INT_ADD_OVERFLOW (total, len))
+        scm_num_overflow (FUNC_NAME);
       total += len;
       if (!scm_i_is_narrow_string (s))
         wide = 1;

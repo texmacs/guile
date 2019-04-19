@@ -1,4 +1,5 @@
-/* Copyright (C) 2009, 2010, 2011, 2013-2015, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2011, 2013-2015, 2018, 2019
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <intprops.h>
 
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
@@ -130,21 +132,27 @@ bytevector_input_port_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bytevector_input_port_seek"
 {
   struct bytevector_input_port *stream = (void *) SCM_STREAM (port);
+  size_t base;
   scm_t_off target;
 
   if (whence == SEEK_CUR)
-    target = offset + stream->pos;
+    base = stream->pos;
   else if (whence == SEEK_SET)
-    target = offset;
+    base = 0;
   else if (whence == SEEK_END)
-    target = offset + SCM_BYTEVECTOR_LENGTH (stream->bytevector);
+    base = SCM_BYTEVECTOR_LENGTH (stream->bytevector);
   else
     scm_wrong_type_arg_msg (FUNC_NAME, 0, port, "invalid `seek' parameter");
+
+  if (base > SCM_T_OFF_MAX
+      || INT_ADD_OVERFLOW ((scm_t_off) base, offset))
+    scm_num_overflow (FUNC_NAME);
+  target = (scm_t_off) base + offset;
 
   if (target >= 0 && target <= SCM_BYTEVECTOR_LENGTH (stream->bytevector))
     stream->pos = target;
   else
-    scm_out_of_range (FUNC_NAME, scm_from_long (offset));
+    scm_out_of_range (FUNC_NAME, scm_from_off_t (offset));
 
   return target;
 }
@@ -224,6 +232,9 @@ custom_binary_port_seek (SCM port, scm_t_off offset, int whence)
 	  /* We just want to know the current position.  */
 	  break;
 
+        if (INT_ADD_OVERFLOW (offset, c_result))
+          scm_num_overflow (FUNC_NAME);
+
 	offset += c_result;
 	/* Fall through.  */
       }
@@ -231,7 +242,7 @@ custom_binary_port_seek (SCM port, scm_t_off offset, int whence)
     case SEEK_SET:
       {
 	if (SCM_LIKELY (scm_is_true (stream->set_position_x)))
-	  result = scm_call_1 (stream->set_position_x, scm_from_int (offset));
+	  result = scm_call_1 (stream->set_position_x, scm_from_off_t (offset));
 	else
 	  scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
 				  "seekable R6RS custom binary port");
@@ -454,7 +465,8 @@ SCM_DEFINE (scm_get_bytevector_n_x, "get-bytevector-n!", 4, 0, 0,
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
 
-  if (SCM_UNLIKELY (c_start + c_count > c_len))
+  if (SCM_UNLIKELY (c_len < c_start
+                    || (c_len - c_start < c_count)))
     scm_out_of_range (FUNC_NAME, count);
 
   if (SCM_LIKELY (c_count > 0))
@@ -511,7 +523,7 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
 #define FUNC_NAME s_scm_get_bytevector_all
 {
   SCM result;
-  unsigned c_len, c_count;
+  size_t c_len, c_count;
   size_t c_read, c_total;
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
@@ -522,10 +534,14 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
 
   do
     {
-      if (c_total + c_read > c_len)
+      if (c_read > c_len - c_total)
 	{
 	  /* Grow the bytevector.  */
           SCM prev = result;
+
+          if (INT_ADD_OVERFLOW (c_len, c_len))
+            scm_num_overflow (FUNC_NAME);
+
           result = scm_c_make_bytevector (c_len * 2);
           memcpy (SCM_BYTEVECTOR_CONTENTS (result),
                   SCM_BYTEVECTOR_CONTENTS (prev),
@@ -593,20 +609,17 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
   if (!scm_is_eq (start, SCM_UNDEFINED))
     {
       c_start = scm_to_size_t (start);
+      if (SCM_UNLIKELY (c_start > c_len))
+        scm_out_of_range (FUNC_NAME, start);
 
       if (!scm_is_eq (count, SCM_UNDEFINED))
 	{
 	  c_count = scm_to_size_t (count);
-	  if (SCM_UNLIKELY (c_start + c_count > c_len))
+	  if (SCM_UNLIKELY (c_count > c_len - c_start))
 	    scm_out_of_range (FUNC_NAME, count);
 	}
       else
-	{
-	  if (SCM_UNLIKELY (c_start > c_len))
-	    scm_out_of_range (FUNC_NAME, start);
-	  else
-	    c_count = c_len - c_start;
-	}
+        c_count = c_len - c_start;
     }
   else
     c_start = 0, c_count = c_len;
@@ -636,20 +649,17 @@ SCM_DEFINE (scm_unget_bytevector, "unget-bytevector", 2, 2, 0,
   if (!scm_is_eq (start, SCM_UNDEFINED))
     {
       c_start = scm_to_size_t (start);
+      if (SCM_UNLIKELY (c_start > c_len))
+        scm_out_of_range (FUNC_NAME, start);
 
       if (!scm_is_eq (count, SCM_UNDEFINED))
 	{
 	  c_count = scm_to_size_t (count);
-	  if (SCM_UNLIKELY (c_start + c_count > c_len))
+	  if (SCM_UNLIKELY (c_count > c_len - c_start))
 	    scm_out_of_range (FUNC_NAME, count);
 	}
       else
-	{
-	  if (SCM_UNLIKELY (c_start > c_len))
-	    scm_out_of_range (FUNC_NAME, start);
-	  else
-	    c_count = c_len - c_start;
-	}
+        c_count = c_len - c_start;
     }
   else
     c_start = 0, c_count = c_len;
@@ -722,17 +732,20 @@ bytevector_output_port_buffer_grow (scm_t_bytevector_output_port_buffer *buf,
   char *new_buf;
   size_t new_size;
 
-  for (new_size = buf->total_len
-	 ? buf->total_len : SCM_BYTEVECTOR_OUTPUT_PORT_BUFFER_INITIAL_SIZE;
-       new_size < min_size;
-       new_size *= 2);
-
   if (buf->buffer)
-    new_buf = scm_gc_realloc ((void *) buf->buffer, buf->total_len,
-			      new_size, SCM_GC_BYTEVECTOR_OUTPUT_PORT);
+    {
+      if (INT_ADD_OVERFLOW (buf->total_len, buf->total_len))
+        scm_num_overflow ("bytevector_output_port_buffer_grow");
+      new_size = max (min_size, buf->total_len * 2);
+      new_buf = scm_gc_realloc ((void *) buf->buffer, buf->total_len,
+                                new_size, SCM_GC_BYTEVECTOR_OUTPUT_PORT);
+    }
   else
-    new_buf = scm_gc_malloc_pointerless (new_size,
-                                         SCM_GC_BYTEVECTOR_OUTPUT_PORT);
+    {
+      new_size = max (min_size, SCM_BYTEVECTOR_OUTPUT_PORT_BUFFER_INITIAL_SIZE);
+      new_buf = scm_gc_malloc_pointerless (new_size,
+                                           SCM_GC_BYTEVECTOR_OUTPUT_PORT);
+    }
 
   buf->buffer = new_buf;
   buf->total_len = new_size;
@@ -763,13 +776,18 @@ make_bytevector_output_port (void)
 /* Write octets from WRITE_BUF to the backing store.  */
 static size_t
 bytevector_output_port_write (SCM port, SCM src, size_t start, size_t count)
+#define FUNC_NAME "bytevector_output_port_write"
 {
   scm_t_bytevector_output_port_buffer *buf;
 
   buf = SCM_BYTEVECTOR_OUTPUT_PORT_BUFFER (port);
 
-  if (buf->pos + count > buf->total_len)
-    bytevector_output_port_buffer_grow (buf, buf->pos + count);
+  if (count > buf->total_len - buf->pos)
+    {
+      if (INT_ADD_OVERFLOW (buf->pos, count))
+        scm_num_overflow (FUNC_NAME);
+      bytevector_output_port_buffer_grow (buf, buf->pos + count);
+    }
 
   memcpy (buf->buffer + buf->pos, SCM_BYTEVECTOR_CONTENTS (src) + start, count);
 
@@ -778,29 +796,36 @@ bytevector_output_port_write (SCM port, SCM src, size_t start, size_t count)
 
   return count;
 }
+#undef FUNC_NAME
 
 static scm_t_off
 bytevector_output_port_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bytevector_output_port_seek"
 {
   scm_t_bytevector_output_port_buffer *buf;
+  size_t base;
   scm_t_off target;
 
   buf = SCM_BYTEVECTOR_OUTPUT_PORT_BUFFER (port);
 
   if (whence == SEEK_CUR)
-    target = offset + buf->pos;
+    base = buf->pos;
   else if (whence == SEEK_SET)
-    target = offset;
+    base = 0;
   else if (whence == SEEK_END)
-    target = offset + buf->len;
+    base = buf->len;
   else
     scm_wrong_type_arg_msg (FUNC_NAME, 0, port, "invalid `seek' parameter");
+
+  if (base > SCM_T_OFF_MAX
+      || INT_ADD_OVERFLOW ((scm_t_off) base, offset))
+    scm_num_overflow (FUNC_NAME);
+  target = (scm_t_off) base + offset;
 
   if (target >= 0 && target <= buf->len)
     buf->pos = target;
   else
-    scm_out_of_range (FUNC_NAME, scm_from_long (offset));
+    scm_out_of_range (FUNC_NAME, scm_from_off_t (offset));
 
   return target;
 }

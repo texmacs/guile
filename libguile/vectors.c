@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010,
- *   2011, 2012, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998-2001, 2006, 2008-2012, 2014, 2019
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -245,7 +245,7 @@ scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM vector;
-  unsigned long int j;
+  size_t j;
 
   SCM_ASSERT_RANGE (1, scm_from_size_t (k), k <= VECTOR_MAX_LENGTH);
 
