@@ -243,14 +243,13 @@
       (put-u8 port 77)
       (equal? (get-u8 port) 77)))
 
-  ;; Note: The `put-bytevector' tests below require a Latin-1 locale so
-  ;; that the `scm_from_locale_stringn' call in `sf_write' will let all
-  ;; the bytes through, unmodified.  This is hacky, but we can't use
-  ;; "custom binary output ports" here because they're only tested
-  ;; later.
+  ;; Note: The `put-bytevector' tests below temporarily set the default
+  ;; port encoding to ISO-8859-1 so that the soft-port will let all the
+  ;; bytes through, unmodified.  This is hacky, but we can't use "custom
+  ;; binary output ports" here because they're only tested later.
 
   (pass-if "put-bytevector [2 args]"
-    (with-latin1-locale
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
      (let ((port (make-soft-output-port))
            (bv   (make-bytevector 256)))
        (put-bytevector port bv)
@@ -259,7 +258,7 @@
                 (get-bytevector-n port (bytevector-length bv)))))))
 
   (pass-if "put-bytevector [3 args]"
-    (with-latin1-locale
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
      (let ((port  (make-soft-output-port))
            (bv    (make-bytevector 256))
            (start 10))
@@ -269,7 +268,7 @@
                 (get-bytevector-n port (- (bytevector-length bv) start)))))))
 
   (pass-if "put-bytevector [4 args]"
-    (with-latin1-locale
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
      (let ((port  (make-soft-output-port))
            (bv    (make-bytevector 256))
            (start 10)
