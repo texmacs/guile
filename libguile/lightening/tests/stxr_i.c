@@ -6,15 +6,9 @@ static void
 run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
 {
   jit_begin(j, arena_base, arena_size);
-
-  const jit_arg_abi_t abi[] =
-    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_INTMAX, JIT_ARG_ABI_INT32 };
-  jit_arg_t args[3];
-  const jit_anyreg_t regs[] =
-    { { .gpr=JIT_R0 }, { .gpr=JIT_R2 }, { .gpr=JIT_R1 } };
-
-  jit_receive(j, 3, abi, args);
-  jit_load_args(j, 3, abi, args, regs);
+  jit_load_args_3(j, jit_operand_gpr (JIT_OPERAND_ABI_POINTER, JIT_R0),
+                  jit_operand_gpr (JIT_OPERAND_ABI_INTMAX, JIT_R2),
+                  jit_operand_gpr (JIT_OPERAND_ABI_INT32, JIT_R1));
 
   jit_stxr_i(j, JIT_R0, JIT_R2, JIT_R1);
   jit_ret(j);

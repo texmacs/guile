@@ -192,7 +192,10 @@ jit_new_state(void* (*alloc_fn)(size_t), void (*free_fn)(void*))
   _jit->alloc = alloc_fn;
   _jit->free = free_fn;
 
-  if (!jit_init (_jit));
+  if (!jit_init (_jit)) {
+    free_fn (_jit);
+    return NULL;
+  }
 
   return _jit;
 }
