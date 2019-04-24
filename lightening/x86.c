@@ -793,8 +793,7 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
   // at least at the end we know that an in-place increment of one
   // operand won't alias another.
   for (size_t i = 0; i < argc; i++)
-    if (status[i] == TO_MOVE)
-      apply_addend(_jit, dst[i], src[i]);
+    apply_addend(_jit, dst[i], src[i]);
 }
 
 static const jit_gpr_t abi_gpr_args[] = {
