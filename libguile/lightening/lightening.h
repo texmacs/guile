@@ -156,9 +156,9 @@ typedef struct jit_operand
   union
   {
     intptr_t imm;
-    jit_gpr_t gpr;
+    struct { jit_gpr_t gpr; ptrdiff_t addend; } gpr;
     jit_fpr_t fpr;
-    struct { jit_gpr_t base; ptrdiff_t offset; } mem;
+    struct { jit_gpr_t base; ptrdiff_t offset; ptrdiff_t addend; } mem;
   } loc;
 } jit_operand_t;
 
@@ -169,9 +169,17 @@ jit_operand_imm (enum jit_operand_abi abi, intptr_t imm)
 }
 
 static inline jit_operand_t
+jit_operand_gpr_with_addend (enum jit_operand_abi abi, jit_gpr_t gpr,
+                             ptrdiff_t addend)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_GPR,
+      { .gpr = { gpr, addend } } };
+}
+
+static inline jit_operand_t
 jit_operand_gpr (enum jit_operand_abi abi, jit_gpr_t gpr)
 {
-  return (jit_operand_t){ abi, JIT_OPERAND_KIND_GPR, { .gpr = gpr } };
+  return jit_operand_gpr_with_addend (abi, gpr, 0);
 }
 
 static inline jit_operand_t
@@ -181,16 +189,34 @@ jit_operand_fpr (enum jit_operand_abi abi, jit_fpr_t fpr)
 }
 
 static inline jit_operand_t
-jit_operand_mem (enum jit_operand_abi abi, jit_gpr_t base, ptrdiff_t offset)
+jit_operand_mem_with_addend (enum jit_operand_abi abi, jit_gpr_t base,
+                             ptrdiff_t offset, ptrdiff_t addend)
 {
-  return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM, { .mem = { base, offset } } };
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM,
+      { .mem = { base, offset, addend } } };
 }
 
-typedef union jit_anyreg
+static inline jit_operand_t
+jit_operand_mem (enum jit_operand_abi abi, jit_gpr_t base, ptrdiff_t offset)
 {
-  jit_gpr_t gpr;
-  jit_fpr_t fpr;
-} jit_anyreg_t;
+  return jit_operand_mem_with_addend (abi, base, offset, 0);
+}
+
+static inline jit_operand_t
+jit_operand_addi (jit_operand_t op, ptrdiff_t addend)
+{
+  switch (op.kind) {
+  case JIT_OPERAND_KIND_GPR:
+    return jit_operand_gpr_with_addend (op.abi, op.loc.gpr.gpr,
+                                        op.loc.gpr.addend + addend);
+  case JIT_OPERAND_KIND_MEM:
+    return jit_operand_mem_with_addend (op.abi, op.loc.mem.base,
+                                        op.loc.mem.offset,
+                                        op.loc.mem.addend + addend);
+  default:
+    abort ();
+  }
+}
 
 JIT_API jit_bool_t init_jit(void);
 
@@ -211,6 +237,9 @@ JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
 JIT_API jit_bool_t jit_gpr_is_callee_save (jit_state_t*, jit_gpr_t);
 JIT_API jit_bool_t jit_fpr_is_callee_save (jit_state_t*, jit_fpr_t);
+
+JIT_API void jit_move_operands (jit_state_t *_jit, jit_operand_t *dst,
+                                jit_operand_t *src, size_t argc);
 
 /* Note that all functions that take jit_operand_t args[] use the args
    as scratch space while shuffling values into position.  */
