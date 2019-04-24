@@ -186,12 +186,6 @@ jit_operand_mem (enum jit_operand_abi abi, jit_gpr_t base, ptrdiff_t offset)
   return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM, { .mem = { base, offset } } };
 }
 
-typedef union jit_anyreg
-{
-  jit_gpr_t gpr;
-  jit_fpr_t fpr;
-} jit_anyreg_t;
-
 JIT_API jit_bool_t init_jit(void);
 
 JIT_API jit_state_t *jit_new_state(void* (*alloc_fn)(size_t),
@@ -211,6 +205,9 @@ JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 
 JIT_API jit_bool_t jit_gpr_is_callee_save (jit_state_t*, jit_gpr_t);
 JIT_API jit_bool_t jit_fpr_is_callee_save (jit_state_t*, jit_fpr_t);
+
+JIT_API void jit_move_operands (jit_state_t *_jit, jit_operand_t *dst,
+                                jit_operand_t *src, size_t argc);
 
 /* Note that all functions that take jit_operand_t args[] use the args
    as scratch space while shuffling values into position.  */
