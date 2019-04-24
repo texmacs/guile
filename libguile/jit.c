@@ -662,66 +662,38 @@ emit_reset_frame (scm_jit_state *j, uint32_t nlocals)
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
-static void
-emit_call (scm_jit_state *j, void *f)
+static jit_operand_t
+thread_operand (void)
 {
-  jit_calli (j->jit, f, 0, NULL, NULL);
+  return jit_operand_gpr (JIT_OPERAND_ABI_POINTER, THREAD);
+}
+
+static void
+emit_call_0 (scm_jit_state *j, void *f)
+{
+  jit_calli_0 (j->jit, f);
   clear_scratch_register_state (j);
 }
 
 static void
-emit_call_r (scm_jit_state *j, void *f, jit_gpr_t a)
+emit_call_1 (scm_jit_state *j, void *f, jit_operand_t a)
 {
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } } };
-
-  jit_calli (j->jit, f, 1, abi, args);
+  jit_calli_1 (j->jit, f, a);
   clear_scratch_register_state (j);
 }
 
 static void
-emit_call_i (scm_jit_state *j, void *f, intptr_t a)
+emit_call_2 (scm_jit_state *j, void *f, jit_operand_t a, jit_operand_t b)
 {
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { { JIT_ARG_LOC_IMM, { .imm = a } } };
-
-  jit_calli (j->jit, f, 1, abi, args);
+  jit_calli_2 (j->jit, f, a, b);
   clear_scratch_register_state (j);
 }
 
 static void
-emit_call_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b)
+emit_call_3 (scm_jit_state *j, void *f, jit_operand_t a, jit_operand_t b,
+             jit_operand_t c)
 {
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
-                       { JIT_ARG_LOC_GPR, { .gpr = b } } };
-
-  jit_calli (j->jit, f, 2, abi, args);
-  clear_scratch_register_state (j);
-}
-
-static void
-emit_call_r_i (scm_jit_state *j, void *f, jit_gpr_t a, intptr_t b)
-{
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
-                       { JIT_ARG_LOC_IMM, { .imm = b } } };
-
-  jit_calli (j->jit, f, 2, abi, args);
-  clear_scratch_register_state (j);
-}
-
-static void
-emit_call_r_r_r (scm_jit_state *j, void *f, jit_gpr_t a, jit_gpr_t b,
-                 jit_gpr_t c)
-{
-  const jit_arg_abi_t abi[] =
-    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = a } },
-                       { JIT_ARG_LOC_GPR, { .gpr = b } },
-                       { JIT_ARG_LOC_GPR, { .gpr = c } } };
-
-  jit_calli (j->jit, f, 3, abi, args);
+  jit_calli_3 (j->jit, f, a, b, c);
   clear_scratch_register_state (j);
 }
 
@@ -740,7 +712,8 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 
   /* Slow case: call out to expand stack.  */
   emit_store_current_ip (j, t);
-  emit_call_r_r (j, scm_vm_intrinsics.expand_stack, THREAD, SP);
+  emit_call_2 (j, scm_vm_intrinsics.expand_stack, thread_operand (),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, SP));
   restore_reloadable_register_state (j, saved_state);
   k = jit_jmp (j->jit);
 
@@ -768,7 +741,7 @@ emit_alloc_frame (scm_jit_state *j, jit_gpr_t t, uint32_t nlocals)
 static void
 emit_get_callee_vcode (scm_jit_state *j, jit_gpr_t dst)
 {
-  emit_call_r (j, scm_vm_intrinsics.get_callee_vcode, THREAD);
+  emit_call_1 (j, scm_vm_intrinsics.get_callee_vcode, thread_operand ());
   emit_retval (j, dst);
   emit_reload_sp (j);
   emit_reload_fp (j);
@@ -887,13 +860,13 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
     }
 }
 
-static jit_arg_t
+static jit_operand_t
 fp_scm_operand (scm_jit_state *j, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
 
-  return (jit_arg_t) { JIT_ARG_LOC_MEM,
-      { .mem = { FP, -8 * ((ptrdiff_t) slot + 1) } } };
+  return jit_operand_mem (JIT_OPERAND_ABI_POINTER, FP,
+                          -8 * ((ptrdiff_t) slot + 1));
 }
 
 static void
@@ -913,12 +886,21 @@ emit_fp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
   clear_register_state (j, SP_CACHE_GPR);
 }
 
-static jit_arg_t
+static jit_operand_t
+sp_slot_operand (scm_jit_state *j, uint32_t slot)
+{
+  ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
+
+  return jit_operand_addi (jit_operand_gpr (JIT_OPERAND_ABI_POINTER, SP),
+                           8 * slot);
+}
+
+static jit_operand_t
 sp_scm_operand (scm_jit_state *j, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  return (jit_arg_t) { JIT_ARG_LOC_MEM, { .mem = { SP, 8 * slot } } };
+  return jit_operand_mem (JIT_OPERAND_ABI_POINTER, SP, 8 * slot);
 }
 
 static void
@@ -944,15 +926,18 @@ emit_sp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
 
 /* Use when you know that the u64 value will be within the size_t range,
    for example when it's ensured by the compiler.  */
-static jit_arg_t
+static jit_operand_t
 sp_sz_operand (scm_jit_state *j, uint32_t src)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
+  enum jit_operand_abi abi =
+    sizeof (size_t) == 4 ? JIT_OPERAND_ABI_UINT32 : JIT_OPERAND_ABI_UINT64;
+
   if (BIGENDIAN && sizeof (size_t) == 4)
-    return (jit_arg_t) { JIT_ARG_LOC_MEM, { .mem = { SP, src * 8 + 4 } } };
+    return jit_operand_mem (abi, SP, src * 8 + 4);
   else
-    return (jit_arg_t) { JIT_ARG_LOC_MEM, { .mem = { SP, src * 8 } } };
+    return jit_operand_mem (abi, SP, src * 8);
 }
 
 static void
@@ -993,12 +978,12 @@ emit_sp_set_sz (scm_jit_state *j, uint32_t dst, jit_gpr_t src)
     }
 }
 
-static jit_arg_t
+static jit_operand_t
 sp_u64_operand (scm_jit_state *j, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  return (jit_arg_t) { JIT_ARG_LOC_MEM, { .mem = { SP, 8 * slot } } };
+  return jit_operand_mem (JIT_OPERAND_ABI_UINT64, SP, 8 * slot);
 }
 
 #if SIZEOF_UINTPTR_T >= 8
@@ -1047,7 +1032,7 @@ emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 
 #else /* SCM_SIZEOF_UINTPTR_T >= 8 */
 
-static jit_arg_t
+static jit_operand_t
 sp_s32_operand (scm_jit_state *j, uint32_t src)
 {
   return sp_sz_operand (j, src);
@@ -1297,14 +1282,10 @@ emit_entry_trampoline (scm_jit_state *j)
     if (jit_fpr_is_callee_save (j->jit, fprs[i]))
       jit_pushr_d (j->jit, fprs[i]);
 
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  jit_arg_t args[2];
-  const jit_anyreg_t regs[] = { { .gpr=THREAD }, { .gpr=T0 } };
-
   /* Load our reserved registers: THREAD and SP.  Also load IP for the
      mcode jump.  */
-  jit_receive(j->jit, 2, abi, args);
-  jit_load_args(j->jit, 2, abi, args, regs);
+  jit_load_args_2 (j->jit, thread_operand (),
+                   jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0));
   emit_reload_sp (j);
 
   /* Load FP, set during call sequences.  */
@@ -1333,7 +1314,9 @@ static void
 emit_handle_interrupts_trampoline (scm_jit_state *j)
 {
   /* Precondition: IP synced, MRA in T0.  */
-  emit_call_r_r (j, scm_vm_intrinsics.push_interrupt_frame, THREAD, T0);
+  emit_call_2 (j, scm_vm_intrinsics.push_interrupt_frame,
+               thread_operand (),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0));
   emit_reload_sp (j);
   emit_reload_fp (j);
   emit_direct_tail_call (j, scm_vm_intrinsics.handle_interrupt_code);
@@ -1439,12 +1422,11 @@ emit_code (scm_jit_state *j, void (*emit) (scm_jit_state *))
     }
 }
 
-static void
-emit_free_variable_ref (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t prog,
-                        size_t n)
+static jit_operand_t
+free_variable_operand (scm_jit_state *j, jit_gpr_t src, size_t n)
 {
-  emit_load_heap_object_word (j, dst, prog,
-                              n + program_word_offset_free_variable);
+  ptrdiff_t offset = (n + program_word_offset_free_variable) * sizeof(SCM);
+  return jit_operand_mem (JIT_OPERAND_ABI_POINTER, src, offset);
 }
 
 static void
@@ -1564,7 +1546,7 @@ compile_receive (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals
 
   k = emit_branch_if_frame_locals_count_greater_than (j, t, proc);
   emit_store_current_ip (j, T0);
-  emit_call (j, scm_vm_intrinsics.error_no_values);
+  emit_call_0 (j, scm_vm_intrinsics.error_no_values);
   j->register_state = saved_state;
   jit_patch_here (j->jit, k);
   emit_fp_ref_scm (j, t, proc);
@@ -1586,7 +1568,7 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
       jit_reloc_t k;
       k = emit_branch_if_frame_locals_count_greater_than (j, t, proc+nvalues-1);
       emit_store_current_ip (j, T0);
-      emit_call (j, scm_vm_intrinsics.error_not_enough_values);
+      emit_call_0 (j, scm_vm_intrinsics.error_not_enough_values);
       j->register_state = saved_state;
       jit_patch_here (j->jit, k);
     }
@@ -1595,7 +1577,8 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
       jit_reloc_t k;
       k = emit_branch_if_frame_locals_count_eq (j, t, proc + nvalues);
       emit_store_current_ip (j, T0);
-      emit_call_i (j, scm_vm_intrinsics.error_wrong_number_of_values, nvalues);
+      emit_call_1 (j, scm_vm_intrinsics.error_wrong_number_of_values,
+                   jit_operand_imm (JIT_OPERAND_ABI_UINT32, nvalues));
       j->register_state = saved_state;
       jit_patch_here (j->jit, k);
 
@@ -1656,8 +1639,7 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   jit_gpr_t t = T0, ret = T1;
   void *subr;
   jit_reloc_t immediate, not_values, k;
-  jit_arg_abi_t abi[10];
-  jit_arg_t args[10];
+  jit_operand_t args[10];
 
   ASSERT (j->frame_size > 0);
   size_t argc = j->frame_size - 1;
@@ -1666,17 +1648,15 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   subr = scm_subr_function_by_index (idx);
   emit_store_current_ip (j, t);
   for (size_t i = 2; i <= j->frame_size; i++)
-    {
-      abi[i - 2] = JIT_ARG_ABI_POINTER;
-      args[i - 2] = sp_scm_operand (j, (j->frame_size - i));
-    }
-  jit_calli (j->jit, subr, argc, abi, args);
+    args[i - 2] = sp_scm_operand (j, (j->frame_size - i));
+  jit_calli (j->jit, subr, argc, args);
   clear_scratch_register_state (j);
   jit_retval (j->jit, ret);
 
   immediate = emit_branch_if_immediate (j, ret);
   not_values = emit_branch_if_heap_object_not_tc7 (j, ret, t, scm_tc7_values);
-  emit_call_r_r (j, scm_vm_intrinsics.unpack_values_object, THREAD, ret);
+  emit_call_2 (j, scm_vm_intrinsics.unpack_values_object, thread_operand (),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, ret));
   emit_reload_fp (j);
   emit_reload_sp (j);
   k = jit_jmp (j->jit);
@@ -1704,12 +1684,12 @@ compile_foreign_call (scm_jit_state *j, uint16_t cif_idx, uint16_t ptr_idx)
 
   emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, j->frame_size - 1);
-  emit_free_variable_ref (j, T1, T0, cif_idx);
-  emit_free_variable_ref (j, T2, T0, ptr_idx);
 
   /* FIXME: Inline the foreign call.  */
   saved_state = save_reloadable_register_state (j);
-  emit_call_r_r_r (j, scm_vm_intrinsics.foreign_call, THREAD, T1, T2);
+  emit_call_3 (j, scm_vm_intrinsics.foreign_call, thread_operand (),
+               free_variable_operand (j, T0, cif_idx),
+               free_variable_operand (j, T0, ptr_idx));
   restore_reloadable_register_state (j, saved_state);
 
   j->frame_size = 2; /* Return value and errno.  */
@@ -1721,8 +1701,8 @@ compile_continuation_call (scm_jit_state *j, uint32_t contregs_idx)
   emit_reload_fp (j);
   emit_store_current_ip (j, T0);
   emit_fp_ref_scm (j, T0, 0);
-  emit_free_variable_ref (j, T0, T0, contregs_idx);
-  emit_call_r_r (j, scm_vm_intrinsics.reinstate_continuation_x, THREAD, T0);
+  emit_call_2 (j, scm_vm_intrinsics.reinstate_continuation_x,
+               thread_operand (), free_variable_operand (j, T0, contregs_idx));
   /* Does not fall through.  */
 
   j->frame_size = -1;
@@ -1737,8 +1717,8 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
 
   emit_store_current_ip (j, T0);
   emit_fp_ref_scm (j, T0, 0);
-  emit_free_variable_ref (j, T0, T0, cont_idx);
-  emit_call_r_r (j, scm_vm_intrinsics.compose_continuation, THREAD, T0);
+  emit_call_2 (j, scm_vm_intrinsics.compose_continuation,
+               thread_operand (), free_variable_operand (j, T0, cont_idx));
   jit_retval (j->jit, T0);
   interp = jit_beqi (j->jit, T0, 0);
   emit_reload_sp (j);
@@ -1755,7 +1735,7 @@ static void
 compile_capture_continuation (scm_jit_state *j, uint32_t dst)
 {
   emit_store_current_ip (j, T0);
-  emit_call_r (j, scm_vm_intrinsics.capture_continuation, THREAD);
+  emit_call_1 (j, scm_vm_intrinsics.capture_continuation, thread_operand ());
   jit_retval (j->jit, T0);
   emit_reload_sp (j);
   emit_reload_fp (j);
@@ -1770,7 +1750,8 @@ compile_abort (scm_jit_state *j)
   jit_movi (j->jit, T0, (intptr_t) (j->ip + 1));
   emit_store_ip (j, T0);
   k = jit_mov_addr (j->jit, T0);
-  emit_call_r_r (j, scm_vm_intrinsics.abort_to_prompt, THREAD, T0);
+  emit_call_2 (j, scm_vm_intrinsics.abort_to_prompt, thread_operand (),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0));
   jit_retval (j->jit, T1_PRESERVED);
   
   interp = jit_beqi (j->jit, T1_PRESERVED, 0);
@@ -1799,9 +1780,8 @@ static void
 compile_throw (scm_jit_state *j, uint16_t key, uint16_t args)
 {
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, key);
-  emit_sp_ref_scm (j, T1, args);
-  emit_call_r_r (j, scm_vm_intrinsics.throw_, T0, T1);
+  emit_call_2 (j, scm_vm_intrinsics.throw_, sp_scm_operand (j, key),
+               sp_scm_operand (j, args));
   /* throw_ does not return.  */
 }
 
@@ -1810,9 +1790,9 @@ compile_throw_value (scm_jit_state *j, uint32_t val,
                      const void *key_subr_and_message)
 {
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, val);
-  emit_call_r_i (j, scm_vm_intrinsics.throw_with_value, T0,
-                 (intptr_t) key_subr_and_message);
+  emit_call_2 (j, scm_vm_intrinsics.throw_with_value, sp_scm_operand (j, val),
+               jit_operand_imm (JIT_OPERAND_ABI_POINTER,
+                                (intptr_t) key_subr_and_message));
   /* throw_with_value does not return.  */
 }
 
@@ -1821,9 +1801,10 @@ compile_throw_value_and_data (scm_jit_state *j, uint32_t val,
                               const void *key_subr_and_message)
 {
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, val);
-  emit_call_r_i (j, scm_vm_intrinsics.throw_with_value_and_data, T0,
-                 (intptr_t) key_subr_and_message);
+  emit_call_2 (j, scm_vm_intrinsics.throw_with_value_and_data,
+               sp_scm_operand (j, val),
+               jit_operand_imm (JIT_OPERAND_ABI_POINTER,
+                                (intptr_t) key_subr_and_message));
   /* throw_with_value_and_data does not return.  */
 }
 
@@ -1836,7 +1817,8 @@ compile_assert_nargs_ee (scm_jit_state *j, uint32_t nlocals)
 
   k = emit_branch_if_frame_locals_count_eq (j, t, nlocals);
   emit_store_current_ip (j, t);
-  emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
   jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
@@ -1854,7 +1836,8 @@ compile_assert_nargs_ge (scm_jit_state *j, uint32_t nlocals)
 
       k = emit_branch_if_frame_locals_count_greater_than (j, t, nlocals-1);
       emit_store_current_ip (j, t);
-      emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
+      emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+                   thread_operand ());
       jit_patch_here (j->jit, k);
       j->register_state = saved_state;
     }
@@ -1869,7 +1852,8 @@ compile_assert_nargs_le (scm_jit_state *j, uint32_t nlocals)
 
   k = emit_branch_if_frame_locals_count_less_than (j, t, nlocals + 1);
   emit_store_current_ip (j, t);
-  emit_call_r (j, scm_vm_intrinsics.error_wrong_num_args, THREAD);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
   jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
@@ -1975,7 +1959,7 @@ static void
 compile_expand_apply_argument (scm_jit_state *j)
 {
   emit_store_current_ip (j, T0);
-  emit_call_r (j, scm_vm_intrinsics.expand_apply_argument, THREAD);
+  emit_call_1 (j, scm_vm_intrinsics.expand_apply_argument, thread_operand ());
   emit_reload_sp (j);
   emit_reload_fp (j);
 
@@ -1991,39 +1975,26 @@ compile_bind_kwargs (scm_jit_state *j, uint32_t nreq, uint8_t flags,
 
   emit_store_current_ip (j, t);
 
-  {
-    const jit_arg_abi_t abi[] =
-      { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT32, JIT_ARG_ABI_UINT32 };
-    jit_arg_t args[] =
-      { { JIT_ARG_LOC_GPR, { .gpr = THREAD } },
-        { JIT_ARG_LOC_IMM, { .imm = nreq } },
-        { JIT_ARG_LOC_IMM, { .imm = nreq_and_opt - nreq } } };
-
-    jit_calli (j->jit, scm_vm_intrinsics.compute_kwargs_npositional,
-               3, abi, args);
-  }
-  clear_scratch_register_state (j);
+  emit_call_3 (j, scm_vm_intrinsics.compute_kwargs_npositional,
+               thread_operand (),
+               jit_operand_imm (JIT_OPERAND_ABI_UINT32, nreq),
+               jit_operand_imm (JIT_OPERAND_ABI_UINT32, nreq_and_opt - nreq));
   jit_retval_i (j->jit, npositional);
 
-  {
-    const jit_arg_abi_t abi[] =
-      { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT32, JIT_ARG_ABI_UINT32,
-        JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT8, JIT_ARG_ABI_UINT8 };
-    jit_arg_t args[] =
-      { { JIT_ARG_LOC_GPR, { .gpr = THREAD } },
-        { JIT_ARG_LOC_GPR, { .gpr = npositional } },
-        { JIT_ARG_LOC_IMM, { .imm = ntotal } },
-        { JIT_ARG_LOC_IMM, { .imm = (intptr_t)kw } },
-        { JIT_ARG_LOC_IMM, { .imm = !has_rest } },
-        { JIT_ARG_LOC_IMM, { .imm = allow_other_keys } } };
-
-    jit_calli (j->jit, scm_vm_intrinsics.bind_kwargs, 6, abi, args);
-  }
+  jit_operand_t args[] =
+    { jit_operand_gpr (JIT_OPERAND_ABI_POINTER, THREAD),
+      jit_operand_gpr (JIT_OPERAND_ABI_UINT32, npositional),
+      jit_operand_imm (JIT_OPERAND_ABI_UINT32, ntotal),
+      jit_operand_imm (JIT_OPERAND_ABI_POINTER, (intptr_t)kw),
+      jit_operand_imm (JIT_OPERAND_ABI_UINT8, !has_rest),
+      jit_operand_imm (JIT_OPERAND_ABI_UINT8, allow_other_keys) };
+  jit_calli (j->jit, scm_vm_intrinsics.bind_kwargs, 6, args);
   clear_scratch_register_state (j);
   
   if (has_rest)
     {
-      emit_call_r_i (j, scm_vm_intrinsics.cons_rest, THREAD, ntotal);
+      emit_call_2 (j, scm_vm_intrinsics.cons_rest, thread_operand (),
+                   jit_operand_imm (JIT_OPERAND_ABI_UINT32, ntotal));
       jit_retval (j->jit, t);
       emit_reload_fp (j);
       emit_fp_set_scm (j, nreq_and_opt, t);
@@ -2050,7 +2021,8 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
 
   jit_patch_here (j->jit, cons);
   emit_store_current_ip (j, t);
-  emit_call_r_i (j, scm_vm_intrinsics.cons_rest, THREAD, dst);
+  emit_call_2 (j, scm_vm_intrinsics.cons_rest, thread_operand (),
+               jit_operand_imm (JIT_OPERAND_ABI_UINT32, dst));
   emit_retval (j, t);
   compile_reset_frame (j, dst + 1);
   emit_sp_set_scm (j, 0, t);
@@ -2064,8 +2036,8 @@ compile_allocate_words (scm_jit_state *j, uint16_t dst, uint16_t nwords)
   jit_gpr_t t = T0;
 
   emit_store_current_ip (j, t);
-  emit_sp_ref_sz (j, t, nwords);
-  emit_call_r_r (j, scm_vm_intrinsics.allocate_words, THREAD, t);
+  emit_call_2 (j, scm_vm_intrinsics.allocate_words, thread_operand (),
+               sp_sz_operand (j, nwords));
   emit_retval (j, t);
   record_gpr_clobber (j, t);
   emit_reload_sp (j);
@@ -2078,8 +2050,8 @@ compile_allocate_words_immediate (scm_jit_state *j, uint16_t dst, uint16_t nword
   jit_gpr_t t = T0;
 
   emit_store_current_ip (j, t);
-  emit_movi (j, t, nwords);
-  emit_call_r_r (j, scm_vm_intrinsics.allocate_words, THREAD, t);
+  emit_call_2 (j, scm_vm_intrinsics.allocate_words, thread_operand (),
+               jit_operand_imm (JIT_OPERAND_ABI_INTMAX, nwords));
   emit_retval (j, t);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, t);
@@ -2227,13 +2199,17 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
   int has_fast = 0;
   jit_reloc_t fast;
 
-  emit_sp_ref_scm (j, T0, a);
-  emit_sp_ref_scm (j, T1, b);
+  jit_operand_t op_a = sp_scm_operand (j, a);
+  jit_operand_t op_b = sp_scm_operand (j, b);
 
   switch ((enum scm_vm_intrinsic) idx)
     {
     case SCM_VM_INTRINSIC_ADD:
       {
+        emit_sp_ref_scm (j, T0, a);
+        emit_sp_ref_scm (j, T1, b);
+        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
+        op_b = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1);
         jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
         jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
         jit_subi (j->jit, T0, T0, scm_tc2_int);
@@ -2248,6 +2224,10 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
       }
     case SCM_VM_INTRINSIC_SUB:
       {
+        emit_sp_ref_scm (j, T0, a);
+        emit_sp_ref_scm (j, T1, b);
+        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
+        op_b = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1);
         jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
         jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
         jit_subi (j->jit, T1, T1, scm_tc2_int);
@@ -2265,7 +2245,7 @@ compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
     }
 
   emit_store_current_ip (j, T2);
-  emit_call_r_r (j, intrinsic, T0, T1);
+  emit_call_2 (j, intrinsic, op_a, op_b);
   emit_retval (j, T0);
   emit_reload_sp (j);
 
@@ -2281,12 +2261,15 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
   int has_fast = 0;
   jit_reloc_t fast;
 
-  emit_sp_ref_scm (j, T0, a);
+  jit_operand_t op_a = sp_scm_operand (j, a);
+  jit_operand_t op_b = jit_operand_imm (JIT_OPERAND_ABI_UINT8, b);
 
   switch ((enum scm_vm_intrinsic) idx)
     {
     case SCM_VM_INTRINSIC_ADD_IMMEDIATE:
       {
+        emit_sp_ref_scm (j, T0, a);
+        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
         scm_t_bits addend = b << 2;
         jit_reloc_t not_inum = jit_bmci (j->jit, T0, 2);
         fast = jit_bxaddi (j->jit, T0, addend);
@@ -2298,6 +2281,8 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
       }
     case SCM_VM_INTRINSIC_SUB_IMMEDIATE:
       {
+        emit_sp_ref_scm (j, T0, a);
+        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
         scm_t_bits subtrahend = b << 2;
         jit_reloc_t not_inum = jit_bmci (j->jit, T0, 2);
         fast = jit_bxsubi (j->jit, T0, subtrahend);
@@ -2312,7 +2297,7 @@ compile_call_scm_from_scm_uimm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_
     }
 
   emit_store_current_ip (j, T1);
-  emit_call_r_i (j, intrinsic, T0, b);
+  emit_call_2 (j, intrinsic, op_a, op_b);
   emit_retval (j, T0);
   emit_reload_sp (j);
 
@@ -2327,14 +2312,8 @@ compile_call_scm_sz_u32 (scm_jit_state *j, uint8_t a, uint8_t b, uint8_t c, uint
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-
-  const jit_arg_abi_t abi[] =
-    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_INTMAX, JIT_ARG_ABI_UINT32 };
-  jit_arg_t args[] = { sp_scm_operand (j, a),
-                       sp_sz_operand (j, b),
-                       sp_sz_operand (j, c) };
-  jit_calli (j->jit, intrinsic, 3, abi, args);
-  clear_scratch_register_state (j);
+  emit_call_3 (j, intrinsic, sp_scm_operand (j, a), sp_sz_operand (j, b),
+               sp_sz_operand (j, c));
   emit_reload_sp (j);
 }
 
@@ -2344,10 +2323,7 @@ compile_call_scm_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { sp_scm_operand (j, a) };
-  jit_calli (j->jit, intrinsic, 1, abi, args);
-  clear_scratch_register_state (j);
+  emit_call_1 (j, intrinsic, sp_scm_operand (j, a));
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -2359,10 +2335,7 @@ compile_call_f64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { sp_scm_operand (j, a) };
-  jit_calli (j->jit, intrinsic, 1, abi, args);
-  clear_scratch_register_state (j);
+  emit_call_1 (j, intrinsic, sp_scm_operand (j, a));
   emit_retval_d (j, JIT_F0);
   emit_reload_sp (j);
   emit_sp_set_f64 (j, dst, JIT_F0);
@@ -2375,17 +2348,10 @@ compile_call_u64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
 
   emit_store_current_ip (j, T0);
 #if INDIRECT_INT64_INTRINSICS
-  // FIXME
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { sp_u64_loc_operand (j, dst), sp_scm_operand (j, a) };
-  jit_calli (j->jit, intrinsic, 2, abi, args);
-  clear_scratch_register_state (j);
+  emit_call_2 (j, intrinsic, sp_slot_operand (j, dst), sp_scm_operand (j, a));
   emit_reload_sp (j);
 #else
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  jit_arg_t args[] = { sp_scm_operand (j, a) };
-  jit_calli (j->jit, intrinsic, 1, abi, args);
-  clear_scratch_register_state (j);
+  emit_call_1 (j, intrinsic, sp_scm_operand (j, a));
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_u64 (j, dst, T0);
@@ -2446,21 +2412,19 @@ compile_prompt (scm_jit_state *j, uint32_t tag, uint8_t escape_only_p,
                 uint32_t proc_slot, const uint32_t *vcode)
 {
   emit_store_current_ip (j, T0);
-  const jit_arg_abi_t abi[] =
-    { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT8, JIT_ARG_ABI_POINTER,
-      JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
 
   emit_reload_fp (j);
   jit_subi (j->jit, FP, FP, proc_slot * sizeof (union scm_vm_stack_element));
   jit_reloc_t mra = emit_mov_addr (j, T2);
 
-  jit_arg_t args[] = { { JIT_ARG_LOC_GPR, { .gpr = THREAD } },
-                       { JIT_ARG_LOC_IMM, { .imm = escape_only_p } },
-                       sp_scm_operand (j, tag),
-                       { JIT_ARG_LOC_GPR, { .gpr = FP } },
-                       { JIT_ARG_LOC_IMM, { .imm = (uintptr_t)vcode } },
-                       { JIT_ARG_LOC_GPR, { .gpr = T2 } } };
-  jit_calli (j->jit, scm_vm_intrinsics.push_prompt, 6, abi, args);
+  jit_operand_t args[] =
+    { thread_operand (),
+      jit_operand_imm (JIT_OPERAND_ABI_UINT8, escape_only_p),
+      sp_scm_operand (j, tag),
+      jit_operand_gpr (JIT_OPERAND_ABI_POINTER, FP),
+      jit_operand_imm (JIT_OPERAND_ABI_POINTER, (uintptr_t)vcode),
+      jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T2) };
+  jit_calli (j->jit, scm_vm_intrinsics.push_prompt, 6, args);
   clear_scratch_register_state (j);
   emit_reload_sp (j);
   emit_reload_fp (j);
@@ -2492,15 +2456,10 @@ compile_call_scm_from_u64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_
 
   emit_store_current_ip (j, T0);
 #if INDIRECT_INT64_INTRINSICS
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER };
-  // jit_addi (j->jit, T0, SP, src * sizeof (union scm_vm_stack_element));
-  jit_arg_t args[] = { sp_u64_loc_operand (j, src) };
+  emit_call_1 (j, intrinsic, sp_slot_operand (j, src));
 #else
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_UINT64 };
-  jit_arg_t args[] = { sp_u64_operand (j, src) };
+  emit_call_1 (j, intrinsic, sp_u64_operand (j, src));
 #endif
-  jit_calli (j->jit, intrinsic, 1, abi, args);
-  clear_scratch_register_state (j);
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -2541,14 +2500,15 @@ compile_untag_char (scm_jit_state *j, uint16_t dst, uint16_t src)
 static void
 compile_atomic_scm_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t offset)
 {
-  emit_sp_ref_scm (j, T0, obj);
 #if defined(__i386__) || defined(__x86_64__)
   /* Disassembly of atomic_ref_scm is just a mov.  */
+  emit_sp_ref_scm (j, T0, obj);
   emit_ldxi (j, T0, T0, offset * sizeof (SCM));
 #else
-  emit_addi (j, T0, T0, offset * sizeof (SCM));
   emit_movr (j, T1_PRESERVED, SP);
-  emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
+  emit_call_1 (j, scm_vm_intrinsics.atomic_ref_scm,
+               jit_operand_addi (sp_scm_operand (j, obj),
+                                 offset * sizeof (SCM)));
   emit_retval (j, T0);
   emit_movr (j, SP, T1_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
@@ -2559,11 +2519,11 @@ compile_atomic_scm_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, ui
 static void
 compile_atomic_scm_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset, uint8_t val)
 {
-  emit_sp_ref_scm (j, T1, obj);
-  emit_sp_ref_scm (j, T2, val);
-  emit_addi (j, T1, T1, offset * sizeof (SCM));
   emit_movr (j, T0_PRESERVED, SP);
-  emit_call_r_r (j, scm_vm_intrinsics.atomic_set_scm, T1, T2);
+  emit_call_2 (j, scm_vm_intrinsics.atomic_set_scm,
+               jit_operand_addi (sp_scm_operand (j, obj),
+                                 offset * sizeof (SCM)),
+               sp_scm_operand (j, val));
   emit_movr (j, SP, T0_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
 }
@@ -2571,11 +2531,11 @@ compile_atomic_scm_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset,
 static void
 compile_atomic_scm_swap_immediate (scm_jit_state *j, uint32_t dst, uint32_t obj, uint8_t offset, uint32_t val)
 {
-  emit_sp_ref_scm (j, T1, obj);
-  emit_sp_ref_scm (j, T2, val);
-  emit_addi (j, T1, T1, offset * sizeof (SCM));
   emit_movr (j, T0_PRESERVED, SP);
-  emit_call_r_r (j, scm_vm_intrinsics.atomic_swap_scm, T1, T2);
+  emit_call_2 (j, scm_vm_intrinsics.atomic_swap_scm,
+               jit_operand_addi (sp_scm_operand (j, obj),
+                                 offset * sizeof (SCM)),
+               sp_scm_operand (j, val));
   emit_retval (j, T1);
   emit_movr (j, SP, T0_PRESERVED);
   set_register_state (j, SP_IN_REGISTER);
@@ -2587,11 +2547,10 @@ compile_atomic_scm_compare_and_swap_immediate (scm_jit_state *j, uint32_t dst,
                                                uint32_t obj, uint8_t offset,
                                                uint32_t expected, uint32_t desired)
 {
-  emit_sp_ref_scm (j, T0, obj);
-  emit_sp_ref_scm (j, T1, expected);
-  emit_sp_ref_scm (j, T2, desired);
-  emit_addi (j, T0, T0, offset * sizeof (SCM));
-  emit_call_r_r_r (j, scm_vm_intrinsics.atomic_compare_and_swap_scm, T0, T1, T2);
+  emit_call_3 (j, scm_vm_intrinsics.atomic_compare_and_swap_scm,
+               jit_operand_addi (sp_scm_operand (j, obj),
+                                 offset * sizeof (SCM)),
+               sp_scm_operand (j, expected), sp_scm_operand (j, desired));
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -2603,9 +2562,8 @@ compile_call_thread_scm_scm (scm_jit_state *j, uint16_t a, uint16_t b, uint32_t 
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, a);
-  emit_sp_ref_scm (j, T1, b);
-  emit_call_r_r_r (j, intrinsic, THREAD, T0, T1);
+  emit_call_3 (j, intrinsic, thread_operand (), sp_scm_operand (j, a),
+               sp_scm_operand (j, b));
   emit_reload_sp (j);
 }
 
@@ -2615,7 +2573,7 @@ compile_call_thread (scm_jit_state *j, uint32_t idx)
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  emit_call_r (j, intrinsic, THREAD);
+  emit_call_1 (j, intrinsic, thread_operand ());
   emit_reload_sp (j);
 }
 
@@ -2625,8 +2583,7 @@ compile_call_scm_from_thread_scm (scm_jit_state *j, uint16_t dst, uint16_t a, ui
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, a);
-  emit_call_r_r (j, intrinsic, THREAD, T0);
+  emit_call_2 (j, intrinsic, thread_operand (), sp_scm_operand (j, a));
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -2638,8 +2595,7 @@ compile_call_thread_scm (scm_jit_state *j, uint32_t a, uint32_t idx)
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, a);
-  emit_call_r_r (j, intrinsic, THREAD, T0);
+  emit_call_2 (j, intrinsic, thread_operand (), sp_scm_operand (j, a));
   emit_reload_sp (j);
 }
 
@@ -2650,15 +2606,10 @@ compile_call_scm_from_scm_u64 (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t
 
   emit_store_current_ip (j, T0);
 #if INDIRECT_INT64_INTRINSICS
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_POINTER };
-  // jit_addi (j->jit, T0, SP, src * sizeof (union scm_vm_stack_element));
-  jit_arg_t args[] = { sp_scm_operand (j, a), sp_u64_loc_operand (j, b) };
+  emit_call_2 (j, intrinsic, sp_scm_operand (j, a), sp_slot_operand (j, b));
 #else
-  const jit_arg_abi_t abi[] = { JIT_ARG_ABI_POINTER, JIT_ARG_ABI_UINT64 };
-  jit_arg_t args[] = { sp_scm_operand (j, a), sp_u64_operand (j, b) };
+  emit_call_2 (j, intrinsic, sp_scm_operand (j, a), sp_u64_operand (j, b));
 #endif
-  jit_calli (j->jit, intrinsic, 2, abi, args);
-  clear_scratch_register_state (j);
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -2670,7 +2621,7 @@ compile_call_scm_from_thread (scm_jit_state *j, uint32_t dst, uint32_t idx)
   void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
 
   emit_store_current_ip (j, T0);
-  emit_call_r (j, intrinsic, THREAD);
+  emit_call_1 (j, intrinsic, thread_operand ());
   emit_retval (j, T0);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, T0);
@@ -3094,8 +3045,9 @@ compile_handle_interrupts (scm_jit_state *j)
   /* Disassembly of atomic_ref_scm is just a mov.  */
   jit_ldxi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
 #else
-  jit_addi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
-  emit_call_r (j, scm_vm_intrinsics.atomic_ref_scm, T0);
+  emit_call_1 (j, scm_vm_intrinsics.atomic_ref_scm,
+               jit_operand_addi (thread_operand (),
+                                 thread_offset_pending_asyncs));
   emit_retval (j, T0);
   restore_reloadable_register_state (j, saved_state);
 #endif
@@ -3352,9 +3304,8 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   uint32_t *target;
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, a);
-  emit_sp_ref_scm (j, T1, b);
-  emit_call_r_r (j, scm_vm_intrinsics.numerically_equal_p, T0, T1);
+  emit_call_2 (j, scm_vm_intrinsics.numerically_equal_p,
+               sp_scm_operand (j, a), sp_scm_operand (j, b));
   emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
@@ -3390,7 +3341,9 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
   fast = jit_bmsi (j->jit, T2, scm_tc2_int);
 #endif
 
-  emit_call_r_r (j, scm_vm_intrinsics.less_p, T0, T1);
+  emit_call_2 (j, scm_vm_intrinsics.less_p,
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1));
   emit_retval (j, T0);
   emit_reload_sp (j);
   switch (op)
@@ -3629,9 +3582,8 @@ compile_heap_numbers_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   uint32_t *target;
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, a);
-  emit_sp_ref_scm (j, T1, b);
-  emit_call_r_r (j, scm_vm_intrinsics.heap_numbers_equal_p, T0, T1);
+  emit_call_2 (j, scm_vm_intrinsics.heap_numbers_equal_p, sp_scm_operand (j, a),
+               sp_scm_operand (j, b));
   emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
