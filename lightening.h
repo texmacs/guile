@@ -156,9 +156,9 @@ typedef struct jit_operand
   union
   {
     intptr_t imm;
-    jit_gpr_t gpr;
+    struct { jit_gpr_t gpr; ptrdiff_t addend; } gpr;
     jit_fpr_t fpr;
-    struct { jit_gpr_t base; ptrdiff_t offset; } mem;
+    struct { jit_gpr_t base; ptrdiff_t offset; ptrdiff_t addend; } mem;
   } loc;
 } jit_operand_t;
 
@@ -169,9 +169,17 @@ jit_operand_imm (enum jit_operand_abi abi, intptr_t imm)
 }
 
 static inline jit_operand_t
+jit_operand_gpr_with_addend (enum jit_operand_abi abi, jit_gpr_t gpr,
+                             ptrdiff_t addend)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_GPR,
+      { .gpr = { gpr, addend } } };
+}
+
+static inline jit_operand_t
 jit_operand_gpr (enum jit_operand_abi abi, jit_gpr_t gpr)
 {
-  return (jit_operand_t){ abi, JIT_OPERAND_KIND_GPR, { .gpr = gpr } };
+  return jit_operand_gpr_with_addend (abi, gpr, 0);
 }
 
 static inline jit_operand_t
@@ -181,9 +189,33 @@ jit_operand_fpr (enum jit_operand_abi abi, jit_fpr_t fpr)
 }
 
 static inline jit_operand_t
+jit_operand_mem_with_addend (enum jit_operand_abi abi, jit_gpr_t base,
+                             ptrdiff_t offset, ptrdiff_t addend)
+{
+  return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM,
+      { .mem = { base, offset, addend } } };
+}
+
+static inline jit_operand_t
 jit_operand_mem (enum jit_operand_abi abi, jit_gpr_t base, ptrdiff_t offset)
 {
-  return (jit_operand_t){ abi, JIT_OPERAND_KIND_MEM, { .mem = { base, offset } } };
+  return jit_operand_mem_with_addend (abi, base, offset, 0);
+}
+
+static inline jit_operand_t
+jit_operand_addi (jit_operand_t op, ptrdiff_t addend)
+{
+  switch (op.kind) {
+  case JIT_OPERAND_KIND_GPR:
+    return jit_operand_gpr_with_addend (op.abi, op.loc.gpr.gpr,
+                                        op.loc.gpr.addend + addend);
+  case JIT_OPERAND_KIND_MEM:
+    return jit_operand_mem_with_addend (op.abi, op.loc.mem.base,
+                                        op.loc.mem.offset,
+                                        op.loc.mem.addend + addend);
+  default:
+    abort ();
+  }
 }
 
 JIT_API jit_bool_t init_jit(void);

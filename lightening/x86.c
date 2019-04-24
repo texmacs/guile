@@ -559,6 +559,8 @@ enum move_kind {
   MOVE_KIND_ENUM(FPR, FPR),
   MOVE_KIND_ENUM(MEM, FPR),
   MOVE_KIND_ENUM(IMM, MEM),
+  MOVE_KIND_ENUM(GPR, MEM),
+  MOVE_KIND_ENUM(FPR, MEM),
   MOVE_KIND_ENUM(MEM, MEM)
 };
 #undef MOVE_KIND_ENUM
@@ -568,13 +570,13 @@ move_operand(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
 {
   switch (MOVE_KIND (src.kind, dst.kind)) {
   case MOVE_IMM_TO_GPR:
-    return abi_imm_to_gpr(_jit, src.abi, dst.loc.gpr, src.loc.imm);
+    return abi_imm_to_gpr(_jit, src.abi, dst.loc.gpr.gpr, src.loc.imm);
 
   case MOVE_GPR_TO_GPR:
-    return jit_movr(_jit, dst.loc.gpr, src.loc.gpr);
+    return jit_movr(_jit, dst.loc.gpr.gpr, src.loc.gpr.gpr);
 
   case MOVE_MEM_TO_GPR:
-    return abi_mem_to_gpr(_jit, src.abi, dst.loc.gpr, src.loc.mem.base,
+    return abi_mem_to_gpr(_jit, src.abi, dst.loc.gpr.gpr, src.loc.mem.base,
                           src.loc.mem.offset);
 
   case MOVE_FPR_TO_FPR:
@@ -587,6 +589,14 @@ move_operand(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
   case MOVE_IMM_TO_MEM:
     return abi_imm_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
                           src.loc.imm);
+
+  case MOVE_GPR_TO_MEM:
+    return abi_gpr_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.gpr.gpr);
+
+  case MOVE_FPR_TO_MEM:
+    return abi_fpr_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.fpr);
 
   case MOVE_MEM_TO_MEM:
     return abi_mem_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
@@ -609,7 +619,7 @@ already_in_place(jit_operand_t src, jit_operand_t dst)
 {
   switch (MOVE_KIND(src.kind, dst.kind)) {
   case MOVE_GPR_TO_GPR:
-    return jit_same_gprs (src.loc.gpr, dst.loc.gpr);
+    return jit_same_gprs (src.loc.gpr.gpr, dst.loc.gpr.gpr);
   case MOVE_FPR_TO_FPR:
     return jit_same_fprs (src.loc.fpr, dst.loc.fpr);
   case MOVE_MEM_TO_MEM:
@@ -627,9 +637,22 @@ write_would_clobber(jit_operand_t src, jit_operand_t dst)
     return 1;
 
   if (MOVE_KIND(src.kind, dst.kind) == MOVE_MEM_TO_GPR)
-    return jit_same_gprs(src.loc.mem.base, dst.loc.gpr);
+    return jit_same_gprs(src.loc.mem.base, dst.loc.gpr.gpr);
 
   return 0;
+}
+
+static inline ptrdiff_t
+operand_addend(jit_operand_t op)
+{
+  switch (op.kind) {
+  case JIT_OPERAND_KIND_GPR:
+    return op.loc.gpr.addend;
+  case JIT_OPERAND_KIND_MEM:
+    return op.loc.mem.addend;
+  default:
+    abort();
+  }
 }
 
 static void
@@ -655,7 +678,10 @@ move_one(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
           tmp = jit_operand_fpr(src[j].abi, get_temp_xpr(_jit));
         } else {
           tmp_gpr = 1;
-          tmp = jit_operand_gpr(src[j].abi, get_temp_gpr(_jit));
+          /* Preserve addend, if any, from source operand, to be applied
+             at the end.  */
+          tmp = jit_operand_gpr_with_addend(src[j].abi, get_temp_gpr(_jit),
+                                            operand_addend(src[j]));
         }
         move_operand (_jit, tmp, src[j]);
         src[j] = tmp;
@@ -677,15 +703,39 @@ move_one(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
     unget_temp_xpr(_jit);
 }
 
+static void
+apply_addend(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
+{
+  switch (MOVE_KIND(src.kind, dst.kind)) {
+  case MOVE_GPR_TO_GPR:
+  case MOVE_MEM_TO_GPR:
+    if (operand_addend(src))
+      jit_addi(_jit, dst.loc.gpr.gpr, dst.loc.gpr.gpr, operand_addend(src));
+    break;
+  case MOVE_GPR_TO_MEM:
+  case MOVE_MEM_TO_MEM:
+    if (operand_addend(src)) {
+      jit_gpr_t tmp = get_temp_gpr(_jit);
+      abi_mem_to_gpr(_jit, dst.abi, tmp, dst.loc.mem.base, dst.loc.mem.offset);
+      jit_addi(_jit, tmp, tmp, operand_addend(src));
+      abi_gpr_to_mem(_jit, dst.abi, dst.loc.mem.base, dst.loc.mem.offset, tmp);
+    }
+    break;
+  default:
+    break;
+  }
+}
+
 /* Preconditions: No dest operand is IMM.  No dest operand aliases
    another dest operand.  No dest MEM operand uses a base register which
-   is used as a dest GPR.  The registers returned by get_temp_gpr and
-   get_temp_fpr do not appear in source or dest args.  */
+   is used as a dest GPR.  No dst operand has an addend.  The registers
+   returned by get_temp_gpr and get_temp_fpr do not appear in source or
+   dest args.  */
 void
 jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
                   size_t argc)
 {
-  // Check preconditions.
+  // Check preconditions, except the condition about tmp registers.
   {
     uint64_t src_gprs = 0;
     uint64_t dst_gprs = 0;
@@ -694,7 +744,7 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
     for (size_t i = 0; i < argc; i++) {
       switch (src[i].kind) {
       case JIT_OPERAND_KIND_GPR:
-        src_gprs |= 1ULL << rn(src[i].loc.gpr);
+        src_gprs |= 1ULL << rn(src[i].loc.gpr.gpr);
         break;
       case JIT_OPERAND_KIND_FPR:
       case JIT_OPERAND_KIND_IMM:
@@ -705,7 +755,8 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
       }
       switch (dst[i].kind) {
       case JIT_OPERAND_KIND_GPR: {
-        uint64_t bit = 1ULL << rn(dst[i].loc.gpr);
+        ASSERT(dst[i].loc.gpr.addend == 0);
+        uint64_t bit = 1ULL << rn(dst[i].loc.gpr.gpr);
         ASSERT((dst_gprs & bit) == 0);
         dst_gprs |= bit;
         break;
@@ -717,6 +768,7 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
         break;
       }
       case JIT_OPERAND_KIND_MEM: {
+        ASSERT(dst[i].loc.mem.addend == 0);
         uint64_t bit = 1ULL << rn(dst[i].loc.mem.base);
         dst_mem_base_gprs |= bit;
         break;
@@ -736,6 +788,13 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
   for (size_t i = 0; i < argc; i++)
     if (status[i] == TO_MOVE)
       move_one(_jit, dst, src, argc, status, i);
+
+  // Apply addends at the end.  We could do it earlier in some cases but
+  // at least at the end we know that an in-place increment of one
+  // operand won't alias another.
+  for (size_t i = 0; i < argc; i++)
+    if (status[i] == TO_MOVE)
+      apply_addend(_jit, dst[i], src[i]);
 }
 
 static const jit_gpr_t abi_gpr_args[] = {
@@ -839,8 +898,6 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
   iter->arg_idx++;
 }
 
-/* Precondition: No GPR arg is SP.  (If we get addend support in
- * operands, this condition can be relaxed.)  */
 static size_t
 prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 {
@@ -860,7 +917,8 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
       for (size_t i = 0; i < argc; i++) {
         switch(args[i].kind) {
         case JIT_OPERAND_KIND_GPR:
-          ASSERT(!jit_same_gprs (args[i].loc.gpr, JIT_SP));
+          if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+            args[i].loc.gpr.addend += iter.stack_size;
           break;
         case JIT_OPERAND_KIND_MEM:
           if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
