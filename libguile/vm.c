@@ -1,4 +1,4 @@
-/* Copyright 2001,2009-2015,2017-2018
+/* Copyright 2001,2009-2015,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -484,7 +484,9 @@ define_vm_builtins (void)
   {                                                                     \
     size_t sz = sizeof (builtin##_code);                                \
     vm_builtin_##builtin##_code = instrumented_code (builtin##_code, sz); \
-    vm_builtin_##builtin = scm_i_make_program (vm_builtin_##builtin##_code); \
+    vm_builtin_##builtin =                                              \
+      scm_cell (scm_tc7_program | SCM_F_PROGRAM_IS_PRIMITIVE,           \
+                (scm_t_bits)vm_builtin_##builtin##_code);               \
   }
   FOR_EACH_VM_BUILTIN (DEFINE_BUILTIN);
 #undef INDEX_TO_NAME

@@ -1,4 +1,4 @@
-/* Copyright 2001,2009-2014,2017-2018
+/* Copyright 2001,2009-2014,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -60,7 +60,7 @@ scm_i_program_name (SCM program)
   static SCM program_name = SCM_BOOL_F;
 
   if (SCM_PRIMITIVE_P (program))
-    return SCM_SUBR_NAME (program);
+    return scm_i_primitive_name (SCM_PROGRAM_CODE (program));
 
   if (scm_is_false (program_name) && scm_module_system_booted_p)
     program_name =
