@@ -124,7 +124,7 @@
 
 
 
-static const uint32_t default_jit_threshold = 50000;
+static const uint32_t default_jit_threshold = 1000;
 
 /* Threshold for when to JIT-compile a function.  Set from the
    GUILE_JIT_THRESHOLD environment variable.  */
