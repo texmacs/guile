@@ -701,6 +701,7 @@ struct abi_arg_iterator
   size_t gpr_idx;
   size_t fpr_idx;
   size_t stack_size;
+  size_t stack_padding;
 };
 
 static size_t
@@ -770,6 +771,7 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
   iter->arg_idx++;
 }
 
+// Precondition: stack is already aligned.
 static size_t
 prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 {
@@ -781,20 +783,25 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &dst[i]);
 
+  size_t stack_size = iter.stack_size;
+
   // Reserve space for spilled arguments, and fix up SP-relative
   // operands.
-  if (iter.stack_size)
+  if (stack_size)
     {
-      jit_subi(_jit, JIT_SP, JIT_SP, iter.stack_size);
+      // Align stack to 16-byte boundaries on 64-bit targets.
+      if (__WORDSIZE == 64)
+        stack_size = (stack_size + 15) & ~15;
+      jit_subi(_jit, JIT_SP, JIT_SP, stack_size);
       for (size_t i = 0; i < argc; i++) {
         switch(args[i].kind) {
         case JIT_OPERAND_KIND_GPR:
           if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
-            args[i].loc.gpr.addend += iter.stack_size;
+            args[i].loc.gpr.addend += stack_size;
           break;
         case JIT_OPERAND_KIND_MEM:
           if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
-            args[i].loc.mem.offset += iter.stack_size;
+            args[i].loc.mem.offset += stack_size;
           break;
         default:
           break;
@@ -804,7 +811,7 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 
   jit_move_operands(_jit, dst, args, argc);
 
-  return iter.stack_size;
+  return stack_size;
 }
 
 void
