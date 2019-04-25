@@ -43,44 +43,26 @@ typedef ptrdiff_t	jit_off_t;
 typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
 
-typedef struct jit_gpr { uint8_t bits; } jit_gpr_t;
-typedef struct jit_fpr { uint8_t bits; } jit_fpr_t;
-
-enum jit_register_flags
-{
-  JIT_REGISTER_CALLEE_SAVE = 0x40
-};
+typedef struct jit_gpr { uint8_t regno; } jit_gpr_t;
+typedef struct jit_fpr { uint8_t regno; } jit_fpr_t;
 
 // Precondition: regno between 0 and 63, inclusive.
 #define JIT_GPR(regno) ((jit_gpr_t) { regno })
 #define JIT_FPR(regno) ((jit_fpr_t) { regno })
-#define JIT_CALLEE_SAVE_GPR(regno) \
-  ((jit_gpr_t) { (regno) | JIT_REGISTER_CALLEE_SAVE })
-#define JIT_CALLEE_SAVE_FPR(regno) \
-  ((jit_fpr_t) { (regno) | JIT_REGISTER_CALLEE_SAVE })
+
+static inline uint8_t jit_gpr_regno (jit_gpr_t reg) { return reg.regno; }
+static inline uint8_t jit_fpr_regno (jit_fpr_t reg) { return reg.regno; }
 
 static inline jit_bool_t
-jit_gpr_is_callee_save (jit_gpr_t reg)
+jit_same_gprs (jit_gpr_t a, jit_gpr_t b)
 {
-  return reg.bits & JIT_REGISTER_CALLEE_SAVE;
+  return jit_gpr_regno (a) == jit_gpr_regno (b);
 }
 
 static inline jit_bool_t
-jit_fpr_is_callee_save (jit_fpr_t reg)
+jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
 {
-  return reg.bits & JIT_REGISTER_CALLEE_SAVE;
-}
-
-static inline uint8_t
-jit_gpr_regno (jit_gpr_t reg)
-{
-  return reg.bits & 0x3f;
-}
-
-static inline uint8_t
-jit_fpr_regno (jit_fpr_t reg)
-{
-  return reg.bits & 0x3f;
+  return jit_fpr_regno (a) == jit_fpr_regno (b);
 }
 
 enum jit_reloc_kind
@@ -127,18 +109,6 @@ typedef struct jit_reloc
 #elif defined(__alpha__)
 #  include "lightening/alpha.h"
 #endif
-
-static inline jit_bool_t
-jit_same_gprs (jit_gpr_t a, jit_gpr_t b)
-{
-  return a.bits == b.bits;
-}
-
-static inline jit_bool_t
-jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
-{
-  return a.bits == b.bits;
-}
 
 typedef struct jit_state	jit_state_t;
 
