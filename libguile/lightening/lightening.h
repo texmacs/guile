@@ -37,18 +37,33 @@ typedef float		jit_float32_t;
 typedef double		jit_float64_t;
 typedef void*		jit_pointer_t;
 typedef int		jit_bool_t;
-typedef struct jit_gpr { int bits; } jit_gpr_t;
-typedef struct jit_fpr { int bits; } jit_fpr_t;
 
 typedef void*		jit_addr_t;
 typedef ptrdiff_t	jit_off_t;
 typedef intptr_t	jit_imm_t;
 typedef uintptr_t	jit_uimm_t;
 
-#define JIT_GPR(bits) ((jit_gpr_t) { bits })
-#define JIT_FPR(bits) ((jit_fpr_t) { bits })
-static inline jit_gpr_t jit_gpr(int bits) { return JIT_GPR(bits); }
-static inline jit_fpr_t jit_fpr(int bits) { return JIT_FPR(bits); }
+typedef struct jit_gpr { uint8_t regno; } jit_gpr_t;
+typedef struct jit_fpr { uint8_t regno; } jit_fpr_t;
+
+// Precondition: regno between 0 and 63, inclusive.
+#define JIT_GPR(regno) ((jit_gpr_t) { regno })
+#define JIT_FPR(regno) ((jit_fpr_t) { regno })
+
+static inline uint8_t jit_gpr_regno (jit_gpr_t reg) { return reg.regno; }
+static inline uint8_t jit_fpr_regno (jit_fpr_t reg) { return reg.regno; }
+
+static inline jit_bool_t
+jit_same_gprs (jit_gpr_t a, jit_gpr_t b)
+{
+  return jit_gpr_regno (a) == jit_gpr_regno (b);
+}
+
+static inline jit_bool_t
+jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
+{
+  return jit_fpr_regno (a) == jit_fpr_regno (b);
+}
 
 enum jit_reloc_kind
 {
@@ -94,22 +109,6 @@ typedef struct jit_reloc
 #elif defined(__alpha__)
 #  include "lightening/alpha.h"
 #endif
-
-#define jit_class_sav		0x10000000	/* callee save */
-#define jit_class(bits)		((bits) & 0xffff0000)
-#define jit_regno(bits)		((bits) & 0x00007fff)
-
-static inline jit_bool_t
-jit_same_gprs (jit_gpr_t a, jit_gpr_t b)
-{
-  return a.bits == b.bits;
-}
-
-static inline jit_bool_t
-jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
-{
-  return a.bits == b.bits;
-}
 
 typedef struct jit_state	jit_state_t;
 
@@ -223,9 +222,6 @@ JIT_API void jit_align(jit_state_t*, unsigned);
 JIT_API jit_pointer_t jit_address(jit_state_t*);
 JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
-
-JIT_API jit_bool_t jit_gpr_is_callee_save (jit_state_t*, jit_gpr_t);
-JIT_API jit_bool_t jit_fpr_is_callee_save (jit_state_t*, jit_fpr_t);
 
 JIT_API void jit_move_operands (jit_state_t *_jit, jit_operand_t *dst,
                                 jit_operand_t *src, size_t argc);

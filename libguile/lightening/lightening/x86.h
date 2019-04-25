@@ -44,81 +44,33 @@
 #  define __X32    0
 #endif
 
-#if __X32
-#  define _RAX     JIT_GPR(0)
-#  define _RCX     JIT_GPR(1)
-#  define _RDX     JIT_GPR(2)
-#  define _RBX     JIT_GPR(3 | jit_class_sav)
-#  define _RSP     JIT_GPR(4 | jit_class_sav)
-#  define _RBP     JIT_GPR(5 | jit_class_sav)
-#  define _RSI     JIT_GPR(6 | jit_class_sav)
-#  define _RDI     JIT_GPR(7 | jit_class_sav)
-#  define _XMM0    JIT_FPR(0)
-#  define _XMM1    JIT_FPR(1)
-#  define _XMM2    JIT_FPR(2)
-#  define _XMM3    JIT_FPR(3)
-#  define _XMM4    JIT_FPR(4)
-#  define _XMM5    JIT_FPR(5)
-#  define _XMM6    JIT_FPR(6)
-#  define _XMM7    JIT_FPR(7)
-#elif __CYGWIN__
-#  define _RAX     JIT_GPR(0)
-#  define _RCX     JIT_GPR(1)
-#  define _RDX     JIT_GPR(2)
-#  define _RBX     JIT_GPR(3 | jit_class_sav)
-#  define _RSP     JIT_GPR(4 | jit_class_sav)
-#  define _RBP     JIT_GPR(5 | jit_class_sav)
-#  define _RSI     JIT_GPR(6 | jit_class_sav)
-#  define _RDI     JIT_GPR(7 | jit_class_sav)
+#define _RAX     JIT_GPR(0)
+#define _RCX     JIT_GPR(1)
+#define _RDX     JIT_GPR(2)
+#define _RBX     JIT_GPR(3)
+#define _RSP     JIT_GPR(4)
+#define _RBP     JIT_GPR(5)
+#define _RSI     JIT_GPR(6)
+#define _RDI     JIT_GPR(7)
+
+#define _XMM0    JIT_FPR(0)
+#define _XMM1    JIT_FPR(1)
+#define _XMM2    JIT_FPR(2)
+#define _XMM3    JIT_FPR(3)
+#define _XMM4    JIT_FPR(4)
+#define _XMM5    JIT_FPR(5)
+#define _XMM6    JIT_FPR(6)
+#define _XMM7    JIT_FPR(7)
+
+#if __X64
 #  define _R8      JIT_GPR(8)
 #  define _R9      JIT_GPR(9)
 #  define _R10     JIT_GPR(10)
 #  define _R11     JIT_GPR(11)
-#  define _R12     JIT_GPR(12 | jit_class_sav)
-#  define _R13     JIT_GPR(13 | jit_class_sav)
-#  define _R14     JIT_GPR(14 | jit_class_sav)
-#  define _R15     JIT_GPR(15 | jit_class_sav)
-#  define _XMM0    JIT_FPR(0)
-#  define _XMM1    JIT_FPR(1)
-#  define _XMM2    JIT_FPR(2)
-#  define _XMM3    JIT_FPR(3)
-#  define _XMM4    JIT_FPR(4)
-#  define _XMM5    JIT_FPR(5)
-#  define _XMM6    JIT_FPR(6 | jit_class_sav)
-#  define _XMM7    JIT_FPR(7 | jit_class_sav)
-#  define _XMM8    JIT_FPR(8 | jit_class_sav)
-#  define _XMM9    JIT_FPR(9 | jit_class_sav)
-#  define _XMM10   JIT_FPR(10 | jit_class_sav)
-#  define _XMM11   JIT_FPR(11 | jit_class_sav)
-#  define _XMM12   JIT_FPR(12 | jit_class_sav)
-#  define _XMM13   JIT_FPR(13 | jit_class_sav)
-#  define _XMM14   JIT_FPR(14 | jit_class_sav)
-#  define _XMM15   JIT_FPR(15 | jit_class_sav)
-#else
-#  define _RAX     JIT_GPR(0)
-#  define _RCX     JIT_GPR(1)
-#  define _RDX     JIT_GPR(2)
-#  define _RBX     JIT_GPR(3 | jit_class_sav)
-#  define _RSP     JIT_GPR(4 | jit_class_sav)
-#  define _RBP     JIT_GPR(5 | jit_class_sav)
-#  define _RSI     JIT_GPR(6)
-#  define _RDI     JIT_GPR(7)
-#  define _R8      JIT_GPR(8)
-#  define _R9      JIT_GPR(9)
-#  define _R10     JIT_GPR(10)
-#  define _R11     JIT_GPR(11)
-#  define _R12     JIT_GPR(12 | jit_class_sav)
-#  define _R13     JIT_GPR(13 | jit_class_sav)
-#  define _R14     JIT_GPR(14 | jit_class_sav)
-#  define _R15     JIT_GPR(15 | jit_class_sav)
-#  define _XMM0    JIT_FPR(0)
-#  define _XMM1    JIT_FPR(1)
-#  define _XMM2    JIT_FPR(2)
-#  define _XMM3    JIT_FPR(3)
-#  define _XMM4    JIT_FPR(4)
-#  define _XMM5    JIT_FPR(5)
-#  define _XMM6    JIT_FPR(6)
-#  define _XMM7    JIT_FPR(7)
+#  define _R12     JIT_GPR(12)
+#  define _R13     JIT_GPR(13)
+#  define _R14     JIT_GPR(14)
+#  define _R15     JIT_GPR(15)
 #  define _XMM8    JIT_FPR(8)
 #  define _XMM9    JIT_FPR(9)
 #  define _XMM10   JIT_FPR(10)
@@ -128,6 +80,54 @@
 #  define _XMM14   JIT_FPR(14)
 #  define _XMM15   JIT_FPR(15)
 #endif
+
+static inline jit_bool_t
+jit_gpr_is_callee_save (jit_gpr_t reg)
+{
+#if __X32
+  return jit_same_gprs (reg, _RBX) ||
+    jit_same_gprs (reg, _RBP) ||
+    jit_same_gprs (reg, _RSI) ||
+    jit_same_gprs (reg, _RDI);
+#elif __CYGWIN__
+  return jit_same_gprs (reg, _RBX) ||
+    jit_same_gprs (reg, _RBP) ||
+    jit_same_gprs (reg, _RSI) ||
+    jit_same_gprs (reg, _RDI) ||
+    jit_same_gprs (reg, _R12) ||
+    jit_same_gprs (reg, _R13) ||
+    jit_same_gprs (reg, _R14) ||
+    jit_same_gprs (reg, _R15);
+#else
+  return jit_same_gprs (reg, _RBX) ||
+    jit_same_gprs (reg, _RBP) ||
+    jit_same_gprs (reg, _R12) ||
+    jit_same_gprs (reg, _R13) ||
+    jit_same_gprs (reg, _R14) ||
+    jit_same_gprs (reg, _R15);
+#endif
+}
+
+static inline jit_bool_t
+jit_fpr_is_callee_save (jit_fpr_t reg)
+{
+#if __X32
+  return 0;
+#elif __CYGWIN__
+  return jit_same_fprs (reg, _XMM6) ||
+    jit_same_fprs (reg, _XMM7) ||
+    jit_same_fprs (reg, _XMM8) ||
+    jit_same_fprs (reg, _XMM9) ||
+    jit_same_fprs (reg, _XMM10) ||
+    jit_same_fprs (reg, _XMM11) ||
+    jit_same_fprs (reg, _XMM12) ||
+    jit_same_fprs (reg, _XMM13) ||
+    jit_same_fprs (reg, _XMM14) ||
+    jit_same_fprs (reg, _XMM15);
+#else
+  return 0;
+#endif
+}
 
 #define JIT_SP     _RSP
 #define JIT_FP     _RBP

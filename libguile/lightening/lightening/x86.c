@@ -617,7 +617,7 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
     for (size_t i = 0; i < argc; i++) {
       switch (src[i].kind) {
       case JIT_OPERAND_KIND_GPR:
-        src_gprs |= 1ULL << rn(src[i].loc.gpr.gpr);
+        src_gprs |= 1ULL << jit_gpr_regno(src[i].loc.gpr.gpr);
         break;
       case JIT_OPERAND_KIND_FPR:
       case JIT_OPERAND_KIND_IMM:
@@ -629,20 +629,20 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
       switch (dst[i].kind) {
       case JIT_OPERAND_KIND_GPR: {
         ASSERT(dst[i].loc.gpr.addend == 0);
-        uint64_t bit = 1ULL << rn(dst[i].loc.gpr.gpr);
+        uint64_t bit = 1ULL << jit_gpr_regno(dst[i].loc.gpr.gpr);
         ASSERT((dst_gprs & bit) == 0);
         dst_gprs |= bit;
         break;
       }
       case JIT_OPERAND_KIND_FPR: {
-        uint64_t bit = 1ULL << rn(dst[i].loc.fpr);
+        uint64_t bit = 1ULL << jit_fpr_regno(dst[i].loc.fpr);
         ASSERT((dst_fprs & bit) == 0);
         dst_fprs |= bit;
         break;
       }
       case JIT_OPERAND_KIND_MEM: {
         ASSERT(dst[i].loc.mem.addend == 0);
-        uint64_t bit = 1ULL << rn(dst[i].loc.mem.base);
+        uint64_t bit = 1ULL << jit_gpr_regno(dst[i].loc.mem.base);
         dst_mem_base_gprs |= bit;
         break;
       }
@@ -830,7 +830,7 @@ jit_callr(jit_state_t *_jit, jit_gpr_t f, size_t argc, jit_operand_t args[])
 {
   size_t spill_size = prepare_call_args(_jit, argc, args);
 
-  callr(_jit, rn(f));
+  callr(_jit, jit_gpr_regno(f));
 
   if (spill_size)
     jit_addi(_jit, JIT_SP, JIT_SP, spill_size);

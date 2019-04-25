@@ -3,14 +3,14 @@
 static void
 maybe_save(jit_state_t *j, jit_gpr_t reg)
 {
-  if (jit_gpr_is_callee_save (j, reg))
+  if (jit_gpr_is_callee_save (reg))
     jit_pushr(j, reg);
 }    
 
 static void
 maybe_restore(jit_state_t *j, jit_gpr_t reg)
 {
-  if (jit_gpr_is_callee_save (j, reg))
+  if (jit_gpr_is_callee_save (reg))
     jit_popr(j, reg);
 }    
 
