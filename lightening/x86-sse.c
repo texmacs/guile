@@ -193,7 +193,7 @@ get_temp_xpr(jit_state_t *_jit)
   /* Reserve XMM7 for the JIT.  */
   ASSERT(!_jit->temp_fpr_saved);
   _jit->temp_fpr_saved = 1;
-  return JIT_FPR(_XMM7);
+  return _XMM7;
 }
 
 static void

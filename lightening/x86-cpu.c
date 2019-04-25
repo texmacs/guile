@@ -272,9 +272,9 @@ get_temp_gpr(jit_state_t *_jit)
   _jit->temp_gpr_saved = 1;
 #if __X32
   pushr(_jit, _RBP_REGNO);
-  return JIT_GPR(_RBP);
+  return _RBP;
 #else
-  return JIT_GPR(_R8);
+  return _R8;
 #endif
 }
 

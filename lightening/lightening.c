@@ -35,88 +35,72 @@
 # define maybe_unused           /**/
 #endif
 
+#define _NOREG 0xffff
 #define rc(value)               jit_class_##value
-#define rn(reg)                 (jit_regno(_rvs[jit_regno(reg.bits)].spec))
+#define rn(reg)                 jit_regno(reg.bits)
 
 #if defined(__i386__) || defined(__x86_64__)
-# define JIT_SP         JIT_GPR(_RSP)
-# define JIT_RET                JIT_GPR(_RAX)
+# define JIT_RET                _RAX
 # if __X32
-#  define JIT_FRET              JIT_FPR(_ST0)
+#  define JIT_FRET              _ST0
 # else
 #  if __CYGWIN__
-#   define JIT_RA0              JIT_GPR(_RCX)
+#   define JIT_RA0              _RCX
 #  else
-#   define JIT_RA0              JIT_GPR(_RDI)
+#   define JIT_RA0              _RDI
 #  endif
-#  define JIT_FA0               JIT_FPR(_XMM0)
-#  define JIT_FRET              JIT_FPR(_XMM0)
+#  define JIT_FA0               _XMM0
+#  define JIT_FRET              _XMM0
 # endif
 #elif defined(__mips__)
-# define JIT_RA0                JIT_GPR(_A0)
-# define JIT_FA0                JIT_FPR(_F12)
-# define JIT_SP         JIT_GPR(_SP)
-# define JIT_RET                JIT_GPR(_V0)
-# define JIT_FRET               JIT_FPR(_F0)
+# define JIT_RA0                _A0
+# define JIT_FA0                _F12
+# define JIT_SP         _SP
+# define JIT_RET                _V0
+# define JIT_FRET               _F0
 #elif defined(__arm__)
-# define JIT_RA0                JIT_GPR(_R0)
-# define JIT_FA0                JIT_FPR(_D0)
-# define JIT_SP         JIT_GPR(_R13)
-# define JIT_RET                JIT_GPR(_R0)
+# define JIT_RA0                _R0
+# define JIT_FA0                _D0
+# define JIT_SP         _R13
+# define JIT_RET                _R0
 # if defined(__ARM_PCS_VFP)
-#  define JIT_FRET              JIT_FPR(_D0)
+#  define JIT_FRET              _D0
 # else
-#  define JIT_FRET              JIT_FPR(_R0)
+#  define JIT_FRET              _R0
 # endif
 #elif defined(__ppc__) || defined(__powerpc__)
-# define JIT_RA0                JIT_GPR(_R3)
-# define JIT_FA0                JIT_FPR(_F1)
-# define JIT_SP         JIT_GPR(_R1)
-# define JIT_RET                JIT_GPR(_R3)
-# define JIT_FRET               JIT_FPR(_F1)
+# define JIT_RA0                _R3
+# define JIT_FA0                _F1
+# define JIT_SP         _R1
+# define JIT_RET                _R3
+# define JIT_FRET               _F1
 #elif defined(__sparc__)
-# define JIT_SP         JIT_GPR(_SP)
-# define JIT_RET                JIT_GPR(_I0)
-# define JIT_FRET               JIT_FPR(_F0)
+# define JIT_SP         _SP
+# define JIT_RET                _I0
+# define JIT_FRET               _F0
 #elif defined(__ia64__)
-# define JIT_SP         JIT_GPR(_R12)
-# define JIT_RET                JIT_GPR(_R8)
-# define JIT_FRET               JIT_FPR(_F8)
+# define JIT_SP         _R12
+# define JIT_RET                _R8
+# define JIT_FRET               _F8
 #elif defined(__hppa__)
-# define JIT_SP         JIT_GPR(_R30)
-# define JIT_RET                JIT_GPR(_R28)
-# define JIT_FRET               JIT_FPR(_F4)
+# define JIT_SP         _R30
+# define JIT_RET                _R28
+# define JIT_FRET               _F4
 #elif defined(__aarch64__)
-# define JIT_RA0                JIT_GPR(_R0)
-# define JIT_FA0                JIT_FPR(_V0)
-# define JIT_SP         JIT_GPR(_SP)
-# define JIT_RET                JIT_GPR(_R0)
-# define JIT_FRET               JIT_FPR(_V0)
+# define JIT_RA0                _R0
+# define JIT_FA0                _V0
+# define JIT_SP         _SP
+# define JIT_RET                _R0
+# define JIT_FRET               _V0
 #elif defined(__s390__) || defined(__s390x__)
-# define JIT_SP         JIT_GPR(_R15)
-# define JIT_RET                JIT_GPR(_R2)
-# define JIT_FRET               JIT_FPR(_F0)
+# define JIT_SP         _R15
+# define JIT_RET                _R2
+# define JIT_FRET               _F0
 #elif defined(__alpha__)
-# define JIT_SP         JIT_GPR(_SP)
-# define JIT_RET                JIT_GPR(_V0)
-# define JIT_FRET               JIT_FPR(_F0)
+# define JIT_SP         _SP
+# define JIT_RET                _V0
+# define JIT_FRET               _F0
 #endif
-
-/*
- * Private jit_class bitmasks
- */
-#define jit_class_named         0x00400000      /* hit must be the named reg */
-#define jit_class_nospill       0x00800000      /* hint to fail if need spill */
-#define jit_class_sft           0x01000000      /* not a hardware register */
-#define jit_class_rg8           0x04000000      /* x86 8 bits */
-#define jit_class_xpr           0x80000000      /* float / vector */
-/* Used on sparc64 where %f0-%f31 can be encode for single float
- * but %f32 to %f62 only as double precision */
-#define jit_class_sng           0x10000000      /* Single precision float */
-#define jit_class_dbl           0x20000000      /* Only double precision float */
-#define jit_regno_patch         0x00008000      /* this is a register
-                                                 * returned by a "user" call
-                                                 * to jit_get_reg() */
 
 union jit_pc
 {
@@ -145,20 +129,6 @@ enum jit_reloc_flags
 {
   JIT_RELOC_CAN_SHORTEN = 1<<0
 };
-
-struct jit_register
-{
-  jit_reg_t spec;
-  char *name;
-};
-
-typedef struct jit_register jit_register_t;
-
-static const jit_register_t _rvs[];
-
-#define jit_regload_reload              0       /* convert to reload */
-#define jit_regload_delete              1       /* just remove node */
-#define jit_regload_isdead              2       /* delete and unset live bit */
 
 #define ASSERT(x) do { if (!(x)) abort(); } while (0)
 #if defined(__GNUC__)
@@ -406,13 +376,13 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 jit_bool_t
 jit_gpr_is_callee_save (jit_state_t *_jit, jit_gpr_t reg)
 {
-  return jit_class(_rvs[jit_regno(reg.bits)].spec) & jit_class_sav;
+  return jit_class(reg.bits) & jit_class_sav;
 }
 
 jit_bool_t
 jit_fpr_is_callee_save (jit_state_t *_jit, jit_fpr_t reg)
 {
-  return jit_class(_rvs[jit_regno(reg.bits)].spec) & jit_class_sav;
+  return jit_class(reg.bits) & jit_class_sav;
 }
 
 #if defined(__i386__) || defined(__x86_64__)
