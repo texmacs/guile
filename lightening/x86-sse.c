@@ -173,8 +173,8 @@ static void
 pushr_d(jit_state_t *_jit, int32_t r0)
 {
   jit_gpr_t tmp = get_temp_gpr(_jit);
-  movdqxr(_jit, rn(tmp), r0);
-  pushr(_jit, rn(tmp));
+  movdqxr(_jit, jit_gpr_regno(tmp), r0);
+  pushr(_jit, jit_gpr_regno(tmp));
   unget_temp_gpr(_jit);
 }
 
@@ -182,8 +182,8 @@ static void
 popr_d(jit_state_t *_jit, int32_t r0)
 {
   jit_gpr_t tmp = get_temp_gpr(_jit);
-  popr(_jit, rn(tmp));
-  ssexr(_jit, 0x66, X86_SSE_G2X, r0, rn(tmp));
+  popr(_jit, jit_gpr_regno(tmp));
+  ssexr(_jit, 0x66, X86_SSE_G2X, r0, jit_gpr_regno(tmp));
   unget_temp_gpr(_jit);
 }
 
@@ -379,8 +379,8 @@ movi_f(jit_state_t *_jit, int32_t r0, jit_float32_t i0)
     xorpsr(_jit, r0, r0);
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), data.i);
-    movdlxr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), data.i);
+    movdlxr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -400,14 +400,14 @@ movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t i0)
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64 && !__X64_32
-    movi(_jit, rn(reg), data.w);
-    movdqxr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), data.w);
+    movdqxr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
 #else
-    movi(_jit, rn(reg), data.ii[0]);
-    stxi_i(CVT_OFFSET, _RBP_REGNO, rn(reg));
-    movi(_jit, rn(reg), data.ii[1]);
-    stxi_i(CVT_OFFSET + 4, _RBP_REGNO, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), data.ii[0]);
+    stxi_i(CVT_OFFSET, _RBP_REGNO, jit_gpr_regno(reg));
+    movi(_jit, jit_gpr_regno(reg), data.ii[1]);
+    stxi_i(CVT_OFFSET + 4, _RBP_REGNO, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
     ldxi_d(_jit, r0, _RBP_REGNO, CVT_OFFSET);
 #endif
@@ -418,7 +418,7 @@ static void
 retval_f(jit_state_t *_jit, int32_t r0)
 {
 #if __X64
-  movr_f(_jit, r0, rn(JIT_FRET));
+  movr_f(_jit, r0, jit_fpr_regno(JIT_FRET));
 #endif
 }
 
@@ -426,21 +426,21 @@ static void
 retval_d(jit_state_t *_jit, int32_t r0)
 {
 #if __X64
-  movr_d(_jit, r0, rn(JIT_FRET));
+  movr_d(_jit, r0, jit_fpr_regno(JIT_FRET));
 #endif
 }
 
 static void
 retr_f(jit_state_t *_jit, int32_t u)
 {
-  movr_f(_jit, rn(JIT_FRET), u);
+  movr_f(_jit, jit_fpr_regno(JIT_FRET), u);
   ret(_jit);
 }
 
 static void
 retr_d(jit_state_t *_jit, int32_t u)
 {
-  movr_d(_jit, rn(JIT_FRET), u);
+  movr_d(_jit, jit_fpr_regno(JIT_FRET), u);
   ret(_jit);
 }
 
@@ -477,9 +477,9 @@ subr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
     subssr(_jit, r0, r2);
   else if (r0 == r2) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    movr_f(_jit, rn(reg), r0);
+    movr_f(_jit, jit_fpr_regno(reg), r0);
     movr_f(_jit, r0, r1);
-    subssr(_jit, r0, rn(reg));
+    subssr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -495,9 +495,9 @@ subr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
     subsdr(_jit, r0, r2);
   else if (r0 == r2) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    movr_d(_jit, rn(reg), r0);
+    movr_d(_jit, jit_fpr_regno(reg), r0);
     movr_d(_jit, r0, r1);
-    subsdr(_jit, r0, rn(reg));
+    subsdr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -539,9 +539,9 @@ divr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
     divssr(_jit, r0, r2);
   else if (r0 == r2) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    movr_f(_jit, rn(reg), r0);
+    movr_f(_jit, jit_fpr_regno(reg), r0);
     movr_f(_jit, r0, r1);
-    divssr(_jit, r0, rn(reg));
+    divssr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -557,9 +557,9 @@ divr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
     divsdr(_jit, r0, r2);
   else if (r0 == r2) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    movr_d(_jit, rn(reg), r0);
+    movr_d(_jit, jit_fpr_regno(reg), r0);
     movr_d(_jit, r0, r1);
-    divsdr(_jit, r0, rn(reg));
+    divsdr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -573,9 +573,9 @@ absr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    pcmpeqlr(_jit, rn(reg), rn(reg));
-    psrl(_jit, rn(reg), 1);
-    andpsr(_jit, r0, rn(reg));
+    pcmpeqlr(_jit, jit_fpr_regno(reg), jit_fpr_regno(reg));
+    psrl(_jit, jit_fpr_regno(reg), 1);
+    andpsr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -590,9 +590,9 @@ absr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
     jit_fpr_t reg = get_temp_xpr(_jit);
-    pcmpeqlr(_jit, rn(reg), rn(reg));
-    psrq(_jit, rn(reg), 1);
-    andpdr(_jit, r0, rn(reg));
+    pcmpeqlr(_jit, jit_fpr_regno(reg), jit_fpr_regno(reg));
+    psrq(_jit, jit_fpr_regno(reg), 1);
+    andpdr(_jit, r0, jit_fpr_regno(reg));
     unget_temp_xpr(_jit);
   }
   else {
@@ -606,14 +606,14 @@ static void
 negr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   jit_gpr_t ireg = get_temp_gpr(_jit);
-  imovi(_jit, rn(ireg), 0x80000000);
+  imovi(_jit, jit_gpr_regno(ireg), 0x80000000);
   if (r0 == r1) {
     jit_fpr_t freg = get_temp_xpr(_jit);
-    movdlxr(_jit, rn(freg), rn(ireg));
-    xorpsr(_jit, r0, rn(freg));
+    movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
+    xorpsr(_jit, r0, jit_fpr_regno(freg));
     unget_temp_xpr(_jit);
   } else {
-    movdlxr(_jit, r0, rn(ireg));
+    movdlxr(_jit, r0, jit_gpr_regno(ireg));
     xorpsr(_jit, r0, r1);
   }
   unget_temp_gpr(_jit);
@@ -623,15 +623,15 @@ static void
 negr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   jit_gpr_t ireg = get_temp_gpr(_jit);
-  imovi(_jit, rn(ireg), 0x80000000);
+  imovi(_jit, jit_gpr_regno(ireg), 0x80000000);
   if (r0 == r1) {
     jit_fpr_t freg = get_temp_xpr(_jit);
-    movdlxr(_jit, rn(freg), rn(ireg));
-    pslq(_jit, rn(freg), 32);
-    xorpdr(_jit, r0, rn(freg));
+    movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
+    pslq(_jit, jit_fpr_regno(freg), 32);
+    xorpdr(_jit, r0, jit_fpr_regno(freg));
     unget_temp_xpr(_jit);
   } else {
-    movdlxr(_jit, r0, rn(ireg));
+    movdlxr(_jit, r0, jit_gpr_regno(ireg));
     pslq(_jit, r0, 32);
     xorpdr(_jit, r0, r1);
   }
@@ -653,8 +653,8 @@ ldi_f(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     movssmr(_jit, i0, _NOREG, _NOREG, _SCL1, r0);
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_f(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_f(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -664,8 +664,8 @@ ldxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r1, r2);
-  ldr_f(_jit, r0, rn(reg));
+  addr(_jit, jit_gpr_regno(reg), r1, r2);
+  ldr_f(_jit, r0, jit_gpr_regno(reg));
   unget_temp_gpr(_jit);
 #else
   movssmr(_jit, 0, r1, r2, _SCL1, r0);
@@ -680,11 +680,11 @@ ldxi_f(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
-    addi(rn(reg), r1, i0);
-    ldr_f(_jit, r0, rn(reg));
+    addi(jit_gpr_regno(reg), r1, i0);
+    ldr_f(_jit, r0, jit_gpr_regno(reg));
 #else
-    movi(_jit, rn(reg), i0);
-    ldxr_f(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_f(_jit, r0, r1, jit_gpr_regno(reg));
 #endif
     unget_temp_gpr(_jit);
   }
@@ -697,8 +697,8 @@ sti_f(jit_state_t *_jit, jit_word_t i0, int32_t r0)
     movssrm(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_f(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_f(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -708,8 +708,8 @@ stxr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r0, r1);
-  str_f(_jit, rn(reg), r2);
+  addr(_jit, jit_gpr_regno(reg), r0, r1);
+  str_f(_jit, jit_gpr_regno(reg), r2);
   unget_temp_gpr(_jit);
 #else
   movssrm(_jit, r2, 0, r0, r1, _SCL1);
@@ -724,11 +724,11 @@ stxi_f(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
-    addi(rn(reg), r0, i0);
-    str_f(_jit, rn(reg), r1);
+    addi(jit_gpr_regno(reg), r0, i0);
+    str_f(_jit, jit_gpr_regno(reg), r1);
 #else
-    movi(_jit, rn(reg), i0);
-    stxr_f(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_f(_jit, jit_gpr_regno(reg), r0, r1);
 #endif
     unget_temp_gpr(_jit);
   }
@@ -847,8 +847,8 @@ ldi_d(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     movsdmr(_jit, i0, _NOREG, _NOREG, _SCL1, r0);
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_d(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_d(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -858,8 +858,8 @@ ldxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r1, r2);
-  ldr_d(_jit, r0, rn(reg));
+  addr(_jit, jit_gpr_regno(reg), r1, r2);
+  ldr_d(_jit, r0, jit_gpr_regno(reg));
   unget_temp_gpr(_jit);
 #else
   movsdmr(_jit, 0, r1, r2, _SCL1, r0);
@@ -874,11 +874,11 @@ ldxi_d(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
-    addi(rn(reg), r1, i0);
-    ldr_d(_jit, r0, rn(reg));
+    addi(jit_gpr_regno(reg), r1, i0);
+    ldr_d(_jit, r0, jit_gpr_regno(reg));
 #else
-    movi(_jit, rn(reg), i0);
-    ldxr_d(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_d(_jit, r0, r1, jit_gpr_regno(reg));
 #endif
     unget_temp_gpr(_jit);
   }
@@ -891,8 +891,8 @@ sti_d(jit_state_t *_jit, jit_word_t i0, int32_t r0)
     movsdrm(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_d(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_d(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -902,8 +902,8 @@ stxr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r0, r1);
-  str_d(_jit, rn(reg), r2);
+  addr(_jit, jit_gpr_regno(reg), r0, r1);
+  str_d(_jit, jit_gpr_regno(reg), r2);
   unget_temp_gpr(_jit);
 #else
   movsdrm(_jit, r2, 0, r0, r1, _SCL1);
@@ -918,11 +918,11 @@ stxi_d(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   else {
     jit_gpr_t reg = get_temp_gpr(_jit);
 #if __X64_32
-    addi(rn(reg), r0, i0);
-    str_d(_jit, rn(reg), r1);
+    addi(jit_gpr_regno(reg), r0, i0);
+    str_d(_jit, jit_gpr_regno(reg), r1);
 #else
-    movi(_jit, rn(reg), i0);
-    stxr_d(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_d(_jit, jit_gpr_regno(reg), r0, r1);
 #endif
     unget_temp_gpr(_jit);
   }

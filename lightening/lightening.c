@@ -36,8 +36,6 @@
 #endif
 
 #define _NOREG 0xffff
-#define rc(value)               jit_class_##value
-#define rn(reg)                 jit_regno(reg.bits)
 
 #if defined(__i386__) || defined(__x86_64__)
 # define JIT_RET                _RAX
@@ -373,18 +371,6 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
     }
 }
 
-jit_bool_t
-jit_gpr_is_callee_save (jit_state_t *_jit, jit_gpr_t reg)
-{
-  return jit_class(reg.bits) & jit_class_sav;
-}
-
-jit_bool_t
-jit_fpr_is_callee_save (jit_state_t *_jit, jit_fpr_t reg)
-{
-  return jit_class(reg.bits) & jit_class_sav;
-}
-
 #if defined(__i386__) || defined(__x86_64__)
 # include "x86.c"
 #elif defined(__mips__)
@@ -469,8 +455,8 @@ jit_fpr_is_callee_save (jit_state_t *_jit, jit_fpr_t reg)
 #define JIT_IMPL__pG__(stem) JIT_IMPL_2(stem, void, pointer, gpr)
 #define JIT_IMPL__p___(stem) JIT_IMPL_1(stem, void, pointer)
 
-#define unwrap_gpr(r) rn(r)
-#define unwrap_fpr(r) rn(r)
+#define unwrap_gpr(r) jit_gpr_regno(r)
+#define unwrap_fpr(r) jit_fpr_regno(r)
 #define unwrap_imm(i) i
 #define unwrap_uimm(u) u
 #define unwrap_off(o) o

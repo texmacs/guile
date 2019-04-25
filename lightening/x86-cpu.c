@@ -505,8 +505,8 @@ alui(jit_state_t *_jit, int32_t code, int32_t r0, jit_word_t i0)
     }
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    alur(_jit, code, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    alur(_jit, code, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -710,8 +710,8 @@ addi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     iaddr(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    iaddr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    iaddr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -736,8 +736,8 @@ addci(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   }
   else if (r0 == r1) {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    iaddr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    iaddr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   } else {
     movi(_jit, r0, i0);
@@ -765,8 +765,8 @@ addxi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   }
   else if (r0 == r1) {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    iaddxr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    iaddxr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   } else {
     movi(_jit, r0, i0);
@@ -810,8 +810,8 @@ subi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     iaddr(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    isubr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    isubr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -821,9 +821,9 @@ subcr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
   if (r0 == r2 && r0 != r1) {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r0);
+    movr(_jit, jit_gpr_regno(reg), r0);
     movr(_jit, r0, r1);
-    isubr(_jit, r0, rn(reg));
+    isubr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   } else {
     movr(_jit, r0, r1);
@@ -839,8 +839,8 @@ subci(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     isubi(_jit, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    isubr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    isubr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -850,9 +850,9 @@ subxr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
   if (r0 == r2 && r0 != r1) {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r0);
+    movr(_jit, jit_gpr_regno(reg), r0);
     movr(_jit, r0, r1);
-    isubxr(_jit, r0, rn(reg));
+    isubxr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   } else {
     movr(_jit, r0, r1);
@@ -868,8 +868,8 @@ subxi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     isubxi(_jit, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    imovi(_jit, rn(reg), i0);
-    isubxr(_jit, r0, rn(reg));
+    imovi(_jit, jit_gpr_regno(reg), i0);
+    isubxr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -888,11 +888,11 @@ rotshr(jit_state_t *_jit, int32_t code,
 {
   if (r0 == _RCX_REGNO) {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r1);
+    movr(_jit, jit_gpr_regno(reg), r1);
     if (r2 != _RCX_REGNO)
       movr(_jit, _RCX_REGNO, r2);
-    irotshr(_jit, code, rn(reg));
-    movr(_jit, _RCX_REGNO, rn(reg));
+    irotshr(_jit, code, jit_gpr_regno(reg));
+    movr(_jit, _RCX_REGNO, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   } else if (r2 != _RCX_REGNO) {
     /* Already know that R0 isn't RCX.  */
@@ -1005,8 +1005,8 @@ imuli(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     }
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    imulr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    imulr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1133,11 +1133,11 @@ iqmuli(jit_state_t *_jit, int32_t r0, int32_t r1,
     ixorr(_jit, r1, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
+    movi(_jit, jit_gpr_regno(reg), i0);
     if (sign)
-      qmulr(_jit, r0, r1, r2, rn(reg));
+      qmulr(_jit, r0, r1, r2, jit_gpr_regno(reg));
     else
-      qmulr_u(_jit, r0, r1, r2, rn(reg));
+      qmulr_u(_jit, r0, r1, r2, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1173,8 +1173,8 @@ divremr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2,
   int tmp_divisor = 0;
   if (r2 == _RAX_REGNO || r2 == _RDX_REGNO) {
     jit_gpr_t tmp = get_temp_gpr(_jit);
-    movr(_jit, rn(tmp), r2);
-    r2 = rn(tmp);
+    movr(_jit, jit_gpr_regno(tmp), r2);
+    r2 = jit_gpr_regno(tmp);
     tmp_divisor = 1;
   }
 
@@ -1207,9 +1207,9 @@ divremi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0,
          jit_bool_t sign, jit_bool_t divide)
 {
   jit_gpr_t tmp = get_temp_gpr(_jit);
-  movi(_jit, rn(tmp), i0);
+  movi(_jit, jit_gpr_regno(tmp), i0);
 
-  divremr(_jit, r0, r1, rn(tmp), sign, divide);
+  divremr(_jit, r0, r1, jit_gpr_regno(tmp), sign, divide);
 }
 
 static void
@@ -1273,8 +1273,8 @@ iqdivr(jit_state_t *_jit, int32_t r0, int32_t r1,
   int tmp_divisor = 0;
   if (r3 == _RAX_REGNO || r3 == _RDX_REGNO) {
     jit_gpr_t tmp = get_temp_gpr(_jit);
-    movr(_jit, rn(tmp), r3);
-    r3 = rn(tmp);
+    movr(_jit, jit_gpr_regno(tmp), r3);
+    r3 = jit_gpr_regno(tmp);
     tmp_divisor = 1;
   }
 
@@ -1324,11 +1324,11 @@ iqdivi(jit_state_t *_jit, int32_t r0, int32_t r1,
        int32_t r2, jit_word_t i0, jit_bool_t sign)
 {
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i0);
+  movi(_jit, jit_gpr_regno(reg), i0);
   if (sign)
-    qdivr(_jit, r0, r1, r2, rn(reg));
+    qdivr(_jit, r0, r1, r2, jit_gpr_regno(reg));
   else
-    qdivr_u(_jit, r0, r1, r2, rn(reg));
+    qdivr_u(_jit, r0, r1, r2, jit_gpr_regno(reg));
   unget_temp_gpr(_jit);
 }
 
@@ -1379,8 +1379,8 @@ andi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
       iandi(_jit, r0, i0);
     } else {
       jit_gpr_t reg = get_temp_gpr(_jit);
-      movi(_jit, rn(reg), i0);
-      iandr(_jit, r0, rn(reg));
+      movi(_jit, jit_gpr_regno(reg), i0);
+      iandr(_jit, r0, jit_gpr_regno(reg));
       unget_temp_gpr(_jit);
     }
   } else {
@@ -1420,8 +1420,8 @@ ori(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     iorr(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    iorr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    iorr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1457,8 +1457,8 @@ xori(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     ixorr(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ixorr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ixorr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1476,10 +1476,10 @@ cr(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1, int32_t r2)
     cc(_jit, code, r0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, rn(reg), rn(reg));
+    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
     icmpr(_jit, r1, r2);
-    cc(_jit, code, rn(reg));
-    movr(_jit, r0, rn(reg));
+    cc(_jit, code, jit_gpr_regno(reg));
+    movr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1497,10 +1497,10 @@ ci(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1, jit_word_t i0)
     cc(_jit, code, r0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, rn(reg), rn(reg));
+    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
     icmpi(_jit, r1, i0);
-    cc(_jit, code, rn(reg));
-    movr(_jit, r0, rn(reg));
+    cc(_jit, code, jit_gpr_regno(reg));
+    movr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1518,10 +1518,10 @@ ci0(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1)
     cc(_jit, code, r0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, rn(reg), rn(reg));
+    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
     testr(_jit, r1, r1);
-    cc(_jit, code, rn(reg));
-    movr(_jit, r0, rn(reg));
+    cc(_jit, code, jit_gpr_regno(reg));
+    movr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1533,8 +1533,8 @@ extr_c(jit_state_t *_jit, int32_t r0, int32_t r1)
     movcr(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r1);
-    movcr(_jit, r0, rn(reg));
+    movr(_jit, jit_gpr_regno(reg), r1);
+    movcr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1546,8 +1546,8 @@ extr_uc(jit_state_t *_jit, int32_t r0, int32_t r1)
     movcr_u(_jit, r0, r1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r1);
-    movcr_u(_jit, r0, rn(reg));
+    movr(_jit, jit_gpr_regno(reg), r1);
+    movcr_u(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1627,8 +1627,8 @@ ldi_c(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_c(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_c(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1652,8 +1652,8 @@ ldi_uc(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_uc(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_uc(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1677,8 +1677,8 @@ ldi_s(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_s(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_s(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1702,8 +1702,8 @@ ldi_us(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_us(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_us(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1734,8 +1734,8 @@ ldi_i(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_i(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_i(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1759,8 +1759,8 @@ ldi_ui(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_ui(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_ui(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1783,8 +1783,8 @@ ldi_l(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldr_l(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldr_l(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1815,8 +1815,8 @@ ldxi_c(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_c(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_c(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1845,8 +1845,8 @@ ldxi_uc(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_uc(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_uc(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1875,8 +1875,8 @@ ldxi_s(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_s(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_s(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1905,8 +1905,8 @@ ldxi_us(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_us(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_us(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1937,8 +1937,8 @@ ldxi_i(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_i(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_i(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1968,8 +1968,8 @@ ldxi_ui(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_ui(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_ui(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -1992,8 +1992,8 @@ ldxi_l(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
     rx(_jit, r0, i0, r1, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    ldxr_l(_jit, r0, r1, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i0);
+    ldxr_l(_jit, r0, r1, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
 }
@@ -2009,10 +2009,10 @@ str_c(jit_state_t *_jit, int32_t r0, int32_t r1)
     rx(_jit, r1, 0, r0, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r1);
-    rex(_jit, 0, 0, rn(reg), _NOREG, r0);
+    movr(_jit, jit_gpr_regno(reg), r1);
+    rex(_jit, 0, 0, jit_gpr_regno(reg), _NOREG, r0);
     ic(_jit, 0x88);
-    rx(_jit, rn(reg), 0, r0, _NOREG, _SCL1);
+    rx(_jit, jit_gpr_regno(reg), 0, r0, _NOREG, _SCL1);
     unget_temp_gpr(_jit);
   }
 }
@@ -2027,16 +2027,16 @@ sti_c(jit_state_t *_jit, jit_word_t i0, int32_t r0)
       rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
     } else {
       jit_gpr_t reg = get_temp_gpr(_jit);
-      movr(_jit, rn(reg), r0);
-      rex(_jit, 0, 0, rn(reg), _NOREG, _NOREG);
+      movr(_jit, jit_gpr_regno(reg), r0);
+      rex(_jit, 0, 0, jit_gpr_regno(reg), _NOREG, _NOREG);
       ic(_jit, 0x88);
-      rx(_jit, rn(reg), i0, _NOREG, _NOREG, _SCL1);
+      rx(_jit, jit_gpr_regno(reg), i0, _NOREG, _NOREG, _SCL1);
       unget_temp_gpr(_jit);
     }
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_c(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_c(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -2060,8 +2060,8 @@ sti_s(jit_state_t *_jit, jit_word_t i0, int32_t r0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_s(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_s(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -2083,8 +2083,8 @@ sti_i(jit_state_t *_jit, jit_word_t i0, int32_t r0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_i(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_i(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -2107,8 +2107,8 @@ sti_l(jit_state_t *_jit, jit_word_t i0, int32_t r0)
     rx(_jit, r0, i0, _NOREG, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    str_l(_jit, rn(reg), r0);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    str_l(_jit, jit_gpr_regno(reg), r0);
     unget_temp_gpr(_jit);
   }
 }
@@ -2119,8 +2119,8 @@ stxr_c(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r0, r1);
-  str_c(_jit, rn(reg), r2);
+  addr(_jit, jit_gpr_regno(reg), r0, r1);
+  str_c(_jit, jit_gpr_regno(reg), r2);
   unget_temp_gpr(_jit);
 #else
   if (reg8_p(r2)) {
@@ -2129,10 +2129,10 @@ stxr_c(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
     rx(_jit, r2, 0, r0, r1, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, rn(reg), r2);
-    rex(_jit, 0, 0, rn(reg), r1, r0);
+    movr(_jit, jit_gpr_regno(reg), r2);
+    rex(_jit, 0, 0, jit_gpr_regno(reg), r1, r0);
     ic(_jit, 0x88);
-    rx(_jit, rn(reg), 0, r0, r1, _SCL1);
+    rx(_jit, jit_gpr_regno(reg), 0, r0, r1, _SCL1);
     unget_temp_gpr(_jit);
   }
 #endif
@@ -2148,16 +2148,16 @@ stxi_c(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
       rx(_jit, r1, i0, r0, _NOREG, _SCL1);
     } else {
       jit_gpr_t reg = get_temp_gpr(_jit);
-      movr(_jit, rn(reg), r1);
-      rex(_jit, 0, 0, rn(reg), _NOREG, r0);
+      movr(_jit, jit_gpr_regno(reg), r1);
+      rex(_jit, 0, 0, jit_gpr_regno(reg), _NOREG, r0);
       ic(_jit, 0x88);
-      rx(_jit, rn(reg), i0, r0, _NOREG, _SCL1);
+      rx(_jit, jit_gpr_regno(reg), i0, r0, _NOREG, _SCL1);
       unget_temp_gpr(_jit);
     }
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    stxr_c(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_c(_jit, jit_gpr_regno(reg), r0, r1);
     unget_temp_gpr(_jit);
   }
 }
@@ -2167,8 +2167,8 @@ stxr_s(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r0, r1);
-  str_s(_jit, rn(reg), r2);
+  addr(_jit, jit_gpr_regno(reg), r0, r1);
+  str_s(_jit, jit_gpr_regno(reg), r2);
   unget_temp_gpr(_jit);
 #else
   ic(_jit, 0x66);
@@ -2188,8 +2188,8 @@ stxi_s(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
     rx(_jit, r1, i0, r0, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    stxr_s(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_s(_jit, jit_gpr_regno(reg), r0, r1);
     unget_temp_gpr(_jit);
   }
 }
@@ -2199,8 +2199,8 @@ stxr_i(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 {
 #if __X64_32
   jit_gpr_t reg = get_temp_gpr(_jit);
-  addr(_jit, rn(reg), r0, r1);
-  str_i(rn(reg), r2);
+  addr(_jit, jit_gpr_regno(reg), r0, r1);
+  str_i(jit_gpr_regno(reg), r2);
   unget_temp_gpr(_jit);
 #else
   rex(_jit, 0, 0, r2, r1, r0);
@@ -2218,8 +2218,8 @@ stxi_i(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
     rx(_jit, r1, i0, r0, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    stxr_i(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_i(_jit, jit_gpr_regno(reg), r0, r1);
     unget_temp_gpr(_jit);
   }
 }
@@ -2242,8 +2242,8 @@ stxi_l(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
     rx(_jit, r1, i0, r0, _NOREG, _SCL1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i0);
-    stxr_l(_jit, rn(reg), r0, r1);
+    movi(_jit, jit_gpr_regno(reg), i0);
+    stxr_l(_jit, jit_gpr_regno(reg), r0, r1);
     unget_temp_gpr(_jit);
   }
 }
@@ -2439,8 +2439,8 @@ bmsi(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     testi(_jit, r0, i1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i1);
-    testr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i1);
+    testr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
   return jnz(_jit);
@@ -2460,8 +2460,8 @@ bmci(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     testi(_jit, r0, i1);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, rn(reg), i1);
-    testr(_jit, r0, rn(reg));
+    movi(_jit, jit_gpr_regno(reg), i1);
+    testr(_jit, r0, jit_gpr_regno(reg));
     unget_temp_gpr(_jit);
   }
   return jz(_jit);
@@ -2482,9 +2482,9 @@ boaddi(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jo(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return boaddr(_jit, r0, rn(reg));
+  return boaddr(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2502,9 +2502,9 @@ boaddi_u(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jc(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return boaddr_u(_jit, r0, rn(reg));
+  return boaddr_u(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2522,9 +2522,9 @@ bxaddi(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jno(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bxaddr(_jit, r0, rn(reg));
+  return bxaddr(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2542,9 +2542,9 @@ bxaddi_u(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jnc(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bxaddr_u(_jit, r0, rn(reg));
+  return bxaddr_u(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2562,9 +2562,9 @@ bosubi(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jo(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bosubr(_jit, r0, rn(reg));
+  return bosubr(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2582,9 +2582,9 @@ bosubi_u(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jc(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bosubr_u(_jit, r0, rn(reg));
+  return bosubr_u(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2602,9 +2602,9 @@ bxsubi(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jno(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bxsubr(_jit, r0, rn(reg));
+  return bxsubr(_jit, r0, jit_gpr_regno(reg));
 }
 
 static jit_reloc_t
@@ -2622,9 +2622,9 @@ bxsubi_u(jit_state_t *_jit, int32_t r0, jit_word_t i1)
     return jnc(_jit);
   }
   jit_gpr_t reg = get_temp_gpr(_jit);
-  movi(_jit, rn(reg), i1);
+  movi(_jit, jit_gpr_regno(reg), i1);
   unget_temp_gpr(_jit);
-  return bxsubr_u(_jit, r0, rn(reg));
+  return bxsubr_u(_jit, r0, jit_gpr_regno(reg));
 }
 
 static void
@@ -2647,8 +2647,8 @@ calli(jit_state_t *_jit, jit_word_t i0)
   else
     {
       jit_gpr_t reg = get_temp_gpr(_jit);
-      jit_patch_there(_jit, mov_addr(_jit, rn(reg)), (void*)i0);
-      callr(_jit, rn(reg));
+      jit_patch_there(_jit, mov_addr(_jit, jit_gpr_regno(reg)), (void*)i0);
+      callr(_jit, jit_gpr_regno(reg));
       unget_temp_gpr(_jit);
     }
 }
@@ -2673,8 +2673,8 @@ jmpi(jit_state_t *_jit, jit_word_t i0)
   else
     {
       jit_gpr_t reg = get_temp_gpr(_jit);
-      jit_patch_there(_jit, mov_addr(_jit, rn(reg)), (void*)i0);
-      jmpr(_jit, rn(reg));
+      jit_patch_there(_jit, mov_addr(_jit, jit_gpr_regno(reg)), (void*)i0);
+      jmpr(_jit, jit_gpr_regno(reg));
       unget_temp_gpr(_jit);
     }
 }
@@ -2716,34 +2716,34 @@ reti(jit_state_t *_jit, jit_word_t i0)
 static void
 retval_c(jit_state_t *_jit, int32_t r0)
 {
-  extr_c(_jit, r0, rn(JIT_RET));
+  extr_c(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 
 static void
 retval_uc(jit_state_t *_jit, int32_t r0)
 {
-  extr_uc(_jit, r0, rn(JIT_RET));
+  extr_uc(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 
 static void
 retval_s(jit_state_t *_jit, int32_t r0)
 {
-  extr_s(_jit, r0, rn(JIT_RET));
+  extr_s(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 
 static void
 retval_us(jit_state_t *_jit, int32_t r0)
 {
-  extr_us(_jit, r0, rn(JIT_RET));
+  extr_us(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 
 static void
 retval_i(jit_state_t *_jit, int32_t r0)
 {
 #if __X32 || __X64_32
-  movr(_jit, r0, rn(JIT_RET));
+  movr(_jit, r0, jit_gpr_regno(JIT_RET));
 #else
-  extr_i(_jit, r0, rn(JIT_RET));
+  extr_i(_jit, r0, jit_gpr_regno(JIT_RET));
 #endif
 }
 
@@ -2751,12 +2751,12 @@ retval_i(jit_state_t *_jit, int32_t r0)
 static void
 retval_ui(jit_state_t *_jit, int32_t r0)
 {
-  extr_ui(_jit, r0, rn(JIT_RET));
+  extr_ui(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 
 static void
 retval_l(jit_state_t *_jit, int32_t r0)
 {
-  movr(_jit, r0, rn(JIT_RET));
+  movr(_jit, r0, jit_gpr_regno(JIT_RET));
 }
 #endif
