@@ -270,11 +270,11 @@ get_temp_gpr(jit_state_t *_jit)
 {
   ASSERT(!_jit->temp_gpr_saved);
   _jit->temp_gpr_saved = 1;
-#if __X32
-  pushr(_jit, _RBP_REGNO);
-  return JIT_GPR(_RBP);
+#ifdef JIT_RTMP
+  return JIT_RTMP;
 #else
-  return JIT_GPR(_R8);
+  pushr(_jit, _RBP_REGNO);
+  return _RBP;
 #endif
 }
 
@@ -283,7 +283,7 @@ unget_temp_gpr(jit_state_t *_jit)
 {
   ASSERT(_jit->temp_gpr_saved);
   _jit->temp_gpr_saved = 0;
-#if __X32
+#ifndef JIT_RTMP
   popr(_jit, _RBP_REGNO);
 #endif
 }

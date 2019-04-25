@@ -17,45 +17,6 @@
  *      Paulo Cesar Pereira de Andrade
  */
 
-#if __X32
-# define jit_arg_reg_p(i)              0
-# define jit_arg_f_reg_p(i)            0
-# define stack_framesize               20
-# define stack_adjust                  12
-# define CVT_OFFSET                    -12
-# define REAL_WORDSIZE                 4
-# define va_gp_increment               4
-# define va_fp_increment               8
-#else
-# if __CYGWIN__
-#  define jit_arg_reg_p(i)            ((i) >= 0 && (i) < 4)
-#  define jit_arg_f_reg_p(i)          jit_arg_reg_p(i)
-#  define stack_framesize             152
-#  define va_fp_increment             8
-# else
-#  define jit_arg_reg_p(i)            ((i) >= 0 && (i) < 6)
-#  define jit_arg_f_reg_p(i)          ((i) >= 0 && (i) < 8)
-#  define stack_framesize             56
-#  define first_gp_argument           rdi
-#  define first_gp_offset             offsetof(jit_va_list_t, rdi)
-#  define first_gp_from_offset(gp)    ((gp) / 8)
-#  define last_gp_argument            r9
-#  define va_gp_max_offset                                            \
-      (offsetof(jit_va_list_t, r9) - offsetof(jit_va_list_t, rdi) + 8)
-#  define first_fp_argument           xmm0
-#  define first_fp_offset             offsetof(jit_va_list_t, xmm0)
-#  define last_fp_argument            xmm7
-#  define va_fp_max_offset                                            \
-      (offsetof(jit_va_list_t, xmm7) - offsetof(jit_va_list_t, rdi) + 16)
-#  define va_fp_increment             16
-#  define first_fp_from_offset(fp)    (((fp) - va_gp_max_offset) / 16)
-# endif
-# define va_gp_increment               8
-# define stack_adjust                  8
-# define CVT_OFFSET                    -8
-# define REAL_WORDSIZE                 8
-#endif
-
 /*
  * Types
  */
@@ -94,94 +55,6 @@ typedef struct jit_va_list {
 #endif
 
 jit_cpu_t               jit_cpu;
-static const jit_register_t _rvs[] = {
-#if __X32
-  { rc(gpr) | rc(rg8) | 0,            "%eax" },
-  { rc(gpr) | rc(rg8) | 1,            "%ecx" },
-  { rc(gpr) | rc(rg8) | 2,            "%edx" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 3,  "%ebx" },
-  { rc(sav) | rc(gpr) | 6,            "%esi" },
-  { rc(sav) | rc(gpr) | 7,            "%edi" },
-  { rc(sav) | 4,                      "%esp" },
-  { rc(sav) | 5,                      "%ebp" },
-  { rc(xpr) | rc(fpr) | 0,            "%xmm0" },
-  { rc(xpr) | rc(fpr) | 1,            "%xmm1" },
-  { rc(xpr) | rc(fpr) | 2,            "%xmm2" },
-  { rc(xpr) | rc(fpr) | 3,            "%xmm3" },
-  { rc(xpr) | rc(fpr) | 4,            "%xmm4" },
-  { rc(xpr) | rc(fpr) | 5,            "%xmm5" },
-  { rc(xpr) | rc(fpr) | 6,            "%xmm6" },
-  { rc(xpr) | rc(fpr) | 7,            "%xmm7" },
-#elif __CYGWIN__
-  { rc(gpr) | rc(rg8) | 0,            "%rax" },
-  { rc(gpr) | rc(rg8) | rc(rg8) | 10, "%r10" },
-  { rc(gpr) | rc(rg8) | rc(rg8) | 11, "%r11" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 3,  "%rbx" },
-  { rc(sav) | rc(gpr) | 7,            "%rdi" },
-  { rc(sav) | rc(gpr) | 6,            "%rsi" },
-  { rc(sav) | rc(gpr) | 12,           "%r12" },
-  { rc(sav) | rc(gpr) | 13,           "%r13" },
-  { rc(sav) | rc(gpr) | 14,           "%r14" },
-  { rc(sav) | rc(gpr) | 15,           "%r15" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 9,  "%r9" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 8,  "%r8" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 2,  "%rdx" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 1,  "%rcx" },
-  { rc(sav) | 4,                      "%rsp" },
-  { rc(sav) | 5,                      "%rbp" },
-  { rc(xpr) | rc(fpr) | 4,            "%xmm4" },
-  { rc(xpr) | rc(fpr) | 5,            "%xmm5" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 6,  "%xmm6" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 7,  "%xmm7" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 8,  "%xmm8" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 9,  "%xmm9" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 10, "%xmm10" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 11, "%xmm11" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 12, "%xmm12" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 13, "%xmm13" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 14, "%xmm14" },
-  { rc(sav) | rc(xpr) | rc(fpr) | 15, "%xmm15" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 3,  "%xmm3" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 2,  "%xmm2" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 1,  "%xmm1" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 0,  "%xmm0" },
-#else
-  /* %rax is a pseudo flag argument for varargs functions */
-  { rc(arg) | rc(gpr) | rc(rg8) | 0,  "%rax" },
-  { rc(gpr) | rc(rg8) | 10,           "%r10" },
-  { rc(gpr) | rc(rg8) | 11,           "%r11" },
-  { rc(gpr) | rc(rg8) | 12,           "%r12" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 3,  "%rbx" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 13, "%r13" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 14, "%r14" },
-  { rc(sav) | rc(rg8) | rc(gpr) | 15, "%r15" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 9,  "%r9" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 8,  "%r8" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 1,  "%rcx" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 2,  "%rdx" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 6,  "%rsi" },
-  { rc(arg) | rc(rg8) | rc(gpr) | 7,  "%rdi" },
-  { rc(sav) | 4,                      "%rsp" },
-  { rc(sav) | 5,                      "%rbp" },
-  { rc(xpr) | rc(fpr) | 8,            "%xmm8" },
-  { rc(xpr) | rc(fpr) | 9,            "%xmm9" },
-  { rc(xpr) | rc(fpr) | 10,           "%xmm10" },
-  { rc(xpr) | rc(fpr) | 11,           "%xmm11" },
-  { rc(xpr) | rc(fpr) | 12,           "%xmm12" },
-  { rc(xpr) | rc(fpr) | 13,           "%xmm13" },
-  { rc(xpr) | rc(fpr) | 14,           "%xmm14" },
-  { rc(xpr) | rc(fpr) | 15,           "%xmm15" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 7,  "%xmm7" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 6,  "%xmm6" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 5,  "%xmm5" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 4,  "%xmm4" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 3,  "%xmm3" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 2,  "%xmm2" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 1,  "%xmm1" },
-  { rc(xpr) | rc(arg) | rc(fpr) | 0,  "%xmm0" },
-#endif
-  { _NOREG,                           "<none>" },
-};
 
 #include "x86-cpu.c"
 #include "x86-sse.c"
@@ -800,9 +673,9 @@ static const jit_gpr_t abi_gpr_args[] = {
 #if __X32
   /* No GPRs in args.  */
 #elif __CYGWIN__
-  JIT_GPR(_RCX), JIT_GPR(_RDX), JIT_GPR(_R8), JIT_GPR(_R9)
+  _RCX, _RDX, _R8, _R9
 #else
-  JIT_GPR(_RDI), JIT_GPR(_RSI), JIT_GPR(_RDX), JIT_GPR(_RCX), JIT_GPR(_R8), JIT_GPR(_R9)
+  _RDI, _RSI, _RDX, _RCX, _R8, _R9
 #endif
 };
 
@@ -810,9 +683,9 @@ static const jit_fpr_t abi_fpr_args[] = {
 #if __X32
   /* No FPRs in args.  */
 #elif __CYGWIN__
-  JIT_FPR(_XMM0), JIT_FPR(_XMM1), JIT_FPR(_XMM2), JIT_FPR(_XMM3)
+  _XMM0, _XMM1, _XMM2, _XMM3
 #else
-  JIT_FPR(_XMM0), JIT_FPR(_XMM1), JIT_FPR(_XMM2), JIT_FPR(_XMM3), JIT_FPR(_XMM4), JIT_FPR(_XMM5), JIT_FPR(_XMM6), JIT_FPR(_XMM7)
+  _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7
 #endif
 };
 
@@ -890,7 +763,7 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
     iter->gpr_idx++;
 #endif
   } else {
-    *arg = jit_operand_mem (abi, JIT_GPR(_RSP), iter->stack_size);
+    *arg = jit_operand_mem (abi, JIT_SP, iter->stack_size);
     size_t bytes = jit_operand_abi_sizeof (abi);
     iter->stack_size += round_size_up_to_words (bytes);
   }

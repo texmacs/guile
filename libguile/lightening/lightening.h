@@ -95,18 +95,7 @@ typedef struct jit_reloc
 #  include "lightening/alpha.h"
 #endif
 
-#define JIT_R(index)		JIT_GPR(jit_r(index))
-#define JIT_V(index)		JIT_GPR(jit_v(index))
-#define JIT_F(index)		JIT_FPR(jit_f(index))
-#define JIT_R_NUM		jit_r_num()
-#define JIT_V_NUM		jit_v_num()
-#define JIT_F_NUM		jit_f_num()
-
-#define jit_class_chk		0x02000000	/* just checking */
-#define jit_class_arg		0x08000000	/* argument register */
 #define jit_class_sav		0x10000000	/* callee save */
-#define jit_class_gpr		0x20000000	/* general purpose */
-#define jit_class_fpr		0x40000000	/* float */
 #define jit_class(bits)		((bits) & 0xffff0000)
 #define jit_regno(bits)		((bits) & 0x00007fff)
 
