@@ -159,7 +159,7 @@ jit_get_cpu(void)
   /* i386 or i486 without cpuid */
   if ((ac & (1 << 21)) == 0)
     /* probably without x87 as well */
-    return false;
+    return 0;
 #endif
 
     /* query %eax = 1 function */
@@ -192,8 +192,8 @@ jit_get_cpu(void)
   jit_cpu.avx         = ecx.bits.avx;
 
     /* query %eax = 0x80000001 function */
-  __asm__ volatile (
 #if __X64
+  __asm__ volatile (
 #  if __X64_32
                     "xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
 #  else

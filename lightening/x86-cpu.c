@@ -1024,7 +1024,7 @@ ffsw(jit_word_t i)
     return ffs(i);
   int bit = ffs((int)i);
   if (bit == 0) {
-    bit = ffs((int)((unsigned long)i >> 32));
+    bit = ffs((int)((uint64_t)i >> 32));
     if (bit)
       bit += 32;
   }
@@ -2664,34 +2664,34 @@ reti(jit_state_t *_jit, jit_word_t i0)
 static void
 retval_c(jit_state_t *_jit, int32_t r0)
 {
-  extr_c(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_c(_jit, r0, _RAX_REGNO);
 }
 
 static void
 retval_uc(jit_state_t *_jit, int32_t r0)
 {
-  extr_uc(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_uc(_jit, r0, _RAX_REGNO);
 }
 
 static void
 retval_s(jit_state_t *_jit, int32_t r0)
 {
-  extr_s(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_s(_jit, r0, _RAX_REGNO);
 }
 
 static void
 retval_us(jit_state_t *_jit, int32_t r0)
 {
-  extr_us(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_us(_jit, r0, _RAX_REGNO);
 }
 
 static void
 retval_i(jit_state_t *_jit, int32_t r0)
 {
 #if __X32 || __X64_32
-  movr(_jit, r0, jit_gpr_regno(JIT_RET));
+  movr(_jit, r0, _RAX_REGNO);
 #else
-  extr_i(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_i(_jit, r0, _RAX_REGNO);
 #endif
 }
 
@@ -2699,12 +2699,12 @@ retval_i(jit_state_t *_jit, int32_t r0)
 static void
 retval_ui(jit_state_t *_jit, int32_t r0)
 {
-  extr_ui(_jit, r0, jit_gpr_regno(JIT_RET));
+  extr_ui(_jit, r0, _RAX_REGNO);
 }
 
 static void
 retval_l(jit_state_t *_jit, int32_t r0)
 {
-  movr(_jit, r0, jit_gpr_regno(JIT_RET));
+  movr(_jit, r0, _RAX_REGNO);
 }
 #endif

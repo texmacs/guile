@@ -398,49 +398,111 @@ movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t i0)
   if (data.d == 0.0 && !(data.ii[1] & 0x80000000))
     xorpdr(_jit, r0, r0);
   else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
+    jit_gpr_t ireg = get_temp_gpr(_jit);
 #if __X64 && !__X64_32
-    movi(_jit, jit_gpr_regno(reg), data.w);
-    movdqxr(_jit, r0, jit_gpr_regno(reg));
+    movi(_jit, jit_gpr_regno(ireg), data.w);
+    movdqxr(_jit, r0, jit_gpr_regno(ireg));
     unget_temp_gpr(_jit);
 #else
-    movi(_jit, jit_gpr_regno(reg), data.ii[0]);
-    stxi_i(CVT_OFFSET, _RBP_REGNO, jit_gpr_regno(reg));
-    movi(_jit, jit_gpr_regno(reg), data.ii[1]);
-    stxi_i(CVT_OFFSET + 4, _RBP_REGNO, jit_gpr_regno(reg));
+    jit_fpr_t freg = get_temp_xpr(_jit);
+    movi(_jit, jit_gpr_regno(ireg), data.ii[1]);
+    movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
+    pslq(_jit, jit_fpr_regno(freg), 32);
+    movi(_jit, jit_gpr_regno(ireg), data.ii[0]);
+    movdlxr(_jit, r0, jit_gpr_regno(ireg));
+    xorpdr(_jit, r0, jit_fpr_regno(freg));
+    unget_temp_xpr(_jit);
     unget_temp_gpr(_jit);
-    ldxi_d(_jit, r0, _RBP_REGNO, CVT_OFFSET);
 #endif
   }
 }
 
+#if __X32
+static void
+x87rx(jit_state_t *_jit, int32_t code, int32_t md,
+      int32_t rb, int32_t ri, int32_t ms)
+{
+  rex(_jit, 0, 1, rb, ri, _NOREG);
+  ic(_jit, 0xd8 | (code >> 3));
+  rx(_jit, (code & 7), md, rb, ri, ms);
+}
+
+static void
+fldsm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
+{
+  return x87rx(_jit, 010, md, rb, ri, ms);
+}
+
+static void
+fstsm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
+{
+  return x87rx(_jit, 012, md, rb, ri, ms);
+}
+
+static void
+fldlm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
+{
+  return x87rx(_jit, 050, md, rb, ri, ms);
+}
+
+static void
+fstlm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
+{
+  return x87rx(_jit, 052, md, rb, ri, ms);
+}
+#endif
+
 static void
 retval_f(jit_state_t *_jit, int32_t r0)
 {
-#if __X64
-  movr_f(_jit, r0, jit_fpr_regno(JIT_FRET));
+#if __X32
+  subi(_jit, _RSP_REGNO, _RSP_REGNO, 4);
+  fstsm(_jit, 0, _RSP_REGNO, _NOREG, _SCL1);
+  ldr_f(_jit, r0, _RSP_REGNO);
+  addi(_jit, _RSP_REGNO, _RSP_REGNO, 4);
+#else
+  movr_f(_jit, r0, _XMM0_REGNO);
 #endif
 }
 
 static void
 retval_d(jit_state_t *_jit, int32_t r0)
 {
-#if __X64
-  movr_d(_jit, r0, jit_fpr_regno(JIT_FRET));
+#if __X32
+  subi(_jit, _RSP_REGNO, _RSP_REGNO, 8);
+  fstlm(_jit, 0, _RSP_REGNO, _NOREG, _SCL1);
+  ldr_d(_jit, r0, _RSP_REGNO);
+  addi(_jit, _RSP_REGNO, _RSP_REGNO, 8);
+#else
+  movr_d(_jit, r0, _XMM0_REGNO);
 #endif
 }
 
 static void
 retr_f(jit_state_t *_jit, int32_t u)
 {
-  movr_f(_jit, jit_fpr_regno(JIT_FRET), u);
+#if __X32
+  subi(_jit, _RSP_REGNO, _RSP_REGNO, 4);
+  str_f(_jit, _RSP_REGNO, u);
+  fldsm(_jit, 0, _RSP_REGNO, _NOREG, _SCL1);
+  addi(_jit, _RSP_REGNO, _RSP_REGNO, 4);
+#else
+  movr_f(_jit, _XMM0_REGNO, u);
+#endif
   ret(_jit);
 }
 
 static void
 retr_d(jit_state_t *_jit, int32_t u)
 {
-  movr_d(_jit, jit_fpr_regno(JIT_FRET), u);
+#if __X32
+  subi(_jit, _RSP_REGNO, _RSP_REGNO, 8);
+  str_d(_jit, _RSP_REGNO, u);
+  fldlm(_jit, 0, _RSP_REGNO, _NOREG, _SCL1);
+  addi(_jit, _RSP_REGNO, _RSP_REGNO, 8);
+#else
+  movr_d(_jit, _XMM0_REGNO, u);
+#endif
   ret(_jit);
 }
 

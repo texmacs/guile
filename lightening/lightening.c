@@ -525,21 +525,23 @@ abi_mem_to_gpr(jit_state_t *_jit, enum jit_operand_abi abi,
   case JIT_OPERAND_ABI_INT16:
     jit_ldxi_s(_jit, dst, base, offset);
     break;
+#if __WORDSIZE == 32
   case JIT_OPERAND_ABI_UINT32:
-    jit_ldxi_ui(_jit, dst, base, offset);
-    break;
+  case JIT_OPERAND_ABI_POINTER:
+#endif
   case JIT_OPERAND_ABI_INT32:
     jit_ldxi_i(_jit, dst, base, offset);
     break;
-  case JIT_OPERAND_ABI_UINT64:
-    jit_ldxi_l(_jit, dst, base, offset);
+#if __WORDSIZE == 64
+  case JIT_OPERAND_ABI_UINT32:
+    jit_ldxi_ui(_jit, dst, base, offset);
     break;
+  case JIT_OPERAND_ABI_UINT64:
+  case JIT_OPERAND_ABI_POINTER:
   case JIT_OPERAND_ABI_INT64:
     jit_ldxi_l(_jit, dst, base, offset);
     break;
-  case JIT_OPERAND_ABI_POINTER:
-    jit_ldxi_l(_jit, dst, base, offset);
-    break;
+#endif
   default:
     abort();
   }
