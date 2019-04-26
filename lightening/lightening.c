@@ -565,7 +565,7 @@ abi_mem_to_fpr(jit_state_t *_jit, enum jit_operand_abi abi,
 
 static void
 abi_imm_to_mem(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t base,
-               ptrdiff_t offset, intmax_t imm)
+               ptrdiff_t offset, jit_imm_t imm)
 {
   ASSERT(!is_fpr_arg(abi));
 

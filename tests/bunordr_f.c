@@ -12,7 +12,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   jit_patch_here(j, r);
   jit_reti(j, 1);
 
-  intmax_t (*f)(float, float) = jit_end(j, NULL);
+  jit_word_t (*f)(float, float) = jit_end(j, NULL);
 
   ASSERT(f(0, 0) == 0);
   ASSERT(f(0, 1) == 0);

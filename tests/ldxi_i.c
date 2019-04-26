@@ -11,7 +11,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   jit_ldxi_i(j, JIT_R0, JIT_R0, (uintptr_t)data);
   jit_retr(j, JIT_R0);
 
-  uintmax_t (*f)(uintmax_t) = jit_end(j, NULL);
+  jit_uword_t (*f)(jit_uword_t) = jit_end(j, NULL);
 
   ASSERT(f(0) == -1);
   ASSERT(f(4) == 0);

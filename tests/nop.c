@@ -13,7 +13,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   ASSERT(end - start == total);
   jit_reti(j, 42);
 
-  intmax_t (*f)(void) = jit_end(j, NULL);
+  jit_word_t (*f)(void) = jit_end(j, NULL);
   ASSERT(f() == 42);
 }
 

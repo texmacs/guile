@@ -124,8 +124,8 @@ enum jit_operand_abi
   JIT_OPERAND_ABI_POINTER,
   JIT_OPERAND_ABI_FLOAT,
   JIT_OPERAND_ABI_DOUBLE,
-  JIT_OPERAND_ABI_INTMAX = CHOOSE_32_64(JIT_OPERAND_ABI_INT32,
-                                        JIT_OPERAND_ABI_INT64)
+  JIT_OPERAND_ABI_WORD = CHOOSE_32_64(JIT_OPERAND_ABI_INT32,
+                                      JIT_OPERAND_ABI_INT64)
 };
 
 enum jit_operand_kind
