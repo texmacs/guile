@@ -1023,6 +1023,7 @@ jit_locate_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   struct abi_arg_iterator iter;
     
   reset_abi_arg_iterator(&iter, argc, args, AFTER_CALL);
+  iter.stack_size += _jit->frame_size;
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &args[i]);
 }

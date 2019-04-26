@@ -252,7 +252,7 @@ rx(jit_state_t *_jit, int32_t rd, int32_t md,
 static void
 pushr(jit_state_t *_jit, int32_t r0)
 {
-  _jit->frame_size += __WORDSIZE;
+  _jit->frame_size += __WORDSIZE / 8;
   rex(_jit, 0, WIDE, 0, 0, r0);
   ic(_jit, 0x50 | r7(r0));
 }
@@ -260,7 +260,7 @@ pushr(jit_state_t *_jit, int32_t r0)
 static void
 popr(jit_state_t *_jit, int32_t r0)
 {
-  _jit->frame_size -= __WORDSIZE;
+  _jit->frame_size -= __WORDSIZE / 8;
   rex(_jit, 0, WIDE, 0, 0, r0);
   ic(_jit, 0x58 | r7(r0));
 }
