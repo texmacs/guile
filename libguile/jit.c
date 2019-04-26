@@ -1293,6 +1293,8 @@ emit_entry_trampoline (scm_jit_state *j)
   /* Load FP, set during call sequences.  */
   emit_reload_fp (j);
 
+  size_t alignment = jit_align_stack (j->jit, 0);
+
   /* Jump to the mcode!  */
   jit_jmpr (j->jit, T0);
 
