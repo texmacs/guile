@@ -316,6 +316,11 @@ xorpdr(jit_state_t *_jit, int32_t r0, int32_t r1)
   ssexr(_jit, 0x66, X86_SSE_XOR, r0, r1);
 }
 static void
+orpdr(jit_state_t *_jit, int32_t r0, int32_t r1)
+{
+  ssexr(_jit, 0x66, X86_SSE_OR, r0, r1);
+}
+static void
 pcmpeqlr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   ssexr(_jit, 0x66, X86_SSE_EQD, r0, r1);
@@ -410,7 +415,7 @@ movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t i0)
     pslq(_jit, jit_fpr_regno(freg), 32);
     movi(_jit, jit_gpr_regno(ireg), data.ii[0]);
     movdlxr(_jit, r0, jit_gpr_regno(ireg));
-    xorpdr(_jit, r0, jit_fpr_regno(freg));
+    orpdr(_jit, r0, jit_fpr_regno(freg));
     unget_temp_xpr(_jit);
     unget_temp_gpr(_jit);
 #endif
