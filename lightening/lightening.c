@@ -68,11 +68,25 @@ struct jit_state
 # define UNLIKELY(exprn) exprn
 #endif
 
+enum stack_state
+{
+  BEFORE_CALL,
+  AFTER_CALL
+};
+
 static jit_bool_t jit_get_cpu(void);
 static jit_bool_t jit_init(jit_state_t *);
 static void jit_flush(void *fptr, void *tptr);
 static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
                             jit_pointer_t addr);
+
+struct abi_arg_iterator;
+
+static void reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
+                                   const jit_operand_t *args,
+                                   enum stack_state state);
+static void next_abi_arg(struct abi_arg_iterator *iter,
+                         jit_operand_t *arg);
 
 jit_bool_t
 init_jit(void)
@@ -830,7 +844,7 @@ jit_align_stack(jit_state_t *_jit, size_t expand)
   size_t new_size = _jit->frame_size + expand;
   // Align stack to double-word boundaries.  This isn't really a
   // principle but it does work for Aarch32, AArch64 and x86-64.
-  size_t alignment = __WORDSIZE * 2;
+  size_t alignment = __WORDSIZE / 8 * 2;
   size_t aligned_size = (new_size + alignment - 1) & ~(alignment - 1);
   size_t diff = aligned_size - _jit->frame_size;
   if (diff)
@@ -855,7 +869,7 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   struct abi_arg_iterator iter;
   
   // Compute shuffle destinations and space for spilled arguments.
-  reset_abi_arg_iterator(&iter, argc, args);
+  reset_abi_arg_iterator(&iter, argc, args, BEFORE_CALL);
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &dst[i]);
 
@@ -908,7 +922,7 @@ jit_locate_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 {
   struct abi_arg_iterator iter;
     
-  reset_abi_arg_iterator(&iter, argc, args);
+  reset_abi_arg_iterator(&iter, argc, args, AFTER_CALL);
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &args[i]);
 }

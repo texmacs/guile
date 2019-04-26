@@ -315,11 +315,15 @@ round_size_up_to_words(size_t bytes)
 
 static void
 reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
-                       const jit_operand_t *args)
+                       const jit_operand_t *args, enum stack_state state)
 {
   memset(iter, 0, sizeof *iter);
   iter->argc = argc;
   iter->args = args;
+  if (state == AFTER_CALL)
+    iter->stack_size = __WORDSIZE / 8; // Saved return address.
+  else
+    ASSERT(state == BEFORE_CALL);
 }
 
 static void
