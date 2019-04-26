@@ -226,6 +226,9 @@ JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 JIT_API void jit_move_operands (jit_state_t *_jit, jit_operand_t *dst,
                                 jit_operand_t *src, size_t argc);
 
+JIT_API size_t jit_align_stack (jit_state_t *_jit, size_t expand);
+JIT_API void jit_shrink_stack (jit_state_t *_jit, size_t diff);
+
 /* Note that all functions that take jit_operand_t args[] use the args
    as scratch space while shuffling values into position.  */
 JIT_API void jit_calli(jit_state_t *, jit_pointer_t f,

@@ -892,7 +892,7 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
     apply_addend(_jit, dst[i], src[i]);
 }
 
-static size_t
+size_t
 jit_align_stack(jit_state_t *_jit, size_t expand)
 {
   size_t new_size = _jit->frame_size + expand;
@@ -907,7 +907,7 @@ jit_align_stack(jit_state_t *_jit, size_t expand)
   return diff;
 }
 
-static void
+void
 jit_shrink_stack(jit_state_t *_jit, size_t diff)
 {
   if (diff)
