@@ -24,7 +24,7 @@ run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
   ASSERT(f(0xffffffff, 0xffffffff) == overflowed);
   ASSERT(f(0x7fffffff, 0) == 0x7fffffff);
   ASSERT(f(0x7fffffff, 1) == 0x80000000);
-  ASSERT(f(0x7fffffff, 0x7fffffff) == 0x7fffffff + 0x7fffffff);
+  ASSERT(f(0x7fffffff, 0x7fffffff) == 0x7fffffffu + 0x7fffffffu);
   ASSERT(f(0x7fffffff, 0x80000000) == 0xffffffff);
   ASSERT(f(0x80000000, 0x80000000) == overflowed);
 #else

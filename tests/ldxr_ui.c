@@ -1,11 +1,11 @@
 #include "test.h"
 
-static uint32_t data[] = { 0xffffffff, 0x00000000, 0x42424242 };
-
 static void
 run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
 {
 #if __WORDSIZE > 32
+  static uint32_t data[] = { 0xffffffff, 0x00000000, 0x42424242 };
+
   jit_begin(j, arena_base, arena_size);
   jit_load_args_2(j, jit_operand_gpr (JIT_OPERAND_ABI_POINTER, JIT_R0),
                   jit_operand_gpr (JIT_OPERAND_ABI_WORD, JIT_R1));
