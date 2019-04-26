@@ -17,44 +17,46 @@
  *      Paulo Cesar Pereira de Andrade
  */
 
-/*
- * Types
- */
-#if __X32 || __CYGWIN__
-typedef jit_pointer_t jit_va_list_t;
-#else
-typedef struct jit_va_list {
-  int32_t             gpoff;
-  int32_t             fpoff;
-  jit_pointer_t       over;
-  jit_pointer_t       save;
-  /* Declared explicitly as int64 for the x32 abi */
-  int64_t             rdi;
-  int64_t             rsi;
-  int64_t             rdx;
-  int64_t             rcx;
-  int64_t             r8;
-  int64_t             r9;
-  jit_float64_t       xmm0;
-  jit_float64_t       _up0;
-  jit_float64_t       xmm1;
-  jit_float64_t       _up1;
-  jit_float64_t       xmm2;
-  jit_float64_t       _up2;
-  jit_float64_t       xmm3;
-  jit_float64_t       _up3;
-  jit_float64_t       xmm4;
-  jit_float64_t       _up4;
-  jit_float64_t       xmm5;
-  jit_float64_t       _up5;
-  jit_float64_t       xmm6;
-  jit_float64_t       _up6;
-  jit_float64_t       xmm7;
-  jit_float64_t       _up7;
-} jit_va_list_t;
-#endif
+typedef struct {
+  /* x87 present */
+  uint32_t fpu                : 1;
+  /* cmpxchg8b instruction */
+  uint32_t cmpxchg8b  : 1;
+  /* cmov and fcmov branchless conditional mov */
+  uint32_t cmov               : 1;
+  /* mmx registers/instructions available */
+  uint32_t mmx                : 1;
+  /* sse registers/instructions available */
+  uint32_t sse                : 1;
+  /* sse2 registers/instructions available */
+  uint32_t sse2               : 1;
+  /* sse3 instructions available */
+  uint32_t sse3               : 1;
+  /* pcmulqdq instruction */
+  uint32_t pclmulqdq  : 1;
+  /* ssse3 suplemental sse3 instructions available */
+  uint32_t ssse3              : 1;
+  /* fused multiply/add using ymm state */
+  uint32_t fma                : 1;
+  /* cmpxchg16b instruction */
+  uint32_t cmpxchg16b : 1;
+  /* sse4.1 instructions available */
+  uint32_t sse4_1             : 1;
+  /* sse4.2 instructions available */
+  uint32_t sse4_2             : 1;
+  /* movbe instruction available */
+  uint32_t movbe              : 1;
+  /* popcnt instruction available */
+  uint32_t popcnt             : 1;
+  /* aes instructions available */
+  uint32_t aes                : 1;
+  /* avx instructions available */
+  uint32_t avx                : 1;
+  /* lahf/sahf available in 64 bits mode */
+  uint32_t lahf               : 1;
+} jit_cpu_t;
 
-jit_cpu_t               jit_cpu;
+static jit_cpu_t jit_cpu;
 
 #include "x86-cpu.c"
 #include "x86-sse.c"
