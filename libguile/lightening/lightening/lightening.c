@@ -119,13 +119,9 @@ struct jit_state
   uint8_t temp_gpr_saved;
   uint8_t temp_fpr_saved;
   uint8_t overflow;
+  int frame_size; // Used to know when to align stack.
   void* (*alloc)(size_t);
   void (*free)(void*);
-};
-
-enum jit_reloc_flags
-{
-  JIT_RELOC_CAN_SHORTEN = 1<<0
 };
 
 #define ASSERT(x) do { if (!(x)) abort(); } while (0)
@@ -138,7 +134,8 @@ enum jit_reloc_flags
 static jit_bool_t jit_get_cpu(void);
 static jit_bool_t jit_init(jit_state_t *);
 static void jit_flush(void *fptr, void *tptr);
-static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc);
+static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
+                            jit_pointer_t addr);
 
 jit_bool_t
 init_jit(void)
@@ -189,6 +186,7 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->pc.uc = _jit->start = buf;
   _jit->limit = buf + length;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 }
 
 jit_bool_t
@@ -204,6 +202,7 @@ jit_reset(jit_state_t *_jit)
   ASSERT (_jit->start);
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 }
 
 void*
@@ -225,6 +224,7 @@ jit_end(jit_state_t *_jit, size_t *length)
 
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 
   return code;
 }
@@ -279,13 +279,12 @@ static inline void emit_u64(jit_state_t *_jit, uint64_t u64) {
 
 static inline jit_reloc_t
 jit_reloc (jit_state_t *_jit, enum jit_reloc_kind kind,
-           uint8_t inst_start_offset, uint16_t flags)
+           uint8_t inst_start_offset)
 {
   jit_reloc_t ret;
 
   ret.kind = kind;
   ret.inst_start_offset = inst_start_offset;
-  ret.flags = 0;
   ret.offset = _jit->pc.uc - _jit->start;
   
   switch (kind)
@@ -327,6 +326,7 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
   if (_jit->overflow)
     return;
   union jit_pc loc;
+  uint8_t *end;
   loc.uc = _jit->start + reloc.offset;
   ptrdiff_t diff;
 
@@ -337,38 +337,37 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
         *loc.ui = (uintptr_t)addr;
       else
         *loc.ul = (uintptr_t)addr;
-      if (loc.uc + sizeof(diff) == _jit->pc.uc &&
-          (reloc.flags & JIT_RELOC_CAN_SHORTEN))
-        jit_try_shorten (_jit, reloc);
+      end = loc.uc + sizeof(diff);
       break;
     case JIT_RELOC_REL8:
       diff = ((uint8_t*)addr) - (loc.uc + 1);
       ASSERT (INT8_MIN <= diff && diff <= INT8_MAX);
       *loc.uc = diff;
+      end = loc.uc + 1;
       break;
     case JIT_RELOC_REL16:
       diff = ((uint8_t*)addr) - (loc.uc + 2);
       ASSERT (INT16_MIN <= diff && diff <= INT16_MAX);
       *loc.us = diff;
-      if ((loc.uc + 1) == _jit->pc.uc && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
-        jit_try_shorten (_jit, reloc);
+      end = loc.uc + 2;
       break;
     case JIT_RELOC_REL32:
       diff = ((uint8_t*)addr) - (loc.uc + 4);
       ASSERT (INT32_MIN <= diff && diff <= INT32_MAX);
       *loc.ui = diff;
-      if ((loc.ui + 1) == _jit->pc.ui && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
-        jit_try_shorten (_jit, reloc);
+      end = loc.uc + 4;
       break;
     case JIT_RELOC_REL64:
       diff = ((uint8_t*)addr) - (loc.uc + 8);
       *loc.ul = diff;
-      if ((loc.ul + 1) == _jit->pc.ul && (reloc.flags & JIT_RELOC_CAN_SHORTEN))
-        jit_try_shorten (_jit, reloc);
+      end = loc.uc + 8;
       break;
     default:
       abort ();
     }
+
+  if (end == _jit->pc.uc)
+    jit_try_shorten (_jit, reloc, addr);
 }
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -467,3 +466,525 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 #define IMPL_INSTRUCTION(kind, stem) JIT_IMPL_##kind(stem)
 FOR_EACH_INSTRUCTION(IMPL_INSTRUCTION)
 #undef IMPL_INSTRUCTION
+
+static void
+abi_imm_to_gpr(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t dst,
+               intptr_t imm)
+{
+  switch (abi) {
+  case JIT_OPERAND_ABI_UINT8:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT8_MAX);
+    break;
+  case JIT_OPERAND_ABI_INT8:
+    ASSERT(INT8_MIN <= imm);
+    ASSERT(imm <= INT8_MAX);
+    break;
+  case JIT_OPERAND_ABI_UINT16:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT16_MAX);
+    break;
+  case JIT_OPERAND_ABI_INT16:
+    ASSERT(INT16_MIN <= imm);
+    ASSERT(imm <= INT16_MAX);
+    break;
+  case JIT_OPERAND_ABI_UINT32:
+    ASSERT(0 <= imm);
+    ASSERT(imm <= UINT32_MAX);
+    break;
+  case JIT_OPERAND_ABI_INT32:
+    ASSERT(INT32_MIN <= imm);
+    ASSERT(imm <= INT32_MAX);
+    break;
+#if __WORDSIZE > 32
+  case JIT_OPERAND_ABI_UINT64:
+  case JIT_OPERAND_ABI_INT64:
+    break;
+#endif
+  case JIT_OPERAND_ABI_POINTER:
+    break;
+  default:
+    abort();
+  }
+  jit_movi (_jit, dst, imm);
+}
+
+static void
+abi_gpr_to_mem(jit_state_t *_jit, enum jit_operand_abi abi,
+               jit_gpr_t base, ptrdiff_t offset, jit_gpr_t src)
+{
+  switch (abi) {
+  case JIT_OPERAND_ABI_UINT8:
+  case JIT_OPERAND_ABI_INT8:
+    jit_stxi_c(_jit, offset, base, src);
+    break;
+  case JIT_OPERAND_ABI_UINT16:
+  case JIT_OPERAND_ABI_INT16:
+    jit_stxi_s(_jit, offset, base, src);
+    break;
+  case JIT_OPERAND_ABI_UINT32:
+  case JIT_OPERAND_ABI_INT32:
+#if __WORDSIZE == 32
+  case JIT_OPERAND_ABI_POINTER:
+#endif
+    jit_stxi_i(_jit, offset, base, src);
+    break;
+#if __WORDSIZE == 64
+  case JIT_OPERAND_ABI_UINT64:
+  case JIT_OPERAND_ABI_INT64:
+  case JIT_OPERAND_ABI_POINTER:
+    jit_stxi_l(_jit, offset, base, src);
+    break;
+#endif
+  default:
+    abort();
+  }
+}
+
+static void
+abi_fpr_to_mem(jit_state_t *_jit, enum jit_operand_abi abi,
+               jit_gpr_t base, ptrdiff_t offset, jit_fpr_t src)
+{
+  switch (abi) {
+  case JIT_OPERAND_ABI_FLOAT:
+    jit_stxi_f(_jit, offset, base, src);
+    break;
+  case JIT_OPERAND_ABI_DOUBLE:
+    jit_stxi_d(_jit, offset, base, src);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+abi_mem_to_gpr(jit_state_t *_jit, enum jit_operand_abi abi,
+               jit_gpr_t dst, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_OPERAND_ABI_UINT8:
+    jit_ldxi_uc(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_INT8:
+    jit_ldxi_c(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_UINT16:
+    jit_ldxi_us(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_INT16:
+    jit_ldxi_s(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_UINT32:
+    jit_ldxi_ui(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_INT32:
+    jit_ldxi_i(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_UINT64:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_INT64:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_POINTER:
+    jit_ldxi_l(_jit, dst, base, offset);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+abi_mem_to_fpr(jit_state_t *_jit, enum jit_operand_abi abi,
+               jit_fpr_t dst, jit_gpr_t base, ptrdiff_t offset)
+{
+  switch (abi) {
+  case JIT_OPERAND_ABI_FLOAT:
+    jit_ldxi_f(_jit, dst, base, offset);
+    break;
+  case JIT_OPERAND_ABI_DOUBLE:
+    jit_ldxi_d(_jit, dst, base, offset);
+    break;
+  default:
+    abort();
+  }
+}
+
+static void
+abi_imm_to_mem(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t base,
+               ptrdiff_t offset, intmax_t imm)
+{
+  ASSERT(!is_fpr_arg(abi));
+
+  jit_gpr_t tmp = get_temp_gpr(_jit);
+  abi_imm_to_gpr(_jit, abi, tmp, imm);
+  abi_gpr_to_mem(_jit, abi, base, offset, tmp);
+  unget_temp_gpr(_jit);
+}
+
+static void
+abi_mem_to_mem(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t base,
+               ptrdiff_t offset, jit_gpr_t src_base, ptrdiff_t src_offset)
+{
+  if (is_gpr_arg (abi)) {
+    jit_gpr_t tmp = get_temp_gpr(_jit);
+    abi_mem_to_gpr(_jit, abi, tmp, src_base, src_offset);
+    abi_gpr_to_mem(_jit, abi, base, offset, tmp);
+    unget_temp_gpr(_jit);
+  } else {
+    jit_fpr_t tmp = get_temp_xpr(_jit);
+    abi_mem_to_fpr(_jit, abi, tmp, src_base, src_offset);
+    abi_fpr_to_mem(_jit, abi, base, offset, tmp);
+    unget_temp_xpr(_jit);
+  }
+}
+
+#define MOVE_KIND(a, b) ((((int) a) << 4) | ((int) b))
+
+#define MOVE_KIND_ENUM(a, b) \
+  MOVE_##a##_TO_##b = MOVE_KIND(JIT_OPERAND_KIND_##a, JIT_OPERAND_KIND_##b)
+enum move_kind {
+  MOVE_KIND_ENUM(IMM, GPR),
+  MOVE_KIND_ENUM(GPR, GPR),
+  MOVE_KIND_ENUM(MEM, GPR),
+  MOVE_KIND_ENUM(FPR, FPR),
+  MOVE_KIND_ENUM(MEM, FPR),
+  MOVE_KIND_ENUM(IMM, MEM),
+  MOVE_KIND_ENUM(GPR, MEM),
+  MOVE_KIND_ENUM(FPR, MEM),
+  MOVE_KIND_ENUM(MEM, MEM)
+};
+#undef MOVE_KIND_ENUM
+
+static void
+move_operand(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
+{
+  switch (MOVE_KIND (src.kind, dst.kind)) {
+  case MOVE_IMM_TO_GPR:
+    return abi_imm_to_gpr(_jit, src.abi, dst.loc.gpr.gpr, src.loc.imm);
+
+  case MOVE_GPR_TO_GPR:
+    return jit_movr(_jit, dst.loc.gpr.gpr, src.loc.gpr.gpr);
+
+  case MOVE_MEM_TO_GPR:
+    return abi_mem_to_gpr(_jit, src.abi, dst.loc.gpr.gpr, src.loc.mem.base,
+                          src.loc.mem.offset);
+
+  case MOVE_FPR_TO_FPR:
+    return jit_movr_d(_jit, dst.loc.fpr, src.loc.fpr);
+
+  case MOVE_MEM_TO_FPR:
+    return abi_mem_to_fpr(_jit, src.abi, dst.loc.fpr, src.loc.mem.base,
+                          src.loc.mem.offset);
+
+  case MOVE_IMM_TO_MEM:
+    return abi_imm_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.imm);
+
+  case MOVE_GPR_TO_MEM:
+    return abi_gpr_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.gpr.gpr);
+
+  case MOVE_FPR_TO_MEM:
+    return abi_fpr_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.fpr);
+
+  case MOVE_MEM_TO_MEM:
+    return abi_mem_to_mem(_jit, src.abi, dst.loc.mem.base, dst.loc.mem.offset,
+                          src.loc.mem.base, src.loc.mem.offset);
+
+  default:
+    abort();
+  }
+}
+
+// A direct transliteration of "Tilting at windmills with Coq: formal
+// verification of a compilation algorithm for parallel moves" by
+// Laurence Rideau, Bernard Paul Serpette, and Xavier Leroy:
+// https://xavierleroy.org/publi/parallel-move.pdf
+
+enum move_status { TO_MOVE, BEING_MOVED, MOVED };
+
+static inline int
+already_in_place(jit_operand_t src, jit_operand_t dst)
+{
+  switch (MOVE_KIND(src.kind, dst.kind)) {
+  case MOVE_GPR_TO_GPR:
+    return jit_same_gprs (src.loc.gpr.gpr, dst.loc.gpr.gpr);
+  case MOVE_FPR_TO_FPR:
+    return jit_same_fprs (src.loc.fpr, dst.loc.fpr);
+  case MOVE_MEM_TO_MEM:
+    return jit_same_gprs (src.loc.mem.base, dst.loc.mem.base) &&
+      src.loc.mem.offset == dst.loc.mem.offset;
+  default:
+    return 0;
+  }
+}
+
+static inline int
+write_would_clobber(jit_operand_t src, jit_operand_t dst)
+{
+  if (already_in_place (src, dst))
+    return 1;
+
+  if (MOVE_KIND(src.kind, dst.kind) == MOVE_MEM_TO_GPR)
+    return jit_same_gprs(src.loc.mem.base, dst.loc.gpr.gpr);
+
+  return 0;
+}
+
+static inline ptrdiff_t
+operand_addend(jit_operand_t op)
+{
+  switch (op.kind) {
+  case JIT_OPERAND_KIND_GPR:
+    return op.loc.gpr.addend;
+  case JIT_OPERAND_KIND_MEM:
+    return op.loc.mem.addend;
+  default:
+    abort();
+  }
+}
+
+static void
+move_one(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
+         size_t argc, enum move_status *status, size_t i)
+{
+  int tmp_gpr = 0, tmp_fpr = 0;
+
+  if (already_in_place(src[i], dst[i]))
+    return;
+
+  status[i] = BEING_MOVED;
+  for (size_t j = 0; j < argc; j++) {
+    if (write_would_clobber(src[j], dst[i])) {
+      switch (status[j]) {
+      case TO_MOVE:
+        move_one(_jit, dst, src, argc, status, j);
+        break;
+      case BEING_MOVED: {
+        jit_operand_t tmp;
+        if (is_fpr_arg (src[j].kind)) {
+          tmp_fpr = 1;
+          tmp = jit_operand_fpr(src[j].abi, get_temp_xpr(_jit));
+        } else {
+          tmp_gpr = 1;
+          /* Preserve addend, if any, from source operand, to be applied
+             at the end.  */
+          tmp = jit_operand_gpr_with_addend(src[j].abi, get_temp_gpr(_jit),
+                                            operand_addend(src[j]));
+        }
+        move_operand (_jit, tmp, src[j]);
+        src[j] = tmp;
+        break;
+      }
+      case MOVED:
+        break;
+      default:
+        abort ();
+      }
+    }
+  }
+
+  move_operand (_jit, dst[i], src[i]);
+  status[i] = MOVED;
+  if (tmp_gpr)
+    unget_temp_gpr(_jit);
+  else if (tmp_fpr)
+    unget_temp_xpr(_jit);
+}
+
+static void
+apply_addend(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
+{
+  switch (MOVE_KIND(src.kind, dst.kind)) {
+  case MOVE_GPR_TO_GPR:
+  case MOVE_MEM_TO_GPR:
+    if (operand_addend(src))
+      jit_addi(_jit, dst.loc.gpr.gpr, dst.loc.gpr.gpr, operand_addend(src));
+    break;
+  case MOVE_GPR_TO_MEM:
+  case MOVE_MEM_TO_MEM:
+    if (operand_addend(src)) {
+      jit_gpr_t tmp = get_temp_gpr(_jit);
+      abi_mem_to_gpr(_jit, dst.abi, tmp, dst.loc.mem.base, dst.loc.mem.offset);
+      jit_addi(_jit, tmp, tmp, operand_addend(src));
+      abi_gpr_to_mem(_jit, dst.abi, dst.loc.mem.base, dst.loc.mem.offset, tmp);
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+/* Preconditions: No dest operand is IMM.  No dest operand aliases
+   another dest operand.  No dest MEM operand uses a base register which
+   is used as a dest GPR.  No dst operand has an addend.  The registers
+   returned by get_temp_gpr and get_temp_fpr do not appear in source or
+   dest args.  */
+void
+jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
+                  size_t argc)
+{
+  // Check preconditions, except the condition about tmp registers.
+  {
+    uint64_t src_gprs = 0;
+    uint64_t dst_gprs = 0;
+    uint64_t dst_fprs = 0;
+    uint64_t dst_mem_base_gprs = 0;
+    for (size_t i = 0; i < argc; i++) {
+      switch (src[i].kind) {
+      case JIT_OPERAND_KIND_GPR:
+        src_gprs |= 1ULL << jit_gpr_regno(src[i].loc.gpr.gpr);
+        break;
+      case JIT_OPERAND_KIND_FPR:
+      case JIT_OPERAND_KIND_IMM:
+      case JIT_OPERAND_KIND_MEM:
+        break;
+      default:
+        abort();
+      }
+      switch (dst[i].kind) {
+      case JIT_OPERAND_KIND_GPR: {
+        ASSERT(dst[i].loc.gpr.addend == 0);
+        uint64_t bit = 1ULL << jit_gpr_regno(dst[i].loc.gpr.gpr);
+        ASSERT((dst_gprs & bit) == 0);
+        dst_gprs |= bit;
+        break;
+      }
+      case JIT_OPERAND_KIND_FPR: {
+        uint64_t bit = 1ULL << jit_fpr_regno(dst[i].loc.fpr);
+        ASSERT((dst_fprs & bit) == 0);
+        dst_fprs |= bit;
+        break;
+      }
+      case JIT_OPERAND_KIND_MEM: {
+        ASSERT(dst[i].loc.mem.addend == 0);
+        uint64_t bit = 1ULL << jit_gpr_regno(dst[i].loc.mem.base);
+        dst_mem_base_gprs |= bit;
+        break;
+      }
+      case JIT_OPERAND_KIND_IMM:
+      default:
+        abort();
+        break;
+      }
+    }
+    ASSERT(((src_gprs | dst_gprs) & dst_mem_base_gprs) == 0);
+  }
+
+  enum move_status status[argc];
+  for (size_t i = 0; i < argc; i++)
+    status[i] = TO_MOVE;
+  for (size_t i = 0; i < argc; i++)
+    if (status[i] == TO_MOVE)
+      move_one(_jit, dst, src, argc, status, i);
+
+  // Apply addends at the end.  We could do it earlier in some cases but
+  // at least at the end we know that an in-place increment of one
+  // operand won't alias another.
+  for (size_t i = 0; i < argc; i++)
+    apply_addend(_jit, dst[i], src[i]);
+}
+
+size_t
+jit_align_stack(jit_state_t *_jit, size_t expand)
+{
+  size_t new_size = _jit->frame_size + expand;
+  // Align stack to double-word boundaries.  This isn't really a
+  // principle but it does work for Aarch32, AArch64 and x86-64.
+  size_t alignment = __WORDSIZE * 2;
+  size_t aligned_size = (new_size + alignment - 1) & ~(alignment - 1);
+  size_t diff = aligned_size - _jit->frame_size;
+  if (diff)
+    jit_subi (_jit, JIT_SP, JIT_SP, diff);
+  _jit->frame_size = aligned_size;
+  return diff;
+}
+
+void
+jit_shrink_stack(jit_state_t *_jit, size_t diff)
+{
+  if (diff)
+    jit_addi (_jit, JIT_SP, JIT_SP, diff);
+  _jit->frame_size -= diff;
+}
+
+// Precondition: stack is already aligned.
+static size_t
+prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
+{
+  jit_operand_t dst[argc];
+  struct abi_arg_iterator iter;
+  
+  // Compute shuffle destinations and space for spilled arguments.
+  reset_abi_arg_iterator(&iter, argc, args);
+  for (size_t i = 0; i < argc; i++)
+    next_abi_arg(&iter, &dst[i]);
+
+  // Reserve space for spilled arguments and ensure stack alignment.
+  size_t stack_size = jit_align_stack(_jit, iter.stack_size);
+
+  // Fix up SP-relative operands.
+  for (size_t i = 0; i < argc; i++) {
+    switch(args[i].kind) {
+    case JIT_OPERAND_KIND_GPR:
+      if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+        args[i].loc.gpr.addend += stack_size;
+      break;
+    case JIT_OPERAND_KIND_MEM:
+      if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+        args[i].loc.mem.offset += stack_size;
+      break;
+    default:
+      break;
+    }
+  }
+
+  jit_move_operands(_jit, dst, args, argc);
+
+  return stack_size;
+}
+
+void
+jit_calli(jit_state_t *_jit, jit_pointer_t f, size_t argc, jit_operand_t args[])
+{
+  size_t stack_bytes = prepare_call_args(_jit, argc, args);
+
+  calli(_jit, (jit_word_t)f);
+
+  jit_shrink_stack(_jit, stack_bytes);
+}
+
+void
+jit_callr(jit_state_t *_jit, jit_gpr_t f, size_t argc, jit_operand_t args[])
+{
+  size_t stack_bytes = prepare_call_args(_jit, argc, args);
+
+  callr(_jit, jit_gpr_regno(f));
+
+  jit_shrink_stack(_jit, stack_bytes);
+}
+
+void
+jit_locate_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
+{
+  struct abi_arg_iterator iter;
+    
+  reset_abi_arg_iterator(&iter, argc, args);
+  for (size_t i = 0; i < argc; i++)
+    next_abi_arg(&iter, &args[i]);
+}
+
+/* Precondition: args are distinct locations of type GPR or FPR.  All
+   addends of arg operands are zero.  No GPR arg is SP.  */
+void
+jit_load_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
+{
+  jit_operand_t src[argc];
+
+  memcpy(src, args, sizeof(src[0]) * argc);
+
+  jit_locate_args(_jit, argc, src);
+  jit_move_operands(_jit, args, src, argc);
+}

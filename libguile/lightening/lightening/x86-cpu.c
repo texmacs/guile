@@ -254,6 +254,7 @@ rx(jit_state_t *_jit, int32_t rd, int32_t md,
 static void
 pushr(jit_state_t *_jit, int32_t r0)
 {
+  _jit->frame_size += __WORDSIZE;
   rex(_jit, 0, WIDE, 0, 0, r0);
   ic(_jit, 0x50 | r7(r0));
 }
@@ -261,6 +262,7 @@ pushr(jit_state_t *_jit, int32_t r0)
 static void
 popr(jit_state_t *_jit, int32_t r0)
 {
+  _jit->frame_size -= __WORDSIZE;
   rex(_jit, 0, WIDE, 0, 0, r0);
   ic(_jit, 0x58 | r7(r0));
 }
@@ -401,7 +403,7 @@ mov_addr(jit_state_t *_jit, int32_t r0)
   rex(_jit, 0, WIDE, _NOREG, _NOREG, r0);
   ic(_jit, 0xb8 | r7(r0));
   ptrdiff_t inst_start = _jit->pc.uc - pc_start;
-  return jit_reloc(_jit, JIT_RELOC_ABSOLUTE, inst_start, 0);
+  return jit_reloc(_jit, JIT_RELOC_ABSOLUTE, inst_start);
 }
 
 static void
@@ -655,15 +657,6 @@ testi(jit_state_t *_jit, int32_t r0, jit_word_t i0)
     mrm(_jit, 0x03, 0x00, r7(r0));
   }
   ii(_jit, i0);
-}
-
-static void
-cc(jit_state_t *_jit, int32_t code, int32_t r0)
-{
-  rex(_jit, 0, 0, _NOREG, _NOREG, r0);
-  ic(_jit, 0x0f);
-  ic(_jit, 0x90 | code);
-  mrm(_jit, 0x03, 0x00, r7(r0));
 }
 
 static void
@@ -1464,69 +1457,6 @@ xori(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 }
 
 static void
-cr(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1, int32_t r2)
-{
-  if (reg8_p(r0)) {
-    jit_bool_t same = r0 == r1 || r0 == r2;
-    if (!same)
-      ixorr(_jit, r0, r0);
-    icmpr(_jit, r1, r2);
-    if (same)
-      imovi(_jit, r0, 0);
-    cc(_jit, code, r0);
-  } else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
-    icmpr(_jit, r1, r2);
-    cc(_jit, code, jit_gpr_regno(reg));
-    movr(_jit, r0, jit_gpr_regno(reg));
-    unget_temp_gpr(_jit);
-  }
-}
-
-static void
-ci(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1, jit_word_t i0)
-{
-  if (reg8_p(r0)) {
-    jit_bool_t same = r0 == r1;
-    if (!same)
-      ixorr(_jit, r0, r0);
-    icmpi(_jit, r1, i0);
-    if (same)
-      imovi(_jit, r0, 0);
-    cc(_jit, code, r0);
-  } else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
-    icmpi(_jit, r1, i0);
-    cc(_jit, code, jit_gpr_regno(reg));
-    movr(_jit, r0, jit_gpr_regno(reg));
-    unget_temp_gpr(_jit);
-  }
-}
-
-static void
-ci0(jit_state_t *_jit, int32_t code, int32_t r0, int32_t r1)
-{
-  if (reg8_p(r0)) {
-    jit_bool_t same = r0 == r1;
-    if (!same)
-      ixorr(_jit, r0, r0);
-    testr(_jit, r1, r1);
-    if (same)
-      imovi(_jit, r0, 0);
-    cc(_jit, code, r0);
-  } else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
-    ixorr(_jit, jit_gpr_regno(reg), jit_gpr_regno(reg));
-    testr(_jit, r1, r1);
-    cc(_jit, code, jit_gpr_regno(reg));
-    movr(_jit, r0, jit_gpr_regno(reg));
-    unget_temp_gpr(_jit);
-  }
-}
-
-static void
 extr_c(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (reg8_p(r1)) {
@@ -2253,7 +2183,7 @@ static jit_reloc_t
 jccs(jit_state_t *_jit, int32_t code)
 {
   ic(_jit, 0x70 | code);
-  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0);
+  return jit_reloc(_jit, JIT_RELOC_REL8, 1);
 }
 
 static jit_reloc_t
@@ -2261,7 +2191,26 @@ jcc(jit_state_t *_jit, int32_t code)
 {
   ic(_jit, 0x0f);
   ic(_jit, 0x80 | code);
-  return jit_reloc(_jit, JIT_RELOC_REL32, 2, 0);
+  return jit_reloc(_jit, JIT_RELOC_REL32, 2);
+}
+
+static void
+jcci(jit_state_t *_jit, int32_t code, jit_word_t i0)
+{
+  ptrdiff_t rel8 = i0 - (_jit->pc.w + 1 + 1);
+  ptrdiff_t rel32 = i0 - (_jit->pc.w + 2 + 4);
+  if (INT8_MIN <= rel8 && rel8 <= INT8_MAX)
+    {
+      ic(_jit, 0x70 | code);
+      ic(_jit, rel8);
+    }
+  else
+    {
+      ASSERT(INT32_MIN <= rel32 && rel32 <= INT32_MAX);
+      ic(_jit, 0x0f);
+      ic(_jit, 0x80 | code);
+      ii(_jit, rel32);
+    }
 }
 
 #define DEFINE_JUMPS(cc, CC, code)                                      \
@@ -2664,8 +2613,14 @@ jmpr(jit_state_t *_jit, int32_t r0)
 static void
 jmpi(jit_state_t *_jit, jit_word_t i0)
 {
+  ptrdiff_t rel8 = i0 - (_jit->pc.w + 1 + 1);
   ptrdiff_t rel32 = i0 - (_jit->pc.w + 1 + 4);
-  if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
+  if (INT8_MIN <= rel8 && rel8 <= INT8_MAX)
+    {
+      ic(_jit, 0xeb);
+      ic(_jit, rel8);
+    }
+  else if (INT32_MIN <= rel32 && rel32 <= INT32_MAX)
     {
       ic(_jit, 0xe9);
       ii(_jit, rel32);
@@ -2683,14 +2638,7 @@ static jit_reloc_t
 jmp(jit_state_t *_jit)
 {
   ic(_jit, 0xe9);
-  return jit_reloc(_jit, JIT_RELOC_REL32, 1, 0);
-}
-
-static jit_reloc_t
-jmpsi(jit_state_t *_jit)
-{
-  ic(_jit, 0xeb);
-  return jit_reloc(_jit, JIT_RELOC_REL8, 1, 0);
+  return jit_reloc(_jit, JIT_RELOC_REL32, 1);
 }
 
 static void
