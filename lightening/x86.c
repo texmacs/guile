@@ -214,12 +214,6 @@ jit_init(jit_state_t *_jit)
   return jit_cpu.sse2;
 }
 
-void
-jit_epilog(jit_state_t *_jit)
-{
-  /* TODO: Restore registers.  */
-}
-
 static jit_bool_t
 is_fpr_arg(enum jit_operand_abi arg)
 {
