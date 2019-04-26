@@ -119,6 +119,7 @@ struct jit_state
   uint8_t temp_gpr_saved;
   uint8_t temp_fpr_saved;
   uint8_t overflow;
+  int frame_size; // Used to know when to align stack.
   void* (*alloc)(size_t);
   void (*free)(void*);
 };
@@ -189,6 +190,7 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->pc.uc = _jit->start = buf;
   _jit->limit = buf + length;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 }
 
 jit_bool_t
@@ -204,6 +206,7 @@ jit_reset(jit_state_t *_jit)
   ASSERT (_jit->start);
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 }
 
 void*
@@ -225,6 +228,7 @@ jit_end(jit_state_t *_jit, size_t *length)
 
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
+  _jit->frame_size = 0;
 
   return code;
 }
@@ -888,6 +892,29 @@ jit_move_operands(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
     apply_addend(_jit, dst[i], src[i]);
 }
 
+static size_t
+jit_align_stack(jit_state_t *_jit, size_t expand)
+{
+  size_t new_size = _jit->frame_size + expand;
+  // Align stack to double-word boundaries.  This isn't really a
+  // principle but it does work for Aarch32, AArch64 and x86-64.
+  size_t alignment = __WORDSIZE * 2;
+  size_t aligned_size = (new_size + alignment - 1) & ~(alignment - 1);
+  size_t diff = aligned_size - _jit->frame_size;
+  if (diff)
+    jit_subi (_jit, JIT_SP, JIT_SP, diff);
+  _jit->frame_size = aligned_size;
+  return diff;
+}
+
+static void
+jit_shrink_stack(jit_state_t *_jit, size_t diff)
+{
+  if (diff)
+    jit_addi (_jit, JIT_SP, JIT_SP, diff);
+  _jit->frame_size -= diff;
+}
+
 // Precondition: stack is already aligned.
 static size_t
 prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
@@ -900,31 +927,24 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &dst[i]);
 
-  size_t stack_size = iter.stack_size;
+  // Reserve space for spilled arguments and ensure stack alignment.
+  size_t stack_size = jit_align_stack(_jit, iter.stack_size);
 
-  // Reserve space for spilled arguments, and fix up SP-relative
-  // operands.
-  if (stack_size)
-    {
-      // Align stack to 16-byte boundaries on 64-bit targets.
-      if (__WORDSIZE == 64)
-        stack_size = (stack_size + 15) & ~15;
-      jit_subi(_jit, JIT_SP, JIT_SP, stack_size);
-      for (size_t i = 0; i < argc; i++) {
-        switch(args[i].kind) {
-        case JIT_OPERAND_KIND_GPR:
-          if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
-            args[i].loc.gpr.addend += stack_size;
-          break;
-        case JIT_OPERAND_KIND_MEM:
-          if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
-            args[i].loc.mem.offset += stack_size;
-          break;
-        default:
-          break;
-        }
-      }
+  // Fix up SP-relative operands.
+  for (size_t i = 0; i < argc; i++) {
+    switch(args[i].kind) {
+    case JIT_OPERAND_KIND_GPR:
+      if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+        args[i].loc.gpr.addend += stack_size;
+      break;
+    case JIT_OPERAND_KIND_MEM:
+      if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+        args[i].loc.mem.offset += stack_size;
+      break;
+    default:
+      break;
     }
+  }
 
   jit_move_operands(_jit, dst, args, argc);
 
@@ -934,23 +954,21 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 void
 jit_calli(jit_state_t *_jit, jit_pointer_t f, size_t argc, jit_operand_t args[])
 {
-  size_t spill_size = prepare_call_args(_jit, argc, args);
+  size_t stack_bytes = prepare_call_args(_jit, argc, args);
 
   calli(_jit, (jit_word_t)f);
 
-  if (spill_size)
-    jit_addi(_jit, JIT_SP, JIT_SP, spill_size);
+  jit_shrink_stack(_jit, stack_bytes);
 }
 
 void
 jit_callr(jit_state_t *_jit, jit_gpr_t f, size_t argc, jit_operand_t args[])
 {
-  size_t spill_size = prepare_call_args(_jit, argc, args);
+  size_t stack_bytes = prepare_call_args(_jit, argc, args);
 
   callr(_jit, jit_gpr_regno(f));
 
-  if (spill_size)
-    jit_addi(_jit, JIT_SP, JIT_SP, spill_size);
+  jit_shrink_stack(_jit, stack_bytes);
 }
 
 void
