@@ -351,6 +351,42 @@ jit_flush(void *fptr, void *tptr)
 }
 
 static void
-jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc)
+jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
 {
+  uint8_t *loc = _jit->start + reloc.offset;
+  uint8_t *start = loc - reloc.inst_start_offset;
+  jit_imm_t i0 = (jit_imm_t)addr;
+
+  switch (reloc.kind)
+    {
+    case JIT_RELOC_ABSOLUTE: {
+      _jit->pc.uc = start;
+      ASSERT((loc[-1] & ~7) == 0xb8); // MOVI
+      int32_t r0 = loc[-1] & 7;
+      if (start != loc - 1) {
+        ASSERT(start == loc - 2);
+        r0 |= (loc[-2] & 1) << 3;
+      }
+      return movi(_jit, r0, i0);
+    }
+    case JIT_RELOC_REL8:
+      ASSERT((loc[-1] & ~0xf) == 0x70 || loc[-1] == 0xeb); // JCCSI or JMPSI
+      /* Nothing useful to do.  */
+      return;
+    case JIT_RELOC_REL16:
+      /* We don't emit these.  */
+      abort ();
+    case JIT_RELOC_REL32:
+      _jit->pc.uc = start;
+      if (start[0] == 0xe9) { // JMP
+        return jmpi(_jit, i0);
+      }
+      ASSERT(start[0] == 0x0f); // JCC
+      return jcci(_jit, start[1] & ~0x80, i0);
+    case JIT_RELOC_REL64:
+      /* We don't emit these.  */
+      abort ();
+    default:
+      abort ();
+    }
 }

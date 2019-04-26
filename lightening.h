@@ -78,7 +78,6 @@ typedef struct jit_reloc
 {
   uint8_t kind;
   uint8_t inst_start_offset;
-  uint16_t flags;
   uint32_t offset;
 } jit_reloc_t;
 
