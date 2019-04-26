@@ -133,6 +133,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_V0   _RBX
 #  define JIT_V1   _RSI
 #  define JIT_V2   _RDI
+#  define JIT_VTMP _RBP
 #  define JIT_F0   _XMM0
 #  define JIT_F1   _XMM1
 #  define JIT_F2   _XMM2

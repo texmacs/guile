@@ -273,8 +273,7 @@ get_temp_gpr(jit_state_t *_jit)
 #ifdef JIT_RTMP
   return JIT_RTMP;
 #else
-  pushr(_jit, _RBP_REGNO);
-  return _RBP;
+  return JIT_VTMP;
 #endif
 }
 
@@ -283,9 +282,6 @@ unget_temp_gpr(jit_state_t *_jit)
 {
   ASSERT(_jit->temp_gpr_saved);
   _jit->temp_gpr_saved = 0;
-#ifndef JIT_RTMP
-  popr(_jit, _RBP_REGNO);
-#endif
 }
 
 static void

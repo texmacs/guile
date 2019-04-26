@@ -863,6 +863,104 @@ jit_shrink_stack(jit_state_t *_jit, size_t diff)
   _jit->frame_size -= diff;
 }
 
+static const jit_gpr_t V[] = {
+#ifdef JIT_VTMP
+  JIT_VTMP ,
+#endif
+  JIT_V0, JIT_V1, JIT_V2
+#ifdef JIT_V3
+  , JIT_V3
+#endif
+#ifdef JIT_V4
+  , JIT_V4
+#endif
+#ifdef JIT_V5
+  , JIT_V5
+#endif
+#ifdef JIT_V6
+  , JIT_V6
+#endif
+#ifdef JIT_V7
+  , JIT_V7
+#endif
+ };
+
+static const jit_fpr_t VF[] = {
+#ifdef JIT_VFTMP
+  JIT_VFTMP ,
+#endif
+#ifdef JIT_VF0
+  JIT_VF0
+#endif
+#ifdef JIT_VF1
+  , JIT_VF1
+#endif
+#ifdef JIT_VF2
+  , JIT_VF2
+#endif
+#ifdef JIT_VF3
+  , JIT_VF3
+#endif
+#ifdef JIT_VF4
+  , JIT_VF4
+#endif
+#ifdef JIT_VF5
+  , JIT_VF5
+#endif
+#ifdef JIT_VF6
+  , JIT_VF6
+#endif
+#ifdef JIT_VF7
+  , JIT_VF7
+#endif
+};
+
+static const size_t v_count = sizeof(V) / sizeof(V[0]);
+static const size_t vf_count = sizeof(VF) / sizeof(VF[0]);
+
+size_t
+jit_enter_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
+{
+#ifdef JIT_VTMP
+  v++;
+#endif
+#ifdef JIT_VFTMP
+  vf++;
+#endif
+
+  ASSERT(v <= v_count);
+  ASSERT(vf <= vf_count);
+
+  /* Save values of callee-save registers.  */
+  for (size_t i = 0; i < v; i++)
+    jit_pushr (_jit, V[i]);
+  for (size_t i = 0; i < vf; i++)
+    jit_pushr_d (_jit, VF[i]);
+
+  return jit_align_stack(_jit, frame_size);
+}
+
+void
+jit_leave_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
+{
+#ifdef JIT_VTMP
+  v++;
+#endif
+#ifdef JIT_VFTMP
+  vf++;
+#endif
+
+  jit_shrink_stack(_jit, frame_size);
+
+  /* Restore callee-save registers.  */
+  for (size_t i = 0; i < vf; i++)
+    jit_popr_d (_jit, VF[vf_count - i - 1]);
+
+  for (size_t i = 0; i < v; i++)
+    jit_popr (_jit, V[v_count - i - 1]);
+}
+
+
 // Precondition: stack is already aligned.
 static size_t
 prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
