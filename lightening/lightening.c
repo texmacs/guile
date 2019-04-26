@@ -37,69 +37,6 @@
 
 #define _NOREG 0xffff
 
-#if defined(__i386__) || defined(__x86_64__)
-# define JIT_RET                _RAX
-# if __X32
-#  define JIT_FRET              _ST0
-# else
-#  if __CYGWIN__
-#   define JIT_RA0              _RCX
-#  else
-#   define JIT_RA0              _RDI
-#  endif
-#  define JIT_FA0               _XMM0
-#  define JIT_FRET              _XMM0
-# endif
-#elif defined(__mips__)
-# define JIT_RA0                _A0
-# define JIT_FA0                _F12
-# define JIT_SP         _SP
-# define JIT_RET                _V0
-# define JIT_FRET               _F0
-#elif defined(__arm__)
-# define JIT_RA0                _R0
-# define JIT_FA0                _D0
-# define JIT_SP         _R13
-# define JIT_RET                _R0
-# if defined(__ARM_PCS_VFP)
-#  define JIT_FRET              _D0
-# else
-#  define JIT_FRET              _R0
-# endif
-#elif defined(__ppc__) || defined(__powerpc__)
-# define JIT_RA0                _R3
-# define JIT_FA0                _F1
-# define JIT_SP         _R1
-# define JIT_RET                _R3
-# define JIT_FRET               _F1
-#elif defined(__sparc__)
-# define JIT_SP         _SP
-# define JIT_RET                _I0
-# define JIT_FRET               _F0
-#elif defined(__ia64__)
-# define JIT_SP         _R12
-# define JIT_RET                _R8
-# define JIT_FRET               _F8
-#elif defined(__hppa__)
-# define JIT_SP         _R30
-# define JIT_RET                _R28
-# define JIT_FRET               _F4
-#elif defined(__aarch64__)
-# define JIT_RA0                _R0
-# define JIT_FA0                _V0
-# define JIT_SP         _SP
-# define JIT_RET                _R0
-# define JIT_FRET               _V0
-#elif defined(__s390__) || defined(__s390x__)
-# define JIT_SP         _R15
-# define JIT_RET                _R2
-# define JIT_FRET               _F0
-#elif defined(__alpha__)
-# define JIT_SP         _SP
-# define JIT_RET                _V0
-# define JIT_FRET               _F0
-#endif
-
 union jit_pc
 {
   uint8_t *uc;

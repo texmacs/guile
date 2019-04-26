@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -20,6 +20,16 @@
 #if defined(__linux__)
 #  include <stdio.h>
 #endif
+
+# define JIT_RA0                _R0
+# define JIT_FA0                _D0
+# define JIT_SP         _R13
+# define JIT_RET                _R0
+# if defined(__ARM_PCS_VFP)
+#  define JIT_FRET              _D0
+# else
+#  define JIT_FRET              _R0
+# endif
 
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 4)
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 16)

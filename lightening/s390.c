@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2013-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -16,6 +16,10 @@
  * Authors:
  *	Paulo Cesar Pereira de Andrade
  */
+
+# define JIT_SP         _R15
+# define JIT_RET                _R2
+# define JIT_FRET               _F0
 
 #if __WORDSIZE == 32
 #  define NUM_FLOAT_REG_ARGS		2
