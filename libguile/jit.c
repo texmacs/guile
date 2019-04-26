@@ -1282,6 +1282,8 @@ emit_entry_trampoline (scm_jit_state *j)
     if (jit_fpr_is_callee_save (fprs[i]))
       jit_pushr_d (j->jit, fprs[i]);
 
+  size_t alignment = jit_align_stack (j->jit, 0);
+
   /* Load our reserved registers: THREAD and SP.  Also load IP for the
      mcode jump.  */
   jit_load_args_2 (j->jit, thread_operand (),
@@ -1296,6 +1298,8 @@ emit_entry_trampoline (scm_jit_state *j)
 
   /* Initialize global exit_mcode to point here.  */
   exit_mcode = jit_address (j->jit);
+
+  jit_shrink_stack (j->jit, alignment);
 
   /* Restore callee-save registers.  */
   for (size_t i = 0; i < fpr_count; i++)
