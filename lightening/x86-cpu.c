@@ -161,9 +161,9 @@ ii(jit_state_t *_jit, uint32_t i)
 }
 
 static inline void
-il(jit_state_t *_jit, unsigned long l)
+iw(jit_state_t *_jit, jit_word_t l)
 {
-#if __X64 && !__X64_32
+#if __X64
   emit_u64(_jit, l);
 #else
   ii(_jit, l);
@@ -410,19 +410,15 @@ static void
 imovi(jit_state_t *_jit, int32_t r0, jit_word_t i0)
 {
 #if __X64
-#  if !__X64_32
   if (fits_uint32_p(i0)) {
-#  endif
     rex(_jit, 0, 0, _NOREG, _NOREG, r0);
     ic(_jit, 0xb8 | r7(r0));
     ii(_jit, i0);
-#  if !__X64_32
   } else {
     rex(_jit, 0, 1, _NOREG, _NOREG, r0);
     ic(_jit, 0xb8 | r7(r0));
-    il(_jit, i0);
+    iw(_jit, i0);
   }
-#  endif
 #else
   ic(_jit, 0xb8 | r7(r0));
   ii(_jit, i0);
