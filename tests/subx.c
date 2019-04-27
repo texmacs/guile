@@ -4,12 +4,14 @@ static void
 run_test(jit_state_t *j, uint8_t *arena_base, size_t arena_size)
 {
   jit_begin(j, arena_base, arena_size);
+  size_t align = jit_enter_jit_abi(j, 0, 0, 0);
   jit_load_args_2(j, jit_operand_gpr (JIT_OPERAND_ABI_WORD, JIT_R0),
                   jit_operand_gpr (JIT_OPERAND_ABI_WORD, JIT_R1));
 
   jit_movi(j, JIT_R2, 0);
   jit_subcr(j, JIT_R0, JIT_R0, JIT_R1);
   jit_subxi(j, JIT_R2, JIT_R2, 0);
+  jit_leave_jit_abi(j, 0, 0, align);
   jit_retr(j, JIT_R2);
 
   size_t size = 0;
