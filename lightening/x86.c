@@ -356,6 +356,16 @@ jit_flush(void *fptr, void *tptr)
 {
 }
 
+static inline size_t
+jit_stack_alignment(void)
+{
+#if __X64
+  return 16;
+#else
+  return 4;
+#endif
+}
+
 static void
 jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
 {

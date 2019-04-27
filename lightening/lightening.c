@@ -846,7 +846,7 @@ jit_align_stack(jit_state_t *_jit, size_t expand)
   size_t new_size = _jit->frame_size + expand;
   // Align stack to double-word boundaries.  This isn't really a
   // principle but it does work for Aarch32, AArch64 and x86-64.
-  size_t alignment = __WORDSIZE / 8 * 2;
+  size_t alignment = jit_stack_alignment ();
   size_t aligned_size = (new_size + alignment - 1) & ~(alignment - 1);
   size_t diff = aligned_size - _jit->frame_size;
   if (diff)
@@ -954,10 +954,10 @@ jit_leave_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
 
   /* Restore callee-save registers.  */
   for (size_t i = 0; i < vf; i++)
-    jit_popr_d (_jit, VF[vf_count - i - 1]);
+    jit_popr_d (_jit, VF[vf - i - 1]);
 
   for (size_t i = 0; i < v; i++)
-    jit_popr (_jit, V[v_count - i - 1]);
+    jit_popr (_jit, V[v - i - 1]);
 }
 
 
