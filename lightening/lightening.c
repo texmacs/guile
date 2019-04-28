@@ -756,6 +756,7 @@ apply_addend(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
       abi_mem_to_gpr(_jit, dst.abi, tmp, dst.loc.mem.base, dst.loc.mem.offset);
       jit_addi(_jit, tmp, tmp, operand_addend(src));
       abi_gpr_to_mem(_jit, dst.abi, dst.loc.mem.base, dst.loc.mem.offset, tmp);
+      unget_temp_gpr(_jit);
     }
     break;
   default:
