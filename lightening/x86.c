@@ -315,17 +315,19 @@ round_size_up_to_words(size_t bytes)
   return words * word_size;
 }
 
+static size_t
+jit_initial_frame_size (void)
+{
+  return __WORDSIZE / 8; // Saved return address is on stack.
+}
+
 static void
 reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
-                       const jit_operand_t *args, enum stack_state state)
+                       const jit_operand_t *args)
 {
   memset(iter, 0, sizeof *iter);
   iter->argc = argc;
   iter->args = args;
-  if (state == AFTER_CALL)
-    iter->stack_size = __WORDSIZE / 8; // Saved return address.
-  else
-    ASSERT(state == BEFORE_CALL);
 }
 
 static void

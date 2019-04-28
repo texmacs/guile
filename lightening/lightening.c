@@ -68,12 +68,6 @@ struct jit_state
 # define UNLIKELY(exprn) exprn
 #endif
 
-enum stack_state
-{
-  BEFORE_CALL,
-  AFTER_CALL
-};
-
 static jit_bool_t jit_get_cpu(void);
 static jit_bool_t jit_init(jit_state_t *);
 static void jit_flush(void *fptr, void *tptr);
@@ -83,8 +77,7 @@ static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
 struct abi_arg_iterator;
 
 static void reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
-                                   const jit_operand_t *args,
-                                   enum stack_state state);
+                                   const jit_operand_t *args);
 static void next_abi_arg(struct abi_arg_iterator *iter,
                          jit_operand_t *arg);
 
@@ -931,6 +924,9 @@ jit_enter_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
   ASSERT(v <= v_count);
   ASSERT(vf <= vf_count);
 
+  ASSERT(_jit->frame_size == 0);
+  _jit->frame_size = jit_initial_frame_size();
+
   /* Save values of callee-save registers.  */
   for (size_t i = 0; i < v; i++)
     jit_pushr (_jit, V[i]);
@@ -969,7 +965,7 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   struct abi_arg_iterator iter;
   
   // Compute shuffle destinations and space for spilled arguments.
-  reset_abi_arg_iterator(&iter, argc, args, BEFORE_CALL);
+  reset_abi_arg_iterator(&iter, argc, args);
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &dst[i]);
 
@@ -1022,7 +1018,7 @@ jit_locate_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 {
   struct abi_arg_iterator iter;
     
-  reset_abi_arg_iterator(&iter, argc, args, AFTER_CALL);
+  reset_abi_arg_iterator(&iter, argc, args);
   iter.stack_size += _jit->frame_size;
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &args[i]);
