@@ -1268,19 +1268,7 @@ emit_branch_if_heap_object_not_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
 static void
 emit_entry_trampoline (scm_jit_state *j)
 {
-  const jit_gpr_t gprs[] = { JIT_R0, JIT_R1, JIT_R2, JIT_V0, JIT_V1, JIT_V2 };
-  size_t gpr_count = sizeof(gprs) / sizeof(gprs[0]);
-  const jit_fpr_t fprs[] = { JIT_F0, JIT_F1, JIT_F2 };
-  size_t fpr_count = sizeof(fprs) / sizeof(fprs[0]);
-
-  /* Save values of callee-save registers.  */
-  for (size_t i = 0; i < gpr_count; i++)
-    if (jit_gpr_is_callee_save (gprs[i]))
-      jit_pushr (j->jit, gprs[i]);
-
-  for (size_t i = 0; i < fpr_count; i++)
-    if (jit_fpr_is_callee_save (fprs[i]))
-      jit_pushr_d (j->jit, fprs[i]);
+  size_t align = jit_enter_jit_abi(j->jit, 3, 0, 0);
 
   size_t alignment = jit_align_stack (j->jit, 0);
 
@@ -1293,24 +1281,13 @@ emit_entry_trampoline (scm_jit_state *j)
   /* Load FP, set during call sequences.  */
   emit_reload_fp (j);
 
-  size_t alignment = jit_align_stack (j->jit, 0);
-
   /* Jump to the mcode!  */
   jit_jmpr (j->jit, T0);
 
   /* Initialize global exit_mcode to point here.  */
   exit_mcode = jit_address (j->jit);
 
-  jit_shrink_stack (j->jit, alignment);
-
-  /* Restore callee-save registers.  */
-  for (size_t i = 0; i < fpr_count; i++)
-    if (jit_fpr_is_callee_save (fprs[fpr_count - i - 1]))
-      jit_popr_d (j->jit, fprs[fpr_count - i - 1]);
-
-  for (size_t i = 0; i < gpr_count; i++)
-    if (jit_gpr_is_callee_save (gprs[gpr_count - i - 1]))
-      jit_popr (j->jit, gprs[gpr_count - i - 1]);
+  jit_leave_jit_abi(j->jit, 3, 0, align);
 
   /* When mcode finishes, interpreter will continue with vp->ip.  */
   jit_ret (j->jit);
@@ -2057,7 +2034,7 @@ compile_allocate_words_immediate (scm_jit_state *j, uint16_t dst, uint16_t nword
 
   emit_store_current_ip (j, t);
   emit_call_2 (j, scm_vm_intrinsics.allocate_words, thread_operand (),
-               jit_operand_imm (JIT_OPERAND_ABI_INTMAX, nwords));
+               jit_operand_imm (JIT_OPERAND_ABI_WORD, nwords));
   emit_retval (j, t);
   emit_reload_sp (j);
   emit_sp_set_scm (j, dst, t);
