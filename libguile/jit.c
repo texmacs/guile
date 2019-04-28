@@ -492,7 +492,7 @@ emit_##stem (scm_jit_state *j,                                          \
              jit_##typ##_t dst1, jit_##typ##_t dst2,                    \
              jit_##typ##_t a, jit_##typ##_t b)                          \
 {                                                                       \
-  jit_##stem (dst1, dst2, a, b);                                        \
+  jit_##stem (j->jit, dst1, dst2, a, b);                                \
   record_##typ##_clobber (j, dst1);                                     \
   record_##typ##_clobber (j, dst2);                                     \
 }
@@ -2945,7 +2945,7 @@ compile_ursh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   else if (b == 32)
     {
       /*  hi = 0, lo = hi */
-      emit_movi (j, T0, T1);
+      emit_movr (j, T0, T1);
       emit_movi (j, T1, 0);
     }
   else /* b > 32 */
@@ -2985,13 +2985,13 @@ compile_ulsh_immediate (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
   else if (b == 32)
     {
       /*  hi = lo, lo = 0 */
-      emit_movi (j, T1, T0);
+      emit_movr (j, T1, T0);
       emit_movi (j, T0, 0);
     }
   else /* b > 32 */
     {
       /* hi = lo << (s-32), lo = 0 */
-      emit_lshr (j, T1, T0, b - 32);
+      emit_lshi (j, T1, T0, b - 32);
       emit_movi (j, T0, 0);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
