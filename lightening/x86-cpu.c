@@ -1886,6 +1886,8 @@ ldxi_l(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 }
 #endif
 
+static void stxi_c(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1);
+
 static void
 str_c(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
@@ -1894,12 +1896,8 @@ str_c(jit_state_t *_jit, int32_t r0, int32_t r1)
     ic(_jit, 0x88);
     rx(_jit, r1, 0, r0, _NOREG, _SCL1);
   } else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
-    movr(_jit, jit_gpr_regno(reg), r1);
-    rex(_jit, 0, 0, jit_gpr_regno(reg), _NOREG, r0);
-    ic(_jit, 0x88);
-    rx(_jit, jit_gpr_regno(reg), 0, r0, _NOREG, _SCL1);
-    unget_temp_gpr(_jit);
+    // See comment in stxi_c.
+    return stxi_c(_jit, 0, r0, r1);
   }
 }
 
@@ -2026,12 +2024,24 @@ stxi_c(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
       ic(_jit, 0x88);
       rx(_jit, r1, i0, r0, _NOREG, _SCL1);
     } else {
-      jit_gpr_t reg = get_temp_gpr(_jit);
-      movr(_jit, jit_gpr_regno(reg), r1);
-      rex(_jit, 0, 0, jit_gpr_regno(reg), _NOREG, r0);
+      // Here we have a hack.  Normally tmp registers are just for the
+      // backend's use, but there are cases in which jit_move_operands
+      // can use a temp register too.  In a move of an operand to memory
+      // this would result in two simultaneous uses of a temp register.
+      // Oddly this situation only applies on 32-bit x86 with byte
+      // stores -- this is the only platform on which reg8_p can be
+      // false -- so we just make a special case here.
+      ASSERT(r0 != r1);
+      int32_t tmp = r0 == _RAX_REGNO ? _RCX_REGNO : _RAX_REGNO;
+      ASSERT(reg8_p(tmp));
+      pushr(_jit, tmp);
+      movr(_jit, tmp, r1);
+      if (r0 == _RSP_REGNO)
+        i0 += __WORDSIZE / 8;
+      rex(_jit, 0, 0, tmp, _NOREG, r0);
       ic(_jit, 0x88);
-      rx(_jit, jit_gpr_regno(reg), i0, r0, _NOREG, _SCL1);
-      unget_temp_gpr(_jit);
+      rx(_jit, tmp, i0, r0, _NOREG, _SCL1);
+      popr(_jit, tmp);
     }
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
