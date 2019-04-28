@@ -29,6 +29,9 @@ test-ia32-%: CC = $(CC_IA32)
 test-ia32-%: %.c lightening-ia32.o test.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening-ia32.o $<
 
+.PRECIOUS: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
+.PRECIOUS: $(foreach TARGET,$(TARGETS),lightening-$(TARGET).o)
+
 clean:
 	rm -f $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
 	rm -f $(foreach TARGET,$(TARGETS),lightening-$(TARGET).o)
