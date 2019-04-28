@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -20,6 +20,12 @@
 #if defined(__linux__)
 #  include <sys/cachectl.h>
 #endif
+
+# define JIT_RA0                _A0
+# define JIT_FA0                _F12
+# define JIT_SP         _SP
+# define JIT_RET                _V0
+# define JIT_FRET               _F0
 
 #if NEW_ABI
 #  define NUM_WORD_ARGS			8

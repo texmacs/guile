@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -16,6 +16,12 @@
  * Authors:
  *	Paulo Cesar Pereira de Andrade
  */
+
+# define JIT_RA0                _R3
+# define JIT_FA0                _F1
+# define JIT_SP         _R1
+# define JIT_RET                _R3
+# define JIT_FRET               _F1
 
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 8)
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 13)

@@ -124,8 +124,8 @@ enum jit_operand_abi
   JIT_OPERAND_ABI_POINTER,
   JIT_OPERAND_ABI_FLOAT,
   JIT_OPERAND_ABI_DOUBLE,
-  JIT_OPERAND_ABI_INTMAX = CHOOSE_32_64(JIT_OPERAND_ABI_INT32,
-                                        JIT_OPERAND_ABI_INT64)
+  JIT_OPERAND_ABI_WORD = CHOOSE_32_64(JIT_OPERAND_ABI_INT32,
+                                      JIT_OPERAND_ABI_INT64)
 };
 
 enum jit_operand_kind
@@ -227,6 +227,11 @@ JIT_API void jit_move_operands (jit_state_t *_jit, jit_operand_t *dst,
 
 JIT_API size_t jit_align_stack (jit_state_t *_jit, size_t expand);
 JIT_API void jit_shrink_stack (jit_state_t *_jit, size_t diff);
+
+JIT_API size_t jit_enter_jit_abi (jit_state_t *_jit,
+                                  size_t v, size_t vf, size_t frame_size);
+JIT_API void jit_leave_jit_abi (jit_state_t *_jit,
+                                size_t v, size_t vf, size_t frame_size);
 
 /* Note that all functions that take jit_operand_t args[] use the args
    as scratch space while shuffling values into position.  */

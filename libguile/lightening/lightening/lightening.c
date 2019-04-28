@@ -37,69 +37,6 @@
 
 #define _NOREG 0xffff
 
-#if defined(__i386__) || defined(__x86_64__)
-# define JIT_RET                _RAX
-# if __X32
-#  define JIT_FRET              _ST0
-# else
-#  if __CYGWIN__
-#   define JIT_RA0              _RCX
-#  else
-#   define JIT_RA0              _RDI
-#  endif
-#  define JIT_FA0               _XMM0
-#  define JIT_FRET              _XMM0
-# endif
-#elif defined(__mips__)
-# define JIT_RA0                _A0
-# define JIT_FA0                _F12
-# define JIT_SP         _SP
-# define JIT_RET                _V0
-# define JIT_FRET               _F0
-#elif defined(__arm__)
-# define JIT_RA0                _R0
-# define JIT_FA0                _D0
-# define JIT_SP         _R13
-# define JIT_RET                _R0
-# if defined(__ARM_PCS_VFP)
-#  define JIT_FRET              _D0
-# else
-#  define JIT_FRET              _R0
-# endif
-#elif defined(__ppc__) || defined(__powerpc__)
-# define JIT_RA0                _R3
-# define JIT_FA0                _F1
-# define JIT_SP         _R1
-# define JIT_RET                _R3
-# define JIT_FRET               _F1
-#elif defined(__sparc__)
-# define JIT_SP         _SP
-# define JIT_RET                _I0
-# define JIT_FRET               _F0
-#elif defined(__ia64__)
-# define JIT_SP         _R12
-# define JIT_RET                _R8
-# define JIT_FRET               _F8
-#elif defined(__hppa__)
-# define JIT_SP         _R30
-# define JIT_RET                _R28
-# define JIT_FRET               _F4
-#elif defined(__aarch64__)
-# define JIT_RA0                _R0
-# define JIT_FA0                _V0
-# define JIT_SP         _SP
-# define JIT_RET                _R0
-# define JIT_FRET               _V0
-#elif defined(__s390__) || defined(__s390x__)
-# define JIT_SP         _R15
-# define JIT_RET                _R2
-# define JIT_FRET               _F0
-#elif defined(__alpha__)
-# define JIT_SP         _SP
-# define JIT_RET                _V0
-# define JIT_FRET               _F0
-#endif
-
 union jit_pc
 {
   uint8_t *uc;
@@ -136,6 +73,13 @@ static jit_bool_t jit_init(jit_state_t *);
 static void jit_flush(void *fptr, void *tptr);
 static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
                             jit_pointer_t addr);
+
+struct abi_arg_iterator;
+
+static void reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
+                                   const jit_operand_t *args);
+static void next_abi_arg(struct abi_arg_iterator *iter,
+                         jit_operand_t *arg);
 
 jit_bool_t
 init_jit(void)
@@ -574,21 +518,23 @@ abi_mem_to_gpr(jit_state_t *_jit, enum jit_operand_abi abi,
   case JIT_OPERAND_ABI_INT16:
     jit_ldxi_s(_jit, dst, base, offset);
     break;
+#if __WORDSIZE == 32
   case JIT_OPERAND_ABI_UINT32:
-    jit_ldxi_ui(_jit, dst, base, offset);
-    break;
+  case JIT_OPERAND_ABI_POINTER:
+#endif
   case JIT_OPERAND_ABI_INT32:
     jit_ldxi_i(_jit, dst, base, offset);
     break;
-  case JIT_OPERAND_ABI_UINT64:
-    jit_ldxi_l(_jit, dst, base, offset);
+#if __WORDSIZE == 64
+  case JIT_OPERAND_ABI_UINT32:
+    jit_ldxi_ui(_jit, dst, base, offset);
     break;
+  case JIT_OPERAND_ABI_UINT64:
+  case JIT_OPERAND_ABI_POINTER:
   case JIT_OPERAND_ABI_INT64:
     jit_ldxi_l(_jit, dst, base, offset);
     break;
-  case JIT_OPERAND_ABI_POINTER:
-    jit_ldxi_l(_jit, dst, base, offset);
-    break;
+#endif
   default:
     abort();
   }
@@ -612,7 +558,7 @@ abi_mem_to_fpr(jit_state_t *_jit, enum jit_operand_abi abi,
 
 static void
 abi_imm_to_mem(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t base,
-               ptrdiff_t offset, intmax_t imm)
+               ptrdiff_t offset, jit_imm_t imm)
 {
   ASSERT(!is_fpr_arg(abi));
 
@@ -893,7 +839,7 @@ jit_align_stack(jit_state_t *_jit, size_t expand)
   size_t new_size = _jit->frame_size + expand;
   // Align stack to double-word boundaries.  This isn't really a
   // principle but it does work for Aarch32, AArch64 and x86-64.
-  size_t alignment = __WORDSIZE * 2;
+  size_t alignment = jit_stack_alignment ();
   size_t aligned_size = (new_size + alignment - 1) & ~(alignment - 1);
   size_t diff = aligned_size - _jit->frame_size;
   if (diff)
@@ -909,6 +855,107 @@ jit_shrink_stack(jit_state_t *_jit, size_t diff)
     jit_addi (_jit, JIT_SP, JIT_SP, diff);
   _jit->frame_size -= diff;
 }
+
+static const jit_gpr_t V[] = {
+#ifdef JIT_VTMP
+  JIT_VTMP ,
+#endif
+  JIT_V0, JIT_V1, JIT_V2
+#ifdef JIT_V3
+  , JIT_V3
+#endif
+#ifdef JIT_V4
+  , JIT_V4
+#endif
+#ifdef JIT_V5
+  , JIT_V5
+#endif
+#ifdef JIT_V6
+  , JIT_V6
+#endif
+#ifdef JIT_V7
+  , JIT_V7
+#endif
+ };
+
+static const jit_fpr_t VF[] = {
+#ifdef JIT_VFTMP
+  JIT_VFTMP ,
+#endif
+#ifdef JIT_VF0
+  JIT_VF0
+#endif
+#ifdef JIT_VF1
+  , JIT_VF1
+#endif
+#ifdef JIT_VF2
+  , JIT_VF2
+#endif
+#ifdef JIT_VF3
+  , JIT_VF3
+#endif
+#ifdef JIT_VF4
+  , JIT_VF4
+#endif
+#ifdef JIT_VF5
+  , JIT_VF5
+#endif
+#ifdef JIT_VF6
+  , JIT_VF6
+#endif
+#ifdef JIT_VF7
+  , JIT_VF7
+#endif
+};
+
+static const size_t v_count = sizeof(V) / sizeof(V[0]);
+static const size_t vf_count = sizeof(VF) / sizeof(VF[0]);
+
+size_t
+jit_enter_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
+{
+#ifdef JIT_VTMP
+  v++;
+#endif
+#ifdef JIT_VFTMP
+  vf++;
+#endif
+
+  ASSERT(v <= v_count);
+  ASSERT(vf <= vf_count);
+
+  ASSERT(_jit->frame_size == 0);
+  _jit->frame_size = jit_initial_frame_size();
+
+  /* Save values of callee-save registers.  */
+  for (size_t i = 0; i < v; i++)
+    jit_pushr (_jit, V[i]);
+  for (size_t i = 0; i < vf; i++)
+    jit_pushr_d (_jit, VF[i]);
+
+  return jit_align_stack(_jit, frame_size);
+}
+
+void
+jit_leave_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
+{
+#ifdef JIT_VTMP
+  v++;
+#endif
+#ifdef JIT_VFTMP
+  vf++;
+#endif
+
+  jit_shrink_stack(_jit, frame_size);
+
+  /* Restore callee-save registers.  */
+  for (size_t i = 0; i < vf; i++)
+    jit_popr_d (_jit, VF[vf - i - 1]);
+
+  for (size_t i = 0; i < v; i++)
+    jit_popr (_jit, V[v - i - 1]);
+}
+
 
 // Precondition: stack is already aligned.
 static size_t
@@ -972,6 +1019,7 @@ jit_locate_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   struct abi_arg_iterator iter;
     
   reset_abi_arg_iterator(&iter, argc, args);
+  iter.stack_size += _jit->frame_size;
   for (size_t i = 0; i < argc; i++)
     next_abi_arg(&iter, &args[i]);
 }

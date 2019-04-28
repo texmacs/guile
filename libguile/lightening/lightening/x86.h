@@ -20,14 +20,9 @@
 #ifndef _jit_x86_h
 #define _jit_x86_h
 
-#define JIT_HASH_CONSTS         1
-#define JIT_NUM_OPERANDS        2
-
 /*
  * Types
  */
-#define jit_sse2_p()            jit_cpu.sse2
-#define jit_x87_reg_p(reg)      ((reg) >= _ST0 && (reg) <= _ST6)
 #if __WORDSIZE == 32
 # if defined(__x86_64__)
 #  define __X64    1
@@ -138,6 +133,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_V0   _RBX
 #  define JIT_V1   _RSI
 #  define JIT_V2   _RDI
+#  define JIT_VTMP _RBP
 #  define JIT_F0   _XMM0
 #  define JIT_F1   _XMM1
 #  define JIT_F2   _XMM2
@@ -209,49 +205,5 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_F14  _XMM14
 #  define JIT_FTMP _XMM15
 #endif
-
-typedef struct {
-  /* x87 present */
-  uint32_t fpu                : 1;
-  /* cmpxchg8b instruction */
-  uint32_t cmpxchg8b  : 1;
-  /* cmov and fcmov branchless conditional mov */
-  uint32_t cmov               : 1;
-  /* mmx registers/instructions available */
-  uint32_t mmx                : 1;
-  /* sse registers/instructions available */
-  uint32_t sse                : 1;
-  /* sse2 registers/instructions available */
-  uint32_t sse2               : 1;
-  /* sse3 instructions available */
-  uint32_t sse3               : 1;
-  /* pcmulqdq instruction */
-  uint32_t pclmulqdq  : 1;
-  /* ssse3 suplemental sse3 instructions available */
-  uint32_t ssse3              : 1;
-  /* fused multiply/add using ymm state */
-  uint32_t fma                : 1;
-  /* cmpxchg16b instruction */
-  uint32_t cmpxchg16b : 1;
-  /* sse4.1 instructions available */
-  uint32_t sse4_1             : 1;
-  /* sse4.2 instructions available */
-  uint32_t sse4_2             : 1;
-  /* movbe instruction available */
-  uint32_t movbe              : 1;
-  /* popcnt instruction available */
-  uint32_t popcnt             : 1;
-  /* aes instructions available */
-  uint32_t aes                : 1;
-  /* avx instructions available */
-  uint32_t avx                : 1;
-  /* lahf/sahf available in 64 bits mode */
-  uint32_t lahf               : 1;
-} jit_cpu_t;
-
-/*
- * Initialization
- */
-JIT_API jit_cpu_t               jit_cpu;
 
 #endif /* _jit_x86_h */
