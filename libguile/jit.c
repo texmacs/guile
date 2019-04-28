@@ -1270,8 +1270,6 @@ emit_entry_trampoline (scm_jit_state *j)
 {
   size_t align = jit_enter_jit_abi(j->jit, 3, 0, 0);
 
-  size_t alignment = jit_align_stack (j->jit, 0);
-
   /* Load our reserved registers: THREAD and SP.  Also load IP for the
      mcode jump.  */
   jit_load_args_2 (j->jit, thread_operand (),
