@@ -1,6 +1,6 @@
 dnl -*- Autoconf -*-
 
-dnl Copyright (C) 1997,1999-2002,2004,2006-2011,2013,2018
+dnl Copyright (C) 1997,1999-2002,2004,2006-2011,2013,2018-2019
 dnl   Free Software Foundation, Inc.
 dnl
 dnl This file is part of GUILE
@@ -615,9 +615,10 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
     xy*) enable_jit=yes ;;
     xn*) enable_jit=no ;;
     xa* | x)
-      # For the time being, only enable JIT on x86-64.
+      # For the time being, only enable JIT on x86-64 and i686.
       case "$target_cpu" in
         x86_64|amd64)     enable_jit=yes ;;
+        i?86)             enable_jit=yes ;;
         *)                enable_jit=no ;;
       esac ;;
     *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
