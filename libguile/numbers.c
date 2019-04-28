@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2016, 2018, 2019 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -93,6 +93,10 @@ verify (sizeof (scm_t_inum) <= sizeof (scm_t_bits));
    furthermore that there is some headroom to spare for other operations
    without overflowing. */
 verify (SCM_I_FIXNUM_BIT <= SCM_LONG_BIT - 2);
+
+/* Some functions that use GMP's mpn functions assume that a
+   non-negative fixnum will always fit in a 'mp_limb_t'.  */
+verify (SCM_MOST_POSITIVE_FIXNUM <= (mp_limb_t) -1);
 
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
@@ -10151,17 +10155,21 @@ scm_exact_integer_sqrt (SCM k, SCM *sp, SCM *rp)
 {
   if (SCM_LIKELY (SCM_I_INUMP (k)))
     {
-      mpz_t kk, ss, rr;
+      if (SCM_I_INUM (k) > 0)
+        {
+          mp_limb_t kk, ss, rr;
 
-      if (SCM_I_INUM (k) < 0)
-	scm_wrong_type_arg_msg ("exact-integer-sqrt", SCM_ARG1, k,
-				"exact non-negative integer");
-      mpz_init_set_ui (kk, SCM_I_INUM (k));
-      mpz_inits (ss, rr, NULL);
-      mpz_sqrtrem (ss, rr, kk);
-      *sp = SCM_I_MAKINUM (mpz_get_ui (ss));
-      *rp = SCM_I_MAKINUM (mpz_get_ui (rr));
-      mpz_clears (kk, ss, rr, NULL);
+          kk = SCM_I_INUM (k);
+          if (mpn_sqrtrem (&ss, &rr, &kk, 1) == 0)
+            rr = 0;
+          *sp = SCM_I_MAKINUM (ss);
+          *rp = SCM_I_MAKINUM (rr);
+        }
+      else if (SCM_I_INUM (k) == 0)
+        *sp = *rp = SCM_INUM0;
+      else
+        scm_wrong_type_arg_msg ("exact-integer-sqrt", SCM_ARG1, k,
+                                "exact non-negative integer");
     }
   else if (SCM_LIKELY (SCM_BIGP (k)))
     {
@@ -10191,11 +10199,14 @@ exact_integer_is_perfect_square (SCM k)
 
   if (SCM_LIKELY (SCM_I_INUMP (k)))
     {
-      mpz_t kk;
+      if (SCM_I_INUM (k) > 0)
+        {
+          mp_limb_t kk = SCM_I_INUM (k);
 
-      mpz_init_set_si (kk, SCM_I_INUM (k));
-      result = mpz_perfect_square_p (kk);
-      mpz_clear (kk);
+          result = mpn_perfect_square_p (&kk, 1);
+        }
+      else
+        result = (SCM_I_INUM (k) == 0);
     }
   else
     {
@@ -10206,20 +10217,22 @@ exact_integer_is_perfect_square (SCM k)
 }
 
 /* Return the floor of the square root of K.
-   K must be an exact integer. */
+   K must be an exact non-negative integer. */
 static SCM
 exact_integer_floor_square_root (SCM k)
 {
   if (SCM_LIKELY (SCM_I_INUMP (k)))
     {
-      mpz_t kk;
-      scm_t_inum ss;
+      if (SCM_I_INUM (k) > 0)
+        {
+          mp_limb_t kk, ss, rr;
 
-      mpz_init_set_ui (kk, SCM_I_INUM (k));
-      mpz_sqrt (kk, kk);
-      ss = mpz_get_ui (kk);
-      mpz_clear (kk);
-      return SCM_I_MAKINUM (ss);
+          kk = SCM_I_INUM (k);
+          mpn_sqrtrem (&ss, &rr, &kk, 1);
+          return SCM_I_MAKINUM (ss);
+        }
+      else
+        return SCM_INUM0;
     }
   else
     {
@@ -10282,19 +10295,15 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
                 }
               else
                 {
-                  mpz_t xx;
-                  scm_t_inum root;
+                  mp_limb_t xx, root, rem;
 
-                  mpz_init_set_ui (xx, x);
-                  if (mpz_perfect_square_p (xx))
+                  assert (x != 0);
+                  xx = x;
+                  if (mpn_perfect_square_p (&xx, 1))
                     {
-                      mpz_sqrt (xx, xx);
-                      root = mpz_get_ui (xx);
-                      mpz_clear (xx);
+                      mpn_sqrtrem (&root, &rem, &xx, 1);
                       return SCM_I_MAKINUM (root);
                     }
-                  else
-                    mpz_clear (xx);
                 }
             }
         }
