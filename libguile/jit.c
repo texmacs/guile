@@ -3973,13 +3973,13 @@ compile_u64_ref (scm_jit_state *j, uint8_t dst, uint8_t ptr, uint8_t idx)
   emit_addr (j, T0, T0, T1);
   if (BIGENDIAN)
     {
-      emit_ldxi (j, T1, T0, 4);
-      emit_ldr (j, T0, T0);
+      emit_ldr (j, T1, T0);
+      emit_ldxi (j, T0, T0, 4);
     }
   else
     {
-      emit_ldr (j, T1, T0);
-      emit_ldxi (j, T0, T0, 4);
+      emit_ldxi (j, T1, T0, 4);
+      emit_ldr (j, T0, T0);
     }
   emit_sp_set_u64 (j, dst, T0, T1);
 #endif
