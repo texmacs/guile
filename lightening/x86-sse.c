@@ -441,7 +441,7 @@ fldsm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
 static void
 fstsm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
 {
-  return x87rx(_jit, 012, md, rb, ri, ms);
+  return x87rx(_jit, 013, md, rb, ri, ms);
 }
 
 static void
@@ -453,7 +453,7 @@ fldlm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
 static void
 fstlm(jit_state_t *_jit, int32_t md, int32_t rb, int32_t ri, int32_t ms)
 {
-  return x87rx(_jit, 052, md, rb, ri, ms);
+  return x87rx(_jit, 053, md, rb, ri, ms);
 }
 #endif
 
