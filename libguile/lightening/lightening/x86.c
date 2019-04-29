@@ -361,11 +361,7 @@ jit_flush(void *fptr, void *tptr)
 static inline size_t
 jit_stack_alignment(void)
 {
-#if __X64
   return 16;
-#else
-  return 4;
-#endif
 }
 
 static void
