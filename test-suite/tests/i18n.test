@@ -78,7 +78,13 @@
   (pass-if "string-locale-ci<?"
     (and (string-locale-ci<? "hello" "WORLD")
          (string-locale-ci<? "hello" "WORLD"
-                             (make-locale (list LC_COLLATE) "C")))))
+                             (make-locale (list LC_COLLATE) "C"))))
+  (pass-if "large strings"
+    ;; In Guile <= 2.2.4, these would overflow the C stack and crash.
+    (let ((large (make-string 4000000 #\a)))
+      (and (string-locale-ci=? large large)
+           (not (string-locale-ci<? large large))
+           (not (string-locale<? large large))))))
 
 
 (define mingw?
@@ -332,6 +338,15 @@
     (and (string=? "Hello, World" (string-locale-titlecase "hello, world"))
 	 (string=? "Hello, World" (string-locale-titlecase 
 				   "hello, world" (make-locale LC_ALL "C")))))
+
+  (pass-if "large strings"
+    ;; In Guile <= 2.2.4, these would overflow the C stack and crash.
+    (let ((hellos (string-join (make-list 700000 "hello")))
+          (HELLOs (string-join (make-list 700000 "HELLO")))
+          (Hellos (string-join (make-list 700000 "Hello"))))
+      (and (string=? hellos (string-locale-downcase Hellos))
+           (string=? HELLOs (string-locale-upcase   Hellos))
+           (string=? Hellos (string-locale-titlecase hellos)))))
 
   (pass-if "string-locale-upcase German"
     (under-german-utf8-locale-or-unresolved

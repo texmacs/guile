@@ -476,6 +476,18 @@
     (equal? (string-normalize-nfkc "\u1e9b\u0323") "\u1e69")))
 
 ;;
+;; normalizing large strings
+;;
+
+(pass-if "string-normalize-{nfd,nfc,nfkd,nfkc} on large strings"
+  ;; In Guile <= 2.2.4, these would overflow the C stack and crash.
+  (let ((large (make-string 4000000 #\a)))
+    (and (string=? large (string-normalize-nfd large))
+         (string=? large (string-normalize-nfc large))
+         (string=? large (string-normalize-nfkd large))
+         (string=? large (string-normalize-nfkc large)))))
+
+;;
 ;; string-utf8-length
 ;;
 

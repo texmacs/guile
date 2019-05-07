@@ -45,6 +45,10 @@
 #include "libguile/validate.h"
 #include "libguile/private-options.h"
 
+#ifndef SCM_MAX_ALLOCA
+# define SCM_MAX_ALLOCA 4096 /* Max bytes per string to allocate via alloca */
+#endif
+
 
 
 /* {Strings}
@@ -1808,6 +1812,7 @@ static void
 unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
 {
   char *before, *after;
+  int malloc_p;
   size_t i, j;
   /* The worst case is if the input string contains all 4-digit hex escapes.
      "\uXXXX" (six characters) becomes "\xXXXX;" (seven characters) */
@@ -1815,7 +1820,8 @@ unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
   size_t nzeros, ndigits;
 
   before = buf;
-  after = alloca (max_out_len);
+  malloc_p = (max_out_len > SCM_MAX_ALLOCA);
+  after = malloc_p ? malloc (max_out_len) : alloca (max_out_len);
   i = 0;
   j = 0;
   while (i < *lenp)
@@ -1873,6 +1879,8 @@ unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
     }
   *lenp = j;
   memcpy (before, after, j);
+  if (malloc_p)
+    free (after);
 }
 
 char *
@@ -2313,28 +2321,37 @@ normalize_str (SCM string, uninorm_t form)
 {
   SCM ret;
   scm_t_uint32 *w_str;
+  scm_t_uint32 *w_norm_str;
   scm_t_wchar *cbuf;
-  size_t rlen, len = scm_i_string_length (string);
+  int malloc_p;
+  size_t norm_len, len = scm_i_string_length (string);
   
   if (scm_i_is_narrow_string (string))
     {
-      size_t i;
+      size_t i, bytes;
       const char *buf = scm_i_string_chars (string);
-      
-      w_str = alloca (sizeof (scm_t_wchar) * (len + 1));
-      
+
+      bytes = (len + 1) * sizeof (scm_t_wchar);
+      malloc_p = (bytes > SCM_MAX_ALLOCA);
+      w_str = malloc_p ? malloc (bytes) : alloca (bytes);
+
       for (i = 0; i < len; i ++)
 	w_str[i] = (unsigned char) buf[i];
       w_str[len] = 0;
     }
-  else 
-    w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+  else
+    {
+      malloc_p = 0;
+      w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+    }
 
-  w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
-  
-  ret = scm_i_make_wide_string (rlen, &cbuf, 0);
-  u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
-  free (w_str);
+  w_norm_str = u32_normalize (form, w_str, len, NULL, &norm_len);
+
+  ret = scm_i_make_wide_string (norm_len, &cbuf, 0);
+  u32_cpy ((scm_t_uint32 *) cbuf, w_norm_str, norm_len);
+  free (w_norm_str);
+  if (malloc_p)
+    free (w_str);
 
   scm_i_try_narrow_string (ret);
 

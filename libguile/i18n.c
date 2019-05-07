@@ -40,6 +40,10 @@
 #include <unicase.h>
 #include <unistr.h>
 
+#ifndef SCM_MAX_ALLOCA
+# define SCM_MAX_ALLOCA 4096 /* Max bytes per string to allocate via alloca */
+#endif
+
 #if defined HAVE_NEWLOCALE && defined HAVE_STRCOLL_L && defined HAVE_USELOCALE
 /* The GNU thread-aware locale API is documented in ``Thread-Aware Locale
    Model, a Proposal'', by Ulrich Drepper:
@@ -743,23 +747,35 @@ SCM_DEFINE (scm_locale_p, "locale?", 1, 0, 0,
    A similar API can be found in MzScheme starting from version 200:
    http://download.plt-scheme.org/chronology/mzmr200alpha14.html .  */
 
-#define SCM_STRING_TO_U32_BUF(s1, c_s1)					\
-  do									\
-    {									\
-      if (scm_i_is_narrow_string (s1))					\
-	{								\
-	  size_t i, len;						\
-	  const char *buf = scm_i_string_chars (s1);			\
-									\
-	  len = scm_i_string_length (s1);				\
-	  c_s1 = alloca (sizeof (scm_t_wchar) * (len + 1));		\
-									\
-	  for (i = 0; i < len; i ++)					\
-	    c_s1[i] = (unsigned char ) buf[i];				\
-	  c_s1[len] = 0;						\
-	}								\
-      else								\
-	c_s1 = (scm_t_wchar *) scm_i_string_wide_chars (s1);		\
+#define SCM_STRING_TO_U32_BUF(str, c_str, c_str_malloc_p)               \
+  do                                                                    \
+    {                                                                   \
+      if (scm_i_is_narrow_string (str))                                 \
+        {                                                               \
+          size_t i, len, bytes;                                         \
+          const char *buf = scm_i_string_chars (str);                   \
+                                                                        \
+          len = scm_i_string_length (str);                              \
+          bytes = (len + 1) * sizeof (scm_t_wchar);                     \
+          c_str_malloc_p = (bytes > SCM_MAX_ALLOCA);                    \
+          c_str = c_str_malloc_p ? malloc (bytes) : alloca (bytes);     \
+                                                                        \
+          for (i = 0; i < len; i ++)                                    \
+            c_str[i] = (unsigned char ) buf[i];                         \
+          c_str[len] = 0;                                               \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          c_str_malloc_p = 0;                                           \
+          c_str = (scm_t_wchar *) scm_i_string_wide_chars (str);        \
+        }                                                               \
+    } while (0)
+
+#define SCM_CLEANUP_U32_BUF(c_str, c_str_malloc_p)                      \
+  do                                                                    \
+    {                                                                   \
+      if (c_str_malloc_p)                                               \
+        free (c_str);                                                   \
     } while (0)
 
 
@@ -773,10 +789,11 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
   int result;
   scm_t_locale c_locale;
   scm_t_wchar *c_s1, *c_s2;
+  int c_s1_malloc_p, c_s2_malloc_p;
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (3, locale, c_locale);
 
-  SCM_STRING_TO_U32_BUF (s1, c_s1);
-  SCM_STRING_TO_U32_BUF (s2, c_s2);
+  SCM_STRING_TO_U32_BUF (s1, c_s1, c_s1_malloc_p);
+  SCM_STRING_TO_U32_BUF (s2, c_s2, c_s2_malloc_p);
 
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, 
@@ -785,6 +802,9 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
   else
     result = u32_strcoll ((const scm_t_uint32 *) c_s1,
 			  (const scm_t_uint32 *) c_s2);
+
+  SCM_CLEANUP_U32_BUF(c_s1, c_s1_malloc_p);
+  SCM_CLEANUP_U32_BUF(c_s2, c_s2_malloc_p);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
@@ -828,10 +848,11 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
   int result, ret = 0;
   scm_t_locale c_locale;
   scm_t_wchar *c_s1, *c_s2;
+  int c_s1_malloc_p, c_s2_malloc_p;
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (3, locale, c_locale);
 
-  SCM_STRING_TO_U32_BUF (s1, c_s1);
-  SCM_STRING_TO_U32_BUF (s2, c_s2);
+  SCM_STRING_TO_U32_BUF (s1, c_s1, c_s1_malloc_p);
+  SCM_STRING_TO_U32_BUF (s2, c_s2, c_s2_malloc_p);
 
   if (c_locale)
     RUN_IN_LOCALE_SECTION
@@ -845,6 +866,9 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
 			       (const scm_t_uint32 *) c_s1,
 			       (const scm_t_uint32 *) c_s2,
 			       &result);
+
+  SCM_CLEANUP_U32_BUF(c_s1, c_s1_malloc_p);
+  SCM_CLEANUP_U32_BUF(c_s2, c_s2_malloc_p);
 
   if (SCM_UNLIKELY (ret != 0))
     {
@@ -1212,13 +1236,13 @@ str_to_case (SCM str, scm_t_locale c_locale,
   scm_t_wchar *c_str, *c_buf;
   scm_t_uint32 *c_convstr;
   size_t len, convlen;
-  int ret;
+  int ret, c_str_malloc_p;
   SCM convstr;
 
   len = scm_i_string_length (str);
   if (len == 0)
     return scm_nullstr;
-  SCM_STRING_TO_U32_BUF (str, c_str);
+  SCM_STRING_TO_U32_BUF (str, c_str, c_str_malloc_p);
 
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
@@ -1229,6 +1253,8 @@ str_to_case (SCM str, scm_t_locale c_locale,
     ret =
       u32_locale_tocase ((scm_t_uint32 *) c_str, len,
                          &c_convstr, &convlen, func);
+
+  SCM_CLEANUP_U32_BUF(c_str, c_str_malloc_p);
 
   scm_remember_upto_here (str);
 
