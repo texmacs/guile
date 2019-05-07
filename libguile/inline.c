@@ -1,4 +1,4 @@
-/* Copyright 2001,2006,2008,2011-2013,2018
+/* Copyright 2001,2006,2008,2011-2013,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -25,6 +25,7 @@
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
 
 #include "array-handle.h"
+#include "chars.h"
 #include "gc.h"
 #include "pairs.h"
 #include "ports.h"
