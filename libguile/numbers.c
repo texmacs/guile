@@ -7551,80 +7551,81 @@ scm_sum (SCM x, SCM y)
         {
           scm_t_inum xx = SCM_I_INUM (x);
           return scm_c_make_rectangular (xx + SCM_COMPLEX_REAL (y),
-                                   SCM_COMPLEX_IMAG (y));
+                                         SCM_COMPLEX_IMAG (y));
         }
       else if (SCM_FRACTIONP (y))
 	return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
-					scm_product (x, SCM_FRACTION_DENOMINATOR (y))),
-			       SCM_FRACTION_DENOMINATOR (y));
+                                          scm_product (x, SCM_FRACTION_DENOMINATOR (y))),
+                                 SCM_FRACTION_DENOMINATOR (y));
       else
         return scm_wta_dispatch_2 (g_sum, x, y, SCM_ARGn, s_sum);
-    } else if (SCM_BIGP (x))
-      {
-	if (SCM_I_INUMP (y))
-	  {
-	    scm_t_inum inum;
-	    int bigsgn;
-	  add_big_inum:
-	    inum = SCM_I_INUM (y);      
-	    if (inum == 0)
-	      return x;
-	    bigsgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-	    if (inum < 0)
-	      {
-		SCM result = scm_i_mkbig ();
-		mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - inum);
-		scm_remember_upto_here_1 (x);
-		/* we know the result will have to be a bignum */
-		if (bigsgn == -1)
-		  return result;
-		return scm_i_normbig (result);
-	      }
-	    else
-	      {
-		SCM result = scm_i_mkbig ();
-		mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), inum);
-		scm_remember_upto_here_1 (x);
-		/* we know the result will have to be a bignum */
-		if (bigsgn == 1)
-		  return result;
-		return scm_i_normbig (result);        
-	      }
-	  }
-	else if (SCM_BIGP (y))
-	  {
-	    SCM result = scm_i_mkbig ();
-	    int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
-	    int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
-	    mpz_add (SCM_I_BIG_MPZ (result),
-		     SCM_I_BIG_MPZ (x),
-		     SCM_I_BIG_MPZ (y));
-	    scm_remember_upto_here_2 (x, y);
-	    /* we know the result will have to be a bignum */
-	    if (sgn_x == sgn_y)
-	      return result;
-	    return scm_i_normbig (result);
-	  }
-	else if (SCM_REALP (y))
-	  {
-	    double result = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_REAL_VALUE (y);
-	    scm_remember_upto_here_1 (x);
-	    return scm_i_from_double (result);
-	  }
-	else if (SCM_COMPLEXP (y))
-	  {
-	    double real_part = (mpz_get_d (SCM_I_BIG_MPZ (x))
-				+ SCM_COMPLEX_REAL (y));
-	    scm_remember_upto_here_1 (x);
-	    return scm_c_make_rectangular (real_part, SCM_COMPLEX_IMAG (y));
-	  }
-	else if (SCM_FRACTIONP (y))
-	  return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_I_INUMP (y))
+        {
+          scm_t_inum inum;
+          int bigsgn;
+        add_big_inum:
+          inum = SCM_I_INUM (y);      
+          if (inum == 0)
+            return x;
+          bigsgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+          if (inum < 0)
+            {
+              SCM result = scm_i_mkbig ();
+              mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - inum);
+              scm_remember_upto_here_1 (x);
+              /* we know the result will have to be a bignum */
+              if (bigsgn == -1)
+                return result;
+              return scm_i_normbig (result);
+            }
+          else
+            {
+              SCM result = scm_i_mkbig ();
+              mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), inum);
+              scm_remember_upto_here_1 (x);
+              /* we know the result will have to be a bignum */
+              if (bigsgn == 1)
+                return result;
+              return scm_i_normbig (result);        
+            }
+        }
+      else if (SCM_BIGP (y))
+        {
+          SCM result = scm_i_mkbig ();
+          int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
+          int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
+          mpz_add (SCM_I_BIG_MPZ (result),
+                   SCM_I_BIG_MPZ (x),
+                   SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2 (x, y);
+          /* we know the result will have to be a bignum */
+          if (sgn_x == sgn_y)
+            return result;
+          return scm_i_normbig (result);
+        }
+      else if (SCM_REALP (y))
+        {
+          double result = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_REAL_VALUE (y);
+          scm_remember_upto_here_1 (x);
+          return scm_i_from_double (result);
+        }
+      else if (SCM_COMPLEXP (y))
+        {
+          double real_part = (mpz_get_d (SCM_I_BIG_MPZ (x))
+                              + SCM_COMPLEX_REAL (y));
+          scm_remember_upto_here_1 (x);
+          return scm_c_make_rectangular (real_part, SCM_COMPLEX_IMAG (y));
+        }
+      else if (SCM_FRACTIONP (y))
+        return scm_i_make_ratio (scm_sum (SCM_FRACTION_NUMERATOR (y), 
 					  scm_product (x, SCM_FRACTION_DENOMINATOR (y))),
 				 SCM_FRACTION_DENOMINATOR (y));
-	else
-	  return scm_wta_dispatch_2 (g_sum, x, y, SCM_ARGn, s_sum);
-      }
+      else
+        return scm_wta_dispatch_2 (g_sum, x, y, SCM_ARGn, s_sum);
+    }
   else if (SCM_REALP (x))
     {
       if (SCM_I_INUMP (y))
