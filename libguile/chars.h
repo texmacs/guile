@@ -41,14 +41,13 @@ typedef scm_t_int32 scm_t_wchar;
    (0 to 255) to Latin-1 codepoints (0 to 255) while allowing higher
    codepoints (256 to 1114111) to pass through unchanged.
 
-   To avoid evaluating X more than once, we use an arithmetic trick: we
-   compute (X mod 2^N) mod (2^N - 256), which is equal to the required
-   mapping in the range -256 .. (2^N - 257).  Here, N is the number of
-   bits in scm_t_bits.  Note that (scm_t_bits) (x) implicitly computes
-   (X mod 2^N), and (scm_t_bits) -256 equals (2^N - 256).  GCC is able
-   to optimize away these operations in practice.  */
-#define SCM_MAKE_CHAR(x) \
-  (SCM_MAKE_ITAG8 ((scm_t_bits) (x) % (scm_t_bits) -256, scm_tc8_char))
+   This macro evaluates X twice, which may lead to side effects if used
+   incorrectly.  It's also likely to be inefficient if X calls a
+   procedure.  Use 'scm_c_make_char' in those cases.  */
+#define SCM_MAKE_CHAR(x)                                                \
+  ((x) <= 1                                                             \
+   ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) (x), scm_tc8_char)    \
+   : SCM_MAKE_ITAG8 ((scm_t_bits) (x), scm_tc8_char))
 
 #define SCM_CODEPOINT_DOTTED_CIRCLE (0x25cc)
 #define SCM_CODEPOINT_SURROGATE_START (0xd800)
@@ -85,13 +84,24 @@ SCM_API SCM scm_char_upcase (SCM chr);
 SCM_API SCM scm_char_downcase (SCM chr);
 SCM_API SCM scm_char_titlecase (SCM chr);
 SCM_API SCM scm_char_general_category (SCM chr);
+
+SCM_INLINE SCM scm_c_make_char (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_upcase (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_downcase (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_titlecase (scm_t_wchar c);
+
 SCM_INTERNAL const char *scm_i_charname (SCM chr);
 SCM_INTERNAL SCM scm_i_charname_to_char (const char *charname, 
                                          size_t charname_len);
 SCM_INTERNAL void scm_init_chars (void);
+
+#if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
+SCM_INLINE_IMPLEMENTATION SCM
+scm_c_make_char (scm_t_wchar c)
+{
+  return SCM_MAKE_CHAR(c);
+}
+#endif
 
 #endif  /* SCM_CHARS_H */
 

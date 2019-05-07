@@ -1,5 +1,5 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2015, 2018, 2019
+ *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2269,7 +2269,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       VM_VALIDATE_STRING (str, "string-ref");
       VM_VALIDATE_INDEX (c_idx, scm_i_string_length (str), "string-ref");
 
-      RETURN (SCM_MAKE_CHAR (scm_i_string_ref (str, c_idx)));
+      RETURN (scm_c_make_char (scm_i_string_ref (str, c_idx)));
     }
 
   /* string-set! instruction is currently number 192.  Probably need to

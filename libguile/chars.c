@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009,
- *   2010, 2011, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2004, 2006, 2008-2011,
+ *   2014, 2019 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -454,7 +454,7 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_upcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR (scm_c_upcase (SCM_CHAR (chr)));
+  return scm_c_make_char (scm_c_upcase (SCM_CHAR (chr)));
 }
 #undef FUNC_NAME
 
@@ -465,7 +465,7 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_downcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR (scm_c_downcase (SCM_CHAR(chr)));
+  return scm_c_make_char (scm_c_downcase (SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -475,7 +475,7 @@ SCM_DEFINE (scm_char_titlecase, "char-titlecase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_titlecase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR (scm_c_titlecase (SCM_CHAR(chr)));
+  return scm_c_make_char (scm_c_titlecase (SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
