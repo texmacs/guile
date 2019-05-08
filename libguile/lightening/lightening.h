@@ -95,18 +95,10 @@ typedef struct jit_reloc
 #  include "lightening/arm.h"
 #elif defined(__ppc__) || defined(__powerpc__)
 #  include "lightening/ppc.h"
-#elif defined(__sparc__)
-#  include "lightening/sparc.h"
-#elif defined(__ia64__)
-#  include "lightening/ia64.h"
-#elif defined(__hppa__)
-#  include "lightening/hppa.h"
 #elif defined(__aarch64__)
 #  include "lightening/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
 #  include "lightening/s390.h"
-#elif defined(__alpha__)
-#  include "lightening/alpha.h"
 #endif
 
 typedef struct jit_state	jit_state_t;

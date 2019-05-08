@@ -322,18 +322,10 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 # include "arm.c"
 #elif defined(__ppc__) || defined(__powerpc__)
 # include "ppc.c"
-#elif defined(__sparc__)
-# include "sparc.c"
-#elif defined(__ia64__)
-# include "ia64.c"
-#elif defined(__hppa__)
-# include "hppa.c"
 #elif defined(__aarch64__)
 # include "aarch64.c"
 #elif defined(__s390__) || defined(__s390x__)
 # include "s390.c"
-#elif defined(__alpha__)
-# include "alpha.c"
 #endif
 
 #define JIT_IMPL_0(stem, ret) \
