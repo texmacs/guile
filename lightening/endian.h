@@ -27,17 +27,11 @@
 #include <string.h>
 #include <stddef.h>
 
-#if defined(__hpux) && defined(__hppa__)
-#  include <machine/param.h>
-#endif
-
 #ifndef __WORDSIZE
 #  if defined(WORDSIZE)				/* ppc darwin */
 #    define __WORDSIZE		WORDSIZE
 #  elif defined(__SIZEOF_POINTER__)		/* ppc aix */
 #    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
-#  elif defined(_ILP32)				/* hppa hp-ux */
-#    define __WORDSIZE		32
 #  elif defined(_MIPS_SZPTR)			/* mips irix */
 #    if _MIPS_SZPTR == 32
 #      define __WORDSIZE	32
@@ -76,8 +70,6 @@
 #    define __BYTE_ORDER	BYTE_ORDER
 #  elif defined(__BYTE_ORDER__)			/* ppc aix */
 #    define __BYTE_ORDER	__BYTE_ORDER__
-#  elif defined(_BIG_ENDIAN)			/* hppa hp-ux */
-#    define __BYTE_ORDER	__BIG_ENDIAN
 #  elif defined(__i386__)			/* 32 bit x86 solaris */
 #    define __BYTE_ORDER	__LITTLE_ENDIAN
 #  elif defined(__x86_64__)			/* 64 bit x86 solaris */

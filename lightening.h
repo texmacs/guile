@@ -97,8 +97,6 @@ typedef struct jit_reloc
 #  include "lightening/ppc.h"
 #elif defined(__sparc__)
 #  include "lightening/sparc.h"
-#elif defined(__hppa__)
-#  include "lightening/hppa.h"
 #elif defined(__aarch64__)
 #  include "lightening/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
