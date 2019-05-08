@@ -103,8 +103,6 @@ typedef struct jit_reloc
 #  include "lightening/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
 #  include "lightening/s390.h"
-#elif defined(__alpha__)
-#  include "lightening/alpha.h"
 #endif
 
 typedef struct jit_state	jit_state_t;

@@ -330,8 +330,6 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 # include "aarch64.c"
 #elif defined(__s390__) || defined(__s390x__)
 # include "s390.c"
-#elif defined(__alpha__)
-# include "alpha.c"
 #endif
 
 #define JIT_IMPL_0(stem, ret) \

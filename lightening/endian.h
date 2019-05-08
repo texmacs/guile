@@ -30,9 +30,6 @@
 #if defined(__hpux) && defined(__hppa__)
 #  include <machine/param.h>
 #endif
-#if defined(__alpha__) && defined(__osf__)
-#  include <machine/endian.h>
-#endif
 
 #ifndef __WORDSIZE
 #  if defined(WORDSIZE)				/* ppc darwin */
