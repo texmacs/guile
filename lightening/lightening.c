@@ -324,8 +324,6 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 # include "ppc.c"
 #elif defined(__sparc__)
 # include "sparc.c"
-#elif defined(__ia64__)
-# include "ia64.c"
 #elif defined(__hppa__)
 # include "hppa.c"
 #elif defined(__aarch64__)

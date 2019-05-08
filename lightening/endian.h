@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2018  Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019  Free Software Foundation, Inc.
  *
  * This file is part of GNU lightning.
  *
@@ -41,8 +41,6 @@
 #    define __WORDSIZE		(__SIZEOF_POINTER__ << 3)
 #  elif defined(_ILP32)				/* hppa hp-ux */
 #    define __WORDSIZE		32
-#  elif defined(_LP64)				/* ia64 hp-ux (with cc +DD64) */
-#    define __WORDSIZE		64
 #  elif defined(_MIPS_SZPTR)			/* mips irix */
 #    if _MIPS_SZPTR == 32
 #      define __WORDSIZE	32
@@ -82,8 +80,6 @@
 #  elif defined(__BYTE_ORDER__)			/* ppc aix */
 #    define __BYTE_ORDER	__BYTE_ORDER__
 #  elif defined(_BIG_ENDIAN)			/* hppa hp-ux */
-#    define __BYTE_ORDER	__BIG_ENDIAN
-#  elif defined(__BIG_ENDIAN__)			/* ia64 hp-ux */
 #    define __BYTE_ORDER	__BIG_ENDIAN
 #  elif defined(__i386__)			/* 32 bit x86 solaris */
 #    define __BYTE_ORDER	__LITTLE_ENDIAN
