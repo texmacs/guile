@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2017-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -149,6 +149,9 @@
               (($ $kargs names syms ($ $branch kf kt src op param args))
                ($kargs names syms
                  ($branch (subst kf) (subst kt) src op param args)))
+              (($ $kargs names syms ($ $prompt k kh src escape? tag))
+               ($kargs names syms
+                 ($prompt (subst k) (subst kh) src escape? tag)))
               (($ $kargs names syms ($ $continue k src ($ $const val)))
                ,(match (intmap-ref conts k)
                   (($ $kargs (_)
