@@ -265,25 +265,6 @@ popr(jit_state_t *_jit, int32_t r0)
   ic(_jit, 0x58 | r7(r0));
 }
 
-static jit_gpr_t
-get_temp_gpr(jit_state_t *_jit)
-{
-  ASSERT(!_jit->temp_gpr_saved);
-  _jit->temp_gpr_saved = 1;
-#ifdef JIT_RTMP
-  return JIT_RTMP;
-#else
-  return JIT_VTMP;
-#endif
-}
-
-static void
-unget_temp_gpr(jit_state_t *_jit)
-{
-  ASSERT(_jit->temp_gpr_saved);
-  _jit->temp_gpr_saved = 0;
-}
-
 static void
 nop(jit_state_t *_jit, int32_t count)
 {

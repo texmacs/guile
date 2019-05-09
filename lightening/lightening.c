@@ -189,6 +189,40 @@ jit_align(jit_state_t *_jit, unsigned align)
     jit_nop(_jit, there - here);
 }
 
+static jit_gpr_t
+get_temp_gpr(jit_state_t *_jit)
+{
+  ASSERT(!_jit->temp_gpr_saved);
+  _jit->temp_gpr_saved = 1;
+#ifdef JIT_RTMP
+  return JIT_RTMP;
+#else
+  return JIT_VTMP;
+#endif
+}
+
+static jit_fpr_t
+get_temp_fpr(jit_state_t *_jit)
+{
+  ASSERT(!_jit->temp_fpr_saved);
+  _jit->temp_fpr_saved = 1;
+  return JIT_FTMP;
+}
+
+static void
+unget_temp_fpr(jit_state_t *_jit)
+{
+  ASSERT(_jit->temp_fpr_saved);
+  _jit->temp_fpr_saved = 0;
+}
+
+static void
+unget_temp_gpr(jit_state_t *_jit)
+{
+  ASSERT(_jit->temp_gpr_saved);
+  _jit->temp_gpr_saved = 0;
+}
+
 static inline void emit_u8(jit_state_t *_jit, uint8_t u8) {
   if (UNLIKELY(_jit->pc.uc + 1 > _jit->limit)) {
     _jit->overflow = 1;
@@ -570,10 +604,10 @@ abi_mem_to_mem(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t base,
     abi_gpr_to_mem(_jit, abi, base, offset, tmp);
     unget_temp_gpr(_jit);
   } else {
-    jit_fpr_t tmp = get_temp_xpr(_jit);
+    jit_fpr_t tmp = get_temp_fpr(_jit);
     abi_mem_to_fpr(_jit, abi, tmp, src_base, src_offset);
     abi_fpr_to_mem(_jit, abi, base, offset, tmp);
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
 }
 
@@ -704,7 +738,7 @@ move_one(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
         jit_operand_t tmp;
         if (is_fpr_arg (src[j].kind)) {
           tmp_fpr = 1;
-          tmp = jit_operand_fpr(src[j].abi, get_temp_xpr(_jit));
+          tmp = jit_operand_fpr(src[j].abi, get_temp_fpr(_jit));
         } else {
           tmp_gpr = 1;
           /* Preserve addend, if any, from source operand, to be applied
@@ -729,7 +763,7 @@ move_one(jit_state_t *_jit, jit_operand_t *dst, jit_operand_t *src,
   if (tmp_gpr)
     unget_temp_gpr(_jit);
   else if (tmp_fpr)
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
 }
 
 static void
@@ -868,6 +902,12 @@ static const jit_gpr_t V[] = {
 #endif
 #ifdef JIT_V7
   , JIT_V7
+#endif
+#ifdef JIT_V8
+  , JIT_V8
+#endif
+#ifdef JIT_V9
+  , JIT_V9
 #endif
  };
 

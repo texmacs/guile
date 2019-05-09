@@ -187,21 +187,6 @@ popr_d(jit_state_t *_jit, int32_t r0)
   unget_temp_gpr(_jit);
 }
 
-static jit_fpr_t
-get_temp_xpr(jit_state_t *_jit)
-{
-  ASSERT(!_jit->temp_fpr_saved);
-  _jit->temp_fpr_saved = 1;
-  return JIT_FTMP;
-}
-
-static void
-unget_temp_xpr(jit_state_t *_jit)
-{
-  ASSERT(_jit->temp_fpr_saved);
-  _jit->temp_fpr_saved = 0;
-}
-
 static void
 addssr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
@@ -409,14 +394,14 @@ movi_d(jit_state_t *_jit, int32_t r0, jit_float64_t i0)
     movdqxr(_jit, r0, jit_gpr_regno(ireg));
     unget_temp_gpr(_jit);
 #else
-    jit_fpr_t freg = get_temp_xpr(_jit);
+    jit_fpr_t freg = get_temp_fpr(_jit);
     movi(_jit, jit_gpr_regno(ireg), data.ii[1]);
     movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
     pslq(_jit, jit_fpr_regno(freg), 32);
     movi(_jit, jit_gpr_regno(ireg), data.ii[0]);
     movdlxr(_jit, r0, jit_gpr_regno(ireg));
     orpdr(_jit, r0, jit_fpr_regno(freg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
     unget_temp_gpr(_jit);
 #endif
   }
@@ -543,11 +528,11 @@ subr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     subssr(_jit, r0, r2);
   else if (r0 == r2) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     movr_f(_jit, jit_fpr_regno(reg), r0);
     movr_f(_jit, r0, r1);
     subssr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     movr_f(_jit, r0, r1);
@@ -561,11 +546,11 @@ subr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     subsdr(_jit, r0, r2);
   else if (r0 == r2) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     movr_d(_jit, jit_fpr_regno(reg), r0);
     movr_d(_jit, r0, r1);
     subsdr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     movr_d(_jit, r0, r1);
@@ -605,11 +590,11 @@ divr_f(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     divssr(_jit, r0, r2);
   else if (r0 == r2) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     movr_f(_jit, jit_fpr_regno(reg), r0);
     movr_f(_jit, r0, r1);
     divssr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     movr_f(_jit, r0, r1);
@@ -623,11 +608,11 @@ divr_d(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
   if (r0 == r1)
     divsdr(_jit, r0, r2);
   else if (r0 == r2) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     movr_d(_jit, jit_fpr_regno(reg), r0);
     movr_d(_jit, r0, r1);
     divsdr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     movr_d(_jit, r0, r1);
@@ -639,11 +624,11 @@ static void
 absr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     pcmpeqlr(_jit, jit_fpr_regno(reg), jit_fpr_regno(reg));
     psrl(_jit, jit_fpr_regno(reg), 1);
     andpsr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     pcmpeqlr(_jit, r0, r0);
@@ -656,11 +641,11 @@ static void
 absr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 == r1) {
-    jit_fpr_t reg = get_temp_xpr(_jit);
+    jit_fpr_t reg = get_temp_fpr(_jit);
     pcmpeqlr(_jit, jit_fpr_regno(reg), jit_fpr_regno(reg));
     psrq(_jit, jit_fpr_regno(reg), 1);
     andpdr(_jit, r0, jit_fpr_regno(reg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   }
   else {
     pcmpeqlr(_jit, r0, r0);
@@ -675,10 +660,10 @@ negr_f(jit_state_t *_jit, int32_t r0, int32_t r1)
   jit_gpr_t ireg = get_temp_gpr(_jit);
   imovi(_jit, jit_gpr_regno(ireg), 0x80000000);
   if (r0 == r1) {
-    jit_fpr_t freg = get_temp_xpr(_jit);
+    jit_fpr_t freg = get_temp_fpr(_jit);
     movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
     xorpsr(_jit, r0, jit_fpr_regno(freg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   } else {
     movdlxr(_jit, r0, jit_gpr_regno(ireg));
     xorpsr(_jit, r0, r1);
@@ -692,11 +677,11 @@ negr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
   jit_gpr_t ireg = get_temp_gpr(_jit);
   imovi(_jit, jit_gpr_regno(ireg), 0x80000000);
   if (r0 == r1) {
-    jit_fpr_t freg = get_temp_xpr(_jit);
+    jit_fpr_t freg = get_temp_fpr(_jit);
     movdlxr(_jit, jit_fpr_regno(freg), jit_gpr_regno(ireg));
     pslq(_jit, jit_fpr_regno(freg), 32);
     xorpdr(_jit, r0, jit_fpr_regno(freg));
-    unget_temp_xpr(_jit);
+    unget_temp_fpr(_jit);
   } else {
     movdlxr(_jit, r0, jit_gpr_regno(ireg));
     pslq(_jit, r0, 32);

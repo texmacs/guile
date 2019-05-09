@@ -20,9 +20,6 @@
 #ifndef _jit_x86_h
 #define _jit_x86_h
 
-/*
- * Types
- */
 #if __WORDSIZE == 32
 # if defined(__x86_64__)
 #  define __X64    1
