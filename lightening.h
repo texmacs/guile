@@ -65,6 +65,20 @@ jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
   return jit_fpr_regno (a) == jit_fpr_regno (b);
 }
 
+#if defined(__i386__) || defined(__x86_64__)
+#  include "lightening/x86.h"
+#elif defined(__mips__)
+#  include "lightening/mips.h"
+#elif defined(__arm__)
+#  include "lightening/arm.h"
+#elif defined(__ppc__) || defined(__powerpc__)
+#  include "lightening/ppc.h"
+#elif defined(__aarch64__)
+#  include "lightening/aarch64.h"
+#elif defined(__s390__) || defined(__s390x__)
+#  include "lightening/s390.h"
+#endif
+
 enum jit_reloc_kind
 {
   JIT_RELOC_ABSOLUTE,
@@ -85,20 +99,6 @@ typedef struct jit_reloc
 #  define JIT_API		extern __attribute__ ((__visibility__("hidden")))
 #else
 #  define JIT_API		extern
-#endif
-
-#if defined(__i386__) || defined(__x86_64__)
-#  include "lightening/x86.h"
-#elif defined(__mips__)
-#  include "lightening/mips.h"
-#elif defined(__arm__)
-#  include "lightening/arm.h"
-#elif defined(__ppc__) || defined(__powerpc__)
-#  include "lightening/ppc.h"
-#elif defined(__aarch64__)
-#  include "lightening/aarch64.h"
-#elif defined(__s390__) || defined(__s390x__)
-#  include "lightening/s390.h"
 #endif
 
 typedef struct jit_state	jit_state_t;

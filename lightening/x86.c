@@ -216,35 +216,6 @@ jit_init(jit_state_t *_jit)
   return jit_cpu.sse2;
 }
 
-static jit_bool_t
-is_fpr_arg(enum jit_operand_abi arg)
-{
-  switch (arg)
-    {
-    case JIT_OPERAND_ABI_UINT8:
-    case JIT_OPERAND_ABI_INT8:
-    case JIT_OPERAND_ABI_UINT16:
-    case JIT_OPERAND_ABI_INT16:
-    case JIT_OPERAND_ABI_UINT32:
-    case JIT_OPERAND_ABI_INT32:
-    case JIT_OPERAND_ABI_UINT64:
-    case JIT_OPERAND_ABI_INT64:
-    case JIT_OPERAND_ABI_POINTER:
-      return 0;
-    case JIT_OPERAND_ABI_FLOAT:
-    case JIT_OPERAND_ABI_DOUBLE:
-      return 1;
-    default:
-      abort();
-    }
-}
-
-static jit_bool_t
-is_gpr_arg(enum jit_operand_abi arg)
-{
-  return !is_fpr_arg(arg);
-}
-
 static const jit_gpr_t abi_gpr_args[] = {
 #if __X32
   /* No GPRs in args.  */

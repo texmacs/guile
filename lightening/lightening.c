@@ -76,6 +76,8 @@ static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
 
 struct abi_arg_iterator;
 
+static jit_bool_t is_fpr_arg(enum jit_operand_abi arg);
+static jit_bool_t is_gpr_arg(enum jit_operand_abi arg);
 static void reset_abi_arg_iterator(struct abi_arg_iterator *iter, size_t argc,
                                    const jit_operand_t *args);
 static void next_abi_arg(struct abi_arg_iterator *iter,
@@ -436,6 +438,35 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 #define IMPL_INSTRUCTION(kind, stem) JIT_IMPL_##kind(stem)
 FOR_EACH_INSTRUCTION(IMPL_INSTRUCTION)
 #undef IMPL_INSTRUCTION
+
+static jit_bool_t
+is_fpr_arg(enum jit_operand_abi arg)
+{
+  switch (arg)
+    {
+    case JIT_OPERAND_ABI_UINT8:
+    case JIT_OPERAND_ABI_INT8:
+    case JIT_OPERAND_ABI_UINT16:
+    case JIT_OPERAND_ABI_INT16:
+    case JIT_OPERAND_ABI_UINT32:
+    case JIT_OPERAND_ABI_INT32:
+    case JIT_OPERAND_ABI_UINT64:
+    case JIT_OPERAND_ABI_INT64:
+    case JIT_OPERAND_ABI_POINTER:
+      return 0;
+    case JIT_OPERAND_ABI_FLOAT:
+    case JIT_OPERAND_ABI_DOUBLE:
+      return 1;
+    default:
+      abort();
+    }
+}
+
+static jit_bool_t
+is_gpr_arg(enum jit_operand_abi arg)
+{
+  return !is_fpr_arg(arg);
+}
 
 static void
 abi_imm_to_gpr(jit_state_t *_jit, enum jit_operand_abi abi, jit_gpr_t dst,
