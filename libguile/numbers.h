@@ -140,7 +140,7 @@ typedef long scm_t_inum;
  * differ in one bit: This way, checking if an object is an inexact number can
  * be done quickly (using the TYP16S macro).  */
 
-/* Number subtype 1 to 3 (note the dependency on the predicates SCM_INEXACTP
+/* Number subtype 1 to 4 (note the dependency on the predicates SCM_INEXACTP
  * and SCM_NUMP)  */
 #define scm_tc16_big		(scm_tc7_number + 1 * 256L)
 #define scm_tc16_real           (scm_tc7_number + 2 * 256L)
