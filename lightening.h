@@ -86,12 +86,19 @@ enum jit_reloc_kind
   JIT_RELOC_REL16,
   JIT_RELOC_REL32,
   JIT_RELOC_REL64,
+#ifdef JIT_NEEDS_LITERAL_POOL
+  JIT_RELOC_JMP_WITH_VENEER,
+  JIT_RELOC_JCC_WITH_VENEER,
+  JIT_RELOC_LOAD_FROM_POOL,
+#endif
 };
 
 typedef struct jit_reloc
 {
   uint8_t kind;
   uint8_t inst_start_offset;
+  uint8_t pc_base_offset;
+  uint8_t rsh;
   uint32_t offset;
 } jit_reloc_t;
 

@@ -29,13 +29,15 @@
 
 #include "../lightening.h"
 
+#define ASSERT(x) do { if (!(x)) abort(); } while (0)
+
 #if defined(__GNUC__)
 # define maybe_unused           __attribute__ ((unused))
+# define UNLIKELY(exprn) __builtin_expect(exprn, 0)
 #else
 # define maybe_unused           /**/
+# define UNLIKELY(exprn) exprn
 #endif
-
-#define _NOREG 0xffff
 
 union jit_pc
 {
@@ -47,6 +49,22 @@ union jit_pc
   uintptr_t uw;
 };
 
+#ifdef JIT_NEEDS_LITERAL_POOL
+struct jit_literal_pool_entry
+{
+  jit_reloc_t reloc;
+  int64_t value;
+};
+
+struct jit_literal_pool
+{
+  uint32_t deadline;
+  uint32_t size;
+  uint32_t capacity;
+  struct jit_literal_pool_entry entries[];
+};
+#endif // JIT_NEEDS_LITERAL_POOL
+
 struct jit_state
 {
   union jit_pc pc;
@@ -57,16 +75,12 @@ struct jit_state
   uint8_t temp_fpr_saved;
   uint8_t overflow;
   int frame_size; // Used to know when to align stack.
+#ifdef JIT_NEEDS_LITERAL_POOL
+  struct jit_literal_pool *pool;
+#endif
   void* (*alloc)(size_t);
   void (*free)(void*);
 };
-
-#define ASSERT(x) do { if (!(x)) abort(); } while (0)
-#if defined(__GNUC__)
-# define UNLIKELY(exprn) __builtin_expect(exprn, 0)
-#else
-# define UNLIKELY(exprn) exprn
-#endif
 
 static jit_bool_t jit_get_cpu(void);
 static jit_bool_t jit_init(jit_state_t *);
@@ -75,6 +89,112 @@ static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
                             jit_pointer_t addr);
 
 struct abi_arg_iterator;
+
+#ifdef JIT_NEEDS_LITERAL_POOL
+#define INITIAL_LITERAL_POOL_CAPACITY 12
+static struct jit_literal_pool*
+alloc_literal_pool(jit_state_t *_jit, size_t capacity)
+{
+  struct jit_literal_pool *ret =
+    _jit->alloc (sizeof (struct jit_literal_pool) +
+                 sizeof (struct jit_literal_pool_entry) * capacity);
+  ASSERT (ret);
+  ret->deadline = -1;
+  ret->size = 0;
+  ret->capacity = capacity;
+  return ret;
+}
+
+static void
+clear_literal_pool(struct jit_literal_pool *pool)
+{
+  pool->deadline = -1;
+  pool->size = 0;
+}
+
+static void
+grow_literal_pool(jit_state_t *_jit)
+{
+  struct jit_literal_pool *new_pool =
+    alloc_literal_pool(_jit, _jit->pool->capacity * 2);
+
+  for (size_t i = 0; i < _jit->pool->size; i++)
+    new_pool->entries[new_pool->size++] = _jit->pool->entries[i];
+  new_pool->deadline = _jit->pool->deadline;
+
+  _jit->free (_jit->pool);
+  _jit->pool = new_pool;
+}
+
+static void
+add_literal_pool_entry(jit_state_t *_jit, struct jit_literal_pool_entry entry,
+                       ptrdiff_t max_offset)
+{
+  if (_jit->pool->size == _jit->pool->capacity)
+    grow_literal_pool (_jit);
+
+  max_offset <<= entry.reloc.rsh;
+  ptrdiff_t deadline = _jit->pc.uc - _jit->start + max_offset;
+  if (_jit->pool->size == 0)
+    // Assume that we might need a uint32_t for alignment, and another
+    // to branch over the table.
+    _jit->pool->deadline = deadline - 2 * sizeof(uint32_t);
+  else if (deadline < _jit->pool->deadline)
+    _jit->pool->deadline = deadline;
+
+  // Assume that each entry takes a max of 16 bytes;
+  _jit->pool->deadline -= 16;
+
+  _jit->pool->entries[_jit->pool->size++] = entry;
+}
+
+static void
+add_pending_literal(jit_state_t *_jit, jit_reloc_t src,
+                    ptrdiff_t max_offset_bits)
+{
+  struct jit_literal_pool_entry entry = { src, 0 };
+  add_literal_pool_entry(_jit, entry,
+                         (1 << (max_offset_bits + src.rsh)) - 1);
+}
+
+static void
+remove_pending_literal(jit_state_t *_jit, jit_reloc_t src)
+{
+  for (size_t i = _jit->pool->size; i--; ) {
+    if (_jit->pool->entries[i].reloc.offset == src.offset) {
+      for (size_t j = i + 1; j < _jit->pool->size; j++) {
+        _jit->pool->entries[j-1] = _jit->pool->entries[j];
+        _jit->pool->size--;
+        return;
+      }
+    }
+  }
+  abort();
+}
+
+static void
+patch_pending_literal(jit_state_t *_jit, jit_reloc_t src, uint64_t value)
+{
+  for (size_t i = _jit->pool->size; i--; ) {
+    if (_jit->pool->entries[i].reloc.offset == src.offset) {
+      ASSERT(_jit->pool->entries[i].value == 0);
+      _jit->pool->entries[i].value = value;
+      return;
+    }
+  }
+  abort();
+}
+
+static void add_load_from_pool(jit_state_t *_jit, jit_reloc_t src);
+static int32_t read_jmp_offset(uint32_t *loc);
+static int offset_in_jmp_range(ptrdiff_t offset);
+static void patch_jmp_offset(uint32_t *loc, ptrdiff_t offset);
+static int32_t read_jcc_offset(uint32_t *loc);
+static int offset_in_jcc_range(ptrdiff_t offset);
+static void patch_jcc_offset(uint32_t *loc, ptrdiff_t offset);
+static void patch_veneer(uint32_t *loc, jit_pointer_t addr);
+static int32_t read_load_from_pool_offset(uint32_t *loc);
+#endif
 
 static jit_bool_t is_fpr_arg(enum jit_operand_abi arg);
 static jit_bool_t is_gpr_arg(enum jit_operand_abi arg);
@@ -104,9 +224,16 @@ jit_new_state(void* (*alloc_fn)(size_t), void (*free_fn)(void*))
   _jit->free = free_fn;
 
   if (!jit_init (_jit)) {
+#ifdef JIT_NEEDS_LITERAL_POOL
+    free_fn (_jit->pool);
+#endif
     free_fn (_jit);
     return NULL;
   }
+
+#ifdef JIT_NEEDS_LITERAL_POOL
+  _jit->pool = alloc_literal_pool(_jit, INITIAL_LITERAL_POOL_CAPACITY);
+#endif
 
   return _jit;
 }
@@ -114,6 +241,9 @@ jit_new_state(void* (*alloc_fn)(size_t), void (*free_fn)(void*))
 void
 jit_destroy_state(jit_state_t *_jit)
 {
+#ifdef JIT_NEEDS_LITERAL_POOL
+  _jit->free (_jit->pool);
+#endif
   _jit->free (_jit);
 }
 
@@ -133,6 +263,9 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->limit = buf + length;
   _jit->overflow = 0;
   _jit->frame_size = 0;
+#ifdef JIT_NEEDS_LITERAL_POOL
+  clear_literal_pool(_jit->pool);
+#endif
 }
 
 jit_bool_t
@@ -149,6 +282,9 @@ jit_reset(jit_state_t *_jit)
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
   _jit->frame_size = 0;
+#ifdef JIT_NEEDS_LITERAL_POOL
+  clear_literal_pool(_jit->pool);
+#endif
 }
 
 void*
@@ -171,6 +307,9 @@ jit_end(jit_state_t *_jit, size_t *length)
   _jit->pc.uc = _jit->start = _jit->limit = NULL;
   _jit->overflow = 0;
   _jit->frame_size = 0;
+#ifdef JIT_NEEDS_LITERAL_POOL
+  clear_literal_pool(_jit->pool);
+#endif
 
   return code;
 }
@@ -259,38 +398,21 @@ static inline void emit_u64(jit_state_t *_jit, uint64_t u64) {
 
 static inline jit_reloc_t
 jit_reloc (jit_state_t *_jit, enum jit_reloc_kind kind,
-           uint8_t inst_start_offset)
+           uint8_t inst_start_offset, uint8_t *loc, uint8_t *pc_base,
+           uint8_t rsh)
 {
   jit_reloc_t ret;
 
+  ASSERT(rsh < __WORDSIZE);
+  ASSERT(pc_base >= (loc - inst_start_offset));
+  ASSERT(pc_base - (loc - inst_start_offset) < 256);
+
   ret.kind = kind;
   ret.inst_start_offset = inst_start_offset;
-  ret.offset = _jit->pc.uc - _jit->start;
+  ret.pc_base_offset = pc_base - (loc - inst_start_offset);
+  ret.rsh = rsh;
+  ret.offset = loc - _jit->start;
   
-  switch (kind)
-    {
-    case JIT_RELOC_ABSOLUTE:
-      if (sizeof(intptr_t) == 4)
-        emit_u32 (_jit, 0);
-      else
-        emit_u64 (_jit, 0);
-      break;
-    case JIT_RELOC_REL8:
-      emit_u8 (_jit, 0);
-      break;
-    case JIT_RELOC_REL16:
-      emit_u16 (_jit, 0);
-      break;
-    case JIT_RELOC_REL32:
-      emit_u32 (_jit, 0);
-      break;
-    case JIT_RELOC_REL64:
-      emit_u64 (_jit, 0);
-      break;
-    default:
-      abort ();
-    }
-
   return ret;
 }
 
@@ -308,7 +430,10 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
   union jit_pc loc;
   uint8_t *end;
   loc.uc = _jit->start + reloc.offset;
-  ptrdiff_t diff;
+  uint8_t *pc_base = loc.uc - reloc.inst_start_offset + reloc.pc_base_offset;
+  ptrdiff_t diff = (uint8_t*)addr - pc_base;
+  ASSERT((diff & ((1 << reloc.rsh) - 1)) == 0);
+  diff >>= reloc.rsh;
 
   switch (reloc.kind)
     {
@@ -320,25 +445,68 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
       end = loc.uc + sizeof(diff);
       break;
     case JIT_RELOC_REL8:
-      diff = ((uint8_t*)addr) - (loc.uc + 1);
       ASSERT (INT8_MIN <= diff && diff <= INT8_MAX);
       *loc.uc = diff;
       end = loc.uc + 1;
       break;
     case JIT_RELOC_REL16:
-      diff = ((uint8_t*)addr) - (loc.uc + 2);
       ASSERT (INT16_MIN <= diff && diff <= INT16_MAX);
       *loc.us = diff;
       end = loc.uc + 2;
       break;
+#ifdef JIT_NEEDS_LITERAL_POOL
+    case JIT_RELOC_JMP_WITH_VENEER: {
+      int32_t voff = read_jmp_offset(loc.ui);
+      if (voff == 0) {
+        // PC still in range to reify direct branch.
+        if (offset_in_jmp_range(diff)) {
+          // Target also in range: reify direct branch.
+          patch_jmp_offset(loc.ui, diff);
+          remove_pending_literal(_jit, reloc);
+        } else {
+          // Target out of range; branch to veneer.
+          patch_pending_literal(_jit, reloc, (uint64_t) addr);
+        }
+      } else {
+        // Already emitted a veneer.  In this case, patch the veneer
+        // directly.
+        uint8_t *target = pc_base + (voff << reloc.rsh);
+        patch_veneer((uint32_t *) target, addr);
+      }
+      return;
+    }
+    case JIT_RELOC_JCC_WITH_VENEER: {
+      uint32_t voff = read_jcc_offset(loc.ui);
+      if (voff == 0) {
+        if (offset_in_jcc_range(diff)) {
+          patch_jcc_offset(loc.ui, diff);
+          remove_pending_literal(_jit, reloc);
+        } else {
+          patch_pending_literal(_jit, reloc, (uint64_t) addr);
+        }
+      } else {
+        uint8_t *target = pc_base + (voff << reloc.rsh);
+        patch_veneer((uint32_t *) target, addr);
+      }
+      return;
+    }
+    case JIT_RELOC_LOAD_FROM_POOL: {
+      uint32_t voff = read_load_from_pool_offset(loc.ui);
+      if (voff == 0) {
+        patch_pending_literal(_jit, reloc, (uint64_t) addr);
+      } else {
+        uint8_t *target = pc_base + (voff << reloc.rsh);
+        *(uintptr_t *) target = (uintptr_t) addr;
+      }
+      return;
+    }
+#endif
     case JIT_RELOC_REL32:
-      diff = ((uint8_t*)addr) - (loc.uc + 4);
       ASSERT (INT32_MIN <= diff && diff <= INT32_MAX);
       *loc.ui = diff;
       end = loc.uc + 4;
       break;
     case JIT_RELOC_REL64:
-      diff = ((uint8_t*)addr) - (loc.uc + 8);
       *loc.ul = diff;
       end = loc.uc + 8;
       break;
