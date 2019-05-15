@@ -348,7 +348,7 @@ get_temp_gpr(jit_state_t *_jit)
 static jit_fpr_t
 get_temp_fpr(jit_state_t *_jit)
 {
-  switch(_jit->temp_gpr_saved++)
+  switch(_jit->temp_fpr_saved++)
     {
     case 0:
       return JIT_FTMP;
