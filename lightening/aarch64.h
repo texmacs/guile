@@ -121,8 +121,8 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #define JIT_R14   _X14
 #define JIT_R15   _X15
 #define JIT_R16   _X16
-#define JIT_R17   _X17
-#define JIT_RTMP  _X18
+#define JIT_TMP0  _X17
+#define JIT_TMP1  _X18
 #define JIT_V0    _X19
 #define JIT_V1    _X20
 #define JIT_V2    _X21

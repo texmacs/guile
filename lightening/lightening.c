@@ -332,35 +332,43 @@ jit_align(jit_state_t *_jit, unsigned align)
 static jit_gpr_t
 get_temp_gpr(jit_state_t *_jit)
 {
-  ASSERT(!_jit->temp_gpr_saved);
-  _jit->temp_gpr_saved = 1;
-#ifdef JIT_RTMP
-  return JIT_RTMP;
-#else
-  return JIT_VTMP;
+  switch(_jit->temp_gpr_saved++)
+    {
+    case 0:
+      return JIT_TMP0;
+#ifdef JIT_TMP1
+    case 1:
+      return JIT_TMP1;
 #endif
+    default:
+      abort();
+    }
 }
 
 static jit_fpr_t
 get_temp_fpr(jit_state_t *_jit)
 {
-  ASSERT(!_jit->temp_fpr_saved);
-  _jit->temp_fpr_saved = 1;
-  return JIT_FTMP;
+  switch(_jit->temp_gpr_saved++)
+    {
+    case 0:
+      return JIT_FTMP;
+    default:
+      abort();
+    }
 }
 
 static void
 unget_temp_fpr(jit_state_t *_jit)
 {
   ASSERT(_jit->temp_fpr_saved);
-  _jit->temp_fpr_saved = 0;
+  _jit->temp_fpr_saved--;
 }
 
 static void
 unget_temp_gpr(jit_state_t *_jit)
 {
   ASSERT(_jit->temp_gpr_saved);
-  _jit->temp_gpr_saved = 0;
+  _jit->temp_gpr_saved--;
 }
 
 static inline void emit_u8(jit_state_t *_jit, uint8_t u8) {
