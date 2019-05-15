@@ -92,8 +92,9 @@
 static inline jit_bool_t
 jit_gpr_is_callee_save (jit_gpr_t reg)
 {
-  // x19 to x28 are callee-save, and x29 is the frame pointer.
-  return 19 <= jit_gpr_regno (reg) && jit_gpr_regno (reg) <= 29;
+  // x19 to x28 are callee-save, x29 is the frame pointer, and x30 is
+  // the link register.
+  return 19 <= jit_gpr_regno (reg) && jit_gpr_regno (reg) <= 30;
 }
 
 static inline jit_bool_t
@@ -132,10 +133,11 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #define JIT_V7    _X26
 #define JIT_V8    _X27
 #define JIT_V9    _X28
-// x29 is frame pointer
-// x30 is link register
-// x31 is stack pointer
 
+// x29 is frame pointer; x30 is link register.
+#define JIT_PLATFORM_CALLEE_SAVE_GPRS _X29, _X30
+
+// x31 is stack pointer.
 #define JIT_SP    _X31
 
 #define JIT_F0  _D0

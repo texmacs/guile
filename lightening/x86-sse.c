@@ -170,24 +170,6 @@ movr_d(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
-pushr_d(jit_state_t *_jit, int32_t r0)
-{
-  jit_gpr_t tmp = get_temp_gpr(_jit);
-  movdqxr(_jit, jit_gpr_regno(tmp), r0);
-  pushr(_jit, jit_gpr_regno(tmp));
-  unget_temp_gpr(_jit);
-}
-
-static void
-popr_d(jit_state_t *_jit, int32_t r0)
-{
-  jit_gpr_t tmp = get_temp_gpr(_jit);
-  popr(_jit, jit_gpr_regno(tmp));
-  ssexr(_jit, 0x66, X86_SSE_G2X, r0, jit_gpr_regno(tmp));
-  unget_temp_gpr(_jit);
-}
-
-static void
 addssr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   ssexr(_jit, 0xf3, X86_SSE_ADD, r0, r1);

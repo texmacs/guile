@@ -185,7 +185,6 @@ patch_pending_literal(jit_state_t *_jit, jit_reloc_t src, uint64_t value)
   abort();
 }
 
-static void add_load_from_pool(jit_state_t *_jit, jit_reloc_t src);
 static int32_t read_jmp_offset(uint32_t *loc);
 static int offset_in_jmp_range(ptrdiff_t offset);
 static void patch_jmp_offset(uint32_t *loc, ptrdiff_t offset);
@@ -1082,10 +1081,11 @@ jit_shrink_stack(jit_state_t *_jit, size_t diff)
   _jit->frame_size -= diff;
 }
 
-static const jit_gpr_t V[] = {
-#ifdef JIT_VTMP
-  JIT_VTMP ,
-#endif
+static const jit_gpr_t platform_callee_save_gprs[] = {
+  JIT_PLATFORM_CALLEE_SAVE_GPRS
+};
+
+static const jit_gpr_t user_callee_save_gprs[] = {
   JIT_V0, JIT_V1, JIT_V2
 #ifdef JIT_V3
   , JIT_V3
@@ -1110,10 +1110,7 @@ static const jit_gpr_t V[] = {
 #endif
  };
 
-static const jit_fpr_t VF[] = {
-#ifdef JIT_VFTMP
-  JIT_VFTMP ,
-#endif
+static const jit_fpr_t user_callee_save_fprs[] = {
 #ifdef JIT_VF0
   JIT_VF0
 #endif
@@ -1140,54 +1137,53 @@ static const jit_fpr_t VF[] = {
 #endif
 };
 
-static const size_t v_count = sizeof(V) / sizeof(V[0]);
-static const size_t vf_count = sizeof(VF) / sizeof(VF[0]);
+#define ARRAY_SIZE(X) (sizeof (X)/sizeof ((X)[0]))
+static const size_t pv_count = ARRAY_SIZE(platform_callee_save_gprs);
+static const size_t v_count = ARRAY_SIZE(user_callee_save_gprs);
+static const size_t vf_count = ARRAY_SIZE(user_callee_save_fprs);
 
 size_t
 jit_enter_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
 {
-#ifdef JIT_VTMP
-  v++;
-#endif
-#ifdef JIT_VFTMP
-  vf++;
-#endif
-
   ASSERT(v <= v_count);
   ASSERT(vf <= vf_count);
 
   ASSERT(_jit->frame_size == 0);
   _jit->frame_size = jit_initial_frame_size();
 
-  /* Save values of callee-save registers.  */
-  for (size_t i = 0; i < v; i++)
-    jit_pushr (_jit, V[i]);
-  for (size_t i = 0; i < vf; i++)
-    jit_pushr_d (_jit, VF[i]);
+  size_t reserved =
+    jit_align_stack(_jit, (pv_count + v) * (__WORDSIZE / 8) + vf * 8);
 
-  return jit_align_stack(_jit, frame_size);
+  size_t offset = 0;
+  for (size_t i = 0; i < vf_count; i++, offset += 8)
+    jit_stxi_d(_jit, offset, JIT_SP, user_callee_save_fprs[i]);
+  for (size_t i = 0; i < v; i++, offset += __WORDSIZE / 8)
+    jit_stxi(_jit, offset, JIT_SP, user_callee_save_gprs[i]);
+  for (size_t i = 0; i < pv_count; i++, offset += __WORDSIZE / 8)
+    jit_stxi(_jit, offset, JIT_SP, platform_callee_save_gprs[i]);
+  ASSERT(offset <= reserved);
+
+  return reserved;
 }
 
 void
 jit_leave_jit_abi(jit_state_t *_jit, size_t v, size_t vf, size_t frame_size)
 {
-#ifdef JIT_VTMP
-  v++;
-#endif
-#ifdef JIT_VFTMP
-  vf++;
-#endif
+  ASSERT(v <= v_count);
+  ASSERT(vf <= vf_count);
+  ASSERT((pv_count + v) * (__WORDSIZE / 8) + vf * 8 <= frame_size);
+
+  size_t offset = 0;
+  for (size_t i = 0; i < vf_count; i++, offset += 8)
+    jit_ldxi_d(_jit, user_callee_save_fprs[i], JIT_SP, offset);
+  for (size_t i = 0; i < v; i++, offset += __WORDSIZE / 8)
+    jit_ldxi(_jit, user_callee_save_gprs[i], JIT_SP, offset);
+  for (size_t i = 0; i < pv_count; i++, offset += __WORDSIZE / 8)
+    jit_ldxi(_jit, platform_callee_save_gprs[i], JIT_SP, offset);
+  ASSERT(offset <= frame_size);
 
   jit_shrink_stack(_jit, frame_size);
-
-  /* Restore callee-save registers.  */
-  for (size_t i = 0; i < vf; i++)
-    jit_popr_d (_jit, VF[vf - i - 1]);
-
-  for (size_t i = 0; i < v; i++)
-    jit_popr (_jit, V[v - i - 1]);
 }
-
 
 // Precondition: stack is already aligned.
 static size_t

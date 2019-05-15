@@ -22,9 +22,15 @@ extern void __clear_cache(void *, void *);
 
 
 static inline int32_t
-read_offset(uint32_t *loc, uint8_t bits, uint8_t base)
+read_signed_bitfield(uint32_t word, uint8_t width, uint8_t shift)
 {
-  return (*((int32_t*)loc)) << (32 - bits - base) >> (32 - bits);
+  return ((int32_t)word) << (32 - width - shift) >> (32 - width);
+}
+
+static inline uint32_t
+read_unsigned_bitfield(uint32_t word, uint8_t width, uint8_t shift)
+{
+  return word << (32 - width - shift) >> (32 - width);
 }
 
 static inline int
@@ -33,45 +39,84 @@ in_signed_range(ptrdiff_t diff, uint8_t bits)
   return (-1 << (bits - 1)) <= diff && diff < (1 << (bits - 1));
 }
 
-static inline int32_t
-write_offset(uint32_t *loc, uint8_t bits, uint8_t base, ptrdiff_t offset)
+static inline int
+in_unsigned_range(uint32_t val, uint8_t bits)
 {
-  ASSERT(read_offset(loc, bits, base) == 0);
-  ASSERT(in_signed_range(offset, bits));
-  *loc |= (((uint32_t) offset) & ((1 << bits) - 1)) << base;
+  ASSERT(bits < __WORDSIZE);
+  return val < (1 << bits);
 }
 
-#define DEFINE_PATCHABLE_INSTRUCTION(name, bits, base, RELOC, rsh)      \
-  static const uint8_t name##_offset_bits = bits;                       \
-  static const uint8_t name##_offset_base = base;                       \
+static inline uint32_t
+write_unsigned_bitfield(uint32_t word, uint32_t val, uint8_t width, uint8_t shift)
+{
+  ASSERT(read_unsigned_bitfield(word, width, shift) == 0);
+  ASSERT(in_unsigned_range(val, width));
+  return word | (val << shift);
+}
+
+static inline int32_t
+write_signed_bitfield(uint32_t word, ptrdiff_t val, uint8_t width, uint8_t shift)
+{
+  ASSERT(read_signed_bitfield(word, width, shift) == 0);
+  ASSERT(in_signed_range(val, width));
+  return word | ((val & ((1 << width) - 1)) << shift);
+}
+
+#define DEFINE_ENCODER(name, width, shift, kind, val_t)                 \
+  static const uint8_t name##_width = width;                            \
+  static const uint8_t name##_shift = shift;                            \
+  static uint32_t                                                       \
+  write_##name##_bitfield(uint32_t word, val_t val)                     \
+  {                                                                     \
+    return write_##kind##_bitfield(word, val, name##_width, name##_shift); \
+  }
+
+DEFINE_ENCODER(Rd, 5, 0, unsigned, uint32_t)
+DEFINE_ENCODER(Rm, 5, 16, unsigned, uint32_t)
+DEFINE_ENCODER(Rn, 5, 5, unsigned, uint32_t)
+DEFINE_ENCODER(Rt, 5, 0, unsigned, uint32_t)
+DEFINE_ENCODER(Rt2, 5, 10, unsigned, uint32_t)
+DEFINE_ENCODER(cond, 4, 12, unsigned, uint32_t)
+DEFINE_ENCODER(cond2, 4, 0, unsigned, uint32_t)
+DEFINE_ENCODER(simm7, 7, 15, signed, ptrdiff_t)
+DEFINE_ENCODER(simm9, 9, 12, signed, ptrdiff_t)
+DEFINE_ENCODER(imm12, 12, 10, unsigned, uint32_t)
+DEFINE_ENCODER(imm16, 16, 5, unsigned, uint32_t)
+DEFINE_ENCODER(simm19, 19, 5, signed, ptrdiff_t)
+DEFINE_ENCODER(simm26, 26, 0, signed, ptrdiff_t)
+DEFINE_ENCODER(immr, 6, 16, unsigned, uint32_t)
+DEFINE_ENCODER(imms, 6, 10, unsigned, uint32_t)
+DEFINE_ENCODER(size, 2, 22, unsigned, uint32_t)
+
+#define DEFINE_PATCHABLE_INSTRUCTION(name, kind, RELOC, rsh)            \
   static int32_t                                                        \
   read_##name##_offset(uint32_t *loc)                                   \
   {                                                                     \
-    return read_offset(loc, name##_offset_bits, name##_offset_base);    \
+    return read_signed_bitfield(*loc, kind##_width, kind##_shift);      \
   }                                                                     \
   static int                                                            \
-  in_##name##_range(ptrdiff_t diff)                                     \
+  offset_in_##name##_range(ptrdiff_t diff)                              \
   {                                                                     \
-    return in_signed_range(diff, name##_offset_bits);                   \
+    return in_signed_range(diff, kind##_width);                         \
   }                                                                     \
-  static int32_t                                                        \
-  write_##name##_offset(uint32_t *loc, ptrdiff_t diff)                  \
+  static void                                                           \
+  patch_##name##_offset(uint32_t *loc, ptrdiff_t diff)                  \
   {                                                                     \
-    return write_offset(loc, name##_offset_bits, name##_offset_base, diff); \
+    *loc = write_##kind##_bitfield(*loc, diff);                         \
   }                                                                     \
   static jit_reloc_t                                                    \
   emit_##name(jit_state_t *_jit, uint32_t inst)                         \
   {                                                                     \
     jit_reloc_t ret = jit_reloc (_jit, JIT_RELOC_##RELOC, 0,            \
                                  _jit->pc.uc, _jit->pc.uc, rsh);        \
-    add_pending_literal(_jit, ret, name##_offset_bits);                 \
+    add_pending_literal(_jit, ret, kind##_width - 1);                   \
     emit_u32(_jit, inst);                                               \
     return ret;                                                         \
   }
 
-DEFINE_PATCHABLE_INSTRUCTION(jmp, 26, 0, JCC_WITH_VENEER, 2);
-DEFINE_PATCHABLE_INSTRUCTION(jcc, 19, 5, JMP_WITH_VENEER, 2);
-DEFINE_PATCHABLE_INSTRUCTION(load_from_pool, 19, 5, LOAD_FROM_POOL, 2);
+DEFINE_PATCHABLE_INSTRUCTION(jmp, simm26, JCC_WITH_VENEER, 2);
+DEFINE_PATCHABLE_INSTRUCTION(jcc, simm19, JMP_WITH_VENEER, 2);
+DEFINE_PATCHABLE_INSTRUCTION(load_from_pool, simm19, LOAD_FROM_POOL, 2);
 
 struct veneer
 {
@@ -129,12 +174,6 @@ jit_init(jit_state_t *_jit)
 }
 
 static size_t
-jit_operand_abi_sizeof(enum jit_operand_abi abi)
-{
-  return 8;
-}
-
-static size_t
 jit_initial_frame_size (void)
 {
   return 0;
@@ -177,4 +216,9 @@ static inline size_t
 jit_stack_alignment(void)
 {
   return 16;
+}
+
+static void
+jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
+{
 }

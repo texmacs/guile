@@ -580,11 +580,6 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(_p___, jmpi)		\
           M(R____, jmp)			\
   					\
-          M(_G___, pushr)		\
-          M(_F___, pushr_d)		\
-          M(_G___, popr)		\
-          M(_F___, popr_d)		\
-					\
           M(_____, ret)			\
           M(_G___, retr)		\
           M(_F___, retr_f)		\

@@ -129,7 +129,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_V0   _RBP
 #  define JIT_V1   _RSI
 #  define JIT_V2   _RDI
-#  define JIT_VTMP _RBX
+#  define JIT_TMP _RBX
 #  define JIT_F0   _XMM0
 #  define JIT_F1   _XMM1
 #  define JIT_F2   _XMM2
@@ -138,6 +138,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_F5   _XMM5
 #  define JIT_F6   _XMM6
 #  define JIT_FTMP _XMM7
+#  define JIT_PLATFORM_CALLEE_SAVE_GPRS JIT_TMP
 #elif __CYGWIN__
 #  define JIT_R0   _RAX
 #  define JIT_R1   _RCX
@@ -169,6 +170,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_VF7  _XMM13
 #  define JIT_VF8  _XMM14
 #  define JIT_VF9  _XMM15
+#  define JIT_PLATFORM_CALLEE_SAVE_GPRS /**/
 #else
 #  define JIT_R0   _RAX
 #  define JIT_R1   _RCX
@@ -200,6 +202,7 @@ jit_fpr_is_callee_save (jit_fpr_t reg)
 #  define JIT_F13  _XMM13
 #  define JIT_F14  _XMM14
 #  define JIT_FTMP _XMM15
+#  define JIT_PLATFORM_CALLEE_SAVE_GPRS /**/
 #endif
 
 #endif /* _jit_x86_h */

@@ -21,132 +21,6 @@
 #error AArch64 requires little-endian host
 #endif
 
-typedef union {
-  /* cond2: condition in truly conditional-executed inst.  */
-  struct {                    uint32_t b:  4; } cond2;
-  /* nzcv: flag bit specifier, encoded in the "nzcv" field.  */
-  struct {                    uint32_t b:  4; } nzcv;
-  /* defgh: d:e:f:g:h bits in AdvSIMD modified immediate.  */
-  struct { uint32_t _:  5;    uint32_t b:  5; } defgh;
-  /* abc: a:b:c bits in AdvSIMD modified immediate.  */
-  struct { uint32_t _: 16;    uint32_t b:  3; } abc;
-  /* imm19: e.g. in CBZ.  */
-  struct { uint32_t _:  5;    uint32_t b: 19; } imm19;
-  /* immhi: e.g. in ADRP.  */
-  struct { uint32_t _:  5;    uint32_t b: 19; } immhi;
-  /* immlo: e.g. in ADRP.  */
-  struct { uint32_t _: 29;    uint32_t b:  2; } immlo;
-  /* size: in most AdvSIMD and floating-point instructions.  */
-  struct { uint32_t _: 22;    uint32_t b:  2; } size;
-  /* vldst_size: size field in the AdvSIMD load/store inst.  */
-  struct { uint32_t _: 10;    uint32_t b:  2; } vldst_size;
-  /* op: in AdvSIMD modified immediate instructions.  */
-  struct { uint32_t _: 29;    uint32_t b:  1; } op;
-  /* Q: in most AdvSIMD instructions.  */
-  struct { uint32_t _: 30;    uint32_t b:  1; } Q;
-  /* Rt: in load/store instructions.  */
-  struct {                    uint32_t b:  5; } Rt;
-  /* Rd: in many integer instructions.  */
-  struct {                    uint32_t b:  5; } Rd;
-  /* Rn: in many integer instructions.  */
-  struct { uint32_t _:  5;    uint32_t b:  5; } Rn;
-  /* Rt2: in load/store pair instructions.  */
-  struct { uint32_t _: 10;    uint32_t b:  5; } Rt2;
-  /* Ra: in fp instructions.  */
-  struct { uint32_t _: 10;    uint32_t b:  5; } Ra;
-  /* op2: in the system instructions.  */
-  struct { uint32_t _:  5;    uint32_t b:  3; } op2;
-  /* CRm: in the system instructions.  */
-  struct { uint32_t _:  8;    uint32_t b:  4; } CRm;
-  /* CRn: in the system instructions.  */
-  struct { uint32_t _: 12;    uint32_t b:  4; } CRn;
-  /* op1: in the system instructions.  */
-  struct { uint32_t _: 16;    uint32_t b:  3; } op1;
-  /* op0: in the system instructions.  */
-  struct { uint32_t _: 19;    uint32_t b:  2; } op0;
-  /* imm3: in add/sub extended reg instructions.  */
-  struct { uint32_t _: 10;    uint32_t b:  3; } imm3;
-  /* cond: condition flags as a source operand.  */
-  struct { uint32_t _: 12;    uint32_t b:  4; } cond;
-  /* opcode: in advsimd load/store instructions.  */
-  struct { uint32_t _: 12;    uint32_t b:  4; } opcode;
-  /* cmode: in advsimd modified immediate instructions.  */
-  struct { uint32_t _: 12;    uint32_t b:  4; } cmode;
-  /* asisdlso_opcode: opcode in advsimd ld/st single element.  */
-  struct { uint32_t _: 13;    uint32_t b:  3; } asisdlso_opcode;
-  /* len: in advsimd tbl/tbx instructions.  */
-  struct { uint32_t _: 13;    uint32_t b:  2; } len;
-  /* Rm: in ld/st reg offset and some integer inst.  */
-  struct { uint32_t _: 16;    uint32_t b:  5; } Rm;
-  /* Rs: in load/store exclusive instructions.  */
-  struct { uint32_t _: 16;    uint32_t b:  5; } Rs;
-  /* option: in ld/st reg offset + add/sub extended reg inst.  */
-  struct { uint32_t _: 13;    uint32_t b:  3; } option;
-  /* S: in load/store reg offset instructions.  */
-  struct { uint32_t _: 12;    uint32_t b:  1; } S;
-  /* hw: in move wide constant instructions.  */
-  struct { uint32_t _: 21;    uint32_t b:  2; } hw;
-  /* opc: in load/store reg offset instructions.  */
-  struct { uint32_t _: 22;    uint32_t b:  2; } opc;
-  /* opc1: in load/store reg offset instructions.  */
-  struct { uint32_t _: 23;    uint32_t b:  1; } opc1;
-  /* shift: in add/sub reg/imm shifted instructions.  */
-  struct { uint32_t _: 22;    uint32_t b:  2; } shift;
-  /* type: floating point type field in fp data inst.  */
-  struct { uint32_t _: 22;    uint32_t b:  2; } type;
-  /* ldst_size: size field in ld/st reg offset inst.  */
-  struct { uint32_t _: 30;    uint32_t b:  2; } ldst_size;
-  /* imm6: in add/sub reg shifted instructions.  */
-  struct { uint32_t _: 10;    uint32_t b:  6; } imm6;
-  /* imm4: in advsimd ext and advsimd ins instructions.  */
-  struct { uint32_t _: 11;    uint32_t b:  4; } imm4;
-  /* imm5: in conditional compare (immediate) instructions.  */
-  struct { uint32_t _: 16;    uint32_t b:  5; } imm5;
-  /* imm7: in load/store pair pre/post index instructions.  */
-  struct { uint32_t _: 15;    uint32_t b:  7; } imm7;
-  /* imm8: in floating-point scalar move immediate inst.  */
-  struct { uint32_t _: 13;    uint32_t b:  8; } imm8;
-  /* imm9: in load/store pre/post index instructions.  */
-  struct { uint32_t _: 12;    uint32_t b:  9; } imm9;
-  /* imm12: in ld/st unsigned imm or add/sub shifted inst.  */
-  struct { uint32_t _: 10;    uint32_t b: 12; } imm12;
-  /* imm14: in test bit and branch instructions.  */
-  struct { uint32_t _:  5;    uint32_t b: 14; } imm14;
-  /* imm16: in exception instructions.  */
-  struct { uint32_t _:  5;    uint32_t b: 16; } imm16;
-  /* imm26: in unconditional branch instructions.  */
-  struct {                    uint32_t b: 26; } imm26;
-  /* imms: in bitfield and logical immediate instructions.  */
-  struct { uint32_t _: 10;    uint32_t b:  6; } imms;
-  /* immr: in bitfield and logical immediate instructions.  */
-  struct { uint32_t _: 16;    uint32_t b:  6; } immr;
-  /* immb: in advsimd shift by immediate instructions.  */
-  struct { uint32_t _: 16;    uint32_t b:  3; } immb;
-  /* immh: in advsimd shift by immediate instructions.  */
-  struct { uint32_t _: 19;    uint32_t b:  4; } immh;
-  /* N: in logical (immediate) instructions.  */
-  struct { uint32_t _: 22;    uint32_t b:  1; } N;
-  /* index: in ld/st inst deciding the pre/post-index.  */
-  struct { uint32_t _: 11;    uint32_t b:  1; } index;
-  /* index2: in ld/st pair inst deciding the pre/post-index.  */
-  struct { uint32_t _: 24;    uint32_t b:  1; } index2;
-  /* sf: in integer data processing instructions.  */
-  struct { uint32_t _: 31;    uint32_t b:  1; } sf;
-  /* H: in advsimd scalar x indexed element instructions.  */
-  struct { uint32_t _: 11;    uint32_t b:  1; } H;
-  /* L: in advsimd scalar x indexed element instructions.  */
-  struct { uint32_t _: 21;    uint32_t b:  1; } L;
-  /* M: in advsimd scalar x indexed element instructions.  */
-  struct { uint32_t _: 20;    uint32_t b:  1; } M;
-  /* b5: in the test bit and branch instructions.  */
-  struct { uint32_t _: 31;    uint32_t b:  1; } b5;
-  /* b40: in the test bit and branch instructions.  */
-  struct { uint32_t _: 19;    uint32_t b:  5; } b40;
-  /* scale: in the fixed-point scalar to fp converting inst.  */
-  struct { uint32_t _: 10;    uint32_t b:  6; } scale;
-  int32_t               w;
-} instr_t;
-
 static int32_t
 logical_immediate(jit_word_t imm)
 {
@@ -182,200 +56,136 @@ logical_immediate(jit_word_t imm)
 static void
 oxxx(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Rm)
 {
-  instr_t     i;
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Op & ~0xffe0fc00));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.Rm.b = Rm;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_Rm_bitfield(inst, Rm);
+  emit_u32(_jit, inst);
 }
 
 static void
 oxxi(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Imm12)
 {
-  instr_t     i;
-  ASSERT(!(Rd    &       ~0x1f));
-  ASSERT(!(Rn    &       ~0x1f));
-  ASSERT(!(Imm12 &      ~0xfff));
-  ASSERT(!(Op    & ~0xffe00000));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.imm12.b = Imm12;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_imm12_bitfield(inst, Imm12);
+  emit_u32(_jit, inst);
 }
 
 static void
-oxx9(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Imm9)
+oxx9(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Simm9)
 {
-  instr_t     i;
-  ASSERT(!(Rd   &       ~0x1f));
-  ASSERT(!(Rn   &       ~0x1f));
-  ASSERT(!(Imm9 &      ~0x1ff));
-  ASSERT(!(Op   & ~0xffe00000));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.imm9.b = Imm9;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_simm9_bitfield(inst, Simm9);
+  emit_u32(_jit, inst);
 }
 
 static uint32_t
 encode_ox19(jit_state_t *_jit, int32_t Op, int32_t Rd)
 {
-  instr_t     i;
-  ASSERT(!(Rd &         ~0x1f));
-  ASSERT(!(Op   & ~0xff000000));
-  i.w = Op;
-  i.Rd.b = Rd;
-  return i.w;
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  return inst;
 }
 
 static uint32_t
 encode_oc19(jit_state_t *_jit, int32_t Op, int32_t Cc)
 {
-  instr_t     i;
-  ASSERT(!(Cc &          ~0xf));
-  ASSERT(!(Op   & ~0xff000000));
-  i.w = Op;
-  i.cond2.b = Cc;
-  return i.w;
+  uint32_t inst = Op;
+  inst = write_cond2_bitfield(inst, Cc);
+  return inst;
 }
 
 static uint32_t
 encode_o26(jit_state_t *_jit, int32_t Op)
 {
-  instr_t     i;
-  ASSERT(!(Op   & ~0xfc000000));
-  i.w = Op;
-  return i.w;
+  uint32_t inst = Op;
+  return inst;
 }
 
 static void
 ox_x(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rm)
 {
-  instr_t     i;
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Op & ~0xffe0ffe0));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rm.b = Rm;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rm_bitfield(inst, Rm);
+  emit_u32(_jit, inst);
 }
 
 static void
 o_xx(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn)
 {
-  instr_t     i;
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Op & ~0xfffffc00));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  emit_u32(_jit, inst);
 }
 
 static void
 oxx_(jit_state_t *_jit, int32_t Op, int32_t Rn, int32_t Rm)
 {
-  instr_t     i;
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Op & ~0xffc0fc1f));
-  i.w = Op;
-  i.Rn.b = Rn;
-  i.Rm.b = Rm;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_Rm_bitfield(inst, Rm);
+  emit_u32(_jit, inst);
 }
 
 static void
 o_x_(jit_state_t *_jit, int32_t Op, int32_t Rn)
 {
-  instr_t     i;
-  ASSERT(!(Rn & ~0x1f));
-  ASSERT(!(Op & 0x3e0));
-  i.w = Op;
-  i.Rn.b = Rn;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rn_bitfield(inst, Rn);
+  emit_u32(_jit, inst);
 }
 
 static void
 ox_h(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Imm16)
 {
-  instr_t     i;
-  ASSERT(!(Rd    &       ~0x1f));
-  ASSERT(!(Imm16 &     ~0xffff));
-  ASSERT(!(Op    & ~0xffe00000));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.imm16.b = Imm16;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_imm16_bitfield(inst, Imm16);
+  emit_u32(_jit, inst);
 }
 
 static void
 oxxrs(jit_state_t *_jit, int32_t Op,
       int32_t Rd, int32_t Rn, int32_t R, int32_t S)
 {
-  instr_t     i;
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(R  &       ~0x3f));
-  ASSERT(!(S  &       ~0x3f));
-  ASSERT(!(Op & ~0xffc00000));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.immr.b = R;
-  i.imms.b = S;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_immr_bitfield(inst, R);
+  inst = write_imms_bitfield(inst, S);
+  emit_u32(_jit, inst);
 }
 
 static void
 oxxxc(jit_state_t *_jit, int32_t Op,
       int32_t Rd, int32_t Rn, int32_t Rm, int32_t Cc)
 {
-  instr_t     i;
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Cc  &       ~0xf));
-  ASSERT(!(Op & ~0xffc00c00));
-  i.w = Op;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.Rm.b = Rm;
-  i.cond.b = Cc;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_Rm_bitfield(inst, Rm);
+  inst = write_cond_bitfield(inst, Cc);
+  emit_u32(_jit, inst);
 }
 
 static void
 oxxx7(jit_state_t *_jit, int32_t Op,
       int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7)
 {
-  instr_t     i;
-  ASSERT(!(Rt  &       ~0x1f));
-  ASSERT(!(Rt2 &       ~0x1f));
-  ASSERT(!(Rn  &       ~0x1f));
-  ASSERT(Simm7 >= -128 && Simm7 <= 127);
-  ASSERT(!(Op & ~0xffc003e0));
-  i.w = Op;
-  i.Rt.b = Rt;
-  i.Rt2.b = Rt2;
-  i.Rn.b = Rn;
-  i.imm7.b = Simm7;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_Rt_bitfield(inst, Rt);
+  inst = write_Rt2_bitfield(inst, Rt2);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_simm7_bitfield(inst, Simm7);
+  emit_u32(_jit, inst);
 }
 
-#define stack_framesize               160
-#define FP_REGNO                      0x1d
-#define LR_REGNO                      0x1e
-#define SP_REGNO                      0x1f
 #define XZR_REGNO                     0x1f
 #define WZR_REGNO                     XZR_REGNO
 #define LSL_12                        0x00400000
@@ -383,26 +193,6 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define MOVI_LSL_32                   0x00400000
 #define MOVI_LSL_48                   0x00600000
 #define XS                            0x80000000      /* Wn -> Xn */
-#define DS                            0x00400000      /* Sn -> Dn */
-#define CC_NE                         0x0
-#define CC_EQ                         0x1
-#define CC_CC                         0x2
-#define CC_LO                         CC_CC
-#define CC_CS                         0x3
-#define CC_HS                         CC_CS
-#define CC_PL                         0x4
-#define CC_MI                         0x5
-#define CC_VC                         0x6
-#define CC_VS                         0x7
-#define CC_LS                         0x8
-#define CC_HI                         0x9
-#define CC_LT                         0xa
-#define CC_GE                         0xb
-#define CC_LE                         0xc
-#define CC_GT                         0xd
-#define CC_NV                         0xe
-#define CC_AL                         0xf
-/* Branches need inverted condition */
 #define BCC_EQ                        0x0
 #define BCC_NE                        0x1
 #define BCC_CS                        0x2
@@ -421,7 +211,7 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define BCC_LE                        0xd
 #define BCC_AL                        0xe
 #define BCC_NV                        0xf
-/* adapted and cut down to only tested and required by lightning,
+/* adapted and cut down to only tested and required by lightening,
  * from data in binutils/aarch64-tbl.h */
 #define A64_ADCS                      0x3a000000
 #define A64_SBCS                      0x7a000000
@@ -492,10 +282,11 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define A64_STURW                     0xb8000000
 #define A64_LDURW                     0xb8400000
 #define A64_LDURSW                    0xb8800000
-#define A64_STP                       0x29000000
-#define A64_LDP                       0x29400000
 #define A64_STP_POS                   0x29800000
-#define A64_LDP_PRE                   0x28c00000
+#define A64_LDP_POS                   0x28c00000
+#define A64_STP_PRE                   0x29800000
+#define A64_STR_PRE                   0xf8000c00
+#define A64_LDR_POS                   0xf8400c00
 #define A64_ANDI                      0x12400000
 #define A64_ORRI                      0x32400000
 #define A64_EORI                      0x52400000
@@ -1116,33 +907,27 @@ STUR(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Imm9)
 }
 
 static void
-LDPI(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
+STR_PRE(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Simm9) 
 {
-  return oxxx7(_jit, A64_LDP|XS,Rt,Rt2,Rn,Simm7);
+  return oxx9(_jit, A64_STR_PRE,Rt,Rn,Simm9);
 }
 
 static void
-STPI(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
+LDR_POS(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Simm9)
 {
-  return oxxx7(_jit, A64_STP|XS,Rt,Rt2,Rn,Simm7);
+  return oxx9(_jit, A64_LDR_POS,Rt,Rn,Simm9);
 }
 
 static void
-LDPI_PRE(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
+STP_PRE(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
 {
-  return oxxx7(_jit, A64_LDP_PRE|XS,Rt,Rt2,Rn,Simm7);
+  return oxxx7(_jit, A64_STP_PRE|XS,Rt,Rt2,Rn,Simm7);
 }
 
 static void
-STPI_POS(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
+LDP_POS(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7)
 {
-  return oxxx7(_jit, A64_STP_POS|XS,Rt,Rt2,Rn,Simm7);
-}
-
-static void
-CSET(jit_state_t *_jit, int32_t Rd, int32_t Cc) 
-{
-  return CSINC(_jit, Rd,XZR_REGNO,XZR_REGNO,Cc);
+  return oxxx7(_jit, A64_LDP_POS|XS,Rt,Rt2,Rn,Simm7);
 }
 
 static jit_reloc_t
@@ -1172,7 +957,7 @@ BLR(jit_state_t *_jit, int32_t Rn)
 static void
 RET(jit_state_t *_jit)
 {
-  return o_x_(_jit, A64_RET,LR_REGNO);
+  return o_x_(_jit, A64_RET,jit_gpr_regno(_LR));
 }
 
 static jit_reloc_t
@@ -1588,156 +1373,6 @@ movi(jit_state_t *_jit, int32_t r0, jit_word_t i0)
   default:
     abort();
   }
-}
-
-static void
-ccr(jit_state_t *_jit, int32_t cc, int32_t r0, int32_t r1, int32_t r2)
-{
-  CMP(_jit, r1, r2);
-  CSET(_jit, r0, cc);
-}
-
-static void
-cci(jit_state_t *_jit, int32_t cc, int32_t r0, int32_t r1, jit_word_t i0)
-{
-  jit_word_t          is =  i0 >> 12;
-  jit_word_t          in = -i0;
-  jit_word_t          iS =  in >> 12;
-  if (      i0 >= 0 && i0 <= 0xfff) {
-    CMPI   (_jit, r1, i0);
-  } else if ((is << 12) == i0 && is >= 0 && is <= 0xfff) {
-    CMPI_12(_jit, r1, is);
-  } else if ( in >= 0 && in <= 0xfff) {
-    CMNI   (_jit, r1, in);
-  } else if ((iS << 12) == is && iS >= 0 && iS <= 0xfff) {
-    CMNI_12(_jit, r1, iS);
-  } else {
-    jit_gpr_t reg = get_temp_gpr(_jit);
-    movi(_jit, jit_gpr_regno(reg), i0);
-    CMP(_jit, r1, jit_gpr_regno(reg));
-    unget_temp_gpr(_jit);
-  }
-  CSET(_jit, r0, cc);
-}
-
-static void
-ltr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_LT,r0,r1,r2);
-}
-
-static void
-lti(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_LT,r0,r1,i0);
-}
-
-static void
-ltr_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_CC,r0,r1,r2);
-}
-
-static void
-lti_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_CC,r0,r1,i0);
-}
-
-static void
-ler(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_LE,r0,r1,r2);
-}
-
-static void
-lei(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_LE,r0,r1,i0);
-}
-
-static void
-ler_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_LS,r0,r1,r2);
-}
-
-static void
-lei_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_LS,r0,r1,i0);
-}
-
-static void
-eqr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_EQ,r0,r1,r2);
-}
-
-static void
-eqi(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_EQ,r0,r1,i0);
-}
-
-static void
-ger(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_GE,r0,r1,r2);
-}
-
-static void
-gei(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_GE,r0,r1,i0);
-}
-
-static void
-ger_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_CS,r0,r1,r2);
-}
-
-static void
-gei_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_CS,r0,r1,i0);
-}
-
-static void
-gtr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_GT,r0,r1,r2);
-}
-
-static void
-gti(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_GT,r0,r1,i0);
-}
-
-static void
-gtr_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_HI,r0,r1,r2);
-}
-
-static void
-gti_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_HI,r0,r1,i0);
-}
-
-static void
-ner(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
-{
-  return ccr(_jit,CC_NE,r0,r1,r2);
-}
-
-static void
-nei(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t i0)
-{
-  return cci(_jit,CC_NE,r0,r1,i0);
 }
 
 static jit_reloc_t
@@ -2161,13 +1796,6 @@ nop(jit_state_t *_jit, int32_t i0)
   for (; i0 > 0; i0 -= 4)
     NOP(_jit);
   ASSERT(i0 == 0);
-}
-
-static void
-rsbi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
-{
-  subi(_jit, r0, r1, i0);
-  negr(_jit, r0, r0);
 }
 
 static void
@@ -2886,16 +2514,4 @@ static void
 retval_l(jit_state_t *_jit, int32_t r0)
 {
   movr(_jit, r0, jit_gpr_regno(_X0));
-}
-
-static void
-pushr(jit_state_t *_jit, int32_t r0)
-{
-  abort();
-}
-
-static void
-popr(jit_state_t *_jit, int32_t r0)
-{
-  abort();
 }

@@ -21,48 +21,32 @@ static void
 osvvv(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rd, int32_t Rn,
       int32_t Rm)
 {
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Sz &        ~0x3));
-  ASSERT(!(Op & ~0xffe0fc00));
-  instr_t i;
-  i.w = Op;
-  i.size.b = Sz;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  i.Rm.b = Rm;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_size_bitfield(inst, Sz);
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_Rm_bitfield(inst, Rm);
+  emit_u32(_jit, inst);
 }
 
 static void
 osvv_(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rd, int32_t Rn)
 {
-  ASSERT(!(Rd &       ~0x1f));
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Sz &        ~0x3));
-  ASSERT(!(Op & ~0xfffffc00));
-  instr_t i;
-  i.w = Op;
-  i.size.b = Sz;
-  i.Rd.b = Rd;
-  i.Rn.b = Rn;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_size_bitfield(inst, Sz);
+  inst = write_Rd_bitfield(inst, Rd);
+  inst = write_Rn_bitfield(inst, Rn);
+  emit_u32(_jit, inst);
 }
 
 static void
 os_vv(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rn, int32_t Rm)
 {
-  ASSERT(!(Rn &       ~0x1f));
-  ASSERT(!(Rm &       ~0x1f));
-  ASSERT(!(Sz &        ~0x3));
-  ASSERT(!(Op & ~0xff20fc1f));
-  instr_t i;
-  i.w = Op;
-  i.size.b = Sz;
-  i.Rn.b = Rn;
-  i.Rm.b = Rm;
-  emit_u32(_jit, i.w);
+  uint32_t inst = Op;
+  inst = write_size_bitfield(inst, Sz);
+  inst = write_Rn_bitfield(inst, Rn);
+  inst = write_Rm_bitfield(inst, Rm);
+  emit_u32(_jit, inst);
 }
 
 #define A64_SCVTF                     0x1e220000
@@ -823,16 +807,4 @@ static void
 retval_d(jit_state_t *_jit, int32_t r0)
 {
   movr_d(_jit, r0, jit_fpr_regno(_D0));
-}
-
-static void
-pushr_d(jit_state_t *_jit, int32_t r0)
-{
-  abort();
-}
-
-static void
-popr_d(jit_state_t *_jit, int32_t r0)
-{
-  abort();
 }
