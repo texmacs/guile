@@ -98,7 +98,6 @@ extern void __clear_cache(void *, void *);
 #define PROTO				1
 #  include "rewind.c"
 #  include "arm-cpu.c"
-#  include "arm-swf.c"
 #  include "arm-vfp.c"
 #undef PROTO
 
@@ -2007,8 +2006,7 @@ _emit_code(jit_state_t *_jit)
 #define CODE				1
 #  include "rewind.c"
 #  include "arm-cpu.c"
-#  include "arm-swf.c"
-#  include ", 2018arm-vfp.c"
+#  include "arm-vfp.c"
 #undef CODE
 
 void

@@ -1,5 +1,6 @@
 TESTS=$(sort $(basename $(wildcard *.c)))
 TARGETS=native ia32 aarch64
+ALL_TARGETS=$(TARGETS) armv7
 
 # Suitable values of cross-compiler variables for Debian:
 #
@@ -19,6 +20,7 @@ TARGETS=native ia32 aarch64
 CC = gcc
 CC_IA32=guix environment --pure -s i686-linux --ad-hoc gcc-toolchain glibc -- gcc
 CC_AARCH64=guix environment --pure -s aarch64-linux --ad-hoc gcc-toolchain glibc -- gcc
+CC_ARMv7=guix environment --pure -s armhf-linux --ad-hoc gcc-toolchain glibc -- gcc
 CFLAGS = -Wall -O0 -g
 
 all: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
@@ -49,9 +51,13 @@ test-aarch64-%: CC = $(CC_AARCH64)
 test-aarch64-%: %.c lightening-aarch64.o test.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening-aarch64.o $<
 
-.PRECIOUS: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
-.PRECIOUS: $(foreach TARGET,$(TARGETS),lightening-$(TARGET).o)
+test-armv7-%: CC = $(CC_ARMv7)
+test-armv7-%: %.c lightening-armv7.o test.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I.. -o $@ lightening-armv7.o $<
+
+.PRECIOUS: $(foreach TARGET,$(ALL_TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
+.PRECIOUS: $(foreach TARGET,$(ALL_TARGETS),lightening-$(TARGET).o)
 
 clean:
-	rm -f $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
-	rm -f $(foreach TARGET,$(TARGETS),lightening-$(TARGET).o)
+	rm -f $(foreach TARGET,$(ALL_TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
+	rm -f $(foreach TARGET,$(ALL_TARGETS),lightening-$(TARGET).o)
