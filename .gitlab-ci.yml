@@ -1,15 +1,11 @@
-# use the official gcc image, based on debian
-# can use verions as well, like gcc:5.2
-# see https://hub.docker.com/_/gcc/
 image: debian
 
 before_script:
   - dpkg --add-architecture i386
-  - dpkg --add-architecture arm64
   - apt-get update -qq
   - apt-get install -y
-      libc6-dev:amd64 libc6-dev:i386 libc6-dev:arm64
-      gcc gcc-multilib gcc-aarch64-linux-gnu make
+      libc6-dev:amd64 libc6-dev:i386 gcc gcc-multilib make
+      gcc-aarch64-linux-gnu libc-dev-arm64-cross
 
 x86-64:
   stage: test
