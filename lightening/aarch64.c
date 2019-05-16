@@ -94,6 +94,7 @@ DEFINE_ENCODER(size, 2, 22, unsigned, uint32_t)
   {                                                                     \
     return read_signed_bitfield(*loc, kind##_width, kind##_shift);      \
   }                                                                     \
+  static int offset_in_##name##_range(ptrdiff_t diff) maybe_unused;     \
   static int                                                            \
   offset_in_##name##_range(ptrdiff_t diff)                              \
   {                                                                     \
@@ -204,7 +205,7 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
   iter->arg_idx++;
 }
 
-void
+static void
 jit_flush(void *fptr, void *tptr)
 {
   jit_word_t f = (jit_word_t)fptr & -page_size;

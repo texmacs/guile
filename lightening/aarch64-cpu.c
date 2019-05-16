@@ -991,6 +991,22 @@ movi_from_pool(jit_state_t *_jit, int32_t Rt)
 }
 
 static void
+emit_veneer(jit_state_t *_jit, jit_pointer_t target)
+{
+  jit_gpr_t tmp = get_temp_gpr(_jit);
+  uint32_t inst = encode_ox19(_jit, A64_LDRI_LITERAL, jit_gpr_regno(tmp));
+  uint32_t *loc = _jit->pc.ui;
+  emit_u32(_jit, inst);
+  BR(_jit, jit_gpr_regno(tmp));
+  unget_temp_gpr(_jit);
+  if (_jit->overflow)
+    return;
+  // Patch load to here, divided by 4.
+  patch_load_from_pool_offset(loc, _jit->pc.ui - loc);
+  emit_u64(_jit, (uint64_t) target);
+}
+
+static void
 movr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   if (r0 != r1)

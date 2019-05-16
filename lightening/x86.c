@@ -353,7 +353,7 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
   iter->arg_idx++;
 }
 
-void
+static void
 jit_flush(void *fptr, void *tptr)
 {
 }
