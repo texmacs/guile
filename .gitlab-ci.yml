@@ -4,9 +4,11 @@
 image: debian
 
 before_script:
-  - dpkg --add-architecture i386
+  - dpkg --add-architecture i386 --add-architecture arm64
   - apt-get update -qq
-  - apt-get install -y libc6-dev:amd64 libc6-dev:i386 gcc gcc-multilib make
+  - apt-get install -y \
+      libc6-dev:amd64 libc6-dev:i386 libc6-dev:arm64 \
+      gcc gcc-multilib gcc-aarch64-linux-gnu make
 
 x86-64:
   stage: test
@@ -16,4 +18,9 @@ x86-64:
 i686:
   stage: test
   script:
-    - make -C tests test-ia32
+    - make -C tests test-ia32 CC_IA32='gcc -m32'
+
+aarch64:
+  stage: test
+  script:
+    - make -C tests test-aarch64 CC_AARCH64=gcc-aarch64-linux-gnu
