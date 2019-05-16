@@ -248,16 +248,6 @@ is_power_of_two (unsigned x)
   return x && !(x & (x-1));
 }
 
-void
-jit_align(jit_state_t *_jit, unsigned align)
-{
-  ASSERT (is_power_of_two (align));
-  uintptr_t here = _jit->pc.w;
-  uintptr_t there = (here + align - 1) & ~(align - 1);
-  if (there - here)
-    jit_nop(_jit, there - here);
-}
-
 static jit_gpr_t
 get_temp_gpr(jit_state_t *_jit)
 {
@@ -546,6 +536,16 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 #define IMPL_INSTRUCTION(kind, stem) JIT_IMPL_##kind(stem)
 FOR_EACH_INSTRUCTION(IMPL_INSTRUCTION)
 #undef IMPL_INSTRUCTION
+
+void
+jit_align(jit_state_t *_jit, unsigned align)
+{
+  ASSERT (is_power_of_two (align));
+  uintptr_t here = _jit->pc.w;
+  uintptr_t there = (here + align - 1) & ~(align - 1);
+  if (there - here)
+    nop(_jit, there - here);
+}
 
 static jit_bool_t
 is_fpr_arg(enum jit_operand_abi arg)

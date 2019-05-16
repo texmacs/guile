@@ -574,8 +574,6 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(RGG__, bxsubr_u)		\
           M(RGu__, bxsubi_u)		\
   					\
-          M(_i___, nop)			\
-                                        \
           M(_G___, jmpr)		\
           M(_p___, jmpi)		\
           M(R____, jmp)			\
