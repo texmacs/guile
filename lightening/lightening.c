@@ -1281,11 +1281,10 @@ remove_pending_literal(jit_state_t *_jit, jit_reloc_t src)
 {
   for (size_t i = _jit->pool->size; i--; ) {
     if (_jit->pool->entries[i].reloc.offset == src.offset) {
-      for (size_t j = i + 1; j < _jit->pool->size; j++) {
+      for (size_t j = i + 1; j < _jit->pool->size; j++)
         _jit->pool->entries[j-1] = _jit->pool->entries[j];
-        _jit->pool->size--;
-        return;
-      }
+      _jit->pool->size--;
+      return;
     }
   }
   abort();
