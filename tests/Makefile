@@ -8,7 +8,8 @@ TARGETS=native ia32 aarch64
 #
 # The relevant packages that you need to run this:
 #
-#   dpkg --add-architecture i386 --add-architecture arm64
+#   dpkg --add-architecture i386
+#   dpkg --add-architecture arm64
 #   apt-get update -qq
 #   apt-get install -y \
 #     libc6-dev:amd64 libc6-dev:i386 libc6-dev:arm64 \
