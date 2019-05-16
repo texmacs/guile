@@ -28,10 +28,28 @@ Guile needs a simple, light-weight code generation library.  The GNU
 Lightning architecture-specific backends provide the bulk of this
 functionality, and Lightening wraps it all in a lightweight API.
 
+## Supported targets
+
+Lightening can generate code for the x86-64, i686, and AArch64
+architectures.  It supports the calling conventions of MS Windows,
+GNU/Linux, and Mac OS.
+
+Lightening is automatically tested using GitLab's continuous integration
+for under the supported architectures, for GNU/Linux; for a list of
+recent jobs, see [the CI
+page](https://gitlab.com/wingo/lightening/-/jobs).
+
+## Future targets
+
+ARMv7 support will come soon.
+
+Lightening has some inherited code from GNU Lightning for MIPS, PPC64,
+and s390.  Patches to adapt this code to the Lightening code structure
+are quite welcome.
+
+RISC-V support would be fun too.
+
 ## Status
 
-Only the x86-64 port is currently usable.  I plan to re-enable 32-bit
-x86 shortly, and then work on 32-bit and 64-bit ARM.  Other
-architectures may come with time, but help is very much appreciated
-there.  The test suite is still in progress but will be fairly
-comprehensive in terms of API surface.
+Lightening is used in GNU Guile since version 2.9.2 and seems to work
+well.

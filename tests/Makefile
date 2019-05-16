@@ -1,10 +1,9 @@
 TESTS=$(sort $(basename $(wildcard *.c)))
 TARGETS=native ia32 aarch64
 
-# Suitable values of cross-compiler variables for Debian, having previously done:
+# Suitable values of cross-compiler variables for Debian:
 #
-#   CC_IA32 = gcc -m32
-#   CC_AARCH64 = gcc-aarch64-linux-gnu
+#   make test CC_IA32=i668-linux-gnu-gcc CC_AARCH64=aarch64-linux-gnu-gcc
 #
 # The relevant packages that you need to run this:
 #
@@ -12,12 +11,14 @@ TARGETS=native ia32 aarch64
 #   dpkg --add-architecture arm64
 #   apt-get update -qq
 #   apt-get install -y \
-#     libc6-dev:amd64 libc6-dev:i386 libc6-dev:arm64 \
-#     gcc gcc-multilib gcc-aarch64-linux-gnu make
+#     libc6-dev:amd64 gcc make \
+#     qemu binfmt-support qemu-user-static \
+#     gcc-i686-linux-gnu libc6-dev-i386-cross libc6:i386 \
+#     gcc-aarch64-linux-gnu libc6-dev-arm64-cross libc6:arm64
 #
 CC = gcc
-CC_IA32='guix environment --pure -s i686-linux --ad-hoc gcc-toolchain glibc -- gcc'
-CC_AARCH64='guix environment --pure -s aarch64-linux --ad-hoc gcc-toolchain glibc -- gcc'
+CC_IA32=guix environment --pure -s i686-linux --ad-hoc gcc-toolchain glibc -- gcc
+CC_AARCH64=guix environment --pure -s aarch64-linux --ad-hoc gcc-toolchain glibc -- gcc
 CFLAGS = -Wall -O0 -g
 
 all: $(foreach TARGET,$(TARGETS),$(addprefix test-$(TARGET)-,$(TESTS)))
