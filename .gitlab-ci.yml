@@ -4,7 +4,7 @@ before_script:
   - dpkg --add-architecture i386
   - apt-get update -qq
   - apt-get install -y
-      libc6-dev:amd64 libc6-dev:i386 gcc gcc-multilib make
+      libc6-dev:amd64 libc6-dev:i386 gcc make
       gcc-aarch64-linux-gnu libc-dev-arm64-cross
 
 x86-64:
