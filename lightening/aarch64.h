@@ -89,21 +89,6 @@
 #define _D30    JIT_FPR(30)
 #define _D31    JIT_FPR(31)
 
-static inline jit_bool_t
-jit_gpr_is_callee_save (jit_gpr_t reg)
-{
-  // x19 to x28 are callee-save, x29 is the frame pointer, and x30 is
-  // the link register.
-  return 19 <= jit_gpr_regno (reg) && jit_gpr_regno (reg) <= 30;
-}
-
-static inline jit_bool_t
-jit_fpr_is_callee_save (jit_fpr_t reg)
-{
-  // v8 to v15 are callee-save.
-  return 8 <= jit_fpr_regno (reg) && jit_fpr_regno (reg) <= 15;
-}
-
 #define JIT_R0    _X0
 #define JIT_R1    _X1
 #define JIT_R2    _X2

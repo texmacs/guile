@@ -73,54 +73,6 @@
 #  define _XMM15   JIT_FPR(15)
 #endif
 
-static inline jit_bool_t
-jit_gpr_is_callee_save (jit_gpr_t reg)
-{
-#if __X32
-  return jit_same_gprs (reg, _RBX) ||
-    jit_same_gprs (reg, _RBP) ||
-    jit_same_gprs (reg, _RSI) ||
-    jit_same_gprs (reg, _RDI);
-#elif __CYGWIN__
-  return jit_same_gprs (reg, _RBX) ||
-    jit_same_gprs (reg, _RBP) ||
-    jit_same_gprs (reg, _RSI) ||
-    jit_same_gprs (reg, _RDI) ||
-    jit_same_gprs (reg, _R12) ||
-    jit_same_gprs (reg, _R13) ||
-    jit_same_gprs (reg, _R14) ||
-    jit_same_gprs (reg, _R15);
-#else
-  return jit_same_gprs (reg, _RBX) ||
-    jit_same_gprs (reg, _RBP) ||
-    jit_same_gprs (reg, _R12) ||
-    jit_same_gprs (reg, _R13) ||
-    jit_same_gprs (reg, _R14) ||
-    jit_same_gprs (reg, _R15);
-#endif
-}
-
-static inline jit_bool_t
-jit_fpr_is_callee_save (jit_fpr_t reg)
-{
-#if __X32
-  return 0;
-#elif __CYGWIN__
-  return jit_same_fprs (reg, _XMM6) ||
-    jit_same_fprs (reg, _XMM7) ||
-    jit_same_fprs (reg, _XMM8) ||
-    jit_same_fprs (reg, _XMM9) ||
-    jit_same_fprs (reg, _XMM10) ||
-    jit_same_fprs (reg, _XMM11) ||
-    jit_same_fprs (reg, _XMM12) ||
-    jit_same_fprs (reg, _XMM13) ||
-    jit_same_fprs (reg, _XMM14) ||
-    jit_same_fprs (reg, _XMM15);
-#else
-  return 0;
-#endif
-}
-
 #define JIT_SP     _RSP
 #if __X32
 #  define JIT_R0   _RAX
