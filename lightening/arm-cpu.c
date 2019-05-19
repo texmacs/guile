@@ -31,11 +31,7 @@
 #define ARM_CC_EQ                     0x00000000      /* Z=1 */
 #define ARM_CC_NE                     0x10000000      /* Z=0 */
 #define ARM_CC_HS                     0x20000000      /* C=1 */
-#define ARM_CC_CS                     ARM_CC_HS
 #define ARM_CC_LO                     0x30000000      /* C=0 */
-#define ARM_CC_CC                     ARM_CC_LO
-#define ARM_CC_MI                     0x40000000      /* N=1 */
-#define ARM_CC_PL                     0x50000000      /* N=0 */
 #define ARM_CC_VS                     0x60000000      /* V=1 */
 #define ARM_CC_VC                     0x70000000      /* V=0 */
 #define ARM_CC_HI                     0x80000000      /* C=1 && Z=0 */
@@ -55,7 +51,6 @@
 #define THUMB2_MVN                    0xea600000
 #define THUMB2_MVNI                   0xf0600000
 #define ARM_S                         0x00100000 /* set flags */
-#define ARM_ADD                       0x00800000
 #define THUMB_ADD                         0x1800
 #define THUMB_ADDX                        0x4400
 #define THUMB2_ADD                    0xeb000000
@@ -63,7 +58,6 @@
 #define THUMB_ADDI8                       0x3000
 #define THUMB2_ADDI                   0xf1000000
 #define THUMB2_ADDWI                  0xf2000000
-#define ARM_ADC                       0x00a00000
 #define THUMB_ADC                         0x4140
 #define THUMB2_ADC                    0xeb400000
 #define THUMB2_ADCI                   0xf1400000
@@ -76,55 +70,36 @@
 #define THUMB_SBC                         0x4180
 #define THUMB2_SBC                    0xeb600000
 #define THUMB2_SBCI                   0xf1600000
-#define ARM_RSB                       0x00600000
 #define THUMB_RSBI                        0x4240
 #define THUMB2_RSBI                   0xf1c00000
-#define ARM_MUL                       0x00000090
 #define THUMB_MUL                         0x4340
 #define THUMB2_MUL                    0xfb00f000
-#define ARM_UMULL                     0x00800090
 #define THUMB2_UMULL                  0xfba00000
 #define THUMB2_SMULL                  0xfb800000
 #define THUMB_MLS                     0xfb000010
 #define THUMB2_SDIV                   0xfb90f0f0
 #define THUMB2_UDIV                   0xfbb0f0f0
-#define ARM_AND                       0x00000000
 #define THUMB_AND                         0x4000
 #define THUMB2_AND                    0xea000000
 #define THUMB2_ANDI                   0xf0000000
-#define ARM_BIC                       0x01c00000
 #define THUMB2_BIC                    0xea200000
 #define THUMB2_BICI                   0xf0200000
-#define ARM_ORR                       0x01800000
 #define THUMB_ORR                         0x4300
 #define THUMB2_ORR                    0xea400000
 #define THUMB2_ORRI                   0xf0400000
-#define ARM_EOR                       0x00200000
 #define THUMB_EOR                         0x4040
 #define THUMB2_EOR                    0xea800000
 #define THUMB2_EORI                   0xf0800000
-/* >> ARMv6* */
-#define ARM_REV                       0x06bf0f30
 #define THUMB_REV                         0xba00
 #define THUMB2_REV                    0xfa90f080
-#define ARM_REV16                     0x06bf0fb0
-#define THUMB_REV16                       0xba40
-#define THUMB2_REV16                  0xfa90f090
 #define THUMB_SXTB                        0xb240
 #define THUMB2_SXTB                   0xfa40f080
-#define ARM_UXTB                      0x06ef0070
 #define THUMB_UXTB                        0xb2c0
 #define THUMB2_UXTB                   0xfa50f080
 #define THUMB_SXTH                        0xb200
 #define THUMB2_SXTH                   0xfa00f080
-#define ARM_UXTH                      0x06ff0070
 #define THUMB_UXTH                        0xb280
 #define THUMB2_UXTH                   0xfa10f080
-#define ARM_XTR8                      0x00000400 /* ?xt? rotate 8 bits */
-#define ARM_XTR16                     0x00000800 /* ?xt? rotate 16 bits */
-#define ARM_XTR24                     0x00000c00 /* ?xt? rotate 24 bits */
-/* << ARMv6* */
-#define ARM_R                         0x00000010 /* register shift */
 #define ARM_LSL                       0x00000000
 #define THUMB_LSL                         0x4080
 #define THUMB2_LSL                    0xfa00f000
@@ -140,73 +115,48 @@
 #define THUMB2_ASR                    0xfa40f000
 #define THUMB_ASRI                        0x1000
 #define THUMB2_ASRI                   0xea4f0020
-#define ARM_ROR                       0x00000060
-#define ARM_CMP                       0x01500000
 #define THUMB_CMP                         0x4280
 #define THUMB_CMPX                        0x4500
 #define THUMB2_CMP                    0xebb00000
 #define THUMB_CMPI                        0x2800
 #define THUMB2_CMPI                   0xf1b00000
-#define ARM_CMN                       0x01700000
-#define THUMB_CMN                         0x42c0
 #define THUMB2_CMN                    0xeb100000
 #define THUMB2_CMNI                   0xf1100000
-#define ARM_TST                       0x01100000
 #define THUMB_TST                         0x4200
 #define THUMB2_TST                    0xea100000
 #define THUMB2_TSTI                   0xf0100000
-#define ARM_TEQ                       0x01300000
-/* branch */
-#define ARM_B                         0x0a000000
 #define THUMB_CC_B                        0xd000
 #define THUMB_B                           0xe000
 #define THUMB2_CC_B                   0xf0008000
 #define THUMB2_B                      0xf0009000
-#define ARM_BLI                       0x0b000000
 #define THUMB2_BLI                    0xf000d000
-/* ldr/str */
-#define ARM_P                         0x00800000 /* positive offset */
 #define THUMB2_P                      0x00000400
 #define THUMB2_U                      0x00000200
-#define THUMB2_W                      0x00000100
-#define ARM_LDRSB                     0x011000d0
 #define THUMB_LDRSB                       0x5600
 #define THUMB2_LDRSB                  0xf9100000
-#define ARM_LDRSBI                    0x015000d0
 #define THUMB2_LDRSBI                 0xf9100c00
 #define THUMB2_LDRSBWI                0xf9900000
-#define ARM_LDRB                      0x07500000
 #define THUMB_LDRB                        0x5c00
 #define THUMB2_LDRB                   0xf8100000
-#define ARM_LDRBI                     0x05500000
 #define THUMB_LDRBI                       0x7800
 #define THUMB2_LDRBI                  0xf8100c00
 #define THUMB2_LDRBWI                 0xf8900000
-#define ARM_LDRSH                     0x011000f0
 #define THUMB_LDRSH                       0x5e00
 #define THUMB2_LDRSH                  0xf9300000
-#define ARM_LDRSHI                    0x015000f0
 #define THUMB2_LDRSHI                 0xf9300c00
 #define THUMB2_LDRSHWI                0xf9b00000
-#define ARM_LDRH                      0x011000b0
 #define THUMB_LDRH                        0x5a00
 #define THUMB2_LDRH                   0xf8300000
-#define ARM_LDRHI                     0x015000b0
 #define THUMB_LDRHI                       0x8800
 #define THUMB2_LDRHI                  0xf8300c00
 #define THUMB2_LDRHWI                 0xf8b00000
-#define ARM_LDR                       0x07100000
 #define THUMB_LDR                         0x5800
 #define THUMB2_LDR                    0xf8500000
 #define THUMB2_LDRP                   0xf85f0000
-#define ARM_LDRI                      0x05100000
 #define THUMB_LDRI                        0x6800
 #define THUMB_LDRISP                      0x9800
 #define THUMB2_LDRI                   0xf8500c00
 #define THUMB2_LDRWI                  0xf8d00000
-#define ARM_LDRD                      0x010000d0
-#define ARM_LDRDI                     0x014000d0
-#define THUMB2_LDRDI                  0xe8500000
 #define THUMB_STRB                        0x5400
 #define THUMB2_STRB                   0xf8000000
 #define THUMB_STRBI                       0x7000
@@ -223,23 +173,8 @@
 #define THUMB2_STRWI                   0xf8c00000
 #define THUMB_STRISP                      0x9000
 #define THUMB2_STRI                   0xf8400c00
-#define THUMB2_STRDI                  0xe8400000
-/* ldm/stm */
-#define ARM_M                         0x08000000
-#define ARM_M_L                       0x00100000 /* load; store if not set */
-#define ARM_M_I                       0x00800000 /* inc; dec if not set */
-#define ARM_M_B                       0x01000000 /* before; after if not set */
-#define ARM_M_U                       0x00200000 /* update Rn */
 #define THUMB2_LDM_W                  0x00200000
-#define THUMB2_LDM_P                  0x00008000
-#define THUMB2_LDM_M                  0x00004000
-#define THUMB_LDMIA                       0xc800
-#define THUMB2_LDMIA                  0xe8900000
-#define THUMB2_LDMB                   0xe9100000
-#define THUMB_PUSH                        0xb400
 #define THUMB2_PUSH                   0xe92d0000
-#define THUMB_POP                         0xbc00
-#define THUMB2_POP                    0xe8bd0000
 
 #define _NOREG (jit_gpr_regno(_PC))
 
