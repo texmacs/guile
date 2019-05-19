@@ -90,14 +90,11 @@
 #define _S30    JIT_FPR(30)
 #define _S31    JIT_FPR(31)
 
-#define _SP _R13
-#define _LR _R14
-#define _PC _R15
-
 #define JIT_R0    _R0
 #define JIT_R1    _R1
 #define JIT_R2    _R2
-#define JIT_R3    _R3
+#define JIT_R3    _R12
+#define JIT_TMP0  _R3
 
 #define JIT_V0    _R4
 #define JIT_V1    _R5
@@ -108,6 +105,10 @@
 #define JIT_V6    _R10
 #define JIT_V7    _R11
 
+#define _SP _R13
+#define _LR _R14
+#define _PC _R15
+
 #define JIT_F0 _D0
 #define JIT_F1 _D1
 #define JIT_F2 _D2
@@ -115,7 +116,7 @@
 #define JIT_F4 _D4
 #define JIT_F5 _D5
 #define JIT_F6 _D6
-#define JIT_F7 _D7
+#define JIT_FTMP _D7
 
 #define JIT_VF0 _D8
 #define JIT_VF1 _D9

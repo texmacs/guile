@@ -395,7 +395,7 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
           remove_pending_literal(_jit, reloc);
         } else {
           // Target out of range; branch to veneer.
-          patch_pending_literal(_jit, reloc, (uint64_t) addr);
+          patch_pending_literal(_jit, reloc, (uintptr_t) addr);
         }
       } else {
         // Already emitted a veneer.  In this case, patch the veneer
@@ -412,7 +412,7 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
           patch_jcc_offset(loc.ui, diff);
           remove_pending_literal(_jit, reloc);
         } else {
-          patch_pending_literal(_jit, reloc, (uint64_t) addr);
+          patch_pending_literal(_jit, reloc, (uintptr_t) addr);
         }
       } else {
         uint8_t *target = pc_base + (voff << reloc.rsh);
@@ -423,7 +423,7 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
     case JIT_RELOC_LOAD_FROM_POOL: {
       uint32_t voff = read_load_from_pool_offset(loc.ui);
       if (voff == 0) {
-        patch_pending_literal(_jit, reloc, (uint64_t) addr);
+        patch_pending_literal(_jit, reloc, (uintptr_t) addr);
       } else {
         uint8_t *target = pc_base + (voff << reloc.rsh);
         *(uintptr_t *) target = (uintptr_t) addr;
