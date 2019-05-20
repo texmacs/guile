@@ -2178,7 +2178,7 @@ ldxi_c(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 4095) {
     LDRSBI(_jit, r0, r1, i0);
   } else if (i0 > -256 && i0 < 0) {
-    LDURSB(_jit, r0, r1, i0 & 0x1ff);
+    LDURSB(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     movi(_jit, r2, i0);
@@ -2204,7 +2204,7 @@ ldxi_uc(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 4095) {
     LDRBI(_jit, r0, r1, i0);
   } else if (i0 > -256 && i0 < 0) {
-    LDURB(_jit, r0, r1, i0 & 0x1ff);
+    LDURB(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     addi(_jit, r2, r1, i0);
@@ -2224,7 +2224,7 @@ ldxi_s(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 8191) {
     LDRSHI(_jit, r0, r1, i0 >> 1);
   } else if (i0 > -256 && i0 < 0) {
-    LDURSH(_jit, r0, r1, i0 & 0x1ff);
+    LDURSH(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     movi(_jit, r2, i0);
@@ -2250,7 +2250,7 @@ ldxi_us(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 8191) {
     LDRHI(_jit, r0, r1, i0 >> 1);
   } else if (i0 > -256 && i0 < 0) {
-    LDURH(_jit, r0, r1, i0 & 0x1ff);
+    LDURH(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     movi(_jit, r2, i0);
@@ -2270,7 +2270,7 @@ ldxi_i(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 16383) {
     LDRSWI(_jit, r0, r1, i0 >> 2);
   } else if (i0 > -256 && i0 < 0) {
-    LDURSW(_jit, r0, r1, i0 & 0x1ff);
+    LDURSW(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     addi(_jit, r2, r1, i0);
@@ -2296,7 +2296,7 @@ ldxi_ui(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 16383) {
     LDRWI(_jit, r0, r1, i0 >> 2);
   } else if (i0 > -256 && i0 < 0) {
-    LDURW(_jit, r0, r1, i0 & 0x1ff);
+    LDURW(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     movi(_jit, r2, i0);
@@ -2316,7 +2316,7 @@ ldxi_l(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
   if (i0 >= 0 && i0 <= 32767) {
     LDRI(_jit, r0, r1, i0 >> 3);
   } else if (i0 > -256 && i0 < 0) {
-    LDUR(_jit, r0, r1, i0 & 0x1ff);
+    LDUR(_jit, r0, r1, i0);
   } else {
     int32_t r2 = (r0 == r1) ? jit_gpr_regno(get_temp_gpr(_jit)) : r0;
     addi(_jit, r2, r1, i0);
@@ -2368,7 +2368,7 @@ stxi_c(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (i0 >= 0 && i0 <= 4095) {
     STRBI(_jit, r1, r0, i0);
   } else if (i0 > -256 && i0 < 0) {
-    STURB(_jit, r1, r0, i0 & 0x1ff);
+    STURB(_jit, r1, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
     addi(_jit, jit_gpr_regno(reg), r0, i0);
@@ -2384,7 +2384,7 @@ stxi_s(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (i0 >= 0 && i0 <= 8191) {
     STRHI(_jit, r1, r0, i0 >> 1);
   } else if (i0 > -256 && i0 < 0) {
-    STURH(_jit, r1, r0, i0 & 0x1ff);
+    STURH(_jit, r1, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
     addi(_jit, jit_gpr_regno(reg), r0, i0);
@@ -2400,7 +2400,7 @@ stxi_i(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (i0 >= 0 && i0 <= 16383) {
     STRWI(_jit, r1, r0, i0 >> 2);
   } else if (i0 > -256 && i0 < 0) {
-    STURW(_jit, r1, r0, i0 & 0x1ff);
+    STURW(_jit, r1, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
     addi(_jit, jit_gpr_regno(reg), r0, i0);
@@ -2416,7 +2416,7 @@ stxi_l(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
   if (i0 >= 0 && i0 <= 32767) {
     STRI(_jit, r1, r0, i0 >> 3);
   } else if (i0 > -256 && i0 < 0) {
-    STUR(_jit, r1, r0, i0 & 0x1ff);
+    STUR(_jit, r1, r0, i0);
   } else {
     jit_gpr_t reg = get_temp_gpr(_jit);
     addi(_jit, jit_gpr_regno(reg), r0, i0);
