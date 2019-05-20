@@ -10,7 +10,7 @@ before_script:
       qemu binfmt-support qemu-user-static
       gcc-i686-linux-gnu libc6-dev-i386-cross libc6:i386
       gcc-aarch64-linux-gnu libc6-dev-arm64-cross libc6:arm64
-      gcc-armhf-linux-gnu libc6-dev-armhf-cross libc6:armhf
+      gcc-arm-linux-gnueabihf libc6-dev-armhf-cross libc6:armhf
 
 x86-64:
   stage: test
@@ -30,4 +30,4 @@ aarch64:
 armhf:
   stage: test
   script:
-    - make -C tests test-armhf CC_ARMv7=armhf-linux-gnu-gcc
+    - make -C tests test-armhf CC_ARMv7=arm-linux-gnueabihf-gcc
