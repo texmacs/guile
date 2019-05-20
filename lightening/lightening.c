@@ -88,6 +88,7 @@ static jit_bool_t jit_init(jit_state_t *);
 static void jit_flush(void *fptr, void *tptr);
 static void jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc,
                             jit_pointer_t addr);
+static void* bless_function_pointer(void *ptr);
 
 struct abi_arg_iterator;
 
@@ -239,7 +240,7 @@ jit_end(jit_state_t *_jit, size_t *length)
   clear_literal_pool(_jit->pool);
 #endif
 
-  return start;
+  return bless_function_pointer(start);
 }
 
 static int
@@ -387,7 +388,8 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
 #ifdef JIT_NEEDS_LITERAL_POOL
     case JIT_RELOC_JMP_WITH_VENEER: {
       int32_t voff = read_jmp_offset(loc.ui);
-      if (voff == 0) {
+      uint8_t *target = pc_base + (voff << reloc.rsh);
+      if (target == loc.uc) {
         // PC still in range to reify direct branch.
         if (offset_in_jmp_range(diff)) {
           // Target also in range: reify direct branch.
@@ -400,14 +402,14 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
       } else {
         // Already emitted a veneer.  In this case, patch the veneer
         // directly.
-        uint8_t *target = pc_base + (voff << reloc.rsh);
         patch_veneer((uint32_t *) target, addr);
       }
       return;
     }
     case JIT_RELOC_JCC_WITH_VENEER: {
-      uint32_t voff = read_jcc_offset(loc.ui);
-      if (voff == 0) {
+      int32_t voff = read_jcc_offset(loc.ui);
+      uint8_t *target = pc_base + (voff << reloc.rsh);
+      if (target == loc.uc) {
         if (offset_in_jcc_range(diff)) {
           patch_jcc_offset(loc.ui, diff);
           remove_pending_literal(_jit, reloc);
@@ -415,17 +417,16 @@ jit_patch_there(jit_state_t* _jit, jit_reloc_t reloc, jit_pointer_t addr)
           patch_pending_literal(_jit, reloc, (uintptr_t) addr);
         }
       } else {
-        uint8_t *target = pc_base + (voff << reloc.rsh);
         patch_veneer((uint32_t *) target, addr);
       }
       return;
     }
     case JIT_RELOC_LOAD_FROM_POOL: {
-      uint32_t voff = read_load_from_pool_offset(loc.ui);
-      if (voff == 0) {
+      int32_t voff = read_load_from_pool_offset(loc.ui);
+      uint8_t *target = pc_base + (voff << reloc.rsh);
+      if (target == loc.uc) {
         patch_pending_literal(_jit, reloc, (uintptr_t) addr);
       } else {
-        uint8_t *target = pc_base + (voff << reloc.rsh);
         *(uintptr_t *) target = (uintptr_t) addr;
       }
       return;
@@ -782,7 +783,11 @@ move_operand(jit_state_t *_jit, jit_operand_t dst, jit_operand_t src)
                           src.loc.mem.offset);
 
   case MOVE_FPR_TO_FPR:
-    return jit_movr_d(_jit, dst.loc.fpr, src.loc.fpr);
+    ASSERT(src.abi == dst.abi);
+    if (src.abi == JIT_OPERAND_ABI_DOUBLE)
+      return jit_movr_d(_jit, dst.loc.fpr, src.loc.fpr);
+    else
+      return jit_movr_f(_jit, dst.loc.fpr, src.loc.fpr);
 
   case MOVE_MEM_TO_FPR:
     return abi_mem_to_fpr(_jit, src.abi, dst.loc.fpr, src.loc.mem.base,
@@ -1145,7 +1150,7 @@ prepare_call_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
   for (size_t i = 0; i < argc; i++) {
     switch(args[i].kind) {
     case JIT_OPERAND_KIND_GPR:
-      if (jit_same_gprs (args[i].loc.mem.base, JIT_SP))
+      if (jit_same_gprs (args[i].loc.gpr.gpr, JIT_SP))
         args[i].loc.gpr.addend += stack_size;
       break;
     case JIT_OPERAND_KIND_MEM:

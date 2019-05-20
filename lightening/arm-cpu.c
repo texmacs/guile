@@ -126,11 +126,14 @@
 #define THUMB_TST                         0x4200
 #define THUMB2_TST                    0xea100000
 #define THUMB2_TSTI                   0xf0100000
+#define THUMB_BLX                         0x4780
+#define THUMB_BX                          0x4700
 #define THUMB_CC_B                        0xd000
 #define THUMB_B                           0xe000
 #define THUMB2_CC_B                   0xf0008000
 #define THUMB2_B                      0xf0009000
 #define THUMB2_BLI                    0xf000d000
+#define THUMB2_BLXI                   0xf000c000
 #define THUMB2_P                      0x00000400
 #define THUMB2_U                      0x00000200
 #define THUMB_LDRSB                       0x5600
@@ -245,8 +248,8 @@ encode_thumb_word_immediate(unsigned int v)
 static uint32_t
 read_wide_thumb(uint32_t *loc)
 {
-  uint16_t *sloc = (uint16_t*)sloc;
-  return (((uint32_t)sloc[0]) << 16) | sloc[1];
+  uint16_t *sloc = (uint16_t*)loc;
+  return (sloc[0] << 16) | sloc[1];
 }
 
 static void
@@ -344,15 +347,13 @@ decode_thumb_cc_jump(uint32_t v)
   uint32_t s  = (v >> 26) & 1;
   uint32_t j1 = (v >> 13) & 1;
   uint32_t j2 = (v >> 11) & 1;
-  uint32_t i1 = s ? j1 : !j1;
-  uint32_t i2 = s ? j2 : !j2;
   uint32_t hi = (v >> 16) & 0x3f;
   uint32_t lo = v & 0x7ff;
 
   int32_t ret = s << 31;
   ret >>= 12;
-  ret |= i1 << 18;
-  ret |= i2 << 17;
+  ret |= j2 << 18;
+  ret |= j1 << 17;
   ret |= hi << 11;
   ret |= lo;
   return ret;
@@ -365,9 +366,11 @@ encode_thumb_cc_jump(int32_t v)
 {
   ASSERT(offset_in_jcc_range(v));
   uint32_t s  = !!(v & 0x80000);
-  uint32_t j1 = !!(v & 0x40000);
-  uint32_t j2 = !!(v & 0x20000);
-  uint32_t ret = (s<<26)|((v&0x1f800)<<5)|(j1<<13)|(j2<<11)|(v&0x7ff);
+  uint32_t j2 = !!(v & 0x40000);
+  uint32_t j1 = !!(v & 0x20000);
+  uint32_t hi = (v >> 11) & 0x3f;
+  uint32_t lo = v & 0x7ff;
+  uint32_t ret = (s<<26)|(hi << 16)|(j1<<13)|(j2<<11)|lo;
   ASSERT(decode_thumb_cc_jump(ret) == v);
   ASSERT((ret & thumb_cc_jump_mask) == 0);
   return ret;
@@ -408,68 +411,68 @@ emit_thumb_cc_jump(jit_state_t *_jit, uint32_t inst)
 static void
 torrr(jit_state_t *_jit, int o, int rn, int rd, int rm)
 {
-  assert(!(o & 0xf0f0f));
+  ASSERT(!(o & 0xf0f0f));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rd)<<8)|_u4(rm));
 }
 
 static void
 torxr(jit_state_t *_jit, int o, int rn, int rt, int rm)
 {
-  assert(!(o & 0xf0f0f));
+  ASSERT(!(o & 0xf0f0f));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rt)<<12)|_u4(rm));
 }
 
 static void
 torrrr(jit_state_t *_jit, int o, int rn, int rl, int rh, int rm)
 {
-  assert(!(o & 0x000fff0f));
+  ASSERT(!(o & 0x000fff0f));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rl)<<12)|(_u4(rh)<<8)|_u4(rm));
 }
 
 static void
 torri(jit_state_t *_jit, int o, int rn, int rd, int im)
 {
-  assert(!(o  & 0x0c0f7fff));
-  assert(!(im & 0xfbff8f00));
+  ASSERT(!(o  & 0x0c0f7fff));
+  ASSERT(!(im & 0xfbff8f00));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rd)<<8)|im);
 }
 
 static void
 torri8(jit_state_t *_jit, int o, int rn, int rt, int im)
 {
-  assert(!(o  & 0x000ff0ff));
-  assert(!(im & 0xffffff00));
+  ASSERT(!(o  & 0x000ff0ff));
+  ASSERT(!(im & 0xffffff00));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rt)<<12)|im);
 }
 
 static void
 torri12(jit_state_t *_jit, int o, int rn, int rt, int im)
 {
-  assert(!(o  & 0x000fffff));
-  assert(!(im & 0xfffff000));
+  ASSERT(!(o  & 0x000fffff));
+  ASSERT(!(im & 0xfffff000));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rt)<<12)|im);
 }
 
 static void
 tshift(jit_state_t *_jit, int o, int rd, int rm, int im)
 {
-  assert(!(o & 0x7fcf));
-  assert(im >= 0 && im < 32);
+  ASSERT(!(o & 0x7fcf));
+  ASSERT(im >= 0 && im < 32);
   emit_wide_thumb(_jit, o|((im&0x1c)<<10)|(_u4(rd)<<8)|((im&3)<<6)|_u4(rm));
 }
 
 static void
 toriw(jit_state_t *_jit, int o, int rd, int im)
 {
-  assert(!(im & 0xffff0000));
+  ASSERT(!(im & 0xffff0000));
   emit_wide_thumb(_jit, o|((im&0xf000)<<4)|((im&0x800)<<15)|((im&0x700)<<4)|(_u4(rd)<<8)|(im&0xff));
 }
 
 static jit_reloc_t
 tcb(jit_state_t *_jit, int cc)
 {
-  assert(!(cc & 0xfffffff));
-  assert(cc != ARM_CC_AL && cc != ARM_CC_NV);
+  ASSERT(!(cc & 0xfffffff));
+  ASSERT(cc != ARM_CC_AL && cc != ARM_CC_NV);
   cc = ((uint32_t)cc) >> 6;
   return emit_thumb_cc_jump(_jit, THUMB2_CC_B|cc);
 }
@@ -477,7 +480,7 @@ tcb(jit_state_t *_jit, int cc)
 static jit_reloc_t
 tb(jit_state_t *_jit, int o)
 {
-  assert(!(o & 0x07ff2fff));
+  ASSERT(!(o & 0x07ff2fff));
   return emit_thumb_jump(_jit, o);
 }
 
@@ -772,7 +775,7 @@ T2_UDIV(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_MLS(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm, int32_t ra)
 {
-  return torrrr(_jit, THUMB_MLS, ra, rn, rd, rm);
+  return torrrr(_jit, THUMB_MLS, rn, ra, rd, rm);
 }
 
 static void
@@ -985,6 +988,18 @@ T2_TSTI(jit_state_t *_jit, int32_t rn, int32_t im)
   return torri(_jit, THUMB2_TSTI,rn,_NOREG,im);
 }
 
+static void
+T1_BLX(jit_state_t *_jit, int32_t r0)
+{
+  emit_u16(_jit, THUMB_BLX|(_u4(r0)<<3));
+}
+
+static void
+T1_BX(jit_state_t *_jit, int32_t r0)
+{
+  emit_u16(_jit, THUMB_BX|(_u4(r0)<<3));
+}
+
 static jit_reloc_t
 T2_CC_B(jit_state_t *_jit, uint32_t cc)
 {
@@ -1001,6 +1016,12 @@ static jit_reloc_t
 T2_BLI(jit_state_t *_jit)
 {
   return tb(_jit, THUMB2_BLI);
+}
+
+static jit_reloc_t
+T2_BLXI(jit_state_t *_jit)
+{
+  return tb(_jit, THUMB2_BLXI);
 }
 
 static void
@@ -1297,7 +1318,7 @@ nop(jit_state_t *_jit, int32_t i0)
   for (; i0 > 0; i0 -= 2)
     T1_NOP(_jit);
     
-  assert(i0 == 0);
+  ASSERT(i0 == 0);
 }
 
 static void
@@ -1353,12 +1374,8 @@ static uint32_t
 encode_load_from_pool_offset(int32_t off)
 {
   ASSERT(offset_in_load_from_pool_range(off));
-  uint32_t u;
-  if (off >= 0)
-    u = 1;
-  else
-    u = 0, off = -off;
-  uint32_t ret = (off & 0xfff) | (u << 23);
+  uint32_t u = off >= 0;
+  uint32_t ret = ((u ? off : -off) & 0xfff) | (u << 23);
   ASSERT(decode_load_from_pool_offset(ret) == off);
   return ret;
 }
@@ -1766,7 +1783,7 @@ iqdivr(jit_state_t *_jit, int32_t r0, int32_t r1,
     divr(_jit, r0, r2, r3);
   else
     divr_u(_jit, r0, r2, r3);
-  T1_MLS(_jit, r1, r0, r3, r2);
+  T1_MLS(_jit, r1, r3, r0, r2);
   if (need_tmp)
     unget_temp_gpr(_jit);
 }
@@ -1808,7 +1825,7 @@ qdivi_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2, int32_t i0)
 static void
 iremr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2, jit_bool_t sign)
 {
-  return iqdivr(_jit, r0, r0, r1, r2, 1);
+  return iqdivr(_jit, r0, r0, r1, r2, sign);
 }
 
 static void
@@ -1936,7 +1953,7 @@ lshr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 static void
 lshi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
-  assert(i0 >= 0 && i0 <= 31);
+  ASSERT(i0 >= 0 && i0 <= 31);
   if (i0 == 0)
     movr(_jit, r0, r1);
   else {
@@ -1959,7 +1976,7 @@ rshr(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 static void
 rshi(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
-  assert(i0 >= 0 && i0 <= 31);
+  ASSERT(i0 >= 0 && i0 <= 31);
   if (i0 == 0)
     movr(_jit, r0, r1);
   else {
@@ -1982,7 +1999,7 @@ rshr_u(jit_state_t *_jit, int32_t r0, int32_t r1, int32_t r2)
 static void
 rshi_u(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
-  assert(i0 >= 0 && i0 <= 31);
+  ASSERT(i0 >= 0 && i0 <= 31);
   if (i0 == 0)
     movr(_jit, r0, r1);
   else {
@@ -2008,6 +2025,8 @@ jmp(jit_state_t *_jit)
 static void
 jmpi(jit_state_t *_jit, jit_word_t i0)
 {
+  /* Strip thumb bit, if any.  */
+  i0 &= ~1;
   return jit_patch_there(_jit, jmp(_jit), (void*)i0);
 }
 
@@ -2841,21 +2860,22 @@ extr_us(jit_state_t *_jit, int32_t r0, int32_t r1)
 static void
 callr(jit_state_t *_jit, int32_t r0)
 {
-  T1_MOV(_jit, jit_gpr_regno(_LR), jit_gpr_regno(_PC));
-  T1_MOV(_jit, jit_gpr_regno(_PC), r0);
-  // LR will point here: 4 bytes after the MOV LR,PC instruction.
+  T1_BLX(_jit, r0);
 }
 
 static void
 calli(jit_state_t *_jit, jit_word_t i0)
 {
-  jit_patch_there(_jit, T2_BLI(_jit), (void*)i0);
+  if (i0 & 1)
+    jit_patch_there(_jit, T2_BLI(_jit), (void*)(i0 & ~1));
+  else
+    jit_patch_there(_jit, T2_BLXI(_jit), (void*)i0);
 }
 
 static void
 ret(jit_state_t *_jit)
 {
-  movr(_jit, jit_gpr_regno(_PC), jit_gpr_regno(_LR));
+  T1_BX(_jit, jit_gpr_regno(_LR));
 }
 
 static void

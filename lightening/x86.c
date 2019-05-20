@@ -399,3 +399,9 @@ jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
       abort ();
     }
 }
+
+static void*
+bless_function_pointer(void *ptr)
+{
+  return ptr;
+}

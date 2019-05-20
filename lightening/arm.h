@@ -93,8 +93,8 @@
 #define JIT_R0    _R0
 #define JIT_R1    _R1
 #define JIT_R2    _R2
-#define JIT_R3    _R12
-#define JIT_TMP0  _R3
+#define JIT_R3    _R3
+#define JIT_TMP0  _R12
 
 #define JIT_V0    _R4
 #define JIT_V1    _R5
