@@ -3,13 +3,14 @@ image: debian:testing
 before_script:
   - dpkg --add-architecture i386
   - dpkg --add-architecture arm64
+  - dpkg --add-architecture armhf
   - apt-get update -qq
   - apt-get install -y
       libc6-dev:amd64 gcc make
       qemu binfmt-support qemu-user-static
       gcc-i686-linux-gnu libc6-dev-i386-cross libc6:i386
       gcc-aarch64-linux-gnu libc6-dev-arm64-cross libc6:arm64
-  - update-binfmts --display
+      gcc-armhf-linux-gnu libc6-dev-armhf-cross libc6:armhf
 
 x86-64:
   stage: test
@@ -25,3 +26,8 @@ aarch64:
   stage: test
   script:
     - make -C tests test-aarch64 CC_AARCH64=aarch64-linux-gnu-gcc
+
+armhf:
+  stage: test
+  script:
+    - make -C tests test-armhf CC_ARMv7=armhf-linux-gnu-gcc
