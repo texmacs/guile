@@ -99,13 +99,13 @@
 #define JIT_V0    _R4
 #define JIT_V1    _R5
 #define JIT_V2    _R6
-#define JIT_V3    _R7
-#define JIT_V4    _R8
-#define JIT_V5    _R9
-#define JIT_V6    _R10
-#define JIT_V7    _R11
+#define JIT_TMP1  _R7
+#define JIT_V3    _R8
+#define JIT_V4    _R9
+#define JIT_V5    _R10
+#define JIT_V6    _R11
 
-#define _SP _R13
+#define JIT_SP _R13
 #define _LR _R14
 #define _PC _R15
 
@@ -127,7 +127,7 @@
 #define JIT_VF6 _D14
 #define JIT_VF7 _D15
 
-#define JIT_PLATFORM_CALLEE_SAVE_GPRS _LR
+#define JIT_PLATFORM_CALLEE_SAVE_GPRS _LR, JIT_TMP1
 
 
 #endif /* _jit_arm_h */

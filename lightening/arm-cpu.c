@@ -32,6 +32,7 @@
 #define ARM_CC_NE                     0x10000000      /* Z=0 */
 #define ARM_CC_HS                     0x20000000      /* C=1 */
 #define ARM_CC_LO                     0x30000000      /* C=0 */
+#define ARM_CC_MI                     0x40000000      /* N=1 */
 #define ARM_CC_VS                     0x60000000      /* V=1 */
 #define ARM_CC_VC                     0x70000000      /* V=0 */
 #define ARM_CC_HI                     0x80000000      /* C=1 && Z=0 */
@@ -241,8 +242,23 @@ encode_thumb_word_immediate(unsigned int v)
   return (-1);
 }
 
+static uint32_t
+read_wide_thumb(uint32_t *loc)
+{
+  uint16_t *sloc = (uint16_t*)sloc;
+  return (((uint32_t)sloc[0]) << 16) | sloc[1];
+}
+
+static void
+write_wide_thumb(uint32_t *loc, uint32_t v)
+{
+  uint16_t *sloc = (uint16_t *)loc;
+  sloc[0] = v >> 16;
+  sloc[1] = v & 0xffff;
+}
+
 static int
-offset_in_thumb_jump_range(int32_t offset)
+offset_in_jmp_range(int32_t offset)
 {
   return -0x800000 <= offset && offset <= 0x7fffff;
 }
@@ -272,7 +288,7 @@ static const uint32_t thumb_jump_mask = 0xf800d000;
 static uint32_t
 encode_thumb_jump(int32_t v)
 {
-  ASSERT(offset_in_thumb_jump_range(v));
+  ASSERT(offset_in_jmp_range(v));
   uint32_t s  = !!(v & 0x800000);
   uint32_t i1 = !!(v & 0x400000);
   uint32_t i2 = !!(v & 0x200000);
@@ -290,6 +306,18 @@ patch_thumb_jump(uint32_t inst, int32_t v)
   return (inst & thumb_jump_mask) | encode_thumb_jump(v);
 }
 
+static int32_t
+read_jmp_offset(uint32_t *loc)
+{
+  return decode_thumb_jump(read_wide_thumb(loc));
+}
+
+static void
+patch_jmp_offset(uint32_t *loc, int32_t v)
+{
+  write_wide_thumb(loc, patch_thumb_jump(read_wide_thumb(loc), v));
+}
+
 static jit_reloc_t
 emit_thumb_jump(jit_state_t *_jit, uint32_t inst)
 {
@@ -305,7 +333,7 @@ emit_thumb_jump(jit_state_t *_jit, uint32_t inst)
 }
 
 static int
-offset_in_thumb_cc_jump_range(int32_t v)
+offset_in_jcc_range(int32_t v)
 {
   return -0x80000 <= v && v <= 0x7ffff;
 }
@@ -335,7 +363,7 @@ static const uint32_t thumb_cc_jump_mask = 0xfbc0d000;
 static uint32_t
 encode_thumb_cc_jump(int32_t v)
 {
-  ASSERT(offset_in_thumb_cc_jump_range(v));
+  ASSERT(offset_in_jcc_range(v));
   uint32_t s  = !!(v & 0x80000);
   uint32_t j1 = !!(v & 0x40000);
   uint32_t j2 = !!(v & 0x20000);
@@ -349,6 +377,18 @@ static uint32_t
 patch_thumb_cc_jump(uint32_t inst, int32_t v)
 {
   return (inst & thumb_cc_jump_mask) | encode_thumb_cc_jump(v);
+}
+
+static int32_t
+read_jcc_offset(uint32_t *loc)
+{
+  return decode_thumb_cc_jump(read_wide_thumb(loc));
+}
+
+static void
+patch_jcc_offset(uint32_t *loc, int32_t v)
+{
+  write_wide_thumb(loc, patch_thumb_cc_jump(read_wide_thumb(loc), v));
 }
 
 static jit_reloc_t
@@ -365,32 +405,11 @@ emit_thumb_cc_jump(jit_state_t *_jit, uint32_t inst)
   return ret;
 }
 
-static int
-encode_thumb_shift(int v, int type)
-{
-  switch (type) {
-  case ARM_ASR:
-  case ARM_LSL:
-  case ARM_LSR:           type >>= 1;     break;
-  default:                assert(!"handled shift");
-  }
-  assert(v >= 0 && v <= 31);
-  return (((v & 0x1c) << 10) | ((v & 3) << 6) | type);
-}
-
 static void
 torrr(jit_state_t *_jit, int o, int rn, int rd, int rm)
 {
   assert(!(o & 0xf0f0f));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rd)<<8)|_u4(rm));
-}
-
-static void
-torrrs(jit_state_t *_jit, int o, int rn, int rd, int rm, int im)
-{
-  assert(!(o  & 0x000f0f0f));
-  assert(!(im & 0xffff8f0f));
-  emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rd)<<8)|im|_u4(rm));
 }
 
 static void
@@ -405,14 +424,6 @@ torrrr(jit_state_t *_jit, int o, int rn, int rl, int rh, int rm)
 {
   assert(!(o & 0x000fff0f));
   emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rl)<<12)|(_u4(rh)<<8)|_u4(rm));
-}
-
-static void
-torrri8(jit_state_t *_jit, int o, int rn, int rt, int rt2, int im)
-{
-  assert(!(o  & 0x000fffff));
-  assert(!(im & 0xffffff00));
-  emit_wide_thumb(_jit, o|(_u4(rn)<<16)|(_u4(rt)<<12)|(_u4(rt2)<<8)|im);
 }
 
 static void
@@ -454,22 +465,6 @@ toriw(jit_state_t *_jit, int o, int rd, int im)
   emit_wide_thumb(_jit, o|((im&0xf000)<<4)|((im&0x800)<<15)|((im&0x700)<<4)|(_u4(rd)<<8)|(im&0xff));
 }
 
-static void
-tc8(jit_state_t *_jit, int cc, int im)
-{
-  assert(!(cc & 0x0fffffff));
-  assert(cc != ARM_CC_AL && cc != ARM_CC_NV);
-  assert(im >= -128 && im <= 127);
-  emit_u16(_jit, THUMB_CC_B|(cc>>20)|(im&0xff));
-}
-
-static void
-t11(jit_state_t *_jit, int im)
-{
-  assert(!(im & 0xfffff800));
-  emit_u16(_jit, THUMB_B|im);
-}
-
 static jit_reloc_t
 tcb(jit_state_t *_jit, int cc)
 {
@@ -484,25 +479,6 @@ tb(jit_state_t *_jit, int o)
 {
   assert(!(o & 0x07ff2fff));
   return emit_thumb_jump(_jit, o);
-}
-
-static void
-tpp(jit_state_t *_jit, int o, int im)
-{
-  assert(!(o & 0x0000ffff));
-  if (o == THUMB2_PUSH)
-    assert(!(im & 0x8000));
-  assert(__builtin_popcount(im & 0x1fff) > 1);
-  emit_wide_thumb(_jit, o|im);
-}
-
-static void
-torl(jit_state_t *_jit, int o, int rn, int im)
-{
-  assert(!(o & 0xf1fff));
-  assert(rn != _NOREG || !im || ((o & 0xc000) == 0xc000));
-  assert(!(o & THUMB2_LDM_W) || !(im & (1 << rn)));
-  emit_wide_thumb(_jit, o | (_u4(rn)<<16)|_u13(im));
 }
 
 static void
@@ -545,12 +521,6 @@ static void
 T1_MOV(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
   return emit_u16(_jit, THUMB_MOV|((_u4(rd)&8)<<4)|(_u4(rm)<<3)|(rd&7));
-}
-
-static void
-T2_MOV(jit_state_t *_jit, int32_t rd, int32_t rm)
-{
-  return T2_ORR(_jit, rd,_NOREG,rm);
 }
 
 static void
@@ -1015,14 +985,8 @@ T2_TSTI(jit_state_t *_jit, int32_t rn, int32_t im)
   return torri(_jit, THUMB2_TSTI,rn,_NOREG,im);
 }
 
-static void
-T1_B(jit_state_t *_jit, int32_t im)
-{
-  return t11(_jit, im);
-}
-
 static jit_reloc_t
-T2_CC_B(jit_state_t *_jit, uint8_t cc)
+T2_CC_B(jit_state_t *_jit, uint32_t cc)
 {
   return tcb(_jit, cc);
 }
@@ -1372,6 +1336,12 @@ movi(jit_state_t *_jit, int32_t r0, jit_word_t i0)
   return _movi(_jit, r0, i0, FLAGS_UNIMPORTANT);
 }
 
+static int
+offset_in_load_from_pool_range(int32_t offset)
+{
+  return -0xfff <= offset && offset <= 0xfff;
+}
+
 static int32_t
 decode_load_from_pool_offset(uint32_t inst)
 {
@@ -1382,7 +1352,7 @@ decode_load_from_pool_offset(uint32_t inst)
 static uint32_t
 encode_load_from_pool_offset(int32_t off)
 {
-  ASSERT(-0xfff <= off && off <= 0xfff);
+  ASSERT(offset_in_load_from_pool_range(off));
   uint32_t u;
   if (off >= 0)
     u = 1;
@@ -1398,6 +1368,18 @@ patch_load_from_pool(uint32_t inst, int32_t off)
 {
   uint32_t load_from_pool_mask = THUMB2_LDRP | (0xf << 12);
   return (inst & load_from_pool_mask) | encode_load_from_pool_offset(off);
+}
+
+static int32_t
+read_load_from_pool_offset(uint32_t *loc)
+{
+  return decode_load_from_pool_offset(read_wide_thumb(loc));
+}
+
+static void
+patch_load_from_pool_offset(uint32_t *loc, int32_t v)
+{
+  write_wide_thumb(loc, patch_load_from_pool(read_wide_thumb(loc), v));
 }
 
 static jit_reloc_t
@@ -2632,7 +2614,7 @@ ldxi_i(jit_state_t *_jit, int32_t r0, int32_t r1, jit_word_t i0)
 {
   if ((r0|r1) < 8 && i0 >= 0 && !(i0 & 3) && (i0 >> 2) < 0x20)
     T1_LDRI(_jit, r0, r1, i0 >> 2);
-  else if (r1 == jit_gpr_regno(_SP) && r0 < 8 &&
+  else if (r1 == jit_gpr_regno(JIT_SP) && r0 < 8 &&
            i0 >= 0 && !(i0 & 3) && (i0 >> 2) <= 255)
     T1_LDRISP(_jit, r0, i0 >> 2);
   else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
@@ -2779,7 +2761,7 @@ stxi_i(jit_state_t *_jit, jit_word_t i0, int32_t r0, int32_t r1)
 {
   if ((r0|r1) < 8 && i0 >= 0 && !(i0 & 3) && (i0 >> 2) < 0x20)
     T1_STRI(_jit, r1, r0, i0 >> 2);
-  else if (r0 == jit_gpr_regno(_SP) && r1 < 8 &&
+  else if (r0 == jit_gpr_regno(JIT_SP) && r1 < 8 &&
            i0 >= 0 && !(i0 & 3) && (i0 >> 2) <= 255)
     T1_STRISP(_jit, r1, i0 >> 2);
   else if (jit_ldrt_strt_p() && i0 >= 0 && i0 <= 255)
@@ -2868,6 +2850,70 @@ static void
 calli(jit_state_t *_jit, jit_word_t i0)
 {
   jit_patch_there(_jit, T2_BLI(_jit), (void*)i0);
+}
+
+static void
+ret(jit_state_t *_jit)
+{
+  movr(_jit, jit_gpr_regno(_PC), jit_gpr_regno(_LR));
+}
+
+static void
+reti(jit_state_t *_jit, int32_t i0)
+{
+  movi(_jit, jit_gpr_regno(_R0), i0);
+  ret(_jit);
+}
+
+static void
+retr(jit_state_t *_jit, int32_t r0)
+{
+  movr(_jit, jit_gpr_regno(_R0), r0);
+  ret(_jit);
+}
+
+static void
+retval_c(jit_state_t *_jit, int32_t r0)
+{
+  extr_c(_jit, r0, jit_gpr_regno(_R0));
+}
+
+static void
+retval_uc(jit_state_t *_jit, int32_t r0)
+{
+  extr_uc(_jit, r0, jit_gpr_regno(_R0));
+}
+
+static void
+retval_s(jit_state_t *_jit, int32_t r0)
+{
+  extr_s(_jit, r0, jit_gpr_regno(_R0));
+}
+
+static void
+retval_us(jit_state_t *_jit, int32_t r0)
+{
+  extr_us(_jit, r0, jit_gpr_regno(_R0));
+}
+
+static void
+retval_i(jit_state_t *_jit, int32_t r0)
+{
+  movr(_jit, r0, jit_gpr_regno(_R0));
+}
+
+struct veneer
+{
+  uint16_t ldr;
+  uint16_t br;
+  uint32_t addr;
+};
+
+static void
+patch_veneer(uint32_t *loc, jit_pointer_t addr)
+{
+  struct veneer *v = (struct veneer*) v;
+  v->addr = (uintptr_t) addr;
 }
 
 static void

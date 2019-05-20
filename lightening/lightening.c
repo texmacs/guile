@@ -1328,11 +1328,11 @@ emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
     switch (entry->reloc.kind) {
     case JIT_RELOC_JMP_WITH_VENEER:
       patch_jmp_offset((uint32_t*) loc, diff);
-      emit_veneer(_jit, (void*) entry->value);
+      emit_veneer(_jit, (void*) (uintptr_t) entry->value);
       break;
     case JIT_RELOC_JCC_WITH_VENEER:
       patch_jcc_offset((uint32_t*) loc, diff);
-      emit_veneer(_jit, (void*) entry->value);
+      emit_veneer(_jit, (void*) (uintptr_t) entry->value);
       break;
     case JIT_RELOC_LOAD_FROM_POOL:
       patch_load_from_pool_offset((uint32_t*) loc, diff);
