@@ -65,28 +65,6 @@ jit_same_fprs (jit_fpr_t a, jit_fpr_t b)
   return jit_fpr_regno (a) == jit_fpr_regno (b);
 }
 
-enum jit_reloc_kind
-{
-  JIT_RELOC_ABSOLUTE,
-  JIT_RELOC_REL8,
-  JIT_RELOC_REL16,
-  JIT_RELOC_REL32,
-  JIT_RELOC_REL64,
-};
-
-typedef struct jit_reloc
-{
-  uint8_t kind;
-  uint8_t inst_start_offset;
-  uint32_t offset;
-} jit_reloc_t;
-
-#if defined(__GNUC__) && (__GNUC__ >= 4)
-#  define JIT_API		extern __attribute__ ((__visibility__("hidden")))
-#else
-#  define JIT_API		extern
-#endif
-
 #if defined(__i386__) || defined(__x86_64__)
 #  include "lightening/x86.h"
 #elif defined(__mips__)
@@ -99,6 +77,35 @@ typedef struct jit_reloc
 #  include "lightening/aarch64.h"
 #elif defined(__s390__) || defined(__s390x__)
 #  include "lightening/s390.h"
+#endif
+
+enum jit_reloc_kind
+{
+  JIT_RELOC_ABSOLUTE,
+  JIT_RELOC_REL8,
+  JIT_RELOC_REL16,
+  JIT_RELOC_REL32,
+  JIT_RELOC_REL64,
+#ifdef JIT_NEEDS_LITERAL_POOL
+  JIT_RELOC_JMP_WITH_VENEER,
+  JIT_RELOC_JCC_WITH_VENEER,
+  JIT_RELOC_LOAD_FROM_POOL,
+#endif
+};
+
+typedef struct jit_reloc
+{
+  uint8_t kind;
+  uint8_t inst_start_offset;
+  uint8_t pc_base_offset;
+  uint8_t rsh;
+  uint32_t offset;
+} jit_reloc_t;
+
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#  define JIT_API		extern __attribute__ ((__visibility__("hidden")))
+#else
+#  define JIT_API		extern
 #endif
 
 typedef struct jit_state	jit_state_t;
@@ -567,17 +574,10 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(RGG__, bxsubr_u)		\
           M(RGu__, bxsubi_u)		\
   					\
-          M(_i___, nop)			\
-                                        \
           M(_G___, jmpr)		\
           M(_p___, jmpi)		\
           M(R____, jmp)			\
   					\
-          M(_G___, pushr)		\
-          M(_F___, pushr_d)		\
-          M(_G___, popr)		\
-          M(_F___, popr_d)		\
-					\
           M(_____, ret)			\
           M(_G___, retr)		\
           M(_F___, retr_f)		\

@@ -17,6 +17,8 @@
  *      Paulo Cesar Pereira de Andrade
  */
 
+#define _NOREG 0xffff
+
 typedef struct {
   /* x87 present */
   uint32_t fpu                : 1;
@@ -57,6 +59,33 @@ typedef struct {
 } jit_cpu_t;
 
 static jit_cpu_t jit_cpu;
+
+static inline jit_reloc_t
+emit_rel8_reloc (jit_state_t *_jit, uint8_t inst_start)
+{
+  uint8_t *loc = _jit->pc.uc;
+  emit_u8 (_jit, 0);
+  return jit_reloc(_jit, JIT_RELOC_REL8, inst_start, loc, _jit->pc.uc, 0);
+}
+
+static inline jit_reloc_t
+emit_rel32_reloc (jit_state_t *_jit, uint8_t inst_start)
+{
+  uint8_t *loc = _jit->pc.uc;
+  emit_u32 (_jit, 0);
+  return jit_reloc(_jit, JIT_RELOC_REL32, inst_start, loc, _jit->pc.uc, 0);
+}
+
+static inline jit_reloc_t
+emit_abs_reloc (jit_state_t *_jit, uint8_t inst_start)
+{
+  uint8_t *loc = _jit->pc.uc;
+  if (sizeof(intptr_t) == 4)
+    emit_u32 (_jit, 0);
+  else
+    emit_u64 (_jit, 0);
+  return jit_reloc(_jit, JIT_RELOC_ABSOLUTE, inst_start, loc, _jit->pc.uc, 0);
+}
 
 #include "x86-cpu.c"
 #include "x86-sse.c"
@@ -216,35 +245,6 @@ jit_init(jit_state_t *_jit)
   return jit_cpu.sse2;
 }
 
-static jit_bool_t
-is_fpr_arg(enum jit_operand_abi arg)
-{
-  switch (arg)
-    {
-    case JIT_OPERAND_ABI_UINT8:
-    case JIT_OPERAND_ABI_INT8:
-    case JIT_OPERAND_ABI_UINT16:
-    case JIT_OPERAND_ABI_INT16:
-    case JIT_OPERAND_ABI_UINT32:
-    case JIT_OPERAND_ABI_INT32:
-    case JIT_OPERAND_ABI_UINT64:
-    case JIT_OPERAND_ABI_INT64:
-    case JIT_OPERAND_ABI_POINTER:
-      return 0;
-    case JIT_OPERAND_ABI_FLOAT:
-    case JIT_OPERAND_ABI_DOUBLE:
-      return 1;
-    default:
-      abort();
-    }
-}
-
-static jit_bool_t
-is_gpr_arg(enum jit_operand_abi arg)
-{
-  return !is_fpr_arg(arg);
-}
-
 static const jit_gpr_t abi_gpr_args[] = {
 #if __X32
   /* No GPRs in args.  */
@@ -353,7 +353,7 @@ next_abi_arg(struct abi_arg_iterator *iter, jit_operand_t *arg)
   iter->arg_idx++;
 }
 
-void
+static void
 jit_flush(void *fptr, void *tptr)
 {
 }
@@ -387,9 +387,6 @@ jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
       ASSERT((loc[-1] & ~0xf) == 0x70 || loc[-1] == 0xeb); // JCCSI or JMPSI
       /* Nothing useful to do.  */
       return;
-    case JIT_RELOC_REL16:
-      /* We don't emit these.  */
-      abort ();
     case JIT_RELOC_REL32:
       _jit->pc.uc = start;
       if (start[0] == 0xe9) { // JMP
@@ -397,10 +394,14 @@ jit_try_shorten(jit_state_t *_jit, jit_reloc_t reloc, jit_pointer_t addr)
       }
       ASSERT(start[0] == 0x0f); // JCC
       return jcci(_jit, start[1] & ~0x80, i0);
-    case JIT_RELOC_REL64:
-      /* We don't emit these.  */
-      abort ();
     default:
+      /* We don't emit other kinds of reloc.  */
       abort ();
     }
+}
+
+static void*
+bless_function_pointer(void *ptr)
+{
+  return ptr;
 }
