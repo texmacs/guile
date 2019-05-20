@@ -30,9 +30,13 @@ functionality, and Lightening wraps it all in a lightweight API.
 
 ## Supported targets
 
-Lightening can generate code for the x86-64, i686, and AArch64
+Lightening can generate code for the x86-64, i686, ARMv7, and AArch64
 architectures.  It supports the calling conventions of MS Windows,
 GNU/Linux, and Mac OS.
+
+On i686, Lightening requires SSE support.  On ARMv7, we require hardware
+floating-point support (the VFP instructions), as well as the UDIV/SDIV
+instructions.
 
 Lightening is automatically tested using GitLab's continuous integration
 for under the supported architectures, for GNU/Linux; for a list of
@@ -40,8 +44,6 @@ recent jobs, see [the CI
 page](https://gitlab.com/wingo/lightening/-/jobs).
 
 ## Future targets
-
-ARMv7 support will come soon.
 
 Lightening has some inherited code from GNU Lightning for MIPS, PPC64,
 and s390.  Patches to adapt this code to the Lightening code structure
