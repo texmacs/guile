@@ -30,4 +30,4 @@ aarch64:
 armhf:
   stage: test
   script:
-    - make -C tests test-armhf CC_ARMv7=arm-linux-gnueabihf-gcc
+    - make -C tests test-armv7 CC_ARMv7=arm-linux-gnueabihf-gcc
