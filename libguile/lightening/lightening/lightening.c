@@ -95,7 +95,8 @@ struct abi_arg_iterator;
 #ifdef JIT_NEEDS_LITERAL_POOL
 static struct jit_literal_pool* alloc_literal_pool(jit_state_t *_jit,
                                                    size_t capacity);
-static void clear_literal_pool(struct jit_literal_pool *pool);
+static void reset_literal_pool(jit_state_t *_jit,
+                               struct jit_literal_pool *pool);
 static void grow_literal_pool(jit_state_t *_jit);
 static void add_literal_pool_entry(jit_state_t *_jit,
                                    struct jit_literal_pool_entry entry,
@@ -185,6 +186,9 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->limit = buf + length;
   _jit->overflow = 0;
   _jit->frame_size = 0;
+#if JIT_NEEDS_LITERAL_POOL
+  _jit->pool->deadline = length;
+#endif
 }
 
 jit_bool_t
@@ -202,7 +206,7 @@ jit_reset(jit_state_t *_jit)
   _jit->overflow = 0;
   _jit->frame_size = 0;
 #ifdef JIT_NEEDS_LITERAL_POOL
-  clear_literal_pool(_jit->pool);
+  reset_literal_pool(_jit, _jit->pool);
 #endif
 }
 
@@ -240,7 +244,7 @@ jit_end(jit_state_t *_jit, size_t *length)
   _jit->overflow = 0;
   _jit->frame_size = 0;
 #ifdef JIT_NEEDS_LITERAL_POOL
-  clear_literal_pool(_jit->pool);
+  reset_literal_pool(_jit, _jit->pool);
 #endif
 
   return jit_address_to_function_pointer(start);
@@ -1226,9 +1230,10 @@ jit_load_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 
 #ifdef JIT_NEEDS_LITERAL_POOL
 static void
-clear_literal_pool(struct jit_literal_pool *pool)
+reset_literal_pool(jit_state_t *_jit,
+                   struct jit_literal_pool *pool)
 {
-  pool->deadline = -1;
+  pool->deadline = _jit->limit - _jit->start;
   pool->size = 0;
   pool->byte_size = 0;
   memset(pool->entries, 0, sizeof(pool->entries[0]) * pool->size);
@@ -1245,7 +1250,7 @@ alloc_literal_pool(jit_state_t *_jit, size_t capacity)
                  sizeof (struct jit_literal_pool_entry) * capacity);
   ASSERT (ret);
   ret->capacity = capacity;
-  clear_literal_pool(ret);
+  reset_literal_pool(_jit, ret);
   return ret;
 }
 
@@ -1270,14 +1275,12 @@ add_literal_pool_entry(jit_state_t *_jit, struct jit_literal_pool_entry entry,
   if (_jit->pool->size == _jit->pool->capacity)
     grow_literal_pool (_jit);
 
-  max_offset <<= entry.reloc.rsh;
-  ptrdiff_t deadline =
+  uint32_t deadline =
     _jit->pc.uc - _jit->start + max_offset - _jit->pool->byte_size;
-  if (_jit->pool->size == 0)
-    // Assume that we might need a uint32_t for alignment, and another
-    // to branch over the table.
-    _jit->pool->deadline = deadline - 2 * sizeof(uint32_t);
-  else if (deadline < _jit->pool->deadline)
+  // Assume that we might need a uint32_t for alignment, and another
+  // to branch over the table.
+  deadline -= 2 * sizeof(uint32_t);
+  if (deadline < _jit->pool->deadline)
     _jit->pool->deadline = deadline;
 
   // Assume that each entry takes a max of 16 bytes.
@@ -1325,14 +1328,17 @@ patch_pending_literal(jit_state_t *_jit, jit_reloc_t src, uint64_t value)
 static void
 emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
 {
+  if (_jit->overflow)
+    return;
+
   _jit->pool->deadline = -1;
 
   if (!_jit->pool->size)
     return;
 
-  jit_reloc_t skip;
+  uint32_t *patch_loc = NULL;
   if (guard == GUARD_NEEDED)
-    skip = jit_jmp(_jit);
+    patch_loc = jmp_without_veneer(_jit);
 
   // FIXME: Could de-duplicate constants.
   for (size_t i = 0; i < _jit->pool->size; i++) {
@@ -1363,8 +1369,8 @@ emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
   }
 
   if (guard == GUARD_NEEDED)
-    jit_patch_here(_jit, skip);
+    patch_jmp_without_veneer(_jit, patch_loc);
 
-  clear_literal_pool(_jit->pool);
+  reset_literal_pool(_jit, _jit->pool);
 }
 #endif
