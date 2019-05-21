@@ -1331,8 +1331,6 @@ emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
   if (_jit->overflow)
     return;
 
-  _jit->pool->deadline = -1;
-
   if (!_jit->pool->size)
     return;
 
@@ -1367,6 +1365,9 @@ emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
       abort();
     }
   }
+
+  if (_jit->overflow)
+    return;
 
   if (guard == GUARD_NEEDED)
     patch_jmp_without_veneer(_jit, patch_loc);
