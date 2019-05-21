@@ -2541,7 +2541,7 @@ static uint32_t*
 jmp_without_veneer(jit_state_t *_jit)
 {
   uint32_t *loc = _jit->pc.ui;
-  emit_u32(_jit, encode_o26(_jit, A64_B));
+  emit_u32(_jit, encode_o26(A64_B));
   return loc;
 }
 
