@@ -4652,7 +4652,7 @@ static scm_i_pthread_once_t initialize_jit_once = SCM_I_PTHREAD_ONCE_INIT;
 static void*
 jit_alloc_fn (size_t size)
 {
-  return scm_gc_malloc_pointerless (size, "jit state");
+  return scm_gc_malloc (size, "jit state");
 }
 
 static void
