@@ -1233,6 +1233,7 @@ clear_literal_pool(struct jit_literal_pool *pool)
 {
   pool->deadline = -1;
   pool->size = 0;
+  pool->byte_size = 0;
 }
 
 static void
