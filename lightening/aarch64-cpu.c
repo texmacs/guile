@@ -994,10 +994,11 @@ static void
 emit_veneer(jit_state_t *_jit, jit_pointer_t target)
 {
   jit_gpr_t tmp = get_temp_gpr(_jit);
-  uint32_t inst = encode_ox19(A64_LDRI_LITERAL, jit_gpr_regno(tmp));
+  uint32_t ldr = encode_ox19(A64_LDRI_LITERAL, jit_gpr_regno(tmp));
+  uint32_t br = write_Rn_bitfield(A64_BR, jit_gpr_regno(tmp));
   uint32_t *loc = _jit->pc.ui;
-  emit_u32(_jit, inst);
-  BR(_jit, jit_gpr_regno(tmp));
+  emit_u32(_jit, ldr);
+  emit_u32(_jit, br);
   unget_temp_gpr(_jit);
   if (_jit->overflow)
     return;
