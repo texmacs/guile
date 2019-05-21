@@ -1215,7 +1215,7 @@ clear_literal_pool(struct jit_literal_pool *pool)
   pool->deadline = -1;
   pool->size = 0;
   pool->byte_size = 0;
-  memset(pool->entries, 0, sizeof(pool->entries[0]) * pool.size);
+  memset(pool->entries, 0, sizeof(pool->entries[0]) * pool->size);
 }
 
 #define INITIAL_LITERAL_POOL_CAPACITY 12
