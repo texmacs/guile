@@ -218,6 +218,8 @@ JIT_API void* jit_end(jit_state_t*, size_t*);
 JIT_API void jit_align(jit_state_t*, unsigned);
 
 JIT_API jit_pointer_t jit_address(jit_state_t*);
+typedef void (*jit_function_pointer_t)();
+JIT_API jit_function_pointer_t jit_address_to_function_pointer(jit_pointer_t);
 JIT_API void jit_patch_here(jit_state_t*, jit_reloc_t);
 JIT_API void jit_patch_there(jit_state_t*, jit_reloc_t, jit_pointer_t);
 

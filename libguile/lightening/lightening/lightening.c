@@ -206,6 +206,12 @@ jit_reset(jit_state_t *_jit)
 #endif
 }
 
+jit_function_pointer_t
+jit_address_to_function_pointer(jit_pointer_t p)
+{
+  return bless_function_pointer(p);
+}
+
 void*
 jit_end(jit_state_t *_jit, size_t *length)
 {
@@ -237,7 +243,7 @@ jit_end(jit_state_t *_jit, size_t *length)
   clear_literal_pool(_jit->pool);
 #endif
 
-  return bless_function_pointer(start);
+  return jit_address_to_function_pointer(start);
 }
 
 static int
