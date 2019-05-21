@@ -84,7 +84,7 @@ oxx9(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Simm9)
 }
 
 static uint32_t
-encode_ox19(jit_state_t *_jit, int32_t Op, int32_t Rd)
+encode_ox19(int32_t Op, int32_t Rd)
 {
   uint32_t inst = Op;
   inst = write_Rd_bitfield(inst, Rd);
@@ -92,7 +92,7 @@ encode_ox19(jit_state_t *_jit, int32_t Op, int32_t Rd)
 }
 
 static uint32_t
-encode_oc19(jit_state_t *_jit, int32_t Op, int32_t Cc)
+encode_oc19(int32_t Op, int32_t Cc)
 {
   uint32_t inst = Op;
   inst = write_cond2_bitfield(inst, Cc);
@@ -100,7 +100,7 @@ encode_oc19(jit_state_t *_jit, int32_t Op, int32_t Cc)
 }
 
 static uint32_t
-encode_o26(jit_state_t *_jit, int32_t Op)
+encode_o26(int32_t Op)
 {
   uint32_t inst = Op;
   return inst;
@@ -933,13 +933,13 @@ LDP_POS(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7)
 static jit_reloc_t
 B(jit_state_t *_jit)
 {
-  return emit_jmp(_jit, encode_o26(_jit, A64_B));
+  return emit_jmp(_jit, encode_o26(A64_B));
 }
 
 static jit_reloc_t
 BL(jit_state_t *_jit)
 {
-  return emit_jmp(_jit, encode_o26(_jit, A64_BL));
+  return emit_jmp(_jit, encode_o26(A64_BL));
 }
 
 static void
@@ -963,19 +963,19 @@ RET(jit_state_t *_jit)
 static jit_reloc_t
 B_C(jit_state_t *_jit, int32_t Cc) 
 {
-  return emit_jcc(_jit, encode_oc19(_jit, A64_B_C, Cc));
+  return emit_jcc(_jit, encode_oc19(A64_B_C, Cc));
 }
 
 static jit_reloc_t
 CBZ(jit_state_t *_jit, int32_t Rd) 
 {
-  return emit_jcc(_jit, encode_ox19(_jit, A64_CBZ|XS,Rd));
+  return emit_jcc(_jit, encode_ox19(A64_CBZ|XS,Rd));
 }
 
 static jit_reloc_t
 CBNZ(jit_state_t *_jit, int32_t Rd) 
 {
-  return emit_jcc(_jit, encode_ox19(_jit, A64_CBNZ|XS,Rd));
+  return emit_jcc(_jit, encode_ox19(A64_CBNZ|XS,Rd));
 }
 
 static void
@@ -987,14 +987,14 @@ NOP(jit_state_t *_jit)
 static jit_reloc_t
 movi_from_pool(jit_state_t *_jit, int32_t Rt)
 {
-  return emit_load_from_pool(_jit, encode_ox19(_jit, A64_LDRI_LITERAL, Rt));
+  return emit_load_from_pool(_jit, encode_ox19(A64_LDRI_LITERAL, Rt));
 }
 
 static void
 emit_veneer(jit_state_t *_jit, jit_pointer_t target)
 {
   jit_gpr_t tmp = get_temp_gpr(_jit);
-  uint32_t inst = encode_ox19(_jit, A64_LDRI_LITERAL, jit_gpr_regno(tmp));
+  uint32_t inst = encode_ox19(A64_LDRI_LITERAL, jit_gpr_regno(tmp));
   uint32_t *loc = _jit->pc.ui;
   emit_u32(_jit, inst);
   BR(_jit, jit_gpr_regno(tmp));
@@ -2535,4 +2535,18 @@ static void
 retval_l(jit_state_t *_jit, int32_t r0)
 {
   movr(_jit, r0, jit_gpr_regno(_X0));
+}
+
+static uint32_t*
+jmp_without_veneer(jit_state_t *_jit)
+{
+  uint32_t *loc = _jit->pc.ui;
+  emit_u32(_jit, encode_o26(_jit, A64_B));
+  return loc;
+}
+
+static void
+patch_jmp_without_veneer(jit_state_t *_jit, uint32_t *loc)
+{
+  patch_jmp_offset(loc, _jit->pc.ui - loc);
 }
