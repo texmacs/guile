@@ -315,12 +315,22 @@ static inline void emit_u32(jit_state_t *_jit, uint32_t u32) {
     _jit->overflow = 1;
   } else {
     *_jit->pc.ui++ = u32;
-#ifdef JIT_NEEDS_LITERAL_POOL
-    if (UNLIKELY(_jit->pc.uc >= _jit->start + _jit->pool->deadline))
-      emit_literal_pool(_jit, GUARD_NEEDED);
-#endif
   }
 }
+
+#ifdef JIT_NEEDS_LITERAL_POOL
+static inline void emit_u16_with_pool(jit_state_t *_jit, uint16_t u16) {
+  emit_u16(_jit, u16);
+  if (UNLIKELY(_jit->pc.uc >= _jit->start + _jit->pool->deadline))
+    emit_literal_pool(_jit, GUARD_NEEDED);
+}
+
+static inline void emit_u32_with_pool(jit_state_t *_jit, uint32_t u32) {
+  emit_u32(_jit, u32);
+  if (UNLIKELY(_jit->pc.uc >= _jit->start + _jit->pool->deadline))
+    emit_literal_pool(_jit, GUARD_NEEDED);
+}
+#endif
 
 static inline void emit_u64(jit_state_t *_jit, uint64_t u64) {
   if (UNLIKELY(_jit->pc.ul + 1 > (uint64_t*)_jit->limit)) {

@@ -186,7 +186,7 @@ static void
 emit_wide_thumb(jit_state_t *_jit, uint32_t inst)
 {
   emit_u16(_jit, inst >> 16);
-  emit_u16(_jit, inst & 0xffff);
+  emit_u16_with_pool(_jit, inst & 0xffff);
 }
 
 /* from binutils */
@@ -487,7 +487,7 @@ tb(jit_state_t *_jit, int o)
 static void
 T1_ORR(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_ORR|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_ORR|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -505,7 +505,7 @@ T2_ORRI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_EOR(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_EOR|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_EOR|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -523,13 +523,13 @@ T2_EORI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_MOV(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_MOV|((_u4(rd)&8)<<4)|(_u4(rm)<<3)|(rd&7));
+  emit_u16_with_pool(_jit, THUMB_MOV|((_u4(rd)&8)<<4)|(_u4(rm)<<3)|(rd&7));
 }
 
 static void
 T1_MOVI(jit_state_t *_jit, int32_t rd, int32_t im)
 {
-  return emit_u16(_jit, THUMB_MOVI|(_u3(rd)<<8)|_u8(im));
+  emit_u16_with_pool(_jit, THUMB_MOVI|(_u3(rd)<<8)|_u8(im));
 }
 
 static void
@@ -553,7 +553,7 @@ T2_MOVTI(jit_state_t *_jit, int32_t rd, int32_t im)
 static void
 T1_MVN(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_MVN|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_MVN|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -583,19 +583,19 @@ T2_NOT(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_NOP(jit_state_t *_jit)
 {
-  return emit_u16(_jit, 0xbf00);
+  emit_u16_with_pool(_jit, 0xbf00);
 }
 
 static void
 T1_ADD(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_ADD|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_ADD|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rd));
 }
 
 static void
 T1_ADDX(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_ADDX|((_u4(rdn)&8)<<4)|(_u4(rm)<<3)|(rdn&7));
+  emit_u16_with_pool(_jit, THUMB_ADDX|((_u4(rdn)&8)<<4)|(_u4(rm)<<3)|(rdn&7));
 }
 
 static void
@@ -607,13 +607,13 @@ T2_ADD(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_ADDI3(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_ADDI3|(_u3(im)<<6)|(_u3(rn)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_ADDI3|(_u3(im)<<6)|(_u3(rn)<<3)|_u3(rd));
 }
 
 static void
 T1_ADDI8(jit_state_t *_jit, int32_t rdn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_ADDI8|(_u3(rdn)<<8)|_u8(im));
+  emit_u16_with_pool(_jit, THUMB_ADDI8|(_u3(rdn)<<8)|_u8(im));
 }
 
 static void
@@ -643,7 +643,7 @@ T2_ADDSI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_ADC(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_ADC|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_ADC|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -661,7 +661,7 @@ T2_ADCSI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_SUB(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_SUB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_SUB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rd));
 }
 
 static void
@@ -673,13 +673,13 @@ T2_SUB(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_SUBI3(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_SUBI3|(_u3(im)<<6)|(_u3(rn)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_SUBI3|(_u3(im)<<6)|(_u3(rn)<<3)|_u3(rd));
 }
 
 static void
 T1_SUBI8(jit_state_t *_jit, int32_t rdn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_SUBI8|(_u3(rdn)<<8)|_u8(im));
+  emit_u16_with_pool(_jit, THUMB_SUBI8|(_u3(rdn)<<8)|_u8(im));
 }
 
 static void
@@ -709,7 +709,7 @@ T2_SUBSI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_SBC(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_SBC|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_SBC|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -727,7 +727,7 @@ T2_SBCSI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_RSBI(jit_state_t *_jit, int32_t rd, int32_t rn)
 {
-  return emit_u16(_jit, THUMB_RSBI|(_u3(rn)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_RSBI|(_u3(rn)<<3)|_u3(rd));
 }
 
 static void
@@ -739,7 +739,7 @@ T2_RSBI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_MUL(jit_state_t *_jit, int32_t rdm, int32_t rn)
 {
-  return emit_u16(_jit, THUMB_MUL|(_u3(rn)<<3)|_u3(rdm));
+  emit_u16_with_pool(_jit, THUMB_MUL|(_u3(rn)<<3)|_u3(rdm));
 }
 
 static void
@@ -781,7 +781,7 @@ T1_MLS(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm, int32_t ra)
 static void
 T1_AND(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_AND|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_AND|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -805,7 +805,7 @@ T2_BICI(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t im)
 static void
 T1_REV(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_REV|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_REV|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -817,7 +817,7 @@ T2_REV(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_SXTB(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_SXTB|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_SXTB|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -829,7 +829,7 @@ T2_SXTB(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_UXTB(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_UXTB|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_UXTB|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -841,7 +841,7 @@ T2_UXTB(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_SXTH(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_SXTH|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_SXTH|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -853,7 +853,7 @@ T2_SXTH(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_UXTH(jit_state_t *_jit, int32_t rd, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_UXTH|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_UXTH|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -865,7 +865,7 @@ T2_UXTH(jit_state_t *_jit, int32_t rd, int32_t rm)
 static void
 T1_LSL(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LSL|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_LSL|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -877,7 +877,7 @@ T2_LSL(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_LSLI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LSLI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_LSLI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -889,7 +889,7 @@ T2_LSLI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 static void
 T1_LSR(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LSR|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_LSR|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -901,7 +901,7 @@ T2_LSR(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_LSRI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LSRI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_LSRI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -913,7 +913,7 @@ T2_LSRI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 static void
 T1_ASR(jit_state_t *_jit, int32_t rdn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_ASR|(_u3(rm)<<3)|_u3(rdn));
+  emit_u16_with_pool(_jit, THUMB_ASR|(_u3(rm)<<3)|_u3(rdn));
 }
 
 static void
@@ -925,7 +925,7 @@ T2_ASR(jit_state_t *_jit, int32_t rd, int32_t rn, int32_t rm)
 static void
 T1_ASRI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 {
-  return emit_u16(_jit, THUMB_ASRI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
+  emit_u16_with_pool(_jit, THUMB_ASRI|(_u5(im)<<6)|(_u3(rm)<<3)|_u3(rd));
 }
 
 static void
@@ -937,13 +937,13 @@ T2_ASRI(jit_state_t *_jit, int32_t rd, int32_t rm, int32_t im)
 static void
 T1_CMP(jit_state_t *_jit, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_CMP|(_u3(rm)<<3)|_u3(rn));
+  emit_u16_with_pool(_jit, THUMB_CMP|(_u3(rm)<<3)|_u3(rn));
 }
 
 static void
 T1_CMPX(jit_state_t *_jit, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_CMPX|((_u4(rn)&8)<<4)|(_u4(rm)<<3)|(rn&7));
+  emit_u16_with_pool(_jit, THUMB_CMPX|((_u4(rn)&8)<<4)|(_u4(rm)<<3)|(rn&7));
 }
 
 static void
@@ -955,7 +955,7 @@ T2_CMP(jit_state_t *_jit, int32_t rn, int32_t rm)
 static void
 T1_CMPI(jit_state_t *_jit, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_CMPI|(_u3(rn)<<8)|_u8(im));
+  emit_u16_with_pool(_jit, THUMB_CMPI|(_u3(rn)<<8)|_u8(im));
 }
 
 static void
@@ -973,7 +973,7 @@ T2_CMNI(jit_state_t *_jit, int32_t rn, int32_t im)
 static void
 T1_TST(jit_state_t *_jit, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_TST|(_u3(rm)<<3)|_u3(rn));
+  emit_u16_with_pool(_jit, THUMB_TST|(_u3(rm)<<3)|_u3(rn));
 }
 
 static void
@@ -991,13 +991,13 @@ T2_TSTI(jit_state_t *_jit, int32_t rn, int32_t im)
 static void
 T1_BLX(jit_state_t *_jit, int32_t r0)
 {
-  emit_u16(_jit, THUMB_BLX|(_u4(r0)<<3));
+  emit_u16_with_pool(_jit, THUMB_BLX|(_u4(r0)<<3));
 }
 
 static void
 T1_BX(jit_state_t *_jit, int32_t r0)
 {
-  emit_u16(_jit, THUMB_BX|(_u4(r0)<<3));
+  emit_u16_with_pool(_jit, THUMB_BX|(_u4(r0)<<3));
 }
 
 static jit_reloc_t
@@ -1027,7 +1027,7 @@ T2_BLXI(jit_state_t *_jit)
 static void
 T1_LDRSB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LDRSB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRSB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1057,7 +1057,7 @@ T2_LDRSBIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_LDRB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LDRB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1069,7 +1069,7 @@ T2_LDRB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_LDRBI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LDRBI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRBI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1093,7 +1093,7 @@ T2_LDRBIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_LDRSH(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LDRSH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRSH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1123,7 +1123,7 @@ T2_LDRSHIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_LDRH(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LDRH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1135,7 +1135,7 @@ T2_LDRH(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_LDRHI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LDRHI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRHI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1159,7 +1159,7 @@ T2_LDRHIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_LDR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1171,13 +1171,13 @@ T2_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_LDRI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LDRI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_LDRI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
 T1_LDRISP(jit_state_t *_jit, int32_t rt, int32_t im)
 {
-  return emit_u16(_jit, THUMB_LDRISP|(_u3(rt)<<8)|_u8(im));
+  emit_u16_with_pool(_jit, THUMB_LDRISP|(_u3(rt)<<8)|_u8(im));
 }
 
 static void
@@ -1201,7 +1201,7 @@ T2_LDRIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_STRB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_STRB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STRB|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1213,7 +1213,7 @@ T2_STRB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_STRBI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  emit_u16(_jit, THUMB_STRBI | (_u5(im) << 6) | (_u3(rn) << 3) | _u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STRBI | (_u5(im) << 6) | (_u3(rn) << 3) | _u3(rt));
 }
 
 static void
@@ -1237,7 +1237,7 @@ T2_STRBIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_STRH(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_STRH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STRH|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1249,7 +1249,7 @@ T2_STRH(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_STRHI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_STRHI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STRHI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1273,7 +1273,7 @@ T2_STRHIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 static void
 T1_STR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return emit_u16(_jit, THUMB_STR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -1285,13 +1285,13 @@ T2_STR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T1_STRI(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
-  return emit_u16(_jit, THUMB_STRI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
+  emit_u16_with_pool(_jit, THUMB_STRI|(_u5(im)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
 T1_STRISP(jit_state_t *_jit, int32_t rt, int32_t im)
 {
-  return emit_u16(_jit, THUMB_STRISP|(_u3(rt)<<8)|(_u8(im)));
+  emit_u16_with_pool(_jit, THUMB_STRISP|(_u3(rt)<<8)|(_u8(im)));
 }
 
 static void

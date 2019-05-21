@@ -26,7 +26,7 @@ osvvv(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rd, int32_t Rn,
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_Rm_bitfield(inst, Rm);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -36,7 +36,7 @@ osvv_(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rd, int32_t Rn)
   inst = write_size_bitfield(inst, Sz);
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -46,7 +46,7 @@ os_vv(jit_state_t *_jit, int32_t Op, int32_t Sz, int32_t Rn, int32_t Rm)
   inst = write_size_bitfield(inst, Sz);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_Rm_bitfield(inst, Rm);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 #define A64_SCVTF                     0x1e220000

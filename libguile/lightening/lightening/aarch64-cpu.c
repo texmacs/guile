@@ -60,7 +60,7 @@ oxxx(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Rm)
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_Rm_bitfield(inst, Rm);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -70,7 +70,7 @@ oxxi(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Imm12)
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_imm12_bitfield(inst, Imm12);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -80,7 +80,7 @@ oxx9(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn, int32_t Simm9)
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_simm9_bitfield(inst, Simm9);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static uint32_t
@@ -112,7 +112,7 @@ ox_x(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rm)
   uint32_t inst = Op;
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rm_bitfield(inst, Rm);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -121,7 +121,7 @@ o_xx(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Rn)
   uint32_t inst = Op;
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_Rn_bitfield(inst, Rn);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -130,7 +130,7 @@ oxx_(jit_state_t *_jit, int32_t Op, int32_t Rn, int32_t Rm)
   uint32_t inst = Op;
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_Rm_bitfield(inst, Rm);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -138,7 +138,7 @@ o_x_(jit_state_t *_jit, int32_t Op, int32_t Rn)
 {
   uint32_t inst = Op;
   inst = write_Rn_bitfield(inst, Rn);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -147,7 +147,7 @@ ox_h(jit_state_t *_jit, int32_t Op, int32_t Rd, int32_t Imm16)
   uint32_t inst = Op;
   inst = write_Rd_bitfield(inst, Rd);
   inst = write_imm16_bitfield(inst, Imm16);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -159,7 +159,7 @@ oxxrs(jit_state_t *_jit, int32_t Op,
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_immr_bitfield(inst, R);
   inst = write_imms_bitfield(inst, S);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -171,7 +171,7 @@ oxxxc(jit_state_t *_jit, int32_t Op,
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_Rm_bitfield(inst, Rm);
   inst = write_cond_bitfield(inst, Cc);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 static void
@@ -183,7 +183,7 @@ oxxx7(jit_state_t *_jit, int32_t Op,
   inst = write_Rt2_bitfield(inst, Rt2);
   inst = write_Rn_bitfield(inst, Rn);
   inst = write_simm7_bitfield(inst, Simm7);
-  emit_u32(_jit, inst);
+  emit_u32_with_pool(_jit, inst);
 }
 
 #define XZR_REGNO                     0x1f
@@ -981,7 +981,7 @@ CBNZ(jit_state_t *_jit, int32_t Rd)
 static void
 NOP(jit_state_t *_jit)
 {
-  return emit_u32(_jit, 0xd503201f);
+  return emit_u32_with_pool(_jit, 0xd503201f);
 }
 
 static jit_reloc_t
