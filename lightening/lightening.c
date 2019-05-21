@@ -185,9 +185,6 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->limit = buf + length;
   _jit->overflow = 0;
   _jit->frame_size = 0;
-#ifdef JIT_NEEDS_LITERAL_POOL
-  clear_literal_pool(_jit->pool);
-#endif
 }
 
 jit_bool_t
@@ -1212,6 +1209,15 @@ jit_load_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 }
 
 #ifdef JIT_NEEDS_LITERAL_POOL
+static void
+clear_literal_pool(struct jit_literal_pool *pool)
+{
+  pool->deadline = -1;
+  pool->size = 0;
+  pool->byte_size = 0;
+  memset(pool->entries, 0, sizeof(pool->entries[0]) * pool.size);
+}
+
 #define INITIAL_LITERAL_POOL_CAPACITY 12
 static struct jit_literal_pool*
 alloc_literal_pool(jit_state_t *_jit, size_t capacity)
@@ -1222,18 +1228,9 @@ alloc_literal_pool(jit_state_t *_jit, size_t capacity)
     _jit->alloc (sizeof (struct jit_literal_pool) +
                  sizeof (struct jit_literal_pool_entry) * capacity);
   ASSERT (ret);
-  ret->deadline = -1;
-  ret->size = 0;
   ret->capacity = capacity;
+  clear_literal_pool(ret);
   return ret;
-}
-
-static void
-clear_literal_pool(struct jit_literal_pool *pool)
-{
-  pool->deadline = -1;
-  pool->size = 0;
-  pool->byte_size = 0;
 }
 
 static void
