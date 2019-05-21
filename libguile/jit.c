@@ -1356,10 +1356,9 @@ emit_code (scm_jit_state *j, void (*emit) (scm_jit_state *))
 
       emit (j);
 
-      if (!jit_has_overflow (j->jit))
+      size_t size;
+      if (!jit_has_overflow (j->jit) && jit_end (j->jit, &size))
         {
-          size_t size;
-          jit_end (j->jit, &size);
           ASSERT (size <= (arena->size - arena->used));
           DEBUG ("mcode: %p,+%zu\n", ret, size);
           arena->used += size;
