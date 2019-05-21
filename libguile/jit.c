@@ -4691,8 +4691,9 @@ initialize_jit (void)
      trampoline and the handle-interrupts trampoline.  */
   j = initialize_thread_jit_state (SCM_I_CURRENT_THREAD);
 
-  enter_mcode = emit_code (j, emit_entry_trampoline);
-  ASSERT (enter_mcode);
+  jit_pointer_t enter_mcode_addr = emit_code (j, emit_entry_trampoline);
+  ASSERT (enter_mcode_addr);
+  enter_mcode = jit_address_to_function_pointer (enter_mcode_addr);
 
   handle_interrupts_trampoline =
     emit_code (j, emit_handle_interrupts_trampoline);
