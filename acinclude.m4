@@ -585,26 +585,10 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
   case "$target_cpu" in
     i?86|x86_64|amd64)    JIT_AVAILABLE=yes ;;
     *arm*)                JIT_AVAILABLE=yes ;;
-    *mips*)               JIT_AVAILABLE=yes ;;
-    *powerpc*)            JIT_AVAILABLE=yes ;;
-    *sparc*)              JIT_AVAILABLE=yes ;;
-    ia64)                 JIT_AVAILABLE=yes ;;
-    hppa*)                JIT_AVAILABLE=yes ;;
     aarch64)              JIT_AVAILABLE=yes ;;
-    s390*)                JIT_AVAILABLE=yes ;;
-    alpha*)               JIT_AVAILABLE=yes ;;
     *)                                      ;;
   esac
   AC_MSG_RESULT($JIT_AVAILABLE)
-
-  case "$target_cpu" in
-    *arm*)
-      AC_CHECK_LIB(m, sqrtf, , [
-        JIT_AVAILABLE=no;
-        AC_MSG_WARN([JIT on ARM unavailable due to missing sqrtf])
-      ])
-    ;;
-  esac
 
   AC_ARG_ENABLE(jit,
     [AS_HELP_STRING([--enable-jit[=yes/no/auto]],
@@ -614,13 +598,7 @@ AC_DEFUN([GUILE_ENABLE_JIT], [
   case "x$enable_jit" in
     xy*) enable_jit=yes ;;
     xn*) enable_jit=no ;;
-    xa* | x)
-      # For the time being, only enable JIT on x86-64 and i686.
-      case "$target_cpu" in
-        x86_64|amd64)     enable_jit=yes ;;
-        i?86)             enable_jit=yes ;;
-        *)                enable_jit=no ;;
-      esac ;;
+    xa* | x) enable_jit=$JIT_AVAILABLE ;;
     *)  AC_MSG_ERROR(bad value $enable_jit for --enable-jit) ;;
   esac
   AC_MSG_RESULT($enable_jit)
