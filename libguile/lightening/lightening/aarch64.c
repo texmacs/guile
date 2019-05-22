@@ -108,11 +108,14 @@ DEFINE_ENCODER(size, 2, 22, unsigned, uint32_t)
   static jit_reloc_t                                                    \
   emit_##name(jit_state_t *_jit, uint32_t inst)                         \
   {                                                                     \
-    jit_reloc_t ret = jit_reloc (_jit, JIT_RELOC_##RELOC, 0,            \
-                                 _jit->pc.uc, _jit->pc.uc, rsh);        \
-    add_pending_literal(_jit, ret, kind##_width - 1);                   \
-    emit_u32(_jit, inst);                                               \
-    return ret;                                                         \
+    while (1) {                                                         \
+      jit_reloc_t ret = jit_reloc (_jit, JIT_RELOC_##RELOC, 0,          \
+                                   _jit->pc.uc, _jit->pc.uc, rsh);      \
+      if (add_pending_literal(_jit, ret, kind##_width - 1)) {           \
+        emit_u32(_jit, inst);                                           \
+        return ret;                                                     \
+      }                                                                 \
+    }                                                                   \
   }
 
 DEFINE_PATCHABLE_INSTRUCTION(jmp, simm26, JMP_WITH_VENEER, 2);
