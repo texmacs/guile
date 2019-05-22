@@ -324,15 +324,18 @@ patch_jmp_offset(uint32_t *loc, int32_t v)
 static jit_reloc_t
 emit_thumb_jump(jit_state_t *_jit, uint32_t inst)
 {
-  uint8_t *pc_base = _jit->pc.uc + 4;
-  uint8_t rsh = 1;
-  int32_t off = (_jit->pc.uc - pc_base) >> rsh;
-  jit_reloc_t ret =
-    jit_reloc (_jit, JIT_RELOC_JMP_WITH_VENEER, 0, _jit->pc.uc, pc_base, rsh);
-  uint8_t thumb_jump_width = 24;
-  add_pending_literal(_jit, ret, thumb_jump_width - 1);
-  emit_wide_thumb(_jit, patch_thumb_jump(inst, off));
-  return ret;
+  while (1) {
+    uint8_t *pc_base = _jit->pc.uc + 4;
+    uint8_t rsh = 1;
+    int32_t off = (_jit->pc.uc - pc_base) >> rsh;
+    jit_reloc_t ret =
+      jit_reloc (_jit, JIT_RELOC_JMP_WITH_VENEER, 0, _jit->pc.uc, pc_base, rsh);
+    uint8_t thumb_jump_width = 24;
+    if (add_pending_literal(_jit, ret, thumb_jump_width - 1)) {
+      emit_wide_thumb(_jit, patch_thumb_jump(inst, off));
+      return ret;
+    }
+  }
 }
 
 static int
@@ -397,15 +400,18 @@ patch_jcc_offset(uint32_t *loc, int32_t v)
 static jit_reloc_t
 emit_thumb_cc_jump(jit_state_t *_jit, uint32_t inst)
 {
-  uint8_t *pc_base = _jit->pc.uc + 4;
-  uint8_t rsh = 1;
-  int32_t off = (_jit->pc.uc - pc_base) >> rsh;
-  jit_reloc_t ret =
-    jit_reloc (_jit, JIT_RELOC_JCC_WITH_VENEER, 0, _jit->pc.uc, pc_base, rsh);
-  uint8_t thumb_cc_jump_width = 20;
-  add_pending_literal(_jit, ret, thumb_cc_jump_width - 1);
-  emit_wide_thumb(_jit, patch_thumb_cc_jump(inst, off));
-  return ret;
+  while (1) {
+    uint8_t *pc_base = _jit->pc.uc + 4;
+    uint8_t rsh = 1;
+    int32_t off = (_jit->pc.uc - pc_base) >> rsh;
+    jit_reloc_t ret =
+      jit_reloc (_jit, JIT_RELOC_JCC_WITH_VENEER, 0, _jit->pc.uc, pc_base, rsh);
+    uint8_t thumb_cc_jump_width = 20;
+    if (add_pending_literal(_jit, ret, thumb_cc_jump_width - 1)) {
+      emit_wide_thumb(_jit, patch_thumb_cc_jump(inst, off));
+      return ret;
+    }
+  }
 }
 
 static void
@@ -1402,15 +1408,18 @@ patch_load_from_pool_offset(uint32_t *loc, int32_t v)
 static jit_reloc_t
 emit_load_from_pool(jit_state_t *_jit, uint32_t inst)
 {
-  uint8_t *pc_base = (uint8_t *)((_jit->pc.w + 4) & ~3);
-  uint8_t rsh = 0;
-  int32_t off = (_jit->pc.uc - pc_base) >> rsh;
-  jit_reloc_t ret =
-    jit_reloc (_jit, JIT_RELOC_LOAD_FROM_POOL, 0, _jit->pc.uc, pc_base, rsh);
-  uint8_t load_from_pool_width = 12;
-  add_pending_literal(_jit, ret, load_from_pool_width);
-  emit_wide_thumb(_jit, patch_load_from_pool(inst, off));
-  return ret;
+  while (1) {
+    uint8_t *pc_base = (uint8_t *)((_jit->pc.w + 4) & ~3);
+    uint8_t rsh = 0;
+    int32_t off = (_jit->pc.uc - pc_base) >> rsh;
+    jit_reloc_t ret =
+      jit_reloc (_jit, JIT_RELOC_LOAD_FROM_POOL, 0, _jit->pc.uc, pc_base, rsh);
+    uint8_t load_from_pool_width = 12;
+    if (add_pending_literal(_jit, ret, load_from_pool_width)) {
+      emit_wide_thumb(_jit, patch_load_from_pool(inst, off));
+      return ret;
+    }
+  }
 }  
 
 static jit_reloc_t
@@ -2950,7 +2959,7 @@ struct veneer
 static void
 patch_veneer(uint32_t *loc, jit_pointer_t addr)
 {
-  struct veneer *v = (struct veneer*) v;
+  struct veneer *v = (struct veneer*) loc;
   v->addr = (uintptr_t) addr;
 }
 

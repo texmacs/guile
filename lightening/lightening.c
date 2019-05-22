@@ -60,7 +60,6 @@ struct jit_literal_pool
 {
   uint32_t deadline;
   uint32_t size;
-  uint32_t byte_size;
   uint32_t capacity;
   struct jit_literal_pool_entry entries[];
 };
@@ -98,11 +97,11 @@ static struct jit_literal_pool* alloc_literal_pool(jit_state_t *_jit,
 static void reset_literal_pool(jit_state_t *_jit,
                                struct jit_literal_pool *pool);
 static void grow_literal_pool(jit_state_t *_jit);
-static void add_literal_pool_entry(jit_state_t *_jit,
-                                   struct jit_literal_pool_entry entry,
-                                   ptrdiff_t max_offset);
-static void add_pending_literal(jit_state_t *_jit, jit_reloc_t src,
-                                ptrdiff_t max_offset_bits);
+static jit_bool_t add_literal_pool_entry(jit_state_t *_jit,
+                                         struct jit_literal_pool_entry entry,
+                                         uint32_t max_offset);
+static jit_bool_t add_pending_literal(jit_state_t *_jit, jit_reloc_t src,
+                                      uint8_t max_offset_bits);
 static void remove_pending_literal(jit_state_t *_jit, jit_reloc_t src);
 static void patch_pending_literal(jit_state_t *_jit, jit_reloc_t src,
                                   uint64_t value);
@@ -187,6 +186,7 @@ jit_begin(jit_state_t *_jit, uint8_t* buf, size_t length)
   _jit->overflow = 0;
   _jit->frame_size = 0;
 #if JIT_NEEDS_LITERAL_POOL
+  ASSERT(_jit->pool->size == 0);
   _jit->pool->deadline = length;
 #endif
 }
@@ -1229,13 +1229,20 @@ jit_load_args(jit_state_t *_jit, size_t argc, jit_operand_t args[])
 }
 
 #ifdef JIT_NEEDS_LITERAL_POOL
+static uint32_t
+literal_pool_byte_size(struct jit_literal_pool *pool)
+{
+  // Assume that we might need a uint32_t to branch over a table, and up
+  // to 7 bytes for alignment of the table.  Then we assume that no
+  // entry will be more than two words.
+  return sizeof(uint32_t) + 7 + pool->size * sizeof(uintptr_t) * 2;
+}
+
 static void
-reset_literal_pool(jit_state_t *_jit,
-                   struct jit_literal_pool *pool)
+reset_literal_pool(jit_state_t *_jit, struct jit_literal_pool *pool)
 {
   pool->deadline = _jit->limit - _jit->start;
   pool->size = 0;
-  pool->byte_size = 0;
   memset(pool->entries, 0, sizeof(pool->entries[0]) * pool->size);
 }
 
@@ -1268,34 +1275,40 @@ grow_literal_pool(jit_state_t *_jit)
   _jit->pool = new_pool;
 }
 
-static void
+static jit_bool_t
 add_literal_pool_entry(jit_state_t *_jit, struct jit_literal_pool_entry entry,
-                       ptrdiff_t max_offset)
+                       uint32_t max_offset)
 {
+  if (max_offset <= literal_pool_byte_size(_jit->pool)) {
+    emit_literal_pool(_jit, GUARD_NEEDED);
+    ASSERT(_jit->pool->size == 0);
+    return 0;
+  }
+
   if (_jit->pool->size == _jit->pool->capacity)
     grow_literal_pool (_jit);
 
+  uint32_t loc_offset = _jit->pc.uc - _jit->start;
+  uint32_t inst_offset = loc_offset - entry.reloc.inst_start_offset;
+  uint32_t pc_base_offset = inst_offset + entry.reloc.pc_base_offset;
   uint32_t deadline =
-    _jit->pc.uc - _jit->start + max_offset - _jit->pool->byte_size;
-  // Assume that we might need a uint32_t for alignment, and another
-  // to branch over the table.
-  deadline -= 2 * sizeof(uint32_t);
+    pc_base_offset + (max_offset - literal_pool_byte_size(_jit->pool));
   if (deadline < _jit->pool->deadline)
     _jit->pool->deadline = deadline;
 
-  // Assume that each entry takes a max of 16 bytes.
-  _jit->pool->byte_size +=  16;
-
   _jit->pool->entries[_jit->pool->size++] = entry;
+
+  return 1;
 }
 
-static void
+static jit_bool_t
 add_pending_literal(jit_state_t *_jit, jit_reloc_t src,
-                    ptrdiff_t max_offset_bits)
+                    uint8_t max_offset_bits)
 {
   struct jit_literal_pool_entry entry = { src, 0 };
-  add_literal_pool_entry(_jit, entry,
-                         (1 << (max_offset_bits + src.rsh)) - 1);
+  uint32_t max_inst_size = sizeof(uint32_t);
+  uint32_t max_offset = (1 << (max_offset_bits + src.rsh)) - max_inst_size;
+  return add_literal_pool_entry(_jit, entry, max_offset);
 }
 
 static void
@@ -1340,13 +1353,19 @@ emit_literal_pool(jit_state_t *_jit, enum guard_pool guard)
 
   // FIXME: Could de-duplicate constants.
   for (size_t i = 0; i < _jit->pool->size; i++) {
-    jit_align(_jit, 8);
+    // Align to 8-byte boundary without emitting pool.
+    if (_jit->pc.w & 1) emit_u8(_jit, 0);
+    if (_jit->pc.w & 2) emit_u16(_jit, 0);
+    if (_jit->pc.w & 4) emit_u32(_jit, 0);
     struct jit_literal_pool_entry *entry = &_jit->pool->entries[i];
     uint8_t *loc = _jit->start + entry->reloc.offset;
     uint8_t *pc_base =
       loc - entry->reloc.inst_start_offset + entry->reloc.pc_base_offset;
     ptrdiff_t diff = _jit->pc.uc - pc_base;
     diff >>= entry->reloc.rsh;
+
+    if (_jit->overflow)
+      return;
 
     switch (entry->reloc.kind) {
     case JIT_RELOC_JMP_WITH_VENEER:
