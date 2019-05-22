@@ -128,6 +128,8 @@ movdlxr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   ssexr(_jit, 0x66, X86_SSE_X2G, r0, r1);
 }
+
+static void movdqxr(jit_state_t *_jit, int32_t r0, int32_t r1) maybe_unused;
 static void
 movdqxr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
@@ -282,6 +284,7 @@ xorpdr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   ssexr(_jit, 0x66, X86_SSE_XOR, r0, r1);
 }
+static void orpdr(jit_state_t *_jit, int32_t r0, int32_t r1) maybe_unused;
 static void
 orpdr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {

@@ -162,30 +162,6 @@ oxxrs(jit_state_t *_jit, int32_t Op,
   emit_u32_with_pool(_jit, inst);
 }
 
-static void
-oxxxc(jit_state_t *_jit, int32_t Op,
-      int32_t Rd, int32_t Rn, int32_t Rm, int32_t Cc)
-{
-  uint32_t inst = Op;
-  inst = write_Rd_bitfield(inst, Rd);
-  inst = write_Rn_bitfield(inst, Rn);
-  inst = write_Rm_bitfield(inst, Rm);
-  inst = write_cond_bitfield(inst, Cc);
-  emit_u32_with_pool(_jit, inst);
-}
-
-static void
-oxxx7(jit_state_t *_jit, int32_t Op,
-      int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7)
-{
-  uint32_t inst = Op;
-  inst = write_Rt_bitfield(inst, Rt);
-  inst = write_Rt2_bitfield(inst, Rt2);
-  inst = write_Rn_bitfield(inst, Rn);
-  inst = write_simm7_bitfield(inst, Simm7);
-  emit_u32_with_pool(_jit, inst);
-}
-
 #define XZR_REGNO                     0x1f
 #define WZR_REGNO                     XZR_REGNO
 #define LSL_12                        0x00400000
@@ -236,7 +212,6 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define A64_CBZ                       0x34000000
 #define A64_CBNZ                      0x35000000
 #define A64_B_C                       0x54000000
-#define A64_CSINC                     0x1a800400
 #define A64_REV                       0xdac00c00
 #define A64_UDIV                      0x1ac00800
 #define A64_SDIV                      0x1ac00c00
@@ -244,9 +219,7 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define A64_LSR                       0x1ac02400
 #define A64_ASR                       0x1ac02800
 #define A64_MUL                       0x1b007c00
-#define A64_SMULL                     0x9b207c00
 #define A64_SMULH                     0x9b407c00
-#define A64_UMULL                     0x9ba07c00
 #define A64_UMULH                     0x9bc07c00
 #define A64_STRBI                     0x39000000
 #define A64_LDRBI                     0x39400000
@@ -282,11 +255,6 @@ oxxx7(jit_state_t *_jit, int32_t Op,
 #define A64_STURW                     0xb8000000
 #define A64_LDURW                     0xb8400000
 #define A64_LDURSW                    0xb8800000
-#define A64_STP_POS                   0x29800000
-#define A64_LDP_POS                   0x28c00000
-#define A64_STP_PRE                   0x29800000
-#define A64_STR_PRE                   0xf8000c00
-#define A64_LDR_POS                   0xf8400c00
 #define A64_ANDI                      0x12400000
 #define A64_ORRI                      0x32400000
 #define A64_EORI                      0x52400000
@@ -348,12 +316,6 @@ static void
 CMNI_12(jit_state_t *_jit, int32_t Rn, int32_t Imm12) 
 {
   return oxxi(_jit, A64_ADDSI|XS|LSL_12,XZR_REGNO,Rn,Imm12);
-}
-
-static void
-CSINC(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Rm, int32_t Cc) 
-{
-  return oxxxc(_jit, A64_CSINC|XS,Rd,Rn,Rm,Cc);
 }
 
 static void
@@ -436,12 +398,6 @@ MOVZ_48(jit_state_t *_jit, int32_t Rd, int32_t Imm16)
 }
 
 static void
-MOVK(jit_state_t *_jit, int32_t Rd, int32_t Imm16) 
-{
-  return ox_h(_jit, A64_MOVK|XS,Rd,Imm16);
-}
-
-static void
 MOVK_16(jit_state_t *_jit, int32_t Rd, int32_t Imm16) 
 {
   return ox_h(_jit, A64_MOVK|XS|MOVI_LSL_16,Rd,Imm16);
@@ -475,12 +431,6 @@ static void
 ADDI_12(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Imm12) 
 {
   return oxxi(_jit, A64_ADDI|XS|LSL_12,Rd,Rn,Imm12);
-}
-
-static void
-MOV_XSP(jit_state_t *_jit, int32_t Rd, int32_t Rn) 
-{
-  return ADDI(_jit, Rd,Rn,0);
 }
 
 static void
@@ -556,21 +506,9 @@ MUL(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Rm)
 }
 
 static void
-SMULL(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Rm) 
-{
-  return oxxx(_jit, A64_SMULL,Rd,Rn,Rm);
-}
-
-static void
 SMULH(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Rm) 
 {
   return oxxx(_jit, A64_SMULH,Rd,Rn,Rm);
-}
-
-static void
-UMULL(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t Rm) 
-{
-  return oxxx(_jit, A64_UMULL,Rd,Rn,Rm);
 }
 
 static void
@@ -904,30 +842,6 @@ static void
 STUR(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Imm9) 
 {
   return oxx9(_jit, A64_STUR,Rt,Rn,Imm9);
-}
-
-static void
-STR_PRE(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Simm9) 
-{
-  return oxx9(_jit, A64_STR_PRE,Rt,Rn,Simm9);
-}
-
-static void
-LDR_POS(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Simm9)
-{
-  return oxx9(_jit, A64_LDR_POS,Rt,Rn,Simm9);
-}
-
-static void
-STP_PRE(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7) 
-{
-  return oxxx7(_jit, A64_STP_PRE|XS,Rt,Rt2,Rn,Simm7);
-}
-
-static void
-LDP_POS(jit_state_t *_jit, int32_t Rt, int32_t Rt2, int32_t Rn, int32_t Simm7)
-{
-  return oxxx7(_jit, A64_LDP_POS|XS,Rt,Rt2,Rn,Simm7);
 }
 
 static jit_reloc_t
