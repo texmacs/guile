@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008-2011, 2013, 2015, 2018
+@c Copyright (C)  2008-2011, 2013, 2015, 2018, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1910,11 +1910,14 @@ breakpoint, Guile will disable the JIT for the thread being debugged,
 falling back to the interpreter (which has the corresponding code to run
 the hooks).  @xref{VM Hooks}.
 
-Guile uses the GNU Lightning library to emit native code.  This allows
-Guile's template JIT supports practically all architectures, from
-Itanium to MIPS.  You can optimize a program on your x86-64 desktop and
-you can know that the corresponding program on an AArch64 phone will
-also get faster.
+To emit native code, Guile uses a forked version of GNU Lightning.This
+"Lightening" effort, spun out as a separate project, aims to build on
+the back-end support from GNU Lightning, but adapting the API and
+behavior of the library to match Guile's needs.  This code is included
+in the Guile source distribution.  For more information, see
+@url{https://gitlab.com/wingo/lightening}.  As of mid-2019, Lightening
+supports code generation for the x86-64, ia32, ARMv7, and AArch64
+architectures.
 
 The weaknesses of a template JIT are two-fold.  Firstly, as a simple
 back-end that has to run fast, a template JIT doesn't have time to do
