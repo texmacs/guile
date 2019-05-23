@@ -861,6 +861,8 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 }
 
 static jit_operand_t
+fp_scm_operand (scm_jit_state *j, uint32_t slot) SCM_UNUSED;
+static jit_operand_t
 fp_scm_operand (scm_jit_state *j, uint32_t slot)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
@@ -886,6 +888,8 @@ emit_fp_set_scm (scm_jit_state *j, uint32_t slot, jit_gpr_t val)
   clear_register_state (j, SP_CACHE_GPR);
 }
 
+static jit_operand_t
+sp_slot_operand (scm_jit_state *j, uint32_t slot) SCM_UNUSED;
 static jit_operand_t
 sp_slot_operand (scm_jit_state *j, uint32_t slot)
 {
