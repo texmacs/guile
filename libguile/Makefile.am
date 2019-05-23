@@ -21,7 +21,7 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 include $(top_srcdir)/am/snarf
-include $(top_srcdir)/libguile/lightening/lightening.am
+include $(srcdir)/lightening/lightening.am
 
 AUTOMAKE_OPTIONS = gnu
 
