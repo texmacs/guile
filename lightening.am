@@ -1,0 +1,58 @@
+# Copyright 2019 Free Software Foundation, Inc.
+#
+# This file is part of Lightening.
+#
+# Lightening is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# Lightening is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+#
+
+lightening = $(srcdir)/lightening
+
+lightening_c_files = 					\
+	$(lightening)/lightening/lightening.c
+
+lightening_extra_files =				\
+	$(lightening)/AUTHORS				\
+	$(lightening)/ChangeLog				\
+	$(lightening)/ChangeLog.lightning		\
+	$(lightening)/COPYING				\
+	$(lightening)/COPYING.DOC			\
+	$(lightening)/COPYING.LESSER			\
+	$(lightening)/lightening.am			\
+	$(lightening)/lightning.texi			\
+	$(lightening)/NEWS				\
+	$(lightening)/README.md				\
+	$(lightening)/THANKS				\
+							\
+	$(lightening)/lightening.h			\
+							\
+	$(lightening)/lightening/endian.h		\
+							\
+	$(lightening)/lightening/aarch64.h		\
+	$(lightening)/lightening/arm.h			\
+	$(lightening)/lightening/mips.h			\
+	$(lightening)/lightening/ppc.h			\
+	$(lightening)/lightening/x86.h			\
+							\
+	$(lightening)/lightening/aarch64.c		\
+	$(lightening)/lightening/aarch64-cpu.c		\
+	$(lightening)/lightening/aarch64-fpu.c		\
+	$(lightening)/lightening/arm.c			\
+	$(lightening)/lightening/arm-cpu.c		\
+	$(lightening)/lightening/arm-vfp.c		\
+	$(lightening)/lightening/mips.c			\
+	$(lightening)/lightening/mips-cpu.c		\
+	$(lightening)/lightening/mips-fpu.c		\
+	$(lightening)/lightening/ppc.c			\
+	$(lightening)/lightening/ppc-cpu.c		\
+	$(lightening)/lightening/ppc-fpu.c		\
+	$(lightening)/lightening/x86.c			\
+	$(lightening)/lightening/x86-cpu.c		\
+	$(lightening)/lightening/x86-sse.c
