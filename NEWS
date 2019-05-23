@@ -1,8 +1,34 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2018 Free Software Foundation, Inc.
+Copyright (C) 1996-2019 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
+
+
+
+Changes in alpha 2.9.2 (since alpha 2.9.1):
+
+* Notable changes
+
+** Just-in-time code generation support on ARMv7, ia32, AArch64
+
+This release adds just-in-time (JIT) native code generation for the
+ia32, ARMv7, and AArch64 platforms, in addition to the x86-64 support
+already present in 2.9.1.
+
+** Cheaper just-in-time code generation
+
+Guile now includes a forked version of GNU Lightning.  This "Lightening"
+effort, spun out as a separate project, aims to build on the back-end
+support from GNU Lightning, but adapting the API and behavior of the
+library to match Guile's needs.
+
+One of the important points that this project fixes is run-time
+overhead.  With the adoption of Lightening, Guile has lowered its
+thresholds for when to generate native code at run-time, so that user
+programs run faster, sooner.
+
+For more information, see https://gitlab.com/wingo/lightening.
 
 
 
