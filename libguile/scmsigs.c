@@ -129,12 +129,14 @@ static int signal_pipe[2];
 static SIGRETTYPE
 take_signal (int signum)
 {
+  int old_errno = errno;
   char sigbyte = signum;
   full_write (signal_pipe[1], &sigbyte, 1);
 
 #ifndef HAVE_SIGACTION
   signal (signum, take_signal);
 #endif
+  errno = old_errno;
 }
 
 struct signal_pipe_data
