@@ -1,7 +1,7 @@
 #ifndef SCM_ATOMICS_INTERNAL_H
 #define SCM_ATOMICS_INTERNAL_H
 
-/* Copyright 2016,2018
+/* Copyright 2016,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -75,13 +75,14 @@ scm_atomic_swap_scm (SCM *loc, SCM val)
   atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
   return SCM_PACK (atomic_exchange (a_loc, SCM_UNPACK (val)));
 }
-static inline _Bool
-scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
+static inline SCM
+scm_atomic_compare_and_swap_scm (SCM *loc, SCM expected, SCM desired)
 {
   atomic_uintptr_t *a_loc = (atomic_uintptr_t *) loc;
-  return atomic_compare_exchange_weak (a_loc,
-                                       (uintptr_t *) expected,
-                                       SCM_UNPACK (desired));
+  SCM result = expected;
+  atomic_compare_exchange_strong (a_loc, (uintptr_t *) &result,
+                                  SCM_UNPACK (desired));
+  return result;
 }
 #else /* HAVE_STDATOMIC_H */
 
@@ -161,20 +162,19 @@ scm_atomic_swap_scm (SCM *loc, SCM val)
   scm_i_pthread_mutex_unlock (&atomics_lock);
   return ret;
 }
-static inline int
-scm_atomic_compare_and_swap_scm (SCM *loc, SCM *expected, SCM desired)
+static inline SCM
+scm_atomic_compare_and_swap_scm (SCM *loc, SCM expected, SCM desired)
 {
-  int ret;
+  SCM ret;
   scm_i_pthread_mutex_lock (&atomics_lock);
-  if (*loc == *expected)
+  if (*loc == expected)
     {
       *loc = desired;
-      ret = 1;
+      ret = expected;
     }
   else
     {
-      *expected = *loc;
-      ret = 0;
+      ret = *loc;
     }
   scm_i_pthread_mutex_unlock (&atomics_lock);
   return ret;

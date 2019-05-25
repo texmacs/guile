@@ -1,4 +1,4 @@
-/* Copyright 1995-1998,2000-2002,2004,2006,2008-2011,2014,2018
+/* Copyright 1995-1998,2000-2002,2004,2006,2008-2011,2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -86,7 +86,7 @@ scm_i_async_push (scm_thread *t, SCM proc)
      disable that newly-severed tail by setting its cdr to #f.  Not so
      nice, but oh well.  */
   asyncs = scm_atomic_ref_scm (&t->pending_asyncs);
-  do
+  while (1)
     {
       /* Traverse the asyncs list atomically.  */
       SCM walk;
@@ -95,9 +95,13 @@ scm_i_async_push (scm_thread *t, SCM proc)
            walk = scm_atomic_ref_scm (SCM_CDRLOC (walk)))
         if (scm_is_eq (SCM_CAR (walk), proc))
           return;
+
+      SCM expected = asyncs;
+      asyncs = scm_atomic_compare_and_swap_scm
+        (&t->pending_asyncs, asyncs, scm_cons (proc, asyncs));
+      if (scm_is_eq (asyncs, expected))
+        return;
     }
-  while (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
-                                           scm_cons (proc, asyncs)));
 }
 
 /* Precondition: there are pending asyncs.  */
@@ -123,8 +127,9 @@ scm_i_async_pop (scm_thread *t)
       /* Sever the tail.  */
       if (scm_is_false (penultimate_pair))
         {
-          if (!scm_atomic_compare_and_swap_scm (&t->pending_asyncs, &asyncs,
-                                                SCM_EOL))
+          if (!scm_is_eq (asyncs,
+                          scm_atomic_compare_and_swap_scm (&t->pending_asyncs,
+                                                           asyncs, SCM_EOL)))
             continue;
         }
       else
