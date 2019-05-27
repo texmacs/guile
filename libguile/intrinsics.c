@@ -438,6 +438,30 @@ push_prompt (scm_thread *thread, uint8_t escape_only_p,
                             vra, mra, thread->vm.registers);
 }
 
+static SCM
+atomic_ref_scm (SCM *loc)
+{
+  return scm_atomic_ref_scm (loc);
+}
+
+static void
+atomic_set_scm (SCM *loc, SCM val)
+{
+  scm_atomic_set_scm (loc, val);
+}
+
+static SCM
+atomic_swap_scm (SCM *loc, SCM val)
+{
+  return scm_atomic_swap_scm (loc, val);
+}
+
+static SCM
+atomic_compare_and_swap_scm (SCM *loc, SCM expected, SCM desired)
+{
+  return scm_atomic_compare_and_swap_scm (loc, expected, desired);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -506,6 +530,10 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.allocate_words = allocate_words;
   scm_vm_intrinsics.current_module = current_module;
   scm_vm_intrinsics.push_prompt = push_prompt;
+  scm_vm_intrinsics.atomic_ref_scm = atomic_ref_scm;
+  scm_vm_intrinsics.atomic_set_scm = atomic_set_scm;
+  scm_vm_intrinsics.atomic_swap_scm = atomic_swap_scm;
+  scm_vm_intrinsics.atomic_compare_and_swap_scm = atomic_compare_and_swap_scm;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
