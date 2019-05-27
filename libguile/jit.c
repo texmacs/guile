@@ -2484,45 +2484,30 @@ compile_untag_char (scm_jit_state *j, uint16_t dst, uint16_t src)
 static void
 compile_atomic_scm_ref_immediate (scm_jit_state *j, uint8_t dst, uint8_t obj, uint8_t offset)
 {
-#if defined(__i386__) || defined(__x86_64__)
-  /* Disassembly of atomic_ref_scm is just a mov.  */
   emit_sp_ref_scm (j, T0, obj);
-  emit_ldxi (j, T0, T0, offset * sizeof (SCM));
-#else
-  emit_movr (j, T1_PRESERVED, SP);
-  emit_call_1 (j, scm_vm_intrinsics.atomic_ref_scm,
-               jit_operand_addi (sp_scm_operand (j, obj),
-                                 offset * sizeof (SCM)));
-  emit_retval (j, T0);
-  emit_movr (j, SP, T1_PRESERVED);
-  set_register_state (j, SP_IN_REGISTER);
-#endif
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
+  jit_ldr_atomic (j->jit, T0, T0);
+  record_gpr_clobber (j, T0);
   emit_sp_set_scm (j, dst, T0);
 }
 
 static void
 compile_atomic_scm_set_immediate (scm_jit_state *j, uint8_t obj, uint8_t offset, uint8_t val)
 {
-  emit_movr (j, T0_PRESERVED, SP);
-  emit_call_2 (j, scm_vm_intrinsics.atomic_set_scm,
-               jit_operand_addi (sp_scm_operand (j, obj),
-                                 offset * sizeof (SCM)),
-               sp_scm_operand (j, val));
-  emit_movr (j, SP, T0_PRESERVED);
-  set_register_state (j, SP_IN_REGISTER);
+  emit_sp_ref_scm (j, T0, obj);
+  emit_sp_ref_scm (j, T1, val);
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
+  jit_str_atomic (j->jit, T0, T1);
 }
 
 static void
 compile_atomic_scm_swap_immediate (scm_jit_state *j, uint32_t dst, uint32_t obj, uint8_t offset, uint32_t val)
 {
-  emit_movr (j, T0_PRESERVED, SP);
-  emit_call_2 (j, scm_vm_intrinsics.atomic_swap_scm,
-               jit_operand_addi (sp_scm_operand (j, obj),
-                                 offset * sizeof (SCM)),
-               sp_scm_operand (j, val));
-  emit_retval (j, T1);
-  emit_movr (j, SP, T0_PRESERVED);
-  set_register_state (j, SP_IN_REGISTER);
+  emit_sp_ref_scm (j, T0, obj);
+  emit_sp_ref_scm (j, T1, val);
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
+  jit_swap_atomic (j->jit, T1, T0, T1);
+  record_gpr_clobber (j, T1);
   emit_sp_set_scm (j, dst, T1);
 }
 
@@ -2531,13 +2516,13 @@ compile_atomic_scm_compare_and_swap_immediate (scm_jit_state *j, uint32_t dst,
                                                uint32_t obj, uint8_t offset,
                                                uint32_t expected, uint32_t desired)
 {
-  emit_call_3 (j, scm_vm_intrinsics.atomic_compare_and_swap_scm,
-               jit_operand_addi (sp_scm_operand (j, obj),
-                                 offset * sizeof (SCM)),
-               sp_scm_operand (j, expected), sp_scm_operand (j, desired));
-  emit_retval (j, T0);
-  emit_reload_sp (j);
-  emit_sp_set_scm (j, dst, T0);
+  emit_sp_ref_scm (j, T0, obj);
+  emit_sp_ref_scm (j, T1, expected);
+  emit_sp_ref_scm (j, T2, desired);
+  emit_addi (j, T0, T0, offset * sizeof (SCM));
+  jit_cas_atomic (j->jit, T1, T0, T1, T2);
+  record_gpr_clobber (j, T1);
+  emit_sp_set_scm (j, dst, T1);
 }
 
 static void
