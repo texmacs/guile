@@ -3010,16 +3010,8 @@ compile_handle_interrupts (scm_jit_state *j)
 
   void *again = jit_address (j->jit);
 
-#if defined(__i386__) || defined(__x86_64__)
-  /* Disassembly of atomic_ref_scm is just a mov.  */
-  jit_ldxi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
-#else
-  emit_call_1 (j, scm_vm_intrinsics.atomic_ref_scm,
-               jit_operand_addi (thread_operand (),
-                                 thread_offset_pending_asyncs));
-  emit_retval (j, T0);
-  restore_reloadable_register_state (j, saved_state);
-#endif
+  jit_addi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
+  jit_ldr_atomic (j->jit, T0, T0);
   jit_reloc_t none_pending = jit_beqi (j->jit, T0, SCM_UNPACK (SCM_EOL));
   jit_ldxi_i (j->jit, T0, THREAD, thread_offset_block_asyncs);
   jit_reloc_t blocked = jit_bnei (j->jit, T0, 0);
