@@ -2753,3 +2753,9 @@ cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
     unget_temp_gpr(_jit);
   }
 }
+
+static void
+breakpoint(jit_state_t *_jit)
+{
+  ic(_jit, 0xcc);
+}

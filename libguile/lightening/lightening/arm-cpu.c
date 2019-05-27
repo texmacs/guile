@@ -182,6 +182,7 @@
 #define THUMB_DMB                     0xf3bf8f50
 #define THUMB_LDREX                   0xe8500f00
 #define THUMB_STREX                   0xe8400000
+#define THUMB_BRK                         0xbe00
 
 #define _NOREG (jit_gpr_regno(_PC))
 
@@ -1339,6 +1340,12 @@ static void
 T2_STRIN(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t im)
 {
   return torri8(_jit, THUMB2_STRI,rn,rt,im);
+}
+
+static void
+T1_BRK(jit_state_t *_jit)
+{
+  emit_u16_with_pool(_jit, THUMB_BRK);
 }
 
 static void
@@ -3052,4 +3059,10 @@ cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
   T1_DMB(_jit, DMB_ISH);
   movr(_jit, dst, dst_or_tmp);
   unget_temp_gpr(_jit);
+}
+
+static void
+breakpoint(jit_state_t *_jit)
+{
+  T1_BRK(_jit);
 }
