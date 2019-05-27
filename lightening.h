@@ -600,6 +600,8 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(_F___, retval_f)		\
           M(_F___, retval_d)		\
   					\
+          M(_____, breakpoint)		\
+  					\
           M(_FF__, negr_f)		\
           M(_FF__, negr_d)		\
           M(_FF__, absr_f)		\

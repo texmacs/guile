@@ -273,6 +273,7 @@ oxxrs(jit_state_t *_jit, int32_t Op,
 #define A64_MOVN                      0x12800000
 #define A64_MOVZ                      0x52800000
 #define A64_MOVK                      0x72800000
+#define A64_BRK                       0xd4200000
 
 static void
 SBFM(jit_state_t *_jit, int32_t Rd, int32_t Rn, int32_t ImmR, int32_t ImmS) 
@@ -924,6 +925,12 @@ static void
 NOP(jit_state_t *_jit)
 {
   return emit_u32_with_pool(_jit, 0xd503201f);
+}
+
+static void
+BRK(jit_state_t *_jit)
+{
+  emit_u32_with_pool(_jit, A64_BRK);
 }
 
 static jit_reloc_t
@@ -2539,4 +2546,10 @@ cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
   jit_patch_here(_jit, bad);
   movr(_jit, dst, dst_or_tmp);
   unget_temp_gpr(_jit);
+}
+
+static void
+breakpoint(jit_state_t *_jit)
+{
+  BRK(_jit);
 }
