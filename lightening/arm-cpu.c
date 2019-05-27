@@ -179,6 +179,9 @@
 #define THUMB2_STRI                   0xf8400c00
 #define THUMB2_LDM_W                  0x00200000
 #define THUMB2_PUSH                   0xe92d0000
+#define THUMB_DMB                     0xf3bf8f50
+#define THUMB_LDREX                   0xe8500f00
+#define THUMB_STREX                   0xe8400000
 
 #define _NOREG (jit_gpr_regno(_PC))
 
@@ -1030,6 +1033,26 @@ T2_BLXI(jit_state_t *_jit)
   return tb(_jit, THUMB2_BLXI);
 }
 
+enum dmb_option { DMB_ISH = 0xb };
+static void
+T1_DMB(jit_state_t *_jit, enum dmb_option option)
+{
+  emit_wide_thumb(_jit, THUMB_DMB|_u4(option));
+}
+
+static void
+T1_LDREX(jit_state_t *_jit, int32_t rt, int32_t rn, int8_t offset)
+{
+  emit_wide_thumb(_jit, THUMB_LDREX|(_u4(rn)<<16)|(_u4(rt)<<12)|_u8(offset));
+}
+
+static void
+T1_STREX(jit_state_t *_jit, int32_t rd, int32_t rt, int32_t rn, int8_t offset)
+{
+  emit_wide_thumb
+    (_jit, THUMB_STREX|(_u4(rn)<<16)|(_u4(rt)<<12)|(_u4(rd)<<8)|_u8(offset));
+}
+
 static void
 T1_LDRSB(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
@@ -1171,7 +1194,7 @@ T1_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T2_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  return torxr(_jit, THUMB2_LDR,rn,rt,rm);
+  emit_u16_with_pool(_jit, THUMB_LDR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
 }
 
 static void
@@ -2974,4 +2997,59 @@ emit_veneer(jit_state_t *_jit, jit_pointer_t target)
   emit_u16(_jit, thumb1_ldr | (tmp << 8));
   emit_u16(_jit, THUMB_MOV|((_u4(rd)&8)<<4)|(_u4(tmp)<<3)|(rd&7));
   emit_u32(_jit, (uint32_t) target);
+}
+
+static void
+ldr_atomic(jit_state_t *_jit, int32_t dst, int32_t loc)
+{
+  T1_DMB(_jit, DMB_ISH);
+  ldr_i(_jit, dst, loc);
+  T1_DMB(_jit, DMB_ISH);
+}
+
+static void
+str_atomic(jit_state_t *_jit, int32_t loc, int32_t val)
+{
+  T1_DMB(_jit, DMB_ISH);
+  str_i(_jit, loc, val);
+  T1_DMB(_jit, DMB_ISH);
+}
+
+static void
+swap_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t val)
+{
+  int32_t result = jit_gpr_regno(get_temp_gpr(_jit));
+  int32_t val_or_tmp = dst == val ? jit_gpr_regno(get_temp_gpr(_jit)) : val;
+  movr(_jit, val_or_tmp, val);
+  T1_DMB(_jit, DMB_ISH);
+  void *retry = jit_address(_jit);
+  T1_LDREX(_jit, dst, loc, 0);
+  T1_STREX(_jit, result, val_or_tmp, loc, 0);
+  jit_patch_there(_jit, bnei(_jit, result, 0), retry);
+  T1_DMB(_jit, DMB_ISH);
+  if (dst == val) unget_temp_gpr(_jit);
+  unget_temp_gpr(_jit);
+}
+
+static void
+cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
+           int32_t desired)
+{
+  int32_t dst_or_tmp;
+  if (dst == loc || dst == expected || dst == expected)
+    dst_or_tmp = jit_gpr_regno(get_temp_gpr(_jit));
+  else
+    dst_or_tmp = dst;
+  T1_DMB(_jit, DMB_ISH);
+  void *retry = jit_address(_jit);
+  T1_LDREX(_jit, dst_or_tmp, loc, 0);
+  jit_reloc_t bad = bner(_jit, dst_or_tmp, expected);
+  int result = jit_gpr_regno(get_temp_gpr(_jit));
+  T1_STREX(_jit, result, desired, loc, 0);
+  jit_patch_there(_jit, bnei(_jit, result, 0), retry);
+  unget_temp_gpr(_jit);
+  jit_patch_here(_jit, bad);
+  T1_DMB(_jit, DMB_ISH);
+  movr(_jit, dst, dst_or_tmp);
+  unget_temp_gpr(_jit);
 }
