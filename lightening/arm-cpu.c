@@ -1194,7 +1194,7 @@ T1_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 static void
 T2_LDR(jit_state_t *_jit, int32_t rt, int32_t rn, int32_t rm)
 {
-  emit_u16_with_pool(_jit, THUMB_LDR|(_u3(rm)<<6)|(_u3(rn)<<3)|_u3(rt));
+  return torxr(_jit, THUMB2_LDR,rn,rt,rm);
 }
 
 static void
