@@ -96,10 +96,6 @@ static struct jit_literal_pool* alloc_literal_pool(jit_state_t *_jit,
                                                    size_t capacity);
 static void reset_literal_pool(jit_state_t *_jit,
                                struct jit_literal_pool *pool);
-static void grow_literal_pool(jit_state_t *_jit);
-static jit_bool_t add_literal_pool_entry(jit_state_t *_jit,
-                                         struct jit_literal_pool_entry entry,
-                                         uint32_t max_offset);
 static jit_bool_t add_pending_literal(jit_state_t *_jit, jit_reloc_t src,
                                       uint8_t max_offset_bits);
 static void remove_pending_literal(jit_state_t *_jit, jit_reloc_t src);
@@ -1279,9 +1275,11 @@ static jit_bool_t
 add_literal_pool_entry(jit_state_t *_jit, struct jit_literal_pool_entry entry,
                        uint32_t max_offset)
 {
+  if (_jit->overflow)
+    return 1;
+
   if (max_offset <= literal_pool_byte_size(_jit->pool)) {
     emit_literal_pool(_jit, GUARD_NEEDED);
-    ASSERT(_jit->pool->size == 0);
     return 0;
   }
 

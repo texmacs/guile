@@ -221,6 +221,10 @@ oxxrs(jit_state_t *_jit, int32_t Op,
 #define A64_MUL                       0x1b007c00
 #define A64_SMULH                     0x9b407c00
 #define A64_UMULH                     0x9bc07c00
+#define A64_LDAR                      0xc8dffc00
+#define A64_STLR                      0xc89ffc00
+#define A64_LDAXR                     0xc85ffc00
+#define A64_STLXR                     0xc800fc00
 #define A64_STRBI                     0x39000000
 #define A64_LDRBI                     0x39400000
 #define A64_LDRSBI                    0x39800000
@@ -644,6 +648,30 @@ static void
 REV(jit_state_t *_jit, int32_t Rd, int32_t Rn) 
 {
   return o_xx(_jit, A64_REV,Rd,Rn);
+}
+
+static void
+LDAR(jit_state_t *_jit, int32_t Rt, int32_t Rn) 
+{
+  return o_xx(_jit, A64_LDAR, Rt, Rn);
+}
+
+static void
+STLR(jit_state_t *_jit, int32_t Rt, int32_t Rn) 
+{
+  return o_xx(_jit, A64_STLR, Rt, Rn);
+}
+
+static void
+LDAXR(jit_state_t *_jit, int32_t Rt, int32_t Rn) 
+{
+  return o_xx(_jit, A64_LDAXR, Rt, Rn);
+}
+
+static void
+STLXR(jit_state_t *_jit, int32_t Rt, int32_t Rn, int32_t Rm)
+{
+  return oxxx(_jit, A64_STLXR, Rt, Rn, Rm);
 }
 
 static void
@@ -2464,4 +2492,51 @@ static void
 patch_jmp_without_veneer(jit_state_t *_jit, uint32_t *loc)
 {
   patch_jmp_offset(loc, _jit->pc.ui - loc);
+}
+
+static void
+ldr_atomic(jit_state_t *_jit, int32_t dst, int32_t loc)
+{
+  LDAR(_jit, dst, loc);
+}
+
+static void
+str_atomic(jit_state_t *_jit, int32_t loc, int32_t val)
+{
+  STLR(_jit, val, loc);
+}
+
+static void
+swap_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t val)
+{
+  void *retry = jit_address(_jit);
+  int32_t result = jit_gpr_regno(get_temp_gpr(_jit));
+  int32_t val_or_tmp = dst == val ? jit_gpr_regno(get_temp_gpr(_jit)) : val;
+  movr(_jit, val_or_tmp, val);
+  LDAXR(_jit, dst, loc);
+  STLXR(_jit, val_or_tmp, loc, result);
+  jit_patch_there(_jit, bnei(_jit, result, 0), retry);
+  if (dst == val) unget_temp_gpr(_jit);
+  unget_temp_gpr(_jit);
+}
+
+static void
+cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
+           int32_t desired)
+{
+  int32_t dst_or_tmp;
+  if (dst == loc || dst == expected || dst == expected)
+    dst_or_tmp = jit_gpr_regno(get_temp_gpr(_jit));
+  else
+    dst_or_tmp = dst;
+  void *retry = jit_address(_jit);
+  LDAXR(_jit, dst_or_tmp, loc);
+  jit_reloc_t bad = bner(_jit, dst_or_tmp, expected);
+  int result = jit_gpr_regno(get_temp_gpr(_jit));
+  STLXR(_jit, desired, loc, result);
+  jit_patch_there(_jit, bnei(_jit, result, 0), retry);
+  unget_temp_gpr(_jit);
+  jit_patch_here(_jit, bad);
+  movr(_jit, dst, dst_or_tmp);
+  unget_temp_gpr(_jit);
 }

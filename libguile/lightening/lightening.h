@@ -477,6 +477,11 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(_FGo_, ldxi_f)		\
           M(_FGG_, ldxr_d)		\
           M(_FGo_, ldxi_d)		\
+					\
+          M(_GG__, ldr_atomic)		\
+          M(_GG__, str_atomic)		\
+          M(_GGG_, swap_atomic)		\
+          M(_GGGG, cas_atomic)		\
   					\
           M(_GG__, str_c)		\
           M(_pG__, sti_c)		\

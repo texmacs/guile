@@ -610,6 +610,30 @@ xchgr(jit_state_t *_jit, int32_t r0, int32_t r1)
 }
 
 static void
+xchgrm(jit_state_t *_jit, int32_t val_and_dst, int32_t loc)
+{
+  rex(_jit, 0, WIDE, val_and_dst, _NOREG, loc);
+  ic(_jit, 0x87);
+  rx(_jit, val_and_dst, 0, loc, _NOREG, _SCL1);
+}
+
+static void
+lock(jit_state_t *_jit)
+{
+  ic(_jit, 0xf0);
+}
+
+static void
+cmpxchgmr(jit_state_t *_jit, int32_t loc, int32_t desired)
+{
+  lock(_jit);
+  rex(_jit, 0, WIDE, desired, _NOREG, loc);
+  ic(_jit, 0x0f);
+  ic(_jit, 0xb1);
+  rx(_jit, desired, 0, loc, _NOREG, _SCL1);
+}
+
+static void
 testr(jit_state_t *_jit, int32_t r0, int32_t r1)
 {
   rex(_jit, 0, WIDE, r1, _NOREG, r0);
@@ -2634,3 +2658,98 @@ retval_l(jit_state_t *_jit, int32_t r0)
   movr(_jit, r0, _RAX_REGNO);
 }
 #endif
+
+static void
+mfence(jit_state_t *_jit)
+{
+  ic(_jit, 0x0f);
+  ic(_jit, 0xae);
+  ic(_jit, 0xf0);
+}
+
+static void
+ldr_atomic(jit_state_t *_jit, int32_t dst, int32_t loc)
+{
+#if __X64
+  ldr_l(_jit, dst, loc);
+#else
+  ldr_i(_jit, dst, loc);
+#endif
+}
+
+static void
+str_atomic(jit_state_t *_jit, int32_t loc, int32_t val)
+{
+#if __X64
+  str_l(_jit, loc, val);
+#else
+  str_i(_jit, loc, val);
+#endif
+  mfence(_jit);
+}
+
+static void
+swap_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t val)
+{
+  if (dst == val) {
+    xchgrm(_jit, dst, loc);
+  } else {
+    int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+    movr(_jit, tmp, val);
+    xchgrm(_jit, tmp, loc);
+    movr(_jit, dst, tmp);
+    unget_temp_gpr(_jit);
+  }
+}
+
+static void
+cas_atomic(jit_state_t *_jit, int32_t dst, int32_t loc, int32_t expected,
+           int32_t desired)
+{
+  ASSERT(loc != expected);
+  ASSERT(loc != desired);
+
+  if (dst == jit_gpr_regno(_RAX)) {
+    if (loc == dst) {
+      int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+      movr(_jit, tmp ,loc);
+      movr(_jit, dst, expected);
+      cmpxchgmr(_jit, tmp, desired);
+      unget_temp_gpr(_jit);
+    } else {
+      movr(_jit, dst, expected);
+      cmpxchgmr(_jit, loc, desired);
+    }
+  } else if (loc == jit_gpr_regno(_RAX)) {
+    int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+    movr(_jit, tmp, loc);
+    movr(_jit, jit_gpr_regno(_RAX), expected);
+    cmpxchgmr(_jit, tmp, desired);
+    movr(_jit, dst, jit_gpr_regno(_RAX));
+    movr(_jit, loc, tmp);
+    unget_temp_gpr(_jit);
+  } else if (expected == jit_gpr_regno(_RAX)) {
+    int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+    movr(_jit, tmp, expected);
+    cmpxchgmr(_jit, loc, desired);
+    movr(_jit, dst, jit_gpr_regno(_RAX));
+    movr(_jit, expected, tmp);
+    unget_temp_gpr(_jit);
+  } else if (desired == jit_gpr_regno(_RAX)) {
+    int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+    movr(_jit, tmp, desired);
+    movr(_jit, jit_gpr_regno(_RAX), expected);
+    cmpxchgmr(_jit, loc, tmp);
+    movr(_jit, dst, jit_gpr_regno(_RAX));
+    movr(_jit, desired, tmp);
+    unget_temp_gpr(_jit);
+  } else {
+    int32_t tmp = jit_gpr_regno(get_temp_gpr(_jit));
+    movr(_jit, tmp, jit_gpr_regno(_RAX));
+    movr(_jit, jit_gpr_regno(_RAX), expected);
+    cmpxchgmr(_jit, loc, desired);
+    movr(_jit, dst, jit_gpr_regno(_RAX));
+    movr(_jit, jit_gpr_regno(_RAX), tmp);
+    unget_temp_gpr(_jit);
+  }
+}
