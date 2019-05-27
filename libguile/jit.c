@@ -797,13 +797,6 @@ static void
 emit_indirect_tail_call (scm_jit_state *j)
 {
   emit_get_callee_vcode (j, T0);
-
-  /* FIXME: If all functions start with instrument-entry, no need for
-     this check.  */
-  emit_get_vcode_low_byte (j, T1, T0);
-  jit_reloc_t instrumented = jit_beqi (j->jit, T1, scm_op_instrument_entry);
-  jit_breakpoint (j->jit);
-  jit_patch_here (j->jit, instrumented);
   emit_get_ip_relative_addr (j, T1, T0, 1);
   emit_ldxi (j, T1, T1, 0);
   jit_reloc_t no_mcode = jit_beqi (j->jit, T1, 0);
