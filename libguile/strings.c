@@ -2190,10 +2190,12 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
   char *buf;
   size_t ilen, len, i;
   int ret;
-  const char *enc;
 
   if (!scm_is_string (str))
     scm_wrong_type_arg_msg (NULL, 0, str, "string");
+
+  if (encoding == NULL)
+    encoding = "ISO-8859-1";
 
   if (c_strcasecmp (encoding, "UTF-8") == 0)
     /* This is the most common case--e.g., when calling libc bindings
@@ -2242,13 +2244,10 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 
   buf = NULL;
   len = 0;
-  enc = encoding;
-  if (enc == NULL)
-    enc = "ISO-8859-1";
   if (scm_i_is_narrow_string (str))
     {
       ret = mem_iconveh (scm_i_string_chars (str), ilen,
-                         "ISO-8859-1", enc,
+                         "ISO-8859-1", encoding,
                          (enum iconv_ilseq_handler) handler, NULL,
                          &buf, &len);
 
@@ -2261,7 +2260,7 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
     }
   else
     {
-      buf = u32_conv_to_encoding (enc,
+      buf = u32_conv_to_encoding (encoding,
                                   (enum iconv_ilseq_handler) handler,
                                   (scm_t_uint32 *) scm_i_string_wide_chars (str),
                                   ilen,
