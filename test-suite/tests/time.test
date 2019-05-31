@@ -195,37 +195,41 @@
 
 (with-test-prefix "strftime"
 
-  (pass-if "strftime %Z doesn't return garbage"
+  (pass-if-equal "strftime %Z doesn't return garbage"
+    "ZOW"
     (let ((t (localtime (current-time))))
       (set-tm:zone t "ZOW")
       (set-tm:isdst t 0)
-      (string=? (strftime "%Z" t)
-                "ZOW")))
+      (strftime "%Z" t)))
 
-  (pass-if "strftime passes wide characters"
+  (pass-if-equal "strftime passes wide characters"
+      "\u0100"
     (let ((t (localtime (current-time))))
-      (string=? (substring (strftime "\u0100%Z" t) 0 1)
-                "\u0100")))
+      (substring (strftime "\u0100%Z" t) 0 1)))
 
   (with-test-prefix "C99 %z format"
 
     ;; %z here is quite possibly affected by the same tm:gmtoff vs current
     ;; zone as %Z above is, so in the following tests we make them the same.
 
-    (pass-if "GMT"
-      (putenv "TZ=GMT+0")
-      (tzset)
-      (let ((tm (localtime 86400)))
-	(string=? "+0000" (strftime "%z" tm))))
+    (pass-if-equal "GMT"
+        "+0000"
+      (begin
+        (putenv "TZ=GMT+0")
+        (tzset)
+        (let ((tm (localtime 86400)))
+          (strftime "%z" tm))))
 
     ;; prior to guile 1.6.9 and 1.8.1 this test failed, getting "+0500",
     ;; because we didn't adjust for tm:gmtoff being west of Greenwich versus
     ;; tm_gmtoff being east of Greenwich
-    (pass-if "EST+5"
-      (putenv "TZ=EST+5")
-      (tzset)
-      (let ((tm (localtime 86400)))
-	(string=? "-0500" (strftime "%z" tm))))))
+    (pass-if-equal "EST+5"
+        "-0500"
+      (begin
+        (putenv "TZ=EST+5")
+        (tzset)
+        (let ((tm (localtime 86400)))
+          (strftime "%z" tm))))))
 
 ;;;
 ;;; strptime
