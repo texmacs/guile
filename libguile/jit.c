@@ -3282,13 +3282,13 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
   uint32_t *target;
   enum scm_opcode op = fuse_conditional_branch (j, &target);
 
-  emit_store_current_ip (j, T0);
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
 
   emit_andr (j, T2, T0, T1);
   fast = jit_bmsi (j->jit, T2, scm_tc2_int);
 
+  emit_store_current_ip (j, T2);
   emit_call_2 (j, scm_vm_intrinsics.less_p,
                jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0),
                jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1));
