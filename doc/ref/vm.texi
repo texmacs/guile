@@ -807,6 +807,12 @@ will signal an error if an unknown key is found.
 A macro-mega-instruction.
 @end deftypefn
 
+@deftypefn Instruction {} bind-optionals f24:@var{nlocals}
+Expand the current frame to have at least @var{nlocals} locals, filling
+in any fresh values with @code{SCM_UNDEFINED}.  If the frame has more
+than @var{nlocals} locals, it is left as it is.
+@end deftypefn
+
 @deftypefn Instruction {} bind-rest f24:@var{dst}
 Collect any arguments at or above @var{dst} into a list, and store that
 list at @var{dst}.
@@ -814,8 +820,7 @@ list at @var{dst}.
 
 @deftypefn Instruction {} alloc-frame c24:@var{nlocals}
 Ensure that there is space on the stack for @var{nlocals} local
-variables, setting them all to @code{SCM_UNDEFINED}, except those values
-that are already on the stack.
+variables.  The value of any new local is undefined.
 @end deftypefn
 
 @deftypefn Instruction {} reset-frame c24:@var{nlocals}

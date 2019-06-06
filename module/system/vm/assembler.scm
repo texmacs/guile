@@ -1,6 +1,6 @@
 ;;; Guile bytecode assembler
 
-;;; Copyright (C) 2001, 2009, 2010, 2012, 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009-2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -246,7 +246,6 @@
             emit-assert-nargs-ee
             emit-assert-nargs-ge
             emit-assert-nargs-le
-            emit-alloc-frame
             emit-reset-frame
             emit-assert-nargs-ee/locals
             emit-bind-kwargs
@@ -1478,6 +1477,8 @@ returned instead."
       (emit-assert-nargs-ge asm nreq))
   (cond
    (rest?
+    (unless (zero? nopt)
+      (emit-bind-optionals asm (+ nreq nopt)))
     (emit-bind-rest asm (+ nreq nopt)))
    (alternate
     (emit-arguments<=? asm (+ nreq nopt))
@@ -1485,9 +1486,13 @@ returned instead."
     ;; whereas for <, NONE usually indicates greater-than-or-equal,
     ;; hence the name jge.  Perhaps we just need to rename jge to
     ;; br-if-none.
-    (emit-jge asm alternate))
+    (emit-jge asm alternate)
+    (unless (zero? nopt)
+      (emit-bind-optionals asm (+ nreq nopt))))
    (else
-    (emit-assert-nargs-le asm (+ nreq nopt))))
+    (emit-assert-nargs-le asm (+ nreq nopt))
+    (unless (zero? nopt)
+      (emit-bind-optionals asm (+ nreq nopt)))))
   (emit-alloc-frame asm nlocals))
 
 (define-macro-assembler (kw-prelude asm nreq nopt rest? kw-indices

@@ -1,6 +1,6 @@
 ;;; Guile bytecode disassembler
 
-;;; Copyright (C) 2001, 2009-2010, 2012-2015, 2017-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009-2010, 2012-2015, 2017-2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -231,6 +231,8 @@ address of that offset."
     (('assert-nargs-ee/locals nargs locals)
      ;; The nargs includes the procedure.
      (list "~a slot~:p (~a arg~:p)" (+ locals nargs) (1- nargs)))
+    (('bind-optionals nargs)
+     (list "~a args~:p" (1- nargs)))
     (('alloc-frame nlocals)
      (list "~a slot~:p" nlocals))
     (('reset-frame nlocals)
@@ -546,7 +548,7 @@ address of that offset."
          #'(lambda (code pos size)
              (let ((count (ash (bytevector-u32-native-ref code pos) -8)))
                (and size (- size count)))))
-        ((alloc-frame reset-frame)
+        ((alloc-frame reset-frame bind-optionals)
          #'(lambda (code pos size)
              (let ((nlocals (ash (bytevector-u32-native-ref code pos) -8)))
                nlocals)))

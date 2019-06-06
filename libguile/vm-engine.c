@@ -3231,7 +3231,28 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (153, f64_set, "f64-set!", OP1 (X8_S8_S8_S8))
     PTR_SET (double, F64);
 
-  VM_DEFINE_OP (154, unused_154, NULL, NOP)
+  /* bind-optionals nargs:24
+   *
+   * Expand the current frame to have NARGS locals, filling in any fresh
+   * values with SCM_UNDEFINED.
+   */
+  VM_DEFINE_OP (154, bind_optionals, "bind-optionals", DOP1 (X8_F24))
+    {
+      uint32_t nlocals, nargs;
+
+      UNPACK_24 (op, nlocals);
+      nargs = FRAME_LOCALS_COUNT ();
+
+      if (nargs < nlocals)
+        {
+          ALLOC_FRAME (nlocals);
+          while (nargs < nlocals)
+            FP_SET (nargs++, SCM_UNDEFINED);
+        }
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (155, unused_155, NULL, NOP)
   VM_DEFINE_OP (156, unused_156, NULL, NOP)
   VM_DEFINE_OP (157, unused_157, NULL, NOP)

@@ -2006,6 +2006,37 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
 }
 
 static void
+compile_bind_optionals (scm_jit_state *j, uint32_t dst)
+{
+  ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
+  ASSERT(j->frame_size == -1);
+
+  jit_gpr_t saved_frame_size = T1_PRESERVED;
+  jit_subr (j->jit, saved_frame_size, FP, SP);
+
+  jit_reloc_t no_optionals = jit_bgei
+    (j->jit, saved_frame_size, dst * sizeof (union scm_vm_stack_element));
+
+  emit_alloc_frame (j, T0, dst);
+
+  jit_gpr_t walk = saved_frame_size;
+  jit_subr (j->jit, walk, FP, saved_frame_size);
+
+  jit_reloc_t done = jit_bler (j->jit, walk, SP);
+  jit_movi (j->jit, T0, SCM_UNPACK (SCM_UNDEFINED));
+
+  void *head = jit_address (j->jit);
+  jit_subi (j->jit, walk, walk, sizeof (union scm_vm_stack_element));
+  jit_str (j->jit, walk, T0);
+  jit_patch_there (j->jit, jit_bner (j->jit, walk, SP), head);
+
+  jit_patch_here (j->jit, done);
+  jit_patch_here (j->jit, no_optionals);
+
+  ASSERT(j->frame_size == -1);
+}
+
+static void
 compile_allocate_words (scm_jit_state *j, uint16_t dst, uint16_t nwords)
 {
   jit_gpr_t t = T0;
