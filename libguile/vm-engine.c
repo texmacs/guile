@@ -649,8 +649,6 @@ VM_NAME (scm_thread *thread)
       VM_ASSERT (FRAME_LOCALS_COUNT () == expected,
                  CALL_INTRINSIC (error_wrong_num_args, (thread)));
       ALLOC_FRAME (expected + nlocals);
-      while (nlocals--)
-        SP_SET (nlocals, SCM_UNDEFINED);
 
       NEXT (1);
     }
@@ -773,25 +771,23 @@ VM_NAME (scm_thread *thread)
   VM_DEFINE_OP (17, bind_rest, "bind-rest", DOP1 (X8_F24))
     {
       uint32_t dst, nargs;
-      SCM rest = SCM_EOL;
 
       UNPACK_24 (op, dst);
       nargs = FRAME_LOCALS_COUNT ();
 
       if (nargs <= dst)
         {
+          VM_ASSERT (nargs == dst, abort ());
           ALLOC_FRAME (dst + 1);
-          while (nargs < dst)
-            FP_SET (nargs++, SCM_UNDEFINED);
+          SP_SET (0, SCM_EOL);
         }
       else
         {
           SYNC_IP ();
-          rest = CALL_INTRINSIC (cons_rest, (thread, dst));
+          SCM rest = CALL_INTRINSIC (cons_rest, (thread, dst));
           RESET_FRAME (dst + 1);
+          SP_SET (0, rest);
         }
-
-      FP_SET (dst, rest);
 
       NEXT (1);
     }
@@ -799,27 +795,20 @@ VM_NAME (scm_thread *thread)
   /* alloc-frame nlocals:24
    *
    * Ensure that there is space on the stack for NLOCALS local variables.
-   * setting any new stack slots to SCM_UNDEFINED.
    */
   VM_DEFINE_OP (18, alloc_frame, "alloc-frame", OP1 (X8_C24))
     {
-      uint32_t nlocals, nargs;
+      uint32_t nlocals;
       UNPACK_24 (op, nlocals);
-
-      nargs = FRAME_LOCALS_COUNT ();
       ALLOC_FRAME (nlocals);
-      while (nlocals-- > nargs)
-        FP_SET (nlocals, SCM_UNDEFINED);
-
       NEXT (1);
     }
 
   /* reset-frame nlocals:24
    *
-   * Like alloc-frame, but doesn't check that the stack is big enough,
-   * and doesn't reset stack slots to SCM_UNDEFINED.  Used to reset the
-   * frame size to something less than the size that was previously set
-   * via alloc-frame.
+   * Like alloc-frame, but doesn't check that the stack is big enough.
+   * Used to reset the frame size to something less than the size that
+   * was previously set via alloc-frame.
    */
   VM_DEFINE_OP (19, reset_frame, "reset-frame", OP1 (X8_C24))
     {

@@ -1851,38 +1851,8 @@ compile_assert_nargs_le (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 {
-  jit_gpr_t t = T0, saved_frame_size = T1_PRESERVED;
-
-  if (j->frame_size_min != j->frame_size_max)
-    jit_subr (j->jit, saved_frame_size, FP, SP);
-
   /* This will clear the regalloc, so no need to track clobbers.  */
-  emit_alloc_frame (j, t, nlocals);
-
-  if (j->frame_size_min == j->frame_size_max)
-    {
-      int32_t slots = nlocals - j->frame_size_min;
-
-      if (slots > 0)
-        {
-          jit_movi (j->jit, t, SCM_UNPACK (SCM_UNDEFINED));
-          while (slots-- > 0)
-            emit_sp_set_scm (j, slots, t);
-        }
-    }
-  else
-    {
-      jit_gpr_t walk = saved_frame_size;
-
-      jit_subr (j->jit, walk, FP, saved_frame_size);
-      jit_reloc_t k = jit_bler (j->jit, walk, SP);
-      jit_movi (j->jit, t, SCM_UNPACK (SCM_UNDEFINED));
-      void *head = jit_address (j->jit);
-      jit_subi (j->jit, walk, walk, sizeof (union scm_vm_stack_element));
-      jit_str (j->jit, walk, t);
-      jit_patch_there (j->jit, jit_bner (j->jit, walk, SP), head);
-      jit_patch_here (j->jit, k);
-    }
+  emit_alloc_frame (j, T0, nlocals);
 
   j->frame_size_min = j->frame_size_max = nlocals;
 }
@@ -2007,7 +1977,7 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
   
   cons = emit_branch_if_frame_locals_count_greater_than (j, t, dst);
 
-  compile_alloc_frame (j, dst + 1);
+  emit_alloc_frame (j, t, dst + 1);
   emit_movi (j, t, SCM_UNPACK (SCM_EOL));
   emit_sp_set_scm (j, 0, t);
   k = jit_jmp (j->jit);
