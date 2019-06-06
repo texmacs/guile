@@ -182,7 +182,8 @@ struct scm_jit_state {
   size_t reloc_idx;
   size_t reloc_count;
   void **labels;
-  int32_t frame_size;
+  int32_t frame_size_min;
+  int32_t frame_size_max;
   uint32_t register_state;
   jit_gpr_t sp_cache_gpr;
   jit_fpr_t sp_cache_fpr;
@@ -1462,7 +1463,8 @@ compile_call (scm_jit_state *j, uint32_t proc, uint32_t nlocals)
   jit_patch_here (j->jit, mcont);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
-  j->frame_size = -1;
+  j->frame_size_min = proc;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1476,7 +1478,8 @@ compile_call_label (scm_jit_state *j, uint32_t proc, uint32_t nlocals, const uin
   jit_patch_here (j->jit, mcont);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
-  j->frame_size = -1;
+  j->frame_size_min = proc;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1487,7 +1490,8 @@ compile_tail_call (scm_jit_state *j)
 
   emit_indirect_tail_call (j);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1498,7 +1502,8 @@ compile_tail_call_label (scm_jit_state *j, const uint32_t *vcode)
 
   emit_direct_tail_call (j, vcode);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1528,7 +1533,7 @@ compile_receive (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals
   emit_fp_set_scm (j, dst, t);
   emit_reset_frame (j, nlocals);
 
-  j->frame_size = nlocals;
+  j->frame_size_min = j->frame_size_max = nlocals;
 }
 
 static void
@@ -1556,10 +1561,10 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
                    jit_operand_imm (JIT_OPERAND_ABI_UINT32, nvalues));
       j->register_state = saved_state;
       jit_patch_here (j->jit, k);
-
-      j->frame_size = proc + nvalues;
     }
 
+  j->frame_size_min = proc + nvalues;
+  j->frame_size_max = allow_extra ? INT32_MAX : j->frame_size_min;
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 }
 
@@ -1584,8 +1589,9 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
-  if (j->frame_size >= 0)
-    j->frame_size -= (from - to);
+  j->frame_size_min -= (from - to);
+  if (j->frame_size_max != INT32_MAX)
+    j->frame_size_max -= (from - to);
 }
 
 static void
@@ -1605,7 +1611,8 @@ compile_return_values (scm_jit_state *j)
   emit_store_ip (j, ra);
   emit_exit (j);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1616,14 +1623,14 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   jit_reloc_t immediate, not_values, k;
   jit_operand_t args[10];
 
-  ASSERT (j->frame_size > 0);
-  size_t argc = j->frame_size - 1;
+  ASSERT (j->frame_size_min == j->frame_size_max);
+  size_t argc = j->frame_size_max - 1;
   ASSERT (argc <= 10);
 
   subr = scm_subr_function_by_index (idx);
   emit_store_current_ip (j, t);
-  for (size_t i = 2; i <= j->frame_size; i++)
-    args[i - 2] = sp_scm_operand (j, (j->frame_size - i));
+  for (size_t i = 2; i <= j->frame_size_max; i++)
+    args[i - 2] = sp_scm_operand (j, (j->frame_size_max - i));
   jit_calli (j->jit, subr, argc, args);
   clear_scratch_register_state (j);
   jit_retval (j->jit, ret);
@@ -1647,7 +1654,8 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1655,10 +1663,10 @@ compile_foreign_call (scm_jit_state *j, uint16_t cif_idx, uint16_t ptr_idx)
 {
   uint32_t saved_state;
 
-  ASSERT (j->frame_size >= 0);
+  ASSERT (j->frame_size_min == j->frame_size_max);
 
   emit_store_current_ip (j, T0);
-  emit_sp_ref_scm (j, T0, j->frame_size - 1);
+  emit_sp_ref_scm (j, T0, j->frame_size_min - 1);
 
   /* FIXME: Inline the foreign call.  */
   saved_state = save_reloadable_register_state (j);
@@ -1667,7 +1675,7 @@ compile_foreign_call (scm_jit_state *j, uint16_t cif_idx, uint16_t ptr_idx)
                free_variable_operand (j, T0, ptr_idx));
   restore_reloadable_register_state (j, saved_state);
 
-  j->frame_size = 2; /* Return value and errno.  */
+  j->frame_size_min = j->frame_size_max = 2; /* Return value and errno.  */
 }
 
 static void
@@ -1680,7 +1688,8 @@ compile_continuation_call (scm_jit_state *j, uint32_t contregs_idx)
                thread_operand (), free_variable_operand (j, T0, contregs_idx));
   /* Does not fall through.  */
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1703,7 +1712,8 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
   jit_patch_here (j->jit, interp);
   emit_exit (j);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1739,7 +1749,8 @@ compile_abort (scm_jit_state *j)
 
   jit_patch_here (j->jit, k);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1797,7 +1808,7 @@ compile_assert_nargs_ee (scm_jit_state *j, uint32_t nlocals)
   jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
-  j->frame_size = nlocals;
+  j->frame_size_min = j->frame_size_max = nlocals;
 }
 
 static void
@@ -1816,6 +1827,8 @@ compile_assert_nargs_ge (scm_jit_state *j, uint32_t nlocals)
       jit_patch_here (j->jit, k);
       j->register_state = saved_state;
     }
+
+  j->frame_size_min = nlocals;
 }
 
 static void
@@ -1832,6 +1845,7 @@ compile_assert_nargs_le (scm_jit_state *j, uint32_t nlocals)
   jit_patch_here (j->jit, k);
 
   j->register_state = saved_state;
+  j->frame_size_max = nlocals;
 }
 
 static void
@@ -1839,15 +1853,15 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 {
   jit_gpr_t t = T0, saved_frame_size = T1_PRESERVED;
 
-  if (j->frame_size < 0)
+  if (j->frame_size_min != j->frame_size_max)
     jit_subr (j->jit, saved_frame_size, FP, SP);
 
   /* This will clear the regalloc, so no need to track clobbers.  */
   emit_alloc_frame (j, t, nlocals);
 
-  if (j->frame_size >= 0)
+  if (j->frame_size_min == j->frame_size_max)
     {
-      int32_t slots = nlocals - j->frame_size;
+      int32_t slots = nlocals - j->frame_size_min;
 
       if (slots > 0)
         {
@@ -1870,7 +1884,7 @@ compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
       jit_patch_here (j->jit, k);
     }
 
-  j->frame_size = nlocals;
+  j->frame_size_min = j->frame_size_max = nlocals;
 }
 
 static void
@@ -1879,7 +1893,7 @@ compile_reset_frame (scm_jit_state *j, uint32_t nlocals)
   restore_reloadable_register_state (j, FP_IN_REGISTER);
   emit_reset_frame (j, nlocals);
 
-  j->frame_size = nlocals;
+  j->frame_size_min = j->frame_size_max = nlocals;
 }
 
 static void
@@ -1892,8 +1906,9 @@ compile_push (scm_jit_state *j, uint32_t src)
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
-  if (j->frame_size >= 0)
-    j->frame_size++;
+  j->frame_size_min++;
+  if (j->frame_size_max != INT32_MAX)
+    j->frame_size_max++;
 }
 
 static void
@@ -1905,8 +1920,9 @@ compile_pop (scm_jit_state *j, uint32_t dst)
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
-  if (j->frame_size >= 0)
-    j->frame_size--;
+  j->frame_size_min--;
+  if (j->frame_size_max != INT32_MAX)
+    j->frame_size_max--;
 }
 
 static void
@@ -1917,8 +1933,9 @@ compile_drop (scm_jit_state *j, uint32_t nvalues)
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
-  if (j->frame_size >= 0)
-    j->frame_size -= nvalues;
+  j->frame_size_min -= nvalues;
+  if (j->frame_size_max != INT32_MAX)
+    j->frame_size_max -= nvalues;
 }
 
 static void
@@ -1938,7 +1955,8 @@ compile_expand_apply_argument (scm_jit_state *j)
   emit_reload_sp (j);
   emit_reload_fp (j);
 
-  j->frame_size = -1;
+  j->frame_size_min--;
+  j->frame_size_max = INT32_MAX;
 }
 
 static void
@@ -1978,7 +1996,7 @@ compile_bind_kwargs (scm_jit_state *j, uint32_t nreq, uint8_t flags,
     emit_reload_fp (j);
 
   emit_reset_frame (j, ntotal);
-  j->frame_size = ntotal;
+  j->frame_size_min = j->frame_size_max = ntotal;
 }
 
 static void
@@ -2003,21 +2021,25 @@ compile_bind_rest (scm_jit_state *j, uint32_t dst)
   emit_sp_set_scm (j, 0, t);
   
   jit_patch_here (j->jit, k);
+
+  j->frame_size_min = dst + 1;
 }
 
 static void
-compile_bind_optionals (scm_jit_state *j, uint32_t dst)
+compile_bind_optionals (scm_jit_state *j, uint32_t nlocals)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
-  ASSERT(j->frame_size == -1);
+  ASSERT(j->frame_size_min < nlocals);
+  ASSERT(j->frame_size_min < j->frame_size_max);
 
   jit_gpr_t saved_frame_size = T1_PRESERVED;
   jit_subr (j->jit, saved_frame_size, FP, SP);
 
   jit_reloc_t no_optionals = jit_bgei
-    (j->jit, saved_frame_size, dst * sizeof (union scm_vm_stack_element));
+    (j->jit, saved_frame_size, nlocals * sizeof (union scm_vm_stack_element));
 
-  emit_alloc_frame (j, T0, dst);
+  emit_alloc_frame (j, T0, nlocals);
+  j->frame_size_min = nlocals;
 
   jit_gpr_t walk = saved_frame_size;
   jit_subr (j->jit, walk, FP, saved_frame_size);
@@ -2032,8 +2054,6 @@ compile_bind_optionals (scm_jit_state *j, uint32_t dst)
 
   jit_patch_here (j->jit, done);
   jit_patch_here (j->jit, no_optionals);
-
-  ASSERT(j->frame_size == -1);
 }
 
 static void
@@ -4616,7 +4636,8 @@ compile (scm_jit_state *j)
 {
   j->ip = (uint32_t *) j->start;
   set_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 
   for (ptrdiff_t offset = 0; j->ip + offset < j->end; offset++)
     j->labels[offset] = NULL;
@@ -4740,7 +4761,8 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->labels = calloc ((j->end - j->start), sizeof (*j->labels));
   ASSERT (j->labels);
 
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 
   INFO ("vcode: start=%p,+%zu entry=+%zu\n", j->start, j->end - j->start,
         j->entry - j->start);
@@ -4763,7 +4785,8 @@ compute_mcode (scm_thread *thread, uint32_t *entry_ip,
   j->reloc_count = 0;
 
   j->start = j->end = j->ip = j->entry = NULL;
-  j->frame_size = -1;
+  j->frame_size_min = 0;
+  j->frame_size_max = INT32_MAX;
 
   return entry_mcode;
 }

@@ -295,6 +295,12 @@ try_parse_arity (SCM program, int *req, int *opt, int *rest)
     *opt = slots - 1;
     *rest = 0;
     return 1;
+  case scm_op_bind_optionals:
+    slots = code[0] >> 8;
+    *req = 0;
+    *opt = slots - 1;
+    *rest = ((code[1] & 0xff) == scm_op_bind_rest);
+    return 1;
   case scm_op_bind_rest:
     slots = code[0] >> 8;
     *req = 0;
@@ -309,6 +315,12 @@ try_parse_arity (SCM program, int *req, int *opt, int *rest)
       *req = min - 1;
       *opt = slots - 1 - *req;
       *rest = 0;
+      return 1;
+    case scm_op_bind_optionals:
+      slots = code[1] >> 8;
+      *req = min - 1;
+      *opt = slots - 1 - *req;
+      *rest = ((code[2] & 0xff) == scm_op_bind_rest);
       return 1;
     case scm_op_bind_rest:
       slots = code[1] >> 8;

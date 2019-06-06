@@ -1,4 +1,4 @@
-/* Copyright 1995-2001,2006,2008-2011,2013,2015,2018
+/* Copyright 1995-2001,2006,2008-2011,2013,2015,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -292,7 +292,7 @@ get_subr_stub_code (uint32_t subr_idx,
     case OPT:
       {
         uint32_t code[2] = { SCM_PACK_OP_24 (assert_nargs_le, nopt + 1),
-                             SCM_PACK_OP_24 (alloc_frame, nopt + 1) };
+                             SCM_PACK_OP_24 (bind_optionals, nopt + 1) };
         return alloc_subr_code (subr_idx, code, 2);
       }
     case REST:
@@ -304,7 +304,7 @@ get_subr_stub_code (uint32_t subr_idx,
       {
         uint32_t code[3] = { SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),
                              SCM_PACK_OP_24 (assert_nargs_le, nreq + nopt + 1),
-                             SCM_PACK_OP_24 (alloc_frame, nreq + nopt + 1) };
+                             SCM_PACK_OP_24 (bind_optionals, nreq + nopt + 1) };
         return alloc_subr_code (subr_idx, code, 3);
       }
     case REQ_REST:
@@ -315,14 +315,16 @@ get_subr_stub_code (uint32_t subr_idx,
       }
     case OPT_REST:
       {
-        uint32_t code[1] = { SCM_PACK_OP_24 (bind_rest, nopt + 1) };
-        return alloc_subr_code (subr_idx, code, 1);
+        uint32_t code[2] = { SCM_PACK_OP_24 (bind_optionals, nopt + 1),
+                             SCM_PACK_OP_24 (bind_rest, nopt + 1) };
+        return alloc_subr_code (subr_idx, code, 2);
       }
     case REQ_OPT_REST:
       {
-        uint32_t code[2] = { SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),
+        uint32_t code[3] = { SCM_PACK_OP_24 (assert_nargs_ge, nreq + 1),
+                             SCM_PACK_OP_24 (bind_optionals, nreq + nopt + 1),
                              SCM_PACK_OP_24 (bind_rest, nreq + nopt + 1) };
-        return alloc_subr_code (subr_idx, code, 2);
+        return alloc_subr_code (subr_idx, code, 3);
       }
     default:
       abort ();
@@ -380,6 +382,7 @@ primitive_call_ip (const uint32_t *code)
         case scm_op_assert_nargs_ee:
         case scm_op_assert_nargs_le:
         case scm_op_assert_nargs_ge:
+        case scm_op_bind_optionals:
         case scm_op_bind_rest:
         case scm_op_alloc_frame:
           if (direction < 0) abort ();
