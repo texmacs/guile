@@ -1,6 +1,6 @@
 ;;;; Low-level tests of the bytecode assembler -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010-2015, 2017-2018 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010-2015, 2017-2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ a procedure."
 (define (return-constant val)
   (assemble-program `((begin-program foo
                                      ((name . foo)))
-                      (begin-standard-arity () 1 #f)
+                      (begin-standard-arity #t () 1 #f)
                       (load-constant 0 ,val)
                       (return-values)
                       (end-arity)
@@ -91,14 +91,14 @@ a procedure."
   (assert-equal 42
                 (((assemble-program `((begin-program foo
                                                      ((name . foo)))
-                                      (begin-standard-arity () 1 #f)
+                                      (begin-standard-arity #t () 1 #f)
                                       (load-static-procedure 0 bar)
                                       (return-values)
                                       (end-arity)
                                       (end-program)
                                       (begin-program bar
                                                      ((name . bar)))
-                                      (begin-standard-arity () 1 #f)
+                                      (begin-standard-arity #t () 1 #f)
                                       (load-constant 0 42)
                                       (return-values)
                                       (end-arity)
@@ -113,7 +113,7 @@ a procedure."
                         ;; 2: accum
                         '((begin-program countdown
                                          ((name . countdown)))
-                          (begin-standard-arity (x) 4 #f)
+                          (begin-standard-arity #t (x) 4 #f)
                           (definition closure 0 scm)
                           (definition x 1 scm)
                           (j fix-body)
@@ -141,7 +141,7 @@ a procedure."
                        (assemble-program
                         '((begin-program call
                                          ((name . call)))
-                          (begin-standard-arity (f) 7 #f)
+                          (begin-standard-arity #t (f) 7 #f)
                           (definition closure 0 scm)
                           (definition f 1 scm)
                           (mov 1 5)
@@ -158,7 +158,7 @@ a procedure."
                        (assemble-program
                         '((begin-program call-with-3
                                          ((name . call-with-3)))
-                          (begin-standard-arity (f) 7 #f)
+                          (begin-standard-arity #t (f) 7 #f)
                           (definition closure 0 scm)
                           (definition f 1 scm)
                           (mov 1 5)
@@ -177,7 +177,7 @@ a procedure."
                        (assemble-program
                         '((begin-program call
                                          ((name . call)))
-                          (begin-standard-arity (f) 2 #f)
+                          (begin-standard-arity #t (f) 2 #f)
                           (definition closure 0 scm)
                           (definition f 1 scm)
                           (mov 1 0)
@@ -192,7 +192,7 @@ a procedure."
                        (assemble-program
                         '((begin-program call-with-3
                                          ((name . call-with-3)))
-                          (begin-standard-arity (f) 2 #f)
+                          (begin-standard-arity #t (f) 2 #f)
                           (definition closure 0 scm)
                           (definition f 1 scm)
                           (mov 1 0) ;; R0 <- R1
@@ -205,7 +205,7 @@ a procedure."
 (with-test-prefix "debug contexts"
   (let ((return-3 (assemble-program
                    '((begin-program return-3 ((name . return-3)))
-                     (begin-standard-arity () 1 #f)
+                     (begin-standard-arity #t () 1 #f)
                      (load-constant 0 3)
                      (return-values)
                      (end-arity)
@@ -227,7 +227,7 @@ a procedure."
       (procedure-name
        (assemble-program
         '((begin-program foo ((name . foo)))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
@@ -238,7 +238,7 @@ a procedure."
       (object->string
        (assemble-program
         '((begin-program foo ((name . foo)))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (definition closure 0 scm)
           (load-constant 0 42)
           (return-values)
@@ -248,7 +248,7 @@ a procedure."
       (object->string
        (assemble-program
         '((begin-program foo ((name . foo)))
-          (begin-standard-arity (x y) 3 #f)
+          (begin-standard-arity #t (x y) 3 #f)
           (definition closure 0 scm)
           (definition x 1 scm)
           (definition y 2 scm)
@@ -262,7 +262,7 @@ a procedure."
       (object->string
        (assemble-program
         '((begin-program foo ((name . foo)))
-          (begin-opt-arity (x) (y) z 4 #f)
+          (begin-opt-arity #t (x) (y) z 4 #f)
           (definition closure 0 scm)
           (definition x 1 scm)
           (definition y 2 scm)
@@ -278,7 +278,7 @@ a procedure."
       (procedure-documentation
        (assemble-program
         '((begin-program foo ((name . foo) (documentation . "qux qux")))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
@@ -290,7 +290,7 @@ a procedure."
       (procedure-properties
        (assemble-program
         '((begin-program foo ())
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
@@ -302,7 +302,7 @@ a procedure."
       (procedure-properties
        (assemble-program
         '((begin-program foo ((name . foo) (documentation . "qux qux")))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
@@ -317,7 +317,7 @@ a procedure."
         '((begin-program foo ((name . foo)
                               (documentation . "qux qux")
                               (moo . "mooooooooooooo")))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
@@ -330,7 +330,7 @@ a procedure."
         '((begin-program foo ((name . foo)
                               (documentation . "qux qux")
                               (moo . "mooooooooooooo")))
-          (begin-standard-arity () 1 #f)
+          (begin-standard-arity #t () 1 #f)
           (load-constant 0 42)
           (return-values)
           (end-arity)
