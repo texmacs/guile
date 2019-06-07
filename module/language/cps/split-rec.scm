@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -97,7 +97,7 @@ references."
                       (add-use tag uses))
                      (($ $throw src op param args)
                       (add-uses args uses)))))
-                 (($ $kfun src meta self)
+                 (($ $kfun src meta (and self (not #f)))
                   (values (add-def self defs) uses))
                  (_ (values defs uses))))
              body empty-intset empty-intset))

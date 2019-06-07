@@ -92,7 +92,7 @@
                          (match cont
                            (($ $kargs names syms body)
                             (apply max max-var syms))
-                           (($ $kfun src meta self)
+                           (($ $kfun src meta (and self (not #f)))
                             (max max-var self))
                            (_ max-var)))
                        conts

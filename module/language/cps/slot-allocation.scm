@@ -1,6 +1,6 @@
 ;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -143,7 +143,7 @@ by a label, respectively."
                 (intmap-add! uses label u)))
       (match cont
         (($ $kfun src meta self)
-         (return (intset self) empty-intset))
+         (return (if self (intset self) empty-intset) empty-intset))
         (($ $kargs _ _ ($ $continue k src exp))
          (match exp
            ((or ($ $const) ($ $const-fun) ($ $code))
@@ -324,7 +324,7 @@ the definitions that are live before and after LABEL, as intsets."
         (($ $kclause arity body alternate)
          (get-defs label))
         (($ $kfun src meta self)
-         (intset self))
+         (if self (intset self) empty-intset))
         (($ $ktail)
          empty-intset))))
    cps
@@ -640,22 +640,27 @@ are comparable with eqv?.  A tmp slot may be used."
   (intmap-fold measure-cont cps minimum-frame-size))
 
 (define (allocate-args cps)
-  (intmap-fold (lambda (label cont slots)
-                 (match cont
-                   (($ $kfun src meta self)
-                    (intmap-add! slots self 0))
-                   (($ $kclause arity body alt)
-                    (match (intmap-ref cps body)
-                      (($ $kargs names vars)
-                       (let lp ((vars vars) (slots slots) (n 1))
-                         (match vars
-                           (() slots)
-                           ((var . vars)
-                            (lp vars
-                                (intmap-add! slots var n)
-                                (1+ n))))))))
-                   (_ slots)))
-               cps empty-intmap))
+  (match (intmap-ref cps (intmap-next cps))
+    (($ $kfun _ _ has-self?)
+     (intmap-fold (lambda (label cont slots)
+                    (match cont
+                      (($ $kfun src meta self)
+                       (if has-self?
+                           (intmap-add! slots self 0)
+                           slots))
+                      (($ $kclause arity body alt)
+                       (match (intmap-ref cps body)
+                         (($ $kargs names vars)
+                          (let lp ((vars vars) (slots slots)
+                                   (n (if has-self? 1 0)))
+                            (match vars
+                              (() slots)
+                              ((var . vars)
+                               (lp vars
+                                   (intmap-add! slots var n)
+                                   (1+ n))))))))
+                      (_ slots)))
+                  cps empty-intmap))))
 
 (define-inlinable (add-live-slot slot live-slots)
   (logior live-slots (ash 1 slot)))
@@ -784,7 +789,9 @@ are comparable with eqv?.  A tmp slot may be used."
        (($ $kargs _ _ (or ($ $branch) ($ $prompt) ($ $throw)))
         representations)
        (($ $kfun src meta self)
-        (intmap-add representations self 'scm))
+        (if self
+            (intmap-add representations self 'scm)
+            representations))
        (($ $kclause arity body alt)
         (fold1 (lambda (var representations)
                  (intmap-add representations var 'scm))

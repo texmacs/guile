@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -251,7 +251,8 @@ sites."
            (($ $kclause arity kargs kalt)
             (values live-labels (adjoin-vars (cont-defs kargs) live-vars)))
            (($ $kfun src meta self)
-            (values live-labels (adjoin-var self live-vars)))
+            (values live-labels
+                    (if self (adjoin-var self live-vars) live-vars)))
            (($ $ktail)
             (values live-labels live-vars))))
        conts label live-labels live-vars))

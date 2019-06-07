@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,10 @@
 ;;; Closure conversion also removes any $rec expressions that
 ;;; contification did not handle.  See (language cps) for a further
 ;;; discussion of $rec.
+;;;
+;;; Before closure conversion, function self variables are always bound.
+;;; After closure conversion, well-known functions with no free
+;;; variables may have no self reference.
 ;;;
 ;;; Code:
 
@@ -451,7 +455,50 @@ variable, until we reach a fixed point on the free-vars map."
 (define (intset-count set)
   (intset-fold (lambda (_ count) (1+ count)) set 0))
 
-(define (convert-one cps label body free-vars bound->label well-known shared)
+(define (compute-elidable-closures cps well-known shared free-vars)
+  "Compute the set of well-known callees with no free variables.  Calls
+to these functions can avoid passing a closure parameter.  Note however
+that we have to exclude well-known callees that are part of a shared
+closure that contains any not-well-known member."
+  (define (intset-map f set)
+    (persistent-intset
+     (intset-fold (lambda (i out) (if (f i) (intset-add! out i) out))
+                  set
+                  empty-intset)))
+
+  (let ((no-free-vars (persistent-intset
+                       (intmap-fold (lambda (label free out)
+                                      (if (eq? empty-intset free)
+                                          (intset-add! out label)
+                                          out))
+                                    free-vars empty-intset)))
+        (shared
+         (intmap-fold
+          (lambda (label cont out)
+            (match cont
+              (($ $kargs _ _
+                  ($ $continue _ _ ($ $rec _ _ (($ $fun kfuns) ...))))
+               ;; Either all of these functions share a closure, in
+               ;; which all or all except one of them are well-known, or
+               ;; none of the functions share a closure.
+               (if (intmap-ref shared (car kfuns) (lambda (_) #f))
+                   (let* ((scc (fold intset-cons empty-intset kfuns)))
+                     (intset-fold (lambda (label out)
+                                    (intmap-add out label scc))
+                                  scc out))
+                   out))
+              (_ out)))
+          cps
+          empty-intmap)))
+    (intmap-fold (lambda (label labels elidable)
+                   (if (eq? labels (intset-intersect labels well-known))
+                       elidable
+                       (intset-subtract elidable labels)))
+                 shared
+                 (intset-intersect well-known no-free-vars))))
+
+(define (convert-one cps label body free-vars bound->label well-known shared
+                     elidable)
   (define (well-known? label)
     (intset-ref well-known label))
 
@@ -650,11 +697,14 @@ bound to @var{var}, and continue to @var{k}."
                 ($continue k src ($callk label closure args)))))))
       (cond
        ((eq? (intmap-ref free-vars label) empty-intset)
-        ;; Known call, no free variables; no closure needed.
-        ;; Pass #f as closure argument.
-        (with-cps cps
-          ($ (with-cps-constants ((false #f))
-               ($ (have-closure false))))))
+        ;; Known call, no free variables; no closure needed.  If the
+        ;; callee is well-known, elide the closure argument entirely.
+        ;; Otherwise pass #f.
+        (if (and (intset-ref elidable label) #f) ; Disabled temporarily.
+            (have-closure cps #f)
+            (with-cps cps
+              ($ (with-cps-constants ((false #f))
+                   ($ (have-closure false)))))))
        ((and (well-known? (closure-label label shared bound->label))
              (trivial-intset (intmap-ref free-vars label)))
         ;; Well-known closures with one free variable are
@@ -796,6 +846,11 @@ bound to @var{var}, and continue to @var{k}."
                       (with-cps cps
                         (let$ term (visit-term term))
                         (setk label ($kargs names vars ,term))))
+                     (($ $kfun src meta self ktail kclause)
+                      (if (and (intset-ref elidable label) #f)
+                          (with-cps cps
+                            (setk label ($kfun src meta #f ktail kclause)))
+                          cps))
                      (_ cps)))
                  body
                  cps)))
@@ -819,7 +874,9 @@ and allocate and initialize flat closures."
                                             kfun))
          ;; label -> free-var...
          (free-vars (compute-free-vars cps kfun shared))
-         (free-vars (prune-free-vars free-vars bound->label well-known shared)))
+         (free-vars (prune-free-vars free-vars bound->label well-known shared))
+         ;; label...
+         (elidable (compute-elidable-closures cps well-known shared free-vars)))
     (let ((free-in-program (intmap-ref free-vars kfun)))
       (unless (eq? empty-intset free-in-program)
         (error "Expected no free vars in program" free-in-program)))
@@ -827,7 +884,8 @@ and allocate and initialize flat closures."
       (persistent-intmap
        (intmap-fold
         (lambda (label body cps)
-          (convert-one cps label body free-vars bound->label well-known shared))
+          (convert-one cps label body free-vars bound->label well-known shared
+                       elidable))
         functions
         cps)))))
 

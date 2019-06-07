@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2015, 2016, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2016, 2017, 2018, 2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -305,7 +305,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
            (continue
             (match (intmap-ref cps label)
               (($ $kfun src meta self)
-               (add-def out self))
+               (if self (add-def out self) out))
               (($ $kargs names vars term)
                (let ((out (add-defs out vars)))
                  (match term
@@ -670,7 +670,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
    (lambda (label defs)
      (match (intmap-ref conts label)
        (($ $kfun src meta self tail clause)
-        (intmap-add defs self label))
+        (if self (intmap-add defs self label) defs))
        (($ $kargs names vars)
         (fold1 (lambda (var defs)
                  (intmap-add defs var label))

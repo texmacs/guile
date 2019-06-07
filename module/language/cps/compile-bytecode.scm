@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -624,6 +624,8 @@
          (let ((first? (match (intmap-ref cps (1- label))
                          (($ $kfun) #t)
                          (_ #f)))
+               (has-closure? (match (intmap-ref cps (intmap-next cps))
+                               (($ $kfun src meta self tail) (->bool self))))
                (kw-indices (map (match-lambda
                                  ((key name sym)
                                   (cons key (lookup-slot sym allocation))))
@@ -631,10 +633,11 @@
            (unless first?
              (emit-end-arity asm))
            (emit-label asm label)
-           (emit-begin-kw-arity asm req opt rest kw-indices allow-other-keys?
-                                frame-size alt)
-           ;; All arities define a closure binding in slot 0.
-           (emit-definition asm 'closure 0 'scm)
+           (emit-begin-kw-arity asm has-closure? req opt rest kw-indices
+                                allow-other-keys? frame-size alt)
+           (when has-closure?
+             ;; Most arities define a closure binding in slot 0.
+             (emit-definition asm 'closure 0 'scm))
            ;; Usually we just fall through, but it could be the body is
            ;; contified into another clause.
            (let ((body (forward-label body)))

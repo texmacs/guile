@@ -1,5 +1,5 @@
 ;;; Diagnostic checker for CPS
-;;; Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -64,7 +64,7 @@
      (match (intmap-ref conts label)
        (($ $kargs names vars term)
         (fold1 adjoin-def vars seen))
-       (($ $kfun src meta self tail clause)
+       (($ $kfun src meta (and self (not #f)) tail clause)
         (adjoin-def self seen))
        (_ seen))
      )
@@ -113,7 +113,7 @@ definitions that are available at LABEL."
         (($ $kreceive arity k)
          (propagate1 k in))
         (($ $kfun src meta self tail clause)
-         (let ((out (adjoin-def self in)))
+         (let ((out (if self (adjoin-def self in) in)))
            (if clause
                (propagate1 clause out)
                (propagate0 out))))

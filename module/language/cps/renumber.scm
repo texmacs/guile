@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -127,7 +127,7 @@
             (match (intmap-ref conts label)
               (($ $kargs names syms exp)
                (fold1 rename-var syms vars))
-              (($ $kfun src meta self tail clause)
+              (($ $kfun src meta (and self (not #f)) tail clause)
                (rename-var self vars))
               (_ vars))))
   (define (maybe-visit-fun kfun labels vars)
@@ -220,7 +220,7 @@
            (($ $ktail)
             ($ktail))
            (($ $kfun src meta self tail clause)
-            ($kfun src meta (rename-var self) (rename-label tail)
+            ($kfun src meta (and self (rename-var self)) (rename-label tail)
               (and clause (rename-label clause))))
            (($ $kclause arity body alternate)
             ($kclause ,(rename-arity arity) (rename-label body)

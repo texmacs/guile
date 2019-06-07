@@ -1412,13 +1412,15 @@ returned instead."
                  (meta-jit-data-label meta)
                  (asm-constants asm)))))
 
-(define-macro-assembler (begin-standard-arity asm req nlocals alternate)
-  (emit-begin-opt-arity asm req '() #f nlocals alternate))
+(define-macro-assembler (begin-standard-arity asm has-closure? req nlocals
+                                              alternate)
+  (emit-begin-opt-arity asm has-closure? req '() #f nlocals alternate))
 
-(define-macro-assembler (begin-opt-arity asm req opt rest nlocals alternate)
-  (emit-begin-kw-arity asm req opt rest '() #f nlocals alternate))
+(define-macro-assembler (begin-opt-arity asm has-closure? req opt rest nlocals
+                                         alternate)
+  (emit-begin-kw-arity asm has-closure? req opt rest '() #f nlocals alternate))
 
-(define-macro-assembler (begin-kw-arity asm req opt rest kw-indices
+(define-macro-assembler (begin-kw-arity asm has-closure? req opt rest kw-indices
                                         allow-other-keys? nlocals alternate)
   (assert-match req ((? symbol?) ...) "list of symbols")
   (assert-match opt ((? symbol?) ...) "list of symbols")
@@ -1439,7 +1441,8 @@ returned instead."
          ;; The procedure itself is in slot 0, in the standard calling
          ;; convention.  For procedure prologues, nreq includes the
          ;; procedure, so here we add 1.
-         (nreq (1+ (length req)))
+         (nclosure (if has-closure? 1 0))
+         (nreq (+ nclosure (length req)))
          (nopt (length opt))
          (rest? (->bool rest)))
     (set-meta-arities! meta (cons arity (meta-arities meta)))

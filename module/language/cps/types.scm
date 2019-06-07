@@ -1,5 +1,5 @@
 ;;; Type analysis on CPS
-;;; Copyright (C) 2014-2015,2017-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -1935,7 +1935,9 @@ maximum, where type is a bitset as a fixnum."
             (propagate1 k (adjoin-vars types vars all-types-entry)))))
         (($ $kfun src meta self tail clause)
          (if clause
-             (propagate1 clause (adjoin-var types self all-types-entry))
+             (propagate1 clause (if self
+                                    (adjoin-var types self all-types-entry)
+                                    types))
              (propagate0)))
         (($ $kclause arity kbody kalt)
          (match (intmap-ref conts kbody)

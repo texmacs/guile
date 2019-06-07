@@ -152,7 +152,7 @@ false.  It could be that both true and false proofs are available."
   (intset-map (lambda (label)
                 (match (intmap-ref conts label)
                   (($ $kfun src meta self tail clause)
-                   (list self))
+                   (if self (list self) '()))
                   (($ $kclause arity body alt)
                    (match (intmap-ref conts body)
                      (($ $kargs names vars) vars)))
