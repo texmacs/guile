@@ -700,7 +700,7 @@ bound to @var{var}, and continue to @var{k}."
         ;; Known call, no free variables; no closure needed.  If the
         ;; callee is well-known, elide the closure argument entirely.
         ;; Otherwise pass #f.
-        (if (and (intset-ref elidable label) #f) ; Disabled temporarily.
+        (if (intset-ref elidable label)
             (have-closure cps #f)
             (with-cps cps
               ($ (with-cps-constants ((false #f))
@@ -847,7 +847,7 @@ bound to @var{var}, and continue to @var{k}."
                         (let$ term (visit-term term))
                         (setk label ($kargs names vars ,term))))
                      (($ $kfun src meta self ktail kclause)
-                      (if (and (intset-ref elidable label) #f)
+                      (if (intset-ref elidable label)
                           (with-cps cps
                             (setk label ($kfun src meta #f ktail kclause)))
                           cps))
