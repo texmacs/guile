@@ -125,7 +125,8 @@
          (for-each (match-lambda
                     ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))
                    (lookup-parallel-moves label allocation))
-         (maybe-reset-frame (1+ (length args)))
+         (let ((nclosure (if proc 1 0)))
+           (maybe-reset-frame (+ nclosure (length args))))
          (emit-handle-interrupts asm)
          (emit-tail-call-label asm k))
         (($ $values args)
@@ -519,7 +520,8 @@
     (define (compile-trunc label k exp nreq rest-var)
       (define (do-call proc args emit-call)
         (let* ((proc-slot (lookup-call-proc-slot label allocation))
-               (nargs (1+ (length args)))
+               (nclosure (if proc 1 0))
+               (nargs (+ nclosure (length args)))
                (arg-slots (map (lambda (x) (+ x proc-slot)) (iota nargs))))
           (for-each (match-lambda
                      ((src . dst) (emit-mov asm (from-sp dst) (from-sp src))))

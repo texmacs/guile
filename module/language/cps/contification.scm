@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -188,7 +188,7 @@ $call, and are always called with a compatible arity."
               ;; compiler handles this fine though, so we allow it.
               (restrict-arity functions proc (length args))))
            (($ $callk k proc args)
-            (exclude-vars functions (cons proc args)))
+            (exclude-vars functions (if proc (cons proc args) args)))
            (($ $primcall name param args)
             (exclude-vars functions args))))
         (($ $kargs _ _ ($ $branch kf kt src op param args))

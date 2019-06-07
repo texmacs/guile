@@ -365,7 +365,7 @@ false.  It could be that both true and false proofs are available."
       (($ $call proc args)
        ($call (subst-var proc) ,(map subst-var args)))
       (($ $callk k proc args)
-       ($callk k (subst-var proc) ,(map subst-var args)))
+       ($callk k (and proc (subst-var proc)) ,(map subst-var args)))
       (($ $primcall name param args)
        ($primcall name param ,(map subst-var args)))
       (($ $values args)

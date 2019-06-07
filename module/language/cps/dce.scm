@@ -153,7 +153,9 @@ sites."
          (values live-labels (adjoin-vars args (adjoin-var proc live-vars))))
         (($ $callk kfun proc args)
          (values (intset-add live-labels kfun)
-                 (adjoin-vars args (adjoin-var proc live-vars))))
+                 (adjoin-vars args (if proc
+                                       (adjoin-var proc live-vars)
+                                       live-vars))))
         (($ $primcall name param args)
          (values live-labels (adjoin-vars args live-vars)))
         (($ $values args)
