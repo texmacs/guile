@@ -1,5 +1,5 @@
 ;;; Functional name maps
-;;; Copyright (C) 2014, 2015, 2017 Free Software Foundation, Inc.
+;;; Copyright (C) 2014-2017,2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License as
@@ -717,6 +717,7 @@ already, and always calls the meet procedure."
        ;; At this point, A and B cover the same range.
        (let ((root (intersect a-shift a-root b-root)))
          (cond
+          ((absent? root) empty-intmap)
           ((eq? root a-root) a)
           ((eq? root b-root) b)
           (else (make-intmap/prune a-min a-shift root)))))))))
