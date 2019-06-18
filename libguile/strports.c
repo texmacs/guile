@@ -195,8 +195,8 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
       else
         /* Inefficient but simple way to convert the character position
            POS into a byte position BYTE_POS.  */
-        free (scm_to_utf8_stringn (scm_substring (str, SCM_INUM0, pos),
-                                   &byte_pos));
+        byte_pos = scm_c_string_utf8_length
+          (scm_substring (str, SCM_INUM0, pos));
     }
 
   stream = scm_gc_typed_calloc (struct string_port);
