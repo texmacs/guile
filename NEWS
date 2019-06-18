@@ -10,17 +10,36 @@ Changes in 2.2.5 (since 2.2.4):
 
 [XXX TODO: Add more details to selected items below]
 
-* Notable changes
+* Notable improvements
 
 ** Greatly improved performance of bidirectional pipes.
 
 The performance of bidirectional pipes, as created using 'open-pipe' or
-'open-pipe*' with OPEN_BOTH mode, has been improved by roughly 3 orders
-of magnitude.
+'open-pipe*' in OPEN_BOTH mode, has been greatly improved.  When reading
+large blocks of binary data from a bidirectional pipe, the maximum
+bandwidth has been increased by a factor of ~10^3 in some cases.
 
 ** New 'get-bytevector-some!' I/O primitive.
 
-** get-bytevector-{some,some!,n!} support suspendable I/O.
+This new I/O primitive is similar to 'get-bytevector-some' from the
+R6RS, except that it writes its data to a user-specified range of
+indices in an existing bytevector.  As a corollary, it is also now
+possible to specify a maximum number of bytes to read.  Note that
+'get-bytevector-some', and now 'get-bytevector-some!', are unique among
+Guile's I/O primitives in their support of efficient binary reads of
+potentially large blocks while also allowing for short reads, to avoid
+undesired blocking.  Now these operations can be performed while also
+avoiding heap-allocation.
+
+'get-bytevector-some!' is needed to efficiently implement the new
+bidirectional pipes, which are built upon R6RS custom binary
+input/output ports.
+
+** get-bytevector-{n!,some,some!} now support suspendable I/O.
+
+Scheme implementations of 'get-bytevector-n!', 'get-bytevector-some',
+and 'get-bytevector-some!' have been added to (ice-9 suspendable-ports).
+As a result, these I/O operations now support suspendable I/O.
 
 * Compiler improvements
 
@@ -35,8 +54,26 @@ eval.go and psyntax-pp.go are now built before the rest of the .go files
 so that they are processed by a fast macro expander.  This saves time
 when using parallel builds.
 
-** put-u8: Always write a single byte, regardless of the port encoding.
+** put-u8 now always writes a single byte, regardless of the port encoding.
+
+Previously, (put-u8 PORT OCTET) worked as expected only when writing to
+binary ports, i.e. those with port encoding "ISO-8851-1".  Strictly
+speaking, this meets the requirements of the R6RS 'put-u8', which need
+only support binary ports.  However, Guile in fact allows binary I/O to
+be performed on any port, and yet 'put-u8' behaved in a surprising way
+with other port encodings: it would perform a _textual_ I/O operation,
+writing the character with Unicode scalar value OCTET.  Now, 'put-u8'
+always writes a single byte with value OCTET, regardless of the port
+encoding.
+
 ** Optimize fixnum exact integer square roots.
+
+'exact-integer-sqrt' now avoids heap allocation when applied to a
+fixnum.  'sqrt' also avoids heap allocation when applied to a fixnum
+that's a perfect square.  Fewer heap allocations are now required when
+applying 'sqrt' to squares of exact rationals whose numerator or
+denominator are fixnums.
+
 ** scm_mkstrport: Optimize the POS -> BYTE_POS conversion.
 ** stexi->shtml: Add support for @i, @math, @tie and @dots.
 ** SRFI-19: Support ~N in string->date.
