@@ -1,5 +1,7 @@
 Contributors since the last release:
 
+    Christopher Allan Webber
+    Christopher Baines
            Greg Benison
         Tristan Colgate-McFarlane
           Aleix Conchillo Flaqué
@@ -29,6 +31,7 @@ Contributors since the last release:
             Ken Raeburn
         Andreas Rottmann
           Kevin Ryde
+        Timothy Sample
        Stefan I Tampe
              BT Templeton
           David Thompson
@@ -53,12 +56,15 @@ For fixes or providing information which led to a fix:
 
            Hans Åberg
           David Allouche
+         Andrea Azzarone
          Andrew Bagdanov
           Lluís Batlle i Rossell
 	 Martin Baulig
         Fabrice Bauzac
+         Михаил Бахтерев
         Sylvain Beucler
           Carlo Bramini
+       Jonathan Brielmaier
             Rob Browning
          Adrian Bunk
         Michael Carmack
@@ -69,6 +75,7 @@ For fixes or providing information which led to a fix:
         Stephen Compall
           Brian Crowder
     Christopher Cramer
+           Josh Datko
           David Diffenbaugh
           Hyper Division
       Alexandre Duret-Lutz
@@ -93,6 +100,7 @@ For fixes or providing information which led to a fix:
 	 Volker Grabsch
            Mike Gran
          Raimon Grau
+   Massimiliano Gubinelli
          Szavai Gyula
          Roland Haeder
 	  Bruno Haible
@@ -105,6 +113,7 @@ For fixes or providing information which led to a fix:
           Kevin Holmes
 	Patrick Horgan
            Ales Hvezda
+           Arun Isaac
          Stefan Israelsson Tampe
           Peter Ivanyi
        Wolfgang Jaehrling
@@ -121,12 +130,14 @@ For fixes or providing information which led to a fix:
            Matt Kraai
          Daniel Kraft
            Noah Lavine
+           Shea Levy
        Miroslav Lichvar
          Daniel Llorens del Río
            Jeff Long
 	  Marco Maggi
       Bogdan A. Marinescu
         Gregory Marton
+          Chris Marusich
       Kjetil S. Matheussen
         Antoine Mathys
          Alexei Matveev
@@ -169,9 +180,11 @@ For fixes or providing information which led to a fix:
           Peter Simons
          Daniel Skarda
            Dale Smith
+            Jan Smydke
           Cesar Strauss
 	  Klaus Stehle
          Kouhei Sutou
+        Michael Talbot-Wilson
          Rainer Tammer
           Frank Terbeck
 	 Samuel Thibault
@@ -180,6 +193,7 @@ For fixes or providing information which led to a fix:
             Tom Tromey
           Issac Trotts
            Greg Troxel
+        Michael Tuexen
        Aaron M. Ucko
         Stephen Uitti
         Momchil Velikov
@@ -190,8 +204,8 @@ For fixes or providing information which led to a fix:
          Sjoerd Van Leent
 	Andreas Vögele
           Chris Vine
-        Michael Talbot-Wilson
-        Michael Tuexen
+            Tom de Vries
+        Jeffrey Walton
             Xin Wang
          Thomas Wawrzinek
         Mark H. Weaver
@@ -204,6 +218,7 @@ For fixes or providing information which led to a fix:
         Ricardo Wurmus
         William Xu
          Atom X Zane
+                Zefram
 
 
 ;; Local Variables:
