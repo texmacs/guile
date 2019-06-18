@@ -57,14 +57,14 @@ when using parallel builds.
 ** put-u8 now always writes a single byte, regardless of the port encoding.
 
 Previously, (put-u8 PORT OCTET) worked as expected only when writing to
-binary ports, i.e. those with port encoding "ISO-8851-1".  Strictly
-speaking, this meets the requirements of the R6RS 'put-u8', which need
-only support binary ports.  However, Guile in fact allows binary I/O to
-be performed on any port, and yet 'put-u8' behaved in a surprising way
-with other port encodings: it would perform a _textual_ I/O operation,
-writing the character with Unicode scalar value OCTET.  Now, 'put-u8'
-always writes a single byte with value OCTET, regardless of the port
-encoding.
+binary ports, i.e. those with port encoding "ISO-8859-1" a.k.a. Latin-1.
+Strictly speaking, this meets the requirements of the R6RS 'put-u8',
+which need only support binary ports.  However, Guile in fact allows
+binary I/O to be performed on any port, and yet 'put-u8' behaved in a
+surprising way with other port encodings: it would perform a _textual_
+I/O operation, writing the character with Unicode scalar value OCTET.
+Now, 'put-u8' always writes a single byte with value OCTET, regardless
+of the port encoding.
 
 ** Optimize fixnum exact integer square roots.
 
