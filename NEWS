@@ -69,23 +69,35 @@ encoding.
 ** Optimize fixnum exact integer square roots.
 
 'exact-integer-sqrt' now avoids heap allocation when applied to a
-fixnum.  'sqrt' also avoids heap allocation when applied to a fixnum
+fixnum.  'sqrt' now avoids heap allocation when applied to a fixnum
 that's a perfect square.  Fewer heap allocations are now required when
-applying 'sqrt' to squares of exact rationals whose numerator or
+applying 'sqrt' to a square of an exact rational whose numerator or
 denominator are fixnums.
 
 ** scm_mkstrport: Optimize the POS -> BYTE_POS conversion.
-** stexi->shtml: Add support for @i, @math, @tie and @dots.
+
+scm_mkstrport now avoids an unnecessary heap allocation and conversion
+to UTF-8, when STR is provided and POS is non-zero.
+
 ** SRFI-19: Support ~N in string->date.
 ** SRFI-19: Update the leap second table.
+
+** stexi->shtml: Add support for @i, @math, @tie and @dots.
 
 ** Define AT_SYMLINK_NOFOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH.
 
 AT_SYMLINK_FOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH are now available
 from Scheme, if supported on the platform.
 
-** time: Support expressions that return any number of values.
-** time: Use 'syntax-rules' instead of 'define-macro'.
+** Improvements to the 'time' macro from (ice-9 time).
+
+The 'time' macro now supports expressions that return multiple values.
+It has also been rewritten as a hygienic 'syntax-rules' macro.
+Previously, it was built using 'define-macro', and was therefore
+unhygienic.  This is not merely an internal implementation detail, but
+is potentially relevant to any user of the 'time' macro, since it could
+lead to unintended variable capture and other problems.
+
 ** Clarify the documentation for 'nil?'.
 ** Clarify the manual's "Processes" section.
 ** Avoid 'with-latin1-locale' in binary I/O tests.
@@ -94,6 +106,10 @@ from Scheme, if supported on the platform.
 * Bug fixes
 
 ** Avoid regexp ranges in HTTP inter-protocol exploitation check.
+
+The regular expression used to check for HTTP inter-protocol
+exploitation attacks previously used a character range '0-9', whose
+meaning depends on the current locale.  This has now been fixed.
 
 ** Fixes to the SRFI-19 time/date library.
 
@@ -104,16 +120,50 @@ from Scheme, if supported on the platform.
 *** Check for incompatible types in time comparisons.
 
 ** Improve overflow checks in bytevector, string, and I/O operations.
+
+Several numerical computations, performed using primitive C arithmetic
+in Guile's core bytevector, string, and I/O operations, have been
+rewritten to avoid overflows.
+
 ** Fix type inferencing for 'nil?' and 'null?' predicates.
+
+Previously, the compiler would sometimes miscompile certain combinations
+of 'nil?' and 'null?' predicates present within the same top-level form.
+See <https://bugs.gnu.org/33036>.
+
 ** Fix 'atomic-box-compare-and-swap!'.
+
+Previously, 'atomic-box-compare-and-swap!' would sometimes spuriously
+fail on architectures based on Load-Linked/Store-Conditional (LL/SC)
+synchronication primitives (e.g. ARM, PowerPC, and MIPS) in a way that
+was undetectable by the caller.  See <https://bugs.gnu.org/32786>.
+
 ** Make URI handling locale independent.
+
+Previously, procedures in (web uri) would misbehave in some locales
+including sv_SE.  See <https://bugs.gnu.org/35785>.
+
 ** Strings, i18n: Limit the use of alloca to approximately 8 kilobytes.
+
+Previously, 'string-locale-ci=?', 'string-locale-ci<?',
+'string-locale<?', 'string-locale-{downcase,upcase,titlecase}' and
+'string-normalize-{nfd,nfc,nfkd,nfkc}' would overflow the C stack when
+applied to very large strings.
+
+** Fix documentation of R6RS 'binary-port?' to reflect reality.
+
+Previously, the documentation incorrectly stated that 'binary-port?'
+always returns #t.
+
 ** Avoid passing NULL to 'memcpy' and 'memcmp'.
-** scm_to_stringn: Avoid passing NULL to c_strcasecmp.
+
+Previously, NULL was sometimes passed to 'memcpy' or 'memcmp' when the
+size argument was 0.
+
 ** Save and restore errno in the signal handler.
+** scm_to_stringn: Avoid passing NULL to c_strcasecmp.
 ** r6rs-ports: Accept 'port-position' values greater than 2^32.
 ** r6rs-ports: 'put-bytevector' accepts 64-bit integers.
-** Fix documentation of R6RS 'binary-port?' to reflect reality.
 ** Fix R6RS call-with-{input,output}-file to open textual ports.
 ** Update (ice-9 match) to include selected bug fixes from upstream.
 ** open-process: Fix dup(2) and execvp(2) error handling.
