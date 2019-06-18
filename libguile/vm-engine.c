@@ -2269,7 +2269,7 @@ VM_NAME (scm_i_thread *thread, struct scm_vm *vp,
       VM_VALIDATE_STRING (str, "string-ref");
       VM_VALIDATE_INDEX (c_idx, scm_i_string_length (str), "string-ref");
 
-      RETURN (scm_c_make_char (scm_i_string_ref (str, c_idx)));
+      RETURN (scm_i_make_char (scm_i_string_ref (str, c_idx)));
     }
 
   /* string-set! instruction is currently number 192.  Probably need to

@@ -43,7 +43,7 @@ typedef scm_t_int32 scm_t_wchar;
 
    This macro evaluates X twice, which may lead to side effects if used
    incorrectly.  It's also likely to be inefficient if X calls a
-   procedure.  Use 'scm_c_make_char' in those cases.  */
+   procedure.  Use 'scm_i_make_char' in those cases.  */
 #define SCM_MAKE_CHAR(x)                                                \
   ((x) <= 1                                                             \
    ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) (x), scm_tc8_char)    \
@@ -85,7 +85,7 @@ SCM_API SCM scm_char_downcase (SCM chr);
 SCM_API SCM scm_char_titlecase (SCM chr);
 SCM_API SCM scm_char_general_category (SCM chr);
 
-SCM_INLINE SCM scm_c_make_char (scm_t_wchar c);
+SCM_INLINE SCM scm_i_make_char (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_upcase (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_downcase (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_titlecase (scm_t_wchar c);
@@ -97,7 +97,7 @@ SCM_INTERNAL void scm_init_chars (void);
 
 #if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
 SCM_INLINE_IMPLEMENTATION SCM
-scm_c_make_char (scm_t_wchar c)
+scm_i_make_char (scm_t_wchar c)
 {
   return SCM_MAKE_CHAR(c);
 }

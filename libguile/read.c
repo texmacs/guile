@@ -1092,7 +1092,7 @@ scm_read_character (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
   /* Ignore dotted circles, which may be used to keep combining characters from
      combining with the backslash in #\charname.  */
   if (cp == SCM_CODEPOINT_DOTTED_CIRCLE && charname_len == 2)
-    return scm_c_make_char (scm_i_string_ref (charname, 1));
+    return scm_i_make_char (scm_i_string_ref (charname, 1));
 
   if (cp >= '0' && cp < '8')
     {

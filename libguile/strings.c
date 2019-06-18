@@ -1227,9 +1227,9 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
     scm_out_of_range (NULL, k);
 
   if (scm_i_is_narrow_string (str))
-    return scm_c_make_char (scm_i_string_chars (str)[idx]);
+    return scm_i_make_char (scm_i_string_chars (str)[idx]);
   else
-    return scm_c_make_char (scm_i_string_wide_chars (str)[idx]);
+    return scm_i_make_char (scm_i_string_wide_chars (str)[idx]);
 }
 #undef FUNC_NAME
 
@@ -1239,9 +1239,9 @@ scm_c_string_ref (SCM str, size_t p)
   if (p >= scm_i_string_length (str))
     scm_out_of_range (NULL, scm_from_size_t (p));
   if (scm_i_is_narrow_string (str))
-    return scm_c_make_char (scm_i_string_chars (str)[p]);
+    return scm_i_make_char (scm_i_string_chars (str)[p]);
   else
-    return scm_c_make_char (scm_i_string_wide_chars (str)[p]);
+    return scm_i_make_char (scm_i_string_wide_chars (str)[p]);
 
 }
 
