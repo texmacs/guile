@@ -1,8 +1,110 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2018 Free Software Foundation, Inc.
+Copyright (C) 1996-2019 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
+
+
+
+Changes in 2.2.5 (since 2.2.4):
+
+[XXX TODO: Add more details to selected items below]
+
+* Notable changes
+
+** Greatly improved performance of bidirectional pipes.
+
+The performance of bidirectional pipes, as created using 'open-pipe' or
+'open-pipe*' with OPEN_BOTH mode, has been improved by roughly 3 orders
+of magnitude.
+
+** New 'get-bytevector-some!' I/O primitive.
+
+** get-bytevector-{some,some!,n!} support suspendable I/O.
+
+* Compiler improvements
+
+** compile: Add -Wshadowed-toplevel.
+** compile: Add '-x' flag.
+
+* Miscellaneous improvements
+
+** Bootstrap optimization
+  
+eval.go and psyntax-pp.go are now built before the rest of the .go files
+so that they are processed by a fast macro expander.  This saves time
+when using parallel builds.
+
+** put-u8: Always write a single byte, regardless of the port encoding.
+** Optimize fixnum exact integer square roots.
+** scm_mkstrport: Optimize the POS -> BYTE_POS conversion.
+** stexi->shtml: Add support for @i, @math, @tie and @dots.
+** SRFI-19: Support ~N in string->date.
+** SRFI-19: Update the leap second table.
+
+** Define AT_SYMLINK_NOFOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH.
+
+AT_SYMLINK_FOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH are now available
+from Scheme, if supported on the platform.
+
+** time: Support expressions that return any number of values.
+** time: Use 'syntax-rules' instead of 'define-macro'.
+** Clarify the documentation for 'nil?'.
+** Clarify the manual's "Processes" section.
+** Avoid 'with-latin1-locale' in binary I/O tests.
+** Update user-visible copyright years.
+
+* Bug fixes
+
+** Avoid regexp ranges in HTTP inter-protocol exploitation check.
+
+** Fixes to the SRFI-19 time/date library.
+
+*** Fix TAI->UTC conversions, leap second handling, etc.
+*** Fix handling of negative years and negative julian days.
+*** Fix normalization of seconds and nanoseconds in time records.
+*** time-utc->date: Support non-integer nanoseconds values.
+*** Check for incompatible types in time comparisons.
+
+** Improve overflow checks in bytevector, string, and I/O operations.
+** Fix type inferencing for 'nil?' and 'null?' predicates.
+** Fix 'atomic-box-compare-and-swap!'.
+** Make URI handling locale independent.
+** Strings, i18n: Limit the use of alloca to approximately 8 kilobytes.
+** Avoid passing NULL to 'memcpy' and 'memcmp'.
+** scm_to_stringn: Avoid passing NULL to c_strcasecmp.
+** Save and restore errno in the signal handler.
+** r6rs-ports: Accept 'port-position' values greater than 2^32.
+** r6rs-ports: 'put-bytevector' accepts 64-bit integers.
+** Fix documentation of R6RS 'binary-port?' to reflect reality.
+** Fix R6RS call-with-{input,output}-file to open textual ports.
+** Update (ice-9 match) to include selected bug fixes from upstream.
+** open-process: Fix dup(2) and execvp(2) error handling.
+** bytevectors: Support large indices in integer accessors.
+** bytevectors: Fix list validation of *list->bytevector procedures.
+** Gracefully handle huge shift counts in 'ash' and 'round-ash'.
+** In 'ash' and 'round-ash', handle right shift count of LONG_MIN.
+** Use 'scm_from_utf8_{string,symbol,keyword}' for C string literals.
+** web: Add support for HTTP header continuation lines.
+** scm_seed_to_random_state: Support wide string arguments.
+** Do not warn the user when 'madvise' returns ENOSYS.
+** Add 'texinfo' as a dependency in the README.
+** Don't mutate read-only string in ports test.
+** Remove redefinition of when & unless in snarf-check-and-output-texi.
+** Fix strftime when Guile is built without threading support.
+** Avoid leaking a file descriptor in test-unwind.
+** Fix binary output on files created by mkstemp!.
+** Fix crypt-on-glibc test error.
+** Fix race when expanding syntax-parameterize and define-syntax-parameter.
+** Add a fallback value for the locale-monetary-decimal-point.
+** Handle newlib C library's langinfo constant names.
+** Make locale monetary conversion tests be less strict on terminal whitespace.
+** Disable test for current value of setitimer on Cygwin.
+** Fix gc.test "after-gc-hook gets called" failures.
+** Update iconv.m4 from gnulib, to fix iconv leak during configure.
+** guild compile: Add missing newline in "unrecognized option" error message.
+** 'basename' now correctly handles "/" and "//".
+** Make srfi-71 visible through 'cond-expand'.
 
 
 
