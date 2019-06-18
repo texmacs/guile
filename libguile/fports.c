@@ -613,17 +613,12 @@ static scm_t_off
 fport_seek (SCM port, scm_t_off offset, int whence)
 {
   scm_t_fport *fp = SCM_FSTREAM (port);
-  off_t_or_off64_t result;
+  scm_t_off result;
 
-  result = lseek_or_lseek64 (fp->fdes, offset, whence);
+  result = lseek (fp->fdes, offset, whence);
 
   if (result == -1)
     scm_syserror ("fport_seek");
-
-  /* Check to make sure the result fits in scm_t_off,
-     which might be smaller than off_t_or_off64_t.  */
-  if (result > SCM_T_OFF_MAX)
-    scm_num_overflow ("fport_seek");
 
   return result;
 }
