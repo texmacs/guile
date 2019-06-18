@@ -153,7 +153,11 @@ applied to very large strings.
 ** Fix documentation of R6RS 'binary-port?' to reflect reality.
 
 Previously, the documentation incorrectly stated that 'binary-port?'
-always returns #t.
+always returns #t.  In fact, it returns #t if and only if the port
+encoding is "ISO-8859-1".  The documentation for 'binary-port?' and
+'textual-port?' has been rewritten to reflect the current reality, and
+also to leave open the possibility of changing the behavior of these
+predicates in a future version of Guile.
 
 ** Avoid passing NULL to 'memcpy' and 'memcmp'.
 
@@ -161,6 +165,11 @@ Previously, NULL was sometimes passed to 'memcpy' or 'memcmp' when the
 size argument was 0.
 
 ** Save and restore errno in the signal handler.
+
+Previously, Guile's synchronous C signal handler failed to save/restore
+errno, although it could change it.  This could potentially lead to
+spurious corruptions of 'errno' within threads interrupted by signals.
+
 ** scm_to_stringn: Avoid passing NULL to c_strcasecmp.
 ** r6rs-ports: Accept 'port-position' values greater than 2^32.
 ** r6rs-ports: 'put-bytevector' accepts 64-bit integers.
@@ -188,7 +197,7 @@ size argument was 0.
 ** Make locale monetary conversion tests be less strict on terminal whitespace.
 ** Disable test for current value of setitimer on Cygwin.
 ** Fix gc.test "after-gc-hook gets called" failures.
-** Update iconv.m4 from gnulib, to fix iconv leak during configure.
+** Update iconv.m4 from gnulib, to fix an iconv leak during configure.
 ** guild compile: Add missing newline in "unrecognized option" error message.
 ** 'basename' now correctly handles "/" and "//".
 ** Make srfi-71 visible through 'cond-expand'.
