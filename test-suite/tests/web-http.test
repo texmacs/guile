@@ -1,6 +1,6 @@
 ;;;; web-http.test --- HTTP library        -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010-2011, 2014-2017 Free Software Foundation, Inc.
+;;;; Copyright (C) 2010-2011, 2014-2017, 2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -241,6 +241,15 @@
   (pass-if-round-trip "Cache-Control: acme-cache-extension=20\r\n")
   (pass-if-round-trip "Cache-Control: acme-cache-extension=100 quux\r\n")
   (pass-if-round-trip "Cache-Control: acme-cache-extension=\"100, quux\"\r\n")
+
+  (let ((str "Cache-Control: acme-cache-extension=\"100,\r\n\t foo,\r\n  quux\"\r\n")
+        (val '(cache-control . ((acme-cache-extension . "100, foo, quux")))))
+    (pass-if-equal "continuation lines"
+        val
+      (call-with-values (lambda ()
+                          (read-header (open-input-string str)))
+        (lambda (sym val)
+          (cons sym val)))))
 
   (pass-if-parse connection "close" '(close))
   (pass-if-parse connection "Content-Encoding" '(content-encoding))
