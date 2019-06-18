@@ -551,7 +551,7 @@ VM_NAME (scm_thread *thread)
       if (!VP->disable_mcode)
         {
           mcode = SCM_FRAME_MACHINE_RETURN_ADDRESS (old_fp);
-          if (mcode)
+          if (mcode && mcode != scm_jit_return_to_interpreter_trampoline)
             {
               scm_jit_enter_mcode (thread, mcode);
               CACHE_REGISTER ();

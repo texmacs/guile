@@ -199,18 +199,6 @@ scm_i_capture_current_stack (void)
                         0);
 }
 
-/* Call to force a thread to go back to the interpreter, for example
-   when single-stepping is enabled.  */
-static void
-vm_clear_mcode_return_addresses (scm_thread *thread)
-{
-  union scm_vm_stack_element *fp;
-  struct scm_vm *vp = &thread->vm;
-
-  for (fp = vp->fp; fp < vp->stack_top; fp = SCM_FRAME_DYNAMIC_LINK (fp))
-    SCM_FRAME_SET_MACHINE_RETURN_ADDRESS (fp, NULL);
-}
-
 #define FOR_EACH_HOOK(M) \
   M(apply) \
   M(return) \
@@ -242,7 +230,7 @@ vm_recompute_disable_mcode (scm_thread *thread)
 #undef DISABLE_MCODE_IF_HOOK_ENABLED
 
   if (thread->vm.disable_mcode && !was_disabled)
-    vm_clear_mcode_return_addresses (thread);
+    scm_jit_clear_mcode_return_addresses (thread);
 }
 
 static int
@@ -1163,11 +1151,14 @@ static SCM
 capture_continuation (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
+  void *mra = SCM_FRAME_MACHINE_RETURN_ADDRESS (vp->fp);
+  if (mra == scm_jit_return_to_interpreter_trampoline)
+    mra = NULL;
   SCM vm_cont = capture_stack (vp->stack_top,
                                SCM_FRAME_DYNAMIC_LINK (vp->fp),
                                SCM_FRAME_PREVIOUS_SP (vp->fp),
                                SCM_FRAME_VIRTUAL_RETURN_ADDRESS (vp->fp),
-                               SCM_FRAME_MACHINE_RETURN_ADDRESS (vp->fp),
+                               mra,
                                scm_dynstack_capture_all (&thread->dynstack),
                                0);
   return scm_i_make_continuation (thread, vm_cont);

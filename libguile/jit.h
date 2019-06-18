@@ -1,7 +1,7 @@
 #ifndef SCM_JIT_H
 #define SCM_JIT_H
 
-/* Copyright 2018
+/* Copyright 2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -61,6 +61,9 @@ SCM_INTERNAL const uint8_t *scm_jit_compute_mcode (scm_thread *thread,
 SCM_INTERNAL void scm_jit_enter_mcode (scm_thread *thread,
                                        const uint8_t *mcode);
 SCM_INTERNAL void scm_jit_state_free (struct scm_jit_state *j);
+
+SCM_INTERNAL void *scm_jit_return_to_interpreter_trampoline;
+SCM_INTERNAL void scm_jit_clear_mcode_return_addresses (scm_thread *thread);
 
 SCM_INTERNAL void scm_init_jit (void);
 

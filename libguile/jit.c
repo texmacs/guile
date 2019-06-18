@@ -152,6 +152,10 @@ static void *exit_mcode;
    instruction, compiled as a stub on the side to reduce code size.  */
 static void *handle_interrupts_trampoline;
 
+/* Return to interpreter trampoline: trampoline to load IP from the VRA
+   and tier down.  */
+void *scm_jit_return_to_interpreter_trampoline;
+
 /* Thread-local buffer into which to write code.  */
 struct code_arena
 {
@@ -1590,25 +1594,29 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
     j->frame_size_max -= (from - to);
 }
 
+static const jit_gpr_t old_fp_for_return_trampoline = T0;
+
 static void
 compile_return_values (scm_jit_state *j)
 {
-  jit_gpr_t old_fp = T0, ra = T1;
-  jit_reloc_t interp;
+  jit_gpr_t ra = T1;
 
-  emit_pop_fp (j, old_fp);
-
-  emit_load_mra (j, ra, old_fp);
-  interp = jit_beqi (j->jit, ra, 0);
+  emit_pop_fp (j, old_fp_for_return_trampoline);
+  emit_load_mra (j, ra, old_fp_for_return_trampoline);
   jit_jmpr (j->jit, ra);
-
-  jit_patch_here (j->jit, interp);
-  emit_load_vra (j, ra, old_fp);
-  emit_store_ip (j, ra);
-  emit_exit (j);
 
   j->frame_size_min = 0;
   j->frame_size_max = INT32_MAX;
+}
+
+static void
+emit_return_to_interpreter_trampoline (scm_jit_state *j)
+{
+  jit_gpr_t ra = T1;
+
+  emit_load_vra (j, ra, old_fp_for_return_trampoline);
+  emit_store_ip (j, ra);
+  emit_exit (j);
 }
 
 static void
@@ -4688,6 +4696,10 @@ initialize_jit (void)
   handle_interrupts_trampoline =
     emit_code (j, emit_handle_interrupts_trampoline);
   ASSERT (handle_interrupts_trampoline);
+
+  scm_jit_return_to_interpreter_trampoline =
+    emit_code (j, emit_return_to_interpreter_trampoline);
+  ASSERT (scm_jit_return_to_interpreter_trampoline);
 }
 
 static uint8_t *
@@ -4804,8 +4816,24 @@ void
 scm_jit_enter_mcode (scm_thread *thread, const uint8_t *mcode)
 {
   LOG ("entering mcode: %p\n", mcode);
+  if (!SCM_FRAME_MACHINE_RETURN_ADDRESS (thread->vm.fp))
+    SCM_FRAME_SET_MACHINE_RETURN_ADDRESS
+      (thread->vm.fp, scm_jit_return_to_interpreter_trampoline);
   enter_mcode (thread, mcode);
   LOG ("exited mcode\n");
+}
+
+/* Call to force a thread to go back to the interpreter, for example
+   when single-stepping is enabled.  */
+void
+scm_jit_clear_mcode_return_addresses (scm_thread *thread)
+{
+  union scm_vm_stack_element *fp;
+  struct scm_vm *vp = &thread->vm;
+
+  for (fp = vp->fp; fp < vp->stack_top; fp = SCM_FRAME_DYNAMIC_LINK (fp))
+    SCM_FRAME_SET_MACHINE_RETURN_ADDRESS
+      (fp, scm_jit_return_to_interpreter_trampoline);
 }
 
 void
