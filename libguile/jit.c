@@ -815,15 +815,11 @@ emit_direct_tail_call (scm_jit_state *j, const uint32_t *vcode)
 {
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
 
+  ASSERT ((vcode[0] & 0xff) == scm_op_instrument_entry);
+
   if (vcode == j->start)
     {
       jit_jmpi (j->jit, j->labels[0]);
-    }
-  else if ((vcode[0] & 0xff) != scm_op_instrument_entry)
-    {
-      emit_movi (j, T0, (intptr_t) vcode);
-      emit_store_ip (j, T0);
-      emit_exit (j);
     }
   else
     {
