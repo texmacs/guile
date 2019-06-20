@@ -2038,7 +2038,7 @@ SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset),
   SCM ranges = SCM_EOL, elt;
   size_t i;
   scm_t_char_set *cs;
-  char codepoint_string_lo[9], codepoint_string_hi[9];
+  char codepoint_string_lo[11], codepoint_string_hi[11];
 
   SCM_VALIDATE_SMOB (1, charset, charset);
   cs = SCM_CHARSET_DATA (charset);
