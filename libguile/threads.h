@@ -39,6 +39,19 @@
 
 
 
+#define SCM_INLINE_GC_GRANULE_WORDS 2
+#define SCM_INLINE_GC_GRANULE_BYTES \
+  (sizeof(void *) * SCM_INLINE_GC_GRANULE_WORDS)
+
+/* A freelist set contains SCM_INLINE_GC_FREELIST_COUNT pointers to
+   singly linked lists of objects of different sizes, the ith one
+   containing objects i + 1 granules in size.  This setting of
+   SCM_INLINE_GC_FREELIST_COUNT will hold freelists for allocations of
+   up to 256 bytes.  */
+#define SCM_INLINE_GC_FREELIST_COUNT (256U / SCM_INLINE_GC_GRANULE_BYTES)
+
+
+
 /* smob tags for the thread datatypes */
 SCM_API scm_t_bits scm_tc16_thread;
 SCM_API scm_t_bits scm_tc16_mutex;
@@ -60,8 +73,8 @@ struct scm_thread {
                                    not be run. */
 
   /* Thread-local freelists; see gc-inline.h.  */
-  void **freelists;
-  void **pointerless_freelists;
+  void *freelists[SCM_INLINE_GC_FREELIST_COUNT];
+  void *pointerless_freelists[SCM_INLINE_GC_FREELIST_COUNT];
 
   SCM handle;
   scm_i_pthread_t pthread;

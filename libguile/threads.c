@@ -1,4 +1,4 @@
-/* Copyright 1995-1998,2000-2014,2018
+/* Copyright 1995-1998,2000-2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -99,20 +99,16 @@ thread_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
      but GC doesn't know to trace them (as they are pointerless), so we
      need to do that here.  See the comments at the top of libgc's
      gc_inline.h.  */
-  if (t->pointerless_freelists)
+  for (size_t n = 0; n < SCM_INLINE_GC_FREELIST_COUNT; n++)
     {
-      size_t n;
-      for (n = 0; n < SCM_INLINE_GC_FREELIST_COUNT; n++)
+      void *chain = t->pointerless_freelists[n];
+      if (chain)
         {
-          void *chain = t->pointerless_freelists[n];
-          if (chain)
-            {
-              /* The first link is already marked by the freelist vector,
-                 so we just have to mark the tail.  */
-              while ((chain = *(void **)chain))
-                mark_stack_ptr = GC_mark_and_push (chain, mark_stack_ptr,
-                                                   mark_stack_limit, NULL);
-            }
+          /* The first link is already marked by the thread itsel, so we
+             just have to mark the tail.  */
+          while ((chain = *(void **)chain))
+            mark_stack_ptr = GC_mark_and_push (chain, mark_stack_ptr,
+                                               mark_stack_limit, NULL);
         }
     }
 
@@ -443,12 +439,6 @@ guilify_self_2 (SCM dynamic_state)
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
 
-  {
-    size_t size = SCM_INLINE_GC_FREELIST_COUNT * sizeof (void *);
-    t->freelists = scm_gc_malloc (size, "freelists");
-    t->pointerless_freelists = scm_gc_malloc (size, "atomic freelists");
-  }
-
   t->dynamic_state = scm_gc_typed_calloc (scm_t_dynamic_state);
   t->dynamic_state->thread_local_values = scm_c_make_hash_table (0);
   scm_set_current_dynamic_state (dynamic_state);
@@ -508,8 +498,8 @@ on_thread_exit (void *v)
 
   /* Although this thread has exited, the thread object might still be
      alive.  Release unused memory.  */
-  t->freelists = NULL;
-  t->pointerless_freelists = NULL;
+  for (size_t n = 0; n < SCM_INLINE_GC_FREELIST_COUNT; n++)
+    t->freelists[n] = t->pointerless_freelists[n] = NULL;
   t->dynamic_state = NULL;
   t->dynstack.base = NULL;
   t->dynstack.top = NULL;

@@ -1,7 +1,7 @@
 #ifndef SCM_GC_INLINE_H
 #define SCM_GC_INLINE_H
 
-/* Copyright 1995-1996,1998-2004,2006-2014,2018
+/* Copyright 1995-1996,1998-2004,2006-2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -46,17 +46,6 @@
 #include <gc/gc_inline.h> /* GC_generic_malloc_many */
 
 
-
-#define SCM_INLINE_GC_GRANULE_WORDS 2
-#define SCM_INLINE_GC_GRANULE_BYTES \
-  (sizeof(void *) * SCM_INLINE_GC_GRANULE_WORDS)
-
-/* A freelist set contains SCM_INLINE_GC_FREELIST_COUNT pointers to
-   singly linked lists of objects of different sizes, the ith one
-   containing objects i + 1 granules in size.  This setting of
-   SCM_INLINE_GC_FREELIST_COUNT will hold freelists for allocations of
-   up to 256 bytes.  */
-#define SCM_INLINE_GC_FREELIST_COUNT (256U / SCM_INLINE_GC_GRANULE_BYTES)
 
 static inline size_t
 scm_inline_gc_bytes_to_freelist_index (size_t bytes)
