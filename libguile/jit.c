@@ -32,6 +32,7 @@
 
 #include "frames.h"
 #include "gsubr.h"
+#include "gc-inline.h"
 #include "instructions.h"
 #include "intrinsics.h"
 #include "simpos.h" /* scm_getenv_int */
@@ -2056,14 +2057,41 @@ compile_allocate_words (scm_jit_state *j, uint16_t dst, uint16_t nwords)
 static void
 compile_allocate_words_immediate (scm_jit_state *j, uint16_t dst, uint16_t nwords)
 {
-  jit_gpr_t t = T0;
+  size_t bytes = nwords * sizeof(SCM);
+  size_t idx = scm_inline_gc_bytes_to_freelist_index (bytes);
 
-  emit_store_current_ip (j, t);
-  emit_call_2 (j, scm_vm_intrinsics.allocate_words, thread_operand (),
-               jit_operand_imm (JIT_OPERAND_ABI_WORD, nwords));
-  emit_retval (j, t);
-  emit_reload_sp (j);
-  emit_sp_set_scm (j, dst, t);
+  if (SCM_UNLIKELY (idx >= SCM_INLINE_GC_FREELIST_COUNT))
+    {
+      jit_gpr_t t = T0;
+      emit_store_current_ip (j, t);
+      emit_call_1 (j, GC_malloc, jit_operand_imm (JIT_OPERAND_ABI_WORD, bytes));
+      emit_retval (j, t);
+      emit_reload_sp (j);
+      emit_sp_set_scm (j, dst, t);
+    }
+  else
+    {
+      jit_gpr_t res = T0;
+      ptrdiff_t offset = offsetof(struct scm_thread, freelists);
+      offset += idx * sizeof(void*);
+      emit_ldxi (j, res, THREAD, offset);
+      jit_reloc_t fast = jit_bnei (j->jit, res, 0);
+      emit_store_current_ip (j, res);
+      emit_call_2 (j, scm_vm_intrinsics.allocate_words_with_freelist,
+                   thread_operand (),
+                   jit_operand_imm (JIT_OPERAND_ABI_WORD, idx));
+      emit_retval (j, res);
+      emit_reload_sp (j);
+      jit_reloc_t done = jit_jmp (j->jit);
+
+      jit_patch_here (j->jit, fast);
+      jit_gpr_t new_freelist = T1;
+      emit_ldr (j, new_freelist, res);
+      jit_stxi (j->jit, offset, THREAD, new_freelist);
+
+      jit_patch_here (j->jit, done);
+      emit_sp_set_scm (j, dst, res);
+    }
 }
 
 static void

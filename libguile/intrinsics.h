@@ -161,6 +161,7 @@ typedef uint32_t* scm_t_vcode_intrinsic;
   M(thread_u8_scm_sp_vra_mra, push_prompt, "push-prompt", PUSH_PROMPT)     \
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
   M(vcode, handle_interrupt_code, "%handle-interrupt-code", HANDLE_INTERRUPT_CODE) \
+  M(scm_from_thread_sz, allocate_words_with_freelist, "allocate-words/freelist", ALLOCATE_WORDS_WITH_FREELIST) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic
