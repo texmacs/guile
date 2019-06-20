@@ -105,6 +105,7 @@
 #define JIT_V5    _R10
 #define JIT_V6    _R11
 
+#define JIT_LR _R14
 #define JIT_SP _R13
 #define _LR _R14
 #define _PC _R15
