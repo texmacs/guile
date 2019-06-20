@@ -2553,6 +2553,24 @@ calli(jit_state_t *_jit, jit_word_t i0)
 }
 
 static void
+jmpi_with_link(jit_state_t *_jit, jit_word_t i0)
+{
+  return calli(_jit, i0);
+}
+
+static void
+pop_link_register(jit_state_t *_jit)
+{
+  popr(_jit, jit_gpr_regno (JIT_LR));
+}
+
+static void
+push_link_register(jit_state_t *_jit)
+{
+  pushr(_jit, jit_gpr_regno (JIT_LR));
+}
+
+static void
 jmpr(jit_state_t *_jit, int32_t r0)
 {
   rex(_jit, 0, WIDE, _NOREG, _NOREG, r0);

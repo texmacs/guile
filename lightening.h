@@ -584,6 +584,10 @@ jit_load_args_3(jit_state_t *_jit, jit_operand_t a, jit_operand_t b,
           M(_G___, jmpr)		\
           M(_p___, jmpi)		\
           M(R____, jmp)			\
+					\
+          M(_p___, jmpi_with_link)	\
+          M(_____, pop_link_register)	\
+          M(_____, push_link_register)	\
   					\
           M(_____, ret)			\
           M(_G___, retr)		\

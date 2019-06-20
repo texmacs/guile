@@ -123,6 +123,7 @@
 #define JIT_PLATFORM_CALLEE_SAVE_GPRS _X29, _X30
 
 // x31 is stack pointer.
+#define JIT_LR    _X30
 #define JIT_SP    _X31
 
 #define JIT_F0  _D0

@@ -74,6 +74,7 @@
 #endif
 
 #define JIT_SP     _RSP
+#define JIT_LR     JIT_TMP0
 #if __X32
 #  define JIT_R0   _RAX
 #  define JIT_R1   _RCX
