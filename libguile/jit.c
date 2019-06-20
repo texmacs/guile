@@ -237,6 +237,11 @@ static const jit_gpr_t SP = JIT_R0;
    THREAD.  Like SP, it can move.  */
 static const jit_gpr_t FP = JIT_R1;
 
+/* When we return to a function that doesn't have mcode, the just-popped
+   FP is stored in this register.  The return-to-the-interpreter
+   trampoline reads the vRA from the just-popped frame.  */
+static const jit_gpr_t OLD_FP_FOR_RETURN_TRAMPOLINE = JIT_V1; /* T0 */
+
 /* Scratch registers.  */
 static const jit_gpr_t T0 = JIT_V1;
 static const jit_gpr_t T1 = JIT_V2;
@@ -1601,13 +1606,11 @@ compile_shuffle_down (scm_jit_state *j, uint16_t from, uint16_t to)
     j->frame_size_max -= (from - to);
 }
 
-static const jit_gpr_t old_fp_for_return_trampoline = T0;
-
 static void
 compile_return_values (scm_jit_state *j)
 {
-  emit_pop_fp (j, old_fp_for_return_trampoline);
-  emit_load_mra (j, JIT_LR, old_fp_for_return_trampoline);
+  emit_pop_fp (j, OLD_FP_FOR_RETURN_TRAMPOLINE);
+  emit_load_mra (j, JIT_LR, OLD_FP_FOR_RETURN_TRAMPOLINE);
   jit_push_link_register (j->jit);
   jit_ret (j->jit);
 
@@ -1620,7 +1623,7 @@ emit_return_to_interpreter_trampoline (scm_jit_state *j)
 {
   jit_gpr_t ra = T1;
 
-  emit_load_vra (j, ra, old_fp_for_return_trampoline);
+  emit_load_vra (j, ra, OLD_FP_FOR_RETURN_TRAMPOLINE);
   emit_store_ip (j, ra);
   emit_exit (j);
 }
