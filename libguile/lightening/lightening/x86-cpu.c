@@ -2561,13 +2561,22 @@ jmpi_with_link(jit_state_t *_jit, jit_word_t i0)
 static void
 pop_link_register(jit_state_t *_jit)
 {
+  /* Treat this instruction as having no effect on the stack size; its
+   * effect is non-local (across functions) and handled manually.  */
+
+  int saved_frame_size = _jit->frame_size;
   popr(_jit, jit_gpr_regno (JIT_LR));
+  _jit->frame_size = saved_frame_size;
 }
 
 static void
 push_link_register(jit_state_t *_jit)
 {
+  /* See comment in pop_link_register.  */
+
+  int saved_frame_size = _jit->frame_size;
   pushr(_jit, jit_gpr_regno (JIT_LR));
+  _jit->frame_size = saved_frame_size;
 }
 
 static void
