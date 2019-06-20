@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-1998, 2000-2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1994-1998, 2000-2011, 2013, 2014, 2019 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -73,7 +73,7 @@ scm_cat_path (char *str1, const char *str2, long n)
   if (!str1)
     return 0L;
   str1[0] = 0;
-  strncat (str1, str2, n);
+  strncat (str1, str2, n + 1);
   return str1;
 }
 
