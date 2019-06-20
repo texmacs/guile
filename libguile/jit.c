@@ -597,13 +597,11 @@ emit_load_mra (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t fp)
   emit_ldxi (j, dst, fp, frame_offset_mra);
 }
 
-static jit_reloc_t
-emit_store_mra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t t)
+static void
+emit_store_mra (scm_jit_state *j, jit_gpr_t fp, jit_gpr_t mra)
 {
-  jit_reloc_t reloc = emit_mov_addr (j, t);
   ASSERT (frame_offset_mra == 0);
-  jit_str (j->jit, fp, t);
-  return reloc;
+  jit_str (j->jit, fp, mra);
 }
 
 static void
@@ -779,23 +777,19 @@ emit_exit (scm_jit_state *j)
   jit_jmpi (j->jit, exit_mcode);
 }
 
-static jit_reloc_t
+static void
 emit_push_frame (scm_jit_state *j, uint32_t proc_slot, uint32_t nlocals,
                  const uint32_t *vra)
 {
   jit_gpr_t t = T0;
-  jit_reloc_t continuation;
 
   emit_reload_fp (j);
   emit_subtract_stack_slots (j, FP, FP, proc_slot);
   set_register_state (j, FP_IN_REGISTER);
-  continuation = emit_store_mra (j, FP, t);
   emit_store_vra (j, FP, t, vra);
   emit_store_prev_fp_offset (j, FP, t, proc_slot);
   emit_store_fp (j);
   emit_reset_frame (j, nlocals);
-
-  return continuation;
 }
 
 static void
@@ -1290,10 +1284,11 @@ emit_entry_trampoline (scm_jit_state *j)
 static void
 emit_handle_interrupts_trampoline (scm_jit_state *j)
 {
-  /* Precondition: IP synced, MRA in T0.  */
+  /* Precondition: IP synced.  */
+  jit_pop_link_register (j->jit);
   emit_call_2 (j, scm_vm_intrinsics.push_interrupt_frame,
                thread_operand (),
-               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0));
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, JIT_LR));
   emit_reload_sp (j);
   emit_reload_fp (j);
   emit_direct_tail_call (j, scm_vm_intrinsics.handle_interrupt_code);
@@ -1455,12 +1450,18 @@ compile_halt (scm_jit_state *j)
 static void
 compile_call (scm_jit_state *j, uint32_t proc, uint32_t nlocals)
 {
-  /* 2 = size of call inst */
-  jit_reloc_t mcont = emit_push_frame (j, proc, nlocals, j->ip + 2);
+  jit_reloc_t push_frame = jit_jmp (j->jit);
 
+  void *trampoline = jit_address (j->jit);
+  reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
+  jit_pop_link_register (j->jit);
+  emit_store_mra (j, FP, JIT_LR);
   emit_indirect_tail_call (j);
 
-  jit_patch_here (j->jit, mcont);
+  jit_patch_here (j->jit, push_frame);
+  /* 2 = size of call inst */
+  emit_push_frame (j, proc, nlocals, j->ip + 2);
+  jit_jmpi_with_link (j->jit, trampoline);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size_min = proc;
@@ -1470,12 +1471,18 @@ compile_call (scm_jit_state *j, uint32_t proc, uint32_t nlocals)
 static void
 compile_call_label (scm_jit_state *j, uint32_t proc, uint32_t nlocals, const uint32_t *vcode)
 {
-  /* 2 = size of call-label inst */
-  jit_reloc_t mcont = emit_push_frame (j, proc, nlocals, j->ip + 3);
+  jit_reloc_t push_frame = jit_jmp (j->jit);
 
+  void *trampoline = jit_address (j->jit);
+  reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
+  jit_pop_link_register (j->jit);
+  emit_store_mra (j, FP, JIT_LR);
   emit_direct_tail_call (j, vcode);
 
-  jit_patch_here (j->jit, mcont);
+  jit_patch_here (j->jit, push_frame);
+  /* 3 = size of call-label inst */
+  emit_push_frame (j, proc, nlocals, j->ip + 3);
+  jit_jmpi_with_link (j->jit, trampoline);
 
   reset_register_state (j, FP_IN_REGISTER | SP_IN_REGISTER);
   j->frame_size_min = proc;
@@ -1599,11 +1606,10 @@ static const jit_gpr_t old_fp_for_return_trampoline = T0;
 static void
 compile_return_values (scm_jit_state *j)
 {
-  jit_gpr_t ra = T1;
-
   emit_pop_fp (j, old_fp_for_return_trampoline);
-  emit_load_mra (j, ra, old_fp_for_return_trampoline);
-  jit_jmpr (j->jit, ra);
+  emit_load_mra (j, JIT_LR, old_fp_for_return_trampoline);
+  jit_push_link_register (j->jit);
+  jit_ret (j->jit);
 
   j->frame_size_min = 0;
   j->frame_size_max = INT32_MAX;
@@ -3033,8 +3039,8 @@ compile_handle_interrupts (scm_jit_state *j)
   jit_reloc_t blocked = jit_bnei (j->jit, T0, 0);
 
   emit_store_current_ip (j, T0);
-  emit_movi (j, T0, (uintptr_t)again);
-  jit_jmpi (j->jit, handle_interrupts_trampoline);
+  jit_jmpi_with_link (j->jit, handle_interrupts_trampoline);
+  jit_jmpi (j->jit, again);
 
   jit_patch_here (j->jit, none_pending);
   jit_patch_here (j->jit, blocked);
@@ -4696,10 +4702,14 @@ initialize_jit (void)
   handle_interrupts_trampoline =
     emit_code (j, emit_handle_interrupts_trampoline);
   ASSERT (handle_interrupts_trampoline);
+  handle_interrupts_trampoline = jit_address_to_function_pointer
+    (handle_interrupts_trampoline);
 
   scm_jit_return_to_interpreter_trampoline =
     emit_code (j, emit_return_to_interpreter_trampoline);
   ASSERT (scm_jit_return_to_interpreter_trampoline);
+  scm_jit_return_to_interpreter_trampoline = jit_address_to_function_pointer
+    (scm_jit_return_to_interpreter_trampoline);
 }
 
 static uint8_t *
