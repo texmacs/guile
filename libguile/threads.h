@@ -1,7 +1,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright 1996-1998,2000-2004,2006-2009,2011-2014,2018
+/* Copyright 1996-1998,2000-2004,2006-2009,2011-2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -52,6 +52,17 @@ struct scm_thread {
   /* VM state for this thread.  */
   struct scm_vm vm;
 
+  /* For system asyncs.
+   */
+  SCM pending_asyncs;            /* The thunks to be run at the next
+                                    safe point.  Accessed atomically. */
+  unsigned int block_asyncs;    /* Non-zero means that asyncs should
+                                   not be run. */
+
+  /* Thread-local freelists; see gc-inline.h.  */
+  void **freelists;
+  void **pointerless_freelists;
+
   SCM handle;
   scm_i_pthread_t pthread;
 
@@ -68,23 +79,12 @@ struct scm_thread {
   scm_i_pthread_cond_t sleep_cond;
   int sleep_pipe[2];
 
-  /* Thread-local freelists; see gc-inline.h.  */
-  void **freelists;
-  void **pointerless_freelists;
-
   /* Other thread local things.
    */
   scm_t_dynamic_state *dynamic_state;
 
   /* The dynamic stack.  */
   scm_t_dynstack dynstack;
-
-  /* For system asyncs.
-   */
-  SCM pending_asyncs;            /* The thunks to be run at the next
-                                    safe point.  Accessed atomically. */
-  unsigned int block_asyncs;    /* Non-zero means that asyncs should
-                                   not be run. */
 
   /* The current continuation root and the stack base for it.
 
