@@ -2420,30 +2420,6 @@ The address of the local host using the loopback device, ie.@:
 @c  No address.
 @c  @end defvar
 
-@deffn {Scheme Procedure} inet-aton address
-@deffnx {C Function} scm_inet_aton (address)
-This function is deprecated in favor of @code{inet-pton}.
-
-Convert an IPv4 Internet address from printable string
-(dotted decimal notation) to an integer.  E.g.,
-
-@lisp
-(inet-aton "127.0.0.1") @result{} 2130706433
-@end lisp
-@end deffn
-
-@deffn {Scheme Procedure} inet-ntoa inetid
-@deffnx {C Function} scm_inet_ntoa (inetid)
-This function is deprecated in favor of @code{inet-ntop}.
-
-Convert an IPv4 Internet address to a printable
-(dotted decimal notation) string.  E.g.,
-
-@lisp
-(inet-ntoa 2130706433) @result{} "127.0.0.1"
-@end lisp
-@end deffn
-
 @deffn {Scheme Procedure} inet-netof address
 @deffnx {C Function} scm_inet_netof (address)
 Return the network number part of the given IPv4
