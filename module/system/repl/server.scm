@@ -211,7 +211,7 @@ and then close it.  Return the drained input as a string."
     (lambda ()
       ;; Enable full buffering mode on the socket to allow
       ;; 'get-bytevector-some' to return non-trivial chunks.
-      (setvbuf socket _IOFBF))
+      (setvbuf socket 'block))
     (lambda ()
       (let loop ((chunks '()))
         (let ((result (and (char-ready? socket)
