@@ -658,13 +658,19 @@ The GNU C Library Reference Manual}.
 @end deffn
 
 @findex fstat
-@deffn {Scheme Procedure} stat object
-@deffnx {C Function} scm_stat (object)
+@deffn {Scheme Procedure} stat object [exception-on-error?]
+@deffnx {C Function} scm_stat (object, exception_on_error)
 Return an object containing various information about the file
 determined by @var{object}.  @var{object} can be a string containing
 a file name or a port or integer file descriptor which is open
 on a file (in which case @code{fstat} is used as the underlying
 system call).
+
+If the optional @var{exception_on_error} argument is true, which
+is the default, an exception will be raised if the underlying
+system call returns an error, for example if the file is not
+found or is not readable. Otherwise, an error will cause
+@code{stat} to return @code{#f}.
 
 The object returned by @code{stat} can be passed as a single
 parameter to the following procedures, all of which return
