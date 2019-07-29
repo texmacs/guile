@@ -6,33 +6,21 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in alpha 2.9.2 (since alpha 2.9.1):
+Changes in alpha 2.9.3 (since alpha 2.9.2):
 
 * Notable changes
 
-** Just-in-time code generation support on ARMv7, ia32, AArch64
+** Improved just-in-time machine code generation
 
-This release adds just-in-time (JIT) native code generation for the
-ia32, ARMv7, and AArch64 platforms, in addition to the x86-64 support
-already present in 2.9.1.
-
-** Cheaper just-in-time code generation
-
-Guile now includes a forked version of GNU Lightning.  This "Lightening"
-effort, spun out as a separate project, aims to build on the back-end
-support from GNU Lightning, but adapting the API and behavior of the
-library to match Guile's needs.
-
-One of the important points that this project fixes is run-time
-overhead.  With the adoption of Lightening, Guile has lowered its
-thresholds for when to generate native code at run-time, so that user
-programs run faster, sooner.
-
-For more information, see https://gitlab.com/wingo/lightening.
+Guile's JIT compiler emits better code for indirect procedure calls,
+atomic instructions, numeric comparisons, procedure prologues,
+well-known closures with no free variables, calls and returns, and
+allocations.  Together these improvements can speed up some benchmarks
+by up to 50%.
 
 
 
-Changes in alpha 2.9.1 (since the stable 2.2 series):
+Changes in alpha 2.9.x (since the stable 2.2 series):
 
 * Notable changes
 
@@ -49,10 +37,8 @@ JIT compilation, configure Guile with `--enable-jit=no' or
 `--disable-jit'.  The default is `--enable-jit=auto', which enables the
 JIT if it is available.  See `./configure --help' for more.
 
-In this release, JIT compilation is enabled only on x86-64.  In future
-prereleases support will be added for all architectures supported by GNU
-lightning.  Intrepid users on other platforms can try passing
-`--enable-jit=yes' to see the state of JIT on their platform.
+JIT compilation is enabled by default on x86-64, i686, ARMv7, and
+AArch64 targets.
 
 ** Lower-level bytecode
 
