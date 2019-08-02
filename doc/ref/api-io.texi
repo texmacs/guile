@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009,
-@c   2010, 2011, 2013, 2016  Free Software Foundation, Inc.
+@c   2010, 2011, 2013, 2016, 2019  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Input and Output
@@ -192,6 +192,14 @@ Read from @var{port}, blocking as necessary, until bytes are available
 or an end-of-file is reached.  Return either the end-of-file object or a
 new bytevector containing some of the available bytes (at least one),
 and update the port position to point just past these bytes.
+@end deffn
+
+@deffn {Scheme Procedure} get-bytevector-some! port bv start count
+@deffnx {C Function} scm_get_bytevector_some_x (port, bv, start, count)
+Read up to @var{count} bytes from @var{port}, blocking as necessary
+until at least one byte is available or an end-of-file is reached.
+Store them in @var{bv} starting at index @var{start}.  Return the number
+of bytes actually read, or an end-of-file object.
 @end deffn
 
 @deffn {Scheme Procedure} get-bytevector-all port

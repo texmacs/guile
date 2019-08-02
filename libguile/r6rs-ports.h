@@ -1,7 +1,7 @@
 #ifndef SCM_R6RS_PORTS_H
 #define SCM_R6RS_PORTS_H
 
-/* Copyright 2009-2011,2013,2018
+/* Copyright 2009-2011,2013,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -35,7 +35,6 @@ SCM_API SCM scm_get_bytevector_n (SCM, SCM);
 SCM_API SCM scm_get_bytevector_n_x (SCM, SCM, SCM, SCM);
 SCM_API SCM scm_get_bytevector_some (SCM);
 SCM_API SCM scm_get_bytevector_all (SCM);
-SCM_API SCM scm_unget_bytevector (SCM, SCM, SCM, SCM);
 SCM_API SCM scm_put_u8 (SCM, SCM);
 SCM_API SCM scm_put_bytevector (SCM, SCM, SCM, SCM);
 SCM_API SCM scm_open_bytevector_output_port (SCM);
@@ -46,5 +45,9 @@ SCM_API SCM scm_get_string_n_x (SCM, SCM, SCM, SCM);
 
 SCM_API void scm_init_r6rs_ports (void);
 SCM_INTERNAL void scm_register_r6rs_ports (void);
+
+/* Guile extensions, not in R6RS.  */
+SCM_API SCM scm_unget_bytevector (SCM, SCM, SCM, SCM);
+SCM_API SCM scm_get_bytevector_some_x (SCM, SCM, SCM, SCM);
 
 #endif /* SCM_R6RS_PORTS_H */

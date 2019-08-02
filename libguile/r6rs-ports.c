@@ -86,9 +86,8 @@ SCM_DEFINE (scm_eof_object, "eof-object", 0, 0, 0,
 
 /* Input ports.  */
 
-#ifndef MIN
-# define MIN(a,b) ((a) < (b) ? (a) : (b))
-#endif
+#define MAX(A, B) ((A) >= (B) ? (A) : (B))
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 /* Bytevector input ports.  */
 static scm_t_port_type *bytevector_input_port_type = 0;
@@ -521,6 +520,49 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_get_bytevector_some_x, "get-bytevector-some!", 4, 0, 0,
+	    (SCM port, SCM bv, SCM start, SCM count),
+            "Read up to @var{count} bytes from @var{port}, blocking "
+            "as necessary until at least one byte is available or an "
+            "end-of-file is reached.  Store them in @var{bv} starting "
+            "at index @var{start}.  Return the number of bytes actually "
+            "read, or an end-of-file object.")
+#define FUNC_NAME s_scm_get_bytevector_some_x
+{
+  SCM buf;
+  size_t c_start, c_count, c_len;
+  size_t cur, avail, transfer_size;
+
+  SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
+  SCM_VALIDATE_BYTEVECTOR (2, bv);
+  c_start = scm_to_size_t (start);
+  c_count = scm_to_size_t (count);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+
+  if (SCM_UNLIKELY (c_len < c_start
+                    || c_len - c_start < c_count))
+    scm_out_of_range (FUNC_NAME, count);
+
+  if (c_count == 0)
+    return SCM_INUM0;
+
+  buf = scm_fill_input (port, 0, &cur, &avail);
+  if (avail == 0)
+    {
+      scm_port_buffer_set_has_eof_p (buf, SCM_BOOL_F);
+      return SCM_EOF_VAL;
+    }
+
+  transfer_size = MIN (avail, c_count);
+  scm_port_buffer_take (buf,
+                        (uint8_t *) SCM_BYTEVECTOR_CONTENTS (bv) + c_start,
+                        transfer_size, cur, avail);
+
+  return scm_from_size_t (transfer_size);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
 	    (SCM port),
 	    "Read from @var{port}, blocking as necessary, until "
@@ -731,8 +773,6 @@ bytevector_output_port_buffer_init (scm_t_bytevector_output_port_buffer *buf)
   buf->buffer = NULL;
   /* Don't clear the port.  */
 }
-
-#define MAX(A, B) ((A) >= (B) ? (A) : (B))
 
 static inline void
 bytevector_output_port_buffer_grow (scm_t_bytevector_output_port_buffer *buf,
