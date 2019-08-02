@@ -1249,6 +1249,36 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
 #endif /* HAVE_FORK */
 
 #ifdef HAVE_FORK
+/* 'renumber_file_descriptor' is a helper function for 'start_child'
+   below, and is specialized for that particular environment where it
+   doesn't make sense to report errors via exceptions.  It uses dup(2)
+   to duplicate the file descriptor FD, closes the original FD, and
+   returns the new descriptor.  If dup(2) fails, print an error message
+   to ERR and abort.  */
+static int
+renumber_file_descriptor (int fd, int err)
+{
+  int new_fd;
+
+  do
+    new_fd = dup (fd);
+  while (new_fd == -1 && errno == EINTR);
+
+  if (new_fd == -1)
+    {
+      /* At this point we are in the child process before exec.  We
+         cannot safely raise an exception in this environment.  */
+      char *msg = strerror (errno);
+      fprintf (fdopen (err, "a"), "start_child: dup failed: %s\n", msg);
+      _exit (127);  /* Use exit status 127, as with other exec errors. */
+    }
+
+  close (fd);
+  return new_fd;
+}
+#endif /* HAVE_FORK */
+
+#ifdef HAVE_FORK
 #define HAVE_START_CHILD 1
 /* Since Guile uses threads, we have to be very careful to avoid calling
    functions that are not async-signal-safe in the child.  That's why
@@ -1299,16 +1329,16 @@ start_child (const char *exec_file, char **exec_argv,
   if (in > 0)
     {
       if (out == 0)
-        do out = dup (out); while (errno == EINTR);
+        out = renumber_file_descriptor (out, err);
       if (err == 0)
-        do err = dup (err); while (errno == EINTR);
+        err = renumber_file_descriptor (err, err);
       do dup2 (in, 0); while (errno == EINTR);
       close (in);
     }
   if (out > 1)
     {
       if (err == 1)
-        do err = dup (err); while (errno == EINTR);
+        err = renumber_file_descriptor (err, err);
       do dup2 (out, 1); while (errno == EINTR);
       close (out);
     }
@@ -1321,12 +1351,11 @@ start_child (const char *exec_file, char **exec_argv,
   execvp (exec_file, exec_argv);
 
   /* The exec failed!  There is nothing sensible to do.  */
-  if (err > 0)
-    {
-      char *msg = strerror (errno);
-      fprintf (fdopen (err, "a"), "In execvp of %s: %s\n",
-               exec_file, msg);
-    }
+  {
+    char *msg = strerror (errno);
+    fprintf (fdopen (2, "a"), "In execvp of %s: %s\n",
+             exec_file, msg);
+  }
 
   /* Use exit status 127, like shells in this case, as per POSIX
      <http://pubs.opengroup.org/onlinepubs/007904875/utilities/xcu_chap02.html#tag_02_09_01_01>.  */
