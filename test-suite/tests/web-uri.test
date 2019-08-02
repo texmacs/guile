@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010-2012, 2014, 2017 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010-2012, 2014, 2017, 2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -121,7 +121,21 @@
 
   (pass-if-uri-exception "http://foo@"
                          "Expected.*host"
-                         (build-uri 'http #:userinfo "foo")))
+                         (build-uri 'http #:userinfo "foo"))
+
+  ;; In this test, we need to reload the '(web uri)' module with a
+  ;; different locale.  This is because some locale-dependent things
+  ;; (e.g., compiled regexes) are computed when the module is loaded.
+  (pass-if-uri-exception "http://illégal.com"
+                         "Expected.*host"
+                         (dynamic-wind
+                           (lambda () #t)
+                           (lambda ()
+                             (with-locale "en_US.utf8"
+                               (reload-module (resolve-module '(web uri)))
+                               (build-uri 'http #:host "illégal.com")))
+                           (lambda ()
+                             (reload-module (resolve-module '(web uri)))))))
 
 (with-test-prefix "build-uri-reference"
   (pass-if "//host/etc/foo"
@@ -290,7 +304,20 @@
            #:port 100
            #:path "/"
            #:query "q"
-           #:fragment "bar")))
+           #:fragment "bar"))
+
+  ;; This test reproduces bug #35785.  See the 'illégal' test above for
+  ;; why we reload the module.
+  (pass-if "http://www.example.com (sv_SE)"
+    (dynamic-wind
+      (lambda () #t)
+      (lambda ()
+        (with-locale "sv_SE.utf8"
+          (reload-module (resolve-module '(web uri)))
+          (uri=? (string->uri "http://www.example.com")
+                 #:scheme 'http #:host "www.example.com" #:path "")))
+      (lambda ()
+        (reload-module (resolve-module '(web uri)))))))
 
 (with-test-prefix "string->uri-reference"
   (pass-if "/foo"
