@@ -1,6 +1,6 @@
 ;;; Repl server
 
-;; Copyright (C)  2003, 2010, 2011, 2014, 2016 Free Software Foundation, Inc.
+;; Copyright (C)  2003, 2010, 2011, 2014, 2016, 2019 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -71,7 +71,9 @@
 
 (define* (make-tcp-server-socket #:key
                           (host #f)
-                          (addr (if host (inet-aton host) INADDR_LOOPBACK))
+                          (addr (if host
+                                    (inet-pton AF_INET host)
+                                    INADDR_LOOPBACK))
                           (port 37146))
   (let ((sock (socket PF_INET SOCK_STREAM 0)))
     (setsockopt sock SOL_SOCKET SO_REUSEADDR 1)
