@@ -4733,8 +4733,6 @@ initialize_jit (void)
   handle_interrupts_trampoline =
     emit_code (j, emit_handle_interrupts_trampoline);
   ASSERT (handle_interrupts_trampoline);
-  handle_interrupts_trampoline = jit_address_to_function_pointer
-    (handle_interrupts_trampoline);
 
   scm_jit_return_to_interpreter_trampoline =
     emit_code (j, emit_return_to_interpreter_trampoline);
