@@ -115,6 +115,268 @@ installation with other effective versions (for example, the older Guile
 2.2).  See "Parallel Installations" in the manual for full details.
 Notably, the `pkg-config' file is now `guile-3.0'.
 
+
+
+Changes in 2.2.5 (since 2.2.4):
+
+* Notable improvements
+
+** Greatly improved performance of bidirectional pipes.
+
+The performance of bidirectional pipes, as created using 'open-pipe' or
+'open-pipe*' in OPEN_BOTH mode, has been greatly improved.  When reading
+large blocks of binary data from a bidirectional pipe, the maximum
+bandwidth has been increased by a factor of ~10^3 in some cases.
+
+** New 'get-bytevector-some!' I/O primitive.
+
+This new I/O primitive is similar to 'get-bytevector-some' from the
+R6RS, except that it writes its data to a user-specified range of
+indices in an existing bytevector.  As a corollary, it is also now
+possible to specify a maximum number of bytes to read.  Note that
+'get-bytevector-some', and now 'get-bytevector-some!', are unique among
+Guile's I/O primitives in their support of efficient binary reads of
+potentially large blocks while also allowing for short reads, to avoid
+undesired blocking.  Now these operations can be performed while also
+avoiding heap-allocation.
+
+'get-bytevector-some!' is needed to efficiently implement the new
+bidirectional pipes, which are built upon R6RS custom binary
+input/output ports.
+
+** get-bytevector-{n!,some,some!} now support suspendable I/O.
+
+Scheme implementations of 'get-bytevector-n!', 'get-bytevector-some',
+and 'get-bytevector-some!' have been added to (ice-9 suspendable-ports).
+As a result, these I/O operations now support suspendable I/O.
+
+* Compiler improvements
+
+** guild compile: Add -Wshadowed-toplevel.
+
+Top-level definitions that shadow previous top-level definitions from
+the same compilation unit will now trigger a compile-time warning, if
+-Wshadowed-toplevel is enabled.  It is enabled by default.
+
+** guild compile: Add '-x' flag.
+
+Passing "-x EXT" to 'guild compile' will now cause EXT to be recognized
+as a valid source file name extension.  For example, to compile R6RS
+code, you might want to pass "-x .sls" so that files ending in ".sls"
+can be found.
+
+* Miscellaneous improvements
+
+** Bootstrap optimization
+
+eval.go and psyntax-pp.go are now built before the rest of the .go files
+so that they are processed by a fast macro expander.  This saves time
+when using parallel builds.
+
+** put-u8 now always writes a single byte, regardless of the port encoding.
+
+Previously, (put-u8 PORT OCTET) worked as expected only when writing to
+binary ports, i.e. those with port encoding "ISO-8859-1" a.k.a. Latin-1.
+Strictly speaking, this meets the requirements of the R6RS 'put-u8',
+which need only support binary ports.  However, Guile in fact allows
+binary I/O to be performed on any port, and yet 'put-u8' behaved in a
+surprising way with other port encodings: it would perform a _textual_
+I/O operation, writing the character with Unicode scalar value OCTET.
+Now, 'put-u8' always writes a single byte with value OCTET, regardless
+of the port encoding.
+
+** Optimize fixnum exact integer square roots.
+
+'exact-integer-sqrt' now avoids heap allocation when applied to a
+fixnum.  'sqrt' now avoids heap allocation when applied to a fixnum
+that's a perfect square.  Fewer heap allocations are now required when
+applying 'sqrt' to a square of an exact rational whose numerator or
+denominator are fixnums.
+
+** scm_mkstrport: Optimize the POS -> BYTE_POS conversion.
+
+scm_mkstrport now avoids an unnecessary heap allocation and conversion
+to UTF-8, when STR is provided and POS is non-zero.
+
+** SRFI-19: Support ~N in string->date.
+
+Support for the ~N escape, which allows fractions of a second to be
+parsed, is now supported in SRFI-19 'string->date'.
+
+** SRFI-19: Update the leap second table.
+
+The leap on 1 January 2017 was added to SRFI-19's leap second table.
+
+** stexi->shtml: Add support for @i, @math, @tie and @dots.
+
+stexi->shtml is now able to convert @i, @math, @tie and @dots to HTML.
+
+** Define AT_SYMLINK_NOFOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH.
+
+AT_SYMLINK_FOLLOW, AT_NO_AUTOMOUNT, and AT_EMPTY_PATH are now available
+from Scheme, if supported on the platform.
+
+** Improvements to the 'time' macro from (ice-9 time).
+
+The 'time' macro now supports expressions that return multiple values.
+It has also been rewritten as a hygienic 'syntax-rules' macro.
+Previously, it was built using 'define-macro', and was therefore
+unhygienic.  This is not merely an internal implementation detail, but
+is potentially relevant to any user of the 'time' macro, since it could
+lead to unintended variable capture and other problems.
+
+** Clarify the documentation for 'nil?'.
+   See commit b44f505f1571fc9c42e58982f161a9cfc81fb7f4.
+** Clarify the manual's "Processes" section.
+   See commit 8cdd3a0773930ca872a13aada7a1344f03bb382b.
+** Avoid 'with-latin1-locale' in binary I/O tests.
+   See commit 162a031e5f2c64cd23fcf069fb7b5071196f9527.
+** Update user-visible copyright years.
+
+* Bug fixes
+
+** Avoid regexp ranges in HTTP inter-protocol exploitation check.
+
+The regular expression used to check for HTTP inter-protocol
+exploitation attacks previously used a character range '0-9', whose
+meaning depends on the current locale.  This has now been fixed.
+
+** Fixes to the SRFI-19 time/date library.
+
+*** TAI-to-UTC conversion leaps at the wrong time.
+   <https://bugs.gnu.org/21911>
+*** time-utc->date shows bogus zone-dependent leap second.
+   <https://bugs.gnu.org/22034>
+*** Manual incorrectly describes Julian Date.
+   <https://bugs.gnu.org/21902>
+*** date->string duff ISO 8601 negative years.
+   <https://bugs.gnu.org/21903>
+*** date->string duff ISO 8601 format for non-4-digit years.
+   <https://bugs.gnu.org/21904>
+*** julian-day->date negative input breakage.
+    <https://bugs.gnu.org/21906>
+*** time-duration screws up negative durations.
+    <https://bugs.gnu.org/26162>
+*** time-difference doesn't detect error of differing time types.
+    <https://bugs.gnu.org/26163>
+
+** Improve overflow checks in bytevector, string, and I/O operations.
+
+Several numerical computations, performed using primitive C arithmetic
+in Guile's core bytevector, string, and I/O operations, have been
+rewritten to avoid overflows.
+
+** Fix type inferencing for 'nil?' and 'null?' predicates.
+
+Previously, the compiler would sometimes miscompile certain combinations
+of 'nil?' and 'null?' predicates present within the same top-level form.
+See <https://bugs.gnu.org/33036>.
+
+** Fix 'atomic-box-compare-and-swap!'.
+
+Previously, 'atomic-box-compare-and-swap!' would sometimes spuriously
+fail on architectures based on Load-Linked/Store-Conditional (LL/SC)
+synchronication primitives (e.g. ARM, PowerPC, and MIPS) in a way that
+was undetectable by the caller.  See <https://bugs.gnu.org/32786>.
+
+** Make URI handling locale independent.
+
+Previously, procedures in (web uri) would misbehave in some locales
+including sv_SE.  See <https://bugs.gnu.org/35785>.
+
+** Strings, i18n: Limit the use of alloca to approximately 8 kilobytes.
+
+Previously, 'string-locale-ci=?', 'string-locale-ci<?',
+'string-locale<?', 'string-locale-{downcase,upcase,titlecase}' and
+'string-normalize-{nfd,nfc,nfkd,nfkc}' would overflow the C stack when
+applied to very large strings.
+
+** Fix documentation of R6RS 'binary-port?' to reflect reality.
+
+Previously, the documentation incorrectly stated that 'binary-port?'
+always returns #t.  In fact, it returns #t if and only if the port
+encoding is "ISO-8859-1".  The documentation for 'binary-port?' and
+'textual-port?' has been rewritten to reflect the current reality, and
+also to leave open the possibility of changing the behavior of these
+predicates in a future version of Guile.
+
+** Avoid passing NULL to 'memcpy' and 'memcmp'.
+
+Previously, NULL was sometimes passed to 'memcpy' or 'memcmp' when the
+size argument was 0.
+
+** Save and restore errno in the signal handler.
+
+Previously, Guile's synchronous C signal handler failed to save and
+restore 'errno', although it might change its value.  This could
+potentially lead to spurious corruptions of 'errno' within threads
+interrupted by signals.
+
+** scm_to_stringn: Avoid passing NULL to c_strcasecmp.
+   <https://lists.gnu.org/archive/html/guile-user/2019-05/msg00070.html>
+** r6rs-ports: Accept 'port-position' values greater than 2^32.
+   <https://bugs.gnu.org/32161>
+** r6rs-ports: 'put-bytevector' accepts 64-bit integers.
+   Fixed in commit 741c45458da0831a12a4f8d729814bf9f2cb6571.
+** Fix R6RS call-with-{input,output}-file to open textual ports.
+   <https://bugs.gnu.org/32329>
+** Update (ice-9 match) to include selected bug fixes from upstream.
+*** ice-9/match named match-let is not working
+   <https://bugs.gnu.org/22925>
+** open-process: Fix dup(2) and execvp(2) error handling.
+   Fixed in commit 521f1ab4709217407496004019c00005d2a82f78.
+** bytevectors: Support large indices in integer accessors.
+   Fixed in commit b9cf3517efd4643670d970d2692bc7bede9a85e8.
+** bytevectors: Fix list validation of *list->bytevector procedures.
+   <https://bugs.gnu.org/32938>
+** Gracefully handle huge shift counts in 'ash' and 'round-ash'.
+   <https://bugs.gnu.org/32644>
+** In 'ash' and 'round-ash', handle right shift count of LONG_MIN.
+   <https://bugs.gnu.org/21901>
+** Use 'scm_from_utf8_{string,symbol,keyword}' for C string literals.
+   <https://bugs.gnu.org/33044>
+** web: Add support for HTTP header continuation lines.
+   Fixed in commit 73cde5ed7218a090ecee888870908af5445796f0.
+** scm_seed_to_random_state: Support wide string arguments.
+   <https://bugs.gnu.org/33044>
+** Do not warn the user when 'madvise' returns ENOSYS.
+   Fixed in commit 45e4ace6603e00b297e6542362273041aebe7305.
+** Add 'texinfo' as a dependency in the README.
+   Fixed in commit 1bbce71501198c3c7abdf07941f5cdc1434858c2.
+** Don't mutate read-only string in ports test.
+   Fixed in commit 552f007e91a97f136aad1b22918688b61d03a4a3.
+** Remove redefinition of when & unless in snarf-check-and-output-texi.
+   Fixed in commit 1ba5d6f47a54dceee4452a1e7726d2635e5b3449.
+** Fix strftime when Guile is built without threading support.
+   Fixed in commit 139c702fc8b61fdeb813c3428fef3701ea8677f9.
+** Avoid leaking a file descriptor in test-unwind.
+   Fixed in commit 1437b76777e576b3d000e2f80c5ecdb33a74ac33.
+** Fix binary output on files created by mkstemp!.
+   Fixed in commit 78468baa118d316050a27e43250966e52ffd3d54.
+** Fix crypt-on-glibc test error.
+   Fixed in commit 27ffbfb0235de466016ea5a6421508f6548971b6.
+** Fix race when expanding syntax-parameterize and define-syntax-parameter.
+   <https://bugs.gnu.org/27476#102>
+** Add a fallback value for the locale-monetary-decimal-point.
+   Fixed in commit 9ba449643d4c2ac1d2174befca7d765af222bcc0.
+** Handle newlib C library's langinfo constant names.
+   Fixed in commit 92105d13ad1363b511214589b7d62d95304beb17.
+** Make locale monetary conversion tests be less strict on terminal whitespace.
+   Fixed in commit 2a3ccfb66714efc1c081ea6e921336f80b756d3c.
+** Disable test for current value of setitimer on Cygwin.
+   Fixed in commit 3a64c504caaf83e9faf2ec9b7d0e031e1a6a09b9.
+** Fix gc.test "after-gc-hook gets called" failures.
+   <https://bugs.gnu.org/31776#17>
+** Update iconv.m4 from gnulib, to fix an iconv leak during configure.
+   <https://lists.gnu.org/archive/html/guile-devel/2019-05/msg00011.html>
+** guild compile: Add missing newline in "unrecognized option" error message.
+   Fixed in commit 85c5bae4fd94f8686d26fd792b7c0f588c23bd94.
+** 'basename' now correctly handles "/" and "//".
+   Fixed in commit 36ad1d24b3d2c174a64c445502a36f19605dbd65.
+** Make srfi-71 visible through 'cond-expand'.
+   Fixed in commit 59a06d8392234fbec8b3605cec266a7a0a7b7a56.
+
+
 
 Changes in 2.2.4 (since 2.2.3):
 
