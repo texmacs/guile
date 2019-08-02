@@ -1608,11 +1608,20 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   c_filename = scm_to_utf8_string (filename);
   scm_dynwind_free (c_filename);
 
-  c_last_component = last_component (c_filename);
-  if (!c_last_component)
-    res = filename;
+  if (strcmp (c_filename, "/") == 0
+      || strcmp (c_filename, "//") == 0)
+    /* As per
+       <http://pubs.opengroup.org/onlinepubs/9699919799/functions/basename.html>,
+       "/" and "//" are treated specially.  */
+    res = scm_from_utf8_string ("/");
   else
-    res = scm_from_utf8_string (c_last_component);
+    {
+      c_last_component = last_component (c_filename);
+      if (!c_last_component)
+        res = filename;
+      else
+        res = scm_from_utf8_string (c_last_component);
+    }
   scm_dynwind_end ();
 
   if (!SCM_UNBNDP (suffix) &&

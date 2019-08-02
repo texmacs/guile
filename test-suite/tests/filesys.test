@@ -1,6 +1,6 @@
 ;;;; filesys.test --- test file system functions -*- scheme -*-
 ;;;; 
-;;;; Copyright (C) 2004, 2006, 2013 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2006, 2013, 2019 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -221,6 +221,12 @@
               (close-port (car in+out))
               (cons (join-thread child) out)))
           (throw 'unresolved)))))
+
+(with-test-prefix "basename"
+
+  (pass-if-equal "/" "/" (basename "/"))
+  (pass-if-equal "//" "/" (basename "//"))
+  (pass-if-equal "a/b/c" "c" (basename "a/b/c")))
 
 (delete-file (test-file))
 (when (file-exists? (test-symlink))
