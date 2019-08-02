@@ -196,6 +196,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/web-http.test			\
 	    tests/web-request.test		\
 	    tests/web-response.test		\
+	    tests/web-server.test		\
 	    tests/web-uri.test
 
 EXTRA_DIST = \

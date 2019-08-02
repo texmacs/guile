@@ -1,7 +1,7 @@
 ;;;; time.test --- test suite for Guile's time functions     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- June 1999, 2004
 ;;;;
-;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008, 2019 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -204,8 +204,9 @@
 
   (pass-if-equal "strftime passes wide characters"
       "\u0100"
-    (let ((t (localtime (current-time))))
-      (substring (strftime "\u0100%Z" t) 0 1)))
+    (with-locale "en_US.utf8"
+                 (let ((t (localtime (current-time))))
+                   (substring (strftime "\u0100%Z" t) 0 1))))
 
   (with-test-prefix "C99 %z format"
 
@@ -229,7 +230,17 @@
         (putenv "TZ=EST+5")
         (tzset)
         (let ((tm (localtime 86400)))
-          (strftime "%z" tm))))))
+          (strftime "%z" tm))))
+
+    (pass-if-equal "strftime fr_FR.utf8"
+        " 1 février 1970"
+      (with-locale "fr_FR.utf8"
+                   (strftime "%e %B %Y" (gmtime (* 31 24 3600)))))
+
+    (pass-if-equal "strftime fr_FR.iso88591" ;<https://bugs.gnu.org/35920>
+        " 1 février 1970"
+      (with-locale "fr_FR.iso88591"
+                   (strftime "%e %B %Y" (gmtime (* 31 24 3600)))))))
 
 ;;;
 ;;; strptime
@@ -260,6 +271,22 @@
       (tzset)
       (let ((tm (car (strptime "%s" "86400"))))
 	(eqv? 0 (tm:gmtoff tm))))
+
+    (pass-if-equal "strftime fr_FR.utf8"
+        '(1 2 1999)
+      (with-locale "fr_FR.utf8"
+                   (let ((tm (car (strptime "%e %B %Y" " 1 février 1999"))))
+                     (list (tm:mday tm)
+                           (+ 1 (tm:mon tm))
+                           (+ 1900 (tm:year tm))))))
+
+    (pass-if-equal "strftime fr_FR.iso88591" ;<https://bugs.gnu.org/35920>
+        '(1 2 1999)
+      (with-locale "fr_FR.iso88591"
+                   (let ((tm (car (strptime "%e %B %Y" " 1 février 1999"))))
+                     (list (tm:mday tm)
+                           (+ 1 (tm:mon tm))
+                           (+ 1900 (tm:year tm))))))
 
     ;; prior to guile 1.6.9 and 1.8.1 we didn't pass tm_gmtoff back from
     ;; strptime

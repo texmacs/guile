@@ -664,9 +664,9 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   SCM_VALIDATE_STRING (1, format);
   bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
-  /* Convert string to UTF-8 so that non-ASCII characters in the
-     format are passed through unchanged.  */
-  fmt = scm_to_utf8_stringn (format, &len);
+  /* Convert the format string to the locale encoding, as the underlying
+     'strftime' C function expects.  */
+  fmt = scm_to_locale_stringn (format, &len);
 
   /* Ugly hack: strftime can return 0 if its buffer is too small,
      but some valid time strings (e.g. "%p") can sometimes produce
@@ -729,7 +729,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 #endif
     }
 
-  result = scm_from_utf8_string (tbuf + 1);
+  result = scm_from_locale_string (tbuf + 1);
   free (tbuf);
   free (myfmt);
 #if HAVE_STRUCT_TM_TM_ZONE
@@ -756,16 +756,16 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 {
   struct tm t;
   char *fmt, *str, *rest;
-  size_t used_len;
+  SCM used_len;
   long zoff;
 
   SCM_VALIDATE_STRING (1, format);
   SCM_VALIDATE_STRING (2, string);
 
-  /* Convert strings to UTF-8 so that non-ASCII characters are passed
-     through unchanged.  */
-  fmt = scm_to_utf8_string (format);
-  str = scm_to_utf8_string (string);
+  /* Convert strings to the locale encoding, as the underlying
+     'strptime' C function expects.  */
+  fmt = scm_to_locale_string (format);
+  str = scm_to_locale_string (string);
 
   /* initialize the struct tm */
 #define tm_init(field) t.field = 0
@@ -809,14 +809,14 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   zoff = 0;
 #endif
 
-  /* Compute the number of UTF-8 characters.  */
-  used_len = u8_strnlen ((uint8_t*) str, rest-str);
+  /* Compute the number of characters parsed.  */
+  used_len = scm_string_length (scm_from_locale_stringn (str, rest-str));
   scm_remember_upto_here_2 (format, string);
   free (str);
   free (fmt);
 
   return scm_cons (filltime (&t, zoff, NULL),
-		   scm_from_signed_integer (used_len));
+                   used_len);
 }
 #undef FUNC_NAME
 #endif /* HAVE_STRPTIME */
