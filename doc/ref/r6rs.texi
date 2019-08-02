@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  2010, 2011, 2012, 2013,
-@c   2014 Free Software Foundation, Inc.
+@c   2014, 2019 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node R6RS Support
@@ -1680,9 +1680,22 @@ Return a transcoder associated with the encoding of @var{port}.
 @end deffn
 
 @deffn {Scheme Procedure} binary-port? port
-@deffnx {Scheme Procedure} textual-port? port
-Return @code{#t}, as all ports in Guile are suitable for binary and
-textual I/O.  @xref{Encoding}, for more details.
+Return @code{#t} if @var{port} appears to be a binary port, else return
+@code{#f}.  Note that Guile does not currently distinguish between
+binary and textual ports, so this predicate is not a reliable indicator
+of whether the port was created as a binary port.  Currently, it returns
+@code{#t} if and only if the port encoding is ``ISO-8859-1'', because
+Guile uses this encoding when creating a binary port.  @xref{Encoding},
+for more details.
+@end deffn
+
+@deffn {Scheme Procedure} textual-port? port
+Return @code{#t} if @var{port} appears to be a textual port, else return
+@code{#f}.  Note that Guile does not currently distinguish between
+binary and textual ports, so this predicate is not a reliable indicator
+of whether the port was created as a textual port.  Currently, it always
+returns @code{#t}, because all ports can be used for textual I/O in
+Guile.  @xref{Encoding}, for more details.
 @end deffn
 
 @deffn {Scheme Procedure} transcoded-port binary-port transcoder
