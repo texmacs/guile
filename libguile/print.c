@@ -1184,14 +1184,14 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    continue;
 	  default:
 	    SCM_MISC_ERROR ("FORMAT: Unsupported format option ~~~A - use (ice-9 format) instead",
-			    scm_list_1 (scm_c_make_char (scm_i_string_ref (message, p))));
+			    scm_list_1 (scm_i_make_char (scm_i_string_ref (message, p))));
 	    
 	  }
 
 
 	if (!scm_is_pair (args))
 	  SCM_MISC_ERROR ("FORMAT: Missing argument for ~~~A",
-			  scm_list_1 (scm_c_make_char (scm_i_string_ref (message, p))));
+			  scm_list_1 (scm_i_make_char (scm_i_string_ref (message, p))));
 			  		
 	scm_lfwrite_substr (message, start, p - 1, port);
 	/* we pass destination here */
