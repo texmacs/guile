@@ -791,7 +791,7 @@ The MIME type of a resource, as a symbol, along with any parameters.
 (parse-header 'content-type "text/plain;charset=utf-8")
 @result{} (text/plain (charset . "utf-8"))
 @end example
-Note that the @code{charset} parameter is something is a misnomer, and
+Note that the @code{charset} parameter is something of a misnomer, and
 the HTTP specification admits this.  It specifies the @emph{encoding} of
 the characters, not the character set.
 @end deftypevr

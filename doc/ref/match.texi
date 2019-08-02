@@ -216,7 +216,7 @@ one-element list containing a @var{person} whose first slot is
 The @code{(ice-9 match)} module also provides the following convenient
 syntactic sugar macros wrapping around @code{match}.
 
-@deffn {Scheme Syntax} match-lambda exp clause1 clause2 @dots{}
+@deffn {Scheme Syntax} match-lambda clause1 clause2 @dots{}
 Create a procedure of one argument that matches its argument against
 each clause, and returns the result of evaluating the corresponding
 expressions.
@@ -236,7 +236,7 @@ expressions.
 @result{} world
 @end example
 
-@deffn {Scheme Syntax} match-lambda* exp clause1 clause2 @dots{}
+@deffn {Scheme Syntax} match-lambda* clause1 clause2 @dots{}
 Create a procedure of any number of arguments that matches its argument
 list against each clause, and returns the result of evaluating the
 corresponding expressions.
