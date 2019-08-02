@@ -1,4 +1,4 @@
-/* Copyright 1995-2004,2006-2015,2017-2018
+/* Copyright 1995-2004,2006-2015,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -632,6 +632,11 @@ fport_seek (SCM port, scm_t_off offset, int whence)
 
   if (result == -1)
     scm_syserror ("fport_seek");
+
+  /* Check to make sure the result fits in scm_t_off,
+     which might be smaller than off_t_or_off64_t.  */
+  if (result > SCM_T_OFF_MAX)
+    scm_num_overflow ("fport_seek");
 
   return result;
 }

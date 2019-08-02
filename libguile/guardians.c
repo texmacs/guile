@@ -1,4 +1,4 @@
-/* Copyright 1998-2001,2006,2008-2009,2011-2013,2018
+/* Copyright 1998-2001,2006,2008-2009,2011-2013,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -92,7 +92,7 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint ((scm_t_bits) g, 16, port);
 
   scm_puts (" (reachable: ", port);
-  scm_display (scm_from_uint (g->live), port);
+  scm_display (scm_from_ulong (g->live), port);
   scm_puts (" unreachable: ", port);
   scm_display (scm_length (g->zombies), port);
   scm_puts (")", port);

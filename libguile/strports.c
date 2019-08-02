@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <intprops.h>
 
 #include "bytevectors.h"
 #include "deprecation.h"
@@ -86,16 +87,21 @@ string_port_read (SCM port, SCM dst, size_t start, size_t count)
 
 static size_t
 string_port_write (SCM port, SCM src, size_t start, size_t count)
+#define FUNC_NAME "string_port_write"
 {
   struct string_port *stream = (void *) SCM_STREAM (port);
+  size_t old_size = SCM_BYTEVECTOR_LENGTH (stream->bytevector);
 
-  if (SCM_BYTEVECTOR_LENGTH (stream->bytevector) < stream->pos + count)
+  if (count > old_size - stream->pos)
     {
       SCM new_bv;
       size_t new_size;
 
-      new_size = MAX (SCM_BYTEVECTOR_LENGTH (stream->bytevector) * 2,
-                      stream->pos + count);
+      if (INT_ADD_OVERFLOW (stream->pos, count))
+        scm_num_overflow (FUNC_NAME);
+
+      /* If (old_size * 2) overflows, it's harmless.  */
+      new_size = MAX (old_size * 2, stream->pos + count);
       new_bv = scm_c_make_bytevector (new_size);
       memcpy (SCM_BYTEVECTOR_CONTENTS (new_bv),
               SCM_BYTEVECTOR_CONTENTS (stream->bytevector),
@@ -112,27 +118,34 @@ string_port_write (SCM port, SCM src, size_t start, size_t count)
 
   return count;
 }
+#undef FUNC_NAME
 
 static scm_t_off
 string_port_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "string_port_seek"
 {
   struct string_port *stream = (void *) SCM_STREAM (port);
+  size_t base;
   scm_t_off target;
 
   if (whence == SEEK_CUR)
-    target = offset + stream->pos;
+    base = stream->pos;
   else if (whence == SEEK_SET)
-    target = offset;
+    base = 0;
   else if (whence == SEEK_END)
-    target = offset + stream->len;
+    base = stream->len;
   else
     scm_wrong_type_arg_msg (FUNC_NAME, 0, port, "invalid `seek' parameter");
+
+  if (base > SCM_T_OFF_MAX
+      || INT_ADD_OVERFLOW ((scm_t_off) base, offset))
+    scm_num_overflow (FUNC_NAME);
+  target = (scm_t_off) base + offset;
 
   if (target >= 0 && target <= stream->len)
     stream->pos = target;
   else
-    scm_out_of_range (FUNC_NAME, scm_from_long (offset));
+    scm_out_of_range (FUNC_NAME, scm_from_off_t (offset));
 
   return target;
 }
@@ -147,7 +160,7 @@ string_port_truncate (SCM port, scm_t_off length)
   if (0 <= length && stream->pos <= length && length <= stream->len)
     stream->len = length;
   else
-    scm_out_of_range (FUNC_NAME, scm_from_off_t_or_off64_t (length));
+    scm_out_of_range (FUNC_NAME, scm_from_off_t (length));
 }
 #undef FUNC_NAME
 

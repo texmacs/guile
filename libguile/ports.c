@@ -1,4 +1,4 @@
-/* Copyright 1995-2001,2003-2004,2006-2018
+/* Copyright 1995-2001,2003-2004,2006-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -2243,7 +2243,8 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
 	    "@var{port} is not supplied, the current-input-port is used.")
 #define FUNC_NAME s_scm_unread_string
 {
-  int n;
+  size_t n;
+
   SCM_VALIDATE_STRING (1, str);
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
@@ -3741,8 +3742,8 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
     {
       scm_t_port *pt = SCM_PORT (fd_port);
       scm_t_port_type *ptob = SCM_PORT_TYPE (fd_port);
-      off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
-      off_t_or_off64_t rv;
+      scm_t_off off = scm_to_off_t (offset);
+      scm_t_off rv;
 
       if (ptob->seek && how == SEEK_CUR && off == 0)
         {
@@ -3756,7 +3757,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
           scm_dynwind_end ();
           rv -= scm_port_buffer_can_take (pt->read_buf, &tmp);
           rv += scm_port_buffer_can_take (pt->write_buf, &tmp);
-          return scm_from_off_t_or_off64_t (rv);
+          return scm_from_off_t (rv);
         }
 
       if (!ptob->seek || !pt->rw_random)
@@ -3777,7 +3778,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 
       scm_i_clear_pending_eof (fd_port);
 
-      return scm_from_off_t_or_off64_t (rv);
+      return scm_from_off_t (rv);
     }
   else /* file descriptor?.  */
     {
@@ -3862,7 +3863,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else if (SCM_OPOUTPORTP (object))
     {
-      off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
+      scm_t_off c_length = scm_to_off_t (length);
       scm_t_port_type *ptob = SCM_PORT_TYPE (object);
 
       if (!ptob->truncate)

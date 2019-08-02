@@ -1,4 +1,4 @@
-/* Copyright 1995-1996,1998-2001,2006,2008-2012,2014,2018
+/* Copyright 1995-1996,1998-2001,2006,2008-2012,2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -246,7 +246,7 @@ scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM vector;
-  unsigned long int j;
+  size_t j;
 
   SCM_ASSERT_RANGE (1, scm_from_size_t (k), k <= VECTOR_MAX_LENGTH);
 
