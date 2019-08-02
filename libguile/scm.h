@@ -1,7 +1,7 @@
 #ifndef SCM_SCM_H
 #define SCM_SCM_H
 
-/* Copyright 1995-2004,2006-2015,2017-2018
+/* Copyright 1995-2004,2006-2015,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -288,7 +288,7 @@ typedef uintptr_t scm_t_bits;
 
    Heap Objects
 
-   All object types not mentioned above in the list of immedate objects
+   All object types not mentioned above in the list of immediate objects
    are represented as heap objects.  The amount of memory referenced by
    a heap object depends on the object's type, namely on the set of
    attributes that have to be stored with objects of that type.  Every
