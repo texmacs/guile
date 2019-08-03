@@ -252,7 +252,7 @@ SCM_UNUSED static const jit_gpr_t T4_OR_SP = JIT_R0;
 
 /* Sometimes you want to call out the fact that T0 and T1 are preserved
    across calls.  In that case, use these.  */
-static const jit_gpr_t T0_PRESERVED = JIT_V1;
+SCM_UNUSED static const jit_gpr_t T0_PRESERVED = JIT_V1;
 static const jit_gpr_t T1_PRESERVED = JIT_V2;
 
 static const uint32_t SP_IN_REGISTER = 0x1;
@@ -267,12 +267,6 @@ static const uint8_t OP_ATTR_ENTRY = 0x2;
 #define BIGENDIAN 1
 #else
 #define BIGENDIAN 0
-#endif
-
-#if BIGENDIAN
-static const uint32_t uint32_offset_low_byte = 3;
-#else
-static const uint32_t uint32_offset_low_byte = 0;
 #endif
 
 #if SCM_SIZEOF_UINTPTR_T == 4
@@ -510,7 +504,6 @@ emit_##stem (scm_jit_state *j,                                          \
 
 DEFINE_CLOBBER_RECORDING_EMITTER_R(ldr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_P(ldi, gpr)
-DEFINE_CLOBBER_RECORDING_EMITTER_R(movr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R(comr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(ldxr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_I(addi, gpr)
@@ -535,6 +528,7 @@ DEFINE_CLOBBER_RECORDING_EMITTER_R_I(lshi, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(lshr, gpr)
 
 #if SIZEOF_UINTPTR_T < 8
+DEFINE_CLOBBER_RECORDING_EMITTER_R(movr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R(negr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_I(addci, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(addcr, gpr)
@@ -754,16 +748,6 @@ emit_get_callee_vcode (scm_jit_state *j, jit_gpr_t dst)
   emit_retval (j, dst);
   emit_reload_sp (j);
   emit_reload_fp (j);
-}
-
-static void
-emit_get_vcode_low_byte (scm_jit_state *j, jit_gpr_t dst, jit_gpr_t addr)
-{
-  if (uint32_offset_low_byte == 0)
-    jit_ldr_uc (j->jit, dst, addr);
-  else
-    jit_ldxi_uc (j->jit, dst, addr, uint32_offset_low_byte);
-  record_gpr_clobber (j, dst);
 }
 
 static void
