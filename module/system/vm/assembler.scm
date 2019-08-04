@@ -197,6 +197,10 @@
             emit-quo
             emit-rem
             emit-mod
+            emit-abs
+            emit-sqrt
+            emit-fabs
+            emit-fsqrt
             emit-logand
             emit-logior
             emit-logxor
@@ -1321,6 +1325,9 @@ returned instead."
 (define-syntax-rule (define-f64<-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-f64<-scm asm dst src (intrinsic-name->index 'name))))
+(define-syntax-rule (define-f64<-f64-intrinsic name)
+  (define-macro-assembler (name asm dst src)
+    (emit-call-f64<-f64 asm dst src (intrinsic-name->index 'name))))
 (define-syntax-rule (define-u64<-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-u64<-scm asm dst src (intrinsic-name->index 'name))))
@@ -1364,6 +1371,10 @@ returned instead."
 (define-scm<-scm-scm-intrinsic quo)
 (define-scm<-scm-scm-intrinsic rem)
 (define-scm<-scm-scm-intrinsic mod)
+(define-scm<-scm-intrinsic abs)
+(define-scm<-scm-intrinsic sqrt)
+(define-f64<-f64-intrinsic fabs)
+(define-f64<-f64-intrinsic fsqrt)
 (define-scm<-scm-scm-intrinsic logand)
 (define-scm<-scm-scm-intrinsic logior)
 (define-scm<-scm-scm-intrinsic logxor)

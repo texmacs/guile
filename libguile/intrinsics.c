@@ -21,6 +21,8 @@
 #  include <config.h>
 #endif
 
+#include <math.h>
+
 #include "alist.h"
 #include "atomics-internal.h"
 #include "boolean.h"
@@ -516,6 +518,10 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.current_module = current_module;
   scm_vm_intrinsics.push_prompt = push_prompt;
   scm_vm_intrinsics.allocate_words_with_freelist = allocate_words_with_freelist;
+  scm_vm_intrinsics.abs = scm_abs;
+  scm_vm_intrinsics.sqrt = scm_sqrt;
+  scm_vm_intrinsics.fabs = fabs;
+  scm_vm_intrinsics.fsqrt = sqrt;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

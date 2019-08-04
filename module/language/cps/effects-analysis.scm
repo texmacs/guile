@@ -1,6 +1,6 @@
 ;;; Effects analysis on CPS
 
-;; Copyright (C) 2011-2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2015,2017-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -549,7 +549,9 @@ the LABELS that are clobbered by the effects of LABEL."
   ((logtest a b)                   &type-check)
   ((logbit? a b)                   &type-check)
   ((sqrt _)                        &type-check)
-  ((abs _)                         &type-check))
+  ((abs _)                         &type-check)
+  ((fsqrt _))
+  ((fabs _)))
 
 ;; Characters.
 (define-primitive-effects

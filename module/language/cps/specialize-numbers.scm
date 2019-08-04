@@ -452,6 +452,12 @@ BITS indicating the significant bits needed for a variable.  BITS may be
               (specialize-binop cps k src op a b
                                 (unbox-f64 a) (unbox-f64 b) (box-f64 result))))
 
+           (((or 'sqrt 'abs)
+             (? f64-result?) #f a)
+            (let ((op (match op ('sqrt 'fsqrt) ('abs 'fabs))))
+              (specialize-unop cps k src op #f a
+                               (unbox-f64 a) (box-f64 result))))
+
            (((or 'add 'sub 'mul 'logand 'logior 'logxor 'logsub)
              (? u64-result?) #f (? u64-operand? a) (? u64-operand? b))
             (let ((op (match op

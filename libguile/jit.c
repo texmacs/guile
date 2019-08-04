@@ -516,6 +516,8 @@ DEFINE_CLOBBER_RECORDING_EMITTER_R_I(muli, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(mulr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(mulr_d, fpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(divr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R(absr_d, fpr)
+DEFINE_CLOBBER_RECORDING_EMITTER_R(sqrtr_d, fpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_I(andi, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(andr, gpr)
 DEFINE_CLOBBER_RECORDING_EMITTER_R_R(orr, gpr)
@@ -2360,6 +2362,30 @@ compile_call_f64_from_scm (scm_jit_state *j, uint16_t dst, uint16_t a, uint32_t 
   emit_retval_d (j, JIT_F0);
   emit_reload_sp (j);
   emit_sp_set_f64 (j, dst, JIT_F0);
+}
+
+static void
+compile_call_f64_from_f64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_t idx)
+{
+  switch ((enum scm_vm_intrinsic) idx)
+    {
+    case SCM_VM_INTRINSIC_FABS:
+      {
+        emit_sp_ref_f64 (j, JIT_F0, src);
+        emit_absr_d (j, JIT_F0, JIT_F0);
+        emit_sp_set_f64 (j, dst, JIT_F0);
+        break;
+      }
+    case SCM_VM_INTRINSIC_FSQRT:
+      {
+        emit_sp_ref_f64 (j, JIT_F0, src);
+        emit_sqrtr_d (j, JIT_F0, JIT_F0);
+        emit_sp_set_f64 (j, dst, JIT_F0);
+        break;
+      }
+    default:
+      DIE("unhandled f64<-f64");
+    }
 }
 
 static void

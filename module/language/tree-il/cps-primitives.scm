@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013- 2015, 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2017-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -85,6 +85,8 @@
 (define-cps-primitive (quotient quo) 2 1)
 (define-cps-primitive (remainder rem) 2 1)
 (define-cps-primitive (modulo mod) 2 1)
+(define-cps-primitive sqrt 1 1)
+(define-cps-primitive abs 1 1)
 
 (define-cps-primitive lsh 2 1)
 (define-cps-primitive rsh 2 1)

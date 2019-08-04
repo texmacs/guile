@@ -1680,6 +1680,16 @@ where (A0 <= A <= A1) and (B0 <= B <= B1)."
                        (if (zero? r) s (+ s 1)))))))
      (else
       (define! result (logior type &flonum &complex) -inf.0 +inf.0)))))
+(define-type-checker (fsqrt x) #t)
+(define-type-inferrer (fsqrt x result)
+  (define! result
+    &f64
+    (exact-integer-sqrt (max (&min x) 0))
+    (if (inf? (&max x))
+        +inf.0
+        (call-with-values (lambda () (exact-integer-sqrt (&max x)))
+          (lambda (s r)
+            (if (zero? r) s (+ s 1)))))))
 
 (define-simple-type-checker (abs &real))
 (define-type-inferrer (abs x result)
@@ -1704,6 +1714,12 @@ where (A0 <= A <= A1) and (B0 <= B <= B1)."
         (define! result (logior (logand type (lognot &number))
                                 (logand type &real))
           min max))))))
+(define-type-checker (fabs x) #t)
+(define-type-inferrer (fabs x result)
+  (let ((min (if (< (&min x) 0) 0 (&min x)))
+        (max (max (abs (&min x)) (abs (&max x)))))
+    (define! result &f64 min max)))
+
 
 
 

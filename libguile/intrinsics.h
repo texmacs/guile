@@ -92,6 +92,7 @@ typedef SCM (*scm_t_scm_from_ptr_intrinsic) (SCM*);
 typedef void (*scm_t_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_scm_intrinsic) (SCM*, SCM, SCM);
+typedef double (*scm_t_f64_from_f64_intrinsic) (double);
 typedef uint32_t* scm_t_vcode_intrinsic;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
@@ -162,6 +163,10 @@ typedef uint32_t* scm_t_vcode_intrinsic;
   M(thread_scm, unpack_values_object, "unpack-values-object", UNPACK_VALUES_OBJECT) \
   M(vcode, handle_interrupt_code, "%handle-interrupt-code", HANDLE_INTERRUPT_CODE) \
   M(scm_from_thread_sz, allocate_words_with_freelist, "allocate-words/freelist", ALLOCATE_WORDS_WITH_FREELIST) \
+  M(scm_from_scm, abs, "abs", ABS) \
+  M(scm_from_scm, sqrt, "sqrt", SQRT) \
+  M(f64_from_f64, fabs, "fabs", FABS) \
+  M(f64_from_f64, fsqrt, "fsqrt", FSQRT) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

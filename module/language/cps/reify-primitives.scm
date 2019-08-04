@@ -314,6 +314,10 @@
       quo
       rem
       mod
+      sqrt
+      abs
+      fsqrt
+      fabs
       logand
       logior
       logxor
