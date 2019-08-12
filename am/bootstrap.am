@@ -56,7 +56,7 @@ SOURCES =					\
   ice-9/psyntax-pp.scm				\
   language/cps/intmap.scm			\
   language/cps/intset.scm			\
-  language/cps/utils.scm			\
+  language/cps/graphs.scm			\
   ice-9/vlist.scm				\
   srfi/srfi-1.scm				\
 						\
@@ -99,6 +99,7 @@ SOURCES =					\
   language/cps/type-checks.scm			\
   language/cps/type-fold.scm			\
   language/cps/types.scm			\
+  language/cps/utils.scm			\
   language/cps/verify.scm			\
   language/cps/with-cps.scm			\
 						\
