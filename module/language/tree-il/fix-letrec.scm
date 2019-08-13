@@ -207,7 +207,7 @@
       ((and (lambda? init) (not (hashq-ref assigned sym)))
        (make-fix src (list name) (list sym) (list init) body))
       ((memq sym (free-variables init fv-cache))
-       (make-let src (list name) (list sym) (list (make-const src #f))
+       (make-let src (list name) (list sym) (list (make-void src))
                  (make-seq src
                            (make-lexical-set src name sym init)
                            body)))

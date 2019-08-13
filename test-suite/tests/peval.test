@@ -24,6 +24,7 @@
   #:use-module (system base message)
   #:use-module (language tree-il)
   #:use-module (language tree-il primitives)
+  #:use-module (language tree-il fix-letrec)
   #:use-module (rnrs bytevectors) ;; for the bytevector primitives
   #:use-module (srfi srfi-13))
 
@@ -35,10 +36,11 @@
   (syntax-rules ()
     ((_ in pat)
      (pass-if-peval in pat
-                    (expand-primitives
-                     (resolve-primitives
-                      (compile 'in #:from 'scheme #:to 'tree-il)
-                      (current-module)))))
+                    (fix-letrec
+                     (expand-primitives
+                      (resolve-primitives
+                       (compile 'in #:from 'scheme #:to 'tree-il)
+                       (current-module))))))
     ((_ in pat code)
      (pass-if 'in
        (let ((evaled (unparse-tree-il (peval code))))
@@ -544,7 +546,7 @@
                          b
                          (f (car x3) (fold f (cdr x3) b null? car cdr))))))
       (fold * x 1 zero? (lambda (x1) x1) (lambda (x2) (- x2 1))))
-    (letrec (fold) (_) (_)
+    (fix (fold) (_) (_)
             (call (lexical fold _)
                    (primitive *)
                    (toplevel x)
@@ -756,10 +758,10 @@
                   x)))
       (frob f) ; may mutate `x'
       x)
-    (letrec (x) (_) ((const 0))
-            (seq
-              (call (toplevel frob) (lambda _ _))
-              (lexical x _))))
+    (let (x) (_) ((const 0))
+         (seq
+          (call (toplevel frob) (lambda _ _))
+          (lexical x _))))
 
   (pass-if-peval
     ;; Bindings mutated.
@@ -767,7 +769,7 @@
                   (set! f (lambda (_) x))
                   x)))
       (f 2))
-    (letrec _ . _))
+    (let (f) (_) ((void)) (seq _ (call . _))))
 
   (pass-if-peval
     ;; Bindings possibly mutated.
@@ -783,14 +785,14 @@
     ;; Inlining stops at recursive calls with dynamic arguments.
     (let loop ((x x))
       (if (< x 0) x (loop (1- x))))
-    (letrec (loop) (_) ((lambda (_)
-                          (lambda-case
-                           (((x) #f #f #f () (_))
-                            (if _ _
-                                (call (lexical loop _)
-                                      (primcall - (lexical x _)
-                                                (const 1))))))))
-            (call (lexical loop _) (toplevel x))))
+    (fix (loop) (_) ((lambda (_)
+                       (lambda-case
+                        (((x) #f #f #f () (_))
+                         (if _ _
+                             (call (lexical loop _)
+                                   (primcall - (lexical x _)
+                                             (const 1))))))))
+         (call (lexical loop _) (toplevel x))))
 
   (pass-if-peval
     ;; Recursion on the 2nd argument is fully evaluated.
@@ -812,21 +814,21 @@
           (if (< x 0)
               x
               (loop (1+ x) (1+ y)))))
-    (letrec (loop) (_) ((lambda (_)
-                          (lambda-case
-                           (((x y) #f #f #f () (_ _))
-                            (if (primcall >
-                                          (lexical y _) (const 0))
-                                _ _)))))
-            (call (lexical loop _) (toplevel x) (const 0))))
+    (fix (loop) (_) ((lambda (_)
+                       (lambda-case
+                        (((x y) #f #f #f () (_ _))
+                         (if (primcall >
+                                       (lexical y _) (const 0))
+                             _ _)))))
+         (call (lexical loop _) (toplevel x) (const 0))))
 
   (pass-if-peval
-    ;; Infinite recursion: `peval' gives up and leaves it as is.
+    ;; Infinite recursion: `peval' can inline some but eventually gives up.
     (letrec ((f (lambda (x) (g (1- x))))
              (g (lambda (x) (h (1+ x))))
              (h (lambda (x) (f x))))
       (f 0))
-    (letrec _ . _))
+    (fix (f) (_) (_) (call . _)))
 
   (pass-if-peval
     ;; Infinite recursion: all the arguments to `loop' are static, but
@@ -834,8 +836,8 @@
     (let loop ((x 0))
       (and (< x top)
            (loop (1+ x))))
-    (letrec (loop) (_) ((lambda . _))
-            (call (lexical loop _) (const 0))))
+    (fix (loop) (_) ((lambda . _))
+         (call (lexical loop _) (const 0))))
 
   (pass-if-peval
     ;; This test checks that the `start' binding is indeed residualized.
@@ -851,24 +853,23 @@
                (call (lexical here _))))))
 
   (pass-if-peval
-   ;; FIXME: should this one residualize the binding?
+   ;; FIXME: Signal an error?
    (letrec ((a a))
      1)
-   (const 1))
+   (let (a) (_) ((void)) (seq (set! . _) (const 1))))
 
   (pass-if-peval
    ;; This is a fun one for peval to handle.
    (letrec ((a a))
      a)
-   (letrec (a) (_) ((lexical a _))
-           (lexical a _)))
+   (let (a) (_) ((void)) (seq (set! . _) (lexical a _))))
 
   (pass-if-peval
    ;; Another interesting recursive case.
    (letrec ((a b) (b a))
      a)
-   (letrec (a) (_) ((lexical a _))
-           (lexical a _)))
+   (let (a b) (_ _) ((void) (void))
+        (seq (set! . _) (seq (set! . _) (lexical a _)))))
 
   (pass-if-peval
    ;; Another pruning case, that `a' is residualized.
@@ -881,16 +882,17 @@
    ;; "b c a" is the current order that we get with unordered letrec,
    ;; but it's not important to this test, so if it changes, just adapt
    ;; the test.
-   (letrec (b a) (_ _)
-           ((lambda _
-              (lambda-case
-               ((() #f #f #f () ())
-                (call (lexical a _)))))
-            (lambda _
-              (lambda-case
-               ((() #f #f #f () ())
-                (call (lexical a _))))))
-     (call (toplevel foo) (lexical b _))))
+   (fix (a) (_)
+        ((lambda _
+           (lambda-case
+            ((() #f #f #f () ())
+             (call (lexical a _))))))
+        (fix (b) (_)
+             ((lambda _
+                (lambda-case
+                 ((() #f #f #f () ())
+                  (call (lexical a _))))))
+             (call (toplevel foo) (lexical b _)))))
 
   (pass-if-peval
    ;; In this case, we can prune the bindings.  `a' ends up being copied
@@ -1239,17 +1241,17 @@
    ;; reference.)
    (while #t #t)
    (let (_) (_) ((primcall make-prompt-tag . _))
-        (letrec (lp) (_)
-                ((lambda _
-                   (lambda-case
-                    ((() #f #f #f () ())
-                     (letrec (loop) (_)
-                             ((lambda _
-                                (lambda-case
-                                 ((() #f #f #f () ())
-                                  (call (lexical loop _))))))
-                             (call (lexical loop _)))))))
-                (call (lexical lp _)))))
+        (fix (lp) (_)
+             ((lambda _
+                (lambda-case
+                 ((() #f #f #f () ())
+                  (fix (loop) (_)
+                       ((lambda _
+                          (lambda-case
+                           ((() #f #f #f () ())
+                            (call (lexical loop _))))))
+                       (call (lexical loop _)))))))
+             (call (lexical lp _)))))
 
   (pass-if-peval
    (lambda (a . rest)
@@ -1397,20 +1399,20 @@
     (lambda ()
       (lambda-case
        (((f x) #f #f #f () (_ _))
-        (letrec (lp)
-          (_)
-          ((lambda ((name . lp))
-             (lambda-case
-              (((x) #f #f #f () (_))
-               (let (x*)
-                 (_)
-                 ((call (lexical f _) (lexical x _)))
-                 (if (primcall
-                      eq?
-                      (lexical x _)
-                      (lexical x* _))
-                     (lexical x* _)
-                     (call (lexical lp _)
-                           (lexical x* _))))))))
-          (call (lexical lp _)
-                (lexical x _))))))))
+        (fix (lp)
+             (_)
+             ((lambda ((name . lp))
+                (lambda-case
+                 (((x) #f #f #f () (_))
+                  (let (x*)
+                    (_)
+                    ((call (lexical f _) (lexical x _)))
+                    (if (primcall
+                         eq?
+                         (lexical x _)
+                         (lexical x* _))
+                        (lexical x* _)
+                        (call (lexical lp _)
+                              (lexical x* _))))))))
+             (call (lexical lp _)
+                   (lexical x _))))))))
