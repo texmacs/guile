@@ -49,8 +49,8 @@
   (maybe-verify x)
   (run-pass resolve*           #:resolve-primitives? #t)
   (run-pass expand-primitives  #:expand-primitives?  #t)
+  (set! x (fix-letrec x))
   (run-pass peval*             #:partial-eval?       #t)
-  (run-pass fix-letrec         #:fix-letrec?         #t)
   x)
 
 (define (tree-il-optimizations)
@@ -59,5 +59,4 @@
   ;; will result in a lot of code that will never get optimized nicely.
   '((#:resolve-primitives? 2)
     (#:expand-primitives? 1)
-    (#:partial-eval? 1)
-    (#:fix-letrec? 1)))
+    (#:partial-eval? 1)))

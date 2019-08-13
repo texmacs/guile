@@ -1,6 +1,6 @@
 ;;; Tree-IL partial evaluator
 
-;; Copyright (C) 2011-2014, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014, 2017, 2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -144,10 +144,8 @@
         (fold (lambda (name sym res)
                 (vhash-consq sym (make-var name sym 0 #f) res))
               res names gensyms))
-       (($ <letrec> src in-order? names gensyms vals body)
-        (fold (lambda (name sym res)
-                (vhash-consq sym (make-var name sym 0 #f) res))
-              res names gensyms))
+       (($ <letrec>)
+        (error "unexpected letrec"))
        (($ <fix> src names gensyms vals body)
         (fold (lambda (name sym res)
                 (vhash-consq sym (make-var name sym 0 #f) res))
@@ -592,10 +590,6 @@ top-level bindings from ENV and return the resulting expression."
          (let ((body (loop body)))
            (and body
                 (make-let src names gensyms vals body))))
-        (($ <letrec> src in-order? names gensyms vals body)
-         (let ((body (loop body)))
-           (and body
-                (make-letrec src in-order? names gensyms vals body))))
         (($ <fix> src names gensyms vals body)
          (let ((body (loop body)))
            (and body
@@ -980,29 +974,12 @@ top-level bindings from ENV and return the resulting expression."
                             (lambda (names gensyms vals body)
                               (if (null? names) (error "what!" names))
                               (make-let src names gensyms vals body)))))))
-      (($ <letrec> src in-order? names gensyms vals body)
+      (($ <fix> src names gensyms vals body)
        ;; Note the difference from the `let' case: here we use letrec*
        ;; so that the `visit' procedure for the new operands closes over
        ;; an environment that includes the operands.  Also we don't try
        ;; to elide aliases, because we can't sensibly reduce something
        ;; like (letrec ((a b) (b a)) a).
-       (letrec* ((visit (lambda (exp counter ctx)
-                          (loop exp env* counter ctx)))
-                 (vars (map lookup-var gensyms))
-                 (new (fresh-gensyms vars))
-                 (ops (make-bound-operands vars new vals visit))
-                 (env* (fold extend-env env gensyms ops))
-                 (body* (visit body counter ctx)))
-         (if (and (const? body*) (every constant-expression? vals))
-             ;; We may have folded a loop completely, even though there
-             ;; might be cyclical references between the bound values.
-             ;; Handle this degenerate case specially.
-             body*
-             (prune-bindings ops in-order? body* counter ctx
-                             (lambda (names gensyms vals body)
-                               (make-letrec src in-order?
-                                            names gensyms vals body))))))
-      (($ <fix> src names gensyms vals body)
        (letrec* ((visit (lambda (exp counter ctx)
                           (loop exp env* counter ctx)))
                  (vars (map lookup-var gensyms))
@@ -1104,12 +1081,6 @@ top-level bindings from ENV and return the resulting expression."
             (make-let src* names vars vals
                       (simplify-conditional
                        (make-conditional src body subsequent alternate))))
-           (($ <conditional> src
-               ($ <letrec> src* in-order? names vars vals body)
-               subsequent alternate)
-            (make-letrec src* in-order? names vars vals
-                         (simplify-conditional
-                          (make-conditional src body subsequent alternate))))
            (($ <conditional> src ($ <fix> src* names vars vals body)
                subsequent alternate)
             (make-fix src* names vars vals
