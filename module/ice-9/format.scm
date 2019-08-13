@@ -132,637 +132,617 @@
       '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
 
     (define (format:format-work format-string arglist) ; does the formatting work
-      (letrec
-          ((format-string-len (string-length format-string))
-           (arg-pos 0)               ; argument position in arglist
-           (arg-len (length arglist))   ; number of arguments
-           (modifier #f)                ; 'colon | 'at | 'colon-at | #f
-           (params '())                 ; directive parameter list
-           (param-value-found #f)       ; a directive
-					; parameter value
-					; found
-           (conditional-nest 0)         ; conditional nesting level
-           (clause-pos 0)               ; last cond. clause
-					; beginning char pos
-           (clause-default #f)		; conditional default
-					; clause string
-           (clauses '())                ; conditional clause
-					; string list
-           (conditional-type #f)        ; reflects the
-					; contional modifiers
-           (conditional-arg #f)      ; argument to apply the conditional
-           (iteration-nest 0)        ; iteration nesting level
-           (iteration-pos 0)         ; iteration string
-					; beginning char pos
-           (iteration-type #f)		; reflects the
-					; iteration modifiers
-           (max-iterations #f)		; maximum number of
-					; iterations
-           (recursive-pos-save format:pos)
-	       
-           (next-char			; gets the next char
-					; from format-string
-            (lambda ()
-              (let ((ch (peek-next-char)))
-                (set! format:pos (+ 1 format:pos))
-                ch)))
-	       
-           (peek-next-char
-            (lambda ()
-              (when (>= format:pos format-string-len)
-                (format:error "illegal format string"))
-              (string-ref format-string format:pos)))
-	       
-           (one-positive-integer?
-            (lambda (params)
+      (define format-string-len (string-length format-string))
+      (define arg-pos 0)                ; argument position in arglist
+      (define arg-len (length arglist)) ; number of arguments
+      (define modifier #f)              ; 'colon | 'at | 'colon-at | #f
+      (define params '())               ; directive parameter list
+      (define param-value-found #f)     ; a directive parameter value found
+      (define conditional-nest 0)       ; conditional nesting level
+      (define clause-pos 0)             ; last cond. clause beginning char pos
+      (define clause-default #f)        ; conditional default clause string
+      (define clauses '())              ; conditional clause string list
+      (define conditional-type #f)      ; reflects the conditional modifiers
+      (define conditional-arg #f)       ; argument to apply the conditional
+      (define iteration-nest 0)         ; iteration nesting level
+      (define iteration-pos 0)          ; iteration string beginning char pos
+      (define iteration-type #f)        ; reflects the iteration modifiers
+      (define max-iterations #f)        ; maximum number of iterations
+      (define recursive-pos-save format:pos)
+
+      (define (next-char)               ; gets the next char from format-string
+        (let ((ch (peek-next-char)))
+          (set! format:pos (+ 1 format:pos))
+          ch))
+
+      (define (peek-next-char)
+        (when (>= format:pos format-string-len)
+          (format:error "illegal format string"))
+        (string-ref format-string format:pos))
+
+      (define (one-positive-integer? params )
+        (cond
+         ((null? params) #f)
+         ((and (integer? (car params))
+               (>= (car params) 0)
+               (= (length params) 1)) #t)
+         (else
+          (format:error
+           "one positive integer parameter expected"))))
+
+      (define (next-arg)
+        (when (>= arg-pos arg-len)
+          (set! format:arg-pos (+ arg-len 1))
+          (format:error "missing argument(s)"))
+        (add-arg-pos 1)
+        (list-ref arglist (- arg-pos 1)))
+
+      (define (prev-arg)
+        (add-arg-pos -1)
+        (when (negative? arg-pos)
+          (format:error "missing backward argument(s)"))
+        (list-ref arglist arg-pos))
+
+      (define (rest-args)
+        (let loop ((l arglist) (k arg-pos)) ; list-tail definition
+          (if (= k 0) l (loop (cdr l) (- k 1)))))
+
+      (define (add-arg-pos n)
+        (set! arg-pos (+ n arg-pos))
+        (set! format:arg-pos arg-pos))
+
+      (define (anychar-dispatch)        ; dispatches the format-string
+        (if (>= format:pos format-string-len)
+            arg-pos                     ; used for ~? continuance
+            (let ((char (next-char)))
               (cond
-               ((null? params) #f)
-               ((and (integer? (car params))
-                     (>= (car params) 0)
-                     (= (length params) 1)) #t)
+               ((char=? char #\~)
+                (set! modifier #f)
+                (set! params '())
+                (set! param-value-found #f)
+                (tilde-dispatch))
                (else
-                (format:error
-                 "one positive integer parameter expected")))))
-	       
-           (next-arg
-            (lambda ()
-              (when (>= arg-pos arg-len)
-                (set! format:arg-pos (+ arg-len 1))
-                (format:error "missing argument(s)"))
-              (add-arg-pos 1)
-              (list-ref arglist (- arg-pos 1))))
-	       
-           (prev-arg
-            (lambda ()
-              (add-arg-pos -1)
-              (when (negative? arg-pos)
-                (format:error "missing backward argument(s)"))
-              (list-ref arglist arg-pos)))
-	       
-           (rest-args
-            (lambda ()
-              (let loop ((l arglist) (k arg-pos)) ; list-tail definition
-                (if (= k 0) l (loop (cdr l) (- k 1))))))
-	       
-           (add-arg-pos
-            (lambda (n) 
-              (set! arg-pos (+ n arg-pos))
-              (set! format:arg-pos arg-pos)))
-	       
-           (anychar-dispatch		; dispatches the format-string
-            (lambda ()
-              (if (>= format:pos format-string-len)
-                  arg-pos               ; used for ~? continuance
-                  (let ((char (next-char)))
-                    (cond
-                     ((char=? char #\~)
-                      (set! modifier #f)
-                      (set! params '())
-                      (set! param-value-found #f)
-                      (tilde-dispatch))
-                     (else
-                      (when (and (zero? conditional-nest)
-                                 (zero? iteration-nest))
-                        (format:out-char char))
-                      (anychar-dispatch)))))))
-	       
-           (tilde-dispatch
-            (lambda ()
-              (cond
-               ((>= format:pos format-string-len)
-                (format:out-str "~")	; tilde at end of
+                (when (and (zero? conditional-nest)
+                           (zero? iteration-nest))
+                  (format:out-char char))
+                (anychar-dispatch))))))
+
+      (define (tilde-dispatch)
+        (cond
+         ((>= format:pos format-string-len)
+          (format:out-str "~")          ; tilde at end of
 					; string is just
 					; output
-                arg-pos)                ; used for ~?
+          arg-pos)                      ; used for ~?
 					; continuance
-               ((and (or (zero? conditional-nest)
-                         (memv (peek-next-char) ; find conditional
+         ((and (or (zero? conditional-nest)
+                   (memv (peek-next-char) ; find conditional
 					; directives
-                               (append '(#\[ #\] #\; #\: #\@ #\^)
-                                       format:parameter-characters)))
-                     (or (zero? iteration-nest)
-                         (memv (peek-next-char) ; find iteration
+                         (append '(#\[ #\] #\; #\: #\@ #\^)
+                                 format:parameter-characters)))
+               (or (zero? iteration-nest)
+                   (memv (peek-next-char) ; find iteration
 					; directives
-                               (append '(#\{ #\} #\: #\@ #\^)
-                                       format:parameter-characters))))
-                (case (char-upcase (next-char))
-		      
-                  ;; format directives
-		      
-                  ((#\A)                ; Any -- for humans
-                   (set! format:read-proof
-                         (memq modifier '(colon colon-at)))
-                   (format:out-obj-padded (memq modifier '(at colon-at))
-                                          (next-arg) #f params)
-                   (anychar-dispatch))
-                  ((#\S)                ; Slashified -- for parsers
-                   (set! format:read-proof
-                         (memq modifier '(colon colon-at)))
-                   (format:out-obj-padded (memq modifier '(at colon-at))
-                                          (next-arg) #t params)
-                   (anychar-dispatch))
-                  ((#\D)                ; Decimal
-                   (format:out-num-padded modifier (next-arg) params 10)
-                   (anychar-dispatch))
-                  ((#\H)                ; Localized number
-                   (let* ((num      (next-arg))
-                          (locale   (case modifier
-                                      ((colon) (next-arg))
-                                      (else    %global-locale)))
-                          (argc     (length params))
-                          (width    (format:par params argc 0 #f "width"))
-                          (decimals (format:par params argc 1 #t "decimals"))
-                          (padchar  (integer->char
-                                     (format:par params argc 2 format:space-ch
-                                                 "padchar")))
-                          (str      (number->locale-string num decimals
-                                                           locale)))
-                     (format:out-str (if (and width
-                                              (< (string-length str) width))
-                                         (string-pad str width padchar)
-                                         str)))
-                   (anychar-dispatch))
-                  ((#\X)                ; Hexadecimal
-                   (format:out-num-padded modifier (next-arg) params 16)
-                   (anychar-dispatch))
-                  ((#\O)                ; Octal
-                   (format:out-num-padded modifier (next-arg) params 8)
-                   (anychar-dispatch))
-                  ((#\B)                ; Binary
-                   (format:out-num-padded modifier (next-arg) params 2)
-                   (anychar-dispatch))
-                  ((#\R)
-                   (if (null? params)
-                       (format:out-obj-padded ; Roman, cardinal,
+                         (append '(#\{ #\} #\: #\@ #\^)
+                                 format:parameter-characters))))
+          (case (char-upcase (next-char))
+
+            ;; format directives
+
+            ((#\A)                      ; Any -- for humans
+             (set! format:read-proof
+                   (memq modifier '(colon colon-at)))
+             (format:out-obj-padded (memq modifier '(at colon-at))
+                                    (next-arg) #f params)
+             (anychar-dispatch))
+            ((#\S)                      ; Slashified -- for parsers
+             (set! format:read-proof
+                   (memq modifier '(colon colon-at)))
+             (format:out-obj-padded (memq modifier '(at colon-at))
+                                    (next-arg) #t params)
+             (anychar-dispatch))
+            ((#\D)                      ; Decimal
+             (format:out-num-padded modifier (next-arg) params 10)
+             (anychar-dispatch))
+            ((#\H)                      ; Localized number
+             (let* ((num      (next-arg))
+                    (locale   (case modifier
+                                ((colon) (next-arg))
+                                (else    %global-locale)))
+                    (argc     (length params))
+                    (width    (format:par params argc 0 #f "width"))
+                    (decimals (format:par params argc 1 #t "decimals"))
+                    (padchar  (integer->char
+                               (format:par params argc 2 format:space-ch
+                                           "padchar")))
+                    (str      (number->locale-string num decimals
+                                                     locale)))
+               (format:out-str (if (and width
+                                        (< (string-length str) width))
+                                   (string-pad str width padchar)
+                                   str)))
+             (anychar-dispatch))
+            ((#\X)                      ; Hexadecimal
+             (format:out-num-padded modifier (next-arg) params 16)
+             (anychar-dispatch))
+            ((#\O)                      ; Octal
+             (format:out-num-padded modifier (next-arg) params 8)
+             (anychar-dispatch))
+            ((#\B)                      ; Binary
+             (format:out-num-padded modifier (next-arg) params 2)
+             (anychar-dispatch))
+            ((#\R)
+             (if (null? params)
+                 (format:out-obj-padded ; Roman, cardinal,
 					; ordinal numerals
-                        #f
-                        ((case modifier
-                           ((at) format:num->roman)
-                           ((colon-at) format:num->old-roman)
-                           ((colon) format:num->ordinal)
-                           (else format:num->cardinal))
-                         (next-arg))
-                        #f params)
-                       (format:out-num-padded ; any Radix
-                        modifier (next-arg) (cdr params) (car params)))
-                   (anychar-dispatch))
-                  ((#\F)                ; Fixed-format floating-point
-                   (format:out-fixed modifier (next-arg) params)
-                   (anychar-dispatch))
-                  ((#\E)                ; Exponential floating-point
-                   (format:out-expon modifier (next-arg) params)
-                   (anychar-dispatch))
-                  ((#\G)                ; General floating-point
-                   (format:out-general modifier (next-arg) params)
-                   (anychar-dispatch))
-                  ((#\$)                ; Dollars floating-point
-                   (format:out-dollar modifier (next-arg) params)
-                   (anychar-dispatch))
-                  ((#\I)                ; Complex numbers
-                   (let ((z (next-arg)))
-                     (unless (complex? z)
-                       (format:error "argument not a complex number"))
-                     (format:out-fixed modifier (real-part z) params)
-                     (format:out-fixed 'at (imag-part z) params)
-                     (format:out-char #\i))
-                   (anychar-dispatch))
-                  ((#\C)                ; Character
-                   (let ((ch (if (one-positive-integer? params)
-                                 (integer->char (car params))
-                                 (next-arg))))
-                     (unless (char? ch)
-                       (format:error "~~c expects a character"))
-                     (case modifier
-                       ((at)
-                        (format:out-str (object->string ch)))
-                       ((colon)
-                        (let ((c (char->integer ch)))
-                          (when (< c 0)
-                            (set! c (+ c 256))) ; compensate
+                  #f
+                  ((case modifier
+                     ((at) format:num->roman)
+                     ((colon-at) format:num->old-roman)
+                     ((colon) format:num->ordinal)
+                     (else format:num->cardinal))
+                   (next-arg))
+                  #f params)
+                 (format:out-num-padded ; any Radix
+                  modifier (next-arg) (cdr params) (car params)))
+             (anychar-dispatch))
+            ((#\F)                      ; Fixed-format floating-point
+             (format:out-fixed modifier (next-arg) params)
+             (anychar-dispatch))
+            ((#\E)                      ; Exponential floating-point
+             (format:out-expon modifier (next-arg) params)
+             (anychar-dispatch))
+            ((#\G)                      ; General floating-point
+             (format:out-general modifier (next-arg) params)
+             (anychar-dispatch))
+            ((#\$)                      ; Dollars floating-point
+             (format:out-dollar modifier (next-arg) params)
+             (anychar-dispatch))
+            ((#\I)                      ; Complex numbers
+             (let ((z (next-arg)))
+               (unless (complex? z)
+                 (format:error "argument not a complex number"))
+               (format:out-fixed modifier (real-part z) params)
+               (format:out-fixed 'at (imag-part z) params)
+               (format:out-char #\i))
+             (anychar-dispatch))
+            ((#\C)                      ; Character
+             (let ((ch (if (one-positive-integer? params)
+                           (integer->char (car params))
+                           (next-arg))))
+               (unless (char? ch)
+                 (format:error "~~c expects a character"))
+               (case modifier
+                 ((at)
+                  (format:out-str (object->string ch)))
+                 ((colon)
+                  (let ((c (char->integer ch)))
+                    (when (< c 0)
+                      (set! c (+ c 256))) ; compensate
 					; complement
 					; impl.
-                          (cond
-                           ((< c #x20)	; assumes that control
+                    (cond
+                     ((< c #x20)	; assumes that control
 					; chars are < #x20
-                            (format:out-char #\^)
-                            (format:out-char
-                             (integer->char (+ c #x40))))
-                           ((>= c #x7f)
-                            (format:out-str "#\\")
-                            (format:out-str
-                             (number->string c 8)))
-                           (else
-                            (format:out-char ch)))))
-                       (else (format:out-char ch))))
-                   (anychar-dispatch))
-                  ((#\P)                ; Plural
-                   (when (memq modifier '(colon colon-at))
-                     (prev-arg))
-                   (let ((arg (next-arg)))
-                     (unless (number? arg)
-                       (format:error "~~p expects a number argument"))
-                     (if (= arg 1)
-                         (when (memq modifier '(at colon-at))
-                           (format:out-char #\y))
-                         (if (memq modifier '(at colon-at))
-                             (format:out-str "ies")
-                             (format:out-char #\s))))
-                   (anychar-dispatch))
-                  ((#\~)                ; Tilde
-                   (if (one-positive-integer? params)
-                       (format:out-fill (car params) #\~)
-                       (format:out-char #\~))
-                   (anychar-dispatch))
-                  ((#\%)                ; Newline
-                   (if (one-positive-integer? params)
-                       (format:out-fill (car params) #\newline)
-                       (format:out-char #\newline))
-                   (set! output-col 0)
-                   (anychar-dispatch))
-                  ((#\&)                ; Fresh line
-                   (if (one-positive-integer? params)
-                       (begin
-                         (when (> (car params) 0)
-                           (format:out-fill (- (car params)
-                                               (if (> output-col 0) 0 1))
-                                            #\newline))
-                         (set! output-col 0))
-                       (when (> output-col 0)
-                         (format:out-char #\newline)))
-                   (anychar-dispatch))
-                  ((#\_)                ; Space character
-                   (if (one-positive-integer? params)
-                       (format:out-fill (car params) #\space)
-                       (format:out-char #\space))
-                   (anychar-dispatch))
-                  ((#\/)                ; Tabulator character
-                   (if (one-positive-integer? params)
-                       (format:out-fill (car params) #\tab)
-                       (format:out-char #\tab))
-                   (anychar-dispatch))
-                  ((#\|)                ; Page seperator
-                   (if (one-positive-integer? params)
-                       (format:out-fill (car params) #\page)
-                       (format:out-char #\page))
-                   (set! output-col 0)
-                   (anychar-dispatch))
-                  ((#\T)                ; Tabulate
-                   (format:tabulate modifier params)
-                   (anychar-dispatch))
-                  ((#\Y)                ; Structured print
-                   (let ((width (if (one-positive-integer? params)
-                                    (car params)
-                                    79)))
+                      (format:out-char #\^)
+                      (format:out-char
+                       (integer->char (+ c #x40))))
+                     ((>= c #x7f)
+                      (format:out-str "#\\")
+                      (format:out-str
+                       (number->string c 8)))
+                     (else
+                      (format:out-char ch)))))
+                 (else (format:out-char ch))))
+             (anychar-dispatch))
+            ((#\P)                      ; Plural
+             (when (memq modifier '(colon colon-at))
+               (prev-arg))
+             (let ((arg (next-arg)))
+               (unless (number? arg)
+                 (format:error "~~p expects a number argument"))
+               (if (= arg 1)
+                   (when (memq modifier '(at colon-at))
+                     (format:out-char #\y))
+                   (if (memq modifier '(at colon-at))
+                       (format:out-str "ies")
+                       (format:out-char #\s))))
+             (anychar-dispatch))
+            ((#\~)                      ; Tilde
+             (if (one-positive-integer? params)
+                 (format:out-fill (car params) #\~)
+                 (format:out-char #\~))
+             (anychar-dispatch))
+            ((#\%)                      ; Newline
+             (if (one-positive-integer? params)
+                 (format:out-fill (car params) #\newline)
+                 (format:out-char #\newline))
+             (set! output-col 0)
+             (anychar-dispatch))
+            ((#\&)                      ; Fresh line
+             (if (one-positive-integer? params)
+                 (begin
+                   (when (> (car params) 0)
+                     (format:out-fill (- (car params)
+                                         (if (> output-col 0) 0 1))
+                                      #\newline))
+                   (set! output-col 0))
+                 (when (> output-col 0)
+                   (format:out-char #\newline)))
+             (anychar-dispatch))
+            ((#\_)                      ; Space character
+             (if (one-positive-integer? params)
+                 (format:out-fill (car params) #\space)
+                 (format:out-char #\space))
+             (anychar-dispatch))
+            ((#\/)                      ; Tabulator character
+             (if (one-positive-integer? params)
+                 (format:out-fill (car params) #\tab)
+                 (format:out-char #\tab))
+             (anychar-dispatch))
+            ((#\|)                      ; Page seperator
+             (if (one-positive-integer? params)
+                 (format:out-fill (car params) #\page)
+                 (format:out-char #\page))
+             (set! output-col 0)
+             (anychar-dispatch))
+            ((#\T)                      ; Tabulate
+             (format:tabulate modifier params)
+             (anychar-dispatch))
+            ((#\Y)                      ; Structured print
+             (let ((width (if (one-positive-integer? params)
+                              (car params)
+                              79)))
+               (case modifier
+                 ((at)
+                  (format:out-str
+                   (call-with-output-string
+                    (lambda (p)
+                      (truncated-print (next-arg) p
+                                       #:width width)))))
+                 ((colon-at)
+                  (format:out-str
+                   (call-with-output-string
+                    (lambda (p)
+                      (truncated-print (next-arg) p
+                                       #:width
+                                       (max (- width
+                                               output-col)
+                                            1))))))
+                 ((colon)
+                  (format:error "illegal modifier in ~~?"))
+                 (else
+                  (pretty-print (next-arg) port
+                                #:width width)
+                  (set! output-col 0))))
+             (anychar-dispatch))
+            ((#\? #\K)               ; Indirection (is "~K" in T-Scheme)
+             (cond
+              ((memq modifier '(colon colon-at))
+               (format:error "illegal modifier in ~~?"))
+              ((eq? modifier 'at)
+               (let* ((frmt (next-arg))
+                      (args (rest-args)))
+                 (add-arg-pos (format:format-work frmt args))))
+              (else
+               (let* ((frmt (next-arg))
+                      (args (next-arg)))
+                 (format:format-work frmt args))))
+             (anychar-dispatch))
+            ((#\!)                      ; Flush output
+             (set! flush-output? #t)
+             (anychar-dispatch))
+            ((#\newline)		; Continuation lines
+             (when (eq? modifier 'at)
+               (format:out-char #\newline))
+             (if (< format:pos format-string-len)
+                 (do ((ch (peek-next-char) (peek-next-char)))
+                     ((or (not (char-whitespace? ch))
+                          (= format:pos (- format-string-len 1))))
+                   (if (eq? modifier 'colon)
+                       (format:out-char (next-char))
+                       (next-char))))
+             (anychar-dispatch))
+            ((#\*)                      ; Argument jumping
+             (case modifier
+               ((colon)                 ; jump backwards
+                (if (one-positive-integer? params)
+                    (do ((i 0 (+ i 1)))
+                        ((= i (car params)))
+                      (prev-arg))
+                    (prev-arg)))
+               ((at)                    ; jump absolute
+                (set! arg-pos
+                      (if (one-positive-integer? params) (car params) 0)))
+               ((colon-at)
+                (format:error "illegal modifier `:@' in ~~* directive"))
+               (else                    ; jump forward
+                (if (one-positive-integer? params)
+                    (do ((i 0 (+ i 1)))
+                        ((= i (car params)))
+                      (next-arg))
+                    (next-arg))))
+             (anychar-dispatch))
+            ((#\()                      ; Case conversion begin
+             (set! format:case-conversion
+                   (case modifier
+                     ((at) string-capitalize-first)
+                     ((colon) string-capitalize)
+                     ((colon-at) string-upcase)
+                     (else string-downcase)))
+             (anychar-dispatch))
+            ((#\))                      ; Case conversion end
+             (unless format:case-conversion
+               (format:error "missing ~~("))
+             (set! format:case-conversion #f)
+             (anychar-dispatch))
+            ((#\[)                      ; Conditional begin
+             (set! conditional-nest (+ conditional-nest 1))
+             (cond
+              ((= conditional-nest 1)
+               (set! clause-pos format:pos)
+               (set! clause-default #f)
+               (set! clauses '())
+               (set! conditional-type
                      (case modifier
-                       ((at)
-                        (format:out-str
-                         (call-with-output-string
-                           (lambda (p)
-                             (truncated-print (next-arg) p
-                                              #:width width)))))
-                       ((colon-at)
-                        (format:out-str
-                         (call-with-output-string
-                           (lambda (p)
-                             (truncated-print (next-arg) p
-                                              #:width
-                                              (max (- width
-                                                      output-col)
-                                                   1))))))
-                       ((colon)
-                        (format:error "illegal modifier in ~~?"))
+                       ((at) 'if-then)
+                       ((colon) 'if-else-then)
+                       ((colon-at) (format:error "illegal modifier in ~~["))
+                       (else 'num-case)))
+               (set! conditional-arg
+                     (if (one-positive-integer? params)
+                         (car params)
+                         (next-arg)))))
+             (anychar-dispatch))
+            ((#\;)                      ; Conditional separator
+             (when (zero? conditional-nest)
+               (format:error "~~; not in ~~[~~] conditional"))
+             (unless (null? params)
+               (format:error "no parameter allowed in ~~;"))
+             (when (= conditional-nest 1)
+               (let ((clause-str
+                      (cond
+                       ((eq? modifier 'colon)
+                        (set! clause-default #t)
+                        (substring format-string clause-pos
+                                   (- format:pos 3)))
+                       ((memq modifier '(at colon-at))
+                        (format:error "illegal modifier in ~~;"))
                        (else
-                        (pretty-print (next-arg) port
-                                      #:width width)
-                        (set! output-col 0))))
-                   (anychar-dispatch))
-                  ((#\? #\K)         ; Indirection (is "~K" in T-Scheme)
-                   (cond
-                    ((memq modifier '(colon colon-at))
-                     (format:error "illegal modifier in ~~?"))
-                    ((eq? modifier 'at)
-                     (let* ((frmt (next-arg))
-                            (args (rest-args)))
-                       (add-arg-pos (format:format-work frmt args))))
-                    (else
-                     (let* ((frmt (next-arg))
-                            (args (next-arg)))
-                       (format:format-work frmt args))))
-                   (anychar-dispatch))
-                  ((#\!)                ; Flush output
-                   (set! flush-output? #t)
-                   (anychar-dispatch))
-                  ((#\newline)		; Continuation lines
-                   (when (eq? modifier 'at)
-                     (format:out-char #\newline))
-                   (if (< format:pos format-string-len)
-                       (do ((ch (peek-next-char) (peek-next-char)))
-                           ((or (not (char-whitespace? ch))
-                                (= format:pos (- format-string-len 1))))
-                         (if (eq? modifier 'colon)
-                             (format:out-char (next-char))
-                             (next-char))))
-                   (anychar-dispatch))
-                  ((#\*)                ; Argument jumping
-                   (case modifier
-                     ((colon)		; jump backwards
-                      (if (one-positive-integer? params)
-                          (do ((i 0 (+ i 1)))
-                              ((= i (car params)))
-                            (prev-arg))
-                          (prev-arg)))
-                     ((at)              ; jump absolute
-                      (set! arg-pos
-                            (if (one-positive-integer? params) (car params) 0)))
-                     ((colon-at)
-                      (format:error "illegal modifier `:@' in ~~* directive"))
-                     (else              ; jump forward
-                      (if (one-positive-integer? params)
-                          (do ((i 0 (+ i 1)))
-                              ((= i (car params)))
-                            (next-arg))
-                          (next-arg))))
-                   (anychar-dispatch))
-                  ((#\()                ; Case conversion begin
-                   (set! format:case-conversion
-                         (case modifier
-                           ((at) string-capitalize-first)
-                           ((colon) string-capitalize)
-                           ((colon-at) string-upcase)
-                           (else string-downcase)))
-                   (anychar-dispatch))
-                  ((#\))                ; Case conversion end
-                   (unless format:case-conversion
-                     (format:error "missing ~~("))
-                   (set! format:case-conversion #f)
-                   (anychar-dispatch))
-                  ((#\[)                ; Conditional begin
-                   (set! conditional-nest (+ conditional-nest 1))
-                   (cond
-                    ((= conditional-nest 1)
-                     (set! clause-pos format:pos)
-                     (set! clause-default #f)
-                     (set! clauses '())
-                     (set! conditional-type
-                           (case modifier
-                             ((at) 'if-then)
-                             ((colon) 'if-else-then)
-                             ((colon-at) (format:error "illegal modifier in ~~["))
-                             (else 'num-case)))
-                     (set! conditional-arg
-                           (if (one-positive-integer? params)
-                               (car params)
-                               (next-arg)))))
-                   (anychar-dispatch))
-                  ((#\;)                ; Conditional separator
-                   (when (zero? conditional-nest)
-                     (format:error "~~; not in ~~[~~] conditional"))
-                   (unless (null? params)
-                     (format:error "no parameter allowed in ~~;"))
-                   (when (= conditional-nest 1)
-                     (let ((clause-str
-                            (cond
-                             ((eq? modifier 'colon)
-                              (set! clause-default #t)
-                              (substring format-string clause-pos
-                                         (- format:pos 3)))
-                             ((memq modifier '(at colon-at))
-                              (format:error "illegal modifier in ~~;"))
-                             (else
-                              (substring format-string clause-pos
-                                         (- format:pos 2))))))
-                       (set! clauses (append clauses (list clause-str)))
-                       (set! clause-pos format:pos)))
-                   (anychar-dispatch))
-                  ((#\])                ; Conditional end
-                   (when (zero? conditional-nest)
-                     (format:error "missing ~~["))
-                   (set! conditional-nest (- conditional-nest 1))
-                   (when modifier
-                     (format:error "no modifier allowed in ~~]"))
-                   (unless (null? params)
-                     (format:error "no parameter allowed in ~~]"))
-                   (cond
-                    ((zero? conditional-nest)
-                     (let ((clause-str (substring format-string clause-pos
-                                                  (- format:pos 2))))
-                       (if clause-default
-                           (set! clause-default clause-str)
-                           (set! clauses (append clauses (list clause-str)))))
-                     (case conditional-type
-                       ((if-then)
-                        (when conditional-arg
-                          (format:format-work (car clauses)
-                                              (list conditional-arg))))
-                       ((if-else-then)
-                        (add-arg-pos
-                         (format:format-work (if conditional-arg
-                                                 (cadr clauses)
-                                                 (car clauses))
-                                             (rest-args))))
-                       ((num-case)
-                        (when (or (not (integer? conditional-arg))
-                                  (< conditional-arg 0))
-                          (format:error "argument not a positive integer"))
-                        (unless (and (>= conditional-arg (length clauses))
-                                     (not clause-default))
-                          (add-arg-pos
-                           (format:format-work
-                            (if (>= conditional-arg (length clauses))
-                                clause-default
-                                (list-ref clauses conditional-arg))
-                            (rest-args))))))))
-                   (anychar-dispatch))
-                  ((#\{)                ; Iteration begin
-                   (set! iteration-nest (+ iteration-nest 1))
-                   (cond
-                    ((= iteration-nest 1)
-                     (set! iteration-pos format:pos)
-                     (set! iteration-type
-                           (case modifier
-                             ((at) 'rest-args)
-                             ((colon) 'sublists)
-                             ((colon-at) 'rest-sublists)
-                             (else 'list)))
-                     (set! max-iterations
-                           (if (one-positive-integer? params)
-                               (car params)
-                               #f))))
-                   (anychar-dispatch))
-                  ((#\})                ; Iteration end
-                   (when (zero? iteration-nest) (format:error "missing ~~{"))
-                   (set! iteration-nest (- iteration-nest 1))
-                   (case modifier
-                     ((colon)
-                      (unless max-iterations (set! max-iterations 1)))
-                     ((colon-at at) (format:error "illegal modifier")))
-                   (unless (null? params)
-                     (format:error "no parameters allowed in ~~}"))
-                   (if (zero? iteration-nest)
-                       (let ((iteration-str
-                              (substring format-string iteration-pos
-                                         (- format:pos (if modifier 3 2)))))
-                         (when (string=? iteration-str "")
-                           (set! iteration-str (next-arg)))
-                         (case iteration-type
-                           ((list)
-                            (let ((args (next-arg))
-                                  (args-len 0))
-                              (unless (list? args)
-                                (format:error "expected a list argument"))
-                              (set! args-len (length args))
+                        (substring format-string clause-pos
+                                   (- format:pos 2))))))
+                 (set! clauses (append clauses (list clause-str)))
+                 (set! clause-pos format:pos)))
+             (anychar-dispatch))
+            ((#\])                      ; Conditional end
+             (when (zero? conditional-nest)
+               (format:error "missing ~~["))
+             (set! conditional-nest (- conditional-nest 1))
+             (when modifier
+               (format:error "no modifier allowed in ~~]"))
+             (unless (null? params)
+               (format:error "no parameter allowed in ~~]"))
+             (cond
+              ((zero? conditional-nest)
+               (let ((clause-str (substring format-string clause-pos
+                                            (- format:pos 2))))
+                 (if clause-default
+                     (set! clause-default clause-str)
+                     (set! clauses (append clauses (list clause-str)))))
+               (case conditional-type
+                 ((if-then)
+                  (when conditional-arg
+                    (format:format-work (car clauses)
+                                        (list conditional-arg))))
+                 ((if-else-then)
+                  (add-arg-pos
+                   (format:format-work (if conditional-arg
+                                           (cadr clauses)
+                                           (car clauses))
+                                       (rest-args))))
+                 ((num-case)
+                  (when (or (not (integer? conditional-arg))
+                            (< conditional-arg 0))
+                    (format:error "argument not a positive integer"))
+                  (unless (and (>= conditional-arg (length clauses))
+                               (not clause-default))
+                    (add-arg-pos
+                     (format:format-work
+                      (if (>= conditional-arg (length clauses))
+                          clause-default
+                          (list-ref clauses conditional-arg))
+                      (rest-args))))))))
+             (anychar-dispatch))
+            ((#\{)                      ; Iteration begin
+             (set! iteration-nest (+ iteration-nest 1))
+             (cond
+              ((= iteration-nest 1)
+               (set! iteration-pos format:pos)
+               (set! iteration-type
+                     (case modifier
+                       ((at) 'rest-args)
+                       ((colon) 'sublists)
+                       ((colon-at) 'rest-sublists)
+                       (else 'list)))
+               (set! max-iterations
+                     (if (one-positive-integer? params)
+                         (car params)
+                         #f))))
+             (anychar-dispatch))
+            ((#\})                      ; Iteration end
+             (when (zero? iteration-nest) (format:error "missing ~~{"))
+             (set! iteration-nest (- iteration-nest 1))
+             (case modifier
+               ((colon)
+                (unless max-iterations (set! max-iterations 1)))
+               ((colon-at at) (format:error "illegal modifier")))
+             (unless (null? params)
+               (format:error "no parameters allowed in ~~}"))
+             (if (zero? iteration-nest)
+                 (let ((iteration-str
+                        (substring format-string iteration-pos
+                                   (- format:pos (if modifier 3 2)))))
+                   (when (string=? iteration-str "")
+                     (set! iteration-str (next-arg)))
+                   (case iteration-type
+                     ((list)
+                      (let ((args (next-arg))
+                            (args-len 0))
+                        (unless (list? args)
+                          (format:error "expected a list argument"))
+                        (set! args-len (length args))
+                        (do ((arg-pos 0 (+ arg-pos
+                                           (format:format-work
+                                            iteration-str
+                                            (list-tail args arg-pos))))
+                             (i 0 (+ i 1)))
+                            ((or (>= arg-pos args-len)
+                                 (and max-iterations
+                                      (>= i max-iterations)))))))
+                     ((sublists)
+                      (let ((args (next-arg))
+                            (args-len 0))
+                        (unless (list? args)
+                          (format:error "expected a list argument"))
+                        (set! args-len (length args))
+                        (do ((arg-pos 0 (+ arg-pos 1)))
+                            ((or (>= arg-pos args-len)
+                                 (and max-iterations
+                                      (>= arg-pos max-iterations))))
+                          (let ((sublist (list-ref args arg-pos)))
+                            (unless (list? sublist)
+                              (format:error "expected a list of lists argument"))
+                            (format:format-work iteration-str sublist)))))
+                     ((rest-args)
+                      (let* ((args (rest-args))
+                             (args-len (length args))
+                             (usedup-args
                               (do ((arg-pos 0 (+ arg-pos
                                                  (format:format-work
                                                   iteration-str
-                                                  (list-tail args arg-pos))))
+                                                  (list-tail
+                                                   args arg-pos))))
                                    (i 0 (+ i 1)))
                                   ((or (>= arg-pos args-len)
                                        (and max-iterations
-                                            (>= i max-iterations)))))))
-                           ((sublists)
-                            (let ((args (next-arg))
-                                  (args-len 0))
-                              (unless (list? args)
-                                (format:error "expected a list argument"))
-                              (set! args-len (length args))
+                                            (>= i max-iterations)))
+                                   arg-pos))))
+                        (add-arg-pos usedup-args)))
+                     ((rest-sublists)
+                      (let* ((args (rest-args))
+                             (args-len (length args))
+                             (usedup-args
                               (do ((arg-pos 0 (+ arg-pos 1)))
                                   ((or (>= arg-pos args-len)
                                        (and max-iterations
-                                            (>= arg-pos max-iterations))))
+                                            (>= arg-pos max-iterations)))
+                                   arg-pos)
                                 (let ((sublist (list-ref args arg-pos)))
                                   (unless (list? sublist)
-                                    (format:error "expected a list of lists argument"))
+                                    (format:error "expected list arguments"))
                                   (format:format-work iteration-str sublist)))))
-                           ((rest-args)
-                            (let* ((args (rest-args))
-                                   (args-len (length args))
-                                   (usedup-args
-                                    (do ((arg-pos 0 (+ arg-pos
-                                                       (format:format-work
-                                                        iteration-str
-                                                        (list-tail
-                                                         args arg-pos))))
-                                         (i 0 (+ i 1)))
-                                        ((or (>= arg-pos args-len)
-                                             (and max-iterations
-                                                  (>= i max-iterations)))
-                                         arg-pos))))
-                              (add-arg-pos usedup-args)))
-                           ((rest-sublists)
-                            (let* ((args (rest-args))
-                                   (args-len (length args))
-                                   (usedup-args
-                                    (do ((arg-pos 0 (+ arg-pos 1)))
-                                        ((or (>= arg-pos args-len)
-                                             (and max-iterations
-                                                  (>= arg-pos max-iterations)))
-                                         arg-pos)
-                                      (let ((sublist (list-ref args arg-pos)))
-                                        (unless (list? sublist)
-                                          (format:error "expected list arguments"))
-                                        (format:format-work iteration-str sublist)))))
-                              (add-arg-pos usedup-args)))
-                           (else (format:error "internal error in ~~}")))))
-                   (anychar-dispatch))
-                  ((#\^)                ; Up and out
-                   (let* ((continue
-                           (cond
-                            ((not (null? params))
-                             (not
-                              (case (length params)
-                                ((1) (zero? (car params)))
-                                ((2) (= (list-ref params 0) (list-ref params 1)))
-                                ((3) (<= (list-ref params 0)
-                                         (list-ref params 1)
-                                         (list-ref params 2)))
-                                (else (format:error "too much parameters")))))
-                            (format:case-conversion ; if conversion stop conversion
-                             (set! format:case-conversion string-copy) #t)
-                            ((= iteration-nest 1) #t)
-                            ((= conditional-nest 1) #t)
-                            ((>= arg-pos arg-len)
-                             (set! format:pos format-string-len) #f)
-                            (else #t))))
-                     (when continue
-                       (anychar-dispatch))))
+                        (add-arg-pos usedup-args)))
+                     (else (format:error "internal error in ~~}")))))
+             (anychar-dispatch))
+            ((#\^)                      ; Up and out
+             (let* ((continue
+                     (cond
+                      ((not (null? params))
+                       (not
+                        (case (length params)
+                          ((1) (zero? (car params)))
+                          ((2) (= (list-ref params 0) (list-ref params 1)))
+                          ((3) (<= (list-ref params 0)
+                                   (list-ref params 1)
+                                   (list-ref params 2)))
+                          (else (format:error "too much parameters")))))
+                      (format:case-conversion ; if conversion stop conversion
+                       (set! format:case-conversion string-copy) #t)
+                      ((= iteration-nest 1) #t)
+                      ((= conditional-nest 1) #t)
+                      ((>= arg-pos arg-len)
+                       (set! format:pos format-string-len) #f)
+                      (else #t))))
+               (when continue
+                 (anychar-dispatch))))
 
-                  ;; format directive modifiers and parameters
+            ;; format directive modifiers and parameters
 
-                  ((#\@)                ; `@' modifier
-                   (when (memq modifier '(at colon-at))
-                     (format:error "double `@' modifier"))
-                   (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
-                   (tilde-dispatch))
-                  ((#\:)                ; `:' modifier
-                   (when (memq modifier '(colon colon-at))
-                     (format:error "double `:' modifier"))
-                   (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
-                   (tilde-dispatch))
-                  ((#\')                ; Character parameter
-                   (when modifier
-                     (format:error "misplaced modifier"))
-                   (set! params (append params (list (char->integer (next-char)))))
-                   (set! param-value-found #t)
-                   (tilde-dispatch))
-                  ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
-                   (when modifier
-                     (format:error "misplaced modifier"))
-                   (let ((num-str-beg (- format:pos 1))
-                         (num-str-end format:pos))
-                     (do ((ch (peek-next-char) (peek-next-char)))
-                         ((not (char-numeric? ch)))
-                       (next-char)
-                       (set! num-str-end (+ 1 num-str-end)))
-                     (set! params
-                           (append params
-                                   (list (string->number
-                                          (substring format-string
-                                                     num-str-beg
-                                                     num-str-end))))))
-                   (set! param-value-found #t)
-                   (tilde-dispatch))
-                  ((#\V)           ; Variable parameter from next argum.
-                   (when modifier
-                     (format:error "misplaced modifier"))
-                   (set! params (append params (list (next-arg))))
-                   (set! param-value-found #t)
-                   (tilde-dispatch))
-                  ((#\#)         ; Parameter is number of remaining args
-                   (when param-value-found
-                     (format:error "misplaced '#'"))
-                   (when modifier
-                     (format:error "misplaced modifier"))
-                   (set! params (append params (list (length (rest-args)))))
-                   (set! param-value-found #t)
-                   (tilde-dispatch))
-                  ((#\,)                ; Parameter separators
-                   (when modifier
-                     (format:error "misplaced modifier"))
-                   (unless param-value-found
-                     (set! params (append params '(#f)))) ; append empty paramtr
-                   (set! param-value-found #f)
-                   (tilde-dispatch))
-                  ((#\Q)                ; Inquiry messages
-                   (if (eq? modifier 'colon)
-                       (format:out-str format:version)
-                       (let ((nl (string #\newline)))
-                         (format:out-str
-                          (string-append
-                           "SLIB Common LISP format version " format:version nl
-                           "  (C) copyright 1992-1994 by Dirk Lutzebaeck" nl
-                           "  please send bug reports to `lutzeb@cs.tu-berlin.de'"
-                           nl))))
-                   (anychar-dispatch))
-                  (else                 ; Unknown tilde directive
-                   (format:error "unknown control character `~c'"
-                                 (string-ref format-string (- format:pos 1))))))
-               (else (anychar-dispatch)))))) ; in case of conditional
+            ((#\@)                      ; `@' modifier
+             (when (memq modifier '(at colon-at))
+               (format:error "double `@' modifier"))
+             (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
+             (tilde-dispatch))
+            ((#\:)                      ; `:' modifier
+             (when (memq modifier '(colon colon-at))
+               (format:error "double `:' modifier"))
+             (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
+             (tilde-dispatch))
+            ((#\')                      ; Character parameter
+             (when modifier
+               (format:error "misplaced modifier"))
+             (set! params (append params (list (char->integer (next-char)))))
+             (set! param-value-found #t)
+             (tilde-dispatch))
+            ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
+             (when modifier
+               (format:error "misplaced modifier"))
+             (let ((num-str-beg (- format:pos 1))
+                   (num-str-end format:pos))
+               (do ((ch (peek-next-char) (peek-next-char)))
+                   ((not (char-numeric? ch)))
+                 (next-char)
+                 (set! num-str-end (+ 1 num-str-end)))
+               (set! params
+                     (append params
+                             (list (string->number
+                                    (substring format-string
+                                               num-str-beg
+                                               num-str-end))))))
+             (set! param-value-found #t)
+             (tilde-dispatch))
+            ((#\V)                 ; Variable parameter from next argum.
+             (when modifier
+               (format:error "misplaced modifier"))
+             (set! params (append params (list (next-arg))))
+             (set! param-value-found #t)
+             (tilde-dispatch))
+            ((#\#)               ; Parameter is number of remaining args
+             (when param-value-found
+               (format:error "misplaced '#'"))
+             (when modifier
+               (format:error "misplaced modifier"))
+             (set! params (append params (list (length (rest-args)))))
+             (set! param-value-found #t)
+             (tilde-dispatch))
+            ((#\,)                      ; Parameter separators
+             (when modifier
+               (format:error "misplaced modifier"))
+             (unless param-value-found
+               (set! params (append params '(#f)))) ; append empty paramtr
+             (set! param-value-found #f)
+             (tilde-dispatch))
+            ((#\Q)                      ; Inquiry messages
+             (if (eq? modifier 'colon)
+                 (format:out-str format:version)
+                 (let ((nl (string #\newline)))
+                   (format:out-str
+                    (string-append
+                     "SLIB Common LISP format version " format:version nl
+                     "  (C) copyright 1992-1994 by Dirk Lutzebaeck" nl
+                     "  please send bug reports to `lutzeb@cs.tu-berlin.de'"
+                     nl))))
+             (anychar-dispatch))
+            (else                       ; Unknown tilde directive
+             (format:error "unknown control character `~c'"
+                           (string-ref format-string (- format:pos 1))))))
+         (else (anychar-dispatch))))    ; in case of conditional
 
-        (set! format:pos 0)
-        (set! format:arg-pos 0)
-        (anychar-dispatch)              ; start the formatting
-        (set! format:pos recursive-pos-save)
-        arg-pos))                 ; return the position in the arg. list
+      (set! format:pos 0)
+      (set! format:arg-pos 0)
+      (anychar-dispatch)                ; start the formatting
+      (set! format:pos recursive-pos-save)
+      arg-pos)                 ; return the position in the arg. list
 
     ;; when format:read-proof is true, format:obj->str will wrap
     ;; result strings starting with "#<" in an extra pair of double
