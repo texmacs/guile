@@ -6,17 +6,23 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in alpha 2.9.3 (since alpha 2.9.2):
+Changes in alpha 2.9.4 (since alpha 2.9.3):
 
 * Notable changes
 
-** Improved just-in-time machine code generation
+** Improved compilation of `sqrt' and `abs'
 
-Guile's JIT compiler emits better code for indirect procedure calls,
-atomic instructions, numeric comparisons, procedure prologues,
-well-known closures with no free variables, calls and returns, and
-allocations.  Together these improvements can speed up some benchmarks
-by up to 50%.
+Heavy floating-point computations that use `sqrt' and `abs' will be
+faster, as the compiler can unbox inexact rationals (flonums) in more
+cases.
+
+** Improved compilation of internal `define'
+
+Internal definitions -- like the `define' in `(let () (define x 10)
+...)` -- are now compiled more optimally, using the algorithm from
+Ghuloum and Dybvig's "Fixing Letrec (reloaded)" paper.  This change
+makes internal `define' just as efficient as `let', `let*', `letrec',
+and similar.
 
 
 
