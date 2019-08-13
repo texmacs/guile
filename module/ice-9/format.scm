@@ -1,5 +1,5 @@
 ;;;; "format.scm" Common LISP text output formatter for SLIB
-;;; 	Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;; 	Copyright (C) 2010-2013,2019 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -37,8 +37,8 @@
 (define format:version "3.0")
 
 (define (format destination format-string . format-args)
-  (if (not (string? format-string))
-      (error "format: expected a string for format string" format-string))
+  (unless (string? format-string)
+    (error "format: expected a string for format string" format-string))
 
   (let* ((port
           (cond
@@ -100,8 +100,8 @@
     (define (format:error . args)       ; never returns!
       (let ((port (current-error-port)))
         (set! format:error format:intern-error)
-        (if (not (zero? format:arg-pos))
-            (set! format:arg-pos (- format:arg-pos 1)))
+        (unless (zero? format:arg-pos)
+          (set! format:arg-pos (- format:arg-pos 1)))
         (format port
                 "~%FORMAT: error with call: (format ~a \"~a<===~a\" ~
                                   ~{~a ~}===>~{~a ~})~%        "
@@ -169,9 +169,9 @@
 	       
            (peek-next-char
             (lambda ()
-              (if (>= format:pos format-string-len)
-                  (format:error "illegal format string")
-                  (string-ref format-string format:pos))))
+              (when (>= format:pos format-string-len)
+                (format:error "illegal format string"))
+              (string-ref format-string format:pos)))
 	       
            (one-positive-integer?
             (lambda (params)
@@ -186,18 +186,17 @@
 	       
            (next-arg
             (lambda ()
-              (if (>= arg-pos arg-len)
-                  (begin
-                    (set! format:arg-pos (+ arg-len 1))
-                    (format:error "missing argument(s)")))
+              (when (>= arg-pos arg-len)
+                (set! format:arg-pos (+ arg-len 1))
+                (format:error "missing argument(s)"))
               (add-arg-pos 1)
               (list-ref arglist (- arg-pos 1))))
 	       
            (prev-arg
             (lambda ()
               (add-arg-pos -1)
-              (if (negative? arg-pos)
-                  (format:error "missing backward argument(s)"))
+              (when (negative? arg-pos)
+                (format:error "missing backward argument(s)"))
               (list-ref arglist arg-pos)))
 	       
            (rest-args
@@ -222,9 +221,9 @@
                       (set! param-value-found #f)
                       (tilde-dispatch))
                      (else
-                      (if (and (zero? conditional-nest)
-                               (zero? iteration-nest))
-                          (format:out-char char))
+                      (when (and (zero? conditional-nest)
+                                 (zero? iteration-nest))
+                        (format:out-char char))
                       (anychar-dispatch)))))))
 	       
            (tilde-dispatch
@@ -321,8 +320,8 @@
                    (anychar-dispatch))
                   ((#\I)                ; Complex numbers
                    (let ((z (next-arg)))
-                     (if (not (complex? z))
-                         (format:error "argument not a complex number"))
+                     (unless (complex? z)
+                       (format:error "argument not a complex number"))
                      (format:out-fixed modifier (real-part z) params)
                      (format:out-fixed 'at (imag-part z) params)
                      (format:out-char #\i))
@@ -331,15 +330,15 @@
                    (let ((ch (if (one-positive-integer? params)
                                  (integer->char (car params))
                                  (next-arg))))
-                     (if (not (char? ch))
-                         (format:error "~~c expects a character"))
+                     (unless (char? ch)
+                       (format:error "~~c expects a character"))
                      (case modifier
                        ((at)
                         (format:out-str (object->string ch)))
                        ((colon)
                         (let ((c (char->integer ch)))
-                          (if (< c 0)
-                              (set! c (+ c 256))) ; compensate
+                          (when (< c 0)
+                            (set! c (+ c 256))) ; compensate
 					; complement
 					; impl.
                           (cond
@@ -357,14 +356,14 @@
                        (else (format:out-char ch))))
                    (anychar-dispatch))
                   ((#\P)                ; Plural
-                   (if (memq modifier '(colon colon-at))
-                       (prev-arg))
+                   (when (memq modifier '(colon colon-at))
+                     (prev-arg))
                    (let ((arg (next-arg)))
-                     (if (not (number? arg))
-                         (format:error "~~p expects a number argument"))
+                     (unless (number? arg)
+                       (format:error "~~p expects a number argument"))
                      (if (= arg 1)
-                         (if (memq modifier '(at colon-at))
-                             (format:out-char #\y))
+                         (when (memq modifier '(at colon-at))
+                           (format:out-char #\y))
                          (if (memq modifier '(at colon-at))
                              (format:out-str "ies")
                              (format:out-char #\s))))
@@ -383,15 +382,13 @@
                   ((#\&)                ; Fresh line
                    (if (one-positive-integer? params)
                        (begin
-                         (if (> (car params) 0)
-                             (format:out-fill (- (car params)
-                                                 (if (>
-                                                      output-col
-                                                      0) 0 1))
-                                              #\newline))
+                         (when (> (car params) 0)
+                           (format:out-fill (- (car params)
+                                               (if (> output-col 0) 0 1))
+                                            #\newline))
                          (set! output-col 0))
-                       (if (> output-col 0)
-                           (format:out-char #\newline)))
+                       (when (> output-col 0)
+                         (format:out-char #\newline)))
                    (anychar-dispatch))
                   ((#\_)                ; Space character
                    (if (one-positive-integer? params)
@@ -456,8 +453,8 @@
                    (set! flush-output? #t)
                    (anychar-dispatch))
                   ((#\newline)		; Continuation lines
-                   (if (eq? modifier 'at)
-                       (format:out-char #\newline))
+                   (when (eq? modifier 'at)
+                     (format:out-char #\newline))
                    (if (< format:pos format-string-len)
                        (do ((ch (peek-next-char) (peek-next-char)))
                            ((or (not (char-whitespace? ch))
@@ -475,8 +472,8 @@
                             (prev-arg))
                           (prev-arg)))
                      ((at)              ; jump absolute
-                      (set! arg-pos (if (one-positive-integer? params)
-                                        (car params) 0)))
+                      (set! arg-pos
+                            (if (one-positive-integer? params) (car params) 0)))
                      ((colon-at)
                       (format:error "illegal modifier `:@' in ~~* directive"))
                      (else              ; jump forward
@@ -495,8 +492,8 @@
                            (else string-downcase)))
                    (anychar-dispatch))
                   ((#\))                ; Case conversion end
-                   (if (not format:case-conversion)
-                       (format:error "missing ~~("))
+                   (unless format:case-conversion
+                     (format:error "missing ~~("))
                    (set! format:case-conversion #f)
                    (anychar-dispatch))
                   ((#\[)                ; Conditional begin
@@ -518,32 +515,33 @@
                                (next-arg)))))
                    (anychar-dispatch))
                   ((#\;)                ; Conditional separator
-                   (if (zero? conditional-nest)
-                       (format:error "~~; not in ~~[~~] conditional"))
-                   (if (not (null? params))
-                       (format:error "no parameter allowed in ~~;"))
-                   (if (= conditional-nest 1)
-                       (let ((clause-str
-                              (cond
-                               ((eq? modifier 'colon)
-                                (set! clause-default #t)
-                                (substring format-string clause-pos 
-                                           (- format:pos 3)))
-                               ((memq modifier '(at colon-at))
-                                (format:error "illegal modifier in ~~;"))
-                               (else
-                                (substring format-string clause-pos
-                                           (- format:pos 2))))))
-                         (set! clauses (append clauses (list clause-str)))
-                         (set! clause-pos format:pos)))
+                   (when (zero? conditional-nest)
+                     (format:error "~~; not in ~~[~~] conditional"))
+                   (unless (null? params)
+                     (format:error "no parameter allowed in ~~;"))
+                   (when (= conditional-nest 1)
+                     (let ((clause-str
+                            (cond
+                             ((eq? modifier 'colon)
+                              (set! clause-default #t)
+                              (substring format-string clause-pos
+                                         (- format:pos 3)))
+                             ((memq modifier '(at colon-at))
+                              (format:error "illegal modifier in ~~;"))
+                             (else
+                              (substring format-string clause-pos
+                                         (- format:pos 2))))))
+                       (set! clauses (append clauses (list clause-str)))
+                       (set! clause-pos format:pos)))
                    (anychar-dispatch))
                   ((#\])                ; Conditional end
-                   (if (zero? conditional-nest) (format:error "missing ~~["))
+                   (when (zero? conditional-nest)
+                     (format:error "missing ~~["))
                    (set! conditional-nest (- conditional-nest 1))
-                   (if modifier
-                       (format:error "no modifier allowed in ~~]"))
-                   (if (not (null? params))
-                       (format:error "no parameter allowed in ~~]"))
+                   (when modifier
+                     (format:error "no modifier allowed in ~~]"))
+                   (unless (null? params)
+                     (format:error "no parameter allowed in ~~]"))
                    (cond
                     ((zero? conditional-nest)
                      (let ((clause-str (substring format-string clause-pos
@@ -553,9 +551,9 @@
                            (set! clauses (append clauses (list clause-str)))))
                      (case conditional-type
                        ((if-then)
-                        (if conditional-arg
-                            (format:format-work (car clauses)
-                                                (list conditional-arg))))
+                        (when conditional-arg
+                          (format:format-work (car clauses)
+                                              (list conditional-arg))))
                        ((if-else-then)
                         (add-arg-pos
                          (format:format-work (if conditional-arg
@@ -563,17 +561,17 @@
                                                  (car clauses))
                                              (rest-args))))
                        ((num-case)
-                        (if (or (not (integer? conditional-arg))
-                                (< conditional-arg 0))
-                            (format:error "argument not a positive integer"))
-                        (if (not (and (>= conditional-arg (length clauses))
-                                      (not clause-default)))
-                            (add-arg-pos
-                             (format:format-work
-                              (if (>= conditional-arg (length clauses))
-                                  clause-default
-                                  (list-ref clauses conditional-arg))
-                              (rest-args))))))))
+                        (when (or (not (integer? conditional-arg))
+                                  (< conditional-arg 0))
+                          (format:error "argument not a positive integer"))
+                        (unless (and (>= conditional-arg (length clauses))
+                                     (not clause-default))
+                          (add-arg-pos
+                           (format:format-work
+                            (if (>= conditional-arg (length clauses))
+                                clause-default
+                                (list-ref clauses conditional-arg))
+                            (rest-args))))))))
                    (anychar-dispatch))
                   ((#\{)                ; Iteration begin
                    (set! iteration-nest (+ iteration-nest 1))
@@ -586,30 +584,32 @@
                              ((colon) 'sublists)
                              ((colon-at) 'rest-sublists)
                              (else 'list)))
-                     (set! max-iterations (if (one-positive-integer? params)
-                                              (car params) #f))))
+                     (set! max-iterations
+                           (if (one-positive-integer? params)
+                               (car params)
+                               #f))))
                    (anychar-dispatch))
                   ((#\})                ; Iteration end
-                   (if (zero? iteration-nest) (format:error "missing ~~{"))
+                   (when (zero? iteration-nest) (format:error "missing ~~{"))
                    (set! iteration-nest (- iteration-nest 1))
                    (case modifier
                      ((colon)
-                      (if (not max-iterations) (set! max-iterations 1)))
+                      (unless max-iterations (set! max-iterations 1)))
                      ((colon-at at) (format:error "illegal modifier")))
-                   (if (not (null? params))
-                       (format:error "no parameters allowed in ~~}"))
+                   (unless (null? params)
+                     (format:error "no parameters allowed in ~~}"))
                    (if (zero? iteration-nest)
                        (let ((iteration-str
                               (substring format-string iteration-pos
                                          (- format:pos (if modifier 3 2)))))
-                         (if (string=? iteration-str "")
-                             (set! iteration-str (next-arg)))
+                         (when (string=? iteration-str "")
+                           (set! iteration-str (next-arg)))
                          (case iteration-type
                            ((list)
                             (let ((args (next-arg))
                                   (args-len 0))
-                              (if (not (list? args))
-                                  (format:error "expected a list argument"))
+                              (unless (list? args)
+                                (format:error "expected a list argument"))
                               (set! args-len (length args))
                               (do ((arg-pos 0 (+ arg-pos
                                                  (format:format-work
@@ -622,17 +622,16 @@
                            ((sublists)
                             (let ((args (next-arg))
                                   (args-len 0))
-                              (if (not (list? args))
-                                  (format:error "expected a list argument"))
+                              (unless (list? args)
+                                (format:error "expected a list argument"))
                               (set! args-len (length args))
                               (do ((arg-pos 0 (+ arg-pos 1)))
                                   ((or (>= arg-pos args-len)
                                        (and max-iterations
                                             (>= arg-pos max-iterations))))
                                 (let ((sublist (list-ref args arg-pos)))
-                                  (if (not (list? sublist))
-                                      (format:error
-                                       "expected a list of lists argument"))
+                                  (unless (list? sublist)
+                                    (format:error "expected a list of lists argument"))
                                   (format:format-work iteration-str sublist)))))
                            ((rest-args)
                             (let* ((args (rest-args))
@@ -659,8 +658,8 @@
                                                   (>= arg-pos max-iterations)))
                                          arg-pos)
                                       (let ((sublist (list-ref args arg-pos)))
-                                        (if (not (list? sublist))
-                                            (format:error "expected list arguments"))
+                                        (unless (list? sublist)
+                                          (format:error "expected list arguments"))
                                         (format:format-work iteration-str sublist)))))
                               (add-arg-pos usedup-args)))
                            (else (format:error "internal error in ~~}")))))
@@ -684,28 +683,30 @@
                             ((>= arg-pos arg-len)
                              (set! format:pos format-string-len) #f)
                             (else #t))))
-                     (if continue
-                         (anychar-dispatch))))
+                     (when continue
+                       (anychar-dispatch))))
 
                   ;; format directive modifiers and parameters
 
                   ((#\@)                ; `@' modifier
-                   (if (memq modifier '(at colon-at))
-                       (format:error "double `@' modifier"))
+                   (when (memq modifier '(at colon-at))
+                     (format:error "double `@' modifier"))
                    (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
                    (tilde-dispatch))
                   ((#\:)                ; `:' modifier
-                   (if (memq modifier '(colon colon-at))
-                       (format:error "double `:' modifier"))
+                   (when (memq modifier '(colon colon-at))
+                     (format:error "double `:' modifier"))
                    (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
                    (tilde-dispatch))
                   ((#\')                ; Character parameter
-                   (if modifier (format:error "misplaced modifier"))
+                   (when modifier
+                     (format:error "misplaced modifier"))
                    (set! params (append params (list (char->integer (next-char)))))
                    (set! param-value-found #t)
                    (tilde-dispatch))
                   ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
-                   (if modifier (format:error "misplaced modifier"))
+                   (when modifier
+                     (format:error "misplaced modifier"))
                    (let ((num-str-beg (- format:pos 1))
                          (num-str-end format:pos))
                      (do ((ch (peek-next-char) (peek-next-char)))
@@ -721,20 +722,24 @@
                    (set! param-value-found #t)
                    (tilde-dispatch))
                   ((#\V)           ; Variable parameter from next argum.
-                   (if modifier (format:error "misplaced modifier"))
+                   (when modifier
+                     (format:error "misplaced modifier"))
                    (set! params (append params (list (next-arg))))
                    (set! param-value-found #t)
                    (tilde-dispatch))
                   ((#\#)         ; Parameter is number of remaining args
-                   (if param-value-found (format:error "misplaced '#'"))
-                   (if modifier (format:error "misplaced modifier"))
+                   (when param-value-found
+                     (format:error "misplaced '#'"))
+                   (when modifier
+                     (format:error "misplaced modifier"))
                    (set! params (append params (list (length (rest-args)))))
                    (set! param-value-found #t)
                    (tilde-dispatch))
                   ((#\,)                ; Parameter separators
-                   (if modifier (format:error "misplaced modifier"))
-                   (if (not param-value-found)
-                       (set! params (append params '(#f)))) ; append empty paramtr
+                   (when modifier
+                     (format:error "misplaced modifier"))
+                   (unless param-value-found
+                     (set! params (append params '(#f)))) ; append empty paramtr
                    (set! param-value-found #f)
                    (tilde-dispatch))
                   ((#\Q)                ; Inquiry messages
@@ -802,17 +807,18 @@
                   (padchar (integer->char
                             (format:par pars l 3 format:space-ch #f)))
                   (objstr (format:obj->str obj slashify)))
-              (if (not pad-left)
-                  (format:out-str objstr))
+              (unless pad-left
+                (format:out-str objstr))
               (do ((objstr-len (string-length objstr))
                    (i minpad (+ i colinc)))
                   ((>= (+ objstr-len i) mincol)
                    (format:out-fill i padchar)))
-              (if pad-left
-                  (format:out-str objstr))))))
+              (when pad-left
+                (format:out-str objstr))))))
 
     (define (format:out-num-padded modifier number pars radix)
-      (if (not (integer? number)) (format:error "argument not an integer"))
+      (unless (integer? number)
+        (format:error "argument not an integer"))
       (let ((numstr (number->string number radix)))
         (if (and (null? pars) (not modifier))
             (format:out-str numstr)
@@ -824,28 +830,28 @@
                     (commachar (integer->char
                                 (format:par pars l 2 (char->integer #\,) #f)))
                     (commawidth (format:par pars l 3 3 "commawidth")))
-                (if mincol
-                    (let ((numlen numstr-len)) ; calc. the output len of number
-                      (if (and (memq modifier '(at colon-at)) (>= number 0))
-                          (set! numlen (+ numlen 1)))
-                      (if (memq modifier '(colon colon-at))
-                          (set! numlen (+ (quotient (- numstr-len 
-                                                       (if (< number 0) 2 1))
-                                                    commawidth)
-                                          numlen)))
-                      (if (> mincol numlen)
-                          (format:out-fill (- mincol numlen) padchar))))
-                (if (and (memq modifier '(at colon-at))
-                         (>= number 0))
-                    (format:out-char #\+))
+                (when mincol
+                  (let ((numlen numstr-len)) ; calc. the output len of number
+                    (when (and (memq modifier '(at colon-at)) (>= number 0))
+                      (set! numlen (+ numlen 1)))
+                    (when (memq modifier '(colon colon-at))
+                      (set! numlen (+ (quotient (- numstr-len
+                                                   (if (< number 0) 2 1))
+                                                commawidth)
+                                      numlen)))
+                    (when (> mincol numlen)
+                      (format:out-fill (- mincol numlen) padchar))))
+                (when (and (memq modifier '(at colon-at))
+                           (>= number 0))
+                  (format:out-char #\+))
                 (if (memq modifier '(colon colon-at)) ; insert comma character
                     (let ((start (remainder numstr-len commawidth))
                           (ns (if (< number 0) 1 0)))
                       (format:out-substr numstr 0 start)
                       (do ((i start (+ i commawidth)))
                           ((>= i numstr-len))
-                        (if (> i ns)
-                            (format:out-char commachar))
+                        (when (> i ns)
+                          (format:out-char commachar))
                         (format:out-substr numstr i (+ i commawidth))))
                     (format:out-str numstr)))))))
 
@@ -894,7 +900,8 @@
           (let loop ((n n)
                      (romans format:roman-alist)
                      (s '()))
-            (if (null? romans) (list->string (reverse s))
+            (if (null? romans)
+                (list->string (reverse s))
                 (let ((roman-val (caar romans))
                       (roman-dgt (cadar romans)))
                   (do ((q (quotient n roman-val) (- q 1))
@@ -905,30 +912,30 @@
           (format:error "only positive integers can be romanized")))
 
     (define (format:num->roman n)
-      (if (and (integer? n) (> n 0))
-          (let loop ((n n)
-                     (romans format:roman-alist)
-                     (boundaries format:roman-boundary-values)
-                     (s '()))
-            (if (null? romans)
-                (list->string (reverse s))
-                (let ((roman-val (caar romans))
-                      (roman-dgt (cadar romans))
-                      (bdry (car boundaries)))
-                  (let loop2 ((q (quotient n roman-val))
-                              (r (remainder n roman-val))
-                              (s s))
-                    (if (= q 0)
-                        (if (and bdry (>= r (- roman-val bdry)))
-                            (loop (remainder r bdry) (cdr romans)
-                                  (cdr boundaries)
-                                  (cons roman-dgt
-                                        (append
-                                         (cdr (assv bdry romans))
-                                         s)))
-                            (loop r (cdr romans) (cdr boundaries) s))
-                        (loop2 (- q 1) r (cons roman-dgt s)))))))
-          (format:error "only positive integers can be romanized")))
+      (unless (and (integer? n) (> n 0))
+        (format:error "only positive integers can be romanized"))
+      (let loop ((n n)
+                 (romans format:roman-alist)
+                 (boundaries format:roman-boundary-values)
+                 (s '()))
+        (if (null? romans)
+            (list->string (reverse s))
+            (let ((roman-val (caar romans))
+                  (roman-dgt (cadar romans))
+                  (bdry (car boundaries)))
+              (let loop2 ((q (quotient n roman-val))
+                          (r (remainder n roman-val))
+                          (s s))
+                (if (= q 0)
+                    (if (and bdry (>= r (- roman-val bdry)))
+                        (loop (remainder r bdry) (cdr romans)
+                              (cdr boundaries)
+                              (cons roman-dgt
+                                    (append
+                                     (cdr (assv bdry romans))
+                                     s)))
+                        (loop r (cdr romans) (cdr boundaries) s))
+                    (loop2 (- q 1) r (cons roman-dgt s))))))))
 
     ;; cardinals & ordinals (from dorai@cs.rice.edu)
 
@@ -1001,7 +1008,8 @@
                              (if (> n-after-block 0)
                                  (append
                                   (if (> n-before-block 0)
-                                      (string->list ", ") '())
+                                      (string->list ", ")
+                                      '())
                                   (format:num->cardinal999 n-after-block)
                                   (if (< power3 power3-word-limit)
                                       (string->list
@@ -1042,7 +1050,8 @@
                      (format:num->cardinal (* hundreds 100))
                      (if (= tens+ones 0) "th" " "))
                     "")
-                (if (= tens+ones 0) ""
+                (if (= tens+ones 0)
+                    ""
                     (if (< tens+ones 20)
                         (list-ref format:ordinal-ones-list tens+ones)
                         (let ((tens (quotient tens+ones 10))
@@ -1082,8 +1091,8 @@
     ;; format fixed flonums (~F)
 
     (define (format:out-fixed modifier number pars)
-      (if (not (or (number? number) (string? number)))
-          (format:error "argument is not a number or a number string"))
+      (unless (or (number? number) (string? number))
+        (format:error "argument is not a number or a number string"))
 
       (let ((l (length pars)))
         (let ((width (format:par pars l 0 #f "width"))
@@ -1104,12 +1113,12 @@
                 (format:fn-round digits))
             (if width
                 (let ((numlen (+ format:fn-len 1)))
-                  (if (or (not format:fn-pos?) (eq? modifier 'at))
-                      (set! numlen (+ numlen 1)))
-                  (if (and (= format:fn-dot 0) (> width (+ digits 1)))
-                      (set! numlen (+ numlen 1)))
-                  (if (< numlen width)
-                      (format:out-fill (- width numlen) (integer->char padch)))
+                  (when (or (not format:fn-pos?) (eq? modifier 'at))
+                    (set! numlen (+ numlen 1)))
+                  (when (and (= format:fn-dot 0) (> width (+ digits 1)))
+                    (set! numlen (+ numlen 1)))
+                  (when (< numlen width)
+                    (format:out-fill (- width numlen) (integer->char padch)))
                   (if (and overch (> numlen width))
                       (format:out-fill width (integer->char overch))
                       (format:fn-out modifier (> width (+ digits 1)))))
@@ -1120,12 +1129,12 @@
             (format:fn-strip)
             (if width
                 (let ((numlen (+ format:fn-len 1)))
-                  (if (or (not format:fn-pos?) (eq? modifier 'at))
-                      (set! numlen (+ numlen 1)))
-                  (if (= format:fn-dot 0)
-                      (set! numlen (+ numlen 1)))
-                  (if (< numlen width)
-                      (format:out-fill (- width numlen) (integer->char padch)))
+                  (when (or (not format:fn-pos?) (eq? modifier 'at))
+                    (set! numlen (+ numlen 1)))
+                  (when (= format:fn-dot 0)
+                    (set! numlen (+ numlen 1)))
+                  (when (< numlen width)
+                    (format:out-fill (- width numlen) (integer->char padch)))
                   (if (> numlen width)	; adjust precision if possible
                       (let ((dot-index (- numlen
                                           (- format:fn-len format:fn-dot))))
@@ -1142,8 +1151,8 @@
     ;; format exponential flonums (~E)
 
     (define (format:out-expon modifier number pars)
-      (if (not (or (number? number) (string? number)))
-          (format:error "argument is not a number"))
+      (unless (or (number? number) (string? number))
+        (format:error "argument is not a number"))
 
       (let ((l (length pars)))
         (let ((width (format:par pars l 0 #f "width"))
@@ -1174,18 +1183,18 @@
                   (if (and edigits overch (> format:en-len edigits))
                       (format:out-fill width (integer->char overch))
                       (let ((numlen (+ format:fn-len 3))) ; .E+
-                        (if (or (not format:fn-pos?) (eq? modifier 'at))
-                            (set! numlen (+ numlen 1)))
-                        (if (and (= format:fn-dot 0) (> width (+ digits 1)))
-                            (set! numlen (+ numlen 1)))	
+                        (when (or (not format:fn-pos?) (eq? modifier 'at))
+                          (set! numlen (+ numlen 1)))
+                        (when (and (= format:fn-dot 0) (> width (+ digits 1)))
+                          (set! numlen (+ numlen 1)))
                         (set! numlen
                               (+ numlen 
                                  (if (and edigits (>= edigits format:en-len))
                                      edigits 
                                      format:en-len)))
-                        (if (< numlen width)
-                            (format:out-fill (- width numlen)
-                                             (integer->char padch)))
+                        (when (< numlen width)
+                          (format:out-fill (- width numlen)
+                                           (integer->char padch)))
                         (if (and overch (> numlen width))
                             (format:out-fill width (integer->char overch))
                             (begin
@@ -1202,18 +1211,18 @@
                 (if (and edigits overch (> format:en-len edigits))
                     (format:out-fill width (integer->char overch))
                     (let ((numlen (+ format:fn-len 3))) ; .E+
-                      (if (or (not format:fn-pos?) (eq? modifier 'at))
-                          (set! numlen (+ numlen 1)))
-                      (if (= format:fn-dot 0)
-                          (set! numlen (+ numlen 1)))
+                      (when (or (not format:fn-pos?) (eq? modifier 'at))
+                        (set! numlen (+ numlen 1)))
+                      (when (= format:fn-dot 0)
+                        (set! numlen (+ numlen 1)))
                       (set! numlen
                             (+ numlen
                                (if (and edigits (>= edigits format:en-len))
                                    edigits 
                                    format:en-len)))
-                      (if (< numlen width)
-                          (format:out-fill (- width numlen)
-                                           (integer->char padch)))
+                      (when (< numlen width)
+                        (format:out-fill (- width numlen)
+                                         (integer->char padch)))
                       (if (> numlen width) ; adjust precision if possible
                           (let ((f (- format:fn-len format:fn-dot))) ; fract len
                             (if (> (- numlen f) width)
@@ -1237,8 +1246,8 @@
     ;; format general flonums (~G)
 
     (define (format:out-general modifier number pars)
-      (if (not (or (number? number) (string? number)))
-          (format:error "argument is not a number or a number string"))
+      (unless (or (number? number) (string? number))
+        (format:error "argument is not a number or a number string"))
 
       (let ((l (length pars)))
         (let ((width (if (> l 0) (list-ref pars 0) #f))
@@ -1272,8 +1281,8 @@
     ;; format dollar flonums (~$)
 
     (define (format:out-dollar modifier number pars)
-      (if (not (or (number? number) (string? number)))
-          (format:error "argument is not a number or a number string"))
+      (unless (or (number? number) (string? number))
+        (format:error "argument is not a number or a number string"))
 
       (let ((l (length pars)))
         (let ((digits (format:par pars l 0 2 "digits"))
@@ -1292,17 +1301,17 @@
                 (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
                 (format:fn-round digits))
             (let ((numlen (+ format:fn-len 1)))
-              (if (or (not format:fn-pos?) (memq modifier '(at colon-at)))
-                  (set! numlen (+ numlen 1)))
-              (if (and mindig (> mindig format:fn-dot))
-                  (set! numlen (+ numlen (- mindig format:fn-dot))))
-              (if (and (= format:fn-dot 0) (not mindig))
-                  (set! numlen (+ numlen 1)))
+              (when (or (not format:fn-pos?) (memq modifier '(at colon-at)))
+                (set! numlen (+ numlen 1)))
+              (when (and mindig (> mindig format:fn-dot))
+                (set! numlen (+ numlen (- mindig format:fn-dot))))
+              (when (and (= format:fn-dot 0) (not mindig))
+                (set! numlen (+ numlen 1)))
               (if (< numlen width)
                   (case modifier
                     ((colon)
-                     (if (not format:fn-pos?)
-                         (format:out-char #\-))
+                     (unless format:fn-pos?
+                       (format:out-char #\-))
                      (format:out-fill (- width numlen) (integer->char padch)))
                     ((at)
                      (format:out-fill (- width numlen) (integer->char padch))
@@ -1312,15 +1321,16 @@
                      (format:out-fill (- width numlen) (integer->char padch)))
                     (else
                      (format:out-fill (- width numlen) (integer->char padch))
-                     (if (not format:fn-pos?)
-                         (format:out-char #\-))))
+                     (unless format:fn-pos?
+                       (format:out-char #\-))))
                   (if format:fn-pos?
-                      (if (memq modifier '(at colon-at)) (format:out-char #\+))
+                      (when (memq modifier '(at colon-at))
+                        (format:out-char #\+))
                       (format:out-char #\-))))
-            (if (and mindig (> mindig format:fn-dot))
-                (format:out-fill (- mindig format:fn-dot) #\0))
-            (if (and (= format:fn-dot 0) (not mindig))
-                (format:out-char #\0))
+            (when (and mindig (> mindig format:fn-dot))
+              (format:out-fill (- mindig format:fn-dot) #\0))
+            (when (and (= format:fn-dot 0) (not mindig))
+              (format:out-char #\0))
             (format:out-substr format:fn-str 0 format:fn-dot)
             (format:out-char #\.)
             (format:out-substr format:fn-str format:fn-dot format:fn-len))))))
@@ -1353,49 +1363,48 @@
              (num-len (string-length num-str))
              (c #f))                ; current exam. character in num-str
             ((= i num-len)
-             (if (not format:fn-dot)
-                 (set! format:fn-dot format:fn-len))
+             (unless format:fn-dot
+               (set! format:fn-dot format:fn-len))
 
-             (if all-zeros?
-                 (begin
-                   (set! left-zeros 0)
-                   (set! format:fn-dot 0)
-                   (set! format:fn-len 1)))
+             (when all-zeros?
+               (set! left-zeros 0)
+               (set! format:fn-dot 0)
+               (set! format:fn-len 1))
 
              ;; now format the parsed values according to format's need
 
              (if fixed?
 
                  (begin                 ; fixed format m.nnn or .nnn
-                   (if (and (> left-zeros 0) (> format:fn-dot 0))
-                       (if (> format:fn-dot left-zeros) 
-                           (begin       ; norm 0{0}nn.mm to nn.mm
-                             (format:fn-shiftleft left-zeros)
-                             (set! format:fn-dot (- format:fn-dot left-zeros))
-                             (set! left-zeros 0))
-                           (begin       ; normalize 0{0}.nnn to .nnn
-                             (format:fn-shiftleft format:fn-dot)
-                             (set! left-zeros (- left-zeros format:fn-dot))
-                             (set! format:fn-dot 0))))
-                   (if (or (not (= scale 0)) (> format:en-len 0))
-                       (let ((shift (+ scale (format:en-int))))
-                         (cond
-                          (all-zeros? #t)
-                          ((> (+ format:fn-dot shift) format:fn-len)
-                           (format:fn-zfill
-                            #f (- shift (- format:fn-len format:fn-dot)))
-                           (set! format:fn-dot format:fn-len))
-                          ((< (+ format:fn-dot shift) 0)
-                           (format:fn-zfill #t (- (- shift) format:fn-dot))
-                           (set! format:fn-dot 0))
-                          (else
-                           (if (> left-zeros 0)
-                               (if (<= left-zeros shift) ; shift always > 0 here
-                                   (format:fn-shiftleft shift) ; shift out 0s
-                                   (begin
-                                     (format:fn-shiftleft left-zeros)
-                                     (set! format:fn-dot (- shift left-zeros))))
-                               (set! format:fn-dot (+ format:fn-dot shift))))))))
+                   (when (and (> left-zeros 0) (> format:fn-dot 0))
+                     (if (> format:fn-dot left-zeros)
+                         (begin         ; norm 0{0}nn.mm to nn.mm
+                           (format:fn-shiftleft left-zeros)
+                           (set! format:fn-dot (- format:fn-dot left-zeros))
+                           (set! left-zeros 0))
+                         (begin         ; normalize 0{0}.nnn to .nnn
+                           (format:fn-shiftleft format:fn-dot)
+                           (set! left-zeros (- left-zeros format:fn-dot))
+                           (set! format:fn-dot 0))))
+                   (when (or (not (= scale 0)) (> format:en-len 0))
+                     (let ((shift (+ scale (format:en-int))))
+                       (cond
+                        (all-zeros? #t)
+                        ((> (+ format:fn-dot shift) format:fn-len)
+                         (format:fn-zfill
+                          #f (- shift (- format:fn-len format:fn-dot)))
+                         (set! format:fn-dot format:fn-len))
+                        ((< (+ format:fn-dot shift) 0)
+                         (format:fn-zfill #t (- (- shift) format:fn-dot))
+                         (set! format:fn-dot 0))
+                        (else
+                         (if (> left-zeros 0)
+                             (if (<= left-zeros shift) ; shift always > 0 here
+                                 (format:fn-shiftleft shift) ; shift out 0s
+                                 (begin
+                                   (format:fn-shiftleft left-zeros)
+                                   (set! format:fn-dot (- shift left-zeros))))
+                             (set! format:fn-dot (+ format:fn-dot shift))))))))
 
                  (let ((negexp          ; expon format m.nnnEee
                         (if (> left-zeros 0)
@@ -1405,8 +1414,8 @@
                        (begin           ; normalize 0{0}.nnn to n.nn
                          (format:fn-shiftleft left-zeros)
                          (set! format:fn-dot 1))
-                       (if (= format:fn-dot 0)
-                           (set! format:fn-dot 1)))
+                       (when (= format:fn-dot 0)
+                         (set! format:fn-dot 1)))
                    (format:en-set (- (+ (- format:fn-dot scale) (format:en-int))
                                      negexp))
                    (cond 
@@ -1430,8 +1439,8 @@
             (if mantissa?               ; complex numbers
                 (begin
                   (if (char=? c #\0)
-                      (if all-zeros?
-                          (set! left-zeros (+ left-zeros 1)))
+                      (when all-zeros?
+                        (set! left-zeros (+ left-zeros 1)))
                       (begin
                         (set! all-zeros? #f)))
                   (string-set! format:fn-str format:fn-len c)
@@ -1476,14 +1485,13 @@
              (c #f))
             ((= i en-len))
           (set! c (string-ref en-str i))
-          (if (char-numeric? c)
-              (begin
-                (string-set! format:en-str format:en-len c)
-                (set! format:en-len (+ format:en-len 1)))))))
+          (when (char-numeric? c)
+            (string-set! format:en-str format:en-len c)
+            (set! format:en-len (+ format:en-len 1))))))
 
     (define (format:fn-zfill left? n) ; fill current number string with 0s
-      (if (> (+ n format:fn-len) format:fn-max) ; from the left or right
-          (format:error "number is too long to format (enlarge format:fn-max)"))
+      (when (> (+ n format:fn-len) format:fn-max) ; from the left or right
+        (format:error "number is too long to format (enlarge format:fn-max)"))
       (set! format:fn-len (+ format:fn-len n))
       (if left?
           (do ((i format:fn-len (- i 1))) ; fill n 0s to left
@@ -1497,9 +1505,9 @@
             (string-set! format:fn-str i #\0))))
 
     (define (format:fn-shiftleft n) ; shift left current number n positions
-      (if (> n format:fn-len)
-          (format:error "internal error in format:fn-shiftleft (~d,~d)"
-                        n format:fn-len))
+      (when (> n format:fn-len)
+        (format:error "internal error in format:fn-shiftleft (~d,~d)"
+                      n format:fn-len))
       (do ((i n (+ i 1)))
           ((= i format:fn-len)
            (set! format:fn-len (- format:fn-len n)))
@@ -1527,12 +1535,12 @@
 
     (define (format:fn-out modifier add-leading-zero?)
       (if format:fn-pos?
-          (if (eq? modifier 'at) 
-              (format:out-char #\+))
+          (when (eq? modifier 'at)
+            (format:out-char #\+))
           (format:out-char #\-))
       (if (= format:fn-dot 0)
-          (if add-leading-zero?
-              (format:out-char #\0))
+          (when add-leading-zero?
+            (format:out-char #\0))
           (format:out-substr format:fn-str 0 format:fn-dot))
       (format:out-char #\.)
       (format:out-substr format:fn-str format:fn-dot format:fn-len))
@@ -1540,9 +1548,8 @@
     (define (format:en-out edigits expch)
       (format:out-char (if expch (integer->char expch) #\E))
       (format:out-char (if format:en-pos? #\+ #\-))
-      (if edigits 
-          (if (< format:en-len edigits)
-              (format:out-fill (- edigits format:en-len) #\0)))
+      (when (and edigits (< format:en-len edigits))
+        (format:out-fill (- edigits format:en-len) #\0))
       (format:out-substr format:en-str 0 format:en-len))
 
     (define (format:fn-strip)           ; strip trailing zeros but one
@@ -1570,12 +1577,12 @@
         (do ((i 0 (+ i 1)))
             ((= i str-len) cap-str)
           (let ((c (string-ref str i)))
-            (if (char-alphabetic? c)
-                (if non-first-alpha
-                    (string-set! cap-str i (char-downcase c))
-                    (begin
-                      (set! non-first-alpha #t)
-                      (string-set! cap-str i (char-upcase c)))))))))
+            (when (char-alphabetic? c)
+              (if non-first-alpha
+                  (string-set! cap-str i (char-downcase c))
+                  (begin
+                    (set! non-first-alpha #t)
+                    (string-set! cap-str i (char-upcase c)))))))))
 
     ;; Aborts the program when a formatting error occures. This is a null
     ;; argument closure to jump to the interpreters toplevel continuation.
@@ -1590,8 +1597,8 @@
         (display format:arg-pos)
         (format:error "~a missing argument~:p" (- arg-pos arg-len)))
        (else
-        (if flush-output?
-            (force-output port))
+        (when flush-output?
+          (force-output port))
         (if destination
             #t
             (let ((str (get-output-string port)))
