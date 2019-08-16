@@ -1,6 +1,6 @@
 ;;; Tree-il optimizer
 
-;; Copyright (C) 2009, 2010-2015, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010-2015, 2018, 2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,11 @@
 
 (define-module (language tree-il optimize)
   #:use-module (language tree-il)
-  #:use-module (language tree-il primitives)
-  #:use-module (language tree-il peval)
-  #:use-module (language tree-il fix-letrec)
   #:use-module (language tree-il debug)
+  #:use-module (language tree-il fix-letrec)
+  #:use-module (language tree-il letrectify)
+  #:use-module (language tree-il peval)
+  #:use-module (language tree-il primitives)
   #:use-module (ice-9 match)
   #:export (optimize
             tree-il-optimizations))
@@ -49,6 +50,7 @@
   (maybe-verify x)
   (run-pass resolve*           #:resolve-primitives? #t)
   (run-pass expand-primitives  #:expand-primitives?  #t)
+  (run-pass letrectify         #:letrectify?         #t)
   (set! x (fix-letrec x))
   (run-pass peval*             #:partial-eval?       #t)
   x)
@@ -59,4 +61,5 @@
   ;; will result in a lot of code that will never get optimized nicely.
   '((#:resolve-primitives? 2)
     (#:expand-primitives? 1)
+    (#:letrectify? 1)
     (#:partial-eval? 1)))
