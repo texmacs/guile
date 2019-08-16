@@ -1,6 +1,6 @@
 ;;; Tree-IL verifier
 
-;; Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2013, 2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -170,8 +170,10 @@
          (visit body env))))
       (($ <const> src val) #t)
       (($ <void> src) #t)
-      (($ <toplevel-ref> src name)
+      (($ <toplevel-ref> src mod name)
        (cond
+        ((and mod (not (and (list? mod) (and-map symbol? mod))))
+         (error "module name should be #f or list of symbols" mod))
         ((not (symbol? name))
          (error "name should be a symbol" name))))
       (($ <module-ref> src mod name public?)
@@ -184,14 +186,18 @@
        (cond
         ((not (symbol? name))
          (error "name should be symbol" exp))))
-      (($ <toplevel-set> src name exp)
+      (($ <toplevel-set> src mod name exp)
        (cond
+        ((and mod (not (and (list? mod) (and-map symbol? mod))))
+         (error "module name should be #f or list of symbols" mod))
         ((not (symbol? name))
          (error "name should be a symbol" name))
         (else
          (visit exp env))))
-      (($ <toplevel-define> src name exp)
+      (($ <toplevel-define> src mod name exp)
        (cond
+        ((and mod (not (and (list? mod) (and-map symbol? mod))))
+         (error "module name should be #f or list of symbols" mod))
         ((not (symbol? name))
          (error "name should be a symbol" name))
         (else

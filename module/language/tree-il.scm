@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009-2014, 2017-2018 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009-2014, 2017-2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -30,9 +30,9 @@
             <lexical-set> lexical-set? make-lexical-set lexical-set-src lexical-set-name lexical-set-gensym lexical-set-exp
             <module-ref> module-ref? make-module-ref module-ref-src module-ref-mod module-ref-name module-ref-public?
             <module-set> module-set? make-module-set module-set-src module-set-mod module-set-name module-set-public? module-set-exp
-            <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-name
-            <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
-            <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
+            <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-mod toplevel-ref-name
+            <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-mod toplevel-set-name toplevel-set-exp
+            <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-mod toplevel-define-name toplevel-define-exp
             <conditional> conditional? make-conditional conditional-src conditional-test conditional-consequent conditional-alternate
             <call> call? make-call call-src call-proc call-args
             <primcall> primcall? make-primcall primcall-src primcall-name primcall-args
@@ -117,9 +117,9 @@
   ;; (<lexical-set> name gensym exp)
   ;; (<module-ref> mod name public?)
   ;; (<module-set> mod name public? exp)
-  ;; (<toplevel-ref> name)
-  ;; (<toplevel-set> name exp)
-  ;; (<toplevel-define> name exp)
+  ;; (<toplevel-ref> mod name)
+  ;; (<toplevel-set> mod name exp)
+  ;; (<toplevel-define> mod name exp)
   ;; (<conditional> test consequent alternate)
   ;; (<call> proc args)
   ;; (<primcall> name args)
@@ -197,13 +197,13 @@
       (make-module-set loc mod name #f (retrans exp)))
 
      (('toplevel (and name (? symbol?)))
-      (make-toplevel-ref loc name))
+      (make-toplevel-ref loc #f name))
 
      (('set! ('toplevel (and name (? symbol?))) exp)
-      (make-toplevel-set loc name (retrans exp)))
+      (make-toplevel-set loc #f name (retrans exp)))
 
      (('define (and name (? symbol?)) exp)
-      (make-toplevel-define loc name (retrans exp)))
+      (make-toplevel-define loc #f name (retrans exp)))
 
      (('lambda meta body)
       (make-lambda loc meta (retrans body)))
@@ -286,13 +286,13 @@
     (($ <module-set> src mod name public? exp)
      `(set! (,(if public? '@ '@@) ,mod ,name) ,(unparse-tree-il exp)))
 
-    (($ <toplevel-ref> src name)
+    (($ <toplevel-ref> src mod name)
      `(toplevel ,name))
 
-    (($ <toplevel-set> src name exp)
+    (($ <toplevel-set> src mod name exp)
      `(set! (toplevel ,name) ,(unparse-tree-il exp)))
 
-    (($ <toplevel-define> src name exp)
+    (($ <toplevel-define> src mod name exp)
      `(define ,name ,(unparse-tree-il exp)))
 
     (($ <lambda> src meta body)
@@ -356,9 +356,9 @@
                (foldts exp seed ...))
               (($ <module-set> src mod name public? exp)
                (foldts exp seed ...))
-              (($ <toplevel-set> src name exp)
+              (($ <toplevel-set> src mod name exp)
                (foldts exp seed ...))
-              (($ <toplevel-define> src name exp)
+              (($ <toplevel-define> src mod name exp)
                (foldts exp seed ...))
               (($ <conditional> src test consequent alternate)
                (let*-values (((seed ...) (foldts test seed ...))
@@ -449,17 +449,17 @@ This is an implementation of `foldts' as described by Andy Wingo in
                 x
                 (make-module-set src mod name public? exp*))))
 
-         (($ <toplevel-set> src name exp)
+         (($ <toplevel-set> src mod name exp)
           (let ((exp* (lp exp)))
             (if (eq? exp exp*)
                 x
-                (make-toplevel-set src name exp*))))
+                (make-toplevel-set src mod name exp*))))
 
-         (($ <toplevel-define> src name exp)
+         (($ <toplevel-define> src mod name exp)
           (let ((exp* (lp exp)))
             (if (eq? exp exp*)
                 x
-                (make-toplevel-define src name exp*))))
+                (make-toplevel-define src mod name exp*))))
 
          (($ <conditional> src test consequent alternate)
           (let ((test* (lp test))

@@ -74,12 +74,12 @@ static const char** exp_field_names[SCM_NUM_EXPANDED_TYPES];
   SCM_MAKE_EXPANDED_MODULE_REF(src, mod, name, public)
 #define MODULE_SET(src, mod, name, public, exp) \
   SCM_MAKE_EXPANDED_MODULE_SET(src, mod, name, public, exp)
-#define TOPLEVEL_REF(src, name) \
-  SCM_MAKE_EXPANDED_TOPLEVEL_REF(src, name)
-#define TOPLEVEL_SET(src, name, exp) \
-  SCM_MAKE_EXPANDED_TOPLEVEL_SET(src, name, exp)
-#define TOPLEVEL_DEFINE(src, name, exp) \
-  SCM_MAKE_EXPANDED_TOPLEVEL_DEFINE(src, name, exp)
+#define TOPLEVEL_REF(src, mod, name) \
+  SCM_MAKE_EXPANDED_TOPLEVEL_REF(src, mod, name)
+#define TOPLEVEL_SET(src, mod, name, exp) \
+  SCM_MAKE_EXPANDED_TOPLEVEL_SET(src, mod, name, exp)
+#define TOPLEVEL_DEFINE(src, mod, name, exp) \
+  SCM_MAKE_EXPANDED_TOPLEVEL_DEFINE(src, mod, name, exp)
 #define CONDITIONAL(src, test, consequent, alternate) \
   SCM_MAKE_EXPANDED_CONDITIONAL(src, test, consequent, alternate)
 #define PRIMCALL(src, name, exps) \
@@ -377,7 +377,7 @@ expand (SCM exp, SCM env)
       if (scm_is_true (gensym))
         return LEXICAL_REF (SCM_BOOL_F, exp, gensym);
       else
-        return TOPLEVEL_REF (SCM_BOOL_F, exp);
+        return TOPLEVEL_REF (SCM_BOOL_F, SCM_BOOL_F, exp);
     }
   else
     return CONST_ (SCM_BOOL_F, exp);
@@ -552,13 +552,14 @@ expand_define (SCM expr, SCM env)
       ASSERT_SYNTAX_2 (scm_is_symbol (CAR (variable)), s_bad_variable, variable, expr);
       return TOPLEVEL_DEFINE
         (scm_source_properties (expr),
+         SCM_BOOL_F,
          CAR (variable),
          expand_lambda (scm_cons (scm_sym_lambda, scm_cons (CDR (variable), body)),
                         env));
     }
   ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
-  return TOPLEVEL_DEFINE (scm_source_properties (expr), variable,
+  return TOPLEVEL_DEFINE (scm_source_properties (expr), SCM_BOOL_F, variable,
                           expand (CAR (body), env));
 }
 
@@ -1143,6 +1144,7 @@ expand_set_x (SCM expr, SCM env)
                           expand (CADDR (expr), env));
     case SCM_EXPANDED_TOPLEVEL_REF:
       return TOPLEVEL_SET (scm_source_properties (expr),
+                           SCM_EXPANDED_REF (vmem, TOPLEVEL_REF, MOD),
                            SCM_EXPANDED_REF (vmem, TOPLEVEL_REF, NAME),
                            expand (CADDR (expr), env));
     case SCM_EXPANDED_MODULE_REF:
@@ -1371,12 +1373,14 @@ convert_assignment (SCM exp, SCM assigned)
     case SCM_EXPANDED_TOPLEVEL_SET:
       return TOPLEVEL_SET
 	 (REF (exp, TOPLEVEL_SET, SRC),
+          REF (exp, TOPLEVEL_SET, MOD),
           REF (exp, TOPLEVEL_SET, NAME),
           convert_assignment (REF (exp, TOPLEVEL_SET, EXP), assigned));
 
     case SCM_EXPANDED_TOPLEVEL_DEFINE:
       return TOPLEVEL_DEFINE
         (REF (exp, TOPLEVEL_DEFINE, SRC),
+         REF (exp, TOPLEVEL_DEFINE, MOD),
          REF (exp, TOPLEVEL_DEFINE, NAME),
          convert_assignment (REF (exp, TOPLEVEL_DEFINE, EXP),
                              assigned));

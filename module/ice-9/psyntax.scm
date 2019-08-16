@@ -329,19 +329,19 @@
   
     (define (analyze-variable mod var modref-cont bare-cont)
       (if (not mod)
-          (bare-cont var)
+          (bare-cont #f var)
           (let ((kind (car mod))
                 (mod (cdr mod)))
             (case kind
               ((public) (modref-cont mod var #t))
-              ((private) (if (not (equal? mod (module-name (current-module))))
-                             (modref-cont mod var #f)
-                             (bare-cont var)))
+              ((private) (if (equal? mod (module-name (current-module)))
+                             (bare-cont mod var)
+                             (modref-cont mod var #f)))
               ((bare) (bare-cont var))
               ((hygiene) (if (and (not (equal? mod (module-name (current-module))))
                                   (module-variable (resolve-module mod) var))
                              (modref-cont mod var #f)
-                             (bare-cont var)))
+                             (bare-cont mod var)))
               ((primitive)
                (syntax-violation #f "primitive not in operator position" var))
               (else (syntax-violation #f "bad module kind" var mod))))))
@@ -352,8 +352,8 @@
          mod var
          (lambda (mod var public?) 
            (make-module-ref source mod var public?))
-         (lambda (var)
-           (make-toplevel-ref source var)))))
+         (lambda (mod var)
+           (make-toplevel-ref source mod var)))))
 
     (define build-global-assignment
       (lambda (source var exp mod)
@@ -362,13 +362,13 @@
          mod var
          (lambda (mod var public?) 
            (make-module-set source mod var public? exp))
-         (lambda (var)
-           (make-toplevel-set source var exp)))))
+         (lambda (mod var)
+           (make-toplevel-set source mod var exp)))))
 
     (define build-global-definition
-      (lambda (source var exp)
+      (lambda (source mod var exp)
         (maybe-name-value! var exp)
-        (make-toplevel-define source var exp)))
+        (make-toplevel-define source (and mod (cdr mod)) var exp)))
 
     (define build-simple-lambda
       (lambda (src req rest vars meta exp)
@@ -1142,7 +1142,7 @@
                      (record-definition! id var)
                      (list
                       (if (eq? m 'c&e)
-                          (let ((x (build-global-definition s var (expand e r w mod))))
+                          (let ((x (build-global-definition s mod var (expand e r w mod))))
                             (top-level-eval-hook x mod)
                             (lambda () x))
                           (call-with-values
@@ -1152,10 +1152,10 @@
                               ;; macro, then immediately discard that binding.
                               (if (eq? type* 'macro)
                                   (top-level-eval-hook (build-global-definition
-                                                        s var (build-void s))
+                                                        s mod var (build-void s))
                                                        mod))
                               (lambda ()
-                                (build-global-definition s var (expand e r w mod)))))))))
+                                (build-global-definition s mod var (expand e r w mod)))))))))
                   ((define-syntax-form define-syntax-parameter-form)
                    (let* ((id (wrap value w mod))
                           (label (gen-label))
@@ -1167,23 +1167,23 @@
                        ((c)
                         (cond
                          ((memq 'compile esew)
-                          (let ((e (expand-install-global var type (expand e r w mod))))
+                          (let ((e (expand-install-global mod var type (expand e r w mod))))
                             (top-level-eval-hook e mod)
                             (if (memq 'load esew)
                                 (list (lambda () e))
                                 '())))
                          ((memq 'load esew)
                           (list (lambda ()
-                                  (expand-install-global var type (expand e r w mod)))))
+                                  (expand-install-global mod var type (expand e r w mod)))))
                          (else '())))
                        ((c&e)
-                        (let ((e (expand-install-global var type (expand e r w mod))))
+                        (let ((e (expand-install-global mod var type (expand e r w mod))))
                           (top-level-eval-hook e mod)
                           (list (lambda () e))))
                        (else
                         (if (memq 'eval esew)
                             (top-level-eval-hook
-                             (expand-install-global var type (expand e r w mod))
+                             (expand-install-global mod var type (expand e r w mod))
                              mod))
                         '()))))
                   ((begin-form)
@@ -1244,9 +1244,10 @@
                 (build-sequence s exps))))))
     
     (define expand-install-global
-      (lambda (name type e)
+      (lambda (mod name type e)
         (build-global-definition
          no-source
+         mod
          name
          (build-primcall
           no-source

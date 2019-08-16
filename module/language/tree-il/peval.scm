@@ -387,7 +387,7 @@ top-level bindings from ENV and return the resulting expression."
     (let ()
       (define (env-folder x env)
         (match x
-          (($ <toplevel-define> _ name)
+          (($ <toplevel-define> _ _ name)
            (vhash-consq name #t env))
           (($ <seq> _ head tail)
            (env-folder tail (env-folder head env)))
@@ -1020,7 +1020,7 @@ top-level bindings from ENV and return the resulting expression."
                    (else #f))))
                (_ #f))
              (make-let-values lv-src producer (for-tail consumer)))))
-      (($ <toplevel-ref> src (? effect-free-primitive? name))
+      (($ <toplevel-ref> src mod (? effect-free-primitive? name))
        exp)
       (($ <toplevel-ref>)
        ;; todo: open private local bindings.
@@ -1038,10 +1038,10 @@ top-level bindings from ENV and return the resulting expression."
        exp)
       (($ <module-set> src mod name public? exp)
        (make-module-set src mod name public? (for-value exp)))
-      (($ <toplevel-define> src name exp)
-       (make-toplevel-define src name (for-value exp)))
-      (($ <toplevel-set> src name exp)
-       (make-toplevel-set src name (for-value exp)))
+      (($ <toplevel-define> src mod name exp)
+       (make-toplevel-define src mod name (for-value exp)))
+      (($ <toplevel-set> src mod name exp)
+       (make-toplevel-set src mod name (for-value exp)))
       (($ <primitive-ref>)
        (case ctx
          ((effect) (make-void #f))

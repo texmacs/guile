@@ -139,11 +139,12 @@
         (translate-literal-syntax-objects
          (make-toplevel-define
           (toplevel-define-src x)
+          (toplevel-define-mod x)
           (toplevel-define-name x)
           (make-let (toplevel-define-src x)
                     (list 'make-syntax)
                     (list (module-gensym))
-                    (list (make-toplevel-ref #f 'make-syntax))
+                    (list (make-toplevel-ref #f #f 'make-syntax))
                     (toplevel-define-exp x))))))))
 
 ;; Avoid gratuitous churn in psyntax-pp.scm due to the marks and labels

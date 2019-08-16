@@ -1,7 +1,7 @@
 ;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
 ;;;; Andy Wingo <wingo@pobox.com> --- May 2009
 ;;;;
-;;;; Copyright (C) 2009-2014, 2018 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009-2014,2018-2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -188,11 +188,11 @@
                     x))
       (and (= result 12)
            (equal? (map strip-source (list-head (reverse ups) 3))
-                   (list (make-toplevel-ref #f '+)
+                   (list (make-toplevel-ref #f #f '+)
                          (make-lexical-ref #f 'x 'x1)
                          (make-lexical-ref #f 'y 'y1)))
            (equal? (map strip-source (reverse (list-head downs 3)))
-                   (list (make-toplevel-ref #f '+)
+                   (list (make-toplevel-ref #f #f '+)
                          (make-lexical-ref #f 'x 'x1)
                          (make-lexical-ref #f 'y 'y1)))))))
 

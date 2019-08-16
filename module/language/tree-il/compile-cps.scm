@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015,2017-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1849,7 +1849,7 @@
                 ($continue k src
                   ($primcall 'scm-set!/immediate '(box . 1) (box val))))))))))
 
-    (($ <toplevel-ref> src name)
+    (($ <toplevel-ref> src mod name)
      (toplevel-box
       cps src name #t
       (lambda (cps box)
@@ -1859,7 +1859,7 @@
             ($continue k src
               ($primcall 'scm-ref/immediate '(box . 1) (box))))))))
 
-    (($ <toplevel-set> src name exp)
+    (($ <toplevel-set> src mod name exp)
      (convert-arg cps exp
        (lambda (cps val)
          (toplevel-box
@@ -1871,7 +1871,7 @@
                 ($continue k src
                   ($primcall 'scm-set!/immediate '(box . 1) (box val))))))))))
 
-    (($ <toplevel-define> src name exp)
+    (($ <toplevel-define> src modname name exp)
      (convert-arg cps exp
        (lambda (cps val)
          (with-cps cps

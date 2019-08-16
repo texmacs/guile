@@ -873,7 +873,7 @@ given `tree-il' element."
   (match proc
     (($ <module-ref> _ '(oop goops) 'toplevel-define! #f)
      (toplevel-define-arg args))
-    (($ <toplevel-ref> _ 'toplevel-define!)
+    (($ <toplevel-ref> _ _ 'toplevel-define!)
      ;; This may be the result of expanding one of the GOOPS macros within
      ;; `oop/goops.scm'.
      (and (eq? env (resolve-module '(oop goops)))
@@ -972,11 +972,11 @@ given `tree-il' element."
          (($ <primcall> _ 'make-syntax-transformer) #t)
          (_ #f)))
      (match x
-       (($ <toplevel-ref> src name)
+       (($ <toplevel-ref> src mod name)
         (add-use name (nearest-loc src)))
-       (($ <toplevel-set> src name)
+       (($ <toplevel-set> src mod name)
         (add-use name (nearest-loc src)))
-       (($ <toplevel-define> src name (? macro?))
+       (($ <toplevel-define> src mod name (? macro?))
         (add-def name (nearest-loc src)))
        (_ info)))
 
@@ -1421,10 +1421,10 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
     (cut eq? <> special-name))
 
   (match exp
-    (($ <toplevel-ref> _ (? special?))
+    (($ <toplevel-ref> _ _ (? special?))
      ;; Allow top-levels like: (define _ (cut gettext <> "my-domain")).
      #t)
-    (($ <toplevel-ref> _ name)
+    (($ <toplevel-ref> _ _ name)
      (let ((var (module-variable env name)))
        (and var (variable-bound? var)
             (eq? (variable-ref var) proc))))
@@ -1464,7 +1464,7 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
 (define format-analysis
   ;; Report arity mismatches in the given tree.
   (make-tree-analysis
-   (lambda (x _ env locs)
+   (lambda (x res env locs)
      ;; Down into X.
      (define (check-format-args args loc)
        (pmatch args
@@ -1539,7 +1539,7 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
             (false-if-exception (module-ref env name))))
 
      (match x
-       (($ <call> src ($ <toplevel-ref> _ name) args)
+       (($ <call> src ($ <toplevel-ref> _ _ name) args)
         (let ((proc (resolve-toplevel name)))
           (if (or (and (eq? proc (@ (guile) simple-format))
                        (check-simple-format-args args
