@@ -1,5 +1,4 @@
-##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
-##        2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+##  	Copyright (C) 2009-2019 Free Software Foundation, Inc.
 ##
 ##   This file is part of GNU Guile.
 ##
@@ -68,6 +67,7 @@ SOURCES =					\
   language/tree-il/debug.scm			\
   language/tree-il/effects.scm			\
   language/tree-il/fix-letrec.scm		\
+  language/tree-il/letrectify.scm		\
   language/tree-il/optimize.scm			\
   language/tree-il/peval.scm			\
   language/tree-il/primitives.scm		\

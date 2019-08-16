@@ -191,6 +191,7 @@ SOURCES =					\
   language/tree-il/debug.scm			\
   language/tree-il/effects.scm			\
   language/tree-il/fix-letrec.scm		\
+  language/tree-il/letrectify.scm		\
   language/tree-il/optimize.scm			\
   language/tree-il/peval.scm			\
   language/tree-il/primitives.scm		\
