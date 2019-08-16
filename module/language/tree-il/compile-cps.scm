@@ -507,6 +507,28 @@
         ($continue ktag0 src
           ($primcall 'allocate-words/immediate '(box . 2) ()))))))
 
+(define-primcall-converter %box-ref
+  (lambda (cps k src op param box)
+    (define unbound
+      #(misc-error "variable-ref" "Unbound variable: ~S"))
+    (with-cps cps
+      (letv val)
+      (letk kunbound ($kargs () () ($throw src 'throw/value unbound (box))))
+      (letk kbound ($kargs () () ($continue k src ($values (val)))))
+      (letk ktest
+            ($kargs ('val) (val)
+              ($branch kbound kunbound src 'undefined? #f (val))))
+      (build-term
+        ($continue ktest src
+          ($primcall 'scm-ref/immediate '(box . 1) (box)))))))
+
+(define-primcall-converter %box-set!
+  (lambda (cps k src op param box val)
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'scm-set!/immediate '(box . 1) (box val)))))))
+
 (define (ensure-box cps src op x is-box)
   (define not-box
     (vector 'wrong-type-arg
@@ -521,31 +543,17 @@
 
 (define-primcall-converter box-ref
   (lambda (cps k src op param box)
-    (define unbound
-      #(misc-error "variable-ref" "Unbound variable: ~S"))
     (ensure-box
      cps src 'variable-ref box
      (lambda (cps)
-       (with-cps cps
-         (letv val)
-         (letk kunbound ($kargs () () ($throw src 'throw/value unbound (box))))
-         (letk kbound ($kargs () () ($continue k src ($values (val)))))
-         (letk ktest
-               ($kargs ('val) (val)
-                 ($branch kbound kunbound src 'undefined? #f (val))))
-         (build-term
-           ($continue ktest src
-             ($primcall 'scm-ref/immediate '(box . 1) (box)))))))))
+       (convert-primcall cps k src '%box-ref param box)))))
 
 (define-primcall-converter box-set!
   (lambda (cps k src op param box val)
     (ensure-box
      cps src 'variable-set! box
      (lambda (cps)
-       (with-cps cps
-         (build-term
-           ($continue k src
-             ($primcall 'scm-set!/immediate '(box . 1) (box val)))))))))
+       (convert-primcall cps k src '%box-set! param box val)))))
 
 (define (ensure-struct cps src op x have-vtable)
   (define not-struct

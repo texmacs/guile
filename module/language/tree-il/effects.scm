@@ -416,6 +416,15 @@ of an expression."
                    (cause &type-check)
                    (cause &variable)))
 
+          (($ <primcall> _ '%variable-ref (v))
+           (logior (compute-effects v)
+                   (cause &type-check) ;; For the unbound check.
+                   &variable))
+          (($ <primcall> _ '%variable-set! (v x))
+           (logior (compute-effects v)
+                   (compute-effects x)
+                   (cause &variable)))
+
           (($ <primcall> _ 'struct-ref (s n))
            (logior (compute-effects s)
                    (compute-effects n)

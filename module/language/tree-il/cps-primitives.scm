@@ -48,9 +48,11 @@
 (define-cps-primitive box 1 1)
 (define-cps-primitive (variable-ref box-ref) 1 1)
 (define-cps-primitive (variable-set! box-set!) 2 0)
+(define-cps-primitive (%variable-ref %box-ref) 1 1)
+(define-cps-primitive (%variable-set! %box-set!) 2 0)
 
 (define-cps-primitive current-module 0 1)
-(define-cps-primitive define! 1 1)
+(define-cps-primitive (module-ensure-local-variable! define!) 2 1)
 
 (define-cps-primitive wind 2 0)
 (define-cps-primitive unwind 0 0)

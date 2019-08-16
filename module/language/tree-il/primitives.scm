@@ -398,6 +398,12 @@
                            (make-primcall src 'list (cons message args))
                            (make-const src #f)))))))
 
+(define-primitive-expander define! (sym val)
+  (%variable-set! (module-ensure-local-variable! (current-module) sym) val))
+
+(define-primitive-expander module-define! (mod sym val)
+  (%variable-set! (module-ensure-local-variable! mod sym) val))
+
 (define-primitive-expander zero? (x)
   (= x 0))
 
