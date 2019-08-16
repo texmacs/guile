@@ -1,6 +1,6 @@
 ;;; open-coding primitive procedures
 
-;; Copyright (C) 2009-2015, 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2015, 2017-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -331,58 +331,37 @@
 (define (expand-primitives x)
   (pre-order expand-primcall x))
 
-;;; I actually did spend about 10 minutes trying to redo this with
-;;; syntax-rules. Patches appreciated.
-;;;
-(define-macro (define-primitive-expander sym . clauses)
-  (define (inline-args args)
-    (let lp ((in args) (out '()))
-      (cond ((null? in) `(list ,@(reverse out)))
-            ((symbol? in) `(cons* ,@(reverse out) ,in))
-            ((pair? (car in))
-             (lp (cdr in)
-                 (cons (if (eq? (caar in) 'quote)
-                           `(make-const src ,@(cdar in))
-                           `(make-primcall src ',(caar in)
-                                           ,(inline-args (cdar in))))
-                       out)))
-            ((symbol? (car in))
-             ;; assume it's locally bound
-             (lp (cdr in) (cons (car in) out)))
-            ((self-evaluating? (car in))
-             (lp (cdr in) (cons `(make-const src ,(car in)) out)))
-            (else
-             (error "what what" (car in))))))
-  (define (consequent exp)
-    (cond
-     ((pair? exp)
-      (pmatch exp
-        ((if ,test ,then ,else)
-         `(if ,test
-              ,(consequent then)
-              ,(consequent else)))
-        (else
-         `(make-primcall src ',(car exp)
-                         ,(inline-args (cdr exp))))))
-     ((symbol? exp)
-      ;; assume locally bound
-      exp)
-     ((number? exp)
-      `(make-const src ,exp))
-     ((not exp)
-      ;; failed match
-      #f)
-     (else (error "bad consequent yall" exp))))
-  `(hashq-set! *primitive-expand-table*
-               ',sym
-               (match-lambda*
-                ,@(let lp ((in clauses) (out '()))
-                    (if (null? in)
-                        (reverse (cons '(_ #f) out))
-                        (lp (cddr in)
-                            (cons `((src . ,(car in))
-                                    ,(consequent (cadr in)))
-                                  out)))))))
+(define-syntax-rule (define-primitive-expander! sym proc)
+  (hashq-set! *primitive-expand-table* sym proc))
+
+(define-syntax primitive-expander
+  (lambda (stx)
+    (define (expand-args args)
+      (syntax-case args ()
+        (() #''())
+        ((a . b) #`(cons #,(expand-expr #'a) #,(expand-args #'b)))
+        (a (expand-expr #'a))))
+    (define (expand-expr body)
+      (syntax-case body (quote)
+        (id (identifier? #'id) #'id)
+        ((quote x) #'(make-const src 'x))
+        ((op . args) #`(make-primcall src 'op #,(expand-args #'args)))
+        (x (self-evaluating? (syntax->datum #'x)) #'(make-const src x))))
+    (define (match-clauses args+body)
+      (syntax-case args+body (if)
+        (() '())
+        ((args body . args+body)
+         (cons #`(args #,(expand-expr #'body))
+               (match-clauses #'args+body)))))
+    (syntax-case stx ()
+      ((_ args+body ...)
+       #`(lambda (src . args)
+           (match args
+             #,@(match-clauses #'(args+body ...))
+             (_ #f)))))))
+
+(define-syntax-rule (define-primitive-expander sym . clauses)
+  (define-primitive-expander! 'sym (primitive-expander . clauses)))
 
 ;; Oddly, scm-error is just an explicitly 5-argument `throw'.  Weird.
 (define-primitive-expander scm-error (key who message args data)
@@ -391,35 +370,33 @@
 (define (escape-format-directives str)
   (string-join (string-split str #\~) "~~"))
 
-(hashq-set!
- *primitive-expand-table*
- 'error
- (match-lambda*
-  ((src)
-   (make-primcall src 'throw
-                  (list (make-const src 'misc-error)
-                        (make-const src #f)
-                        (make-const src "?")
-                        (make-const src #f)
-                        (make-const src #f))))
-  ((src ($ <const> src2 (? string? message)) . args)
-   (let ((msg (string-join (cons (escape-format-directives message)
-                                 (make-list (length args) "~S")))))
-     (make-primcall src 'throw
-                    (list (make-const src 'misc-error)
-                          (make-const src #f)
-                          (make-const src2 msg)
-                          (make-primcall src 'list args)
-                          (make-const src #f)))))
-  ((src message . args)
-   (let ((msg (string-join (cons "~A" (make-list (length args) "~S")))))
-     (make-primcall src 'throw
-                    (list (make-const src 'misc-error)
-                          (make-const src #f)
-                          (make-const src msg)
-                          (make-const src "?")
-                          (make-primcall src 'list (cons message args))
-                          (make-const src #f)))))))
+(define-primitive-expander! 'error
+  (match-lambda*
+   ((src)
+    (make-primcall src 'throw
+                   (list (make-const src 'misc-error)
+                         (make-const src #f)
+                         (make-const src "?")
+                         (make-const src #f)
+                         (make-const src #f))))
+   ((src ($ <const> src2 (? string? message)) . args)
+    (let ((msg (string-join (cons (escape-format-directives message)
+                                  (make-list (length args) "~S")))))
+      (make-primcall src 'throw
+                     (list (make-const src 'misc-error)
+                           (make-const src #f)
+                           (make-const src2 msg)
+                           (make-primcall src 'list args)
+                           (make-const src #f)))))
+   ((src message . args)
+    (let ((msg (string-join (cons "~A" (make-list (length args) "~S")))))
+      (make-primcall src 'throw
+                     (list (make-const src 'misc-error)
+                           (make-const src #f)
+                           (make-const src msg)
+                           (make-const src "?")
+                           (make-primcall src 'list (cons message args))
+                           (make-const src #f)))))))
 
 (define-primitive-expander zero? (x)
   (= x 0))
@@ -470,16 +447,14 @@
   (x y) (logand x y)
   (x y z ... last) (logand (logand x y . z) last))
 
-(hashq-set!
- *primitive-expand-table*
- 'make-vector
- (match-lambda*
-  ((src len)
-   (make-primcall src 'make-vector (list len (make-const src *unspecified*))))
-  ((src len init)
-   (make-primcall src 'make-vector (list len init)))
-  ((src . args)
-   (make-call src (make-primitive-ref src 'make-vector) args))))
+(define-primitive-expander! 'make-vector
+  (match-lambda*
+   ((src len)
+    (make-primcall src 'make-vector (list len (make-const src *unspecified*))))
+   ((src len init)
+    (make-primcall src 'make-vector (list len init)))
+   ((src . args)
+    (make-call src (make-primitive-ref src 'make-vector) args))))
 
 (define-primitive-expander caar (x) (car (car x)))
 (define-primitive-expander cadr (x) (car (cdr x)))
@@ -593,8 +568,8 @@
                                    (make-const src #f)))))))
 
 (for-each (lambda (prim-name)
-            (hashq-set! *primitive-expand-table* prim-name
-                        (chained-comparison-expander prim-name)))
+            (define-primitive-expander! prim-name
+              (chained-comparison-expander prim-name)))
           '(< > <= >= =))
 
 (define (character-comparison-expander char< <)
@@ -607,8 +582,8 @@
 
 (for-each (match-lambda
             ((char< . <)
-             (hashq-set! *primitive-expand-table* char<
-                         (character-comparison-expander char< <))))
+             (define-primitive-expander! char<
+               (character-comparison-expander char< <))))
           '((char<? . <)
             (char>? . >)
             (char<=? . <=)
@@ -639,8 +614,8 @@
                        (make-const src #f)))
     (else #f)))
 
-(hashq-set! *primitive-expand-table* 'eqv?   (maybe-simplify-to-eq 'eqv?))
-(hashq-set! *primitive-expand-table* 'equal? (maybe-simplify-to-eq 'equal?))
+(define-primitive-expander! 'eqv?   (maybe-simplify-to-eq 'eqv?))
+(define-primitive-expander! 'equal? (maybe-simplify-to-eq 'equal?))
 
 (define (expand-chained-comparisons prim)
   (case-lambda
@@ -659,26 +634,23 @@
     (else #f)))
 
 (for-each (lambda (prim)
-            (hashq-set! *primitive-expand-table* prim
-                        (expand-chained-comparisons prim)))
+            (define-primitive-expander! prim
+              (expand-chained-comparisons prim)))
  '(< <= = >= > eq?))
 
-(hashq-set! *primitive-expand-table*
-            'call-with-prompt
-            (case-lambda
-              ((src tag thunk handler)
-               (make-prompt src #f tag thunk handler))
-              (else #f)))
+(define-primitive-expander! 'call-with-prompt
+  (case-lambda
+   ((src tag thunk handler)
+    (make-prompt src #f tag thunk handler))
+   (else #f)))
 
-(hashq-set! *primitive-expand-table*
-            'abort-to-prompt*
-            (case-lambda
-              ((src tag tail-args)
-               (make-abort src tag '() tail-args))
-              (else #f)))
-(hashq-set! *primitive-expand-table*
-            'abort-to-prompt
-            (case-lambda
-              ((src tag . args)
-               (make-abort src tag args (make-const #f '())))
-              (else #f)))
+(define-primitive-expander! 'abort-to-prompt*
+  (case-lambda
+   ((src tag tail-args)
+    (make-abort src tag '() tail-args))
+   (else #f)))
+(define-primitive-expander! 'abort-to-prompt
+  (case-lambda
+   ((src tag . args)
+    (make-abort src tag args (make-const #f '())))
+   (else #f)))
