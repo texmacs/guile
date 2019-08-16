@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2007-2014
+@c Copyright (C)  1996, 1997, 2000-2004, 2007-2014, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -49,6 +49,7 @@ be used for interacting with the module system.
 * R6RS Libraries::              The library and import forms.
 * Variables::                   First-class variables.
 * Module System Reflection::    First-class modules.
+* Declarative Modules::         Allowing Guile to reason about modules.
 * Accessing Modules from C::    How to work with modules with C code.
 * provide and require::         The SLIB feature mechanism.
 * Environments::                R5RS top-level environments.
@@ -909,6 +910,69 @@ an error if @var{name} is not already bound in @var{module}.
 There are many other reflective procedures available in the default
 environment.  If you find yourself using one of them, please contact the
 Guile developers so that we can commit to stability for that interface.
+
+
+@node Declarative Modules
+@subsection Declarative Modules
+
+The first-class access to modules and module variables described in the
+previous subsection is very powerful and allows Guile users to build
+many tools to dynamically learn things about their Guile systems.
+However, as Scheme godparent Mathias Felleisen wrote in ``On the
+Expressive Power of Programming Languages'', a more expressive language
+is necessarily harder to reason about.  There are transformations that
+Guile's compiler would like to make which can't be done if every
+top-level binding is subject to mutation at any time.
+
+Consider this module:
+
+@example
+(define-module (boxes)
+  #:export (make-box box-ref box-set! box-swap!))
+
+(define (make-box x) (list x))
+(define (box-ref box) (car box))
+(define (box-set! box x) (set-car! box x))
+(define (box-swap! box x)
+  (let ((y (box-ref box)))
+    (box-set! box x)
+    y))
+@end example
+
+Ideally you'd like for the @code{box-ref} in @code{box-swap!} to be
+inlined to @code{car}.  Guile's compiler can do this, but only if it
+knows that @code{box-ref}'s definition is what it appears to be in the
+text.  However, in the general case it could be that a programmer could
+reach into the @code{(boxes)} module at any time and change the value of
+@code{box-ref}.
+
+To allow Guile to reason about the values of top-levels from a module, a
+module can be marked as @dfn{declarative}.  This flag applies only to
+the subset of top-level definitions that are themselves declarative:
+those that are defined within the compilation unit, and not assigned
+(@code{set!}) or redefined within the compilation unit.
+
+To explicitly mark a module as being declarative, pass the
+@code{#:declarative?} keyword argument when declaring a module:
+
+@example
+(define-module (boxes)
+  #:export (make-box box-ref box-set! box-swap!)
+  #:declarative? #t)
+@end example
+
+By default, modules are compiled declaratively if the
+@code{user-modules-declarative?} parameter is true when the
+module is compiled.
+
+@deffn {Scheme Parameter} user-modules-declarative-by-default?
+A boolean indicating whether definitions in modules created by
+@code{define-module} or implicitly as part of a compilation unit without
+an explicit module can be treated as declarative.
+@end deffn
+
+Because it's usually what you want, the default value of
+@code{user-modules-declarative?} is @code{#t}.
 
 
 @node Accessing Modules from C

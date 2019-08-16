@@ -91,8 +91,6 @@
 (define (tree-il-for-each f x)
   (for-each-fold x (lambda (x) (f x) (values)) (lambda (x) (values))))
 
-(define (module-conventional-bindings? mod) #t)
-
 (define (compute-declarative-toplevels x)
   (define dynamic (make-hash-table))
   (define defined (make-hash-table))
@@ -114,15 +112,15 @@
        (_ (values))))
    x)
   (let ((declarative (make-hash-table)))
-    (define (conventional-module? mod)
+    (define (declarative-module? mod)
       (let ((m (resolve-module mod #f #:ensure #f)))
-        (and m (module-conventional-bindings? m))))
+        (and m (module-declarative? m))))
     (hash-for-each (lambda (k expr)
                      (match k
                        ((mod . name)
                         (unless (or (hash-ref assigned k)
                                     (hashq-ref dynamic name)
-                                    (not (conventional-module? mod)))
+                                    (not (declarative-module? mod)))
                           (hash-set! declarative k expr)))))
                    defined)
     declarative))

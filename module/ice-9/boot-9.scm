@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995-2014, 2016-2018  Free Software Foundation, Inc.
+;;;; Copyright (C) 1995-2014, 2016-2019  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1744,7 +1744,10 @@ name extensions listed in %load-extensions."
 ;;; Every module object is of the type 'module-type', which is a record
 ;;; consisting of the following members:
 ;;;
-;;; - eval-closure: A deprecated field, to be removed in Guile 2.2.
+;;; - declarative?: a boolean flag indicating whether this module's
+;;;   singly-defined bindings are used in a declarative way.
+;;;   Declarative definitions can be better optimized by the compiler.
+;;;   See "Declarative Modules" in the manual, for more.
 ;;;
 ;;; - obarray: a hash table that maps symbols to variable objects.  In this
 ;;;   hash table, the definitions are found that are local to the module (that
@@ -1964,7 +1967,7 @@ name extensions listed in %load-extensions."
     (obarray
      uses
      binder
-     eval-closure
+     declarative?
      (transformer #:no-getter)
      (name #:no-getter)
      kind
@@ -2638,6 +2641,8 @@ deterministic."
         (nested-define-module! module name m)
         m)))
 
+(define user-modules-declarative? (make-parameter #t))
+
 (define (beautify-user-module! module)
   (let ((interface (module-public-interface module)))
     (if (or (not interface)
@@ -2683,6 +2688,7 @@ deterministic."
 (define (make-fresh-user-module)
   (let ((m (make-module)))
     (beautify-user-module! m)
+    (set-module-declarative?! m (user-modules-declarative?))
     m))
 
 ;; NOTE: This binding is used in libguile/modules.c.
@@ -2830,7 +2836,7 @@ error if selected binding does not exist in the used module."
 (define* (define-module* name
            #:key filename pure version (imports '()) (exports '())
            (replacements '()) (re-exports '()) (autoloads '())
-           (duplicates #f) transformer)
+           (duplicates #f) transformer declarative?)
   (define (list-of pred l)
     (or (null? l)
         (and (pair? l) (pred (car l)) (list-of pred (cdr l)))))
@@ -2846,6 +2852,7 @@ error if selected binding does not exist in the used module."
   ;;
   (let ((module (resolve-module name #f)))
     (beautify-user-module! module)
+    (set-module-declarative?! module declarative?)
     (when filename
       (set-module-filename! module filename))
     (when pure
@@ -3270,7 +3277,7 @@ but it fails to load."
           ((kw val . in)
            (loop #'in (cons* #'val #'kw out))))))
 
-    (define (parse args imp exp rex rep aut)
+    (define (parse args imp exp rex rep aut dec)
       ;; Just quote everything except #:use-module and #:use-syntax.  We
       ;; need to know about all arguments regardless since we want to turn
       ;; symbols that look like keywords into real keywords, and the
@@ -3282,53 +3289,58 @@ but it fails to load."
                (exp (if (null? exp) '() #`(#:exports '#,exp)))
                (rex (if (null? rex) '() #`(#:re-exports '#,rex)))
                (rep (if (null? rep) '() #`(#:replacements '#,rep)))
-               (aut (if (null? aut) '() #`(#:autoloads '#,aut))))
-           #`(#,@imp #,@exp #,@rex #,@rep #,@aut)))
+               (aut (if (null? aut) '() #`(#:autoloads '#,aut)))
+               (dec (if dec '() #`(#:declarative?
+                                   #,(user-modules-declarative?)))))
+           #`(#,@imp #,@exp #,@rex #,@rep #,@aut #,@dec)))
         ;; The user wanted #:foo, but wrote :foo. Fix it.
         ((sym . args) (keyword-like? #'sym)
          (parse #`(#,(->keyword (syntax->datum #'sym)) . args)
-                  imp exp rex rep aut))
+                  imp exp rex rep aut dec))
         ((kw . args) (not (keyword? (syntax->datum #'kw)))
          (syntax-violation 'define-module "expected keyword arg" x #'kw))
         ((#:no-backtrace . args)
          ;; Ignore this one.
-         (parse #'args imp exp rex rep aut))
+         (parse #'args imp exp rex rep aut dec))
         ((#:pure . args)
-         #`(#:pure #t . #,(parse #'args imp exp rex rep aut)))
+         #`(#:pure #t . #,(parse #'args imp exp rex rep aut dec)))
         ((kw)
          (syntax-violation 'define-module "keyword arg without value" x #'kw))
         ((#:version (v ...) . args)
-         #`(#:version '(v ...) . #,(parse #'args imp exp rex rep aut)))
+         #`(#:version '(v ...) . #,(parse #'args imp exp rex rep aut dec)))
         ((#:duplicates (d ...) . args)
-         #`(#:duplicates '(d ...) . #,(parse #'args imp exp rex rep aut)))
+         #`(#:duplicates '(d ...) . #,(parse #'args imp exp rex rep aut dec)))
         ((#:filename f . args)
-         #`(#:filename 'f . #,(parse #'args imp exp rex rep aut)))
+         #`(#:filename 'f . #,(parse #'args imp exp rex rep aut dec)))
+        ((#:declarative? d . args)
+         #`(#:declarative? 'd . #,(parse #'args imp exp rex rep aut #t)))
         ((#:use-module (name name* ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
-         (parse #'args #`(#,@imp ((name name* ...))) exp rex rep aut))
+         (parse #'args #`(#,@imp ((name name* ...))) exp rex rep aut dec))
         ((#:use-syntax (name name* ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
          #`(#:transformer '(name name* ...)
-            . #,(parse #'args #`(#,@imp ((name name* ...))) exp rex rep aut)))
+            . #,(parse #'args #`(#,@imp ((name name* ...))) exp rex
+                       rep aut dec)))
         ((#:use-module ((name name* ...) arg ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
          (parse #'args
                 #`(#,@imp ((name name* ...) #,@(parse-iface #'(arg ...))))
-                exp rex rep aut))
+                exp rex rep aut dec))
         ((#:export (ex ...) . args)
-         (parse #'args imp #`(#,@exp ex ...) rex rep aut))
+         (parse #'args imp #`(#,@exp ex ...) rex rep aut dec))
         ((#:export-syntax (ex ...) . args)
-         (parse #'args imp #`(#,@exp ex ...) rex rep aut))
+         (parse #'args imp #`(#,@exp ex ...) rex rep aut dec))
         ((#:re-export (re ...) . args)
-         (parse #'args imp exp #`(#,@rex re ...) rep aut))
+         (parse #'args imp exp #`(#,@rex re ...) rep aut dec))
         ((#:re-export-syntax (re ...) . args)
-         (parse #'args imp exp #`(#,@rex re ...) rep aut))
+         (parse #'args imp exp #`(#,@rex re ...) rep aut dec))
         ((#:replace (r ...) . args)
-         (parse #'args imp exp rex #`(#,@rep r ...) aut))
+         (parse #'args imp exp rex #`(#,@rep r ...) aut dec))
         ((#:replace-syntax (r ...) . args)
-         (parse #'args imp exp rex #`(#,@rep r ...) aut))
+         (parse #'args imp exp rex #`(#,@rep r ...) aut dec))
         ((#:autoload name bindings . args)
-         (parse #'args imp exp rex rep #`(#,@aut name bindings)))
+         (parse #'args imp exp rex rep #`(#,@aut name bindings) dec))
         ((kw val . args)
          (syntax-violation 'define-module "unknown keyword or bad argument"
                            #'kw #'val))))
@@ -3337,7 +3349,7 @@ but it fails to load."
       ((_ (name name* ...) arg ...)
        (and-map symbol? (syntax->datum #'(name name* ...)))
        (with-syntax (((quoted-arg ...)
-                      (parse #'(arg ...) '() '() '() '() '()))
+                      (parse #'(arg ...) '() '() '() '() '() #f))
                      ;; Ideally the filename is either a string or #f;
                      ;; this hack is to work around a case in which
                      ;; port-filename returns a symbol (`socket') for
@@ -4106,7 +4118,8 @@ when none is available, reading FILE-NAME with READER."
 ;; Set filename to #f to prevent reload.
 (define-module (guile-user)
   #:autoload (system base compile) (compile compile-file)
-  #:filename #f)
+  #:filename #f
+  #:declarative? #f)
 
 ;; Remain in the `(guile)' module at compilation-time so that the
 ;; `-Wunused-toplevel' warning works as expected.
