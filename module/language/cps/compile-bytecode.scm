@@ -380,6 +380,24 @@
         (#('throw/value+data param (val))
          (emit-throw/value+data asm (from-sp (slot val)) param))))
 
+    (define (emit-parallel-moves-after-return-and-reset-frame label nlocals)
+      (let lp ((moves (lookup-parallel-moves label allocation))
+               (reset-frame? #f))
+        (cond
+         ((and (not reset-frame?)
+               (and-map (match-lambda
+                         ((src . dst)
+                          (and (< src nlocals) (< dst nlocals))))
+                        moves))
+          (emit-reset-frame asm nlocals)
+          (lp moves #t))
+         (else
+          (match moves
+            (() #t)
+            (((src . dst) . moves)
+             (emit-fmov asm dst src)
+             (lp moves reset-frame?)))))))
+
     (define (compile-prompt label k kh escape? tag)
       (match (intmap-ref cps kh)
         (($ $kreceive ($ $arity req () rest () #f) khandler-body)
@@ -397,10 +415,7 @@
                         (($ $kargs names (_ ... rest))
                          (maybe-slot rest))))
              (emit-bind-rest asm (+ proc-slot nreq)))
-           (for-each (match-lambda
-                      ((src . dst) (emit-fmov asm dst src)))
-                     (lookup-parallel-moves kh allocation))
-           (emit-reset-frame asm frame-size)
+           (emit-parallel-moves-after-return-and-reset-frame kh frame-size)
            (emit-j asm (forward-label khandler-body))))))
 
     (define (compile-values label exp syms)
@@ -544,10 +559,7 @@
               (emit-receive-values asm proc-slot (->bool rest-var) nreq))
             (when (and rest-var (maybe-slot rest-var))
               (emit-bind-rest asm (+ proc-slot nreq)))
-            (for-each (match-lambda
-                       ((src . dst) (emit-fmov asm dst src)))
-                      (lookup-parallel-moves k allocation))
-            (emit-reset-frame asm frame-size)))))
+            (emit-parallel-moves-after-return-and-reset-frame k frame-size)))))
       (match exp
         (($ $call proc args)
          (do-call proc args
