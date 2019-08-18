@@ -887,6 +887,16 @@ later by the linker."
     (emit-push asm a)
     (encode-X8_S8_C8_S8 asm 0 const 0 opcode)
     (emit-pop asm dst))))
+(define (encode-X8_S8_S8_S8-C32!/shuffle asm a b c const opcode)
+  (cond
+   ((< (logior a b c) (ash 1 8))
+    (encode-X8_S8_S8_S8-C32 asm a b c const opcode))
+   (else
+    (emit-push asm a)
+    (emit-push asm (+ b 1))
+    (emit-push asm (+ c 2))
+    (encode-X8_S8_S8_S8-C32 asm 2 1 0 const opcode)
+    (emit-drop asm 3))))
 (define (encode-X8_S8_S8_S8-C32<-/shuffle asm dst a b c32 opcode)
   (cond
    ((< (logior dst a b) (ash 1 8))
@@ -950,6 +960,7 @@ later by the linker."
       (('! 'X8_S8_S8_S8)         #'encode-X8_S8_S8_S8!/shuffle)
       (('<- 'X8_S8_S8_S8)        #'encode-X8_S8_S8_S8<-/shuffle)
       (('<- 'X8_S8_S8_C8)        #'encode-X8_S8_S8_C8<-/shuffle)
+      (('! 'X8_S8_S8_S8 'C32)    #'encode-X8_S8_S8_S8-C32!/shuffle)
       (('<- 'X8_S8_S8_S8 'C32)   #'encode-X8_S8_S8_S8-C32<-/shuffle)
       (('<- 'X8_S8_S8_C8 'C32)   #'encode-X8_S8_S8_C8-C32<-/shuffle)
       (('! 'X8_S8_S8_C8 'C32)    #'encode-X8_S8_S8_C8-C32!/shuffle)
