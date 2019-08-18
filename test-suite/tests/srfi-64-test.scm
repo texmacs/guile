@@ -666,18 +666,20 @@
 (test-end)
 
 (test-begin "8.2. test-runner-simple")
-(test-assert "8.2.1. default on-test hook"
-             (eq? (test-runner-on-test-end (test-runner-simple))
-                  test-on-test-end-simple))
-(test-assert "8.2.2. default on-final hook"
-             (eq? (test-runner-on-final (test-runner-simple))
-                  test-on-final-simple))
+;; Procedure equality is explicitly unspecified by R6RS.
+;; (test-assert "8.2.1. default on-test hook"
+;;              (eq? (test-runner-on-test-end (test-runner-simple))
+;;                   test-on-test-end-simple))
+;; (test-assert "8.2.2. default on-final hook"
+;;              (eq? (test-runner-on-final (test-runner-simple))
+;;                   test-on-final-simple))
 (test-end)
 
 (test-begin "8.3. test-runner-factory")
 
-(test-assert "8.3.1. default factory"
-             (eq? (test-runner-factory) test-runner-simple))
+;; Procedure equality is explicitly unspecified by R6RS.
+;; (test-assert "8.3.1. default factory"
+;;              (eq? (test-runner-factory) test-runner-simple))
 
 (test-assert "8.3.2. settable factory"
              (with-factory-saved

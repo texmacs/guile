@@ -166,7 +166,18 @@
   (define (residualize src mod name var expr)
     (let ((lexical (make-lexical-ref src name var)))
       (match expr
-        ;; Eta-expand so that we don't introduce functions-as-values.
+        ;; Eta-expand references to declarative procedure definitions so
+        ;; that adding these bindings to the module doesn't cause
+        ;; otherwise "well-known" (in the sense of closure conversion)
+        ;; procedures to become not well-known.
+        ;;
+        ;; Note, this means that eq? will always return #f when
+        ;; comparing a value to a <lexical-ref> of a declarative
+        ;; procedure definition, because the residualized reference is a
+        ;; fresh value (the <lambda> literal we return here).  This is
+        ;; permitted by R6RS as procedure equality is explicitly
+        ;; unspecified, but if it's an irritation in practice, we could
+        ;; disable this transformation.
         (($ <lambda> src1 meta
             ($ <lambda-case> src2 req #f rest #f () syms body #f))
          (let* ((syms (map gensym (map symbol->string syms)))
