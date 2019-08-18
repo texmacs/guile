@@ -213,8 +213,12 @@
                     (with-code-coverage
                       (lambda () (with-output-to-string proc)))))
         (let ((counts (line-execution-counts data "tail-calls.scm")))
-          (lset= equal? '((1 . 1) (2 . 1) (3 . 1) (5 . 1) (6 . 1))
-                 counts))))))
+          (define (lset-contains? eq? a b)
+            (lset= eq? b (lset-intersection eq? a b)))
+          ;; Due to top-level binding optimization, the target may be
+          ;; inlined or into the caller.  All we can say is that the
+          ;; entry was seen, and the two displays were called.
+          (lset-contains? equal? counts '((1 . 1) (2 . 1) (6 . 1))))))))
 
 
 (with-test-prefix "procedure-execution-count"
