@@ -1157,7 +1157,7 @@ capture_continuation (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
   void *mra = SCM_FRAME_MACHINE_RETURN_ADDRESS (vp->fp);
-#ifdef ENABLE_JIT
+#if ENABLE_JIT
   if (mra == scm_jit_return_to_interpreter_trampoline)
     mra = NULL;
 #endif
