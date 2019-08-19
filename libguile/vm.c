@@ -220,6 +220,10 @@ vm_hook_compute_enabled (scm_thread *thread, SCM hook, uint8_t *enabled)
 static void
 vm_recompute_disable_mcode (scm_thread *thread)
 {
+#if ENABLE_JIT
+  /* FIXME: Some of this logic works for ahead-of-time compilation
+     too.  */
+
   uint8_t was_disabled = thread->vm.disable_mcode;
   thread->vm.disable_mcode = 0;
 
@@ -231,6 +235,7 @@ vm_recompute_disable_mcode (scm_thread *thread)
 
   if (thread->vm.disable_mcode && !was_disabled)
     scm_jit_clear_mcode_return_addresses (thread);
+#endif
 }
 
 static int
@@ -1152,8 +1157,10 @@ capture_continuation (scm_thread *thread)
 {
   struct scm_vm *vp = &thread->vm;
   void *mra = SCM_FRAME_MACHINE_RETURN_ADDRESS (vp->fp);
+#ifdef ENABLE_JIT
   if (mra == scm_jit_return_to_interpreter_trampoline)
     mra = NULL;
+#endif
   SCM vm_cont = capture_stack (vp->stack_top,
                                SCM_FRAME_DYNAMIC_LINK (vp->fp),
                                SCM_FRAME_PREVIOUS_SP (vp->fp),
