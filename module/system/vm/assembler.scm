@@ -199,8 +199,26 @@
             emit-mod
             emit-abs
             emit-sqrt
+            emit-floor
+            emit-ceiling
+            emit-sin
+            emit-cos
+            emit-tan
+            emit-asin
+            emit-acos
+            emit-atan
+            emit-atan2
             emit-fabs
             emit-fsqrt
+            emit-ffloor
+            emit-fceiling
+            emit-fsin
+            emit-fcos
+            emit-ftan
+            emit-fasin
+            emit-facos
+            emit-fatan
+            emit-fatan2
             emit-logand
             emit-logior
             emit-logxor
@@ -1339,6 +1357,9 @@ returned instead."
 (define-syntax-rule (define-f64<-f64-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-f64<-f64 asm dst src (intrinsic-name->index 'name))))
+(define-syntax-rule (define-f64<-f64-f64-intrinsic name)
+  (define-macro-assembler (name asm dst a b)
+    (emit-call-f64<-f64-f64 asm dst a b (intrinsic-name->index 'name))))
 (define-syntax-rule (define-u64<-scm-intrinsic name)
   (define-macro-assembler (name asm dst src)
     (emit-call-u64<-scm asm dst src (intrinsic-name->index 'name))))
@@ -1384,8 +1405,26 @@ returned instead."
 (define-scm<-scm-scm-intrinsic mod)
 (define-scm<-scm-intrinsic abs)
 (define-scm<-scm-intrinsic sqrt)
+(define-scm<-scm-intrinsic floor)
+(define-scm<-scm-intrinsic ceiling)
+(define-scm<-scm-intrinsic sin)
+(define-scm<-scm-intrinsic cos)
+(define-scm<-scm-intrinsic tan)
+(define-scm<-scm-intrinsic asin)
+(define-scm<-scm-intrinsic acos)
+(define-scm<-scm-intrinsic atan)
+(define-scm<-scm-scm-intrinsic atan2)
 (define-f64<-f64-intrinsic fabs)
 (define-f64<-f64-intrinsic fsqrt)
+(define-f64<-f64-intrinsic ffloor)
+(define-f64<-f64-intrinsic fceiling)
+(define-f64<-f64-intrinsic fsin)
+(define-f64<-f64-intrinsic fcos)
+(define-f64<-f64-intrinsic ftan)
+(define-f64<-f64-intrinsic fasin)
+(define-f64<-f64-intrinsic facos)
+(define-f64<-f64-intrinsic fatan)
+(define-f64<-f64-f64-intrinsic fatan2)
 (define-scm<-scm-scm-intrinsic logand)
 (define-scm<-scm-scm-intrinsic logior)
 (define-scm<-scm-scm-intrinsic logxor)

@@ -1720,6 +1720,92 @@ where (A0 <= A <= A1) and (B0 <= B <= B1)."
         (max (max (abs (&min x)) (abs (&max x)))))
     (define! result &f64 min max)))
 
+(define-simple-type-checker (floor &real))
+(define-type-inferrer (floor x result)
+  (restrict! x &real -inf.0 +inf.0)
+  (let* ((in (logand (&type x) &real))
+         (out (cond
+               ((type<=? in &flonum) &flonum)
+               ((type<=? in &exact-integer) in)
+               ((logtest in &fraction)
+                (logior (logand in (lognot &fraction)) &exact-integer)))))
+    (define! result out (&min x) (&max x))))
+(define-type-checker (ffloor x) #t)
+(define-type-inferrer (ffloor x result)
+  (define! result &f64 (&min x) (&max x)))
+
+(define-type-aliases floor ceiling)
+(define-type-aliases ffloor fceiling)
+
+(define-simple-type-checker (sin &number))
+(define-type-inferrer (sin x result)
+  (let* ((in (&type x))
+         (out (cond
+               ((type<=? in &real) &flonum)
+               ((type<=? in &complex) &complex)
+               (else (logior &flonum &complex (logand in (lognot &number)))))))
+    (define! result out -1 1)))
+(define-type-checker (fsin x) #t)
+(define-type-inferrer (fsin x result)
+  (define! result &f64 -1 1))
+
+(define-type-aliases sin cos)
+(define-type-aliases fsin fcos)
+
+(define-simple-type-checker (tan &number))
+(define-type-inferrer (tan x result)
+  (let* ((in (&type x))
+         (out (cond
+               ((type<=? in &real) &flonum)
+               ((type<=? in &complex) &complex)
+               (else (logior &flonum &complex (logand in (lognot &number)))))))
+    (define! result out -inf.0 +inf.0)))
+(define-type-checker (ftan x) #t)
+(define-type-inferrer (ftan x result)
+  (define! result &f64 -inf.0 +inf.0))
+
+(define-simple-type-checker (asin &number))
+(define-type-inferrer (asin x result)
+  (define! result
+    (logior &flonum &complex (logand (&type x) (lognot &number)))
+    -inf.0 +inf.0))
+(define-type-checker (fasin x) #t)
+(define-type-inferrer (fasin x result)
+  (define! result &f64 -2 2)) ; [-pi/2, pi/2]
+
+(define-type-aliases asin acos)
+(define-type-checker (facos x) #t)
+(define-type-inferrer (facos x result)
+  (define! result &f64 0 4)) ; [0, pi]
+
+(define-simple-type-checker (atan &number))
+(define-type-inferrer (atan x result)
+  (let ((in (&type x)))
+    (cond
+     ((type<=? in &real)
+      (define! result &flonum -2 2)) ; [-pi/2, pi/2]
+     (else
+      (define! result
+        (logior &flonum &complex (logand in (lognot &number)))
+        -inf.0 +inf.0)))))
+(define-type-checker (fatan x) #t)
+(define-type-inferrer (fatan x result)
+  (define! result &f64 -2 2))
+
+(define-simple-type-checker (atan2 &number &number))
+(define-type-inferrer (atan2 x y result)
+  (let* ((in (logior (&type x) (&type y))))
+    (cond
+     ((type<=? in &real)
+      (define! result &flonum -4 4)) ; [-pi, pi]
+     (else
+      (define! result (logior &flonum &complex (logand in (lognot &number)))
+        -inf.0 +inf.0)))))
+(define-type-checker (fatan2 x y) #t)
+(define-type-inferrer (fatan2 x y result)
+  (define! result &f64 -4 4))
+
+
 
 
 

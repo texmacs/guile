@@ -445,16 +445,21 @@ BITS indicating the significant bits needed for a variable.  BITS may be
       (match (intmap-ref cps k)
         (($ $kargs (_) (result))
          (match (cons* op result param args)
-           (((or 'add 'sub 'mul 'div)
+           (((or 'add 'sub 'mul 'div 'atan2)
              (? f64-result?) #f a b)
             (let ((op (match op
-                        ('add 'fadd) ('sub 'fsub) ('mul 'fmul) ('div 'fdiv))))
+                        ('add 'fadd) ('sub 'fsub) ('mul 'fmul) ('div 'fdiv)
+                        ('atan2 'fatan2))))
               (specialize-binop cps k src op a b
                                 (unbox-f64 a) (unbox-f64 b) (box-f64 result))))
 
-           (((or 'sqrt 'abs)
+           (((or 'sqrt 'abs 'floor 'ceiling 'sin 'cos 'tan 'asin 'acos 'atan)
              (? f64-result?) #f a)
-            (let ((op (match op ('sqrt 'fsqrt) ('abs 'fabs))))
+            (let ((op (match op
+                        ('sqrt 'fsqrt) ('abs 'fabs)
+                        ('floor 'ffloor) ('ceiling 'fceiling)
+                        ('sin 'fsin) ('cos 'fcos) ('tan 'ftan)
+                        ('asin 'fasin) ('acos 'facos) ('atan 'fatan))))
               (specialize-unop cps k src op #f a
                                (unbox-f64 a) (box-f64 result))))
 

@@ -49,7 +49,7 @@
     = < > <= >= zero? positive? negative?
     + * - / 1- 1+ quotient remainder modulo
     ash logand logior logxor lognot logtest logbit?
-    sqrt abs
+    sqrt abs floor ceiling sin cos tan asin acos atan
     not
     pair? null? list? symbol? vector? string? struct? number? char? nil?
     bytevector? keyword? bitvector?
@@ -172,6 +172,7 @@
     = < > <= >= zero? positive? negative?
     ash logand logior logxor lognot logtest logbit?
     + * - / 1- 1+ sqrt abs quotient remainder modulo
+    floor ceiling sin cos tan asin acos atan
     not
     pair? null? nil? list?
     symbol? variable? vector? struct? string? number? char?
@@ -441,6 +442,10 @@
   (x) (/ 1 x)
   (x y z ... last) (/ (/ x y . z) last))
   
+(define-primitive-expander atan
+  (x) (atan x)
+  (x y) (atan2 x y))
+
 (define-primitive-expander logior
   () 0
   (x) (logior x 0)

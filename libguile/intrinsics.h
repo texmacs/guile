@@ -93,6 +93,7 @@ typedef void (*scm_t_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_intrinsic) (SCM*, SCM);
 typedef SCM (*scm_t_scm_from_ptr_scm_scm_intrinsic) (SCM*, SCM, SCM);
 typedef double (*scm_t_f64_from_f64_intrinsic) (double);
+typedef double (*scm_t_f64_from_f64_f64_intrinsic) (double, double);
 typedef uint32_t* scm_t_vcode_intrinsic;
 
 #define SCM_FOR_ALL_VM_INTRINSICS(M) \
@@ -167,6 +168,24 @@ typedef uint32_t* scm_t_vcode_intrinsic;
   M(scm_from_scm, sqrt, "sqrt", SQRT) \
   M(f64_from_f64, fabs, "fabs", FABS) \
   M(f64_from_f64, fsqrt, "fsqrt", FSQRT) \
+  M(scm_from_scm, floor, "floor", FLOOR) \
+  M(scm_from_scm, ceiling, "ceiling", CEILING) \
+  M(scm_from_scm, sin, "sin", SIN) \
+  M(scm_from_scm, cos, "cos", COS) \
+  M(scm_from_scm, tan, "tan", TAN) \
+  M(scm_from_scm, asin, "asin", ASIN) \
+  M(scm_from_scm, acos, "acos", ACOS) \
+  M(scm_from_scm, atan, "atan", ATAN) \
+  M(scm_from_scm_scm, atan2, "atan2", ATAN2) \
+  M(f64_from_f64, ffloor, "ffloor", FFLOOR) \
+  M(f64_from_f64, fceiling, "fceiling", FCEILING) \
+  M(f64_from_f64, fsin, "fsin", FSIN) \
+  M(f64_from_f64, fcos, "fcos", FCOS) \
+  M(f64_from_f64, ftan, "ftan", FTAN) \
+  M(f64_from_f64, fasin, "fasin", FASIN) \
+  M(f64_from_f64, facos, "facos", FACOS) \
+  M(f64_from_f64, fatan, "fatan", FATAN) \
+  M(f64_from_f64_f64, fatan2, "fatan2", FATAN2) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

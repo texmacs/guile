@@ -3261,7 +3261,25 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (156, unused_156, NULL, NOP)
+  /* call-f64<-f64-f64 dst:8 a:8 b:8 IDX:32
+   *
+   * Call the double-returning instrinsic with index IDX, passing SCM
+   * locals A and B as arguments.  Place the double result in DST.
+   */
+  VM_DEFINE_OP (156, call_f64_from_f64_f64, "call-f64<-f64-f64", DOP2 (X8_S8_S8_S8, C32))
+    {
+      uint8_t dst, a, b;
+      scm_t_f64_from_f64_f64_intrinsic intrinsic;
+
+      UNPACK_8_8_8 (op, dst, a, b);
+      intrinsic = intrinsics[ip[1]];
+
+      /* We assume these instructions can't throw an exception.  */
+      SP_SET_F64 (dst, intrinsic (SP_REF_F64 (a), SP_REF_F64 (b)));
+
+      NEXT (2);
+    }
+
   VM_DEFINE_OP (157, unused_157, NULL, NOP)
   VM_DEFINE_OP (158, unused_158, NULL, NOP)
   VM_DEFINE_OP (159, unused_159, NULL, NOP)

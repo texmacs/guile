@@ -1098,6 +1098,14 @@ emit_sp_ref_ptr (scm_jit_state *j, jit_gpr_t dst, uint32_t src)
 }
 #endif /* SCM_SIZEOF_UINTPTR_T >= 8 */
 
+static jit_operand_t
+sp_f64_operand (scm_jit_state *j, uint32_t slot)
+{
+  ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
+
+  return jit_operand_mem (JIT_OPERAND_ABI_DOUBLE, SP, 8 * slot);
+}
+
 static void
 emit_sp_ref_f64 (scm_jit_state *j, jit_fpr_t dst, uint32_t src)
 {
@@ -2384,8 +2392,25 @@ compile_call_f64_from_f64 (scm_jit_state *j, uint16_t dst, uint16_t src, uint32_
         break;
       }
     default:
-      DIE("unhandled f64<-f64");
+      {
+        void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+        emit_call_1 (j, intrinsic, sp_f64_operand (j, src));
+        emit_retval_d (j, JIT_F0);
+        emit_reload_sp (j);
+        emit_sp_set_f64 (j, dst, JIT_F0);
+        break;
+      }
     }
+}
+
+static void
+compile_call_f64_from_f64_f64 (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
+{
+  void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+  emit_call_2 (j, intrinsic, sp_f64_operand (j, a), sp_f64_operand (j, b));
+  emit_retval_d (j, JIT_F0);
+  emit_reload_sp (j);
+  emit_sp_set_f64 (j, dst, JIT_F0);
 }
 
 static void

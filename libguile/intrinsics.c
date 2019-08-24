@@ -449,6 +449,12 @@ push_prompt (scm_thread *thread, uint8_t escape_only_p,
                             vra, mra, thread->vm.registers);
 }
 
+static SCM
+scm_atan1 (SCM x)
+{
+  return scm_atan (x, SCM_UNDEFINED);
+}
+
 void
 scm_bootstrap_intrinsics (void)
 {
@@ -522,6 +528,24 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.sqrt = scm_sqrt;
   scm_vm_intrinsics.fabs = fabs;
   scm_vm_intrinsics.fsqrt = sqrt;
+  scm_vm_intrinsics.floor = scm_floor;
+  scm_vm_intrinsics.ceiling = scm_ceiling;
+  scm_vm_intrinsics.sin = scm_sin;
+  scm_vm_intrinsics.cos = scm_cos;
+  scm_vm_intrinsics.tan = scm_tan;
+  scm_vm_intrinsics.asin = scm_asin;
+  scm_vm_intrinsics.acos = scm_acos;
+  scm_vm_intrinsics.atan = scm_atan1;
+  scm_vm_intrinsics.atan2 = scm_atan;
+  scm_vm_intrinsics.ffloor = floor;
+  scm_vm_intrinsics.fceiling = ceil;
+  scm_vm_intrinsics.fsin = sin;
+  scm_vm_intrinsics.fcos = cos;
+  scm_vm_intrinsics.ftan = tan;
+  scm_vm_intrinsics.fasin = asin;
+  scm_vm_intrinsics.facos = acos;
+  scm_vm_intrinsics.fatan = atan;
+  scm_vm_intrinsics.fatan = atan2;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
