@@ -1921,7 +1921,7 @@ SCM_DEFINE (scm_port_decode_char, "port-decode-char", 4, 0, 0,
          output.  */
       return SCM_BOOL_F;
 
-    return scm_i_make_char (utf8_to_codepoint (utf8_buf, output_size));
+    return scm_c_make_char (utf8_to_codepoint (utf8_buf, output_size));
   }
 }
 #undef FUNC_NAME

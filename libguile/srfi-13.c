@@ -60,7 +60,7 @@
   } while (0)
 
 #define REF_IN_CHARSET(s, i, cs)					\
-  (scm_is_true (scm_char_set_contains_p ((cs), scm_i_make_char (scm_i_string_ref (s, i)))))
+  (scm_is_true (scm_char_set_contains_p ((cs), scm_c_make_char (scm_i_string_ref (s, i)))))
 
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
            (SCM str),
@@ -140,7 +140,7 @@ SCM_DEFINE (scm_string_any, "string-any-c-code", 2, 2, 0,
       while (cstart < cend)
         {
           res = scm_call_1 (char_pred, 
-                            scm_i_make_char (scm_i_string_ref (s, cstart)));
+                            scm_c_make_char (scm_i_string_ref (s, cstart)));
           if (scm_is_true (res))
             break;
           cstart++;
@@ -207,7 +207,7 @@ SCM_DEFINE (scm_string_every, "string-every-c-code", 2, 2, 0,
       while (cstart < cend)
         {
           res = scm_call_1 (char_pred, 
-                            scm_i_make_char (scm_i_string_ref (s, cstart)));
+                            scm_c_make_char (scm_i_string_ref (s, cstart)));
           if (scm_is_false (res))
             break;
           cstart++;
@@ -765,7 +765,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cstart)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cstart)));
 	  if (scm_is_false (res))
 	    break;
 	  cstart++;
@@ -841,7 +841,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cend - 1)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cend - 1)));
 	  if (scm_is_false (res))
 	    break;
 	  cend--;
@@ -935,7 +935,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cstart)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cstart)));
 	  if (scm_is_false (res))
 	    break;
 	  cstart++;
@@ -944,7 +944,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cend - 1)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cend - 1)));
 	  if (scm_is_false (res))
 	    break;
 	  cend--;
@@ -1705,7 +1705,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cstart)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cstart)));
 	  if (scm_is_true (res))
 	    goto found;
 	  cstart++;
@@ -1771,7 +1771,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cend)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cend)));
 	  if (scm_is_true (res))
 	    goto found;
 	}
@@ -1857,7 +1857,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cstart)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cstart)));
 	  if (scm_is_false (res))
 	    goto found;
 	  cstart++;
@@ -1924,7 +1924,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cend)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cend)));
 	  if (scm_is_false (res))
 	    goto found;
 	}
@@ -1990,7 +1990,7 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, scm_i_make_char (scm_i_string_ref (s, cstart)));
+	  res = scm_call_1 (char_pred, scm_c_make_char (scm_i_string_ref (s, cstart)));
 	  if (scm_is_true (res))
 	    count++;
 	  cstart++;
@@ -2247,7 +2247,7 @@ string_titlecase_x (SCM str, size_t start, size_t end)
       str = scm_i_string_start_writing (str);
       for(i = start; i < end;  i++)
         {
-          ch = scm_i_make_char (scm_i_string_ref (str, i));
+          ch = scm_c_make_char (scm_i_string_ref (str, i));
           if (scm_is_true (scm_char_alphabetic_p (ch)))
             {
               if (!in_word)
@@ -2345,7 +2345,7 @@ string_reverse_x (SCM str, size_t cstart, size_t cend)
           cend--;
           while (cstart < cend)
             {
-              tmp = scm_i_make_char (scm_i_string_ref (str, cstart));
+              tmp = scm_c_make_char (scm_i_string_ref (str, cstart));
               scm_i_string_set_x (str, cstart, scm_i_string_ref (str, cend));
               scm_i_string_set_x (str, cend, SCM_CHAR (tmp));
               cstart++;
@@ -2582,7 +2582,7 @@ SCM_DEFINE (scm_string_fold, "string-fold", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_call_2 (kons, scm_i_make_char (scm_i_string_ref (s, cstart)), result);
+      result = scm_call_2 (kons, scm_c_make_char (scm_i_string_ref (s, cstart)), result);
       cstart++;
     }
 
@@ -2610,7 +2610,7 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_call_2 (kons, scm_i_make_char (scm_i_string_ref (s, cend-1)), result);
+      result = scm_call_2 (kons, scm_c_make_char (scm_i_string_ref (s, cend-1)), result);
       cend--;
     }
 
@@ -2767,7 +2767,7 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
 			      4, end, cend);
   while (cstart < cend)
     {
-      scm_call_1 (proc, scm_i_make_char (scm_i_string_ref (s, cstart)));
+      scm_call_1 (proc, scm_c_make_char (scm_i_string_ref (s, cstart)));
       cstart++;
     }
 
@@ -3208,7 +3208,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       while (idx < cend)
 	{
 	  SCM res, ch;
-	  ch = scm_i_make_char (scm_i_string_ref (s, idx));
+	  ch = scm_c_make_char (scm_i_string_ref (s, idx));
 	  res = scm_call_1 (char_pred, ch);
 	  if (scm_is_true (res))
 	    ls = scm_cons (ch, ls);
@@ -3343,7 +3343,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
       idx = cstart;
       while (idx < cend)
 	{
-	  SCM res, ch = scm_i_make_char (scm_i_string_ref (s, idx));
+	  SCM res, ch = scm_c_make_char (scm_i_string_ref (s, idx));
 	  res = scm_call_1 (char_pred, ch);
 	  if (scm_is_false (res))
 	    ls = scm_cons (ch, ls);
