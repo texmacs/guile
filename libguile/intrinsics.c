@@ -545,7 +545,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.fasin = asin;
   scm_vm_intrinsics.facos = acos;
   scm_vm_intrinsics.fatan = atan;
-  scm_vm_intrinsics.fatan = atan2;
+  scm_vm_intrinsics.fatan2 = atan2;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",
