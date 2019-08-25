@@ -28,21 +28,24 @@ and similar.
 ** Interleaved internal definitions and expressions allowed
 
 It used to be that internal definitions had to precede all expressions
-in their bodies; this restriction was relaxed in Guile 3.0.  If an
-expression precedes an internal definition, it is treated as if it were
-a definition of an unreferenced variable.  This improves the readability
-of Guile programs, as it used to be that program indentation tended to
-increase needlessly to allow nested `let' and `letrec' to re-establish
-definition contexts after initial expressions, for example for
-type-checks on procedure arguments.
+in their bodies.  This restriction has been relaxed.  If an expression
+precedes an internal definition, it is treated as if it were a
+definition of an unreferenced variable.  For example, the expression
+`(foo)' transforms to the equivalent of `(define _ (begin (foo) #f))',
+if it precedes other definitions.
+
+This change improves the readability of Guile programs, as it used to be
+that program indentation tended to increase needlessly to allow nested
+`let' and `letrec' to re-establish definition contexts after initial
+expressions, for example for type-checks on procedure arguments.
 
 ** Optimization of top-level bindings within a compilation unit
 
 At optimization level 2 and above, Guile's compiler is now allowed to
-inline definitions within a compilation unit.  See "Declarative Modules"
-in the manual, for full details.  This change can improve the
-performance of programs with many small top-level definitions by quite a
-bit!
+inline top-level definitions within a compilation unit.  See
+"Declarative Modules" in the manual, for full details.  This change can
+improve the performance of programs with many small top-level
+definitions by quite a bit!
 
 
 
