@@ -240,7 +240,8 @@ Refer to the binding named @var{binding-name} in module
 Refer to the binding named @var{binding-name} in module
 @var{module-name}.  The binding must not have been exported by the
 module.  This syntax is only intended for debugging purposes or as a
-last resort.
+last resort.  @xref{Declarative Modules}, for some limitations on the
+use of @code{@@@@}.
 @end deffn
 
 @node Creating Guile Modules
@@ -290,8 +291,8 @@ example,
 (define-module (my mod)
   #:autoload (srfi srfi-1) (partition delete-duplicates))
 ...
-(if something
-    (set! foo (delete-duplicates ...)))
+(when something
+  (set! foo (delete-duplicates ...)))
 @end example
 
 When a module is autoloaded, all its bindings become available.
@@ -922,7 +923,7 @@ However, as Scheme godparent Mathias Felleisen wrote in ``On the
 Expressive Power of Programming Languages'', a more expressive language
 is necessarily harder to reason about.  There are transformations that
 Guile's compiler would like to make which can't be done if every
-top-level binding is subject to mutation at any time.
+top-level definition is subject to mutation at any time.
 
 Consider this module:
 
@@ -946,6 +947,9 @@ text.  However, in the general case it could be that a programmer could
 reach into the @code{(boxes)} module at any time and change the value of
 @code{box-ref}.
 
+@cindex declarative
+@cindex modules, declarative
+@cindex definitions, declarative
 To allow Guile to reason about the values of top-levels from a module, a
 module can be marked as @dfn{declarative}.  This flag applies only to
 the subset of top-level definitions that are themselves declarative:
@@ -965,7 +969,7 @@ By default, modules are compiled declaratively if the
 @code{user-modules-declarative?} parameter is true when the
 module is compiled.
 
-@deffn {Scheme Parameter} user-modules-declarative-by-default?
+@deffn {Scheme Parameter} user-modules-declarative?
 A boolean indicating whether definitions in modules created by
 @code{define-module} or implicitly as part of a compilation unit without
 an explicit module can be treated as declarative.
@@ -973,6 +977,76 @@ an explicit module can be treated as declarative.
 
 Because it's usually what you want, the default value of
 @code{user-modules-declarative?} is @code{#t}.
+
+@subsubheading Should I Mark My Module As Declarative?
+
+In the vast majority of use cases, declarative modules are what you
+want.  However, there are exceptions.
+
+Consider the @code{(boxes)} module above.  Let's say you want to be able
+to go in and change the definition of @code{box-set!} at run-time:
+
+@example
+scheme@@(guile-user)> (use-modules (boxes))
+scheme@@(guile-user)> ,module boxes
+scheme@@(boxes)> (define (box-set! x y) (set-car! x (pk y)))
+@end example
+
+However, considering that @code{(boxes)} is a declarative module, it
+could be that @code{box-swap!} inlined the call to @code{box-set!} -- so
+it may be that you are surprised if you call @code{(box-swap! x y)} and
+you don't see the new definition being used.  (Note, however, that Guile
+has no guarantees about what definitions its compiler will or will not
+inline.)
+
+If you want to allow the definition of @code{box-set!} to be changed and
+to have all of its uses updated, then probably the best option is to
+edit the module and reload the whole thing:
+
+@example
+scheme@@(guile-user)> ,reload (boxes)
+@end example
+
+The advantage of the reloading approach is that you maintain the
+optimizations that declarative modules enable, while also being able to
+live-update the code.  If the module keeps precious program state, those
+definitions can be marked as @code{define-once} to prevent reloads from
+overwriting them.  @xref{Top Level}, for more on @code{define-once}.
+Incidentally, @code{define-once} also prevents declarative-definition
+optimizations, so if there's a limited subset of redefinable bindings,
+@code{define-once} could be an interesting tool to mark those
+definitions as works-in-progress for interactive program development.
+
+To users, whether a module is declarative or not is mostly immaterial:
+besides normal use via @code{use-modules}, users can reference and
+redefine public or private bindings programmatically or interactively.
+The only difference is that changing a declarative definition may not
+change all of its uses.  If this use-case is important to you, and if
+reloading whole modules is insufficient, then you can mark all
+definitions in a module as non-declarative by adding
+@code{#:declarative? #f} to the module definition.
+
+The default of whether modules are declarative or not can be controlled
+via the @code{(user-modules-declarative?)} parameter mentioned above,
+but care should be taken to set this parameter when the modules are
+compiled, e.g. via @code{(eval-when (expand) (user-modules-declarative?
+#f))}.  @xref{Eval When}.
+
+Alternately you can prevent declarative-definition optimizations by
+compiling at the @code{-O1} optimization level instead of the default
+@code{-O2}, or via explicitly passing @code{-Ono-letrectify} to the
+@code{guild compile} invocation.  @xref{Compilation}, for more on
+compiler options.
+
+@cindex inlining
+One final note.  Currently, definitions from declarative modules can
+only be inlined within the module they are defined in, and within a
+compilation unit.  This may change in the future to allow Guile to
+inline imported declarative definitions as well (cross-module inlining).
+To Guile, whether a definition is inlinable or not is a property of the
+definition, not its use.  We hope to improve compiler tooling in the
+future to allow the user to identify definitions that are out of date
+when a declarative binding is redefined.
 
 
 @node Accessing Modules from C

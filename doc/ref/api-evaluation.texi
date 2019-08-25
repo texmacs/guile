@@ -675,6 +675,17 @@ warnings include @code{unused-variable}, @code{unused-toplevel},
 @code{arity-mismatch}, @code{format},
 @code{duplicate-case-datum}, and @code{bad-case-datum}.
 
+@item -O @var{opt}
+@itemx --optimize=@var{opt}
+@cindex optimizations, compiler
+Enable or disable specific compiler optimizations; use @code{-Ohelp} for
+a list of available options.  The default is @code{-O2}, which enables
+most optimizations.  @code{-O1} is recommended if compilation speed is
+more important than the speed of the compiled code.  Pass
+@code{-Ono-@var{opt}} to disable a specific compiler pass.  Any number
+of @code{-O} options can be passed to the compiler, with later ones
+taking precedence.
+
 @item -f @var{lang}
 @itemx --from=@var{lang}
 Use @var{lang} as the source language of @var{file}.  If this option is omitted,
