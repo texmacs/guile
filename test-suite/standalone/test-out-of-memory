@@ -36,7 +36,7 @@ exec guile -q -s "$0" "$@"
   (lambda (k . args)
     (print-exception (current-error-port) #f k args)
     (write "Skipping test.\n" (current-error-port))
-    (exit 0)))
+    (exit 77))) ; unresolved
 
 ;; 50 MB.
 (define *limit* (* 50 1024 1024))
@@ -53,6 +53,10 @@ exec guile -q -s "$0" "$@"
       (error "should not be reached"))
     (lambda _
       #t)))
+
+;; Prevent `test' from being inlined, which might cause an unused
+;; allocation to be omitted.
+(set! test test)
 
 (use-modules (rnrs bytevectors))
 
