@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2012
+@c Copyright (C)  1996-1997, 2000-2005, 2012, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -354,18 +354,17 @@ this, you can use the famous @code{lambda} syntax.
 For example, the value of the following Scheme expression
 
 @lisp
-(lambda (name address) @var{expression} @dots{})
+(lambda (name address) @var{body} @dots{})
 @end lisp
 
 @noindent
-is a newly created procedure that takes two arguments:
-@code{name} and @code{address}.  The behaviour of the
-new procedure is determined by the sequence of @var{expression}s in the
-@dfn{body} of the procedure definition.  (Typically, these
-@var{expression}s would use the arguments in some way, or else there
-wouldn't be any point in giving them to the procedure.)  When invoked,
-the new procedure returns a value that is the value of the last
-@var{expression} in the procedure body.
+is a newly created procedure that takes two arguments:  @code{name} and
+@code{address}.  The behaviour of the new procedure is determined by the
+sequence of expressions and definitions in the @var{body} of the
+procedure definition.  (Typically, @var{body} would use the arguments in
+some way, or else there wouldn't be any point in giving them to the
+procedure.)  When invoked, the new procedure returns a value that is the
+value of the last expression in the @var{body}.
 
 To make things more concrete, let's suppose that the two arguments are
 both strings, and that the purpose of this procedure is to form a
@@ -433,7 +432,7 @@ A @code{define} expression of the form
 
 @lisp
 (define (@var{name} [@var{arg1} [@var{arg2} @dots{}]])
-  @var{expression} @dots{})
+  @var{body} @dots{})
 @end lisp
 
 @noindent
@@ -442,7 +441,7 @@ is exactly equivalent to the longer form
 @lisp
 (define @var{name}
   (lambda ([@var{arg1} [@var{arg2} @dots{}]])
-    @var{expression} @dots{}))
+    @var{body} @dots{}))
 @end lisp
 
 So, for example, the definition of @code{make-combined-string} in the
@@ -459,18 +458,18 @@ of the @code{lambda} expression, which create a procedure that can
 accept a variable number of arguments:
 
 @lisp
-(lambda (@var{arg1} @dots{} . @var{args}) @var{expression} @dots{})
+(lambda (@var{arg1} @dots{} . @var{args}) @var{body} @dots{})
 
-(lambda @var{args} @var{expression} @dots{})
+(lambda @var{args} @var{body} @dots{})
 @end lisp
 
 @noindent
 The corresponding forms of the alternative @code{define} syntax are:
 
 @lisp
-(define (@var{name} @var{arg1} @dots{} . @var{args}) @var{expression} @dots{})
+(define (@var{name} @var{arg1} @dots{} . @var{args}) @var{body} @dots{})
 
-(define (@var{name} . @var{args}) @var{expression} @dots{})
+(define (@var{name} . @var{args}) @var{body} @dots{})
 @end lisp
 
 @noindent
@@ -479,7 +478,7 @@ For details on how these forms work, see @xref{Lambda}.
 Prior to Guile 2.0, Guile provided an extension to @code{define} syntax
 that allowed you to nest the previous extension up to an arbitrary
 depth. These are no longer provided by default, and instead have been
-moved to @ref{Curried Definitions}
+moved to @ref{Curried Definitions}.
 
 (It could be argued that the alternative @code{define} forms are rather
 confusing, especially for newcomers to the Scheme language, as they hide

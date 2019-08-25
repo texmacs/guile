@@ -10,9 +10,10 @@ Changes in alpha 2.9.4 (since alpha 2.9.3):
 
 * Notable changes
 
-** Improved compilation of `sqrt' and `abs'
+** Improved compilation of many floating-point primitives
 
-Heavy floating-point computations that use `sqrt' and `abs' will be
+Heavy floating-point computations that use `sqrt', `abs', `floor`,
+`ceiling`, `sin`, `cos`, `tan`, `asin`, `acos`, and `atan` will be
 faster, as the compiler can unbox inexact rationals (flonums) in more
 cases.
 
@@ -23,6 +24,25 @@ Internal definitions -- like the `define' in `(let () (define x 10)
 Ghuloum and Dybvig's "Fixing Letrec (reloaded)" paper.  This change
 makes internal `define' just as efficient as `let', `let*', `letrec',
 and similar.
+
+** Interleaved internal definitions and expressions allowed
+
+It used to be that internal definitions had to precede all expressions
+in their bodies; this restriction was relaxed in Guile 3.0.  If an
+expression precedes an internal definition, it is treated as if it were
+a definition of an unreferenced variable.  This improves the readability
+of Guile programs, as it used to be that program indentation tended to
+increase needlessly to allow nested `let' and `letrec' to re-establish
+definition contexts after initial expressions, for example for
+type-checks on procedure arguments.
+
+** Optimization of top-level bindings within a compilation unit
+
+At optimization level 2 and above, Guile's compiler is now allowed to
+inline definitions within a compilation unit.  See "Declarative Modules"
+in the manual, for full details.  This change can improve the
+performance of programs with many small top-level definitions by quite a
+bit!
 
 
 

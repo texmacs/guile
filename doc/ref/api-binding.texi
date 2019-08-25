@@ -249,9 +249,9 @@ enclosing form.  Let us examine the following example.
 
 @lisp
 (let ((frumble "froz"))
-   (define banana (lambda () (apple 'peach)))
-   (define apple (lambda (x) x))
-   (banana))
+  (define banana (lambda () (apple 'peach)))
+  (define apple (lambda (x) x))
+  (banana))
 @result{}
 peach
 @end lisp
@@ -281,8 +281,26 @@ is equivalent to
     (+ a b)))
 @end lisp
 
-Internal definitions are only allowed at the beginning of the body of an
-enclosing expression.  They may not be mixed with other expressions.
+Internal definitions may be mixed with non-definition expressions.  If
+an expression precedes a definition, it is treated as if it were a
+definition of an unreferenced variable.  So this:
+
+@lisp
+(let ()
+  (define a 1)
+  (foo)
+  (define b 2)
+  (+ a b))
+@end lisp
+
+@noindent
+is equivalent to
+
+@lisp
+(let ()
+  (letrec* ((a 1) (_ (begin (foo) #f)) (b 2))
+    (+ a b)))
+@end lisp
 
 Another noteworthy difference to top level definitions is that within
 one group of internal definitions all variable names must be distinct.
@@ -305,7 +323,9 @@ following case:
 
 @noindent
 Guile decided to follow the R6RS in this regard, and now expands
-internal definitions using @code{letrec*}.
+internal definitions using @code{letrec*}.  Relatedly, it used to be
+that internal definitions had to precede all expressions in the body;
+this restriction was relaxed in Guile 3.0.
 
 
 @node Binding Reflection
