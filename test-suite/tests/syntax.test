@@ -36,8 +36,10 @@
   "Missing or extra expression")
 (define exception:missing-expr
   "Missing expression")
-(define exception:missing-body-expr
-  "no expressions in body")
+(define exception:empty-body
+  "empty body")
+(define exception:body-should-end-with-expr
+  "body should end with an expression")
 (define exception:extra-expr
   "Extra expression")
 (define exception:illegal-empty-combination
@@ -970,9 +972,30 @@
                      (eq? 'c (a 2) (a 5)))))
            (interaction-environment))))
 
-  (pass-if-syntax-error "missing body expression"
-    exception:missing-body-expr
+  (pass-if-syntax-error "empty body"
+    exception:empty-body
+    (eval '(let () (begin))
+          (interaction-environment)))
+
+  (pass-if-syntax-error "body should end with expression"
+    exception:body-should-end-with-expr
     (eval '(let () (define x #t))
+          (interaction-environment)))
+
+  (pass-if-equal "mixed definitions and expressions" 256
+    ((eval '(lambda (x)
+              (unless (number? x) (error "not a number" x))
+              (define (square x) (* x x))
+              (square (square x)))
+           (interaction-environment))
+     4))
+
+  (pass-if-equal "mixed definitions and expressions 2" 42
+    (eval '(let ()
+             (define (foo) (bar))
+             1
+             (define (bar) 42)
+             (foo))
           (interaction-environment))))
 
 (with-test-prefix "top-level define-values"
