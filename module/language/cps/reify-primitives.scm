@@ -416,7 +416,7 @@
                         ($primcall 'load-u64 %tc16-flonum ()))))
          (setk label ($kargs names vars
                        ($continue ktag0 src
-                         ($primcall 'allocate-words/immediate
+                         ($primcall 'allocate-pointerless-words/immediate
                                     `(flonum . ,(match (target-word-size)
                                                   (4 4)
                                                   (8 2)))
@@ -507,7 +507,14 @@
               ;; ((ulsh/immediate (u6? y) x) (ulsh x y))
               (_
                (match (cons name args)
-                 (('allocate-words/immediate)
+                 (((or 'allocate-words/immediate
+                       'allocate-pointerless-words/immediate))
+                  (define op
+                    (match name
+                      ('allocate-words/immediate
+                       'allocate-words)
+                      ('allocate-pointerless-words/immediate
+                       'allocate-pointerless-words)))
                   (match param
                     ((ann . n)
                      (if (u8? n)
@@ -516,7 +523,7 @@
                            (letv n*)
                            (letk kop ($kargs ('n) (n*)
                                        ($continue k src
-                                         ($primcall 'allocate-words ann (n*)))))
+                                         ($primcall op ann (n*)))))
                            (setk label ($kargs names vars
                                          ($continue kop src
                                            ($primcall 'load-u64 n ())))))))))

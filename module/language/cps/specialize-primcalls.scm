@@ -122,6 +122,8 @@
           (_ #f)))
       (specialize-case
         (('allocate-words (? uint? n)) (allocate-words/immediate n ()))
+        (('allocate-pointerless-words (? uint? n))
+         (allocate-pointerless-words/immediate n ()))
         (('scm-ref o (? uint? i)) (scm-ref/immediate i (o)))
         (('scm-set! o (? uint? i) x) (scm-set!/immediate i (o x)))
         ;; Assume (tail-)pointer-ref/immediate can always be emitted directly.

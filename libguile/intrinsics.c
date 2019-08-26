@@ -430,6 +430,21 @@ allocate_words_with_freelist (scm_thread *thread, size_t freelist_idx)
 }
 
 static SCM
+allocate_pointerless_words (scm_thread *thread, size_t n)
+{
+  return SCM_PACK_POINTER (scm_inline_gc_malloc_pointerless_words (thread, n));
+}
+
+static SCM
+allocate_pointerless_words_with_freelist (scm_thread *thread, size_t freelist_idx)
+{
+  return SCM_PACK_POINTER
+    (scm_inline_gc_alloc (&thread->pointerless_freelists[freelist_idx],
+                          freelist_idx,
+                          SCM_INLINE_GC_KIND_POINTERLESS));
+}
+
+static SCM
 current_module (scm_thread *thread)
 {
   return scm_i_current_module (thread);
@@ -546,6 +561,9 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.facos = acos;
   scm_vm_intrinsics.fatan = atan;
   scm_vm_intrinsics.fatan2 = atan2;
+  scm_vm_intrinsics.allocate_pointerless_words = allocate_pointerless_words;
+  scm_vm_intrinsics.allocate_pointerless_words_with_freelist =
+    allocate_pointerless_words_with_freelist;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

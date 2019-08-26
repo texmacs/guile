@@ -363,6 +363,13 @@ the LABELS that are clobbered by the effects of LABEL."
                                      ((ann . size)
                                       (&allocate
                                        (annotation->memory-kind ann)))))
+  ((allocate-pointerless-words size)
+                                   (&allocate (annotation->memory-kind param)))
+  ((allocate-pointerless-words/immediate)
+                                   (match param
+                                     ((ann . size)
+                                      (&allocate
+                                       (annotation->memory-kind ann)))))
   ((scm-ref obj idx)               (&read-object
                                     (annotation->memory-kind param)))
   ((scm-ref/tag obj)               (&read-field

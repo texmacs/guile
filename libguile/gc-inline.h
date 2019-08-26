@@ -117,6 +117,12 @@ scm_inline_gc_malloc_words (scm_thread *thread, size_t words)
   return scm_inline_gc_malloc (thread, words * sizeof (void *));
 }
 
+static inline void *
+scm_inline_gc_malloc_pointerless_words (scm_thread *thread, size_t words)
+{
+  return scm_inline_gc_malloc_pointerless (thread, words * sizeof (void *));
+}
+
 static inline SCM
 scm_inline_cell (scm_thread *thread, scm_t_bits car, scm_t_bits cdr)
 {

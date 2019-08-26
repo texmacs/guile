@@ -186,6 +186,8 @@ typedef uint32_t* scm_t_vcode_intrinsic;
   M(f64_from_f64, facos, "facos", FACOS) \
   M(f64_from_f64, fatan, "fatan", FATAN) \
   M(f64_from_f64_f64, fatan2, "fatan2", FATAN2) \
+  M(scm_from_thread_sz, allocate_pointerless_words, "allocate-pointerless-words", ALLOCATE_POINTERLESS_WORDS) \
+  M(scm_from_thread_sz, allocate_pointerless_words_with_freelist, "allocate-pointerless-words/freelist", ALLOCATE_POINTERLESS_WORDS_WITH_FREELIST) \
   /* Add new intrinsics here; also update scm_bootstrap_intrinsics.  */
 
 enum scm_vm_intrinsic

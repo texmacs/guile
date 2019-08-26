@@ -742,6 +742,10 @@ minimum, and maximum."
     ((annotation . size)
      (define! result (annotation->type annotation) size size))))
 
+(define-type-inferrer-aliases allocate-words allocate-pointerless-words)
+(define-type-inferrer-aliases allocate-words/immediate
+  allocate-pointerless-words/immediate)
+
 (define-type-inferrer/param (scm-ref param obj idx result)
   (restrict! obj (annotation->type param)
              (1+ (&min/0 idx)) (target-max-size-t/scm))

@@ -162,6 +162,12 @@
          (emit-allocate-words asm (from-sp dst) (from-sp (slot nfields))))
         (($ $primcall 'allocate-words/immediate (annotation . nfields))
          (emit-allocate-words/immediate asm (from-sp dst) nfields))
+        (($ $primcall 'allocate-pointerless-words annotation (nfields))
+         (emit-allocate-pointerless-words asm (from-sp dst)
+                                       (from-sp (slot nfields))))
+        (($ $primcall 'allocate-pointerless-words/immediate
+            (annotation . nfields))
+         (emit-allocate-pointerless-words/immediate asm (from-sp dst) nfields))
         (($ $primcall 'scm-ref annotation (obj idx))
          (emit-scm-ref asm (from-sp dst) (from-sp (slot obj))
                        (from-sp (slot idx))))

@@ -3280,8 +3280,40 @@ VM_NAME (scm_thread *thread)
       NEXT (2);
     }
 
-  VM_DEFINE_OP (157, unused_157, NULL, NOP)
-  VM_DEFINE_OP (158, unused_158, NULL, NOP)
+  /* allocate-pointerless-words dst:12 count:12
+   *
+   * Allocate a fresh object consisting of COUNT words and store it into
+   * DST.  The result will not be traced by GC.  COUNT is a u64 local.
+   */
+  VM_DEFINE_OP (157, allocate_pointerless_words, "allocate-pointerless-words", DOP1 (X8_S12_S12))
+    {
+      uint16_t dst, size;
+
+      UNPACK_12_12 (op, dst, size);
+
+      SYNC_IP ();
+      SP_SET (dst, CALL_INTRINSIC (allocate_pointerless_words,
+                                   (thread, SP_REF_U64 (size))));
+      NEXT (1);
+    }
+
+  /* allocate-words/immediate dst:12 count:12
+   *
+   * Allocate a fresh object consisting of COUNT words and store it into
+   * DST.  The result will not be traced by GC.  COUNT is an immediate.
+   */
+  VM_DEFINE_OP (158, allocate_pointerless_words_immediate, "allocate-pointerless-words/immediate", DOP1 (X8_S12_C12))
+    {
+      uint16_t dst, size;
+
+      UNPACK_12_12 (op, dst, size);
+
+      SYNC_IP ();
+      SP_SET (dst, CALL_INTRINSIC (allocate_pointerless_words, (thread, size)));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (159, unused_159, NULL, NOP)
   VM_DEFINE_OP (160, unused_160, NULL, NOP)
   VM_DEFINE_OP (161, unused_161, NULL, NOP)

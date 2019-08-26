@@ -144,6 +144,8 @@
 
             emit-allocate-words
             emit-allocate-words/immediate
+            emit-allocate-pointerless-words
+            emit-allocate-pointerless-words/immediate
 
             emit-scm-ref
             emit-scm-set!
