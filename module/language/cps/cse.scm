@@ -1,6 +1,6 @@
 ;;; Continuation-passing style (CPS) intermediate language (IL)
 
-;; Copyright (C) 2013, 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -225,9 +225,8 @@ false.  It could be that both true and false proofs are available."
            (cons* op param (subst-vars var-substs args)))
           ((or ($ $prompt) ($ $throw)) #f)))
 
-      (define (add-auxiliary-definitions! label var-substs term-key)
-        (let ((defs (and=> (intmap-ref defs label)
-                           (lambda (defs) (subst-vars var-substs defs)))))
+      (define (add-auxiliary-definitions! label defs var-substs term-key)
+        (let ((defs (and defs (subst-vars var-substs defs))))
           (define (add-def! aux-key var)
             (let ((equiv (hash-ref equiv-set aux-key '())))
               (hash-set! equiv-set aux-key
@@ -242,6 +241,10 @@ false.  It could be that both true and false proofs are available."
                (match term-key
                  (('op arg ...)
                   (match defs
+                    (#f
+                     ;; If the successor is a control-flow join, don't
+                     ;; pretend to know the values of its defs.
+                     #f)
                     ((def) (add-def! (list 'op* arg* ...) aux) ...)))
                  (_ (add-definitions . clauses))))
               ((add-definitions
@@ -296,13 +299,13 @@ false.  It could be that both true and false proofs are available."
               (let* ((equiv (hash-ref equiv-set term-key '()))
                      (fx (intmap-ref effects label))
                      (avail (intmap-ref avail label)))
-                (define (finish equiv-labels var-substs)
+                (define (finish equiv-labels var-substs defs)
                   ;; If this expression defines auxiliary definitions,
                   ;; as `cons' does for the results of `car' and `cdr',
                   ;; define those.  Do so after finding equivalent
                   ;; expressions, so that we can take advantage of
                   ;; subst'd output vars.
-                  (add-auxiliary-definitions! label var-substs term-key)
+                  (add-auxiliary-definitions! label defs var-substs term-key)
                   (values equiv-labels var-substs))
                 (let lp ((candidates equiv))
                   (match candidates
@@ -314,13 +317,12 @@ false.  It could be that both true and false proofs are available."
                      ;; be eliminated by CSE (though DCE might do it
                      ;; if the value proves to be unused, in the
                      ;; allocation case).
-                     (when (and (not (causes-effect? fx &allocation))
-                                (not (effect-clobbers? fx (&read-object &fluid))))
-                       (let ((defs (term-defs term)))
-                         (when defs
-                           (hash-set! equiv-set term-key
-                                      (acons label defs equiv)))))
-                     (finish equiv-labels var-substs))
+                     (let ((defs (term-defs term)))
+                       (when (and defs
+                                  (not (causes-effect? fx &allocation))
+                                  (not (effect-clobbers? fx (&read-object &fluid))))
+                         (hash-set! equiv-set term-key (acons label defs equiv)))
+                       (finish equiv-labels var-substs defs)))
                     (((and head (candidate . vars)) . candidates)
                      (cond
                       ((not (intset-ref avail candidate))
@@ -331,13 +333,14 @@ false.  It could be that both true and false proofs are available."
                        ;; Yay, a match.  Mark expression as equivalent.  If
                        ;; we provide the definitions for the successor, mark
                        ;; the vars for substitution.
-                       (finish (intmap-add equiv-labels label head)
-                               (let ((defs (term-defs term)))
+                       (let ((defs (term-defs term)))
+                         (finish (intmap-add equiv-labels label head)
                                  (if defs
                                      (fold (lambda (def var var-substs)
                                              (intmap-add var-substs def var))
                                            var-substs defs vars)
-                                     var-substs))))))))))))
+                                     var-substs)
+                                 defs)))))))))))
           (_ (values equiv-labels var-substs))))
 
       ;; Traverse the labels in fun in reverse post-order, which will

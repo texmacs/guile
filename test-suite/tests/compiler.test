@@ -300,3 +300,40 @@
                          (cons 't (if x 't 'f))
                          (cons 'f (if x 't 'f)))))
          '(3 #t #f #nil ()))))
+
+(with-test-prefix "cse auxiliary definitions"
+  (define test-code
+    '(begin
+       (define count 1)
+       (set! count count) ;; Avoid inlining
+
+       (define (main)
+         (define (trampoline thunk)
+           (let loop ((i 0) (result #f))
+             (cond
+              ((< i 1)
+               (loop (+ i 1) (thunk)))
+              (else
+               (unless (= result 42) (error "bad result" result))
+               (newline)
+               result))))
+         (define (test n)
+           (let ((matrix (make-vector n)))
+             (let loop ((i (- n 1)))
+               (when (>= i 0)
+                 (vector-set! matrix i (make-vector n 42))
+                 (loop (- i 1))))
+             (vector-ref (vector-ref matrix 0) 0)))
+
+         (trampoline (lambda () (test count))))
+       main))
+
+  (define test-proc #f)
+  (pass-if "compiling test works"
+    (begin
+      (set! test-proc (compile test-code))
+      (procedure? test-proc)))
+
+  (pass-if-equal "test terminates without error" 42
+    (test-proc)))
+
