@@ -3847,6 +3847,13 @@ when none is available, reading FILE-NAME with READER."
      (let* ((src (syntax-source x))
             (file (and src (assq-ref src 'filename)))
             (dir (and (string? file) (dirname file))))
+       ;; A module that uses `load' is not declarative.
+       (when (module-declarative? (current-module))
+         (format (current-warning-port)
+                 "WARNING: Use of `load' in declarative module ~A.  ~A\n"
+                 (module-name (current-module))
+                 "Add #:declarative? #f to your define-module invocation.")
+         (set-module-declarative?! (current-module) #f))
        (syntax-case x ()
          ((_ arg ...)
           #`(load-in-vicinity #,(or dir #'(getcwd)) arg ...))
