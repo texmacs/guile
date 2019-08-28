@@ -125,12 +125,54 @@
                    defined)
     declarative))
 
-(define (letrectify expr)
+(define (compute-private-toplevels declarative)
+  ;; Set of variables exported by the modules of declarative bindings in
+  ;; this compilation unit.
+  (define exports (make-hash-table))
+  ;; If a module exports a macro, that macro could implicitly export any
+  ;; top-level binding in a module; we have to avoid sealing private
+  ;; bindings in that case.
+  (define exports-macro? (make-hash-table))
+  (hash-for-each
+   (lambda (k _)
+     (match k
+       ((mod . name)
+        (unless (hash-get-handle exports-macro? mod)
+          (hash-set! exports-macro? mod #f)
+          (let ((i (module-public-interface (resolve-module mod))))
+            (when i
+              (module-for-each
+               (lambda (k v)
+                 (hashq-set! exports v k)
+                 (when (and (variable-bound? v) (macro? (variable-ref v)))
+                   (hash-set! exports-macro? mod #t)))
+               i)))))))
+   declarative)
+  (let ((private (make-hash-table)))
+    (hash-for-each
+     (lambda (k _)
+       (match k
+         ((mod . name)
+          (unless (or (hash-ref exports-macro? mod)
+                      (hashq-ref exports
+                                 (module-local-variable (resolve-module mod) name)))
+            (hash-set! private k #t)))))
+     declarative)
+    private))
+
+(define* (letrectify expr #:key (seal-private-bindings? #f))
   (define declarative (compute-declarative-toplevels expr))
+  (define private
+    (if seal-private-bindings?
+        (compute-private-toplevels declarative)
+        (make-hash-table)))
   (define declarative-box+value
     (let ((tab (make-hash-table)))
       (hash-for-each (lambda (key val)
-                       (hash-set! tab key (cons (gensym) (gensym))))
+                       (let ((box (and (not (hash-ref private key))
+                                       (gensym)))
+                             (val (gensym)))
+                         (hash-set! tab key (cons box val))))
                      declarative)
       (lambda (mod name)
         (hash-ref tab (cons mod name)))))
@@ -210,6 +252,9 @@
       (($ <toplevel-define> src mod name exp)
        (match (declarative-box+value mod name)
          (#f (values (visit-expr expr) mod-vars))
+         ((#f . value)
+          (values (add-binding name value (visit-expr exp) (make-void src))
+                  mod-vars))
          ((box . value)
           (match (assoc-ref mod-vars mod)
             (#f
