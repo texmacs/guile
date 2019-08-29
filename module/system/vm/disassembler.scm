@@ -462,10 +462,10 @@ address of that offset."
          (display "\n\n" port)))))
   (values))
 
-(define (disassemble-file file)
+(define* (disassemble-file file #:optional (port (current-output-port)))
   (let* ((thunk (load-thunk-from-file file))
          (elf (find-mapped-elf-image (program-code thunk))))
-    (disassemble-image elf)))
+    (disassemble-image elf port)))
 
 (define-syntax instruction-lengths-vector
   (lambda (x)
