@@ -47,7 +47,7 @@
     eq? eqv? equal?
     memq memv
     = < > <= >= zero? positive? negative?
-    + * - / 1- 1+ quotient remainder modulo
+    + * - / 1- 1+ quotient remainder modulo exact->inexact
     ash logand logior logxor lognot logtest logbit?
     sqrt abs floor ceiling sin cos tan asin acos atan
     not
@@ -171,7 +171,7 @@
     eq? eqv? equal?
     = < > <= >= zero? positive? negative?
     ash logand logior logxor lognot logtest logbit?
-    + * - / 1- 1+ sqrt abs quotient remainder modulo
+    + * - / 1- 1+ sqrt abs quotient remainder modulo exact->inexact
     floor ceiling sin cos tan asin acos atan
     not
     pair? null? nil? list?

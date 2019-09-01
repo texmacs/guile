@@ -3314,7 +3314,21 @@ VM_NAME (scm_thread *thread)
       NEXT (1);
     }
 
-  VM_DEFINE_OP (159, unused_159, NULL, NOP)
+  /* s64->f64 dst:12 src:12
+   *
+   * Convert an s64 value to a double-precision floating-point value.
+   */
+  VM_DEFINE_OP (159, s64_to_f64, "s64->f64", DOP1 (X8_S12_S12))
+    {
+      uint16_t dst, src;
+
+      UNPACK_12_12 (op, dst, src);
+
+      SP_SET_F64 (dst, (double) SP_REF_S64 (src));
+
+      NEXT (1);
+    }
+
   VM_DEFINE_OP (160, unused_160, NULL, NOP)
   VM_DEFINE_OP (161, unused_161, NULL, NOP)
   VM_DEFINE_OP (162, unused_162, NULL, NOP)

@@ -422,6 +422,43 @@
    (else
     (with-cps cps #f))))
 
+(define-unary-primcall-reducer (scm->f64 cps k src constant arg type min max)
+  (cond
+   ((and (type<=? type &exact-integer)
+         (<= (target-most-negative-fixnum) min max (target-most-positive-fixnum)))
+    (with-cps cps
+      (letv s64)
+      (letk ks64 ($kargs ('s64) (s64)
+                   ($continue k src
+                     ($primcall 's64->f64 #f (s64)))))
+      (build-term
+        ($continue ks64 src
+          ($primcall 'untag-fixnum #f (arg))))))
+   (else
+    (with-cps cps #f))))
+
+(define-unary-primcall-reducer (inexact cps k src constant arg type min max)
+  (cond
+   ((and (type<=? type &exact-integer)
+         (<= (target-most-negative-fixnum) min max (target-most-positive-fixnum)))
+    (with-cps cps
+      (letv s64 f64)
+      (letk kf64 ($kargs ('f64) (f64)
+                   ($continue k src
+                     ($primcall 'f64->scm #f (f64)))))
+      (letk ks64 ($kargs ('s64) (s64)
+                   ($continue kf64 src
+                     ($primcall 's64->f64 #f (s64)))))
+      (build-term
+        ($continue ks64 src
+          ($primcall 'untag-fixnum #f (arg))))))
+   ((type<=? type &flonum)
+    (with-cps cps
+      (build-term
+        ($continue k src ($primcall 'values #f (arg))))))
+   (else
+    (with-cps cps #f))))
+
 
 
 ;;

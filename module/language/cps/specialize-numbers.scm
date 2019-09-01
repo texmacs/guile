@@ -122,6 +122,13 @@
 (define-simple-primcall scm->f64)
 (define-simple-primcall f64->scm)
 
+(define (fixnum->f64 cps k src fx)
+  (with-cps cps
+    (letv s64)
+    (letk kcvt ($kargs ('s64) (s64)
+                 ($continue k src ($primcall 's64->f64 #f (s64)))))
+    ($ (untag-fixnum kcvt src fx))))
+
 (define (specialize-unop cps k src op param a unbox-a box-result)
   (with-cps cps
     (letv a* result)
@@ -433,7 +440,7 @@ BITS indicating the significant bits needed for a variable.  BITS may be
       (if (fixnum-operand? arg) tag-fixnum/unlikely s64->scm/unlikely))
     (define (unbox-f64 arg)
       ;; Could be more precise here.
-      scm->f64)
+      (if (fixnum-operand? arg) fixnum->f64 scm->f64))
     (define (box-s64 result)
       (if (fixnum-result? result) tag-fixnum s64->scm))
     (define (box-u64 result)

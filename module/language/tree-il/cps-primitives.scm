@@ -87,6 +87,7 @@
 (define-cps-primitive (quotient quo) 2 1)
 (define-cps-primitive (remainder rem) 2 1)
 (define-cps-primitive (modulo mod) 2 1)
+(define-cps-primitive (exact->inexact inexact) 1 1)
 (define-cps-primitive sqrt 1 1)
 (define-cps-primitive abs 1 1)
 (define-cps-primitive floor 1 1)

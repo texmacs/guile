@@ -106,6 +106,8 @@
             emit-untag-char
             emit-tag-char
 
+            emit-s64->f64
+
             emit-throw
             (emit-throw/value* . emit-throw/value)
             (emit-throw/value+data* . emit-throw/value+data)
@@ -199,6 +201,7 @@
             emit-quo
             emit-rem
             emit-mod
+            emit-inexact
             emit-abs
             emit-sqrt
             emit-floor
@@ -1405,6 +1408,7 @@ returned instead."
 (define-scm<-scm-scm-intrinsic quo)
 (define-scm<-scm-scm-intrinsic rem)
 (define-scm<-scm-scm-intrinsic mod)
+(define-scm<-scm-intrinsic inexact)
 (define-scm<-scm-intrinsic abs)
 (define-scm<-scm-intrinsic sqrt)
 (define-scm<-scm-intrinsic floor)

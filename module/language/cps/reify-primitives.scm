@@ -314,6 +314,7 @@
       quo
       rem
       mod
+      inexact
       sqrt
       abs
       floor

@@ -564,6 +564,7 @@ scm_bootstrap_intrinsics (void)
   scm_vm_intrinsics.allocate_pointerless_words = allocate_pointerless_words;
   scm_vm_intrinsics.allocate_pointerless_words_with_freelist =
     allocate_pointerless_words_with_freelist;
+  scm_vm_intrinsics.inexact = scm_exact_to_inexact;
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_intrinsics",

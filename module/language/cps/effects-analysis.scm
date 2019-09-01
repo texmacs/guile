@@ -522,6 +522,8 @@ the LABELS that are clobbered by the effects of LABEL."
   ((quo . _)                       &type-check)
   ((rem . _)                       &type-check)
   ((mod . _)                       &type-check)
+  ((inexact _)                     &type-check)
+  ((s64->f64 _))
   ((complex? _)                    &type-check)
   ((real? _)                       &type-check)
   ((rational? _)                   &type-check)

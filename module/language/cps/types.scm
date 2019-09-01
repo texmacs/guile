@@ -856,6 +856,20 @@ minimum, and maximum."
 (define-type-inferrer/param (load-f64 param result)
   (define! result &f64 param param))
 
+(define-type-checker (inexact scm)
+  (check-type scm &number -inf.0 +inf.0))
+(define-type-inferrer (inexact scm result)
+  (restrict! scm &number -inf.0 +inf.0)
+  (let* ((in (logand (&type &number)))
+         (out (if (type<=? in &real)
+                  &flonum
+                  (logior &flonum &complex))))
+    (define! result out (&min scm) (&max scm))))
+
+(define-type-checker (s64->f64 s64) #t)
+(define-type-inferrer (s64->f64 s64 result)
+  (define! result &f64 (&min s64) (&max s64)))
+
 (define-type-checker (f64->scm f64)
   #t)
 (define-type-inferrer (f64->scm f64 result)

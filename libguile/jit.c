@@ -4287,6 +4287,15 @@ compile_f64_set (scm_jit_state *j, uint8_t ptr, uint8_t idx, uint8_t v)
   jit_stxr_d (j->jit, T0, T1, JIT_F0);
 }
 
+static void
+compile_s64_to_f64 (scm_jit_state *j, uint16_t dst, uint16_t src)
+{
+  emit_sp_ref_s64 (j, T0, src);
+  jit_extr_d (j->jit, JIT_F0, T0);
+  record_fpr_clobber (j, JIT_F0);
+  emit_sp_set_f64 (j, dst, JIT_F0);
+}
+
 
 #define UNPACK_8_8_8(op,a,b,c)            \
   do                                      \
