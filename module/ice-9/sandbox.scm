@@ -314,6 +314,7 @@ allocation limit is exceeded, an exception will be thrown to the
 ;;
 (define core-bindings
   '(((guile)
+     else => _ ...
      and
      begin
      apply

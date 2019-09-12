@@ -416,6 +416,22 @@ If returning early, return the return value of F."
 (define-syntax-rule (unless test stmt stmt* ...)
   (if (not test) (begin stmt stmt* ...)))
 
+(define-syntax else
+  (lambda (x)
+    (syntax-violation 'else "bad use of 'else' syntactic keyword" x x)))
+
+(define-syntax =>
+  (lambda (x)
+    (syntax-violation '=> "bad use of '=>' syntactic keyword" x x)))
+
+(define-syntax ...
+  (lambda (x)
+    (syntax-violation '... "bad use of '...' syntactic keyword" x x)))
+
+(define-syntax _
+  (lambda (x)
+    (syntax-violation '_ "bad use of '_' syntactic keyword" x x)))
+
 (define-syntax cond
   (lambda (whole-expr)
     (define (fold f seed xs)

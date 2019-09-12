@@ -1,6 +1,6 @@
 ;;; rnrs.scm --- The R6RS composite library
 
-;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011, 2019 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -73,7 +73,7 @@
 	  vector-map vector-for-each error assertion-violation assert
 	  call-with-current-continuation call/cc call-with-values dynamic-wind
 	  values apply quasiquote unquote unquote-splicing let-syntax 
-	  letrec-syntax syntax-rules identifier-syntax
+	  letrec-syntax syntax-rules identifier-syntax else => _ ...
 
 	  ;; (rnrs bytevectors)
 	  

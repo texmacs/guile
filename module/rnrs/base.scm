@@ -1,6 +1,6 @@
 ;;; base.scm --- The R6RS base library
 
-;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011, 2019 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 	  define define-syntax syntax-rules lambda let let* let-values 
 	  let*-values letrec letrec* begin 
 
-	  quote lambda if set! cond case 
+	  quote lambda if set! cond case else => _ ...
 	 
 	  or and not
 	 
