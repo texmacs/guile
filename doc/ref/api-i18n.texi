@@ -508,17 +508,22 @@ utilities}).
 (display (gettext "You are in a maze of twisty passages."))
 @end example
 
-@code{_} is a commonly used shorthand, an application can make that an
-alias for @code{gettext}.  Or a library can make a definition that
-uses its specific @var{domain} (so an application can change the
-default without affecting the library).
+It is conventional to use @code{G_} as a shorthand for
+@code{gettext}.@footnote{Users of @code{gettext} might be a bit
+surprised that @code{G_} is the conventional abbreviation for
+@code{gettext}.  In most other languages, the conventional shorthand is
+@code{_}.  Guile uses @code{G_} because @code{_} is already taken, as it
+is bound to a syntactic keyword used by @code{syntax-rules},
+@code{match}, and other macros.}  Libraries can define @code{G_} in such
+a way to look up translations using its specific @var{domain}, allowing
+different parts of a program to have different translation sources.
 
 @example
-(define (_ msg) (gettext msg "mylibrary"))
-(display (_ "File not found."))
+(define (G_ msg) (gettext msg "mylibrary"))
+(display (G_ "File not found."))
 @end example
 
-@code{_} is also a good place to perhaps strip disambiguating extra
+@code{G_} is also a good place to perhaps strip disambiguating extra
 text from the message string, as for instance in @ref{GUI program
 problems,, How to use @code{gettext} in GUI programs, gettext, GNU
 @code{gettext} utilities}.

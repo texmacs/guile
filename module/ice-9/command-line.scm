@@ -40,15 +40,15 @@
             emit-bug-reporting-address))
 
 ;; An initial stab at i18n.
-(define _ gettext)
+(define G_ gettext)
 
 (define *GPLv3+*
-  (_ "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+  (G_ "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law."))
 
 (define *LGPLv3+*
-  (_ "License LGPLv3+: GNU LGPL 3 or later <http://gnu.org/licenses/lgpl.html>.
+  (G_ "License LGPLv3+: GNU LGPL 3 or later <http://gnu.org/licenses/lgpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law."))
 
@@ -79,8 +79,8 @@ There is NO WARRANTY, to the extent permitted by law."))
 
   (if packager
       (if packager-version
-          (format port (_ "Packaged by ~a (~a)\n") packager packager-version)
-          (format port (_ "Packaged by ~a\n") packager)))
+          (format port (G_ "Packaged by ~a (~a)\n") packager packager-version)
+          (format port (G_ "Packaged by ~a\n") packager)))
   
   (display copyright port)
   (newline port)
@@ -98,15 +98,15 @@ There is NO WARRANTY, to the extent permitted by law."))
                                            package
                                            "/"))
                                      packager packager-bug-address)
-  (format port (_ "\nReport bugs to: ~a\n") bug-address)
+  (format port (G_ "\nReport bugs to: ~a\n") bug-address)
   (if (and packager packager-bug-address)
-      (format port (_ "Report ~a bugs to: ~a\n") packager packager-bug-address))
-  (format port (_ "~a home page: <~a>\n") package url)
+      (format port (G_ "Report ~a bugs to: ~a\n") packager packager-bug-address))
+  (format port (G_ "~a home page: <~a>\n") package url)
   (format port
-          (_ "General help using GNU software: <http://www.gnu.org/gethelp/>\n")))
+          (G_ "General help using GNU software: <http://www.gnu.org/gethelp/>\n")))
 
 (define *usage*
-  (_ "Evaluate code with Guile, interactively or from a script.
+  (G_ "Evaluate code with Guile, interactively or from a script.
 
   [-s] FILE      load source code from FILE, and exit
   -c EXPR        evalute expression EXPR, and exit
@@ -151,7 +151,7 @@ If FILE begins with `-' the -s switch is mandatory.
       (apply format port fmt args)
       (newline port))
 
-    (format port (_ "Usage: ~a [OPTION]... [FILE]...\n") name)
+    (format port (G_ "Usage: ~a [OPTION]... [FILE]...\n") name)
     (display *usage* port)
     (newline port)
 

@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001, 2008-2014, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008-2014,2016,2018-2019 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1422,7 +1422,7 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
 
   (match exp
     (($ <toplevel-ref> _ _ (? special?))
-     ;; Allow top-levels like: (define _ (cut gettext <> "my-domain")).
+     ;; Allow top-levels like: (define G_ (cut gettext <> "my-domain")).
      #t)
     (($ <toplevel-ref> _ _ name)
      (let ((var (module-variable env name)))
@@ -1440,7 +1440,7 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
      #t)
     (_ #f)))
 
-(define gettext? (cut proc-ref? <> gettext '_ <>))
+(define gettext? (cut proc-ref? <> gettext 'G_ <>))
 (define ngettext? (cut proc-ref? <> ngettext 'N_ <>))
 
 (define (const-fmt x env)
@@ -1450,7 +1450,7 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
      exp)
     (($ <call> _ (? (cut gettext? <> env))
         (($ <const> _ (? string? fmt))))
-     ;; Gettexted literals, like `(_ "foo")'.
+     ;; Gettexted literals, like `(G_ "foo")'.
      fmt)
     (($ <call> _ (? (cut ngettext? <> env))
         (($ <const> _ (? string? fmt)) ($ <const> _ (? string?)) _ ..1))

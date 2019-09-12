@@ -874,7 +874,7 @@
      (pass-if "non-literal format string using gettext as _"
        (null? (call-with-warnings
                (lambda ()
-                 (compile '(format #t (_ "~A ~A!") "hello" "world")
+                 (compile '(format #t (G_ "~A ~A!") "hello" "world")
                           #:opts %opts-w-format
                           #:to 'cps)))))
 
@@ -883,14 +883,14 @@
                (lambda ()
                  (compile '(begin
                              (define (_ s) (gettext s "my-domain"))
-                             (format #t (_ "~A ~A!") "hello" "world"))
+                             (format #t (G_ "~A ~A!") "hello" "world"))
                           #:opts %opts-w-format
                           #:to 'cps)))))
 
      (pass-if "non-literal format string using gettext as module-ref _"
        (null? (call-with-warnings
                (lambda ()
-                 (compile '(format #t ((@@ (foo) _) "~A ~A!") "hello" "world")
+                 (compile '(format #t ((@@ (foo) G_) "~A ~A!") "hello" "world")
                           #:opts %opts-w-format
                           #:to 'cps)))))
 
@@ -899,7 +899,7 @@
                (lambda ()
                  (compile '(let ((_ (lambda (s)
                                       (gettext s "my-domain"))))
-                             (format #t (_ "~A ~A!") "hello" "world"))
+                             (format #t (G_ "~A ~A!") "hello" "world"))
                           #:opts %opts-w-format
                           #:to 'cps)))))
 
@@ -924,7 +924,7 @@
                  (compile '(begin
                              (define _ gettext)
                              (define (foo)
-                               (format #t (_ "~A ~A!") "hello" "world")))
+                               (format #t (G_ "~A ~A!") "hello" "world")))
                           #:opts %opts-w-format
                           #:to 'cps)))))
 
