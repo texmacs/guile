@@ -248,6 +248,26 @@ lawyers probably see the need here for use of @code{literal-identifier=?} rather
 than @code{free-identifier=?}, and would probably be correct. Patches
 accepted.}.
 
+@cindex auxiliary syntax
+@cindex syntax, auxiliary
+Although literals can be unbound, usually they are bound to allow them
+to be imported, exported, and renamed.  @xref{Modules}, for more
+information on imports and exports.  In Guile there are a few standard
+auxiliary syntax definitions, as specified by R6RS and R7RS:
+
+@deffn {Scheme Syntax} else
+@deffnx {Scheme Syntax} =>
+@deffnx {Scheme Syntax} _
+@deffnx {Scheme Syntax} ...
+Auxiliary syntax definitions.
+
+These are defined as if with a macro that never matches, e.g.:
+
+@example
+(define-syntax else (syntax-rules ()))
+@end example
+@end deffn
+
 If a pattern is not a list, vector, or an identifier, it matches as a literal,
 with @code{equal?}.
 
