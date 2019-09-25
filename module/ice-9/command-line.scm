@@ -138,6 +138,8 @@ If FILE begins with `-' the -s switch is mandatory.
   -q             inhibit loading of user init file
   --use-srfi=LS  load SRFI modules for the SRFIs in LS,
                  which is a list of numbers like \"2,13,14\"
+  --r6rs         change initial Guile environment to better support
+                 R6RS
   -h, --help     display this help and exit
   -v, --version  display version information and exit
   \\              read arguments from following script lines"))
@@ -369,6 +371,10 @@ If FILE begins with `-' the -s switch is mandatory.
                   (error "invalid SRFI specification"))
               (parse args
                      (cons `(use-srfis ',srfis) out))))
+
+           ((string=? "--r6rs" arg)
+            (parse args
+                   (cons '(install-r6rs!) out)))
 
            ((string=? arg "--listen")   ; start a repl server
             (parse args

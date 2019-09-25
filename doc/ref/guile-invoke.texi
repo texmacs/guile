@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2005, 2010, 2011, 2013, 2014,
-@c   2016 Free Software Foundation, Inc.
+@c Copyright (C) 1996-1997,2000-2005,2010-2011,2013-2014,2016,2019
+@c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Invoking Guile
@@ -136,6 +136,11 @@ Here is an example that loads the modules SRFI-8 ('receive') and SRFI-13
 @example
 guile --use-srfi=8,13
 @end example
+
+@item --r6rs
+@cindex r6rs (command line)
+Adapt Guile's initial environment to better support R6RS.  @xref{R6RS
+Incompatibilities}, for some caveats.
 
 @item --debug
 @cindex debugging virtual machine (command line)

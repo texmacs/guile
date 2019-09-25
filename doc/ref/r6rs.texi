@@ -119,6 +119,10 @@ conventions.  @xref{Load Paths}.  Also, enable R6RS unicode escapes in
 strings; see the discussion above.
 @end deffn
 
+Finally, note that the @code{--r6rs} command-line argument will call
+@code{install-r6rs!} before calling user code.  R6RS users probably want
+to pass this argument to their Guile.
+
 @node R6RS Standard Libraries
 @subsection R6RS Standard Libraries
 
