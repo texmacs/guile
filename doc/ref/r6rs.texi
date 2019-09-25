@@ -106,6 +106,19 @@ Guile's implementation of @code{equal?} may fail to terminate when
 applied to arguments containing cycles.
 @end itemize
 
+Guile exposes a procedure in the root module to choose R6RS defaults
+over Guile's historical defaults.
+
+@deffn {Scheme Procedure} install-r6rs!
+Alter Guile's default settings to better conform to the R6RS.
+
+While Guile's defaults may evolve over time, the current changes that
+this procedure imposes are to add @code{.sls} and @code{.guile.sls} to
+the set of supported @code{%load-extensions}, to better support R6RS
+conventions.  @xref{Load Paths}.  Also, enable R6RS unicode escapes in
+strings; see the discussion above.
+@end deffn
+
 @node R6RS Standard Libraries
 @subsection R6RS Standard Libraries
 

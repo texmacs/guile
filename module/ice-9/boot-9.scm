@@ -4069,6 +4069,19 @@ when none is available, reading FILE-NAME with READER."
 
 
 
+;;; {R6RS and R7RS}
+;;;
+
+(define (install-r6rs!)
+  "Make changes to the default environment to better conform to the
+R6RS.  @xref{R6RS Incompatibilities} in the manual."
+  (set! %load-extensions
+        (cons* ".guile.sls" ".sls"
+               (delete ".guile.sls" (delete ".sls" %load-extensions))))
+  (read-enable 'r6rs-hex-escapes))
+
+
+
 ;;; {Deprecated stuff}
 ;;;
 
