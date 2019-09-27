@@ -1,6 +1,6 @@
 ;;; r6rs-libraries.scm --- Support for the R6RS `library' and `import' forms
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2019 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -41,21 +41,29 @@
 
   (syntax-case import-spec (library only except prefix rename srfi)
     ;; (srfi :n ...) -> (srfi srfi-n ...)
-    ((library (srfi colon-n rest ... (version ...)))
+    ;; (srfi n ...) -> (srfi srfi-n ...)
+    ((library (srfi n rest ... (version ...)))
      (and (and-map sym? #'(srfi rest ...))
-          (symbol? (syntax->datum #'colon-n))
-          (eqv? (string-ref (symbol->string (syntax->datum #'colon-n)) 0) #\:))
+          (or (and
+               (symbol? (syntax->datum #'n))
+               (let ((str (symbol->string (syntax->datum #'n))))
+                 (and (string-prefix? ":" str)
+                      (and=> (string->number (substring str 1))
+                             exact-integer?))))
+              (exact-integer? (syntax->datum #'n))))
      (let ((srfi-n (string->symbol
                     (string-append
                      "srfi-"
-                     (substring (symbol->string (syntax->datum #'colon-n))
-                                1)))))
+                     (let ((n (syntax->datum #'n)))
+                       (if (symbol? n)
+                           (substring (symbol->string n) 1)
+                           (number->string n)))))))
        (resolve-r6rs-interface
         (syntax-case #'(rest ...) ()
           (()
            #`(library (srfi #,srfi-n (version ...))))
           ((name rest ...)
-           ;; SRFI 97 says that the first identifier after the colon-n
+           ;; SRFI 97 says that the first identifier after the `n'
            ;; is used for the libraries name, so it must be ignored.
            #`(library (srfi #,srfi-n rest ... (version ...))))))))
     
