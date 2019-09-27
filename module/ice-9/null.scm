@@ -18,17 +18,20 @@
 ;;;; The null environment - only syntactic bindings
 
 (define-module (ice-9 null)
-  :re-export-syntax (define quote lambda if set!
-	
-		     cond case and or => _ ... else
-		      
-		     let let* letrec
+  #:re-export-syntax (define quote lambda if set!
+
+		       cond case => _ ... else
+
+                       and or
+
+		       let let* letrec
+
+		       begin do
+
+		       delay
+
+		       quasiquote unquote
 	   
-		     begin do
-	   
-		     delay
-	   
-		     quasiquote
-	   
-		     define-syntax
-		     let-syntax letrec-syntax))
+		       define-syntax
+		       let-syntax letrec-syntax
+                       syntax-rules))
