@@ -179,7 +179,7 @@
                    between)
               (any (match-lambda (('up   (= basename "tests")) #t) (_ #f))
                    between)
-              (any (match-lambda (('skip (= basename "vm")) #t) (_ #f))
+              (any (match-lambda (('skip (= basename "standalone")) #t) (_ #f))
                    between))))))
 
   (pass-if-equal "test-suite (never enter)"
