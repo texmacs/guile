@@ -46,7 +46,7 @@ Syntax}, for more information.
 
 @item
 Guile does not yet support Unicode escapes in symbols, such as
-@code{H\x65;llo} (the same as @code{Hello}), or @code(\x3BB;) (the same
+@code{H\x65;llo} (the same as @code{Hello}), or @code{\x3BB;} (the same
 as @code{λ}).
 
 @item
