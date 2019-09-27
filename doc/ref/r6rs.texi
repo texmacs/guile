@@ -45,6 +45,11 @@ R6RS behavior can be turned on via a reader option. @xref{String
 Syntax}, for more information.
 
 @item
+Guile does not yet support Unicode escapes in symbols, such as
+@code{H\x65;llo} (the same as @code{Hello}), or @code(\x3BB;) (the same
+as @code{λ}).
+
+@item
 A @code{set!} to a variable transformer may only expand to an 
 expression, not a definition---even if the original @code{set!} 
 expression was in definition context.

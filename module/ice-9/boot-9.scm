@@ -4078,7 +4078,8 @@ R6RS.  @xref{R6RS Incompatibilities} in the manual."
   (set! %load-extensions
         (cons* ".guile.sls" ".sls"
                (delete ".guile.sls" (delete ".sls" %load-extensions))))
-  (read-enable 'r6rs-hex-escapes))
+  (read-enable 'r6rs-hex-escapes)
+  (read-enable 'hungry-eol-escapes))
 
 
 
