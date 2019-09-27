@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001, 2006, 2019 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
 ;;;; Safe subset of R5RS bindings
 
 (define-module (ice-9 safe)
-  :export (safe-environment make-safe-module))
+  #:export (safe-environment make-safe-module))
 
 (define safe-r5rs-interface (resolve-interface '(ice-9 safe-r5rs)))
 
@@ -31,4 +31,4 @@
   safe-r5rs-interface)
 
 (define (make-safe-module)
-  (make-module 1021 (list safe-r5rs-interface)))
+  (make-module 0 (list safe-r5rs-interface)))

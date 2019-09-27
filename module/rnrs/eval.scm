@@ -20,7 +20,7 @@
 (library (rnrs eval (6))
   (export eval environment)
   (import (only (guile) eval 
-		        make-module 
+		        make-module
 			module-uses
 			beautify-user-module! 
 			set-module-uses!)

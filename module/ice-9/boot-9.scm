@@ -2001,25 +2001,27 @@ name extensions listed in %load-extensions."
 
 ;; make-module &opt size uses binder
 ;;
-(define* (make-module #:optional (size 31) (uses '()) (binder #f))
+(define* (make-module #:optional (size 0) (uses '()) (binder #f))
   "Create a new module, perhaps with a particular size of obarray,
 initial uses list, or binding procedure."
-  (if (not (integer? size))
-      (error "Illegal size to make-module." size))
-  (if (not (and (list? uses)
-                (and-map module? uses)))
-      (error "Incorrect use list." uses))
-  (if (and binder (not (procedure? binder)))
-      (error
-       "Lazy-binder expected to be a procedure or #f." binder))
+  (unless (integer? size)
+    (error "Illegal size to make-module." size))
+  (unless (zero? size)
+    (issue-deprecation-warning
+     "Passing a non-zero size argument to `make-module' is deprecated.  "
+     "Omit the argument or pass zero instead."))
+  (unless (and (list? uses) (and-map module? uses))
+    (error "Incorrect use list." uses))
+  (when (and binder (not (procedure? binder)))
+    (error "Lazy-binder expected to be a procedure or #f." binder))
 
   (module-constructor (make-hash-table size)
                       uses binder #f macroexpand
                       #f #f #f
                       (make-hash-table)
                       '()
-                      (make-weak-key-hash-table 31) #f
-                      (make-hash-table 7) #f #f #f 0))
+                      (make-weak-key-hash-table) #f
+                      (make-hash-table) #f #f #f 0))
 
 
 
@@ -2506,7 +2508,7 @@ interfaces are added to the inports list."
         (if (null? tail)
             (module-define-submodule! cur head module)
             (let ((cur (or (module-ref-submodule cur head)
-                           (let ((m (make-module 31)))
+                           (let ((m (make-module)))
                              (set-module-kind! m 'directory)
                              (set-module-name! m (append (module-name cur)
                                                          (list head)))
@@ -2651,7 +2653,7 @@ deterministic."
 
 (define (make-modules-in module name)
   (or (nested-ref-module module name)
-      (let ((m (make-module 31)))
+      (let ((m (make-module)))
         (set-module-kind! m 'directory)
         (set-module-name! m (append (module-name module) name))
         (nested-define-module! module name m)
@@ -2663,7 +2665,7 @@ deterministic."
   (let ((interface (module-public-interface module)))
     (if (or (not interface)
             (eq? interface module))
-        (let ((interface (make-module 31)))
+        (let ((interface (make-module)))
           (set-module-name! interface (module-name module))
           (set-module-version! interface (module-version module))
           (set-module-kind! interface 'interface)
@@ -2811,7 +2813,7 @@ error if selected binding does not exist in the used module."
         public-i
         (let ((selection (or select (module-map (lambda (sym var) sym)
                                                 public-i)))
-              (custom-i (make-module 31)))
+              (custom-i (make-module)))
           (set-module-kind! custom-i 'custom-interface)
           (set-module-name! custom-i name)
           ;; Check that we are not hiding bindings which don't exist
@@ -2950,7 +2952,7 @@ error if selected binding does not exist in the used module."
                      (module-local-variable i sym)))
               #:warning "Failed to autoload ~a in ~a:\n" sym name))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
-                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
+                        (make-hash-table 0) '() (make-weak-value-hash-table) #f
                         (make-hash-table 0) #f #f #f 0)))
 
 (define (module-autoload! module . args)
@@ -3581,7 +3583,7 @@ but it fails to load."
 ;;
 
 (define duplicate-handlers
-  (let ((m (make-module 7)))
+  (let ((m (make-module)))
     
     (define (check module name int1 val1 int2 val2 var val)
       (scm-error 'misc-error
@@ -3940,7 +3942,7 @@ when none is available, reading FILE-NAME with READER."
 
 ;; This table maps module public interfaces to the list of features.
 ;;
-(define %cond-expand-table (make-hash-table 31))
+(define %cond-expand-table (make-hash-table))
 
 ;; Add one or more features to the `cond-expand' feature list of the
 ;; module `module'.

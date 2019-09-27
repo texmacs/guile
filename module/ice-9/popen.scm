@@ -81,7 +81,7 @@
 ;; a weak hash-table to store the process ids.
 ;; XXX use of this table is deprecated.  It is no longer used here, and
 ;; is populated for backward compatibility only (since it is exported).
-(define port/pid-table (make-weak-key-hash-table 31))
+(define port/pid-table (make-weak-key-hash-table))
 (define port/pid-table-mutex (make-mutex))
 
 (define (open-pipe* mode command . args)

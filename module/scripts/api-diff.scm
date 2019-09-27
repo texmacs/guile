@@ -61,7 +61,7 @@
          (meta (assq-ref alist 'meta))
          (interface (assq-ref alist 'interface)))
     (put interface 'meta meta)
-    (put interface 'groups (let ((ht (make-hash-table 31)))
+    (put interface 'groups (let ((ht (make-hash-table)))
                              (for-each (lambda (group)
                                          (hashq-set! ht group '()))
                                        (assq-ref meta 'groups))

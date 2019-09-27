@@ -54,7 +54,7 @@
 ;; This hash table stores the association between comma-hash tags and
 ;; the corresponding constructor procedures.
 ;;
-(define reader-ctors (make-hash-table 31))
+(define reader-ctors (make-hash-table))
 
 ;; This procedure installs the procedure @var{proc} as the constructor
 ;; for the comma-hash tag @var{symbol}.

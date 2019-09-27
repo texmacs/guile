@@ -26,7 +26,7 @@
 
 (define-class <js-program-wrapper> (<js-object>))
 
-(define *program-wrappers* (make-doubly-weak-hash-table 31))
+(define *program-wrappers* (make-doubly-weak-hash-table))
 
 (define *function-prototype* (make <js-object> #:class "Function"
                                    #:value (lambda args *undefined*)))
