@@ -1436,7 +1436,6 @@ AC_CONFIG_FILES([
   guile-readline/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
-  test-suite/vm/Makefile
   meta/Makefile
   bootstrap/Makefile
   module/Makefile
