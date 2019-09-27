@@ -2814,32 +2814,37 @@ error if selected binding does not exist in the used module."
               (custom-i (make-module 31)))
           (set-module-kind! custom-i 'custom-interface)
           (set-module-name! custom-i name)
-          ;; XXX - should use a lazy binder so that changes to the
-          ;; used module are picked up automatically.
-          (for-each (lambda (bspec)
-                      (let* ((direct? (symbol? bspec))
-                             (orig (if direct? bspec (car bspec)))
-                             (seen (if direct? bspec (cdr bspec)))
-                             (var (or (module-local-variable public-i orig)
-                                      (error
-                                       ;; fixme: format manually for now
-                                       (simple-format
-                                        #f "no binding `~A' in module ~A"
-                                        orig name)))))
-                        (if (memq orig hide)
-                            (set! hide (delq! orig hide))
-                            (module-add! custom-i
-                                         (renamer seen)
-                                         var))))
-                    selection)
           ;; Check that we are not hiding bindings which don't exist
           (for-each (lambda (binding)
-                      (if (not (module-local-variable public-i binding))
-                          (error
-                           (simple-format
-                            #f "no binding `~A' to hide in module ~A"
-                            binding name))))
+                      (unless (module-local-variable public-i binding)
+                        (error
+                         (simple-format
+                          #f "no binding `~A' to hide in module ~A"
+                          binding name))))
                     hide)
+          (define (maybe-export! src dst var)
+            (unless (memq src hide)
+              (module-add! custom-i (renamer dst) var)))
+          (cond
+           (select
+            (for-each
+             (lambda (bspec)
+               (let* ((direct? (symbol? bspec))
+                      (orig (if direct? bspec (car bspec)))
+                      (seen (if direct? bspec (cdr bspec)))
+                      (var (module-local-variable public-i orig)))
+                 (unless var
+                   (scm-error 'unbound-variable "resolve-interface"
+                              "no binding `~A' in module ~A" (list orig name)
+                              #f))
+                 (maybe-export! orig seen var)))
+             select))
+           (else
+            ;; FIXME: Use a lazy binder so that changes to the used
+            ;; module are picked up automatically.
+            (module-for-each (lambda (sym var)
+                               (maybe-export! sym sym var))
+                             public-i)))
           custom-i))))
 
 (define (symbol-prefix-proc prefix)
