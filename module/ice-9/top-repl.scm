@@ -1,7 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995-2011,2013,2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -53,8 +52,7 @@
     (set-current-module guile-user-module)
     (process-use-modules 
      (append
-      '(((ice-9 r5rs))
-        ((ice-9 session)))
+      '(((ice-9 session)))
       (if (provided? 'regex)
           '(((ice-9 regex)))
           '())
