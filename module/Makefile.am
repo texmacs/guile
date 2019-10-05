@@ -236,6 +236,23 @@ SOURCES =					\
   oop/goops/accessors.scm			\
   oop/goops/simple.scm				\
 						\
+  scheme/base.scm				\
+  scheme/case-lambda.scm			\
+  scheme/char.scm				\
+  scheme/complex.scm				\
+  scheme/cxr.scm				\
+  scheme/eval.scm				\
+  scheme/file.scm				\
+  scheme/inexact.scm				\
+  scheme/lazy.scm				\
+  scheme/load.scm				\
+  scheme/process-context.scm			\
+  scheme/r5rs.scm				\
+  scheme/read.scm				\
+  scheme/repl.scm				\
+  scheme/time.scm				\
+  scheme/write.scm				\
+						\
   scripts/compile.scm				\
   scripts/disassemble.scm			\
   scripts/display-commentary.scm		\
