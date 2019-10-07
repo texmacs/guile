@@ -1,4 +1,4 @@
-/* Copyright 1995-1998,2000-2001,2003-2004,2006,2008,2009-2014,2017-2018
+/* Copyright 1995-1998,2000-2001,2003-2004,2006,2008,2009-2014,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -54,9 +54,9 @@
 #include "throw.h"
 
 
-/* Pleasantly enough, the guts of catch are defined in Scheme, in terms
-   of prompt, abort, and the %exception-handler fluid.  Check boot-9 for
-   the definitions.
+/* Pleasantly enough, the guts of exception handling are defined in
+   Scheme, in terms of prompt, abort, and the %exception-handler fluid.
+   Check boot-9 for the definitions.
 
    Still, it's useful to be able to throw unwind-only exceptions from C,
    for example so that we can recover from stack overflow.  We also need
@@ -661,7 +661,6 @@ scm_init_throw ()
      throw, and with-throw-handler are created in boot-9.scm.  */
   scm_c_define ("%exception-handler", exception_handler_fluid);
 
-  scm_c_define ("catch", scm_c_make_gsubr ("catch", 3, 1, 0, catch));
   throw_var = scm_c_define ("throw", scm_c_make_gsubr ("throw", 1, 0, 1,
                                                        throw_without_pre_unwind));
 
