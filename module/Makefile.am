@@ -49,7 +49,6 @@ SOURCES =					\
   ice-9/boot-9.scm				\
   ice-9/buffered-input.scm			\
   ice-9/calling.scm				\
-  ice-9/channel.scm				\
   ice-9/command-line.scm			\
   ice-9/common-list.scm				\
   ice-9/control.scm				\
