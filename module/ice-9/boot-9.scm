@@ -1282,17 +1282,24 @@ VALUE."
       (struct-ref obj (+ 1 vtable-offset-user))
       (error 'not-a-record-type obj)))
 
-(define* (record-constructor rtd #:optional field-names)
-  (if (not field-names)
-      (struct-ref rtd (+ 2 vtable-offset-user))
-      (primitive-eval
-       `(lambda ,field-names
-          (make-struct/no-tail ',rtd
-                               ,@(map (lambda (f)
-                                        (if (memq f field-names)
-                                            f
-                                            #f))
-                                      (record-type-fields rtd)))))))
+(define record-constructor
+  (case-lambda
+   ((rtd)
+    (struct-ref rtd (+ 2 vtable-offset-user)))
+   ((rtd field-names)
+    (issue-deprecation-warning
+     "Calling `record-constructor' with two arguments (the record type"
+     " and a list of field names) is deprecated.  Instead, call with just"
+     " one argument, and provide a wrapper around that constructor if"
+     " needed.")
+    (primitive-eval
+     `(lambda ,field-names
+        (make-struct/no-tail ',rtd
+                             ,@(map (lambda (f)
+                                      (if (memq f field-names)
+                                          f
+                                          #f))
+                                    (record-type-fields rtd))))))))
           
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
