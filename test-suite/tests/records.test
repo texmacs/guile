@@ -1,6 +1,6 @@
 ;;;; records.test --- Test suite for Guile's records. -*- mode: scheme; coding: utf-8 -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2019 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -87,4 +87,52 @@
       (with-locale "en_US.utf8"
         (string-prefix? "#<fŏŏ"
                         (with-output-to-string
-                          (lambda () (display (make-fŏŏ 1 2)))))))))
+                          (lambda () (display (make-fŏŏ 1 2))))))))
+
+  (with-test-prefix "subtyping"
+    (let ()
+      (define a (make-record-type 'a '(s t)))
+      (define b (make-record-type 'b '(u v) #:final? #f))
+      (define c (make-record-type 'c '(w x) #:parent b))
+
+      (pass-if "default final: a"
+        (and (memq 'final (record-type-flags a)) #t))
+      (pass-if "default final: b"
+        (not (memq 'final (record-type-flags b))))
+      (pass-if "default final: c"
+        (and (memq 'final (record-type-flags c)) #t))
+
+      (pass-if-exception "subtyping final: a" '(misc-error . "final")
+        (make-record-type 'd '(y x) #:parent a))
+      (pass-if-exception "subtyping final: c" '(misc-error . "final")
+        (make-record-type 'd '(y x) #:parent c))
+
+      (pass-if-equal "fields of subtype" '(u v w x)
+        (record-type-fields c))
+
+      (pass-if "final predicate: a? a"
+        ((record-predicate a) ((record-constructor a) 1 2)))
+      (pass-if "final predicate: a? b"
+        (not ((record-predicate a) ((record-constructor b) 1 2))))
+
+      (pass-if "non-final predicate: b? a"
+        (not ((record-predicate b) ((record-constructor a) 1 2))))
+      (pass-if "non-final predicate: b? b"
+        ((record-predicate b) ((record-constructor b) 1 2)))
+      (pass-if "non-final predicate: b? c"
+        ((record-predicate b) ((record-constructor c) 1 2 3 4)))
+
+      (pass-if "final predicate: c? a"
+        (not ((record-predicate c) ((record-constructor a) 1 2))))
+      (pass-if "final predicate: c? b"
+        (not ((record-predicate c) ((record-constructor b) 1 2))))
+      (pass-if "final predicate: c? c"
+        ((record-predicate c) ((record-constructor c) 1 2 3 4)))
+
+      (pass-if-equal "b accessor on b" 1
+        ((record-accessor b 'u) ((record-constructor b) 1 2)))
+      (pass-if-equal "b accessor on c" 1
+        ((record-accessor b 'u) ((record-constructor c) 1 2 3 4)))
+
+      (pass-if-equal "c accessor on c" 3
+        ((record-accessor c 'w) ((record-constructor c) 1 2 3 4))))))

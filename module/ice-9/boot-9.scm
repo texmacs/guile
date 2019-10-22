@@ -1285,6 +1285,8 @@ VALUE."
   (define parents
     (cond
      ((record-type? parent)
+      (when (memq 'final (record-type-flags parent))
+        (error "parent type is final"))
       (let* ((parent-parents (record-type-parents parent))
              (parent-nparents (vector-length parent-parents))
              (parents (make-vector (1+ parent-nparents))))
@@ -1362,36 +1364,37 @@ VALUE."
                        (and (< pos (vector-length parents))
                             (eq? (vector-ref parents pos) rtd))))))))))
 
-(define (%record-type-error rtd obj)  ;; private helper
-  (or (eq? rtd (record-type-descriptor obj))
-      (scm-error 'wrong-type-arg "%record-type-check"
-                 "Wrong type record (want `~S'): ~S"
-                 (list (record-type-name rtd) obj)
-                 #f)))
-
 (define (record-accessor rtd field-name)
-  (let ((pos (list-index (record-type-fields rtd) field-name)))
-    (if (not pos)
-        (error 'no-such-field field-name))
+  (let ((type-name (record-type-name rtd))
+        (pos (or (list-index (record-type-fields rtd) field-name)
+                 (error 'no-such-field field-name)))
+        (pred (record-predicate rtd)))
     (lambda (obj)
-      (if (eq? (struct-vtable obj) rtd)
-          (struct-ref obj pos)
-          (%record-type-error rtd obj)))))
+      (unless (pred obj)
+        (scm-error 'wrong-type-arg "record-accessor"
+                   "Wrong type argument (want `~S'): ~S"
+                   (list type-name obj)
+                   #f))
+      (struct-ref obj pos))))
 
 (define (record-modifier rtd field-name)
-  (let ((pos (list-index (record-type-fields rtd) field-name)))
-    (if (not pos)
-        (error 'no-such-field field-name))
+  (let ((type-name (record-type-name rtd))
+        (pos (or (list-index (record-type-fields rtd) field-name)
+                 (error 'no-such-field field-name)))
+        (pred (record-predicate rtd)))
     (lambda (obj val)
-      (if (eq? (struct-vtable obj) rtd)
-          (struct-set! obj pos val)
-          (%record-type-error rtd obj)))))
+      (unless (pred obj)
+        (scm-error 'wrong-type-arg "record-modifier"
+                   "Wrong type argument (want `~S'): ~S"
+                   (list type-name obj)
+                   #f))
+      (struct-set! obj pos val))))
 
 (define (record? obj)
   (and (struct? obj) (record-type? (struct-vtable obj))))
 
 (define (record-type-descriptor obj)
-  (if (struct? obj)
+  (if (record? obj)
       (struct-vtable obj)
       (error 'not-a-record obj)))
 
@@ -1938,20 +1941,30 @@ name extensions listed in %load-extensions."
                                       fragments))))
          
          (define (getter rtd type-name field slot)
-           #`(define #,(make-id rtd type-name '- field)
+           (define id (make-id rtd type-name '- field))
+           #`(define #,id
                (let ((rtd #,rtd))
                  (lambda (#,type-name)
-                   (if (eq? (struct-vtable #,type-name) rtd)
-                       (struct-ref #,type-name #,slot)
-                       (%record-type-error rtd #,type-name))))))
+                   (unless (eq? (struct-vtable #,type-name) rtd)
+                     (scm-error 'wrong-type-arg
+                                #,(symbol->string (syntax->datum id))
+                                "Wrong type argument (want `~S'): ~S"
+                                (list '#,type-name #,type-name)
+                                #f))
+                   (struct-ref #,type-name #,slot)))))
 
          (define (setter rtd type-name field slot)
-           #`(define #,(make-id rtd 'set- type-name '- field '!)
+           (define id (make-id rtd 'set- type-name '- field '!))
+           #`(define #,id
                (let ((rtd #,rtd))
                  (lambda (#,type-name val)
-                   (if (eq? (struct-vtable #,type-name) rtd)
-                       (struct-set! #,type-name #,slot val)
-                       (%record-type-error rtd #,type-name))))))
+                   (unless (eq? (struct-vtable #,type-name) rtd)
+                     (scm-error 'wrong-type-arg
+                                #,(symbol->string (syntax->datum id))
+                                "Wrong type argument (want `~S'): ~S"
+                                (list '#,type-name #,type-name)
+                                #f))
+                   (struct-set! #,type-name #,slot val)))))
 
          (define (accessors rtd type-name fields n exp)
            (syntax-case fields ()

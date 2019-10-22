@@ -8630,7 +8630,8 @@ Note that @code{record?} may be true of any Scheme value; there is no
 promise that records are disjoint with other Scheme types.
 @end deffn
 
-@deffn {Scheme Procedure} make-record-type type-name field-names [print]
+@deffn {Scheme Procedure} make-record-type type-name field-names [print] @
+       [#:final?=@code{#t}] [parent=@code{#f}]
 Create and return a new @dfn{record-type descriptor}.
 
 @var{type-name} is a string naming the type.  Currently it's only used
@@ -8646,19 +8647,24 @@ The optional @var{print} argument is a function used by
 @code{display}, @code{write}, etc, for printing a record of the new
 type.  It's called as @code{(@var{print} record port)} and should look
 at @var{record} and write to @var{port}.
+
+Pass the @code{#:parent} keyword to derive a record type from a
+supertype.  A derived record type has the fields from its parent type,
+followed by fields declared in the @code{make-record-type} call.  Record
+predicates and field accessors for instance of a parent type will also
+work on any instance of a subtype.
+
+@cindex final record types
+@cindex record types, final
+Allowing record subtyping has a small amount of overhead.  To avoid this
+overhead, declare the record type as @dfn{final} by passing
+@code{#:final? #t}.  Record types in Guile are final by default.
 @end deffn
 
-@deffn {Scheme Procedure} record-constructor rtd [field-names]
+@deffn {Scheme Procedure} record-constructor rtd
 Return a procedure for constructing new members of the type represented
-by @var{rtd}.  The returned procedure accepts exactly as many arguments
-as there are symbols in the given list, @var{field-names}; these are
-used, in order, as the initial values of those fields in a new record,
-which is returned by the constructor procedure.  The values of any
-fields not named in that list are unspecified.  The @var{field-names}
-argument defaults to the list of field names in the call to
-@code{make-record-type} that created the type represented by @var{rtd};
-if the @var{field-names} argument is provided, it is an error if it
-contains any duplicates or any symbols not in the default list.
+by @var{rtd}.  The result will be a procedure accepting exactly as many
+arguments as there are fields in the record type.
 @end deffn
 
 @deffn {Scheme Procedure} record-predicate rtd
