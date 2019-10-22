@@ -1,6 +1,6 @@
 ;;;; modules.test --- exercise some of guile's module stuff -*- scheme -*-
 
-;;;; Copyright (C) 2006, 2007, 2009-2011, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009-2011, 2014, 2019 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -446,7 +446,7 @@
                      (define from-b 2))
                   (current-module)))
           (define (submodule-binder mod name)
-            (let ((m (make-module 31)))
+            (let ((m (make-module)))
               (set-module-kind! m 'directory)
               (set-module-name! m (append (module-name mod) (list name)))
               (module-define-submodule! mod name m)
