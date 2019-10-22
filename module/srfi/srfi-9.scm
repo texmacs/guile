@@ -320,7 +320,10 @@
                            '#,(datum->syntax #'here (make-struct-layout layout))
                            default-record-printer
                            'type-name
-                           '#,field-ids)))
+                           '#,field-ids
+                           #f ; Constructor.
+                           '(final) ; Flags.
+                           #()))) ; Parents.
                  (set-struct-vtable-name! rtd 'type-name)
                  (struct-set! rtd (+ 2 vtable-offset-user) #,ctor-name)
                  rtd))

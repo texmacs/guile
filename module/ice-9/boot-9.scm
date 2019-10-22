@@ -1191,9 +1191,10 @@ VALUE."
 ;;
 ;; It should print OBJECT to PORT.
 
-;; 0: type-name, 1: fields, 2: constructor
+;; 0: type-name, 1: fields, 2: constructor, 3: flags, 4: parents
 (define record-type-vtable
-  (let ((s (make-vtable (string-append standard-vtable-fields "pwpwpw")
+  (let ((s (make-vtable (string-append standard-vtable-fields
+                                       "pwpwpwpwpw")
                         (lambda (s p)
                           (display "#<record-type " p)
                           (display (record-type-name s) p)
@@ -1204,7 +1205,33 @@ VALUE."
 (define (record-type? obj)
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
-(define* (make-record-type type-name fields #:optional printer)
+(define (record-type-name rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd vtable-offset-user))
+
+(define (record-type-fields rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd (+ 1 vtable-offset-user)))
+
+(define (record-type-constructor rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd (+ 2 vtable-offset-user)))
+
+(define (record-type-flags rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd (+ 3 vtable-offset-user)))
+
+(define (record-type-parents rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd (+ 4 vtable-offset-user)))
+
+(define* (make-record-type type-name fields #:optional printer #:key
+                           (final? #t) parent)
   ;; Pre-generate constructors for nfields < 20.
   (define-syntax make-constructor
     (lambda (x)
@@ -1255,37 +1282,53 @@ VALUE."
         (loop (cdr fields) (+ 1 off)))))
     (display ">" p))
 
-  (let ((rtd (make-struct/no-tail
-              record-type-vtable
-              (make-struct-layout
-               (apply string-append
-                      (map (lambda (f) "pw") fields)))
-              (or printer default-record-printer)
-              type-name
-              (copy-tree fields))))
-    (struct-set! rtd (+ vtable-offset-user 2)
-                 (make-constructor rtd (length fields)))
-    ;; Temporary solution: Associate a name to the record type descriptor
-    ;; so that the object system can create a wrapper class for it.
-    (set-struct-vtable-name! rtd (if (symbol? type-name)
-                                     type-name
-                                     (string->symbol type-name)))
-    rtd))
+  (define parents
+    (cond
+     ((record-type? parent)
+      (let* ((parent-parents (record-type-parents parent))
+             (parent-nparents (vector-length parent-parents))
+             (parents (make-vector (1+ parent-nparents))))
+        (vector-move-left! parent-parents 0 parent-nparents parents 0)
+        (vector-set! parents parent-nparents parent)
+        parents))
+     (parent
+      (error "expected parent to be a record type" parent))
+     (else
+      #())))
 
-(define (record-type-name obj)
-  (if (record-type? obj)
-      (struct-ref obj vtable-offset-user)
-      (error 'not-a-record-type obj)))
+  (define computed-fields
+    (if parent
+        (append (record-type-fields parent) fields)
+        fields))
 
-(define (record-type-fields obj)
-  (if (record-type? obj)
-      (struct-ref obj (+ 1 vtable-offset-user))
-      (error 'not-a-record-type obj)))
+  (define rtd
+    (make-struct/no-tail
+     record-type-vtable
+     (make-struct-layout
+      (apply string-append
+             (map (lambda (f) "pw") computed-fields)))
+     (or printer default-record-printer)
+     type-name
+     computed-fields
+     #f ; Constructor initialized below.
+     (if final? '(final) '())
+     parents))
+
+  (struct-set! rtd (+ vtable-offset-user 2)
+               (make-constructor rtd (length computed-fields)))
+
+  ;; Temporary solution: Associate a name to the record type descriptor
+  ;; so that the object system can create a wrapper class for it.
+  (set-struct-vtable-name! rtd (if (symbol? type-name)
+                                   type-name
+                                   (string->symbol type-name)))
+
+  rtd)
 
 (define record-constructor
   (case-lambda
    ((rtd)
-    (struct-ref rtd (+ 2 vtable-offset-user)))
+    (record-type-constructor rtd))
    ((rtd field-names)
     (issue-deprecation-warning
      "Calling `record-constructor' with two arguments (the record type"
@@ -1300,9 +1343,24 @@ VALUE."
                                           f
                                           #f))
                                     (record-type-fields rtd))))))))
-          
+
 (define (record-predicate rtd)
-  (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (if (memq 'final (record-type-flags rtd))
+      (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj))))
+      (let ((pos (vector-length (record-type-parents rtd))))
+        ;; Extensible record types form a forest of DAGs, with each
+        ;; record type recording an ordered vector of its ancestors.  If
+        ;; A is a subtype of B, and B has N parents, then A.parents[N]
+        ;; will be B.
+        (lambda (obj)
+          (and (struct? obj)
+               (let* ((v (struct-vtable obj)))
+                 (or (eq? v rtd)
+                     (let ((parents (record-type-parents v)))
+                       (and (< pos (vector-length parents))
+                            (eq? (vector-ref parents pos) rtd))))))))))
 
 (define (%record-type-error rtd obj)  ;; private helper
   (or (eq? rtd (record-type-descriptor obj))
@@ -1963,7 +2021,10 @@ name extensions listed in %load-extensions."
                                  '#,(make-layout)
                                  #,printer
                                  '#,type-name
-                                 '#,(field-list fields)))
+                                 '#,(field-list fields)
+                                 #f ; constructor; set later
+                                 '() ; flags
+                                 #())) ; parents
                               (set-struct-vtable-name! #,rtd '#,type-name)))))
 
          (syntax-case x ()
