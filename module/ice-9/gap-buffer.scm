@@ -88,42 +88,30 @@
 ;;; Code:
 
 (define-module (ice-9 gap-buffer)
-  :autoload (srfi srfi-13) (string-join)
-  :export (gb?
-           make-gap-buffer
-           gb-point
-           gb-point-min
-           gb-point-max
-           gb-insert-string!
-           gb-insert-char!
-           gb-delete-char!
-           gb-erase!
-           gb-goto-char
-           gb->string
-           gb-filter!
-           gb->lines
-           gb-filter-lines!
-           make-gap-buffer-port))
+  #:use-module (srfi srfi-9)
+  #:export (gb?
+            make-gap-buffer
+            gb-point
+            gb-point-min
+            gb-point-max
+            gb-insert-string!
+            gb-insert-char!
+            gb-delete-char!
+            gb-erase!
+            gb-goto-char
+            gb->string
+            gb-filter!
+            gb->lines
+            gb-filter-lines!
+            make-gap-buffer-port))
 
-(define gap-buffer
-  (make-record-type 'gap-buffer
-                    '(s                 ; the buffer, a string
-                      all-sz            ; total allocation
-                      gap-ofs           ; GAP starts, aka (1- point)
-                      aft-ofs           ; AFTER starts
-                      )))
-
-(define gb? (record-predicate gap-buffer))
-
-(define s:       (record-accessor gap-buffer 's))
-(define all-sz:  (record-accessor gap-buffer 'all-sz))
-(define gap-ofs: (record-accessor gap-buffer 'gap-ofs))
-(define aft-ofs: (record-accessor gap-buffer 'aft-ofs))
-
-(define s!       (record-modifier gap-buffer 's))
-(define all-sz!  (record-modifier gap-buffer 'all-sz))
-(define gap-ofs! (record-modifier gap-buffer 'gap-ofs))
-(define aft-ofs! (record-modifier gap-buffer 'aft-ofs))
+(define-record-type gap-buffer
+  (new)
+  gb?
+  (s s: s!)                             ; the buffer, a string
+  (all-sz all-sz: all-sz!)              ; total allocation
+  (gap-ofs gap-ofs: gap-ofs!)           ; GAP starts, aka (1- point)
+  (aft-ofs aft-ofs: aft-ofs!))          ; AFTER starts
 
 ;; todo: expose
 (define default-initial-allocation 128)
@@ -132,8 +120,6 @@
 
 (define (round-up n)
   (* default-chunk-size (+ 1 (quotient n default-chunk-size))))
-
-(define new (record-constructor gap-buffer '()))
 
 (define (realloc gb inc)
   (let* ((old-s   (s: gb))
