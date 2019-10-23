@@ -1,6 +1,6 @@
 ;;; Guile VM specific syntaxes and utilities
 
-;; Copyright (C) 2001, 2009, 2016 Free Software Foundation, Inc
+;; Copyright (C) 2001, 2009, 2016, 2019 Free Software Foundation, Inc
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@
                           slots))
          (stem (trim-brackets name)))
     `(begin
-       (define ,name (make-record-type ,(symbol->string name) ',slot-names
+       (define ,name (make-record-type ',name ',slot-names
                                        ,@(if printer (list printer) '())))
        ,(let* ((reqs (let lp ((slots slots))
                        (if (or (null? slots) (not (symbol? (car slots))))
@@ -98,7 +98,7 @@
                           slots))
          (stem (trim-brackets name)))
     `(begin
-       (define ,name (make-record-type ,(symbol->string name) ',slot-names
+       (define ,name (make-record-type ',name ',slot-names
                                        ,@(if printer (list printer) '())))
        (define ,(symbol-append 'make- stem)
          (let ((slots (list ,@(map (lambda (slot)

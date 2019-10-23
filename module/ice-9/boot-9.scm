@@ -1298,10 +1298,42 @@ VALUE."
      (else
       #())))
 
+  (define (check-fields fields)
+    (unless (null? fields)
+      (let ((field (car fields))
+            (fields (cdr fields)))
+        (unless (symbol? field)
+          (error "expected field to be a symbol" field))
+        (when (memq field fields)
+          (error "duplicate field" field))
+        (check-fields fields))))
+
+  (define (append-fields head tail)
+    (if (null? head)
+        tail
+        (let ((field (car head))
+              (tail (append-fields (cdr head) tail)))
+          (when (memq field tail)
+            (error "duplicate field" field))
+          (cons field tail))))
+
   (define computed-fields
-    (if parent
-        (append (record-type-fields parent) fields)
-        fields))
+    (begin
+      (check-fields fields)
+      (if parent
+          (append-fields (record-type-fields parent) fields)
+          fields)))
+
+  (define name-sym
+    (cond
+     ((symbol? type-name) type-name)
+     ((string? type-name)
+      (issue-deprecation-warning
+       "Passing a string as a type-name to make-record-type is deprecated."
+       "  Pass a symbol instead.")
+      (string->symbol type-name))
+     (else
+      (error "expected a symbol for record type name" type-name))))
 
   (define rtd
     (make-struct/no-tail
@@ -1310,7 +1342,7 @@ VALUE."
       (apply string-append
              (map (lambda (f) "pw") computed-fields)))
      (or printer default-record-printer)
-     type-name
+     name-sym
      computed-fields
      #f ; Constructor initialized below.
      (if final? '(final) '())
@@ -1321,9 +1353,7 @@ VALUE."
 
   ;; Temporary solution: Associate a name to the record type descriptor
   ;; so that the object system can create a wrapper class for it.
-  (set-struct-vtable-name! rtd (if (symbol? type-name)
-                                   type-name
-                                   (string->symbol type-name)))
+  (set-struct-vtable-name! rtd name-sym)
 
   rtd)
 
