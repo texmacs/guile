@@ -1,7 +1,7 @@
 ;;; srfi-9.scm --- define-record-type
 
-;; Copyright (C) 2001, 2002, 2006, 2009, 2010, 2011, 2012,
-;;   2013, 2014, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2006, 2008-2014, 2018-2019
+;;   Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -315,16 +315,11 @@
              #,(constructor #'form #'type-name #'constructor-spec field-ids)
 
              (define type-name
-               (let ((rtd (make-struct/no-tail
-                           record-type-vtable
-                           '#,(datum->syntax #'here (make-struct-layout layout))
-                           default-record-printer
-                           'type-name
-                           '#,field-ids
-                           #f ; Constructor.
-                           '(final) ; Flags.
-                           #()))) ; Parents.
-                 (set-struct-vtable-name! rtd 'type-name)
+               (let ((rtd (make-record-type 'type-name
+                                            '#,field-ids
+                                            default-record-printer)))
+                 ;; Allow record-type-constructor to return our
+                 ;; constructor.
                  (struct-set! rtd (+ 2 vtable-offset-user) #,ctor-name)
                  rtd))
 
