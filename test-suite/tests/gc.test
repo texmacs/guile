@@ -46,7 +46,7 @@
 ;; chance gc will mark something used when it isn't, so we allow x to be a
 ;; record too.
 (pass-if "weak-values versus records"
-  (let ((rec-type (make-record-type "foo" '()))
+  (let ((rec-type (make-record-type 'foo '()))
 	(h        (make-weak-value-hash-table 61)))
     (hash-set! h "foo" ((record-constructor rec-type)))
     (gc)
