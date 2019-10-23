@@ -203,7 +203,7 @@
 
 (define v3
   (condition (&c1 (x "V3/1") (a "a3"))
-             (&c2 (b "b3"))))
+             (&c2 (x #f) (b "b3"))))
 
 (define v4
   (make-compound-condition v1 v2))
