@@ -8631,7 +8631,7 @@ promise that records are disjoint with other Scheme types.
 @end deffn
 
 @deffn {Scheme Procedure} make-record-type type-name field-names [print] @
-       [#:final?=@code{#t}] [parent=@code{#f}]
+       [#:final?=@code{#t}] [#:parent=@code{#f}] [#:uid=@code{#f}]
 Create and return a new @dfn{record-type descriptor}.
 
 @var{type-name} is a string naming the type.  Currently it's only used
@@ -8659,6 +8659,18 @@ work on any instance of a subtype.
 Allowing record subtyping has a small amount of overhead.  To avoid this
 overhead, declare the record type as @dfn{final} by passing
 @code{#:final? #t}.  Record types in Guile are final by default.
+
+@cindex prefab record types
+@cindex record types, prefab
+@cindex record types, nongenerative
+Generally speaking, calling @code{make-record-type} returns a fresh
+record type; it @emph{generates} new record types.  However sometimes
+you only want to define a record type if one hasn't been defined
+already.  For a @emph{nongenerative} record type definition, pass a
+symbol as the @code{#:uid} keyword parameter.  If a record with the
+given @var{uid} was already defined, it will be returned instead.  The
+type name, fields, parent (if any), and so on for the previously-defined
+type must be compatible.
 @end deffn
 
 @deffn {Scheme Procedure} record-constructor rtd

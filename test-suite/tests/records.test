@@ -132,4 +132,26 @@
         ((record-accessor b 'u) ((record-constructor c) 1 2 3 4)))
 
       (pass-if-equal "c accessor on c" 3
-        ((record-accessor c 'w) ((record-constructor c) 1 2 3 4))))))
+        ((record-accessor c 'w) ((record-constructor c) 1 2 3 4)))))
+
+  (with-test-prefix "prefab types"
+    (let ()
+      (define uid 'ANhUpf2WpNnF2XIVLxq@IkavIc5wbqe8)
+      (define a (make-record-type 'a '(s t) #:uid uid))
+      (define b (make-record-type 'b '() #:final? #f))
+
+      (pass-if (eq? a (make-record-type 'a '(s t) #:uid uid)))
+      (pass-if-exception "different name" '(misc-error . "incompatible")
+        (make-record-type 'b '(s t) #:uid uid))
+      (pass-if-exception "different fields" '(misc-error . "incompatible")
+        (make-record-type 'a '(u v) #:uid uid))
+      (pass-if-exception "fewer fields" '(misc-error . "incompatible")
+        (make-record-type 'a '(s) #:uid uid))
+      (pass-if-exception "more fields" '(misc-error . "incompatible")
+        (make-record-type 'a '(s t u) #:uid uid))
+      (pass-if-exception "adding a parent" '(misc-error . "incompatible")
+        (make-record-type 'a '(s t) #:parent b #:uid uid))
+      (pass-if-exception "specifying a printer" '(misc-error . "incompatible")
+        (make-record-type 'a '(s t) pk #:uid uid))
+      (pass-if-exception "non-final" '(misc-error . "incompatible")
+        (make-record-type 'a '(s t) #:final? #f #:uid uid)))))

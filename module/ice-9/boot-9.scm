@@ -1233,8 +1233,11 @@ VALUE."
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 4 vtable-offset-user)))
 
+(define prefab-record-types
+  (make-hash-table))
+
 (define* (make-record-type type-name fields #:optional printer #:key
-                           (final? #t) parent)
+                           (final? #t) parent uid)
   ;; Pre-generate constructors for nfields < 20.
   (define-syntax make-constructor
     (lambda (x)
@@ -1338,27 +1341,47 @@ VALUE."
      (else
       (error "expected a symbol for record type name" type-name))))
 
-  (define rtd
-    (make-struct/no-tail
-     record-type-vtable
-     (make-struct-layout
-      (apply string-append
-             (map (lambda (f) "pw") computed-fields)))
-     (or printer default-record-printer)
-     name-sym
-     computed-fields
-     #f ; Constructor initialized below.
-     (if final? '((final? . #t)) '())
-     parents))
+  (define properties
+    (if final? '((final? . #t)) '()))
 
-  (struct-set! rtd (+ vtable-offset-user 2)
-               (make-constructor rtd (length computed-fields)))
+  (cond
+   ((and uid (hashq-ref prefab-record-types uid))
+    => (lambda (rtd)
+         (unless (and (equal? (record-type-name rtd) name-sym)
+                      (equal? (record-type-fields rtd) computed-fields)
+                      (not printer)
+                      (equal? (record-type-properties rtd) properties)
+                      (equal? (record-type-parents rtd) parents))
+           (error "prefab record type declaration incompatible with previous"
+                  rtd))
+         rtd))
+   (else
+    (let ((rtd (make-struct/no-tail
+                record-type-vtable
+                (make-struct-layout
+                 (apply string-append
+                        (map (lambda (f) "pw") computed-fields)))
+                (or printer default-record-printer)
+                name-sym
+                computed-fields
+                #f                      ; Constructor initialized below.
+                properties
+                parents)))
 
-  ;; Temporary solution: Associate a name to the record type descriptor
-  ;; so that the object system can create a wrapper class for it.
-  (set-struct-vtable-name! rtd name-sym)
+      (struct-set! rtd (+ vtable-offset-user 2)
+                   (make-constructor rtd (length computed-fields)))
 
-  rtd)
+      ;; Temporary solution: Associate a name to the record type
+      ;; descriptor so that the object system can create a wrapper
+      ;; class for it.
+      (set-struct-vtable-name! rtd name-sym)
+
+      (when uid
+        (unless (symbol? uid)
+          (error "UID for prefab record type should be a symbol" uid))
+        (hashq-set! prefab-record-types uid rtd))
+
+      rtd))))
 
 (define record-constructor
   (case-lambda
