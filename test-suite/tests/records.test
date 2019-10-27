@@ -95,12 +95,9 @@
       (define b (make-record-type 'b '(u v) #:final? #f))
       (define c (make-record-type 'c '(w x) #:parent b))
 
-      (pass-if "default final: a"
-        (and (memq 'final (record-type-flags a)) #t))
-      (pass-if "default final: b"
-        (not (memq 'final (record-type-flags b))))
-      (pass-if "default final: c"
-        (and (memq 'final (record-type-flags c)) #t))
+      (pass-if (record-type-final? a))
+      (pass-if (not (record-type-final? b)))
+      (pass-if (record-type-final? c))
 
       (pass-if-exception "subtyping final: a" '(misc-error . "final")
         (make-record-type 'd '(y x) #:parent a))

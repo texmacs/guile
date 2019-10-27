@@ -1220,10 +1220,13 @@ VALUE."
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 2 vtable-offset-user)))
 
-(define (record-type-flags rtd)
+(define (record-type-properties rtd)
   (unless (record-type? rtd)
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 3 vtable-offset-user)))
+
+(define (record-type-final? rtd)
+  (assq-ref (record-type-properties rtd) 'final?))
 
 (define (record-type-parents rtd)
   (unless (record-type? rtd)
@@ -1285,7 +1288,7 @@ VALUE."
   (define parents
     (cond
      ((record-type? parent)
-      (when (memq 'final (record-type-flags parent))
+      (when (record-type-final? parent)
         (error "parent type is final"))
       (let* ((parent-parents (record-type-parents parent))
              (parent-nparents (vector-length parent-parents))
@@ -1345,7 +1348,7 @@ VALUE."
      name-sym
      computed-fields
      #f ; Constructor initialized below.
-     (if final? '(final) '())
+     (if final? '((final? . #t)) '())
      parents))
 
   (struct-set! rtd (+ vtable-offset-user 2)
@@ -1379,7 +1382,7 @@ VALUE."
 (define (record-predicate rtd)
   (unless (record-type? rtd)
     (error 'not-a-record-type rtd))
-  (if (memq 'final (record-type-flags rtd))
+  (if (record-type-final? rtd)
       (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj))))
       (let ((pos (vector-length (record-type-parents rtd))))
         ;; Extensible record types form a forest of DAGs, with each
@@ -2066,7 +2069,7 @@ name extensions listed in %load-extensions."
                                  '#,type-name
                                  '#,(field-list fields)
                                  #f ; constructor; set later
-                                 '() ; flags
+                                 '() ; properties
                                  #())) ; parents
                               (set-struct-vtable-name! #,rtd '#,type-name)))))
 
