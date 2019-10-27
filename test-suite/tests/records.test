@@ -92,12 +92,12 @@
   (with-test-prefix "subtyping"
     (let ()
       (define a (make-record-type 'a '(s t)))
-      (define b (make-record-type 'b '(u v) #:final? #f))
+      (define b (make-record-type 'b '(u v) #:extensible? #t))
       (define c (make-record-type 'c '(w x) #:parent b))
 
-      (pass-if (record-type-final? a))
-      (pass-if (not (record-type-final? b)))
-      (pass-if (record-type-final? c))
+      (pass-if (not (record-type-extensible? a)))
+      (pass-if (record-type-extensible? b))
+      (pass-if (not (record-type-extensible? c)))
 
       (pass-if-exception "subtyping final: a" '(misc-error . "final")
         (make-record-type 'd '(y x) #:parent a))
@@ -138,7 +138,7 @@
     (let ()
       (define uid 'ANhUpf2WpNnF2XIVLxq@IkavIc5wbqe8)
       (define a (make-record-type 'a '(s t) #:uid uid))
-      (define b (make-record-type 'b '() #:final? #f))
+      (define b (make-record-type 'b '() #:extensible? #t))
 
       (pass-if (eq? a (make-record-type 'a '(s t) #:uid uid)))
       (pass-if-exception "different name" '(misc-error . "incompatible")
@@ -154,4 +154,16 @@
       (pass-if-exception "specifying a printer" '(misc-error . "incompatible")
         (make-record-type 'a '(s t) pk #:uid uid))
       (pass-if-exception "non-final" '(misc-error . "incompatible")
-        (make-record-type 'a '(s t) #:final? #f #:uid uid)))))
+        (make-record-type 'a '(s t) #:extensible? #t #:uid uid))))
+
+  (with-test-prefix "opaque types"
+    (let ()
+      (define a (make-record-type 'a '() #:extensible? #t #:opaque? #t))
+      (define b (make-record-type 'b '()))
+      (define c (make-record-type 'c '() #:parent a))
+
+      (pass-if (record-type-opaque? a))
+      (pass-if (not (record-type-opaque? b)))
+      (pass-if (record-type-opaque? c))
+      (pass-if-exception "non-opaque" '(misc-error . "opaque")
+        (make-record-type 'd '() #:opaque? #f #:parent a)))))

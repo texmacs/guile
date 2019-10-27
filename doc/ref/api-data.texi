@@ -8631,7 +8631,8 @@ promise that records are disjoint with other Scheme types.
 @end deffn
 
 @deffn {Scheme Procedure} make-record-type type-name field-names [print] @
-       [#:final?=@code{#t}] [#:parent=@code{#f}] [#:uid=@code{#f}]
+       [#:parent=@code{#f}] [#:uid=@code{#f}] @
+       [#:extensible?=@code{#f}] [#:opaque?] @
 Create and return a new @dfn{record-type descriptor}.
 
 @var{type-name} is a string naming the type.  Currently it's only used
@@ -8654,11 +8655,11 @@ followed by fields declared in the @code{make-record-type} call.  Record
 predicates and field accessors for instance of a parent type will also
 work on any instance of a subtype.
 
-@cindex final record types
-@cindex record types, final
+@cindex extensible record types
+@cindex record types, extensible
 Allowing record subtyping has a small amount of overhead.  To avoid this
-overhead, declare the record type as @dfn{final} by passing
-@code{#:final? #t}.  Record types in Guile are final by default.
+overhead, prevent extensibility by passing @code{#:extensible? #f}.
+By default, record types in Guile are not extensible.
 
 @cindex prefab record types
 @cindex record types, prefab
@@ -8671,6 +8672,14 @@ symbol as the @code{#:uid} keyword parameter.  If a record with the
 given @var{uid} was already defined, it will be returned instead.  The
 type name, fields, parent (if any), and so on for the previously-defined
 type must be compatible.
+
+@cindex record types, opaque
+R6RS defines a notion of ``opaque'' record types.  Given an instance of
+an opaque record type, one cannot obtain a run-time representation of
+the record type.  @xref{rnrs records procedural}, for full details.  The
+@code{#:opaque?} flag is used by Guile's R6RS layer to record this
+information.  The default is determined by whether the parent type, if
+any, was opaque.
 @end deffn
 
 @deffn {Scheme Procedure} record-constructor rtd

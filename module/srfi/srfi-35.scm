@@ -62,7 +62,7 @@
 
 ;; FIXME: Perhaps use a `define-record-type' which allows for parent types.
 (define &condition
-  (make-record-type '&condition '() print-condition #:final? #f))
+  (make-record-type '&condition '() print-condition #:extensible? #t))
 
 (define (make-condition-type id parent field-names)
   "Return a new condition type named @var{id}, inheriting from
@@ -72,7 +72,8 @@ not contain names already used by @var{parent} or one of its
 supertypes."
   (unless (condition-type? parent)
     (error "parent is not a condition type" parent))
-  (make-record-type id field-names print-condition #:final? #f #:parent parent))
+  (make-record-type id field-names print-condition #:parent parent
+                    #:extensible? #t))
 
 (define (condition-type? obj)
   "Return true if OBJ is a condition type."

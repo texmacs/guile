@@ -1225,8 +1225,10 @@ VALUE."
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 3 vtable-offset-user)))
 
-(define (record-type-final? rtd)
-  (assq-ref (record-type-properties rtd) 'final?))
+(define (record-type-extensible? rtd)
+  (assq-ref (record-type-properties rtd) 'extensible?))
+(define (record-type-opaque? rtd)
+  (assq-ref (record-type-properties rtd) 'opaque?))
 
 (define (record-type-parents rtd)
   (unless (record-type? rtd)
@@ -1237,7 +1239,8 @@ VALUE."
   (make-hash-table))
 
 (define* (make-record-type type-name fields #:optional printer #:key
-                           (final? #t) parent uid)
+                           parent uid extensible?
+                           (opaque? (and=> parent record-type-opaque?)))
   ;; Pre-generate constructors for nfields < 20.
   (define-syntax make-constructor
     (lambda (x)
@@ -1291,8 +1294,10 @@ VALUE."
   (define parents
     (cond
      ((record-type? parent)
-      (when (record-type-final? parent)
+      (unless (record-type-extensible? parent)
         (error "parent type is final"))
+      (when (and (record-type-opaque? parent) (not opaque?))
+        (error "can't make non-opaque subtype of opaque type"))
       (let* ((parent-parents (record-type-parents parent))
              (parent-nparents (vector-length parent-parents))
              (parents (make-vector (1+ parent-nparents))))
@@ -1342,7 +1347,10 @@ VALUE."
       (error "expected a symbol for record type name" type-name))))
 
   (define properties
-    (if final? '((final? . #t)) '()))
+    (let ((maybe-acons (lambda (k v tail)
+                         (if v (acons k v tail) tail))))
+      (maybe-acons 'extensible? extensible?
+                   (maybe-acons 'opaque? opaque? '()))))
 
   (cond
    ((and uid (hashq-ref prefab-record-types uid))
@@ -1405,8 +1413,7 @@ VALUE."
 (define (record-predicate rtd)
   (unless (record-type? rtd)
     (error 'not-a-record-type rtd))
-  (if (record-type-final? rtd)
-      (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj))))
+  (if (record-type-extensible? rtd)
       (let ((pos (vector-length (record-type-parents rtd))))
         ;; Extensible record types form a forest of DAGs, with each
         ;; record type recording an ordered vector of its ancestors.  If
@@ -1418,7 +1425,8 @@ VALUE."
                  (or (eq? v rtd)
                      (let ((parents (record-type-parents v)))
                        (and (< pos (vector-length parents))
-                            (eq? (vector-ref parents pos) rtd))))))))))
+                            (eq? (vector-ref parents pos) rtd))))))))
+      (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj))))))
 
 (define (record-accessor rtd field-name)
   (let ((type-name (record-type-name rtd))
