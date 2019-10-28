@@ -1191,10 +1191,10 @@ VALUE."
 ;;
 ;; It should print OBJECT to PORT.
 
-;; 0: type-name, 1: fields, 2: constructor, 3: flags, 4: parents
+;; 0: type-name, 1: fields, 2: constructor, 3: flags, 4: parents 5: mutable bitmask
 (define record-type-vtable
   (let ((s (make-vtable (string-append standard-vtable-fields
-                                       "pwpwpwpwpw")
+                                       "pwpwpwpwpwpw")
                         (lambda (s p)
                           (display "#<record-type " p)
                           (display (record-type-name s) p)
@@ -1234,6 +1234,11 @@ VALUE."
   (unless (record-type? rtd)
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 4 vtable-offset-user)))
+
+(define (record-type-mutable-fields rtd)
+  (unless (record-type? rtd)
+    (error 'not-a-record-type rtd))
+  (struct-ref rtd (+ 5 vtable-offset-user)))
 
 (define prefab-record-types
   (make-hash-table))
@@ -1329,11 +1334,35 @@ VALUE."
           (cons field tail))))
 
   (define computed-fields
-    (begin
+    (let ((fields (map (lambda (field)
+                         (cond
+                          ((symbol? field) field)
+                          (else
+                           (unless (and (pair? field)
+                                        (memq (car field) '(mutable immutable))
+                                        (pair? (cdr field))
+                                        (null? (cddr field)))
+                             (error (error "bad field declaration" field)))
+                           (cadr field))))
+                       fields)))
       (check-fields fields)
       (if parent
           (append-fields (record-type-fields parent) fields)
           fields)))
+
+  (define mutable-fields
+    (let lp ((fields fields)
+             (i (if parent (length (record-type-fields parent)) 0))
+             (mutable (if parent (record-type-mutable-fields parent) 0)))
+      (if (null? fields)
+          mutable
+          (let ((field (car fields)))
+            (lp (cdr fields)
+                (1+ i)
+                (if (or (not (pair? field))
+                        (eq? (car field) 'mutable))
+                    (logior mutable (ash 1 i))
+                    mutable))))))
 
   (define name-sym
     (cond
@@ -1359,7 +1388,8 @@ VALUE."
                       (equal? (record-type-fields rtd) computed-fields)
                       (not printer)
                       (equal? (record-type-properties rtd) properties)
-                      (equal? (record-type-parents rtd) parents))
+                      (equal? (record-type-parents rtd) parents)
+                      (equal? (record-type-mutable-fields rtd) mutable-fields))
            (error "prefab record type declaration incompatible with previous"
                   rtd))
          rtd))
@@ -1374,7 +1404,8 @@ VALUE."
                 computed-fields
                 #f                      ; Constructor initialized below.
                 properties
-                parents)))
+                parents
+                mutable-fields)))
 
       (struct-set! rtd (+ vtable-offset-user 2)
                    (make-constructor rtd (length computed-fields)))
@@ -1446,6 +1477,8 @@ VALUE."
         (pos (or (list-index (record-type-fields rtd) field-name)
                  (error 'no-such-field field-name)))
         (pred (record-predicate rtd)))
+    (unless (logbit? pos (record-type-mutable-fields rtd))
+      (error "field is immutable" rtd field-name))
     (lambda (obj val)
       (unless (pred obj)
         (scm-error 'wrong-type-arg "record-modifier"

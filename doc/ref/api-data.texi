@@ -8637,8 +8637,10 @@ Create and return a new @dfn{record-type descriptor}.
 
 @var{type-name} is a string naming the type.  Currently it's only used
 in the printed representation of records, and in diagnostics.
-@var{field-names} is a list of symbols naming the fields of a record
-of the type.  Duplicates are not allowed among these symbols.
+@var{field-names} is a list of elements of the form @code{(immutable
+@var{name})}, @code{(mutable @var{name})}, or @var{name}, where
+@var{name} are symbols naming the fields of a record of the type.
+Duplicates are not allowed among these symbols.
 
 @example
 (make-record-type "employee" '(name age salary))
@@ -8680,6 +8682,11 @@ the record type.  @xref{rnrs records procedural}, for full details.  The
 @code{#:opaque?} flag is used by Guile's R6RS layer to record this
 information.  The default is determined by whether the parent type, if
 any, was opaque.
+
+Fields are mutable by default, meaning that @code{record-modifier} will
+return a procedure that can update a record in place.  Specifying a
+field using the form @code{(immutable @var{name})} instead marks a field
+as immutable.
 @end deffn
 
 @deffn {Scheme Procedure} record-constructor rtd
