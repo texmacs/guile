@@ -1229,6 +1229,8 @@ VALUE."
   (assq-ref (record-type-properties rtd) 'extensible?))
 (define (record-type-opaque? rtd)
   (assq-ref (record-type-properties rtd) 'opaque?))
+(define (record-type-uid rtd)
+  (assq-ref (record-type-properties rtd) 'uid))
 
 (define (record-type-parents rtd)
   (unless (record-type? rtd)
@@ -1384,7 +1386,9 @@ VALUE."
     (let ((maybe-acons (lambda (k v tail)
                          (if v (acons k v tail) tail))))
       (maybe-acons 'extensible? extensible?
-                   (maybe-acons 'opaque? opaque? '()))))
+                   (maybe-acons 'opaque? opaque?
+                                (maybe-acons 'uid uid
+                                             '())))))
 
   (cond
    ((and uid (hashq-ref prefab-record-types uid))

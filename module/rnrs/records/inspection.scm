@@ -1,6 +1,6 @@
 ;;; inspection.scm --- Inspection support for R6RS records
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2019 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -31,51 +31,47 @@
   (import (rnrs arithmetic bitwise (6))
           (rnrs base (6))
 	  (rnrs records procedural (6))
-	  (only (guile) struct-ref struct-vtable vtable-index-layout @@))
-
-  (define record-internal? (@@ (rnrs records procedural) record-internal?))
-
-  (define rtd-index-name (@@ (rnrs records procedural) rtd-index-name))
-  (define rtd-index-parent (@@ (rnrs records procedural) rtd-index-parent))
-  (define rtd-index-uid (@@ (rnrs records procedural) rtd-index-uid))
-  (define rtd-index-sealed? (@@ (rnrs records procedural) rtd-index-sealed?))
-  (define rtd-index-opaque? (@@ (rnrs records procedural) rtd-index-opaque?))
-  (define rtd-index-field-names 
-    (@@ (rnrs records procedural) rtd-index-field-names))
-  (define rtd-index-field-bit-field
-    (@@ (rnrs records procedural) rtd-index-field-bit-field))
+	  (rename (only (guile)
+                        unless
+                        logbit?
+                        record?
+                        record-type-name
+                        record-type-parent
+                        record-type-fields
+                        record-type-opaque?
+                        record-type-extensible?
+                        record-type-uid
+                        record-type-mutable-fields
+                        struct-vtable)
+                  (record? guile:record?)))
 
   (define (record? obj)
-    (and (record-internal? obj)
+    (and (guile:record? obj)
 	 (not (record-type-opaque? (struct-vtable obj)))))
 
   (define (record-rtd record)
-    (or (and (record-internal? record)
-	     (let ((rtd (struct-vtable record)))
-	       (and (not (struct-ref rtd rtd-index-opaque?)) rtd)))
-	(assertion-violation 'record-rtd "not a record" record)))
+    (unless (record? record)
+      (assertion-violation 'record-rtd "not a record" record))
+    (struct-vtable record))
 
-  (define (guarantee-rtd who rtd)
-    (if (record-type-descriptor? rtd)
-        rtd
-        (assertion-violation who "not a record type descriptor" rtd)))
-
-  (define (record-type-name rtd) 
-    (struct-ref (guarantee-rtd 'record-type-name rtd) rtd-index-name))
-  (define (record-type-parent rtd) 
-    (struct-ref (guarantee-rtd 'record-type-parent rtd) rtd-index-parent))
-  (define (record-type-uid rtd)
-    (struct-ref (guarantee-rtd 'record-type-uid rtd) rtd-index-uid))
   (define (record-type-generative? rtd) 
-    (not (record-type-uid (guarantee-rtd 'record-type-generative? rtd))))
+    (not (record-type-uid rtd)))
   (define (record-type-sealed? rtd) 
-    (struct-ref (guarantee-rtd 'record-type-sealed? rtd) rtd-index-sealed?))
-  (define (record-type-opaque? rtd) 
-    (struct-ref (guarantee-rtd 'record-type-opaque? rtd) rtd-index-opaque?))
+    (not (record-type-extensible? rtd)))
   (define (record-type-field-names rtd)
-    (struct-ref (guarantee-rtd 'record-type-field-names rtd) rtd-index-field-names))
+    (let ((parent (record-type-parent rtd))
+          (fields (record-type-fields rtd)))
+      (list->vector
+       (if parent
+           (list-tail fields (length (record-type-fields parent)))
+           fields))))
   (define (record-field-mutable? rtd k)
-    (bitwise-bit-set? (struct-ref (guarantee-rtd 'record-field-mutable? rtd)
-                                  rtd-index-field-bit-field)
-                      k))
-)
+    (let* ((parent (record-type-parent rtd))
+           (parent-nfields (if parent
+                               (length (record-type-fields parent))
+                               0))
+           (k (+ k parent-nfields)))
+      (unless (and (<= parent-nfields k)
+                   (< k (length (record-type-fields rtd))))
+        (r6rs-raise (make-assertion-violation)))
+      (logbit? k (record-type-mutable-fields rtd)))))

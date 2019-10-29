@@ -125,13 +125,7 @@
       ((_ condition-type supertype constructor predicate
 	  (field accessor) ...)
        (letrec-syntax
-	   ((transform-fields
-	     (syntax-rules ()
-	       ((_ (f a) . rest)
-		(cons '(immutable f a) (transform-fields . rest)))
-	       ((_) '())))
-
-	    (generate-accessors
+	   ((generate-accessors
 	     (syntax-rules ()
 	       ((_ counter (f a) . rest)
 		(begin (define a 
@@ -140,16 +134,15 @@
                           (record-accessor condition-type counter)))
 		       (generate-accessors (+ counter 1) . rest)))
 	       ((_ counter) (begin)))))
-	 (begin
-	   (define condition-type 
-	     (make-record-type-descriptor 
-	      'condition-type supertype #f #f #f 
-	      (list->vector (transform-fields (field accessor) ...))))
-	   (define constructor
-	     (record-constructor 
-	      (make-record-constructor-descriptor condition-type #f #f)))
-	   (define predicate (condition-predicate condition-type))
-	   (generate-accessors 0 (field accessor) ...))))))
+	 (define condition-type 
+           (make-record-type-descriptor 
+            'condition-type supertype #f #f #f 
+            '#((immutable field) ...)))
+         (define constructor
+           (record-constructor 
+            (make-record-constructor-descriptor condition-type #f #f)))
+         (define predicate (condition-predicate condition-type))
+         (generate-accessors 0 (field accessor) ...)))))
 
   (define &condition (@@ (rnrs records procedural) &condition))
   (define &condition-constructor-descriptor

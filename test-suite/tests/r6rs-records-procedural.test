@@ -57,7 +57,10 @@
        (lambda (continuation)
 	 (with-exception-handler
 	  (lambda (condition) 
-	    (set! success (assertion-violation? condition))
+            ;; FIXME: While R6RS specifies an assertion violation, by
+            ;; building on core Guile records we just see a Guile
+            ;; condition, which is just &serious.
+	    (set! success (serious-condition? condition))
 	    (continuation))
 	  (lambda () (make-record-type-descriptor
 		      'sealed-point-subtype :sealed-point #f #f #f
@@ -81,7 +84,11 @@
 	       (lambda (continuation)
 		 (with-exception-handler
 		  (lambda (condition)
-		    (if (assertion-violation? condition)
+                    ;; FIXME: While R6RS specifies an assertion
+                    ;; violation, by building on core Guile records we
+                    ;; just see a Guile condition, which is just
+                    ;; &serious.
+		    (if (serious-condition? condition)
 			(set! success (+ success 1)))
 		    (continuation))
 		  thunk))))))
