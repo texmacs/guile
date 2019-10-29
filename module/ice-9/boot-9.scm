@@ -1234,6 +1234,11 @@ VALUE."
   (unless (record-type? rtd)
     (error 'not-a-record-type rtd))
   (struct-ref rtd (+ 4 vtable-offset-user)))
+(define (record-type-parent rtd)
+  (let* ((parents (record-type-parents rtd))
+         (nparents (vector-length parents)))
+    (and (not (zero? nparents))
+         (vector-ref parents (1- nparents)))))
 
 (define (record-type-mutable-fields rtd)
   (unless (record-type? rtd)
