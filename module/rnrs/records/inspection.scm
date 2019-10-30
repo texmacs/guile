@@ -31,6 +31,8 @@
   (import (rnrs arithmetic bitwise (6))
           (rnrs base (6))
 	  (rnrs records procedural (6))
+	  (rnrs exceptions (6))
+	  (rnrs conditions (6))
 	  (rename (only (guile)
                         unless
                         logbit?
@@ -73,5 +75,5 @@
            (k (+ k parent-nfields)))
       (unless (and (<= parent-nfields k)
                    (< k (length (record-type-fields rtd))))
-        (r6rs-raise (make-assertion-violation)))
+        (raise (make-assertion-violation)))
       (logbit? k (record-type-mutable-fields rtd)))))

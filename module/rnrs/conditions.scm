@@ -82,25 +82,29 @@
 	  &undefined
 	  make-undefined-violation
 	  undefined-violation?)
-  (import (only (guile) and=> @@)
+  (import (only (guile)
+                and=>
+                make-record-type
+                record-constructor
+                record-predicate
+                record-accessor)
 	  (rnrs base (6))
-	  (rnrs lists (6))
-	  (rnrs records procedural (6)))
+	  (rnrs lists (6)))
 
-  (define &compound-condition (make-record-type-descriptor 
-			       '&compound-condition #f #f #f #f
-			       '#((immutable components))))
+  (define &condition (make-record-type '&condition '() #:extensible? #t))
+  (define simple-condition? (record-predicate &condition))
+
+  (define &compound-condition (make-record-type '&compound-condition
+                                                '((immutable components))))
   (define compound-condition? (record-predicate &compound-condition))
-  
-  (define make-compound-condition 
-    (record-constructor (make-record-constructor-descriptor 
-			 &compound-condition #f #f)))
+  (define make-compound-condition (record-constructor &compound-condition))
+
   (define simple-conditions
-    (let ((compound-ref (record-accessor &compound-condition 0)))
+    (let ((compound-ref (record-accessor &compound-condition 'components)))
       (lambda (condition)
         (cond ((compound-condition? condition)
                (compound-ref condition))
-              ((condition-internal? condition)
+              ((simple-condition? condition)
                (list condition))
               (else
                (assertion-violation 'simple-conditions
@@ -108,7 +112,7 @@
                                     condition))))))
 
   (define (condition? obj) 
-    (or (compound-condition? obj) (condition-internal? obj)))
+    (or (compound-condition? obj) (simple-condition? obj)))
 
   (define condition
     (lambda conditions
@@ -120,41 +124,12 @@
 	  (make-compound-condition (apply append (map flatten conditions)))
 	  (car conditions))))
   
-  (define-syntax define-condition-type
-    (syntax-rules ()
-      ((_ condition-type supertype constructor predicate
-	  (field accessor) ...)
-       (letrec-syntax
-	   ((generate-accessors
-	     (syntax-rules ()
-	       ((_ counter (f a) . rest)
-		(begin (define a 
-                         (condition-accessor 
-                          condition-type
-                          (record-accessor condition-type counter)))
-		       (generate-accessors (+ counter 1) . rest)))
-	       ((_ counter) (begin)))))
-	 (define condition-type 
-           (make-record-type-descriptor 
-            'condition-type supertype #f #f #f 
-            '#((immutable field) ...)))
-         (define constructor
-           (record-constructor 
-            (make-record-constructor-descriptor condition-type #f #f)))
-         (define predicate (condition-predicate condition-type))
-         (generate-accessors 0 (field accessor) ...)))))
-
-  (define &condition (@@ (rnrs records procedural) &condition))
-  (define &condition-constructor-descriptor
-    (make-record-constructor-descriptor &condition #f #f))
-  (define condition-internal? (record-predicate &condition))
-
   (define (condition-predicate rtd)
     (let ((rtd-predicate (record-predicate rtd)))
       (lambda (obj)
 	(cond ((compound-condition? obj) 
 	       (exists rtd-predicate (simple-conditions obj)))
-	      ((condition-internal? obj) (rtd-predicate obj))
+	      ((simple-condition? obj) (rtd-predicate obj))
 	      (else #f)))))
 
   (define (condition-accessor rtd proc)
@@ -165,27 +140,37 @@
 	       (and=> (find rtd-predicate (simple-conditions obj)) proc))
 	      (else #f)))))
 
+  (define-syntax define-condition-type
+    (syntax-rules ()
+      ((_ condition-type supertype constructor predicate
+	  (field accessor) ...)
+       (begin
+         (define condition-type
+           (make-record-type 'condition-type '((immutable field) ...)
+                             #:parent supertype #:extensible? #t))
+         (define constructor (record-constructor condition-type))
+         (define predicate (condition-predicate condition-type))
+         (define accessor
+           (condition-accessor condition-type
+                               (record-accessor condition-type 'field)))
+         ...))))
+
+  (define-condition-type &serious &condition
+    make-serious-condition serious-condition?)
+  (define-condition-type &violation &serious
+    make-violation violation?)
+  (define-condition-type &assertion &violation
+    make-assertion-violation assertion-violation?)
+
   (define-condition-type &message &condition 
     make-message-condition message-condition? 
     (message condition-message))
 
-  (define-condition-type &warning &condition make-warning warning?)
+  (define-condition-type &warning &condition
+    make-warning warning?)
 
-  (define &serious (@@ (rnrs records procedural) &serious))
-  (define make-serious-condition 
-    (@@ (rnrs records procedural) make-serious-condition))
-  (define serious-condition? (condition-predicate &serious))
-
-  (define-condition-type &error &serious make-error error?)
-
-  (define &violation (@@ (rnrs records procedural) &violation))
-  (define make-violation (@@ (rnrs records procedural) make-violation))
-  (define violation? (condition-predicate &violation))
-
-  (define &assertion (@@ (rnrs records procedural) &assertion))
-  (define make-assertion-violation 
-    (@@ (rnrs records procedural) make-assertion-violation))
-  (define assertion-violation? (condition-predicate &assertion))
+  (define-condition-type &error &serious
+    make-error error?)
 
   (define-condition-type &irritants &condition 
     make-irritants-condition irritants-condition?
@@ -199,8 +184,7 @@
     make-non-continuable-violation
     non-continuable-violation?)
 
-  (define-condition-type &implementation-restriction
-    &violation
+  (define-condition-type &implementation-restriction &violation
     make-implementation-restriction-violation
     implementation-restriction-violation?)
 
@@ -213,6 +197,4 @@
     (subform syntax-violation-subform))
 
   (define-condition-type &undefined &violation
-    make-undefined-violation undefined-violation?)
-  
-)
+    make-undefined-violation undefined-violation?))

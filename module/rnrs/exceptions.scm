@@ -22,20 +22,23 @@
   (import (rnrs base (6))
           (rnrs control (6))
           (rnrs conditions (6))
-	  (rnrs records procedural (6))
-	  (rnrs records inspection (6))
 	  (only (guile)
+                make-record-type
+                record-type-name
+                record-type-fields
+                record-constructor
+                record-predicate
+                record-accessor
+                struct-ref
+                struct-vtable
                 format
                 newline
                 display
-                filter
                 acons
                 assv-ref
                 throw
                 set-exception-printer!
-                with-throw-handler
-                *unspecified*
-                @@))
+                with-throw-handler))
 
   ;; When a native guile exception is caught by an R6RS exception
   ;; handler, we convert it to an R6RS compound condition that includes
@@ -77,19 +80,27 @@
   ;; 'raise' so that native Guile exception handlers will continue to
   ;; work when mixed with R6RS code.
 
+  (define &raise-object-wrapper
+    (make-record-type '&raise-object-wrapper
+                      '((immutable obj) (immutable continuation))))
+  (define make-raise-object-wrapper
+    (record-constructor &raise-object-wrapper))
+  (define raise-object-wrapper?
+    (record-predicate &raise-object-wrapper))
+  (define raise-object-wrapper-obj
+    (record-accessor &raise-object-wrapper 'obj))
+  (define raise-object-wrapper-continuation
+    (record-accessor &raise-object-wrapper 'continuation))
+
   (define (raise obj)
     (if (guile-condition? obj)
         (apply throw (guile-condition-key obj) (guile-condition-args obj))
-        ((@@ (rnrs records procedural) r6rs-raise) obj)))
-  (define raise-continuable
-    (@@ (rnrs records procedural) r6rs-raise-continuable))
+        (throw 'r6rs:exception (make-raise-object-wrapper obj #f))))
 
-  (define raise-object-wrapper? 
-    (@@ (rnrs records procedural) raise-object-wrapper?))
-  (define raise-object-wrapper-obj
-    (@@ (rnrs records procedural) raise-object-wrapper-obj))
-  (define raise-object-wrapper-continuation
-    (@@ (rnrs records procedural) raise-object-wrapper-continuation))
+  (define (raise-continuable obj)
+    (call/cc
+     (lambda (k)
+       (throw 'r6rs:exception (make-raise-object-wrapper obj k)))))
 
   (define (with-exception-handler handler thunk)
     (with-throw-handler #t
@@ -152,44 +163,23 @@
                    (loop (+ i 1) (cdr components))))))))
 
   (define (format-simple-condition port condition)
-    (define (print-rtd-fields rtd field-names)
-      (let ((n-fields (vector-length field-names)))
-        (do ((i 0 (+ i 1)))
-            ((>= i n-fields))
-          (format port "      ~a: ~s"
-                  (vector-ref field-names i)
-                  ((record-accessor rtd i) condition))
-          (unless (= i (- n-fields 1))
-            (newline port)))))
-    (let ((condition-name (record-type-name (record-rtd condition))))
-      (let loop ((rtd (record-rtd condition))
-                 (rtd.fields-list '())
-                 (n-fields 0))
-        (cond (rtd
-               (let ((field-names (record-type-field-names rtd)))
-                 (loop (record-type-parent rtd)
-                       (cons (cons rtd field-names) rtd.fields-list)
-                       (+ n-fields (vector-length field-names)))))
-              (else
-               (let ((rtd.fields-list
-                      (filter (lambda (rtd.fields)
-                                (not (zero? (vector-length (cdr rtd.fields)))))
-                              (reverse rtd.fields-list))))
-                 (case n-fields
-                   ((0) (format port "~a" condition-name))
-                   ((1) (format port "~a: ~s"
-                                condition-name
-                                ((record-accessor (caar rtd.fields-list) 0)
-                                 condition)))
-                   (else
-                    (format port "~a:\n" condition-name)
-                    (let loop ((lst rtd.fields-list))
-                      (when (pair? lst)
-                        (let ((rtd.fields (car lst)))
-                          (print-rtd-fields (car rtd.fields) (cdr rtd.fields))
-                          (when (pair? (cdr lst))
-                            (newline port))
-                          (loop (cdr lst)))))))))))))
+    (let* ((type (struct-vtable condition))
+           (name (record-type-name type))
+           (fields (record-type-fields type)))
+      (cond
+       ((null? fields)
+        (format port "~a" name))
+       ((null? (cdr fields))
+        (format port "~a: ~s" name (struct-ref condition 0)))
+       (else
+        (format port "~a:\n" name)
+        (let lp ((fields fields) (i 0))
+          (let ((field (car fields))
+                (fields (cdr fields)))
+            (format port "      ~a: ~s" field (struct-ref condition i))
+            (unless (null? fields)
+              (newline port)
+              (lp fields (+ i 1)))))))))
 
   (set-exception-printer! 'r6rs:exception exception-printer)
 
