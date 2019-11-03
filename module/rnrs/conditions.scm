@@ -82,119 +82,59 @@
 	  &undefined
 	  make-undefined-violation
 	  undefined-violation?)
-  (import (only (guile)
-                and=>
-                make-record-type
-                record-constructor
-                record-predicate
-                record-accessor)
-	  (rnrs base (6))
-	  (rnrs lists (6)))
+  (import (rename (ice-9 exceptions)
+                  (&exception &condition)
+                  (make-exception condition)
+                  (simple-exceptions simple-conditions)
+                  (exception? condition?)
+                  (exception-predicate condition-predicate)
+                  (exception-accessor condition-accessor)
+                  (define-exception-type define-condition-type)
 
-  (define &condition (make-record-type '&condition '() #:extensible? #t))
-  (define simple-condition? (record-predicate &condition))
+                  (make-exception-with-message make-message-condition)
+                  (exception-with-message? message-condition?)
+                  (exception-message condition-message)
 
-  (define &compound-condition (make-record-type '&compound-condition
-                                                '((immutable components))))
-  (define compound-condition? (record-predicate &compound-condition))
-  (define make-compound-condition (record-constructor &compound-condition))
+                  (&error &serious)
+                  (make-error make-serious-condition)
+                  (error? serious-condition?)
 
-  (define simple-conditions
-    (let ((compound-ref (record-accessor &compound-condition 'components)))
-      (lambda (condition)
-        (cond ((compound-condition? condition)
-               (compound-ref condition))
-              ((simple-condition? condition)
-               (list condition))
-              (else
-               (assertion-violation 'simple-conditions
-                                    "not a condition"
-                                    condition))))))
+                  (&external-error &error)
+                  (make-external-error make-error)
+                  (external-error? error?)
 
-  (define (condition? obj) 
-    (or (compound-condition? obj) (simple-condition? obj)))
+                  (&programming-error &violation)
+                  (make-programming-error make-violation)
+                  (programming-error? violation?)
 
-  (define condition
-    (lambda conditions
-      (define (flatten cond)
-	(if (compound-condition? cond) (simple-conditions cond) (list cond)))
-      (or (for-all condition? conditions)
-	  (assertion-violation 'condition "non-condition argument" conditions))
-      (if (or (null? conditions) (> (length conditions) 1))
-	  (make-compound-condition (apply append (map flatten conditions)))
-	  (car conditions))))
-  
-  (define (condition-predicate rtd)
-    (let ((rtd-predicate (record-predicate rtd)))
-      (lambda (obj)
-	(cond ((compound-condition? obj) 
-	       (exists rtd-predicate (simple-conditions obj)))
-	      ((simple-condition? obj) (rtd-predicate obj))
-	      (else #f)))))
+                  (&assertion-failure &assertion-violation)
+                  (make-assertion-failure make-assertion-violation)
+                  (assertion-failure? assertion-violation?)
 
-  (define (condition-accessor rtd proc)
-    (let ((rtd-predicate (record-predicate rtd)))
-      (lambda (obj)
-	(cond ((rtd-predicate obj) (proc obj))
-	      ((compound-condition? obj) 
-	       (and=> (find rtd-predicate (simple-conditions obj)) proc))
-	      (else #f)))))
+                  (make-exception-with-irritants make-irritants-condition)
+                  (exception-with-irritants? irritants-condition?)
+                  (exception-irritants condition-irritants)
 
-  (define-syntax define-condition-type
-    (syntax-rules ()
-      ((_ condition-type supertype constructor predicate
-	  (field accessor) ...)
-       (begin
-         (define condition-type
-           (make-record-type 'condition-type '((immutable field) ...)
-                             #:parent supertype #:extensible? #t))
-         (define constructor (record-constructor condition-type))
-         (define predicate (condition-predicate condition-type))
-         (define accessor
-           (condition-accessor condition-type
-                               (record-accessor condition-type 'field)))
-         ...))))
+                  (make-exception-with-origin make-who-condition)
+                  (exception-with-origin? who-condition?)
+                  (exception-origin condition-who)
 
-  (define-condition-type &serious &condition
-    make-serious-condition serious-condition?)
-  (define-condition-type &violation &serious
-    make-violation violation?)
-  (define-condition-type &assertion &violation
-    make-assertion-violation assertion-violation?)
+                  (make-non-continuable-error make-non-continuable-violation)
+                  (non-continuable-error? non-continuable-violation?)
 
-  (define-condition-type &message &condition 
-    make-message-condition message-condition? 
-    (message condition-message))
+                  (make-implementation-restriction-error
+                   make-implementation-restriction-violation)
+                  (implementation-restriction-error?
+                   implementation-restriction-violation?)
 
-  (define-condition-type &warning &condition
-    make-warning warning?)
+                  (make-lexical-error make-lexical-violation)
+                  (lexical-error? lexical-violation?)
 
-  (define-condition-type &error &serious
-    make-error error?)
+                  (make-syntax-error make-syntax-violation)
+                  (syntax-error? syntax-violation?)
+                  (syntax-error-form syntax-violation-form)
+                  (syntax-error-subform syntax-violation-subform)
 
-  (define-condition-type &irritants &condition 
-    make-irritants-condition irritants-condition?
-    (irritants condition-irritants))
-
-  (define-condition-type &who &condition
-    make-who-condition who-condition?
-    (who condition-who))
-
-  (define-condition-type &non-continuable &violation
-    make-non-continuable-violation
-    non-continuable-violation?)
-
-  (define-condition-type &implementation-restriction &violation
-    make-implementation-restriction-violation
-    implementation-restriction-violation?)
-
-  (define-condition-type &lexical &violation
-    make-lexical-violation lexical-violation?)
-
-  (define-condition-type &syntax &violation
-    make-syntax-violation syntax-violation?
-    (form syntax-violation-form)
-    (subform syntax-violation-subform))
-
-  (define-condition-type &undefined &violation
-    make-undefined-violation undefined-violation?))
+                  (&undefined-variable &undefined)
+                  (make-undefined-variable-error make-undefined-violation)
+                  (undefined-variable-error? undefined-violation?))))
