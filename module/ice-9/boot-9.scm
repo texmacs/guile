@@ -1241,6 +1241,12 @@ VALUE."
          (nparents (vector-length parents)))
     (and (not (zero? nparents))
          (vector-ref parents (1- nparents)))))
+(define (record-type-has-parent? rtd parent)
+  (or (eq? rtd parent)
+      (let ((parents (record-type-parents rtd))
+            (nparents (vector-length (record-type-parents parent))))
+        (and (< nparents (vector-length parents))
+             (eq? (vector-ref parents nparents) parent)))))
 
 (define (record-type-mutable-fields rtd)
   (unless (record-type? rtd)

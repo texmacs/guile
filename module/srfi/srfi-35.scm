@@ -77,12 +77,8 @@ supertypes."
 
 (define (condition-type? obj)
   "Return true if OBJ is a condition type."
-  ;; FIXME: Use record-type-is-a? or something like that.
-  (or (eq? obj &condition)
-      (and (record-type? obj)
-           (let ((parents (record-type-parents obj)))
-             (and (< 0 (vector-length parents))
-                  (eq? (vector-ref parents 0) &condition))))))
+  (and (record-type? obj)
+       (record-type-has-parent? obj &condition)))
 
 (define simple-condition?
   (record-predicate &condition))
