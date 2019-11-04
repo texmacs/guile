@@ -28,95 +28,69 @@
 
 (define-module (srfi srfi-35)
   #:use-module (ice-9 match)
-  #:export (make-condition-type condition-type?
-            make-condition condition? condition-has-type? condition-ref
-            make-compound-condition extract-condition
-            define-condition-type condition
-            &condition
-            &message message-condition? condition-message
-            &serious serious-condition?
-            &error error?))
+  #:use-module (ice-9 exceptions)
+  #:re-export ((make-exception-type . make-condition-type)
+               (exception-type? . condition-type?)
+               (exception? . condition?)
+               (make-exception . make-compound-condition)
+               (&exception . &condition)
+               &message
+               (exception-with-message? . message-condition?)
+               (exception-message . condition-message)
+               (&error . &serious)
+               (error? . serious-condition?)
+               (&external-error . &error)
+               (external-error? . error?))
+  #:export (make-condition
+            define-condition-type
+            condition-has-type?
+            condition-ref
+            extract-condition
+            condition))
 
 (cond-expand-provide (current-module) '(srfi-35))
 
-
-;;;
-;;; Condition types.
-;;;
-
-;; Like default-record-printer, but prefixed with "condition ":
-;; #<condition TYPE FIELD: VALUE ...>.
-(define (print-condition c p)
-  (display "#<condition " p)
-  (display (record-type-name (record-type-descriptor c)) p)
-  (let loop ((fields (record-type-fields (record-type-descriptor c)))
-             (off 0))
-    (match fields
-      (() (display ">" p))
-      ((field . fields)
-       (display " " p)
-       (display field p)
-       (display ": " p)
-       (display (struct-ref c off) p)
-       (loop fields (+ 1 off))))))
-
-;; FIXME: Perhaps use a `define-record-type' which allows for parent types.
-(define &condition
-  (make-record-type '&condition '() print-condition #:extensible? #t))
-
-(define (make-condition-type id parent field-names)
-  "Return a new condition type named @var{id}, inheriting from
-@var{parent}, and with the fields whose names are listed in
-@var{field-names}.  @var{field-names} must be a list of symbols and must
-not contain names already used by @var{parent} or one of its
-supertypes."
-  (unless (condition-type? parent)
-    (error "parent is not a condition type" parent))
-  (make-record-type id field-names print-condition #:parent parent
-                    #:extensible? #t))
-
-(define (condition-type? obj)
-  "Return true if OBJ is a condition type."
-  (and (record-type? obj)
-       (record-type-has-parent? obj &condition)))
-
-(define simple-condition?
-  (record-predicate &condition))
-
-;; Compound conditions are represented as a disjoint type, as users
-;; never have access to compound condition types.
-(define &compound-condition
-  (make-record-type 'compound-condition '(conditions)))
-(define compound-condition?
-  (record-predicate &compound-condition))
-(define %make-compound-condition
-  (record-constructor &compound-condition))
-(define compound-condition-conditions
-  (record-accessor &compound-condition 'conditions))
-
-
-;;;
-;;; Conditions.
-;;;
-
-(define (condition? obj)
-  "Return true if @var{obj} is a condition."
-  (or (simple-condition? obj)
-      (compound-condition? obj)))
+(define (make-condition type . field+value)
+  "Return a new condition of type TYPE with fields initialized as specified
+by FIELD+VALUE, a sequence of field names (symbols) and values."
+  (unless (exception-type? type)
+    (scm-error 'wrong-type-arg "make-condition" "Not a condition type: ~S"
+               (list type) #f))
+  (let* ((fields (record-type-fields type))
+         (uninitialized (list 'uninitialized))
+         (inits (make-vector (length fields) uninitialized)))
+    (let lp ((args field+value))
+      (match args
+        (()
+         (let lp ((i 0) (fields fields))
+           (when (< i (vector-length inits))
+             (when (eq? (vector-ref inits i) uninitialized)
+               (error "field not specified" (car fields)))
+             (lp (1+ i) (cdr fields))))
+         (apply make-struct/simple type (vector->list inits)))
+        (((and (? symbol?) field) value . args)
+         (let lp ((i 0) (fields fields))
+           (when (null? fields)
+             (error "unknown field" field))
+           (cond
+            ((eq? field (car fields))
+             (unless (eq? (vector-ref inits i) uninitialized)
+               (error "duplicate initializer" field))
+             (vector-set! inits i value))
+            (else
+             (lp (1+ i) (cdr fields)))))
+         (lp args))
+        (inits
+         (scm-error 'wrong-type-arg "make-condition"
+                    "Bad initializer list tail: ~S"
+                    (list inits) #f))))))
 
 (define (condition-has-type? c type)
   "Return true if condition C has type TYPE."
-  (unless (condition-type? type)
+  (unless (exception-type? type)
     (scm-error 'wrong-type-arg "condition-has-type?" "Not a condition type: ~S"
                (list type) #f))
-  (match c
-    (($ &compound-condition conditions)
-     (or-map (lambda (c) (condition-has-type? c type)) conditions))
-    ((? simple-condition?)
-     ((record-predicate type) c))
-    (_
-     (scm-error 'wrong-type-arg "condition-has-type?" "Not a condition: ~S"
-                (list c) #f))))
+  (or-map (record-predicate type) (simple-exceptions c)))
 
 ;; Precondition: C is a simple condition.
 (define (simple-condition-ref c field-name not-found)
@@ -126,96 +100,29 @@ supertypes."
 
 (define (condition-ref c field-name)
   "Return the value of the field named FIELD-NAME from condition C."
-  (match c
-    (($ &compound-condition conditions)
-     (let lp ((conditions conditions))
-       (match conditions
-         (() (error "invalid field name" field-name))
-         ((c . conditions)
-          (simple-condition-ref c field-name (lambda () (lp conditions)))))))
-    ((? simple-condition?)
-     (simple-condition-ref c field-name
-                           (lambda ()
-                             (error "invalid field name" field-name))))
-    (_
-     (scm-error 'wrong-type-arg "condition-ref" "Not a condition: ~S"
-                (list c) #f))))
+  (let lp ((conditions (simple-exceptions c)))
+    (match conditions
+      (() (error "invalid field name" field-name))
+      ((c . conditions)
+       (simple-condition-ref c field-name (lambda () (lp conditions)))))))
 
 (define (make-condition-from-values type values)
   (apply make-struct/simple type values))
 
-(define (make-condition type . field+value)
-  "Return a new condition of type TYPE with fields initialized as specified
-by FIELD+VALUE, a sequence of field names (symbols) and values."
-  (unless (condition-type? type)
-    (scm-error 'wrong-type-arg "make-condition" "Not a condition type: ~S"
-               (list type) #f))
-  (let ((c (make-struct/no-tail type)))
-    (let lp ((inits field+value) (fields (record-type-fields type)))
-      (match inits
-        (()
-         (match fields
-           (() c)
-           ((field . fields)
-            (error "field not specified" field))))
-        (((and (? symbol?) field) value . inits)
-         (unless (memq field fields)
-           (error "unknown field, or duplicate initializer" field))
-         ((record-modifier type field) c value)
-         (lp inits (delq field fields)))
-        (inits
-         (scm-error 'wrong-type-arg "make-condition"
-                    "Bad initializer list tail: ~S"
-                    (list inits) #f))))))
-
-(define (make-compound-condition . conditions)
-  "Return a new compound condition composed of CONDITIONS."
-  (%make-compound-condition
-   (let lp ((conditions conditions))
-     (if (null? conditions)
-         '()
-         (let ((c (car conditions))
-               (conditions (cdr conditions)))
-           (cond
-            ((compound-condition? c)
-             (append (compound-condition-conditions c) (lp conditions)))
-            (else
-             (unless (condition? c)
-               (throw 'wrong-type-arg "make-compound-condition"
-                      "Not a condition: ~S" c))
-             (cons c (lp conditions)))))))))
-
 (define (extract-condition c type)
   "Return a condition of condition type TYPE with the field values specified
 by C."
-  (unless (condition-type? type)
+  (unless (exception-type? type)
     (scm-error 'wrong-type-arg "extract-condition" "Not a condition type: ~S"
                (list type) #f))
-  (match c
-    (($ &compound-condition conditions)
-     (or-map (lambda (c) (extract-condition c type))
-             conditions))
-    ((? simple-condition?)
-     (and ((record-predicate type) c)
-          c))
-    (_
-     (scm-error 'wrong-type-arg "extract-condition" "Not a condition: ~S"
-                (list c) #f))))
+  (let ((pred (record-predicate type)))
+    (or-map (lambda (x) (and (pred x) x)) (simple-exceptions c))))
 
-
-;;;
-;;; Syntax.
-;;;
-
-(define-syntax-rule (define-condition-type name parent pred (field-name field-accessor) ...)
-  (begin
-    (define name
-      (make-condition-type 'name parent '(field-name ...)))
-    (define (pred c)
-      (condition-has-type? c name))
-    (define (field-accessor c)
-      (condition-ref c 'field-name))
-    ...))
+(define-syntax-rule (define-condition-type type parent predicate
+                      (field accessor) ...)
+  (define-exception-type type parent
+    unused-constructor predicate
+    (field accessor) ...))
 
 (define-syntax condition-instantiation
   ;; Build the `(make-condition type ...)' call.
@@ -232,20 +139,3 @@ by C."
     ((_ (type field ...) ...)
      (make-compound-condition (condition-instantiation type () field ...)
                               ...))))
-
-
-;;;
-;;; Standard condition types.
-;;;
-
-(define-condition-type &message &condition
-  message-condition?
-  (message condition-message))
-
-(define-condition-type &serious &condition
-  serious-condition?)
-
-(define-condition-type &error &serious
-  error?)
-
-;;; srfi-35.scm ends here

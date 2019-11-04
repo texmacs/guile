@@ -28,6 +28,7 @@
             make-exception-type
             simple-exceptions
             exception?
+            exception-type?
             exception-predicate
             exception-accessor
             define-exception-type
