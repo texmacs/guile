@@ -156,13 +156,18 @@
 ;; When a native guile exception is caught by with-exception-handler, we
 ;; convert it to a compound exception that includes not only the
 ;; standard exception objects expected by users of R6RS, SRFI-35, and
-;; R7RS, but also a special &guile condition that preserves the original
-;; KEY and ARGS passed to the native Guile catch handler.
+;; R7RS, but also a special &exception-with-key-and-args condition that
+;; preserves the original KEY and ARGS passed to the native Guile catch
+;; handler.
 
-(define-exception-type &guile &exception
-  make-guile-exception guile-exception?
-  (key  guile-exception-key)
-  (args guile-exception-args))
+(define make-guile-exception
+  (record-constructor &exception-with-key-and-args))
+(define guile-exception?
+  (record-predicate &exception-with-key-and-args))
+(define guile-exception-key
+  (record-accessor &exception-with-key-and-args 'key))
+(define guile-exception-args
+  (record-accessor &exception-with-key-and-args 'args))
 
 (define (default-guile-exception-converter key args)
   (make-exception (make-error)

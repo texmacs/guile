@@ -1492,6 +1492,11 @@ exception composed of such an instance."
                     (proc (car exceptions))
                     (lp (cdr exceptions))))))))))
 
+(define &exception-with-key-and-args
+  (make-exception-type '&exception-with-key-and-args &exception '(key args)))
+(define &quit-exception
+  (make-exception-type '&quit-exception &exception '(code)))
+
 
 
 ;; Define catch and with-throw-handler, using some common helper routines and a
