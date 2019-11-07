@@ -1396,6 +1396,102 @@ written into the port is returned."
              n
              (loop (+ n 1) (cdr l))))))
 
+
+
+
+(let-syntax ((define-values* (syntax-rules ()
+                               ((_ (id ...) body ...)
+                                (define-values (id ...)
+                                  (let ()
+                                    body ...
+                                    (values id ...)))))))
+
+  (define-values* (&exception
+                   &compound-exception
+                   simple-exceptions
+                   make-exception
+                   exception?
+                   exception-type?
+                   make-exception-type
+                   exception-predicate
+                   exception-accessor)
+    (define &exception (make-record-type '&exception '() #:extensible? #t))
+    (define simple-exception? (record-predicate &exception))
+
+    (define &compound-exception (make-record-type '&compound-exception
+                                                  '((immutable components))))
+    (define compound-exception? (record-predicate &compound-exception))
+    (define make-compound-exception (record-constructor &compound-exception))
+    (define compound-exception-components
+      (record-accessor &compound-exception 'components))
+
+    (define (simple-exceptions exception)
+      "Return a list of the simple exceptions that compose the exception
+object @var{exception}."
+      (cond ((compound-exception? exception)
+             (compound-exception-components exception))
+            ((simple-exception? exception)
+             (list exception))
+            (else
+             (error "not a exception" exception))))
+
+    (define (make-exception . exceptions)
+      (define (flatten exceptions)
+        (if (null? exceptions)
+            '()
+            (append (simple-exceptions (car exceptions))
+                    (flatten (cdr exceptions)))))
+      (let ((simple (flatten exceptions)))
+        (if (and (pair? simple) (null? (cdr simple)))
+            (car simple)
+            (make-compound-exception simple))))
+
+    (define (exception? obj)
+      "Return true if @var{obj} is an exception."
+      (or (compound-exception? obj) (simple-exception? obj)))
+
+    (define (exception-type? obj)
+      "Return true if OBJ is an exception type."
+      (and (record-type? obj)
+           (record-type-has-parent? obj &exception)))
+
+    (define (make-exception-type id parent field-names)
+      "Return a new exception type named @var{id}, inheriting from
+@var{parent}, and with the fields whose names are listed in
+@var{field-names}.  @var{field-names} must be a list of symbols and must
+not contain names already used by @var{parent} or one of its
+supertypes."
+      (unless (exception-type? parent)
+        (error "parent is not a exception type" parent))
+      (unless (and-map symbol? field-names)
+        (error "field names should be a list of symbols" field-names))
+      (make-record-type id field-names #:parent parent #:extensible? #t))
+
+    (define (exception-predicate rtd)
+      "Return a procedure that will return true if its argument is a
+simple exception that is an instance of @var{rtd}, or a compound
+exception composed of such an instance."
+      (let ((rtd-predicate (record-predicate rtd)))
+        (lambda (obj)
+          (cond ((compound-exception? obj)
+                 (or-map rtd-predicate (simple-exceptions obj)))
+                (else (rtd-predicate obj))))))
+
+    (define (exception-accessor rtd proc)
+      (let ((rtd-predicate (record-predicate rtd)))
+        (lambda (obj)
+          (if (rtd-predicate obj)
+              (proc obj)
+              (let lp ((exceptions (if (compound-exception? obj)
+                                       (simple-exceptions obj)
+                                       '())))
+                (when (null? exceptions)
+                  (error "object is not an exception of the right type"
+                         obj rtd))
+                (if (rtd-predicate (car exceptions))
+                    (proc (car exceptions))
+                    (lp (cdr exceptions))))))))))
+
 
 
 ;; Define catch and with-throw-handler, using some common helper routines and a
