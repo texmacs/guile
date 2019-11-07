@@ -719,264 +719,6 @@ information is unavailable."
 (define (abort-to-prompt tag . args)
   (abort-to-prompt* tag args))
 
-;; Define catch and with-throw-handler, using some common helper routines and a
-;; shared fluid. Hide the helpers in a lexical contour.
-
-(define with-throw-handler #f)
-(let ((%eh (module-ref (current-module) '%exception-handler)))
-  (define (make-exception-handler catch-key prompt-tag pre-unwind)
-    (vector catch-key prompt-tag pre-unwind))
-  (define (exception-handler-catch-key handler) (vector-ref handler 0))
-  (define (exception-handler-prompt-tag handler) (vector-ref handler 1))
-  (define (exception-handler-pre-unwind handler) (vector-ref handler 2))
-
-  (define %running-pre-unwind (make-fluid #f))
-  (define (pre-unwind-handler-running? handler)
-    (let lp ((depth 0))
-      (let ((running (fluid-ref* %running-pre-unwind depth)))
-        (and running
-             (or (eq? running handler) (lp (1+ depth)))))))
-
-  (define (dispatch-exception depth key args)
-    (cond
-     ((fluid-ref* %eh depth)
-      => (lambda (handler)
-           (let ((catch-key (exception-handler-catch-key handler)))
-             (if (or (eqv? catch-key #t) (eq? catch-key key))
-                 (let ((prompt-tag (exception-handler-prompt-tag handler))
-                       (pre-unwind (exception-handler-pre-unwind handler)))
-                   (cond
-                    ((and pre-unwind
-                          (not (pre-unwind-handler-running? handler)))
-                     ;; Prevent errors from within the pre-unwind
-                     ;; handler's invocation from being handled by this
-                     ;; handler.
-                     (with-fluid* %running-pre-unwind handler
-                       (lambda ()
-                         ;; FIXME: Currently the "running" flag only
-                         ;; applies to the pre-unwind handler; the
-                         ;; post-unwind handler is still called if the
-                         ;; error is explicitly rethrown.  Instead it
-                         ;; would be better to cause a recursive throw to
-                         ;; skip all parts of this handler.  Unfortunately
-                         ;; that is incompatible with existing semantics.
-                         ;; We'll see if we can change that later on.
-                         (apply pre-unwind key args)
-                         (dispatch-exception depth key args))))
-                    (prompt-tag
-                     (apply abort-to-prompt prompt-tag key args))
-                    (else
-                     (dispatch-exception (1+ depth) key args))))
-                 (dispatch-exception (1+ depth) key args)))))
-     ((eq? key 'quit)
-      (primitive-exit (cond
-                       ((not (pair? args)) 0)
-                       ((integer? (car args)) (car args))
-                       ((not (car args)) 1)
-                       (else 0))))
-     (else
-      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n"
-              key args)
-      (primitive-exit 1))))
-
-  (define (throw key . args)
-    "Invoke the catch form matching @var{key}, passing @var{args} to the
-@var{handler}.
-
-@var{key} is a symbol. It will match catches of the same symbol or of @code{#t}.
-
-If there is no handler at all, Guile prints an error and then exits."
-    (unless (symbol? key)
-      (throw 'wrong-type-arg "throw" "Wrong type argument in position ~a: ~a"
-             (list 1 key) (list key)))
-    (dispatch-exception 0 key args))
-
-  (define* (catch k thunk handler #:optional pre-unwind-handler)
-    "Invoke @var{thunk} in the dynamic context of @var{handler} for
-exceptions matching @var{key}.  If thunk throws to the symbol
-@var{key}, then @var{handler} is invoked this way:
-@lisp
- (handler key args ...)
-@end lisp
-
-@var{key} is a symbol or @code{#t}.
-
-@var{thunk} takes no arguments.  If @var{thunk} returns
-normally, that is the return value of @code{catch}.
-
-Handler is invoked outside the scope of its own @code{catch}.
-If @var{handler} again throws to the same key, a new handler
-from further up the call chain is invoked.
-
-If the key is @code{#t}, then a throw to @emph{any} symbol will
-match this call to @code{catch}.
-
-If a @var{pre-unwind-handler} is given and @var{thunk} throws
-an exception that matches @var{key}, Guile calls the
-@var{pre-unwind-handler} before unwinding the dynamic state and
-invoking the main @var{handler}.  @var{pre-unwind-handler} should
-be a procedure with the same signature as @var{handler}, that
-is @code{(lambda (key . args))}.  It is typically used to save
-the stack at the point where the exception occurred, but can also
-query other parts of the dynamic state at that point, such as
-fluid values.
-
-A @var{pre-unwind-handler} can exit either normally or non-locally.
-If it exits normally, Guile unwinds the stack and dynamic context
-and then calls the normal (third argument) handler.  If it exits
-non-locally, that exit determines the continuation."
-    (define (wrong-type-arg n val)
-      (scm-error 'wrong-type-arg "catch"
-                 "Wrong type argument in position ~a: ~a"
-                 (list n val) (list val)))
-    (unless (or (symbol? k) (eqv? k #t))
-      (wrong-type-arg 1 k))
-    (unless (procedure? handler)
-      (wrong-type-arg 3 handler))
-    (unless (or (not pre-unwind-handler) (procedure? pre-unwind-handler))
-      (wrong-type-arg 4 pre-unwind-handler))
-    (let ((tag (make-prompt-tag "catch")))
-      (call-with-prompt
-       tag
-       (lambda ()
-         (with-fluid* %eh (make-exception-handler k tag pre-unwind-handler)
-           thunk))
-       (lambda (cont k . args)
-         (apply handler k args)))))
-
-  (define (with-throw-handler k thunk pre-unwind-handler)
-    "Add @var{handler} to the dynamic context as a throw handler
-for key @var{k}, then invoke @var{thunk}."
-    (if (not (or (symbol? k) (eqv? k #t)))
-        (scm-error 'wrong-type-arg "with-throw-handler"
-                   "Wrong type argument in position ~a: ~a"
-                   (list 1 k) (list k)))
-    (with-fluid* %eh (make-exception-handler k #f pre-unwind-handler)
-      thunk))
-
-  (hashq-remove! (%get-pre-modules-obarray) '%exception-handler)
-  (define! 'catch catch)
-  (define! 'with-throw-handler with-throw-handler)
-  (define! 'throw throw))
-
-
-
-
-;;;
-;;; Extensible exception printing.
-;;;
-
-(define set-exception-printer! #f)
-;; There is already a definition of print-exception from backtrace.c
-;; that we will override.
-
-(let ((exception-printers '()))
-  (define (print-location frame port)
-    (let ((source (and=> frame frame-source)))
-      ;; source := (addr . (filename . (line . column)))
-      (if source
-          (let ((filename (or (cadr source) "<unnamed port>"))
-                (line (caddr source))
-                (col (cdddr source)))
-            (format port "~a:~a:~a: " filename (1+ line) col))
-          (format port "ERROR: "))))
-
-  (set! set-exception-printer!
-        (lambda (key proc)
-          (set! exception-printers (acons key proc exception-printers))))
-
-  (set! print-exception
-        (lambda (port frame key args)
-          (define (default-printer)
-            (format port "Throw to key `~a' with args `~s'." key args))
-
-          (when frame
-            (print-location frame port)
-            ;; When booting, false-if-exception isn't defined yet.
-            (let ((name (catch #t
-                          (lambda () (frame-procedure-name frame))
-                          (lambda _ #f))))
-              (when name
-                (format port "In procedure ~a:\n" name))))
-
-          (catch #t
-            (lambda ()
-              (let ((printer (assq-ref exception-printers key)))
-                (if printer
-                    (printer port key args default-printer)
-                    (default-printer))))
-            (lambda (k . args)
-              (format port "Error while printing exception.")))
-          (newline port)
-          (force-output port))))
-
-;;;
-;;; Printers for those keys thrown by Guile.
-;;;
-(let ()
-  (define (scm-error-printer port key args default-printer)
-    ;; Abuse case-lambda as a pattern matcher, given that we don't have
-    ;; ice-9 match at this point.
-    (apply (case-lambda
-             ((subr msg args . rest)
-              (if subr
-                  (format port "In procedure ~a: " subr))
-              (apply format port msg (or args '())))
-             (_ (default-printer)))
-           args))
-
-  (define (syntax-error-printer port key args default-printer)
-    (apply (case-lambda
-             ((who what where form subform . extra)
-              (format port "Syntax error:\n")
-              (if where
-                  (let ((file (or (assq-ref where 'filename) "unknown file"))
-                        (line (and=> (assq-ref where 'line) 1+))
-                        (col (assq-ref where 'column)))
-                    (format port "~a:~a:~a: " file line col))
-                  (format port "unknown location: "))
-              (if who
-                  (format port "~a: " who))
-              (format port "~a" what)
-              (if subform
-                  (format port " in subform ~s of ~s" subform form)
-                  (if form
-                      (format port " in form ~s" form))))
-             (_ (default-printer)))
-           args))
-
-  (define (keyword-error-printer port key args default-printer)
-    (let ((message (cadr args))
-          (faulty  (car (cadddr args)))) ; I won't do it again, I promise.
-      (format port "~a: ~s" message faulty)))
-
-  (define (getaddrinfo-error-printer port key args default-printer)
-    (format port "In procedure getaddrinfo: ~a" (gai-strerror (car args))))
-
-  (set-exception-printer! 'goops-error scm-error-printer)
-  (set-exception-printer! 'host-not-found scm-error-printer)
-  (set-exception-printer! 'keyword-argument-error keyword-error-printer)
-  (set-exception-printer! 'misc-error scm-error-printer)
-  (set-exception-printer! 'no-data scm-error-printer)
-  (set-exception-printer! 'no-recovery scm-error-printer)
-  (set-exception-printer! 'null-pointer-error scm-error-printer)
-  (set-exception-printer! 'out-of-memory scm-error-printer)
-  (set-exception-printer! 'out-of-range scm-error-printer)
-  (set-exception-printer! 'program-error scm-error-printer)
-  (set-exception-printer! 'read-error scm-error-printer)
-  (set-exception-printer! 'regular-expression-syntax scm-error-printer)
-  (set-exception-printer! 'signal scm-error-printer)
-  (set-exception-printer! 'stack-overflow scm-error-printer)
-  (set-exception-printer! 'system-error scm-error-printer)
-  (set-exception-printer! 'try-again scm-error-printer)
-  (set-exception-printer! 'unbound-variable scm-error-printer)
-  (set-exception-printer! 'wrong-number-of-args scm-error-printer)
-  (set-exception-printer! 'wrong-type-arg scm-error-printer)
-
-  (set-exception-printer! 'syntax-error syntax-error-printer)
-
-  (set-exception-printer! 'getaddrinfo-error getaddrinfo-error-printer))
-
 
 
 
@@ -1494,6 +1236,7 @@ VALUE."
 
 
 
+
 ;;; {Parameters}
 ;;;
 
@@ -1652,6 +1395,266 @@ written into the port is returned."
          (if (eq? (car l) k)
              n
              (loop (+ n 1) (cdr l))))))
+
+
+
+;; Define catch and with-throw-handler, using some common helper routines and a
+;; shared fluid. Hide the helpers in a lexical contour.
+
+(define with-throw-handler #f)
+(let ((%eh (module-ref (current-module) '%exception-handler)))
+  (define (make-exception-handler catch-key prompt-tag pre-unwind)
+    (vector catch-key prompt-tag pre-unwind))
+  (define (exception-handler-catch-key handler) (vector-ref handler 0))
+  (define (exception-handler-prompt-tag handler) (vector-ref handler 1))
+  (define (exception-handler-pre-unwind handler) (vector-ref handler 2))
+
+  (define %running-pre-unwind (make-fluid #f))
+  (define (pre-unwind-handler-running? handler)
+    (let lp ((depth 0))
+      (let ((running (fluid-ref* %running-pre-unwind depth)))
+        (and running
+             (or (eq? running handler) (lp (1+ depth)))))))
+
+  (define (dispatch-exception depth key args)
+    (cond
+     ((fluid-ref* %eh depth)
+      => (lambda (handler)
+           (let ((catch-key (exception-handler-catch-key handler)))
+             (if (or (eqv? catch-key #t) (eq? catch-key key))
+                 (let ((prompt-tag (exception-handler-prompt-tag handler))
+                       (pre-unwind (exception-handler-pre-unwind handler)))
+                   (cond
+                    ((and pre-unwind
+                          (not (pre-unwind-handler-running? handler)))
+                     ;; Prevent errors from within the pre-unwind
+                     ;; handler's invocation from being handled by this
+                     ;; handler.
+                     (with-fluid* %running-pre-unwind handler
+                       (lambda ()
+                         ;; FIXME: Currently the "running" flag only
+                         ;; applies to the pre-unwind handler; the
+                         ;; post-unwind handler is still called if the
+                         ;; error is explicitly rethrown.  Instead it
+                         ;; would be better to cause a recursive throw to
+                         ;; skip all parts of this handler.  Unfortunately
+                         ;; that is incompatible with existing semantics.
+                         ;; We'll see if we can change that later on.
+                         (apply pre-unwind key args)
+                         (dispatch-exception depth key args))))
+                    (prompt-tag
+                     (apply abort-to-prompt prompt-tag key args))
+                    (else
+                     (dispatch-exception (1+ depth) key args))))
+                 (dispatch-exception (1+ depth) key args)))))
+     ((eq? key 'quit)
+      (primitive-exit (cond
+                       ((not (pair? args)) 0)
+                       ((integer? (car args)) (car args))
+                       ((not (car args)) 1)
+                       (else 0))))
+     (else
+      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n"
+              key args)
+      (primitive-exit 1))))
+
+  (define (throw key . args)
+    "Invoke the catch form matching @var{key}, passing @var{args} to the
+@var{handler}.
+
+@var{key} is a symbol. It will match catches of the same symbol or of @code{#t}.
+
+If there is no handler at all, Guile prints an error and then exits."
+    (unless (symbol? key)
+      (throw 'wrong-type-arg "throw" "Wrong type argument in position ~a: ~a"
+             (list 1 key) (list key)))
+    (dispatch-exception 0 key args))
+
+  (define* (catch k thunk handler #:optional pre-unwind-handler)
+    "Invoke @var{thunk} in the dynamic context of @var{handler} for
+exceptions matching @var{key}.  If thunk throws to the symbol
+@var{key}, then @var{handler} is invoked this way:
+@lisp
+ (handler key args ...)
+@end lisp
+
+@var{key} is a symbol or @code{#t}.
+
+@var{thunk} takes no arguments.  If @var{thunk} returns
+normally, that is the return value of @code{catch}.
+
+Handler is invoked outside the scope of its own @code{catch}.
+If @var{handler} again throws to the same key, a new handler
+from further up the call chain is invoked.
+
+If the key is @code{#t}, then a throw to @emph{any} symbol will
+match this call to @code{catch}.
+
+If a @var{pre-unwind-handler} is given and @var{thunk} throws
+an exception that matches @var{key}, Guile calls the
+@var{pre-unwind-handler} before unwinding the dynamic state and
+invoking the main @var{handler}.  @var{pre-unwind-handler} should
+be a procedure with the same signature as @var{handler}, that
+is @code{(lambda (key . args))}.  It is typically used to save
+the stack at the point where the exception occurred, but can also
+query other parts of the dynamic state at that point, such as
+fluid values.
+
+A @var{pre-unwind-handler} can exit either normally or non-locally.
+If it exits normally, Guile unwinds the stack and dynamic context
+and then calls the normal (third argument) handler.  If it exits
+non-locally, that exit determines the continuation."
+    (define (wrong-type-arg n val)
+      (scm-error 'wrong-type-arg "catch"
+                 "Wrong type argument in position ~a: ~a"
+                 (list n val) (list val)))
+    (unless (or (symbol? k) (eqv? k #t))
+      (wrong-type-arg 1 k))
+    (unless (procedure? handler)
+      (wrong-type-arg 3 handler))
+    (unless (or (not pre-unwind-handler) (procedure? pre-unwind-handler))
+      (wrong-type-arg 4 pre-unwind-handler))
+    (let ((tag (make-prompt-tag "catch")))
+      (call-with-prompt
+       tag
+       (lambda ()
+         (with-fluid* %eh (make-exception-handler k tag pre-unwind-handler)
+           thunk))
+       (lambda (cont k . args)
+         (apply handler k args)))))
+
+  (define (with-throw-handler k thunk pre-unwind-handler)
+    "Add @var{handler} to the dynamic context as a throw handler
+for key @var{k}, then invoke @var{thunk}."
+    (if (not (or (symbol? k) (eqv? k #t)))
+        (scm-error 'wrong-type-arg "with-throw-handler"
+                   "Wrong type argument in position ~a: ~a"
+                   (list 1 k) (list k)))
+    (with-fluid* %eh (make-exception-handler k #f pre-unwind-handler)
+      thunk))
+
+  (hashq-remove! (%get-pre-modules-obarray) '%exception-handler)
+  (define! 'catch catch)
+  (define! 'with-throw-handler with-throw-handler)
+  (define! 'throw throw))
+
+
+
+;;;
+;;; Extensible exception printing.
+;;;
+
+(define set-exception-printer! #f)
+;; There is already a definition of print-exception from backtrace.c
+;; that we will override.
+
+(let ((exception-printers '()))
+  (define (print-location frame port)
+    (let ((source (and=> frame frame-source)))
+      ;; source := (addr . (filename . (line . column)))
+      (if source
+          (let ((filename (or (cadr source) "<unnamed port>"))
+                (line (caddr source))
+                (col (cdddr source)))
+            (format port "~a:~a:~a: " filename (1+ line) col))
+          (format port "ERROR: "))))
+
+  (set! set-exception-printer!
+        (lambda (key proc)
+          (set! exception-printers (acons key proc exception-printers))))
+
+  (set! print-exception
+        (lambda (port frame key args)
+          (define (default-printer)
+            (format port "Throw to key `~a' with args `~s'." key args))
+
+          (when frame
+            (print-location frame port)
+            ;; When booting, false-if-exception isn't defined yet.
+            (let ((name (catch #t
+                          (lambda () (frame-procedure-name frame))
+                          (lambda _ #f))))
+              (when name
+                (format port "In procedure ~a:\n" name))))
+
+          (catch #t
+            (lambda ()
+              (let ((printer (assq-ref exception-printers key)))
+                (if printer
+                    (printer port key args default-printer)
+                    (default-printer))))
+            (lambda (k . args)
+              (format port "Error while printing exception.")))
+          (newline port)
+          (force-output port))))
+
+;;;
+;;; Printers for those keys thrown by Guile.
+;;;
+(let ()
+  (define (scm-error-printer port key args default-printer)
+    ;; Abuse case-lambda as a pattern matcher, given that we don't have
+    ;; ice-9 match at this point.
+    (apply (case-lambda
+             ((subr msg args . rest)
+              (if subr
+                  (format port "In procedure ~a: " subr))
+              (apply format port msg (or args '())))
+             (_ (default-printer)))
+           args))
+
+  (define (syntax-error-printer port key args default-printer)
+    (apply (case-lambda
+             ((who what where form subform . extra)
+              (format port "Syntax error:\n")
+              (if where
+                  (let ((file (or (assq-ref where 'filename) "unknown file"))
+                        (line (and=> (assq-ref where 'line) 1+))
+                        (col (assq-ref where 'column)))
+                    (format port "~a:~a:~a: " file line col))
+                  (format port "unknown location: "))
+              (if who
+                  (format port "~a: " who))
+              (format port "~a" what)
+              (if subform
+                  (format port " in subform ~s of ~s" subform form)
+                  (if form
+                      (format port " in form ~s" form))))
+             (_ (default-printer)))
+           args))
+
+  (define (keyword-error-printer port key args default-printer)
+    (let ((message (cadr args))
+          (faulty  (car (cadddr args)))) ; I won't do it again, I promise.
+      (format port "~a: ~s" message faulty)))
+
+  (define (getaddrinfo-error-printer port key args default-printer)
+    (format port "In procedure getaddrinfo: ~a" (gai-strerror (car args))))
+
+  (set-exception-printer! 'goops-error scm-error-printer)
+  (set-exception-printer! 'host-not-found scm-error-printer)
+  (set-exception-printer! 'keyword-argument-error keyword-error-printer)
+  (set-exception-printer! 'misc-error scm-error-printer)
+  (set-exception-printer! 'no-data scm-error-printer)
+  (set-exception-printer! 'no-recovery scm-error-printer)
+  (set-exception-printer! 'null-pointer-error scm-error-printer)
+  (set-exception-printer! 'out-of-memory scm-error-printer)
+  (set-exception-printer! 'out-of-range scm-error-printer)
+  (set-exception-printer! 'program-error scm-error-printer)
+  (set-exception-printer! 'read-error scm-error-printer)
+  (set-exception-printer! 'regular-expression-syntax scm-error-printer)
+  (set-exception-printer! 'signal scm-error-printer)
+  (set-exception-printer! 'stack-overflow scm-error-printer)
+  (set-exception-printer! 'system-error scm-error-printer)
+  (set-exception-printer! 'try-again scm-error-printer)
+  (set-exception-printer! 'unbound-variable scm-error-printer)
+  (set-exception-printer! 'wrong-number-of-args scm-error-printer)
+  (set-exception-printer! 'wrong-type-arg scm-error-printer)
+
+  (set-exception-printer! 'syntax-error syntax-error-printer)
+
+  (set-exception-printer! 'getaddrinfo-error getaddrinfo-error-printer))
+
 
 
 
