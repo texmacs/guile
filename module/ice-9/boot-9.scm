@@ -1067,26 +1067,6 @@ VALUE."
 
 (define call/cc call-with-current-continuation)
 
-(define-syntax false-if-exception
-  (syntax-rules ()
-    ((false-if-exception expr)
-     (catch #t
-       (lambda () expr)
-       (lambda args #f)))
-    ((false-if-exception expr #:warning template arg ...)
-     (catch #t
-       (lambda () expr)
-       (lambda (key . args)
-         (for-each (lambda (s)
-                     (if (not (string-null? s))
-                         (format (current-warning-port) ";;; ~a\n" s)))
-                   (string-split
-                    (call-with-output-string
-                     (lambda (port)
-                       (format port template arg ...)
-                       (print-exception port #f key args)))
-                    #\newline))
-         #f)))))
 
 
 
@@ -1842,6 +1822,33 @@ written into the port is returned."
                        ""
                        file-name-separator-string)
                    file)))
+
+
+
+
+;;; {Exception-handling helpers}
+
+(define-syntax false-if-exception
+  (syntax-rules ()
+    ((false-if-exception expr)
+     (catch #t
+       (lambda () expr)
+       (lambda args #f)))
+    ((false-if-exception expr #:warning template arg ...)
+     (catch #t
+       (lambda () expr)
+       (lambda (key . args)
+         (for-each (lambda (s)
+                     (if (not (string-null? s))
+                         (format (current-warning-port) ";;; ~a\n" s)))
+                   (string-split
+                    (call-with-output-string
+                     (lambda (port)
+                       (format port template arg ...)
+                       (print-exception port #f key args)))
+                    #\newline))
+         #f)))))
+
 
 
 
