@@ -1027,7 +1027,7 @@ VALUE."
         (display " " p)
         (display (car fields) p)
         (display ": " p)
-        (display (struct-ref s off) p)
+        (write (struct-ref s off) p)
         (loop (cdr fields) (+ 1 off)))))
     (display ">" p))
 
@@ -1399,6 +1399,9 @@ written into the port is returned."
 
 
 
+;;; {Exceptions}
+;;;
+
 (let-syntax ((define-values* (syntax-rules ()
                                ((_ (id ...) body ...)
                                 (define-values (id ...)
@@ -1436,6 +1439,7 @@ object @var{exception}."
              (error "not a exception" exception))))
 
     (define (make-exception . exceptions)
+      "Return an exception object composed of @var{exceptions}."
       (define (flatten exceptions)
         (if (null? exceptions)
             '()
@@ -1447,7 +1451,7 @@ object @var{exception}."
             (make-compound-exception simple))))
 
     (define (exception? obj)
-      "Return true if @var{obj} is an exception."
+      "Return true if @var{obj} is an exception object."
       (or (compound-exception? obj) (simple-exception? obj)))
 
     (define (exception-type? obj)
@@ -1478,6 +1482,9 @@ exception composed of such an instance."
                 (else (rtd-predicate obj))))))
 
     (define (exception-accessor rtd proc)
+      "Return a procedure that will call @var{proc} on an instance of
+the exception type @var{rtd}, or on the component of a compound
+exception that is an instance of @var{rtd}."
       (let ((rtd-predicate (record-predicate rtd)))
         (lambda (obj)
           (if (rtd-predicate obj)
@@ -1487,92 +1494,259 @@ exception composed of such an instance."
                                        '())))
                 (when (null? exceptions)
                   (error "object is not an exception of the right type"
-                         obj rtd))
-                (if (rtd-predicate (car exceptions))
+                         obj rtd))                (if (rtd-predicate (car exceptions))
                     (proc (car exceptions))
-                    (lp (cdr exceptions))))))))))
+                    (lp (cdr exceptions)))))))))
 
-(define &exception-with-key-and-args
-  (make-exception-type '&exception-with-key-and-args &exception '(key args)))
-(define &quit-exception
-  (make-exception-type '&quit-exception &exception '(code)))
+  ;; Exceptionally, these exception types are built with
+  ;; make-record-type, in order to be able to mark them as sealed.  This
+  ;; allows boot definitions of
+  (define &exception-with-kind-and-args
+    (make-record-type '&exception-with-kind-and-args
+                      '((immutable kind) (immutable args))
+                      #:parent &exception #:extensible? #f))
+  (define &quit-exception
+    (make-record-type '&quit-exception
+                      '((immutable code))
+                      #:parent &exception #:extensible? #f))
 
-
+  (define &error
+    (make-exception-type '&error &exception '()))
+  (define &programming-error
+    (make-exception-type '&programming-error &error '()))
+  (define &non-continuable
+    (make-exception-type '&non-continuable &programming-error '()))
 
-;; Define catch and with-throw-handler, using some common helper routines and a
-;; shared fluid. Hide the helpers in a lexical contour.
+  ;; Boot definition; overridden later.
+  (define-values* (make-exception-from-throw)
+    (define make-exception-with-kind-and-args
+      (record-constructor &exception-with-kind-and-args))
+    (define make-quit-exception
+      (record-constructor &quit-exception))
 
-(define with-throw-handler #f)
-(let ((%eh (module-ref (current-module) '%exception-handler)))
-  (define (make-exception-handler catch-key prompt-tag pre-unwind)
-    (vector catch-key prompt-tag pre-unwind))
-  (define (exception-handler-catch-key handler) (vector-ref handler 0))
-  (define (exception-handler-prompt-tag handler) (vector-ref handler 1))
-  (define (exception-handler-pre-unwind handler) (vector-ref handler 2))
+    (define (make-exception-from-throw key args)
+      (let ((exn (make-exception-with-kind-and-args key args)))
+        (case key
+          ((quit)
+           (let ((code (cond
+                        ((not (pair? args)) 0)
+                        ((integer? (car args)) (car args))
+                        ((not (car args)) 1)
+                        (else 0))))
+             (make-exception (make-quit-exception code)
+                             exn)))
+          (else
+           exn)))))
 
-  (define %running-pre-unwind (make-fluid #f))
-  (define (pre-unwind-handler-running? handler)
-    (let lp ((depth 0))
-      (let ((running (fluid-ref* %running-pre-unwind depth)))
-        (and running
-             (or (eq? running handler) (lp (1+ depth)))))))
+  (define-values* (raise-exception
+                   with-exception-handler
+                   catch
+                   with-throw-handler
+                   throw)
+    (define (steal-binding! sym)
+      (let ((val (module-ref (current-module) sym)))
+        (hashq-remove! (%get-pre-modules-obarray) sym)
+        val))
 
-  (define (dispatch-exception depth key args)
-    (cond
-     ((fluid-ref* %eh depth)
-      => (lambda (handler)
-           (let ((catch-key (exception-handler-catch-key handler)))
-             (if (or (eqv? catch-key #t) (eq? catch-key key))
-                 (let ((prompt-tag (exception-handler-prompt-tag handler))
-                       (pre-unwind (exception-handler-pre-unwind handler)))
-                   (cond
-                    ((and pre-unwind
-                          (not (pre-unwind-handler-running? handler)))
-                     ;; Prevent errors from within the pre-unwind
-                     ;; handler's invocation from being handled by this
-                     ;; handler.
-                     (with-fluid* %running-pre-unwind handler
-                       (lambda ()
-                         ;; FIXME: Currently the "running" flag only
-                         ;; applies to the pre-unwind handler; the
-                         ;; post-unwind handler is still called if the
-                         ;; error is explicitly rethrown.  Instead it
-                         ;; would be better to cause a recursive throw to
-                         ;; skip all parts of this handler.  Unfortunately
-                         ;; that is incompatible with existing semantics.
-                         ;; We'll see if we can change that later on.
-                         (apply pre-unwind key args)
-                         (dispatch-exception depth key args))))
-                    (prompt-tag
-                     (apply abort-to-prompt prompt-tag key args))
-                    (else
-                     (dispatch-exception (1+ depth) key args))))
-                 (dispatch-exception (1+ depth) key args)))))
-     ((eq? key 'quit)
-      (primitive-exit (cond
-                       ((not (pair? args)) 0)
-                       ((integer? (car args)) (car args))
-                       ((not (car args)) 1)
-                       (else 0))))
-     (else
-      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n"
-              key args)
-      (primitive-exit 1))))
+    (define %exception-handler (steal-binding! '%exception-handler))
+    (define %active-exception-handlers
+      (steal-binding! '%active-exception-handlers))
+    (define %init-exceptions! (steal-binding! '%init-exceptions!))
 
-  (define (throw key . args)
-    "Invoke the catch form matching @var{key}, passing @var{args} to the
+    (%init-exceptions! &compound-exception
+                       &exception-with-kind-and-args
+                       &quit-exception)
+
+    (define exception-with-kind-and-args?
+      (exception-predicate &exception-with-kind-and-args))
+    (define %exception-kind
+      (exception-accessor &exception-with-kind-and-args
+                          (record-accessor &exception-with-kind-and-args 'kind)))
+    (define %exception-args
+      (exception-accessor &exception-with-kind-and-args
+                          (record-accessor &exception-with-kind-and-args 'args)))
+
+    (define (exception-kind obj)
+      (if (exception-with-kind-and-args? obj)
+          (%exception-kind obj)
+          '%exception))
+    (define (exception-args obj)
+      (if (exception-with-kind-and-args? obj)
+          (%exception-args obj)
+          (list obj)))
+
+    (define quit-exception?
+      (exception-predicate &quit-exception))
+    (define quit-exception-code
+      (exception-accessor &quit-exception
+                          (record-accessor &quit-exception 'code)))
+
+    (define (fallback-exception-handler exn)
+      (cond
+       ((quit-exception? exn)
+        (primitive-exit (quit-exception-code exn)))
+       (else
+        (display "guile: uncaught exception:\n" (current-error-port))
+        (print-exception (current-error-port) #f
+                         (exception-kind exn) (exception-args exn))
+        (primitive-exit 1))))
+
+    (define* (raise-exception exn #:key (continuable? #f))
+      "Raise an exception by invoking the current exception handler on
+@var{exn}. The handler is called with a continuation whose dynamic
+environment is that of the call to @code{raise}, except that the current
+exception handler is the one that was in place when the handler being
+called was installed.
+
+If @var{continuable?} is true, the handler is invoked in tail position
+relative to the @code{raise-exception} call.  Otherwise if the handler
+returns, a non-continuable exception of type @code{&non-continuable} is
+raised in the same dynamic environment as the handler."
+      (define (capture-current-exception-handlers)
+        ;; FIXME: This is quadratic.
+        (let lp ((depth 0))
+          (let ((h (fluid-ref* %exception-handler depth)))
+            (if h
+                (cons h (lp (1+ depth)))
+                (list fallback-exception-handler)))))
+      (define (exception-has-type? exn type)
+        (cond
+         ((eq? type #t)
+          #t)
+         ((symbol? type)
+          (eq? (exception-kind exn) type))
+         ((exception-type? type)
+          (and (exception? exn)
+               ((exception-predicate type) exn)))
+         (else #f)))
+      (let lp ((handlers (or (fluid-ref %active-exception-handlers)
+                             (capture-current-exception-handlers))))
+        (let ((handler (car handlers))
+              (handlers (cdr handlers)))
+          ;; There are two types of exception handlers: unwinding handlers
+          ;; and pre-unwind handlers.  Although you can implement unwinding
+          ;; handlers with pre-unwind handlers, it's better to separate them
+          ;; because it allows for emergency situations like "stack
+          ;; overflow" or "out of memory" to unwind the stack before calling
+          ;; a handler.
+          (cond
+           ((pair? handler)
+            (let ((prompt-tag (car handler))
+                  (type (cdr handler)))
+              (cond
+               ((exception-has-type? exn type)
+                (abort-to-prompt prompt-tag exn)
+                (error "unreachable"))
+               (else
+                (lp handlers)))))
+           (else
+            (with-fluids ((%active-exception-handlers handlers))
+              (cond
+               (continuable?
+                (handler exn))
+               (else
+                (handler exn)
+                (raise-exception
+                 ((record-constructor &non-continuable)))))))))))
+
+    (define* (with-exception-handler handler thunk #:key (unwind? #f)
+                                     (unwind-for-type #t))
+      "Establish @var{handler}, a procedure of one argument, as the
+current exception handler during the dynamic extent of invoking
+@var{thunk}.
+
+If @code{raise-exception} is called during the dynamic extent of
+invoking @var{thunk}, @var{handler} will be invoked on the argument of
+@code{raise-exception}.
+
+There are two kinds of exception handlers: unwinding and non-unwinding.
+
+By default, exception handlers are non-unwinding.  If @var{unwind?} is
+false, @var{handler} will be invoked within the continuation of the
+error, without unwinding the stack.  Its dynamic environment will be
+that of the @code{raise-exception} call, with the exception that the
+current exception handler won't be @var{handler}, but rather the
+\"outer\" handler (the one that was in place when
+@code{with-exception-handler} was called).
+
+However, it's often the case that one would like to handle an exception
+by unwinding the computation to an earlier state and running the error
+handler there.  After all, unless the @code{raise-exception} call is
+continuable, the exception handler needs to abort the continuation.  To
+support this use case, if @var{unwind?} is true, @code{raise-exception}
+will first unwind the stack by invoking an @dfn{escape
+continuation} (@pxref{Prompt Primitives, @code{call/ec}}), and then
+invoke the handler with the continuation of the
+@code{with-exception-handler} call.
+
+Finally, one more wrinkle: for unwinding exception handlers, it can be
+useful to determine whether an exception handler would indeed handle a
+particular exception or not.  This is especially the case for exceptions
+raised in resource-exhaustion scenarios like @code{stack-overflow} or
+@code{out-of-memory}, where you want to immediately shrink the
+continuation before recovering.  @xref{Stack Overflow}.  For this
+purpose, the @var{unwind-for-type} parameter allows users to specify the
+kind of exception handled by an exception handler; if @code{#t}, all
+exceptions will be handled; if an exception type object, only exceptions
+of that type will be handled; otherwise if a symbol, only that
+exceptions with the given @code{exception-kind} will be handled."
+      (unless (procedure? handler)
+        (scm-error 'wrong-type-arg "with-exception-handler"
+                   "Wrong type argument in position ~a: ~a"
+                   (list 1 handler) (list handler)))
+      (cond
+       (unwind?
+        (unless (or (eq? unwind-for-type #t)
+                    (symbol? unwind-for-type)
+                    (exception-type? unwind-for-type))
+          (scm-error 'wrong-type-arg "with-exception-handler"
+                     "Wrong type argument for #:unwind-for-type: ~a"
+                     (list unwind-for-type) (list unwind-for-type)))
+        (let ((tag (make-prompt-tag "exception handler")))
+          (call-with-prompt
+           tag
+           (lambda ()
+             (with-fluids ((%exception-handler (cons tag unwind-for-type)))
+               (thunk)))
+           (lambda (k exn)
+             (handler exn)))))
+       (else
+        (with-fluids ((%exception-handler handler))
+          (thunk)))))
+
+    (define (throw key . args)
+      "Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.
 
 @var{key} is a symbol. It will match catches of the same symbol or of @code{#t}.
 
 If there is no handler at all, Guile prints an error and then exits."
-    (unless (symbol? key)
-      (throw 'wrong-type-arg "throw" "Wrong type argument in position ~a: ~a"
-             (list 1 key) (list key)))
-    (dispatch-exception 0 key args))
+      (unless (symbol? key)
+        (throw 'wrong-type-arg "throw" "Wrong type argument in position ~a: ~a"
+               (list 1 key) (list key)))
+      (raise-exception (make-exception-from-throw key args)))
 
-  (define* (catch k thunk handler #:optional pre-unwind-handler)
-    "Invoke @var{thunk} in the dynamic context of @var{handler} for
+    (define (with-throw-handler k thunk pre-unwind-handler)
+      "Add @var{handler} to the dynamic context as a throw handler
+for key @var{k}, then invoke @var{thunk}."
+      (unless (or (symbol? k) (eq? k #t))
+        (scm-error 'wrong-type-arg "with-throw-handler"
+                   "Wrong type argument in position ~a: ~a"
+                   (list 1 k) (list k)))
+      (define running? (make-fluid))
+      (with-exception-handler
+       (lambda (exn)
+         (when (and (or (eq? k #t) (eq? k (exception-kind exn)))
+                    (not (fluid-ref running?)))
+           (with-fluids ((%active-exception-handlers #f)
+                         (running? #t))
+             (apply pre-unwind-handler (exception-kind exn)
+                    (exception-args exn))))
+         (raise-exception exn))
+       thunk))
+
+    (define* (catch k thunk handler #:optional pre-unwind-handler)
+      "Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
 @var{key}, then @var{handler} is invoked this way:
 @lisp
@@ -1605,39 +1779,27 @@ A @var{pre-unwind-handler} can exit either normally or non-locally.
 If it exits normally, Guile unwinds the stack and dynamic context
 and then calls the normal (third argument) handler.  If it exits
 non-locally, that exit determines the continuation."
-    (define (wrong-type-arg n val)
-      (scm-error 'wrong-type-arg "catch"
-                 "Wrong type argument in position ~a: ~a"
-                 (list n val) (list val)))
-    (unless (or (symbol? k) (eqv? k #t))
-      (wrong-type-arg 1 k))
-    (unless (procedure? handler)
-      (wrong-type-arg 3 handler))
-    (unless (or (not pre-unwind-handler) (procedure? pre-unwind-handler))
-      (wrong-type-arg 4 pre-unwind-handler))
-    (let ((tag (make-prompt-tag "catch")))
-      (call-with-prompt
-       tag
-       (lambda ()
-         (with-fluid* %eh (make-exception-handler k tag pre-unwind-handler)
-           thunk))
-       (lambda (cont k . args)
-         (apply handler k args)))))
-
-  (define (with-throw-handler k thunk pre-unwind-handler)
-    "Add @var{handler} to the dynamic context as a throw handler
-for key @var{k}, then invoke @var{thunk}."
-    (if (not (or (symbol? k) (eqv? k #t)))
-        (scm-error 'wrong-type-arg "with-throw-handler"
+      (define (wrong-type-arg n val)
+        (scm-error 'wrong-type-arg "catch"
                    "Wrong type argument in position ~a: ~a"
-                   (list 1 k) (list k)))
-    (with-fluid* %eh (make-exception-handler k #f pre-unwind-handler)
-      thunk))
+                   (list n val) (list val)))
+      (unless (or (symbol? k) (eq? k #t))
+        (wrong-type-arg 2 k))
+      (unless (procedure? handler)
+        (wrong-type-arg 3 handler))
+      (unless (or (not pre-unwind-handler) (procedure? pre-unwind-handler))
+        (wrong-type-arg 4 pre-unwind-handler))
 
-  (hashq-remove! (%get-pre-modules-obarray) '%exception-handler)
-  (define! 'catch catch)
-  (define! 'with-throw-handler with-throw-handler)
-  (define! 'throw throw))
+      (with-exception-handler
+       (lambda (exn)
+         (apply handler (exception-kind exn) (exception-args exn)))
+       (if pre-unwind-handler
+           (lambda ()
+             (with-throw-handler k thunk pre-unwind-handler))
+           thunk)
+       #:unwind? #t
+       #:unwind-for-type k))))
+
 
 
 

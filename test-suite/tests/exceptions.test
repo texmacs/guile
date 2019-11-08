@@ -24,15 +24,14 @@
     (syntax-violation 'push "push used outside of throw-test" stx)))
 
 (define-syntax-rule (throw-test title result expr ...)
-  (pass-if title
-    (equal? result
-            (let ((stack '()))
-              (syntax-parameterize ((push (syntax-rules ()
-                                            ((push val)
-                                             (set! stack (cons val stack))))))
-                expr ...
-                ;;(format #t "~a: ~s~%" title (reverse stack))
-                (reverse stack))))))
+  (pass-if-equal title result
+    (let ((stack '()))
+      (syntax-parameterize ((push (syntax-rules ()
+                                    ((push val)
+                                     (set! stack (cons val stack))))))
+        expr ...
+        ;;(format #t "~a: ~s~%" title (reverse stack))
+        (reverse stack)))))
 
 (with-test-prefix "throw/catch"
 

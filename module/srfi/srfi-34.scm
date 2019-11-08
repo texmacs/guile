@@ -27,31 +27,11 @@
 ;;; Code:
 
 (define-module (srfi srfi-34)
-  #:export (with-exception-handler)
-  #:replace (raise)
+  #:re-export (with-exception-handler
+               (raise-exception . raise))
   #:export-syntax (guard))
 
 (cond-expand-provide (current-module) '(srfi-34))
-
-(define throw-key 'srfi-34)
-
-(define (with-exception-handler handler thunk)
-  "Returns the result(s) of invoking THUNK. HANDLER must be a
-procedure that accepts one argument.  It is installed as the current
-exception handler for the dynamic extent (as determined by
-dynamic-wind) of the invocation of THUNK."
-  (with-throw-handler throw-key
-    thunk
-    (lambda (key obj)
-      (handler obj))))
-
-(define (raise obj)
-  "Invokes the current exception handler on OBJ.  The handler is
-called in the dynamic environment of the call to raise, except that
-the current exception handler is that in place for the call to
-with-exception-handler that installed the handler being called.  The
-handler's continuation is otherwise unspecified."
-  (throw throw-key obj))
 
 (define-syntax guard
   (syntax-rules (else)
@@ -68,17 +48,25 @@ clause, then raise is re-invoked on the raised object within the
 dynamic environment of the original call to raise except that the
 current exception handler is that of the guard expression."
     ((guard (var clause ... (else e e* ...)) body body* ...)
-     (catch throw-key
-       (lambda () body body* ...)
-       (lambda (key var)
-         (cond clause ...
-               (else e e* ...)))))
+     (with-exception-handler
+      (lambda (var)
+        (cond clause ...
+              (else e e* ...)))
+      (lambda () body body* ...)
+      #:unwind? #t))
     ((guard (var clause clause* ...) body body* ...)
-     (catch throw-key
-       (lambda () body body* ...)
-       (lambda (key var)
-         (cond clause clause* ...
-               (else (throw key var))))))))
+     (let ((tag (make-prompt-tag)))
+       (call-with-prompt
+        tag
+        (lambda ()
+          (with-exception-handler
+           (lambda (exn)
+             (abort-to-prompt tag exn)
+             (raise-exception exn))
+           (lambda () body body* ...)))
+        (lambda (rewind var)
+          (cond clause clause* ...
+                (else (rewind)))))))))
 
 
 ;;; (srfi srfi-34) ends here.

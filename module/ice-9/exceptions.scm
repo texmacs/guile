@@ -30,7 +30,14 @@
                exception?
                exception-type?
                exception-predicate
-               exception-accessor)
+               exception-accessor
+
+               &error
+               &programming-error
+               &non-continuable
+
+               raise-exception
+               with-exception-handler)
   #:export (define-exception-type
 
             &message
@@ -42,7 +49,6 @@
             make-warning
             warning?
 
-            &error
             make-error
             error?
 
@@ -50,8 +56,7 @@
 	    make-external-error
 	    external-error?
 	
-            &programming-error
-	    make-programming-error
+            make-programming-error
 	    programming-error?
 
 	    &assertion-failure
@@ -68,7 +73,6 @@
             exception-with-origin?
 	    exception-origin
 
-            &non-continuable
             make-non-continuable-error
             non-continuable-error?
 
@@ -90,9 +94,19 @@
             make-undefined-variable-error
             undefined-variable-error?
 
-            with-exception-handler
-            raise-exception
             raise-continuable))
+
+(define-syntax define-exception-type-procedures
+  (syntax-rules ()
+    ((_ exception-type supertype constructor predicate
+	(field accessor) ...)
+     (begin
+       (define constructor (record-constructor exception-type))
+       (define predicate (exception-predicate exception-type))
+       (define accessor
+         (exception-accessor exception-type
+                             (record-accessor exception-type 'field)))
+       ...))))
 
 (define-syntax define-exception-type
   (syntax-rules ()
@@ -102,17 +116,14 @@
        (define exception-type
          (make-record-type 'exception-type '((immutable field) ...)
                            #:parent supertype #:extensible? #t))
-       (define constructor (record-constructor exception-type))
-       (define predicate (exception-predicate exception-type))
-       (define accessor
-         (exception-accessor exception-type
-                             (record-accessor exception-type 'field)))
-       ...))))
+       (define-exception-type-procedures exception-type supertype
+         constructor predicate (field accessor) ...)))))
 
-(define-exception-type &error &exception
+(define-exception-type-procedures &error &exception
   make-error error?)
-(define-exception-type &programming-error &error
+(define-exception-type-procedures &programming-error &error
   make-programming-error programming-error?)
+
 (define-exception-type &assertion-failure &programming-error
   make-assertion-failure assertion-failure?)
 
@@ -134,7 +145,7 @@
   make-exception-with-origin exception-with-origin?
   (origin exception-origin))
 
-(define-exception-type &non-continuable &programming-error
+(define-exception-type-procedures &non-continuable &programming-error
   make-non-continuable-error
   non-continuable-error?)
 
@@ -153,21 +164,10 @@
 (define-exception-type &undefined-variable &programming-error
   make-undefined-variable-error undefined-variable-error?)
 
-;; When a native guile exception is caught by with-exception-handler, we
-;; convert it to a compound exception that includes not only the
-;; standard exception objects expected by users of R6RS, SRFI-35, and
-;; R7RS, but also a special &exception-with-key-and-args condition that
-;; preserves the original KEY and ARGS passed to the native Guile catch
-;; handler.
-
-(define make-guile-exception
-  (record-constructor &exception-with-key-and-args))
-(define guile-exception?
-  (record-predicate &exception-with-key-and-args))
-(define guile-exception-key
-  (record-accessor &exception-with-key-and-args 'key))
-(define guile-exception-args
-  (record-accessor &exception-with-key-and-args 'args))
+(define make-exception-with-kind-and-args
+  (record-constructor &exception-with-kind-and-args))
+(define make-quit-exception
+  (record-constructor &quit-exception))
 
 (define (default-guile-exception-converter key args)
   (make-exception (make-error)
@@ -187,69 +187,18 @@
   (let ((converter (assv-ref guile-exception-converters key)))
     (make-exception (or (and converter (converter key args))
                         (default-guile-exception-converter key args))
-                    ;; Preserve the original KEY and ARGS in the R6RS
-                    ;; exception object.
-                    (make-guile-exception key args))))
-
-;; If an exception handler chooses not to handle a given exception, it
-;; will re-raise the exception to pass it on to the next handler.  If
-;; the exception was converted from a native Guile exception, we must
-;; re-raise using the native Guile facilities and the original exception
-;; KEY and ARGS.  We arrange for this in 'raise' so that native Guile
-;; exception handlers will continue to work when mixed with
-;; with-exception-handler.
-
-(define &raise-object-wrapper
-  (make-record-type '&raise-object-wrapper
-                    '((immutable obj) (immutable continuation))))
-(define make-raise-object-wrapper
-  (record-constructor &raise-object-wrapper))
-(define raise-object-wrapper?
-  (record-predicate &raise-object-wrapper))
-(define raise-object-wrapper-obj
-  (record-accessor &raise-object-wrapper 'obj))
-(define raise-object-wrapper-continuation
-  (record-accessor &raise-object-wrapper 'continuation))
-
-(define (raise-exception obj)
-  (if (guile-exception? obj)
-      (apply throw (guile-exception-key obj) (guile-exception-args obj))
-      (throw '%exception (make-raise-object-wrapper obj #f))))
+                    (make-exception-with-kind-and-args key args))))
 
 (define (raise-continuable obj)
-  (call/cc
-   (lambda (k)
-     (throw '%exception (make-raise-object-wrapper obj k)))))
-
-(define (with-exception-handler handler thunk)
-  (with-throw-handler #t
-    thunk
-    (lambda (key . args)
-      (cond ((not (eq? key '%exception))
-             (let ((obj (convert-guile-exception key args)))
-               (handler obj)
-               (raise-exception (make-non-continuable-error))))
-            ((and (not (null? args))
-                  (raise-object-wrapper? (car args)))
-             (let* ((cargs (car args))
-                    (obj (raise-object-wrapper-obj cargs))
-                    (continuation (raise-object-wrapper-continuation cargs))
-                    (handler-return (handler obj)))
-               (if continuation
-                   (continuation handler-return)
-                   (raise-exception (make-non-continuable-error)))))))))
+  (raise-exception obj #:continuable? #t))
 
 ;;; Exception printing
 
 (define (exception-printer port key args punt)
   (cond ((and (= 1 (length args))
-              (raise-object-wrapper? (car args)))
-         (let ((obj (raise-object-wrapper-obj (car args))))
-           (cond ((exception? obj)
-                  (display "ERROR:\n" port)
-                  (format-exception port obj))
-                 (else
-                  (format port "ERROR: `~s'" obj)))))
+              (exception? (car args)))
+         (display "ERROR:\n" port)
+         (format-exception port (car args)))
         (else
          (punt))))
 
@@ -301,6 +250,17 @@
           (_ #f))
          args))
 
+(define make-quit-exception (record-constructor &quit-exception))
+(define (guile-quit-exception-converter key args)
+  (define code
+    (cond
+     ((not (pair? args)) 0)
+     ((integer? (car args)) (car args))
+     ((not (car args)) 1)
+     (else 0)))
+  (make-exception (make-quit-exception code)
+                  (guile-common-exceptions key args)))
+
 (define (guile-lexical-error-converter key args)
   (make-exception (make-lexical-error)
                   (guile-common-exceptions key args)))
@@ -348,7 +308,8 @@
 
 ;; An alist mapping native Guile exception keys to converters.
 (define guile-exception-converters
-  `((read-error                . ,guile-lexical-error-converter)
+  `((quit                      . ,guile-quit-exception-converter)
+    (read-error                . ,guile-lexical-error-converter)
     (syntax-error              . ,guile-syntax-error-converter)
     (unbound-variable          . ,guile-undefined-variable-error-converter)
     (wrong-number-of-args      . ,guile-assertion-failure-converter)
@@ -372,3 +333,6 @@
 (define (set-guile-exception-converter! key proc)
   (set! guile-exception-converters
         (acons key proc guile-exception-converters)))
+
+;; Override core definition.
+(set! make-exception-from-throw convert-guile-exception)

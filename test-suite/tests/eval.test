@@ -1,5 +1,6 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000-2001,2003-2015,2017,2019
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -387,12 +388,11 @@
   (pass-if "inner trim with prompt tag"
     (let* ((stack (make-tagged-trimmed-stack tag `(#t ,tag)))
            (frames (stack->frames stack)))
-      ;; the top frame on the stack is the lambda inside the 'catch, and the
-      ;; next frame is the (catch 'result ...)
-      (and (eq? (car (frame-call-representation (cadr frames)))
-                'catch)
-           (eq? (car (frame-arguments (cadr frames)))
-                'result))))
+      ;; the top frame on the stack is the body of the catch, and the
+      ;; next frame is the with-exception-handler corresponding to the
+      ;; (catch 'result ...)
+      (eq? (car (frame-call-representation (cadr frames)))
+           'with-exception-handler)))
 
   (pass-if "outer trim with prompt tag"
     (let* ((stack (make-tagged-trimmed-stack tag `(#t 0 ,tag)))
@@ -402,7 +402,7 @@
       (and (eq? (car (frame-call-representation (car frames)))
                 'make-stack)
            (eq? (car (frame-call-representation (car (last-pair frames))))
-                'with-throw-handler)))))
+                'with-exception-handler)))))
 
 ;;;
 ;;; letrec init evaluation

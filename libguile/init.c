@@ -58,6 +58,7 @@
 #include "error.h"
 #include "eval.h"
 #include "evalext.h"
+#include "exceptions.h"
 #include "expand.h"
 #include "extensions.h"
 #include "fdes-finalizers.h"
@@ -489,6 +490,7 @@ scm_i_init_guile (void *base)
   scm_init_strorder ();
   scm_init_srfi_13 ();
   scm_init_srfi_14 ();  /* Requires smob_prehistory */
+  scm_init_exceptions ();
   scm_init_throw ();    /* Requires smob_prehistory */
   scm_init_trees ();
   scm_init_version ();

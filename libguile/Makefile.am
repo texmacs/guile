@@ -148,6 +148,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	error.c					\
 	eval.c					\
 	evalext.c				\
+	exceptions.c				\
 	expand.c				\
 	extensions.c				\
 	fdes-finalizers.c			\
@@ -264,6 +265,7 @@ DOT_X_FILES =					\
 	error.x					\
 	eval.x					\
 	evalext.x				\
+	exceptions.x				\
 	expand.x				\
 	extensions.x				\
 	fdes-finalizers.x			\
@@ -372,6 +374,7 @@ DOT_DOC_FILES = 				\
 	error.doc				\
 	eval.doc				\
 	evalext.doc				\
+	exceptions.doc				\
 	expand.doc				\
 	extensions.doc				\
 	fdes-finalizers.doc			\
@@ -616,6 +619,7 @@ modinclude_HEADERS =				\
 	error.h					\
 	eval.h					\
 	evalext.h				\
+	exceptions.h				\
 	expand.h				\
 	extensions.h				\
 	fdes-finalizers.h			\

@@ -821,9 +821,9 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
 {
   SCM body_closure, handler_closure;
 
-  body_closure = scm_i_make_catch_body_closure (body, body_data);
+  body_closure = scm_c_make_thunk (body, body_data);
   handler_closure = handler == NULL ? SCM_UNDEFINED :
-    scm_i_make_catch_handler_closure (handler, handler_data);
+    scm_i_make_catch_handler (handler, handler_data);
 
   return scm_call_with_new_thread (body_closure, handler_closure);
 }

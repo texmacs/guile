@@ -1,7 +1,7 @@
 #ifndef SCM_THROW_H
 #define SCM_THROW_H
 
-/* Copyright 1995-1996,1998,2000,2006,2008,2010,2014,2017-2018
+/* Copyright 1995-1996,1998,2000,2006,2008,2010,2014,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -23,17 +23,15 @@
 
 
 #include "libguile/scm.h"
+#include "libguile/exceptions.h"
 
 
 
-typedef SCM (*scm_t_catch_body) (void *data);
+typedef scm_t_thunk scm_t_catch_body;
 typedef SCM (*scm_t_catch_handler) (void *data,
                                     SCM tag, SCM throw_args);
 
-SCM_INTERNAL SCM scm_i_make_catch_body_closure (scm_t_catch_body body,
-                                                void *body_data);
-SCM_INTERNAL SCM scm_i_make_catch_handler_closure (scm_t_catch_handler h,
-                                                   void *handler_data);
+SCM_INTERNAL SCM scm_i_make_catch_handler (scm_t_catch_handler h, void *data);
 
 SCM_API SCM scm_c_catch (SCM tag,
 			 scm_t_catch_body body,
@@ -84,14 +82,6 @@ SCM_API SCM scm_catch_with_pre_unwind_handler (SCM tag, SCM thunk, SCM handler, 
 SCM_API SCM scm_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_with_throw_handler (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_ithrow (SCM key, SCM args, int no_return) SCM_NORETURN;
-
-/* This throws to the `stack-overflow' key, without running pre-unwind
-   handlers.  */
-SCM_API void scm_report_stack_overflow (void);
-
-/* This throws to the `out-of-memory' key, without running pre-unwind
-   handlers.  */
-SCM_API void scm_report_out_of_memory (void);
 
 SCM_API SCM scm_throw (SCM key, SCM args) SCM_NORETURN;
 SCM_INTERNAL void scm_init_throw (void);

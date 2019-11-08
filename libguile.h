@@ -49,6 +49,7 @@ extern "C" {
 #include "libguile/error.h"
 #include "libguile/eval.h"
 #include "libguile/evalext.h"
+#include "libguile/exceptions.h"
 #include "libguile/extensions.h"
 #include "libguile/fdes-finalizers.h"
 #include "libguile/feature.h"
