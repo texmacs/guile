@@ -1139,38 +1139,16 @@ descriptor @var{rtd} (and not any of its sub- or supertypes) is mutable.
 @subsubsection rnrs exceptions
 
 The @code{(rnrs exceptions (6))} library provides functionality related
-to signaling and handling exceptional situations.  This functionality is
-similar to the exception handling systems provided by Guile's core 
-library @xref{Exceptions}, and by the SRFI-18 and SRFI-34 
-modules---@xref{SRFI-18 Exceptions}, and @ref{SRFI-34}, 
-respectively---but there are some key differences in concepts and 
-behavior.
-
-A raised exception may be @dfn{continuable} or @dfn{non-continuable}.
-When an exception is raised non-continuably, another exception, with the
-condition type @code{&non-continuable}, will be raised when the
-exception handler returns locally.  Raising an exception continuably
-captures the current continuation and invokes it after a local return
-from the exception handler.
-
-Like SRFI-18 and SRFI-34, R6RS exceptions are implemented on top of
-Guile's native @code{throw} and @code{catch} forms, and use custom
-``throw keys'' to identify their exception types.  As a consequence,
-Guile's @code{catch} form can handle exceptions thrown by these APIs,
-but the reverse is not true: Handlers registered by the
-@code{with-exception-handler} procedure described below will only be
-called on exceptions thrown by the corresponding @code{raise} procedure.
+to signaling and handling exceptional situations.  This functionality
+re-exports Guile's core exception-handling primitives.
+@xref{Exceptions}, for a full discussion.  @xref{SRFI-34}, for a similar
+pre-R6RS facility.  In Guile, SRFI-34, SRFI-35, and R6RS exception
+handling are all built on the same core facilities, and so are
+interoperable.
 
 @deffn {Scheme Procedure} with-exception-handler handler thunk
-Installs @var{handler}, which must be a procedure taking one argument,
-as the current exception handler during the invocation of @var{thunk}, a
-procedure taking zero arguments.  The handler in place at the time
-@code{with-exception-handler} is called is made current again once 
-either @var{thunk} returns or @var{handler} is invoked after an 
-exception is thrown from within @var{thunk}.
-
-This procedure is similar to the @code{with-throw-handler} procedure
-provided by Guile's code library; (@pxref{Throw Handlers}).
+@xref{Raising and Handling Exceptions}, for more information on
+@code{with-exception-handler}.
 @end deffn
 
 @deffn {Scheme Syntax} guard (variable clause1 clause2 ...) body
@@ -1194,16 +1172,17 @@ evaluates to @code{baz}.
 @end deffn
 
 @deffn {Scheme Procedure} raise obj
-Raises a non-continuable exception by invoking the currently-installed
-exception handler on @var{obj}.  If the handler returns, a
-@code{&non-continuable} exception will be raised in the dynamic context
-in which the handler was installed.
+Equivalent to core Guile @code{(raise-exception @var{obj})}.
+@xref{Raising and Handling Exceptions}.  p(Unfortunately, @code{raise}
+is already bound to a different function in core Guile.
+@xref{Signals}.)
 @end deffn
 
 @deffn {Scheme Procedure} raise-continuable obj
-Raises a continuable exception by invoking currently-installed exception
-handler on @var{obj}.
+Equivalent to core Guile @code{(raise-exception @var{obj} #:continuable?
+#t)}.  @xref{Raising and Handling Exceptions}.
 @end deffn
+
 
 @node rnrs conditions
 @subsubsection rnrs conditions
@@ -1232,17 +1211,26 @@ component simple condition of the appropriate type; the field accessors
 return the requisite fields from the first component simple condition 
 found to be of the appropriate type.
 
+Guile's R6RS layer uses core exception types from the @code{(ice-9
+exceptions)} module as the basis for its R6RS condition system.  Guile
+prefers to use the term ``exception object'' and ``exception type''
+rather than ``condition'' or ``condition type'', but that's just a
+naming difference.  Guile also has different names for the types in the
+condition hierarchy.  @xref{Exception Objects}, for full details.
+
 This library is quite similar to the SRFI-35 conditions module
-(@pxref{SRFI-35}).  Among other minor differences, the 
-@code{(rnrs conditions)} library features slightly different semantics
-around condition field accessors, and comes with a larger number of
-pre-defined condition types.  The two APIs are not currently compatible,
-however; the @code{condition?} predicate from one API will return 
-@code{#f} when applied to a condition object created in the other.
+(@pxref{SRFI-35}).  Among other minor differences, the @code{(rnrs
+conditions)} library features slightly different semantics around
+condition field accessors, and comes with a larger number of pre-defined
+condition types.  The two APIs are compatible; the @code{condition?}
+predicate from one API will return @code{#t} when applied to a condition
+object created in the other.   of the condition types are the same,
+also.
 
 @deffn {Condition Type} &condition
 @deffnx {Scheme Procedure} condition? obj
-The base record type for conditions.
+The base record type for conditions.  Known as @code{&exception} in core
+Guile.
 @end deffn
 
 @deffn {Scheme Procedure} condition condition1 ...
@@ -1294,27 +1282,29 @@ A base type for representing non-fatal conditions during execution.
 @deffnx {Scheme Procedure} make-serious-condition
 @deffnx {Scheme Procedure} serious-condition? obj
 A base type for conditions representing errors serious enough that
-cannot be ignored.
+cannot be ignored.  Known as @code{&error} in core Guile.
 @end deffn
 
 @deffn {Condition Type} &error
 @deffnx {Scheme Procedure} make-error
 @deffnx {Scheme Procedure} error? obj
-A base type for conditions representing errors.
+A base type for conditions representing errors.  Known as
+@code{&external-error} in core Guile.
 @end deffn
 
 @deffn {Condition Type} &violation
 @deffnx {Scheme Procedure} make-violation
 @deffnx {Scheme Procedure} violation?
-A subtype of @code{&serious} that can be used to represent violations
-of a language or library standard.
+A subtype of @code{&serious} that can be used to represent violations of
+a language or library standard.  Known as @code{&programming-error} in
+core Guile.
 @end deffn
 
 @deffn {Condition Type} &assertion
 @deffnx {Scheme Procedure} make-assertion-violation
 @deffnx {Scheme Procedure} assertion-violation? obj
 A subtype of @code{&violation} that indicates an invalid call to a
-procedure.
+procedure.  Known as @code{&assertion-failure} in core Guile.
 @end deffn
 
 @deffn {Condition Type} &irritants
@@ -1368,7 +1358,7 @@ indicate the syntactic form responsible for the condition.
 @deffnx {Scheme Procedure} make-undefined-violation
 @deffnx {Scheme Procedure} undefined-violation? obj
 A subtype of @code{&violation} that indicates a reference to an unbound
-identifier.
+identifier.  Known as @code{&undefined-variable} in core Guile.
 @end deffn
 
 @node R6RS I/O Conditions

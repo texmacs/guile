@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014, 2017, 2018
+@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014, 2017, 2018, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -3320,7 +3320,26 @@ handling mechanisms} as an alternative to its own built-in mechanisms
 (use-modules (srfi srfi-34))
 @end lisp
 
-@c FIXME: Document it.
+@xref{Raising and Handling Exceptions}, for more on
+@code{with-exception-handler} and @code{raise} (known as
+@code{raise-exception} in core Guile).
+
+SRFI-34's @code{guard} form is syntactic sugar over
+@code{with-exception-handler}:
+
+@deffn {Syntax} guard (var clause @dots{}) body @dots{}
+Evaluate @var{body} with an exception handler that binds the raised
+object to @var{var} and within the scope of that binding evaluates
+@var{clause}@dots{} as if they were the clauses of a cond expression.
+That implicit cond expression is evaluated with the continuation and
+dynamic environment of the guard expression.
+
+If every @var{clause}'s test evaluates to false and there is no
+@code{else} clause, then @code{raise} is re-invoked on the raised object
+within the dynamic environment of the original call to @code{raise}
+except that the current exception handler is that of the @code{guard}
+expression.
+@end deffn
 
 
 @node SRFI-35
@@ -3330,7 +3349,7 @@ handling mechanisms} as an alternative to its own built-in mechanisms
 @cindex conditions
 @cindex exceptions
 
-@uref{http://srfi.schemers.org/srfi-35/srfi-35.html, SRFI-35} implements
+@uref{http://srfi.schemers.org/srfi-35/srfi-35.html, SRFI-35} defines
 @dfn{conditions}, a data structure akin to records designed to convey
 information about exceptional conditions between parts of a program.  It
 is normally used in conjunction with SRFI-34's @code{raise}:
@@ -3497,6 +3516,12 @@ the user.
 @deffn {Scheme Procedure} error? c
 Return true if @var{c} is of type @code{&error} or one of its subtypes.
 @end deffn
+
+As an implementation note, condition objects in Guile are the same as
+``exception objects''.  @xref{Exception Objects}.  The
+@code{&condition}, @code{&serious}, and @code{&error} condition types
+are known in core Guile as @code{&exception}, @code{&error}, and
+@code{&external-error}, respectively.
 
 @node SRFI-37
 @subsection SRFI-37 - args-fold

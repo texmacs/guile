@@ -356,8 +356,8 @@ library, or from Guile itself.
 
 @menu
 * Catching Exceptions::    Handling errors after the stack is unwound.
-* Capturing Stacks::       Capturing the stack at the time of error.
 * Pre-Unwind Debugging::   Debugging before the exception is thrown.
+* Standard Error Handling:: Call-with-error-handling.
 * Stack Overflow::         Detecting and handling runaway recursion.
 * Debug Options::          A historical interface to debugging.
 @end menu
@@ -370,230 +370,64 @@ possible when a Scheme program hits an error.  The most immediate
 information about an error is the kind of error that it is -- such as
 ``division by zero'' -- and any parameters that the code which signalled
 the error chose explicitly to provide.  This information originates with
-the @code{error} or @code{throw} call (or their C code equivalents, if
-the error is detected by C code) that signals the error, and is passed
-automatically to the handler procedure of the innermost applicable
-@code{catch} or @code{with-throw-handler} expression.
+the @code{error} or @code{raise-exception} call (or their C code
+equivalents, if the error is detected by C code) that signals the error,
+and is passed automatically to the handler procedure of the innermost
+applicable exception handler.
 
 Therefore, to catch errors that occur within a chunk of Scheme code, and
 to intercept basic information about those errors, you need to execute
-that code inside the dynamic context of a @code{catch} or
-@code{with-throw-handler} expression, or the equivalent in C. In Scheme,
-this means you need something like this:
-
-@lisp
-(catch #t
-       (lambda ()
-         ;; Execute the code in which
-         ;; you want to catch errors here.
-         ...)
-       (lambda (key . parameters)
-         ;; Put the code which you want
-         ;; to handle an error here.
-         ...))
-@end lisp
-
-@noindent
-The @code{catch} here can also be @code{with-throw-handler}; see
-@ref{Throw Handlers} for information on the when you might want to use
-@code{with-throw-handler} instead of @code{catch}.
+that code inside the dynamic context of a @code{with-exception-handler},
+or the equivalent in C.
 
 For example, to print out a message and return #f when an error occurs,
 you might use:
 
 @smalllisp
 (define (catch-all thunk)
-  (catch #t
-    thunk
-    (lambda (key . parameters)
+  (with-exception-handler
+    (lambda (exn)
       (format (current-error-port)
-              "Uncaught throw to '~a: ~a\n" key parameters)
-      #f)))
+              "Uncaught exception: ~s\n" exn)
+      #f)
+    thunk
+    #:unwind? #t))
 
 (catch-all
  (lambda () (error "Not a vegetable: tomato")))
-@print{} Uncaught throw to 'misc-error: (#f ~A (Not a vegetable: tomato) #f)
+@print{} Uncaught exception: #<&exception-with-kind-and-args ...>
 @result{} #f
 @end smalllisp
 
-The @code{#t} means that the catch is applicable to all kinds of error.
-If you want to restrict your catch to just one kind of error, you can
-put the symbol for that kind of error instead of @code{#t}. The
-equivalent to this in C would be something like this:
+@xref{Exceptions}, for full details.
 
-@lisp
-SCM my_body_proc (void *body_data)
-@{
-  /* Execute the code in which
-     you want to catch errors here. */
-  ...
-@}
-
-SCM my_handler_proc (void *handler_data,
-                     SCM key,
-                     SCM parameters)
-@{
-  /* Put the code which you want
-     to handle an error here. */
-  ...
-@}
-
-@{
-  ...
-  scm_c_catch (SCM_BOOL_T,
-               my_body_proc, body_data,
-               my_handler_proc, handler_data,
-               NULL, NULL);
-  ...
-@}
-@end lisp
-
-@noindent
-Again, as with the Scheme version, @code{scm_c_catch} could be replaced
-by @code{scm_c_with_throw_handler}, and @code{SCM_BOOL_T} could instead
-be the symbol for a particular kind of error.
-
-@node Capturing Stacks
-@subsubsection Capturing the full error stack
-
-The other interesting information about an error is the full Scheme
-stack at the point where the error occurred; in other words what
-innermost expression was being evaluated, what was the expression that
-called that one, and so on.  If you want to write your code so that it
-captures and can display this information as well, there are a couple
-important things to understand.
-
-Firstly, the stack at the point of the error needs to be explicitly
-captured by a @code{make-stack} call (or the C equivalent
-@code{scm_make_stack}).  The Guile library does not do this
-``automatically'' for you, so you will need to write code with a
-@code{make-stack} or @code{scm_make_stack} call yourself.  (We emphasise
-this point because some people are misled by the fact that the Guile
-interactive REPL code @emph{does} capture and display the stack
-automatically.  But the Guile interactive REPL is itself a Scheme
-program@footnote{In effect, it is the default program which is run when
-no commands or script file are specified on the Guile command line.}
-running on top of the Guile library, and which uses @code{catch} and
-@code{make-stack} in the way we are about to describe to capture the
-stack when an error occurs.)
-
-And secondly, in order to capture the stack effectively at the point
-where the error occurred, the @code{make-stack} call must be made before
-Guile unwinds the stack back to the location of the prevailing catch
-expression. This means that the @code{make-stack} call must be made
-within the handler of a @code{with-throw-handler} expression, or the
-optional "pre-unwind" handler of a @code{catch}. (For the full story of
-how these alternatives differ from each other, see @ref{Exceptions}. The
-main difference is that @code{catch} terminates the error, whereas
-@code{with-throw-handler} only intercepts it temporarily and then allow
-it to continue propagating up to the next innermost handler.)
-
-So, here are some examples of how to do all this in Scheme and in C.
-For the purpose of these examples we assume that the captured stack
-should be stored in a variable, so that it can be displayed or
-arbitrarily processed later on.  In Scheme:
-
-@lisp
-(let ((captured-stack #f))
-  (catch #t
-         (lambda ()
-           ;; Execute the code in which
-           ;; you want to catch errors here.
-           ...)
-         (lambda (key . parameters)
-           ;; Put the code which you want
-           ;; to handle an error after the
-           ;; stack has been unwound here.
-           ...)
-         (lambda (key . parameters)
-           ;; Capture the stack here:
-           (set! captured-stack (make-stack #t))))
-  ...
-  (if captured-stack
-      (begin
-        ;; Display or process the captured stack.
-        ...))
-  ...)
-@end lisp
-
-@noindent
-And in C:
-
-@lisp
-SCM my_body_proc (void *body_data)
-@{
-  /* Execute the code in which
-     you want to catch errors here. */
-  ...
-@}
-
-SCM my_handler_proc (void *handler_data,
-                     SCM key,
-                     SCM parameters)
-@{
-  /* Put the code which you want
-     to handle an error after the
-     stack has been unwound here. */
-  ...
-@}
-
-SCM my_preunwind_proc (void *handler_data,
-                       SCM key,
-                       SCM parameters)
-@{
-  /* Capture the stack here: */
-  *(SCM *)handler_data = scm_make_stack (SCM_BOOL_T, SCM_EOL);
-@}
-
-@{
-  SCM captured_stack = SCM_BOOL_F;
-  ...
-  scm_c_catch (SCM_BOOL_T,
-               my_body_proc, body_data,
-               my_handler_proc, handler_data,
-               my_preunwind_proc, &captured_stack);
-  ...
-  if (captured_stack != SCM_BOOL_F)
-  @{
-    /* Display or process the captured stack. */
-    ...
-  @}
-  ...
-@}
-@end lisp
-
-Once you have a captured stack, you can interrogate and display its
-details in any way that you want, using the @code{stack-@dots{}} and
-@code{frame-@dots{}} API described in @ref{Stacks} and
-@ref{Frames}.
-
-If you want to print out a backtrace in the same format that the Guile
-REPL does, you can use the @code{display-backtrace} procedure to do so.
-You can also use @code{display-application} to display an individual
-frame in the Guile REPL format.
 
 @node Pre-Unwind Debugging
 @subsubsection Pre-Unwind Debugging
 
-Instead of saving a stack away and waiting for the @code{catch} to
-return, you can handle errors directly, from within the pre-unwind
-handler.
+Sometimes when something goes wrong, what you want is not just a
+representation of the exceptional situation, but the context that
+brought about that situation.  The example in the previous section
+passed @code{#:unwind #t} to @code{with-exception-handler}, indicating
+that @code{raise-exception} should unwind the stack before invoking the
+exception handler.  However if you don't take this approach and instead
+let the exception handler be invoked in the context of the
+@code{raise-exception}, you can print a backtrace, launch a recursive
+debugger, or take other ``pre-unwind'' actions.
 
-For example, to show a backtrace when an error is thrown, you might want
-to use a procedure like this:
+The most basic idea would be to simply print a backtrace:
 
-@lisp
-(define (with-backtrace thunk)
-  (with-throw-handler #t
-                      thunk
-                      (lambda args (backtrace))))
-(with-backtrace (lambda () (error "Not a vegetable: tomato")))
-@end lisp
+@example
+(define (call-with-backtrace thunk)
+  (with-exception-handler
+    (lambda (exn)
+      (backtrace)
+      (raise-exception exn))
+    thunk))
+@end example
 
-Since we used @code{with-throw-handler} here, we didn't actually catch
-the error. @xref{Throw Handlers}, for more information. However, we did
-print out a context at the time of the error, using the built-in
-procedure, @code{backtrace}.
+Here we use the built-in @code{backtrace} procedure to print the
+backtrace.
 
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
@@ -602,6 +436,47 @@ Display a backtrace of the current stack to the current output port.  If
 @var{highlights} is given it should be a list; the elements of this list
 will be highlighted wherever they appear in the backtrace.
 @end deffn
+
+By re-raising the exception, @code{call-with-backtrace} doesn't actually
+handle the error.  We could define a version that instead aborts the
+computation:
+
+@example
+(use-modules (ice-9 control))
+(define (call-with-backtrace thunk)
+  (let/ec cancel
+    (with-exception-handler
+      (lambda (exn)
+        (backtrace)
+        (cancel #f))
+      thunk)))
+@end example
+
+In this second example, we use an escape continuation to abort the
+computation after printing the backtrace, returning @code{#f} instead.
+
+It could be that you want to only print a limited backtrace.  In that
+case, use @code{start-stack}:
+
+@example
+(use-modules (ice-9 control))
+(define (call-with-backtrace thunk)
+  (let/ec cancel
+    (start-stack 'stack-with-backtrace
+      (with-exception-handler
+        (lambda (exn)
+          (backtrace)
+          (cancel #f))
+        thunk))))
+@end example
+
+There are also more powerful, programmatic ways to walk the stack using
+@code{make-stack} and friends; see the API described in @ref{Stacks} and
+@ref{Frames}.
+
+
+@node Standard Error Handling
+@subsubsection call-with-error-handling
 
 The Guile REPL code (in @file{system/repl/repl.scm} and related files)
 uses a @code{catch} with a pre-unwind handler to capture the stack when
@@ -621,6 +496,12 @@ These procedures are available for use by user programs, in the
        [#:report-keys report-keys='(stack-overflow)] @
        [#:trap-handler trap-handler='debug]
 Call a thunk in a context in which errors are handled.
+
+Note that this function was written when @code{throw}/@code{catch} were
+the fundamental exception handling primitives in Guile, and so exposes
+some aspects of that interface (notably in the form of the procedural
+handlers).  Guile will probably replace this function with a
+@code{call-with-standard-exception-handling} in the future.
 
 There are five keyword arguments:
 
@@ -743,11 +624,11 @@ on @var{l}, not @code{(cdr @var{l})}.  Running this program would cause
 Guile to use up all memory in your system, and eventually Guile would
 fail to grow the stack.  At that point you have a problem: Guile needs
 to raise an exception to unwind the stack and return memory to the
-system, but the user might have throw handlers in place (@pxref{Throw
-Handlers}) that want to run before the stack is unwound, and we don't
-have any stack in which to run them.
+system, but the user might have exception handlers in place
+(@pxref{Raising and Handling Exceptions}) that want to run before the
+stack is unwound, and we don't have any stack in which to run them.
 
-Therefore in this case, Guile throws an unwind-only exception that does
+Therefore in this case, Guile raises an unwind-only exception that does
 not run pre-unwind handlers.  Because this is such an odd case, Guile
 prints out a message on the console, in case the user was expecting to
 be able to get a backtrace from any pre-unwind handler.

@@ -473,8 +473,8 @@ interrupts.  What happens if you hold a mutex, but somehow you cause an
 exception to be thrown?  There is no one right answer.  You might want
 to keep the mutex locked to prevent any other code from ever entering
 that critical section again.  Or, your critical section might be fine if
-you unlock the mutex ``on the way out'', via a catch handler or
-@code{dynamic-wind}.  @xref{Catch}, and @xref{Dynamic Wind}.
+you unlock the mutex ``on the way out'', via an exception handler or
+@code{dynamic-wind}.  @xref{Exceptions}, and @xref{Dynamic Wind}.
 
 But if you arrange to unlock the mutex when leaving a dynamic extent via
 @code{dynamic-wind}, what to do if control re-enters that dynamic extent
