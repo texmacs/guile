@@ -10,6 +10,63 @@ Changes in alpha 2.9.5 (since alpha 2.9.4):
 
 * Notable changes
 
+** Record unification
+
+Guile used to have a number of implementations of structured data types
+in the form of "records": a core facility, SRFI-9 (records), SRFI-35
+(condition types -- a form of records) and R6RS records.  These
+facilities were not compatible, as they all were built in different
+ways.  This had the unfortunate corollary that SRFI-35 conditions were
+not compatible with R6RS conditions.  To fix this problem, we have now
+added the union of functionality from all of these record types into
+core records: single-inheritance subtyping, mutable and immutable
+fields, and so on.  See "Records" in the manual, for full details.
+
+R6RS records, SRFI-9 records, and the SRFI-35 and R6RS exception types
+have been accordingly "rebased" on top of core records.
+
+** Reimplementation of exceptions
+
+Since Guile's origins 25 years ago, `throw' and `catch' have been the
+primary exception-handling primitives.  However these primitives have
+two problems.  One is that it's hard to handle exceptions in a
+structured way using `catch'.  Few people remember what the
+corresponding `key' and `args' are that an exception handler would see
+in response to a call to `error', for example.  In practice, this
+results in more generic catch-all exception handling than one might
+like.
+
+The other problem is that `throw', `catch', and especially
+`with-throw-handler' are quite unlike what the rest of the Scheme world
+uses.  R6RS and R7RS, for example, have mostly converged on
+SRFI-34-style `with-exception-handler' and `raise' primitives, and
+encourage the use of SRFI-35-style structured exception objects to
+describe the error.  Guile's R6RS layer incorporates an adapter between
+`throw'/`catch' and structured exception handling, but it didn't apply
+to SRFI-34/SRFI-35, and we would have to duplicate it for R7RS.
+
+In light of these considerations, Guile has now changed to make
+`with-exception-handler' and `raise-exception' its primitives for
+exception handling and defined a hierarchy of R6RS-style exception types
+in its core.  SRFI-34/35, R6RS, and the exception-handling components of
+SRFI-18 (threads) have been re-implemented in terms of this core
+functionality.  There is also a a compatibility layer that makes it so
+that exceptions originating in `throw' can be handled by
+`with-exception-hander', and vice-versa for `raise-exception' and
+`catch'.
+
+Generally speaking, users will see no difference.  The one significant
+difference is that users of SRFI-34 will see more exceptions flowing
+through their `with-exception-handler'/`guard' forms, because whereas
+before they would only see exceptions thrown by SRFI-34, now they will
+see exceptions thrown by R6RS, R7RS, or indeed `throw'.
+
+Guile's situation is transitional.  Most exceptions are still signalled
+via `throw'.  These will probably migrate over time to
+`raise-exception', while preserving compatibility of course.
+
+See "Exceptions" in the manual, for full details on the new API.
+
 ** More optimization for unexported definitions at -O3
 
 There is a new optimization pass, `seal-private-bindings', which is
@@ -36,7 +93,7 @@ Related to the last point, since the "Fix literal matching for
 module-bound literals" change in the 2.2 series, it was no longer
 possible to use the conventional `_' binding as an alias for `gettext',
 because a local `_' definition would prevent `_' from being recognized
-as aux syntax for `match', `syntax-rules', and similar.  The new
+as auxiliary syntax for `match', `syntax-rules', and similar.  The new
 recommended conventional alias for `gettext' is `G_'.
 
 ** Add --r6rs command-line option
@@ -46,6 +103,13 @@ R6RS-compatible.  This procedure is called if the user passes `--r6rs'
 as a command-line argument.  See "R6RS Incompatibilities" in the manual,
 for full details.
 
+* New deprecations
+
+** The two-argument form of `record-constructor'
+
+Calling `record-constructor' with two arguments (the record type and a
+list of field names) is deprecated.  Instead, call with just one
+argument, and provide a wrapper around that constructor if needed.
 
 
 Changes in alpha 2.9.x (since the stable 2.2 series):

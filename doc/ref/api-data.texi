@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2006-2017
+@c Copyright (C)  1996, 1997, 2000-2004, 2006-2017, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -8632,7 +8632,7 @@ promise that records are disjoint with other Scheme types.
 
 @deffn {Scheme Procedure} make-record-type type-name field-names [print] @
        [#:parent=@code{#f}] [#:uid=@code{#f}] @
-       [#:extensible?=@code{#f}] [#:opaque?] @
+       [#:extensible?=@code{#f}] [#:opaque?=@code{#f}] @
 Create and return a new @dfn{record-type descriptor}.
 
 @var{type-name} is a string naming the type.  Currently it's only used
