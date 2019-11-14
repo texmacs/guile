@@ -31,13 +31,10 @@
 ;;; Code:
 
 (define-module (srfi srfi-18)
+  #:use-module (ice-9 exceptions)
   #:use-module ((ice-9 threads) #:prefix threads:)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-9)
-  #:use-module ((srfi srfi-34) #:prefix srfi-34:)
-  #:use-module ((srfi srfi-35) #:select (define-condition-type
-                                          &error
-                                          condition))
   #:export (;; Threads
             make-thread
             thread-name
@@ -74,13 +71,13 @@
             seconds->time
  
             current-exception-handler
-            with-exception-handler
             join-timeout-exception?
             abandoned-mutex-exception?
             terminated-thread-exception?
             uncaught-exception?
             uncaught-exception-reason)
-  #:re-export ((srfi-34:raise . raise))
+  #:re-export ((raise-continuable . raise)
+               with-exception-handler)
   #:replace (current-time
              current-thread
              thread?
@@ -101,14 +98,14 @@
       (scm-error 'wrong-type-arg caller
 		 "Wrong type argument: ~S" (list arg) '())))
 
-(define-condition-type &abandoned-mutex-exception &error
-  abandoned-mutex-exception?)
-(define-condition-type &join-timeout-exception &error
-  join-timeout-exception?)
-(define-condition-type &terminated-thread-exception &error
-  terminated-thread-exception?)
-(define-condition-type &uncaught-exception &error
-  uncaught-exception?
+(define-exception-type &abandoned-mutex-exception &external-error
+  make-abandoned-mutex-exception abandoned-mutex-exception?)
+(define-exception-type &join-timeout-exception &external-error
+  make-join-timeout-exception join-timeout-exception?)
+(define-exception-type &terminated-thread-exception &external-error
+  make-terminated-thread-exception terminated-thread-exception?)
+(define-exception-type &uncaught-exception &programming-error
+  make-uncaught-exception uncaught-exception?
   (reason uncaught-exception-reason))
 
 (define-record-type <mutex>
@@ -159,20 +156,17 @@ object (absolute point in time), or #f."
 (define (exception-handler-for-foreign-threads obj)
   (values))
 
-(define current-exception-handler
-  (make-parameter exception-handler-for-foreign-threads))
-
-(define (with-exception-handler handler thunk)
-  (check-arg-type procedure? handler "with-exception-handler")
-  (check-arg-type thunk? thunk "with-exception-handler")
-  (srfi-34:with-exception-handler
-   (let ((prev-handler (current-exception-handler)))
-     (lambda (obj)
-       (parameterize ((current-exception-handler prev-handler))
-         (handler obj))))
-   (lambda ()
-     (parameterize ((current-exception-handler handler))
-       (thunk)))))
+(define (current-exception-handler)
+  (let ((tag (make-prompt-tag)))
+    (call-with-prompt
+     tag
+     (lambda ()
+       (with-exception-handler
+        (lambda (exn)
+          (raise-exception (abort-to-prompt tag) #:continuable? #t))
+        (lambda ()
+          (raise-exception #f #:continuable? #t))))
+     (lambda (k) k))))
 
 ;; THREADS
 
@@ -201,23 +195,19 @@ object (absolute point in time), or #f."
     (mutex-lock! sm)
     (let ((prim (threads:call-with-new-thread
                  (lambda ()
-                   (catch #t
-                     (lambda ()
-                       (parameterize ((current-thread thread))
-                         (with-thread-mutex-cleanup
-                          (lambda ()
-                            (mutex-lock! sm)
-                            (condition-variable-signal! sc)
-                            (mutex-unlock! sm sc)
-                            (thunk)))))
-                     (lambda (key . args)
-                       (set-thread-exception!
-                        thread
-                        (condition (&uncaught-exception
-                                    (reason
-                                     (match (cons key args)
-                                       (('srfi-34 obj) obj)
-                                       (obj obj))))))))))))
+                   (with-exception-handler
+                    (lambda (exn)
+                      (set-thread-exception! thread
+                                             (make-uncaught-exception exn)))
+                    (lambda ()
+                      (parameterize ((current-thread thread))
+                        (with-thread-mutex-cleanup
+                         (lambda ()
+                           (mutex-lock! sm)
+                           (condition-variable-signal! sc)
+                           (mutex-unlock! sm sc)
+                           (thunk)))))
+                    #:unwind? #t)))))
       (set-thread-prim! thread prim)
       (mutex-unlock! sm sc)
       thread)))
@@ -248,26 +238,14 @@ object (absolute point in time), or #f."
     (when (> usecs 0) (usleep usecs))
     *unspecified*))
 
-;; Whereas SRFI-34 leaves the continuation of a call to an exception
-;; handler unspecified, SRFI-18 has this to say:
+;; SRFI-18 has this to say:
 ;;
 ;;   When one of the primitives defined in this SRFI raises an exception
 ;;   defined in this SRFI, the exception handler is called with the same
 ;;   continuation as the primitive (i.e. it is a tail call to the
 ;;   exception handler).
 ;;
-;; Therefore arrange for exceptions thrown by SRFI-18 primitives to run
-;; handlers with the continuation of the primitive call, for those
-;; primitives that throw exceptions.
-
-(define (with-exception-handlers-here thunk)
-  (let ((tag (make-prompt-tag)))
-    (call-with-prompt tag
-      (lambda ()
-        (with-exception-handler (lambda (exn) (abort-to-prompt tag exn))
-          thunk))
-      (lambda (k exn)
-        ((current-exception-handler) exn)))))
+;; Therefore we use raise-continuable as appropriate.
 
 ;; A unique value.
 (define %cancel-sentinel (list 'cancelled))
@@ -279,21 +257,19 @@ object (absolute point in time), or #f."
 (define %timeout-sentinel (list 1))
 (define* (thread-join! thread #:optional (timeout %timeout-sentinel)
                        (timeoutval %timeout-sentinel))
-  (let ((t (thread-prim thread)))
-    (with-exception-handlers-here
-     (lambda ()
-       (let* ((v (if (eq? timeout %timeout-sentinel)
-                     (threads:join-thread t)
-                     (threads:join-thread t timeout %timeout-sentinel))))
-         (cond
-          ((eq? v %timeout-sentinel)
-           (if (eq? timeoutval %timeout-sentinel)
-               (srfi-34:raise (condition (&join-timeout-exception)))
-               timeoutval))
-          ((eq? v %cancel-sentinel)
-           (srfi-34:raise (condition (&terminated-thread-exception))))
-          ((thread-exception thread) => srfi-34:raise)
-          (else v)))))))
+  (let* ((t (thread-prim thread))
+         (v (if (eq? timeout %timeout-sentinel)
+                (threads:join-thread t)
+                (threads:join-thread t timeout %timeout-sentinel))))
+    (cond
+     ((eq? v %timeout-sentinel)
+      (if (eq? timeoutval %timeout-sentinel)
+          (raise-continuable (make-join-timeout-exception))
+          timeoutval))
+     ((eq? v %cancel-sentinel)
+      (raise-continuable (make-terminated-thread-exception)))
+     ((thread-exception thread) => raise-continuable)
+     (else v))))
 
 ;; MUTEXES
 
@@ -315,18 +291,16 @@ object (absolute point in time), or #f."
   (let ((mutexes (thread-mutexes)))
     (when mutexes
       (hashq-set! mutexes mutex #t)))
-  (with-exception-handlers-here
-   (lambda ()
-     (cond
-      ((threads:lock-mutex (mutex-prim mutex)
-                           (timeout->absolute-time timeout))
-       (set-mutex-owner! mutex thread)
-       (when (mutex-abandoned? mutex)
-         (set-mutex-abandoned?! mutex #f)
-         (srfi-34:raise
-          (condition (&abandoned-mutex-exception))))
-       #t)
-      (else #f)))))
+  (cond
+   ((threads:lock-mutex (mutex-prim mutex)
+                        (timeout->absolute-time timeout))
+    (set-mutex-owner! mutex thread)
+    (cond
+     ((mutex-abandoned? mutex)
+      (set-mutex-abandoned?! mutex #f)
+      (raise-continuable (make-abandoned-mutex-exception)))
+     (else #t)))
+   (else #f)))
 
 (define %unlock-sentinel (list 'unlock))
 (define* (mutex-unlock! mutex #:optional (cond-var %unlock-sentinel)

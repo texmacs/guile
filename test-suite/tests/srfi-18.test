@@ -461,21 +461,24 @@
     (pass-if "current handler returned at top level"
       (procedure? (current-exception-handler)))
 
-    (pass-if "specified handler set under with-exception-handler"
-      (let ((h (lambda (key . args) 'nothing)))
-        (with-exception-handler h (lambda () (eq? (current-exception-handler) 
-                                                  h)))))
+    (pass-if-equal "specified handler set under with-exception-handler"
+        'nothing
+      (let ((h (lambda (exn) 'nothing)))
+        (with-exception-handler
+         h
+         (lambda () ((current-exception-handler) #f)))))
 
-    (pass-if "multiple levels of handler nesting"
-      (let ((h (lambda (key . args) 'nothing))
-            (i (current-exception-handler)))
-        (and (with-exception-handler h (lambda () 
-                                         (eq? (current-exception-handler) h)))
-             (eq? (current-exception-handler) i))))
+    (pass-if-equal "multiple levels of handler nesting"
+        42
+      (with-exception-handler
+       (lambda (exn) (+ exn 20))
+       (lambda ()
+         (with-exception-handler
+          (lambda (exn) (raise (+ exn 12)))
+          (lambda () (raise 10))))))
 
     (pass-if "exception handler installation is thread-safe"
-      (let* ((h1 (current-exception-handler))
-             (h2 (lambda (key . args) 'nothing-2))
+      (let* ((h2 (lambda (exn) 'nothing-2))
              (m (make-mutex 'current-exception-handler-4))
              (c (make-condition-variable 'current-exception-handler-4))
              (t (make-thread (lambda () 
@@ -485,15 +488,14 @@
                                      (condition-variable-signal! c) 
                                      (mutex-unlock! m c)
                                      (mutex-lock! m)
-                                     (and (eq? (current-exception-handler) h2)
+                                     (and (eq? (raise #f) 'nothing-2)
                                           (mutex-unlock! m)))))
                              'current-exception-handler-4)))
         (mutex-lock! m)
         (thread-start! t)
         (mutex-unlock! m c)
         (mutex-lock! m)
-        (and (eq? (current-exception-handler) h1)
-             (condition-variable-signal! c)
+        (and (condition-variable-signal! c)
              (mutex-unlock! m)
              (thread-join! t)))))
 
@@ -518,7 +520,10 @@
         (with-exception-handler
          (lambda (obj)
            (and (uncaught-exception? obj)
-                (equal? (uncaught-exception-reason obj) '(foo))
+                (equal? (exception-kind (uncaught-exception-reason obj))
+                        'foo)
+                (equal? (exception-args (uncaught-exception-reason obj))
+                        '())
                 (set! success #t)))
          (lambda () (thread-join! t)))
         success)))))

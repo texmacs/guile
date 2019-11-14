@@ -1538,7 +1538,9 @@ exception that is an instance of @var{rtd}."
           (else
            exn)))))
 
-  (define-values* (raise-exception
+  (define-values* (exception-kind
+                   exception-args
+                   raise-exception
                    with-exception-handler
                    catch
                    with-throw-handler

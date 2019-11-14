@@ -32,6 +32,9 @@
                exception-predicate
                exception-accessor
 
+               exception-kind
+               exception-args
+
                &error
                &programming-error
                &non-continuable
