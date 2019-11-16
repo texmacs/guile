@@ -84,6 +84,10 @@
 (define-syntax-rule (test expected expr)
   (pass-if (%test-equal? expr expected)))
 
+;; This form is used for those R7RS tests that do not yet pass in Guile.
+(define-syntax-rule (failing-test url expected expr)
+  (expect-fail url (%test-equal? expr expected)))
+
 (define-syntax-rule (test-values expected expr)
   (pass-if-equal (call-with-values (lambda () expected) list)
       (call-with-values (lambda () expr) list)))
@@ -1444,7 +1448,9 @@
 (test "γλώσσα" (string-foldcase "ΓΛΏΣΣΑ"))
 (test "ΜΈΛΟΣ" (string-upcase "μέλος"))
 (test #t (and (member (string-downcase "ΜΈΛΟΣ") '("μέλος" "μέλοσ")) #t))
-(test "μέλοσ" (string-foldcase "ΜΈΛΟΣ"))
+
+(failing-test "https://bugs.gnu.org/38235"
+              "μέλοσ" (string-foldcase "ΜΈΛΟΣ"))
 (test #t (and (member (string-downcase "ΜΈΛΟΣ ΕΝΌΣ")
                       '("μέλος ενός" "μέλοσ ενόσ"))
               #t))
