@@ -87,6 +87,9 @@
 ;; This form is used for those R7RS tests that do not yet pass in Guile.
 (define-syntax-rule (failing-test url expected expr)
   (expect-fail url (%test-equal? expr expected)))
+(define-syntax-rule (failing-test-with-exception url expected expr)
+  (expect-fail url (guard (exn (else #f))
+                     (%test-equal? expr expected))))
 
 (define-syntax-rule (test-values expected expr)
   (pass-if-equal (call-with-values (lambda () expected) list)
@@ -2162,15 +2165,15 @@
     (get-output-bytevector out)))
 
 (test #t
-    (and (member
-          (let ((out (open-output-string))
-                (x (list 1)))
-            (set-cdr! x x)
-            (write x out)
-            (get-output-string out))
-          ;; labels not guaranteed to be 0 indexed, spacing may differ
-          '("#0=(1 . #0#)" "#1=(1 . #1#)"))
-         #t))
+ (and (member
+       (let ((out (open-output-string))
+             (x (list 1)))
+         (set-cdr! x x)
+         (write x out)
+         (get-output-string out))
+       ;; labels not guaranteed to be 0 indexed, spacing may differ
+       '("#0=(1 . #0#)" "#1=(1 . #1#)"))
+      #t))
 
 (test "((1 2 3) (1 2 3))"
     (let ((out (open-output-string))
@@ -2213,8 +2216,12 @@
 (test '(1 . 2) (read (open-input-string "(1 . 2)")))
 (test '(1 2) (read (open-input-string "(1 . (2))")))
 (test '(1 2 3 4 5) (read (open-input-string "(1 . (2 3 4 . (5)))")))
-(test '1 (cadr (read (open-input-string "#0=(1 . #0#)"))))
-(test '(1 2 3) (cadr (read (open-input-string "(#0=(1 2 3) #0#)"))))
+(failing-test-with-exception
+ "https://bugs.gnu.org/38236"
+ '1 (cadr (read (open-input-string "#0=(1 . #0#)"))))
+(failing-test-with-exception
+ "https://bugs.gnu.org/38236"
+ '(1 2 3) (cadr (read (open-input-string "(#0=(1 2 3) #0#)"))))
 
 (test '(quote (1 2)) (read (open-input-string "'(1 2)")))
 (test '(quote (1 (unquote 2))) (read (open-input-string "'(1 ,2)")))
