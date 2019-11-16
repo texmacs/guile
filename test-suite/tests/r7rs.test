@@ -2261,12 +2261,13 @@
         (read (open-input-string str))
         #f)))
 
-(test-read-error "(#;a . b)")
-(test-read-error "(a . #;b)")
-(test-read-error "(a #;. b)")
-(test-read-error "(#;x #;y . z)")
-(test-read-error "(#; #;x #;y . z)")
-(test-read-error "(#; #;x . z)")
+;; These should all use test-read-error instead.
+(failing-test "https://bugs.gnu.org/38238" #f "(#;a . b)")
+(failing-test "https://bugs.gnu.org/38238" #f "(a . #;b)")
+(failing-test "https://bugs.gnu.org/38238" #f "(a #;. b)")
+(failing-test "https://bugs.gnu.org/38238" #f "(#;x #;y . z)")
+(failing-test "https://bugs.gnu.org/38238" #f "(#; #;x #;y . z)")
+(failing-test "https://bugs.gnu.org/38238" #f "(#; #;x . z)")
 
 (test #\a (read (open-input-string "#\\a")))
 (test #\space (read (open-input-string "#\\space")))
