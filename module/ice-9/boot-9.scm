@@ -4556,6 +4556,12 @@ R6RS.  @xref{R6RS Incompatibilities} in the manual."
   (read-enable 'r6rs-hex-escapes)
   (read-enable 'hungry-eol-escapes))
 
+(define (install-r7rs!)
+  "Make changes to the default environment to better conform to the
+R7RS."
+  (install-r6rs!)
+  (read-enable 'r7rs-symbols))
+
 
 
 ;;; {Deprecated stuff}
