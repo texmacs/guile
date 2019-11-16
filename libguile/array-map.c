@@ -1,4 +1,4 @@
-/* Copyright 1996,1998,2000-2001,2004-2006,2008-2015,2018
+/* Copyright 1996,1998,2000-2001,2004-2006,2008-2015,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -614,8 +614,20 @@ scm_array_equal_p (SCM x, SCM y)
   scm_array_get_handle (x, &hx);
   scm_array_get_handle (y, &hy);
 
-  res = scm_from_bool (hx.ndims == hy.ndims
-                       && hx.element_type == hy.element_type);
+  scm_t_array_element_type t1 = hx.element_type;
+  scm_t_array_element_type t2 = hy.element_type;
+
+  /* R6RS and Guile mostly use #vu8(...) as the literal syntax for
+     bytevectors, but R7RS uses #u8.  To allow R7RS users to re-use the
+     various routines implemented on bytevectors which return vu8-tagged
+     values and to also be able to do (equal? #u8(1 2 3) (bytevector 1 2
+     3)), we allow equality comparisons between vu8 and u8.  */
+  if (t1 == SCM_ARRAY_ELEMENT_TYPE_VU8)
+    t1 = SCM_ARRAY_ELEMENT_TYPE_U8;
+  if (t2 == SCM_ARRAY_ELEMENT_TYPE_VU8)
+    t2 = SCM_ARRAY_ELEMENT_TYPE_U8;
+
+  res = scm_from_bool (hx.ndims == hy.ndims && t1 == t2);
 
   if (scm_is_true (res))
     res = scm_from_bool (array_compare (&hx, &hy, 0, 0, 0));
