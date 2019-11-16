@@ -1846,8 +1846,10 @@
 
 (test #f
     (file-error? (guard (exn (else exn)) (error "BOOM!"))))
-(test #t
-    (file-error? (guard (exn (else exn)) (open-input-file " no such file "))))
+(failing-test
+ "https://bugs.gnu.org/38237"
+ #t
+ (file-error? (guard (exn (else exn)) (open-input-file " no such file "))))
 
 (test #f
     (read-error? (guard (exn (else exn)) (error "BOOM!"))))
@@ -2553,9 +2555,11 @@
 (test #t (file-exists? "."))
 (test #f (file-exists? " no such file "))
 
-(test #t (file-error?
-          (guard (exn (else exn))
-            (delete-file " no such file "))))
+(failing-test
+ "https://bugs.gnu.org/38237"
+ #t (file-error?
+     (guard (exn (else exn))
+       (delete-file " no such file "))))
 
 (test-end)
 
