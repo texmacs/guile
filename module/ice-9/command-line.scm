@@ -140,6 +140,8 @@ If FILE begins with `-' the -s switch is mandatory.
                  which is a list of numbers like \"2,13,14\"
   --r6rs         change initial Guile environment to better support
                  R6RS
+  --r7rs         change initial Guile environment to better support
+                 R7RS
   -h, --help     display this help and exit
   -v, --version  display version information and exit
   \\              read arguments from following script lines"))
@@ -375,6 +377,10 @@ If FILE begins with `-' the -s switch is mandatory.
            ((string=? "--r6rs" arg)
             (parse args
                    (cons '(install-r6rs!) out)))
+
+           ((string=? "--r7rs" arg)
+            (parse args
+                   (cons '(install-r7rs!) out)))
 
            ((string=? arg "--listen")   ; start a repl server
             (parse args

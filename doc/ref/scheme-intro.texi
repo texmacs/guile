@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2019
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -15,11 +15,11 @@ series of reports known as @dfn{RnRS}.  @dfn{RnRS} is shorthand for the
 @ifnottex
 @dfn{Revised^n Report on the Algorithmic Language Scheme}.
 @end ifnottex
-Guile complies fully with R5RS (@pxref{Top,
-,Introduction,r5rs,R5RS}), and implements some aspects of R6RS.
+Guile complies fully with R5RS (@pxref{Top, ,Introduction,r5rs,R5RS}),
+and is largely compliant with R6RS and R7RS.
 
 Guile also has many extensions that go beyond these reports.  Some of
-the areas where Guile extends R5RS are:
+the areas where Guile extends standard Scheme are:
 
 @itemize @bullet
 @item

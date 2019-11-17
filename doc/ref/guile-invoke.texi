@@ -142,6 +142,11 @@ guile --use-srfi=8,13
 Adapt Guile's initial environment to better support R6RS.  @xref{R6RS
 Incompatibilities}, for some caveats.
 
+@item --r7rs
+@cindex r7rs (command line)
+Adapt Guile's initial environment to better support R7RS.  @xref{R7RS
+Incompatibilities}, for some caveats.
+
 @item --debug
 @cindex debugging virtual machine (command line)
 Start with the debugging virtual machine (VM) engine.  Using the

@@ -1,0 +1,137 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  2010, 2011, 2012, 2013,
+@c   2014, 2019 Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node R7RS Support
+@section R7RS Support
+@cindex R7RS
+
+The R7RS standard is essentially R5RS (directly supported by Guile),
+plus a module facility, plus an organization of bindings into a standard
+set of modules.
+
+Happily, the syntax for R7RS modules was chosen to be compatible with
+R6RS, and so Guile's documentation there applies.  @xref{R6RS
+Libraries}, for more information on how to define R6RS libraries, and
+their integration with Guile modules.  @xref{Library Usage}, also.
+
+@menu
+* R7RS Incompatibilities::              Guile mostly implements R7RS.
+* R7RS Standard Libraries::             Modules defined by the R7RS.
+@end menu
+
+@node R7RS Incompatibilities
+@subsection Incompatibilities with the R7RS
+
+As the R7RS is a much less ambitious standard than the R6RS
+(@pxref{Guile and Scheme}), it is very easy for Guile to support.  As
+such, Guile is a fully conforming implementation of R7RS, with the
+exception of the occasional bug and a couple of unimplemented features:
+
+@itemize
+@item
+@cindex datum labels
+The R7RS specifies a syntax for reading circular data structures using
+@dfn{datum labels}, such as @code{#0=(1 2 3 . #0#)}.  Guile's reader
+does not support this syntax currently;
+@url{https://bugs.gnu.org/38236}.
+
+@item
+As with R6RS, a number of lexical features of R7RS conflict with Guile's
+historical syntax.  In addition to @code{r6rs-hex-escapes} and
+@code{hungry-eol-escapes} (@pxref{R6RS Incompatibilities}), the
+@code{r7rs-symbols} reader feature needs to be explicitly enabled.
+@end itemize
+
+Guile exposes a procedure in the root module to choose R7RS defaults
+over Guile's historical defaults.
+
+@deffn {Scheme Procedure} install-r7rs!
+Alter Guile's default settings to better conform to the R7RS.
+
+While Guile's defaults may evolve over time, the current changes that
+this procedure imposes are to add @code{.sls} and @code{.guile.sls} to
+the set of supported @code{%load-extensions}, to better support R7RS
+conventions.  @xref{Load Paths}.  @code{install-r7rs!} will also enable
+the reader options mentioned above.
+@end deffn
+
+Finally, note that the @code{--r7rs} command-line argument will call
+@code{install-r7rs!} before calling user code.  R7RS users probably want
+to pass this argument to their Guile.
+
+@node R7RS Standard Libraries
+@subsection R7RS Standard Libraries
+
+The R7RS organizes the definitions from R5RS into modules, and also adds
+a few new definitions.
+
+We do not attempt to document these libraries fully here, as unlike
+R6RS, there are few new definitions in R7RS relative to R5RS.  Most of
+their functionality is already in Guile's standard environment.  Again,
+the expectation is that most Guile users will use the well-known and
+well-documented Guile modules; these R7RS libraries are mostly useful to
+users who want to port their code to other R7RS systems.
+
+As a brief overview, we note that the libraries defined by the R7RS are
+as follows:
+
+@itemize @code
+@item (scheme base)
+The core functions, mostly corresponding to R5RS minus the elements
+listed separately below, but plus SRFI-34 error handling
+(@pxref{SRFI-34}), bytevectors and bytevector ports
+(@pxref{Bytevectors}), and some miscellaneous other new procedures.
+@item (scheme case-lambda)
+@code{case-lambda}.
+@item (scheme char)
+Converting strings and characters to upper or lower case, predicates for
+if a characer is numeric, and so on.
+@item (scheme complex)
+Constructors and accessors for complex numbers.
+@item (scheme cxr)
+@code{cddr}, @code{cadadr}, and all that.
+@item (scheme eval)
+@code{eval}, but also an @code{environment} routine allowing a user to
+specify an environment using a module import set.
+@item (scheme file)
+@code{call-with-input-file} and so on.
+@item (scheme inexact)
+Routines that operate on inexact numbers: @code{sin}, @code{finite?},
+and so on.
+@item (scheme lazy)
+Promises.
+@item (scheme load)
+The @code{load} procedure.
+@item (scheme process-context)
+Environment variables.  @xref{SRFI-98}.  Also, @code{commmand-line},
+@code{emergency-exit} (like Guile's @code{primitive-_exit}), and
+@code{exit}.
+@item (scheme r5rs)
+The precise set of bindings exported by @code{r5rs}, but without
+@code{transcript-off} / @code{transcript-on}, and also with the
+auxiliary syntax definitions like @code{_} or @code{else}.  @xref{Syntax
+Rules}, for more on auxiliary syntax.
+@item (scheme read)
+The @code{read} procedure.
+@item (scheme repl)
+The @code{interaction-environment} procedure.
+@item (scheme time)
+@code{current-second}, as well as @code{current-jiffy} and
+@code{jiffies-per-second}.  Guile uses the term ``internal time unit''
+for what R7RS calls ``jiffies''.
+@item (scheme write)
+@code{display}, @code{write}, as well as @code{write-shared} and
+@code{write-simple}.
+@end itemize
+
+For complete documentation, we advise the interested user to consult the
+R7RS directly (@pxref{R7RS,,, r7rs, The Revised^7 Report on the
+Algorithmic Language Scheme}).
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

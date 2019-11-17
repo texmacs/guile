@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011,
-@c   2014 Free Software Foundation, Inc.
+@c Copyright (C) 1996-1997,2000-2004,2009-2011,2013-2014,2019
+@c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Binding Constructs
@@ -304,9 +304,9 @@ is equivalent to
 
 Another noteworthy difference to top level definitions is that within
 one group of internal definitions all variable names must be distinct.
-That means where on the top level a second define for a given variable
-acts like a @code{set!}, an exception is thrown for internal definitions
-with duplicate bindings.
+Whereas on the top level a second define for a given variable acts like
+a @code{set!}, for internal definitions, duplicate bound identifiers
+signals an error.
 
 As a historical note, it used to be that internal bindings were expanded
 in terms of @code{letrec}, not @code{letrec*}. This was the situation
