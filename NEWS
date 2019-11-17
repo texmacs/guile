@@ -103,6 +103,18 @@ R6RS-compatible.  This procedure is called if the user passes `--r6rs'
 as a command-line argument.  See "R6RS Incompatibilities" in the manual,
 for full details.
 
+** Add support for R7RS
+
+Thanks to Göran Weinholt and OKUMURA Yuki, Guile now implements the R7RS
+modules.  As the R7RS library syntax is a subset of R6RS, to use R7RS
+you just `(import (scheme base))' and off you go.  As with R6RS also,
+there are some small lexical incompatibilities regarding hex escapes;
+see "R6RS Support" in the manual, for full details.
+
+Also as with R6RS, there is an `install-r7rs!' procedure and a `--r7rs'
+command-line option.
+
+
 * New deprecations
 
 ** The two-argument form of `record-constructor'
