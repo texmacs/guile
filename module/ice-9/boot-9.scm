@@ -4590,6 +4590,14 @@ R7RS."
 
 
 
+;;; {Exceptions}
+;;;
+
+;; Load (ice-9 exceptions), initializing some internal data structures.
+(resolve-interface '(ice-9 exceptions))
+
+
+
 ;;; SRFI-4 in the default environment.  FIXME: we should figure out how
 ;;; to deprecate this.
 ;;;

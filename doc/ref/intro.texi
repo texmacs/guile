@@ -71,7 +71,7 @@ dynamic linking, a foreign function call interface, powerful string
 processing, and many other features needed for programming in the real
 world.
 
-In 2010, the Scheme community agreed upon and published R6RS, a
+In 2007, the Scheme community agreed upon and published R6RS, a
 significant installment in the RnRS series.  R6RS expands the core
 Scheme language, and standardises many non-core functions that
 implementations---including Guile---have previously done in different
