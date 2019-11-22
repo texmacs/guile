@@ -78,7 +78,7 @@ users who want to port their code to other R7RS systems.
 As a brief overview, we note that the libraries defined by the R7RS are
 as follows:
 
-@itemize @code
+@table @code
 @item (scheme base)
 The core functions, mostly corresponding to R5RS minus the elements
 listed separately below, but plus SRFI-34 error handling
@@ -125,7 +125,7 @@ for what R7RS calls ``jiffies''.
 @item (scheme write)
 @code{display}, @code{write}, as well as @code{write-shared} and
 @code{write-simple}.
-@end itemize
+@end table
 
 For complete documentation, we advise the interested user to consult the
 R7RS directly (@pxref{R7RS,,, r7rs, The Revised^7 Report on the
