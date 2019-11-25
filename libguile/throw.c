@@ -243,11 +243,20 @@ scm_throw (SCM key, SCM args)
 {
   SCM throw = scm_variable_ref (throw_var);
   if (scm_is_false (throw)) {
-    SCM port = scm_current_error_port ();
-    scm_puts ("Pre-boot error; key: ", port);
-    scm_write (key, port);
-    scm_puts (", args: ", port);
-    scm_write (args, port);
+    static int error_printing_error = 0;
+    if (error_printing_error++)
+      {
+        fprintf (stderr, "Error while printing pre-boot error: %s\n",
+                 scm_i_symbol_chars (key));
+      }
+    else
+      {
+        SCM port = scm_current_error_port ();
+        scm_puts ("Pre-boot error; key: ", port);
+        scm_write (key, port);
+        scm_puts (", args: ", port);
+        scm_write (args, port);
+      }
     abort ();
   }
   scm_apply_1 (throw, key, args);
