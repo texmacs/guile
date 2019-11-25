@@ -1734,7 +1734,7 @@ chapter.
 @end deffn
 
 @deffn {Scheme Procedure} port-position port
-Equivalent to @code{(seek @var{port} SEEK_CUR 0)}.  @xref{Random
+Equivalent to @code{(seek @var{port} 0 SEEK_CUR)}.  @xref{Random
 Access}.
 @end deffn
 
@@ -1743,7 +1743,7 @@ Return @code{#t} is @var{port} supports @code{port-position}.
 @end deffn
 
 @deffn {Scheme Procedure} set-port-position! port offset
-Equivalent to @code{(seek @var{port} SEEK_SET @var{offset})}.
+Equivalent to @code{(seek @var{port} @var{offset} SEEK_SET)}.
 @xref{Random Access}.
 @end deffn
 
