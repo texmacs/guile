@@ -1358,7 +1358,7 @@ minimum, and maximum."
     ;; shifts that might exceed that range.
     (cond
      ((inf? val) val) ; Preserves sign.
-     ((< count 64) (ash val (max count 0)))
+     ((< count 64) (ash val count))
      ((zero? val) 0)
      ((positive? val) +inf.0)
      (else -inf.0)))
