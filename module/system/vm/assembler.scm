@@ -451,7 +451,7 @@ N-byte unit."
 
 ;; Metadata for one <lambda-case>.
 (define-record-type <arity>
-  (make-arity req opt rest kw-indices allow-other-keys?
+  (make-arity req opt rest kw-indices allow-other-keys? has-closure?
               low-pc high-pc definitions)
   arity?
   (req arity-req)
@@ -459,6 +459,7 @@ N-byte unit."
   (rest arity-rest)
   (kw-indices arity-kw-indices)
   (allow-other-keys? arity-allow-other-keys?)
+  (has-closure? arity-has-closure?)
   (low-pc arity-low-pc)
   (high-pc arity-high-pc set-arity-high-pc!)
   (definitions arity-definitions set-arity-definitions!))
@@ -1499,6 +1500,7 @@ returned instead."
   (assert-match alternate (or #f (? exact-integer?) (? symbol?)) "#f or symbol")
   (let* ((meta (car (asm-meta asm)))
          (arity (make-arity req opt rest kw-indices allow-other-keys?
+                            has-closure?
                             ;; Include the initial instrument-entry in
                             ;; the first arity.
                             (if (null? (meta-arities meta))
@@ -2243,6 +2245,7 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
 ;;;    #x4: has-keyword-args?
 ;;;    #x8: is-case-lambda?
 ;;;    #x10: is-in-case-lambda?
+;;;    #x20: elided-closure?
 ;;;
 ;;; Functions with a single arity specify their number of required and
 ;;; optional arguments in nreq and nopt, and do not have the
@@ -2269,6 +2272,11 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
 ;;; set.  In this way the whole headers array is sorted in increasing
 ;;; low-pc order, and case-lambda clauses are contained within the
 ;;; [low-pc, high-pc] of the case-lambda header.
+;;;
+;;; Normally the 0th argument is the closure for the function being
+;;; called.  However if the function is "well-known" -- all of its call
+;;; sites are visible -- then the compiler may elide the closure, and
+;;; the 0th argument is the first user-visible argument.
 
 ;; Length of the prefix to the arities section, in bytes.
 (define arities-prefix-len 4)
@@ -2299,12 +2307,13 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
 
 (define-inline (pack-arity-flags has-rest? allow-other-keys?
                                  has-keyword-args? is-case-lambda?
-                                 is-in-case-lambda?)
+                                 is-in-case-lambda? elided-closure?)
   (logior (if has-rest? (ash 1 0) 0)
           (if allow-other-keys? (ash 1 1) 0)
           (if has-keyword-args? (ash 1 2) 0)
           (if is-case-lambda? (ash 1 3) 0)
-          (if is-in-case-lambda? (ash 1 4) 0)))
+          (if is-in-case-lambda? (ash 1 4) 0)
+          (if elided-closure? (ash 1 5) 0)))
 
 (define (write-arities asm metas headers names-port strtab)
   (define (write-header pos low-pc high-pc offset flags nreq nopt nlocals)
@@ -2336,7 +2345,8 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
                                     (arity-allow-other-keys? arity)
                                     (pair? (arity-kw-indices arity))
                                     #f
-                                    in-case-lambda?)
+                                    in-case-lambda?
+                                    (not (arity-has-closure? arity)))
                   (length (arity-req arity))
                   (length (arity-opt arity))
                   (length (arity-definitions arity)))
@@ -2384,7 +2394,7 @@ procedure with label @var{rw-init}.  @var{rw-init} may be false.  If
           ;; Write a case-lambda header, then individual arities.
           ;; The case-lambda header's offset link is 0.
           (write-header pos (meta-low-pc meta) (meta-high-pc meta) 0
-                        (pack-arity-flags #f #f #f #t #f) 0 0 0)
+                        (pack-arity-flags #f #f #f #t #f #f) 0 0 0)
           (let lp* ((arities arities) (pos (+ pos arity-header-len))
                     (relocs relocs))
             (match arities

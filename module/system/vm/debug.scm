@@ -50,6 +50,7 @@
             arity?
             arity-low-pc
             arity-high-pc
+            arity-has-closure?
             arity-nreq
             arity-nopt
             arity-nlocals
@@ -281,12 +282,14 @@ section of the ELF image.  Returns an ELF symbol, or @code{#f}."
 ;;;    #x4: has-keyword-args?
 ;;;    #x8: is-case-lambda?
 ;;;   #x10: is-in-case-lambda?
+;;;   #x20: elided-closure?
 
 (define (has-rest? flags)         (not (zero? (logand flags (ash 1 0)))))
 (define (allow-other-keys? flags) (not (zero? (logand flags (ash 1 1)))))
 (define (has-keyword-args? flags) (not (zero? (logand flags (ash 1 2)))))
 (define (is-case-lambda? flags)   (not (zero? (logand flags (ash 1 3)))))
 (define (is-in-case-lambda? flags) (not (zero? (logand flags (ash 1 4)))))
+(define (elided-closure? flags)   (not (zero? (logand flags (ash 1 5)))))
 
 (define (arity-low-pc arity)
   (let ((ctx (arity-context arity)))
@@ -318,6 +321,7 @@ section of the ELF image.  Returns an ELF symbol, or @code{#f}."
   (arity-flags* (elf-bytes (debug-context-elf (arity-context arity)))
                 (arity-header-offset arity)))
 
+(define (arity-has-closure? arity) (not (elided-closure? (arity-flags arity))))
 (define (arity-has-rest? arity) (has-rest? (arity-flags arity)))
 (define (arity-allow-other-keys? arity) (allow-other-keys? (arity-flags arity)))
 (define (arity-has-keyword-args? arity) (has-keyword-args? (arity-flags arity)))

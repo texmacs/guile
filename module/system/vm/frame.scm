@@ -428,7 +428,7 @@
                  (arity-nopt arity)
                  (arity-keyword-args arity)
                  (arity-has-rest? arity)
-                 1))))
+                 (if (arity-has-closure? arity) 1 0)))))
       ((and (primitive-code? ip)
             (program-arguments-alist (frame-local-ref frame 0 'scm) ip))
        => (lambda (args)
