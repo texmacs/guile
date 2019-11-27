@@ -1241,9 +1241,10 @@ minimum, and maximum."
        (not (<= (&min b) 0 (&max b)))))
 (define-type-checker (fdiv a b) #t)
 (define (div-result-range min-a max-a min-b max-b)
-  (if (<= min-b 0 max-b)
-      ;; If the range of the divisor crosses 0, the result spans
-      ;; the whole range.
+  (if (or (<= min-b 0 max-b)
+          (< max-b min-b))
+      ;; If the range of the divisor crosses 0, or if we are in
+      ;; unreachable code, the result spans the whole range.
       (values -inf.0 +inf.0)
       ;; Otherwise min-b and max-b have the same sign, and cannot both
       ;; be infinity.
