@@ -354,6 +354,11 @@ in the module body.
 The @code{#:duplicates} (see below) provides fine-grain control about
 duplicate binding handling on the module-user side.
 
+@item #:re-export-and-replace @var{list}
+@cindex re-export-and-replace
+Like @code{#:re-export}, but also marking the bindings as replacements
+in the sense of @code{#:replace}.
+
 @item #:version @var{list}
 @cindex module version
 Specify a version for the module in the form of @var{list}, a list of

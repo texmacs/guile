@@ -2464,7 +2464,8 @@ name extensions listed in %load-extensions."
      submodule-binder
      public-interface
      filename
-     next-unique-id)))
+     next-unique-id
+     (replacements #:no-setter))))
 
 
 ;; make-module &opt size uses binder
@@ -2489,7 +2490,8 @@ initial uses list, or binding procedure."
                       (make-hash-table)
                       '()
                       (make-weak-key-hash-table) #f
-                      (make-hash-table) #f #f #f 0))
+                      (make-hash-table) #f #f #f 0
+                      (make-hash-table)))
 
 
 
@@ -3294,7 +3296,10 @@ error if selected binding does not exist in the used module."
                     hide)
           (define (maybe-export! src dst var)
             (unless (memq src hide)
-              (module-add! custom-i (renamer dst) var)))
+              (let ((name (renamer dst)))
+                (when (hashq-ref (module-replacements public-i) src)
+                  (hashq-set! (module-replacements custom-i) name #t))
+                (module-add! custom-i name var))))
           (cond
            (select
             (for-each
@@ -3326,8 +3331,8 @@ error if selected binding does not exist in the used module."
 
 (define* (define-module* name
            #:key filename pure version (imports '()) (exports '())
-           (replacements '()) (re-exports '()) (autoloads '())
-           (duplicates #f) transformer declarative?)
+           (replacements '()) (re-exports '()) (re-export-replacements '())
+           (autoloads '()) (duplicates #f) transformer declarative?)
   (define (list-of pred l)
     (or (null? l)
         (and (pair? l) (pred (car l)) (list-of pred (cdr l)))))
@@ -3371,6 +3376,7 @@ error if selected binding does not exist in the used module."
                              imports)))
            (module-use-interfaces! module imports)))
        (module-re-export! module re-exports)
+       (module-re-export! module re-export-replacements #:replace? #t)
        ;; FIXME: Avoid use of `apply'.
        (apply module-autoload! module autoloads)
        (let ((duplicates (or duplicates
@@ -3421,7 +3427,7 @@ error if selected binding does not exist in the used module."
               #:warning "Failed to autoload ~a in ~a:\n" sym name))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table) #f
-                        (make-hash-table 0) #f #f #f 0)))
+                        (make-hash-table 0) #f #f #f 0 (make-hash-table 0))))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
@@ -3768,7 +3774,7 @@ but it fails to load."
           ((kw val . in)
            (loop #'in (cons* #'val #'kw out))))))
 
-    (define (parse args imp exp rex rep aut dec)
+    (define (parse args imp exp rex rep rxp aut dec)
       ;; Just quote everything except #:use-module and #:use-syntax.  We
       ;; need to know about all arguments regardless since we want to turn
       ;; symbols that look like keywords into real keywords, and the
@@ -3780,58 +3786,61 @@ but it fails to load."
                (exp (if (null? exp) '() #`(#:exports '#,exp)))
                (rex (if (null? rex) '() #`(#:re-exports '#,rex)))
                (rep (if (null? rep) '() #`(#:replacements '#,rep)))
+               (rxp (if (null? rxp) '() #`(#:re-export-replacements '#,rxp)))
                (aut (if (null? aut) '() #`(#:autoloads '#,aut)))
                (dec (if dec '() #`(#:declarative?
                                    #,(user-modules-declarative?)))))
-           #`(#,@imp #,@exp #,@rex #,@rep #,@aut #,@dec)))
+           #`(#,@imp #,@exp #,@rex #,@rep #,@rxp #,@aut #,@dec)))
         ;; The user wanted #:foo, but wrote :foo. Fix it.
         ((sym . args) (keyword-like? #'sym)
          (parse #`(#,(->keyword (syntax->datum #'sym)) . args)
-                  imp exp rex rep aut dec))
+                  imp exp rex rep rxp aut dec))
         ((kw . args) (not (keyword? (syntax->datum #'kw)))
          (syntax-violation 'define-module "expected keyword arg" x #'kw))
         ((#:no-backtrace . args)
          ;; Ignore this one.
-         (parse #'args imp exp rex rep aut dec))
+         (parse #'args imp exp rex rep rxp aut dec))
         ((#:pure . args)
-         #`(#:pure #t . #,(parse #'args imp exp rex rep aut dec)))
+         #`(#:pure #t . #,(parse #'args imp exp rex rep rxp aut dec)))
         ((kw)
          (syntax-violation 'define-module "keyword arg without value" x #'kw))
         ((#:version (v ...) . args)
-         #`(#:version '(v ...) . #,(parse #'args imp exp rex rep aut dec)))
+         #`(#:version '(v ...) . #,(parse #'args imp exp rex rep rxp aut dec)))
         ((#:duplicates (d ...) . args)
-         #`(#:duplicates '(d ...) . #,(parse #'args imp exp rex rep aut dec)))
+         #`(#:duplicates '(d ...) . #,(parse #'args imp exp rex rep rxp aut dec)))
         ((#:filename f . args)
-         #`(#:filename 'f . #,(parse #'args imp exp rex rep aut dec)))
+         #`(#:filename 'f . #,(parse #'args imp exp rex rep rxp aut dec)))
         ((#:declarative? d . args)
-         #`(#:declarative? 'd . #,(parse #'args imp exp rex rep aut #t)))
+         #`(#:declarative? 'd . #,(parse #'args imp exp rex rep rxp aut #t)))
         ((#:use-module (name name* ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
-         (parse #'args #`(#,@imp ((name name* ...))) exp rex rep aut dec))
+         (parse #'args #`(#,@imp ((name name* ...))) exp rex rep rxp aut dec))
         ((#:use-syntax (name name* ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
          #`(#:transformer '(name name* ...)
             . #,(parse #'args #`(#,@imp ((name name* ...))) exp rex
-                       rep aut dec)))
+                       rep rxp aut dec)))
         ((#:use-module ((name name* ...) arg ...) . args)
          (and (and-map symbol? (syntax->datum #'(name name* ...))))
          (parse #'args
                 #`(#,@imp ((name name* ...) #,@(parse-iface #'(arg ...))))
-                exp rex rep aut dec))
+                exp rex rep rxp aut dec))
         ((#:export (ex ...) . args)
-         (parse #'args imp #`(#,@exp ex ...) rex rep aut dec))
+         (parse #'args imp #`(#,@exp ex ...) rex rep rxp aut dec))
         ((#:export-syntax (ex ...) . args)
-         (parse #'args imp #`(#,@exp ex ...) rex rep aut dec))
+         (parse #'args imp #`(#,@exp ex ...) rex rep rxp aut dec))
         ((#:re-export (re ...) . args)
-         (parse #'args imp exp #`(#,@rex re ...) rep aut dec))
+         (parse #'args imp exp #`(#,@rex re ...) rep rxp aut dec))
         ((#:re-export-syntax (re ...) . args)
-         (parse #'args imp exp #`(#,@rex re ...) rep aut dec))
+         (parse #'args imp exp #`(#,@rex re ...) rep rxp aut dec))
         ((#:replace (r ...) . args)
-         (parse #'args imp exp rex #`(#,@rep r ...) aut dec))
+         (parse #'args imp exp rex #`(#,@rep r ...) rxp aut dec))
         ((#:replace-syntax (r ...) . args)
-         (parse #'args imp exp rex #`(#,@rep r ...) aut dec))
+         (parse #'args imp exp rex #`(#,@rep r ...) rxp aut dec))
+        ((#:re-export-and-replace (r ...) . args)
+         (parse #'args imp exp rex rep #`(#,@rxp r ...) aut dec))
         ((#:autoload name bindings . args)
-         (parse #'args imp exp rex rep #`(#,@aut name bindings) dec))
+         (parse #'args imp exp rex rep rxp #`(#,@aut name bindings) dec))
         ((kw val . args)
          (syntax-violation 'define-module "unknown keyword or bad argument"
                            #'kw #'val))))
@@ -3840,7 +3849,7 @@ but it fails to load."
       ((_ (name name* ...) arg ...)
        (and-map symbol? (syntax->datum #'(name name* ...)))
        (with-syntax (((quoted-arg ...)
-                      (parse #'(arg ...) '() '() '() '() '() #f))
+                      (parse #'(arg ...) '() '() '() '() '() '() #f))
                      ;; Ideally the filename is either a string or #f;
                      ;; this hack is to work around a case in which
                      ;; port-filename returns a symbol (`socket') for
@@ -3941,27 +3950,20 @@ but it fails to load."
 ;; This function is called from "modules.c".  If you change it, be
 ;; sure to update "modules.c" as well.
 
-(define (module-export! m names)
+(define* (module-export! m names #:key replace?)
   "Export a local variable."
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
                 (let* ((internal-name (if (pair? name) (car name) name))
                        (external-name (if (pair? name) (cdr name) name))
                        (var (module-ensure-local-variable! m internal-name)))
+                  (when replace?
+                    (hashq-set! (module-replacements public-i) external-name #t))
                   (module-add! public-i external-name var)))
               names)))
 
 (define (module-replace! m names)
-  (let ((public-i (module-public-interface m)))
-    (for-each (lambda (name)
-                (let* ((internal-name (if (pair? name) (car name) name))
-                       (external-name (if (pair? name) (cdr name) name))
-                       (var (module-ensure-local-variable! m internal-name)))
-                  ;; FIXME: use a bit on variables instead of object
-                  ;; properties.
-                  (set-object-property! var 'replace #t)
-                  (module-add! public-i external-name var)))
-              names)))
+  (module-export! m names #:replace? #t))
 
 (define (module-export-all! mod)
   "Export all local variables from a module."
@@ -3976,20 +3978,24 @@ but it fails to load."
                    (fresh-interface!))))
     (set-module-obarray! iface (module-obarray mod))))
 
-(define (module-re-export! m names)
+(define* (module-re-export! m names #:key replace?)
   "Re-export an imported variable."
   (let ((public-i (module-public-interface m)))
-    (for-each (lambda (name)
-                (let* ((internal-name (if (pair? name) (car name) name))
-                       (external-name (if (pair? name) (cdr name) name))
-                       (var (module-variable m internal-name)))
-                  (cond ((not var)
-                         (error "Undefined variable:" internal-name))
-                        ((eq? var (module-local-variable m internal-name))
-                         (error "re-exporting local variable:" internal-name))
-                        (else
-                         (module-add! public-i external-name var)))))
-              names)))
+    (for-each
+     (lambda (name)
+       (let* ((internal-name (if (pair? name) (car name) name))
+              (external-name (if (pair? name) (cdr name) name))
+              (var (module-variable m internal-name)))
+         (cond
+          ((not var)
+           (error "Undefined variable:" internal-name))
+          ((eq? var (module-local-variable m internal-name))
+           (error "re-exporting local variable:" internal-name))
+          (else
+           (when replace?
+             (hashq-set! (module-replacements public-i) external-name #t))
+           (module-add! public-i external-name var)))))
+     names)))
 
 (define-syntax-rule (export name ...)
   (eval-when (expand load eval)
@@ -4073,15 +4079,15 @@ but it fails to load."
       #f)
      
     (define (replace module name int1 val1 int2 val2 var val)
-      (let ((old (or (and var (object-property var 'replace) var)
-                     (module-variable int1 name)))
-            (new (module-variable int2 name)))
-        (if (object-property old 'replace)
-            (and (or (eq? old new)
-                     (not (object-property new 'replace)))
+      (let* ((replace1 (hashq-ref (module-replacements int1) name))
+             (replace2 (hashq-ref (module-replacements int2) name))
+             (old (or (and replace1 var)
+                      (module-variable int1 name)))
+             (new (module-variable int2 name)))
+        (if replace1
+            (and (or (eq? old new) (not replace2))
                  old)
-            (and (object-property new 'replace)
-                 new))))
+            (and replace2 new))))
     
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)

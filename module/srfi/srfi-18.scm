@@ -76,8 +76,8 @@
             terminated-thread-exception?
             uncaught-exception?
             uncaught-exception-reason)
-  #:re-export ((raise-continuable . raise)
-               with-exception-handler)
+  #:re-export (with-exception-handler)
+  #:re-export-and-replace ((raise-continuable . raise))
   #:replace (current-time
              current-thread
              thread?
