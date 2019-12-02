@@ -68,6 +68,12 @@
 		  (if (assoc-ref result 'output-file)
 		      (fail "`-o' option cannot be specified more than once")
 		      (alist-cons 'output-file arg result))))
+        (option '("r6rs") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'install-r6rs? #t result)))
+        (option '("r7rs") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'install-r7rs? #t result)))
         (option '(#\x) #t #f
                 (lambda (opt name arg result)
                   (set! %load-extensions (cons arg %load-extensions))
@@ -192,9 +198,8 @@ There is NO WARRANTY, to the extent permitted by law.~%"))
 	 (input-files     (assoc-ref options 'input-files))
 	 (output-file     (assoc-ref options 'output-file))
 	 (load-path       (assoc-ref options 'load-path)))
-    (if (or help? (null? input-files))
-        (begin
-          (format #t "Usage: compile [OPTION] FILE...
+    (when (or help? (null? input-files))
+      (format #t "Usage: compile [OPTION] FILE...
 Compile each Guile source file FILE into a Guile object.
 
   -h, --help           print this help message
@@ -208,6 +213,11 @@ Compile each Guile source file FILE into a Guile object.
   -O, --optimize=OPT   specify optimization passes to run; use `-Ohelp'
                        for a list of available optimizations
 
+  --r6rs, --r7rs       compile in an environment whose default bindings,
+                       reader options, and load paths are adapted for
+                       specific Scheme standards; see \"R6RS Support\"
+                       and \"R7RS Support\" in the manual, for full details
+
   -f, --from=LANG      specify a source language other than `scheme'
   -t, --to=LANG        specify a target language other than `bytecode'
   -T, --target=TRIPLET produce bytecode for host TRIPLET
@@ -215,8 +225,13 @@ Compile each Guile source file FILE into a Guile object.
 Note that auto-compilation will be turned off.
 
 Report bugs to <~A>.~%"
-                  %guile-bug-report-address)
-          (exit 0)))
+              %guile-bug-report-address)
+      (exit 0))
+
+    (when (assoc-ref options 'install-r6rs?)
+      (install-r6rs!))
+    (when (assoc-ref options 'install-r7rs?)
+      (install-r7rs!))
 
     ;; Load FROM and TO before we have changed the load path.  That way, when
     ;; cross-compiling Guile itself, we can be sure we're loading our own

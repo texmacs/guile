@@ -686,6 +686,12 @@ more important than the speed of the compiled code.  Pass
 of @code{-O} options can be passed to the compiler, with later ones
 taking precedence.
 
+@item --r6rs
+@itemx --r7rs
+Compile in an environment whose default bindings, reader options, and
+load paths are adapted for specific Scheme standards.  @xref{R6RS
+Support}, and @xref{R7RS Support}.
+
 @item -f @var{lang}
 @itemx --from=@var{lang}
 Use @var{lang} as the source language of @var{file}.  If this option is omitted,
