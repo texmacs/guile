@@ -150,10 +150,14 @@ The Guile core has the following features,
 
 @example
 guile
-guile-2  ;; starting from Guile 2.x
-guile-2.2  ;; starting from Guile 2.2
-guile-3.0  ;; starting from Guile 3.0
+guile-2   ;; starting from Guile 2.x
+guile-2.2 ;; starting from Guile 2.2
+guile-3   ;; starting from Guile 3.x
+guile-3.0 ;; starting from Guile 3.0
 r5rs
+r6rs
+r7rs
+exact-closed ieee-float full-unicode ratios ;; R7RS features
 srfi-0
 srfi-4
 srfi-6

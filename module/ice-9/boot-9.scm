@@ -4396,7 +4396,12 @@ when none is available, reading FILE-NAME with READER."
   '(guile
     guile-2
     guile-2.2
+    guile-3
+    guile-3.0
     r5rs
+    r6rs
+    r7rs
+    exact-closed ieee-float full-unicode ratios ;; R7RS features.
     srfi-0   ;; cond-expand itself
     srfi-4   ;; homogeneous numeric vectors
     srfi-6   ;; string ports
