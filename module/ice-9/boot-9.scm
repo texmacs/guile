@@ -3415,15 +3415,21 @@ error if selected binding does not exist in the used module."
   (let ((b (lambda (a sym definep)
              (false-if-exception
               (and (memq sym bindings)
-                   (let ((i (module-public-interface (resolve-module name))))
-                     (if (not i)
-                         (error "missing interface for module" name))
-                     (let ((autoload (memq a (module-uses module))))
-                       ;; Replace autoload-interface with actual interface if
-                       ;; that has not happened yet.
-                       (if (pair? autoload)
-                           (set-car! autoload i)))
-                     (module-local-variable i sym)))
+                   (let ((i (resolve-interface name #:select bindings)))
+                     (unless i
+                       (error "missing interface for module" name))
+                     (let ((uses (memq a (module-uses module))))
+                       (when uses
+                         ;; Replace autoload-interface with actual
+                         ;; interface.
+                         (set-car! uses i)))
+                     (for-each
+                      (lambda (name)
+                        (when (hashq-ref (module-replacements i) name)
+                          (hashq-set! (module-replacements a) name #t)))
+                      bindings)
+                     (or (module-local-variable i sym)
+                         (error "binding not presentin module" name sym))))
               #:warning "Failed to autoload ~a in ~a:\n" sym name))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table) #f
