@@ -734,13 +734,20 @@ minimum, and maximum."
     ('struct &struct)
     ('atomic-box &all-types)))
 
+(define (annotation->mutable-type ann)
+  (match ann
+    ('vector &mutable-vector)
+    (_ (annotation->type ann))))
+
 (define-type-inferrer/param (allocate-words param size result)
-  (define! result (annotation->type param) (&min/0 size) (&max/scm-size size)))
+  (define! result (annotation->mutable-type param)
+    (&min/0 size) (&max/scm-size size)))
 
 (define-type-inferrer/param (allocate-words/immediate param result)
   (match param
     ((annotation . size)
-     (define! result (annotation->type annotation) size size))))
+     (define! result (annotation->mutable-type annotation)
+       size size))))
 
 (define-type-inferrer-aliases allocate-words allocate-pointerless-words)
 (define-type-inferrer-aliases allocate-words/immediate
@@ -761,15 +768,15 @@ minimum, and maximum."
   (restrict! obj (annotation->type param) -inf.0 +inf.0)
   (define! result &all-types -inf.0 +inf.0))
 (define-type-inferrer/param (scm-set!/tag param obj val)
-  (restrict! obj (annotation->type param) -inf.0 +inf.0))
+  (restrict! obj (annotation->mutable-type param) -inf.0 +inf.0))
 
 (define-type-inferrer/param (scm-set! param obj idx val)
-  (restrict! obj (annotation->type param) (1+ (&min/0 idx)) +inf.0))
+  (restrict! obj (annotation->mutable-type param) (1+ (&min/0 idx)) +inf.0))
 
 (define-type-inferrer/param (scm-set!/immediate param obj val)
   (match param
     ((annotation . idx)
-     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
+     (restrict! obj (annotation->mutable-type annotation) (1+ idx) +inf.0))))
 
 (define-type-inferrer/param (word-ref param obj idx result)
   (restrict! obj (annotation->type param)
@@ -783,12 +790,12 @@ minimum, and maximum."
      (define! result &u64 0 &u64-max))))
 
 (define-type-inferrer/param (word-set! param obj idx word)
-  (restrict! obj (annotation->type param) (1+ (&min/0 idx)) +inf.0))
+  (restrict! obj (annotation->mutable-type param) (1+ (&min/0 idx)) +inf.0))
 
 (define-type-inferrer/param (word-set!/immediate param obj word)
   (match param
     ((annotation . idx)
-     (restrict! obj (annotation->type annotation) (1+ idx) +inf.0))))
+     (restrict! obj (annotation->mutable-type annotation) (1+ idx) +inf.0))))
 
 (define-type-inferrer/param (pointer-ref/immediate param obj result)
   (define! result &other-heap-object -inf.0 +inf.0))
