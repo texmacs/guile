@@ -64,6 +64,7 @@
             &thread
             &bytevector
             &closure
+            &header
 
             &object
             &field
@@ -191,7 +192,12 @@
   &bitmask
 
   ;; Indicates a dependency on the value of a cache cell.
-  &cache)
+  &cache
+
+  ;; Indicates that an expression depends on a value extracted from the
+  ;; fixed, unchanging part of an object -- for example the length of a
+  ;; vector or the vtable of a struct.
+  &header)
 
 (define-inlinable (&field kind field)
   (ash (logior (ash field &memory-kind-bits) kind) &effect-kind-bits))
@@ -344,6 +350,18 @@ the LABELS that are clobbered by the effects of LABEL."
   ((make-prompt-tag #:optional arg) (&allocate &unknown-memory-kinds)))
 
 ;; Generic objects.
+(define (annotation->memory-kind* annotation idx)
+  (match (cons annotation idx)
+    (('vector . 0) &header)
+    (('string . (or 0 1 2 3)) &header)
+    (('stringbuf . (or 0 1)) &header)
+    (('bytevector . (or 0 1 2 3)) &header)
+    (('box . 0) &header)
+    (('closure . (or 0 1)) &header)
+    (('struct . 0) &header)
+    (('atomic-box . 0) &header)
+    (_ (annotation->memory-kind annotation))))
+
 (define (annotation->memory-kind annotation)
   (match annotation
     ('pair &pair)
@@ -373,40 +391,40 @@ the LABELS that are clobbered by the effects of LABEL."
   ((scm-ref obj idx)               (&read-object
                                     (annotation->memory-kind param)))
   ((scm-ref/tag obj)               (&read-field
-                                    (annotation->memory-kind param) 0))
+                                    (annotation->memory-kind* param 0) 0))
   ((scm-ref/immediate obj)         (match param
                                      ((ann . idx)
                                       (&read-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((scm-set! obj idx val)          (&write-object
                                     (annotation->memory-kind param)))
   ((scm-set/tag! obj val)          (&write-field
-                                    (annotation->memory-kind param) 0))
+                                    (annotation->memory-kind* param 0) 0))
   ((scm-set!/immediate obj val)    (match param
                                      ((ann . idx)
                                       (&write-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((word-ref obj idx)              (&read-object
                                     (annotation->memory-kind param)))
   ((word-ref/immediate obj)        (match param
                                      ((ann . idx)
                                       (&read-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((word-set! obj idx val)         (&read-object
                                     (annotation->memory-kind param)))
   ((word-set!/immediate obj val)   (match param
                                      ((ann . idx)
                                       (&write-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((pointer-ref/immediate obj)     (match param
                                      ((ann . idx)
                                       (&read-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((pointer-set!/immediate obj val)
                                    (match param
                                      ((ann . idx)
                                       (&write-field
-                                       (annotation->memory-kind ann) idx))))
+                                       (annotation->memory-kind* ann idx) idx))))
   ((tail-pointer-ref/immediate obj)))
 
 ;; Strings.
