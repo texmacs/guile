@@ -6,12 +6,12 @@
 ;; modify it under the terms of the GNU Lesser General Public
 ;; License as published by the Free Software Foundation; either
 ;; version 3 of the License, or (at your option) any later version.
-;; 
+;;
 ;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this library; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -48,7 +48,7 @@
  list-tabulate
  list-copy
  circular-list
- ;; iota				; Extended.
+ ;; iota				<= in the core
 
 ;;; Predicates
  proper-list?
@@ -216,8 +216,9 @@
 	      caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
 	      cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
 	      list-ref last-pair length append append! reverse reverse!
-	      filter filter! memq memv assq assv set-car! set-cdr!)
-  :replace (iota map for-each map-in-order list-copy list-index member
+	      filter filter! memq memv assq assv set-car! set-cdr!
+              iota)
+  :replace (map for-each map-in-order list-copy list-index member
 	    delete delete! assoc)
   )
 
@@ -265,13 +266,6 @@ INIT-PROC is applied to the indices is not specified."
   (set! elts (cons elt1 elts))
   (set-cdr! (last-pair elts) elts)
   elts)
-
-(define* (iota count #:optional (start 0) (step 1))
-  (check-arg non-negative-integer? count iota)
-  (let lp ((n 0) (acc '()))
-    (if (= n count)
-	(reverse! acc)
-	(lp (+ n 1) (cons (+ start (* n step)) acc)))))
 
 ;;; Predicates
 
@@ -363,7 +357,7 @@ end-of-list checking in contexts where dotted lists are allowed."
 (define take list-head)
 (define drop list-tail)
 
-;;; TAKE-RIGHT and DROP-RIGHT work by getting two pointers into the list, 
+;;; TAKE-RIGHT and DROP-RIGHT work by getting two pointers into the list,
 ;;; off by K, then chasing down the list until the lead pointer falls off
 ;;; the end.  Note that they diverge for circular lists.
 
@@ -591,7 +585,7 @@ has just one element then that's the return value."
        (if (pair? l)
            (cons (f (car l)) (map1 (cdr l)))
            '())))
-    
+
     ((f l1 l2)
      (check-arg procedure? f map)
      (let* ((len1 (length+ l1))
@@ -677,7 +671,7 @@ has just one element then that's the return value."
 
 (define (append-map f clist1 . rest)
   (concatenate (apply map f clist1 rest)))
-  
+
 (define (append-map! f clist1 . rest)
   (concatenate! (apply map f clist1 rest)))
 
@@ -913,7 +907,7 @@ and those making the associations."
    ;; relying on memq/memv to check that = is a procedure.
    ((eq? = eq?) (memq x ls))
    ((eq? = eqv?) (memv x ls))
-   (else 
+   (else
     (check-arg procedure? = member)
     (find-tail (lambda (y) (= x y)) ls))))
 
@@ -961,7 +955,7 @@ given REST parameters."
         (begin
           (check-arg procedure? = lset-adjoin)
           (lambda (x y) (= y x)))))
-  
+
   (let lp ((ans list) (rest rest))
     (if (null? rest)
         ans
@@ -978,7 +972,7 @@ given REST parameters."
         (begin
           (check-arg procedure? = lset-union)
           (lambda (x y) (= y x)))))
-  
+
   (fold (lambda (lis ans)		; Compute ANS + LIS.
           (cond ((null? lis) ans)	; Don't copy any lists
                 ((null? ans) lis) 	; if we don't have to.

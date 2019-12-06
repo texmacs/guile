@@ -4,6 +4,17 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+
+Changes since alpha 2.9.6:
+
+* Notable changes
+
+** (iota) in core and SRFI-1 (iota) are the same
+
+Previously, (iota) in core would not accept start and step arguments and
+would return an empty list for negative count. Now there is only one
+(iota) function with the semantics of SRFI-1 (negative count is an
+error).
 
 
 Changes in alpha 2.9.6 (since alpha 2.9.5):

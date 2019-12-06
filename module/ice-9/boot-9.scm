@@ -6,12 +6,12 @@
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -883,10 +883,15 @@ VALUE."
 ;;; {IOTA functions: generating lists of numbers}
 ;;;
 
-(define (iota n)
-  (let loop ((count (1- n)) (result '()))
-    (if (< count 0) result
-        (loop (1- count) (cons count result)))))
+;;;  Compatible with srfi-1 so it can just be reused there.
+
+(define* (iota count #:optional (start 0) (step 1))
+  (unless (and (integer? count) (>= count 0))
+    (throw 'wrong-type-arg count))
+  (let loop ((n (- count 1)) (result '()))
+    (if (negative? n)
+      result
+      (loop (- n 1) (cons (+ start (* n step)) result)))))
 
 
 
@@ -989,7 +994,7 @@ VALUE."
         (let lp ((i 0))
           (if (< i n)
               (cons (datum->syntax
-                     x 
+                     x
                      (string->symbol
                       (string (integer->char (+ (char->integer #\a) i)))))
                     (lp (1+ i)))
@@ -2326,7 +2331,7 @@ name extensions listed in %load-extensions."
                                  (map (lambda (x)
                                         (if (symbol? x) x (syntax->datum x)))
                                       fragments))))
-         
+
          (define (getter rtd type-name field slot)
            (define id (make-id rtd type-name '- field))
            #`(define #,id
@@ -3219,7 +3224,7 @@ deterministic."
   (let ((f (module-filename m)))
     (if f
         (save-module-excursion
-         (lambda () 
+         (lambda ()
            ;; Re-set the initial environment, as in try-module-autoload.
            (set-current-module (make-fresh-user-module))
            (primitive-load-path f)
@@ -3342,7 +3347,7 @@ error if selected binding does not exist in the used module."
     (or (symbol? x) (and (pair? x) (symbol? (car x)) (symbol? (cdr x)))))
   (define (valid-autoload? x)
     (and (pair? x) (list-of symbol? (car x)) (list-of symbol? (cdr x))))
-  
+
   ;; We could add a #:no-check arg, set by the define-module macro, if
   ;; these checks are taking too much time.
   ;;
@@ -3397,7 +3402,7 @@ error if selected binding does not exist in the used module."
       (let ((iface (resolve-interface transformer))
             (sym (car (last-pair transformer))))
         (set-module-transformer! module (module-ref iface sym))))
-    
+
     (run-hook module-defined-hook module)
     module))
 
@@ -3723,7 +3728,7 @@ but it fails to load."
               (let lp ()
                 (call-with-prompt
                  continue-tag
-                 (lambda () 
+                 (lambda ()
                    (define-syntax #,(datum->syntax #'while 'continue)
                      (lambda (x)
                        (syntax-case x ()
@@ -3765,7 +3770,7 @@ but it fails to load."
              (eqv? (string-ref (symbol->string dat) 0) #\:))))
     (define (->keyword sym)
       (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
-    
+
     (define (parse-iface args)
       (let loop ((in args) (out '()))
         (syntax-case in ()
@@ -3850,7 +3855,7 @@ but it fails to load."
         ((kw val . args)
          (syntax-violation 'define-module "unknown keyword or bad argument"
                            #'kw #'val))))
-    
+
     (syntax-case x ()
       ((_ (name name* ...) arg ...)
        (and-map symbol? (syntax->datum #'(name name* ...)))
@@ -3892,7 +3897,7 @@ but it fails to load."
              (eqv? (string-ref (symbol->string dat) 0) #\:))))
     (define (->keyword sym)
       (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
-    
+
     (define (quotify-iface args)
       (let loop ((in args) (out '()))
         (syntax-case in ()
@@ -3919,7 +3924,7 @@ but it fails to load."
            (with-syntax (((quoted-arg ...) (quotify-iface #'(arg ...))))
              (lp #'in (cons #`(list '(name name* ...) quoted-arg ...)
                             out)))))))
-    
+
     (syntax-case x ()
       ((_ spec ...)
        (with-syntax (((quoted-args ...) (quotify #'(spec ...))))
@@ -4064,7 +4069,7 @@ but it fails to load."
 
 (define duplicate-handlers
   (let ((m (make-module)))
-    
+
     (define (check module name int1 val1 int2 val2 var val)
       (scm-error 'misc-error
                  #f
@@ -4074,7 +4079,7 @@ but it fails to load."
                        (module-name int1)
                        (module-name int2))
                  #f))
-    
+
     (define (warn module name int1 val1 int2 val2 var val)
       (format (current-warning-port)
               "WARNING: ~A: `~A' imported from both ~A and ~A\n"
@@ -4083,7 +4088,7 @@ but it fails to load."
               (module-name int1)
               (module-name int2))
       #f)
-     
+
     (define (replace module name int1 val1 int2 val2 var val)
       (let* ((replace1 (hashq-ref (module-replacements int1) name))
              (replace2 (hashq-ref (module-replacements int2) name))
@@ -4094,7 +4099,7 @@ but it fails to load."
             (and (or (eq? old new) (not replace2))
                  old)
             (and replace2 new))))
-    
+
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)
            (begin
@@ -4104,16 +4109,16 @@ but it fails to load."
                      (module-name int2)
                      name)
              (module-local-variable int2 name))))
-     
+
     (define (first module name int1 val1 int2 val2 var val)
       (or var (module-local-variable int1 name)))
-     
+
     (define (last module name int1 val1 int2 val2 var val)
       (module-local-variable int2 name))
-     
+
     (define (noop module name int1 val1 int2 val2 var val)
       #f)
-    
+
     (set-module-name! m 'duplicate-handlers)
     (set-module-kind! m 'interface)
     (module-define! m 'check check)
