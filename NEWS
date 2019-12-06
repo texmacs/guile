@@ -6,9 +6,92 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 
 
-Changes in alpha 2.9.5 (since alpha 2.9.4):
+Changes in alpha 2.9.6 (since alpha 2.9.5):
 
 * Notable changes
+
+** Add --r6rs, --r7rs options to `guild compile'
+
+This makes compiling R6RS or R7RS code a bit easier.  See "R6RS Support"
+and "R7RS Support" in the manual, for more.
+
+** Add guile-3, guile-3.0 cond-expand features
+
+See "SRFI-0" in the manual, for more.
+
+** Add #:re-export-and-replace argument to `define-module'
+
+This new keyword specifies a set of bindings to re-export, but also
+marks them as intended to replace core bindings.  See "Creating Guile
+Modules" in the manual, for full details.
+
+Note to make this change, we had to change the way replacement flags are
+stored, to being associated with modules instead of individual variable
+objects.  This means that users who #:re-export an imported binding that
+was already marked as #:replace by another module will now see warnings,
+as they need to use #:re-export-and-replace instead.
+
+** Better optimizations for vector-length et al
+
+Sometimes the compiler get confused and think it couldn't hoist a
+`vector-length' call out of a loop.  This has been fixed.
+
+* Bug fixes
+
+** Fix range inference on division in unreachable code
+** Fix frame-call-representation for callees without closures
+** Fix range inference for right-shifts
+** Fix port-position documentation
+** Fix stack overflow if printing a pre-boot error throws an error
+
+
+
+Changes in alpha 2.9.x (since the stable 2.2 series):
+
+* Notable changes
+
+** Just-in-time code generation
+
+Guile programs now run up to 4 times faster, relative to Guile 2.2,
+thanks to just-in-time (JIT) native code generation.  Notably, this
+brings the performance of "eval" as written in Scheme back to the level
+of "eval" written in C, as in the days of Guile 1.8.
+
+See "Just-In-Time Native Code" in the manual, for more information.  JIT
+compilation will be enabled automatically and transparently.  To disable
+JIT compilation, configure Guile with `--enable-jit=no' or
+`--disable-jit'.  The default is `--enable-jit=auto', which enables the
+JIT if it is available.  See `./configure --help' for more.
+
+JIT compilation is enabled by default on x86-64, i686, ARMv7, and
+AArch64 targets.
+
+** Lower-level bytecode
+
+Relative to the virtual machine in Guile 2.2, Guile's VM instruction set
+is now more low-level.  This allows it to express more advanced
+optimizations, for example type check elision or integer
+devirtualization, and makes the task of JIT code generation easier.
+
+Note that this change can mean that for a given function, the
+corresponding number of instructions in Guile 3.0 may be higher than
+Guile 2.2, which can lead to slowdowns when the function is interpreted.
+We hope that JIT compilation more than makes up for this slight
+slowdown.
+
+** Interleaved internal definitions and expressions allowed
+
+It used to be that internal definitions had to precede all expressions
+in their bodies.  This restriction has been relaxed.  If an expression
+precedes an internal definition, it is treated as if it were a
+definition of an unreferenced variable.  For example, the expression
+`(foo)' transforms to the equivalent of `(define _ (begin (foo) #f))',
+if it precedes other definitions.
+
+This change improves the readability of Guile programs, as it used to be
+that program indentation tended to increase needlessly to allow nested
+`let' and `letrec' to re-establish definition contexts after initial
+expressions, for example for type-checks on procedure arguments.
 
 ** Record unification
 
@@ -67,18 +150,40 @@ via `throw'.  These will probably migrate over time to
 
 See "Exceptions" in the manual, for full details on the new API.
 
-** More optimization for unexported definitions at -O3
+** Optimization of top-level bindings within a compilation unit
 
-There is a new optimization pass, `seal-private-bindings', which is
-enabled at the new optimization level -O3.  (Prior to this change, -O3
-was the same as -O2.)  With this pass, private declarative bindings
-aren't available for access from the first-class module reflection API.
-This allows for better optimization.
+At optimization level 2 and above, Guile's compiler is now allowed to
+inline top-level definitions within a compilation unit.  See
+"Declarative Modules" in the manual, for full details.  This change can
+improve the performance of programs with many small top-level
+definitions by quite a bit!
 
-** Better optimization for unboxed int/float conversions
+At optimization level 3 and above, Guile will assume that any top-level
+binding in a declarative compilation unit that isn't exported from a
+module can be completely inlined into its uses.  (Prior to this change,
+-O3 was the same as -O2.)  Note that with this new
+`seal-private-bindings' pass, private declarative bindings are no longer
+available for access from the first-class module reflection API.  The
+optimizations afforded by this pass can be useful when you need a speed
+boost, but having them enabled at optimization level 3 means they are
+not on by default, as they change Guile's behavior in ways that users
+might not expect.
 
-This improves optimization for "exact->inexact" and integer operands to
-floating-point ops.
+** By default, GOOPS classes are not redefinable
+
+It used to be that all GOOPS classes were redefinable, at least in
+theory.  This facility was supported by an indirection in all "struct"
+instances, even though only a subset of structs would need redefinition.
+We wanted to remove this indirection, in order to speed up Guile
+records, allow immutable Guile records to eventually be described by
+classes, and allow for some optimizations in core GOOPS classes that
+shouldn't be redefined anyway.
+
+Thus in GOOPS now there are classes that are redefinable and classes
+that aren't.  By default, classes created with GOOPS are not
+redefinable.  To make a class redefinable, it should be an instance of
+`<redefinable-class>'.  See "Redefining a Class" in the manual for more
+information.
 
 ** Define top-level bindings for aux syntax: `else', `=>', `...', `_'
 
@@ -114,87 +219,6 @@ see "R6RS Support" in the manual, for full details.
 Also as with R6RS, there is an `install-r7rs!' procedure and a `--r7rs'
 command-line option.
 
-
-* New deprecations
-
-** The two-argument form of `record-constructor'
-
-Calling `record-constructor' with two arguments (the record type and a
-list of field names) is deprecated.  Instead, call with just one
-argument, and provide a wrapper around that constructor if needed.
-
-
-Changes in alpha 2.9.x (since the stable 2.2 series):
-
-* Notable changes
-
-** Just-in-time code generation
-
-Guile programs now run up to 4 times faster, relative to Guile 2.2,
-thanks to just-in-time (JIT) native code generation.  Notably, this
-brings the performance of "eval" as written in Scheme back to the level
-of "eval" written in C, as in the days of Guile 1.8.
-
-See "Just-In-Time Native Code" in the manual, for more information.  JIT
-compilation will be enabled automatically and transparently.  To disable
-JIT compilation, configure Guile with `--enable-jit=no' or
-`--disable-jit'.  The default is `--enable-jit=auto', which enables the
-JIT if it is available.  See `./configure --help' for more.
-
-JIT compilation is enabled by default on x86-64, i686, ARMv7, and
-AArch64 targets.
-
-** Lower-level bytecode
-
-Relative to the virtual machine in Guile 2.2, Guile's VM instruction set
-is now more low-level.  This allows it to express more advanced
-optimizations, for example type check elision or integer
-devirtualization, and makes the task of JIT code generation easier.
-
-Note that this change can mean that for a given function, the
-corresponding number of instructions in Guile 3.0 may be higher than
-Guile 2.2, which can lead to slowdowns when the function is interpreted.
-We hope that JIT compilation more than makes up for this slight
-slowdown.
-
-** Interleaved internal definitions and expressions allowed
-
-It used to be that internal definitions had to precede all expressions
-in their bodies.  This restriction has been relaxed.  If an expression
-precedes an internal definition, it is treated as if it were a
-definition of an unreferenced variable.  For example, the expression
-`(foo)' transforms to the equivalent of `(define _ (begin (foo) #f))',
-if it precedes other definitions.
-
-This change improves the readability of Guile programs, as it used to be
-that program indentation tended to increase needlessly to allow nested
-`let' and `letrec' to re-establish definition contexts after initial
-expressions, for example for type-checks on procedure arguments.
-
-** Optimization of top-level bindings within a compilation unit
-
-At optimization level 2 and above, Guile's compiler is now allowed to
-inline top-level definitions within a compilation unit.  See
-"Declarative Modules" in the manual, for full details.  This change can
-improve the performance of programs with many small top-level
-definitions by quite a bit!
-
-** By default, GOOPS classes are not redefinable
-
-It used to be that all GOOPS classes were redefinable, at least in
-theory.  This facility was supported by an indirection in all "struct"
-instances, even though only a subset of structs would need redefinition.
-We wanted to remove this indirection, in order to speed up Guile
-records, allow immutable Guile records to eventually be described by
-classes, and allow for some optimizations in core GOOPS classes that
-shouldn't be redefined anyway.
-
-Thus in GOOPS now there are classes that are redefinable and classes
-that aren't.  By default, classes created with GOOPS are not
-redefinable.  To make a class redefinable, it should be an instance of
-`<redefinable-class>'.  See "Redefining a Class" in the manual for more
-information.
-
 * New deprecations
 
 ** scm_t_uint8, etc deprecated in favor of C99 stdint.h
@@ -207,6 +231,12 @@ Note that this also applies to SCM_T_UINT8_MAX, SCM_T_INT8_MIN, for intN
 and uintN for N in 8, 16, 32, and 64.  Guile also now uses ptrdiff_t
 instead of scm_t_ptrdiff, and similarly for intmax_t, uintmax_t,
 intptr_t, and uintptr_t.
+
+** The two-argument form of `record-constructor'
+
+Calling `record-constructor' with two arguments (the record type and a
+list of field names) is deprecated.  Instead, call with just one
+argument, and provide a wrapper around that constructor if needed.
 
 * Incompatible changes
 
