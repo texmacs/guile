@@ -84,7 +84,9 @@
                    (module-add! iface sym
                                 (or (module-variable mod sym)
                                     (error "no binding `~A' in module ~A"
-                                           sym mod))))
+                                           sym mod)))
+                   (when (hashq-ref (module-replacements mod) sym)
+                     (hashq-set! (module-replacements iface) sym #t)))
                  (syntax->datum #'(identifier ...)))
        iface))
     
@@ -96,9 +98,9 @@
                                    (module-add! iface sym var))
                                  mod)
        (for-each (lambda (sym)
-                   (if (module-local-variable iface sym)
-                       (module-remove! iface sym)
-                       (error "no binding `~A' in module ~A" sym mod)))
+                   (unless (module-local-variable iface sym)
+                     (error "no binding `~A' in module ~A" sym mod))
+                   (module-remove! iface sym))
                  (syntax->datum #'(identifier ...)))
        iface))
 
@@ -109,13 +111,17 @@
             (pre (syntax->datum #'identifier)))
        (module-for-each/nonlocal
         (lambda (sym var)
-          (module-add! iface (symbol-append pre sym) var))
+          (let ((sym* (symbol-append pre sym)))
+            (module-add! iface sym* var)
+            (when (hashq-ref (module-replacements mod) sym)
+              (hashq-set! (module-replacements iface) sym* #t))))
         mod)
        iface))
 
     ((rename import-set (from to) ...)
      (and (and-map sym? #'(from ...)) (and-map sym? #'(to ...)))
      (let* ((mod (resolve-r6rs-interface #'import-set))
+            (replacements (module-replacements mod))
             (iface (make-custom-interface mod)))
        (module-for-each/nonlocal
         (lambda (sym var) (module-add! iface sym var))
@@ -124,19 +130,26 @@
          (cond
           ((null? in)
            (for-each
-            (lambda (pair)
-              (if (module-local-variable iface (car pair))
-                  (error "duplicate binding for `~A' in module ~A"
-                         (car pair) mod)
-                  (module-add! iface (car pair) (cdr pair))))
+            (lambda (v)
+              (let ((to (vector-ref v 0))
+                    (replace? (vector-ref v 1))
+                    (var (vector-ref v 2)))
+                (when (module-local-variable iface to)
+                  (error "duplicate binding for `~A' in module ~A" to mod))
+                (module-add! iface to var)
+                (when replace?
+                  (hashq-set! replacements to #t))))
             out)
            iface)
           (else
-           (let ((var (or (module-variable mod (caar in))
-                          (error "no binding `~A' in module ~A"
-                                 (caar in) mod))))
-             (module-remove! iface (caar in))
-             (lp (cdr in) (acons (cdar in) var out))))))))
+           (let* ((from (caar in))
+                  (to (cdar in))
+                  (var (module-variable mod from))
+                  (replace? (hashq-ref replacements from)))
+             (unless var (error "no binding `~A' in module ~A" from mod))
+             (module-remove! iface from)
+             (hashq-remove! replacements from)
+             (lp (cdr in) (cons (vector to replace? var) out))))))))
     
     ((name name* ... (version ...))
      (and-map sym? #'(name name* ...))
