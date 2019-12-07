@@ -1592,14 +1592,9 @@ static void
 compile_receive (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals)
 {
   jit_gpr_t t = T0;
-  jit_reloc_t k;
-  uint32_t saved_state = j->register_state;
 
-  k = emit_branch_if_frame_locals_count_greater_than (j, t, proc);
-  emit_store_current_ip (j, T0);
-  emit_call_0 (j, scm_vm_intrinsics.error_no_values);
-  j->register_state = saved_state;
-  jit_patch_here (j->jit, k);
+  add_slow_path_patch
+    (j, emit_branch_if_frame_locals_count_less_than (j, t, proc + 1));
   emit_fp_ref_scm (j, t, proc);
   emit_fp_set_scm (j, dst, t);
   emit_reset_frame (j, nlocals);
@@ -1609,6 +1604,8 @@ compile_receive (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals
 static void
 compile_receive_slow (scm_jit_state *j, uint16_t dst, uint16_t proc, uint32_t nlocals)
 {
+  emit_store_current_ip (j, T0);
+  emit_call_0 (j, scm_vm_intrinsics.error_no_values);
 }
 
 static void
