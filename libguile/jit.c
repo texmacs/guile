@@ -1613,27 +1613,13 @@ compile_receive_values (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
                         uint32_t nvalues)
 {
   jit_gpr_t t = T0;
-  uint32_t saved_state = j->register_state;
 
   if (allow_extra)
-    {
-      jit_reloc_t k;
-      k = emit_branch_if_frame_locals_count_greater_than (j, t, proc+nvalues-1);
-      emit_store_current_ip (j, T0);
-      emit_call_0 (j, scm_vm_intrinsics.error_not_enough_values);
-      j->register_state = saved_state;
-      jit_patch_here (j->jit, k);
-    }
+    add_slow_path_patch
+      (j, emit_branch_if_frame_locals_count_less_than (j, t, proc + nvalues));
   else
-    {
-      jit_reloc_t k;
-      k = emit_branch_if_frame_locals_count_eq (j, t, proc + nvalues);
-      emit_store_current_ip (j, T0);
-      emit_call_1 (j, scm_vm_intrinsics.error_wrong_number_of_values,
-                   jit_operand_imm (JIT_OPERAND_ABI_UINT32, nvalues));
-      j->register_state = saved_state;
-      jit_patch_here (j->jit, k);
-    }
+    add_slow_path_patch
+      (j, emit_branch_if_frame_locals_count_not_eq (j, t, proc + nvalues));
 
   j->frame_size_min = proc + nvalues;
   j->frame_size_max = allow_extra ? INT32_MAX : j->frame_size_min;
@@ -1643,6 +1629,12 @@ static void
 compile_receive_values_slow (scm_jit_state *j, uint32_t proc, uint8_t allow_extra,
                         uint32_t nvalues)
 {
+  emit_store_current_ip (j, T0);
+  if (allow_extra)
+    emit_call_0 (j, scm_vm_intrinsics.error_not_enough_values);
+  else
+    emit_call_1 (j, scm_vm_intrinsics.error_wrong_number_of_values,
+                 jit_operand_imm (JIT_OPERAND_ABI_UINT32, nvalues));
 }
 
 static void
