@@ -109,16 +109,10 @@ static inline void
 vm_increase_sp (struct scm_vm *vp, union scm_vm_stack_element *new_sp,
                 enum vm_increase_sp_kind kind)
 {
-  if (new_sp >= vp->sp_min_since_gc)
-    {
-      vp->sp = new_sp;
-      return;
-    }
-
   if (kind == VM_SP_PUSH && new_sp < vp->stack_limit)
     vm_expand_stack (vp, new_sp);
   else
-    vp->sp_min_since_gc = vp->sp = new_sp;
+    vp->sp = new_sp;
 }
 
 static inline void
@@ -620,7 +614,6 @@ scm_i_vm_prepare_stack (struct scm_vm *vp)
   vp->overflow_handler_stack = SCM_EOL;
   vp->ip = NULL;
   vp->sp = vp->stack_top;
-  vp->sp_min_since_gc = vp->sp;
   vp->fp = vp->stack_top;
   vp->compare_result = SCM_F_COMPARE_NONE;
   vp->engine = vm_default_engine;
@@ -636,9 +629,6 @@ return_unused_stack_to_os (struct scm_vm *vp)
 #if HAVE_SYS_MMAN_H
   uintptr_t lo = (uintptr_t) vp->stack_bottom;
   uintptr_t hi = (uintptr_t) vp->sp;
-  /* The second condition is needed to protect against wrap-around.  */
-  if (vp->sp_min_since_gc >= vp->stack_bottom && vp->sp >= vp->sp_min_since_gc)
-    lo = (uintptr_t) vp->sp_min_since_gc;
 
   lo &= ~(page_size - 1U); /* round down */
   hi &= ~(page_size - 1U); /* round down */
@@ -659,8 +649,6 @@ return_unused_stack_to_os (struct scm_vm *vp)
       if (ret && errno != ENOSYS)
         perror ("madvise failed");
     }
-
-  vp->sp_min_since_gc = vp->sp;
 #endif
 }
 
@@ -887,7 +875,7 @@ vm_expand_stack (struct scm_vm *vp, union scm_vm_stack_element *new_sp)
       new_sp = data.new_sp;
     }
 
-  vp->sp_min_since_gc = vp->sp = new_sp;
+  vp->sp = new_sp;
 
   if (should_handle_stack_overflow (vp, stack_size))
     {
@@ -950,13 +938,8 @@ alloc_frame (scm_thread *thread, uint32_t nlocals)
 {
   union scm_vm_stack_element *sp = thread->vm.fp - nlocals;
 
-  if (sp < thread->vm.sp_min_since_gc)
-    {
-      if (SCM_UNLIKELY (sp < thread->vm.stack_limit))
-        thread_expand_stack (thread, sp);
-      else
-        thread->vm.sp_min_since_gc = thread->vm.sp = sp;
-    }
+  if (SCM_UNLIKELY (sp < thread->vm.stack_limit))
+    thread_expand_stack (thread, sp);
   else
     thread->vm.sp = sp;
 }
@@ -1865,9 +1848,6 @@ SCM_DEFINE (scm_call_with_stack_overflow_handler,
                               SCM_F_WIND_EXPLICITLY);
   scm_dynwind_unwind_handler (unwind_overflow_handler, &data,
                               SCM_F_WIND_EXPLICITLY);
-
-  /* Reset sp_min_since_gc so that the VM checks actually trigger.  */
-  return_unused_stack_to_os (&t->vm);
 
   ret = scm_call_0 (thunk);
 

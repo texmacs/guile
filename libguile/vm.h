@@ -40,7 +40,6 @@ struct scm_vm {
   uint32_t *ip;		/* instruction pointer */
   union scm_vm_stack_element *sp; /* stack pointer */
   union scm_vm_stack_element *fp; /* frame pointer */
-  union scm_vm_stack_element *sp_min_since_gc; /* deepest sp since last gc */
   union scm_vm_stack_element *stack_limit; /* stack limit address */
   uint8_t compare_result;       /* flags register: a value from scm_compare */
   uint8_t apply_hook_enabled;   /* if apply hook is enabled */

@@ -221,7 +221,6 @@ DEFINE_THREAD_OFFSET (block_asyncs);
 DEFINE_THREAD_VP_OFFSET (fp);
 DEFINE_THREAD_VP_OFFSET (sp);
 DEFINE_THREAD_VP_OFFSET (ip);
-DEFINE_THREAD_VP_OFFSET (sp_min_since_gc);
 DEFINE_THREAD_VP_OFFSET (stack_limit);
 
 /* The current scm_thread*.  Preserved across callouts.  */
@@ -705,15 +704,13 @@ emit_call_3 (scm_jit_state *j, void *f, jit_operand_t a, jit_operand_t b,
 static void
 emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
 {
-  jit_reloc_t k, fast, watermark;
+  jit_reloc_t k, fast;
   uint32_t saved_state = save_reloadable_register_state (j);
 
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
 
-  emit_ldxi (j, t, THREAD, thread_offset_sp_min_since_gc);
-  fast = jit_bger (j->jit, SP, t);
   emit_ldxi (j, t, THREAD, thread_offset_stack_limit);
-  watermark = jit_bger (j->jit, SP, t);
+  fast = jit_bger (j->jit, SP, t);
 
   /* Slow case: call out to expand stack.  */
   emit_store_current_ip (j, t);
@@ -722,13 +719,10 @@ emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
   restore_reloadable_register_state (j, saved_state);
   k = jit_jmp (j->jit);
 
-  /* Past sp_min_since_gc, but within stack_limit: update watermark and
-     fall through.  */
-  jit_patch_here (j->jit, watermark);
-  jit_stxi (j->jit, thread_offset_sp_min_since_gc, THREAD, SP);
-  jit_patch_here (j->jit, fast);
   /* Fast case: Just update sp.  */
+  jit_patch_here (j->jit, fast);
   emit_store_sp (j);
+
   jit_patch_here (j->jit, k);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
