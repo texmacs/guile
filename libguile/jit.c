@@ -718,31 +718,26 @@ emit_call_3 (scm_jit_state *j, void *f, jit_operand_t a, jit_operand_t b,
   clear_scratch_register_state (j);
 }
 
-static void
-emit_alloc_frame_for_sp (scm_jit_state *j, jit_gpr_t t)
+static jit_reloc_t
+emit_alloc_frame_for_sp_fast (scm_jit_state *j, jit_gpr_t t)
 {
-  jit_reloc_t k, fast;
-  uint32_t saved_state = save_reloadable_register_state (j);
-
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER);
-
   emit_ldxi (j, t, THREAD, thread_offset_stack_limit);
-  fast = jit_bger (j->jit, SP, t);
+  jit_reloc_t slow = jit_bltr (j->jit, SP, t);
+  emit_store_sp (j);
+  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
+  return slow;
+}
+
+static void
+emit_alloc_frame_for_sp_slow (scm_jit_state *j, jit_gpr_t t)
+{
   /* Slow case: call out to expand stack.  */
   emit_store_current_ip (j, t);
   emit_call_2 (j, scm_vm_intrinsics.expand_stack, thread_operand (),
                jit_operand_gpr (JIT_OPERAND_ABI_POINTER, SP));
-  restore_reloadable_register_state (j, saved_state);
-  k = jit_jmp (j->jit);
-
-  /* Fast case: Just update sp.  */
-  jit_patch_here (j->jit, fast);
-  emit_store_sp (j);
-
-  jit_patch_here (j->jit, k);
-
-  clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
+  restore_reloadable_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
 }
 
 static void
@@ -751,7 +746,11 @@ emit_alloc_frame (scm_jit_state *j, jit_gpr_t t, uint32_t nlocals)
   ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
   emit_subtract_stack_slots (j, SP, FP, nlocals);
   set_register_state (j, SP_IN_REGISTER);
-  emit_alloc_frame_for_sp (j, t);
+  jit_reloc_t slow = emit_alloc_frame_for_sp_fast (j, t);
+  jit_reloc_t k = jit_jmp (j->jit);
+  jit_patch_here (j->jit, slow);
+  emit_alloc_frame_for_sp_slow (j, t);
+  jit_patch_here (j->jit, k);
 }
 
 static void
@@ -1971,14 +1970,18 @@ compile_assert_nargs_le_slow (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_alloc_frame (scm_jit_state *j, uint32_t nlocals)
 {
-  /* This will clear the regalloc, so no need to track clobbers.  */
-  emit_alloc_frame (j, T0, nlocals);
+  ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER);
+  emit_subtract_stack_slots (j, SP, FP, nlocals);
+  set_register_state (j, SP_IN_REGISTER);
+  add_slow_path_patch (j, emit_alloc_frame_for_sp_fast (j, T0));
 
   j->frame_size_min = j->frame_size_max = nlocals;
 }
 static void
 compile_alloc_frame_slow (scm_jit_state *j, uint32_t nlocals)
 {
+  emit_alloc_frame_for_sp_slow (j, T0);
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
@@ -1999,7 +2002,7 @@ compile_push (scm_jit_state *j, uint32_t src)
 {
   jit_gpr_t t = T0;
   jit_subi (j->jit, SP, SP, sizeof (union scm_vm_stack_element));
-  emit_alloc_frame_for_sp (j, t);
+  add_slow_path_patch (j, emit_alloc_frame_for_sp_fast (j, t));
   emit_mov (j, 0, src + 1, t);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
@@ -2011,6 +2014,10 @@ compile_push (scm_jit_state *j, uint32_t src)
 static void
 compile_push_slow (scm_jit_state *j, uint32_t src)
 {
+  jit_gpr_t t = T0;
+  emit_alloc_frame_for_sp_slow (j, t);
+  emit_mov (j, 0, src + 1, t);
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
@@ -2054,20 +2061,38 @@ compile_assert_nargs_ee_locals (scm_jit_state *j, uint16_t expected,
 {
   jit_gpr_t t = T0;
 
+  ASSERT_HAS_REGISTER_STATE (FP_IN_REGISTER | SP_IN_REGISTER);
+  if (nlocals)
+    {
+      emit_subtract_stack_slots (j, SP, SP, nlocals);
+      set_register_state (j, SP_IN_REGISTER);
+    }
   add_slow_path_patch
-    (j, emit_branch_if_frame_locals_count_not_eq (j, t, expected));
+    (j, emit_branch_if_frame_locals_count_not_eq (j, t, expected + nlocals));
 
   if (nlocals)
-    compile_alloc_frame (j, expected + nlocals);
+    add_slow_path_patch (j, emit_alloc_frame_for_sp_fast (j, t));
+
   j->frame_size_min = j->frame_size_max = expected + nlocals;
 }
 static void
 compile_assert_nargs_ee_locals_slow (scm_jit_state *j, uint16_t expected,
-                                uint16_t nlocals)
+                                     uint16_t nlocals)
 {
-  emit_store_current_ip (j, T0);
+  jit_gpr_t t = T0;
+
+  reset_register_state (j, SP_IN_REGISTER | FP_IN_REGISTER);
+  jit_reloc_t args_ok =
+    emit_branch_if_frame_locals_count_eq (j, t, expected + nlocals);
+  emit_store_current_ip (j, t);
   emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
                thread_operand ());
+  jit_patch_here (j->jit, args_ok);
+
+  if (nlocals)
+    emit_alloc_frame_for_sp_slow (j, t);
+
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
