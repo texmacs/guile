@@ -1917,22 +1917,17 @@ compile_throw_value_and_data_slow (scm_jit_state *j, uint32_t val,
 static void
 compile_assert_nargs_ee (scm_jit_state *j, uint32_t nlocals)
 {
-  jit_reloc_t k;
-  jit_gpr_t t = T0;
-  uint32_t saved_state = j->register_state;
+  add_slow_path_patch
+    (j, emit_branch_if_frame_locals_count_not_eq (j, T0, nlocals));
 
-  k = emit_branch_if_frame_locals_count_eq (j, t, nlocals);
-  emit_store_current_ip (j, t);
-  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
-               thread_operand ());
-  jit_patch_here (j->jit, k);
-
-  j->register_state = saved_state;
   j->frame_size_min = j->frame_size_max = nlocals;
 }
 static void
 compile_assert_nargs_ee_slow (scm_jit_state *j, uint32_t nlocals)
 {
+  emit_store_current_ip (j, T0);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
 }
 
 static void
@@ -2064,14 +2059,22 @@ static void
 compile_assert_nargs_ee_locals (scm_jit_state *j, uint16_t expected,
                                 uint16_t nlocals)
 {
-  compile_assert_nargs_ee (j, expected);
+  jit_gpr_t t = T0;
+
+  add_slow_path_patch
+    (j, emit_branch_if_frame_locals_count_not_eq (j, t, expected));
+
   if (nlocals)
     compile_alloc_frame (j, expected + nlocals);
+  j->frame_size_min = j->frame_size_max = expected + nlocals;
 }
 static void
 compile_assert_nargs_ee_locals_slow (scm_jit_state *j, uint16_t expected,
                                 uint16_t nlocals)
 {
+  emit_store_current_ip (j, T0);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
 }
 
 static void
