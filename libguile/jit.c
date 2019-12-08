@@ -4916,37 +4916,41 @@ scm_jit_compute_mcode (scm_thread *thread, struct scm_jit_function_data *data)
       if (vcode_start == thread->vm.ip)
         return data->mcode;
 
-      /* FIXME: The function has mcode, compiled via some other
-         activation (possibly in another thread), but right now we're
-         currently in an interpreted loop (not at the beginning of the
-         function).  We should re-compute the offset into the mcode.
-         For now though, just punt.  */
-      return NULL;
+      /* The function has mcode, compiled via some other activation
+         (possibly in another thread), but right now we're currently in
+         an interpreted loop (not at the beginning of the function).  It
+         would be nice if we could jump into the already-compiled
+         function, but we don't know the offset.  You'd think we could
+         just compile again without writing bytes to find out the offset
+         into the old code, but we're not guaranteed to get the same
+         compiled code, for example due to variations on whether direct
+         callees have mcode at the time of the compile, or different
+         encodings for relative references.  So oh well: we're just
+         going to compile another copy and update the mcode pointer,
+         hoping this is a rare occurence.  */
     }
-  else
+
+  uint8_t *mcode = compute_mcode (thread, thread->vm.ip, data);
+
+  if (!mcode)
     {
-      uint8_t *mcode = compute_mcode (thread, thread->vm.ip, data);
-
-      if (!mcode)
-        {
-          scm_jit_counter_threshold = -1;
-          fprintf (stderr, "JIT failed due to resource exhaustion\n");
-          fprintf (stderr, "disabling automatic JIT compilation\n");
-        }
-      else if (--jit_stop_after == 0)
-        {
-          scm_jit_counter_threshold = -1;
-          fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
-          if (jit_pause_when_stopping)
-            {
-              fprintf (stderr, "sleeping for 30s; to debug:\n");
-              fprintf (stderr, "   gdb -p %d\n\n", getpid ());
-              sleep (30);
-            }
-        }
-
-      return mcode;
+      scm_jit_counter_threshold = -1;
+      fprintf (stderr, "JIT failed due to resource exhaustion\n");
+      fprintf (stderr, "disabling automatic JIT compilation\n");
     }
+  else if (--jit_stop_after == 0)
+    {
+      scm_jit_counter_threshold = -1;
+      fprintf (stderr, "stopping automatic JIT compilation, as requested\n");
+      if (jit_pause_when_stopping)
+        {
+          fprintf (stderr, "sleeping for 30s; to debug:\n");
+          fprintf (stderr, "   gdb -p %d\n\n", getpid ());
+          sleep (30);
+        }
+    }
+
+  return mcode;
 }
 
 void
