@@ -1282,44 +1282,45 @@ minimum, and maximum."
       (lambda (min max)
         (define! result &f64 min max)))))
 
+(define &integer (logior &exact-integer &flonum))
+
 (define-type-checker (quo a b)
-  (and (check-type a &exact-integer -inf.0 +inf.0)
-       (check-type b &exact-integer -inf.0 +inf.0)
+  (and (check-type a &integer -inf.0 +inf.0)
+       (check-type b &integer -inf.0 +inf.0)
        ;; We only know that there will not be an exception if b is not
        ;; zero.
        (not (<= (&min b) 0 (&max b)))))
 (define-type-inferrer (quo a b result)
-  (restrict! a &exact-integer -inf.0 +inf.0)
-  (restrict! b &exact-integer -inf.0 +inf.0)
-  (define! result &exact-integer -inf.0 +inf.0))
+  (restrict! a &integer -inf.0 +inf.0)
+  (restrict! b &integer -inf.0 +inf.0)
+  (define! result (logand (logior (&type a) (&type b)) &integer)
+    -inf.0 +inf.0))
 
 (define-type-checker-aliases quo rem)
 (define-type-inferrer (rem a b result)
-  (restrict! a &exact-integer -inf.0 +inf.0)
-  (restrict! b &exact-integer -inf.0 +inf.0)
+  (restrict! a &integer -inf.0 +inf.0)
+  (restrict! b &integer -inf.0 +inf.0)
   ;; Same sign as A.
-  (let ((max-abs-rem (1- (max (abs (&min b)) (abs (&max b))))))
-    (cond
-     ((< (&min a) 0)
-      (define-exact-integer! result
-        (- max-abs-rem)
-        (if (< 0 (&max a)) max-abs-rem 0)))
-     (else
-      (define-exact-integer! result 0 max-abs-rem)))))
+  (let* ((max-abs-rem (1- (max (abs (&min b)) (abs (&max b)))))
+         (t (logand (logior (&type a) (&type b)) &integer))
+         (min-rem (if (< (&min a) 0) (- max-abs-rem) 0))
+         (max-rem (if (< 0 (&max a)) max-abs-rem 0)))
+    (if (type<=? t &exact-integer)
+        (define-exact-integer! result min-rem max-rem)
+        (define! result t min-rem max-rem))))
 
 (define-type-checker-aliases quo mod)
 (define-type-inferrer (mod a b result)
-  (restrict! a &exact-integer -inf.0 +inf.0)
-  (restrict! b &exact-integer -inf.0 +inf.0)
+  (restrict! a &integer -inf.0 +inf.0)
+  (restrict! b &integer -inf.0 +inf.0)
   ;; Same sign as B.
-  (let ((max-abs-mod (1- (max (abs (&min b)) (abs (&max b))))))
-    (cond
-     ((< (&min b) 0)
-      (define-exact-integer! result
-        (- max-abs-mod)
-        (if (< 0 (&max b)) max-abs-mod 0)))
-     (else
-      (define-exact-integer! result 0 max-abs-mod)))))
+  (let* ((max-abs-mod (1- (max (abs (&min b)) (abs (&max b)))))
+         (t (logand (logior (&type a) (&type b)) &integer))
+         (min-mod (if (< (&min b) 0) (- max-abs-mod) 0))
+         (max-mod (if (< 0 (&max b)) max-abs-mod 0)))
+    (if (type<=? t &exact-integer)
+        (define-exact-integer! result min-mod max-mod)
+        (define! result t min-mod max-mod))))
 
 ;; Predicates.
 (define-syntax-rule (define-type-predicate-result val result type)
@@ -1353,7 +1354,7 @@ minimum, and maximum."
 
 (define-type-aliases inf? nan?)
 
-(define-simple-type (even? &exact-integer)
+(define-simple-type (even? &integer)
   (&special-immediate &false &true))
 (define-type-aliases even? odd?)
 
