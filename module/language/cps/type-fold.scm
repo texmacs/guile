@@ -303,6 +303,61 @@
     (lambda (cps k src param arg0 type0 min0 max0 arg1 type1 min1 max1)
       body ...)))
 
+(define (power-of-two? constant)
+  (and (positive? constant)
+       (zero? (logand constant (1- constant)))))
+
+(define-binary-primcall-reducer (quo cps k src param
+                                     arg0 type0 min0 max0
+                                     arg1 type1 min1 max1)
+  (cond
+   ((not (type<=? (logior type0 type1) &exact-integer))
+    (with-cps cps #f))
+   ((and (eqv? type1 &fixnum) (eqv? min1 max1) (power-of-two? min1))
+    (with-cps cps
+      (build-term
+        ($continue k src
+          ($primcall 'rsh/immediate (logcount (1- min1)) (arg0))))))
+   (else
+    (with-cps cps #f))))
+
+(define-binary-primcall-reducer (rem cps k src param
+                                     arg0 type0 min0 max0
+                                     arg1 type1 min1 max1)
+  (cond
+   ((not (type<=? (logior type0 type1) &exact-integer))
+    (with-cps cps #f))
+   ((and (eqv? type1 &fixnum) (eqv? min1 max1) (power-of-two? min1)
+         (<= 0 min0))
+    (with-cps cps
+      (letv mask)
+      (letk kmask
+            ($kargs ('mask) (mask)
+              ($continue k src
+                ($primcall 'logand #f (arg0 mask)))))
+      (build-term
+        ($continue kmask src ($const (1- min1))))))
+   (else
+    (with-cps cps #f))))
+
+(define-binary-primcall-reducer (mod cps k src param
+                                     arg0 type0 min0 max0
+                                     arg1 type1 min1 max1)
+  (cond
+   ((not (type<=? (logior type0 type1) &exact-integer))
+    (with-cps cps #f))
+   ((and (eqv? type1 &fixnum) (eqv? min1 max1) (power-of-two? min1))
+    (with-cps cps
+      (letv mask)
+      (letk kmask
+            ($kargs ('mask) (mask)
+              ($continue k src
+                ($primcall 'logand #f (arg0 mask)))))
+      (build-term
+        ($continue kmask src ($const (1- min1))))))
+   (else
+    (with-cps cps #f))))
+
 (define-unary-primcall-reducer (mul/immediate cps k src constant
                                               arg type min max)
   (cond
