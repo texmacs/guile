@@ -1946,22 +1946,17 @@ compile_assert_nargs_ge_slow (scm_jit_state *j, uint32_t nlocals)
 static void
 compile_assert_nargs_le (scm_jit_state *j, uint32_t nlocals)
 {
-  jit_reloc_t k;
-  jit_gpr_t t = T0;
-  uint32_t saved_state = j->register_state;
+  add_slow_path_patch
+    (j, emit_branch_if_frame_locals_count_greater_than (j, T0, nlocals));
 
-  k = emit_branch_if_frame_locals_count_less_than (j, t, nlocals + 1);
-  emit_store_current_ip (j, t);
-  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
-               thread_operand ());
-  jit_patch_here (j->jit, k);
-
-  j->register_state = saved_state;
   j->frame_size_max = nlocals;
 }
 static void
 compile_assert_nargs_le_slow (scm_jit_state *j, uint32_t nlocals)
 {
+  emit_store_current_ip (j, T0);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
 }
 
 static void
