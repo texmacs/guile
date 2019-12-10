@@ -3969,16 +3969,36 @@ compile_numerically_equal_slow (scm_jit_state *j, uint16_t a, uint16_t b)
 static void
 compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
 {
-  jit_reloc_t fast, k2, k3;
-  jit_reloc_t k1;
+  jit_reloc_t k;
   uint32_t *target;
-  enum scm_opcode op = fuse_conditional_branch (j, &target);
 
   emit_sp_ref_scm (j, T0, a);
   emit_sp_ref_scm (j, T1, b);
 
   emit_andr (j, T2, T0, T1);
-  fast = jit_bmsi (j->jit, T2, scm_tc2_int);
+  add_slow_path_patch (j, jit_bmci (j->jit, T2, scm_tc2_int));
+
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_jl:
+    case scm_op_jnge:
+      k = jit_bltr (j->jit, T0, T1);
+      break;
+    case scm_op_jnl:
+    case scm_op_jge:
+      k = jit_bger (j->jit, T0, T1);
+      break;
+    default:
+      UNREACHABLE ();
+    }
+
+  add_inter_instruction_patch (j, k, target);
+}
+static void
+compile_less_slow (scm_jit_state *j, uint16_t a, uint16_t b)
+{
+  jit_reloc_t k;
+  uint32_t *target;
 
   emit_store_current_ip (j, T2);
   emit_call_2 (j, scm_vm_intrinsics.less_p,
@@ -3986,48 +4006,27 @@ compile_less (scm_jit_state *j, uint16_t a, uint16_t b)
                jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1));
   emit_retval (j, T0);
   emit_reload_sp (j);
-  switch (op)
-    {
-    case scm_op_jl:
-      k1 = jit_beqi (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
-      break;
-    case scm_op_jnl:
-      k1 = jit_bnei (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
-      break;
-    case scm_op_jge:
-      k1 = jit_beqi (j->jit, T0, SCM_F_COMPARE_NONE);
-      break;
-    case scm_op_jnge:
-      k1 = jit_bnei (j->jit, T0, SCM_F_COMPARE_NONE);
-      break;
-    default:
-      UNREACHABLE ();
-    }
-  k2 = jit_jmp (j->jit);
 
-  jit_patch_here (j->jit, fast);
-  switch (op)
+  switch (fuse_conditional_branch (j, &target))
     {
     case scm_op_jl:
-    case scm_op_jnge:
-      k3 = jit_bltr (j->jit, T0, T1);
+      k = jit_beqi (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
       break;
     case scm_op_jnl:
+      k = jit_bnei (j->jit, T0, SCM_F_COMPARE_LESS_THAN);
+      break;
     case scm_op_jge:
-      k3 = jit_bger (j->jit, T0, T1);
+      k = jit_beqi (j->jit, T0, SCM_F_COMPARE_NONE);
+      break;
+    case scm_op_jnge:
+      k = jit_bnei (j->jit, T0, SCM_F_COMPARE_NONE);
       break;
     default:
       UNREACHABLE ();
     }
 
-  jit_patch_here (j->jit, k2);
-
-  add_inter_instruction_patch (j, k1, target);
-  add_inter_instruction_patch (j, k3, target);
-}
-static void
-compile_less_slow (scm_jit_state *j, uint16_t a, uint16_t b)
-{
+  add_inter_instruction_patch (j, k, target);
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
