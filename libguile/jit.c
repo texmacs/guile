@@ -1259,6 +1259,13 @@ emit_branch_if_heap_object_not_tc (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
 }
 
 static jit_reloc_t
+emit_branch_if_heap_object_has_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
+                                    scm_t_bits tc7)
+{
+  return emit_branch_if_heap_object_has_tc (j, r, t, 0x7f, tc7);
+}
+
+static jit_reloc_t
 emit_branch_if_heap_object_not_tc7 (scm_jit_state *j, jit_gpr_t r, jit_gpr_t t,
                                     scm_t_bits tc7)
 {
@@ -1697,7 +1704,7 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
 {
   jit_gpr_t t = T0, ret = T1;
   void *subr;
-  jit_reloc_t immediate, not_values, k;
+  jit_reloc_t immediate;
   jit_operand_t args[10];
 
   ASSERT (j->frame_size_min == j->frame_size_max);
@@ -1713,21 +1720,15 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
   jit_retval (j->jit, ret);
 
   immediate = emit_branch_if_immediate (j, ret);
-  not_values = emit_branch_if_heap_object_not_tc7 (j, ret, t, scm_tc7_values);
-  emit_call_2 (j, scm_vm_intrinsics.unpack_values_object, thread_operand (),
-               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, ret));
-  emit_reload_fp (j);
-  emit_reload_sp (j);
-  k = jit_jmp (j->jit);
+  add_slow_path_patch
+    (j, emit_branch_if_heap_object_has_tc7 (j, ret, t, scm_tc7_values));
 
   jit_patch_here (j->jit, immediate);
-  jit_patch_here (j->jit, not_values);
   emit_reload_fp (j);
   emit_subtract_stack_slots (j, SP, FP, 1);
   set_register_state (j, SP_IN_REGISTER);
   emit_store_sp (j);
   jit_str (j->jit, SP, ret);
-  jit_patch_here (j->jit, k);
 
   clear_register_state (j, SP_CACHE_GPR | SP_CACHE_FPR);
 
@@ -1737,6 +1738,10 @@ compile_subr_call (scm_jit_state *j, uint32_t idx)
 static void
 compile_subr_call_slow (scm_jit_state *j, uint32_t idx)
 {
+  jit_gpr_t ret = T1;
+  emit_call_2 (j, scm_vm_intrinsics.unpack_values_object, thread_operand (),
+               jit_operand_gpr (JIT_OPERAND_ABI_POINTER, ret));
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
