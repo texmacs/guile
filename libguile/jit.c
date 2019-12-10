@@ -3920,9 +3920,35 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
   jit_reloc_t k;
   uint32_t *target;
 
-  emit_store_current_ip (j, T0);
+  emit_sp_ref_scm (j, T0, a);
+  emit_sp_ref_scm (j, T1, b);
+
+  emit_andr (j, T2, T0, T1);
+  add_slow_path_patch (j, jit_bmci (j->jit, T2, scm_tc2_int));
+
+  switch (fuse_conditional_branch (j, &target))
+    {
+    case scm_op_je:
+      k = jit_beqr (j->jit, T0, T1);
+      break;
+    case scm_op_jne:
+      k = jit_bner (j->jit, T0, T1);
+      break;
+    default:
+      UNREACHABLE ();
+    }
+  add_inter_instruction_patch (j, k, target);
+}
+static void
+compile_numerically_equal_slow (scm_jit_state *j, uint16_t a, uint16_t b)
+{
+  jit_reloc_t k;
+  uint32_t *target;
+
+  emit_store_current_ip (j, T2);
   emit_call_2 (j, scm_vm_intrinsics.numerically_equal_p,
-               sp_scm_operand (j, a), sp_scm_operand (j, b));
+               jit_operand_gpr (JIT_OPERAND_ABI_WORD, T0),
+               jit_operand_gpr (JIT_OPERAND_ABI_WORD, T1));
   emit_retval (j, T0);
   emit_reload_sp (j);
   switch (fuse_conditional_branch (j, &target))
@@ -3937,10 +3963,7 @@ compile_numerically_equal (scm_jit_state *j, uint16_t a, uint16_t b)
       UNREACHABLE ();
     }
   add_inter_instruction_patch (j, k, target);
-}
-static void
-compile_numerically_equal_slow (scm_jit_state *j, uint16_t a, uint16_t b)
-{
+  continue_after_slow_path (j, j->next_ip);
 }
 
 static void
