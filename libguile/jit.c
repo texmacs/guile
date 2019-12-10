@@ -3624,29 +3624,21 @@ compile_ulogxor_slow (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b)
 static void
 compile_handle_interrupts (scm_jit_state *j)
 {
-  uint32_t saved_state = save_reloadable_register_state (j);
-
-  /* This instruction invalidates SP_CACHE_GPR / SP_CACHE_FPR.  */
-
-  void *again = jit_address (j->jit);
-
   jit_addi (j->jit, T0, THREAD, thread_offset_pending_asyncs);
   jit_ldr_atomic (j->jit, T0, T0);
-  jit_reloc_t none_pending = jit_beqi (j->jit, T0, SCM_UNPACK (SCM_EOL));
-  jit_ldxi_i (j->jit, T0, THREAD, thread_offset_block_asyncs);
-  jit_reloc_t blocked = jit_bnei (j->jit, T0, 0);
-
-  emit_store_current_ip (j, T0);
-  jit_jmpi_with_link (j->jit, handle_interrupts_trampoline);
-  jit_jmpi (j->jit, again);
-
-  jit_patch_here (j->jit, none_pending);
-  jit_patch_here (j->jit, blocked);
-  j->register_state = saved_state;
+  add_slow_path_patch (j, jit_bnei (j->jit, T0, SCM_UNPACK (SCM_EOL)));
 }
 static void
 compile_handle_interrupts_slow (scm_jit_state *j)
 {
+  jit_ldxi_i (j->jit, T0, THREAD, thread_offset_block_asyncs);
+  add_inter_instruction_patch (j,
+                               jit_bnei (j->jit, T0, 0),
+                               j->next_ip);
+
+  emit_store_current_ip (j, T0);
+  jit_jmpi_with_link (j->jit, handle_interrupts_trampoline);
+  continue_after_slow_path (j, j->ip);
 }
 
 static void
