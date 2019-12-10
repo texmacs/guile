@@ -2537,67 +2537,64 @@ compile_long_fmov_slow (scm_jit_state *j, uint32_t dst, uint32_t src)
 static void
 compile_call_scm_from_scm_scm (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
-  void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
-  int has_fast = 0;
-  jit_reloc_t fast;
-
-  jit_operand_t op_a = sp_scm_operand (j, a);
-  jit_operand_t op_b = sp_scm_operand (j, b);
-
   switch ((enum scm_vm_intrinsic) idx)
     {
     case SCM_VM_INTRINSIC_ADD:
       {
         emit_sp_ref_scm (j, T0, a);
         emit_sp_ref_scm (j, T1, b);
-        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
-        op_b = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1);
-        jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
-        jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
+        add_slow_path_patch (j, jit_bmci (j->jit, T0, scm_tc2_int));
+        add_slow_path_patch (j, jit_bmci (j->jit, T1, scm_tc2_int));
         jit_subi (j->jit, T0, T0, scm_tc2_int);
-        fast = jit_bxaddr (j->jit, T0, T1);
-        has_fast = 1;
-        /* Restore previous value before slow path.  */
-        jit_subr (j->jit, T0, T0, T1);
-        jit_addi (j->jit, T0, T0, scm_tc2_int);
-        jit_patch_here (j->jit, a_not_inum);
-        jit_patch_here (j->jit, b_not_inum);
+        add_slow_path_patch (j, jit_boaddr (j->jit, T0, T1));
         break;
       }
     case SCM_VM_INTRINSIC_SUB:
       {
         emit_sp_ref_scm (j, T0, a);
         emit_sp_ref_scm (j, T1, b);
-        op_a = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0);
-        op_b = jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T1);
-        jit_reloc_t a_not_inum = jit_bmci (j->jit, T0, scm_tc2_int);
-        jit_reloc_t b_not_inum = jit_bmci (j->jit, T1, scm_tc2_int);
+        add_slow_path_patch (j, jit_bmci (j->jit, T0, scm_tc2_int));
+        add_slow_path_patch (j, jit_bmci (j->jit, T1, scm_tc2_int));
         jit_subi (j->jit, T1, T1, scm_tc2_int);
-        fast = jit_bxsubr (j->jit, T0, T1);
-        has_fast = 1;
-        /* Restore previous values before slow path.  */
-        jit_addr (j->jit, T0, T0, T1);
-        jit_addi (j->jit, T1, T1, scm_tc2_int);
-        jit_patch_here (j->jit, a_not_inum);
-        jit_patch_here (j->jit, b_not_inum);
+        add_slow_path_patch (j, jit_bosubr (j->jit, T0, T1));
         break;
       }
     default:
-      break;
+      {
+        void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+        jit_operand_t op_a = sp_scm_operand (j, a);
+        jit_operand_t op_b = sp_scm_operand (j, b);
+        emit_store_current_ip (j, T2);
+        emit_call_2 (j, intrinsic, op_a, op_b);
+        emit_retval (j, T0);
+        emit_reload_sp (j);
+      }
     }
 
-  emit_store_current_ip (j, T2);
-  emit_call_2 (j, intrinsic, op_a, op_b);
-  emit_retval (j, T0);
-  emit_reload_sp (j);
-
-  if (has_fast)
-    jit_patch_here (j->jit, fast);
   emit_sp_set_scm (j, dst, T0);
 }
 static void
 compile_call_scm_from_scm_scm_slow (scm_jit_state *j, uint8_t dst, uint8_t a, uint8_t b, uint32_t idx)
 {
+  switch ((enum scm_vm_intrinsic) idx)
+    {
+    case SCM_VM_INTRINSIC_ADD:
+    case SCM_VM_INTRINSIC_SUB:
+      {
+        void *intrinsic = ((void **) &scm_vm_intrinsics)[idx];
+        jit_operand_t op_a = sp_scm_operand (j, a);
+        jit_operand_t op_b = sp_scm_operand (j, b);
+        emit_store_current_ip (j, T1);
+        emit_call_2 (j, intrinsic, op_a, op_b);
+        emit_retval (j, T0);
+        emit_reload_sp (j);
+        emit_sp_set_scm (j, dst, T0);
+        continue_after_slow_path (j, j->next_ip);
+        break;
+      }
+    default:
+      break;
+    }
 }
 
 static void
