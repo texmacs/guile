@@ -2321,27 +2321,34 @@ compile_allocate_pointerless_words_immediate (scm_jit_state *j, uint16_t dst, ui
       ptrdiff_t offset = offsetof(struct scm_thread, pointerless_freelists);
       offset += idx * sizeof(void*);
       emit_ldxi (j, res, THREAD, offset);
-      jit_reloc_t fast = jit_bnei (j->jit, res, 0);
-      emit_store_current_ip (j, res);
-      emit_call_2 (j, scm_vm_intrinsics.allocate_pointerless_words_with_freelist,
-                   thread_operand (),
-                   jit_operand_imm (JIT_OPERAND_ABI_WORD, idx));
-      emit_retval (j, res);
-      emit_reload_sp (j);
-      jit_reloc_t done = jit_jmp (j->jit);
-
-      jit_patch_here (j->jit, fast);
+      add_slow_path_patch (j, jit_beqi (j->jit, res, 0));
       jit_gpr_t new_freelist = T1;
       emit_ldr (j, new_freelist, res);
       jit_stxi (j->jit, offset, THREAD, new_freelist);
-
-      jit_patch_here (j->jit, done);
       emit_sp_set_scm (j, dst, res);
     }
 }
 static void
 compile_allocate_pointerless_words_immediate_slow (scm_jit_state *j, uint16_t dst, uint16_t nwords)
 {
+  size_t bytes = nwords * sizeof(SCM);
+  size_t idx = scm_inline_gc_bytes_to_freelist_index (bytes);
+
+  if (SCM_UNLIKELY (idx >= SCM_INLINE_GC_FREELIST_COUNT))
+    {
+    }
+  else
+    {
+      jit_gpr_t res = T0;
+      emit_store_current_ip (j, res);
+      emit_call_2 (j, scm_vm_intrinsics.allocate_pointerless_words_with_freelist,
+                   thread_operand (),
+                   jit_operand_imm (JIT_OPERAND_ABI_WORD, idx));
+      emit_retval (j, res);
+      emit_reload_sp (j);
+      emit_sp_set_scm (j, dst, res);
+      continue_after_slow_path (j, j->next_ip);
+    }
 }
 
 static void
