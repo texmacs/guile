@@ -1934,24 +1934,17 @@ static void
 compile_assert_nargs_ge (scm_jit_state *j, uint32_t nlocals)
 {
   if (nlocals > 0)
-    {
-      jit_gpr_t t = T0;
-      jit_reloc_t k;
-      uint32_t saved_state = j->register_state;
-
-      k = emit_branch_if_frame_locals_count_greater_than (j, t, nlocals-1);
-      emit_store_current_ip (j, t);
-      emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
-                   thread_operand ());
-      jit_patch_here (j->jit, k);
-      j->register_state = saved_state;
-    }
+    add_slow_path_patch
+      (j, emit_branch_if_frame_locals_count_less_than (j, T0, nlocals));
 
   j->frame_size_min = nlocals;
 }
 static void
 compile_assert_nargs_ge_slow (scm_jit_state *j, uint32_t nlocals)
 {
+  emit_store_current_ip (j, T0);
+  emit_call_1 (j, scm_vm_intrinsics.error_wrong_num_args,
+               thread_operand ());
 }
 
 static void
