@@ -1789,8 +1789,6 @@ compile_continuation_call_slow (scm_jit_state *j, uint32_t contregs_idx)
 static void
 compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
 {
-  jit_reloc_t interp;
-
   ASSERT_HAS_REGISTER_STATE (SP_IN_REGISTER | FP_IN_REGISTER);
 
   emit_store_current_ip (j, T0);
@@ -1798,13 +1796,10 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
   emit_call_2 (j, scm_vm_intrinsics.compose_continuation,
                thread_operand (), free_variable_operand (j, T0, cont_idx));
   jit_retval (j->jit, T0);
-  interp = jit_beqi (j->jit, T0, 0);
+  add_slow_path_patch (j, jit_beqi (j->jit, T0, 0));
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (j->jit, T0);
-
-  jit_patch_here (j->jit, interp);
-  emit_exit (j);
 
   j->frame_size_min = 0;
   j->frame_size_max = INT32_MAX;
@@ -1812,6 +1807,7 @@ compile_compose_continuation (scm_jit_state *j, uint32_t cont_idx)
 static void
 compile_compose_continuation_slow (scm_jit_state *j, uint32_t cont_idx)
 {
+  emit_exit (j);
 }
 
 static void
