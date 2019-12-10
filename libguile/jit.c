@@ -1828,22 +1828,17 @@ compile_capture_continuation_slow (scm_jit_state *j, uint32_t dst)
 static void
 compile_abort (scm_jit_state *j)
 {
-  jit_reloc_t k, interp;
-
   jit_movi (j->jit, T0, (intptr_t) (j->ip + 1));
   emit_store_ip (j, T0);
-  k = jit_mov_addr (j->jit, T0);
+  jit_reloc_t k = jit_mov_addr (j->jit, T0);
   emit_call_2 (j, scm_vm_intrinsics.abort_to_prompt, thread_operand (),
                jit_operand_gpr (JIT_OPERAND_ABI_POINTER, T0));
   jit_retval (j->jit, T1_PRESERVED);
   
-  interp = jit_beqi (j->jit, T1_PRESERVED, 0);
+  add_slow_path_patch(j, jit_beqi (j->jit, T1_PRESERVED, 0));
   emit_reload_sp (j);
   emit_reload_fp (j);
   jit_jmpr (j->jit, T1_PRESERVED);
-
-  jit_patch_here (j->jit, interp);
-  emit_exit (j);
 
   jit_patch_here (j->jit, k);
 
@@ -1853,6 +1848,7 @@ compile_abort (scm_jit_state *j)
 static void
 compile_abort_slow (scm_jit_state *j)
 {
+  emit_exit (j);
 }
 
 static void
