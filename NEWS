@@ -5,55 +5,30 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes since alpha 2.9.6:
+Changes in alpha 2.9.7 (since alpha 2.9.6):
 
 * Notable changes
 
-** (iota) in core and SRFI-1 (iota) are the same
+** Improve JIT code generation
 
-Previously, (iota) in core would not accept start and step arguments and
+Native code for unlikely or expensive cases is now generated
+out-of-line, improving instruction cache utilization.  It makes things
+go faster!
+
+** Fix JIT bug preventing tier-up within loops
+
+Before, it was possible to see significantly better performance when
+forcing eager JIT compilation using the GUILE_JIT_THRESHOLD environment
+variable; see "Environment Variables" in the manual.  This was due to a
+bug that prevented tiering up to JIT code in some cases, and has been
+fixed.
+
+** `iota' in core and SRFI-1 `iota' are the same
+
+Previously, `iota' in core would not accept start and step arguments and
 would return an empty list for negative count. Now there is only one
-(iota) function with the semantics of SRFI-1 (negative count is an
-error).
-
-
-Changes in alpha 2.9.6 (since alpha 2.9.5):
-
-* Notable changes
-
-** Add --r6rs, --r7rs options to `guild compile'
-
-This makes compiling R6RS or R7RS code a bit easier.  See "R6RS Support"
-and "R7RS Support" in the manual, for more.
-
-** Add guile-3, guile-3.0 cond-expand features
-
-See "SRFI-0" in the manual, for more.
-
-** Add #:re-export-and-replace argument to `define-module'
-
-This new keyword specifies a set of bindings to re-export, but also
-marks them as intended to replace core bindings.  See "Creating Guile
-Modules" in the manual, for full details.
-
-Note to make this change, we had to change the way replacement flags are
-stored, to being associated with modules instead of individual variable
-objects.  This means that users who #:re-export an imported binding that
-was already marked as #:replace by another module will now see warnings,
-as they need to use #:re-export-and-replace instead.
-
-** Better optimizations for vector-length et al
-
-Sometimes the compiler get confused and think it couldn't hoist a
-`vector-length' call out of a loop.  This has been fixed.
-
-* Bug fixes
-
-** Fix range inference on division in unreachable code
-** Fix frame-call-representation for callees without closures
-** Fix range inference for right-shifts
-** Fix port-position documentation
-** Fix stack overflow if printing a pre-boot error throws an error
+`iota' function with the extended semantics of SRFI-1.  Note that as an
+incompatible change, core `iota' no longer accepts a negative count.
 
 
 
@@ -230,6 +205,18 @@ see "R6RS Support" in the manual, for full details.
 Also as with R6RS, there is an `install-r7rs!' procedure and a `--r7rs'
 command-line option.
 
+** Add #:re-export-and-replace argument to `define-module'
+
+This new keyword specifies a set of bindings to re-export, but also
+marks them as intended to replace core bindings.  See "Creating Guile
+Modules" in the manual, for full details.
+
+Note to make this change, we had to change the way replacement flags are
+stored, to being associated with modules instead of individual variable
+objects.  This means that users who #:re-export an imported binding that
+was already marked as #:replace by another module will now see warnings,
+as they need to use #:re-export-and-replace instead.
+
 * New deprecations
 
 ** scm_t_uint8, etc deprecated in favor of C99 stdint.h
@@ -280,7 +267,8 @@ manual, for more.
 The "effective version" of Guile is now 3.0, which allows parallel
 installation with other effective versions (for example, the older Guile
 2.2).  See "Parallel Installations" in the manual for full details.
-Notably, the `pkg-config' file is now `guile-3.0'.
+Notably, the `pkg-config' file is now `guile-3.0', and there are new
+`guile-3' and `guile-3.0' features for `cond-expand'.
 
 
 
