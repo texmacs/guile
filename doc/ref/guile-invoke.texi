@@ -355,18 +355,6 @@ Usually, installing the current locale is the right thing to do.  It
 allows Guile to correctly parse and print strings with non-ASCII
 characters.  Therefore, this option is on by default.
 
-@item GUILE_STACK_SIZE
-@vindex GUILE_STACK_SIZE
-Guile currently has a limited stack size for Scheme computations.
-Attempting to call too many nested functions will signal an error.  This
-is good to detect infinite recursion, but sometimes the limit is reached
-for normal computations.  This environment variable, if set to a
-positive integer, specifies the number of Scheme value slots to allocate
-for the stack.
-
-In the future we will implement stacks that can grow and shrink, but for
-now this hack will have to do.
-
 @item GUILE_LOAD_COMPILED_PATH
 @vindex GUILE_LOAD_COMPILED_PATH
 This variable may be used to augment the path that is searched for
@@ -427,6 +415,31 @@ messages describing the warning.  @xref{Deprecation}.
 Guile uses the environment variable @env{HOME}, the name of your home
 directory, to locate various files, such as @file{.guile} or
 @file{.guile_history}.
+
+@item GUILE_JIT_THRESHOLD
+@vindex GUILE_JIT_THRESHOLD
+Guile has a just-in-time (JIT) code generator that makes running Guile
+code fast.  @xref{Just-In-Time Native Code}, for more.  The unit of code
+generation is the function.  Each function has its own counter that gets
+incremented when the function is called and at each loop iteration in
+the function.  When the counter exceeds the @env{GUILE_JIT_THRESHOLD},
+the function will get JIT-compiled.  Set @env{GUILE_JIT_THRESHOLD} to
+@code{-1} to disable JIT compilation, or @code{0} to eagerly JIT-compile
+each function as it's first seen.
+
+@item GUILE_JIT_LOG
+@vindex GUILE_JIT_LOG
+Set to @code{1}, @code{2}, or @code{3} to give increasing amounts of
+logging for JIT compilation events.  Used for debugging.
+
+@item GUILE_JIT_STOP_AFTER
+@vindex GUILE_JIT_STOP_AFTER
+Though we have tested the JIT compiler as well as we can, it's possible
+that it has bugs.  If you suspect that Guile's JIT compiler is causing
+your program to fail, set @env{GUILE_JIT_STOP_AFTER} to a positive
+integer indicating the maximum number of functions to JIT-compile.  By
+bisecting over the value of @env{GUILE_JIT_STOP_AFTER}, you can pinpoint
+the precise function that is being miscompiled.
 
 @end table
 

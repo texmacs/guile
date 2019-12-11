@@ -87,11 +87,11 @@ optimized inline instructions for Guile as well (GC-managed allocations,
 type checks, etc.).
 
 Guile also includes a just-in-time (JIT) compiler to translate bytecode
-to native code.  Because Guile uses the portable GNU Lightning library
-to emit that code, we keep the benefits of portability while also
-benefitting from fast native code.  To avoid too much time spent in the
-JIT compiler itself, Guile is tuned to only emit machine code for
-bytecode that is called often.
+to native code.  Because Guile embeds a portable code generation library
+(@url{https://gitlab.com/wingo/lightening}), we keep the benefits of
+portability while also benefitting from fast native code.  To avoid too
+much time spent in the JIT compiler itself, Guile is tuned to only emit
+machine code for bytecode that is called often.
 
 The rest of this section describes that VM that Guile implements, and
 the compiled procedures that run on it.
@@ -1915,7 +1915,7 @@ breakpoint, Guile will disable the JIT for the thread being debugged,
 falling back to the interpreter (which has the corresponding code to run
 the hooks).  @xref{VM Hooks}.
 
-To emit native code, Guile uses a forked version of GNU Lightning.This
+To emit native code, Guile uses a forked version of GNU Lightning.  This
 "Lightening" effort, spun out as a separate project, aims to build on
 the back-end support from GNU Lightning, but adapting the API and
 behavior of the library to match Guile's needs.  This code is included
@@ -1967,3 +1967,7 @@ written in Scheme, to take advantage of the opportunity to do global
 register allocation and instruction selection.  Once this is working, it
 can allow Guile to experiment with speculative optimizations in Scheme
 as well.  @xref{Extending the Compiler}, for more on future directions.
+
+Finally, note that there are a few environment variables that can be
+tweaked to make JIT compilation happen sooner, later, or never.
+@xref{Environment Variables}, for more.
