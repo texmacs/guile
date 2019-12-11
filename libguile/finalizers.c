@@ -1,4 +1,4 @@
-/* Copyright 2012-2014,2018
+/* Copyright 2012-2014,2018-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -217,21 +217,26 @@ finalization_thread_proc (void *unused)
 
       scm_without_guile (read_finalization_pipe_data, &data);
       
-      if (data.n <= 0 && data.err != EINTR) 
+      if (data.n <= 0)
         {
-          perror ("error in finalization thread");
-          return NULL;
+          if (data.err != EINTR)
+            {
+              perror ("error in finalization thread");
+              return NULL;
+            }
         }
-
-      switch (data.byte)
+      else
         {
-        case 0:
-          scm_run_finalizers ();
-          break;
-        case 1:
-          return NULL;
-        default:
-          abort ();
+          switch (data.byte)
+            {
+            case 0:
+              scm_run_finalizers ();
+              break;
+            case 1:
+              return NULL;
+            default:
+              abort ();
+            }
         }
     }
 }

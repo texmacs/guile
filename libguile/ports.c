@@ -1447,7 +1447,7 @@ SCM_DEFINE (scm_port_poll, "port-poll", 2, 1, 0,
   if (scm_i_string_contains_char (events, '!'))
     c_events |= POLLPRI;
   if (scm_i_string_contains_char (events, 'w'))
-    c_events |= POLLIN;
+    c_events |= POLLOUT;
 
   scm_dynwind_begin (0);
   scm_dynwind_acquire_port (port);
