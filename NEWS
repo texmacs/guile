@@ -30,6 +30,10 @@ would return an empty list for negative count. Now there is only one
 `iota' function with the extended semantics of SRFI-1.  Note that as an
 incompatible change, core `iota' no longer accepts a negative count.
 
+* Bug fixes
+
+** Fix recently introduced bug causing early abort if stdin is closed
+
 
 
 Changes in alpha 2.9.x (since the stable 2.2 series):
