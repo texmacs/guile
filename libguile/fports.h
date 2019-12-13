@@ -1,7 +1,7 @@
 #ifndef SCM_FPORTS_H
 #define SCM_FPORTS_H
 
-/* Copyright 1995-2001,2006,2008-2009,2011-2012,2017-2018
+/* Copyright 1995-2001,2006,2008-2009,2011-2012,2017-2019
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -86,8 +86,10 @@ enum scm_fport_option
        that case.  */
     SCM_FPORT_OPTION_NOT_SEEKABLE = 1U<<1
   };
+SCM_INTERNAL int scm_i_fdes_is_valid (int fdes, long mode_bits);
 SCM_INTERNAL SCM scm_i_fdes_to_port (int fdes, long mode_bits, SCM name,
                                      unsigned options);
+
 #endif /* BUILDING_LIBGUILE */
 
 #endif  /* SCM_FPORTS_H */

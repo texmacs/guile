@@ -401,6 +401,29 @@ SCM_DEFINE (scm_i_open_file, "open-file", 2, 0, 1,
 
 /* Building Guile ports from a file descriptor.  */
 
+int
+scm_i_fdes_is_valid (int fdes, long mode_bits)
+{
+#ifdef F_GETFL
+  int flags = fcntl (fdes, F_GETFL, 0);
+  if (flags == -1)
+    return 0;
+  flags &= O_ACCMODE;
+  if (flags == O_RDWR)
+    return 1;
+  if (flags != O_WRONLY && (mode_bits & SCM_WRTNG))
+    return 0;
+  if (flags != O_RDONLY && (mode_bits & SCM_RDNG))
+    return 0;
+  return 1;
+#else
+  /* If we don't have F_GETFL, as on mingw, at least we can test that
+     it is a valid file descriptor.  */
+  struct stat st;
+  return fstat (fdes, &st) == 0;
+#endif
+}
+
 /* Build a Scheme port from an open file descriptor `fdes'.
    MODE indicates whether FILE is open for reading or writing; it uses
       the same notation as open-file's second argument.
@@ -415,27 +438,14 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name, unsigned options)
 
   if (options & SCM_FPORT_OPTION_VERIFY)
     {
-      /* Check that the foreign FD is valid and matches the mode
-         bits.  */
-#ifdef F_GETFL
-      int flags = fcntl (fdes, F_GETFL, 0);
-      if (flags == -1)
-        SCM_SYSERROR;
-      flags &= O_ACCMODE;
-      if (flags != O_RDWR
-          && ((flags != O_WRONLY && (mode_bits & SCM_WRTNG))
-              || (flags != O_RDONLY && (mode_bits & SCM_RDNG))))
+      errno = 0;
+      if (!scm_i_fdes_is_valid (fdes, mode_bits))
         {
+          if (errno)
+            SCM_SYSERROR;
           SCM_MISC_ERROR ("requested file mode not available on fdes",
                           SCM_EOL);
         }
-#else
-      /* If we don't have F_GETFL, as on mingw, at least we can test that
-         it is a valid file descriptor.  */
-      struct stat st;
-      if (fstat (fdes, &st) != 0)
-        SCM_SYSERROR;
-#endif
     }
 
   fp = (scm_t_fport *) scm_gc_malloc_pointerless (sizeof (scm_t_fport),

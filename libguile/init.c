@@ -156,49 +156,19 @@
 
 /* initializing standard and current I/O ports */
 
-typedef struct
-{
-  int fdes;
-  char *mode;
-} stream_body_data;
-
-/* proc to be called in scope of exception handler stream_handler. */
-static SCM
-stream_body (void *data)
-{
-  stream_body_data *body_data = (stream_body_data *) data;
-  SCM port = scm_fdes_to_port (body_data->fdes, body_data->mode, SCM_BOOL_F);
-  scm_set_port_revealed_x (port, SCM_INUM1);
-  return port;
-}
-
-/* exception handler for stream_body.  */
-static SCM
-stream_handler (void *data SCM_UNUSED,
-		SCM tag SCM_UNUSED,
-		SCM throw_args SCM_UNUSED)
-{
-  return SCM_BOOL_F;
-}
-
 /* Convert a file descriptor to a port, using scm_fdes_to_port.
    - set the revealed count for FILE's file descriptor to 1, so
-   that fdes won't be closed when the port object is GC'd.
-   - catch exceptions: allow Guile to be able to start up even
-   if it has been handed bogus stdin/stdout/stderr.  replace the
-   bad ports with void ports.  */
+   that fdes won't be closed when the port object is GC'd.  */
 static SCM
 scm_standard_stream_to_port (int fdes, char *mode)
 {
-  SCM port;
-  stream_body_data body_data;
+  long mode_bits = scm_mode_bits (mode);
 
-  body_data.fdes = fdes;
-  body_data.mode = mode;
-  port = scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
-			     stream_handler, NULL);
-  if (scm_is_false (port))
-    port = scm_void_port (mode);
+  if (!scm_i_fdes_is_valid (fdes, mode_bits))
+    return scm_void_port (mode);
+
+  SCM port = scm_i_fdes_to_port (fdes, mode_bits, SCM_BOOL_F, 0);
+  scm_set_port_revealed_x (port, SCM_INUM1);
   return port;
 }
 
