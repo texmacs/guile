@@ -39,8 +39,8 @@
                (exception-message . condition-message)
                (&error . &serious)
                (error? . serious-condition?)
-               (&external-error . &error)
                (external-error? . error?))
+  #:re-export-and-replace ((&external-error . &error))
   #:export (make-condition
             define-condition-type
             condition-has-type?
