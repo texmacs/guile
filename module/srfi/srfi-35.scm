@@ -118,11 +118,20 @@ by C."
   (let ((pred (record-predicate type)))
     (or-map (lambda (x) (and (pred x) x)) (simple-exceptions c))))
 
-(define-syntax-rule (define-condition-type type parent predicate
-                      (field accessor) ...)
-  (define-exception-type type parent
-    unused-constructor predicate
-    (field accessor) ...))
+(define-syntax define-condition-type
+  (lambda (s)
+    (syntax-case s ()
+      ((_ type parent predicate (field accessor) ...)
+       ;; The constructor is unused, but generate a new name for each
+       ;; condition to avoid '-Wshadowed-toplevel' warnings when several
+       ;; condition types are defined in the same compilation unit.
+       (with-syntax ((unused-constructor
+                      (datum->syntax
+                       #'type
+                       (symbol-append '#{ make-}# (syntax->datum #'type)))))
+         #'(define-exception-type type parent
+             unused-constructor predicate
+             (field accessor) ...))))))
 
 (define-syntax condition-instantiation
   ;; Build the `(make-condition type ...)' call.
