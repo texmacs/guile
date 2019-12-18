@@ -43,7 +43,8 @@
 
 #define SCM_VALIDATE_MUTABLE_VECTOR(pos, v)                             \
   do {                                                                  \
-    SCM_ASSERT (SCM_I_IS_MUTABLE_VECTOR (v), v, pos, FUNC_NAME);        \
+    SCM_ASSERT_TYPE (SCM_I_IS_MUTABLE_VECTOR (v), v, pos, FUNC_NAME,    \
+                     "mutable vector");                                 \
   } while (0)
 
 
@@ -311,23 +312,43 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM scm_vector_fill_partial_x (SCM vec, SCM fill, SCM start, SCM end);
 
-SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
-            (SCM v, SCM fill),
-	    "Store @var{fill} in every position of @var{vector}.  The value\n"
-	    "returned by @code{vector-fill!} is unspecified.")
+SCM_DEFINE_STATIC (scm_vector_fill_partial_x, "vector-fill!", 2, 2, 0,
+            (SCM vec, SCM fill, SCM start, SCM end),
+            "Assign the value of every location in vector @var{vec} between\n"
+            "@var{start} and @var{end} to @var{fill}.  @var{start} defaults\n"
+            "to 0 and @var{end} defaults to the length of @var{vec}.  The value\n"
+            "returned by @code{vector-fill!} is unspecified.")
+#define FUNC_NAME s_scm_vector_fill_partial_x
+{
+  SCM_VALIDATE_MUTABLE_VECTOR(1, vec);
+
+  SCM *data;
+  size_t i = 0;
+  size_t len = SCM_I_VECTOR_LENGTH (vec);
+
+  data = SCM_I_VECTOR_WELTS (vec);
+
+  if (!SCM_UNBNDP (start))
+    i = scm_to_unsigned_integer (start, 0, len);
+
+  if (!SCM_UNBNDP (end))
+    len = scm_to_unsigned_integer (end, i, len);
+
+  for (; i < len; ++i)
+    data[i] = fill;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM
+scm_vector_fill_x (SCM vec, SCM fill)
 #define FUNC_NAME s_scm_vector_fill_x
 {
-  scm_t_array_handle handle;
-  SCM *data;
-  size_t i, len;
-  ssize_t inc;
-
-  data = scm_vector_writable_elements (v, &handle, &len, &inc);
-  for (i = 0; i < len; i += inc)
-    data[i] = fill;
-  scm_array_handle_release (&handle);
-  return SCM_UNSPECIFIED;
+  return scm_vector_fill_partial_x (vec, fill, SCM_UNDEFINED, SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 

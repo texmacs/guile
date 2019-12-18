@@ -5,6 +5,25 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes since alpha 2.9.8:
+
+** Fix performance of SRFI-43 vector-fill!
+
+SRFI-43 vector-fill! now has the same performance whether an optional
+range is provided or not, and is also provided in core.  As a side
+effect, vector-fill! and vector_fill_x no longer work on non-vector
+rank-1 arrays. Such cases were handled incorrectly before; for example,
+prior to this change,
+
+  (define a (make-vector 10 'x))
+  (define b (make-shared-array a (lambda (i) (list (* 2 i))) 5))
+  (vector-fill! b 'y)
+
+  => #1(y y y x x)
+
+This is now an error. Instead, use array-fill! (or array_fill_x).
+
+
 Changes in alpha 2.9.8 (since alpha 2.9.7):
 
 * Bug fixes
@@ -1355,7 +1374,7 @@ These functions now require a valid `encoding' argument, and will abort
 if given `NULL'.
 
 ** All r6rs ports are both textual and binary
-    
+
 Because R6RS ports are a thin layer on top of Guile's ports, and Guile's
 ports are both textual and binary, Guile's R6RS ports are also both
 textual and binary, and thus both kinds have port transcoders.  This is
@@ -1485,7 +1504,7 @@ is now deprecated.  Instead, users should just use `make-vtable' with
 appropriate arguments.  See "Structures" in the manual for all of the
 details.  As such, `record-type-vtable' and `%condition-type-vtable' now
 have a parent vtable and are no longer roots of the vtable hierarchy.
-    
+
 ** Syntax parameters are a distinct type
 
 Guile 2.0's transitional implementation of `syntax-parameterize' was
@@ -1497,7 +1516,7 @@ and only such bindings may be parameterized.  See "Syntax Parameters" in
 the manual for more.
 
 ** Defined identifiers scoped in the current module
-    
+
 Sometimes Guile's expander would attach incorrect module scoping
 information for top-level bindings made by an expansion.  For example,
 given the following R6RS library:
@@ -1521,7 +1540,7 @@ It wasn't clear that we could fix this in Guile 2.0 without breaking
 someone's delicate macros, so the fix is only coming out now.
 
 ** Pseudo-hygienically rename macro-introduced bindings
-    
+
 Bindings introduced by macros, like `t' in the `defconst' example above,
 are now given pseudo-fresh names.  This allows
 
@@ -1535,7 +1554,7 @@ pseudo-fresh names.  See "Hygiene and the Top-Level" in the manual, for
 details.
 
 ** Fix literal matching for module-bound literals
-    
+
 `syntax-rules' and `syntax-case' macros can take a set of "literals":
 bound or unbound keywords that the syntax matcher treats specially.
 Before, literals were always matched symbolically (by name).  Now they
@@ -2766,7 +2785,7 @@ See "Hash Tables".
 See "Bitwise Operations".
 
 ** New foreign types: `ssize_t', `ptrdiff_t'
-    
+
 See "Foreign Types".
 
 ** New C helpers: `scm_from_ptrdiff_t', `scm_to_ptrdiff_t'
@@ -2795,7 +2814,7 @@ See "REPL Commands" in the manual for information on the new
 user-customizable REPL printer.
 
 ** New variable: %site-ccache-dir
-    
+
 The "Installing Site Packages" and "Build Config" manual sections now
 refer to this variable to describe where users should install their
 `.go' files.
@@ -3268,7 +3287,7 @@ Changes in 2.0.4 (since 2.0.3):
 * Notable changes
 
 ** Better debuggability for interpreted procedures.
-    
+
 Guile 2.0 came with a great debugging experience for compiled
 procedures, but the story for interpreted procedures was terrible.  Now,
 at least, interpreted procedures have names, and the `arity' procedure
@@ -3276,7 +3295,7 @@ property is always correct (or, as correct as it can be, in the presence
 of `case-lambda').
 
 ** Support for cross-compilation.
-    
+
 One can now use a native Guile to cross-compile `.go' files for a
 different architecture.  See the documentation for `--target' in the
 "Compilation" section of the manual, for information on how to use the
@@ -3315,7 +3334,7 @@ allocators eventually call this function.  This leads to better
 performance under steady-state unmanaged allocation.
 
 *** Transient allocation
-    
+
 When the collector runs, it will try to record the total memory
 footprint of a process, if the platform supports this information.  If
 the memory footprint is growing, the collector will run more frequently.
@@ -3328,7 +3347,7 @@ Creating a thread will allocate a fair amount of memory.  Guile now does
 some GC work (using `GC_collect_a_little') when allocating a thread.
 This leads to a better memory footprint when creating many short-lived
 threads.
-    
+
 Similarly, bignums can occupy a lot of memory.  Guile now offers hooks
 to enable custom GMP allocators that end up calling
 `scm_gc_register_allocation'.  These allocators are enabled by default
@@ -3337,14 +3356,14 @@ set the `scm_install_gmp_memory_functions' variable to a nonzero value
 before loading Guile.
 
 ** SRFI-39 parameters are available by default.
-    
+
 Guile now includes support for parameters, as defined by SRFI-39, in the
 default environment.  See "Parameters" in the manual, for more
 information.  `current-input-port', `current-output-port', and
 `current-error-port' are now parameters.
-    
+
 ** Add `current-warning-port'.
-    
+
 Guile now outputs warnings on a separate port, `current-warning-port',
 initialized to the value that `current-error-port' has on startup.
 
@@ -3355,9 +3374,9 @@ Following Racket's lead, Guile now supports syntax parameters.  See
 
 Also see Barzilay, Culpepper, and Flatt's 2011 SFP workshop paper,
 "Keeping it Clean with syntax-parameterize".
-    
+
 ** Parse command-line arguments from the locale encoding.
-    
+
 Guile now attempts to parse command-line arguments using the user's
 locale.  However for backwards compatibility with other 2.0.x releases,
 it does so without actually calling `setlocale'.  Please report any bugs
@@ -3497,12 +3516,12 @@ See "Web Client" in the manual, for more.
 See "Installing Site Packages" in the manual.
 
 ** Remove Front-Cover and Back-Cover text from the manual.
-    
+
 The manual is still under the GNU Free Documentation License, but no
 longer has any invariant sections.
 
 ** More helpful `guild help'.
-    
+
 `guild' is Guile's multi-tool, for use in shell scripting.  Now it has a
 nicer interface for querying the set of existing commands, and getting
 help on those commands.  Try it out and see!
@@ -3518,7 +3537,7 @@ The output of this command now has microsecond precision, instead of
 10-millisecond precision.
 
 ** `(ice-9 match)' can now match records.
-    
+
 See "Pattern Matching" in the manual, for more on matching records.
 
 ** New module: `(language tree-il debug)'.
@@ -3527,7 +3546,7 @@ This module provides a tree-il verifier.  This is useful for people that
 generate tree-il, usually as part of a language compiler.
 
 ** New functions: `scm_is_exact', `scm_is_inexact'.
-    
+
 These provide a nice C interface for Scheme's `exact?' and `inexact?',
 respectively.
 
@@ -3564,25 +3583,25 @@ Changes in 2.0.2 (since 2.0.1):
 * Notable changes
 
 ** `guile-tools' renamed to `guild'
-    
+
 The new name is shorter.  Its intended future use is for a CPAN-like
 system for Guile wizards and journeyfolk to band together to share code;
 hence the name.  `guile-tools' is provided as a backward-compatible
 symbolic link.  See "Using Guile Tools" in the manual, for more.
 
 ** New control operators: `shift' and `reset'
-    
+
 See "Shift and Reset" in the manual, for more information.
 
 ** `while' as an expression
-    
+
 Previously the return value of `while' was unspecified.  Now its
 values are specified both in the case of normal termination, and via
 termination by invoking `break', possibly with arguments.  See "while
 do" in the manual for more.
 
 ** Disallow access to handles of weak hash tables
-    
+
 `hash-get-handle' and `hash-create-handle!' are no longer permitted to
 be called on weak hash tables, because the fields in a weak handle could
 be nulled out by the garbage collector at any time, but yet they are
@@ -3590,18 +3609,18 @@ otherwise indistinguishable from pairs.  Use `hash-ref' and `hash-set!'
 instead.
 
 ** More precision for `get-internal-run-time', `get-internal-real-time'
-    
+
 On 64-bit systems which support POSIX clocks, Guile's internal timing
 procedures offer nanosecond resolution instead of the 10-millisecond
 resolution previously available.  32-bit systems now use 1-millisecond
 timers.
 
 ** Guile now measures time spent in GC
-    
+
 `gc-stats' now returns a meaningful value for `gc-time-taken'.
 
 ** Add `gcprof'
-    
+
 The statprof profiler now exports a `gcprof' procedure, driven by the
 `after-gc-hook', to see which parts of your program are causing GC.  Let
 us know if you find it useful.
@@ -3617,22 +3636,22 @@ core `map', SRFI-1 `map', and GOOPS.
 Also it's pretty cool that we can do this without a performance impact.
 
 ** Add `scm_peek_byte_or_eof'.
-    
+
 This helper is like `scm_peek_char_or_eof', but for bytes instead of
 full characters.
 
 ** Implement #:stop-at-first-non-option option for getopt-long
-    
+
 See "getopt-long Reference" in the manual, for more information.
 
 ** Improve R6RS conformance for conditions in the I/O libraries
-    
+
 The `(rnrs io simple)' module now raises the correct R6RS conditions in
 error cases.  `(rnrs io ports)' is also more correct now, though it is
 still a work in progress.
 
 ** All deprecated routines emit warnings
-    
+
 A few deprecated routines were lacking deprecation warnings.  This has
 been fixed now.
 
@@ -3649,7 +3668,7 @@ as much as possible, in the entire compilation unit.  This cuts compiled
 These procedures are now twice as fast as they were.
 
 ** UTF-8 ports to bypass `iconv' entirely
-    
+
 This reduces memory usage in a very common case.
 
 ** Compiler speedups
@@ -3659,7 +3678,7 @@ once the compiler is itself compiled, so the build still takes as long
 as it did before.)
 
 ** VM speed tuning
-    
+
 Some assertions that were mostly useful for sanity-checks on the
 bytecode compiler are now off for both "regular" and "debug" engines.
 This together with a fix to cache a TLS access and some other tweaks
@@ -3676,14 +3695,14 @@ These procedures are now at least twice as fast than in 2.0.1.
 * Deprecations
 
 ** Deprecate scm_whash API
-    
+
 `scm_whash_get_handle', `SCM_WHASHFOUNDP', `SCM_WHASHREF',
 `SCM_WHASHSET', `scm_whash_create_handle', `scm_whash_lookup', and
 `scm_whash_insert' are now deprecated.  Use the normal hash table API
 instead.
 
 ** Deprecate scm_struct_table
-    
+
 `SCM_STRUCT_TABLE_NAME', `SCM_SET_STRUCT_TABLE_NAME',
 `SCM_STRUCT_TABLE_CLASS', `SCM_SET_STRUCT_TABLE_CLASS',
 `scm_struct_table', and `scm_struct_create_handle' are now deprecated.
@@ -3691,13 +3710,13 @@ These routines formed part of the internals of the map between structs
 and classes.
 
 ** Deprecate scm_internal_dynamic_wind
-    
+
 The `scm_t_inner' type and `scm_internal_dynamic_wind' are deprecated,
 as the `scm_dynwind' API is better, and this API encourages users to
 stuff SCM values into pointers.
 
 ** Deprecate scm_immutable_cell, scm_immutable_double_cell
-    
+
 These routines are deprecated, as the GC_STUBBORN API doesn't do
 anything any more.
 
@@ -3726,14 +3745,14 @@ ports)' documentation from the R6RS documentation.  Thanks Andreas!
 ** Fix unaligned accesses for bytevectors of complex numbers
 ** Fix '(a #{.} b)
 ** Fix erroneous VM stack overflow for canceled threads
-    
+
 
 Changes in 2.0.1 (since 2.0.0):
 
 * Notable changes
 
 ** guile.m4 supports linking with rpath
-    
+
 The GUILE_FLAGS macro now sets GUILE_LIBS and GUILE_LTLIBS, which
 include appropriate directives to the linker to include libguile-2.0.so
 in the runtime library lookup path.
@@ -3770,11 +3789,11 @@ modules and their public interfaces.  See `scm_c_public_ref' and friends
 in "Accessing Modules from C" in the manual.
 
 ** Added `scm_call_5', `scm_call_6'
-    
+
 See "Fly Evaluation" in the manual.
 
 ** Added `scm_from_latin1_keyword', `scm_from_utf8_keyword'
-    
+
 See "Keyword Procedures" in the manual, for more.  Note that
 `scm_from_locale_keyword' should not be used when the name is a C string
 constant.
@@ -3787,17 +3806,17 @@ and `current-error-port' from `(rnrs io ports)', and enhanced support
 for transcoders.
 
 ** Added `pointer->scm', `scm->pointer' to `(system foreign)'
-    
+
 These procedure are useful if one needs to pass and receive SCM values
 to and from foreign functions.  See "Foreign Variables" in the manual,
 for more.
-    
+
 ** Added `heap-allocated-since-gc' to `(gc-stats)'
 
 Also fixed the long-standing bug in the REPL `,stat' command.
-    
+
 ** Add `on-error' REPL option
-    
+
 This option controls what happens when an error occurs at the REPL, and
 defaults to `debug', indicating that Guile should enter the debugger.
 Other values include `report', which will simply print a backtrace
@@ -3806,7 +3825,7 @@ without entering the debugger.  See "System Commands" in the manual.
 ** Enforce immutability of string literals
 
 Attempting to mutate a string literal now causes a runtime error.
-    
+
 ** Fix pthread redirection
 
 Guile 2.0.0 shipped with headers that, if configured with pthread
@@ -3823,26 +3842,26 @@ A throw to `quit' in a continuation barrier will cause Guile to exit.
 Before, it would do so before unwinding to the barrier, which would
 prevent cleanup handlers from running.  This has been fixed so that it
 exits only after unwinding.
-    
+
 ** `string->pointer' and `pointer->string' have optional encoding arg
-    
+
 This allows users of the FFI to more easily deal in strings with
 particular (non-locale) encodings, like "utf-8".  See "Void Pointers and
 Byte Access" in the manual, for more.
 
 ** R6RS fixnum arithmetic optimizations
-    
+
 R6RS fixnum operations are are still slower than generic arithmetic,
 however.
 
 ** New procedure: `define-inlinable'
-    
+
 See "Inlinable Procedures" in the manual, for more.
 
 ** New procedure: `exact-integer-sqrt'
 
 See "Integer Operations" in the manual, for more.
-    
+
 ** "Extended read syntax" for symbols parses better
 
 In #{foo}# symbols, backslashes are now treated as escapes, as the
@@ -3873,7 +3892,7 @@ The humble `error' SRFI now has an entry in the manual.
 ** `(ice-9 binary-ports)': "R6RS I/O Ports", in the manual
 ** `(ice-9 eval-string)': "Fly Evaluation", in the manual
 ** `(ice-9 command-line)', not documented yet
-    
+
 * Bugs fixed
 
 ** Fixed `iconv_t' memory leak on close-port
@@ -3958,7 +3977,7 @@ Changes in 2.0.0 (changes since the 1.8.x series):
 ** `(web server http)', HTTP-over-TCP web server implementation
 
 ** Replaced `(ice-9 match)' with Alex Shinn's compatible, hygienic matcher.
-    
+
 Guile's copy of Andrew K. Wright's `match' library has been replaced by
 a compatible hygienic implementation by Alex Shinn.  It is now
 documented, see "Pattern Matching" in the manual.
@@ -3968,7 +3987,7 @@ Compared to Andrew K. Wright's `match', the new `match' lacks
 `match:error', `match:set-error', and all structure-related procedures.
 
 ** Imported statprof, SSAX, and texinfo modules from Guile-Lib
-    
+
 The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
 toolkit from Guile-Lib have been imported into Guile proper. See
 "Standard Library" in the manual for more details.
@@ -4011,9 +4030,9 @@ Guile had an unused `--emacs' command line argument that was supposed to
 help when running Guile inside Emacs. This option has been removed, and
 the helper functions `named-module-use!' and `load-emacs-interface' have
 been deprecated.
-    
+
 ** Add `(system repl server)' module and `--listen' command-line argument
-    
+
 The `(system repl server)' module exposes procedures to listen on
 sockets for connections, and serve REPLs to those clients.  The --listen
 command-line argument allows any Guile program to thus be remotely
@@ -4045,7 +4064,7 @@ Additionally, Guile follows the R6RS newline escaping rules when the
 See "String Syntax" in the manual, for more information.
 
 ** Function profiling and tracing at the REPL
-    
+
 The `,profile FORM' REPL meta-command can now be used to statistically
 profile execution of a form, to see which functions are taking the most
 time. See `,help profile' for more information.
@@ -4085,7 +4104,7 @@ Backtraces may now be disclosed with the keyboard in addition to the
 mouse.
 
 ** Load path change: search in version-specific paths before site paths
-    
+
 When looking for a module, Guile now searches first in Guile's
 version-specific path (the library path), *then* in the site dir. This
 allows Guile's copy of SSAX to override any Guile-Lib copy the user has
@@ -4104,7 +4123,7 @@ When readline is enabled, tab completion works for arguments too, not
 just for the operator position.
 
 ** Expression-oriented readline history
-    
+
 Guile's readline history now tries to operate on expressions instead of
 input lines.  Let us know what you think!
 
@@ -4141,7 +4160,7 @@ information.
 
 Please contact bug-guile@gnu.org if you have found an issue not
 mentioned in that compatibility list.
-    
+
 ** New implementation of `primitive-eval'
 
 Guile's `primitive-eval' is now implemented in Scheme. Actually there is
@@ -4227,7 +4246,7 @@ These socket procedures now take bytevectors as arguments, instead of
 strings.  There is some deprecated string support, however.
 
 ** New GNU procedures: `setaffinity' and `getaffinity'.
-    
+
 See "Processes" in the manual, for more information.
 
 ** New procedures: `compose', `negate', and `const'
@@ -4335,13 +4354,13 @@ It used to be you had to export `helper' from `(foo)' as well.
 Thankfully, this has been fixed.
 
 ** Support for version information in Guile's `module' form
-    
+
 Guile modules now have a `#:version' field.  See "R6RS Version
 References", "General Information about Modules", "Using Guile Modules",
 and "Creating Guile Modules" in the manual for more information.
 
 ** Support for renaming bindings on module export
-    
+
 Wherever Guile accepts a symbol as an argument to specify a binding to
 export, it now also accepts a pair of symbols, indicating that a binding
 should be renamed on export. See "Creating Guile Modules" in the manual
@@ -4351,9 +4370,9 @@ for more information.
 
 This procedure exports all current and future bindings from a module.
 Use as `(module-export-all! (current-module))'.
-    
+
 ** New procedure `reload-module', and `,reload' REPL command
-    
+
 See "Module System Reflection" and "Module Commands" in the manual, for
 more information.
 
@@ -4457,9 +4476,9 @@ context.
 Following the R6RS, "variable transformers" are settable
 identifier-syntax. See "Identifier macros" in the manual, for more
 information.
-    
+
 ** syntax-case treats `_' as a placeholder
-    
+
 Following R6RS, a `_' in a syntax-rules or syntax-case pattern matches
 anything, and binds no pattern variables. Unlike the R6RS, Guile also
 permits `_' to be in the literals list for a pattern.
@@ -4524,7 +4543,7 @@ actually used this, this behavior may be reinstated via the
 `read-hash-extend' mechanism.
 
 ** `unquote' and `unquote-splicing' accept multiple expressions
-    
+
 As per the R6RS, these syntax operators can now accept any number of
 expressions to unquote.
 
@@ -4564,7 +4583,7 @@ differences, however. Please mail bug-guile@gnu.org if you see any
 deficiencies with Guile's backtraces.
 
 ** `positions' reader option enabled by default
-    
+
 This change allows primitive-load without --auto-compile to also
 propagate source information through the expander, for better errors and
 to let macros know their source locations.  The compiler was already
@@ -4633,7 +4652,7 @@ and a deprecation warning is raised as appropriate.
 Finally, to support lazy loading of modules as one used to be able to do
 with module binder procedures, Guile now has submodule binders, called
 if a given submodule is not found. See boot-9.scm for more information.
-    
+
 ** New procedures: module-ref-submodule, module-define-submodule,
    nested-ref-module, nested-define-module!, local-ref-module,
    local-define-module
@@ -4665,7 +4684,7 @@ loading a module is one that has the needed bindings, instead of relying
 on chance.
 
 ** `load' is a macro (!) that resolves paths relative to source file dir
-    
+
 The familiar Schem `load' procedure is now a macro that captures the
 name of the source file being expanded, and dispatches to the new
 `load-in-vicinity'.  Referencing `load' by bare name returns a closure
@@ -4834,7 +4853,7 @@ to maintain compatibility with Guile 1.8 and earlier.
 This can be the case, for example, in case-lambda procedures. The
 arities of compiled procedures may be accessed via procedures from the
 `(system vm program)' module; see "Compiled Procedures", "Optional
-Arguments", and "Case-lambda" in the manual. 
+Arguments", and "Case-lambda" in the manual.
 
 ** Deprecate arity access via (procedure-properties proc 'arity)
 
@@ -4878,7 +4897,7 @@ warning if a number is passed as its first argument.
 
 Also, it used to be that you could omit passing a port to `format', in
 some cases.  This still works, but has been formally deprecated.
-    
+
 ** SRFI-4 vectors reimplemented in terms of R6RS bytevectors
 
 Guile now implements SRFI-4 vectors using bytevectors. Often when you
@@ -4929,7 +4948,7 @@ documentation for more information. Thanks to Andre van Tonder for the
 implementation.
 
 ** `*unspecified*' is identifier syntax
-    
+
 `*unspecified*' is no longer a variable, so it is optimized properly by
 the compiler, and is not `set!'-able.
 
@@ -5166,7 +5185,7 @@ the default encoding is UTF-8, instead of being taken from the current
 locale.
 
 ** Interactive Guile installs the current locale.
-    
+
 Instead of leaving the user in the "C" locale, running the Guile REPL
 installs the current locale.  [FIXME xref?]
 
@@ -5310,7 +5329,7 @@ This change should inhibit backtraces on argument parsing errors.
 itself.
 
 ** New primitive: `tmpfile'.
-    
+
 See "File System" in the manual.
 
 ** Random generator state may be serialized to a datum
@@ -5320,7 +5339,7 @@ may be written out, read back in later, and revivified using
 `datum->random-state'.  See "Random" in the manual, for more details.
 
 ** Fix random number generator on 64-bit platforms
-    
+
 There was a nasty bug on 64-bit platforms in which asking for a random
 integer with a range between 2**32 and 2**64 caused a segfault. After
 many embarrassing iterations, this was fixed.
@@ -5361,7 +5380,7 @@ test for the `guile-2' cond-expand feature. Like this:
 These are analogous to %load-path and %load-extensions.
 
 ** New fluid: `%file-port-name-canonicalization'
-    
+
 This fluid parameterizes the file names that are associated with file
 ports. If %file-port-name-canonicalization is 'absolute, then file names
 are canonicalized to be absolute paths. If it is 'relative, then the
@@ -5447,7 +5466,7 @@ So `save-stack', `stack-saved?', and `the-last-stack' have been moved to
 `(ice-9 save-stack)', with deprecated bindings left in the root module.
 
 ** `top-repl' has its own module
-    
+
 The `top-repl' binding, called with Guile is run interactively, is now
 is its own module, `(ice-9 top-repl)'. A deprecated forwarding shim was
 left in the default environment.
@@ -5460,7 +5479,7 @@ builds. Additionally, `display-error' will again source location
 information for the error.
 
 ** No more `(ice-9 debug)'
-    
+
 This module had some debugging helpers that are no longer applicable to
 the current debugging model. Importing this module will produce a
 deprecation warning. Users should contact bug-guile for support.
@@ -5478,7 +5497,7 @@ on by default.
 ** `turn-on-debugging' deprecated
 
 ** Remove obsolete print-options
-    
+
 The `source' and `closure-hook' print options are obsolete, and have
 been removed.
 
@@ -5521,24 +5540,24 @@ instead.
 
 `@bind' was part of an older implementation of the Emacs Lisp language,
 and is no longer used.
-    
+
 ** Miscellaneous other deprecations
 
 `cuserid' has been deprecated, as it only returns 8 bytes of a user's
 login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
-    
+
 Additionally, the procedures `apply-to-args', `has-suffix?', `scheme-file-suffix'
 `get-option', `for-next-option', `display-usage-report',
 `transform-usage-lambda', `collect', and `set-batch-mode?!' have all
 been deprecated.
 
 ** Add support for unbound fluids
-    
+
 See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
 manual.
 
 ** Add `variable-unset!'
-    
+
 See "Variables" in the manual, for more details.
 
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
@@ -5557,7 +5576,7 @@ code easier and less error-prone.
 ** New procedures: `scm_to_stringn', `scm_from_stringn'
 ** New procedures: scm_{to,from}_{utf8,latin1}_symbol{n,}
 ** New procedures: scm_{to,from}_{utf8,utf32,latin1}_string{n,}
-    
+
 These new procedures convert to and from string representations in
 particular encodings.
 
@@ -5651,12 +5670,12 @@ Removed the deprecated array functions `scm_i_arrayp',
 `SCM_ARRAY_V', `SCM_ARRAY_BASE', and `SCM_ARRAY_DIMS'.
 
 ** Remove unused snarf macros
-    
+
 `SCM_DEFINE1', `SCM_PRIMITIVE_GENERIC_1', `SCM_PROC1, and `SCM_GPROC1'
 are no more. Use SCM_DEFINE or SCM_PRIMITIVE_GENERIC instead.
 
 ** New functions: `scm_call_n', `scm_c_run_hookn'
-    
+
 `scm_call_n' applies to apply a function to an array of arguments.
 `scm_c_run_hookn' runs a hook with an array of arguments.
 
@@ -5809,7 +5828,7 @@ part of Guile).
 
 Guile's build is visually quieter, due to the use of Automake 1.11's
 AM_SILENT_RULES. Build as `make V=1' to see all of the output.
-    
+
 ** GOOPS documentation folded into Guile reference manual
 
 GOOPS, Guile's object system, used to be documented in separate manuals.
@@ -5999,7 +6018,7 @@ See the `Traps' node of the manual for details.
 Guile now incorporates the `GDS' library (previously distributed
 separately) for working on Guile code from within Emacs.  See the
 `Using Guile In Emacs' node of the manual for details.
- 
+
 * Bugs fixed
 
 ** `scm_add_slot ()' no longer segfaults (fixes bug #22369)
@@ -6294,7 +6313,7 @@ the '--disable-discouraged' option.
 
 (debug-enable 'warn-deprecated) switches them on and (debug-disable
 'warn-deprecated) switches them off.
- 
+
 ** Support for SRFI 61, extended cond syntax for multiple values has
    been added.
 
@@ -6423,9 +6442,9 @@ variable %load-path.
 It now complies with SRFI-4 and the weird prototype based uniform
 array creation has been deprecated.  See the manual for more details.
 
-Some non-compatible changes have been made: 
+Some non-compatible changes have been made:
  - characters can no longer be stored into byte arrays.
- - strings and bit vectors are no longer considered to be uniform numeric 
+ - strings and bit vectors are no longer considered to be uniform numeric
    vectors.
  - array-rank throws an error for non-arrays instead of returning zero.
  - array-ref does no longer accept non-arrays when no indices are given.
@@ -6870,7 +6889,7 @@ easier to use, thread-safe and more future-proof than the older
 alternatives.
 
   - int scm_is_* (...)
- 
+
   These are predicates that return a C boolean: 1 or 0.  Instead of
   SCM_NFALSEP, you can now use scm_is_true, for example.
 
@@ -6984,7 +7003,7 @@ about the character encoding.
 Replace according to the following table:
 
     scm_allocate_string       -> scm_c_make_string
-    scm_take_str              -> scm_take_locale_stringn 
+    scm_take_str              -> scm_take_locale_stringn
     scm_take0str              -> scm_take_locale_string
     scm_mem2string            -> scm_from_locale_stringn
     scm_str2string            -> scm_from_locale_string
@@ -7103,15 +7122,15 @@ prevent a potential memory leak:
     scm_dynwind_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY);
 
     /* MEM would leak if BAR throws an error.
-       SCM_DYNWIND_UNWIND_HANDLER frees it nevertheless.  
+       SCM_DYNWIND_UNWIND_HANDLER frees it nevertheless.
      */
 
     bar ();
-  
+
     scm_dynwind_end ();
 
-    /* Because of SCM_F_WIND_EXPLICITLY, MEM will be freed by 
-       SCM_DYNWIND_END as well. 
+    /* Because of SCM_F_WIND_EXPLICITLY, MEM will be freed by
+       SCM_DYNWIND_END as well.
     */
   }
 

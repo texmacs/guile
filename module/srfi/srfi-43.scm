@@ -22,8 +22,8 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-8)
   #:re-export (make-vector vector vector? vector-ref vector-set!
-                           vector-length)
-  #:replace (vector-copy vector-fill! list->vector vector->list)
+                           vector-length vector-fill!)
+  #:replace (vector-copy list->vector vector->list)
   #:export (vector-empty? vector= vector-unfold vector-unfold-right
                           vector-reverse-copy
                           vector-append vector-concatenate
@@ -871,34 +871,6 @@ Swap the values of the locations in VEC at I and J."
     (let ((tmp (vector-ref vec i)))
       (vector-set! vec i (vector-ref vec j))
       (vector-set! vec j tmp))))
-
-;; TODO: Enhance Guile core 'vector-fill!' to do this.
-(define vector-fill!
-  (let ()
-    (define guile-vector-fill!
-      (@ (guile) vector-fill!))
-    (define (%vector-fill! vec fill start end)
-      (let loop ((i start))
-        (when (< i end)
-          (vector-set! vec i fill)
-          (loop (+ i 1)))))
-    (case-lambda
-      "(vector-fill! vec fill [start [end]]) -> unspecified
-
-Assign the value of every location in VEC between START and END to
-FILL.  START defaults to 0 and END defaults to the length of VEC."
-      ((vec fill)
-       (guile-vector-fill! vec fill))
-      ((vec fill start)
-       (assert-vector vec 'vector-fill!)
-       (let ((len (vector-length vec)))
-         (assert-valid-start start len 'vector-fill!)
-         (%vector-fill! vec fill start len)))
-      ((vec fill start end)
-       (assert-vector vec 'vector-fill!)
-       (let ((len (vector-length vec)))
-         (assert-valid-range start end len 'vector-fill!)
-         (%vector-fill! vec fill start end))))))
 
 (define (%vector-reverse! vec start end)
   (let loop ((i start) (j (- end 1)))
