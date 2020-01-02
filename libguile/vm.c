@@ -1,4 +1,4 @@
-/* Copyright 2001,2009-2015,2017-2019
+/* Copyright 2001,2009-2015,2017-2020
      Free Software Foundation, Inc.
 
    This file is part of Guile.
@@ -1360,9 +1360,6 @@ scm_i_vm_emergency_abort (SCM *tag_and_argv, size_t n)
       abort ();
     }
 
-  fp = vp->stack_top - fp_offset;
-  sp = vp->stack_top - sp_offset;
-
   if (!(flags & SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY))
     {
       fprintf (stderr, "guile: fatal: emergency abort to non-linear prompt\n");
@@ -1373,6 +1370,9 @@ scm_i_vm_emergency_abort (SCM *tag_and_argv, size_t n)
 
   /* Unwind.  */
   scm_dynstack_unwind (dynstack, prompt);
+
+  fp = vp->stack_top - fp_offset;
+  sp = vp->stack_top - sp_offset;
 
   /* Continuation gets nargs+1 values: the one more is for the cont.  */
   sp = sp - nargs - 1;
@@ -1422,7 +1422,6 @@ abort_to_prompt (scm_thread *thread, uint8_t *saved_mra)
     scm_misc_error ("abort", "Abort to unknown prompt", scm_list_1 (tag));
 
   fp = vp->stack_top - fp_offset;
-  sp = vp->stack_top - sp_offset;
 
   /* Only reify if the continuation referenced in the handler. */
   if (flags & SCM_F_DYNSTACK_PROMPT_ESCAPE_ONLY)
@@ -1438,6 +1437,10 @@ abort_to_prompt (scm_thread *thread, uint8_t *saved_mra)
 
   /* Unwind.  */
   scm_dynstack_unwind (dynstack, prompt);
+
+  /* Recompute FP, as scm_dynstack_unwind may have expanded the stack.  */
+  fp = vp->stack_top - fp_offset;
+  sp = vp->stack_top - sp_offset;
 
   /* Continuation gets nargs+1 values: the one more is for the cont.  */
   sp = sp - nargs - 1;
