@@ -1,39 +1,22 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2019 Free Software Foundation, Inc.
+Copyright (C) 1996-2020 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes in alpha 2.9.7 (since alpha 2.9.6):
-
-* Notable changes
-
-** Improve JIT code generation
-
-Native code for unlikely or expensive cases is now generated
-out-of-line, improving instruction cache utilization.  It makes things
-go faster!
-
-** Fix JIT bug preventing tier-up within loops
-
-Before, it was possible to see significantly better performance when
-forcing eager JIT compilation using the GUILE_JIT_THRESHOLD environment
-variable; see "Environment Variables" in the manual.  This was due to a
-bug that prevented tiering up to JIT code in some cases, and has been
-fixed.
-
-** `iota' in core and SRFI-1 `iota' are the same
-
-Previously, `iota' in core would not accept start and step arguments and
-would return an empty list for negative count. Now there is only one
-`iota' function with the extended semantics of SRFI-1.  Note that as an
-incompatible change, core `iota' no longer accepts a negative count.
+Changes in alpha 2.9.8 (since alpha 2.9.7):
 
 * Bug fixes
 
-** Fix recently introduced bug causing early abort if stdin is closed
+** Fix bug in which abort_to_prompt used an invalid stack pointer
 
+This bug manifested itself as a bootstrap compile error on some systems,
+notably Ubuntu 18.04 on x86-64, and was due to failing to recalculate a
+local variable after a possible stack relocation.
+
+** SRFI-35 does a #:re-export-and-replace on `&error'
+** SRFI-35 avoids compiler warnings for multiply-defined condition types
 
 
 Changes in alpha 2.9.x (since the stable 2.2 series):
@@ -220,6 +203,13 @@ stored, to being associated with modules instead of individual variable
 objects.  This means that users who #:re-export an imported binding that
 was already marked as #:replace by another module will now see warnings,
 as they need to use #:re-export-and-replace instead.
+
+** `iota' in core and SRFI-1 `iota' are the same
+
+Previously, `iota' in core would not accept start and step arguments and
+would return an empty list for negative count. Now there is only one
+`iota' function with the extended semantics of SRFI-1.  Note that as an
+incompatible change, core `iota' no longer accepts a negative count.
 
 * New deprecations
 
