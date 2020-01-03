@@ -93,7 +93,6 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 /* Always use the generic subr case.  */
 #define SCM_DEFINE SCM_DEFINE_GSUBR
 
-
 #define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
 SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
@@ -117,6 +116,17 @@ SCM_SNARF_INIT(\
 scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
                     (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 scm_c_export (s_ ## FNAME, NULL); \
+)\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#define SCM_DEFINE_STATIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+static const char s_ ## FNAME [] = PRIMNAME; \
+static SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
+                    (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
