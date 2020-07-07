@@ -75,3 +75,6 @@ cscope.out
 cscope.files
 *.log
 INSTALL
+.idea
+cmake-build-debug
+build-aux/test-driver
