@@ -1651,7 +1651,11 @@ void *scm_get_stack_base()
         GetSystemInfo(&sysinfo);
         GC_page_size = sysinfo.dwPageSize;
     }
+#ifdef __MINGW64__	
+    trunc_sp = (ptr_t)((long long)sp & ~(GC_page_size - 1));
+#else
     trunc_sp = (ptr_t)((word)sp & ~(GC_page_size - 1));
+#endif
     size = GC_get_writable_length(trunc_sp, 0);
     return(trunc_sp + size);
 }

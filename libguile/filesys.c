@@ -506,7 +506,7 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
   SCM_SIMPLE_VECTOR_SET(ans, 9, scm_from_ulong (stat_temp->st_mtime));
   SCM_SIMPLE_VECTOR_SET(ans, 10, scm_from_ulong (stat_temp->st_ctime));
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-  SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (stat_temp->st_blksize));
+  SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (stat_temp->st_blksize));struct _stat64 a;
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (4096L));
 #endif

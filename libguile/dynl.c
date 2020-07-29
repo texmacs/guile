@@ -232,7 +232,11 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
 					   FUNC_NAME);
     scm_dynwind_end ();
+#ifdef __MINGW64__
+    return scm_from_ulong ((unsigned long long) func);
+#else
     return scm_from_ulong ((unsigned long) func);
+#endif
   }
 }
 #undef FUNC_NAME
@@ -262,7 +266,11 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
   
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
+#ifdef __MINGW64__
+  fptr = (void (*) ()) scm_to_ulong_long (func);
+#else
   fptr = (void (*) ()) scm_to_ulong (func);
+#endif
   fptr ();
   return SCM_UNSPECIFIED;
 }
@@ -298,8 +306,11 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-
+#ifdef __MINGW64__
+  fptr = (int (*) (int, char **)) scm_to_ulong_long (func);
+#else
   fptr = (int (*) (int, char **)) scm_to_ulong (func);
+#endif
 
   argv = scm_i_allocate_string_pointers (args);
   scm_dynwind_unwind_handler (free_string_pointers, argv,

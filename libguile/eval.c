@@ -357,7 +357,7 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
     + ((binding_nr) << 20) \
     + ((last_p) ? SCM_ICDR : 0) \
     + scm_tc8_iloc )
-
+#define SCM_PACK(x) ((SCM) (x))
 void
 scm_i_print_iloc (SCM iloc, SCM port)
 {
@@ -489,11 +489,26 @@ lookup_symbol (const SCM symbol, const SCM env)
 	    {
 	      if (scm_is_eq (SCM_CAR (symbol_idx), symbol))
 		/* found the symbol, therefore return the iloc */
+#ifdef __MINGW64__
+		// return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
+				return 	(SCM)(long long)(((frame_nr) << 8) \
+				+ ((symbol_nr) << 20) \
+				+ ((0) ? SCM_ICDR : 0) \
+				+ scm_tc8_iloc );
+#else
 		return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
+#endif
 	    }
 	  if (scm_is_eq (symbol_idx, symbol))
 	    /* found the symbol as the last element of the current frame */
+#ifdef __MINGW64__
+		return 		(SCM)(long long)(((frame_nr) << 8) \
+				+ ((symbol_nr) << 20) \
+				+ ((1) ? SCM_ICDR : 0) \
+				+ scm_tc8_iloc );
+#else
 	    return SCM_MAKE_ILOC (frame_nr, symbol_nr, 1);
+#endif
 	}
       else
 	{
@@ -3100,7 +3115,11 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
+#ifdef __MINGW64__
+  { SCM_OPTION_SCM, "show-file-name", (unsigned long long)SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."},
+#else
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."},
+#endif
   { SCM_OPTION_BOOLEAN, "warn-deprecated", 0, "Warn when deprecated features are used." }
 };
 
@@ -3109,9 +3128,15 @@ scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
+#ifdef __MINGW64__
+  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long long)SCM_BOOL_F, "Handler for enter-frame traps." },
+  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long long)SCM_BOOL_F, "Handler for apply-frame traps." },
+  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long long)SCM_BOOL_F, "Handler for exit-frame traps." }
+#else
   { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
   { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
   { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." }
+#endif
 };
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 

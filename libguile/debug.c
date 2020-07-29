@@ -486,7 +486,11 @@ static int
 debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<debug-object ", port);
+#ifdef __MINGW64__
+  scm_intprint ((long long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
+#else
   scm_intprint ((long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
+#endif
   scm_putc ('>', port);
   return 1;
 }

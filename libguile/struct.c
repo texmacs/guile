@@ -809,7 +809,11 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
 #define FUNC_NAME s_scm_struct_vtable_tag
 {
   SCM_VALIDATE_VTABLE (1, handle);
+#ifdef __MINGW64__  
+  return scm_from_ulong (((unsigned long long)SCM_STRUCT_DATA (handle)) >> 3);
+#else
   return scm_from_ulong (((unsigned long)SCM_STRUCT_DATA (handle)) >> 3);
+#endif  
 }
 #undef FUNC_NAME
 

@@ -120,9 +120,13 @@ typedef struct scm_t_cell
 
 #define SCM_GC_CARD_SIZE_MASK  (SCM_GC_SIZEOF_CARD-1)
 #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
-
+#ifdef __MINGW64__
+#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long long) (x) & SCM_GC_CARD_ADDR_MASK))
+#define SCM_GC_CELL_OFFSET(x)  (((long long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
+#else
 #define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
 #define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
+#endif
 #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
 #define SCM_GC_SET_CELL_BVEC(x, bvec)    SCM_GC_SET_CARD_BVEC (SCM_GC_CELL_CARD (x), bvec)
 #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))

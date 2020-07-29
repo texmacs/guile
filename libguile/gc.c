@@ -806,8 +806,11 @@ void
 scm_gc_register_root (SCM *p)
 {
   SCM handle;
+#ifdef __MINGW64__  
+  SCM key = scm_from_ulong_long ((unsigned long) p);
+#else
   SCM key = scm_from_ulong ((unsigned long) p);
-
+#endif
   /* This critical section barrier will be replaced by a mutex. */
   /* njrev: and again. */
   SCM_CRITICAL_SECTION_START;
@@ -824,7 +827,11 @@ void
 scm_gc_unregister_root (SCM *p)
 {
   SCM handle;
+#ifdef __MINGW64__  
+  SCM key = scm_from_ulong_long ((unsigned long) p);
+#else
   SCM key = scm_from_ulong ((unsigned long) p);
+#endif
 
   /* This critical section barrier will be replaced by a mutex. */
   /* njrev: and again. */

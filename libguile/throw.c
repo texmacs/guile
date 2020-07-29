@@ -232,19 +232,23 @@ static scm_t_bits tc16_pre_unwind_data;
 static int
 pre_unwind_data_print (SCM closure, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
+#ifdef __MINGW64__  
+#else
   struct pre_unwind_data *c = (struct pre_unwind_data *) SCM_CELL_WORD_1 (closure);
+#endif  
   char buf[200];
-
+#ifdef __MINGW64__  
+#else
   sprintf (buf, "#<pre-unwind-data 0x%lx 0x%lx>",
 	   (long) c->handler, (long) c->handler_data);
   scm_puts (buf, port);
-
+#endif
   return 1;
 }
 
 
 /* Given a pointer to a pre_unwind_data structure, return a smob for it,
-   suitable for inclusion in the wind list.  ("Ah yes, a Château
+   suitable for inclusion in the wind list.  ("Ah yes, a Chï¿½teau
    Gollombiere '72, non?").  */
 static SCM
 make_pre_unwind_data (struct pre_unwind_data *c)

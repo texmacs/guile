@@ -83,7 +83,11 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 {
   if (!s_subr || !*s_subr)
     s_subr = NULL;
+#ifdef __MINGW64__
+  if ((~0x1fL) & (long long) pos)
+#else
   if ((~0x1fL) & (long) pos)
+#endif
     {
       /* error string supplied.  */
       scm_misc_error (s_subr, pos, scm_list_1 (arg));
@@ -188,7 +192,11 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
   res = SCM_EOL;
   for (md = registered_mods; md; md = md->link)
     res = scm_cons (scm_cons (scm_from_locale_string (md->module_name),
+#ifdef __MINGW64__
+			      scm_from_ulong ((unsigned long long) md->init_func)),
+#else
 			      scm_from_ulong ((unsigned long) md->init_func)),
+#endif
 		    res);
   return res;
 }

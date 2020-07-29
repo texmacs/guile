@@ -336,13 +336,20 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   else if (scm_is_integer (handler))
     {
       long handler_int = scm_to_long (handler);
-
+#ifdef __MINGW64__
+      if (handler_int == (long long) SIG_DFL || handler_int == (long long) SIG_IGN)
+#else      
       if (handler_int == (long) SIG_DFL || handler_int == (long) SIG_IGN)
+#endif      
 	{
 #ifdef HAVE_SIGACTION
 	  action.sa_handler = (SIGRETTYPE (*) (int)) handler_int;
 #else
+#ifdef __MINGW64__
+	  chandler = (SIGRETTYPE (*) (int))(long long) handler_int;
+#else    
 	  chandler = (SIGRETTYPE (*) (int)) handler_int;
+#endif    
 #endif
 	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F, async);
 	}
@@ -453,7 +460,11 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	orig_handlers[csig] = old_chandler;
     }
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
+#ifdef __MINGW64__  
+    old_handler = scm_from_long ((long long) old_chandler);
+#else    
     old_handler = scm_from_long ((long) old_chandler);
+#endif    
   SCM_CRITICAL_SECTION_END;
   return scm_cons (old_handler, scm_from_int (0));
 #endif
@@ -674,8 +685,13 @@ scm_init_scmsigs ()
     }
 
   scm_c_define ("NSIG", scm_from_long (NSIG));
+#ifdef __MINGW64__  
+  scm_c_define ("SIG_IGN", scm_from_long ((long long) SIG_IGN));
+  scm_c_define ("SIG_DFL", scm_from_long ((long long) SIG_DFL));
+#else  
   scm_c_define ("SIG_IGN", scm_from_long ((long) SIG_IGN));
   scm_c_define ("SIG_DFL", scm_from_long ((long) SIG_DFL));
+#endif
 #ifdef SA_NOCLDSTOP
   scm_c_define ("SA_NOCLDSTOP", scm_from_long (SA_NOCLDSTOP));
 #endif

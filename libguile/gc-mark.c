@@ -93,7 +93,11 @@ scm_mark_all (void)
 	SCM l = SCM_HASHTABLE_BUCKET (scm_gc_registered_roots, i);
 	for (; !scm_is_null (l); l = SCM_CDR (l))
 	  {
+#ifdef __MINGW64__      
+	    SCM *p = (SCM *) (scm_to_ulong_long (SCM_CAAR (l)));
+#else
 	    SCM *p = (SCM *) (scm_to_ulong (SCM_CAAR (l)));
+#endif      
 	    scm_gc_mark (*p);
 	  }
       }
