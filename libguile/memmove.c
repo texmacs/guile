@@ -17,7 +17,15 @@ PTR memmove ();
 PTR
 memmove (PTR s1, CPTR s2, size_t n)
 {
-  bcopy (s2, s1, n);
+//  bcopy (s2, s1, n);
+  char* _s1 = (char*)s1;
+  char* _s2 = (char*)s2;
+  size_t i;
+  for(i=0;i<n;i++) {
+      *_s1 = *_s2;
+      _s1++;
+      _s2++;
+  }
   return s1;
 }
 
