@@ -16,9 +16,9 @@ target_sources(guile
 #        convert.i.c
 #        coop-pthreads.c
 #        coop.c
-        cpp_err_symbols.c
+#        cpp_err_symbols.c
         cpp_errno.c
-        cpp_sig_symbols.c
+#        cpp_sig_symbols.c
         cpp_signal.c
 #        debug-malloc.c
         debug.c
