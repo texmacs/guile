@@ -342,10 +342,19 @@ AC_CHECK_SIZEOF(uintptr_t)
 AC_CHECK_SIZEOF(ptrdiff_t)
 AC_CHECK_SIZEOF(size_t)
 AC_CHECK_SIZEOF(off_t)
+case $host in
+  *-*-mingw*)
+  if test "$ac_cv_sizeof_long_long" -ne "$ac_cv_sizeof_void_p"; then
+    AC_MSG_ERROR(sizes of long long and void* are not identical)
+  fi
+  ;;
+  *)
+  if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
+    AC_MSG_ERROR(sizes of long and void* are not identical)
+  fi
+  ;;
+esac
 
-if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
-  AC_MSG_ERROR(sizes of long and void* are not identical)
-fi
 
 if test "$ac_cv_sizeof_ptrdiff_t" -ne 0; then
   SCM_I_GSC_T_PTRDIFF='"ptrdiff_t"'
