@@ -16,6 +16,20 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+
+#ifdef __MINGW64__
+#include <stdlib.h>
+char *
+strerror (int errnum)
+{
+//    extern char *sys_errlist[];
+//    extern int sys_nerr;
+
+    if (errnum >= 0 && errnum < sys_nerr)
+        return sys_errlist[errnum];
+    return (char *) "Unknown error";
+}
+#else
 char *
 strerror (int errnum)
 {
@@ -26,7 +40,7 @@ strerror (int errnum)
     return sys_errlist[errnum];
   return (char *) "Unknown error";
 }
-
+#endif
 /*
   Local Variables:
   c-file-style: "gnu"
