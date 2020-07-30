@@ -524,7 +524,7 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
   SCM_SIMPLE_VECTOR_SET(ans, 9, scm_from_ulong (stat_temp->st_mtime));
   SCM_SIMPLE_VECTOR_SET(ans, 10, scm_from_ulong (stat_temp->st_ctime));
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-  SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (stat_temp->st_blksize));struct _stat64 a;
+  SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (stat_temp->st_blksize));
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (4096L));
 #endif
@@ -596,6 +596,7 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
 }
 
 #ifdef __MINGW32__
+#include "win32-socket.h"
 /*
  * Try getting the appropiate stat buffer for a given file descriptor
  * under Windows. It differentiates between file, pipe and socket 
