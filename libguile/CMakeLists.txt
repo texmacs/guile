@@ -129,7 +129,7 @@ target_sources(guile
         )
 if (WIN32)
     target_sources(guile PRIVATE
-            win32-dirent.c
+#            win32-dirent.c
             win32-socket.c
             win32-uname.c
             )
