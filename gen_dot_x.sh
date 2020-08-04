@@ -14,11 +14,12 @@ DOT_X_FILES="alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     variable.x vectors.x version.x vports.x weaks.x ramap.x unif.x \
     dynl.x filesys.x posix.x net_db.x socket.x regex-posix.x
     "
+dstdir=$1
 chmod +x guile-snarf
 for loop in ${DOT_X_FILES}
 do
   file=${loop%.*}
   echo "handle ${file}.c"
-./guile-snarf -o cmake-build-debug/libguile/${file}.x libguile/${file}.c \
--DHAVE_CONFIG_H -I.. -I.. -I.  -g -O2 -Wall -Wmissing-prototypes -I./cmake-build-debug
+./guile-snarf -o ${dstdir}/libguile/${file}.x libguile/${file}.c \
+-DHAVE_CONFIG_H -I.. -I.. -I.  -g -O2 -Wall -Wmissing-prototypes -I${dstdir}
 done
