@@ -13,10 +13,18 @@ make -j4
 ```
 
 ## Build by CMake
+### Linux
 ```shell script
 mkdir build && cd build
 cmake ..
 make -j4
+```
+### MINGW
+
+```shell script
+mkdir build && cd build
+cmake -G "MinGW Makefiles" ..
+mingw32-make -j4
 ```
 ## Step by step guide to make a debian package for GNU Guile 1.8.8 by yourself
 
