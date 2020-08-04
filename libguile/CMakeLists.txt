@@ -1,4 +1,4 @@
-add_library(guile)
+add_library(guile SHARED)
 add_definitions(-DHAVE_CONFIG_H)
 target_sources(guile
         PRIVATE
@@ -46,7 +46,6 @@ target_sources(guile
         gc.c
         gc_os_dep.c
         gdbint.c
-        gen-scmconfig.c
         gh_data.c
         gh_eval.c
         gh_funcs.c
