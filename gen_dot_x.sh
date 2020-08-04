@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 DOT_X_FILES="alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     continuations.x debug.x deprecation.x deprecated.x discouraged.x	\
     dynl.x dynwind.x environments.x eq.x error.x eval.x evalext.x	\
@@ -14,7 +15,13 @@ DOT_X_FILES="alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     variable.x vectors.x version.x vports.x weaks.x ramap.x unif.x \
     dynl.x filesys.x posix.x net_db.x socket.x regex-posix.x
     "
+if [ $# != 1 ]
+then
+  echo "Usage: gen_dot_x dstdir"
+  exit 1;
+fi
 dstdir=$1
+echo "dstdir: $dstdir"
 chmod +x guile-snarf
 for loop in ${DOT_X_FILES}
 do
