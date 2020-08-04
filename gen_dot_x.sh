@@ -14,7 +14,7 @@ DOT_X_FILES="alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     variable.x vectors.x version.x vports.x weaks.x ramap.x unif.x \
     dynl.x filesys.x posix.x net_db.x socket.x regex-posix.x
     "
-
+chmod +x guile-snarf
 for loop in ${DOT_X_FILES}
 do
   file=${loop%.*}
