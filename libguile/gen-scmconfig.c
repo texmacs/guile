@@ -142,6 +142,7 @@ main (int argc, char *argv[])
   pf ("/* Important headers */\n");
   if (SCM_I_GSC_NEEDS_STDINT_H)
     pf ("#include <stdint.h>\n");
+    pf ("#include <stddef.h>\n");
   if (SCM_I_GSC_NEEDS_INTTYPES_H)
     pf ("#include <inttypes.h>\n");
 
