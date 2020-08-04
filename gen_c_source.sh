@@ -1,4 +1,4 @@
-files="cpp_err_symbols.in"
+files="cpp_err_symbols.in cpp_sig_symbols.in"
 #awk -f cpp_cnvt.awk < cpp_err_symbols.in
 for loop in ${files}
 do
