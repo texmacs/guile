@@ -1,3 +1,5 @@
+/* Define to 1 if you have the ANSI C header files. */
+#define STDC_HEADERS 1
 
 /* Define this to control the default warning level for deprecated features.
 */
@@ -66,6 +68,34 @@
 #define HAVE_DIRENT_H 1
 
 #cmakedefine HAVE_UTIME_H 1
+
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the `strchr' function. */
+#cmakedefine HAVE_STRCHR 1
+
+/* Define to 1 if you have the `strcmp' function. */
+#cmakedefine HAVE_STRCMP 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR 1
+
+/* Define to 1 if you have the `strftime' function. */
+#cmakedefine HAVE_STRFTIME 1
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H 1
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strncasecmp' function. */
 #cmakedefine HAVE_STRNCASECMP 1
