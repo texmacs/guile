@@ -1,5 +1,23 @@
 # Guile 1.8.8 for GNU TeXmacs
 
+## Install dependency
+```shell script
+sudo apt install automake libtool gettext libgmp-dev libreadline-dev flex texinfo cmake
+```
+
+## Build by autotool
+```shell script
+./autogen.sh
+./configure --disable-error-on-warning
+make -j4
+```
+
+## Build by CMake
+```shell script
+mkdir build && cd build
+cmake ..
+make -j4
+```
 ## Step by step guide to make a debian package for GNU Guile 1.8.8 by yourself
 
 Step 1: Prepare your build environment.
