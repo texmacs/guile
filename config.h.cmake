@@ -357,3 +357,6 @@ don't. */
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #cmakedefine HAVE_SYS_WAIT_H 1
+
+/* Define if you have the <winsock2.h> header file. */
+#cmakedefine HAVE_WINSOCK2_H
