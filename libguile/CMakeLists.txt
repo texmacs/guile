@@ -16,9 +16,9 @@ target_sources(guile
 #        convert.i.c
 #        coop-pthreads.c
 #        coop.c
-#        cpp_err_symbols.c
+        cpp_err_symbols.c
         cpp_errno.c
-#        cpp_sig_symbols.c
+        cpp_sig_symbols.c
         cpp_signal.c
 #        debug-malloc.c
         debug.c
@@ -133,7 +133,7 @@ if (WIN32)
             win32-uname.c
             )
 endif ()
-target_include_directories(guile PRIVATE ../)
+target_include_directories(guile PRIVATE ${CMAKE_SOURCE_DIR})
 if (WIN32)
     target_link_libraries(guile  m pthread gmp ltdl ws2_32 regex intl)
 else()
