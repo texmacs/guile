@@ -26,6 +26,7 @@
 # include <winsock2.h>
 #endif
 
+#include<ws2tcpip.h>
 int scm_i_socket_errno (void);
 char * scm_i_socket_strerror (int error);
 void scm_i_init_socket_Win32 (void);
