@@ -57,12 +57,11 @@ calls. */
 
 /* Define to 1 if you have the Mac OS X function CFLocaleCopyCurrent in the
 CoreFoundation framework. */
-/* #undef HAVE_CFLOCALECOPYCURRENT */
+#cmakedefine HAVE_CFLOCALECOPYCURRENT 1
 
 /* Define to 1 if you have the Mac OS X function CFPreferencesCopyAppValue in
 the CoreFoundation framework. */
-/* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
-
+#cmakedefine HAVE_CFPREFERENCESCOPYAPPVALUE 1
 
 /* Define to 1 if you have the `chown' function. */
 #cmakedefine HAVE_CHOWN 1
@@ -113,18 +112,176 @@ the CoreFoundation framework. */
 
 /* Define to 1 if you have the declaration of `cuserid', and to 0 if you
 don't. */
-#define HAVE_DECL_CUSERID 1
+#cmakedefine HAVE_DECL_CUSERID 1
 
 /* Define to 1 if you have the declaration of `flock', and to 0 if you don't.
 */
-#define HAVE_DECL_FLOCK 0
+#cmakedefine HAVE_DECL_FLOCK 1
 
 /* Define to 1 if you have the declaration of `hstrerror', and to 0 if you
 don't. */
-#define HAVE_DECL_HSTRERROR 0
+#cmakedefine HAVE_DECL_HSTRERROR 1
+
+
+/* Define to 1 if you have the declaration of `sethostname', and to 0 if you
+don't. */
+#cmakedefine HAVE_DECL_SETHOSTNAME 1
+
+/* Define to 1 if you have the declaration of `strncasecmp', and to 0 if you
+don't. */
+#cmakedefine HAVE_DECL_STRNCASECMP 1
+
+/* Define to 1 if you have the declaration of `strptime', and to 0 if you
+don't. */
+#cmakedefine HAVE_DECL_STRPTIME 1
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+*/
+#cmakedefine HAVE_DECL_TZNAME 1
+
+/* Define to 1 if you have the declaration of `unsetenv', and to 0 if you
+don't. */
+#cmakedefine HAVE_DECL_UNSETENV 1
+
+/* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
+don't. */
+#cmakedefine HAVE_DECL_VSNPRINTF 1
+
+/* Define to 1 if you have the `DINFINITY' function. */
+#cmakedefine HAVE_DINFINITY 1
+
+/* Define to 1 if you have the <direct.h> header file. */
+#cmakedefine HAVE_DIRECT_H 1
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+*/
+#cmakedefine HAVE_DIRENT_H 1
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H 1
+
+
+/* Define to 1 if you have the `DQNAN' function. */
+#cmakedefine HAVE_DQNAN 1
+
+/* Define to 1 if you have the `endhostent' function. */
+#cmakedefine HAVE_ENDHOSTENT 1
+
+/* Define to 1 if you have the `endnetent' function. */
+#cmakedefine HAVE_ENDNETENT 1
+
+/* Define to 1 if you have the `endprotoent' function. */
+#cmakedefine HAVE_ENDPROTOENT 1
+
+/* Define to 1 if you have the `endservent' function. */
+#cmakedefine HAVE_ENDSERVENT 1
+
+/* Define to 1 if you have the `fchown' function. */
+#cmakedefine HAVE_FCHOWN 1
+
+/* Define to 1 if you have the `fcntl' function. */
+#cmakedefine HAVE_FCNTL 1
+
+/* Define to 1 if you have the <fenv.h> header file. */
+#cmakedefine HAVE_FENV_H 1
+
+/* Define to 1 if you have the `fesetround' function. */
+#cmakedefine HAVE_FESETROUND 1
+
+/* Define to 1 if you have the `finite' function. */
+#cmakedefine HAVE_FINITE 1
+
+/* Define to 1 if you have the <floatingpoint.h> header file. */
+#cmakedefine HAVE_FLOATINGPOINT_H 1
+
+
+/* Define to 1 if you have the `flock' function. */
+#cmakedefine HAVE_FLOCK 1
+
+/* Define to 1 if you have the `fork' function. */
+#cmakedefine HAVE_FORK 1
+
+/* Define to 1 if you have the `ftime' function. */
+#cmakedefine HAVE_FTIME 1
+
+/* Define to 1 if you have the `ftruncate' function. */
+#cmakedefine HAVE_FTRUNCATE 1
+
+/* Define to 1 if you have the `getcwd' function. */
+#cmakedefine HAVE_GETCWD 1
+
+/* Define to 1 if you have the `geteuid' function. */
+#cmakedefine HAVE_GETEUID 1
+
+/* Define to 1 if you have the `getgrent' function. */
+#cmakedefine HAVE_GETGRENT 1
+
+/* Define to 1 if you have the `getgroups' function. */
+#cmakedefine HAVE_GETGROUPS 1
+
+/* Define to 1 if you have the `gethostbyname' function. */
+#cmakedefine HAVE_GETHOSTBYNAME 1
+
+/* Define to 1 if you have the `gethostent' function. */
+#cmakedefine HAVE_GETHOSTENT 1
+
+/* Define to 1 if you have the `gethostname' function. */
+#cmakedefine HAVE_GETHOSTNAME 1
+
+/* Define to 1 if you have the `getitimer' function. */
+#cmakedefine HAVE_GETITIMER 1
+
+/* Define to 1 if you have the `getlogin' function. */
+#cmakedefine HAVE_GETLOGIN 1
+
+/* Define to 1 if you have the `getnetbyaddr' function. */
+#cmakedefine HAVE_GETNETBYADDR 1
+
+/* Define to 1 if you have the `getnetbyname' function. */
+#cmakedefine HAVE_GETNETBYNAME 1
+
+/* Define to 1 if you have the `getnetent' function. */
+#cmakedefine HAVE_GETNETENT 1
+
+/* Define to 1 if you have the `getpass' function. */
+#cmakedefine HAVE_GETPASS 1
+
+/* Define to 1 if you have the `getpgrp' function. */
+#cmakedefine HAVE_GETPGRP 1
+
+/* Define to 1 if you have the `getppid' function. */
+#cmakedefine HAVE_GETPPID 1
+
+/* Define to 1 if you have the `getpriority' function. */
+#cmakedefine HAVE_GETPRIORITY 1
+
+/* Define to 1 if you have the `getprotoent' function. */
+#cmakedefine HAVE_GETPROTOENT 1
+
+/* Define to 1 if you have the `getpwent' function. */
+#cmakedefine HAVE_GETPWENT 1
+
+/* Define to 1 if you have the `getservent' function. */
+#cmakedefine HAVE_GETSERVENT 1
+
+/* Define if the GNU gettext() function is already present or preinstalled. */
+#cmakedefine HAVE_GETTEXT 1
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#cmakedefine HAVE_GETTIMEOFDAY 1
+
+/* Define to 1 if you have the `gmtime_r' function. */
+#cmakedefine HAVE_GMTIME_R 1
+
+/* Define to 1 if you have the <grp.h> header file. */
+#cmakedefine HAVE_GRP_H 1
+
+/* Define to 1 if you have the `hstrerror' function. */
+#cmakedefine HAVE_HSTRERROR 1
+
 
 /* Define to 1 if you have the ANSI C header files. */
-#define STDC_HEADERS 1
+#cmakedefine STDC_HEADERS 1
 
 /* Define this to control the default warning level for deprecated features.
 */
@@ -360,3 +517,9 @@ don't. */
 
 /* Define if you have the <winsock2.h> header file. */
 #cmakedefine HAVE_WINSOCK2_H
+
+/* Define to 1 if you have the `truncate' function. */
+#cmakedefine HAVE_TRUNCATE 1
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#cmakedefine HAVE_PWD_H 1
