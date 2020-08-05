@@ -6,12 +6,25 @@ set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
 set(CMAKE_C_STANDARD 90)
 
 # Generate c source before cmake handle target
-execute_process(
-        COMMAND sh gen_c_source.sh ${CMAKE_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND_ECHO STDOUT
-        )
-find_program (AWK_PATH NAMES awk gawk REQUIRED)
+if (WIN32)
+    execute_process(
+            COMMAND gen_c_source.bat ${CMAKE_BINARY_DIR}
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMAND_ECHO STDOUT
+    )
+else()
+    execute_process(
+            COMMAND sh gen_c_source.sh ${CMAKE_BINARY_DIR}
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMAND_ECHO STDOUT
+    )
+endif ()
+
+find_program (AWK_PATH NAMES awk gawk awk.exe PATH_SUFFIXES /usr/bin REQUIRED)
+if(${AWK_PATH} STREQUAL AWK_PATH-NOTFOUND)
+    message("AWK_PATH back to awk")
+    set(AWK_PATH awk)
+endif()
 message("find awk " ${AWK_PATH})
 find_program (CPP_PATH NAMES cpp REQUIRED)
 message("find cpp " ${CPP_PATH})
