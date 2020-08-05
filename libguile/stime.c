@@ -44,6 +44,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <time.h>
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -54,7 +55,6 @@
 
 #include "libguile/validate.h"
 #include "libguile/stime.h"
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
