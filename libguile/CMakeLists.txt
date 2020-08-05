@@ -137,7 +137,7 @@ target_include_directories(guile PRIVATE ${CMAKE_SOURCE_DIR})
 if (WIN32)
     target_link_libraries(guile  m pthread gmp ltdl ws2_32 regex intl)
 else()
-    target_link_libraries(guile  m pthread gmp ltdl crypt)
+    target_link_libraries(guile  m Threads::Threads gmp ltdl crypt)
 endif ()
 
 add_executable(gen-scmconfig gen-scmconfig.c)
