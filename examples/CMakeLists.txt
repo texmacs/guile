@@ -1,7 +1,7 @@
 include_directories(../)
 add_executable(box box/box.c)
 target_link_libraries(box guile)
-
+add_subdirectory(box-dynamic)
 file(GLOB c_scheme_subdirs RELATIVE ${CMAKE_SOURCE_DIR}/examples/c_scheme ${CMAKE_SOURCE_DIR}/examples/c_scheme/*)
 foreach(subdir ${c_scheme_subdirs})
     add_executable(c_scheme_${subdir} c_scheme/${subdir}/main.c)
