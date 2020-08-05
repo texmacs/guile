@@ -279,6 +279,264 @@ don't. */
 /* Define to 1 if you have the `hstrerror' function. */
 #cmakedefine HAVE_HSTRERROR 1
 
+/* Define if h_errno is declared in netdb.h. */
+#cmakedefine HAVE_H_ERRNO 1
+
+/* Define if you have the iconv() function and it works. */
+#cmakedefine HAVE_ICONV 1
+
+/* Define to 1 if you have the <ieeefp.h> header file. */
+#cmakedefine HAVE_IEEEFP_H 1
+
+/* Define to 1 if you have the `index' function. */
+#cmakedefine HAVE_INDEX 1
+
+/* Define to 1 if you have the `inet_aton' function. */
+#cmakedefine HAVE_INET_ATON 1
+
+/* Define to 1 if you have the `inet_lnaof' function. */
+#cmakedefine HAVE_INET_LNAOF 1
+
+/* Define to 1 if you have the `inet_makeaddr' function. */
+#cmakedefine HAVE_INET_MAKEADDR 1
+
+/* Define to 1 if you have the `inet_netof' function. */
+#cmakedefine HAVE_INET_NETOF 1
+
+/* Define to 1 if you have the `inet_ntop' function. */
+#cmakedefine HAVE_INET_NTOP 1
+
+/* Define to 1 if you have the `inet_pton' function. */
+#cmakedefine HAVE_INET_PTON 1
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H 1
+
+/* Define to 1 if you have the `ioctl' function. */
+#cmakedefine HAVE_IOCTL 1
+
+/* Define to 1 if you have the <io.h> header file. */
+#cmakedefine HAVE_IO_H 1
+
+/* Define if you want support for IPv6. */
+#cmakedefine HAVE_IPV6 1
+
+/* Define to 1 if you have the `isblank' function. */
+#cmakedefine HAVE_ISBLANK 1
+
+/* Define to 1 if you have the `isinf' macro or function. */
+#cmakedefine HAVE_ISINF 1
+
+/* Define to 1 if you have the `isnan' macro or function. */
+#cmakedefine HAVE_ISNAN 1
+
+/* Define to 1 if you have the `kill' function. */
+#cmakedefine HAVE_KILL 1
+
+/* Define to 1 if you have the <libc.h> header file. */
+#cmakedefine HAVE_LIBC_H 1
+
+/* Define if you have the __libc_stack_end variable. */
+#cmakedefine HAVE_LIBC_STACK_END 1
+
+/* Define to 1 if you have the `gmp' library (-lgmp). */
+#cmakedefine HAVE_LIBGMP 1
+
+/* Define to 1 if you have the `ltdl' library (-lltdl). */
+#cmakedefine HAVE_LIBLTDL 1
+
+/* Define to 1 if you have the `m' library (-lm). */
+#cmakedefine HAVE_LIBM 1
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#cmakedefine HAVE_LIBNSL 1
+
+/* Define to 1 if you have the `regex' library (-lregex). */
+#cmakedefine HAVE_LIBREGEX 1
+
+/* Define to 1 if you have the `rx' library (-lrx). */
+#cmakedefine HAVE_LIBRX 1
+
+/* Define to 1 if you have the `socket' library (-lsocket). */
+#cmakedefine HAVE_LIBSOCKET 1
+
+/* Define to 1 if you have the `uca' library (-luca). */
+#cmakedefine HAVE_LIBUCA 1
+
+/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+#cmakedefine HAVE_LIBWS2_32 1
+
+/* Define to 1 if you have the <limits.h> header file. */
+#cmakedefine HAVE_LIMITS_H 1
+
+/* Define to 1 if you have the `link' function. */
+#cmakedefine HAVE_LINK 1
+
+/* Define to 1 if you have the `lstat' function. */
+#cmakedefine HAVE_LSTAT 1
+
+/* Define to 1 if you have the <machine/fpu.h> header file. */
+#cmakedefine HAVE_MACHINE_FPU_H
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#cmakedefine HAVE_MALLOC_H 1
+
+/* Define to 1 if you have the `memcpy' function. */
+#cmakedefine HAVE_MEMCPY 1
+
+/* Define to 1 if you have the `memmove' function. */
+#cmakedefine HAVE_MEMMOVE 1
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H 1
+
+/* Define to 1 if you have the `mkdir' function. */
+#cmakedefine HAVE_MKDIR 1
+
+/* Define to 1 if you have the `mknod' function. */
+#cmakedefine HAVE_MKNOD 1
+
+/* Define to 1 if you have the `mkstemp' function. */
+#cmakedefine HAVE_MKSTEMP 1
+
+/* Define to 1 if you have the <nan.h> header file. */
+#cmakedefine HAVE_NAN_H 1
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#cmakedefine HAVE_NDIR_H 1
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#cmakedefine HAVE_NETDB_H 1
+
+/* Define this if you want support for networking in Guile. */
+#cmakedefine HAVE_NETWORKING 1
+
+/* Define to 1 if you have the `nice' function. */
+#cmakedefine HAVE_NICE 1
+
+/* Define to 1 if you have the `on_exit' function. */
+#cmakedefine HAVE_ON_EXIT 1
+
+/* Define to 1 if you have the `pause' function. */
+#cmakedefine HAVE_PAUSE 1
+
+/* Define to 1 if you have the `pipe' function. */
+#cmakedefine HAVE_PIPE 1
+
+/* Define this if you want support for POSIX system calls in Guile. */
+#cmakedefine HAVE_POSIX 1
+
+/* Define to 1 if you have the <process.h> header file. */
+#cmakedefine HAVE_PROCESS_H 1
+
+/* Define if you have POSIX threads libraries and header files. */
+#cmakedefine HAVE_PTHREAD 1
+
+/* Define to 1 if you have the `pthread_attr_getstack' function. */
+#cmakedefine HAVE_PTHREAD_ATTR_GETSTACK 1
+
+/* Define to 1 if you have the `pthread_getattr_np' function. */
+#cmakedefine HAVE_PTHREAD_GETATTR_NP 1
+
+/* Define to 1 if you have the `pthread_get_stackaddr_np' function. */
+#cmakedefine HAVE_PTHREAD_GET_STACKADDR_NP 1
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#cmakedefine HAVE_PTHREAD_H 1
+
+/* Define to 1 if you have the `pthread_sigmask' function. */
+#cmakedefine HAVE_PTHREAD_SIGMASK 1
+
+/* Define to 1 if you have the `putenv' function. */
+#cmakedefine HAVE_PUTENV 1
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#cmakedefine HAVE_PWD_H 1
+
+/* Define to 1 if you have the `readdir64_r' function. */
+#cmakedefine HAVE_READDIR64_R 1
+
+/* Define to 1 if you have the `readdir_r' function. */
+#cmakedefine HAVE_READDIR_R 1
+
+/* Define to 1 if you have the `readlink' function. */
+#cmakedefine HAVE_READLINK 1
+
+/* This is included as part of a workaround for a autoheader bug. */
+#cmakedefine HAVE_REGCOMP 1
+
+/* Define to 1 if you have the <regex.h> header file. */
+#cmakedefine HAVE_REGEX_H 1
+
+/* Define to 1 if you have the `rename' function. */
+#cmakedefine HAVE_RENAME 1
+
+/* Define to 1 if you have the `rindex' function. */
+#cmakedefine HAVE_RINDEX 1
+
+/* Define to 1 if you have the `rmdir' function. */
+#cmakedefine HAVE_RMDIR 1
+
+/* Define to 1 if you have the <rxposix.h> header file. */
+#cmakedefine HAVE_RXPOSIX_H
+
+/* Define to 1 if you have the <rx/rxposix.h> header file. */
+#cmakedefine HAVE_RX_RXPOSIX_H 1
+
+/* Define to 1 if you have the `select' function. */
+#cmakedefine HAVE_SELECT 1
+
+/* Define to 1 if you have the `setegid' function. */
+#cmakedefine HAVE_SETEGID 1
+
+/* Define to 1 if you have the `seteuid' function. */
+#cmakedefine HAVE_SETEUID 1
+
+/* Define to 1 if you have the `setgroups' function. */
+#cmakedefine HAVE_SETGROUPS 1
+
+/* Define to 1 if you have the `sethostent' function. */
+#cmakedefine HAVE_SETHOSTENT 1
+
+/* Define to 1 if you have the `sethostname' function. */
+#cmakedefine HAVE_SETHOSTNAME 1
+
+/* Define to 1 if you have the `setitimer' function. */
+#cmakedefine HAVE_SETITIMER 1
+
+/* Define to 1 if you have the `setlocale' function. */
+#cmakedefine HAVE_SETLOCALE 1
+
+/* Define to 1 if you have the `setnetent' function. */
+#cmakedefine HAVE_SETNETENT 1
+
+/* Define to 1 if you have the `setpgid' function. */
+#cmakedefine HAVE_SETPGID 1
+
+/* Define to 1 if you have the `setpriority' function. */
+#cmakedefine HAVE_SETPRIORITY 1
+
+/* Define to 1 if you have the `setprotoent' function. */
+#cmakedefine HAVE_SETPROTOENT 1
+
+/* Define to 1 if you have the `setpwent' function. */
+#cmakedefine HAVE_SETPWENT 1
+
+/* Define to 1 if you have the `setservent' function. */
+#cmakedefine HAVE_SETSERVENT 1
+
+/* Define to 1 if you have the `setsid' function. */
+#cmakedefine HAVE_SETSID 1
+
+/* Define to 1 if you have the `sigaction' function. */
+#cmakedefine HAVE_SIGACTION 1
+
+/* Define to 1 if you have the `siginterrupt' function. */
+#cmakedefine HAVE_SIGINTERRUPT 1
+
+/* Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct. */
+#cmakedefine HAVE_SIN6_SCOPE_ID 1
+
 
 /* Define to 1 if you have the ANSI C header files. */
 #cmakedefine STDC_HEADERS 1
