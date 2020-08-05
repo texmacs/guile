@@ -538,8 +538,220 @@ don't. */
 #cmakedefine HAVE_SIN6_SCOPE_ID 1
 
 
+/* Define to 1 if you have the `sincos' function. */
+#cmakedefine HAVE_SINCOS 1
+
+/* Define to 1 if you have the `socketpair' function. */
+#cmakedefine HAVE_SOCKETPAIR 1
+
+/* Define to 1 if you have the `stat64' function. */
+#cmakedefine HAVE_STAT64 1
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the `strchr' function. */
+#cmakedefine HAVE_STRCHR 1
+
+/* Define to 1 if you have the `strcmp' function. */
+#cmakedefine HAVE_STRCMP 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR 1
+
+/* Define to 1 if you have the `strftime' function. */
+#cmakedefine HAVE_STRFTIME 1
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H 1
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H 1
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#cmakedefine HAVE_STRNCASECMP 1
+
+/* Define to 1 if you have the `strptime' function. */
+#cmakedefine HAVE_STRPTIME 1
+
+/* Define this if your system defines struct linger, for use with the
+getsockopt and setsockopt system calls. */
+#cmakedefine HAVE_STRUCT_LINGER 1
+
+/* Define to 1 if `sin6_len' is a member of `struct sockaddr_in6'. */
+#cmakedefine HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN 1
+
+/* Define to 1 if `sin_len' is a member of `struct sockaddr'. */
+#cmakedefine HAVE_STRUCT_SOCKADDR_SIN_LEN 1
+
+/* Define to 1 if `st_blksize' is a member of `struct stat'. */
+#cmakedefine HAVE_STRUCT_STAT_ST_BLKSIZE 1
+
+/* Define to 1 if `st_blocks' is a member of `struct stat'. */
+#cmakedefine HAVE_STRUCT_STAT_ST_BLOCKS 1
+
+/* Define to 1 if `st_rdev' is a member of `struct stat'. */
+#cmakedefine HAVE_STRUCT_STAT_ST_RDEV 1
+
+/* Define this if your system defines struct timespec via either <time.h> or
+<pthread.h>. */
+#cmakedefine HAVE_STRUCT_TIMESPEC 1
+
+/* Define to 1 if `tm_gmtoff' is a member of `struct tm'. */
+#cmakedefine HAVE_STRUCT_TM_TM_GMTOFF 1
+
+/* Define to 1 if `tm_zone' is a member of `struct tm'. */
+#cmakedefine HAVE_STRUCT_TM_TM_ZONE 1
+
+/* Define to 1 if you have the `symlink' function. */
+#cmakedefine HAVE_SYMLINK 1
+
+/* Define to 1 if you have the `sync' function. */
+#cmakedefine HAVE_SYNC 1
+
+/* Define to 1 if you have the `sysconf' function. */
+#cmakedefine HAVE_SYSCONF 1
+
+/* Define to 1 if you have the `system' function. */
+#cmakedefine HAVE_SYSTEM 1
+
+/* Define to 1 if you have the <sys/dir.h> header file. */
+#cmakedefine HAVE_SYS_DIR_H 1
+
+/* Define to 1 if you have the <sys/file.h> header file. */
+#cmakedefine HAVE_SYS_FILE_H 1
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#cmakedefine HAVE_SYS_IOCTL_H 1
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+*/
+#cmakedefine HAVE_SYS_NDIR_H 1
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#cmakedefine HAVE_SYS_PARAM_H 1
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#cmakedefine HAVE_SYS_RESOURCE_H 1
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#cmakedefine HAVE_SYS_SELECT_H 1
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H 1
+
+/* Define to 1 if you have the <sys/stdtypes.h> header file. */
+#cmakedefine HAVE_SYS_STDTYPES_H
+
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#cmakedefine HAVE_SYS_TIMEB_H 1
+
+/* Define to 1 if you have the <sys/times.h> header file. */
+#cmakedefine HAVE_SYS_TIMES_H 1
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine HAVE_SYS_TIME_H 1
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H 1
+
+/* Define to 1 if you have the <sys/utime.h> header file. */
+#cmakedefine HAVE_SYS_UTIME_H 1
+
+/* Define to 1 if you have the <sys/utsname.h> header file. */
+#cmakedefine HAVE_SYS_UTSNAME_H 1
+
+/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
+#cmakedefine HAVE_SYS_WAIT_H 1
+
+/* Define to 1 if you have the `tcgetpgrp' function. */
+#cmakedefine HAVE_TCGETPGRP 1
+
+/* Define to 1 if you have the `tcsetpgrp' function. */
+#cmakedefine HAVE_TCSETPGRP 1
+
+/* Define to 1 if you have the `times' function. */
+#cmakedefine HAVE_TIMES 1
+
+/* Define to 1 if you have the <time.h> header file. */
+#cmakedefine HAVE_TIME_H 1
+
+/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
+`HAVE_STRUCT_TM_TM_ZONE' instead. */
+#cmakedefine HAVE_TM_ZONE 1
+
+/* Define to 1 if you have the `trunc' function. */
+#cmakedefine HAVE_TRUNC 1
+
+/* Define to 1 if you have the `truncate' function. */
+#cmakedefine HAVE_TRUNCATE 1
+
+/* Define to 1 if you have the `ttyname' function. */
+#cmakedefine HAVE_TTYNAME 1
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+`tzname'. */
+#cmakedefine HAVE_TZNAME 1
+
+/* Define to 1 if you have the `tzset' function. */
+#cmakedefine HAVE_TZSET 1
+
+/* Define if uint32_t typedef is defined when netdb.h is include. */
+#cmakedefine HAVE_UINT32_T 1
+
+/* Define to 1 if you have the `uname' function. */
+#cmakedefine HAVE_UNAME 1
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H 1
+
+/* Define if the system supports Unix-domain (file-domain) sockets. */
+#cmakedefine HAVE_UNIX_DOMAIN_SOCKETS 1
+
+/* Define to 1 if you have the `unsetenv' function. */
+#cmakedefine HAVE_UNSETENV 1
+
+/* Define to 1 if csqrt is bug-free */
+#cmakedefine HAVE_USABLE_CSQRT 1
+
+/* Define to 1 if you have the `usleep' function. */
+#cmakedefine HAVE_USLEEP 1
+
+/* Define to 1 if you have the <utime.h> header file. */
+#cmakedefine HAVE_UTIME_H 1
+
+/* Define to 1 if you have the `waitpid' function. */
+#cmakedefine HAVE_WAITPID 1
+
+/* Define if you have the <winsock2.h> header file. */
+#cmakedefine HAVE_WINSOCK2_H 1
+
+/* Define to 1 if you have the `_NSGetEnviron' function. */
+#cmakedefine HAVE__NSGETENVIRON 1
+
+/* Define to 1 if you have the `_pipe' function. */
+#cmakedefine HAVE__PIPE 1
+
+/* Define this if we should include <libc.h> when we've already included
+<unistd.h>. On some systems, they conflict, and libc.h should be omitted.
+See GUILE_HEADER_LIBC_WITH_UNISTD in aclocal.m4. */
+#cmakedefine LIBC_H_WITH_UNISTD_H 1
+
+/* Define if localtime caches the TZ setting. */
+#cmakedefine LOCALTIME_CACHE 1
+
+
 /* Define to 1 if you have the ANSI C header files. */
 #cmakedefine STDC_HEADERS 1
+
+/* Define this if floats are the same size as longs. */
+#define SCM_SINGLES 1
 
 /* Define this to control the default warning level for deprecated features.
 */
@@ -604,180 +816,3 @@ don't. */
 
 /* The size of `__int64', as computed by sizeof. */
 #define SIZEOF___INT64 @SIZEOF___INT64@
-
-#define HAVE_DIRENT_H 1
-
-#cmakedefine HAVE_UTIME_H 1
-
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#cmakedefine HAVE_STDINT_H 1
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#cmakedefine HAVE_STDLIB_H 1
-
-/* Define to 1 if you have the `strchr' function. */
-#cmakedefine HAVE_STRCHR 1
-
-/* Define to 1 if you have the `strcmp' function. */
-#cmakedefine HAVE_STRCMP 1
-
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strerror' function. */
-#cmakedefine HAVE_STRERROR 1
-
-/* Define to 1 if you have the `strftime' function. */
-#cmakedefine HAVE_STRFTIME 1
-
-/* Define to 1 if you have the <strings.h> header file. */
-#cmakedefine HAVE_STRINGS_H 1
-
-/* Define to 1 if you have the <string.h> header file. */
-#cmakedefine HAVE_STRING_H 1
-
-/* Define to 1 if you have the `strncasecmp' function. */
-#cmakedefine HAVE_STRNCASECMP 1
-
-/* Define to 1 if you have the `strptime' function. */
-#cmakedefine HAVE_STRPTIME 1
-
-
-// TODO: replace
-/* This is included as part of a workaround for a autoheader bug. */
-#define HAVE_REGCOMP 1
-
-/* Define to 1 if you have the <regex.h> header file. */
-#cmakedefine HAVE_REGEX_H 1
-
-/* Define to 1 if you have the `rename' function. */
-#cmakedefine HAVE_RENAME 1
-
-/* Define to 1 if you have the `rindex' function. */
-#cmakedefine HAVE_RINDEX 1
-
-/* Define to 1 if you have the `rmdir' function. */
-#cmakedefine HAVE_RMDIR 1
-
-
-/* Define to 1 if you have the `select' function. */
-#cmakedefine HAVE_SELECT 1
-
-/* Define to 1 if you have the `setegid' function. */
-#cmakedefine HAVE_SETEGID 1
-
-/* Define to 1 if you have the `seteuid' function. */
-#cmakedefine HAVE_SETEUID 1
-
-/* Define to 1 if you have the `setgroups' function. */
-#cmakedefine HAVE_SETGROUPS 1
-
-/* Define to 1 if you have the `sethostent' function. */
-#cmakedefine HAVE_SETHOSTENT 1
-
-/* Define to 1 if you have the `sethostname' function. */
-#cmakedefine HAVE_SETHOSTNAME 1
-
-/* Define to 1 if you have the `setitimer' function. */
-#cmakedefine HAVE_SETITIMER 1
-
-/* Define to 1 if you have the `setlocale' function. */
-#cmakedefine HAVE_SETLOCALE 1
-
-/* Define to 1 if you have the `setnetent' function. */
-#cmakedefine HAVE_SETNETENT 1
-
-/* Define to 1 if you have the `setpgid' function. */
-#cmakedefine HAVE_SETPGID 1
-
-/* Define to 1 if you have the `setpriority' function. */
-#cmakedefine HAVE_SETPRIORITY 1
-
-/* Define to 1 if you have the `setprotoent' function. */
-#cmakedefine HAVE_SETPROTOENT 1
-
-/* Define to 1 if you have the `setpwent' function. */
-#cmakedefine HAVE_SETPWENT 1
-
-/* Define to 1 if you have the `setservent' function. */
-#cmakedefine HAVE_SETSERVENT 1
-
-/* Define to 1 if you have the `setsid' function. */
-#cmakedefine HAVE_SETSID 1
-
-/* Define to 1 if you have the `sigaction' function. */
-#cmakedefine HAVE_SIGACTION 1
-
-/* Define to 1 if you have the `siginterrupt' function. */
-#cmakedefine HAVE_SIGINTERRUPT 1
-
-// TODO: Check
-/* Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct. */
-#define HAVE_SIN6_SCOPE_ID 1
-
-/* Define to 1 if you have the <unistd.h> header file. */
-#cmakedefine HAVE_UNISTD_H 1
-
-/* Define to 1 if you have the declaration of `sethostname', and to 0 if you
-don't. */
-#define HAVE_DECL_SETHOSTNAME 1
-
-
-/* Define to 1 if you have the <sys/dir.h> header file. */
-#cmakedefine HAVE_SYS_DIR_H 1
-
-/* Define to 1 if you have the <sys/file.h> header file. */
-#cmakedefine HAVE_SYS_FILE_H 1
-
-/* Define to 1 if you have the <sys/ioctl.h> header file. */
-#cmakedefine HAVE_SYS_IOCTL_H 1
-
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-*/
-#cmakedefine HAVE_SYS_NDIR_H 1
-
-/* Define to 1 if you have the <sys/param.h> header file. */
-#cmakedefine HAVE_SYS_PARAM_H 1
-
-/* Define to 1 if you have the <sys/resource.h> header file. */
-#cmakedefine HAVE_SYS_RESOURCE_H 1
-
-/* Define to 1 if you have the <sys/select.h> header file. */
-#cmakedefine HAVE_SYS_SELECT_H 1
-
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#cmakedefine HAVE_SYS_STAT_H 1
-
-/* Define to 1 if you have the <sys/stdtypes.h> header file. */
-#cmakedefine HAVE_SYS_STDTYPES_H 1
-
-/* Define to 1 if you have the <sys/timeb.h> header file. */
-#cmakedefine HAVE_SYS_TIMEB_H 1
-
-/* Define to 1 if you have the <sys/times.h> header file. */
-#cmakedefine HAVE_SYS_TIMES_H 1
-
-/* Define to 1 if you have the <sys/time.h> header file. */
-#cmakedefine HAVE_SYS_TIME_H 1
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#cmakedefine HAVE_SYS_TYPES_H 1
-
-/* Define to 1 if you have the <sys/utime.h> header file. */
-#cmakedefine HAVE_SYS_UTIME_H 1
-
-/* Define to 1 if you have the <sys/utsname.h> header file. */
-#cmakedefine HAVE_SYS_UTSNAME_H 1
-
-/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
-#cmakedefine HAVE_SYS_WAIT_H 1
-
-/* Define if you have the <winsock2.h> header file. */
-#cmakedefine HAVE_WINSOCK2_H
-
-/* Define to 1 if you have the `truncate' function. */
-#cmakedefine HAVE_TRUNCATE 1
-
-/* Define to 1 if you have the <pwd.h> header file. */
-#cmakedefine HAVE_PWD_H 1
