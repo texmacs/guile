@@ -254,6 +254,8 @@ CHECK_STRUCT_HAS_MEMBER("struct tm" tm_gmtoff time.h HAVE_STRUCT_TM_TM_GMTOFF LA
 CHECK_STRUCT_HAS_MEMBER("struct tm" tm_zone time.h HAVE_STRUCT_TM_TM_ZONE LANGUAGE C)
 CHECK_STRUCT_HAS_MEMBER("struct tm" tm_zone time.h HAVE_TM_ZONE LANGUAGE C)
 CHECK_STRUCT_HAS_MEMBER("struct tm" tzname time.h HAVE_TZNAME LANGUAGE C)
+include(CheckLibraryExists)
+
 # TODO: Check?
 set(STDC_HEADERS ${HAVE_STDLIB_H})
 set(HAVE_IPV6 1)
@@ -314,6 +316,7 @@ configure_file (${CMAKE_SOURCE_DIR}/libguile/gen-scmconfig.h.cmake ${CMAKE_BINAR
 configure_file (${CMAKE_SOURCE_DIR}/libguile/version.h.cmake ${CMAKE_BINARY_DIR}/libguile/version.h)
 configure_file (${CMAKE_SOURCE_DIR}/libguile/libpath.h.cmake ${CMAKE_BINARY_DIR}/libguile/libpath.h)
 add_subdirectory(libguile)
+add_subdirectory(guile-readline)
 add_subdirectory(examples)
 add_executable(guile-main main.c)
 target_link_libraries(guile-main guile)
