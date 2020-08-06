@@ -142,10 +142,20 @@ endif ()
 
 add_executable(gen-scmconfig gen-scmconfig.c)
 target_include_directories(gen-scmconfig PRIVATE ../)
-add_custom_command(
-        TARGET gen-scmconfig
-        COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
-        COMMAND cd ${CMAKE_SOURCE_DIR} && sh gen_dot_x.sh ${CMAKE_BINARY_DIR}
-        COMMENT "Now Generating libguile/scmconfig.h file"
-)
+if (WIN32)
+    add_custom_command(
+            TARGET gen-scmconfig
+            COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
+            COMMAND ${CMAKE_BINARY_DIR}/gen_dot_x.bat ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+            COMMENT "Now Generating libguile/scmconfig.h file"
+    )
+else()
+    add_custom_command(
+            TARGET gen-scmconfig
+            COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
+            COMMAND cd ${CMAKE_SOURCE_DIR} && sh gen_dot_x.sh ${CMAKE_BINARY_DIR}
+            COMMENT "Now Generating libguile/scmconfig.h file"
+    )
+endif ()
+
 add_dependencies(guile gen-scmconfig)
