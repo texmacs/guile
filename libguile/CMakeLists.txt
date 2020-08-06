@@ -145,7 +145,6 @@ target_include_directories(gen-scmconfig PRIVATE ../)
 add_custom_command(
         TARGET gen-scmconfig
         COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
-        COMMAND cd ${CMAKE_SOURCE_DIR} && sh gen_c_source.sh ${CMAKE_BINARY_DIR}
         COMMAND cd ${CMAKE_SOURCE_DIR} && sh gen_dot_x.sh ${CMAKE_BINARY_DIR}
         COMMENT "Now Generating libguile/scmconfig.h file"
 )

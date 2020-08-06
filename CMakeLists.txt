@@ -4,6 +4,14 @@ set(GUILE_MAJOR_VERSION ${guile_VERSION_MAJOR})
 set(GUILE_MINOR_VERSION ${guile_VERSION_MINOR})
 set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
 set(CMAKE_C_STANDARD 90)
+
+# Generate c source before cmake handle target
+execute_process(
+        COMMAND sh gen_c_source.sh ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMAND_ECHO STDOUT
+        )
+
 if (UNIX)
     find_package(Threads REQUIRED)
 endif ()
@@ -321,3 +329,4 @@ add_subdirectory(examples)
 add_subdirectory(test-suite)
 add_executable(guile-main main.c)
 target_link_libraries(guile-main guile)
+
