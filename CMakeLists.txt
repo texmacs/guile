@@ -11,10 +11,10 @@ execute_process(
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND_ECHO STDOUT
         )
-find_program (AWK_PATH NAES awk REQUIRED)
+find_program (AWK_PATH NAMES awk gawk REQUIRED)
 message("find awk " ${AWK_PATH})
 find_program (CPP_PATH NAMES cpp REQUIRED)
-message("find cpp " ${cpp_path})
+message("find cpp " ${CPP_PATH})
 
 
 if (UNIX)
