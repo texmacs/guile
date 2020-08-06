@@ -337,7 +337,11 @@ static void *invoke_main_func(void *body_data);
 
 
 void
-scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
+scm_boot_guile (int argc, char ** argv,
+                void (*main_func) (void *closure,
+                                   int argc,
+                                   char **argv),
+                void *closure)
 {
   void *res;
   struct main_func_closure c;
