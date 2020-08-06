@@ -1,0 +1,8 @@
+file(GLOB c_scheme_subfiles RELATIVE ${CMAKE_SOURCE_DIR}/test-suite/standalone ${CMAKE_SOURCE_DIR}/test-suite/standalone/*)
+foreach(subfile ${c_scheme_subfiles})
+    if (${subfile} MATCHES ".c$")
+        string(REGEX REPLACE ".c$" "" test_target_name ${subfile} )
+        add_executable(${test_target_name} ${subfile})
+        target_link_libraries(${test_target_name} guile)
+    endif ()
+endforeach()

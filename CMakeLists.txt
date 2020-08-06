@@ -318,5 +318,6 @@ configure_file (${CMAKE_SOURCE_DIR}/libguile/libpath.h.cmake ${CMAKE_BINARY_DIR}
 add_subdirectory(libguile)
 add_subdirectory(guile-readline)
 add_subdirectory(examples)
+add_subdirectory(test-suite)
 add_executable(guile-main main.c)
 target_link_libraries(guile-main guile)
