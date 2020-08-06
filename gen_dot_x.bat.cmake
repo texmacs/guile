@@ -4,9 +4,9 @@ set files=alist arbiters async backtrace boolean chars continuations debug depre
 
 set srcdir=%1
 set dstdir=%2
-echo "dstdir: %dstdir%"
+echo dstdir: %dstdir%
 set guile_snarf=%dstdir%/libguile/guile-snarf
 for %%I in (%files%) do (
-  echo "handle %%I.c"
+echo handle %%I.c
 @BASH_PATH@ %guile_snarf% -o %dstdir%/libguile/%%I.x %srcdir%/libguile/%%I.c -DHAVE_CONFIG_H -I%srcdir% -g -O2 -Wall -Wmissing-prototypes -I%dstdir%
 )
