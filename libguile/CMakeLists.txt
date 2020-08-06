@@ -1,4 +1,9 @@
-add_library(guile SHARED)
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    add_library(guile)
+else()
+    add_library(guile SHARED)
+endif ()
+
 add_definitions(-DHAVE_CONFIG_H)
 target_sources(guile
         PRIVATE
