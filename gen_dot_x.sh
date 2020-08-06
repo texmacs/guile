@@ -22,11 +22,12 @@ then
 fi
 dstdir=$1
 echo "dstdir: $dstdir"
-chmod +x guile-snarf
+guile_snarf=$dstdir/libguile/guile-snarf
+chmod +x ${guile_snarf}
 for loop in ${DOT_X_FILES}
 do
   file=${loop%.*}
   echo "handle ${file}.c"
-./guile-snarf -o ${dstdir}/libguile/${file}.x libguile/${file}.c \
+${guile_snarf} -o ${dstdir}/libguile/${file}.x libguile/${file}.c \
 -DHAVE_CONFIG_H -I.. -I.. -I.  -g -O2 -Wall -Wmissing-prototypes -I${dstdir}
 done

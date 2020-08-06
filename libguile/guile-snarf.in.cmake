@@ -39,7 +39,7 @@
 #   #endif
 # 
 # If the environment variable CPP is set, use its value instead of the
-# C pre-processor determined at Guile configure-time: "gcc -E".
+# C pre-processor determined at Guile configure-time: "@CPP@".
 
 # Code:
 
@@ -50,15 +50,15 @@ modern_snarf ()                         # writes stdout
     ## Apparently, AIX's preprocessor is unhappy if you try to #include an
     ## empty file.
     echo "/* cpp arguments: $@ */" ;
-    ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
-    grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
+    $cpp -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > $temp && cpp_ok_p=true
+    grep "^ *\^ *\^" $temp | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
 }
 
 ## main
 
 # process command line
 if [ x"$1" = x--help ] ; then
-    gawk '/^#.Commentary:/,/^#.Code:/' $0 | grep -v Code: \
+    @AWK_PATH@ '/^#.Commentary:/,/^#.Code:/' $0 | grep -v Code: \
         | sed -e 1,2d -e 's/^. *//g'
     exit 0
 fi
@@ -75,7 +75,7 @@ tempdir="$TMPDIR/guile-snarf.$$"
 (umask 077 && mkdir $tempdir) || exit 1
 temp="$tempdir/tmp"
 
-if [ x"$CPP" = x ] ; then cpp="gcc -E" ; else cpp="$CPP" ; fi
+if [ x"$CPP" = x ] ; then cpp="@CPP_PATH@" ; else cpp="$CPP" ; fi
 
 trap "rm -rf $tempdir" 0 1 2 15
 

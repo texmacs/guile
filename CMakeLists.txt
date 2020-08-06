@@ -11,6 +11,11 @@ execute_process(
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND_ECHO STDOUT
         )
+find_program (AWK_PATH NAES awk REQUIRED)
+message("find awk " ${AWK_PATH})
+find_program (CPP_PATH NAMES cpp REQUIRED)
+message("find cpp " ${cpp_path})
+
 
 if (UNIX)
     find_package(Threads REQUIRED)
@@ -320,6 +325,7 @@ set(PREFIX "/usr/local")
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
 configure_file (${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
+configure_file (${CMAKE_SOURCE_DIR}/libguile/guile-snarf.in.cmake ${CMAKE_BINARY_DIR}/libguile/guile-snarf)
 configure_file (${CMAKE_SOURCE_DIR}/libguile/gen-scmconfig.h.cmake ${CMAKE_BINARY_DIR}/libguile/gen-scmconfig.h)
 configure_file (${CMAKE_SOURCE_DIR}/libguile/version.h.cmake ${CMAKE_BINARY_DIR}/libguile/version.h)
 configure_file (${CMAKE_SOURCE_DIR}/libguile/libpath.h.cmake ${CMAKE_BINARY_DIR}/libguile/libpath.h)
@@ -329,4 +335,5 @@ add_subdirectory(examples)
 add_subdirectory(test-suite)
 add_executable(guile-main main.c)
 target_link_libraries(guile-main guile)
+
 
