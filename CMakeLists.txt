@@ -34,7 +34,7 @@ message("find cpp " ${CPP_PATH})
 if (WIN32)
     find_program (BASH_PATH NAMES sh.exe REQUIRED)
     message("find bash " ${BASH_PATH})
-    configure_file (${CMAKE_SOURCE_DIR}/gen_dot_x.bat.cmake ${CMAKE_BINARY_DIR}/gen_dot_x.bat)
+    configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.bat.cmake ${CMAKE_CURRENT_BINARY_DIR}/gen_dot_x.bat)
 endif ()
 
 set(GEN_DOT_X_PY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.py)
