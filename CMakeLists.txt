@@ -9,19 +9,11 @@ find_program (PYTHON_PATH NAMES python3 python REQUIRED)
 message("find python " ${PYTHON_PATH})
 
 # Generate c source before cmake handle target
-if (WIN32)
-    execute_process(
-            COMMAND gen_c_source.bat ${CMAKE_BINARY_DIR}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
-            COMMAND_ECHO STDOUT
-    )
-else()
-    execute_process(
-            COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
-            COMMAND_ECHO STDOUT
-    )
-endif ()
+execute_process(
+        COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
+        COMMAND_ECHO STDOUT
+)
 
 find_program (AWK_PATH NAMES awk gawk awk.exe gawk.exe PATH_SUFFIXES /usr/bin REQUIRED)
 if(${AWK_PATH} STREQUAL AWK_PATH-NOTFOUND)
