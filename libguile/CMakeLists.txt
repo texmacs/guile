@@ -76,7 +76,7 @@ target_sources(guile
         load.c
         macros.c
         mallocs.c
-        memmove.c
+#        memmove.c
         mkstemp.c
         modules.c
         net_db.c
