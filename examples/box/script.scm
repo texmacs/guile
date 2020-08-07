@@ -1,0 +1,8 @@
+(define b (make-box))
+(display b)
+(newline)
+(box-set! b '(list of values))
+(display b)
+(newline)
+(display (box-ref b))
+(newline)

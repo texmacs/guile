@@ -1,6 +1,4 @@
-include_directories(../)
-add_executable(box box/box.c)
-target_link_libraries(box guile)
+add_subdirectory(box)
 add_subdirectory(box-dynamic)
 add_subdirectory(box-dynamic-module)
 add_subdirectory(box-module)
