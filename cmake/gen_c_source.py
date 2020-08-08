@@ -1,4 +1,6 @@
 import sys
+import os
+import os.path as osp
 def main(argv):
     if len(argv) != 3:
         print('Usage: gen_c_source.py guile_srcdir guile_dstdir')
@@ -8,9 +10,12 @@ def main(argv):
     for file in files:
         filename = file[:-3]
         filepath = f'{guile_srcdir}/libguile/{filename}.in'
-        output_path = f'{guile_dstdir}/libguile/{filename}.c'
+        output_path = f'{guile_dstdir}/libguile'
+        if not osp.exists(output_path):
+            print(f'mkdir {output_path}')
+            os.makedirs(output_path)
         print(f"generate {filename}.c")
-        with open(filepath, 'r') as fin, open(output_path, 'w') as fout:
+        with open(filepath, 'r') as fin, open(f'{output_path}/{filename}.c', 'w') as fout:
             for line in fin.readlines():
                 line = line.strip()
                 print(f"""
