@@ -750,6 +750,15 @@ See GUILE_HEADER_LIBC_WITH_UNISTD in aclocal.m4. */
 /* Define to 1 if you have the ANSI C header files. */
 #cmakedefine STDC_HEADERS 1
 
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine TIME_WITH_SYS_TIME 1
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#cmakedefine TM_IN_SYS_TIME 1
+
+/* Define if you need additional CPP macros on Win32 platforms. */
+#cmakedefine USE_DLL_IMPORT 1
+
 /* Define this if floats are the same size as longs. */
 #define SCM_SINGLES 1
 

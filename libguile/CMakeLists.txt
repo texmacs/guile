@@ -138,7 +138,7 @@ if (WIN32)
             win32-uname.c
             )
 endif ()
-target_include_directories(guile PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(guile PUBLIC ${guile_BINARY_DIR} ${guile_SOURCE_DIR})
 if (WIN32)
     target_link_libraries(guile  m pthread gmp ltdl ws2_32 regex intl)
 else()
@@ -146,19 +146,19 @@ else()
 endif ()
 
 add_executable(gen-scmconfig gen-scmconfig.c)
-target_include_directories(gen-scmconfig PRIVATE ../)
+target_include_directories(gen-scmconfig PRIVATE ${guile_BINARY_DIR})
 if (WIN32)
     add_custom_command(
             TARGET gen-scmconfig
-            COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
+            COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
             COMMAND ${CMAKE_BINARY_DIR}/gen_dot_x.bat ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
             COMMENT "Now Generating libguile/scmconfig.h file"
     )
 else()
     add_custom_command(
             TARGET gen-scmconfig
-            COMMAND gen-scmconfig > ${CMAKE_BINARY_DIR}/libguile/scmconfig.h
-            COMMAND cd ${CMAKE_SOURCE_DIR} && sh gen_dot_x.sh ${CMAKE_BINARY_DIR}
+            COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
+            COMMAND cd ${guile_SOURCE_DIR} && sh ./cmake/gen_dot_x.sh ${guile_BINARY_DIR}
             COMMENT "Now Generating libguile/scmconfig.h file"
     )
 endif ()

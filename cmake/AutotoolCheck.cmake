@@ -230,6 +230,7 @@ check_symbol_exists(h_errno "netdb.h" HAVE_H_ERRNO)
 check_symbol_exists(isinf "math.h" HAVE_ISINF)
 check_symbol_exists(isnan "math.h" HAVE_ISNAN)
 check_symbol_exists(timespec "time.h" "pthread.h" HAVE_STRUCT_TIMESPEC)
+check_symbol_exists(struct tm "sys/time.h" TM_IN_SYS_TIME)
 # FIXME: Looking for pthread_getattr_np - not found
 check_symbol_exists(pthread_attr_getstack "pthread.h" HAVE_PTHREAD_ATTR_GETSTACK)
 check_symbol_exists(pthread_getattr_np "pthread.h" HAVE_PTHREAD_GETATTR_NP)
@@ -247,7 +248,9 @@ CHECK_STRUCT_HAS_MEMBER("struct tm" tm_zone time.h HAVE_STRUCT_TM_TM_ZONE LANGUA
 CHECK_STRUCT_HAS_MEMBER("struct tm" tm_zone time.h HAVE_TM_ZONE LANGUAGE C)
 CHECK_STRUCT_HAS_MEMBER("struct tm" tzname time.h HAVE_TZNAME LANGUAGE C)
 include(CheckLibraryExists)
-
+if(HAVE_TIME_H AND HAVE_SYS_TIME_H)
+    set(TIME_WITH_SYS_TIME 1)
+endif()
 # TODO: Check?
 set(STDC_HEADERS ${HAVE_STDLIB_H})
 set(HAVE_IPV6 1)
