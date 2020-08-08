@@ -5,17 +5,20 @@ set(GUILE_MINOR_VERSION ${guile_VERSION_MINOR})
 set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
 set(CMAKE_C_STANDARD 90)
 
+find_program (PYTHON_PATH NAMES python3 python REQUIRED)
+message("find python " ${PYTHON_PATH})
+
 # Generate c source before cmake handle target
 if (WIN32)
     execute_process(
             COMMAND gen_c_source.bat ${CMAKE_BINARY_DIR}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
             COMMAND_ECHO STDOUT
     )
 else()
     execute_process(
-            COMMAND sh gen_c_source.sh ${CMAKE_BINARY_DIR}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
             COMMAND_ECHO STDOUT
     )
 endif ()
@@ -34,9 +37,7 @@ if (WIN32)
     configure_file (${CMAKE_SOURCE_DIR}/gen_dot_x.bat.cmake ${CMAKE_BINARY_DIR}/gen_dot_x.bat)
 endif ()
 
-find_program (PYTHON_PATH NAMES python3 python REQUIRED)
-message("find python " ${PYTHON_PATH})
-set(GEN_DOT_X_PY ${CMAKE_CURRENT_SOURCE_DIR}/gen_dot_x.py)
+set(GEN_DOT_X_PY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.py)
 if (UNIX)
     find_package(Threads REQUIRED)
 endif ()
