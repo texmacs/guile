@@ -13,27 +13,12 @@ else()
     message("find python " ${PYTHON_PATH})
 endif()
 
-
 # Generate c source before cmake handle target
 execute_process(
         COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
         COMMAND_ECHO STDOUT
 )
-
-find_program (AWK_PATH NAMES awk gawk awk.exe gawk.exe PATH_SUFFIXES /usr/bin REQUIRED)
-if(${AWK_PATH} STREQUAL AWK_PATH-NOTFOUND)
-    message("AWK_PATH back to awk")
-    set(AWK_PATH awk)
-endif()
-message("find awk " ${AWK_PATH})
-find_program (CPP_PATH NAMES cpp REQUIRED)
-message("find cpp " ${CPP_PATH})
-if (WIN32)
-    find_program (BASH_PATH NAMES sh.exe REQUIRED)
-    message("find bash " ${BASH_PATH})
-    configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.bat.cmake ${CMAKE_CURRENT_BINARY_DIR}/gen_dot_x.bat)
-endif ()
 
 set(GEN_DOT_X_PY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.py)
 if (UNIX)
@@ -45,7 +30,6 @@ set(PREFIX "/usr/local")
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/guile-snarf.in.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/guile-snarf)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/gen-scmconfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/gen-scmconfig.h)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/version.h)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/libpath.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/libpath.h)
