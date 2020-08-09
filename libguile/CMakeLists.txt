@@ -147,20 +147,12 @@ endif ()
 
 add_executable(gen-scmconfig gen-scmconfig.c)
 target_include_directories(gen-scmconfig PRIVATE ${guile_BINARY_DIR})
-if (WIN32)
-    add_custom_command(
-            TARGET gen-scmconfig
-            COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
-            COMMAND ${guile_BINARY_DIR}/gen_dot_x.bat ${guile_SOURCE_DIR} ${guile_BINARY_DIR}
-            COMMENT "Now Generating libguile/scmconfig.h file"
-    )
-else()
-    add_custom_command(
-            TARGET gen-scmconfig
-            COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
-            COMMAND cd ${guile_SOURCE_DIR} && sh ./cmake/gen_dot_x.sh ${guile_BINARY_DIR}
-            COMMENT "Now Generating libguile/scmconfig.h file"
-    )
-endif ()
+set(common_options "-DHAVE_CONFIG_H -I${guile_SOURCE_DIR} -I${guile_BINARY_DIR}")
+add_custom_command(
+        TARGET gen-scmconfig
+        COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
+        COMMAND ${PYTHON_PATH}  ${guile_SOURCE_DIR}/cmake/gen_dot_x_for_libguile.py ${guile_SOURCE_DIR}/libguile ${guile_BINARY_DIR}/libguile ${common_options}
+        COMMENT "Now Generating libguile/scmconfig.h file"
+)
 
 add_dependencies(guile gen-scmconfig)
