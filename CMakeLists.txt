@@ -6,7 +6,13 @@ set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
 set(CMAKE_C_STANDARD 90)
 message("GUILE ${guile_SOURCE_DIR} ${guile_BINARY_DIR}")
 find_program (PYTHON_PATH NAMES python3 python REQUIRED)
-message("find python " ${PYTHON_PATH})
+if(${PYTHON_PATH} STREQUAL PYTHON_PATH-NOTFOUND)
+    message("PYTHON_PATH back to python3")
+    set(PYTHON_PATH python3)
+else()
+    message("find python " ${PYTHON_PATH})
+endif()
+
 
 # Generate c source before cmake handle target
 execute_process(
