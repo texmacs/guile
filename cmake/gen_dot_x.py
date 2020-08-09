@@ -4,15 +4,7 @@ import sys
 import re
 import subprocess
 
-
-def main(argv):
-    if len(argv) != 4:
-        print("Usage: gen_dot_x.py input_c_source_file output_x_file other_options")
-        exit(0)
-
-    input_c_source_file = argv[1]
-    output_x_file = argv[2]
-    other_options = argv[3]
+def gen_dox_x(input_c_source_file, output_x_file, other_options):
     with open(output_x_file, 'w') as f:
         print('// make sure file exist. fix xxx.x: No such file or directory when run cpp', file=f)
     cmd = f'gcc -E -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER {input_c_source_file} {other_options}'
@@ -36,6 +28,16 @@ def main(argv):
             line = re.sub(pattern_begin, '', line)
             line = re.sub(pattern_end, ';', line)
             print(line, file=f)
+
+def main(argv):
+    if len(argv) != 4:
+        print("Usage: gen_dot_x.py input_c_source_file output_x_file other_options")
+        exit(0)
+
+    input_c_source_file = argv[1]
+    output_x_file = argv[2]
+    other_options = argv[3]
+    gen_dox_x(input_c_source_file, output_x_file, other_options)
     print('done!')
 
 
