@@ -151,7 +151,7 @@ if (WIN32)
     add_custom_command(
             TARGET gen-scmconfig
             COMMAND gen-scmconfig > ${CMAKE_CURRENT_BINARY_DIR}/scmconfig.h
-            COMMAND ${CMAKE_BINARY_DIR}/gen_dot_x.bat ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+            COMMAND ${guile_BINARY_DIR}/gen_dot_x.bat ${guile_SOURCE_DIR} ${guile_BINARY_DIR}
             COMMENT "Now Generating libguile/scmconfig.h file"
     )
 else()
