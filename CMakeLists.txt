@@ -4,7 +4,6 @@ set(GUILE_MAJOR_VERSION ${guile_VERSION_MAJOR})
 set(GUILE_MINOR_VERSION ${guile_VERSION_MINOR})
 set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
 set(CMAKE_C_STANDARD 90)
-message("GUILE ${guile_SOURCE_DIR} ${guile_BINARY_DIR}")
 find_program (PYTHON_PATH NAMES python3 python REQUIRED)
 if(${PYTHON_PATH} STREQUAL PYTHON_PATH-NOTFOUND)
     message("PYTHON_PATH back to python3")
@@ -15,7 +14,9 @@ endif()
 
 # Generate c source before cmake handle target
 execute_process(
-        COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${guile_SOURCE_DIR} ${guile_BINARY_DIR}
+        COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py
+                               ${guile_SOURCE_DIR}
+                               ${guile_BINARY_DIR}
         WORKING_DIRECTORY ${guile_SOURCE_DIR}/cmake
         COMMAND_ECHO STDOUT
 )
@@ -187,7 +188,10 @@ set(common_options "-DHAVE_CONFIG_H -I${guile_SOURCE_DIR} -I${guile_BINARY_DIR}"
 add_custom_command(
         TARGET gen-scmconfig
         COMMAND gen-scmconfig > ${guile_BINARY_DIR}/libguile/scmconfig.h
-        COMMAND ${PYTHON_PATH}  ${guile_SOURCE_DIR}/cmake/gen_dot_x_for_libguile.py ${guile_SOURCE_DIR}/libguile ${guile_BINARY_DIR}/libguile ${common_options}
+        COMMAND ${PYTHON_PATH}  ${guile_SOURCE_DIR}/cmake/gen_dot_x_for_libguile.py
+                                ${guile_SOURCE_DIR}/libguile
+                                ${guile_BINARY_DIR}/libguile
+                                ${common_options}
         COMMENT "Now Generating libguile/scmconfig.h file"
 )
 
