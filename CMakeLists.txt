@@ -15,12 +15,12 @@ endif()
 
 # Generate c source before cmake handle target
 execute_process(
-        COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
+        COMMAND ${PYTHON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_c_source.py ${guile_SOURCE_DIR} ${guile_BINARY_DIR}
+        WORKING_DIRECTORY ${guile_SOURCE_DIR}/cmake
         COMMAND_ECHO STDOUT
 )
 
-set(GEN_DOT_X_PY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_dot_x.py)
+set(GEN_DOT_X_PY ${guile_SOURCE_DIR}/cmake/gen_dot_x.py)
 if (UNIX)
     find_package(Threads REQUIRED)
 endif ()
@@ -29,10 +29,10 @@ string(TIMESTAMP BUILDSTAMP "%Y-%m-%d %H:%M")
 set(PREFIX "/usr/local")
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/gen-scmconfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/gen-scmconfig.h)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/version.h)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake/libguile/libpath.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/libguile/libpath.h)
+configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake                 ${guile_BINARY_DIR}/config.h)
+configure_file (${guile_SOURCE_DIR}/cmake/libguile/gen-scmconfig.h.cmake ${guile_BINARY_DIR}/libguile/gen-scmconfig.h)
+configure_file (${guile_SOURCE_DIR}/cmake/libguile/version.h.cmake       ${guile_BINARY_DIR}/libguile/version.h)
+configure_file (${guile_SOURCE_DIR}/cmake/libguile/libpath.h.cmake       ${guile_BINARY_DIR}/libguile/libpath.h)
 set(guile_snarf_path ${CMAKE_BINARY_DIR}/libguile/guile-snarf)
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     add_library(guile)
