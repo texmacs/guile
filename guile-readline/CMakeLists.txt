@@ -6,9 +6,9 @@ check_function_exists (rl_filename_completion_function HAVE_RL_FILENAME_COMPLETI
 check_function_exists (rl_getc_function HAVE_RL_GETC_FUNCTION)
 check_function_exists (rl_get_keymap HAVE_RL_GET_KEYMAP)
 check_function_exists (rl_get_keymap HAVE_RL_GET_KEYMAP)
-configure_file (${CMAKE_SOURCE_DIR}/guile-readline/guile-readline-config.h.cmake
-        ${CMAKE_BINARY_DIR}//guile-readline/guile-readline-config.h)
+configure_file (${guile_SOURCE_DIR}/guile-readline/guile-readline-config.h.cmake
+        ${guile_BINARY_DIR}//guile-readline/guile-readline-config.h)
 add_library(guile-readline SHARED)
 target_sources(guile-readline PRIVATE readline.h readline.c)
-target_include_directories(guile-readline PRIVATE ${CMAKE_BINARY_DIR}/guile-readline)
+target_include_directories(guile-readline PRIVATE ${guile_BINARY_DIR}/guile-readline)
 target_link_libraries(guile-readline readline)
