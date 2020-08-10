@@ -38,11 +38,11 @@ configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake                 ${guile
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/gen-scmconfig.h.cmake ${guile_BINARY_DIR}/libguile/gen-scmconfig.h)
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/version.h.cmake       ${guile_BINARY_DIR}/libguile/version.h)
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/libpath.h.cmake       ${guile_BINARY_DIR}/libguile/libpath.h)
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    add_library(guile)
-else()
+#if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#    add_library(guile)
+#else()
     add_library(guile SHARED)
-endif ()
+#endif ()
 
 add_definitions(-DHAVE_CONFIG_H)
 target_sources(guile
@@ -197,11 +197,26 @@ add_custom_command(
                                 ${common_options}
         COMMENT "Now Generating libguile/scmconfig.h file"
 )
-
+file(GLOB srfi_subfiles RELATIVE ${guile_SOURCE_DIR}/srfi ${guile_SOURCE_DIR}/srfi/*)
+foreach(subfile ${srfi_subfiles})
+    if (${subfile} MATCHES ".c$")
+        string(REGEX REPLACE ".c$" "" dot_x_name ${subfile} )
+        execute_process(
+                COMMAND ${PYTHON_PATH} ${GEN_DOT_X_PY}
+                srfi/${subfile}
+                ${guile_BINARY_DIR}/srfi/${dot_x_name}.x
+                ${common_options}
+                WORKING_DIRECTORY ${guile_SOURCE_DIR}
+                COMMAND_ECHO STDOUT
+        )
+    endif ()
+endforeach()
+add_library(guile-srfi-srfi-1-v-3 SHARED srfi/srfi-1.c)
+add_library(guile-srfi-srfi-60-v-2 SHARED srfi/srfi-60.c)
 add_dependencies(guile gen-scmconfig)
-#add_subdirectory(guile-readline)
-#add_subdirectory(examples)
-#add_subdirectory(test-suite/standalone)
+add_subdirectory(guile-readline)
+add_subdirectory(examples)
+add_subdirectory(test-suite/standalone)
 add_executable(guile-main libguile/guile.c)
 target_link_libraries(guile-main guile)
 set_target_properties(guile-main PROPERTIES OUTPUT_NAME guile)
