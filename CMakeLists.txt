@@ -169,7 +169,7 @@ target_sources(guile
         )
 if (WIN32)
     target_sources(guile PRIVATE
-            #            win32-dirent.c
+#            win32-dirent.c
             win32-socket.c
             win32-uname.c
             )
@@ -197,7 +197,6 @@ add_dependencies(guile gen-scmconfig)
 #add_subdirectory(test-suite/standalone)
 add_executable(guile-main libguile/guile.c)
 target_link_libraries(guile-main guile)
-#target_include_directories(guile-main PRIVATE ${guile_SOURCE_DIR})
 set_target_properties(guile-main PROPERTIES OUTPUT_NAME guile)
 
 
