@@ -43,7 +43,7 @@ def run_cmd(cmd: str, work_dir: str):
     # print(cmd)
     # ret = subprocess.check_output(cmd, cwd=work_dir, shell=True)
     # print(ret)
-    ret = subprocess.call(cmd, cwd=work_dir, shell=True)
+    ret = subprocess.call(cmd, cwd=work_dir, shell=False)
     if ret != 0:
         print('FAIL')
         test_ret['fail'] += 1
@@ -53,12 +53,15 @@ def run_cmd(cmd: str, work_dir: str):
 
 
 def run_test(name: str, work_dir: str, cmd: str = None, fn=None):
+    guile_load_path_save = os.getenv("GUILE_LOAD_PATH")
+    os.environ["GUILE_LOAD_PATH"]=f'{work_dir}{sep}{guile_load_path_save}'
     print_test_header(name)
     if cmd is not None:
         run_cmd(cmd, work_dir)
     if fn is not None:
         fn(name, work_dir)
     print_test_footer(name + ' done')
+    os.environ["GUILE_LOAD_PATH"]=guile_load_path_save
 
 
 def print_test_report():
@@ -75,15 +78,19 @@ def main(argv):
     guile_srcdir = argv[1]
     guile_dstdir = argv[2]
     guile_main = f'{guile_dstdir}/guile'
-    os.environ['PATH'] = f'{guile_dstdir};{os.getenv("PATH")}'
-    os.environ['GUILE_LOAD_PATH'] = f'{guile_srcdir}'
+    os.environ['PATH'] = f'{guile_dstdir}{sep}{os.getenv("PATH")}'
+    if platform.system() != 'Windows':
+        os.environ['GUILE_LOAD_PATH'] = '.'
+        os.environ['LD_LIBRARY_PATH'] = '.'
+    os.environ['GUILE_LOAD_PATH'] = f'{guile_srcdir}{sep}{os.getenv("GUILE_LOAD_PATH")}'
+    os.environ['LD_LIBRARY_PATH'] = f'{guile_dstdir}{sep}{os.getenv("LD_LIBRARY_PATH")}'
     print(os.getenv('GUILE_LOAD_PATH'))
     print_dir('example')
     run_test('example box', f'{guile_dstdir}/examples/box', './box script.scm')
     run_test('example box-dynamic', f'{guile_dstdir}/examples/box-dynamic', f'{guile_main} script.scm')
 
     def run_test_example_box_dynamic_module(name, work_dir):
-        os.environ['GUILE_LOAD_PATH'] = f'{guile_srcdir};{work_dir}'
+        os.environ['GUILE_LOAD_PATH'] = f'{guile_srcdir}{sep}{work_dir}'
         for subtest in ['box-mixed', 'box-module']:
             print(f'> run {subtest}')
             cmd = f'{guile_main} {subtest}-script.scm'
@@ -101,7 +108,6 @@ def main(argv):
 
     run_test('example c_scheme', f'{guile_dstdir}/examples/c_scheme', fn=run_test_example_c_scheme)
     run_test('examples modules', f'{guile_srcdir}/examples/modules', f'{guile_main} main')
-
     def run_test_example_safe(name, work_dir):
         for loop in ['evil', 'untrusted']:
             print(f'> {loop}')
@@ -111,7 +117,7 @@ def main(argv):
 
     def run_test_example_scripts(name, work_dir):
         print('> run fact 5')
-        run_cmd(f'{guile_main} fact t', work_dir)
+        run_cmd(f'{guile_main} fact 5', work_dir)
         for loop in ['hello', 'simple-hello.scm']:
             print(f'> run {loop}')
             run_cmd(f'{guile_main} {loop}', work_dir)
@@ -119,6 +125,7 @@ def main(argv):
     run_test('exmaple scripts', f'{guile_srcdir}/examples/scripts', fn=run_test_example_scripts)
 
     print_dir('test-suite')
+    os.environ['builddir'] = f'{guile_dstdir}/test-suite/standalone'
     run_test('test-suite standalone test-asmobs', f'{guile_dstdir}/test-suite/standalone', f'{guile_main} test-asmobs')
     standalone_exe_list = 'test-conversion test-gh test-list test-num2integral test-round test-scm-c-read ' \
                           'test-scm-take-locale-symbol test-scm-with-guile test-unwind test-with-guile-module'
@@ -141,6 +148,11 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    os.environ['PATH'] = f'C:\\msys64\\mingw32\\bin;{os.getenv("PATH")}'
+    if platform.system() == 'Windows':
+        sep = ';'
+        os.environ['PATH'] = f'C:\\msys64\\mingw32\\bin;{os.getenv("PATH")}'
+    else:
+        sep = ':'
+
     main(sys.argv)
     # run_cmd('box script.scm', f"{sys.argv[2]}\\examples\\box")
