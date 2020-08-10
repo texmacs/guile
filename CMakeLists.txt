@@ -179,7 +179,7 @@ target_include_directories(guile PUBLIC ${guile_BINARY_DIR} ${guile_SOURCE_DIR})
 if (WIN32)
     target_link_libraries(guile  m pthread gmp ltdl ws2_32 regex intl)
 else()
-    target_link_libraries(guile  m Threads::Threads gmp ltdl crypt)
+    target_link_libraries(guile  m Threads::Threads gmp ltdl)
 endif ()
 
 add_executable(gen-scmconfig libguile/gen-scmconfig.c)
