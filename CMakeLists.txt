@@ -38,7 +38,6 @@ configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake                 ${guile
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/gen-scmconfig.h.cmake ${guile_BINARY_DIR}/libguile/gen-scmconfig.h)
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/version.h.cmake       ${guile_BINARY_DIR}/libguile/version.h)
 configure_file (${guile_SOURCE_DIR}/cmake/libguile/libpath.h.cmake       ${guile_BINARY_DIR}/libguile/libpath.h)
-set(guile_snarf_path ${CMAKE_BINARY_DIR}/libguile/guile-snarf)
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     add_library(guile)
 else()
