@@ -2,9 +2,15 @@
 
 import sys
 import re
+import os
+import os.path as osp
 import subprocess
 
 def gen_dox_x(input_c_source_file, output_x_file, other_options):
+    output_path = osp.dirname(output_x_file)
+    if not osp.exists(output_path):
+        print(f'mkdir {output_path}')
+        os.makedirs(output_path)
     with open(output_x_file, 'w') as f:
         print('// make sure file exist. fix xxx.x: No such file or directory when run cpp', file=f)
     cmd = f'gcc -E -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER {input_c_source_file} {other_options}'
