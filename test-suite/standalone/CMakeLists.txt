@@ -19,13 +19,6 @@ foreach(subfile ${c_scheme_subfiles})
     endif ()
 endforeach()
 
-foreach(test_target_name ${need_gen_dot_x})
-    execute_process(
-            COMMAND ${PYTHON_PATH} ${GEN_DOT_X_PY} ${test_target_name}.c ${CMAKE_CURRENT_BINARY_DIR}/${test_target_name}.x ${common_options}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND_ECHO STDOUT
-    )
-endforeach()
 
 add_custom_command(
         TARGET test-asmobs

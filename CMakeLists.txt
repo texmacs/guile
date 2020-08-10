@@ -201,18 +201,29 @@ file(GLOB srfi_subfiles RELATIVE ${guile_SOURCE_DIR}/srfi ${guile_SOURCE_DIR}/sr
 foreach(subfile ${srfi_subfiles})
     if (${subfile} MATCHES ".c$")
         string(REGEX REPLACE ".c$" "" dot_x_name ${subfile} )
-        execute_process(
+        add_custom_command(
+                TARGET guile
                 COMMAND ${PYTHON_PATH} ${GEN_DOT_X_PY}
                 srfi/${subfile}
                 ${guile_BINARY_DIR}/srfi/${dot_x_name}.x
                 ${common_options}
                 WORKING_DIRECTORY ${guile_SOURCE_DIR}
-                COMMAND_ECHO STDOUT
+                COMMENT "generate srfi/${dot_x_name}.x"
         )
     endif ()
 endforeach()
+add_custom_command(
+        TARGET guile
+        COMMAND ${PYTHON_PATH} ${GEN_DOT_X_PY} test-suite/standalone/test-asmobs-lib.c
+        ${guile_BINARY_DIR}/test-suite/standalone/test-asmobs-lib.x
+        "${common_options} -I${guile_BINARY_DIR}/test-suite/standalone"
+        WORKING_DIRECTORY ${guile_SOURCE_DIR}
+        COMMENT "generate test-asmobs-lib.x "
+)
 add_library(guile-srfi-srfi-1-v-3 SHARED srfi/srfi-1.c)
 add_library(guile-srfi-srfi-60-v-2 SHARED srfi/srfi-60.c)
+add_dependencies(guile-srfi-srfi-1-v-3 guile)
+add_dependencies(guile-srfi-srfi-60-v-2 guile)
 add_dependencies(guile gen-scmconfig)
 add_subdirectory(guile-readline)
 add_subdirectory(examples)
