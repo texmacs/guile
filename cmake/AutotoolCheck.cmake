@@ -229,13 +229,23 @@ check_symbol_exists(vsnprintf "stdio.h" HAVE_DECL_VSNPRINTF)
 check_symbol_exists(h_errno "netdb.h" HAVE_H_ERRNO)
 check_symbol_exists(isinf "math.h" HAVE_ISINF)
 check_symbol_exists(isnan "math.h" HAVE_ISNAN)
-check_symbol_exists(timespec "time.h" "pthread.h" HAVE_STRUCT_TIMESPEC)
 check_symbol_exists(struct tm "sys/time.h" TM_IN_SYS_TIME)
 # FIXME: Looking for pthread_getattr_np - not found
 check_symbol_exists(pthread_attr_getstack "pthread.h" HAVE_PTHREAD_ATTR_GETSTACK)
 check_symbol_exists(pthread_getattr_np "pthread.h" HAVE_PTHREAD_GETATTR_NP)
 check_symbol_exists(pthread_get_stackaddr_np "pthread.h" HAVE_PTHREAD_GET_STACKADDR_NP)
 check_symbol_exists(pthread_sigmask "pthread.h" HAVE_PTHREAD_SIGMASK)
+include(CheckCSourceCompiles)
+check_c_source_compiles("
+#include <threads.h>
+#include <time.h>
+int main() {
+struct timespec t;
+return 0;
+}
+"
+        HAVE_STRUCT_TIMESPEC
+        )
 include(CheckStructHasMember)
 CHECK_STRUCT_HAS_MEMBER("struct sockaddr_in6" sin6_scope_id sys/socket.h HAVE_SIN6_SCOPE_ID LANGUAGE C)
 CHECK_STRUCT_HAS_MEMBER("struct sockaddr_in6" sin6_len sys/socket.h HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN LANGUAGE C)
