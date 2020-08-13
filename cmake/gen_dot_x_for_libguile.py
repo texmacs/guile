@@ -47,10 +47,13 @@ def gen_dox_x(input_c_source_file, output_x_file):
             print(line, file=f)
 
 def gen_dot_x_input_names():
-    input_c_source_file_dir = args.srcdir
+    input_c_source_file_dir = args.srcdir + "/libguile/"
     all_files = os.listdir(input_c_source_file_dir)
     file_names = list(filter(lambda x: x.endswith(".c"), all_files))
-    return list(map(lambda x: x.rstrip(".c"), file_names))
+    names= list(map(lambda x: x[0:-2], file_names))
+    names.remove("coop")
+    names.remove("coop-threads")
+    return names
 
 def main():
     input_c_source_file_dir = args.srcdir
@@ -74,6 +77,7 @@ if __name__ == '__main__':
     parser.add_argument('--msvc', action='store_true', default=False)
     parser.add_argument('--include')
     parser.add_argument('--other')
+    print(sys.argv)
     args = parser.parse_args()
     print(args.include)
     main()
