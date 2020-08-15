@@ -56,14 +56,11 @@ if (WIN32)
 elseif(MSVC)
     unset(HAVE_UNISTD_H)
 endif ()
-configure_file (${guile_SOURCE_DIR}/cmake/version.h.cmake       ${guile_BINARY_DIR}/libguile/version.h)
-configure_file (${guile_SOURCE_DIR}/cmake/libpath.h.cmake       ${guile_BINARY_DIR}/libguile/libpath.h)
+configure_file (${guile_SOURCE_DIR}/cmake/version.h.cmake ${guile_BINARY_DIR}/libguile/version.h)
+configure_file (${guile_SOURCE_DIR}/cmake/libpath.h.cmake ${guile_BINARY_DIR}/libguile/libpath.h)
 
-if (MSVC)
-  configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake                 ${guile_BINARY_DIR}/libguile/scmconfig.h)
-else (MSVC)
-  configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake                 ${guile_BINARY_DIR}/config.h)
-endif ()
+configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake ${guile_BINARY_DIR}/libguile/scmconfig.h)
+configure_file (${guile_SOURCE_DIR}/cmake/config.h.cmake ${guile_BINARY_DIR}/config.h)
 
 execute_process(
     COMMAND ${PYTHON_PATH} ${guile_SOURCE_DIR}/cmake/gen_c_source.py ${guile_SOURCE_DIR}
