@@ -48,6 +48,8 @@
 #include "libguile/__scm.h"
 
 #include "libguile/options.h"
+
+#include <stddef.h>
 
 extern scm_t_option scm_print_opts[];
 

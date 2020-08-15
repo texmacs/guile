@@ -1,10 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
+
 project(guile VERSION 1.6.7 LANGUAGES C CXX)
 set(GUILE_MAJOR_VERSION ${guile_VERSION_MAJOR})
 set(GUILE_MINOR_VERSION ${guile_VERSION_MINOR})
 set(GUILE_MICRO_VERSION ${guile_VERSION_PATCH})
-set(CMAKE_C_STANDARD 90)
+
+if (APPLE)
+  # set (CMAKE_C_STANDARD 11)
+else (APPLE)
+  set (CMAKE_C_STANDARD 90)
+endif (APPLE)
 set(CMAKE_MODULE_PATH ${guile_SOURCE_DIR}/cmake)
+
 find_program (PYTHON_PATH NAMES python3 python REQUIRED)
 if(${PYTHON_PATH} STREQUAL PYTHON_PATH-NOTFOUND)
     message("PYTHON_PATH back to python3")
