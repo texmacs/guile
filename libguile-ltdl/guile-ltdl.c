@@ -40,6 +40,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #define SCM_UNUSED
 #endif
 
+#if defined(__MINGW32__) || defined(__APPLE__)
+#define error_t int
+#endif
+
 #include "raw-ltdl.h"
 #include "raw-ltdl.c"
 
