@@ -1,0 +1,8 @@
+libguile/cpp_err_symbols.c
+libguile/cpp_sig_symbols.c
+
+.idea/
+.vscode/
+
+cmake-build-debug/
+build/
